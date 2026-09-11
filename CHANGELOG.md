@@ -4,6 +4,11 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-09-12
+
+### Fixed
+- The control surface crashed on a portrait phone since 0.7.1: the now-playing box's smallest width was larger than the room between the corner dials, and the clamp threw. The box now keeps its minimum and overlaps the dials' reach instead. The crash hit on every launch that auto-connected, and on Back from Settings.
+
 ## [0.8.0] - 2026-09-12
 
 ### Added

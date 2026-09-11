@@ -242,10 +242,11 @@ class ControlSurface(
     ) {
         val (nx, ny) = pieces.getValue(MediaPiece.NOW_PLAYING)
         val fixed = media(LOGO_DP) + dp(Space.M)
-        val roomMax = w - 2 * dp(painter.halfLengthDp + Space.L) - fixed
+        // On a narrow screen the dials leave less than the minimum; the minimum wins and the box overlaps them.
+        val roomMax = maxOf(w - 2 * dp(painter.halfLengthDp + Space.L) - fixed, media(NOW_PLAYING_MIN_TEXT_DP))
         subText()
         val text = maxOf(titlePaint.measureText(titleLine), mono.measureText(subLine))
-        val half = (fixed + text.coerceIn(media(NOW_PLAYING_MIN_TEXT_DP), roomMax.coerceAtLeast(0f))) / 2
+        val half = (fixed + text.coerceIn(media(NOW_PLAYING_MIN_TEXT_DP), roomMax)) / 2
         val tall = media(NOW_PLAYING_HEIGHT_DP) / 2
         nowPlayingBox.set(nx * w - half, ny * h - tall, nx * w + half, ny * h + tall)
         val touch = dp(Space.TOUCH) / 2
@@ -260,7 +261,11 @@ class ControlSurface(
     private fun rebuildText() {
         val playing = state.nowPlaying
         titlePaint.color = if (playing.isEmpty()) dim else ink
-        val room = width - 2 * dp(painter.halfLengthDp + Space.L) - media(LOGO_DP) - dp(Space.M)
+        val room =
+            maxOf(
+                width - 2 * dp(painter.halfLengthDp + Space.L) - media(LOGO_DP) - dp(Space.M),
+                media(NOW_PLAYING_MIN_TEXT_DP),
+            )
         titleLine =
             TextUtils
                 .ellipsize(
