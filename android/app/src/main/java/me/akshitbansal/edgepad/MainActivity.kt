@@ -18,11 +18,15 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
+import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.RttStats
 import me.akshitbansal.edgepad.protocol.Frame
+import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
+import me.akshitbansal.edgepad.screens.GamepadScreen
 import me.akshitbansal.edgepad.screens.GestureScreen
+import me.akshitbansal.edgepad.screens.KeyboardScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.OnboardingScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
@@ -42,7 +46,18 @@ import kotlin.concurrent.thread
 class MainActivity :
     Activity(),
     LaptopLink.Listener {
-    private enum class Screen { ONBOARDING, PAIRING, SETTINGS, GESTURES, MEDIA_LAYOUT, SURFACE, RECONNECTING }
+    private enum class Screen {
+        ONBOARDING,
+        PAIRING,
+        SETTINGS,
+        GESTURES,
+        MEDIA_LAYOUT,
+        GAMEPAD_LAYOUT,
+        KEYBOARD,
+        GAMEPAD,
+        SURFACE,
+        RECONNECTING,
+    }
 
     /** What survives the activity being rebuilt for a rotation or a theme change. */
     private class Retained(
@@ -50,6 +65,7 @@ class MainActivity :
         val state: LaptopState,
         val screen: Screen,
         val settingsReturn: Screen,
+        val layoutReturn: Screen,
         val laptopName: String,
         val laptopAddress: String,
         val attempts: Int,
@@ -69,6 +85,10 @@ class MainActivity :
     private var laptopAddress = ""
     private var screen = Screen.PAIRING
     private var settingsReturn = Screen.PAIRING
+
+    /** Where the gamepad layout editor goes back to: Settings, or the gamepad it was opened from. */
+    private var layoutReturn = Screen.SETTINGS
+    private lateinit var gamepads: GamepadStore
     private var started = false
     private var attempts = 0
     private var lostAt = 0L
@@ -95,6 +115,7 @@ class MainActivity :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         settings = Settings(this)
+        gamepads = GamepadStore(this)
         ui = Ui(this)
         picker =
             PickerScreen(
@@ -109,6 +130,7 @@ class MainActivity :
             link = retained.link?.also { it.listener = this }
             state = retained.state
             settingsReturn = retained.settingsReturn
+            layoutReturn = retained.layoutReturn
             laptopName = retained.laptopName
             laptopAddress = retained.laptopAddress
             attempts = retained.attempts
@@ -124,7 +146,7 @@ class MainActivity :
     }
 
     override fun onRetainNonConfigurationInstance(): Any =
-        Retained(link, state, screen, settingsReturn, laptopName, laptopAddress, attempts, lostAt)
+        Retained(link, state, screen, settingsReturn, layoutReturn, laptopName, laptopAddress, attempts, lostAt)
 
     override fun onStart() {
         super.onStart()
@@ -194,6 +216,10 @@ class MainActivity :
                         onForget = ::forget,
                         onGestures = { goTo(Screen.GESTURES) },
                         onMediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
+                        onGamepadLayout = {
+                            layoutReturn = Screen.SETTINGS
+                            goTo(Screen.GAMEPAD_LAYOUT)
+                        },
                         onPickImage = ::pickImage,
                         onBack = { navigateBack() },
                     )
@@ -205,6 +231,27 @@ class MainActivity :
 
                 Screen.MEDIA_LAYOUT -> {
                     MediaLayoutScreen.build(ui, settings) { navigateBack() }
+                }
+
+                Screen.GAMEPAD_LAYOUT -> {
+                    GamepadLayoutScreen.build(ui, gamepads) { navigateBack() }
+                }
+
+                Screen.KEYBOARD -> {
+                    KeyboardScreen.build(ui, onKey = ::key) { navigateBack() }
+                }
+
+                Screen.GAMEPAD -> {
+                    GamepadScreen.build(
+                        ui,
+                        gamepads.current,
+                        onKey = ::key,
+                        onBack = { navigateBack() },
+                        onEdit = {
+                            layoutReturn = Screen.GAMEPAD
+                            goTo(Screen.GAMEPAD_LAYOUT)
+                        },
+                    )
                 }
 
                 Screen.RECONNECTING -> {
@@ -225,6 +272,8 @@ class MainActivity :
                         state,
                         { frame -> link?.send(frame) },
                         ::openSettings,
+                        onOpenKeyboard = { goTo(Screen.KEYBOARD) },
+                        onOpenGamepad = { goTo(Screen.GAMEPAD) },
                     ).also { surface = it }
                 }
             }
@@ -234,7 +283,7 @@ class MainActivity :
                 WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
                     WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
             bars.setSystemBarsAppearance(if (ui.palette.dark) 0 else light, light)
-            if (next == Screen.SURFACE) {
+            if (next == Screen.SURFACE || next == Screen.KEYBOARD || next == Screen.GAMEPAD) {
                 bars.hide(WindowInsets.Type.systemBars())
                 bars.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             } else {
@@ -284,6 +333,14 @@ class MainActivity :
                 goTo(Screen.SETTINGS)
             }
 
+            Screen.GAMEPAD_LAYOUT -> {
+                goTo(layoutReturn)
+            }
+
+            Screen.KEYBOARD, Screen.GAMEPAD -> {
+                goTo(if (link?.connected == true) Screen.SURFACE else Screen.PAIRING)
+            }
+
             else -> {
                 return false
             }
@@ -321,6 +378,14 @@ class MainActivity :
             settings.backgroundImage.delete()
         }
         if (screen == Screen.SETTINGS) goTo(Screen.SETTINGS)
+    }
+
+    /** A key pressed or released on the keyboard or gamepad screen. */
+    private fun key(
+        code: Int,
+        down: Boolean,
+    ) {
+        link?.send(Frame.Key(code, down))
     }
 
     private fun openSettings() {
@@ -437,7 +502,11 @@ class MainActivity :
         val userEnded = reason == getString(R.string.status_disconnected)
         when {
             userEnded -> {
-                if (screen == Screen.SURFACE || screen == Screen.RECONNECTING) goTo(Screen.PAIRING)
+                if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.KEYBOARD ||
+                    screen == Screen.GAMEPAD
+                ) {
+                    goTo(Screen.PAIRING)
+                }
                 if (screen == Screen.SETTINGS) {
                     if (settingsReturn == Screen.SURFACE) settingsReturn = Screen.PAIRING
                     goTo(Screen.SETTINGS)

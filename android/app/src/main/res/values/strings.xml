@@ -176,5 +176,7 @@
   <string name="surface_next">Next track</string>
   <string name="surface_previous">Previous track</string>
   <string name="surface_open_settings">Open settings</string>
-  <string name="surface_keyboard">Show or hide the keyboard</string>
+  <string name="surface_keyboard">Open the keyboard</string>
+  <string name="surface_gamepad">Open the gamepad</string>
+  <string name="settings_gamepad">GAMEPAD</string>
 </resources>

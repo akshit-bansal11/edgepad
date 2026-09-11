@@ -66,6 +66,7 @@ object SettingsScreen {
         onForget: () -> Unit,
         onGestures: () -> Unit,
         onMediaLayout: () -> Unit,
+        onGamepadLayout: () -> Unit,
         onPickImage: () -> Unit,
         onBack: () -> Unit,
     ): View =
@@ -156,6 +157,10 @@ object SettingsScreen {
             section(ui.string(R.string.settings_media))
             hairline()
             add(linkRow(ui, ui.string(R.string.media_layout_title), onMediaLayout))
+
+            section(ui.string(R.string.settings_gamepad))
+            hairline()
+            add(linkRow(ui, ui.string(R.string.gamepad_layout_title), onGamepadLayout))
 
             section(ui.string(R.string.settings_appearance))
             hairline()

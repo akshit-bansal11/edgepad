@@ -4,6 +4,17 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-12
+
+### Added
+- A full on-screen keyboard: six rows with function keys, numbers, modifiers that stay held until the next key, arrows, and a back button to the controls. Several keys can be held at once.
+- A gamepad screen: buttons, shoulders, a d-pad and a stick, each mapped to keyboard keys on the laptop, with multi-touch so a thumb on the stick and a button press work together. Four presets (Xbox, Platformer, Racing, Shooter).
+- A gamepad layout editor with the same snap grid and centre lines as the media layout: drag any control, long-press to resize, pick a preset, reset. Reached from the gamepad's Edit button or from Settings.
+- Protocol: a KEY frame (0x22) presses or releases one key by Windows virtual-key code; the laptop sends scan codes too, so games see the keys.
+
+### Changed
+- The keyboard button at the top of the surface opens the keyboard screen instead of the phone's own keyboard; a gamepad button sits beside it.
+
 ## [0.7.2] - 2026-09-12
 
 ### Added

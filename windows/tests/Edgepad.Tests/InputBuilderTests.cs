@@ -62,4 +62,19 @@ public sealed class InputBuilderTests
     [Fact]
     public void AnUnknownMouseButtonIsRejected() =>
         Assert.Throws<InvalidDataException>(() => InputBuilder.ButtonFlags(3));
+
+    [Fact]
+    public void VirtualKeyCarriesTheRawCodeAndAScanCode()
+    {
+        var down = InputBuilder.VirtualKey(0x41, up: false);
+
+        Assert.Equal(0x41, down.Data.Keyboard.VirtualKey);
+        Assert.NotEqual(0, down.Data.Keyboard.ScanCode);
+        Assert.Equal(0u, down.Data.Keyboard.Flags & NativeMethods.KeyExtended);
+        Assert.NotEqual(0u, InputBuilder.VirtualKey(0x41, up: true).Data.Keyboard.Flags & NativeMethods.KeyUp);
+    }
+
+    [Fact]
+    public void LeftArrowByRawCodeIsExtended() =>
+        Assert.NotEqual(0u, InputBuilder.VirtualKey(0x25, up: false).Data.Keyboard.Flags & NativeMethods.KeyExtended);
 }
