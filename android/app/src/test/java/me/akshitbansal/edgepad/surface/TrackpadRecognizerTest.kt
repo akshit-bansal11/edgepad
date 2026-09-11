@@ -152,7 +152,7 @@ class TrackpadRecognizerTest {
         volume.handle(Action.DOWN, floatArrayOf(100f, 150f, 200f), floatArrayOf(300f, 300f, 300f), 0)
         volume.handle(Action.MOVE, floatArrayOf(100f, 150f, 200f), floatArrayOf(240f, 240f, 240f), 20)
         volume.handle(Action.MOVE, floatArrayOf(100f, 150f, 200f), floatArrayOf(160f, 160f, 160f), 30)
-        volume.handle(Action.MOVE, floatArrayOf(100f, 150f, 200f), floatArrayOf(240f, 240f, 240f), 40)
+        volume.handle(Action.MOVE, floatArrayOf(100f, 150f, 200f), floatArrayOf(250f, 250f, 250f), 40)
         volume.handle(Action.UP, FloatArray(0), FloatArray(0), 50)
         assertEquals(
             listOf(ActionId.VOLUME_UP.frame(), ActionId.VOLUME_UP.frame(), ActionId.VOLUME_DOWN.frame()),

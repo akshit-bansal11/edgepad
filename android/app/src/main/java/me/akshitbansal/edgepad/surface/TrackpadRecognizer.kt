@@ -211,7 +211,8 @@ class TrackpadRecognizer(
             runningSign = if (vertical) -1f else 1f
             stepAnchor = if (vertical) cy else cx
             begin(assigned, alongX = !vertical)
-            step(assigned, 1)
+            // Alt+Tab already moved to the next app when the switcher opened.
+            if (assigned != GestureAction.APP_SWITCHER) step(assigned, 1)
         } else {
             oneShot(assigned)
         }
