@@ -4,6 +4,23 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-12
+
+### Added
+- Player logos from the bundled SVGs, in their own colours; dark and light variants follow the theme.
+- Backgrounds for the control surface: a colour, a gradient with an angle, or an imported image, with an optional grid, dot or checker pattern with its own size, colour and opacity.
+- One control colour for every dial, button and label, or automatic contrast against the background.
+- A live preview of a corner dial under the dial length and height sliders.
+- The media layout grid snaps pieces to 24 dp points and to the centre lines, which light up when a piece sits on them; a Reset button.
+
+### Changed
+- The keyboard types on the laptop as each character is entered, rather than when a suggestion is chosen.
+- The keyboard button sits at the top beside the Settings gear.
+- The media controls default to the bottom: the player and the track, then previous, play and next under them. The progress line under the track appears only when no corner holds the Media dial, and can be slid to seek.
+
+### Fixed
+- The play/pause button showed a plain disc; the play and pause glyphs are drawn again.
+
 ## [0.6.2] - 2026-09-11
 
 ### Added

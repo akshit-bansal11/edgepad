@@ -65,10 +65,10 @@
   <string name="corner_off">Off</string>
   <string name="settings_media">MEDIA</string>
   <string name="media_layout_title">Media layout</string>
-  <string name="media_layout_hint">Drag each piece to where you want it on the control surface.</string>
+  <string name="media_layout_hint">Drag each piece where you want it on the control surface. Pieces snap to the grid and to the centre lines.</string>
   <string name="piece_now_playing">NOW PLAYING</string>
-  <string name="piece_play">PLAY</string>
-  <string name="piece_skip">PREV / NEXT</string>
+  <string name="piece_transport">PREV / PLAY / NEXT</string>
+  <string name="media_layout_reset">RESET</string>
   <string name="gestures_title">Gestures</string>
   <string name="gestures_hint">One finger always moves and clicks, and two fingers dragging always scroll. Everything else is yours to assign.</string>
   <string name="gestures_fingers">%1$d FINGERS</string>
@@ -120,6 +120,33 @@
   <string name="theme">Theme</string>
   <string name="theme_dark">DARK</string>
   <string name="theme_light">LIGHT</string>
+  <string name="dial_preview_description">Preview of a corner dial at the chosen size</string>
+  <string name="control_color">Control colour</string>
+  <string name="control_color_auto">AUTO</string>
+  <string name="control_color_custom">CUSTOM</string>
+  <string name="background">Background</string>
+  <string name="background_theme">THEME</string>
+  <string name="background_color">COLOUR</string>
+  <string name="background_gradient">GRADIENT</string>
+  <string name="background_image">IMAGE</string>
+  <string name="background_pick_image">Choose image</string>
+  <string name="background_image_set">An image is set</string>
+  <string name="background_image_none">No image yet</string>
+  <string name="gradient_end">Second colour</string>
+  <string name="gradient_angle">Gradient angle</string>
+  <string name="degrees_value">%1$d°</string>
+  <string name="pattern">Pattern</string>
+  <string name="pattern_none">NONE</string>
+  <string name="pattern_squares">GRID</string>
+  <string name="pattern_dots">DOTS</string>
+  <string name="pattern_checker">CHECKER</string>
+  <string name="pattern_size">Pattern size</string>
+  <string name="pattern_color">Pattern colour</string>
+  <string name="pattern_opacity">Pattern opacity</string>
+  <string name="percent_value">%1$d%%</string>
+  <string name="color_hue">HUE</string>
+  <string name="color_saturation">SAT</string>
+  <string name="color_value">VAL</string>
 
 
   <!-- Dials -->

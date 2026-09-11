@@ -30,6 +30,7 @@ import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.surface.ControlSurface
+import java.io.IOException
 import kotlin.concurrent.thread
 
 /**
@@ -193,6 +194,7 @@ class MainActivity :
                         onForget = ::forget,
                         onGestures = { goTo(Screen.GESTURES) },
                         onMediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
+                        onPickImage = ::pickImage,
                         onBack = { navigateBack() },
                     )
                 }
@@ -291,6 +293,38 @@ class MainActivity :
             }
         }
         return true
+    }
+
+    /** Asks the system's picker for an image; the copy lands in app storage so the surface can read it any time. */
+    private fun pickImage() {
+        val intent =
+            Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "image/*"
+            }
+        @Suppress("DEPRECATION")
+        startActivityForResult(intent, REQUEST_IMAGE)
+    }
+
+    @Deprecated("The platform result API; the app has no library that wraps it.")
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?,
+    ) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != REQUEST_IMAGE || resultCode != RESULT_OK) return
+        val uri = data?.data ?: return
+        try {
+            contentResolver.openInputStream(uri)?.use { input ->
+                settings.backgroundImage.outputStream().use { input.copyTo(it) }
+            }
+            settings.background = Settings.Background.IMAGE
+        } catch (e: IOException) {
+            settings.backgroundImage.delete()
+        }
+        if (screen == Screen.SETTINGS) goTo(Screen.SETTINGS)
     }
 
     private fun openSettings() {
@@ -507,6 +541,7 @@ class MainActivity :
 
     private companion object {
         const val REQUEST_BLUETOOTH = 1
+        const val REQUEST_IMAGE = 2
         const val PING_INTERVAL_MS = 500L
         const val TICK_MS = 1_000L
         const val RETRY_DELAY_MS = 2_000L

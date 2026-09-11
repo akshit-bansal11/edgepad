@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.surface
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
@@ -32,17 +33,15 @@ import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.TextKind
 import kotlin.math.abs
-import kotlin.math.ceil
 import kotlin.math.cos
-import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
 /**
  * The control surface: a ruler wrapped round each corner that holds a dial, the media pieces wherever the
- * user put them, a small gear at the bottom, and everything else is the trackpad. A touch that starts
- * inside a corner's zone is that dial's; one that starts on a media piece or the gear is a button; any
- * other is the trackpad.
+ * user put them, a gear and a keyboard button at the top, and everything else is the trackpad. A touch
+ * that starts inside a corner's zone is that dial's; one that starts on a media piece or a button is a
+ * button press; any other is the trackpad.
  *
  * Everything is drawn here rather than built from child views: a touch reaches the recogniser with no view
  * hierarchy in between, dispatch is unbuffered so samples arrive as they happen, and every historical
@@ -61,11 +60,17 @@ class ControlSurface(
 
     private val density = resources.displayMetrics.density
     private val palette = Palette.of(context)
+    private val backdrop = Backdrop(settings, density, palette.background)
+
+    // The one colour every control is drawn in, and its dimmed forms; the user may override the theme's.
+    private val ink = settings.controlColor ?: if (backdrop.isDark) Color.WHITE else Color.BLACK
+    private val dim = ink and RGB_MASK or DIM_ALPHA
+    private val faint = ink and RGB_MASK or FAINT_ALPHA
+
     private val trackpad = TrackpadRecognizer(density, settings.naturalScroll, settings::gesture, send)
     private val hapticsOn = settings.haptics
     private val showHints = settings.hints
-    private val rulerHalfDp = settings.dialLength
-    private val dialHeight = settings.dialHeight
+    private val scrubOnADial = settings.hasDial(DialKind.MEDIA)
     private val dials: List<Dial> =
         (0 until CORNERS).mapNotNull { corner ->
             settings.corner(corner)?.let { kind ->
@@ -79,8 +84,10 @@ class ControlSurface(
                 )
             }
         }
+    private val painter =
+        RulerPainter(density, resources.displayMetrics.scaledDensity, settings.dialLength, settings.dialHeight)
     private val pieces = MediaPiece.entries.associateWith { settings.piece(it) }
-    private val mark = AppMark()
+    private val logo = AppLogo(resources, backdrop.isDark)
 
     private val muteText = context.getString(R.string.surface_mute)
     private val unknownText = context.getString(R.string.surface_unknown)
@@ -100,13 +107,12 @@ class ControlSurface(
     private val centres = FloatArray(dials.size)
     private val exclusions = List(dials.size) { Rect() }
     private val nowPlayingBox = RectF()
+    private val progressHit = RectF()
     private val prevHit = RectF()
     private val playHit = RectF()
     private val nextHit = RectF()
     private val gearHit = RectF()
     private val keyboardHit = RectF()
-    private var keyboardDown = false
-    private var keyboardShown = false
     private var titleLine = ""
     private var subLine = ""
     private var statusLine = laptopName.uppercase()
@@ -116,14 +122,17 @@ class ControlSurface(
     private var lastS = 0f
     private var buttonDown: ActionId? = null
     private var gearDown = false
+    private var keyboardDown = false
+    private var scrubbing = false
+    private var scrubFraction = 0f
     private var fingerDown = false
     private var fingerX = 0f
     private var fingerY = 0f
+    private var keyboardShown = false
     private val hit = FloatArray(2)
     private val pt = FloatArray(4)
     private val glyph = Path()
 
-    private val tick = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.ink }
     private val stroke =
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
@@ -187,6 +196,7 @@ class ControlSurface(
         }
         perimeter = Perimeter(w.toFloat(), h.toFloat(), maxOf(corner.toFloat(), dp(MIN_BEND_DP)))
         dials.forEachIndexed { i, dial -> centres[i] = perimeter.lengthAt(dial.corner.toFloat()) }
+        backdrop.resize(w, h)
         layoutPieces(w.toFloat(), h.toFloat())
         excludeBackGesture()
         rebuildText()
@@ -197,29 +207,30 @@ class ControlSurface(
         h: Float,
     ) {
         val touch = dp(Space.TOUCH) / 2
-        val (px, py) = pieces.getValue(MediaPiece.PLAY)
+        val (tx, ty) = pieces.getValue(MediaPiece.TRANSPORT)
         val play = dp(PLAY_DP) / 2
-        playHit.set(px * w - play, py * h - play, px * w + play, py * h + play)
-        val (sx, sy) = pieces.getValue(MediaPiece.SKIP)
+        playHit.set(tx * w - play, ty * h - play, tx * w + play, ty * h + play)
         val gap = dp(SKIP_GAP_DP)
-        prevHit.set(sx * w - gap - touch, sy * h - touch, sx * w - gap + touch, sy * h + touch)
-        nextHit.set(sx * w + gap - touch, sy * h - touch, sx * w + gap + touch, sy * h + touch)
+        prevHit.set(tx * w - gap - touch, ty * h - touch, tx * w - gap + touch, ty * h + touch)
+        nextHit.set(tx * w + gap - touch, ty * h - touch, tx * w + gap + touch, ty * h + touch)
         val (nx, ny) = pieces.getValue(MediaPiece.NOW_PLAYING)
         val half = minOf(dp(NOW_PLAYING_WIDTH_DP), w - 2 * dp(Space.L)) / 2
         val tall = dp(NOW_PLAYING_HEIGHT_DP) / 2
         nowPlayingBox.set(nx * w - half, ny * h - tall, nx * w + half, ny * h + tall)
-        gearHit.set(w / 2 - touch, dp(GEAR_TOP_DP) - touch, w / 2 + touch, dp(GEAR_TOP_DP) + touch)
-        keyboardHit.set(
-            w / 2 - touch,
-            h - dp(KEYBOARD_BOTTOM_DP) - touch,
-            w / 2 + touch,
-            h - dp(KEYBOARD_BOTTOM_DP) + touch,
+        progressHit.set(
+            nowPlayingBox.left,
+            nowPlayingBox.bottom - touch,
+            nowPlayingBox.right,
+            nowPlayingBox.bottom + touch,
         )
+        val offset = dp(TOP_BUTTON_OFFSET_DP)
+        gearHit.set(w / 2 - offset - touch, dp(TOP_DP) - touch, w / 2 - offset + touch, dp(TOP_DP) + touch)
+        keyboardHit.set(w / 2 + offset - touch, dp(TOP_DP) - touch, w / 2 + offset + touch, dp(TOP_DP) + touch)
     }
 
     /** Keeps Android's back gesture off each corner dial; the bottom edge (home) cannot be claimed. */
     private fun excludeBackGesture() {
-        val half = dp(rulerHalfDp)
+        val half = dp(painter.halfLengthDp)
         val step = dp(SAMPLE_DP)
         for (i in dials.indices) {
             val rect = exclusions[i]
@@ -239,8 +250,8 @@ class ControlSurface(
 
     private fun rebuildText() {
         val playing = state.nowPlaying
-        titlePaint.color = if (playing.isEmpty()) palette.dim else palette.ink
-        val room = nowPlayingBox.width() - dp(MARK_DP) - dp(Space.M)
+        titlePaint.color = if (playing.isEmpty()) dim else ink
+        val room = nowPlayingBox.width() - dp(LOGO_DP) - dp(Space.M)
         titleLine =
             TextUtils
                 .ellipsize(
@@ -275,7 +286,7 @@ class ControlSurface(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        canvas.drawColor(palette.background)
+        backdrop.draw(canvas)
         drawStatus(canvas)
         drawNowPlaying(canvas)
         drawTransport(canvas)
@@ -283,7 +294,7 @@ class ControlSurface(
         drawKeyboard(canvas)
         if (showHints) drawHints(canvas)
         if (fingerDown) {
-            fill.color = palette.ink
+            fill.color = ink
             canvas.drawCircle(fingerX, fingerY, dp(FINGER_DP) / 2, fill)
         }
         for (i in dials.indices) drawDial(canvas, i)
@@ -293,13 +304,13 @@ class ControlSurface(
         mono.textAlign = Paint.Align.LEFT
         mono.textSize = sp(STATUS_SP)
         mono.letterSpacing = STATUS_TRACKING
-        mono.color = palette.dim
+        mono.color = dim
         val textWidth = mono.measureText(statusLine)
         val dot = dp(STATUS_DOT_DP)
         val gap = dp(STATUS_GAP_DP)
         val start = width / 2f - (dot + gap + textWidth) / 2
-        val y = dp(GEAR_TOP_DP) + dp(Space.XL)
-        fill.color = palette.ink
+        val y = dp(TOP_DP) + dp(Space.XL)
+        fill.color = ink
         canvas.drawCircle(start + dot / 2, y - mono.textSize * Type.CAP_CENTRE, dot / 2, fill)
         canvas.drawText(statusLine, start + dot + gap, y, mono)
         mono.textAlign = Paint.Align.CENTER
@@ -307,15 +318,14 @@ class ControlSurface(
 
     private fun drawNowPlaying(canvas: Canvas) {
         val box = nowPlayingBox
-        val size = dp(MARK_DP)
+        val size = dp(LOGO_DP)
         val cx = box.left + size / 2
         val cy = box.centerY() - dp(PROGRESS_BELOW_DP) / 2
-        fill.color = palette.ink
-        if (!mark.known(state.app)) {
-            stroke.color = palette.line
+        if (state.app.isEmpty()) {
+            stroke.color = faint
             canvas.drawRect(cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2, stroke)
         } else {
-            mark.draw(canvas, state.app, cx, cy, size, palette.ink)
+            logo.draw(canvas, state.app, cx, cy, size, ink)
         }
         val textX = box.left + size + dp(Space.M)
         canvas.drawText(titleLine, textX, cy - dp(Space.XS), titlePaint)
@@ -323,42 +333,56 @@ class ControlSurface(
         mono.textAlign = Paint.Align.LEFT
         canvas.drawText(subLine, textX, cy + mono.textSize + dp(Space.S), mono)
         mono.textAlign = Paint.Align.CENTER
+        // The progress line only when no corner scrubs; then it can be slid itself.
+        if (scrubOnADial) return
         val progressY = box.bottom
-        stroke.color = palette.line
+        stroke.color = faint
+        stroke.strokeWidth = dp(PROGRESS_STROKE_DP)
         canvas.drawLine(box.left, progressY, box.right, progressY, stroke)
-        val fraction =
-            if (state.duration > 0) {
-                state.position.coerceAtLeast(0).toFloat() / state.duration
-            } else {
-                (state.level(ControlId.MEDIA_POSITION) ?: 0) / Dial.MAX_LEVEL
-            }
-        stroke.color = palette.ink
+        stroke.color = ink
+        val fraction = if (scrubbing) scrubFraction else playedFraction()
         canvas.drawLine(box.left, progressY, box.left + box.width() * fraction, progressY, stroke)
+        stroke.strokeWidth = dp(Space.HAIR)
+        fill.color = ink
+        canvas.drawCircle(
+            box.left + box.width() * fraction,
+            progressY,
+            dp(if (scrubbing) THUMB_HELD_DP else THUMB_DP) / 2,
+            fill,
+        )
     }
+
+    private fun playedFraction(): Float =
+        if (state.duration > 0) {
+            state.position.coerceAtLeast(0).toFloat() / state.duration
+        } else {
+            (state.level(ControlId.MEDIA_POSITION) ?: 0) / Dial.MAX_LEVEL
+        }
 
     private fun subText() {
         mono.textSize = sp(SUB_SP)
         mono.letterSpacing = SUB_TRACKING
-        mono.color = palette.dim
+        mono.color = dim
     }
 
     private fun drawHints(canvas: Canvas) {
         mono.textAlign = Paint.Align.CENTER
         mono.textSize = sp(HINT_SP)
         mono.letterSpacing = HINT_TRACKING
-        mono.color = palette.dim
+        mono.color = dim
         val y = height / 2f - (hintLines.size - 1) * dp(HINT_GAP_DP) / 2
         hintLines.forEachIndexed { i, line -> canvas.drawText(line, width / 2f, y + i * dp(HINT_GAP_DP), mono) }
     }
 
     private fun drawTransport(canvas: Canvas) {
-        fill.color = palette.ink
+        fill.color = ink
         drawSkip(canvas, prevHit.centerX(), prevHit.centerY(), forward = false)
         drawSkip(canvas, nextHit.centerX(), nextHit.centerY(), forward = true)
         val cx = playHit.centerX()
         val cy = playHit.centerY()
         canvas.drawCircle(cx, cy, dp(PLAY_DP) / 2, fill)
-        fill.color = palette.background
+        // The glyph is cut out of the disc in the background's colour: a pause while playing, else a play.
+        fill.color = if (backdrop.isDark) Color.BLACK else Color.WHITE
         if (state.flag(ControlId.MEDIA_POSITION)) {
             val bar = dp(PAUSE_BAR_W_DP)
             val tall = dp(PAUSE_BAR_H_DP)
@@ -374,6 +398,7 @@ class ControlSurface(
             glyph.close()
             canvas.drawPath(glyph, fill)
         }
+        fill.color = ink
     }
 
     /** A skip mark: a triangle pointing the way, with a bar at its far end. */
@@ -405,92 +430,6 @@ class ControlSurface(
         )
     }
 
-    /** A keyboard: a rounded outline with two rows of keys and a space bar. */
-    private fun drawKeyboard(canvas: Canvas) {
-        val cx = keyboardHit.centerX()
-        val cy = keyboardHit.centerY()
-        val w = dp(KEYBOARD_W_DP)
-        val h = dp(KEYBOARD_H_DP)
-        stroke.color = if (keyboardShown) palette.ink else palette.dim
-        stroke.strokeWidth = dp(GEAR_STROKE_DP)
-        canvas.drawRoundRect(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, dp(Space.XS), dp(Space.XS), stroke)
-        val key = dp(KEY_DP)
-        for (row in 0 until 2) {
-            val y = cy - h / 2 + dp(KEY_INSET_DP) + row * key * 2
-            var x = cx - w / 2 + dp(KEY_INSET_DP) + row * key
-            while (x + key <= cx + w / 2 - dp(KEY_INSET_DP)) {
-                canvas.drawPoint(x + key / 2, y, stroke)
-                x += key * 2
-            }
-        }
-        val bar = cy + h / 2 - dp(KEY_INSET_DP)
-        canvas.drawLine(cx - w * SPACE_BAR, bar, cx + w * SPACE_BAR, bar, stroke)
-        stroke.strokeWidth = dp(Space.HAIR)
-    }
-
-    /** Shows or hides the phone's keyboard; what is typed goes to the laptop as text. */
-    private fun toggleKeyboard() {
-        val manager = context.getSystemService(InputMethodManager::class.java) ?: return
-        keyboardShown = !keyboardShown
-        if (keyboardShown) {
-            requestFocus()
-            manager.showSoftInput(this, 0)
-        } else {
-            manager.hideSoftInputFromWindow(windowToken, 0)
-        }
-        invalidate()
-    }
-
-    override fun onCheckIsTextEditor(): Boolean = true
-
-    // The keyboard can be dismissed by the system too, so the button's state comes from the window, not the toggle.
-    override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
-        keyboardShown = insets.isVisible(WindowInsets.Type.ime())
-        invalidate()
-        return super.onApplyWindowInsets(insets)
-    }
-
-    override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection {
-        outAttrs.inputType = EditorInfo.TYPE_CLASS_TEXT or EditorInfo.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or EditorInfo.IME_FLAG_NO_EXTRACT_UI
-        return object : BaseInputConnection(this, false) {
-            override fun commitText(
-                text: CharSequence?,
-                newCursorPosition: Int,
-            ): Boolean {
-                if (!text.isNullOrEmpty()) send(TextKind.TYPE.frame(text.toString()))
-                return true
-            }
-
-            override fun deleteSurroundingText(
-                beforeLength: Int,
-                afterLength: Int,
-            ): Boolean {
-                repeat(beforeLength) { send(TextKind.TYPE.frame(BACKSPACE)) }
-                return true
-            }
-
-            override fun sendKeyEvent(event: KeyEvent?): Boolean {
-                if (event?.action != KeyEvent.ACTION_DOWN) return true
-                when (event.keyCode) {
-                    KeyEvent.KEYCODE_DEL -> {
-                        send(TextKind.TYPE.frame(BACKSPACE))
-                    }
-
-                    KeyEvent.KEYCODE_ENTER -> {
-                        send(TextKind.TYPE.frame(NEWLINE))
-                    }
-
-                    else -> {
-                        val c = event.unicodeChar
-                        if (c != 0) send(TextKind.TYPE.frame(c.toChar().toString()))
-                    }
-                }
-                return true
-            }
-        }
-    }
-
     /** A gear: eight square teeth round a rim, with a hole in the middle. */
     private fun drawGear(canvas: Canvas) {
         val cx = gearHit.centerX()
@@ -509,11 +448,34 @@ class ControlSurface(
             glyph.lineTo(cx + cos(a1).toFloat() * r, cy + sin(a1).toFloat() * r)
         }
         glyph.close()
-        stroke.color = palette.dim
-        stroke.strokeWidth = dp(GEAR_STROKE_DP)
+        stroke.color = dim
+        stroke.strokeWidth = dp(BUTTON_STROKE_DP)
         stroke.strokeJoin = Paint.Join.ROUND
         canvas.drawPath(glyph, stroke)
         canvas.drawCircle(cx, cy, outer * GEAR_HOLE, stroke)
+        stroke.strokeWidth = dp(Space.HAIR)
+    }
+
+    /** A keyboard: a rounded outline with two rows of keys and a space bar. */
+    private fun drawKeyboard(canvas: Canvas) {
+        val cx = keyboardHit.centerX()
+        val cy = keyboardHit.centerY()
+        val w = dp(KEYBOARD_W_DP)
+        val h = dp(KEYBOARD_H_DP)
+        stroke.color = if (keyboardShown) ink else dim
+        stroke.strokeWidth = dp(BUTTON_STROKE_DP)
+        canvas.drawRoundRect(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, dp(Space.XS), dp(Space.XS), stroke)
+        val key = dp(KEY_DP)
+        for (row in 0 until 2) {
+            val y = cy - h / 2 + dp(KEY_INSET_DP) + row * key * 2
+            var x = cx - w / 2 + dp(KEY_INSET_DP) + row * key
+            while (x + key <= cx + w / 2 - dp(KEY_INSET_DP)) {
+                canvas.drawPoint(x + key / 2, y, stroke)
+                x += key * 2
+            }
+        }
+        val bar = cy + h / 2 - dp(KEY_INSET_DP)
+        canvas.drawLine(cx - w * SPACE_BAR, bar, cx + w * SPACE_BAR, bar, stroke)
         stroke.strokeWidth = dp(Space.HAIR)
     }
 
@@ -522,57 +484,19 @@ class ControlSurface(
         i: Int,
     ) {
         val dial = dials[i]
-        val centre = centres[i]
-        val notch = dp(Dial.NOTCH_DP)
-        val half = dp(rulerHalfDp)
-        val ruler = dp(dial.rulerDp)
-        val grow = if (dial.armed) ARMED_GROWTH else 1f
-        var first = ceil((-half - ruler) / notch).toInt()
-        var last = floor((half - ruler) / notch).toInt()
-        if (dial.control != null) {
-            first = maxOf(first, -floor(dial.rulerLengthDp / Dial.NOTCH_DP).toInt())
-            last = minOf(last, 0)
-        }
-        for (n in first..last) {
-            val major = n % Dial.MAJOR_EVERY == 0
-            perimeter.point(centre + ruler + n * notch, pt)
-            val depth = dp(if (major) MAJOR_TICK_DP else MINOR_TICK_DP) * grow * dialHeight
-            tick.strokeWidth = dp(if (major) MAJOR_STROKE_DP else MINOR_STROKE_DP)
-            tick.alpha =
-                when {
-                    major -> MAJOR_ALPHA
-                    dial.armed -> ARMED_MINOR_ALPHA
-                    else -> MINOR_ALPHA
-                }
-            canvas.drawLine(pt[0], pt[1], pt[0] + pt[2] * depth, pt[1] + pt[3] * depth, tick)
-        }
-
-        perimeter.point(centre, pt)
-        tick.alpha = OPAQUE
-        tick.strokeWidth = dp(INDICATOR_STROKE_DP)
-        val reach = dp(INDICATOR_DP) * grow * dialHeight
-        canvas.drawLine(pt[0], pt[1], pt[0] + pt[2] * reach, pt[1] + pt[3] * reach, tick)
-
-        // The label and the number sit inside the corner, on the diagonal.
-        val depth = dp(LABEL_DP) * (1f + (dialHeight - 1f) / 2)
-        val ax = pt[0] + pt[2] * depth
-        val ay = pt[1] + pt[3] * depth
-        val labelSize = sp(DIAL_LABEL_SP)
-        val valueSize = sp(if (dial.armed) ARMED_VALUE_SP else DIAL_VALUE_SP)
-        val number = valueText(dial)
-        val block = if (number.isEmpty()) labelSize else labelSize + dp(Space.XS) + valueSize
-        val top = ay - block / 2
-        mono.textAlign = Paint.Align.CENTER
-        mono.letterSpacing = Type.TRACKING_WIDE
-        mono.textSize = labelSize
-        mono.color = palette.dim
-        canvas.drawText(dial.label, ax, top + labelSize * BASELINE, mono)
-        if (number.isNotEmpty()) {
-            mono.letterSpacing = 0f
-            mono.textSize = valueSize
-            mono.color = palette.ink
-            canvas.drawText(number, ax, top + labelSize + dp(Space.XS) + valueSize * BASELINE, mono)
-        }
+        painter.draw(
+            canvas,
+            perimeter,
+            centres[i],
+            dial.rulerDp,
+            if (dial.control != null) dial.rulerLengthDp else null,
+            dial.armed,
+            ink,
+            dim,
+            dial.label,
+            valueText(dial),
+            pt,
+        )
     }
 
     private fun valueText(dial: Dial): String =
@@ -619,6 +543,102 @@ class ControlSurface(
                 ""
             }
         }
+
+    // Typing. The surface is a text field as far as the keyboard is concerned, and every character goes
+    // to the laptop as it is typed: a visible-password field is the one kind keyboards never hold back as
+    // composing text, and for one that composes anyway only the difference from what it showed before is sent.
+
+    /** Shows or hides the phone's keyboard. */
+    private fun toggleKeyboard() {
+        val manager = context.getSystemService(InputMethodManager::class.java) ?: return
+        if (keyboardShown) {
+            manager.hideSoftInputFromWindow(windowToken, 0)
+        } else {
+            requestFocus()
+            manager.showSoftInput(this, 0)
+        }
+    }
+
+    // The keyboard can be dismissed by the system too, so the button's state comes from the window, not the toggle.
+    override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
+        keyboardShown = insets.isVisible(WindowInsets.Type.ime())
+        invalidate()
+        return super.onApplyWindowInsets(insets)
+    }
+
+    override fun onCheckIsTextEditor(): Boolean = true
+
+    override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection {
+        outAttrs.inputType =
+            EditorInfo.TYPE_CLASS_TEXT or EditorInfo.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD or
+            EditorInfo.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or EditorInfo.IME_FLAG_NO_EXTRACT_UI
+        return Typist()
+    }
+
+    private inner class Typist : BaseInputConnection(this, false) {
+        /** What a keyboard that still composes has shown so far, so only the difference is sent. */
+        private var composing = ""
+
+        override fun commitText(
+            text: CharSequence?,
+            newCursorPosition: Int,
+        ): Boolean {
+            replaceComposing(text?.toString() ?: "")
+            composing = ""
+            return true
+        }
+
+        override fun setComposingText(
+            text: CharSequence?,
+            newCursorPosition: Int,
+        ): Boolean {
+            replaceComposing(text?.toString() ?: "")
+            return true
+        }
+
+        override fun finishComposingText(): Boolean {
+            composing = ""
+            return true
+        }
+
+        override fun deleteSurroundingText(
+            beforeLength: Int,
+            afterLength: Int,
+        ): Boolean {
+            repeat(beforeLength) { type(BACKSPACE) }
+            return true
+        }
+
+        override fun sendKeyEvent(event: KeyEvent?): Boolean {
+            if (event?.action != KeyEvent.ACTION_DOWN) return true
+            when (event.keyCode) {
+                KeyEvent.KEYCODE_DEL -> {
+                    type(BACKSPACE)
+                }
+
+                KeyEvent.KEYCODE_ENTER -> {
+                    type(NEWLINE)
+                }
+
+                else -> {
+                    val c = event.unicodeChar
+                    if (c != 0) type(c.toChar().toString())
+                }
+            }
+            return true
+        }
+
+        /** Turns what the keyboard shows into keystrokes: erase what no longer matches, type what is new. */
+        private fun replaceComposing(text: String) {
+            val common = composing.commonPrefixWith(text).length
+            repeat(composing.length - common) { type(BACKSPACE) }
+            if (text.length > common) type(text.substring(common))
+            composing = text
+        }
+
+        private fun type(text: String) = send(TextKind.TYPE.frame(text))
+    }
 
     override fun performClick(): Boolean {
         super.performClick()
@@ -697,6 +717,11 @@ class ControlSurface(
                 send(button.frame())
             }
 
+            !scrubOnADial && progressHit.contains(x, y) -> {
+                scrubbing = true
+                scrubTo(x)
+            }
+
             else -> {
                 activeDial = dialAt(x, y)
                 if (activeDial >= 0) {
@@ -711,14 +736,26 @@ class ControlSurface(
     }
 
     private fun move(event: MotionEvent) {
-        if (activeDial >= 0) {
-            for (h in 0 until event.historySize) slideTo(event.getHistoricalX(h), event.getHistoricalY(h))
-            slideTo(event.x, event.y)
-        } else if (onTrackpad()) {
-            for (h in 0 until event.historySize) feedHistorical(event, h)
-            feed(TrackpadRecognizer.Action.MOVE, event, exclude = -1)
-            finger(event.x, event.y)
+        when {
+            scrubbing -> {
+                scrubTo(event.x)
+            }
+
+            activeDial >= 0 -> {
+                for (h in 0 until event.historySize) slideTo(event.getHistoricalX(h), event.getHistoricalY(h))
+                slideTo(event.x, event.y)
+            }
+
+            onTrackpad() -> {
+                for (h in 0 until event.historySize) feedHistorical(event, h)
+                feed(TrackpadRecognizer.Action.MOVE, event, exclude = -1)
+                finger(event.x, event.y)
+            }
         }
+    }
+
+    private fun scrubTo(x: Float) {
+        scrubFraction = ((x - nowPlayingBox.left) / nowPlayingBox.width()).coerceIn(0f, 1f)
     }
 
     private fun slideTo(
@@ -753,6 +790,11 @@ class ControlSurface(
                 buttonDown = null
             }
 
+            scrubbing -> {
+                scrubbing = false
+                send(ControlId.MEDIA_POSITION.set((scrubFraction * Dial.MAX_LEVEL).roundToInt()))
+            }
+
             activeDial >= 0 -> {
                 val dial = dials[activeDial]
                 activeDial = -1
@@ -773,11 +815,12 @@ class ControlSurface(
         buttonDown = null
         gearDown = false
         keyboardDown = false
+        scrubbing = false
         fingerDown = false
         trackpad.handle(TrackpadRecognizer.Action.CANCEL, FloatArray(0), FloatArray(0), event.eventTime)
     }
 
-    private fun onTrackpad(): Boolean = activeDial < 0 && buttonDown == null && !gearDown && !keyboardDown
+    private fun onTrackpad(): Boolean = activeDial < 0 && buttonDown == null && !gearDown && !keyboardDown && !scrubbing
 
     private fun finger(
         x: Float,
@@ -807,7 +850,7 @@ class ControlSurface(
         perimeter.project(x, y, hit)
         if (hit[1] > dp(CORNER_HIT_DP)) return -1
         var best = -1
-        var bestGap = dp(rulerHalfDp + HIT_SLACK_DP)
+        var bestGap = dp(painter.halfLengthDp + HIT_SLACK_DP)
         for (i in dials.indices) {
             val gap = abs(perimeter.delta(centres[i], hit[0]))
             if (gap < bestGap) {
@@ -882,7 +925,7 @@ class ControlSurface(
         const val SKIP_GAP_DP = 56f
         const val NOW_PLAYING_WIDTH_DP = 320f
         const val NOW_PLAYING_HEIGHT_DP = 56f
-        const val MARK_DP = 36f
+        const val LOGO_DP = 36f
 
         private val CORNER_POSITIONS =
             intArrayOf(
@@ -891,23 +934,10 @@ class ControlSurface(
                 RoundedCorner.POSITION_BOTTOM_RIGHT,
                 RoundedCorner.POSITION_BOTTOM_LEFT,
             )
+        private const val RGB_MASK = 0x00FFFFFF
+        private const val DIM_ALPHA = 0x8C000000.toInt()
+        private const val FAINT_ALPHA = 0x40000000
         private const val MIN_BEND_DP = 24f
-        private const val MAJOR_TICK_DP = 34f
-        private const val MINOR_TICK_DP = 22f
-        private const val MAJOR_STROKE_DP = 2f
-        private const val MINOR_STROKE_DP = 1.2f
-        private const val MAJOR_ALPHA = 230
-        private const val MINOR_ALPHA = 128
-        private const val ARMED_MINOR_ALPHA = 190
-        private const val OPAQUE = 255
-        private const val ARMED_GROWTH = 1.25f
-        private const val INDICATOR_DP = 48f
-        private const val INDICATOR_STROKE_DP = 2.5f
-        private const val LABEL_DP = 96f
-        private const val DIAL_LABEL_SP = 11f
-        private const val DIAL_VALUE_SP = 26f
-        private const val ARMED_VALUE_SP = 32f
-        private const val BASELINE = 0.8f
         private const val CORNER_HIT_DP = 96f
         private const val HIT_SLACK_DP = 12f
         private const val JUMP_DP = 64f
@@ -920,12 +950,16 @@ class ControlSurface(
         private const val SUB_SP = 9f
         private const val SUB_TRACKING = 0.16f
         private const val PROGRESS_BELOW_DP = 16f
+        private const val PROGRESS_STROKE_DP = 2f
+        private const val THUMB_DP = 8f
+        private const val THUMB_HELD_DP = 14f
         private const val HINT_SP = 9f
         private const val HINT_TRACKING = 0.16f
         private const val HINT_GAP_DP = 16f
         private const val FINGER_DP = 10f
-        private const val GEAR_TOP_DP = 40f
-        private const val KEYBOARD_BOTTOM_DP = 40f
+        private const val TOP_DP = 40f
+        private const val TOP_BUTTON_OFFSET_DP = 32f
+        private const val BUTTON_STROKE_DP = 1.5f
         private const val KEYBOARD_W_DP = 28f
         private const val KEYBOARD_H_DP = 18f
         private const val KEY_DP = 3f
@@ -934,7 +968,6 @@ class ControlSurface(
         private const val BACKSPACE = "\b"
         private const val NEWLINE = "\n"
         private const val GEAR_DP = 22f
-        private const val GEAR_STROKE_DP = 1.5f
         private const val GEAR_RIM = 0.72f
         private const val GEAR_TOOTH = 0.42f
         private const val GEAR_HOLE = 0.28f

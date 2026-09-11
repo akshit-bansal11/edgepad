@@ -66,5 +66,7 @@ ktlint {
 }
 
 dependencies {
+    // Renders the player logos from their SVGs in their own colours; the platform has no SVG renderer.
+    implementation("com.caverock:androidsvg-aar:1.4")
     testImplementation("junit:junit:4.13.2")
 }
