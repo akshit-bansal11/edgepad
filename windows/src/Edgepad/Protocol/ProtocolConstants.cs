@@ -3,8 +3,9 @@ namespace Edgepad.Protocol;
 internal static class ProtocolConstants
 {
     /// <summary>
-    /// 2 since 0.3.0, which added TEXT timelines. A phone on another version gets this laptop's version in
-    /// HELLO_ACK and is then refused, so it can say which side needs updating.
+    /// Bumped with every change to the wire format (3 since 0.6.0, which added typed text). A phone on another
+    /// version gets this laptop's version in HELLO_ACK and is then refused, so it can say which side needs
+    /// updating. protocol/actions.txt holds the same number; a test checks it.
     /// </summary>
     public const byte Version = 3;
 

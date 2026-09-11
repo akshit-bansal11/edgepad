@@ -81,7 +81,7 @@ class PickerScreen(
                 Type.SMALL,
                 topDp = Space.XL,
             ).setLineSpacing(0f, FOOTNOTE_LEADING)
-            action = add(ui.button(ui.string(R.string.open_controls), Ui.Style.FILLED) { act() }, Space.L)
+            action = add(ui.button(ui.string(R.string.open_controls), Ui.Style.FILLED, onOpenControls), Space.L)
             add(ui.button(ui.string(R.string.open_bluetooth_settings), Ui.Style.QUIET, onBluetoothSettings), Space.M)
             add(ui.link(ui.string(R.string.settings_link), onSettings), Space.S)
         }
@@ -124,11 +124,6 @@ class PickerScreen(
         connectingTo = name
         render()
         updateScan()
-    }
-
-    private fun act() {
-        val address = selected ?: return
-        if (address == connected) onOpenControls() else onConnect(address)
     }
 
     private fun render() {

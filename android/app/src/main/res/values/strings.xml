@@ -62,6 +62,7 @@
   <string name="corner_top_right">Top right</string>
   <string name="corner_bottom_right">Bottom right</string>
   <string name="corner_bottom_left">Bottom left</string>
+  <string name="corner_off">Off</string>
   <string name="settings_media">MEDIA</string>
   <string name="media_layout_title">Media layout</string>
   <string name="media_layout_hint">Drag each piece to where you want it on the control surface.</string>
@@ -109,7 +110,7 @@
   <string name="dial_length">Dial length</string>
   <string name="dial_length_value">%1$d dp</string>
   <string name="dial_height">Dial height</string>
-  <string name="sensitivity_value">×%1$.1f</string>
+  <string name="multiplier_value">×%1$.1f</string>
   <string name="haptic_ticks">Haptic tick per notch</string>
   <string name="snap_round">Snap to round numbers</string>
   <string name="settings_trackpad">TRACKPAD</string>
@@ -120,8 +121,6 @@
   <string name="theme_dark">DARK</string>
   <string name="theme_light">LIGHT</string>
 
-  <!-- Where a dial sits -->
-  <string name="place_off">OFF</string>
 
   <!-- Dials -->
   <string name="dial_volume">Volume</string>

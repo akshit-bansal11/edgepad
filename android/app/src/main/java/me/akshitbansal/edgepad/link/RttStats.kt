@@ -1,18 +1,14 @@
 package me.akshitbansal.edgepad.link
 
-/** Round-trip times: the median of the last [window] samples, and the best seen since [clear]. */
+/** Round-trip times: the median of the last [window] samples. */
 class RttStats(
     private val window: Int = 20,
 ) {
     private val samples = ArrayDeque<Double>()
 
-    var best = Double.NaN
-        private set
-
     fun add(ms: Double) {
         samples.addLast(ms)
         if (samples.size > window) samples.removeFirst()
-        best = if (best.isNaN()) ms else minOf(best, ms)
     }
 
     fun median(): Double {
@@ -25,8 +21,5 @@ class RttStats(
         }
     }
 
-    fun clear() {
-        samples.clear()
-        best = Double.NaN
-    }
+    fun clear() = samples.clear()
 }

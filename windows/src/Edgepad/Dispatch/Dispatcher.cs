@@ -19,7 +19,6 @@ internal sealed class Dispatcher(
     private const byte MaxButton = 2;
     private const byte MaxPercent = 100;
     private const int BrightnessStep = 10;
-    private const byte TypeText = 3;
 
     /// <summary>Frames that asked for something unknown, out of range, or unavailable (no microphone).</summary>
     public int Dropped { get; private set; }
@@ -34,7 +33,7 @@ internal sealed class Dispatcher(
             Zoom z => Do(() => input.Zoom(z.Delta)),
             RunAction a => Run(a.Id),
             SetValue v when v.Value <= MaxPercent => Set(v.Control, v.Value),
-            Text t when t.Kind == TypeText => Do(() => input.Type(t.Value)),
+            Text t when t.Kind == (byte)TextKind.Type => Do(() => input.Type(t.Value)),
             _ => false,
         };
 
@@ -46,11 +45,7 @@ internal sealed class Dispatcher(
 
     private bool Run(byte id)
     {
-        if (!Enum.IsDefined((ActionId)id))
-        {
-            return false;
-        }
-
+        // The default arm rejects ids this laptop does not know; there is no pre-check to keep in step.
         switch ((ActionId)id)
         {
             case ActionId.MuteToggle:

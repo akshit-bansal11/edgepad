@@ -16,14 +16,27 @@ class IdsFixtureTest {
         assertEquals(expected("CONTROL"), ControlId.entries.associate { it.id to it.name })
     }
 
-    private fun expected(kind: String): Map<Int, String> {
+    @Test
+    fun textKindsMatchTheSharedTable() {
+        assertEquals(expected("TEXT"), TextKind.entries.associate { it.id to it.name })
+    }
+
+    @Test
+    fun theHandshakeMatchesTheSharedTable() {
+        val handshake = rows("HANDSHAKE").associate { it[2] to it[1] }
+        assertEquals(ProtocolConstants.VERSION.toString(), handshake["VERSION"])
+        assertEquals(ProtocolConstants.SERVICE_ID.toString(), handshake["SERVICE_ID"])
+    }
+
+    private fun expected(kind: String): Map<Int, String> = rows(kind).associate { it[1].toInt() to it[2] }
+
+    private fun rows(kind: String): List<List<String>> {
         val table =
             fixture()
                 .readLines()
                 .filter { it.isNotBlank() && !it.startsWith("#") }
                 .map { it.split(" ") }
                 .filter { it[0] == kind }
-                .associate { it[1].toInt() to it[2] }
         check(table.isNotEmpty()) { "no $kind rows in actions.txt" }
         return table
     }

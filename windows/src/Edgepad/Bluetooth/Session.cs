@@ -22,15 +22,13 @@ internal sealed class Session(
     Dispatcher dispatcher,
     AudioEndpoint speakers,
     AudioEndpoint microphone,
+    BrightnessControl brightness,
     MediaSessions media,
     Action<string> onStatus,
     Action<Session> onEnded) : IDisposable
 {
     private const byte MutedFlag = 1;
     private const byte PlayingFlag = 1;
-    private const byte NowPlayingText = 0;
-    private const byte AppText = 1;
-    private const byte TimelineText = 2;
 
     // The WinRT adapters read with partial-read semantics, so the default buffer returns as soon as
     // any bytes arrive — it saves per-byte calls without holding data back.
@@ -42,6 +40,7 @@ internal sealed class Session(
     // Audio notifications arrive on COM threads while the read loop sends PONGs: one writer at a time.
     private readonly Lock sendGate = new();
     private readonly List<IDisposable> watches = [];
+    private bool disposed;
     private MediaState lastMedia = MediaSessions.Nothing;
     private string lastTimeline = "";
 
@@ -113,9 +112,9 @@ internal sealed class Session(
     {
         SendState(ControlId.Volume, speakers.Read());
         SendState(ControlId.MicLevel, microphone.Read());
-        if (BrightnessControl.Read() is { } brightness)
+        if (brightness.Read() is { } level)
         {
-            SendBrightness(brightness);
+            SendBrightness(level);
         }
 
         Watch(speakers, ControlId.Volume);
@@ -123,7 +122,7 @@ internal sealed class Session(
         watches.Add(media.Watch(state => Guarded(() => SendMedia(state))));
 
         // Brightness changed on the laptop itself (keys, Windows' slider) reaches the phone as it does for audio.
-        if (BrightnessControl.Watch(level => Guarded(() => SendBrightness(level))) is { } brightnessWatch)
+        if (brightness.Watch(level => Guarded(() => SendBrightness(level))) is { } brightnessWatch)
         {
             watches.Add(brightnessWatch);
         }
@@ -137,12 +136,12 @@ internal sealed class Session(
         // Text only when it changes; the position every time, since it is what moves.
         if (state.NowPlaying != lastMedia.NowPlaying)
         {
-            Send(new Text(NowPlayingText, state.NowPlaying));
+            Send(new Text((byte)TextKind.NowPlaying, state.NowPlaying));
         }
 
         if (state.App != lastMedia.App)
         {
-            Send(new Text(AppText, state.App));
+            Send(new Text((byte)TextKind.App, state.App));
         }
 
         // Seconds in and the length, so the phone can show 1:24 of 3:47; empty when the player has no timeline.
@@ -151,7 +150,7 @@ internal sealed class Session(
             : "";
         if (timeline != lastTimeline)
         {
-            Send(new Text(TimelineText, timeline));
+            Send(new Text((byte)TextKind.Timeline, timeline));
             lastTimeline = timeline;
         }
 
@@ -227,6 +226,13 @@ internal sealed class Session(
 
     public void Dispose()
     {
+        // Reached twice for a session the server replaced: once by the server, once by its own read loop.
+        if (disposed)
+        {
+            return;
+        }
+
+        disposed = true;
         foreach (var watch in watches)
         {
             watch.Dispose();

@@ -10,8 +10,8 @@ import kotlin.math.sin
 /**
  * The screen's edge as one clockwise path: a rounded rectangle whose corners follow the display's own
  * rounding, so a ruler bends round a corner instead of being clipped by it. A position on the path is a
- * length from the left end of the top edge. [lengthAt] maps a corner-based scale (0
- * top-left, 1 top-right, 2 bottom-right, 3 bottom-left) onto those lengths.
+ * length from the left end of the top edge. [lengthAt] maps the corner scale (0 top-left,
+ * 1 top-right, 2 bottom-right, 3 bottom-left) onto those lengths.
  *
  * Pure arithmetic, and allocation-free after construction, so it is tested on the JVM and safe to call
  * while drawing.
@@ -90,23 +90,12 @@ class Perimeter(
         return if (d > length / 2) d - length else d
     }
 
-    /** The length along the path of a placement's position [at] (0 to 4, clockwise from the top-left corner). */
+    /** The length along the path of corner position [at] (0 to 4, clockwise from the top-left corner). */
     fun lengthAt(at: Float): Float {
         val wrapped = ((at % CORNERS) + CORNERS) % CORNERS
         val k = floor(wrapped).toInt()
         val f = wrapped - k
         return wrap(cornerMid[k] + f * (cornerMid[k + 1] - cornerMid[k]))
-    }
-
-    /** The placement position (0 to 4) of a length along the path; the inverse of [lengthAt]. */
-    fun atOf(s: Float): Float {
-        val shifted = wrap(s - cornerMid[0])
-        for (k in 0 until CORNERS) {
-            val start = cornerMid[k] - cornerMid[0]
-            val end = cornerMid[k + 1] - cornerMid[0]
-            if (shifted <= end) return (k + (shifted - start) / (end - start)) % CORNERS
-        }
-        return 0f
     }
 
     /** Writes the point at length [s] and its inward unit normal into [out] as x, y, nx, ny. */

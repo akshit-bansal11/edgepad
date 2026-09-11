@@ -4,7 +4,7 @@ namespace Edgepad.Tests;
 internal static class Fixtures
 {
     public static string[] Lines(string name) =>
-        [.. File.ReadAllLines(Find(name)).Where(line => line.Length > 0 && !line.StartsWith('#'))];
+        [.. File.ReadAllLines(Find(name)).Where(line => !string.IsNullOrWhiteSpace(line) && !line.StartsWith('#'))];
 
     private static string Find(string name)
     {

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Accessibility actions on the control surface. Stable ids: View.generateViewId() starts at 1 and
+       collides with the platform's own action ids. -->
+  <item name="action_play_pause" type="id" />
+  <item name="action_next_track" type="id" />
+  <item name="action_previous_track" type="id" />
+  <item name="action_open_settings" type="id" />
+  <item name="action_keyboard" type="id" />
+</resources>

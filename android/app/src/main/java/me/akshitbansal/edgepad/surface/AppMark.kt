@@ -12,19 +12,24 @@ import android.graphics.RectF
 class AppMark {
     private val path = Path()
     private val box = RectF()
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     /** True when [app] has a mark of its own. */
     fun known(app: String): Boolean = key(app) != null
 
-    /** Draws the mark for [app] centred on ([cx], [cy]) inside a box [size] across, in [paint]'s colour. */
+    /** Draws the mark for [app] centred on ([cx], [cy]) inside a box [size] across, in [color]. */
     fun draw(
         canvas: Canvas,
         app: String,
         cx: Float,
         cy: Float,
         size: Float,
-        paint: Paint,
+        color: Int,
     ) {
+        val paint = this.paint
+        paint.color = color
         val r = size / 2
         val stroke = size * STROKE
         paint.strokeWidth = stroke
@@ -140,7 +145,7 @@ class AppMark {
                 paint.style = Paint.Style.FILL
                 paint.textAlign = Paint.Align.CENTER
                 paint.textSize = size * LETTER
-                canvas.drawText(app.take(1).uppercase(), cx, cy + paint.textSize * CAP_CENTRE, paint)
+                canvas.drawText(app.take(1).uppercase(), cx, cy + paint.textSize * Type.CAP_CENTRE, paint)
             }
         }
     }
@@ -182,7 +187,6 @@ class AppMark {
         const val STROKE = 0.09f
         const val HAIR = 0.5f
         const val LETTER = 0.5f
-        const val CAP_CENTRE = 0.35f
         const val ARC_TOP = 0.35f
         const val ARC_GAP = 0.36f
         const val ARC_WIDE = 0.62f

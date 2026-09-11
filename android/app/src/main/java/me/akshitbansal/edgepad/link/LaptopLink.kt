@@ -75,7 +75,10 @@ class LaptopLink(
             if (ack != Frame.HelloAck(ProtocolConstants.VERSION)) throw IOException("The laptop answered with $ack")
             handshakeDone = true
             listener.onConnected(this)
-            writer = thread(name = "edgepad-writer", priority = Thread.MAX_PRIORITY) { writeLoop(output) }
+            val w = thread(name = "edgepad-writer", priority = Thread.MAX_PRIORITY) { writeLoop(output) }
+            writer = w
+            // A close() that raced the line above found no writer to interrupt.
+            if (closed) w.interrupt()
             while (!closed) listener.onFrame(readFrame(input))
         } catch (e: EOFException) {
             // The laptop hangs up before HELLO_ACK when it trusts a different phone.

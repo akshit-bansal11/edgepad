@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
+import me.akshitbansal.edgepad.protocol.TextKind
 
 /**
  * The latest of everything the laptop has reported: levels, mute and play flags, what is playing and
@@ -43,10 +44,10 @@ class LaptopState {
             }
 
             is Frame.Text -> {
-                when (frame.kind) {
-                    NOW_PLAYING -> nowPlaying = frame.text
-                    APP -> app = frame.text
-                    TIMELINE -> timeline(frame.text)
+                when (TextKind.of(frame.kind)) {
+                    TextKind.NOW_PLAYING -> nowPlaying = frame.text
+                    TextKind.APP -> app = frame.text
+                    TextKind.TIMELINE -> timeline(frame.text)
                     else -> return false
                 }
             }
@@ -72,16 +73,8 @@ class LaptopState {
         }
     }
 
-    companion object {
-        /** TEXT kinds, as the laptop numbers them. */
-        const val NOW_PLAYING = 0
-        const val APP = 1
-        const val TIMELINE = 2
-
-        /** Phone to laptop: characters to type; "\b" is backspace and "\n" is enter. */
-        const val TYPE = 3
-
-        private const val FLAG_BIT = 1
-        private const val MAX_LEVEL = 100
+    private companion object {
+        const val FLAG_BIT = 1
+        const val MAX_LEVEL = 100
     }
 }

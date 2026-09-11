@@ -16,20 +16,37 @@ public sealed partial class IdsFixtureTests
     public void ControlIdsMatchTheSharedTable() =>
         Assert.Equal(Expected("CONTROL"), Actual<ControlId>());
 
+    [Fact]
+    public void TextKindsMatchTheSharedTable() =>
+        Assert.Equal(Expected("TEXT"), Actual<TextKind>());
+
+    [Fact]
+    public void TheHandshakeMatchesTheSharedTable()
+    {
+        var handshake = Rows("HANDSHAKE").ToDictionary(parts => parts[2], parts => parts[1]);
+        Assert.Equal(ProtocolConstants.Version.ToString(CultureInfo.InvariantCulture), handshake["VERSION"]);
+        Assert.Equal(ProtocolConstants.ServiceId.ToString(), handshake["SERVICE_ID"]);
+    }
+
     private static SortedDictionary<int, string> Expected(string kind)
     {
         var table = new SortedDictionary<int, string>();
-        foreach (var line in Fixtures.Lines("actions.txt"))
+        foreach (var parts in Rows(kind))
         {
-            var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts[0] == kind)
-            {
-                table.Add(int.Parse(parts[1], CultureInfo.InvariantCulture), parts[2]);
-            }
+            table.Add(int.Parse(parts[1], CultureInfo.InvariantCulture), parts[2]);
         }
 
-        Assert.NotEmpty(table);
         return table;
+    }
+
+    private static List<string[]> Rows(string kind)
+    {
+        var rows = Fixtures.Lines("actions.txt")
+            .Select(line => line.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            .Where(parts => parts[0] == kind)
+            .ToList();
+        Assert.NotEmpty(rows);
+        return rows;
     }
 
     // MuteToggle -> MUTE_TOGGLE, so the C# names are compared in the file's own spelling.

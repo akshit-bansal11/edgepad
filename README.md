@@ -1,67 +1,135 @@
 # Edgepad
 
-Your phone's screen as a control surface for your Windows laptop, over Bluetooth.
+Your phone as a control surface for your Windows laptop, over Bluetooth.
 
-Two apps talk to each other: an Android app you touch, and a small tray app on the laptop that carries out what the phone asks for.
+Edgepad is two programs that talk to each other: an Android app you touch, and a small tray app on the laptop that carries out what the phone asks for. No account, no cloud, no Wi-Fi: the phone and the laptop are paired once in Bluetooth settings, and after that the phone reaches the laptop directly.
 
-- **Edge rulers.** Slide along a ruler to turn it, clockwise to raise. At a corner the ruler wraps the bend as one L, following the screen's own rounded corner; along an edge it runs straight. Six kinds: volume, brightness, media scrub, zoom, app switcher, microphone. Settings drags any of them anywhere along the edge.
-- **Trackpad** in the middle, with one-, two-, three- and four-finger gestures.
-- **Now playing** at the top: the track, the app playing it, and where it is. Previous, play/pause and next at the bottom.
-- **Live state.** The rulers show the laptop's real volume, mute, brightness and position, and follow changes made on the laptop itself.
+[![CI](https://github.com/akshit-bansal11/edgepad/actions/workflows/ci.yml/badge.svg)](https://github.com/akshit-bansal11/edgepad/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/akshit-bansal11/edgepad)](https://github.com/akshit-bansal11/edgepad/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+## What it does
+
+- **Corner rulers.** Each corner of the phone holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher or microphone level; Settings picks what each corner does, how long the rulers are and how tall.
+- **Trackpad.** Everything between the corners moves the laptop's pointer. One finger moves and clicks, two scroll and pinch, three and four fingers do whatever you assign them: desktops, task view, media, volume, app switcher, and more.
+- **Media.** The track, the app playing it and where it is, with previous, play/pause and next. Drag the three pieces anywhere on the surface.
+- **Keyboard.** Tap the keyboard button and type on the laptop with the phone's own keyboard.
+- **Live state.** The dials show the laptop's real volume, mute, brightness and playback position, and follow changes made on the laptop itself.
 - Black on white or white on black, portrait or landscape.
 
-## Try it
+## Install
 
-Download both files from the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest): `Edgepad.exe` for the laptop, `Edgepad.apk` for the phone. Always install both from the same release: a phone and a laptop from different releases refuse each other at the handshake and say so.
+Both apps come from the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest). Always install both from the same release: the two refuse each other at the handshake when their protocol versions differ, and say so.
 
-1. Pair the phone with the laptop once, in Windows Bluetooth settings.
-2. On the laptop, run `Edgepad.exe`. It is not code-signed, so Windows SmartScreen asks first: choose **More info**, then **Run anyway**. It lives in the system tray; its menu shows its version and whether a phone is connected.
-3. On the phone, install `Edgepad.apk` (Android 12 or later; allow installing unknown apps) and allow it the Nearby devices permission.
-4. Open Edgepad on the phone and pick your laptop. It remembers the laptop and reconnects when it opens.
+### Laptop (Windows 10 version 2004 or later, 64-bit)
 
-The laptop app keeps a log at `%LOCALAPPDATA%\Edgepad\edgepad.log`, reachable from the tray menu.
+1. Download `Edgepad.exe`. It is a single self-contained file; nothing else needs installing.
+2. Run it. It is not code-signed, so SmartScreen asks first: choose **More info**, then **Run anyway**.
+3. It lives in the system tray. The menu shows the version, whether a phone is connected, **Start with Windows**, **Forget trusted phone**, **Open log** and **Quit**.
 
-### Updating the laptop app
+Running a newer `Edgepad.exe` asks the running copy to quit and takes its place.
 
-From 0.3.0, running a newer `Edgepad.exe` asks the running one to quit and takes over. Versions 0.1.0 and 0.2.0 do not listen for that, so quit them from the tray icon first; the new one tells you if an old one is still in the way.
+### Phone (Android 12 or later)
 
-## What the fingers do
+1. Download `Edgepad.apk` and open it. Allow installing from this source if asked.
+2. On first run, allow the **Nearby devices** permission. Edgepad uses it to see the laptops paired with the phone; it never scans for new ones.
+3. Every later release installs over the previous one; settings are kept.
 
-| Fingers | Gesture | Laptop does |
+## Use
+
+1. Pair the phone with the laptop once, in Windows **Settings > Bluetooth & devices**.
+2. Keep Edgepad running in the laptop's tray.
+3. Open Edgepad on the phone and tap the laptop. The first phone to connect becomes the laptop's trusted phone; any other paired phone is refused until you choose **Forget trusted phone** in the tray menu.
+4. The phone remembers the laptop and reconnects when the app opens. If the link drops, the phone retries ten times, two seconds apart, and says so.
+
+### The control surface
+
+| Where | Touch | Laptop does |
 | --- | --- | --- |
-| 1 | move / tap / tap then hold-and-move | pointer / left click / drag |
-| 2 | drag / pinch / tap | scroll both axes / zoom / right click |
-| 3 | left, right / up / down / tap | switch desktop / task view / show desktop / search |
-| 4 | left, right / up / down / tap | app switcher (Alt held while the fingers are down) / task view / show desktop / notifications |
+| A corner ruler | slide | turns that dial: clockwise raises |
+| A corner ruler | tap | the dial's action: mute, play/pause, mic mute, task view, reset zoom |
+| Anywhere else, one finger | move / tap / tap then hold-and-move | pointer / left click / drag |
+| Two fingers | drag | scroll both axes |
+| Two fingers | pinch / tap | zoom / right click, or what Settings assigns |
+| Three or four fingers | tap, swipe up, down, left, right | what Settings assigns |
+| Top centre | tap the gear | Settings |
+| Bottom centre | tap the keyboard | type on the laptop |
+| Back | | leaves the surface; the link stays up |
 
-A ruler: slide to turn it, clockwise to raise. A tap without a slide runs its action: mute, play/pause, mic mute, task view, reset zoom. Back leaves the controls.
+Out of the box, three fingers left and right switch desktops, three up opens task view, three down shows the desktop, four fingers left and right walk the app switcher (Alt stays held while the fingers are down), and tapping searches or opens notifications. Every one of those is changed under **Settings > Gestures**.
 
-## Publishing a release
+### Settings
 
-Push a version tag. `.github/workflows/release.yml` runs both quality gates, builds a signed APK and a self-contained exe, and attaches them to a GitHub Release:
+- **Connection:** the remembered laptop, and whether to reconnect automatically.
+- **Corners:** which dial each corner holds, or none.
+- **Dial feel:** slide sensitivity, dial length and height, haptic ticks, snapping to round numbers.
+- **Trackpad:** the gesture map, natural scrolling, on-screen hints.
+- **Media:** a screen where the now-playing block, the play button and the previous/next pair are dragged anywhere.
+- **Appearance:** dark or light.
 
-```
-git tag v0.3.0
-git push origin v0.3.0
-```
+## How it works
 
-The APK is signed with a key that lives only in the repository's Actions secrets and on the machine that made it. Create it once with `pwsh scripts/new-signing-key.ps1` and keep the copy it leaves in `~/.edgepad-signing`: every later release must be signed with the same key, or the installed app refuses the update.
+The phone recognises gestures and sends small semantic frames: move the pointer by so much, press a button, scroll, run action 3, set control 0 to 55. The laptop owns the table of what each action does and executes it with the Windows input, audio, display and media APIs. The phone can name an action; it can never send a key or a command line. The laptop sends its own state back (volume, mute, brightness, what is playing) so the dials show real values.
 
-## Layout
+The transport is Bluetooth Classic RFCOMM: an ordered, encrypted byte stream between two already-paired devices, with no server, no discovery and no network. Frames are 2 to 258 bytes and go out in a single write per batch; a backlog of pointer moves collapses into one before it is sent, so a slow link catches up instead of lagging.
+
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes both apps, their threads and their trust model. [docs/PROTOCOL.md](docs/PROTOCOL.md) is the wire format. [CHANGELOG.md](CHANGELOG.md) lists what each release changed.
+
+## Build it yourself
+
+The repository is a monorepo:
 
 | Path | What |
 | --- | --- |
-| `android/` | The phone app. Kotlin, no UI libraries. |
-| `windows/` | The laptop tray app. C#, .NET 10, WinRT Bluetooth and media sessions. |
-| `protocol/frames.txt` | The wire format as golden bytes. Both test suites run it, so the two apps cannot drift apart. |
-| `protocol/actions.txt` | The action and control ids. Both suites hold their enums to it. |
-| `scripts/check.ps1` | The quality gate for both halves. `-Ci` is the non-mutating version CI runs. |
+| `android/` | The phone app. Kotlin, Android platform views, no UI libraries; JUnit 4 is the only dependency. |
+| `windows/` | The laptop tray app. C# on .NET 10, WinForms for the tray, WinRT for Bluetooth and media, NAudio for volume, WMI for brightness. |
+| `protocol/` | The wire format and the id tables as plain text fixtures. Both test suites run them, so the two apps cannot drift apart. |
+| `scripts/` | The quality gate and the release-key script. |
+| `docs/` | Architecture and protocol. |
 
-## Building locally
+### Prerequisites
 
-- Android: JDK 17 and the Android SDK, then `pwsh scripts/check.ps1 -Only android`.
-- Windows: the .NET 10 SDK, then `pwsh scripts/check.ps1 -Only windows`.
+- **Android:** JDK 17 and the Android SDK with platform 37 and build tools 37.0.0. The Gradle wrapper fetches Gradle itself.
+- **Windows:** the .NET 10 SDK (`windows/global.json` pins the feature band). Windows 10 version 2004 or later, because the app builds against the Windows SDK projection for Bluetooth.
+
+### Quality gate
+
+One script checks both halves. It formats, lints, builds and tests; CI runs the same script in its non-mutating mode, so the local gate and CI cannot disagree.
+
+```powershell
+pwsh scripts/check.ps1                  # formats in place, then checks everything
+pwsh scripts/check.ps1 -Only android    # ktlint, Android lint (warnings are errors), unit tests
+pwsh scripts/check.ps1 -Only windows    # dotnet format, build (warnings are errors), tests
+pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted code instead of fixing it
+```
+
+### Run locally
+
+- **Laptop:** `dotnet run --project windows/src/Edgepad` starts the tray app. A self-contained single-file build, the same as a release, is `dotnet publish windows/src/Edgepad -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true`.
+- **Phone:** `cd android && ./gradlew installDebug` installs a debug build on a connected device. Debug builds are versioned `0.0.0-dev` and signed with the debug key, so they do not install over a release build; uninstall the release first.
+- **Tests only:** `cd android && ./gradlew testDebugUnitTest` and `cd windows && dotnet test --solution Edgepad.slnx`.
+
+The laptop app logs to `%LOCALAPPDATA%\Edgepad\edgepad.log` (also in the tray menu): connections, refusals, dropped frames, and input batches Windows refused because an elevated window had focus.
+
+### Tests
+
+Both suites read the same fixtures. `protocol/frames.txt` holds every frame type as golden bytes; each codec must encode the fields to exactly those bytes and decode the bytes to exactly those fields. `protocol/actions.txt` holds the action and control ids; each enum must match it exactly. On top of that, the Android suite covers the gesture recogniser (the whole finger table, assignable actions, natural scrolling), the dials (arming, slop, snapping, steppers, haptic notches), the edge geometry, coalescing and the laptop-state model; the Windows suite covers the dispatcher's drop paths, input batches, trust on first use and the media-session name mapping. No test sends real input or touches a device.
+
+## Releases
+
+Push a version tag and `.github/workflows/release.yml` does the rest: both quality gates, a signed release APK, a self-contained exe, and a GitHub Release with both attached under stable names, so `releases/latest/download/Edgepad.apk` and `.../Edgepad.exe` always point at the newest build.
+
+```
+git tag v0.6.2
+git push origin v0.6.2
+```
+
+The APK's signing key lives only in the repository's Actions secrets and on the machine that made it. `pwsh scripts/new-signing-key.ps1` creates it once and sets the secrets without printing them. Every release must be signed with the same key, or the installed app refuses the update.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and feature requests use the issue templates; pull requests run the same gate as CI.
 
 ## License
 
-MIT
+[MIT](LICENSE).

@@ -1,8 +1,9 @@
 # Action and control ids for Edgepad protocol v1.
 #
-# RUN_ACTION carries an ACTION id; SET_VALUE and STATE carry a CONTROL id. The laptop owns what each
+# RUN_ACTION carries an ACTION id; SET_VALUE and STATE carry a CONTROL id; TEXT carries a TEXT kind. The laptop owns what each
 # one does, and ignores any id not listed here: the phone can name an action, never a key or a command.
 # Both test suites check their enums against this file, the same way they check frames.txt.
+# HANDSHAKE holds the two values that decide whether a phone can reach a laptop at all.
 #
 # Format:  KIND id NAME
 
@@ -32,3 +33,11 @@ CONTROL 0 VOLUME
 CONTROL 1 BRIGHTNESS
 CONTROL 2 MIC_LEVEL
 CONTROL 3 MEDIA_POSITION
+
+TEXT 0 NOW_PLAYING
+TEXT 1 APP
+TEXT 2 TIMELINE
+TEXT 3 TYPE
+
+HANDSHAKE 3 VERSION
+HANDSHAKE 758bb618-7b72-4cd3-9aa2-c9b88e54d555 SERVICE_ID

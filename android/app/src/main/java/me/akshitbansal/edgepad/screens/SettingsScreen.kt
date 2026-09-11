@@ -25,7 +25,6 @@ object SettingsScreen {
     private const val LENGTH_STEP = 10f
     private const val HEIGHT_STEP = 0.1f
     private const val SENSITIVITY_STEP = 0.1f
-    private const val ROW_TRACKING = 0.1f
     private val sensitivitySteps =
         ((Settings.MAX_SENSITIVITY - Settings.MIN_SENSITIVITY) / SENSITIVITY_STEP)
             .roundToInt()
@@ -95,7 +94,7 @@ object SettingsScreen {
             hairline()
             val height =
                 ui.mono(
-                    ui.string(R.string.sensitivity_value, settings.dialHeight),
+                    ui.string(R.string.multiplier_value, settings.dialHeight),
                     Type.CAPTION,
                     ui.palette.ink,
                     0f,
@@ -107,7 +106,7 @@ object SettingsScreen {
                     ((settings.dialHeight - Settings.MIN_DIAL_HEIGHT) / HEIGHT_STEP).roundToInt(),
                 ) { step ->
                     settings.dialHeight = Settings.MIN_DIAL_HEIGHT + step * HEIGHT_STEP
-                    height.text = ui.string(R.string.sensitivity_value, settings.dialHeight)
+                    height.text = ui.string(R.string.multiplier_value, settings.dialHeight)
                 },
             ).contentDescription = ui.string(R.string.dial_height)
             hairline()
@@ -186,7 +185,7 @@ object SettingsScreen {
         settings: Settings,
         corner: Int,
     ): View {
-        val current = ui.mono(kindName(ui, settings.corner(corner)), Type.SMALL, ui.palette.dim, ROW_TRACKING)
+        val current = ui.mono(kindName(ui, settings.corner(corner)), Type.SMALL, ui.palette.dim, Type.TRACKING_ROW)
         val end =
             LinearLayout(ui.context).apply {
                 gravity = Gravity.CENTER_VERTICAL
@@ -222,7 +221,7 @@ object SettingsScreen {
     private fun kindName(
         ui: Ui,
         kind: DialKind?,
-    ): String = if (kind == null) ui.string(R.string.place_off) else ui.string(kind.nameRes)
+    ): String = if (kind == null) ui.string(R.string.corner_off) else ui.string(kind.nameRes)
 
     private fun setTheme(
         ui: Ui,
@@ -238,7 +237,7 @@ object SettingsScreen {
     private fun sensitivityText(
         ui: Ui,
         sensitivity: Float,
-    ): String = ui.string(R.string.sensitivity_value, sensitivity)
+    ): String = ui.string(R.string.multiplier_value, sensitivity)
 
     private fun toStep(sensitivity: Float): Int =
         ((sensitivity - Settings.MIN_SENSITIVITY) / SENSITIVITY_STEP).roundToInt()

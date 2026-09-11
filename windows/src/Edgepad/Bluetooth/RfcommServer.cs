@@ -48,7 +48,7 @@ internal sealed class RfcommServer(
         // Input state (what is held down) belongs to one connection; the devices are shared.
         var injector = new InputInjector();
         var dispatcher = new Dispatcher(injector, speakers, microphone, brightness, media);
-        var session = new Session(args.Socket, trust, injector, dispatcher, speakers, microphone, media, onStatus, OnSessionEnded);
+        var session = new Session(args.Socket, trust, injector, dispatcher, speakers, microphone, brightness, media, onStatus, OnSessionEnded);
         Session? previous;
         lock (gate)
         {

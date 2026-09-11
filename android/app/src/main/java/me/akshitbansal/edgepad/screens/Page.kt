@@ -24,6 +24,7 @@ import android.widget.TextView
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.surface.Dial
 
 private const val LEADING = 1.5f
 private const val SECTION_TRACKING = 0.22f
@@ -33,10 +34,8 @@ private const val FOCUS_RING_DP = 2f
 private const val TOGGLE_WIDTH_DP = 40f
 private const val TOGGLE_HEIGHT_DP = 23f
 private const val KNOB_DP = 15f
-private const val RULER_NOTCH_DP = 11f
 private const val RULER_HEIGHT_DP = 22f
 private const val RULER_MINOR_FROM = 0.45f
-private const val RULER_MAJOR_EVERY = 5
 private const val RULER_MAJOR_ALPHA = 230
 private const val RULER_MINOR_ALPHA = 128
 private const val RULER_THUMB_WIDTH_DP = 2.5f
@@ -121,7 +120,7 @@ class Ui(
         sp: Float = Type.MICRO,
         color: Int = palette.dim,
         tracking: Float = Type.TRACKING_WIDE,
-    ): TextView = text(value, sp, color, Type.label, tracking)
+    ): TextView = text(value, sp, color, Type.sans, tracking)
 
     /** A full-width square button. */
     fun button(
@@ -342,16 +341,16 @@ class Ui(
     }
 
     private fun rulerTile(): Drawable {
-        val notch = dp(RULER_NOTCH_DP)
+        val notch = dp(Dial.NOTCH_DP)
         val height = dp(RULER_HEIGHT_DP)
-        val bitmap = Bitmap.createBitmap(notch * RULER_MAJOR_EVERY, height, Bitmap.Config.ARGB_8888)
+        val bitmap = Bitmap.createBitmap(notch * Dial.MAJOR_EVERY, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val paint =
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = palette.ink
                 strokeWidth = dp(Space.HAIR).toFloat()
             }
-        for (i in 0 until RULER_MAJOR_EVERY) {
+        for (i in 0 until Dial.MAJOR_EVERY) {
             val major = i == 0
             paint.color = palette.ink
             paint.alpha = if (major) RULER_MAJOR_ALPHA else RULER_MINOR_ALPHA

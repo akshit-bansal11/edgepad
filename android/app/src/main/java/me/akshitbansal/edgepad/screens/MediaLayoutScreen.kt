@@ -128,7 +128,12 @@ object MediaLayoutScreen {
                 stroke.color = if (piece == dragging) palette.ink else palette.dim
                 canvas.drawRoundRect(box, CORNER_DP * density, CORNER_DP * density, stroke)
                 text.color = stroke.color
-                canvas.drawText(names.getValue(piece), box.centerX(), box.centerY() + text.textSize * CAP_CENTRE, text)
+                canvas.drawText(
+                    names.getValue(piece),
+                    box.centerX(),
+                    box.centerY() + text.textSize * Type.CAP_CENTRE,
+                    text,
+                )
             }
         }
 
@@ -175,7 +180,6 @@ object MediaLayoutScreen {
 
         private companion object {
             const val CORNER_DP = 6f
-            const val CAP_CENTRE = 0.35f
         }
     }
 }

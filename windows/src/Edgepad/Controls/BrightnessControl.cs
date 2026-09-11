@@ -28,10 +28,17 @@ internal sealed class BrightnessControl : IDisposable
         worker.Start();
     }
 
-    /// <summary>Moves the panel by <paramref name="delta"/> from where it is now. False when there is no WMI brightness.</summary>
+    /// <summary>The level last read or set, so a relative step needs no WMI call on the caller's thread; -1 until known.</summary>
+    private int lastKnown = None;
+
+    /// <summary>
+    /// Moves the panel by <paramref name="delta"/> from the last known level, on the worker like every other
+    /// write. False until the level has been read once, which the session does when a phone connects.
+    /// </summary>
     public bool Step(int delta)
     {
-        if (Read() is not { } level)
+        var level = Volatile.Read(ref lastKnown);
+        if (level == None)
         {
             return false;
         }
@@ -42,12 +49,24 @@ internal sealed class BrightnessControl : IDisposable
 
     public void Set(int percent)
     {
+        Volatile.Write(ref lastKnown, percent);
         Interlocked.Exchange(ref pending, percent);
         wake.Set();
     }
 
     /// <summary>The panel's current brightness, or null when nothing here has WMI brightness (external monitors).</summary>
-    public static int? Read()
+    public int? Read()
+    {
+        var level = ReadPanel();
+        if (level is { } known)
+        {
+            Volatile.Write(ref lastKnown, known);
+        }
+
+        return level;
+    }
+
+    private static int? ReadPanel()
     {
         try
         {
@@ -75,7 +94,7 @@ internal sealed class BrightnessControl : IDisposable
     /// cannot be subscribed, the level is read every <see cref="PollInterval"/> instead. Null when there is
     /// no WMI brightness at all.
     /// </summary>
-    public static IDisposable? Watch(Action<int> onChange)
+    public IDisposable? Watch(Action<int> onChange)
     {
         var last = Read();
         if (last is null)
@@ -83,12 +102,18 @@ internal sealed class BrightnessControl : IDisposable
             return null;
         }
 
+        void Report(int level)
+        {
+            Volatile.Write(ref lastKnown, level);
+            onChange(level);
+        }
+
         var watcher = new ManagementEventWatcher(
             new ManagementScope(@"root\WMI"),
             new EventQuery("SELECT * FROM WmiMonitorBrightnessEvent"));
         try
         {
-            watcher.EventArrived += (_, e) => onChange(Convert.ToInt32(e.NewEvent["Brightness"], CultureInfo.InvariantCulture));
+            watcher.EventArrived += (_, e) => Report(Convert.ToInt32(e.NewEvent["Brightness"], CultureInfo.InvariantCulture));
             watcher.Start();
             return new Subscription(() =>
             {
@@ -103,10 +128,10 @@ internal sealed class BrightnessControl : IDisposable
             var timer = new System.Threading.Timer(
                 _ =>
                 {
-                    if (Read() is { } level && level != last)
+                    if (ReadPanel() is { } level && level != last)
                     {
                         last = level;
-                        onChange(level);
+                        Report(level);
                     }
                 },
                 null,

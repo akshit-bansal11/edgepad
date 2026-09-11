@@ -15,6 +15,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.RoundedCorner
 import android.view.View
+import android.view.WindowInsets
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.EditorInfo
@@ -29,6 +30,7 @@ import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
+import me.akshitbansal.edgepad.protocol.TextKind
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.cos
@@ -54,9 +56,6 @@ class ControlSurface(
     private val send: (Frame) -> Unit,
     private val onOpenSettings: () -> Unit,
 ) : View(context) {
-    /** For layout tools only: a surface that sends nowhere. */
-    constructor(context: Context) : this(context, Settings(context), LaptopState(), "", {}, {})
-
     private val density = resources.displayMetrics.density
     private val palette = Palette.of(context)
     private val trackpad = TrackpadRecognizer(density, settings.naturalScroll, settings::gesture, send)
@@ -86,11 +85,11 @@ class ControlSurface(
     private val hintLines = context.getString(R.string.surface_hints).split('\n')
     private val accessibilityActions: Map<AccessibilityNodeInfo.AccessibilityAction, () -> Unit> =
         mapOf(
-            action(R.string.surface_play_pause) to { send(ActionId.PLAY_PAUSE.frame()) },
-            action(R.string.surface_next) to { send(ActionId.NEXT_TRACK.frame()) },
-            action(R.string.surface_previous) to { send(ActionId.PREVIOUS_TRACK.frame()) },
-            action(R.string.surface_open_settings) to onOpenSettings,
-            action(R.string.surface_keyboard) to ::toggleKeyboard,
+            action(R.id.action_play_pause, R.string.surface_play_pause) to { send(ActionId.PLAY_PAUSE.frame()) },
+            action(R.id.action_next_track, R.string.surface_next) to { send(ActionId.NEXT_TRACK.frame()) },
+            action(R.id.action_previous_track, R.string.surface_previous) to { send(ActionId.PREVIOUS_TRACK.frame()) },
+            action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
+            action(R.id.action_keyboard, R.string.surface_keyboard) to ::toggleKeyboard,
         )
 
     // Geometry, all set in onSizeChanged so nothing is measured or allocated while drawing.
@@ -298,7 +297,7 @@ class ControlSurface(
         val start = width / 2f - (dot + gap + textWidth) / 2
         val y = dp(GEAR_TOP_DP) + dp(Space.XL)
         fill.color = palette.ink
-        canvas.drawCircle(start + dot / 2, y - mono.textSize * CAP_CENTRE, dot / 2, fill)
+        canvas.drawCircle(start + dot / 2, y - mono.textSize * Type.CAP_CENTRE, dot / 2, fill)
         canvas.drawText(statusLine, start + dot + gap, y, mono)
         mono.textAlign = Paint.Align.CENTER
     }
@@ -309,11 +308,11 @@ class ControlSurface(
         val cx = box.left + size / 2
         val cy = box.centerY() - dp(PROGRESS_BELOW_DP) / 2
         fill.color = palette.ink
-        if (state.app.isEmpty()) {
+        if (!mark.known(state.app)) {
             stroke.color = palette.line
             canvas.drawRect(cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2, stroke)
         } else {
-            mark.draw(canvas, state.app, cx, cy, size, fill)
+            mark.draw(canvas, state.app, cx, cy, size, palette.ink)
         }
         val textX = box.left + size + dp(Space.M)
         canvas.drawText(titleLine, textX, cy - dp(Space.XS), titlePaint)
@@ -441,6 +440,13 @@ class ControlSurface(
 
     override fun onCheckIsTextEditor(): Boolean = true
 
+    // The keyboard can be dismissed by the system too, so the button's state comes from the window, not the toggle.
+    override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
+        keyboardShown = insets.isVisible(WindowInsets.Type.ime())
+        invalidate()
+        return super.onApplyWindowInsets(insets)
+    }
+
     override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection {
         outAttrs.inputType = EditorInfo.TYPE_CLASS_TEXT or EditorInfo.TYPE_TEXT_FLAG_NO_SUGGESTIONS
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or EditorInfo.IME_FLAG_NO_EXTRACT_UI
@@ -449,7 +455,7 @@ class ControlSurface(
                 text: CharSequence?,
                 newCursorPosition: Int,
             ): Boolean {
-                if (!text.isNullOrEmpty()) send(Frame.Text(LaptopState.TYPE, text.toString()))
+                if (!text.isNullOrEmpty()) send(TextKind.TYPE.frame(text.toString()))
                 return true
             }
 
@@ -457,7 +463,7 @@ class ControlSurface(
                 beforeLength: Int,
                 afterLength: Int,
             ): Boolean {
-                repeat(beforeLength) { send(Frame.Text(LaptopState.TYPE, BACKSPACE)) }
+                repeat(beforeLength) { send(TextKind.TYPE.frame(BACKSPACE)) }
                 return true
             }
 
@@ -465,16 +471,16 @@ class ControlSurface(
                 if (event?.action != KeyEvent.ACTION_DOWN) return true
                 when (event.keyCode) {
                     KeyEvent.KEYCODE_DEL -> {
-                        send(Frame.Text(LaptopState.TYPE, BACKSPACE))
+                        send(TextKind.TYPE.frame(BACKSPACE))
                     }
 
                     KeyEvent.KEYCODE_ENTER -> {
-                        send(Frame.Text(LaptopState.TYPE, NEWLINE))
+                        send(TextKind.TYPE.frame(NEWLINE))
                     }
 
                     else -> {
                         val c = event.unicodeChar
-                        if (c != 0) send(Frame.Text(LaptopState.TYPE, c.toChar().toString()))
+                        if (c != 0) send(TextKind.TYPE.frame(c.toChar().toString()))
                     }
                 }
                 return true
@@ -525,7 +531,7 @@ class ControlSurface(
             last = minOf(last, 0)
         }
         for (n in first..last) {
-            val major = n % MAJOR_EVERY == 0
+            val major = n % Dial.MAJOR_EVERY == 0
             perimeter.point(centre + ruler + n * notch, pt)
             val depth = dp(if (major) MAJOR_TICK_DP else MINOR_TICK_DP) * grow * dialHeight
             tick.strokeWidth = dp(if (major) MAJOR_STROKE_DP else MINOR_STROKE_DP)
@@ -636,11 +642,25 @@ class ControlSurface(
             }
 
             MotionEvent.ACTION_UP -> {
-                val openSettings = gearDown && gearHit.contains(event.x, event.y)
-                val toggleKeys = keyboardDown && keyboardHit.contains(event.x, event.y)
-                if (up(event)) performClick()
-                if (openSettings) onOpenSettings()
-                if (toggleKeys) toggleKeyboard()
+                when (up(event)) {
+                    Tapped.GEAR -> {
+                        performClick()
+                        onOpenSettings()
+                    }
+
+                    Tapped.KEYBOARD -> {
+                        performClick()
+                        toggleKeyboard()
+                    }
+
+                    Tapped.DIAL -> {
+                        performClick()
+                    }
+
+                    Tapped.NOTHING -> {
+                        Unit
+                    }
+                }
             }
 
             MotionEvent.ACTION_CANCEL -> {
@@ -711,17 +731,19 @@ class ControlSurface(
         dials[activeDial].slide(moved / density, TrackpadRecognizer.SLOP_DP)
     }
 
-    /** Ends the touch. True when it was a click: the gear, or a tap on a dial. */
-    private fun up(event: MotionEvent): Boolean {
+    private enum class Tapped { NOTHING, GEAR, KEYBOARD, DIAL }
+
+    /** Ends the touch and says what, if anything, it tapped. */
+    private fun up(event: MotionEvent): Tapped {
         when {
             gearDown -> {
                 gearDown = false
-                return gearHit.contains(event.x, event.y)
+                return if (gearHit.contains(event.x, event.y)) Tapped.GEAR else Tapped.NOTHING
             }
 
             keyboardDown -> {
                 keyboardDown = false
-                return keyboardHit.contains(event.x, event.y)
+                return if (keyboardHit.contains(event.x, event.y)) Tapped.KEYBOARD else Tapped.NOTHING
             }
 
             buttonDown != null -> {
@@ -731,7 +753,7 @@ class ControlSurface(
             activeDial >= 0 -> {
                 val dial = dials[activeDial]
                 activeDial = -1
-                return dial.up()
+                return if (dial.up()) Tapped.DIAL else Tapped.NOTHING
             }
 
             else -> {
@@ -739,7 +761,7 @@ class ControlSurface(
                 fingerDown = false
             }
         }
-        return false
+        return Tapped.NOTHING
     }
 
     private fun cancel(event: MotionEvent) {
@@ -835,8 +857,10 @@ class ControlSurface(
         return true
     }
 
-    private fun action(resId: Int) =
-        AccessibilityNodeInfo.AccessibilityAction(View.generateViewId(), context.getString(resId))
+    private fun action(
+        id: Int,
+        labelRes: Int,
+    ) = AccessibilityNodeInfo.AccessibilityAction(id, context.getString(labelRes))
 
     private fun haptic() {
         if (hapticsOn) performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
@@ -869,7 +893,6 @@ class ControlSurface(
         private const val MINOR_TICK_DP = 22f
         private const val MAJOR_STROKE_DP = 2f
         private const val MINOR_STROKE_DP = 1.2f
-        private const val MAJOR_EVERY = 5
         private const val MAJOR_ALPHA = 230
         private const val MINOR_ALPHA = 128
         private const val ARMED_MINOR_ALPHA = 190
@@ -924,6 +947,5 @@ class ControlSurface(
         private const val PLAY_TRIANGLE_DP = 18f
         private const val TRIANGLE_BACK = 0.4f
         private const val TRIANGLE_FRONT = 0.6f
-        private const val CAP_CENTRE = 0.35f
     }
 }

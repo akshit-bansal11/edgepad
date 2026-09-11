@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
+import me.akshitbansal.edgepad.protocol.TextKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -29,9 +30,9 @@ class LaptopStateTest {
 
     @Test
     fun readsWhatIsPlayingAndWhere() {
-        state.take(Frame.Text(LaptopState.NOW_PLAYING, "Polygon Window · Aphex Twin"))
-        state.take(Frame.Text(LaptopState.APP, "Spotify"))
-        state.take(Frame.Text(LaptopState.TIMELINE, "84/227"))
+        state.take(Frame.Text(TextKind.NOW_PLAYING.id, "Polygon Window · Aphex Twin"))
+        state.take(Frame.Text(TextKind.APP.id, "Spotify"))
+        state.take(Frame.Text(TextKind.TIMELINE.id, "84/227"))
         assertEquals("Polygon Window · Aphex Twin", state.nowPlaying)
         assertEquals("Spotify", state.app)
         assertEquals(84, state.position)
@@ -40,11 +41,11 @@ class LaptopStateTest {
 
     @Test
     fun aTimelineThatDoesNotParseMeansNone() {
-        state.take(Frame.Text(LaptopState.TIMELINE, "84/227"))
-        state.take(Frame.Text(LaptopState.TIMELINE, ""))
+        state.take(Frame.Text(TextKind.TIMELINE.id, "84/227"))
+        state.take(Frame.Text(TextKind.TIMELINE.id, ""))
         assertEquals(-1, state.position)
         assertEquals(0, state.duration)
-        state.take(Frame.Text(LaptopState.TIMELINE, "5/0"))
+        state.take(Frame.Text(TextKind.TIMELINE.id, "5/0"))
         assertEquals(0, state.duration)
     }
 

@@ -30,6 +30,14 @@ class CoalesceTest {
     }
 
     @Test
+    fun aSetNeverJumpsAheadOfAnActionBetween() {
+        // Volume 10, mute, volume 12: the mute must still land between the two volumes' effect.
+        val frames = listOf(Frame.SetValue(0, 10), Frame.RunAction(1), Frame.SetValue(0, 12))
+        val merged = Coalesce.merge(frames)
+        assertEquals(listOf(Frame.RunAction(1), Frame.SetValue(0, 12)), merged)
+    }
+
+    @Test
     fun zoomsAreSummedToo() {
         assertEquals(listOf(Frame.Zoom(240)), Coalesce.merge(listOf(Frame.Zoom(120), Frame.Zoom(120))))
     }

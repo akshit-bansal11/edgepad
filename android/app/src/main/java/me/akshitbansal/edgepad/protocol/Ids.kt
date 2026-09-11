@@ -46,3 +46,20 @@ enum class ControlId(
         fun of(id: Int): ControlId? = entries.firstOrNull { it.id == id }
     }
 }
+
+/** What a TEXT frame carries. Kinds 0 to 2 go laptop to phone, 3 goes phone to laptop. Mirrors protocol/actions.txt. */
+enum class TextKind(
+    val id: Int,
+) {
+    NOW_PLAYING(0),
+    APP(1),
+    TIMELINE(2),
+    TYPE(3),
+    ;
+
+    fun frame(text: String): Frame = Frame.Text(id, text)
+
+    companion object {
+        fun of(id: Int): TextKind? = entries.firstOrNull { it.id == id }
+    }
+}

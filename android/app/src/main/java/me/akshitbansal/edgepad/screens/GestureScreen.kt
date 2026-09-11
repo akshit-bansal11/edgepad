@@ -58,7 +58,13 @@ object GestureScreen {
         settings: Settings,
         gesture: Gesture,
     ): View {
-        val current = ui.mono(ui.string(settings.gesture(gesture).nameRes), Type.SMALL, ui.palette.dim, 0.1f)
+        val current =
+            ui.mono(
+                ui.string(settings.gesture(gesture).nameRes),
+                Type.SMALL,
+                ui.palette.dim,
+                Type.TRACKING_ROW,
+            )
         val chevron = Glyph(ui.context, Glyph.Shape.CHEVRON_RIGHT, ui.palette.dim)
         val end =
             LinearLayout(ui.context).apply {

@@ -26,6 +26,15 @@ internal enum ActionId : byte
     BrightnessDown = 34,
 }
 
+/// <summary>What a TEXT frame carries. Kinds 0 to 2 go laptop to phone, 3 goes phone to laptop. Mirrors protocol/actions.txt.</summary>
+internal enum TextKind : byte
+{
+    NowPlaying = 0,
+    App = 1,
+    Timeline = 2,
+    Type = 3,
+}
+
 /// <summary>What a SET_VALUE frame may set and a STATE frame reports. Mirrors protocol/actions.txt.</summary>
 internal enum ControlId : byte
 {

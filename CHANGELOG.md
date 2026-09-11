@@ -1,0 +1,107 @@
+# Changelog
+
+All notable changes to Edgepad. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Until 1.0 a minor version may change the protocol; both apps must be installed from the same release.
+
+## [Unreleased]
+
+## [0.6.2] - 2026-09-11
+
+### Added
+- Documentation: architecture, wire protocol, contributing, security and this changelog; issue and pull-request templates; Dependabot.
+
+### Changed
+- Release notes come from the changelog.
+- Housekeeping from a review of both apps; no behaviour change intended.
+
+## [0.6.1] - 2026-09-11
+
+### Added
+- Dial length and dial height in Settings.
+
+### Changed
+- The Settings gear is drawn as a cog.
+- Settings pages hide the scroll bar; the Forget button has room round its label.
+
+### Removed
+- The keyboard-backlight row, which had nothing behind it.
+
+## [0.6.0] - 2026-09-11
+
+### Added
+- A keyboard button: the phone's keyboard types on the laptop (protocol 3, TEXT kind 3).
+
+### Changed
+- The gear sits at the top-edge centre in both orientations.
+- The plain screens use the system sans for labels, with larger sizes and taller rows.
+
+## [0.5.0] - 2026-09-11
+
+### Added
+- Every two-, three- and four-finger gesture can be assigned an action in Settings, including continuous ones that step with the swipe (volume, brightness, zoom, app switcher). Actions 31 to 34 on the laptop.
+- A Media layout screen: drag the now-playing block, the play button and the skip pair anywhere.
+- Drawn marks for the popular players.
+
+### Changed
+- Dials live only in the four corners; Settings picks each corner's dial.
+- The trackpad has no box or lines, hints are off by default, and the Apps ruler shows no number.
+
+### Removed
+- Edge dials and the drag-along-the-edge placement editor.
+
+## [0.4.0] - 2026-09-11
+
+### Added
+- The device list shows only paired computers; tapping one connects.
+
+### Changed
+- Now playing, progress and transport sit together; the trackpad box is gone.
+- In landscape, corner dials stay and edge dials turn onto the long edges.
+
+### Fixed
+- Quitting the laptop app threw inside Bluetooth's StopAdvertising, which left a stuck process holding the single-instance lock so no update could take over and the phone could not reconnect.
+- The laptop's media reader failed while a player started or closed.
+
+## [0.3.2] - 2026-09-11
+
+Superseded by 0.4.0 before it was tagged; its fixes are listed there.
+
+## [0.3.1] - 2026-09-11
+
+### Fixed
+- The controls crashed on opening: a placeholder edge path clamped its radius into an empty range.
+
+## [0.3.0] - 2026-09-11
+
+### Added
+- The owner's design: edge rulers you slide along, bending round the display's own rounded corners; monochrome screens for onboarding, finding the laptop, settings and connection lost; a landscape layout; sensitivity, haptics, snapping, natural scrolling, hints and a dark/light switch.
+- The laptop follows brightness changed on the laptop itself, and sends the media timeline (protocol 2).
+- A newer laptop app asks the running one to quit and takes over; the tray menu shows the version.
+
+### Fixed
+- Values reset to 0 when the controls were reopened or the phone rotated; the laptop's last report is now kept by the activity.
+
+## [0.2.0] - 2026-09-11
+
+### Added
+- The phone's controls: corner dials for volume, brightness, media and more, placeable along the edges; a trackpad with one- to four-finger gestures; a media bar; a picker that remembers the laptop; onboarding; a reconnecting screen; a dark/light toggle.
+- Laptop state back to the phone: volume, mute, microphone and brightness, with audio changes watched live; media sessions with now playing, app name, position and seek; TEXT frames and the media-position control.
+- The exe is a compressed single file.
+
+## [0.1.0] - 2026-09-11
+
+### Added
+- The Bluetooth link: an RFCOMM service on the laptop, a phone that connects to it, and a live round-trip readout.
+- The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
+- CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
+
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v0.6.2...HEAD
+[0.6.2]: https://github.com/akshit-bansal11/edgepad/compare/v0.6.1...v0.6.2
+[0.6.1]: https://github.com/akshit-bansal11/edgepad/compare/v0.6.0...v0.6.1
+[0.6.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.3.1...v0.4.0
+[0.3.2]: https://github.com/akshit-bansal11/edgepad/compare/v0.3.1...v0.4.0
+[0.3.1]: https://github.com/akshit-bansal11/edgepad/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/akshit-bansal11/edgepad/releases/tag/v0.1.0

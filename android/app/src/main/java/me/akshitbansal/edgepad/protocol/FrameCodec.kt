@@ -141,7 +141,8 @@ object FrameCodec {
             SET_VALUE -> Frame.SetValue(b.u8(), b.u8())
             PING -> Frame.Ping(b.long)
             PONG -> Frame.Pong(b.long)
-            else -> Frame.StateReport(b.u8(), b.u8(), b.u8())
+            STATE -> Frame.StateReport(b.u8(), b.u8(), b.u8())
+            else -> throw StreamCorruptedException("Unknown frame type 0x%02x".format(type))
         }
     }
 

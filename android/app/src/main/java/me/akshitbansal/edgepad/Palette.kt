@@ -38,9 +38,6 @@ object Type {
     val sans: Typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
     val plain: Typeface = Typeface.SANS_SERIF
 
-    /** Small labels on the plain screens: the system sans at medium weight, tracked out, instead of monospace. */
-    val label: Typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-
     /** Ruler labels, section headers, chips. */
     const val MICRO = 11f
 
@@ -66,6 +63,12 @@ object Type {
     const val TRACKING_WIDE = 0.1f
     const val TRACKING_BUTTON = 0.12f
     const val TRACKING_TIGHT = -0.03f
+
+    /** The small value beside a settings row. */
+    const val TRACKING_ROW = 0.1f
+
+    /** Where a line of text's visual centre sits above its baseline, as a fraction of the size. */
+    const val CAP_CENTRE = 0.35f
 }
 
 /** The spacing scale, in dp. */

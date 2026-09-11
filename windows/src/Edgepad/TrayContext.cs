@@ -122,7 +122,6 @@ internal sealed class TrayContext : ApplicationContext
     protected override void ExitThreadCore()
     {
         icon.Visible = false;
-        server.Dispose();
         base.ExitThreadCore();
     }
 

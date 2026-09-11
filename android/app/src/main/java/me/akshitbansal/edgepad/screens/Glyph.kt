@@ -14,9 +14,6 @@ class Glyph(
     color: Int,
     private val count: Int = 1,
 ) : View(context) {
-    /** For layout tools only. */
-    constructor(context: Context) : this(context, Shape.DOT, 0)
-
     enum class Shape { CHEVRON_RIGHT, CHEVRON_LEFT, DOT, CORNER }
 
     private val density = resources.displayMetrics.density

@@ -4,8 +4,9 @@ import java.util.UUID
 
 object ProtocolConstants {
     /**
-     * 2 since 0.3.0, which added TEXT timelines. Both apps refuse any other version at the handshake, so
-     * a phone and a laptop from different releases say so instead of misreading each other.
+     * Bumped with every change to the wire format (3 since 0.6.0, which added typed text). Both apps
+     * refuse any other version at the handshake, so a phone and a laptop from different releases say so
+     * instead of misreading each other. protocol/actions.txt holds the same number; a test checks it.
      */
     const val VERSION = 3
 

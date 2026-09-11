@@ -176,5 +176,8 @@ class Dial(
 
         /** Ruler notch spacing, in dp; one haptic tick per notch that passes the indicator. */
         const val NOTCH_DP = 11f
+
+        /** Every this many notches is a long one. */
+        const val MAJOR_EVERY = 5
     }
 }

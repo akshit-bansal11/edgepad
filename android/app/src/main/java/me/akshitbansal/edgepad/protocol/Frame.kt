@@ -52,7 +52,7 @@ sealed interface Frame {
         val flags: Int,
     ) : Frame
 
-    /** Laptop to phone. Kind 0 is what is playing, kind 1 the app playing it. At most 255 UTF-8 bytes. */
+    /** Text, of a [TextKind]: what is playing, the app, the timeline, or characters to type. At most 255 UTF-8 bytes. */
     data class Text(
         val kind: Int,
         val text: String,
