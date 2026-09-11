@@ -117,22 +117,24 @@ class ControlSurface(
         invalidate()
     }
 
-    override fun onLayout(
-        changed: Boolean,
-        left: Int,
-        top: Int,
-        right: Int,
-        bottom: Int,
+    /** One per dial, filled in when the size is known; nothing is allocated during layout. */
+    private val exclusions = List(dials.size) { Rect() }
+
+    override fun onSizeChanged(
+        w: Int,
+        h: Int,
+        oldw: Int,
+        oldh: Int,
     ) {
-        super.onLayout(changed, left, top, right, bottom)
+        super.onSizeChanged(w, h, oldw, oldh)
         // Keep Android's back gesture off the side dials; the bottom edge (home) cannot be claimed.
         val hit = dp(HIT_RADIUS_DP).toInt()
-        systemGestureExclusionRects =
-            dials.map { dial ->
-                val cx = centreX(dial).toInt()
-                val cy = centreY(dial).toInt()
-                Rect(cx - hit, cy - hit, cx + hit, cy + hit)
-            }
+        dials.forEachIndexed { i, dial ->
+            val cx = dial.placement.centreX(w.toFloat()).toInt()
+            val cy = dial.placement.centreY(h.toFloat()).toInt()
+            exclusions[i].set(cx - hit, cy - hit, cx + hit, cy + hit)
+        }
+        systemGestureExclusionRects = exclusions
     }
 
     override fun performClick(): Boolean {
