@@ -4,6 +4,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import me.akshitbansal.edgepad.Type
 
 /**
  * A simple monochrome mark for the app playing, drawn here rather than shipped as a logo file: a few
