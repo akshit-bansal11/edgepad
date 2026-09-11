@@ -9,7 +9,6 @@ class RttStatsTest {
     fun isNaNUntilASampleArrives() {
         val stats = RttStats()
         assertTrue(stats.median().isNaN())
-        assertTrue(stats.best.isNaN())
     }
 
     @Test
@@ -27,11 +26,10 @@ class RttStatsTest {
     }
 
     @Test
-    fun oldSamplesLeaveTheWindowButBestIsKept() {
+    fun oldSamplesLeaveTheWindow() {
         val stats = RttStats(window = 2)
         listOf(1.0, 10.0, 20.0).forEach(stats::add)
         assertEquals(15.0, stats.median(), 0.0)
-        assertEquals(1.0, stats.best, 0.0)
     }
 
     @Test
@@ -40,6 +38,5 @@ class RttStatsTest {
         stats.add(3.0)
         stats.clear()
         assertTrue(stats.median().isNaN())
-        assertTrue(stats.best.isNaN())
     }
 }

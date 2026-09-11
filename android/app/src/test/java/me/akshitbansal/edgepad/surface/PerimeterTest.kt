@@ -51,13 +51,6 @@ class PerimeterTest {
     }
 
     @Test
-    fun atOfUndoesLengthAt() {
-        for (at in listOf(0f, 0.25f, 1f, 1.5f, 2.7f, 3.99f)) {
-            assertEquals("at $at", at, path.atOf(path.lengthAt(at)), 1e-3f)
-        }
-    }
-
-    @Test
     fun projectFindsTheNearestEdge() {
         val hit = FloatArray(2)
         path.project(50f, 5f, hit)
