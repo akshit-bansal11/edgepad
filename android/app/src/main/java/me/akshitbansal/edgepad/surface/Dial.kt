@@ -130,7 +130,8 @@ class Dial(
         val before = value
         level = (level + units).coerceIn(0f, MAX_LEVEL)
         if (value != before) {
-            haptic()
+            // One tick per unit the ruler passed, so a fast sweep still feels like a ruler.
+            repeat(abs(value - before)) { haptic() }
             if (value != lastSent) {
                 lastSent = value
                 control?.let { sink(it.set(value)) }

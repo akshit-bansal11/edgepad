@@ -76,7 +76,8 @@ class TrackpadRecognizer(
             startTime = time
             startX = centroid(xs)
             startY = centroid(ys)
-            if (time - lastTapUp <= DRAG_TAP_GAP_MS) {
+            // Added, not subtracted: the never-tapped sentinel is Long.MIN_VALUE and must not overflow.
+            if (time <= lastTapUp + DRAG_TAP_GAP_MS) {
                 dragging = true
                 sink(Frame.PointerButton(LEFT, true))
             }
