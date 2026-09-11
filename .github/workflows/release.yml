@@ -92,11 +92,12 @@ jobs:
     permissions:
       contents: write
     steps:
+      # Checkout first: it cleans the workspace, and would delete artifacts downloaded before it.
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
         with:
           path: dist
           merge-multiple: true
-      - uses: actions/checkout@v7
       # The release notes are this version's section of CHANGELOG.md.
       - name: Take the notes from the changelog
         run: |
