@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nothing Edgepad stores is worth moving: the remembered laptop belongs to this phone's own pairing. -->
+<data-extraction-rules>
+  <cloud-backup>
+    <exclude domain="sharedpref" path="." />
+  </cloud-backup>
+  <device-transfer>
+    <exclude domain="sharedpref" path="." />
+  </device-transfer>
+</data-extraction-rules>
