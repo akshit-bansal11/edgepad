@@ -1,18 +1,30 @@
 using System.Runtime.InteropServices;
+using Edgepad.Dispatch;
+using Edgepad.Injection;
 using Edgepad.Protocol;
+using Edgepad.Trust;
 using Windows.Networking.Sockets;
 
 namespace Edgepad.Bluetooth;
 
-/// <summary>One connected phone: handshake, then a blocking read loop on its own thread.</summary>
-internal sealed class Session(StreamSocket socket, Action<string> onStatus, Action<Session> onEnded) : IDisposable
+/// <summary>
+/// One connected phone: handshake, trust check, then a blocking read loop on its own thread that turns
+/// each frame straight into input. There is no queue between the socket and SendInput.
+/// </summary>
+internal sealed class Session(
+    StreamSocket socket,
+    TrustStore trust,
+    InputInjector injector,
+    Dispatcher dispatcher,
+    Action<string> onStatus,
+    Action<Session> onEnded) : IDisposable
 {
     // The WinRT adapters read with partial-read semantics, so the default buffer returns as soon as
     // any bytes arrive — it saves per-byte calls without holding data back.
     private readonly Stream input = socket.InputStream.AsStreamForRead();
     private readonly Stream output = socket.OutputStream.AsStreamForWrite();
     private readonly byte[] sendBuffer = new byte[FrameCodec.MaxFrameLength];
-    private readonly string remote = socket.Information.RemoteHostName.DisplayName;
+    private readonly string address = socket.Information.RemoteHostName.RawName;
 
     public void Run()
     {
@@ -21,28 +33,48 @@ internal sealed class Session(StreamSocket socket, Action<string> onStatus, Acti
         {
             if (ReadFrame(payload) is not Hello { Version: ProtocolConstants.Version })
             {
-                Log.Write($"Refused {remote}: no valid HELLO");
+                Log.Write($"Refused {address}: no valid HELLO");
+                return;
+            }
+
+            if (!trust.Admit(address))
+            {
+                Log.Write($"Refused {address}: this laptop trusts {trust.Trusted}");
+                onStatus("Refused a phone it does not trust");
                 return;
             }
 
             Send(new HelloAck(ProtocolConstants.Version));
-            Log.Write($"Connected {remote}");
-            onStatus($"Connected to {remote}");
+            Log.Write($"Connected {address}");
+            onStatus($"Connected to {address}");
 
             while (true)
             {
-                if (ReadFrame(payload) is Ping ping)
+                var frame = ReadFrame(payload);
+                if (frame is Ping ping)
                 {
                     Send(new Pong(ping.Time));
+                }
+                else
+                {
+                    dispatcher.Handle(frame);
                 }
             }
         }
         catch (Exception e) when (e is IOException or InvalidDataException or ObjectDisposedException or COMException)
         {
-            Log.Write($"Session with {remote} ended: {e.Message}");
+            Log.Write($"Session with {address} ended: {e.Message}");
         }
         finally
         {
+            // Releases anything still held down: Alt in the middle of an app switch, a button mid-drag.
+            injector.Dispose();
+            if (dispatcher.Dropped > 0 || injector.RefusedBatches > 0)
+            {
+                Log.Write($"Session with {address}: {dispatcher.Dropped} frames dropped, "
+                    + $"{injector.RefusedBatches} input batches refused by Windows (an elevated window had focus?)");
+            }
+
             Dispose();
             onEnded(this);
         }

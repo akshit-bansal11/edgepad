@@ -1,4 +1,8 @@
+using Edgepad.Controls;
+using Edgepad.Dispatch;
+using Edgepad.Injection;
 using Edgepad.Protocol;
+using Edgepad.Trust;
 using Windows.Devices.Bluetooth.Rfcomm;
 using Windows.Networking.Sockets;
 
@@ -9,7 +13,12 @@ namespace Edgepad.Bluetooth;
 /// old one rather than being refused: after a dropped link the phone reconnects before the old socket
 /// has noticed it is dead, and refusing would lock the phone out until it did.
 /// </summary>
-internal sealed class RfcommServer(Action<string> onStatus) : IDisposable
+internal sealed class RfcommServer(
+    Action<string> onStatus,
+    TrustStore trust,
+    AudioEndpoint speakers,
+    AudioEndpoint microphone,
+    BrightnessControl brightness) : IDisposable
 {
     private readonly Lock gate = new();
     private RfcommServiceProvider? provider;
@@ -34,7 +43,10 @@ internal sealed class RfcommServer(Action<string> onStatus) : IDisposable
 
     private void OnConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
     {
-        var session = new Session(args.Socket, onStatus, OnSessionEnded);
+        // Input state (what is held down) belongs to one connection; the devices are shared.
+        var injector = new InputInjector();
+        var dispatcher = new Dispatcher(injector, speakers, microphone, brightness);
+        var session = new Session(args.Socket, trust, injector, dispatcher, onStatus, OnSessionEnded);
         Session? previous;
         lock (gate)
         {
@@ -45,7 +57,7 @@ internal sealed class RfcommServer(Action<string> onStatus) : IDisposable
         previous?.Dispose();
 
         // A dedicated thread, not the thread pool: the read loop blocks for the life of the connection,
-        // and input frames are injected from this thread directly, so nothing queues behind other work.
+        // and input is injected from this thread directly, so nothing queues behind other work.
         new Thread(session.Run) { IsBackground = true, Name = "edgepad-session", Priority = ThreadPriority.AboveNormal }
             .Start();
     }

@@ -10,10 +10,19 @@
     <RootNamespace>Edgepad</RootNamespace>
     <AssemblyName>Edgepad</AssemblyName>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- LibraryImport generates unsafe marshalling code for the SendInput P/Invoke. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="Edgepad.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Core Audio: speaker and microphone level and mute. -->
+    <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
+    <!-- WMI: the built-in panel's brightness. -->
+    <PackageReference Include="System.Management" Version="10.0.12" />
   </ItemGroup>
 
 </Project>

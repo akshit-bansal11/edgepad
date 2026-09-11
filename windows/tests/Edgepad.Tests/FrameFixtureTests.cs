@@ -7,19 +7,7 @@ namespace Edgepad.Tests;
 /// <summary>Runs protocol/frames.txt — the same golden frames the Android suite runs.</summary>
 public sealed class FrameFixtureTests
 {
-    public static TheoryData<string> Lines()
-    {
-        var data = new TheoryData<string>();
-        foreach (var line in File.ReadAllLines(FixturePath()))
-        {
-            if (line.Length > 0 && !line.StartsWith('#'))
-            {
-                data.Add(line);
-            }
-        }
-
-        return data;
-    }
+    public static TheoryData<string> Lines() => [.. Fixtures.Lines("frames.txt")];
 
     [Theory]
     [MemberData(nameof(Lines))]
@@ -78,19 +66,5 @@ public sealed class FrameFixtureTests
         };
 
         return (frame, bytes);
-    }
-
-    private static string FixturePath()
-    {
-        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
-        {
-            var candidate = Path.Combine(dir.FullName, "protocol", "frames.txt");
-            if (File.Exists(candidate))
-            {
-                return candidate;
-            }
-        }
-
-        throw new FileNotFoundException("protocol/frames.txt was not found above the test output directory");
     }
 }

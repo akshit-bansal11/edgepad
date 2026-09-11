@@ -1,0 +1,28 @@
+# Action and control ids for Edgepad protocol v1.
+#
+# RUN_ACTION carries an ACTION id; SET_VALUE and STATE carry a CONTROL id. The laptop owns what each
+# one does, and ignores any id not listed here: the phone can name an action, never a key or a command.
+# Both test suites check their enums against this file, the same way they check frames.txt.
+#
+# Format:  KIND id NAME
+
+ACTION 1 MUTE_TOGGLE
+ACTION 2 PLAY_PAUSE
+ACTION 3 NEXT_TRACK
+ACTION 4 PREVIOUS_TRACK
+ACTION 5 MIC_MUTE_TOGGLE
+ACTION 6 LOCK
+ACTION 20 TASK_VIEW
+ACTION 21 SHOW_DESKTOP
+ACTION 22 SEARCH
+ACTION 23 NOTIFICATIONS
+ACTION 24 DESKTOP_LEFT
+ACTION 25 DESKTOP_RIGHT
+ACTION 26 APP_SWITCH_BEGIN
+ACTION 27 APP_SWITCH_NEXT
+ACTION 28 APP_SWITCH_PREVIOUS
+ACTION 29 APP_SWITCH_END
+
+CONTROL 0 VOLUME
+CONTROL 1 BRIGHTNESS
+CONTROL 2 MIC_LEVEL
