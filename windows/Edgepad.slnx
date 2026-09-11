@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/Edgepad/Edgepad.csproj" />
+  <Project Path="tests/Edgepad.Tests/Edgepad.Tests.csproj" />
+</Solution>

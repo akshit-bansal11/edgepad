@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">Edgepad</string>
+  <string name="choose_laptop">Choose your laptop</string>
+  <string name="choose_laptop_hint">Pair this phone with the laptop in Bluetooth settings first, and keep Edgepad running on the laptop.</string>
+  <string name="no_paired">No paired devices yet. Pair your laptop in Bluetooth settings, then come back.</string>
+  <string name="bluetooth_off">Bluetooth is off. Turn it on, then come back.</string>
+  <string name="permission_needed">Edgepad needs the Nearby devices permission to reach your laptop.</string>
+  <string name="status_connecting">Connecting to %1$s…</string>
+  <string name="status_connected">Connected</string>
+  <string name="status_disconnected">Disconnected</string>
+  <string name="status_closed">Not connected: %1$s</string>
+  <string name="rtt">Round trip %1$.1f ms · best %2$.1f ms</string>
+  <string name="disconnect">Disconnect</string>
+</resources>

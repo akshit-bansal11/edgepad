@@ -1,0 +1,27 @@
+# Secrets — never committed. The signing key lives outside this repo entirely.
+.env
+.env.local
+.env.*.local
+*.p12
+*.jks
+*.keystore
+
+# Gradle / Android
+.gradle/
+.kotlin/
+**/build/
+local.properties
+captures/
+.idea/
+*.iml
+
+# .NET
+bin/
+obj/
+TestResults/
+*.user
+.vs/
+
+# OS
+.DS_Store
+Thumbs.db

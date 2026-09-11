@@ -1,0 +1,22 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml,json,xml,csproj,props,slnx}]
+indent_size = 2
+
+[*.{kt,kts}]
+ktlint_code_style = ktlint_official
+max_line_length = 120
+
+[*.cs]
+dotnet_sort_system_directives_first = true
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_prefer_braces = when_multiline:warning
+dotnet_style_readonly_field = true:warning

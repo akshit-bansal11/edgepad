@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: gradle/actions/setup-gradle@v6
+      # The same script as the local gate, in its non-mutating mode.
+      - name: Quality gate
+        run: pwsh scripts/check.ps1 -Ci -Only android
+      - name: Build APK
+        working-directory: android
+        run: ./gradlew --no-daemon assembleDebug
+      - uses: actions/upload-artifact@v7
+        with:
+          name: edgepad-android
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: windows/global.json
+      - name: Quality gate
+        run: pwsh scripts/check.ps1 -Ci -Only windows
+      # Self-contained single file: runs on a laptop with no .NET installed.
+      - name: Publish exe
+        run: >
+          dotnet publish windows/src/Edgepad/Edgepad.csproj -c Release -r win-x64 --self-contained
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
+      - uses: actions/upload-artifact@v7
+        with:
+          name: edgepad-windows
+          path: publish/Edgepad.exe
+          if-no-files-found: error

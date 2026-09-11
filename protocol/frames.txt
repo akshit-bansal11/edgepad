@@ -1,0 +1,25 @@
+# Golden frames for Edgepad protocol v1.
+#
+# Both test suites (android/ in Kotlin, windows/ in C#) read this file. For every
+# line they encode the fields and must get exactly these bytes, then decode the
+# bytes and must get exactly these fields. That is what stops the two sides from
+# drifting apart: a change to one codec without the other fails a test.
+#
+# Format:  NAME field field ... = hex bytes
+# All multi-byte integers are little-endian. The first byte is the frame type;
+# the payload length is fixed per type.
+
+HELLO 1 = 01 45 44 47 50 01
+HELLO_ACK 1 = 02 01
+MOVE 5 -3 = 10 05 00 fd ff
+MOVE -32768 32767 = 10 00 80 ff 7f
+BUTTON 0 1 = 11 00 01
+BUTTON 1 0 = 11 01 00
+SCROLL 0 -120 = 12 00 00 88 ff
+ZOOM 240 = 13 f0 00
+ACTION 3 = 20 03
+SET 0 55 = 21 00 37
+SET 1 100 = 21 01 64
+PING 1234567890123 = 30 cb 04 fb 71 1f 01 00 00
+PONG -1 = 31 ff ff ff ff ff ff ff ff
+STATE 0 42 1 = 40 00 2a 01
