@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.InteropServices;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
@@ -29,6 +30,7 @@ internal sealed class Session(
     private const byte PlayingFlag = 1;
     private const byte NowPlayingText = 0;
     private const byte AppText = 1;
+    private const byte TimelineText = 2;
 
     // The WinRT adapters read with partial-read semantics, so the default buffer returns as soon as
     // any bytes arrive — it saves per-byte calls without holding data back.
@@ -41,15 +43,25 @@ internal sealed class Session(
     private readonly Lock sendGate = new();
     private readonly List<IDisposable> watches = [];
     private MediaState lastMedia = MediaSessions.Nothing;
+    private string lastTimeline = "";
 
     public void Run()
     {
         var payload = new byte[FrameCodec.MaxFrameLength];
         try
         {
-            if (ReadFrame(payload) is not Hello { Version: ProtocolConstants.Version })
+            if (ReadFrame(payload) is not Hello hello)
             {
                 Log.Write($"Refused {address}: no valid HELLO");
+                return;
+            }
+
+            if (hello.Version != ProtocolConstants.Version)
+            {
+                // Answered with this laptop's version, so the phone can say which side needs updating.
+                Send(new HelloAck(ProtocolConstants.Version));
+                Log.Write($"Refused {address}: it speaks protocol {hello.Version}, this laptop {ProtocolConstants.Version}");
+                onStatus("Refused a phone from another release");
                 return;
             }
 
@@ -103,13 +115,22 @@ internal sealed class Session(
         SendState(ControlId.MicLevel, microphone.Read());
         if (BrightnessControl.Read() is { } brightness)
         {
-            Send(new StateReport((byte)ControlId.Brightness, (byte)Math.Clamp(brightness, 0, 100), 0));
+            SendBrightness(brightness);
         }
 
         Watch(speakers, ControlId.Volume);
         Watch(microphone, ControlId.MicLevel);
         watches.Add(media.Watch(state => Guarded(() => SendMedia(state))));
+
+        // Brightness changed on the laptop itself (keys, Windows' slider) reaches the phone as it does for audio.
+        if (BrightnessControl.Watch(level => Guarded(() => SendBrightness(level))) is { } brightnessWatch)
+        {
+            watches.Add(brightnessWatch);
+        }
     }
+
+    private void SendBrightness(int level) =>
+        Send(new StateReport((byte)ControlId.Brightness, (byte)Math.Clamp(level, 0, 100), 0));
 
     private void SendMedia(MediaState state)
     {
@@ -122,6 +143,16 @@ internal sealed class Session(
         if (state.App != lastMedia.App)
         {
             Send(new Text(AppText, state.App));
+        }
+
+        // Seconds in and the length, so the phone can show 1:24 of 3:47; empty when the player has no timeline.
+        var timeline = state.DurationSeconds > 0
+            ? string.Create(CultureInfo.InvariantCulture, $"{state.PositionSeconds}/{state.DurationSeconds}")
+            : "";
+        if (timeline != lastTimeline)
+        {
+            Send(new Text(TimelineText, timeline));
+            lastTimeline = timeline;
         }
 
         lastMedia = state;

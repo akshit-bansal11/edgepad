@@ -2,55 +2,121 @@
 <resources>
   <string name="app_name">Edgepad</string>
 
-  <string name="onboarding_title">Welcome to Edgepad</string>
-  <string name="onboarding_intro">Your phone becomes a control surface for your Windows laptop, over Bluetooth.</string>
-  <string name="onboarding_setup_heading">Set up once</string>
-  <string name="onboarding_setup">1. Pair this phone with the laptop in Bluetooth settings.\n2. Run Edgepad.exe on the laptop; it lives in the system tray.\n3. Tap your laptop on the next screen. Edgepad remembers it and reconnects when it opens.</string>
-  <string name="onboarding_dials_heading">Edge dials</string>
-  <string name="onboarding_dials">Press and hold a dial to arm it, then drag around it like a camera\'s zoom ring. Sweep up on the sides or right along the top and bottom to raise the value. A tap without a hold runs the dial\'s action: mute, play/pause, task view, reset zoom. Settings lets you put any dial anywhere along the edges, corners included.</string>
-  <string name="onboarding_trackpad_heading">Trackpad</string>
-  <string name="onboarding_trackpad">One finger moves the pointer; tap to click; tap, then hold and move to drag.\nTwo fingers scroll in any direction; pinch to zoom; tap for a right click.\nThree fingers left or right switch desktops; up opens task view; down shows the desktop; tap searches.\nFour fingers left or right walk the app switcher; tap opens notifications.\nPress back to leave the controls.</string>
-  <string name="onboarding_continue">Continue</string>
+  <!-- Onboarding -->
+  <string name="onboarding_title">Your phone is the dial.</string>
+  <string name="onboarding_intro">Rulers folded along the edges. One flat surface in the middle.</string>
+  <string name="gesture_one_title">ONE FINGER</string>
+  <string name="gesture_one">Move the pointer. Tap to click. Tap, then hold and move, to drag.</string>
+  <string name="gesture_two_title">TWO FINGERS</string>
+  <string name="gesture_two">Tap to right-click. Slide any direction to scroll. Pinch to zoom.</string>
+  <string name="gesture_three_title">THREE FINGERS</string>
+  <string name="gesture_three">Swipe left or right to change desktop. Up for task view, down for the desktop.</string>
+  <string name="gesture_four_title">FOUR FINGERS</string>
+  <string name="gesture_four">Swipe left or right through your open apps.</string>
+  <string name="gesture_dials_title">THE EDGES</string>
+  <string name="gesture_dials">Slide along a ruler, clockwise to raise. Tap one to mute, play or reset. Settings moves any dial anywhere on the edge.</string>
+  <string name="onboarding_continue">FIND MY LAPTOP</string>
 
-  <string name="choose_laptop">Choose your laptop</string>
-  <string name="choose_laptop_hint">Pair this phone with the laptop in Bluetooth settings first, and keep Edgepad running on the laptop.</string>
-  <string name="remembered_laptop">%1$s (remembered)</string>
-  <string name="no_paired">No paired devices yet. Pair your laptop in Bluetooth settings, then come back.</string>
+  <!-- Finding the laptop -->
+  <string name="pairing_step">STEP 02</string>
+  <string name="pairing_title">Find the laptop</string>
+  <string name="pairing_band">PAIRED DEVICES</string>
+  <string name="pairing_connecting">CONNECTING TO %1$s…</string>
+  <string name="pairing_count">PAIRED · %1$d</string>
+  <string name="device_sub">%1$s · %2$s</string>
+  <string name="device_connected">CONNECTED</string>
+  <string name="device_remembered">REMEMBERED</string>
+  <string name="pairing_footnote">Pair this phone with the laptop in Bluetooth settings first. Edgepad on the laptop lives in the system tray, and both must come from the same release.</string>
+  <string name="connect">CONNECT</string>
+  <string name="open_controls">OPEN CONTROLS</string>
+  <string name="open_bluetooth_settings">OPEN BLUETOOTH SETTINGS</string>
+  <string name="settings_link">SETTINGS</string>
   <string name="bluetooth_off">Bluetooth is off. Turn it on, then come back.</string>
   <string name="permission_needed">Edgepad needs the Nearby devices permission to reach your laptop.</string>
-  <string name="status_connecting">Connecting to %1$s…</string>
-  <string name="status_connected_to">Connected to %1$s</string>
+  <string name="no_paired">No paired devices yet. Pair your laptop in Bluetooth settings, then come back.</string>
+  <string name="not_paired">That laptop is no longer paired with this phone. Pair it again in Bluetooth settings.</string>
   <string name="status_disconnected">Disconnected</string>
   <string name="status_closed">Not connected: %1$s</string>
-  <string name="surface_status">%1$.1f ms · back to leave</string>
-  <string name="open_controls">Open controls</string>
-  <string name="disconnect">Disconnect</string>
-  <string name="open_bluetooth_settings">Open Bluetooth settings</string>
-  <string name="settings">Settings</string>
-  <string name="forget_laptop">Forget remembered laptop</string>
 
-  <string name="reconnecting_title">Connection lost</string>
-  <string name="reconnecting_body">Reconnecting to %1$s… Keep the laptop within Bluetooth range and Edgepad running in its tray.</string>
-  <string name="reconnecting_cancel">Stop trying</string>
+  <!-- Connection lost -->
+  <string name="lost_title">Laptop out of reach.</string>
+  <string name="lost_body">%1$s stopped answering. Every control is paused, and nothing you press is queued.</string>
+  <string name="lost_attempt">RECONNECTING · ATTEMPT %1$d OF %2$d</string>
+  <string name="lost_stopped">STOPPED RETRYING</string>
+  <string name="lost_off">AUTOMATIC RECONNECT IS OFF</string>
+  <string name="lost_last_seen">LAST SEEN %1$s AGO · %2$s</string>
+  <string name="retry_now">RETRY NOW</string>
+  <string name="pick_another">PICK ANOTHER DEVICE</string>
 
-  <string name="settings_theme">Theme</string>
-  <string name="settings_dark">Dark</string>
-  <string name="settings_dials">Dials</string>
-  <string name="settings_dials_hint">For each dial, choose an edge and slide it along that edge. The ends of the slider are the corners; a little way in keeps a dial clear of a rounded screen corner. Off hides it.</string>
-  <string name="settings_position_description">Position of the %1$s dial along its edge</string>
-  <string name="settings_laptop">Laptop</string>
-  <string name="edge_off">Off</string>
-  <string name="edge_top">Top edge</string>
-  <string name="edge_right">Right edge</string>
-  <string name="edge_bottom">Bottom edge</string>
-  <string name="edge_left">Left edge</string>
+  <!-- Settings -->
+  <string name="settings_title">Settings</string>
+  <string name="back">Back</string>
+  <string name="settings_connection">CONNECTION</string>
+  <string name="no_laptop">No laptop remembered</string>
+  <string name="forget">FORGET</string>
+  <string name="detail_connected">CONNECTED</string>
+  <string name="detail_connected_rtt">CONNECTED · %1$.0f MS</string>
+  <string name="detail_remembered">REMEMBERED · NOT CONNECTED</string>
+  <string name="reconnect_automatically">Reconnect automatically</string>
+  <string name="settings_dials">DIAL PLACEMENT</string>
+  <string name="settings_dials_hint">Drag a dial along the outline. Near a corner it snaps on and wraps the bend as one L. Switch dials on or off below.</string>
+  <string name="keyboard_backlight">Keyboard backlight</string>
+  <string name="keyboard_backlight_sub">NO WINDOWS CONTROL FOR IT YET</string>
+  <string name="settings_feel">DIAL FEEL</string>
+  <string name="slide_sensitivity">Slide sensitivity</string>
+  <string name="sensitivity_value">×%1$.1f</string>
+  <string name="haptic_ticks">Haptic tick per notch</string>
+  <string name="snap_round">Snap to round numbers</string>
+  <string name="settings_trackpad">TRACKPAD</string>
+  <string name="natural_scrolling">Natural scrolling</string>
+  <string name="gesture_hints">Show gesture hints</string>
+  <string name="settings_appearance">APPEARANCE</string>
+  <string name="theme">Theme</string>
+  <string name="theme_dark">DARK</string>
+  <string name="theme_light">LIGHT</string>
 
-  <string name="dial_mic">Mic</string>
-  <string name="dial_media">Media</string>
+  <!-- Where a dial sits -->
+  <string name="place_off">OFF</string>
+  <string name="place_top_left">TOP-LEFT L</string>
+  <string name="place_top_right">TOP-RIGHT L</string>
+  <string name="place_bottom_right">BOTTOM-RIGHT L</string>
+  <string name="place_bottom_left">BOTTOM-LEFT L</string>
+  <string name="place_top">TOP EDGE</string>
+  <string name="place_right">RIGHT EDGE</string>
+  <string name="place_bottom">BOTTOM EDGE</string>
+  <string name="place_left">LEFT EDGE</string>
+  <string name="editor_hint">DRAG\nALONG\nTHE EDGE</string>
+  <string name="editor_item">%1$s %2$s</string>
+  <string name="editor_none">No dials placed</string>
+  <string name="editor_move_clockwise">Move %1$s clockwise</string>
+  <string name="editor_move_anticlockwise">Move %1$s anticlockwise</string>
+
+  <!-- Dials -->
   <string name="dial_volume">Volume</string>
+  <string name="dial_volume_short">VOL</string>
   <string name="dial_brightness">Brightness</string>
+  <string name="dial_brightness_short">BRI</string>
   <string name="dial_zoom">Zoom</string>
-  <string name="dial_apps">Apps</string>
-  <string name="dial_muted_short">M</string>
-  <string name="nothing_playing">Nothing playing</string>
+  <string name="dial_zoom_short">ZOOM</string>
+  <string name="dial_media">Media scrub</string>
+  <string name="dial_media_short">SCRUB</string>
+  <string name="dial_apps">App switcher</string>
+  <string name="dial_apps_short">APPS</string>
+  <string name="dial_mic">Mic level</string>
+  <string name="dial_mic_short">MIC</string>
+
+  <!-- Control surface -->
+  <string name="surface_description">Laptop control surface</string>
+  <string name="surface_mute">MUTE</string>
+  <string name="surface_unknown">…</string>
+  <string name="surface_nothing_playing">Nothing playing</string>
+  <string name="surface_hints">1F MOVE · TAP CLICK\n2F SCROLL · PINCH ZOOM · TAP RIGHT-CLICK\n3F SWIPE DESKTOPS\n4F SWIPE APPS</string>
+  <string name="surface_hints_short">1F MOVE · 2F SCROLL, ZOOM · 3F DESKTOPS · 4F APPS</string>
+  <string name="surface_status">%1$s · %2$.0f MS</string>
+  <string name="surface_app_time">%1$s · %2$s OF %3$s</string>
+  <string name="surface_time">%1$s OF %2$s</string>
+  <string name="surface_play_pause">Play or pause</string>
+  <string name="surface_next">Next track</string>
+  <string name="surface_previous">Previous track</string>
+  <string name="surface_open_settings">Open settings</string>
 </resources>

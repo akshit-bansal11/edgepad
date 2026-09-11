@@ -2,7 +2,11 @@ namespace Edgepad.Protocol;
 
 internal static class ProtocolConstants
 {
-    public const byte Version = 1;
+    /// <summary>
+    /// 2 since 0.3.0, which added TEXT timelines. A phone on another version gets this laptop's version in
+    /// HELLO_ACK and is then refused, so it can say which side needs updating.
+    /// </summary>
+    public const byte Version = 2;
 
     /// <summary>Sent in HELLO so a stray connection that is not Edgepad is refused before anything runs.</summary>
     public static ReadOnlySpan<byte> Magic => "EDGP"u8;

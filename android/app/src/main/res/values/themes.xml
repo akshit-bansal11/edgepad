@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- The platform's own theme: follows the system light/dark setting and Samsung's One UI look, no library. -->
+  <!-- The platform's own theme, following the system or the app's own light/dark choice; no library. -->
   <style name="Theme.Edgepad" parent="@android:style/Theme.DeviceDefault.DayNight">
     <item name="android:windowActionBar">false</item>
     <item name="android:windowNoTitle">true</item>
+    <!-- The panel colour from the first frame, so changing screens never flashes the platform's grey. -->
+    <item name="android:windowBackground">@color/panel</item>
   </style>
 </resources>

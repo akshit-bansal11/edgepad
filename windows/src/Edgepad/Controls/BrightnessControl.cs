@@ -14,6 +14,9 @@ internal sealed class BrightnessControl : IDisposable
 {
     private const int None = -1;
 
+    /// <summary>How often the level is read where WMI's change event cannot be subscribed.</summary>
+    private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(2);
+
     private readonly AutoResetEvent wake = new(initialState: false);
     private readonly Thread worker;
     private int pending = None;
@@ -51,6 +54,53 @@ internal sealed class BrightnessControl : IDisposable
         catch (Exception e) when (e is ManagementException or COMException)
         {
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Reports each change of the panel's brightness, whoever makes it (the phone, the brightness keys,
+    /// Windows' own slider), until the handle is disposed. WMI raises an event for it; where that event
+    /// cannot be subscribed, the level is read every <see cref="PollInterval"/> instead. Null when there is
+    /// no WMI brightness at all.
+    /// </summary>
+    public static IDisposable? Watch(Action<int> onChange)
+    {
+        var last = Read();
+        if (last is null)
+        {
+            return null;
+        }
+
+        var watcher = new ManagementEventWatcher(
+            new ManagementScope(@"root\WMI"),
+            new EventQuery("SELECT * FROM WmiMonitorBrightnessEvent"));
+        try
+        {
+            watcher.EventArrived += (_, e) => onChange(Convert.ToInt32(e.NewEvent["Brightness"], CultureInfo.InvariantCulture));
+            watcher.Start();
+            return new Subscription(() =>
+            {
+                watcher.Stop();
+                watcher.Dispose();
+            });
+        }
+        catch (Exception e) when (e is ManagementException or COMException or UnauthorizedAccessException)
+        {
+            watcher.Dispose();
+            Log.Write($"Brightness events unavailable, polling instead: {e.Message}");
+            var timer = new System.Threading.Timer(
+                _ =>
+                {
+                    if (Read() is { } level && level != last)
+                    {
+                        last = level;
+                        onChange(level);
+                    }
+                },
+                null,
+                PollInterval,
+                PollInterval);
+            return new Subscription(timer.Dispose);
         }
     }
 

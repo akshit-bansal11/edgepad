@@ -2,44 +2,31 @@ package me.akshitbansal.edgepad.surface
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PlacementTest {
     @Test
-    fun theEndsOfAnEdgeAreCornersAndTheMiddleIsNot() {
-        assertTrue(Placement(Edge.TOP, 0f).atCorner)
-        assertTrue(Placement(Edge.TOP, 1f).atCorner)
-        assertFalse(Placement(Edge.TOP, 0.1f).atCorner)
-        assertFalse(Placement(Edge.LEFT, 0.5f).atCorner)
+    fun wholeNumbersAreCornersAndTheRestAreEdges() {
+        assertTrue(Placement(0f).atCorner)
+        assertEquals(2, Placement(2f).corner)
+        assertFalse(Placement(1.5f).atCorner)
+        assertNull(Placement(1.5f).corner)
+        assertEquals(1, Placement(1.5f).edge)
+        assertEquals(3, Placement(3.5f).edge)
     }
 
     @Test
-    fun aCornerIsAQuarterTurnAndAnEdgeAHalf() {
-        assertEquals(45f, Placement(Edge.BOTTOM, 1f).halfSpanDeg)
-        assertEquals(90f, Placement(Edge.BOTTOM, 0.5f).halfSpanDeg)
+    fun ofWrapsRoundTheScreen() {
+        assertEquals(0.5f, Placement.of(4.5f).at, 1e-4f)
+        assertEquals(3.5f, Placement.of(-0.5f).at, 1e-4f)
     }
 
     @Test
-    fun theIndicatorPointsIntoTheScreen() {
-        assertEquals(90f, Placement(Edge.TOP, 0.5f).indicatorDeg)
-        assertEquals(180f, Placement(Edge.RIGHT, 0.5f).indicatorDeg)
-        assertEquals(270f, Placement(Edge.BOTTOM, 0.5f).indicatorDeg)
-        assertEquals(0f, Placement(Edge.LEFT, 0.5f).indicatorDeg)
-        assertEquals(45f, Placement(Edge.TOP, 0f).indicatorDeg)
-        assertEquals(135f, Placement(Edge.TOP, 1f).indicatorDeg)
-        assertEquals(225f, Placement(Edge.BOTTOM, 1f).indicatorDeg)
-        assertEquals(315f, Placement(Edge.BOTTOM, 0f).indicatorDeg)
-        assertEquals(135f, Placement(Edge.RIGHT, 0f).indicatorDeg)
-        assertEquals(315f, Placement(Edge.LEFT, 1f).indicatorDeg)
-    }
-
-    @Test
-    fun theCentreSitsOnTheEdge() {
-        assertEquals(50f, Placement(Edge.TOP, 0.5f).centreX(100f))
-        assertEquals(0f, Placement(Edge.TOP, 0.5f).centreY(200f))
-        assertEquals(100f, Placement(Edge.RIGHT, 0.25f).centreX(100f))
-        assertEquals(50f, Placement(Edge.RIGHT, 0.25f).centreY(200f))
-        assertEquals(200f, Placement(Edge.BOTTOM, 0f).centreY(200f))
+    fun ofSnapsOntoANearbyCorner() {
+        assertEquals(Placement(1f), Placement.of(1.04f))
+        assertEquals(Placement(0f), Placement.of(3.97f))
+        assertEquals(1.2f, Placement.of(1.2f).at, 1e-4f)
     }
 }

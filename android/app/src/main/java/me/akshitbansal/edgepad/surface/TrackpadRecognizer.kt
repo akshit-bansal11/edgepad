@@ -20,6 +20,8 @@ import kotlin.math.hypot
  */
 class TrackpadRecognizer(
     private val density: Float,
+    /** Content follows the fingers, as on Windows' own touchpads; false scrolls the other way. */
+    private val naturalScroll: Boolean = true,
     private val sink: (Frame) -> Unit,
 ) {
     enum class Action { DOWN, MOVE, UP, CANCEL }
@@ -149,9 +151,10 @@ class TrackpadRecognizer(
             zoomRemainder -= steps
             if (steps != 0) sink(Frame.Zoom(steps * WHEEL_NOTCH))
         } else {
-            // Windows' default: content follows the fingers. Fingers down = wheel forward = positive.
-            scrollRemX += -dx * SCROLL_UNITS_PER_DP / density
-            scrollRemY += dy * SCROLL_UNITS_PER_DP / density
+            // Natural scrolling, Windows' default: content follows the fingers, so fingers down is wheel forward.
+            val direction = if (naturalScroll) 1f else -1f
+            scrollRemX += -dx * direction * SCROLL_UNITS_PER_DP / density
+            scrollRemY += dy * direction * SCROLL_UNITS_PER_DP / density
             val ix = scrollRemX.toInt()
             val iy = scrollRemY.toInt()
             scrollRemX -= ix

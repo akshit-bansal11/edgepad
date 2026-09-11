@@ -26,11 +26,12 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MediaSessions media = new();
     private readonly RfcommServer server;
 
-    public TrayContext()
+    public TrayContext(EventWaitHandle quit)
     {
         startWithWindows.CheckedChanged += (_, _) => RunAtLogin.Set(startWithWindows.Checked);
         forget.Click += (_, _) => trust.Forget();
 
+        menu.Items.Add($"Edgepad {Program.Version}").Enabled = false;
         menu.Items.Add(status);
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(startWithWindows);
@@ -53,6 +54,25 @@ internal sealed class TrayContext : ApplicationContext
         server = new RfcommServer(SetStatus, trust, speakers, microphone, brightness, media);
         _ = StartServerAsync();
         _ = StartMediaAsync();
+
+        // A newer Edgepad asks this one to quit through the event, so running an update takes over cleanly.
+        new Thread(() => WaitForQuit(quit)) { IsBackground = true, Name = "edgepad-quit" }.Start();
+    }
+
+    private void WaitForQuit(EventWaitHandle quit)
+    {
+        try
+        {
+            quit.WaitOne();
+        }
+        catch (ObjectDisposedException)
+        {
+            // This copy is already shutting down.
+            return;
+        }
+
+        Log.Write("A newer Edgepad asked this one to quit");
+        ui.Post(_ => ExitThread(), null);
     }
 
     private async Task StartMediaAsync()

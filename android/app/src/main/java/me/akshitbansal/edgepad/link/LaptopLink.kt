@@ -67,6 +67,11 @@ class LaptopLink(
             output.write(FrameCodec.encode(Frame.Hello(ProtocolConstants.VERSION)))
             output.flush()
             val ack = readFrame(input)
+            if (ack is Frame.HelloAck &&
+                ack.version != ProtocolConstants.VERSION
+            ) {
+                throw IOException(mismatch(ack.version))
+            }
             if (ack != Frame.HelloAck(ProtocolConstants.VERSION)) throw IOException("The laptop answered with $ack")
             handshakeDone = true
             listener.onConnected(this)
@@ -141,7 +146,14 @@ class LaptopLink(
 
     companion object {
         const val REFUSED =
-            "The laptop hung up before the handshake. If it trusts another phone, use Forget in its tray menu."
+            "The laptop hung up before the handshake. Its Edgepad may be older than this app: quit it from the " +
+                "tray and run the latest. Or it trusts another phone: use Forget in its tray menu."
+
+        /** A laptop on another protocol version answers with its own, then hangs up. */
+        fun mismatch(laptop: Int): String =
+            "The laptop runs a different Edgepad release (protocol $laptop, this app ${ProtocolConstants.VERSION}). " +
+                "Install both from the same release."
+
         private const val BATCH_FRAMES = 32
     }
 }

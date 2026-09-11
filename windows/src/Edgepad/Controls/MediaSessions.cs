@@ -3,7 +3,13 @@ using Windows.Media.Control;
 namespace Edgepad.Controls;
 
 /// <summary>A snapshot of what the laptop is playing, as the phone's media corner shows it.</summary>
-internal sealed record MediaState(string NowPlaying, string App, bool Playing, int PositionPercent);
+internal sealed record MediaState(
+    string NowPlaying,
+    string App,
+    bool Playing,
+    int PositionPercent,
+    int PositionSeconds,
+    int DurationSeconds);
 
 /// <summary>
 /// What Windows itself knows about media: the system media transport controls that every player with a
@@ -20,7 +26,7 @@ internal sealed class MediaSessions : IDisposable
     private GlobalSystemMediaTransportControlsSession? session;
     private System.Threading.Timer? ticker;
 
-    public static MediaState Nothing { get; } = new("", "", false, 0);
+    public static MediaState Nothing { get; } = new("", "", false, 0, 0, 0);
 
     public async Task StartAsync()
     {
@@ -146,7 +152,8 @@ internal sealed class MediaSessions : IDisposable
         var nowPlaying = string.IsNullOrWhiteSpace(properties.Artist)
             ? properties.Title
             : $"{properties.Title} · {properties.Artist}";
-        return new MediaState(nowPlaying.Trim(), AppName(current.SourceAppUserModelId), playing, percent);
+        var seconds = span > TimeSpan.Zero ? (int)Math.Clamp((position - timeline.StartTime).TotalSeconds, 0, span.TotalSeconds) : 0;
+        return new MediaState(nowPlaying.Trim(), AppName(current.SourceAppUserModelId), playing, percent, seconds, (int)span.TotalSeconds);
     }
 
     /// <summary>"Spotify.exe" or "Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic" to something a label can show.</summary>

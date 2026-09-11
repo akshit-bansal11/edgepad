@@ -135,4 +135,14 @@ class TrackpadRecognizerTest {
         touch(Action.CANCEL, 300)
         assertEquals(Frame.PointerButton(0, false), out.last())
     }
+
+    @Test
+    fun withNaturalScrollingOffFingersDownScrollBack() {
+        val reversed = TrackpadRecognizer(density = 1f, naturalScroll = false) { out.add(it) }
+        reversed.handle(Action.DOWN, floatArrayOf(100f), floatArrayOf(100f), 0)
+        reversed.handle(Action.DOWN, floatArrayOf(100f, 160f), floatArrayOf(100f, 100f), 1)
+        reversed.handle(Action.MOVE, floatArrayOf(100f, 160f), floatArrayOf(140f, 140f), 20)
+        val scroll = out.filterIsInstance<Frame.Scroll>().single()
+        assertTrue("wheel back for fingers moving down, got ${scroll.dy}", scroll.dy < 0)
+    }
 }

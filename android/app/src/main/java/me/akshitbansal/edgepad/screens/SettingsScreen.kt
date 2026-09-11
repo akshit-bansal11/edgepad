@@ -1,137 +1,209 @@
 package me.akshitbansal.edgepad.screens
 
 import android.app.UiModeManager
-import android.content.Context
-import android.content.res.Configuration
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
+import android.text.style.TypefaceSpan
+import android.view.Gravity
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.SeekBar
-import android.widget.Spinner
+import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.Switch
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
+import me.akshitbansal.edgepad.Space
+import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.surface.DialKind
-import me.akshitbansal.edgepad.surface.Edge
 import me.akshitbansal.edgepad.surface.Placement
+import kotlin.math.roundToInt
 
-/**
- * Theme, where each dial sits, and the remembered laptop. Every change is saved as it is made; the
- * surface reads the settings when it is next built.
- */
+/** Connection, where each dial sits and how it feels, the trackpad, and the theme. Every change is saved as it is made. */
 object SettingsScreen {
-    private const val PERCENT = 100
+    /** What the connection section shows: the remembered laptop, if any, and its state. */
+    class Connection(
+        val name: String?,
+        val detail: String,
+    )
+
+    private const val EDITOR_WIDTH_DP = 120f
+    private const val EDITOR_HEIGHT_DP = 240f
+    private const val LEADING = 1.5f
+    private const val DISABLED_ALPHA = 0.5f
+    private const val SUB_SIZE = 0.75f
+    private const val SENSITIVITY_STEP = 0.1f
+    private val sensitivitySteps =
+        ((Settings.MAX_SENSITIVITY - Settings.MIN_SENSITIVITY) / SENSITIVITY_STEP)
+            .roundToInt()
 
     fun build(
-        context: Context,
+        ui: Ui,
         settings: Settings,
-        onForgetLaptop: () -> Unit,
-    ): View =
-        Page.build(context) {
-            title(R.string.settings)
+        connection: Connection,
+        onForget: () -> Unit,
+        onBack: () -> Unit,
+    ): View {
+        val rows = HashMap<DialKind, Switch>()
+        val editor =
+            PlacementEditor(ui.context, settings) { kind ->
+                rows[kind]?.text =
+                    dialLabel(ui, kind, settings.placement(kind))
+            }
+        return ui.page {
+            add(header(ui, onBack))
 
-            heading(R.string.settings_theme)
-            val dark =
-                (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-                    Configuration.UI_MODE_NIGHT_YES
-            addView(
-                Switch(context).apply {
-                    setText(R.string.settings_dark)
-                    isChecked = dark
-                    setOnCheckedChangeListener { _, checked ->
-                        // The system remembers this per app and rebuilds the activity; the link survives that.
-                        context.getSystemService(UiModeManager::class.java)?.setApplicationNightMode(
-                            if (checked) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO,
-                        )
-                    }
+            section(ui.string(R.string.settings_connection))
+            hairline()
+            val forget = if (connection.name != null) ui.chip(ui.string(R.string.forget), onForget) else null
+            add(ui.row(ui.stack(connection.name ?: ui.string(R.string.no_laptop), connection.detail), forget))
+            hairline()
+            add(ui.toggle(ui.string(R.string.reconnect_automatically), settings.reconnect) { settings.reconnect = it })
+
+            section(ui.string(R.string.settings_dials))
+            hairline()
+            val placement =
+                LinearLayout(ui.context).apply {
+                    setPadding(0, ui.dp(Space.L), 0, ui.dp(Space.L))
+                    addView(editor, LinearLayout.LayoutParams(ui.dp(EDITOR_WIDTH_DP), ui.dp(EDITOR_HEIGHT_DP)))
+                    val hint =
+                        ui
+                            .text(
+                                ui.string(R.string.settings_dials_hint),
+                                Type.CAPTION,
+                                ui.palette.dim,
+                                Type.plain,
+                            ).apply {
+                                setLineSpacing(0f, LEADING)
+                            }
+                    addView(
+                        hint,
+                        LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                            marginStart =
+                                ui.dp(Space.XL)
+                        },
+                    )
+                }
+            add(placement)
+            for (kind in DialKind.entries) {
+                hairline()
+                rows[kind] =
+                    add(
+                        ui.toggle(
+                            dialLabel(ui, kind, settings.placement(kind)),
+                            settings.placement(kind) != null,
+                        ) { on ->
+                            settings.place(kind, if (on) Placement.of(kind.onAt) else null)
+                            rows[kind]?.text = dialLabel(ui, kind, settings.placement(kind))
+                            editor.refresh()
+                        },
+                    )
+            }
+            hairline()
+            val backlight =
+                twoLines(ui, ui.string(R.string.keyboard_backlight), ui.string(R.string.keyboard_backlight_sub))
+            add(ui.toggle(backlight, false) {}).apply {
+                isEnabled = false
+                alpha = DISABLED_ALPHA
+            }
+
+            section(ui.string(R.string.settings_feel))
+            hairline()
+            val value = ui.mono(sensitivityText(ui, settings.sensitivity), Type.CAPTION, ui.palette.ink, 0f)
+            add(ui.row(ui.text(ui.string(R.string.slide_sensitivity), Type.BODY, ui.palette.ink, Type.plain), value))
+            add(
+                ui.ruler(sensitivitySteps, toStep(settings.sensitivity)) { step ->
+                    settings.sensitivity = fromStep(step)
+                    value.text = sensitivityText(ui, settings.sensitivity)
                 },
-            )
-            gap()
+            ).contentDescription = ui.string(R.string.slide_sensitivity)
+            hairline()
+            add(ui.toggle(ui.string(R.string.haptic_ticks), settings.haptics) { settings.haptics = it })
+            hairline()
+            add(ui.toggle(ui.string(R.string.snap_round), settings.snap) { settings.snap = it })
 
-            heading(R.string.settings_dials)
-            body(R.string.settings_dials_hint)
-            for (kind in DialKind.entries) dialRow(context, settings, kind)
-
-            heading(R.string.settings_laptop)
-            addView(
-                Button(context).apply {
-                    setText(R.string.forget_laptop)
-                    isEnabled = settings.laptop != null
-                    setOnClickListener {
-                        onForgetLaptop()
-                        isEnabled = false
-                    }
-                },
+            section(ui.string(R.string.settings_trackpad))
+            hairline()
+            add(
+                ui.toggle(
+                    ui.string(R.string.natural_scrolling),
+                    settings.naturalScroll,
+                ) { settings.naturalScroll = it },
             )
+            hairline()
+            add(ui.toggle(ui.string(R.string.gesture_hints), settings.hints) { settings.hints = it })
+
+            section(ui.string(R.string.settings_appearance))
+            hairline()
+            val themes = listOf(ui.string(R.string.theme_dark), ui.string(R.string.theme_light))
+            val theme = ui.segmented(themes, if (ui.palette.dark) 0 else 1) { i -> setTheme(ui, dark = i == 0) }
+            add(ui.row(ui.text(ui.string(R.string.theme), Type.BODY, ui.palette.ink, Type.plain), theme))
+            hairline()
         }
-
-    private fun android.widget.LinearLayout.dialRow(
-        context: Context,
-        settings: Settings,
-        kind: DialKind,
-    ) {
-        var placement = settings.placement(kind)
-        body(context.getString(kind.labelRes))
-        val edges = Edge.entries
-        val names = edges.map { context.getString(edgeLabel(it)) }
-        addView(
-            Spinner(context).apply {
-                adapter =
-                    ArrayAdapter(context, android.R.layout.simple_spinner_item, names).apply {
-                        setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                    }
-                setSelection(edges.indexOf(placement.edge))
-                onItemSelectedListener =
-                    object : AdapterView.OnItemSelectedListener {
-                        override fun onItemSelected(
-                            parent: AdapterView<*>?,
-                            view: View?,
-                            position: Int,
-                            id: Long,
-                        ) {
-                            placement = placement.copy(edge = edges[position])
-                            settings.place(kind, placement)
-                        }
-
-                        override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-                    }
-            },
-        )
-        addView(
-            SeekBar(context).apply {
-                max = PERCENT
-                progress = (placement.along * PERCENT).toInt()
-                contentDescription =
-                    context.getString(R.string.settings_position_description, context.getString(kind.labelRes))
-                setOnSeekBarChangeListener(
-                    object : SeekBar.OnSeekBarChangeListener {
-                        override fun onProgressChanged(
-                            seekBar: SeekBar?,
-                            progress: Int,
-                            fromUser: Boolean,
-                        ) {
-                            if (!fromUser) return
-                            placement = placement.copy(along = progress / PERCENT.toFloat())
-                            settings.place(kind, placement)
-                        }
-
-                        override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
-
-                        override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
-                    },
-                )
-            },
-        )
-        gap()
     }
 
-    private fun edgeLabel(edge: Edge): Int =
-        when (edge) {
-            Edge.OFF -> R.string.edge_off
-            Edge.TOP -> R.string.edge_top
-            Edge.RIGHT -> R.string.edge_right
-            Edge.BOTTOM -> R.string.edge_bottom
-            Edge.LEFT -> R.string.edge_left
+    private fun header(
+        ui: Ui,
+        onBack: () -> Unit,
+    ): View =
+        LinearLayout(ui.context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            val back =
+                Glyph(ui.context, Glyph.Shape.CHEVRON_LEFT, ui.palette.ink).apply {
+                    contentDescription = ui.string(R.string.back)
+                    ui.tappable(this, onBack)
+                }
+            addView(back, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
+            addView(
+                ui.text(
+                    ui.string(R.string.settings_title),
+                    Type.HEADING,
+                    ui.palette.ink,
+                    Type.sans,
+                    Type.TRACKING_TIGHT,
+                ),
+            )
         }
+
+    private fun setTheme(
+        ui: Ui,
+        dark: Boolean,
+    ) {
+        if (dark == ui.palette.dark) return
+        // The system keeps the choice for this app and rebuilds the activity; the link survives the rebuild.
+        ui.context.getSystemService(UiModeManager::class.java)?.setApplicationNightMode(
+            if (dark) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO,
+        )
+    }
+
+    private fun dialLabel(
+        ui: Ui,
+        kind: DialKind,
+        placement: Placement?,
+    ): CharSequence = twoLines(ui, ui.string(kind.nameRes), placementName(ui.context, placement))
+
+    /** A name over a smaller monospace line, in one text so the row's Switch reads both. */
+    private fun twoLines(
+        ui: Ui,
+        title: String,
+        sub: String,
+    ): CharSequence =
+        SpannableStringBuilder(title).apply {
+            append('\n')
+            val start = length
+            append(sub)
+            setSpan(TypefaceSpan(Type.mono), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(RelativeSizeSpan(SUB_SIZE), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(ForegroundColorSpan(ui.palette.dim), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+
+    private fun sensitivityText(
+        ui: Ui,
+        sensitivity: Float,
+    ): String = ui.string(R.string.sensitivity_value, sensitivity)
+
+    private fun toStep(sensitivity: Float): Int =
+        ((sensitivity - Settings.MIN_SENSITIVITY) / SENSITIVITY_STEP).roundToInt()
+
+    private fun fromStep(step: Int): Float = Settings.MIN_SENSITIVITY + step * SENSITIVITY_STEP
 }

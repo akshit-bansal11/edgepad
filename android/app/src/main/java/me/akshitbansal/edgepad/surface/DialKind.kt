@@ -5,42 +5,59 @@ import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
 
-/** The dials a user can place on the edges, each with where it sits until Settings moves it. */
+/** The dials a user can place on the edges: their names, where each sits until Settings moves it, and what it does. */
 enum class DialKind(
-    val labelRes: Int,
-    val defaultPlacement: Placement,
+    /** The short label on the ruler. */
+    val shortRes: Int,
+    /** The name in Settings. */
+    val nameRes: Int,
+    /** Where it sits by default (see [Placement]), or null for off. */
+    val defaultAt: Float?,
 ) {
-    VOLUME(R.string.dial_volume, Placement(Edge.BOTTOM, 1f)),
-    BRIGHTNESS(R.string.dial_brightness, Placement(Edge.BOTTOM, 0f)),
-    MEDIA(R.string.dial_media, Placement(Edge.TOP, 1f)),
-    APP_SWITCHER(R.string.dial_apps, Placement(Edge.TOP, 0f)),
-    ZOOM(R.string.dial_zoom, Placement(Edge.OFF, 0.5f)),
-    MIC(R.string.dial_mic, Placement(Edge.OFF, 0.5f)),
+    VOLUME(R.string.dial_volume_short, R.string.dial_volume, 0f),
+    BRIGHTNESS(R.string.dial_brightness_short, R.string.dial_brightness, 1f),
+    ZOOM(R.string.dial_zoom_short, R.string.dial_zoom, 2f),
+    MEDIA(R.string.dial_media_short, R.string.dial_media, 3f),
+    APP_SWITCHER(R.string.dial_apps_short, R.string.dial_apps, 1.5f),
+    MIC(R.string.dial_mic_short, R.string.dial_mic, null),
     ;
 
-    /** Builds the dial with this kind's behaviour: what a drag sets, what a tap runs, what a step does. */
+    /** Where the dial goes when it is switched on in Settings. */
+    val onAt: Float get() = defaultAt ?: LEFT_EDGE_MIDDLE
+
+    /** Builds the dial with this kind's behaviour: what a slide sets, what a tap runs, what a step does. */
     fun dial(
         placement: Placement,
         label: String,
+        unitsPerDp: Float,
+        snap: Boolean,
         send: (Frame) -> Unit,
         haptic: () -> Unit,
-    ): Dial =
-        when (this) {
+    ): Dial {
+        val snapTo = if (snap) SNAP_STEP else 0
+        return when (this) {
             VOLUME -> {
-                Dial(this, placement, label, ControlId.VOLUME, tap = ActionId.MUTE_TOGGLE, sink = send, haptic = haptic)
-            }
-
-            BRIGHTNESS -> {
-                Dial(this, placement, label, ControlId.BRIGHTNESS, sink = send, haptic = haptic)
-            }
-
-            MEDIA -> {
                 Dial(
                     this,
                     placement,
                     label,
-                    ControlId.MEDIA_POSITION,
-                    tap = ActionId.PLAY_PAUSE,
+                    unitsPerDp,
+                    ControlId.VOLUME,
+                    tap = ActionId.MUTE_TOGGLE,
+                    snapTo = snapTo,
+                    sink = send,
+                    haptic = haptic,
+                )
+            }
+
+            BRIGHTNESS -> {
+                Dial(
+                    this,
+                    placement,
+                    label,
+                    unitsPerDp,
+                    ControlId.BRIGHTNESS,
+                    snapTo = snapTo,
                     sink = send,
                     haptic = haptic,
                 )
@@ -51,8 +68,23 @@ enum class DialKind(
                     this,
                     placement,
                     label,
+                    unitsPerDp,
                     ControlId.MIC_LEVEL,
                     tap = ActionId.MIC_MUTE_TOGGLE,
+                    snapTo = snapTo,
+                    sink = send,
+                    haptic = haptic,
+                )
+            }
+
+            MEDIA -> {
+                Dial(
+                    this,
+                    placement,
+                    label,
+                    unitsPerDp,
+                    ControlId.MEDIA_POSITION,
+                    tap = ActionId.PLAY_PAUSE,
                     sink = send,
                     haptic = haptic,
                 )
@@ -63,8 +95,10 @@ enum class DialKind(
                     this,
                     placement,
                     label,
+                    unitsPerDp,
                     tap = ActionId.ZOOM_RESET,
                     step = { direction -> send(Frame.Zoom(direction * TrackpadRecognizer.WHEEL_NOTCH)) },
+                    keepsSteps = true,
                     sink = send,
                     haptic = haptic,
                 )
@@ -75,6 +109,7 @@ enum class DialKind(
                     this,
                     placement,
                     label,
+                    unitsPerDp,
                     tap = ActionId.TASK_VIEW,
                     step = { direction -> send(appSwitchStep(direction).frame()) },
                     onArm = { send(ActionId.APP_SWITCH_BEGIN.frame()) },
@@ -84,7 +119,13 @@ enum class DialKind(
                 )
             }
         }
+    }
 
     private fun appSwitchStep(direction: Int): ActionId =
         if (direction > 0) ActionId.APP_SWITCH_NEXT else ActionId.APP_SWITCH_PREVIOUS
+
+    private companion object {
+        const val SNAP_STEP = 5
+        const val LEFT_EDGE_MIDDLE = 3.5f
+    }
 }

@@ -11,6 +11,7 @@
 # the length of the UTF-8 text that follows (at most 255 bytes).
 
 HELLO 1 = 01 45 44 47 50 01
+HELLO 2 = 01 45 44 47 50 02
 HELLO_ACK 1 = 02 01
 MOVE 5 -3 = 10 05 00 fd ff
 MOVE -32768 32767 = 10 00 80 ff 7f
@@ -28,3 +29,4 @@ STATE 0 42 1 = 40 00 2a 01
 STATE 3 42 1 = 40 03 2a 01
 TEXT 1 Song = 41 01 04 53 6f 6e 67
 TEXT 0 = 41 00 00
+TEXT 2 84/227 = 41 02 06 38 34 2f 32 32 37

@@ -3,7 +3,11 @@ package me.akshitbansal.edgepad.protocol
 import java.util.UUID
 
 object ProtocolConstants {
-    const val VERSION = 1
+    /**
+     * 2 since 0.3.0, which added TEXT timelines. Both apps refuse any other version at the handshake, so
+     * a phone and a laptop from different releases say so instead of misreading each other.
+     */
+    const val VERSION = 2
 
     /** Sent in HELLO so the laptop refuses a stray connection before anything runs. */
     const val MAGIC = "EDGP"
