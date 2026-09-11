@@ -75,6 +75,18 @@ class TrackpadRecognizerTest {
     }
 
     @Test
+    fun aSecondFingerLandingBesideTheFirstIsNotAMove() {
+        // Real touches report a MOVE right after the second finger lands, at the same places.
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.DOWN, 5, 100f to 100f, 160f to 100f)
+        touch(Action.MOVE, 10, 100f to 100f, 160f to 100f)
+        touch(Action.MOVE, 20, 101f to 100f, 161f to 100f)
+        touch(Action.UP, 60, 161f to 100f)
+        touch(Action.UP, 70)
+        assertEquals(listOf(Frame.PointerButton(1, true), Frame.PointerButton(1, false)), out)
+    }
+
+    @Test
     fun aTwoFingerTapIsARightClick() {
         touch(Action.DOWN, 0, 100f to 100f)
         touch(Action.DOWN, 1, 100f to 100f, 140f to 100f)

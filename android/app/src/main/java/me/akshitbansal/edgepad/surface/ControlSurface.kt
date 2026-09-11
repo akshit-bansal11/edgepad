@@ -34,6 +34,7 @@ import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.TextKind
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.hypot
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
@@ -124,9 +125,14 @@ class ControlSurface(
     private var keyboardDown = false
     private var scrubbing = false
     private var scrubFraction = 0f
-    private var fingerDown = false
-    private var fingerX = 0f
-    private var fingerY = 0f
+
+    // The fingers on the trackpad, drawn as dots, with a tail behind a single finger and a ring between two.
+    private var fingerCount = 0
+    private val fingerXs = FloatArray(MAX_POINTERS)
+    private val fingerYs = FloatArray(MAX_POINTERS)
+    private val trail = FloatArray(TRAIL * 2)
+    private var trailHead = 0
+    private var trailLength = 0
     private var keyboardShown = false
     private val hit = FloatArray(2)
     private val pt = FloatArray(4)
@@ -299,12 +305,45 @@ class ControlSurface(
         drawGear(canvas)
         drawKeyboard(canvas)
         if (showHints) drawHints(canvas)
-        if (fingerDown) {
-            fill.color = ink
-            canvas.drawCircle(fingerX, fingerY, dp(FINGER_DP) / 2, fill)
-        }
+        drawFingers(canvas)
         for (i in dials.indices) drawDial(canvas, i)
     }
+
+    /**
+     * One finger: a cone-shaped tail from faint and thin at the back to solid at the finger. Two: both
+     * dots, the line between them and a ring on their span, so a pinch reads as one. More: the dots.
+     */
+    private fun drawFingers(canvas: Canvas) {
+        if (fingerCount == 1 && trailLength > 1) {
+            stroke.strokeCap = Paint.Cap.ROUND
+            var i = 1
+            while (i < trailLength) {
+                // Index 0 is the newest sample; each older segment is thinner and fainter.
+                val fade = 1f - i.toFloat() / trailLength
+                stroke.color = ink and RGB_MASK or ((fade * TRAIL_ALPHA).roundToInt() shl ALPHA_SHIFT)
+                stroke.strokeWidth = dp(FINGER_DP) * fade
+                canvas.drawLine(trailX(i - 1), trailY(i - 1), trailX(i), trailY(i), stroke)
+                i++
+            }
+            stroke.strokeCap = Paint.Cap.BUTT
+            stroke.strokeWidth = dp(Space.HAIR)
+        }
+        if (fingerCount == 2) {
+            val mx = (fingerXs[0] + fingerXs[1]) / 2
+            val my = (fingerYs[0] + fingerYs[1]) / 2
+            val span = hypot(fingerXs[1] - fingerXs[0], fingerYs[1] - fingerYs[0])
+            stroke.color = faint
+            canvas.drawLine(fingerXs[0], fingerYs[0], fingerXs[1], fingerYs[1], stroke)
+            stroke.color = dim
+            canvas.drawCircle(mx, my, span / 2, stroke)
+        }
+        fill.color = ink
+        for (i in 0 until fingerCount) canvas.drawCircle(fingerXs[i], fingerYs[i], dp(FINGER_DP) / 2, fill)
+    }
+
+    private fun trailX(back: Int): Float = trail[((trailHead - back + TRAIL) % TRAIL) * 2]
+
+    private fun trailY(back: Int): Float = trail[((trailHead - back + TRAIL) % TRAIL) * 2 + 1]
 
     private fun drawNowPlaying(canvas: Canvas) {
         val box = nowPlayingBox
@@ -643,7 +682,10 @@ class ControlSurface(
             }
 
             MotionEvent.ACTION_POINTER_DOWN -> {
-                if (onTrackpad()) feed(TrackpadRecognizer.Action.DOWN, event, exclude = -1)
+                if (onTrackpad()) {
+                    feed(TrackpadRecognizer.Action.DOWN, event, exclude = -1)
+                    fingers(event, exclude = -1)
+                }
             }
 
             MotionEvent.ACTION_MOVE -> {
@@ -651,7 +693,10 @@ class ControlSurface(
             }
 
             MotionEvent.ACTION_POINTER_UP -> {
-                if (onTrackpad()) feed(TrackpadRecognizer.Action.UP, event, exclude = event.actionIndex)
+                if (onTrackpad()) {
+                    feed(TrackpadRecognizer.Action.UP, event, exclude = event.actionIndex)
+                    fingers(event, exclude = event.actionIndex)
+                }
             }
 
             MotionEvent.ACTION_UP -> {
@@ -719,7 +764,8 @@ class ControlSurface(
                     lastS = hit[0]
                 } else {
                     feed(TrackpadRecognizer.Action.DOWN, event, exclude = -1)
-                    finger(x, y)
+                    trailLength = 0
+                    fingers(event, exclude = -1)
                 }
             }
         }
@@ -739,7 +785,7 @@ class ControlSurface(
             onTrackpad() -> {
                 for (h in 0 until event.historySize) feedHistorical(event, h)
                 feed(TrackpadRecognizer.Action.MOVE, event, exclude = -1)
-                finger(event.x, event.y)
+                fingers(event, exclude = -1)
             }
         }
     }
@@ -793,7 +839,8 @@ class ControlSurface(
 
             else -> {
                 feed(TrackpadRecognizer.Action.UP, event, exclude = event.actionIndex)
-                fingerDown = false
+                fingerCount = 0
+                trailLength = 0
             }
         }
         return Tapped.NOTHING
@@ -806,19 +853,34 @@ class ControlSurface(
         gearDown = false
         keyboardDown = false
         scrubbing = false
-        fingerDown = false
+        fingerCount = 0
+        trailLength = 0
         trackpad.handle(TrackpadRecognizer.Action.CANCEL, FloatArray(0), FloatArray(0), event.eventTime)
     }
 
     private fun onTrackpad(): Boolean = activeDial < 0 && buttonDown == null && !gearDown && !keyboardDown && !scrubbing
 
-    private fun finger(
-        x: Float,
-        y: Float,
+    /** Records where every finger still down is, and extends the tail when there is just one. */
+    private fun fingers(
+        event: MotionEvent,
+        exclude: Int,
     ) {
-        fingerDown = true
-        fingerX = x
-        fingerY = y
+        var n = 0
+        for (i in 0 until event.pointerCount) {
+            if (i == exclude || n == MAX_POINTERS) continue
+            fingerXs[n] = event.getX(i)
+            fingerYs[n] = event.getY(i)
+            n++
+        }
+        fingerCount = n
+        if (n != 1) {
+            trailLength = 0
+            return
+        }
+        trailHead = (trailHead + 1) % TRAIL
+        trail[trailHead * 2] = fingerXs[0]
+        trail[trailHead * 2 + 1] = fingerYs[0]
+        trailLength = minOf(trailLength + 1, TRAIL)
     }
 
     private fun transportAt(
@@ -947,6 +1009,10 @@ class ControlSurface(
         private const val HINT_TRACKING = 0.16f
         private const val HINT_GAP_DP = 16f
         private const val FINGER_DP = 10f
+        private const val MAX_POINTERS = 10
+        private const val TRAIL = 18
+        private const val TRAIL_ALPHA = 200f
+        private const val ALPHA_SHIFT = 24
         private const val TOP_DP = 40f
         private const val TOP_BUTTON_OFFSET_DP = 32f
         private const val BUTTON_STROKE_DP = 1.5f

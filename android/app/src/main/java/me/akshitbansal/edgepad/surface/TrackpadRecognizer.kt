@@ -87,6 +87,10 @@ class TrackpadRecognizer(
         maxFingers = maxOf(maxFingers, fingers)
         lastX = centroid(xs)
         lastY = centroid(ys)
+        // Another finger moves the centroid without anything having slid: the gesture starts again from
+        // here, or every two-finger touch would count as moved and never as a tap.
+        startX = lastX
+        startY = lastY
         if (fingers == 2) {
             startSpan = span(xs, ys)
             lastSpan = startSpan
