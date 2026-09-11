@@ -2,9 +2,7 @@
 <resources>
   <string name="gamepad_layout_title">Gamepad layout</string>
   <string name="gamepad_layout_hint">Drag controls where your thumbs land. Long press one to change its size.</string>
-  <string name="gamepad_title">Gamepad</string>
   <string name="gamepad_description">Game controller for the laptop</string>
-  <string name="gamepad_presets">PRESETS</string>
   <string name="gamepad_size">Size</string>
   <string name="dp_value">%1$d dp</string>
 </resources>
