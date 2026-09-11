@@ -13,8 +13,6 @@ class AppMark {
     private val path = Path()
     private val box = RectF()
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     /** True when [app] has a mark of its own. */
     fun known(app: String): Boolean = key(app) != null
