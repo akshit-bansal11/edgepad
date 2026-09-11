@@ -13,8 +13,8 @@
   <string name="gesture_three">Swipe left or right to change desktop. Up for task view, down for the desktop.</string>
   <string name="gesture_four_title">FOUR FINGERS</string>
   <string name="gesture_four">Swipe left or right through your open apps.</string>
-  <string name="gesture_dials_title">THE EDGES</string>
-  <string name="gesture_dials">Slide along a ruler, clockwise to raise. Tap one to mute, play or reset. Settings moves any dial anywhere on the edge.</string>
+  <string name="gesture_dials_title">THE CORNERS</string>
+  <string name="gesture_dials">Slide along a corner ruler, clockwise to raise. Tap one to mute, play or reset. Settings picks what each corner does.</string>
   <string name="onboarding_continue">FIND MY LAPTOP</string>
 
   <!-- Finding the laptop -->
@@ -57,8 +57,53 @@
   <string name="detail_connected_rtt">CONNECTED · %1$.0f MS</string>
   <string name="detail_remembered">REMEMBERED · NOT CONNECTED</string>
   <string name="reconnect_automatically">Reconnect automatically</string>
-  <string name="settings_dials">DIAL PLACEMENT</string>
-  <string name="settings_dials_hint">Drag a dial along the outline. Near a corner it snaps on and wraps the bend as one L. Switch dials on or off below.</string>
+  <string name="settings_corners">CORNERS</string>
+  <string name="corner_top_left">Top left</string>
+  <string name="corner_top_right">Top right</string>
+  <string name="corner_bottom_right">Bottom right</string>
+  <string name="corner_bottom_left">Bottom left</string>
+  <string name="settings_media">MEDIA</string>
+  <string name="media_layout_title">Media layout</string>
+  <string name="media_layout_hint">Drag each piece to where you want it on the control surface.</string>
+  <string name="piece_now_playing">NOW PLAYING</string>
+  <string name="piece_play">PLAY</string>
+  <string name="piece_skip">PREV / NEXT</string>
+  <string name="gestures_title">Gestures</string>
+  <string name="gestures_hint">One finger always moves and clicks, and two fingers dragging always scroll. Everything else is yours to assign.</string>
+  <string name="gestures_fingers">%1$d FINGERS</string>
+  <string name="gesture_two_tap">Two-finger tap</string>
+  <string name="gesture_two_pinch">Pinch</string>
+  <string name="gesture_three_tap">Tap</string>
+  <string name="gesture_three_left">Swipe left</string>
+  <string name="gesture_three_right">Swipe right</string>
+  <string name="gesture_three_up">Swipe up</string>
+  <string name="gesture_three_down">Swipe down</string>
+  <string name="gesture_four_tap">Tap</string>
+  <string name="gesture_four_left">Swipe left</string>
+  <string name="gesture_four_right">Swipe right</string>
+  <string name="gesture_four_up">Swipe up</string>
+  <string name="gesture_four_down">Swipe down</string>
+  <string name="action_nothing">Nothing</string>
+  <string name="action_left_click">Left click</string>
+  <string name="action_right_click">Right click</string>
+  <string name="action_middle_click">Middle click</string>
+  <string name="action_play_pause">Play / pause</string>
+  <string name="action_next_track">Next track</string>
+  <string name="action_previous_track">Previous track</string>
+  <string name="action_mute">Mute</string>
+  <string name="action_mic_mute">Mic mute</string>
+  <string name="action_volume">Volume (up raises)</string>
+  <string name="action_brightness">Brightness (up raises)</string>
+  <string name="action_zoom">Zoom</string>
+  <string name="action_zoom_reset">Reset zoom</string>
+  <string name="action_app_switcher">App switcher</string>
+  <string name="action_desktop_left">Desktop left</string>
+  <string name="action_desktop_right">Desktop right</string>
+  <string name="action_task_view">Task view</string>
+  <string name="action_show_desktop">Show desktop</string>
+  <string name="action_search">Search</string>
+  <string name="action_notifications">Notifications</string>
+  <string name="action_lock">Lock the laptop</string>
   <string name="keyboard_backlight">Keyboard backlight</string>
   <string name="keyboard_backlight_sub">NO WINDOWS CONTROL FOR IT YET</string>
   <string name="settings_feel">DIAL FEEL</string>
@@ -76,19 +121,6 @@
 
   <!-- Where a dial sits -->
   <string name="place_off">OFF</string>
-  <string name="place_top_left">TOP-LEFT L</string>
-  <string name="place_top_right">TOP-RIGHT L</string>
-  <string name="place_bottom_right">BOTTOM-RIGHT L</string>
-  <string name="place_bottom_left">BOTTOM-LEFT L</string>
-  <string name="place_top">TOP EDGE</string>
-  <string name="place_right">RIGHT EDGE</string>
-  <string name="place_bottom">BOTTOM EDGE</string>
-  <string name="place_left">LEFT EDGE</string>
-  <string name="editor_hint">DRAG\nALONG\nTHE EDGE</string>
-  <string name="editor_item">%1$s %2$s</string>
-  <string name="editor_none">No dials placed</string>
-  <string name="editor_move_clockwise">Move %1$s clockwise</string>
-  <string name="editor_move_anticlockwise">Move %1$s anticlockwise</string>
 
   <!-- Dials -->
   <string name="dial_volume">Volume</string>
@@ -110,7 +142,6 @@
   <string name="surface_unknown">…</string>
   <string name="surface_nothing_playing">Nothing playing</string>
   <string name="surface_hints">1F MOVE · TAP CLICK\n2F SCROLL · PINCH ZOOM · TAP RIGHT-CLICK\n3F SWIPE DESKTOPS\n4F SWIPE APPS</string>
-  <string name="surface_hints_short">1F MOVE · 2F SCROLL, ZOOM · 3F DESKTOPS · 4F APPS</string>
   <string name="surface_status">%1$s · %2$.0f MS</string>
   <string name="surface_app_time">%1$s · %2$s OF %3$s</string>
   <string name="surface_time">%1$s OF %2$s</string>

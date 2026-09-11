@@ -10,7 +10,7 @@ import kotlin.math.sin
 /**
  * The screen's edge as one clockwise path: a rounded rectangle whose corners follow the display's own
  * rounding, so a ruler bends round a corner instead of being clipped by it. A position on the path is a
- * length from the left end of the top edge. [lengthAt] maps a [Placement]'s corner-based scale (0
+ * length from the left end of the top edge. [lengthAt] maps a corner-based scale (0
  * top-left, 1 top-right, 2 bottom-right, 3 bottom-left) onto those lengths.
  *
  * Pure arithmetic, and allocation-free after construction, so it is tested on the JVM and safe to call

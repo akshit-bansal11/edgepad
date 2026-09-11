@@ -28,6 +28,18 @@ internal sealed class BrightnessControl : IDisposable
         worker.Start();
     }
 
+    /// <summary>Moves the panel by <paramref name="delta"/> from where it is now. False when there is no WMI brightness.</summary>
+    public bool Step(int delta)
+    {
+        if (Read() is not { } level)
+        {
+            return false;
+        }
+
+        Set(Math.Clamp(level + delta, 0, 100));
+        return true;
+    }
+
     public void Set(int percent)
     {
         Interlocked.Exchange(ref pending, percent);

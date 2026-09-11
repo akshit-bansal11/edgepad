@@ -18,7 +18,8 @@ import kotlin.math.roundToInt
  */
 class Dial(
     val kind: DialKind,
-    val placement: Placement,
+    /** 0 top-left, clockwise. */
+    val corner: Int,
     val label: String,
     private val unitsPerDp: Float,
     val control: ControlId? = null,

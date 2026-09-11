@@ -2,7 +2,9 @@ package me.akshitbansal.edgepad
 
 import android.content.Context
 import me.akshitbansal.edgepad.surface.DialKind
-import me.akshitbansal.edgepad.surface.Placement
+import me.akshitbansal.edgepad.surface.Gesture
+import me.akshitbansal.edgepad.surface.GestureAction
+import me.akshitbansal.edgepad.surface.MediaPiece
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -30,27 +32,58 @@ class Settings(
     /** Content follows the fingers, as on Windows' own touchpads; off scrolls the other way. */
     var naturalScroll by flag("naturalScroll", true)
 
-    var hints by flag("hints", true)
+    var hints by flag("hints", false)
 
     /** How much a dial moves per dp of slide, as a multiple of the base rate. */
     var sensitivity: Float
         get() = prefs.getFloat(KEY_SENSITIVITY, DEFAULT_SENSITIVITY).coerceIn(MIN_SENSITIVITY, MAX_SENSITIVITY)
         set(value) = prefs.edit().putFloat(KEY_SENSITIVITY, value.coerceIn(MIN_SENSITIVITY, MAX_SENSITIVITY)).apply()
 
-    /** Where [kind] sits, or null when it is switched off. */
-    fun placement(kind: DialKind): Placement? {
-        val at = prefs.getFloat(dialKey(kind), kind.defaultAt ?: OFF)
-        return if (at < 0f) null else Placement.of(at)
+    /** The dial in [corner] (0 top-left, clockwise), or null for none. */
+    fun corner(corner: Int): DialKind? {
+        val name = prefs.getString("corner.$corner", null)
+        if (name == NONE) return null
+        return DialKind.entries.firstOrNull { it.name == name }
+            ?: DialKind.entries.firstOrNull { it.defaultCorner == corner }
     }
 
-    fun place(
-        kind: DialKind,
-        placement: Placement?,
+    fun setCorner(
+        corner: Int,
+        kind: DialKind?,
     ) {
-        prefs.edit().putFloat(dialKey(kind), placement?.at ?: OFF).apply()
+        prefs.edit().putString("corner.$corner", kind?.name ?: NONE).apply()
     }
 
-    private fun dialKey(kind: DialKind) = "dial.${kind.name}.at"
+    fun gesture(gesture: Gesture): GestureAction {
+        val name = prefs.getString("gesture.${gesture.name}", null) ?: return gesture.default
+        return GestureAction.entries.firstOrNull { it.name == name } ?: gesture.default
+    }
+
+    fun setGesture(
+        gesture: Gesture,
+        action: GestureAction,
+    ) {
+        prefs.edit().putString("gesture.${gesture.name}", action.name).apply()
+    }
+
+    /** Where a media piece sits, as fractions of the surface's width and height. */
+    fun piece(piece: MediaPiece): Pair<Float, Float> =
+        prefs.getFloat("piece.${piece.name}.x", piece.defaultX).coerceIn(0f, 1f) to
+            prefs.getFloat("piece.${piece.name}.y", piece.defaultY).coerceIn(0f, 1f)
+
+    fun setPiece(
+        piece: MediaPiece,
+        x: Float,
+        y: Float,
+    ) {
+        prefs
+            .edit()
+            .putFloat(
+                "piece.${piece.name}.x",
+                x.coerceIn(0f, 1f),
+            ).putFloat("piece.${piece.name}.y", y.coerceIn(0f, 1f))
+            .apply()
+    }
 
     private fun flag(
         key: String,
@@ -73,8 +106,8 @@ class Settings(
         const val MAX_SENSITIVITY = 2.5f
         const val DEFAULT_SENSITIVITY = 1.4f
         private const val NAME = "edgepad"
+        private const val NONE = "-"
         private const val KEY_LAPTOP = "laptop"
         private const val KEY_SENSITIVITY = "sensitivity"
-        private const val OFF = -1f
     }
 }

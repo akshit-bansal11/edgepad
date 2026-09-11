@@ -21,6 +21,10 @@ enum class ActionId(
     APP_SWITCH_PREVIOUS(28),
     APP_SWITCH_END(29),
     ZOOM_RESET(30),
+    VOLUME_UP(31),
+    VOLUME_DOWN(32),
+    BRIGHTNESS_UP(33),
+    BRIGHTNESS_DOWN(34),
     ;
 
     fun frame(): Frame = Frame.RunAction(id)

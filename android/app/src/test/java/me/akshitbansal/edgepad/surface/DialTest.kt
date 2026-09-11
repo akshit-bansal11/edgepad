@@ -16,7 +16,7 @@ class DialTest {
     private fun dial(
         kind: DialKind,
         snap: Boolean = false,
-    ) = kind.dial(Placement(0f), "X", UNITS_PER_DP, snap, { out.add(it) }, { haptics++ })
+    ) = kind.dial(0, "X", UNITS_PER_DP, snap, { out.add(it) }, { haptics++ })
 
     /** Presses, slides past the slop so the dial arms, then slides [dp] more. */
     private fun Dial.slideBy(dp: Float) {

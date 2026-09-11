@@ -1,25 +1,20 @@
 package me.akshitbansal.edgepad.screens
 
+import android.app.AlertDialog
 import android.app.UiModeManager
-import android.text.SpannableStringBuilder
-import android.text.Spanned
-import android.text.style.ForegroundColorSpan
-import android.text.style.RelativeSizeSpan
-import android.text.style.TypefaceSpan
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.widget.LinearLayout
-import android.widget.Switch
+import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.surface.ControlSurface
 import me.akshitbansal.edgepad.surface.DialKind
-import me.akshitbansal.edgepad.surface.Placement
 import kotlin.math.roundToInt
 
-/** Connection, where each dial sits and how it feels, the trackpad, and the theme. Every change is saved as it is made. */
+/** Connection, what each corner does, how the dials feel, the trackpad, and the theme. Every change is saved as it is made. */
 object SettingsScreen {
     /** What the connection section shows: the remembered laptop, if any, and its state. */
     class Connection(
@@ -27,30 +22,30 @@ object SettingsScreen {
         val detail: String,
     )
 
-    private const val EDITOR_WIDTH_DP = 120f
-    private const val EDITOR_HEIGHT_DP = 240f
-    private const val LEADING = 1.5f
     private const val DISABLED_ALPHA = 0.5f
-    private const val SUB_SIZE = 0.75f
     private const val SENSITIVITY_STEP = 0.1f
+    private const val ROW_TRACKING = 0.1f
     private val sensitivitySteps =
         ((Settings.MAX_SENSITIVITY - Settings.MIN_SENSITIVITY) / SENSITIVITY_STEP)
             .roundToInt()
+    private val cornerNames =
+        listOf(
+            R.string.corner_top_left,
+            R.string.corner_top_right,
+            R.string.corner_bottom_right,
+            R.string.corner_bottom_left,
+        )
 
     fun build(
         ui: Ui,
         settings: Settings,
         connection: Connection,
         onForget: () -> Unit,
+        onGestures: () -> Unit,
+        onMediaLayout: () -> Unit,
         onBack: () -> Unit,
-    ): View {
-        val rows = HashMap<DialKind, Switch>()
-        val editor =
-            PlacementEditor(ui.context, settings) { kind ->
-                rows[kind]?.text =
-                    dialLabel(ui, kind, settings.placement(kind))
-            }
-        return ui.page {
+    ): View =
+        ui.page {
             add(header(ui, onBack))
 
             section(ui.string(R.string.settings_connection))
@@ -60,52 +55,17 @@ object SettingsScreen {
             hairline()
             add(ui.toggle(ui.string(R.string.reconnect_automatically), settings.reconnect) { settings.reconnect = it })
 
-            section(ui.string(R.string.settings_dials))
-            hairline()
-            val placement =
-                LinearLayout(ui.context).apply {
-                    setPadding(0, ui.dp(Space.L), 0, ui.dp(Space.L))
-                    addView(editor, LinearLayout.LayoutParams(ui.dp(EDITOR_WIDTH_DP), ui.dp(EDITOR_HEIGHT_DP)))
-                    val hint =
-                        ui
-                            .text(
-                                ui.string(R.string.settings_dials_hint),
-                                Type.CAPTION,
-                                ui.palette.dim,
-                                Type.plain,
-                            ).apply {
-                                setLineSpacing(0f, LEADING)
-                            }
-                    addView(
-                        hint,
-                        LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                            marginStart =
-                                ui.dp(Space.XL)
-                        },
-                    )
-                }
-            add(placement)
-            for (kind in DialKind.entries) {
+            section(ui.string(R.string.settings_corners))
+            for (corner in 0 until ControlSurface.CORNERS) {
                 hairline()
-                rows[kind] =
-                    add(
-                        ui.toggle(
-                            dialLabel(ui, kind, settings.placement(kind)),
-                            settings.placement(kind) != null,
-                        ) { on ->
-                            settings.place(kind, if (on) Placement.of(kind.onAt) else null)
-                            rows[kind]?.text = dialLabel(ui, kind, settings.placement(kind))
-                            editor.refresh()
-                        },
-                    )
+                add(cornerRow(ui, settings, corner))
             }
             hairline()
             val backlight =
-                twoLines(ui, ui.string(R.string.keyboard_backlight), ui.string(R.string.keyboard_backlight_sub))
-            add(ui.toggle(backlight, false) {}).apply {
-                isEnabled = false
-                alpha = DISABLED_ALPHA
-            }
+                ui.row(
+                    ui.stack(ui.string(R.string.keyboard_backlight), ui.string(R.string.keyboard_backlight_sub)),
+                )
+            add(backlight).alpha = DISABLED_ALPHA
 
             section(ui.string(R.string.settings_feel))
             hairline()
@@ -124,6 +84,8 @@ object SettingsScreen {
 
             section(ui.string(R.string.settings_trackpad))
             hairline()
+            add(linkRow(ui, ui.string(R.string.gestures_title), onGestures))
+            hairline()
             add(
                 ui.toggle(
                     ui.string(R.string.natural_scrolling),
@@ -133,6 +95,10 @@ object SettingsScreen {
             hairline()
             add(ui.toggle(ui.string(R.string.gesture_hints), settings.hints) { settings.hints = it })
 
+            section(ui.string(R.string.settings_media))
+            hairline()
+            add(linkRow(ui, ui.string(R.string.media_layout_title), onMediaLayout))
+
             section(ui.string(R.string.settings_appearance))
             hairline()
             val themes = listOf(ui.string(R.string.theme_dark), ui.string(R.string.theme_light))
@@ -140,7 +106,6 @@ object SettingsScreen {
             add(ui.row(ui.text(ui.string(R.string.theme), Type.BODY, ui.palette.ink, Type.plain), theme))
             hairline()
         }
-    }
 
     private fun header(
         ui: Ui,
@@ -165,6 +130,67 @@ object SettingsScreen {
             )
         }
 
+    /** A row that opens another screen. */
+    private fun linkRow(
+        ui: Ui,
+        label: String,
+        onOpen: () -> Unit,
+    ): View {
+        val chevron = Glyph(ui.context, Glyph.Shape.CHEVRON_RIGHT, ui.palette.dim)
+        val row =
+            ui.row(
+                ui.text(label, Type.BODY, ui.palette.ink, Type.plain),
+                LinearLayout(
+                    ui.context,
+                ).apply { addView(chevron, LinearLayout.LayoutParams(ui.dp(Space.XL), ui.dp(Space.XL))) },
+            )
+        ui.tappable(row, onOpen)
+        return row
+    }
+
+    private fun cornerRow(
+        ui: Ui,
+        settings: Settings,
+        corner: Int,
+    ): View {
+        val current = ui.mono(kindName(ui, settings.corner(corner)), Type.SMALL, ui.palette.dim, ROW_TRACKING)
+        val end =
+            LinearLayout(ui.context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                addView(current)
+                addView(
+                    Glyph(ui.context, Glyph.Shape.CHEVRON_RIGHT, ui.palette.dim),
+                    LinearLayout.LayoutParams(ui.dp(Space.XL), ui.dp(Space.XL)),
+                )
+            }
+        val row = ui.row(ui.text(ui.string(cornerNames[corner]), Type.BODY, ui.palette.ink, Type.plain), end)
+        ui.tappable(row) { pickCorner(ui, settings, corner, current) }
+        return row
+    }
+
+    private fun pickCorner(
+        ui: Ui,
+        settings: Settings,
+        corner: Int,
+        current: TextView,
+    ) {
+        val kinds = listOf<DialKind?>(null) + DialKind.entries
+        val names = kinds.map { kindName(ui, it) }.toTypedArray()
+        AlertDialog
+            .Builder(ui.context)
+            .setTitle(ui.string(cornerNames[corner]))
+            .setSingleChoiceItems(names, kinds.indexOf(settings.corner(corner))) { dialog, which ->
+                settings.setCorner(corner, kinds[which])
+                current.text = names[which]
+                dialog.dismiss()
+            }.show()
+    }
+
+    private fun kindName(
+        ui: Ui,
+        kind: DialKind?,
+    ): String = if (kind == null) ui.string(R.string.place_off) else ui.string(kind.nameRes)
+
     private fun setTheme(
         ui: Ui,
         dark: Boolean,
@@ -175,27 +201,6 @@ object SettingsScreen {
             if (dark) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO,
         )
     }
-
-    private fun dialLabel(
-        ui: Ui,
-        kind: DialKind,
-        placement: Placement?,
-    ): CharSequence = twoLines(ui, ui.string(kind.nameRes), placementName(ui.context, placement))
-
-    /** A name over a smaller monospace line, in one text so the row's Switch reads both. */
-    private fun twoLines(
-        ui: Ui,
-        title: String,
-        sub: String,
-    ): CharSequence =
-        SpannableStringBuilder(title).apply {
-            append('\n')
-            val start = length
-            append(sub)
-            setSpan(TypefaceSpan(Type.mono), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            setSpan(RelativeSizeSpan(SUB_SIZE), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            setSpan(ForegroundColorSpan(ui.palette.dim), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        }
 
     private fun sensitivityText(
         ui: Ui,

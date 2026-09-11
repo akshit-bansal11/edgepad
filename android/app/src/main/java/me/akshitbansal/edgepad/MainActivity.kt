@@ -22,6 +22,8 @@ import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.RttStats
 import me.akshitbansal.edgepad.protocol.Frame
+import me.akshitbansal.edgepad.screens.GestureScreen
+import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.OnboardingScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
@@ -39,7 +41,7 @@ import kotlin.concurrent.thread
 class MainActivity :
     Activity(),
     LaptopLink.Listener {
-    private enum class Screen { ONBOARDING, PAIRING, SETTINGS, SURFACE, RECONNECTING }
+    private enum class Screen { ONBOARDING, PAIRING, SETTINGS, GESTURES, MEDIA_LAYOUT, SURFACE, RECONNECTING }
 
     /** What survives the activity being rebuilt for a rotation or a theme change. */
     private class Retained(
@@ -189,8 +191,18 @@ class MainActivity :
                         settings,
                         connectionInfo(),
                         onForget = ::forget,
+                        onGestures = { goTo(Screen.GESTURES) },
+                        onMediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
                         onBack = { navigateBack() },
                     )
+                }
+
+                Screen.GESTURES -> {
+                    GestureScreen.build(ui, settings) { navigateBack() }
+                }
+
+                Screen.MEDIA_LAYOUT -> {
+                    MediaLayoutScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.RECONNECTING -> {
@@ -268,6 +280,10 @@ class MainActivity :
             Screen.RECONNECTING -> {
                 stopRetrying()
                 goTo(Screen.PAIRING)
+            }
+
+            Screen.GESTURES, Screen.MEDIA_LAYOUT -> {
+                goTo(Screen.SETTINGS)
             }
 
             else -> {

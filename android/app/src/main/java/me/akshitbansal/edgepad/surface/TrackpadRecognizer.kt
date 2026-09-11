@@ -6,13 +6,9 @@ import kotlin.math.abs
 import kotlin.math.hypot
 
 /**
- * Turns raw touches on the trackpad into frames:
- *
- * - one finger: move; tap = left click; tap then hold-and-move = drag
- * - two fingers: drag = scroll both axes; pinch = zoom; tap = right click
- * - three fingers: left/right = switch desktop, up = task view, down = show desktop, tap = search
- * - four fingers: left/right = app switcher (Alt held while the fingers are down), up/down as three,
- *   tap = notifications
+ * Turns raw touches on the trackpad into frames. One finger is fixed: move, tap to click, tap then hold
+ * to drag. Two fingers dragging always scroll. Everything else (two-finger tap and pinch, three and four
+ * fingers tapping or swiping) runs whatever [map] assigns it.
  *
  * Pure: no Android types, so the gesture table is tested on the JVM. Positions are in pixels; [density]
  * (pixels per dp) scales every threshold so the feel is the same on any screen. A gesture is classified by
@@ -22,6 +18,7 @@ class TrackpadRecognizer(
     private val density: Float,
     /** Content follows the fingers, as on Windows' own touchpads; false scrolls the other way. */
     private val naturalScroll: Boolean = true,
+    private val map: (Gesture) -> GestureAction = { it.default },
     private val sink: (Frame) -> Unit,
 ) {
     enum class Action { DOWN, MOVE, UP, CANCEL }
@@ -39,12 +36,14 @@ class TrackpadRecognizer(
     private var dragging = false
     private var lastTapUp = Long.MIN_VALUE
     private var swipeFired = false
-    private var switching = false
+    private var running: GestureAction? = null
+    private var runningAlongX = false
+    private var runningSign = 1f
     private var stepAnchor = 0f
     private var twoFinger = TwoFingerMode.UNDECIDED
     private var startSpan = 0f
     private var lastSpan = 0f
-    private var zoomRemainder = 0f
+    private var pinchRemainder = 0f
     private var moveRemX = 0f
     private var moveRemY = 0f
     private var scrollRemX = 0f
@@ -112,7 +111,7 @@ class TrackpadRecognizer(
         when (maxFingers) {
             1 -> if (moved) pointer(dx, dy)
             2 -> twoFingers(xs, ys, dx, dy, fromStartX, fromStartY)
-            else -> swipe(cx, fromStartX, fromStartY)
+            else -> swipe(cx, cy, fromStartX, fromStartY)
         }
     }
 
@@ -146,10 +145,20 @@ class TrackpadRecognizer(
             twoFinger = if (spread > travel) TwoFingerMode.PINCH else TwoFingerMode.SCROLL
         }
         if (twoFinger == TwoFingerMode.PINCH) {
-            zoomRemainder += (current - lastSpan) / dp(ZOOM_STEP_DP)
-            val steps = zoomRemainder.toInt()
-            zoomRemainder -= steps
-            if (steps != 0) sink(Frame.Zoom(steps * WHEEL_NOTCH))
+            // The pinch's action, once per notch of spread: fingers apart is forward.
+            pinchRemainder += (current - lastSpan) / dp(PINCH_STEP_DP)
+            val steps = pinchRemainder.toInt()
+            pinchRemainder -= steps
+            if (steps != 0) {
+                val action = map(Gesture.TWO_PINCH)
+                if (action.continuous) {
+                    begin(action, alongX = true)
+                    step(action, steps)
+                } else if (!swipeFired) {
+                    swipeFired = true
+                    oneShot(action)
+                }
+            }
         } else {
             // Natural scrolling, Windows' default: content follows the fingers, so fingers down is wheel forward.
             val direction = if (naturalScroll) 1f else -1f
@@ -166,34 +175,111 @@ class TrackpadRecognizer(
 
     private fun swipe(
         cx: Float,
+        cy: Float,
         fromStartX: Float,
         fromStartY: Float,
     ) {
-        if (switching) {
-            // Each further step of travel moves the Alt+Tab selection, so a long swipe walks the list.
-            while (cx - stepAnchor > dp(SWITCH_STEP_DP)) {
-                stepAnchor += dp(SWITCH_STEP_DP)
-                sink(ActionId.APP_SWITCH_NEXT.frame())
+        val action = running
+        if (action != null) {
+            // Each further step of travel along the swipe fires again: a long swipe walks on.
+            val at = if (runningAlongX) cx else cy
+            while ((at - stepAnchor) * runningSign > dp(SWITCH_STEP_DP)) {
+                stepAnchor += runningSign * dp(SWITCH_STEP_DP)
+                step(action, 1)
             }
-            while (stepAnchor - cx > dp(SWITCH_STEP_DP)) {
-                stepAnchor -= dp(SWITCH_STEP_DP)
-                sink(ActionId.APP_SWITCH_PREVIOUS.frame())
+            while ((stepAnchor - at) * runningSign > dp(SWITCH_STEP_DP)) {
+                stepAnchor -= runningSign * dp(SWITCH_STEP_DP)
+                step(action, -1)
             }
             return
         }
         if (swipeFired) return
         val vertical = abs(fromStartY) >= abs(fromStartX)
-        if (vertical && abs(fromStartY) > dp(SWIPE_DP)) {
-            swipeFired = true
-            sink((if (fromStartY < 0) ActionId.TASK_VIEW else ActionId.SHOW_DESKTOP).frame())
-        } else if (!vertical && abs(fromStartX) > dp(SWIPE_DP)) {
-            swipeFired = true
-            if (maxFingers == THREE) {
-                sink((if (fromStartX < 0) ActionId.DESKTOP_LEFT else ActionId.DESKTOP_RIGHT).frame())
-            } else {
-                switching = true
-                stepAnchor = cx
+        val far = if (vertical) abs(fromStartY) else abs(fromStartX)
+        if (far <= dp(SWIPE_DP)) return
+        swipeFired = true
+        val kind =
+            when {
+                vertical && fromStartY < 0 -> Gesture.Kind.UP
+                vertical -> Gesture.Kind.DOWN
+                fromStartX < 0 -> Gesture.Kind.LEFT
+                else -> Gesture.Kind.RIGHT
+            }
+        val assigned = Gesture.of(maxFingers.coerceAtMost(MAX_FINGERS), kind)?.let(map) ?: GestureAction.NOTHING
+        if (assigned.continuous) {
+            // Up and right count as forward, so volume rises with the finger and falls back down.
+            runningSign = if (vertical) -1f else 1f
+            stepAnchor = if (vertical) cy else cx
+            begin(assigned, alongX = !vertical)
+            step(assigned, 1)
+        } else {
+            oneShot(assigned)
+        }
+    }
+
+    private fun begin(
+        action: GestureAction,
+        alongX: Boolean,
+    ) {
+        if (running != null) return
+        running = action
+        runningAlongX = alongX
+        if (action == GestureAction.APP_SWITCHER) sink(ActionId.APP_SWITCH_BEGIN.frame())
+    }
+
+    private fun step(
+        action: GestureAction,
+        direction: Int,
+    ) {
+        val forward = direction > 0
+        when (action) {
+            GestureAction.VOLUME -> {
+                repeat(abs(direction)) { sink((if (forward) ActionId.VOLUME_UP else ActionId.VOLUME_DOWN).frame()) }
+            }
+
+            GestureAction.BRIGHTNESS -> {
+                repeat(
+                    abs(direction),
+                ) { sink((if (forward) ActionId.BRIGHTNESS_UP else ActionId.BRIGHTNESS_DOWN).frame()) }
+            }
+
+            GestureAction.ZOOM -> {
+                sink(Frame.Zoom(direction * WHEEL_NOTCH))
+            }
+
+            GestureAction.APP_SWITCHER -> {
+                repeat(
+                    abs(direction),
+                ) { sink((if (forward) ActionId.APP_SWITCH_NEXT else ActionId.APP_SWITCH_PREVIOUS).frame()) }
+            }
+
+            else -> {
+                Unit
+            }
+        }
+    }
+
+    private fun oneShot(action: GestureAction) {
+        when (action) {
+            GestureAction.LEFT_CLICK -> {
+                click(LEFT)
+            }
+
+            GestureAction.RIGHT_CLICK -> {
+                click(RIGHT)
+            }
+
+            GestureAction.MIDDLE_CLICK -> {
+                click(MIDDLE)
+            }
+
+            GestureAction.APP_SWITCHER -> {
                 sink(ActionId.APP_SWITCH_BEGIN.frame())
+                sink(ActionId.APP_SWITCH_END.frame())
+            }
+
+            else -> {
+                if (action.continuous) step(action, 1) else action.actionId?.let { sink(it.frame()) }
             }
         }
     }
@@ -218,7 +304,8 @@ class TrackpadRecognizer(
         tapAllowed: Boolean,
     ) {
         if (fingers == 0) return
-        if (switching) sink(ActionId.APP_SWITCH_END.frame())
+        if (running == GestureAction.APP_SWITCHER) sink(ActionId.APP_SWITCH_END.frame())
+        running = null
         val untouched = !moved && !swipeFired && twoFinger == TwoFingerMode.UNDECIDED
         if (dragging) {
             sink(Frame.PointerButton(LEFT, false))
@@ -229,24 +316,12 @@ class TrackpadRecognizer(
     }
 
     private fun tap(time: Long) {
-        when (maxFingers) {
-            1 -> {
-                click(LEFT)
-                lastTapUp = time
-            }
-
-            2 -> {
-                click(RIGHT)
-            }
-
-            THREE -> {
-                sink(ActionId.SEARCH.frame())
-            }
-
-            else -> {
-                sink(ActionId.NOTIFICATIONS.frame())
-            }
+        if (maxFingers == 1) {
+            click(LEFT)
+            lastTapUp = time
+            return
         }
+        oneShot(Gesture.of(maxFingers.coerceAtMost(MAX_FINGERS), Gesture.Kind.TAP)?.let(map) ?: GestureAction.NOTHING)
     }
 
     private fun click(button: Int) {
@@ -259,9 +334,9 @@ class TrackpadRecognizer(
         moved = false
         dragging = false
         swipeFired = false
-        switching = false
+        running = null
         twoFinger = TwoFingerMode.UNDECIDED
-        zoomRemainder = 0f
+        pinchRemainder = 0f
         moveRemX = 0f
         moveRemY = 0f
         scrollRemX = 0f
@@ -280,14 +355,15 @@ class TrackpadRecognizer(
     companion object {
         const val LEFT = 0
         const val RIGHT = 1
+        const val MIDDLE = 2
         const val WHEEL_NOTCH = 120
-        private const val THREE = 3
+        private const val MAX_FINGERS = 4
 
         // ponytail: feel constants, tuned by hand on the M52. Pointer gain is laptop pixels per phone
         // pixel before Windows' own acceleration; scroll is wheel units per dp of finger travel.
         const val POINTER_GAIN = 1.6f
         const val SCROLL_UNITS_PER_DP = 3f
-        const val ZOOM_STEP_DP = 48f
+        const val PINCH_STEP_DP = 48f
         const val SLOP_DP = 8f
         const val SWIPE_DP = 48f
         const val SWITCH_STEP_DP = 72f

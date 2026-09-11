@@ -18,6 +18,7 @@ internal sealed class Dispatcher(
 {
     private const byte MaxButton = 2;
     private const byte MaxPercent = 100;
+    private const int BrightnessStep = 10;
 
     /// <summary>Frames that asked for something unknown, out of range, or unavailable (no microphone).</summary>
     public int Dropped { get; private set; }
@@ -100,6 +101,16 @@ internal sealed class Dispatcher(
             case ActionId.ZoomReset:
                 input.Chord(Keys.ControlKey, Keys.D0);
                 return true;
+            case ActionId.VolumeUp:
+                input.Chord(Keys.VolumeUp);
+                return true;
+            case ActionId.VolumeDown:
+                input.Chord(Keys.VolumeDown);
+                return true;
+            case ActionId.BrightnessUp:
+                return brightness.Step(BrightnessStep);
+            case ActionId.BrightnessDown:
+                return brightness.Step(-BrightnessStep);
             default:
                 return false;
         }

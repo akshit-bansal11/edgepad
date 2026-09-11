@@ -5,29 +5,26 @@ import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
 
-/** The dials a user can place on the edges: their names, where each sits until Settings moves it, and what it does. */
+/** The dials a corner can hold: their names, which corner each takes until Settings changes it, and what it does. */
 enum class DialKind(
     /** The short label on the ruler. */
     val shortRes: Int,
     /** The name in Settings. */
     val nameRes: Int,
-    /** Where it sits by default (see [Placement]), or null for off. */
-    val defaultAt: Float?,
+    /** The corner it takes by default (0 top-left, clockwise), or null for none. */
+    val defaultCorner: Int?,
 ) {
-    VOLUME(R.string.dial_volume_short, R.string.dial_volume, 0f),
-    BRIGHTNESS(R.string.dial_brightness_short, R.string.dial_brightness, 1f),
-    ZOOM(R.string.dial_zoom_short, R.string.dial_zoom, 2f),
-    MEDIA(R.string.dial_media_short, R.string.dial_media, 3f),
-    APP_SWITCHER(R.string.dial_apps_short, R.string.dial_apps, 1.5f),
+    VOLUME(R.string.dial_volume_short, R.string.dial_volume, 0),
+    BRIGHTNESS(R.string.dial_brightness_short, R.string.dial_brightness, 1),
+    ZOOM(R.string.dial_zoom_short, R.string.dial_zoom, 2),
+    MEDIA(R.string.dial_media_short, R.string.dial_media, 3),
+    APP_SWITCHER(R.string.dial_apps_short, R.string.dial_apps, null),
     MIC(R.string.dial_mic_short, R.string.dial_mic, null),
     ;
 
-    /** Where the dial goes when it is switched on in Settings. */
-    val onAt: Float get() = defaultAt ?: LEFT_EDGE_MIDDLE
-
     /** Builds the dial with this kind's behaviour: what a slide sets, what a tap runs, what a step does. */
     fun dial(
-        placement: Placement,
+        corner: Int,
         label: String,
         unitsPerDp: Float,
         snap: Boolean,
@@ -39,7 +36,7 @@ enum class DialKind(
             VOLUME -> {
                 Dial(
                     this,
-                    placement,
+                    corner,
                     label,
                     unitsPerDp,
                     ControlId.VOLUME,
@@ -53,7 +50,7 @@ enum class DialKind(
             BRIGHTNESS -> {
                 Dial(
                     this,
-                    placement,
+                    corner,
                     label,
                     unitsPerDp,
                     ControlId.BRIGHTNESS,
@@ -66,7 +63,7 @@ enum class DialKind(
             MIC -> {
                 Dial(
                     this,
-                    placement,
+                    corner,
                     label,
                     unitsPerDp,
                     ControlId.MIC_LEVEL,
@@ -80,7 +77,7 @@ enum class DialKind(
             MEDIA -> {
                 Dial(
                     this,
-                    placement,
+                    corner,
                     label,
                     unitsPerDp,
                     ControlId.MEDIA_POSITION,
@@ -93,7 +90,7 @@ enum class DialKind(
             ZOOM -> {
                 Dial(
                     this,
-                    placement,
+                    corner,
                     label,
                     unitsPerDp,
                     tap = ActionId.ZOOM_RESET,
@@ -107,7 +104,7 @@ enum class DialKind(
             APP_SWITCHER -> {
                 Dial(
                     this,
-                    placement,
+                    corner,
                     label,
                     unitsPerDp,
                     tap = ActionId.TASK_VIEW,
@@ -126,6 +123,5 @@ enum class DialKind(
 
     private companion object {
         const val SNAP_STEP = 5
-        const val LEFT_EDGE_MIDDLE = 3.5f
     }
 }

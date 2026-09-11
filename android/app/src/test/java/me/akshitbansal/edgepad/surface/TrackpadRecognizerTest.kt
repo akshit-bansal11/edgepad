@@ -145,4 +145,26 @@ class TrackpadRecognizerTest {
         val scroll = out.filterIsInstance<Frame.Scroll>().single()
         assertTrue("wheel back for fingers moving down, got ${scroll.dy}", scroll.dy < 0)
     }
+
+    @Test
+    fun anAssignedContinuousActionStepsWithTheSwipe() {
+        val volume = TrackpadRecognizer(density = 1f, map = { GestureAction.VOLUME }) { out.add(it) }
+        volume.handle(Action.DOWN, floatArrayOf(100f, 150f, 200f), floatArrayOf(300f, 300f, 300f), 0)
+        volume.handle(Action.MOVE, floatArrayOf(100f, 150f, 200f), floatArrayOf(240f, 240f, 240f), 20)
+        volume.handle(Action.MOVE, floatArrayOf(100f, 150f, 200f), floatArrayOf(160f, 160f, 160f), 30)
+        volume.handle(Action.MOVE, floatArrayOf(100f, 150f, 200f), floatArrayOf(240f, 240f, 240f), 40)
+        volume.handle(Action.UP, FloatArray(0), FloatArray(0), 50)
+        assertEquals(
+            listOf(ActionId.VOLUME_UP.frame(), ActionId.VOLUME_UP.frame(), ActionId.VOLUME_DOWN.frame()),
+            out,
+        )
+    }
+
+    @Test
+    fun anAssignedTapActionFiresOnce() {
+        val pad = TrackpadRecognizer(density = 1f, map = { GestureAction.PLAY_PAUSE }) { out.add(it) }
+        pad.handle(Action.DOWN, floatArrayOf(100f, 150f, 200f), floatArrayOf(300f, 300f, 300f), 0)
+        pad.handle(Action.UP, FloatArray(0), FloatArray(0), 50)
+        assertEquals(listOf(ActionId.PLAY_PAUSE.frame()), out)
+    }
 }
