@@ -78,6 +78,9 @@ class LaptopState {
         const val APP = 1
         const val TIMELINE = 2
 
+        /** Phone to laptop: characters to type; "\b" is backspace and "\n" is enter. */
+        const val TYPE = 3
+
         private const val FLAG_BIT = 1
         private const val MAX_LEVEL = 100
     }

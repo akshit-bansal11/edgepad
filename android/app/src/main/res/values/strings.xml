@@ -149,4 +149,5 @@
   <string name="surface_next">Next track</string>
   <string name="surface_previous">Previous track</string>
   <string name="surface_open_settings">Open settings</string>
+  <string name="surface_keyboard">Show or hide the keyboard</string>
 </resources>

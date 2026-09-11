@@ -43,6 +43,26 @@ internal sealed class InputInjector : IDisposable
 
     public void Chord(params ReadOnlySpan<Keys> keys) => Send(InputBuilder.Chord(keys));
 
+    /// <summary>Types text as the phone's keyboard produced it; backspace and newline become their keys.</summary>
+    public void Type(string text)
+    {
+        foreach (var c in text)
+        {
+            switch (c)
+            {
+                case '\b':
+                    Chord(Keys.Back);
+                    break;
+                case '\n':
+                    Chord(Keys.Return);
+                    break;
+                default:
+                    Send(InputBuilder.Unicode(c));
+                    break;
+            }
+        }
+    }
+
     public bool IsHeld(Keys key) => heldKeys.Contains(key);
 
     public void Hold(Keys key)

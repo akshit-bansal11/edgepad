@@ -11,10 +11,15 @@ import android.text.TextPaint
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.HapticFeedbackConstants
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.RoundedCorner
 import android.view.View
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.inputmethod.BaseInputConnection
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputConnection
+import android.view.inputmethod.InputMethodManager
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
@@ -83,6 +88,7 @@ class ControlSurface(
             action(R.string.surface_next) to { send(ActionId.NEXT_TRACK.frame()) },
             action(R.string.surface_previous) to { send(ActionId.PREVIOUS_TRACK.frame()) },
             action(R.string.surface_open_settings) to onOpenSettings,
+            action(R.string.surface_keyboard) to ::toggleKeyboard,
         )
 
     // Geometry, all set in onSizeChanged so nothing is measured or allocated while drawing.
@@ -94,6 +100,9 @@ class ControlSurface(
     private val playHit = RectF()
     private val nextHit = RectF()
     private val gearHit = RectF()
+    private val keyboardHit = RectF()
+    private var keyboardDown = false
+    private var keyboardShown = false
     private var titleLine = ""
     private var subLine = ""
     private var statusLine = laptopName.uppercase()
@@ -140,6 +149,7 @@ class ControlSurface(
     init {
         keepScreenOn = true
         isFocusable = true
+        isFocusableInTouchMode = true
         contentDescription = context.getString(R.string.surface_description)
         applyState()
     }
@@ -194,7 +204,13 @@ class ControlSurface(
         val half = minOf(dp(NOW_PLAYING_WIDTH_DP), w - 2 * dp(Space.L)) / 2
         val tall = dp(NOW_PLAYING_HEIGHT_DP) / 2
         nowPlayingBox.set(nx * w - half, ny * h - tall, nx * w + half, ny * h + tall)
-        gearHit.set(w / 2 - touch, h - dp(GEAR_BOTTOM_DP) - touch, w / 2 + touch, h - dp(GEAR_BOTTOM_DP) + touch)
+        gearHit.set(w / 2 - touch, dp(GEAR_TOP_DP) - touch, w / 2 + touch, dp(GEAR_TOP_DP) + touch)
+        keyboardHit.set(
+            w / 2 - touch,
+            h - dp(KEYBOARD_BOTTOM_DP) - touch,
+            w / 2 + touch,
+            h - dp(KEYBOARD_BOTTOM_DP) + touch,
+        )
     }
 
     /** Keeps Android's back gesture off each corner dial; the bottom edge (home) cannot be claimed. */
@@ -260,6 +276,7 @@ class ControlSurface(
         drawNowPlaying(canvas)
         drawTransport(canvas)
         drawGear(canvas)
+        drawKeyboard(canvas)
         if (showHints) drawHints(canvas)
         if (fingerDown) {
             fill.color = palette.ink
@@ -277,7 +294,7 @@ class ControlSurface(
         val dot = dp(STATUS_DOT_DP)
         val gap = dp(STATUS_GAP_DP)
         val start = width / 2f - (dot + gap + textWidth) / 2
-        val y = dp(STATUS_TOP_DP)
+        val y = dp(GEAR_TOP_DP) + dp(Space.XL)
         fill.color = palette.ink
         canvas.drawCircle(start + dot / 2, y - mono.textSize * CAP_CENTRE, dot / 2, fill)
         canvas.drawText(statusLine, start + dot + gap, y, mono)
@@ -382,6 +399,85 @@ class ControlSurface(
             cy + h / 2,
             fill,
         )
+    }
+
+    /** A keyboard: a rounded outline with two rows of keys and a space bar. */
+    private fun drawKeyboard(canvas: Canvas) {
+        val cx = keyboardHit.centerX()
+        val cy = keyboardHit.centerY()
+        val w = dp(KEYBOARD_W_DP)
+        val h = dp(KEYBOARD_H_DP)
+        stroke.color = if (keyboardShown) palette.ink else palette.dim
+        stroke.strokeWidth = dp(GEAR_STROKE_DP)
+        canvas.drawRoundRect(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, dp(Space.XS), dp(Space.XS), stroke)
+        val key = dp(KEY_DP)
+        for (row in 0 until 2) {
+            val y = cy - h / 2 + dp(KEY_INSET_DP) + row * key * 2
+            var x = cx - w / 2 + dp(KEY_INSET_DP) + row * key
+            while (x + key <= cx + w / 2 - dp(KEY_INSET_DP)) {
+                canvas.drawPoint(x + key / 2, y, stroke)
+                x += key * 2
+            }
+        }
+        val bar = cy + h / 2 - dp(KEY_INSET_DP)
+        canvas.drawLine(cx - w * SPACE_BAR, bar, cx + w * SPACE_BAR, bar, stroke)
+        stroke.strokeWidth = dp(Space.HAIR)
+    }
+
+    /** Shows or hides the phone's keyboard; what is typed goes to the laptop as text. */
+    private fun toggleKeyboard() {
+        val manager = context.getSystemService(InputMethodManager::class.java) ?: return
+        keyboardShown = !keyboardShown
+        if (keyboardShown) {
+            requestFocus()
+            manager.showSoftInput(this, 0)
+        } else {
+            manager.hideSoftInputFromWindow(windowToken, 0)
+        }
+        invalidate()
+    }
+
+    override fun onCheckIsTextEditor(): Boolean = true
+
+    override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection {
+        outAttrs.inputType = EditorInfo.TYPE_CLASS_TEXT or EditorInfo.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or EditorInfo.IME_FLAG_NO_EXTRACT_UI
+        return object : BaseInputConnection(this, false) {
+            override fun commitText(
+                text: CharSequence?,
+                newCursorPosition: Int,
+            ): Boolean {
+                if (!text.isNullOrEmpty()) send(Frame.Text(LaptopState.TYPE, text.toString()))
+                return true
+            }
+
+            override fun deleteSurroundingText(
+                beforeLength: Int,
+                afterLength: Int,
+            ): Boolean {
+                repeat(beforeLength) { send(Frame.Text(LaptopState.TYPE, BACKSPACE)) }
+                return true
+            }
+
+            override fun sendKeyEvent(event: KeyEvent?): Boolean {
+                if (event?.action != KeyEvent.ACTION_DOWN) return true
+                when (event.keyCode) {
+                    KeyEvent.KEYCODE_DEL -> {
+                        send(Frame.Text(LaptopState.TYPE, BACKSPACE))
+                    }
+
+                    KeyEvent.KEYCODE_ENTER -> {
+                        send(Frame.Text(LaptopState.TYPE, NEWLINE))
+                    }
+
+                    else -> {
+                        val c = event.unicodeChar
+                        if (c != 0) send(Frame.Text(LaptopState.TYPE, c.toChar().toString()))
+                    }
+                }
+                return true
+            }
+        }
     }
 
     /** A gear: a ring with eight teeth. */
@@ -536,8 +632,10 @@ class ControlSurface(
 
             MotionEvent.ACTION_UP -> {
                 val openSettings = gearDown && gearHit.contains(event.x, event.y)
+                val toggleKeys = keyboardDown && keyboardHit.contains(event.x, event.y)
                 if (up(event)) performClick()
                 if (openSettings) onOpenSettings()
+                if (toggleKeys) toggleKeyboard()
             }
 
             MotionEvent.ACTION_CANCEL -> {
@@ -559,6 +657,10 @@ class ControlSurface(
         when {
             gearHit.contains(x, y) -> {
                 gearDown = true
+            }
+
+            keyboardHit.contains(x, y) -> {
+                keyboardDown = true
             }
 
             button != null -> {
@@ -612,6 +714,11 @@ class ControlSurface(
                 return gearHit.contains(event.x, event.y)
             }
 
+            keyboardDown -> {
+                keyboardDown = false
+                return keyboardHit.contains(event.x, event.y)
+            }
+
             buttonDown != null -> {
                 buttonDown = null
             }
@@ -635,11 +742,12 @@ class ControlSurface(
         activeDial = -1
         buttonDown = null
         gearDown = false
+        keyboardDown = false
         fingerDown = false
         trackpad.handle(TrackpadRecognizer.Action.CANCEL, FloatArray(0), FloatArray(0), event.eventTime)
     }
 
-    private fun onTrackpad(): Boolean = activeDial < 0 && buttonDown == null && !gearDown
+    private fun onTrackpad(): Boolean = activeDial < 0 && buttonDown == null && !gearDown && !keyboardDown
 
     private fun finger(
         x: Float,
@@ -774,7 +882,6 @@ class ControlSurface(
         private const val HIT_SLACK_DP = 12f
         private const val JUMP_DP = 64f
         private const val SAMPLE_DP = 8f
-        private const val STATUS_TOP_DP = 56f
         private const val STATUS_SP = 9f
         private const val STATUS_TRACKING = 0.16f
         private const val STATUS_DOT_DP = 5f
@@ -787,7 +894,15 @@ class ControlSurface(
         private const val HINT_TRACKING = 0.16f
         private const val HINT_GAP_DP = 16f
         private const val FINGER_DP = 10f
-        private const val GEAR_BOTTOM_DP = 40f
+        private const val GEAR_TOP_DP = 40f
+        private const val KEYBOARD_BOTTOM_DP = 40f
+        private const val KEYBOARD_W_DP = 28f
+        private const val KEYBOARD_H_DP = 18f
+        private const val KEY_DP = 3f
+        private const val KEY_INSET_DP = 4f
+        private const val SPACE_BAR = 0.25f
+        private const val BACKSPACE = "\b"
+        private const val NEWLINE = "\n"
         private const val GEAR_DP = 22f
         private const val GEAR_STROKE_DP = 1.5f
         private const val GEAR_RING = 0.55f

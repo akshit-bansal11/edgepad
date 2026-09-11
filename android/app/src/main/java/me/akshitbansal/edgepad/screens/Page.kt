@@ -85,6 +85,8 @@ class Ui(
         val end = dp(Space.XL)
         return ScrollView(context).apply {
             isFillViewport = true
+            setPadding(side, end, side, end)
+            clipToPadding = false
             addView(
                 column,
                 ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
@@ -118,7 +120,7 @@ class Ui(
         sp: Float = Type.MICRO,
         color: Int = palette.dim,
         tracking: Float = Type.TRACKING_WIDE,
-    ): TextView = text(value, sp, color, Type.mono, tracking)
+    ): TextView = text(value, sp, color, Type.label, tracking)
 
     /** A full-width square button. */
     fun button(

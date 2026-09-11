@@ -27,6 +27,18 @@ internal static class InputBuilder
         },
     };
 
+    /// <summary>One character as Windows' Unicode key event, down then up, whatever the keyboard layout.</summary>
+    public static NativeInput[] Unicode(char c) => [UnicodeKey(c, up: false), UnicodeKey(c, up: true)];
+
+    private static NativeInput UnicodeKey(char c, bool up) => new()
+    {
+        Type = InputKeyboard,
+        Data = new NativeInputData
+        {
+            Keyboard = new KeyboardInput { ScanCode = c, Flags = KeyUnicode | (up ? KeyUp : 0) },
+        },
+    };
+
     /// <summary>Presses every key in order, then releases them in reverse, as one batch so nothing interleaves.</summary>
     public static NativeInput[] Chord(params ReadOnlySpan<Keys> keys)
     {

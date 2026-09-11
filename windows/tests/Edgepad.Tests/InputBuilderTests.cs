@@ -49,6 +49,17 @@ public sealed class InputBuilderTests
     }
 
     [Fact]
+    public void ACharacterIsAUnicodeKeyDownThenUp()
+    {
+        var batch = InputBuilder.Unicode('é');
+
+        Assert.Equal(2, batch.Length);
+        Assert.Equal((ushort)'é', batch[0].Data.Keyboard.ScanCode);
+        Assert.Equal(NativeMethods.KeyUnicode, batch[0].Data.Keyboard.Flags);
+        Assert.Equal(NativeMethods.KeyUnicode | NativeMethods.KeyUp, batch[1].Data.Keyboard.Flags);
+    }
+
+    [Fact]
     public void AnUnknownMouseButtonIsRejected() =>
         Assert.Throws<InvalidDataException>(() => InputBuilder.ButtonFlags(3));
 }

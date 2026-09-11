@@ -38,14 +38,17 @@ object Type {
     val sans: Typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
     val plain: Typeface = Typeface.SANS_SERIF
 
+    /** Small labels on the plain screens: the system sans at medium weight, tracked out, instead of monospace. */
+    val label: Typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+
     /** Ruler labels, section headers, chips. */
-    const val MICRO = 9.5f
+    const val MICRO = 11f
 
     /** Sub-lines under a name, footnotes. */
-    const val SMALL = 10.5f
+    const val SMALL = 12f
 
     /** Button labels. */
-    const val LABEL = 11f
+    const val LABEL = 12.5f
 
     /** Explanations under a heading or beside a control. */
     const val CAPTION = 13f
@@ -60,8 +63,8 @@ object Type {
     const val TITLE = 28f
     const val DISPLAY = 34f
 
-    const val TRACKING_WIDE = 0.2f
-    const val TRACKING_BUTTON = 0.24f
+    const val TRACKING_WIDE = 0.1f
+    const val TRACKING_BUTTON = 0.12f
     const val TRACKING_TIGHT = -0.03f
 }
 
@@ -80,11 +83,11 @@ object Space {
     const val TOUCH = 48f
 
     /** A settings row. */
-    const val ROW = 52f
+    const val ROW = 60f
 
     /** A full-width button. */
     const val BUTTON = 54f
 
     /** A page's side margin. */
-    const val PAGE = 28f
+    const val PAGE = 24f
 }

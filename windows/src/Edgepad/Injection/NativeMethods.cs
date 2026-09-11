@@ -20,6 +20,7 @@ internal static partial class NativeMethods
 
     public const uint KeyExtended = 0x0001;
     public const uint KeyUp = 0x0002;
+    public const uint KeyUnicode = 0x0004;
 
     [LibraryImport("user32.dll", SetLastError = true)]
     public static partial uint SendInput(uint inputCount, [In] NativeInput[] inputs, int size);
