@@ -12,14 +12,25 @@ Two apps talk to each other: an Android app you touch, and a small tray app on t
 
 ## Try it
 
+Download both files from the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest): `Edgepad.exe` for the laptop, `Edgepad.apk` for the phone.
+
 1. Pair the phone with the laptop once, in Windows Bluetooth settings.
-2. On the laptop, run `Edgepad.exe`. It lives in the system tray; its menu shows whether a phone is connected.
-3. On the phone, install the APK (Android 12 or later) and allow it the Nearby devices permission.
+2. On the laptop, run `Edgepad.exe`. It is not code-signed, so Windows SmartScreen asks first: choose **More info**, then **Run anyway**. It lives in the system tray; its menu shows whether a phone is connected.
+3. On the phone, install `Edgepad.apk` (Android 12 or later; allow installing unknown apps) and allow it the Nearby devices permission.
 4. Open Edgepad on the phone and tap your laptop.
 
-Both builds come from CI: open the latest run under **Actions** and download `edgepad-android` and `edgepad-windows`.
-
 The laptop app keeps a log at `%LOCALAPPDATA%\Edgepad\edgepad.log`, reachable from the tray menu.
+
+## Publishing a release
+
+Push a version tag. `.github/workflows/release.yml` runs both quality gates, builds a signed APK and a self-contained exe, and attaches them to a GitHub Release:
+
+```
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The APK is signed with a key that lives only in the repository's Actions secrets and on the machine that made it. Create it once with `pwsh scripts/new-signing-key.ps1` and keep the copy it leaves in `~/.edgepad-signing`: every later release must be signed with the same key, or the installed app refuses the update.
 
 ## Layout
 

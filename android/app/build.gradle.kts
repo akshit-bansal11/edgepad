@@ -3,6 +3,10 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint")
 }
 
+// Release signing comes from the environment, which only .github/workflows/release.yml sets.
+// The key never enters the repository; without it a release build is simply unsigned.
+val releaseKeystore = providers.environmentVariable("EDGEPAD_KEYSTORE_PATH").orNull
+
 android {
     namespace = "me.akshitbansal.edgepad"
     compileSdk = 37
@@ -12,8 +16,28 @@ android {
         // Android 12: one Bluetooth permission path (BLUETOOTH_CONNECT).
         minSdk = 31
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        // The release workflow passes both from the tag and its run number, which only ever increases.
+        versionCode = providers.gradleProperty("versionCode").orNull?.toInt() ?: 1
+        versionName = providers.gradleProperty("versionName").orNull ?: "0.0.0-dev"
+    }
+
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storeType = "pkcs12"
+                storePassword = providers.environmentVariable("EDGEPAD_KEYSTORE_PASSWORD").get()
+                keyAlias = providers.environmentVariable("EDGEPAD_KEY_ALIAS").get()
+                // A PKCS12 keystore has one password for the store and the key.
+                keyPassword = storePassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.findByName("release")
+        }
     }
 
     compileOptions {

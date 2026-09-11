@@ -1,0 +1,104 @@
+name: Release
+
+# Push a tag such as v0.1.0 to publish. Both apps pass their quality gates, then a signed APK and a
+# self-contained exe are attached to a GitHub Release under stable names, so
+# releases/latest/download/Edgepad.apk and .../Edgepad.exe always point at the newest build.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Quality gate
+        run: pwsh scripts/check.ps1 -Ci -Only android
+      - name: Unpack the signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.EDGEPAD_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.EDGEPAD_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::error::Signing secrets are missing. Run scripts/new-signing-key.ps1 once, then push the tag again."
+            exit 1
+          fi
+          keystore="$RUNNER_TEMP/edgepad-release.p12"
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$keystore"
+          password=$(printf '%s' "$KEYSTORE_PASSWORD" | tr -d '\r\n')
+          echo "::add-mask::$password"
+          # The alias is read from the keystore itself rather than kept as another secret.
+          alias=$(keytool -list -keystore "$keystore" -storetype pkcs12 -storepass "$password" \
+            | awk -F', ' '/PrivateKeyEntry/ { print $1; exit }')
+          if [ -z "$alias" ]; then
+            echo "::error::The keystore holds no private key"
+            exit 1
+          fi
+          {
+            echo "EDGEPAD_KEYSTORE_PATH=$keystore"
+            echo "EDGEPAD_KEYSTORE_PASSWORD=$password"
+            echo "EDGEPAD_KEY_ALIAS=$alias"
+          } >> "$GITHUB_ENV"
+      - name: Build the signed APK
+        working-directory: android
+        run: ./gradlew --no-daemon assembleRelease -PversionName="${GITHUB_REF_NAME#v}" -PversionCode="${{ github.run_number }}"
+      # An unsigned or wrongly signed APK must fail here, not on the phone.
+      - name: Verify the signature
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk Edgepad.apk
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          "$apksigner" verify --print-certs Edgepad.apk
+      - uses: actions/upload-artifact@v7
+        with:
+          name: apk
+          path: Edgepad.apk
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: windows/global.json
+      - name: Quality gate
+        run: pwsh scripts/check.ps1 -Ci -Only windows
+      - name: Publish the exe
+        shell: pwsh
+        run: >
+          dotnet publish windows/src/Edgepad/Edgepad.csproj -c Release -r win-x64 --self-contained
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:Version=$($env:GITHUB_REF_NAME.TrimStart('v')) -o publish
+      - uses: actions/upload-artifact@v7
+        with:
+          name: exe
+          path: publish/Edgepad.exe
+          if-no-files-found: error
+
+  publish:
+    needs: [android, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" dist/Edgepad.apk dist/Edgepad.exe
+          --repo "$GITHUB_REPOSITORY" --title "Edgepad $GITHUB_REF_NAME" --generate-notes --verify-tag
