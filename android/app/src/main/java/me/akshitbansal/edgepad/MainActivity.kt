@@ -223,13 +223,9 @@ class MainActivity :
                         this,
                         settings,
                         state,
-                        laptopName,
                         { frame -> link?.send(frame) },
                         ::openSettings,
-                    ).also {
-                        it.rtt = rtt.median()
-                        surface = it
-                    }
+                    ).also { surface = it }
                 }
             }
         setContentView(view)
@@ -424,7 +420,6 @@ class MainActivity :
             val ms = (System.nanoTime() - frame.time) / NANOS_PER_MS
             runOnUiThread {
                 rtt.add(ms)
-                surface?.rtt = rtt.median()
             }
             return
         }

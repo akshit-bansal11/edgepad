@@ -26,6 +26,12 @@ import kotlin.math.roundToInt
  * draws them. A piece near the middle snaps to it, and the centre lines light up to say so.
  */
 object MediaLayoutScreen {
+    private const val SCALE_STEP = 0.1f
+
+    private fun toStep(scale: Float): Int = ((scale - Settings.MIN_MEDIA_SCALE) / SCALE_STEP).roundToInt()
+
+    private val SCALE_STEPS = ((Settings.MAX_MEDIA_SCALE - Settings.MIN_MEDIA_SCALE) / SCALE_STEP).roundToInt()
+
     fun build(
         ui: Ui,
         settings: Settings,
@@ -58,11 +64,30 @@ object MediaLayoutScreen {
             ui.text(ui.string(R.string.media_layout_hint), Type.CAPTION, ui.palette.dim, Type.plain).apply {
                 setPadding(ui.dp(Space.L), 0, ui.dp(Space.L), ui.dp(Space.S))
             }
+        val scaleValue =
+            ui.mono(ui.string(R.string.multiplier_value, settings.mediaScale), Type.CAPTION, ui.palette.ink, 0f)
+        val scale =
+            LinearLayout(ui.context).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(ui.dp(Space.L), 0, ui.dp(Space.L), 0)
+                addView(
+                    ui.row(ui.text(ui.string(R.string.media_scale), Type.BODY, ui.palette.ink, Type.plain), scaleValue),
+                )
+                addView(
+                    ui
+                        .ruler(SCALE_STEPS, toStep(settings.mediaScale)) { step ->
+                            settings.mediaScale = Settings.MIN_MEDIA_SCALE + step * SCALE_STEP
+                            scaleValue.text = ui.string(R.string.multiplier_value, settings.mediaScale)
+                            canvas.rescale()
+                        }.apply { contentDescription = ui.string(R.string.media_scale) },
+                )
+            }
         return LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(ui.palette.background)
             addView(header)
             addView(hint)
+            addView(scale)
             addView(canvas, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         }
     }
@@ -98,6 +123,13 @@ object MediaLayoutScreen {
             contentDescription = context.getString(R.string.media_layout_title)
         }
 
+        private var scale = settings.mediaScale
+
+        fun rescale() {
+            scale = settings.mediaScale
+            invalidate()
+        }
+
         fun reset() {
             settings.resetPieces()
             for (piece in MediaPiece.entries) positions[piece] = settings.piece(piece)
@@ -122,7 +154,8 @@ object MediaLayoutScreen {
                         ControlSurface.SKIP_GAP_DP * 2 + Space.TOUCH to ControlSurface.PLAY_DP
                     }
                 }
-            out.set(cx - w * density / 2, cy - h * density / 2, cx + w * density / 2, cy + h * density / 2)
+            val px = density * scale
+            out.set(cx - w * px / 2, cy - h * px / 2, cx + w * px / 2, cy + h * px / 2)
         }
 
         override fun onDraw(canvas: Canvas) {
@@ -227,9 +260,9 @@ object MediaLayoutScreen {
 
         private companion object {
             const val CORNER_DP = 6f
-            const val GRID_DP = 24f
-            const val DOT_DP = 3f
-            const val CENTRE_SNAP_DP = 16f
+            const val GRID_DP = 12f
+            const val DOT_DP = 2f
+            const val CENTRE_SNAP_DP = 10f
             const val HALF = 0.5f
             const val EPSILON = 1e-3f
         }

@@ -75,8 +75,11 @@ class Settings(
     var gradientAngle by bounded(KEY_GRADIENT_ANGLE, DEFAULT_GRADIENT_ANGLE, 0f, MAX_ANGLE)
 
     var pattern: Pattern
-        get() = enum(KEY_PATTERN, Pattern.NONE)
+        get() = enum(KEY_PATTERN, Pattern.SQUARES)
         set(value) = prefs.edit().putString(KEY_PATTERN, value.name).apply()
+
+    /** How large the media pieces are drawn, as a multiple of their base size. */
+    var mediaScale by bounded(KEY_MEDIA_SCALE, DEFAULT_MEDIA_SCALE, MIN_MEDIA_SCALE, MAX_MEDIA_SCALE)
 
     /** The pattern's cell size, in dp. */
     var patternSize by bounded(KEY_PATTERN_SIZE, DEFAULT_PATTERN_SIZE, MIN_PATTERN_SIZE, MAX_PATTERN_SIZE)
@@ -203,18 +206,21 @@ class Settings(
         const val MIN_SENSITIVITY = 0.5f
         const val MAX_SENSITIVITY = 2.5f
         const val DEFAULT_SENSITIVITY = 1.4f
-        const val MIN_DIAL_LENGTH = 100f
+        const val MIN_DIAL_LENGTH = 60f
         const val MAX_DIAL_LENGTH = 320f
-        const val DEFAULT_DIAL_LENGTH = 190f
-        const val MIN_DIAL_HEIGHT = 0.6f
+        const val DEFAULT_DIAL_LENGTH = 100f
+        const val MIN_DIAL_HEIGHT = 0.4f
         const val MAX_DIAL_HEIGHT = 1.8f
-        const val DEFAULT_DIAL_HEIGHT = 1f
+        const val DEFAULT_DIAL_HEIGHT = 0.6f
+        const val MIN_MEDIA_SCALE = 0.5f
+        const val MAX_MEDIA_SCALE = 1.5f
+        const val DEFAULT_MEDIA_SCALE = 1f
         const val MAX_ANGLE = 360f
         const val DEFAULT_GRADIENT_ANGLE = 90f
         const val MIN_PATTERN_SIZE = 8f
         const val MAX_PATTERN_SIZE = 96f
-        const val DEFAULT_PATTERN_SIZE = 24f
-        const val DEFAULT_PATTERN_OPACITY = 0.3f
+        const val DEFAULT_PATTERN_SIZE = 35f
+        const val DEFAULT_PATTERN_OPACITY = 0.15f
         const val DEFAULT_BACKGROUND = 0xFF0F0F12.toInt()
         const val DEFAULT_GRADIENT_END = 0xFF2B2B33.toInt()
         const val DEFAULT_PATTERN_COLOR = 0xFF84848C.toInt()
@@ -231,6 +237,7 @@ class Settings(
         private const val KEY_GRADIENT_END = "gradientEnd"
         private const val KEY_GRADIENT_ANGLE = "gradientAngle"
         private const val KEY_PATTERN = "pattern"
+        private const val KEY_MEDIA_SCALE = "mediaScale"
         private const val KEY_PATTERN_SIZE = "patternSize"
         private const val KEY_PATTERN_COLOR = "patternColor"
         private const val KEY_PATTERN_OPACITY = "patternOpacity"

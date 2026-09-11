@@ -12,8 +12,11 @@ import java.util.Locale
 
 /** A colour as three rulers, hue, saturation and value, beside a swatch that shows the result. */
 object ColorPicker {
-    private const val HUE_STEPS = 360
+    private const val HUE_STEPS = 36
+    private const val HUE_STEP = 10f
     private const val PERCENT = 100
+    private const val PERCENT_STEPS = 20
+    private const val PERCENT_STEP = 5f
     private const val SWATCH_DP = 40f
 
     fun build(
@@ -66,20 +69,20 @@ object ColorPicker {
                 }
             addView(head)
             addView(
-                slider(ui, R.string.color_hue, HUE_STEPS, hsv[0].toInt()) {
-                    hsv[0] = it.toFloat()
+                slider(ui, R.string.color_hue, HUE_STEPS, (hsv[0] / HUE_STEP).toInt()) {
+                    hsv[0] = it * HUE_STEP
                     changed()
                 },
             )
             addView(
-                slider(ui, R.string.color_saturation, PERCENT, (hsv[1] * PERCENT).toInt()) {
-                    hsv[1] = it / PERCENT.toFloat()
+                slider(ui, R.string.color_saturation, PERCENT_STEPS, (hsv[1] * PERCENT_STEPS).toInt()) {
+                    hsv[1] = it * PERCENT_STEP / PERCENT
                     changed()
                 },
             )
             addView(
-                slider(ui, R.string.color_value, PERCENT, (hsv[2] * PERCENT).toInt()) {
-                    hsv[2] = it / PERCENT.toFloat()
+                slider(ui, R.string.color_value, PERCENT_STEPS, (hsv[2] * PERCENT_STEPS).toInt()) {
+                    hsv[2] = it * PERCENT_STEP / PERCENT
                     changed()
                 },
             )

@@ -25,6 +25,11 @@ object SettingsScreen {
     private const val LENGTH_STEP = 10f
     private const val PREVIEW_DP = 220f
     private const val PERCENT = 100
+    private const val ANGLE_STEP = 15f
+    private val ANGLE_STEPS = (Settings.MAX_ANGLE / ANGLE_STEP).roundToInt()
+    private const val SIZE_STEP = 4f
+    private val SIZE_STEPS = ((Settings.MAX_PATTERN_SIZE - Settings.MIN_PATTERN_SIZE) / SIZE_STEP).roundToInt()
+    private const val OPACITY_STEPS = 20
     private val backgroundNames =
         mapOf(
             Settings.Background.THEME to R.string.background_theme,
@@ -245,9 +250,9 @@ object SettingsScreen {
                     )
                     addView(
                         ui
-                            .ruler(Settings.MAX_ANGLE.toInt(), settings.gradientAngle.roundToInt()) { step ->
-                                settings.gradientAngle = step.toFloat()
-                                angle.text = ui.string(R.string.degrees_value, step)
+                            .ruler(ANGLE_STEPS, (settings.gradientAngle / ANGLE_STEP).roundToInt()) { step ->
+                                settings.gradientAngle = step * ANGLE_STEP
+                                angle.text = degreesText(ui, settings.gradientAngle)
                             }.apply { contentDescription = ui.string(R.string.gradient_angle) },
                     )
                 }
@@ -283,10 +288,10 @@ object SettingsScreen {
                 addView(
                     ui
                         .ruler(
-                            (Settings.MAX_PATTERN_SIZE - Settings.MIN_PATTERN_SIZE).toInt(),
-                            (settings.patternSize - Settings.MIN_PATTERN_SIZE).roundToInt(),
+                            SIZE_STEPS,
+                            ((settings.patternSize - Settings.MIN_PATTERN_SIZE) / SIZE_STEP).roundToInt(),
                         ) { step ->
-                            settings.patternSize = Settings.MIN_PATTERN_SIZE + step
+                            settings.patternSize = Settings.MIN_PATTERN_SIZE + step * SIZE_STEP
                             size.text = dpText(ui, settings.patternSize)
                         }.apply { contentDescription = ui.string(R.string.pattern_size) },
                 )
@@ -305,9 +310,9 @@ object SettingsScreen {
                 )
                 addView(
                     ui
-                        .ruler(PERCENT, (settings.patternOpacity * PERCENT).roundToInt()) { step ->
-                            settings.patternOpacity = step / PERCENT.toFloat()
-                            opacity.text = ui.string(R.string.percent_value, step)
+                        .ruler(OPACITY_STEPS, (settings.patternOpacity * OPACITY_STEPS).roundToInt()) { step ->
+                            settings.patternOpacity = step / OPACITY_STEPS.toFloat()
+                            opacity.text = percentText(ui, settings.patternOpacity)
                         }.apply { contentDescription = ui.string(R.string.pattern_opacity) },
                 )
                 addView(

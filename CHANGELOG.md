@@ -4,6 +4,25 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-09-12
+
+### Added
+- A size slider on the Media layout page scales every media piece.
+- The now-playing box fits its title, centred on its position, and cuts long titles with an ellipsis before reaching the corner dials.
+
+### Changed
+- Dial length and height default to their smallest values (100 dp, x0.6), and the sliders reach further down (60 dp, x0.4).
+- Every slider in Settings is a plain line with a tick at each step and a round thumb.
+- Theme, control colour, background and pattern choices are rounded pills.
+- The square grid at 35 dp and 15% is the default pattern.
+- The play/pause button is smaller.
+- The media layout grid snaps every 12 dp.
+- The laptop's name and round trip no longer sit on the surface; Settings shows them.
+
+### Fixed
+- Logos with transparent gradient stops (Netflix) did not render; logos are drawn to bitmaps.
+- The Forget button lost its side padding to its border.
+
 ## [0.7.0] - 2026-09-12
 
 ### Added

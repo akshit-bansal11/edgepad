@@ -51,12 +51,11 @@ class ControlSurface(
     context: Context,
     settings: Settings,
     private val state: LaptopState,
-    private val laptopName: String,
     private val send: (Frame) -> Unit,
     private val onOpenSettings: () -> Unit,
 ) : View(context) {
     /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
-    constructor(context: Context) : this(context, Settings(context), LaptopState(), "", {}, {})
+    constructor(context: Context) : this(context, Settings(context), LaptopState(), {}, {})
 
     private val density = resources.displayMetrics.density
     private val palette = Palette.of(context)
@@ -87,6 +86,7 @@ class ControlSurface(
     private val painter =
         RulerPainter(resources.displayMetrics, settings.dialLength, settings.dialHeight)
     private val pieces = MediaPiece.entries.associateWith { settings.piece(it) }
+    private val mediaScale = settings.mediaScale
     private val logo = AppLogo(resources, backdrop.isDark)
 
     private val muteText = context.getString(R.string.surface_mute)
@@ -115,7 +115,6 @@ class ControlSurface(
     private val keyboardHit = RectF()
     private var titleLine = ""
     private var subLine = ""
-    private var statusLine = laptopName.uppercase()
 
     // The touch in progress.
     private var activeDial = -1
@@ -147,16 +146,7 @@ class ControlSurface(
     private val titlePaint =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = Type.sans
-            textSize = sp(TITLE_SP)
-        }
-
-    /** The measured round trip, shown beside the laptop's name. */
-    var rtt: Double = Double.NaN
-        set(value) {
-            field = value
-            val name = laptopName.uppercase()
-            statusLine = if (value.isNaN()) name else context.getString(R.string.surface_status, name, value)
-            invalidate()
+            textSize = sp(TITLE_SP) * mediaScale
         }
 
     init {
@@ -208,21 +198,12 @@ class ControlSurface(
     ) {
         val touch = dp(Space.TOUCH) / 2
         val (tx, ty) = pieces.getValue(MediaPiece.TRANSPORT)
-        val play = dp(PLAY_DP) / 2
+        val play = media(PLAY_DP) / 2
         playHit.set(tx * w - play, ty * h - play, tx * w + play, ty * h + play)
-        val gap = dp(SKIP_GAP_DP)
+        val gap = media(SKIP_GAP_DP)
         prevHit.set(tx * w - gap - touch, ty * h - touch, tx * w - gap + touch, ty * h + touch)
         nextHit.set(tx * w + gap - touch, ty * h - touch, tx * w + gap + touch, ty * h + touch)
-        val (nx, ny) = pieces.getValue(MediaPiece.NOW_PLAYING)
-        val half = minOf(dp(NOW_PLAYING_WIDTH_DP), w - 2 * dp(Space.L)) / 2
-        val tall = dp(NOW_PLAYING_HEIGHT_DP) / 2
-        nowPlayingBox.set(nx * w - half, ny * h - tall, nx * w + half, ny * h + tall)
-        progressHit.set(
-            nowPlayingBox.left,
-            nowPlayingBox.bottom - touch,
-            nowPlayingBox.right,
-            nowPlayingBox.bottom + touch,
-        )
+        layoutNowPlaying(w, h)
         val offset = dp(TOP_BUTTON_OFFSET_DP)
         gearHit.set(w / 2 - offset - touch, dp(TOP_DP) - touch, w / 2 - offset + touch, dp(TOP_DP) + touch)
         keyboardHit.set(w / 2 + offset - touch, dp(TOP_DP) - touch, w / 2 + offset + touch, dp(TOP_DP) + touch)
@@ -248,10 +229,35 @@ class ControlSurface(
         systemGestureExclusionRects = exclusions
     }
 
+    /**
+     * The now-playing box is as wide as its text needs, centred on the piece's position, and no wider than
+     * the screen minus the corner dials' reach; longer text is cut with an ellipsis.
+     */
+    private fun layoutNowPlaying(
+        w: Float,
+        h: Float,
+    ) {
+        val (nx, ny) = pieces.getValue(MediaPiece.NOW_PLAYING)
+        val fixed = media(LOGO_DP) + dp(Space.M)
+        val roomMax = w - 2 * dp(painter.halfLengthDp + Space.L) - fixed
+        subText()
+        val text = maxOf(titlePaint.measureText(titleLine), mono.measureText(subLine))
+        val half = (fixed + text.coerceIn(media(NOW_PLAYING_MIN_TEXT_DP), roomMax.coerceAtLeast(0f))) / 2
+        val tall = media(NOW_PLAYING_HEIGHT_DP) / 2
+        nowPlayingBox.set(nx * w - half, ny * h - tall, nx * w + half, ny * h + tall)
+        val touch = dp(Space.TOUCH) / 2
+        progressHit.set(
+            nowPlayingBox.left,
+            nowPlayingBox.bottom - touch,
+            nowPlayingBox.right,
+            nowPlayingBox.bottom + touch,
+        )
+    }
+
     private fun rebuildText() {
         val playing = state.nowPlaying
         titlePaint.color = if (playing.isEmpty()) dim else ink
-        val room = nowPlayingBox.width() - dp(LOGO_DP) - dp(Space.M)
+        val room = width - 2 * dp(painter.halfLengthDp + Space.L) - media(LOGO_DP) - dp(Space.M)
         titleLine =
             TextUtils
                 .ellipsize(
@@ -282,12 +288,12 @@ class ControlSurface(
             }
         subText()
         subLine = TextUtils.ellipsize(sub, mono, room, TextUtils.TruncateAt.END).toString()
+        if (width > 0) layoutNowPlaying(width.toFloat(), height.toFloat())
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         backdrop.draw(canvas)
-        drawStatus(canvas)
         drawNowPlaying(canvas)
         drawTransport(canvas)
         drawGear(canvas)
@@ -300,25 +306,9 @@ class ControlSurface(
         for (i in dials.indices) drawDial(canvas, i)
     }
 
-    private fun drawStatus(canvas: Canvas) {
-        mono.textAlign = Paint.Align.LEFT
-        mono.textSize = sp(STATUS_SP)
-        mono.letterSpacing = STATUS_TRACKING
-        mono.color = dim
-        val textWidth = mono.measureText(statusLine)
-        val dot = dp(STATUS_DOT_DP)
-        val gap = dp(STATUS_GAP_DP)
-        val start = width / 2f - (dot + gap + textWidth) / 2
-        val y = dp(TOP_DP) + dp(Space.XL)
-        fill.color = ink
-        canvas.drawCircle(start + dot / 2, y - mono.textSize * Type.CAP_CENTRE, dot / 2, fill)
-        canvas.drawText(statusLine, start + dot + gap, y, mono)
-        mono.textAlign = Paint.Align.CENTER
-    }
-
     private fun drawNowPlaying(canvas: Canvas) {
         val box = nowPlayingBox
-        val size = dp(LOGO_DP)
+        val size = media(LOGO_DP)
         val cx = box.left + size / 2
         val cy = box.centerY() - dp(PROGRESS_BELOW_DP) / 2
         if (state.app.isEmpty()) {
@@ -360,7 +350,7 @@ class ControlSurface(
         }
 
     private fun subText() {
-        mono.textSize = sp(SUB_SP)
+        mono.textSize = sp(SUB_SP) * mediaScale
         mono.letterSpacing = SUB_TRACKING
         mono.color = dim
     }
@@ -380,17 +370,17 @@ class ControlSurface(
         drawSkip(canvas, nextHit.centerX(), nextHit.centerY(), forward = true)
         val cx = playHit.centerX()
         val cy = playHit.centerY()
-        canvas.drawCircle(cx, cy, dp(PLAY_DP) / 2, fill)
+        canvas.drawCircle(cx, cy, media(PLAY_DP) / 2, fill)
         // The glyph is cut out of the disc in the background's colour: a pause while playing, else a play.
         fill.color = if (backdrop.isDark) Color.BLACK else Color.WHITE
         if (state.flag(ControlId.MEDIA_POSITION)) {
-            val bar = dp(PAUSE_BAR_W_DP)
-            val tall = dp(PAUSE_BAR_H_DP)
-            val gap = dp(PAUSE_GAP_DP)
+            val bar = media(PAUSE_BAR_W_DP)
+            val tall = media(PAUSE_BAR_H_DP)
+            val gap = media(PAUSE_GAP_DP)
             canvas.drawRect(cx - gap / 2 - bar, cy - tall / 2, cx - gap / 2, cy + tall / 2, fill)
             canvas.drawRect(cx + gap / 2, cy - tall / 2, cx + gap / 2 + bar, cy + tall / 2, fill)
         } else {
-            val size = dp(PLAY_TRIANGLE_DP)
+            val size = media(PLAY_TRIANGLE_DP)
             glyph.reset()
             glyph.moveTo(cx - size * TRIANGLE_BACK, cy - size / 2)
             glyph.lineTo(cx + size * TRIANGLE_FRONT, cy)
@@ -408,10 +398,10 @@ class ControlSurface(
         cy: Float,
         forward: Boolean,
     ) {
-        val w = dp(SKIP_W_DP)
-        val h = dp(SKIP_H_DP)
-        val bar = dp(SKIP_BAR_DP)
-        val gap = dp(SKIP_BAR_GAP_DP)
+        val w = media(SKIP_W_DP)
+        val h = media(SKIP_H_DP)
+        val bar = media(SKIP_BAR_DP)
+        val gap = media(SKIP_BAR_GAP_DP)
         val dir = if (forward) 1f else -1f
         val start = cx - dir * (w + gap + bar) / 2
         glyph.reset()
@@ -914,6 +904,9 @@ class ControlSurface(
 
     private fun dp(value: Float): Float = value * density
 
+    /** A media piece's dp, at the user's media size. */
+    private fun media(value: Float): Float = value * density * mediaScale
+
     private fun sp(value: Float): Float =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, resources.displayMetrics)
 
@@ -921,11 +914,12 @@ class ControlSurface(
         const val CORNERS = 4
 
         /** The pieces' sizes in dp; the layout screen draws them at these too. */
-        const val PLAY_DP = 64f
-        const val SKIP_GAP_DP = 56f
-        const val NOW_PLAYING_WIDTH_DP = 320f
-        const val NOW_PLAYING_HEIGHT_DP = 56f
-        const val LOGO_DP = 36f
+        const val PLAY_DP = 48f
+        const val SKIP_GAP_DP = 52f
+        const val NOW_PLAYING_WIDTH_DP = 280f
+        const val NOW_PLAYING_HEIGHT_DP = 52f
+        const val LOGO_DP = 32f
+        private const val NOW_PLAYING_MIN_TEXT_DP = 120f
 
         private val CORNER_POSITIONS =
             intArrayOf(
@@ -942,10 +936,6 @@ class ControlSurface(
         private const val HIT_SLACK_DP = 12f
         private const val JUMP_DP = 64f
         private const val SAMPLE_DP = 8f
-        private const val STATUS_SP = 9f
-        private const val STATUS_TRACKING = 0.16f
-        private const val STATUS_DOT_DP = 5f
-        private const val STATUS_GAP_DP = 7f
         private const val TITLE_SP = 14f
         private const val SUB_SP = 9f
         private const val SUB_TRACKING = 0.16f
@@ -978,9 +968,9 @@ class ControlSurface(
         private const val SKIP_BAR_DP = 2f
         private const val SKIP_BAR_GAP_DP = 2f
         private const val PAUSE_BAR_W_DP = 4f
-        private const val PAUSE_BAR_H_DP = 18f
-        private const val PAUSE_GAP_DP = 6f
-        private const val PLAY_TRIANGLE_DP = 18f
+        private const val PAUSE_BAR_H_DP = 14f
+        private const val PAUSE_GAP_DP = 5f
+        private const val PLAY_TRIANGLE_DP = 14f
         private const val TRIANGLE_BACK = 0.4f
         private const val TRIANGLE_FRONT = 0.6f
     }

@@ -69,6 +69,7 @@
   <string name="piece_now_playing">NOW PLAYING</string>
   <string name="piece_transport">PREV / PLAY / NEXT</string>
   <string name="media_layout_reset">RESET</string>
+  <string name="media_scale">Size of the media controls</string>
   <string name="gestures_title">Gestures</string>
   <string name="gestures_hint">One finger always moves and clicks, and two fingers dragging always scroll. Everything else is yours to assign.</string>
   <string name="gestures_fingers">%1$d FINGERS</string>
@@ -169,7 +170,6 @@
   <string name="surface_unknown">…</string>
   <string name="surface_nothing_playing">Nothing playing</string>
   <string name="surface_hints">1F MOVE · TAP CLICK\n2F SCROLL · PINCH ZOOM · TAP RIGHT-CLICK\n3F SWIPE DESKTOPS\n4F SWIPE APPS</string>
-  <string name="surface_status">%1$s · %2$.0f MS</string>
   <string name="surface_app_time">%1$s · %2$s OF %3$s</string>
   <string name="surface_time">%1$s OF %2$s</string>
   <string name="surface_play_pause">Play or pause</string>

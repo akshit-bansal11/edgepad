@@ -1,9 +1,9 @@
 package me.akshitbansal.edgepad.surface
 
 import android.content.res.Resources
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Picture
 import android.graphics.RectF
 import com.caverock.androidsvg.SVG
 import com.caverock.androidsvg.SVGParseException
@@ -13,14 +13,16 @@ import me.akshitbansal.edgepad.Type
 /**
  * The logo of the app playing, from the SVGs under res/raw, in their own colours. Logos that come in a
  * dark and a light version pick the one that reads on the current theme. An app with no logo gets its
- * initial. Rendered once per app into a Picture and kept.
+ * initial. Rendered once per app into a bitmap and kept: a recorded Picture drops gradient stops with
+ * transparency (Netflix), a bitmap keeps everything the renderer can draw.
  */
 class AppLogo(
     private val resources: Resources,
     private val dark: Boolean,
 ) {
-    private val pictures = HashMap<Int, Picture?>()
+    private val bitmaps = HashMap<Int, Bitmap?>()
     private val box = RectF()
+    private val smooth = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG)
     private val text =
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = Type.mono
@@ -39,22 +41,22 @@ class AppLogo(
         size: Float,
         color: Int,
     ) {
-        val picture = resource(app)?.let { id -> pictures.getOrPut(id) { render(id) } }
-        if (picture == null) {
+        val bitmap = resource(app)?.let { id -> bitmaps.getOrPut(id) { render(id) } }
+        if (bitmap == null) {
             text.color = color
             text.textSize = size * LETTER
             canvas.drawText(app.take(1).uppercase(), cx, cy + text.textSize * Type.CAP_CENTRE, text)
             return
         }
         // Fit the logo's own proportions inside the box.
-        val scale = minOf(size / picture.width, size / picture.height)
-        val w = picture.width * scale
-        val h = picture.height * scale
+        val scale = minOf(size / bitmap.width, size / bitmap.height)
+        val w = bitmap.width * scale
+        val h = bitmap.height * scale
         box.set(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
-        canvas.drawPicture(picture, box)
+        canvas.drawBitmap(bitmap, null, box, smooth)
     }
 
-    private fun render(id: Int): Picture? =
+    private fun render(id: Int): Bitmap? =
         try {
             val svg = SVG.getFromResource(resources, id)
             if (svg.documentViewBox == null) svg.setDocumentViewBox(0f, 0f, svg.documentWidth, svg.documentHeight)
@@ -63,8 +65,12 @@ class AppLogo(
             val height = (RENDER_PX * viewBox.height() / viewBox.width()).toInt().coerceAtLeast(1)
             svg.setDocumentWidth("100%")
             svg.setDocumentHeight("100%")
-            svg.renderToPicture(width, height)
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            svg.renderToCanvas(Canvas(bitmap))
+            bitmap
         } catch (e: SVGParseException) {
+            null
+        } catch (e: IllegalArgumentException) {
             null
         }
 
