@@ -34,6 +34,9 @@ class ControlSurface(
     settings: Settings,
     private val send: (Frame) -> Unit,
 ) : View(context) {
+    /** For layout tools only: a surface that sends nowhere. */
+    constructor(context: Context) : this(context, Settings(context), send = {})
+
     private val density = resources.displayMetrics.density
     private val trackpad = TrackpadRecognizer(density, send)
     private val dials =
