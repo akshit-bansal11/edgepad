@@ -97,7 +97,7 @@ jobs:
           path: dist
           merge-multiple: true
       - uses: actions/checkout@v7
-      # The release notes are this version's section of CHANGELOG.md; the commit list is appended by GitHub.
+      # The release notes are this version's section of CHANGELOG.md.
       - name: Take the notes from the changelog
         run: |
           version="${GITHUB_REF_NAME#v}"
@@ -115,4 +115,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: >
           gh release create "$GITHUB_REF_NAME" dist/Edgepad.apk dist/Edgepad.exe
-          --repo "$GITHUB_REPOSITORY" --title "Edgepad $GITHUB_REF_NAME" --notes-file notes.md --generate-notes --verify-tag
+          --repo "$GITHUB_REPOSITORY" --title "Edgepad $GITHUB_REF_NAME" --notes-file notes.md --verify-tag
