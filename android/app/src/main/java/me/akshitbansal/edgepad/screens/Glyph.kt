@@ -14,6 +14,9 @@ class Glyph(
     color: Int,
     private val count: Int = 1,
 ) : View(context) {
+    /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
+    constructor(context: Context) : this(context, Shape.DOT, 0)
+
     enum class Shape { CHEVRON_RIGHT, CHEVRON_LEFT, DOT, CORNER }
 
     private val density = resources.displayMetrics.density

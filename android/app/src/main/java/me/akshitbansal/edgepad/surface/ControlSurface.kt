@@ -56,6 +56,9 @@ class ControlSurface(
     private val send: (Frame) -> Unit,
     private val onOpenSettings: () -> Unit,
 ) : View(context) {
+    /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
+    constructor(context: Context) : this(context, Settings(context), LaptopState(), "", {}, {})
+
     private val density = resources.displayMetrics.density
     private val palette = Palette.of(context)
     private val trackpad = TrackpadRecognizer(density, settings.naturalScroll, settings::gesture, send)
