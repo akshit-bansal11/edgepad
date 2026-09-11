@@ -34,6 +34,16 @@ class Settings(
 
     var hints by flag("hints", false)
 
+    /** Half a corner ruler's length along the edge, in dp. */
+    var dialLength: Float
+        get() = prefs.getFloat(KEY_DIAL_LENGTH, DEFAULT_DIAL_LENGTH).coerceIn(MIN_DIAL_LENGTH, MAX_DIAL_LENGTH)
+        set(value) = prefs.edit().putFloat(KEY_DIAL_LENGTH, value.coerceIn(MIN_DIAL_LENGTH, MAX_DIAL_LENGTH)).apply()
+
+    /** How tall the ticks stand, as a multiple of the base height. */
+    var dialHeight: Float
+        get() = prefs.getFloat(KEY_DIAL_HEIGHT, DEFAULT_DIAL_HEIGHT).coerceIn(MIN_DIAL_HEIGHT, MAX_DIAL_HEIGHT)
+        set(value) = prefs.edit().putFloat(KEY_DIAL_HEIGHT, value.coerceIn(MIN_DIAL_HEIGHT, MAX_DIAL_HEIGHT)).apply()
+
     /** How much a dial moves per dp of slide, as a multiple of the base rate. */
     var sensitivity: Float
         get() = prefs.getFloat(KEY_SENSITIVITY, DEFAULT_SENSITIVITY).coerceIn(MIN_SENSITIVITY, MAX_SENSITIVITY)
@@ -105,6 +115,14 @@ class Settings(
         const val MIN_SENSITIVITY = 0.5f
         const val MAX_SENSITIVITY = 2.5f
         const val DEFAULT_SENSITIVITY = 1.4f
+        const val MIN_DIAL_LENGTH = 100f
+        const val MAX_DIAL_LENGTH = 320f
+        const val DEFAULT_DIAL_LENGTH = 190f
+        const val MIN_DIAL_HEIGHT = 0.6f
+        const val MAX_DIAL_HEIGHT = 1.8f
+        const val DEFAULT_DIAL_HEIGHT = 1f
+        private const val KEY_DIAL_LENGTH = "dialLength"
+        private const val KEY_DIAL_HEIGHT = "dialHeight"
         private const val NAME = "edgepad"
         private const val NONE = "-"
         private const val KEY_LAPTOP = "laptop"

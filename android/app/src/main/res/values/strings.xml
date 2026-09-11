@@ -104,10 +104,11 @@
   <string name="action_search">Search</string>
   <string name="action_notifications">Notifications</string>
   <string name="action_lock">Lock the laptop</string>
-  <string name="keyboard_backlight">Keyboard backlight</string>
-  <string name="keyboard_backlight_sub">NO WINDOWS CONTROL FOR IT YET</string>
   <string name="settings_feel">DIAL FEEL</string>
   <string name="slide_sensitivity">Slide sensitivity</string>
+  <string name="dial_length">Dial length</string>
+  <string name="dial_length_value">%1$d dp</string>
+  <string name="dial_height">Dial height</string>
   <string name="sensitivity_value">×%1$.1f</string>
   <string name="haptic_ticks">Haptic tick per notch</string>
   <string name="snap_round">Snap to round numbers</string>

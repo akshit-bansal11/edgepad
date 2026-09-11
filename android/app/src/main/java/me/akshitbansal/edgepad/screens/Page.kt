@@ -85,6 +85,7 @@ class Ui(
         val end = dp(Space.XL)
         return ScrollView(context).apply {
             isFillViewport = true
+            isVerticalScrollBarEnabled = false
             setPadding(side, end, side, end)
             clipToPadding = false
             addView(
@@ -157,9 +158,9 @@ class Ui(
         mono(label, Type.MICRO, palette.dim).apply {
             gravity = Gravity.CENTER
             minHeight = dp(Space.TOUCH)
-            setPadding(dp(Space.M), 0, dp(Space.M), 0)
+            setPadding(dp(Space.XL), 0, dp(Space.XL), 0)
             val border = GradientDrawable().apply { setStroke(dp(Space.HAIR), palette.dim) }
-            background = InsetDrawable(border, 0, dp(Space.S), 0, dp(Space.S))
+            background = InsetDrawable(border, 0, dp(Space.XS), 0, dp(Space.XS))
             tappable(this, onClick)
         }
 

@@ -62,6 +62,8 @@ class ControlSurface(
     private val trackpad = TrackpadRecognizer(density, settings.naturalScroll, settings::gesture, send)
     private val hapticsOn = settings.haptics
     private val showHints = settings.hints
+    private val rulerHalfDp = settings.dialLength
+    private val dialHeight = settings.dialHeight
     private val dials: List<Dial> =
         (0 until CORNERS).mapNotNull { corner ->
             settings.corner(corner)?.let { kind ->
@@ -215,7 +217,7 @@ class ControlSurface(
 
     /** Keeps Android's back gesture off each corner dial; the bottom edge (home) cannot be claimed. */
     private fun excludeBackGesture() {
-        val half = dp(RULER_HALF_DP)
+        val half = dp(rulerHalfDp)
         val step = dp(SAMPLE_DP)
         for (i in dials.indices) {
             val rect = exclusions[i]
@@ -480,26 +482,29 @@ class ControlSurface(
         }
     }
 
-    /** A gear: a ring with eight teeth. */
+    /** A gear: eight square teeth round a rim, with a hole in the middle. */
     private fun drawGear(canvas: Canvas) {
         val cx = gearHit.centerX()
         val cy = gearHit.centerY()
-        val r = dp(GEAR_DP) / 2
+        val outer = dp(GEAR_DP) / 2
+        val inner = outer * GEAR_RIM
+        glyph.reset()
+        val step = FULL_TURN / (GEAR_TEETH * 2)
+        for (i in 0 until GEAR_TEETH * 2) {
+            val r = if (i % 2 == 0) outer else inner
+            val a0 = Math.toRadians(i * step - step * GEAR_TOOTH)
+            val a1 = Math.toRadians(i * step + step * GEAR_TOOTH)
+            val x0 = cx + cos(a0).toFloat() * r
+            val y0 = cy + sin(a0).toFloat() * r
+            if (i == 0) glyph.moveTo(x0, y0) else glyph.lineTo(x0, y0)
+            glyph.lineTo(cx + cos(a1).toFloat() * r, cy + sin(a1).toFloat() * r)
+        }
+        glyph.close()
         stroke.color = palette.dim
         stroke.strokeWidth = dp(GEAR_STROKE_DP)
-        canvas.drawCircle(cx, cy, r * GEAR_RING, stroke)
-        for (i in 0 until GEAR_TEETH) {
-            val a = Math.toRadians(i * FULL_TURN / GEAR_TEETH)
-            val ux = cos(a).toFloat()
-            val uy = sin(a).toFloat()
-            canvas.drawLine(
-                cx + ux * r * GEAR_TOOTH_FROM,
-                cy + uy * r * GEAR_TOOTH_FROM,
-                cx + ux * r,
-                cy + uy * r,
-                stroke,
-            )
-        }
+        stroke.strokeJoin = Paint.Join.ROUND
+        canvas.drawPath(glyph, stroke)
+        canvas.drawCircle(cx, cy, outer * GEAR_HOLE, stroke)
         stroke.strokeWidth = dp(Space.HAIR)
     }
 
@@ -510,7 +515,7 @@ class ControlSurface(
         val dial = dials[i]
         val centre = centres[i]
         val notch = dp(Dial.NOTCH_DP)
-        val half = dp(RULER_HALF_DP)
+        val half = dp(rulerHalfDp)
         val ruler = dp(dial.rulerDp)
         val grow = if (dial.armed) ARMED_GROWTH else 1f
         var first = ceil((-half - ruler) / notch).toInt()
@@ -522,7 +527,7 @@ class ControlSurface(
         for (n in first..last) {
             val major = n % MAJOR_EVERY == 0
             perimeter.point(centre + ruler + n * notch, pt)
-            val depth = dp(if (major) MAJOR_TICK_DP else MINOR_TICK_DP) * grow
+            val depth = dp(if (major) MAJOR_TICK_DP else MINOR_TICK_DP) * grow * dialHeight
             tick.strokeWidth = dp(if (major) MAJOR_STROKE_DP else MINOR_STROKE_DP)
             tick.alpha =
                 when {
@@ -536,11 +541,11 @@ class ControlSurface(
         perimeter.point(centre, pt)
         tick.alpha = OPAQUE
         tick.strokeWidth = dp(INDICATOR_STROKE_DP)
-        val reach = dp(INDICATOR_DP) * grow
+        val reach = dp(INDICATOR_DP) * grow * dialHeight
         canvas.drawLine(pt[0], pt[1], pt[0] + pt[2] * reach, pt[1] + pt[3] * reach, tick)
 
         // The label and the number sit inside the corner, on the diagonal.
-        val depth = dp(LABEL_DP)
+        val depth = dp(LABEL_DP) * (1f + (dialHeight - 1f) / 2)
         val ax = pt[0] + pt[2] * depth
         val ay = pt[1] + pt[3] * depth
         val labelSize = sp(DIAL_LABEL_SP)
@@ -777,7 +782,7 @@ class ControlSurface(
         perimeter.project(x, y, hit)
         if (hit[1] > dp(CORNER_HIT_DP)) return -1
         var best = -1
-        var bestGap = dp(RULER_HALF_DP + HIT_SLACK_DP)
+        var bestGap = dp(rulerHalfDp + HIT_SLACK_DP)
         for (i in dials.indices) {
             val gap = abs(perimeter.delta(centres[i], hit[0]))
             if (gap < bestGap) {
@@ -860,7 +865,6 @@ class ControlSurface(
                 RoundedCorner.POSITION_BOTTOM_LEFT,
             )
         private const val MIN_BEND_DP = 24f
-        private const val RULER_HALF_DP = 190f
         private const val MAJOR_TICK_DP = 34f
         private const val MINOR_TICK_DP = 22f
         private const val MAJOR_STROKE_DP = 2f
@@ -905,8 +909,9 @@ class ControlSurface(
         private const val NEWLINE = "\n"
         private const val GEAR_DP = 22f
         private const val GEAR_STROKE_DP = 1.5f
-        private const val GEAR_RING = 0.55f
-        private const val GEAR_TOOTH_FROM = 0.75f
+        private const val GEAR_RIM = 0.72f
+        private const val GEAR_TOOTH = 0.42f
+        private const val GEAR_HOLE = 0.28f
         private const val GEAR_TEETH = 8
         private const val FULL_TURN = 360.0
         private const val SKIP_W_DP = 9f

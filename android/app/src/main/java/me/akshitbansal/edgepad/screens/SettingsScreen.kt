@@ -22,12 +22,15 @@ object SettingsScreen {
         val detail: String,
     )
 
-    private const val DISABLED_ALPHA = 0.5f
+    private const val LENGTH_STEP = 10f
+    private const val HEIGHT_STEP = 0.1f
     private const val SENSITIVITY_STEP = 0.1f
     private const val ROW_TRACKING = 0.1f
     private val sensitivitySteps =
         ((Settings.MAX_SENSITIVITY - Settings.MIN_SENSITIVITY) / SENSITIVITY_STEP)
             .roundToInt()
+    private val lengthSteps = ((Settings.MAX_DIAL_LENGTH - Settings.MIN_DIAL_LENGTH) / LENGTH_STEP).roundToInt()
+    private val heightSteps = ((Settings.MAX_DIAL_HEIGHT - Settings.MIN_DIAL_HEIGHT) / HEIGHT_STEP).roundToInt()
     private val cornerNames =
         listOf(
             R.string.corner_top_left,
@@ -60,12 +63,6 @@ object SettingsScreen {
                 hairline()
                 add(cornerRow(ui, settings, corner))
             }
-            hairline()
-            val backlight =
-                ui.row(
-                    ui.stack(ui.string(R.string.keyboard_backlight), ui.string(R.string.keyboard_backlight_sub)),
-                )
-            add(backlight).alpha = DISABLED_ALPHA
 
             section(ui.string(R.string.settings_feel))
             hairline()
@@ -77,6 +74,42 @@ object SettingsScreen {
                     value.text = sensitivityText(ui, settings.sensitivity)
                 },
             ).contentDescription = ui.string(R.string.slide_sensitivity)
+            hairline()
+            val length =
+                ui.mono(
+                    ui.string(R.string.dial_length_value, settings.dialLength.roundToInt()),
+                    Type.CAPTION,
+                    ui.palette.ink,
+                    0f,
+                )
+            add(ui.row(ui.text(ui.string(R.string.dial_length), Type.BODY, ui.palette.ink, Type.plain), length))
+            add(
+                ui.ruler(
+                    lengthSteps,
+                    ((settings.dialLength - Settings.MIN_DIAL_LENGTH) / LENGTH_STEP).roundToInt(),
+                ) { step ->
+                    settings.dialLength = Settings.MIN_DIAL_LENGTH + step * LENGTH_STEP
+                    length.text = ui.string(R.string.dial_length_value, settings.dialLength.roundToInt())
+                },
+            ).contentDescription = ui.string(R.string.dial_length)
+            hairline()
+            val height =
+                ui.mono(
+                    ui.string(R.string.sensitivity_value, settings.dialHeight),
+                    Type.CAPTION,
+                    ui.palette.ink,
+                    0f,
+                )
+            add(ui.row(ui.text(ui.string(R.string.dial_height), Type.BODY, ui.palette.ink, Type.plain), height))
+            add(
+                ui.ruler(
+                    heightSteps,
+                    ((settings.dialHeight - Settings.MIN_DIAL_HEIGHT) / HEIGHT_STEP).roundToInt(),
+                ) { step ->
+                    settings.dialHeight = Settings.MIN_DIAL_HEIGHT + step * HEIGHT_STEP
+                    height.text = ui.string(R.string.sensitivity_value, settings.dialHeight)
+                },
+            ).contentDescription = ui.string(R.string.dial_height)
             hairline()
             add(ui.toggle(ui.string(R.string.haptic_ticks), settings.haptics) { settings.haptics = it })
             hairline()
