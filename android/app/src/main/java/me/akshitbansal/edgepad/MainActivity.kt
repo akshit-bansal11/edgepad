@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad
 
 import android.Manifest
 import android.app.Activity
+import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Intent
@@ -310,7 +311,11 @@ class MainActivity :
             return emptyList()
         }
         return try {
-            adapter.bondedDevices.orEmpty().toList()
+            // Only things that can run the laptop app: headsets, mice and keyboards are paired too.
+            adapter.bondedDevices.orEmpty().filter {
+                it.bluetoothClass?.majorDeviceClass ==
+                    BluetoothClass.Device.Major.COMPUTER
+            }
         } catch (e: SecurityException) {
             emptyList()
         }

@@ -81,7 +81,7 @@ class PickerScreen(
                 Type.SMALL,
                 topDp = Space.XL,
             ).setLineSpacing(0f, FOOTNOTE_LEADING)
-            action = add(ui.button(ui.string(R.string.connect), Ui.Style.FILLED) { act() }, Space.L)
+            action = add(ui.button(ui.string(R.string.open_controls), Ui.Style.FILLED) { act() }, Space.L)
             add(ui.button(ui.string(R.string.open_bluetooth_settings), Ui.Style.QUIET, onBluetoothSettings), Space.M)
             add(ui.link(ui.string(R.string.settings_link), onSettings), Space.S)
         }
@@ -140,9 +140,7 @@ class PickerScreen(
         }
         if (devices.isNotEmpty()) list.addView(ui.hairline(), ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(Space.HAIR))
         val controls = selected != null && selected == connected
-        action.text = ui.string(if (controls) R.string.open_controls else R.string.connect)
-        action.isEnabled = selected != null && connectingTo == null
-        action.alpha = if (action.isEnabled) 1f else DISABLED_ALPHA
+        action.visibility = if (controls) View.VISIBLE else View.GONE
         band.text =
             connectingTo?.let { ui.string(R.string.pairing_connecting, it.uppercase()) }
                 ?: ui.string(R.string.pairing_band)
@@ -167,9 +165,6 @@ class PickerScreen(
         val end =
             LinearLayout(ui.context).apply {
                 gravity = Gravity.CENTER_VERTICAL
-                val dot = Glyph(ui.context, Glyph.Shape.DOT, ui.palette.ink)
-                dot.visibility = if (chosen) View.VISIBLE else View.INVISIBLE
-                addView(dot, LinearLayout.LayoutParams(ui.dp(DOT_BOX_DP), ui.dp(DOT_BOX_DP)))
                 addView(
                     Glyph(ui.context, Glyph.Shape.CHEVRON_RIGHT, ui.palette.ink),
                     LinearLayout.LayoutParams(ui.dp(Space.XL), ui.dp(Space.XL)),
@@ -180,7 +175,7 @@ class PickerScreen(
             minimumHeight = ui.dp(ROW_DP)
             ui.tappable(this) {
                 selected = device.address
-                render()
+                if (device.address == connected) onOpenControls() else onConnect(device.address)
             }
         }
     }
@@ -213,12 +208,10 @@ class PickerScreen(
     private companion object {
         const val BAND_DP = 64f
         const val ROW_DP = 64f
-        const val DOT_BOX_DP = 14f
         const val BAND_TRACKING = 0.12f
         const val FOOTNOTE_LEADING = 1.6f
         const val SCAN_ALPHA = 0.45f
         const val SCAN_MS = 1900L
-        const val DISABLED_ALPHA = 0.4f
         const val EASE_X1 = 0.4f
         const val EASE_Y1 = 0f
         const val EASE_X2 = 0.2f

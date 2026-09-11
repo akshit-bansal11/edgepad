@@ -193,68 +193,39 @@ class ControlSurface(
         h: Float,
     ) {
         landscape = w > h
-        if (!landscape) {
-            val corner = minOf(dp(CORNER_DP), w * CORNER_FRACTION)
-            statusY = corner * STATUS_AT
-            val size = dp(MONOGRAM_DP)
-            monogram.set(w / 2 - size / 2, corner * MONOGRAM_AT, w / 2 + size / 2, corner * MONOGRAM_AT + size)
-            titleWidth = (w * TITLE_FRACTION).toInt()
-            titleX = (w - titleWidth) / 2
-            titleY = monogram.bottom + dp(Space.M)
-            subAlign = Paint.Align.CENTER
-            subX = w / 2
-            subWidth = w * SUB_FRACTION
-            subY = titleY + 2 * titlePaint.fontSpacing + dp(Space.L)
-            progressWidth = dp(PROGRESS_DP)
-            progressX = w / 2 - progressWidth / 2
-            progressY = subY + dp(Space.M)
-            val top = maxOf(corner + dp(BOX_BELOW_CORNER_DP), progressY + dp(Space.XL))
-            box.set(dp(BOX_SIDE_DP), top, w - dp(BOX_SIDE_DP), h - dp(BOX_BOTTOM_DP))
-            transportY = h - dp(TRANSPORT_BOTTOM_DP)
-            playRadius = dp(PLAY_DP) / 2
-            val link = h - dp(SETTINGS_BOTTOM_DP)
-            settingsHit.set(
-                w / 2 - dp(SETTINGS_WIDTH_DP) / 2,
-                link - dp(Space.TOUCH) / 2,
-                w / 2 + dp(SETTINGS_WIDTH_DP) / 2,
-                link + dp(Space.TOUCH) / 2,
-            )
-        } else {
-            val corner = minOf(dp(CORNER_DP), h * CORNER_FRACTION)
-            statusY = dp(LAND_STATUS_DP)
-            val rowWidth = minOf(dp(ROW_DP), w - 2 * corner)
-            val left = (w - rowWidth) / 2
-            val top = dp(LAND_ROW_TOP_DP)
-            val size = dp(LAND_MONOGRAM_DP)
-            monogram.set(left, top, left + size, top + size)
-            progressWidth = dp(PROGRESS_DP)
-            progressX = left + rowWidth - progressWidth
-            progressY = monogram.centerY()
-            titleX = monogram.right + dp(Space.M)
-            titleWidth = (progressX - dp(Space.M) - titleX).toInt().coerceAtLeast(1)
-            titleY = monogram.top
-            subAlign = Paint.Align.LEFT
-            subX = titleX
-            subWidth = titleWidth.toFloat()
-            subY = monogram.bottom
-            val side = maxOf(corner + dp(LAND_BOX_SIDE_DP), 0f).coerceAtMost((w - dp(MIN_BOX_DP)) / 2)
-            box.set(side, monogram.bottom + dp(Space.L), w - side, h - dp(LAND_BOX_BOTTOM_DP))
-            transportY = h - dp(LAND_TRANSPORT_DP)
-            playRadius = dp(LAND_PLAY_DP) / 2
-            val x = w / 2 + dp(LAND_SETTINGS_OFFSET_DP)
-            settingsHit.set(
-                x - dp(SETTINGS_WIDTH_DP) / 2,
-                transportY - dp(Space.TOUCH) / 2,
-                x + dp(SETTINGS_WIDTH_DP) / 2,
-                transportY + dp(Space.TOUCH) / 2,
-            )
-        }
+        // Everything that is not a dial sits in one block at the top, clear of the top dials' arms.
+        val corner = minOf(dp(CORNER_DP), (if (landscape) h else w) * CORNER_FRACTION)
+        val blockWidth = minOf(dp(BLOCK_WIDTH_DP), w - 2 * (if (landscape) corner else dp(EDGE_HIT_DP) + dp(Space.L)))
+        val left = (w - blockWidth) / 2
+        statusY = (if (landscape) dp(LAND_STATUS_DP) else corner * STATUS_AT)
+        val size = dp(MONOGRAM_DP)
+        val rowTop = statusY + dp(Space.L)
+        monogram.set(left, rowTop, left + size, rowTop + size)
+        titleX = monogram.right + dp(Space.M)
+        titleWidth = (left + blockWidth - titleX).toInt().coerceAtLeast(1)
+        titleY = monogram.top
+        subAlign = Paint.Align.LEFT
+        subX = titleX
+        subWidth = titleWidth.toFloat()
+        subY = monogram.bottom + dp(SUB_BELOW_DP)
+        progressX = left
+        progressWidth = blockWidth
+        progressY = subY + dp(Space.L)
+        transportY = progressY + dp(Space.XL) + dp(PLAY_DP) / 2
+        playRadius = dp(PLAY_DP) / 2
         val touch = dp(Space.TOUCH) / 2
-        val gap = dp(TRANSPORT_GAP_DP) + playRadius - dp(PLAY_DP) / 2
+        val gap = dp(TRANSPORT_GAP_DP)
         prevHit.set(w / 2 - gap - touch, transportY - touch, w / 2 - gap + touch, transportY + touch)
         nextHit.set(w / 2 + gap - touch, transportY - touch, w / 2 + gap + touch, transportY + touch)
-        val play = maxOf(playRadius, touch)
-        playHit.set(w / 2 - play, transportY - play, w / 2 + play, transportY + play)
+        playHit.set(w / 2 - playRadius, transportY - playRadius, w / 2 + playRadius, transportY + playRadius)
+        val link = h - dp(if (landscape) LAND_SETTINGS_BOTTOM_DP else SETTINGS_BOTTOM_DP)
+        settingsHit.set(
+            w / 2 - dp(SETTINGS_WIDTH_DP) / 2,
+            link - touch,
+            w / 2 + dp(SETTINGS_WIDTH_DP) / 2,
+            link + touch,
+        )
+        box.set(0f, transportY + playRadius, w, link - touch)
     }
 
     /** Keeps Android's back gesture off each dial on a side edge; the bottom edge (home) cannot be claimed. */
@@ -284,8 +255,8 @@ class ControlSurface(
         titleLayout =
             StaticLayout.Builder
                 .obtain(title, 0, title.length, titlePaint, titleWidth)
-                .setAlignment(if (landscape) Layout.Alignment.ALIGN_NORMAL else Layout.Alignment.ALIGN_CENTER)
-                .setMaxLines(if (landscape) 1 else 2)
+                .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+                .setMaxLines(1)
                 .setEllipsize(TextUtils.TruncateAt.END)
                 .build()
         val app = state.app.uppercase()
@@ -320,7 +291,10 @@ class ControlSurface(
         drawTrackpad(canvas)
         drawTransport(canvas)
         drawSettingsLink(canvas)
-        for (i in dials.indices) drawDial(canvas, i)
+        for (i in dials.indices) {
+            drawBoundary(canvas, i)
+            drawDial(canvas, i)
+        }
     }
 
     private fun drawStatus(canvas: Canvas) {
@@ -343,7 +317,7 @@ class ControlSurface(
         canvas.drawRect(monogram, stroke)
         mono.textAlign = Paint.Align.CENTER
         mono.letterSpacing = 0f
-        mono.textSize = sp(if (landscape) LAND_MONOGRAM_SP else MONOGRAM_SP)
+        mono.textSize = sp(MONOGRAM_SP)
         mono.color = palette.ink
         canvas.drawText(
             state.app.take(1).uppercase(),
@@ -380,14 +354,6 @@ class ControlSurface(
     }
 
     private fun drawTrackpad(canvas: Canvas) {
-        stroke.color = palette.line
-        canvas.drawRect(box, stroke)
-        val inset = dp(CROP_INSET_DP)
-        val length = dp(CROP_DP)
-        crop(canvas, box.left + inset, box.top + inset, length, length)
-        crop(canvas, box.right - inset, box.top + inset, -length, length)
-        crop(canvas, box.left + inset, box.bottom - inset, length, -length)
-        crop(canvas, box.right - inset, box.bottom - inset, -length, -length)
         if (showHints) {
             mono.textAlign = Paint.Align.CENTER
             mono.textSize = sp(HINT_SP)
@@ -402,25 +368,36 @@ class ControlSurface(
                 }
             }
         }
-        if (fingerDown && box.contains(fingerX, fingerY)) {
+        if (fingerDown) {
             fill.color = palette.ink
             canvas.drawCircle(fingerX, fingerY, dp(FINGER_DP) / 2, fill)
         }
     }
 
-    private fun crop(
+    /** A faint line just inside each dial's touch zone: start a finger outside it for the trackpad. */
+    private fun drawBoundary(
         canvas: Canvas,
-        x: Float,
-        y: Float,
-        dx: Float,
-        dy: Float,
+        i: Int,
     ) {
-        canvas.drawLine(x, y, x + dx, y, stroke)
-        canvas.drawLine(x, y, x, y + dy, stroke)
+        val dial = dials[i]
+        val depth = dp(if (dial.placement.atCorner) CORNER_HIT_DP else EDGE_HIT_DP)
+        val half = dp(RULER_HALF_DP + HIT_SLACK_DP)
+        val step = dp(SAMPLE_DP)
+        stroke.color = palette.line
+        glyph.reset()
+        perimeter.point(centres[i] - half, pt)
+        glyph.moveTo(pt[0] + pt[2] * depth, pt[1] + pt[3] * depth)
+        var s = centres[i] - half + step
+        while (s <= centres[i] + half) {
+            perimeter.point(s, pt)
+            glyph.lineTo(pt[0] + pt[2] * depth, pt[1] + pt[3] * depth)
+            s += step
+        }
+        canvas.drawPath(glyph, stroke)
     }
 
     private fun drawTransport(canvas: Canvas) {
-        val scale = playRadius / (dp(PLAY_DP) / 2)
+        val scale = 1f
         fill.color = palette.ink
         drawSkip(canvas, prevHit.centerX(), scale, forward = false)
         drawSkip(canvas, nextHit.centerX(), scale, forward = true)
@@ -588,8 +565,12 @@ class ControlSurface(
                 }
             }
 
-            DialKind.ZOOM, DialKind.APP_SWITCHER -> {
+            DialKind.ZOOM -> {
                 if (dial.steps > 0) "+${dial.steps}" else dial.steps.toString()
+            }
+
+            DialKind.APP_SWITCHER -> {
+                ""
             }
         }
 
@@ -861,23 +842,18 @@ class ControlSurface(
         const val CORNER_DP = 176f
         const val CORNER_FRACTION = 0.45f
         const val STATUS_AT = 0.74f
-        const val MONOGRAM_AT = 0.9f
+        const val BLOCK_WIDTH_DP = 320f
+        const val SUB_BELOW_DP = 6f
+        const val LAND_SETTINGS_BOTTOM_DP = 28f
         const val MONOGRAM_DP = 36f
         const val MONOGRAM_SP = 14f
         const val TITLE_SP = 14f
-        const val TITLE_FRACTION = 0.42f
-        const val SUB_FRACTION = 0.8f
         const val SUB_SP = 9f
         const val SUB_TRACKING = 0.16f
         const val STATUS_SP = 9f
         const val STATUS_TRACKING = 0.16f
         const val STATUS_DOT_DP = 5f
         const val STATUS_GAP_DP = 7f
-        const val PROGRESS_DP = 88f
-        const val BOX_SIDE_DP = 18f
-        const val BOX_BELOW_CORNER_DP = 114f
-        const val BOX_BOTTOM_DP = 188f
-        const val TRANSPORT_BOTTOM_DP = 152f
         const val PLAY_DP = 64f
         const val TRANSPORT_GAP_DP = 56f
         const val SETTINGS_BOTTOM_DP = 54f
@@ -886,20 +862,8 @@ class ControlSurface(
 
         // Landscape furniture, from the design's 844 by 390 phone.
         const val LAND_STATUS_DP = 34f
-        const val LAND_ROW_TOP_DP = 50f
-        const val LAND_MONOGRAM_DP = 30f
-        const val LAND_MONOGRAM_SP = 12f
-        const val ROW_DP = 344f
-        const val LAND_BOX_SIDE_DP = 90f
-        const val LAND_BOX_BOTTOM_DP = 98f
-        const val MIN_BOX_DP = 240f
-        const val LAND_TRANSPORT_DP = 53f
-        const val LAND_PLAY_DP = 54f
-        const val LAND_SETTINGS_OFFSET_DP = 128f
 
         // Trackpad.
-        const val CROP_INSET_DP = 16f
-        const val CROP_DP = 10f
         const val HINT_SP = 9f
         const val HINT_TRACKING = 0.16f
         const val HINT_BOTTOM_DP = 18f
