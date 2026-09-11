@@ -182,8 +182,20 @@ class ControlSurface(
             for (position in CORNER_POSITIONS) corner = maxOf(corner, insets.getRoundedCorner(position)?.radius ?: 0)
         }
         perimeter = Perimeter(w.toFloat(), h.toFloat(), maxOf(corner.toFloat(), dp(MIN_BEND_DP)))
-        dials.forEachIndexed { i, dial -> centres[i] = perimeter.lengthAt(dial.placement.at) }
         layoutFurniture(w.toFloat(), h.toFloat())
+        // Corners stay put in landscape; an edge dial turns with the phone, so what sat on a side in
+        // portrait lies along the top or bottom, where the long edges are.
+        dials.forEachIndexed { i, dial ->
+            val at =
+                if (landscape &&
+                    !dial.placement.atCorner
+                ) {
+                    Placement.of(dial.placement.at - 1f).at
+                } else {
+                    dial.placement.at
+                }
+            centres[i] = perimeter.lengthAt(at)
+        }
         excludeBackGesture()
         rebuildText()
     }
