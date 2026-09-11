@@ -28,7 +28,7 @@ class DialPreview(
     private val palette = Palette.of(context)
     private val label = context.getString(R.string.dial_volume_short)
     private val painter =
-        RulerPainter(density, resources.displayMetrics.scaledDensity, settings.dialLength, settings.dialHeight)
+        RulerPainter(resources.displayMetrics, settings.dialLength, settings.dialHeight)
     private val unitsPerDp = Dial.BASE_UNITS_PER_DP * settings.sensitivity
     private var perimeter = Perimeter(1f, 1f, 1f)
     private val pt = FloatArray(4)

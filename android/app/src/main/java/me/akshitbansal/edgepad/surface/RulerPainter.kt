@@ -3,6 +3,8 @@ package me.akshitbansal.edgepad.surface
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.text.TextPaint
+import android.util.DisplayMetrics
+import android.util.TypedValue
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -12,8 +14,7 @@ import kotlin.math.floor
  * shows is what the surface draws. Allocation-free: the caller passes a scratch point array.
  */
 class RulerPainter(
-    private val density: Float,
-    private val scaledDensity: Float,
+    private val metrics: DisplayMetrics,
     /** Half the ruler's length along the edge, in dp. */
     var halfLengthDp: Float,
     /** Tick height as a multiple of the base. */
@@ -94,9 +95,9 @@ class RulerPainter(
         }
     }
 
-    private fun dp(value: Float): Float = value * density
+    private fun dp(value: Float): Float = value * metrics.density
 
-    private fun sp(value: Float): Float = value * scaledDensity
+    private fun sp(value: Float): Float = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, metrics)
 
     companion object {
         const val MAJOR_TICK_DP = 34f

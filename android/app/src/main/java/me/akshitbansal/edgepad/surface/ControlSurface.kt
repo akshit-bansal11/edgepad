@@ -85,7 +85,7 @@ class ControlSurface(
             }
         }
     private val painter =
-        RulerPainter(density, resources.displayMetrics.scaledDensity, settings.dialLength, settings.dialHeight)
+        RulerPainter(resources.displayMetrics, settings.dialLength, settings.dialHeight)
     private val pieces = MediaPiece.entries.associateWith { settings.piece(it) }
     private val logo = AppLogo(resources, backdrop.isDark)
 
