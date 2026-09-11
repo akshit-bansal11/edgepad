@@ -81,4 +81,11 @@ class PerimeterTest {
         assertEquals(4f, path.delta(path.length - 2f, 2f), 1e-3f)
         assertEquals(-4f, path.delta(2f, path.length - 2f), 1e-3f)
     }
+
+    @Test
+    fun aTinyPlaceholderDoesNotThrow() {
+        val tiny = Perimeter(1f, 1f, 1f)
+        assertEquals(1f, tiny.radius, 1e-3f)
+        tiny.point(0f, out)
+    }
 }

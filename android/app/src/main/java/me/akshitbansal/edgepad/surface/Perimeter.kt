@@ -21,7 +21,8 @@ class Perimeter(
     val height: Float,
     radius: Float,
 ) {
-    val radius = radius.coerceIn(MIN_RADIUS, minOf(width, height) / 2)
+    // Never an empty range: a 1 by 1 placeholder before layout must not throw.
+    val radius = radius.coerceIn(MIN_RADIUS, maxOf(MIN_RADIUS, minOf(width, height) / 2))
     private val top = width - 2 * this.radius
     private val side = height - 2 * this.radius
     private val arc = HALF_PI * this.radius
