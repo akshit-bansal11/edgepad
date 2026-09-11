@@ -618,7 +618,10 @@ class ControlSurface(
             }
 
             MotionEvent.ACTION_UP -> {
-                up(event)
+                // Lint's accessibility check wants the click reported here, in onTouchEvent itself.
+                val openSettings = settingsDown && settingsHit.contains(event.x, event.y)
+                if (up(event)) performClick()
+                if (openSettings) onOpenSettings()
             }
 
             MotionEvent.ACTION_CANCEL -> {
@@ -685,14 +688,12 @@ class ControlSurface(
         dials[activeDial].slide(moved / density, TrackpadRecognizer.SLOP_DP)
     }
 
-    private fun up(event: MotionEvent) {
+    /** Ends the touch. True when it was a click: the Settings link, or a tap on a dial. */
+    private fun up(event: MotionEvent): Boolean {
         when {
             settingsDown -> {
                 settingsDown = false
-                if (settingsHit.contains(event.x, event.y)) {
-                    performClick()
-                    onOpenSettings()
-                }
+                return settingsHit.contains(event.x, event.y)
             }
 
             mediaDown -> {
@@ -702,7 +703,7 @@ class ControlSurface(
             activeDial >= 0 -> {
                 val dial = dials[activeDial]
                 activeDial = -1
-                if (dial.up()) performClick()
+                return dial.up()
             }
 
             else -> {
@@ -710,6 +711,7 @@ class ControlSurface(
                 fingerDown = false
             }
         }
+        return false
     }
 
     private fun cancel(event: MotionEvent) {
