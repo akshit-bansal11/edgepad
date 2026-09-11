@@ -4,11 +4,18 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-09-12
+
+### Added
+- Every finger on the trackpad is drawn; one finger leaves a fading, tapering tail, and two fingers show the line between them and a ring on their span while pinching.
+
+### Fixed
+- Two-finger taps and other multi-finger gestures: a second finger landing moved the gesture's centroid and counted as a slide, so no multi-finger tap ever fired.
+
 ## [0.7.1] - 2026-09-12
 
 ### Added
 - A size slider on the Media layout page scales every media piece.
-- Every finger on the trackpad is drawn; one finger leaves a fading, tapering tail, and two fingers show the line between them and a ring on their span while pinching.
 - The now-playing box fits its title, centred on its position, and cuts long titles with an ellipsis before reaching the corner dials.
 
 ### Changed
@@ -21,7 +28,6 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 - The laptop's name and round trip no longer sit on the surface; Settings shows them.
 
 ### Fixed
-- Two-finger taps and other multi-finger gestures: a second finger landing moved the gesture's centroid and counted as a slide, so no multi-finger tap ever fired.
 - Logos with transparent gradient stops (Netflix) did not render; logos are drawn to bitmaps.
 - The Forget button lost its side padding to its border.
 

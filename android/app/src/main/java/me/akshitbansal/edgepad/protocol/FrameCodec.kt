@@ -29,6 +29,7 @@ object FrameCodec {
     private const val PONG = 0x31
     private const val STATE = 0x40
     private const val TEXT = 0x41
+    private const val KEY = 0x22
 
     /** Payload length for a type byte, [LENGTH_PREFIXED] for TEXT, or -1 when the type is unknown. */
     fun payloadLength(type: Int): Int =
@@ -36,7 +37,7 @@ object FrameCodec {
             HELLO -> 5
             HELLO_ACK, RUN_ACTION -> 1
             BUTTON, ZOOM, SET_VALUE -> 2
-            STATE -> 3
+            STATE, KEY -> 3
             MOVE, SCROLL -> 4
             PING, PONG -> 8
             TEXT -> LENGTH_PREFIXED
@@ -112,6 +113,10 @@ object FrameCodec {
                     .u8(bytes.size)
                     .put(bytes)
             }
+
+            is Frame.Key -> {
+                b.type(KEY).u16(frame.code).u8(if (frame.down) 1 else 0)
+            }
         }
         return b.position() - offset
     }
@@ -142,6 +147,7 @@ object FrameCodec {
             PING -> Frame.Ping(b.long)
             PONG -> Frame.Pong(b.long)
             STATE -> Frame.StateReport(b.u8(), b.u8(), b.u8())
+            KEY -> Frame.Key(b.u16(), flag(b.u8()))
             else -> throw StreamCorruptedException("Unknown frame type 0x%02x".format(type))
         }
     }
@@ -190,5 +196,12 @@ object FrameCodec {
         return putShort(value.toShort())
     }
 
+    private fun ByteBuffer.u16(value: Int): ByteBuffer {
+        require(value in 0..0xFFFF) { "u16 out of range: $value" }
+        return putShort(value.toShort())
+    }
+
     private fun ByteBuffer.u8(): Int = get().toInt() and 0xFF
+
+    private fun ByteBuffer.u16(): Int = short.toInt() and 0xFFFF
 }

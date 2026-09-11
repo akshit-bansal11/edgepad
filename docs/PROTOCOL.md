@@ -22,6 +22,7 @@ The transport is an RFCOMM byte stream. A frame is one type byte followed by a p
 | `0x31` | PONG | t i64 | laptop to phone | the same value echoed, for the round-trip readout |
 | `0x40` | STATE | control u8, value u8, flags u8 | laptop to phone | a control's current value; flags bit 0 is muted for audio controls and playing for media position |
 | `0x41` | TEXT | kind u8, length u8, UTF-8 bytes | both ways | up to 255 bytes, never split inside a character |
+| `0x22` | KEY | code u16, down u8 | phone to laptop | press or release one key, by Windows virtual-key code |
 
 TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter.
 

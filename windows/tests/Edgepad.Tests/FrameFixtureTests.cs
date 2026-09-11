@@ -76,6 +76,7 @@ public sealed class FrameFixtureTests
             "PONG" => new Pong(Field(1)),
             "STATE" => new StateReport((byte)Field(1), (byte)Field(2), (byte)Field(3)),
             "TEXT" => new Text((byte)Field(1), fields.Length > 2 ? fields[2] : ""),
+            "KEY" => new Key((ushort)Field(1), Field(2) == 1),
             _ => throw new InvalidDataException($"Unknown fixture frame {fields[0]}"),
         };
 

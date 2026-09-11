@@ -25,6 +25,10 @@ internal static partial class NativeMethods
     [LibraryImport("user32.dll", SetLastError = true)]
     public static partial uint SendInput(uint inputCount, [In] NativeInput[] inputs, int size);
 
+    /// <summary>MAPVK_VK_TO_VSC: the hardware scan code a virtual-key produces, so apps reading scan codes see one too.</summary>
+    [LibraryImport("user32.dll")]
+    public static partial uint MapVirtualKeyW(uint code, uint mapType);
+
     /// <summary>Win+L cannot be injected — Windows ignores it from SendInput — so locking has its own call.</summary>
     [LibraryImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]

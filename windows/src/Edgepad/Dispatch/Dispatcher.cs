@@ -34,6 +34,7 @@ internal sealed class Dispatcher(
             RunAction a => Run(a.Id),
             SetValue v when v.Value <= MaxPercent => Set(v.Control, v.Value),
             Text t when t.Kind == (byte)TextKind.Type => Do(() => input.Type(t.Value)),
+            Key k => Do(() => input.Key(k.Code, k.Down)),
             _ => false,
         };
 

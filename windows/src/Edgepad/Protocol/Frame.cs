@@ -27,3 +27,6 @@ internal sealed record StateReport(byte Control, byte Value, byte Flags) : Frame
 
 /// <summary>Text, of a <see cref="TextKind"/>: what is playing, the app, the timeline, or characters to type. At most 255 UTF-8 bytes.</summary>
 internal sealed record Text(byte Kind, string Value) : Frame;
+
+/// <summary>One keyboard key, by Windows virtual-key code (e.g. 0x41 = A, 0x10 = SHIFT).</summary>
+internal sealed record Key(ushort Code, bool Down) : Frame;

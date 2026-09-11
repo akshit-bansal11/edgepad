@@ -27,6 +27,24 @@ internal static class InputBuilder
         },
     };
 
+    /// <summary>
+    /// A key by raw Windows virtual-key code (the phone sends KEY frames this way, not through <see cref="Keys"/>).
+    /// Scan code always comes from <see cref="MapVirtualKeyW"/> so games and apps that read scan codes work.
+    /// </summary>
+    public static NativeInput VirtualKey(ushort code, bool up) => new()
+    {
+        Type = InputKeyboard,
+        Data = new NativeInputData
+        {
+            Keyboard = new KeyboardInput
+            {
+                VirtualKey = code,
+                ScanCode = (ushort)MapVirtualKeyW(code, 0),
+                Flags = (up ? KeyUp : 0) | (IsExtendedCode(code) ? KeyExtended : 0),
+            },
+        },
+    };
+
     /// <summary>One character as Windows' Unicode key event, down then up, whatever the keyboard layout.</summary>
     public static NativeInput[] Unicode(char c) => [UnicodeKey(c, up: false), UnicodeKey(c, up: true)];
 
@@ -77,4 +95,13 @@ internal static class InputBuilder
     // Arrow keys and the Windows key sit in the extended key block; without the flag some apps read
     // an injected arrow as a numpad key.
     private static bool IsExtended(Keys key) => key is Keys.Left or Keys.Right or Keys.LWin;
+
+    // Same block, by raw virtual-key code: arrows, Home/End/PageUp/PageDown, Insert/Delete, both Win keys,
+    // right Ctrl/Alt, numpad divide, NumLock and PrintScreen.
+    private static readonly HashSet<ushort> ExtendedCodes =
+    [
+        0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x2C, 0x2D, 0x2E, 0x5B, 0x5C, 0x6F, 0x90, 0xA3, 0xA5,
+    ];
+
+    private static bool IsExtendedCode(ushort code) => ExtendedCodes.Contains(code);
 }

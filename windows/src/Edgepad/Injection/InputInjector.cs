@@ -63,6 +63,9 @@ internal sealed class InputInjector : IDisposable
         }
     }
 
+    /// <summary>Presses or releases one key by raw Windows virtual-key code, as the phone named it.</summary>
+    public void Key(ushort code, bool down) => Send([InputBuilder.VirtualKey(code, up: !down)]);
+
     public bool IsHeld(Keys key) => heldKeys.Contains(key);
 
     public void Hold(Keys key)

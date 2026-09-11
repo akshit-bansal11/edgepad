@@ -57,4 +57,10 @@ sealed interface Frame {
         val kind: Int,
         val text: String,
     ) : Frame
+
+    /** One keyboard key, by Windows virtual-key code (e.g. 0x41 = A, 0x10 = SHIFT). */
+    data class Key(
+        val code: Int,
+        val down: Boolean,
+    ) : Frame
 }

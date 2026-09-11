@@ -99,6 +99,7 @@ class FrameFixtureTest {
                 "PONG" -> Frame.Pong(field(1))
                 "STATE" -> Frame.StateReport(int(1), int(2), int(3))
                 "TEXT" -> Frame.Text(int(1), fields.getOrNull(2) ?: "")
+                "KEY" -> Frame.Key(int(1), int(2) == 1)
                 else -> error("Unknown fixture frame ${fields[0]}")
             }
         return frame to bytes

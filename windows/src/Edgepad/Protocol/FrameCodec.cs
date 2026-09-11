@@ -29,6 +29,7 @@ internal static class FrameCodec
     private const byte PongType = 0x31;
     private const byte StateType = 0x40;
     private const byte TextType = 0x41;
+    private const byte KeyType = 0x22;
 
     /// <summary>Payload length for a type byte, or -1 when the type is unknown.</summary>
     public static int PayloadLength(byte type) => type switch
@@ -36,7 +37,7 @@ internal static class FrameCodec
         HelloType => 5,
         HelloAckType or RunActionType => 1,
         PointerButtonType or ZoomType or SetValueType => 2,
-        StateType => 3,
+        StateType or KeyType => 3,
         MoveType or ScrollType => 4,
         PingType or PongType => 8,
         TextType => LengthPrefixed,
@@ -97,6 +98,11 @@ internal static class FrameCodec
                 dest[1] = f.Kind;
                 dest[2] = (byte)written;
                 return 1 + TextHeaderLength + written;
+            case Key f:
+                dest[0] = KeyType;
+                BinaryPrimitives.WriteUInt16LittleEndian(dest[1..], f.Code);
+                dest[3] = f.Down ? (byte)1 : (byte)0;
+                return 4;
             default:
                 throw new ArgumentException($"No encoding for {frame.GetType().Name}", nameof(frame));
         }
@@ -134,6 +140,7 @@ internal static class FrameCodec
             PingType => new Ping(BinaryPrimitives.ReadInt64LittleEndian(payload)),
             PongType => new Pong(BinaryPrimitives.ReadInt64LittleEndian(payload)),
             StateType => new StateReport(payload[0], payload[1], payload[2]),
+            KeyType => new Key(BinaryPrimitives.ReadUInt16LittleEndian(payload), ReadFlag(payload[2])),
             _ => throw new InvalidDataException($"Unknown frame type 0x{type:x2}"),
         };
     }
