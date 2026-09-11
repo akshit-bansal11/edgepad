@@ -1,14 +1,21 @@
 using System.Buffers.Binary;
+using System.Text;
 
 namespace Edgepad.Protocol;
 
 /// <summary>
-/// Frame layout: one type byte, then a payload whose length is fixed by the type.
+/// Frame layout: one type byte, then a payload whose length is fixed by the type — except TEXT, whose
+/// two header bytes (kind, length) say how much UTF-8 follows.
 /// Little-endian. protocol/frames.txt holds the golden bytes both apps are tested against.
 /// </summary>
 internal static class FrameCodec
 {
-    public const int MaxFrameLength = 9;
+    public const int MaxTextBytes = 255;
+    public const int TextHeaderLength = 2;
+    public const int MaxFrameLength = 1 + TextHeaderLength + MaxTextBytes;
+
+    /// <summary>What <see cref="PayloadLength"/> returns for TEXT: read the header, then as many bytes as it says.</summary>
+    public const int LengthPrefixed = -2;
 
     private const byte HelloType = 0x01;
     private const byte HelloAckType = 0x02;
@@ -21,6 +28,7 @@ internal static class FrameCodec
     private const byte PingType = 0x30;
     private const byte PongType = 0x31;
     private const byte StateType = 0x40;
+    private const byte TextType = 0x41;
 
     /// <summary>Payload length for a type byte, or -1 when the type is unknown.</summary>
     public static int PayloadLength(byte type) => type switch
@@ -31,6 +39,7 @@ internal static class FrameCodec
         StateType => 3,
         MoveType or ScrollType => 4,
         PingType or PongType => 8,
+        TextType => LengthPrefixed,
         _ => -1,
     };
 
@@ -82,6 +91,12 @@ internal static class FrameCodec
                 dest[2] = f.Value;
                 dest[3] = f.Flags;
                 return 4;
+            case Text f:
+                var written = Encoding.UTF8.GetBytes(Truncate(f.Value), dest[(1 + TextHeaderLength)..]);
+                dest[0] = TextType;
+                dest[1] = f.Kind;
+                dest[2] = (byte)written;
+                return 1 + TextHeaderLength + written;
             default:
                 throw new ArgumentException($"No encoding for {frame.GetType().Name}", nameof(frame));
         }
@@ -91,6 +106,11 @@ internal static class FrameCodec
     public static Frame Decode(byte type, ReadOnlySpan<byte> payload)
     {
         var expected = PayloadLength(type);
+        if (expected == LengthPrefixed)
+        {
+            return DecodeText(payload);
+        }
+
         if (expected < 0)
         {
             throw new InvalidDataException($"Unknown frame type 0x{type:x2}");
@@ -116,6 +136,27 @@ internal static class FrameCodec
             StateType => new StateReport(payload[0], payload[1], payload[2]),
             _ => throw new InvalidDataException($"Unknown frame type 0x{type:x2}"),
         };
+    }
+
+    /// <summary>Cuts text to <see cref="MaxTextBytes"/> of UTF-8 without splitting a character.</summary>
+    public static string Truncate(string value)
+    {
+        while (Encoding.UTF8.GetByteCount(value) > MaxTextBytes)
+        {
+            value = value[..^1];
+        }
+
+        return value;
+    }
+
+    private static Text DecodeText(ReadOnlySpan<byte> payload)
+    {
+        if (payload.Length < TextHeaderLength || payload.Length != TextHeaderLength + payload[1])
+        {
+            throw new InvalidDataException("TEXT length does not match its header");
+        }
+
+        return new Text(payload[0], Encoding.UTF8.GetString(payload[TextHeaderLength..]));
     }
 
     private static Hello DecodeHello(ReadOnlySpan<byte> payload)

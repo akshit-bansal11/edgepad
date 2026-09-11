@@ -19,6 +19,7 @@ internal enum ActionId : byte
     AppSwitchNext = 27,
     AppSwitchPrevious = 28,
     AppSwitchEnd = 29,
+    ZoomReset = 30,
 }
 
 /// <summary>What a SET_VALUE frame may set and a STATE frame reports. Mirrors protocol/actions.txt.</summary>
@@ -27,4 +28,5 @@ internal enum ControlId : byte
     Volume = 0,
     Brightness = 1,
     MicLevel = 2,
+    MediaPosition = 3,
 }

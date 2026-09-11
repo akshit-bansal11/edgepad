@@ -5,11 +5,17 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * Frame layout: one type byte, then a payload whose length is fixed by the type. Little-endian.
- * protocol/frames.txt holds the golden bytes both apps are tested against.
+ * Frame layout: one type byte, then a payload whose length is fixed by the type, except TEXT, whose two
+ * header bytes (kind, length) say how much UTF-8 follows. Little-endian. protocol/frames.txt holds the
+ * golden bytes both apps are tested against.
  */
 object FrameCodec {
-    const val MAX_FRAME_LENGTH = 9
+    const val MAX_TEXT_BYTES = 255
+    const val TEXT_HEADER_LENGTH = 2
+    const val MAX_FRAME_LENGTH = 1 + TEXT_HEADER_LENGTH + MAX_TEXT_BYTES
+
+    /** What [payloadLength] returns for TEXT: read the header, then as many bytes as it says. */
+    const val LENGTH_PREFIXED = -2
 
     private const val HELLO = 0x01
     private const val HELLO_ACK = 0x02
@@ -22,8 +28,9 @@ object FrameCodec {
     private const val PING = 0x30
     private const val PONG = 0x31
     private const val STATE = 0x40
+    private const val TEXT = 0x41
 
-    /** Payload length for a type byte, or -1 when the type is unknown. */
+    /** Payload length for a type byte, [LENGTH_PREFIXED] for TEXT, or -1 when the type is unknown. */
     fun payloadLength(type: Int): Int =
         when (type) {
             HELLO -> 5
@@ -32,6 +39,7 @@ object FrameCodec {
             STATE -> 3
             MOVE, SCROLL -> 4
             PING, PONG -> 8
+            TEXT -> LENGTH_PREFIXED
             else -> -1
         }
 
@@ -46,7 +54,7 @@ object FrameCodec {
         out: ByteArray,
         offset: Int,
     ): Int {
-        val b = ByteBuffer.wrap(out, offset, MAX_FRAME_LENGTH).order(ByteOrder.LITTLE_ENDIAN)
+        val b = ByteBuffer.wrap(out, offset, minOf(MAX_FRAME_LENGTH, out.size - offset)).order(ByteOrder.LITTLE_ENDIAN)
         when (frame) {
             is Frame.Hello -> {
                 b.type(HELLO).put(magicBytes).u8(frame.version)
@@ -95,6 +103,15 @@ object FrameCodec {
                     .u8(frame.value)
                     .u8(frame.flags)
             }
+
+            is Frame.Text -> {
+                val bytes = truncate(frame.text).toByteArray(Charsets.UTF_8)
+                b
+                    .type(TEXT)
+                    .u8(frame.kind)
+                    .u8(bytes.size)
+                    .put(bytes)
+            }
         }
         return b.position() - offset
     }
@@ -105,6 +122,7 @@ object FrameCodec {
         payload: ByteArray,
     ): Frame {
         val expected = payloadLength(type)
+        if (expected == LENGTH_PREFIXED) return decodeText(payload)
         if (expected < 0) throw StreamCorruptedException("Unknown frame type 0x%02x".format(type))
         if (payload.size != expected) {
             throw StreamCorruptedException(
@@ -127,7 +145,22 @@ object FrameCodec {
         }
     }
 
+    /** Cuts text to [MAX_TEXT_BYTES] of UTF-8 without splitting a character. */
+    fun truncate(text: String): String {
+        var t = text
+        while (t.toByteArray(Charsets.UTF_8).size > MAX_TEXT_BYTES) t = t.dropLast(1)
+        return t
+    }
+
     private val magicBytes = ProtocolConstants.MAGIC.toByteArray(Charsets.US_ASCII)
+
+    private fun decodeText(payload: ByteArray): Frame.Text {
+        if (payload.size < TEXT_HEADER_LENGTH || payload.size != TEXT_HEADER_LENGTH + (payload[1].toInt() and 0xFF)) {
+            throw StreamCorruptedException("TEXT length does not match its header")
+        }
+        val text = String(payload, TEXT_HEADER_LENGTH, payload.size - TEXT_HEADER_LENGTH, Charsets.UTF_8)
+        return Frame.Text(payload[0].toInt() and 0xFF, text)
+    }
 
     private fun decodeHello(b: ByteBuffer): Frame.Hello {
         val magic = ByteArray(magicBytes.size).also { b.get(it) }

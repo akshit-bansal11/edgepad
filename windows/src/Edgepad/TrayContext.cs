@@ -23,6 +23,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly AudioEndpoint speakers = new(DataFlow.Render);
     private readonly AudioEndpoint microphone = new(DataFlow.Capture);
     private readonly BrightnessControl brightness = new();
+    private readonly MediaSessions media = new();
     private readonly RfcommServer server;
 
     public TrayContext()
@@ -49,8 +50,22 @@ internal sealed class TrayContext : ApplicationContext
         // Creating the menu installed the WinForms context on this thread; status updates arrive from
         // Bluetooth threads and are marshalled back here.
         ui = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
-        server = new RfcommServer(SetStatus, trust, speakers, microphone, brightness);
+        server = new RfcommServer(SetStatus, trust, speakers, microphone, brightness, media);
         _ = StartServerAsync();
+        _ = StartMediaAsync();
+    }
+
+    private async Task StartMediaAsync()
+    {
+        try
+        {
+            await media.StartAsync();
+        }
+        catch (Exception e)
+        {
+            // Without it the media corner shows nothing; every other control still works.
+            Log.Write($"Media sessions unavailable: {e}");
+        }
     }
 
     private async Task StartServerAsync()
@@ -101,6 +116,7 @@ internal sealed class TrayContext : ApplicationContext
             startWithWindows.Dispose();
             forget.Dispose();
             server.Dispose();
+            media.Dispose();
             brightness.Dispose();
             speakers.Dispose();
             microphone.Dispose();

@@ -9,7 +9,12 @@ namespace Edgepad.Dispatch;
 /// checked against the protocol's own enums: an id this laptop does not know is dropped and counted,
 /// never guessed at. The phone can name an action; only this table decides what it does.
 /// </summary>
-internal sealed class Dispatcher(InputInjector input, AudioEndpoint speakers, AudioEndpoint microphone, BrightnessControl brightness)
+internal sealed class Dispatcher(
+    InputInjector input,
+    AudioEndpoint speakers,
+    AudioEndpoint microphone,
+    BrightnessControl brightness,
+    MediaSessions media)
 {
     private const byte MaxButton = 2;
     private const byte MaxPercent = 100;
@@ -92,6 +97,9 @@ internal sealed class Dispatcher(InputInjector input, AudioEndpoint speakers, Au
             case ActionId.AppSwitchEnd:
                 input.Release(Keys.Menu);
                 return true;
+            case ActionId.ZoomReset:
+                input.Chord(Keys.ControlKey, Keys.D0);
+                return true;
             default:
                 return false;
         }
@@ -102,6 +110,7 @@ internal sealed class Dispatcher(InputInjector input, AudioEndpoint speakers, Au
         ControlId.Volume => speakers.SetLevel(percent),
         ControlId.MicLevel => microphone.SetLevel(percent),
         ControlId.Brightness => Do(() => brightness.Set(percent)),
+        ControlId.MediaPosition => media.Seek(percent),
         _ => false,
     };
 

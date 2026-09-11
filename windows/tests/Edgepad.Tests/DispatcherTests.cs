@@ -17,9 +17,10 @@ public sealed class DispatcherTests : IDisposable
     private readonly AudioEndpoint speakers = new(DataFlow.Render);
     private readonly AudioEndpoint microphone = new(DataFlow.Capture);
     private readonly BrightnessControl brightness = new();
+    private readonly MediaSessions media = new();
     private readonly Dispatcher dispatcher;
 
-    public DispatcherTests() => dispatcher = new Dispatcher(input, speakers, microphone, brightness);
+    public DispatcherTests() => dispatcher = new Dispatcher(input, speakers, microphone, brightness, media);
 
     [Theory]
     [InlineData(0)]
@@ -69,8 +70,25 @@ public sealed class DispatcherTests : IDisposable
         dispatcher.Handle(new Pong(1));
         dispatcher.Handle(new StateReport(0, 0, 0));
         dispatcher.Handle(new HelloAck(1));
-        Assert.Equal(3, dispatcher.Dropped);
+        dispatcher.Handle(new Text(0, "x"));
+        Assert.Equal(4, dispatcher.Dropped);
     }
+
+    [Fact]
+    public void SeekingWithNoPlayerIsDropped()
+    {
+        dispatcher.Handle(new SetValue((byte)ControlId.MediaPosition, 50));
+        Assert.Equal(1, dispatcher.Dropped);
+    }
+
+    [Theory]
+    [InlineData("Spotify.exe", "Spotify")]
+    [InlineData("chrome.exe", "Chrome")]
+    [InlineData("Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic", "Media Player")]
+    [InlineData("SomePlayer", "SomePlayer")]
+    [InlineData("", "")]
+    public void PlayerNamesReadLikeTheirTaskbarLabels(string appUserModelId, string expected) =>
+        Assert.Equal(expected, MediaSessions.AppName(appUserModelId));
 
     public void Dispose()
     {
@@ -78,5 +96,6 @@ public sealed class DispatcherTests : IDisposable
         speakers.Dispose();
         microphone.Dispose();
         brightness.Dispose();
+        media.Dispose();
     }
 }

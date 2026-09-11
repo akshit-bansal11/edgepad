@@ -24,3 +24,6 @@ internal sealed record Ping(long Time) : Frame;
 internal sealed record Pong(long Time) : Frame;
 
 internal sealed record StateReport(byte Control, byte Value, byte Flags) : Frame;
+
+/// <summary>Laptop to phone. Kind 0 is what is playing, kind 1 the app playing it. At most 255 UTF-8 bytes.</summary>
+internal sealed record Text(byte Kind, string Value) : Frame;

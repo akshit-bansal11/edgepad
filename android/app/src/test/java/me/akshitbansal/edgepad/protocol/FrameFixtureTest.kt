@@ -56,9 +56,24 @@ class FrameFixtureTest {
         FrameCodec.decode(0x10, byteArrayOf(1, 2))
     }
 
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsTextWhoseLengthDoesNotMatchItsHeader() {
+        FrameCodec.decode(0x41, byteArrayOf(0, 3, 0x41))
+    }
+
+    @Test
+    fun longTextIsCutToTheLimitWithoutSplittingACharacter() {
+        val bytes = FrameCodec.encode(Frame.Text(0, "a".repeat(254) + "\u00e9"))
+        assertEquals(1 + FrameCodec.TEXT_HEADER_LENGTH + 254, bytes.size)
+        assertEquals(
+            Frame.Text(0, "a".repeat(254)),
+            FrameCodec.decode(bytes[0].toInt(), bytes.copyOfRange(1, bytes.size)),
+        )
+    }
+
     private fun parse(line: String): Pair<Frame, ByteArray> {
         val (left, right) = line.split("=")
-        val fields = left.trim().split(" ")
+        val fields = left.trim().split(" ").filter { it.isNotEmpty() }
         val bytes =
             right
                 .trim()
@@ -83,6 +98,7 @@ class FrameFixtureTest {
                 "PING" -> Frame.Ping(field(1))
                 "PONG" -> Frame.Pong(field(1))
                 "STATE" -> Frame.StateReport(int(1), int(2), int(3))
+                "TEXT" -> Frame.Text(int(1), fields.getOrNull(2) ?: "")
                 else -> error("Unknown fixture frame ${fields[0]}")
             }
         return frame to bytes

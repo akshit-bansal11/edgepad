@@ -18,11 +18,12 @@ import kotlin.concurrent.thread
  *
  * [open] blocks for the life of the connection, so callers run it on their own thread; it reads on that
  * thread. Frames go out through one writer thread, so a slow link can only ever block that thread —
- * never the UI and never touch handling. [send] never blocks.
+ * never the UI and never touch handling. [send] never blocks. The [listener] can be swapped, so the link
+ * survives the activity being rebuilt for a rotation or a theme change.
  */
 class LaptopLink(
     private val device: BluetoothDevice,
-    private val listener: Listener,
+    @Volatile var listener: Listener,
 ) {
     interface Listener {
         fun onConnected(link: LaptopLink)
@@ -44,6 +45,14 @@ class LaptopLink(
 
     @Volatile private var closed = false
 
+    @Volatile private var handshakeDone = false
+
+    /** True while the laptop has accepted this phone and the link is open. */
+    val connected: Boolean get() = handshakeDone && !closed
+
+    /** True once the laptop accepted this phone, even after the link closed; false means refused or unreachable. */
+    val wasConnected: Boolean get() = handshakeDone
+
     fun send(frame: Frame) {
         if (!closed) outbox.put(frame)
     }
@@ -59,9 +68,13 @@ class LaptopLink(
             output.flush()
             val ack = readFrame(input)
             if (ack != Frame.HelloAck(ProtocolConstants.VERSION)) throw IOException("The laptop answered with $ack")
+            handshakeDone = true
             listener.onConnected(this)
             writer = thread(name = "edgepad-writer", priority = Thread.MAX_PRIORITY) { writeLoop(output) }
             while (!closed) listener.onFrame(readFrame(input))
+        } catch (e: EOFException) {
+            // The laptop hangs up before HELLO_ACK when it trusts a different phone.
+            close(if (handshakeDone) e.message ?: "Connection lost" else REFUSED)
         } catch (e: IOException) {
             close(e.message ?: "Connection lost")
         } catch (e: SecurityException) {
@@ -85,13 +98,19 @@ class LaptopLink(
 
     private fun writeLoop(output: OutputStream) {
         val buffer = ByteArray(FrameCodec.MAX_FRAME_LENGTH * BATCH_FRAMES)
+        val pending = ArrayList<Frame>(BATCH_FRAMES)
         try {
             while (!closed) {
-                var length = FrameCodec.encode(outbox.take(), buffer, 0)
-                // Whatever queued up behind the first frame goes out in the same write: one packet, not many.
-                while (length + FrameCodec.MAX_FRAME_LENGTH <= buffer.size) {
-                    val next = outbox.poll() ?: break
-                    length += FrameCodec.encode(next, buffer, length)
+                pending.clear()
+                pending.add(outbox.take())
+                // Whatever queued up behind the first frame goes out in the same write: one packet, not many,
+                // and a backlog of moves collapses into one (see Coalesce) instead of replaying late.
+                while (pending.size < BATCH_FRAMES) {
+                    pending.add(outbox.poll() ?: break)
+                }
+                var length = 0
+                for (frame in Coalesce.merge(pending)) {
+                    length += FrameCodec.encode(frame, buffer, length)
                 }
                 output.write(buffer, 0, length)
                 output.flush()
@@ -107,13 +126,22 @@ class LaptopLink(
         val type = input.read()
         if (type < 0) throw EOFException("The laptop closed the connection")
         val length = FrameCodec.payloadLength(type)
+        if (length == FrameCodec.LENGTH_PREFIXED) {
+            val header = ByteArray(FrameCodec.TEXT_HEADER_LENGTH)
+            input.readFully(header)
+            val body = ByteArray(header[1].toInt() and 0xFF)
+            input.readFully(body)
+            return FrameCodec.decode(type, header + body)
+        }
         if (length < 0) throw StreamCorruptedException("Unknown frame type 0x%02x".format(type))
         val payload = ByteArray(length)
         input.readFully(payload)
         return FrameCodec.decode(type, payload)
     }
 
-    private companion object {
-        const val BATCH_FRAMES = 32
+    companion object {
+        const val REFUSED =
+            "The laptop hung up before the handshake. If it trusts another phone, use Forget in its tray menu."
+        private const val BATCH_FRAMES = 32
     }
 }

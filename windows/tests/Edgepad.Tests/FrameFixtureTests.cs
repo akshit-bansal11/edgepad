@@ -41,6 +41,19 @@ public sealed class FrameFixtureTests
     public void RejectsAShortPayload() =>
         Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x10, [1, 2]));
 
+    [Fact]
+    public void RejectsTextWhoseLengthDoesNotMatchItsHeader() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x41, [0, 3, 0x41]));
+
+    [Fact]
+    public void LongTextIsCutToTheLimitWithoutSplittingACharacter()
+    {
+        var text = new Text(0, new string('a', 254) + "é");
+        var bytes = FrameCodec.Encode(text);
+        Assert.Equal(1 + FrameCodec.TextHeaderLength + 254, bytes.Length);
+        Assert.Equal(new Text(0, new string('a', 254)), FrameCodec.Decode(bytes[0], bytes.AsSpan(1)));
+    }
+
     private static (Frame Frame, byte[] Bytes) Parse(string line)
     {
         var halves = line.Split('=');
@@ -62,6 +75,7 @@ public sealed class FrameFixtureTests
             "PING" => new Ping(Field(1)),
             "PONG" => new Pong(Field(1)),
             "STATE" => new StateReport((byte)Field(1), (byte)Field(2), (byte)Field(3)),
+            "TEXT" => new Text((byte)Field(1), fields.Length > 2 ? fields[2] : ""),
             _ => throw new InvalidDataException($"Unknown fixture frame {fields[0]}"),
         };
 

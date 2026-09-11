@@ -7,7 +7,8 @@
 #
 # Format:  NAME field field ... = hex bytes
 # All multi-byte integers are little-endian. The first byte is the frame type;
-# the payload length is fixed per type.
+# the payload length is fixed per type, except TEXT, whose second header byte is
+# the length of the UTF-8 text that follows (at most 255 bytes).
 
 HELLO 1 = 01 45 44 47 50 01
 HELLO_ACK 1 = 02 01
@@ -20,6 +21,10 @@ ZOOM 240 = 13 f0 00
 ACTION 3 = 20 03
 SET 0 55 = 21 00 37
 SET 1 100 = 21 01 64
+SET 3 50 = 21 03 32
 PING 1234567890123 = 30 cb 04 fb 71 1f 01 00 00
 PONG -1 = 31 ff ff ff ff ff ff ff ff
 STATE 0 42 1 = 40 00 2a 01
+STATE 3 42 1 = 40 03 2a 01
+TEXT 1 Song = 41 01 04 53 6f 6e 67
+TEXT 0 = 41 00 00

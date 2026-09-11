@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Management;
+using System.Runtime.InteropServices;
 
 namespace Edgepad.Controls;
 
@@ -27,6 +29,29 @@ internal sealed class BrightnessControl : IDisposable
     {
         Interlocked.Exchange(ref pending, percent);
         wake.Set();
+    }
+
+    /// <summary>The panel's current brightness, or null when nothing here has WMI brightness (external monitors).</summary>
+    public static int? Read()
+    {
+        try
+        {
+            using var searcher = new ManagementObjectSearcher(@"root\WMI", "SELECT CurrentBrightness FROM WmiMonitorBrightness");
+            using var monitors = searcher.Get();
+            foreach (var monitor in monitors.OfType<ManagementObject>())
+            {
+                using (monitor)
+                {
+                    return Convert.ToInt32(monitor["CurrentBrightness"], CultureInfo.InvariantCulture);
+                }
+            }
+
+            return null;
+        }
+        catch (Exception e) when (e is ManagementException or COMException)
+        {
+            return null;
+        }
     }
 
     private void Run()

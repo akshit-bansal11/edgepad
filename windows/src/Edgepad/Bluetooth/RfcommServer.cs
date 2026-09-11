@@ -18,7 +18,8 @@ internal sealed class RfcommServer(
     TrustStore trust,
     AudioEndpoint speakers,
     AudioEndpoint microphone,
-    BrightnessControl brightness) : IDisposable
+    BrightnessControl brightness,
+    MediaSessions media) : IDisposable
 {
     private readonly Lock gate = new();
     private RfcommServiceProvider? provider;
@@ -45,8 +46,8 @@ internal sealed class RfcommServer(
     {
         // Input state (what is held down) belongs to one connection; the devices are shared.
         var injector = new InputInjector();
-        var dispatcher = new Dispatcher(injector, speakers, microphone, brightness);
-        var session = new Session(args.Socket, trust, injector, dispatcher, onStatus, OnSessionEnded);
+        var dispatcher = new Dispatcher(injector, speakers, microphone, brightness, media);
+        var session = new Session(args.Socket, trust, injector, dispatcher, speakers, microphone, media, onStatus, OnSessionEnded);
         Session? previous;
         lock (gate)
         {
