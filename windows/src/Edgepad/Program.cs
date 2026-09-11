@@ -36,8 +36,23 @@ internal static class Program
         {
             using var quit = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, QuitEventName);
             Log.Write($"Edgepad {Version} starting");
-            using var tray = new TrayContext(quit);
-            Application.Run(tray);
+            var tray = new TrayContext(quit);
+            try
+            {
+                Application.Run(tray);
+            }
+            finally
+            {
+                // Shutting down must never stop this copy from letting go of the lock.
+                try
+                {
+                    tray.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Log.Write($"Shutdown: {e}");
+                }
+            }
         }
         finally
         {

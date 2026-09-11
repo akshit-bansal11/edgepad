@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
 using Edgepad.Injection;
@@ -80,7 +81,17 @@ internal sealed class RfcommServer(
 
     public void Dispose()
     {
-        provider?.StopAdvertising();
+        try
+        {
+            provider?.StopAdvertising();
+        }
+        catch (Exception e) when (e is InvalidOperationException or COMException)
+        {
+            // Already stopped, or the radio went away: nothing left to stop. Throwing here left a stuck
+            // process holding the single-instance lock, so no update could take over.
+            Log.Write($"StopAdvertising: {e.Message}");
+        }
+
         listener?.Dispose();
         lock (gate)
         {

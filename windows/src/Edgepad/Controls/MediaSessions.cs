@@ -138,6 +138,11 @@ internal sealed class MediaSessions : IDisposable
         var properties = await current.TryGetMediaPropertiesAsync();
         var playback = current.GetPlaybackInfo();
         var timeline = current.GetTimelineProperties();
+        if (properties is null || playback is null || timeline is null)
+        {
+            return Nothing;
+        }
+
         var playing = playback.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
 
         var position = timeline.Position;
@@ -149,11 +154,11 @@ internal sealed class MediaSessions : IDisposable
         var span = timeline.EndTime - timeline.StartTime;
         var percent = span > TimeSpan.Zero ? (int)Math.Clamp((position - timeline.StartTime) / span * 100, 0, 100) : 0;
 
-        var nowPlaying = string.IsNullOrWhiteSpace(properties.Artist)
-            ? properties.Title
-            : $"{properties.Title} · {properties.Artist}";
+        var title = properties.Title ?? "";
+        var artist = properties.Artist ?? "";
+        var nowPlaying = string.IsNullOrWhiteSpace(artist) ? title : title + " - " + artist;
         var seconds = span > TimeSpan.Zero ? (int)Math.Clamp((position - timeline.StartTime).TotalSeconds, 0, span.TotalSeconds) : 0;
-        return new MediaState(nowPlaying.Trim(), AppName(current.SourceAppUserModelId), playing, percent, seconds, (int)span.TotalSeconds);
+        return new MediaState(nowPlaying.Trim(), AppName(current.SourceAppUserModelId ?? ""), playing, percent, seconds, (int)span.TotalSeconds);
     }
 
     /// <summary>"Spotify.exe" or "Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic" to something a label can show.</summary>
