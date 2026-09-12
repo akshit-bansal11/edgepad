@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <color name="ic_launcher_background">#1F2A2E</color>
+  <color name="ic_launcher_background">#1A1A1A</color>
   <!-- The light set; values-night/colors.xml holds the dark one. The design's light grey (#79797F) is
        darkened to #6B6B71 here so small grey text keeps 4.5:1 against the panel. -->
   <color name="panel">#FBFBF8</color>

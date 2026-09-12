@@ -7,6 +7,12 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 ## [0.9.5] - 2026-09-12
 
 ### Fixed
+- The Windows exe and tray icon are the supplied `assets/edgepad-light.svg`, rendered from the file itself. 0.9.3 had redrawn the mark by hand: the arc came out the wrong radius, the mark sat off centre, and the tile was the wrong grey.
+- The Android launcher icon takes the brand's colours (#CDCDCD on #1A1A1A). Its drawing is unchanged: the launcher masks its outer edge, so the mark stays inside the safe zone rather than filling the tile as the app icon does.
+
+## [0.9.5] - 2026-09-12
+
+### Fixed
 - The Windows exe and tray icon are now rendered from `assets/edgepad-light.svg` exactly; 0.9.3 had drawn an older, smaller mark on a different tile colour.
 
 ## [0.9.4] - 2026-09-12
