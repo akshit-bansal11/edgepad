@@ -12,7 +12,7 @@ import me.akshitbansal.edgepad.R
 
 /**
  * The logo of the app playing, from the SVGs under res/raw, in their own colours. Logos that come in a
- * dark and a light version pick the one that reads on the current theme. An app with no logo gets a
+ * dark and a light version pick the one made for the current theme. An app with no logo gets a
  * music note (Lucide). Rendered once per app into a bitmap and kept: a recorded Picture drops gradient stops with
  * transparency (Netflix), a bitmap keeps everything the renderer can draw.
  */
@@ -161,11 +161,11 @@ class AppLogo(
         }
     }
 
-    /** The light logo on a dark theme, the dark one on a light theme. */
+    /** The files are named for the theme they are drawn on: the dark one on a dark theme, the light one on a light theme. */
     private fun pick(
         light: Int,
         dark: Int,
-    ): Int = if (this.dark) light else dark
+    ): Int = if (this.dark) dark else light
 
     private companion object {
         const val NOTE = 0.8f

@@ -4,6 +4,11 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-09-12
+
+### Fixed
+- Prime Video, Apple TV, Apple TV+ and Peacock showed their light logo on the dark theme and their dark logo on the light theme; the files are named for the theme they belong to, and are now picked that way.
+
 ## [0.9.1] - 2026-09-12
 
 ### Changed
