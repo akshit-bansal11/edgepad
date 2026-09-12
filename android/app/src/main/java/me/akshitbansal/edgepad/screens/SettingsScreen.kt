@@ -68,6 +68,7 @@ object SettingsScreen {
         onMediaLayout: () -> Unit,
         onGamepadLayout: () -> Unit,
         onPickImage: () -> Unit,
+        onLandscape: (Boolean) -> Unit,
         onBack: () -> Unit,
     ): View =
         ui.page {
@@ -167,6 +168,8 @@ object SettingsScreen {
             val themes = listOf(ui.string(R.string.theme_dark), ui.string(R.string.theme_light))
             val theme = ui.segmented(themes, if (ui.palette.dark) 0 else 1) { i -> setTheme(ui, dark = i == 0) }
             add(ui.row(ui.text(ui.string(R.string.theme), Type.BODY, ui.palette.ink, Type.plain), theme))
+            hairline()
+            add(ui.toggle(ui.string(R.string.landscape), settings.landscape, onLandscape))
             hairline()
             add(controlColor(ui, settings))
             hairline()

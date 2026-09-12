@@ -31,9 +31,11 @@ private const val TOGGLE_WIDTH_DP = 40f
 private const val TOGGLE_HEIGHT_DP = 23f
 private const val KNOB_DP = 15f
 private const val TRACK_DP = 2f
-private const val TICK_DP = 8f
+private const val TICK_DP = 2f
+private const val TICK_BELOW_DP = 12f
 private const val THUMB_DP = 16f
-private const val SEGMENT_INSET_DP = 3f
+private const val SEGMENT_INSET_DP = 2f
+private const val SEGMENT_HEIGHT_DP = 30f
 
 /**
  * The screens' shared look, after the owner's design: ink on a panel, hairline rows, square buttons,
@@ -213,14 +215,14 @@ class Ui(
             setOnCheckedChangeListener { _, on -> onChange(on) }
         }
 
-    /** Options side by side in one rounded strip; the selected one is a filled pill. */
+    /** Options side by side in one low rounded strip; the selected one is a filled pill. */
     fun segmented(
         options: List<CharSequence>,
         selected: Int,
         onSelect: (Int) -> Unit,
     ): LinearLayout =
         LinearLayout(context).apply {
-            val radius = dp(Space.TOUCH) / 2f
+            val radius = dp(SEGMENT_HEIGHT_DP) / 2f
             background =
                 GradientDrawable().apply {
                     setStroke(dp(Space.HAIR), palette.dim)
@@ -233,13 +235,13 @@ class Ui(
                 val option =
                     mono(label, Type.MICRO, if (on) palette.background else palette.dim).apply {
                         gravity = Gravity.CENTER
-                        minHeight = dp(Space.TOUCH) - 2 * inset
+                        minHeight = dp(SEGMENT_HEIGHT_DP) - 2 * inset
                         background =
                             GradientDrawable().apply {
                                 cornerRadius = radius
                                 setColor(if (on) palette.ink else 0)
                             }
-                        setPadding(dp(Space.L), 0, dp(Space.L), 0)
+                        setPadding(dp(Space.M), 0, dp(Space.M), 0)
                         isSelected = on
                         tappable(this) { onSelect(i) }
                     }
@@ -247,7 +249,7 @@ class Ui(
             }
         }
 
-    /** A plain slider: a hairline track, a small line at each step, and a round thumb. */
+    /** A plain slider: a hairline track, a small dot under each step, and a round thumb. */
     fun ruler(
         max: Int,
         progress: Int,
@@ -257,11 +259,19 @@ class Ui(
             this.max = max
             this.progress = progress
             progressDrawable = sliderTrack()
+            // The dot sits under the track: the inset above it shifts it down by half the inset.
             tickMark =
-                GradientDrawable().apply {
-                    setColor(palette.dim)
-                    setSize(dp(Space.HAIR), dp(TICK_DP))
-                }
+                InsetDrawable(
+                    GradientDrawable().apply {
+                        shape = GradientDrawable.OVAL
+                        setColor(palette.dim)
+                        setSize(dp(TICK_DP), dp(TICK_DP))
+                    },
+                    0,
+                    dp(TICK_BELOW_DP),
+                    0,
+                    0,
+                )
             thumb =
                 GradientDrawable().apply {
                     shape = GradientDrawable.OVAL

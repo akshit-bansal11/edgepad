@@ -121,6 +121,7 @@
   <string name="theme">Theme</string>
   <string name="theme_dark">DARK</string>
   <string name="theme_light">LIGHT</string>
+  <string name="landscape">Landscape</string>
   <string name="dial_preview_description">Preview of a corner dial at the chosen size</string>
   <string name="control_color">Control colour</string>
   <string name="control_color_auto">AUTO</string>
@@ -145,9 +146,6 @@
   <string name="pattern_color">Pattern colour</string>
   <string name="pattern_opacity">Pattern opacity</string>
   <string name="percent_value">%1$d%%</string>
-  <string name="color_hue">HUE</string>
-  <string name="color_saturation">SAT</string>
-  <string name="color_value">VAL</string>
 
 
   <!-- Dials -->

@@ -44,6 +44,9 @@ class Settings(
 
     var hints by flag("hints", false)
 
+    /** The surface, settings and finder are held sideways; the keyboard and gamepad always are. */
+    var landscape by flag("landscape", false)
+
     /** Half a corner ruler's length along the edge, in dp. */
     var dialLength by bounded(KEY_DIAL_LENGTH, DEFAULT_DIAL_LENGTH, MIN_DIAL_LENGTH, MAX_DIAL_LENGTH)
 

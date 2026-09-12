@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -221,6 +222,10 @@ class MainActivity :
                             goTo(Screen.GAMEPAD_LAYOUT)
                         },
                         onPickImage = ::pickImage,
+                        onLandscape = { on ->
+                            settings.landscape = on
+                            applyOrientation()
+                        },
                         onBack = { navigateBack() },
                     )
                 }
@@ -278,6 +283,7 @@ class MainActivity :
                 }
             }
         setContentView(view)
+        applyOrientation()
         window.insetsController?.let { bars ->
             val light =
                 WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
@@ -291,6 +297,19 @@ class MainActivity :
             }
         }
         updateBack()
+    }
+
+    /** Held one way: the keyboard and gamepad sideways, everything else as the setting says. A change rebuilds the activity; the link survives it. */
+    private fun applyOrientation() {
+        val sideways =
+            screen == Screen.KEYBOARD || screen == Screen.GAMEPAD || screen == Screen.GAMEPAD_LAYOUT ||
+                settings.landscape
+        requestedOrientation =
+            if (sideways) {
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            } else {
+                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            }
     }
 
     /** From Android 16 back arrives only through a callback; it is registered while there is a screen to go back from. */
