@@ -78,7 +78,7 @@ internal static partial class BrowserTitle
     }
 
     [UnmanagedCallersOnly]
-    private static int OnWindow(nint window, nint lParam)
+    private static unsafe int OnWindow(nint window, nint lParam)
     {
         if (processIds is not { } ids || found is not { } titles || !IsWindowVisible(window))
         {
@@ -94,9 +94,10 @@ internal static partial class BrowserTitle
         var length = GetWindowTextLengthW(window);
         if (length > 0)
         {
-            Span<char> text = stackalloc char[length + 1];
-            var copied = GetWindowTextW(window, text, text.Length);
-            titles.Add(new string(text[..copied]));
+            // A raw UTF-16 buffer: LibraryImport marshals a pointer with nothing to generate.
+            var text = stackalloc char[length + 1];
+            var copied = GetWindowTextW(window, text, length + 1);
+            titles.Add(new string(text, 0, copied));
         }
 
         return 1;
@@ -117,5 +118,5 @@ internal static partial class BrowserTitle
     private static partial int GetWindowTextLengthW(nint window);
 
     [LibraryImport("user32.dll")]
-    private static partial int GetWindowTextW(nint window, Span<char> text, int max);
+    private static unsafe partial int GetWindowTextW(nint window, char* text, int max);
 }

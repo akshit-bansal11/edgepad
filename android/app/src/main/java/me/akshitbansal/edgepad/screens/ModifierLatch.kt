@@ -37,7 +37,8 @@ class ModifierLatch(
 
     fun keyUp(code: Int) {
         send(code, false)
-        for (modifier in armed.reversed()) send(modifier, false)
+        // asReversed, not reversed: on Java 21 the latter resolves to the new SequencedSet member, absent on 17.
+        for (modifier in armed.toList().asReversed()) send(modifier, false)
         armed.clear()
     }
 
