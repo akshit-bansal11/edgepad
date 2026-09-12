@@ -16,6 +16,7 @@ object OnboardingScreen {
     private const val GLYPH_WIDTH_DP = 38f
     private const val GLYPH_HEIGHT_DP = 30f
     private const val TITLE_GAP_DP = 46f
+    private const val MARK_DP = 48f
     private const val LIST_GAP_DP = 40f
     private const val ITEM_TRACKING = 0.14f
     private const val ITEM_LEADING = 1.4f
@@ -25,7 +26,8 @@ object OnboardingScreen {
         onDone: () -> Unit,
     ): View =
         ui.page {
-            add(steps(ui))
+            add(MarkView(ui.context), width = ui.dp(MARK_DP), height = ui.dp(MARK_DP))
+            add(steps(ui), Space.L)
             headline(ui.string(R.string.onboarding_title), Type.DISPLAY, TITLE_GAP_DP)
             body(ui.string(R.string.onboarding_intro), Space.L)
             item(dots(ui, 1), R.string.gesture_one_title, R.string.gesture_one, LIST_GAP_DP)

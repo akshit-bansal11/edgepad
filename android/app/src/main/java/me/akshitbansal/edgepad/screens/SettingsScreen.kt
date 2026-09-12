@@ -23,6 +23,7 @@ object SettingsScreen {
     )
 
     private const val LENGTH_STEP = 10f
+    private const val MARK_DP = 40f
     private const val PREVIEW_DP = 220f
     private const val PERCENT = 100
     private const val ANGLE_STEP = 15f
@@ -363,7 +364,9 @@ object SettingsScreen {
                     Type.sans,
                     Type.TRACKING_TIGHT,
                 ),
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
             )
+            addView(MarkView(ui.context), LinearLayout.LayoutParams(ui.dp(MARK_DP), ui.dp(MARK_DP)))
         }
 
     /** A row that opens another screen. */

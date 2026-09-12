@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- The Edgepad mark: a corner dial, five ruler ticks and an arc round a pivot. Same drawing as the Android launcher icon. -->
+
+<svg
+   width="108"
+   height="108"
+   viewBox="0 0 108 108"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="edgepad.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:zoom="7.9549513"
+     inkscape:cx="36.015305"
+     inkscape:cy="57.511351"
+     inkscape:window-width="2560"
+     inkscape:window-height="1411"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <rect
+     width="108"
+     height="108"
+     rx="12.937707"
+     fill="#1f2a2e"
+     id="rect1"
+     x="0"
+     y="0"
+     style="fill:#1a1a1a;fill-opacity:1" />
+  <g
+     fill="none"
+     stroke="#ffffff"
+     stroke-width="3"
+     stroke-linecap="round"
+     id="g2"
+     transform="matrix(1.8702842,0,0,1.8702842,-40.961369,-39.955706)"
+     style="stroke:#cdcdcd;stroke-opacity:1">
+    <path
+       d="M 46,74 H 34 M 48.1,63.3 42.6,61 M 54.2,54.2 45.7,45.7 M 63.3,48.1 61,42.6 M 74,46 V 34"
+       id="path1"
+       style="stroke:#cdcdcd;stroke-opacity:1" />
+    <path
+       d="M 50,74 A 24,24 0 0 1 74,50"
+       id="path2"
+       style="stroke:#cdcdcd;stroke-opacity:1" />
+  </g>
+</svg>

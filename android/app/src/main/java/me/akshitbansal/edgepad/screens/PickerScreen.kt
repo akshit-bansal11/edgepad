@@ -57,7 +57,8 @@ class PickerScreen(
 
     val view: View =
         ui.page {
-            mono(ui.string(R.string.pairing_step))
+            add(MarkView(ui.context), width = ui.dp(MARK_DP), height = ui.dp(MARK_DP))
+            mono(ui.string(R.string.pairing_step), topDp = Space.L)
             add(header(), Space.M)
             hairline(Space.XXL)
             val frame =
@@ -224,6 +225,7 @@ class PickerScreen(
     }
 
     private companion object {
+        const val MARK_DP = 48f
         const val BAND_DP = 64f
         const val ROW_DP = 64f
         const val BAND_TRACKING = 0.12f

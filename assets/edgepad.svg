@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- The Edgepad mark: a corner dial, five ruler ticks and an arc round a pivot. Same drawing as the Android launcher icon. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="108" height="108" viewBox="0 0 108 108">
-  <rect width="108" height="108" rx="24" fill="#1F2A2E"/>
-  <g fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round">
-    <path d="M46,74 L34,74 M48.1,63.3 L42.6,61 M54.2,54.2 L45.7,45.7 M63.3,48.1 L61,42.6 M74,46 L74,34"/>
-    <path d="M50,74 A24,24 0 0,1 74,50"/>
-  </g>
-</svg>

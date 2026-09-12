@@ -4,6 +4,11 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [0.9.4] - 2026-09-12
+
+### Added
+- The Edgepad mark on the onboarding, finder and Settings screens, from the owner's two SVGs: a dark tile on the light theme, a light tile on the dark one. The README shows whichever matches the reader's theme.
+
 ## [0.9.3] - 2026-09-12
 
 ### Added
