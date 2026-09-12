@@ -6,6 +6,9 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [0.9.2] - 2026-09-12
 
+### Added
+- The Windows exe and its tray entry carry the Edgepad mark, the same corner dial as the Android launcher icon. The mark is in the repository as `assets/edgepad.svg`.
+
 ### Fixed
 - Prime Video, Apple TV, Apple TV+ and Peacock showed their light logo on the dark theme and their dark logo on the light theme; the files are named for the theme they belong to, and are now picked that way.
 

@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/edgepad.svg" width="96" alt="Edgepad"></p>
+
 # Edgepad
 
 Your phone as a control surface for your Windows laptop, over Bluetooth.

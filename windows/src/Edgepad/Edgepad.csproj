@@ -10,6 +10,8 @@
     <RootNamespace>Edgepad</RootNamespace>
     <AssemblyName>Edgepad</AssemblyName>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- The Edgepad mark, the same drawing as the Android launcher icon; the tray reads it back from the exe. -->
+    <ApplicationIcon>edgepad.ico</ApplicationIcon>
     <!-- LibraryImport generates unsafe marshalling code for the SendInput P/Invoke. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>

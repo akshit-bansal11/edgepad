@@ -46,7 +46,9 @@ internal sealed class TrayContext : ApplicationContext
             forget.Enabled = trust.Trusted is not null;
         };
 
-        icon = new NotifyIcon { Icon = SystemIcons.Application, Text = "Edgepad", ContextMenuStrip = menu, Visible = true };
+        // The exe's own icon (ApplicationIcon in the project), so the tray shows the Edgepad mark.
+        var mark = Environment.ProcessPath is { } exe ? Icon.ExtractAssociatedIcon(exe) : null;
+        icon = new NotifyIcon { Icon = mark ?? SystemIcons.Application, Text = "Edgepad", ContextMenuStrip = menu, Visible = true };
 
         // Creating the menu installed the WinForms context on this thread; status updates arrive from
         // Bluetooth threads and are marshalled back here.
