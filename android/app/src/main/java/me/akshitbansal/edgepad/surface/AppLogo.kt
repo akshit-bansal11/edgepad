@@ -1,38 +1,32 @@
 package me.akshitbansal.edgepad.surface
 
-import android.content.res.Resources
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.drawable.Drawable
 import com.caverock.androidsvg.SVG
 import com.caverock.androidsvg.SVGParseException
 import me.akshitbansal.edgepad.R
-import me.akshitbansal.edgepad.Type
 
 /**
  * The logo of the app playing, from the SVGs under res/raw, in their own colours. Logos that come in a
- * dark and a light version pick the one that reads on the current theme. An app with no logo gets its
- * initial. Rendered once per app into a bitmap and kept: a recorded Picture drops gradient stops with
+ * dark and a light version pick the one that reads on the current theme. An app with no logo gets a
+ * music note (Lucide). Rendered once per app into a bitmap and kept: a recorded Picture drops gradient stops with
  * transparency (Netflix), a bitmap keeps everything the renderer can draw.
  */
 class AppLogo(
-    private val resources: Resources,
+    context: Context,
     private val dark: Boolean,
 ) {
+    private val resources = context.resources
     private val bitmaps = HashMap<Int, Bitmap?>()
     private val box = RectF()
     private val smooth = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG)
-    private val text =
-        Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = Type.mono
-            textAlign = Paint.Align.CENTER
-        }
+    private val note: Drawable = checkNotNull(context.getDrawable(R.drawable.ic_music)).mutate()
 
-    /** True when [app] has a logo of its own. */
-    fun known(app: String): Boolean = resource(app) != null
-
-    /** Draws the logo for [app] to fit a [size] box centred on ([cx], [cy]); [color] is only for the initial. */
+    /** Draws the logo for [app] to fit a [size] box centred on ([cx], [cy]); [color] is only for the note. */
     fun draw(
         canvas: Canvas,
         app: String,
@@ -43,9 +37,10 @@ class AppLogo(
     ) {
         val bitmap = resource(app)?.let { id -> bitmaps.getOrPut(id) { render(id) } }
         if (bitmap == null) {
-            text.color = color
-            text.textSize = size * LETTER
-            canvas.drawText(app.take(1).uppercase(), cx, cy + text.textSize * Type.CAP_CENTRE, text)
+            note.setTint(color)
+            val half = (size * NOTE / 2).toInt()
+            note.setBounds(cx.toInt() - half, cy.toInt() - half, cx.toInt() + half, cy.toInt() + half)
+            note.draw(canvas)
             return
         }
         // Fit the logo's own proportions inside the box.
@@ -173,7 +168,7 @@ class AppLogo(
     ): Int = if (this.dark) light else dark
 
     private companion object {
-        const val LETTER = 0.5f
+        const val NOTE = 0.8f
 
         /** Logos are rendered at this width and scaled down; enough for any box the surface draws them in. */
         const val RENDER_PX = 256

@@ -4,6 +4,14 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-09-12
+
+### Changed
+- Every icon in the app is now a [Lucide](https://lucide.dev) icon (ISC): the refresh arrow and gear on the finder, chevrons, the gear, keyboard and gamepad buttons on the surface, skip, play and pause. A player without a logo of its own shows a music note instead of its initial. The player logos are unchanged.
+- The dial preview in Settings scales down when the ruler is longer than its box, so a length past 150 dp is seen growing instead of running off the edge.
+- Slider steps sit a little further below the track, and every slider has room under it.
+- The corner dials grab a shallower band of the trackpad at the bottom corners, and at every corner when the phone is sideways; upright, the top corners keep the deep band.
+
 ## [0.9.0] - 2026-09-12
 
 ### Added

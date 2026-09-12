@@ -14,8 +14,8 @@ import me.akshitbansal.edgepad.surface.RulerPainter
 
 /**
  * A live corner of the control surface, drawn with the same painter at the length and height the sliders
- * hold, so a slide shows its effect at once. Shown at true size: what fits in the box is what fits on the
- * surface.
+ * hold, so a slide shows its effect at once. At true size while it fits the box; a longer ruler is drawn
+ * scaled down, so the whole of it is always seen.
  */
 class DialPreview(
     context: Context,
@@ -31,6 +31,7 @@ class DialPreview(
         RulerPainter(resources.displayMetrics, settings.dialLength, settings.dialHeight)
     private val unitsPerDp = Dial.BASE_UNITS_PER_DP * settings.sensitivity
     private var perimeter = Perimeter(1f, 1f, 1f)
+    private var scale = 1f
     private val pt = FloatArray(4)
     private val border =
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -49,6 +50,7 @@ class DialPreview(
     ) {
         painter.halfLengthDp = lengthDp
         painter.height = height
+        fit()
         invalidate()
     }
 
@@ -59,8 +61,15 @@ class DialPreview(
         oldh: Int,
     ) {
         super.onSizeChanged(w, h, oldw, oldh)
-        // The box stands in for the phone's top-left corner, so the ruler wraps its own top-left bend.
-        perimeter = Perimeter(w.toFloat(), h.toFloat(), BEND_DP * density)
+        fit()
+    }
+
+    /** The box stands in for the phone's top-left corner; when the ruler and its label need more, the drawing shrinks to fit. */
+    private fun fit() {
+        if (width == 0 || height == 0) return
+        val need = (painter.halfLengthDp + FIT_PAD_DP) * density
+        scale = minOf(1f, minOf(width, height) / need)
+        perimeter = Perimeter(width / scale, height / scale, BEND_DP * density)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -73,6 +82,8 @@ class DialPreview(
             height - border.strokeWidth / 2,
             border,
         )
+        canvas.save()
+        canvas.scale(scale, scale)
         painter.draw(
             canvas,
             perimeter,
@@ -88,10 +99,12 @@ class DialPreview(
             LEVEL.toInt().toString(),
             pt,
         )
+        canvas.restore()
     }
 
     private companion object {
         const val BEND_DP = 24f
+        const val FIT_PAD_DP = 48f
         const val LEVEL = 50f
     }
 }

@@ -32,7 +32,7 @@ private const val TOGGLE_HEIGHT_DP = 23f
 private const val KNOB_DP = 15f
 private const val TRACK_DP = 2f
 private const val TICK_DP = 2f
-private const val TICK_BELOW_DP = 12f
+private const val TICK_BELOW_DP = 16f
 private const val THUMB_DP = 16f
 private const val SEGMENT_INSET_DP = 2f
 private const val SEGMENT_HEIGHT_DP = 30f
@@ -273,6 +273,7 @@ class Ui(
             tickMarkTintList = null
             splitTrack = false
             minimumHeight = dp(Space.TOUCH)
+            setPadding(paddingLeft, paddingTop, paddingRight, dp(Space.M))
             setOnSeekBarChangeListener(
                 object : SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(

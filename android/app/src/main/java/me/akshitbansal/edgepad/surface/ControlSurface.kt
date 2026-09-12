@@ -4,9 +4,9 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.TextPaint
 import android.text.TextUtils
@@ -25,7 +25,6 @@ import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
-import me.akshitbansal.edgepad.screens.Glyph
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.roundToInt
@@ -82,7 +81,16 @@ class ControlSurface(
         RulerPainter(resources.displayMetrics, settings.dialLength, settings.dialHeight)
     private val pieces = MediaPiece.entries.associateWith { settings.piece(it) }
     private val mediaScale = settings.mediaScale
-    private val logo = AppLogo(resources, backdrop.isDark)
+    private val logo = AppLogo(context, backdrop.isDark)
+
+    // Lucide icons, tinted once: the buttons in the dim ink, skips in ink, play and pause cut out of the disc.
+    private val gearIcon = icon(R.drawable.ic_settings, dim)
+    private val keyboardIcon = icon(R.drawable.ic_keyboard, dim)
+    private val gamepadIcon = icon(R.drawable.ic_gamepad_2, dim)
+    private val skipBackIcon = icon(R.drawable.ic_skip_back, ink)
+    private val skipForwardIcon = icon(R.drawable.ic_skip_forward, ink)
+    private val playIcon = icon(R.drawable.ic_play, if (backdrop.isDark) Color.BLACK else Color.WHITE)
+    private val pauseIcon = icon(R.drawable.ic_pause, if (backdrop.isDark) Color.BLACK else Color.WHITE)
 
     private val muteText = context.getString(R.string.surface_mute)
     private val unknownText = context.getString(R.string.surface_unknown)
@@ -101,6 +109,7 @@ class ControlSurface(
     // Geometry, all set in onSizeChanged so nothing is measured or allocated while drawing.
     private var perimeter = Perimeter(1f, 1f, 1f)
     private val centres = FloatArray(dials.size)
+    private val depths = FloatArray(dials.size)
     private val after = FloatArray(dials.size)
     private val before = FloatArray(dials.size)
     private val keepOut = FloatArray(2)
@@ -135,7 +144,6 @@ class ControlSurface(
     private var trailLength = 0
     private val hit = FloatArray(2)
     private val pt = FloatArray(4)
-    private val glyph = Path()
 
     private val stroke =
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -188,7 +196,13 @@ class ControlSurface(
             for (position in CORNER_POSITIONS) corner = maxOf(corner, insets.getRoundedCorner(position)?.radius ?: 0)
         }
         perimeter = Perimeter(w.toFloat(), h.toFloat(), maxOf(corner.toFloat(), dp(MIN_BEND_DP)))
-        dials.forEachIndexed { i, dial -> centres[i] = perimeter.lengthAt(dial.corner.toFloat()) }
+        dials.forEachIndexed { i, dial ->
+            centres[i] = perimeter.lengthAt(dial.corner.toFloat())
+            // Bottom corners sit near the media pieces, and sideways every corner is near the middle:
+            // those grab less of the trackpad. Upright, the top corners keep the deep zone.
+            val near = w > h || dial.corner >= FIRST_BOTTOM_CORNER
+            depths[i] = dp(if (near) CORNER_HIT_NEAR_DP else CORNER_HIT_DP)
+        }
         backdrop.resize(w, h)
         layoutPieces(w.toFloat(), h.toFloat())
         // No ruler runs under the buttons at the top, and neighbours stop short of each other.
@@ -233,7 +247,7 @@ class ControlSurface(
                 rect.union(pt[0].toInt(), pt[1].toInt())
                 s += step
             }
-            val depth = dp(CORNER_HIT_DP).toInt()
+            val depth = depths[i].toInt()
             rect.inset(-depth, -depth)
         }
         systemGestureExclusionRects = exclusions
@@ -313,9 +327,9 @@ class ControlSurface(
             drawNowPlaying(canvas)
             drawTransport(canvas)
         }
-        drawGear(canvas)
-        drawKeyboard(canvas)
-        drawGamepad(canvas)
+        drawIcon(canvas, gearIcon, gearHit.centerX(), gearHit.centerY(), dp(ICON_DP))
+        drawIcon(canvas, keyboardIcon, keyboardHit.centerX(), keyboardHit.centerY(), dp(ICON_DP))
+        drawIcon(canvas, gamepadIcon, gamepadHit.centerX(), gamepadHit.centerY(), dp(ICON_DP))
         if (showHints) drawHints(canvas)
         drawFingers(canvas)
         for (i in dials.indices) drawDial(canvas, i)
@@ -419,118 +433,33 @@ class ControlSurface(
     }
 
     private fun drawTransport(canvas: Canvas) {
-        fill.color = ink
-        drawSkip(canvas, prevHit.centerX(), prevHit.centerY(), forward = false)
-        drawSkip(canvas, nextHit.centerX(), nextHit.centerY(), forward = true)
+        drawIcon(canvas, skipBackIcon, prevHit.centerX(), prevHit.centerY(), media(SKIP_DP))
+        drawIcon(canvas, skipForwardIcon, nextHit.centerX(), nextHit.centerY(), media(SKIP_DP))
         val cx = playHit.centerX()
         val cy = playHit.centerY()
-        canvas.drawCircle(cx, cy, media(PLAY_DP) / 2, fill)
-        // The glyph is cut out of the disc in the background's colour: a pause while playing, else a play.
-        fill.color = if (backdrop.isDark) Color.BLACK else Color.WHITE
-        if (state.flag(ControlId.MEDIA_POSITION)) {
-            val bar = media(PAUSE_BAR_W_DP)
-            val tall = media(PAUSE_BAR_H_DP)
-            val gap = media(PAUSE_GAP_DP)
-            canvas.drawRect(cx - gap / 2 - bar, cy - tall / 2, cx - gap / 2, cy + tall / 2, fill)
-            canvas.drawRect(cx + gap / 2, cy - tall / 2, cx + gap / 2 + bar, cy + tall / 2, fill)
-        } else {
-            val size = media(PLAY_TRIANGLE_DP)
-            glyph.reset()
-            glyph.moveTo(cx - size * TRIANGLE_BACK, cy - size / 2)
-            glyph.lineTo(cx + size * TRIANGLE_FRONT, cy)
-            glyph.lineTo(cx - size * TRIANGLE_BACK, cy + size / 2)
-            glyph.close()
-            canvas.drawPath(glyph, fill)
-        }
         fill.color = ink
+        canvas.drawCircle(cx, cy, media(PLAY_DP) / 2, fill)
+        // Cut out of the disc in the background's colour: a pause while playing, else a play.
+        val glyph = if (state.flag(ControlId.MEDIA_POSITION)) pauseIcon else playIcon
+        drawIcon(canvas, glyph, cx, cy, media(PLAY_ICON_DP))
     }
 
-    /** A skip mark: a triangle pointing the way, with a bar at its far end. */
-    private fun drawSkip(
+    private fun drawIcon(
         canvas: Canvas,
+        icon: Drawable,
         cx: Float,
         cy: Float,
-        forward: Boolean,
+        size: Float,
     ) {
-        val w = media(SKIP_W_DP)
-        val h = media(SKIP_H_DP)
-        val bar = media(SKIP_BAR_DP)
-        val gap = media(SKIP_BAR_GAP_DP)
-        val dir = if (forward) 1f else -1f
-        val start = cx - dir * (w + gap + bar) / 2
-        glyph.reset()
-        glyph.moveTo(start, cy - h / 2)
-        glyph.lineTo(start + dir * w, cy)
-        glyph.lineTo(start, cy + h / 2)
-        glyph.close()
-        canvas.drawPath(glyph, fill)
-        val barStart = start + dir * (w + gap)
-        canvas.drawRect(
-            minOf(barStart, barStart + dir * bar),
-            cy - h / 2,
-            maxOf(barStart, barStart + dir * bar),
-            cy + h / 2,
-            fill,
-        )
+        val half = (size / 2).toInt()
+        icon.setBounds(cx.toInt() - half, cy.toInt() - half, cx.toInt() + half, cy.toInt() + half)
+        icon.draw(canvas)
     }
 
-    /** A gear: eight square teeth round a rim, with a hole in the middle. */
-    private fun drawGear(canvas: Canvas) {
-        val cx = gearHit.centerX()
-        val cy = gearHit.centerY()
-        val outer = dp(GEAR_DP) / 2
-        Glyph.gear(glyph, cx, cy, outer)
-        stroke.color = dim
-        stroke.strokeWidth = dp(BUTTON_STROKE_DP)
-        stroke.strokeJoin = Paint.Join.ROUND
-        canvas.drawPath(glyph, stroke)
-        canvas.drawCircle(cx, cy, outer * Glyph.GEAR_HOLE, stroke)
-        stroke.strokeWidth = dp(Space.HAIR)
-    }
-
-    /** A keyboard: a rounded outline with two rows of keys and a space bar. */
-    private fun drawKeyboard(canvas: Canvas) {
-        val cx = keyboardHit.centerX()
-        val cy = keyboardHit.centerY()
-        val w = dp(KEYBOARD_W_DP)
-        val h = dp(KEYBOARD_H_DP)
-        stroke.color = dim
-        stroke.strokeWidth = dp(BUTTON_STROKE_DP)
-        canvas.drawRoundRect(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, dp(Space.XS), dp(Space.XS), stroke)
-        val key = dp(KEY_DP)
-        for (row in 0 until 2) {
-            val y = cy - h / 2 + dp(KEY_INSET_DP) + row * key * 2
-            var x = cx - w / 2 + dp(KEY_INSET_DP) + row * key
-            while (x + key <= cx + w / 2 - dp(KEY_INSET_DP)) {
-                canvas.drawPoint(x + key / 2, y, stroke)
-                x += key * 2
-            }
-        }
-        val bar = cy + h / 2 - dp(KEY_INSET_DP)
-        canvas.drawLine(cx - w * SPACE_BAR, bar, cx + w * SPACE_BAR, bar, stroke)
-        stroke.strokeWidth = dp(Space.HAIR)
-    }
-
-    /** A gamepad: a wide rounded body with a small cross on the left and two dots on the right. */
-    private fun drawGamepad(canvas: Canvas) {
-        val cx = gamepadHit.centerX()
-        val cy = gamepadHit.centerY()
-        val w = dp(GAMEPAD_W_DP)
-        val h = dp(GAMEPAD_H_DP)
-        stroke.color = dim
-        stroke.strokeWidth = dp(BUTTON_STROKE_DP)
-        canvas.drawRoundRect(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, h / 2, h / 2, stroke)
-        val arm = dp(GAMEPAD_CROSS_DP)
-        val lx = cx - w * GAMEPAD_SIDE
-        canvas.drawLine(lx - arm, cy, lx + arm, cy, stroke)
-        canvas.drawLine(lx, cy - arm, lx, cy + arm, stroke)
-        val rx = cx + w * GAMEPAD_SIDE
-        val dot = dp(GAMEPAD_DOT_DP)
-        fill.color = dim
-        canvas.drawCircle(rx - dot, cy + dot, dot / 2, fill)
-        canvas.drawCircle(rx + dot, cy - dot, dot / 2, fill)
-        stroke.strokeWidth = dp(Space.HAIR)
-    }
+    private fun icon(
+        id: Int,
+        color: Int,
+    ): Drawable = checkNotNull(context.getDrawable(id)).mutate().apply { setTint(color) }
 
     private fun drawDial(
         canvas: Canvas,
@@ -847,10 +776,10 @@ class ControlSurface(
         y: Float,
     ): Int {
         perimeter.project(x, y, hit)
-        if (hit[1] > dp(CORNER_HIT_DP)) return -1
         var best = -1
         var bestGap = Float.MAX_VALUE
         for (i in dials.indices) {
+            if (hit[1] > depths[i]) continue
             val delta = perimeter.delta(centres[i], hit[0])
             val reach = if (delta >= 0) after[i] else before[i]
             val gap = abs(delta)
@@ -944,6 +873,11 @@ class ControlSurface(
         private const val FAINT_ALPHA = 0x40000000
         private const val MIN_BEND_DP = 24f
         private const val CORNER_HIT_DP = 96f
+        private const val CORNER_HIT_NEAR_DP = 56f
+        private const val FIRST_BOTTOM_CORNER = 2
+        private const val ICON_DP = 22f
+        private const val SKIP_DP = 22f
+        private const val PLAY_ICON_DP = 22f
         private const val HIT_SLACK_DP = 12f
         private const val JUMP_DP = 64f
         private const val SAMPLE_DP = 8f
@@ -966,27 +900,5 @@ class ControlSurface(
         private const val TOP_BUTTON_OFFSET_DP = 64f
         private const val TOP_CENTRE = 0.5f
         private const val DIAL_GAP_DP = 16f
-        private const val BUTTON_STROKE_DP = 1.5f
-        private const val KEYBOARD_W_DP = 28f
-        private const val KEYBOARD_H_DP = 18f
-        private const val KEY_DP = 3f
-        private const val KEY_INSET_DP = 4f
-        private const val SPACE_BAR = 0.25f
-        private const val GAMEPAD_W_DP = 30f
-        private const val GAMEPAD_H_DP = 16f
-        private const val GAMEPAD_CROSS_DP = 3f
-        private const val GAMEPAD_DOT_DP = 2.5f
-        private const val GAMEPAD_SIDE = 0.25f
-        private const val GEAR_DP = 22f
-        private const val SKIP_W_DP = 9f
-        private const val SKIP_H_DP = 12f
-        private const val SKIP_BAR_DP = 2f
-        private const val SKIP_BAR_GAP_DP = 2f
-        private const val PAUSE_BAR_W_DP = 4f
-        private const val PAUSE_BAR_H_DP = 14f
-        private const val PAUSE_GAP_DP = 5f
-        private const val PLAY_TRIANGLE_DP = 14f
-        private const val TRIANGLE_BACK = 0.4f
-        private const val TRIANGLE_FRONT = 0.6f
     }
 }

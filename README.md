@@ -132,3 +132,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and feature requests use the
 ## License
 
 [MIT](LICENSE).
+
+## Credits
+
+Icons are [Lucide](https://lucide.dev), ISC licence. Player logos belong to their owners and are drawn as supplied.
