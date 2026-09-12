@@ -155,7 +155,7 @@ object KeyboardScreen {
         val row5 =
             listOf(
                 Key("Ctrl", CODE_CTRL, W1_25, sticky = true),
-                Key("Win", CODE_WIN, W1_25, sticky = true),
+                Key("Win", CODE_WIN, W1_25),
                 Key("Alt", CODE_ALT, W1_25, sticky = true),
                 Key("Space", CODE_SPACE, W6_25),
                 Key("Alt", CODE_ALT, W1_25, sticky = true),
@@ -215,7 +215,7 @@ object KeyboardScreen {
             }
 
         private val pointerKeys = mutableMapOf<Int, Key>()
-        private val heldSticky = mutableSetOf<Key>()
+        private val modifiers = ModifierLatch(onKey)
 
         init {
             contentDescription = context.getString(R.string.keyboard_description)
@@ -251,7 +251,7 @@ object KeyboardScreen {
             for (i in keys.indices) {
                 val key = keys[i]
                 val rect = rects[i]
-                val held = pointerKeys.containsValue(key) || heldSticky.contains(key)
+                val held = pointerKeys.containsValue(key) || (key.sticky && modifiers.isArmed(key.code))
                 if (held) {
                     canvas.drawRoundRect(rect, corner, corner, fillPaint)
                 } else {
@@ -278,33 +278,21 @@ object KeyboardScreen {
                     val index = event.actionIndex
                     val key = keyAt(event.getX(index), event.getY(index)) ?: return false
                     performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                    if (key.sticky) {
-                        if (heldSticky.remove(key)) {
-                            onKey(key.code, false)
-                        } else {
-                            heldSticky.add(key)
-                            onKey(key.code, true)
-                        }
-                    } else {
-                        pointerKeys[event.getPointerId(index)] = key
-                        onKey(key.code, true)
-                    }
+                    pointerKeys[event.getPointerId(index)] = key
+                    if (key.sticky) modifiers.modifierDown(key.code) else modifiers.keyDown(key.code)
                 }
 
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                     val index = event.actionIndex
                     val key = pointerKeys.remove(event.getPointerId(index)) ?: return false
-                    onKey(key.code, false)
-                    for (sticky in heldSticky) onKey(sticky.code, false)
-                    heldSticky.clear()
+                    if (key.sticky) modifiers.modifierUp(key.code) else modifiers.keyUp(key.code)
                     performClick()
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
-                    for (key in pointerKeys.values) onKey(key.code, false)
+                    for (key in pointerKeys.values) if (!key.sticky) onKey(key.code, false)
                     pointerKeys.clear()
-                    for (key in heldSticky) onKey(key.code, false)
-                    heldSticky.clear()
+                    modifiers.cancel()
                 }
 
                 else -> {

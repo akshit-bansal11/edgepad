@@ -25,11 +25,10 @@ import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
+import me.akshitbansal.edgepad.screens.Glyph
 import kotlin.math.abs
-import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.roundToInt
-import kotlin.math.sin
 
 /**
  * The control surface: a ruler wrapped round each corner that holds a dial, the media pieces wherever the
@@ -480,24 +479,12 @@ class ControlSurface(
         val cx = gearHit.centerX()
         val cy = gearHit.centerY()
         val outer = dp(GEAR_DP) / 2
-        val inner = outer * GEAR_RIM
-        glyph.reset()
-        val step = FULL_TURN / (GEAR_TEETH * 2)
-        for (i in 0 until GEAR_TEETH * 2) {
-            val r = if (i % 2 == 0) outer else inner
-            val a0 = Math.toRadians(i * step - step * GEAR_TOOTH)
-            val a1 = Math.toRadians(i * step + step * GEAR_TOOTH)
-            val x0 = cx + cos(a0).toFloat() * r
-            val y0 = cy + sin(a0).toFloat() * r
-            if (i == 0) glyph.moveTo(x0, y0) else glyph.lineTo(x0, y0)
-            glyph.lineTo(cx + cos(a1).toFloat() * r, cy + sin(a1).toFloat() * r)
-        }
-        glyph.close()
+        Glyph.gear(glyph, cx, cy, outer)
         stroke.color = dim
         stroke.strokeWidth = dp(BUTTON_STROKE_DP)
         stroke.strokeJoin = Paint.Join.ROUND
         canvas.drawPath(glyph, stroke)
-        canvas.drawCircle(cx, cy, outer * GEAR_HOLE, stroke)
+        canvas.drawCircle(cx, cy, outer * Glyph.GEAR_HOLE, stroke)
         stroke.strokeWidth = dp(Space.HAIR)
     }
 
@@ -991,11 +978,6 @@ class ControlSurface(
         private const val GAMEPAD_DOT_DP = 2.5f
         private const val GAMEPAD_SIDE = 0.25f
         private const val GEAR_DP = 22f
-        private const val GEAR_RIM = 0.72f
-        private const val GEAR_TOOTH = 0.42f
-        private const val GEAR_HOLE = 0.28f
-        private const val GEAR_TEETH = 8
-        private const val FULL_TURN = 360.0
         private const val SKIP_W_DP = 9f
         private const val SKIP_H_DP = 12f
         private const val SKIP_BAR_DP = 2f

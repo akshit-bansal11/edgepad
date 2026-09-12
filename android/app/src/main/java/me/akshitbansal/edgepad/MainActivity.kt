@@ -125,6 +125,7 @@ class MainActivity :
                 onOpenControls = { goTo(Screen.SURFACE) },
                 onBluetoothSettings = { startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS)) },
                 onSettings = ::openSettings,
+                onRefresh = ::refreshPicker,
             )
         val retained = lastNonConfigurationInstance as? Retained
         if (retained != null) {

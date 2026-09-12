@@ -29,7 +29,7 @@
   <string name="pairing_footnote">Tap a laptop to connect. Pair it in Bluetooth settings first. Edgepad on the laptop lives in the system tray, and both must come from the same release.</string>
   <string name="open_controls">OPEN CONTROLS</string>
   <string name="open_bluetooth_settings">OPEN BLUETOOTH SETTINGS</string>
-  <string name="settings_link">SETTINGS</string>
+  <string name="refresh">Refresh the list</string>
   <string name="bluetooth_off">Bluetooth is off. Turn it on, then come back.</string>
   <string name="permission_needed">Edgepad needs the Nearby devices permission to reach your laptop.</string>
   <string name="no_paired">No paired laptop yet. Pair it in Bluetooth settings, then come back.</string>

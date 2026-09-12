@@ -22,6 +22,7 @@ class PickerScreen(
     private val onOpenControls: () -> Unit,
     private val onBluetoothSettings: () -> Unit,
     private val onSettings: () -> Unit,
+    private val onRefresh: () -> Unit,
 ) {
     class Device(
         val address: String,
@@ -57,7 +58,7 @@ class PickerScreen(
     val view: View =
         ui.page {
             mono(ui.string(R.string.pairing_step))
-            headline(ui.string(R.string.pairing_title), Type.TITLE, Space.M)
+            add(header(), Space.M)
             hairline(Space.XXL)
             val frame =
                 FrameLayout(ui.context).apply {
@@ -83,7 +84,29 @@ class PickerScreen(
             ).setLineSpacing(0f, FOOTNOTE_LEADING)
             action = add(ui.button(ui.string(R.string.open_controls), Ui.Style.FILLED, onOpenControls), Space.L)
             add(ui.button(ui.string(R.string.open_bluetooth_settings), Ui.Style.QUIET, onBluetoothSettings), Space.M)
-            add(ui.link(ui.string(R.string.settings_link), onSettings), Space.S)
+        }
+
+    /** The title, then a refresh arrow that re-reads the paired list, and the gear into Settings. */
+    private fun header(): View =
+        LinearLayout(ui.context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            addView(
+                ui.text(ui.string(R.string.pairing_title), Type.TITLE, ui.palette.ink, Type.sans, Type.TRACKING_TIGHT),
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
+            )
+            addView(icon(Glyph.Shape.REFRESH, R.string.refresh, onRefresh))
+            addView(icon(Glyph.Shape.GEAR, R.string.settings_title, onSettings))
+        }
+
+    private fun icon(
+        shape: Glyph.Shape,
+        labelRes: Int,
+        onTap: () -> Unit,
+    ): View =
+        Glyph(ui.context, shape, ui.palette.ink).apply {
+            contentDescription = ui.string(labelRes)
+            layoutParams = LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH))
+            ui.tappable(this, onTap)
         }
 
     init {

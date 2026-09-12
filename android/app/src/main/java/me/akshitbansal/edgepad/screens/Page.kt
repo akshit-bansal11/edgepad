@@ -160,17 +160,6 @@ class Ui(
             tappable(this, onClick)
         }
 
-    /** A centred monospace text link, for a way into another screen. */
-    fun link(
-        label: CharSequence,
-        onClick: () -> Unit,
-    ): TextView =
-        mono(label, Type.MICRO, palette.dim).apply {
-            gravity = Gravity.CENTER
-            minHeight = dp(Space.TOUCH)
-            tappable(this, onClick)
-        }
-
     /** Pressed and focused states for a view drawn without the platform's own button background. */
     fun tappable(
         view: View,
