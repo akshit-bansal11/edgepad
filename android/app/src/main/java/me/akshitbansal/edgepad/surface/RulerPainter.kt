@@ -28,13 +28,16 @@ class RulerPainter(
         }
 
     /**
-     * Draws a ruler centred at path length [centre]. [rulerDp] is how far the ruler has slid clockwise;
-     * [rulerLengthDp] bounds a level's ruler (null for a stepper, whose ruler has no ends).
+     * Draws a ruler centred at path length [centre], reaching [after] pixels clockwise and [before]
+     * anticlockwise. [rulerDp] is how far the ruler has slid clockwise; [rulerLengthDp] bounds a level's
+     * ruler (null for a stepper, whose ruler has no ends).
      */
     fun draw(
         canvas: Canvas,
         perimeter: Perimeter,
         centre: Float,
+        after: Float,
+        before: Float,
         rulerDp: Float,
         rulerLengthDp: Float?,
         armed: Boolean,
@@ -45,11 +48,10 @@ class RulerPainter(
         pt: FloatArray,
     ) {
         val notch = dp(Dial.NOTCH_DP)
-        val half = dp(halfLengthDp)
         val ruler = dp(rulerDp)
         val grow = if (armed) ARMED_GROWTH else 1f
-        var first = ceil((-half - ruler) / notch).toInt()
-        var last = floor((half - ruler) / notch).toInt()
+        var first = ceil((-before - ruler) / notch).toInt()
+        var last = floor((after - ruler) / notch).toInt()
         if (rulerLengthDp != null) {
             first = maxOf(first, -floor(rulerLengthDp / Dial.NOTCH_DP).toInt())
             last = minOf(last, 0)

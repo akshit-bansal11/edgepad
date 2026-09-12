@@ -102,6 +102,9 @@ class ControlSurface(
     // Geometry, all set in onSizeChanged so nothing is measured or allocated while drawing.
     private var perimeter = Perimeter(1f, 1f, 1f)
     private val centres = FloatArray(dials.size)
+    private val after = FloatArray(dials.size)
+    private val before = FloatArray(dials.size)
+    private val keepOut = FloatArray(2)
     private val exclusions = List(dials.size) { Rect() }
     private val nowPlayingBox = RectF()
     private val progressHit = RectF()
@@ -189,6 +192,12 @@ class ControlSurface(
         dials.forEachIndexed { i, dial -> centres[i] = perimeter.lengthAt(dial.corner.toFloat()) }
         backdrop.resize(w, h)
         layoutPieces(w.toFloat(), h.toFloat())
+        // No ruler runs under the buttons at the top, and neighbours stop short of each other.
+        val topCentre = perimeter.lengthAt(TOP_CENTRE)
+        val zone = dp(TOP_BUTTON_OFFSET_DP + Space.TOUCH / 2 + Space.M)
+        keepOut[0] = topCentre - zone
+        keepOut[1] = topCentre + zone
+        DialSpan.compute(centres, dp(painter.halfLengthDp), perimeter.length, keepOut, dp(DIAL_GAP_DP), after, before)
         excludeBackGesture()
         rebuildText()
     }
@@ -214,14 +223,13 @@ class ControlSurface(
 
     /** Keeps Android's back gesture off each corner dial; the bottom edge (home) cannot be claimed. */
     private fun excludeBackGesture() {
-        val half = dp(painter.halfLengthDp)
         val step = dp(SAMPLE_DP)
         for (i in dials.indices) {
             val rect = exclusions[i]
-            perimeter.point(centres[i] - half, pt)
+            perimeter.point(centres[i] - before[i], pt)
             rect.set(pt[0].toInt(), pt[1].toInt(), pt[0].toInt(), pt[1].toInt())
-            var s = centres[i] - half + step
-            while (s <= centres[i] + half) {
+            var s = centres[i] - before[i] + step
+            while (s <= centres[i] + after[i]) {
                 perimeter.point(s, pt)
                 rect.union(pt[0].toInt(), pt[1].toInt())
                 s += step
@@ -302,8 +310,10 @@ class ControlSurface(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         backdrop.draw(canvas)
-        drawNowPlaying(canvas)
-        drawTransport(canvas)
+        if (mediaShown()) {
+            drawNowPlaying(canvas)
+            drawTransport(canvas)
+        }
         drawGear(canvas)
         drawKeyboard(canvas)
         drawGamepad(canvas)
@@ -383,6 +393,9 @@ class ControlSurface(
             fill,
         )
     }
+
+    /** The media pieces exist only while the laptop has a player open; otherwise their room is trackpad. */
+    private fun mediaShown(): Boolean = state.app.isNotEmpty() || state.nowPlaying.isNotEmpty()
 
     private fun playedFraction(): Float =
         if (state.duration > 0) {
@@ -541,6 +554,8 @@ class ControlSurface(
             canvas,
             perimeter,
             centres[i],
+            after[i],
+            before[i],
             dial.rulerDp,
             if (dial.control != null) dial.rulerLengthDp else null,
             dial.armed,
@@ -669,7 +684,8 @@ class ControlSurface(
     private fun down(event: MotionEvent) {
         val x = event.x
         val y = event.y
-        val button = transportAt(x, y)
+        val media = mediaShown()
+        val button = if (media) transportAt(x, y) else null
         when {
             gearHit.contains(x, y) -> {
                 gearDown = true
@@ -689,7 +705,7 @@ class ControlSurface(
                 send(button.frame())
             }
 
-            !scrubOnADial && progressHit.contains(x, y) -> {
+            media && !scrubOnADial && progressHit.contains(x, y) -> {
                 scrubbing = true
                 scrubTo(x)
             }
@@ -846,10 +862,12 @@ class ControlSurface(
         perimeter.project(x, y, hit)
         if (hit[1] > dp(CORNER_HIT_DP)) return -1
         var best = -1
-        var bestGap = dp(painter.halfLengthDp + HIT_SLACK_DP)
+        var bestGap = Float.MAX_VALUE
         for (i in dials.indices) {
-            val gap = abs(perimeter.delta(centres[i], hit[0]))
-            if (gap < bestGap) {
+            val delta = perimeter.delta(centres[i], hit[0])
+            val reach = if (delta >= 0) after[i] else before[i]
+            val gap = abs(delta)
+            if (gap < reach + dp(HIT_SLACK_DP) && gap < bestGap) {
                 best = i
                 bestGap = gap
             }
@@ -958,7 +976,9 @@ class ControlSurface(
         private const val TRAIL_ALPHA = 200f
         private const val ALPHA_SHIFT = 24
         private const val TOP_DP = 40f
-        private const val TOP_BUTTON_OFFSET_DP = 32f
+        private const val TOP_BUTTON_OFFSET_DP = 64f
+        private const val TOP_CENTRE = 0.5f
+        private const val DIAL_GAP_DP = 16f
         private const val BUTTON_STROKE_DP = 1.5f
         private const val KEYBOARD_W_DP = 28f
         private const val KEYBOARD_H_DP = 18f

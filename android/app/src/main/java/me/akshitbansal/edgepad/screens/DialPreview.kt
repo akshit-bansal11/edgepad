@@ -77,6 +77,8 @@ class DialPreview(
             canvas,
             perimeter,
             perimeter.lengthAt(0f),
+            painter.halfLengthDp * density,
+            painter.halfLengthDp * density,
             LEVEL / unitsPerDp,
             Dial.MAX_LEVEL / unitsPerDp,
             false,
