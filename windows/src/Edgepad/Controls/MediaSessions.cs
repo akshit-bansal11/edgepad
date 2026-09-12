@@ -158,24 +158,19 @@ internal sealed class MediaSessions : IDisposable
         var artist = properties.Artist ?? "";
         var nowPlaying = string.IsNullOrWhiteSpace(artist) ? title : title + " - " + artist;
         var seconds = span > TimeSpan.Zero ? (int)Math.Clamp((position - timeline.StartTime).TotalSeconds, 0, span.TotalSeconds) : 0;
-        return new MediaState(nowPlaying.Trim(), AppName(current.SourceAppUserModelId ?? ""), playing, percent, seconds, (int)span.TotalSeconds);
+        var aumid = current.SourceAppUserModelId ?? "";
+        var executable = Executable(aumid);
+        // A browser is named after the service in its window title, when one can be seen there.
+        var app = BrowserTitle.IsBrowser(executable)
+            ? BrowserTitle.Service(BrowserTitle.WindowTitles(executable)) ?? AppName(aumid)
+            : AppName(aumid);
+        return new MediaState(nowPlaying.Trim(), app, playing, percent, seconds, (int)span.TotalSeconds);
     }
 
     /// <summary>"Spotify.exe" or "Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic" to something a label can show.</summary>
     internal static string AppName(string appUserModelId)
     {
-        var name = appUserModelId;
-        var bang = name.LastIndexOf('!');
-        if (bang >= 0)
-        {
-            name = name[(bang + 1)..];
-        }
-
-        if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
-        {
-            name = name[..^4];
-        }
-
+        var name = Executable(appUserModelId);
         return name switch
         {
             "chrome" => "Chrome",
@@ -186,6 +181,19 @@ internal sealed class MediaSessions : IDisposable
             "Microsoft.ZuneVideo" => "Films & TV",
             _ => name.Length == 0 ? "" : char.ToUpperInvariant(name[0]) + name[1..],
         };
+    }
+
+    /// <summary>The part of an app user model id that names the program: "chrome" from "chrome.exe", the id after the "!" for a packaged app.</summary>
+    internal static string Executable(string appUserModelId)
+    {
+        var name = appUserModelId;
+        var bang = name.LastIndexOf('!');
+        if (bang >= 0)
+        {
+            name = name[(bang + 1)..];
+        }
+
+        return name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? name[..^4] : name;
     }
 
     public void Dispose()

@@ -13,9 +13,9 @@ Edgepad is two programs that talk to each other: an Android app you touch, and a
 - **Corner rulers.** Each corner of the phone holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher or microphone level; Settings picks what each corner does, how long the rulers are and how tall.
 - **Trackpad.** Everything between the corners moves the laptop's pointer. One finger moves and clicks, two scroll and pinch, three and four fingers do whatever you assign them: desktops, task view, media, volume, app switcher, and more.
 - **Media.** The track, the app playing it and where it is, with previous, play/pause and next. Drag the three pieces anywhere on the surface.
-- **Keyboard.** Tap the keyboard button and type on the laptop with the phone's own keyboard.
+- **Keyboard and gamepad.** A full on-screen keyboard whose modifiers work held or tapped, and a gamepad with editable layouts and presets. Both open sideways.
 - **Live state.** The dials show the laptop's real volume, mute, brightness and playback position, and follow changes made on the laptop itself.
-- Black on white or white on black, portrait or landscape.
+- Black on white or white on black, held upright or sideways: a toggle in Settings, no free rotation.
 
 ## Install
 
@@ -52,8 +52,7 @@ Running a newer `Edgepad.exe` asks the running copy to quit and takes its place.
 | Two fingers | drag | scroll both axes |
 | Two fingers | pinch / tap | zoom / right click, or what Settings assigns |
 | Three or four fingers | tap, swipe up, down, left, right | what Settings assigns |
-| Top centre | tap the gear | Settings |
-| Bottom centre | tap the keyboard | type on the laptop |
+| Top centre | tap the gear, the keyboard or the gamepad | Settings, the keyboard, the gamepad |
 | Back | | leaves the surface; the link stays up |
 
 Out of the box, three fingers left and right switch desktops, three up opens task view, three down shows the desktop, four fingers left and right walk the app switcher (Alt stays held while the fingers are down), and tapping searches or opens notifications. Every one of those is changed under **Settings > Gestures**.

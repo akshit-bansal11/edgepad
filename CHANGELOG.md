@@ -4,6 +4,22 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-09-12
+
+### Added
+- The finder has a refresh button that re-reads the paired list, and a gear into Settings, in its title row.
+- A Landscape toggle under Appearance: the app is held upright or sideways, never rotating freely. The keyboard, the gamepad and the gamepad layout editor are always sideways.
+- Laptop: a browser playing Netflix, YouTube, Prime Video and other services is named after the service, read from the browser window's title, so the phone draws the service's logo instead of the browser's initial.
+
+### Changed
+- Corner rulers are trimmed at their far ends so two never overlap and none runs under the buttons at the top; the gear, keyboard and gamepad buttons are spaced 64 dp apart.
+- The now-playing block and transport are hidden while the laptop has no player open; that room is trackpad.
+- Keyboard modifiers: Shift, Ctrl, Alt and Menu are down while held, and a tap alone presses them at once and arms them for the next key. Win is an ordinary key, so a tap opens Start immediately instead of after the next key.
+- Settings: slider steps are dots under the track; the theme, control colour, background and pattern choices are lower pills; colours are picked from a strip of swatches instead of hue, saturation and value sliders.
+
+### Removed
+- The SETTINGS link at the bottom of the finder, and the hue, saturation and value sliders.
+
 ## [0.8.1] - 2026-09-12
 
 ### Fixed
