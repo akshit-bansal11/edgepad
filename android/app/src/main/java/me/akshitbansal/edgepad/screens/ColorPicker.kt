@@ -112,7 +112,9 @@ object ColorPicker {
         ring: GradientDrawable,
         chosen: Boolean,
     ) {
-        if (chosen) ring.setStroke(ui.dp(RING_DP), ui.palette.ink) else ring.setStroke(ui.dp(Space.HAIR), ui.palette.dim)
+        val width = if (chosen) RING_DP else Space.HAIR
+        val color = if (chosen) ui.palette.ink else ui.palette.dim
+        ring.setStroke(ui.dp(width), color)
     }
 
     private fun hexOf(color: Int): String = "#%06X".format(Locale.ROOT, color and RGB)
