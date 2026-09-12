@@ -4,6 +4,11 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [0.9.5] - 2026-09-12
+
+### Fixed
+- The Windows exe and tray icon are now rendered from `assets/edgepad-light.svg` exactly; 0.9.3 had drawn an older, smaller mark on a different tile colour.
+
 ## [0.9.4] - 2026-09-12
 
 ### Added
