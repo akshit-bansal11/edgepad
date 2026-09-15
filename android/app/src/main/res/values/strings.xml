@@ -47,11 +47,13 @@
   <string name="corner_bottom_left">Bottom left</string>
   <string name="corner_off">Off</string>
   <string name="media_layout_title">Media layout</string>
-  <string name="media_layout_hint">Drag each piece where you want it on the control surface. Pieces snap to the grid and to the centre lines.</string>
+  <string name="media_layout_hint">DRAG A PIECE TO MOVE IT · IT SNAPS TO THE GRID AND THE CENTRE LINES</string>
   <string name="piece_now_playing">NOW PLAYING</string>
   <string name="piece_transport">PREV / PLAY / NEXT</string>
   <string name="media_layout_reset">RESET</string>
-  <string name="media_scale">Size of the media controls</string>
+  <string name="editor_options">Options</string>
+  <string name="editor_done">DONE</string>
+  <string name="media_scale">Size</string>
   <string name="gestures_title">Gestures</string>
   <string name="gestures_fingers">%1$d FINGERS</string>
   <string name="gesture_two_tap">Tap</string>

@@ -75,26 +75,7 @@ object KeyboardScreen {
         onKey: (code: Int, down: Boolean) -> Unit,
         onBack: () -> Unit,
     ): View {
-        val header =
-            LinearLayout(ui.context).apply {
-                gravity = Gravity.CENTER_VERTICAL
-                setPadding(ui.dp(Space.L), ui.dp(Space.XL), ui.dp(Space.L), ui.dp(Space.S))
-                val back =
-                    Glyph(ui.context, Glyph.Shape.CHEVRON_LEFT, ui.palette.ink).apply {
-                        contentDescription = ui.string(R.string.back)
-                        ui.tappable(this, onBack)
-                    }
-                addView(back, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
-                addView(
-                    ui.text(
-                        ui.string(R.string.keyboard_title),
-                        Type.HEADING,
-                        ui.palette.ink,
-                        Type.TRACKING_TIGHT,
-                    ),
-                    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
-                )
-            }
+        val header = ui.bar(ui.string(R.string.keyboard_title), onBack)
         val keyboard = KeyboardView(ui.context, onKey)
         return LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL

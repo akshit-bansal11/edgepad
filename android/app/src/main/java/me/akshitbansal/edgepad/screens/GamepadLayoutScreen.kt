@@ -26,8 +26,8 @@ import kotlin.math.roundToInt
 
 /**
  * Drag controls on a full-size canvas with a snapping grid, exactly like [MediaLayoutScreen]'s editor:
- * a piece near the middle snaps to it, and the centre lines light up to say so. Adds a row of preset
- * chips that load a whole layout, and a long press that opens a size picker for one control.
+ * a piece near the middle snaps to it, and the centre lines light up to say so. The options popup loads
+ * a preset or resets the layout, and a long press opens a size picker for one control.
  */
 object GamepadLayoutScreen {
     private val SIZES_DP = listOf(44, 56, 64, 80, 110, 150, 200)
@@ -38,62 +38,49 @@ object GamepadLayoutScreen {
         onBack: () -> Unit,
     ): View {
         val canvas = Editor(ui.context, store)
-        val header =
+        return EditorFrame.build(ui, ui.string(R.string.gamepad_layout_title).uppercase(), canvas, onBack) { close ->
             LinearLayout(ui.context).apply {
-                gravity = Gravity.CENTER_VERTICAL
-                setPadding(ui.dp(Space.L), ui.dp(Space.XL), ui.dp(Space.L), ui.dp(Space.S))
-                val back =
-                    Glyph(ui.context, Glyph.Shape.CHEVRON_LEFT, ui.palette.ink).apply {
-                        contentDescription = ui.string(R.string.back)
-                        ui.tappable(this, onBack)
-                    }
-                addView(back, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
+                orientation = LinearLayout.VERTICAL
                 addView(
-                    ui.text(
-                        ui.string(R.string.gamepad_layout_title),
-                        Type.HEADING,
-                        ui.palette.ink,
-                        Type.TRACKING_TIGHT,
-                    ),
-                    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
-                )
-                addView(ui.chip(ui.string(R.string.media_layout_reset)) { canvas.reset() })
-            }
-        val hint =
-            ui.text(ui.string(R.string.gamepad_layout_hint), Type.CAPTION, ui.palette.dim).apply {
-                setPadding(ui.dp(Space.L), 0, ui.dp(Space.L), ui.dp(Space.S))
-            }
-        val presets =
-            HorizontalScrollView(ui.context).apply {
-                isHorizontalScrollBarEnabled = false
-                addView(
-                    LinearLayout(ui.context).apply {
-                        setPadding(ui.dp(Space.L), 0, ui.dp(Space.L), ui.dp(Space.S))
-                        for (preset in GamepadLayout.presets) {
-                            addView(
-                                ui.chip(preset.name) {
-                                    store.choosePreset(preset.name)
-                                    canvas.reload()
-                                },
-                                LinearLayout
-                                    .LayoutParams(
-                                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                                    ).apply { marginEnd = ui.dp(Space.S) },
-                            )
-                        }
+                    presets(ui, store.current.name) { name ->
+                        store.choosePreset(name)
+                        canvas.reload()
+                        close()
                     },
                 )
+                addView(
+                    ui
+                        .mono(
+                            ui.string(R.string.gamepad_layout_hint),
+                            Type.MICRO,
+                            ui.palette.dim,
+                            Type.TRACKING_ROW,
+                        ).apply {
+                            setPadding(0, ui.dp(Space.S), 0, ui.dp(Space.S))
+                        },
+                )
+                addView(
+                    EditorFrame.resetAndDone(ui, {
+                        canvas.reset()
+                        close()
+                    }, close),
+                )
             }
-        return LinearLayout(ui.context).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(ui.palette.background)
-            addView(header)
-            addView(hint)
-            addView(presets)
-            addView(canvas, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         }
     }
+
+    /** The presets as a list of choices, the one named [current] marked. */
+    fun presets(
+        ui: Ui,
+        current: String,
+        onPick: (String) -> Unit,
+    ): View =
+        LinearLayout(ui.context).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(ui.mono(ui.string(R.string.gamepad_preset), Type.MICRO, ui.palette.dim, Type.TRACKING_ROW))
+            val names = GamepadLayout.presets.map { it.name }
+            addView(ui.choices(names, names.indexOf(current)) { i -> onPick(names[i]) })
+        }
 
     /** The surface's own proportions: a control is dragged by its centre and stored as fractions of the size. */
     private class Editor(
@@ -115,6 +102,11 @@ object GamepadLayoutScreen {
                 strokeWidth = Space.HAIR * density
             }
         private val dots = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.line }
+        private val lift =
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = palette.faint
+                setShadowLayer(LIFT_BLUR_DP * density, 0f, LIFT_DROP_DP * density, SHADOW)
+            }
         private val text =
             TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
                 typeface = Type.face
@@ -176,6 +168,14 @@ object GamepadLayoutScreen {
             canvas.drawLine(0f, height / 2f, width.toFloat(), height / 2f, stroke)
             for (control in layout.controls) {
                 bounds(control, box)
+                // The control being dragged lifts off the grid on a shadow.
+                if (control == dragging) {
+                    if (control.kind == ControlKind.BUTTON || control.kind == ControlKind.STICK) {
+                        canvas.drawOval(box, lift)
+                    } else {
+                        canvas.drawRoundRect(box, CORNER_DP * density, CORNER_DP * density, lift)
+                    }
+                }
                 stroke.color = if (control == dragging) palette.ink else palette.dim
                 drawShape(canvas, control.kind, box)
                 text.color = stroke.color
@@ -327,6 +327,9 @@ object GamepadLayoutScreen {
             const val DPAD_CELLS = 3f
             const val LONG_PRESS_MS = 500L
             const val LONG_PRESS_SLOP_DP = 12f
+            const val LIFT_BLUR_DP = 12f
+            const val LIFT_DROP_DP = 6f
+            const val SHADOW = 0x59000000
         }
     }
 }

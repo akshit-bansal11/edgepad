@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.screens
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.RectF
 import android.text.TextPaint
@@ -28,6 +29,8 @@ import kotlin.math.roundToInt
 object MediaLayoutScreen {
     private const val SCALE_STEP = 0.1f
 
+    private fun scaleOf(step: Int): Float = Settings.MIN_MEDIA_SCALE + step * SCALE_STEP
+
     private fun toStep(scale: Float): Int = ((scale - Settings.MIN_MEDIA_SCALE) / SCALE_STEP).roundToInt()
 
     private val SCALE_STEPS = ((Settings.MAX_MEDIA_SCALE - Settings.MIN_MEDIA_SCALE) / SCALE_STEP).roundToInt()
@@ -38,56 +41,40 @@ object MediaLayoutScreen {
         onBack: () -> Unit,
     ): View {
         val canvas = Editor(ui.context, settings)
-        val header =
-            LinearLayout(ui.context).apply {
-                gravity = Gravity.CENTER_VERTICAL
-                setPadding(ui.dp(Space.L), ui.dp(Space.XL), ui.dp(Space.L), ui.dp(Space.S))
-                val back =
-                    Glyph(ui.context, Glyph.Shape.CHEVRON_LEFT, ui.palette.ink).apply {
-                        contentDescription = ui.string(R.string.back)
-                        ui.tappable(this, onBack)
-                    }
-                addView(back, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
-                addView(
-                    ui.text(
-                        ui.string(R.string.media_layout_title),
-                        Type.HEADING,
-                        ui.palette.ink,
-                        Type.TRACKING_TIGHT,
-                    ),
-                    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
-                )
-                addView(ui.chip(ui.string(R.string.media_layout_reset)) { canvas.reset() })
-            }
-        val hint =
-            ui.text(ui.string(R.string.media_layout_hint), Type.CAPTION, ui.palette.dim).apply {
-                setPadding(ui.dp(Space.L), 0, ui.dp(Space.L), ui.dp(Space.S))
-            }
-        val scaleValue =
-            ui.mono(ui.string(R.string.multiplier_value, settings.mediaScale), Type.CAPTION, ui.palette.ink, 0f)
-        val scale =
+        return EditorFrame.build(ui, ui.string(R.string.media_layout_title).uppercase(), canvas, onBack) { close ->
             LinearLayout(ui.context).apply {
                 orientation = LinearLayout.VERTICAL
-                setPadding(ui.dp(Space.L), 0, ui.dp(Space.L), 0)
                 addView(
-                    ui.row(ui.text(ui.string(R.string.media_scale), Type.BODY, ui.palette.ink), scaleValue),
+                    ui.slider(
+                        ui.string(R.string.media_scale),
+                        SCALE_STEPS,
+                        toStep(settings.mediaScale),
+                        { step -> ui.string(R.string.multiplier_value, scaleOf(step)) },
+                    ) { step ->
+                        settings.mediaScale = scaleOf(step)
+                        canvas.rescale()
+                    },
                 )
                 addView(
                     ui
-                        .ruler(SCALE_STEPS, toStep(settings.mediaScale)) { step ->
-                            settings.mediaScale = Settings.MIN_MEDIA_SCALE + step * SCALE_STEP
-                            scaleValue.text = ui.string(R.string.multiplier_value, settings.mediaScale)
-                            canvas.rescale()
-                        }.apply { contentDescription = ui.string(R.string.media_scale) },
+                        .mono(
+                            ui.string(R.string.media_layout_hint),
+                            Type.MICRO,
+                            ui.palette.dim,
+                            Type.TRACKING_ROW,
+                        ).apply {
+                            setPadding(0, ui.dp(Space.S), 0, ui.dp(Space.S))
+                        },
+                )
+                addView(
+                    EditorFrame.resetAndDone(ui, {
+                        canvas.reset()
+                        settings.mediaScale = Settings.DEFAULT_MEDIA_SCALE
+                        canvas.rescale()
+                        close()
+                    }, close),
                 )
             }
-        return LinearLayout(ui.context).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(ui.palette.background)
-            addView(header)
-            addView(hint)
-            addView(scale)
-            addView(canvas, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         }
     }
 
@@ -110,6 +97,12 @@ object MediaLayoutScreen {
                 strokeWidth = Space.HAIR * density
             }
         private val dots = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.line }
+        private val dash = DashPathEffect(floatArrayOf(DASH_DP * density, GAP_DP * density), 0f)
+        private val lift =
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = palette.faint
+                setShadowLayer(LIFT_BLUR_DP * density, 0f, LIFT_DROP_DP * density, SHADOW)
+            }
         private val text =
             TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
                 typeface = Type.face
@@ -170,6 +163,7 @@ object MediaLayoutScreen {
                 }
                 y += cell
             }
+            stroke.pathEffect = null
             stroke.color = palette.line
             canvas.drawRect(
                 stroke.strokeWidth / 2,
@@ -185,7 +179,11 @@ object MediaLayoutScreen {
             canvas.drawLine(0f, height / 2f, width.toFloat(), height / 2f, stroke)
             for (piece in MediaPiece.entries) {
                 bounds(piece, box)
-                stroke.color = if (piece == dragging) palette.ink else palette.dim
+                // A piece at rest is dashed; the one being dragged lifts off the grid on a shadow.
+                val lifted = piece == dragging
+                if (lifted) canvas.drawRoundRect(box, CORNER_DP * density, CORNER_DP * density, lift)
+                stroke.pathEffect = if (lifted) null else dash
+                stroke.color = if (lifted) palette.ink else palette.dim
                 canvas.drawRoundRect(box, CORNER_DP * density, CORNER_DP * density, stroke)
                 text.color = stroke.color
                 canvas.drawText(
@@ -264,6 +262,11 @@ object MediaLayoutScreen {
             const val CENTRE_SNAP_DP = 10f
             const val HALF = 0.5f
             const val EPSILON = 1e-3f
+            const val DASH_DP = 4f
+            const val GAP_DP = 3f
+            const val LIFT_BLUR_DP = 12f
+            const val LIFT_DROP_DP = 6f
+            const val SHADOW = 0x59000000
         }
     }
 }

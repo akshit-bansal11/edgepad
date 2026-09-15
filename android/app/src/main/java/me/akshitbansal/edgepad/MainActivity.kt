@@ -285,6 +285,10 @@ class MainActivity :
                         gamepads.current,
                         onKey = ::key,
                         onBack = { navigateBack() },
+                        onPreset = { name ->
+                            gamepads.choosePreset(name)
+                            goTo(Screen.GAMEPAD)
+                        },
                         onEdit = {
                             layoutReturn = Screen.GAMEPAD
                             goTo(Screen.GAMEPAD_LAYOUT)
@@ -322,7 +326,8 @@ class MainActivity :
                 WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
                     WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
             bars.setSystemBarsAppearance(if (ui.palette.dark) 0 else light, light)
-            if (next == Screen.SURFACE || next == Screen.KEYBOARD || next == Screen.GAMEPAD) {
+            // The surface and everything laid out to match it hide the bars, so the proportions agree.
+            if (next in immersive) {
                 bars.hide(WindowInsets.Type.systemBars())
                 bars.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             } else {
@@ -666,6 +671,8 @@ class MainActivity :
     }
 
     private companion object {
+        val immersive =
+            setOf(Screen.SURFACE, Screen.KEYBOARD, Screen.GAMEPAD, Screen.MEDIA_LAYOUT, Screen.GAMEPAD_LAYOUT)
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2
         const val PING_INTERVAL_MS = 500L

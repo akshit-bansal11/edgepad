@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="gamepad_layout_title">Gamepad layout</string>
-  <string name="gamepad_layout_hint">Drag controls where your thumbs land. Long press one to change its size.</string>
+  <string name="gamepad_layout_hint">DRAG A CONTROL TO MOVE IT · LONG PRESS TO RESIZE</string>
+  <string name="gamepad_preset">PRESET</string>
   <string name="gamepad_description">Game controller for the laptop</string>
   <string name="gamepad_size">Size</string>
   <string name="dp_value">%1$d dp</string>

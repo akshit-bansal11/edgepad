@@ -33,33 +33,38 @@ object GamepadScreen {
         layout: GamepadLayout,
         onKey: (code: Int, down: Boolean) -> Unit,
         onBack: () -> Unit,
+        onPreset: (String) -> Unit,
         onEdit: () -> Unit,
     ): View {
         val surface = Surface(ui.context, layout, onKey)
-        val header =
-            LinearLayout(ui.context).apply {
-                gravity = Gravity.CENTER_VERTICAL
-                setPadding(ui.dp(Space.L), ui.dp(Space.XL), ui.dp(Space.L), ui.dp(Space.S))
-                val back =
-                    Glyph(ui.context, Glyph.Shape.CHEVRON_LEFT, ui.palette.ink).apply {
-                        contentDescription = ui.string(R.string.back)
-                        ui.tappable(this, onBack)
-                    }
-                addView(back, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
-                addView(
-                    ui.text(layout.name, Type.HEADING, ui.palette.ink, Type.TRACKING_TIGHT),
-                    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
-                )
-                addView(ui.chip(ui.string(R.string.gamepad_edit), onEdit))
+        return EditorFrame
+            .build(ui, layout.name.uppercase(), surface, onBack) { close ->
+                LinearLayout(ui.context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    addView(
+                        GamepadLayoutScreen.presets(ui, layout.name) { name ->
+                            close()
+                            onPreset(name)
+                        },
+                    )
+                    addView(
+                        ui.button(ui.string(R.string.gamepad_edit), Ui.Style.QUIET) {
+                            close()
+                            onEdit()
+                        },
+                        LinearLayout
+                            .LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ).apply {
+                                topMargin = ui.dp(Space.S)
+                            },
+                    )
+                }
+            }.apply {
+                keepScreenOn = true
+                contentDescription = ui.string(R.string.gamepad_description)
             }
-        return LinearLayout(ui.context).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(ui.palette.background)
-            keepScreenOn = true
-            contentDescription = ui.string(R.string.gamepad_description)
-            addView(header)
-            addView(surface, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
-        }
     }
 
     /**

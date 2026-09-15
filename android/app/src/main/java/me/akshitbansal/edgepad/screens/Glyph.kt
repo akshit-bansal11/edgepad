@@ -23,6 +23,7 @@ class Glyph(
         GEAR(R.drawable.ic_settings),
         REFRESH(R.drawable.ic_refresh_cw),
         BLUETOOTH(R.drawable.ic_bluetooth),
+        OPTIONS(R.drawable.ic_sliders_horizontal),
     }
 
     private val density = resources.displayMetrics.density
