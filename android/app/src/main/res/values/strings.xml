@@ -50,20 +50,17 @@
   <!-- Settings -->
   <string name="settings_title">Settings</string>
   <string name="back">Back</string>
-  <string name="settings_connection">CONNECTION</string>
   <string name="no_laptop">No laptop remembered</string>
   <string name="forget">FORGET</string>
   <string name="detail_connected">CONNECTED</string>
   <string name="detail_connected_rtt">CONNECTED · %1$.0f MS</string>
   <string name="detail_remembered">REMEMBERED · NOT CONNECTED</string>
   <string name="reconnect_automatically">Reconnect automatically</string>
-  <string name="settings_corners">CORNERS</string>
   <string name="corner_top_left">Top left</string>
   <string name="corner_top_right">Top right</string>
   <string name="corner_bottom_right">Bottom right</string>
   <string name="corner_bottom_left">Bottom left</string>
   <string name="corner_off">Off</string>
-  <string name="settings_media">MEDIA</string>
   <string name="media_layout_title">Media layout</string>
   <string name="media_layout_hint">Drag each piece where you want it on the control surface. Pieces snap to the grid and to the centre lines.</string>
   <string name="piece_now_playing">NOW PLAYING</string>
@@ -71,9 +68,8 @@
   <string name="media_layout_reset">RESET</string>
   <string name="media_scale">Size of the media controls</string>
   <string name="gestures_title">Gestures</string>
-  <string name="gestures_hint">One finger always moves and clicks, and two fingers dragging always scroll. Everything else is yours to assign.</string>
   <string name="gestures_fingers">%1$d FINGERS</string>
-  <string name="gesture_two_tap">Two-finger tap</string>
+  <string name="gesture_two_tap">Tap</string>
   <string name="gesture_two_pinch">Pinch</string>
   <string name="gesture_three_tap">Tap</string>
   <string name="gesture_three_left">Swipe left</string>
@@ -106,7 +102,6 @@
   <string name="action_search">Search</string>
   <string name="action_notifications">Notifications</string>
   <string name="action_lock">Lock the laptop</string>
-  <string name="settings_feel">DIAL FEEL</string>
   <string name="slide_sensitivity">Slide sensitivity</string>
   <string name="dial_length">Dial length</string>
   <string name="dial_length_value">%1$d dp</string>
@@ -114,7 +109,6 @@
   <string name="multiplier_value">×%1$.1f</string>
   <string name="haptic_ticks">Haptic tick per notch</string>
   <string name="snap_round">Snap to round numbers</string>
-  <string name="settings_trackpad">TRACKPAD</string>
   <string name="natural_scrolling">Natural scrolling</string>
   <string name="gesture_hints">Show gesture hints</string>
   <string name="settings_appearance">APPEARANCE</string>
@@ -146,6 +140,20 @@
   <string name="pattern_color">Pattern colour</string>
   <string name="pattern_opacity">Pattern opacity</string>
   <string name="percent_value">%1$d%%</string>
+  <string name="settings_surface">SURFACE</string>
+  <string name="settings_layouts">LAYOUTS</string>
+  <string name="settings_help">HELP</string>
+  <string name="settings_version">EDGEPAD %1$s · PROTOCOL %2$d</string>
+  <string name="corners_title">Corners</string>
+  <string name="corner_assign">ASSIGN · %1$s</string>
+  <string name="chosen">Chosen</string>
+  <string name="dial_feel_title">Dial feel</string>
+  <string name="feel_summary">×%1$.1f · %2$d DP</string>
+  <string name="dial_preview_caption">PREVIEW · CLOCKWISE RAISES</string>
+  <string name="gestures_footnote">TAP A GESTURE TO CHANGE ITS ACTION</string>
+  <string name="appearance_title">Background &amp; pattern</string>
+  <string name="background_preview_description">Preview of the control surface background</string>
+  <string name="guide_title">Guide</string>
 
 
   <!-- Dials -->
@@ -176,5 +184,4 @@
   <string name="surface_open_settings">Open settings</string>
   <string name="surface_keyboard">Open the keyboard</string>
   <string name="surface_gamepad">Open the gamepad</string>
-  <string name="settings_gamepad">GAMEPAD</string>
 </resources>

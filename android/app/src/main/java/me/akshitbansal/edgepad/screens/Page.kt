@@ -1,12 +1,14 @@
 package me.akshitbansal.edgepad.screens
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.drawable.ClipDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.InsetDrawable
 import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.StateListDrawable
+import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -41,6 +43,7 @@ private const val SEGMENT_PAD_DP = 10f
 private const val CHIP_DP = 32f
 private const val ICON_TOUCH_DP = 40f
 private const val BAR_START_DP = 20f
+private const val CHOSEN_DOT_DP = 8f
 
 /**
  * The screens' shared look, after the owner's 2026-09-15 redesign: ink on a panel, JetBrains Mono
@@ -362,6 +365,108 @@ class Ui(
 
     fun hairline(): View = View(context).apply { setBackgroundColor(palette.line) }
 
+    /** True when the screen is wider than tall; pages then split into two columns. */
+    val landscape: Boolean
+        get() = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    /** A small spaced label over a group of rows. */
+    fun section(value: CharSequence): TextView =
+        mono(value, Type.MICRO, palette.dim, SECTION_TRACKING).apply {
+            isAccessibilityHeading = true
+            setPadding(0, dp(SECTION_TOP_DP), 0, dp(Space.XS))
+        }
+
+    /** A row with a plain label and [end] at the far side. */
+    fun field(
+        label: CharSequence,
+        end: View? = null,
+    ): LinearLayout = row(text(label, Type.BODY, palette.ink), end)
+
+    /** A row that opens another screen: its name, a short summary of what is set there, and a chevron. */
+    fun link(
+        label: CharSequence,
+        summary: CharSequence?,
+        onOpen: () -> Unit,
+    ): LinearLayout {
+        val end =
+            LinearLayout(context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                if (!summary.isNullOrEmpty()) {
+                    addView(
+                        mono(summary, Type.MICRO, palette.dim, Type.TRACKING_ROW).apply {
+                            maxLines = 1
+                            ellipsize = TextUtils.TruncateAt.END
+                        },
+                    )
+                }
+                addView(
+                    Glyph(context, Glyph.Shape.CHEVRON_RIGHT, palette.dim),
+                    LinearLayout.LayoutParams(dp(Space.XL), dp(Space.XL)),
+                )
+            }
+        return field(label, end).apply { tappable(this, onOpen) }
+    }
+
+    /** A labelled slider over [steps] steps, with what the step means written beside the label as it moves. */
+    fun slider(
+        label: CharSequence,
+        steps: Int,
+        progress: Int,
+        valueOf: (Int) -> CharSequence,
+        onChange: (Int) -> Unit,
+    ): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            val value = mono(valueOf(progress), Type.SMALL, palette.dim, Type.TRACKING_ROW)
+            addView(
+                field(label, value).apply {
+                    minimumHeight = 0
+                    setPadding(0, dp(Space.M), 0, 0)
+                },
+            )
+            val track =
+                ruler(steps, progress) { step ->
+                    value.text = valueOf(step)
+                    onChange(step)
+                }
+            track.contentDescription = label
+            addView(track)
+        }
+
+    /** One of [names], a row each under a hairline, the chosen one marked with a dot. [onPick] gets the index. */
+    fun choices(
+        names: List<CharSequence>,
+        selected: Int,
+        onPick: (Int) -> Unit,
+    ): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            names.forEachIndexed { i, name ->
+                val chosen = i == selected
+                val row = field(name)
+                row.minimumHeight = dp(Space.TOUCH)
+                val dot =
+                    View(context).apply {
+                        background =
+                            GradientDrawable().apply {
+                                shape = GradientDrawable.OVAL
+                                setColor(palette.ink)
+                            }
+                        visibility = if (chosen) View.VISIBLE else View.INVISIBLE
+                        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                    }
+                row.addView(
+                    dot,
+                    LinearLayout.LayoutParams(dp(CHOSEN_DOT_DP), dp(CHOSEN_DOT_DP)).apply { marginEnd = dp(Space.S) },
+                )
+                row.isSelected = chosen
+                if (chosen) row.stateDescription = string(R.string.chosen)
+                tappable(row) { onPick(i) }
+                addView(row)
+                addView(hairline(), ViewGroup.LayoutParams.MATCH_PARENT, dp(Space.HAIR))
+            }
+        }
+
     private fun track(): Drawable =
         StateListDrawable().apply {
             addState(intArrayOf(android.R.attr.state_checked), pill(filled = true))
@@ -456,11 +561,31 @@ class Column(
     ): TextView = add(ui.text(value, Type.BODY, ui.palette.dim).apply { setLineSpacing(0f, LEADING) }, topDp)
 
     fun section(value: CharSequence) {
-        add(
-            ui.mono(value, Type.MICRO, ui.palette.dim, SECTION_TRACKING).apply {
-                setPadding(0, ui.dp(SECTION_TOP_DP), 0, ui.dp(Space.XS))
-            },
-        )
+        add(ui.section(value))
+    }
+
+    /** Two runs of rows: side by side when the screen is sideways, one after the other when it is upright. */
+    fun columns(
+        first: Column.() -> Unit,
+        second: Column.() -> Unit,
+    ) {
+        if (!ui.landscape) {
+            first()
+            second()
+            return
+        }
+        val pair = LinearLayout(ui.context)
+        listOf(first, second).forEachIndexed { i, fill ->
+            val run = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
+            Column(ui, run).fill()
+            pair.addView(
+                run,
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    if (i == 1) marginStart = ui.dp(Space.XXL)
+                },
+            )
+        }
+        add(pair)
     }
 
     fun hairline(topDp: Float = 0f) {

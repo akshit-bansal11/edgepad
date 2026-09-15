@@ -1,345 +1,129 @@
 package me.akshitbansal.edgepad.screens
 
-import android.app.AlertDialog
 import android.app.UiModeManager
-import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
-import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
-import me.akshitbansal.edgepad.surface.ControlSurface
-import me.akshitbansal.edgepad.surface.DialKind
 import kotlin.math.roundToInt
 
-/** Connection, what each corner does, how the dials feel, the trackpad, and the theme. Every change is saved as it is made. */
+/**
+ * The Settings hub: the remembered laptop, then one row into each group of settings with a summary of
+ * what is set there, the theme, and the version. Every change is saved as it is made. Sideways, the
+ * groups sit in two columns.
+ */
 object SettingsScreen {
-    /** What the connection section shows: the remembered laptop, if any, and its state. */
+    /** What the connection row shows: the remembered laptop, if any, and its state. */
     class Connection(
         val name: String?,
         val detail: String,
     )
 
-    private const val LENGTH_STEP = 10f
+    /** Where the hub's rows lead. */
+    class Routes(
+        val forget: () -> Unit,
+        val corners: () -> Unit,
+        val gestures: () -> Unit,
+        val dialFeel: () -> Unit,
+        val mediaLayout: () -> Unit,
+        val gamepadLayout: () -> Unit,
+        val appearance: () -> Unit,
+        val guide: () -> Unit,
+        val landscape: (Boolean) -> Unit,
+        val back: () -> Unit,
+    )
+
     private const val MARK_DP = 24f
-    private const val PREVIEW_DP = 220f
-    private const val PERCENT = 100
-    private const val ANGLE_STEP = 15f
-    private val ANGLE_STEPS = (Settings.MAX_ANGLE / ANGLE_STEP).roundToInt()
-    private const val SIZE_STEP = 4f
-    private val SIZE_STEPS = ((Settings.MAX_PATTERN_SIZE - Settings.MIN_PATTERN_SIZE) / SIZE_STEP).roundToInt()
-    private const val OPACITY_STEPS = 20
-    private val backgroundNames =
-        mapOf(
-            Settings.Background.THEME to R.string.background_theme,
-            Settings.Background.COLOR to R.string.background_color,
-            Settings.Background.GRADIENT to R.string.background_gradient,
-            Settings.Background.IMAGE to R.string.background_image,
-        )
-    private val patternLabels =
-        mapOf(
-            Settings.Pattern.NONE to R.string.pattern_none,
-            Settings.Pattern.SQUARES to R.string.pattern_squares,
-            Settings.Pattern.DOTS to R.string.pattern_dots,
-            Settings.Pattern.CHECKER to R.string.pattern_checker,
-        )
-    private const val HEIGHT_STEP = 0.1f
-    private const val SENSITIVITY_STEP = 0.1f
-    private val sensitivitySteps =
-        ((Settings.MAX_SENSITIVITY - Settings.MIN_SENSITIVITY) / SENSITIVITY_STEP)
-            .roundToInt()
-    private val lengthSteps = ((Settings.MAX_DIAL_LENGTH - Settings.MIN_DIAL_LENGTH) / LENGTH_STEP).roundToInt()
-    private val heightSteps = ((Settings.MAX_DIAL_HEIGHT - Settings.MIN_DIAL_HEIGHT) / HEIGHT_STEP).roundToInt()
-    private val cornerNames =
-        listOf(
-            R.string.corner_top_left,
-            R.string.corner_top_right,
-            R.string.corner_bottom_right,
-            R.string.corner_bottom_left,
-        )
+    private const val NO_DIAL = "—"
 
     fun build(
         ui: Ui,
         settings: Settings,
         connection: Connection,
-        onForget: () -> Unit,
-        onGestures: () -> Unit,
-        onMediaLayout: () -> Unit,
-        onGamepadLayout: () -> Unit,
-        onPickImage: () -> Unit,
-        onLandscape: (Boolean) -> Unit,
-        onBack: () -> Unit,
+        preset: String,
+        version: String,
+        routes: Routes,
     ): View =
-        ui.page(ui.bar(ui.string(R.string.settings_title), onBack, mark(ui))) {
-            section(ui.string(R.string.settings_connection))
-            hairline()
-            val forget = if (connection.name != null) ui.chip(ui.string(R.string.forget), onForget) else null
-            add(ui.row(ui.stack(connection.name ?: ui.string(R.string.no_laptop), connection.detail), forget))
-            hairline()
-            add(ui.toggle(ui.string(R.string.reconnect_automatically), settings.reconnect) { settings.reconnect = it })
+        ui.page(ui.bar(ui.string(R.string.settings_title), routes.back, mark(ui))) {
+            columns(
+                {
+                    val forget =
+                        if (connection.name !=
+                            null
+                        ) {
+                            ui.chip(ui.string(R.string.forget), routes.forget)
+                        } else {
+                            null
+                        }
+                    add(ui.row(ui.stack(connection.name ?: ui.string(R.string.no_laptop), connection.detail), forget))
+                    hairline()
+                    add(
+                        ui.toggle(ui.string(R.string.reconnect_automatically), settings.reconnect) {
+                            settings.reconnect = it
+                        },
+                    )
+                    hairline()
 
-            section(ui.string(R.string.settings_corners))
-            for (corner in 0 until ControlSurface.CORNERS) {
-                hairline()
-                add(cornerRow(ui, settings, corner))
-            }
+                    section(ui.string(R.string.settings_surface))
+                    link(ui.string(R.string.corners_title), cornersSummary(ui, settings), routes.corners)
+                    link(ui.string(R.string.gestures_title), null, routes.gestures)
+                    val feel =
+                        ui.string(R.string.feel_summary, settings.sensitivity, settings.dialLength.roundToInt())
+                    link(ui.string(R.string.dial_feel_title), feel, routes.dialFeel)
+                    add(
+                        ui.toggle(ui.string(R.string.natural_scrolling), settings.naturalScroll) {
+                            settings.naturalScroll = it
+                        },
+                    )
+                    hairline()
+                },
+                {
+                    section(ui.string(R.string.settings_layouts))
+                    link(ui.string(R.string.media_layout_title), null, routes.mediaLayout)
+                    link(ui.string(R.string.gamepad_layout_title), preset.uppercase(), routes.gamepadLayout)
 
-            section(ui.string(R.string.settings_feel))
-            hairline()
-            val value = ui.mono(sensitivityText(ui, settings.sensitivity), Type.CAPTION, ui.palette.ink, 0f)
-            add(ui.row(ui.text(ui.string(R.string.slide_sensitivity), Type.BODY, ui.palette.ink), value))
-            add(
-                ui.ruler(sensitivitySteps, toStep(settings.sensitivity)) { step ->
-                    settings.sensitivity = fromStep(step)
-                    value.text = sensitivityText(ui, settings.sensitivity)
-                },
-            ).contentDescription = ui.string(R.string.slide_sensitivity)
-            hairline()
-            val preview = DialPreview(ui.context, settings)
-            val length =
-                ui.mono(
-                    dpText(ui, settings.dialLength),
-                    Type.CAPTION,
-                    ui.palette.ink,
-                    0f,
-                )
-            add(ui.row(ui.text(ui.string(R.string.dial_length), Type.BODY, ui.palette.ink), length))
-            add(
-                ui.ruler(
-                    lengthSteps,
-                    ((settings.dialLength - Settings.MIN_DIAL_LENGTH) / LENGTH_STEP).roundToInt(),
-                ) { step ->
-                    settings.dialLength = Settings.MIN_DIAL_LENGTH + step * LENGTH_STEP
-                    length.text = dpText(ui, settings.dialLength)
-                    preview.show(settings.dialLength, settings.dialHeight)
-                },
-            ).contentDescription = ui.string(R.string.dial_length)
-            hairline()
-            val height =
-                ui.mono(
-                    ui.string(R.string.multiplier_value, settings.dialHeight),
-                    Type.CAPTION,
-                    ui.palette.ink,
-                    0f,
-                )
-            add(ui.row(ui.text(ui.string(R.string.dial_height), Type.BODY, ui.palette.ink), height))
-            add(
-                ui.ruler(
-                    heightSteps,
-                    ((settings.dialHeight - Settings.MIN_DIAL_HEIGHT) / HEIGHT_STEP).roundToInt(),
-                ) { step ->
-                    settings.dialHeight = Settings.MIN_DIAL_HEIGHT + step * HEIGHT_STEP
-                    height.text = ui.string(R.string.multiplier_value, settings.dialHeight)
-                    preview.show(settings.dialLength, settings.dialHeight)
-                },
-            ).contentDescription = ui.string(R.string.dial_height)
-            add(preview, Space.M, ui.dp(PREVIEW_DP))
-            hairline()
-            add(ui.toggle(ui.string(R.string.haptic_ticks), settings.haptics) { settings.haptics = it })
-            hairline()
-            add(ui.toggle(ui.string(R.string.snap_round), settings.snap) { settings.snap = it })
+                    section(ui.string(R.string.settings_appearance))
+                    val themes = listOf(ui.string(R.string.theme_dark), ui.string(R.string.theme_light))
+                    add(
+                        ui.field(
+                            ui.string(R.string.theme),
+                            ui.segmented(themes, if (ui.palette.dark) 0 else 1) { i -> setTheme(ui, dark = i == 0) },
+                        ),
+                    )
+                    hairline()
+                    add(ui.toggle(ui.string(R.string.landscape), settings.landscape, routes.landscape))
+                    hairline()
+                    link(
+                        ui.string(R.string.appearance_title),
+                        AppearanceScreen.summary(ui, settings),
+                        routes.appearance,
+                    )
 
-            section(ui.string(R.string.settings_trackpad))
-            hairline()
-            add(linkRow(ui, ui.string(R.string.gestures_title), onGestures))
-            hairline()
-            add(
-                ui.toggle(
-                    ui.string(R.string.natural_scrolling),
-                    settings.naturalScroll,
-                ) { settings.naturalScroll = it },
+                    section(ui.string(R.string.settings_help))
+                    link(ui.string(R.string.guide_title), null, routes.guide)
+                    mono(version, Type.MICRO, topDp = Space.L)
+                },
             )
-            hairline()
-            add(ui.toggle(ui.string(R.string.gesture_hints), settings.hints) { settings.hints = it })
-
-            section(ui.string(R.string.settings_media))
-            hairline()
-            add(linkRow(ui, ui.string(R.string.media_layout_title), onMediaLayout))
-
-            section(ui.string(R.string.settings_gamepad))
-            hairline()
-            add(linkRow(ui, ui.string(R.string.gamepad_layout_title), onGamepadLayout))
-
-            section(ui.string(R.string.settings_appearance))
-            hairline()
-            val themes = listOf(ui.string(R.string.theme_dark), ui.string(R.string.theme_light))
-            val theme = ui.segmented(themes, if (ui.palette.dark) 0 else 1) { i -> setTheme(ui, dark = i == 0) }
-            add(ui.row(ui.text(ui.string(R.string.theme), Type.BODY, ui.palette.ink), theme))
-            hairline()
-            add(ui.toggle(ui.string(R.string.landscape), settings.landscape, onLandscape))
-            hairline()
-            add(controlColor(ui, settings))
-            hairline()
-            add(background(ui, settings, onPickImage))
-            hairline()
         }
 
-    /** Auto follows the background; custom opens a picker whose colour every control shares. */
-    private fun controlColor(
+    /** The four corners' short dial names, clockwise from the top left. */
+    private fun cornersSummary(
         ui: Ui,
         settings: Settings,
-    ): View =
-        LinearLayout(ui.context).apply {
-            orientation = LinearLayout.VERTICAL
-            val picker =
-                ColorPicker.build(ui, ui.string(R.string.control_color), settings.controlColor ?: ui.palette.ink) {
-                    settings.controlColor = it
-                }
-            picker.visibility = if (settings.controlColor == null) View.GONE else View.VISIBLE
-            val modes = listOf(ui.string(R.string.control_color_auto), ui.string(R.string.control_color_custom))
-            val mode =
-                ui.segmented(modes, if (settings.controlColor == null) 0 else 1) { i ->
-                    if (i == 0) settings.controlColor = null else settings.controlColor = ui.palette.ink
-                    picker.visibility = if (i == 0) View.GONE else View.VISIBLE
-                    refresh(this) { controlColor(ui, settings) }
-                }
-            addView(ui.row(ui.text(ui.string(R.string.control_color), Type.BODY, ui.palette.ink), mode))
-            addView(picker)
+    ): String =
+        (0 until Settings.CORNERS).joinToString(" · ") { corner ->
+            settings.corner(corner)?.let { ui.string(it.shortRes) } ?: NO_DIAL
         }
 
-    /** The surface's background: its kind, then the rows that kind needs, then the pattern over it. */
-    private fun background(
-        ui: Ui,
-        settings: Settings,
-        onPickImage: () -> Unit,
-    ): View =
-        LinearLayout(ui.context).apply {
-            orientation = LinearLayout.VERTICAL
-            val kinds = Settings.Background.entries
-            val names = kinds.map { ui.string(backgroundNames.getValue(it)) }
-            val kind =
-                ui.segmented(names, kinds.indexOf(settings.background)) { i ->
-                    settings.background = kinds[i]
-                    refresh(this) { background(ui, settings, onPickImage) }
-                }
-            addView(ui.row(ui.text(ui.string(R.string.background), Type.BODY, ui.palette.ink), kind))
-            when (settings.background) {
-                Settings.Background.THEME -> {
-                    Unit
-                }
-
-                Settings.Background.COLOR -> {
-                    addView(
-                        ColorPicker.build(ui, ui.string(R.string.background_color), settings.backgroundColor) {
-                            settings.backgroundColor =
-                                it
-                        },
-                    )
-                }
-
-                Settings.Background.GRADIENT -> {
-                    addView(
-                        ColorPicker.build(ui, ui.string(R.string.background_color), settings.backgroundColor) {
-                            settings.backgroundColor =
-                                it
-                        },
-                    )
-                    addView(
-                        ColorPicker.build(ui, ui.string(R.string.gradient_end), settings.gradientEnd) {
-                            settings.gradientEnd =
-                                it
-                        },
-                    )
-                    val angle =
-                        ui.mono(
-                            degreesText(ui, settings.gradientAngle),
-                            Type.CAPTION,
-                            ui.palette.ink,
-                            0f,
-                        )
-                    addView(
-                        ui.row(
-                            ui.text(ui.string(R.string.gradient_angle), Type.BODY, ui.palette.ink),
-                            angle,
-                        ),
-                    )
-                    addView(
-                        ui
-                            .ruler(ANGLE_STEPS, (settings.gradientAngle / ANGLE_STEP).roundToInt()) { step ->
-                                settings.gradientAngle = step * ANGLE_STEP
-                                angle.text = degreesText(ui, settings.gradientAngle)
-                            }.apply { contentDescription = ui.string(R.string.gradient_angle) },
-                    )
-                }
-
-                Settings.Background.IMAGE -> {
-                    val present = settings.backgroundImage.exists()
-                    val state = if (present) R.string.background_image_set else R.string.background_image_none
-                    addView(
-                        ui.row(
-                            ui.text(ui.string(state), Type.BODY, ui.palette.ink),
-                            ui.chip(ui.string(R.string.background_pick_image), onPickImage),
-                        ),
-                    )
-                }
-            }
-            val patterns = Settings.Pattern.entries
-            val patternNames = patterns.map { ui.string(patternLabels.getValue(it)) }
-            val pattern =
-                ui.segmented(patternNames, patterns.indexOf(settings.pattern)) { i ->
-                    settings.pattern = patterns[i]
-                    refresh(this) { background(ui, settings, onPickImage) }
-                }
-            addView(ui.row(ui.text(ui.string(R.string.pattern), Type.BODY, ui.palette.ink), pattern))
-            if (settings.pattern != Settings.Pattern.NONE) {
-                val size =
-                    ui.mono(
-                        dpText(ui, settings.patternSize),
-                        Type.CAPTION,
-                        ui.palette.ink,
-                        0f,
-                    )
-                addView(ui.row(ui.text(ui.string(R.string.pattern_size), Type.BODY, ui.palette.ink), size))
-                addView(
-                    ui
-                        .ruler(
-                            SIZE_STEPS,
-                            ((settings.patternSize - Settings.MIN_PATTERN_SIZE) / SIZE_STEP).roundToInt(),
-                        ) { step ->
-                            settings.patternSize = Settings.MIN_PATTERN_SIZE + step * SIZE_STEP
-                            size.text = dpText(ui, settings.patternSize)
-                        }.apply { contentDescription = ui.string(R.string.pattern_size) },
-                )
-                val opacity =
-                    ui.mono(
-                        percentText(ui, settings.patternOpacity),
-                        Type.CAPTION,
-                        ui.palette.ink,
-                        0f,
-                    )
-                addView(
-                    ui.row(
-                        ui.text(ui.string(R.string.pattern_opacity), Type.BODY, ui.palette.ink),
-                        opacity,
-                    ),
-                )
-                addView(
-                    ui
-                        .ruler(OPACITY_STEPS, (settings.patternOpacity * OPACITY_STEPS).roundToInt()) { step ->
-                            settings.patternOpacity = step / OPACITY_STEPS.toFloat()
-                            opacity.text = percentText(ui, settings.patternOpacity)
-                        }.apply { contentDescription = ui.string(R.string.pattern_opacity) },
-                )
-                addView(
-                    ColorPicker.build(ui, ui.string(R.string.pattern_color), settings.patternColor) {
-                        settings.patternColor =
-                            it
-                    },
-                )
-            }
-        }
-
-    /** Rebuilds a block in place after a choice that changes which rows it shows. */
-    private fun refresh(
-        block: LinearLayout,
-        build: () -> View,
+    private fun Column.link(
+        label: String,
+        summary: String?,
+        onOpen: () -> Unit,
     ) {
-        val parent = block.parent as? LinearLayout ?: return
-        val index = parent.indexOfChild(block)
-        parent.removeViewAt(index)
-        parent.addView(build(), index, block.layoutParams)
+        add(ui.link(label, summary, onOpen))
+        hairline()
     }
 
     private fun mark(ui: Ui): View =
@@ -347,67 +131,6 @@ object SettingsScreen {
             layoutParams =
                 LinearLayout.LayoutParams(ui.dp(MARK_DP), ui.dp(MARK_DP)).apply { marginEnd = ui.dp(Space.S) }
         }
-
-    /** A row that opens another screen. */
-    private fun linkRow(
-        ui: Ui,
-        label: String,
-        onOpen: () -> Unit,
-    ): View {
-        val chevron = Glyph(ui.context, Glyph.Shape.CHEVRON_RIGHT, ui.palette.dim)
-        val row =
-            ui.row(
-                ui.text(label, Type.BODY, ui.palette.ink),
-                LinearLayout(
-                    ui.context,
-                ).apply { addView(chevron, LinearLayout.LayoutParams(ui.dp(Space.XL), ui.dp(Space.XL))) },
-            )
-        ui.tappable(row, onOpen)
-        return row
-    }
-
-    private fun cornerRow(
-        ui: Ui,
-        settings: Settings,
-        corner: Int,
-    ): View {
-        val current = ui.mono(kindName(ui, settings.corner(corner)), Type.SMALL, ui.palette.dim, Type.TRACKING_ROW)
-        val end =
-            LinearLayout(ui.context).apply {
-                gravity = Gravity.CENTER_VERTICAL
-                addView(current)
-                addView(
-                    Glyph(ui.context, Glyph.Shape.CHEVRON_RIGHT, ui.palette.dim),
-                    LinearLayout.LayoutParams(ui.dp(Space.XL), ui.dp(Space.XL)),
-                )
-            }
-        val row = ui.row(ui.text(ui.string(cornerNames[corner]), Type.BODY, ui.palette.ink), end)
-        ui.tappable(row) { pickCorner(ui, settings, corner, current) }
-        return row
-    }
-
-    private fun pickCorner(
-        ui: Ui,
-        settings: Settings,
-        corner: Int,
-        current: TextView,
-    ) {
-        val kinds = listOf<DialKind?>(null) + DialKind.entries
-        val names = kinds.map { kindName(ui, it) }.toTypedArray()
-        AlertDialog
-            .Builder(ui.context)
-            .setTitle(ui.string(cornerNames[corner]))
-            .setSingleChoiceItems(names, kinds.indexOf(settings.corner(corner))) { dialog, which ->
-                settings.setCorner(corner, kinds[which])
-                current.text = names[which]
-                dialog.dismiss()
-            }.show()
-    }
-
-    private fun kindName(
-        ui: Ui,
-        kind: DialKind?,
-    ): String = if (kind == null) ui.string(R.string.corner_off) else ui.string(kind.nameRes)
 
     private fun setTheme(
         ui: Ui,
@@ -419,29 +142,4 @@ object SettingsScreen {
             if (dark) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO,
         )
     }
-
-    private fun sensitivityText(
-        ui: Ui,
-        sensitivity: Float,
-    ): String = ui.string(R.string.multiplier_value, sensitivity)
-
-    private fun dpText(
-        ui: Ui,
-        dp: Float,
-    ): String = ui.string(R.string.dial_length_value, dp.roundToInt())
-
-    private fun percentText(
-        ui: Ui,
-        fraction: Float,
-    ): String = ui.string(R.string.percent_value, (fraction * PERCENT).roundToInt())
-
-    private fun degreesText(
-        ui: Ui,
-        degrees: Float,
-    ): String = ui.string(R.string.degrees_value, degrees.roundToInt())
-
-    private fun toStep(sensitivity: Float): Int =
-        ((sensitivity - Settings.MIN_SENSITIVITY) / SENSITIVITY_STEP).roundToInt()
-
-    private fun fromStep(step: Int): Float = Settings.MIN_SENSITIVITY + step * SENSITIVITY_STEP
 }

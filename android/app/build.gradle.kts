@@ -19,6 +19,8 @@ android {
         // The release workflow passes both from the tag and its run number, which only ever increases.
         versionCode = providers.gradleProperty("versionCode").orNull?.toInt() ?: 1
         versionName = providers.gradleProperty("versionName").orNull ?: "0.0.0-dev"
+        // Settings shows it; a generated string avoids PackageManager's API-33 split for reading it back.
+        resValue("string", "app_version", versionName ?: "")
     }
 
     signingConfigs {
@@ -38,6 +40,11 @@ android {
         release {
             signingConfig = signingConfigs.findByName("release")
         }
+    }
+
+    buildFeatures {
+        // The version string Settings shows comes from resValue, which AGP 9 leaves off by default.
+        resValues = true
     }
 
     compileOptions {

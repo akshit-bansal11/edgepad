@@ -24,6 +24,10 @@ import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.RttStats
 import me.akshitbansal.edgepad.protocol.Frame
+import me.akshitbansal.edgepad.protocol.ProtocolConstants
+import me.akshitbansal.edgepad.screens.AppearanceScreen
+import me.akshitbansal.edgepad.screens.CornersScreen
+import me.akshitbansal.edgepad.screens.DialFeelScreen
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
 import me.akshitbansal.edgepad.screens.GamepadScreen
 import me.akshitbansal.edgepad.screens.GestureScreen
@@ -51,7 +55,10 @@ class MainActivity :
         ONBOARDING,
         PAIRING,
         SETTINGS,
+        CORNERS,
         GESTURES,
+        DIAL_FEEL,
+        APPEARANCE,
         MEDIA_LAYOUT,
         GAMEPAD_LAYOUT,
         KEYBOARD,
@@ -216,24 +223,43 @@ class MainActivity :
                         ui,
                         settings,
                         connectionInfo(),
-                        onForget = ::forget,
-                        onGestures = { goTo(Screen.GESTURES) },
-                        onMediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
-                        onGamepadLayout = {
-                            layoutReturn = Screen.SETTINGS
-                            goTo(Screen.GAMEPAD_LAYOUT)
-                        },
-                        onPickImage = ::pickImage,
-                        onLandscape = { on ->
-                            settings.landscape = on
-                            applyOrientation()
-                        },
-                        onBack = { navigateBack() },
+                        gamepads.current.name,
+                        getString(R.string.settings_version, getString(R.string.app_version), ProtocolConstants.VERSION),
+                        SettingsScreen.Routes(
+                            forget = ::forget,
+                            corners = { goTo(Screen.CORNERS) },
+                            gestures = { goTo(Screen.GESTURES) },
+                            dialFeel = { goTo(Screen.DIAL_FEEL) },
+                            mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
+                            gamepadLayout = {
+                                layoutReturn = Screen.SETTINGS
+                                goTo(Screen.GAMEPAD_LAYOUT)
+                            },
+                            appearance = { goTo(Screen.APPEARANCE) },
+                            guide = { goTo(Screen.ONBOARDING) },
+                            landscape = { on ->
+                                settings.landscape = on
+                                applyOrientation()
+                            },
+                            back = { navigateBack() },
+                        ),
                     )
+                }
+
+                Screen.CORNERS -> {
+                    CornersScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.GESTURES -> {
                     GestureScreen.build(ui, settings) { navigateBack() }
+                }
+
+                Screen.DIAL_FEEL -> {
+                    DialFeelScreen.build(ui, settings) { navigateBack() }
+                }
+
+                Screen.APPEARANCE -> {
+                    AppearanceScreen.build(ui, settings, ::pickImage) { navigateBack() }
                 }
 
                 Screen.MEDIA_LAYOUT -> {
@@ -350,7 +376,7 @@ class MainActivity :
                 goTo(Screen.PAIRING)
             }
 
-            Screen.GESTURES, Screen.MEDIA_LAYOUT -> {
+            Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.MEDIA_LAYOUT -> {
                 goTo(Screen.SETTINGS)
             }
 
@@ -398,7 +424,7 @@ class MainActivity :
         } catch (e: IOException) {
             settings.backgroundImage.delete()
         }
-        if (screen == Screen.SETTINGS) goTo(Screen.SETTINGS)
+        if (screen == Screen.APPEARANCE) goTo(Screen.APPEARANCE)
     }
 
     /** A key pressed or released on the keyboard or gamepad screen. */
