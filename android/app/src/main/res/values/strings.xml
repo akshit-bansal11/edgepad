@@ -2,21 +2,6 @@
 <resources>
   <string name="app_name">Edgepad</string>
 
-  <!-- Onboarding -->
-  <string name="onboarding_title">Your phone is the dial.</string>
-  <string name="onboarding_intro">Rulers folded along the edges. One flat surface in the middle.</string>
-  <string name="gesture_one_title">ONE FINGER</string>
-  <string name="gesture_one">Move the pointer. Tap to click. Tap, then hold and move, to drag.</string>
-  <string name="gesture_two_title">TWO FINGERS</string>
-  <string name="gesture_two">Tap to right-click. Slide any direction to scroll. Pinch to zoom.</string>
-  <string name="gesture_three_title">THREE FINGERS</string>
-  <string name="gesture_three">Swipe left or right to change desktop. Up for task view, down for the desktop.</string>
-  <string name="gesture_four_title">FOUR FINGERS</string>
-  <string name="gesture_four">Swipe left or right through your open apps.</string>
-  <string name="gesture_dials_title">THE CORNERS</string>
-  <string name="gesture_dials">Slide along a corner ruler, clockwise to raise. Tap one to mute, play or reset. Settings picks what each corner does.</string>
-  <string name="onboarding_continue">FIND MY LAPTOP</string>
-
   <!-- Finding the laptop -->
   <string name="pairing_title">Devices</string>
   <string name="pairing_count">PAIRED · %1$d</string>

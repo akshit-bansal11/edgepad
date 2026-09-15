@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Guide page 02: the surface and where its five parts sit. The parts that move are drawn over it by GuideArt. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="300dp"
+  android:height="130dp"
+  android:viewportWidth="300"
+  android:viewportHeight="130">
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="@color/ink"
+    android:strokeWidth="1.4"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M125 8h50a7 7 0 0 1 7 7v100a7 7 0 0 1 -7 7h-50a7 7 0 0 1 -7 -7v-100a7 7 0 0 1 7 -7z" />
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="@color/ink"
+    android:strokeWidth="1.4"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M124 20h8M124 20v8M176 20h-8M176 20v8M124 110h8M124 110v-8M176 110h-8M176 110v-8" />
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="@color/ink"
+    android:strokeWidth="1.4"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M141 16h4v4h-4zM148 16h4v4h-4zM155 16h4v4h-4z" />
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="@color/ink"
+    android:strokeWidth="1.4"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M136 92h28a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-28a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2z" />
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="@color/line"
+    android:strokeWidth="1.4"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M110 28H70M110 60H70M110 97H70M190 24h40M190 60h40" />
+</vector>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Guide page 05: a controller. The parts that move are drawn over it by GuideArt. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="300dp"
+  android:height="130dp"
+  android:viewportWidth="300"
+  android:viewportHeight="130">
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="@color/ink"
+    android:strokeWidth="1.4"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M92 36h116a28 28 0 0 1 28 28v14a20 20 0 0 1-36 12L188 78h-76l-12 12a20 20 0 0 1-36-12V64a28 28 0 0 1 28-28z" />
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="@color/ink"
+    android:strokeWidth="1.4"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M95 62a13 13 0 1 0 26 0a13 13 0 1 0 -26 0" />
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="@color/ink"
+    android:strokeWidth="1.4"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M148 52v20M138 62h20" />
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="@color/ink"
+    android:strokeWidth="1.4"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M191 52a5 5 0 1 0 10 0a5 5 0 1 0 -10 0M203 62a5 5 0 1 0 10 0a5 5 0 1 0 -10 0M179 62a5 5 0 1 0 10 0a5 5 0 1 0 -10 0" />
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="@color/dim"
+    android:strokeWidth="1.4"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M104 30h24M172 30h24" />
+</vector>

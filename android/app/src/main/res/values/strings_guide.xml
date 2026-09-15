@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The guide: first run, and Settings › Help › Guide. Every claim here must be true of the app. -->
+  <string name="guide_steps">STEPS</string>
+  <string name="guide_page">PAGE</string>
+  <string name="guide_back">BACK</string>
+  <string name="guide_next">NEXT</string>
+  <string name="guide_done">DONE</string>
+  <string name="guide_find_laptop">FIND MY LAPTOP</string>
+  <string name="guide_step_description">Page %1$d of %2$d</string>
+
+  <string name="guide_features_kicker">01 · WHY EDGEPAD</string>
+  <string name="guide_features_title">Your laptop, from across the room.</string>
+  <string-array name="guide_features_keys">
+    <item>REAL-TIME</item>
+    <item>ROUND TRIP</item>
+    <item>OFFLINE</item>
+    <item>BLUETOOTH</item>
+    <item>AND MORE</item>
+  </string-array>
+  <string-array name="guide_features_values">
+    <item>Every move goes out as you make it. A slow link merges waiting moves instead of queueing them.</item>
+    <item>Measured live from the phone to the laptop and back, and shown beside the laptop on the Devices screen.</item>
+    <item>No account, no internet, no Wi-Fi. The phone reaches the laptop directly.</item>
+    <item>Pair once in the laptop Bluetooth settings. After that Edgepad can connect on launch.</item>
+    <item>Haptic notches, light and dark, your own media and gamepad layouts.</item>
+  </string-array>
+
+  <string name="guide_anatomy_kicker">02 · ANATOMY</string>
+  <string name="guide_anatomy_title">Five parts, one screen.</string>
+  <string-array name="guide_anatomy_keys">
+    <item>TRACKPAD</item>
+    <item>CORNER DIALS</item>
+    <item>MEDIA</item>
+    <item>KEYBOARD</item>
+    <item>GAMEPAD</item>
+  </string-array>
+  <string-array name="guide_anatomy_values">
+    <item>The whole middle of the screen. Every finger gesture starts here.</item>
+    <item>Rulers folded into the corners: volume, brightness, zoom, media scrub, app switcher or mic.</item>
+    <item>What is playing, then previous, play and next, while a player is open. Move and resize it in Settings.</item>
+    <item>A full keyboard whose modifiers work held or tapped, one tap away.</item>
+    <item>Sticks, a D-pad and buttons in four presets, or your own arrangement.</item>
+  </string-array>
+
+  <string name="guide_surface_kicker">03 · THE SURFACE</string>
+  <string name="guide_surface_title">Fingers do the talking.</string>
+  <string-array name="guide_surface_keys">
+    <item>ONE FINGER</item>
+    <item>TWO FINGERS</item>
+    <item>THREE &amp; FOUR</item>
+    <item>CORNER DIALS</item>
+    <item>TUNE IT</item>
+  </string-array>
+  <string-array name="guide_surface_values">
+    <item>Move the pointer. Tap to click. Tap, then hold and move, to drag.</item>
+    <item>Tap to right-click. Slide to scroll. Pinch to zoom.</item>
+    <item>Three sideways for desktops, up for task view, down for the desktop. Four sideways through open apps. Taps search or open notifications.</item>
+    <item>Slide along a ruler, clockwise raises. Tap it to mute, play, reset zoom or open task view.</item>
+    <item>Settings › Corners picks each dial. Dial feel sets sensitivity, size and haptics. Gestures reassigns the rest.</item>
+  </string-array>
+
+  <string name="guide_keyboard_kicker">04 · KEYBOARD</string>
+  <string name="guide_keyboard_title">Type from the couch.</string>
+  <string-array name="guide_keyboard_keys">
+    <item>OPEN</item>
+    <item>TYPE</item>
+    <item>MODIFIERS</item>
+    <item>CLOSE</item>
+  </string-array>
+  <string-array name="guide_keyboard_values">
+    <item>The keyboard icon at the top of the surface. It opens sideways.</item>
+    <item>Every key goes straight to the laptop: function row, arrows, Esc and Tab included.</item>
+    <item>Hold Ctrl, Alt or Shift while pressing a key, or tap one to apply it to the next key. Tap it again to cancel.</item>
+    <item>The back arrow at the top, or the system back gesture.</item>
+  </string-array>
+
+  <string name="guide_gamepad_kicker">05 · GAMEPAD</string>
+  <string name="guide_gamepad_title">A controller in your pocket.</string>
+  <string-array name="guide_gamepad_keys">
+    <item>OPEN</item>
+    <item>PRESETS</item>
+    <item>PLAY</item>
+    <item>MAKE IT YOURS</item>
+  </string-array>
+  <string-array name="guide_gamepad_values">
+    <item>The gamepad icon at the top of the surface. It opens sideways.</item>
+    <item>Xbox, Platformer, Racing and Shooter, picked from the options button on the gamepad.</item>
+    <item>Hold and slide a stick, tap the buttons. Several fingers at once work.</item>
+    <item>Settings › Gamepad layout. Drag controls where your thumbs land; long press one to resize it.</item>
+  </string-array>
+
+  <!-- Words inside the guide drawings. -->
+  <string name="guide_art_phone">PHONE</string>
+  <string name="guide_art_laptop">LAPTOP</string>
+  <string name="guide_art_link">BLUETOOTH · NO WI-FI · NO ACCOUNT</string>
+  <string name="guide_art_dials">DIALS</string>
+  <string name="guide_art_trackpad">TRACKPAD</string>
+  <string name="guide_art_media">MEDIA</string>
+  <string name="guide_art_keys">KEYS · PAD</string>
+  <string name="guide_art_gestures">GESTURES</string>
+  <string name="guide_art_move">1 · MOVE</string>
+  <string name="guide_art_scroll">2 · SCROLL</string>
+  <string name="guide_art_swipe">3 · SWIPE</string>
+  <string name="guide_art_latch">CTRL · ALT · SHIFT LATCH FOR THE NEXT KEY</string>
+  <string name="guide_art_presets">XBOX · PLATFORMER · RACING · SHOOTER</string>
+</resources>

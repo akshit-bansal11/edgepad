@@ -83,7 +83,7 @@ class Ui(
         bar: View? = null,
         centred: Boolean = false,
         fill: Column.() -> Unit,
-    ): View {
+    ): LinearLayout {
         val column =
             LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL

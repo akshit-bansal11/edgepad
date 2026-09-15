@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Guide page 03: one, two and three fingers. The parts that move are drawn over it by GuideArt. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="300dp"
+  android:height="130dp"
+  android:viewportWidth="300"
+  android:viewportHeight="130">
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="@color/ink"
+    android:strokeWidth="1.4"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M51 66a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M141 56a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M141 80a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M220 52a8 8 0 1 0 16 0a8 8 0 1 0 -16 0M234 68a8 8 0 1 0 16 0a8 8 0 1 0 -16 0M220 84a8 8 0 1 0 16 0a8 8 0 1 0 -16 0" />
+</vector>

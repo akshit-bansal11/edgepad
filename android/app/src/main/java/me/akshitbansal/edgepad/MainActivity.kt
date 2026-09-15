@@ -31,9 +31,9 @@ import me.akshitbansal.edgepad.screens.DialFeelScreen
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
 import me.akshitbansal.edgepad.screens.GamepadScreen
 import me.akshitbansal.edgepad.screens.GestureScreen
+import me.akshitbansal.edgepad.screens.GuideScreen
 import me.akshitbansal.edgepad.screens.KeyboardScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
-import me.akshitbansal.edgepad.screens.OnboardingScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
@@ -53,6 +53,7 @@ class MainActivity :
     LaptopLink.Listener {
     private enum class Screen {
         ONBOARDING,
+        GUIDE,
         PAIRING,
         SETTINGS,
         CORNERS,
@@ -207,11 +208,15 @@ class MainActivity :
         val view: View =
             when (next) {
                 Screen.ONBOARDING -> {
-                    OnboardingScreen.build(ui) {
+                    GuideScreen.build(ui, settings, intro = true, onFinish = {
                         settings.onboarded = true
                         goTo(Screen.PAIRING)
                         if (settings.reconnect) rememberedDevice()?.let(::connect)
-                    }
+                    }) { navigateBack() }
+                }
+
+                Screen.GUIDE -> {
+                    GuideScreen.build(ui, settings, intro = false, onFinish = {}) { navigateBack() }
                 }
 
                 Screen.PAIRING -> {
@@ -236,7 +241,7 @@ class MainActivity :
                                 goTo(Screen.GAMEPAD_LAYOUT)
                             },
                             appearance = { goTo(Screen.APPEARANCE) },
-                            guide = { goTo(Screen.ONBOARDING) },
+                            guide = { goTo(Screen.GUIDE) },
                             landscape = { on ->
                                 settings.landscape = on
                                 applyOrientation()
@@ -376,7 +381,7 @@ class MainActivity :
                 goTo(Screen.PAIRING)
             }
 
-            Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.MEDIA_LAYOUT -> {
+            Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.GUIDE, Screen.MEDIA_LAYOUT -> {
                 goTo(Screen.SETTINGS)
             }
 
