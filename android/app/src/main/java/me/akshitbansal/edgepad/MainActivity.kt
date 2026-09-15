@@ -224,7 +224,7 @@ class MainActivity :
                         settings,
                         connectionInfo(),
                         gamepads.current.name,
-                        getString(R.string.settings_version, getString(R.string.app_version), ProtocolConstants.VERSION),
+                        versionLine(),
                         SettingsScreen.Routes(
                             forget = ::forget,
                             corners = { goTo(Screen.CORNERS) },
@@ -434,6 +434,9 @@ class MainActivity :
     ) {
         link?.send(Frame.Key(code, down))
     }
+
+    private fun versionLine(): String =
+        getString(R.string.settings_version, getString(R.string.app_version), ProtocolConstants.VERSION)
 
     private fun openSettings() {
         if (screen != Screen.SETTINGS) settingsReturn = screen
