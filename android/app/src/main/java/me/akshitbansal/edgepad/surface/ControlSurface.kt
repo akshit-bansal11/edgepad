@@ -854,11 +854,11 @@ class ControlSurface(
         const val CORNERS = 4
 
         /** The pieces' sizes in dp; the layout screen draws them at these too. */
-        const val PLAY_DP = 48f
+        const val PLAY_DP = 52f
         const val SKIP_GAP_DP = 52f
         const val NOW_PLAYING_WIDTH_DP = 280f
         const val NOW_PLAYING_HEIGHT_DP = 52f
-        const val LOGO_DP = 32f
+        const val LOGO_DP = 40f
         private const val NOW_PLAYING_MIN_TEXT_DP = 120f
 
         private val CORNER_POSITIONS =
@@ -882,8 +882,8 @@ class ControlSurface(
         private const val JUMP_DP = 64f
         private const val SAMPLE_DP = 8f
         private const val TITLE_SP = 14f
-        private const val SUB_SP = 9f
-        private const val SUB_TRACKING = 0.16f
+        private const val SUB_SP = 10f
+        private const val SUB_TRACKING = 0.12f
         private const val PROGRESS_BELOW_DP = 16f
         private const val PROGRESS_STROKE_DP = 2f
         private const val THUMB_DP = 8f

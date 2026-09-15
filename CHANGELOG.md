@@ -4,6 +4,26 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-15
+
+The phone app is redesigned after the owner's 2026-09-15 design. The protocol and the laptop app are unchanged; install both from the same release as always.
+
+### Added
+- A guide in five pages (why Edgepad, its anatomy, the surface, the keyboard, the gamepad), shown one page at a time with a drawing or all on one scrolling page. It opens on the first run, ending at FIND MY LAPTOP, and again from Settings › Help › Guide.
+- The Devices screen shows the connected laptop's live round trip beside it, a ring round the dot while a connection is being made, and a Bluetooth settings button in its title row.
+- Settings pages of their own for Corners, Dial feel and Background & pattern, each summarised on the Settings screen, and the app and protocol versions at its foot.
+- The layout editors and the gamepad have an options button whose popup holds the media size, the presets, RESET and DONE. The gamepad's popup also opens the layout editor.
+
+### Changed
+- JetBrains Mono (OFL) for every piece of text, bundled with the app; pure black on white or white on black, with the design's greys.
+- A 52 dp title row on every page, square segmented controls, 48 dp buttons, and two columns on every settings page when the phone is sideways.
+- Corners and gestures are picked from a list on the page, with a dot on the current choice, instead of a dialog.
+- The layout editors fill the screen with the system bars hidden, as the surface does, so what is laid out has the surface's proportions. Pieces at rest are dashed; the one being dragged lifts on a shadow. RESET in the media editor also resets the size.
+- The now-playing logo is 40 dp and the play button 52 dp.
+
+### Removed
+- The old onboarding screen, replaced by the guide.
+
 ## [0.9.5] - 2026-09-12
 
 ### Fixed

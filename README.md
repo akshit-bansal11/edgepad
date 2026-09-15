@@ -17,6 +17,7 @@ Edgepad is two programs that talk to each other: an Android app you touch, and a
 - **Media.** The track, the app playing it and where it is, with previous, play/pause and next. Drag the three pieces anywhere on the surface.
 - **Keyboard and gamepad.** A full on-screen keyboard whose modifiers work held or tapped, and a gamepad with editable layouts and presets. Both open sideways.
 - **Live state.** The dials show the laptop's real volume, mute, brightness and playback position, and follow changes made on the laptop itself.
+- **Guide.** Five pages on the first run, and again from Settings, one at a time or on one page.
 - Black on white or white on black, held upright or sideways: a toggle in Settings, no free rotation.
 
 ## Install
@@ -61,12 +62,11 @@ Out of the box, three fingers left and right switch desktops, three up opens tas
 
 ### Settings
 
-- **Connection:** the remembered laptop, and whether to reconnect automatically.
-- **Corners:** which dial each corner holds, or none.
-- **Dial feel:** slide sensitivity, dial length and height, haptic ticks, snapping to round numbers.
-- **Trackpad:** the gesture map, natural scrolling, on-screen hints.
-- **Media:** a screen where the now-playing block, the play button and the previous/next pair are dragged anywhere.
-- **Appearance:** dark or light.
+- **Connection:** the remembered laptop with its round trip, Forget, and whether to reconnect automatically.
+- **Surface:** Corners (which dial each corner holds, or none), Gestures (the gesture map and on-screen hints), Dial feel (slide sensitivity, dial length and height, haptic ticks, snapping to round numbers, with a live preview), and natural scrolling.
+- **Layouts:** the media layout and the gamepad layout, each a full-screen canvas where pieces are dragged anywhere; the options button holds the size, the presets and reset.
+- **Appearance:** dark or light, upright or sideways, and Background & pattern (control colour, a colour, gradient or image behind the surface, and a grid, dots or checker over it).
+- **Help:** the guide.
 
 ## How it works
 
@@ -137,4 +137,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and feature requests use the
 
 ## Credits
 
-Icons are [Lucide](https://lucide.dev), ISC licence. Player logos belong to their owners and are drawn as supplied.
+Icons are [Lucide](https://lucide.dev), ISC licence. The typeface is [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono), SIL Open Font License 1.1; its licence ships in the APK under `assets/licenses`. Player logos belong to their owners and are drawn as supplied.

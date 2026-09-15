@@ -6,9 +6,9 @@ Edgepad is one product in two programs. This page is the map of both and of the 
 Android phone                                   Windows laptop
 --------------------------------------          ----------------------------------------
 MainActivity                                    Edgepad.exe (WinForms tray, one instance)
-  screens: onboarding, pairing, settings,         TrayContext: menu, status, run at login
-           gestures, media layout,                RfcommServer: advertises the service
-           connection lost                          Session (one per phone, own thread)
+  screens: guide, devices, settings pages,      TrayContext: menu, status, run at login
+           layouts, keyboard, gamepad,          RfcommServer: advertises the service
+           connection lost                        Session (one per phone, own thread)
   ControlSurface (one View, all drawn)                FrameCodec -> Dispatcher
     TrackpadRecognizer -> frames                          InputInjector (SendInput)
     Dial x4 -> SET / ACTION frames                        AudioEndpoint (Core Audio)
