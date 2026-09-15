@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <color name="ic_launcher_background">#1A1A1A</color>
-  <!-- The light set; values-night/colors.xml holds the dark one. The design's light grey (#79797F) is
-       darkened to #6B6B71 here so small grey text keeps 4.5:1 against the panel. -->
-  <color name="panel">#FBFBF8</color>
-  <color name="line">#D2D2CB</color>
-  <color name="ink">#101013</color>
-  <color name="dim">#6B6B71</color>
+  <!-- The light set; values-night/colors.xml holds the dark one. Pure white and black on purpose: the
+       owner's design is black on white or white on black, nothing between. Grey text and lines are the
+       design's ink at 55%, 16% and 6%, flattened onto the panel so overlapping strokes do not darken.
+       #737373 on #FFFFFF is 4.74:1. -->
+  <color name="panel">#FFFFFF</color>
+  <color name="line">#D6D6D6</color>
+  <color name="faint">#F0F0F0</color>
+  <color name="ink">#000000</color>
+  <color name="dim">#737373</color>
 </resources>

@@ -92,7 +92,7 @@ class PickerScreen(
         LinearLayout(ui.context).apply {
             gravity = Gravity.CENTER_VERTICAL
             addView(
-                ui.text(ui.string(R.string.pairing_title), Type.TITLE, ui.palette.ink, Type.sans, Type.TRACKING_TIGHT),
+                ui.text(ui.string(R.string.pairing_title), Type.TITLE, ui.palette.ink, Type.TRACKING_TIGHT),
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
             )
             addView(icon(Glyph.Shape.REFRESH, R.string.refresh, onRefresh))

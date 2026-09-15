@@ -5,12 +5,14 @@ import android.content.res.Configuration
 import android.graphics.Typeface
 
 /**
- * The app's four colours, read from resources so night mode picks the dark set (values-night) with no
- * code. Everything is ink on a panel: [line] draws hairlines, [dim] draws secondary text.
+ * The app's colours, read from resources so night mode picks the dark set (values-night) with no code.
+ * Everything is ink on a panel: [line] draws hairlines, [dim] draws secondary text, [faint] fills a
+ * pressed row.
  */
 class Palette(
     val background: Int,
     val line: Int,
+    val faint: Int,
     val ink: Int,
     val dim: Int,
     val dark: Boolean,
@@ -20,6 +22,7 @@ class Palette(
             Palette(
                 context.getColor(R.color.panel),
                 context.getColor(R.color.line),
+                context.getColor(R.color.faint),
                 context.getColor(R.color.ink),
                 context.getColor(R.color.dim),
                 dark =
@@ -29,40 +32,41 @@ class Palette(
     }
 }
 
-/**
- * The type scale, in sp, with its tracking in em. The design's IBM Plex Mono is stood in for by the
- * system monospace, so no font file ships with the app.
- */
+/** The type scale, in sp, with its tracking in em. One face everywhere: JetBrains Mono, bundled in res/font. */
 object Type {
-    val mono: Typeface = Typeface.MONOSPACE
-    val sans: Typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-    val plain: Typeface = Typeface.SANS_SERIF
+    /** Set once by the activity before any view is built; a resource font needs a Context to load. */
+    lateinit var face: Typeface
+        private set
 
-    /** Ruler labels, section headers, chips. */
-    const val MICRO = 11f
+    fun load(context: Context) {
+        if (!::face.isInitialized) face = context.resources.getFont(R.font.jetbrains_mono)
+    }
+
+    /** Section headers, chips, the small value beside a row. */
+    const val MICRO = 10f
 
     /** Sub-lines under a name, footnotes. */
-    const val SMALL = 12f
+    const val SMALL = 11f
 
     /** Button labels. */
-    const val LABEL = 12.5f
+    const val LABEL = 11f
 
     /** Explanations under a heading or beside a control. */
-    const val CAPTION = 13f
-    const val BODY = 14f
+    const val CAPTION = 12f
+    const val BODY = 13f
 
     /** Names in a list. */
-    const val LEAD = 15f
+    const val LEAD = 14f
 
-    /** A dial's number. */
-    const val VALUE = 20f
-    const val HEADING = 24f
-    const val TITLE = 28f
-    const val DISPLAY = 34f
+    /** A screen's name in its title row. */
+    const val HEADING = 15f
 
-    const val TRACKING_WIDE = 0.1f
-    const val TRACKING_BUTTON = 0.12f
-    const val TRACKING_TIGHT = -0.03f
+    /** A page's headline. */
+    const val TITLE = 24f
+
+    const val TRACKING_WIDE = 0.12f
+    const val TRACKING_BUTTON = 0.14f
+    const val TRACKING_TIGHT = -0.01f
 
     /** The small value beside a settings row. */
     const val TRACKING_ROW = 0.1f
@@ -86,11 +90,14 @@ object Space {
     const val TOUCH = 48f
 
     /** A settings row. */
-    const val ROW = 60f
+    const val ROW = 52f
 
     /** A full-width button. */
-    const val BUTTON = 54f
+    const val BUTTON = 48f
+
+    /** A screen's title row. */
+    const val BAR = 52f
 
     /** A page's side margin. */
-    const val PAGE = 24f
+    const val PAGE = 20f
 }

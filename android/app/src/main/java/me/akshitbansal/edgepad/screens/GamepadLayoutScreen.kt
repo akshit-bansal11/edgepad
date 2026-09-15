@@ -53,7 +53,6 @@ object GamepadLayoutScreen {
                         ui.string(R.string.gamepad_layout_title),
                         Type.HEADING,
                         ui.palette.ink,
-                        Type.sans,
                         Type.TRACKING_TIGHT,
                     ),
                     LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
@@ -61,7 +60,7 @@ object GamepadLayoutScreen {
                 addView(ui.chip(ui.string(R.string.media_layout_reset)) { canvas.reset() })
             }
         val hint =
-            ui.text(ui.string(R.string.gamepad_layout_hint), Type.CAPTION, ui.palette.dim, Type.plain).apply {
+            ui.text(ui.string(R.string.gamepad_layout_hint), Type.CAPTION, ui.palette.dim).apply {
                 setPadding(ui.dp(Space.L), 0, ui.dp(Space.L), ui.dp(Space.S))
             }
         val presets =
@@ -118,7 +117,7 @@ object GamepadLayoutScreen {
         private val dots = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.line }
         private val text =
             TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-                typeface = Type.mono
+                typeface = Type.face
                 textAlign = Paint.Align.CENTER
                 letterSpacing = Type.TRACKING_WIDE
                 textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, Type.MICRO, resources.displayMetrics)

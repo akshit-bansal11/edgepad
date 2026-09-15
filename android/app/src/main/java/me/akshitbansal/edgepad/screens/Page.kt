@@ -1,7 +1,6 @@
 package me.akshitbansal.edgepad.screens
 
 import android.content.Context
-import android.graphics.Typeface
 import android.graphics.drawable.ClipDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
@@ -19,27 +18,34 @@ import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
 import me.akshitbansal.edgepad.Palette
+import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
-private const val LEADING = 1.5f
-private const val SECTION_TRACKING = 0.22f
-private const val SUB_TRACKING = 0.12f
-private const val PRESSED_ALPHA = 31
+private const val LEADING = 1.45f
+private const val SECTION_TRACKING = 0.14f
+private const val SUB_TRACKING = 0.1f
+private const val TITLE_TRACKING = 0.02f
+private const val SECTION_TOP_DP = 22f
+private const val SUB_GAP_DP = 3f
 private const val FOCUS_RING_DP = 2f
 private const val TOGGLE_WIDTH_DP = 40f
-private const val TOGGLE_HEIGHT_DP = 23f
-private const val KNOB_DP = 15f
+private const val TOGGLE_HEIGHT_DP = 22f
+private const val KNOB_DP = 16f
 private const val TRACK_DP = 2f
 private const val TICK_DP = 2f
 private const val TICK_BELOW_DP = 16f
 private const val THUMB_DP = 16f
-private const val SEGMENT_INSET_DP = 2f
-private const val SEGMENT_HEIGHT_DP = 30f
+private const val SEGMENT_HEIGHT_DP = 28f
+private const val SEGMENT_PAD_DP = 10f
+private const val CHIP_DP = 32f
+private const val ICON_TOUCH_DP = 40f
+private const val BAR_START_DP = 20f
 
 /**
- * The screens' shared look, after the owner's design: ink on a panel, hairline rows, square buttons,
- * small spaced monospace labels. Builders only; each screen assembles its own page from them.
+ * The screens' shared look, after the owner's 2026-09-15 redesign: ink on a panel, JetBrains Mono
+ * throughout, a 52 dp title row, hairline rows, square buttons and segments, small spaced capitals.
+ * Builders only; each screen assembles its own page from them.
  */
 class Ui(
     val context: Context,
@@ -65,8 +71,12 @@ class Ui(
         vararg args: Any,
     ): String = context.getString(resId, *args)
 
-    /** A page that scrolls when it must and otherwise fills the screen, so [Column.grow] can push content down. */
+    /**
+     * A page that scrolls when it must and otherwise fills the screen, so [Column.grow] can push content
+     * down. A [bar] stays put above the scrolling part.
+     */
     fun page(
+        bar: View? = null,
         centred: Boolean = false,
         fill: Column.() -> Unit,
     ): View {
@@ -78,36 +88,79 @@ class Ui(
         Column(this, column).fill()
         val side = dp(Space.PAGE)
         val end = dp(Space.XL)
-        return ScrollView(context).apply {
-            isFillViewport = true
-            isVerticalScrollBarEnabled = false
-            setPadding(side, end, side, end)
-            clipToPadding = false
-            addView(
-                column,
-                ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
-            )
-            // Edge-to-edge is enforced from targetSdk 35: keep content clear of the system bars and the cutout.
-            setOnApplyWindowInsetsListener { page, insets ->
-                val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
-                page.setPadding(side + bars.left, end + bars.top, side + bars.right, end + bars.bottom)
-                insets
+        val top = if (bar == null) end else 0
+        val scroll =
+            ScrollView(context).apply {
+                isFillViewport = true
+                isVerticalScrollBarEnabled = false
+                setPadding(side, top, side, end)
+                clipToPadding = false
+                addView(
+                    column,
+                    ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
+                )
             }
+        val root =
+            LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                setBackgroundColor(palette.background)
+                if (bar != null) addView(bar)
+                addView(scroll, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+            }
+        // Edge-to-edge is enforced from targetSdk 35: keep content clear of the system bars and the cutout.
+        root.setOnApplyWindowInsetsListener { page, insets ->
+            val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
+            page.setPadding(bars.left, bars.top, bars.right, 0)
+            scroll.setPadding(side, top, side, end + bars.bottom)
+            insets
         }
+        return root
     }
+
+    /** A screen's title row: back when there is somewhere to go back to, the name, then [actions] at the far end. */
+    fun bar(
+        title: CharSequence,
+        onBack: (() -> Unit)?,
+        vararg actions: View,
+    ): LinearLayout =
+        LinearLayout(context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = dp(Space.BAR)
+            setPadding(if (onBack == null) dp(BAR_START_DP) else dp(Space.S), 0, dp(Space.S), 0)
+            if (onBack != null) addView(icon(Glyph.Shape.CHEVRON_LEFT, string(R.string.back), onBack))
+            val name =
+                text(title, Type.HEADING, palette.ink, TITLE_TRACKING).apply {
+                    isAccessibilityHeading = true
+                    setPadding(dp(Space.XS), 0, 0, 0)
+                }
+            addView(name, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            actions.forEach { addView(it) }
+        }
+
+    /** An icon-only button with a 40 dp target, named for screen readers and long-press alike. */
+    fun icon(
+        shape: Glyph.Shape,
+        label: CharSequence,
+        onTap: () -> Unit,
+    ): Glyph =
+        Glyph(context, shape, palette.ink).apply {
+            contentDescription = label
+            tooltipText = label
+            layoutParams = LinearLayout.LayoutParams(dp(ICON_TOUCH_DP), dp(ICON_TOUCH_DP))
+            tappable(this, onTap)
+        }
 
     fun text(
         value: CharSequence,
         sp: Float,
         color: Int,
-        face: Typeface,
         tracking: Float = 0f,
     ): TextView =
         TextView(context).apply {
             text = value
             setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
             setTextColor(color)
-            typeface = face
+            typeface = Type.face
             letterSpacing = tracking
         }
 
@@ -116,7 +169,7 @@ class Ui(
         sp: Float = Type.MICRO,
         color: Int = palette.dim,
         tracking: Float = Type.TRACKING_WIDE,
-    ): TextView = text(value, sp, color, Type.sans, tracking)
+    ): TextView = text(value, sp, color, tracking)
 
     /** A full-width square button. */
     fun button(
@@ -137,7 +190,7 @@ class Ui(
                 GradientDrawable().apply {
                     when (style) {
                         Style.FILLED -> setColor(palette.ink)
-                        Style.OUTLINED -> setStroke(dp(Space.HAIR), palette.ink)
+                        Style.OUTLINED -> setStroke(dp(Space.HAIR), palette.dim)
                         Style.QUIET -> setStroke(dp(Space.HAIR), palette.line)
                     }
                 }
@@ -150,13 +203,14 @@ class Ui(
         label: CharSequence,
         onClick: () -> Unit,
     ): TextView =
-        mono(label, Type.MICRO, palette.dim).apply {
+        mono(label, Type.MICRO, palette.ink, Type.TRACKING_BUTTON).apply {
             gravity = Gravity.CENTER
             minHeight = dp(Space.TOUCH)
             val border = GradientDrawable().apply { setStroke(dp(Space.HAIR), palette.dim) }
-            background = InsetDrawable(border, 0, dp(Space.XS), 0, dp(Space.XS))
+            val inset = (dp(Space.TOUCH) - dp(CHIP_DP)) / 2
+            background = InsetDrawable(border, 0, inset, 0, inset)
             // After the background: a drawable with insets resets the view's padding to those insets.
-            setPadding(dp(Space.XL), 0, dp(Space.XL), 0)
+            setPadding(dp(Space.M), 0, dp(Space.M), 0)
             tappable(this, onClick)
         }
 
@@ -171,10 +225,7 @@ class Ui(
             StateListDrawable().apply {
                 addState(
                     intArrayOf(android.R.attr.state_pressed),
-                    GradientDrawable().apply {
-                        setColor(palette.ink)
-                        alpha = PRESSED_ALPHA
-                    },
+                    GradientDrawable().apply { setColor(palette.faint) },
                 )
                 addState(
                     intArrayOf(android.R.attr.state_focused),
@@ -194,7 +245,7 @@ class Ui(
             text = label
             setTextSize(TypedValue.COMPLEX_UNIT_SP, Type.BODY)
             setTextColor(palette.ink)
-            typeface = Type.plain
+            typeface = Type.face
             isChecked = checked
             thumbDrawable = thumb()
             trackDrawable = track()
@@ -204,33 +255,24 @@ class Ui(
             setOnCheckedChangeListener { _, on -> onChange(on) }
         }
 
-    /** Options side by side in one low rounded strip; the selected one is a filled pill. */
+    /** Options side by side in one square outlined strip; the selected one is filled with ink. */
     fun segmented(
         options: List<CharSequence>,
         selected: Int,
         onSelect: (Int) -> Unit,
     ): LinearLayout =
         LinearLayout(context).apply {
-            val radius = dp(SEGMENT_HEIGHT_DP) / 2f
-            background =
-                GradientDrawable().apply {
-                    setStroke(dp(Space.HAIR), palette.dim)
-                    cornerRadius = radius
-                }
-            val inset = dp(SEGMENT_INSET_DP)
-            setPadding(inset, inset, inset, inset)
+            background = GradientDrawable().apply { setStroke(dp(Space.HAIR), palette.dim) }
+            val hair = dp(Space.HAIR)
+            setPadding(hair, hair, hair, hair)
             options.forEachIndexed { i, label ->
                 val on = i == selected
                 val option =
                     mono(label, Type.MICRO, if (on) palette.background else palette.dim).apply {
                         gravity = Gravity.CENTER
-                        minHeight = dp(SEGMENT_HEIGHT_DP) - 2 * inset
-                        background =
-                            GradientDrawable().apply {
-                                cornerRadius = radius
-                                setColor(if (on) palette.ink else 0)
-                            }
-                        setPadding(dp(Space.M), 0, dp(Space.M), 0)
+                        minHeight = dp(SEGMENT_HEIGHT_DP) - 2 * hair
+                        if (on) setBackgroundColor(palette.ink)
+                        setPadding(dp(SEGMENT_PAD_DP), 0, dp(SEGMENT_PAD_DP), 0)
                         isSelected = on
                         tappable(this) { onSelect(i) }
                     }
@@ -307,14 +349,14 @@ class Ui(
     fun stack(
         title: CharSequence,
         sub: CharSequence?,
-        titleSp: Float = Type.BODY,
+        titleSp: Float = Type.LEAD,
     ): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(0, dp(Space.M), 0, dp(Space.M))
-            addView(text(title, titleSp, palette.ink, Type.plain))
+            addView(text(title, titleSp, palette.ink))
             if (!sub.isNullOrEmpty()) {
-                addView(mono(sub, Type.SMALL, palette.dim, SUB_TRACKING).apply { setPadding(0, dp(Space.XS), 0, 0) })
+                addView(mono(sub, Type.MICRO, palette.dim, SUB_TRACKING).apply { setPadding(0, dp(SUB_GAP_DP), 0, 0) })
             }
         }
 
@@ -406,18 +448,17 @@ class Column(
         value: CharSequence,
         sp: Float,
         topDp: Float = 0f,
-    ): TextView = add(ui.text(value, sp, ui.palette.ink, Type.sans, Type.TRACKING_TIGHT), topDp)
+    ): TextView = add(ui.text(value, sp, ui.palette.ink, Type.TRACKING_TIGHT), topDp)
 
     fun body(
         value: CharSequence,
         topDp: Float = 0f,
-    ): TextView =
-        add(ui.text(value, Type.BODY, ui.palette.dim, Type.plain).apply { setLineSpacing(0f, LEADING) }, topDp)
+    ): TextView = add(ui.text(value, Type.BODY, ui.palette.dim).apply { setLineSpacing(0f, LEADING) }, topDp)
 
     fun section(value: CharSequence) {
         add(
             ui.mono(value, Type.MICRO, ui.palette.dim, SECTION_TRACKING).apply {
-                setPadding(0, ui.dp(Space.XXL), 0, ui.dp(Space.M))
+                setPadding(0, ui.dp(SECTION_TOP_DP), 0, ui.dp(Space.XS))
             },
         )
     }

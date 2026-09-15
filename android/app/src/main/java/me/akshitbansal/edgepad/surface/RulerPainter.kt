@@ -23,7 +23,7 @@ class RulerPainter(
     private val tick = Paint(Paint.ANTI_ALIAS_FLAG)
     private val text =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = me.akshitbansal.edgepad.Type.mono
+            typeface = me.akshitbansal.edgepad.Type.face
             textAlign = Paint.Align.CENTER
         }
 

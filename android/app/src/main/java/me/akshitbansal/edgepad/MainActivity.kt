@@ -117,6 +117,7 @@ class MainActivity :
         super.onCreate(savedInstanceState)
         settings = Settings(this)
         gamepads = GamepadStore(this)
+        Type.load(this)
         ui = Ui(this)
         picker =
             PickerScreen(

@@ -23,7 +23,7 @@ object SettingsScreen {
     )
 
     private const val LENGTH_STEP = 10f
-    private const val MARK_DP = 40f
+    private const val MARK_DP = 24f
     private const val PREVIEW_DP = 220f
     private const val PERCENT = 100
     private const val ANGLE_STEP = 15f
@@ -72,9 +72,7 @@ object SettingsScreen {
         onLandscape: (Boolean) -> Unit,
         onBack: () -> Unit,
     ): View =
-        ui.page {
-            add(header(ui, onBack))
-
+        ui.page(ui.bar(ui.string(R.string.settings_title), onBack, mark(ui))) {
             section(ui.string(R.string.settings_connection))
             hairline()
             val forget = if (connection.name != null) ui.chip(ui.string(R.string.forget), onForget) else null
@@ -91,7 +89,7 @@ object SettingsScreen {
             section(ui.string(R.string.settings_feel))
             hairline()
             val value = ui.mono(sensitivityText(ui, settings.sensitivity), Type.CAPTION, ui.palette.ink, 0f)
-            add(ui.row(ui.text(ui.string(R.string.slide_sensitivity), Type.BODY, ui.palette.ink, Type.plain), value))
+            add(ui.row(ui.text(ui.string(R.string.slide_sensitivity), Type.BODY, ui.palette.ink), value))
             add(
                 ui.ruler(sensitivitySteps, toStep(settings.sensitivity)) { step ->
                     settings.sensitivity = fromStep(step)
@@ -107,7 +105,7 @@ object SettingsScreen {
                     ui.palette.ink,
                     0f,
                 )
-            add(ui.row(ui.text(ui.string(R.string.dial_length), Type.BODY, ui.palette.ink, Type.plain), length))
+            add(ui.row(ui.text(ui.string(R.string.dial_length), Type.BODY, ui.palette.ink), length))
             add(
                 ui.ruler(
                     lengthSteps,
@@ -126,7 +124,7 @@ object SettingsScreen {
                     ui.palette.ink,
                     0f,
                 )
-            add(ui.row(ui.text(ui.string(R.string.dial_height), Type.BODY, ui.palette.ink, Type.plain), height))
+            add(ui.row(ui.text(ui.string(R.string.dial_height), Type.BODY, ui.palette.ink), height))
             add(
                 ui.ruler(
                     heightSteps,
@@ -168,7 +166,7 @@ object SettingsScreen {
             hairline()
             val themes = listOf(ui.string(R.string.theme_dark), ui.string(R.string.theme_light))
             val theme = ui.segmented(themes, if (ui.palette.dark) 0 else 1) { i -> setTheme(ui, dark = i == 0) }
-            add(ui.row(ui.text(ui.string(R.string.theme), Type.BODY, ui.palette.ink, Type.plain), theme))
+            add(ui.row(ui.text(ui.string(R.string.theme), Type.BODY, ui.palette.ink), theme))
             hairline()
             add(ui.toggle(ui.string(R.string.landscape), settings.landscape, onLandscape))
             hairline()
@@ -197,7 +195,7 @@ object SettingsScreen {
                     picker.visibility = if (i == 0) View.GONE else View.VISIBLE
                     refresh(this) { controlColor(ui, settings) }
                 }
-            addView(ui.row(ui.text(ui.string(R.string.control_color), Type.BODY, ui.palette.ink, Type.plain), mode))
+            addView(ui.row(ui.text(ui.string(R.string.control_color), Type.BODY, ui.palette.ink), mode))
             addView(picker)
         }
 
@@ -216,7 +214,7 @@ object SettingsScreen {
                     settings.background = kinds[i]
                     refresh(this) { background(ui, settings, onPickImage) }
                 }
-            addView(ui.row(ui.text(ui.string(R.string.background), Type.BODY, ui.palette.ink, Type.plain), kind))
+            addView(ui.row(ui.text(ui.string(R.string.background), Type.BODY, ui.palette.ink), kind))
             when (settings.background) {
                 Settings.Background.THEME -> {
                     Unit
@@ -253,7 +251,7 @@ object SettingsScreen {
                         )
                     addView(
                         ui.row(
-                            ui.text(ui.string(R.string.gradient_angle), Type.BODY, ui.palette.ink, Type.plain),
+                            ui.text(ui.string(R.string.gradient_angle), Type.BODY, ui.palette.ink),
                             angle,
                         ),
                     )
@@ -271,7 +269,7 @@ object SettingsScreen {
                     val state = if (present) R.string.background_image_set else R.string.background_image_none
                     addView(
                         ui.row(
-                            ui.text(ui.string(state), Type.BODY, ui.palette.ink, Type.plain),
+                            ui.text(ui.string(state), Type.BODY, ui.palette.ink),
                             ui.chip(ui.string(R.string.background_pick_image), onPickImage),
                         ),
                     )
@@ -284,7 +282,7 @@ object SettingsScreen {
                     settings.pattern = patterns[i]
                     refresh(this) { background(ui, settings, onPickImage) }
                 }
-            addView(ui.row(ui.text(ui.string(R.string.pattern), Type.BODY, ui.palette.ink, Type.plain), pattern))
+            addView(ui.row(ui.text(ui.string(R.string.pattern), Type.BODY, ui.palette.ink), pattern))
             if (settings.pattern != Settings.Pattern.NONE) {
                 val size =
                     ui.mono(
@@ -293,7 +291,7 @@ object SettingsScreen {
                         ui.palette.ink,
                         0f,
                     )
-                addView(ui.row(ui.text(ui.string(R.string.pattern_size), Type.BODY, ui.palette.ink, Type.plain), size))
+                addView(ui.row(ui.text(ui.string(R.string.pattern_size), Type.BODY, ui.palette.ink), size))
                 addView(
                     ui
                         .ruler(
@@ -313,7 +311,7 @@ object SettingsScreen {
                     )
                 addView(
                     ui.row(
-                        ui.text(ui.string(R.string.pattern_opacity), Type.BODY, ui.palette.ink, Type.plain),
+                        ui.text(ui.string(R.string.pattern_opacity), Type.BODY, ui.palette.ink),
                         opacity,
                     ),
                 )
@@ -344,29 +342,10 @@ object SettingsScreen {
         parent.addView(build(), index, block.layoutParams)
     }
 
-    private fun header(
-        ui: Ui,
-        onBack: () -> Unit,
-    ): View =
-        LinearLayout(ui.context).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            val back =
-                Glyph(ui.context, Glyph.Shape.CHEVRON_LEFT, ui.palette.ink).apply {
-                    contentDescription = ui.string(R.string.back)
-                    ui.tappable(this, onBack)
-                }
-            addView(back, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
-            addView(
-                ui.text(
-                    ui.string(R.string.settings_title),
-                    Type.HEADING,
-                    ui.palette.ink,
-                    Type.sans,
-                    Type.TRACKING_TIGHT,
-                ),
-                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
-            )
-            addView(MarkView(ui.context), LinearLayout.LayoutParams(ui.dp(MARK_DP), ui.dp(MARK_DP)))
+    private fun mark(ui: Ui): View =
+        MarkView(ui.context).apply {
+            layoutParams =
+                LinearLayout.LayoutParams(ui.dp(MARK_DP), ui.dp(MARK_DP)).apply { marginEnd = ui.dp(Space.S) }
         }
 
     /** A row that opens another screen. */
@@ -378,7 +357,7 @@ object SettingsScreen {
         val chevron = Glyph(ui.context, Glyph.Shape.CHEVRON_RIGHT, ui.palette.dim)
         val row =
             ui.row(
-                ui.text(label, Type.BODY, ui.palette.ink, Type.plain),
+                ui.text(label, Type.BODY, ui.palette.ink),
                 LinearLayout(
                     ui.context,
                 ).apply { addView(chevron, LinearLayout.LayoutParams(ui.dp(Space.XL), ui.dp(Space.XL))) },
@@ -402,7 +381,7 @@ object SettingsScreen {
                     LinearLayout.LayoutParams(ui.dp(Space.XL), ui.dp(Space.XL)),
                 )
             }
-        val row = ui.row(ui.text(ui.string(cornerNames[corner]), Type.BODY, ui.palette.ink, Type.plain), end)
+        val row = ui.row(ui.text(ui.string(cornerNames[corner]), Type.BODY, ui.palette.ink), end)
         ui.tappable(row) { pickCorner(ui, settings, corner, current) }
         return row
     }

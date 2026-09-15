@@ -82,7 +82,7 @@ object ColorPicker {
                     gravity = Gravity.CENTER_VERTICAL
                     minimumHeight = ui.dp(Space.ROW)
                     addView(
-                        ui.text(label, Type.BODY, ui.palette.ink, Type.plain),
+                        ui.text(label, Type.BODY, ui.palette.ink),
                         LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
                     )
                     addView(

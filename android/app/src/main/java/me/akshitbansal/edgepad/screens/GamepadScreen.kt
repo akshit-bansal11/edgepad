@@ -47,7 +47,7 @@ object GamepadScreen {
                     }
                 addView(back, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
                 addView(
-                    ui.text(layout.name, Type.HEADING, ui.palette.ink, Type.sans, Type.TRACKING_TIGHT),
+                    ui.text(layout.name, Type.HEADING, ui.palette.ink, Type.TRACKING_TIGHT),
                     LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
                 )
                 addView(ui.chip(ui.string(R.string.gamepad_edit), onEdit))
@@ -117,7 +117,7 @@ object GamepadScreen {
         private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
         private val text =
             TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-                typeface = Type.mono
+                typeface = Type.face
                 textAlign = Paint.Align.CENTER
                 letterSpacing = Type.TRACKING_WIDE
                 textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, Type.MICRO, resources.displayMetrics)

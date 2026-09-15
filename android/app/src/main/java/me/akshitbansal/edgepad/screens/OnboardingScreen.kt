@@ -28,7 +28,7 @@ object OnboardingScreen {
         ui.page {
             add(MarkView(ui.context), width = ui.dp(MARK_DP), height = ui.dp(MARK_DP))
             add(steps(ui), Space.L)
-            headline(ui.string(R.string.onboarding_title), Type.DISPLAY, TITLE_GAP_DP)
+            headline(ui.string(R.string.onboarding_title), Type.TITLE, TITLE_GAP_DP)
             body(ui.string(R.string.onboarding_intro), Space.L)
             item(dots(ui, 1), R.string.gesture_one_title, R.string.gesture_one, LIST_GAP_DP)
             item(dots(ui, 2), R.string.gesture_two_title, R.string.gesture_two)
@@ -61,7 +61,7 @@ object OnboardingScreen {
                 orientation = LinearLayout.VERTICAL
                 addView(ui.mono(ui.string(titleRes), Type.LABEL, ui.palette.ink, ITEM_TRACKING))
                 addView(
-                    ui.text(ui.string(bodyRes), Type.CAPTION, ui.palette.dim, Type.plain).apply {
+                    ui.text(ui.string(bodyRes), Type.CAPTION, ui.palette.dim).apply {
                         setLineSpacing(0f, ITEM_LEADING)
                         setPadding(0, ui.dp(Space.XS), 0, 0)
                     },

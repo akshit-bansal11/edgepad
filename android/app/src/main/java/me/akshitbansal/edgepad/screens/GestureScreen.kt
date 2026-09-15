@@ -19,27 +19,7 @@ object GestureScreen {
         settings: Settings,
         onBack: () -> Unit,
     ): View =
-        ui.page {
-            add(
-                LinearLayout(ui.context).apply {
-                    gravity = Gravity.CENTER_VERTICAL
-                    val back =
-                        Glyph(ui.context, Glyph.Shape.CHEVRON_LEFT, ui.palette.ink).apply {
-                            contentDescription = ui.string(R.string.back)
-                            ui.tappable(this, onBack)
-                        }
-                    addView(back, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
-                    addView(
-                        ui.text(
-                            ui.string(R.string.gestures_title),
-                            Type.HEADING,
-                            ui.palette.ink,
-                            Type.sans,
-                            Type.TRACKING_TIGHT,
-                        ),
-                    )
-                },
-            )
+        ui.page(ui.bar(ui.string(R.string.gestures_title), onBack)) {
             body(ui.string(R.string.gestures_hint), Space.M)
             var fingers = 0
             for (gesture in Gesture.entries) {
@@ -72,7 +52,7 @@ object GestureScreen {
                 addView(current)
                 addView(chevron, LinearLayout.LayoutParams(ui.dp(Space.XL), ui.dp(Space.XL)))
             }
-        val row = ui.row(ui.text(ui.string(gesture.nameRes), Type.BODY, ui.palette.ink, Type.plain), end)
+        val row = ui.row(ui.text(ui.string(gesture.nameRes), Type.BODY, ui.palette.ink), end)
         ui.tappable(row) { pick(ui, settings, gesture, current) }
         return row
     }

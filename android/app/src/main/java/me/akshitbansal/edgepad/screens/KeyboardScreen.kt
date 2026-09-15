@@ -90,7 +90,6 @@ object KeyboardScreen {
                         ui.string(R.string.keyboard_title),
                         Type.HEADING,
                         ui.palette.ink,
-                        Type.sans,
                         Type.TRACKING_TIGHT,
                     ),
                     LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
@@ -202,7 +201,7 @@ object KeyboardScreen {
             }
         private val labelOn =
             TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-                typeface = Type.mono
+                typeface = Type.face
                 textAlign = Paint.Align.CENTER
                 letterSpacing = Type.TRACKING_WIDE
                 color = palette.background

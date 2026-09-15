@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- Dark: the design's own values. -->
-  <color name="panel">#0F0F12</color>
-  <color name="line">#2B2B33</color>
-  <color name="ink">#F4F4F1</color>
-  <color name="dim">#84848C</color>
+  <!-- Dark: white ink at 55%, 16% and 7% flattened onto black. #8C8C8C on #000000 is 6.5:1. -->
+  <color name="panel">#000000</color>
+  <color name="line">#292929</color>
+  <color name="faint">#121212</color>
+  <color name="ink">#FFFFFF</color>
+  <color name="dim">#8C8C8C</color>
 </resources>

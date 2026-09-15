@@ -153,12 +153,12 @@ class ControlSurface(
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
     private val mono =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = Type.mono
+            typeface = Type.face
             textAlign = Paint.Align.CENTER
         }
     private val titlePaint =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = Type.sans
+            typeface = Type.face
             textSize = sp(TITLE_SP) * mediaScale
         }
 
