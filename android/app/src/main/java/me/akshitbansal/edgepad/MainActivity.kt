@@ -461,7 +461,12 @@ class MainActivity :
                 }
             }
         val devices = bonded().map { PickerScreen.Device(it.address, nameOf(it)) }.sortedBy { it.name }
-        picker.showDevices(devices, settings.laptop, if (link?.connected == true) laptopAddress else null)
+        picker.showDevices(
+            devices,
+            settings.laptop,
+            if (link?.connected == true) laptopAddress else null,
+            settings.reconnect,
+        )
         picker.setMessage(problem ?: if (devices.isEmpty()) getString(R.string.no_paired) else "")
     }
 
@@ -510,8 +515,9 @@ class MainActivity :
         laptopName = nameOf(device)
         laptopAddress = device.address
         rtt.clear()
+        picker.setRtt(Double.NaN)
         picker.setMessage("")
-        picker.setConnecting(laptopName)
+        picker.setConnecting(laptopAddress)
         val next = LaptopLink(device, this)
         link = next
         thread(name = "edgepad-link") { next.open() }
@@ -535,6 +541,7 @@ class MainActivity :
             val ms = (System.nanoTime() - frame.time) / NANOS_PER_MS
             runOnUiThread {
                 rtt.add(ms)
+                picker.setRtt(rtt.median())
             }
             return
         }

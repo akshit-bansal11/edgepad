@@ -9,7 +9,7 @@ import android.graphics.drawable.Drawable
 import android.view.View
 import me.akshitbansal.edgepad.R
 
-/** The small marks the plain screens use: Lucide icons for chevrons, the gear and refresh; a drawn dot row and corner ruler. */
+/** The small marks the plain screens use: Lucide icons for chevrons, the gear, refresh and Bluetooth; a drawn dot row and corner ruler. */
 class Glyph(
     context: Context,
     private val shape: Shape,
@@ -28,6 +28,7 @@ class Glyph(
         CORNER(null),
         GEAR(R.drawable.ic_settings),
         REFRESH(R.drawable.ic_refresh_cw),
+        BLUETOOTH(R.drawable.ic_bluetooth),
     }
 
     private val density = resources.displayMetrics.density
@@ -70,7 +71,7 @@ class Glyph(
             return
         }
         when (shape) {
-            Shape.CHEVRON_RIGHT, Shape.CHEVRON_LEFT, Shape.GEAR, Shape.REFRESH -> {
+            Shape.CHEVRON_RIGHT, Shape.CHEVRON_LEFT, Shape.GEAR, Shape.REFRESH, Shape.BLUETOOTH -> {
                 Unit
             }
 
@@ -102,7 +103,7 @@ class Glyph(
 
     private companion object {
         const val STROKE_DP = 1.5f
-        const val ICON_DP = 22f
+        const val ICON_DP = 20f
         const val DOT_DP = 6f
         const val DOT_GAP_DP = 3f
         const val DOT_TOP_DP = 4f

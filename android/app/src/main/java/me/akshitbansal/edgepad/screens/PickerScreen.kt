@@ -1,10 +1,8 @@
 package me.akshitbansal.edgepad.screens
 
-import android.animation.ValueAnimator
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.PathInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -13,15 +11,15 @@ import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
 /**
- * Step two: pick the paired laptop and connect. The band under the title scans while a connection is
- * being made. Once connected, the main button opens the controls instead; Settings is always one tap away.
+ * The paired laptops. Tapping one connects to it, or opens the controls when it is already connected; the
+ * connected one shows its live round trip. Refresh, Bluetooth settings and Settings sit in the title row.
  */
 class PickerScreen(
     private val ui: Ui,
     private val onConnect: (String) -> Unit,
     private val onOpenControls: () -> Unit,
-    private val onBluetoothSettings: () -> Unit,
-    private val onSettings: () -> Unit,
+    onBluetoothSettings: () -> Unit,
+    onSettings: () -> Unit,
     private val onRefresh: () -> Unit,
 ) {
     class Device(
@@ -32,92 +30,53 @@ class PickerScreen(
     private var devices: List<Device> = emptyList()
     private var remembered: String? = null
     private var connected: String? = null
-    private var selected: String? = null
-    private var connectingTo: String? = null
-    private var scan: ValueAnimator? = null
+    private var connecting: String? = null
+    private var autoConnect = true
+    private var rtt = Double.NaN
+    private var rttTag: TextView? = null
 
     private val list = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
-    private val scanLine =
-        View(ui.context).apply {
-            setBackgroundColor(ui.palette.ink)
-            alpha = SCAN_ALPHA
-            visibility = View.INVISIBLE
-        }
-    private val band =
-        ui
-            .mono(
-                "",
-                Type.SMALL,
-                ui.palette.dim,
-                BAND_TRACKING,
-            ).apply { gravity = Gravity.CENTER_VERTICAL }
+    private val refresh = ui.icon(Glyph.Shape.REFRESH, ui.string(R.string.refresh)) { spinAndRefresh() }
     private lateinit var count: TextView
+    private lateinit var legend: View
+    private lateinit var legendText: TextView
     private lateinit var message: TextView
     private lateinit var action: TextView
 
     val view: View =
-        ui.page {
-            add(MarkView(ui.context), width = ui.dp(MARK_DP), height = ui.dp(MARK_DP))
-            mono(ui.string(R.string.pairing_step), topDp = Space.L)
-            add(header(), Space.M)
-            hairline(Space.XXL)
-            val frame =
-                FrameLayout(ui.context).apply {
-                    addView(
-                        band,
-                        FrameLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                        ),
+        FrameLayout(ui.context).apply {
+            val bar =
+                ui.bar(
+                    ui.string(R.string.pairing_title),
+                    null,
+                    refresh,
+                    ui.icon(Glyph.Shape.BLUETOOTH, ui.string(R.string.open_bluetooth_settings), onBluetoothSettings),
+                    ui.icon(Glyph.Shape.GEAR, ui.string(R.string.settings_title), onSettings),
+                    lead = MarkView(ui.context),
+                )
+            val page =
+                ui.page(bar) {
+                    columns(
+                        {
+                            count = add(ui.section(""))
+                            add(list)
+                            legend = add(legendRow())
+                            message = body("", Space.L).apply { visibility = View.GONE }
+                        },
+                        {
+                            action =
+                                add(
+                                    ui.button(ui.string(R.string.open_controls), Ui.Style.FILLED, onOpenControls),
+                                    Space.L,
+                                )
+                        },
                     )
-                    addView(scanLine, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(Space.HAIR)))
                 }
-            add(frame, height = ui.dp(BAND_DP))
-            hairline()
-            count = mono("", topDp = Space.XXL)
-            add(list, Space.M)
-            message = body("", Space.L)
-            grow()
-            mono(
-                ui.string(R.string.pairing_footnote),
-                Type.SMALL,
-                topDp = Space.XL,
-            ).setLineSpacing(0f, FOOTNOTE_LEADING)
-            action = add(ui.button(ui.string(R.string.open_controls), Ui.Style.FILLED, onOpenControls), Space.L)
-            add(ui.button(ui.string(R.string.open_bluetooth_settings), Ui.Style.QUIET, onBluetoothSettings), Space.M)
-        }
-
-    /** The title, then a refresh arrow that re-reads the paired list, and the gear into Settings. */
-    private fun header(): View =
-        LinearLayout(ui.context).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            addView(
-                ui.text(ui.string(R.string.pairing_title), Type.TITLE, ui.palette.ink, Type.TRACKING_TIGHT),
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
-            )
-            addView(icon(Glyph.Shape.REFRESH, R.string.refresh, onRefresh))
-            addView(icon(Glyph.Shape.GEAR, R.string.settings_title, onSettings))
-        }
-
-    private fun icon(
-        shape: Glyph.Shape,
-        labelRes: Int,
-        onTap: () -> Unit,
-    ): View =
-        Glyph(ui.context, shape, ui.palette.ink).apply {
-            contentDescription = ui.string(labelRes)
-            layoutParams = LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH))
-            ui.tappable(this, onTap)
+            addView(page)
+            addView(EdgeRule(ui.context))
         }
 
     init {
-        view.addOnAttachStateChangeListener(
-            object : View.OnAttachStateChangeListener {
-                override fun onViewAttachedToWindow(v: View) = updateScan()
-
-                override fun onViewDetachedFromWindow(v: View) = stopScan()
-            },
-        )
         render()
     }
 
@@ -125,15 +84,12 @@ class PickerScreen(
         devices: List<Device>,
         remembered: String?,
         connected: String?,
+        autoConnect: Boolean,
     ) {
         this.devices = devices
         this.remembered = remembered
         this.connected = connected
-        if (devices.none { it.address == selected }) {
-            selected =
-                connected ?: remembered?.takeIf { r -> devices.any { it.address == r } }
-                    ?: devices.firstOrNull()?.address
-        }
+        this.autoConnect = autoConnect
         render()
     }
 
@@ -143,33 +99,41 @@ class PickerScreen(
         message.visibility = if (text.isEmpty()) View.GONE else View.VISIBLE
     }
 
-    /** The laptop a connection is being made to, or null when none is. */
-    fun setConnecting(name: String?) {
-        connectingTo = name
+    /** The address a connection is being made to, or null when none is. */
+    fun setConnecting(address: String?) {
+        connecting = address
         render()
-        updateScan()
+    }
+
+    /** The connected laptop's median round trip in milliseconds; NaN before the first answer. */
+    fun setRtt(ms: Double) {
+        rtt = ms
+        rttTag?.text = rttText()
     }
 
     private fun render() {
         list.removeAllViews()
+        rttTag = null
         count.text = ui.string(R.string.pairing_count, devices.size)
         for (device in devices) {
-            list.addView(ui.hairline(), ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(Space.HAIR))
             list.addView(row(device))
+            list.addView(ui.hairline(), ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(Space.HAIR))
         }
-        if (devices.isNotEmpty()) list.addView(ui.hairline(), ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(Space.HAIR))
-        val controls = selected != null && selected == connected
-        action.visibility = if (controls) View.VISIBLE else View.GONE
-        band.text =
-            connectingTo?.let { ui.string(R.string.pairing_connecting, it.uppercase()) }
-                ?: ui.string(R.string.pairing_band)
+        legend.visibility = if (devices.any { it.address == remembered }) View.VISIBLE else View.GONE
+        legendText.text = ui.string(if (autoConnect) R.string.devices_legend else R.string.devices_legend_off)
+        val ready = connected != null
+        action.isEnabled = ready
+        action.alpha = if (ready) 1f else DISABLED_ALPHA
     }
 
     private fun row(device: Device): View {
+        val isConnected = device.address == connected
+        val isConnecting = device.address == connecting
         val status =
-            when (device.address) {
-                connected -> R.string.device_connected
-                remembered -> R.string.device_remembered
+            when {
+                isConnected -> R.string.device_connected
+                isConnecting -> R.string.device_connecting
+                device.address == remembered -> R.string.device_remembered
                 else -> null
             }
         val sub =
@@ -180,61 +144,64 @@ class PickerScreen(
             } else {
                 ui.string(R.string.device_sub, device.address, ui.string(status))
             }
-        val chosen = device.address == selected
-        val end =
+        val dot =
+            Pulse(ui.context, ui.palette.ink, ui.palette.line).apply {
+                lit = isConnected || device.address == remembered
+                pulsing = isConnecting
+            }
+        val start =
             LinearLayout(ui.context).apply {
                 gravity = Gravity.CENTER_VERTICAL
                 addView(
-                    Glyph(ui.context, Glyph.Shape.CHEVRON_RIGHT, ui.palette.ink),
-                    LinearLayout.LayoutParams(ui.dp(Space.XL), ui.dp(Space.XL)),
+                    dot,
+                    LinearLayout.LayoutParams(ui.dp(PULSE_DP), ui.dp(PULSE_DP)).apply {
+                        marginEnd =
+                            ui.dp(Space.M)
+                    },
+                )
+                addView(
+                    ui.stack(device.name, sub),
+                    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
                 )
             }
-        return ui.row(ui.stack(device.name, sub, Type.LEAD), end).apply {
-            isSelected = chosen
+        val tag = ui.mono(if (isConnected) rttText() else "", Type.MICRO, ui.palette.dim, Type.TRACKING_ROW)
+        if (isConnected) rttTag = tag
+        return ui.row(start, tag).apply {
             minimumHeight = ui.dp(ROW_DP)
-            ui.tappable(this) {
-                selected = device.address
-                if (device.address == connected) onOpenControls() else onConnect(device.address)
-            }
+            ui.tappable(this) { if (isConnected) onOpenControls() else onConnect(device.address) }
         }
     }
 
-    private fun updateScan() {
-        if (connectingTo == null || !view.isAttachedToWindow) {
-            stopScan()
-            return
+    private fun legendRow(): View =
+        LinearLayout(ui.context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, ui.dp(Space.M), 0, ui.dp(Space.M))
+            addView(
+                Pulse(ui.context, ui.palette.ink, ui.palette.line).apply { lit = true },
+                LinearLayout.LayoutParams(ui.dp(PULSE_DP), ui.dp(PULSE_DP)).apply { marginEnd = ui.dp(Space.S) },
+            )
+            legendText = ui.mono("", Type.MICRO, ui.palette.dim, Type.TRACKING_ROW)
+            addView(legendText)
         }
-        scanLine.visibility = View.VISIBLE
-        // With animations removed in system settings, the line simply sits still.
-        if (scan != null || !ValueAnimator.areAnimatorsEnabled()) return
-        val travel = (ui.dp(BAND_DP) - ui.dp(Space.HAIR)).toFloat()
-        scan =
-            ValueAnimator.ofFloat(0f, 1f).apply {
-                duration = SCAN_MS
-                repeatCount = ValueAnimator.INFINITE
-                interpolator = PathInterpolator(EASE_X1, EASE_Y1, EASE_X2, EASE_Y2)
-                addUpdateListener { scanLine.translationY = it.animatedFraction * travel }
-                start()
-            }
-    }
 
-    private fun stopScan() {
-        scan?.cancel()
-        scan = null
-        scanLine.visibility = View.INVISIBLE
+    private fun rttText(): String = if (rtt.isNaN()) "" else ui.string(R.string.device_rtt, rtt)
+
+    /** A quarter-second turn of the arrow, so a list that did not change still shows it was read again. */
+    private fun spinAndRefresh() {
+        refresh
+            .animate()
+            .rotationBy(FULL_TURN)
+            .setDuration(SPIN_MS)
+            .withEndAction { refresh.rotation = 0f }
+            .start()
+        onRefresh()
     }
 
     private companion object {
-        const val MARK_DP = 48f
-        const val BAND_DP = 64f
-        const val ROW_DP = 64f
-        const val BAND_TRACKING = 0.12f
-        const val FOOTNOTE_LEADING = 1.6f
-        const val SCAN_ALPHA = 0.45f
-        const val SCAN_MS = 1900L
-        const val EASE_X1 = 0.4f
-        const val EASE_Y1 = 0f
-        const val EASE_X2 = 0.2f
-        const val EASE_Y2 = 1f
+        const val ROW_DP = 60f
+        const val PULSE_DP = 18f
+        const val DISABLED_ALPHA = 0.3f
+        const val FULL_TURN = 360f
+        const val SPIN_MS = 600L
     }
 }

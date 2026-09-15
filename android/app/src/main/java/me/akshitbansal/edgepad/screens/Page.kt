@@ -44,6 +44,7 @@ private const val CHIP_DP = 32f
 private const val ICON_TOUCH_DP = 40f
 private const val BAR_START_DP = 20f
 private const val CHOSEN_DOT_DP = 8f
+private const val LEAD_DP = 22f
 
 /**
  * The screens' shared look, after the owner's 2026-09-15 redesign: ink on a panel, JetBrains Mono
@@ -120,17 +121,25 @@ class Ui(
         return root
     }
 
-    /** A screen's title row: back when there is somewhere to go back to, the name, then [actions] at the far end. */
+    /**
+     * A screen's title row: back when there is somewhere to go back to, else an optional [lead] such as the
+     * mark; then the name, then [actions] at the far end.
+     */
     fun bar(
         title: CharSequence,
         onBack: (() -> Unit)?,
         vararg actions: View,
+        lead: View? = null,
     ): LinearLayout =
         LinearLayout(context).apply {
             gravity = Gravity.CENTER_VERTICAL
             minimumHeight = dp(Space.BAR)
             setPadding(if (onBack == null) dp(BAR_START_DP) else dp(Space.S), 0, dp(Space.S), 0)
-            if (onBack != null) addView(icon(Glyph.Shape.CHEVRON_LEFT, string(R.string.back), onBack))
+            if (onBack != null) {
+                addView(icon(Glyph.Shape.CHEVRON_LEFT, string(R.string.back), onBack))
+            } else if (lead != null) {
+                addView(lead, LinearLayout.LayoutParams(dp(LEAD_DP), dp(LEAD_DP)).apply { marginEnd = dp(Space.S) })
+            }
             val name =
                 text(title, Type.HEADING, palette.ink, TITLE_TRACKING).apply {
                     isAccessibilityHeading = true
