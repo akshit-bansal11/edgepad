@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Guide page 01: a phone, a laptop and the link between them. The parts that move are drawn over it by GuideArt. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-  android:width="300dp"
-  android:height="130dp"
+  android:width="150dp"
+  android:height="65dp"
   android:viewportWidth="300"
   android:viewportHeight="130">
   <path
