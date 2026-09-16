@@ -65,7 +65,7 @@ class ControlSurface(
     private val showHints = settings.hints
     private val scrubOnADial = settings.hasDial(DialKind.MEDIA)
     private val dials: List<Dial> =
-        (0 until CORNERS).mapNotNull { corner ->
+        (0 until Perimeter.CORNERS).mapNotNull { corner ->
             settings.corner(corner)?.let { kind ->
                 kind.dial(
                     corner,
@@ -851,8 +851,6 @@ class ControlSurface(
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, resources.displayMetrics)
 
     companion object {
-        const val CORNERS = 4
-
         /** The pieces' sizes in dp; the layout screen draws them at these too. */
         const val PLAY_DP = 52f
         const val SKIP_GAP_DP = 52f

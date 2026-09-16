@@ -5,6 +5,7 @@ import me.akshitbansal.edgepad.surface.DialKind
 import me.akshitbansal.edgepad.surface.Gesture
 import me.akshitbansal.edgepad.surface.GestureAction
 import me.akshitbansal.edgepad.surface.MediaPiece
+import me.akshitbansal.edgepad.surface.Perimeter
 import java.io.File
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -111,7 +112,7 @@ class Settings(
     }
 
     /** True when some corner holds [kind]. */
-    fun hasDial(kind: DialKind): Boolean = (0 until CORNERS).any { corner(it) == kind }
+    fun hasDial(kind: DialKind): Boolean = (0 until Perimeter.CORNERS).any { corner(it) == kind }
 
     fun gesture(gesture: Gesture): GestureAction {
         val name = prefs.getString("gesture.${gesture.name}", null) ?: return gesture.default
@@ -208,7 +209,6 @@ class Settings(
     }
 
     companion object {
-        const val CORNERS = 4
         const val MIN_SENSITIVITY = 0.5f
         const val MAX_SENSITIVITY = 2.5f
         const val DEFAULT_SENSITIVITY = 1.4f

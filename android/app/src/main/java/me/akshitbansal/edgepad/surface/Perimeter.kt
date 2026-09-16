@@ -215,10 +215,16 @@ class Perimeter(
         }
     }
 
-    private companion object {
+    companion object {
+        /**
+         * How many corners the path has, and so how far the corner scale runs before it laps. Every
+         * consumer of that scale counts with this rather than its own 4: a dial's corner index, a
+         * settings key, the surface's loop over them.
+         */
         const val CORNERS = 4
-        const val PIECES = 8
-        const val MIN_RADIUS = 1f
-        const val HALF_PI = (PI / 2).toFloat()
+
+        private const val PIECES = 8
+        private const val MIN_RADIUS = 1f
+        private const val HALF_PI = (PI / 2).toFloat()
     }
 }

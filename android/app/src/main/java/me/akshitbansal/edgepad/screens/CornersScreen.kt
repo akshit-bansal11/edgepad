@@ -10,6 +10,7 @@ import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.surface.DialKind
+import me.akshitbansal.edgepad.surface.Perimeter
 
 /** What each corner of the surface holds: pick a corner, then pick its dial from the list beside or below it. */
 object CornersScreen {
@@ -48,7 +49,7 @@ object CornersScreen {
         fun render() {
             corners.removeAllViews()
             assign.removeAllViews()
-            for (corner in 0 until Settings.CORNERS) {
+            for (corner in 0 until Perimeter.CORNERS) {
                 corners.addView(
                     row(ui, corner, kindName(ui, settings.corner(corner)), corner == picked) {
                         picked = corner

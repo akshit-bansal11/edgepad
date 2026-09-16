@@ -7,6 +7,7 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.surface.Perimeter
 import kotlin.math.roundToInt
 
 /**
@@ -113,7 +114,7 @@ object SettingsScreen {
         ui: Ui,
         settings: Settings,
     ): String =
-        (0 until Settings.CORNERS).joinToString(" · ") { corner ->
+        (0 until Perimeter.CORNERS).joinToString(" · ") { corner ->
             settings.corner(corner)?.let { ui.string(it.shortRes) } ?: NO_DIAL
         }
 
