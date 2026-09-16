@@ -18,12 +18,10 @@ import kotlin.math.roundToInt
  */
 object AppearanceScreen {
     private const val PERCENT = 100
-    private const val ANGLE_STEP = 15f
-    private const val SIZE_STEP = 4f
     private const val OPACITY_STEPS = 20
     private const val PREVIEW_DP = 110f
-    private val angleSteps = (Settings.MAX_ANGLE / ANGLE_STEP).roundToInt()
-    private val sizeSteps = ((Settings.MAX_PATTERN_SIZE - Settings.MIN_PATTERN_SIZE) / SIZE_STEP).roundToInt()
+    private val angleRange = StepRange(0f, Settings.MAX_ANGLE, 15f)
+    private val sizeRange = StepRange(Settings.MIN_PATTERN_SIZE, Settings.MAX_PATTERN_SIZE, 4f)
 
     private val backgroundNames =
         mapOf(
@@ -138,11 +136,11 @@ object AppearanceScreen {
                     addView(
                         ui.slider(
                             ui.string(R.string.gradient_angle),
-                            angleSteps,
-                            (settings.gradientAngle / ANGLE_STEP).roundToInt(),
-                            { step -> ui.string(R.string.degrees_value, (step * ANGLE_STEP).roundToInt()) },
+                            angleRange.steps,
+                            angleRange.stepOf(settings.gradientAngle),
+                            { step -> ui.string(R.string.degrees_value, angleRange.valueAt(step).roundToInt()) },
                         ) { step ->
-                            settings.gradientAngle = step * ANGLE_STEP
+                            settings.gradientAngle = angleRange.valueAt(step)
                             preview.update()
                         },
                     )
@@ -179,16 +177,11 @@ object AppearanceScreen {
             addView(
                 ui.slider(
                     ui.string(R.string.pattern_size),
-                    sizeSteps,
-                    ((settings.patternSize - Settings.MIN_PATTERN_SIZE) / SIZE_STEP).roundToInt(),
-                    { step ->
-                        ui.string(
-                            R.string.dial_length_value,
-                            (Settings.MIN_PATTERN_SIZE + step * SIZE_STEP).roundToInt(),
-                        )
-                    },
+                    sizeRange.steps,
+                    sizeRange.stepOf(settings.patternSize),
+                    { step -> ui.string(R.string.dial_length_value, sizeRange.valueAt(step).roundToInt()) },
                 ) { step ->
-                    settings.patternSize = Settings.MIN_PATTERN_SIZE + step * SIZE_STEP
+                    settings.patternSize = sizeRange.valueAt(step)
                     preview.update()
                 },
             )

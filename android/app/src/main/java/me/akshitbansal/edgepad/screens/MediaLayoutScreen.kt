@@ -13,20 +13,13 @@ import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.surface.ControlSurface
 import me.akshitbansal.edgepad.surface.MediaPiece
-import kotlin.math.roundToInt
 
 /**
  * Drag the media pieces on a full-size canvas with a snapping grid; where they land is where the surface
  * draws them. A piece near the middle snaps to it, and the centre lines light up to say so.
  */
 object MediaLayoutScreen {
-    private const val SCALE_STEP = 0.1f
-
-    private fun scaleOf(step: Int): Float = Settings.MIN_MEDIA_SCALE + step * SCALE_STEP
-
-    private fun toStep(scale: Float): Int = ((scale - Settings.MIN_MEDIA_SCALE) / SCALE_STEP).roundToInt()
-
-    private val SCALE_STEPS = ((Settings.MAX_MEDIA_SCALE - Settings.MIN_MEDIA_SCALE) / SCALE_STEP).roundToInt()
+    private val scaleRange = StepRange(Settings.MIN_MEDIA_SCALE, Settings.MAX_MEDIA_SCALE, 0.1f)
 
     fun build(
         ui: Ui,
@@ -40,11 +33,11 @@ object MediaLayoutScreen {
                 addView(
                     ui.slider(
                         ui.string(R.string.media_scale),
-                        SCALE_STEPS,
-                        toStep(settings.mediaScale),
-                        { step -> ui.string(R.string.multiplier_value, scaleOf(step)) },
+                        scaleRange.steps,
+                        scaleRange.stepOf(settings.mediaScale),
+                        { step -> ui.string(R.string.multiplier_value, scaleRange.valueAt(step)) },
                     ) { step ->
-                        settings.mediaScale = scaleOf(step)
+                        settings.mediaScale = scaleRange.valueAt(step)
                         canvas.rescale()
                     },
                 )
