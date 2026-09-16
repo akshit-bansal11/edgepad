@@ -2,9 +2,9 @@
 
 # Edgepad
 
-Your phone as a control surface for your Windows laptop, over Bluetooth.
+Edgepad turns an Android phone into a trackpad, a media remote and a control panel for a Windows laptop, over a direct Bluetooth link with nothing in between.
 
-Edgepad is two programs that talk to each other: an Android app you touch, and a small tray app on the laptop that carries out what the phone asks for. No account, no cloud, no Wi-Fi: the phone and the laptop are paired once in Bluetooth settings, and after that the phone reaches the laptop directly.
+It is for the times the laptop is across the room rather than under your hands: plugged into a television, docked on a desk you are not sitting at, parked somewhere a mouse dongle will not reach. The alternatives are a remote app that only sends media keys, or a remote-desktop app that streams the whole screen and wants an account and a network round trip to change the volume. Edgepad is neither. The phone and the laptop pair once, the way a headset does, and after that they talk directly: no account, no Wi-Fi, no service in between that can be slow or down. The cost is Bluetooth's own — both ends need it, and it does not reach another room or the internet.
 
 [![CI](https://github.com/akshit-bansal11/edgepad/actions/workflows/ci.yml/badge.svg)](https://github.com/akshit-bansal11/edgepad/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/akshit-bansal11/edgepad)](https://github.com/akshit-bansal11/edgepad/releases/latest)

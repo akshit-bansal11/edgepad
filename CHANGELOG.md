@@ -1,8 +1,41 @@
 # Changelog
 
-All notable changes to Edgepad. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Until 1.0 a minor version may change the protocol; both apps must be installed from the same release.
+All notable changes to Edgepad. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html). From 1.0 the wire protocol only changes in a major version. Both apps must still be installed from the same release: they refuse each other at the handshake when their protocol versions differ, and say so.
 
 ## [Unreleased]
+
+## [1.0.0] - 2026-09-16
+
+The first stable release. How the app behaves is unchanged from 0.10.0; what changes is the promise around
+it. The wire protocol is settled at version 3 and now only moves in a major release, and the repository is
+arranged for someone other than its author to work in.
+
+### Changed
+- Both layout editors draw on one shared canvas: the dot grid, the border, the centre lines and the
+  snapping existed twice, in two files that had drifted apart in small ways.
+- The gamepad's shape rules — a shoulder button's proportions, the d-pad's grid and which of its cells are
+  arms — are in one place instead of being declared separately by the editor and the live gamepad.
+- The control surface's gear, keyboard and gamepad buttons are one list, rather than three of every field
+  and a branch each in six methods.
+- A slider over a range of settings carries its own step arithmetic; each screen used to write the same
+  three formulas by hand, and one screen wrote one of them out three times.
+- `Perimeter` is the single place that says a screen has four corners. Three files each had their own copy.
+- On the laptop, one table decides whether a key is an extended key. There were two, which could disagree.
+
+### Fixed
+- The gamepad no longer allocates while drawing (a rectangle per d-pad cell, every frame) or while being
+  touched (a direction-bit array on every change). Android lint's `DrawAllocation` only inspects a method
+  literally named `onDraw`, so neither was ever reported.
+- The changelog had two different `0.9.5` sections. The release workflow reads the first match, so the
+  second could never have been published.
+
+### Documentation
+- The README says what Edgepad is, who it is for and what it replaces, before any badge.
+- CONTRIBUTING covers building each half, running the two against each other, what cannot be checked
+  without a phone and a laptop to hand, and where to start without them.
+- ARCHITECTURE explains the golden protocol fixtures: `protocol/frames.txt` and `protocol/actions.txt` are
+  read by both test suites, so changing one side's codec without the other fails a test rather than
+  shipping two apps that no longer understand each other.
 
 ## [0.10.0] - 2026-09-15
 
@@ -29,11 +62,6 @@ The phone app is redesigned after the owner's 2026-09-15 design. The protocol an
 ### Fixed
 - The Windows exe and tray icon are the supplied `assets/edgepad-light.svg`, rendered from the file itself. 0.9.3 had redrawn the mark by hand: the arc came out the wrong radius, the mark sat off centre, and the tile was the wrong grey.
 - The Android launcher icon takes the brand's colours (#CDCDCD on #1A1A1A). Its drawing is unchanged: the launcher masks its outer edge, so the mark stays inside the safe zone rather than filling the tile as the app icon does.
-
-## [0.9.5] - 2026-09-12
-
-### Fixed
-- The Windows exe and tray icon are now rendered from `assets/edgepad-light.svg` exactly; 0.9.3 had drawn an older, smaller mark on a different tile colour.
 
 ## [0.9.4] - 2026-09-12
 
@@ -224,7 +252,20 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v0.6.2...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.10.0...v1.0.0
+[0.10.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.9.5...v0.10.0
+[0.9.5]: https://github.com/akshit-bansal11/edgepad/compare/v0.9.4...v0.9.5
+[0.9.4]: https://github.com/akshit-bansal11/edgepad/compare/v0.9.3...v0.9.4
+[0.9.3]: https://github.com/akshit-bansal11/edgepad/compare/v0.9.2...v0.9.3
+[0.9.2]: https://github.com/akshit-bansal11/edgepad/compare/v0.9.1...v0.9.2
+[0.9.1]: https://github.com/akshit-bansal11/edgepad/compare/v0.9.0...v0.9.1
+[0.9.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.8.1...v0.9.0
+[0.8.1]: https://github.com/akshit-bansal11/edgepad/compare/v0.8.0...v0.8.1
+[0.8.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.7.2...v0.8.0
+[0.7.2]: https://github.com/akshit-bansal11/edgepad/compare/v0.7.1...v0.7.2
+[0.7.1]: https://github.com/akshit-bansal11/edgepad/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.6.2...v0.7.0
 [0.6.2]: https://github.com/akshit-bansal11/edgepad/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/akshit-bansal11/edgepad/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.5.0...v0.6.0
