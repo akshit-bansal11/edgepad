@@ -17,7 +17,7 @@ internal static partial class BrowserTitle
     private static readonly string[] Services =
     [
         "YouTube Music", "Apple Music", "Apple TV", "Prime Video", "HBO Max", "Paramount+", "Disney+", "Netflix",
-        "YouTube", "Spotify", "Hulu", "Crunchyroll", "Peacock", "SoundCloud", "Twitch", "JioHotstar", "Hotstar",
+        "YouTube", "Spotify", "Hulu", "Crunchyroll", "Peacock", "SoundCloud", "Twitch", "Plex", "JioHotstar", "Hotstar",
         "JioCinema", "SonyLIV",
     ];
 

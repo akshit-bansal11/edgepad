@@ -21,6 +21,10 @@ public sealed class BrowserTitleTests
         Assert.Equal("YouTube Music", BrowserTitle.Service(["Liked songs - YouTube Music - Google Chrome"]));
 
     [Fact]
+    public void PlexIsReadFromTheTitle() =>
+        Assert.Equal("Plex", BrowserTitle.Service(["The Expanse | Plex - Google Chrome"]));
+
+    [Fact]
     public void AnUnknownTitleGivesNothing() =>
         Assert.Null(BrowserTitle.Service(["New Tab - Google Chrome", "Inbox - Gmail"]));
 }
