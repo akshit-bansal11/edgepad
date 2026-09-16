@@ -84,9 +84,12 @@ class ControlSurface(
     private val logo = AppLogo(context, backdrop.isDark)
 
     // Lucide icons, tinted once: the buttons in the dim ink, skips in ink, play and pause cut out of the disc.
-    private val gearIcon = icon(R.drawable.ic_settings, dim)
-    private val keyboardIcon = icon(R.drawable.ic_keyboard, dim)
-    private val gamepadIcon = icon(R.drawable.ic_gamepad_2, dim)
+    private val topButtons =
+        listOf(
+            TopButton(icon(R.drawable.ic_settings, dim), side = -1, open = onOpenSettings),
+            TopButton(icon(R.drawable.ic_keyboard, dim), side = 0, open = onOpenKeyboard),
+            TopButton(icon(R.drawable.ic_gamepad_2, dim), side = 1, open = onOpenGamepad),
+        )
     private val skipBackIcon = icon(R.drawable.ic_skip_back, ink)
     private val skipForwardIcon = icon(R.drawable.ic_skip_forward, ink)
     private val playIcon = icon(R.drawable.ic_play, if (backdrop.isDark) Color.BLACK else Color.WHITE)
@@ -119,9 +122,6 @@ class ControlSurface(
     private val prevHit = RectF()
     private val playHit = RectF()
     private val nextHit = RectF()
-    private val gearHit = RectF()
-    private val keyboardHit = RectF()
-    private val gamepadHit = RectF()
     private var titleLine = ""
     private var subLine = ""
 
@@ -129,9 +129,9 @@ class ControlSurface(
     private var activeDial = -1
     private var lastS = 0f
     private var buttonDown: ActionId? = null
-    private var gearDown = false
-    private var keyboardDown = false
-    private var gamepadDown = false
+
+    /** The top button the finger went down on, until it lifts or the touch is cancelled. */
+    private var pressedTop: TopButton? = null
     private var scrubbing = false
     private var scrubFraction = 0f
 
@@ -229,9 +229,10 @@ class ControlSurface(
         layoutNowPlaying(w, h)
         val offset = dp(TOP_BUTTON_OFFSET_DP)
         val top = dp(TOP_DP)
-        keyboardHit.set(w / 2 - touch, top - touch, w / 2 + touch, top + touch)
-        gearHit.set(w / 2 - offset - touch, top - touch, w / 2 - offset + touch, top + touch)
-        gamepadHit.set(w / 2 + offset - touch, top - touch, w / 2 + offset + touch, top + touch)
+        for (button in topButtons) {
+            val cx = w / 2 + button.side * offset
+            button.hit.set(cx - touch, top - touch, cx + touch, top + touch)
+        }
     }
 
     /** Keeps Android's back gesture off each corner dial; the bottom edge (home) cannot be claimed. */
@@ -327,9 +328,9 @@ class ControlSurface(
             drawNowPlaying(canvas)
             drawTransport(canvas)
         }
-        drawIcon(canvas, gearIcon, gearHit.centerX(), gearHit.centerY(), dp(ICON_DP))
-        drawIcon(canvas, keyboardIcon, keyboardHit.centerX(), keyboardHit.centerY(), dp(ICON_DP))
-        drawIcon(canvas, gamepadIcon, gamepadHit.centerX(), gamepadHit.centerY(), dp(ICON_DP))
+        for (button in topButtons) {
+            drawIcon(canvas, button.icon, button.hit.centerX(), button.hit.centerY(), dp(ICON_DP))
+        }
         if (showHints) drawHints(canvas)
         drawFingers(canvas)
         for (i in dials.indices) drawDial(canvas, i)
@@ -559,28 +560,20 @@ class ControlSurface(
             }
 
             MotionEvent.ACTION_UP -> {
-                when (up(event)) {
-                    Tapped.GEAR -> {
-                        performClick()
-                        onOpenSettings()
+                val top = pressedTop
+                pressedTop = null
+                when {
+                    // performClick() is called from here rather than from up(): Android lint wants it
+                    // lexically inside onTouchEvent. A finger that slid off a button opens nothing.
+                    top != null -> {
+                        if (top.hit.contains(event.x, event.y)) {
+                            performClick()
+                            top.open()
+                        }
                     }
 
-                    Tapped.KEYBOARD -> {
+                    up(event) -> {
                         performClick()
-                        onOpenKeyboard()
-                    }
-
-                    Tapped.GAMEPAD -> {
-                        performClick()
-                        onOpenGamepad()
-                    }
-
-                    Tapped.DIAL -> {
-                        performClick()
-                    }
-
-                    Tapped.NOTHING -> {
-                        Unit
                     }
                 }
             }
@@ -602,17 +595,10 @@ class ControlSurface(
         val y = event.y
         val media = mediaShown()
         val button = if (media) transportAt(x, y) else null
+        val top = topButtons.firstOrNull { it.hit.contains(x, y) }
         when {
-            gearHit.contains(x, y) -> {
-                gearDown = true
-            }
-
-            keyboardHit.contains(x, y) -> {
-                keyboardDown = true
-            }
-
-            gamepadHit.contains(x, y) -> {
-                gamepadDown = true
+            top != null -> {
+                pressedTop = top
             }
 
             button != null -> {
@@ -676,26 +662,9 @@ class ControlSurface(
         dials[activeDial].slide(moved / density, TrackpadRecognizer.SLOP_DP)
     }
 
-    private enum class Tapped { NOTHING, GEAR, KEYBOARD, GAMEPAD, DIAL }
-
-    /** Ends the touch and says what, if anything, it tapped. */
-    private fun up(event: MotionEvent): Tapped {
+    /** Ends the touch and says whether it tapped a dial; a top button is settled in [onTouchEvent]. */
+    private fun up(event: MotionEvent): Boolean {
         when {
-            gearDown -> {
-                gearDown = false
-                return if (gearHit.contains(event.x, event.y)) Tapped.GEAR else Tapped.NOTHING
-            }
-
-            keyboardDown -> {
-                keyboardDown = false
-                return if (keyboardHit.contains(event.x, event.y)) Tapped.KEYBOARD else Tapped.NOTHING
-            }
-
-            gamepadDown -> {
-                gamepadDown = false
-                return if (gamepadHit.contains(event.x, event.y)) Tapped.GAMEPAD else Tapped.NOTHING
-            }
-
             buttonDown != null -> {
                 buttonDown = null
             }
@@ -708,7 +677,7 @@ class ControlSurface(
             activeDial >= 0 -> {
                 val dial = dials[activeDial]
                 activeDial = -1
-                return if (dial.up()) Tapped.DIAL else Tapped.NOTHING
+                return dial.up()
             }
 
             else -> {
@@ -717,24 +686,21 @@ class ControlSurface(
                 trailLength = 0
             }
         }
-        return Tapped.NOTHING
+        return false
     }
 
     private fun cancel(event: MotionEvent) {
         if (activeDial >= 0) dials[activeDial].cancel()
         activeDial = -1
         buttonDown = null
-        gearDown = false
-        keyboardDown = false
-        gamepadDown = false
+        pressedTop = null
         scrubbing = false
         fingerCount = 0
         trailLength = 0
         trackpad.handle(TrackpadRecognizer.Action.CANCEL, FloatArray(0), FloatArray(0), event.eventTime)
     }
 
-    private fun onTrackpad(): Boolean =
-        activeDial < 0 && buttonDown == null && !gearDown && !keyboardDown && !gamepadDown && !scrubbing
+    private fun onTrackpad(): Boolean = activeDial < 0 && buttonDown == null && pressedTop == null && !scrubbing
 
     /** Records where every finger still down is, and extends the tail when there is just one. */
     private fun fingers(
@@ -837,6 +803,18 @@ class ControlSurface(
         id: Int,
         labelRes: Int,
     ) = AccessibilityNodeInfo.AccessibilityAction(id, context.getString(labelRes))
+
+    /**
+     * One of the buttons floating at the top of the surface. [side] places it across the centre of the
+     * top edge: -1 one step left of it, 0 on it, 1 one step right.
+     */
+    private class TopButton(
+        val icon: Drawable,
+        val side: Int,
+        val open: () -> Unit,
+    ) {
+        val hit = RectF()
+    }
 
     private fun haptic() {
         if (hapticsOn) performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
