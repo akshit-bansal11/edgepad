@@ -133,6 +133,13 @@ object MediaLayoutScreen {
             }
         }
 
+        // Lint's ClickableViewAccessibility wants this on the same class that overrides onTouchEvent;
+        // inheriting it from LayoutCanvas does not satisfy the rule, so both editors carry their own.
+        override fun performClick(): Boolean {
+            super.performClick()
+            return true
+        }
+
         override fun onTouchEvent(event: MotionEvent): Boolean {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {

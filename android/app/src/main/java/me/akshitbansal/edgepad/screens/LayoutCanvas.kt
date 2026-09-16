@@ -94,11 +94,6 @@ internal abstract class LayoutCanvas(
         canvas.drawLine(0f, height / 2f, width.toFloat(), height / 2f, stroke)
     }
 
-    override fun performClick(): Boolean {
-        super.performClick()
-        return true
-    }
-
     // Not protected: a companion object's members are members of the companion, so protected there
     // restricts them to subclasses of the companion rather than of this class. The class is internal,
     // so these reach no further than the module either way.
