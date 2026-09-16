@@ -92,16 +92,16 @@ internal static class InputBuilder
         _ => throw new InvalidDataException($"No mouse button {id}"),
     };
 
-    // Arrow keys and the Windows key sit in the extended key block; without the flag some apps read
-    // an injected arrow as a numpad key.
-    private static bool IsExtended(Keys key) => key is Keys.Left or Keys.Right or Keys.LWin;
-
-    // Same block, by raw virtual-key code: arrows, Home/End/PageUp/PageDown, Insert/Delete, both Win keys,
-    // right Ctrl/Alt, numpad divide, NumLock and PrintScreen.
+    // Arrows, Home/End/PageUp/PageDown, Insert/Delete, both Win keys, right Ctrl/Alt, numpad divide,
+    // NumLock and PrintScreen sit in the extended key block; without the flag some apps read an
+    // injected arrow as a numpad key. Keys' values are the same Win32 virtual-key codes, so one table
+    // answers both Keys and raw-code lookups.
     private static readonly HashSet<ushort> ExtendedCodes =
     [
         0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x2C, 0x2D, 0x2E, 0x5B, 0x5C, 0x6F, 0x90, 0xA3, 0xA5,
     ];
+
+    private static bool IsExtended(Keys key) => IsExtendedCode((ushort)key);
 
     private static bool IsExtendedCode(ushort code) => ExtendedCodes.Contains(code);
 }
