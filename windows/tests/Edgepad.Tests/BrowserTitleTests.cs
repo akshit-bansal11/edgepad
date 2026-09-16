@@ -41,6 +41,10 @@ public sealed class BrowserTitleTests
         Assert.Equal("Paramount+", BrowserTitle.Service(["Yellowjackets | Paramount+ - Google Chrome"]));
 
     [Fact]
+    public void PlexIsReadFromTheTitle() =>
+        Assert.Equal("Plex", BrowserTitle.Service(["The Expanse | Plex - Google Chrome"]));
+
+    [Fact]
     public void AnUnknownTitleGivesNothing() =>
         Assert.Null(BrowserTitle.Service(["New Tab - Google Chrome", "Inbox - Gmail"]));
 }
