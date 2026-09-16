@@ -6,7 +6,6 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.text.TextPaint
 import android.util.TypedValue
-import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View

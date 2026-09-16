@@ -2,7 +2,11 @@ package me.akshitbansal.edgepad
 
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Paint
 import android.graphics.Typeface
+import android.text.TextPaint
+import android.util.DisplayMetrics
+import android.util.TypedValue
 
 /**
  * The app's colours, read from resources so night mode picks the dark set (values-night) with no code.
@@ -73,6 +77,15 @@ object Type {
 
     /** Where a line of text's visual centre sits above its baseline, as a fraction of the size. */
     const val CAP_CENTRE = 0.35f
+
+    /** The label paint drawn on a canvas piece: one face, centred, tracked wide, sized at [MICRO]. */
+    fun pieceLabel(metrics: DisplayMetrics): TextPaint =
+        TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = face
+            textAlign = Paint.Align.CENTER
+            letterSpacing = TRACKING_WIDE
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, MICRO, metrics)
+        }
 }
 
 /** The spacing scale, in dp. */

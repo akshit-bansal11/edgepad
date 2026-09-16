@@ -3,23 +3,16 @@ package me.akshitbansal.edgepad.screens
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.DashPathEffect
-import android.graphics.Paint
 import android.graphics.RectF
-import android.text.TextPaint
-import android.util.TypedValue
-import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
 import android.widget.LinearLayout
-import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.surface.ControlSurface
 import me.akshitbansal.edgepad.surface.MediaPiece
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -82,34 +75,11 @@ object MediaLayoutScreen {
     private class Editor(
         context: Context,
         private val settings: Settings,
-    ) : View(context) {
-        private val density = resources.displayMetrics.density
-        private val palette = Palette.of(context)
+    ) : LayoutCanvas(context) {
         private val names = MediaPiece.entries.associateWith { context.getString(it.nameRes) }
         private val positions = MediaPiece.entries.associateWith { settings.piece(it) }.toMutableMap()
         private var dragging: MediaPiece? = null
-        private var onCentreX = false
-        private var onCentreY = false
-        private val box = RectF()
-        private val stroke =
-            Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                style = Paint.Style.STROKE
-                strokeWidth = Space.HAIR * density
-            }
-        private val dots = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.line }
         private val dash = DashPathEffect(floatArrayOf(DASH_DP * density, GAP_DP * density), 0f)
-        private val lift =
-            Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = palette.faint
-                setShadowLayer(LIFT_BLUR_DP * density, 0f, LIFT_DROP_DP * density, SHADOW)
-            }
-        private val text =
-            TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-                typeface = Type.face
-                textAlign = Paint.Align.CENTER
-                letterSpacing = Type.TRACKING_WIDE
-                textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, Type.MICRO, resources.displayMetrics)
-            }
 
         init {
             contentDescription = context.getString(R.string.media_layout_title)
@@ -152,31 +122,6 @@ object MediaLayoutScreen {
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
-            val cell = GRID_DP * density
-            val r = DOT_DP * density / 2
-            var y = cell
-            while (y < height) {
-                var x = cell
-                while (x < width) {
-                    canvas.drawCircle(x, y, r, dots)
-                    x += cell
-                }
-                y += cell
-            }
-            stroke.pathEffect = null
-            stroke.color = palette.line
-            canvas.drawRect(
-                stroke.strokeWidth / 2,
-                stroke.strokeWidth / 2,
-                width - stroke.strokeWidth / 2,
-                height - stroke.strokeWidth / 2,
-                stroke,
-            )
-            // The centre lines: faint always, ink while a piece sits on one.
-            stroke.color = if (onCentreX) palette.ink else palette.line
-            canvas.drawLine(width / 2f, 0f, width / 2f, height.toFloat(), stroke)
-            stroke.color = if (onCentreY) palette.ink else palette.line
-            canvas.drawLine(0f, height / 2f, width.toFloat(), height / 2f, stroke)
             for (piece in MediaPiece.entries) {
                 bounds(piece, box)
                 // A piece at rest is dashed; the one being dragged lifts off the grid on a shadow.
@@ -195,11 +140,6 @@ object MediaLayoutScreen {
             }
         }
 
-        override fun performClick(): Boolean {
-            super.performClick()
-            return true
-        }
-
         override fun onTouchEvent(event: MotionEvent): Boolean {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
@@ -215,8 +155,7 @@ object MediaLayoutScreen {
                     val x = snap(event.x, width)
                     val y = snap(event.y, height)
                     positions[piece] = x to y
-                    onCentreX = abs(x - HALF) < EPSILON
-                    onCentreY = abs(y - HALF) < EPSILON
+                    setOnCentre(x, y)
                 }
 
                 MotionEvent.ACTION_UP -> {
@@ -224,15 +163,13 @@ object MediaLayoutScreen {
                     val (x, y) = positions.getValue(piece)
                     settings.setPiece(piece, x, y)
                     dragging = null
-                    onCentreX = false
-                    onCentreY = false
+                    clearOnCentre()
                     performClick()
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
                     dragging = null
-                    onCentreX = false
-                    onCentreY = false
+                    clearOnCentre()
                 }
 
                 else -> {
@@ -243,30 +180,9 @@ object MediaLayoutScreen {
             return true
         }
 
-        /** The grid point nearest [px] along an axis of [extent] pixels, or the centre when close to it, as a fraction. */
-        private fun snap(
-            px: Float,
-            extent: Int,
-        ): Float {
-            val centre = extent / 2f
-            if (abs(px - centre) < CENTRE_SNAP_DP * density) return HALF
-            val cell = GRID_DP * density
-            val snapped = (px / cell).roundToInt() * cell
-            return (snapped / extent).coerceIn(0f, 1f)
-        }
-
         private companion object {
-            const val CORNER_DP = 6f
-            const val GRID_DP = 12f
-            const val DOT_DP = 2f
-            const val CENTRE_SNAP_DP = 10f
-            const val HALF = 0.5f
-            const val EPSILON = 1e-3f
             const val DASH_DP = 4f
             const val GAP_DP = 3f
-            const val LIFT_BLUR_DP = 12f
-            const val LIFT_DROP_DP = 6f
-            const val SHADOW = 0x59000000
         }
     }
 }

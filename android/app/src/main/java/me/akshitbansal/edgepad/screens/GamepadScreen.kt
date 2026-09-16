@@ -5,8 +5,6 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.text.TextPaint
-import android.util.TypedValue
-import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
@@ -16,6 +14,7 @@ import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.gamepad.ControlGeometry
 import me.akshitbansal.edgepad.gamepad.ControlKind
 import me.akshitbansal.edgepad.gamepad.GamepadLayout
 import kotlin.math.abs
@@ -120,13 +119,8 @@ object GamepadScreen {
                 strokeWidth = Space.HAIR * density
             }
         private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-        private val text =
-            TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-                typeface = Type.face
-                textAlign = Paint.Align.CENTER
-                letterSpacing = Type.TRACKING_WIDE
-                textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, Type.MICRO, resources.displayMetrics)
-            }
+        private val text: TextPaint = Type.pieceLabel(resources.displayMetrics)
+        private val dpadCell = RectF()
 
         init {
             contentDescription = context.getString(R.string.gamepad_description)
@@ -145,7 +139,7 @@ object GamepadScreen {
                 centerY[i] = control.y * h
                 sizePx[i] = control.size * density
                 halfW[i] = sizePx[i] / 2f
-                halfH[i] = if (control.kind == ControlKind.SHOULDER) halfW[i] * SHOULDER_ASPECT else halfW[i]
+                halfH[i] = ControlGeometry.halfHeight(control.kind, halfW[i])
             }
         }
 
@@ -182,7 +176,7 @@ object GamepadScreen {
             canvas: Canvas,
             i: Int,
         ) {
-            val corner = CORNER_DP * density
+            val corner = ControlGeometry.CORNER_DP * density
             if (pressed[i]) {
                 fill.color = palette.ink
                 canvas.drawRoundRect(box, corner, corner, fill)
@@ -199,24 +193,23 @@ object GamepadScreen {
             canvas: Canvas,
             i: Int,
         ) {
-            val third = box.width() / DPAD_CELLS
-            for (row in 0 until DPAD_CELLS.toInt()) {
-                for (col in 0 until DPAD_CELLS.toInt()) {
+            val third = box.width() / ControlGeometry.DPAD_CELLS
+            for (row in 0 until ControlGeometry.DPAD_CELLS.toInt()) {
+                for (col in 0 until ControlGeometry.DPAD_CELLS.toInt()) {
+                    if (!ControlGeometry.isArmCell(row, col)) continue
                     val bit = dpadCellBit(row, col)
-                    if (row != 1 && col != 1) continue
-                    val cell =
-                        RectF(
-                            box.left + col * third,
-                            box.top + row * third,
-                            box.left + (col + 1) * third,
-                            box.top + (row + 1) * third,
-                        )
+                    dpadCell.set(
+                        box.left + col * third,
+                        box.top + row * third,
+                        box.left + (col + 1) * third,
+                        box.top + (row + 1) * third,
+                    )
                     if (bit != NO_BIT && dirBits[i] and bit != 0) {
                         fill.color = palette.ink
-                        canvas.drawRect(cell, fill)
+                        canvas.drawRect(dpadCell, fill)
                     } else {
                         stroke.color = palette.dim
-                        canvas.drawRect(cell, stroke)
+                        canvas.drawRect(dpadCell, stroke)
                     }
                 }
             }
@@ -453,10 +446,9 @@ object GamepadScreen {
             val old = dirBits[i]
             if (old == newBits) return
             val keys = controls[i].keys
-            val bits = intArrayOf(Dir.UP, Dir.DOWN, Dir.LEFT, Dir.RIGHT)
-            for (b in bits.indices) {
-                val now = newBits and bits[b] != 0
-                val was = old and bits[b] != 0
+            for (b in DIR_BITS.indices) {
+                val now = newBits and DIR_BITS[b] != 0
+                val was = old and DIR_BITS[b] != 0
                 if (now != was) onKey(keys[b], now)
             }
             dirBits[i] = newBits
@@ -464,13 +456,11 @@ object GamepadScreen {
         }
 
         private companion object {
+            val DIR_BITS = intArrayOf(Dir.UP, Dir.DOWN, Dir.LEFT, Dir.RIGHT)
             const val NONE = -1
             const val NO_BIT = 0
             const val MAX_POINTERS = 10
             const val SLACK_DP = 12f
-            const val SHOULDER_ASPECT = 0.42f
-            const val CORNER_DP = 6f
-            const val DPAD_CELLS = 3f
             const val DPAD_ARM_DIVISOR = 3f
             const val DPAD_DEAD_ZONE = 0.15f
             const val STICK_DEAD_ZONE = 0.20f
