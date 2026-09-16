@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad
 
 import android.content.Context
+import android.content.SharedPreferences
 import me.akshitbansal.edgepad.surface.DialKind
 import me.akshitbansal.edgepad.surface.Gesture
 import me.akshitbansal.edgepad.surface.GestureAction
@@ -158,55 +159,48 @@ class Settings(
         return enumValues<E>().firstOrNull { it.name == name } ?: default
     }
 
-    private fun flag(
-        key: String,
-        default: Boolean,
-    ) = object : ReadWriteProperty<Any?, Boolean> {
+    /**
+     * One stored setting. Nothing is cached on either side: every read goes to SharedPreferences and
+     * every write is flushed on assignment, so a screen rebuilt straight after a change reads back what
+     * was just stored. Writes stay on apply() rather than commit(), which lint rejects on a UI thread.
+     */
+    private fun <T> pref(
+        read: () -> T,
+        write: SharedPreferences.Editor.(T) -> Unit,
+    ) = object : ReadWriteProperty<Any?, T> {
         override fun getValue(
             thisRef: Any?,
             property: KProperty<*>,
-        ): Boolean = prefs.getBoolean(key, default)
+        ): T = read()
 
         override fun setValue(
             thisRef: Any?,
             property: KProperty<*>,
-            value: Boolean,
-        ) = prefs.edit().putBoolean(key, value).apply()
+            value: T,
+        ) {
+            val edit = prefs.edit()
+            edit.write(value)
+            edit.apply()
+        }
     }
 
+    private fun flag(
+        key: String,
+        default: Boolean,
+    ) = pref({ prefs.getBoolean(key, default) }) { putBoolean(key, it) }
+
+    /** A number kept inside its range on the way in and on the way out, so an old stored value cannot escape it. */
     private fun bounded(
         key: String,
         default: Float,
         min: Float,
         max: Float,
-    ) = object : ReadWriteProperty<Any?, Float> {
-        override fun getValue(
-            thisRef: Any?,
-            property: KProperty<*>,
-        ): Float = prefs.getFloat(key, default).coerceIn(min, max)
-
-        override fun setValue(
-            thisRef: Any?,
-            property: KProperty<*>,
-            value: Float,
-        ) = prefs.edit().putFloat(key, value.coerceIn(min, max)).apply()
-    }
+    ) = pref({ prefs.getFloat(key, default).coerceIn(min, max) }) { putFloat(key, it.coerceIn(min, max)) }
 
     private fun color(
         key: String,
         default: Int,
-    ) = object : ReadWriteProperty<Any?, Int> {
-        override fun getValue(
-            thisRef: Any?,
-            property: KProperty<*>,
-        ): Int = prefs.getInt(key, default)
-
-        override fun setValue(
-            thisRef: Any?,
-            property: KProperty<*>,
-            value: Int,
-        ) = prefs.edit().putInt(key, value).apply()
-    }
+    ) = pref({ prefs.getInt(key, default) }) { putInt(key, it) }
 
     companion object {
         const val MIN_SENSITIVITY = 0.5f
