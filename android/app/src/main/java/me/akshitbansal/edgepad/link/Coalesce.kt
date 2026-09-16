@@ -38,6 +38,11 @@ object Coalesce {
         return out
     }
 
+    /**
+     * MOVE, SCROLL and ZOOM carry i16 fields, so a merged run that would overflow one is clamped rather
+     * than allowed to wrap: a fast flick must not come out as a jump in the opposite direction. The codec
+     * would reject the frame anyway; clamping keeps the pointer moving the way the finger did.
+     */
     private fun sum(
         a: Int,
         b: Int,

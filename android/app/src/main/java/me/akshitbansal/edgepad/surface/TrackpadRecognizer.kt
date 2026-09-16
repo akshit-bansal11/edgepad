@@ -334,6 +334,11 @@ class TrackpadRecognizer(
         sink(Frame.PointerButton(button, false))
     }
 
+    /**
+     * Deliberately does not clear [lastTapUp]. It is the one piece of state that has to survive the end of
+     * a gesture: tap-then-hold-to-drag works by the second touch seeing how recently the previous one
+     * lifted. Clearing it here makes every drag a plain move, and no test of a single gesture catches it.
+     */
     private fun reset() {
         maxFingers = 0
         moved = false

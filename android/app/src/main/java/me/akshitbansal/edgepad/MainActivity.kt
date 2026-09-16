@@ -43,10 +43,16 @@ import java.io.IOException
 import kotlin.concurrent.thread
 
 /**
- * One activity, five screens: onboarding on the first run, finding the laptop, settings, the control
- * surface, and a connection-lost screen that retries after the link drops on its own. The link and what
- * the laptop has reported outlive the activity across a rotation or a theme change; the link closes when
- * the app leaves the foreground.
+ * One activity for every screen: the guide on the first run and from Settings, the Devices list, the
+ * control surface, the settings pages, the keyboard, the gamepad, the two layout editors, and the
+ * connection-lost screen that retries after a link drops on its own. [Screen] is the whole set and
+ * [goTo] the only way between them — there are no fragments and no back stack, so [navigateBack] is
+ * where every screen's way out is written down.
+ *
+ * The link and what the laptop has reported outlive the activity across a rotation or a theme change,
+ * through [onRetainNonConfigurationInstance]; the link closes when the app leaves the foreground. That
+ * matters because changing the theme or the orientation setting rebuilds the activity, and a link
+ * dropped there would make every settings change look like a disconnection.
  */
 class MainActivity :
     Activity(),
