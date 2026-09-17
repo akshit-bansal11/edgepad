@@ -128,7 +128,8 @@ internal sealed class LevelOverlay : IDisposable
         private const int WsExNoActivate = 0x08000000;
 
         /// <summary>GenericTypographic's flag set, spelled out so no undisposed StringFormat is created to read it.</summary>
-        private const StringFormatFlags Typographic = StringFormatFlags.NoFitBlackBox | StringFormatFlags.NoClip;
+        private const StringFormatFlags Typographic =
+            StringFormatFlags.FitBlackBox | StringFormatFlags.LineLimit | StringFormatFlags.NoClip;
 
         /// <summary>One face everywhere, as on the phone. A missing family falls back inside GDI+ rather than throwing.</summary>
         private const string Face = "Consolas";
