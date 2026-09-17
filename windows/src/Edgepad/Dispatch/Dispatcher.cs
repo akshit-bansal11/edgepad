@@ -1,5 +1,6 @@
 using Edgepad.Controls;
 using Edgepad.Injection;
+using Edgepad.Macros;
 using Edgepad.Protocol;
 
 namespace Edgepad.Dispatch;
@@ -14,7 +15,10 @@ internal sealed class Dispatcher(
     AudioEndpoint speakers,
     AudioEndpoint microphone,
     BrightnessControl brightness,
-    MediaSessions media)
+    MediaSessions media,
+    DisplayModes display,
+    MacroStore macros,
+    LevelOverlay overlay)
 {
     private const byte MaxButton = 2;
     private const byte MaxPercent = 100;
@@ -46,6 +50,15 @@ internal sealed class Dispatcher(
 
     private bool Run(byte id)
     {
+        // Macros are a block of ids, not one each, so they are checked before the table. The phone names a
+        // slot and nothing else: what that slot opens was typed into this laptop's own editor, which is the
+        // whole reason a phone can be trusted with the button at all.
+        var slot = id - (byte)ActionId.MacroBase;
+        if (slot >= 0 && slot < MacroStore.MaxMacros)
+        {
+            return macros.Run(slot);
+        }
+
         // The default arm rejects ids this laptop does not know; there is no pre-check to keep in step.
         switch ((ActionId)id)
         {
@@ -116,12 +129,51 @@ internal sealed class Dispatcher(
 
     private bool Set(byte control, byte percent) => (ControlId)control switch
     {
-        ControlId.Volume => speakers.SetLevel(percent),
-        ControlId.MicLevel => microphone.SetLevel(percent),
-        ControlId.Brightness => Do(() => brightness.Set(percent)),
+        ControlId.Volume => Show("VOLUME", percent, speakers.SetLevel(percent)),
+        ControlId.MicLevel => Show("MIC", percent, microphone.SetLevel(percent)),
+        ControlId.Brightness => Show("BRIGHTNESS", percent, Do(() => brightness.Set(percent))),
         ControlId.MediaPosition => media.Seek(percent),
+        // The value is an index into the rate list, never hertz: the 0-100 guard above is what makes that
+        // safe, and it is also why a rate this display cannot do is unrepresentable rather than merely
+        // refused. Queued rather than applied here, because a switch blanks the panel for about a second.
+        ControlId.RefreshRate => RefreshRate(percent),
         _ => false,
     };
+
+    private bool RefreshRate(byte index)
+    {
+        if (index >= display.Rates.Count)
+        {
+            return false;
+        }
+
+        display.SetLatest(index);
+        // No readout for this one. The overlay's number is a percentage with a bar behind it, and a rate is
+        // neither; and a mode switch blanks the whole panel, which is feedback nothing needs to improve on.
+        return true;
+    }
+
+    /// <summary>
+    /// Puts the laptop's own readout on screen when a change took. Windows shows one of these for its
+    /// volume keys but not for a level set through Core Audio or WMI, so without it the only feedback for
+    /// a dial the user is not looking at is the sound itself — and brightness has none at all.
+    ///
+    /// Muting is not routed here: it goes through the media key, for which Windows draws its own readout.
+    /// Reading the mute flag back would also mean a Core Audio call on the receive thread for every frame
+    /// of a drag, to draw a state that setting a level cannot have changed.
+    /// </summary>
+    private bool Show(
+        string label,
+        int percent,
+        bool changed)
+    {
+        if (changed)
+        {
+            overlay.Show(label, percent);
+        }
+
+        return changed;
+    }
 
     private static bool Do(Action action)
     {

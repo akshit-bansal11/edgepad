@@ -1,5 +1,6 @@
 using Edgepad.Bluetooth;
 using Edgepad.Controls;
+using Edgepad.Macros;
 using Edgepad.Startup;
 using Edgepad.Trust;
 using NAudio.CoreAudioApi;
@@ -24,6 +25,9 @@ internal sealed class TrayContext : ApplicationContext
     private readonly AudioEndpoint microphone = new(DataFlow.Capture);
     private readonly BrightnessControl brightness = new();
     private readonly MediaSessions media = new();
+    private readonly DisplayModes display = new();
+    private readonly MacroStore macros = MacroStore.ForCurrentUser();
+    private readonly LevelOverlay overlay;
     private readonly RfcommServer server;
 
     public TrayContext(EventWaitHandle quit)
@@ -35,6 +39,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(status);
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(startWithWindows);
+        menu.Items.Add("Macros…", null, (_, _) => MacroEditor.Show(macros));
         menu.Items.Add(forget);
         menu.Items.Add("Open log", null, (_, _) => OpenLog());
         menu.Items.Add("Quit", null, (_, _) => ExitThread());
@@ -53,7 +58,11 @@ internal sealed class TrayContext : ApplicationContext
         // Creating the menu installed the WinForms context on this thread; status updates arrive from
         // Bluetooth threads and are marshalled back here.
         ui = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
-        server = new RfcommServer(SetStatus, trust, speakers, microphone, brightness, media);
+
+        // Built here and nowhere else: the overlay captures this thread's synchronisation context, and the
+        // frames that ask it to show something arrive on a Bluetooth thread that has none of its own.
+        overlay = new LevelOverlay();
+        server = new RfcommServer(SetStatus, trust, speakers, microphone, brightness, media, display, macros, overlay);
         _ = StartServerAsync();
         _ = StartMediaAsync();
 
@@ -141,6 +150,8 @@ internal sealed class TrayContext : ApplicationContext
             brightness.Dispose();
             speakers.Dispose();
             microphone.Dispose();
+            display.Dispose();
+            overlay.Dispose();
         }
 
         base.Dispose(disposing);
