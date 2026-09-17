@@ -75,9 +75,8 @@ class ControlSurface(
     private val scrubOnADial = settings.hasDial(DialKind.MEDIA)
     private val dials: List<Dial> =
         // A dial's slot rides in Dial's corner field: eight slots to four corners, and nothing inside Dial
-        // reads it — only the geometry here does, through [Perimeter.slotPosition].
-        (0 until Perimeter.SLOTS).mapNotNull { slot ->
-            settings.slot(slot)?.let { kind ->
+        (0 until Perimeter.CORNERS).mapNotNull { corner ->
+            settings.corner(corner)?.let { kind ->
                 kind.dial(
                     slot,
                     context.getString(kind.shortRes),
@@ -214,11 +213,11 @@ class ControlSurface(
         }
         perimeter = Perimeter(w.toFloat(), h.toFloat(), maxOf(corner.toFloat(), dp(MIN_BEND_DP)))
         dials.forEachIndexed { i, dial ->
-            centres[i] = perimeter.lengthAt(Perimeter.slotPosition(dial.corner))
+            centres[i] = perimeter.lengthAt(dial.corner.toFloat())
             // Upright, only the top corners have the screen to themselves and keep the deep zone: the
             // bottom ones sit near the media pieces, an edge midpoint sits where the thumb swipes, and
             // sideways every slot is near the middle. The rest grab less of the trackpad.
-            val roomy = dial.corner == TOP_LEFT_SLOT || dial.corner == TOP_RIGHT_SLOT
+            val roomy = dial.corner < FIRST_BOTTOM_CORNER
             depths[i] = dp(if (w > h || !roomy) CORNER_HIT_NEAR_DP else CORNER_HIT_DP)
         }
         backdrop.resize(w, h)
@@ -879,8 +878,8 @@ class ControlSurface(
         private const val MIN_BEND_DP = 24f
         private const val CORNER_HIT_DP = 96f
         private const val CORNER_HIT_NEAR_DP = 56f
-        private const val TOP_LEFT_SLOT = 0
-        private const val TOP_RIGHT_SLOT = 2
+        /** Corners 0 and 1 are the top two, where the hit zone may reach further down the screen. */
+        private const val FIRST_BOTTOM_CORNER = 2
         private const val ICON_DP = 22f
         private const val SKIP_DP = 22f
         private const val PLAY_ICON_DP = 22f

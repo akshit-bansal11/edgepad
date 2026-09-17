@@ -19,11 +19,7 @@ import kotlin.math.roundToInt
  */
 class Dial(
     val kind: DialKind,
-    /**
-     * Which of the perimeter's eight slots this dial sits in, clockwise from the top-left corner: even
-     * slots are the corners, odd ones the middle of an edge. Named `corner` from when there were only
-     * four; [Perimeter.slotPosition] turns it into a place on the path. Nothing in this class reads it.
-     */
+    /** 0 top-left, clockwise. */
     val corner: Int,
     val label: String,
     private val unitsPerDp: Float,

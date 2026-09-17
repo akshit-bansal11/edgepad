@@ -76,20 +76,6 @@ class PerimeterTest {
     }
 
     @Test
-    fun slotsAlternateCornersAndEdgeMiddles() {
-        // Eight places on a four-corner scale: the even ones are the corners the scale is counted in, the
-        // odd ones the edge middles proven above. The scale itself must still lap at four.
-        assertEquals(2 * Perimeter.CORNERS, Perimeter.SLOTS)
-        for (corner in 0 until Perimeter.CORNERS) {
-            assertEquals(corner.toFloat(), Perimeter.slotPosition(Perimeter.cornerSlot(corner)), 0f)
-        }
-        assertEquals(0.5f, Perimeter.slotPosition(1), 0f)
-        assertEquals(1.5f, Perimeter.slotPosition(3), 0f)
-        assertEquals(2.5f, Perimeter.slotPosition(5), 0f)
-        assertEquals(3.5f, Perimeter.slotPosition(7), 0f)
-    }
-
-    @Test
     fun aTinyPlaceholderDoesNotThrow() {
         val tiny = Perimeter(1f, 1f, 1f)
         assertEquals(1f, tiny.radius, 1e-3f)

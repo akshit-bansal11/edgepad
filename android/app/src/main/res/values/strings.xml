@@ -189,8 +189,4 @@
   <string name="macros_empty_title">No macros yet.</string>
   <string name="macros_empty_body">Add them from Edgepad\'s tray menu on the laptop. They appear here as soon as it sends the list.</string>
   <!-- Edge midpoints: the four dial slots between the corners -->
-  <string name="edge_top">Top edge</string>
-  <string name="edge_right">Right edge</string>
-  <string name="edge_bottom">Bottom edge</string>
-  <string name="edge_left">Left edge</string>
 </resources>

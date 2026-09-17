@@ -26,20 +26,6 @@ class Settings(
     /** Where an imported background image is kept; absent until one has been imported. */
     val backgroundImage: File = File(context.filesDir, IMAGE_FILE)
 
-    init {
-        // Dials used to live in four corner keys and now live in eight slot keys. An install that
-        // predates the change brings its corners across here, once, so that nothing further down has to
-        // know the old shape, and so an old key can never quietly outrank what the user set since.
-        val old = (0 until Perimeter.CORNERS).map { cornerKey(it) }.filter { prefs.contains(it) }
-        if (old.isNotEmpty()) {
-            val edit = prefs.edit()
-            for ((key, value) in migratedSlots { prefs.getString(it, null) }) edit.putString(key, value)
-            // The old keys go with the move: nothing writes them any more, so this runs exactly once.
-            for (key in old) edit.remove(key)
-            edit.apply()
-        }
-    }
-
     /** The Bluetooth address of the laptop to reconnect to, once one has been chosen. */
     var laptop: String?
         get() = prefs.getString(KEY_LAPTOP, null)
@@ -117,22 +103,19 @@ class Settings(
     /** The pattern's opacity, 0 to 1. */
     var patternOpacity by bounded(KEY_PATTERN_OPACITY, DEFAULT_PATTERN_OPACITY, 0f, 1f)
 
-    /** The dial in [slot] (0 top-left, clockwise, the odd slots the edge midpoints between), or null for none. */
-    fun slot(slot: Int): DialKind? {
-        val name = prefs.getString(slotKey(slot), null)
-        if (name == OFF) return null
-        DialKind.entries.firstOrNull { it.name == name }?.let { return it }
-        // An untouched slot falls back to the kind that calls it home. DialKind still names that home by
-        // corner index, 0 to 3, because a kind's home is a corner; the corners are the even slots, so an
-        // edge midpoint starts empty and stays empty until the user puts something there.
-        return DialKind.entries.firstOrNull { kind -> kind.defaultCorner?.let { Perimeter.cornerSlot(it) } == slot }
+    /** The dial in [corner] (0 top-left, clockwise), or null for none. */
+    fun corner(corner: Int): DialKind? {
+        val name = prefs.getString("corner.$corner", null)
+        if (name == NONE) return null
+        return DialKind.entries.firstOrNull { it.name == name }
+            ?: DialKind.entries.firstOrNull { it.defaultCorner == corner }
     }
 
-    fun setSlot(
-        slot: Int,
+    fun setCorner(
+        corner: Int,
         kind: DialKind?,
     ) {
-        prefs.edit().putString(slotKey(slot), kind?.name ?: OFF).apply()
+        prefs.edit().putString("corner.$corner", kind?.name ?: NONE).apply()
     }
 
     /**
@@ -160,8 +143,8 @@ class Settings(
 
     private fun sensitivityKey(kind: DialKind): String = "sensitivity.${kind.name}"
 
-    /** True when some slot holds [kind]. */
-    fun hasDial(kind: DialKind): Boolean = (0 until Perimeter.SLOTS).any { slot(it) == kind }
+    /** True when some corner holds [kind]. */
+    fun hasDial(kind: DialKind): Boolean = (0 until Perimeter.CORNERS).any { corner(it) == kind }
 
     fun gesture(gesture: Gesture): GestureAction {
         val name = prefs.getString("gesture.${gesture.name}", null) ?: return gesture.default
@@ -275,36 +258,8 @@ class Settings(
         const val DEFAULT_BACKGROUND = 0xFF0F0F12.toInt()
         const val DEFAULT_GRADIENT_END = 0xFF2B2B33.toInt()
         const val DEFAULT_PATTERN_COLOR = 0xFF84848C.toInt()
-
-        /**
-         * What a slot the user emptied stores. An absent key means they never chose, which hands the slot
-         * to the kind that calls it home; this means they took that dial away. The two are not the same,
-         * so the sentinel travels through the move from corner keys to slot keys like any other value.
-         */
-        const val OFF = "-"
-
-        fun slotKey(slot: Int): String = "slot.$slot"
-
-        /** The key a dial's corner was stored under before there were eight slots. */
-        fun cornerKey(corner: Int): String = "corner.$corner"
-
-        /**
-         * The move from the four corner keys to the eight slot keys, as a pure map of what to write: the
-         * one change here that can quietly ruin a setup someone already has, so it is provable on the JVM
-         * rather than only on a phone that has been through an update. Corner c's value belongs to corner
-         * c's slot, [OFF] included. A slot already written under the new scheme is never overwritten.
-         */
-        fun migratedSlots(stored: (String) -> String?): Map<String, String> =
-            buildMap {
-                for (corner in 0 until Perimeter.CORNERS) {
-                    val value = stored(cornerKey(corner)) ?: continue
-                    val key = slotKey(Perimeter.cornerSlot(corner))
-                    // A slot already written under the new scheme is the later choice, and keeps it.
-                    if (stored(key) == null) put(key, value)
-                }
-            }
-
         private const val NAME = "edgepad"
+        private const val NONE = "-"
         private const val IMAGE_FILE = "background.img"
         private const val KEY_LAPTOP = "laptop"
         private const val KEY_SENSITIVITY = "sensitivity"

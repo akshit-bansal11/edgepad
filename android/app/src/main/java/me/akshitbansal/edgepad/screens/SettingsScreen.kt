@@ -109,19 +109,14 @@ object SettingsScreen {
             )
         }
 
-    /**
-     * The dials on the surface, clockwise from the top left. Eight slots and a dash for each empty one
-     * would be a row of mostly dashes on a phone, so only the filled ones are named; the order still says
-     * where they sit, and the screen itself is where the empty slots are worth seeing.
-     */
+    /** The four corners' short dial names, clockwise from the top left. */
     private fun cornersSummary(
         ui: Ui,
         settings: Settings,
     ): String =
-        (0 until Perimeter.SLOTS)
-            .mapNotNull { slot -> settings.slot(slot)?.let { ui.string(it.shortRes) } }
-            .joinToString(" · ")
-            .ifEmpty { NO_DIAL }
+        (0 until Perimeter.CORNERS).joinToString(" · ") { corner ->
+            settings.corner(corner)?.let { ui.string(it.shortRes) } ?: NO_DIAL
+        }
 
     private fun Column.link(
         label: String,

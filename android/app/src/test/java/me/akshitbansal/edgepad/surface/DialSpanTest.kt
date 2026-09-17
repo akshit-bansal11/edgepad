@@ -41,23 +41,6 @@ class DialSpanTest {
     }
 
     @Test
-    fun eightSlotsRoundThePathStopShortOfEachOther() {
-        // What stops a dial reaching into its neighbour now that a slot is only half an edge from the next:
-        // eight of them 125 apart, each asking for 200, so without the cut every one would run through both.
-        val centres = FloatArray(Perimeter.SLOTS) { it * 125f }
-        val reachAfter = FloatArray(centres.size)
-        val reachBefore = FloatArray(centres.size)
-        DialSpan.compute(centres, 200f, 1000f, FloatArray(0), 10f, reachAfter, reachBefore)
-        for (i in centres.indices) {
-            val next = (i + 1) % centres.size
-            assertEquals(57.5f, reachAfter[i], 1e-3f)
-            assertEquals(57.5f, reachBefore[i], 1e-3f)
-            // The two reaches that face each other leave the whole gap between their ends.
-            assertEquals(125f - 10f, reachAfter[i] + reachBefore[next], 1e-3f)
-        }
-    }
-
-    @Test
     fun reachNeverGoesNegative() {
         DialSpan.compute(floatArrayOf(100f, 104f), 50f, 1000f, FloatArray(0), 20f, after, before)
         assertEquals(0f, after[0], 0f)
