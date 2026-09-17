@@ -4,17 +4,20 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
-Everything below is built but has never run on a phone or a laptop. The protocol stays at version 3: the
-refresh-rate dial and the macro buttons are new ids in tables that already existed, and an unknown id is
-dropped and counted rather than treated as an error, so neither needed a version that would have forced
-every pair to update together.
+## [2.0.0] - 2026-09-17
+
+Macro buttons: the phone can now launch things on the laptop. That is the headline, and it is why this is a
+major release rather than a minor one — **the wire protocol is unchanged at version 3**. The refresh-rate
+dial and the macro buttons are new ids in tables that already existed, and an unknown id is dropped and
+counted rather than treated as an error, so a 2.0.0 half and a 1.0.0 half still speak to each other. Update
+both anyway: only the pair knows about the new controls.
 
 ### Added
 - **Macro buttons.** The laptop's tray menu gains a Macros editor: name an app, a document, a folder or a
-  URL, and it appears as a button on the phone: a 5x3 grid, fifteen of them. Fifteen is what one frame can
+  URL, and it appears as a button on the phone — a 5x3 grid, fifteen of them. Fifteen is what one frame can
   name, so a full grid always arrives labelled rather than trailing off into blank buttons. The phone sends
-  the slot number and never what the slot opens, so it can name a button but can never name a program —
-  the laptop's own list is the only thing that decides what runs.
+  a slot number, never what the slot opens: a button cannot be repointed from the phone, and the laptop's
+  own list is the only thing that decides what runs.
 - **A refresh-rate dial.** Steps the laptop's display through the rates it actually offers, filtered to the
   resolution and colour depth already in use so a rate can never drag the desktop to another size. The
   switch is for this session only; a dial should not decide what the desktop boots at.
@@ -31,12 +34,31 @@ every pair to update together.
   differently reads as broken rather than as configured. Three and four fingers stay assignable.
 - A dial still goes in one of the four corners and nowhere else. Seven kinds now compete for those four
   places, which is the corners screen's job to settle.
+- **What the app says about its own security is now true.** Three places — including a label in the Macros
+  window — claimed the phone "can never name a program of its own". It never could not: the phone's
+  keyboard sends a raw key code and arbitrary text straight to the laptop, because that is what a keyboard
+  screen is, and Win+R with a typed line is already arbitrary execution. The macro index is still worth
+  having, but it contains nothing the keyboard does not already allow. A paired phone is a trusted input
+  device, and the trust boundary is the Bluetooth pairing, not the macro list.
 
 ### Fixed
 - **Two-finger scroll no longer starts late.** Every sample advanced the last-seen position, including the
   ones spent below the slop deciding scroll from pinch, so the travel spent deciding was dropped and every
   stroke began 8 dp behind the finger. Pinch never had the bug, because it only advances its reference once
   a mode is settled.
+- **A macro added while the phone is connected appears at once.** The names went out once at the handshake
+  and never again, so a new button needed the app closed and opened.
+- **Reconnecting during a refresh-rate change could kill the tray app.** The mode list was read twice while
+  a reconnect was emptying and refilling it; between the two reads it could be empty, and an unhandled
+  error on a background thread ends the process rather than the dial.
+- **A phone flipping between two refresh rates could blank the screen for ever.** A switch to the rate
+  already in force is now free.
+- **OK in the Macros window could freeze the laptop app.** It wrote to the Bluetooth socket on the thread
+  drawing the interface, so a phone that had stopped reading took the tray, the editor and the menu with it.
+- **A fast dial drag could bog the laptop down.** The on-screen readout queued a repaint per frame from a
+  higher-priority thread; it now keeps one in flight and draws the newest value.
+- The laptop's log stopped recording display failures after the first one, which was usually written at
+  startup — so the errors it exists for were the ones it silenced.
 
 ### Documentation
 - PROTOCOL.md records why new ids did not move the version, and what would.
@@ -290,6 +312,7 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
 [Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v1.0.0...HEAD
+[2.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.10.0...v1.0.0
 [0.10.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.9.5...v0.10.0
 [0.9.5]: https://github.com/akshit-bansal11/edgepad/compare/v0.9.4...v0.9.5
