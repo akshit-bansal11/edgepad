@@ -30,10 +30,10 @@ import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 /**
- * The control surface: a ruler at each edge slot that holds a dial — the four corners and the midpoint of
- * each of the four edges — the media pieces wherever the user put them, gear, keyboard, gamepad and macro
- * buttons at the top, and everything else is the trackpad. A touch that starts inside a slot's zone is that
- * dial's; one that starts on a media piece or a button is a button press; any other is the trackpad.
+ * The control surface: a ruler at each corner that holds a dial, the media pieces wherever the user put
+ * them, gear, keyboard, gamepad and macro buttons at the top, and everything else is the trackpad. A touch
+ * that starts inside a corner's zone is that dial's; one that starts on a media piece or a button is a
+ * button press; any other is the trackpad.
  *
  * Everything is drawn here rather than built from child views: a touch reaches the recogniser with no view
  * hierarchy in between, dispatch is unbuffered so samples arrive as they happen, and every historical
@@ -222,7 +222,7 @@ class ControlSurface(
         backdrop.resize(w, h)
         layoutPieces(w.toFloat(), h.toFloat())
         // No ruler runs under the buttons at the top, and neighbours stop short of each other — which is
-        // what keeps two slots half an edge apart off each other now that there are eight of them.
+        // what keeps two dials on the same edge clear of each other.
         // A dial the user puts in the top-middle slot is the one exception: it is centred inside the
         // buttons' zone, so the cut cannot push it out of its own place, and it shares the space.
         val topCentre = perimeter.lengthAt(TOP_CENTRE)

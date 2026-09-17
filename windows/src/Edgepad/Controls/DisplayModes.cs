@@ -35,10 +35,12 @@ internal sealed partial class DisplayModes : IDisposable
     private int current = -1;
 
     /// <summary>
-    /// One line per process, not per call. A dial spun against a display that cannot be read would otherwise
-    /// write a log entry per flick, and the log is the only error channel a tray app has.
+    /// The last message written, so a repeat is dropped but a new one is not. A dial spun against a display
+    /// that cannot be read would otherwise write an entry per flick; latching on a single bool instead would
+    /// have been worse, because the first message is written from the constructor and would then have
+    /// silenced every real refusal afterwards — and the log is the only error channel a tray app has.
     /// </summary>
-    private bool logged;
+    private string? logged;
 
     private readonly AutoResetEvent wake = new(initialState: false);
     private readonly Thread worker;
@@ -227,12 +229,11 @@ internal sealed partial class DisplayModes : IDisposable
 
     private void LogOnce(string message)
     {
-        if (logged)
+        if (Interlocked.Exchange(ref logged, message) == message)
         {
             return;
         }
 
-        logged = true;
         Log.Write(message);
     }
 

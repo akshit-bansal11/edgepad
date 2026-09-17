@@ -89,13 +89,22 @@ public sealed class MacroStoreTests : IDisposable
     {
         // The bug this covers: the names went out once at the handshake, so a macro added while the phone
         // was connected did not reach it until the app was closed and opened again.
+        // Reports after the opening one are handed to the thread pool, so a watcher cannot block the UI
+        // thread that saved. The test therefore waits for them instead of assuming they have arrived, and
+        // collects into a concurrent queue rather than a List that two threads would race.
         var store = NewStore();
-        var seen = new List<string>();
-        using var watch = store.Watch(seen.Add);
+        var seen = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        using var arrived = new CountdownEvent(3);
+        using var watch = store.Watch(names =>
+        {
+            seen.Enqueue(names);
+            arrived.Signal();
+        });
 
         store.Save([new Macro("Chrome", "chrome.exe", null)]);
         store.Save([new Macro("Chrome", "chrome.exe", null), new Macro("Notes", "notes.exe", null)]);
 
+        Assert.True(arrived.Wait(TimeSpan.FromSeconds(5)), "the watcher was never told");
         Assert.Equal(["", "Chrome", "Chrome/Notes"], seen);
     }
 
@@ -103,12 +112,15 @@ public sealed class MacroStoreTests : IDisposable
     public void ADisposedWatchHearsNothingMore()
     {
         var store = NewStore();
-        var seen = new List<string>();
-        store.Watch(seen.Add).Dispose();
+        var seen = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        store.Watch(seen.Enqueue).Dispose();
 
         store.Save([new Macro("Chrome", "chrome.exe", null)]);
 
-        // Only the opening report, which Watch makes before handing back the handle.
+        // Only the opening report, which Watch makes on the caller's thread before handing back the handle.
+        // A later one would have to arrive within this window to be seen, so the wait is what gives the
+        // assertion teeth: without it a pool thread that simply had not run yet would look like success.
+        Thread.Sleep(TimeSpan.FromMilliseconds(250));
         Assert.Single(seen);
     }
 

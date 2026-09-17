@@ -150,7 +150,19 @@ internal sealed class MacroStore
         foreach (var target in targets)
         {
             var watcher = target;
-            ThreadPool.QueueUserWorkItem(_ => watcher(names));
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    watcher(names);
+                }
+                catch (Exception e)
+                {
+                    // An escape from a pool thread ends the process. A watcher failing to tell one phone
+                    // about one list is not worth the tray app, the link and the user's session.
+                    Log.Write($"A macro watcher failed: {e}");
+                }
+            });
         }
     }
 

@@ -51,7 +51,7 @@ public sealed class DisplayModesTests
     [Fact]
     public void AnIndexOutsideTheListIsRefusedWithoutTouchingTheDisplay()
     {
-        var display = new DisplayModes();
+        using var display = new DisplayModes();
 
         Assert.False(display.Set(-1));
         Assert.False(display.Set(display.Rates.Count));
@@ -61,7 +61,7 @@ public sealed class DisplayModesTests
     [Fact]
     public void TheLiveDisplayReportsAConsistentListAndIndex()
     {
-        var display = new DisplayModes();
+        using var display = new DisplayModes();
         int[] rates = [.. display.Rates];
 
         Assert.Equal<int[]>([.. rates.Distinct().Order()], rates);

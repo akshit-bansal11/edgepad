@@ -7,8 +7,8 @@
 #
 # ACTION 64..95 is a reserved block of 32 macro slots, run as MACRO_BASE + index. The grid ships fifteen
 # of them, which is what one TEXT 5 frame can name; the rest of the block is room, not a promise. Only the
-# base is named here,
-# because the other 31 ids mean nothing on their own — the laptop's own list decides what each slot launches.
+# base is named here, because the other ids mean nothing on their own: the laptop's own list decides what
+# each slot launches.
 # The phone never learns the path, command line or URL behind a slot, only its position and its name.
 #
 # Format:  KIND id NAME

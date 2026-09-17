@@ -188,5 +188,4 @@
   <string name="macros_run">Run %1$s</string>
   <string name="macros_empty_title">No macros yet.</string>
   <string name="macros_empty_body">Add them from Edgepad\'s tray menu on the laptop. They appear here as soon as it sends the list.</string>
-  <!-- Edge midpoints: the four dial slots between the corners -->
 </resources>
