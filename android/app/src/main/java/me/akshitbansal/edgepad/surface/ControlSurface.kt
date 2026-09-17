@@ -60,7 +60,15 @@ class ControlSurface(
     private val dim = ink and RGB_MASK or DIM_ALPHA
     private val faint = ink and RGB_MASK or FAINT_ALPHA
 
-    private val trackpad = TrackpadRecognizer(density, settings.naturalScroll, settings::gesture, send)
+    private val trackpad =
+        TrackpadRecognizer(
+            density,
+            settings.naturalScroll,
+            settings.pointerSpeed,
+            settings.scrollSpeed,
+            settings::gesture,
+            send,
+        )
     private val hapticsOn = settings.haptics
     private val showHints = settings.hints
     private val scrubOnADial = settings.hasDial(DialKind.MEDIA)
@@ -70,7 +78,7 @@ class ControlSurface(
                 kind.dial(
                     corner,
                     context.getString(kind.shortRes),
-                    Dial.BASE_UNITS_PER_DP * settings.sensitivity,
+                    Dial.BASE_UNITS_PER_DP * settings.sensitivityOf(kind),
                     settings.snap,
                     send,
                     ::haptic,

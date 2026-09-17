@@ -58,8 +58,14 @@ class Settings(
     /** How tall the ticks stand, as a multiple of the base height. */
     var dialHeight by bounded(KEY_DIAL_HEIGHT, DEFAULT_DIAL_HEIGHT, MIN_DIAL_HEIGHT, MAX_DIAL_HEIGHT)
 
-    /** How much a dial moves per dp of slide, as a multiple of the base rate. */
+    /** How much a dial moves per dp of slide, as a multiple of the base rate. The fallback for every corner. */
     var sensitivity by bounded(KEY_SENSITIVITY, DEFAULT_SENSITIVITY, MIN_SENSITIVITY, MAX_SENSITIVITY)
+
+    /** How far the laptop's pointer travels per unit of finger travel, as a multiple of the base rate. */
+    var pointerSpeed by bounded(KEY_POINTER_SPEED, DEFAULT_SPEED, MIN_SPEED, MAX_SPEED)
+
+    /** How much wheel one dp of two-finger drag is worth, as a multiple of the base rate. */
+    var scrollSpeed by bounded(KEY_SCROLL_SPEED, DEFAULT_SPEED, MIN_SPEED, MAX_SPEED)
 
     /** The colour every control is drawn in, or null for whatever reads on the background. */
     var controlColor: Int?
@@ -111,6 +117,31 @@ class Settings(
     ) {
         prefs.edit().putString("corner.$corner", kind?.name ?: NONE).apply()
     }
+
+    /**
+     * How fast [kind]'s ruler moves, as a multiple of the base rate. Volume wants a slower ruler than the
+     * app switcher does, so each kind may override [sensitivity]; none does until the user sets one, and
+     * clearing an override puts the kind back on the shared value rather than on a second default.
+     */
+    fun sensitivityOf(kind: DialKind): Float =
+        prefs
+            .getFloat(sensitivityKey(kind), sensitivity)
+            .coerceIn(MIN_SENSITIVITY, MAX_SENSITIVITY)
+
+    fun setSensitivityOf(
+        kind: DialKind,
+        value: Float?,
+    ) {
+        val edit = prefs.edit()
+        val key = sensitivityKey(kind)
+        if (value == null) edit.remove(key) else edit.putFloat(key, value.coerceIn(MIN_SENSITIVITY, MAX_SENSITIVITY))
+        edit.apply()
+    }
+
+    /** True when [kind] has a sensitivity of its own rather than following [sensitivity]. */
+    fun hasOwnSensitivity(kind: DialKind): Boolean = prefs.contains(sensitivityKey(kind))
+
+    private fun sensitivityKey(kind: DialKind): String = "sensitivity.${kind.name}"
 
     /** True when some corner holds [kind]. */
     fun hasDial(kind: DialKind): Boolean = (0 until Perimeter.CORNERS).any { corner(it) == kind }
@@ -203,6 +234,9 @@ class Settings(
     ) = pref({ prefs.getInt(key, default) }) { putInt(key, it) }
 
     companion object {
+        const val MIN_SPEED = 0.4f
+        const val MAX_SPEED = 3f
+        const val DEFAULT_SPEED = 1f
         const val MIN_SENSITIVITY = 0.5f
         const val MAX_SENSITIVITY = 2.5f
         const val DEFAULT_SENSITIVITY = 1.4f
@@ -229,6 +263,8 @@ class Settings(
         private const val IMAGE_FILE = "background.img"
         private const val KEY_LAPTOP = "laptop"
         private const val KEY_SENSITIVITY = "sensitivity"
+        private const val KEY_POINTER_SPEED = "pointerSpeed"
+        private const val KEY_SCROLL_SPEED = "scrollSpeed"
         private const val KEY_DIAL_LENGTH = "dialLength"
         private const val KEY_DIAL_HEIGHT = "dialHeight"
         private const val KEY_CONTROL_COLOR = "controlColor"

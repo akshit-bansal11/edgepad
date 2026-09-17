@@ -3,14 +3,18 @@ package me.akshitbansal.edgepad.surface
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.protocol.ActionId
 
-/** A trackpad gesture the user can assign: two, three or four fingers doing one of these. */
+/**
+ * A trackpad gesture the user can assign: three or four fingers doing one of these.
+ *
+ * Two fingers are deliberately absent. Drag to scroll, pinch to zoom and tap to right-click are fixed in
+ * [TrackpadRecognizer] and cannot be reassigned, because they are the three a hand already expects from
+ * any trackpad; a phone that answers them differently reads as broken rather than as configured.
+ */
 enum class Gesture(
     val fingers: Int,
     val kind: Kind,
     val nameRes: Int,
 ) {
-    TWO_TAP(2, Kind.TAP, R.string.gesture_two_tap),
-    TWO_PINCH(2, Kind.PINCH, R.string.gesture_two_pinch),
     THREE_TAP(3, Kind.TAP, R.string.gesture_three_tap),
     THREE_LEFT(3, Kind.LEFT, R.string.gesture_three_left),
     THREE_RIGHT(3, Kind.RIGHT, R.string.gesture_three_right),
@@ -23,14 +27,12 @@ enum class Gesture(
     FOUR_DOWN(4, Kind.DOWN, R.string.gesture_four_down),
     ;
 
-    enum class Kind { TAP, PINCH, LEFT, RIGHT, UP, DOWN }
+    enum class Kind { TAP, LEFT, RIGHT, UP, DOWN }
 
     /** Windows' own map, except three fingers sideways switch desktops and four walk the apps. */
     val default: GestureAction
         get() =
             when (this) {
-                TWO_TAP -> GestureAction.RIGHT_CLICK
-                TWO_PINCH -> GestureAction.ZOOM
                 THREE_TAP -> GestureAction.SEARCH
                 THREE_LEFT -> GestureAction.DESKTOP_LEFT
                 THREE_RIGHT -> GestureAction.DESKTOP_RIGHT

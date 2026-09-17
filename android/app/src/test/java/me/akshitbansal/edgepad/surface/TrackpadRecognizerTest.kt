@@ -65,6 +65,28 @@ class TrackpadRecognizerTest {
     }
 
     @Test
+    fun scrollReplaysTheTravelSpentDecidingScrollFromPinch() {
+        // The regression: move() advances lastX/lastY on every sample, including the ones spent below the
+        // slop working out whether this is a scroll or a pinch. Reading only the deciding sample's delta
+        // threw that travel away and started every scroll SLOP_DP late. Two hops that cross the slop must
+        // scroll exactly as far as one hop covering the same distance.
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.DOWN, 1, 100f to 100f, 160f to 100f)
+        touch(Action.MOVE, 10, 100f to 104f, 160f to 104f)
+        touch(Action.MOVE, 20, 100f to 140f, 160f to 140f)
+        val stepped = out.filterIsInstance<Frame.Scroll>().sumOf { it.dy }
+
+        out.clear()
+        val direct = TrackpadRecognizer(density = 1f) { out.add(it) }
+        direct.handle(Action.DOWN, floatArrayOf(100f), floatArrayOf(100f), 0)
+        direct.handle(Action.DOWN, floatArrayOf(100f, 160f), floatArrayOf(100f, 100f), 1)
+        direct.handle(Action.MOVE, floatArrayOf(100f, 160f), floatArrayOf(140f, 140f), 20)
+        val oneGo = out.filterIsInstance<Frame.Scroll>().sumOf { it.dy }
+
+        assertEquals("the slop must be replayed, not dropped", oneGo, stepped)
+    }
+
+    @Test
     fun twoFingersSpreadingZoomsIn() {
         touch(Action.DOWN, 0, 100f to 100f)
         touch(Action.DOWN, 1, 100f to 100f, 140f to 100f)
