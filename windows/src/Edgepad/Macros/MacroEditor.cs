@@ -87,8 +87,11 @@ internal sealed class MacroWindow : Form
 
         var note = new Label
         {
-            Text = "Only what you add here can be launched. The phone sends the button's position in this "
-                + "list and nothing else, so it can never name a program of its own.",
+            // Says what is true rather than what is reassuring. The phone can also type and press keys
+            // through the keyboard screen, so a claim that it "can never name a program" would be false.
+            Text = "These buttons launch only what you add here — the phone sends a button's position, not "
+                + "a program. Note that a paired phone can also type and press keys, like a keyboard "
+                + "plugged into this laptop.",
             AutoSize = false,
         };
         note.SetBounds(256, 176, 340, 56);

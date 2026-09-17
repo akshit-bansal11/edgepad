@@ -110,7 +110,10 @@ class LaptopState {
         const val FLAG_BIT = 1
         const val MAX_LEVEL = 100
 
-        /** ACTION 64..95: the reserved block is 32 wide, so a 33rd name could not be run. */
+        /**
+         * The grid the phone draws, 5 by 3. The reserved action block 64..95 is wider on purpose, but the
+         * laptop never fills past this: fifteen names of sixteen bytes are all one TEXT frame can carry.
+         */
         const val MACRO_SLOTS = 15
     }
 }

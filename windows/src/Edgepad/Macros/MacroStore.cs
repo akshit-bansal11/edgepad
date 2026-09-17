@@ -15,10 +15,16 @@ namespace Edgepad.Macros;
 /// <see cref="Process"/>. The only way a target gets into this list is the owner typing or browsing to it in
 /// the editor dialog, on the laptop, in front of the machine it will run on.
 ///
-/// That is what keeps a compromised phone — or a stranger's phone that somehow gets past the handshake —
-/// from running anything at all that the owner did not personally add. Do not "simplify" this by letting the
-/// phone name what it wants to launch; the index indirection is the entire security model, exactly as it is
-/// for the refresh-rate dial, where the phone sends a position in a list rather than a rate in hertz.
+/// What that buys, stated honestly, because an overstated invariant is worse than none. It means a macro
+/// button cannot be repointed from the phone: a slot runs what the owner put in it or nothing, and the
+/// protocol stays semantic, exactly as the refresh-rate dial sends a position in a list rather than a rate
+/// in hertz. Do not "simplify" it by letting the phone name what it wants to launch.
+///
+/// What it does NOT buy is containment of a compromised phone. A paired phone already has the keyboard
+/// screen: KEY carries a raw virtual-key code and TEXT kind 3 carries arbitrary characters, both straight
+/// to SendInput with no table in between, so anything reachable from a keyboard is reachable from the phone
+/// whatever this class does. A paired phone is a trusted input device — a keyboard plugged into this
+/// laptop, not a sandboxed client — and the trust boundary is the Bluetooth pairing, not this list.
 ///
 /// The file is plain tab-separated text, like every other data file this project writes: one macro per line,
 /// name, target, arguments. Not JSON — a format a human can fix in Notepad is worth more here than one a
@@ -126,8 +132,11 @@ internal sealed class MacroStore
     }
 
     /// <summary>
-    /// Hands the new list to every watcher, outside the lock: a watcher writes to a Bluetooth socket, and
-    /// holding a file lock across that would let a stalled link block the editor's OK button.
+    /// Hands the new list to every watcher, outside the lock and off this thread. A watcher writes to a
+    /// Bluetooth socket, and that write blocks; the caller here is the UI thread inside the editor's OK
+    /// click, so a phone that has stopped reading would freeze the tray app — menu, editor and all — until
+    /// the socket gave up. Releasing the lock alone would not have helped, because it was never the lock
+    /// doing the blocking.
     /// </summary>
     private void Published()
     {
@@ -140,7 +149,8 @@ internal sealed class MacroStore
         var names = Names();
         foreach (var target in targets)
         {
-            target(names);
+            var watcher = target;
+            ThreadPool.QueueUserWorkItem(_ => watcher(names));
         }
     }
 

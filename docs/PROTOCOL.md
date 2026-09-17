@@ -68,7 +68,12 @@ REFRESH_RATE's value is an index into TEXT 4's list, never a rate in hertz: SET 
 
 Actions 64 to 95 are a reserved block of 32 macro slots: the phone runs slot n as `MACRO_BASE + n`. It
 sends the index and never what the index opens. The laptop's own list, edited from its tray menu, decides
-that — the same rule that keeps the phone from naming a key or a command line.
+that, so a slot cannot be repointed from the phone and the protocol stays semantic.
+
+This is not a containment boundary against a compromised phone, and should not be read as one. KEY carries a
+raw virtual-key code and TEXT kind 3 carries arbitrary characters, both of which the laptop injects directly
+— that is what the phone's keyboard screen is. A paired phone is a trusted input device, and the trust
+boundary is the Bluetooth pairing plus trust-on-first-use, not the macro table.
 
 ## Versions
 

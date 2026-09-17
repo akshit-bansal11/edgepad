@@ -26,6 +26,16 @@ internal sealed class LevelOverlay : IDisposable
 
     public LevelOverlay() => ui = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
 
+    /// <summary>
+    /// The newest reading waiting to be drawn; only the last one before the UI catches up matters. A record
+    /// class rather than a struct because Volatile's read and write are only defined over references, and
+    /// four fields could not be published atomically anyway.
+    /// </summary>
+    private sealed record Reading(string Heading, string Caption, int Level, bool Muted);
+
+    private Reading? latest;
+    private int posted;
+
     /// <summary>Shows or refreshes the overlay. label e.g. "VOLUME"; percent 0-100; muted draws the muted form.</summary>
     public void Show(string label, int percent, bool muted = false)
     {
@@ -38,7 +48,30 @@ internal sealed class LevelOverlay : IDisposable
         var heading = Metrics.Label(label);
         var caption = Metrics.Caption(percent, muted);
         var level = Math.Clamp(percent, 0, 100);
-        ui.Post(_ => Present(heading, caption, level, muted), null);
+
+        // One post in flight at a time. A dial drag sends a frame per step from a thread running above
+        // normal priority, and each Present relayouts and invalidates on a UI thread that cannot keep up:
+        // the message queue would grow without bound while the panel only ever shows the newest value
+        // anyway. Dropping the ones in between is what the overlay would have done visually regardless.
+        Volatile.Write(ref latest, new Reading(heading, caption, level, muted));
+        if (Interlocked.Exchange(ref posted, 1) == 0)
+        {
+            ui.Post(_ => Drain(), null);
+        }
+    }
+
+    /// <summary>
+    /// Draws whatever the newest reading is, on the UI thread. The gate is cleared first, not last, so a
+    /// reading that lands while this is drawing wins a post of its own rather than being stranded until
+    /// the next frame arrives — the cost is an occasional repaint of a value already on screen.
+    /// </summary>
+    private void Drain()
+    {
+        Volatile.Write(ref posted, 0);
+        if (Volatile.Read(ref latest) is { } reading)
+        {
+            Present(reading.Heading, reading.Caption, reading.Level, reading.Muted);
+        }
     }
 
     private void Present(string label, string caption, int percent, bool muted)
@@ -92,9 +125,6 @@ internal sealed class LevelOverlay : IDisposable
     /// <summary>
     /// The arithmetic and the wording, with no window behind them. Split out because everything else in this
     /// file needs a desktop to run at all.
-    /// </summary>
-    /// <summary>
-    /// The pure arithmetic and wording, apart from any window so it can be tested without one.
     ///
     /// Called Metrics rather than Layout on purpose: OverlayWindow derives from Form, which inherits a
     /// Control.Layout event, and inside that class an unqualified Layout binds to the event rather than to

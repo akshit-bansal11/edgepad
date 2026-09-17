@@ -88,12 +88,25 @@ internal sealed partial class DisplayModes : IDisposable
     /// <summary>Switches the primary display to Rates[index]. False when the index is out of range or Windows refused.</summary>
     public bool Set(int index)
     {
-        if ((uint)index >= (uint)modes.Length)
+        // One read, then work from the snapshot. Refresh() runs on the session thread and empties both
+        // arrays before refilling them, so reading the field twice could see the empty one between a guard
+        // that passed and the index that used it — a managed bounds check, but an unhandled one on a
+        // background thread, which ends the process rather than the dial.
+        var offered = modes;
+        if ((uint)index >= (uint)offered.Length)
         {
             return false;
         }
 
-        var mode = modes[index];
+        var mode = offered[index];
+
+        // Already there. Without this a phone alternating two indices would switch modes for ever, and each
+        // switch blanks the panel for about a second: the desktop becomes unusable and the tray hard to reach.
+        if (index == current)
+        {
+            return true;
+        }
+
         int result;
         try
         {
@@ -109,7 +122,9 @@ internal sealed partial class DisplayModes : IDisposable
 
         if (result != ChangeSuccessful)
         {
-            LogOnce($"Display refused {rates[index]} Hz: ChangeDisplaySettingsEx returned {result}.");
+            // Read from the snapshot: the other array is only kept in step with this one by convention,
+            // and it was never what the bounds check above was measured against.
+            LogOnce($"Display refused {mode.DisplayFrequency} Hz: ChangeDisplaySettingsEx returned {result}.");
             return false;
         }
 
@@ -117,11 +132,6 @@ internal sealed partial class DisplayModes : IDisposable
         return true;
     }
 
-    /// <summary>
-    /// The modes worth putting on the dial out of <paramref name="all"/>, ascending by rate: same resolution
-    /// and colour depth as <paramref name="now"/>, progressive, one entry per rate. Split out from the
-    /// enumeration so the filtering can be tested — CI has no panel whose real mode list means anything.
-    /// </summary>
     /// <summary>
     /// Queues a switch instead of making one. A mode change blanks the panel for the best part of a second,
     /// and it is asked for by a dial the finger is still sliding, so the receive thread must not wait on one
@@ -156,10 +166,24 @@ internal sealed partial class DisplayModes : IDisposable
                 continue;
             }
 
-            Set(index);
+            try
+            {
+                Set(index);
+            }
+            catch (Exception e)
+            {
+                // Last line before the process. This is a background worker in a tray app, and an escape
+                // from here would take the tray, the link and the user's session with it.
+                Log.Write($"Display mode change failed: {e}");
+            }
         }
     }
 
+    /// <summary>
+    /// The modes worth putting on the dial out of <paramref name="all"/>, ascending by rate: same resolution
+    /// and colour depth as <paramref name="now"/>, progressive, one entry per rate. Split out from the
+    /// enumeration so the filtering can be tested — CI has no panel whose real mode list means anything.
+    /// </summary>
     internal static List<DisplayMode> Offerable(IEnumerable<DisplayMode> all, DisplayMode now)
     {
         var seen = new HashSet<uint>();
