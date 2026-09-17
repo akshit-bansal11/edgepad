@@ -223,6 +223,27 @@ class Perimeter(
          */
         const val CORNERS = 4
 
+        /** A corner and the edge midpoint clockwise of it. */
+        private const val SLOTS_PER_CORNER = 2
+
+        /**
+         * How many places a dial may sit: every corner, and the midpoint of every edge between them.
+         * Twice [CORNERS], and deliberately beside it rather than instead of it — a rectangle still has
+         * four corners, so the scale [lengthAt] reads still laps at four.
+         */
+        const val SLOTS = SLOTS_PER_CORNER * CORNERS
+
+        /**
+         * Where slot [slot] sits on the corner scale [lengthAt] reads. Even slots land on a corner, odd
+         * ones halfway along the edge between two. Nothing downstream needs to know which it got: the
+         * path is bent at a corner and straight at an edge midpoint, so a ruler drawn along it wraps the
+         * corner as an L or runs straight without being told to.
+         */
+        fun slotPosition(slot: Int): Float = slot.toFloat() / SLOTS_PER_CORNER
+
+        /** The slot corner [corner] holds, 0 top-left clockwise: the corners are the even slots. */
+        fun cornerSlot(corner: Int): Int = corner * SLOTS_PER_CORNER
+
         private const val PIECES = 8
         private const val MIN_RADIUS = 1f
         private const val HALF_PI = (PI / 2).toFloat()

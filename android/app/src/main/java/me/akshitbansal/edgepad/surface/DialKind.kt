@@ -20,6 +20,9 @@ enum class DialKind(
     MEDIA(R.string.dial_media_short, R.string.dial_media, 3),
     APP_SWITCHER(R.string.dial_apps_short, R.string.dial_apps, null),
     MIC(R.string.dial_mic_short, R.string.dial_mic, null),
+
+    // Off by default: there are seven kinds and only four corners, and this one is the least often wanted.
+    REFRESH(R.string.dial_refresh_short, R.string.dial_refresh, null),
     ;
 
     /** Builds the dial with this kind's behaviour: what a slide sets, what a tap runs, what a step does. */
@@ -69,6 +72,23 @@ enum class DialKind(
                     ControlId.MIC_LEVEL,
                     tap = ActionId.MIC_MUTE_TOGGLE,
                     snapTo = snapTo,
+                    sink = send,
+                    haptic = haptic,
+                )
+            }
+
+            REFRESH -> {
+                Dial(
+                    this,
+                    corner,
+                    label,
+                    // A level of 0-100 is 400 dp of slide at ×1; a handful of rate indices at that rate would
+                    // be a whole range narrower than the touch slop. One index costs one stepper notch of
+                    // travel instead, which is the only step-sized slide a finger here already knows.
+                    unitsPerDp / Dial.UNITS_PER_STEP,
+                    ControlId.REFRESH_RATE,
+                    // No snap: an index is already whole, and rounding one to a multiple of five would land
+                    // off the list entirely. No tap: there is no sensible thing for it to toggle.
                     sink = send,
                     haptic = haptic,
                 )

@@ -28,6 +28,20 @@ class LaptopState {
     var duration = 0
         private set
 
+    /**
+     * The laptop display's available refresh rates in hertz, in the order a REFRESH_RATE value indexes them.
+     * Empty until the laptop names them, which is also what a laptop that cannot change its rate reports.
+     */
+    var refreshRates: List<Int> = emptyList()
+        private set
+
+    /**
+     * The names of the laptop's macro slots, in the order MACRO_BASE indexes them. Empty until the laptop
+     * names them, which is also what a laptop with no macros configured reports.
+     */
+    var macros: List<String> = emptyList()
+        private set
+
     /** The last level the laptop reported for [control], or null when it has not reported one. */
     fun level(control: ControlId): Int? = levels[control]
 
@@ -48,6 +62,8 @@ class LaptopState {
                     TextKind.NOW_PLAYING -> nowPlaying = frame.text
                     TextKind.APP -> app = frame.text
                     TextKind.TIMELINE -> timeline(frame.text)
+                    TextKind.REFRESH_RATES -> refreshRates = rates(frame.text)
+                    TextKind.MACROS -> macros = macroNames(frame.text)
                     else -> return false
                 }
             }
@@ -73,8 +89,28 @@ class LaptopState {
         }
     }
 
+    /** "60/120/144": the rates a REFRESH_RATE index counts through, in the laptop's own order. */
+    private fun rates(text: String): List<Int> {
+        val parts = text.split('/').map(String::toIntOrNull)
+        // Dropping one unreadable entry would shift every index after it onto the wrong rate, so a list
+        // with anything unreadable in it is no list at all and the dial stays where it was.
+        return if (parts.any { it == null }) emptyList() else parts.filterNotNull()
+    }
+
+    /** "Chrome/Spotify/Notes": one name per macro slot, in the order MACRO_BASE indexes them. */
+    private fun macroNames(text: String): List<String> {
+        // A blank name keeps its slot rather than being dropped: the phone sends an index, so removing the
+        // empty name from "Chrome//Notes" would put Notes where the laptop expects the missing slot and
+        // launch the wrong thing. Anything past the reserved block has no action id to reach it.
+        val names = text.split('/').take(MACRO_SLOTS).map(String::trim)
+        return if (names.none { it.isNotEmpty() }) emptyList() else names
+    }
+
     private companion object {
         const val FLAG_BIT = 1
         const val MAX_LEVEL = 100
+
+        /** ACTION 64..95: the reserved block is 32 wide, so a 33rd name could not be run. */
+        const val MACRO_SLOTS = 32
     }
 }

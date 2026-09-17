@@ -161,6 +161,10 @@
   <string name="dial_apps_short">APPS</string>
   <string name="dial_mic">Mic level</string>
   <string name="dial_mic_short">MIC</string>
+  <string name="dial_refresh">Refresh rate</string>
+  <string name="dial_refresh_short">RATE</string>
+  <!-- The ruler shows the rate the laptop named for this step, not the step's own number. -->
+  <string name="dial_refresh_value">%1$d HZ</string>
 
   <!-- Control surface -->
   <string name="surface_description">Laptop control surface</string>
@@ -176,4 +180,17 @@
   <string name="surface_open_settings">Open settings</string>
   <string name="surface_keyboard">Open the keyboard</string>
   <string name="surface_gamepad">Open the gamepad</string>
+  <string name="surface_macros">Open the macros</string>
+
+  <!-- Macros -->
+  <string name="macros_title">Macros</string>
+  <string name="macros_count">SLOTS · %1$d</string>
+  <string name="macros_run">Run %1$s</string>
+  <string name="macros_empty_title">No macros yet.</string>
+  <string name="macros_empty_body">Add them from Edgepad\'s tray menu on the laptop. They appear here as soon as it sends the list.</string>
+  <!-- Edge midpoints: the four dial slots between the corners -->
+  <string name="edge_top">Top edge</string>
+  <string name="edge_right">Right edge</string>
+  <string name="edge_bottom">Bottom edge</string>
+  <string name="edge_left">Left edge</string>
 </resources>

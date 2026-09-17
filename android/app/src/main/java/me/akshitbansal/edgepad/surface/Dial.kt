@@ -10,15 +10,20 @@ import kotlin.math.roundToInt
 /**
  * One ruler on the screen's edge. The finger slides the ruler along the edge under a fixed indicator:
  * clockwise raises the value, like turning a knob. A tap without a slide runs [tap]. A [control] dial holds
- * a 0-100 level and sends SET frames; a dial with none is a stepper that calls [step] with +1 or -1 once
- * per step of travel, with [onArm] and [onRelease] bracketing the slide (the app switcher holds Alt that way).
+ * a level between 0 and [maxLevel] and sends SET frames; a dial with none is a stepper that calls [step] with
+ * +1 or -1 once per step of travel, with [onArm] and [onRelease] bracketing the slide (the app switcher holds
+ * Alt that way).
  *
  * Distances are in dp, and [unitsPerDp] is the sensitivity: how many value units one dp of slide is worth.
  * Pure state, tested on the JVM; the View measures the finger along the edge and draws the ruler.
  */
 class Dial(
     val kind: DialKind,
-    /** 0 top-left, clockwise. */
+    /**
+     * Which of the perimeter's eight slots this dial sits in, clockwise from the top-left corner: even
+     * slots are the corners, odd ones the middle of an edge. Named `corner` from when there were only
+     * four; [Perimeter.slotPosition] turns it into a place on the path. Nothing in this class reads it.
+     */
     val corner: Int,
     val label: String,
     private val unitsPerDp: Float,
@@ -34,9 +39,20 @@ class Dial(
     private val sink: (Frame) -> Unit,
     private val haptic: () -> Unit,
 ) {
-    /** The level under the indicator, 0-100, fractional while sliding. */
+    /** The level under the indicator, 0 to [maxLevel], fractional while sliding. */
     var level: Float = 0f
         private set
+
+    /**
+     * The top of the level range. Every control is a percentage except the refresh rate, whose level is an
+     * index into a list the laptop only names after it connects, so this is settable rather than fixed at
+     * construction: the dial exists from the first frame drawn, the list may not.
+     */
+    var maxLevel: Float = MAX_LEVEL
+        set(value) {
+            field = value.coerceAtLeast(0f)
+            level = level.coerceIn(0f, field)
+        }
 
     /** Muted for audio controls, playing for media: the STATE frame's flag bit. */
     var flag: Boolean = false
@@ -67,8 +83,8 @@ class Dial(
     /** How far the ruler has slid, in dp, clockwise: tied to the level for a control, accumulated for a stepper. */
     val rulerDp: Float get() = if (control != null) level / unitsPerDp else travel
 
-    /** The ruler's length for a control, from level 0 to 100; a stepper's ruler has no ends. */
-    val rulerLengthDp: Float get() = MAX_LEVEL / unitsPerDp
+    /** The ruler's length for a control, from level 0 to [maxLevel]; a stepper's ruler has no ends. */
+    val rulerLengthDp: Float get() = maxLevel / unitsPerDp
 
     /** What the laptop reports. Ignored mid-slide so the finger, not a late STATE, owns the value. */
     fun fromLaptop(
@@ -76,7 +92,7 @@ class Dial(
         flag: Boolean,
     ) {
         this.flag = flag
-        if (!armed) level = value.toFloat().coerceIn(0f, MAX_LEVEL)
+        if (!armed) level = value.toFloat().coerceIn(0f, maxLevel)
         known = true
     }
 
@@ -137,13 +153,13 @@ class Dial(
     }
 
     private fun turnLevel(units: Float) {
-        level = (level + units).coerceIn(0f, MAX_LEVEL)
+        level = (level + units).coerceIn(0f, maxLevel)
         known = true
         send()
     }
 
     private fun snap() {
-        level = ((level / snapTo).roundToInt() * snapTo).toFloat().coerceIn(0f, MAX_LEVEL)
+        level = ((level / snapTo).roundToInt() * snapTo).toFloat().coerceIn(0f, maxLevel)
         send()
     }
 
@@ -166,6 +182,7 @@ class Dial(
     }
 
     companion object {
+        /** The default top of the level range: every control but the refresh rate is a percentage. */
         const val MAX_LEVEL = 100f
 
         /** Value units per dp at sensitivity ×1: the full 0-100 range is 400 dp of slide. */

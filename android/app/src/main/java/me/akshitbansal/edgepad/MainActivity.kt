@@ -23,8 +23,10 @@ import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.RttStats
+import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.ProtocolConstants
+import me.akshitbansal.edgepad.protocol.TextKind
 import me.akshitbansal.edgepad.screens.AppearanceScreen
 import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DialFeelScreen
@@ -33,6 +35,7 @@ import me.akshitbansal.edgepad.screens.GamepadScreen
 import me.akshitbansal.edgepad.screens.GestureScreen
 import me.akshitbansal.edgepad.screens.GuideScreen
 import me.akshitbansal.edgepad.screens.KeyboardScreen
+import me.akshitbansal.edgepad.screens.MacroScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
@@ -44,7 +47,7 @@ import kotlin.concurrent.thread
 
 /**
  * One activity for every screen: the guide on the first run and from Settings, the Devices list, the
- * control surface, the settings pages, the keyboard, the gamepad, the two layout editors, and the
+ * control surface, the settings pages, the keyboard, the gamepad, the macros, the two layout editors, and the
  * connection-lost screen that retries after a link drops on its own. [Screen] is the whole set and
  * [goTo] the only way between them — there are no fragments and no back stack, so [navigateBack] is
  * where every screen's way out is written down.
@@ -70,6 +73,7 @@ class MainActivity :
         GAMEPAD_LAYOUT,
         KEYBOARD,
         GAMEPAD,
+        MACROS,
         SURFACE,
         RECONNECTING,
     }
@@ -302,6 +306,10 @@ class MainActivity :
                     )
                 }
 
+                Screen.MACROS -> {
+                    MacroScreen.build(ui, state.macros, onRun = ::runMacro) { navigateBack() }
+                }
+
                 Screen.RECONNECTING -> {
                     val lost =
                         ReconnectingScreen(ui, laptopName, laptopAddress, onRetry = ::retryNow) {
@@ -322,6 +330,7 @@ class MainActivity :
                         ::openSettings,
                         onOpenKeyboard = { goTo(Screen.KEYBOARD) },
                         onOpenGamepad = { goTo(Screen.GAMEPAD) },
+                        onOpenMacros = { goTo(Screen.MACROS) },
                     ).also { surface = it }
                 }
             }
@@ -400,7 +409,7 @@ class MainActivity :
                 goTo(layoutReturn)
             }
 
-            Screen.KEYBOARD, Screen.GAMEPAD -> {
+            Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS -> {
                 goTo(if (link?.connected == true) Screen.SURFACE else Screen.PAIRING)
             }
 
@@ -449,6 +458,16 @@ class MainActivity :
         down: Boolean,
     ) {
         link?.send(Frame.Key(code, down))
+    }
+
+    /**
+     * Runs the laptop's macro in slot [index]. The frame carries that index and nothing else — never a path,
+     * a command line or a URL. The laptop alone decides what a slot launches, so a phone that is lost,
+     * borrowed or tampered with can only ask for something its owner already set up there. Sending the target
+     * would look like a simplification and would hand any phone on the link arbitrary execution.
+     */
+    private fun runMacro(index: Int) {
+        link?.send(Frame.RunAction(ActionId.MACRO_BASE.id + index))
     }
 
     private fun versionLine(): String =
@@ -561,7 +580,15 @@ class MainActivity :
             }
             return
         }
-        runOnUiThread { if (state.take(frame)) surface?.stateChanged() }
+        runOnUiThread {
+            if (!state.take(frame)) return@runOnUiThread
+            surface?.stateChanged()
+            // The macro grid is built from the list rather than bound to it, so a list that lands while the
+            // screen is open needs the screen built again; otherwise it reads "no macros yet" until you leave.
+            if (screen == Screen.MACROS && frame is Frame.Text && frame.kind == TextKind.MACROS.id) {
+                goTo(Screen.MACROS)
+            }
+        }
     }
 
     override fun onClosed(
@@ -576,7 +603,7 @@ class MainActivity :
         when {
             userEnded -> {
                 if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.KEYBOARD ||
-                    screen == Screen.GAMEPAD
+                    screen == Screen.GAMEPAD || screen == Screen.MACROS
                 ) {
                     goTo(Screen.PAIRING)
                 }

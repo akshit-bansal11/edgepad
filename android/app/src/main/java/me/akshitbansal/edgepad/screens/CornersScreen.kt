@@ -12,28 +12,37 @@ import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.surface.DialKind
 import me.akshitbansal.edgepad.surface.Perimeter
 
-/** What each corner of the surface holds: pick a corner, then pick its dial from the list beside or below it. */
+/** What each slot of the surface holds: pick a slot, then pick its dial from the list beside or below it. */
 object CornersScreen {
     private const val ICON_DP = 18f
     private const val ICON_MARK_DP = 8f
     private const val ICON_INSET_DP = 2f
     private const val ICON_GAP_DP = 14f
 
+    /** Each slot's name, clockwise from the top left: a corner, then the midpoint of the edge after it. */
     private val names =
         listOf(
             R.string.corner_top_left,
+            R.string.edge_top,
             R.string.corner_top_right,
+            R.string.edge_right,
             R.string.corner_bottom_right,
+            R.string.edge_bottom,
             R.string.corner_bottom_left,
+            R.string.edge_left,
         )
 
-    /** Where the filled square sits in each corner's icon, clockwise from the top left. */
+    /** Where the filled square sits in each slot's icon: in its corner, or against the middle of its edge. */
     private val gravities =
         intArrayOf(
             Gravity.TOP or Gravity.START,
+            Gravity.TOP or Gravity.CENTER_HORIZONTAL,
             Gravity.TOP or Gravity.END,
+            Gravity.CENTER_VERTICAL or Gravity.END,
             Gravity.BOTTOM or Gravity.END,
+            Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
             Gravity.BOTTOM or Gravity.START,
+            Gravity.CENTER_VERTICAL or Gravity.START,
         )
 
     fun build(
@@ -41,41 +50,43 @@ object CornersScreen {
         settings: Settings,
         onBack: () -> Unit,
     ): View {
-        val corners = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
+        val slots = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
         val assign = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
         var picked = 0
         val kinds = listOf<DialKind?>(null) + DialKind.entries
 
         fun render() {
-            corners.removeAllViews()
+            slots.removeAllViews()
             assign.removeAllViews()
-            for (corner in 0 until Perimeter.CORNERS) {
-                corners.addView(
-                    row(ui, corner, kindName(ui, settings.corner(corner)), corner == picked) {
-                        picked = corner
+            for (slot in 0 until Perimeter.SLOTS) {
+                slots.addView(
+                    row(ui, slot, kindName(ui, settings.slot(slot)), slot == picked) {
+                        picked = slot
                         render()
                     },
                 )
-                corners.addView(ui.hairline(), LinearLayout.LayoutParams.MATCH_PARENT, ui.dp(Space.HAIR))
+                slots.addView(ui.hairline(), LinearLayout.LayoutParams.MATCH_PARENT, ui.dp(Space.HAIR))
             }
             val title = ui.string(names[picked]).uppercase()
             assign.addView(ui.section(ui.string(R.string.corner_assign, title)))
             assign.addView(
-                ui.choices(kinds.map { kindName(ui, it) }, kinds.indexOf(settings.corner(picked))) { i ->
-                    settings.setCorner(picked, kinds[i])
+                ui.choices(kinds.map { kindName(ui, it) }, kinds.indexOf(settings.slot(picked))) { i ->
+                    settings.setSlot(picked, kinds[i])
                     render()
                 },
             )
         }
         render()
+        // Eight rows and the list of kinds: side by side sideways, one after the other upright, where the
+        // page scrolls. The picked row stays marked either way, so the list always says what it is assigning.
         return ui.page(ui.bar(ui.string(R.string.corners_title), onBack)) {
-            columns({ add(corners) }, { add(assign) })
+            columns({ add(slots) }, { add(assign) })
         }
     }
 
     private fun row(
         ui: Ui,
-        corner: Int,
+        slot: Int,
         value: String,
         picked: Boolean,
         onPick: () -> Unit,
@@ -84,10 +95,10 @@ object CornersScreen {
             LinearLayout(ui.context).apply {
                 gravity = Gravity.CENTER_VERTICAL
                 addView(
-                    icon(ui, corner, picked),
+                    icon(ui, slot, picked),
                     LinearLayout.LayoutParams(ui.dp(ICON_DP), ui.dp(ICON_DP)).apply { marginEnd = ui.dp(ICON_GAP_DP) },
                 )
-                addView(ui.text(ui.string(names[corner]), Type.BODY, ui.palette.ink))
+                addView(ui.text(ui.string(names[slot]), Type.BODY, ui.palette.ink))
             }
         val end =
             ui.mono(
@@ -103,10 +114,10 @@ object CornersScreen {
         }
     }
 
-    /** A small square with a filled square in the corner it stands for; decoration beside the corner's name. */
+    /** A small square with a filled square where the slot it stands for sits; decoration beside its name. */
     private fun icon(
         ui: Ui,
-        corner: Int,
+        slot: Int,
         picked: Boolean,
     ): View =
         View(ui.context).apply {
@@ -123,7 +134,7 @@ object CornersScreen {
                 LayerDrawable(arrayOf(box, mark)).apply {
                     val inset = ui.dp(ICON_INSET_DP)
                     setLayerSize(1, ui.dp(ICON_MARK_DP), ui.dp(ICON_MARK_DP))
-                    setLayerGravity(1, gravities[corner])
+                    setLayerGravity(1, gravities[slot])
                     setLayerInset(1, inset, inset, inset, inset)
                 }
         }

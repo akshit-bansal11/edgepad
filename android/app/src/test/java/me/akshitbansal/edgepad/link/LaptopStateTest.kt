@@ -50,6 +50,49 @@ class LaptopStateTest {
     }
 
     @Test
+    fun readsTheRefreshRatesTheLaptopOffers() {
+        assertTrue(state.take(Frame.Text(TextKind.REFRESH_RATES.id, "60/120/144")))
+        assertEquals(listOf(60, 120, 144), state.refreshRates)
+    }
+
+    @Test
+    fun aRateListWithAnUnreadableEntryIsNoList() {
+        state.take(Frame.Text(TextKind.REFRESH_RATES.id, "60/120/144"))
+        // Dropping the bad entry would slide every index after it onto the wrong rate.
+        state.take(Frame.Text(TextKind.REFRESH_RATES.id, "60//144"))
+        assertEquals(emptyList<Int>(), state.refreshRates)
+    }
+
+    @Test
+    fun readsTheMacroNamesTheLaptopOffers() {
+        assertTrue(state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Spotify/ Notes ")))
+        assertEquals(listOf("Chrome", "Spotify", "Notes"), state.macros)
+    }
+
+    @Test
+    fun aBlankMacroNameKeepsItsSlot() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome//Notes"))
+        // Dropping the empty name would send index 1 for Notes, and the laptop would launch slot 1 instead.
+        assertEquals(listOf("Chrome", "", "Notes"), state.macros)
+        assertEquals(2, state.macros.indexOf("Notes"))
+    }
+
+    @Test
+    fun noMacrosAtAllIsAnEmptyList() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Spotify"))
+        state.take(Frame.Text(TextKind.MACROS.id, ""))
+        assertEquals(emptyList<String>(), state.macros)
+    }
+
+    @Test
+    fun namesPastTheReservedBlockAreDropped() {
+        // ACTION 64..95 is 32 wide; a 33rd name has no action id that could run it.
+        state.take(Frame.Text(TextKind.MACROS.id, (1..40).joinToString("/") { "M$it" }))
+        assertEquals(32, state.macros.size)
+        assertEquals("M32", state.macros.last())
+    }
+
+    @Test
     fun framesThatAreNotStateAreNotKept() {
         assertFalse(state.take(Frame.Pong(1)))
         assertFalse(state.take(Frame.Text(7, "x")))

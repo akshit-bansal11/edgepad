@@ -139,6 +139,10 @@ class AppLogo(
                 R.raw.logo_sky
             }
 
+            "vlc" in name -> {
+                R.raw.logo_vlc
+            }
+
             "facebook" in name -> {
                 R.raw.logo_facebook
             }
