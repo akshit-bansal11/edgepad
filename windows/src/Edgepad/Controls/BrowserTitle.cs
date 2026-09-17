@@ -4,14 +4,12 @@ using System.Runtime.InteropServices;
 namespace Edgepad.Controls;
 
 /// <summary>
-/// What a player's own window title says, for the two cases where Windows does not say enough by itself.
-/// Netflix playing in Chrome reports itself to Windows as Chrome, so the phone would draw a C; the service
-/// is named in the browser window's title ("Stranger Things | Netflix - Google Chrome"), so a browser
-/// source is looked up there. Only the front tab titles its window: a service playing in a background tab
-/// stays the browser's name. A title-only player reports nothing to Windows at all, so its title is not a
-/// better name for a session — it is the only evidence the session exists.
+/// Netflix playing in Chrome reports itself to Windows as Chrome, so the phone would draw a C. The
+/// service is named in the browser window's title ("Stranger Things | Netflix - Google Chrome"), so a
+/// browser source is looked up there. Only the front tab titles its window: a service playing in a
+/// background tab stays the browser's name.
 /// </summary>
-internal static partial class PlayerTitle
+internal static partial class BrowserTitle
 {
     private static readonly string[] Browsers = ["chrome", "msedge", "firefox", "brave", "opera", "vivaldi"];
 
@@ -21,18 +19,6 @@ internal static partial class PlayerTitle
         "YouTube Music", "Apple Music", "Apple TV", "Prime Video", "HBO Max", "Paramount+", "Disney+", "Netflix",
         "YouTube", "Spotify", "Hulu", "Crunchyroll", "Peacock", "SoundCloud", "Twitch", "JioHotstar", "Hotstar",
         "JioCinema", "SonyLIV",
-    ];
-
-    /// <summary>
-    /// Players that publish nothing to the system media transport controls, so a window title is everything
-    /// that can be known about them: a media name, and never a position, a length or a play state. VLC is
-    /// here because only the unreleased VLC 4.0 speaks SMTC, and 3.x is what people actually run. The suffix
-    /// is what the player hangs off the end of the media name; stripping it leaves the name. Another such
-    /// player is a row here, not another branch anywhere.
-    /// </summary>
-    private static readonly (string Executable, string App, string Suffix)[] TitleOnlyPlayers =
-    [
-        ("vlc", "VLC", " - VLC media player"),
     ];
 
     [ThreadStatic]
@@ -53,44 +39,6 @@ internal static partial class PlayerTitle
                 if (title.Contains(service, StringComparison.OrdinalIgnoreCase))
                 {
                     return service;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>The app and the media name of whichever title-only player has media open, or null when none has.</summary>
-    public static (string App, string Media)? Playing()
-    {
-        var titles = new List<string>();
-        foreach (var player in TitleOnlyPlayers)
-        {
-            titles.AddRange(WindowTitles(player.Executable));
-        }
-
-        return Playing(titles);
-    }
-
-    /// <summary>The media a title-only player names in any of <paramref name="titles"/>, or null.</summary>
-    public static (string App, string Media)? Playing(IEnumerable<string> titles)
-    {
-        foreach (var title in titles)
-        {
-            foreach (var (_, app, suffix) in TitleOnlyPlayers)
-            {
-                if (!title.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                // An idle VLC titles its window "VLC media player" with nothing in front, and a preferences
-                // or playlist window titles itself something else entirely. Both fall out here, correctly:
-                // a name is the only thing that makes this a session at all.
-                var media = title[..^suffix.Length].Trim();
-                if (media.Length > 0)
-                {
-                    return (app, media);
                 }
             }
         }

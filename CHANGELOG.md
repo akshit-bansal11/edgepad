@@ -31,17 +31,12 @@ every pair to update together.
   differently reads as broken rather than as configured. Three and four fingers stay assignable.
 - A dial still goes in one of the four corners and nowhere else. Seven kinds now compete for those four
   places, which is the corners screen's job to settle.
-- VLC now reaches the phone's media block. It publishes nothing to Windows' media transport controls, so
-  its window title is read instead — the same mechanism that already names a streaming service playing in
-  a browser tab. Its play button and transport already worked; only the display was missing.
 
 ### Fixed
 - **Two-finger scroll no longer starts late.** Every sample advanced the last-seen position, including the
   ones spent below the slop deciding scroll from pinch, so the travel spent deciding was dropped and every
   stroke began 8 dp behind the finger. Pinch never had the bug, because it only advances its reference once
   a mode is settled.
-- A player found by its window title was found and then never sent: the publish guard dropped every tick
-  where nothing was playing, and a player known only by its title always reports as not playing.
 
 ### Documentation
 - PROTOCOL.md records why new ids did not move the version, and what would.

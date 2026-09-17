@@ -24,7 +24,6 @@ internal sealed class MediaSessions : IDisposable
     private readonly List<Action<MediaState>> watchers = [];
     private GlobalSystemMediaTransportControlsSessionManager? manager;
     private GlobalSystemMediaTransportControlsSession? session;
-    private MediaState? published;
     private System.Threading.Timer? ticker;
 
     public static MediaState Nothing { get; } = new("", "", false, 0, 0, 0);
@@ -35,9 +34,8 @@ internal sealed class MediaSessions : IDisposable
         manager.CurrentSessionChanged += (_, _) => Attach(manager.GetCurrentSession());
         Attach(manager.GetCurrentSession());
         // Players report their position only now and then; while playing, the phone's scrub dial is
-        // kept moving by extrapolating from the last report once a second. The tick is also the only
-        // clock a title-only player has, since it raises no event to attach to.
-        ticker = new System.Threading.Timer(_ => _ = PublishAsync(onTick: true), null, TickMs, TickMs);
+        // kept moving by extrapolating from the last report once a second.
+        ticker = new System.Threading.Timer(_ => _ = PublishAsync(onlyIfPlaying: true), null, TickMs, TickMs);
     }
 
     /// <summary>Reports every change until the handle is disposed, starting with the current state.</summary>
@@ -96,25 +94,20 @@ internal sealed class MediaSessions : IDisposable
             next.TimelinePropertiesChanged += OnChanged;
         }
 
-        _ = PublishAsync(onTick: false);
+        _ = PublishAsync(onlyIfPlaying: false);
     }
 
-    private void OnChanged(GlobalSystemMediaTransportControlsSession sender, object args) => _ = PublishAsync(onTick: false);
+    private void OnChanged(GlobalSystemMediaTransportControlsSession sender, object args) => _ = PublishAsync(onlyIfPlaying: false);
 
-    private async Task PublishAsync(bool onTick)
+    private async Task PublishAsync(bool onlyIfPlaying)
     {
         try
         {
             var state = await SnapshotAsync();
-            // A tick has something to say while a position is moving, or when the state changed with no
-            // event to announce it — which is every change a title-only player makes. Anything else would
-            // be a Bluetooth frame a second saying what the phone already shows.
-            if (onTick && !state.Playing && state == published)
+            if (onlyIfPlaying && !state.Playing)
             {
                 return;
             }
-
-            published = state;
 
             Action<MediaState>[] targets;
             lock (gate)
@@ -139,7 +132,7 @@ internal sealed class MediaSessions : IDisposable
         var current = session;
         if (current is null)
         {
-            return TitleOnly();
+            return Nothing;
         }
 
         var properties = await current.TryGetMediaPropertiesAsync();
@@ -168,21 +161,11 @@ internal sealed class MediaSessions : IDisposable
         var aumid = current.SourceAppUserModelId ?? "";
         var executable = Executable(aumid);
         // A browser is named after the service in its window title, when one can be seen there.
-        var app = PlayerTitle.IsBrowser(executable)
-            ? PlayerTitle.Service(PlayerTitle.WindowTitles(executable)) ?? AppName(aumid)
+        var app = BrowserTitle.IsBrowser(executable)
+            ? BrowserTitle.Service(BrowserTitle.WindowTitles(executable)) ?? AppName(aumid)
             : AppName(aumid);
         return new MediaState(nowPlaying.Trim(), app, playing, percent, seconds, (int)span.TotalSeconds);
     }
-
-    /// <summary>
-    /// Reached only when Windows reports no session at all, so a player that reports properly is never
-    /// overridden by a window title. VLC 3.x is that case: it publishes nothing to the transport controls,
-    /// and its title is the whole of what can be known. Everything a timeline needs is left at the values
-    /// the phone already reads as "no timeline" — a zero length makes it hide the scrub rather than draw a
-    /// 0:00 of 0:00 that would be a lie — and the play state is reported as unknown rather than guessed.
-    /// </summary>
-    private static MediaState TitleOnly() =>
-        PlayerTitle.Playing() is { } playing ? new MediaState(playing.Media, playing.App, false, 0, 0, 0) : Nothing;
 
     /// <summary>"Spotify.exe" or "Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic" to something a label can show.</summary>
     internal static string AppName(string appUserModelId)

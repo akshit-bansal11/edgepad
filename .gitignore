@@ -25,3 +25,6 @@ TestResults/
 # OS
 .DS_Store
 Thumbs.db
+
+# Brag video output — rendered artefacts, not code.
+brag-output/
