@@ -74,11 +74,10 @@ class ControlSurface(
     private val showHints = settings.hints
     private val scrubOnADial = settings.hasDial(DialKind.MEDIA)
     private val dials: List<Dial> =
-        // A dial's slot rides in Dial's corner field: eight slots to four corners, and nothing inside Dial
         (0 until Perimeter.CORNERS).mapNotNull { corner ->
             settings.corner(corner)?.let { kind ->
                 kind.dial(
-                    slot,
+                    corner,
                     context.getString(kind.shortRes),
                     Dial.BASE_UNITS_PER_DP * settings.sensitivityOf(kind),
                     settings.snap,
@@ -878,8 +877,10 @@ class ControlSurface(
         private const val MIN_BEND_DP = 24f
         private const val CORNER_HIT_DP = 96f
         private const val CORNER_HIT_NEAR_DP = 56f
+
         /** Corners 0 and 1 are the top two, where the hit zone may reach further down the screen. */
         private const val FIRST_BOTTOM_CORNER = 2
+
         private const val ICON_DP = 22f
         private const val SKIP_DP = 22f
         private const val PLAY_ICON_DP = 22f

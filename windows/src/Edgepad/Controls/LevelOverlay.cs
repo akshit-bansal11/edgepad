@@ -247,8 +247,8 @@ internal sealed class LevelOverlay : IDisposable
                 laidOutAt = dpi;
                 labelFont.Dispose();
                 valueFont.Dispose();
-                labelFont = new Font(Face, Layout.Scale(LabelSize, dpi), FontStyle.Regular, GraphicsUnit.Pixel);
-                valueFont = new Font(Face, Layout.Scale(ValueSize, dpi), FontStyle.Regular, GraphicsUnit.Pixel);
+                labelFont = new Font(Face, (float)Layout.Scale(LabelSize, dpi), FontStyle.Regular, GraphicsUnit.Pixel);
+                valueFont = new Font(Face, (float)Layout.Scale(ValueSize, dpi), FontStyle.Regular, GraphicsUnit.Pixel);
             }
 
             if (Bounds == where)

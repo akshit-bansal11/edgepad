@@ -62,8 +62,8 @@ internal sealed class MacroWindow : Form
         Place(down, "Down", 200, 242, 42);
         add.Click += (_, _) => Add();
         remove.Click += (_, _) => Remove();
-        up.Click += (_, _) => Move(-1);
-        down.Click += (_, _) => Move(1);
+        up.Click += (_, _) => Reorder(-1);
+        down.Click += (_, _) => Reorder(1);
 
         Field(name, "Name", 16, 340);
         Field(target, "Opens", 70, 250);
@@ -220,8 +220,12 @@ internal sealed class MacroWindow : Form
         Rebuild(index);
     }
 
-    /// <summary>Moves the selected macro one place, and the selection with it: the row is what is being dragged.</summary>
-    private void Move(int by)
+    /// <summary>
+    /// Moves the selected macro one place, and the selection with it: the row is what is being dragged.
+    /// Named Reorder rather than Move because Control already has a Move event, and a method hiding it is
+    /// an error under warnings-as-errors rather than the harmless shadowing it looks like.
+    /// </summary>
+    private void Reorder(int by)
     {
         var index = list.SelectedIndex;
         var to = index + by;
