@@ -71,7 +71,9 @@ internal sealed class MacroWindow : Form
 
         // Only so much of a name survives the trip to the phone, so the box stops there rather than letting
         // the store quietly cut a name the owner watched themselves type.
-        name.MaxLength = MacroStore.MaxNameChars;
+        // A byte budget cannot be spelled as a character count, and MaxLength is the only thing a TextBox
+        // understands. This keeps typing roughly inside the limit; MacroStore does the real cut on save.
+        name.MaxLength = MacroStore.MaxNameBytes;
         name.TextChanged += (_, _) => Edited();
         target.TextChanged += (_, _) => Edited();
         arguments.TextChanged += (_, _) => Edited();

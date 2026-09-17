@@ -85,20 +85,38 @@ public sealed class MacroStoreTests : IDisposable
     }
 
     [Fact]
-    public void NamesStopAtTheFramesLengthRatherThanSplittingANameInTwo()
+    public void AFullGridOfLongestNamesStillFitsOneFrame()
     {
+        // The whole reason the grid is fifteen. If this fails, either the grid grew or the name budget did,
+        // and some macro is about to reach the phone as a blank button.
         var store = NewStore();
-        var full = new string('n', MacroStore.MaxNameChars);
+        var full = new string('n', MacroStore.MaxNameBytes);
         store.Save([.. Enumerable.Range(0, MacroStore.MaxMacros).Select(_ => new Macro(full, "one.exe", null))]);
 
         var names = store.Names();
-        var bytes = Encoding.UTF8.GetByteCount(names);
 
-        Assert.True(bytes <= 255, $"{bytes} bytes is past what a TEXT payload's length byte can say");
+        Assert.Equal(MacroStore.MaxMacros, names.Split('/').Length);
         Assert.All(names.Split('/'), name => Assert.Equal(full, name));
+        Assert.True(
+            Encoding.UTF8.GetByteCount(names) <= MacroStore.MaxNamesBytes,
+            $"{Encoding.UTF8.GetByteCount(names)} bytes is past what a TEXT payload's length byte can say");
+    }
 
-        // The macros past the frame's length keep their indices and still run; they only lose their labels.
-        Assert.Equal(MacroStore.MaxMacros, store.Macros.Count);
+    [Fact]
+    public void ANameIsCutByItsBytesAndNeverThroughACharacter()
+    {
+        // Sixteen emoji are sixteen characters and sixty-four bytes. A cap in characters would have let this
+        // through and lost a label on the wire; a careless cut in bytes would have split a surrogate pair.
+        var store = NewStore();
+        store.Save([new Macro(string.Concat(Enumerable.Repeat("😀", 16)), "one.exe", null)]);
+
+        var name = store.Macros[0].Name;
+
+        // Four emoji at four bytes each is the budget exactly, and eight chars is four whole surrogate
+        // pairs: a cut through one would leave an odd length and a replacement character on the round trip.
+        Assert.Equal(MacroStore.MaxNameBytes, Encoding.UTF8.GetByteCount(name));
+        Assert.Equal(8, name.Length);
+        Assert.DoesNotContain('�', Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(name)));
     }
 
     [Fact]

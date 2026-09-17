@@ -45,8 +45,8 @@ public sealed class DispatcherTests : IDisposable
 
     [Theory]
     [InlineData(64)]
-    [InlineData(80)]
-    [InlineData(95)]
+    [InlineData(70)]
+    [InlineData(78)]
     public void AMacroSlotWithNothingInItIsDropped(byte id)
     {
         // The block is 64..95 whether or not the laptop has filled it. An empty slot must be refused the
@@ -57,11 +57,11 @@ public sealed class DispatcherTests : IDisposable
 
     [Theory]
     [InlineData(63)]
-    [InlineData(96)]
+    [InlineData(79)]
     public void AnIdEitherSideOfTheMacroBlockIsNotAMacro(byte id)
     {
-        // 63 and 96 bound the reserved block. Neither is in the action table either, so both drop — the
-        // point is that the block's arithmetic does not reach past its own edges into the table's ids.
+        // 63 is below the block and 79 is the first slot past the grid's fifteen. Neither is in the action
+        // table either, so both drop — the point is that the arithmetic stops at the grid, not at the block.
         dispatcher.Handle(new RunAction(id));
         Assert.Equal(1, dispatcher.Dropped);
     }

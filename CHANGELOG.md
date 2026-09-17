@@ -11,9 +11,10 @@ every pair to update together.
 
 ### Added
 - **Macro buttons.** The laptop's tray menu gains a Macros editor: name an app, a document, a folder or a
-  URL, and it appears as a button on the phone. The phone sends the slot number and never what the slot
-  opens, so a phone can name a button but can never name a program — the laptop's own list is the only
-  thing that decides what runs.
+  URL, and it appears as a button on the phone: a 5x3 grid, fifteen of them. Fifteen is what one frame can
+  name, so a full grid always arrives labelled rather than trailing off into blank buttons. The phone sends
+  the slot number and never what the slot opens, so it can name a button but can never name a program —
+  the laptop's own list is the only thing that decides what runs.
 - **A refresh-rate dial.** Steps the laptop's display through the rates it actually offers, filtered to the
   resolution and colour depth already in use so a rate can never drag the desktop to another size. The
   switch is for this session only; a dial should not decide what the desktop boots at.

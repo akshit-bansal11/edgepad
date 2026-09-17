@@ -25,18 +25,24 @@ namespace Edgepad.Macros;
 /// </summary>
 internal sealed class MacroStore
 {
-    /// <summary>A phone screen has room for a page of buttons, not a start menu.</summary>
-    public const int MaxMacros = 32;
+    /// <summary>
+    /// A 5x3 grid on the phone, which is a page of buttons rather than a start menu. Fifteen is also exactly
+    /// what one TEXT frame can name: 15 x <see cref="MaxNameBytes"/> plus 14 separators is 254 of the 255 a
+    /// payload holds, so a full list always reaches the phone labelled. The number is not a coincidence and
+    /// must not be raised without cutting the name budget to match.
+    /// </summary>
+    public const int MaxMacros = 15;
 
     /// <summary>
-    /// Names are drawn as phone buttons, so long ones would be truncated on the phone anyway. Capping here
-    /// instead means the laptop decides where the cut falls and the joined string stays small. The editor's
-    /// name box reads this, so the owner sees the limit rather than meeting it afterwards.
+    /// A name's budget, counted in UTF-8 bytes rather than characters. Bytes are what the frame's single
+    /// length byte counts, and sixteen accented or emoji characters weigh far more than sixteen letters, so
+    /// a cap in characters would let a legal-looking name overflow the list and silently lose a label. The
+    /// editor's name box reads this too, so the owner meets the limit while typing rather than afterwards.
     /// </summary>
-    public const int MaxNameChars = 16;
+    public const int MaxNameBytes = 16;
 
-    /// <summary>A TEXT frame's payload is a single length byte, so 255 UTF-8 bytes is the hard ceiling.</summary>
-    private const int MaxNamesBytes = 255;
+    /// <summary>A TEXT payload's length is a single byte, so 255 UTF-8 bytes is the hard ceiling.</summary>
+    public const int MaxNamesBytes = 255;
 
     private readonly Lock gate = new();
     private readonly string path;
@@ -186,14 +192,41 @@ internal sealed class MacroStore
     private static string Name(string name)
     {
         var plain = Plain(name.Replace('/', '-'));
-        if (plain.Length > MaxNameChars)
-        {
-            plain = plain[..MaxNameChars].TrimEnd();
-        }
+        plain = CutToBytes(plain).TrimEnd();
 
         // The editor asks for a name, but a file edited by hand may not carry one, and a button with no label
         // is worse than a dull one.
         return plain.Length > 0 ? plain : "Macro";
+    }
+
+    /// <summary>
+    /// The longest prefix of <paramref name="name"/> that fits <see cref="MaxNameBytes"/> UTF-8 bytes, cut on
+    /// a whole character. Cutting mid-character would put a broken code unit on the wire, and a surrogate
+    /// pair split down the middle is not a short name but an invalid one.
+    /// </summary>
+    private static string CutToBytes(string name)
+    {
+        if (Encoding.UTF8.GetByteCount(name) <= MaxNameBytes)
+        {
+            return name;
+        }
+
+        var end = 0;
+        var bytes = 0;
+        while (end < name.Length)
+        {
+            var step = char.IsHighSurrogate(name[end]) && end + 1 < name.Length ? 2 : 1;
+            var size = Encoding.UTF8.GetByteCount(name.AsSpan(end, step));
+            if (bytes + size > MaxNameBytes)
+            {
+                break;
+            }
+
+            bytes += size;
+            end += step;
+        }
+
+        return name[..end];
     }
 
     /// <summary>

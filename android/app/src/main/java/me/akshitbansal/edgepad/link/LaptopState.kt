@@ -111,6 +111,6 @@ class LaptopState {
         const val MAX_LEVEL = 100
 
         /** ACTION 64..95: the reserved block is 32 wide, so a 33rd name could not be run. */
-        const val MACRO_SLOTS = 32
+        const val MACRO_SLOTS = 15
     }
 }

@@ -86,10 +86,11 @@ class LaptopStateTest {
 
     @Test
     fun namesPastTheReservedBlockAreDropped() {
-        // ACTION 64..95 is 32 wide; a 33rd name has no action id that could run it.
+        // The grid holds fifteen, so a sixteenth name has no button to sit on. The reserved action block is
+        // wider than that on purpose, but the laptop never fills past the grid.
         state.take(Frame.Text(TextKind.MACROS.id, (1..40).joinToString("/") { "M$it" }))
-        assertEquals(32, state.macros.size)
-        assertEquals("M32", state.macros.last())
+        assertEquals(LaptopState.MACRO_SLOTS, state.macros.size)
+        assertEquals("M15", state.macros.last())
     }
 
     @Test

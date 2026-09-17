@@ -9,8 +9,8 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
-private const val PORTRAIT_COLUMNS = 2
-private const val LANDSCAPE_COLUMNS = 4
+private const val PORTRAIT_COLUMNS = 3
+private const val LANDSCAPE_COLUMNS = 5
 
 /**
  * The laptop's macro slots, as a grid of buttons. A tap hands back the slot's index and nothing else —
