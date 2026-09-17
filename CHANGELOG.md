@@ -20,8 +20,6 @@ every pair to update together.
 - **An on-screen readout on the laptop.** Sliding volume, microphone or brightness from the phone now shows
   a small panel on the laptop. Windows draws one for its own volume keys but not for a level set through
   Core Audio or WMI, so until now brightness changed with no feedback at all.
-- **Eight places to put a dial** instead of four: the corners, and the middle of each edge. Dials already
-  placed keep their corners exactly.
 - **Pointer speed and scroll speed** are settings rather than constants, on the renamed Trackpad screen.
 - **A sensitivity of its own for each dial kind.** Volume runs 0-100 under a thumb and wants a slow ruler
   where the app switcher wants a fast one. A dial left on SHARED still follows the one slider.
@@ -30,6 +28,8 @@ every pair to update together.
 - **Two-finger gestures are fixed and no longer assignable.** Drag to scroll, pinch to zoom, tap to
   right-click. They are what a hand already expects from a trackpad, and a phone that answers them
   differently reads as broken rather than as configured. Three and four fingers stay assignable.
+- A dial still goes in one of the four corners and nowhere else. Seven kinds now compete for those four
+  places, which is the corners screen's job to settle.
 - VLC now reaches the phone's media block. It publishes nothing to Windows' media transport controls, so
   its window title is read instead — the same mechanism that already names a streaming service playing in
   a browser tab. Its play button and transport already worked; only the display was missing.
