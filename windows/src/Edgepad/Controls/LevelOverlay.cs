@@ -35,8 +35,8 @@ internal sealed class LevelOverlay : IDisposable
         }
 
         // Shaped here, on the caller's thread, so the UI thread only ever paints.
-        var heading = Layout.Label(label);
-        var caption = Layout.Caption(percent, muted);
+        var heading = Metrics.Label(label);
+        var caption = Metrics.Caption(percent, muted);
         var level = Math.Clamp(percent, 0, 100);
         ui.Post(_ => Present(heading, caption, level, muted), null);
     }
@@ -93,7 +93,14 @@ internal sealed class LevelOverlay : IDisposable
     /// The arithmetic and the wording, with no window behind them. Split out because everything else in this
     /// file needs a desktop to run at all.
     /// </summary>
-    internal static class Layout
+    /// <summary>
+    /// The pure arithmetic and wording, apart from any window so it can be tested without one.
+    ///
+    /// Called Metrics rather than Layout on purpose: OverlayWindow derives from Form, which inherits a
+    /// Control.Layout event, and inside that class an unqualified Layout binds to the event rather than to
+    /// a nested type. Every use of it there is then a compile error about the left side of +=.
+    /// </summary>
+    internal static class Metrics
     {
         /// <summary>The design's baseline: every measurement in this file is written for 96 dpi and scaled from it.</summary>
         private const double BaselineDpi = 96.0;
@@ -134,7 +141,7 @@ internal sealed class LevelOverlay : IDisposable
         /// <summary>One face everywhere, as on the phone. A missing family falls back inside GDI+ rather than throwing.</summary>
         private const string Face = "Consolas";
 
-        // Measurements at 96 dpi; Layout.Scale turns each into pixels for the monitor in front of the user.
+        // Measurements at 96 dpi; Metrics.Scale turns each into pixels for the monitor in front of the user.
         private const int PanelWidth = 248;
         private const int PanelHeight = 76;
         private const int Corner = 14;
@@ -182,7 +189,7 @@ internal sealed class LevelOverlay : IDisposable
             DoubleBuffered = true;
 
             // WinForms' own scaling would fight the pixel measurements above; every size here comes from
-            // Layout.Scale and DeviceDpi instead.
+            // Metrics.Scale and DeviceDpi instead.
             AutoScaleMode = AutoScaleMode.None;
 
             labelFont = new Font(Face, LabelSize, FontStyle.Regular, GraphicsUnit.Pixel);
@@ -240,16 +247,16 @@ internal sealed class LevelOverlay : IDisposable
         {
             var dpi = DeviceDpi;
             var work = Screen.PrimaryScreen?.WorkingArea ?? SystemInformation.WorkingArea;
-            var size = new Size(Layout.Scale(PanelWidth, dpi), Layout.Scale(PanelHeight, dpi));
-            var where = new Rectangle(Layout.Anchor(work, size, Layout.Scale(BottomMargin, dpi)), size);
+            var size = new Size(Metrics.Scale(PanelWidth, dpi), Metrics.Scale(PanelHeight, dpi));
+            var where = new Rectangle(Metrics.Anchor(work, size, Metrics.Scale(BottomMargin, dpi)), size);
 
             if (dpi != laidOutAt)
             {
                 laidOutAt = dpi;
                 labelFont.Dispose();
                 valueFont.Dispose();
-                labelFont = new Font(Face, (float)Layout.Scale(LabelSize, dpi), FontStyle.Regular, GraphicsUnit.Pixel);
-                valueFont = new Font(Face, (float)Layout.Scale(ValueSize, dpi), FontStyle.Regular, GraphicsUnit.Pixel);
+                labelFont = new Font(Face, (float)Metrics.Scale(LabelSize, dpi), FontStyle.Regular, GraphicsUnit.Pixel);
+                valueFont = new Font(Face, (float)Metrics.Scale(ValueSize, dpi), FontStyle.Regular, GraphicsUnit.Pixel);
             }
 
             if (Bounds == where)
@@ -261,7 +268,7 @@ internal sealed class LevelOverlay : IDisposable
 
             // The rounded corners are a window region rather than a painted shape, so the desktop shows through
             // them. Control.Region disposes the one it replaces.
-            using var shape = RoundedPath(size, Layout.Scale(Corner, dpi));
+            using var shape = RoundedPath(size, Metrics.Scale(Corner, dpi));
             Region = new Region(shape);
         }
 
@@ -302,11 +309,11 @@ internal sealed class LevelOverlay : IDisposable
             // Grid-fit rather than ClearType: the panel goes layered during the fade, where subpixel edges fringe.
             graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 
-            var pad = Layout.Scale(Pad, laidOutAt);
+            var pad = Metrics.Scale(Pad, laidOutAt);
             var inner = Width - (pad * 2);
 
             using var hairline = new Pen(LineColour);
-            using var outline = RoundedPath(new Size(Width - 1, Height - 1), Layout.Scale(Corner, laidOutAt));
+            using var outline = RoundedPath(new Size(Width - 1, Height - 1), Metrics.Scale(Corner, laidOutAt));
             graphics.DrawPath(hairline, outline);
 
             using var ink = new SolidBrush(InkColour);
@@ -318,11 +325,11 @@ internal sealed class LevelOverlay : IDisposable
             DrawTracked(graphics, label, dim, pad, row.Top + ((row.Height - labelFont.Height) / 2f));
             graphics.DrawString(caption, valueFont, accent, row, rightAligned);
 
-            var thickness = Layout.Scale(BarHeight, laidOutAt);
+            var thickness = Metrics.Scale(BarHeight, laidOutAt);
             var track = new Rectangle(pad, Height - pad - thickness, inner, thickness);
             using var trackBrush = new SolidBrush(LineColour);
             graphics.FillRectangle(trackBrush, track);
-            graphics.FillRectangle(accent, track.X, track.Y, Layout.BarWidth(inner, percent), thickness);
+            graphics.FillRectangle(accent, track.X, track.Y, Metrics.BarWidth(inner, percent), thickness);
         }
 
         /// <summary>
@@ -336,7 +343,7 @@ internal sealed class LevelOverlay : IDisposable
                 return;
             }
 
-            var advance = graphics.MeasureString("M", labelFont, PointF.Empty, charCell).Width + Layout.Scale(Tracking, laidOutAt);
+            var advance = graphics.MeasureString("M", labelFont, PointF.Empty, charCell).Width + Metrics.Scale(Tracking, laidOutAt);
             foreach (var character in text)
             {
                 graphics.DrawString(character.ToString(), labelFont, brush, x, y, charCell);
