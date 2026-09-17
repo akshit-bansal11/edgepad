@@ -3,12 +3,35 @@ name: Release
 # Push a tag such as v0.1.0 to publish. Both apps pass their quality gates, then a signed APK and a
 # self-contained exe are attached to a GitHub Release under stable names, so
 # releases/latest/download/Edgepad.apk and .../Edgepad.exe always point at the newest build.
+#
+# Running this by hand instead builds the same two files from whatever the branch currently holds and
+# attaches them to a DRAFT release. A draft is visible only to accounts with push access to the repo, and
+# GitHub does not create its git tag until it is published, so nothing about it reaches the public: no tag,
+# no entry on the releases page, and releases/latest/download keeps pointing at the last real release.
+# That is how a build gets onto the owner's own phone and laptop for testing without announcing a version.
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      label:
+        description: 'Name for the draft build (a run number is appended, so it never collides)'
+        default: 'test-build'
+        required: false
+      version:
+        description: 'Version the built apps report'
+        default: '1.1.0'
+        required: false
 
 permissions:
   contents: read
+
+env:
+  # A tagged run is versioned by its tag. A hand-run draft has no tag, and GITHUB_REF_NAME would be the
+  # branch: Android would cheerfully ship an app calling itself "main", and MSBuild would fail outright,
+  # since -p:Version wants a number. So a draft names itself from the input plus the run number, which
+  # also makes two drafts of the same version distinguishable once they are on the phone.
+  VERSION: ${{ github.event_name == 'workflow_dispatch' && format('{0}-draft.{1}', inputs.version, github.run_number) || '' }}
 
 jobs:
   android:
@@ -51,7 +74,9 @@ jobs:
           } >> "$GITHUB_ENV"
       - name: Build the signed APK
         working-directory: android
-        run: ./gradlew --no-daemon assembleRelease -PversionName="${GITHUB_REF_NAME#v}" -PversionCode="${{ github.run_number }}"
+        run: >
+          ./gradlew --no-daemon assembleRelease
+          -PversionName="${VERSION:-${GITHUB_REF_NAME#v}}" -PversionCode="${{ github.run_number }}"
       # An unsigned or wrongly signed APK must fail here, not on the phone.
       - name: Verify the signature
         run: |
@@ -79,7 +104,7 @@ jobs:
         run: >
           dotnet publish windows/src/Edgepad/Edgepad.csproj -c Release -r win-x64 --self-contained
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
-          -p:Version=$($env:GITHUB_REF_NAME.TrimStart('v')) -o publish
+          -p:Version=$(if ($env:VERSION) { $env:VERSION } else { $env:GITHUB_REF_NAME.TrimStart('v') }) -o publish
       - uses: actions/upload-artifact@v7
         with:
           name: exe
@@ -98,22 +123,44 @@ jobs:
         with:
           path: dist
           merge-multiple: true
-      # The release notes are this version's section of CHANGELOG.md.
+      # A tagged run takes that version's section of CHANGELOG.md; a hand-run draft takes Unreleased,
+      # because a draft is a build of work in progress and has no section of its own yet.
       - name: Take the notes from the changelog
+        env:
+          SECTION: ${{ github.event_name == 'workflow_dispatch' && 'Unreleased' || '' }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          awk -v v="$version" '
+          section="${SECTION:-${GITHUB_REF_NAME#v}}"
+          awk -v v="$section" '
             index($0, "## [" v "]") == 1 { on = 1; next }
             on && index($0, "## [") == 1 { exit }
             on { print }
           ' CHANGELOG.md > notes.md
           if [ ! -s notes.md ]; then
-            echo "::error::CHANGELOG.md has no section for $version"
+            echo "::error::CHANGELOG.md has no section for $section"
             exit 1
           fi
-      - name: Create the release
+      - name: Publish the release
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
           gh release create "$GITHUB_REF_NAME" dist/Edgepad.apk dist/Edgepad.exe
           --repo "$GITHUB_REPOSITORY" --title "Edgepad $GITHUB_REF_NAME" --notes-file notes.md --verify-tag
+      # --draft is what keeps this private, and the run number is what keeps two test builds from
+      # colliding on a name: deleting a release is an owner action, so a job must never need one deleted
+      # to succeed. --target pins the draft to this commit; the tag is only cut if it is ever published.
+      - name: Attach the draft build
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: ${{ inputs.label }}-${{ github.run_number }}
+        run: |
+          gh release create "$NAME" dist/Edgepad.apk dist/Edgepad.exe --repo "$GITHUB_REPOSITORY" --title "Edgepad $NAME" --notes-file notes.md --draft --target "$GITHUB_SHA"
+          {
+            echo "Draft build **$NAME**, visible only to accounts with push access to this repo."
+            echo
+            echo 'Download both files with:'
+            echo '```'
+            echo "gh release download $NAME --repo $GITHUB_REPOSITORY --dir ."
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

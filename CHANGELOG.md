@@ -4,6 +4,47 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+Everything below is built but has never run on a phone or a laptop. The protocol stays at version 3: the
+refresh-rate dial and the macro buttons are new ids in tables that already existed, and an unknown id is
+dropped and counted rather than treated as an error, so neither needed a version that would have forced
+every pair to update together.
+
+### Added
+- **Macro buttons.** The laptop's tray menu gains a Macros editor: name an app, a document, a folder or a
+  URL, and it appears as a button on the phone. The phone sends the slot number and never what the slot
+  opens, so a phone can name a button but can never name a program — the laptop's own list is the only
+  thing that decides what runs.
+- **A refresh-rate dial.** Steps the laptop's display through the rates it actually offers, filtered to the
+  resolution and colour depth already in use so a rate can never drag the desktop to another size. The
+  switch is for this session only; a dial should not decide what the desktop boots at.
+- **An on-screen readout on the laptop.** Sliding volume, microphone or brightness from the phone now shows
+  a small panel on the laptop. Windows draws one for its own volume keys but not for a level set through
+  Core Audio or WMI, so until now brightness changed with no feedback at all.
+- **Eight places to put a dial** instead of four: the corners, and the middle of each edge. Dials already
+  placed keep their corners exactly.
+- **Pointer speed and scroll speed** are settings rather than constants, on the renamed Trackpad screen.
+- **A sensitivity of its own for each dial kind.** Volume runs 0-100 under a thumb and wants a slow ruler
+  where the app switcher wants a fast one. A dial left on SHARED still follows the one slider.
+
+### Changed
+- **Two-finger gestures are fixed and no longer assignable.** Drag to scroll, pinch to zoom, tap to
+  right-click. They are what a hand already expects from a trackpad, and a phone that answers them
+  differently reads as broken rather than as configured. Three and four fingers stay assignable.
+- VLC now reaches the phone's media block. It publishes nothing to Windows' media transport controls, so
+  its window title is read instead — the same mechanism that already names a streaming service playing in
+  a browser tab. Its play button and transport already worked; only the display was missing.
+
+### Fixed
+- **Two-finger scroll no longer starts late.** Every sample advanced the last-seen position, including the
+  ones spent below the slop deciding scroll from pinch, so the travel spent deciding was dropped and every
+  stroke began 8 dp behind the finger. Pinch never had the bug, because it only advances its reference once
+  a mode is settled.
+- A player found by its window title was found and then never sent: the publish guard dropped every tick
+  where nothing was playing, and a player known only by its title always reports as not playing.
+
+### Documentation
+- PROTOCOL.md records why new ids did not move the version, and what would.
+
 ## [1.0.0] - 2026-09-16
 
 The first stable release. How the app behaves is unchanged from 0.10.0; what changes is the promise around
