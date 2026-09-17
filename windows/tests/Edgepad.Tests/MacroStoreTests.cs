@@ -104,24 +104,39 @@ public sealed class MacroStoreTests : IDisposable
         store.Save([new Macro("Chrome", "chrome.exe", null)]);
         store.Save([new Macro("Chrome", "chrome.exe", null), new Macro("Notes", "notes.exe", null)]);
 
-        Assert.True(arrived.Wait(TimeSpan.FromSeconds(5)), "the watcher was never told");
+        Assert.True(
+            arrived.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken),
+            "the watcher was never told");
         Assert.Equal(["", "Chrome", "Chrome/Notes"], seen);
     }
 
     [Fact]
     public void ADisposedWatchHearsNothingMore()
     {
+        // A second watcher, still subscribed, is what makes this deterministic: once it has been told about
+        // the save, that save's round of dispatch is done, so a disposed watcher that has heard nothing by
+        // then never will. Sleeping instead would only prove the pool had not got round to it yet.
         var store = NewStore();
-        var seen = new System.Collections.Concurrent.ConcurrentQueue<string>();
-        store.Watch(seen.Enqueue).Dispose();
+        var gone = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        var kept = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        using var told = new CountdownEvent(2);
+        using var live = store.Watch(names =>
+        {
+            kept.Enqueue(names);
+            told.Signal();
+        });
+        store.Watch(gone.Enqueue).Dispose();
 
         store.Save([new Macro("Chrome", "chrome.exe", null)]);
 
-        // Only the opening report, which Watch makes on the caller's thread before handing back the handle.
-        // A later one would have to arrive within this window to be seen, so the wait is what gives the
-        // assertion teeth: without it a pool thread that simply had not run yet would look like success.
-        Thread.Sleep(TimeSpan.FromMilliseconds(250));
-        Assert.Single(seen);
+        Assert.True(
+            told.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken),
+            "the live watcher was never told");
+
+        // The live one heard both: its opening report and the save. The disposed one heard only its own
+        // opening report, which Watch makes on the caller's thread before handing back the handle.
+        Assert.Equal(["", "Chrome"], kept);
+        Assert.Single(gone);
     }
 
     [Fact]
