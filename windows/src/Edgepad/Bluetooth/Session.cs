@@ -121,14 +121,16 @@ internal sealed class Session(
         }
 
         ReportRefreshRates();
-        // The macro names, so the phone can label buttons it only ever names by index. An empty list is
-        // still worth sending: it is what tells the phone to show "add some on the laptop" rather than
-        // a grid that looks broken.
-        Send(new Text((byte)TextKind.Macros, macros.Names()));
 
         Watch(speakers, ControlId.Volume);
         Watch(microphone, ControlId.MicLevel);
         watches.Add(media.Watch(state => Guarded(() => SendMedia(state))));
+
+        // The macro names label buttons the phone only ever names by index, and the list changes while the
+        // phone is connected: the owner adds one in the tray editor and expects the button, not a reason to
+        // restart the app. Watching rather than asking once also covers the empty list, which is what tells
+        // the phone to say "add some on the laptop" instead of drawing a grid that looks broken.
+        watches.Add(macros.Watch(names => Guarded(() => Send(new Text((byte)TextKind.Macros, names)))));
 
         // Brightness changed on the laptop itself (keys, Windows' slider) reaches the phone as it does for audio.
         if (brightness.Watch(level => Guarded(() => SendBrightness(level))) is { } brightnessWatch)

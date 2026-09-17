@@ -85,6 +85,34 @@ public sealed class MacroStoreTests : IDisposable
     }
 
     [Fact]
+    public void SavingTellsAWatcherTheNewNames()
+    {
+        // The bug this covers: the names went out once at the handshake, so a macro added while the phone
+        // was connected did not reach it until the app was closed and opened again.
+        var store = NewStore();
+        var seen = new List<string>();
+        using var watch = store.Watch(seen.Add);
+
+        store.Save([new Macro("Chrome", "chrome.exe", null)]);
+        store.Save([new Macro("Chrome", "chrome.exe", null), new Macro("Notes", "notes.exe", null)]);
+
+        Assert.Equal(["", "Chrome", "Chrome/Notes"], seen);
+    }
+
+    [Fact]
+    public void ADisposedWatchHearsNothingMore()
+    {
+        var store = NewStore();
+        var seen = new List<string>();
+        store.Watch(seen.Add).Dispose();
+
+        store.Save([new Macro("Chrome", "chrome.exe", null)]);
+
+        // Only the opening report, which Watch makes before handing back the handle.
+        Assert.Single(seen);
+    }
+
+    [Fact]
     public void AFullGridOfLongestNamesStillFitsOneFrame()
     {
         // The whole reason the grid is fifteen. If this fails, either the grid grew or the name budget did,

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using Edgepad.Controls;
 
 namespace Edgepad.Macros;
 
@@ -45,6 +46,7 @@ internal sealed class MacroStore
     public const int MaxNamesBytes = 255;
 
     private readonly Lock gate = new();
+    private readonly List<Action<string>> watchers = [];
     private readonly string path;
 
     /// <summary>
@@ -66,12 +68,15 @@ internal sealed class MacroStore
     public IReadOnlyList<Macro> Macros => macros;
 
     /// <summary>Re-reads from disk.</summary>
+    /// <summary>Re-reads from disk, and tells anyone watching what came back.</summary>
     public void Reload()
     {
         lock (gate)
         {
             macros = Read();
         }
+
+        Published();
     }
 
     public void Save(IReadOnlyList<Macro> macros)
@@ -92,6 +97,50 @@ internal sealed class MacroStore
             }
 
             this.macros = clean;
+        }
+
+        Published();
+    }
+
+    /// <summary>
+    /// Reports the label list whenever it changes, starting with what it is now, until the handle is
+    /// disposed. A session subscribes instead of asking once at the handshake: the owner adds a macro on
+    /// the laptop and expects the button on the phone, not a reason to restart the app. Shaped like
+    /// <see cref="Controls.MediaSessions.Watch"/> because it is the same problem.
+    /// </summary>
+    public IDisposable Watch(Action<string> onChange)
+    {
+        lock (gate)
+        {
+            watchers.Add(onChange);
+        }
+
+        onChange(Names());
+        return new Subscription(() =>
+        {
+            lock (gate)
+            {
+                watchers.Remove(onChange);
+            }
+        });
+    }
+
+    /// <summary>
+    /// Hands the new list to every watcher, outside the lock: a watcher writes to a Bluetooth socket, and
+    /// holding a file lock across that would let a stalled link block the editor's OK button.
+    /// </summary>
+    private void Published()
+    {
+        Action<string>[] targets;
+        lock (gate)
+        {
+            targets = [.. watchers];
+        }
+
+        var names = Names();
+        foreach (var target in targets)
+        {
+            target(names);
         }
     }
 
