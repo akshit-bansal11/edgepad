@@ -5,6 +5,10 @@
 # Both test suites check their enums against this file, the same way they check frames.txt.
 # HANDSHAKE holds the two values that decide whether a phone can reach a laptop at all.
 #
+# ACTION 64..95 is a reserved block: 32 macro slots, run as MACRO_BASE + index. Only the base is named here,
+# because the other 31 ids mean nothing on their own — the laptop's own list decides what each slot launches.
+# The phone never learns the path, command line or URL behind a slot, only its position and its name.
+#
 # Format:  KIND id NAME
 
 ACTION 1 MUTE_TOGGLE
@@ -28,16 +32,30 @@ ACTION 31 VOLUME_UP
 ACTION 32 VOLUME_DOWN
 ACTION 33 BRIGHTNESS_UP
 ACTION 34 BRIGHTNESS_DOWN
+# The first of the 32 macro slots; slot n is MACRO_BASE + n. A laptop older than the macros feature drops an
+# unknown action id rather than erroring, which is why the block needs no new frame type and no version bump.
+ACTION 64 MACRO_BASE
 
 CONTROL 0 VOLUME
 CONTROL 1 BRIGHTNESS
 CONTROL 2 MIC_LEVEL
 CONTROL 3 MEDIA_POSITION
+# REFRESH_RATE's value is an index into the TEXT 4 list, never a rate in hertz. SET carries value u8 and the
+# laptop drops anything above 100, so 120 or 144 could not cross the wire at all; an index is always well
+# under 100. It also makes a rate the laptop does not have unrepresentable rather than merely rejected.
+CONTROL 4 REFRESH_RATE
 
 TEXT 0 NOW_PLAYING
 TEXT 1 APP
 TEXT 2 TIMELINE
 TEXT 3 TYPE
+# The display's available rates, "/"-separated ASCII such as "60/120/144", in the order CONTROL 4 indexes
+# them. The phone labels each step of the refresh dial from this, so its ruler reads 144 HZ and not 2.
+TEXT 4 REFRESH_RATES
+# The laptop's macro names, "/"-separated such as "Chrome/Spotify/Notes", in the order MACRO_BASE indexes
+# them. Empty or never sent means no macros are configured. A blank name keeps its slot: dropping one would
+# slide every name after it onto another slot's index, and the phone sends that index.
+TEXT 5 MACROS
 
 HANDSHAKE 3 VERSION
 HANDSHAKE 758bb618-7b72-4cd3-9aa2-c9b88e54d555 SERVICE_ID
