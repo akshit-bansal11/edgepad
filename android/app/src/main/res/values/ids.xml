@@ -8,4 +8,5 @@
   <item name="action_open_settings" type="id" />
   <item name="action_keyboard" type="id" />
   <item name="action_gamepad" type="id" />
+  <item name="action_macros" type="id" />
 </resources>

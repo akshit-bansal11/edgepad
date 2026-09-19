@@ -6,9 +6,9 @@ import kotlin.math.abs
 import kotlin.math.hypot
 
 /**
- * Turns raw touches on the trackpad into frames. One finger is fixed: move, tap to click, tap then hold
- * to drag. Two fingers dragging always scroll. Everything else (two-finger tap and pinch, three and four
- * fingers tapping or swiping) runs whatever [map] assigns it.
+ * Turns raw touches on the trackpad into frames. One and two fingers are fixed, the way every trackpad
+ * behaves: one finger moves, taps to click, taps then holds to drag; two fingers drag to scroll, pinch to
+ * zoom and tap to right-click. Three and four fingers tapping or swiping run whatever [map] assigns them.
  *
  * Pure: no Android types, so the gesture table is tested on the JVM. Positions are in pixels; [density]
  * (pixels per dp) scales every threshold so the feel is the same on any screen. A gesture is classified by
@@ -18,6 +18,10 @@ class TrackpadRecognizer(
     private val density: Float,
     /** Content follows the fingers, as on Windows' own touchpads; false scrolls the other way. */
     private val naturalScroll: Boolean = true,
+    /** Multiplies [POINTER_GAIN]: how far the laptop's pointer travels per unit of finger travel. */
+    private val pointerSpeed: Float = 1f,
+    /** Multiplies [SCROLL_UNITS_PER_DP]: how much wheel one dp of two-finger drag is worth. */
+    private val scrollSpeed: Float = 1f,
     private val map: (Gesture) -> GestureAction = { it.default },
     private val sink: (Frame) -> Unit,
 ) {
@@ -50,19 +54,24 @@ class TrackpadRecognizer(
     private var scrollRemY = 0f
 
     /**
-     * One touch sample. [xs] and [ys] hold every finger still on the surface after this event, so on an
-     * UP of one finger among several the caller passes the ones that remain.
+     * One touch sample. The first [count] entries of [xs] and [ys] hold every finger still on the surface
+     * after this event, so on an UP of one finger among several the caller passes the ones that remain.
+     *
+     * [count] is separate from `xs.size` so a caller on the touch path can hand over one buffer it keeps
+     * and refills, rather than a fresh pair of arrays per sample. It defaults to the whole array, which is
+     * what a test passing an exact-sized literal wants.
      */
     fun handle(
         action: Action,
         xs: FloatArray,
         ys: FloatArray,
         time: Long,
+        count: Int = xs.size,
     ) {
         when (action) {
-            Action.DOWN -> down(xs, ys, time)
-            Action.MOVE -> move(xs, ys)
-            Action.UP -> up(xs, ys, time)
+            Action.DOWN -> down(xs, ys, count, time)
+            Action.MOVE -> move(xs, ys, count)
+            Action.UP -> up(xs, ys, count, time)
             Action.CANCEL -> finish(time, tapAllowed = false)
         }
     }
@@ -70,23 +79,24 @@ class TrackpadRecognizer(
     private fun down(
         xs: FloatArray,
         ys: FloatArray,
+        count: Int,
         time: Long,
     ) {
         if (fingers == 0) {
             reset()
             startTime = time
-            startX = centroid(xs)
-            startY = centroid(ys)
+            startX = centroid(xs, count)
+            startY = centroid(ys, count)
             // Added, not subtracted: the never-tapped sentinel is Long.MIN_VALUE and must not overflow.
             if (time <= lastTapUp + DRAG_TAP_GAP_MS) {
                 dragging = true
                 sink(Frame.PointerButton(LEFT, true))
             }
         }
-        fingers = xs.size
+        fingers = count
         maxFingers = maxOf(maxFingers, fingers)
-        lastX = centroid(xs)
-        lastY = centroid(ys)
+        lastX = centroid(xs, count)
+        lastY = centroid(ys, count)
         // Another finger moves the centroid without anything having slid: the gesture starts again from
         // here, or every two-finger touch would count as moved and never as a tap.
         startX = lastX
@@ -100,10 +110,11 @@ class TrackpadRecognizer(
     private fun move(
         xs: FloatArray,
         ys: FloatArray,
+        count: Int,
     ) {
-        if (fingers == 0 || xs.isEmpty()) return
-        val cx = centroid(xs)
-        val cy = centroid(ys)
+        if (fingers == 0 || count == 0) return
+        val cx = centroid(xs, count)
+        val cy = centroid(ys, count)
         val dx = cx - lastX
         val dy = cy - lastY
         lastX = cx
@@ -123,8 +134,8 @@ class TrackpadRecognizer(
         dx: Float,
         dy: Float,
     ) {
-        moveRemX += dx * POINTER_GAIN
-        moveRemY += dy * POINTER_GAIN
+        moveRemX += dx * POINTER_GAIN * pointerSpeed
+        moveRemY += dy * POINTER_GAIN * pointerSpeed
         val ix = moveRemX.toInt()
         val iy = moveRemY.toInt()
         moveRemX -= ix
@@ -142,32 +153,36 @@ class TrackpadRecognizer(
     ) {
         if (fingers != 2) return
         val current = span(xs, ys)
+        var justDecided = false
         if (twoFinger == TwoFingerMode.UNDECIDED) {
             val spread = abs(current - startSpan)
             val travel = hypot(fromStartX, fromStartY)
             if (spread < dp(SLOP_DP) && travel < dp(SLOP_DP)) return
             twoFinger = if (spread > travel) TwoFingerMode.PINCH else TwoFingerMode.SCROLL
+            justDecided = true
         }
         if (twoFinger == TwoFingerMode.PINCH) {
-            // The pinch's action, once per notch of spread: fingers apart is forward.
+            // Ctrl+wheel, once per notch of spread: fingers apart is forward. lastSpan is still startSpan
+            // on the deciding sample, because the undecided ones return above without touching it, so the
+            // spread spent deciding is already part of this first step.
             pinchRemainder += (current - lastSpan) / dp(PINCH_STEP_DP)
             val steps = pinchRemainder.toInt()
             pinchRemainder -= steps
-            if (steps != 0) {
-                val action = map(Gesture.TWO_PINCH)
-                if (action.continuous) {
-                    begin(action, alongX = true)
-                    step(action, steps)
-                } else if (!swipeFired) {
-                    swipeFired = true
-                    oneShot(action)
-                }
-            }
+            if (steps != 0) sink(Frame.Zoom(steps * WHEEL_NOTCH))
         } else {
             // Natural scrolling, Windows' default: content follows the fingers, so fingers down is wheel forward.
+            //
+            // On the sample that settles scroll-or-pinch, the travel replayed is the whole distance since
+            // the touch began, not just this sample's. move() advances lastX/lastY on every sample including
+            // the undecided ones, so dx/dy here hold only the last step and the slop spent deciding would be
+            // dropped on the floor: the scroll would start late, by exactly SLOP_DP, on every single stroke.
+            // Pinch never had this bug because lastSpan is only advanced once a mode is settled.
+            val alongX = if (justDecided) fromStartX else dx
+            val alongY = if (justDecided) fromStartY else dy
             val direction = if (naturalScroll) 1f else -1f
-            scrollRemX += -dx * direction * SCROLL_UNITS_PER_DP / density
-            scrollRemY += dy * direction * SCROLL_UNITS_PER_DP / density
+            val units = SCROLL_UNITS_PER_DP * scrollSpeed / density
+            scrollRemX += -alongX * direction * units
+            scrollRemY += alongY * direction * units
             val ix = scrollRemX.toInt()
             val iy = scrollRemY.toInt()
             scrollRemX -= ix
@@ -292,15 +307,16 @@ class TrackpadRecognizer(
     private fun up(
         xs: FloatArray,
         ys: FloatArray,
+        count: Int,
         time: Long,
     ) {
-        if (xs.isEmpty()) {
+        if (count == 0) {
             finish(time, tapAllowed = true)
             return
         }
-        fingers = xs.size
-        lastX = centroid(xs)
-        lastY = centroid(ys)
+        fingers = count
+        lastX = centroid(xs, count)
+        lastY = centroid(ys, count)
         if (fingers == 2) lastSpan = span(xs, ys)
     }
 
@@ -324,6 +340,10 @@ class TrackpadRecognizer(
         if (maxFingers == 1) {
             click(LEFT)
             lastTapUp = time
+            return
+        }
+        if (maxFingers == 2) {
+            click(RIGHT)
             return
         }
         oneShot(Gesture.of(maxFingers.coerceAtMost(MAX_FINGERS), Gesture.Kind.TAP)?.let(map) ?: GestureAction.NOTHING)
@@ -355,7 +375,15 @@ class TrackpadRecognizer(
 
     private fun dp(value: Float): Float = value * density
 
-    private fun centroid(values: FloatArray): Float = values.sum() / values.size
+    /** The mean of the first [count] entries. Reads the buffer's live part, never its capacity. */
+    private fun centroid(
+        values: FloatArray,
+        count: Int,
+    ): Float {
+        var sum = 0f
+        for (i in 0 until count) sum += values[i]
+        return sum / count
+    }
 
     private fun span(
         xs: FloatArray,

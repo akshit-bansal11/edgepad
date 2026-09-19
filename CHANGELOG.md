@@ -4,6 +4,140 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-09-19
+
+Three fixes and the first outside contribution. Nothing about the wire protocol moves:
+it stays at version 3, so a 2.2.0 half and a 2.1.0 half still speak to each other.
+Update both anyway -- the browser-title fix is on the laptop and what it corrects shows
+up on the phone.
+
+### Fixed
+- **A service name matched inside an ordinary word named the wrong thing.** The laptop reads
+  the service out of the browser's window title, and it matched with a plain substring test.
+  It also searches *every* visible browser window, not just the one playing, and returns on
+  the first title that matches anything — so a tab titled "Twitches (2005)" made the phone say
+  **Twitch** while the tab actually playing said YouTube right there in its own title. Each
+  name now has to stand as its own word. The trailing lookahead is deliberately not a second
+  word boundary: "Paramount+" and "Disney+" end in a non-word character, which has no boundary
+  after it, so the obvious spelling would have matched neither. All nineteen names and the
+  false positives are covered by tests.
+
+### Changed
+- **The trackpad stopped allocating on the touch path.** `ControlSurface` built a fresh pair of
+  `FloatArray`s for every touch sample handed to the gesture recogniser, and for every
+  historical sample inside each event. The surface asks for unbuffered dispatch, so samples
+  arrive as fast as the digitiser makes them: one finger dragging produced a steady stream of
+  short-lived garbage on the one path in the app written to be fast — the same defect fixed in
+  the gamepad in 1.0.0, which Android lint cannot see because `DrawAllocation` only inspects a
+  method literally named `onDraw`. It now fills one pair of buffers sized once at
+  `MAX_POINTERS` and passes an explicit finger count. No gesture, threshold or feel constant
+  moves, and the recogniser's tests are unchanged — `count` defaults to the array's own size,
+  so every existing caller reads as it did.
+
+### Tests
+- **The shared protocol fixture now carries non-ASCII titles.** Every `TEXT` line in
+  `protocol/frames.txt` was pure ASCII, so nothing proved the two codecs agreed on a
+  single multi-byte character -- and `TEXT` is the frame that carries track titles and
+  artist names, which routinely are not. Three lines added, two, four and three bytes of
+  UTF-8, each with a UTF-8 byte count that differs from its UTF-16 length: if either side
+  ever counted UTF-16 units, the length header would not match and both suites would fail
+  on the same line. Contributed by [@wized2](https://github.com/wized2) in
+  [#7](https://github.com/akshit-bansal11/edgepad/pull/7) -- the first outside change to
+  Edgepad. Their three lines landed under `TEXT` kinds 4, 5 and 6, which are already
+  `REFRESH_RATES` and `MACROS` and, for 6, nothing at all; the codecs do not validate the
+  kind byte, so both suites passed and the documentation site would have published the
+  contradiction. Corrected to kind 0, `NOW_PLAYING`, keeping the characters exactly.
+
+## [2.1.0] - 2026-09-19
+
+Both apps now carry a link to the documentation, and the documentation now exists. Nothing
+about the wire protocol moves: it stays at version 3, so a 2.1.0 half and a 2.0.0 half
+still speak to each other. Update both anyway, so both ends know where the manual is.
+
+### Added
+- **A link to the documentation in both apps.** The phone gets a **Documentation** row under
+  Settings › Help, beneath the Guide; the laptop gets a **Documentation** item in its tray
+  menu. Both open <https://edgepad-docs.vercel.app>. One page, linked from both halves,
+  rather than each half explaining itself. Neither touches the wire protocol.
+
+### Documentation
+- **The README's tray-menu listing was stale.** It had never mentioned **Macros…**, added in
+  2.0.0, and now also names **Documentation**.
+- **A documentation site, in `site/`.** One page: what Edgepad is, how to install and use
+  it, the architecture of both halves, the wire protocol, the trust model, and the
+  developer guide. Its frame, action and control tables are generated from
+  `protocol/frames.txt` and `protocol/actions.txt` at build time — the same two fixtures
+  both test suites read — so the page cannot drift from the apps the way a hand-typed
+  copy would. A fixture it cannot parse fails the build rather than rendering an empty
+  table. Next.js, checked by its own gate (Biome, ESLint, tsc) in its own workflow, which
+  runs only when `site/**` or `protocol/**` changes.
+- **`SECURITY.md` claimed the phone cannot send a key code.** It can, and always could:
+  `KEY` carries a raw Windows virtual-key code and `TEXT` kind 3 carries arbitrary text,
+  because that is what the phone's keyboard screen is. 2.0.0 corrected this claim in
+  three places and missed this one, which is the file a reader checks first. The action
+  and control table keeps the two halves independently versionable; it is not a
+  containment boundary. The trust boundary is the Bluetooth pairing plus
+  trust-on-first-use.
+
+## [2.0.0] - 2026-09-17
+
+Macro buttons: the phone can now launch things on the laptop. That is the headline, and it is why this is a
+major release rather than a minor one — **the wire protocol is unchanged at version 3**. The refresh-rate
+dial and the macro buttons are new ids in tables that already existed, and an unknown id is dropped and
+counted rather than treated as an error, so a 2.0.0 half and a 1.0.0 half still speak to each other. Update
+both anyway: only the pair knows about the new controls.
+
+### Added
+- **Macro buttons.** The laptop's tray menu gains a Macros editor: name an app, a document, a folder or a
+  URL, and it appears as a button on the phone — a 5x3 grid, fifteen of them. Fifteen is what one frame can
+  name, so a full grid always arrives labelled rather than trailing off into blank buttons. The phone sends
+  a slot number, never what the slot opens: a button cannot be repointed from the phone, and the laptop's
+  own list is the only thing that decides what runs.
+- **A refresh-rate dial.** Steps the laptop's display through the rates it actually offers, filtered to the
+  resolution and colour depth already in use so a rate can never drag the desktop to another size. The
+  switch is for this session only; a dial should not decide what the desktop boots at.
+- **An on-screen readout on the laptop.** Sliding volume, microphone or brightness from the phone now shows
+  a small panel on the laptop. Windows draws one for its own volume keys but not for a level set through
+  Core Audio or WMI, so until now brightness changed with no feedback at all.
+- **Pointer speed and scroll speed** are settings rather than constants, on the renamed Trackpad screen.
+- **A sensitivity of its own for each dial kind.** Volume runs 0-100 under a thumb and wants a slow ruler
+  where the app switcher wants a fast one. A dial left on SHARED still follows the one slider.
+
+### Changed
+- **Two-finger gestures are fixed and no longer assignable.** Drag to scroll, pinch to zoom, tap to
+  right-click. They are what a hand already expects from a trackpad, and a phone that answers them
+  differently reads as broken rather than as configured. Three and four fingers stay assignable.
+- A dial still goes in one of the four corners and nowhere else. Seven kinds now compete for those four
+  places, which is the corners screen's job to settle.
+- **What the app says about its own security is now true.** Three places — including a label in the Macros
+  window — claimed the phone "can never name a program of its own". It never could not: the phone's
+  keyboard sends a raw key code and arbitrary text straight to the laptop, because that is what a keyboard
+  screen is, and Win+R with a typed line is already arbitrary execution. The macro index is still worth
+  having, but it contains nothing the keyboard does not already allow. A paired phone is a trusted input
+  device, and the trust boundary is the Bluetooth pairing, not the macro list.
+
+### Fixed
+- **Two-finger scroll no longer starts late.** Every sample advanced the last-seen position, including the
+  ones spent below the slop deciding scroll from pinch, so the travel spent deciding was dropped and every
+  stroke began 8 dp behind the finger. Pinch never had the bug, because it only advances its reference once
+  a mode is settled.
+- **A macro added while the phone is connected appears at once.** The names went out once at the handshake
+  and never again, so a new button needed the app closed and opened.
+- **Reconnecting during a refresh-rate change could kill the tray app.** The mode list was read twice while
+  a reconnect was emptying and refilling it; between the two reads it could be empty, and an unhandled
+  error on a background thread ends the process rather than the dial.
+- **A phone flipping between two refresh rates could blank the screen for ever.** A switch to the rate
+  already in force is now free.
+- **OK in the Macros window could freeze the laptop app.** It wrote to the Bluetooth socket on the thread
+  drawing the interface, so a phone that had stopped reading took the tray, the editor and the menu with it.
+- **A fast dial drag could bog the laptop down.** The on-screen readout queued a repaint per frame from a
+  higher-priority thread; it now keeps one in flight and draws the newest value.
+- The laptop's log stopped recording display failures after the first one, which was usually written at
+  startup — so the errors it exists for were the ones it silenced.
+
+### Documentation
+- PROTOCOL.md records why new ids did not move the version, and what would.
+
 ## [1.0.0] - 2026-09-16
 
 The first stable release. How the app behaves is unchanged from 0.10.0; what changes is the promise around
@@ -252,7 +386,10 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.1.0...v2.2.0
+[2.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.0.0...v2.1.0
+[2.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.10.0...v1.0.0
 [0.10.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.9.5...v0.10.0
 [0.9.5]: https://github.com/akshit-bansal11/edgepad/compare/v0.9.4...v0.9.5

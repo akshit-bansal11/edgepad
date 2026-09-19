@@ -10,10 +10,14 @@ import me.akshitbansal.edgepad.surface.Gesture
 import me.akshitbansal.edgepad.surface.GestureAction
 
 /**
- * Every assignable trackpad gesture, grouped by fingers, with what it does. Tapping one opens the list of
- * actions under it, the current one marked; picking one closes it again.
+ * How the trackpad feels, then every assignable gesture grouped by fingers. Tapping a gesture opens the
+ * list of actions under it, the current one marked; picking one closes it again. One and two fingers are
+ * not in the list: they are fixed in [me.akshitbansal.edgepad.surface.TrackpadRecognizer] and the footnote
+ * says what they do, so the screen does not read as though they were simply missing.
  */
 object GestureScreen {
+    private val speedRange = StepRange(Settings.MIN_SPEED, Settings.MAX_SPEED, 0.1f)
+
     fun build(
         ui: Ui,
         settings: Settings,
@@ -61,13 +65,46 @@ object GestureScreen {
         render()
         val (first, rest) = blocks.values.toList().let { it.first() to it.drop(1) }
         return ui.page(ui.bar(ui.string(R.string.gestures_title), onBack)) {
-            columns({ add(first) }, { rest.forEach { add(it) } })
-            mono(ui.string(R.string.gestures_footnote), topDp = Space.L)
+            columns(
+                {
+                    section(ui.string(R.string.trackpad_feel))
+                    add(
+                        speed(ui, ui.string(R.string.pointer_speed), settings.pointerSpeed) {
+                            settings.pointerSpeed = it
+                        },
+                    )
+                    hairline()
+                    add(
+                        speed(ui, ui.string(R.string.scroll_speed), settings.scrollSpeed) {
+                            settings.scrollSpeed = it
+                        },
+                    )
+                    hairline()
+                    add(first)
+                },
+                { rest.forEach { add(it) } },
+            )
+            mono(ui.string(R.string.gestures_fixed), topDp = Space.L)
+            mono(ui.string(R.string.gestures_footnote), topDp = Space.S)
             hairline(Space.L)
             add(ui.toggle(ui.string(R.string.gesture_hints), settings.hints) { settings.hints = it })
             hairline()
         }
     }
+
+    /** One ×-multiplier slider over the shared speed range. */
+    private fun speed(
+        ui: Ui,
+        label: String,
+        current: Float,
+        onChange: (Float) -> Unit,
+    ): View =
+        ui.slider(
+            label,
+            speedRange.steps,
+            speedRange.stepOf(current),
+            { step -> ui.string(R.string.multiplier_value, speedRange.valueAt(step)) },
+        ) { step -> onChange(speedRange.valueAt(step)) }
 
     private fun row(
         ui: Ui,

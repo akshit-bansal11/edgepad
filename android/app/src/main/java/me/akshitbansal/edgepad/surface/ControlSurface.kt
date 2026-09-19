@@ -30,8 +30,8 @@ import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 /**
- * The control surface: a ruler wrapped round each corner that holds a dial, the media pieces wherever the
- * user put them, gear, keyboard and gamepad buttons at the top, and everything else is the trackpad. A touch
+ * The control surface: a ruler at each corner that holds a dial, the media pieces wherever the user put
+ * them, gear, keyboard, gamepad and macro buttons at the top, and everything else is the trackpad. A touch
  * that starts inside a corner's zone is that dial's; one that starts on a media piece or a button is a
  * button press; any other is the trackpad.
  *
@@ -47,9 +47,10 @@ class ControlSurface(
     private val onOpenSettings: () -> Unit,
     private val onOpenKeyboard: () -> Unit,
     private val onOpenGamepad: () -> Unit,
+    private val onOpenMacros: () -> Unit,
 ) : View(context) {
     /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
-    constructor(context: Context) : this(context, Settings(context), LaptopState(), {}, {}, {}, {})
+    constructor(context: Context) : this(context, Settings(context), LaptopState(), {}, {}, {}, {}, {})
 
     private val density = resources.displayMetrics.density
     private val palette = Palette.of(context)
@@ -60,7 +61,15 @@ class ControlSurface(
     private val dim = ink and RGB_MASK or DIM_ALPHA
     private val faint = ink and RGB_MASK or FAINT_ALPHA
 
-    private val trackpad = TrackpadRecognizer(density, settings.naturalScroll, settings::gesture, send)
+    private val trackpad =
+        TrackpadRecognizer(
+            density,
+            settings.naturalScroll,
+            settings.pointerSpeed,
+            settings.scrollSpeed,
+            settings::gesture,
+            send,
+        )
     private val hapticsOn = settings.haptics
     private val showHints = settings.hints
     private val scrubOnADial = settings.hasDial(DialKind.MEDIA)
@@ -70,7 +79,7 @@ class ControlSurface(
                 kind.dial(
                     corner,
                     context.getString(kind.shortRes),
-                    Dial.BASE_UNITS_PER_DP * settings.sensitivity,
+                    Dial.BASE_UNITS_PER_DP * settings.sensitivityOf(kind),
                     settings.snap,
                     send,
                     ::haptic,
@@ -86,9 +95,10 @@ class ControlSurface(
     // Lucide icons, tinted once: the buttons in the dim ink, skips in ink, play and pause cut out of the disc.
     private val topButtons =
         listOf(
-            TopButton(icon(R.drawable.ic_settings, dim), side = -1, open = onOpenSettings),
-            TopButton(icon(R.drawable.ic_keyboard, dim), side = 0, open = onOpenKeyboard),
-            TopButton(icon(R.drawable.ic_gamepad_2, dim), side = 1, open = onOpenGamepad),
+            TopButton(icon(R.drawable.ic_settings, dim), side = -1.5f, open = onOpenSettings),
+            TopButton(icon(R.drawable.ic_keyboard, dim), side = -0.5f, open = onOpenKeyboard),
+            TopButton(icon(R.drawable.ic_gamepad_2, dim), side = 0.5f, open = onOpenGamepad),
+            TopButton(icon(R.drawable.ic_macro, dim), side = 1.5f, open = onOpenMacros),
         )
     private val skipBackIcon = icon(R.drawable.ic_skip_back, ink)
     private val skipForwardIcon = icon(R.drawable.ic_skip_forward, ink)
@@ -107,6 +117,7 @@ class ControlSurface(
             action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
             action(R.id.action_keyboard, R.string.surface_keyboard) to onOpenKeyboard,
             action(R.id.action_gamepad, R.string.surface_gamepad) to onOpenGamepad,
+            action(R.id.action_macros, R.string.surface_macros) to onOpenMacros,
         )
 
     // Geometry, all set in onSizeChanged so nothing is measured or allocated while drawing.
@@ -139,6 +150,13 @@ class ControlSurface(
     private var fingerCount = 0
     private val fingerXs = FloatArray(MAX_POINTERS)
     private val fingerYs = FloatArray(MAX_POINTERS)
+
+    // Handed to the recogniser with a count, and refilled per sample. Separate from fingerXs/fingerYs,
+    // which hold what onDraw paints: feedHistorical walks positions the finger has already left, and
+    // those must not reach the screen. requestUnbufferedDispatch means samples arrive as fast as the
+    // digitiser makes them, so a fresh pair of arrays here is garbage on the one path built to be fast.
+    private val touchXs = FloatArray(MAX_POINTERS)
+    private val touchYs = FloatArray(MAX_POINTERS)
     private val trail = FloatArray(TRAIL * 2)
     private var trailHead = 0
     private var trailLength = 0
@@ -177,6 +195,10 @@ class ControlSurface(
 
     private fun applyState() {
         for (dial in dials) {
+            // The refresh dial's range is the laptop's list of rates, which only arrives once it connects.
+            if (dial.kind == DialKind.REFRESH) {
+                dial.maxLevel = (state.refreshRates.size - 1).coerceAtLeast(0).toFloat()
+            }
             val control = dial.control ?: continue
             state.level(control)?.let { dial.fromLaptop(it, state.flag(control)) }
         }
@@ -198,16 +220,21 @@ class ControlSurface(
         perimeter = Perimeter(w.toFloat(), h.toFloat(), maxOf(corner.toFloat(), dp(MIN_BEND_DP)))
         dials.forEachIndexed { i, dial ->
             centres[i] = perimeter.lengthAt(dial.corner.toFloat())
-            // Bottom corners sit near the media pieces, and sideways every corner is near the middle:
-            // those grab less of the trackpad. Upright, the top corners keep the deep zone.
-            val near = w > h || dial.corner >= FIRST_BOTTOM_CORNER
-            depths[i] = dp(if (near) CORNER_HIT_NEAR_DP else CORNER_HIT_DP)
+            // Upright, only the top corners have the screen to themselves and keep the deep zone: the
+            // bottom ones sit near the media pieces, an edge midpoint sits where the thumb swipes, and
+            // sideways every slot is near the middle. The rest grab less of the trackpad.
+            val roomy = dial.corner < FIRST_BOTTOM_CORNER
+            depths[i] = dp(if (w > h || !roomy) CORNER_HIT_NEAR_DP else CORNER_HIT_DP)
         }
         backdrop.resize(w, h)
         layoutPieces(w.toFloat(), h.toFloat())
-        // No ruler runs under the buttons at the top, and neighbours stop short of each other.
+        // No ruler runs under the buttons at the top, and neighbours stop short of each other — which is
+        // what keeps two dials on the same edge clear of each other.
+        // A dial the user puts in the top-middle slot is the one exception: it is centred inside the
+        // buttons' zone, so the cut cannot push it out of its own place, and it shares the space.
         val topCentre = perimeter.lengthAt(TOP_CENTRE)
-        val zone = dp(TOP_BUTTON_OFFSET_DP + Space.TOUCH / 2 + Space.M)
+        val reach = topButtons.maxOf { abs(it.side) } * TOP_BUTTON_OFFSET_DP
+        val zone = dp(reach + Space.TOUCH / 2 + Space.M)
         keepOut[0] = topCentre - zone
         keepOut[1] = topCentre + zone
         DialSpan.compute(centres, dp(painter.halfLengthDp), perimeter.length, keepOut, dp(DIAL_GAP_DP), after, before)
@@ -235,7 +262,7 @@ class ControlSurface(
         }
     }
 
-    /** Keeps Android's back gesture off each corner dial; the bottom edge (home) cannot be claimed. */
+    /** Keeps Android's back gesture off each dial; the bottom edge (home) cannot be claimed. */
     private fun excludeBackGesture() {
         val step = dp(SAMPLE_DP)
         for (i in dials.indices) {
@@ -389,7 +416,7 @@ class ControlSurface(
         mono.textAlign = Paint.Align.LEFT
         canvas.drawText(subLine, textX, cy + mono.textSize + dp(Space.S), mono)
         mono.textAlign = Paint.Align.CENTER
-        // The progress line only when no corner scrubs; then it can be slid itself.
+        // The progress line only when no dial scrubs; then it can be slid itself.
         if (scrubOnADial) return
         val progressY = box.bottom
         stroke.color = faint
@@ -496,6 +523,12 @@ class ControlSurface(
 
             DialKind.BRIGHTNESS -> {
                 if (dial.known) dial.value.toString() else unknownText
+            }
+
+            DialKind.REFRESH -> {
+                // The level is an index; the rate it stands for is only knowable from the laptop's list.
+                val rate = if (dial.known) state.refreshRates.getOrNull(dial.value) else null
+                if (rate != null) context.getString(R.string.dial_refresh_value, rate) else unknownText
             }
 
             DialKind.MEDIA -> {
@@ -697,7 +730,7 @@ class ControlSurface(
         scrubbing = false
         fingerCount = 0
         trailLength = 0
-        trackpad.handle(TrackpadRecognizer.Action.CANCEL, FloatArray(0), FloatArray(0), event.eventTime)
+        trackpad.handle(TrackpadRecognizer.Action.CANCEL, touchXs, touchYs, event.eventTime, count = 0)
     }
 
     private fun onTrackpad(): Boolean = activeDial < 0 && buttonDown == null && pressedTop == null && !scrubbing
@@ -757,31 +790,32 @@ class ControlSurface(
         return best
     }
 
+    /** Fills [touchXs]/[touchYs] with every finger but [exclude], capped as [fingers] already caps. */
     private fun feed(
         action: TrackpadRecognizer.Action,
         event: MotionEvent,
         exclude: Int,
     ) {
-        val n = event.pointerCount - (if (exclude >= 0) 1 else 0)
-        val xs = FloatArray(n)
-        val ys = FloatArray(n)
-        var j = 0
+        var n = 0
         for (i in 0 until event.pointerCount) {
-            if (i == exclude) continue
-            xs[j] = event.getX(i)
-            ys[j] = event.getY(i)
-            j++
+            if (i == exclude || n == MAX_POINTERS) continue
+            touchXs[n] = event.getX(i)
+            touchYs[n] = event.getY(i)
+            n++
         }
-        trackpad.handle(action, xs, ys, event.eventTime)
+        trackpad.handle(action, touchXs, touchYs, event.eventTime, count = n)
     }
 
     private fun feedHistorical(
         event: MotionEvent,
         h: Int,
     ) {
-        val xs = FloatArray(event.pointerCount) { event.getHistoricalX(it, h) }
-        val ys = FloatArray(event.pointerCount) { event.getHistoricalY(it, h) }
-        trackpad.handle(TrackpadRecognizer.Action.MOVE, xs, ys, event.getHistoricalEventTime(h))
+        val n = minOf(event.pointerCount, MAX_POINTERS)
+        for (i in 0 until n) {
+            touchXs[i] = event.getHistoricalX(i, h)
+            touchYs[i] = event.getHistoricalY(i, h)
+        }
+        trackpad.handle(TrackpadRecognizer.Action.MOVE, touchXs, touchYs, event.getHistoricalEventTime(h), count = n)
     }
 
     override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
@@ -805,12 +839,13 @@ class ControlSurface(
     ) = AccessibilityNodeInfo.AccessibilityAction(id, context.getString(labelRes))
 
     /**
-     * One of the buttons floating at the top of the surface. [side] places it across the centre of the
-     * top edge: -1 one step left of it, 0 on it, 1 one step right.
+     * One of the buttons floating at the top of the surface. [side] places it across the centre of the top
+     * edge in steps of [TOP_BUTTON_OFFSET_DP]: -1 one step left of it, 0 on it, 1 one step right. Half steps
+     * are what keep an even-sized row centred — four buttons straddle the centre at ±0.5 and ±1.5.
      */
     private class TopButton(
         val icon: Drawable,
-        val side: Int,
+        val side: Float,
         val open: () -> Unit,
     ) {
         val hit = RectF()
@@ -850,7 +885,10 @@ class ControlSurface(
         private const val MIN_BEND_DP = 24f
         private const val CORNER_HIT_DP = 96f
         private const val CORNER_HIT_NEAR_DP = 56f
+
+        /** Corners 0 and 1 are the top two, where the hit zone may reach further down the screen. */
         private const val FIRST_BOTTOM_CORNER = 2
+
         private const val ICON_DP = 22f
         private const val SKIP_DP = 22f
         private const val PLAY_ICON_DP = 22f

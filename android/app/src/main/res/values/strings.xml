@@ -54,10 +54,11 @@
   <string name="editor_options">Options</string>
   <string name="editor_done">DONE</string>
   <string name="media_scale">Size</string>
-  <string name="gestures_title">Gestures</string>
+  <string name="gestures_title">Trackpad</string>
   <string name="gestures_fingers">%1$d FINGERS</string>
-  <string name="gesture_two_tap">Tap</string>
-  <string name="gesture_two_pinch">Pinch</string>
+  <string name="trackpad_feel">POINTER</string>
+  <string name="pointer_speed">Pointer speed</string>
+  <string name="scroll_speed">Scroll speed</string>
   <string name="gesture_three_tap">Tap</string>
   <string name="gesture_three_left">Swipe left</string>
   <string name="gesture_three_right">Swipe right</string>
@@ -138,9 +139,16 @@
   <string name="feel_summary">×%1$.1f · %2$d DP</string>
   <string name="dial_preview_caption">PREVIEW · CLOCKWISE RAISES</string>
   <string name="gestures_footnote">TAP A GESTURE TO CHANGE ITS ACTION</string>
+  <string name="gestures_fixed">ONE AND TWO FINGERS ARE FIXED · MOVE, TAP TO CLICK, TAP AND HOLD TO DRAG · TWO FINGERS DRAG TO SCROLL, PINCH TO ZOOM, TAP TO RIGHT-CLICK</string>
+  <string name="dial_feel_each">EACH CORNER</string>
+  <string name="dial_feel_shared">SHARED</string>
+  <string name="dial_feel_each_caption">TAP A DIAL TO GIVE IT A SPEED OF ITS OWN · SHARED FOLLOWS THE SLIDER ABOVE</string>
   <string name="appearance_title">Background &amp; pattern</string>
   <string name="background_preview_description">Preview of the control surface background</string>
   <string name="guide_title">Guide</string>
+  <string name="documentation_title">Documentation</string>
+  <string name="documentation_summary">OPENS IN A BROWSER</string>
+  <string name="documentation_url" translatable="false">https://edgepad-docs.vercel.app</string>
 
 
   <!-- Dials -->
@@ -156,6 +164,10 @@
   <string name="dial_apps_short">APPS</string>
   <string name="dial_mic">Mic level</string>
   <string name="dial_mic_short">MIC</string>
+  <string name="dial_refresh">Refresh rate</string>
+  <string name="dial_refresh_short">RATE</string>
+  <!-- The ruler shows the rate the laptop named for this step, not the step's own number. -->
+  <string name="dial_refresh_value">%1$d HZ</string>
 
   <!-- Control surface -->
   <string name="surface_description">Laptop control surface</string>
@@ -171,4 +183,12 @@
   <string name="surface_open_settings">Open settings</string>
   <string name="surface_keyboard">Open the keyboard</string>
   <string name="surface_gamepad">Open the gamepad</string>
+  <string name="surface_macros">Open the macros</string>
+
+  <!-- Macros -->
+  <string name="macros_title">Macros</string>
+  <string name="macros_count">SLOTS · %1$d</string>
+  <string name="macros_run">Run %1$s</string>
+  <string name="macros_empty_title">No macros yet.</string>
+  <string name="macros_empty_body">Add them from Edgepad\'s tray menu on the laptop. They appear here as soon as it sends the list.</string>
 </resources>

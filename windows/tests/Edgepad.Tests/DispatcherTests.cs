@@ -1,6 +1,7 @@
 using Edgepad.Controls;
 using Edgepad.Dispatch;
 using Edgepad.Injection;
+using Edgepad.Macros;
 using Edgepad.Protocol;
 using NAudio.CoreAudioApi;
 using Xunit;
@@ -18,9 +19,18 @@ public sealed class DispatcherTests : IDisposable
     private readonly AudioEndpoint microphone = new(DataFlow.Capture);
     private readonly BrightnessControl brightness = new();
     private readonly MediaSessions media = new();
+    private readonly DisplayModes display = new();
+    private readonly LevelOverlay overlay = new();
+
+    // A store pointed at a file that does not exist, so it holds no macros: every macro id is therefore
+    // out of range and must be dropped, which is what these tests check. Nothing is written, nothing run.
+    private readonly MacroStore macros =
+        new(Path.Combine(Path.GetTempPath(), $"edgepad-dispatcher-{Guid.NewGuid():N}.txt"));
+
     private readonly Dispatcher dispatcher;
 
-    public DispatcherTests() => dispatcher = new Dispatcher(input, speakers, microphone, brightness, media);
+    public DispatcherTests() =>
+        dispatcher = new Dispatcher(input, speakers, microphone, brightness, media, display, macros, overlay);
 
     [Theory]
     [InlineData(0)]
@@ -29,6 +39,29 @@ public sealed class DispatcherTests : IDisposable
     [InlineData(255)]
     public void AnUnknownActionIsDropped(byte id)
     {
+        dispatcher.Handle(new RunAction(id));
+        Assert.Equal(1, dispatcher.Dropped);
+    }
+
+    [Theory]
+    [InlineData(64)]
+    [InlineData(70)]
+    [InlineData(78)]
+    public void AMacroSlotWithNothingInItIsDropped(byte id)
+    {
+        // The block is 64..95 whether or not the laptop has filled it. An empty slot must be refused the
+        // same way an unknown id is, rather than counting as handled and silently doing nothing.
+        dispatcher.Handle(new RunAction(id));
+        Assert.Equal(1, dispatcher.Dropped);
+    }
+
+    [Theory]
+    [InlineData(63)]
+    [InlineData(79)]
+    public void AnIdEitherSideOfTheMacroBlockIsNotAMacro(byte id)
+    {
+        // 63 is below the block and 79 is the first slot past the grid's fifteen. Neither is in the action
+        // table either, so both drop — the point is that the arithmetic stops at the grid, not at the block.
         dispatcher.Handle(new RunAction(id));
         Assert.Equal(1, dispatcher.Dropped);
     }
@@ -97,5 +130,7 @@ public sealed class DispatcherTests : IDisposable
         microphone.Dispose();
         brightness.Dispose();
         media.Dispose();
+        display.Dispose();
+        overlay.Dispose();
     }
 }

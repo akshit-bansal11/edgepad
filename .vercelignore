@@ -1,0 +1,15 @@
+# The deploy is built from the repository root, because site/lib/protocol.ts reads
+# ../protocol/*.txt at build time. Everything the build does not touch is excluded so
+# the upload stays small: the two apps are 130 MB of source and build output, and the
+# rendered demo is another 51 MB.
+/android
+/windows
+/assets
+/brag-output
+/scripts
+/docs
+/.github
+
+node_modules
+.next
+out

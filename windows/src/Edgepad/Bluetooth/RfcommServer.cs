@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
 using Edgepad.Injection;
+using Edgepad.Macros;
 using Edgepad.Protocol;
 using Edgepad.Trust;
 using Windows.Devices.Bluetooth.Rfcomm;
@@ -20,7 +21,10 @@ internal sealed class RfcommServer(
     AudioEndpoint speakers,
     AudioEndpoint microphone,
     BrightnessControl brightness,
-    MediaSessions media) : IDisposable
+    MediaSessions media,
+    DisplayModes display,
+    MacroStore macros,
+    LevelOverlay overlay) : IDisposable
 {
     private readonly Lock gate = new();
     private RfcommServiceProvider? provider;
@@ -47,8 +51,9 @@ internal sealed class RfcommServer(
     {
         // Input state (what is held down) belongs to one connection; the devices are shared.
         var injector = new InputInjector();
-        var dispatcher = new Dispatcher(injector, speakers, microphone, brightness, media);
-        var session = new Session(args.Socket, trust, injector, dispatcher, speakers, microphone, brightness, media, onStatus, OnSessionEnded);
+        var dispatcher = new Dispatcher(injector, speakers, microphone, brightness, media, display, macros, overlay);
+        var session = new Session(
+            args.Socket, trust, injector, dispatcher, speakers, microphone, brightness, media, display, macros, onStatus, OnSessionEnded);
         Session? previous;
         lock (gate)
         {

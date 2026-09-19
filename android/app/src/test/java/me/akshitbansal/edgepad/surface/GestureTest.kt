@@ -21,15 +21,20 @@ class GestureTest {
             }
         }
         assertNull(Gesture.of(1, Gesture.Kind.TAP))
-        assertNull(Gesture.of(3, Gesture.Kind.PINCH))
+    }
+
+    @Test
+    fun twoFingerGesturesAreNotAssignable() {
+        // Scroll, pinch and right-click are fixed in the recogniser. Anything that offers the user a list
+        // of gestures reads this table, so absence here is what keeps them off the Settings screen.
+        assertTrue(Gesture.entries.none { it.fingers < 3 })
+        assertNull(Gesture.of(2, Gesture.Kind.TAP))
     }
 
     @Test
     fun theDefaultsAreWindowsWithThreeAndFourFingersSwapped() {
         assertEquals(GestureAction.DESKTOP_LEFT, Gesture.THREE_LEFT.default)
         assertEquals(GestureAction.APP_SWITCHER, Gesture.FOUR_RIGHT.default)
-        assertEquals(GestureAction.RIGHT_CLICK, Gesture.TWO_TAP.default)
-        assertEquals(GestureAction.ZOOM, Gesture.TWO_PINCH.default)
     }
 
     @Test

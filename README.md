@@ -4,11 +4,16 @@
 
 Edgepad turns an Android phone into a trackpad, a media remote and a control panel for a Windows laptop, over a direct Bluetooth link with nothing in between.
 
+<p align="center"><img src="assets/demo.gif" width="880" alt="A finger crossing the phone's trackpad, then sliding the corner ruler to change the laptop's volume"></p>
+
+<p align="center"><sub>The phone's screen. The finger crosses the trackpad, then slides the corner ruler and the volume follows.</sub></p>
+
 It is for the times the laptop is across the room rather than under your hands: plugged into a television, docked on a desk you are not sitting at, parked somewhere a mouse dongle will not reach. The alternatives are a remote app that only sends media keys, or a remote-desktop app that streams the whole screen and wants an account and a network round trip to change the volume. Edgepad is neither. The phone and the laptop pair once, the way a headset does, and after that they talk directly: no account, no Wi-Fi, no service in between that can be slow or down. The cost is Bluetooth's own — both ends need it, and it does not reach another room or the internet.
 
 [![CI](https://github.com/akshit-bansal11/edgepad/actions/workflows/ci.yml/badge.svg)](https://github.com/akshit-bansal11/edgepad/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/akshit-bansal11/edgepad)](https://github.com/akshit-bansal11/edgepad/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Documentation](https://img.shields.io/badge/docs-edgepad--docs.vercel.app-black.svg)](https://edgepad-docs.vercel.app)
 
 ## What it does
 
@@ -28,7 +33,7 @@ Both apps come from the [latest release](https://github.com/akshit-bansal11/edge
 
 1. Download `Edgepad.exe`. It is a single self-contained file; nothing else needs installing.
 2. Run it. It is not code-signed, so SmartScreen asks first: choose **More info**, then **Run anyway**.
-3. It lives in the system tray. The menu shows the version, whether a phone is connected, **Start with Windows**, **Forget trusted phone**, **Open log** and **Quit**.
+3. It lives in the system tray. The menu shows the version, whether a phone is connected, **Macros…**, **Start with Windows**, **Forget trusted phone**, **Open log**, **Documentation** and **Quit**.
 
 Running a newer `Edgepad.exe` asks the running copy to quit and takes its place.
 
@@ -74,7 +79,7 @@ The phone recognises gestures and sends small semantic frames: move the pointer 
 
 The transport is Bluetooth Classic RFCOMM: an ordered, encrypted byte stream between two already-paired devices, with no server, no discovery and no network. Frames are 2 to 258 bytes and go out in a single write per batch; a backlog of pointer moves collapses into one before it is sent, so a slow link catches up instead of lagging.
 
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes both apps, their threads and their trust model. [docs/PROTOCOL.md](docs/PROTOCOL.md) is the wire format. [CHANGELOG.md](CHANGELOG.md) lists what each release changed.
+The full documentation is at [edgepad-docs.vercel.app](https://edgepad-docs.vercel.app) — install, the control surface, both apps' architecture, the wire protocol and the developer guide on one page. In the repository: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes both apps, their threads and their trust model. [docs/PROTOCOL.md](docs/PROTOCOL.md) is the wire format. [CHANGELOG.md](CHANGELOG.md) lists what each release changed.
 
 ## Build it yourself
 
@@ -87,6 +92,7 @@ The repository is a monorepo:
 | `protocol/` | The wire format and the id tables as plain text fixtures. Both test suites run them, so the two apps cannot drift apart. |
 | `scripts/` | The quality gate and the release-key script. |
 | `docs/` | Architecture and protocol. |
+| `site/` | The documentation site. Next.js; its own gate, not part of `check.ps1`. |
 
 ### Prerequisites
 

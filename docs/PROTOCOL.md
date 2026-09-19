@@ -17,16 +17,16 @@ The transport is an RFCOMM byte stream. A frame is one type byte followed by a p
 | `0x12` | SCROLL | dx i16, dy i16 | phone to laptop | wheel units; 120 is one notch; positive dy is wheel forward |
 | `0x13` | ZOOM | delta i16 | phone to laptop | Ctrl+wheel units |
 | `0x20` | ACTION | id u8 | phone to laptop | run an action from the table below |
-| `0x21` | SET | control u8, value u8 | phone to laptop | set a control to 0-100 |
+| `0x21` | SET | control u8, value u8 | phone to laptop | set a control to 0-100; the laptop drops anything above 100 |
 | `0x30` | PING | t i64 | phone to laptop | the phone's clock, in nanoseconds |
 | `0x31` | PONG | t i64 | laptop to phone | the same value echoed, for the round-trip readout |
 | `0x40` | STATE | control u8, value u8, flags u8 | laptop to phone | a control's current value; flags bit 0 is muted for audio controls and playing for media position |
 | `0x41` | TEXT | kind u8, length u8, UTF-8 bytes | both ways | up to 255 bytes, never split inside a character |
 | `0x22` | KEY | code u16, down u8 | phone to laptop | press or release one key, by Windows virtual-key code |
 
-TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter.
+TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter, 4 the display's available refresh rates as `60/120/144` (laptop to phone), 5 the laptop's macro names as `Chrome/Spotify/Notes` (laptop to phone).
 
-After HELLO_ACK the laptop sends a STATE for volume, microphone and brightness, then TEXT 0, 1 and 2 and a STATE for media position, and thereafter every change as it happens. Media position is refreshed once a second while playing.
+After HELLO_ACK the laptop sends a STATE for volume, microphone and brightness, then TEXT 0, 1 and 2 and a STATE for media position, then TEXT 4 and a STATE for the refresh rate, then TEXT 5, and thereafter every change as it happens. Media position is refreshed once a second while playing.
 
 ## Actions and controls
 
@@ -62,6 +62,18 @@ After HELLO_ACK the laptop sends a STATE for volume, microphone and brightness, 
 | BRIGHTNESS | 1 | the built-in panel's brightness through WMI | level |
 | MIC_LEVEL | 2 | the default microphone's level | level, flag muted |
 | MEDIA_POSITION | 3 | seeks the current track to that percent, where the player allows it | percent, flag playing |
+| REFRESH_RATE | 4 | switches the display to the rate at that index of TEXT 4's list | the current rate's index |
+
+REFRESH_RATE's value is an index into TEXT 4's list, never a rate in hertz: SET carries value u8 and the laptop drops anything above 100, so 120 or 144 could not cross the wire at all. An index also makes a rate the laptop does not have unrepresentable rather than merely rejected. A laptop that names no rates has none to offer, and the dial has nothing to show.
+
+Actions 64 to 95 are a reserved block of 32 macro slots: the phone runs slot n as `MACRO_BASE + n`. It
+sends the index and never what the index opens. The laptop's own list, edited from its tray menu, decides
+that, so a slot cannot be repointed from the phone and the protocol stays semantic.
+
+This is not a containment boundary against a compromised phone, and should not be read as one. KEY carries a
+raw virtual-key code and TEXT kind 3 carries arbitrary characters, both of which the laptop injects directly
+— that is what the phone's keyboard screen is. A paired phone is a trusted input device, and the trust
+boundary is the Bluetooth pairing plus trust-on-first-use, not the macro table.
 
 ## Versions
 
@@ -69,6 +81,11 @@ After HELLO_ACK the laptop sends a STATE for volume, microphone and brightness, 
 | --- | --- | --- |
 | 1 | 0.1.0 | HELLO through STATE; TEXT kinds 0 and 1 arrived in 0.2.0 without a bump |
 | 2 | 0.3.0 | TEXT kind 2; a mismatch is refused with the laptop's version |
-| 3 | 0.6.0 | TEXT kind 3; actions 31 to 34 arrived in 0.5.0 |
+| 3 | 0.6.0 | TEXT kind 3; actions 31 to 34 arrived in 0.5.0, and CONTROL 4, TEXT 4 and 5 and the macro block in 1.1.0 |
+
+The refresh-rate dial and the macro buttons both arrived in 1.1.0 **without** a bump, which is the rule
+working rather than being broken. An unknown action, control or text kind is dropped and counted, so a
+build that predates them meets them by ignoring them. Only a new frame **type** forces a version, because
+an unknown type closes the connection. From 1.0 this number moves only in a major release.
 
 The rule from version 2 on: any change to what a frame means, or a new frame type, bumps the version on both sides in the same commit and adds a fixture line.

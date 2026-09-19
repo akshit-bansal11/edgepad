@@ -146,6 +146,33 @@ class DialTest {
         assertEquals(0, zoom.steps)
     }
 
+    @Test
+    fun theRefreshDialCountsRateIndicesAndStopsAtTheLastOne() {
+        val refresh = dial(DialKind.REFRESH)
+        // Three rates, so the top of the range is 2, nothing like the 0-100 every other level dial has.
+        refresh.maxLevel = 2f
+        refresh.fromLaptop(0, flag = false)
+        refresh.down()
+        refresh.slideBy(40f)
+        assertEquals("one stepper notch of slide is one rate", 1, refresh.value)
+        assertEquals(ControlId.REFRESH_RATE.set(1), out.last())
+        refresh.slide(400f, SLOP)
+        refresh.up()
+        assertEquals(2, refresh.value)
+        assertEquals(ControlId.REFRESH_RATE.set(2), out.last())
+    }
+
+    @Test
+    fun aShrunkRangeBringsTheLevelDownWithIt() {
+        // The laptop can name a shorter list than the one the dial was last shown at: docking, or a
+        // second display taking over. A level left above the top would draw off the end of the ruler.
+        val refresh = dial(DialKind.REFRESH)
+        refresh.maxLevel = 4f
+        refresh.fromLaptop(4, flag = false)
+        refresh.maxLevel = 1f
+        assertEquals(1, refresh.value)
+    }
+
     private companion object {
         const val UNITS_PER_DP = 0.25f
         const val SLOP = 8f

@@ -25,6 +25,13 @@ enum class ActionId(
     VOLUME_DOWN(32),
     BRIGHTNESS_UP(33),
     BRIGHTNESS_DOWN(34),
+
+    /**
+     * The first of 32 macro slots, 64..95; slot n is `MACRO_BASE + n`. The phone sends the index and never
+     * what it launches — the laptop's own list decides that, which is the whole security model here.
+     * A laptop too old to know the block drops the id and counts it, so this needed no protocol version.
+     */
+    MACRO_BASE(64),
     ;
 
     fun frame(): Frame = Frame.RunAction(id)
@@ -38,6 +45,13 @@ enum class ControlId(
     BRIGHTNESS(1),
     MIC_LEVEL(2),
     MEDIA_POSITION(3),
+
+    /**
+     * The value is an index into [TextKind.REFRESH_RATES], never a rate in hertz. SET carries value u8 and the
+     * laptop drops anything above 100, so 120 or 144 could not cross the wire at all; an index is always well
+     * under 100. It also makes a rate the laptop does not have unrepresentable rather than merely rejected.
+     */
+    REFRESH_RATE(4),
     ;
 
     fun set(value: Int): Frame = Frame.SetValue(id, value)
@@ -47,7 +61,7 @@ enum class ControlId(
     }
 }
 
-/** What a TEXT frame carries. Kinds 0 to 2 go laptop to phone, 3 goes phone to laptop. Mirrors protocol/actions.txt. */
+/** What a TEXT frame carries. Only kind 3 goes phone to laptop. Mirrors protocol/actions.txt. */
 enum class TextKind(
     val id: Int,
 ) {
@@ -55,6 +69,12 @@ enum class TextKind(
     APP(1),
     TIMELINE(2),
     TYPE(3),
+
+    /** "60/120/144": the display's available rates, in the order [ControlId.REFRESH_RATE] indexes them. */
+    REFRESH_RATES(4),
+
+    /** "Chrome/Spotify/Notes": the laptop's macro names, in the order [ActionId.MACRO_BASE] indexes them. */
+    MACROS(5),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace Edgepad.Controls;
 
@@ -14,12 +15,28 @@ internal static partial class BrowserTitle
     private static readonly string[] Browsers = ["chrome", "msedge", "firefox", "brave", "opera", "vivaldi"];
 
     // Longer names first, so "YouTube Music" wins over "YouTube" and "Apple TV" over nothing at all.
+    // A name does not have to be a coined word: Patterns below requires it to stand as its own word,
+    // so "Plex" can go on this list without being read out of "complexity".
     private static readonly string[] Services =
     [
         "YouTube Music", "Apple Music", "Apple TV", "Prime Video", "HBO Max", "Paramount+", "Disney+", "Netflix",
         "YouTube", "Spotify", "Hulu", "Crunchyroll", "Peacock", "SoundCloud", "Twitch", "Plex", "JioHotstar", "Hotstar",
         "JioCinema", "SonyLIV",
     ];
+
+    /// <summary>
+    /// One pattern per name in <see cref="Services"/>, in the same order. A bare Contains would read
+    /// "Plex" out of "Time complexity" and "Twitch" out of "Twitches", and <see cref="Service"/> returns
+    /// on the first <em>title</em> that matches anything — so one unrelated background tab could name the
+    /// wrong service while the tab actually playing said so plainly in its own title.
+    /// <para>
+    /// The trailing <c>(?!\w)</c> is deliberately not a second <c>\b</c>. "Paramount+" and "Disney+" end
+    /// in a non-word character, which has no word boundary after it, so <c>\b…\b</c> matches neither:
+    /// it would trade one wrong label for two missing ones.
+    /// </para>
+    /// </summary>
+    private static readonly Regex[] Patterns =
+        [.. Services.Select(service => new Regex($@"\b{Regex.Escape(service)}(?!\w)", RegexOptions.IgnoreCase))];
 
     [ThreadStatic]
     private static HashSet<int>? processIds;
@@ -34,11 +51,11 @@ internal static partial class BrowserTitle
     {
         foreach (var title in titles)
         {
-            foreach (var service in Services)
+            for (var i = 0; i < Patterns.Length; i++)
             {
-                if (title.Contains(service, StringComparison.OrdinalIgnoreCase))
+                if (Patterns[i].IsMatch(title))
                 {
-                    return service;
+                    return Services[i];
                 }
             }
         }

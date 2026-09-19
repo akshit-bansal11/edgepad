@@ -1,5 +1,6 @@
 using Edgepad.Bluetooth;
 using Edgepad.Controls;
+using Edgepad.Macros;
 using Edgepad.Startup;
 using Edgepad.Trust;
 using NAudio.CoreAudioApi;
@@ -11,6 +12,10 @@ internal sealed class TrayContext : ApplicationContext
 {
     // NotifyIcon.Text is capped by the shell; stay under the oldest limit.
     private const int MaxTooltipLength = 63;
+
+    // The documentation site. The phone's Settings › Help offers the same link, so the
+    // two halves point at one page rather than each explaining itself.
+    private const string DocumentationUrl = "https://edgepad-docs.vercel.app";
 
     private readonly ToolStripMenuItem status = new("Starting…") { Enabled = false };
     private readonly ToolStripMenuItem startWithWindows = new("Start with Windows") { CheckOnClick = true };
@@ -24,6 +29,9 @@ internal sealed class TrayContext : ApplicationContext
     private readonly AudioEndpoint microphone = new(DataFlow.Capture);
     private readonly BrightnessControl brightness = new();
     private readonly MediaSessions media = new();
+    private readonly DisplayModes display = new();
+    private readonly MacroStore macros = MacroStore.ForCurrentUser();
+    private readonly LevelOverlay overlay;
     private readonly RfcommServer server;
 
     public TrayContext(EventWaitHandle quit)
@@ -35,8 +43,10 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(status);
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(startWithWindows);
+        menu.Items.Add("Macros…", null, (_, _) => MacroEditor.Show(macros));
         menu.Items.Add(forget);
         menu.Items.Add("Open log", null, (_, _) => OpenLog());
+        menu.Items.Add("Documentation", null, (_, _) => OpenDocumentation());
         menu.Items.Add("Quit", null, (_, _) => ExitThread());
 
         // Read the settings each time the menu opens, so it never shows a stale state.
@@ -53,7 +63,11 @@ internal sealed class TrayContext : ApplicationContext
         // Creating the menu installed the WinForms context on this thread; status updates arrive from
         // Bluetooth threads and are marshalled back here.
         ui = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
-        server = new RfcommServer(SetStatus, trust, speakers, microphone, brightness, media);
+
+        // Built here and nowhere else: the overlay captures this thread's synchronisation context, and the
+        // frames that ask it to show something arrive on a Bluetooth thread that has none of its own.
+        overlay = new LevelOverlay();
+        server = new RfcommServer(SetStatus, trust, speakers, microphone, brightness, media, display, macros, overlay);
         _ = StartServerAsync();
         _ = StartMediaAsync();
 
@@ -121,6 +135,20 @@ internal sealed class TrayContext : ApplicationContext
         }
     }
 
+    private static void OpenDocumentation()
+    {
+        try
+        {
+            using var _ = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(DocumentationUrl) { UseShellExecute = true });
+        }
+        catch (Exception e) when (e is System.ComponentModel.Win32Exception or InvalidOperationException or FileNotFoundException)
+        {
+            // No default browser, or the shell refused the handler. A menu item must never
+            // take the tray app down with it: an unhandled exception here ends the process.
+            Log.Write($"Could not open the documentation: {e.Message}");
+        }
+    }
+
     protected override void ExitThreadCore()
     {
         icon.Visible = false;
@@ -141,6 +169,8 @@ internal sealed class TrayContext : ApplicationContext
             brightness.Dispose();
             speakers.Dispose();
             microphone.Dispose();
+            display.Dispose();
+            overlay.Dispose();
         }
 
         base.Dispose(disposing);

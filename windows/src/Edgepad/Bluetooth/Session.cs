@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
 using Edgepad.Injection;
+using Edgepad.Macros;
 using Edgepad.Protocol;
 using Edgepad.Trust;
 using Windows.Networking.Sockets;
@@ -24,6 +25,8 @@ internal sealed class Session(
     AudioEndpoint microphone,
     BrightnessControl brightness,
     MediaSessions media,
+    DisplayModes display,
+    MacroStore macros,
     Action<string> onStatus,
     Action<Session> onEnded) : IDisposable
 {
@@ -117,14 +120,37 @@ internal sealed class Session(
             SendBrightness(level);
         }
 
+        ReportRefreshRates();
+
         Watch(speakers, ControlId.Volume);
         Watch(microphone, ControlId.MicLevel);
         watches.Add(media.Watch(state => Guarded(() => SendMedia(state))));
+
+        // The macro names label buttons the phone only ever names by index, and the list changes while the
+        // phone is connected: the owner adds one in the tray editor and expects the button, not a reason to
+        // restart the app. Watching rather than asking once also covers the empty list, which is what tells
+        // the phone to say "add some on the laptop" instead of drawing a grid that looks broken.
+        watches.Add(macros.Watch(names => Guarded(() => Send(new Text((byte)TextKind.Macros, names)))));
 
         // Brightness changed on the laptop itself (keys, Windows' slider) reaches the phone as it does for audio.
         if (brightness.Watch(level => Guarded(() => SendBrightness(level))) is { } brightnessWatch)
         {
             watches.Add(brightnessWatch);
+        }
+    }
+
+    /// <summary>
+    /// The rates this display offers and which one is in force. The list goes first because the level is an
+    /// index into it, though the phone corrects itself either way if they arrive the other way round.
+    /// A display that offers nothing sends an empty list, and the phone's dial then has no travel.
+    /// </summary>
+    private void ReportRefreshRates()
+    {
+        display.Refresh();
+        Send(new Text((byte)TextKind.RefreshRates, string.Join('/', display.Rates)));
+        if (display.Current >= 0)
+        {
+            Send(new StateReport((byte)ControlId.RefreshRate, (byte)display.Current, 0));
         }
     }
 
