@@ -54,19 +54,24 @@ class TrackpadRecognizer(
     private var scrollRemY = 0f
 
     /**
-     * One touch sample. [xs] and [ys] hold every finger still on the surface after this event, so on an
-     * UP of one finger among several the caller passes the ones that remain.
+     * One touch sample. The first [count] entries of [xs] and [ys] hold every finger still on the surface
+     * after this event, so on an UP of one finger among several the caller passes the ones that remain.
+     *
+     * [count] is separate from `xs.size` so a caller on the touch path can hand over one buffer it keeps
+     * and refills, rather than a fresh pair of arrays per sample. It defaults to the whole array, which is
+     * what a test passing an exact-sized literal wants.
      */
     fun handle(
         action: Action,
         xs: FloatArray,
         ys: FloatArray,
         time: Long,
+        count: Int = xs.size,
     ) {
         when (action) {
-            Action.DOWN -> down(xs, ys, time)
-            Action.MOVE -> move(xs, ys)
-            Action.UP -> up(xs, ys, time)
+            Action.DOWN -> down(xs, ys, count, time)
+            Action.MOVE -> move(xs, ys, count)
+            Action.UP -> up(xs, ys, count, time)
             Action.CANCEL -> finish(time, tapAllowed = false)
         }
     }
@@ -74,23 +79,24 @@ class TrackpadRecognizer(
     private fun down(
         xs: FloatArray,
         ys: FloatArray,
+        count: Int,
         time: Long,
     ) {
         if (fingers == 0) {
             reset()
             startTime = time
-            startX = centroid(xs)
-            startY = centroid(ys)
+            startX = centroid(xs, count)
+            startY = centroid(ys, count)
             // Added, not subtracted: the never-tapped sentinel is Long.MIN_VALUE and must not overflow.
             if (time <= lastTapUp + DRAG_TAP_GAP_MS) {
                 dragging = true
                 sink(Frame.PointerButton(LEFT, true))
             }
         }
-        fingers = xs.size
+        fingers = count
         maxFingers = maxOf(maxFingers, fingers)
-        lastX = centroid(xs)
-        lastY = centroid(ys)
+        lastX = centroid(xs, count)
+        lastY = centroid(ys, count)
         // Another finger moves the centroid without anything having slid: the gesture starts again from
         // here, or every two-finger touch would count as moved and never as a tap.
         startX = lastX
@@ -104,10 +110,11 @@ class TrackpadRecognizer(
     private fun move(
         xs: FloatArray,
         ys: FloatArray,
+        count: Int,
     ) {
-        if (fingers == 0 || xs.isEmpty()) return
-        val cx = centroid(xs)
-        val cy = centroid(ys)
+        if (fingers == 0 || count == 0) return
+        val cx = centroid(xs, count)
+        val cy = centroid(ys, count)
         val dx = cx - lastX
         val dy = cy - lastY
         lastX = cx
@@ -300,15 +307,16 @@ class TrackpadRecognizer(
     private fun up(
         xs: FloatArray,
         ys: FloatArray,
+        count: Int,
         time: Long,
     ) {
-        if (xs.isEmpty()) {
+        if (count == 0) {
             finish(time, tapAllowed = true)
             return
         }
-        fingers = xs.size
-        lastX = centroid(xs)
-        lastY = centroid(ys)
+        fingers = count
+        lastX = centroid(xs, count)
+        lastY = centroid(ys, count)
         if (fingers == 2) lastSpan = span(xs, ys)
     }
 
@@ -367,7 +375,15 @@ class TrackpadRecognizer(
 
     private fun dp(value: Float): Float = value * density
 
-    private fun centroid(values: FloatArray): Float = values.sum() / values.size
+    /** The mean of the first [count] entries. Reads the buffer's live part, never its capacity. */
+    private fun centroid(
+        values: FloatArray,
+        count: Int,
+    ): Float {
+        var sum = 0f
+        for (i in 0 until count) sum += values[i]
+        return sum / count
+    }
 
     private fun span(
         xs: FloatArray,

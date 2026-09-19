@@ -15,6 +15,18 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
   after it, so the obvious spelling would have matched neither. All nineteen names and the
   false positives are covered by tests.
 
+### Changed
+- **The trackpad stopped allocating on the touch path.** `ControlSurface` built a fresh pair of
+  `FloatArray`s for every touch sample handed to the gesture recogniser, and for every
+  historical sample inside each event. The surface asks for unbuffered dispatch, so samples
+  arrive as fast as the digitiser makes them: one finger dragging produced a steady stream of
+  short-lived garbage on the one path in the app written to be fast — the same defect fixed in
+  the gamepad in 1.0.0, which Android lint cannot see because `DrawAllocation` only inspects a
+  method literally named `onDraw`. It now fills one pair of buffers sized once at
+  `MAX_POINTERS` and passes an explicit finger count. No gesture, threshold or feel constant
+  moves, and the recogniser's tests are unchanged — `count` defaults to the array's own size,
+  so every existing caller reads as it did.
+
 ## [2.1.0] - 2026-09-19
 
 Both apps now carry a link to the documentation, and the documentation now exists. Nothing

@@ -150,6 +150,13 @@ class ControlSurface(
     private var fingerCount = 0
     private val fingerXs = FloatArray(MAX_POINTERS)
     private val fingerYs = FloatArray(MAX_POINTERS)
+
+    // Handed to the recogniser with a count, and refilled per sample. Separate from fingerXs/fingerYs,
+    // which hold what onDraw paints: feedHistorical walks positions the finger has already left, and
+    // those must not reach the screen. requestUnbufferedDispatch means samples arrive as fast as the
+    // digitiser makes them, so a fresh pair of arrays here is garbage on the one path built to be fast.
+    private val touchXs = FloatArray(MAX_POINTERS)
+    private val touchYs = FloatArray(MAX_POINTERS)
     private val trail = FloatArray(TRAIL * 2)
     private var trailHead = 0
     private var trailLength = 0
@@ -723,7 +730,7 @@ class ControlSurface(
         scrubbing = false
         fingerCount = 0
         trailLength = 0
-        trackpad.handle(TrackpadRecognizer.Action.CANCEL, FloatArray(0), FloatArray(0), event.eventTime)
+        trackpad.handle(TrackpadRecognizer.Action.CANCEL, touchXs, touchYs, event.eventTime, count = 0)
     }
 
     private fun onTrackpad(): Boolean = activeDial < 0 && buttonDown == null && pressedTop == null && !scrubbing
@@ -783,31 +790,32 @@ class ControlSurface(
         return best
     }
 
+    /** Fills [touchXs]/[touchYs] with every finger but [exclude], capped as [fingers] already caps. */
     private fun feed(
         action: TrackpadRecognizer.Action,
         event: MotionEvent,
         exclude: Int,
     ) {
-        val n = event.pointerCount - (if (exclude >= 0) 1 else 0)
-        val xs = FloatArray(n)
-        val ys = FloatArray(n)
-        var j = 0
+        var n = 0
         for (i in 0 until event.pointerCount) {
-            if (i == exclude) continue
-            xs[j] = event.getX(i)
-            ys[j] = event.getY(i)
-            j++
+            if (i == exclude || n == MAX_POINTERS) continue
+            touchXs[n] = event.getX(i)
+            touchYs[n] = event.getY(i)
+            n++
         }
-        trackpad.handle(action, xs, ys, event.eventTime)
+        trackpad.handle(action, touchXs, touchYs, event.eventTime, count = n)
     }
 
     private fun feedHistorical(
         event: MotionEvent,
         h: Int,
     ) {
-        val xs = FloatArray(event.pointerCount) { event.getHistoricalX(it, h) }
-        val ys = FloatArray(event.pointerCount) { event.getHistoricalY(it, h) }
-        trackpad.handle(TrackpadRecognizer.Action.MOVE, xs, ys, event.getHistoricalEventTime(h))
+        val n = minOf(event.pointerCount, MAX_POINTERS)
+        for (i in 0 until n) {
+            touchXs[i] = event.getHistoricalX(i, h)
+            touchYs[i] = event.getHistoricalY(i, h)
+        }
+        trackpad.handle(TrackpadRecognizer.Action.MOVE, touchXs, touchYs, event.getHistoricalEventTime(h), count = n)
     }
 
     override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
