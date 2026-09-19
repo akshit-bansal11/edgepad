@@ -4,6 +4,12 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-19
+
+Both apps now carry a link to the documentation, and the documentation now exists. Nothing
+about the wire protocol moves: it stays at version 3, so a 2.1.0 half and a 2.0.0 half
+still speak to each other. Update both anyway, so both ends know where the manual is.
+
 ### Added
 - **A link to the documentation in both apps.** The phone gets a **Documentation** row under
   Settings › Help, beneath the Guide; the laptop gets a **Documentation** item in its tray
@@ -336,7 +342,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.10.0...v1.0.0
 [0.10.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.9.5...v0.10.0
