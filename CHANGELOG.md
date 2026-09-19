@@ -4,6 +4,17 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Fixed
+- **A service name matched inside an ordinary word named the wrong thing.** The laptop reads
+  the service out of the browser's window title, and it matched with a plain substring test.
+  It also searches *every* visible browser window, not just the one playing, and returns on
+  the first title that matches anything — so a tab titled "Twitches (2005)" made the phone say
+  **Twitch** while the tab actually playing said YouTube right there in its own title. Each
+  name now has to stand as its own word. The trailing lookahead is deliberately not a second
+  word boundary: "Paramount+" and "Disney+" end in a non-word character, which has no boundary
+  after it, so the obvious spelling would have matched neither. All nineteen names and the
+  false positives are covered by tests.
+
 ## [2.1.0] - 2026-09-19
 
 Both apps now carry a link to the documentation, and the documentation now exists. Nothing
