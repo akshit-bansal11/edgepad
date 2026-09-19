@@ -5,6 +5,14 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 ## [Unreleased]
 
 ### Documentation
+- **A documentation site, in `site/`.** One page: what Edgepad is, how to install and use
+  it, the architecture of both halves, the wire protocol, the trust model, and the
+  developer guide. Its frame, action and control tables are generated from
+  `protocol/frames.txt` and `protocol/actions.txt` at build time — the same two fixtures
+  both test suites read — so the page cannot drift from the apps the way a hand-typed
+  copy would. A fixture it cannot parse fails the build rather than rendering an empty
+  table. Next.js, checked by its own gate (Biome, ESLint, tsc) in its own workflow, which
+  runs only when `site/**` or `protocol/**` changes.
 - **`SECURITY.md` claimed the phone cannot send a key code.** It can, and always could:
   `KEY` carries a raw Windows virtual-key code and `TEXT` kind 3 carries arbitrary text,
   because that is what the phone's keyboard screen is. 2.0.0 corrected this claim in

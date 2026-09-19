@@ -1,0 +1,9 @@
+# Adds to the repository root .editorconfig; deliberately no `root = true`, so charset,
+# line endings and final-newline still come from there.
+#
+# The root file sets indent_size = 4 for [*], which is right for Kotlin and C# and
+# wrong for this half: the JavaScript ecosystem, shadcn's own component sources and
+# every Next.js template indent by 2. Biome reads this file (useEditorconfig), so
+# without this block it would reformat the whole site to 4 spaces on its first run.
+[*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,css,md}]
+indent_size = 2

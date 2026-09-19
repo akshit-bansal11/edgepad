@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+/* next-themes writes `class="dark"` on <html>, so the dark variant follows the class
+   rather than the media query. The toggle must win over the OS in both directions. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  Edgepad's own palette, taken from the app: pure #000 on #FFF or #FFF on #000, with
+  the greys flattened to opaque values rather than alphas, so overlapping strokes do
+  not darken. Light dim #737373 is 4.74:1 on white; dark dim #8C8C8C is 6.5:1 on
+  black. There is no accent colour anywhere in the product, and none here.
+*/
+:root {
+  --background: #ffffff;
+  --foreground: #000000;
+  --dim: #737373;
+  --line: #d6d6d6;
+  --faint: #f0f0f0;
+  --selection: #000000;
+  --selection-foreground: #ffffff;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #ffffff;
+  --dim: #8c8c8c;
+  --line: #292929;
+  --faint: #121212;
+  --selection: #ffffff;
+  --selection-foreground: #000000;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-dim: var(--dim);
+  --color-line: var(--line);
+  --color-faint: var(--faint);
+
+  --font-mono: var(--font-mono-family), ui-monospace, "SFMono-Regular", monospace;
+  --font-sans: var(--font-sans-family), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-none: 0px;
+}
+
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Anchors land below the sticky header rather than under it.
+       4rem header + 1rem of air. Section scroll-margin matches this exactly; two
+       different offsets fighting each other is what makes a heading land crooked. */
+    scroll-padding-top: 5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--selection);
+    color: var(--selection-foreground);
+  }
+
+  /* One focus treatment everywhere. Two-tone so it is visible on either ground. */
+  :focus-visible {
+    outline: 2px solid var(--foreground);
+    outline-offset: 2px;
+  }
+
+  /* Tabular figures in every table, so ids and byte columns line up. */
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  /* The spaced mono label the app uses for every section heading and button. */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  /* A hairline that stays one physical pixel on a high-density screen. */
+  .rule {
+    border-top: 1px solid var(--line);
+  }
+}

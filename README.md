@@ -13,6 +13,7 @@ It is for the times the laptop is across the room rather than under your hands: 
 [![CI](https://github.com/akshit-bansal11/edgepad/actions/workflows/ci.yml/badge.svg)](https://github.com/akshit-bansal11/edgepad/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/akshit-bansal11/edgepad)](https://github.com/akshit-bansal11/edgepad/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Documentation](https://img.shields.io/badge/docs-edgepad--docs.vercel.app-black.svg)](https://edgepad-docs.vercel.app)
 
 ## What it does
 
@@ -78,7 +79,7 @@ The phone recognises gestures and sends small semantic frames: move the pointer 
 
 The transport is Bluetooth Classic RFCOMM: an ordered, encrypted byte stream between two already-paired devices, with no server, no discovery and no network. Frames are 2 to 258 bytes and go out in a single write per batch; a backlog of pointer moves collapses into one before it is sent, so a slow link catches up instead of lagging.
 
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes both apps, their threads and their trust model. [docs/PROTOCOL.md](docs/PROTOCOL.md) is the wire format. [CHANGELOG.md](CHANGELOG.md) lists what each release changed.
+The full documentation is at [edgepad-docs.vercel.app](https://edgepad-docs.vercel.app) — install, the control surface, both apps' architecture, the wire protocol and the developer guide on one page. In the repository: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes both apps, their threads and their trust model. [docs/PROTOCOL.md](docs/PROTOCOL.md) is the wire format. [CHANGELOG.md](CHANGELOG.md) lists what each release changed.
 
 ## Build it yourself
 
@@ -91,6 +92,7 @@ The repository is a monorepo:
 | `protocol/` | The wire format and the id tables as plain text fixtures. Both test suites run them, so the two apps cannot drift apart. |
 | `scripts/` | The quality gate and the release-key script. |
 | `docs/` | Architecture and protocol. |
+| `site/` | The documentation site. Next.js; its own gate, not part of `check.ps1`. |
 
 ### Prerequisites
 

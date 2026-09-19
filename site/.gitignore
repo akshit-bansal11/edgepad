@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.vercel
+
+# `next dev` writes these two on every run. They are Next's own scaffolding, not part
+# of this site, and they are not wanted in the repository or in a deploy.
+CLAUDE.md
+AGENTS.md
