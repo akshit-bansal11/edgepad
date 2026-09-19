@@ -4,6 +4,13 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-09-19
+
+Three fixes and the first outside contribution. Nothing about the wire protocol moves:
+it stays at version 3, so a 2.2.0 half and a 2.1.0 half still speak to each other.
+Update both anyway -- the browser-title fix is on the laptop and what it corrects shows
+up on the phone.
+
 ### Fixed
 - **A service name matched inside an ordinary word named the wrong thing.** The laptop reads
   the service out of the browser's window title, and it matched with a plain substring test.
@@ -26,6 +33,20 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
   `MAX_POINTERS` and passes an explicit finger count. No gesture, threshold or feel constant
   moves, and the recogniser's tests are unchanged — `count` defaults to the array's own size,
   so every existing caller reads as it did.
+
+### Tests
+- **The shared protocol fixture now carries non-ASCII titles.** Every `TEXT` line in
+  `protocol/frames.txt` was pure ASCII, so nothing proved the two codecs agreed on a
+  single multi-byte character -- and `TEXT` is the frame that carries track titles and
+  artist names, which routinely are not. Three lines added, two, four and three bytes of
+  UTF-8, each with a UTF-8 byte count that differs from its UTF-16 length: if either side
+  ever counted UTF-16 units, the length header would not match and both suites would fail
+  on the same line. Contributed by [@wized2](https://github.com/wized2) in
+  [#7](https://github.com/akshit-bansal11/edgepad/pull/7) -- the first outside change to
+  Edgepad. Their three lines landed under `TEXT` kinds 4, 5 and 6, which are already
+  `REFRESH_RATES` and `MACROS` and, for 6, nothing at all; the codecs do not validate the
+  kind byte, so both suites passed and the documentation site would have published the
+  contradiction. Corrected to kind 0, `NOW_PLAYING`, keeping the characters exactly.
 
 ## [2.1.0] - 2026-09-19
 
@@ -365,7 +386,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v0.10.0...v1.0.0

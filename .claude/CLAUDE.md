@@ -31,13 +31,14 @@ There is **no .NET SDK, no JDK, no Android SDK, no Gradle and no adb on this mac
 
 Consequence, and budget for it: **the local gate cannot see Android lint or the unit tests.** Lint failures only CI can see are normal here, not a surprise. Where a local check is wanted, the pattern is a portable toolchain fetched into the session scratchpad (a portable .NET SDK via `dotnet-install.ps1 -InstallDir`, a portable Temurin JRE running the ktlint CLI); they die with the session.
 
-## Three things are the owner's to do, not a session's
+## What is the owner's to do, not a session's
 
-Each was refused by the permission layer at least once. Hand over a command; do not route around the refusal.
+Hand over a command; never route around a refusal.
 
-- **Creating the release signing key.** Use `scripts/new-signing-key.ps1`, which the owner runs.
-- **Deleting a release or a tag.** `gh release delete --cleanup-tag` is refused even with explicit authorisation.
-- **Running `Edgepad.exe`.** Never launch it from a session — the owner's instruction, 2026-09-11. A stuck copy holds the single-instance mutex and blocks the next one.
+- **Creating the release signing key.** Use `scripts/new-signing-key.ps1`, which the owner runs. Refused twice on 2026-09-11: once with `openssl` into `.secrets/`, once as a throwaway test key in the scratchpad with .NET crypto.
+- **Deleting a release or a tag.** `gh release delete <tag> --yes --cleanup-tag` is refused even with explicit authorisation. A tag with no release needs `git push origin --delete <tag>` as well, because `--cleanup-tag` cannot reach it; finish with `git fetch --prune --prune-tags`. This covers a draft release too: a session can create one by hand-running `release.yml` and cannot remove it afterwards.
+- **Merging a pull request.** `gh pr merge` is refused as `[Merge Without Review]` — 2026-09-19, even on the owner's explicit instruction to merge.
+- **Running `Edgepad.exe`.** The one item here that is not a refusal: it is the owner's standing instruction, 2026-09-11. A stuck copy holds the single-instance mutex and blocks the next one; clear it with `Get-Process Edgepad* | Stop-Process -Force`.
 
 ## Releases
 
