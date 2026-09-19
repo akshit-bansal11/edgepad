@@ -4,6 +4,15 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Documentation
+- **`SECURITY.md` claimed the phone cannot send a key code.** It can, and always could:
+  `KEY` carries a raw Windows virtual-key code and `TEXT` kind 3 carries arbitrary text,
+  because that is what the phone's keyboard screen is. 2.0.0 corrected this claim in
+  three places and missed this one, which is the file a reader checks first. The action
+  and control table keeps the two halves independently versionable; it is not a
+  containment boundary. The trust boundary is the Bluetooth pairing plus
+  trust-on-first-use.
+
 ## [2.0.0] - 2026-09-17
 
 Macro buttons: the phone can now launch things on the laptop. That is the headline, and it is why this is a
