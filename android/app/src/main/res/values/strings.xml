@@ -146,6 +146,9 @@
   <string name="appearance_title">Background &amp; pattern</string>
   <string name="background_preview_description">Preview of the control surface background</string>
   <string name="guide_title">Guide</string>
+  <string name="documentation_title">Documentation</string>
+  <string name="documentation_summary">OPENS IN A BROWSER</string>
+  <string name="documentation_url" translatable="false">https://edgepad-docs.vercel.app</string>
 
 
   <!-- Dials -->

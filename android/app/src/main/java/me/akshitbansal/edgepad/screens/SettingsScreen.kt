@@ -32,6 +32,7 @@ object SettingsScreen {
         val gamepadLayout: () -> Unit,
         val appearance: () -> Unit,
         val guide: () -> Unit,
+        val documentation: () -> Unit,
         val landscape: (Boolean) -> Unit,
         val back: () -> Unit,
     )
@@ -104,6 +105,11 @@ object SettingsScreen {
 
                     section(ui.string(R.string.settings_help))
                     link(ui.string(R.string.guide_title), null, routes.guide)
+                    link(
+                        ui.string(R.string.documentation_title),
+                        ui.string(R.string.documentation_summary),
+                        routes.documentation,
+                    )
                     mono(version, Type.MICRO, topDp = Space.L)
                 },
             )

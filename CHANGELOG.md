@@ -4,7 +4,15 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Added
+- **A link to the documentation in both apps.** The phone gets a **Documentation** row under
+  Settings › Help, beneath the Guide; the laptop gets a **Documentation** item in its tray
+  menu. Both open <https://edgepad-docs.vercel.app>. One page, linked from both halves,
+  rather than each half explaining itself. Neither touches the wire protocol.
+
 ### Documentation
+- **The README's tray-menu listing was stale.** It had never mentioned **Macros…**, added in
+  2.0.0, and now also names **Documentation**.
 - **A documentation site, in `site/`.** One page: what Edgepad is, how to install and use
   it, the architecture of both halves, the wire protocol, the trust model, and the
   developer guide. Its frame, action and control tables are generated from

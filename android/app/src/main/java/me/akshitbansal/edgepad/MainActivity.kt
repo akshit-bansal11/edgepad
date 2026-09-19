@@ -5,14 +5,17 @@ import android.app.Activity
 import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
@@ -252,6 +255,7 @@ class MainActivity :
                             },
                             appearance = { goTo(Screen.APPEARANCE) },
                             guide = { goTo(Screen.GUIDE) },
+                            documentation = ::openDocumentation,
                             landscape = { on ->
                                 settings.landscape = on
                                 applyOrientation()
@@ -476,6 +480,21 @@ class MainActivity :
     private fun openSettings() {
         if (screen != Screen.SETTINGS) settingsReturn = screen
         goTo(Screen.SETTINGS)
+    }
+
+    /**
+     * The documentation site, in whatever browser the phone has. The laptop's tray menu offers the
+     * same link, so the two halves point at one page rather than each explaining itself.
+     */
+    private fun openDocumentation() {
+        val url = getString(R.string.documentation_url)
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (e: ActivityNotFoundException) {
+            // A phone with no browser at all. Nothing to fall back to, and a settings row must not
+            // take the app down with it.
+            Log.w("Edgepad", "No activity to open $url", e)
+        }
     }
 
     private fun refreshPicker() {

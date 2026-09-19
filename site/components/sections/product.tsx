@@ -185,7 +185,8 @@ export function ProductSections() {
                 is connected, <strong className="text-foreground">Macros</strong>,{" "}
                 <strong className="text-foreground">Start with Windows</strong>,{" "}
                 <strong className="text-foreground">Forget trusted phone</strong>,{" "}
-                <strong className="text-foreground">Open log</strong> and{" "}
+                <strong className="text-foreground">Open log</strong>,{" "}
+                <strong className="text-foreground">Documentation</strong> and{" "}
                 <strong className="text-foreground">Quit</strong>.
               </li>
             </ol>
@@ -376,7 +377,7 @@ export function ProductSections() {
             },
             {
               title: "Help",
-              body: "The five-page guide, shown one page at a time with a drawing or all on one scrolling page. It opens on the first run and again from here.",
+              body: "The five-page guide, shown one page at a time with a drawing or all on one scrolling page. It opens on the first run and again from here. Below it, Documentation opens this page in a browser.",
             },
           ].map((item) => (
             <div key={item.title} className="border-line border p-4">

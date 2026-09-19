@@ -13,6 +13,10 @@ internal sealed class TrayContext : ApplicationContext
     // NotifyIcon.Text is capped by the shell; stay under the oldest limit.
     private const int MaxTooltipLength = 63;
 
+    // The documentation site. The phone's Settings › Help offers the same link, so the
+    // two halves point at one page rather than each explaining itself.
+    private const string DocumentationUrl = "https://edgepad-docs.vercel.app";
+
     private readonly ToolStripMenuItem status = new("Starting…") { Enabled = false };
     private readonly ToolStripMenuItem startWithWindows = new("Start with Windows") { CheckOnClick = true };
     private readonly ToolStripMenuItem forget = new("Forget trusted phone");
@@ -42,6 +46,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add("Macros…", null, (_, _) => MacroEditor.Show(macros));
         menu.Items.Add(forget);
         menu.Items.Add("Open log", null, (_, _) => OpenLog());
+        menu.Items.Add("Documentation", null, (_, _) => OpenDocumentation());
         menu.Items.Add("Quit", null, (_, _) => ExitThread());
 
         // Read the settings each time the menu opens, so it never shows a stale state.
@@ -127,6 +132,20 @@ internal sealed class TrayContext : ApplicationContext
         if (File.Exists(Log.FilePath))
         {
             using var _ = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Log.FilePath) { UseShellExecute = true });
+        }
+    }
+
+    private static void OpenDocumentation()
+    {
+        try
+        {
+            using var _ = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(DocumentationUrl) { UseShellExecute = true });
+        }
+        catch (Exception e) when (e is System.ComponentModel.Win32Exception or InvalidOperationException or FileNotFoundException)
+        {
+            // No default browser, or the shell refused the handler. A menu item must never
+            // take the tray app down with it: an unhandled exception here ends the process.
+            Log.Write($"Could not open the documentation: {e.Message}");
         }
     }
 
