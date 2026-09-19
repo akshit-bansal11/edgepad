@@ -32,9 +32,11 @@ STATE 3 42 1 = 40 03 2a 01
 TEXT 1 Song = 41 01 04 53 6f 6e 67
 TEXT 0 = 41 00 00
 TEXT 2 84/227 = 41 02 06 38 34 2f 32 32 37
-TEXT 4 Café = 41 04 05 43 61 66 c3 a9
-TEXT 5 🎵 = 41 05 04 f0 9f 8e b5
-TEXT 6 日本語 = 41 06 09 e6 97 a5 e6 9c ac e8 aa 9e
+# Non-ASCII titles, two, four and three bytes of UTF-8. Each one's UTF-8 byte count differs from its
+# UTF-16 length, so a codec counting the wrong unit fails its length header here rather than on a phone.
+TEXT 0 Café = 41 00 05 43 61 66 c3 a9
+TEXT 0 🎵 = 41 00 04 f0 9f 8e b5
+TEXT 0 日本語 = 41 00 09 e6 97 a5 e6 9c ac e8 aa 9e
 KEY 65 1 = 22 41 00 01
 KEY 112 0 = 22 70 00 00
 KEY 65535 1 = 22 ff ff 01
