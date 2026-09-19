@@ -4,6 +4,11 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Added
+- **Plex is recognised in browser titles.** A Plex tab now shows as Plex on the phone rather
+  than as the browser's name. It is safe to add only because of the word-boundary fix in 2.2.0:
+  a bare substring test would have read it out of "complexity".
+
 ## [2.2.0] - 2026-09-19
 
 Three fixes and the first outside contribution. Nothing about the wire protocol moves:
