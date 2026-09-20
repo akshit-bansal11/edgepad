@@ -75,6 +75,20 @@ enum class TextKind(
 
     /** "Chrome/Spotify/Notes": the laptop's macro names, in the order [ActionId.MACRO_BASE] indexes them. */
     MACROS(5),
+
+    /**
+     * One piece of one macro's icon: "slot/chunk/chunks/base64". An icon does not fit the 255 bytes a TEXT
+     * payload holds, so it arrives in pieces and the phone joins them. A kind rather than a frame type of its
+     * own, because an unknown kind is dropped and counted while an unknown type closes the connection — the
+     * difference between a feature an older laptop ignores and one it cannot survive.
+     */
+    MACRO_ICON(6),
+
+    /**
+     * Phone to laptop: send the macro icons. Empty payload. Icons are answered rather than pushed, so they
+     * cross the link when this screen opens and never while a finger is on the trackpad.
+     */
+    WANT_ICONS(7),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)

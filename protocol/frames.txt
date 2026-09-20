@@ -37,6 +37,10 @@ TEXT 2 84/227 = 41 02 06 38 34 2f 32 32 37
 TEXT 0 Café = 41 00 05 43 61 66 c3 a9
 TEXT 0 🎵 = 41 00 04 f0 9f 8e b5
 TEXT 0 日本語 = 41 00 09 e6 97 a5 e6 9c ac e8 aa 9e
+# A macro icon arrives in pieces: slot, this chunk, how many chunks, then base64 of that chunk's bytes.
+TEXT 6 0/0/1/AAAA = 41 06 0a 30 2f 30 2f 31 2f 41 41 41 41
+# The phone asking for them. Empty, like TEXT 0 above: the kind is the whole message.
+TEXT 7 = 41 07 00
 KEY 65 1 = 22 41 00 01
 KEY 112 0 = 22 70 00 00
 KEY 65535 1 = 22 ff ff 01

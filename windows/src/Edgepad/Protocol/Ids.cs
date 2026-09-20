@@ -46,6 +46,20 @@ internal enum TextKind : byte
 
     /// <summary>"Chrome/Spotify/Notes": this laptop's macro names, in the order MacroBase indexes them.</summary>
     Macros = 5,
+
+    /// <summary>
+    /// One piece of one macro's icon: "slot/chunk/chunks/base64". An icon does not fit the 255 bytes a TEXT
+    /// payload holds, so it arrives in pieces and the phone joins them. A kind rather than a frame type of
+    /// its own, because an unknown kind is dropped and counted while an unknown type closes the connection —
+    /// which is the difference between a feature an older phone ignores and one it cannot survive.
+    /// </summary>
+    MacroIcon = 6,
+
+    /// <summary>
+    /// Phone to laptop: send the macro icons. Empty payload. Icons are answered rather than pushed, so they
+    /// cross the link when the phone opens the macro grid and never while a finger is on the trackpad.
+    /// </summary>
+    WantIcons = 7,
 }
 
 /// <summary>What a SET_VALUE frame may set and a STATE frame reports. Mirrors protocol/actions.txt.</summary>
