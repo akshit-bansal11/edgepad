@@ -4,6 +4,11 @@ namespace Edgepad.Trust;
 /// Trust on first use. Pairing already limits connections to bonded devices; this narrows it to the one
 /// phone that connected first, so some other paired device cannot drive the laptop. The tray menu's
 /// Forget clears it, and the next phone to connect becomes the trusted one.
+///
+/// Every file operation here is guarded, and the guards are not all the same. Reading is the one that
+/// matters: a file that is there and cannot be read is <em>not</em> the same as no file, and treating it
+/// as one would re-arm trust on first use and hand this laptop to whichever phone happened to connect
+/// while the file was locked. So a failed read refuses, and only a genuinely absent file admits.
 /// </summary>
 internal sealed class TrustStore(string path)
 {
@@ -12,13 +17,14 @@ internal sealed class TrustStore(string path)
     public static TrustStore ForCurrentUser() => new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "trusted-phone.txt"));
 
+    /// <summary>The trusted address, or null when there is none or it cannot be read.</summary>
     public string? Trusted
     {
         get
         {
             lock (gate)
             {
-                return Read();
+                return TryRead(out var trusted) ? trusted : null;
             }
         }
     }
@@ -28,15 +34,32 @@ internal sealed class TrustStore(string path)
     {
         lock (gate)
         {
-            var trusted = Read();
-            if (trusted is null)
+            if (!TryRead(out var trusted))
+            {
+                // Fail closed. The phone sees a refusal, the log says why, and Forget in the tray menu is
+                // the way out; the alternative is a laptop that quietly re-pairs itself whenever its own
+                // trust file is unreadable, which is the single thing this class exists to prevent.
+                return false;
+            }
+
+            if (trusted is not null)
+            {
+                return string.Equals(trusted, address, StringComparison.OrdinalIgnoreCase);
+            }
+
+            try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
                 File.WriteAllText(path, address);
-                return true;
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // Admitted anyway, and asked again on the next start. Refusing the owner's own phone
+                // because the disk is full would be a worse answer than forgetting which phone it was.
+                Log.Write($"The trusted phone could not be saved to {path}: {e.Message}");
             }
 
-            return string.Equals(trusted, address, StringComparison.OrdinalIgnoreCase);
+            return true;
         }
     }
 
@@ -44,9 +67,41 @@ internal sealed class TrustStore(string path)
     {
         lock (gate)
         {
-            File.Delete(path);
+            try
+            {
+                File.Delete(path);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // This runs from a click on a tray menu item, where an unhandled exception ends the
+                // process. The menu item failing to do its one job is not worth the app.
+                Log.Write($"The trusted phone could not be forgotten at {path}: {e.Message}");
+            }
         }
     }
 
-    private string? Read() => File.Exists(path) && File.ReadAllText(path).Trim() is { Length: > 0 } address ? address : null;
+    /// <summary>
+    /// False when the file is there and could not be read — the caller must then refuse rather than guess.
+    /// True with a null address means nothing is trusted yet, which is what an absent file and a blank one
+    /// both mean: Forget deletes the file, and a blank one is the same intent written by hand.
+    /// </summary>
+    private bool TryRead(out string? trusted)
+    {
+        trusted = null;
+        try
+        {
+            if (!File.Exists(path))
+            {
+                return true;
+            }
+
+            trusted = File.ReadAllText(path).Trim() is { Length: > 0 } address ? address : null;
+            return true;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Log.Write($"The trusted phone could not be read from {path}: {e.Message}");
+            return false;
+        }
+    }
 }

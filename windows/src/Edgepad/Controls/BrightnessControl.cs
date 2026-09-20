@@ -161,10 +161,14 @@ internal sealed class BrightnessControl : IDisposable
             {
                 Apply(percent);
             }
-            catch (ManagementException e)
+            catch (Exception e)
             {
-                // External monitors have no WMI brightness; only the built-in panel does.
-                Log.Write($"Brightness change failed: {e.Message}");
+                // Last line before the process. External monitors have no WMI brightness, only the built-in
+                // panel does — but WMI throws COMException as readily as ManagementException, which ReadPanel
+                // two methods up already catches both of, and this is a background worker in a tray app where
+                // an escape takes the tray, the link and the user's session with it. DisplayModes.Run catches
+                // broadly for the same reason; this one did not, and the difference was not deliberate.
+                Log.Write($"Brightness change failed: {e}");
             }
         }
     }

@@ -49,6 +49,22 @@ internal sealed class RfcommServer(
 
     private void OnConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
     {
+        // A device this laptop already knows it will refuse must never get far enough to replace the phone
+        // that is connected. The check that grants trust stays on the session thread, after HELLO, because
+        // trust on first use must not be handed to something that has not proved it speaks this protocol —
+        // but that check runs *after* the new session has displaced the old one, so without this any other
+        // bonded device could drop the owner's link at will just by connecting, over and over.
+        //
+        // Only a positively different trusted address refuses here. Nothing trusted yet, or a trust file
+        // that cannot be read, both arrive as null and go on to the session, which fails closed on its own.
+        var address = args.Socket.Information.RemoteHostName.RawName;
+        if (trust.Trusted is { } trusted && !string.Equals(trusted, address, StringComparison.OrdinalIgnoreCase))
+        {
+            Log.Write($"Refused {address} without disturbing the connected phone: this laptop trusts {trusted}");
+            args.Socket.Dispose();
+            return;
+        }
+
         // Input state (what is held down) belongs to one connection; the devices are shared.
         var injector = new InputInjector();
         var dispatcher = new Dispatcher(injector, speakers, microphone, brightness, media, display, macros, overlay);
