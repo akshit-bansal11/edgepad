@@ -86,6 +86,12 @@ internal sealed class Session(
                 {
                     Send(new Pong(ping.Time));
                 }
+                else if (frame is Text { Kind: (byte)TextKind.WantIcons })
+                {
+                    // Answered here rather than in the dispatcher, for the same reason PONG is: the reply
+                    // goes back down this socket, and the dispatcher deliberately holds no reference to it.
+                    SendIcons();
+                }
                 else
                 {
                     dispatcher.Handle(frame);
@@ -151,6 +157,30 @@ internal sealed class Session(
         if (display.Current >= 0)
         {
             Send(new StateReport((byte)ControlId.RefreshRate, (byte)display.Current, 0));
+        }
+    }
+
+    /// <summary>
+    /// Every macro icon this laptop can read, in pieces. Runs on the read loop, which means no input frame
+    /// is read while it goes out — and that is the point of the phone asking rather than being pushed at:
+    /// it asks when it opens the macro grid, which is a screen with no trackpad on it, so the pause is in a
+    /// moment where nothing is being pointed at. An icon that cannot be read is simply not sent, and its
+    /// button keeps the label it already had.
+    /// </summary>
+    private void SendIcons()
+    {
+        var current = macros.Macros;
+        for (var slot = 0; slot < current.Count; slot++)
+        {
+            if (MacroIcons.Png(current[slot]) is not { } png)
+            {
+                continue;
+            }
+
+            foreach (var chunk in MacroIcons.Chunks(slot, png))
+            {
+                Send(new Text((byte)TextKind.MacroIcon, chunk));
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace Edgepad.Macros;
@@ -31,10 +32,21 @@ internal static class MacroIcons
     private const int Fallback = 32;
 
     /// <summary>
-    /// The most an icon may weigh on the wire. A TEXT payload is 255 bytes, so this is about thirty frames
-    /// for one button — the point past which a picture is costing the link more than a label is worth.
+    /// The most an icon may weigh on the wire, which is also what keeps every count in a chunk header under
+    /// three digits. Six kilobytes is 35 frames for one button at <see cref="ChunkBytes"/> — the point past
+    /// which a picture is costing the link more than a label is worth. A real program icon is a fraction of
+    /// it; the cap is there for the photograph somebody points the override at.
     /// </summary>
-    private const int MaxBytes = 6 * 1024;
+    internal const int MaxBytes = 6 * 1024;
+
+    /// <summary>
+    /// How much of an icon's base64 rides in one TEXT frame. A payload is 255 bytes and the rest is the
+    /// "slot/chunk/chunks/" header in front of it — at most nine characters, because <see cref="MaxBytes"/>
+    /// and <see cref="MacroStore.MaxMacros"/> together keep all three numbers to two digits. The slack
+    /// between 240 and 246 is deliberate: a header that grew would cost a truncated icon, and the price of
+    /// the margin is one extra frame per icon.
+    /// </summary>
+    internal const int ChunkBytes = 240;
 
     private static readonly Lock Gate = new();
 
@@ -105,6 +117,35 @@ internal static class MacroIcons
         }
 
         return png;
+    }
+
+    /// <summary>
+    /// <paramref name="png"/> as the TEXT payloads that carry it: "slot/chunk/chunks/" then that much of its
+    /// base64. Base64 because TEXT is UTF-8 by definition, and it is ASCII, so a character is a byte here and
+    /// the budget can be counted in either without the two drifting apart.
+    ///
+    /// Here rather than in the session that sends them, because this is the half of a wire format whose other
+    /// half is on the phone, and a format neither side can test alone is one that drifts. An empty icon
+    /// yields no frames rather than one empty frame, which would reach the phone as a finished icon of
+    /// nothing.
+    /// </summary>
+    /// <remarks>
+    /// Built into a list rather than yielded: a span cannot live across a yield, and the alternative —
+    /// a substring per chunk — allocates the same pieces this does, one iterator object later.
+    /// </remarks>
+    public static IReadOnlyList<string> Chunks(int slot, byte[] png)
+    {
+        var encoded = Convert.ToBase64String(png);
+        var chunks = (encoded.Length + ChunkBytes - 1) / ChunkBytes;
+        var frames = new List<string>(chunks);
+        for (var chunk = 0; chunk < chunks; chunk++)
+        {
+            var start = chunk * ChunkBytes;
+            var piece = encoded.AsSpan(start, Math.Min(ChunkBytes, encoded.Length - start));
+            frames.Add(string.Create(CultureInfo.InvariantCulture, $"{slot}/{chunk}/{chunks}/{piece}"));
+        }
+
+        return frames;
     }
 
     /// <summary>
