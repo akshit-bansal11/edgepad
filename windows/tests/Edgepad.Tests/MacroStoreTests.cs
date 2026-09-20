@@ -210,6 +210,64 @@ public sealed class MacroStoreTests : IDisposable
         Assert.False(new MacroStore(Path.Combine(dir, "none.txt")).Run(0));
     }
 
+    [Fact]
+    public void AnIconSurvivesARestart()
+    {
+        var saved = new Macro("Code", "code.exe", "F:\\projects", "F:\\art\\code.png");
+        NewStore().Save([saved]);
+
+        Assert.Equal(saved, Assert.Single(NewStore().Macros));
+    }
+
+    [Fact]
+    public void AMacroWithNoIconWritesTheSameLineItAlwaysDid()
+    {
+        // The icon is a fourth field, and a list with none on it must still produce the bytes a build from
+        // before icons wrote. Otherwise the first run after an update rewrites a file it has nothing to add
+        // to, which is the sort of churn that makes an owner wonder what else changed.
+        NewStore().Save([new Macro("Files", "explorer.exe", null)]);
+
+        var line = Assert.Single(File.ReadAllLines(MacrosFile));
+
+        Assert.Equal("Files\texplorer.exe\t", line);
+        Assert.Equal(3, line.Split('\t').Length);
+    }
+
+    [Fact]
+    public void AFileWrittenBeforeIconsExistedStillReads()
+    {
+        Directory.CreateDirectory(dir);
+        File.WriteAllLines(MacrosFile, ["Chrome\tchrome.exe\t", "Notes\tnotes.exe"]);
+
+        var store = NewStore();
+
+        Assert.Equal(new Macro("Chrome", "chrome.exe", null), store.Macros[0]);
+        Assert.Equal(new Macro("Notes", "notes.exe", null), store.Macros[1]);
+        Assert.All(store.Macros, macro => Assert.Null(macro.Icon));
+    }
+
+    [Fact]
+    public void AnIconPathIsScrubbedLikeEveryOtherField()
+    {
+        // A tab inside the icon path would split the line into five fields, and the fifth would be silently
+        // dropped on the next read — a macro that quietly lost its picture rather than one that failed.
+        var store = NewStore();
+        store.Save([new Macro("Art", "one.exe", null, "  F:\\a\tb.png  ")]);
+
+        Assert.Equal("F:\\a b.png", store.Macros[0].Icon);
+        Assert.Equal(4, Assert.Single(File.ReadAllLines(MacrosFile)).Split('\t').Length);
+    }
+
+    [Fact]
+    public void AnIconThatIsOnlySpacesIsNoIcon()
+    {
+        var store = NewStore();
+        store.Save([new Macro("Files", "explorer.exe", null, "   ")]);
+
+        Assert.Null(store.Macros[0].Icon);
+        Assert.Null(NewStore().Macros[0].Icon);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(dir))
