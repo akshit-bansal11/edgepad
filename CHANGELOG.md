@@ -5,6 +5,19 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 ## [Unreleased]
 
 ### Added
+- **Macro buttons show the program's icon.** Add a macro in the laptop's tray menu and the phone
+  draws whatever that macro opens: a program's own icon, a document's file-type icon, or a picture
+  you point the new optional **Icon** field at. Nothing to configure for the common case -- the
+  icon comes from the target. A slot whose icon cannot be read keeps its name, which is also what
+  a URL or a folder gets, and what the whole grid falls back to against an older laptop.
+  Appearance gains **ICON + LABEL** or **ICON ONLY** for how the grid draws them.
+
+  The wire protocol does **not** move: it stays at version 3. An icon does not fit the 255 bytes a
+  TEXT payload holds, so it travels as new TEXT kinds -- 6 carries one piece of one icon, 7 is the
+  phone asking for them -- and an unknown kind is dropped and counted on both sides, where an
+  unknown frame type would have closed the connection and cost a major release. Icons are answered
+  rather than pushed, so they cross the link when the macro grid opens and never while a finger is
+  on the trackpad.
 - **Plex is recognised in browser titles.** A Plex tab now shows as Plex on the phone rather
   than as the browser's name. It is safe to add only because of the word-boundary fix in 2.2.0:
   a bare substring test would have read it out of "complexity".

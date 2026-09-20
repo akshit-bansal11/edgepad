@@ -181,6 +181,10 @@ const TEXT_DOCS: Record<string, string> = {
     "The display's available refresh rates as 60/120/144, in the order CONTROL 4 indexes them. Laptop to phone.",
   MACROS:
     "The laptop's macro names as Chrome/Spotify/Notes, in the order MACRO_BASE indexes them. A blank name keeps its slot. Laptop to phone.",
+  MACRO_ICON:
+    "One piece of one macro's icon as slot/chunk/chunks/base64, the base64 being part of a PNG. An icon does not fit the 255 bytes a payload holds, so it arrives in pieces. Laptop to phone.",
+  WANT_ICONS:
+    "Asks for the macro icons, with an empty payload. Sent when the phone opens the macro grid; nothing is pushed unasked. Phone to laptop.",
 };
 
 function read(file: string): string[] {
