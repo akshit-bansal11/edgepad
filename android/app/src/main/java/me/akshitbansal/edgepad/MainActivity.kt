@@ -311,7 +311,13 @@ class MainActivity :
                 }
 
                 Screen.MACROS -> {
-                    MacroScreen.build(ui, state.macros, onRun = ::runMacro) { navigateBack() }
+                    MacroScreen.build(
+                        ui,
+                        state.macros,
+                        icon = state::macroIcon,
+                        labels = settings.macroLabels,
+                        onRun = ::runMacro,
+                    ) { navigateBack() }
                 }
 
                 Screen.RECONNECTING -> {
@@ -334,7 +340,7 @@ class MainActivity :
                         ::openSettings,
                         onOpenKeyboard = { goTo(Screen.KEYBOARD) },
                         onOpenGamepad = { goTo(Screen.GAMEPAD) },
-                        onOpenMacros = { goTo(Screen.MACROS) },
+                        onOpenMacros = ::openMacros,
                     ).also { surface = it }
                 }
             }
@@ -474,6 +480,17 @@ class MainActivity :
         link?.send(Frame.RunAction(ActionId.MACRO_BASE.id + index))
     }
 
+    /**
+     * Opens the macro grid, asking the laptop for the pictures on the way in. Asked for rather than pushed
+     * because an icon is thousands of times the size of an input frame: requesting them here spends the link
+     * on a screen that has no trackpad on it, and a laptop too old to know the request drops it and counts
+     * it, leaving a grid of names.
+     */
+    private fun openMacros() {
+        link?.send(TextKind.WANT_ICONS.frame(""))
+        goTo(Screen.MACROS)
+    }
+
     private fun versionLine(): String =
         getString(R.string.settings_version, getString(R.string.app_version), ProtocolConstants.VERSION)
 
@@ -604,8 +621,14 @@ class MainActivity :
             surface?.stateChanged()
             // The macro grid is built from the list rather than bound to it, so a list that lands while the
             // screen is open needs the screen built again; otherwise it reads "no macros yet" until you leave.
-            if (screen == Screen.MACROS && frame is Frame.Text && frame.kind == TextKind.MACROS.id) {
-                goTo(Screen.MACROS)
+            // A finished icon is the same problem, and arrives the same way.
+            if (screen == Screen.MACROS && frame is Frame.Text) {
+                // A new list retires the icons with it, since a slot number now means a different macro.
+                // Nothing else asks for them again, so this is where a grid left open gets its pictures back.
+                if (frame.kind == TextKind.MACROS.id) link?.send(TextKind.WANT_ICONS.frame(""))
+                if (frame.kind == TextKind.MACROS.id || frame.kind == TextKind.MACRO_ICON.id) {
+                    goTo(Screen.MACROS)
+                }
             }
         }
     }

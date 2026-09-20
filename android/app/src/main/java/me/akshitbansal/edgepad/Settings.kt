@@ -46,6 +46,13 @@ class Settings(
 
     var hints by flag("hints", false)
 
+    /**
+     * Macro buttons carry their name under the picture. Off shows the picture alone, which is roomier and
+     * reads faster once the grid is familiar; a slot the laptop sent no picture for keeps its name either
+     * way, because the alternative is a blank button.
+     */
+    var macroLabels by flag("macroLabels", true)
+
     /** The surface, settings and finder are held sideways; the keyboard and gamepad always are. */
     var landscape by flag("landscape", false)
 
