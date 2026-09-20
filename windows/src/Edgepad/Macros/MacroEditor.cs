@@ -16,8 +16,8 @@ internal static class MacroEditor
 }
 
 /// <summary>
-/// A settings dialog, deliberately plain: a list on the left, the selected macro's three fields on the right.
-/// One window rather than a list plus an Add/Edit dialog on top of it — a second modal to fill in three text
+/// A settings dialog, deliberately plain: a list on the left, the selected macro's four fields on the right.
+/// One window rather than a list plus an Add/Edit dialog on top of it — a second modal to fill in four text
 /// boxes is the kind of ceremony that makes a setting feel expensive to change.
 ///
 /// The working copy is a plain list that only reaches the store on OK, so Cancel needs to undo nothing.
@@ -30,7 +30,9 @@ internal sealed class MacroWindow : Form
     private readonly TextBox name = new();
     private readonly TextBox target = new();
     private readonly TextBox arguments = new();
+    private readonly TextBox icon = new();
     private readonly Button browse = new();
+    private readonly Button browseIcon = new();
     private readonly Button add = new();
     private readonly Button remove = new();
     private readonly Button up = new();
@@ -50,16 +52,16 @@ internal sealed class MacroWindow : Form
         ShowIcon = false;
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.CenterScreen;
-        ClientSize = new Size(608, 316);
+        ClientSize = new Size(608, 372);
 
-        list.SetBounds(12, 12, 230, 222);
+        list.SetBounds(12, 12, 230, 278);
         list.IntegralHeight = false;
         list.SelectedIndexChanged += (_, _) => Fill();
 
-        Place(add, "Add", 12, 242, 56);
-        Place(remove, "Remove", 74, 242, 72);
-        Place(up, "Up", 152, 242, 42);
-        Place(down, "Down", 200, 242, 42);
+        Place(add, "Add", 12, 298, 56);
+        Place(remove, "Remove", 74, 298, 72);
+        Place(up, "Up", 152, 298, 42);
+        Place(down, "Down", 200, 298, 42);
         add.Click += (_, _) => Add();
         remove.Click += (_, _) => Remove();
         up.Click += (_, _) => Reorder(-1);
@@ -68,6 +70,9 @@ internal sealed class MacroWindow : Form
         Field(name, "Name", 16, 340);
         Field(target, "Opens", 70, 250);
         Field(arguments, "Arguments (optional)", 124, 340);
+        // Said as what it does rather than what it is, because the empty case is the one nearly every macro
+        // wants and an empty box that reads "Icon" looks like something left unfinished.
+        Field(icon, "Icon (optional — taken from the program otherwise)", 178, 250);
 
         // Only so much of a name survives the trip to the phone, so the box stops there rather than letting
         // the store quietly cut a name the owner watched themselves type.
@@ -77,13 +82,16 @@ internal sealed class MacroWindow : Form
         name.TextChanged += (_, _) => Edited();
         target.TextChanged += (_, _) => Edited();
         arguments.TextChanged += (_, _) => Edited();
+        icon.TextChanged += (_, _) => Edited();
 
         // The list shows the name, so it is restamped once the typing stops rather than on every keystroke.
         name.Leave += (_, _) => Relabel();
         target.Leave += (_, _) => Relabel();
 
         Place(browse, "Browse...", 514, 87, 82);
+        Place(browseIcon, "Browse...", 514, 195, 82);
         browse.Click += (_, _) => Browse();
+        browseIcon.Click += (_, _) => BrowseIcon();
 
         var note = new Label
         {
@@ -94,20 +102,20 @@ internal sealed class MacroWindow : Form
                 + "plugged into this laptop.",
             AutoSize = false,
         };
-        note.SetBounds(256, 176, 340, 56);
+        note.SetBounds(256, 232, 340, 60);
         note.ForeColor = SystemColors.GrayText;
 
         var ok = new Button();
         var cancel = new Button();
-        Place(ok, "OK", 430, 276, 80);
-        Place(cancel, "Cancel", 516, 276, 80);
+        Place(ok, "OK", 430, 332, 80);
+        Place(cancel, "Cancel", 516, 332, 80);
         ok.DialogResult = DialogResult.OK;
         cancel.DialogResult = DialogResult.Cancel;
         ok.Click += (_, _) => store.Save(working);
         AcceptButton = ok;
         CancelButton = cancel;
 
-        Controls.AddRange([list, add, remove, up, down, browse, note, ok, cancel]);
+        Controls.AddRange([list, add, remove, up, down, browse, browseIcon, note, ok, cancel]);
         Rebuild(working.Count > 0 ? 0 : -1);
     }
 
@@ -121,11 +129,11 @@ internal sealed class MacroWindow : Form
         button.SetBounds(x, y, width, 26);
     }
 
-    /// <summary>A label above its box, both added here so the three fields cannot drift apart.</summary>
+    /// <summary>A label above its box, both added here so the four fields cannot drift apart.</summary>
     private void Field(TextBox box, string caption, int y, int width)
     {
         var label = new Label { Text = caption, AutoSize = true };
-        label.SetBounds(256, y, 200, 18);
+        label.SetBounds(256, y, 340, 18);
         box.SetBounds(256, y + 20, width, 23);
         Controls.Add(label);
         Controls.Add(box);
@@ -165,9 +173,11 @@ internal sealed class MacroWindow : Form
         name.Text = macro?.Name ?? string.Empty;
         target.Text = macro?.Target ?? string.Empty;
         arguments.Text = macro?.Arguments ?? string.Empty;
+        icon.Text = macro?.Icon ?? string.Empty;
         filling = false;
 
         name.Enabled = target.Enabled = arguments.Enabled = browse.Enabled = macro is not null;
+        icon.Enabled = browseIcon.Enabled = macro is not null;
         remove.Enabled = macro is not null;
         up.Enabled = index > 0;
         down.Enabled = index >= 0 && index < working.Count - 1;
@@ -182,7 +192,11 @@ internal sealed class MacroWindow : Form
             return;
         }
 
-        working[index] = new Macro(name.Text, target.Text, arguments.Text.Length > 0 ? arguments.Text : null);
+        working[index] = new Macro(
+            name.Text,
+            target.Text,
+            arguments.Text.Length > 0 ? arguments.Text : null,
+            icon.Text.Length > 0 ? icon.Text : null);
     }
 
     private void Relabel()
@@ -243,30 +257,51 @@ internal sealed class MacroWindow : Form
 
     private void Browse()
     {
-        if (list.SelectedIndex < 0)
+        if (Pick("Choose what this button opens", "Programs and documents (*.*)|*.*") is not { } chosen)
         {
             return;
+        }
+
+        target.Text = chosen;
+        if (name.Text.Length == 0)
+        {
+            // The file's own name is nearly always the right button label, and is far less work than typing it.
+            name.Text = Path.GetFileNameWithoutExtension(chosen);
+        }
+
+        Relabel();
+    }
+
+    /// <summary>
+    /// Overrides the picture the phone shows. Left empty for nearly every macro, because the program the
+    /// button opens already carries its own icon; this is for the ones that do not — a folder, a URL, a
+    /// script — and for the ones whose own icon is not what the owner wants to see on the grid.
+    /// </summary>
+    private void BrowseIcon()
+    {
+        const string filter = "Icons, programs and pictures (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)"
+            + "|*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg;*.jpeg;*.gif|All files (*.*)|*.*";
+        if (Pick("Choose the picture for this button", filter) is { } chosen)
+        {
+            icon.Text = chosen;
+        }
+    }
+
+    /// <summary>One file from the owner, or null when the dialog was cancelled.</summary>
+    private string? Pick(string title, string filter)
+    {
+        if (list.SelectedIndex < 0)
+        {
+            return null;
         }
 
         using var picker = new OpenFileDialog
         {
-            Title = "Choose what this button opens",
-            Filter = "Programs and documents (*.*)|*.*",
+            Title = title,
+            Filter = filter,
             CheckFileExists = true,
         };
 
-        if (picker.ShowDialog(this) != DialogResult.OK)
-        {
-            return;
-        }
-
-        target.Text = picker.FileName;
-        if (name.Text.Length == 0)
-        {
-            // The file's own name is nearly always the right button label, and is far less work than typing it.
-            name.Text = Path.GetFileNameWithoutExtension(picker.FileName);
-        }
-
-        Relabel();
+        return picker.ShowDialog(this) == DialogResult.OK ? picker.FileName : null;
     }
 }

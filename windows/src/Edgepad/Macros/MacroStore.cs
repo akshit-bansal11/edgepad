@@ -93,7 +93,7 @@ internal sealed class MacroStore
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
-                File.WriteAllLines(path, clean.Select(macro => $"{macro.Name}\t{macro.Target}\t{macro.Arguments}"));
+                File.WriteAllLines(path, clean.Select(Line));
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
@@ -229,6 +229,15 @@ internal sealed class MacroStore
     }
 
     /// <summary>
+    /// One macro as a line of the file. The icon field is left off entirely when there is none, rather than
+    /// written as a trailing tab: a list with no icons on it produces the same bytes it did before there
+    /// were icons at all, so an upgrade does not rewrite a file it has nothing to add to.
+    /// </summary>
+    private static string Line(Macro macro) => macro.Icon is null
+        ? $"{macro.Name}\t{macro.Target}\t{macro.Arguments}"
+        : $"{macro.Name}\t{macro.Target}\t{macro.Arguments}\t{macro.Icon}";
+
+    /// <summary>
     /// What will be written and what the phone will be told, from what the editor collected. Everything that
     /// reaches the list goes through here, whether it came from the dialog or from a file edited by hand.
     /// </summary>
@@ -246,7 +255,9 @@ internal sealed class MacroStore
             }
 
             var arguments = Plain(macro.Arguments ?? string.Empty);
-            clean.Add(new Macro(Name(macro.Name), target, arguments.Length > 0 ? arguments : null));
+            var icon = Plain(macro.Icon ?? string.Empty);
+            clean.Add(new Macro(
+                Name(macro.Name), target, arguments.Length > 0 ? arguments : null, icon.Length > 0 ? icon : null));
             if (clean.Count == MaxMacros)
             {
                 break;
@@ -343,7 +354,8 @@ internal sealed class MacroStore
                 continue;
             }
 
-            read.Add(new Macro(fields[0], fields[1], fields.Length > 2 ? fields[2] : null));
+            read.Add(new Macro(
+                fields[0], fields[1], fields.Length > 2 ? fields[2] : null, fields.Length > 3 ? fields[3] : null));
         }
 
         // Through Clean rather than straight out, so a hand-edited file is held to the same rules as the
@@ -355,5 +367,7 @@ internal sealed class MacroStore
 /// <summary>
 /// One launcher button. Target is anything the shell can open — an executable, a document, a folder, a URL —
 /// and Arguments is null when there are none, so a macro with none is not a macro with an empty command line.
+/// Icon overrides the picture the phone shows; null means take it from the target, which is what nearly every
+/// macro wants and why it defaults rather than having to be passed.
 /// </summary>
-internal sealed record Macro(string Name, string Target, string? Arguments);
+internal sealed record Macro(string Name, string Target, string? Arguments, string? Icon = null);
