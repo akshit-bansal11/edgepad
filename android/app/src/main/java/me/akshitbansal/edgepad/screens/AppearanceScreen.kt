@@ -58,6 +58,8 @@ object AppearanceScreen {
                 {
                     add(controlColor(ui, settings))
                     hairline()
+                    add(macroButtons(ui, settings))
+                    hairline()
                     add(background(ui, settings, preview, onPickImage))
                     hairline()
                 },
@@ -89,6 +91,23 @@ object AppearanceScreen {
                 addView(ColorPicker.build(ui, ui.string(R.string.control_color), chosen) { settings.controlColor = it })
             }
         }
+
+    /**
+     * Whether a macro button carries its name under its picture. Only ever half a choice: a slot the laptop
+     * sent no picture for shows its name whichever way this is set, because the alternative is a button with
+     * nothing on it at all.
+     */
+    private fun macroButtons(
+        ui: Ui,
+        settings: Settings,
+    ): View {
+        val styles = listOf(ui.string(R.string.macro_buttons_label), ui.string(R.string.macro_buttons_icon))
+        val pick =
+            ui.segmented(styles, if (settings.macroLabels) 0 else 1) { i ->
+                settings.macroLabels = i == 0
+            }
+        return ui.field(ui.string(R.string.macro_buttons), pick)
+    }
 
     /** The kind of background, then the rows that kind needs. */
     private fun background(
