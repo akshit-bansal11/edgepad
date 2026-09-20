@@ -58,6 +58,15 @@ TEXT 4 REFRESH_RATES
 # them. Empty or never sent means no macros are configured. A blank name keeps its slot: dropping one would
 # slide every name after it onto another slot's index, and the phone sends that index.
 TEXT 5 MACROS
+# One chunk of one macro's icon, laptop to phone: "<slot>/<chunk>/<chunks>/<base64 PNG>". A TEXT payload is
+# 255 bytes and an icon is not, so an icon arrives in pieces and the phone joins them; the counts are what
+# let it tell a finished icon from a truncated one. Base64 rather than raw bytes because TEXT is defined as
+# UTF-8, and widening it would have cost a new frame type and a protocol version with it.
+TEXT 6 MACRO_ICON
+# The phone asking for the icons, sent when it opens the macro grid. Nothing is pushed unasked: a laptop
+# older than this feature drops the request and the phone shows names, and a phone older than it never asks,
+# so neither half spends the link on icons the other cannot use. The payload is empty.
+TEXT 7 WANT_ICONS
 
 HANDSHAKE 3 VERSION
 HANDSHAKE 758bb618-7b72-4cd3-9aa2-c9b88e54d555 SERVICE_ID
