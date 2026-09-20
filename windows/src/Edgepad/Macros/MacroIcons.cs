@@ -54,6 +54,9 @@ internal static class MacroIcons
     /// Keyed by path and last-write time together, so rebuilding an exe replaces its icon rather than
     /// serving the old one for the life of the process, and a phone reconnecting costs no work at all.
     /// </summary>
+    // ponytail: never evicted, so a session that rebuilds the same exe many times keeps every icon it ever
+    // made — fifteen macros at six kilobytes each per rebuild. Bound it if a tray app left running for weeks
+    // on a build machine ever shows it.
     private static readonly Dictionary<string, byte[]?> Cache = [];
 
     /// <summary>Extensions whose icon lives inside the file as a resource.</summary>
