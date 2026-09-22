@@ -200,7 +200,7 @@ internal static class MacroIcons
                 return small;
             }
 
-            Log.Write($"Macro icon from {path} is {png.Length} bytes even at {Fallback}px and was not sent");
+            Log.Write($"Macro icon from {path} is {small.Length} bytes even at {Fallback}px and was not sent");
             return null;
         }
         catch (Exception e) when (e is IOException or ArgumentException or UnauthorizedAccessException

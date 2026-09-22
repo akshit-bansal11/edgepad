@@ -179,7 +179,18 @@ internal sealed class Session(
 
             foreach (var chunk in MacroIcons.Chunks(slot, png))
             {
-                Send(new Text((byte)TextKind.MacroIcon, chunk));
+                // A save in the tray editor swaps the list and then sends it from another thread. Checked
+                // under the send lock, no chunk of the old list can follow the new one to the phone, where
+                // it would land on whatever macro moved into its slot. The phone asks again for the new list.
+                lock (sendGate)
+                {
+                    if (!ReferenceEquals(macros.Macros, current))
+                    {
+                        return;
+                    }
+
+                    Send(new Text((byte)TextKind.MacroIcon, chunk));
+                }
             }
         }
     }

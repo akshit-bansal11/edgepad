@@ -70,6 +70,35 @@ public sealed class TrustStoreTests : IDisposable
     }
 
     [Fact]
+    public void APhoneThatCouldNotBeSavedIsStillTheOnlyOneTrusted()
+    {
+        // A file where the folder should be: the read finds nothing, and the write cannot create the folder.
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(Path.Combine(dir, "blocked"), "");
+        var store = new TrustStore(Path.Combine(dir, "blocked", "trusted-phone.txt"));
+
+        Assert.True(store.Admit("(AA:BB:CC:DD:EE:FF)"));
+        Assert.False(store.Admit("(11:22:33:44:55:66)"));
+        Assert.True(store.Refuses("(11:22:33:44:55:66)"));
+        Assert.Equal("(AA:BB:CC:DD:EE:FF)", store.Trusted);
+    }
+
+    [Fact]
+    public void RefusesOnlyWhatTheSessionWouldRefuse()
+    {
+        var store = NewStore();
+        Assert.False(store.Refuses("(11:22:33:44:55:66)"));
+
+        store.Admit("(AA:BB:CC:DD:EE:FF)");
+        Assert.False(store.Refuses("(aa:bb:cc:dd:ee:ff)"));
+        Assert.True(store.Refuses("(11:22:33:44:55:66)"));
+
+        using var held = new FileStream(
+            Path.Combine(dir, "trusted-phone.txt"), FileMode.Open, FileAccess.Read, FileShare.None);
+        Assert.True(store.Refuses("(AA:BB:CC:DD:EE:FF)"));
+    }
+
+    [Fact]
     public void ForgettingWhatIsNotThereIsNotAnError()
     {
         // Forget runs from a tray menu click, where an unhandled exception ends the process.

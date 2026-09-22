@@ -36,7 +36,9 @@ internal sealed class TrayContext : ApplicationContext
 
     public TrayContext(EventWaitHandle quit)
     {
-        startWithWindows.CheckedChanged += (_, _) => RunAtLogin.Set(startWithWindows.Checked);
+        // Click, not CheckedChanged: the menu sets Checked from the registry each time it opens, and that must
+        // read the key without writing it back — least of all deleting it after a failed read.
+        startWithWindows.Click += (_, _) => RunAtLogin.Set(startWithWindows.Checked);
         forget.Click += (_, _) => trust.Forget();
 
         menu.Items.Add($"Edgepad {Program.Version}").Enabled = false;

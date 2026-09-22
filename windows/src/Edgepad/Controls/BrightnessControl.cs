@@ -168,7 +168,7 @@ internal sealed class BrightnessControl : IDisposable
                 // two methods up already catches both of, and this is a background worker in a tray app where
                 // an escape takes the tray, the link and the user's session with it. DisplayModes.Run catches
                 // broadly for the same reason; this one did not, and the difference was not deliberate.
-                Log.Write($"Brightness change failed: {e}");
+                Log.Write($"Brightness change failed: {e.GetType().Name}: {e.Message}");
             }
         }
     }
