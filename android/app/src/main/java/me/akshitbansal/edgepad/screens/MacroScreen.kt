@@ -18,6 +18,9 @@ private const val LANDSCAPE_COLUMNS = 5
 /** The picture's side, and the room a row gives it above the label. */
 private const val ICON_DP = 28f
 
+/** The largest picture accepted from the laptop, which sends 48px; the headroom is for an older or newer laptop. */
+private const val MAX_ICON_PX = 256
+
 /**
  * The laptop's macro slots, as a grid of buttons. A tap hands back the slot's index and nothing else —
  * what it launches is the laptop's business, and MainActivity.runMacro says why that is worth keeping.
@@ -68,6 +71,11 @@ object MacroScreen {
         png: ByteArray?,
     ): BitmapDrawable? {
         val bytes = png ?: return null
+        // The header first: a few kilobytes of PNG can claim any size, and decoding a claimed 30000px square
+        // would take gigabytes. The laptop never sends more than 48px, so anything past the cap is not an icon.
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        if (bounds.outWidth !in 1..MAX_ICON_PX || bounds.outHeight !in 1..MAX_ICON_PX) return null
         val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
         return BitmapDrawable(ui.context.resources, bitmap)
     }
