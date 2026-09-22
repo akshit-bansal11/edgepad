@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
+import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
@@ -71,11 +72,12 @@ private const val STROKE_DP = 1f
 object KeyboardScreen {
     fun build(
         ui: Ui,
+        textScale: Float,
         onKey: (code: Int, down: Boolean) -> Unit,
         onBack: () -> Unit,
     ): View {
         val header = ui.bar(ui.string(R.string.keyboard_title), onBack)
-        val keyboard = KeyboardView(ui.context, onKey)
+        val keyboard = KeyboardView(ui.context, textScale, onKey)
         return LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(ui.palette.background)
@@ -154,10 +156,11 @@ object KeyboardScreen {
      */
     private class KeyboardView(
         context: Context,
+        textScale: Float,
         private val onKey: (code: Int, down: Boolean) -> Unit,
     ) : View(context) {
         /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
-        constructor(context: Context) : this(context, { _, _ -> })
+        constructor(context: Context) : this(context, Settings.DEFAULT_KEY_TEXT_SCALE, { _, _ -> })
 
         private val density = resources.displayMetrics.density
         private val palette = Palette.of(context)
@@ -167,6 +170,11 @@ object KeyboardScreen {
         private val padding = PADDING_DP * density
         private val gap = GAP_DP * density
         private val corner = CORNER_DP * density
+        private val labelInset = Space.XS * density
+
+        /** The size asked for; [fitLabels] may draw smaller, never larger. */
+        private val wantedTextSize =
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, Type.MICRO, resources.displayMetrics) * textScale
 
         private val fillPaint =
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -185,7 +193,7 @@ object KeyboardScreen {
                 textAlign = Paint.Align.CENTER
                 letterSpacing = Type.TRACKING_WIDE
                 color = palette.background
-                textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, Type.MICRO, resources.displayMetrics)
+                textSize = wantedTextSize
             }
         private val labelOff =
             TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -223,6 +231,30 @@ object KeyboardScreen {
                     keyIndex++
                 }
             }
+            fitLabels()
+        }
+
+        /**
+         * One text size for every key, so labels stay consistent: the wanted size, shrunk until each label's
+         * width and the line's full height fit inside its own key with [labelInset] to spare on every side.
+         * Width and height both scale linearly with the size, so one measurement at the wanted size is enough.
+         * Runs here rather than in onDraw, where lint rejects the allocation getFontMetrics makes.
+         */
+        private fun fitLabels() {
+            labelOn.textSize = wantedTextSize
+            val metrics = labelOn.fontMetrics
+            val lineHeight = metrics.descent - metrics.ascent
+            var fit = 1f
+            for (i in keys.indices) {
+                // A key with no room inside its inset (a zero-sized first layout) fits a size of zero: no text at all.
+                val availableWidth = maxOf(0f, rects[i].width() - 2 * labelInset)
+                val availableHeight = maxOf(0f, rects[i].height() - 2 * labelInset)
+                val width = labelOn.measureText(keys[i].label)
+                if (width > 0f) fit = minOf(fit, availableWidth / width)
+                if (lineHeight > 0f) fit = minOf(fit, availableHeight / lineHeight)
+            }
+            labelOn.textSize = wantedTextSize * fit
+            labelOff.textSize = labelOn.textSize
         }
 
         override fun onDraw(canvas: Canvas) {

@@ -4,7 +4,7 @@ import me.akshitbansal.edgepad.R
 
 /**
  * The two parts of the media controls, each placed anywhere on the surface as a fraction of its width
- * and height, so a layout made in portrait keeps its shape in landscape. By default they stack at the
+ * and height. Portrait and landscape each keep a layout of their own. By default they stack at the
  * bottom: the player and the track, then previous, play and next under them.
  */
 enum class MediaPiece(
