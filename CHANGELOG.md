@@ -4,6 +4,12 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-09-22
+
+Macro icons, a keyboard text size, separate media layouts for each orientation, and a round of
+fixes from reviewing the last two pull requests. The wire protocol does not move: it stays at
+version 3, so a 2.3.0 half and a 2.2.0 half still speak to each other.
+
 ### Added
 - **Macro buttons show the program's icon.** Add a macro in the laptop's tray menu and the phone
   draws whatever that macro opens: a program's own icon, a document's file-type icon, or a picture
@@ -21,6 +27,37 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 - **Plex is recognised in browser titles.** A Plex tab now shows as Plex on the phone rather
   than as the browser's name. It is safe to add only because of the word-boundary fix in 2.2.0:
   a bare substring test would have read it out of "complexity".
+- **Keyboard text size.** Appearance gains a slider for how large the on-screen keyboard draws its
+  key labels. A label always stays inside its key: when one would not fit, every label is drawn
+  smaller together, so the keyboard never mixes sizes.
+
+### Fixed
+- **Portrait and landscape shared one media layout.** Moving or resizing the media pieces in one
+  orientation moved them in the other too. Each orientation now keeps its own layout. Nothing
+  moves on update: landscape starts as a copy of the layout you already had, and from then on
+  editing one leaves the other alone.
+- **Four paths could end the tray app.** Writing the log while it was open in an editor past its
+  rotation size, a WMI brightness error other than the one caught, and the tray menu's Forget and
+  Start with Windows could each throw where nothing catches it.
+- **A bonded but untrusted device could drop the connected phone** just by connecting: the new
+  session replaced the old one before it checked trust. It is now refused first, and so is any
+  device while the trust file cannot be read.
+- **A trusted phone that could not be saved left the laptop open.** If writing the trust file
+  failed, the phone was admitted but not remembered, so every bonded device after it was treated
+  as the first. It is now remembered until the app quits. An unreadable folder is also no longer
+  mistaken for a missing file.
+- **Opening the tray menu rewrote the Start with Windows entry** every time, and deleted it if the
+  registry read failed. It now writes only when you click it.
+- **A macro saved while icons were loading could put an old icon on the wrong button.** The laptop
+  now stops sending the old list's icons the moment the list changes.
+- **An icon claiming an enormous size could crash the phone** while decoding. Anything larger
+  than 256px is ignored.
+- **Starting Edgepad normally while a copy ran as administrator crashed it.** It now says an
+  administrator copy is running and how to quit it.
+
+### Security
+- **Every GitHub Action is pinned to a commit SHA,** including the four in the release job that
+  decrypts the signing key, and checkouts no longer keep their credentials.
 
 ## [2.2.0] - 2026-09-19
 
@@ -404,7 +441,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v1.0.0...v2.0.0
