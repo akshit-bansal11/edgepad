@@ -159,6 +159,7 @@ internal static class FrameCodec
             ZoomType => new Zoom(ReadInt16(payload)),
             RunActionType => new RunAction(payload[0]),
             SetValueType => new SetValue(payload[0], payload[1]),
+            KeyType => new Key(BinaryPrimitives.ReadUInt16LittleEndian(payload), ReadFlag(payload[2])),
             PingType => new Ping(BinaryPrimitives.ReadInt64LittleEndian(payload)),
             PongType => new Pong(BinaryPrimitives.ReadInt64LittleEndian(payload)),
             StateType => new StateReport(payload[0], payload[1], payload[2]),
