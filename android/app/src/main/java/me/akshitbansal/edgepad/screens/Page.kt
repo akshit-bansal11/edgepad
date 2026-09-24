@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.screens
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.drawable.ClipDrawable
@@ -8,12 +9,14 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.InsetDrawable
 import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.StateListDrawable
+import android.text.TextPaint
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.SeekBar
@@ -40,6 +43,9 @@ private const val TICK_BELOW_DP = 16f
 private const val THUMB_DP = 16f
 private const val SEGMENT_HEIGHT_DP = 28f
 private const val SEGMENT_PAD_DP = 10f
+
+/** How long the segmented control's fill takes to slide to the option just tapped. */
+private const val SEGMENT_SLIDE_MS = 150L
 private const val CHIP_DP = 32f
 private const val ICON_TOUCH_DP = 40f
 private const val BAR_START_DP = 20f
@@ -267,30 +273,101 @@ class Ui(
             setOnCheckedChangeListener { _, on -> onChange(on) }
         }
 
-    /** Options side by side in one square outlined strip; the selected one is filled with ink. */
+    /**
+     * Options side by side in one square outlined strip, the selected one filled with ink. The fill is a
+     * block behind the labels rather than a
+     * background on the chosen one, so it can slide from the old option to the new instead of jumping.
+     *
+     * It paints itself. Until 3.0.1 it drew the selection once and left it, which was invisible on Theme
+     * and Orientation -- both rebuild the activity, so a fresh control was built already showing the new
+     * choice -- and plainly broken on Macro buttons, which rebuilds nothing and so never moved at all.
+     */
     fun segmented(
         options: List<CharSequence>,
         selected: Int,
         onSelect: (Int) -> Unit,
-    ): LinearLayout =
-        LinearLayout(context).apply {
-            background = GradientDrawable().apply { setStroke(dp(Space.HAIR), palette.dim) }
-            val hair = dp(Space.HAIR)
-            setPadding(hair, hair, hair, hair)
-            options.forEachIndexed { i, label ->
-                val on = i == selected
-                val option =
-                    mono(label, Type.MICRO, if (on) palette.background else palette.dim).apply {
-                        gravity = Gravity.CENTER
-                        minHeight = dp(SEGMENT_HEIGHT_DP) - 2 * hair
-                        if (on) setBackgroundColor(palette.ink)
-                        setPadding(dp(SEGMENT_PAD_DP), 0, dp(SEGMENT_PAD_DP), 0)
-                        isSelected = on
-                        tappable(this) { onSelect(i) }
-                    }
-                addView(option)
+    ): View {
+        val hair = dp(Space.HAIR)
+        val height = dp(SEGMENT_HEIGHT_DP) - 2 * hair
+        // Every option is the width of the widest, measured here rather than left to wrap. Equal widths are
+        // what let the fill move by sliding alone: a fill that had to change width as it went would set its
+        // own layout params mid-slide, and the layout that followed would cancel the animation it was in.
+        val paint =
+            TextPaint().apply {
+                typeface = Type.face
+                letterSpacing = Type.TRACKING_WIDE
+                textSize =
+                    TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_SP,
+                        Type.MICRO,
+                        context.resources.displayMetrics,
+                    )
+            }
+        val width = options.maxOf { paint.measureText(it.toString()) }.toInt() + 2 * dp(SEGMENT_PAD_DP)
+        val labels =
+            LinearLayout(context).apply {
+                options.forEach { label ->
+                    addView(
+                        mono(label, Type.MICRO, palette.dim).apply { gravity = Gravity.CENTER },
+                        LinearLayout.LayoutParams(width, height),
+                    )
+                }
+            }
+        val fill =
+            View(context).apply {
+                setBackgroundColor(palette.ink)
+                layoutParams = FrameLayout.LayoutParams(width, height)
+            }
+        var current = selected
+        var shown = false
+
+        fun paint(animate: Boolean) {
+            for (i in options.indices) {
+                val option = labels.getChildAt(i) as TextView
+                val on = i == current
+                option.setTextColor(if (on) palette.background else palette.dim)
+                option.isSelected = on
+            }
+            val x = (current * width).toFloat()
+            // Slid only once the control has been seen somewhere. The first placement is the control
+            // appearing, and a fill sliding in from the left on every page open would read as the choice
+            // having just changed when nothing has. Animations off in system settings means it never slides.
+            if (animate && shown && ValueAnimator.areAnimatorsEnabled()) {
+                fill
+                    .animate()
+                    .translationX(x)
+                    .setDuration(SEGMENT_SLIDE_MS)
+                    .start()
+            } else {
+                fill.animate().cancel()
+                fill.translationX = x
+            }
+            shown = true
+        }
+
+        for (i in options.indices) {
+            tappable(labels.getChildAt(i)) {
+                if (current != i) {
+                    current = i
+                    paint(animate = true)
+                    onSelect(i)
+                }
             }
         }
+        return FrameLayout(context).apply {
+            background = GradientDrawable().apply { setStroke(hair, palette.dim) }
+            setPadding(hair, hair, hair, hair)
+            addView(fill)
+            addView(
+                labels,
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                ),
+            )
+            paint(animate = false)
+        }
+    }
 
     /** A plain slider: a hairline track, a small dot under each step, and a round thumb. */
     fun ruler(
@@ -450,8 +527,22 @@ class Ui(
     ): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
+            // The dot moves itself. A caller that rebuilt the page to move it would throw away the scroll
+            // position with it, which on a list longer than the screen puts the user back at the top every
+            // time they pick -- the list of things a shape can run is exactly that long.
+            val rows = ArrayList<LinearLayout>(names.size)
+            val dots = ArrayList<View>(names.size)
+            var current = selected
+
+            fun paint() {
+                rows.forEachIndexed { i, row ->
+                    val chosen = i == current
+                    dots[i].visibility = if (chosen) View.VISIBLE else View.INVISIBLE
+                    row.isSelected = chosen
+                    row.stateDescription = if (chosen) string(R.string.chosen) else null
+                }
+            }
             names.forEachIndexed { i, name ->
-                val chosen = i == selected
                 val row = field(name)
                 row.minimumHeight = dp(Space.TOUCH)
                 val dot =
@@ -461,19 +552,23 @@ class Ui(
                                 shape = GradientDrawable.OVAL
                                 setColor(palette.ink)
                             }
-                        visibility = if (chosen) View.VISIBLE else View.INVISIBLE
                         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                     }
                 row.addView(
                     dot,
                     LinearLayout.LayoutParams(dp(CHOSEN_DOT_DP), dp(CHOSEN_DOT_DP)).apply { marginEnd = dp(Space.S) },
                 )
-                row.isSelected = chosen
-                if (chosen) row.stateDescription = string(R.string.chosen)
-                tappable(row) { onPick(i) }
+                rows += row
+                dots += dot
+                tappable(row) {
+                    current = i
+                    paint()
+                    onPick(i)
+                }
                 addView(row)
                 addView(hairline(), ViewGroup.LayoutParams.MATCH_PARENT, dp(Space.HAIR))
             }
+            paint()
         }
 
     private fun track(): Drawable =

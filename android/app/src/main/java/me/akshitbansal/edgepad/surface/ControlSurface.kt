@@ -164,6 +164,13 @@ class ControlSurface(
     private var subLine = ""
 
     /**
+     * The line that says which mode the surface is in, empty in [PadMode.NORMAL] because a normal surface
+     * has nothing to explain. Held here rather than built while drawing: both halves of making it — the
+     * string lookup and the ellipsis — allocate, and onDraw may not. [rebuildCaption] is what fills it.
+     */
+    private var captionLine = ""
+
+    /**
      * What the surface is showing and answering, and when the lock button last took a tap.
      *
      * The mode lives in the view and nowhere else: it is not written to [Settings] and it is not offered on
@@ -283,16 +290,32 @@ class ControlSurface(
         // The zone is read off the row rather than fixed, so the spacing and the button count are tied
         // together through it: four buttons reaching ±1.5 at 64dp claimed 132dp either side of the centre,
         // and five reaching ±2 at the same spacing would claim 164dp — more than a 360dp phone has to give,
-        // leaving 16dp of edge at each end and both top dials nowhere to sit. See [TOP_BUTTON_OFFSET_DP].
+        // leaving 16dp of edge at each end and both top dials nowhere to sit. The step is per orientation,
+        // so the zone is too: 148dp either side sideways, 132dp upright, where the screen is narrowest and
+        // the 16dp the tighter step saves at each end goes back to the top corner dials. See
+        // [TOP_BUTTON_OFFSET_PORTRAIT_DP].
         val topCentre = perimeter.lengthAt(TOP_CENTRE)
-        val reach = topButtons.maxOf { abs(it.side) } * TOP_BUTTON_OFFSET_DP
+        val reach = topButtons.maxOf { abs(it.side) } * topButtonOffsetDp(w.toFloat(), h.toFloat())
         val zone = dp(reach + Space.TOUCH / 2 + Space.M)
         keepOut[0] = topCentre - zone
         keepOut[1] = topCentre + zone
         DialSpan.compute(centres, dp(painter.halfLengthDp), perimeter.length, keepOut, dp(DIAL_GAP_DP), after, before)
         excludeBackGesture()
         rebuildText()
+        // The caption is cut to the width it has to fit in, so a new width is a new cut.
+        rebuildCaption()
     }
+
+    /**
+     * The step between neighbouring top buttons, which the surface's two orientations do not share. It is a
+     * function of the size rather than a field because [layoutPieces] and [onSizeChanged] both need it and
+     * [onSizeChanged] is the only caller of either. See [TOP_BUTTON_OFFSET_PORTRAIT_DP] for why 48 is a
+     * floor rather than a preference.
+     */
+    private fun topButtonOffsetDp(
+        w: Float,
+        h: Float,
+    ): Float = if (w > h) TOP_BUTTON_OFFSET_LANDSCAPE_DP else TOP_BUTTON_OFFSET_PORTRAIT_DP
 
     private fun layoutPieces(
         w: Float,
@@ -306,7 +329,7 @@ class ControlSurface(
         prevHit.set(tx * w - gap - touch, ty * h - touch, tx * w - gap + touch, ty * h + touch)
         nextHit.set(tx * w + gap - touch, ty * h - touch, tx * w + gap + touch, ty * h + touch)
         layoutNowPlaying(w, h)
-        val offset = dp(TOP_BUTTON_OFFSET_DP)
+        val offset = dp(topButtonOffsetDp(w, h))
         val top = dp(TOP_DP)
         for (button in topButtons) {
             val cx = w / 2 + button.side * offset
@@ -413,6 +436,9 @@ class ControlSurface(
             drawIcon(canvas, glyph, button.hit.centerX(), button.hit.centerY(), dp(ICON_DP))
         }
         if (showHints) drawHints(canvas)
+        // Above the hints and before the fingers: a mode the user has just chosen is worth more of the
+        // middle of the screen than the hints are, and the trail belongs over it rather than under it.
+        if (captionLine.isNotEmpty()) drawCaption(canvas)
         drawFingers(canvas)
         // Focus hides the dials; [dialAt] stops answering for them in the same breath, so nothing is left
         // taking touches where there is nothing drawn.
@@ -517,12 +543,68 @@ class ControlSurface(
     }
 
     private fun drawHints(canvas: Canvas) {
+        hintText()
+        val y = hintTop()
+        hintLines.forEachIndexed { i, line -> canvas.drawText(line, width / 2f, y + i * dp(HINT_GAP_DP), mono) }
+    }
+
+    /**
+     * The mode caption, centred one gap above where the first hint line sits — above it whether or not the
+     * hints are switched on, so the caption never moves between two phones that differ only in that.
+     *
+     * The band just above the middle is the part of the surface nothing else claims. Higher up is taken: the
+     * button row ends 64dp down and a top corner dial's label and number sit around 68dp in from both the
+     * top and the side, which is exactly where a line under the buttons would cross them in
+     * [PadMode.PAD_LOCKED], where the dials are still drawn. Lower down is the media's: both pieces default
+     * to the bottom fifth of the screen, and [PadMode.PAD_LOCKED] still draws those too. The finger trail
+     * has no fixed place to avoid, so it is drawn after the caption and crosses over it, which is the right
+     * way round — the caption is what the surface is, the trail is what the finger is doing to it.
+     */
+    private fun drawCaption(canvas: Canvas) {
+        hintText()
+        canvas.drawText(captionLine, width / 2f, hintTop() - dp(CAPTION_GAP_DP), mono)
+    }
+
+    /** Where the first hint line sits; the caption is placed off it, so the two move together. */
+    private fun hintTop(): Float = height / 2f - (hintLines.size - 1) * dp(HINT_GAP_DP) / 2
+
+    /** Small, spaced and dim: the one voice the surface explains itself in. Sets no text, only the paint. */
+    private fun hintText() {
         mono.textAlign = Paint.Align.CENTER
         mono.textSize = sp(HINT_SP)
         mono.letterSpacing = HINT_TRACKING
         mono.color = dim
-        val y = height / 2f - (hintLines.size - 1) * dp(HINT_GAP_DP) / 2
-        hintLines.forEachIndexed { i, line -> canvas.drawText(line, width / 2f, y + i * dp(HINT_GAP_DP), mono) }
+    }
+
+    /**
+     * Rebuilds [captionLine] for the mode the surface is in now. Called from [enterMode] and from
+     * [onSizeChanged], which are between them every moment either half of it can change: what it says comes
+     * from the mode, and how much of it fits comes from the width.
+     *
+     * A caption that ran off both edges would be worse than none, and 45 characters of spaced mono is more
+     * than a narrow phone at a large font scale has room for, so it is cut here the way the now-playing
+     * lines are — with the ellipsis made while it is legal to allocate one.
+     */
+    private fun rebuildCaption() {
+        val res =
+            when (mode) {
+                PadMode.NORMAL -> null
+                PadMode.FOCUS -> R.string.surface_focus_caption
+                PadMode.PAD_LOCKED -> R.string.surface_locked_caption
+            }
+        if (res == null || width == 0) {
+            captionLine = ""
+            return
+        }
+        hintText()
+        captionLine =
+            TextUtils
+                .ellipsize(
+                    context.getString(res),
+                    mono,
+                    width - 2 * dp(Space.L),
+                    TextUtils.TruncateAt.END,
+                ).toString()
     }
 
     private fun drawTransport(canvas: Canvas) {
@@ -790,8 +872,7 @@ class ControlSurface(
             is ShapeTarget.Pad -> {
                 // Phone-local: nothing crosses the link. The lock button's own live region carries it,
                 // because a surface that rearranges itself under a finger is otherwise silent.
-                mode = target.mode
-                stateDescription = modeLabel()
+                enterMode(target.mode)
             }
         }
     }
@@ -872,13 +953,24 @@ class ControlSurface(
         val now = SystemClock.uptimeMillis()
         val next = mode.next(now, lastLockTap, LOCK_SECOND_TAP_MS)
         lastLockTap = now
-        mode = next
+        enterMode(next)
         cancelTouches(now)
         haptic()
-        // The other four buttons open a screen, which is its own answer; this one changes the surface in
-        // place, so the tick, the lit icon and the live region are all the confirmation there is.
-        stateDescription = modeLabel()
         invalidate()
+    }
+
+    /**
+     * The one place the mode is written. Three things follow it — what the surface draws, what a screen
+     * reader is told, and the caption saying so — and a writer that moved the mode and forgot one of them
+     * is exactly how a locked pad came to look identical to a working one.
+     *
+     * The other four top buttons open a screen, which is its own answer; the lock changes the surface in
+     * place, so the tick, the lit icon, the caption and the live region are all the confirmation there is.
+     */
+    private fun enterMode(next: PadMode) {
+        mode = next
+        stateDescription = modeLabel()
+        rebuildCaption()
     }
 
     private fun modeLabel(): String =
@@ -999,7 +1091,7 @@ class ControlSurface(
 
     /**
      * One of the buttons floating at the top of the surface. [side] places it across the centre of the top
-     * edge in steps of [TOP_BUTTON_OFFSET_DP]: -1 one step left of it, 0 on it, 1 one step right. An
+     * edge in steps of [topButtonOffsetDp]: -1 one step left of it, 0 on it, 1 one step right. An
      * odd-sized row sits on whole steps — the five buttons are at 0 and ±1 and ±2, with the lock on the
      * centre — where an even-sized one needs half steps to stay centred.
      */
@@ -1065,6 +1157,13 @@ class ControlSurface(
         private const val HINT_SP = 9f
         private const val HINT_TRACKING = 0.16f
         private const val HINT_GAP_DP = 16f
+
+        /**
+         * How far above the first hint line the mode caption sits. Wider than [HINT_GAP_DP] so the caption
+         * reads as its own sentence rather than as a fifth hint, and wide enough that the two do not touch
+         * when the user's font scale grows both of them.
+         */
+        private const val CAPTION_GAP_DP = 28f
         private const val FINGER_DP = 10f
         private const val MAX_POINTERS = 10
         private const val TRAIL = 18
@@ -1077,9 +1176,17 @@ class ControlSurface(
          * outermost button's side by it to work out how much of the top edge the row keeps to itself, so
          * this number and the number of buttons move together. Five buttons at the old 64dp would have
          * reserved 164dp either side of the centre — a 360dp phone's whole top edge and then some — and
-         * pushed both top dials off it. 56dp brings that back to 148dp.
+         * pushed both top dials off it. Sideways, [TOP_BUTTON_OFFSET_LANDSCAPE_DP] brings that back to
+         * 148dp; upright there is less edge to share, so the row closes up to 48dp and 132dp, which is
+         * 16dp of top edge handed back to each of the top corner dials.
+         *
+         * 48dp is the floor, and the reason is the hit rect rather than the look: [Space.TOUCH] is 48, so
+         * each button's rect is 48dp wide and a step of 48 leaves neighbours exactly touching. A tighter
+         * step would have two rects claim the same pixels, and a tap in the overlap would open whichever
+         * of the two [down] tests first rather than the one the finger is on.
          */
-        private const val TOP_BUTTON_OFFSET_DP = 56f
+        private const val TOP_BUTTON_OFFSET_PORTRAIT_DP = 48f
+        private const val TOP_BUTTON_OFFSET_LANDSCAPE_DP = 56f
         private const val TOP_CENTRE = 0.5f
         private const val DIAL_GAP_DP = 16f
 
