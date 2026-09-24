@@ -215,6 +215,8 @@
   <string name="surface_mode_normal">Dials, media and pad all on</string>
   <string name="surface_mode_focus">Pad only · dials and media hidden</string>
   <string name="surface_mode_locked">Dials and media only · pad locked</string>
+  <string name="surface_focus_caption">DIALS AND MEDIA HIDDEN · TAP THE LOCK TO SHOW</string>
+  <string name="surface_locked_caption">PAD LOCKED · TAP THE LOCK TO UNLOCK</string>
 
   <!-- Macros -->
   <string name="macros_run">Run %1$s</string>
