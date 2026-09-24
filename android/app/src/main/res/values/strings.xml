@@ -108,6 +108,7 @@
   <string name="macro_buttons">Macro buttons</string>
   <string name="macro_buttons_label">ICON + LABEL</string>
   <string name="macro_buttons_icon">ICON ONLY</string>
+  <string name="keyboard_text_size">Keyboard text size</string>
   <string name="control_color">Control colour</string>
   <string name="control_color_auto">AUTO</string>
   <string name="control_color_custom">CUSTOM</string>

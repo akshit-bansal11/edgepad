@@ -55,12 +55,12 @@ internal sealed class RfcommServer(
         // but that check runs *after* the new session has displaced the old one, so without this any other
         // bonded device could drop the owner's link at will just by connecting, over and over.
         //
-        // Only a positively different trusted address refuses here. Nothing trusted yet, or a trust file
-        // that cannot be read, both arrive as null and go on to the session, which fails closed on its own.
+        // A different trusted address refuses here, and so does a trust file that cannot be read, since the
+        // session would refuse it anyway. Only nothing trusted yet goes on to the session to earn it.
         var address = args.Socket.Information.RemoteHostName.RawName;
-        if (trust.Trusted is { } trusted && !string.Equals(trusted, address, StringComparison.OrdinalIgnoreCase))
+        if (trust.Refuses(address))
         {
-            Log.Write($"Refused {address} without disturbing the connected phone: this laptop trusts {trusted}");
+            Log.Write($"Refused {address} without disturbing the connected phone: this laptop trusts {trust.Trusted}");
             args.Socket.Dispose();
             return;
         }

@@ -290,7 +290,7 @@ class MainActivity :
                 }
 
                 Screen.KEYBOARD -> {
-                    KeyboardScreen.build(ui, onKey = ::key) { navigateBack() }
+                    KeyboardScreen.build(ui, settings.keyTextScale, onKey = ::key) { navigateBack() }
                 }
 
                 Screen.GAMEPAD -> {

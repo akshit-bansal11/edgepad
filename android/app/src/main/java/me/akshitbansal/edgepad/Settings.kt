@@ -26,6 +26,21 @@ class Settings(
     /** Where an imported background image is kept; absent until one has been imported. */
     val backgroundImage: File = File(context.filesDir, IMAGE_FILE)
 
+    init {
+        // Both orientations shared one media layout until 2.3.0. Landscape starts as a copy of it, so an
+        // update moves nothing.
+        if (!prefs.contains(LANDSCAPE + KEY_MEDIA_SCALE)) {
+            val edit = prefs.edit()
+            edit.putFloat(LANDSCAPE + KEY_MEDIA_SCALE, prefs.getFloat(KEY_MEDIA_SCALE, DEFAULT_MEDIA_SCALE))
+            for (piece in MediaPiece.entries) {
+                for (key in listOf(pieceKey(piece, "x"), pieceKey(piece, "y"))) {
+                    if (prefs.contains(key)) edit.putFloat(LANDSCAPE + key, prefs.getFloat(key, 0f))
+                }
+            }
+            edit.apply()
+        }
+    }
+
     /** The Bluetooth address of the laptop to reconnect to, once one has been chosen. */
     var laptop: String?
         get() = prefs.getString(KEY_LAPTOP, null)
@@ -52,6 +67,12 @@ class Settings(
      * way, because the alternative is a blank button.
      */
     var macroLabels by flag("macroLabels", true)
+
+    /**
+     * How large the on-screen keyboard draws its key labels, as a multiple of the base size. A ceiling the
+     * keyboard may lower, never raise: a label that would not fit inside its key is drawn smaller instead.
+     */
+    var keyTextScale by bounded(KEY_KEY_TEXT_SCALE, DEFAULT_KEY_TEXT_SCALE, MIN_KEY_TEXT_SCALE, MAX_KEY_TEXT_SCALE)
 
     /** The surface, settings and finder are held sideways; the keyboard and gamepad always are. */
     var landscape by flag("landscape", false)
@@ -99,8 +120,16 @@ class Settings(
         get() = enum(KEY_PATTERN, Pattern.SQUARES)
         set(value) = prefs.edit().putString(KEY_PATTERN, value.name).apply()
 
-    /** How large the media pieces are drawn, as a multiple of their base size. */
-    var mediaScale by bounded(KEY_MEDIA_SCALE, DEFAULT_MEDIA_SCALE, MIN_MEDIA_SCALE, MAX_MEDIA_SCALE)
+    /** How large the media pieces are drawn, as a multiple of their base size; each orientation keeps its own. */
+    var mediaScale: Float
+        get() {
+            val scale = prefs.getFloat(layoutKey(KEY_MEDIA_SCALE), DEFAULT_MEDIA_SCALE)
+            return scale.coerceIn(MIN_MEDIA_SCALE, MAX_MEDIA_SCALE)
+        }
+        set(value) {
+            val scale = value.coerceIn(MIN_MEDIA_SCALE, MAX_MEDIA_SCALE)
+            prefs.edit().putFloat(layoutKey(KEY_MEDIA_SCALE), scale).apply()
+        }
 
     /** The pattern's cell size, in dp. */
     var patternSize by bounded(KEY_PATTERN_SIZE, DEFAULT_PATTERN_SIZE, MIN_PATTERN_SIZE, MAX_PATTERN_SIZE)
@@ -165,11 +194,15 @@ class Settings(
         prefs.edit().putString("gesture.${gesture.name}", action.name).apply()
     }
 
-    /** Where a media piece sits, as fractions of the surface's width and height. */
+    /**
+     * Where a media piece sits, as fractions of the surface's width and height. Portrait and landscape each
+     * keep their own layout, chosen by [landscape], because a spot that suits one rarely suits the other.
+     */
     fun piece(piece: MediaPiece): Pair<Float, Float> =
-        prefs.getFloat("piece.${piece.name}.x", piece.defaultX).coerceIn(0f, 1f) to
-            prefs.getFloat("piece.${piece.name}.y", piece.defaultY).coerceIn(0f, 1f)
+        prefs.getFloat(layoutKey(pieceKey(piece, "x")), piece.defaultX).coerceIn(0f, 1f) to
+            prefs.getFloat(layoutKey(pieceKey(piece, "y")), piece.defaultY).coerceIn(0f, 1f)
 
+    /** Moves [piece] in the current orientation's layout only. */
     fun setPiece(
         piece: MediaPiece,
         x: Float,
@@ -177,17 +210,29 @@ class Settings(
     ) {
         prefs
             .edit()
-            .putFloat("piece.${piece.name}.x", x.coerceIn(0f, 1f))
-            .putFloat("piece.${piece.name}.y", y.coerceIn(0f, 1f))
+            .putFloat(layoutKey(pieceKey(piece, "x")), x.coerceIn(0f, 1f))
+            .putFloat(layoutKey(pieceKey(piece, "y")), y.coerceIn(0f, 1f))
             .apply()
     }
 
-    /** Puts every media piece back where it started. */
+    /** Puts every media piece back where it started, in the current orientation's layout only. */
     fun resetPieces() {
         val edit = prefs.edit()
-        for (piece in MediaPiece.entries) edit.remove("piece.${piece.name}.x").remove("piece.${piece.name}.y")
+        for (piece in MediaPiece.entries) {
+            edit.remove(layoutKey(pieceKey(piece, "x")))
+            edit.remove(layoutKey(pieceKey(piece, "y")))
+        }
         edit.apply()
     }
+
+    /** A media piece's portrait key; portrait keeps the keys from before the orientations were split. */
+    private fun pieceKey(
+        piece: MediaPiece,
+        axis: String,
+    ): String = "piece.${piece.name}.$axis"
+
+    /** [key] as the current orientation stores it. */
+    private fun layoutKey(key: String): String = if (landscape) LANDSCAPE + key else key
 
     private inline fun <reified E : Enum<E>> enum(
         key: String,
@@ -256,6 +301,9 @@ class Settings(
         const val MIN_MEDIA_SCALE = 0.5f
         const val MAX_MEDIA_SCALE = 1.5f
         const val DEFAULT_MEDIA_SCALE = 1f
+        const val MIN_KEY_TEXT_SCALE = 0.6f
+        const val MAX_KEY_TEXT_SCALE = 2f
+        const val DEFAULT_KEY_TEXT_SCALE = 1f
         const val MAX_ANGLE = 360f
         const val DEFAULT_GRADIENT_ANGLE = 90f
         const val MIN_PATTERN_SIZE = 8f
@@ -281,8 +329,12 @@ class Settings(
         private const val KEY_GRADIENT_ANGLE = "gradientAngle"
         private const val KEY_PATTERN = "pattern"
         private const val KEY_MEDIA_SCALE = "mediaScale"
+        private const val KEY_KEY_TEXT_SCALE = "keyTextScale"
         private const val KEY_PATTERN_SIZE = "patternSize"
         private const val KEY_PATTERN_COLOR = "patternColor"
         private const val KEY_PATTERN_OPACITY = "patternOpacity"
+
+        /** Prefixes a media layout key to make its landscape twin. */
+        private const val LANDSCAPE = "landscape."
     }
 }

@@ -20,7 +20,25 @@ internal static class Program
         // One instance per user session: a second copy would advertise a second RFCOMM service. A new copy
         // asks the running one to quit rather than exiting silently, which used to leave an old copy running
         // after an update.
-        using var single = new Mutex(initiallyOwned: false, @"Local\Edgepad");
+        Mutex single;
+        try
+        {
+            single = new Mutex(initiallyOwned: false, @"Local\Edgepad");
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // A copy running as administrator owns the mutex, and an ordinary copy is not allowed to open it,
+            // let alone ask that copy to quit.
+            Log.Write($"Edgepad {Version} not started: a copy running as administrator holds the lock");
+            MessageBox.Show(
+                "Edgepad is already running as administrator. Quit it from its tray icon, or run this one as administrator too.",
+                "Edgepad",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            return;
+        }
+
+        using var owned = single;
         if (!TakeOver(single))
         {
             Log.Write($"Edgepad {Version} not started: another copy is running and did not hand over");

@@ -14,6 +14,10 @@ internal sealed class TrustStore(string path)
 {
     private readonly Lock gate = new();
 
+    // The phone admitted when its address could not be written down. Kept for this run so a failed save
+    // narrows trust to that phone rather than leaving it open to whichever bonded device connects next.
+    private string? unsaved;
+
     public static TrustStore ForCurrentUser() => new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "trusted-phone.txt"));
 
@@ -24,7 +28,7 @@ internal sealed class TrustStore(string path)
         {
             lock (gate)
             {
-                return TryRead(out var trusted) ? trusted : null;
+                return TryRead(out var trusted) ? trusted ?? unsaved : null;
             }
         }
     }
@@ -42,6 +46,7 @@ internal sealed class TrustStore(string path)
                 return false;
             }
 
+            trusted ??= unsaved;
             if (trusted is not null)
             {
                 return string.Equals(trusted, address, StringComparison.OrdinalIgnoreCase);
@@ -54,8 +59,9 @@ internal sealed class TrustStore(string path)
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
-                // Admitted anyway, and asked again on the next start. Refusing the owner's own phone
-                // because the disk is full would be a worse answer than forgetting which phone it was.
+                // Admitted anyway, and remembered until the app quits. Refusing the owner's own phone
+                // because the disk is full would be a worse answer than forgetting it at the next start.
+                unsaved = address;
                 Log.Write($"The trusted phone could not be saved to {path}: {e.Message}");
             }
 
@@ -63,10 +69,30 @@ internal sealed class TrustStore(string path)
         }
     }
 
+    /// <summary>
+    /// True when <paramref name="address"/> is certain to be refused: another phone is trusted, or the trust
+    /// file cannot be read. Checked before a new connection may displace the current one; unlike
+    /// <see cref="Admit"/> it never grants trust.
+    /// </summary>
+    public bool Refuses(string address)
+    {
+        lock (gate)
+        {
+            if (!TryRead(out var trusted))
+            {
+                return true;
+            }
+
+            trusted ??= unsaved;
+            return trusted is not null && !string.Equals(trusted, address, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
     public void Forget()
     {
         lock (gate)
         {
+            unsaved = null;
             try
             {
                 File.Delete(path);
@@ -90,12 +116,12 @@ internal sealed class TrustStore(string path)
         trusted = null;
         try
         {
-            if (!File.Exists(path))
-            {
-                return true;
-            }
-
             trusted = File.ReadAllText(path).Trim() is { Length: > 0 } address ? address : null;
+            return true;
+        }
+        catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
+        {
+            // Genuinely absent. Not File.Exists, which also answers false when the folder cannot be read.
             return true;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)

@@ -22,6 +22,7 @@ object AppearanceScreen {
     private const val PREVIEW_DP = 110f
     private val angleRange = StepRange(0f, Settings.MAX_ANGLE, 15f)
     private val sizeRange = StepRange(Settings.MIN_PATTERN_SIZE, Settings.MAX_PATTERN_SIZE, 4f)
+    private val keyTextRange = StepRange(Settings.MIN_KEY_TEXT_SCALE, Settings.MAX_KEY_TEXT_SCALE, 0.1f)
 
     private val backgroundNames =
         mapOf(
@@ -59,6 +60,8 @@ object AppearanceScreen {
                     add(controlColor(ui, settings))
                     hairline()
                     add(macroButtons(ui, settings))
+                    hairline()
+                    add(keyboardText(ui, settings))
                     hairline()
                     add(background(ui, settings, preview, onPickImage))
                     hairline()
@@ -108,6 +111,20 @@ object AppearanceScreen {
             }
         return ui.field(ui.string(R.string.macro_buttons), pick)
     }
+
+    /** How large the keyboard's key labels are drawn; the keyboard shrinks the lot if any would leave its key. */
+    private fun keyboardText(
+        ui: Ui,
+        settings: Settings,
+    ): View =
+        ui.slider(
+            ui.string(R.string.keyboard_text_size),
+            keyTextRange.steps,
+            keyTextRange.stepOf(settings.keyTextScale),
+            { step -> ui.string(R.string.multiplier_value, keyTextRange.valueAt(step)) },
+        ) { step ->
+            settings.keyTextScale = keyTextRange.valueAt(step)
+        }
 
     /** The kind of background, then the rows that kind needs. */
     private fun background(
