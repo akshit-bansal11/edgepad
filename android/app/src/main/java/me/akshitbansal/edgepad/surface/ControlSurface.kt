@@ -8,6 +8,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.os.SystemClock
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.TypedValue
@@ -15,6 +16,7 @@ import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.RoundedCorner
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.accessibility.AccessibilityNodeInfo
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
@@ -31,9 +33,10 @@ import kotlin.math.roundToInt
 
 /**
  * The control surface: a ruler at each corner that holds a dial, the media pieces wherever the user put
- * them, gear, keyboard, gamepad and macro buttons at the top, and everything else is the trackpad. A touch
- * that starts inside a corner's zone is that dial's; one that starts on a media piece or a button is a
- * button press; any other is the trackpad.
+ * them, gear, keyboard, lock, gamepad and macro buttons at the top, and everything else is the trackpad. A
+ * touch that starts inside a corner's zone is that dial's; one that starts on a media piece or a button is
+ * a button press; any other is the trackpad. The lock button walks the surface through [PadMode], which is
+ * the only thing that can take a piece of it away.
  *
  * Everything is drawn here rather than built from child views: a touch reaches the recogniser with no view
  * hierarchy in between, dispatch is unbuffered so samples arrive as they happen, and every historical
@@ -93,12 +96,19 @@ class ControlSurface(
     private val logo = AppLogo(context, backdrop.isDark)
 
     // Lucide icons, tinted once: the buttons in the dim ink, skips in ink, play and pause cut out of the disc.
+    // The lock button gets a second copy of its own icon in the full ink, drawn whenever the pad is out of
+    // [PadMode.NORMAL]. Focus announces itself — the dials and the media are simply gone — but a locked pad
+    // looks exactly like a working one, and a surface that silently swallows every touch reads as a crash
+    // rather than as a mode. Both are tinted here because onDraw may not make a Drawable.
+    private val lockIconOn = icon(R.drawable.ic_lock, ink)
+    private val lockButton = TopButton(icon(R.drawable.ic_lock, dim), side = 0f, open = { tapLock() })
     private val topButtons =
         listOf(
-            TopButton(icon(R.drawable.ic_settings, dim), side = -1.5f, open = onOpenSettings),
-            TopButton(icon(R.drawable.ic_keyboard, dim), side = -0.5f, open = onOpenKeyboard),
-            TopButton(icon(R.drawable.ic_gamepad_2, dim), side = 0.5f, open = onOpenGamepad),
-            TopButton(icon(R.drawable.ic_macro, dim), side = 1.5f, open = onOpenMacros),
+            TopButton(icon(R.drawable.ic_settings, dim), side = -2f, open = onOpenSettings),
+            TopButton(icon(R.drawable.ic_keyboard, dim), side = -1f, open = onOpenKeyboard),
+            lockButton,
+            TopButton(icon(R.drawable.ic_gamepad_2, dim), side = 1f, open = onOpenGamepad),
+            TopButton(icon(R.drawable.ic_macro, dim), side = 2f, open = onOpenMacros),
         )
     private val skipBackIcon = icon(R.drawable.ic_skip_back, ink)
     private val skipForwardIcon = icon(R.drawable.ic_skip_forward, ink)
@@ -116,6 +126,7 @@ class ControlSurface(
             action(R.id.action_previous_track, R.string.surface_previous) to { send(ActionId.PREVIOUS_TRACK.frame()) },
             action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
             action(R.id.action_keyboard, R.string.surface_keyboard) to onOpenKeyboard,
+            action(R.id.action_pad_lock, R.string.surface_lock) to { tapLock() },
             action(R.id.action_gamepad, R.string.surface_gamepad) to onOpenGamepad,
             action(R.id.action_macros, R.string.surface_macros) to onOpenMacros,
         )
@@ -135,6 +146,18 @@ class ControlSurface(
     private val nextHit = RectF()
     private var titleLine = ""
     private var subLine = ""
+
+    /**
+     * What the surface is showing and answering, and when the lock button last took a tap.
+     *
+     * The mode lives in the view and nowhere else: it is not written to [Settings] and it is not offered on
+     * the settings screen. The surface is pinned to one orientation, so it is never rebuilt underneath the
+     * user while they are standing on it, and a mode that only has to outlive the view needs no storage. It
+     * must not outlive it either: a phone that came back up silently locked, with the user having no memory
+     * of locking it, would read as broken rather than as obedient.
+     */
+    private var mode = PadMode.NORMAL
+    private var lastLockTap = Long.MIN_VALUE
 
     // The touch in progress.
     private var activeDial = -1
@@ -183,6 +206,12 @@ class ControlSurface(
     init {
         keepScreenOn = true
         contentDescription = context.getString(R.string.surface_description)
+        // The mode rides on the state description rather than on announceForAccessibility, which API 36
+        // deprecated and which an app targeting 36 or later has ignored ever since. A polite live region
+        // is the replacement Android points at: setting stateDescription raises a state-changed event and
+        // the screen reader reads it. Nothing else on this view ever changes it, so nothing else speaks.
+        accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+        stateDescription = modeLabel()
         applyState()
     }
 
@@ -232,6 +261,10 @@ class ControlSurface(
         // what keeps two dials on the same edge clear of each other.
         // A dial the user puts in the top-middle slot is the one exception: it is centred inside the
         // buttons' zone, so the cut cannot push it out of its own place, and it shares the space.
+        // The zone is read off the row rather than fixed, so the spacing and the button count are tied
+        // together through it: four buttons reaching ±1.5 at 64dp claimed 132dp either side of the centre,
+        // and five reaching ±2 at the same spacing would claim 164dp — more than a 360dp phone has to give,
+        // leaving 16dp of edge at each end and both top dials nowhere to sit. See [TOP_BUTTON_OFFSET_DP].
         val topCentre = perimeter.lengthAt(TOP_CENTRE)
         val reach = topButtons.maxOf { abs(it.side) } * TOP_BUTTON_OFFSET_DP
         val zone = dp(reach + Space.TOUCH / 2 + Space.M)
@@ -356,11 +389,17 @@ class ControlSurface(
             drawTransport(canvas)
         }
         for (button in topButtons) {
-            drawIcon(canvas, button.icon, button.hit.centerX(), button.hit.centerY(), dp(ICON_DP))
+            // Both tints were made in the constructor; picking between them here allocates nothing.
+            val glyph = if (button === lockButton && mode != PadMode.NORMAL) lockIconOn else button.icon
+            drawIcon(canvas, glyph, button.hit.centerX(), button.hit.centerY(), dp(ICON_DP))
         }
         if (showHints) drawHints(canvas)
         drawFingers(canvas)
-        for (i in dials.indices) drawDial(canvas, i)
+        // Focus hides the dials; [dialAt] stops answering for them in the same breath, so nothing is left
+        // taking touches where there is nothing drawn.
+        if (mode != PadMode.FOCUS) {
+            for (i in dials.indices) drawDial(canvas, i)
+        }
     }
 
     /**
@@ -435,8 +474,13 @@ class ControlSurface(
         )
     }
 
-    /** The media pieces exist only while the laptop has a player open; otherwise their room is trackpad. */
-    private fun mediaShown(): Boolean = state.app.isNotEmpty() || state.nowPlaying.isNotEmpty()
+    /**
+     * The media pieces exist only while the laptop has a player open; otherwise their room is trackpad.
+     * Focus takes them away as well, and because this is the one gate [down] hit-tests through, they stop
+     * answering the finger at the same moment they stop being drawn.
+     */
+    private fun mediaShown(): Boolean =
+        mode != PadMode.FOCUS && (state.app.isNotEmpty() || state.nowPlaying.isNotEmpty())
 
     private fun playedFraction(): Float =
         if (state.duration > 0) {
@@ -612,7 +656,7 @@ class ControlSurface(
             }
 
             MotionEvent.ACTION_CANCEL -> {
-                cancel(event)
+                cancelTouches(event.eventTime)
             }
 
             else -> {
@@ -647,13 +691,20 @@ class ControlSurface(
 
             else -> {
                 activeDial = dialAt(x, y)
-                if (activeDial >= 0) {
-                    dials[activeDial].down()
-                    lastS = hit[0]
-                } else {
-                    feed(TrackpadRecognizer.Action.DOWN, event, exclude = -1)
-                    trailLength = 0
-                    fingers(event, exclude = -1)
+                when {
+                    activeDial >= 0 -> {
+                        dials[activeDial].down()
+                        lastS = hit[0]
+                    }
+
+                    // A locked pad refuses the touch here too, not only on the samples that follow: the
+                    // finger never reaches the recogniser and no dot is drawn for it, so the surface does
+                    // not spend the gesture pretending to listen.
+                    onTrackpad() -> {
+                        feed(TrackpadRecognizer.Action.DOWN, event, exclude = -1)
+                        trailLength = 0
+                        fingers(event, exclude = -1)
+                    }
                 }
             }
         }
@@ -722,7 +773,14 @@ class ControlSurface(
         return false
     }
 
-    private fun cancel(event: MotionEvent) {
+    /**
+     * Drops everything in flight: the gesture the recogniser is holding, the dial being slid, the button
+     * under the finger. The system calls this when it takes the touch away, and [tapLock] calls it when the
+     * mode changes underneath one. That second caller is the one that matters — going to [PadMode.PAD_LOCKED]
+     * means [onTrackpad] is about to refuse every further sample, so a tap-and-hold drag with the left
+     * button down would never see its UP and the laptop would be left holding the button forever.
+     */
+    private fun cancelTouches(time: Long) {
         if (activeDial >= 0) dials[activeDial].cancel()
         activeDial = -1
         buttonDown = null
@@ -730,10 +788,38 @@ class ControlSurface(
         scrubbing = false
         fingerCount = 0
         trailLength = 0
-        trackpad.handle(TrackpadRecognizer.Action.CANCEL, touchXs, touchYs, event.eventTime, count = 0)
+        trackpad.handle(TrackpadRecognizer.Action.CANCEL, touchXs, touchYs, time, count = 0)
     }
 
-    private fun onTrackpad(): Boolean = activeDial < 0 && buttonDown == null && pressedTop == null && !scrubbing
+    private fun onTrackpad(): Boolean =
+        mode != PadMode.PAD_LOCKED && activeDial < 0 && buttonDown == null && pressedTop == null && !scrubbing
+
+    /**
+     * A tap on the lock button, from a finger or from the accessibility action. [SystemClock.uptimeMillis]
+     * is the clock [MotionEvent.getEventTime] is stamped from, so both paths share one double-tap window,
+     * and the handful of milliseconds between the finger lifting and this running are nothing against it.
+     */
+    private fun tapLock() {
+        val now = SystemClock.uptimeMillis()
+        val next = mode.next(now, lastLockTap, LOCK_SECOND_TAP_MS)
+        lastLockTap = now
+        mode = next
+        cancelTouches(now)
+        haptic()
+        // The other four buttons open a screen, which is its own answer; this one changes the surface in
+        // place, so the tick, the lit icon and the live region are all the confirmation there is.
+        stateDescription = modeLabel()
+        invalidate()
+    }
+
+    private fun modeLabel(): String =
+        context.getString(
+            when (mode) {
+                PadMode.NORMAL -> R.string.surface_mode_normal
+                PadMode.FOCUS -> R.string.surface_mode_focus
+                PadMode.PAD_LOCKED -> R.string.surface_mode_locked
+            },
+        )
 
     /** Records where every finger still down is, and extends the tail when there is just one. */
     private fun fingers(
@@ -774,6 +860,8 @@ class ControlSurface(
         x: Float,
         y: Float,
     ): Int {
+        // Focus does not draw them, so nothing here may claim a touch for them either.
+        if (mode == PadMode.FOCUS) return -1
         perimeter.project(x, y, hit)
         var best = -1
         var bestGap = Float.MAX_VALUE
@@ -819,6 +907,8 @@ class ControlSurface(
     }
 
     override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
+        // super fills the node's state description from the view's own, which [tapLock] keeps current: a
+        // screen reader landing on a locked surface is told why the pad will not answer before it tries.
         super.onInitializeAccessibilityNodeInfo(info)
         for (action in accessibilityActions.keys) info.addAction(action)
     }
@@ -840,8 +930,9 @@ class ControlSurface(
 
     /**
      * One of the buttons floating at the top of the surface. [side] places it across the centre of the top
-     * edge in steps of [TOP_BUTTON_OFFSET_DP]: -1 one step left of it, 0 on it, 1 one step right. Half steps
-     * are what keep an even-sized row centred — four buttons straddle the centre at ±0.5 and ±1.5.
+     * edge in steps of [TOP_BUTTON_OFFSET_DP]: -1 one step left of it, 0 on it, 1 one step right. An
+     * odd-sized row sits on whole steps — the five buttons are at 0 and ±1 and ±2, with the lock on the
+     * centre — where an even-sized one needs half steps to stay centred.
      */
     private class TopButton(
         val icon: Drawable,
@@ -911,8 +1002,64 @@ class ControlSurface(
         private const val TRAIL_ALPHA = 200f
         private const val ALPHA_SHIFT = 24
         private const val TOP_DP = 40f
-        private const val TOP_BUTTON_OFFSET_DP = 64f
+
+        /**
+         * The step between neighbouring top buttons, and not only spacing: [onSizeChanged] multiplies the
+         * outermost button's side by it to work out how much of the top edge the row keeps to itself, so
+         * this number and the number of buttons move together. Five buttons at the old 64dp would have
+         * reserved 164dp either side of the centre — a 360dp phone's whole top edge and then some — and
+         * pushed both top dials off it. 56dp brings that back to 148dp.
+         */
+        private const val TOP_BUTTON_OFFSET_DP = 56f
         private const val TOP_CENTRE = 0.5f
         private const val DIAL_GAP_DP = 16f
+
+        /**
+         * How long after the tap that focused the surface a second tap still means "and lock the pad"
+         * rather than "put the dials back". The owner asked for a second; the platform's own double-tap
+         * window is used instead because a full second is long enough that an immediate corrective tap —
+         * the one meaning "no, undo that" — would land inside it and lock the pad rather than unfocus it.
+         * One constant, and nothing else reads the window: raise it here if a second really is wanted.
+         */
+        private val LOCK_SECOND_TAP_MS = ViewConfiguration.getDoubleTapTimeout().toLong()
     }
+}
+
+/**
+ * What the control surface is showing and answering, and the table the lock button walks.
+ *
+ * Pure, and outside the view deliberately: no Android type reaches it, so the transitions are tested on the
+ * JVM the way [TrackpadRecognizer]'s gesture table is, on a machine with no emulator.
+ */
+enum class PadMode {
+    /** Dials, media and trackpad, all live. */
+    NORMAL,
+
+    /** Dials and media are neither drawn nor hit-tested; the trackpad and the five top buttons remain. */
+    FOCUS,
+
+    /** Dials and media stay live, and the trackpad refuses every touch, so a palm or a pocket does nothing. */
+    PAD_LOCKED,
+    ;
+
+    /**
+     * Where a tap on the lock button at [now] lands, given the tap before it at [previousTap] and a window
+     * of [windowMs]. One tap out of [NORMAL] focuses at once rather than waiting to see whether a second
+     * arrives, because a mode that takes a double-tap timeout to appear feels like a button that missed;
+     * a second tap inside the window then upgrades focus to a locked pad, and any later tap, from either
+     * mode, puts the whole surface back.
+     *
+     * [windowMs] is added to [previousTap], never subtracted from [now]: the never-tapped sentinel is
+     * Long.MIN_VALUE and subtracting from it would overflow into a window that swallows the first tap.
+     */
+    fun next(
+        now: Long,
+        previousTap: Long,
+        windowMs: Long,
+    ): PadMode =
+        when (this) {
+            NORMAL -> FOCUS
+            FOCUS -> if (now <= previousTap + windowMs) PAD_LOCKED else NORMAL
+            PAD_LOCKED -> NORMAL
+        }
 }

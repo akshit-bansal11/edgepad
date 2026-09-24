@@ -9,5 +9,5 @@
   <item name="action_keyboard" type="id" />
   <item name="action_gamepad" type="id" />
   <item name="action_macros" type="id" />
-  <item name="action_lock" type="id" />
+  <item name="action_pad_lock" type="id" />
 </resources>
