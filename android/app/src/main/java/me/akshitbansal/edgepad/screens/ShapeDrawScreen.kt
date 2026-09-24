@@ -46,9 +46,10 @@ object ShapeDrawScreen {
         var drawn: FloatArray? = null
         var chosen: ShapeTarget? = null
 
-        // One function for both steps, picked between by whether a stroke has been accepted yet. Choosing
-        // a target has to build the list again to move the dot, and going back has to build a fresh
-        // canvas, so every path through the screen ends up here anyway.
+        // One function for both steps, picked between by whether a stroke has been accepted yet. Only the
+        // two steps call it: going back to redraw needs a fresh canvas, and accepting a stroke needs the
+        // target list. Picking a target deliberately does not -- the dot and the SAVE button move
+        // themselves, because rebuilding here would hand the list a new ScrollView starting at the top.
         fun render() {
             root.removeAllViews()
             val points = drawn
@@ -69,29 +70,30 @@ object ShapeDrawScreen {
                 )
                 return
             }
-            val pick = chosen
             val redraw = {
                 drawn = null
                 render()
             }
+            val (row, arm) =
+                actions(ui, chosen != null, redraw) {
+                    chosen?.let { target ->
+                        settings.shapes = Shapes.encode(existing + Shape(points, target))
+                        onSaved()
+                    }
+                }
             root.addView(
                 ui.page(ui.bar(ui.string(R.string.shapes_title), redraw)) {
                     add(
                         ui.choices(
                             targets.map { ShapesScreen.targetName(ui, it, macros) },
-                            targets.indexOfFirst { it == pick },
+                            targets.indexOfFirst { it == chosen },
                         ) { i ->
                             chosen = targets[i]
-                            render()
+                            arm(true)
                         },
                     )
                     add(
-                        actions(ui, pick != null, redraw) {
-                            if (pick != null) {
-                                settings.shapes = Shapes.encode(existing + Shape(points, pick))
-                                onSaved()
-                            }
-                        },
+                        row,
                         Space.L,
                     )
                 },
@@ -125,32 +127,44 @@ object ShapeDrawScreen {
         return actions + slots.map(ShapeTarget::Macro) + pad
     }
 
-    /** REDRAW and SAVE at the foot of the target list. */
+    /**
+     * REDRAW and SAVE at the foot of the target list, and the one function that arms SAVE.
+     *
+     * Handed back rather than kept, because picking a target must not rebuild this page: the list of things
+     * a shape can run is longer than the screen, and a rebuilt page brings a fresh ScrollView that starts at
+     * the top, so every pick threw the user back to the first row. The dot moves itself now, and this moves
+     * the only other thing a pick changes.
+     */
     private fun actions(
         ui: Ui,
         ready: Boolean,
         onRedraw: () -> Unit,
         onSave: () -> Unit,
-    ): View =
-        LinearLayout(ui.context).apply {
-            addView(
-                ui.button(ui.string(R.string.shapes_redraw), Ui.Style.QUIET, onRedraw),
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
-            )
-            val save =
-                ui.button(ui.string(R.string.shapes_save), Ui.Style.FILLED, onSave).apply {
-                    // A shape saved with nothing behind it would sit in the list looking like a binding
-                    // and do nothing when drawn, which reads as the recogniser having failed.
-                    isEnabled = ready
-                    alpha = if (ready) 1f else DISABLED_ALPHA
-                }
-            addView(
-                save,
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginStart = ui.dp(Space.S)
-                },
-            )
+    ): Pair<View, (Boolean) -> Unit> {
+        val save =
+            ui.button(ui.string(R.string.shapes_save), Ui.Style.FILLED, onSave)
+        // A shape saved with nothing behind it would sit in the list looking like a binding and do nothing
+        // when drawn, which reads as the recogniser having failed.
+        val arm = { on: Boolean ->
+            save.isEnabled = on
+            save.alpha = if (on) 1f else DISABLED_ALPHA
         }
+        arm(ready)
+        val row =
+            LinearLayout(ui.context).apply {
+                addView(
+                    ui.button(ui.string(R.string.shapes_redraw), Ui.Style.QUIET, onRedraw),
+                    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
+                )
+                addView(
+                    save,
+                    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                        marginStart = ui.dp(Space.S)
+                    },
+                )
+            }
+        return row to arm
+    }
 
     /**
      * The canvas one stroke is drawn on: the editors' dot grid, the stroke over it, and a line of small
