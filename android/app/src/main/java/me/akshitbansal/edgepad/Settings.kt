@@ -46,6 +46,15 @@ class Settings(
         get() = prefs.getString(KEY_LAPTOP, null)
         set(value) = prefs.edit().putString(KEY_LAPTOP, value).apply()
 
+    /**
+     * The shapes the user has drawn and what each one runs, in the text [me.akshitbansal.edgepad.surface.Shapes]
+     * encodes. Kept as one string rather than a key per shape because the whole set is read and written
+     * together, the way the gamepad's layout is, and because a half-saved set is worse than none.
+     */
+    var shapes: String
+        get() = prefs.getString(KEY_SHAPES, "").orEmpty()
+        set(value) = prefs.edit().putString(KEY_SHAPES, value).apply()
+
     var onboarded by flag("onboarded", false)
 
     /** Connect to the remembered laptop when the app opens, and retry after a dropped link. */
@@ -320,6 +329,7 @@ class Settings(
         private const val NONE = "-"
         private const val IMAGE_FILE = "background.img"
         private const val KEY_LAPTOP = "laptop"
+        private const val KEY_SHAPES = "shapes"
         private const val KEY_SENSITIVITY = "sensitivity"
         private const val KEY_POINTER_SPEED = "pointerSpeed"
         private const val KEY_SCROLL_SPEED = "scrollSpeed"

@@ -45,6 +45,8 @@ import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
+import me.akshitbansal.edgepad.screens.ShapeDrawScreen
+import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.surface.ControlSurface
 import java.io.IOException
@@ -72,6 +74,8 @@ class MainActivity :
         SETTINGS,
         CORNERS,
         GESTURES,
+        SHAPES,
+        SHAPE_DRAW,
         DIAL_FEEL,
         KEYBOARD_SETTINGS,
         MACRO_SETTINGS,
@@ -251,6 +255,7 @@ class MainActivity :
                             forget = ::forget,
                             corners = { goTo(Screen.CORNERS) },
                             gestures = { goTo(Screen.GESTURES) },
+                            shapes = { goTo(Screen.SHAPES) },
                             dialFeel = { goTo(Screen.DIAL_FEEL) },
                             keyboard = { goTo(Screen.KEYBOARD_SETTINGS) },
                             gamepadLayout = {
@@ -277,6 +282,29 @@ class MainActivity :
 
                 Screen.GESTURES -> {
                     GestureScreen.build(ui, settings) { navigateBack() }
+                }
+
+                Screen.SHAPES -> {
+                    // Rebuilt rather than re-filled after a deletion: the list and the empty state are two
+                    // different pages, and the last shape going takes the screen from one to the other.
+                    ShapesScreen.build(
+                        ui,
+                        settings,
+                        state.macros,
+                        onDraw = { goTo(Screen.SHAPE_DRAW) },
+                        onChanged = { goTo(Screen.SHAPES) },
+                        onBack = { navigateBack() },
+                    )
+                }
+
+                Screen.SHAPE_DRAW -> {
+                    ShapeDrawScreen.build(
+                        ui,
+                        settings,
+                        state.macros,
+                        onSaved = { goTo(Screen.SHAPES) },
+                        onBack = { navigateBack() },
+                    )
                 }
 
                 Screen.KEYBOARD_SETTINGS -> {
@@ -378,10 +406,11 @@ class MainActivity :
 
     /**
      * Three answers, not two. The keyboard and the gamepad are drawn sideways and only sideways. The control
-     * surface and the media layout editor are held the way the Orientation setting says — the editor because a
-     * media layout is stored per orientation since 2.3.0, so a phone turned mid-edit would quietly start
-     * changing the other one. Everything else follows the phone, which is what the setting used to override for
-     * the whole app. A change rebuilds the activity; the link survives it.
+     * surface and the two canvases that stand in for it are held the way the Orientation setting says — the
+     * media layout editor because a layout is stored per orientation since 2.3.0, so a phone turned mid-edit
+     * would quietly start changing the other one, and the shape canvas because a stroke is drawn at the pad's
+     * own proportions. Everything else follows the phone, which is what the setting used to override for the
+     * whole app. A change rebuilds the activity; the link survives it.
      */
     private fun applyOrientation() {
         requestedOrientation =
@@ -430,9 +459,13 @@ class MainActivity :
             }
 
             Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.GUIDE, Screen.MEDIA_LAYOUT,
-            Screen.KEYBOARD_SETTINGS, Screen.MACRO_SETTINGS,
+            Screen.KEYBOARD_SETTINGS, Screen.MACRO_SETTINGS, Screen.SHAPES,
             -> {
                 goTo(Screen.SETTINGS)
+            }
+
+            Screen.SHAPE_DRAW -> {
+                goTo(Screen.SHAPES)
             }
 
             Screen.GAMEPAD_LAYOUT -> {
@@ -767,13 +800,26 @@ class MainActivity :
 
     private companion object {
         val immersive =
-            setOf(Screen.SURFACE, Screen.KEYBOARD, Screen.GAMEPAD, Screen.MEDIA_LAYOUT, Screen.GAMEPAD_LAYOUT)
+            setOf(
+                Screen.SURFACE,
+                Screen.KEYBOARD,
+                Screen.GAMEPAD,
+                Screen.MEDIA_LAYOUT,
+                Screen.GAMEPAD_LAYOUT,
+                Screen.SHAPE_DRAW,
+            )
 
         /** Drawn sideways whatever the phone is doing, because they are laid out for a wide screen and nothing else. */
         val alwaysSideways = setOf(Screen.KEYBOARD, Screen.GAMEPAD, Screen.GAMEPAD_LAYOUT)
 
-        /** Held the way the Orientation setting says. Everything outside both sets follows the phone. */
-        val pinned = setOf(Screen.SURFACE, Screen.MEDIA_LAYOUT)
+        /**
+         * Held the way the Orientation setting says. Everything outside both sets follows the phone.
+         *
+         * The shape canvas is here for a reason of its own: it is held the way the pad is because a shape
+         * is drawn at the pad's own proportions, and because a phone that rotated mid-stroke would turn
+         * half a drawing into a saved shape nobody could reproduce.
+         */
+        val pinned = setOf(Screen.SURFACE, Screen.MEDIA_LAYOUT, Screen.SHAPE_DRAW)
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2
         const val PING_INTERVAL_MS = 500L

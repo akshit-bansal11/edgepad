@@ -8,6 +8,7 @@ import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.surface.Perimeter
+import me.akshitbansal.edgepad.surface.Shapes
 import kotlin.math.roundToInt
 
 /**
@@ -27,6 +28,7 @@ object SettingsScreen {
         val forget: () -> Unit,
         val corners: () -> Unit,
         val gestures: () -> Unit,
+        val shapes: () -> Unit,
         val dialFeel: () -> Unit,
         val keyboard: () -> Unit,
         val gamepadLayout: () -> Unit,
@@ -73,6 +75,7 @@ object SettingsScreen {
                     section(ui.string(R.string.settings_surface))
                     link(ui.string(R.string.corners_title), cornersSummary(ui, settings), routes.corners)
                     link(ui.string(R.string.gestures_title), null, routes.gestures)
+                    link(ui.string(R.string.shapes_title), shapesSummary(ui, settings), routes.shapes)
                     val feel =
                         ui.string(R.string.feel_summary, settings.sensitivity, settings.dialLength.roundToInt())
                     link(ui.string(R.string.dial_feel_title), feel, routes.dialFeel)
@@ -128,6 +131,19 @@ object SettingsScreen {
                 },
             )
         }
+
+    /**
+     * How many shapes are drawn. A set that failed to decode counts as none, because that is exactly what
+     * the pad will do with it, and a hub row claiming four shapes over a trackpad that recognises none
+     * would send the owner looking in the wrong place.
+     */
+    private fun shapesSummary(
+        ui: Ui,
+        settings: Settings,
+    ): String {
+        val count = Shapes.decode(settings.shapes)?.size ?: 0
+        return if (count == 0) ui.string(R.string.shapes_none) else ui.string(R.string.shapes_summary, count)
+    }
 
     /** The four corners' short dial names, clockwise from the top left. */
     private fun cornersSummary(

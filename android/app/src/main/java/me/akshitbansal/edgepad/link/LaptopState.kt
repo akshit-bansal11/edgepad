@@ -162,24 +162,29 @@ class LaptopState {
         return if (names.none { it.isNotEmpty() }) emptyList() else names
     }
 
-    private companion object {
-        const val FLAG_BIT = 1
-        const val MAX_LEVEL = 100
-
+    companion object {
         /**
          * The grid the phone draws, 5 by 3. The reserved action block 64..95 is wider on purpose, but the
          * laptop never fills past this: fifteen names of sixteen bytes are all one TEXT frame can carry.
+         *
+         * Public, alone among the numbers here, because it is the ceiling on what a macro slot may be
+         * anywhere on the phone: the shapes editor offers slots up to it and
+         * [me.akshitbansal.edgepad.surface.Shapes] refuses a stored one past it. A second copy of the
+         * number somewhere else would be a second thing to forget when the grid changes size.
          */
         const val MACRO_SLOTS = 15
 
+        private const val FLAG_BIT = 1
+        private const val MAX_LEVEL = 100
+
         /** "slot/chunk/chunks/base64". */
-        const val ICON_FIELDS = 4
+        private const val ICON_FIELDS = 4
 
         /**
          * The most chunks one icon may claim. The laptop caps an icon at six kilobytes, which is 35 of them,
          * so this is headroom rather than a limit anything real meets — and a ceiling on what a malformed
          * count can ask this app to allocate.
          */
-        const val MAX_CHUNKS = 64
+        private const val MAX_CHUNKS = 64
     }
 }

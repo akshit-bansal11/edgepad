@@ -10,6 +10,11 @@ import kotlin.math.hypot
  * behaves: one finger moves, taps to click, taps then holds to drag; two fingers drag to scroll, pinch to
  * zoom and tap to right-click. Three and four fingers tapping or swiping run whatever [map] assigns them.
  *
+ * One finger has a second life: held still for [SHAPE_HOLD_MS] it stops moving the pointer and starts
+ * drawing, and the whole stroke goes to [onShape] when it lifts. That seam was free — a bare press and hold
+ * with no tap in front of it did nothing at all before — but it is a narrow one, so [armShape] says in full
+ * what it refuses to claim.
+ *
  * Pure: no Android types, so the gesture table is tested on the JVM. Positions are in pixels; [density]
  * (pixels per dp) scales every threshold so the feel is the same on any screen. A gesture is classified by
  * the most fingers it ever had, so a finger lifting early never turns a swipe into pointer moves.
@@ -23,11 +28,28 @@ class TrackpadRecognizer(
     /** Multiplies [SCROLL_UNITS_PER_DP]: how much wheel one dp of two-finger drag is worth. */
     private val scrollSpeed: Float = 1f,
     private val map: (Gesture) -> GestureAction = { it.default },
+    /**
+     * Handed the whole stroke when a finger that became a shape lifts: the first `count` entries of the two
+     * arrays, in pixels, starting at the press rather than at the moment the hold expired.
+     *
+     * Null turns shape mode off outright, which is what the surface passes when nothing is bound to a
+     * shape. Then a press and hold stays what it has always been on this pad, which is nothing at all —
+     * rather than swallowing a third of a second of pointer movement on every phone that never drew one.
+     */
+    private val onShape: ((xs: FloatArray, ys: FloatArray, count: Int) -> Unit)? = null,
     private val sink: (Frame) -> Unit,
 ) {
     enum class Action { DOWN, MOVE, UP, CANCEL }
 
     private enum class TwoFingerMode { UNDECIDED, SCROLL, PINCH }
+
+    /**
+     * True from the moment a held single finger becomes a stroke until it lifts. Read by the surface, which
+     * ticks once on the change and draws the trail solid while it is set; the decision itself is made here
+     * and nowhere else, so there is one answer to "is this a shape" rather than two that can disagree.
+     */
+    var shaping = false
+        private set
 
     private var fingers = 0
     private var maxFingers = 0
@@ -53,6 +75,13 @@ class TrackpadRecognizer(
     private var scrollRemX = 0f
     private var scrollRemY = 0f
 
+    // The stroke, in screen pixels, kept from the press onward whether or not it ever becomes one. Fixed
+    // arrays because this is filled on the touch path, which the surface asks for unbuffered: a fresh
+    // buffer per gesture is garbage collected while a finger is drawing on the glass.
+    private val pathXs = FloatArray(MAX_PATH)
+    private val pathYs = FloatArray(MAX_PATH)
+    private var pathCount = 0
+
     /**
      * One touch sample. The first [count] entries of [xs] and [ys] hold every finger still on the surface
      * after this event, so on an UP of one finger among several the caller passes the ones that remain.
@@ -70,7 +99,7 @@ class TrackpadRecognizer(
     ) {
         when (action) {
             Action.DOWN -> down(xs, ys, count, time)
-            Action.MOVE -> move(xs, ys, count)
+            Action.MOVE -> move(xs, ys, count, time)
             Action.UP -> up(xs, ys, count, time)
             Action.CANCEL -> finish(time, tapAllowed = false)
         }
@@ -101,6 +130,9 @@ class TrackpadRecognizer(
         // here, or every two-finger touch would count as moved and never as a tap.
         startX = lastX
         startY = lastY
+        // A second finger is not part of a one-finger stroke: whatever was being drawn is abandoned here,
+        // and the gesture carries on as the two-finger one it has become.
+        if (maxFingers == 1) record(lastX, lastY) else shaping = false
         if (fingers == 2) {
             startSpan = span(xs, ys)
             lastSpan = startSpan
@@ -111,6 +143,7 @@ class TrackpadRecognizer(
         xs: FloatArray,
         ys: FloatArray,
         count: Int,
+        time: Long,
     ) {
         if (fingers == 0 || count == 0) return
         val cx = centroid(xs, count)
@@ -121,13 +154,52 @@ class TrackpadRecognizer(
         lastY = cy
         val fromStartX = cx - startX
         val fromStartY = cy - startY
+        // Every single-finger sample is kept from the press onward, not from the moment the hold expires.
+        // Same trap the scroll-or-pinch decision below documents: the travel spent before the decision is
+        // travel the user drew, and a stroke missing its first few millimetres is a different stroke.
+        // [armShape] runs before `moved` is updated, so "still for the whole hold" means exactly that.
+        // Once it has armed, the finger stops driving the pointer: the laptop must not sit there watching
+        // the shape being drawn on it.
+        if (maxFingers == 1) {
+            record(cx, cy)
+            armShape(time)
+        }
         if (!moved && hypot(fromStartX, fromStartY) > dp(SLOP_DP)) moved = true
 
         when (maxFingers) {
-            1 -> if (moved) pointer(dx, dy)
+            1 -> if (moved && !shaping) pointer(dx, dy)
             2 -> twoFingers(xs, ys, dx, dy, fromStartX, fromStartY)
             else -> swipe(cx, cy, fromStartX, fromStartY)
         }
+    }
+
+    /**
+     * Turns a single finger that has stayed put into a stroke. [SHAPE_HOLD_MS] is added to the press time
+     * and never subtracted from now, for the same reason [down] adds to [lastTapUp].
+     *
+     * A drag is excluded outright. A drag on this pad is tap, lift, press, move, so its second press is a
+     * hold — the very thing this claims — and arming on it would turn every unhurried drag into a scrawl.
+     * That exclusion is also what made a bare press and hold free to take: with no tap in front of it, it
+     * reached [finish] past the [TAP_MS] window and did nothing at all.
+     */
+    private fun armShape(time: Long) {
+        if (shaping || moved || dragging || onShape == null) return
+        if (time >= startTime + SHAPE_HOLD_MS) shaping = true
+    }
+
+    /**
+     * Keeps one more sample of the stroke. A full buffer stops taking them rather than growing or dropping
+     * the beginning: [MAX_PATH] samples is several seconds of drawing at any digitiser's rate, and a fixed
+     * array is what keeps this path free of allocation while a finger is on the glass.
+     */
+    private fun record(
+        x: Float,
+        y: Float,
+    ) {
+        if (pathCount >= MAX_PATH) return
+        pathXs[pathCount] = x
+        pathYs[pathCount] = y
+        pathCount++
     }
 
     private fun pointer(
@@ -279,7 +351,11 @@ class TrackpadRecognizer(
         }
     }
 
-    private fun oneShot(action: GestureAction) {
+    /**
+     * Fires [action] once. Public because a drawn shape runs the same one-shot vocabulary a tap does, and
+     * one place deciding what "left click" means beats two places that can drift apart.
+     */
+    fun oneShot(action: GestureAction) {
         when (action) {
             GestureAction.LEFT_CLICK -> {
                 click(LEFT)
@@ -327,13 +403,28 @@ class TrackpadRecognizer(
         if (fingers == 0) return
         if (running == GestureAction.APP_SWITCHER) sink(ActionId.APP_SWITCH_END.frame())
         running = null
+        val drawn = shaping
+        shaping = false
         val untouched = !moved && !swipeFired && twoFinger == TwoFingerMode.UNDECIDED
-        if (dragging) {
-            sink(Frame.PointerButton(LEFT, false))
-        } else if (tapAllowed && untouched && time - startTime <= TAP_MS) {
-            tap(time)
-        }
+        // Cleared before the stroke is handed over, not after: the surface may lock the pad from inside
+        // that call, and locking cancels the touch, which comes straight back in here.
         fingers = 0
+        when {
+            // A stroke ends as a stroke and as nothing else: no tap, no click on whatever was under the
+            // finger. A cancelled one is dropped, because the system took the gesture away mid-draw and
+            // the part that arrived is not what the user meant to draw.
+            drawn -> {
+                if (tapAllowed) onShape?.invoke(pathXs, pathYs, pathCount)
+            }
+
+            dragging -> {
+                sink(Frame.PointerButton(LEFT, false))
+            }
+
+            tapAllowed && untouched && time - startTime <= TAP_MS -> {
+                tap(time)
+            }
+        }
     }
 
     private fun tap(time: Long) {
@@ -366,6 +457,8 @@ class TrackpadRecognizer(
         swipeFired = false
         running = null
         twoFinger = TwoFingerMode.UNDECIDED
+        shaping = false
+        pathCount = 0
         pinchRemainder = 0f
         moveRemX = 0f
         moveRemY = 0f
@@ -407,5 +500,23 @@ class TrackpadRecognizer(
         const val SWITCH_STEP_DP = 72f
         const val TAP_MS = 250L
         const val DRAG_TAP_GAP_MS = 300L
+
+        /**
+         * How long one finger must stay inside [SLOP_DP] before the press becomes a stroke. Comfortably
+         * past [TAP_MS], so a tap can never grow into a shape, and past the gap a drag's second press
+         * lands in, so the two never race. Shorter and a thinking pause starts drawing; longer and the
+         * tick feels like the pad noticed late.
+         */
+        const val SHAPE_HOLD_MS = 350L
+
+        /**
+         * The most samples one stroke keeps. At any digitiser's rate this is several seconds of drawing,
+         * and a stroke longer than that is not a shape anyone will reproduce twice. A full buffer stops
+         * recording rather than growing, so the ceiling is a slightly clipped tail, never an allocation.
+         *
+         * Public because the screen a shape is drawn on keeps the same ceiling: an editor that accepted a
+         * longer stroke than the pad can take would save a shape whose tail the pad never sees again.
+         */
+        const val MAX_PATH = 512
     }
 }

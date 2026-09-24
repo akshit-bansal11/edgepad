@@ -36,7 +36,12 @@ import kotlin.math.roundToInt
  * them, gear, keyboard, lock, gamepad and macro buttons at the top, and everything else is the trackpad. A
  * touch that starts inside a corner's zone is that dial's; one that starts on a media piece or a button is
  * a button press; any other is the trackpad. The lock button walks the surface through [PadMode], which is
- * the only thing that can take a piece of it away.
+ * the only thing that can take a piece of it away — and which a drawn shape can walk too, since a locked
+ * pad is one of the things a shape may be bound to.
+ *
+ * A single finger held still on the trackpad becomes a stroke; [TrackpadRecognizer] decides that, [Shapes]
+ * reads it, and [runShape] runs whatever it matched. A locked pad refuses shapes the way it refuses
+ * everything else, because the touch never reaches the recogniser at all.
  *
  * Everything is drawn here rather than built from child views: a touch reaches the recogniser with no view
  * hierarchy in between, dispatch is unbuffered so samples arrive as they happen, and every historical
@@ -64,6 +69,16 @@ class ControlSurface(
     private val dim = ink and RGB_MASK or DIM_ALPHA
     private val faint = ink and RGB_MASK or FAINT_ALPHA
 
+    /**
+     * The shapes the user has drawn, decoded once here rather than on every touch. A stored set that
+     * failed to decode is no set at all, which is [Shapes.decode]'s whole contract, and leaves the
+     * trackpad exactly as it was before the feature existed.
+     */
+    private val shapes = Shapes.decode(settings.shapes).orEmpty()
+
+    // The recogniser is handed a shape sink only when there is something to recognise: with nothing
+    // bound, a press and hold must stay the nothing it has always been rather than quietly stop the
+    // pointer for a third of a second on a phone whose owner never drew a shape.
     private val trackpad =
         TrackpadRecognizer(
             density,
@@ -71,6 +86,7 @@ class ControlSurface(
             settings.pointerSpeed,
             settings.scrollSpeed,
             settings::gesture,
+            if (shapes.isEmpty()) null else ::runShape,
             send,
         )
     private val hapticsOn = settings.haptics
@@ -168,6 +184,9 @@ class ControlSurface(
     private var pressedTop: TopButton? = null
     private var scrubbing = false
     private var scrubFraction = 0f
+
+    /** What the surface last saw of [TrackpadRecognizer.shaping]; the tick fires on the change, not on the state. */
+    private var drawingShape = false
 
     // The fingers on the trackpad, drawn as dots, with a tail behind a single finger and a ring between two.
     private var fingerCount = 0
@@ -411,8 +430,10 @@ class ControlSurface(
             stroke.strokeCap = Paint.Cap.ROUND
             var i = 1
             while (i < trailLength) {
-                // Index 0 is the newest sample; each older segment is thinner and fainter.
-                val fade = 1f - i.toFloat() / trailLength
+                // Index 0 is the newest sample; each older segment is thinner and fainter. While a shape
+                // is being drawn the tail is solid instead: a stroke that fades out behind the finger
+                // reads as the pointer moving, which is the one thing shape mode has just stopped doing.
+                val fade = if (drawingShape) 1f else 1f - i.toFloat() / trailLength
                 stroke.color = ink and RGB_MASK or ((fade * TRAIL_ALPHA).roundToInt() shl ALPHA_SHIFT)
                 stroke.strokeWidth = dp(FINGER_DP) * fade
                 canvas.drawLine(trailX(i - 1), trailY(i - 1), trailX(i), trailY(i), stroke)
@@ -725,6 +746,52 @@ class ControlSurface(
                 for (h in 0 until event.historySize) feedHistorical(event, h)
                 feed(TrackpadRecognizer.Action.MOVE, event, exclude = -1)
                 fingers(event, exclude = -1)
+                shapeFeedback()
+            }
+        }
+    }
+
+    /**
+     * The tick that tells the finger its press has become a stroke, and the flag [drawFingers] draws the
+     * trail solid on. The recogniser owns the decision; this only notices the moment it changes, so one
+     * hold ticks once rather than once per touch sample.
+     */
+    private fun shapeFeedback() {
+        if (trackpad.shaping == drawingShape) return
+        drawingShape = trackpad.shaping
+        if (drawingShape) haptic()
+    }
+
+    /**
+     * The finger lifted after drawing something. Recognise it, and run whatever it was bound to — or, more
+     * often than not, nothing at all. Silence is the right answer for a stroke that matched nothing: the
+     * alternative is the nearest binding firing on a scrawl that was never meant to be one.
+     */
+    private fun runShape(
+        xs: FloatArray,
+        ys: FloatArray,
+        count: Int,
+    ) {
+        drawingShape = false
+        val points = Shapes.normalise(xs, ys, count, density) ?: return
+        val shape = Shapes.match(points, shapes) ?: return
+        haptic()
+        when (val target = shape.target) {
+            is ShapeTarget.Run -> {
+                trackpad.oneShot(target.action)
+            }
+
+            is ShapeTarget.Macro -> {
+                // The index and nothing else, exactly as the macro grid sends it: the laptop's own list
+                // decides what a slot launches, and that is the whole security model behind macros.
+                send(Frame.RunAction(ActionId.MACRO_BASE.id + target.slot))
+            }
+
+            is ShapeTarget.Pad -> {
+                // Phone-local: nothing crosses the link. The lock button's own live region carries it,
+                // because a surface that rearranges itself under a finger is otherwise silent.
+                mode = target.mode
+                stateDescription = modeLabel()
             }
         }
     }
@@ -768,6 +835,7 @@ class ControlSurface(
                 feed(TrackpadRecognizer.Action.UP, event, exclude = event.actionIndex)
                 fingerCount = 0
                 trailLength = 0
+                drawingShape = false
             }
         }
         return false
@@ -788,6 +856,7 @@ class ControlSurface(
         scrubbing = false
         fingerCount = 0
         trailLength = 0
+        drawingShape = false
         trackpad.handle(TrackpadRecognizer.Action.CANCEL, touchXs, touchYs, time, count = 0)
     }
 
