@@ -4,6 +4,47 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-09-24
+
+Five things found in the first look at 3.0.0, and one change the last of them dragged in. Nothing about
+the wire protocol moves: it stays at version 4, so a 3.0.0 half and a 3.0.1 half still speak to each
+other -- though an icon only grows if both halves come from this release.
+
+### Fixed
+- **A locked pad looked exactly like a working one.** The only sign was the lock button's icon going
+  from grey to black, which is no sign at all on a surface that has just stopped answering. The pad now
+  says which mode it is in and that the lock button is the way out. It sits above the gesture hints
+  rather than under the buttons, because a corner dial draws its label about seventy dp in from the top
+  and a locked pad still draws its dials.
+- **A shape bound to lock the pad locked it silently.** Two places set the mode and only one of them
+  knew about the new caption. There is one now.
+- **The macro appearance toggle did not move when tapped.** It changed the setting and nothing on
+  screen, which read as the setting not taking. The fault was older and wider than that one row:
+  the segmented control and the list of choices both painted their selection once when they were built
+  and left it, on the assumption that whatever owned the screen would rebuild it. Theme and Orientation
+  hid it for a year because both rebuild the whole activity. They paint themselves now, and the fill
+  slides to the option tapped rather than appearing there.
+- **Picking what a shape runs threw you back to the top of the list.** Choosing a target rebuilt the
+  page, and a rebuilt page brings a fresh scrolling view that starts at the top -- on a list longer than
+  the screen, which that one is, every pick lost your place.
+- **An icon-only macro button kept the room its missing name would have used,** and drew an outline
+  round the picture. Both are gone: the button is the height of what is in it.
+
+### Changed
+- **The top buttons sit closer together upright,** at forty-eight dp rather than fifty-six; sideways
+  they are unchanged, where the room was never the problem. Forty-eight is as close as they go, because
+  a button's touch target is that wide and a tighter step would have two of them claiming the same
+  pixels. The corner dials get sixteen dp of the top edge back either side.
+- **Macro buttons fill the screen.** The grid picks the number of columns that makes the biggest button
+  rather than the most that fit, so three macros are drawn large and fifteen small, and it still gives
+  every button one height so a row holding a picture and a name cannot stand at two.
+- **The laptop sends a bigger picture for each macro,** 128 pixels square rather than 48. Forty-eight
+  was ample while a button drew its picture at a fixed size and visibly soft once a short grid drew it
+  four times larger. The cost lands on the link -- an icon is several times the bytes it was -- and is
+  paid when the macro grid opens, which is a screen with no trackpad on it, and never while a finger is
+  moving the pointer. A phone from 3.0.0 refuses the larger icon and keeps the name instead, which is
+  what it has always done with an icon it cannot take.
+
 ## [3.0.0] - 2026-09-24
 
 The gamepad stops pretending. It drives a real Xbox controller on the laptop, its sticks and triggers
@@ -576,7 +617,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.0.1...HEAD
+[3.0.1]: https://github.com/akshit-bansal11/edgepad/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.3.0...v3.0.0
 [2.3.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.1.0...v2.2.0
