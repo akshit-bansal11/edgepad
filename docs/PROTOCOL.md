@@ -1,6 +1,6 @@
 # Wire protocol
 
-Version 3. Both apps refuse any other version at the handshake.
+Version 4. Both apps refuse any other version at the handshake.
 
 The transport is an RFCOMM byte stream. A frame is one type byte followed by a payload whose length is fixed by the type, except TEXT, whose second header byte gives the length of the text that follows. All multi-byte integers are little-endian. An unknown type byte, a wrong length, a bad magic or a flag byte other than 0 or 1 is a protocol error and closes the connection. A well-formed frame naming an action or control this side does not know is dropped and counted, never treated as an error, so a newer app can talk to an older one until the version check says otherwise.
 
@@ -23,8 +23,9 @@ The transport is an RFCOMM byte stream. A frame is one type byte followed by a p
 | `0x40` | STATE | control u8, value u8, flags u8 | laptop to phone | a control's current value; flags bit 0 is muted for audio controls and playing for media position |
 | `0x41` | TEXT | kind u8, length u8, UTF-8 bytes | both ways | up to 255 bytes, never split inside a character |
 | `0x22` | KEY | code u16, down u8 | phone to laptop | press or release one key, by Windows virtual-key code |
+| `0x23` | PAD_STATE | buttons u16, lt u8, rt u8, lx i16, ly i16, rx i16, ry i16 | phone to laptop | the whole gamepad at once; see below |
 
-TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter, 4 the display's available refresh rates as `60/120/144` (laptop to phone), 5 the laptop's macro names as `Chrome/Spotify/Notes` (laptop to phone), 6 one piece of one macro's icon as `slot/chunk/chunks/base64` (laptop to phone), 7 a request for the macro icons, with an empty payload (phone to laptop).
+TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter, 4 the display's available refresh rates as `60/120/144` (laptop to phone), 5 the laptop's macro names as `Chrome/Spotify/Notes` (laptop to phone), 6 one piece of one macro's icon as `slot/chunk/chunks/base64` (laptop to phone), 7 a request for the macro icons, with an empty payload (phone to laptop), 8 whether a virtual controller can be offered, as one PAD_STATUS token (laptop to phone).
 
 An icon does not fit the 255 bytes a payload holds, so TEXT 6 carries a PNG in pieces and the phone joins them: the counts are what let it tell a finished icon from a truncated one. Kinds rather than a frame type of their own, which is what keeps the protocol version where it is — an unknown kind is dropped and counted on both sides, while an unknown type closes the connection. Icons are answered rather than pushed, so a laptop too old to know TEXT 7 drops it and the phone keeps its labels, and a phone too old to send it costs the link nothing.
 
@@ -57,6 +58,8 @@ After HELLO_ACK the laptop sends a STATE for volume, microphone and brightness, 
 | VOLUME_DOWN | 32 | volume-down key |
 | BRIGHTNESS_UP | 33 | the panel's brightness, plus 10 |
 | BRIGHTNESS_DOWN | 34 | the panel's brightness, minus 10 |
+| PAD_ATTACH | 35 | plugs in the virtual controller, then answers with TEXT 8 |
+| PAD_DETACH | 36 | unplugs it, then answers with TEXT 8 |
 
 | Control | Id | SET does | STATE reports |
 | --- | --- | --- | --- |
@@ -77,6 +80,58 @@ raw virtual-key code and TEXT kind 3 carries arbitrary characters, both of which
 — that is what the phone's keyboard screen is. A paired phone is a trusted input device, and the trust
 boundary is the Bluetooth pairing plus trust-on-first-use, not the macro table.
 
+## The gamepad
+
+PAD_STATE carries the entire controller — every button, both triggers, both sticks — in one 12-byte payload.
+The phone sends it whenever any of them changes and the laptop holds the last one until the next arrives.
+A snapshot rather than an edge per control, because a gamepad is read as a state: a dropped button release
+would otherwise leave a button held down until the user pressed it again, and a link that coalesces frames
+can throw away any PAD_STATE but the newest without losing anything.
+
+The payload is deliberately byte-for-byte the shape of Windows' `XINPUT_GAMEPAD` struct — `wButtons`,
+`bLeftTrigger`, `bRightTrigger`, `sThumbLX`, `sThumbLY`, `sThumbRX`, `sThumbRY`, in that order and at those
+widths — so the laptop copies the payload into the struct rather than translating it. A range or a button
+order of our own would have been a conversion on the hot path and a second definition to hold against
+Microsoft's. Triggers are 0..255. The four stick axes are -32768..32767, positive up and right, exactly as
+XInput reports them.
+
+`buttons` is XInput's `wButtons` mask, unchanged:
+
+| Mask | Button | Mask | Button | Mask | Button | Mask | Button |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `0x0001` | DPAD_UP | `0x0010` | START | `0x0100` | LEFT_SHOULDER | `0x1000` | A |
+| `0x0002` | DPAD_DOWN | `0x0020` | BACK | `0x0200` | RIGHT_SHOULDER | `0x2000` | B |
+| `0x0004` | DPAD_LEFT | `0x0040` | LEFT_THUMB | `0x0400` | GUIDE | `0x4000` | X |
+| `0x0008` | DPAD_RIGHT | `0x0080` | RIGHT_THUMB | | | `0x8000` | Y |
+
+`0x0000` is nothing held and `0x0800` is unused by XInput and stays unused here. `protocol/actions.txt` holds
+the masks as `PAD_BUTTON` rows so neither side keeps its own copy, the same way it holds the action ids.
+
+Nothing in a PAD_STATE can be out of range, so a well-formed one is never a protocol error. Every field
+spans its whole width, and an undefined button bit is an unknown id, which this protocol drops and counts.
+That is the line BUTTON already draws: its `button` id may be anything and is dropped by the laptop, while
+its `down` byte closes the connection, because a flag with two legal values out of 256 means the stream is
+corrupt rather than newer. A wrong payload length still closes the connection, as for any type.
+
+At 13 bytes on the wire PAD_STATE is the longest fixed-length frame, and still far inside the 258 that a
+255-byte TEXT sets as the maximum. No buffer on either side changed.
+
+The phone asks for the controller with PAD_ATTACH and gives it back with PAD_DETACH, and the laptop answers
+both with TEXT 8. The reply is one token from a fixed vocabulary, never prose, because the phone branches on
+it:
+
+| Token | Means |
+| --- | --- |
+| `ready` | the virtual controller is plugged in and PAD_STATE will be acted on |
+| `no-driver` | the virtual-controller driver is not installed on the laptop |
+| `attach-failed` | the driver is there but plugging the pad in did not work |
+
+Only `ready` leaves the pad usable; the other two are the two different things the phone has to tell its user
+when it falls back to the keyboard. A token the phone does not know is read as `no-driver`: not usable, and
+it cannot say why. Matching on the laptop's wording instead of on a token would make that wording part of the
+protocol and so unchangeable. The laptop also sends TEXT 8 once after the handshake, so a phone can hide the
+pad rather than offer a button that quietly does nothing.
+
 ## Versions
 
 | Version | Release | Change |
@@ -84,6 +139,13 @@ boundary is the Bluetooth pairing plus trust-on-first-use, not the macro table.
 | 1 | 0.1.0 | HELLO through STATE; TEXT kinds 0 and 1 arrived in 0.2.0 without a bump |
 | 2 | 0.3.0 | TEXT kind 2; a mismatch is refused with the laptop's version |
 | 3 | 0.6.0 | TEXT kind 3; actions 31 to 34 arrived in 0.5.0, CONTROL 4, TEXT 4 and 5 and the macro block in 1.1.0, and TEXT 6 and 7 in 2.3.0 |
+| 4 | 3.0.0 | PAD_STATE, a new frame type; actions 35 and 36 and TEXT 8 came with it and would not have needed one |
+
+The first move since v3 in 0.6.0, and it took a new frame type to earn it. PAD_STATE's type byte `0x23` is
+the whole reason: an unknown type closes the connection, so a v3 laptop meeting a v4 phone's PAD_STATE would
+hang up mid-session instead of ignoring a feature it does not have. Refusing at the handshake turns that into
+a message about which side needs updating. The rest of the gamepad rode along free — PAD_ATTACH, PAD_DETACH
+and TEXT 8 are new ids in tables that already existed, and an older build drops and counts them.
 
 The refresh-rate dial and the macro buttons both arrived in 1.1.0 **without** a bump, which is the rule
 working rather than being broken. An unknown action, control or text kind is dropped and counted, so a

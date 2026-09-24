@@ -22,6 +22,26 @@ class IdsFixtureTest {
     }
 
     @Test
+    fun padButtonMasksMatchTheSharedTable() {
+        assertEquals(expected("PAD_BUTTON"), PadButton.entries.associate { it.mask to it.name })
+    }
+
+    @Test
+    fun padStatusTokensMatchTheSharedTable() {
+        // The token is what crosses the wire, so the file holds it and this holds the enum to it. A row's
+        // third column is the name both apps use; its second is the bytes, which is the part that matters.
+        assertEquals(
+            rows("PAD_STATUS").associate { it[2] to it[1] },
+            PadStatus.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
+    fun anUnknownPadStatusTokenReadsAsNoDriver() {
+        assertEquals(PadStatus.NO_DRIVER, PadStatus.of("something-a-later-laptop-says"))
+    }
+
+    @Test
     fun theHandshakeMatchesTheSharedTable() {
         val handshake = rows("HANDSHAKE").associate { it[2] to it[1] }
         assertEquals(ProtocolConstants.VERSION.toString(), handshake["VERSION"])

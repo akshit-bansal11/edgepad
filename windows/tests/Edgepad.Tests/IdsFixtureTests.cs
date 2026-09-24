@@ -21,6 +21,32 @@ public sealed partial class IdsFixtureTests
         Assert.Equal(Expected("TEXT"), Actual<TextKind>());
 
     [Fact]
+    public void PadButtonMasksMatchTheSharedTable() =>
+        Assert.Equal(Expected("PAD_BUTTON"), Actual<PadButton>());
+
+    [Fact]
+    public void PadStatusTokensMatchTheSharedTable()
+    {
+        // The token is what crosses the wire, so the file holds it and this holds the constants to it. A
+        // row's third column is the name both apps use, its second the bytes, which is the part that
+        // matters. The names are written out here because a const, unlike an enum, has none to derive.
+        var expected = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var parts in Rows("PAD_STATUS"))
+        {
+            expected.Add(parts[2], parts[1]);
+        }
+
+        var actual = new SortedDictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["READY"] = PadStatus.Ready,
+            ["NO_DRIVER"] = PadStatus.NoDriver,
+            ["ATTACH_FAILED"] = PadStatus.AttachFailed,
+        };
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
     public void TheHandshakeMatchesTheSharedTable()
     {
         var handshake = Rows("HANDSHAKE").ToDictionary(parts => parts[2], parts => parts[1]);

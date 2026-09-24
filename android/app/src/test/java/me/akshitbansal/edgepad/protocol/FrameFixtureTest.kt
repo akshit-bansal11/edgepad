@@ -71,6 +71,17 @@ class FrameFixtureTest {
         )
     }
 
+    @Test
+    fun padStateKeepsSignedSticksSignedAndUnsignedFieldsUnsigned() {
+        // The three mistakes that are invisible in hex: a stick read as a u16 comes back 32768 and not
+        // -32768, a trigger read as an i8 comes back -1 and not 255, and the button mask read as a short
+        // turns Y, the top bit, negative. One frame holding all three at once, through both directions.
+        val frame = Frame.PadState(0xF7FF, 255, 255, -32768, 32767, -1, 1)
+        val bytes = FrameCodec.encode(frame)
+        assertEquals(1 + 12, bytes.size)
+        assertEquals(frame, FrameCodec.decode(bytes[0].toInt() and 0xFF, bytes.copyOfRange(1, bytes.size)))
+    }
+
     private fun parse(line: String): Pair<Frame, ByteArray> {
         val (left, right) = line.split("=")
         val fields = left.trim().split(" ").filter { it.isNotEmpty() }
@@ -100,6 +111,7 @@ class FrameFixtureTest {
                 "STATE" -> Frame.StateReport(int(1), int(2), int(3))
                 "TEXT" -> Frame.Text(int(1), fields.getOrNull(2) ?: "")
                 "KEY" -> Frame.Key(int(1), int(2) == 1)
+                "PAD_STATE" -> Frame.PadState(int(1), int(2), int(3), int(4), int(5), int(6), int(7))
                 else -> error("Unknown fixture frame ${fields[0]}")
             }
         return frame to bytes

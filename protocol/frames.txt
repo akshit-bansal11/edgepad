@@ -13,6 +13,7 @@
 HELLO 1 = 01 45 44 47 50 01
 HELLO 2 = 01 45 44 47 50 02
 HELLO 3 = 01 45 44 47 50 03
+HELLO 4 = 01 45 44 47 50 04
 TEXT 3 hi = 41 03 02 68 69
 HELLO_ACK 1 = 02 01
 MOVE 5 -3 = 10 05 00 fd ff
@@ -44,3 +45,28 @@ TEXT 7 = 41 07 00
 KEY 65 1 = 22 41 00 01
 KEY 112 0 = 22 70 00 00
 KEY 65535 1 = 22 ff ff 01
+ACTION 35 = 20 23
+ACTION 36 = 20 24
+# The laptop telling the phone whether a virtual controller can be plugged in at all. Three tokens, never
+# free prose, because the phone matches on them to decide whether to offer the pad or fall back and say why.
+TEXT 8 ready = 41 08 05 72 65 61 64 79
+TEXT 8 no-driver = 41 08 09 6e 6f 2d 64 72 69 76 65 72
+TEXT 8 attach-failed = 41 08 0d 61 74 74 61 63 68 2d 66 61 69 6c 65 64
+# PAD_STATE buttons lt rt lx ly rx ry — the whole controller in one 12-byte payload, laid out exactly like
+# Windows' XINPUT_GAMEPAD so the laptop copies it rather than translating it. Triggers are 0..255; sticks are
+# -32768..32767, positive up and right. The signed lines below are the ones that matter: every i16 here is
+# written low byte first, so -32768 is 0x8000 -> "00 80", 32767 is 0x7fff -> "ff 7f", and -1 is "ff ff".
+# Neutral: nothing held, sticks centred, triggers released. Twelve zero bytes.
+PAD_STATE 0 0 0 0 0 0 0 = 23 00 00 00 00 00 00 00 00 00 00 00 00
+# Both sticks pushed fully down-left. -32768 is the one value a sign-extension bug cannot fake its way past.
+PAD_STATE 0 0 0 -32768 -32768 -32768 -32768 = 23 00 00 00 00 00 80 00 80 00 80 00 80
+# Both sticks pushed fully up-right. 32767, one short of the negative limit's magnitude, as XInput reports it.
+PAD_STATE 0 0 0 32767 32767 32767 32767 = 23 00 00 00 00 ff 7f ff 7f ff 7f ff 7f
+# Both triggers buried. They are u8, not i16: 255 must stay 255 and not arrive as -1.
+PAD_STATE 0 255 255 0 0 0 0 = 23 00 00 ff ff 00 00 00 00 00 00 00 00
+# A, B, START and DPAD_UP held at once: 0x1000 | 0x2000 | 0x0010 | 0x0001 = 0x3011 = 12305. Sticks and
+# triggers mixed so no two fields share a value and a transposed pair would be caught rather than cancel out.
+PAD_STATE 12305 32 200 -1 1 256 -256 = 23 11 30 20 c8 ff ff 01 00 00 01 00 ff
+# Every button XInput defines, held at once: 0xffff without the unused 0x0800 is 0xf7ff = 63487. The top bit
+# is Y, which is where reading the mask as a signed short instead of a u16 turns a held button into nonsense.
+PAD_STATE 63487 0 0 0 0 0 0 = 23 ff f7 00 00 00 00 00 00 00 00 00 00
