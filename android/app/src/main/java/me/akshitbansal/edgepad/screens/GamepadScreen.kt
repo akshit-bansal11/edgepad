@@ -38,11 +38,12 @@ import kotlin.math.roundToInt
 class GamepadScreen(
     ui: Ui,
     layout: GamepadLayout,
+    names: List<String>,
     status: PadStatus?,
     onKey: (code: Int, down: Boolean) -> Unit,
     onPad: (state: Frame.PadState) -> Unit,
     onBack: () -> Unit,
-    onPreset: (String) -> Unit,
+    onChoose: (String) -> Unit,
     onEdit: () -> Unit,
 ) {
     private val pad = Surface(ui.context, layout, onKey, onPad)
@@ -53,9 +54,9 @@ class GamepadScreen(
                 LinearLayout(ui.context).apply {
                     orientation = LinearLayout.VERTICAL
                     addView(
-                        GamepadLayoutScreen.presets(ui, layout.name) { name ->
+                        GamepadLayoutScreen.layouts(ui, names, layout.name) { name ->
                             close()
-                            onPreset(name)
+                            onChoose(name)
                         },
                     )
                     addView(
@@ -547,7 +548,9 @@ class GamepadScreen(
         /** What one control contributes to [padState]. A keyboard binding contributes nothing; it sends keys. */
         private fun gather(i: Int) {
             when (val binding = controls[i].binding) {
-                is Binding.Keys -> Unit
+                is Binding.Keys -> {
+                    Unit
+                }
 
                 is Binding.Button -> {
                     if (pressed[i]) padState[BUTTONS] = padState[BUTTONS] or binding.button.mask

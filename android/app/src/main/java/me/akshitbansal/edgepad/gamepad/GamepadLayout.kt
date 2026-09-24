@@ -84,6 +84,48 @@ sealed interface Binding {
         }
 
     companion object {
+        /**
+         * Every XInput button a control can hold down, in the order a picker offers them: the four face
+         * buttons first because they are what a game names, then the bumpers, the three middle buttons,
+         * the two stick clicks, and the d-pad's own four bits last — those are one whole control in every
+         * layout that has a d-pad, and are worth offering singly only to someone building one out of four
+         * separate arrows. [PadButton.NONE] is the empty mask: it holds nothing down, so it is not
+         * something a control can be bound to at all.
+         */
+        val buttons: List<PadButton> =
+            listOf(
+                PadButton.A,
+                PadButton.B,
+                PadButton.X,
+                PadButton.Y,
+                PadButton.LEFT_SHOULDER,
+                PadButton.RIGHT_SHOULDER,
+                PadButton.START,
+                PadButton.BACK,
+                PadButton.GUIDE,
+                PadButton.LEFT_THUMB,
+                PadButton.RIGHT_THUMB,
+                PadButton.DPAD_UP,
+                PadButton.DPAD_DOWN,
+                PadButton.DPAD_LEFT,
+                PadButton.DPAD_RIGHT,
+            )
+
+        /**
+         * Every controller binding a control of [kind] can drive, in the order a picker offers them.
+         * Exactly the set [fits] accepts, so a picker cannot offer a pairing the store would later refuse.
+         * Keyboard bindings are not here: they are a code the user picks, not a fixed list of choices.
+         */
+        fun controllerOptions(kind: ControlKind): List<Binding> =
+            when (kind) {
+                ControlKind.BUTTON -> buttonBindings()
+                ControlKind.SHOULDER -> buttonBindings() + Trigger(Side.LEFT) + Trigger(Side.RIGHT)
+                ControlKind.DPAD -> listOf(Dpad)
+                ControlKind.STICK -> listOf(Stick(Side.LEFT), Stick(Side.RIGHT))
+            }
+
+        private fun buttonBindings(): List<Binding> = buttons.map { Button(it) }
+
         private const val KEYS = "K"
         private const val BUTTON = "B"
         private const val DPAD = "D"
@@ -126,6 +168,15 @@ data class Control(
         const val DPAD_SIZE_DP = 150f
         const val STICK_SIZE_DP = 150f
         const val SHOULDER_SIZE_DP = 110f
+
+        /** What a control of [kind] is sized at when the editor adds a fresh one. */
+        fun sizeOf(kind: ControlKind): Float =
+            when (kind) {
+                ControlKind.BUTTON -> BUTTON_SIZE_DP
+                ControlKind.DPAD -> DPAD_SIZE_DP
+                ControlKind.STICK -> STICK_SIZE_DP
+                ControlKind.SHOULDER -> SHOULDER_SIZE_DP
+            }
     }
 }
 
@@ -144,6 +195,67 @@ data class GamepadLayout(
     }
 
     companion object {
+        /** The longest a layout's name may be, and the longest a label drawn inside a control may be. */
+        const val MAX_NAME = 24
+        const val MAX_LABEL = 10
+
+        /**
+         * [raw] cut down to something a layout's name or a control's label may be, or null when nothing
+         * usable is left of it. Both are stored as fields of [encode]'s line format, so no separator may
+         * survive inside one: a name carrying a newline or a `|` would rewrite the file around it the next
+         * time the set was written, and everything after it would come back as a different layout or as
+         * nothing at all. Trimmed after the cut as well as before it, so a name shortened mid-word does
+         * not keep the space the cut left behind.
+         */
+        fun clean(
+            raw: String,
+            max: Int,
+        ): String? =
+            raw
+                .filter { it >= ' ' && it != '|' }
+                .trim()
+                .take(max)
+                .trim()
+                .ifEmpty { null }
+
+        /**
+         * [wanted], or the first of "wanted 2", "wanted 3" … that [taken] does not already hold.
+         *
+         * A name collision therefore costs a number and never a layout. Overwriting whichever layout was
+         * already there would throw away an arrangement the user cannot get back, and refusing the save
+         * outright would need somewhere to say why — which a popup over a full-screen canvas does not have.
+         */
+        fun freeName(
+            wanted: String,
+            taken: Collection<String>,
+        ): String {
+            if (wanted !in taken) return wanted
+            var next = 2
+            while ("$wanted $next" in taken) next++
+            return "$wanted $next"
+        }
+
+        /**
+         * Every layout as one text, a blank line between them. [clean] keeps a name from ever being empty
+         * or carrying a newline, and a layout with no controls is refused, so a blank line can only ever
+         * be the gap between two layouts.
+         */
+        fun encodeAll(layouts: List<GamepadLayout>): String = layouts.joinToString(GAP) { it.encode() }
+
+        /**
+         * Parses [encodeAll]. One unreadable layout refuses the whole set, the way one unreadable line
+         * refuses one layout: a set that has gone bad is one the user builds again, not one the pad
+         * silently plays half of.
+         */
+        fun decodeAll(text: String): List<GamepadLayout>? {
+            if (text.isEmpty()) return emptyList()
+            val layouts = mutableListOf<GamepadLayout>()
+            for (record in text.split(GAP)) layouts += decode(record) ?: return null
+            return layouts
+        }
+
+        private const val GAP = "\n\n"
+
         private const val FIELD_COUNT = 7
 
         /**
@@ -159,6 +271,10 @@ data class GamepadLayout(
         fun decode(text: String): GamepadLayout? {
             val lines = text.split("\n")
             val name = lines.firstOrNull() ?: return null
+            // A nameless layout is refused rather than merely odd: [decodeAll] tells one layout from the
+            // next by the blank line between them, and a layout whose first line were empty would be
+            // indistinguishable from the gap before it.
+            if (name.isEmpty()) return null
             val controls = mutableListOf<Control>()
             for (line in lines.drop(1)) {
                 if (line.isEmpty()) continue

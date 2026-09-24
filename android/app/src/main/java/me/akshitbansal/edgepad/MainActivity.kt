@@ -348,12 +348,13 @@ class MainActivity :
                     GamepadScreen(
                         ui,
                         gamepads.current,
+                        gamepads.all.map { it.name },
                         state.padStatus,
                         onKey = ::key,
                         onPad = { pad -> link?.send(pad) },
                         onBack = { navigateBack() },
-                        onPreset = { name ->
-                            gamepads.choosePreset(name)
+                        onChoose = { name ->
+                            gamepads.choose(name)
                             goTo(Screen.GAMEPAD)
                         },
                         onEdit = {

@@ -1,9 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="gamepad_layout_title">Gamepad layout</string>
-  <string name="gamepad_layout_hint">DRAG A CONTROL TO MOVE IT · LONG PRESS TO RESIZE</string>
-  <string name="gamepad_preset">PRESET</string>
+  <string name="gamepad_layout_hint">DRAG TO MOVE · LONG PRESS A CONTROL FOR ITS MENU</string>
+  <string name="gamepad_layout_section">LAYOUT</string>
   <string name="gamepad_description">Game controller for the laptop</string>
   <string name="gamepad_size">Size</string>
   <string name="dp_value">%1$d dp</string>
+
+  <!-- The two buttons in the editor's options popup; short, because they sit side by side in it. -->
+  <string name="gamepad_add">ADD</string>
+  <string name="gamepad_layouts">LAYOUTS</string>
+
+  <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->
+  <string name="gamepad_control_title">%1$s · %2$s</string>
+  <string name="gamepad_bind">Binding</string>
+  <string name="gamepad_label">Label</string>
+  <string name="gamepad_delete_control">Delete control</string>
+
+  <!-- Adding a control: the kinds offered, in the order the menu lists them. -->
+  <string name="gamepad_add_control">Add control</string>
+  <string name="gamepad_kind_button">Button</string>
+  <string name="gamepad_kind_dpad">D-pad</string>
+  <string name="gamepad_kind_stick">Stick</string>
+  <string name="gamepad_kind_shoulder">Shoulder</string>
+  <string name="gamepad_kind_trigger">Trigger</string>
+
+  <!--
+    What a control can drive. The controller's own inputs, then a key on the laptop's keyboard.
+    The d-pad binding has no name of its own: gamepad_kind_dpad above is already the same word.
+  -->
+  <string name="gamepad_bind_stick_left">Left stick</string>
+  <string name="gamepad_bind_stick_right">Right stick</string>
+  <string name="gamepad_bind_trigger_left">Left trigger</string>
+  <string name="gamepad_bind_trigger_right">Right trigger</string>
+  <string name="gamepad_bind_keys">Keyboard key</string>
+  <string name="gamepad_bind_key_for">Key for %1$s</string>
+  <string name="gamepad_up">up</string>
+  <string name="gamepad_down">down</string>
+  <string name="gamepad_left">left</string>
+  <string name="gamepad_right">right</string>
+
+  <!-- Keeping the named layouts themselves. -->
+  <string name="gamepad_save_as">Save as</string>
+  <string name="gamepad_rename">Rename</string>
+  <string name="gamepad_delete_layout">Delete layout</string>
+  <string name="gamepad_delete_layout_body">%1$s will be removed. The layouts Edgepad ships with stay.</string>
+  <string name="gamepad_delete">DELETE</string>
 </resources>
