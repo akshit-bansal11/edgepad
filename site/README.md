@@ -1,6 +1,7 @@
-# Edgepad documentation site
+# Edgepad website
 
-A single-page documentation site for Edgepad, built from the repository it documents.
+Two routes, built from the repository they document: a landing page at `/`, and the
+whole documentation on one page at `/docs`.
 
 **Live at [edgepad-docs.vercel.app](https://edgepad-docs.vercel.app).** Deployed to Vercel from the repository root (not from `site/`), because the build reads `../protocol/*.txt` — see *Hosting* below.
 
@@ -66,7 +67,8 @@ If the fixtures cannot be parsed at all, `assertParsed` throws and the build fai
 ```
 app/
   layout.tsx          fonts, metadata, theme provider
-  page.tsx            hero, sidebar layout, composes the four section files
+  page.tsx            the landing page: hero, features, how it works, limits, install
+  docs/page.tsx       the documentation: sidebar layout, composes the four section files
   globals.css         the palette and the two font variables
 lib/
   protocol.ts         reads and parses ../protocol/*.txt  (the only non-trivial logic)
@@ -77,9 +79,27 @@ components/
   ui/                 shadcn primitives, hand-placed (see below)
   section.tsx         Section, Sub, P, Note, C
   toc.tsx             sidebar with an IntersectionObserver scroll-spy
-  reveal.tsx          the page's only entrance animation
+  reveal.tsx          the site's only entrance animation
   flow-diagram.tsx    the two-column architecture map
+  surface-figure.tsx  the phone's control surface, drawn in SVG rather than photographed
+  site-header.tsx     shared; `variant` picks the landing menu or the table of contents
+  site-footer.tsx     shared
+  legacy-hash-redirect.tsx   see below
 ```
+
+### Anchors that used to live at `/`
+
+Every documentation anchor — `#protocol`, `#install`, `#architecture` and the rest —
+was on `/` before the landing page existed. A static export has no server to redirect
+them with, so `components/legacy-hash-redirect.tsx` does it on the client: on the
+landing page, a hash that appears in `ALL_NAV_IDS` is forwarded to `/docs#<id>` with
+`location.replace`, which leaves no history entry to bounce back to and lets the
+browser scroll to the anchor itself on the new document.
+
+The allowlist is the table of contents, so a link only leaves the landing page when it
+names a section that really is on the other one. The landing page's own three anchors
+(`#features`, `#how`, `#get`) are deliberately named nothing in that list — reusing
+`#install` on both routes would make the redirect ambiguous.
 
 ## Design notes
 
@@ -104,7 +124,7 @@ Both are safe to revisit — just run `npm run check` after.
 
 ## Content sources
 
-Everything on the page traces to something in this repository:
+Everything on both pages traces to something in this repository:
 
 | Section | Source |
 | --- | --- |
@@ -114,11 +134,12 @@ Everything on the page traces to something in this repository:
 | Security and trust | `SECURITY.md`, `docs/PROTOCOL.md`, `CHANGELOG.md` |
 | Repository layout, prerequisites, gate, tests, contributing | `CONTRIBUTING.md`, `scripts/check.ps1`, `.github/workflows/` |
 | Version history | `CHANGELOG.md` |
+| The landing page, end to end | `README.md`, and the four section files it summarises |
 
 Two deliberate omissions, both of which are project rules rather than oversights:
 
-- **No latency figure appears anywhere.** None has ever been measured on real hardware. The app carries a live round-trip readout for exactly this reason. Nothing goes on the page until a real number is reported.
-- **Nothing is invented to fill a section.** Where something is unverified or not built, the page says so — see the *Known limits* section, which labels each entry `not built`, `unverified` or `accepted`.
+- **No latency figure appears anywhere.** None has ever been measured on real hardware. The app carries a live round-trip readout for exactly this reason. Nothing goes on either page until a real number is reported.
+- **Nothing is invented to fill a section.** Where something is unverified or not built, the site says so — see the *Known limits* section, which labels each entry `not built`, `unverified` or `accepted`.
 
 ## One known contradiction in the repository
 
