@@ -4,6 +4,141 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-09-24
+
+The gamepad stops pretending. It drives a real Xbox controller on the laptop, its sticks and triggers
+are analog, and which controls exist and what each one drives are the user's to choose and bind, with a
+named layout kept per game. Carrying a whole controller needs a frame version 3 had no room for, so
+**the wire protocol moves to version 4** -- its first move since 0.6.0, and the rule has always been
+that this number moves only in a major release. **Install both halves from this release.** A 3.0.0 half
+and a 2.x half refuse each other at the handshake and say so. One thing is lost on update, once: a
+gamepad layout saved by 2.x is refused rather than migrated, which is under Changed.
+
+### Added
+- **The gamepad drives a real controller.** Every control on it used to send a key, and the stick threw
+  its analog value away: the smooth travel under the thumb was quantised to eight compass sectors and
+  pressed WASD, so a half push and a full push were the same key, and a game that reads controllers
+  rather than keys saw nothing at all. The laptop now plugs a virtual Xbox pad into Windows, and the
+  phone sends the whole controller in one frame -- the buttons, both analog triggers and four analog
+  axes -- laid out byte for byte like Windows' own `XINPUT_GAMEPAD`, so the laptop copies each field
+  onto the pad's report rather than translating it. Games that only ever accepted a controller can be
+  played from the phone.
+
+  A stick scales its magnitude rather than each axis on its own, which keeps a diagonal pointing where
+  the thumb does instead of squaring the circle the thumb moves in. The dead zone comes out of the
+  travel and what is left is stretched back over the range, so the first step past it is a nudge and
+  the rim is exactly full deflection. That arithmetic is the part most likely to be wrong, so it lives
+  in a file with no Android type in it and is tested on the JVM -- until now nothing covered touch to
+  output at all, because it sat inside a view's touch handler where no test could reach it.
+- **A keyboard fallback that says why it is a keyboard.** The virtual pad comes from **ViGEmBus**, a
+  separate third-party driver the laptop may simply not have. Without it nothing goes quietly dead: the
+  gamepad falls back to pressing keys and writes across the middle of the pad which of three states it
+  is in -- waiting for the laptop to answer, no controller driver on the laptop, or the laptop could not
+  plug the controller in. Which state it is in is the laptop's answer and not a setting: the phone asks
+  for a controller when the gamepad opens and hands it back when it closes, and the laptop replies with
+  a status token. A laptop too old to know the question never answers, which reads as waiting.
+
+  Five layouts ship with the app rather than four. The new **Xbox** is every control bound to a real
+  controller input, and does nothing at all in keyboard mode; **Xbox keys**, **Platformer**, **Racing**
+  and **Shooter** are 2.x's keyboard layouts unchanged, they are the only kind that works on a laptop
+  with no driver, and they stay one tap away in the same popup. Worth knowing before installing the
+  driver: ViGEmBus was archived by its author in November 2023 and has had no release since, though
+  that last release is signed and works. Edgepad neither bundles nor installs it.
+- **The gamepad editor chooses the controls, binds them, and keeps one layout per game.** The editor
+  could move a control and resize it and nothing else; which controls existed and what each one pressed
+  were fixed in the presets. Long-press a control for its menu -- binding, size, label, delete -- and
+  add one from the options popup. A binding is offered from exactly the set that fits that kind of
+  control, built from one function the picker and the store share, so the list can never offer a
+  pairing the store would refuse. The last option is always a keyboard key, because keyboard mode is
+  where a laptop without the driver ends up and a control with no key does nothing there.
+
+  Layouts are a library rather than a single saved arrangement, which is what per-game needs: save,
+  save as, rename, delete, switch. The built-in presets are never stored -- a saved layout of the same
+  name shadows one instead -- so Edgepad's own Xbox layout can always be got back and can never be
+  renamed away. A name that collides costs a number and never a layout: a second **Elden Ring** becomes
+  **Elden Ring 2**, because overwriting would throw away an arrangement that cannot be got back.
+  Deleting the layout being played falls back to the built-in underneath it, or to the first there is;
+  the set is never empty, because the presets are always in it.
+- **Shapes drawn on the trackpad run an action or a macro.** Press one finger, hold it still until it
+  ticks, then draw without lifting. On release the stroke is matched against the shapes drawn under
+  Settings › Shapes, and the one it matches runs: a laptop action, a macro slot, or the pad's own
+  focus or lock. A stroke that matches nothing does nothing, which is the right answer -- the
+  alternative is the nearest binding firing on a scrawl. A second finger clears it, so scroll, pinch
+  and the three- and four-finger swipes are untouched, and a drag refuses to arm it, since a drag's
+  second press is also a hold. A phone with no shapes drawn behaves exactly as it did.
+
+  Matching is a $1-style unistroke -- resample, centre, scale, compare point by point -- with two
+  deliberate departures: the scale is uniform, because $1's per-axis box fit makes a tall I and a round
+  O the same blob, and there is no rotation normalisation, because a C turned around is not a C. How
+  close is close enough, and by how much the best match must beat the runner-up, are two constants at
+  the top of one file. Both are guesses; no real stroke has been scored against them yet.
+- **A lock button on the control surface.** A fifth button joins the row at the top, on the centre:
+  settings, keyboard, lock, gamepad, macros. One tap hides the dials and the media and leaves the
+  trackpad; a second tap inside the double-tap window locks the trackpad instead and puts the dials and
+  media back, so the phone can sit in a pocket or under a palm and answer only its rulers. Any later
+  tap returns the whole surface. A locked pad refuses the first touch, not only the ones after it, and
+  every mode change cancels the touch in flight, so going to a locked pad mid-drag cannot leave the
+  left button held with no release to come. The mode lives in the surface and is neither stored nor
+  offered as a setting: a phone that came back up silently locked would read as broken.
+
+### Changed
+- **A gamepad layout saved by 2.x is refused rather than migrated, and the first preset takes its
+  place.** This is the breaking change in the release, and it costs the positions of any controls
+  dragged in 2.x, once. Migrating would have been a lie: a 2.x layout records where each control sits
+  and nothing about what it drives, because in 2.x every control drove a key chosen by the preset, so
+  there are no controller bindings in it to carry forward. Inventing them is the only other option, and
+  a pad whose stick silently became something else is worse than a pad that starts from a preset.
+- **Settings are grouped by the thing they configure.** The hub grouped by the kind of editor a row
+  opened, which is why the keyboard's text size and the macro buttons' appearance both sat on a page
+  titled "Background & pattern" -- a title that described neither. **CONTROLS** now holds the keyboard,
+  the gamepad, the macro buttons and the media layout, each on its own page, and **Appearance** is left
+  holding only the background and the pattern its title names. Natural scrolling moves to the Trackpad
+  page beside the scroll speed, where it is a scrolling setting rather than the hub's one lone switch
+  among links.
+- **Orientation holds the control surface and the media-layout editor, and nothing else.** It was a
+  single flag that forced every screen upright or sideways. The media-layout editor is pinned with the
+  surface on purpose: a media layout has been stored per orientation since 2.3.0, so a phone turned
+  mid-edit would quietly begin changing the other one. The keyboard and the gamepad stay sideways as
+  before, and every other screen follows the phone.
+- **The macro grid sizes its buttons and wraps to fit.** It was three across upright and five across
+  sideways whatever the names were, under a heading that said "Macros" on a screen reached by tapping a
+  macro button, above a line that counted the slots. The heading and the count are gone -- most of a row
+  and a half handed back to the buttons -- and the back chevron stays. Every cell is as wide as the
+  widest label in the grid, so no button is a different size from its neighbour, and a row takes as
+  many as the screen has room for rather than a fixed number. Fifteen slots is unchanged, and is not a
+  layout decision: fifteen names at sixteen bytes with fourteen separators is 254 of the 255 bytes one
+  `TEXT` frame carries.
+
+### Removed
+- **The decorative rulers down the edges of the guide and the device list.** Tick marks that drew
+  nothing and said nothing. The device list's wrapper went with them, since it existed only to stack
+  the ruler over the page.
+
+### Fixed
+- **A key the phone was holding stayed pressed on the laptop when the link dropped.** The laptop
+  remembers what it holds so a dead connection cannot leave anything down, and lifts the lot when the
+  session ends -- but the call behind every key the on-screen keyboard and the gamepad send pressed the
+  code straight through and recorded nothing. A thumb on the gamepad's stick is the case that makes it
+  obvious: the stick holds its key down for as long as the thumb stays forward, so the window in which
+  a drop stranded a key was the whole time the user was walking.
+
+### Documentation
+- **A landing page at the root, and the documentation at `/docs`.** The site was one long documentation
+  page with a hero on top, which is the right page for someone who has already decided and the wrong
+  one for someone who has not. The documentation moves to `/docs` whole -- its sidebar, its four
+  sections and the tables generated from the protocol fixtures -- and the root becomes a page that
+  explains what Edgepad is to somebody who has never heard of it. No figure for speed appears on either
+  page, because none has been measured, and no testimonial, rating, download count or logo wall
+  appears, because there are none. The limits are a section rather than a footnote: Bluetooth reaches
+  one room and not the internet, both ends need it, the exe is unsigned so SmartScreen warns, and the
+  secure desktop cannot be reached at all. A deep link into an old anchor is forwarded on the client,
+  allowlisted against the documentation's own table of contents, because a static export cannot
+  redirect.
+- **The protocol page describes version 4's new rows**: the controller frame, the two actions that ask
+  for and hand back the pad, and the status the laptop answers with. The page builds its tables from
+  `protocol/frames.txt` and `protocol/actions.txt`, so the rows appeared the moment the fixtures moved,
+  marked as not yet described until the prose caught up.
+
 ## [2.3.0] - 2026-09-22
 
 Macro icons, a keyboard text size, separate media layouts for each orientation, and a round of
@@ -441,7 +576,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.3.0...v3.0.0
 [2.3.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.0.0...v2.1.0
