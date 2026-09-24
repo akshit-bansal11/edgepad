@@ -197,8 +197,6 @@
   <string name="surface_mode_locked">Dials and media only · pad locked</string>
 
   <!-- Macros -->
-  <string name="macros_title">Macros</string>
-  <string name="macros_count">SLOTS · %1$d</string>
   <string name="macros_run">Run %1$s</string>
   <string name="macros_empty_title">No macros yet.</string>
   <string name="macros_empty_body">Add them from Edgepad\'s tray menu on the laptop. They appear here as soon as it sends the list.</string>
