@@ -38,6 +38,41 @@ class CoalesceTest {
     }
 
     @Test
+    fun onlyTheNewestPadStateSurvives() {
+        val newest = Frame.PadState(0x1000, 0, 255, 100, -100, 0, 0)
+        val merged =
+            Coalesce.merge(
+                listOf(
+                    Frame.PadState(0, 0, 0, 0, 0, 0, 0),
+                    Frame.PadState(0x1000, 0, 120, 50, -50, 0, 0),
+                    newest,
+                ),
+            )
+        assertEquals(listOf(newest), merged)
+    }
+
+    @Test
+    fun aPadStateDoesNotSwallowTheKeysAroundIt() {
+        // A key is an edge and a pad state is a snapshot: collapsing the run must leave both key frames
+        // exactly where they were, or the laptop is left holding a key nobody is pressing.
+        val frames =
+            listOf(
+                Frame.Key(0x41, true),
+                Frame.PadState(0, 0, 0, 0, 0, 0, 0),
+                Frame.Key(0x41, false),
+                Frame.PadState(0x1000, 0, 0, 0, 0, 0, 0),
+            )
+        val merged = Coalesce.merge(frames)
+        assertEquals(listOf(frames[0], frames[2], frames[3]), merged)
+    }
+
+    @Test
+    fun repeatedKeysAreNeverCollapsedIntoOne() {
+        val frames = listOf(Frame.Key(0x41, true), Frame.Key(0x41, false), Frame.Key(0x41, true))
+        assertEquals(frames, Coalesce.merge(frames))
+    }
+
+    @Test
     fun zoomsAreSummedToo() {
         assertEquals(listOf(Frame.Zoom(240)), Coalesce.merge(listOf(Frame.Zoom(120), Frame.Zoom(120))))
     }

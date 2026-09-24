@@ -3,7 +3,6 @@ package me.akshitbansal.edgepad.screens
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import me.akshitbansal.edgepad.R
@@ -44,36 +43,31 @@ class PickerScreen(
     private lateinit var action: TextView
 
     val view: View =
-        FrameLayout(ui.context).apply {
-            val bar =
-                ui.bar(
-                    ui.string(R.string.pairing_title),
-                    null,
-                    refresh,
-                    ui.icon(Glyph.Shape.BLUETOOTH, ui.string(R.string.open_bluetooth_settings), onBluetoothSettings),
-                    ui.icon(Glyph.Shape.GEAR, ui.string(R.string.settings_title), onSettings),
-                    lead = MarkView(ui.context),
-                )
-            val page =
-                ui.page(bar) {
-                    columns(
-                        {
-                            count = add(ui.section(""))
-                            add(list)
-                            legend = add(legendRow())
-                            message = body("", Space.L).apply { visibility = View.GONE }
-                        },
-                        {
-                            action =
-                                add(
-                                    ui.button(ui.string(R.string.open_controls), Ui.Style.FILLED, onOpenControls),
-                                    Space.L,
-                                )
-                        },
-                    )
-                }
-            addView(page)
-            addView(EdgeRule(ui.context))
+        ui.page(
+            ui.bar(
+                ui.string(R.string.pairing_title),
+                null,
+                refresh,
+                ui.icon(Glyph.Shape.BLUETOOTH, ui.string(R.string.open_bluetooth_settings), onBluetoothSettings),
+                ui.icon(Glyph.Shape.GEAR, ui.string(R.string.settings_title), onSettings),
+                lead = MarkView(ui.context),
+            ),
+        ) {
+            columns(
+                {
+                    count = add(ui.section(""))
+                    add(list)
+                    legend = add(legendRow())
+                    message = body("", Space.L).apply { visibility = View.GONE }
+                },
+                {
+                    action =
+                        add(
+                            ui.button(ui.string(R.string.open_controls), Ui.Style.FILLED, onOpenControls),
+                            Space.L,
+                        )
+                },
+            )
         }
 
     init {

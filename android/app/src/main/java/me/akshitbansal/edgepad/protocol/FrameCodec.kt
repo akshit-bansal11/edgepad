@@ -30,8 +30,14 @@ object FrameCodec {
     private const val STATE = 0x40
     private const val TEXT = 0x41
     private const val KEY = 0x22
+    private const val PAD_STATE = 0x23
 
-    /** Payload length for a type byte, [LENGTH_PREFIXED] for TEXT, or -1 when the type is unknown. */
+    /**
+     * Payload length for a type byte, [LENGTH_PREFIXED] for TEXT, or -1 when the type is unknown.
+     *
+     * PAD_STATE is the longest fixed payload at 12 bytes, so 13 on the wire — well inside [MAX_FRAME_LENGTH],
+     * which a 255-byte TEXT still sets at 258. Nothing about the buffers had to move to let the pad in.
+     */
     fun payloadLength(type: Int): Int =
         when (type) {
             HELLO -> 5
@@ -40,6 +46,7 @@ object FrameCodec {
             STATE, KEY -> 3
             MOVE, SCROLL -> 4
             PING, PONG -> 8
+            PAD_STATE -> 12
             TEXT -> LENGTH_PREFIXED
             else -> -1
         }
@@ -117,6 +124,21 @@ object FrameCodec {
             is Frame.Key -> {
                 b.type(KEY).u16(frame.code).u8(if (frame.down) 1 else 0)
             }
+
+            // The XINPUT_GAMEPAD field order exactly: wButtons, bLeftTrigger, bRightTrigger, then the four
+            // thumb axes. Little-endian like everything else, which is also the order the struct is in
+            // memory on the laptop, so the payload lands in it whole.
+            is Frame.PadState -> {
+                b
+                    .type(PAD_STATE)
+                    .u16(frame.buttons)
+                    .u8(frame.lt)
+                    .u8(frame.rt)
+                    .i16(frame.lx)
+                    .i16(frame.ly)
+                    .i16(frame.rx)
+                    .i16(frame.ry)
+            }
         }
         return b.position() - offset
     }
@@ -148,6 +170,7 @@ object FrameCodec {
             PONG -> Frame.Pong(b.long)
             STATE -> Frame.StateReport(b.u8(), b.u8(), b.u8())
             KEY -> Frame.Key(b.u16(), flag(b.u8()))
+            PAD_STATE -> decodePadState(b)
             else -> throw StreamCorruptedException("Unknown frame type 0x%02x".format(type))
         }
     }
@@ -168,6 +191,17 @@ object FrameCodec {
         val text = String(payload, TEXT_HEADER_LENGTH, payload.size - TEXT_HEADER_LENGTH, Charsets.UTF_8)
         return Frame.Text(payload[0].toInt() and 0xFF, text)
     }
+
+    /**
+     * Nothing here can be out of range, so nothing here throws. Every field spans its whole width — the
+     * triggers are 0..255 and the four axes -32768..32767 — and an undefined button bit is an unknown id,
+     * which this protocol drops and counts rather than treating as an error. That is the same line BUTTON
+     * draws: its id may be anything and is dropped downstream, while its `down` byte throws, because a flag
+     * with two legal values out of 256 means a corrupt stream and not a newer app. A wrong payload length
+     * still closes the connection, as it does for every type.
+     */
+    private fun decodePadState(b: ByteBuffer): Frame.PadState =
+        Frame.PadState(b.u16(), b.u8(), b.u8(), b.short.toInt(), b.short.toInt(), b.short.toInt(), b.short.toInt())
 
     private fun decodeHello(b: ByteBuffer): Frame.Hello {
         val magic = ByteArray(magicBytes.size).also { b.get(it) }

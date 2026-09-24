@@ -1,9 +1,11 @@
 using Edgepad.Controls;
 using Edgepad.Dispatch;
+using Edgepad.Gamepad;
 using Edgepad.Injection;
 using Edgepad.Macros;
 using Edgepad.Protocol;
 using NAudio.CoreAudioApi;
+using Nefarius.ViGEm.Client.Exceptions;
 using Xunit;
 
 namespace Edgepad.Tests;
@@ -27,10 +29,15 @@ public sealed class DispatcherTests : IDisposable
     private readonly MacroStore macros =
         new(Path.Combine(Path.GetTempPath(), $"edgepad-dispatcher-{Guid.NewGuid():N}.txt"));
 
+    // A pad whose driver is missing whatever the machine running these tests actually has installed: the
+    // client it would open throws what an absent ViGEmBus throws. Nothing here can plug a controller into
+    // whoever runs the suite, and the answers are the same on a build machine as on a desk with the driver.
+    private readonly VirtualPad pad = new(() => throw new VigemBusNotFoundException());
+
     private readonly Dispatcher dispatcher;
 
     public DispatcherTests() =>
-        dispatcher = new Dispatcher(input, speakers, microphone, brightness, media, display, macros, overlay);
+        dispatcher = new Dispatcher(input, pad, speakers, microphone, brightness, media, display, macros, overlay);
 
     [Theory]
     [InlineData(0)]
@@ -114,6 +121,30 @@ public sealed class DispatcherTests : IDisposable
         Assert.Equal(1, dispatcher.Dropped);
     }
 
+    [Fact]
+    public void AControllerFrameWithNoControllerPluggedInIsDropped()
+    {
+        // The A button and a stick pushed right: a frame that would be acted on if a pad were attached.
+        dispatcher.Handle(new PadState((ushort)PadButton.A, 0, 0, 32767, 0, 0, 0));
+        Assert.Equal(1, dispatcher.Dropped);
+    }
+
+    [Theory]
+    [InlineData((byte)ActionId.PadAttach)]
+    [InlineData((byte)ActionId.PadDetach)]
+    public void AskingForTheControllerIsAnsweredEvenWhenThereIsNoDriver(byte id)
+    {
+        List<string> answers = [];
+        dispatcher.PadStatusReply = answers.Add;
+
+        dispatcher.Handle(new RunAction(id));
+
+        // Answered rather than dropped: the laptop understood the ask and said what it could do about it.
+        // A phone that heard nothing back could not tell this laptop from one too old to know the id.
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal(PadStatus.NoDriver, Assert.Single(answers));
+    }
+
     [Theory]
     [InlineData("Spotify.exe", "Spotify")]
     [InlineData("chrome.exe", "Chrome")]
@@ -125,6 +156,7 @@ public sealed class DispatcherTests : IDisposable
 
     public void Dispose()
     {
+        pad.Dispose();
         input.Dispose();
         speakers.Dispose();
         microphone.Dispose();

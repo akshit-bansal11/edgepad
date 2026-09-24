@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
+import me.akshitbansal.edgepad.protocol.PadStatus
 import me.akshitbansal.edgepad.protocol.TextKind
 import java.util.Base64
 
@@ -43,6 +44,16 @@ class LaptopState {
     var macros: List<String> = emptyList()
         private set
 
+    /**
+     * The laptop's last word on whether it can offer a virtual controller, or null while it has said
+     * nothing at all — which is also where a laptop too old to know PAD_ATTACH leaves it, since it drops
+     * the action and never answers. The gamepad screen reads this to decide whether it is a controller or
+     * a keyboard, so it is kept here rather than on the screen: the screen is rebuilt by a rotation and
+     * the answer is not sent again.
+     */
+    var padStatus: PadStatus? = null
+        private set
+
     /** Finished icons by slot. A slot with no entry has none, which is the ordinary case for most of them. */
     private val icons = HashMap<Int, ByteArray>()
 
@@ -78,6 +89,7 @@ class LaptopState {
                     TextKind.REFRESH_RATES -> refreshRates = rates(frame.text)
                     TextKind.MACROS -> macros = macroNames(frame.text)
                     TextKind.MACRO_ICON -> return iconChunk(frame.text)
+                    TextKind.PAD_STATUS -> padStatus = PadStatus.of(frame.text)
                     else -> return false
                 }
             }
@@ -162,24 +174,29 @@ class LaptopState {
         return if (names.none { it.isNotEmpty() }) emptyList() else names
     }
 
-    private companion object {
-        const val FLAG_BIT = 1
-        const val MAX_LEVEL = 100
-
+    companion object {
         /**
          * The grid the phone draws, 5 by 3. The reserved action block 64..95 is wider on purpose, but the
          * laptop never fills past this: fifteen names of sixteen bytes are all one TEXT frame can carry.
+         *
+         * Public, alone among the numbers here, because it is the ceiling on what a macro slot may be
+         * anywhere on the phone: the shapes editor offers slots up to it and
+         * [me.akshitbansal.edgepad.surface.Shapes] refuses a stored one past it. A second copy of the
+         * number somewhere else would be a second thing to forget when the grid changes size.
          */
         const val MACRO_SLOTS = 15
 
+        private const val FLAG_BIT = 1
+        private const val MAX_LEVEL = 100
+
         /** "slot/chunk/chunks/base64". */
-        const val ICON_FIELDS = 4
+        private const val ICON_FIELDS = 4
 
         /**
          * The most chunks one icon may claim. The laptop caps an icon at six kilobytes, which is 35 of them,
          * so this is headroom rather than a limit anything real meets — and a ceiling on what a malformed
          * count can ask this app to allocate.
          */
-        const val MAX_CHUNKS = 64
+        private const val MAX_CHUNKS = 64
     }
 }

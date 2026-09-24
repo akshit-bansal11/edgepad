@@ -30,8 +30,16 @@ internal static class FrameCodec
     private const byte StateType = 0x40;
     private const byte TextType = 0x41;
     private const byte KeyType = 0x22;
+    private const byte PadStateType = 0x23;
 
-    /// <summary>Payload length for a type byte, or -1 when the type is unknown.</summary>
+    /// <summary>
+    /// Payload length for a type byte, or -1 when the type is unknown.
+    /// <para>
+    /// PAD_STATE is the longest fixed payload at 12 bytes, so 13 on the wire — well inside
+    /// <see cref="MaxFrameLength"/>, which a 255-byte TEXT still sets at 258. No buffer had to move to let
+    /// the pad in.
+    /// </para>
+    /// </summary>
     public static int PayloadLength(byte type) => type switch
     {
         HelloType => 5,
@@ -40,6 +48,7 @@ internal static class FrameCodec
         StateType or KeyType => 3,
         MoveType or ScrollType => 4,
         PingType or PongType => 8,
+        PadStateType => 12,
         TextType => LengthPrefixed,
         _ => -1,
     };
@@ -103,6 +112,19 @@ internal static class FrameCodec
                 BinaryPrimitives.WriteUInt16LittleEndian(dest[1..], f.Code);
                 dest[3] = f.Down ? (byte)1 : (byte)0;
                 return 4;
+            // The XINPUT_GAMEPAD field order exactly: wButtons, bLeftTrigger, bRightTrigger, then the four
+            // thumb axes, little-endian like everything else. This side only ever decodes PAD_STATE, but it
+            // encodes here too, because the fixture makes both codecs prove both directions on every line.
+            case PadState f:
+                dest[0] = PadStateType;
+                BinaryPrimitives.WriteUInt16LittleEndian(dest[1..], f.Buttons);
+                dest[3] = f.Lt;
+                dest[4] = f.Rt;
+                BinaryPrimitives.WriteInt16LittleEndian(dest[5..], f.Lx);
+                BinaryPrimitives.WriteInt16LittleEndian(dest[7..], f.Ly);
+                BinaryPrimitives.WriteInt16LittleEndian(dest[9..], f.Rx);
+                BinaryPrimitives.WriteInt16LittleEndian(dest[11..], f.Ry);
+                return 13;
             default:
                 throw new ArgumentException($"No encoding for {frame.GetType().Name}", nameof(frame));
         }
@@ -137,10 +159,11 @@ internal static class FrameCodec
             ZoomType => new Zoom(ReadInt16(payload)),
             RunActionType => new RunAction(payload[0]),
             SetValueType => new SetValue(payload[0], payload[1]),
+            KeyType => new Key(BinaryPrimitives.ReadUInt16LittleEndian(payload), ReadFlag(payload[2])),
             PingType => new Ping(BinaryPrimitives.ReadInt64LittleEndian(payload)),
             PongType => new Pong(BinaryPrimitives.ReadInt64LittleEndian(payload)),
             StateType => new StateReport(payload[0], payload[1], payload[2]),
-            KeyType => new Key(BinaryPrimitives.ReadUInt16LittleEndian(payload), ReadFlag(payload[2])),
+            PadStateType => DecodePadState(payload),
             _ => throw new InvalidDataException($"Unknown frame type 0x{type:x2}"),
         };
     }
@@ -165,6 +188,23 @@ internal static class FrameCodec
 
         return new Text(payload[0], Encoding.UTF8.GetString(payload[TextHeaderLength..]));
     }
+
+    /// <summary>
+    /// Nothing here can be out of range, so nothing here throws. Every field spans its whole width — the
+    /// triggers are 0..255 and the four axes -32768..32767 — and an undefined button bit is an unknown id,
+    /// which this protocol drops and counts rather than treating as an error. That is the line PointerButton
+    /// already draws: its id may be anything and is dropped by the dispatcher, while its Down byte throws,
+    /// because a flag with two legal values out of 256 means a corrupt stream and not a newer app. A wrong
+    /// payload length still closes the connection, as it does for every type.
+    /// </summary>
+    private static PadState DecodePadState(ReadOnlySpan<byte> payload) => new(
+        BinaryPrimitives.ReadUInt16LittleEndian(payload),
+        payload[2],
+        payload[3],
+        ReadInt16(payload[4..]),
+        ReadInt16(payload[6..]),
+        ReadInt16(payload[8..]),
+        ReadInt16(payload[10..]));
 
     private static Hello DecodeHello(ReadOnlySpan<byte> payload)
     {

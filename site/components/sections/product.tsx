@@ -37,9 +37,16 @@ const SURFACE: { where: string; touch: string; laptop: string }[] = [
     laptop: "Whatever Settings assigns. Ten slots in all.",
   },
   {
+    where: "Anywhere else, one finger",
+    touch: "press and hold until it ticks, then draw",
+    laptop:
+      "The action or macro bound to the shape drawn. An unrecognised stroke does nothing.",
+  },
+  {
     where: "Top centre",
-    touch: "tap the gear, the keyboard, the gamepad",
-    laptop: "Opens Settings, the keyboard, the gamepad.",
+    touch: "tap one of the five buttons",
+    laptop:
+      "Settings, the keyboard, the lock, the gamepad, the macros, left to right. The lock stays on the phone.",
   },
   { where: "Back", touch: "", laptop: "Leaves the surface. The link stays up." },
 ];
@@ -109,12 +116,20 @@ export function ProductSections() {
               body: "The track, the app playing it and where it is, with previous, play/pause and next. Drag the three pieces anywhere on the surface.",
             },
             {
-              title: "Keyboard and gamepad",
-              body: "A full on-screen keyboard whose modifiers work held or tapped, and a gamepad with editable layouts and presets. Both open sideways.",
+              title: "Keyboard",
+              body: "A full on-screen keyboard whose modifiers work held or tapped. It opens sideways, and its text size is a setting.",
+            },
+            {
+              title: "Gamepad",
+              body: "A real virtual Xbox controller on the laptop, with analog sticks and triggers, where the ViGEmBus driver is installed; the same pad falls back to sending keys where it is not. Every control is yours to place, bind, size and label, and layouts are kept one per game.",
+            },
+            {
+              title: "Shapes",
+              body: "Press and hold on the trackpad until it ticks, then draw without lifting. The stroke is matched against the shapes drawn in Settings, and the one it matches runs a laptop action, a macro, or the pad's own focus or lock.",
             },
             {
               title: "Macro buttons",
-              body: "Fifteen buttons in a 5x3 grid. The laptop's tray menu names an app, a document, a folder or a URL for each; the phone sends the slot number and never what it opens.",
+              body: "Fifteen slots the laptop's tray menu names with an app, a document, a folder or a URL each; the phone sends the slot number and never what it opens. The grid sizes every button to the longest name and fits as many across as the screen has room for.",
             },
             {
               title: "Live state",
@@ -195,6 +210,36 @@ export function ProductSections() {
               its place, so an update takes over cleanly rather than failing on the
               single-instance lock.
             </P>
+            <Note label="Optional: ViGEmBus, for the gamepad">
+              <p className="mb-3">
+                The gamepad works without it. Every control can be bound to a keyboard
+                key, and that is what the pad sends when the laptop has no controller
+                driver — which is the state most laptops are in.
+              </p>
+              <p className="mb-3">
+                Install{" "}
+                <a
+                  href="https://github.com/nefarius/ViGEmBus/releases/latest"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-foreground underline underline-offset-4"
+                >
+                  ViGEmBus
+                </a>{" "}
+                and Edgepad plugs a real virtual Xbox controller into Windows instead.
+                Games that only ever accepted a controller can then be played from the
+                phone, and a stick is a stick rather than four keys: the sticks and
+                triggers carry their full analog range. It is a signed kernel driver
+                from a third party, installed by you and not by Edgepad.
+              </p>
+              <p>
+                You never have to guess which of the two you are in. The laptop answers
+                every request for the controller with a <C>PAD_STATUS</C> token, and the
+                gamepad screen says <em>keyboard mode</em> and which of the three
+                reasons it was, rather than being quietly dead. A ViGEmBus installed
+                while Edgepad is running is noticed on the next reconnect.
+              </p>
+            </Note>
           </TabsContent>
 
           <TabsContent value="android" className="space-y-4">
@@ -338,12 +383,50 @@ export function ProductSections() {
           and dragging sends absolute <C>SET</C> frames.
         </P>
 
+        <Sub>Focusing and locking the pad</Sub>
+        <P>
+          The middle of the five top buttons is the lock. One tap hides the dials and
+          the media and leaves the trackpad. A second tap inside the double-tap window
+          locks the trackpad instead and puts the dials and the media back, so the phone
+          can sit in a pocket or under a palm and answer only its rulers. Any later tap
+          returns the whole surface. A locked pad keeps the lock button drawn in the
+          full ink, because a surface that silently swallows every touch reads as a
+          crash rather than as a mode.
+        </P>
+        <P>
+          The mode lives in the view: it is neither stored nor offered as a setting,
+          since a phone that came back up silently locked would read as broken.
+        </P>
+
+        <Sub>Shapes</Sub>
+        <P>
+          Press one finger on the trackpad, hold it still until it ticks, then draw
+          without lifting. On lift the stroke is matched against the shapes drawn under{" "}
+          <strong>Settings &gt; Shapes</strong>, and the one it matches runs: a laptop
+          action, a macro slot, or the pad&apos;s own focus or lock. A stroke that
+          matches nothing does nothing, which is the right answer — the alternative is
+          the nearest binding firing on a scrawl.
+        </P>
+        <P>
+          Shape mode will not arm while dragging, and stops the moment a second finger
+          lands, so scroll, pinch and the three- and four-finger swipes are untouched. A
+          phone with no shapes drawn behaves exactly as it did before there were any.
+        </P>
+
         <Sub>Macro buttons</Sub>
         <P>
-          Fifteen buttons in a 5x3 grid, named from the laptop&apos;s tray menu. Fifteen
-          is what one frame can name, so a full grid always arrives labelled rather than
-          trailing off into blank buttons. A macro added while the phone is connected
-          appears at once.
+          Fifteen slots, named from the laptop&apos;s tray menu. Fifteen is what one
+          frame can name — fifteen names at sixteen bytes with fourteen separators is
+          254 of the 255 bytes a <C>TEXT</C> frame carries — so a full grid always
+          arrives labelled rather than trailing off into blank buttons. A macro added
+          while the phone is connected appears at once.
+        </P>
+        <P>
+          The grid is no longer a fixed 5x3. Every cell is as wide as the widest label
+          in it, so no button is a different size from its neighbour, and a row holds as
+          many as the screen actually has room for. The count is capped by what fits
+          rather than by how many slots are filled, so two macros are two ordinary
+          buttons at the left of a full-width row and not two half-screen slabs.
         </P>
       </Section>
 
@@ -353,6 +436,13 @@ export function ProductSections() {
         title="Settings"
         lede="One SharedPreferences file holds all of it. Dial positions and the gesture map are stored by enum name, so renumbering an action can never silently remap a corner."
       >
+        <P>
+          The hub groups its rows by the thing each one configures, not by the kind of
+          editor the row opens. Until 3.0.0 it did the opposite, which is how the
+          keyboard&apos;s text size and the macro buttons&apos; appearance both ended up
+          on a page titled <strong>Background &amp; pattern</strong> — a title that
+          described neither.
+        </P>
         <div className="grid gap-px sm:grid-cols-2">
           {[
             {
@@ -361,15 +451,11 @@ export function ProductSections() {
             },
             {
               title: "Surface",
-              body: "Corners (which dial each corner holds, or none), Gestures (the gesture map and on-screen hints), Dial feel (slide sensitivity — shared or per dial kind — dial length and height, haptic ticks, snapping to round numbers, with a live preview), and natural scrolling.",
+              body: "Corners (which dial each corner holds, or none), Trackpad (pointer and scroll speed, natural scrolling, the three- and four-finger map and the on-screen hints), Shapes (draw one, bind it, delete it), and Dial feel (slide sensitivity — shared or per dial kind — dial length and height, haptic ticks, snapping to round numbers, with a live preview).",
             },
             {
-              title: "Trackpad",
-              body: "Pointer speed and scroll speed. Settings since 2.0.0, constants before it.",
-            },
-            {
-              title: "Layouts",
-              body: "The media layout and the gamepad layout, each a full-screen canvas where pieces are dragged anywhere. The options button holds the size, the presets and reset.",
+              title: "Controls",
+              body: "One page each for the Keyboard, the Gamepad layout, the Macro buttons and the Media layout. A page holds everything about its own control: the keyboard's text size, the gamepad's canvas and layout library, whether a macro button shows its icon alone or its icon and label, and where the three media pieces sit.",
             },
             {
               title: "Appearance",
@@ -392,9 +478,19 @@ export function ProductSections() {
         <P>
           The theme is the system&apos;s own per-app night mode, set through{" "}
           <C>UiModeManager.setApplicationNightMode</C>, so Edgepad stores no preference
-          of its own for it. Orientation is a toggle — upright or sideways — not free
-          rotation. Media-piece positions are stored as fractions of the surface&apos;s
-          width and height, so a layout made in portrait keeps its shape in landscape.
+          of its own for it. Media-piece positions are stored as fractions of the
+          surface&apos;s width and height, so a layout made in portrait keeps its shape
+          in landscape.
+        </P>
+        <P>
+          Orientation is a toggle — upright or sideways — not free rotation, and since
+          3.0.0 it speaks only for the control surface and the two canvases that stand
+          in for it: the media layout editor, because a media layout has been stored per
+          orientation since 2.3.0 and a phone turned mid-edit would quietly begin
+          changing the other one, and the shape canvas, because a stroke is drawn at the
+          pad&apos;s own proportions. The keyboard, the gamepad and the gamepad&apos;s
+          editor are sideways and only sideways. Every other screen follows the phone,
+          which is what the setting used to override for the whole app.
         </P>
 
         <Sub>Where the laptop keeps things</Sub>

@@ -2,6 +2,8 @@
 #
 # RUN_ACTION carries an ACTION id; SET_VALUE and STATE carry a CONTROL id; TEXT carries a TEXT kind. The laptop owns what each
 # one does, and ignores any id not listed here: the phone can name an action, never a key or a command.
+# PAD_STATE carries a PAD_BUTTON bitmask; TEXT kind 8 carries one PAD_STATUS token. Both are listed here for the same
+# reason the actions are: one definition, two codecs, and a test on each side that fails when they drift apart.
 # Both test suites check their enums against this file, the same way they check frames.txt.
 # HANDSHAKE holds the two values that decide whether a phone can reach a laptop at all.
 #
@@ -34,6 +36,12 @@ ACTION 31 VOLUME_UP
 ACTION 32 VOLUME_DOWN
 ACTION 33 BRIGHTNESS_UP
 ACTION 34 BRIGHTNESS_DOWN
+# Plug in or unplug the laptop's virtual controller. Actions rather than a frame type of their own, because
+# the pad only ever needs to be asked for and given back, and an action costs no protocol version: a laptop
+# that predates the gamepad drops the id and counts it, and the phone learns as much from the PAD_STATUS it
+# never receives. The laptop decides whether it can honour the request and answers with TEXT 8.
+ACTION 35 PAD_ATTACH
+ACTION 36 PAD_DETACH
 # The first of the 32 macro slots; slot n is MACRO_BASE + n. A laptop older than the macros feature drops an
 # unknown action id rather than erroring, which is why the block needs no new frame type and no version bump.
 ACTION 64 MACRO_BASE
@@ -67,6 +75,41 @@ TEXT 6 MACRO_ICON
 # older than this feature drops the request and the phone shows names, and a phone older than it never asks,
 # so neither half spends the link on icons the other cannot use. The payload is empty.
 TEXT 7 WANT_ICONS
+# Whether the laptop can offer a virtual controller at all, laptop to phone, as one PAD_STATUS token from the
+# fixed set below. Sent in answer to PAD_ATTACH and PAD_DETACH, and once after the handshake so the phone can
+# hide the pad rather than offer a button that does nothing.
+TEXT 8 PAD_STATUS
 
-HANDSHAKE 3 VERSION
+# The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
+# and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
+# it: a table of its own here would be a second definition to keep in step with Microsoft's. 0x0800, between
+# GUIDE and A, is unused by XInput and stays unused here. NONE is the empty mask, nothing held, which is a
+# real state of the field rather than padding: it is what a PAD_STATE carries the moment a button comes up.
+PAD_BUTTON 0 NONE
+PAD_BUTTON 1 DPAD_UP
+PAD_BUTTON 2 DPAD_DOWN
+PAD_BUTTON 4 DPAD_LEFT
+PAD_BUTTON 8 DPAD_RIGHT
+PAD_BUTTON 16 START
+PAD_BUTTON 32 BACK
+PAD_BUTTON 64 LEFT_THUMB
+PAD_BUTTON 128 RIGHT_THUMB
+PAD_BUTTON 256 LEFT_SHOULDER
+PAD_BUTTON 512 RIGHT_SHOULDER
+PAD_BUTTON 1024 GUIDE
+PAD_BUTTON 4096 A
+PAD_BUTTON 8192 B
+PAD_BUTTON 16384 X
+PAD_BUTTON 32768 Y
+
+# The whole vocabulary of TEXT kind 8, as "<token on the wire> <the name both apps call it>". A token, not a
+# sentence, because the phone branches on it: READY is the only one that leaves the pad usable, and the other
+# two are the two different things it has to tell the user when it falls back to the keyboard. Prose here
+# would mean the phone matching on the laptop's wording, which is how a message becomes unchangeable.
+# An unknown token is treated as NO_DRIVER: the pad is not usable and the phone cannot say why.
+PAD_STATUS ready READY
+PAD_STATUS no-driver NO_DRIVER
+PAD_STATUS attach-failed ATTACH_FAILED
+
+HANDSHAKE 4 VERSION
 HANDSHAKE 758bb618-7b72-4cd3-9aa2-c9b88e54d555 SERVICE_ID

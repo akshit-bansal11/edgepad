@@ -1,4 +1,5 @@
 using Edgepad.Controls;
+using Edgepad.Gamepad;
 using Edgepad.Injection;
 using Edgepad.Macros;
 using Edgepad.Protocol;
@@ -12,6 +13,7 @@ namespace Edgepad.Dispatch;
 /// </summary>
 internal sealed class Dispatcher(
     InputInjector input,
+    VirtualPad pad,
     AudioEndpoint speakers,
     AudioEndpoint microphone,
     BrightnessControl brightness,
@@ -27,6 +29,14 @@ internal sealed class Dispatcher(
     /// <summary>Frames that asked for something unknown, out of range, or unavailable (no microphone).</summary>
     public int Dropped { get; private set; }
 
+    /// <summary>
+    /// Where the answer to PAD_ATTACH and PAD_DETACH goes. Set by the session once it has a socket to write
+    /// to: this class deliberately holds no reference to the connection, for the same reason PONG is
+    /// answered in the session and not here. The pad is the one thing in this table the phone has to hear
+    /// back about, because it draws a different screen depending on the token.
+    /// </summary>
+    public Action<string>? PadStatusReply { get; set; }
+
     public void Handle(Frame frame)
     {
         var handled = frame switch
@@ -39,6 +49,10 @@ internal sealed class Dispatcher(
             SetValue v when v.Value <= MaxPercent => Set(v.Control, v.Value),
             Text t when t.Kind == (byte)TextKind.Type => Do(() => input.Type(t.Value)),
             Key k => Do(() => input.Key(k.Code, k.Down)),
+            // A pad frame with no pad plugged in is dropped and counted like any other id this laptop
+            // cannot act on. The phone is not meant to send one before its PAD_ATTACH was answered
+            // "ready", and a laptop that quietly accepted them would look to it exactly like one playing.
+            PadState p => pad.Update(p),
             _ => false,
         };
 
@@ -122,6 +136,10 @@ internal sealed class Dispatcher(
                 return brightness.Step(BrightnessStep);
             case ActionId.BrightnessDown:
                 return brightness.Step(-BrightnessStep);
+            case ActionId.PadAttach:
+                return Answer(pad.Attach());
+            case ActionId.PadDetach:
+                return Answer(pad.Detach());
             default:
                 return false;
         }
@@ -173,6 +191,17 @@ internal sealed class Dispatcher(
         }
 
         return changed;
+    }
+
+    /// <summary>
+    /// Sends the pad's state back to the phone. Always handled, even for "no-driver": the ask was
+    /// understood and answered, and a phone that heard nothing could not tell a laptop without the driver
+    /// from one too old to know the id at all — which are two different things to put on its screen.
+    /// </summary>
+    private bool Answer(string status)
+    {
+        PadStatusReply?.Invoke(status);
+        return true;
     }
 
     private static bool Do(Action action)

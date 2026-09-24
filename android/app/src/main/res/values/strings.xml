@@ -103,7 +103,9 @@
   <string name="theme">Theme</string>
   <string name="theme_dark">DARK</string>
   <string name="theme_light">LIGHT</string>
-  <string name="landscape">Landscape</string>
+  <string name="orientation">Orientation</string>
+  <string name="orientation_upright">UPRIGHT</string>
+  <string name="orientation_sideways">SIDEWAYS</string>
   <string name="dial_preview_description">Preview of a corner dial at the chosen size</string>
   <string name="macro_buttons">Macro buttons</string>
   <string name="macro_buttons_label">ICON + LABEL</string>
@@ -132,9 +134,30 @@
   <string name="pattern_color">Pattern colour</string>
   <string name="pattern_opacity">Pattern opacity</string>
   <string name="percent_value">%1$d%%</string>
+  <!-- Shapes drawn on the trackpad -->
+  <string name="shapes_title">Shapes</string>
+  <string name="shapes_summary">%1$d DRAWN</string>
+  <string name="shapes_none">NONE YET</string>
+  <string name="shapes_footnote">PRESS AND HOLD ON THE TRACKPAD UNTIL IT TICKS, THEN DRAW WITHOUT LIFTING</string>
+  <string name="shapes_empty_title">No shapes yet.</string>
+  <string name="shapes_empty_body">Draw one here and give it something to run. On the trackpad, press and hold until it ticks, then draw it without lifting your finger.</string>
+  <string name="shapes_add">DRAW A SHAPE</string>
+  <string name="shapes_draw_title">Draw the shape</string>
+  <string name="shapes_draw_hint">DRAW IT IN ONE STROKE · LIFT WHEN YOU ARE DONE</string>
+  <string name="shapes_redraw">REDRAW</string>
+  <string name="shapes_save">SAVE</string>
+  <string name="shapes_delete">DELETE</string>
+  <string name="shapes_too_close">That is too close to a shape you already have. Draw a more distinct one.</string>
+  <string name="shapes_too_short">That is too small to tell apart. Draw it larger.</string>
+  <string name="shape_runs">Runs %1$s</string>
+  <string name="shape_target_macro">Macro · %1$s</string>
+  <string name="shape_target_focus">Hide the dials and media</string>
+  <string name="shape_target_lock_pad">Lock the pad</string>
+
   <string name="settings_surface">SURFACE</string>
-  <string name="settings_layouts">LAYOUTS</string>
+  <string name="settings_controls">CONTROLS</string>
   <string name="settings_help">HELP</string>
+  <string name="keyboard_settings_title">Keyboard</string>
   <string name="settings_version">EDGEPAD %1$s · PROTOCOL %2$d</string>
   <string name="corners_title">Corners</string>
   <string name="corner_assign">ASSIGN · %1$s</string>
@@ -188,10 +211,12 @@
   <string name="surface_keyboard">Open the keyboard</string>
   <string name="surface_gamepad">Open the gamepad</string>
   <string name="surface_macros">Open the macros</string>
+  <string name="surface_lock">Hide the dials, or lock the pad</string>
+  <string name="surface_mode_normal">Dials, media and pad all on</string>
+  <string name="surface_mode_focus">Pad only · dials and media hidden</string>
+  <string name="surface_mode_locked">Dials and media only · pad locked</string>
 
   <!-- Macros -->
-  <string name="macros_title">Macros</string>
-  <string name="macros_count">SLOTS · %1$d</string>
   <string name="macros_run">Run %1$s</string>
   <string name="macros_empty_title">No macros yet.</string>
   <string name="macros_empty_body">Add them from Edgepad\'s tray menu on the laptop. They appear here as soon as it sends the list.</string>

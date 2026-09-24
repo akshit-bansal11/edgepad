@@ -46,6 +46,15 @@ class Settings(
         get() = prefs.getString(KEY_LAPTOP, null)
         set(value) = prefs.edit().putString(KEY_LAPTOP, value).apply()
 
+    /**
+     * The shapes the user has drawn and what each one runs, in the text [me.akshitbansal.edgepad.surface.Shapes]
+     * encodes. Kept as one string rather than a key per shape because the whole set is read and written
+     * together, the way the gamepad's layout is, and because a half-saved set is worse than none.
+     */
+    var shapes: String
+        get() = prefs.getString(KEY_SHAPES, "").orEmpty()
+        set(value) = prefs.edit().putString(KEY_SHAPES, value).apply()
+
     var onboarded by flag("onboarded", false)
 
     /** Connect to the remembered laptop when the app opens, and retry after a dropped link. */
@@ -74,7 +83,10 @@ class Settings(
      */
     var keyTextScale by bounded(KEY_KEY_TEXT_SCALE, DEFAULT_KEY_TEXT_SCALE, MIN_KEY_TEXT_SCALE, MAX_KEY_TEXT_SCALE)
 
-    /** The surface, settings and finder are held sideways; the keyboard and gamepad always are. */
+    /**
+     * The control surface and the media layout editor are held sideways. The keyboard and gamepad always are,
+     * and every other screen follows the phone: from 3.0 this setting is about the pad, not about the app.
+     */
     var landscape by flag("landscape", false)
 
     /** The guide as one scrolling page rather than steps. */
@@ -317,6 +329,7 @@ class Settings(
         private const val NONE = "-"
         private const val IMAGE_FILE = "background.img"
         private const val KEY_LAPTOP = "laptop"
+        private const val KEY_SHAPES = "shapes"
         private const val KEY_SENSITIVITY = "sensitivity"
         private const val KEY_POINTER_SPEED = "pointerSpeed"
         private const val KEY_SCROLL_SPEED = "scrollSpeed"

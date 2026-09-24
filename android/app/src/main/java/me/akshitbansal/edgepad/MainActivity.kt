@@ -38,11 +38,15 @@ import me.akshitbansal.edgepad.screens.GamepadScreen
 import me.akshitbansal.edgepad.screens.GestureScreen
 import me.akshitbansal.edgepad.screens.GuideScreen
 import me.akshitbansal.edgepad.screens.KeyboardScreen
+import me.akshitbansal.edgepad.screens.KeyboardSettingsScreen
 import me.akshitbansal.edgepad.screens.MacroScreen
+import me.akshitbansal.edgepad.screens.MacroSettingsScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
+import me.akshitbansal.edgepad.screens.ShapeDrawScreen
+import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.surface.ControlSurface
 import java.io.IOException
@@ -70,7 +74,11 @@ class MainActivity :
         SETTINGS,
         CORNERS,
         GESTURES,
+        SHAPES,
+        SHAPE_DRAW,
         DIAL_FEEL,
+        KEYBOARD_SETTINGS,
+        MACRO_SETTINGS,
         APPEARANCE,
         MEDIA_LAYOUT,
         GAMEPAD_LAYOUT,
@@ -102,6 +110,9 @@ class MainActivity :
     private var state = LaptopState()
     private var link: LaptopLink? = null
     private var surface: ControlSurface? = null
+
+    /** The gamepad while it is the screen, so the laptop's answer about its controller can reach it. */
+    private var gamepad: GamepadScreen? = null
     private var reconnecting: ReconnectingScreen? = null
     private var laptopName = ""
     private var laptopAddress = ""
@@ -214,8 +225,14 @@ class MainActivity :
     }
 
     private fun goTo(next: Screen) {
+        // The virtual controller is plugged in for exactly as long as the gamepad is on screen. Asked for
+        // here rather than inside the screen because leaving it is also a way of arriving somewhere else,
+        // and because a preset change rebuilds the same screen: that is not a trip out and back.
+        if (screen == Screen.GAMEPAD && next != Screen.GAMEPAD) link?.send(ActionId.PAD_DETACH.frame())
+        if (next == Screen.GAMEPAD && screen != Screen.GAMEPAD) link?.send(ActionId.PAD_ATTACH.frame())
         screen = next
         surface = null
+        gamepad = null
         reconnecting = null
         handler.removeCallbacks(ticker)
         val view: View =
@@ -247,16 +264,19 @@ class MainActivity :
                             forget = ::forget,
                             corners = { goTo(Screen.CORNERS) },
                             gestures = { goTo(Screen.GESTURES) },
+                            shapes = { goTo(Screen.SHAPES) },
                             dialFeel = { goTo(Screen.DIAL_FEEL) },
-                            mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
+                            keyboard = { goTo(Screen.KEYBOARD_SETTINGS) },
                             gamepadLayout = {
                                 layoutReturn = Screen.SETTINGS
                                 goTo(Screen.GAMEPAD_LAYOUT)
                             },
+                            macros = { goTo(Screen.MACRO_SETTINGS) },
+                            mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
                             appearance = { goTo(Screen.APPEARANCE) },
                             guide = { goTo(Screen.GUIDE) },
                             documentation = ::openDocumentation,
-                            landscape = { on ->
+                            sideways = { on ->
                                 settings.landscape = on
                                 applyOrientation()
                             },
@@ -271,6 +291,37 @@ class MainActivity :
 
                 Screen.GESTURES -> {
                     GestureScreen.build(ui, settings) { navigateBack() }
+                }
+
+                Screen.SHAPES -> {
+                    // Rebuilt rather than re-filled after a deletion: the list and the empty state are two
+                    // different pages, and the last shape going takes the screen from one to the other.
+                    ShapesScreen.build(
+                        ui,
+                        settings,
+                        state.macros,
+                        onDraw = { goTo(Screen.SHAPE_DRAW) },
+                        onChanged = { goTo(Screen.SHAPES) },
+                        onBack = { navigateBack() },
+                    )
+                }
+
+                Screen.SHAPE_DRAW -> {
+                    ShapeDrawScreen.build(
+                        ui,
+                        settings,
+                        state.macros,
+                        onSaved = { goTo(Screen.SHAPES) },
+                        onBack = { navigateBack() },
+                    )
+                }
+
+                Screen.KEYBOARD_SETTINGS -> {
+                    KeyboardSettingsScreen.build(ui, settings) { navigateBack() }
+                }
+
+                Screen.MACRO_SETTINGS -> {
+                    MacroSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.DIAL_FEEL -> {
@@ -294,20 +345,23 @@ class MainActivity :
                 }
 
                 Screen.GAMEPAD -> {
-                    GamepadScreen.build(
+                    GamepadScreen(
                         ui,
                         gamepads.current,
+                        gamepads.all.map { it.name },
+                        state.padStatus,
                         onKey = ::key,
+                        onPad = { pad -> link?.send(pad) },
                         onBack = { navigateBack() },
-                        onPreset = { name ->
-                            gamepads.choosePreset(name)
+                        onChoose = { name ->
+                            gamepads.choose(name)
                             goTo(Screen.GAMEPAD)
                         },
                         onEdit = {
                             layoutReturn = Screen.GAMEPAD
                             goTo(Screen.GAMEPAD_LAYOUT)
                         },
-                    )
+                    ).also { gamepad = it }.view
                 }
 
                 Screen.MACROS -> {
@@ -362,16 +416,21 @@ class MainActivity :
         updateBack()
     }
 
-    /** Held one way: the keyboard and gamepad sideways, everything else as the setting says. A change rebuilds the activity; the link survives it. */
+    /**
+     * Three answers, not two. The keyboard and the gamepad are drawn sideways and only sideways. The control
+     * surface and the two canvases that stand in for it are held the way the Orientation setting says — the
+     * media layout editor because a layout is stored per orientation since 2.3.0, so a phone turned mid-edit
+     * would quietly start changing the other one, and the shape canvas because a stroke is drawn at the pad's
+     * own proportions. Everything else follows the phone, which is what the setting used to override for the
+     * whole app. A change rebuilds the activity; the link survives it.
+     */
     private fun applyOrientation() {
-        val sideways =
-            screen == Screen.KEYBOARD || screen == Screen.GAMEPAD || screen == Screen.GAMEPAD_LAYOUT ||
-                settings.landscape
         requestedOrientation =
-            if (sideways) {
-                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-            } else {
-                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            when {
+                screen in alwaysSideways -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                screen !in pinned -> ActivityInfo.SCREEN_ORIENTATION_USER
+                settings.landscape -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                else -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }
     }
 
@@ -411,8 +470,14 @@ class MainActivity :
                 goTo(Screen.PAIRING)
             }
 
-            Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.GUIDE, Screen.MEDIA_LAYOUT -> {
+            Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.GUIDE, Screen.MEDIA_LAYOUT,
+            Screen.KEYBOARD_SETTINGS, Screen.MACRO_SETTINGS, Screen.SHAPES,
+            -> {
                 goTo(Screen.SETTINGS)
+            }
+
+            Screen.SHAPE_DRAW -> {
+                goTo(Screen.SHAPES)
             }
 
             Screen.GAMEPAD_LAYOUT -> {
@@ -619,6 +684,10 @@ class MainActivity :
         runOnUiThread {
             if (!state.take(frame)) return@runOnUiThread
             surface?.stateChanged()
+            // The pad decides which of its two modes it is in from this answer, which usually lands a few
+            // milliseconds after PAD_ATTACH went out — by then the screen is already up, so it is handed
+            // over rather than rebuilt: rebuilding would drop whatever fingers are on the glass.
+            if (frame is Frame.Text && frame.kind == TextKind.PAD_STATUS.id) gamepad?.setStatus(state.padStatus)
             // The macro grid is built from the list rather than bound to it, so a list that lands while the
             // screen is open needs the screen built again; otherwise it reads "no macros yet" until you leave.
             // A finished icon is the same problem, and arrives the same way.
@@ -747,7 +816,26 @@ class MainActivity :
 
     private companion object {
         val immersive =
-            setOf(Screen.SURFACE, Screen.KEYBOARD, Screen.GAMEPAD, Screen.MEDIA_LAYOUT, Screen.GAMEPAD_LAYOUT)
+            setOf(
+                Screen.SURFACE,
+                Screen.KEYBOARD,
+                Screen.GAMEPAD,
+                Screen.MEDIA_LAYOUT,
+                Screen.GAMEPAD_LAYOUT,
+                Screen.SHAPE_DRAW,
+            )
+
+        /** Drawn sideways whatever the phone is doing, because they are laid out for a wide screen and nothing else. */
+        val alwaysSideways = setOf(Screen.KEYBOARD, Screen.GAMEPAD, Screen.GAMEPAD_LAYOUT)
+
+        /**
+         * Held the way the Orientation setting says. Everything outside both sets follows the phone.
+         *
+         * The shape canvas is here for a reason of its own: it is held the way the pad is because a shape
+         * is drawn at the pad's own proportions, and because a phone that rotated mid-stroke would turn
+         * half a drawing into a saved shape nobody could reproduce.
+         */
+        val pinned = setOf(Screen.SURFACE, Screen.MEDIA_LAYOUT, Screen.SHAPE_DRAW)
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2
         const val PING_INTERVAL_MS = 500L

@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="gamepad_edit">EDIT LAYOUT</string>
+  <string name="gamepad_mode_waiting">KEYBOARD MODE · WAITING FOR THE LAPTOP TO OFFER A CONTROLLER</string>
+  <string name="gamepad_mode_no_driver">KEYBOARD MODE · NO CONTROLLER DRIVER ON THE LAPTOP</string>
+  <string name="gamepad_mode_attach_failed">KEYBOARD MODE · THE LAPTOP COULD NOT PLUG THE CONTROLLER IN</string>
 </resources>

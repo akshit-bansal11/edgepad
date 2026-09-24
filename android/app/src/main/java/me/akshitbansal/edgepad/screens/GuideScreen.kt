@@ -177,7 +177,6 @@ object GuideScreen {
                     }
                 }
             root.addView(page)
-            root.addView(EdgeRule(ui.context))
             if (direction != 0) enter(ui, page.getChildAt(1), direction)
         }
         show(0)

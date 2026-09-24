@@ -22,13 +22,14 @@ const sans = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Edgepad — documentation",
+  // The landing page's title is the default; app/docs/page.tsx overrides it.
+  title: "Edgepad — your laptop, from across the room",
   description:
-    "Edgepad turns an Android phone into a trackpad, a media remote and a control panel for a Windows laptop, over a direct Bluetooth link with nothing in between. Full documentation: architecture, wire protocol, install, and the developer guide.",
+    "Edgepad turns an Android phone into a trackpad, a media remote and a control panel for a Windows laptop, over a direct Bluetooth link with nothing in between. No account, no network, no telemetry. MIT.",
   applicationName: "Edgepad",
   authors: [{ name: "akshit-bansal11" }],
   openGraph: {
-    title: "Edgepad — documentation",
+    title: "Edgepad — your laptop, from across the room",
     description:
       "Phone as a control surface for a Windows laptop, over Bluetooth Classic RFCOMM. No account, no Wi-Fi, no server.",
     type: "website",

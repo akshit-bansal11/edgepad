@@ -130,6 +130,12 @@ const FRAME_DOCS: Record<
     meaning:
       "The only variable-length frame: up to 255 bytes, never split inside a character.",
   },
+  PAD_STATE: {
+    payload: "buttons u16, lt u8, rt u8, lx i16, ly i16, rx i16, ry i16",
+    direction: "phone-to-laptop",
+    meaning:
+      "The whole virtual controller in one frame, laid out like Windows' own XINPUT_GAMEPAD so the laptop copies the fields rather than translating them. Triggers are 0-255, sticks -32768 to 32767, positive up and right. A snapshot and not a change, so a backlog of them collapses to the newest.",
+  },
 };
 
 const ACTION_DOCS: Record<string, string> = {
@@ -155,6 +161,10 @@ const ACTION_DOCS: Record<string, string> = {
   VOLUME_DOWN: "Volume-down key.",
   BRIGHTNESS_UP: "The panel's brightness, plus 10.",
   BRIGHTNESS_DOWN: "The panel's brightness, minus 10.",
+  PAD_ATTACH:
+    "Asks the laptop to plug in its virtual Xbox controller. The laptop answers with TEXT 8, so the phone learns whether it may send PAD_STATE or must fall back to the keyboard.",
+  PAD_DETACH:
+    "Asks the laptop to unplug the virtual controller. Sent when the gamepad screen closes; the laptop also unplugs it by itself when the session ends.",
   MACRO_BASE:
     "The first of 32 reserved macro slots (ids 64-95). Slot n runs as MACRO_BASE + n. The phone sends the index; the laptop's own list decides what it opens.",
 };
@@ -185,6 +195,8 @@ const TEXT_DOCS: Record<string, string> = {
     "One piece of one macro's icon as slot/chunk/chunks/base64, the base64 being part of a PNG. An icon does not fit the 255 bytes a payload holds, so it arrives in pieces. Laptop to phone.",
   WANT_ICONS:
     "Asks for the macro icons, with an empty payload. Sent when the phone opens the macro grid; nothing is pushed unasked. Phone to laptop.",
+  PAD_STATUS:
+    "Whether a virtual controller can be offered, as one of ready, no-driver or attach-failed. Sent after the handshake and in answer to PAD_ATTACH and PAD_DETACH. An unknown token reads as no-driver, so the phone falls back to the keyboard rather than sending input nothing receives. Laptop to phone.",
 };
 
 function read(file: string): string[] {

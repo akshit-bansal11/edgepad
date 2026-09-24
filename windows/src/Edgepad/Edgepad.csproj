@@ -25,6 +25,8 @@
     <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
     <!-- WMI: the built-in panel's brightness. -->
     <PackageReference Include="System.Management" Version="10.0.12" />
+    <!-- ViGEmBus: the virtual Xbox controller the phone's gamepad drives. -->
+    <PackageReference Include="Nefarius.ViGEm.Client" Version="1.21.256" />
   </ItemGroup>
 
 </Project>

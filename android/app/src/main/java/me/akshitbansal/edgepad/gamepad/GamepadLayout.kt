@@ -1,5 +1,7 @@
 package me.akshitbansal.edgepad.gamepad
 
+import me.akshitbansal.edgepad.protocol.PadButton
+
 /** What shape a control draws as and how its keys are pressed. */
 enum class ControlKind {
     /** Round, one key. */
@@ -16,10 +18,141 @@ enum class ControlKind {
 }
 
 /**
+ * What one control drives on the laptop: a real controller input, or keyboard keys.
+ *
+ * Both, rather than only the controller, because the laptop decides at run time whether it can offer a
+ * virtual pad at all. A laptop with no driver still has a keyboard, so a layout built out of [Keys] is the
+ * only kind that works everywhere, and it stays the way the four game presets are written. A control bound
+ * to anything else simply does nothing while the pad is unavailable.
+ */
+sealed interface Binding {
+    /** Which one of a pair: the left or the right stick, the left or the right trigger, the left or right bumper. */
+    enum class Side { LEFT, RIGHT }
+
+    /**
+     * Windows virtual-key codes: one for a button or a shoulder, four as [up, down, left, right] for a
+     * d-pad or a stick. The binding that needs nothing of the laptop but a keyboard.
+     */
+    data class Keys(
+        val codes: List<Int>,
+    ) : Binding
+
+    /** One controller button, held for exactly as long as the control is. */
+    data class Button(
+        val button: PadButton,
+    ) : Binding
+
+    /**
+     * The d-pad's four buttons, pressed by the direction the finger is from the centre. A kind of its own
+     * rather than four [Button]s, because XInput fixes which four bits a d-pad is and nothing chooses them.
+     */
+    data object Dpad : Binding
+
+    /** One analog stick: the thumb's offset from the centre becomes both of that stick's axes. */
+    data class Stick(
+        val side: Side,
+    ) : Binding
+
+    /** One analog trigger: how far down the control the finger sits becomes its 0..255 pull. */
+    data class Trigger(
+        val side: Side,
+    ) : Binding
+
+    /**
+     * Whether a control of [kind] can drive this binding. A stick's two axes need a thumb to move, a
+     * trigger's travel needs a shoulder's height to measure against, and the d-pad's four bits need four
+     * arms to press them, so the kind and the binding are checked together or a stored layout could name
+     * a control that cannot possibly work the way it says.
+     */
+    fun fits(kind: ControlKind): Boolean =
+        when (this) {
+            is Keys -> codes.size == if (kind == ControlKind.DPAD || kind == ControlKind.STICK) 4 else 1
+            is Button -> kind == ControlKind.BUTTON || kind == ControlKind.SHOULDER
+            Dpad -> kind == ControlKind.DPAD
+            is Stick -> kind == ControlKind.STICK
+            is Trigger -> kind == ControlKind.SHOULDER
+        }
+
+    /** The stored form: a one-letter tag, then what that tag needs. */
+    fun encode(): String =
+        when (this) {
+            is Keys -> "$KEYS:${codes.joinToString(",")}"
+            is Button -> "$BUTTON:${button.name}"
+            Dpad -> DPAD
+            is Stick -> "$STICK:${side.name}"
+            is Trigger -> "$TRIGGER:${side.name}"
+        }
+
+    companion object {
+        /**
+         * Every XInput button a control can hold down, in the order a picker offers them: the four face
+         * buttons first because they are what a game names, then the bumpers, the three middle buttons,
+         * the two stick clicks, and the d-pad's own four bits last — those are one whole control in every
+         * layout that has a d-pad, and are worth offering singly only to someone building one out of four
+         * separate arrows. [PadButton.NONE] is the empty mask: it holds nothing down, so it is not
+         * something a control can be bound to at all.
+         */
+        val buttons: List<PadButton> =
+            listOf(
+                PadButton.A,
+                PadButton.B,
+                PadButton.X,
+                PadButton.Y,
+                PadButton.LEFT_SHOULDER,
+                PadButton.RIGHT_SHOULDER,
+                PadButton.START,
+                PadButton.BACK,
+                PadButton.GUIDE,
+                PadButton.LEFT_THUMB,
+                PadButton.RIGHT_THUMB,
+                PadButton.DPAD_UP,
+                PadButton.DPAD_DOWN,
+                PadButton.DPAD_LEFT,
+                PadButton.DPAD_RIGHT,
+            )
+
+        /**
+         * Every controller binding a control of [kind] can drive, in the order a picker offers them.
+         * Exactly the set [fits] accepts, so a picker cannot offer a pairing the store would later refuse.
+         * Keyboard bindings are not here: they are a code the user picks, not a fixed list of choices.
+         */
+        fun controllerOptions(kind: ControlKind): List<Binding> =
+            when (kind) {
+                ControlKind.BUTTON -> buttonBindings()
+                ControlKind.SHOULDER -> buttonBindings() + Trigger(Side.LEFT) + Trigger(Side.RIGHT)
+                ControlKind.DPAD -> listOf(Dpad)
+                ControlKind.STICK -> listOf(Stick(Side.LEFT), Stick(Side.RIGHT))
+            }
+
+        private fun buttonBindings(): List<Binding> = buttons.map { Button(it) }
+
+        private const val KEYS = "K"
+        private const val BUTTON = "B"
+        private const val DPAD = "D"
+        private const val STICK = "S"
+        private const val TRIGGER = "T"
+
+        /** Parses [encode]'s form. Anything else — an unknown tag, an unknown name, no tag at all — is null. */
+        fun decode(text: String): Binding? {
+            if (text == DPAD) return Dpad
+            val payload = text.substringAfter(':', "")
+            return when (text.substringBefore(':', "")) {
+                KEYS -> Keys(payload.split(",").map { it.toIntOrNull() ?: return null })
+                BUTTON -> PadButton.entries.firstOrNull { it.name == payload }?.let(::Button)
+                STICK -> side(payload)?.let(::Stick)
+                TRIGGER -> side(payload)?.let(::Trigger)
+                else -> null
+            }
+        }
+
+        private fun side(name: String): Side? = Side.entries.firstOrNull { it.name == name }
+    }
+}
+
+/**
  * One control on the gamepad surface. [x] and [y] are the fractions (0..1) of the screen where its
- * centre sits; [size] is its diameter (BUTTON/STICK/DPAD) or width (SHOULDER) in dp. [keys] holds the
- * Windows virtual-key codes it presses: one for BUTTON/SHOULDER, four as [up, down, left, right] for
- * DPAD/STICK.
+ * centre sits; [size] is its diameter (BUTTON/STICK/DPAD) or width (SHOULDER) in dp. [binding] is what it
+ * drives on the laptop, and always one [Binding.fits] this [kind].
  */
 data class Control(
     val id: String,
@@ -28,13 +161,22 @@ data class Control(
     val x: Float,
     val y: Float,
     val size: Float,
-    val keys: List<Int>,
+    val binding: Binding,
 ) {
     companion object {
         const val BUTTON_SIZE_DP = 64f
         const val DPAD_SIZE_DP = 150f
         const val STICK_SIZE_DP = 150f
         const val SHOULDER_SIZE_DP = 110f
+
+        /** What a control of [kind] is sized at when the editor adds a fresh one. */
+        fun sizeOf(kind: ControlKind): Float =
+            when (kind) {
+                ControlKind.BUTTON -> BUTTON_SIZE_DP
+                ControlKind.DPAD -> DPAD_SIZE_DP
+                ControlKind.STICK -> STICK_SIZE_DP
+                ControlKind.SHOULDER -> SHOULDER_SIZE_DP
+            }
     }
 }
 
@@ -43,22 +185,96 @@ data class GamepadLayout(
     val name: String,
     val controls: List<Control>,
 ) {
-    /** One line per control, `|`-separated fields, keys `,`-separated; the layout name on the first line. */
+    /** One line per control, `|`-separated fields, the binding in its own encoded form; the name on the first line. */
     fun encode(): String {
         val lines = mutableListOf(name)
         for (c in controls) {
-            lines += listOf(c.id, c.kind.name, c.label, c.x, c.y, c.size, c.keys.joinToString(",")).joinToString("|")
+            lines += listOf(c.id, c.kind.name, c.label, c.x, c.y, c.size, c.binding.encode()).joinToString("|")
         }
         return lines.joinToString("\n")
     }
 
     companion object {
+        /** The longest a layout's name may be, and the longest a label drawn inside a control may be. */
+        const val MAX_NAME = 24
+        const val MAX_LABEL = 10
+
+        /**
+         * [raw] cut down to something a layout's name or a control's label may be, or null when nothing
+         * usable is left of it. Both are stored as fields of [encode]'s line format, so no separator may
+         * survive inside one: a name carrying a newline or a `|` would rewrite the file around it the next
+         * time the set was written, and everything after it would come back as a different layout or as
+         * nothing at all. Trimmed after the cut as well as before it, so a name shortened mid-word does
+         * not keep the space the cut left behind.
+         */
+        fun clean(
+            raw: String,
+            max: Int,
+        ): String? =
+            raw
+                .filter { it >= ' ' && it != '|' }
+                .trim()
+                .take(max)
+                .trim()
+                .ifEmpty { null }
+
+        /**
+         * [wanted], or the first of "wanted 2", "wanted 3" … that [taken] does not already hold.
+         *
+         * A name collision therefore costs a number and never a layout. Overwriting whichever layout was
+         * already there would throw away an arrangement the user cannot get back, and refusing the save
+         * outright would need somewhere to say why — which a popup over a full-screen canvas does not have.
+         */
+        fun freeName(
+            wanted: String,
+            taken: Collection<String>,
+        ): String {
+            if (wanted !in taken) return wanted
+            var next = 2
+            while ("$wanted $next" in taken) next++
+            return "$wanted $next"
+        }
+
+        /**
+         * Every layout as one text, a blank line between them. [clean] keeps a name from ever being empty
+         * or carrying a newline, and a layout with no controls is refused, so a blank line can only ever
+         * be the gap between two layouts.
+         */
+        fun encodeAll(layouts: List<GamepadLayout>): String = layouts.joinToString(GAP) { it.encode() }
+
+        /**
+         * Parses [encodeAll]. One unreadable layout refuses the whole set, the way one unreadable line
+         * refuses one layout: a set that has gone bad is one the user builds again, not one the pad
+         * silently plays half of.
+         */
+        fun decodeAll(text: String): List<GamepadLayout>? {
+            if (text.isEmpty()) return emptyList()
+            val layouts = mutableListOf<GamepadLayout>()
+            for (record in text.split(GAP)) layouts += decode(record) ?: return null
+            return layouts
+        }
+
+        private const val GAP = "\n\n"
+
         private const val FIELD_COUNT = 7
 
-        /** Parses [encode]'s format; malformed input of any kind yields null rather than a partial layout. */
+        /**
+         * Parses [encode]'s format; malformed input of any kind yields null rather than a partial layout.
+         *
+         * A layout saved by 2.x is malformed input here, deliberately: its last field is a bare list of
+         * key codes with no binding tag, so [Binding.decode] refuses it and [GamepadStore] falls back to
+         * the first preset. Refused rather than migrated because the migration would be a lie — 3.0.0's
+         * first preset is a real controller and a 2.x layout has no controller bindings in it at all, so
+         * the honest outcome of reading one is the controller layout the owner would have had to choose
+         * anyway. Only the dragged positions are lost, and only once.
+         */
         fun decode(text: String): GamepadLayout? {
             val lines = text.split("\n")
             val name = lines.firstOrNull() ?: return null
+            // A nameless layout is refused rather than merely odd: [decodeAll] tells one layout from the
+            // next by the blank line between them, and a layout whose first line were empty would be
+            // indistinguishable from the gap before it.
+            if (name.isEmpty()) return null
             val controls = mutableListOf<Control>()
             for (line in lines.drop(1)) {
                 if (line.isEmpty()) continue
@@ -70,20 +286,65 @@ data class GamepadLayout(
                 val x = fields[3].toFloatOrNull() ?: return null
                 val y = fields[4].toFloatOrNull() ?: return null
                 val size = fields[5].toFloatOrNull() ?: return null
-                val keys = fields[6].split(",").map { it.toIntOrNull() ?: return null }
-                val expectedKeys = if (kind == ControlKind.DPAD || kind == ControlKind.STICK) 4 else 1
-                if (keys.size != expectedKeys) return null
-                controls += Control(id, kind, label, x, y, size, keys)
+                val binding = Binding.decode(fields[6]) ?: return null
+                if (!binding.fits(kind)) return null
+                controls += Control(id, kind, label, x, y, size, binding)
             }
             if (controls.isEmpty()) return null
             return GamepadLayout(name, controls)
         }
 
-        val presets: List<GamepadLayout> = listOf(xbox(), platformer(), racing(), shooter())
+        // Declared before [presets], which builds the layouts that hold them: a companion initialises its
+        // properties in the order they are written, and these are not compile-time constants.
+        private val leftStick = Binding.Stick(Binding.Side.LEFT)
+        private val rightStick = Binding.Stick(Binding.Side.RIGHT)
+        private val leftTrigger = Binding.Trigger(Binding.Side.LEFT)
+        private val rightTrigger = Binding.Trigger(Binding.Side.RIGHT)
+        private val leftBumper = Binding.Button(PadButton.LEFT_SHOULDER)
+        private val rightBumper = Binding.Button(PadButton.RIGHT_SHOULDER)
 
+        /**
+         * The controller layout first: it is what the laptop can now be asked for, and it is also what a
+         * refused stored layout falls back to. The four after it are keyboard layouts and stay that way —
+         * they are the only thing that works when the laptop cannot offer a pad at all.
+         */
+        val presets: List<GamepadLayout> = listOf(xbox(), xboxKeys(), platformer(), racing(), shooter())
+
+        /**
+         * XInput's whole standard set, laid out the way the controller it copies is: sticks and d-pad on
+         * the left, the four face buttons on the right, bumpers and triggers along the top edge, Start and
+         * Back in the middle, and the two stick clicks in the bottom corners where a thumb can reach them
+         * without leaving the stick it belongs to.
+         *
+         * Every binding here is a controller input, so this layout does nothing in keyboard mode. The pad
+         * says so on screen when that happens, and the keyboard presets are one tap away in the same popup.
+         */
         private fun xbox(): GamepadLayout =
             GamepadLayout(
                 "Xbox",
+                listOf(
+                    Control("lstick", ControlKind.STICK, "L", 0.13f, 0.46f, Control.STICK_SIZE_DP, leftStick),
+                    Control("rstick", ControlKind.STICK, "R", 0.70f, 0.78f, Control.STICK_SIZE_DP, rightStick),
+                    Control("dpad", ControlKind.DPAD, "D", 0.30f, 0.78f, Control.DPAD_SIZE_DP, Binding.Dpad),
+                    face("a", "A", 0.84f, 0.58f, PadButton.A),
+                    face("b", "B", 0.92f, 0.46f, PadButton.B),
+                    face("x", "X", 0.76f, 0.46f, PadButton.X),
+                    face("y", "Y", 0.84f, 0.34f, PadButton.Y),
+                    Control("lt", ControlKind.SHOULDER, "LT", 0.10f, 0.12f, Control.SHOULDER_SIZE_DP, leftTrigger),
+                    Control("lb", ControlKind.SHOULDER, "LB", 0.24f, 0.12f, Control.SHOULDER_SIZE_DP, leftBumper),
+                    Control("rb", ControlKind.SHOULDER, "RB", 0.76f, 0.12f, Control.SHOULDER_SIZE_DP, rightBumper),
+                    Control("rt", ControlKind.SHOULDER, "RT", 0.90f, 0.12f, Control.SHOULDER_SIZE_DP, rightTrigger),
+                    face("start", "Start", 0.56f, 0.92f, PadButton.START, START_SIZE_DP),
+                    face("back", "Back", 0.44f, 0.92f, PadButton.BACK, START_SIZE_DP),
+                    face("l3", "L3", 0.05f, 0.88f, PadButton.LEFT_THUMB, START_SIZE_DP),
+                    face("r3", "R3", 0.95f, 0.88f, PadButton.RIGHT_THUMB, START_SIZE_DP),
+                ),
+            )
+
+        /** The same shape as [xbox], bound to keys: what the pad was before the laptop could offer a controller. */
+        private fun xboxKeys(): GamepadLayout =
+            GamepadLayout(
+                "Xbox keys",
                 listOf(
                     Control(
                         "stick",
@@ -92,7 +353,7 @@ data class GamepadLayout(
                         0.14f,
                         0.55f,
                         Control.STICK_SIZE_DP,
-                        listOf(0x57, 0x53, 0x41, 0x44),
+                        keys(0x57, 0x53, 0x41, 0x44),
                     ),
                     Control(
                         "dpad",
@@ -101,18 +362,18 @@ data class GamepadLayout(
                         0.30f,
                         0.72f,
                         Control.DPAD_SIZE_DP,
-                        listOf(0x26, 0x28, 0x25, 0x27),
+                        keys(0x26, 0x28, 0x25, 0x27),
                     ),
-                    Control("a", ControlKind.BUTTON, "A", 0.82f, 0.65f, Control.BUTTON_SIZE_DP, listOf(0x20)),
-                    Control("b", ControlKind.BUTTON, "B", 0.90f, 0.55f, Control.BUTTON_SIZE_DP, listOf(0x45)),
-                    Control("x", ControlKind.BUTTON, "X", 0.74f, 0.55f, Control.BUTTON_SIZE_DP, listOf(0x51)),
-                    Control("y", ControlKind.BUTTON, "Y", 0.82f, 0.45f, Control.BUTTON_SIZE_DP, listOf(0x52)),
-                    Control("lb", ControlKind.SHOULDER, "LB", 0.12f, 0.12f, Control.SHOULDER_SIZE_DP, listOf(0x10)),
-                    Control("rb", ControlKind.SHOULDER, "RB", 0.88f, 0.12f, Control.SHOULDER_SIZE_DP, listOf(0x46)),
-                    Control("lt", ControlKind.SHOULDER, "LT", 0.24f, 0.12f, Control.SHOULDER_SIZE_DP, listOf(0x09)),
-                    Control("rt", ControlKind.SHOULDER, "RT", 0.76f, 0.12f, Control.SHOULDER_SIZE_DP, listOf(0x0D)),
-                    Control("start", ControlKind.BUTTON, "Start", 0.58f, 0.9f, START_SIZE_DP, listOf(0x1B)),
-                    Control("select", ControlKind.BUTTON, "Select", 0.42f, 0.9f, START_SIZE_DP, listOf(0x08)),
+                    Control("a", ControlKind.BUTTON, "A", 0.82f, 0.65f, Control.BUTTON_SIZE_DP, keys(0x20)),
+                    Control("b", ControlKind.BUTTON, "B", 0.90f, 0.55f, Control.BUTTON_SIZE_DP, keys(0x45)),
+                    Control("x", ControlKind.BUTTON, "X", 0.74f, 0.55f, Control.BUTTON_SIZE_DP, keys(0x51)),
+                    Control("y", ControlKind.BUTTON, "Y", 0.82f, 0.45f, Control.BUTTON_SIZE_DP, keys(0x52)),
+                    Control("lb", ControlKind.SHOULDER, "LB", 0.12f, 0.12f, Control.SHOULDER_SIZE_DP, keys(0x10)),
+                    Control("rb", ControlKind.SHOULDER, "RB", 0.88f, 0.12f, Control.SHOULDER_SIZE_DP, keys(0x46)),
+                    Control("lt", ControlKind.SHOULDER, "LT", 0.24f, 0.12f, Control.SHOULDER_SIZE_DP, keys(0x09)),
+                    Control("rt", ControlKind.SHOULDER, "RT", 0.76f, 0.12f, Control.SHOULDER_SIZE_DP, keys(0x0D)),
+                    Control("start", ControlKind.BUTTON, "Start", 0.58f, 0.9f, START_SIZE_DP, keys(0x1B)),
+                    Control("select", ControlKind.BUTTON, "Select", 0.42f, 0.9f, START_SIZE_DP, keys(0x08)),
                 ),
             )
 
@@ -127,11 +388,11 @@ data class GamepadLayout(
                         0.18f,
                         0.6f,
                         Control.DPAD_SIZE_DP,
-                        listOf(0x26, 0x28, 0x25, 0x27),
+                        keys(0x26, 0x28, 0x25, 0x27),
                     ),
-                    Control("jump", ControlKind.BUTTON, "Jump", 0.85f, 0.6f, PLATFORMER_BUTTON_DP, listOf(0x20)),
-                    Control("run", ControlKind.BUTTON, "Run", 0.72f, 0.72f, PLATFORMER_BUTTON_DP, listOf(0x58)),
-                    Control("pause", ControlKind.BUTTON, "Pause", 0.5f, 0.9f, START_SIZE_DP, listOf(0x1B)),
+                    Control("jump", ControlKind.BUTTON, "Jump", 0.85f, 0.6f, PLATFORMER_BUTTON_DP, keys(0x20)),
+                    Control("run", ControlKind.BUTTON, "Run", 0.72f, 0.72f, PLATFORMER_BUTTON_DP, keys(0x58)),
+                    Control("pause", ControlKind.BUTTON, "Pause", 0.5f, 0.9f, START_SIZE_DP, keys(0x1B)),
                 ),
             )
 
@@ -146,12 +407,12 @@ data class GamepadLayout(
                         0.85f,
                         0.6f,
                         RACING_PEDAL_DP,
-                        listOf(0x26),
+                        keys(0x26),
                     ),
-                    Control("brake", ControlKind.SHOULDER, "Brake", 0.85f, 0.85f, RACING_PEDAL_DP, listOf(0x28)),
-                    Control("left", ControlKind.BUTTON, "Left", 0.12f, 0.7f, RACING_STEER_DP, listOf(0x25)),
-                    Control("right", ControlKind.BUTTON, "Right", 0.28f, 0.7f, RACING_STEER_DP, listOf(0x27)),
-                    Control("nitro", ControlKind.BUTTON, "Nitro", 0.5f, 0.85f, RACING_NITRO_DP, listOf(0x10)),
+                    Control("brake", ControlKind.SHOULDER, "Brake", 0.85f, 0.85f, RACING_PEDAL_DP, keys(0x28)),
+                    Control("left", ControlKind.BUTTON, "Left", 0.12f, 0.7f, RACING_STEER_DP, keys(0x25)),
+                    Control("right", ControlKind.BUTTON, "Right", 0.28f, 0.7f, RACING_STEER_DP, keys(0x27)),
+                    Control("nitro", ControlKind.BUTTON, "Nitro", 0.5f, 0.85f, RACING_NITRO_DP, keys(0x10)),
                 ),
             )
 
@@ -166,15 +427,27 @@ data class GamepadLayout(
                         0.14f,
                         0.55f,
                         Control.STICK_SIZE_DP,
-                        listOf(0x57, 0x53, 0x41, 0x44),
+                        keys(0x57, 0x53, 0x41, 0x44),
                     ),
-                    Control("fire", ControlKind.BUTTON, "Fire", 0.85f, 0.6f, SHOOTER_FIRE_DP, listOf(0x11)),
-                    Control("jump", ControlKind.BUTTON, "Jump", 0.72f, 0.75f, SHOOTER_JUMP_DP, listOf(0x20)),
-                    Control("reload", ControlKind.BUTTON, "Reload", 0.9f, 0.35f, SHOOTER_SMALL_DP, listOf(0x52)),
-                    Control("crouch", ControlKind.BUTTON, "Crouch", 0.72f, 0.4f, SHOOTER_SMALL_DP, listOf(0x43)),
-                    Control("aim", ControlKind.SHOULDER, "Aim", 0.85f, 0.12f, Control.SHOULDER_SIZE_DP, listOf(0x10)),
+                    Control("fire", ControlKind.BUTTON, "Fire", 0.85f, 0.6f, SHOOTER_FIRE_DP, keys(0x11)),
+                    Control("jump", ControlKind.BUTTON, "Jump", 0.72f, 0.75f, SHOOTER_JUMP_DP, keys(0x20)),
+                    Control("reload", ControlKind.BUTTON, "Reload", 0.9f, 0.35f, SHOOTER_SMALL_DP, keys(0x52)),
+                    Control("crouch", ControlKind.BUTTON, "Crouch", 0.72f, 0.4f, SHOOTER_SMALL_DP, keys(0x43)),
+                    Control("aim", ControlKind.SHOULDER, "Aim", 0.85f, 0.12f, Control.SHOULDER_SIZE_DP, keys(0x10)),
                 ),
             )
+
+        /** A round button holding one controller button down. Spelled out because the four face buttons repeat it. */
+        private fun face(
+            id: String,
+            label: String,
+            x: Float,
+            y: Float,
+            button: PadButton,
+            size: Float = Control.BUTTON_SIZE_DP,
+        ): Control = Control(id, ControlKind.BUTTON, label, x, y, size, Binding.Button(button))
+
+        private fun keys(vararg codes: Int): Binding = Binding.Keys(codes.toList())
 
         private const val START_SIZE_DP = 44f
         private const val PLATFORMER_BUTTON_DP = 72f

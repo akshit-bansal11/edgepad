@@ -98,6 +98,28 @@ const DECISIONS: Decision[] = [
       "Drag to scroll, pinch to zoom, tap to right-click are what a hand already expects from a trackpad. A phone that answers them differently reads as broken rather than as configured. Three and four fingers stay assignable.",
   },
   {
+    id: "vigem",
+    question: "Why does the gamepad need a driver you install yourself?",
+    answer:
+      "Windows has no way for a user-mode program to present a controller. A game that reads XInput reads a device on the bus, so producing one means a kernel driver, and ViGEmBus is the signed one that already exists. Edgepad references its client library, talks to the driver if it is there, and falls back to sending keyboard keys if it is not — which is the state most laptops are in, and the laptop says which state it is in rather than letting the pad fail silently.",
+    rejected:
+      "Shipping or installing the driver from Edgepad — a self-contained exe that quietly installs a kernel driver is not something to do to somebody's laptop, and the exe is not code-signed. Writing our own — an unsigned driver needs test-signing mode, which is the same reason a virtual Precision Touchpad was rejected. Staying with keys — a stick quantised to eight compass sectors cannot be analog, and a game that only reads controllers sees nothing at all.",
+  },
+  {
+    id: "unistroke",
+    question: "Why does a shape that matches nothing do nothing?",
+    answer:
+      "The matcher scores a stroke against every shape you drew and needs both a good enough score and a wide enough margin over the runner-up before it fires. Below either, nothing runs. The alternative is the nearest binding firing on a scrawl, which is worse than no answer: a wrong macro has already opened something.",
+    rejected:
+      "Always running the nearest match. Also $1's per-axis box fit, which makes a tall I and a round O the same blob, and $1's rotation normalisation, because a C turned around is not a C.",
+  },
+  {
+    id: "layoutnames",
+    question: "Why does a colliding gamepad layout name cost a number?",
+    answer:
+      "Saving a second layout as Elden Ring gives you Elden Ring 2. Overwriting would throw away an arrangement that cannot be got back, and refusing needs somewhere to print an error that a popup over a full-screen canvas does not have. Saving under a built-in name shadows that layout rather than adding a second row of the same name, so Edgepad's own Xbox can always be got back and can never be renamed away.",
+  },
+  {
     id: "monogram",
     question: "Why is the playing app a monogram rather than its icon?",
     answer:
@@ -137,8 +159,28 @@ const LIMITS: Limit[] = [
   },
   {
     title: "The feel constants are first guesses",
-    body: "Pointer gain, scroll units per dp, zoom and switch step sizes in TrackpadRecognizer; base units per dp, units per step and the haptic notch size in Dial; the ruler sizes and hit depths in ControlSurface. They are tuned by feel rather than measured, so expect to adjust the sensitivity settings to taste.",
+    body: "Pointer gain, scroll units per dp, zoom and switch step sizes in TrackpadRecognizer; base units per dp, units per step and the haptic notch size in Dial; the ruler sizes and hit depths in ControlSurface; the stick dead zone in PadAxis. They are tuned by feel rather than measured, so expect to adjust the sensitivity settings to taste.",
     kind: "unverified",
+  },
+  {
+    title: "No real stroke has been scored against the shape thresholds",
+    body: "MIN_SCORE and MIN_MARGIN in Shapes decide how close is close enough and by how much the best match must beat the runner-up before it fires. Both are unmeasured guesses, like every other feel constant here, and they are the two numbers worth tuning if shapes fire too readily or not readily enough.",
+    kind: "unverified",
+  },
+  {
+    title: "ViGEmBus is archived and unmaintained",
+    body: "The virtual controller is a third-party signed kernel driver its author archived in November 2023; it receives no updates. It remains signed and installs and works today, and nothing about Edgepad can change that. Edgepad neither ships it nor installs it, works without it, and says on the gamepad screen which of the two modes it is in. A Windows release that stopped accepting the driver would take the controller with it and leave keyboard mode.",
+    kind: "accepted",
+  },
+  {
+    title: "A ViGEmBus installed mid-session is not noticed until you reconnect",
+    body: "The driver is looked for once per connection and the answer kept, because the phone sends PAD_ATTACH whenever the gamepad screen opens and retrying an absent driver would be a probe and a log line per press. The cost is one reconnect after an install you are already watching.",
+    kind: "accepted",
+  },
+  {
+    title: "A gamepad layout saved by 2.x is refused, not migrated",
+    body: "A 2.x layout has no controller bindings in it to migrate, so migrating would be a lie; the first built-in layout — now a real controller — takes its place. Dragged positions are lost, once. The old single-layout key is still read once on update, so an arrangement already in the 3.0 encoding becomes the first entry in the library rather than being dropped with it.",
+    kind: "accepted",
   },
   {
     title: "Overlay mode is not built",
@@ -183,6 +225,12 @@ const LIMITS: Limit[] = [
 ];
 
 const HISTORY: { version: string; date: string; summary: string }[] = [
+  {
+    version: "3.0.0",
+    date: "2026-09-24",
+    summary:
+      "The gamepad becomes a real controller. The laptop plugs in a virtual Xbox pad through ViGEmBus and copies each PAD_STATE frame onto its report, so sticks and triggers are analog and a game that only reads controllers can be played from the phone; a laptop without the driver falls back to sending keys and says so rather than being quietly dead. Every control on the pad is yours to add, bind, size, label and delete, and layouts are a library kept one per game. Shapes drawn on the trackpad run an action or a macro. A fifth top button focuses the pad or locks it. Settings regroups by the thing each row configures, and Orientation stops speaking for the whole app. The macro grid sizes itself and wraps. The decorative edge rulers are gone. The wire protocol moves to version 4, its first move since 0.6.0.",
+  },
   {
     version: "2.0.0",
     date: "2026-09-17",
@@ -316,8 +364,10 @@ export function ReferenceSections() {
 
         <Note label="Both halves, same release">
           The two apps refuse each other at the handshake when their protocol versions
-          differ, and say so. Even where they would interoperate — as 2.0.0 and 1.0.0 do
-          — only the matching pair knows about the newer controls.
+          differ, and say so. 1.0.0 through 2.3.0 all speak version 3, so any two of
+          them interoperate, and only the matching pair knows about the newer controls.
+          3.0.0 speaks version 4 and refuses all of them outright, which is what a new
+          frame type costs.
         </Note>
       </Section>
 
@@ -350,9 +400,31 @@ export function ReferenceSections() {
           </li>
           <li>Player logos belong to their owners and are drawn as supplied.</li>
           <li>
-            The laptop app depends on NAudio (for volume) and <C>System.Management</C>{" "}
-            (for WMI brightness), and nothing else. The phone app depends on JUnit, and
-            nothing else.
+            The laptop app depends on NAudio (for volume), <C>System.Management</C> (for
+            WMI brightness) and{" "}
+            <a
+              href="https://github.com/nefarius/ViGEm.NET"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-foreground underline underline-offset-4"
+            >
+              Nefarius.ViGEm.Client
+            </a>{" "}
+            (the client for the virtual controller), and nothing else. The phone app
+            depends on JUnit, and nothing else.
+          </li>
+          <li>
+            The virtual controller itself is{" "}
+            <a
+              href="https://github.com/nefarius/ViGEmBus"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-foreground underline underline-offset-4"
+            >
+              ViGEmBus
+            </a>
+            , BSD 3-Clause licence, by Benjamin Höglinger-Stelzer. It is a separate
+            install and is not distributed with Edgepad.
           </li>
         </ul>
       </Section>

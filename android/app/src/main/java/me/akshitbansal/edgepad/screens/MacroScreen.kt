@@ -2,7 +2,9 @@ package me.akshitbansal.edgepad.screens
 
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
+import android.text.TextPaint
 import android.text.TextUtils
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -11,9 +13,6 @@ import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
-
-private const val PORTRAIT_COLUMNS = 3
-private const val LANDSCAPE_COLUMNS = 5
 
 /** The picture's side, and the room a row gives it above the label. */
 private const val ICON_DP = 28f
@@ -40,7 +39,10 @@ object MacroScreen {
         onRun: (index: Int) -> Unit,
         onBack: () -> Unit,
     ): View {
-        val bar = ui.bar(ui.string(R.string.macros_title), onBack)
+        // A bar of nothing but the way out. A "Macros" heading over a grid of macros repeats what the grid
+        // already says and costs it a row; an empty title draws nothing, and a TextView with neither text
+        // nor description is skipped by TalkBack, so the chevron is all that is there to read or to tap.
+        val bar = ui.bar("", onBack)
         // A slot with no name is a hole in the laptop's list, not the end of it: it keeps the index its
         // neighbours are counted from and simply is not drawn.
         val slots = names.withIndex().filter { it.value.isNotEmpty() }
@@ -56,14 +58,66 @@ object MacroScreen {
         // One height for the whole grid, decided by whether anything in it has a picture. Sized per button
         // instead, a row holding one icon and one label would stand at two heights and read as a mistake.
         val tall = pictures.values.any { it != null }
-        val columns = if (ui.landscape) LANDSCAPE_COLUMNS else PORTRAIT_COLUMNS
+        val columns = columnCount(ui, slots, pictures, labels)
         return ui.page(bar) {
-            section(ui.string(R.string.macros_count, slots.size))
             for (line in slots.chunked(columns)) {
                 add(row(ui, line, columns, pictures, tall, labels, onRun), Space.S)
             }
         }
     }
+
+    /**
+     * How many buttons fit across the page. Measured rather than fixed at three or five: every cell is as
+     * wide as the grid's widest label, so no button is a different size from its neighbour, and a row takes
+     * as many of them as the screen actually has room for.
+     *
+     * The measuring happens here, while the screen is being built, rather than in a layout pass. It can:
+     * MainActivity rebuilds this screen from scratch whenever the laptop's list changes, so the labels are
+     * all known before a single view exists. The alternative, a flow layout that measures its own children,
+     * would have to allocate inside onLayout, which this project's lint rejects outright.
+     */
+    private fun columnCount(
+        ui: Ui,
+        slots: List<IndexedValue<String>>,
+        pictures: Map<Int, BitmapDrawable?>,
+        labels: Boolean,
+    ): Int {
+        // The same face, size and tracking Ui.button draws its label with, so the width is the real one.
+        val paint =
+            TextPaint().apply {
+                typeface = Type.face
+                letterSpacing = Type.TRACKING_BUTTON
+                textSize =
+                    TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_SP,
+                        Type.LABEL,
+                        ui.context.resources.displayMetrics,
+                    )
+            }
+        val widest = slots.maxOf { paint.measureText(label(it, pictures[it.index], labels)) }
+        // A cell is the widest label plus the button's own padding, and never narrower than a picture:
+        // with the labels turned off there is no text to measure and the icon is the whole of the width.
+        val cell = maxOf(widest.toInt(), ui.dp(ICON_DP)) + 2 * ui.dp(Space.S)
+        val gap = ui.dp(Space.S)
+        // Only the page's side margins come off the screen's width. A display cutout takes a few pixels
+        // more in landscape, which at worst clips a character off the widest label rather than the row.
+        val room = ui.context.resources.displayMetrics.widthPixels - 2 * ui.dp(Space.PAGE)
+        // Capped by what fits and not by how many slots there are: a grid holding two macros keeps a row of
+        // the full count and pads the rest, so those two are ordinary buttons sitting at the left. Capped at
+        // the number of slots instead, two macros would each be drawn half a screen wide.
+        return ((room + gap) / (cell + gap)).coerceAtLeast(1)
+    }
+
+    /**
+     * What a button draws: its name, or nothing at all when it has a picture and the labels are turned off.
+     * A button showing its picture only still answers to its name — the label is what is dropped, not what
+     * the slot is called, so TalkBack reads the same thing either way.
+     */
+    private fun label(
+        slot: IndexedValue<String>,
+        picture: BitmapDrawable?,
+        labels: Boolean,
+    ): String = if (picture != null && !labels) "" else slot.value.uppercase()
 
     /** The bitmap for a slot, or null when there is none or the bytes are not a picture after all. */
     private fun decode(
@@ -116,9 +170,8 @@ object MacroScreen {
         labels: Boolean,
         onRun: (index: Int) -> Unit,
     ): View {
-        // A button showing its picture only still answers to its name: the label is what is dropped, not
-        // what the slot is called, so TalkBack reads the same thing either way.
-        val shown = if (picture != null && !labels) "" else slot.value.uppercase()
+        // The same label columnCount measured, so the cell it sized is the cell this fills.
+        val shown = label(slot, picture, labels)
         return ui.button(shown, Ui.Style.OUTLINED) { onRun(slot.index) }.apply {
             // A long name is cut rather than wrapped, so every button in the grid stays one row tall.
             maxLines = 1
