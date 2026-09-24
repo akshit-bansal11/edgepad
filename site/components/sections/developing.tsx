@@ -18,7 +18,7 @@ const LAYOUT: { path: string; what: string }[] = [
   },
   {
     path: "windows/",
-    what: "The laptop tray app. C# on .NET 10, WinForms for the tray, WinRT for Bluetooth and media, NAudio for volume, WMI for brightness.",
+    what: "The laptop tray app. C# on .NET 10, WinForms for the tray, WinRT for Bluetooth and media, NAudio for volume, WMI for brightness, ViGEmBus for the virtual controller.",
   },
   {
     path: "protocol/",
@@ -32,7 +32,7 @@ const LAYOUT: { path: string; what: string }[] = [
 const ANDROID_PACKAGES: { path: string; what: string; pure: boolean }[] = [
   {
     path: "surface/",
-    what: "Gesture recognition, the dials, the corner geometry, the ruler painter.",
+    what: "Gesture recognition, the dials, the corner geometry, the ruler painter, the shape matcher, the pad's focus and lock table.",
     pure: true,
   },
   { path: "protocol/", what: "Frame and id coding.", pure: true },
@@ -43,12 +43,12 @@ const ANDROID_PACKAGES: { path: string; what: string; pure: boolean }[] = [
   },
   {
     path: "gamepad/",
-    what: "Gamepad layout, control geometry, the layout store.",
+    what: "Gamepad layout, control geometry, which bindings fit which kind of control, the stick and trigger arithmetic, the layout library and its store.",
     pure: true,
   },
   {
     path: "screens/",
-    what: "Every screen: guide, devices, settings, layout editors, keyboard, gamepad, macros.",
+    what: "Every screen: guide, devices, settings and its per-control pages, layout editors, shapes, keyboard, gamepad, macros.",
     pure: false,
   },
 ];
@@ -73,6 +73,11 @@ const WINDOWS_FOLDERS: { path: string; what: string; pure: boolean }[] = [
   {
     path: "Controls/",
     what: "Audio, brightness, display modes, media sessions, the on-screen level overlay.",
+    pure: false,
+  },
+  {
+    path: "Gamepad/",
+    what: "VirtualPad: the ViGEmBus controller, and the PAD_STATUS answer when there is no driver.",
     pure: false,
   },
   { path: "Trust/", what: "TrustStore: trust on first use.", pure: false },
@@ -375,19 +380,31 @@ cd windows && dotnet test --solution Edgepad.slnx`}
               The gesture recogniser and the whole finger table, assignable actions,
               natural scrolling, the dials (arming, slop, snapping, steppers, haptic
               notches), the corner and perimeter geometry, coalescing, round-trip stats,
-              the gamepad layout, the modifier latch and the laptop-state model. All
-              pure Kotlin, so it runs with no emulator.
+              the gamepad layout, the modifier latch and the laptop-state model. 3.0.0
+              adds <C>ShapesTest</C> for the unistroke matcher, <C>PadAxisTest</C> for
+              the dead zone and the stick scaling, <C>PadModeTest</C> for the lock
+              button&apos;s transitions, and <C>GamepadStoreTest</C> for what a name
+              collision costs and what is left playing after a deletion. All pure
+              Kotlin, so it runs with no emulator.
             </p>
           </div>
           <div className="border-line border p-4">
             <p className="font-mono text-sm font-medium">Windows</p>
             <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
               The dispatcher&apos;s drop paths, input batching, trust on first use, the
-              macro store, display modes, the level overlay, and the media-session title
-              mapping.
+              macro store, display modes, the level overlay, the media-session title
+              mapping, and <C>VirtualPadTests</C>.
             </p>
           </div>
         </div>
+
+        <Note label="How a test covers a driver it must not install">
+          <C>VirtualPad</C> takes the function that opens its ViGEmBus handle, so a test
+          hands in one that throws what an absent driver throws. Nothing else pins the
+          no-driver answer: whether the machine running the suite has ViGEmBus is not
+          ours to choose, and a test that opened the real client on a machine that does
+          would plug a controller into whoever ran it.
+        </Note>
 
         <Note label="Where to start without a device">
           The protocol codecs, the gesture recogniser, the dial geometry and the
@@ -442,8 +459,8 @@ cd windows && dotnet test --solution Edgepad.slnx`}
         <ul className="text-dim max-w-[70ch] list-disc space-y-2 pl-5 text-[0.9375rem] leading-relaxed">
           <li>
             No UI libraries on the phone. No third-party packages on the laptop beyond
-            NAudio and <C>System.Management</C>. A new dependency needs a reason in the
-            pull request.
+            NAudio, <C>System.Management</C> and <C>Nefarius.ViGEm.Client</C>. A new
+            dependency needs a reason in the pull request.
           </li>
           <li>Constants are named. A number that appears twice is a constant.</li>
           <li>Doc comments say why, not what the next line already says.</li>
@@ -487,8 +504,8 @@ cd windows && dotnet test --solution Edgepad.slnx`}
           title="Cut a release"
           code={`# 1. Update the version table in docs/PROTOCOL.md if the protocol changed.
 # 2. Move Unreleased in CHANGELOG.md under the new version.
-git tag v2.0.0
-git push origin v2.0.0`}
+git tag v3.0.0
+git push origin v3.0.0`}
         />
         <P>
           <C>.github/workflows/release.yml</C> runs both quality gates, builds a signed
@@ -512,12 +529,19 @@ git push origin v2.0.0`}
         </Note>
 
         <Note label="Protocol version and release version are different numbers">
-          The wire protocol sits at version {protocolVersion} and, from 1.0, only moves
-          in a major release. 2.0.0 was a major release that did <em>not</em> move it:
-          macro buttons and the refresh-rate dial were new ids in tables that already
-          existed, and an unknown id is dropped rather than erroring, so a 2.0.0 half
-          and a 1.0.0 half still speak to each other. Only a new frame{" "}
-          <strong>type</strong> forces a bump.
+          <p className="mb-3">
+            The wire protocol sits at version {protocolVersion} and, from 1.0, only
+            moves in a major release. A major release does not oblige it to move. 2.0.0
+            was one that did <em>not</em>: macro buttons and the refresh-rate dial were
+            new ids in tables that already existed, and an unknown id is dropped rather
+            than erroring, so a 2.0.0 half and a 1.0.0 half still speak to each other.
+          </p>
+          <p>
+            3.0.0 did move it, to {protocolVersion}, because <C>PAD_STATE</C> is a new
+            frame type and an unknown type byte closes the connection. Only a new frame{" "}
+            <strong>type</strong> forces a bump, and a 3.0.0 half genuinely refuses a
+            2.x one at the handshake.
+          </p>
         </Note>
       </Section>
     </>

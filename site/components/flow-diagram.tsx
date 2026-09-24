@@ -54,8 +54,9 @@ const LAPTOP: Column = {
       detail: "Decodes, then executes from the laptop-owned action table",
     },
     {
-      name: "InputInjector · AudioEndpoint · BrightnessControl · MediaSessions",
-      detail: "SendInput, Core Audio, WMI, system media transport controls",
+      name: "InputInjector · AudioEndpoint · BrightnessControl · MediaSessions · VirtualPad",
+      detail:
+        "SendInput, Core Audio, WMI, system media transport controls, and a virtual Xbox controller where ViGEmBus is installed",
     },
   ],
 };

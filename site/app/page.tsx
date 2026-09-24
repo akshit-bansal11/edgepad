@@ -25,12 +25,24 @@ const FEATURES: { title: string; body: string }[] = [
     body: "The track, the app playing it and where it is, with previous, play/pause and next. Drag the three pieces anywhere on the surface.",
   },
   {
-    title: "Keyboard and gamepad",
-    body: "A full on-screen keyboard whose modifiers work held or tapped, and a gamepad with editable layouts and presets. Both open sideways.",
+    title: "Keyboard",
+    body: "A full on-screen keyboard whose modifiers work held or tapped. It opens sideways, and its text size is a setting.",
+  },
+  {
+    title: "Gamepad",
+    body: "Install ViGEmBus on the laptop and the phone drives a real virtual Xbox controller, sticks and triggers analog, so games that only accept a controller can be played from across the room. Without the driver the same pad sends keyboard keys, and says which of the two it is in.",
+  },
+  {
+    title: "Your pad, your bindings",
+    body: "Add a control, bind it to any controller input or key that fits it, size it, label it, move it. Layouts are a library kept one per game, and the ones Edgepad ships with can never be renamed away.",
+  },
+  {
+    title: "Shapes",
+    body: "Press and hold on the trackpad until it ticks, then draw. The stroke runs the action or macro you bound to it. A stroke that matches nothing does nothing.",
   },
   {
     title: "Macro buttons",
-    body: "Fifteen buttons in a 5x3 grid. The laptop's tray menu names an app, a document, a folder or a URL for each; the phone sends the slot number and never what it opens.",
+    body: "Fifteen slots the laptop's tray menu names with an app, a document, a folder or a URL each; the phone sends the slot number and never what it opens. The grid sizes its buttons to the longest name and fits as many across as the screen allows.",
   },
   {
     title: "Live state",
@@ -47,7 +59,7 @@ const STEPS: { step: string; title: string; body: string }[] = [
   {
     step: "02",
     title: "The phone recognises, the laptop executes",
-    body: "The phone turns a touch into a small semantic frame: move the pointer by so much, press a button, scroll, run action 3, set control 0 to 55. The laptop owns the table of what each action does. The phone can name an action; it can never send a key or a command line.",
+    body: "The phone turns a touch into a small semantic frame: move the pointer by so much, press a button, scroll, run action 3, set control 0 to 55, here is the whole state of a controller. The laptop owns the table of what each action does, so a phone can name an action but never invent one. It is not a containment boundary and is not offered as one: a paired phone is a trusted input device, and its keyboard screen sends raw key codes the way any keyboard does.",
   },
   {
     step: "03",
@@ -60,6 +72,7 @@ const LIMITS: string[] = [
   "It is Bluetooth, so both ends need it, and it does not reach another room or the internet.",
   "The laptop half needs Windows 10 version 2004 or later, 64-bit. The phone half needs Android 12 or later.",
   "Edgepad.exe is not code-signed, so SmartScreen warns the first time you run it.",
+  "The gamepad's virtual controller needs ViGEmBus, a third-party signed kernel driver you install yourself. It was archived by its author in November 2023 and receives no updates, though it remains signed and working. Without it the gamepad sends keyboard keys instead, and the laptop tells the phone which of the two it is in.",
   "Task Manager, and anything running as administrator, ignores the phone unless Edgepad runs as administrator too. The lock screen, UAC prompts and Ctrl+Alt+Del cannot be reached at all.",
 ];
 
@@ -79,6 +92,7 @@ const INSTALL: {
       "Download it. One self-contained 64-bit file; the laptop does not need .NET.",
       "Run it. SmartScreen asks first: More info, then Run anyway.",
       "It lives in the system tray, with macros, the log and Start with Windows in its menu.",
+      "Optional: install ViGEmBus if you want the gamepad to drive a real controller. Everything else works without it.",
     ],
   },
   {

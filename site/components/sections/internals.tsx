@@ -77,6 +77,15 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
           id does. The phone can name an action; it cannot invent one.
         </P>
         <P>
+          The gamepad is the one place where the phone sends state rather than an event,
+          and it is still not a keystroke. A <C>PAD_STATE</C> frame is a snapshot of a
+          whole controller — sixteen button bits, two triggers, four axes — which the
+          laptop copies onto the report of the virtual Xbox pad it has plugged in. The
+          phone is describing a controller, not naming a key, which is exactly why a
+          stick can be analog: eight compass sectors pressing WASD is what it did
+          before, and a half push and a full push were the same key.
+        </P>
+        <P>
           The laptop reports back. After the handshake it sends a snapshot of volume,
           microphone and brightness, then what is playing and where, then the
           display&apos;s available refresh rates and the macro names, and thereafter
@@ -98,6 +107,13 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
           Win+Ctrl+Left rather than a finger-following desktop slide. The cost is the
           animation. Alt+Tab stays interactive because Alt is genuinely held while the
           fingers are down.
+        </P>
+        <P>
+          The gamepad&apos;s virtual controller is not a counter-example to that.
+          ViGEmBus is a signed driver the user installs deliberately and Edgepad only
+          talks to, where a virtual touchpad would have meant shipping an unsigned
+          driver and asking for test-signing mode. It is also optional: without it the
+          pad sends keys.
         </P>
       </Section>
 
@@ -174,9 +190,42 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
           copy.
         </P>
         <P>
-          <C>TrackpadRecognizer</C> and <C>Dial</C> are pure Kotlin with no Android
-          types. That is what lets the whole gesture table run as plain JVM unit tests
-          with no emulator.
+          <C>TrackpadRecognizer</C>, <C>Dial</C>, <C>Shapes</C>, <C>PadAxis</C>,{" "}
+          <C>PadMode</C> and the gamepad&apos;s layout library are pure Kotlin with no
+          Android types. That is what lets the gesture table, the shape matcher, the
+          stick arithmetic, the lock button&apos;s transitions and the rules a saved
+          layout obeys all run as plain JVM unit tests with no emulator. The stick
+          arithmetic is there for a specific reason: it used to sit unreachable inside a{" "}
+          <C>View</C>&apos;s touch handler, so nothing covered touch to output at all.
+        </P>
+        <P>
+          Matching a shape is a $1-style unistroke: resample to 32 points, centre,
+          scale, compare pointwise. Two departures from $1, both deliberate. The scale
+          is uniform, because $1&apos;s per-axis box fit makes a tall I and a round O
+          the same blob; and there is no rotation normalisation, because a C turned
+          around is not a C.
+        </P>
+
+        <Sub>The laptop&apos;s virtual controller</Sub>
+        <P>
+          <C>VirtualPad</C> wraps ViGEmBus. It copies each <C>PAD_STATE</C> frame onto
+          an Xbox 360 report field for field, because the frame already carries
+          XInput&apos;s own layout, and submits one report per frame rather than one per
+          field — auto-submit would push seven half-written reports for every frame, and
+          a game sampling between two of them would read a stick that had moved and a
+          button that had not.
+        </P>
+        <P>
+          A missing driver is an ordinary state here, never an exception that escapes: a
+          tray app has no dialog to show a crash in, and an escape from the session
+          thread would take the link and everything the phone was holding down with it.
+          Every entry point answers with a <C>PAD_STATUS</C> token instead. Failures are
+          caught by namespace rather than by a list of types, because all seventeen of
+          the library&apos;s exceptions derive straight from <C>Exception</C> with no
+          common base, and the one a list missed would be the crash the class exists to
+          prevent. The pad is unplugged in the session&apos;s <C>finally</C> beside the
+          input injector, so a phone that disappears mid-game cannot leave a controller
+          plugged in holding a stick.
         </P>
 
         <Sub>Why the laptop half is a tray app, not a service</Sub>
@@ -236,9 +285,13 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
           <li>
             <strong className="text-foreground">Coalescing.</strong> A backlog of{" "}
             <C>MOVE</C>, <C>SCROLL</C> and <C>ZOOM</C> frames still waiting in the
-            outbox is summed into one before it goes out, and only the last <C>SET</C>{" "}
-            per control survives. A slow link catches up in a single packet instead of
-            replaying every sample it missed.
+            outbox is summed into one before it goes out; only the last <C>SET</C> per
+            control survives, and only the newest <C>PAD_STATE</C>, which is a snapshot
+            of the whole controller rather than a change to it. A slow link catches up
+            in a single packet instead of replaying every sample it missed. <C>KEY</C>{" "}
+            frames are never collapsed: a press and its release are two messages that
+            happen to name the same key, and dropping either leaves it held on the
+            laptop.
           </li>
           <li>
             <strong className="text-foreground">Brightness off the hot path.</strong> A
@@ -249,10 +302,21 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
         </ol>
 
         <Note label="Held input">
-          The app switcher works by holding Alt across frames. <C>InputInjector</C>{" "}
-          remembers everything it holds down and releases all of it when a session ends,
-          so a link dropped mid-gesture can never leave Alt or a mouse button stuck on
-          the laptop.
+          <p className="mb-3">
+            The app switcher works by holding Alt across frames. <C>InputInjector</C>{" "}
+            remembers everything it holds down and releases all of it when a session
+            ends, so a link dropped mid-gesture can never leave Alt or a mouse button
+            stuck on the laptop.
+          </p>
+          <p>
+            Raw key codes were the gap. <C>Key()</C> — which is every key the on-screen
+            keyboard and the gamepad send — pressed the code straight through and
+            recorded nothing, so a link that died mid-press left the key down with
+            nothing left to lift it. A thumb on the gamepad&apos;s stick in keyboard
+            mode is the case that makes it obvious: it holds W down for as long as the
+            thumb stays forward, so the window where a drop stranded a key was the whole
+            time you were walking. Raw codes are now remembered in a set of their own.
+          </p>
         </Note>
 
         <Note label="1 ms was asked for and is not reachable">
@@ -391,14 +455,16 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
         <CodeBlock
           title="After HELLO_ACK"
           code={`STATE  volume, microphone, brightness
-TEXT   0 now playing, 1 the app, 2 the timeline
-STATE  media position
 TEXT   4 the display's refresh rates
 STATE  the current refresh rate
+TEXT   8 whether a virtual controller can be offered
+TEXT   0 now playing, 1 the app, 2 the timeline
+STATE  media position
 TEXT   5 the laptop's macro names
 
 then every change as it happens.
-Media position is refreshed once a second while playing.`}
+Media position is refreshed once a second while playing.
+TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
         />
 
         <Sub>Versioning</Sub>
@@ -433,14 +499,28 @@ Media position is refreshed once a second while playing.`}
                 and 5 and the macro block in 1.1.0 — all without a bump.
               </TableCell>
             </TableRow>
+            <TableRow>
+              <TableCell className="font-mono text-[0.8125rem]">4</TableCell>
+              <TableCell className="font-mono text-[0.8125rem]">3.0.0</TableCell>
+              <TableCell className="text-[0.875rem]">
+                <C>PAD_STATE</C>, a new frame type, which is the one thing that forces
+                this number. Actions 35 and 36 and TEXT kind 8 came with it and would
+                not have needed a bump on their own — nor did TEXT 6 and 7, the macro
+                icons, in 2.3.0.
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
         <P>
           Only a new frame <strong>type</strong> forces a version, because an unknown
           type closes the connection. The refresh-rate dial and the macro buttons both
           arrived without a bump, which is the rule working rather than being broken.
-          From 1.0 this number moves only in a major release, and any change to what a
-          frame means bumps it on both sides in the same commit and adds a fixture line.
+          Nothing in the existing frame set could express an axis — <C>SET</C> carries a
+          u8 the laptop rejects above 100, and the only pair of signed i16s belongs to
+          the mouse — so a real gamepad needed a type of its own, and a new type is the
+          one thing that moves the version. This number moves only in a major release,
+          and any change to what a frame means bumps it on both sides in the same commit
+          and adds a fixture line.
         </P>
       </Section>
 
@@ -479,6 +559,18 @@ Media position is refreshed once a second while playing.`}
           decide what the desktop boots at, and the list is filtered to the resolution
           and colour depth already in use so a rate can never drag the desktop to
           another size.
+        </Note>
+
+        <Note label="Where the gamepad's button masks are">
+          <C>PAD_STATE</C>&apos;s sixteen button bits are XInput&apos;s own{" "}
+          <C>wButtons</C> values, unchanged, because the laptop copies the field into an{" "}
+          <C>XINPUT_GAMEPAD</C> rather than remapping it — a table of its own would be a
+          second definition to keep in step with Microsoft&apos;s. They are in{" "}
+          <C>protocol/actions.txt</C> as <C>PAD_BUTTON</C> rows, which the two suites
+          check their enums against. They are not on this page because the parser above
+          reads only <C>ACTION</C>, <C>CONTROL</C>, <C>TEXT</C> and <C>HANDSHAKE</C>{" "}
+          lines, so a <C>PAD_BUTTON</C> row is dropped rather than shown. Worth knowing
+          before wondering why the masks are missing.
         </Note>
 
         <Note label="Why macros send an index">
@@ -545,12 +637,19 @@ Media position is refreshed once a second while playing.`}
             Bluetooth pairing plus trust-on-first-use, not the macro table.
           </p>
         </Note>
-        <Note label="Stale file">
-          <C>SECURITY.md</C> in the repository still carries the pre-2.0.0 wording
-          (&ldquo;There is no frame for a key code, a scan code or a command&rdquo;).{" "}
-          <C>docs/PROTOCOL.md</C> and the 2.0.0 changelog entry are the corrected
-          account, and are what this page follows.
-        </Note>
+        <P>
+          3.0.0 gives the phone a second way to reach the laptop&apos;s input stack and
+          does not move that boundary. <C>PAD_STATE</C> drives a virtual Xbox
+          controller, which games read and the desktop largely does not; it can press A
+          and push a stick, and it cannot type a command line. The same phone&apos;s
+          keyboard screen already could. What is worth saying plainly instead is that
+          the controller needs a third-party signed kernel driver, ViGEmBus, which you
+          install and Edgepad only talks to — see{" "}
+          <a href="#limits" className="text-foreground underline underline-offset-4">
+            Known limits
+          </a>{" "}
+          for what that costs.
+        </P>
 
         <Sub>The line Windows draws</Sub>
         <P>
@@ -574,6 +673,12 @@ Media position is refreshed once a second while playing.`}
           <li>
             Text typed from the phone goes wherever the laptop&apos;s focus is, exactly
             as a keyboard would.
+          </li>
+          <li>
+            The virtual controller is ViGEmBus, a third-party kernel driver you install
+            yourself. It is signed, and its author archived it in November 2023, so it
+            receives no updates. Edgepad neither ships it nor installs it, and works
+            without it.
           </li>
           <li>
             Nothing leaves the two devices: no network, no server, no account, no
