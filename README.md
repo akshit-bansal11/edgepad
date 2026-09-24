@@ -18,16 +18,16 @@ It is for the times the laptop is across the room rather than under your hands: 
 ## What it does
 
 - **Corner rulers.** Each corner of the phone holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher or microphone level; Settings picks what each corner does, how long the rulers are and how tall.
-- **Trackpad.** Everything between the corners moves the laptop's pointer. One finger moves and clicks, two scroll and pinch, three and four fingers do whatever you assign them: desktops, task view, media, volume, app switcher, and more.
+- **Trackpad.** Everything between the corners moves the laptop's pointer. One finger moves and clicks, two scroll and pinch, three and four fingers do whatever you assign them: desktops, task view, media, volume, app switcher, and more. Press one finger and hold it still until it ticks, then draw without lifting: a shape you have drawn in Settings runs a laptop action, a macro, or hides or locks the pad itself. A stroke that matches nothing does nothing.
 - **Media.** The track, the app playing it and where it is, with previous, play/pause and next. Drag the three pieces anywhere on the surface.
-- **Keyboard and gamepad.** A full on-screen keyboard whose modifiers work held or tapped, and a gamepad with editable layouts and presets. Both open sideways.
+- **Keyboard and gamepad.** A full on-screen keyboard whose modifiers work held or tapped, and a gamepad that drives a real virtual Xbox controller on the laptop, sticks and triggers analog, where the [ViGEmBus](#install) driver is installed; where it is not, the same pad falls back to pressing keys and says so. Every control is yours to add, bind, label, size, move or delete, and layouts are a library rather than one arrangement, so a phone can keep one per game. Both open sideways.
 - **Live state.** The dials show the laptop's real volume, mute, brightness and playback position, and follow changes made on the laptop itself.
 - **Guide.** Five pages on the first run, and again from Settings, one at a time or on one page.
-- Black on white or white on black, held upright or sideways: a toggle in Settings, no free rotation.
+- Black on white or white on black, and upright or sideways: both are toggles in Settings. The orientation holds the control surface and the media-layout editor, and nothing else — a media layout is stored per orientation, so a phone turned mid-edit would quietly start changing the other one. The keyboard and the gamepad are always sideways; every other screen follows the phone.
 
 ## Install
 
-Both apps come from the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest). Always install both from the same release: the two refuse each other at the handshake when their protocol versions differ, and say so.
+Both apps come from the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest). Always install both from the same release: the two refuse each other at the handshake when their protocol versions differ, and say so. 3.0.0 moved the protocol from version 3 to version 4, so a 2.x app on either side will not talk to a 3.x one — update both halves together or neither connects.
 
 ### Laptop (Windows 10 version 2004 or later, 64-bit)
 
@@ -36,6 +36,8 @@ Both apps come from the [latest release](https://github.com/akshit-bansal11/edge
 3. It lives in the system tray. The menu shows the version, whether a phone is connected, **Macros…**, **Start with Windows**, **Forget trusted phone**, **Open log**, **Documentation** and **Quit**.
 
 Running a newer `Edgepad.exe` asks the running copy to quit and takes its place.
+
+**Optional, for the gamepad: ViGEmBus.** The gamepad works without it — every control can be bound to a keyboard key, and keys are what the pad sends on a laptop with no controller driver, which is the state most laptops are in. Install [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases/latest) and Edgepad plugs a virtual Xbox controller into Windows instead, so the sticks and triggers carry their full analog range and a game that only ever accepted a controller can be played from the phone. It is a third-party kernel driver, signed as Windows requires of one, and you install it yourself; Edgepad neither bundles nor installs it. You never have to guess which of the two you are in: the laptop answers every request for the controller, and the gamepad screen says **keyboard mode** and which of the three reasons it was, rather than being quietly dead.
 
 ### Phone (Android 12 or later)
 
@@ -57,29 +59,32 @@ Running a newer `Edgepad.exe` asks the running copy to quit and takes its place.
 | A corner ruler | slide | turns that dial: clockwise raises |
 | A corner ruler | tap | the dial's action: mute, play/pause, mic mute, task view, reset zoom |
 | Anywhere else, one finger | move / tap / tap then hold-and-move | pointer / left click / drag |
+| Anywhere else, one finger | press, hold still until it ticks, then draw | what that shape is bound to: an action, a macro, or the pad's own focus or lock |
 | Two fingers | drag | scroll both axes |
 | Two fingers | pinch / tap | zoom / right click, or what Settings assigns |
 | Three or four fingers | tap, swipe up, down, left, right | what Settings assigns |
-| Top centre | tap the gear, the keyboard or the gamepad | Settings, the keyboard, the gamepad |
+| Top centre | tap one of the five buttons | Settings, the keyboard, the lock, the gamepad, the macro grid |
 | Back | | leaves the surface; the link stays up |
 
-Out of the box, three fingers left and right switch desktops, three up opens task view, three down shows the desktop, four fingers left and right walk the app switcher (Alt stays held while the fingers are down), and tapping searches or opens notifications. Every one of those is changed under **Settings > Gestures**.
+Out of the box, three fingers left and right switch desktops, three up opens task view, three down shows the desktop, four fingers left and right walk the app switcher (Alt stays held while the fingers are down), and tapping searches or opens notifications. Every one of those is changed under **Settings > Trackpad**.
+
+The lock in the middle of that row is the one button that changes the surface instead of opening a screen. One tap hides the dials and the media and leaves the trackpad; a second tap straight after locks the trackpad instead and puts the dials and the media back, so the phone can sit in a pocket or under a palm and answer only its rulers. Any later tap returns the whole surface. The mode is not stored: a phone that came back up silently locked would read as broken.
 
 ### Settings
 
 - **Connection:** the remembered laptop with its round trip, Forget, and whether to reconnect automatically.
-- **Surface:** Corners (which dial each corner holds, or none), Gestures (the gesture map and on-screen hints), Dial feel (slide sensitivity, dial length and height, haptic ticks, snapping to round numbers, with a live preview), and natural scrolling.
-- **Layouts:** the media layout and the gamepad layout, each a full-screen canvas where pieces are dragged anywhere; the options button holds the size, the presets and reset.
+- **Surface:** Corners (which dial each corner holds, or none), Trackpad (the gesture map, pointer and scroll speed, natural scrolling and on-screen hints), Shapes (every stroke you have drawn, with what it runs), and Dial feel (slide sensitivity, dial length and height, haptic ticks, snapping to round numbers, with a live preview).
+- **Controls:** a page each for the keyboard, the gamepad layout, the macro buttons and the media layout — grouped by the thing they configure rather than by the kind of editor they open, which is why the keyboard's text size is under Keyboard and not under a page about backgrounds. The two layouts are full-screen canvases where pieces are dragged anywhere.
 - **Appearance:** dark or light, upright or sideways, and Background & pattern (control colour, a colour, gradient or image behind the surface, and a grid, dots or checker over it).
-- **Help:** the guide.
+- **Help:** the guide, and a link to the documentation.
 
 ## How it works
 
-The phone recognises gestures and sends small semantic frames: move the pointer by so much, press a button, scroll, run action 3, set control 0 to 55. The laptop owns the table of what each action does and executes it with the Windows input, audio, display and media APIs. The phone can name an action; it can never send a key or a command line. The laptop sends its own state back (volume, mute, brightness, what is playing) so the dials show real values.
+The phone recognises gestures and sends small semantic frames: move the pointer by so much, press a button, scroll, run action 3, set control 0 to 55, here is the whole controller. The laptop owns the table of what each action does and executes it with the Windows input, audio, display and media APIs, so a macro slot can never be repointed from the phone and an id the laptop does not know is dropped rather than misexecuted. That table is a versioning seam, not a wall: the keyboard screen sends raw Windows virtual-key codes and the characters you type, and the laptop injects both directly, so a paired phone can do anything the laptop's own keyboard can. What keeps that safe is the Bluetooth pairing and the trusted phone above — [SECURITY.md](SECURITY.md) sets out both boundaries in full. The laptop sends its own state back (volume, mute, brightness, what is playing) so the dials show real values.
 
 The transport is Bluetooth Classic RFCOMM: an ordered, encrypted byte stream between two already-paired devices, with no server, no discovery and no network. Frames are 2 to 258 bytes and go out in a single write per batch; a backlog of pointer moves collapses into one before it is sent, so a slow link catches up instead of lagging.
 
-The full documentation is at [edgepad-docs.vercel.app](https://edgepad-docs.vercel.app) — install, the control surface, both apps' architecture, the wire protocol and the developer guide on one page. In the repository: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes both apps, their threads and their trust model. [docs/PROTOCOL.md](docs/PROTOCOL.md) is the wire format. [CHANGELOG.md](CHANGELOG.md) lists what each release changed.
+The full documentation is at [edgepad-docs.vercel.app/docs](https://edgepad-docs.vercel.app/docs) — install, the control surface, both apps' architecture, the wire protocol and the developer guide on one page, with the protocol tables generated from the same fixtures both test suites read. In the repository: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes both apps, their threads and their trust model. [docs/PROTOCOL.md](docs/PROTOCOL.md) is the wire format. [CHANGELOG.md](CHANGELOG.md) lists what each release changed.
 
 ## Build it yourself
 
@@ -87,12 +92,12 @@ The repository is a monorepo:
 
 | Path | What |
 | --- | --- |
-| `android/` | The phone app. Kotlin, Android platform views, no UI libraries; JUnit 4 is the only dependency. |
-| `windows/` | The laptop tray app. C# on .NET 10, WinForms for the tray, WinRT for Bluetooth and media, NAudio for volume, WMI for brightness. |
+| `android/` | The phone app. Kotlin, Android platform views, no UI framework; AndroidSVG draws the mark and the player logos, and JUnit 4 is the only test dependency. |
+| `windows/` | The laptop tray app. C# on .NET 10, WinForms for the tray, WinRT for Bluetooth and media, NAudio for volume, WMI for brightness, ViGEmBus for the virtual controller. |
 | `protocol/` | The wire format and the id tables as plain text fixtures. Both test suites run them, so the two apps cannot drift apart. |
 | `scripts/` | The quality gate and the release-key script. |
 | `docs/` | Architecture and protocol. |
-| `site/` | The documentation site. Next.js; its own gate, not part of `check.ps1`. |
+| `site/` | The website: a landing page at the root, the documentation at `/docs`. Next.js; its own gate, not part of `check.ps1`. |
 
 ### Prerequisites
 
@@ -122,7 +127,7 @@ The laptop app logs to `%LOCALAPPDATA%\Edgepad\edgepad.log` (also in the tray me
 
 ### Tests
 
-Both suites read the same fixtures. `protocol/frames.txt` holds every frame type as golden bytes; each codec must encode the fields to exactly those bytes and decode the bytes to exactly those fields. `protocol/actions.txt` holds the action and control ids; each enum must match it exactly. On top of that, the Android suite covers the gesture recogniser (the whole finger table, assignable actions, natural scrolling), the dials (arming, slop, snapping, steppers, haptic notches), the edge geometry, coalescing and the laptop-state model; the Windows suite covers the dispatcher's drop paths, input batches, trust on first use and the media-session name mapping. No test sends real input or touches a device.
+Both suites read the same fixtures. `protocol/frames.txt` holds every frame type as golden bytes; each codec must encode the fields to exactly those bytes and decode the bytes to exactly those fields. `protocol/actions.txt` holds the action and control ids; each enum must match it exactly. On top of that, the Android suite covers the gesture recogniser (the whole finger table, assignable actions, natural scrolling), the shape recogniser and the pad's mode table, the stick's dead zone and scaling, the gamepad layout library (name collisions, deletion, reset), the dials (arming, slop, snapping, steppers, haptic notches), the edge geometry, coalescing and the laptop-state model; the Windows suite covers the dispatcher's drop paths, input batches, trust on first use, the media-session name mapping, and what a laptop with no controller driver answers. No test sends real input, plugs a controller into the machine running it, or touches a device.
 
 ## Releases
 
