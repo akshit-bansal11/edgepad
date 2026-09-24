@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
+using Edgepad.Gamepad;
 using Edgepad.Injection;
 using Edgepad.Macros;
 using Edgepad.Protocol;
@@ -20,6 +21,7 @@ internal sealed class Session(
     StreamSocket socket,
     TrustStore trust,
     InputInjector injector,
+    VirtualPad pad,
     Dispatcher dispatcher,
     AudioEndpoint speakers,
     AudioEndpoint microphone,
@@ -106,6 +108,11 @@ internal sealed class Session(
         {
             // Releases anything still held down: Alt in the middle of an app switch, a button mid-drag.
             injector.Dispose();
+
+            // And unplugs the virtual controller, which is the same bug one layer along: a phone that drops
+            // mid-game would otherwise leave a pad plugged into Windows with a stick still pushed forward,
+            // and nothing left alive to centre it.
+            pad.Dispose();
             if (dispatcher.Dropped > 0 || injector.RefusedBatches > 0)
             {
                 Log.Write($"Session with {address}: {dispatcher.Dropped} frames dropped, "
@@ -127,6 +134,7 @@ internal sealed class Session(
         }
 
         ReportRefreshRates();
+        ReportPad();
 
         Watch(speakers, ControlId.Volume);
         Watch(microphone, ControlId.MicLevel);
@@ -158,6 +166,19 @@ internal sealed class Session(
         {
             Send(new StateReport((byte)ControlId.RefreshRate, (byte)display.Current, 0));
         }
+    }
+
+    /// <summary>
+    /// Whether this laptop can offer a virtual controller, and where the answers to PAD_ATTACH and
+    /// PAD_DETACH go from here on. Both land on the read loop's thread, so they are written like a PONG and
+    /// not like a watcher's report: a dead socket here should end the session, not be swallowed as a lost
+    /// update. The opening one is sent before the phone can ask, so it can hide the pad rather than offer a
+    /// button that quietly does nothing.
+    /// </summary>
+    private void ReportPad()
+    {
+        dispatcher.PadStatusReply = status => Send(new Text((byte)TextKind.PadStatus, status));
+        Send(new Text((byte)TextKind.PadStatus, pad.Probe()));
     }
 
     /// <summary>

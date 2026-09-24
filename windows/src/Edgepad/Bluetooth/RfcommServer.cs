@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
+using Edgepad.Gamepad;
 using Edgepad.Injection;
 using Edgepad.Macros;
 using Edgepad.Protocol;
@@ -65,11 +66,14 @@ internal sealed class RfcommServer(
             return;
         }
 
-        // Input state (what is held down) belongs to one connection; the devices are shared.
+        // Input state (what is held down) belongs to one connection; the devices are shared. The virtual
+        // controller belongs to the connection for the same reason and one more: it is a device plugged
+        // into Windows for as long as the phone that asked for it is there, and no longer.
         var injector = new InputInjector();
-        var dispatcher = new Dispatcher(injector, speakers, microphone, brightness, media, display, macros, overlay);
+        var pad = new VirtualPad();
+        var dispatcher = new Dispatcher(injector, pad, speakers, microphone, brightness, media, display, macros, overlay);
         var session = new Session(
-            args.Socket, trust, injector, dispatcher, speakers, microphone, brightness, media, display, macros, onStatus, OnSessionEnded);
+            args.Socket, trust, injector, pad, dispatcher, speakers, microphone, brightness, media, display, macros, onStatus, OnSessionEnded);
         Session? previous;
         lock (gate)
         {
