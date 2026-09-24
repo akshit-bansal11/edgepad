@@ -28,12 +28,14 @@ object SettingsScreen {
         val corners: () -> Unit,
         val gestures: () -> Unit,
         val dialFeel: () -> Unit,
-        val mediaLayout: () -> Unit,
+        val keyboard: () -> Unit,
         val gamepadLayout: () -> Unit,
+        val macros: () -> Unit,
+        val mediaLayout: () -> Unit,
         val appearance: () -> Unit,
         val guide: () -> Unit,
         val documentation: () -> Unit,
-        val landscape: (Boolean) -> Unit,
+        val sideways: (Boolean) -> Unit,
         val back: () -> Unit,
     )
 
@@ -74,18 +76,24 @@ object SettingsScreen {
                     val feel =
                         ui.string(R.string.feel_summary, settings.sensitivity, settings.dialLength.roundToInt())
                     link(ui.string(R.string.dial_feel_title), feel, routes.dialFeel)
-                    add(
-                        ui.toggle(ui.string(R.string.natural_scrolling), settings.naturalScroll) {
-                            settings.naturalScroll = it
-                        },
+
+                    // Grouped by the thing being set, not by the kind of editor it opens: a layout canvas and a
+                    // slider belong together when they configure the same control, and apart when they do not.
+                    section(ui.string(R.string.settings_controls))
+                    link(
+                        ui.string(R.string.keyboard_settings_title),
+                        KeyboardSettingsScreen.summary(ui, settings),
+                        routes.keyboard,
                     )
-                    hairline()
+                    link(ui.string(R.string.gamepad_layout_title), preset.uppercase(), routes.gamepadLayout)
+                    link(
+                        ui.string(R.string.macro_buttons),
+                        MacroSettingsScreen.summary(ui, settings),
+                        routes.macros,
+                    )
+                    link(ui.string(R.string.media_layout_title), null, routes.mediaLayout)
                 },
                 {
-                    section(ui.string(R.string.settings_layouts))
-                    link(ui.string(R.string.media_layout_title), null, routes.mediaLayout)
-                    link(ui.string(R.string.gamepad_layout_title), preset.uppercase(), routes.gamepadLayout)
-
                     section(ui.string(R.string.settings_appearance))
                     val themes = listOf(ui.string(R.string.theme_dark), ui.string(R.string.theme_light))
                     add(
@@ -95,7 +103,13 @@ object SettingsScreen {
                         ),
                     )
                     hairline()
-                    add(ui.toggle(ui.string(R.string.landscape), settings.landscape, routes.landscape))
+                    val held = listOf(ui.string(R.string.orientation_upright), ui.string(R.string.orientation_sideways))
+                    add(
+                        ui.field(
+                            ui.string(R.string.orientation),
+                            ui.segmented(held, if (settings.landscape) 1 else 0) { i -> routes.sideways(i == 1) },
+                        ),
+                    )
                     hairline()
                     link(
                         ui.string(R.string.appearance_title),

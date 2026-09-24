@@ -80,6 +80,14 @@ object GestureScreen {
                         },
                     )
                     hairline()
+                    // Which way a two-finger drag moves the page is a scrolling setting, so it sits with the
+                    // scroll speed rather than alone on the hub, where it was the only switch among links.
+                    add(
+                        ui.toggle(ui.string(R.string.natural_scrolling), settings.naturalScroll) {
+                            settings.naturalScroll = it
+                        },
+                    )
+                    hairline()
                     add(first)
                 },
                 { rest.forEach { add(it) } },

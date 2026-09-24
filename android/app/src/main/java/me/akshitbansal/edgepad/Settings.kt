@@ -74,7 +74,10 @@ class Settings(
      */
     var keyTextScale by bounded(KEY_KEY_TEXT_SCALE, DEFAULT_KEY_TEXT_SCALE, MIN_KEY_TEXT_SCALE, MAX_KEY_TEXT_SCALE)
 
-    /** The surface, settings and finder are held sideways; the keyboard and gamepad always are. */
+    /**
+     * The control surface and the media layout editor are held sideways. The keyboard and gamepad always are,
+     * and every other screen follows the phone: from 3.0 this setting is about the pad, not about the app.
+     */
     var landscape by flag("landscape", false)
 
     /** The guide as one scrolling page rather than steps. */

@@ -38,7 +38,9 @@ import me.akshitbansal.edgepad.screens.GamepadScreen
 import me.akshitbansal.edgepad.screens.GestureScreen
 import me.akshitbansal.edgepad.screens.GuideScreen
 import me.akshitbansal.edgepad.screens.KeyboardScreen
+import me.akshitbansal.edgepad.screens.KeyboardSettingsScreen
 import me.akshitbansal.edgepad.screens.MacroScreen
+import me.akshitbansal.edgepad.screens.MacroSettingsScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
@@ -71,6 +73,8 @@ class MainActivity :
         CORNERS,
         GESTURES,
         DIAL_FEEL,
+        KEYBOARD_SETTINGS,
+        MACRO_SETTINGS,
         APPEARANCE,
         MEDIA_LAYOUT,
         GAMEPAD_LAYOUT,
@@ -248,15 +252,17 @@ class MainActivity :
                             corners = { goTo(Screen.CORNERS) },
                             gestures = { goTo(Screen.GESTURES) },
                             dialFeel = { goTo(Screen.DIAL_FEEL) },
-                            mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
+                            keyboard = { goTo(Screen.KEYBOARD_SETTINGS) },
                             gamepadLayout = {
                                 layoutReturn = Screen.SETTINGS
                                 goTo(Screen.GAMEPAD_LAYOUT)
                             },
+                            macros = { goTo(Screen.MACRO_SETTINGS) },
+                            mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
                             appearance = { goTo(Screen.APPEARANCE) },
                             guide = { goTo(Screen.GUIDE) },
                             documentation = ::openDocumentation,
-                            landscape = { on ->
+                            sideways = { on ->
                                 settings.landscape = on
                                 applyOrientation()
                             },
@@ -271,6 +277,14 @@ class MainActivity :
 
                 Screen.GESTURES -> {
                     GestureScreen.build(ui, settings) { navigateBack() }
+                }
+
+                Screen.KEYBOARD_SETTINGS -> {
+                    KeyboardSettingsScreen.build(ui, settings) { navigateBack() }
+                }
+
+                Screen.MACRO_SETTINGS -> {
+                    MacroSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.DIAL_FEEL -> {
@@ -362,16 +376,20 @@ class MainActivity :
         updateBack()
     }
 
-    /** Held one way: the keyboard and gamepad sideways, everything else as the setting says. A change rebuilds the activity; the link survives it. */
+    /**
+     * Three answers, not two. The keyboard and the gamepad are drawn sideways and only sideways. The control
+     * surface and the media layout editor are held the way the Orientation setting says — the editor because a
+     * media layout is stored per orientation since 2.3.0, so a phone turned mid-edit would quietly start
+     * changing the other one. Everything else follows the phone, which is what the setting used to override for
+     * the whole app. A change rebuilds the activity; the link survives it.
+     */
     private fun applyOrientation() {
-        val sideways =
-            screen == Screen.KEYBOARD || screen == Screen.GAMEPAD || screen == Screen.GAMEPAD_LAYOUT ||
-                settings.landscape
         requestedOrientation =
-            if (sideways) {
-                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-            } else {
-                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            when {
+                screen in alwaysSideways -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                screen !in pinned -> ActivityInfo.SCREEN_ORIENTATION_USER
+                settings.landscape -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                else -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }
     }
 
@@ -411,7 +429,9 @@ class MainActivity :
                 goTo(Screen.PAIRING)
             }
 
-            Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.GUIDE, Screen.MEDIA_LAYOUT -> {
+            Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.GUIDE, Screen.MEDIA_LAYOUT,
+            Screen.KEYBOARD_SETTINGS, Screen.MACRO_SETTINGS,
+            -> {
                 goTo(Screen.SETTINGS)
             }
 
@@ -748,6 +768,12 @@ class MainActivity :
     private companion object {
         val immersive =
             setOf(Screen.SURFACE, Screen.KEYBOARD, Screen.GAMEPAD, Screen.MEDIA_LAYOUT, Screen.GAMEPAD_LAYOUT)
+
+        /** Drawn sideways whatever the phone is doing, because they are laid out for a wide screen and nothing else. */
+        val alwaysSideways = setOf(Screen.KEYBOARD, Screen.GAMEPAD, Screen.GAMEPAD_LAYOUT)
+
+        /** Held the way the Orientation setting says. Everything outside both sets follows the phone. */
+        val pinned = setOf(Screen.SURFACE, Screen.MEDIA_LAYOUT)
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2
         const val PING_INTERVAL_MS = 500L

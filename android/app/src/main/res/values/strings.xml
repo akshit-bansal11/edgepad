@@ -103,7 +103,9 @@
   <string name="theme">Theme</string>
   <string name="theme_dark">DARK</string>
   <string name="theme_light">LIGHT</string>
-  <string name="landscape">Landscape</string>
+  <string name="orientation">Orientation</string>
+  <string name="orientation_upright">UPRIGHT</string>
+  <string name="orientation_sideways">SIDEWAYS</string>
   <string name="dial_preview_description">Preview of a corner dial at the chosen size</string>
   <string name="macro_buttons">Macro buttons</string>
   <string name="macro_buttons_label">ICON + LABEL</string>
@@ -133,8 +135,9 @@
   <string name="pattern_opacity">Pattern opacity</string>
   <string name="percent_value">%1$d%%</string>
   <string name="settings_surface">SURFACE</string>
-  <string name="settings_layouts">LAYOUTS</string>
+  <string name="settings_controls">CONTROLS</string>
   <string name="settings_help">HELP</string>
+  <string name="keyboard_settings_title">Keyboard</string>
   <string name="settings_version">EDGEPAD %1$s · PROTOCOL %2$d</string>
   <string name="corners_title">Corners</string>
   <string name="corner_assign">ASSIGN · %1$s</string>
@@ -188,6 +191,10 @@
   <string name="surface_keyboard">Open the keyboard</string>
   <string name="surface_gamepad">Open the gamepad</string>
   <string name="surface_macros">Open the macros</string>
+  <string name="surface_lock">Hide the dials, or lock the pad</string>
+  <string name="surface_mode_normal">Dials, media and pad all on</string>
+  <string name="surface_mode_focus">Pad only · dials and media hidden</string>
+  <string name="surface_mode_locked">Dials and media only · pad locked</string>
 
   <!-- Macros -->
   <string name="macros_title">Macros</string>
