@@ -110,6 +110,9 @@ class MainActivity :
     private var state = LaptopState()
     private var link: LaptopLink? = null
     private var surface: ControlSurface? = null
+
+    /** The gamepad while it is the screen, so the laptop's answer about its controller can reach it. */
+    private var gamepad: GamepadScreen? = null
     private var reconnecting: ReconnectingScreen? = null
     private var laptopName = ""
     private var laptopAddress = ""
@@ -222,8 +225,14 @@ class MainActivity :
     }
 
     private fun goTo(next: Screen) {
+        // The virtual controller is plugged in for exactly as long as the gamepad is on screen. Asked for
+        // here rather than inside the screen because leaving it is also a way of arriving somewhere else,
+        // and because a preset change rebuilds the same screen: that is not a trip out and back.
+        if (screen == Screen.GAMEPAD && next != Screen.GAMEPAD) link?.send(ActionId.PAD_DETACH.frame())
+        if (next == Screen.GAMEPAD && screen != Screen.GAMEPAD) link?.send(ActionId.PAD_ATTACH.frame())
         screen = next
         surface = null
+        gamepad = null
         reconnecting = null
         handler.removeCallbacks(ticker)
         val view: View =
@@ -336,10 +345,12 @@ class MainActivity :
                 }
 
                 Screen.GAMEPAD -> {
-                    GamepadScreen.build(
+                    GamepadScreen(
                         ui,
                         gamepads.current,
+                        state.padStatus,
                         onKey = ::key,
+                        onPad = { pad -> link?.send(pad) },
                         onBack = { navigateBack() },
                         onPreset = { name ->
                             gamepads.choosePreset(name)
@@ -349,7 +360,7 @@ class MainActivity :
                             layoutReturn = Screen.GAMEPAD
                             goTo(Screen.GAMEPAD_LAYOUT)
                         },
-                    )
+                    ).also { gamepad = it }.view
                 }
 
                 Screen.MACROS -> {
@@ -672,6 +683,10 @@ class MainActivity :
         runOnUiThread {
             if (!state.take(frame)) return@runOnUiThread
             surface?.stateChanged()
+            // The pad decides which of its two modes it is in from this answer, which usually lands a few
+            // milliseconds after PAD_ATTACH went out — by then the screen is already up, so it is handed
+            // over rather than rebuilt: rebuilding would drop whatever fingers are on the glass.
+            if (frame is Frame.Text && frame.kind == TextKind.PAD_STATUS.id) gamepad?.setStatus(state.padStatus)
             // The macro grid is built from the list rather than bound to it, so a list that lands while the
             // screen is open needs the screen built again; otherwise it reads "no macros yet" until you leave.
             // A finished icon is the same problem, and arrives the same way.

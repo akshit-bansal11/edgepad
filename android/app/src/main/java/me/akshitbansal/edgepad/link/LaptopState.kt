@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
+import me.akshitbansal.edgepad.protocol.PadStatus
 import me.akshitbansal.edgepad.protocol.TextKind
 import java.util.Base64
 
@@ -43,6 +44,16 @@ class LaptopState {
     var macros: List<String> = emptyList()
         private set
 
+    /**
+     * The laptop's last word on whether it can offer a virtual controller, or null while it has said
+     * nothing at all — which is also where a laptop too old to know PAD_ATTACH leaves it, since it drops
+     * the action and never answers. The gamepad screen reads this to decide whether it is a controller or
+     * a keyboard, so it is kept here rather than on the screen: the screen is rebuilt by a rotation and
+     * the answer is not sent again.
+     */
+    var padStatus: PadStatus? = null
+        private set
+
     /** Finished icons by slot. A slot with no entry has none, which is the ordinary case for most of them. */
     private val icons = HashMap<Int, ByteArray>()
 
@@ -78,6 +89,7 @@ class LaptopState {
                     TextKind.REFRESH_RATES -> refreshRates = rates(frame.text)
                     TextKind.MACROS -> macros = macroNames(frame.text)
                     TextKind.MACRO_ICON -> return iconChunk(frame.text)
+                    TextKind.PAD_STATUS -> padStatus = PadStatus.of(frame.text)
                     else -> return false
                 }
             }

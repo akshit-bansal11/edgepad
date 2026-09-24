@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
+import me.akshitbansal.edgepad.protocol.PadStatus
 import me.akshitbansal.edgepad.protocol.TextKind
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -23,6 +24,17 @@ class LaptopStateTest {
         state.take(Frame.StateReport(ControlId.VOLUME.id, 43, 0))
         assertEquals(43, state.level(ControlId.VOLUME))
         assertFalse(state.flag(ControlId.VOLUME))
+    }
+
+    @Test
+    fun keepsTheLaptopsLastWordOnItsController() {
+        assertNull(state.padStatus)
+        assertTrue(state.take(Frame.Text(TextKind.PAD_STATUS.id, PadStatus.READY.token)))
+        assertEquals(PadStatus.READY, state.padStatus)
+        // A token this build does not know means the pad is unusable and the phone cannot say why, which
+        // is exactly what NO_DRIVER already means to the screen.
+        state.take(Frame.Text(TextKind.PAD_STATUS.id, "unplugged-by-the-cat"))
+        assertEquals(PadStatus.NO_DRIVER, state.padStatus)
     }
 
     @Test
