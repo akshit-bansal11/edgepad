@@ -22,29 +22,42 @@ namespace Edgepad.Macros;
 internal static class MacroIcons
 {
     /// <summary>
-    /// The square the phone is sent. Big enough for a macro button at the densities a phone of this era
-    /// has, small enough that a full grid is a second of link time rather than a stall — and it is a
-    /// fixed size rather than the source's own so one oversized icon cannot cost the whole grid.
+    /// The square the phone is sent, and a fixed size rather than the source's own so one oversized icon
+    /// cannot cost the whole grid.
+    /// <para>
+    /// It was 48 until 3.0.1, which was enough while a macro button drew its picture at a fixed 28dp. The
+    /// grid now sizes its buttons to the screen, so a short list draws them large, and 48 upscaled to that
+    /// was visibly soft. 128 is sharp at the sizes the grid actually produces. The cost is real and lands
+    /// on the link: an icon is several times the bytes it was. It is paid only when the macro grid opens,
+    /// which is a screen with no trackpad on it, and never while a finger is moving the pointer.
+    /// </para>
     /// </summary>
-    public const int Size = 48;
+    public const int Size = 128;
 
     /// <summary>Tried when <see cref="Size"/> encodes past <see cref="MaxBytes"/>; a photograph will.</summary>
-    private const int Fallback = 32;
+    private const int Fallback = 64;
 
     /// <summary>
-    /// The most an icon may weigh on the wire, which is also what keeps every count in a chunk header under
-    /// three digits. Six kilobytes is 35 frames for one button at <see cref="ChunkBytes"/> — the point past
-    /// which a picture is costing the link more than a label is worth. A real program icon is a fraction of
-    /// it; the cap is there for the photograph somebody points the override at.
+    /// The most an icon may weigh on the wire. Twenty-four kilobytes is 137 frames for one button at
+    /// <see cref="ChunkBytes"/> — the point past which a picture is costing the link more than a label is
+    /// worth. A real program icon is a fraction of it; the cap is there for the photograph somebody points
+    /// the override at.
+    /// <para>
+    /// It was six kilobytes and 35 frames while <see cref="Size"/> was 48. Raising the square raised this
+    /// with it, and the phone's own ceiling on chunks per icon had to rise in the same change — a count it
+    /// refuses is an icon silently dropped, not a smaller one.
+    /// </para>
     /// </summary>
-    internal const int MaxBytes = 6 * 1024;
+    internal const int MaxBytes = 24 * 1024;
 
     /// <summary>
     /// How much of an icon's base64 rides in one TEXT frame. A payload is 255 bytes and the rest is the
-    /// "slot/chunk/chunks/" header in front of it — at most nine characters, because <see cref="MaxBytes"/>
-    /// and <see cref="MacroStore.MaxMacros"/> together keep all three numbers to two digits. The slack
-    /// between 240 and 246 is deliberate: a header that grew would cost a truncated icon, and the price of
-    /// the margin is one extra frame per icon.
+    /// "slot/chunk/chunks/" header in front of it. A slot is two digits at <see cref="MacroStore.MaxMacros"/>
+    /// and a chunk count is three at <see cref="MaxBytes"/>, so the header is at most eleven characters and
+    /// 240 of payload leaves four to spare. It was nine characters and six to spare while an icon was
+    /// capped at six kilobytes and the count stayed under a hundred; the margin narrowed when the square
+    /// grew, and it is still a margin. A header that outgrew it would cost a truncated icon, so the count
+    /// and this number have to be checked together if either moves again.
     /// </summary>
     internal const int ChunkBytes = 240;
 

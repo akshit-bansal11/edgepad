@@ -193,10 +193,14 @@ class LaptopState {
         private const val ICON_FIELDS = 4
 
         /**
-         * The most chunks one icon may claim. The laptop caps an icon at six kilobytes, which is 35 of them,
-         * so this is headroom rather than a limit anything real meets — and a ceiling on what a malformed
-         * count can ask this app to allocate.
+         * The most chunks one icon may claim. The laptop caps an icon at twenty-four kilobytes, which is 137
+         * of them, so this is headroom rather than a limit anything real meets — and a ceiling on what a
+         * malformed count can ask this app to allocate.
+         *
+         * It was 64 while the laptop sent 48px squares capped at six kilobytes. The square grew to 128 in
+         * 3.0.1, and this had to grow with it in the same change: a count over the ceiling is refused here,
+         * and a refused chunk is an icon that never arrives rather than one that arrives smaller.
          */
-        private const val MAX_CHUNKS = 64
+        private const val MAX_CHUNKS = 160
     }
 }

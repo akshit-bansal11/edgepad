@@ -94,6 +94,22 @@ public sealed class MacroIconsTests : IDisposable
             $"{Encoding.UTF8.GetByteCount(chunk)} bytes is past what a TEXT payload's length byte can say"));
     }
 
+    [Fact]
+    public void TheHeaviestIconStaysUnderTheCeilingThePhoneWillAccept()
+    {
+        // The phone refuses a chunk count over MAX_CHUNKS in LaptopState.kt and drops the frame, so an icon
+        // past that ceiling does not arrive smaller -- it does not arrive at all, and nothing says why.
+        // The two numbers are in different languages with no fixture between them, so this is what holds
+        // them together: raising MacroIcons.MaxBytes without raising MAX_CHUNKS fails here.
+        const int phoneMaxChunks = 160;
+
+        var chunks = MacroIcons.Chunks(MacroStore.MaxMacros - 1, Bytes(MacroIcons.MaxBytes)).Count;
+
+        Assert.True(
+            chunks <= phoneMaxChunks,
+            $"an icon at the cap is {chunks} chunks and the phone accepts {phoneMaxChunks}");
+    }
+
     [Theory]
     [InlineData(1)]
     [InlineData(MacroIcons.ChunkBytes)]
