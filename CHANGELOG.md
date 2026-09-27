@@ -4,7 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
-Edgepad 2.0's look, on both halves and the website. Nothing about the wire protocol moves.
+## [3.1.0] - 2026-09-27
+
+A new look on both halves and the website. Nothing about the wire protocol moves: it stays at version 4,
+so a 3.1.0 half still speaks to a 3.0.x one, though each half only looks new once it is updated.
 
 ### Changed
 - **A new design everywhere.** Grouped rounded cards on a soft ground, in the manner of iOS; Lato in three
@@ -645,7 +648,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.0.1...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/akshit-bansal11/edgepad/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.3.0...v3.0.0
 [2.3.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.2.0...v2.3.0
