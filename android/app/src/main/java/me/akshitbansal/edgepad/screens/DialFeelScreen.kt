@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.screens
 
 import android.view.View
+import android.widget.FrameLayout
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
@@ -13,11 +14,12 @@ import kotlin.math.roundToInt
  * Sensitivity comes in two layers. The shared slider is the one most people ever touch; under the preview,
  * each dial kind may take a speed of its own, because they do not want the same one — volume runs 0-100
  * over a thumb's width and wants a slow ruler, while the app switcher is a stepper that wants a fast one.
- * A per-dial slider at its lowest step reads SHARED and removes the override rather than storing a second
+ * A per-dial slider at its lowest step reads Shared and removes the override rather than storing a second
  * default, so changing the shared slider later still moves every dial that never asked to differ.
  */
 object DialFeelScreen {
     private const val PREVIEW_DP = 220f
+    private const val PREVIEW_RADIUS_DP = 16f
 
     /** Step 0 of a per-dial slider: follow the shared value instead of holding one. */
     private const val SHARED_STEP = 0
@@ -32,62 +34,76 @@ object DialFeelScreen {
         onBack: () -> Unit,
     ): View {
         val preview = DialPreview(ui.context, settings)
-        return ui.page(ui.bar(ui.string(R.string.dial_feel_title), onBack)) {
+        // The preview sits on a card of its own, clipped to the card's corners like every other surface here.
+        val frame =
+            FrameLayout(ui.context).apply {
+                background = ui.rounded(ui.palette.card, PREVIEW_RADIUS_DP)
+                clipToOutline = true
+                addView(preview)
+            }
+        return ui.page(
+            ui.bar(ui.string(R.string.dial_feel_title), onBack, backLabel = ui.string(R.string.settings_title)),
+        ) {
             columns(
                 {
-                    add(
-                        ui.slider(
-                            ui.string(R.string.slide_sensitivity),
-                            sensitivityRange.steps,
-                            sensitivityRange.stepOf(settings.sensitivity),
-                            { step -> ui.string(R.string.multiplier_value, sensitivityRange.valueAt(step)) },
-                        ) { step -> settings.sensitivity = sensitivityRange.valueAt(step) },
-                    )
-                    hairline()
-                    add(
-                        ui.slider(
-                            ui.string(R.string.dial_length),
-                            lengthRange.steps,
-                            lengthRange.stepOf(settings.dialLength),
-                            { step -> ui.string(R.string.dial_length_value, lengthRange.valueAt(step).roundToInt()) },
-                        ) { step ->
-                            settings.dialLength = lengthRange.valueAt(step)
-                            preview.show(settings.dialLength, settings.dialHeight)
-                        },
-                    )
-                    hairline()
-                    add(
-                        ui.slider(
-                            ui.string(R.string.dial_height),
-                            heightRange.steps,
-                            heightRange.stepOf(settings.dialHeight),
-                            { step -> ui.string(R.string.multiplier_value, heightRange.valueAt(step)) },
-                        ) { step ->
-                            settings.dialHeight = heightRange.valueAt(step)
-                            preview.show(settings.dialLength, settings.dialHeight)
-                        },
-                    )
-                    hairline()
-                    add(ui.toggle(ui.string(R.string.haptic_ticks), settings.haptics) { settings.haptics = it })
-                    hairline()
-                    add(ui.toggle(ui.string(R.string.snap_round), settings.snap) { settings.snap = it })
-                    hairline()
+                    card(Space.L) {
+                        add(
+                            ui.slider(
+                                ui.string(R.string.slide_sensitivity),
+                                sensitivityRange.steps,
+                                sensitivityRange.stepOf(settings.sensitivity),
+                                { step -> ui.string(R.string.multiplier_value, sensitivityRange.valueAt(step)) },
+                            ) { step -> settings.sensitivity = sensitivityRange.valueAt(step) },
+                        )
+                        hairline()
+                        add(
+                            ui.slider(
+                                ui.string(R.string.dial_length),
+                                lengthRange.steps,
+                                lengthRange.stepOf(settings.dialLength),
+                                { step ->
+                                    ui.string(R.string.dial_length_value, lengthRange.valueAt(step).roundToInt())
+                                },
+                            ) { step ->
+                                settings.dialLength = lengthRange.valueAt(step)
+                                preview.show(settings.dialLength, settings.dialHeight)
+                            },
+                        )
+                        hairline()
+                        add(
+                            ui.slider(
+                                ui.string(R.string.dial_height),
+                                heightRange.steps,
+                                heightRange.stepOf(settings.dialHeight),
+                                { step -> ui.string(R.string.multiplier_value, heightRange.valueAt(step)) },
+                            ) { step ->
+                                settings.dialHeight = heightRange.valueAt(step)
+                                preview.show(settings.dialLength, settings.dialHeight)
+                            },
+                        )
+                        hairline()
+                        add(ui.toggle(ui.string(R.string.haptic_ticks), settings.haptics) { settings.haptics = it })
+                        hairline()
+                        add(ui.toggle(ui.string(R.string.snap_round), settings.snap) { settings.snap = it })
+                    }
                 },
                 {
-                    add(preview, Space.L, ui.dp(PREVIEW_DP))
-                    mono(ui.string(R.string.dial_preview_caption), topDp = Space.S)
+                    add(frame, Space.L, ui.dp(PREVIEW_DP))
+                    footnote(ui.string(R.string.dial_preview_caption))
                     section(ui.string(R.string.dial_feel_each))
-                    for (kind in DialKind.entries) {
-                        add(perDial(ui, settings, kind))
-                        hairline()
+                    card {
+                        DialKind.entries.forEachIndexed { i, kind ->
+                            if (i > 0) hairline()
+                            add(perDial(ui, settings, kind))
+                        }
                     }
-                    mono(ui.string(R.string.dial_feel_each_caption), topDp = Space.S)
+                    footnote(ui.string(R.string.dial_feel_each_caption))
                 },
             )
         }
     }
 
-    /** One dial kind's own sensitivity, with SHARED as the step below the range's bottom. */
+    /** One dial kind's own sensitivity, with Shared as the step below the range's bottom. */
     private fun perDial(
         ui: Ui,
         settings: Settings,

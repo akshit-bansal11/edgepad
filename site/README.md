@@ -3,7 +3,7 @@
 Two routes, built from the repository they document: a landing page at `/`, and the
 whole documentation on one page at `/docs`.
 
-**Live at [edgepad-docs.vercel.app](https://edgepad-docs.vercel.app).** Deployed to Vercel from the repository root (not from `site/`), because the build reads `../protocol/*.txt` — see *Hosting* below.
+**Live at [edgepad.vercel.app](https://edgepad.vercel.app).** Deployed to Vercel from the repository root (not from `site/`), because the build reads `../protocol/*.txt` — see *Hosting* below.
 
 It is **not** part of either app's quality gate and CI does not build it. `scripts/check.ps1` still checks only `android/` and `windows/`.
 
@@ -40,7 +40,7 @@ Two rules in `biome.json` encode project rules rather than defaults: `noExplicit
 
 **Accessibility is checked twice, on purpose.** Biome has a11y rules and `eslint-config-next` brings `jsx-a11y`. They overlap, so some findings are reported by both. That is noisier than switching one off, and switching one off is not a trade worth making for accessibility.
 
-**Stylelint is not used.** With Tailwind 4 nearly all styling lives in `className` attributes; the site has one CSS file of about 100 lines, so Stylelint would guard almost nothing. Biome's CSS formatter and linter are also disabled, because Tailwind 4's `@theme`, `@custom-variant` and `@layer` at-rules are not something an untested CSS parser should be let loose on. `app/globals.css` is formatted by hand.
+**Stylelint is not used.** With Tailwind 4 nearly all styling lives in `className` attributes; the site has one CSS file of about 170 lines, so Stylelint would guard almost nothing. Biome's CSS formatter and linter are also disabled, because Tailwind 4's `@theme`, `@custom-variant` and `@layer` at-rules are not something an untested CSS parser should be let loose on. `app/globals.css` is formatted by hand.
 
 Node 24 or later (Active LTS; Node 20 and 18 are past end of security support). Verified on Node 24.19.0.
 
@@ -76,12 +76,12 @@ lib/
   utils.ts            cn()
 components/
   sections/           the documentation itself, in four files
-  ui/                 shadcn primitives, hand-placed (see below)
+  ui/                 shadcn primitives and Magic UI components (see below)
   section.tsx         Section, Sub, P, Note, C
   toc.tsx             sidebar with an IntersectionObserver scroll-spy
-  reveal.tsx          the site's only entrance animation
   flow-diagram.tsx    the two-column architecture map
-  surface-figure.tsx  the phone's control surface, drawn in SVG rather than photographed
+  link-beam.tsx       phone -> RFCOMM -> laptop, drawn with Magic UI's AnimatedBeam
+  surface-figure.tsx  the phone's control surface in the 2.0 corner-dial style, drawn in SVG
   site-header.tsx     shared; `variant` picks the landing menu or the table of contents
   site-footer.tsx     shared
   legacy-hash-redirect.tsx   see below
@@ -103,17 +103,26 @@ names a section that really is on the other one. The landing page's own three an
 
 ## Design notes
 
-**Palette.** Edgepad's own: pure `#000` on `#FFF` or `#FFF` on `#000`, with the greys flattened to opaque values rather than alphas so overlapping strokes do not darken. Light dim `#737373` is 4.74:1 on white; dark dim `#8C8C8C` is 6.5:1 on black. There is no accent colour in the product and none here.
+The site follows the Edgepad 2.0 design system: calm, rounded, one blue.
 
-**Type.** The app sets every piece of text in JetBrains Mono. The site keeps that for everything structural — headings, labels, tables, code, navigation — and falls back to Inter for running prose only, because several thousand words of mono is harder to read than it is characterful.
+**Palette.** The app's own 2.0 palette, mapped onto shadcn's CSS variables in `app/globals.css` so components installed with the CLI pick it up. Light is a soft grey ground (`#F2F3F7`) with white grouped cards; dark is a soft near-black (`#0E0F12`) with off-white ink, not `#000` and `#FFF`. One accent, a blue (`#0068D6` light, `#4DA3FF` dark), kept for primary actions, links, selection and live things. Every text pair used was computed at 4.5:1 or better; the two that fail (dim on `faint`, dim on `accent-soft`, both in light) are named in the stylesheet so nobody uses them.
 
-**Motion.** One entrance animation: an 8px lift and a fade, once, on first view. It is skipped entirely under `prefers-reduced-motion`. No parallax and nothing that holds a compositor layer alive after it has played.
+**Type.** Lato in 400, 700 and 900, sentence case everywhere, no letter-spaced capitals. JetBrains Mono only for what really is code: commands, byte tables, protocol ids.
+
+**Motion.** Magic UI's BlurFade for section entrances (a short lift and unblur, once), a BorderBeam around the hero phone, an AnimatedBeam on the "How it works" figure and a shine on the hero pill. Under `prefers-reduced-motion` all of them stop, **in CSS** (`motion-reduce:` utilities), never with `useReducedMotion`: the server cannot know the preference, so a hook renders different markup on the client, and React does not repair a mismatched `style` on hydration, which left every docs heading invisible. The hero headline and the docs title have no entrance at all, so the first paint never waits for JavaScript.
 
 **Theme toggle.** `next-themes` with `attribute="class"`, three states (light / dark / system). The dark variant follows the class rather than the media query, so the toggle wins over the OS in both directions.
 
 ## Two things done by hand
 
-**shadcn components are written into `components/ui/` directly** rather than added with `npx shadcn add`, because this project was scaffolded without a network install step. `components.json` is present and correct, so `npx shadcn@latest add <component>` works normally from here.
+**The older shadcn primitives were written into `components/ui/` by hand** (button, badge, tabs, accordion, table), because this project was first scaffolded without a network install step, and they were restyled for 2.0 in place. Everything added since came from the CLI:
+
+```bash
+npx shadcn@latest add card                       # shadcn
+npx shadcn@latest add @magicui/blur-fade @magicui/grid-pattern @magicui/animated-shiny-text   @magicui/animated-beam @magicui/border-beam @magicui/magic-card   # Magic UI
+```
+
+`components.json` registers the `@magicui` namespace, so `npx shadcn@latest add @magicui/<name>` works from here. Installed components are then owned code: each was trimmed or fixed after install, and the reason is in its comments (MagicCard lost its orb mode and its theme sniffing; the beams and BlurFade handle reduced motion in CSS; `card.tsx` came out of the CLI importing `cn` from an npm package called `cn`, which was removed and the import pointed at `@/lib/utils`).
 
 **Versions in `package.json` are pinned exactly**, read from the npm registry rather than from memory. Two pins are deliberately behind `latest`, and both are load-bearing:
 
@@ -149,7 +158,10 @@ The site follows `docs/PROTOCOL.md` and the changelog, and says plainly that `SE
 
 ## Hosting
 
-Live at [edgepad-docs.vercel.app](https://edgepad-docs.vercel.app), on Vercel.
+Live at [edgepad.vercel.app](https://edgepad.vercel.app), on Vercel. The Vercel project
+is still named `edgepad-docs`, and its old domain `edgepad-docs.vercel.app` 308s to the
+new one from `vercel.json`, because Edgepad.exe through 3.0.1 has the old address in its
+tray menu. `cleanUrls` there is what makes `/docs` serve `docs.html` from the export.
 
 The site is a **static export** (`output: "export"` in `next.config.ts`): every page is
 prerendered and nothing is read at request time, so it ships as plain files with no

@@ -140,7 +140,7 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
         </P>
 
         <Sub>What was rejected</Sub>
-        <div className="grid gap-px sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-3">
           {[
             {
               title: "BLE GATT",
@@ -155,8 +155,11 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
               body: "Windows only runs its multi-finger gestures for certified Precision Touchpad hardware, so the gestures would have to be emulated anyway.",
             },
           ].map((item) => (
-            <div key={item.title} className="border-line border p-4">
-              <p className="font-mono text-sm font-medium">{item.title}</p>
+            <div
+              key={item.title}
+              className="bg-card shadow-card rounded-[var(--radius-card)] p-5"
+            >
+              <p className="text-base font-bold">{item.title}</p>
               <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
                 {item.body}
               </p>
@@ -590,7 +593,7 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
         lede="Edgepad lets a phone drive a laptop, so its boundaries matter. There are two layers, and one common misreading of them."
       >
         <Sub>The two layers</Sub>
-        <div className="grid gap-px sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           {[
             {
               title: "Pairing",
@@ -601,8 +604,11 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
               body: "Enforced by TrustStore. The first phone to complete the handshake has its Bluetooth address written to %APPDATA%\\Edgepad\\trusted-phone.txt, and every other paired phone is refused before HELLO_ACK. The tray menu's Forget trusted phone clears it.",
             },
           ].map((item) => (
-            <div key={item.title} className="border-line border p-4">
-              <p className="font-mono text-sm font-medium">{item.title}</p>
+            <div
+              key={item.title}
+              className="bg-card shadow-card rounded-[var(--radius-card)] p-5"
+            >
+              <p className="text-base font-bold">{item.title}</p>
               <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
                 {item.body}
               </p>
@@ -645,7 +651,10 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
           keyboard screen already could. What is worth saying plainly instead is that
           the controller needs a third-party signed kernel driver, ViGEmBus, which you
           install and Edgepad only talks to — see{" "}
-          <a href="#limits" className="text-foreground underline underline-offset-4">
+          <a
+            href="#limits"
+            className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
+          >
             Known limits
           </a>{" "}
           for what that costs.

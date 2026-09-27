@@ -24,7 +24,7 @@ export function TabsList({
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
-      className={cn("border-line flex w-fit border", className)}
+      className={cn("bg-faint flex w-fit rounded-full p-1", className)}
       {...props}
     />
   );
@@ -38,9 +38,9 @@ export function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "border-line text-dim h-11 border-r px-4 font-mono text-xs tracking-[0.12em] uppercase transition-colors last:border-r-0",
-        "hover:text-foreground",
-        "data-[state=active]:bg-foreground data-[state=active]:text-background",
+        // A segmented control. Both states are ink: dim on faint does not pass 4.5:1.
+        "text-foreground min-h-11 rounded-full px-5 text-[0.9375rem] transition-colors",
+        "data-[state=active]:bg-card data-[state=active]:shadow-card data-[state=active]:font-bold",
         className,
       )}
       {...props}

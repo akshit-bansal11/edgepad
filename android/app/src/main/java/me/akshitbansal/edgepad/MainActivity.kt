@@ -38,9 +38,7 @@ import me.akshitbansal.edgepad.screens.GamepadScreen
 import me.akshitbansal.edgepad.screens.GestureScreen
 import me.akshitbansal.edgepad.screens.GuideScreen
 import me.akshitbansal.edgepad.screens.KeyboardScreen
-import me.akshitbansal.edgepad.screens.KeyboardSettingsScreen
 import me.akshitbansal.edgepad.screens.MacroScreen
-import me.akshitbansal.edgepad.screens.MacroSettingsScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
@@ -77,8 +75,6 @@ class MainActivity :
         SHAPES,
         SHAPE_DRAW,
         DIAL_FEEL,
-        KEYBOARD_SETTINGS,
-        MACRO_SETTINGS,
         APPEARANCE,
         MEDIA_LAYOUT,
         GAMEPAD_LAYOUT,
@@ -254,24 +250,25 @@ class MainActivity :
                 }
 
                 Screen.SETTINGS -> {
+                    val backTo = settingsBack()
+                    val backLabel = if (backTo == Screen.SURFACE) R.string.settings_surface else R.string.pairing_title
                     SettingsScreen.build(
                         ui,
                         settings,
                         connectionInfo(),
                         gamepads.current.name,
                         versionLine(),
+                        getString(backLabel),
                         SettingsScreen.Routes(
                             forget = ::forget,
                             corners = { goTo(Screen.CORNERS) },
                             gestures = { goTo(Screen.GESTURES) },
                             shapes = { goTo(Screen.SHAPES) },
                             dialFeel = { goTo(Screen.DIAL_FEEL) },
-                            keyboard = { goTo(Screen.KEYBOARD_SETTINGS) },
                             gamepadLayout = {
                                 layoutReturn = Screen.SETTINGS
                                 goTo(Screen.GAMEPAD_LAYOUT)
                             },
-                            macros = { goTo(Screen.MACRO_SETTINGS) },
                             mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
                             appearance = { goTo(Screen.APPEARANCE) },
                             guide = { goTo(Screen.GUIDE) },
@@ -314,14 +311,6 @@ class MainActivity :
                         onSaved = { goTo(Screen.SHAPES) },
                         onBack = { navigateBack() },
                     )
-                }
-
-                Screen.KEYBOARD_SETTINGS -> {
-                    KeyboardSettingsScreen.build(ui, settings) { navigateBack() }
-                }
-
-                Screen.MACRO_SETTINGS -> {
-                    MacroSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.DIAL_FEEL -> {
@@ -400,6 +389,9 @@ class MainActivity :
             }
         setContentView(view)
         applyOrientation()
+        // The bars are see-through over the page, whose own background is the ground, so they take its colour.
+        // Left to the default, three-button navigation would lay a translucent scrim over the ground instead.
+        window.isNavigationBarContrastEnforced = false
         window.insetsController?.let { bars ->
             val light =
                 WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
@@ -454,15 +446,7 @@ class MainActivity :
             }
 
             Screen.SETTINGS -> {
-                goTo(
-                    if (settingsReturn == Screen.SURFACE &&
-                        link?.connected != true
-                    ) {
-                        Screen.PAIRING
-                    } else {
-                        settingsReturn
-                    },
-                )
+                goTo(settingsBack())
             }
 
             Screen.RECONNECTING -> {
@@ -471,7 +455,7 @@ class MainActivity :
             }
 
             Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.GUIDE, Screen.MEDIA_LAYOUT,
-            Screen.KEYBOARD_SETTINGS, Screen.MACRO_SETTINGS, Screen.SHAPES,
+            Screen.SHAPES,
             -> {
                 goTo(Screen.SETTINGS)
             }
@@ -494,6 +478,13 @@ class MainActivity :
         }
         return true
     }
+
+    /**
+     * Where back from Settings leads, which its back link is also named for: the surface it was opened from
+     * while the link still holds, and the Devices list otherwise.
+     */
+    private fun settingsBack(): Screen =
+        if (settingsReturn == Screen.SURFACE && link?.connected != true) Screen.PAIRING else settingsReturn
 
     /** Asks the system's picker for an image; the copy lands in app storage so the surface can read it any time. */
     private fun pickImage() {
@@ -797,7 +788,7 @@ class MainActivity :
     }
 
     private fun connectionInfo(): SettingsScreen.Connection {
-        val remembered = settings.laptop ?: return SettingsScreen.Connection(null, "")
+        val remembered = settings.laptop ?: return SettingsScreen.Connection(null, "", connected = false)
         val name =
             if (remembered == laptopAddress && laptopName.isNotEmpty()) {
                 laptopName
@@ -805,13 +796,14 @@ class MainActivity :
                 bonded().firstOrNull { it.address == remembered }?.let(::nameOf) ?: remembered
             }
         val median = rtt.median()
+        val connected = link?.connected == true
         val detail =
             when {
-                link?.connected == true && !median.isNaN() -> getString(R.string.detail_connected_rtt, median)
-                link?.connected == true -> getString(R.string.detail_connected)
+                connected && !median.isNaN() -> getString(R.string.detail_connected_rtt, median)
+                connected -> getString(R.string.detail_connected)
                 else -> getString(R.string.detail_remembered)
             }
-        return SettingsScreen.Connection(name, detail)
+        return SettingsScreen.Connection(name, detail, connected)
     }
 
     private companion object {

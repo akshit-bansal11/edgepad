@@ -4,6 +4,34 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+Edgepad 2.0's look, on both halves and the website. Nothing about the wire protocol moves.
+
+### Changed
+- **A new design everywhere.** Grouped rounded cards on a soft ground, in the manner of iOS; Lato in three
+  weights instead of JetBrains Mono; sentence case instead of small spaced capitals; and one accent, a blue
+  (#0068D6 in light, #4DA3FF in dark) kept for what is selected, on, live or the main action. The dark theme
+  is a soft near-black with off-white text rather than pure black and white. Every text colour pair was
+  computed at 4.5:1 or better.
+- **The corner dials are redrawn** as dots and rounded pills with a glowing accent pointer. On a level dial,
+  the notches for the amount you have light up, so it reads as a bent progress bar. The ends fade out.
+- **Keyboard text size and macro labels moved onto the Settings page.** They were each a page with one
+  control; macro labels is now a switch, "Show macro labels".
+- **The laptop's tray menu** opens on a left click as well as a right one. It is restyled with a status
+  header and a Start with Windows switch, and follows Windows' light or dark mode. The macros window is
+  rebuilt as a dialog with a reorderable list, and the level overlay is a dark rounded pill.
+- **The website** is rebuilt in the same design and has moved to
+  [edgepad.vercel.app](https://edgepad.vercel.app). The old address redirects there. It now carries the full
+  7:28 demo, with chapters and captions.
+
+### Fixed
+- **Corner dial lines crossed each other while you dragged a tall dial.** Every tick points at the centre
+  of the corner's curve, so once a tick was longer than the curve's radius it passed that centre and crossed
+  its neighbours. The dial height setting, and the growth while dragging, made that happen even at the
+  default height. The dial's curve now widens as its ticks grow, and a unit test proves no two can cross at
+  any height.
+- **With reduced motion on, the website's section headings never appeared.**
+- **`/docs` on the website returned "not found".**
+
 ## [3.0.1] - 2026-09-24
 
 Five things found in the first look at 3.0.0, and one change the last of them dragged in. Nothing about

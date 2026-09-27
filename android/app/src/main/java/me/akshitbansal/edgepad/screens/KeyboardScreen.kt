@@ -63,10 +63,18 @@ private const val W2_75 = 2.75f
 private const val W6_25 = 6.25f
 
 private const val ROW_COUNT = 6
-private const val PADDING_DP = 4f
-private const val GAP_DP = 2f
-private const val CORNER_DP = 4f
-private const val STROKE_DP = 1f
+private const val PADDING_DP = 6f
+private const val GAP_DP = 6f
+
+/** A key's corners, and never more than a third of its width, so a narrow key stays a key and not a pill. */
+private const val CORNER_DP = 10f
+private const val CORNER_SHARE = 3f
+
+/** How far below a key its shadow line shows on the light board. */
+private const val SHADOW_DP = 1f
+
+/** The label size asked for, before the text-size setting scales it and [KeyboardView.fitLabels] fits it. */
+private const val LABEL_SP = 14f
 
 /** A full on-screen keyboard: six rows, drawn and hit-tested on one canvas so several keys can be held at once. */
 object KeyboardScreen {
@@ -76,7 +84,7 @@ object KeyboardScreen {
         onKey: (code: Int, down: Boolean) -> Unit,
         onBack: () -> Unit,
     ): View {
-        val header = ui.bar(ui.string(R.string.keyboard_title), onBack)
+        val header = ui.bar(ui.string(R.string.keyboard_title), onBack, backLabel = ui.string(R.string.back_to_surface))
         val keyboard = KeyboardView(ui.context, textScale, onKey)
         return LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL
@@ -93,7 +101,13 @@ object KeyboardScreen {
         val code: Int,
         val units: Float,
         val sticky: Boolean = false,
-    )
+    ) {
+        /**
+         * Everything that is not a character: named keys (Esc, F1, Tab, Shift…) and the arrows. They sit a
+         * step greyer than the character keys, as on an iOS keyboard. Space is the one named key that types.
+         */
+        val function: Boolean = (label.length > 1 && code != CODE_SPACE) || code in CODE_LEFT..CODE_DOWN
+    }
 
     private fun buildRows(): List<List<Key>> {
         val row0 =
@@ -151,6 +165,10 @@ object KeyboardScreen {
     }
 
     /**
+     * An iOS-style board: rounded keys with no outline, character keys on the brighter fill and function
+     * keys a step greyer, a soft shadow line under each key on the light board, and a held or armed key in
+     * the accent.
+     *
      * Draws and hit-tests every key itself, rather than inflating one view per key, so several pointers
      * can each hold a different key at once: a modifier plus a letter, or four arrow/WASD keys in a game.
      */
@@ -170,29 +188,29 @@ object KeyboardScreen {
         private val padding = PADDING_DP * density
         private val gap = GAP_DP * density
         private val corner = CORNER_DP * density
+        private val shadow = SHADOW_DP * density
         private val labelInset = Space.XS * density
+
+        // On the dark board the character keys take the lighter fill and the function keys the card, so both
+        // still step up from the ground; on the light board it is white keys and grey function keys.
+        private val keyFill = if (palette.dark) palette.faint else palette.card
+        private val functionFill = if (palette.dark) palette.card else palette.off
 
         /** The size asked for; [fitLabels] may draw smaller, never larger. */
         private val wantedTextSize =
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, Type.MICRO, resources.displayMetrics) * textScale
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, LABEL_SP, resources.displayMetrics) * textScale
 
-        private val fillPaint =
+        private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+        private val shadowPaint =
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style = Paint.Style.FILL
-                color = palette.ink
-            }
-        private val strokePaint =
-            Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                style = Paint.Style.STROKE
-                strokeWidth = STROKE_DP * density
                 color = palette.line
             }
         private val labelOn =
             TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-                typeface = Type.face
+                typeface = Type.bold
                 textAlign = Paint.Align.CENTER
-                letterSpacing = Type.TRACKING_WIDE
-                color = palette.background
+                color = palette.onAccent
                 textSize = wantedTextSize
             }
         private val labelOff =
@@ -263,11 +281,21 @@ object KeyboardScreen {
                 val key = keys[i]
                 val rect = rects[i]
                 val held = pointerKeys.containsValue(key) || (key.sticky && modifiers.isArmed(key.code))
-                if (held) {
-                    canvas.drawRoundRect(rect, corner, corner, fillPaint)
-                } else {
-                    canvas.drawRoundRect(rect, corner, corner, strokePaint)
+                val radius = minOf(corner, rect.width() / CORNER_SHARE)
+                if (!palette.dark) {
+                    // The shadow is the same key shape one step lower; the key drawn over it leaves only its
+                    // bottom edge showing, the soft line under an iOS key.
+                    rect.offset(0f, shadow)
+                    canvas.drawRoundRect(rect, radius, radius, shadowPaint)
+                    rect.offset(0f, -shadow)
                 }
+                fillPaint.color =
+                    when {
+                        held -> palette.accent
+                        key.function -> functionFill
+                        else -> keyFill
+                    }
+                canvas.drawRoundRect(rect, radius, radius, fillPaint)
                 val label = if (held) labelOn else labelOff
                 canvas.drawText(key.label, rect.centerX(), rect.centerY() + label.textSize * Type.CAP_CENTRE, label)
             }

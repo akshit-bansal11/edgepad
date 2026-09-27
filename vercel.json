@@ -4,5 +4,14 @@
   "installCommand": "cd site && npm ci",
   "buildCommand": "cd site && npm run build",
   "outputDirectory": "site/out",
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "edgepad-docs.vercel.app" }],
+      "destination": "https://edgepad.vercel.app/:path*",
+      "permanent": true
+    }
+  ],
   "github": { "silent": true }
 }

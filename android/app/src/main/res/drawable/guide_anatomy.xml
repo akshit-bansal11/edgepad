@@ -35,7 +35,7 @@
     android:pathData="M136 92h28a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-28a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2z" />
   <path
     android:fillColor="#00000000"
-    android:strokeColor="@color/line"
+    android:strokeColor="@color/dim"
     android:strokeWidth="1.4"
     android:strokeLineCap="round"
     android:strokeLineJoin="round"

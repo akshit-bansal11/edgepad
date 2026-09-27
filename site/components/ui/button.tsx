@@ -4,19 +4,21 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 border font-mono text-xs tracking-[0.12em] uppercase transition-colors outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-[var(--radius-card)] font-bold whitespace-nowrap transition-[background-color,color,opacity,filter] disabled:pointer-events-none disabled:opacity-35 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
+      // The design system's three buttons: filled for the one main action, tinted for
+      // a strong second, plain for a way out. Names kept from shadcn so call sites
+      // read the same.
       variant: {
-        default:
-          "border-foreground bg-foreground text-background hover:bg-background hover:text-foreground",
-        outline: "border-line bg-transparent text-foreground hover:border-foreground",
-        ghost: "border-transparent bg-transparent text-dim hover:text-foreground",
+        default: "bg-primary text-primary-foreground hover:brightness-110",
+        outline: "bg-secondary text-secondary-foreground hover:bg-secondary/70",
+        ghost: "text-foreground hover:bg-faint",
       },
       size: {
         // 44px and 48px: both clear the 24x24 minimum and the 44px comfortable target.
-        default: "h-12 px-5",
-        sm: "h-11 px-4",
+        default: "h-12 px-5 text-base",
+        sm: "h-11 px-4 text-[0.9375rem]",
         icon: "size-11",
       },
     },

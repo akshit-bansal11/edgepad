@@ -6,13 +6,18 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.surface.Clock
 
-/** The link dropped on its own. Says so, counts the attempts to get it back, and offers the two ways out. */
+/**
+ * The link dropped on its own. Says so, counts the attempts to get it back, and offers the two ways out.
+ * Sideways there is little height, so the circle is smaller, the gaps tighter and the two buttons sit side
+ * by side.
+ */
 class ReconnectingScreen(
     private val ui: Ui,
     laptop: String,
@@ -27,10 +32,10 @@ class ReconnectingScreen(
             background =
                 GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
-                    setColor(ui.palette.ink)
+                    setColor(ui.palette.accent)
                 }
         }
-    private val progress = View(ui.context).apply { setBackgroundColor(ui.palette.ink) }
+    private val progress = View(ui.context).apply { background = ui.rounded(ui.palette.accent, TRACK_DP / 2) }
     private var blink: ValueAnimator? = null
     private var trying = false
     private lateinit var attempt: TextView
@@ -38,31 +43,51 @@ class ReconnectingScreen(
 
     val view: View =
         ui.page(centred = true) {
+            val sideways = ui.landscape
+            val gap = if (sideways) Space.L else GAP_DP
             grow()
+            val ringSize = if (sideways) RING_SIDEWAYS_DP else RING_DP
             val ring =
                 FrameLayout(ui.context).apply {
                     background =
                         GradientDrawable().apply {
                             shape = GradientDrawable.OVAL
-                            setStroke(ui.dp(Space.HAIR), ui.palette.dim)
+                            setColor(ui.palette.accentSoft)
                         }
                     addView(dot, FrameLayout.LayoutParams(ui.dp(DOT_DP), ui.dp(DOT_DP), Gravity.CENTER))
                 }
-            add(ring, height = ui.dp(RING_DP), width = ui.dp(RING_DP))
-            headline(ui.string(R.string.lost_title), Type.TITLE, Space.XXL).gravity = Gravity.CENTER
-            body(ui.string(R.string.lost_body, laptop), Space.L).gravity = Gravity.CENTER
-            attempt = mono("", Type.SMALL, topDp = Space.XL)
+            add(ring, height = ui.dp(ringSize), width = ui.dp(ringSize))
+            headline(ui.string(R.string.lost_title), Type.TITLE, gap).gravity = Gravity.CENTER
+            body(ui.string(R.string.lost_body, laptop), BODY_GAP_DP).gravity = Gravity.CENTER
+            attempt = add(ui.text("", Type.SMALL, ui.palette.dim, face = Type.bold), gap)
             attempt.gravity = Gravity.CENTER
             val track =
                 FrameLayout(ui.context).apply {
-                    setBackgroundColor(ui.palette.line)
+                    background = ui.rounded(ui.palette.off, TRACK_DP / 2)
+                    clipToOutline = true
                     addView(progress, FrameLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT))
                 }
-            add(track, Space.M, height = ui.dp(Space.HAIR), width = ui.dp(TRACK_DP))
-            add(ui.button(ui.string(R.string.retry_now), Ui.Style.FILLED, onRetry), Space.XXXL)
-            add(ui.button(ui.string(R.string.pick_another), Ui.Style.QUIET, onPickAnother), Space.M)
+            add(track, BODY_GAP_DP, height = ui.dp(TRACK_DP), width = ui.dp(TRACK_WIDTH_DP))
+            val retry = ui.button(ui.string(R.string.retry_now), Ui.Style.FILLED, onRetry)
+            val pick = ui.button(ui.string(R.string.pick_another), Ui.Style.QUIET, onPickAnother)
+            if (sideways) {
+                val pair =
+                    LinearLayout(ui.context).apply {
+                        addView(retry, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                        addView(
+                            pick,
+                            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                                marginStart = ui.dp(Space.S)
+                            },
+                        )
+                    }
+                add(pair, BUTTON_TOP_SIDEWAYS_DP, width = ui.dp(BUTTONS_SIDEWAYS_DP))
+            } else {
+                add(retry, BUTTON_TOP_DP)
+                add(pick, Space.S)
+            }
             grow()
-            lastSeen = mono("", Type.MICRO, topDp = Space.XL)
+            lastSeen = mono("", Type.SMALL, topDp = gap)
             lastSeen.gravity = Gravity.CENTER
         }
 
@@ -89,7 +114,7 @@ class ReconnectingScreen(
                 State.STOPPED -> ui.string(R.string.lost_stopped)
                 State.OFF -> ui.string(R.string.lost_off)
             }
-        progress.layoutParams.width = ui.dp(TRACK_DP) * attempt.coerceIn(0, max) / max
+        progress.layoutParams.width = ui.dp(TRACK_WIDTH_DP) * attempt.coerceIn(0, max) / max
         progress.requestLayout()
         lastSeen.text = ui.string(R.string.lost_last_seen, Clock.format(secondsSinceSeen.toInt()), address)
         trying = state == State.TRYING
@@ -119,9 +144,18 @@ class ReconnectingScreen(
     }
 
     private companion object {
-        const val RING_DP = 54f
-        const val DOT_DP = 8f
-        const val TRACK_DP = 130f
+        const val RING_DP = 64f
+        const val RING_SIDEWAYS_DP = 52f
+        const val DOT_DP = 12f
+        const val GAP_DP = 28f
+        const val BODY_GAP_DP = 10f
+        const val TRACK_DP = 4f
+        const val TRACK_WIDTH_DP = 160f
+        const val BUTTON_TOP_DP = 40f
+        const val BUTTON_TOP_SIDEWAYS_DP = 20f
+
+        /** Sideways the pair of buttons is held to this width rather than stretched across the whole screen. */
+        const val BUTTONS_SIDEWAYS_DP = 520f
         const val BLINK_MS = 1400L
         const val HALF = 0.5f
         const val DIM_ALPHA = 0.15f

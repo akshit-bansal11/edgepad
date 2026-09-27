@@ -18,7 +18,7 @@ export function AccordionItem({
   return (
     <AccordionPrimitive.Item
       data-slot="accordion-item"
-      className={cn("border-line border-b", className)}
+      className={cn("border-line border-b last:border-b-0", className)}
       {...props}
     />
   );
@@ -34,7 +34,7 @@ export function AccordionTrigger({
       <AccordionPrimitive.Trigger
         data-slot="accordion-trigger"
         className={cn(
-          "flex flex-1 items-start justify-between gap-4 py-4 text-left text-[0.9375rem] font-medium outline-none",
+          "flex min-h-11 flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-base font-bold",
           "[&[data-state=open]>svg]:rotate-45",
           className,
         )}
@@ -43,7 +43,7 @@ export function AccordionTrigger({
         {children}
         <Plus
           aria-hidden
-          className="text-dim mt-0.5 size-4 shrink-0 transition-transform duration-200 motion-reduce:transition-none"
+          className="text-primary mt-0.5 size-5 shrink-0 transition-transform duration-200 motion-reduce:transition-none"
         />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>

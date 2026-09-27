@@ -1,27 +1,29 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono, Lato } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 /*
-  Edgepad itself sets every piece of text in JetBrains Mono. The site keeps that for
-  everything structural — headings, labels, tables, code, navigation — so it reads as
-  the same product, and falls back to a neutral sans for running prose only, because
-  several thousand words of mono is harder to read than it is characterful.
+  Edgepad 2.0 sets every piece of text in Lato, in three weights: 400 for reading, 700
+  for labels and buttons, 900 for titles. JetBrains Mono stays for what really is code:
+  commands, byte tables, protocol ids.
 */
+const sans = Lato({
+  subsets: ["latin"],
+  weight: ["400", "700", "900"],
+  variable: "--font-sans-family",
+  display: "swap",
+});
+
 const mono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono-family",
   display: "swap",
 });
 
-const sans = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans-family",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
+  // Every relative URL in metadata (Open Graph, canonical) resolves against this.
+  metadataBase: new URL("https://edgepad.vercel.app"),
   // The landing page's title is the default; app/docs/page.tsx overrides it.
   title: "Edgepad — your laptop, from across the room",
   description:
@@ -33,13 +35,15 @@ export const metadata: Metadata = {
     description:
       "Phone as a control surface for a Windows laptop, over Bluetooth Classic RFCOMM. No account, no Wi-Fi, no server.",
     type: "website",
+    url: "/",
+    siteName: "Edgepad",
   },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    { media: "(prefers-color-scheme: light)", color: "#f2f3f7" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e0f12" },
   ],
 };
 

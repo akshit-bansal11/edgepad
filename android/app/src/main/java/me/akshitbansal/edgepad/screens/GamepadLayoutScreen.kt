@@ -41,11 +41,14 @@ object GamepadLayoutScreen {
     /**
      * How tall the list of layouts may grow inside the popup. The editor is held sideways, so there is
      * only ever a phone's short side of room under the options button, and a list that grows a row per
-     * saved game would push RESET and DONE off the bottom of it. Past this it scrolls.
+     * saved game would push Reset and Done off the bottom of it. Past this it scrolls.
      */
     private const val MAX_LIST_DP = 120f
 
-    /** What ADD CONTROL offers: a kind, what a fresh one of it drives, and what is written on it. */
+    /** The hint's line height, as a multiple of its size, the same as a footnote's. */
+    private const val HINT_LEADING = 1.4f
+
+    /** What Add control offers: a kind, what a fresh one of it drives, and what is written on it. */
     private class Addable(
         val nameRes: Int,
         val kind: ControlKind,
@@ -87,7 +90,7 @@ object GamepadLayoutScreen {
         onBack: () -> Unit,
     ): View {
         val canvas = Editor(ui.context, store)
-        return EditorFrame.build(ui, ui.string(R.string.gamepad_layout_title).uppercase(), canvas, onBack) { close ->
+        return EditorFrame.build(ui, ui.string(R.string.gamepad_layout_title), canvas, onBack) { close ->
             LinearLayout(ui.context).apply {
                 orientation = LinearLayout.VERTICAL
                 addView(
@@ -101,10 +104,10 @@ object GamepadLayoutScreen {
                     ui
                         .mono(
                             ui.string(R.string.gamepad_layout_hint),
-                            Type.MICRO,
+                            Type.SMALL,
                             ui.palette.dim,
-                            Type.TRACKING_ROW,
                         ).apply {
+                            setLineSpacing(0f, HINT_LEADING)
                             setPadding(0, ui.dp(Space.S), 0, ui.dp(Space.S))
                         },
                 )
@@ -144,7 +147,12 @@ object GamepadLayoutScreen {
         LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL
             val section = ui.string(R.string.gamepad_layout_section)
-            addView(ui.mono(section, Type.MICRO, ui.palette.dim, Type.TRACKING_ROW))
+            addView(
+                ui.text(section, Type.SMALL, ui.palette.dim, face = Type.bold).apply {
+                    isAccessibilityHeading = true
+                    setPadding(0, ui.dp(Space.M), 0, ui.dp(Space.XS))
+                },
+            )
             // The scroll bar is left on, unlike everywhere else in the app: this box is two and a half
             // rows tall inside a popup, and it is the only thing that says the list goes on past it.
             val list =
@@ -215,6 +223,7 @@ object GamepadLayoutScreen {
         private val store: GamepadStore,
     ) : LayoutCanvas(context) {
         private var layout = store.current
+        private val painter = PadPainter(context)
         private var dragging: Control? = null
         private var downX = 0f
         private var downY = 0f
@@ -248,56 +257,25 @@ object GamepadLayoutScreen {
             super.onDraw(canvas)
             for (control in layout.controls) {
                 bounds(control, box)
-                // The control being dragged lifts off the grid on a shadow.
-                if (control == dragging) {
+                // The control being dragged lifts off the grid on a shadow and wears an accent ring.
+                val lifted = control == dragging
+                if (lifted) {
                     if (control.kind == ControlKind.BUTTON || control.kind == ControlKind.STICK) {
                         canvas.drawOval(box, lift)
                     } else {
-                        canvas.drawRoundRect(box, CORNER_DP * density, CORNER_DP * density, lift)
+                        val corner = ControlGeometry.CORNER_DP * density
+                        canvas.drawRoundRect(box, corner, corner, lift)
                     }
                 }
-                stroke.color = if (control == dragging) palette.ink else palette.dim
-                drawShape(canvas, control.kind, box)
-                text.color = stroke.color
-                canvas.drawText(
-                    control.label,
-                    box.centerX(),
-                    box.centerY() + text.textSize * Type.CAP_CENTRE,
-                    text,
-                )
-            }
-        }
-
-        private fun drawShape(
-            canvas: Canvas,
-            kind: ControlKind,
-            box: RectF,
-        ) {
-            when (kind) {
-                ControlKind.BUTTON, ControlKind.STICK -> {
-                    canvas.drawOval(box, stroke)
+                // Drawn at rest, as the pad shows it before a finger lands: nothing held, the stick's thumb
+                // left out so its label reads.
+                if (control.kind == ControlKind.DPAD) {
+                    painter.dpad(canvas, box, up = false, down = false, left = false, right = false)
+                } else {
+                    painter.body(canvas, control.kind, box, false)
                 }
-
-                ControlKind.SHOULDER -> {
-                    val corner = ControlGeometry.CORNER_DP * density
-                    canvas.drawRoundRect(box, corner, corner, stroke)
-                }
-
-                ControlKind.DPAD -> {
-                    val third = box.width() / ControlGeometry.DPAD_CELLS
-                    for (row in 0 until ControlGeometry.DPAD_CELLS.toInt()) {
-                        for (col in 0 until ControlGeometry.DPAD_CELLS.toInt()) {
-                            if (!ControlGeometry.isArmCell(row, col)) continue
-                            canvas.drawRect(
-                                box.left + col * third,
-                                box.top + row * third,
-                                box.left + (col + 1) * third,
-                                box.top + (row + 1) * third,
-                                stroke,
-                            )
-                        }
-                    }
-                }
+                painter.label(canvas, control.label, control.kind, box, false)
+                if (lifted) painter.ring(canvas, control.kind, box)
             }
         }
 
@@ -378,7 +356,7 @@ object GamepadLayoutScreen {
         }
 
         /**
-         * Everything one control can have done to it. DELETE is missing while the layout is down to its
+         * Everything one control can have done to it. Delete control is missing while the layout is down to its
          * last control: a layout with nothing on it cannot be stored — [GamepadLayout.decode] refuses one
          * — and a menu entry that would fail is worse than one that is not there.
          */
@@ -513,7 +491,7 @@ object GamepadLayoutScreen {
         /**
          * Saving a layout under a name, renaming it and deleting it. The last two are offered only for a
          * layout of the user's own: a layout Edgepad ships lives in the code, so it cannot be renamed or
-         * removed, and SAVE AS is exactly the way to take a copy of one and make it yours.
+         * removed, and Save as is exactly the way to take a copy of one and make it yours.
          */
         fun manageLayouts() {
             val name = layout.name

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- The guide: first run, and Settings › Help › Guide. Every claim here must be true of the app. -->
-  <string name="guide_steps">STEPS</string>
-  <string name="guide_page">PAGE</string>
-  <string name="guide_back">BACK</string>
-  <string name="guide_next">NEXT</string>
-  <string name="guide_done">DONE</string>
-  <string name="guide_find_laptop">FIND MY LAPTOP</string>
+  <string name="guide_steps">Steps</string>
+  <string name="guide_page">Page</string>
+  <string name="guide_back">Back</string>
+  <string name="guide_next">Next</string>
+  <string name="guide_done">Done</string>
+  <string name="guide_find_laptop">Find my laptop</string>
   <string name="guide_step_description">Page %1$d of %2$d</string>
 
-  <string name="guide_features_kicker">01 · WHY EDGEPAD</string>
+  <string name="guide_features_kicker">1 · Why Edgepad</string>
   <string name="guide_features_title">Your laptop, from across the room.</string>
   <string-array name="guide_features_keys">
     <item>REAL-TIME</item>
@@ -26,7 +26,7 @@
     <item>Haptic notches, light and dark, your own media and gamepad layouts.</item>
   </string-array>
 
-  <string name="guide_anatomy_kicker">02 · ANATOMY</string>
+  <string name="guide_anatomy_kicker">2 · Anatomy</string>
   <string name="guide_anatomy_title">Five parts, one screen.</string>
   <string-array name="guide_anatomy_keys">
     <item>TRACKPAD</item>
@@ -43,7 +43,7 @@
     <item>Sticks, a D-pad and buttons in four presets, or your own arrangement.</item>
   </string-array>
 
-  <string name="guide_surface_kicker">03 · THE SURFACE</string>
+  <string name="guide_surface_kicker">3 · The surface</string>
   <string name="guide_surface_title">Fingers do the talking.</string>
   <string-array name="guide_surface_keys">
     <item>ONE FINGER</item>
@@ -60,7 +60,7 @@
     <item>Settings › Corners picks each dial. Dial feel sets sensitivity, size and haptics. Gestures reassigns the rest.</item>
   </string-array>
 
-  <string name="guide_keyboard_kicker">04 · KEYBOARD</string>
+  <string name="guide_keyboard_kicker">4 · Keyboard</string>
   <string name="guide_keyboard_title">Type from the couch.</string>
   <string-array name="guide_keyboard_keys">
     <item>OPEN</item>
@@ -75,7 +75,7 @@
     <item>The back arrow at the top, or the system back gesture.</item>
   </string-array>
 
-  <string name="guide_gamepad_kicker">05 · GAMEPAD</string>
+  <string name="guide_gamepad_kicker">5 · Gamepad</string>
   <string name="guide_gamepad_title">A controller in your pocket.</string>
   <string-array name="guide_gamepad_keys">
     <item>OPEN</item>
@@ -91,17 +91,17 @@
   </string-array>
 
   <!-- Words inside the guide drawings. -->
-  <string name="guide_art_phone">PHONE</string>
-  <string name="guide_art_laptop">LAPTOP</string>
-  <string name="guide_art_link">BLUETOOTH · NO WI-FI · NO ACCOUNT</string>
-  <string name="guide_art_dials">DIALS</string>
-  <string name="guide_art_trackpad">TRACKPAD</string>
-  <string name="guide_art_media">MEDIA</string>
-  <string name="guide_art_keys">KEYS · PAD</string>
-  <string name="guide_art_gestures">GESTURES</string>
-  <string name="guide_art_move">1 · MOVE</string>
-  <string name="guide_art_scroll">2 · SCROLL</string>
-  <string name="guide_art_swipe">3 · SWIPE</string>
-  <string name="guide_art_latch">CTRL · ALT · SHIFT LATCH FOR THE NEXT KEY</string>
-  <string name="guide_art_presets">XBOX · PLATFORMER · RACING · SHOOTER</string>
+  <string name="guide_art_phone">Phone</string>
+  <string name="guide_art_laptop">Laptop</string>
+  <string name="guide_art_link">Bluetooth · no Wi-Fi · no account</string>
+  <string name="guide_art_dials">Dials</string>
+  <string name="guide_art_trackpad">Trackpad</string>
+  <string name="guide_art_media">Media</string>
+  <string name="guide_art_keys">Keys · pad</string>
+  <string name="guide_art_gestures">Gestures</string>
+  <string name="guide_art_move">1 · Move</string>
+  <string name="guide_art_scroll">2 · Scroll</string>
+  <string name="guide_art_swipe">3 · Swipe</string>
+  <string name="guide_art_latch">Ctrl, Alt and Shift latch for the next key</string>
+  <string name="guide_art_presets">Xbox · Platformer · Racing · Shooter</string>
 </resources>

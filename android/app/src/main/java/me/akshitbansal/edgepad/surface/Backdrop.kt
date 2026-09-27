@@ -15,7 +15,7 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 
 /**
- * What the control surface paints behind everything: the theme's panel, a colour, a gradient, or an
+ * What the control surface paints behind everything: the theme's background, a colour, a gradient, or an
  * imported image, then a repeating pattern over it. Everything expensive happens in [resize]; drawing
  * allocates nothing.
  */
@@ -154,6 +154,9 @@ class Backdrop(
             }
         }
     }
+
+    /** Whether this is the theme's own background, which the theme's own ink and accent are made for. */
+    val themed: Boolean get() = kind == Settings.Background.THEME
 
     /** Whether text and controls drawn over this read best in a light colour. */
     val isDark: Boolean

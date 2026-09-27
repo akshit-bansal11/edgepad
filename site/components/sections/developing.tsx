@@ -178,9 +178,9 @@ export function DevelopingSections({ protocolVersion }: { protocolVersion: numbe
         title="Prerequisites"
         lede="Either half can be worked on alone. You do not need both toolchains to contribute to one app."
       >
-        <div className="grid gap-px md:grid-cols-2">
-          <div className="border-line border p-4">
-            <p className="font-mono text-sm font-medium">Phone app</p>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="bg-card shadow-card rounded-[var(--radius-card)] p-5">
+            <p className="text-base font-bold">Phone app</p>
             <ul className="text-dim mt-3 space-y-2 text-[0.9375rem] leading-relaxed">
               <li>JDK 17.</li>
               <li>The Android SDK with platform 37 and build tools 37.0.0.</li>
@@ -189,8 +189,8 @@ export function DevelopingSections({ protocolVersion }: { protocolVersion: numbe
               </li>
             </ul>
           </div>
-          <div className="border-line border p-4">
-            <p className="font-mono text-sm font-medium">Laptop app</p>
+          <div className="bg-card shadow-card rounded-[var(--radius-card)] p-5">
+            <p className="text-base font-bold">Laptop app</p>
             <ul className="text-dim mt-3 space-y-2 text-[0.9375rem] leading-relaxed">
               <li>
                 The .NET SDK version pinned in <C>windows/global.json</C>: 10.0.401,
@@ -373,9 +373,9 @@ cd windows && dotnet test --solution Edgepad.slnx`}
         </P>
 
         <Sub>Above the fixtures</Sub>
-        <div className="grid gap-px md:grid-cols-2">
-          <div className="border-line border p-4">
-            <p className="font-mono text-sm font-medium">Android</p>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="bg-card shadow-card rounded-[var(--radius-card)] p-5">
+            <p className="text-base font-bold">Android</p>
             <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
               The gesture recogniser and the whole finger table, assignable actions,
               natural scrolling, the dials (arming, slop, snapping, steppers, haptic
@@ -388,8 +388,8 @@ cd windows && dotnet test --solution Edgepad.slnx`}
               Kotlin, so it runs with no emulator.
             </p>
           </div>
-          <div className="border-line border p-4">
-            <p className="font-mono text-sm font-medium">Windows</p>
+          <div className="bg-card shadow-card rounded-[var(--radius-card)] p-5">
+            <p className="text-base font-bold">Windows</p>
             <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
               The dispatcher&apos;s drop paths, input batching, trust on first use, the
               macro store, display modes, the level overlay, the media-session title
@@ -442,7 +442,7 @@ cd windows && dotnet test --solution Edgepad.slnx`}
               href="https://www.conventionalcommits.org/en/v1.0.0/"
               target="_blank"
               rel="noreferrer noopener"
-              className="text-foreground underline underline-offset-4"
+              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
             >
               Conventional Commits
             </a>{" "}
@@ -486,7 +486,7 @@ cd windows && dotnet test --solution Edgepad.slnx`}
             href={`${REPO}/security/advisories/new`}
             target="_blank"
             rel="noreferrer noopener"
-            className="text-foreground underline underline-offset-4"
+            className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
           >
             security advisory
           </a>

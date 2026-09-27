@@ -5,44 +5,125 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
-  Edgepad's own palette, taken from the app: pure #000 on #FFF or #FFF on #000, with
-  the greys flattened to opaque values rather than alphas, so overlapping strokes do
-  not darken. Light dim #737373 is 4.74:1 on white; dark dim #8C8C8C is 6.5:1 on
-  black. There is no accent colour anywhere in the product, and none here.
+  Edgepad 2.0's own palette, the same values the app ships (PALETTES in the design
+  reference). Light is a soft grey ground with white grouped cards; dark is a soft
+  near-black with off-white ink, not #000 and #FFF. One accent, a blue, kept for what
+  is selected, on, live or the one main action.
+
+  Every text pair used on the site was computed at 4.5:1 or better:
+    light  ink/ground 16.2  dim/ground 4.6  dim/card 5.1  accent/card 5.3
+           accent/ground 4.8  accent/accent-soft 4.6  accent/faint 4.5  white/accent 5.3
+    dark   ink/ground 17.3  dim/card 6.2  dim/faint 5.5  accent/card 6.5  accent/ground 7.3
+           accent/accent-soft 5.5  on-accent/accent 6.7
+  Two pairs that do NOT pass, so never use them: dim on faint and dim on accent-soft,
+  both in light (4.35 and 4.43). Text on a faint or tinted fill is ink or accent.
+
+  The shadcn variable names (background, card, primary, muted, border, ring…) are
+  mapped onto those values, so a component installed with the shadcn CLI picks them up
+  unchanged. Note that shadcn's `accent` is its hover surface; Edgepad's blue is
+  `primary` here.
 */
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
-  --dim: #737373;
-  --line: #d6d6d6;
-  --faint: #f0f0f0;
-  --selection: #000000;
-  --selection-foreground: #ffffff;
+  --ground: #f2f3f7;
+  --card: #ffffff;
+  --line: #e3e5ea;
+  --faint: #ebedf2;
+  --ink: #16171a;
+  --dim: #6b6e76;
+  --blue: #0068d6;
+  --on-blue: #ffffff;
+  --blue-soft: #e6f0fc;
+  --danger: #d70015;
+  --elev-card: 0 1px 2px rgb(16 18 24 / 0.05), 0 4px 16px rgb(16 18 24 / 0.05);
+  --elev-lift: 0 12px 40px rgb(16 18 24 / 0.14);
   color-scheme: light;
 }
 
 .dark {
-  --background: #000000;
-  --foreground: #ffffff;
-  --dim: #8c8c8c;
-  --line: #292929;
-  --faint: #121212;
-  --selection: #ffffff;
-  --selection-foreground: #000000;
+  --ground: #0e0f12;
+  --card: #1b1c20;
+  --line: #2b2d33;
+  --faint: #24262b;
+  --ink: #f2f3f5;
+  --dim: #9a9ca3;
+  --blue: #4da3ff;
+  --on-blue: #0b1a2e;
+  --blue-soft: #1b2a3d;
+  --danger: #ff6961;
+  --elev-card: 0 1px 2px rgb(0 0 0 / 0.3);
+  --elev-lift: 0 12px 40px rgb(0 0 0 / 0.45);
   color-scheme: dark;
+}
+
+:root,
+.dark {
+  --background: var(--ground);
+  --foreground: var(--ink);
+  --card-foreground: var(--ink);
+  --popover: var(--card);
+  --popover-foreground: var(--ink);
+  --primary: var(--blue);
+  --primary-foreground: var(--on-blue);
+  --secondary: var(--blue-soft);
+  --secondary-foreground: var(--blue);
+  --muted: var(--faint);
+  --muted-foreground: var(--ink);
+  --accent: var(--faint);
+  --accent-foreground: var(--ink);
+  --destructive: var(--danger);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--blue);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Edgepad's own names, used throughout the documentation sections. */
   --color-dim: var(--dim);
   --color-line: var(--line);
   --color-faint: var(--faint);
+  --color-accent-soft: var(--blue-soft);
 
-  --font-mono: var(--font-mono-family), ui-monospace, "SFMono-Regular", monospace;
   --font-sans: var(--font-sans-family), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-family), ui-monospace, "SFMono-Regular", monospace;
 
-  --radius-none: 0px;
+  /* 14 for a card or a button, 20 for a large card, pill for chips (design system). */
+  --radius-card: 14px;
+  --radius-panel: 20px;
+
+  --shadow-card: var(--elev-card);
+  --shadow-lift: var(--elev-lift);
+
+  --animate-shiny-text: shiny-text 8s infinite;
+  @keyframes shiny-text {
+    0%,
+    90%,
+    100% {
+      background-position: calc(-100% - var(--shiny-width)) 0;
+    }
+    30%,
+    60% {
+      background-position: calc(100% + var(--shiny-width)) 0;
+    }
+  }
 }
 
 @layer base {
@@ -69,37 +150,28 @@
     color: var(--foreground);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Figures are tabular everywhere, so ids, byte columns and chapter times line up. */
+    font-variant-numeric: tabular-nums;
   }
 
   ::selection {
-    background: var(--selection);
-    color: var(--selection-foreground);
+    background: var(--blue);
+    color: var(--on-blue);
   }
 
-  /* One focus treatment everywhere. Two-tone so it is visible on either ground. */
+  /* One focus treatment everywhere: the accent, offset so it clears a filled button. */
   :focus-visible {
-    outline: 2px solid var(--foreground);
+    outline: 2px solid var(--ring);
     outline-offset: 2px;
-  }
-
-  /* Tabular figures in every table, so ids and byte columns line up. */
-  table {
-    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer utilities {
-  /* The spaced mono label the app uses for every section heading and button. */
+  /* A small section or group header: 13px bold dim, sentence case, never spaced caps. */
   .label {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.3;
     color: var(--dim);
-  }
-
-  /* A hairline that stays one physical pixel on a high-density screen. */
-  .rule {
-    border-top: 1px solid var(--line);
   }
 }

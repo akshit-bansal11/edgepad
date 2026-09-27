@@ -9,25 +9,25 @@ namespace Edgepad.Tests;
 /// </summary>
 public sealed class LevelOverlayTests
 {
-    [Theory]
-    [InlineData("volume", "VOLUME")]
-    [InlineData("  Brightness  ", "BRIGHTNESS")]
-    [InlineData("", "")]
-    [InlineData("   ", "")]
-    public void TheLabelIsUppercasedAndTrimmed(string given, string shown) =>
-        Assert.Equal(shown, LevelOverlay.Metrics.Label(given));
+    [Fact]
+    public void EachKindIsNamedInSentenceCase()
+    {
+        Assert.Equal("Volume", LevelOverlay.Metrics.Label(LevelKind.Volume));
+        Assert.Equal("Microphone", LevelOverlay.Metrics.Label(LevelKind.Microphone));
+        Assert.Equal("Brightness", LevelOverlay.Metrics.Label(LevelKind.Brightness));
+    }
 
     [Fact]
-    public void TheValueReadsAsAPercentage() =>
-        Assert.Equal("45%", LevelOverlay.Metrics.Caption(45, muted: false));
+    public void TheValueIsTheBareNumber() =>
+        Assert.Equal("45", LevelOverlay.Metrics.Caption(45, muted: false));
 
     [Fact]
     public void AMutedEndpointSaysSoInsteadOfShowingANumber() =>
-        Assert.Equal("MUTED", LevelOverlay.Metrics.Caption(45, muted: true));
+        Assert.Equal("Muted", LevelOverlay.Metrics.Caption(45, muted: true));
 
     [Theory]
-    [InlineData(-5, "0%")]
-    [InlineData(140, "100%")]
+    [InlineData(-5, "0")]
+    [InlineData(140, "100")]
     public void AValueOutsideTheRangeIsClampedRatherThanPrinted(int percent, string shown) =>
         Assert.Equal(shown, LevelOverlay.Metrics.Caption(percent, muted: false));
 

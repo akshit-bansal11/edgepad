@@ -4,13 +4,15 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex w-fit shrink-0 items-center gap-1 whitespace-nowrap border px-2 py-0.5 font-mono text-[0.6875rem] tracking-[0.12em] uppercase",
+  "inline-flex w-fit shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[0.8125rem] leading-none font-bold whitespace-nowrap",
   {
     variants: {
+      // A pill, sentence case. Text on a tinted fill is ink or accent, never dim: dim on
+      // faint is 4.35:1 in light and does not pass.
       variant: {
-        default: "border-foreground bg-foreground text-background",
-        outline: "border-line text-dim",
-        solid: "border-faint bg-faint text-foreground",
+        default: "bg-primary text-primary-foreground",
+        outline: "bg-faint text-foreground",
+        solid: "bg-accent-soft text-primary",
       },
     },
     defaultVariants: { variant: "outline" },

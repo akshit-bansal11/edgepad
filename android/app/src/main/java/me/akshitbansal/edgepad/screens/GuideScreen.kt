@@ -13,8 +13,8 @@ import me.akshitbansal.edgepad.Type
 
 /**
  * What Edgepad is and how to use it, in five pages. On the first run it opens the app and ends by
- * finding the laptop; from Settings it is the Guide and ends by going back. STEPS shows one page at a
- * time with a drawing; PAGE shows them all on one scrolling page. The choice is remembered.
+ * finding the laptop; from Settings it is the Guide and ends by going back. Steps shows one page at a
+ * time with a drawing; Page shows them all on one scrolling page. The choice is remembered.
  */
 object GuideScreen {
     private class Page(
@@ -64,15 +64,22 @@ object GuideScreen {
             ),
         )
 
-    private const val KICKER_TRACKING = 0.16f
-    private const val KEY_TRACKING = 0.14f
-    private const val KEY_DP = 96f
-    private const val ITEM_LEADING = 1.45f
+    private const val ITEM_SP = 14f
+    private const val ITEM_LEADING = 1.4f
+    private const val ITEM_GAP_DP = 2f
     private const val ART_DP = 132f
     private const val ART_WIDE_DP = 150f
-    private const val PAGE_TITLE_SP = 20f
-    private const val BAR_HEIGHT_DP = 3f
-    private const val BAR_GAP_DP = 6f
+    private const val STEP_TITLE_SP = 28f
+    private const val PAGE_TITLE_SP = 22f
+    private const val TITLE_LEADING = 1.2f
+
+    /** Beside a step's kicker and title, so they sit just in from the drawing's rounded panel above them. */
+    private const val TEXT_INSET_DP = 4f
+
+    // The page dots: the current page a wide accent pill, the rest small round dots.
+    private const val DOT_DP = 8f
+    private const val DOT_CURRENT_DP = 22f
+    private const val DOT_GAP_DP = 4f
     private const val ENTER_DP = 18f
     private const val ENTER_MS = 450L
     private const val EASE_X1 = 0.2f
@@ -108,7 +115,12 @@ object GuideScreen {
                 if (intro) {
                     ui.bar(ui.string(R.string.app_name), null, modes, lead = MarkView(ui.context))
                 } else {
-                    ui.bar(ui.string(R.string.guide_title), onBack, modes)
+                    ui.bar(
+                        ui.string(R.string.guide_title),
+                        onBack,
+                        modes,
+                        backLabel = ui.string(R.string.settings_title),
+                    )
                 }
             val page =
                 if (settings.guideScroll) {
@@ -191,15 +203,36 @@ object GuideScreen {
         columns(
             {
                 add(GuideArt(ui.context, page.art), Space.S, ui.dp(if (ui.landscape) ART_WIDE_DP else ART_DP))
-                add(ui.mono(ui.string(page.kicker), Type.MICRO, ui.palette.dim, KICKER_TRACKING), Space.M)
-                headline(ui.string(page.title), Type.TITLE, Space.S).isAccessibilityHeading = true
+                add(kicker(ui, page, TEXT_INSET_DP), Space.L)
+                add(title(ui, page, STEP_TITLE_SP, TEXT_INSET_DP), Space.XS)
             },
             {
-                if (!ui.landscape) add(View(ui.context), height = ui.dp(Space.L))
-                items(ui, page)
+                card(if (ui.landscape) Space.S else Space.L) { items(ui, page) }
             },
         )
     }
+
+    /** A page's number and subject, a small bold line over its title, [insetDp] in from either side. */
+    private fun kicker(
+        ui: Ui,
+        page: Page,
+        insetDp: Float,
+    ): View =
+        ui.text(ui.string(page.kicker), Type.SMALL, ui.palette.dim, face = Type.bold).apply {
+            setPadding(ui.dp(insetDp), 0, ui.dp(insetDp), 0)
+        }
+
+    private fun title(
+        ui: Ui,
+        page: Page,
+        sp: Float,
+        insetDp: Float,
+    ): View =
+        ui.text(ui.string(page.title), sp, ui.palette.ink, Type.TRACKING_TIGHT, Type.black).apply {
+            isAccessibilityHeading = true
+            setLineSpacing(0f, TITLE_LEADING)
+            setPadding(ui.dp(insetDp), 0, ui.dp(insetDp), 0)
+        }
 
     /** Every page, one after another, split into two columns sideways. */
     private fun Column.everything(
@@ -215,92 +248,76 @@ object GuideScreen {
         if (intro) add(ui.button(ui.string(R.string.guide_find_laptop), Ui.Style.FILLED, onFinish), Space.S)
     }
 
+    /** One page in the scrolling view: its kicker and title as a header over its items' card. */
     private fun Column.brief(
         ui: Ui,
         page: Page,
     ) {
-        add(ui.mono(ui.string(page.kicker), Type.MICRO, ui.palette.dim, KICKER_TRACKING), Space.L)
-        add(
-            ui.text(ui.string(page.title), PAGE_TITLE_SP, ui.palette.ink, Type.TRACKING_TIGHT),
-            Space.S,
-        ).isAccessibilityHeading =
-            true
-        items(ui, page)
-        add(View(ui.context), height = ui.dp(Space.L))
+        // Lined up with the card's text, like a section header over a card.
+        add(kicker(ui, page, Space.CARD_PAD), Space.XL)
+        add(title(ui, page, PAGE_TITLE_SP, Space.CARD_PAD), Space.XS)
+        card(Space.M) { items(ui, page) }
     }
 
-    /** A page's items: a spaced key beside its explanation, a hairline above each. */
+    /** A page's items, meant for a [Column.card]: a bold name over its explanation, a hairline between each. */
     private fun Column.items(
         ui: Ui,
         page: Page,
     ) {
         val keys = ui.context.resources.getStringArray(page.keys)
         val values = ui.context.resources.getStringArray(page.values)
-        keys.zip(values).forEach { (key, value) ->
-            hairline()
+        keys.zip(values).forEachIndexed { i, (key, value) ->
+            if (i > 0) hairline()
             add(
                 LinearLayout(ui.context).apply {
+                    orientation = LinearLayout.VERTICAL
                     setPadding(0, ui.dp(Space.M), 0, ui.dp(Space.M))
+                    addView(ui.text(key, Type.LEAD, ui.palette.ink, face = Type.bold))
                     addView(
-                        ui.mono(key, Type.MICRO, ui.palette.ink, KEY_TRACKING),
-                        LinearLayout.LayoutParams(ui.dp(KEY_DP), ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                            marginEnd =
-                                ui.dp(Space.M)
+                        ui.text(value, ITEM_SP, ui.palette.dim).apply {
+                            setLineSpacing(0f, ITEM_LEADING)
+                            setPadding(0, ui.dp(ITEM_GAP_DP), 0, 0)
                         },
-                    )
-                    addView(
-                        ui.text(value, Type.CAPTION, ui.palette.dim).apply { setLineSpacing(0f, ITEM_LEADING) },
-                        LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
                     )
                 },
             )
         }
     }
 
-    /** One short bar per page, lit up to the current one; each is a tap target that jumps to its page. */
+    /**
+     * One dot per page, centred: the current page a wide accent pill, the others small grey dots. Each is a
+     * tap target that jumps to its page.
+     */
     private fun progress(
         ui: Ui,
         step: Int,
         onJump: (Int) -> Unit,
     ): View =
         LinearLayout(ui.context).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
             pages.indices.forEach { i ->
+                val current = i == step
                 val target =
                     FrameLayout(ui.context).apply {
                         contentDescription = ui.string(R.string.guide_step_description, i + 1, pages.size)
-                        if (i == step) stateDescription = ui.string(R.string.chosen)
-                        val bar =
+                        if (current) stateDescription = ui.string(R.string.chosen)
+                        setPadding(ui.dp(DOT_GAP_DP), 0, ui.dp(DOT_GAP_DP), 0)
+                        val dot =
                             View(ui.context).apply {
-                                setBackgroundColor(
-                                    if (i <=
-                                        step
-                                    ) {
-                                        ui.palette.ink
-                                    } else {
-                                        ui.palette.line
-                                    },
-                                )
+                                background =
+                                    ui.rounded(if (current) ui.palette.accent else ui.palette.off, DOT_DP / 2)
                             }
                         addView(
-                            bar,
+                            dot,
                             FrameLayout.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ui.dp(BAR_HEIGHT_DP),
+                                ui.dp(if (current) DOT_CURRENT_DP else DOT_DP),
+                                ui.dp(DOT_DP),
                                 Gravity.CENTER_VERTICAL,
                             ),
                         )
-                        ui.tappable(this) { if (i != step) onJump(i) }
+                        ui.tappable(this, DOT_DP / 2) { if (!current) onJump(i) }
                     }
-                addView(
-                    target,
-                    LinearLayout.LayoutParams(0, ui.dp(Space.XL), 1f).apply {
-                        if (i >
-                            0
-                        ) {
-                            marginStart = ui.dp(BAR_GAP_DP)
-                        }
-                    },
-                )
+                addView(target, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ui.dp(Space.XL)))
             }
         }
 

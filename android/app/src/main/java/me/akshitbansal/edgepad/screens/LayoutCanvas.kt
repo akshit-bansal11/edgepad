@@ -13,9 +13,9 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
- * The full-size canvas both layout editors drag pieces on: a dot grid, a border, and two centre lines
- * that light up when a piece snaps to them. A subclass calls `super.onDraw` first, which draws this
- * background layer, then draws its own pieces on top.
+ * The full-size canvas both layout editors drag pieces on: a dot grid on the ground and two centre lines
+ * that turn accent and thicken when a piece snaps to one, so the snap reads under a finger. A subclass
+ * calls `super.onDraw` first, which draws this background layer, then draws its own pieces on top.
  */
 internal abstract class LayoutCanvas(
     context: Context,
@@ -23,7 +23,7 @@ internal abstract class LayoutCanvas(
     protected val density = resources.displayMetrics.density
     protected val palette = Palette.of(context)
     protected val box = RectF()
-    protected val stroke =
+    private val stroke =
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeWidth = Space.HAIR * density
@@ -78,27 +78,23 @@ internal abstract class LayoutCanvas(
             }
             y += cell
         }
-        stroke.pathEffect = null
-        stroke.color = palette.line
-        canvas.drawRect(
-            stroke.strokeWidth / 2,
-            stroke.strokeWidth / 2,
-            width - stroke.strokeWidth / 2,
-            height - stroke.strokeWidth / 2,
-            stroke,
-        )
-        // The centre lines: faint always, ink while a piece sits on one.
-        stroke.color = if (onCentreX) palette.ink else palette.line
+        centreLine(onCentreX)
         canvas.drawLine(width / 2f, 0f, width / 2f, height.toFloat(), stroke)
-        stroke.color = if (onCentreY) palette.ink else palette.line
+        centreLine(onCentreY)
         canvas.drawLine(0f, height / 2f, width.toFloat(), height / 2f, stroke)
+    }
+
+    /** A centre line is a faint hairline, and accent at [SNAPPED_DP] while a piece sits on it. */
+    private fun centreLine(snapped: Boolean) {
+        stroke.color = if (snapped) palette.accent else palette.line
+        stroke.strokeWidth = (if (snapped) SNAPPED_DP else Space.HAIR) * density
     }
 
     // Not protected: a companion object's members are members of the companion, so protected there
     // restricts them to subclasses of the companion rather than of this class. The class is internal,
     // so these reach no further than the module either way.
     companion object {
-        const val CORNER_DP = 6f
+        const val SNAPPED_DP = 2f
         const val GRID_DP = 12f
         const val DOT_DP = 2f
         const val CENTRE_SNAP_DP = 10f

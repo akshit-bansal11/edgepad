@@ -17,9 +17,9 @@ import me.akshitbansal.edgepad.surface.ShapeTarget
 import me.akshitbansal.edgepad.surface.Shapes
 
 /**
- * The shapes the user has drawn: one row each, with a small picture of the stroke, what it runs, and a way
- * to delete it. The picture is the point of the row — the name of a target says nothing about which scrawl
- * reaches it, and a list of six shapes described only in words is a list nobody can use.
+ * The shapes the user has drawn: one row each in a card, with a small picture of the stroke on a tile, what
+ * it runs, and a way to delete it. The picture is the point of the row — the name of a target says nothing
+ * about which scrawl reaches it, and a list of six shapes described only in words is a list nobody can use.
  *
  * Deleting rewrites the whole set and asks to be shown again, the way the gamepad screen does after a
  * preset change: the empty state is a different page from the list, so re-filling a container in place
@@ -27,6 +27,8 @@ import me.akshitbansal.edgepad.surface.Shapes
  */
 object ShapesScreen {
     private const val PREVIEW_DP = 44f
+    private const val PREVIEW_RADIUS_DP = 10f
+    private const val ROW_DP = 68f
 
     fun build(
         ui: Ui,
@@ -37,7 +39,7 @@ object ShapesScreen {
         onBack: () -> Unit,
     ): View {
         val shapes = Shapes.decode(settings.shapes).orEmpty()
-        val bar = ui.bar(ui.string(R.string.shapes_title), onBack)
+        val bar = ui.bar(ui.string(R.string.shapes_title), onBack, backLabel = ui.string(R.string.settings_title))
         if (shapes.isEmpty()) {
             return ui.page(bar, centred = true) {
                 grow()
@@ -48,17 +50,19 @@ object ShapesScreen {
             }
         }
         return ui.page(bar) {
-            shapes.forEachIndexed { index, shape ->
-                add(
-                    row(ui, shape, macros) {
-                        settings.shapes = Shapes.encode(shapes.filterIndexed { i, _ -> i != index })
-                        onChanged()
-                    },
-                )
-                hairline()
+            card(Space.M) {
+                shapes.forEachIndexed { index, shape ->
+                    if (index > 0) hairline()
+                    add(
+                        row(ui, shape, macros) {
+                            settings.shapes = Shapes.encode(shapes.filterIndexed { i, _ -> i != index })
+                            onChanged()
+                        },
+                    )
+                }
             }
+            footnote(ui.string(R.string.shapes_footnote))
             add(ui.button(ui.string(R.string.shapes_add), Ui.Style.FILLED, onDraw), Space.XL)
-            mono(ui.string(R.string.shapes_footnote), topDp = Space.L)
         }
     }
 
@@ -102,6 +106,7 @@ object ShapesScreen {
     ): View {
         val preview =
             Preview(ui.context).apply {
+                background = ui.rounded(ui.palette.faint, PREVIEW_RADIUS_DP)
                 // Decoration: the sentence beside it already says what the shape runs, and a screen reader
                 // reading a description of the drawing as well would say the same thing twice.
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
@@ -114,12 +119,17 @@ object ShapesScreen {
                 addView(
                     preview,
                     LinearLayout.LayoutParams(ui.dp(PREVIEW_DP), ui.dp(PREVIEW_DP)).apply {
-                        marginEnd = ui.dp(Space.L)
+                        marginEnd = ui.dp(Space.M)
                     },
                 )
-                addView(ui.text(name, Type.BODY, ui.palette.ink))
+                addView(
+                    ui.text(name, Type.BODY, ui.palette.ink),
+                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
+                )
             }
-        return ui.row(start, ui.chip(ui.string(R.string.shapes_delete), onDelete))
+        return ui.row(start, ui.chip(ui.string(R.string.shapes_delete), danger = true, onDelete)).apply {
+            minimumHeight = ui.dp(ROW_DP)
+        }
     }
 
     /**

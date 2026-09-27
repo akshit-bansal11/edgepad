@@ -1,16 +1,19 @@
-import { ChevronDown } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import { GithubMark } from "@/components/icons/github";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { LATEST_RELEASE, NAV, REPO } from "@/lib/nav";
 
-/** The landing page's own three anchors. The docs page uses NAV instead. */
+/** The landing page's own anchors. The docs page uses NAV instead. */
 const LANDING_LINKS: { href: string; label: string }[] = [
   { href: "#features", label: "What it does" },
   { href: "#how", label: "How it works" },
   { href: "#get", label: "Get it" },
 ];
+
+const MENU_LINK =
+  "text-foreground hover:bg-faint flex min-h-11 items-center rounded-xl px-3 text-[0.9375rem]";
 
 function MenuLink({
   href,
@@ -21,15 +24,14 @@ function MenuLink({
   external?: boolean;
   children: React.ReactNode;
 }) {
-  const className = "text-dim hover:text-foreground block py-1 text-sm";
   return (
     <li>
       {external ? (
-        <a href={href} target="_blank" rel="noreferrer noopener" className={className}>
+        <a href={href} target="_blank" rel="noreferrer noopener" className={MENU_LINK}>
           {children}
         </a>
       ) : (
-        <a href={href} className={className}>
+        <a href={href} className={MENU_LINK}>
           {children}
         </a>
       )}
@@ -43,30 +45,36 @@ function MenuLink({
  * The narrow-screen menu stays a plain <details>: no state, no portal, no JavaScript,
  * and it closes itself when a link inside it is followed. It carries the table of
  * contents on the documentation page and the landing page's own anchors on the
- * landing page, plus whichever buttons the width has dropped.
+ * landing page, plus whichever buttons the width has dropped. Below `sm` its summary
+ * is an icon alone, so the header fits a 360px screen with the theme toggle in it.
  */
 export function SiteHeader({ variant = "landing" }: { variant?: "landing" | "docs" }) {
   const docs = variant === "docs";
 
   return (
-    <header className="border-line bg-background/90 sticky top-0 z-40 border-b backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-[90rem] items-center gap-3 px-4 md:gap-4 md:px-6">
-        <Link href="/" className="flex items-baseline gap-2">
-          <span className="font-mono text-base font-medium tracking-tight">
-            Edgepad
-          </span>
-          {docs ? <span className="label hidden sm:inline">Documentation</span> : null}
+    <header className="border-line bg-background/80 sticky top-0 z-40 border-b backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-[90rem] items-center gap-2 px-4 md:gap-3 md:px-6">
+        <Link
+          href="/"
+          className="flex min-h-11 items-center gap-2 rounded-lg text-xl font-black tracking-[-0.01em]"
+        >
+          Edgepad
+          {docs ? (
+            <span className="text-dim hidden text-[0.9375rem] font-bold sm:inline">
+              Docs
+            </span>
+          ) : null}
         </Link>
 
         <div className="flex-1" />
 
         {docs ? null : (
-          <nav aria-label="Sections" className="hidden items-center gap-5 lg:flex">
+          <nav aria-label="Sections" className="hidden items-center gap-1 lg:flex">
             {LANDING_LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="text-dim hover:text-foreground font-mono text-xs tracking-[0.12em] uppercase"
+                className="text-dim hover:text-foreground flex min-h-11 items-center rounded-full px-3 text-[0.9375rem] font-bold transition-colors"
               >
                 {link.label}
               </a>
@@ -74,23 +82,18 @@ export function SiteHeader({ variant = "landing" }: { variant?: "landing" | "doc
           </nav>
         )}
 
-        <Button
-          asChild
-          size="sm"
-          variant={docs ? "ghost" : "outline"}
-          className="hidden sm:inline-flex"
-        >
+        <Button asChild size="sm" variant="ghost" className="hidden sm:inline-flex">
           <Link href={docs ? "/" : "/docs"}>{docs ? "Home" : "Docs"}</Link>
         </Button>
 
-        <ThemeToggle />
-
-        <Button asChild size="sm" variant="outline" className="hidden md:inline-flex">
+        <Button asChild size="sm" variant="ghost" className="hidden md:inline-flex">
           <a href={REPO} target="_blank" rel="noreferrer noopener">
             <GithubMark className="size-4" />
             GitHub
           </a>
         </Button>
+
+        <ThemeToggle />
 
         <Button asChild size="sm" className="hidden lg:inline-flex">
           <a href={LATEST_RELEASE} target="_blank" rel="noreferrer noopener">
@@ -99,17 +102,19 @@ export function SiteHeader({ variant = "landing" }: { variant?: "landing" | "doc
         </Button>
 
         <details className="relative lg:hidden">
-          <summary className="border-line text-dim hover:text-foreground grid h-9 cursor-pointer list-none items-center border px-3 font-mono text-xs tracking-[0.12em] uppercase [&::-webkit-details-marker]:hidden">
+          <summary className="bg-faint text-foreground grid h-11 min-w-11 cursor-pointer list-none place-items-center rounded-full px-3 text-[0.9375rem] font-bold sm:px-4 [&::-webkit-details-marker]:hidden">
             <span className="flex items-center gap-1.5">
-              {docs ? "Contents" : "Menu"}
-              <ChevronDown aria-hidden className="size-3.5" />
+              <Menu aria-hidden className="size-4" />
+              <span className="sr-only sm:not-sr-only">
+                {docs ? "Contents" : "Menu"}
+              </span>
             </span>
           </summary>
-          <div className="border-line bg-background absolute right-0 mt-2 max-h-[70vh] w-[min(20rem,calc(100vw-2rem))] overflow-y-auto border p-4">
+          <div className="bg-card shadow-lift absolute right-0 mt-2 max-h-[75vh] w-[min(20rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl p-2">
             {docs ? (
               NAV.map((group) => (
-                <div key={group.label} className="mb-4 last:mb-0">
-                  <p className="label mb-1.5">{group.label}</p>
+                <div key={group.label} className="mb-2">
+                  <p className="label px-3 pt-2 pb-1">{group.label}</p>
                   <ul>
                     {group.items.map((item) => (
                       <MenuLink key={item.id} href={`#${item.id}`}>
@@ -120,8 +125,8 @@ export function SiteHeader({ variant = "landing" }: { variant?: "landing" | "doc
                 </div>
               ))
             ) : (
-              <div className="mb-4">
-                <p className="label mb-1.5">This page</p>
+              <div className="mb-2">
+                <p className="label px-3 pt-2 pb-1">This page</p>
                 <ul>
                   {LANDING_LINKS.map((link) => (
                     <MenuLink key={link.href} href={link.href}>
@@ -133,13 +138,10 @@ export function SiteHeader({ variant = "landing" }: { variant?: "landing" | "doc
             )}
 
             <div>
-              <p className="label mb-1.5">Elsewhere</p>
+              <p className="label px-3 pt-2 pb-1">Elsewhere</p>
               <ul>
                 <li>
-                  <Link
-                    href={docs ? "/" : "/docs"}
-                    className="text-dim hover:text-foreground block py-1 text-sm"
-                  >
+                  <Link href={docs ? "/" : "/docs"} className={MENU_LINK}>
                     {docs ? "Home" : "Documentation"}
                   </Link>
                 </li>

@@ -147,9 +147,9 @@ internal sealed class Dispatcher(
 
     private bool Set(byte control, byte percent) => (ControlId)control switch
     {
-        ControlId.Volume => Show("VOLUME", percent, speakers.SetLevel(percent)),
-        ControlId.MicLevel => Show("MIC", percent, microphone.SetLevel(percent)),
-        ControlId.Brightness => Show("BRIGHTNESS", percent, Do(() => brightness.Set(percent))),
+        ControlId.Volume => Show(LevelKind.Volume, percent, speakers.SetLevel(percent)),
+        ControlId.MicLevel => Show(LevelKind.Microphone, percent, microphone.SetLevel(percent)),
+        ControlId.Brightness => Show(LevelKind.Brightness, percent, Do(() => brightness.Set(percent))),
         ControlId.MediaPosition => media.Seek(percent),
         // The value is an index into the rate list, never hertz: the 0-100 guard above is what makes that
         // safe, and it is also why a rate this display cannot do is unrepresentable rather than merely
@@ -181,13 +181,13 @@ internal sealed class Dispatcher(
     /// of a drag, to draw a state that setting a level cannot have changed.
     /// </summary>
     private bool Show(
-        string label,
+        LevelKind kind,
         int percent,
         bool changed)
     {
         if (changed)
         {
-            overlay.Show(label, percent);
+            overlay.Show(kind, percent);
         }
 
         return changed;

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Reveal } from "@/components/reveal";
+import { BlurFade } from "@/components/ui/blur-fade";
 
 /**
  * One documented section. The `id` is the anchor the sidebar and the scroll-spy use,
@@ -19,12 +19,17 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-20 py-12 first:pt-0 md:py-16">
-      <Reveal>
+    <section id={id} className="scroll-mt-20 py-12 first:pt-2 md:py-16">
+      <BlurFade>
         <header className="mb-6">
-          {eyebrow ? <p className="label mb-3">{eyebrow}</p> : null}
-          <h2 className="font-mono text-2xl leading-tight font-medium tracking-tight md:text-3xl">
-            <a href={`#${id}`} className="hover:underline underline-offset-4">
+          {eyebrow ? (
+            <p className="text-primary mb-2 text-sm font-bold">{eyebrow}</p>
+          ) : null}
+          <h2 className="text-[1.75rem] leading-tight font-black tracking-[-0.01em] md:text-[2rem]">
+            <a
+              href={`#${id}`}
+              className="decoration-primary rounded-sm underline-offset-4 hover:underline"
+            >
               {title}
             </a>
           </h2>
@@ -34,7 +39,7 @@ export function Section({
             </div>
           ) : null}
         </header>
-      </Reveal>
+      </BlurFade>
       <div className="space-y-6">{children}</div>
     </section>
   );
@@ -42,23 +47,19 @@ export function Section({
 
 /** A sub-heading inside a section. Not an anchor: the sidebar stops at sections. */
 export function Sub({ children }: { children: ReactNode }) {
-  return (
-    <h3 className="font-mono text-base font-medium tracking-tight md:text-lg">
-      {children}
-    </h3>
-  );
+  return <h3 className="pt-2 text-lg font-bold md:text-xl">{children}</h3>;
 }
 
 /** Body copy. Kept to ~68 characters so long documentation stays readable. */
 export function P({ children }: { children: ReactNode }) {
-  return (
-    <p className="max-w-[68ch] text-[0.9375rem] leading-relaxed md:text-base">
-      {children}
-    </p>
-  );
+  return <p className="max-w-[68ch] text-base leading-relaxed">{children}</p>;
 }
 
-/** A quiet aside: a caveat, a rejected alternative, something not yet verified. */
+/**
+ * A quiet aside: a caveat, a rejected alternative, something not yet verified. A card
+ * with an accent rule, so it reads as set apart without a second colour. Its text is
+ * dim on the card (5.1:1), never on a tint.
+ */
 export function Note({
   label = "Note",
   children,
@@ -67,8 +68,12 @@ export function Note({
   children: ReactNode;
 }) {
   return (
-    <aside className="border-line bg-faint max-w-[72ch] border-l-2 px-4 py-3">
-      <p className="label mb-1.5">{label}</p>
+    <aside className="bg-card shadow-card relative max-w-[72ch] overflow-hidden rounded-[var(--radius-card)] py-4 pr-5 pl-6">
+      <span
+        aria-hidden
+        className="bg-primary absolute inset-y-3 left-2.5 w-1 rounded-full"
+      />
+      <p className="mb-1.5 text-[0.9375rem] font-bold">{label}</p>
       <div className="text-dim text-[0.9375rem] leading-relaxed">{children}</div>
     </aside>
   );
@@ -77,7 +82,7 @@ export function Note({
 /** Inline code. */
 export function C({ children }: { children: ReactNode }) {
   return (
-    <code className="bg-faint border-line text-foreground border px-1 py-0.5 font-mono text-[0.85em]">
+    <code className="bg-faint text-foreground rounded-md px-1.5 py-0.5 font-mono text-[0.85em] [overflow-wrap:anywhere]">
       {children}
     </code>
   );

@@ -63,16 +63,18 @@ const LAPTOP: Column = {
 
 function Col({ column }: { column: Column }) {
   return (
-    <div className="border-line border">
-      <div className="border-line border-b px-4 py-3">
-        <p className="font-mono text-sm font-medium">{column.title}</p>
-        <p className="text-dim mt-0.5 text-xs">{column.subtitle}</p>
+    <div className="bg-card shadow-card overflow-hidden rounded-[var(--radius-panel)]">
+      <div className="border-line border-b px-5 py-4">
+        <p className="text-lg font-bold">{column.title}</p>
+        <p className="text-dim mt-0.5 text-sm">{column.subtitle}</p>
       </div>
-      <ul>
+      <ul className="divide-line divide-y px-5">
         {column.rows.map((row) => (
-          <li key={row.name} className="border-line border-b px-4 py-3 last:border-b-0">
-            <p className="font-mono text-[0.8125rem] leading-snug">{row.name}</p>
-            <p className="text-dim mt-1 text-xs leading-relaxed">{row.detail}</p>
+          <li key={row.name} className="py-3">
+            <p className="font-mono text-[0.8125rem] leading-snug [overflow-wrap:anywhere]">
+              {row.name}
+            </p>
+            <p className="text-dim mt-1 text-sm leading-relaxed">{row.detail}</p>
           </li>
         ))}
       </ul>
@@ -84,15 +86,19 @@ function Col({ column }: { column: Column }) {
 export function FlowDiagram() {
   return (
     <figure>
-      <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
+      <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-stretch">
         <Col column={PHONE} />
-        <div className="text-dim flex items-center justify-center gap-2 py-2 lg:flex-col lg:py-0">
-          <ArrowLeftRight aria-hidden className="size-4 lg:rotate-0" />
-          <span className="label lg:[writing-mode:vertical-rl]">RFCOMM</span>
+        <div className="flex items-center justify-center gap-2 lg:flex-col lg:self-center">
+          <span className="bg-accent-soft text-primary grid size-10 place-items-center rounded-full">
+            <ArrowLeftRight aria-hidden className="size-4 rotate-90 lg:rotate-0" />
+          </span>
+          <span className="text-primary font-mono text-[0.8125rem] font-bold">
+            RFCOMM
+          </span>
         </div>
         <Col column={LAPTOP} />
       </div>
-      <figcaption className="text-dim mt-3 text-sm">
+      <figcaption className="text-dim mt-4 max-w-[72ch] text-sm leading-relaxed">
         The phone recognises; the laptop executes. Frames go right: pointer, button,
         scroll, zoom, action id, control value, key, text. State comes back left:
         volume, mute, microphone, brightness, refresh rate, what is playing, macro

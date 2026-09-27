@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="gamepad_layout_title">Gamepad layout</string>
-  <string name="gamepad_layout_hint">DRAG TO MOVE · LONG PRESS A CONTROL FOR ITS MENU</string>
-  <string name="gamepad_layout_section">LAYOUT</string>
+  <string name="gamepad_layout_hint">Drag to move. Long-press a control for its menu.</string>
+  <string name="gamepad_layout_section">Layouts</string>
   <string name="gamepad_description">Game controller for the laptop</string>
   <string name="gamepad_size">Size</string>
   <string name="dp_value">%1$d dp</string>
 
   <!-- The two buttons in the editor's options popup; short, because they sit side by side in it. -->
-  <string name="gamepad_add">ADD</string>
-  <string name="gamepad_layouts">LAYOUTS</string>
+  <string name="gamepad_add">Add</string>
+  <string name="gamepad_layouts">Layouts</string>
 
   <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->
   <string name="gamepad_control_title">%1$s · %2$s</string>
@@ -45,5 +45,5 @@
   <string name="gamepad_rename">Rename</string>
   <string name="gamepad_delete_layout">Delete layout</string>
   <string name="gamepad_delete_layout_body">%1$s will be removed. The layouts Edgepad ships with stay.</string>
-  <string name="gamepad_delete">DELETE</string>
+  <string name="gamepad_delete">Delete</string>
 </resources>

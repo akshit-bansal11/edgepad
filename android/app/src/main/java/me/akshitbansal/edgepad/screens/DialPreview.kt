@@ -10,6 +10,7 @@ import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.surface.Dial
 import me.akshitbansal.edgepad.surface.Perimeter
+import me.akshitbansal.edgepad.surface.RulerGeometry
 import me.akshitbansal.edgepad.surface.RulerPainter
 
 /**
@@ -64,12 +65,15 @@ class DialPreview(
         fit()
     }
 
-    /** The box stands in for the phone's top-left corner; when the ruler and its label need more, the drawing shrinks to fit. */
+    /**
+     * The box stands in for the phone's top-left corner; when the ruler and its label need more, the drawing
+     * shrinks to fit. The bend widens with the height exactly as it does on the surface, so no mark crosses.
+     */
     private fun fit() {
         if (width == 0 || height == 0) return
         val need = (painter.halfLengthDp + FIT_PAD_DP) * density
         scale = minOf(1f, minOf(width, height) / need)
-        perimeter = Perimeter(width / scale, height / scale, BEND_DP * density)
+        perimeter = Perimeter(width / scale, height / scale, RulerGeometry.bend(painter.height, BEND_DP) * density)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -94,6 +98,7 @@ class DialPreview(
             Dial.MAX_LEVEL / unitsPerDp,
             false,
             palette.ink,
+            palette.accent,
             palette.dim,
             label,
             LEVEL.toInt().toString(),
@@ -103,6 +108,7 @@ class DialPreview(
     }
 
     private companion object {
+        /** A typical display's own rounding, which a tall dial widens. */
         const val BEND_DP = 24f
         const val FIT_PAD_DP = 48f
         const val LEVEL = 50f

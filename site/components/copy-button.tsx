@@ -29,7 +29,7 @@ export function CopyButton({ text, label }: { text: string; label: string }) {
       type="button"
       onClick={copy}
       aria-label={copied ? "Copied" : `Copy ${label}`}
-      className="text-dim hover:text-foreground hover:border-foreground border-line grid size-8 place-items-center border transition-colors"
+      className="text-dim hover:text-foreground hover:bg-faint grid size-11 place-items-center rounded-xl transition-colors"
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
@@ -41,9 +41,9 @@ export function CopyButton({ text, label }: { text: string; label: string }) {
           className="grid place-items-center"
         >
           {copied ? (
-            <Check aria-hidden className="size-3.5" />
+            <Check aria-hidden className="text-primary size-4" />
           ) : (
-            <Copy aria-hidden className="size-3.5" />
+            <Copy aria-hidden className="size-4" />
           )}
         </motion.span>
       </AnimatePresence>
