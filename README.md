@@ -33,7 +33,7 @@ Both apps come from the [latest release](https://github.com/akshit-bansal11/edge
 
 1. Download `Edgepad.exe`. It is a single self-contained file; nothing else needs installing.
 2. Run it. It is not code-signed, so SmartScreen asks first: choose **More info**, then **Run anyway**.
-3. It lives in the system tray. The menu shows the version, whether a phone is connected, **Macros…**, **Start with Windows**, **Forget trusted phone**, **Open log**, **Documentation** and **Quit**.
+3. It lives in the system tray, and a left or a right click on its icon opens the same menu. The menu shows whether a phone is connected, then **Start with Windows**, **Macros…**, **Open log**, **Documentation**, **Forget trusted phone** and **Quit Edgepad**, with the version beside it. It follows Windows' light or dark app mode.
 
 Running a newer `Edgepad.exe` asks the running copy to quit and takes its place.
 

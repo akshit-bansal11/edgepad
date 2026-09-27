@@ -1,8 +1,17 @@
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Globalization;
+using Edgepad.Ui;
 
 namespace Edgepad.Controls;
+
+/// <summary>The level a readout is about, which decides both its word and its icon.</summary>
+internal enum LevelKind
+{
+    Volume,
+    Microphone,
+    Brightness,
+}
 
 /// <summary>
 /// The on-screen readout of what the phone just changed. Windows shows nothing of its own here: the level is
@@ -31,13 +40,13 @@ internal sealed class LevelOverlay : IDisposable
     /// class rather than a struct because Volatile's read and write are only defined over references, and
     /// four fields could not be published atomically anyway.
     /// </summary>
-    private sealed record Reading(string Heading, string Caption, int Level, bool Muted);
+    private sealed record Reading(LevelKind Kind, string Caption, int Level, bool Muted);
 
     private Reading? latest;
     private int posted;
 
-    /// <summary>Shows or refreshes the overlay. label e.g. "VOLUME"; percent 0-100; muted draws the muted form.</summary>
-    public void Show(string label, int percent, bool muted = false)
+    /// <summary>Shows or refreshes the overlay. percent 0-100; muted draws the muted form.</summary>
+    public void Show(LevelKind kind, int percent, bool muted = false)
     {
         if (stopped)
         {
@@ -45,7 +54,6 @@ internal sealed class LevelOverlay : IDisposable
         }
 
         // Shaped here, on the caller's thread, so the UI thread only ever paints.
-        var heading = Metrics.Label(label);
         var caption = Metrics.Caption(percent, muted);
         var level = Math.Clamp(percent, 0, 100);
 
@@ -53,7 +61,7 @@ internal sealed class LevelOverlay : IDisposable
         // normal priority, and each Present relayouts and invalidates on a UI thread that cannot keep up:
         // the message queue would grow without bound while the panel only ever shows the newest value
         // anyway. Dropping the ones in between is what the overlay would have done visually regardless.
-        Volatile.Write(ref latest, new Reading(heading, caption, level, muted));
+        Volatile.Write(ref latest, new Reading(kind, caption, level, muted));
         if (Interlocked.Exchange(ref posted, 1) == 0)
         {
             ui.Post(_ => Drain(), null);
@@ -70,11 +78,11 @@ internal sealed class LevelOverlay : IDisposable
         Volatile.Write(ref posted, 0);
         if (Volatile.Read(ref latest) is { } reading)
         {
-            Present(reading.Heading, reading.Caption, reading.Level, reading.Muted);
+            Present(reading.Kind, reading.Caption, reading.Level, reading.Muted);
         }
     }
 
-    private void Present(string label, string caption, int percent, bool muted)
+    private void Present(LevelKind kind, string caption, int percent, bool muted)
     {
         if (stopped)
         {
@@ -84,7 +92,7 @@ internal sealed class LevelOverlay : IDisposable
         try
         {
             window ??= new OverlayWindow();
-            window.Present(label, caption, percent, muted);
+            window.Present(kind, caption, percent, muted);
         }
         catch (Exception e)
         {
@@ -132,16 +140,19 @@ internal sealed class LevelOverlay : IDisposable
     /// </summary>
     internal static class Metrics
     {
-        /// <summary>The design's baseline: every measurement in this file is written for 96 dpi and scaled from it.</summary>
-        private const double BaselineDpi = 96.0;
+        /// <summary>Sentence case, as every label in the 2.0 design is.</summary>
+        public static string Label(LevelKind kind) => kind switch
+        {
+            LevelKind.Microphone => "Microphone",
+            LevelKind.Brightness => "Brightness",
+            _ => "Volume",
+        };
 
-        public static string Label(string label) =>
-            string.IsNullOrWhiteSpace(label) ? string.Empty : label.Trim().ToUpperInvariant();
-
+        /// <summary>The bare number: the bar under it already says it is a share of the whole.</summary>
         public static string Caption(int percent, bool muted) =>
-            muted ? "MUTED" : Math.Clamp(percent, 0, 100).ToString(CultureInfo.InvariantCulture) + "%";
+            muted ? "Muted" : Math.Clamp(percent, 0, 100).ToString(CultureInfo.InvariantCulture);
 
-        public static int Scale(int value, int dpi) => (int)Math.Round(value * dpi / BaselineDpi);
+        public static int Scale(int value, int dpi) => Theme.Scale(value, dpi);
 
         public static int BarWidth(int track, int percent) =>
             (int)Math.Round(track * Math.Clamp(percent, 0, 100) / 100.0);
@@ -155,8 +166,8 @@ internal sealed class LevelOverlay : IDisposable
     }
 
     /// <summary>
-    /// The window itself: a borderless, click-through, never-activated panel that paints a label, a value and
-    /// a bar, then fades out.
+    /// The window itself: a borderless, click-through, never-activated pill that paints an icon, a label, a value
+    /// and a bar, then fades out.
     /// </summary>
     private sealed class OverlayWindow : Form
     {
@@ -168,42 +179,43 @@ internal sealed class LevelOverlay : IDisposable
         private const StringFormatFlags Typographic =
             StringFormatFlags.FitBlackBox | StringFormatFlags.LineLimit | StringFormatFlags.NoClip;
 
-        /// <summary>One face everywhere, as on the phone. A missing family falls back inside GDI+ rather than throwing.</summary>
-        private const string Face = "Consolas";
-
-        // Measurements at 96 dpi; Metrics.Scale turns each into pixels for the monitor in front of the user.
-        private const int PanelWidth = 248;
-        private const int PanelHeight = 76;
-        private const int Corner = 14;
-        private const int Pad = 18;
-        private const int BarHeight = 3;
-        private const int LabelSize = 12;
+        // Measurements at 96 dpi, from the design; Metrics.Scale turns each into pixels for the monitor in front
+        // of the user.
+        private const int PanelWidth = 280;
+        private const int PanelHeight = 66;
+        private const int Corner = 18;
+        private const int PadX = 18;
+        private const int IconSize = 22;
+        private const int Gap = 14;
+        private const int RowGap = 8;
+        private const int BarHeight = 6;
+        private const int LabelSize = 13;
         private const int ValueSize = 20;
-        private const int Tracking = 2;
-        private const int BottomMargin = 88;
+        private const int BottomMargin = 72;
+
+        /// <summary>
+        /// The pill's opacity at rest. The design's panel is 88% opaque over a blur; WinForms has no per-pixel
+        /// alpha or backdrop blur for a plain window, so the whole window takes the alpha instead, text and all.
+        /// </summary>
+        private const double Solid = 0.88;
 
         /// <summary>How long the panel stays up after the last frame, and how much of that tail it spends fading.</summary>
         private const long VisibleMs = 1200;
         private const long FadeMs = 220;
 
-        // The dark set from the Android palette (android/.../values-night/colors.xml). The overlay lies over
-        // whatever is already on screen, so it is always the dark form — there is no surface to match.
-        private static readonly Color PanelColour = Color.FromArgb(0x00, 0x00, 0x00);
-        private static readonly Color LineColour = Color.FromArgb(0x29, 0x29, 0x29);
-        private static readonly Color InkColour = Color.FromArgb(0xFF, 0xFF, 0xFF);
-        private static readonly Color DimColour = Color.FromArgb(0x8C, 0x8C, 0x8C);
+        /// <summary>
+        /// The overlay lies over whatever is already on screen, so it is always the dark form — there is no
+        /// surface to match.
+        /// </summary>
+        private static readonly Palette Colours = Palette.Dark;
 
         private readonly System.Windows.Forms.Timer clock = new() { Interval = 25 };
-        private readonly StringFormat charCell = new(Typographic);
-        private readonly StringFormat rightAligned = new(Typographic) { Alignment = StringAlignment.Far, LineAlignment = StringAlignment.Center };
+        private readonly StringFormat typographic = new(Typographic);
 
-        private Font labelFont;
-        private Font valueFont;
-
-        /// <summary>The dpi the fonts and the shape were last built for; rebuilding them per frame would not be cheap.</summary>
+        /// <summary>The dpi the shape was last built for; rebuilding it per frame would not be cheap.</summary>
         private int laidOutAt = 96;
 
-        private string label = string.Empty;
+        private LevelKind kind;
         private string caption = string.Empty;
         private int percent;
         private bool muted;
@@ -215,15 +227,13 @@ internal sealed class LevelOverlay : IDisposable
             StartPosition = FormStartPosition.Manual;
             ShowInTaskbar = false;
             TopMost = true;
-            BackColor = PanelColour;
+            BackColor = Colours.Card;
             DoubleBuffered = true;
+            Opacity = Solid;
 
             // WinForms' own scaling would fight the pixel measurements above; every size here comes from
             // Metrics.Scale and DeviceDpi instead.
             AutoScaleMode = AutoScaleMode.None;
-
-            labelFont = new Font(Face, LabelSize, FontStyle.Regular, GraphicsUnit.Pixel);
-            valueFont = new Font(Face, ValueSize, FontStyle.Regular, GraphicsUnit.Pixel);
 
             clock.Tick += OnTick;
         }
@@ -246,11 +256,11 @@ internal sealed class LevelOverlay : IDisposable
         /// <summary>The other half of not stealing focus: WinForms shows this with SW_SHOWNOACTIVATE.</summary>
         protected override bool ShowWithoutActivation => true;
 
-        public void Present(string heading, string value, int level, bool silenced)
+        public void Present(LevelKind level, string value, int fill, bool silenced)
         {
-            label = heading;
+            kind = level;
             caption = value;
-            percent = level;
+            percent = fill;
             muted = silenced;
             hideAt = Environment.TickCount64 + VisibleMs;
 
@@ -259,10 +269,10 @@ internal sealed class LevelOverlay : IDisposable
             {
                 Show();
             }
-            else if (Opacity < 1d)
+            else if (Opacity < Solid)
             {
                 // A frame arriving mid-fade pulls the panel back to full rather than starting a second one.
-                Opacity = 1d;
+                Opacity = Solid;
             }
 
             Invalidate();
@@ -271,7 +281,7 @@ internal sealed class LevelOverlay : IDisposable
 
         /// <summary>
         /// Sizes and places the panel for the primary screen's current dpi. Cheap on the frames that change
-        /// nothing: the fonts and the rounded shape are rebuilt only when the dpi actually moves.
+        /// nothing: the rounded shape is rebuilt only when the bounds actually move.
         /// </summary>
         private void Relayout()
         {
@@ -279,15 +289,7 @@ internal sealed class LevelOverlay : IDisposable
             var work = Screen.PrimaryScreen?.WorkingArea ?? SystemInformation.WorkingArea;
             var size = new Size(Metrics.Scale(PanelWidth, dpi), Metrics.Scale(PanelHeight, dpi));
             var where = new Rectangle(Metrics.Anchor(work, size, Metrics.Scale(BottomMargin, dpi)), size);
-
-            if (dpi != laidOutAt)
-            {
-                laidOutAt = dpi;
-                labelFont.Dispose();
-                valueFont.Dispose();
-                labelFont = new Font(Face, (float)Metrics.Scale(LabelSize, dpi), FontStyle.Regular, GraphicsUnit.Pixel);
-                valueFont = new Font(Face, (float)Metrics.Scale(ValueSize, dpi), FontStyle.Regular, GraphicsUnit.Pixel);
-            }
+            laidOutAt = dpi;
 
             if (Bounds == where)
             {
@@ -298,7 +300,7 @@ internal sealed class LevelOverlay : IDisposable
 
             // The rounded corners are a window region rather than a painted shape, so the desktop shows through
             // them. Control.Region disposes the one it replaces.
-            using var shape = RoundedPath(size, Metrics.Scale(Corner, dpi));
+            using var shape = Theme.Rounded(new RectangleF(0, 0, size.Width, size.Height), Metrics.Scale(Corner, dpi));
             Region = new Region(shape);
         }
 
@@ -316,16 +318,16 @@ internal sealed class LevelOverlay : IDisposable
             {
                 clock.Stop();
 
-                // Back to opaque before hiding: Opacity below 1 makes the window layered, and the next Present
-                // should start from the plain form rather than inherit the tail of this fade.
-                Opacity = 1d;
+                // Back to rest before hiding, so the next Present starts from the plain form rather than
+                // inheriting the tail of this fade.
+                Opacity = Solid;
                 Hide();
                 return;
             }
 
             if (left < FadeMs)
             {
-                Opacity = (double)left / FadeMs;
+                Opacity = Solid * left / FadeMs;
             }
         }
 
@@ -336,61 +338,69 @@ internal sealed class LevelOverlay : IDisposable
             var graphics = e.Graphics;
             graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-            // Grid-fit rather than ClearType: the panel goes layered during the fade, where subpixel edges fringe.
+            // Grid-fit rather than ClearType: the panel is layered, where subpixel edges fringe.
             graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 
-            var pad = Metrics.Scale(Pad, laidOutAt);
-            var inner = Width - (pad * 2);
-
-            using var hairline = new Pen(LineColour);
-            using var outline = RoundedPath(new Size(Width - 1, Height - 1), Metrics.Scale(Corner, laidOutAt));
-            graphics.DrawPath(hairline, outline);
-
-            using var ink = new SolidBrush(InkColour);
-            using var dim = new SolidBrush(DimColour);
-            Brush accent = muted ? dim : ink;
-
-            // Label and value share a row: the name on the left, tracked wide and dim, the number on the right.
-            var row = new Rectangle(pad, pad, inner, valueFont.Height + 2);
-            DrawTracked(graphics, label, dim, pad, row.Top + ((row.Height - labelFont.Height) / 2f));
-            graphics.DrawString(caption, valueFont, accent, row, rightAligned);
-
-            var thickness = Metrics.Scale(BarHeight, laidOutAt);
-            var track = new Rectangle(pad, Height - pad - thickness, inner, thickness);
-            using var trackBrush = new SolidBrush(LineColour);
-            graphics.FillRectangle(trackBrush, track);
-            graphics.FillRectangle(accent, track.X, track.Y, Metrics.BarWidth(inner, percent), thickness);
-        }
-
-        /// <summary>
-        /// Draws one character at a time to fake letter-spacing, which GDI+ has no setting for. The face is
-        /// monospaced, so a single measurement gives every character's advance.
-        /// </summary>
-        private void DrawTracked(Graphics graphics, string text, Brush brush, float x, float y)
-        {
-            if (text.Length == 0)
+            var dpi = laidOutAt;
+            using (var hairline = new Pen(Colours.Line))
+            using (var outline = Theme.Rounded(new RectangleF(0, 0, Width - 1, Height - 1), Metrics.Scale(Corner, dpi)))
             {
-                return;
+                graphics.DrawPath(hairline, outline);
             }
 
-            var advance = graphics.MeasureString("M", labelFont, PointF.Empty, charCell).Width + Metrics.Scale(Tracking, laidOutAt);
-            foreach (var character in text)
+            var pad = Metrics.Scale(PadX, dpi);
+            var icon = Metrics.Scale(IconSize, dpi);
+            var glyph = kind switch
             {
-                graphics.DrawString(character.ToString(), labelFont, brush, x, y, charCell);
-                x += advance;
+                LevelKind.Microphone => Icons.Microphone,
+                LevelKind.Brightness => Icons.Sun,
+                _ when muted => Icons.VolumeMuted,
+                _ => Icons.Volume,
+            };
+            Icons.Draw(graphics, glyph, new RectangleF(pad, (Height - icon) / 2f, icon, icon), muted ? Colours.Dim : Colours.Accent);
+
+            var left = pad + icon + Metrics.Scale(Gap, dpi);
+            var right = Width - pad;
+            var labelFont = Theme.Font(Metrics.Scale(LabelSize, dpi), Weight.Bold);
+            var valueFont = Theme.Font(Metrics.Scale(ValueSize, dpi), Weight.Black);
+            var row = valueFont.Height;
+            var bar = Metrics.Scale(BarHeight, dpi);
+            var top = (Height - row - Metrics.Scale(RowGap, dpi) - bar) / 2f;
+
+            // Label and value share a baseline, as the design's flex row aligns them.
+            var baseline = top + Ascent(valueFont);
+            using (var dim = new SolidBrush(Colours.Dim))
+            {
+                graphics.DrawString(Metrics.Label(kind), labelFont, dim, left, baseline - Ascent(labelFont), typographic);
+            }
+
+            var width = graphics.MeasureString(caption, valueFont, PointF.Empty, typographic).Width;
+            using (var ink = new SolidBrush(Colours.Ink))
+            {
+                graphics.DrawString(caption, valueFont, ink, right - width, top, typographic);
+            }
+
+            var track = new RectangleF(left, top + row + Metrics.Scale(RowGap, dpi), right - left, bar);
+            using (var off = new SolidBrush(Colours.Off))
+            using (var shape = Theme.Rounded(track, bar / 2f))
+            {
+                graphics.FillPath(off, shape);
+            }
+
+            var filled = muted ? 0 : Metrics.BarWidth((int)track.Width, percent);
+            if (filled > 0)
+            {
+                using var accent = new SolidBrush(Colours.Accent);
+                using var shape = Theme.Rounded(track with { Width = filled }, bar / 2f);
+                graphics.FillPath(accent, shape);
             }
         }
 
-        private static GraphicsPath RoundedPath(Size size, int radius)
+        /// <summary>A pixel font's ascent in pixels, which is where its baseline sits below the top it is drawn at.</summary>
+        private static float Ascent(Font font)
         {
-            var diameter = radius * 2;
-            var path = new GraphicsPath();
-            path.AddArc(0, 0, diameter, diameter, 180f, 90f);
-            path.AddArc(size.Width - diameter, 0, diameter, diameter, 270f, 90f);
-            path.AddArc(size.Width - diameter, size.Height - diameter, diameter, diameter, 0f, 90f);
-            path.AddArc(0, size.Height - diameter, diameter, diameter, 90f, 90f);
-            path.CloseFigure();
-            return path;
+            var family = font.FontFamily;
+            return font.Size * family.GetCellAscent(font.Style) / family.GetEmHeight(font.Style);
         }
 
         protected override void Dispose(bool disposing)
@@ -399,10 +409,7 @@ internal sealed class LevelOverlay : IDisposable
             {
                 clock.Stop();
                 clock.Dispose();
-                labelFont.Dispose();
-                valueFont.Dispose();
-                charCell.Dispose();
-                rightAligned.Dispose();
+                typographic.Dispose();
             }
 
             base.Dispose(disposing);

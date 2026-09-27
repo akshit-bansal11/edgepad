@@ -21,6 +21,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Lato, the design's face, carried inside the exe so a single-file release needs nothing installed. Ui/Theme
+         loads the three by these names. The OFL asks that its text travel with the fonts, so it is embedded too. -->
+    <EmbeddedResource Include="Fonts\Lato-Regular.ttf" LogicalName="Edgepad.Fonts.Lato-Regular.ttf" />
+    <EmbeddedResource Include="Fonts\Lato-Bold.ttf" LogicalName="Edgepad.Fonts.Lato-Bold.ttf" />
+    <EmbeddedResource Include="Fonts\Lato-Black.ttf" LogicalName="Edgepad.Fonts.Lato-Black.ttf" />
+    <EmbeddedResource Include="Fonts\OFL.txt" LogicalName="Edgepad.Fonts.OFL.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Core Audio: speaker and microphone level and mute. -->
     <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
     <!-- WMI: the built-in panel's brightness. -->
