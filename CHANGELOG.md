@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [3.1.1] - 2026-09-27
+
+Two fixes to 3.1.0's new look. The wire protocol stays at version 4, so any 3.x half speaks to any other.
+
 ### Fixed
 - **The corner dials sat in from the phone's real corners.** 3.1.0 kept tall dials from crossing by rounding
   the dials' corners wider than the screen's, which left a gap. They follow the display's own rounding
@@ -655,7 +659,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.1...HEAD
+[3.1.1]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/akshit-bansal11/edgepad/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v2.3.0...v3.0.0
