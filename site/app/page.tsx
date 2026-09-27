@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { DemoVideo } from "@/components/demo-video";
 import { GithubMark } from "@/components/icons/github";
 import { LegacyHashRedirect } from "@/components/legacy-hash-redirect";
 import { Reveal } from "@/components/reveal";
@@ -184,6 +185,19 @@ export default function Page() {
             ))}
           </dl>
         </Reveal>
+
+        {/* The demo */}
+        <section id="demo" className="scroll-mt-20 border-line border-b py-16 md:py-24">
+          <Reveal>
+            <p className="label mb-3">Demo · 7:28</p>
+            <h2 className="max-w-[24ch] font-mono text-2xl leading-tight font-medium tracking-tight md:text-4xl">
+              Every feature, from setup to how it works.
+            </h2>
+          </Reveal>
+          <Reveal delay={0.05} className="mt-10">
+            <DemoVideo />
+          </Reveal>
+        </section>
 
         {/* What it does */}
         <section
