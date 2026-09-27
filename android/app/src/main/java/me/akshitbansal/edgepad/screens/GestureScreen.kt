@@ -37,7 +37,7 @@ object GestureScreen {
             for ((fingers, block) in blocks) {
                 block.removeAllViews()
                 Column(ui, block).apply {
-                    section(ui.string(R.string.gestures_fingers, fingers))
+                    section(ui.context.resources.getQuantityString(R.plurals.gestures_fingers, fingers, fingers))
                     card {
                         groups.getValue(fingers).forEachIndexed { i, gesture ->
                             if (i > 0) hairline()

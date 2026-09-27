@@ -54,7 +54,10 @@
   <string name="editor_done">Done</string>
   <string name="media_scale">Size</string>
   <string name="gestures_title">Trackpad</string>
-  <string name="gestures_fingers">%1$d fingers</string>
+  <plurals name="gestures_fingers">
+    <item quantity="one">%1$d finger</item>
+    <item quantity="other">%1$d fingers</item>
+  </plurals>
   <string name="trackpad_feel">Pointer</string>
   <string name="pointer_speed">Pointer speed</string>
   <string name="scroll_speed">Scroll speed</string>
