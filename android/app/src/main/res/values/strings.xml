@@ -136,7 +136,10 @@
   <string name="percent_value">%1$d%%</string>
   <!-- Shapes drawn on the trackpad -->
   <string name="shapes_title">Shapes</string>
-  <string name="shapes_summary">%1$d drawn</string>
+  <plurals name="shapes_summary">
+    <item quantity="one">%1$d drawn</item>
+    <item quantity="other">%1$d drawn</item>
+  </plurals>
   <string name="shapes_none">None yet</string>
   <string name="shapes_footnote">Press and hold on the trackpad until it ticks, then draw without lifting.</string>
   <string name="shapes_empty_title">No shapes yet</string>

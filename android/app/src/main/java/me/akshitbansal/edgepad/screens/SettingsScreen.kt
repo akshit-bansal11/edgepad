@@ -225,7 +225,8 @@ object SettingsScreen {
         settings: Settings,
     ): String {
         val count = Shapes.decode(settings.shapes)?.size ?: 0
-        return if (count == 0) ui.string(R.string.shapes_none) else ui.string(R.string.shapes_summary, count)
+        if (count == 0) return ui.string(R.string.shapes_none)
+        return ui.context.resources.getQuantityString(R.plurals.shapes_summary, count, count)
     }
 
     /** The four corners' dials, clockwise from the top left. */
