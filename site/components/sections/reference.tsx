@@ -283,7 +283,10 @@ export function ReferenceSections() {
         title="Design decisions"
         lede="Each of these had a real alternative that was considered and rejected. The reason is kept with the rule, because a rule stripped of its reasoning gets re-litigated by the next person who reads it."
       >
-        <Accordion type="multiple" className="border-line border-t">
+        <Accordion
+          type="multiple"
+          className="bg-card shadow-card rounded-[var(--radius-panel)] px-5"
+        >
           {DECISIONS.map((decision) => (
             <AccordionItem key={decision.id} value={decision.id}>
               <AccordionTrigger>{decision.question}</AccordionTrigger>
@@ -307,11 +310,14 @@ export function ReferenceSections() {
         title="Known limits"
         lede="What is not built, what is not verified, and what is a deliberate trade. Nothing here is hidden because it is inconvenient."
       >
-        <div className="grid gap-px">
+        <div className="grid gap-3">
           {LIMITS.map((limit) => (
-            <div key={limit.title} className="border-line border p-4">
+            <div
+              key={limit.title}
+              className="bg-card shadow-card rounded-[var(--radius-card)] p-5"
+            >
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <p className="font-mono text-sm font-medium">{limit.title}</p>
+                <p className="text-base font-bold">{limit.title}</p>
                 <Badge variant={LIMIT_VARIANT[limit.kind]}>{limit.kind}</Badge>
               </div>
               <p className="text-dim mt-2 max-w-[70ch] text-[0.9375rem] leading-relaxed">
@@ -340,7 +346,7 @@ export function ReferenceSections() {
               href={`${REPO}/blob/main/CHANGELOG.md`}
               target="_blank"
               rel="noreferrer noopener"
-              className="text-foreground underline underline-offset-4"
+              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
             >
               CHANGELOG.md
             </a>
@@ -348,11 +354,14 @@ export function ReferenceSections() {
           </>
         }
       >
-        <div className="grid gap-px">
+        <div className="grid gap-3">
           {HISTORY.map((entry) => (
-            <div key={entry.version} className="border-line border p-4">
+            <div
+              key={entry.version}
+              className="bg-card shadow-card rounded-[var(--radius-card)] p-5"
+            >
               <div className="flex flex-wrap items-baseline gap-3">
-                <p className="font-mono text-base font-medium">{entry.version}</p>
+                <p className="text-lg font-bold">{entry.version}</p>
                 <span className="label">{entry.date}</span>
               </div>
               <p className="text-dim mt-2 max-w-[70ch] text-[0.9375rem] leading-relaxed">
@@ -379,7 +388,7 @@ export function ReferenceSections() {
               href="https://lucide.dev"
               target="_blank"
               rel="noreferrer noopener"
-              className="text-foreground underline underline-offset-4"
+              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
             >
               Lucide
             </a>
@@ -391,7 +400,7 @@ export function ReferenceSections() {
               href="https://github.com/JetBrains/JetBrainsMono"
               target="_blank"
               rel="noreferrer noopener"
-              className="text-foreground underline underline-offset-4"
+              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
             >
               JetBrains Mono
             </a>
@@ -406,7 +415,7 @@ export function ReferenceSections() {
               href="https://github.com/nefarius/ViGEm.NET"
               target="_blank"
               rel="noreferrer noopener"
-              className="text-foreground underline underline-offset-4"
+              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
             >
               Nefarius.ViGEm.Client
             </a>{" "}
@@ -419,7 +428,7 @@ export function ReferenceSections() {
               href="https://github.com/nefarius/ViGEmBus"
               target="_blank"
               rel="noreferrer noopener"
-              className="text-foreground underline underline-offset-4"
+              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
             >
               ViGEmBus
             </a>

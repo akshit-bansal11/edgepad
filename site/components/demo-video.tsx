@@ -35,40 +35,48 @@ export function DemoVideo() {
     if (!el) return;
     el.currentTime = at;
     void el.play().catch(() => {});
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "center" });
   };
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_16rem]">
-      <video
-        ref={video}
-        className="border-line aspect-video w-full border bg-black"
-        src="/edgepad-demo.mp4"
-        poster="/edgepad-demo-poster.jpg"
-        controls
-        preload="none"
-        playsInline
-      >
-        <track
-          kind="captions"
-          src="/edgepad-demo.en.vtt"
-          srcLang="en"
-          label="English"
-        />
-        <a href="/edgepad-demo.mp4">Download the demo video</a>
-      </video>
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-5">
+      <div className="shadow-lift overflow-hidden rounded-[var(--radius-panel)] bg-black">
+        <video
+          ref={video}
+          className="block aspect-video w-full"
+          src="/edgepad-demo.mp4"
+          poster="/edgepad-demo-poster.jpg"
+          controls
+          preload="none"
+          playsInline
+        >
+          <track
+            kind="captions"
+            src="/edgepad-demo.en.vtt"
+            srcLang="en"
+            label="English"
+          />
+          <a href="/edgepad-demo.mp4">Download the demo video</a>
+        </video>
+      </div>
 
-      <nav aria-label="Demo chapters">
-        <p className="label mb-3">Chapters</p>
-        <ol className="divide-line border-line divide-y border-t border-b">
+      {/* The list is as tall as the video beside it and scrolls, rather than stretching
+          the row: h-0 + min-h-full lets the grid row be sized by the video alone. */}
+      <nav
+        aria-label="Demo chapters"
+        className="bg-card shadow-card flex flex-col overflow-hidden rounded-[var(--radius-panel)] lg:h-0 lg:min-h-full"
+      >
+        <p className="label px-4 pt-4 pb-2">Chapters</p>
+        <ol className="divide-line overflow-y-auto divide-y px-2 pb-2">
           {CHAPTERS.map((chapter) => (
             <li key={chapter.at}>
               <button
                 type="button"
                 onClick={() => seek(chapter.at)}
-                className="text-dim hover:text-foreground flex min-h-11 w-full items-center gap-3 py-2 text-left text-sm"
+                className="hover:bg-faint flex min-h-11 w-full items-center gap-3 rounded-xl px-2 text-left text-[0.9375rem] transition-colors"
               >
-                <span className="font-mono text-xs tabular-nums">
+                <span className="text-primary w-9 shrink-0 text-sm font-bold">
                   {clock(chapter.at)}
                 </span>
                 {chapter.title}

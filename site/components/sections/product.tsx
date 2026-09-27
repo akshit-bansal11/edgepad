@@ -101,7 +101,7 @@ export function ProductSections() {
         </P>
 
         <Sub>What it does</Sub>
-        <div className="grid gap-px sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           {[
             {
               title: "Corner rulers",
@@ -136,8 +136,11 @@ export function ProductSections() {
               body: "The dials show the laptop's real volume, mute, brightness and playback position, and follow changes made on the laptop itself.",
             },
           ].map((feature) => (
-            <div key={feature.title} className="border-line border p-4">
-              <p className="font-mono text-sm font-medium">{feature.title}</p>
+            <div
+              key={feature.title}
+              className="bg-card shadow-card rounded-[var(--radius-card)] p-5"
+            >
+              <p className="text-base font-bold">{feature.title}</p>
               <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
                 {feature.body}
               </p>
@@ -164,7 +167,7 @@ export function ProductSections() {
               href={LATEST_RELEASE}
               target="_blank"
               rel="noreferrer noopener"
-              className="text-foreground underline underline-offset-4"
+              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
             >
               GitHub release
             </a>
@@ -222,7 +225,7 @@ export function ProductSections() {
                   href="https://github.com/nefarius/ViGEmBus/releases/latest"
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="text-foreground underline underline-offset-4"
+                  className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
                 >
                   ViGEmBus
                 </a>{" "}
@@ -443,7 +446,7 @@ export function ProductSections() {
           on a page titled <strong>Background &amp; pattern</strong> — a title that
           described neither.
         </P>
-        <div className="grid gap-px sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           {[
             {
               title: "Connection",
@@ -466,8 +469,11 @@ export function ProductSections() {
               body: "The five-page guide, shown one page at a time with a drawing or all on one scrolling page. It opens on the first run and again from here. Below it, Documentation opens this page in a browser.",
             },
           ].map((item) => (
-            <div key={item.title} className="border-line border p-4">
-              <p className="font-mono text-sm font-medium">{item.title}</p>
+            <div
+              key={item.title}
+              className="bg-card shadow-card rounded-[var(--radius-card)] p-5"
+            >
+              <p className="text-base font-bold">{item.title}</p>
               <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
                 {item.body}
               </p>

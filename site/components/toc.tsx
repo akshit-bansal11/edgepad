@@ -38,20 +38,21 @@ export function Toc() {
     <nav aria-label="On this page" className="space-y-6">
       {NAV.map((group) => (
         <div key={group.label}>
-          <p className="label mb-2">{group.label}</p>
-          <ul className="border-line space-y-px border-l">
+          <p className="label mb-1.5 px-3">{group.label}</p>
+          <ul className="space-y-0.5">
             {group.items.map((item) => {
               const current = active === item.id;
               return (
                 <li key={item.id}>
+                  {/* Current is accent on the accent tint (4.6:1 light, 5.5:1 dark). */}
                   <a
                     href={`#${item.id}`}
                     aria-current={current ? "location" : undefined}
                     className={cn(
-                      "-ml-px block border-l py-1 pl-3 text-[0.8125rem] transition-colors",
+                      "flex min-h-11 items-center rounded-xl px-3 text-[0.9375rem] transition-colors",
                       current
-                        ? "border-foreground text-foreground font-medium"
-                        : "text-dim hover:text-foreground border-transparent",
+                        ? "bg-accent-soft text-primary font-bold"
+                        : "text-foreground hover:bg-faint",
                     )}
                   >
                     {item.label}

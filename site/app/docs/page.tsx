@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Reveal } from "@/components/reveal";
 import { DevelopingSections } from "@/components/sections/developing";
 import { InternalsSections } from "@/components/sections/internals";
 import { ProductSections } from "@/components/sections/product";
@@ -27,30 +26,30 @@ export default function DocsPage() {
       <SiteHeader variant="docs" />
 
       <main className="mx-auto max-w-[90rem] px-4 md:px-6">
-        <Reveal>
-          <div className="border-line border-b py-10 md:py-14">
-            <p className="label mb-3">Documentation</p>
-            <h1 className="max-w-[24ch] font-mono text-3xl leading-[1.1] font-medium tracking-tight md:text-5xl">
-              Everything Edgepad does, and how.
-            </h1>
-            <p className="text-dim mt-5 max-w-[68ch] text-base leading-relaxed md:text-lg">
-              Install, the control surface, both apps&apos; architecture, the wire
-              protocol and the developer guide. The protocol tables below are generated
-              from the same fixtures both test suites read, so this page cannot drift
-              from the two apps.
-            </p>
-          </div>
-        </Reveal>
+        {/* No entrance on the title block: it is the first paint, and a fade would
+            hide it until the JavaScript arrives. */}
+        <div className="py-10 md:py-16">
+          <p className="text-primary mb-2 text-[0.9375rem] font-bold">Documentation</p>
+          <h1 className="max-w-[20ch] text-[2.5rem] leading-[1.04] font-black tracking-[-0.025em] md:text-6xl">
+            Everything Edgepad does, and how.
+          </h1>
+          <p className="text-dim mt-5 max-w-[64ch] text-base leading-relaxed md:text-lg">
+            Install, the control surface, both apps&apos; architecture, the wire
+            protocol and the developer guide. The protocol tables below are generated
+            from the same fixtures both test suites read, so this page cannot drift from
+            the two apps.
+          </p>
+        </div>
 
         {/* Sidebar + body */}
-        <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-12">
+        <div className="lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-12">
           <aside className="hidden lg:block">
-            <div className="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto pt-4 pr-4 pb-12">
+            <div className="bg-card shadow-card sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-[var(--radius-panel)] p-3 pt-4">
               <Toc />
             </div>
           </aside>
 
-          <div className="divide-line min-w-0 divide-y pt-4">
+          <div className="divide-line min-w-0 divide-y">
             <ProductSections />
             <InternalsSections protocol={protocol} />
             <DevelopingSections protocolVersion={protocol.version} />
