@@ -10,7 +10,6 @@ import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.surface.Dial
 import me.akshitbansal.edgepad.surface.Perimeter
-import me.akshitbansal.edgepad.surface.RulerGeometry
 import me.akshitbansal.edgepad.surface.RulerPainter
 
 /**
@@ -67,13 +66,13 @@ class DialPreview(
 
     /**
      * The box stands in for the phone's top-left corner; when the ruler and its label need more, the drawing
-     * shrinks to fit. The bend widens with the height exactly as it does on the surface, so no mark crosses.
+     * shrinks to fit. Its marks give way in the bend exactly as they do on the surface, so no mark crosses.
      */
     private fun fit() {
         if (width == 0 || height == 0) return
         val need = (painter.halfLengthDp + FIT_PAD_DP) * density
         scale = minOf(1f, minOf(width, height) / need)
-        perimeter = Perimeter(width / scale, height / scale, RulerGeometry.bend(painter.height, BEND_DP) * density)
+        perimeter = Perimeter(width / scale, height / scale, BEND_DP * density)
     }
 
     override fun onDraw(canvas: Canvas) {

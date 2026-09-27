@@ -7,8 +7,9 @@ import kotlin.math.abs
 
 /**
  * No two marks of a corner ruler may cross. Marks are laid out exactly as [RulerPainter] lays them out, in dp
- * on a 400 by 800 dp screen: a dot for each minor notch, a pill for every fifth, and the indicator, at every
- * corner and at a range of slide positions, so notches pass by the indicator and round the bend.
+ * on a 400 by 800 dp screen whose path bends at the display's own rounding: a dot for each minor notch, a pill
+ * for every fifth, and the indicator, each held to [RulerGeometry.limit], at every corner and at a range of
+ * slide positions, so notches pass by the indicator and round the bend.
  */
 class RulerGeometryTest {
     @Test
@@ -16,21 +17,22 @@ class RulerGeometryTest {
         for (tenths in MIN_TENTHS..MAX_TENTHS) {
             val height = tenths / TENTHS
             for (display in MIN_DISPLAY..MAX_DISPLAY step DISPLAY_STEP) {
-                val path = Perimeter(WIDTH, HEIGHT, RulerGeometry.bend(height, display.toFloat()))
+                val path = Perimeter(WIDTH, HEIGHT, display.toFloat())
                 for (armed in listOf(false, true)) {
                     assertNull(
                         "height $height, display rounding $display dp, armed $armed",
-                        firstCrossing(path, height, armed),
+                        firstCrossing(path, height, armed, limited = true),
                     )
                 }
             }
         }
     }
 
-    /** The bug the bend fixes: on the display's own 24 dp rounding a tall armed dial folds over itself. */
+    /** The bug the limit fixes: unlimited, on a 24 dp display rounding, a tall armed dial folds over itself. */
     @Test
-    fun theDisplaysRoundingAloneLetsATallDialCross() {
-        assertNotNull(firstCrossing(Perimeter(WIDTH, HEIGHT, MIN_DISPLAY.toFloat()), MAX_TENTHS / TENTHS, true))
+    fun withoutTheLimitATallDialCrosses() {
+        val path = Perimeter(WIDTH, HEIGHT, MIN_DISPLAY.toFloat())
+        assertNotNull(firstCrossing(path, MAX_TENTHS / TENTHS, armed = true, limited = false))
     }
 
     /** The first pair of crossing marks as "s1 × s2", or null when none cross. */
@@ -38,7 +40,12 @@ class RulerGeometryTest {
         path: Perimeter,
         height: Float,
         armed: Boolean,
+        limited: Boolean,
     ): String? {
+        fun end(
+            s: Float,
+            natural: Float,
+        ): Float = if (limited) minOf(natural, RulerGeometry.limit(path.radius, path.fromBend(s))) else natural
         val pt = FloatArray(4)
         for (corner in 0 until Perimeter.CORNERS) {
             val centre = path.lengthAt(corner.toFloat())
@@ -46,13 +53,13 @@ class RulerGeometryTest {
             while (slid < Dial.NOTCH_DP) {
                 val marks = ArrayList<Mark>()
                 path.point(centre, pt)
-                marks.add(Mark(0f, pt, RulerGeometry.INSET_DP, RulerGeometry.indicatorEnd(height, armed)))
+                marks.add(Mark(0f, pt, RulerGeometry.INSET_DP, end(centre, RulerGeometry.indicatorEnd(height, armed))))
                 for (n in -NOTCHES..NOTCHES) {
                     val s = slid + n * Dial.NOTCH_DP
                     path.point(centre + s, pt)
                     marks.add(
                         if (n % Dial.MAJOR_EVERY == 0) {
-                            Mark(s, pt, RulerGeometry.INSET_DP, RulerGeometry.majorEnd(height, armed))
+                            Mark(s, pt, RulerGeometry.INSET_DP, end(centre + s, RulerGeometry.majorEnd(height, armed)))
                         } else {
                             Mark(
                                 s,
@@ -117,7 +124,7 @@ class RulerGeometryTest {
         const val MAX_DISPLAY = 44
         const val DISPLAY_STEP = 2
 
-        /** Enough notches either side to run well past the widest bend onto both straight edges. */
+        /** Enough notches either side to run well past the bend onto both straight edges. */
         const val NOTCHES = 20
         const val SLIDE_STEP = 1f
         const val SAME_PLACE = 0.5f
