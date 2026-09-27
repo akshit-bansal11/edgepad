@@ -6,5 +6,8 @@
     <item name="android:windowNoTitle">true</item>
     <!-- The panel colour from the first frame, so changing screens never flashes the platform's grey. -->
     <item name="android:windowBackground">@color/panel</item>
+    <!-- Android 12 to 14 draw the system bars in these; from 15 the bars are see-through and show the page. -->
+    <item name="android:statusBarColor">@color/panel</item>
+    <item name="android:navigationBarColor">@color/panel</item>
   </style>
 </resources>

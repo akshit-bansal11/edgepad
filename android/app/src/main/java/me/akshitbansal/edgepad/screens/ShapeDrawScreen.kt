@@ -26,7 +26,7 @@ import me.akshitbansal.edgepad.surface.TrackpadRecognizer
  * [LayoutCanvas]'s dot grid underneath — because a shape is drawn where it will be drawn again, at the
  * size of the whole screen, and the editors already look like that.
  *
- * A stroke is judged the moment the finger lifts rather than when SAVE is pressed. Too small, or too close
+ * A stroke is judged the moment the finger lifts rather than when Save is pressed. Too small, or too close
  * to a shape already saved, and the message lands under the finger that drew it, where the next attempt is
  * the next thing that happens.
  */
@@ -48,7 +48,7 @@ object ShapeDrawScreen {
 
         // One function for both steps, picked between by whether a stroke has been accepted yet. Only the
         // two steps call it: going back to redraw needs a fresh canvas, and accepting a stroke needs the
-        // target list. Picking a target deliberately does not -- the dot and the SAVE button move
+        // target list. Picking a target deliberately does not -- the check and the Save button move
         // themselves, because rebuilding here would hand the list a new ScrollView starting at the top.
         fun render() {
             root.removeAllViews()
@@ -59,9 +59,14 @@ object ShapeDrawScreen {
                         drawn = stroke
                         render()
                     }
-                val title = ui.string(R.string.shapes_draw_title).uppercase()
                 root.addView(
-                    EditorFrame.build(ui, title, sketch, onBack) { close ->
+                    EditorFrame.build(
+                        ui,
+                        ui.string(R.string.shapes_draw_title),
+                        sketch,
+                        onBack,
+                        backLabel = ui.string(R.string.shapes_title),
+                    ) { close ->
                         ui.button(ui.string(R.string.shapes_redraw), Ui.Style.QUIET) {
                             sketch.clear()
                             close()
@@ -81,21 +86,27 @@ object ShapeDrawScreen {
                         onSaved()
                     }
                 }
+            // Back from the list returns to the canvas, so the link is named for it rather than for Shapes.
+            val bar =
+                ui.bar(
+                    ui.string(R.string.shapes_target_title),
+                    redraw,
+                    backLabel = ui.string(R.string.shapes_draw_back),
+                )
             root.addView(
-                ui.page(ui.bar(ui.string(R.string.shapes_title), redraw)) {
-                    add(
-                        ui.choices(
-                            targets.map { ShapesScreen.targetName(ui, it, macros) },
-                            targets.indexOfFirst { it == chosen },
-                        ) { i ->
-                            chosen = targets[i]
-                            arm(true)
-                        },
-                    )
-                    add(
-                        row,
-                        Space.L,
-                    )
+                ui.page(bar) {
+                    card(Space.M) {
+                        add(
+                            ui.choices(
+                                targets.map { ShapesScreen.targetName(ui, it, macros) },
+                                targets.indexOfFirst { it == chosen },
+                            ) { i ->
+                                chosen = targets[i]
+                                arm(true)
+                            },
+                        )
+                    }
+                    add(row, Space.XL)
                 },
             )
         }
@@ -128,11 +139,11 @@ object ShapeDrawScreen {
     }
 
     /**
-     * REDRAW and SAVE at the foot of the target list, and the one function that arms SAVE.
+     * Redraw and Save at the foot of the target list, and the one function that arms Save.
      *
      * Handed back rather than kept, because picking a target must not rebuild this page: the list of things
      * a shape can run is longer than the screen, and a rebuilt page brings a fresh ScrollView that starts at
-     * the top, so every pick threw the user back to the first row. The dot moves itself now, and this moves
+     * the top, so every pick threw the user back to the first row. The check moves itself now, and this moves
      * the only other thing a pick changes.
      */
     private fun actions(
@@ -153,7 +164,7 @@ object ShapeDrawScreen {
         val row =
             LinearLayout(ui.context).apply {
                 addView(
-                    ui.button(ui.string(R.string.shapes_redraw), Ui.Style.QUIET, onRedraw),
+                    ui.button(ui.string(R.string.shapes_redraw), Ui.Style.OUTLINED, onRedraw),
                     LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
                 )
                 addView(
@@ -167,8 +178,8 @@ object ShapeDrawScreen {
     }
 
     /**
-     * The canvas one stroke is drawn on: the editors' dot grid, the stroke over it, and a line of small
-     * capitals at the foot saying what to do — or, once a stroke has been refused, why.
+     * The canvas one stroke is drawn on: the editors' dot grid, the stroke over it in the accent, and a line
+     * at the foot saying what to do — or, once a stroke has been refused, why.
      *
      * Everything the stroke needs is allocated once. The samples go into two fixed arrays and the picture
      * into one Path the finger extends, so onDraw only ever draws.
@@ -187,6 +198,16 @@ object ShapeDrawScreen {
         private val xs = FloatArray(TrackpadRecognizer.MAX_PATH)
         private val ys = FloatArray(TrackpadRecognizer.MAX_PATH)
         private val path = Path()
+
+        /** The stroke's own paint, rather than the grid's: it is drawn thicker, rounded and in the accent. */
+        private val ink =
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE
+                strokeWidth = STROKE_DP * density
+                strokeCap = Paint.Cap.ROUND
+                strokeJoin = Paint.Join.ROUND
+                color = palette.accent
+            }
         private var count = 0
         private var message = hint
 
@@ -204,15 +225,7 @@ object ShapeDrawScreen {
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
-            stroke.pathEffect = null
-            stroke.color = palette.ink
-            stroke.strokeWidth = STROKE_DP * density
-            stroke.strokeCap = Paint.Cap.ROUND
-            stroke.strokeJoin = Paint.Join.ROUND
-            canvas.drawPath(path, stroke)
-            stroke.strokeWidth = Space.HAIR * density
-            stroke.strokeCap = Paint.Cap.BUTT
-            stroke.strokeJoin = Paint.Join.MITER
+            canvas.drawPath(path, ink)
             text.color = palette.dim
             canvas.drawText(message, width / 2f, height - MESSAGE_BOTTOM_DP * density, text)
         }

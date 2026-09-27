@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.text.TextPaint
+import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
@@ -50,7 +51,7 @@ class GamepadScreen(
 
     val view: View =
         EditorFrame
-            .build(ui, layout.name.uppercase(), pad, onBack) { close ->
+            .build(ui, layout.name, pad, onBack) { close ->
                 LinearLayout(ui.context).apply {
                     orientation = LinearLayout.VERTICAL
                     addView(
@@ -153,14 +154,21 @@ class GamepadScreen(
         private val pointerToControl = IntArray(MAX_POINTERS) { NONE }
 
         private val box = RectF()
-        private val stroke =
+        private val painter = PadPainter(context)
+
+        // The keyboard-mode line: bold dim text on a card pill, with the same soft line under it on the
+        // light ground as every control.
+        private val pillText: TextPaint = Type.pieceLabel(resources.displayMetrics).apply { color = palette.dim }
+        private val pillFill =
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                style = Paint.Style.STROKE
-                strokeWidth = Space.HAIR * density
+                style = Paint.Style.FILL
+                color = palette.card
             }
-        private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-        private val text: TextPaint = Type.pieceLabel(resources.displayMetrics)
-        private val dpadCell = RectF()
+        private val pillShadow =
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.FILL
+                color = palette.line
+            }
 
         init {
             contentDescription = context.getString(R.string.gamepad_description)
@@ -203,127 +211,68 @@ class GamepadScreen(
             super.onDraw(canvas)
             for (i in controls.indices) {
                 box.set(centerX[i] - halfW[i], centerY[i] - halfH[i], centerX[i] + halfW[i], centerY[i] + halfH[i])
-                when (controls[i].kind) {
-                    ControlKind.BUTTON -> drawRound(canvas, i)
-                    ControlKind.SHOULDER -> drawShoulder(canvas, i)
-                    ControlKind.DPAD -> drawDpad(canvas, i)
-                    ControlKind.STICK -> drawStick(canvas, i)
+                val control = controls[i]
+                // A trigger shows how far it is pulled rather than lighting up whole, because a trigger that
+                // looks identical at a tenth and at full is an analog control the player has no way to aim.
+                val trigger = control.binding is Binding.Trigger
+                val on = pressed[i] && !trigger
+                when (control.kind) {
+                    ControlKind.BUTTON, ControlKind.SHOULDER -> {
+                        painter.body(canvas, control.kind, box, on, if (trigger) pull[i] else 0)
+                    }
+
+                    ControlKind.DPAD -> {
+                        val bits = dirBits[i]
+                        painter.dpad(
+                            canvas,
+                            box,
+                            bits and Dir.UP != 0,
+                            bits and Dir.DOWN != 0,
+                            bits and Dir.LEFT != 0,
+                            bits and Dir.RIGHT != 0,
+                        )
+                    }
+
+                    ControlKind.STICK -> {
+                        painter.body(canvas, control.kind, box, false)
+                        painter.thumb(
+                            canvas,
+                            centerX[i] + thumbOffX[i],
+                            centerY[i] + thumbOffY[i],
+                            thumbRadius(i),
+                            isHeld(i),
+                        )
+                    }
                 }
+                painter.label(canvas, control.label, control.kind, box, on)
             }
             // The middle of the screen is the one place every preset leaves empty, and a pad that has
             // fallen back to the keyboard has to say so somewhere the player is already looking.
-            val line = mode
-            if (line != null) {
-                text.color = palette.dim
-                canvas.drawText(line, width / 2f, height / 2f, text)
-            }
+            mode?.let { drawMode(canvas, it) }
         }
 
-        private fun drawRound(
+        /** The keyboard-mode line, on a card pill in the middle of the screen. */
+        private fun drawMode(
             canvas: Canvas,
-            i: Int,
+            line: String,
         ) {
-            if (pressed[i]) {
-                fill.color = palette.ink
-                canvas.drawOval(box, fill)
-                text.color = palette.background
-            } else {
-                stroke.color = palette.dim
-                canvas.drawOval(box, stroke)
-                text.color = palette.ink
+            val halfWidth = pillText.measureText(line) / 2f + PILL_SIDE_DP * density
+            val halfHeight = pillText.textSize * PILL_LEADING / 2f + PILL_TOP_DP * density
+            val cx = width / 2f
+            val cy = height / 2f
+            val drop = Space.HAIR * density
+            box.set(cx - halfWidth, cy - halfHeight, cx + halfWidth, cy + halfHeight)
+            if (!palette.dark) {
+                box.offset(0f, drop)
+                canvas.drawRoundRect(box, halfHeight, halfHeight, pillShadow)
+                box.offset(0f, -drop)
             }
-            drawLabel(canvas, i)
+            canvas.drawRoundRect(box, halfHeight, halfHeight, pillFill)
+            canvas.drawText(line, cx, cy + pillText.textSize * Type.CAP_CENTRE, pillText)
         }
 
-        private fun drawShoulder(
-            canvas: Canvas,
-            i: Int,
-        ) {
-            val corner = ControlGeometry.CORNER_DP * density
-            if (pressed[i] && controls[i].binding !is Binding.Trigger) {
-                fill.color = palette.ink
-                canvas.drawRoundRect(box, corner, corner, fill)
-                text.color = palette.background
-                drawLabel(canvas, i)
-                return
-            }
-            // A trigger fills from the bottom by how far it is pulled, in the faint tone rather than in ink,
-            // because a trigger that looks identical at a tenth and at full is an analog control the player
-            // has no way to aim. Filled behind the outline, so the label stays readable over it.
-            if (controls[i].binding is Binding.Trigger && pull[i] > 0) {
-                fill.color = palette.faint
-                canvas.drawRect(
-                    box.left,
-                    box.bottom - box.height() * pull[i] / PadAxis.TRIGGER_MAX,
-                    box.right,
-                    box.bottom,
-                    fill,
-                )
-            }
-            stroke.color = palette.dim
-            canvas.drawRoundRect(box, corner, corner, stroke)
-            text.color = palette.ink
-            drawLabel(canvas, i)
-        }
-
-        private fun drawDpad(
-            canvas: Canvas,
-            i: Int,
-        ) {
-            val third = box.width() / ControlGeometry.DPAD_CELLS
-            for (row in 0 until ControlGeometry.DPAD_CELLS.toInt()) {
-                for (col in 0 until ControlGeometry.DPAD_CELLS.toInt()) {
-                    if (!ControlGeometry.isArmCell(row, col)) continue
-                    val bit = dpadCellBit(row, col)
-                    dpadCell.set(
-                        box.left + col * third,
-                        box.top + row * third,
-                        box.left + (col + 1) * third,
-                        box.top + (row + 1) * third,
-                    )
-                    if (bit != NO_BIT && dirBits[i] and bit != 0) {
-                        fill.color = palette.ink
-                        canvas.drawRect(dpadCell, fill)
-                    } else {
-                        stroke.color = palette.dim
-                        canvas.drawRect(dpadCell, stroke)
-                    }
-                }
-            }
-            text.color = if (dirBits[i] != 0) palette.ink else palette.dim
-            drawLabel(canvas, i)
-        }
-
-        private fun dpadCellBit(
-            row: Int,
-            col: Int,
-        ): Int =
-            when {
-                row == 0 && col == 1 -> Dir.UP
-                row == 2 && col == 1 -> Dir.DOWN
-                row == 1 && col == 0 -> Dir.LEFT
-                row == 1 && col == 2 -> Dir.RIGHT
-                else -> NO_BIT
-            }
-
-        private fun drawStick(
-            canvas: Canvas,
-            i: Int,
-        ) {
-            stroke.color = palette.dim
-            canvas.drawOval(box, stroke)
-            fill.color = palette.ink
-            canvas.drawCircle(centerX[i] + thumbOffX[i], centerY[i] + thumbOffY[i], thumbRadius(i), fill)
-            text.color = palette.dim
-            drawLabel(canvas, i)
-        }
-
-        private fun drawLabel(
-            canvas: Canvas,
-            i: Int,
-        ) {
-            canvas.drawText(controls[i].label, centerX[i], centerY[i] + text.textSize * Type.CAP_CENTRE, text)
-        }
+        /** Whether a finger is on control [i] right now, which is what turns a stick's thumb accent. */
+        private fun isHeld(i: Int): Boolean = pointerToControl.any { it == i }
 
         override fun performClick(): Boolean {
             super.performClick()
@@ -660,7 +609,6 @@ class GamepadScreen(
             const val PAD_FIELDS = 7
 
             const val NONE = -1
-            const val NO_BIT = 0
             const val MAX_POINTERS = 10
             const val SLACK_DP = 12f
             const val DPAD_ARM_DIVISOR = 3f
@@ -678,6 +626,207 @@ class GamepadScreen(
             const val FULL_TURN = 360f
             const val SECTOR_DEGREES = 45f
             const val SECTOR_COUNT = 8
+
+            // The keyboard-mode pill: padding either side of its text and above and below, and its line height.
+            const val PILL_SIDE_DP = 14f
+            const val PILL_TOP_DP = 7f
+            const val PILL_LEADING = 1.35f
         }
+    }
+}
+
+/**
+ * How a gamepad control looks, shared by the live pad and its layout editor so a control cannot look one
+ * way in the editor and another under the player's thumbs. After the design: a rounded card fill with no
+ * outline, a soft line under it on the light ground where a shadow would fall, a bold label, and the
+ * accent with on-accent text for whatever is held.
+ */
+internal class PadPainter(
+    context: Context,
+) {
+    private val palette = Palette.of(context)
+    private val metrics = context.resources.displayMetrics
+    private val density = metrics.density
+    private val corner = ControlGeometry.CORNER_DP * density
+    private val drop = Space.HAIR * density
+    private val narrow = NARROW_DP * density
+    private val smallText = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, Type.SMALL, metrics)
+    private val largeText = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, Type.VALUE, metrics)
+    private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val ring =
+        Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = RING_DP * density
+            color = palette.accent
+        }
+    private val text: TextPaint = Type.pieceLabel(metrics)
+    private val cell = RectF()
+
+    /**
+     * A round button, a stick's base or a shoulder, in the accent while [on]. A trigger's [pull] fills it
+     * from the bottom in the tinted accent rather than the accent itself, so the label stays readable over it.
+     */
+    fun body(
+        canvas: Canvas,
+        kind: ControlKind,
+        box: RectF,
+        on: Boolean,
+        pull: Int = 0,
+    ) {
+        if (!palette.dark) {
+            box.offset(0f, drop)
+            shape(canvas, kind, box, palette.line)
+            box.offset(0f, -drop)
+        }
+        shape(canvas, kind, box, if (on) palette.accent else palette.card)
+        if (pull > 0) {
+            canvas.save()
+            canvas.clipRect(box.left, box.bottom - box.height() * pull / PadAxis.TRIGGER_MAX, box.right, box.bottom)
+            shape(canvas, kind, box, palette.accentSoft)
+            canvas.restore()
+        }
+    }
+
+    private fun shape(
+        canvas: Canvas,
+        kind: ControlKind,
+        box: RectF,
+        color: Int,
+    ) {
+        fill.color = color
+        if (kind == ControlKind.SHOULDER) {
+            canvas.drawRoundRect(box, corner, corner, fill)
+        } else {
+            canvas.drawOval(box, fill)
+        }
+    }
+
+    /** A d-pad: five cells meeting as a plus, only each arm's outer corners rounded, a held arm in the accent. */
+    fun dpad(
+        canvas: Canvas,
+        box: RectF,
+        up: Boolean,
+        down: Boolean,
+        left: Boolean,
+        right: Boolean,
+    ) {
+        if (!palette.dark) {
+            // The whole plus one step lower; the cells drawn over it leave only the line under each arm.
+            val line = palette.line
+            box.offset(0f, drop)
+            plus(canvas, box, line, line, line, line, line)
+            box.offset(0f, -drop)
+        }
+        plus(canvas, box, palette.card, arm(up), arm(down), arm(left), arm(right))
+    }
+
+    private fun arm(held: Boolean): Int = if (held) palette.accent else palette.card
+
+    /** The plus, each cell in the colour given. */
+    private fun plus(
+        canvas: Canvas,
+        box: RectF,
+        centre: Int,
+        up: Int,
+        down: Int,
+        left: Int,
+        right: Int,
+    ) {
+        val third = box.width() / ControlGeometry.DPAD_CELLS
+        val radius = minOf(corner, third / 2)
+        // The centre reaches a pixel under each arm, so no hairline of ground shows where the cells meet.
+        fill.color = centre
+        place(box, 1, 1, third)
+        cell.inset(-1f, -1f)
+        canvas.drawRect(cell, fill)
+        // Each arm is a rounded cell with its inner half squared off again, which leaves only the two corners
+        // on the outside of the plus rounded.
+        fill.color = up
+        place(box, 0, 1, third)
+        canvas.drawRoundRect(cell, radius, radius, fill)
+        canvas.drawRect(cell.left, cell.centerY(), cell.right, cell.bottom, fill)
+        fill.color = down
+        place(box, 2, 1, third)
+        canvas.drawRoundRect(cell, radius, radius, fill)
+        canvas.drawRect(cell.left, cell.top, cell.right, cell.centerY(), fill)
+        fill.color = left
+        place(box, 1, 0, third)
+        canvas.drawRoundRect(cell, radius, radius, fill)
+        canvas.drawRect(cell.centerX(), cell.top, cell.right, cell.bottom, fill)
+        fill.color = right
+        place(box, 1, 2, third)
+        canvas.drawRoundRect(cell, radius, radius, fill)
+        canvas.drawRect(cell.left, cell.top, cell.centerX(), cell.bottom, fill)
+    }
+
+    /** Sets [cell] to ([row], [col]) of the d-pad's 3x3 grid inside [box]. */
+    private fun place(
+        box: RectF,
+        row: Int,
+        col: Int,
+        third: Float,
+    ) {
+        cell.set(
+            box.left + col * third,
+            box.top + row * third,
+            box.left + (col + 1) * third,
+            box.top + (row + 1) * third,
+        )
+    }
+
+    /** A stick's thumb: the off grey at rest, the accent while a finger holds it. */
+    fun thumb(
+        canvas: Canvas,
+        cx: Float,
+        cy: Float,
+        radius: Float,
+        held: Boolean,
+    ) {
+        fill.color = if (held) palette.accent else palette.off
+        canvas.drawCircle(cx, cy, radius, fill)
+    }
+
+    /**
+     * What is written on a control, bold, at 13 sp on a small one and 15 sp otherwise: on-accent while [on],
+     * dim on a d-pad or a stick, whose label names the control rather than sitting on the part pressed, and
+     * ink on the rest.
+     */
+    fun label(
+        canvas: Canvas,
+        value: String,
+        kind: ControlKind,
+        box: RectF,
+        on: Boolean,
+    ) {
+        text.textSize = if (box.width() < narrow) smallText else largeText
+        text.color =
+            when {
+                on -> palette.onAccent
+                kind == ControlKind.DPAD || kind == ControlKind.STICK -> palette.dim
+                else -> palette.ink
+            }
+        canvas.drawText(value, box.centerX(), box.centerY() + text.textSize * Type.CAP_CENTRE, text)
+    }
+
+    /** The accent ring round the control the editor has lifted, just outside its edge. */
+    fun ring(
+        canvas: Canvas,
+        kind: ControlKind,
+        box: RectF,
+    ) {
+        val out = ring.strokeWidth / 2
+        box.inset(-out, -out)
+        when (kind) {
+            ControlKind.BUTTON, ControlKind.STICK -> canvas.drawOval(box, ring)
+            ControlKind.SHOULDER -> canvas.drawRoundRect(box, corner + out, corner + out, ring)
+            ControlKind.DPAD -> canvas.drawRect(box, ring)
+        }
+        box.inset(out, out)
+    }
+
+    private companion object {
+        /** Narrower than this, a control's label drops from 15 sp to 13. */
+        const val NARROW_DP = 56f
+        const val RING_DP = 2f
     }
 }

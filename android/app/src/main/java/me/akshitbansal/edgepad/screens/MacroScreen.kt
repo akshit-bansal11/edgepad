@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.screens
 
+import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.text.TextPaint
@@ -9,6 +10,8 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
@@ -34,6 +37,14 @@ private const val LABEL_MAX_SP = 18f
  */
 private const val SYSTEM_BARS_DP = 56f
 
+/** A macro card's corners, and the empty state's tile's. */
+private const val CELL_RADIUS_DP = 16f
+
+// The empty state: a tile with the macro glyph in it, over a heavy title.
+private const val EMPTY_TILE_DP = 64f
+private const val EMPTY_ICON_DP = 30f
+private const val EMPTY_TITLE_SP = 22f
+
 /**
  * The laptop's macro slots, as a grid of buttons. A tap hands back the slot's index and nothing else —
  * what it launches is the laptop's business, and MainActivity.runMacro says why that is worth keeping.
@@ -57,26 +68,26 @@ object MacroScreen {
         onRun: (index: Int) -> Unit,
         onBack: () -> Unit,
     ): View {
-        // A bar of nothing but the way out. A "Macros" heading over a grid of macros repeats what the grid
-        // already says and costs it a row; an empty title draws nothing, and a TextView with neither text
-        // nor description is skipped by TalkBack, so the chevron is all that is there to read or to tap.
-        val bar = ui.bar("", onBack)
+        // The nav bar every sub-screen has, back to the surface with the name centred. It costs the grid no
+        // row: the title sits in the bar's own height, which [plan] already takes off the page.
+        val bar = ui.bar(ui.string(R.string.macros_title), onBack, backLabel = ui.string(R.string.back_to_surface))
         // A slot with no name is a hole in the laptop's list, not the end of it: it keeps the index its
         // neighbours are counted from and simply is not drawn.
         val slots = names.withIndex().filter { it.value.isNotEmpty() }
         if (slots.isEmpty()) {
             return ui.page(bar, centred = true) {
                 grow()
-                headline(ui.string(R.string.macros_empty_title), Type.TITLE).gravity = Gravity.CENTER
-                body(ui.string(R.string.macros_empty_body), Space.L).gravity = Gravity.CENTER
+                add(emptyTile(ui), width = ui.dp(EMPTY_TILE_DP), height = ui.dp(EMPTY_TILE_DP))
+                headline(ui.string(R.string.macros_empty_title), EMPTY_TITLE_SP, Space.L).gravity = Gravity.CENTER
+                body(ui.string(R.string.macros_empty_body), Space.S).gravity = Gravity.CENTER
                 grow()
             }
         }
         val pictures = slots.associate { it.index to decode(ui, icon(it.index)) }
         // Pictures and nothing else: the labels are turned off and every slot answered with one. That is the
-        // one case where the outline goes and the cell belongs entirely to the picture. A slot whose picture
-        // never arrived still has to fall back to its name, and a bare word with no border is not a button,
-        // so one missing picture keeps the outlines — and the label row that goes with them — for the lot.
+        // one case where no row is kept for a label and the card belongs entirely to the picture. A slot whose
+        // picture never arrived still has to fall back to its name, so one missing picture keeps the label row
+        // for the lot.
         val bare = !labels && pictures.values.all { it != null }
         val grid = plan(ui, slots.size, labels, bare)
         return ui.page(bar) {
@@ -99,7 +110,6 @@ object MacroScreen {
         val line: Int,
         val icon: Int,
         val labels: Boolean,
-        val bare: Boolean,
     )
 
     /**
@@ -153,7 +163,7 @@ object MacroScreen {
         // is sharp at the sizes this grid produces, so the cap became the thing making a big button look
         // empty rather than the thing keeping it honest.
         val icon = minOf(width - pad, height - pad - line - ui.dp(Space.XS)).coerceAtLeast(ui.dp(ICON_MIN_DP))
-        return Grid(columns, height, labelSp, line, icon, labels, bare)
+        return Grid(columns, height, labelSp, line, icon, labels)
     }
 
     /** How tall one line of label stands at [sp], measured in the face and size the button draws it in. */
@@ -163,7 +173,7 @@ object MacroScreen {
     ): Int {
         val paint =
             TextPaint().apply {
-                typeface = Type.face
+                typeface = Type.bold
                 textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, metrics)
             }
         return paint.fontMetricsInt.run { descent - ascent }
@@ -178,7 +188,7 @@ object MacroScreen {
         slot: IndexedValue<String>,
         picture: BitmapDrawable?,
         labels: Boolean,
-    ): String = if (picture != null && !labels) "" else slot.value.uppercase()
+    ): String = if (picture != null && !labels) "" else slot.value
 
     /** The bitmap for a slot, or null when there is none or the bytes are not a picture after all. */
     private fun decode(
@@ -223,6 +233,20 @@ object MacroScreen {
             }
         }
 
+    /** The empty state's picture: the macro glyph, dim, on a rounded card tile. */
+    private fun emptyTile(ui: Ui): View =
+        FrameLayout(ui.context).apply {
+            background = ui.rounded(ui.palette.card, CELL_RADIUS_DP)
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            addView(
+                ImageView(ui.context).apply {
+                    setImageResource(R.drawable.ic_macro)
+                    imageTintList = ColorStateList.valueOf(ui.palette.dim)
+                },
+                FrameLayout.LayoutParams(ui.dp(EMPTY_ICON_DP), ui.dp(EMPTY_ICON_DP), Gravity.CENTER),
+            )
+        }
+
     private fun button(
         ui: Ui,
         slot: IndexedValue<String>,
@@ -237,14 +261,16 @@ object MacroScreen {
         val gap = if (shown.isEmpty()) 0 else ui.dp(Space.XS)
         val reserved = if (shown.isEmpty()) 0 else grid.line
         return ui.button(shown, Ui.Style.OUTLINED) { onRun(slot.index) }.apply {
-            // Nothing but pictures on the page, so nothing needs a border to say where one button ends and
-            // the next begins. The pressed and focused states are drawn in the foreground and so survive it.
-            if (grid.bare) background = null
+            // A card on the ground, the picture over a bold ink label, rather than a tinted accent button:
+            // a wall of accent would paint the whole screen blue, and the accent is kept for what is live.
+            background = ui.rounded(ui.palette.card, CELL_RADIUS_DP)
+            setTextColor(ui.palette.ink)
+            ui.tappable(this, CELL_RADIUS_DP) { onRun(slot.index) }
             setTextSize(TypedValue.COMPLEX_UNIT_SP, grid.labelSp)
             // A long name is cut rather than wrapped, so every button in the grid stays one row tall.
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
-            // Spoken in the laptop's own spelling; the button's own label is shouted for the design.
+            // Spoken as the laptop spells it, and named the same way when the label is not drawn at all.
             contentDescription = ui.string(R.string.macros_run, slot.value)
             // TextView draws a top compound drawable at its own top padding and centres the text in what is
             // left under it, so the two are only centred together when the padding above and below is the

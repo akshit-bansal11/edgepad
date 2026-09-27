@@ -3,6 +3,8 @@ package me.akshitbansal.edgepad.screens
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.ClipDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
@@ -27,47 +29,50 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
-private const val LEADING = 1.45f
-private const val SECTION_TRACKING = 0.14f
-private const val SUB_TRACKING = 0.1f
-private const val TITLE_TRACKING = 0.02f
-private const val SECTION_TOP_DP = 22f
-private const val SUB_GAP_DP = 3f
+private const val LEADING = 1.4f
+private const val SECTION_TOP_DP = 24f
+private const val SUB_GAP_DP = 2f
 private const val FOCUS_RING_DP = 2f
-private const val TOGGLE_WIDTH_DP = 40f
-private const val TOGGLE_HEIGHT_DP = 22f
-private const val KNOB_DP = 16f
-private const val TRACK_DP = 2f
-private const val TICK_DP = 2f
-private const val TICK_BELOW_DP = 16f
-private const val THUMB_DP = 16f
+private const val KNOB_DP = 26f
+private const val KNOB_GAP_DP = 2f
+private const val TRACK_DP = 4f
+private const val TICK_DP = 3f
+private const val TICK_BELOW_DP = 18f
+private const val THUMB_DP = 28f
 private const val SEGMENT_HEIGHT_DP = 28f
-private const val SEGMENT_PAD_DP = 10f
+private const val SEGMENT_INSET_DP = 2f
+private const val SEGMENT_PAD_DP = 14f
+private const val SEGMENT_TRACK_RADIUS_DP = 9f
+private const val SEGMENT_THUMB_RADIUS_DP = 7f
 
-/** How long the segmented control's fill takes to slide to the option just tapped. */
-private const val SEGMENT_SLIDE_MS = 150L
+/** How long the segmented control's thumb takes to slide to the option just tapped. */
+private const val SEGMENT_SLIDE_MS = 200L
 private const val CHIP_DP = 32f
 private const val ICON_TOUCH_DP = 40f
-private const val BAR_START_DP = 20f
-private const val CHOSEN_DOT_DP = 8f
-private const val LEAD_DP = 22f
+private const val BACK_ICON_DP = 26f
+private const val CHECK_DP = 20f
+private const val LEAD_DP = 24f
+
+/** How far in from each side of the nav bar its centred title stays, so it never runs under the back link. */
+private const val TITLE_CLEAR_DP = 96f
 
 /**
- * The screens' shared look, after the owner's 2026-09-15 redesign: ink on a panel, JetBrains Mono
- * throughout, a 52 dp title row, hairline rows, square buttons and segments, small spaced capitals.
- * Builders only; each screen assembles its own page from them.
+ * The screens' shared look, after Edgepad 2.0: iOS-style grouped cards on a soft ground, Lato in three
+ * weights, sentence case, a nav bar with an accent back link, rounded buttons, an iOS switch and segmented
+ * control, and one accent for what is selected, on or the main action. Builders only; each screen assembles
+ * its own page from them.
  */
 class Ui(
     val context: Context,
 ) {
     enum class Style {
-        /** The one main action on a page. */
+        /** The one main action on a page: an accent fill. */
         FILLED,
 
-        /** A strong secondary action. */
+        /** A strong secondary action: a tinted accent fill. */
         OUTLINED,
 
-        /** A way out or aside. */
+        /** A way out or aside: accent text alone. */
         QUIET,
     }
 
@@ -128,44 +133,116 @@ class Ui(
     }
 
     /**
-     * A screen's title row: back when there is somewhere to go back to, else an optional [lead] such as the
-     * mark; then the name, then [actions] at the far end.
+     * A screen's nav bar. With somewhere to go back to, an accent chevron and [backLabel] (the screen it
+     * returns to) sit at the start and [title] is centred; a top-level screen passes no [onBack] and shows its
+     * name as a [Column.largeTitle] instead, so [title] is then only read out, not drawn, unless there is a
+     * [lead] such as the mark. [actions] sit at the far end.
      */
     fun bar(
         title: CharSequence,
         onBack: (() -> Unit)?,
         vararg actions: View,
         lead: View? = null,
+        backLabel: CharSequence? = null,
+    ): FrameLayout =
+        FrameLayout(context).apply {
+            minimumHeight = dp(Space.BAR)
+            setPadding(dp(Space.XS), 0, dp(Space.XS), 0)
+            val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
+            val match = ViewGroup.LayoutParams.MATCH_PARENT
+            val start =
+                LinearLayout(context).apply {
+                    gravity = Gravity.CENTER_VERTICAL
+                    if (onBack != null) {
+                        addView(back(backLabel ?: string(R.string.back), onBack))
+                    } else if (lead != null) {
+                        addView(
+                            lead,
+                            LinearLayout.LayoutParams(dp(LEAD_DP), dp(LEAD_DP)).apply {
+                                marginStart = dp(Space.M)
+                                marginEnd = dp(Space.S)
+                            },
+                        )
+                    }
+                }
+            val drawn = onBack != null || lead != null
+            val name =
+                text(title, Type.HEADING, palette.ink, face = Type.bold).apply {
+                    isAccessibilityHeading = true
+                    maxLines = 1
+                    ellipsize = TextUtils.TruncateAt.END
+                    gravity = Gravity.CENTER
+                    visibility = if (drawn && title.isNotEmpty()) View.VISIBLE else View.GONE
+                }
+            if (lead != null && onBack == null) {
+                // Beside the mark the name reads as a label, not a centred title.
+                start.addView(name)
+            } else {
+                addView(
+                    name,
+                    FrameLayout.LayoutParams(match, wrap).apply {
+                        gravity = Gravity.CENTER_VERTICAL
+                        marginStart = dp(TITLE_CLEAR_DP)
+                        marginEnd = dp(TITLE_CLEAR_DP)
+                    },
+                )
+            }
+            addView(
+                start,
+                FrameLayout.LayoutParams(wrap, match).apply {
+                    gravity = Gravity.START or Gravity.CENTER_VERTICAL
+                },
+            )
+            val end =
+                LinearLayout(context).apply {
+                    gravity = Gravity.CENTER_VERTICAL
+                    actions.forEach { addView(it) }
+                }
+            addView(
+                end,
+                FrameLayout.LayoutParams(wrap, match).apply {
+                    gravity = Gravity.END or Gravity.CENTER_VERTICAL
+                },
+            )
+        }
+
+    /** The nav bar's back link: an accent chevron and the name of the screen it returns to. */
+    private fun back(
+        label: CharSequence,
+        onBack: () -> Unit,
     ): LinearLayout =
         LinearLayout(context).apply {
             gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = dp(Space.BAR)
-            setPadding(if (onBack == null) dp(BAR_START_DP) else dp(Space.S), 0, dp(Space.S), 0)
-            if (onBack != null) {
-                addView(icon(Glyph.Shape.CHEVRON_LEFT, string(R.string.back), onBack))
-            } else if (lead != null) {
-                addView(lead, LinearLayout.LayoutParams(dp(LEAD_DP), dp(LEAD_DP)).apply { marginEnd = dp(Space.S) })
-            }
-            val name =
-                text(title, Type.HEADING, palette.ink, TITLE_TRACKING).apply {
-                    isAccessibilityHeading = true
-                    setPadding(dp(Space.XS), 0, 0, 0)
-                }
-            addView(name, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-            actions.forEach { addView(it) }
+            minimumHeight = dp(Space.TOUCH)
+            setPadding(0, 0, dp(Space.S), 0)
+            addView(
+                Glyph(context, Glyph.Shape.CHEVRON_LEFT, palette.accent),
+                LinearLayout.LayoutParams(dp(BACK_ICON_DP), dp(BACK_ICON_DP)),
+            )
+            addView(text(label, Type.HEADING, palette.accent))
+            contentDescription = string(R.string.back)
+            tappable(this, Space.S, onBack)
         }
 
-    /** An icon-only button with a 40 dp target, named for screen readers and long-press alike. */
+    /** An icon-only button in the accent, with a 40 dp target, named for screen readers and long-press alike. */
     fun icon(
         shape: Glyph.Shape,
         label: CharSequence,
         onTap: () -> Unit,
+    ): Glyph = icon(shape, label, palette.accent, onTap)
+
+    /** An icon-only button drawn in [color]. */
+    fun icon(
+        shape: Glyph.Shape,
+        label: CharSequence,
+        color: Int,
+        onTap: () -> Unit,
     ): Glyph =
-        Glyph(context, shape, palette.ink).apply {
+        Glyph(context, shape, color).apply {
             contentDescription = label
             tooltipText = label
             layoutParams = LinearLayout.LayoutParams(dp(ICON_TOUCH_DP), dp(ICON_TOUCH_DP))
-            tappable(this, onTap)
+            tappable(this, ICON_TOUCH_DP / 2, onTap)
         }
 
     fun text(
@@ -173,87 +250,123 @@ class Ui(
         sp: Float,
         color: Int,
         tracking: Float = 0f,
+        face: Typeface = Type.face,
     ): TextView =
         TextView(context).apply {
             text = value
             setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
             setTextColor(color)
-            typeface = Type.face
+            typeface = face
             letterSpacing = tracking
         }
 
+    /**
+     * Secondary text: a sub-line, a value beside a row, a footnote. The name is left over from the monospace
+     * design; it is Lato now, like everything else.
+     */
     fun mono(
         value: CharSequence,
-        sp: Float = Type.MICRO,
+        sp: Float = Type.SMALL,
         color: Int = palette.dim,
-        tracking: Float = Type.TRACKING_WIDE,
+        tracking: Float = 0f,
     ): TextView = text(value, sp, color, tracking)
 
-    /** A full-width square button. */
+    /** A full-width rounded button. */
     fun button(
         label: CharSequence,
         style: Style,
         onClick: () -> Unit,
     ): TextView {
-        val labelColor =
+        val (fill, ink) =
             when (style) {
-                Style.FILLED -> palette.background
-                Style.OUTLINED -> palette.ink
-                Style.QUIET -> palette.dim
+                Style.FILLED -> palette.accent to palette.onAccent
+                Style.OUTLINED -> palette.accentSoft to palette.accent
+                Style.QUIET -> Color.TRANSPARENT to palette.accent
             }
-        return mono(label, Type.LABEL, labelColor, Type.TRACKING_BUTTON).apply {
+        return text(label, Type.LABEL, ink, face = Type.bold).apply {
             gravity = Gravity.CENTER
             minHeight = dp(Space.BUTTON)
-            background =
-                GradientDrawable().apply {
-                    when (style) {
-                        Style.FILLED -> setColor(palette.ink)
-                        Style.OUTLINED -> setStroke(dp(Space.HAIR), palette.dim)
-                        Style.QUIET -> setStroke(dp(Space.HAIR), palette.line)
-                    }
-                }
-            tappable(this, onClick)
+            setPadding(dp(Space.L), 0, dp(Space.L), 0)
+            background = rounded(fill, Space.CARD_RADIUS)
+            tappable(this, Space.CARD_RADIUS, onClick)
         }
     }
 
-    /** A small outlined action beside a row, with a full-size touch target around it. */
+    /**
+     * A small pill action beside a row, with a full-size touch target around it. [danger] is for something
+     * that cannot be taken back from here, such as forgetting the laptop.
+     */
     fun chip(
         label: CharSequence,
         onClick: () -> Unit,
+    ): TextView = chip(label, false, onClick)
+
+    /** A chip in the danger colour when [danger] is set. */
+    fun chip(
+        label: CharSequence,
+        danger: Boolean,
+        onClick: () -> Unit,
     ): TextView =
-        mono(label, Type.MICRO, palette.ink, Type.TRACKING_BUTTON).apply {
+        text(label, Type.VALUE, if (danger) palette.danger else palette.ink, face = Type.bold).apply {
             gravity = Gravity.CENTER
             minHeight = dp(Space.TOUCH)
-            val border = GradientDrawable().apply { setStroke(dp(Space.HAIR), palette.dim) }
             val inset = (dp(Space.TOUCH) - dp(CHIP_DP)) / 2
-            background = InsetDrawable(border, 0, inset, 0, inset)
+            background = InsetDrawable(rounded(palette.faint, CHIP_DP / 2), 0, inset, 0, inset)
             // After the background: a drawable with insets resets the view's padding to those insets.
-            setPadding(dp(Space.M), 0, dp(Space.M), 0)
-            tappable(this, onClick)
+            setPadding(dp(Space.L), 0, dp(Space.L), 0)
+            tappable(this, CHIP_DP / 2, onClick)
+        }
+
+    /** A filled rounded rectangle: the one shape behind cards, buttons, chips, tiles and keys. */
+    fun rounded(
+        color: Int,
+        radiusDp: Float,
+    ): GradientDrawable =
+        GradientDrawable().apply {
+            setColor(color)
+            cornerRadius = dp(radiusDp).toFloat()
         }
 
     /** Pressed and focused states for a view drawn without the platform's own button background. */
     fun tappable(
         view: View,
         onClick: () -> Unit,
+    ) = tappable(view, 0f, onClick)
+
+    /** As [tappable], with the press and the focus ring rounded to [radius] dp to match the shape they land on. */
+    fun tappable(
+        view: View,
+        radius: Float,
+        onClick: () -> Unit,
     ) {
         view.isClickable = true
         view.isFocusable = true
+        val corner = if (radius > 0f) dp(radius).toFloat() else 0f
         view.foreground =
             StateListDrawable().apply {
                 addState(
                     intArrayOf(android.R.attr.state_pressed),
-                    GradientDrawable().apply { setColor(palette.faint) },
+                    GradientDrawable().apply {
+                        setColor(palette.faint)
+                        alpha = PRESS_ALPHA
+                        cornerRadius = corner
+                    },
                 )
                 addState(
                     intArrayOf(android.R.attr.state_focused),
-                    GradientDrawable().apply { setStroke(dp(FOCUS_RING_DP), palette.ink) },
+                    GradientDrawable().apply {
+                        setStroke(dp(FOCUS_RING_DP), palette.accent)
+                        cornerRadius = corner
+                    },
                 )
             }
         view.setOnClickListener { onClick() }
     }
 
-    /** A labelled on/off row: the platform Switch, so accessibility and focus come with it, drawn as the design's pill. */
+    /**
+     * A labelled on/off row: the platform Switch, so accessibility and focus come with it, drawn as an iOS
+     * switch -- an accent track when on, a round white knob.
+     */
     fun toggle(
         label: CharSequence,
         checked: Boolean,
@@ -265,7 +378,7 @@ class Ui(
             setTextColor(palette.ink)
             typeface = Type.face
             isChecked = checked
-            thumbDrawable = thumb()
+            thumbDrawable = knob()
             trackDrawable = track()
             thumbTintList = null
             trackTintList = null
@@ -274,9 +387,9 @@ class Ui(
         }
 
     /**
-     * Options side by side in one square outlined strip, the selected one filled with ink. The fill is a
-     * block behind the labels rather than a
-     * background on the chosen one, so it can slide from the old option to the new instead of jumping.
+     * An iOS segmented control: options side by side on a tinted track, the selected one on a raised thumb
+     * that slides. The thumb is a block behind the labels rather than a background on the chosen one, so it
+     * can slide from the old option to the new instead of jumping.
      *
      * It paints itself. Until 3.0.1 it drew the selection once and left it, which was invisible on Theme
      * and Orientation -- both rebuild the activity, so a fresh control was built already showing the new
@@ -287,19 +400,19 @@ class Ui(
         selected: Int,
         onSelect: (Int) -> Unit,
     ): View {
-        val hair = dp(Space.HAIR)
-        val height = dp(SEGMENT_HEIGHT_DP) - 2 * hair
-        // Every option is the width of the widest, measured here rather than left to wrap. Equal widths are
-        // what let the fill move by sliding alone: a fill that had to change width as it went would set its
-        // own layout params mid-slide, and the layout that followed would cancel the animation it was in.
+        val inset = dp(SEGMENT_INSET_DP)
+        val height = dp(SEGMENT_HEIGHT_DP)
+        // Every option is the width of the widest, measured in the bold face it takes when chosen, rather than
+        // left to wrap. Equal widths are what let the thumb move by sliding alone: a thumb that had to change
+        // width as it went would set its own layout params mid-slide, and the layout that followed would
+        // cancel the animation it was in.
         val paint =
             TextPaint().apply {
-                typeface = Type.face
-                letterSpacing = Type.TRACKING_WIDE
+                typeface = Type.bold
                 textSize =
                     TypedValue.applyDimension(
                         TypedValue.COMPLEX_UNIT_SP,
-                        Type.MICRO,
+                        Type.CAPTION,
                         context.resources.displayMetrics,
                     )
             }
@@ -308,14 +421,17 @@ class Ui(
             LinearLayout(context).apply {
                 options.forEach { label ->
                     addView(
-                        mono(label, Type.MICRO, palette.dim).apply { gravity = Gravity.CENTER },
+                        text(label, Type.CAPTION, palette.ink).apply { gravity = Gravity.CENTER },
                         LinearLayout.LayoutParams(width, height),
                     )
                 }
             }
         val fill =
             View(context).apply {
-                setBackgroundColor(palette.ink)
+                background =
+                    rounded(if (palette.dark) palette.off else palette.card, SEGMENT_THUMB_RADIUS_DP).apply {
+                        if (!palette.dark) setStroke(dp(Space.HAIR), palette.line)
+                    }
                 layoutParams = FrameLayout.LayoutParams(width, height)
             }
         var current = selected
@@ -325,12 +441,12 @@ class Ui(
             for (i in options.indices) {
                 val option = labels.getChildAt(i) as TextView
                 val on = i == current
-                option.setTextColor(if (on) palette.background else palette.dim)
+                option.typeface = if (on) Type.bold else Type.face
                 option.isSelected = on
             }
             val x = (current * width).toFloat()
             // Slid only once the control has been seen somewhere. The first placement is the control
-            // appearing, and a fill sliding in from the left on every page open would read as the choice
+            // appearing, and a thumb sliding in from the left on every page open would read as the choice
             // having just changed when nothing has. Animations off in system settings means it never slides.
             if (animate && shown && ValueAnimator.areAnimatorsEnabled()) {
                 fill
@@ -346,7 +462,7 @@ class Ui(
         }
 
         for (i in options.indices) {
-            tappable(labels.getChildAt(i)) {
+            tappable(labels.getChildAt(i), SEGMENT_THUMB_RADIUS_DP) {
                 if (current != i) {
                     current = i
                     paint(animate = true)
@@ -355,8 +471,8 @@ class Ui(
             }
         }
         return FrameLayout(context).apply {
-            background = GradientDrawable().apply { setStroke(hair, palette.dim) }
-            setPadding(hair, hair, hair, hair)
+            background = rounded(palette.faint, SEGMENT_TRACK_RADIUS_DP)
+            setPadding(inset, inset, inset, inset)
             addView(fill)
             addView(
                 labels,
@@ -369,7 +485,7 @@ class Ui(
         }
     }
 
-    /** A plain slider: a hairline track, a small dot under each step, and a round thumb. */
+    /** A plain slider: a rounded track filled in the accent, a dot under each step, and a round white thumb. */
     fun ruler(
         max: Int,
         progress: Int,
@@ -385,6 +501,7 @@ class Ui(
                     GradientDrawable().apply {
                         shape = GradientDrawable.OVAL
                         setColor(palette.dim)
+                        alpha = TICK_ALPHA
                         setSize(dp(TICK_DP), dp(TICK_DP))
                     },
                     0,
@@ -395,7 +512,8 @@ class Ui(
             thumb =
                 GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
-                    setColor(palette.ink)
+                    setColor(KNOB_COLOR)
+                    setStroke(dp(Space.HAIR), palette.line)
                     setSize(dp(THUMB_DP), dp(THUMB_DP))
                 }
             progressTintList = null
@@ -404,7 +522,7 @@ class Ui(
             tickMarkTintList = null
             splitTrack = false
             minimumHeight = dp(Space.TOUCH)
-            setPadding(paddingLeft, paddingTop, paddingRight, dp(Space.M))
+            setPadding(paddingLeft, paddingTop, paddingRight, dp(Space.L))
             setOnSeekBarChangeListener(
                 object : SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(
@@ -434,7 +552,7 @@ class Ui(
             if (end != null) addView(end)
         }
 
-    /** A name over a monospace sub-line. */
+    /** A bold name over a secondary sub-line. */
     fun stack(
         title: CharSequence,
         sub: CharSequence?,
@@ -443,23 +561,24 @@ class Ui(
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(0, dp(Space.M), 0, dp(Space.M))
-            addView(text(title, titleSp, palette.ink))
+            addView(text(title, titleSp, palette.ink, face = Type.bold))
             if (!sub.isNullOrEmpty()) {
-                addView(mono(sub, Type.MICRO, palette.dim, SUB_TRACKING).apply { setPadding(0, dp(SUB_GAP_DP), 0, 0) })
+                addView(mono(sub, Type.SMALL, palette.dim).apply { setPadding(0, dp(SUB_GAP_DP), 0, 0) })
             }
         }
 
+    /** A separator between two rows in a card. */
     fun hairline(): View = View(context).apply { setBackgroundColor(palette.line) }
 
     /** True when the screen is wider than tall; pages then split into two columns. */
     val landscape: Boolean
         get() = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    /** A small spaced label over a group of rows. */
+    /** A small bold header over a card, in sentence case, lined up with the card's text. */
     fun section(value: CharSequence): TextView =
-        mono(value, Type.MICRO, palette.dim, SECTION_TRACKING).apply {
+        text(value, Type.SMALL, palette.dim, face = Type.bold).apply {
             isAccessibilityHeading = true
-            setPadding(0, dp(SECTION_TOP_DP), 0, dp(Space.XS))
+            setPadding(dp(Space.CARD_PAD), dp(SECTION_TOP_DP), dp(Space.CARD_PAD), dp(Space.S))
         }
 
     /** A row with a plain label and [end] at the far side. */
@@ -479,7 +598,7 @@ class Ui(
                 gravity = Gravity.CENTER_VERTICAL
                 if (!summary.isNullOrEmpty()) {
                     addView(
-                        mono(summary, Type.MICRO, palette.dim, Type.TRACKING_ROW).apply {
+                        mono(summary, Type.VALUE, palette.dim).apply {
                             maxLines = 1
                             ellipsize = TextUtils.TruncateAt.END
                         },
@@ -503,7 +622,7 @@ class Ui(
     ): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            val value = mono(valueOf(progress), Type.SMALL, palette.dim, Type.TRACKING_ROW)
+            val value = mono(valueOf(progress), Type.VALUE, palette.dim)
             addView(
                 field(label, value).apply {
                     minimumHeight = 0
@@ -519,7 +638,10 @@ class Ui(
             addView(track)
         }
 
-    /** One of [names], a row each under a hairline, the chosen one marked with a dot. [onPick] gets the index. */
+    /**
+     * One of [names], a row each with a separator between, the chosen one marked with an accent check. Meant
+     * to sit in a [Column.card]. [onPick] gets the index.
+     */
     fun choices(
         names: List<CharSequence>,
         selected: Int,
@@ -527,93 +649,74 @@ class Ui(
     ): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            // The dot moves itself. A caller that rebuilt the page to move it would throw away the scroll
+            // The check moves itself. A caller that rebuilt the page to move it would throw away the scroll
             // position with it, which on a list longer than the screen puts the user back at the top every
             // time they pick -- the list of things a shape can run is exactly that long.
             val rows = ArrayList<LinearLayout>(names.size)
-            val dots = ArrayList<View>(names.size)
+            val checks = ArrayList<View>(names.size)
             var current = selected
 
             fun paint() {
                 rows.forEachIndexed { i, row ->
                     val chosen = i == current
-                    dots[i].visibility = if (chosen) View.VISIBLE else View.INVISIBLE
+                    checks[i].visibility = if (chosen) View.VISIBLE else View.INVISIBLE
                     row.isSelected = chosen
                     row.stateDescription = if (chosen) string(R.string.chosen) else null
                 }
             }
             names.forEachIndexed { i, name ->
+                if (i > 0) addView(hairline(), ViewGroup.LayoutParams.MATCH_PARENT, dp(Space.HAIR))
                 val row = field(name)
                 row.minimumHeight = dp(Space.TOUCH)
-                val dot =
-                    View(context).apply {
-                        background =
-                            GradientDrawable().apply {
-                                shape = GradientDrawable.OVAL
-                                setColor(palette.ink)
-                            }
+                val check =
+                    Glyph(context, Glyph.Shape.CHECK, palette.accent).apply {
                         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                     }
-                row.addView(
-                    dot,
-                    LinearLayout.LayoutParams(dp(CHOSEN_DOT_DP), dp(CHOSEN_DOT_DP)).apply { marginEnd = dp(Space.S) },
-                )
+                row.addView(check, LinearLayout.LayoutParams(dp(CHECK_DP), dp(CHECK_DP)))
                 rows += row
-                dots += dot
+                checks += check
                 tappable(row) {
                     current = i
                     paint()
                     onPick(i)
                 }
                 addView(row)
-                addView(hairline(), ViewGroup.LayoutParams.MATCH_PARENT, dp(Space.HAIR))
             }
             paint()
         }
 
     private fun track(): Drawable =
         StateListDrawable().apply {
-            addState(intArrayOf(android.R.attr.state_checked), pill(filled = true))
-            addState(intArrayOf(), pill(filled = false))
+            addState(intArrayOf(android.R.attr.state_checked), pill(palette.accent))
+            addState(intArrayOf(), pill(palette.off))
         }
 
-    private fun pill(filled: Boolean): Drawable =
-        GradientDrawable().apply {
-            cornerRadius = dp(TOGGLE_HEIGHT_DP) / 2f
-            setSize(dp(TOGGLE_WIDTH_DP), dp(TOGGLE_HEIGHT_DP))
-            if (filled) setColor(palette.ink) else setStroke(dp(Space.HAIR), palette.dim)
+    // The platform Switch is twice its thumb wide and slides the thumb by one thumb width, so the track is
+    // drawn at that size: a 60 by 30 pill whose knob keeps the same 2 dp gap from every edge at both ends.
+    private fun pill(color: Int): Drawable =
+        rounded(color, (KNOB_DP + 2 * KNOB_GAP_DP) / 2).apply {
+            val size = dp(KNOB_DP + 2 * KNOB_GAP_DP)
+            setSize(2 * size, size)
         }
 
-    private fun thumb(): Drawable =
-        StateListDrawable().apply {
-            addState(intArrayOf(android.R.attr.state_checked), knob(palette.background))
-            addState(intArrayOf(), knob(palette.dim))
-        }
-
-    // Half the track wide, so the platform Switch's travel is exactly the track's free width.
-    private fun knob(color: Int): Drawable {
-        val size = dp(KNOB_DP)
-        val side = (dp(TOGGLE_WIDTH_DP) / 2 - size) / 2
-        val top = (dp(TOGGLE_HEIGHT_DP) - size) / 2
+    private fun knob(): Drawable {
         val dot =
             GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
-                setColor(color)
-                setSize(size, size)
+                setColor(KNOB_COLOR)
+                if (!palette.dark) setStroke(dp(Space.HAIR), palette.line)
+                setSize(dp(KNOB_DP), dp(KNOB_DP))
             }
-        return InsetDrawable(dot, side, top, side, top)
+        val gap = dp(KNOB_GAP_DP)
+        return InsetDrawable(dot, gap, gap, gap, gap)
     }
 
-    /** The track: the line in the theme's line colour, with the part up to the thumb in ink. */
+    /** The track: a rounded line in the off colour, with the part up to the thumb in the accent. */
     private fun sliderTrack(): Drawable {
-        fun bar(color: Int) =
-            GradientDrawable().apply {
-                setColor(color)
-                setSize(0, dp(TRACK_DP))
-            }
+        fun bar(color: Int) = rounded(color, TRACK_DP / 2).apply { setSize(0, dp(TRACK_DP)) }
         val layers =
             LayerDrawable(
-                arrayOf(bar(palette.line), ClipDrawable(bar(palette.ink), Gravity.START, ClipDrawable.HORIZONTAL)),
+                arrayOf(bar(palette.off), ClipDrawable(bar(palette.accent), Gravity.START, ClipDrawable.HORIZONTAL)),
             )
         layers.setId(0, android.R.id.background)
         layers.setId(1, android.R.id.progress)
@@ -622,6 +725,16 @@ class Ui(
             layers.setLayerHeight(i, dp(TRACK_DP))
         }
         return layers
+    }
+
+    private companion object {
+        /** Switch knobs and slider thumbs are white in both themes, as on iOS. */
+        const val KNOB_COLOR = 0xFFFFFFFF.toInt()
+
+        /** A press darkens by the faint colour at this alpha, so it shows on a card and on the ground alike. */
+        const val PRESS_ALPHA = 200
+
+        const val TICK_ALPHA = 128
     }
 }
 
@@ -648,7 +761,7 @@ class Column(
 
     fun mono(
         value: CharSequence,
-        sp: Float = Type.MICRO,
+        sp: Float = Type.SMALL,
         color: Int = ui.palette.dim,
         topDp: Float = 0f,
     ): TextView = add(ui.mono(value, sp, color), topDp)
@@ -657,15 +770,51 @@ class Column(
         value: CharSequence,
         sp: Float,
         topDp: Float = 0f,
-    ): TextView = add(ui.text(value, sp, ui.palette.ink, Type.TRACKING_TIGHT), topDp)
+    ): TextView = add(ui.text(value, sp, ui.palette.ink, Type.TRACKING_TIGHT, Type.black), topDp)
+
+    /** A top-level screen's name, large and heavy, under a nav bar that carries only actions. */
+    fun largeTitle(value: CharSequence): TextView =
+        add(
+            ui.text(value, Type.LARGE_TITLE, ui.palette.ink, Type.TRACKING_TIGHT, Type.black).apply {
+                isAccessibilityHeading = true
+                setPadding(ui.dp(Space.XS), 0, 0, ui.dp(Space.S))
+            },
+        )
 
     fun body(
         value: CharSequence,
         topDp: Float = 0f,
-    ): TextView = add(ui.text(value, Type.BODY, ui.palette.dim).apply { setLineSpacing(0f, LEADING) }, topDp)
+    ): TextView = add(ui.text(value, Type.VALUE, ui.palette.dim).apply { setLineSpacing(0f, LEADING) }, topDp)
+
+    /** A line of explanation under a card, lined up with the card's text. */
+    fun footnote(value: CharSequence): TextView =
+        add(
+            ui.text(value, Type.SMALL, ui.palette.dim).apply {
+                setLineSpacing(0f, LEADING)
+                setPadding(ui.dp(Space.CARD_PAD), ui.dp(Space.S), ui.dp(Space.CARD_PAD), 0)
+            },
+        )
 
     fun section(value: CharSequence) {
         add(ui.section(value))
+    }
+
+    /**
+     * A grouped card: rows on a rounded [Palette.card] fill with [Space.CARD_PAD] either side. Put a
+     * [hairline] between rows, never after the last.
+     */
+    fun card(
+        topDp: Float = 0f,
+        fill: Column.() -> Unit,
+    ): LinearLayout {
+        val inner =
+            LinearLayout(ui.context).apply {
+                orientation = LinearLayout.VERTICAL
+                background = ui.rounded(ui.palette.card, Space.CARD_RADIUS)
+                setPadding(ui.dp(Space.CARD_PAD), 0, ui.dp(Space.CARD_PAD), 0)
+            }
+        Column(ui, inner).fill()
+        return add(inner, topDp)
     }
 
     /** Two runs of rows: side by side when the screen is sideways, one after the other when it is upright. */
@@ -685,7 +834,7 @@ class Column(
             pair.addView(
                 run,
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    if (i == 1) marginStart = ui.dp(Space.XXL)
+                    if (i == 1) marginStart = ui.dp(Space.XL)
                 },
             )
         }

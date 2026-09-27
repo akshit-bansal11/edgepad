@@ -1,6 +1,5 @@
 package me.akshitbansal.edgepad.screens
 
-import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.view.Gravity
 import android.view.View
@@ -14,8 +13,10 @@ import me.akshitbansal.edgepad.surface.Perimeter
 
 /** What each corner of the surface holds: pick a corner, then pick its dial from the list beside or below it. */
 object CornersScreen {
-    private const val ICON_DP = 18f
+    private const val ICON_DP = 20f
+    private const val ICON_RADIUS_DP = 6f
     private const val ICON_MARK_DP = 8f
+    private const val ICON_MARK_RADIUS_DP = 2f
     private const val ICON_INSET_DP = 2f
     private const val ICON_GAP_DP = 14f
 
@@ -27,7 +28,7 @@ object CornersScreen {
             R.string.corner_bottom_left,
         )
 
-    /** Where the filled square sits in each corner's icon, clockwise from the top left. */
+    /** Where the small mark sits in each corner's icon, clockwise from the top left. */
     private val gravities =
         intArrayOf(
             Gravity.TOP or Gravity.START,
@@ -50,26 +51,41 @@ object CornersScreen {
             corners.removeAllViews()
             assign.removeAllViews()
             for (corner in 0 until Perimeter.CORNERS) {
+                if (corner >
+                    0
+                ) {
+                    corners.addView(ui.hairline(), LinearLayout.LayoutParams.MATCH_PARENT, ui.dp(Space.HAIR))
+                }
                 corners.addView(
                     row(ui, corner, kindName(ui, settings.corner(corner)), corner == picked) {
                         picked = corner
                         render()
                     },
                 )
-                corners.addView(ui.hairline(), LinearLayout.LayoutParams.MATCH_PARENT, ui.dp(Space.HAIR))
             }
-            val title = ui.string(names[picked]).uppercase()
-            assign.addView(ui.section(ui.string(R.string.corner_assign, title)))
-            assign.addView(
-                ui.choices(kinds.map { kindName(ui, it) }, kinds.indexOf(settings.corner(picked))) { i ->
-                    settings.setCorner(picked, kinds[i])
-                    render()
-                },
-            )
+            Column(ui, assign).apply {
+                section(ui.string(R.string.corner_assign, ui.string(names[picked]).lowercase()))
+                card {
+                    add(
+                        ui.choices(kinds.map { kindName(ui, it) }, kinds.indexOf(settings.corner(picked))) { i ->
+                            settings.setCorner(picked, kinds[i])
+                            render()
+                        },
+                    )
+                }
+            }
         }
         render()
-        return ui.page(ui.bar(ui.string(R.string.corners_title), onBack)) {
-            columns({ add(corners) }, { add(assign) })
+        return ui.page(
+            ui.bar(ui.string(R.string.corners_title), onBack, backLabel = ui.string(R.string.settings_title)),
+        ) {
+            columns(
+                {
+                    section(ui.string(R.string.corners_pick))
+                    card { add(corners) }
+                },
+                { add(assign) },
+            )
         }
     }
 
@@ -87,15 +103,16 @@ object CornersScreen {
                     icon(ui, corner, picked),
                     LinearLayout.LayoutParams(ui.dp(ICON_DP), ui.dp(ICON_DP)).apply { marginEnd = ui.dp(ICON_GAP_DP) },
                 )
-                addView(ui.text(ui.string(names[corner]), Type.BODY, ui.palette.ink))
+                addView(
+                    ui.text(
+                        ui.string(names[corner]),
+                        Type.BODY,
+                        ui.palette.ink,
+                        face = if (picked) Type.bold else Type.face,
+                    ),
+                )
             }
-        val end =
-            ui.mono(
-                value.uppercase(),
-                Type.MICRO,
-                if (picked) ui.palette.ink else ui.palette.dim,
-                Type.TRACKING_ROW,
-            )
+        val end = ui.mono(value, Type.VALUE, if (picked) ui.palette.accent else ui.palette.dim)
         return ui.row(start, end).apply {
             isSelected = picked
             if (picked) stateDescription = ui.string(R.string.chosen)
@@ -103,7 +120,7 @@ object CornersScreen {
         }
     }
 
-    /** A small square with a filled square in the corner it stands for; decoration beside the corner's name. */
+    /** A small rounded tile with a mark in the corner it stands for; decoration beside the corner's name. */
     private fun icon(
         ui: Ui,
         corner: Int,
@@ -111,16 +128,10 @@ object CornersScreen {
     ): View =
         View(ui.context).apply {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            val box =
-                GradientDrawable().apply {
-                    setStroke(
-                        ui.dp(Space.HAIR),
-                        if (picked) ui.palette.ink else ui.palette.dim,
-                    )
-                }
-            val mark = GradientDrawable().apply { setColor(ui.palette.ink) }
+            val tile = ui.rounded(ui.palette.faint, ICON_RADIUS_DP)
+            val mark = ui.rounded(if (picked) ui.palette.accent else ui.palette.dim, ICON_MARK_RADIUS_DP)
             background =
-                LayerDrawable(arrayOf(box, mark)).apply {
+                LayerDrawable(arrayOf(tile, mark)).apply {
                     val inset = ui.dp(ICON_INSET_DP)
                     setLayerSize(1, ui.dp(ICON_MARK_DP), ui.dp(ICON_MARK_DP))
                     setLayerGravity(1, gravities[corner])

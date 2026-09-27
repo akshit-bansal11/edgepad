@@ -4,15 +4,14 @@
 
   <!-- Finding the laptop -->
   <string name="pairing_title">Devices</string>
-  <string name="pairing_count">PAIRED · %1$d</string>
-  <string name="device_sub">%1$s · %2$s</string>
-  <string name="device_connected">CONNECTED</string>
-  <string name="device_remembered">REMEMBERED</string>
-  <string name="device_connecting">CONNECTING…</string>
-  <string name="device_rtt">%1$.0f MS</string>
-  <string name="devices_legend">REMEMBERED · CONNECTS ON LAUNCH</string>
-  <string name="devices_legend_off">REMEMBERED</string>
-  <string name="open_controls">OPEN CONTROLS</string>
+  <string name="paired_laptops">Paired laptops</string>
+  <string name="device_connected">Connected</string>
+  <string name="device_remembered">Remembered</string>
+  <string name="device_connecting">Connecting…</string>
+  <string name="device_rtt">%1$.0f ms</string>
+  <string name="devices_legend">The remembered laptop connects when Edgepad opens.</string>
+  <string name="devices_legend_off">Tap a laptop to connect.</string>
+  <string name="open_controls">Open controls</string>
   <string name="open_bluetooth_settings">Bluetooth settings</string>
   <string name="refresh">Refresh the list</string>
   <string name="bluetooth_off">Bluetooth is off. Turn it on, then come back.</string>
@@ -23,23 +22,23 @@
   <string name="status_closed">Not connected: %1$s</string>
 
   <!-- Connection lost -->
-  <string name="lost_title">Laptop out of reach.</string>
+  <string name="lost_title">Laptop out of reach</string>
   <string name="lost_body">%1$s stopped answering. Every control is paused, and nothing you press is queued.</string>
-  <string name="lost_attempt">RECONNECTING · ATTEMPT %1$d OF %2$d</string>
-  <string name="lost_stopped">STOPPED RETRYING</string>
-  <string name="lost_off">AUTOMATIC RECONNECT IS OFF</string>
-  <string name="lost_last_seen">LAST SEEN %1$s AGO · %2$s</string>
-  <string name="retry_now">RETRY NOW</string>
-  <string name="pick_another">PICK ANOTHER DEVICE</string>
+  <string name="lost_attempt">Reconnecting · attempt %1$d of %2$d</string>
+  <string name="lost_stopped">Stopped retrying</string>
+  <string name="lost_off">Automatic reconnect is off</string>
+  <string name="lost_last_seen">Last seen %1$s ago · %2$s</string>
+  <string name="retry_now">Retry now</string>
+  <string name="pick_another">Pick another device</string>
 
   <!-- Settings -->
   <string name="settings_title">Settings</string>
   <string name="back">Back</string>
   <string name="no_laptop">No laptop remembered</string>
-  <string name="forget">FORGET</string>
-  <string name="detail_connected">CONNECTED</string>
-  <string name="detail_connected_rtt">CONNECTED · %1$.0f MS</string>
-  <string name="detail_remembered">REMEMBERED · NOT CONNECTED</string>
+  <string name="forget">Forget</string>
+  <string name="detail_connected">Connected</string>
+  <string name="detail_connected_rtt">Connected · %1$.0f ms</string>
+  <string name="detail_remembered">Remembered · not connected</string>
   <string name="reconnect_automatically">Reconnect automatically</string>
   <string name="corner_top_left">Top left</string>
   <string name="corner_top_right">Top right</string>
@@ -47,16 +46,16 @@
   <string name="corner_bottom_left">Bottom left</string>
   <string name="corner_off">Off</string>
   <string name="media_layout_title">Media layout</string>
-  <string name="media_layout_hint">DRAG A PIECE TO MOVE IT · IT SNAPS TO THE GRID AND THE CENTRE LINES</string>
-  <string name="piece_now_playing">NOW PLAYING</string>
-  <string name="piece_transport">PREV / PLAY / NEXT</string>
-  <string name="media_layout_reset">RESET</string>
+  <string name="media_layout_hint">Drag a piece to move it. It snaps to the grid and the centre lines.</string>
+  <string name="piece_now_playing">Now playing</string>
+  <string name="piece_transport">Prev · play · next</string>
+  <string name="media_layout_reset">Reset</string>
   <string name="editor_options">Options</string>
-  <string name="editor_done">DONE</string>
+  <string name="editor_done">Done</string>
   <string name="media_scale">Size</string>
   <string name="gestures_title">Trackpad</string>
-  <string name="gestures_fingers">%1$d FINGERS</string>
-  <string name="trackpad_feel">POINTER</string>
+  <string name="gestures_fingers">%1$d fingers</string>
+  <string name="trackpad_feel">Pointer</string>
   <string name="pointer_speed">Pointer speed</string>
   <string name="scroll_speed">Scroll speed</string>
   <string name="gesture_three_tap">Tap</string>
@@ -99,26 +98,24 @@
   <string name="snap_round">Snap to round numbers</string>
   <string name="natural_scrolling">Natural scrolling</string>
   <string name="gesture_hints">Show gesture hints</string>
-  <string name="settings_appearance">APPEARANCE</string>
+  <string name="settings_appearance">Appearance</string>
   <string name="theme">Theme</string>
-  <string name="theme_dark">DARK</string>
-  <string name="theme_light">LIGHT</string>
+  <string name="theme_dark">Dark</string>
+  <string name="theme_light">Light</string>
   <string name="orientation">Orientation</string>
-  <string name="orientation_upright">UPRIGHT</string>
-  <string name="orientation_sideways">SIDEWAYS</string>
+  <string name="orientation_upright">Upright</string>
+  <string name="orientation_sideways">Sideways</string>
   <string name="dial_preview_description">Preview of a corner dial at the chosen size</string>
-  <string name="macro_buttons">Macro buttons</string>
-  <string name="macro_buttons_label">ICON + LABEL</string>
-  <string name="macro_buttons_icon">ICON ONLY</string>
+  <string name="macro_labels">Show macro labels</string>
   <string name="keyboard_text_size">Keyboard text size</string>
   <string name="control_color">Control colour</string>
-  <string name="control_color_auto">AUTO</string>
-  <string name="control_color_custom">CUSTOM</string>
+  <string name="control_color_auto">Auto</string>
+  <string name="control_color_custom">Custom</string>
   <string name="background">Background</string>
-  <string name="background_theme">THEME</string>
-  <string name="background_color">COLOUR</string>
-  <string name="background_gradient">GRADIENT</string>
-  <string name="background_image">IMAGE</string>
+  <string name="background_theme">Theme</string>
+  <string name="background_color">Colour</string>
+  <string name="background_gradient">Gradient</string>
+  <string name="background_image">Image</string>
   <string name="background_pick_image">Choose image</string>
   <string name="background_image_set">An image is set</string>
   <string name="background_image_none">No image yet</string>
@@ -126,27 +123,30 @@
   <string name="gradient_angle">Gradient angle</string>
   <string name="degrees_value">%1$d°</string>
   <string name="pattern">Pattern</string>
-  <string name="pattern_none">NONE</string>
-  <string name="pattern_squares">GRID</string>
-  <string name="pattern_dots">DOTS</string>
-  <string name="pattern_checker">CHECKER</string>
+  <string name="pattern_none">None</string>
+  <string name="pattern_squares">Grid</string>
+  <string name="pattern_dots">Dots</string>
+  <string name="pattern_checker">Checker</string>
   <string name="pattern_size">Pattern size</string>
   <string name="pattern_color">Pattern colour</string>
   <string name="pattern_opacity">Pattern opacity</string>
   <string name="percent_value">%1$d%%</string>
   <!-- Shapes drawn on the trackpad -->
   <string name="shapes_title">Shapes</string>
-  <string name="shapes_summary">%1$d DRAWN</string>
-  <string name="shapes_none">NONE YET</string>
-  <string name="shapes_footnote">PRESS AND HOLD ON THE TRACKPAD UNTIL IT TICKS, THEN DRAW WITHOUT LIFTING</string>
-  <string name="shapes_empty_title">No shapes yet.</string>
+  <string name="shapes_summary">%1$d drawn</string>
+  <string name="shapes_none">None yet</string>
+  <string name="shapes_footnote">Press and hold on the trackpad until it ticks, then draw without lifting.</string>
+  <string name="shapes_empty_title">No shapes yet</string>
   <string name="shapes_empty_body">Draw one here and give it something to run. On the trackpad, press and hold until it ticks, then draw it without lifting your finger.</string>
-  <string name="shapes_add">DRAW A SHAPE</string>
+  <string name="shapes_add">Draw a shape</string>
   <string name="shapes_draw_title">Draw the shape</string>
-  <string name="shapes_draw_hint">DRAW IT IN ONE STROKE · LIFT WHEN YOU ARE DONE</string>
-  <string name="shapes_redraw">REDRAW</string>
-  <string name="shapes_save">SAVE</string>
-  <string name="shapes_delete">DELETE</string>
+  <!-- The target list's back link, which returns to the canvas. -->
+  <string name="shapes_draw_back">Draw</string>
+  <string name="shapes_target_title">What it runs</string>
+  <string name="shapes_draw_hint">Draw it in one stroke, and lift when you are done.</string>
+  <string name="shapes_redraw">Redraw</string>
+  <string name="shapes_save">Save</string>
+  <string name="shapes_delete">Delete</string>
   <string name="shapes_too_close">That is too close to a shape you already have. Draw a more distinct one.</string>
   <string name="shapes_too_short">That is too small to tell apart. Draw it larger.</string>
   <string name="shape_runs">Runs %1$s</string>
@@ -154,28 +154,28 @@
   <string name="shape_target_focus">Hide the dials and media</string>
   <string name="shape_target_lock_pad">Lock the pad</string>
 
-  <string name="settings_surface">SURFACE</string>
-  <string name="settings_controls">CONTROLS</string>
-  <string name="settings_help">HELP</string>
-  <string name="keyboard_settings_title">Keyboard</string>
-  <string name="settings_version">EDGEPAD %1$s · PROTOCOL %2$d</string>
+  <string name="settings_surface">Surface</string>
+  <string name="settings_controls">Controls</string>
+  <string name="settings_help">Help</string>
+  <string name="settings_version">Edgepad %1$s · protocol %2$d</string>
   <string name="corners_title">Corners</string>
-  <string name="corner_assign">ASSIGN · %1$s</string>
+  <string name="corners_pick">Pick a corner</string>
+  <string name="corner_assign">Assign to %1$s</string>
   <string name="chosen">Chosen</string>
   <string name="dial_feel_title">Dial feel</string>
-  <string name="feel_summary">×%1$.1f · %2$d DP</string>
-  <string name="dial_preview_caption">PREVIEW · CLOCKWISE RAISES</string>
-  <string name="gestures_footnote">TAP A GESTURE TO CHANGE ITS ACTION</string>
-  <string name="gestures_fixed">ONE AND TWO FINGERS ARE FIXED · MOVE, TAP TO CLICK, TAP AND HOLD TO DRAG · TWO FINGERS DRAG TO SCROLL, PINCH TO ZOOM, TAP TO RIGHT-CLICK</string>
-  <string name="dial_feel_each">EACH CORNER</string>
-  <string name="dial_feel_shared">SHARED</string>
-  <string name="dial_feel_each_caption">TAP A DIAL TO GIVE IT A SPEED OF ITS OWN · SHARED FOLLOWS THE SLIDER ABOVE</string>
+  <string name="feel_summary">×%1$.1f · %2$d dp</string>
+  <string name="dial_preview_caption">Preview. Clockwise raises.</string>
+  <string name="gestures_footnote">Tap a gesture to change its action. One and two fingers are fixed: move, tap to click, tap and hold to drag; two fingers drag to scroll, pinch to zoom, tap to right-click.</string>
+  <string name="dial_feel_each">Each dial</string>
+  <string name="dial_feel_shared">Shared</string>
+  <string name="dial_feel_each_caption">Move a dial off Shared to give it a speed of its own. Shared follows slide sensitivity.</string>
   <string name="appearance_title">Background &amp; pattern</string>
+  <string name="appearance_preview">Preview</string>
   <string name="background_preview_description">Preview of the control surface background</string>
   <string name="guide_title">Guide</string>
   <string name="documentation_title">Documentation</string>
-  <string name="documentation_summary">OPENS IN A BROWSER</string>
-  <string name="documentation_url" translatable="false">https://edgepad-docs.vercel.app</string>
+  <string name="documentation_summary">edgepad.vercel.app</string>
+  <string name="documentation_url" translatable="false">https://edgepad.vercel.app</string>
 
 
   <!-- Dials -->
@@ -194,16 +194,16 @@
   <string name="dial_refresh">Refresh rate</string>
   <string name="dial_refresh_short">RATE</string>
   <!-- The ruler shows the rate the laptop named for this step, not the step's own number. -->
-  <string name="dial_refresh_value">%1$d HZ</string>
+  <string name="dial_refresh_value">%1$d Hz</string>
 
   <!-- Control surface -->
   <string name="surface_description">Laptop control surface</string>
-  <string name="surface_mute">MUTE</string>
+  <string name="surface_mute">Muted</string>
   <string name="surface_unknown">…</string>
   <string name="surface_nothing_playing">Nothing playing</string>
-  <string name="surface_hints">1F MOVE · TAP CLICK\n2F SCROLL · PINCH ZOOM · TAP RIGHT-CLICK\n3F SWIPE DESKTOPS\n4F SWIPE APPS</string>
-  <string name="surface_app_time">%1$s · %2$s OF %3$s</string>
-  <string name="surface_time">%1$s OF %2$s</string>
+  <string name="surface_hints">One finger: move, tap to click\nTwo: scroll, pinch to zoom, tap to right-click\nThree: swipe desktops\nFour: swipe apps</string>
+  <string name="surface_app_time">%1$s · %2$s of %3$s</string>
+  <string name="surface_time">%1$s of %2$s</string>
   <string name="surface_play_pause">Play or pause</string>
   <string name="surface_next">Next track</string>
   <string name="surface_previous">Previous track</string>
@@ -215,11 +215,11 @@
   <string name="surface_mode_normal">Dials, media and pad all on</string>
   <string name="surface_mode_focus">Pad only · dials and media hidden</string>
   <string name="surface_mode_locked">Dials and media only · pad locked</string>
-  <string name="surface_focus_caption">DIALS AND MEDIA HIDDEN · TAP THE LOCK TO SHOW</string>
-  <string name="surface_locked_caption">PAD LOCKED · TAP THE LOCK TO UNLOCK</string>
+  <string name="surface_focus_caption">Dials and media hidden · tap the lock to show</string>
+  <string name="surface_locked_caption">Pad locked · tap the lock to unlock</string>
 
   <!-- Macros -->
   <string name="macros_run">Run %1$s</string>
-  <string name="macros_empty_title">No macros yet.</string>
+  <string name="macros_empty_title">No macros yet</string>
   <string name="macros_empty_body">Add them from Edgepad\'s tray menu on the laptop. They appear here as soon as it sends the list.</string>
 </resources>

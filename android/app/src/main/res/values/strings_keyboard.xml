@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="keyboard_title">Keyboard</string>
+  <!-- The back link on the screens opened from the surface: the keyboard, the gamepad's and the macros'. -->
+  <string name="back_to_surface">Surface</string>
+  <string name="macros_title">Macros</string>
   <string name="keyboard_description">On-screen keyboard for the laptop</string>
 </resources>

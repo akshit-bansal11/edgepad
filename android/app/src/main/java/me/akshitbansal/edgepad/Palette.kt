@@ -10,25 +10,38 @@ import android.util.TypedValue
 
 /**
  * The app's colours, read from resources so night mode picks the dark set (values-night) with no code.
- * Everything is ink on a panel: [line] draws hairlines, [dim] draws secondary text, [faint] fills a
- * pressed row.
+ * Edgepad 2.0: grouped cards ([card]) on a soft ground ([background]), [ink] text with [dim] secondary text,
+ * [line] separators inside a card, [faint] for a pressed row or a neutral fill, and one [accent] for what is
+ * selected, on, live or the main action, with [onAccent] drawn on it. [off] is a switch or slider when off.
  */
 class Palette(
     val background: Int,
+    val card: Int,
     val line: Int,
     val faint: Int,
     val ink: Int,
     val dim: Int,
+    val accent: Int,
+    val onAccent: Int,
+    val accentSoft: Int,
+    val off: Int,
+    val danger: Int,
     val dark: Boolean,
 ) {
     companion object {
         fun of(context: Context): Palette =
             Palette(
                 context.getColor(R.color.panel),
+                context.getColor(R.color.card),
                 context.getColor(R.color.line),
                 context.getColor(R.color.faint),
                 context.getColor(R.color.ink),
                 context.getColor(R.color.dim),
+                context.getColor(R.color.accent),
+                context.getColor(R.color.on_accent),
+                context.getColor(R.color.accent_soft),
+                context.getColor(R.color.off),
+                context.getColor(R.color.danger),
                 dark =
                     (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
                         Configuration.UI_MODE_NIGHT_YES,
@@ -36,55 +49,68 @@ class Palette(
     }
 }
 
-/** The type scale, in sp, with its tracking in em. One face everywhere: JetBrains Mono, bundled in res/font. */
+/** The type scale, in sp. One family everywhere, Lato (OFL, bundled in res/font), in three weights. */
 object Type {
     /** Set once by the activity before any view is built; a resource font needs a Context to load. */
     lateinit var face: Typeface
         private set
 
+    /** Names, titles, buttons and anything chosen. */
+    lateinit var bold: Typeface
+        private set
+
+    /** Large titles and the numbers a dial shows. */
+    lateinit var black: Typeface
+        private set
+
     fun load(context: Context) {
-        if (!::face.isInitialized) face = context.resources.getFont(R.font.jetbrains_mono)
+        if (::face.isInitialized) return
+        face = context.resources.getFont(R.font.lato_regular)
+        bold = context.resources.getFont(R.font.lato_bold)
+        black = context.resources.getFont(R.font.lato_black)
     }
 
-    /** Section headers, chips, the small value beside a row. */
-    const val MICRO = 10f
+    /** A tag or badge, and the small abbreviation over a dial's value. */
+    const val MICRO = 12f
 
-    /** Sub-lines under a name, footnotes. */
-    const val SMALL = 11f
+    /** Sub-lines under a name, footnotes under a card, section headers. */
+    const val SMALL = 13f
 
     /** Button labels. */
-    const val LABEL = 11f
+    const val LABEL = 17f
 
     /** Explanations under a heading or beside a control. */
-    const val CAPTION = 12f
-    const val BODY = 13f
+    const val CAPTION = 13f
+
+    /** Row labels and running text. */
+    const val BODY = 16f
 
     /** Names in a list. */
-    const val LEAD = 14f
+    const val LEAD = 16f
 
-    /** A screen's name in its title row. */
-    const val HEADING = 15f
+    /** A sub-screen's name in its nav bar. */
+    const val HEADING = 17f
 
     /** A page's headline. */
     const val TITLE = 24f
 
-    const val TRACKING_WIDE = 0.12f
-    const val TRACKING_BUTTON = 0.14f
-    const val TRACKING_TIGHT = -0.01f
+    /** A top-level screen's large title. */
+    const val LARGE_TITLE = 32f
 
-    /** The small value beside a settings row. */
-    const val TRACKING_ROW = 0.1f
+    /** The value beside a row. */
+    const val VALUE = 15f
+
+    const val TRACKING_TIGHT = -0.01f
 
     /** Where a line of text's visual centre sits above its baseline, as a fraction of the size. */
     const val CAP_CENTRE = 0.35f
 
-    /** The label paint drawn on a canvas piece: one face, centred, tracked wide, sized at [MICRO]. */
+    /** The label paint drawn on a canvas piece: bold, centred, sized at [SMALL]. */
     fun pieceLabel(metrics: DisplayMetrics): TextPaint =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = face
+            typeface = bold
             textAlign = Paint.Align.CENTER
-            letterSpacing = TRACKING_WIDE
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, MICRO, metrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, SMALL, metrics)
         }
 }
 
@@ -106,11 +132,17 @@ object Space {
     const val ROW = 52f
 
     /** A full-width button. */
-    const val BUTTON = 48f
+    const val BUTTON = 50f
 
-    /** A screen's title row. */
-    const val BAR = 52f
+    /** A screen's nav bar. */
+    const val BAR = 48f
 
     /** A page's side margin. */
-    const val PAGE = 20f
+    const val PAGE = 16f
+
+    /** Inside a grouped card, either side. */
+    const val CARD_PAD = 16f
+
+    /** A grouped card's corners. */
+    const val CARD_RADIUS = 14f
 }

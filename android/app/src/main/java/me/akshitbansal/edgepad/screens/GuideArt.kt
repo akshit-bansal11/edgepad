@@ -5,22 +5,22 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.text.TextPaint
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
-import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.roundToInt
 
 /**
- * One guide page's drawing, in a 300 by 130 frame fitted into the view over a dotted ground. The still
- * lines are a vector drawable in the theme's colours; the few parts that move are drawn here, and move
- * for five seconds after the page appears, then rest. With animations off in system settings they rest
- * from the start. The page's own text says everything the drawing shows, so screen readers skip it.
+ * One guide page's drawing, in a 300 by 130 frame fitted into a rounded card panel with a dot grid. The
+ * still lines are a vector drawable in ink and dim; the few parts that move are drawn here in the accent,
+ * and move for five seconds after the page appears, then rest. With animations off in system settings they
+ * rest from the start. The page's own text says everything the drawing shows, so screen readers skip it.
  */
 class GuideArt(
     context: Context,
@@ -45,12 +45,6 @@ class GuideArt(
     private val labels = labelsOf(context, kind)
     private val ease = AccelerateDecelerateInterpolator()
     private val ground = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.line }
-    private val border =
-        Paint().apply {
-            style = Paint.Style.STROKE
-            strokeWidth = Space.HAIR * density
-            color = palette.line
-        }
     private val line =
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
@@ -61,9 +55,8 @@ class GuideArt(
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
     private val text =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = Type.face
+            typeface = Type.bold
             textSize = LABEL_SIZE
-            letterSpacing = LABEL_TRACKING
             color = palette.dim
         }
     private var scale = 1f
@@ -74,6 +67,13 @@ class GuideArt(
 
     init {
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+        background =
+            GradientDrawable().apply {
+                setColor(palette.card)
+                cornerRadius = PANEL_RADIUS_DP * density
+            }
+        // The grid's outermost dots can land on a rounded corner; the panel's outline trims them to it.
+        clipToOutline = true
     }
 
     override fun onSizeChanged(
@@ -124,8 +124,6 @@ class GuideArt(
             }
             y += cell
         }
-        val hair = border.strokeWidth / 2
-        canvas.drawRect(hair, hair, width - hair, height - hair, border)
 
         still?.draw(canvas)
         val saved = canvas.save()
@@ -158,24 +156,24 @@ class GuideArt(
             } else {
                 1f
             }
-        fill.color = palette.ink
+        fill.color = palette.accent
         fill.alpha = (alpha * OPAQUE).roundToInt()
         canvas.drawCircle(58 + dx, 63f, 3.2f, fill)
-        line.color = palette.dim
+        line.color = palette.accent
         line.alpha = fill.alpha
         canvas.drawLine(40 + dx, 63f, 50 + dx, 63f, line)
     }
 
     /** The trackpad's ring breathes in the middle of the phone. */
     private fun anatomy(canvas: Canvas) {
-        line.color = palette.dim
+        line.color = palette.accent
         line.alpha = (wave(BREATHE_MS, BREATHE_LOW) * OPAQUE).roundToInt()
         canvas.drawCircle(150f, 60f, 10f, line)
     }
 
     /** One finger's arrow sweeps right, two fingers' rises, three fingers' wobbles. */
     private fun surface(canvas: Canvas) {
-        line.color = palette.ink
+        line.color = palette.accent
         val sweep = phase(SWEEP_MS)
         line.alpha = (fade(sweep) * OPAQUE).roundToInt()
         val dx = SWEEP_FROM + SWEEP_SPAN * sweep
@@ -190,7 +188,7 @@ class GuideArt(
         canvas.drawLine(167f, 59 + dy, 172f, 54 + dy, line)
         canvas.drawLine(172f, 54 + dy, 177f, 59 + dy, line)
 
-        line.color = palette.dim
+        line.color = palette.accent
         val wx = wobbleX()
         val wy = wobbleY()
         canvas.drawLine(258 + wx, 68 + wy, 276 + wx, 68 + wy, line)
@@ -200,16 +198,16 @@ class GuideArt(
 
     /** One key blinks, as a latched modifier waits for the next key. */
     private fun keyboard(canvas: Canvas) {
-        line.color = palette.ink
+        line.color = palette.accent
         canvas.drawRoundRect(106f, 48f, 122f, 62f, 2f, 2f, line)
-        fill.color = palette.ink
+        fill.color = palette.accent
         fill.alpha = (wave(BLINK_MS, BLINK_LOW) * OPAQUE).roundToInt()
         canvas.drawRoundRect(106f, 48f, 122f, 62f, 2f, 2f, fill)
     }
 
     /** The left stick wanders and one face button blinks. */
     private fun gamepad(canvas: Canvas) {
-        line.color = palette.ink
+        line.color = palette.accent
         canvas.drawCircle(108 + wobbleX(), 62 + wobbleY(), 5f, line)
         line.alpha = (wave(PAD_BLINK_MS, BLINK_LOW) * OPAQUE).roundToInt()
         canvas.drawCircle(196f, 72f, 5f, line)
@@ -254,8 +252,8 @@ class GuideArt(
         const val FRAME_H = 130f
         const val GROUND_DP = 16f
         const val STROKE = 1.4f
-        const val LABEL_SIZE = 8.5f
-        const val LABEL_TRACKING = 0.14f
+        const val LABEL_SIZE = 9f
+        const val PANEL_RADIUS_DP = 16f
         const val OPAQUE = 255
         const val RUN_MS = 5000f
 

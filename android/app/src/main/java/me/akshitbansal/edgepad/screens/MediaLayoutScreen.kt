@@ -2,7 +2,7 @@ package me.akshitbansal.edgepad.screens
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.DashPathEffect
+import android.graphics.Paint
 import android.graphics.RectF
 import android.view.MotionEvent
 import android.view.View
@@ -16,10 +16,13 @@ import me.akshitbansal.edgepad.surface.MediaPiece
 
 /**
  * Drag the media pieces on a full-size canvas with a snapping grid; where they land is where the surface
- * draws them. A piece near the middle snaps to it, and the centre lines light up to say so.
+ * draws them. A piece near the middle snaps to it, and the centre line it sits on turns accent to say so.
  */
 object MediaLayoutScreen {
     private val scaleRange = StepRange(Settings.MIN_MEDIA_SCALE, Settings.MAX_MEDIA_SCALE, 0.1f)
+
+    /** The hint's line height, as a multiple of its size, the same as a footnote's. */
+    private const val HINT_LEADING = 1.4f
 
     fun build(
         ui: Ui,
@@ -27,7 +30,13 @@ object MediaLayoutScreen {
         onBack: () -> Unit,
     ): View {
         val canvas = Editor(ui.context, settings)
-        return EditorFrame.build(ui, ui.string(R.string.media_layout_title).uppercase(), canvas, onBack) { close ->
+        return EditorFrame.build(
+            ui,
+            ui.string(R.string.media_layout_title),
+            canvas,
+            onBack,
+            backLabel = ui.string(R.string.settings_title),
+        ) { close ->
             LinearLayout(ui.context).apply {
                 orientation = LinearLayout.VERTICAL
                 addView(
@@ -45,11 +54,11 @@ object MediaLayoutScreen {
                     ui
                         .mono(
                             ui.string(R.string.media_layout_hint),
-                            Type.MICRO,
+                            Type.SMALL,
                             ui.palette.dim,
-                            Type.TRACKING_ROW,
                         ).apply {
-                            setPadding(0, ui.dp(Space.S), 0, ui.dp(Space.S))
+                            setLineSpacing(0f, HINT_LEADING)
+                            setPadding(0, ui.dp(Space.XS), 0, ui.dp(Space.S))
                         },
                 )
                 addView(
@@ -58,7 +67,7 @@ object MediaLayoutScreen {
                         settings.mediaScale = Settings.DEFAULT_MEDIA_SCALE
                         canvas.rescale()
                         close()
-                    }, close),
+                    }, close, Ui.Style.OUTLINED),
                 )
             }
         }
@@ -72,7 +81,14 @@ object MediaLayoutScreen {
         private val names = MediaPiece.entries.associateWith { context.getString(it.nameRes) }
         private val positions = MediaPiece.entries.associateWith { settings.piece(it) }.toMutableMap()
         private var dragging: MediaPiece? = null
-        private val dash = DashPathEffect(floatArrayOf(DASH_DP * density, GAP_DP * density), 0f)
+        private val corner = CORNER_DP * density
+        private val drop = Space.HAIR * density
+        private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+        private val shadow =
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.FILL
+                color = palette.line
+            }
 
         init {
             contentDescription = context.getString(R.string.media_layout_title)
@@ -117,13 +133,19 @@ object MediaLayoutScreen {
             super.onDraw(canvas)
             for (piece in MediaPiece.entries) {
                 bounds(piece, box)
-                // A piece at rest is dashed; the one being dragged lifts off the grid on a shadow.
+                // A piece at rest is a card, with a soft line under it on the light ground; the one being
+                // dragged turns accent and lifts off the grid on a shadow.
                 val lifted = piece == dragging
-                if (lifted) canvas.drawRoundRect(box, CORNER_DP * density, CORNER_DP * density, lift)
-                stroke.pathEffect = if (lifted) null else dash
-                stroke.color = if (lifted) palette.ink else palette.dim
-                canvas.drawRoundRect(box, CORNER_DP * density, CORNER_DP * density, stroke)
-                text.color = stroke.color
+                if (lifted) {
+                    canvas.drawRoundRect(box, corner, corner, lift)
+                } else if (!palette.dark) {
+                    box.offset(0f, drop)
+                    canvas.drawRoundRect(box, corner, corner, shadow)
+                    box.offset(0f, -drop)
+                }
+                fill.color = if (lifted) palette.accent else palette.card
+                canvas.drawRoundRect(box, corner, corner, fill)
+                text.color = if (lifted) palette.onAccent else palette.dim
                 canvas.drawText(
                     names.getValue(piece),
                     box.centerX(),
@@ -181,8 +203,7 @@ object MediaLayoutScreen {
         }
 
         private companion object {
-            const val DASH_DP = 4f
-            const val GAP_DP = 3f
+            const val CORNER_DP = 12f
         }
     }
 }

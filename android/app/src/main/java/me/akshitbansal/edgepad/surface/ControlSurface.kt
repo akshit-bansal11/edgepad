@@ -64,8 +64,29 @@ class ControlSurface(
     private val palette = Palette.of(context)
     private val backdrop = Backdrop(settings, density, palette.background)
 
-    // The one colour every control is drawn in, and its dimmed forms; the user may override the theme's.
-    private val ink = settings.controlColor ?: if (backdrop.isDark) Color.WHITE else Color.BLACK
+    // The colour the controls are drawn in, its dimmed forms, and the accent for what is live. On the theme's
+    // own background they are the theme's; on a colour, gradient or image, whichever of white or black and of
+    // the two themes' accents reads on it. A control colour the user chose is both ink and accent.
+    private val controlColor = settings.controlColor
+    private val ink =
+        controlColor ?: when {
+            backdrop.themed -> palette.ink
+            backdrop.isDark -> Color.WHITE
+            else -> Color.BLACK
+        }
+    private val accent =
+        controlColor ?: when {
+            backdrop.themed -> palette.accent
+            backdrop.isDark -> DARK_ACCENT
+            else -> LIGHT_ACCENT
+        }
+    private val onAccent =
+        when {
+            controlColor != null -> if (backdrop.isDark) Color.BLACK else Color.WHITE
+            backdrop.themed -> palette.onAccent
+            backdrop.isDark -> DARK_ON_ACCENT
+            else -> Color.WHITE
+        }
     private val dim = ink and RGB_MASK or DIM_ALPHA
     private val faint = ink and RGB_MASK or FAINT_ALPHA
 
@@ -111,12 +132,12 @@ class ControlSurface(
     private val mediaScale = settings.mediaScale
     private val logo = AppLogo(context, backdrop.isDark)
 
-    // Lucide icons, tinted once: the buttons in the dim ink, skips in ink, play and pause cut out of the disc.
-    // The lock button gets a second copy of its own icon in the full ink, drawn whenever the pad is out of
-    // [PadMode.NORMAL]. Focus announces itself — the dials and the media are simply gone — but a locked pad
-    // looks exactly like a working one, and a surface that silently swallows every touch reads as a crash
-    // rather than as a mode. Both are tinted here because onDraw may not make a Drawable.
-    private val lockIconOn = icon(R.drawable.ic_lock, ink)
+    // Lucide icons, tinted once: the buttons in the dim ink, skips in ink, play and pause on the accent disc.
+    // The lock button gets a second copy of its own icon in the accent, drawn on a round accent tint whenever
+    // the pad is out of [PadMode.NORMAL]. Focus announces itself — the dials and the media are simply gone —
+    // but a locked pad looks exactly like a working one, and a surface that silently swallows every touch
+    // reads as a crash rather than as a mode. Both are tinted here because onDraw may not make a Drawable.
+    private val lockIconOn = icon(R.drawable.ic_lock, accent)
     private val lockButton = TopButton(icon(R.drawable.ic_lock, dim), side = 0f, open = { tapLock() })
     private val topButtons =
         listOf(
@@ -128,8 +149,8 @@ class ControlSurface(
         )
     private val skipBackIcon = icon(R.drawable.ic_skip_back, ink)
     private val skipForwardIcon = icon(R.drawable.ic_skip_forward, ink)
-    private val playIcon = icon(R.drawable.ic_play, if (backdrop.isDark) Color.BLACK else Color.WHITE)
-    private val pauseIcon = icon(R.drawable.ic_pause, if (backdrop.isDark) Color.BLACK else Color.WHITE)
+    private val playIcon = icon(R.drawable.ic_play, onAccent)
+    private val pauseIcon = icon(R.drawable.ic_pause, onAccent)
 
     private val muteText = context.getString(R.string.surface_mute)
     private val unknownText = context.getString(R.string.surface_unknown)
@@ -169,6 +190,9 @@ class ControlSurface(
      * string lookup and the ellipsis — allocate, and onDraw may not. [rebuildCaption] is what fills it.
      */
     private var captionLine = ""
+
+    /** Half the caption pill's width, measured with [captionLine] because measuring is not free. */
+    private var captionHalfWidth = 0f
 
     /**
      * What the surface is showing and answering, and when the lock button last took a tap.
@@ -218,16 +242,40 @@ class ControlSurface(
             strokeWidth = dp(Space.HAIR)
         }
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val mono =
-        TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = Type.face
-            textAlign = Paint.Align.CENTER
+
+    // The play disc casts a soft accent glow downward, the one control on the surface that is lifted.
+    private val playPaint =
+        Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = accent
+            setShadowLayer(media(PLAY_GLOW_DP), 0f, media(PLAY_GLOW_DROP_DP), withAlpha(accent, PLAY_GLOW_ALPHA))
         }
     private val titlePaint =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = Type.face
+            typeface = Type.bold
             textSize = sp(TITLE_SP) * mediaScale
         }
+    private val subPaint =
+        TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = Type.face
+            textSize = sp(Type.MICRO) * mediaScale
+            color = dim
+        }
+    private val hintPaint =
+        TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = Type.face
+            textAlign = Paint.Align.CENTER
+            textSize = sp(Type.MICRO)
+            color = dim
+        }
+    private val captionPaint =
+        TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = Type.bold
+            textAlign = Paint.Align.CENTER
+            textSize = sp(Type.SMALL)
+            color = accent
+        }
+    private val lockTint = withAlpha(accent, LOCK_TINT_ALPHA)
+    private val captionTint = withAlpha(accent, CAPTION_TINT_ALPHA)
 
     init {
         keepScreenOn = true
@@ -267,12 +315,15 @@ class ControlSurface(
     ) {
         super.onSizeChanged(w, h, oldw, oldh)
         // The rulers bend round the display's own rounded corners; a square display gets a small bend anyway.
+        // A dial taller than that rounding widens the bend instead: a mark reaching past the bend's centre
+        // crosses its neighbours, which is how tall dials used to fold over themselves. See [RulerGeometry].
         val insets = rootWindowInsets
         var corner = 0
         if (insets != null) {
             for (position in CORNER_POSITIONS) corner = maxOf(corner, insets.getRoundedCorner(position)?.radius ?: 0)
         }
-        perimeter = Perimeter(w.toFloat(), h.toFloat(), maxOf(corner.toFloat(), dp(MIN_BEND_DP)))
+        val displayDp = maxOf(corner / density, MIN_BEND_DP)
+        perimeter = Perimeter(w.toFloat(), h.toFloat(), dp(RulerGeometry.bend(painter.height, displayDp)))
         dials.forEachIndexed { i, dial ->
             centres[i] = perimeter.lengthAt(dial.corner.toFloat())
             // Upright, only the top corners have the screen to themselves and keep the deep zone: the
@@ -368,8 +419,7 @@ class ControlSurface(
         val fixed = media(LOGO_DP) + dp(Space.M)
         // On a narrow screen the dials leave less than the minimum; the minimum wins and the box overlaps them.
         val roomMax = maxOf(w - 2 * dp(painter.halfLengthDp + Space.L) - fixed, media(NOW_PLAYING_MIN_TEXT_DP))
-        subText()
-        val text = maxOf(titlePaint.measureText(titleLine), mono.measureText(subLine))
+        val text = maxOf(titlePaint.measureText(titleLine), subPaint.measureText(subLine))
         val half = (fixed + text.coerceIn(media(NOW_PLAYING_MIN_TEXT_DP), roomMax)) / 2
         val tall = media(NOW_PLAYING_HEIGHT_DP) / 2
         nowPlayingBox.set(nx * w - half, ny * h - tall, nx * w + half, ny * h + tall)
@@ -398,7 +448,8 @@ class ControlSurface(
                     room,
                     TextUtils.TruncateAt.END,
                 ).toString()
-        val app = state.app.uppercase()
+        // The app's name as the laptop spells it: sentence case, never shouted.
+        val app = state.app
         val sub =
             when {
                 state.duration > 0 && app.isNotEmpty() -> {
@@ -418,8 +469,7 @@ class ControlSurface(
                     app
                 }
             }
-        subText()
-        subLine = TextUtils.ellipsize(sub, mono, room, TextUtils.TruncateAt.END).toString()
+        subLine = TextUtils.ellipsize(sub, subPaint, room, TextUtils.TruncateAt.END).toString()
         if (width > 0) layoutNowPlaying(width.toFloat(), height.toFloat())
     }
 
@@ -432,8 +482,18 @@ class ControlSurface(
         }
         for (button in topButtons) {
             // Both tints were made in the constructor; picking between them here allocates nothing.
-            val glyph = if (button === lockButton && mode != PadMode.NORMAL) lockIconOn else button.icon
-            drawIcon(canvas, glyph, button.hit.centerX(), button.hit.centerY(), dp(ICON_DP))
+            val lit = button === lockButton && mode != PadMode.NORMAL
+            if (lit) {
+                fill.color = lockTint
+                canvas.drawCircle(button.hit.centerX(), button.hit.centerY(), dp(LOCK_TINT_DP) / 2, fill)
+            }
+            drawIcon(
+                canvas,
+                if (lit) lockIconOn else button.icon,
+                button.hit.centerX(),
+                button.hit.centerY(),
+                dp(ICON_DP),
+            )
         }
         if (showHints) drawHints(canvas)
         // Above the hints and before the fingers: a mode the user has just chosen is worth more of the
@@ -492,27 +552,26 @@ class ControlSurface(
         val cy = box.centerY() - dp(PROGRESS_BELOW_DP) / 2
         if (state.app.isEmpty()) {
             stroke.color = faint
-            canvas.drawRect(cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2, stroke)
+            val corner = size * LOGO_ROUNDING
+            canvas.drawRoundRect(cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2, corner, corner, stroke)
         } else {
             logo.draw(canvas, state.app, cx, cy, size, ink)
         }
         val textX = box.left + size + dp(Space.M)
         canvas.drawText(titleLine, textX, cy - dp(Space.XS), titlePaint)
-        subText()
-        mono.textAlign = Paint.Align.LEFT
-        canvas.drawText(subLine, textX, cy + mono.textSize + dp(Space.S), mono)
-        mono.textAlign = Paint.Align.CENTER
+        canvas.drawText(subLine, textX, cy + subPaint.textSize + dp(Space.S), subPaint)
         // The progress line only when no dial scrubs; then it can be slid itself.
         if (scrubOnADial) return
         val progressY = box.bottom
         stroke.color = faint
         stroke.strokeWidth = dp(PROGRESS_STROKE_DP)
         canvas.drawLine(box.left, progressY, box.right, progressY, stroke)
-        stroke.color = ink
+        // What has played is live, so it takes the accent, as a level dial's held notches do.
+        stroke.color = accent
         val fraction = if (scrubbing) scrubFraction else playedFraction()
         canvas.drawLine(box.left, progressY, box.left + box.width() * fraction, progressY, stroke)
         stroke.strokeWidth = dp(Space.HAIR)
-        fill.color = ink
+        fill.color = accent
         canvas.drawCircle(
             box.left + box.width() * fraction,
             progressY,
@@ -536,54 +595,54 @@ class ControlSurface(
             (state.level(ControlId.MEDIA_POSITION) ?: 0) / Dial.MAX_LEVEL
         }
 
-    private fun subText() {
-        mono.textSize = sp(SUB_SP) * mediaScale
-        mono.letterSpacing = SUB_TRACKING
-        mono.color = dim
-    }
-
     private fun drawHints(canvas: Canvas) {
-        hintText()
         val y = hintTop()
-        hintLines.forEachIndexed { i, line -> canvas.drawText(line, width / 2f, y + i * dp(HINT_GAP_DP), mono) }
+        hintLines.forEachIndexed { i, line -> canvas.drawText(line, width / 2f, y + i * dp(HINT_GAP_DP), hintPaint) }
     }
 
     /**
-     * The mode caption, centred one gap above where the first hint line sits — above it whether or not the
-     * hints are switched on, so the caption never moves between two phones that differ only in that.
+     * The mode caption, a small accent pill centred one gap above where the first hint line sits — above it
+     * whether or not the hints are switched on, so the caption never moves between two phones that differ
+     * only in that.
      *
      * The band just above the middle is the part of the surface nothing else claims. Higher up is taken: the
-     * button row ends 64dp down and a top corner dial's label and number sit around 68dp in from both the
-     * top and the side, which is exactly where a line under the buttons would cross them in
-     * [PadMode.PAD_LOCKED], where the dials are still drawn. Lower down is the media's: both pieces default
+     * button row ends 64dp down and a top corner dial's label and number sit around 60dp in from both the
+     * top and the side at the default height, which is exactly where a line under the buttons would cross
+     * them in [PadMode.PAD_LOCKED], where the dials are still drawn. Lower down is the media's: both pieces default
      * to the bottom fifth of the screen, and [PadMode.PAD_LOCKED] still draws those too. The finger trail
      * has no fixed place to avoid, so it is drawn after the caption and crosses over it, which is the right
      * way round — the caption is what the surface is, the trail is what the finger is doing to it.
      */
     private fun drawCaption(canvas: Canvas) {
-        hintText()
-        canvas.drawText(captionLine, width / 2f, hintTop() - dp(CAPTION_GAP_DP), mono)
+        val baseline = hintTop() - dp(CAPTION_GAP_DP)
+        val middle = baseline - captionPaint.textSize * Type.CAP_CENTRE
+        val halfHeight = captionPaint.textSize / 2 + dp(CAPTION_PAD_Y_DP)
+        val centre = width / 2f
+        fill.color = captionTint
+        canvas.drawRoundRect(
+            centre - captionHalfWidth,
+            middle - halfHeight,
+            centre + captionHalfWidth,
+            middle + halfHeight,
+            halfHeight,
+            halfHeight,
+            fill,
+        )
+        canvas.drawText(captionLine, centre, baseline, captionPaint)
     }
 
     /** Where the first hint line sits; the caption is placed off it, so the two move together. */
     private fun hintTop(): Float = height / 2f - (hintLines.size - 1) * dp(HINT_GAP_DP) / 2
-
-    /** Small, spaced and dim: the one voice the surface explains itself in. Sets no text, only the paint. */
-    private fun hintText() {
-        mono.textAlign = Paint.Align.CENTER
-        mono.textSize = sp(HINT_SP)
-        mono.letterSpacing = HINT_TRACKING
-        mono.color = dim
-    }
 
     /**
      * Rebuilds [captionLine] for the mode the surface is in now. Called from [enterMode] and from
      * [onSizeChanged], which are between them every moment either half of it can change: what it says comes
      * from the mode, and how much of it fits comes from the width.
      *
-     * A caption that ran off both edges would be worse than none, and 45 characters of spaced mono is more
-     * than a narrow phone at a large font scale has room for, so it is cut here the way the now-playing
-     * lines are — with the ellipsis made while it is legal to allocate one.
+     * A caption that ran off both edges would be worse than none, and 45 characters of bold text in a pill
+     * is more than a narrow phone at a large font scale has room for, so it is cut here the way the
+     * now-playing lines are — with the ellipsis made while it is legal to allocate one. The pill's width is
+     * measured here too, for the same reason.
      */
     private fun rebuildCaption() {
         val res =
@@ -596,15 +655,15 @@ class ControlSurface(
             captionLine = ""
             return
         }
-        hintText()
         captionLine =
             TextUtils
                 .ellipsize(
                     context.getString(res),
-                    mono,
-                    width - 2 * dp(Space.L),
+                    captionPaint,
+                    width - 2 * dp(Space.L + CAPTION_PAD_X_DP),
                     TextUtils.TruncateAt.END,
                 ).toString()
+        captionHalfWidth = captionPaint.measureText(captionLine) / 2 + dp(CAPTION_PAD_X_DP)
     }
 
     private fun drawTransport(canvas: Canvas) {
@@ -612,9 +671,8 @@ class ControlSurface(
         drawIcon(canvas, skipForwardIcon, nextHit.centerX(), nextHit.centerY(), media(SKIP_DP))
         val cx = playHit.centerX()
         val cy = playHit.centerY()
-        fill.color = ink
-        canvas.drawCircle(cx, cy, media(PLAY_DP) / 2, fill)
-        // Cut out of the disc in the background's colour: a pause while playing, else a play.
+        canvas.drawCircle(cx, cy, media(PLAY_DP) / 2, playPaint)
+        // On the accent disc in its own on-accent colour: a pause while playing, else a play.
         val glyph = if (state.flag(ControlId.MEDIA_POSITION)) pauseIcon else playIcon
         drawIcon(canvas, glyph, cx, cy, media(PLAY_ICON_DP))
     }
@@ -651,6 +709,7 @@ class ControlSurface(
             if (dial.control != null) dial.rulerLengthDp else null,
             dial.armed,
             ink,
+            accent,
             dim,
             dial.label,
             valueText(dial),
@@ -1109,6 +1168,12 @@ class ControlSurface(
 
     private fun dp(value: Float): Float = value * density
 
+    /** [color] with its alpha replaced by [fraction] of opaque. */
+    private fun withAlpha(
+        color: Int,
+        fraction: Float,
+    ): Int = color and RGB_MASK or ((fraction * MAX_ALPHA).roundToInt() shl ALPHA_SHIFT)
+
     /** A media piece's dp, at the user's media size. */
     private fun media(value: Float): Float = value * density * mediaScale
 
@@ -1132,6 +1197,27 @@ class ControlSurface(
                 RoundedCorner.POSITION_BOTTOM_LEFT,
             )
         private const val RGB_MASK = 0x00FFFFFF
+        private const val MAX_ALPHA = 255
+
+        /**
+         * The dark and light themes' accents, and the dark one's colour on it. The palette holds only the theme
+         * in use, and a colour, gradient or image background picks by its own lightness, not the theme's.
+         */
+        private const val DARK_ACCENT = 0xFF4DA3FF.toInt()
+        private const val LIGHT_ACCENT = 0xFF0068D6.toInt()
+        private const val DARK_ON_ACCENT = 0xFF0B1A2E.toInt()
+
+        /** The lit lock's round tint, and the caption pill's fill and padding. */
+        private const val LOCK_TINT_DP = 44f
+        private const val LOCK_TINT_ALPHA = 0.16f
+        private const val CAPTION_TINT_ALPHA = 0.14f
+        private const val CAPTION_PAD_X_DP = 14f
+        private const val CAPTION_PAD_Y_DP = 7f
+
+        /** The play disc's glow: how soft, how far down it falls, and how strong. */
+        private const val PLAY_GLOW_DP = 14f
+        private const val PLAY_GLOW_DROP_DP = 6f
+        private const val PLAY_GLOW_ALPHA = 0.35f
         private const val DIM_ALPHA = 0x8C000000.toInt()
         private const val FAINT_ALPHA = 0x40000000
         private const val MIN_BEND_DP = 24f
@@ -1147,15 +1233,14 @@ class ControlSurface(
         private const val HIT_SLACK_DP = 12f
         private const val JUMP_DP = 64f
         private const val SAMPLE_DP = 8f
-        private const val TITLE_SP = 14f
-        private const val SUB_SP = 10f
-        private const val SUB_TRACKING = 0.12f
+        private const val TITLE_SP = 15f
+
+        /** An empty logo slot's corners, as a fraction of its size: an app icon's rounding. */
+        private const val LOGO_ROUNDING = 0.22f
         private const val PROGRESS_BELOW_DP = 16f
         private const val PROGRESS_STROKE_DP = 2f
         private const val THUMB_DP = 8f
         private const val THUMB_HELD_DP = 14f
-        private const val HINT_SP = 9f
-        private const val HINT_TRACKING = 0.16f
         private const val HINT_GAP_DP = 16f
 
         /**

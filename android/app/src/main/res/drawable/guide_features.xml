@@ -32,7 +32,7 @@
     android:pathData="M226 70h66l8 10h-82z" />
   <path
     android:fillColor="#00000000"
-    android:strokeColor="@color/line"
+    android:strokeColor="@color/dim"
     android:strokeWidth="1.3"
     android:strokeLineCap="round"
     android:strokeLineJoin="round"
