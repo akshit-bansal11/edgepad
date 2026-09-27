@@ -47,6 +47,21 @@ public sealed class LevelOverlayTests
     public void MeasurementsScaleWithTheMonitorsDpi(int dpi, int pixels) =>
         Assert.Equal(pixels, LevelOverlay.Metrics.Scale(248, dpi));
 
+    [Theory]
+    [InlineData(96)]
+    [InlineData(144)]
+    [InlineData(192)]
+    public void ThePaddingIsTheSameOnAllFourSides(int dpi)
+    {
+        var pad = LevelOverlay.Metrics.Scale(18, dpi);
+        var cap = LevelOverlay.Metrics.Scale(20, dpi) * LevelOverlay.Metrics.CapShare;
+        var content = cap + LevelOverlay.Metrics.Scale(12, dpi) + LevelOverlay.Metrics.Scale(6, dpi);
+        var height = LevelOverlay.Metrics.PanelHeight(pad, cap, LevelOverlay.Metrics.Scale(12, dpi), LevelOverlay.Metrics.Scale(6, dpi));
+
+        // What is left above and below the content, split evenly, is the side padding to within a pixel's rounding.
+        Assert.InRange((height - content) / 2, pad - 0.5, pad + 0.5);
+    }
+
     [Fact]
     public void ThePanelIsCentredAboveTheBottomOfTheWorkingArea()
     {

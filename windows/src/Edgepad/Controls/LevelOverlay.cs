@@ -154,6 +154,20 @@ internal sealed class LevelOverlay : IDisposable
 
         public static int Scale(int value, int dpi) => Theme.Scale(value, dpi);
 
+        /// <summary>
+        /// Lato's capital and figure height as a share of its em (1433 of 2000 units): how far the value's digits
+        /// rise above their baseline, which is where the panel's top padding is measured to.
+        /// </summary>
+        public const float CapShare = 0.7165f;
+
+        /// <summary>
+        /// The panel's height for <paramref name="pad"/> on every side of the content: from the top of the value's
+        /// digits, <paramref name="cap"/> above its baseline, down <paramref name="baselineToBar"/> to the bar and
+        /// through its <paramref name="bar"/> height. The sides use the same pad, so the gap is equal all round.
+        /// </summary>
+        public static int PanelHeight(int pad, float cap, int baselineToBar, int bar) =>
+            (int)MathF.Round((2 * pad) + cap + baselineToBar + bar);
+
         public static int BarWidth(int track, int percent) =>
             (int)Math.Round(track * Math.Clamp(percent, 0, 100) / 100.0);
 
@@ -182,12 +196,14 @@ internal sealed class LevelOverlay : IDisposable
         // Measurements at 96 dpi, from the design; Metrics.Scale turns each into pixels for the monitor in front
         // of the user.
         private const int PanelWidth = 280;
-        private const int PanelHeight = 66;
         private const int Corner = 18;
-        private const int PadX = 18;
+
+        // The same on all four sides: to the icon and the value at the sides, to the digits' tops and the bar's
+        // foot above and below. The height follows from it rather than being fixed, so it cannot drift apart.
+        private const int Pad = 18;
         private const int IconSize = 22;
         private const int Gap = 14;
-        private const int RowGap = 8;
+        private const int BaselineToBar = 12;
         private const int BarHeight = 6;
         private const int LabelSize = 13;
         private const int ValueSize = 20;
@@ -287,7 +303,12 @@ internal sealed class LevelOverlay : IDisposable
         {
             var dpi = DeviceDpi;
             var work = Screen.PrimaryScreen?.WorkingArea ?? SystemInformation.WorkingArea;
-            var size = new Size(Metrics.Scale(PanelWidth, dpi), Metrics.Scale(PanelHeight, dpi));
+            var height = Metrics.PanelHeight(
+                Metrics.Scale(Pad, dpi),
+                Metrics.Scale(ValueSize, dpi) * Metrics.CapShare,
+                Metrics.Scale(BaselineToBar, dpi),
+                Metrics.Scale(BarHeight, dpi));
+            var size = new Size(Metrics.Scale(PanelWidth, dpi), height);
             var where = new Rectangle(Metrics.Anchor(work, size, Metrics.Scale(BottomMargin, dpi)), size);
             laidOutAt = dpi;
 
@@ -348,7 +369,7 @@ internal sealed class LevelOverlay : IDisposable
                 graphics.DrawPath(hairline, outline);
             }
 
-            var pad = Metrics.Scale(PadX, dpi);
+            var pad = Metrics.Scale(Pad, dpi);
             var icon = Metrics.Scale(IconSize, dpi);
             var glyph = kind switch
             {
@@ -363,12 +384,12 @@ internal sealed class LevelOverlay : IDisposable
             var right = Width - pad;
             var labelFont = Theme.Font(Metrics.Scale(LabelSize, dpi), Weight.Bold);
             var valueFont = Theme.Font(Metrics.Scale(ValueSize, dpi), Weight.Black);
-            var row = valueFont.Height;
             var bar = Metrics.Scale(BarHeight, dpi);
-            var top = (Height - row - Metrics.Scale(RowGap, dpi) - bar) / 2f;
 
-            // Label and value share a baseline, as the design's flex row aligns them.
-            var baseline = top + Ascent(valueFont);
+            // Label and value share a baseline, as the design's flex row aligns them, set so the digits' tops
+            // sit exactly one pad below the panel's top.
+            var baseline = pad + (valueFont.Size * Metrics.CapShare);
+            var top = baseline - Ascent(valueFont);
             using (var dim = new SolidBrush(Colours.Dim))
             {
                 graphics.DrawString(Metrics.Label(kind), labelFont, dim, left, baseline - Ascent(labelFont), typographic);
@@ -380,7 +401,7 @@ internal sealed class LevelOverlay : IDisposable
                 graphics.DrawString(caption, valueFont, ink, right - width, top, typographic);
             }
 
-            var track = new RectangleF(left, top + row + Metrics.Scale(RowGap, dpi), right - left, bar);
+            var track = new RectangleF(left, baseline + Metrics.Scale(BaselineToBar, dpi), right - left, bar);
             using (var off = new SolidBrush(Colours.Off))
             using (var shape = Theme.Rounded(track, bar / 2f))
             {

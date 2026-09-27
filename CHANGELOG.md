@@ -4,6 +4,13 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Fixed
+- **The corner dials sat in from the phone's real corners.** 3.1.0 kept tall dials from crossing by rounding
+  the dials' corners wider than the screen's, which left a gap. They follow the display's own rounding
+  again, and a tall dial's marks shorten smoothly into the corner instead, so they still never cross.
+- **The laptop's volume and brightness pop-up had more room at its sides than above and below.** The
+  padding is now the same on all four sides.
+
 ## [3.1.0] - 2026-09-27
 
 A new look on both halves and the website. Nothing about the wire protocol moves: it stays at version 4,
