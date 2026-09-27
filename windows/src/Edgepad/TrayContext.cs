@@ -15,7 +15,7 @@ internal sealed class TrayContext : ApplicationContext
 
     // The documentation site. The phone's Settings › Help offers the same link, so the
     // two halves point at one page rather than each explaining itself.
-    private const string DocumentationUrl = "https://edgepad-docs.vercel.app";
+    private const string DocumentationUrl = "https://edgepad.vercel.app";
 
     private readonly ToolStripMenuItem status = new("Starting…") { Enabled = false };
     private readonly ToolStripMenuItem startWithWindows = new("Start with Windows") { CheckOnClick = true };

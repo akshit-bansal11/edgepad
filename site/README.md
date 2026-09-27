@@ -3,7 +3,7 @@
 Two routes, built from the repository they document: a landing page at `/`, and the
 whole documentation on one page at `/docs`.
 
-**Live at [edgepad-docs.vercel.app](https://edgepad-docs.vercel.app).** Deployed to Vercel from the repository root (not from `site/`), because the build reads `../protocol/*.txt` — see *Hosting* below.
+**Live at [edgepad.vercel.app](https://edgepad.vercel.app).** Deployed to Vercel from the repository root (not from `site/`), because the build reads `../protocol/*.txt` — see *Hosting* below.
 
 It is **not** part of either app's quality gate and CI does not build it. `scripts/check.ps1` still checks only `android/` and `windows/`.
 
@@ -149,7 +149,10 @@ The site follows `docs/PROTOCOL.md` and the changelog, and says plainly that `SE
 
 ## Hosting
 
-Live at [edgepad-docs.vercel.app](https://edgepad-docs.vercel.app), on Vercel.
+Live at [edgepad.vercel.app](https://edgepad.vercel.app), on Vercel. The Vercel project
+is still named `edgepad-docs`, and its old domain `edgepad-docs.vercel.app` 308s to the
+new one from `vercel.json`, because Edgepad.exe through 3.0.1 has the old address in its
+tray menu. `cleanUrls` there is what makes `/docs` serve `docs.html` from the export.
 
 The site is a **static export** (`output: "export"` in `next.config.ts`): every page is
 prerendered and nothing is read at request time, so it ships as plain files with no
