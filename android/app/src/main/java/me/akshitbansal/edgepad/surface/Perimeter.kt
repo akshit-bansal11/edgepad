@@ -113,6 +113,18 @@ class Perimeter(
         pieces.last().at(pieces.last().length, out)
     }
 
+    /**
+     * How far along the path length [s] is from the nearest corner's arc: 0 on an arc, else the distance to
+     * the nearer end of its straight edge.
+     */
+    fun fromBend(s: Float): Float {
+        val d = wrap(s)
+        val piece = pieces.firstOrNull { d < it.start + it.length } ?: pieces.last()
+        if (piece !is Line) return 0f
+        val along = d - piece.start
+        return minOf(along, piece.length - along)
+    }
+
     /** Writes the nearest length along the path to ([x], [y]) and the distance to it into [out] as s, distance. */
     fun project(
         x: Float,

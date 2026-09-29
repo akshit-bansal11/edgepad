@@ -314,16 +314,16 @@ class ControlSurface(
         oldh: Int,
     ) {
         super.onSizeChanged(w, h, oldw, oldh)
-        // The rulers bend round the display's own rounded corners; a square display gets a small bend anyway.
-        // A dial taller than that rounding widens the bend instead: a mark reaching past the bend's centre
-        // crosses its neighbours, which is how tall dials used to fold over themselves. See [RulerGeometry].
+        // The rulers bend round the display's own rounded corners exactly, so they sit in the phone's real
+        // corners; a square display gets a small bend anyway. A dial taller than the rounding shortens its marks
+        // in the corner rather than widening the bend, which is what keeps them from crossing. See [RulerGeometry].
         val insets = rootWindowInsets
         var corner = 0
         if (insets != null) {
             for (position in CORNER_POSITIONS) corner = maxOf(corner, insets.getRoundedCorner(position)?.radius ?: 0)
         }
         val displayDp = maxOf(corner / density, MIN_BEND_DP)
-        perimeter = Perimeter(w.toFloat(), h.toFloat(), dp(RulerGeometry.bend(painter.height, displayDp)))
+        perimeter = Perimeter(w.toFloat(), h.toFloat(), dp(displayDp))
         dials.forEachIndexed { i, dial ->
             centres[i] = perimeter.lengthAt(dial.corner.toFloat())
             // Upright, only the top corners have the screen to themselves and keep the deep zone: the

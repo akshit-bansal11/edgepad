@@ -89,7 +89,8 @@ class RulerPainter(
             if (n % Dial.MAJOR_EVERY == 0) {
                 tint(if (lit) accent else ink, (if (lit) 1f else MAJOR_OPACITY) * fade)
                 mark.strokeWidth = dp(if (armed) ARMED_MAJOR_WIDTH_DP else MAJOR_WIDTH_DP)
-                line(canvas, inset, majorEnd, pt)
+                val limit = RulerGeometry.limit(perimeter.radius, perimeter.fromBend(centre + s))
+                line(canvas, inset, minOf(majorEnd, limit), pt)
             } else {
                 val opacity =
                     when {
@@ -105,7 +106,11 @@ class RulerPainter(
 
         perimeter.point(centre, pt)
         val start = dp(RulerGeometry.INSET_DP - INDICATOR_LEAD_DP)
-        val end = dp(RulerGeometry.indicatorEnd(height, armed))
+        val end =
+            minOf(
+                dp(RulerGeometry.indicatorEnd(height, armed)),
+                RulerGeometry.limit(perimeter.radius, perimeter.fromBend(centre)),
+            )
         tint(accent, if (armed) ARMED_GLOW_OPACITY else GLOW_OPACITY)
         mark.strokeWidth = dp(GLOW_WIDTH_DP)
         line(canvas, start, end, pt)
@@ -200,13 +205,15 @@ class RulerPainter(
 }
 
 /**
- * How far each mark of a corner ruler reaches in from the edge, in dp, and how round the edge's path must be
- * for no two marks to cross. Pure, and apart from the painter, so that promise is tested on the JVM.
+ * How far each mark of a corner ruler reaches in from the edge, in dp, and how far any mark may reach at a
+ * given place for no two to cross. Pure, and apart from the painter, so that promise is tested on the JVM.
  *
  * A mark is drawn along the path's inward normal, and on a bend of radius R every normal converges on the
- * bend's centre, so two marks cross exactly when one reaches past R. The display's own rounding is often
- * smaller than a tall dial's marks, so [bend] widens the path's corners to clear the longest mark there is,
- * [reach], instead of letting the marks fold over each other as the dials grow taller.
+ * bend's centre, so two marks cross exactly when one reaches past R. The path follows the display's own
+ * rounding exactly, so the dials sit in the phone's real corners, and a tall dial's marks are what give way:
+ * [limit] holds a mark in the bend short of its centre and lets it grow back one for one as it moves out
+ * along a straight edge, so the marks shorten smoothly into a corner instead of folding over each other.
+ * (3.1.0 widened the bend instead, which left a gap between a small display rounding and the dial.)
  */
 object RulerGeometry {
     /** Every mark starts this far in from the edge. */
@@ -218,8 +225,8 @@ object RulerGeometry {
     private const val DOT_DP = 3f
     private const val DOT_PER_HEIGHT_DP = 0.8f
 
-    /** What the bend keeps between the longest mark's end and its centre. */
-    private const val CLEAR_DP = 10f
+    /** The share of the bend's radius a mark in the bend may reach, short of the centre where normals meet. */
+    private const val BEND_REACH = 0.85f
 
     private fun grow(armed: Boolean): Float = if (armed) ARMED_GROWTH else 1f
 
@@ -241,9 +248,14 @@ object RulerGeometry {
     /** The furthest any mark reaches at [height]: the indicator, armed. */
     fun reach(height: Float): Float = indicatorEnd(height, armed = true)
 
-    /** The radius the ruler's path must bend at, given the display's own [displayRadiusDp]. */
-    fun bend(
-        height: Float,
-        displayRadiusDp: Float,
-    ): Float = maxOf(displayRadiusDp, reach(height) + CLEAR_DP)
+    /**
+     * The furthest in any mark may end, for a path bending at [radius] and a mark [fromBend] along a straight
+     * edge from the nearest bend (0 in the bend), in the path's own units. On one edge the marks are parallel;
+     * across a corner, a mark on each edge crosses only when each is longer than the other's distance from the
+     * corner, which this rules out; in the bend, no mark reaches the centre every normal meets at.
+     */
+    fun limit(
+        radius: Float,
+        fromBend: Float,
+    ): Float = BEND_REACH * radius + fromBend
 }
