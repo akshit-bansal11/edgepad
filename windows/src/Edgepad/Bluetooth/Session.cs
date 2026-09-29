@@ -35,6 +35,13 @@ internal sealed class Session(
     private const byte MutedFlag = 1;
     private const byte PlayingFlag = 1;
 
+    /// <summary>
+    /// How long an open socket may go without a HELLO. The read has no timeout of its own, so a paired device
+    /// that connects and says nothing held this thread, and before any phone is trusted the one session the
+    /// laptop serves, for as long as the link stayed up.
+    /// </summary>
+    private static readonly TimeSpan HelloTimeout = TimeSpan.FromSeconds(10);
+
     // The WinRT adapters read with partial-read semantics, so the default buffer returns as soon as
     // any bytes arrive — it saves per-byte calls without holding data back.
     private readonly Stream input = socket.InputStream.AsStreamForRead();
@@ -44,6 +51,10 @@ internal sealed class Session(
 
     // Audio notifications arrive on COM threads while the read loop sends PONGs: one writer at a time.
     private readonly Lock sendGate = new();
+
+    // Dispose runs from the server's thread, a timer's or the read loop's, while the read loop may still be
+    // adding watches: both the list and the flag are only touched under this.
+    private readonly Lock watchGate = new();
     private readonly List<IDisposable> watches = [];
     private bool disposed;
     private MediaState lastMedia = MediaSessions.Nothing;
@@ -54,7 +65,13 @@ internal sealed class Session(
         var payload = new byte[FrameCodec.MaxFrameLength];
         try
         {
-            if (ReadFrame(payload) is not Hello hello)
+            Frame first;
+            using (new System.Threading.Timer(_ => GiveUpOnHello(), null, HelloTimeout, Timeout.InfiniteTimeSpan))
+            {
+                first = ReadFrame(payload);
+            }
+
+            if (first is not Hello hello)
             {
                 Log.Write($"Refused {address}: no valid HELLO");
                 return;
@@ -65,7 +82,7 @@ internal sealed class Session(
                 // Answered with this laptop's version, so the phone can say which side needs updating.
                 Send(new HelloAck(ProtocolConstants.Version));
                 Log.Write($"Refused {address}: it speaks protocol {hello.Version}, this laptop {ProtocolConstants.Version}");
-                onStatus("Refused a phone from another release");
+                onStatus($"Refused a phone on protocol {hello.Version}; this laptop is on {ProtocolConstants.Version}");
                 return;
             }
 
@@ -100,7 +117,10 @@ internal sealed class Session(
                 }
             }
         }
-        catch (Exception e) when (e is IOException or InvalidDataException or ObjectDisposedException or COMException)
+        // A read or write the socket's closing aborted can surface as a cancellation from the WinRT stream
+        // adapters, and the HELLO timeout and a replacing phone both close the socket under a blocked read.
+        catch (Exception e) when (e is IOException or InvalidDataException or ObjectDisposedException or COMException
+            or OperationCanceledException)
         {
             Log.Write($"Session with {address} ended: {e.Message}");
         }
@@ -138,19 +158,48 @@ internal sealed class Session(
 
         Watch(speakers, ControlId.Volume);
         Watch(microphone, ControlId.MicLevel);
-        watches.Add(media.Watch(state => Guarded(() => SendMedia(state))));
+        Keep(media.Watch(state => Guarded(() => SendMedia(state))));
 
         // The macro names label buttons the phone only ever names by index, and the list changes while the
         // phone is connected: the owner adds one in the tray editor and expects the button, not a reason to
         // restart the app. Watching rather than asking once also covers the empty list, which is what tells
         // the phone to say "add some on the laptop" instead of drawing a grid that looks broken.
-        watches.Add(macros.Watch(names => Guarded(() => Send(new Text((byte)TextKind.Macros, names)))));
+        Keep(macros.Watch(names => Guarded(() => Send(new Text((byte)TextKind.Macros, names)))));
 
         // Brightness changed on the laptop itself (keys, Windows' slider) reaches the phone as it does for audio.
-        if (brightness.Watch(level => Guarded(() => SendBrightness(level))) is { } brightnessWatch)
+        Keep(brightness.Watch(level => Guarded(() => SendBrightness(level))));
+    }
+
+    /// <summary>
+    /// Holds a watch until the session ends. One that arrives after the end, because another thread disposed
+    /// the session while this one was still setting it up, is released at once: nothing else ever would, and it
+    /// would go on writing reports to a closed socket for the life of the app.
+    /// </summary>
+    private void Keep(IDisposable? watch)
+    {
+        if (watch is null)
         {
-            watches.Add(brightnessWatch);
+            return;
         }
+
+        lock (watchGate)
+        {
+            if (!disposed)
+            {
+                watches.Add(watch);
+                return;
+            }
+        }
+
+        watch.Dispose();
+    }
+
+    private void GiveUpOnHello()
+    {
+        Log.Write($"Refused {address}: no HELLO within {(int)HelloTimeout.TotalSeconds} s");
+
+        // Closing the socket is what ends the blocked read; the read loop then finishes the session as usual.
+        Dispose();
     }
 
     /// <summary>
@@ -248,11 +297,7 @@ internal sealed class Session(
 
     private void Watch(AudioEndpoint endpoint, ControlId control)
     {
-        var watch = endpoint.Watch((percent, muted) => Guarded(() => SendState(control, (percent, muted))));
-        if (watch is not null)
-        {
-            watches.Add(watch);
-        }
+        Keep(endpoint.Watch((percent, muted) => Guarded(() => SendState(control, (percent, muted)))));
     }
 
     private static void Guarded(Action send)
@@ -261,7 +306,7 @@ internal sealed class Session(
         {
             send();
         }
-        catch (Exception e) when (e is IOException or ObjectDisposedException or COMException)
+        catch (Exception e) when (e is IOException or ObjectDisposedException or COMException or OperationCanceledException)
         {
             // The read loop notices the dead socket and ends the session; a lost report costs nothing.
         }
@@ -314,24 +359,43 @@ internal sealed class Session(
 
     public void Dispose()
     {
-        // Reached twice for a session the server replaced: once by the server, once by its own read loop.
-        if (disposed)
+        // Reached twice for a session the server replaced: once by the server, once by its own read loop, and
+        // those two can race each other and the loop's own setup.
+        IDisposable[] ending;
+        lock (watchGate)
         {
-            return;
+            if (disposed)
+            {
+                return;
+            }
+
+            disposed = true;
+            ending = [.. watches];
+            watches.Clear();
         }
 
-        disposed = true;
-        foreach (var watch in watches)
+        foreach (var watch in ending)
         {
             watch.Dispose();
         }
 
-        watches.Clear();
+        // The socket first, and outside the send lock. A Send blocked in a write to a phone that has stopped
+        // reading holds that lock for as long as the write blocks; waiting for it here stalled the server's
+        // thread, and with it the new phone's session. Closing the socket aborts the write, the Send throws
+        // and lets go, and only then are the streams disposed, never under a writer's feet.
+        socket.Dispose();
         lock (sendGate)
         {
             input.Dispose();
-            output.Dispose();
-            socket.Dispose();
+            try
+            {
+                output.Dispose();
+            }
+            catch (Exception e) when (e is IOException or ObjectDisposedException or COMException or OperationCanceledException)
+            {
+                // Its buffer may still hold the aborted write, which disposing tries to flush to a closed
+                // socket. Those bytes were never going to arrive.
+            }
         }
     }
 }
