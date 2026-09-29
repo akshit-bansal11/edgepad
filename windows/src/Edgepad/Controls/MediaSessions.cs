@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Windows.Media.Control;
 
 namespace Edgepad.Controls;
@@ -22,6 +23,13 @@ internal sealed class MediaSessions : IDisposable
 
     private readonly Lock gate = new();
     private readonly List<Action<MediaState>> watchers = [];
+
+    /// <summary>
+    /// One publish at a time, each taking its snapshot only once it holds this. Fire-and-forget publishes used
+    /// to overlap, and a slow snapshot finishing after a newer one sent the phone a state that had already
+    /// passed; in turn, the reports now go out in the order their snapshots were taken.
+    /// </summary>
+    private readonly SemaphoreSlim publishing = new(1, 1);
     private GlobalSystemMediaTransportControlsSessionManager? manager;
     private GlobalSystemMediaTransportControlsSession? session;
     private System.Threading.Timer? ticker;
@@ -46,7 +54,9 @@ internal sealed class MediaSessions : IDisposable
             watchers.Add(onChange);
         }
 
-        _ = SnapshotAsync().ContinueWith(t => onChange(t.Result), TaskContinuationOptions.OnlyOnRanToCompletion);
+        // Through the same path as every other report, so it cannot overtake a newer one, and a failure is
+        // logged rather than left on a task nobody reads.
+        _ = PublishAsync(onlyIfPlaying: false, to: onChange);
         return new Subscription(() =>
         {
             lock (gate)
@@ -57,24 +67,43 @@ internal sealed class MediaSessions : IDisposable
     }
 
     /// <summary>Jumps to a point in the current track. False when nothing is playing or the player refuses seeking.</summary>
+    /// <remarks>
+    /// Guarded like <see cref="SnapshotAsync"/>: a player can answer null for either property, or vanish between
+    /// the check and the call, and this runs on the session thread, where a player closing is not a reason to
+    /// drop the phone.
+    /// </remarks>
     public bool Seek(int percent)
     {
         var current = session;
-        if (current is null || !current.GetPlaybackInfo().Controls.IsPlaybackPositionEnabled)
+        if (current is null)
         {
             return false;
         }
 
-        var timeline = current.GetTimelineProperties();
-        var span = timeline.EndTime - timeline.StartTime;
-        if (span <= TimeSpan.Zero)
+        try
         {
+            var controls = current.GetPlaybackInfo()?.Controls;
+            var timeline = current.GetTimelineProperties();
+            if (controls is null || !controls.IsPlaybackPositionEnabled || timeline is null)
+            {
+                return false;
+            }
+
+            var span = timeline.EndTime - timeline.StartTime;
+            if (span <= TimeSpan.Zero)
+            {
+                return false;
+            }
+
+            var target = timeline.StartTime + span * (percent / 100.0);
+            _ = current.TryChangePlaybackPositionAsync(target.Ticks);
+            return true;
+        }
+        catch (COMException e)
+        {
+            Log.Write($"Seek failed: {e.Message}");
             return false;
         }
-
-        var target = timeline.StartTime + span * (percent / 100.0);
-        _ = current.TryChangePlaybackPositionAsync(target.Ticks);
-        return true;
     }
 
     private void Attach(GlobalSystemMediaTransportControlsSession? next)
@@ -99,8 +128,27 @@ internal sealed class MediaSessions : IDisposable
 
     private void OnChanged(GlobalSystemMediaTransportControlsSession sender, object args) => _ = PublishAsync(onlyIfPlaying: false);
 
-    private async Task PublishAsync(bool onlyIfPlaying)
+    /// <summary>Reports the current state to every watcher, or only to <paramref name="to"/> when one is given.</summary>
+    private async Task PublishAsync(bool onlyIfPlaying, Action<MediaState>? to = null)
     {
+        lock (gate)
+        {
+            // No phone connected, nobody to tell: without this the ticker listed processes and enumerated
+            // windows every second of every day the tray app ran.
+            if (to is null && watchers.Count == 0)
+            {
+                return;
+            }
+        }
+
+        // A tick that finds the last publish still running is skipped rather than queued behind it: the next
+        // tick is a second away, and a backlog of them would only replay moments that have passed.
+        if (onlyIfPlaying && publishing.CurrentCount == 0)
+        {
+            return;
+        }
+
+        await publishing.WaitAsync();
         try
         {
             var state = await SnapshotAsync();
@@ -112,7 +160,7 @@ internal sealed class MediaSessions : IDisposable
             Action<MediaState>[] targets;
             lock (gate)
             {
-                targets = [.. watchers];
+                targets = to is not null ? [to] : [.. watchers];
             }
 
             foreach (var target in targets)
@@ -124,6 +172,10 @@ internal sealed class MediaSessions : IDisposable
         {
             // Top-level boundary of a fire-and-forget: a player vanishing mid-query must not kill the app.
             Log.Write($"Media state failed: {e.Message}");
+        }
+        finally
+        {
+            publishing.Release();
         }
     }
 
@@ -200,5 +252,6 @@ internal sealed class MediaSessions : IDisposable
     {
         ticker?.Dispose();
         Attach(null);
+        publishing.Dispose();
     }
 }
