@@ -4,17 +4,52 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+The wire protocol stays at version 4, so any 3.x half still speaks to any other; but the laptop's new trust question and the phone's longer wait for it are meant to be installed together.
+
+### Added
+
+- **The laptop asks before it trusts a phone.** The first time a phone connects while none is trusted, the tray asks "Trust this phone?" instead of trusting whichever paired phone connects first. No answer within a minute counts as Don't trust. The phone waits up to 90 seconds for the answer, and after 3 says "If the laptop asks, choose Trust there."
+- **Theme can follow the phone again:** System sits next to Dark and Light.
+- **Devices can show every paired device**, for a laptop that does not describe itself to Bluetooth as a computer.
+- The website has a skip-to-content link, canonical links, robots.txt, a sitemap and a social preview card, and the documentation lists the gamepad's button masks and PAD_STATUS tokens, generated from the protocol fixtures.
+- Blank issues are off; the issue chooser points security reports to a private advisory.
+
 ### Changed
 
 - Release downloads are named for their version, such as `Edgepad-3.1.1.apk` and `Edgepad-3.1.1.exe`, rather than `Edgepad.apk` and `Edgepad.exe`, so several downloads on one phone or laptop can be told apart. The permanent `releases/latest/download/Edgepad.apk` link no longer resolves; the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest) page is where to get both halves.
+- **The phone keeps its link for 30 seconds when you leave the app**: picking a background image, opening Bluetooth settings or the documentation, or letting the screen go off no longer drops it. Anything held down is still released at once.
+- The round trip is measured every half second only on Devices and Settings; elsewhere the phone checks the link every 5 seconds.
+- Forget trusted phone in the tray, forgetting the laptop on the phone and deleting a shape now ask first.
+- When a phone from another release is refused, the tray status names both protocol versions.
+- Release APKs are shrunk and optimised with R8.
+- Appearance's background and pattern pickers use the same segmented control as Settings.
 
 ### Fixed
 
 - **Start with Windows starts the version you last ran.** With each release now its own file, the setting kept launching the copy it was switched on from. Each start now points it at the running copy.
+- **A large background photo could crash the phone app, again on every reconnect.** The image is now decoded once at screen size, drawn the right way up, and judged light or dark by what it shows; it is copied in off the main thread, pictures over 50 MB are refused with a message, and a failed import keeps the previous picture.
+- **An unexpected error while handling one frame drops that frame** instead of closing the tray app; on the phone, one closes the link instead of the app. Seeking just as the player closed could drop the connection.
+- A phone that stopped reading could stall the next phone's connection while the laptop cleaned up the old one. A connection that never sends HELLO is closed after 10 seconds.
+- Text that ended in an emoji at the 255-byte limit arrived with a stray replacement character; both halves now cut before the emoji, identically, in one pass.
+- The media state is no longer read every second while no phone is connected, and media reports can no longer arrive out of order.
+- One failure drawing the volume and brightness readout no longer turns it off until the app restarts. Open log in the tray menu could close the app when Windows could not open the file.
+- The macro editor no longer silently drops a macro with nothing to open on Save; it points at the macro instead.
+- The macro grid updates in place as icons arrive and the Corners page as you pick, so TalkBack keeps its place, and the macro grid is sized from the screen's real system bars.
+- Reconnecting could leave two ping loops running. A rotation no longer blanks the round-trip readout, and a link that closed during a rotation is no longer missed.
+- Nearby devices is asked for once, with a way back after a refusal, including to the app's settings page; Open controls says why it is disabled.
+- The Guide's page dots, the colour swatches, the top bar's icon buttons and the editors' round buttons are full-size touch targets; segmented controls and centred titles no longer clip or overlap at large font sizes.
+- Screen readers read a slider's value as shown (×1.4, 100 dp), name colour swatches by colour, announce when the laptop drops and each reconnect attempt, and read out why a drawn shape was refused.
+- Rotating the phone with a menu or dialog open no longer leaks it, the Guide stays on the page you were reading, and the Edgepad mark can no longer crash the app while it is laid out.
+- The layout mirrors in right-to-left languages.
+- The credits name Lato, the typeface both apps bundle, and Lucide's licence ships inside both apps; the player logos are credited as their owners' trademarks. The website lists the tray menu in its real order and no longer calls the gamepad "in development".
 
 ### Security
 
 - **The laptop app's packages are locked.** Every NuGet package, transitive ones included, is pinned by version and content hash in `packages.lock.json`, and CI and the release restore in locked mode, so a package that changed under the same version fails the build rather than shipping.
+- **Releases are signed in a job of their own that waits for the maintainer's approval**; the APK is built unsigned, and the signing key never shares a machine with the build. Each release carries `SHA256SUMS.txt` and a build provenance attestation that `gh attestation verify` checks.
+- The website sends a Content-Security-Policy, `nosniff`, a referrer policy and a Permissions-Policy.
+- The imported background photo is excluded from cloud backup and device transfer.
+- The signing-key script keeps the key's password encrypted with DPAPI instead of in a plain text file.
 
 ## [3.1.1] - 2026-09-27
 

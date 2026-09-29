@@ -256,8 +256,10 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
           never blocks, so touch handling never waits on the link. Every callback into
           the activity is posted to the main thread. The link is kept across
           configuration changes through <C>onRetainNonConfigurationInstance</C> with its
-          listener swapped to the new activity, and closed when the app leaves the
-          foreground.
+          listener swapped to the new activity. When the app leaves the foreground,
+          anything held down is released at once, but the link is kept for 30 seconds,
+          so a background-image pick or a trip to Bluetooth settings does not drop it;
+          it closes if the app is not back by then.
         </P>
 
         <Sub>On the laptop</Sub>
