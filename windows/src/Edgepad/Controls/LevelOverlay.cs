@@ -28,7 +28,13 @@ internal sealed class LevelOverlay : IDisposable
     /// </summary>
     private readonly SynchronizationContext ui;
 
+    /// <summary>Presents that may fail in a row before the overlay stops trying.</summary>
+    private const int MaxFailures = 3;
+
     private OverlayWindow? window;
+
+    /// <summary>Presents that have failed since the last one that worked. Only touched on the UI thread.</summary>
+    private int failures;
 
     /// <summary>Set once the overlay is disposed, or once building it has failed and is not worth retrying.</summary>
     private volatile bool stopped;
@@ -93,17 +99,27 @@ internal sealed class LevelOverlay : IDisposable
         {
             window ??= new OverlayWindow();
             window.Present(kind, caption, percent, muted);
+            failures = 0;
         }
         catch (Exception e)
         {
-            // Nothing here is load-bearing: the phone has already changed the level, this only says so. A
-            // display setup that cannot host the window switches the readout off for the session rather than
-            // logging the same failure on every frame of the next drag.
-            Log.Write($"Level overlay disabled: {e}");
-            stopped = true;
+            // Nothing here is load-bearing: the phone has already changed the level, this only says so. One
+            // failure — a monitor unplugged mid-drag, a display switching mode — throws the window away and the
+            // next reading builds a fresh one; it used to switch the readout off until the app restarted. Only a
+            // setup that fails MaxFailures times running is given up on, rather than logging the same failure
+            // on every frame of every drag.
             var broken = window;
             window = null;
             broken?.Dispose();
+            if (++failures < MaxFailures)
+            {
+                Log.Write($"Level overlay failed, rebuilding it: {e.Message}");
+            }
+            else
+            {
+                Log.Write($"Level overlay disabled after {MaxFailures} failures in a row: {e}");
+                stopped = true;
+            }
         }
     }
 
