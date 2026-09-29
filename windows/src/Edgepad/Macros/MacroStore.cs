@@ -74,7 +74,6 @@ internal sealed class MacroStore
     /// <summary>The macros in order. Index is what the phone names. Never longer than MaxMacros.</summary>
     public IReadOnlyList<Macro> Macros => macros;
 
-    /// <summary>Re-reads from disk.</summary>
     /// <summary>Re-reads from disk, and tells anyone watching what came back.</summary>
     public void Reload()
     {
@@ -237,6 +236,24 @@ internal sealed class MacroStore
     private static string Line(Macro macro) => macro.Icon is null
         ? $"{macro.Name}\t{macro.Target}\t{macro.Arguments}"
         : $"{macro.Name}\t{macro.Target}\t{macro.Arguments}\t{macro.Icon}";
+
+    /// <summary>
+    /// The index of the first macro with nothing to open, or -1 when every one has a target. <see cref="Save"/>
+    /// drops such a row, so the editor asks with this before saving and points the owner at it, rather than
+    /// letting a macro they filled in disappear on the way to the phone.
+    /// </summary>
+    public static int WithoutTarget(IReadOnlyList<Macro> macros)
+    {
+        for (var index = 0; index < macros.Count; index++)
+        {
+            if (Plain(macros[index].Target).Length == 0)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
 
     /// <summary>
     /// What will be written and what the phone will be told, from what the editor collected. Everything that
