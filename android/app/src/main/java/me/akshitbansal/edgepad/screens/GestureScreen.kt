@@ -133,7 +133,7 @@ object GestureScreen {
     ): View {
         val action = settings.gesture(gesture)
         val current =
-            ui.mono(ui.string(action.nameRes), Type.VALUE, if (expanded) ui.palette.accent else ui.palette.dim)
+            ui.secondary(ui.string(action.nameRes), Type.VALUE, if (expanded) ui.palette.accent else ui.palette.dim)
         return ui.field(ui.string(gesture.nameRes), current).apply {
             minimumHeight = ui.dp(Space.TOUCH)
             ui.tappable(this, onToggle)

@@ -154,7 +154,7 @@ internal sealed class MacroWindow : Form
         browse.Click += (_, _) => Browse();
         chooseIcon.Click += (_, _) => BrowseIcon();
         ownIcon.Click += (_, _) => SetIcon(null);
-        save.Click += (_, _) => store.Save(working);
+        save.Click += (_, _) => Save(store);
         AcceptButton = save;
         CancelButton = cancel;
 
@@ -458,6 +458,31 @@ internal sealed class MacroWindow : Form
         preview.Picture = pictures.GetValueOrDefault(Key(macro));
         ownIcon.Enabled = macro.Icon is not null;
         list.Invalidate();
+    }
+
+    /// <summary>
+    /// Saves, unless a macro has nothing to open. The store would drop that row without a word, and every
+    /// macro after it would move up a slot on the phone; so the dialog stays open on it and says why.
+    /// </summary>
+    private void Save(MacroStore store)
+    {
+        var missing = MacroStore.WithoutTarget(working);
+        if (missing < 0)
+        {
+            store.Save(working);
+            return;
+        }
+
+        // Save is the dialog's OK button, which has already set the result that closes it.
+        DialogResult = DialogResult.None;
+        list.SelectedIndex = missing;
+        MessageBox.Show(
+            this,
+            $"\u201c{Label(working[missing])}\u201d has nothing to open. Choose what it opens, or remove it.",
+            "Macros",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Warning);
+        target.Focus();
     }
 
     /// <summary>Reads the picture for <paramref name="macro"/> if it has not been read already.</summary>

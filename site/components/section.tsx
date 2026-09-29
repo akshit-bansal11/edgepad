@@ -79,6 +79,26 @@ export function Note({
   );
 }
 
+/** A link out of the site, in running text. Opens a new tab, and tells the new page nothing. */
+export function ExternalLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer noopener"
+      className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
+    >
+      {children}
+    </a>
+  );
+}
+
 /** Inline code. */
 export function C({ children }: { children: ReactNode }) {
   return (

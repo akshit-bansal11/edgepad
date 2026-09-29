@@ -29,6 +29,8 @@ TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to
 
 An icon does not fit the 255 bytes a payload holds, so TEXT 6 carries a PNG in pieces and the phone joins them: the counts are what let it tell a finished icon from a truncated one. Kinds rather than a frame type of their own, which is what keeps the protocol version where it is — an unknown kind is dropped and counted on both sides, while an unknown type closes the connection. Icons are answered rather than pushed, so a laptop too old to know TEXT 7 drops it and the phone keeps its labels, and a phone too old to send it costs the link nothing.
 
+The handshake has deadlines on both sides, and none of them is a change to the protocol. The laptop closes a connection that sends no HELLO within 10 seconds. While no phone is trusted, the laptop holds HELLO_ACK and asks its owner whether to trust the phone that sent HELLO; no answer within 60 seconds is a no, and a no is the socket closing without a HELLO_ACK, exactly what a phone the laptop does not trust has always been sent. The phone gives up on HELLO_ACK after 90 seconds, longer than the laptop's question, so it hears the answer rather than abandoning it.
+
 After HELLO_ACK the laptop sends a STATE for volume, microphone and brightness, then TEXT 0, 1 and 2 and a STATE for media position, then TEXT 4 and a STATE for the refresh rate, then TEXT 5, and thereafter every change as it happens. Media position is refreshed once a second while playing. Icons are not part of that sequence: the laptop sends TEXT 6 only in answer to TEXT 7.
 
 ## Actions and controls

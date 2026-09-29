@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Edgepad.Controls;
 using Edgepad.Gamepad;
 using Edgepad.Injection;
@@ -29,6 +30,9 @@ internal sealed class Dispatcher(
     /// <summary>Frames that asked for something unknown, out of range, or unavailable (no microphone).</summary>
     public int Dropped { get; private set; }
 
+    /// <summary>Frames whose handler threw, all of them also counted in <see cref="Dropped"/>.</summary>
+    public int Failed { get; private set; }
+
     /// <summary>
     /// Where the answer to PAD_ATTACH and PAD_DETACH goes. Set by the session once it has a socket to write
     /// to: this class deliberately holds no reference to the connection, for the same reason PONG is
@@ -37,30 +41,53 @@ internal sealed class Dispatcher(
     /// </summary>
     public Action<string>? PadStatusReply { get; set; }
 
+    /// <summary>
+    /// Carries out one frame. A handler that throws is dropped and counted like an unknown id, because this
+    /// runs on the session thread, where an escape ends the tray app and releases nothing the phone was
+    /// holding down. Only what the session reads as a dead link passes through: the pad's reply writes to the
+    /// socket, and a write that failed must still end the session rather than be counted and ignored.
+    /// </summary>
     public void Handle(Frame frame)
     {
-        var handled = frame switch
+        bool handled;
+        try
         {
-            Move m => Do(() => input.Move(m.Dx, m.Dy)),
-            PointerButton b when b.Id <= MaxButton => Do(() => input.Button(b.Id, b.Down)),
-            Scroll s => Do(() => input.Scroll(s.Dx, s.Dy)),
-            Zoom z => Do(() => input.Zoom(z.Delta)),
-            RunAction a => Run(a.Id),
-            SetValue v when v.Value <= MaxPercent => Set(v.Control, v.Value),
-            Text t when t.Kind == (byte)TextKind.Type => Do(() => input.Type(t.Value)),
-            Key k => Do(() => input.Key(k.Code, k.Down)),
-            // A pad frame with no pad plugged in is dropped and counted like any other id this laptop
-            // cannot act on. The phone is not meant to send one before its PAD_ATTACH was answered
-            // "ready", and a laptop that quietly accepted them would look to it exactly like one playing.
-            PadState p => pad.Update(p),
-            _ => false,
-        };
+            handled = Carry(frame);
+        }
+        catch (Exception e) when (e is not (IOException or ObjectDisposedException or COMException or OperationCanceledException))
+        {
+            // Logged once per connection: the same fault on every frame of a drag would write the log from
+            // the input path dozens of times a second. The rest show in the session's closing count.
+            if (Failed++ == 0)
+            {
+                Log.Write($"A {frame.GetType().Name} frame failed and was dropped: {e}");
+            }
+
+            handled = false;
+        }
 
         if (!handled)
         {
             Dropped++;
         }
     }
+
+    private bool Carry(Frame frame) => frame switch
+    {
+        Move m => Do(() => input.Move(m.Dx, m.Dy)),
+        PointerButton b when b.Id <= MaxButton => Do(() => input.Button(b.Id, b.Down)),
+        Scroll s => Do(() => input.Scroll(s.Dx, s.Dy)),
+        Zoom z => Do(() => input.Zoom(z.Delta)),
+        RunAction a => Run(a.Id),
+        SetValue v when v.Value <= MaxPercent => Set(v.Control, v.Value),
+        Text t when t.Kind == (byte)TextKind.Type => Do(() => input.Type(t.Value)),
+        Key k => Do(() => input.Key(k.Code, k.Down)),
+        // A pad frame with no pad plugged in is dropped and counted like any other id this laptop
+        // cannot act on. The phone is not meant to send one before its PAD_ATTACH was answered
+        // "ready", and a laptop that quietly accepted them would look to it exactly like one playing.
+        PadState p => pad.Update(p),
+        _ => false,
+    };
 
     private bool Run(byte id)
     {

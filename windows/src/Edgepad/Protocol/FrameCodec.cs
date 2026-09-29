@@ -168,15 +168,32 @@ internal static class FrameCodec
         };
     }
 
-    /// <summary>Cuts text to <see cref="MaxTextBytes"/> of UTF-8 without splitting a character.</summary>
-    public static string Truncate(string value)
+    /// <summary>
+    /// The longest prefix of <paramref name="value"/> made of whole code points whose UTF-8 fits
+    /// <paramref name="maxBytes"/>. One pass by code point, never by UTF-16 unit: cutting a unit at a time
+    /// re-measured the whole string on every step, and could stop between the two halves of a surrogate pair,
+    /// which then went out as a replacement character. The phone's codec cuts by the same rule, so both
+    /// sides send the same bytes for the same text.
+    /// </summary>
+    public static string Truncate(string value, int maxBytes = MaxTextBytes)
     {
-        while (Encoding.UTF8.GetByteCount(value) > MaxTextBytes)
+        var end = 0;
+        var bytes = 0;
+        while (end < value.Length)
         {
-            value = value[..^1];
+            // A lone surrogate decodes as the replacement character, three bytes, which is what the encoder
+            // writes for it, so the count stays true for text that was malformed before it got here.
+            Rune.DecodeFromUtf16(value.AsSpan(end), out var rune, out var units);
+            if (bytes + rune.Utf8SequenceLength > maxBytes)
+            {
+                break;
+            }
+
+            bytes += rune.Utf8SequenceLength;
+            end += units;
         }
 
-        return value;
+        return end == value.Length ? value : value[..end];
     }
 
     private static Text DecodeText(ReadOnlySpan<byte> payload)

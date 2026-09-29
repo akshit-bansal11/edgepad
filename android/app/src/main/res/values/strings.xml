@@ -12,14 +12,29 @@
   <string name="devices_legend">The remembered laptop connects when Edgepad opens.</string>
   <string name="devices_legend_off">Tap a laptop to connect.</string>
   <string name="open_controls">Open controls</string>
+  <string name="open_controls_hint">Connect to a laptop to open the controls.</string>
   <string name="open_bluetooth_settings">Bluetooth settings</string>
   <string name="refresh">Refresh the list</string>
   <string name="bluetooth_off">Bluetooth is off. Turn it on, then come back.</string>
   <string name="permission_needed">Edgepad needs the Nearby devices permission to reach your laptop.</string>
-  <string name="no_paired">No paired laptop yet. Pair it in Bluetooth settings, then come back.</string>
+  <string name="no_paired">Nothing is paired with this phone yet. Pair your laptop in Bluetooth settings, then come back.</string>
+  <string name="no_laptop_paired">None of the devices paired with this phone says it is a computer. If your laptop is paired, show them all.</string>
+  <plurals name="show_all_paired">
+    <item quantity="one">Show all paired devices (%1$d more)</item>
+    <item quantity="other">Show all paired devices (%1$d more)</item>
+  </plurals>
+  <string name="show_laptops_only">Show computers only</string>
+  <string name="allow_permission">Allow Nearby devices</string>
+  <string name="open_app_settings">Open Edgepad\'s app settings</string>
   <string name="not_paired">That laptop is no longer paired with this phone. Pair it again in Bluetooth settings.</string>
-  <string name="status_disconnected">Disconnected</string>
   <string name="status_closed">Not connected: %1$s</string>
+  <string name="status_accept_on_laptop">If the laptop asks, choose Trust there.</string>
+  <string name="link_lost">the connection was lost.</string>
+  <string name="link_refused">the laptop hung up before the handshake. Its Edgepad may be older than this app: quit it from the tray and run the latest. Or it trusts another phone, or was told not to trust this one: use Forget in its tray menu, then connect again.</string>
+  <string name="link_mismatch">the laptop runs a different Edgepad release (protocol %1$s, this app %2$d). Install both from the same release.</string>
+  <string name="link_unexpected">the laptop answered with something other than Edgepad\'s handshake (%1$s).</string>
+  <string name="link_no_permission">the Nearby devices permission was turned off.</string>
+  <string name="link_no_answer">the laptop took the connection and never answered. Check that Edgepad is running there, then try again.</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Laptop out of reach</string>
@@ -36,6 +51,8 @@
   <string name="back">Back</string>
   <string name="no_laptop">No laptop remembered</string>
   <string name="forget">Forget</string>
+  <string name="forget_laptop_title">Forget %1$s?</string>
+  <string name="forget_laptop_body">Edgepad disconnects and stops reconnecting to it on its own. It stays paired, so you can pick it again from the list.</string>
   <string name="detail_connected">Connected</string>
   <string name="detail_connected_rtt">Connected · %1$.0f ms</string>
   <string name="detail_remembered">Remembered · not connected</string>
@@ -103,6 +120,7 @@
   <string name="gesture_hints">Show gesture hints</string>
   <string name="settings_appearance">Appearance</string>
   <string name="theme">Theme</string>
+  <string name="theme_system">System</string>
   <string name="theme_dark">Dark</string>
   <string name="theme_light">Light</string>
   <string name="orientation">Orientation</string>
@@ -122,6 +140,8 @@
   <string name="background_pick_image">Choose image</string>
   <string name="background_image_set">An image is set</string>
   <string name="background_image_none">No image yet</string>
+  <string name="image_too_large">That picture is over %1$d MB. Choose a smaller one.</string>
+  <string name="image_unreadable">Edgepad could not use that picture. Choose another.</string>
   <string name="gradient_end">Second colour</string>
   <string name="gradient_angle">Gradient angle</string>
   <string name="degrees_value">%1$d°</string>
@@ -134,6 +154,21 @@
   <string name="pattern_color">Pattern colour</string>
   <string name="pattern_opacity">Pattern opacity</string>
   <string name="percent_value">%1$d%%</string>
+  <!-- The colour picker's swatches, as a screen reader names them -->
+  <string name="color_white">White</string>
+  <string name="color_light_grey">Light grey</string>
+  <string name="color_grey">Grey</string>
+  <string name="color_dark_grey">Dark grey</string>
+  <string name="color_black">Black</string>
+  <string name="color_red">Red</string>
+  <string name="color_orange">Orange</string>
+  <string name="color_yellow">Yellow</string>
+  <string name="color_green">Green</string>
+  <string name="color_cyan">Cyan</string>
+  <string name="color_blue">Blue</string>
+  <string name="color_indigo">Indigo</string>
+  <string name="color_purple">Purple</string>
+  <string name="color_pink">Pink</string>
   <!-- Shapes drawn on the trackpad -->
   <string name="shapes_title">Shapes</string>
   <plurals name="shapes_summary">
@@ -153,6 +188,8 @@
   <string name="shapes_redraw">Redraw</string>
   <string name="shapes_save">Save</string>
   <string name="shapes_delete">Delete</string>
+  <string name="shapes_delete_title">Delete this shape?</string>
+  <string name="shapes_delete_body">Drawing it will no longer run %1$s.</string>
   <string name="shapes_too_close">That is too close to a shape you already have. Draw a more distinct one.</string>
   <string name="shapes_too_short">That is too small to tell apart. Draw it larger.</string>
   <string name="shape_runs">Runs %1$s</string>
@@ -180,7 +217,7 @@
   <string name="background_preview_description">Preview of the control surface background</string>
   <string name="guide_title">Guide</string>
   <string name="documentation_title">Documentation</string>
-  <string name="documentation_summary">edgepad.vercel.app</string>
+  <!-- The one place the site's address is written; Settings shows its host as the row's summary. -->
   <string name="documentation_url" translatable="false">https://edgepad.vercel.app</string>
 
 

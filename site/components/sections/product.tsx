@@ -1,5 +1,5 @@
 import { CodeBlock } from "@/components/code-block";
-import { C, Note, P, Section, Sub } from "@/components/section";
+import { C, ExternalLink, Note, P, Section, Sub } from "@/components/section";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -163,16 +163,9 @@ export function ProductSections() {
         lede={
           <>
             Both halves come from the same{" "}
-            <a
-              href={LATEST_RELEASE}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
-            >
-              GitHub release
-            </a>
-            . Always install both from the same one: the two refuse each other at the
-            handshake when their protocol versions differ, and say so.
+            <ExternalLink href={LATEST_RELEASE}>GitHub release</ExternalLink>. Always
+            install both from the same one: the two refuse each other at the handshake
+            when their protocol versions differ, and say so.
           </>
         }
       >
@@ -199,13 +192,15 @@ export function ProductSections() {
                 <strong className="text-foreground">Run anyway</strong>.
               </li>
               <li>
-                It lives in the system tray. The menu shows the version, whether a phone
-                is connected, <strong className="text-foreground">Macros</strong>,{" "}
+                It lives in the system tray. The menu shows whether a phone is
+                connected, then{" "}
                 <strong className="text-foreground">Start with Windows</strong>,{" "}
-                <strong className="text-foreground">Forget trusted phone</strong>,{" "}
+                <strong className="text-foreground">Macros…</strong>,{" "}
                 <strong className="text-foreground">Open log</strong>,{" "}
-                <strong className="text-foreground">Documentation</strong> and{" "}
-                <strong className="text-foreground">Quit</strong>.
+                <strong className="text-foreground">Documentation</strong>,{" "}
+                <strong className="text-foreground">Forget trusted phone</strong> and{" "}
+                <strong className="text-foreground">Quit Edgepad</strong>, with the
+                version beside it.
               </li>
             </ol>
             <P>
@@ -221,14 +216,9 @@ export function ProductSections() {
               </p>
               <p className="mb-3">
                 Install{" "}
-                <a
-                  href="https://github.com/nefarius/ViGEmBus/releases/latest"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
-                >
+                <ExternalLink href="https://github.com/nefarius/ViGEmBus/releases/latest">
                   ViGEmBus
-                </a>{" "}
+                </ExternalLink>{" "}
                 and Edgepad plugs a real virtual Xbox controller into Windows instead.
                 Games that only ever accepted a controller can then be played from the
                 phone, and a stick is a stick rather than four keys: the sticks and
@@ -291,9 +281,10 @@ export function ProductSections() {
             laptop side.
           </li>
           <li>
-            Open Edgepad on the phone and tap the laptop. The first phone to connect
-            becomes the laptop&apos;s trusted phone; any other paired phone is refused
-            until you choose{" "}
+            Open Edgepad on the phone and tap the laptop. The first time, the laptop
+            asks <strong className="text-foreground">Trust this phone?</strong>; choose
+            Trust there. That phone becomes the laptop&apos;s trusted phone, and any
+            other paired phone is refused until you choose{" "}
             <strong className="text-foreground">Forget trusted phone</strong> in the
             tray menu.
           </li>

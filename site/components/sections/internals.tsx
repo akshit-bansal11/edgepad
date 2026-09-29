@@ -41,7 +41,9 @@ function IdTable({
       <TableBody>
         {rows.map((row) => (
           <TableRow key={row.name}>
-            <TableCell className="font-mono text-[0.8125rem]">{row.id}</TableCell>
+            <TableCell className="font-mono text-[0.8125rem] whitespace-nowrap">
+              {row.id}
+            </TableCell>
             <TableCell className="font-mono text-[0.8125rem] whitespace-nowrap">
               {row.name}
             </TableCell>
@@ -254,8 +256,10 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
           never blocks, so touch handling never waits on the link. Every callback into
           the activity is posted to the main thread. The link is kept across
           configuration changes through <C>onRetainNonConfigurationInstance</C> with its
-          listener swapped to the new activity, and closed when the app leaves the
-          foreground.
+          listener swapped to the new activity. When the app leaves the foreground,
+          anything held down is released at once, but the link is kept for 30 seconds,
+          so a background-image pick or a trip to Bluetooth settings does not drop it;
+          it closes if the app is not back by then.
         </P>
 
         <Sub>On the laptop</Sub>
@@ -454,6 +458,13 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
           caption="Read from protocol/actions.txt. TEXT carries at most 255 bytes and is never split inside a character."
         />
 
+        <Sub>PAD_STATUS tokens</Sub>
+        <IdTable
+          rows={protocol.padStatuses}
+          idHeading="Token"
+          caption="The whole vocabulary of TEXT kind 8, read from protocol/actions.txt. A token the phone does not know reads as no-driver."
+        />
+
         <Sub>What the laptop sends, and when</Sub>
         <CodeBlock
           title="After HELLO_ACK"
@@ -564,17 +575,18 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
           another size.
         </Note>
 
-        <Note label="Where the gamepad's button masks are">
-          <C>PAD_STATE</C>&apos;s sixteen button bits are XInput&apos;s own{" "}
-          <C>wButtons</C> values, unchanged, because the laptop copies the field into an{" "}
-          <C>XINPUT_GAMEPAD</C> rather than remapping it — a table of its own would be a
-          second definition to keep in step with Microsoft&apos;s. They are in{" "}
-          <C>protocol/actions.txt</C> as <C>PAD_BUTTON</C> rows, which the two suites
-          check their enums against. They are not on this page because the parser above
-          reads only <C>ACTION</C>, <C>CONTROL</C>, <C>TEXT</C> and <C>HANDSHAKE</C>{" "}
-          lines, so a <C>PAD_BUTTON</C> row is dropped rather than shown. Worth knowing
-          before wondering why the masks are missing.
-        </Note>
+        <Sub>Gamepad buttons</Sub>
+        <IdTable
+          rows={protocol.padButtons}
+          idHeading="Mask"
+          caption="The bits of PAD_STATE's buttons field, read from protocol/actions.txt. XInput's own wButtons values, in decimal."
+        />
+        <P>
+          The laptop copies the field straight into an <C>XINPUT_GAMEPAD</C> rather than
+          remapping it, so a table of Edgepad&apos;s own would be a second definition to
+          keep in step with Microsoft&apos;s. <C>0x0800</C>, between <C>GUIDE</C> and{" "}
+          <C>A</C>, is unused by XInput and stays unused here.
+        </P>
 
         <Note label="Why macros send an index">
           Actions 64 to 95 are a reserved block of 32 slots; the phone runs slot n as{" "}
@@ -601,7 +613,7 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
             },
             {
               title: "Trust on first use",
-              body: "Enforced by TrustStore. The first phone to complete the handshake has its Bluetooth address written to %APPDATA%\\Edgepad\\trusted-phone.txt, and every other paired phone is refused before HELLO_ACK. The tray menu's Forget trusted phone clears it.",
+              body: "Enforced by TrustStore. While no phone is trusted, the first phone to complete the handshake makes the tray ask Trust this phone?, and HELLO_ACK waits for the answer. Trust writes its Bluetooth address to %APPDATA%\\Edgepad\\trusted-phone.txt; Don't trust, or no answer within 60 s, closes the connection. Every other paired phone is refused before HELLO_ACK. The tray menu's Forget trusted phone clears it, after asking.",
             },
           ].map((item) => (
             <div

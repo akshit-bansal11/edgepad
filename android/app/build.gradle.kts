@@ -3,9 +3,8 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint")
 }
 
-// Release signing comes from the environment, which only .github/workflows/release.yml sets.
-// The key never enters the repository; without it a release build is simply unsigned.
-val releaseKeystore = providers.environmentVariable("EDGEPAD_KEYSTORE_PATH").orNull
+// A release build is always unsigned. .github/workflows/release.yml signs it afterwards with apksigner, in a
+// job of its own, so the key is never on a machine where Gradle and the plugins it downloads are running.
 
 android {
     namespace = "me.akshitbansal.edgepad"
@@ -23,22 +22,14 @@ android {
         resValue("string", "app_version", versionName ?: "")
     }
 
-    signingConfigs {
-        if (releaseKeystore != null) {
-            create("release") {
-                storeFile = file(releaseKeystore)
-                storeType = "pkcs12"
-                storePassword = providers.environmentVariable("EDGEPAD_KEYSTORE_PASSWORD").get()
-                keyAlias = providers.environmentVariable("EDGEPAD_KEY_ALIAS").get()
-                // A PKCS12 keystore has one password for the store and the key.
-                keyPassword = storePassword
-            }
-        }
-    }
-
     buildTypes {
         release {
-            signingConfig = signingConfigs.findByName("release")
+            // No signingConfig, on purpose: see the note above android {}.
+            // R8 shrinks and optimises the release APK and drops resources nothing reaches. It does not rename:
+            // see proguard-rules.pro, which also says what was checked before this was turned on.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 

@@ -1,5 +1,5 @@
 import { CodeBlock } from "@/components/code-block";
-import { C, Note, P, Section, Sub } from "@/components/section";
+import { C, ExternalLink, Note, P, Section, Sub } from "@/components/section";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -449,14 +449,9 @@ git remote add upstream https://github.com/akshit-bansal11/edgepad.git`}
           </li>
           <li>
             Commit with a{" "}
-            <a
-              href="https://www.conventionalcommits.org/en/v1.0.0/"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
-            >
+            <ExternalLink href="https://www.conventionalcommits.org/en/v1.0.0/">
               Conventional Commits
-            </a>{" "}
+            </ExternalLink>{" "}
             subject and a body saying what changed and why, including what you rejected.
           </li>
           <li>
@@ -497,14 +492,9 @@ git remote add upstream https://github.com/akshit-bansal11/edgepad.git`}
           <C>.github/ISSUE_TEMPLATE</C>. Open an issue for anything bigger than a fix,
           so the design can be talked through before code exists. Report anything
           exploitable through a{" "}
-          <a
-            href={`${REPO}/security/advisories/new`}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
-          >
+          <ExternalLink href={`${REPO}/security/advisories/new`}>
             security advisory
-          </a>
+          </ExternalLink>
           , not a public issue.
         </P>
       </Section>

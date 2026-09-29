@@ -54,6 +54,13 @@ class LaptopState {
     var padStatus: PadStatus? = null
         private set
 
+    /**
+     * The slot whose icon a [take] that returned true just finished, or -1. Read straight after that call, so
+     * an open grid can redraw that one button rather than decoding every picture it holds over again.
+     */
+    var lastIcon = -1
+        private set
+
     /** Finished icons by slot. A slot with no entry has none, which is the ordinary case for most of them. */
     private val icons = HashMap<Int, ByteArray>()
 
@@ -150,6 +157,7 @@ class LaptopState {
         parts.remove(slot)
         val png = decode(pieces.joinToString("")) ?: return false
         icons[slot] = png
+        lastIcon = slot
         return true
     }
 

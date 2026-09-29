@@ -17,9 +17,11 @@ import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.widget.Toast
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
 import me.akshitbansal.edgepad.gamepad.GamepadStore
@@ -46,8 +48,12 @@ import me.akshitbansal.edgepad.screens.SettingsScreen
 import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.Ui
+import me.akshitbansal.edgepad.surface.BackgroundImage
 import me.akshitbansal.edgepad.surface.ControlSurface
+import java.io.File
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import kotlin.concurrent.thread
 
 /**
@@ -58,9 +64,26 @@ import kotlin.concurrent.thread
  * where every screen's way out is written down.
  *
  * The link and what the laptop has reported outlive the activity across a rotation or a theme change,
- * through [onRetainNonConfigurationInstance]; the link closes when the app leaves the foreground. That
- * matters because changing the theme or the orientation setting rebuilds the activity, and a link
- * dropped there would make every settings change look like a disconnection.
+ * through [onRetainNonConfigurationInstance]. That matters because changing the theme or the orientation
+ * setting rebuilds the activity, and a link dropped there would make every settings change look like a
+ * disconnection.
+ *
+ * The link against the activity's lifecycle, which is the whole of it:
+ *
+ * - Started (onStart to onStop): the link is used, and pinged every [PING_FAST_MS] on a screen that shows
+ *   the round trip and every [PING_SLOW_MS] elsewhere, where the ping only proves the link is still there.
+ * - Stopped, and not for a rebuild: whatever a finger holds is let go at once ([releaseHeldInput]); the
+ *   link stays up for [LINGER_MS], pinged slowly. The image picker, Bluetooth settings, the documentation
+ *   in a browser and the screen going off are all a stop, and until 3.2 every one of them dropped the link.
+ * - Started again inside [LINGER_MS]: nothing happened; the link carries on.
+ * - [LINGER_MS] passes: the link closes as [LaptopLink.Cause.ENDED], which is what onStop did at once
+ *   before 3.2.
+ * - Destroyed, and not for a rebuild (backed out of, or finished): closed at once.
+ * - Rebuilt: handed over in [Retained], its listener swapped in onCreate. The link posts every callback
+ *   to the main thread and reads the listener when the callback runs, so nothing lands on the old activity.
+ *
+ * There is one pinger, and [startPinger] is the only way to start it: it clears any tick already waiting,
+ * so replacing a link or reconnecting can never leave two ping loops running side by side.
  */
 class MainActivity :
     Activity(),
@@ -96,10 +119,11 @@ class MainActivity :
         val laptopAddress: String,
         val attempts: Int,
         val lostAt: Long,
+        val rtt: RttStats,
     )
 
     private val handler = Handler(Looper.getMainLooper())
-    private val rtt = RttStats()
+    private var rtt = RttStats()
     private lateinit var settings: Settings
     private lateinit var ui: Ui
     private lateinit var picker: PickerScreen
@@ -110,6 +134,9 @@ class MainActivity :
     /** The gamepad while it is the screen, so the laptop's answer about its controller can reach it. */
     private var gamepad: GamepadScreen? = null
     private var reconnecting: ReconnectingScreen? = null
+
+    /** The macro grid while it is the screen, so a new list or a finished icon can be handed to it. */
+    private var macros: MacroScreen? = null
     private var laptopName = ""
     private var laptopAddress = ""
     private var screen = Screen.PAIRING
@@ -123,13 +150,26 @@ class MainActivity :
     private var lostAt = 0L
     private var backCallback: Any? = null
 
+    /** Paired devices of every kind in the list, not only the ones that say they are computers. */
+    private var showAllDevices = false
+
+    /** Nearby devices has been asked for once by this activity; after that only a tap asks again. */
+    private var askedPermission = false
+
+    /** The system's permission prompt is up, so the Devices list offers no way round it underneath. */
+    private var permissionPending = false
+
     private val pinger =
         object : Runnable {
             override fun run() {
-                link?.send(Frame.Ping(System.nanoTime()))
-                handler.postDelayed(this, PING_INTERVAL_MS)
+                val current = link ?: return
+                if (!current.connected) return
+                current.send(Frame.Ping(System.nanoTime()))
+                handler.postDelayed(this, if (started && screen in showsRtt) PING_FAST_MS else PING_SLOW_MS)
             }
         }
+
+    private val linger = Runnable { link?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED)) }
 
     private val retry = Runnable { attemptReconnect() }
 
@@ -152,9 +192,13 @@ class MainActivity :
                 ui,
                 onConnect = ::connectTo,
                 onOpenControls = { goTo(Screen.SURFACE) },
-                onBluetoothSettings = { startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS)) },
+                onBluetoothSettings = ::openBluetoothSettings,
                 onSettings = ::openSettings,
                 onRefresh = ::refreshPicker,
+                onShowAll = { all ->
+                    showAllDevices = all
+                    refreshPicker()
+                },
             )
         val retained = lastNonConfigurationInstance as? Retained
         if (retained != null) {
@@ -166,6 +210,9 @@ class MainActivity :
             laptopAddress = retained.laptopAddress
             attempts = retained.attempts
             lostAt = retained.lostAt
+            // Carried over, or the readout would stand blank after a rotation and then restart from one sample.
+            rtt = retained.rtt
+            picker.setRtt(rtt.median())
         }
         goTo(
             when {
@@ -177,15 +224,19 @@ class MainActivity :
     }
 
     override fun onRetainNonConfigurationInstance(): Any =
-        Retained(link, state, screen, settingsReturn, layoutReturn, laptopName, laptopAddress, attempts, lostAt)
+        Retained(link, state, screen, settingsReturn, layoutReturn, laptopName, laptopAddress, attempts, lostAt, rtt)
 
     override fun onStart() {
         super.onStart()
+        handler.removeCallbacks(linger)
         started = true
         val current = link
         when {
-            current != null -> if (current.connected) handler.post(pinger)
+            // Restarted rather than left running: the tick waiting may be a slow one from the background.
+            current != null -> if (current.connected) startPinger()
+
             screen == Screen.RECONNECTING -> scheduleRetry(0L)
+
             screen != Screen.ONBOARDING && settings.reconnect -> rememberedDevice()?.let(::connect)
         }
         if (screen == Screen.RECONNECTING) handler.post(ticker)
@@ -195,11 +246,40 @@ class MainActivity :
     override fun onStop() {
         super.onStop()
         started = false
-        handler.removeCallbacks(pinger)
+        releaseHeldInput()
         handler.removeCallbacks(retry)
         handler.removeCallbacks(ticker)
-        // The link only lives while the app is in front, except across a rebuild for rotation or theme.
-        if (!isChangingConfigurations) link?.close(getString(R.string.status_disconnected))
+        // A detour keeps the link for a while, and a rebuild keeps it outright; see the class comment.
+        if (!isChangingConfigurations && link != null) handler.postDelayed(linger, LINGER_MS)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // A rebuilt activity's waiting ticks go with it; the new one starts its own in onStart.
+        handler.removeCallbacksAndMessages(null)
+        if (isChangingConfigurations) return
+        val current = link
+        link = null
+        current?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
+    }
+
+    /**
+     * Lets go of every key, button and stick a finger is holding on the screen, by handing the screen the
+     * cancel a finger taken away mid-press produces. The platform usually sends one itself when the app loses
+     * the screen; this does not rely on it. Before 3.2 it did not matter, because the link closed on the spot
+     * and the laptop let go of everything with it. A link kept through a detour would instead leave a held
+     * key repeating on the laptop for as long as the detour lasted.
+     */
+    private fun releaseHeldInput() {
+        val now = SystemClock.uptimeMillis()
+        val cancel = MotionEvent.obtain(now, now, MotionEvent.ACTION_CANCEL, 0f, 0f, 0)
+        window.decorView.dispatchTouchEvent(cancel)
+        cancel.recycle()
+    }
+
+    private fun startPinger() {
+        handler.removeCallbacks(pinger)
+        handler.post(pinger)
     }
 
     // Before Android 16 the back key still arrives here; from 16 it goes to the callback in updateBack().
@@ -217,7 +297,10 @@ class MainActivity :
         grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) refreshPicker()
+        if (requestCode != REQUEST_BLUETOOTH) return
+        permissionPending = false
+        // Refused as well as granted: a refusal changes what the list offers, from nothing to a way back.
+        refreshPicker()
     }
 
     private fun goTo(next: Screen) {
@@ -226,10 +309,13 @@ class MainActivity :
         // and because a preset change rebuilds the same screen: that is not a trip out and back.
         if (screen == Screen.GAMEPAD && next != Screen.GAMEPAD) link?.send(ActionId.PAD_DETACH.frame())
         if (next == Screen.GAMEPAD && screen != Screen.GAMEPAD) link?.send(ActionId.PAD_ATTACH.frame())
+        // Onto a screen that shows the round trip, the pings speed up now rather than at the next slow tick.
+        if (next in showsRtt && screen !in showsRtt && link?.connected == true) startPinger()
         screen = next
         surface = null
         gamepad = null
         reconnecting = null
+        macros = null
         handler.removeCallbacks(ticker)
         val view: View =
             when (next) {
@@ -354,13 +440,13 @@ class MainActivity :
                 }
 
                 Screen.MACROS -> {
-                    MacroScreen.build(
+                    MacroScreen(
                         ui,
                         state.macros,
                         icon = state::macroIcon,
                         labels = settings.macroLabels,
                         onRun = ::runMacro,
-                    ) { navigateBack() }
+                    ) { navigateBack() }.also { macros = it }.view
                 }
 
                 Screen.RECONNECTING -> {
@@ -505,17 +591,90 @@ class MainActivity :
     ) {
         @Suppress("DEPRECATION")
         super.onActivityResult(requestCode, resultCode, data)
+        // A cancelled picker is the user changing their mind, and needs no answer.
         if (requestCode != REQUEST_IMAGE || resultCode != RESULT_OK) return
-        val uri = data?.data ?: return
-        try {
-            contentResolver.openInputStream(uri)?.use { input ->
-                settings.backgroundImage.outputStream().use { input.copyTo(it) }
-            }
-            settings.background = Settings.Background.IMAGE
-        } catch (e: IOException) {
-            settings.backgroundImage.delete()
+        val uri = data?.data
+        if (uri == null) {
+            // The picker said yes and handed back nothing, which some providers do. Silence would read as success.
+            imageRefused(R.string.image_unreadable)
+            return
         }
-        if (screen == Screen.APPEARANCE) goTo(Screen.APPEARANCE)
+        thread(name = "edgepad-image") {
+            val refusal = importImage(uri)
+            runOnUiThread {
+                // A rotation mid-copy rebuilt the activity; the setting is saved, and the new one reads it.
+                if (isDestroyed) return@runOnUiThread
+                if (refusal != 0) {
+                    imageRefused(refusal)
+                } else if (screen == Screen.APPEARANCE) {
+                    goTo(Screen.APPEARANCE)
+                }
+            }
+        }
+    }
+
+    /**
+     * Copies a picked image into app storage, on the caller's thread, which is never the UI's: a photo is
+     * megabytes, and the provider behind the Uri may be a cloud drive. Returns 0, or the message saying why
+     * nothing changed.
+     *
+     * The copy goes to a file beside the real one and is renamed over it only once it is whole and decodes,
+     * so a copy that fails half way, or a file that is no picture at all, leaves the previous image exactly
+     * as it was. Until 3.2 the old file was emptied before the copy began and deleted when it failed, while
+     * the setting went on saying IMAGE. Decoding here also leaves [BackgroundImage] holding the picture, so
+     * the screen that shows it next finds it ready.
+     */
+    private fun importImage(uri: Uri): Int {
+        val target = settings.backgroundImage
+        val part = File(target.path + PART_SUFFIX)
+        val refusal =
+            try {
+                val copied =
+                    contentResolver.openInputStream(uri)?.use { from ->
+                        part.outputStream().use { to -> copyCapped(from, to) }
+                    }
+                when {
+                    copied == null -> R.string.image_unreadable
+                    !copied -> R.string.image_too_large
+                    BackgroundImage.load(part) == null -> R.string.image_unreadable
+                    !part.renameTo(target) -> R.string.image_unreadable
+                    else -> 0
+                }
+            } catch (e: IOException) {
+                Log.w("Edgepad", "Could not copy the picked image", e)
+                R.string.image_unreadable
+            } catch (e: SecurityException) {
+                // The provider took back its grant between the pick and the copy.
+                Log.w("Edgepad", "Could not read the picked image", e)
+                R.string.image_unreadable
+            }
+        if (refusal == 0) settings.background = Settings.Background.IMAGE else part.delete()
+        return refusal
+    }
+
+    /** Copies at most [MAX_IMAGE_MB] and says whether that was all of it. */
+    private fun copyCapped(
+        from: InputStream,
+        to: OutputStream,
+    ): Boolean {
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var total = 0L
+        while (true) {
+            val read = from.read(buffer)
+            if (read < 0) return true
+            total += read
+            if (total > MAX_IMAGE_MB * BYTES_PER_MB) return false
+            to.write(buffer, 0, read)
+        }
+    }
+
+    private fun imageRefused(message: Int) {
+        val text =
+            when (message) {
+                R.string.image_too_large -> getString(R.string.image_too_large, MAX_IMAGE_MB)
+                else -> getString(message)
+            }
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show()
     }
 
     /** A key pressed or released on the keyboard or gamepad screen. */
@@ -572,31 +731,92 @@ class MainActivity :
 
     private fun refreshPicker() {
         val adapter = getSystemService(BluetoothManager::class.java)?.adapter
-        val problem =
-            when {
-                adapter == null || !adapter.isEnabled -> {
-                    getString(R.string.bluetooth_off)
-                }
-
-                checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED -> {
-                    requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_BLUETOOTH)
-                    getString(R.string.permission_needed)
-                }
-
-                else -> {
-                    null
-                }
-            }
-        val devices = bonded().map { PickerScreen.Device(it.address, nameOf(it)) }.sortedBy { it.name }
+        val permitted = checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+        // Asked for once by itself, where it used to be asked for on every refresh; after a refusal the
+        // Devices list offers the way back instead, which after "don't ask again" is the app's settings page,
+        // since asking again would then be refused without a word.
+        if (adapter != null && adapter.isEnabled && !permitted && !askedPermission) askPermission()
+        val paired = bonded()
+        val laptops = paired.filter { isComputer(it) || it.address == settings.laptop }
+        val shown = if (showAllDevices) paired else laptops
+        val devices = shown.map { PickerScreen.Device(it.address, nameOf(it)) }.sortedBy { it.name }
         picker.showDevices(
             devices,
             settings.laptop,
             if (link?.connected == true) laptopAddress else null,
             settings.reconnect,
+            hidden = paired.size - laptops.size,
+            showingAll = showAllDevices,
         )
-        picker.setMessage(problem ?: if (devices.isEmpty()) getString(R.string.no_paired) else "")
+        when {
+            adapter == null || !adapter.isEnabled -> {
+                picker.setMessage(getString(R.string.bluetooth_off), getString(R.string.open_bluetooth_settings)) {
+                    openBluetoothSettings()
+                }
+            }
+
+            !permitted && permissionPending -> {
+                picker.setMessage(getString(R.string.permission_needed))
+            }
+
+            !permitted && shouldShowRequestPermissionRationale(Manifest.permission.BLUETOOTH_CONNECT) -> {
+                picker.setMessage(getString(R.string.permission_needed), getString(R.string.allow_permission)) {
+                    askPermission()
+                }
+            }
+
+            !permitted -> {
+                picker.setMessage(getString(R.string.permission_needed), getString(R.string.open_app_settings)) {
+                    openAppSettings()
+                }
+            }
+
+            paired.isEmpty() -> {
+                picker.setMessage(getString(R.string.no_paired), getString(R.string.open_bluetooth_settings)) {
+                    openBluetoothSettings()
+                }
+            }
+
+            // Paired devices, none of them claiming to be a computer: the list's own button shows them all.
+            devices.isEmpty() -> {
+                picker.setMessage(getString(R.string.no_laptop_paired))
+            }
+
+            else -> {
+                picker.setMessage("")
+            }
+        }
     }
 
+    private fun askPermission() {
+        askedPermission = true
+        permissionPending = true
+        requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_BLUETOOTH)
+    }
+
+    private fun openBluetoothSettings() {
+        startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
+    }
+
+    /** This app's page in the system settings, where a permission refused for good can still be granted. */
+    private fun openAppSettings() {
+        val intent =
+            Intent(
+                android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.fromParts("package", packageName, null),
+            )
+        try {
+            startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            Log.w("Edgepad", "No activity to open the app's settings", e)
+        }
+    }
+
+    /**
+     * Every paired device, of every kind. The Devices list narrows it to computers for itself; everything
+     * that connects looks through all of them, so a laptop reached through "show all" once is still found
+     * by the reconnect that follows, however its Bluetooth class reads.
+     */
     private fun bonded(): List<BluetoothDevice> {
         val adapter = getSystemService(BluetoothManager::class.java)?.adapter ?: return emptyList()
         if (!adapter.isEnabled) return emptyList()
@@ -604,15 +824,19 @@ class MainActivity :
             return emptyList()
         }
         return try {
-            // Only things that can run the laptop app: headsets, mice and keyboards are paired too.
-            adapter.bondedDevices.orEmpty().filter {
-                it.bluetoothClass?.majorDeviceClass ==
-                    BluetoothClass.Device.Major.COMPUTER
-            }
+            adapter.bondedDevices.orEmpty().toList()
         } catch (e: SecurityException) {
             emptyList()
         }
     }
+
+    /** Whether [device] says it is a computer: headsets, watches, mice and keyboards are paired too. */
+    private fun isComputer(device: BluetoothDevice): Boolean =
+        try {
+            device.bluetoothClass?.majorDeviceClass == BluetoothClass.Device.Major.COMPUTER
+        } catch (e: SecurityException) {
+            false
+        }
 
     private fun rememberedDevice(): BluetoothDevice? {
         val address = settings.laptop ?: return null
@@ -633,9 +857,10 @@ class MainActivity :
 
     private fun connect(device: BluetoothDevice) {
         handler.removeCallbacks(retry)
+        handler.removeCallbacks(pinger)
         val old = link
         link = null
-        old?.close(getString(R.string.status_disconnected))
+        old?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
         // What one laptop reported says nothing about another.
         if (device.address != laptopAddress) state = LaptopState()
         settings.laptop = device.address
@@ -650,44 +875,50 @@ class MainActivity :
         thread(name = "edgepad-link") { next.open() }
     }
 
-    override fun onConnected(link: LaptopLink) =
-        runOnUiThread {
-            if (link != this.link) return@runOnUiThread
-            attempts = 0
-            picker.setConnecting(null)
-            handler.post(pinger)
-            when (screen) {
-                Screen.PAIRING, Screen.RECONNECTING -> goTo(Screen.SURFACE)
-                Screen.SETTINGS -> settingsReturn = Screen.SURFACE
-                else -> Unit
-            }
+    override fun onConnected(link: LaptopLink) {
+        if (link != this.link) return
+        attempts = 0
+        picker.setConnecting(null)
+        // The trust hint, if it was showing, has been answered.
+        picker.setMessage("")
+        startPinger()
+        when (screen) {
+            Screen.PAIRING, Screen.RECONNECTING -> goTo(Screen.SURFACE)
+            Screen.SETTINGS -> settingsReturn = Screen.SURFACE
+            else -> Unit
         }
+    }
+
+    override fun onAwaitingLaptop(link: LaptopLink) {
+        if (link == this.link) picker.setMessage(getString(R.string.status_accept_on_laptop))
+    }
+
+    override fun onRoundTrip(ms: Double) {
+        rtt.add(ms)
+        picker.setRtt(rtt.median())
+    }
 
     override fun onFrame(frame: Frame) {
-        if (frame is Frame.Pong) {
-            val ms = (System.nanoTime() - frame.time) / NANOS_PER_MS
-            runOnUiThread {
-                rtt.add(ms)
-                picker.setRtt(rtt.median())
-            }
-            return
-        }
-        runOnUiThread {
-            if (!state.take(frame)) return@runOnUiThread
-            surface?.stateChanged()
-            // The pad decides which of its two modes it is in from this answer, which usually lands a few
-            // milliseconds after PAD_ATTACH went out — by then the screen is already up, so it is handed
-            // over rather than rebuilt: rebuilding would drop whatever fingers are on the glass.
-            if (frame is Frame.Text && frame.kind == TextKind.PAD_STATUS.id) gamepad?.setStatus(state.padStatus)
-            // The macro grid is built from the list rather than bound to it, so a list that lands while the
-            // screen is open needs the screen built again; otherwise it reads "no macros yet" until you leave.
-            // A finished icon is the same problem, and arrives the same way.
-            if (screen == Screen.MACROS && frame is Frame.Text) {
-                // A new list retires the icons with it, since a slot number now means a different macro.
-                // Nothing else asks for them again, so this is where a grid left open gets its pictures back.
-                if (frame.kind == TextKind.MACROS.id) link?.send(TextKind.WANT_ICONS.frame(""))
-                if (frame.kind == TextKind.MACROS.id || frame.kind == TextKind.MACRO_ICON.id) {
-                    goTo(Screen.MACROS)
+        if (!state.take(frame)) return
+        surface?.stateChanged()
+        // The pad decides which of its two modes it is in from this answer, which usually lands a few
+        // milliseconds after PAD_ATTACH went out — by then the screen is already up, so it is handed
+        // over rather than rebuilt: rebuilding would drop whatever fingers are on the glass.
+        if (frame is Frame.Text && frame.kind == TextKind.PAD_STATUS.id) gamepad?.setStatus(state.padStatus)
+        // The macro grid is handed what changed rather than built again, which would throw away where
+        // TalkBack was and decode every picture over again for each one that arrived.
+        val grid = macros
+        if (grid != null && frame is Frame.Text) {
+            when (frame.kind) {
+                TextKind.MACROS.id -> {
+                    grid.setMacros(state.macros)
+                    // A new list retires the icons with it, since a slot number now means a different macro.
+                    // Nothing else asks for them again, so this is where a grid left open gets its pictures back.
+                    link?.send(TextKind.WANT_ICONS.frame(""))
+                }
+
+                TextKind.MACRO_ICON.id -> {
+                    grid.iconArrived(state.lastIcon)
                 }
             }
         }
@@ -695,15 +926,14 @@ class MainActivity :
 
     override fun onClosed(
         link: LaptopLink,
-        reason: String,
-    ) = runOnUiThread {
-        if (link != this.link) return@runOnUiThread
+        closure: LaptopLink.Closure,
+    ) {
+        if (link != this.link) return
         handler.removeCallbacks(pinger)
         this.link = null
         picker.setConnecting(null)
-        val userEnded = reason == getString(R.string.status_disconnected)
         when {
-            userEnded -> {
+            closure.cause == LaptopLink.Cause.ENDED -> {
                 if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.KEYBOARD ||
                     screen == Screen.GAMEPAD || screen == Screen.MACROS
                 ) {
@@ -732,10 +962,21 @@ class MainActivity :
 
             else -> {
                 refreshPicker()
-                picker.setMessage(getString(R.string.status_closed, reason))
+                picker.setMessage(getString(R.string.status_closed, describe(closure)))
             }
         }
     }
+
+    /** Why an attempt ended, in the user's language. The link names the cause; the words are the app's. */
+    private fun describe(closure: LaptopLink.Closure): String =
+        when (closure.cause) {
+            LaptopLink.Cause.ENDED, LaptopLink.Cause.LOST -> closure.detail.ifEmpty { getString(R.string.link_lost) }
+            LaptopLink.Cause.REFUSED -> getString(R.string.link_refused)
+            LaptopLink.Cause.MISMATCH -> getString(R.string.link_mismatch, closure.detail, ProtocolConstants.VERSION)
+            LaptopLink.Cause.UNEXPECTED -> getString(R.string.link_unexpected, closure.detail)
+            LaptopLink.Cause.NO_PERMISSION -> getString(R.string.link_no_permission)
+            LaptopLink.Cause.NO_ANSWER -> getString(R.string.link_no_answer)
+        }
 
     private fun scheduleRetry(delay: Long) {
         handler.removeCallbacks(retry)
@@ -765,7 +1006,7 @@ class MainActivity :
         val attempt = link
         if (attempt != null && !attempt.connected) {
             link = null
-            attempt.close(getString(R.string.status_disconnected))
+            attempt.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
         }
     }
 
@@ -784,7 +1025,11 @@ class MainActivity :
     private fun forget() {
         settings.laptop = null
         val current = link
-        if (current != null) current.close(getString(R.string.status_disconnected)) else goTo(Screen.SETTINGS)
+        if (current != null) {
+            current.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
+        } else {
+            goTo(Screen.SETTINGS)
+        }
     }
 
     private fun connectionInfo(): SettingsScreen.Connection {
@@ -830,11 +1075,31 @@ class MainActivity :
         val pinned = setOf(Screen.SURFACE, Screen.MEDIA_LAYOUT, Screen.SHAPE_DRAW)
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2
-        const val PING_INTERVAL_MS = 500L
+
+        /**
+         * The screens that show the round trip: Devices beside the connected laptop, live, and Settings on
+         * its laptop card. Everywhere else a ping only has to prove the link is still there.
+         */
+        val showsRtt = setOf(Screen.PAIRING, Screen.SETTINGS)
+        const val PING_FAST_MS = 500L
+        const val PING_SLOW_MS = 5_000L
+
+        /** How long a link outlives the app leaving the screen: a trip to the picker, a glance at the lock screen. */
+        const val LINGER_MS = 30_000L
         const val TICK_MS = 1_000L
         const val RETRY_DELAY_MS = 2_000L
         const val MAX_ATTEMPTS = 10
         const val MILLIS_PER_SECOND = 1_000L
-        const val NANOS_PER_MS = 1_000_000.0
+
+        /**
+         * The largest background image accepted. A phone camera's photo is a few megabytes and a panorama
+         * perhaps twenty; past this it is a file that happens to be an image, and it would be decoded, sampled
+         * down to the screen and kept, all for a picture the size of the phone.
+         */
+        const val MAX_IMAGE_MB = 50
+        const val BYTES_PER_MB = 1024L * 1024L
+
+        /** The half-copied image, beside the real one until it is whole. */
+        const val PART_SUFFIX = ".part"
     }
 }

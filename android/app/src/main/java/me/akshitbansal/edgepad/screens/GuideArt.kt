@@ -11,6 +11,7 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
+import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import kotlin.math.PI
 import kotlin.math.cos
@@ -70,7 +71,7 @@ class GuideArt(
         background =
             GradientDrawable().apply {
                 setColor(palette.card)
-                cornerRadius = PANEL_RADIUS_DP * density
+                cornerRadius = Space.PANEL_RADIUS * density
             }
         // The grid's outermost dots can land on a rounded corner; the panel's outline trims them to it.
         clipToOutline = true
@@ -253,7 +254,6 @@ class GuideArt(
         const val GROUND_DP = 16f
         const val STROKE = 1.4f
         const val LABEL_SIZE = 9f
-        const val PANEL_RADIUS_DP = 16f
         const val OPAQUE = 255
         const val RUN_MS = 5000f
 

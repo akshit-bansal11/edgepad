@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.screens
 
 import android.animation.ValueAnimator
+import android.app.AlertDialog
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
@@ -29,9 +30,7 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
-private const val LEADING = 1.4f
 private const val SECTION_TOP_DP = 24f
-private const val SUB_GAP_DP = 2f
 private const val FOCUS_RING_DP = 2f
 private const val KNOB_DP = 26f
 private const val KNOB_GAP_DP = 2f
@@ -39,7 +38,12 @@ private const val TRACK_DP = 4f
 private const val TICK_DP = 3f
 private const val TICK_BELOW_DP = 18f
 private const val THUMB_DP = 28f
+
+/** The segmented control's thumb at the default font size; a larger font grows it to fit its text. */
 private const val SEGMENT_HEIGHT_DP = 28f
+
+/** Above and below an option's text, inside the thumb, once the font has outgrown [SEGMENT_HEIGHT_DP]. */
+private const val SEGMENT_TEXT_PAD_DP = 6f
 private const val SEGMENT_INSET_DP = 2f
 private const val SEGMENT_PAD_DP = 14f
 private const val SEGMENT_TRACK_RADIUS_DP = 9f
@@ -48,13 +52,15 @@ private const val SEGMENT_THUMB_RADIUS_DP = 7f
 /** How long the segmented control's thumb takes to slide to the option just tapped. */
 private const val SEGMENT_SLIDE_MS = 200L
 private const val CHIP_DP = 32f
-private const val ICON_TOUCH_DP = 40f
 private const val BACK_ICON_DP = 26f
 private const val CHECK_DP = 20f
 private const val LEAD_DP = 24f
 
-/** How far in from each side of the nav bar its centred title stays, so it never runs under the back link. */
-private const val TITLE_CLEAR_DP = 96f
+// A laptop's row: the Devices list's, and the larger one that heads the Settings hub.
+private const val LAPTOP_ROW_DP = 64f
+private const val LAPTOP_ROW_LARGE_DP = 72f
+private const val LAPTOP_TILE_DP = 36f
+private const val LAPTOP_TILE_LARGE_DP = 44f
 
 /**
  * The screens' shared look, after Edgepad 2.0: iOS-style grouped cards on a soft ground, Lato in three
@@ -145,7 +151,7 @@ class Ui(
         lead: View? = null,
         backLabel: CharSequence? = null,
     ): FrameLayout =
-        FrameLayout(context).apply {
+        NavBar(context).apply {
             minimumHeight = dp(Space.BAR)
             setPadding(dp(Space.XS), 0, dp(Space.XS), 0)
             val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
@@ -167,7 +173,7 @@ class Ui(
                 }
             val drawn = onBack != null || lead != null
             val name =
-                text(title, Type.HEADING, palette.ink, face = Type.bold).apply {
+                text(title, Type.LABEL, palette.ink, face = Type.bold).apply {
                     isAccessibilityHeading = true
                     maxLines = 1
                     ellipsize = TextUtils.TruncateAt.END
@@ -178,14 +184,8 @@ class Ui(
                 // Beside the mark the name reads as a label, not a centred title.
                 start.addView(name)
             } else {
-                addView(
-                    name,
-                    FrameLayout.LayoutParams(match, wrap).apply {
-                        gravity = Gravity.CENTER_VERTICAL
-                        marginStart = dp(TITLE_CLEAR_DP)
-                        marginEnd = dp(TITLE_CLEAR_DP)
-                    },
-                )
+                addView(name, FrameLayout.LayoutParams(match, wrap, Gravity.CENTER_VERTICAL))
+                centred = name
             }
             addView(
                 start,
@@ -204,6 +204,7 @@ class Ui(
                     gravity = Gravity.END or Gravity.CENTER_VERTICAL
                 },
             )
+            ends = listOf(start, end)
         }
 
     /** The nav bar's back link: an accent chevron and the name of the screen it returns to. */
@@ -219,12 +220,12 @@ class Ui(
                 Glyph(context, Glyph.Shape.CHEVRON_LEFT, palette.accent),
                 LinearLayout.LayoutParams(dp(BACK_ICON_DP), dp(BACK_ICON_DP)),
             )
-            addView(text(label, Type.HEADING, palette.accent))
+            addView(text(label, Type.LABEL, palette.accent))
             contentDescription = string(R.string.back)
             tappable(this, Space.S, onBack)
         }
 
-    /** An icon-only button in the accent, with a 40 dp target, named for screen readers and long-press alike. */
+    /** An icon-only button in the accent, on a full-size touch target, named for screen readers and long-press alike. */
     fun icon(
         shape: Glyph.Shape,
         label: CharSequence,
@@ -241,8 +242,8 @@ class Ui(
         Glyph(context, shape, color).apply {
             contentDescription = label
             tooltipText = label
-            layoutParams = LinearLayout.LayoutParams(dp(ICON_TOUCH_DP), dp(ICON_TOUCH_DP))
-            tappable(this, ICON_TOUCH_DP / 2, onTap)
+            layoutParams = LinearLayout.LayoutParams(dp(Space.TOUCH), dp(Space.TOUCH))
+            tappable(this, Space.TOUCH / 2, onTap)
         }
 
     fun text(
@@ -260,11 +261,8 @@ class Ui(
             letterSpacing = tracking
         }
 
-    /**
-     * Secondary text: a sub-line, a value beside a row, a footnote. The name is left over from the monospace
-     * design; it is Lato now, like everything else.
-     */
-    fun mono(
+    /** Secondary text: a sub-line, a value beside a row, a footnote. */
+    fun secondary(
         value: CharSequence,
         sp: Float = Type.SMALL,
         color: Int = palette.dim,
@@ -316,6 +314,38 @@ class Ui(
             setPadding(dp(Space.L), 0, dp(Space.L), 0)
             tappable(this, CHIP_DP / 2, onClick)
         }
+
+    /**
+     * Turns [view] on or off: off, it stops answering taps and fades back. Screen readers still reach it and
+     * say it is unavailable, so the reason beside it can be found.
+     */
+    fun enable(
+        view: View,
+        on: Boolean,
+    ) {
+        view.isEnabled = on
+        view.alpha = if (on) 1f else DISABLED_ALPHA
+    }
+
+    /**
+     * Asks before something that cannot be taken back from here: [title] and [message] over Cancel and
+     * [action], which alone runs [onConfirm]. [owner] is the view the question came from; see [showOver].
+     */
+    fun confirm(
+        owner: View,
+        title: CharSequence,
+        message: CharSequence,
+        action: CharSequence,
+        onConfirm: () -> Unit,
+    ) {
+        AlertDialog
+            .Builder(context)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(action) { _, _ -> onConfirm() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .showOver(owner)
+    }
 
     /** A filled rounded rectangle: the one shape behind cards, buttons, chips, tiles and keys. */
     fun rounded(
@@ -401,7 +431,6 @@ class Ui(
         onSelect: (Int) -> Unit,
     ): View {
         val inset = dp(SEGMENT_INSET_DP)
-        val height = dp(SEGMENT_HEIGHT_DP)
         // Every option is the width of the widest, measured in the bold face it takes when chosen, rather than
         // left to wrap. Equal widths are what let the thumb move by sliding alone: a thumb that had to change
         // width as it went would set its own layout params mid-slide, and the layout that followed would
@@ -412,17 +441,24 @@ class Ui(
                 textSize =
                     TypedValue.applyDimension(
                         TypedValue.COMPLEX_UNIT_SP,
-                        Type.CAPTION,
+                        Type.SMALL,
                         context.resources.displayMetrics,
                     )
             }
         val width = options.maxOf { paint.measureText(it.toString()) }.toInt() + 2 * dp(SEGMENT_PAD_DP)
+        // The height is worked out the same way, from the text, so a large font size grows the thumb instead
+        // of clipping its labels. The whole control is then at least a touch target tall: the room above and
+        // below the drawn track is clear, and every option's label reaches through it to take the tap.
+        val lines = paint.fontMetricsInt
+        val height = maxOf(dp(SEGMENT_HEIGHT_DP), lines.bottom - lines.top + 2 * dp(SEGMENT_TEXT_PAD_DP))
+        val touch = maxOf(dp(Space.TOUCH), height + 2 * inset)
+        val slack = (touch - height) / 2 - inset
         val labels =
             LinearLayout(context).apply {
                 options.forEach { label ->
                     addView(
-                        text(label, Type.CAPTION, palette.ink).apply { gravity = Gravity.CENTER },
-                        LinearLayout.LayoutParams(width, height),
+                        text(label, Type.SMALL, palette.ink).apply { gravity = Gravity.CENTER },
+                        LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.MATCH_PARENT),
                     )
                 }
             }
@@ -432,7 +468,8 @@ class Ui(
                     rounded(if (palette.dark) palette.off else palette.card, SEGMENT_THUMB_RADIUS_DP).apply {
                         if (!palette.dark) setStroke(dp(Space.HAIR), palette.line)
                     }
-                layoutParams = FrameLayout.LayoutParams(width, height)
+                layoutParams =
+                    FrameLayout.LayoutParams(width, height, Gravity.CENTER_VERTICAL).apply { leftMargin = inset }
             }
         var current = selected
         var shown = false
@@ -443,6 +480,7 @@ class Ui(
                 val on = i == current
                 option.typeface = if (on) Type.bold else Type.face
                 option.isSelected = on
+                option.stateDescription = if (on) string(R.string.chosen) else null
             }
             val x = (current * width).toFloat()
             // Slid only once the control has been seen somewhere. The first placement is the control
@@ -462,24 +500,28 @@ class Ui(
         }
 
         for (i in options.indices) {
-            tappable(labels.getChildAt(i), SEGMENT_THUMB_RADIUS_DP) {
+            val option = labels.getChildAt(i)
+            tappable(option, SEGMENT_THUMB_RADIUS_DP) {
                 if (current != i) {
                     current = i
                     paint(animate = true)
                     onSelect(i)
                 }
             }
+            // The press and the focus ring land on the thumb's shape, not on the taller target around it.
+            option.foreground = InsetDrawable(option.foreground, 0, slack + inset, 0, slack + inset)
         }
         return FrameLayout(context).apply {
-            background = rounded(palette.faint, SEGMENT_TRACK_RADIUS_DP)
-            setPadding(inset, inset, inset, inset)
+            background = InsetDrawable(rounded(palette.faint, SEGMENT_TRACK_RADIUS_DP), 0, slack, 0, slack)
+            // After the background: a drawable with insets resets the view's padding to those insets.
+            setPadding(0, 0, 0, 0)
             addView(fill)
             addView(
                 labels,
-                FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                ),
+                FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, touch).apply {
+                    leftMargin = inset
+                    rightMargin = inset
+                },
             )
             paint(animate = false)
         }
@@ -556,14 +598,14 @@ class Ui(
     fun stack(
         title: CharSequence,
         sub: CharSequence?,
-        titleSp: Float = Type.LEAD,
+        titleSp: Float = Type.BODY,
     ): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(0, dp(Space.M), 0, dp(Space.M))
             addView(text(title, titleSp, palette.ink, face = Type.bold))
             if (!sub.isNullOrEmpty()) {
-                addView(mono(sub, Type.SMALL, palette.dim).apply { setPadding(0, dp(SUB_GAP_DP), 0, 0) })
+                addView(secondary(sub, Type.SMALL, palette.dim).apply { setPadding(0, dp(Space.SUB_GAP), 0, 0) })
             }
         }
 
@@ -598,7 +640,7 @@ class Ui(
                 gravity = Gravity.CENTER_VERTICAL
                 if (!summary.isNullOrEmpty()) {
                     addView(
-                        mono(summary, Type.VALUE, palette.dim).apply {
+                        secondary(summary, Type.VALUE, palette.dim).apply {
                             maxLines = 1
                             ellipsize = TextUtils.TruncateAt.END
                         },
@@ -622,19 +664,26 @@ class Ui(
     ): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            val value = mono(valueOf(progress), Type.VALUE, palette.dim)
+            val shown = valueOf(progress)
+            val value = secondary(shown, Type.VALUE, palette.dim)
             addView(
                 field(label, value).apply {
                     minimumHeight = 0
                     setPadding(0, dp(Space.M), 0, 0)
                 },
             )
-            val track =
+            // A screen reader reads a slider as a percentage of its range unless told otherwise, and "40
+            // percent" says nothing about a key size of 1.4x. It is told what the row shows instead.
+            lateinit var track: SeekBar
+            track =
                 ruler(steps, progress) { step ->
-                    value.text = valueOf(step)
+                    val now = valueOf(step)
+                    value.text = now
+                    track.stateDescription = now
                     onChange(step)
                 }
             track.contentDescription = label
+            track.stateDescription = shown
             addView(track)
         }
 
@@ -684,6 +733,49 @@ class Ui(
             }
             paint()
         }
+
+    /**
+     * A laptop in a card: its icon on an accent tile while [connected] and a faint one otherwise, its [name]
+     * in bold over [sub], and [end] at the far side. [large] is the remembered laptop heading the Settings
+     * hub; the Devices list's rows are the regular size. One builder for both, so the two cannot drift.
+     */
+    fun laptop(
+        name: CharSequence,
+        sub: View?,
+        connected: Boolean,
+        end: View?,
+        large: Boolean = false,
+    ): LinearLayout {
+        val tile =
+            FrameLayout(context).apply {
+                background = rounded(if (connected) palette.accent else palette.faint, Space.TILE_RADIUS)
+                addView(Glyph(context, Glyph.Shape.LAPTOP, if (connected) palette.onAccent else palette.dim))
+            }
+        val lines =
+            LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(0, dp(Space.M), 0, dp(Space.M))
+                addView(text(name, if (large) Type.LABEL else Type.BODY, palette.ink, face = Type.bold))
+                if (sub != null) {
+                    addView(
+                        sub,
+                        LinearLayout
+                            .LayoutParams(
+                                ViewGroup.LayoutParams.WRAP_CONTENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ).apply { topMargin = dp(Space.SUB_GAP) },
+                    )
+                }
+            }
+        val side = dp(if (large) LAPTOP_TILE_LARGE_DP else LAPTOP_TILE_DP)
+        val start =
+            LinearLayout(context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                addView(tile, LinearLayout.LayoutParams(side, side).apply { marginEnd = dp(Space.M) })
+                addView(lines, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            }
+        return row(start, end).apply { minimumHeight = dp(if (large) LAPTOP_ROW_LARGE_DP else LAPTOP_ROW_DP) }
+    }
 
     private fun track(): Drawable =
         StateListDrawable().apply {
@@ -735,7 +827,58 @@ class Ui(
         const val PRESS_ALPHA = 200
 
         const val TICK_ALPHA = 128
+
+        /** How far a control that cannot be used right now fades back. */
+        const val DISABLED_ALPHA = 0.4f
     }
+}
+
+/**
+ * The nav bar's frame. Its centred title is kept clear of whatever sits at either end by measuring both ends
+ * first, rather than by a fixed margin: at a large font size the back link alone outgrows any margin chosen
+ * for the default size, and the title then ran under it.
+ */
+private class NavBar(
+    context: Context,
+) : FrameLayout(context) {
+    /** What sits at either end: the back link or the mark, and the actions. */
+    var ends: List<View> = emptyList()
+
+    /** The title, when it is centred over the whole bar rather than set beside the mark. */
+    var centred: View? = null
+
+    override fun onMeasure(
+        widthMeasureSpec: Int,
+        heightMeasureSpec: Int,
+    ) {
+        centred?.let { title ->
+            ends.forEach { measureChild(it, widthMeasureSpec, heightMeasureSpec) }
+            // The same room on both sides, so the title stays centred on the bar and not between its ends.
+            val clear = ends.maxOfOrNull { it.measuredWidth } ?: 0
+            (title.layoutParams as ViewGroup.MarginLayoutParams).apply {
+                marginStart = clear
+                marginEnd = clear
+            }
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    }
+}
+
+/**
+ * Shows the dialog, and closes it if [owner] leaves the window first. Left to itself a dialog outlives the
+ * page that opened it: a rotation or a theme change rebuilds the activity underneath, and the window the
+ * dialog still holds leaks. Nothing it asked about is on screen any more by then, so closing it loses nothing.
+ */
+fun AlertDialog.Builder.showOver(owner: View) {
+    val dialog = show()
+    val closer =
+        object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) = Unit
+
+            override fun onViewDetachedFromWindow(v: View) = dialog.dismiss()
+        }
+    owner.addOnAttachStateChangeListener(closer)
+    dialog.setOnDismissListener { owner.removeOnAttachStateChangeListener(closer) }
 }
 
 /** A vertical run of views on a page, with the design's spacing built in. */
@@ -759,12 +902,12 @@ class Column(
         return view
     }
 
-    fun mono(
+    fun secondary(
         value: CharSequence,
         sp: Float = Type.SMALL,
         color: Int = ui.palette.dim,
         topDp: Float = 0f,
-    ): TextView = add(ui.mono(value, sp, color), topDp)
+    ): TextView = add(ui.secondary(value, sp, color), topDp)
 
     fun headline(
         value: CharSequence,
@@ -784,13 +927,13 @@ class Column(
     fun body(
         value: CharSequence,
         topDp: Float = 0f,
-    ): TextView = add(ui.text(value, Type.VALUE, ui.palette.dim).apply { setLineSpacing(0f, LEADING) }, topDp)
+    ): TextView = add(ui.text(value, Type.VALUE, ui.palette.dim).apply { setLineSpacing(0f, Type.LEADING) }, topDp)
 
     /** A line of explanation under a card, lined up with the card's text. */
     fun footnote(value: CharSequence): TextView =
         add(
             ui.text(value, Type.SMALL, ui.palette.dim).apply {
-                setLineSpacing(0f, LEADING)
+                setLineSpacing(0f, Type.LEADING)
                 setPadding(ui.dp(Space.CARD_PAD), ui.dp(Space.S), ui.dp(Space.CARD_PAD), 0)
             },
         )

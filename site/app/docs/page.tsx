@@ -6,12 +6,27 @@ import { ReferenceSections } from "@/components/sections/reference";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { Toc } from "@/components/toc";
+import { SOCIAL_IMAGE } from "@/lib/nav";
 import { loadProtocol } from "@/lib/protocol";
 
+const TITLE = "Edgepad — documentation";
+const DESCRIPTION =
+  "Full Edgepad documentation: install, the control surface, both apps' architecture, the wire protocol, and the developer guide, on one page.";
+
+// A page's openGraph replaces the layout's whole object rather than merging into it,
+// hence type, site name and image again here.
 export const metadata: Metadata = {
-  title: "Edgepad — documentation",
-  description:
-    "Full Edgepad documentation: install, the control surface, both apps' architecture, the wire protocol, and the developer guide, on one page.",
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: "/docs" },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    type: "website",
+    url: "/docs",
+    siteName: "Edgepad",
+    images: [SOCIAL_IMAGE],
+  },
 };
 
 export default function DocsPage() {
@@ -25,7 +40,7 @@ export default function DocsPage() {
     <div id="top" className="min-h-dvh">
       <SiteHeader variant="docs" />
 
-      <main className="mx-auto max-w-[90rem] px-4 md:px-6">
+      <main id="main" className="mx-auto scroll-mt-16 max-w-[90rem] px-4 md:px-6">
         {/* No entrance on the title block: it is the first paint, and a fade would
             hide it until the JavaScript arrives. */}
         <div className="py-10 md:py-16">

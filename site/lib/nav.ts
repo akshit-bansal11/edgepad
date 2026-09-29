@@ -58,3 +58,14 @@ export const ALL_NAV_IDS: string[] = NAV.flatMap((group) =>
 
 export const REPO = "https://github.com/akshit-bansal11/edgepad";
 export const LATEST_RELEASE = `${REPO}/releases/latest`;
+
+/** The site's one origin. Canonical links, the sitemap and robots.txt all resolve against it. */
+export const SITE = "https://edgepad.vercel.app";
+
+/** The card a shared link unfurls into: the repository's own social preview, 1280×640. */
+export const SOCIAL_IMAGE = {
+  url: "/social-preview.png",
+  width: 1280,
+  height: 640,
+  alt: "Edgepad: your phone as a trackpad, media remote and control panel for a Windows laptop. No account, no Wi-Fi, no cloud.",
+};

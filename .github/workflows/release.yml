@@ -5,7 +5,7 @@ name: Release
 # Edgepad-0.1.0.exe, so several downloads on one phone or laptop can be told apart. That gave up the
 # permanent releases/latest/download/Edgepad.apk link, which nothing in the repo or on the site used.
 #
-# Running this by hand instead builds the same two files from whatever the branch currently holds and
+# Running this by hand instead builds the same files from whatever the branch currently holds and
 # attaches them to a DRAFT release. A draft is visible only to accounts with push access to the repo, and
 # GitHub does not create its git tag until it is published, so nothing about it reaches the public: no tag,
 # no entry on the releases page, and releases/latest keeps pointing at the last real release.
@@ -13,9 +13,17 @@ name: Release
 #
 # Every `uses:` is pinned to a commit SHA with its tag in a trailing comment, and Dependabot moves the
 # SHA the same way it would move a tag. A tag is a moving pointer: whoever controls an action's repository
-# can repoint it, and the code it then runs is inside this job. That matters most in release.yml, where the
-# signing key is decrypted in the same job as four third-party actions, and the key's only other copies are
-# two repository secrets and one folder on the owner's laptop.
+# can repoint it, and the code it then runs is inside this job.
+#
+# The signing key is kept away from the build. Gradle builds the APK unsigned, running every plugin and
+# dependency it downloads with no key anywhere on the machine; the sign job alone decrypts the key, on a
+# fresh runner that builds nothing and runs no action but the two artifact ones. The key's secrets live in
+# the `release` environment, which waits for the owner's approval before that job may read them, a draft
+# as much as a tag, so a workflow edited on some branch cannot reach them unattended. The key's only other copy is one folder on
+# the owner's laptop.
+#
+# Each release also carries SHA256SUMS.txt and a build provenance attestation, which `gh attestation verify`
+# checks: proof that the two files were built by this workflow from this repository at that tag.
 on:
   push:
     tags: ['v*']
@@ -56,42 +64,53 @@ jobs:
       - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only android
-      - name: Unpack the signing key
+      # No key exists on this runner, so the release build comes out unsigned.
+      - name: Build the unsigned APK
+        working-directory: android
+        run: >
+          ./gradlew --no-daemon assembleRelease
+          -PversionName="${VERSION:-${GITHUB_REF_NAME#v}}" -PversionCode="${{ github.run_number }}"
+      # Only the sign job reads it, straight away; a day is enough for a re-run of that job alone.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: apk-unsigned
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: error
+          retention-days: 1
+
+  sign:
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Holds the two key secrets, and makes the job wait for the owner's approval before it can read them.
+    environment: release
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: apk-unsigned
+      # zipalign before apksigner: signing seals the archive, and aligning after would break the signature.
+      # A PKCS12 keystore holding one key needs no alias, and has one password for the store and the key.
+      # An unsigned or wrongly signed APK must fail here, not on the phone.
+      - name: Sign the APK
         env:
           KEYSTORE_BASE64: ${{ secrets.EDGEPAD_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.EDGEPAD_KEYSTORE_PASSWORD }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
-            echo "::error::Signing secrets are missing. Run scripts/new-signing-key.ps1 once, then push the tag again."
+            echo "::error::Signing secrets are missing from the release environment. Run scripts/new-signing-key.ps1 once, then push the tag again."
             exit 1
           fi
           keystore="$RUNNER_TEMP/edgepad-release.p12"
+          trap 'rm -f "$keystore"' EXIT
           printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$keystore"
-          password=$(printf '%s' "$KEYSTORE_PASSWORD" | tr -d '\r\n')
-          echo "::add-mask::$password"
-          # The alias is read from the keystore itself rather than kept as another secret.
-          alias=$(keytool -list -keystore "$keystore" -storetype pkcs12 -storepass "$password" \
-            | awk -F', ' '/PrivateKeyEntry/ { print $1; exit }')
-          if [ -z "$alias" ]; then
-            echo "::error::The keystore holds no private key"
-            exit 1
-          fi
-          {
-            echo "EDGEPAD_KEYSTORE_PATH=$keystore"
-            echo "EDGEPAD_KEYSTORE_PASSWORD=$password"
-            echo "EDGEPAD_KEY_ALIAS=$alias"
-          } >> "$GITHUB_ENV"
-      - name: Build the signed APK
-        working-directory: android
-        run: >
-          ./gradlew --no-daemon assembleRelease
-          -PversionName="${VERSION:-${GITHUB_REF_NAME#v}}" -PversionCode="${{ github.run_number }}"
-      # An unsigned or wrongly signed APK must fail here, not on the phone.
-      - name: Verify the signature
-        run: |
-          cp android/app/build/outputs/apk/release/app-release.apk Edgepad.apk
-          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
-          "$apksigner" verify --print-certs Edgepad.apk
+          EDGEPAD_KS_PASS=$(printf '%s' "$KEYSTORE_PASSWORD" | tr -d '\r\n')
+          echo "::add-mask::$EDGEPAD_KS_PASS"
+          export EDGEPAD_KS_PASS
+          tools=$(dirname "$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)")
+          "$tools/zipalign" -f -p 4 app-release-unsigned.apk aligned.apk
+          "$tools/apksigner" sign --ks "$keystore" --ks-type pkcs12 \
+            --ks-pass env:EDGEPAD_KS_PASS --key-pass env:EDGEPAD_KS_PASS --out Edgepad.apk aligned.apk
+          "$tools/apksigner" verify --print-certs Edgepad.apk
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: apk
@@ -123,26 +142,44 @@ jobs:
           if-no-files-found: error
 
   publish:
-    needs: [android, windows]
+    needs: [sign, windows]
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # Both for the provenance attestation: a token to prove which workflow ran, and the right to store it.
+      id-token: write
+      attestations: write
     steps:
       # Checkout first: it cleans the workspace, and would delete artifacts downloaded before it.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+      # By name, not everything: the unsigned APK is an artifact of this run too, and must never be published.
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
+          name: apk
           path: dist
-          merge-multiple: true
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: exe
+          path: dist
       # The build jobs keep the plain names; the version goes on here, once, for both release paths.
-      # A space would be turned into a dot by GitHub, hence the hyphen.
+      # A space would be turned into a dot by GitHub, hence the hyphen. The sums are taken after the
+      # rename, so SHA256SUMS.txt names the files exactly as they are downloaded.
       - name: Name the files for the version
         run: |
           version="${VERSION:-${GITHUB_REF_NAME#v}}"
           mv dist/Edgepad.apk "dist/Edgepad-$version.apk"
           mv dist/Edgepad.exe "dist/Edgepad-$version.exe"
+          (cd dist && sha256sum Edgepad-*.apk Edgepad-*.exe > SHA256SUMS.txt)
+          cat dist/SHA256SUMS.txt
+      # Tagged releases only. An attestation of a public repository is written to Sigstore's public
+      # transparency log, which would announce a draft build that is meant to stay private.
+      - name: Attest where the files were built
+        if: github.event_name == 'push'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
+        with:
+          subject-path: 'dist/Edgepad-*'
       # A tagged run takes that version's section of CHANGELOG.md; a hand-run draft takes Unreleased,
       # because a draft is a build of work in progress and has no section of its own yet.
       - name: Take the notes from the changelog
@@ -164,7 +201,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
-          gh release create "$GITHUB_REF_NAME" dist/Edgepad-*.apk dist/Edgepad-*.exe
+          gh release create "$GITHUB_REF_NAME" dist/Edgepad-*.apk dist/Edgepad-*.exe dist/SHA256SUMS.txt
           --repo "$GITHUB_REPOSITORY" --title "Edgepad $GITHUB_REF_NAME" --notes-file notes.md --verify-tag
       # --draft is what keeps this private, and the run number is what keeps two test builds from
       # colliding on a name: deleting a release is an owner action, so a job must never need one deleted
@@ -175,11 +212,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           NAME: ${{ inputs.label }}-${{ github.run_number }}
         run: |
-          gh release create "$NAME" dist/Edgepad-*.apk dist/Edgepad-*.exe --repo "$GITHUB_REPOSITORY" --title "Edgepad $NAME" --notes-file notes.md --draft --target "$GITHUB_SHA"
+          gh release create "$NAME" dist/Edgepad-*.apk dist/Edgepad-*.exe dist/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --title "Edgepad $NAME" --notes-file notes.md --draft --target "$GITHUB_SHA"
           {
             echo "Draft build **$NAME**, visible only to accounts with push access to this repo."
             echo
-            echo 'Download both files with:'
+            echo 'Download the files, with their SHA256SUMS.txt:'
             echo '```'
             echo "gh release download $NAME --repo $GITHUB_REPOSITORY --dir ."
             echo '```'

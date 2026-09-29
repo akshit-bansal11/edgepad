@@ -6,5 +6,11 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- Every restore writes packages.lock.json, pinning each package, transitive ones included, to a version and a
+         content hash. CI restores in locked mode (GitHub Actions sets CI=true), so a package that changed under the
+         same version, or a lock file nobody regenerated, fails the build instead of shipping. Locally the lock file
+         is simply rewritten; commit it with the change that caused it. Dependabot updates it with each bump. -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition="'$(CI)' == 'true'">true</RestoreLockedMode>
   </PropertyGroup>
 </Project>

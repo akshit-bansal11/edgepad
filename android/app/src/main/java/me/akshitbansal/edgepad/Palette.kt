@@ -73,23 +73,14 @@ object Type {
     /** A tag or badge, and the small abbreviation over a dial's value. */
     const val MICRO = 12f
 
-    /** Sub-lines under a name, footnotes under a card, section headers. */
+    /** Sub-lines under a name, footnotes under a card, section headers, and a segmented control's options. */
     const val SMALL = 13f
 
-    /** Button labels. */
+    /** Button labels, and a sub-screen's name in its nav bar. */
     const val LABEL = 17f
 
-    /** Explanations under a heading or beside a control. */
-    const val CAPTION = 13f
-
-    /** Row labels and running text. */
+    /** Row labels, running text and names in a list. */
     const val BODY = 16f
-
-    /** Names in a list. */
-    const val LEAD = 16f
-
-    /** A sub-screen's name in its nav bar. */
-    const val HEADING = 17f
 
     /** A page's headline. */
     const val TITLE = 24f
@@ -101,6 +92,9 @@ object Type {
     const val VALUE = 15f
 
     const val TRACKING_TIGHT = -0.01f
+
+    /** Line height, as a multiple of the size, for anything that runs to more than one line. */
+    const val LEADING = 1.4f
 
     /** Where a line of text's visual centre sits above its baseline, as a fraction of the size. */
     const val CAP_CENTRE = 0.35f
@@ -122,8 +116,9 @@ object Space {
     const val M = 12f
     const val L = 16f
     const val XL = 24f
-    const val XXL = 32f
-    const val XXXL = 48f
+
+    /** Between a name and the sub-line under it. */
+    const val SUB_GAP = 2f
 
     /** The smallest touch target anywhere in the app. */
     const val TOUCH = 48f
@@ -145,4 +140,10 @@ object Space {
 
     /** A grouped card's corners. */
     const val CARD_RADIUS = 14f
+
+    /** An icon tile or a small preview inside a row. */
+    const val TILE_RADIUS = 10f
+
+    /** A panel that stands on its own over the ground: an options sheet, a preview, a drawing. */
+    const val PANEL_RADIUS = 16f
 }
