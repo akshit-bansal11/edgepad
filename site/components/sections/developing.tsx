@@ -510,14 +510,16 @@ git push origin v3.0.0`}
         <P>
           <C>.github/workflows/release.yml</C> runs both quality gates, builds a signed
           release APK and a compressed self-contained exe, and attaches them to a GitHub
-          Release under the stable names <C>Edgepad.apk</C> and <C>Edgepad.exe</C>, so{" "}
-          <C>releases/latest/download/&lt;file&gt;</C> always resolves to the newest
-          build.
+          Release named for the version, <C>Edgepad-3.1.1.apk</C> and{" "}
+          <C>Edgepad-3.1.1.exe</C>, so several downloads on one phone or laptop can be
+          told apart.
         </P>
         <P>
-          Versioned file names were rejected because they break that permanent link, and
-          CI artifacts were rejected as a distribution channel because they expire and
-          need a GitHub login. <C>versionName</C> comes from the tag; <C>versionCode</C>{" "}
+          Until September 2026 the files had stable names so{" "}
+          <C>releases/latest/download/&lt;file&gt;</C> always resolved to the newest
+          build; nothing used that link, and telling downloads apart mattered more. CI
+          artifacts were rejected as a distribution channel because they expire and need
+          a GitHub login. <C>versionName</C> comes from the tag; <C>versionCode</C>{" "}
           comes from the workflow run number, which only increases, so an update always
           installs over the previous one.
         </P>

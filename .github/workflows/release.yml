@@ -1,13 +1,14 @@
 name: Release
 
 # Push a tag such as v0.1.0 to publish. Both apps pass their quality gates, then a signed APK and a
-# self-contained exe are attached to a GitHub Release under stable names, so
-# releases/latest/download/Edgepad.apk and .../Edgepad.exe always point at the newest build.
+# self-contained exe are attached to a GitHub Release named for the version, Edgepad-0.1.0.apk and
+# Edgepad-0.1.0.exe, so several downloads on one phone or laptop can be told apart. That gave up the
+# permanent releases/latest/download/Edgepad.apk link, which nothing in the repo or on the site used.
 #
 # Running this by hand instead builds the same two files from whatever the branch currently holds and
 # attaches them to a DRAFT release. A draft is visible only to accounts with push access to the repo, and
 # GitHub does not create its git tag until it is published, so nothing about it reaches the public: no tag,
-# no entry on the releases page, and releases/latest/download keeps pointing at the last real release.
+# no entry on the releases page, and releases/latest keeps pointing at the last real release.
 # That is how a build gets onto the owner's own phone and laptop for testing without announcing a version.
 #
 # Every `uses:` is pinned to a commit SHA with its tag in a trailing comment, and Dependabot moves the
@@ -135,6 +136,13 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+      # The build jobs keep the plain names; the version goes on here, once, for both release paths.
+      # A space would be turned into a dot by GitHub, hence the hyphen.
+      - name: Name the files for the version
+        run: |
+          version="${VERSION:-${GITHUB_REF_NAME#v}}"
+          mv dist/Edgepad.apk "dist/Edgepad-$version.apk"
+          mv dist/Edgepad.exe "dist/Edgepad-$version.exe"
       # A tagged run takes that version's section of CHANGELOG.md; a hand-run draft takes Unreleased,
       # because a draft is a build of work in progress and has no section of its own yet.
       - name: Take the notes from the changelog
@@ -156,7 +164,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
-          gh release create "$GITHUB_REF_NAME" dist/Edgepad.apk dist/Edgepad.exe
+          gh release create "$GITHUB_REF_NAME" dist/Edgepad-*.apk dist/Edgepad-*.exe
           --repo "$GITHUB_REPOSITORY" --title "Edgepad $GITHUB_REF_NAME" --notes-file notes.md --verify-tag
       # --draft is what keeps this private, and the run number is what keeps two test builds from
       # colliding on a name: deleting a release is an owner action, so a job must never need one deleted
@@ -167,7 +175,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           NAME: ${{ inputs.label }}-${{ github.run_number }}
         run: |
-          gh release create "$NAME" dist/Edgepad.apk dist/Edgepad.exe --repo "$GITHUB_REPOSITORY" --title "Edgepad $NAME" --notes-file notes.md --draft --target "$GITHUB_SHA"
+          gh release create "$NAME" dist/Edgepad-*.apk dist/Edgepad-*.exe --repo "$GITHUB_REPOSITORY" --title "Edgepad $NAME" --notes-file notes.md --draft --target "$GITHUB_SHA"
           {
             echo "Draft build **$NAME**, visible only to accounts with push access to this repo."
             echo

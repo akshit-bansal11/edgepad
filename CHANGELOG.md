@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Changed
+
+- Release downloads are named for their version, such as `Edgepad-3.1.1.apk` and `Edgepad-3.1.1.exe`, rather than `Edgepad.apk` and `Edgepad.exe`, so several downloads on one phone or laptop can be told apart. The permanent `releases/latest/download/Edgepad.apk` link no longer resolves; the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest) page is where to get both halves.
+
 ## [3.1.1] - 2026-09-27
 
 Two fixes to 3.1.0's new look. The wire protocol stays at version 4, so any 3.x half speaks to any other.

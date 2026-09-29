@@ -186,12 +186,12 @@ export function ProductSections() {
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="solid">Windows 10 version 2004 or later</Badge>
               <Badge variant="outline">64-bit</Badge>
-              <Badge variant="outline">Edgepad.exe</Badge>
+              <Badge variant="outline">Edgepad-x.y.z.exe</Badge>
             </div>
             <ol className="text-dim max-w-[68ch] list-decimal space-y-3 pl-5 text-[0.9375rem] leading-relaxed">
               <li>
-                Download <C>Edgepad.exe</C>. It is a single self-contained file; nothing
-                else needs installing, and the laptop does not need .NET.
+                Download <C>Edgepad-x.y.z.exe</C>. It is a single self-contained file;
+                nothing else needs installing, and the laptop does not need .NET.
               </li>
               <li>
                 Run it. It is not code-signed, so SmartScreen asks first: choose{" "}
@@ -209,9 +209,9 @@ export function ProductSections() {
               </li>
             </ol>
             <P>
-              Running a newer <C>Edgepad.exe</C> asks the running copy to quit and takes
-              its place, so an update takes over cleanly rather than failing on the
-              single-instance lock.
+              Running a newer <C>Edgepad-x.y.z.exe</C> asks the running copy to quit and
+              takes its place, so an update takes over cleanly rather than failing on
+              the single-instance lock.
             </P>
             <Note label="Optional: ViGEmBus, for the gamepad">
               <p className="mb-3">
@@ -249,12 +249,12 @@ export function ProductSections() {
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="solid">Android 12 or later</Badge>
               <Badge variant="outline">minSdk 31</Badge>
-              <Badge variant="outline">Edgepad.apk</Badge>
+              <Badge variant="outline">Edgepad-x.y.z.apk</Badge>
             </div>
             <ol className="text-dim max-w-[68ch] list-decimal space-y-3 pl-5 text-[0.9375rem] leading-relaxed">
               <li>
-                Download <C>Edgepad.apk</C> and open it. Allow installing from this
-                source if asked.
+                Download <C>Edgepad-x.y.z.apk</C> and open it. Allow installing from
+                this source if asked.
               </li>
               <li>
                 On first run, allow the{" "}
