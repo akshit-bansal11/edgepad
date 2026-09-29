@@ -12,7 +12,8 @@ using Windows.Networking.Sockets;
 namespace Edgepad.Bluetooth;
 
 /// <summary>
-/// One connected phone: handshake, trust check, then a blocking read loop on its own thread that turns
+/// One connected phone: handshake, trust check (asking the owner, through askTrust, about a phone while none
+/// is trusted), then a blocking read loop on its own thread that turns
 /// each frame straight into input. There is no queue between the socket and SendInput. The laptop's own
 /// state (volume, mute, brightness) goes back as STATE frames: a snapshot after the handshake, then every
 /// audio change as it happens, so the phone's dials show what the laptop is really at.
@@ -20,6 +21,7 @@ namespace Edgepad.Bluetooth;
 internal sealed class Session(
     StreamSocket socket,
     TrustStore trust,
+    Func<string, bool> askTrust,
     InputInjector injector,
     VirtualPad pad,
     Dispatcher dispatcher,
@@ -86,9 +88,11 @@ internal sealed class Session(
                 return;
             }
 
-            if (!trust.Admit(address))
+            // HELLO_ACK waits on the owner's answer, and a refusal closes the socket without one: the same
+            // bytes a phone it did not trust has always been sent, so no phone needs to learn anything new.
+            if (!trust.Admit(address, () => askTrust(address)))
             {
-                Log.Write($"Refused {address}: this laptop trusts {trust.Trusted}");
+                Log.Write($"Refused {address}: this laptop trusts {trust.Trusted ?? "no phone yet"}");
                 onStatus("Refused a phone it does not trust");
                 return;
             }

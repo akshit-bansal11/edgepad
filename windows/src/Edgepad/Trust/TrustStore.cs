@@ -1,9 +1,10 @@
 namespace Edgepad.Trust;
 
 /// <summary>
-/// Trust on first use. Pairing already limits connections to bonded devices; this narrows it to the one
-/// phone that connected first, so some other paired device cannot drive the laptop. The tray menu's
-/// Forget clears it, and the next phone to connect becomes the trusted one.
+/// Trust on first use, with the owner's say-so. Pairing already limits connections to bonded devices; this
+/// narrows it to one phone, so some other paired device cannot drive the laptop. The first phone to complete
+/// the handshake while nothing is trusted is not taken on its word: the owner is asked, on the laptop, and
+/// only a yes writes it down. The tray menu's Forget clears it, and the next phone is asked about in turn.
 ///
 /// Every file operation here is guarded, and the guards are not all the same. Reading is the one that
 /// matters: a file that is there and cannot be read is <em>not</em> the same as no file, and treating it
@@ -17,6 +18,10 @@ internal sealed class TrustStore(string path)
     // The phone admitted when its address could not be written down. Kept for this run so a failed save
     // narrows trust to that phone rather than leaving it open to whichever bonded device connects next.
     private string? unsaved;
+
+    // Set while the owner is being asked about one phone. A second phone arriving then is refused unasked
+    // rather than stacking a second question on the first, which the owner could answer for the wrong phone.
+    private bool asking;
 
     public static TrustStore ForCurrentUser() => new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "trusted-phone.txt"));
@@ -33,23 +38,53 @@ internal sealed class TrustStore(string path)
         }
     }
 
-    /// <summary>True when <paramref name="address"/> may connect. The first address ever offered is remembered.</summary>
-    public bool Admit(string address)
+    /// <summary>
+    /// True when <paramref name="address"/> may connect. While nothing is trusted, <paramref name="ask"/> puts
+    /// the question to the owner and a yes is remembered; otherwise it is never called. It blocks for as long
+    /// as the owner takes, so it runs outside the lock: the tray menu reads <see cref="Trusted"/> on the very
+    /// thread that is showing the question, and would otherwise wait on its own answer.
+    /// </summary>
+    public bool Admit(string address, Func<bool> ask)
     {
         lock (gate)
         {
-            if (!TryRead(out var trusted))
+            if (Decided(address) is { } known)
             {
-                // Fail closed. The phone sees a refusal, the log says why, and Forget in the tray menu is
-                // the way out; the alternative is a laptop that quietly re-pairs itself whenever its own
-                // trust file is unreadable, which is the single thing this class exists to prevent.
+                return known;
+            }
+
+            if (asking)
+            {
                 return false;
             }
 
-            trusted ??= unsaved;
-            if (trusted is not null)
+            asking = true;
+        }
+
+        bool yes;
+        try
+        {
+            yes = ask();
+        }
+        finally
+        {
+            lock (gate)
             {
-                return string.Equals(trusted, address, StringComparison.OrdinalIgnoreCase);
+                asking = false;
+            }
+        }
+
+        if (!yes)
+        {
+            return false;
+        }
+
+        lock (gate)
+        {
+            // Settled again after the wait: a file edited by hand in that minute is still the one that counts.
+            if (Decided(address) is { } settled)
+            {
+                return settled;
             }
 
             try
@@ -70,6 +105,24 @@ internal sealed class TrustStore(string path)
     }
 
     /// <summary>
+    /// Whether <paramref name="address"/> is admitted without asking: true for the trusted phone, false for any
+    /// other and for a trust file that cannot be read, null when nothing is trusted yet. Called under the lock.
+    /// </summary>
+    private bool? Decided(string address)
+    {
+        if (!TryRead(out var trusted))
+        {
+            // Fail closed. The phone sees a refusal, the log says why, and Forget in the tray menu is the way
+            // out; the alternative is a laptop that quietly re-pairs itself whenever its own trust file is
+            // unreadable, which is the single thing this class exists to prevent.
+            return false;
+        }
+
+        trusted ??= unsaved;
+        return trusted is null ? null : string.Equals(trusted, address, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
     /// True when <paramref name="address"/> is certain to be refused: another phone is trusted, or the trust
     /// file cannot be read. Checked before a new connection may displace the current one; unlike
     /// <see cref="Admit"/> it never grants trust.
@@ -78,13 +131,7 @@ internal sealed class TrustStore(string path)
     {
         lock (gate)
         {
-            if (!TryRead(out var trusted))
-            {
-                return true;
-            }
-
-            trusted ??= unsaved;
-            return trusted is not null && !string.Equals(trusted, address, StringComparison.OrdinalIgnoreCase);
+            return Decided(address) == false;
         }
     }
 

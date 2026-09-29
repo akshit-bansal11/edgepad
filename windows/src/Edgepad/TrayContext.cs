@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Edgepad.Bluetooth;
 using Edgepad.Controls;
 using Edgepad.Macros;
@@ -17,6 +18,13 @@ internal sealed class TrayContext : ApplicationContext
     // The documentation site. The phone's Settings › Help offers the same link, so the
     // two halves point at one page rather than each explaining itself.
     private const string DocumentationUrl = "https://edgepad.vercel.app";
+
+    /// <summary>
+    /// How long the question about a new phone waits for the owner. No answer is a no: a laptop left alone must
+    /// not end up trusting whichever paired phone happened to try it. The phone waits longer than this for its
+    /// HELLO_ACK, so it hears the refusal rather than giving up first.
+    /// </summary>
+    private static readonly TimeSpan TrustPromptTimeout = TimeSpan.FromSeconds(60);
 
     private readonly MenuRow startWithWindows = new("Start with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new("Macros…", Icons.Macro);
@@ -83,7 +91,7 @@ internal sealed class TrayContext : ApplicationContext
         // Built here and nowhere else: the overlay captures this thread's synchronisation context, and the
         // frames that ask it to show something arrive on a Bluetooth thread that has none of its own.
         overlay = new LevelOverlay();
-        server = new RfcommServer(SetStatus, trust, speakers, microphone, brightness, media, display, macros, overlay);
+        server = new RfcommServer(SetStatus, trust, AskTrust, speakers, microphone, brightness, media, display, macros, overlay);
         _ = StartServerAsync();
         _ = StartMediaAsync();
 
@@ -189,6 +197,77 @@ internal sealed class TrayContext : ApplicationContext
             // No default browser, or the shell refused the handler. A menu item must never
             // take the tray app down with it: an unhandled exception here ends the process.
             Log.Write($"Could not open the documentation: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Asks the owner whether to trust <paramref name="address"/>, and waits for the answer. Called on a session
+    /// thread, which holds the phone's HELLO_ACK until this returns; the question itself is shown on this
+    /// context's thread, which owns every window the app has. No answer within <see cref="TrustPromptTimeout"/>
+    /// is a no. The phone is named by its address, as the status line names it once it has connected.
+    /// </summary>
+    private bool AskTrust(string address)
+    {
+        SetStatus($"Asking whether to trust {address}");
+        var deadline = Environment.TickCount64 + (long)TrustPromptTimeout.TotalMilliseconds;
+        var answer = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        ui.Post(
+            _ =>
+            {
+                // Only while the session is still waiting: a question whose answer nobody would read must not
+                // be left on screen for the owner to answer.
+                if (!answer.Task.IsCompleted)
+                {
+                    // The dialog may open behind whatever has focus, since a tray app cannot take the
+                    // foreground; the notification is what the owner notices.
+                    icon.ShowBalloonTip(0, "Edgepad", $"{address} wants to connect. Choose Trust or Don't trust.", ToolTipIcon.Info);
+                    answer.TrySetResult(ShowTrustPrompt(address, deadline));
+                }
+            },
+            null);
+
+        var trusted = answer.Task.Wait(TrustPromptTimeout) && answer.Task.Result;
+        answer.TrySetResult(false);
+        Log.Write(trusted ? $"The owner trusted {address}" : $"The owner did not trust {address}");
+        return trusted;
+    }
+
+    /// <summary>
+    /// The question itself: Trust or Don't trust, with Don't trust the default so a stray Enter trusts nothing.
+    /// It answers itself with Don't trust at <paramref name="deadline"/>, when the session stops waiting.
+    /// </summary>
+    private static bool ShowTrustPrompt(string address, long deadline)
+    {
+        var yes = new TaskDialogButton("Trust");
+        var no = new TaskDialogButton("Don't trust");
+        var page = new TaskDialogPage
+        {
+            Caption = "Edgepad",
+            Heading = $"Trust {address}?",
+            Text = "A paired phone is asking to control this laptop's pointer and keyboard. Trust it only if it is "
+                + $"yours. With no answer in {(int)TrustPromptTimeout.TotalSeconds} seconds, it is not trusted.",
+            Icon = TaskDialogIcon.Shield,
+            AllowCancel = true,
+            Buttons = { yes, no },
+            DefaultButton = no,
+        };
+
+        using var timeout = new System.Windows.Forms.Timer { Interval = (int)Math.Max(1, deadline - Environment.TickCount64) };
+        timeout.Tick += (_, _) =>
+        {
+            timeout.Stop();
+            no.PerformClick();
+        };
+        timeout.Start();
+        try
+        {
+            return TaskDialog.ShowDialog(page, TaskDialogStartupLocation.CenterScreen) == yes;
+        }
+        catch (Exception e) when (e is InvalidOperationException or Win32Exception)
+        {
+            // Refusing is the safe answer when the question cannot even be put.
+            Log.Write($"Could not ask whether to trust {address}: {e.Message}");
+            return false;
         }
     }
 
