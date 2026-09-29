@@ -131,6 +131,8 @@ class LaptopStateTest {
         // Only the last piece is state worth redrawing for; the rest would repaint the same grid.
         assertEquals(List(pieces.size - 1) { false } + true, kept)
         assertArrayEquals(png, state.macroIcon(2))
+        // What lets an open grid redraw the one button this finished instead of every button it has.
+        assertEquals(2, state.lastIcon)
     }
 
     @Test
@@ -141,6 +143,7 @@ class LaptopStateTest {
         pieces.dropLast(1).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
 
         assertNull("a half-arrived icon must not draw", state.macroIcon(0))
+        assertEquals("a half-arrived icon finished nothing", -1, state.lastIcon)
     }
 
     @Test

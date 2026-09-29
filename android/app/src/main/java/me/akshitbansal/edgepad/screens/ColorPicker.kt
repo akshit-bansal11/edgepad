@@ -57,7 +57,7 @@ object ColorPicker {
                 background = circle(ui, initial)
                 contentDescription = label
             }
-        val hex = ui.mono(hexOf(initial), Type.VALUE, ui.palette.dim)
+        val hex = ui.secondary(hexOf(initial), Type.VALUE, ui.palette.dim)
         val rings = ArrayList<Triple<Int, GradientDrawable, View>>(choices.size)
 
         fun mark(chosen: Int) {

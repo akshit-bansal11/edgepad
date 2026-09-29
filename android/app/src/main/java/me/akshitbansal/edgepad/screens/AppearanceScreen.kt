@@ -15,14 +15,15 @@ import kotlin.math.roundToInt
 /**
  * What the control surface is drawn in: one colour for every control, what sits behind them (the theme,
  * a colour, a gradient or an image), and a pattern over that, with a preview that follows every change.
- * The background and the pattern are each a row of pills, the chosen one filled in the accent.
+ * The background and the pattern are each a segmented control, the same one Settings uses.
+ *
+ * A choice that changes which rows a block shows refills the rows under its control and leaves the control
+ * itself alone, so its thumb slides to the new choice rather than being drawn again already there.
  */
 object AppearanceScreen {
     private const val PERCENT = 100
     private const val OPACITY_STEPS = 20
     private const val PREVIEW_DP = 110f
-    private const val PREVIEW_RADIUS_DP = 10f
-    private const val PREVIEW_CARD_RADIUS_DP = 16f
     private val angleRange = StepRange(0f, Settings.MAX_ANGLE, 15f)
     private val sizeRange = StepRange(Settings.MIN_PATTERN_SIZE, Settings.MAX_PATTERN_SIZE, 4f)
 
@@ -81,10 +82,10 @@ object AppearanceScreen {
         preview: Preview,
     ): View =
         LinearLayout(ui.context).apply {
-            background = ui.rounded(ui.palette.card, PREVIEW_CARD_RADIUS_DP)
+            background = ui.rounded(ui.palette.card, Space.PANEL_RADIUS)
             val pad = ui.dp(Space.S)
             setPadding(pad, pad, pad, pad)
-            preview.background = ui.rounded(ui.palette.background, PREVIEW_RADIUS_DP)
+            preview.background = ui.rounded(ui.palette.background, Space.TILE_RADIUS)
             preview.clipToOutline = true
             addView(preview, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, ui.dp(PREVIEW_DP)))
         }
@@ -96,18 +97,26 @@ object AppearanceScreen {
     ): View =
         LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL
+            val details = block(ui)
+            val fill = {
+                details.removeAllViews()
+                val chosen = settings.controlColor
+                if (chosen != null) {
+                    details.addView(line(ui))
+                    details.addView(
+                        ColorPicker.build(ui, ui.string(R.string.control_color), chosen) { settings.controlColor = it },
+                    )
+                }
+            }
             val modes = listOf(ui.string(R.string.control_color_auto), ui.string(R.string.control_color_custom))
             val mode =
                 ui.segmented(modes, if (settings.controlColor == null) 0 else 1) { i ->
                     settings.controlColor = if (i == 0) null else ui.palette.ink
-                    refresh(this) { controlColor(ui, settings) }
+                    fill()
                 }
             addView(ui.field(ui.string(R.string.control_color), mode))
-            val chosen = settings.controlColor
-            if (chosen != null) {
-                addView(line(ui))
-                addView(ColorPicker.build(ui, ui.string(R.string.control_color), chosen) { settings.controlColor = it })
-            }
+            addView(details)
+            fill()
         }
 
     /** The kind of background, then the rows that kind needs. */
@@ -121,13 +130,28 @@ object AppearanceScreen {
             orientation = LinearLayout.VERTICAL
             val kinds = Settings.Background.entries
             val names = kinds.map { ui.string(backgroundNames.getValue(it)) }
+            val details = block(ui)
             addView(
                 pills(ui, names, kinds.indexOf(settings.background)) { i ->
                     settings.background = kinds[i]
                     preview.update()
-                    refresh(this) { background(ui, settings, preview, onPickImage) }
+                    backgroundRows(ui, settings, preview, onPickImage, details)
                 },
             )
+            addView(details)
+            backgroundRows(ui, settings, preview, onPickImage, details)
+        }
+
+    /** The rows the chosen kind of background needs, into [into]: none, a colour, a gradient's three, a picture. */
+    private fun backgroundRows(
+        ui: Ui,
+        settings: Settings,
+        preview: Preview,
+        onPickImage: () -> Unit,
+        into: LinearLayout,
+    ) {
+        into.removeAllViews()
+        into.apply {
             val colour = {
                 addView(line(ui))
                 addView(
@@ -183,6 +207,7 @@ object AppearanceScreen {
                 }
             }
         }
+    }
 
     /** The pattern over the background, and while there is one, its size, strength and colour. */
     private fun pattern(
@@ -194,14 +219,28 @@ object AppearanceScreen {
             orientation = LinearLayout.VERTICAL
             val patterns = Settings.Pattern.entries
             val names = patterns.map { ui.string(patternNames.getValue(it)) }
+            val details = block(ui)
             addView(
                 pills(ui, names, patterns.indexOf(settings.pattern)) { i ->
                     settings.pattern = patterns[i]
                     preview.update()
-                    refresh(this) { pattern(ui, settings, preview) }
+                    patternRows(ui, settings, preview, details)
                 },
             )
-            if (settings.pattern == Settings.Pattern.NONE) return@apply
+            addView(details)
+            patternRows(ui, settings, preview, details)
+        }
+
+    /** While there is a pattern, its size, strength and colour, into [into]. */
+    private fun patternRows(
+        ui: Ui,
+        settings: Settings,
+        preview: Preview,
+        into: LinearLayout,
+    ) {
+        into.removeAllViews()
+        if (settings.pattern == Settings.Pattern.NONE) return
+        into.apply {
             addView(line(ui))
             addView(
                 ui.slider(
@@ -234,53 +273,33 @@ object AppearanceScreen {
                 },
             )
         }
+    }
 
     /**
-     * One pill per option, side by side, scrolling sideways if they outgrow the card. The chosen one is filled
-     * in the accent; picking another hands its index to [onPick], whose caller rebuilds the block to move it.
+     * One segment per option, the chosen one on the raised thumb, scrolling sideways if they outgrow the card.
+     * Until 3.2 this was a row of chips of its own, a second control for the job Settings' segmented control
+     * already did; the segmented control moves its own thumb, so [onPick] only has the rows under it to redo.
      */
     private fun pills(
         ui: Ui,
         names: List<CharSequence>,
         chosen: Int,
         onPick: (Int) -> Unit,
-    ): View {
-        val row = LinearLayout(ui.context)
-        names.forEachIndexed { i, name ->
-            val pill = ui.chip(name) { if (i != chosen) onPick(i) }
-            if (i == chosen) {
-                // Tinting the chip's own fill keeps its shape, inset and touch target; only the colour changes.
-                pill.background.setTint(ui.palette.accent)
-                pill.setTextColor(ui.palette.onAccent)
-                pill.isSelected = true
-                pill.stateDescription = ui.string(R.string.chosen)
-            }
-            val wrap = LinearLayout.LayoutParams.WRAP_CONTENT
-            row.addView(pill, LinearLayout.LayoutParams(wrap, wrap).apply { if (i > 0) marginStart = ui.dp(Space.S) })
-        }
-        return HorizontalScrollView(ui.context).apply {
+    ): View =
+        HorizontalScrollView(ui.context).apply {
             isHorizontalScrollBarEnabled = false
-            setPadding(0, ui.dp(Space.XS), 0, ui.dp(Space.XS))
-            addView(row)
+            setPadding(0, ui.dp(Space.S), 0, ui.dp(Space.S))
+            addView(ui.segmented(names, chosen, onPick))
         }
-    }
+
+    /** An empty run of rows, filled and refilled by the block it sits in. */
+    private fun block(ui: Ui): LinearLayout = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
 
     /** A separator between two rows of a block, which sits in a card. */
     private fun line(ui: Ui): View =
         ui.hairline().apply {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, ui.dp(Space.HAIR))
         }
-
-    /** Rebuilds a block in place after a choice that changes which rows it shows. */
-    private fun refresh(
-        block: LinearLayout,
-        build: () -> View,
-    ) {
-        val parent = block.parent as? LinearLayout ?: return
-        val index = parent.indexOfChild(block)
-        parent.removeViewAt(index)
-        parent.addView(build(), index, block.layoutParams)
-    }
 
     /** A strip of the surface's background as the settings now describe it, clipped to its rounded outline. */
     class Preview(

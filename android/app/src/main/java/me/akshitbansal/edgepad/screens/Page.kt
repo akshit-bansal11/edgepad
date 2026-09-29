@@ -261,11 +261,8 @@ class Ui(
             letterSpacing = tracking
         }
 
-    /**
-     * Secondary text: a sub-line, a value beside a row, a footnote. The name is left over from the monospace
-     * design; it is Lato now, like everything else.
-     */
-    fun mono(
+    /** Secondary text: a sub-line, a value beside a row, a footnote. */
+    fun secondary(
         value: CharSequence,
         sp: Float = Type.SMALL,
         color: Int = palette.dim,
@@ -608,7 +605,7 @@ class Ui(
             setPadding(0, dp(Space.M), 0, dp(Space.M))
             addView(text(title, titleSp, palette.ink, face = Type.bold))
             if (!sub.isNullOrEmpty()) {
-                addView(mono(sub, Type.SMALL, palette.dim).apply { setPadding(0, dp(Space.SUB_GAP), 0, 0) })
+                addView(secondary(sub, Type.SMALL, palette.dim).apply { setPadding(0, dp(Space.SUB_GAP), 0, 0) })
             }
         }
 
@@ -643,7 +640,7 @@ class Ui(
                 gravity = Gravity.CENTER_VERTICAL
                 if (!summary.isNullOrEmpty()) {
                     addView(
-                        mono(summary, Type.VALUE, palette.dim).apply {
+                        secondary(summary, Type.VALUE, palette.dim).apply {
                             maxLines = 1
                             ellipsize = TextUtils.TruncateAt.END
                         },
@@ -668,7 +665,7 @@ class Ui(
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             val shown = valueOf(progress)
-            val value = mono(shown, Type.VALUE, palette.dim)
+            val value = secondary(shown, Type.VALUE, palette.dim)
             addView(
                 field(label, value).apply {
                     minimumHeight = 0
@@ -905,12 +902,12 @@ class Column(
         return view
     }
 
-    fun mono(
+    fun secondary(
         value: CharSequence,
         sp: Float = Type.SMALL,
         color: Int = ui.palette.dim,
         topDp: Float = 0f,
-    ): TextView = add(ui.mono(value, sp, color), topDp)
+    ): TextView = add(ui.secondary(value, sp, color), topDp)
 
     fun headline(
         value: CharSequence,

@@ -99,7 +99,7 @@ object GamepadLayoutScreen {
                 )
                 addView(
                     ui
-                        .mono(
+                        .secondary(
                             ui.string(R.string.gamepad_layout_hint),
                             Type.SMALL,
                             ui.palette.dim,

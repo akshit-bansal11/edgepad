@@ -25,6 +25,11 @@ android {
     buildTypes {
         release {
             // No signingConfig, on purpose: see the note above android {}.
+            // R8 shrinks and optimises the release APK and drops resources nothing reaches. It does not rename:
+            // see proguard-rules.pro, which also says what was checked before this was turned on.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 

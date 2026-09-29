@@ -49,7 +49,7 @@ object MediaLayoutScreen {
                 )
                 addView(
                     ui
-                        .mono(
+                        .secondary(
                             ui.string(R.string.media_layout_hint),
                             Type.SMALL,
                             ui.palette.dim,

@@ -91,7 +91,7 @@ class ReconnectingScreen(
                 add(pick, Space.S)
             }
             grow()
-            lastSeen = mono("", Type.SMALL, topDp = gap)
+            lastSeen = secondary("", Type.SMALL, topDp = gap)
             lastSeen.gravity = Gravity.CENTER
         }
 

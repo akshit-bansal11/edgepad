@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Nothing Edgepad stores is worth moving: the remembered laptop belongs to this phone's own pairing. -->
+<!-- Nothing Edgepad stores is worth moving: the remembered laptop belongs to this phone's own pairing, and the
+     imported background (files/background.img) is the user's own photo, which has no business in a backup
+     they did not ask for. Until 3.2 only the settings were excluded and the photo went with every backup
+     and every device transfer. -->
 <data-extraction-rules>
   <cloud-backup>
     <exclude domain="sharedpref" path="." />
+    <exclude domain="file" path="." />
   </cloud-backup>
   <device-transfer>
     <exclude domain="sharedpref" path="." />
+    <exclude domain="file" path="." />
   </device-transfer>
 </data-extraction-rules>
