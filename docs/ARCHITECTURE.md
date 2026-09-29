@@ -89,6 +89,6 @@ Above that fixture layer, the Android suite (`android/app/src/test`) covers the 
 
 ## Build and release
 
-One script, `scripts/check.ps1`, is the quality gate for both halves: format, lint (warnings are errors on both sides), build, test. CI runs it in its non-mutating mode on every push and pull request, then produces a debug APK and a self-contained exe as artifacts. A version tag runs the same gates and publishes a GitHub Release with a signed APK and the exe under stable names. The APK's signing key exists only in the repository's Actions secrets and on the machine that created it; `scripts/new-signing-key.ps1` makes it once and never prints it.
+One script, `scripts/check.ps1`, is the quality gate for both halves: format, lint (warnings are errors on both sides), build, test. CI runs it in its non-mutating mode on every push and pull request, then produces a debug APK and a self-contained exe as artifacts. A version tag runs the same gates and publishes a GitHub Release with a signed APK and the exe, each named for its version. The APK's signing key exists only in the repository's Actions secrets and on the machine that created it; `scripts/new-signing-key.ps1` makes it once and never prints it.
 
 The laptop app is a per-user tray app rather than a Windows service on purpose: services run in session 0 and can neither inject input into the desktop nor reach the user's audio session. It is single-instance, and a newer copy asks the running one to quit and waits for the lock, so an update takes over cleanly.

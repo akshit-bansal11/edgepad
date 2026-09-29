@@ -5,7 +5,7 @@ whole documentation on one page at `/docs`.
 
 **Live at [edgepad.vercel.app](https://edgepad.vercel.app).** Deployed to Vercel from the repository root (not from `site/`), because the build reads `../protocol/*.txt` — see *Hosting* below.
 
-It is **not** part of either app's quality gate and CI does not build it. `scripts/check.ps1` still checks only `android/` and `windows/`.
+It is **not** part of either app's quality gate: `scripts/check.ps1` checks only `android/` and `windows/`. Its own gate and build run in `.github/workflows/site.yml` on every push and pull request that touches `site/` or `protocol/`.
 
 ## Running it
 

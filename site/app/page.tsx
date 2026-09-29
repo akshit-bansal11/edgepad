@@ -119,7 +119,7 @@ const INSTALL: {
     // Badges do not wrap, so these stay short enough to fit a narrow card. The full
     // requirement is spelled out in the steps and in the limits above.
     requirement: "Windows 10 2004+",
-    file: "Edgepad.exe",
+    file: "Edgepad-x.y.z.exe",
     steps: [
       "Download it. One self-contained 64-bit file; the laptop does not need .NET.",
       "Run it. SmartScreen asks first: More info, then Run anyway.",
@@ -131,7 +131,7 @@ const INSTALL: {
     half: "Phone",
     Icon: Smartphone,
     requirement: "Android 12+",
-    file: "Edgepad.apk",
+    file: "Edgepad-x.y.z.apk",
     steps: [
       "Download it and open it. Allow installing from this source if asked.",
       "Allow Nearby devices on first run. It reads the laptops already paired with the phone and never scans for new ones.",

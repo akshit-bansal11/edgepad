@@ -138,10 +138,10 @@ const DECISIONS: Decision[] = [
       "A named mutex plus a quit event: the new copy sets the event and waits up to ten seconds for the lock, and explains itself if it does not get it. Killing the other process was rejected as heavy-handed, and would also kill a copy you meant to keep.",
   },
   {
-    id: "stablenames",
-    question: "Why do the release assets have stable names?",
+    id: "versionednames",
+    question: "Why are the release assets named for their version?",
     answer:
-      "So releases/latest/download/Edgepad.apk and .../Edgepad.exe always resolve to the newest build. Versioned file names break that permanent link, and CI artifacts were rejected as a distribution channel because they expire and need a GitHub login.",
+      "So several downloads on one phone or laptop can be told apart: Edgepad-3.1.1.apk, not a fourth Edgepad (3).apk. Until September 2026 they had stable names so releases/latest/download/Edgepad.apk always resolved to the newest build, but nothing used that link. CI artifacts were rejected as a distribution channel because they expire and need a GitHub login.",
   },
 ];
 

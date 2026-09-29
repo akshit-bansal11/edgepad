@@ -419,9 +419,20 @@ cd windows && dotnet test --solution Edgepad.slnx`}
         title="Contributing"
         lede="Edgepad is small on purpose. The bar for a change is that it makes the product better for someone using it, and that it passes the same gate CI runs."
       >
+        <P>
+          Fork the repository on GitHub and clone your fork. Your work lives on your
+          fork, and reaches this repository as a pull request.
+        </P>
+        <CodeBlock
+          title="Get the code"
+          code={`git clone https://github.com/<you>/edgepad.git
+cd edgepad
+git remote add upstream https://github.com/akshit-bansal11/edgepad.git`}
+        />
         <ol className="text-dim max-w-[70ch] list-decimal space-y-3 pl-5 text-[0.9375rem] leading-relaxed">
           <li>
-            Branch from <C>main</C>.
+            Bring your fork&apos;s <C>main</C> up to date with <C>upstream/main</C>,
+            then branch from it on your fork.
           </li>
           <li>
             <strong className="text-foreground">Keep the two apps in step.</strong> A
@@ -452,7 +463,11 @@ cd windows && dotnet test --solution Edgepad.slnx`}
             Add a line under <strong className="text-foreground">Unreleased</strong> in{" "}
             <C>CHANGELOG.md</C>.
           </li>
-          <li>Open a pull request.</li>
+          <li>
+            Push the branch to your fork and open a pull request against <C>main</C>{" "}
+            here. CI runs the same gate on both halves, and the site&apos;s gate when{" "}
+            <C>site/</C> or <C>protocol/</C> changed. The maintainer reviews and merges.
+          </li>
         </ol>
 
         <Sub>Style</Sub>
@@ -498,28 +513,15 @@ cd windows && dotnet test --solution Edgepad.slnx`}
         id="releases"
         eyebrow="Developing"
         title="Releases"
-        lede="Releases are built by CI, not by hand. Pushing a version tag is the whole process."
+        lede="Releases are published by the maintainer, and built by CI rather than by hand. A pull request never cuts one: its line under Unreleased ships with the next release."
       >
-        <CodeBlock
-          title="Cut a release"
-          code={`# 1. Update the version table in docs/PROTOCOL.md if the protocol changed.
-# 2. Move Unreleased in CHANGELOG.md under the new version.
-git tag v3.0.0
-git push origin v3.0.0`}
-        />
         <P>
-          <C>.github/workflows/release.yml</C> runs both quality gates, builds a signed
-          release APK and a compressed self-contained exe, and attaches them to a GitHub
-          Release under the stable names <C>Edgepad.apk</C> and <C>Edgepad.exe</C>, so{" "}
-          <C>releases/latest/download/&lt;file&gt;</C> always resolves to the newest
-          build.
-        </P>
-        <P>
-          Versioned file names were rejected because they break that permanent link, and
-          CI artifacts were rejected as a distribution channel because they expire and
-          need a GitHub login. <C>versionName</C> comes from the tag; <C>versionCode</C>{" "}
-          comes from the workflow run number, which only increases, so an update always
-          installs over the previous one.
+          Each release carries a signed APK and a compressed self-contained exe, named
+          for the version, <C>Edgepad-3.1.1.apk</C> and <C>Edgepad-3.1.1.exe</C>, so
+          several downloads on one phone or laptop can be told apart. The app&apos;s{" "}
+          <C>versionName</C> comes from the release tag and its <C>versionCode</C> from
+          a number that only increases, so an update always installs over the previous
+          one.
         </P>
 
         <Note label="Release builds are signed">
