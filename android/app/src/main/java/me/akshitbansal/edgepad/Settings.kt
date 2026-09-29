@@ -11,7 +11,10 @@ import java.io.File
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-/** Everything the app remembers between launches. The theme is the system's own per-app night mode. */
+/**
+ * Everything the app remembers between launches. The theme is applied through the system's own per-app night
+ * mode; [theme] only remembers which of the three was chosen, since the system offers no way to read it back.
+ */
 class Settings(
     context: Context,
 ) {
@@ -20,6 +23,9 @@ class Settings(
 
     /** A repeating pattern drawn over the background. */
     enum class Pattern { NONE, SQUARES, DOTS, CHECKER }
+
+    /** The Theme setting: follow the phone, or always one of the two. */
+    enum class Theme { SYSTEM, DARK, LIGHT }
 
     private val prefs = context.getSharedPreferences(NAME, Context.MODE_PRIVATE)
 
@@ -131,6 +137,11 @@ class Settings(
     var pattern: Pattern
         get() = enum(KEY_PATTERN, Pattern.SQUARES)
         set(value) = prefs.edit().putString(KEY_PATTERN, value.name).apply()
+
+    /** The last Theme chosen, or null before 3.2, whose Dark and Light were set without being written down. */
+    var theme: Theme?
+        get() = prefs.getString(KEY_THEME, null)?.let { name -> Theme.entries.firstOrNull { it.name == name } }
+        set(value) = prefs.edit().putString(KEY_THEME, value?.name).apply()
 
     /** How large the media pieces are drawn, as a multiple of their base size; each orientation keeps its own. */
     var mediaScale: Float
@@ -341,6 +352,7 @@ class Settings(
         private const val KEY_GRADIENT_END = "gradientEnd"
         private const val KEY_GRADIENT_ANGLE = "gradientAngle"
         private const val KEY_PATTERN = "pattern"
+        private const val KEY_THEME = "theme"
         private const val KEY_MEDIA_SCALE = "mediaScale"
         private const val KEY_KEY_TEXT_SCALE = "keyTextScale"
         private const val KEY_PATTERN_SIZE = "patternSize"

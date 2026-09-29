@@ -1,6 +1,8 @@
 package me.akshitbansal.edgepad.screens
 
 import android.app.UiModeManager
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -107,14 +109,18 @@ object SettingsScreen {
                 {
                     section(ui.string(R.string.settings_appearance))
                     card {
-                        val themes = listOf(ui.string(R.string.theme_dark), ui.string(R.string.theme_light))
+                        val themes =
+                            listOf(
+                                ui.string(R.string.theme_system),
+                                ui.string(R.string.theme_dark),
+                                ui.string(R.string.theme_light),
+                            )
                         add(
                             ui.field(
                                 ui.string(R.string.theme),
-                                ui.segmented(
-                                    themes,
-                                    if (ui.palette.dark) 0 else 1,
-                                ) { i -> setTheme(ui, dark = i == 0) },
+                                ui.segmented(themes, theme(ui, settings).ordinal) { i ->
+                                    setTheme(ui, settings, Settings.Theme.entries[i])
+                                },
                             ),
                         )
                         hairline()
@@ -238,14 +244,41 @@ object SettingsScreen {
             settings.corner(corner)?.let { ui.string(it.nameRes) } ?: NO_DIAL
         }
 
+    /**
+     * The Theme choice as last made. Before 3.2 only Dark and Light existed and neither was written down, so
+     * for a choice made then it is worked out: a theme that differs from the phone's was chosen, and one that
+     * matches it is shown as System, which from then on is also what it does.
+     */
+    private fun theme(
+        ui: Ui,
+        settings: Settings,
+    ): Settings.Theme {
+        settings.theme?.let { return it }
+        val phoneDark =
+            (Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
+        return when {
+            ui.palette.dark == phoneDark -> Settings.Theme.SYSTEM
+            ui.palette.dark -> Settings.Theme.DARK
+            else -> Settings.Theme.LIGHT
+        }
+    }
+
     private fun setTheme(
         ui: Ui,
-        dark: Boolean,
+        settings: Settings,
+        theme: Settings.Theme,
     ) {
-        if (dark == ui.palette.dark) return
-        // The system keeps the choice for this app and rebuilds the activity; the link survives the rebuild.
+        settings.theme = theme
+        // The system keeps the choice for this app and rebuilds the activity when it changes what is drawn;
+        // the link survives the rebuild. MODE_NIGHT_AUTO is how an app hands the choice back: the system then
+        // sets no night mode of its own for the app, and the phone's applies.
         ui.context.getSystemService(UiModeManager::class.java)?.setApplicationNightMode(
-            if (dark) UiModeManager.MODE_NIGHT_YES else UiModeManager.MODE_NIGHT_NO,
+            when (theme) {
+                Settings.Theme.SYSTEM -> UiModeManager.MODE_NIGHT_AUTO
+                Settings.Theme.DARK -> UiModeManager.MODE_NIGHT_YES
+                Settings.Theme.LIGHT -> UiModeManager.MODE_NIGHT_NO
+            },
         )
     }
 }
