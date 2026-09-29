@@ -1,11 +1,9 @@
 package me.akshitbansal.edgepad.screens
 
 import android.app.UiModeManager
-import android.view.Gravity
+import android.net.Uri
 import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.LinearLayout
+import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
@@ -44,9 +42,6 @@ object SettingsScreen {
         val back: () -> Unit,
     )
 
-    private const val TILE_DP = 44f
-    private const val TILE_RADIUS_DP = 12f
-    private const val LAPTOP_ROW_DP = 72f
     private const val NO_DIAL = "—"
 
     private val textRange = StepRange(Settings.MIN_KEY_TEXT_SCALE, Settings.MAX_KEY_TEXT_SCALE, 0.1f)
@@ -143,7 +138,8 @@ object SettingsScreen {
                         add(
                             ui.link(
                                 ui.string(R.string.documentation_title),
-                                ui.string(R.string.documentation_summary),
+                                // The site's own address, from the one string that holds it.
+                                Uri.parse(ui.string(R.string.documentation_url)).host,
                                 routes.documentation,
                             ),
                         )
@@ -154,8 +150,8 @@ object SettingsScreen {
         }
 
     /**
-     * The remembered laptop on an accent tile while it is connected and a faint one while it is not, its
-     * state under its name, and a way to forget it.
+     * The remembered laptop, its state under its name, and a way to forget it. Forgetting asks first: it
+     * drops the connection there and then, and the laptop is not reconnected to until it is picked again.
      */
     private fun laptop(
         ui: Ui,
@@ -163,32 +159,26 @@ object SettingsScreen {
         onForget: () -> Unit,
     ): View {
         val on = connection.connected
-        val tile =
-            FrameLayout(ui.context).apply {
-                background = ui.rounded(if (on) ui.palette.accent else ui.palette.faint, TILE_RADIUS_DP)
-                addView(Glyph(ui.context, Glyph.Shape.LAPTOP, if (on) ui.palette.onAccent else ui.palette.dim))
+        val detail =
+            connection.detail.takeIf { it.isNotEmpty() }?.let {
+                ui.mono(it, Type.SMALL, if (on) ui.palette.accent else ui.palette.dim)
             }
-        val text =
-            LinearLayout(ui.context).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(0, ui.dp(Space.M), 0, ui.dp(Space.M))
-                val name = connection.name ?: ui.string(R.string.no_laptop)
-                addView(ui.text(name, Type.HEADING, ui.palette.ink, face = Type.bold))
-                if (connection.detail.isNotEmpty()) {
-                    addView(ui.mono(connection.detail, Type.SMALL, if (on) ui.palette.accent else ui.palette.dim))
-                }
+        val forget =
+            connection.name?.let { name ->
+                lateinit var chip: TextView
+                chip =
+                    ui.chip(ui.string(R.string.forget), danger = true) {
+                        ui.confirm(
+                            chip,
+                            ui.string(R.string.forget_laptop_title, name),
+                            ui.string(R.string.forget_laptop_body),
+                            ui.string(R.string.forget),
+                            onForget,
+                        )
+                    }
+                chip
             }
-        val start =
-            LinearLayout(ui.context).apply {
-                gravity = Gravity.CENTER_VERTICAL
-                addView(
-                    tile,
-                    LinearLayout.LayoutParams(ui.dp(TILE_DP), ui.dp(TILE_DP)).apply { marginEnd = ui.dp(Space.M) },
-                )
-                addView(text, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-            }
-        val forget = if (connection.name != null) ui.chip(ui.string(R.string.forget), danger = true, onForget) else null
-        return ui.row(start, forget).apply { minimumHeight = ui.dp(LAPTOP_ROW_DP) }
+        return ui.laptop(connection.name ?: ui.string(R.string.no_laptop), detail, on, forget, large = true)
     }
 
     /** How large the keyboard's key labels are drawn; the keyboard shrinks the lot if any would leave its key. */

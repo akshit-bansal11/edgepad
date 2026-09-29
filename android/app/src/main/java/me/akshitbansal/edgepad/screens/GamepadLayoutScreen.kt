@@ -45,9 +45,6 @@ object GamepadLayoutScreen {
      */
     private const val MAX_LIST_DP = 120f
 
-    /** The hint's line height, as a multiple of its size, the same as a footnote's. */
-    private const val HINT_LEADING = 1.4f
-
     /** What Add control offers: a kind, what a fresh one of it drives, and what is written on it. */
     private class Addable(
         val nameRes: Int,
@@ -107,7 +104,7 @@ object GamepadLayoutScreen {
                             Type.SMALL,
                             ui.palette.dim,
                         ).apply {
-                            setLineSpacing(0f, HINT_LEADING)
+                            setLineSpacing(0f, Type.LEADING)
                             setPadding(0, ui.dp(Space.S), 0, ui.dp(Space.S))
                         },
                 )
@@ -378,7 +375,7 @@ object GamepadLayoutScreen {
                         R.string.gamepad_label -> showLabelPicker(control)
                         else -> commitLayout(layout.copy(controls = layout.controls - control))
                     }
-                }.show()
+                }.showOver(this)
         }
 
         private fun showSizePicker(control: Control) {
@@ -390,7 +387,7 @@ object GamepadLayoutScreen {
                 .setSingleChoiceItems(labels, current) { dialog, which ->
                     dialog.dismiss()
                     commit(control, control.copy(size = SIZES_DP[which].toFloat()))
-                }.show()
+                }.showOver(this)
         }
 
         /**
@@ -412,7 +409,7 @@ object GamepadLayoutScreen {
                     } else {
                         commit(control, control.copy(binding = options[which]))
                     }
-                }.show()
+                }.showOver(this)
         }
 
         /**
@@ -447,7 +444,7 @@ object GamepadLayoutScreen {
                     } else {
                         commit(control, control.copy(binding = Binding.Keys(codes.toList())))
                     }
-                }.show()
+                }.showOver(this)
         }
 
         private fun keysNeeded(kind: ControlKind): Int =
@@ -477,7 +474,7 @@ object GamepadLayoutScreen {
                             addable.binding,
                         )
                     commitLayout(layout.copy(controls = layout.controls + control))
-                }.show()
+                }.showOver(this)
         }
 
         /** An id nothing in this layout already answers to; ids are the store's, never the player's. */
@@ -523,7 +520,7 @@ object GamepadLayoutScreen {
                             confirmDelete(name)
                         }
                     }
-                }.show()
+                }.showOver(this)
         }
 
         private fun confirmDelete(name: String) {
@@ -535,7 +532,7 @@ object GamepadLayoutScreen {
                     store.delete(name)
                     reload()
                 }.setNegativeButton(android.R.string.cancel, null)
-                .show()
+                .showOver(this)
         }
 
         private fun commitLayout(updated: GamepadLayout) {
@@ -585,7 +582,7 @@ object GamepadLayoutScreen {
                     // the trust boundary they guard — a name carrying a separator would corrupt the store.
                     GamepadLayout.clean(field.text.toString(), max)?.let(onName)
                 }.setNegativeButton(android.R.string.cancel, null)
-                .show()
+                .showOver(this)
         }
 
         private companion object {

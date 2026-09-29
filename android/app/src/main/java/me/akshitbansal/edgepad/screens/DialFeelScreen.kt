@@ -19,7 +19,6 @@ import kotlin.math.roundToInt
  */
 object DialFeelScreen {
     private const val PREVIEW_DP = 220f
-    private const val PREVIEW_RADIUS_DP = 16f
 
     /** Step 0 of a per-dial slider: follow the shared value instead of holding one. */
     private const val SHARED_STEP = 0
@@ -37,7 +36,7 @@ object DialFeelScreen {
         // The preview sits on a card of its own, clipped to the card's corners like every other surface here.
         val frame =
             FrameLayout(ui.context).apply {
-                background = ui.rounded(ui.palette.card, PREVIEW_RADIUS_DP)
+                background = ui.rounded(ui.palette.card, Space.PANEL_RADIUS)
                 clipToOutline = true
                 addView(preview)
             }
