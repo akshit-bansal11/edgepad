@@ -19,6 +19,7 @@ namespace Edgepad.Bluetooth;
 internal sealed class RfcommServer(
     Action<string> onStatus,
     TrustStore trust,
+    Func<string, bool> askTrust,
     AudioEndpoint speakers,
     AudioEndpoint microphone,
     BrightnessControl brightness,
@@ -57,7 +58,8 @@ internal sealed class RfcommServer(
         // bonded device could drop the owner's link at will just by connecting, over and over.
         //
         // A different trusted address refuses here, and so does a trust file that cannot be read, since the
-        // session would refuse it anyway. Only nothing trusted yet goes on to the session to earn it.
+        // session would refuse it anyway. Only nothing trusted yet goes on to the session, where the owner is
+        // asked about it.
         var address = args.Socket.Information.RemoteHostName.RawName;
         if (trust.Refuses(address))
         {
@@ -73,7 +75,7 @@ internal sealed class RfcommServer(
         var pad = new VirtualPad();
         var dispatcher = new Dispatcher(injector, pad, speakers, microphone, brightness, media, display, macros, overlay);
         var session = new Session(
-            args.Socket, trust, injector, pad, dispatcher, speakers, microphone, brightness, media, display, macros, onStatus, OnSessionEnded);
+            args.Socket, trust, askTrust, injector, pad, dispatcher, speakers, microphone, brightness, media, display, macros, onStatus, OnSessionEnded);
         Session? previous;
         lock (gate)
         {

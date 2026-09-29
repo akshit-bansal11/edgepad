@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using Edgepad.Controls;
+using Edgepad.Protocol;
 
 namespace Edgepad.Macros;
 
@@ -73,7 +74,6 @@ internal sealed class MacroStore
     /// <summary>The macros in order. Index is what the phone names. Never longer than MaxMacros.</summary>
     public IReadOnlyList<Macro> Macros => macros;
 
-    /// <summary>Re-reads from disk.</summary>
     /// <summary>Re-reads from disk, and tells anyone watching what came back.</summary>
     public void Reload()
     {
@@ -238,6 +238,24 @@ internal sealed class MacroStore
         : $"{macro.Name}\t{macro.Target}\t{macro.Arguments}\t{macro.Icon}";
 
     /// <summary>
+    /// The index of the first macro with nothing to open, or -1 when every one has a target. <see cref="Save"/>
+    /// drops such a row, so the editor asks with this before saving and points the owner at it, rather than
+    /// letting a macro they filled in disappear on the way to the phone.
+    /// </summary>
+    public static int WithoutTarget(IReadOnlyList<Macro> macros)
+    {
+        for (var index = 0; index < macros.Count; index++)
+        {
+            if (Plain(macros[index].Target).Length == 0)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
     /// What will be written and what the phone will be told, from what the editor collected. Everything that
     /// reaches the list goes through here, whether it came from the dialog or from a file edited by hand.
     /// </summary>
@@ -273,42 +291,13 @@ internal sealed class MacroStore
     /// </summary>
     private static string Name(string name)
     {
+        // Cut on a whole character: a surrogate pair split down the middle is not a short name but an invalid one.
         var plain = Plain(name.Replace('/', '-'));
-        plain = CutToBytes(plain).TrimEnd();
+        plain = FrameCodec.Truncate(plain, MaxNameBytes).TrimEnd();
 
         // The editor asks for a name, but a file edited by hand may not carry one, and a button with no label
         // is worse than a dull one.
         return plain.Length > 0 ? plain : "Macro";
-    }
-
-    /// <summary>
-    /// The longest prefix of <paramref name="name"/> that fits <see cref="MaxNameBytes"/> UTF-8 bytes, cut on
-    /// a whole character. Cutting mid-character would put a broken code unit on the wire, and a surrogate
-    /// pair split down the middle is not a short name but an invalid one.
-    /// </summary>
-    private static string CutToBytes(string name)
-    {
-        if (Encoding.UTF8.GetByteCount(name) <= MaxNameBytes)
-        {
-            return name;
-        }
-
-        var end = 0;
-        var bytes = 0;
-        while (end < name.Length)
-        {
-            var step = char.IsHighSurrogate(name[end]) && end + 1 < name.Length ? 2 : 1;
-            var size = Encoding.UTF8.GetByteCount(name.AsSpan(end, step));
-            if (bytes + size > MaxNameBytes)
-            {
-                break;
-            }
-
-            bytes += size;
-            end += step;
-        }
-
-        return name[..end];
     }
 
     /// <summary>

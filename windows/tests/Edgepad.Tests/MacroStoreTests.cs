@@ -56,6 +56,17 @@ public sealed class MacroStoreTests : IDisposable
     }
 
     [Fact]
+    public void TheEditorIsToldWhichMacroHasNothingToOpen()
+    {
+        // The same test Save applies when it drops a row, so what the editor flags and what the store would
+        // have dropped cannot drift apart: blank, spaces, and a tab that Plain turns into a space.
+        Assert.Equal(-1, MacroStore.WithoutTarget([new Macro("One", "one.exe", null), new Macro("Two", "two.exe", null)]));
+        Assert.Equal(1, MacroStore.WithoutTarget([new Macro("One", "one.exe", null), new Macro("Blank", "  ", null)]));
+        Assert.Equal(0, MacroStore.WithoutTarget([new Macro("Tab", "\t", null), new Macro("", "", null)]));
+        Assert.Equal(-1, MacroStore.WithoutTarget([]));
+    }
+
+    [Fact]
     public void AMacroWithNoArgumentsHasNoneRatherThanAnEmptyCommandLine()
     {
         var store = NewStore();
