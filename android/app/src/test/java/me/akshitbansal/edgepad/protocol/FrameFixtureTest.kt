@@ -72,6 +72,23 @@ class FrameFixtureTest {
     }
 
     @Test
+    fun anEmojiStraddlingTheLimitIsDroppedWholeNotHalved() {
+        // 253 bytes of ASCII, then a four-byte emoji that would end at byte 257: the whole pair goes, and
+        // neither half of it is left behind to be encoded as '?'.
+        val cut = FrameCodec.truncate("a".repeat(253) + "😀" + "b")
+        assertEquals("a".repeat(253), cut)
+        val bytes = FrameCodec.encode(Frame.Text(0, "a".repeat(253) + "😀"))
+        assertEquals(1 + FrameCodec.TEXT_HEADER_LENGTH + 253, bytes.size)
+    }
+
+    @Test
+    fun anEmojiEndingExactlyAtTheLimitIsKept() {
+        val text = "a".repeat(251) + "😀"
+        assertEquals(text, FrameCodec.truncate(text))
+        assertEquals(FrameCodec.MAX_TEXT_BYTES, FrameCodec.truncate(text + "b").toByteArray(Charsets.UTF_8).size)
+    }
+
+    @Test
     fun padStateKeepsSignedSticksSignedAndUnsignedFieldsUnsigned() {
         // The three mistakes that are invisible in hex: a stick read as a u16 comes back 32768 and not
         // -32768, a trigger read as an i8 comes back -1 and not 255, and the button mask read as a short

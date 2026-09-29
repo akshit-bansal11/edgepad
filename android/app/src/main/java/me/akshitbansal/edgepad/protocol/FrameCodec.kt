@@ -32,6 +32,10 @@ object FrameCodec {
     private const val KEY = 0x22
     private const val PAD_STATE = 0x23
 
+    /** The first code points that take two and three bytes of UTF-8; four starts at the supplementary planes. */
+    private const val UTF8_ONE_BYTE_LIMIT = 0x80
+    private const val UTF8_TWO_BYTE_LIMIT = 0x800
+
     /**
      * Payload length for a type byte, [LENGTH_PREFIXED] for TEXT, or -1 when the type is unknown.
      *
@@ -175,12 +179,36 @@ object FrameCodec {
         }
     }
 
-    /** Cuts text to [MAX_TEXT_BYTES] of UTF-8 without splitting a character. */
+    /**
+     * The longest prefix of [text] made of whole code points whose UTF-8 is at most [MAX_TEXT_BYTES] bytes.
+     * The Windows codec runs the same walk, so both apps cut a long name at the same byte.
+     *
+     * One pass over the code points, adding up what each would cost in UTF-8. It used to drop one UTF-16
+     * unit at a time and re-encode the lot, which was quadratic and, when an emoji straddled the limit, left
+     * half a surrogate pair at the end: the encoder wrote that out as '?', a character nobody typed. Walking
+     * whole code points means a pair is kept or dropped together. A lone surrogate already in [text] is
+     * counted as the three bytes of the U+FFFD the Windows encoder writes for it, so the two agree on where
+     * to cut even then.
+     */
     fun truncate(text: String): String {
-        var t = text
-        while (t.toByteArray(Charsets.UTF_8).size > MAX_TEXT_BYTES) t = t.dropLast(1)
-        return t
+        var bytes = 0
+        var end = 0
+        while (end < text.length) {
+            val point = text.codePointAt(end)
+            bytes += utf8Length(point)
+            if (bytes > MAX_TEXT_BYTES) return text.substring(0, end)
+            end += Character.charCount(point)
+        }
+        return text
     }
+
+    private fun utf8Length(point: Int): Int =
+        when {
+            point < UTF8_ONE_BYTE_LIMIT -> 1
+            point < UTF8_TWO_BYTE_LIMIT -> 2
+            point < Character.MIN_SUPPLEMENTARY_CODE_POINT -> 3
+            else -> 4
+        }
 
     private val magicBytes = ProtocolConstants.MAGIC.toByteArray(Charsets.US_ASCII)
 
