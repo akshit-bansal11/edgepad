@@ -1,3 +1,5 @@
+using Edgepad.Startup;
+
 namespace Edgepad;
 
 internal static class Program
@@ -54,6 +56,15 @@ internal static class Program
         {
             using var quit = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, QuitEventName);
             Log.Write($"Edgepad {Version} starting");
+
+            // Each release is its own file, Edgepad-<version>.exe, so the Run key can still name whichever copy
+            // was running when Start with Windows was ticked. Point it at this one: the version last run is the
+            // one that starts at sign-in, not the one the setting happened to be switched on from.
+            if (RunAtLogin.IsEnabled)
+            {
+                RunAtLogin.Set(true);
+            }
+
             var tray = new TrayContext(quit);
             try
             {
