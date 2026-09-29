@@ -13,6 +13,7 @@ import {
   Smartphone,
   Spline,
 } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { DemoVideo } from "@/components/demo-video";
 import { GithubMark } from "@/components/icons/github";
@@ -31,6 +32,10 @@ import { GridPattern } from "@/components/ui/grid-pattern";
 import { MagicCard } from "@/components/ui/magic-card";
 import { LATEST_RELEASE, REPO } from "@/lib/nav";
 import { loadProtocol } from "@/lib/protocol";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
   {
@@ -198,7 +203,7 @@ export default function Page() {
       <LegacyHashRedirect />
       <SiteHeader />
 
-      <main>
+      <main id="main" className="scroll-mt-16">
         {/* Hero, on the app's own surface grid, faded out towards the edges */}
         <section className="relative overflow-hidden">
           <GridPattern
