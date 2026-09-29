@@ -57,7 +57,7 @@ Start a first change in the protocol codecs, the gesture recognizer, the dial ge
 
 ## Style
 
-- No UI libraries on the phone, no third-party packages on the laptop beyond NAudio and System.Management. A new dependency needs a reason in the pull request.
+- No UI libraries on the phone, no third-party packages on the laptop beyond NAudio, System.Management and Nefarius.ViGEm.Client. A new dependency needs a reason in the pull request.
 - Constants are named. A number that appears twice is a constant.
 - Doc comments say why, not what the next line already says.
 - Nothing runs on the input path that could block: no logging, no allocation while drawing, no I/O on the session thread beyond the socket.

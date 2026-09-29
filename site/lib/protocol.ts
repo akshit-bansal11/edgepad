@@ -37,7 +37,8 @@ export type FrameRow = {
 };
 
 export type IdRow = {
-  id: number;
+  /** As the fixture writes it: a number, or for PAD_STATUS the token on the wire. */
+  id: string;
   name: string;
   description: string | null;
   documented: boolean;
@@ -50,6 +51,8 @@ export type ProtocolTables = {
   actions: IdRow[];
   controls: IdRow[];
   textKinds: IdRow[];
+  padButtons: IdRow[];
+  padStatuses: IdRow[];
   /** Frames described here that no fixture line covers. Drift, surfaced on the page. */
   undescribedInFixture: string[];
 };
@@ -199,6 +202,34 @@ const TEXT_DOCS: Record<string, string> = {
     "Whether a virtual controller can be offered, as one of ready, no-driver or attach-failed. Sent after the handshake and in answer to PAD_ATTACH and PAD_DETACH. An unknown token reads as no-driver, so the phone falls back to the keyboard rather than sending input nothing receives. Laptop to phone.",
 };
 
+const PAD_BUTTON_DOCS: Record<string, string> = {
+  NONE: "Nothing held. What PAD_STATE carries the moment the last button comes up.",
+  DPAD_UP: "D-pad up.",
+  DPAD_DOWN: "D-pad down.",
+  DPAD_LEFT: "D-pad left.",
+  DPAD_RIGHT: "D-pad right.",
+  START: "Start, the menu button.",
+  BACK: "Back, the view button.",
+  LEFT_THUMB: "Left stick pressed in.",
+  RIGHT_THUMB: "Right stick pressed in.",
+  LEFT_SHOULDER: "Left bumper.",
+  RIGHT_SHOULDER: "Right bumper.",
+  GUIDE: "The Xbox button.",
+  A: "A.",
+  B: "B.",
+  X: "X.",
+  Y: "Y.",
+};
+
+const PAD_STATUS_DOCS: Record<string, string> = {
+  READY:
+    "The virtual controller is plugged in and PAD_STATE will be acted on. The only token that leaves the pad usable.",
+  NO_DRIVER:
+    "The virtual-controller driver, ViGEmBus, is not installed on the laptop. The pad falls back to keys.",
+  ATTACH_FAILED:
+    "The driver is there but plugging the pad in did not work. The pad falls back to keys.",
+};
+
 function read(file: string): string[] {
   const raw = readFileSync(path.join(PROTOCOL_DIR, file), "utf8");
   return raw
@@ -249,25 +280,30 @@ function parseFrames(): FrameRow[] {
   return [...byName.values()].sort((a, b) => a.type.localeCompare(b.type));
 }
 
-type ParsedIds = {
-  ACTION: IdRow[];
-  CONTROL: IdRow[];
-  TEXT: IdRow[];
-  HANDSHAKE: Map<string, string>;
-};
+const ID_KINDS = ["ACTION", "CONTROL", "TEXT", "PAD_BUTTON", "PAD_STATUS"] as const;
+type IdKind = (typeof ID_KINDS)[number];
+
+type ParsedIds = Record<IdKind, IdRow[]> & { HANDSHAKE: Map<string, string> };
+
+const isIdKind = (kind: string): kind is IdKind =>
+  (ID_KINDS as readonly string[]).includes(kind);
 
 function parseIds(): ParsedIds {
   const out: ParsedIds = {
     ACTION: [],
     CONTROL: [],
     TEXT: [],
+    PAD_BUTTON: [],
+    PAD_STATUS: [],
     HANDSHAKE: new Map(),
   };
 
-  const docsFor: Record<string, Record<string, string>> = {
+  const docsFor: Record<IdKind, Record<string, string>> = {
     ACTION: ACTION_DOCS,
     CONTROL: CONTROL_DOCS,
     TEXT: TEXT_DOCS,
+    PAD_BUTTON: PAD_BUTTON_DOCS,
+    PAD_STATUS: PAD_STATUS_DOCS,
   };
 
   for (const line of read("actions.txt")) {
@@ -281,11 +317,13 @@ function parseIds(): ParsedIds {
       out.HANDSHAKE.set(name, id);
       continue;
     }
-    if (kind !== "ACTION" && kind !== "CONTROL" && kind !== "TEXT") continue;
+    // An unknown kind is skipped, not guessed at; assertParsed catches a kind that
+    // stops parsing altogether.
+    if (!isIdKind(kind)) continue;
 
-    const description = docsFor[kind]?.[name];
+    const description = docsFor[kind][name];
     out[kind].push({
-      id: Number(id),
+      id,
       name,
       description: description ?? null,
       documented: description !== undefined,
@@ -313,6 +351,12 @@ function assertParsed(tables: Omit<ProtocolTables, "undescribedInFixture">): voi
   }
   if (tables.textKinds.length === 0) {
     problems.push("no TEXT kinds parsed from protocol/actions.txt");
+  }
+  if (tables.padButtons.length === 0) {
+    problems.push("no PAD_BUTTON masks parsed from protocol/actions.txt");
+  }
+  if (tables.padStatuses.length === 0) {
+    problems.push("no PAD_STATUS tokens parsed from protocol/actions.txt");
   }
   if (!Number.isInteger(tables.version) || tables.version < 1) {
     problems.push("HANDSHAKE VERSION is not a positive integer");
@@ -344,6 +388,8 @@ export function loadProtocol(): ProtocolTables {
     actions: ids.ACTION,
     controls: ids.CONTROL,
     textKinds: ids.TEXT,
+    padButtons: ids.PAD_BUTTON,
+    padStatuses: ids.PAD_STATUS,
   };
   assertParsed(tables);
 

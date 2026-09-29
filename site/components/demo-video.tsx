@@ -15,7 +15,7 @@ const CHAPTERS: { at: number; title: string }[] = [
   { at: 275, title: "Macros" },
   { at: 310, title: "Shapes" },
   { at: 330, title: "Make it yours" },
-  { at: 358, title: "The gamepad (in development)" },
+  { at: 358, title: "The gamepad" },
   { at: 387, title: "Under the hood" },
   { at: 432, title: "Open source" },
 ];

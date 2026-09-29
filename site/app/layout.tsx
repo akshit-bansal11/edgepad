@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Lato } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SITE, SOCIAL_IMAGE } from "@/lib/nav";
 import "./globals.css";
 
 /*
@@ -23,8 +24,9 @@ const mono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   // Every relative URL in metadata (Open Graph, canonical) resolves against this.
-  metadataBase: new URL("https://edgepad.vercel.app"),
-  // The landing page's title is the default; app/docs/page.tsx overrides it.
+  metadataBase: new URL(SITE),
+  // The landing page's title is the default; app/docs/page.tsx overrides it. The
+  // canonical link is each page's own, so a future page never inherits "/" by accident.
   title: "Edgepad — your laptop, from across the room",
   description:
     "Edgepad turns an Android phone into a trackpad, a media remote and a control panel for a Windows laptop, over a direct Bluetooth link with nothing in between. No account, no network, no telemetry. MIT.",
@@ -37,6 +39,11 @@ export const metadata: Metadata = {
     type: "website",
     url: "/",
     siteName: "Edgepad",
+    images: [SOCIAL_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [SOCIAL_IMAGE],
   },
 };
 

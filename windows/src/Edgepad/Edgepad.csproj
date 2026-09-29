@@ -34,6 +34,8 @@
     <EmbeddedResource Include="Fonts\Lato-Bold.ttf" LogicalName="Edgepad.Fonts.Lato-Bold.ttf" />
     <EmbeddedResource Include="Fonts\Lato-Black.ttf" LogicalName="Edgepad.Fonts.Lato-Black.ttf" />
     <EmbeddedResource Include="Fonts\OFL.txt" LogicalName="Edgepad.Fonts.OFL.txt" />
+    <!-- Ui/Icons draws Lucide's paths, and Lucide's ISC licence asks the same of them. -->
+    <EmbeddedResource Include="Ui\Lucide-LICENSE.txt" LogicalName="Edgepad.Ui.Lucide-LICENSE.txt" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,9 +2,8 @@ name: CI
 
 # Every `uses:` is pinned to a commit SHA with its tag in a trailing comment, and Dependabot moves the
 # SHA the same way it would move a tag. A tag is a moving pointer: whoever controls an action's repository
-# can repoint it, and the code it then runs is inside this job. That matters most in release.yml, where the
-# signing key is decrypted in the same job as four third-party actions, and the key's only other copies are
-# two repository secrets and one folder on the owner's laptop.
+# can repoint it, and the code it then runs is inside this job. release.yml says how the signing key is
+# kept out of reach of all of them.
 
 on:
   push:

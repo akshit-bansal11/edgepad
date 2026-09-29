@@ -1,0 +1,6 @@
+# Every issue starts from a template, so a report arrives with what is needed to act on it.
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security hole
+    url: https://github.com/akshit-bansal11/edgepad/security/advisories/new
+    about: Privately, as a security advisory. Please do not open a public issue for something exploitable.
