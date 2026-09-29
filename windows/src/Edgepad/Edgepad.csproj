@@ -14,6 +14,13 @@
     <ApplicationIcon>edgepad.ico</ApplicationIcon>
     <!-- LibraryImport generates unsafe marshalling code for the SendInput P/Invoke. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- The release publishes for win-x64. Naming it here puts that runtime's packages in packages.lock.json too,
+         which the locked-mode restore of `dotnet publish -r win-x64` needs. -->
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <!-- The release is a single file, and publishing one turns on the single-file analyzer, which pulls in the
+         ILLink package. Running the analyzer in every build keeps that package in every restore, so one lock file
+         serves build, test and publish alike; it also reports single-file hazards at build time, not at release. -->
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
   </PropertyGroup>
 
   <ItemGroup>

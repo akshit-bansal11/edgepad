@@ -12,6 +12,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 - **Start with Windows starts the version you last ran.** With each release now its own file, the setting kept launching the copy it was switched on from. Each start now points it at the running copy.
 
+### Security
+
+- **The laptop app's packages are locked.** Every NuGet package, transitive ones included, is pinned by version and content hash in `packages.lock.json`, and CI and the release restore in locked mode, so a package that changed under the same version fails the build rather than shipping.
+
 ## [3.1.1] - 2026-09-27
 
 Two fixes to 3.1.0's new look. The wire protocol stays at version 4, so any 3.x half speaks to any other.
