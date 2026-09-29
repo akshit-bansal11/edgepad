@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using Edgepad.Bluetooth;
 using Edgepad.Controls;
 using Edgepad.Macros;
@@ -48,7 +49,7 @@ internal sealed class TrayContext : ApplicationContext
         // Click, not CheckedChanged: the menu sets Checked from the registry each time it opens, and that must
         // read the key without writing it back — least of all deleting it after a failed read.
         startWithWindows.Click += (_, _) => RunAtLogin.Set(startWithWindows.Checked);
-        forget.Click += (_, _) => trust.Forget();
+        forget.Click += (_, _) => ConfirmForget();
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
 
         // The header is the menu's own. The rest follow in the design's order, the destructive pair after a rule.
@@ -56,7 +57,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(startWithWindows);
         menu.Items.Add(macrosRow);
         menu.Items.Add(Row("Open log", Icons.FileText, OpenLog));
-        menu.Items.Add(Row("Documentation", Icons.BookOpen, OpenDocumentation, "edgepad.vercel.app"));
+        menu.Items.Add(Row("Documentation", Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(forget);
         menu.Items.Add(Row("Quit Edgepad", Icons.Close, ExitThread, Program.Version));
@@ -182,21 +183,41 @@ internal sealed class TrayContext : ApplicationContext
     {
         if (File.Exists(Log.FilePath))
         {
-            using var _ = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Log.FilePath) { UseShellExecute = true });
+            Open(Log.FilePath, "the log");
         }
     }
 
-    private static void OpenDocumentation()
+    /// <summary>Hands a file or a link to whatever Windows opens it with, as a double-click would.</summary>
+    private static void Open(string target, string what)
     {
         try
         {
-            using var _ = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(DocumentationUrl) { UseShellExecute = true });
+            using var _ = Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
         }
-        catch (Exception e) when (e is System.ComponentModel.Win32Exception or InvalidOperationException or FileNotFoundException)
+        catch (Exception e) when (e is Win32Exception or InvalidOperationException or FileNotFoundException)
         {
-            // No default browser, or the shell refused the handler. A menu item must never
+            // No default browser or editor, or the shell refused the handler. A menu item must never
             // take the tray app down with it: an unhandled exception here ends the process.
-            Log.Write($"Could not open the documentation: {e.Message}");
+            Log.Write($"Could not open {what}: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Forgets the trusted phone once the owner says so. Asked first because the menu cannot undo it: every
+    /// phone after it has to be trusted again, the one just forgotten included.
+    /// </summary>
+    private void ConfirmForget()
+    {
+        var answer = MessageBox.Show(
+            $"Forget {trust.Trusted ?? "the trusted phone"}? The next phone to connect, this one included, will not "
+                + "be able to use this laptop until you trust it here.",
+            "Edgepad",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Warning,
+            MessageBoxDefaultButton.Button2);
+        if (answer == DialogResult.Yes)
+        {
+            trust.Forget();
         }
     }
 
