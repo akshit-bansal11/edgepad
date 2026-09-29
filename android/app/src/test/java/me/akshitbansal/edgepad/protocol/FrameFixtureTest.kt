@@ -71,21 +71,32 @@ class FrameFixtureTest {
         )
     }
 
+    // The next three are the Windows suite's own vectors (FrameCodecTests), repeated byte for byte: the two
+    // codecs only cut a name at the same place if both are held to the same cases.
+
     @Test
     fun anEmojiStraddlingTheLimitIsDroppedWholeNotHalved() {
-        // 253 bytes of ASCII, then a four-byte emoji that would end at byte 257: the whole pair goes, and
-        // neither half of it is left behind to be encoded as '?'.
-        val cut = FrameCodec.truncate("a".repeat(253) + "😀" + "b")
-        assertEquals("a".repeat(253), cut)
-        val bytes = FrameCodec.encode(Frame.Text(0, "a".repeat(253) + "😀"))
-        assertEquals(1 + FrameCodec.TEXT_HEADER_LENGTH + 253, bytes.size)
+        // 252 bytes of ASCII, then a four-byte note that would end at byte 256. The whole pair goes: the old
+        // cut kept its high surrogate, which went out as a character nobody typed.
+        val bytes = FrameCodec.encode(Frame.Text(0, "a".repeat(252) + MUSICAL_NOTE))
+        assertEquals(0xfc, bytes[2].toInt() and 0xFF)
+        assertArrayEquals(ByteArray(252) { 'a'.code.toByte() }, bytes.copyOfRange(3, bytes.size))
     }
 
     @Test
     fun anEmojiEndingExactlyAtTheLimitIsKept() {
-        val text = "a".repeat(251) + "😀"
-        assertEquals(text, FrameCodec.truncate(text))
-        assertEquals(FrameCodec.MAX_TEXT_BYTES, FrameCodec.truncate(text + "b").toByteArray(Charsets.UTF_8).size)
+        val bytes = FrameCodec.encode(Frame.Text(0, "a".repeat(251) + MUSICAL_NOTE))
+        assertEquals(0xff, bytes[2].toInt() and 0xFF)
+        assertEquals(1 + FrameCodec.TEXT_HEADER_LENGTH + FrameCodec.MAX_TEXT_BYTES, bytes.size)
+        val tail = bytes.copyOfRange(bytes.size - 4, bytes.size).map { it.toInt() and 0xFF }
+        assertEquals(listOf(0xf0, 0x9f, 0x8e, 0xb5), tail)
+    }
+
+    @Test(timeout = 2_000)
+    fun aHugeTextIsCutInOnePass() {
+        // A million characters: the old cut re-encoded the whole string once for every character it dropped.
+        val bytes = FrameCodec.encode(Frame.Text(0, "a".repeat(1_000_000)))
+        assertEquals(1 + FrameCodec.TEXT_HEADER_LENGTH + FrameCodec.MAX_TEXT_BYTES, bytes.size)
     }
 
     @Test
@@ -142,5 +153,10 @@ class FrameFixtureTest {
             dir = dir.parentFile
         }
         error("protocol/frames.txt was not found above ${File("").absolutePath}")
+    }
+
+    private companion object {
+        /** U+1F3B5, four bytes of UTF-8 (f0 9f 8e b5) and two UTF-16 units. */
+        const val MUSICAL_NOTE = "\uD83C\uDFB5"
     }
 }
