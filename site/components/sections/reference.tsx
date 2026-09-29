@@ -1,4 +1,4 @@
-import { C, Note, P, Section, Sub } from "@/components/section";
+import { C, ExternalLink, Note, P, Section, Sub } from "@/components/section";
 import {
   Accordion,
   AccordionContent,
@@ -342,14 +342,9 @@ export function ReferenceSections() {
         lede={
           <>
             The full record is{" "}
-            <a
-              href={`${REPO}/blob/main/CHANGELOG.md`}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
-            >
+            <ExternalLink href={`${REPO}/blob/main/CHANGELOG.md`}>
               CHANGELOG.md
-            </a>
+            </ExternalLink>
             , which follows Keep a Changelog. Versions follow Semantic Versioning.
           </>
         }
@@ -383,55 +378,49 @@ export function ReferenceSections() {
       <Section id="credits" eyebrow="Reference" title="Licence and credits" lede="MIT.">
         <ul className="text-dim max-w-[70ch] list-disc space-y-2 pl-5 text-[0.9375rem] leading-relaxed">
           <li>
-            Icons are{" "}
-            <a
-              href="https://lucide.dev"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
-            >
-              Lucide
-            </a>
-            , ISC licence.
+            Icons are <ExternalLink href="https://lucide.dev">Lucide</ExternalLink>, ISC
+            licence; the few that came from Feather are MIT. Both apps draw
+            Lucide&apos;s own paths, and the licence text ships inside the APK as{" "}
+            <C>assets/licenses/Lucide-LICENSE.txt</C> and inside the exe beside the
+            icons.
           </li>
           <li>
             The typeface is{" "}
-            <a
-              href="https://github.com/JetBrains/JetBrainsMono"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
-            >
+            <ExternalLink href="https://www.latofonts.com">Lato</ExternalLink>, by
+            Łukasz Dziedzic, SIL Open Font License 1.1. Both apps bundle it, and its
+            licence ships inside the APK as <C>assets/licenses/Lato-OFL.txt</C> and
+            inside the exe beside the fonts. This site also sets code in{" "}
+            <ExternalLink href="https://github.com/JetBrains/JetBrainsMono">
               JetBrains Mono
-            </a>
-            , SIL Open Font License 1.1. Its licence ships inside the APK under{" "}
-            <C>assets/licenses</C>.
+            </ExternalLink>
+            , under the same licence.
           </li>
-          <li>Player logos belong to their owners and are drawn as supplied.</li>
           <li>
-            The laptop app depends on NAudio (for volume), <C>System.Management</C> (for
-            WMI brightness) and{" "}
-            <a
-              href="https://github.com/nefarius/ViGEm.NET"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
-            >
+            The media players&apos; logos — Spotify, Netflix, YouTube and the rest — are
+            trademarks of their owners. The phone shows one only to say which app is
+            playing on the laptop; that implies no endorsement by, or affiliation with,
+            any of them. The SVG files were supplied by the maintainer and are drawn as
+            supplied.
+          </li>
+          <li>
+            The laptop app depends on NAudio (for volume, MIT), <C>System.Management</C>{" "}
+            (for WMI brightness) and{" "}
+            <ExternalLink href="https://github.com/nefarius/ViGEm.NET">
               Nefarius.ViGEm.Client
-            </a>{" "}
-            (the client for the virtual controller), and nothing else. The phone app
-            depends on JUnit, and nothing else.
+            </ExternalLink>{" "}
+            (the client for the virtual controller, MIT), and nothing else. The phone
+            app depends on{" "}
+            <ExternalLink href="https://github.com/BigBadaboom/androidsvg">
+              AndroidSVG
+            </ExternalLink>{" "}
+            (to draw the mark and the logos, Apache 2.0), and on JUnit for its tests
+            only.
           </li>
           <li>
             The virtual controller itself is{" "}
-            <a
-              href="https://github.com/nefarius/ViGEmBus"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
-            >
+            <ExternalLink href="https://github.com/nefarius/ViGEmBus">
               ViGEmBus
-            </a>
+            </ExternalLink>
             , BSD 3-Clause licence, by Benjamin Höglinger-Stelzer. It is a separate
             install and is not distributed with Edgepad.
           </li>

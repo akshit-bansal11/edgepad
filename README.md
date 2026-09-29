@@ -162,4 +162,7 @@ Releases are built and published by the maintainer; [CHANGELOG.md](CHANGELOG.md)
 
 ## Credits
 
-Icons are [Lucide](https://lucide.dev), ISC licence. The typeface is [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono), SIL Open Font License 1.1; its licence ships in the APK under `assets/licenses`. Player logos belong to their owners and are drawn as supplied.
+- Icons are [Lucide](https://lucide.dev), ISC licence; the few that came from Feather are MIT. Both apps draw Lucide's own paths, and the licence text ships inside the APK as `assets/licenses/Lucide-LICENSE.txt` and inside the exe beside the icons.
+- The typeface is [Lato](https://www.latofonts.com), by Łukasz Dziedzic, SIL Open Font License 1.1. Both apps bundle it, and its licence ships inside the APK as `assets/licenses/Lato-OFL.txt` and inside the exe beside the fonts. The website also sets code in [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono), under the same licence.
+- The media players' logos (Spotify, Netflix, YouTube and the rest, in `android/app/src/main/res/raw`) are trademarks of their owners. The phone shows one only to say which app is playing on the laptop; that implies no endorsement by, or affiliation with, any of them. The SVG files were supplied by the maintainer and are drawn as supplied.
+- The laptop app uses [NAudio](https://github.com/naudio/NAudio) (MIT), `System.Management` and [Nefarius.ViGEm.Client](https://github.com/nefarius/ViGEm.NET) (MIT); the phone app uses [AndroidSVG](https://github.com/BigBadaboom/androidsvg) (Apache 2.0). [ViGEmBus](https://github.com/nefarius/ViGEmBus) (BSD 3-Clause) is a separate install and is not distributed with Edgepad.
