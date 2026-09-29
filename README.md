@@ -49,7 +49,7 @@ Running a newer release's exe asks the running copy to quit and takes its place.
 
 1. Pair the phone with the laptop once, in Windows **Settings > Bluetooth & devices**.
 2. Keep Edgepad running in the laptop's tray.
-3. Open Edgepad on the phone and tap the laptop. The first phone to connect becomes the laptop's trusted phone; any other paired phone is refused until you choose **Forget trusted phone** in the tray menu.
+3. Open Edgepad on the phone and tap the laptop. The first time, the laptop asks **Trust this phone?**; choose **Trust** there (no answer within a minute counts as no). That phone becomes the laptop's trusted phone, and any other paired phone is refused until you choose **Forget trusted phone** in the tray menu.
 4. The phone remembers the laptop and reconnects when the app opens. If the link drops, the phone retries ten times, two seconds apart, and says so.
 
 ### The control surface
@@ -146,7 +146,7 @@ Running the two apps against each other needs a Windows laptop and an Android ph
 
 ### Tests
 
-Both suites read the same fixtures. `protocol/frames.txt` holds every frame type as golden bytes; each codec must encode the fields to exactly those bytes and decode the bytes to exactly those fields. `protocol/actions.txt` holds the action and control ids; each enum must match it exactly. On top of that, the Android suite covers the gesture recogniser (the whole finger table, assignable actions, natural scrolling), the shape recogniser and the pad's mode table, the stick's dead zone and scaling, the gamepad layout library (name collisions, deletion, reset), the dials (arming, slop, snapping, steppers, haptic notches), the edge geometry, coalescing and the laptop-state model; the Windows suite covers the dispatcher's drop paths, input batches, trust on first use, the media-session name mapping, and what a laptop with no controller driver answers. No test sends real input, plugs a controller into the machine running it, or touches a device.
+Both suites read the same fixtures. `protocol/frames.txt` holds every frame type as golden bytes; each codec must encode the fields to exactly those bytes and decode the bytes to exactly those fields. `protocol/actions.txt` holds the action and control ids; each enum must match it exactly. On top of that, the Android suite covers the gesture recogniser (the whole finger table, assignable actions, natural scrolling), the shape recogniser and the pad's mode table, the stick's dead zone and scaling, the gamepad layout library (name collisions, deletion, reset), the dials (arming, slop, snapping, steppers, haptic notches), the edge geometry, coalescing and the laptop-state model; the Windows suite covers the dispatcher's drop paths, input batches, trust on first use and its prompt, the media-session name mapping, and what a laptop with no controller driver answers. No test sends real input, plugs a controller into the machine running it, or touches a device.
 
 ## Contributing
 

@@ -55,7 +55,7 @@ Latency is the design priority after correctness. The phone dispatches touch unb
 
 ## Trust
 
-Two layers. Pairing, enforced by the socket's protection level: unpaired devices cannot connect at all. Trust on first use, enforced by `TrustStore`: the first phone to complete the handshake has its Bluetooth address written to `%APPDATA%\Edgepad\trusted-phone.txt`, and every other phone is refused before HELLO_ACK. The tray menu's **Forget trusted phone** clears it.
+Two layers. Pairing, enforced by the socket's protection level: unpaired devices cannot connect at all. Trust on first use, enforced by `TrustStore`: while no phone is trusted, the first phone to complete the handshake makes the tray ask **Trust this phone?**, and HELLO_ACK is withheld until the answer. **Trust** writes its Bluetooth address to `%APPDATA%\Edgepad\trusted-phone.txt`; **Don't trust**, or no answer within 60 s, closes the connection. A second phone arriving while the question is open is refused without a second question. Every phone other than the trusted one is refused before HELLO_ACK. The tray menu's **Forget trusted phone** clears it, after asking.
 
 The handshake also carries a protocol version. A mismatch is refused with the laptop's version in the reply, so the phone can say which side needs updating instead of misreading frames.
 

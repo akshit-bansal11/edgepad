@@ -281,9 +281,10 @@ export function ProductSections() {
             laptop side.
           </li>
           <li>
-            Open Edgepad on the phone and tap the laptop. The first phone to connect
-            becomes the laptop&apos;s trusted phone; any other paired phone is refused
-            until you choose{" "}
+            Open Edgepad on the phone and tap the laptop. The first time, the laptop
+            asks <strong className="text-foreground">Trust this phone?</strong>; choose
+            Trust there. That phone becomes the laptop&apos;s trusted phone, and any
+            other paired phone is refused until you choose{" "}
             <strong className="text-foreground">Forget trusted phone</strong> in the
             tray menu.
           </li>
