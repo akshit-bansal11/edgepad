@@ -7,6 +7,7 @@ import android.graphics.Path
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
@@ -21,13 +22,13 @@ import me.akshitbansal.edgepad.surface.Shapes
  * it runs, and a way to delete it. The picture is the point of the row — the name of a target says nothing
  * about which scrawl reaches it, and a list of six shapes described only in words is a list nobody can use.
  *
- * Deleting rewrites the whole set and asks to be shown again, the way the gamepad screen does after a
- * preset change: the empty state is a different page from the list, so re-filling a container in place
- * would have to know how to turn one into the other.
+ * Deleting asks first, as deleting a gamepad layout does: a shape is a drawing, and one deleted by a stray
+ * tap cannot be drawn back the same. It then rewrites the whole set and asks to be shown again, the way the
+ * gamepad screen does after a preset change: the empty state is a different page from the list, so
+ * re-filling a container in place would have to know how to turn one into the other.
  */
 object ShapesScreen {
     private const val PREVIEW_DP = 44f
-    private const val PREVIEW_RADIUS_DP = 10f
     private const val ROW_DP = 68f
 
     fun build(
@@ -106,13 +107,14 @@ object ShapesScreen {
     ): View {
         val preview =
             Preview(ui.context).apply {
-                background = ui.rounded(ui.palette.faint, PREVIEW_RADIUS_DP)
+                background = ui.rounded(ui.palette.faint, Space.TILE_RADIUS)
                 // Decoration: the sentence beside it already says what the shape runs, and a screen reader
                 // reading a description of the drawing as well would say the same thing twice.
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 show(shape.points, ui.palette.ink)
             }
-        val name = ui.string(R.string.shape_runs, targetName(ui, shape.target, macros))
+        val target = targetName(ui, shape.target, macros)
+        val name = ui.string(R.string.shape_runs, target)
         val start =
             LinearLayout(ui.context).apply {
                 gravity = Gravity.CENTER_VERTICAL
@@ -127,9 +129,18 @@ object ShapesScreen {
                     LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
                 )
             }
-        return ui.row(start, ui.chip(ui.string(R.string.shapes_delete), danger = true, onDelete)).apply {
-            minimumHeight = ui.dp(ROW_DP)
-        }
+        lateinit var delete: TextView
+        delete =
+            ui.chip(ui.string(R.string.shapes_delete), danger = true) {
+                ui.confirm(
+                    delete,
+                    ui.string(R.string.shapes_delete_title),
+                    ui.string(R.string.shapes_delete_body, target),
+                    ui.string(R.string.shapes_delete),
+                    onDelete,
+                )
+            }
+        return ui.row(start, delete).apply { minimumHeight = ui.dp(ROW_DP) }
     }
 
     /**

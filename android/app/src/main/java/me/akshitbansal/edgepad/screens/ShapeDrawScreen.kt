@@ -31,8 +31,6 @@ import me.akshitbansal.edgepad.surface.TrackpadRecognizer
  * the next thing that happens.
  */
 object ShapeDrawScreen {
-    private const val DISABLED_ALPHA = 0.4f
-
     fun build(
         ui: Ui,
         settings: Settings,
@@ -156,10 +154,7 @@ object ShapeDrawScreen {
             ui.button(ui.string(R.string.shapes_save), Ui.Style.FILLED, onSave)
         // A shape saved with nothing behind it would sit in the list looking like a binding and do nothing
         // when drawn, which reads as the recogniser having failed.
-        val arm = { on: Boolean ->
-            save.isEnabled = on
-            save.alpha = if (on) 1f else DISABLED_ALPHA
-        }
+        val arm = { on: Boolean -> ui.enable(save, on) }
         arm(ready)
         val row =
             LinearLayout(ui.context).apply {
@@ -179,7 +174,9 @@ object ShapeDrawScreen {
 
     /**
      * The canvas one stroke is drawn on: the editors' dot grid, the stroke over it in the accent, and a line
-     * at the foot saying what to do — or, once a stroke has been refused, why.
+     * at the foot saying what to do — or, once a stroke has been refused, why. The line is painted, so a
+     * screen reader would never hear it: a refusal is also set as the canvas's state, in a live region, which
+     * is read out the moment it changes.
      *
      * Everything the stroke needs is allocated once. The samples go into two fixed arrays and the picture
      * into one Path the finger extends, so onDraw only ever draws.
@@ -213,6 +210,7 @@ object ShapeDrawScreen {
 
         init {
             contentDescription = context.getString(R.string.shapes_draw_title)
+            accessibilityLiveRegion = ACCESSIBILITY_LIVE_REGION_POLITE
         }
 
         /** Wipes a stroke that came out wrong, from the options popup or from the next touch. */
@@ -273,14 +271,21 @@ object ShapeDrawScreen {
         private fun finish() {
             val points = Shapes.normalise(xs, ys, count, density)
             if (points == null) {
-                message = tooShort
+                refuse(tooShort)
                 return
             }
             if (Shapes.tooClose(points, existing)) {
-                message = tooClose
+                refuse(tooClose)
                 return
             }
             onStroke(points)
+        }
+
+        private fun refuse(reason: String) {
+            message = reason
+            // Cleared first, so the same refusal twice running is still a change, and is read out again.
+            stateDescription = null
+            stateDescription = reason
         }
 
         private fun add(

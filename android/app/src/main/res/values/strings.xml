@@ -36,6 +36,8 @@
   <string name="back">Back</string>
   <string name="no_laptop">No laptop remembered</string>
   <string name="forget">Forget</string>
+  <string name="forget_laptop_title">Forget %1$s?</string>
+  <string name="forget_laptop_body">Edgepad disconnects and stops reconnecting to it on its own. It stays paired, so you can pick it again from the list.</string>
   <string name="detail_connected">Connected</string>
   <string name="detail_connected_rtt">Connected · %1$.0f ms</string>
   <string name="detail_remembered">Remembered · not connected</string>
@@ -134,6 +136,21 @@
   <string name="pattern_color">Pattern colour</string>
   <string name="pattern_opacity">Pattern opacity</string>
   <string name="percent_value">%1$d%%</string>
+  <!-- The colour picker's swatches, as a screen reader names them -->
+  <string name="color_white">White</string>
+  <string name="color_light_grey">Light grey</string>
+  <string name="color_grey">Grey</string>
+  <string name="color_dark_grey">Dark grey</string>
+  <string name="color_black">Black</string>
+  <string name="color_red">Red</string>
+  <string name="color_orange">Orange</string>
+  <string name="color_yellow">Yellow</string>
+  <string name="color_green">Green</string>
+  <string name="color_cyan">Cyan</string>
+  <string name="color_blue">Blue</string>
+  <string name="color_indigo">Indigo</string>
+  <string name="color_purple">Purple</string>
+  <string name="color_pink">Pink</string>
   <!-- Shapes drawn on the trackpad -->
   <string name="shapes_title">Shapes</string>
   <plurals name="shapes_summary">
@@ -153,6 +170,8 @@
   <string name="shapes_redraw">Redraw</string>
   <string name="shapes_save">Save</string>
   <string name="shapes_delete">Delete</string>
+  <string name="shapes_delete_title">Delete this shape?</string>
+  <string name="shapes_delete_body">Drawing it will no longer run %1$s.</string>
   <string name="shapes_too_close">That is too close to a shape you already have. Draw a more distinct one.</string>
   <string name="shapes_too_short">That is too small to tell apart. Draw it larger.</string>
   <string name="shape_runs">Runs %1$s</string>
@@ -180,7 +199,7 @@
   <string name="background_preview_description">Preview of the control surface background</string>
   <string name="guide_title">Guide</string>
   <string name="documentation_title">Documentation</string>
-  <string name="documentation_summary">edgepad.vercel.app</string>
+  <!-- The one place the site's address is written; Settings shows its host as the row's summary. -->
   <string name="documentation_url" translatable="false">https://edgepad.vercel.app</string>
 
 

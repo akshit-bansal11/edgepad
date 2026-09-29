@@ -1,5 +1,9 @@
 package me.akshitbansal.edgepad.screens
 
+import android.content.Context
+import android.os.Bundle
+import android.os.Parcelable
+import android.view.AbsSavedState
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -64,22 +68,17 @@ object GuideScreen {
             ),
         )
 
-    private const val ITEM_SP = 14f
-    private const val ITEM_LEADING = 1.4f
-    private const val ITEM_GAP_DP = 2f
     private const val ART_DP = 132f
     private const val ART_WIDE_DP = 150f
-    private const val STEP_TITLE_SP = 28f
-    private const val PAGE_TITLE_SP = 22f
     private const val TITLE_LEADING = 1.2f
 
     /** Beside a step's kicker and title, so they sit just in from the drawing's rounded panel above them. */
     private const val TEXT_INSET_DP = 4f
 
-    // The page dots: the current page a wide accent pill, the rest small round dots.
+    // The page dots: the current page a wide accent pill, the rest small round dots, each drawn small in the
+    // middle of a full-size touch target.
     private const val DOT_DP = 8f
     private const val DOT_CURRENT_DP = 22f
-    private const val DOT_GAP_DP = 4f
     private const val ENTER_DP = 18f
     private const val ENTER_MS = 450L
     private const val EASE_X1 = 0.2f
@@ -98,10 +97,10 @@ object GuideScreen {
         onFinish: () -> Unit,
         onBack: () -> Unit,
     ): View {
-        val root = FrameLayout(ui.context)
-        var step = 0
+        val root = Steps(ui.context)
 
         fun show(direction: Int) {
+            val step = root.step
             root.removeAllViews()
             val modes =
                 ui.segmented(
@@ -132,15 +131,14 @@ object GuideScreen {
                         grow()
                         add(
                             progress(ui, step) { i ->
-                                val from = step
-                                step = i
-                                show(i.compareTo(from))
+                                root.step = i
+                                show(i.compareTo(step))
                             },
                             Space.L,
                         )
                         val back =
                             ui.button(ui.string(R.string.guide_back), Ui.Style.QUIET) {
-                                step--
+                                root.step = step - 1
                                 show(-1)
                             }
                         back.visibility = if (step == 0) View.INVISIBLE else View.VISIBLE
@@ -154,7 +152,7 @@ object GuideScreen {
                             ui.button(ui.string(nextLabel), Ui.Style.FILLED) {
                                 when {
                                     !last -> {
-                                        step++
+                                        root.step = step + 1
                                         show(1)
                                     }
 
@@ -192,7 +190,42 @@ object GuideScreen {
             if (direction != 0) enter(ui, page.getChildAt(1), direction)
         }
         show(0)
+        root.onRestored = { show(0) }
         return root
+    }
+
+    /**
+     * The Guide's frame, which keeps the step on show across a rotation or a theme change. Both rebuild the
+     * activity and the Guide with it, and a rebuilt Guide used to open at the first page again, however far
+     * in the reader was. The step rides in the activity's saved view state, under the frame's own id.
+     */
+    private class Steps(
+        context: Context,
+    ) : FrameLayout(context) {
+        var step = 0
+
+        /** Shows the step [onRestoreInstanceState] brought back. */
+        var onRestored: () -> Unit = {}
+
+        init {
+            id = R.id.guide
+        }
+
+        // The frame itself has nothing else worth keeping, so its own state is dropped rather than wrapped.
+        override fun onSaveInstanceState(): Parcelable {
+            super.onSaveInstanceState()
+            return Bundle().apply { putInt(STEP, step) }
+        }
+
+        override fun onRestoreInstanceState(state: Parcelable?) {
+            super.onRestoreInstanceState(AbsSavedState.EMPTY_STATE)
+            step = ((state as? Bundle)?.getInt(STEP) ?: 0).coerceIn(pages.indices)
+            onRestored()
+        }
+
+        private companion object {
+            const val STEP = "step"
+        }
     }
 
     /** One page with its drawing: the drawing, kicker and title, then its items beside or below them. */
@@ -204,7 +237,7 @@ object GuideScreen {
             {
                 add(GuideArt(ui.context, page.art), Space.S, ui.dp(if (ui.landscape) ART_WIDE_DP else ART_DP))
                 add(kicker(ui, page, TEXT_INSET_DP), Space.L)
-                add(title(ui, page, STEP_TITLE_SP, TEXT_INSET_DP), Space.XS)
+                add(title(ui, page, TEXT_INSET_DP), Space.XS)
             },
             {
                 card(if (ui.landscape) Space.S else Space.L) { items(ui, page) }
@@ -225,10 +258,9 @@ object GuideScreen {
     private fun title(
         ui: Ui,
         page: Page,
-        sp: Float,
         insetDp: Float,
     ): View =
-        ui.text(ui.string(page.title), sp, ui.palette.ink, Type.TRACKING_TIGHT, Type.black).apply {
+        ui.text(ui.string(page.title), Type.TITLE, ui.palette.ink, Type.TRACKING_TIGHT, Type.black).apply {
             isAccessibilityHeading = true
             setLineSpacing(0f, TITLE_LEADING)
             setPadding(ui.dp(insetDp), 0, ui.dp(insetDp), 0)
@@ -255,7 +287,7 @@ object GuideScreen {
     ) {
         // Lined up with the card's text, like a section header over a card.
         add(kicker(ui, page, Space.CARD_PAD), Space.XL)
-        add(title(ui, page, PAGE_TITLE_SP, Space.CARD_PAD), Space.XS)
+        add(title(ui, page, Space.CARD_PAD), Space.XS)
         card(Space.M) { items(ui, page) }
     }
 
@@ -272,11 +304,11 @@ object GuideScreen {
                 LinearLayout(ui.context).apply {
                     orientation = LinearLayout.VERTICAL
                     setPadding(0, ui.dp(Space.M), 0, ui.dp(Space.M))
-                    addView(ui.text(key, Type.LEAD, ui.palette.ink, face = Type.bold))
+                    addView(ui.text(key, Type.BODY, ui.palette.ink, face = Type.bold))
                     addView(
-                        ui.text(value, ITEM_SP, ui.palette.dim).apply {
-                            setLineSpacing(0f, ITEM_LEADING)
-                            setPadding(0, ui.dp(ITEM_GAP_DP), 0, 0)
+                        ui.text(value, Type.VALUE, ui.palette.dim).apply {
+                            setLineSpacing(0f, Type.LEADING)
+                            setPadding(0, ui.dp(Space.SUB_GAP), 0, 0)
                         },
                     )
                 },
@@ -301,7 +333,6 @@ object GuideScreen {
                     FrameLayout(ui.context).apply {
                         contentDescription = ui.string(R.string.guide_step_description, i + 1, pages.size)
                         if (current) stateDescription = ui.string(R.string.chosen)
-                        setPadding(ui.dp(DOT_GAP_DP), 0, ui.dp(DOT_GAP_DP), 0)
                         val dot =
                             View(ui.context).apply {
                                 background =
@@ -312,12 +343,12 @@ object GuideScreen {
                             FrameLayout.LayoutParams(
                                 ui.dp(if (current) DOT_CURRENT_DP else DOT_DP),
                                 ui.dp(DOT_DP),
-                                Gravity.CENTER_VERTICAL,
+                                Gravity.CENTER,
                             ),
                         )
-                        ui.tappable(this, DOT_DP / 2) { if (!current) onJump(i) }
+                        ui.tappable(this, Space.TOUCH / 2) { if (!current) onJump(i) }
                     }
-                addView(target, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ui.dp(Space.XL)))
+                addView(target, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
             }
         }
 

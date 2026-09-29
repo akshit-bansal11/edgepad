@@ -21,9 +21,6 @@ import me.akshitbansal.edgepad.surface.MediaPiece
 object MediaLayoutScreen {
     private val scaleRange = StepRange(Settings.MIN_MEDIA_SCALE, Settings.MAX_MEDIA_SCALE, 0.1f)
 
-    /** The hint's line height, as a multiple of its size, the same as a footnote's. */
-    private const val HINT_LEADING = 1.4f
-
     fun build(
         ui: Ui,
         settings: Settings,
@@ -57,7 +54,7 @@ object MediaLayoutScreen {
                             Type.SMALL,
                             ui.palette.dim,
                         ).apply {
-                            setLineSpacing(0f, HINT_LEADING)
+                            setLineSpacing(0f, Type.LEADING)
                             setPadding(0, ui.dp(Space.XS), 0, ui.dp(Space.S))
                         },
                 )

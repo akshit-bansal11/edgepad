@@ -17,6 +17,9 @@ import me.akshitbansal.edgepad.surface.Clock
  * The link dropped on its own. Says so, counts the attempts to get it back, and offers the two ways out.
  * Sideways there is little height, so the circle is smaller, the gaps tighter and the two buttons sit side
  * by side.
+ *
+ * A screen reader hears both halves without looking for them: the page is a pane named for the drop, which
+ * is announced as it appears, and the attempt line is a live region, read out each time it changes.
  */
 class ReconnectingScreen(
     private val ui: Ui,
@@ -61,6 +64,7 @@ class ReconnectingScreen(
             body(ui.string(R.string.lost_body, laptop), BODY_GAP_DP).gravity = Gravity.CENTER
             attempt = add(ui.text("", Type.SMALL, ui.palette.dim, face = Type.bold), gap)
             attempt.gravity = Gravity.CENTER
+            attempt.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
             val track =
                 FrameLayout(ui.context).apply {
                     background = ui.rounded(ui.palette.off, TRACK_DP / 2)
@@ -92,6 +96,7 @@ class ReconnectingScreen(
         }
 
     init {
+        view.accessibilityPaneTitle = ui.string(R.string.lost_title)
         view.addOnAttachStateChangeListener(
             object : View.OnAttachStateChangeListener {
                 override fun onViewAttachedToWindow(v: View) = updateBlink()
@@ -108,12 +113,15 @@ class ReconnectingScreen(
         state: State,
         secondsSinceSeen: Long,
     ) {
-        this.attempt.text =
+        val line =
             when (state) {
                 State.TRYING -> ui.string(R.string.lost_attempt, attempt, max)
                 State.STOPPED -> ui.string(R.string.lost_stopped)
                 State.OFF -> ui.string(R.string.lost_off)
             }
+        // This runs every second for the last-seen clock. Setting the same text again would still count as a
+        // change to the live region, and a screen reader would read the attempt out once a second.
+        if (this.attempt.text.toString() != line) this.attempt.text = line
         progress.layoutParams.width = ui.dp(TRACK_WIDTH_DP) * attempt.coerceIn(0, max) / max
         progress.requestLayout()
         lastSeen.text = ui.string(R.string.lost_last_seen, Clock.format(secondsSinceSeen.toInt()), address)

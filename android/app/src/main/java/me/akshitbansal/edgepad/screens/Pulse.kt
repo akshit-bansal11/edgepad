@@ -8,23 +8,16 @@ import android.view.View
 import kotlin.math.roundToInt
 
 /**
- * A laptop's status dot: lit for the connected or remembered one, faint otherwise, with a ring that
- * widens and fades while a connection is being made. With animations off in system settings the ring
- * simply stands still round the dot.
+ * The status dot beside a laptop that is connected or being connected to, with a ring that widens and fades
+ * while the connection is being made. With animations off in system settings the ring simply stands still
+ * round the dot.
  */
 class Pulse(
     context: Context,
     private val ink: Int,
-    private val off: Int,
 ) : View(context) {
     /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
-    constructor(context: Context) : this(context, 0, 0)
-
-    var lit = false
-        set(value) {
-            field = value
-            invalidate()
-        }
+    constructor(context: Context) : this(context, 0)
 
     var pulsing = false
         set(value) {
@@ -33,7 +26,7 @@ class Pulse(
         }
 
     private val density = resources.displayMetrics.density
-    private val dot = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val dot = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ink }
     private val ring =
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
@@ -86,7 +79,6 @@ class Pulse(
         val cx = width / 2f
         val cy = height / 2f
         val r = DOT_DP * density / 2
-        dot.color = if (lit || pulsing) ink else off
         canvas.drawCircle(cx, cy, r, dot)
         if (!pulsing) return
         val widest = minOf(width, height) / 2f - ring.strokeWidth

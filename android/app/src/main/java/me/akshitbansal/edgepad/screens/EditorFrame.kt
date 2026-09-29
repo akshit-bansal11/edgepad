@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.screens
 
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.InsetDrawable
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -20,9 +21,11 @@ import me.akshitbansal.edgepad.Type
  * Two ways back, as the design has them. With a [build] `backLabel` it is the nav bar every other
  * sub-screen has, an accent "‹ Settings" link and a centred title, over the canvas. Without one, for the
  * gamepad and its editor, where the whole screen is controls, it is a round card-filled button in each
- * corner and a small title between them.
+ * corner and a small title between them. Each round button is drawn smaller than the touch target it
+ * answers to.
  */
 object EditorFrame {
+    /** A round button's drawn size, and where it is drawn from the corner. */
     private const val ROUND_DP = 40f
     private const val EDGE_DP = 8f
     private const val TOP_DP = 6f
@@ -30,7 +33,6 @@ object EditorFrame {
     private const val POPUP_WIDTH_DP = 260f
     private const val POPUP_GAP_DP = 8f
     private const val POPUP_TOP_DP = 4f
-    private const val POPUP_RADIUS_DP = 16f
     private const val POPUP_ELEVATION_DP = 16f
 
     /** The round buttons' soft shadow on the light theme; on the dark one a shadow would not show. */
@@ -70,7 +72,7 @@ object EditorFrame {
                     window.height = ViewGroup.LayoutParams.WRAP_CONTENT
                     window.isFocusable = true
                     window.isOutsideTouchable = true
-                    window.setBackgroundDrawable(ui.rounded(ui.palette.card, POPUP_RADIUS_DP))
+                    window.setBackgroundDrawable(ui.rounded(ui.palette.card, Space.PANEL_RADIUS))
                     window.elevation = ui.dp(POPUP_ELEVATION_DP).toFloat()
                     window.setOnDismissListener {
                         popup = null
@@ -81,9 +83,21 @@ object EditorFrame {
                     // Under whatever holds the options button, so the button that closes the sheet stays lit.
                     root.addView(scrim, root.indexOfChild(open.holder), fill())
                     open.paint(true)
-                    window.showAsDropDown(open.view, 0, ui.dp(POPUP_GAP_DP), Gravity.END)
+                    // Measured from the drawn button, not from the taller target round it.
+                    window.showAsDropDown(open.view, 0, ui.dp(POPUP_GAP_DP) - slack(ui), Gravity.END)
                 }
             }
+        // A rotation or a theme change rebuilds the activity under an open sheet. It goes with the page it
+        // belongs to, rather than outliving it and leaking its window.
+        root.addOnAttachStateChangeListener(
+            object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) = Unit
+
+                override fun onViewDetachedFromWindow(v: View) {
+                    popup?.dismiss()
+                }
+            },
+        )
 
         if (backLabel != null) {
             val bar = ui.bar(title, onBack, open.view, backLabel = backLabel)
@@ -149,8 +163,8 @@ object EditorFrame {
         val label = ui.string(R.string.editor_options)
         if (!round) {
             val icon = ui.icon(Glyph.Shape.OPTIONS, label, onTap)
-            val disc = oval(ui.palette.accentSoft)
-            return Toggle(icon, icon) { on -> icon.background = if (on) disc else null }
+            val tint = disc(ui, ui.palette.accentSoft)
+            return Toggle(icon, icon) { on -> icon.background = if (on) tint else null }
         }
         val idle = Glyph(ui.context, Glyph.Shape.OPTIONS, ui.palette.accent)
         val lit = Glyph(ui.context, Glyph.Shape.OPTIONS, ui.palette.onAccent)
@@ -158,7 +172,7 @@ object EditorFrame {
         button.addView(idle, fill())
         button.addView(lit, fill())
         val card = button.background
-        val accent = oval(ui.palette.accent)
+        val accent = disc(ui, ui.palette.accent)
 
         fun show(on: Boolean) {
             idle.visibility = if (on) View.GONE else View.VISIBLE
@@ -169,7 +183,7 @@ object EditorFrame {
         return Toggle(button, button, ::show)
     }
 
-    /** A 40 dp round icon button on the canvas, card-filled so the grid does not show through. */
+    /** A round icon button on the canvas, card-filled so the grid does not show through. */
     private fun round(
         ui: Ui,
         icon: Glyph.Shape,
@@ -184,29 +198,44 @@ object EditorFrame {
         onTap: () -> Unit,
     ): FrameLayout =
         FrameLayout(ui.context).apply {
-            background = oval(ui.palette.card)
+            background = disc(ui, ui.palette.card)
             if (!ui.palette.dark) elevation = ui.dp(ROUND_ELEVATION_DP).toFloat()
             contentDescription = label
             tooltipText = label
             ui.tappable(this, ROUND_DP / 2, onTap)
+            // The press and the focus ring land on the drawn circle.
+            val room = slack(ui)
+            foreground = InsetDrawable(foreground, room, room, room, room)
         }
 
     private fun fill() =
         FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
 
-    private fun oval(color: Int) =
-        GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            setColor(color)
-        }
+    /** The clear room on each side between a round button's drawn circle and its touch target. */
+    private fun slack(ui: Ui) = (ui.dp(Space.TOUCH) - ui.dp(ROUND_DP)) / 2
 
+    /** A filled circle the drawn size of a round button, centred in its touch target. */
+    private fun disc(
+        ui: Ui,
+        color: Int,
+    ): InsetDrawable {
+        val room = slack(ui)
+        val oval =
+            GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(color)
+            }
+        return InsetDrawable(oval, room, room, room, room)
+    }
+
+    /** A round button's touch target in a corner, placed so the circle drawn in it sits where the design has it. */
     private fun corner(
         ui: Ui,
         gravity: Int,
-    ) = FrameLayout.LayoutParams(ui.dp(ROUND_DP), ui.dp(ROUND_DP), gravity).apply {
-        topMargin = ui.dp(TOP_DP)
-        marginStart = ui.dp(EDGE_DP)
-        marginEnd = ui.dp(EDGE_DP)
+    ) = FrameLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH), gravity).apply {
+        topMargin = ui.dp(TOP_DP) - slack(ui)
+        marginStart = ui.dp(EDGE_DP) - slack(ui)
+        marginEnd = ui.dp(EDGE_DP) - slack(ui)
     }
 
     /** Reset and Done, side by side at the foot of a popup: Reset in [resetStyle], Done the filled one. */
