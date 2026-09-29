@@ -14,10 +14,10 @@ Edgepad lets a phone drive a laptop, so its boundaries matter. This is what they
 ## Known limits
 
 - The trusted phone's Bluetooth address is stored in plain text under `%APPDATA%\Edgepad`. Anyone who can write that file can change which phone is trusted; that person can already run programs as you.
-- The laptop app is not code-signed. SmartScreen warns on first run. Verify the download came from this repository's Releases page.
+- The laptop app is not code-signed. SmartScreen warns on first run. Verify the download came from this repository's Releases page; releases after 3.1.1 can also be checked against their `SHA256SUMS.txt` and with `gh attestation verify`.
 - Text typed from the phone goes wherever the laptop's focus is, like a keyboard would.
 - Because the phone can press keys and type, it can reach anything a keyboard can — Win+R and a typed line is already arbitrary execution. Whoever holds the trusted phone has the laptop's keyboard. Use **Forget trusted phone** if you lose it.
 
 ## Reporting
 
-Open a [security advisory](https://github.com/akshit-bansal11/edgepad/security/advisories/new) on GitHub, or email the maintainer if you would rather not use GitHub. Please do not open a public issue for something exploitable. Expect an acknowledgement within a week.
+Open a [security advisory](https://github.com/akshit-bansal11/edgepad/security/advisories/new) on GitHub; it reaches the maintainer privately. Please do not open a public issue for something exploitable. Expect an acknowledgement within a week.
