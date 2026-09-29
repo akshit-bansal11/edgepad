@@ -9,6 +9,14 @@ Thanks for looking. Edgepad is small on purpose; the bar for a change is that it
 
 ## Setting up
 
+Fork the repository on GitHub and clone your fork. Your work lives on your fork, and reaches this repository as a pull request.
+
+```powershell
+git clone https://github.com/<you>/edgepad.git
+cd edgepad
+git remote add upstream https://github.com/akshit-bansal11/edgepad.git
+```
+
 You need JDK 17 and the Android SDK (platform 37, build tools 37.0.0; the Gradle wrapper fetches Gradle itself) for the phone app, and the .NET SDK version pinned in `windows/global.json` (10.0.401, roll-forward to the latest feature band) on Windows 10 version 2004 or later for the laptop app. Either half can be worked on alone: `pwsh scripts/check.ps1 -Only android` or `-Only windows` runs just that gate.
 
 Build each half directly, without the gate, while iterating:
@@ -39,13 +47,13 @@ Start a first change in the protocol codecs, the gesture recognizer, the dial ge
 
 ## Making a change
 
-1. Branch from `main`.
+1. Bring your fork's `main` up to date with `upstream/main`, then branch from it on your fork.
 2. Keep the two apps in step. A protocol change edits `protocol/frames.txt` or `protocol/actions.txt`, both codecs or both enums, and bumps the protocol version on both sides, all in one commit.
 3. Add or change a test when you add logic, a branch or fix a bug. The recogniser, the dials and the codecs are pure and cheap to test; prefer testing there over anything that needs a device. See "What the tests cover" in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the two suites and the protocol fixtures fit together.
 4. Run `pwsh scripts/check.ps1` until it is clean. It formats in place, then lints, builds and tests both halves with warnings as errors — it is the same script CI runs, in its non-mutating `-Ci` mode. It writes locally because fixing your formatting is useful; CI must not write to your branch, so it fails instead of quietly reformatting the pull request. Three things it rejects that are not obvious from the error: Kotlin compiles with `allWarningsAsErrors`, Android lint runs with `warningsAsErrors` (an unused string resource fails the build, not just a warning), and the C# build passes `-warnaserror`. Do not suppress a lint finding to get green.
 5. Commit with a [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) subject (`feat:`, `fix:`, `docs:`, `ci:`, with an optional scope such as `feat(android):`) and a body that says what changed and why, including what you rejected.
 6. Add a line under **Unreleased** in [CHANGELOG.md](CHANGELOG.md).
-7. Open a pull request. CI runs the non-mutating gate on both halves and builds both artifacts.
+7. Push the branch to your fork and open a pull request against `main` in this repository. CI runs the non-mutating gate on both halves and builds both artifacts; the site's gate runs too when `site/` or `protocol/` changed. The maintainer reviews and merges.
 
 ## Style
 
@@ -54,6 +62,6 @@ Start a first change in the protocol codecs, the gesture recognizer, the dial ge
 - Doc comments say why, not what the next line already says.
 - Nothing runs on the input path that could block: no logging, no allocation while drawing, no I/O on the session thread beyond the socket.
 
-## Releasing
+## Releases
 
-Maintainers only. Update the version table in `docs/PROTOCOL.md` if the protocol changed, move **Unreleased** in the changelog under the new version, then tag and push; the Release workflow does the rest. The signing key is not in the repository and must not be regenerated: a new key would stop installed phones from updating.
+The maintainer builds and publishes releases. A pull request does not bump the app version, tag, or build a release; a merged change ships in the next one.
