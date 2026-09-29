@@ -145,6 +145,29 @@ public sealed class DispatcherTests : IDisposable
         Assert.Equal(PadStatus.NoDriver, Assert.Single(answers));
     }
 
+    [Fact]
+    public void AHandlerThatThrowsIsDroppedRatherThanEndingTheApp()
+    {
+        // The reply is the one handler a test can make throw without touching a device. Anything that is not a
+        // dead socket is counted and the session carries on, where it used to escape the session thread.
+        dispatcher.PadStatusReply = _ => throw new InvalidOperationException("a bug in a handler");
+
+        dispatcher.Handle(new RunAction((byte)ActionId.PadAttach));
+
+        Assert.Equal(1, dispatcher.Dropped);
+        Assert.Equal(1, dispatcher.Failed);
+    }
+
+    [Fact]
+    public void ADeadSocketStillEndsTheSession()
+    {
+        // The reply writes to the socket. A failed write is the session's to see, not a frame to count.
+        dispatcher.PadStatusReply = _ => throw new IOException("the phone went away");
+
+        Assert.Throws<IOException>(() => dispatcher.Handle(new RunAction((byte)ActionId.PadAttach)));
+        Assert.Equal(0, dispatcher.Failed);
+    }
+
     [Theory]
     [InlineData("Spotify.exe", "Spotify")]
     [InlineData("chrome.exe", "Chrome")]
