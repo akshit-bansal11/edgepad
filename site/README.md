@@ -54,7 +54,7 @@ npm run build      # next build, kept out of the gate
 
 ## It must be built from inside the repository
 
-`lib/protocol.ts` reads `../protocol/frames.txt` and `../protocol/actions.txt` at build time — the same two golden fixtures both the Kotlin and the C# test suites read at run time. The frame table, the byte table, and the action, control and TEXT-kind tables on the page are all generated from them.
+`lib/protocol.ts` reads `../protocol/frames.txt` and `../protocol/actions.txt` at build time — the same two golden fixtures both the Kotlin and the C# test suites read at run time. The frame table, the byte table, and the action, control, TEXT-kind, PAD_STATUS and gamepad-button tables on the page are all generated from them.
 
 That is deliberate. A hand-typed copy of those tables would be a third place the protocol is written down, and nothing would check it. As it stands the site cannot drift from the two apps: if a fixture gains a frame, the page grows a row.
 
@@ -70,6 +70,7 @@ app/
   page.tsx            the landing page: hero, features, how it works, limits, install
   docs/page.tsx       the documentation: sidebar layout, composes the four section files
   globals.css         the palette and the two font variables
+  robots.ts, sitemap.ts   written to robots.txt and sitemap.xml at build
 lib/
   protocol.ts         reads and parses ../protocol/*.txt  (the only non-trivial logic)
   nav.ts              the table of contents; every id must exist as a section anchor
@@ -172,8 +173,22 @@ It deploys from the **repository root**, not from `site/`. That is deliberate:
 `lib/protocol.ts` reads `../protocol/*.txt` at build time, so a deploy rooted at `site/`
 cannot see the fixtures and the build fails — loudly, by design. The root `vercel.json`
 therefore runs the build inside `site/` and points Vercel at `site/out`, and
-`.vercelignore` keeps the two apps and the demo video (about 180 MB together) out of the
-upload.
+`.vercelignore` keeps the two apps, their build output and the demo's render workspace
+out of the upload.
+
+**Response headers** come from `vercel.json` too, since a static export has no server of
+its own to send them: a Content-Security-Policy, `nosniff`, a referrer policy and a
+Permissions-Policy that switches off the device APIs the site never asks for. The CSP
+allows only this origin for everything, and nothing may frame the site. Two parts of it
+are loose on purpose. `script-src` allows `'unsafe-inline'` because the export carries
+inline scripts — next-themes' no-flash theme script and the React Server Components
+payload, one per chunk — whose content changes with every edit to a page, so hashes
+would have to be regenerated on every build and a nonce needs a server. `style-src`
+allows it because React writes `style` attributes (the entrance animations, the beams,
+Radix's accordion heights). No script comes from anywhere but this origin, and the site
+fetches nothing from any other. Vercel's own HSTS header already covers `*.vercel.app`.
+A new external resource — a font, an embed, an analytics script — has to be added to
+the policy or the browser will block it.
 
 ```bash
 vercel deploy --prod     # from the repository root
