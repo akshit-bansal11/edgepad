@@ -55,6 +55,36 @@ public sealed class FrameFixtureTests
     }
 
     [Fact]
+    public void AnEmojiStraddlingTheLimitIsDroppedWholeRatherThanHalved()
+    {
+        // 252 bytes of "a", then a four-byte emoji over bytes 253 to 256. Cutting a UTF-16 unit at a time stopped
+        // after the emoji's high surrogate, three bytes of replacement character that fit exactly, and sent 255
+        // bytes of text the phone never typed. Not in frames.txt: every fixture line must also decode back to
+        // its own fields, and a cut line cannot.
+        var bytes = FrameCodec.Encode(new Text(0, new string('a', 252) + "\U0001F3B5"));
+
+        Assert.Equal(1 + FrameCodec.TextHeaderLength + 252, bytes.Length);
+        Assert.Equal((byte)252, bytes[2]);
+        Assert.Equal(new Text(0, new string('a', 252)), FrameCodec.Decode(bytes[0], bytes.AsSpan(1)));
+    }
+
+    [Fact]
+    public void AnEmojiEndingExactlyOnTheLimitIsKept()
+    {
+        var text = new string('a', 251) + "\U0001F3B5";
+
+        Assert.Equal(text, FrameCodec.Truncate(text));
+        Assert.Equal(1 + FrameCodec.TextHeaderLength + 255, FrameCodec.Encode(new Text(0, text)).Length);
+    }
+
+    [Fact]
+    public void ALongTextIsCutWithoutReadingAllOfIt()
+    {
+        // A million characters used to be re-measured once per character removed. The cut stops at the limit.
+        Assert.Equal(new string('a', FrameCodec.MaxTextBytes), FrameCodec.Truncate(new string('a', 1_000_000)));
+    }
+
+    [Fact]
     public void PadStateKeepsSignedSticksSignedAndUnsignedFieldsUnsigned()
     {
         // The three mistakes that are invisible in hex: a stick read as a ushort comes back 32768 and not
