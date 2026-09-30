@@ -4,6 +4,8 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-09-30
+
 The wire protocol stays at version 4, so any 3.x half still speaks to any other; but the laptop's new trust question and the phone's longer wait for it are meant to be installed together.
 
 ### Added
@@ -706,7 +708,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.1...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.2.0...HEAD
+[3.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/akshit-bansal11/edgepad/compare/v3.0.0...v3.0.1
