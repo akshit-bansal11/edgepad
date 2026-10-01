@@ -4,6 +4,22 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-10-01
+
+The wire protocol stays at version 4, so any 3.x half still speaks to any other. 3.2.0 has no updater, so this release is the last one to fetch by hand.
+
+### Added
+
+- **The phone updates itself.** Settings › Help has an Updates row: it asks GitHub once a day as the app opens, or when tapped, and when there is something newer a tap downloads it and hands it to Android to install. Android installs it only if it is signed with the same key as the app already on the phone. "Check for updates daily" switches the daily question off. This is the app's first use of the internet: it adds the `INTERNET` permission, and `REQUEST_INSTALL_PACKAGES` and `UPDATE_PACKAGES_WITHOUT_USER_ACTION` to install what it fetched. The requests carry nothing about the phone. The laptop app must still be updated to the same release.
+- **The laptop says when a newer release exists.** The tray app asks GitHub the same question when it starts and once a day after. When there is something newer it says so once in a notification, and the tray menu gains an "Update available" row that opens the release page. It does not replace itself, and it has no switch to turn the question off.
+- **A winget manifest**, in `packaging/winget/`, for `winget install AkshitBansal.Edgepad`. It is not in the Windows Package Manager until it has been submitted and accepted there.
+
+### Changed
+
+- **Settings rows no longer wrap their name.** A long summary, such as the four dials beside Corners, is cut short with an ellipsis instead of squeezing the name onto two lines.
+- **Slider thumbs are smaller**, 20dp from 28dp. The touch target is unchanged.
+- **The first Settings section is "Gestures & dials"**, not "Surface", which was also the name on the back button above it.
+
 ## [3.2.0] - 2026-09-30
 
 The wire protocol stays at version 4, so any 3.x half still speaks to any other; but the laptop's new trust question and the phone's longer wait for it are meant to be installed together.
@@ -708,7 +724,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.2.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.3.0...HEAD
+[3.3.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.0.1...v3.1.0

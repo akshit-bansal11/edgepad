@@ -37,7 +37,7 @@ private const val KNOB_GAP_DP = 2f
 private const val TRACK_DP = 4f
 private const val TICK_DP = 3f
 private const val TICK_BELOW_DP = 18f
-private const val THUMB_DP = 28f
+private const val THUMB_DP = 20f
 
 /** The segmented control's thumb at the default font size; a larger font grows it to fit its text. */
 private const val SEGMENT_HEIGHT_DP = 28f
@@ -629,30 +629,38 @@ class Ui(
         end: View? = null,
     ): LinearLayout = row(text(label, Type.BODY, palette.ink), end)
 
-    /** A row that opens another screen: its name, a short summary of what is set there, and a chevron. */
+    /**
+     * A row that opens another screen: its name, a short summary of what is set there, and a chevron.
+     * [onSummary] is handed the summary's view, for a row whose summary changes while the page is open.
+     */
     fun link(
         label: CharSequence,
         summary: CharSequence?,
         onOpen: () -> Unit,
-    ): LinearLayout {
-        val end =
-            LinearLayout(context).apply {
-                gravity = Gravity.CENTER_VERTICAL
-                if (!summary.isNullOrEmpty()) {
-                    addView(
-                        secondary(summary, Type.VALUE, palette.dim).apply {
-                            maxLines = 1
-                            ellipsize = TextUtils.TruncateAt.END
-                        },
-                    )
-                }
-                addView(
-                    Glyph(context, Glyph.Shape.CHEVRON_RIGHT, palette.dim),
-                    LinearLayout.LayoutParams(dp(Space.XL), dp(Space.XL)),
-                )
-            }
-        return field(label, end).apply { tappable(this, onOpen) }
-    }
+        onSummary: (TextView) -> Unit = {},
+    ): LinearLayout =
+        LinearLayout(context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = dp(Space.ROW)
+            // The name keeps its own width and the summary takes what is left, cut short with an ellipsis.
+            // The other way round, a long summary squeezed the name until it wrapped mid-word.
+            addView(text(label, Type.BODY, palette.ink))
+            addView(
+                secondary(summary ?: "", Type.VALUE, palette.dim).apply {
+                    gravity = Gravity.END
+                    maxLines = 1
+                    ellipsize = TextUtils.TruncateAt.END
+                    setPadding(dp(Space.M), 0, 0, 0)
+                    onSummary(this)
+                },
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
+            )
+            addView(
+                Glyph(context, Glyph.Shape.CHEVRON_RIGHT, palette.dim),
+                LinearLayout.LayoutParams(dp(Space.XL), dp(Space.XL)),
+            )
+            tappable(this, onOpen)
+        }
 
     /** A labelled slider over [steps] steps, with what the step means written beside the label as it moves. */
     fun slider(

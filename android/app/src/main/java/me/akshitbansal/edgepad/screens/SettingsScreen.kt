@@ -40,6 +40,7 @@ object SettingsScreen {
         val appearance: () -> Unit,
         val guide: () -> Unit,
         val documentation: () -> Unit,
+        val update: () -> Unit,
         val sideways: (Boolean) -> Unit,
         val back: () -> Unit,
     )
@@ -47,6 +48,16 @@ object SettingsScreen {
     private const val NO_DIAL = "—"
 
     private val textRange = StepRange(Settings.MIN_KEY_TEXT_SCALE, Settings.MAX_KEY_TEXT_SCALE, 0.1f)
+
+    /**
+     * The Updates row: what its summary says as the page opens, and [onSummary], which is handed the
+     * summary's view. A check finishes while the page is open, and the activity rewrites that one view
+     * rather than rebuild the page, which would throw the scroll position back to the top.
+     */
+    class Update(
+        val summary: String,
+        val onSummary: (TextView) -> Unit,
+    )
 
     /** [backLabel] names the screen the back link returns to: Devices, or the controls it was opened from. */
     fun build(
@@ -56,6 +67,7 @@ object SettingsScreen {
         preset: String,
         version: String,
         backLabel: String,
+        update: Update,
         routes: Routes,
     ): View =
         // The nav bar draws no title: the large title under it is the screen's name, and says so to a screen reader.
@@ -73,7 +85,7 @@ object SettingsScreen {
                         )
                     }
 
-                    section(ui.string(R.string.settings_surface))
+                    section(ui.string(R.string.settings_feel))
                     card {
                         add(ui.link(ui.string(R.string.corners_title), cornersSummary(ui, settings), routes.corners))
                         hairline()
@@ -148,6 +160,21 @@ object SettingsScreen {
                                 Uri.parse(ui.string(R.string.documentation_url)).host,
                                 routes.documentation,
                             ),
+                        )
+                        hairline()
+                        add(
+                            ui.link(
+                                ui.string(R.string.updates_title),
+                                update.summary,
+                                routes.update,
+                                update.onSummary,
+                            ),
+                        )
+                        hairline()
+                        add(
+                            ui.toggle(ui.string(R.string.updates_auto), settings.autoUpdateCheck) {
+                                settings.autoUpdateCheck = it
+                            },
                         )
                     }
                     footnote(version).apply { setPadding(paddingLeft, ui.dp(Space.L), paddingRight, 0) }

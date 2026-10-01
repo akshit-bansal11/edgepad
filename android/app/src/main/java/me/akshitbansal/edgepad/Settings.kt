@@ -83,6 +83,17 @@ class Settings(
      */
     var macroLabels by flag("macroLabels", true)
 
+    /** Ask GitHub once a day, as the app opens, whether a newer release exists. */
+    var autoUpdateCheck by flag("autoUpdateCheck", true)
+
+    /** When GitHub last answered, in milliseconds since the epoch; 0 before it ever has. */
+    var lastUpdateCheck by pref({ prefs.getLong(KEY_LAST_UPDATE_CHECK, 0L) }) { putLong(KEY_LAST_UPDATE_CHECK, it) }
+
+    /** The newest release the last answer named, such as "3.2.1"; empty before any answer. */
+    var latestVersion by pref({ prefs.getString(KEY_LATEST_VERSION, "").orEmpty() }) {
+        putString(KEY_LATEST_VERSION, it)
+    }
+
     /**
      * How large the on-screen keyboard draws its key labels, as a multiple of the base size. A ceiling the
      * keyboard may lower, never raise: a label that would not fit inside its key is drawn smaller instead.
@@ -341,6 +352,8 @@ class Settings(
         private const val IMAGE_FILE = "background.img"
         private const val KEY_LAPTOP = "laptop"
         private const val KEY_SHAPES = "shapes"
+        private const val KEY_LAST_UPDATE_CHECK = "lastUpdateCheck"
+        private const val KEY_LATEST_VERSION = "latestVersion"
         private const val KEY_SENSITIVITY = "sensitivity"
         private const val KEY_POINTER_SPEED = "pointerSpeed"
         private const val KEY_SCROLL_SPEED = "scrollSpeed"
