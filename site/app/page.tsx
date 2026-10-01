@@ -254,7 +254,7 @@ export default function Page() {
                 aria-label="What it does not need"
                 className="mt-8 flex flex-wrap gap-2"
               >
-                {["No account", "No network", "No telemetry", "MIT licensed"].map(
+                {["No account", "No server", "No telemetry", "MIT licensed"].map(
                   (item) => (
                     <li key={item}>
                       <Badge variant="outline">{item}</Badge>

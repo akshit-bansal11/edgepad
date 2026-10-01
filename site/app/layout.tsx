@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   // canonical link is each page's own, so a future page never inherits "/" by accident.
   title: "Edgepad — your laptop, from across the room",
   description:
-    "Edgepad turns an Android phone into a trackpad, a media remote and a control panel for a Windows laptop, over a direct Bluetooth link with nothing in between. No account, no network, no telemetry. MIT.",
+    "Edgepad turns an Android phone into a trackpad, a media remote and a control panel for a Windows laptop, over a direct Bluetooth link with nothing in between. No account, no server, no telemetry. MIT.",
   applicationName: "Edgepad",
   authors: [{ name: "akshit-bansal11" }],
   openGraph: {
