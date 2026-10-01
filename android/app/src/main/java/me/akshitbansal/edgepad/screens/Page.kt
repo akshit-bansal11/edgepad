@@ -646,7 +646,7 @@ class Ui(
             // The other way round, a long summary squeezed the name until it wrapped mid-word.
             addView(text(label, Type.BODY, palette.ink))
             addView(
-                secondary(summary.orEmpty(), Type.VALUE, palette.dim).apply {
+                secondary(summary ?: "", Type.VALUE, palette.dim).apply {
                     gravity = Gravity.END
                     maxLines = 1
                     ellipsize = TextUtils.TruncateAt.END
