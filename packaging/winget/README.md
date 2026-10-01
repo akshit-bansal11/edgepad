@@ -4,24 +4,20 @@ The manifest that puts the laptop app in the Windows Package Manager as `AkshitB
 
 The files here are a record of what was submitted. winget does not read them from this repository; a package exists once a pull request adding them is merged into [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs). Submitting is the maintainer's to do, because the pull request is opened from his account.
 
-## First submission
+## Submitting
 
-```powershell
-winget install Microsoft.WingetCreate
+```bash
 winget validate --manifest packaging/winget/3.2.0
-wingetcreate submit packaging/winget/3.2.0
+bash packaging/winget/submit.sh 3.2.0
 ```
 
-`wingetcreate submit` asks for a GitHub sign-in the first time, forks `winget-pkgs` and opens the pull request. Microsoft's checks then download and scan the exe; a person approves a new package.
+`submit.sh` forks `winget-pkgs` if there is no fork yet, writes the three files to a branch of it through the GitHub API, and opens the pull request with `gh`. Nothing is cloned. Microsoft's `wingetcreate` does the same job and is not used here, because it needs the .NET runtime.
+
+On the pull request, a bot asks for Microsoft's Contributor License Agreement the first time; it is signed by replying there. Microsoft's checks then download and scan the exe, and a person approves a new package.
 
 ## Each later release
 
-```powershell
-wingetcreate update AkshitBansal.Edgepad --version 3.3.0 `
-  --urls https://github.com/akshit-bansal11/edgepad/releases/download/v3.3.0/Edgepad-3.3.0.exe --submit
-```
-
-It fetches the exe, works out the hash and opens the pull request. Add the manifest it wrote to this folder if the record is to be kept.
+Copy the newest folder to one named for the new version, and in its three files change `PackageVersion`, the version in `InstallerUrl` and `ReleaseNotesUrl`, `ReleaseDate`, and `InstallerSha256`, which is the exe's line in the release's `SHA256SUMS.txt`, in capitals. Then validate and submit as above.
 
 ## Not yet known
 
