@@ -35,7 +35,7 @@ Both apps come from the [latest release](https://github.com/akshit-bansal11/edge
 2. Run it. It is not code-signed, so SmartScreen asks first: choose **More info**, then **Run anyway**.
 3. It lives in the system tray, and a left or a right click on its icon opens the same menu. The menu shows whether a phone is connected, then **Start with Windows**, **Macros…**, **Open log**, **Documentation**, **Forget trusted phone** and **Quit Edgepad**, with the version beside it. It follows Windows' light or dark app mode.
 
-Running a newer release's exe asks the running copy to quit and takes its place.
+Running a newer release's exe asks the running copy to quit and takes its place. From 3.3.0 the tray app asks GitHub once a day whether a newer release exists, and shows an **Update available** row at the top of its menu when one does.
 
 **Optional, for the gamepad: ViGEmBus.** The gamepad works without it — every control can be bound to a keyboard key, and keys are what the pad sends on a laptop with no controller driver, which is the state most laptops are in. Install [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases/latest) and Edgepad plugs a virtual Xbox controller into Windows instead, so the sticks and triggers carry their full analog range and a game that only ever accepted a controller can be played from the phone. It is a third-party kernel driver, signed as Windows requires of one, and you install it yourself; Edgepad neither bundles nor installs it. You never have to guess which of the two you are in: the laptop answers every request for the controller, and the gamepad screen says **keyboard mode** and which of the three reasons it was, rather than being quietly dead.
 
@@ -43,7 +43,7 @@ Running a newer release's exe asks the running copy to quit and takes its place.
 
 1. Download `Edgepad-<version>.apk` on the phone and open it. Allow installing from this source if asked.
 2. On first run, allow the **Nearby devices** permission. Edgepad uses it to see the laptops paired with the phone; it never scans for new ones.
-3. Every later release installs over the previous one; settings are kept.
+3. Every later release installs over the previous one; settings are kept. From 3.3.0 the app fetches them itself: **Settings › Help › Updates** says when a newer release exists, and a tap downloads and installs it. Update the laptop app to the same release.
 
 ## Use
 
