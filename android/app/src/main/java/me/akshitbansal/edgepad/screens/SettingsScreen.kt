@@ -73,7 +73,7 @@ object SettingsScreen {
                         )
                     }
 
-                    section(ui.string(R.string.settings_surface))
+                    section(ui.string(R.string.settings_feel))
                     card {
                         add(ui.link(ui.string(R.string.corners_title), cornersSummary(ui, settings), routes.corners))
                         hairline()

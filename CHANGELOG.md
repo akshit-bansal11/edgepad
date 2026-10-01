@@ -4,6 +4,12 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Changed
+
+- **Settings rows no longer wrap their name.** A long summary, such as the four dials beside Corners, is cut short with an ellipsis instead of squeezing the name onto two lines.
+- **Slider thumbs are smaller**, 20dp from 28dp. The touch target is unchanged.
+- **The first Settings section is "Gestures & dials"**, not "Surface", which was also the name on the back button above it.
+
 ## [3.2.0] - 2026-09-30
 
 The wire protocol stays at version 4, so any 3.x half still speaks to any other; but the laptop's new trust question and the phone's longer wait for it are meant to be installed together.
