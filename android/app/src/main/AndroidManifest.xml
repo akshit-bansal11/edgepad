@@ -3,6 +3,8 @@
 
   <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
   <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+  <!-- For one thing only: asking GitHub which release is newest. See update/Updates.kt. -->
+  <uses-permission android:name="android.permission.INTERNET" />
 
   <application
     android:dataExtractionRules="@xml/data_extraction_rules"

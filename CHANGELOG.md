@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Added
+
+- **The phone says when a newer release exists.** Settings › Help has an Updates row: it asks GitHub once a day as the app opens, or when tapped, and opens the release page when there is something newer. "Check for updates daily" switches the daily question off. This is the app's first use of the internet and it needs the `INTERNET` permission; the request carries nothing about the phone.
+
 ### Changed
 
 - **Settings rows no longer wrap their name.** A long summary, such as the four dials beside Corners, is cut short with an ellipsis instead of squeezing the name onto two lines.

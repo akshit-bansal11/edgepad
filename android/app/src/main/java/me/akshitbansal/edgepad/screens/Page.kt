@@ -629,11 +629,15 @@ class Ui(
         end: View? = null,
     ): LinearLayout = row(text(label, Type.BODY, palette.ink), end)
 
-    /** A row that opens another screen: its name, a short summary of what is set there, and a chevron. */
+    /**
+     * A row that opens another screen: its name, a short summary of what is set there, and a chevron.
+     * [onSummary] is handed the summary's view, for a row whose summary changes while the page is open.
+     */
     fun link(
         label: CharSequence,
         summary: CharSequence?,
         onOpen: () -> Unit,
+        onSummary: (TextView) -> Unit = {},
     ): LinearLayout =
         LinearLayout(context).apply {
             gravity = Gravity.CENTER_VERTICAL
@@ -647,6 +651,7 @@ class Ui(
                     maxLines = 1
                     ellipsize = TextUtils.TruncateAt.END
                     setPadding(dp(Space.M), 0, 0, 0)
+                    onSummary(this)
                 },
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
             )

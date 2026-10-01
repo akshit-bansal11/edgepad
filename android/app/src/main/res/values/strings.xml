@@ -201,6 +201,12 @@
   <string name="settings_feel">Gestures &amp; dials</string>
   <string name="settings_controls">Controls</string>
   <string name="settings_help">Help</string>
+  <string name="updates_title">Updates</string>
+  <string name="updates_auto">Check for updates daily</string>
+  <string name="updates_checking">Checking…</string>
+  <string name="updates_failed">Could not check</string>
+  <string name="updates_available">%1$s available</string>
+  <string name="updates_current">Up to date</string>
   <string name="settings_version">Edgepad %1$s · protocol %2$d</string>
   <string name="corners_title">Corners</string>
   <string name="corners_pick">Pick a corner</string>

@@ -21,6 +21,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.widget.TextView
 import android.widget.Toast
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
@@ -50,6 +51,7 @@ import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.surface.BackgroundImage
 import me.akshitbansal.edgepad.surface.ControlSurface
+import me.akshitbansal.edgepad.update.Updates
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -156,6 +158,13 @@ class MainActivity :
     /** Nearby devices has been asked for once by this activity; after that only a tap asks again. */
     private var askedPermission = false
 
+    /** A check with GitHub is in flight, or the last one got no answer. Neither outlives the activity. */
+    private var checkingUpdate = false
+    private var updateCheckFailed = false
+
+    /** The Updates row's summary while Settings is showing, rewritten in place as a check finishes. */
+    private var updateSummaryView: TextView? = null
+
     /** The system's permission prompt is up, so the Devices list offers no way round it underneath. */
     private var permissionPending = false
 
@@ -241,6 +250,8 @@ class MainActivity :
         }
         if (screen == Screen.RECONNECTING) handler.post(ticker)
         refreshPicker()
+        val sinceCheck = System.currentTimeMillis() - settings.lastUpdateCheck
+        if (settings.autoUpdateCheck && sinceCheck >= Updates.CHECK_EVERY_MS) checkForUpdate()
     }
 
     override fun onStop() {
@@ -345,6 +356,11 @@ class MainActivity :
                         gamepads.current.name,
                         versionLine(),
                         getString(backLabel),
+                        SettingsScreen.Update(updateSummary()) { view ->
+                            // The summary changes with nobody touching it, so a screen reader is told when it does.
+                            view.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+                            updateSummaryView = view
+                        },
                         SettingsScreen.Routes(
                             forget = ::forget,
                             corners = { goTo(Screen.CORNERS) },
@@ -358,7 +374,8 @@ class MainActivity :
                             mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
                             appearance = { goTo(Screen.APPEARANCE) },
                             guide = { goTo(Screen.GUIDE) },
-                            documentation = ::openDocumentation,
+                            documentation = { open(getString(R.string.documentation_url)) },
+                            update = ::openUpdate,
                             sideways = { on ->
                                 settings.landscape = on
                                 applyOrientation()
@@ -715,11 +732,50 @@ class MainActivity :
     }
 
     /**
-     * The documentation site, in whatever browser the phone has. The laptop's tray menu offers the
-     * same link, so the two halves point at one page rather than each explaining itself.
+     * Asks GitHub which release is newest, off the main thread, and remembers the answer. The answer is
+     * stored from the worker so that it survives a rotation mid-check, which the row's text does not.
      */
-    private fun openDocumentation() {
-        val url = getString(R.string.documentation_url)
+    private fun checkForUpdate() {
+        if (checkingUpdate) return
+        checkingUpdate = true
+        updateCheckFailed = false
+        updateSummaryView?.text = updateSummary()
+        thread(name = "edgepad-update") {
+            val latest = Updates.latest()
+            if (latest != null) {
+                settings.latestVersion = latest
+                settings.lastUpdateCheck = System.currentTimeMillis()
+            }
+            runOnUiThread {
+                checkingUpdate = false
+                updateCheckFailed = latest == null
+                updateSummaryView?.text = updateSummary()
+            }
+        }
+    }
+
+    private fun updateAvailable(): Boolean = Updates.isNewer(settings.latestVersion, getString(R.string.app_version))
+
+    /** What the Updates row says. Empty until GitHub has answered once, because nothing is known before that. */
+    private fun updateSummary(): String =
+        when {
+            checkingUpdate -> getString(R.string.updates_checking)
+            updateCheckFailed -> getString(R.string.updates_failed)
+            updateAvailable() -> getString(R.string.updates_available, settings.latestVersion)
+            settings.lastUpdateCheck == 0L -> ""
+            else -> getString(R.string.updates_current)
+        }
+
+    /** The Updates row: the newest release's page when there is one to get, and otherwise a fresh check. */
+    private fun openUpdate() {
+        if (updateAvailable()) open(Updates.LATEST_URL) else checkForUpdate()
+    }
+
+    /**
+     * A page in whatever browser the phone has: the documentation site, which the laptop's tray menu also
+     * offers so the two halves point at one page rather than each explaining itself, or the newest release.
+     */
+    private fun open(url: String) {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } catch (e: ActivityNotFoundException) {
