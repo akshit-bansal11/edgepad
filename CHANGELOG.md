@@ -7,6 +7,7 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 ### Added
 
 - **The phone updates itself.** Settings › Help has an Updates row: it asks GitHub once a day as the app opens, or when tapped, and when there is something newer a tap downloads it and hands it to Android to install. Android installs it only if it is signed with the same key as the app already on the phone. "Check for updates daily" switches the daily question off. This is the app's first use of the internet: it adds the `INTERNET` permission, and `REQUEST_INSTALL_PACKAGES` and `UPDATE_PACKAGES_WITHOUT_USER_ACTION` to install what it fetched. The requests carry nothing about the phone. The laptop app must still be updated to the same release.
+- **The laptop says when a newer release exists.** The tray app asks GitHub the same question when it starts and once a day after. When there is something newer it says so once in a notification, and the tray menu gains an "Update available" row that opens the release page. It does not replace itself, and it has no switch to turn the question off.
 
 ### Changed
 

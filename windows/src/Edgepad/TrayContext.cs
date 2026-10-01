@@ -6,6 +6,7 @@ using Edgepad.Macros;
 using Edgepad.Startup;
 using Edgepad.Trust;
 using Edgepad.Ui;
+using Edgepad.Updates;
 using NAudio.CoreAudioApi;
 
 namespace Edgepad;
@@ -30,6 +31,8 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MenuRow startWithWindows = new("Start with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new("Macros…", Icons.Macro);
     private readonly MenuRow forget = new("Forget trusted phone", Icons.Unlink) { Danger = true };
+    private readonly MenuRow update = new("Update available", Icons.Download) { Available = false };
+    private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
     private readonly TrayMenu menu = new();
     private readonly NotifyIcon icon;
     private readonly SynchronizationContext ui;
@@ -51,8 +54,11 @@ internal sealed class TrayContext : ApplicationContext
         startWithWindows.Click += (_, _) => RunAtLogin.Set(startWithWindows.Checked);
         forget.Click += (_, _) => ConfirmForget();
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
+        update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
 
-        // The header is the menu's own. The rest follow in the design's order, the destructive pair after a rule.
+        // The header is the menu's own. The update row sits right under it and stays hidden until there is one.
+        // The rest follow in the design's order, the destructive pair after a rule.
+        menu.Items.Add(update);
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(startWithWindows);
         menu.Items.Add(macrosRow);
@@ -96,6 +102,11 @@ internal sealed class TrayContext : ApplicationContext
         _ = StartServerAsync();
         _ = StartMediaAsync();
 
+        // Once now and once a day after, for a tray app that is left running for weeks.
+        updateTimer.Tick += (_, _) => _ = CheckForUpdateAsync();
+        updateTimer.Start();
+        _ = CheckForUpdateAsync();
+
         // A newer Edgepad asks this one to quit through the event, so running an update takes over cleanly.
         new Thread(() => WaitForQuit(quit)) { IsBackground = true, Name = "edgepad-quit" }.Start();
     }
@@ -126,6 +137,43 @@ internal sealed class TrayContext : ApplicationContext
         {
             // Without it the media corner shows nothing; every other control still works.
             Log.Write($"Media sessions unavailable: {e}");
+        }
+    }
+
+    /// <summary>
+    /// Asks GitHub which release is newest and, when it is newer than this one, shows the menu row and says so
+    /// once. The row opens the release page: this copy may have been installed by winget, which keeps its own
+    /// record of the version, so the app does not replace itself.
+    /// </summary>
+    private async Task CheckForUpdateAsync()
+    {
+        try
+        {
+            var latest = await UpdateCheck.LatestAsync();
+            if (latest is null || !UpdateCheck.IsNewer(latest, Program.Version))
+            {
+                return;
+            }
+
+            ui.Post(
+                _ =>
+                {
+                    var version = latest.ToString();
+                    var announced = update.Available && update.Hint == version;
+                    update.Hint = version;
+                    update.Available = true;
+                    if (!announced)
+                    {
+                        Log.Write($"Edgepad {version} is available");
+                        icon.ShowBalloonTip(0, "Edgepad", $"Edgepad {version} is available. Open this menu to get it.", ToolTipIcon.Info);
+                    }
+                },
+                null);
+        }
+        catch (Exception e)
+        {
+            // Top-level boundary of a fire-and-forget task: an escaped exception here would be lost silently.
+            Log.Write($"The update check failed: {e}");
         }
     }
 
@@ -307,6 +355,8 @@ internal sealed class TrayContext : ApplicationContext
             startWithWindows.Dispose();
             macrosRow.Dispose();
             forget.Dispose();
+            update.Dispose();
+            updateTimer.Dispose();
             server.Dispose();
             media.Dispose();
             brightness.Dispose();
