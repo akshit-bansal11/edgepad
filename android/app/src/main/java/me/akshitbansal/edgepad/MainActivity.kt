@@ -51,6 +51,7 @@ import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.surface.BackgroundImage
 import me.akshitbansal.edgepad.surface.ControlSurface
+import me.akshitbansal.edgepad.update.Installer
 import me.akshitbansal.edgepad.update.Updates
 import java.io.File
 import java.io.IOException
@@ -161,6 +162,9 @@ class MainActivity :
     /** A check with GitHub is in flight, or the last one got no answer. Neither outlives the activity. */
     private var checkingUpdate = false
     private var updateCheckFailed = false
+
+    /** How much of an update has been downloaded, as a percentage; null when none is being downloaded. */
+    private var updateProgress: Int? = null
 
     /** The Updates row's summary while Settings is showing, rewritten in place as a check finishes. */
     private var updateSummaryView: TextView? = null
@@ -759,6 +763,7 @@ class MainActivity :
     /** What the Updates row says. Empty until GitHub has answered once, because nothing is known before that. */
     private fun updateSummary(): String =
         when {
+            updateProgress != null -> getString(R.string.updates_downloading, updateProgress)
             checkingUpdate -> getString(R.string.updates_checking)
             updateCheckFailed -> getString(R.string.updates_failed)
             updateAvailable() -> getString(R.string.updates_available, settings.latestVersion)
@@ -766,9 +771,39 @@ class MainActivity :
             else -> getString(R.string.updates_current)
         }
 
-    /** The Updates row: the newest release's page when there is one to get, and otherwise a fresh check. */
+    /** The Updates row: fetches the newest release when there is one to get, and otherwise checks afresh. */
     private fun openUpdate() {
-        if (updateAvailable()) open(Updates.LATEST_URL) else checkForUpdate()
+        when {
+            updateProgress != null -> Unit
+            updateAvailable() -> installUpdate(settings.latestVersion)
+            else -> checkForUpdate()
+        }
+    }
+
+    /**
+     * Downloads [version] and hands it to the system. Once that is done the row goes back to offering the
+     * update: what happens next is the system's question or the app being replaced, and a refusal is
+     * reported by [Installer.StatusReceiver], so there is nothing more for the row to wait on.
+     */
+    private fun installUpdate(version: String) {
+        updateProgress = 0
+        updateSummaryView?.text = updateSummary()
+        thread(name = "edgepad-update") {
+            val handed =
+                Installer.install(applicationContext, version) { percent ->
+                    runOnUiThread {
+                        updateProgress = percent
+                        updateSummaryView?.text = updateSummary()
+                    }
+                }
+            runOnUiThread {
+                updateProgress = null
+                updateSummaryView?.text = updateSummary()
+                if (!handed && !isDestroyed) {
+                    Toast.makeText(this, R.string.updates_download_failed, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 
     /**

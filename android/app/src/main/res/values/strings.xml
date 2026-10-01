@@ -207,6 +207,9 @@
   <string name="updates_failed">Could not check</string>
   <string name="updates_available">%1$s available</string>
   <string name="updates_current">Up to date</string>
+  <string name="updates_downloading">Downloading %1$d%%</string>
+  <string name="updates_download_failed">The update could not be downloaded. Check the connection and try again.</string>
+  <string name="updates_install_failed">The update could not be installed.</string>
   <string name="settings_version">Edgepad %1$s · protocol %2$d</string>
   <string name="corners_title">Corners</string>
   <string name="corners_pick">Pick a corner</string>

@@ -29,6 +29,14 @@ class UpdatesTest {
     }
 
     @Test
+    fun aReleasesApkIsNamedForItsVersion() {
+        assertEquals(
+            "https://github.com/akshit-bansal11/edgepad/releases/download/v3.2.1/Edgepad-3.2.1.apk",
+            Updates.apkUrl("3.2.1"),
+        )
+    }
+
+    @Test
     fun aLaterReleaseIsNewer() {
         assertTrue(Updates.isNewer("3.2.1", "3.2.0"))
         assertTrue(Updates.isNewer("3.10.0", "3.9.5"))

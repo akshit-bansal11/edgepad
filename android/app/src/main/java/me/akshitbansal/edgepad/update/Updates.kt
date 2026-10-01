@@ -12,9 +12,10 @@ import java.net.URI
  * the only thing this app ever says to the internet, and it sends nothing about the phone.
  */
 object Updates {
-    const val LATEST_URL = "https://github.com/akshit-bansal11/edgepad/releases/latest"
+    private const val RELEASES = "https://github.com/akshit-bansal11/edgepad/releases"
+    private const val LATEST_URL = "$RELEASES/latest"
     const val CHECK_EVERY_MS = 24 * 60 * 60 * 1000L
-    private const val TAG_URL = "https://github.com/akshit-bansal11/edgepad/releases/tag/v"
+    private const val TAG_URL = "$RELEASES/tag/v"
     private const val TIMEOUT_MS = 10_000
 
     private val version = Regex("""\d{1,4}\.\d{1,4}\.\d{1,4}""")
@@ -47,6 +48,9 @@ object Updates {
      */
     fun versionIn(location: String?): String? =
         location?.takeIf { it.startsWith(TAG_URL) }?.removePrefix(TAG_URL)?.takeIf(version::matches)
+
+    /** Where a release keeps its APK. [version] is one [versionIn] accepted, so it adds nothing to the path. */
+    fun apkUrl(version: String): String = "$RELEASES/download/v$version/Edgepad-$version.apk"
 
     /**
      * Whether [candidate] is a later release than [running]. A suffix such as "-draft.38" or "-dev" is

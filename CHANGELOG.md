@@ -6,7 +6,7 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ### Added
 
-- **The phone says when a newer release exists.** Settings › Help has an Updates row: it asks GitHub once a day as the app opens, or when tapped, and opens the release page when there is something newer. "Check for updates daily" switches the daily question off. This is the app's first use of the internet and it needs the `INTERNET` permission; the request carries nothing about the phone.
+- **The phone updates itself.** Settings › Help has an Updates row: it asks GitHub once a day as the app opens, or when tapped, and when there is something newer a tap downloads it and hands it to Android to install. Android installs it only if it is signed with the same key as the app already on the phone. "Check for updates daily" switches the daily question off. This is the app's first use of the internet: it adds the `INTERNET` permission, and `REQUEST_INSTALL_PACKAGES` and `UPDATE_PACKAGES_WITHOUT_USER_ACTION` to install what it fetched. The requests carry nothing about the phone. The laptop app must still be updated to the same release.
 
 ### Changed
 
