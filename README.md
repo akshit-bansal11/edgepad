@@ -156,6 +156,16 @@ Both suites read the same fixtures. `protocol/frames.txt` holds every frame type
 
 Releases are built and published by the maintainer; [CHANGELOG.md](CHANGELOG.md) lists what each one changed.
 
+## Support
+
+Edgepad is free and stays free. If it is useful to you and you would like to say so with money, the maintainer takes UPI, which works from any UPI app in India:
+
+```
+artistbansal2004@okaxis
+```
+
+There is no way to pay from outside India yet. A star, a bug report or telling someone about it helps as much.
+
 ## License
 
 [MIT](LICENSE).

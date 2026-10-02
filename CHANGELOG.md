@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Added
+
+- **A way to support the project.** The README has a Support section with the maintainer's UPI ID, and the repository shows a Sponsor button that leads to it.
+
 ## [3.3.0] - 2026-10-01
 
 The wire protocol stays at version 4, so any 3.x half still speaks to any other. 3.2.0 has no updater, so this release is the last one to fetch by hand.
