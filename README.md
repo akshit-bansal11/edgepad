@@ -158,8 +158,9 @@ Releases are built and published by the maintainer; [CHANGELOG.md](CHANGELOG.md)
 
 ## Support
 
-Edgepad is free and stays free. If it is useful to you and you would like to say so with money, there are two ways:
+Edgepad is free and stays free. If it is useful to you and you would like to say so with money, there are three ways:
 
+- **[Ko-fi](https://ko-fi.com/akshit_bansal11)**, from anywhere.
 - **[PayPal](https://paypal.me/AkshitBansal141)**, from anywhere.
 - **UPI**, from any UPI app in India: `artistbansal2004@okaxis`
 

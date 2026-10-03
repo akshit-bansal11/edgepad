@@ -6,7 +6,7 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ### Added
 
-- **A way to support the project.** The README has a Support section with the maintainer's PayPal link and UPI ID, and the repository shows a Sponsor button for both.
+- **A way to support the project.** The README has a Support section with the maintainer's Ko-fi page, PayPal link and UPI ID, and the repository shows a Sponsor button for all three.
 
 ## [3.3.0] - 2026-10-01
 

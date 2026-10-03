@@ -1,3 +1,4 @@
-# Puts a Sponsor button on the repository. The second address leads to the README's Support section, which
+# Puts a Sponsor button on the repository. The last address leads to the README's Support section, which
 # holds the UPI ID: GitHub accepts only web addresses here, and a UPI ID is not one.
+ko_fi: akshit_bansal11
 custom: ["https://paypal.me/AkshitBansal141", "https://github.com/akshit-bansal11/edgepad#support"]
