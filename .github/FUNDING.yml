@@ -1,4 +1,3 @@
-# Puts a Sponsor button on the repository. The custom address leads to the README's Support section, which
-# holds the UPI ID: GitHub accepts only web addresses here, and a UPI ID is not one.
-github: akshit-bansal11
+# Puts a Sponsor button on the repository. It leads to the README's Support section, which holds the
+# UPI ID: GitHub accepts only web addresses here, and a UPI ID is not one.
 custom: ["https://github.com/akshit-bansal11/edgepad#support"]
