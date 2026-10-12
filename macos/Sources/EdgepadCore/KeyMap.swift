@@ -26,6 +26,12 @@ extension MacKey {
     public static let rightControl = MacKey(0x3E)
     public static let rightOption = MacKey(0x3D)
     public static let downArrow = MacKey(0x7D)
+    public static let home = MacKey(0x73)
+    public static let end = MacKey(0x77)
+    public static let pageUp = MacKey(0x74)
+    public static let pageDown = MacKey(0x79)
+    public static let forwardDelete = MacKey(0x75)
+    public static let help = MacKey(0x72)
 }
 
 /// The four modifier families; the left and right keys of each count the same.
@@ -39,22 +45,23 @@ public enum Modifier {
 extension MacKey {
     /// The modifier this key holds down, or nil for an ordinary key.
     public var modifier: Modifier? {
-        switch code {
-        case 0x37, 0x36: return .command
-        case 0x38, 0x3C: return .shift
-        case 0x3B, 0x3E: return .control
-        case 0x3A, 0x3D: return .option
+        switch self {
+        case .command, .rightCommand: return .command
+        case .shift, .rightShift: return .shift
+        case .control, .rightControl: return .control
+        case .option, .rightOption: return .option
         default: return nil
         }
     }
 
     public var isArrow: Bool {
-        [0x7B, 0x7C, 0x7D, 0x7E].contains(code)
+        self == .leftArrow || self == .rightArrow || self == .downArrow || self == .upArrow
     }
 
     /// F1 to F12 and the navigation cluster; real ones carry the Fn flag, so synthetic ones must too.
     public var isFunctionOrNavigation: Bool {
-        KeyMap.functionKeyCodes.contains(code) || [0x73, 0x77, 0x74, 0x79, 0x75, 0x72].contains(code)
+        KeyMap.functionKeyCodes.contains(code)
+            || [MacKey.home, .end, .pageUp, .pageDown, .forwardDelete, .help].contains(self)
     }
 }
 
@@ -81,9 +88,9 @@ public enum KeyMap {
             0x12: 0x3A, 0xA4: 0x3A, 0xA5: 0x3D,
             0x10: 0x38, 0xA0: 0x38, 0xA1: 0x3C,
             0x08: 0x33, 0x09: 0x30, 0x0D: 0x24, 0x1B: 0x35, 0x20: 0x31, 0x14: 0x39,
-            0x21: 0x74, 0x22: 0x79, 0x23: 0x77, 0x24: 0x73,
+            0x21: MacKey.pageUp.code, 0x22: MacKey.pageDown.code, 0x23: MacKey.end.code, 0x24: MacKey.home.code,
             0x25: 0x7B, 0x26: 0x7E, 0x27: 0x7C, 0x28: 0x7D,
-            0x2D: 0x72, 0x2E: 0x75,
+            0x2D: MacKey.help.code, 0x2E: MacKey.forwardDelete.code,
             0x6A: 0x43, 0x6B: 0x45, 0x6D: 0x4E, 0x6E: 0x41, 0x6F: 0x4B,
             0xBA: 0x29, 0xBB: 0x18, 0xBC: 0x2B, 0xBD: 0x1B, 0xBE: 0x2F, 0xBF: 0x2C,
             0xC0: 0x32, 0xDB: 0x21, 0xDC: 0x2A, 0xDD: 0x1E, 0xDE: 0x27,
