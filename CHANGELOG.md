@@ -4,8 +4,14 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-10-12
+
+The wire protocol stays at version 4, and the Android app is unchanged, so any 3.x half still speaks to any other. This release adds a laptop app for the Mac; as always, install both halves from the same release.
+
 ### Added
 
+- **A Mac app.** A menu-bar app for macOS 13 or later, one download for Apple Silicon and Intel: `Edgepad-<version>-mac.zip` holds `Edgepad.app`. It is Swift with no third-party dependencies, built by Swift Package Manager (`macos/`), and uses IOBluetooth, CGEvent and Core Audio. Pointer, click, drag, scroll, typing, the on-screen keyboard, the dials for volume, microphone, brightness and refresh rate, the media keys and lock work as on Windows; the keyboard maps Win, Ctrl and Alt to Command, Control and Option, and the actions use macOS's default shortcuts. It needs the Bluetooth and Accessibility permissions, and Accessibility has to be granted again after each update. It is ad hoc signed and not notarised, so macOS refuses it on first launch until you choose Open Anyway. It asks before trusting a phone, as the Windows app does, and checks itself that a connecting device is paired and on an encrypted link. Forgetting the trusted phone on a Mac also hangs up on it. It does not have macros, now playing, the on-screen level readout or the virtual game controller yet. It has been compiled and unit-tested in CI but not yet run on a real Mac.
+- **A third codec held to the fixtures, and a `macos` CI job.** The Mac suite reads the same `protocol/frames.txt` and `protocol/actions.txt` as the other two. CI runs `pwsh scripts/check.ps1 -Only macos` on a Mac, and the release builds the zip and lists it in `SHA256SUMS.txt` and the provenance attestation.
 - **A way to support the project.** The README has a Support section with the maintainer's Ko-fi page, PayPal link and UPI ID, and the repository shows a Sponsor button for all three.
 
 ## [3.3.0] - 2026-10-01
@@ -728,7 +734,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.3.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.4.0...HEAD
+[3.4.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.0...v3.1.1

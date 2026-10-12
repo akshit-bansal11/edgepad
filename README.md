@@ -2,7 +2,7 @@
 
 # Edgepad
 
-Edgepad turns an Android phone into a trackpad, a media remote and a control panel for a Windows laptop, over a direct Bluetooth link with nothing in between.
+Edgepad turns an Android phone into a trackpad, a media remote and a control panel for a Windows laptop or a Mac, over a direct Bluetooth link with nothing in between.
 
 <p align="center"><img src="assets/demo.gif" width="880" alt="A finger crossing the phone's trackpad, then sliding the corner ruler to change the laptop's volume"></p>
 
@@ -27,7 +27,7 @@ It is for the times the laptop is across the room rather than under your hands: 
 
 ## Install
 
-Both apps come from the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest), under **Assets**. Each file is named for its release, so `Edgepad-3.1.1.exe` and `Edgepad-3.1.1.apk` are the two halves of 3.1.1. Always install both from the same release: the two refuse each other at the handshake when their protocol versions differ, and say so. 3.0.0 moved the protocol from version 3 to version 4, so a 2.x app on either side will not talk to a 3.x one — update both halves together or neither connects. Releases after 3.1.1 also carry `SHA256SUMS.txt`, and `gh attestation verify Edgepad-<version>.apk --repo akshit-bansal11/edgepad` checks that a file was built by this repository's release workflow.
+Both apps come from the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest), under **Assets**. Each file is named for its release, so `Edgepad-3.1.1.exe` and `Edgepad-3.1.1.apk` are the two halves of 3.1.1; on a Mac the laptop half is `Edgepad-<version>-mac.zip`, from 3.4.0. Always install both from the same release: the two refuse each other at the handshake when their protocol versions differ, and say so. 3.0.0 moved the protocol from version 3 to version 4, so a 2.x app on either side will not talk to a 3.x one — update both halves together or neither connects. Releases after 3.1.1 also carry `SHA256SUMS.txt`, and `gh attestation verify Edgepad-<version>.apk --repo akshit-bansal11/edgepad` checks that a file was built by this repository's release workflow.
 
 ### Laptop (Windows 10 version 2004 or later, 64-bit)
 
@@ -39,6 +39,17 @@ Running a newer release's exe asks the running copy to quit and takes its place.
 
 **Optional, for the gamepad: ViGEmBus.** The gamepad works without it — every control can be bound to a keyboard key, and keys are what the pad sends on a laptop with no controller driver, which is the state most laptops are in. Install [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases/latest) and Edgepad plugs a virtual Xbox controller into Windows instead, so the sticks and triggers carry their full analog range and a game that only ever accepted a controller can be played from the phone. It is a third-party kernel driver, signed as Windows requires of one, and you install it yourself; Edgepad neither bundles nor installs it. You never have to guess which of the two you are in: the laptop answers every request for the controller, and the gamepad screen says **keyboard mode** and which of the three reasons it was, rather than being quietly dead.
 
+### Laptop (Mac, macOS 13 or later)
+
+One download covers Apple Silicon and Intel. The Mac app has been compiled and unit-tested in CI but not yet run on a real Mac, so treat these steps as what is intended rather than what has been seen.
+
+1. Download `Edgepad-<version>-mac.zip` and unzip it. It holds `Edgepad.app`; move that to Applications.
+2. Open it. It is ad hoc signed and not notarised, because the project has no Apple Developer ID, so macOS refuses an app it does not recognise. Open **System Settings > Privacy & Security** and choose **Open Anyway** for Edgepad.
+3. It lives in the menu bar. It asks for **Bluetooth**, to listen for the paired phone, and for **Accessibility** (**System Settings > Privacy & Security > Accessibility**). Without Accessibility macOS silently discards every pointer move and key press the app sends, and the menu shows **Allow Edgepad to control this Mac…** until it is granted.
+4. The menu shows whether a phone is connected, then **Update available** when a newer release exists, **Start at login**, **Open log**, **Documentation**, **Forget trusted phone** and **Quit Edgepad**, with the version beside it. The app asks GitHub once at start and once a day whether a newer release exists, and downloads nothing.
+
+Because the signature is ad hoc, macOS treats every new version as a different app, so the Accessibility permission has to be granted again after each update: remove the old Edgepad entry in the list, then add the new one.
+
 ### Phone (Android 12 or later)
 
 1. Download `Edgepad-<version>.apk` on the phone and open it. Allow installing from this source if asked.
@@ -47,9 +58,9 @@ Running a newer release's exe asks the running copy to quit and takes its place.
 
 ## Use
 
-1. Pair the phone with the laptop once, in Windows **Settings > Bluetooth & devices**.
-2. Keep Edgepad running in the laptop's tray.
-3. Open Edgepad on the phone and tap the laptop. The first time, the laptop asks **Trust this phone?**; choose **Trust** there (no answer within a minute counts as no). That phone becomes the laptop's trusted phone, and any other paired phone is refused until you choose **Forget trusted phone** in the tray menu.
+1. Pair the phone with the laptop once, in Windows **Settings > Bluetooth & devices** or macOS **System Settings > Bluetooth**.
+2. Keep Edgepad running in the laptop's tray, or on a Mac in the menu bar.
+3. Open Edgepad on the phone and tap the laptop. The first time, the laptop asks **Trust this phone?**; choose **Trust** there (no answer within a minute counts as no). That phone becomes the laptop's trusted phone, and any other paired phone is refused until you choose **Forget trusted phone** in the tray or menu-bar menu.
 4. The phone remembers the laptop and reconnects when the app opens. If the link drops, the phone retries ten times, two seconds apart, and says so.
 
 ### The control surface
@@ -70,9 +81,37 @@ Out of the box, three fingers left and right switch desktops, three up opens tas
 
 The lock in the middle of that row is the one button that changes the surface instead of opening a screen. One tap hides the dials and the media and leaves the trackpad; a second tap straight after locks the trackpad instead and puts the dials and the media back, so the phone can sit in a pocket or under a palm and answer only its rulers. Any later tap returns the whole surface. The mode is not stored: a phone that came back up silently locked would read as broken.
 
+### On a Mac
+
+Pointer, click, drag, scroll, typing, the on-screen keyboard, the corner dials for volume, microphone, brightness and refresh rate, play/pause, next, previous and lock all work as on Windows. What differs is by design:
+
+- **The keyboard maps by position.** The wire still carries Windows virtual-key codes, so Win is Command, Ctrl is Control and Alt is Option. Copy from the phone's keyboard is Win+C, not Ctrl+C. The Menu key has no Mac equivalent and is dropped.
+- **Actions are macOS's default shortcuts.** If one was changed or switched off in **System Settings > Keyboard > Keyboard Shortcuts**, the gesture does whatever that shortcut now does, or nothing.
+
+| Action | On a Mac |
+| --- | --- |
+| Task view | Mission Control (Control+Up) |
+| Show desktop | F11 |
+| Search | Spotlight (Command+Space) |
+| Desktop left / right | Control+Left / Control+Right |
+| App switcher | Command held, Tab |
+| Zoom | Command+plus / Command+minus per notch |
+| Zoom reset | Command+0 |
+| Lock | Control+Command+Q |
+| Notifications | nothing; macOS has no default shortcut |
+
+- **Mute, volume and media keys go out as the Mac's own media keys**, so macOS shows its own readout. A level set from a dial goes through Core Audio and shows none.
+- **Brightness** uses a private macOS framework, DisplayServices, loaded at run time. Where it is missing or there is no built-in display, the brightness dial has nothing to show and brightness up and down fall back to the brightness keys.
+- **Levels changed on the Mac itself** reach the phone within half a second: the app polls twice a second rather than subscribing.
+- **Trust.** Windows binds its socket so the link layer refuses unpaired devices. macOS offers no equivalent switch, so the Mac app itself refuses any connecting device that macOS does not report as paired, or whose link is not encrypted, before it reads a byte from it. The Mac's **Forget trusted phone** also hangs up on that phone and takes no connection for the next 30 seconds, and its trust question shows the phone's own name in quotes beside the address, which is the part being trusted. None of this has been tried on hardware.
+
+**Not in the Mac app yet:** macros (the phone's macro grid says there are none), now playing (title, app, position and seeking; the transport buttons still work), the on-screen level readout, and the virtual game controller (the gamepad screen says **keyboard mode**, because there is no driver; controls bound to keys work).
+
 ### When the laptop ignores the phone
 
 The laptop app logs to `%LOCALAPPDATA%\Edgepad\edgepad.log` (also in the tray menu): connections, refusals, dropped frames, and input batches Windows refused because an elevated window had focus.
+
+On a Mac the log is `~/Library/Logs/Edgepad/edgepad.log` (also **Open log** in the menu). The usual cause of a connected phone that moves nothing is that **Accessibility** has not been granted, or has to be granted again after an update: see the Mac install steps above.
 
 **Task Manager, and anything run as administrator, ignores the phone** unless Edgepad itself runs as administrator: Windows blocks input from an ordinary program into an elevated one. Quit Edgepad from its tray icon, then right-click the exe › **Run as administrator**. Macros then open programs as administrator too. **The lock screen, UAC prompts and Ctrl+Alt+Del cannot be reached at all:** they run on Windows' secure desktop, which no program can send input to, elevated or not.
 
@@ -86,11 +125,11 @@ The laptop app logs to `%LOCALAPPDATA%\Edgepad\edgepad.log` (also in the tray me
 
 ## How it works
 
-The phone recognises gestures and sends small semantic frames: move the pointer by so much, press a button, scroll, run action 3, set control 0 to 55, here is the whole controller. The laptop owns the table of what each action does and executes it with the Windows input, audio, display and media APIs, so a macro slot can never be repointed from the phone and an id the laptop does not know is dropped rather than misexecuted. That table is a versioning seam, not a wall: the keyboard screen sends raw Windows virtual-key codes and the characters you type, and the laptop injects both directly, so a paired phone can do anything the laptop's own keyboard can. What keeps that safe is the Bluetooth pairing and the trusted phone above — [SECURITY.md](SECURITY.md) sets out both boundaries in full. The laptop sends its own state back (volume, mute, brightness, what is playing) so the dials show real values.
+The phone recognises gestures and sends small semantic frames: move the pointer by so much, press a button, scroll, run action 3, set control 0 to 55, here is the whole controller. The laptop owns the table of what each action does and executes it with the platform's input, audio, display and media APIs (Windows', or on a Mac CGEvent and Core Audio), so a macro slot can never be repointed from the phone and an id the laptop does not know is dropped rather than misexecuted. That table is a versioning seam, not a wall: the keyboard screen sends raw Windows virtual-key codes and the characters you type, and the laptop injects both directly, so a paired phone can do anything the laptop's own keyboard can. What keeps that safe is the Bluetooth pairing and the trusted phone above — [SECURITY.md](SECURITY.md) sets out both boundaries in full. The laptop sends its own state back (volume, mute, brightness, what is playing) so the dials show real values.
 
-The transport is Bluetooth Classic RFCOMM: an ordered, encrypted byte stream between two already-paired devices, with no server, no discovery and no network. Frames are 2 to 258 bytes and go out in a single write per batch; a backlog of pointer moves collapses into one before it is sent, so a slow link catches up instead of lagging.
+The transport is Bluetooth Classic RFCOMM (IOBluetooth on a Mac): an ordered, encrypted byte stream between two already-paired devices, with no server, no discovery and no network. Frames are 2 to 258 bytes and go out in a single write per batch; a backlog of pointer moves collapses into one before it is sent, so a slow link catches up instead of lagging.
 
-The full documentation is at [edgepad.vercel.app/docs](https://edgepad.vercel.app/docs) — install, the control surface, both apps' architecture, the wire protocol and the developer guide on one page, with the protocol tables generated from the same fixtures both test suites read. In the repository: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes both apps, their threads and their trust model. [docs/PROTOCOL.md](docs/PROTOCOL.md) is the wire format. [CHANGELOG.md](CHANGELOG.md) lists what each release changed.
+The full documentation is at [edgepad.vercel.app/docs](https://edgepad.vercel.app/docs) — install, the control surface, all three apps' architecture, the wire protocol and the developer guide on one page, with the protocol tables generated from the same fixtures both test suites read. In the repository: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes the apps, their threads and their trust model. [docs/PROTOCOL.md](docs/PROTOCOL.md) is the wire format. [CHANGELOG.md](CHANGELOG.md) lists what each release changed.
 
 ## Develop
 
@@ -108,6 +147,7 @@ The repository is a monorepo:
 | --- | --- |
 | `android/` | The phone app. Kotlin, Android platform views, no UI framework; AndroidSVG draws the mark and the player logos, and JUnit 4 is the only test dependency. |
 | `windows/` | The laptop tray app. C# on .NET 10, WinForms for the tray, WinRT for Bluetooth and media, NAudio for volume, WMI for brightness, ViGEmBus for the virtual controller. |
+| `macos/` | The Mac menu-bar app. Swift, AppKit, IOBluetooth for RFCOMM, CGEvent for input, Core Audio for volume and microphone. No third-party dependencies. Swift Package Manager, no Xcode project. |
 | `protocol/` | The wire format and the id tables as plain text fixtures. Both test suites run them, so the two apps cannot drift apart. |
 | `scripts/` | The quality gate, and the maintainer's release-signing script. |
 | `docs/` | Architecture and protocol. |
@@ -119,40 +159,43 @@ Either half can be worked on alone, so install only what the part you are changi
 
 - **Android:** JDK 17 and the Android SDK with platform 37 and build tools 37.0.0. The Gradle wrapper fetches Gradle itself.
 - **Windows:** the .NET 10 SDK (`windows/global.json` pins 10.0.401 and rolls forward to the latest feature band). Windows 10 version 2004 or later, because the app builds against the Windows SDK projection for Bluetooth.
+- **Mac:** a Mac with Xcode (Swift 5.9 or later). The gate for this half runs only on a Mac.
 - **Site:** Node 24 or later.
 - **The gate:** PowerShell 7 (`pwsh`), which runs `scripts/check.ps1`.
 
 ### Quality gate
 
-One script checks both apps. It formats, lints, builds and tests; CI runs the same script in its non-mutating mode, so the local gate and CI cannot disagree.
+One script checks all three apps. It formats, lints, builds and tests; CI runs the same script in its non-mutating mode, so the local gate and CI cannot disagree.
 
 ```powershell
 pwsh scripts/check.ps1                  # formats in place, then checks everything
 pwsh scripts/check.ps1 -Only android    # ktlint, Android lint (warnings are errors), unit tests
 pwsh scripts/check.ps1 -Only windows    # dotnet format, build (warnings are errors), tests
+pwsh scripts/check.ps1 -Only macos      # swift format lint --strict, swift build (warnings are errors), swift test; Mac only
 pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted code instead of fixing it
 ```
 
-The site has its own gate, run from `site/`: `npm install` once, then `npm run check` (Biome, ESLint, tsc) and `npm run build`. [site/README.md](site/README.md) covers the rest.
+A plain `check.ps1` on Windows or Linux skips the Mac half. The site has its own gate, run from `site/`: `npm install` once, then `npm run check` (Biome, ESLint, tsc) and `npm run build`. [site/README.md](site/README.md) covers the rest.
 
 ### Run locally
 
 - **Laptop:** `dotnet run --project windows/src/Edgepad` starts the tray app. A self-contained single-file build, the same shape as a release, is `dotnet publish windows/src/Edgepad -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true`.
+- **Mac:** `swift run` from `macos/` starts the app unbundled; `bash macos/bundle.sh 0.0.0-dev out` builds `Edgepad.app` into `out`.
 - **Phone:** `cd android && ./gradlew installDebug` installs a debug build on a connected device. Debug builds are versioned `0.0.0-dev` and signed with the debug key, so they do not install over a release build; uninstall the release first.
 - **Site:** `cd site && npm run dev` serves it at `http://localhost:3000`.
-- **Tests only:** `cd android && ./gradlew testDebugUnitTest` and `cd windows && dotnet test --solution Edgepad.slnx`.
+- **Tests only:** `cd android && ./gradlew testDebugUnitTest` and `cd windows && dotnet test --solution Edgepad.slnx`, and `swift test` from `macos/` on a Mac.
 
-Running the two apps against each other needs a Windows laptop and an Android phone already paired over Bluetooth. [CONTRIBUTING.md](CONTRIBUTING.md) says what can still be tested without them.
+Running the apps against each other needs a Windows laptop or a Mac and an Android phone already paired over Bluetooth. [CONTRIBUTING.md](CONTRIBUTING.md) says what can still be tested without them.
 
 ### Tests
 
-Both suites read the same fixtures. `protocol/frames.txt` holds every frame type as golden bytes; each codec must encode the fields to exactly those bytes and decode the bytes to exactly those fields. `protocol/actions.txt` holds the action and control ids; each enum must match it exactly. On top of that, the Android suite covers the gesture recogniser (the whole finger table, assignable actions, natural scrolling), the shape recogniser and the pad's mode table, the stick's dead zone and scaling, the gamepad layout library (name collisions, deletion, reset), the dials (arming, slop, snapping, steppers, haptic notches), the edge geometry, coalescing and the laptop-state model; the Windows suite covers the dispatcher's drop paths, input batches, trust on first use and its prompt, the media-session name mapping, and what a laptop with no controller driver answers. No test sends real input, plugs a controller into the machine running it, or touches a device.
+All three suites read the same fixtures. `protocol/frames.txt` holds every frame type as golden bytes; each codec must encode the fields to exactly those bytes and decode the bytes to exactly those fields. `protocol/actions.txt` holds the action and control ids; each enum must match it exactly. On top of that, the Android suite covers the gesture recogniser (the whole finger table, assignable actions, natural scrolling), the shape recogniser and the pad's mode table, the stick's dead zone and scaling, the gamepad layout library (name collisions, deletion, reset), the dials (arming, slop, snapping, steppers, haptic notches), the edge geometry, coalescing and the laptop-state model; the Windows suite covers the dispatcher's drop paths, input batches, trust on first use and its prompt, the media-session name mapping, and what a laptop with no controller driver answers; the Mac suite (`macos/Tests/EdgepadCoreTests`) covers the stream reassembler, the key map, the dispatcher's drop paths and action table, the trust store, the handshake and its refusals, and the update-version parsing. Nothing in the Mac app that touches Bluetooth, CGEvent, Core Audio or the display is tested, and none of it has run on a real Mac. No test sends real input, plugs a controller into the machine running it, or touches a device.
 
 ## Contributing
 
 - **A bug, or something Edgepad should do:** [open an issue](https://github.com/akshit-bansal11/edgepad/issues/new/choose). The bug report and feature request templates ask for what is needed to act on it. Open one before starting anything bigger than a fix, so the design can be talked through before code exists.
 - **A security hole:** report it privately, as [SECURITY.md](SECURITY.md) describes, not in a public issue.
-- **A change:** make it on a branch of your fork, run the gate until it is clean, push the branch to your fork and open a pull request against `main` here. CI runs the gate on both apps for every pull request, and the site's gate when the site or the protocol fixtures change. [CONTRIBUTING.md](CONTRIBUTING.md) has the details: keeping the two apps in step, tests, commit messages and style.
+- **A change:** make it on a branch of your fork, run the gate until it is clean, push the branch to your fork and open a pull request against `main` here. CI runs the gate on every app for every pull request, and the site's gate when the site or the protocol fixtures change. [CONTRIBUTING.md](CONTRIBUTING.md) has the details: keeping the apps in step, tests, commit messages and style.
 
 Releases are built and published by the maintainer; [CHANGELOG.md](CHANGELOG.md) lists what each one changed.
 

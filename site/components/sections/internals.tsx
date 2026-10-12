@@ -74,8 +74,8 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
         <P>
           Every touch is turned into a semantic frame on the phone — pointer moved,
           button pressed, scroll, zoom, run action 3, set control 0 to 55, type
-          &ldquo;hi&rdquo; — and the laptop carries it out with the Windows input,
-          audio, display and media APIs. The laptop owns the table of what each action
+          &ldquo;hi&rdquo; — and the laptop carries it out with its own input,
+          audio, display and media APIs (Windows&apos;, or on a Mac CGEvent and Core Audio). The laptop owns the table of what each action
           id does. The phone can name an action; it cannot invent one.
         </P>
         <P>
@@ -240,6 +240,26 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
           app that starts at login through the <C>HKCU</C> Run key. It is
           single-instance, held by a named mutex, and a newer copy signals the running
           one to quit and waits for the lock rather than killing the process.
+        </P>
+
+        <Sub>The Mac app</Sub>
+        <P>
+          The Mac half is a menu-bar app in Swift, split in two. <C>EdgepadCore</C>{" "}
+          decides (the codec, key map, dispatcher, session and trust store) and is pure
+          and unit-tested; <C>Edgepad</C> acts, through IOBluetooth, CGEvent and Core
+          Audio. The core reaches the Mac only through small protocols, so the
+          dispatcher and the handshake are tested with no radio and no permission.
+        </P>
+        <P>
+          Everything runs on the main thread, because IOBluetooth delivers on the main
+          run loop. A session is therefore a state machine fed bytes rather than a
+          blocking read loop, and bytes that arrive while the Trust this phone?
+          question is open wait in a buffer until HELLO_ACK has gone out. The app polls
+          volume, microphone and brightness twice a second instead of subscribing, so a
+          change made on the Mac reaches the phone within half a second. Brightness uses
+          a private framework, DisplayServices, loaded at run time; where it is missing
+          the dial has nothing to show. Macros, now playing and the virtual controller
+          are not built. The README and docs/ARCHITECTURE.md in the repository say more.
         </P>
       </Section>
 
@@ -634,6 +654,14 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
           both possible causes: a laptop app older than the phone&apos;s, or a laptop
           that trusts a different phone.
         </P>
+        <P>
+          macOS offers no equivalent of the socket&apos;s protection level, so the Mac
+          app itself refuses any connecting device that macOS does not report as
+          paired, or whose link is not encrypted, before it reads a byte from it.
+          Forgetting the trusted phone on a Mac also hangs up on it and takes no
+          connection for the next 30 seconds. Its trusted phone is kept in{" "}
+          <C>~/Library/Application Support/Edgepad/trusted-phone.txt</C>.
+        </P>
 
         <Sub>What the action table is, and is not</Sub>
         <Note label="Corrected in 2.0.0">
@@ -690,6 +718,12 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
           <li>
             <C>Edgepad.exe</C> is not code-signed, so SmartScreen warns on first run.
             Verify the download came from the project&apos;s own Releases page.
+          </li>
+          <li>
+            The Mac app is ad hoc signed and not notarised, so macOS refuses it until
+            you choose Open Anyway, and Accessibility has to be granted again after each
+            update. It has been compiled and unit-tested in CI but has not yet been run
+            on a real Mac.
           </li>
           <li>
             Text typed from the phone goes wherever the laptop&apos;s focus is, exactly
