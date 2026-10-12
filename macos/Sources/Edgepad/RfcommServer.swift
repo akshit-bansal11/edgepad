@@ -196,6 +196,9 @@ final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelega
     /// much pile up has stopped reading, and the link is treated as dead.
     private static let maxQueuedBytes = 64 * 1024
 
+    /// The channel is already closed by then, so the abandoned write has long since stopped.
+    private static let inFlightGraceSeconds: TimeInterval = 10
+
     weak var session: Session?
     private let channel: IOBluetoothRFCOMMChannel
     private var isClosed = false
@@ -243,16 +246,25 @@ final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelega
     func close() {
         guard !isClosed else { return }
         isClosed = true
-        outbox.removeAll()
-        inFlight = nil
-        queuedBytes = 0
         channel.setDelegate(nil)
         _ = channel.close()
+        if let abandoned = inFlight {
+            // IOBluetooth holds a raw pointer into this buffer until the write ends, and with the delegate gone it
+            // will never say when. The closure owns the buffer until the grace period is over, whatever happens
+            // to this transport in the meantime.
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.inFlightGraceSeconds) {
+                withExtendedLifetime(abandoned) {}
+            }
+        }
+        inFlight = nil
+        outbox.removeAll()
+        queuedBytes = 0
     }
 
     func rfcommChannelWriteComplete(
         _ rfcommChannel: IOBluetoothRFCOMMChannel!, refcon: UnsafeMutableRawPointer!, status error: IOReturn
     ) {
+        guard !isClosed else { return }
         queuedBytes -= inFlight?.length ?? 0
         inFlight = nil
         if error != kIOReturnSuccess || !pump() {

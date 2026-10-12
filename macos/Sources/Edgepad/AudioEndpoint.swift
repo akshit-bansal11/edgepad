@@ -97,7 +97,10 @@ final class AudioEndpoint: LevelControl {
         var address = address
         var value: T = 0
         var size = UInt32(MemoryLayout<T>.size)
-        let status = AudioObjectGetPropertyData(object, &address, 0, nil, &size, &value)
+        // A typed pointer, because `&value` straight into a raw pointer is rejected for a generic T.
+        let status = withUnsafeMutablePointer(to: &value) {
+            AudioObjectGetPropertyData(object, &address, 0, nil, &size, $0)
+        }
         return status == noErr ? value : nil
     }
 
@@ -112,8 +115,10 @@ final class AudioEndpoint: LevelControl {
     private func set<T>(_ object: AudioObjectID, _ address: AudioObjectPropertyAddress, _ newValue: T) -> Bool {
         var address = address
         var value = newValue
-        let status = AudioObjectSetPropertyData(
-            object, &address, 0, nil, UInt32(MemoryLayout<T>.size), &value)
+        let size = UInt32(MemoryLayout<T>.size)
+        let status = withUnsafePointer(to: &value) {
+            AudioObjectSetPropertyData(object, &address, 0, nil, size, $0)
+        }
         return status == noErr
     }
 }
