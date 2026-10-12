@@ -169,6 +169,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSApp.activate(ignoringOtherApps: true)
         if alert.runModal() == .alertSecondButtonReturn {
             trust.forget()
+            // Revoking trust from a phone that is still connected would otherwise change nothing until it next
+            // reconnected.
+            server?.disconnect()
         }
     }
 
@@ -183,7 +186,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.alertStyle = .warning
         alert.messageText = "Trust this phone?"
         alert.informativeText =
-            "\(phone) is asking to control this Mac's pointer and keyboard. Trust it only if it is yours. "
+            "\(phone) is asking to control this Mac's pointer and keyboard. The name in quotes is only what the "
+            + "phone calls itself; the address is what will be trusted. Trust it only if it is yours. "
             + "With no answer in \(Int(Self.trustPromptSeconds)) seconds, it is not trusted."
         // Don't Trust is first, so it is the default: a stray Return trusts nothing.
         alert.addButton(withTitle: "Don't Trust")

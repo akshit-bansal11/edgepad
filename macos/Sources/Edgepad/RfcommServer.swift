@@ -11,6 +11,7 @@ final class RfcommServer: NSObject {
     private static let pollInterval: TimeInterval = 0.5
     private static let helloTimeout: TimeInterval = 10
     private static let waiting = "Waiting for your phone"
+    private static let encryptionDisabled: BluetoothHCIEncryptionMode = 0
 
     private let trust: TrustStore
     private let askTrust: (String) -> Bool
@@ -96,13 +97,26 @@ final class RfcommServer: NSObject {
         current?.end()
     }
 
+    /// Hangs up on the connected phone, if there is one.
+    func disconnect() {
+        current?.end()
+    }
+
     @objc private func channelOpened(_ notification: IOBluetoothUserNotification, channel: IOBluetoothRFCOMMChannel) {
         let device = channel.getDevice()
         let address = device?.addressString ?? "unknown"
 
-        // Windows refuses unpaired devices at the socket; macOS has no such switch, so this is the check.
+        // Windows demands an authenticated, encrypted socket; macOS has no such switch, so these are the checks.
+        // Being paired only says the address is in this Mac's list, and a device can spoof an address. An
+        // encrypted link can only exist with a device that holds the link key made at pairing, which an address
+        // alone cannot prove.
         guard let device, device.isPaired() else {
             Log.write("Refused \(address): it is not paired with this Mac")
+            _ = channel.close()
+            return
+        }
+        guard device.getEncryptionMode() != Self.encryptionDisabled else {
+            Log.write("Refused \(address): the link is not encrypted")
             _ = channel.close()
             return
         }
@@ -118,7 +132,7 @@ final class RfcommServer: NSObject {
         let injector = InputInjector()
         let dispatcher = Dispatcher(
             input: injector, speakers: speakers, microphone: microphone, brightness: brightness, display: display)
-        let phone = "\(device.name ?? "A phone") (\(address))"
+        let phone = PhoneLabel.describe(name: device.name, address: address)
         let ask = askTrust
         let session = Session(
             address: address,

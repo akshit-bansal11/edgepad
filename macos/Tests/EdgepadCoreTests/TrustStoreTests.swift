@@ -119,7 +119,8 @@ final class TrustStoreTests: XCTestCase {
         _ = TrustStore(path: trustPath).admit("(AA:BB:CC:DD:EE:FF)", ask: yes)
 
         let fileMode = try FileManager.default.attributesOfItem(atPath: trustPath)[.posixPermissions] as? NSNumber
-        let directoryMode = try FileManager.default.attributesOfItem(atPath: directory.path)[.posixPermissions]
+        let directoryMode =
+            try FileManager.default.attributesOfItem(atPath: directory.path)[.posixPermissions]
             as? NSNumber
 
         XCTAssertEqual(fileMode?.intValue, 0o600)
