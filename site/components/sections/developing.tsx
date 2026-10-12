@@ -214,10 +214,10 @@ export function DevelopingSections({ protocolVersion }: { protocolVersion: numbe
 
         <Note label="Running the two against each other">
           This needs a Windows machine or a Mac and an Android phone already paired in
-          the laptop&apos;s Bluetooth settings, and it is the one part of the repository that cannot be verified
-          from a pull request alone. Without both devices you cannot exercise the
-          Bluetooth handshake, trust-on-first-use, input injection, brightness or volume
-          control, or media-session reading.
+          the laptop&apos;s Bluetooth settings, and it is the one part of the repository
+          that cannot be verified from a pull request alone. Without both devices you
+          cannot exercise the Bluetooth handshake, trust-on-first-use, input injection,
+          brightness or volume control, or media-session reading.
         </Note>
       </Section>
 
@@ -304,8 +304,8 @@ pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted cod
         <Sub>What CI does on top</Sub>
         <P>
           <C>.github/workflows/ci.yml</C> runs on every push to <C>main</C> and every
-          pull request, in three jobs, the third being <C>macos</C>, which runs the
-          Mac gate. The first two: Android on <C>ubuntu-latest</C> with Temurin 17 and
+          pull request, in three jobs, the third being <C>macos</C>, which runs the Mac
+          gate. The first two: Android on <C>ubuntu-latest</C> with Temurin 17 and
           Gradle wrapper validation, Windows on <C>windows-latest</C> with the SDK from{" "}
           <C>global.json</C>. Each runs the gate in <C>-Ci</C> mode and then uploads an
           artifact — a debug APK and the self-contained exe.
@@ -397,7 +397,8 @@ cd macos && swift test`}
           <C>protocol/actions.txt</C> the action, control and text-kind ids.{" "}
           <C>FrameFixtureTest</C> and <C>IdsFixtureTest</C> on the phone, and{" "}
           <C>FrameFixtureTests</C> and <C>IdsFixtureTests</C> on the laptop, parse those
-          same files at run time rather than copying them into either codebase; the Mac suite in <C>macos/Tests/EdgepadCoreTests</C> reads them too.
+          same files at run time rather than copying them into either codebase; the Mac
+          suite in <C>macos/Tests/EdgepadCoreTests</C> reads them too.
         </P>
         <P>
           A protocol change therefore always touches a fixture file and both codecs in

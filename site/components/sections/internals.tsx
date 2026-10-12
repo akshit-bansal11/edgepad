@@ -74,9 +74,10 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
         <P>
           Every touch is turned into a semantic frame on the phone — pointer moved,
           button pressed, scroll, zoom, run action 3, set control 0 to 55, type
-          &ldquo;hi&rdquo; — and the laptop carries it out with its own input,
-          audio, display and media APIs (Windows&apos;, or on a Mac CGEvent and Core Audio). The laptop owns the table of what each action
-          id does. The phone can name an action; it cannot invent one.
+          &ldquo;hi&rdquo; — and the laptop carries it out with its own input, audio,
+          display and media APIs (Windows&apos;, or on a Mac CGEvent and Core Audio).
+          The laptop owns the table of what each action id does. The phone can name an
+          action; it cannot invent one.
         </P>
         <P>
           The gamepad is the one place where the phone sends state rather than an event,
@@ -253,11 +254,11 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
         <P>
           Everything runs on the main thread, because IOBluetooth delivers on the main
           run loop. A session is therefore a state machine fed bytes rather than a
-          blocking read loop, and bytes that arrive while the Trust this phone?
-          question is open wait in a buffer until HELLO_ACK has gone out. The app polls
-          volume, microphone and brightness twice a second instead of subscribing, so a
-          change made on the Mac reaches the phone within half a second. Brightness uses
-          a private framework, DisplayServices, loaded at run time; where it is missing
+          blocking read loop, and bytes that arrive while the Trust this phone? question
+          is open wait in a buffer until HELLO_ACK has gone out. The app polls volume,
+          microphone and brightness twice a second instead of subscribing, so a change
+          made on the Mac reaches the phone within half a second. Brightness uses a
+          private framework, DisplayServices, loaded at run time; where it is missing
           the dial has nothing to show. Macros, now playing and the virtual controller
           are not built. The README and docs/ARCHITECTURE.md in the repository say more.
         </P>
@@ -656,10 +657,10 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
         </P>
         <P>
           macOS offers no equivalent of the socket&apos;s protection level, so the Mac
-          app itself refuses any connecting device that macOS does not report as
-          paired, or whose link is not encrypted, before it reads a byte from it.
-          Forgetting the trusted phone on a Mac also hangs up on it and takes no
-          connection for the next 30 seconds. Its trusted phone is kept in{" "}
+          app itself refuses any connecting device that macOS does not report as paired,
+          or whose link is not encrypted, before it reads a byte from it. Forgetting the
+          trusted phone on a Mac also hangs up on it and takes no connection for the
+          next 30 seconds. Its trusted phone is kept in{" "}
           <C>~/Library/Application Support/Edgepad/trusted-phone.txt</C>.
         </P>
 

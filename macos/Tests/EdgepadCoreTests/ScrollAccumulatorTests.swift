@@ -14,10 +14,11 @@ final class ScrollAccumulatorTests: XCTestCase {
     }
 
     func testRepeatedSmallScrollsEventuallyGiveOnePixel() {
-        var scroll = ScrollAccumulator(pixelsPerNotch: 40)
-        _ = scroll.pixels(dx: 0, dy: 2)
-        _ = scroll.pixels(dx: 0, dy: 2)
-        XCTAssertEqual(scroll.pixels(dx: 0, dy: 2).y, 1)
+        // Half a pixel a unit, which a Double holds exactly: a third of one does not, and the test would then
+        // be about rounding in the last place rather than about the carry.
+        var scroll = ScrollAccumulator(pixelsPerNotch: 60)
+        _ = scroll.pixels(dx: 0, dy: 1)
+        XCTAssertEqual(scroll.pixels(dx: 0, dy: 1).y, 1)
     }
 
     func testNegativeValuesKeepTheirSign() {

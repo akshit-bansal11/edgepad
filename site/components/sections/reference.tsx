@@ -413,8 +413,9 @@ export function ReferenceSections() {
             supplied.
           </li>
           <li>
-            The Mac app has no third-party dependencies. The Windows laptop app depends on NAudio (for volume, MIT), <C>System.Management</C>{" "}
-            (for WMI brightness) and{" "}
+            The Mac app has no third-party dependencies. The Windows laptop app depends
+            on NAudio (for volume, MIT), <C>System.Management</C> (for WMI brightness)
+            and{" "}
             <ExternalLink href="https://github.com/nefarius/ViGEm.NET">
               Nefarius.ViGEm.Client
             </ExternalLink>{" "}

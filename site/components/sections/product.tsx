@@ -238,9 +238,8 @@ export function ProductSections() {
                 macOS 13 or later, one download for Apple Silicon and Intel:{" "}
                 <C>Edgepad-x.y.z-mac.zip</C>, which holds <C>Edgepad.app</C>. Move it to
                 Applications and open it. It is not notarised, so macOS refuses it at
-                first: choose{" "}
-                <strong className="text-foreground">Open Anyway</strong> under System
-                Settings &gt; Privacy &amp; Security.
+                first: choose <strong className="text-foreground">Open Anyway</strong>{" "}
+                under System Settings &gt; Privacy &amp; Security.
               </p>
               <p className="mb-3">
                 It lives in the menu bar and asks for Bluetooth and for Accessibility,
@@ -296,13 +295,13 @@ export function ProductSections() {
               Settings &gt; Bluetooth &amp; devices
             </strong>
             or macOS{" "}
-            <strong className="text-foreground">System Settings &gt; Bluetooth</strong>
-            . Edgepad has no pairing step of its own.
+            <strong className="text-foreground">System Settings &gt; Bluetooth</strong>.
+            Edgepad has no pairing step of its own.
           </li>
           <li>
-            Keep Edgepad running in the laptop&apos;s tray, or on a Mac in the menu bar. It must already be running
-            before the phone tries to connect: there is no discovery or retry on the
-            laptop side.
+            Keep Edgepad running in the laptop&apos;s tray, or on a Mac in the menu bar.
+            It must already be running before the phone tries to connect: there is no
+            discovery or retry on the laptop side.
           </li>
           <li>
             Open Edgepad on the phone and tap the laptop. The first time, the laptop
