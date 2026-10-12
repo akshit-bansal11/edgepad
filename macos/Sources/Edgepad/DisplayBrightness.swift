@@ -30,13 +30,12 @@ final class DisplayBrightness: BrightnessControl {
         guard let getBrightness, let display = builtInDisplay() else { return nil }
         var value: Float = 0
         guard getBrightness(display, &value) == 0 else { return nil }
-        return Int((value * 100).rounded())
+        return Percent.clamp(Int((value * Float(Percent.max)).rounded()))
     }
 
     func set(_ percent: Int) -> Bool {
         guard let setBrightness, let display = builtInDisplay() else { return false }
-        let clampedPercent = min(max(percent, 0), 100)
-        return setBrightness(display, Float(clampedPercent) / 100) == 0
+        return setBrightness(display, Float(Percent.clamp(percent)) / Float(Percent.max)) == 0
     }
 
     /// None on a Mac mini or with the lid closed.

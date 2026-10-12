@@ -19,6 +19,43 @@ extension MacKey {
     public static let leftArrow = MacKey(0x7B)
     public static let rightArrow = MacKey(0x7C)
     public static let f11 = MacKey(0x67)
+    public static let delete = MacKey(0x33)
+    public static let returnKey = MacKey(0x24)
+    public static let rightCommand = MacKey(0x36)
+    public static let rightShift = MacKey(0x3C)
+    public static let rightControl = MacKey(0x3E)
+    public static let rightOption = MacKey(0x3D)
+    public static let downArrow = MacKey(0x7D)
+}
+
+/// The four modifier families; the left and right keys of each count the same.
+public enum Modifier {
+    case command
+    case shift
+    case control
+    case option
+}
+
+extension MacKey {
+    /// The modifier this key holds down, or nil for an ordinary key.
+    public var modifier: Modifier? {
+        switch code {
+        case 0x37, 0x36: return .command
+        case 0x38, 0x3C: return .shift
+        case 0x3B, 0x3E: return .control
+        case 0x3A, 0x3D: return .option
+        default: return nil
+        }
+    }
+
+    public var isArrow: Bool {
+        [0x7B, 0x7C, 0x7D, 0x7E].contains(code)
+    }
+
+    /// F1 to F12 and the navigation cluster; real ones carry the Fn flag, so synthetic ones must too.
+    public var isFunctionOrNavigation: Bool {
+        KeyMap.functionKeyCodes.contains(code) || [0x73, 0x77, 0x74, 0x79, 0x75, 0x72].contains(code)
+    }
 }
 
 /// The wire carries Windows virtual-key codes whatever the laptop is, so the Mac turns them into its own.
@@ -28,6 +65,9 @@ public enum KeyMap {
     public static func target(forWindows code: UInt16) -> KeyTarget? {
         table[code]
     }
+
+    /// The macOS codes of F1 to F12, in order; the table maps Windows F1 to F12 onto them.
+    static let functionKeyCodes: [UInt16] = [0x7A, 0x78, 0x63, 0x76, 0x60, 0x61, 0x62, 0x64, 0x65, 0x6D, 0x67, 0x6F]
 
     private static let table: [UInt16: KeyTarget] = makeTable()
 
@@ -63,7 +103,7 @@ public enum KeyMap {
             0x00, 0x0B, 0x08, 0x02, 0x0E, 0x03, 0x05, 0x04, 0x22, 0x26, 0x28, 0x25, 0x2E,
             0x2D, 0x1F, 0x23, 0x0C, 0x0F, 0x01, 0x11, 0x20, 0x09, 0x0D, 0x07, 0x10, 0x06,
         ]
-        let functionKeys: [UInt16] = [0x7A, 0x78, 0x63, 0x76, 0x60, 0x61, 0x62, 0x64, 0x65, 0x6D, 0x67, 0x6F]
+        let functionKeys = functionKeyCodes
         let numpadDigits: [UInt16] = [0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5B, 0x5C]
         addRun(from: 0x30, digits)
         addRun(from: 0x41, letters)

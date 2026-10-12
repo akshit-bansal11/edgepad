@@ -81,10 +81,12 @@ public final class TrustStore {
         }
     }
 
-    /// True when `address` is certain to be refused: another phone is trusted, or the trust file cannot be
-    /// read. Checked before a new connection may displace the current one; unlike `admit` it never grants trust.
+    /// True when `address` is certain to be refused: another phone is trusted, the trust file cannot be read, or
+    /// the owner is being asked about a phone right now. A connection that arrives during the question is turned
+    /// away without disturbing the phone being asked about, and may try again once the question is answered.
+    /// Checked before a new connection may displace the current one; unlike `admit` it never grants trust.
     public func refuses(_ address: String) -> Bool {
-        locked { decided(address) == false }
+        locked { asking || decided(address) == false }
     }
 
     public func forget() {

@@ -9,9 +9,11 @@ final class RfcommServer: NSObject {
     private static let rfcommUuid16: UInt16 = 0x0003
     private static let publicBrowseRootUuid16: UInt16 = 0x1002
     private static let pollInterval: TimeInterval = 0.5
-    private static let helloTimeout: TimeInterval = 10
     private static let waiting = "Waiting for your phone"
     private static let encryptionDisabled: BluetoothHCIEncryptionMode = 0
+    /// Outlasts the phone's own twenty seconds of automatic retries, so after a Forget the trust question can only
+    /// come back from someone deliberately tapping this Mac on the phone.
+    private static let quietAfterForget: TimeInterval = 30
 
     private let trust: TrustStore
     private let askTrust: (String) -> Bool
@@ -25,6 +27,7 @@ final class RfcommServer: NSObject {
     private var serviceRecord: IOBluetoothSDPServiceRecord?
     private var notification: IOBluetoothUserNotification?
     private var pollTimer: Timer?
+    private var quietUntil: Date?
     private var current: Session?
     /// Held for as long as its session is current: the channel only keeps its delegate weakly.
     private var currentTransport: RfcommTransport?
@@ -65,6 +68,7 @@ final class RfcommServer: NSObject {
         var channelID: BluetoothRFCOMMChannelID = 0
         guard published.getRFCOMMChannelID(&channelID) == kIOReturnSuccess else {
             Log.write("RFCOMM start failed: the published record has no RFCOMM channel")
+            withdrawRecord()
             return false
         }
         guard
@@ -75,6 +79,7 @@ final class RfcommServer: NSObject {
                 direction: kIOBluetoothUserNotificationChannelDirectionIncoming)
         else {
             Log.write("RFCOMM start failed: could not listen for channel \(channelID)")
+            withdrawRecord()
             return false
         }
         notification = registered
@@ -92,14 +97,25 @@ final class RfcommServer: NSObject {
         pollTimer = nil
         notification?.unregister()
         notification = nil
-        _ = serviceRecord?.removeServiceRecord()
-        serviceRecord = nil
+        withdrawRecord()
         current?.end()
+    }
+
+    /// Takes the SDP record down, so the Mac never advertises a service nothing listens on.
+    private func withdrawRecord() {
+        _ = serviceRecord?.remove()
+        serviceRecord = nil
     }
 
     /// Hangs up on the connected phone, if there is one.
     func disconnect() {
         current?.end()
+    }
+
+    /// Refuses every new connection for a while: a phone just forgotten would otherwise reconnect by itself and
+    /// raise the trust question under the cursor of an owner still clicking in the Forget dialog.
+    func stayQuiet() {
+        quietUntil = Date().addingTimeInterval(Self.quietAfterForget)
     }
 
     @objc private func channelOpened(_ notification: IOBluetoothUserNotification, channel: IOBluetoothRFCOMMChannel) {
@@ -117,6 +133,11 @@ final class RfcommServer: NSObject {
         }
         guard device.getEncryptionMode() != Self.encryptionDisabled else {
             Log.write("Refused \(address): the link is not encrypted")
+            _ = channel.close()
+            return
+        }
+        if let quietUntil, quietUntil > Date() {
+            Log.write("Refused \(address): this Mac was told to forget its phone a moment ago")
             _ = channel.close()
             return
         }
@@ -162,32 +183,59 @@ final class RfcommServer: NSObject {
         currentTransport = transport
         previous?.end()
 
-        Timer.scheduledTimer(withTimeInterval: Self.helloTimeout, repeats: false) { [weak session] _ in
+        Timer.scheduledTimer(withTimeInterval: Session.helloTimeoutSeconds, repeats: false) { [weak session] _ in
             session?.helloTimedOut()
         }
     }
 }
 
-/// One RFCOMM channel as the session's link to the phone.
+/// One RFCOMM channel as the session's link to the phone. Writes are asynchronous and queue in a bounded outbox,
+/// so a phone that stops reading cannot block the main thread that also runs input, timers and new connections.
 final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelegate {
+    /// 64 KiB is far more than a healthy link ever queues (frames are at most 258 bytes); a phone that has let this
+    /// much pile up has stopped reading, and the link is treated as dead.
+    private static let maxQueuedBytes = 64 * 1024
+
     weak var session: Session?
     private let channel: IOBluetoothRFCOMMChannel
     private var isClosed = false
+    /// Chunks, each no larger than the MTU, oldest first.
+    private var outbox: [Data] = []
+    /// Outbox plus the chunk in flight.
+    private var queuedBytes = 0
+    /// Kept alive until IOBluetooth reports the write complete: it is given a pointer into it.
+    private var inFlight: NSMutableData?
 
     init(channel: IOBluetoothRFCOMMChannel) {
         self.channel = channel
         super.init()
     }
 
-    /// Writes in chunks because an RFCOMM write may not exceed the channel's MTU.
+    /// Queues in chunks because an RFCOMM write may not exceed the channel's MTU. False means the link is dead.
     func send(_ bytes: [UInt8]) -> Bool {
+        guard !isClosed else { return false }
         let mtu = Int(channel.getMTU())
-        guard mtu > 0 else { return false }
+        guard mtu > 0, queuedBytes + bytes.count <= Self.maxQueuedBytes else { return false }
         var offset = 0
         while offset < bytes.count {
-            var chunk = Array(bytes[offset..<min(offset + mtu, bytes.count)])
-            guard channel.writeSync(&chunk, length: UInt16(chunk.count)) == kIOReturnSuccess else { return false }
-            offset += chunk.count
+            let end = min(offset + mtu, bytes.count)
+            outbox.append(Data(bytes[offset..<end]))
+            offset = end
+        }
+        queuedBytes += bytes.count
+        return pump()
+    }
+
+    /// Starts the next write unless one is already in flight; its completion starts the one after.
+    private func pump() -> Bool {
+        guard inFlight == nil, !outbox.isEmpty else { return true }
+        let chunk = NSMutableData(data: outbox.removeFirst())
+        inFlight = chunk
+        guard
+            channel.writeAsync(chunk.mutableBytes, length: UInt16(chunk.length), refcon: nil) == kIOReturnSuccess
+        else {
+            inFlight = nil
+            return false
         }
         return true
     }
@@ -195,8 +243,21 @@ final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelega
     func close() {
         guard !isClosed else { return }
         isClosed = true
+        outbox.removeAll()
+        inFlight = nil
+        queuedBytes = 0
         channel.setDelegate(nil)
         _ = channel.close()
+    }
+
+    func rfcommChannelWriteComplete(
+        _ rfcommChannel: IOBluetoothRFCOMMChannel!, refcon: UnsafeMutableRawPointer!, status error: IOReturn
+    ) {
+        queuedBytes -= inFlight?.length ?? 0
+        inFlight = nil
+        if error != kIOReturnSuccess || !pump() {
+            session?.end()
+        }
     }
 
     func rfcommChannelData(

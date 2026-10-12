@@ -245,4 +245,73 @@ final class SessionTests: XCTestCase {
 
         XCTAssertFalse(session.isEnded)
     }
+
+    func testASessionEndedWhileTheOwnerIsBeingAskedSendsNoHelloAck() {
+        let box = SessionBox()
+        let session = makeSession(ask: { _ in
+            box.session?.end()
+            return true
+        })
+        box.session = session
+
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+
+        XCTAssertEqual(transport.sent.count, 0)
+        XCTAssertFalse(session.isLive)
+    }
+
+    func testTheHelloTimeoutWhileTheOwnerIsBeingAskedDoesNotEndTheSession() {
+        let box = SessionBox()
+        let session = makeSession(ask: { _ in
+            box.session?.helloTimedOut()
+            return true
+        })
+        box.session = session
+
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+
+        XCTAssertTrue(session.isLive)
+        XCTAssertFalse(session.isEnded)
+    }
+
+    func testMalformedBytesThatArrivedDuringTheQuestionEndTheSessionAfterHelloAck() {
+        let box = SessionBox()
+        let session = makeSession(ask: { _ in
+            box.session?.receive([0xFF])
+            return true
+        })
+        box.session = session
+
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+
+        XCTAssertEqual(transport.frames().first, .helloAck(version: ProtocolConstants.version))
+        XCTAssertTrue(session.isEnded)
+    }
+
+    func testASecondHelloOnALiveSessionIsDroppedAndCounted() {
+        let session = connectedSession()
+
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+
+        XCTAssertEqual(dispatcher.dropped, 1)
+        XCTAssertFalse(session.isEnded)
+    }
+
+    func testAProtocolErrorMidSessionReleasesAllInput() {
+        let session = connectedSession()
+
+        session.receive([0xFF])
+
+        XCTAssertTrue(session.isEnded)
+        XCTAssertTrue(input.calls.contains("releaseAll"))
+    }
+
+    func testAskingForIconsIsNotCountedAsDropped() {
+        let session = connectedSession()
+
+        session.receive(FrameCodec.encode(.text(kind: TextKind.wantIcons.rawValue, value: "")))
+
+        XCTAssertEqual(dispatcher.dropped, 0)
+        XCTAssertFalse(session.isEnded)
+    }
 }

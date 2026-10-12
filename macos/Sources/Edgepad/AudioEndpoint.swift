@@ -19,34 +19,46 @@ final class AudioEndpoint: LevelControl {
     func read() -> Level? {
         guard let device = defaultDevice() else { return nil }
         let volume = volumeAddress()
-        guard AudioObjectHasProperty(device, volume),
+        guard has(device, volume),
             let level: Float32 = get(device, volume)
         else { return nil }
         let mute = muteAddress()
         var muted = false
-        if AudioObjectHasProperty(device, mute), let value: UInt32 = get(device, mute) {
+        if has(device, mute), let value: UInt32 = get(device, mute) {
             muted = value != 0
         }
-        return Level(percent: Int((level * 100).rounded()), muted: muted)
+        return Level(percent: Percent.clamp(Int((level * Float32(Percent.max)).rounded())), muted: muted)
     }
 
     func setLevel(_ percent: Int) -> Bool {
         guard let device = defaultDevice() else { return false }
         let volume = volumeAddress()
-        guard AudioObjectHasProperty(device, volume) else { return false }
-        let clampedPercent = min(max(percent, 0), 100)
-        return set(device, volume, Float32(clampedPercent) / 100)
+        guard has(device, volume) else { return false }
+        let scalar: Float32 = Float32(Percent.clamp(percent)) / Float32(Percent.max)
+        return set(device, volume, scalar)
     }
 
     func toggleMute() -> Bool {
         guard let device = defaultDevice() else { return false }
         let mute = muteAddress()
-        var settable = DarwinBoolean(false)
-        guard AudioObjectHasProperty(device, mute),
-            AudioObjectIsPropertySettable(device, mute, &settable) == noErr, settable.boolValue,
+        guard has(device, mute), isSettable(device, mute),
             let current: UInt32 = get(device, mute)
         else { return false }
-        return set(device, mute, current == 0 ? 1 : 0)
+        // Core Audio wants exactly four bytes here, so the value must be a UInt32, not a defaulted Int.
+        let next: UInt32 = current == 0 ? 1 : 0
+        return set(device, mute, next)
+    }
+
+    /// The C calls take the address by pointer, so each wrapper copies it into a `var`.
+    private func has(_ object: AudioObjectID, _ address: AudioObjectPropertyAddress) -> Bool {
+        var address = address
+        return AudioObjectHasProperty(object, &address)
+    }
+
+    private func isSettable(_ object: AudioObjectID, _ address: AudioObjectPropertyAddress) -> Bool {
+        var address = address
+        var settable = DarwinBoolean(false)
+        return AudioObjectIsPropertySettable(object, &address, &settable) == noErr && settable.boolValue
     }
 
     private var scope: AudioObjectPropertyScope {

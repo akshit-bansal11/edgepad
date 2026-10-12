@@ -63,27 +63,6 @@ public enum TextKind: UInt8, CaseIterable {
     case padStatus = 8
 }
 
-/// The bits of a PAD_STATE frame's buttons field: XInput's own `wButtons` values, unchanged, because the
-/// payload is laid out like `XINPUT_GAMEPAD`. 0x0800 is unused by XInput and stays unused here.
-public enum PadButton: UInt16, CaseIterable {
-    case none = 0
-    case dpadUp = 1
-    case dpadDown = 2
-    case dpadLeft = 4
-    case dpadRight = 8
-    case start = 16
-    case back = 32
-    case leftThumb = 64
-    case rightThumb = 128
-    case leftShoulder = 256
-    case rightShoulder = 512
-    case guide = 1024
-    case a = 4096
-    case b = 8192
-    case x = 16384
-    case y = 32768
-}
-
 /// The whole vocabulary of `TextKind.padStatus`: a token the phone matches on, never prose, so the wording
 /// of the app stays changeable. The raw value is literally the bytes that cross the wire.
 public enum PadStatus: String, CaseIterable {

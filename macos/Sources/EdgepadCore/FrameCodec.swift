@@ -21,7 +21,6 @@ public enum PayloadLength: Equatable {
 public enum FrameCodec {
     public static let maxTextBytes = 255
     public static let textHeaderLength = 2
-    public static let maxFrameLength = 1 + textHeaderLength + maxTextBytes
 
     private static let helloType: UInt8 = 0x01
     private static let helloAckType: UInt8 = 0x02
@@ -38,8 +37,7 @@ public enum FrameCodec {
     private static let stateType: UInt8 = 0x40
     private static let textType: UInt8 = 0x41
 
-    /// PAD_STATE is the longest fixed payload at 12 bytes, so 13 on the wire: well inside `maxFrameLength`,
-    /// which a 255-byte TEXT still sets at 258. No buffer had to move to let the pad in.
+    /// PAD_STATE is the longest fixed payload at 12 bytes, so 13 on the wire.
     public static func payloadLength(_ type: UInt8) -> PayloadLength {
         switch type {
         case helloType:

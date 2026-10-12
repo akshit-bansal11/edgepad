@@ -38,6 +38,23 @@ final class PhoneLabelTests: XCTestCase {
         XCTAssertEqual(label, "\"\(expected)\" (\(address))")
     }
 
+    func testCombiningMarksAreRemoved() {
+        let name = "e" + String(repeating: "\u{0301}", count: 200)
+
+        let label = PhoneLabel.describe(name: name, address: address)
+
+        XCTAssertEqual(label, "\"e\" (\(address))")
+    }
+
+    func testVeryLongNameKeepsAtMostTheMaximumScalars() {
+        let name = String(repeating: "ab ", count: 340)
+
+        let label = PhoneLabel.describe(name: name, address: address)
+
+        let shown = label.dropFirst().dropLast(address.count + 4)
+        XCTAssertLessThanOrEqual(shown.unicodeScalars.count, PhoneLabel.maxNameLength)
+    }
+
     func testQuotesInTheNameAreRemoved() {
         let label = PhoneLabel.describe(name: "My \"Pixel\"", address: address)
 

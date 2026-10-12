@@ -115,6 +115,26 @@ final class TrustStoreTests: XCTestCase {
         XCTAssertTrue(store.refuses("(11:22:33:44:55:66)"))
     }
 
+    func testADeviceArrivingWhileTheOwnerIsAskedIsRefusedWithoutBeingAsked() {
+        let store = TrustStore(path: trustPath)
+        var refusedWhileAsking = false
+
+        _ = store.admit("(AA:BB:CC:DD:EE:FF)") {
+            refusedWhileAsking = store.refuses("11:22:33:44:55:66")
+            return true
+        }
+
+        XCTAssertTrue(refusedWhileAsking)
+    }
+
+    func testNothingIsRefusedOnceTheQuestionIsAnsweredNo() {
+        let store = TrustStore(path: trustPath)
+
+        _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: no)
+
+        XCTAssertFalse(store.refuses("(11:22:33:44:55:66)"))
+    }
+
     func testTheTrustFileIsPrivateToTheUser() throws {
         _ = TrustStore(path: trustPath).admit("(AA:BB:CC:DD:EE:FF)", ask: yes)
 

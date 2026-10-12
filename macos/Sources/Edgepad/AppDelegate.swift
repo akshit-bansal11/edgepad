@@ -12,6 +12,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// No answer to the trust question within this is a no: a Mac left alone must not end up trusting whichever
     /// paired phone happened to try it.
     private static let trustPromptSeconds: TimeInterval = 60
+    /// A click already in flight when the question appears must not land on "Trust".
+    private static let trustButtonDelaySeconds: TimeInterval = 2
 
     private let runningVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
     private let trust = TrustStore.forCurrentUser()
@@ -167,10 +169,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.addButton(withTitle: "Cancel")
         alert.addButton(withTitle: "Forget")
         NSApp.activate(ignoringOtherApps: true)
-        if alert.runModal() == .alertSecondButtonReturn {
+        let answer = alert.runModal()
+        alert.window.orderOut(nil)
+        if answer == .alertSecondButtonReturn {
             trust.forget()
             // Revoking trust from a phone that is still connected would otherwise change nothing until it next
             // reconnected.
+            server?.stayQuiet()
             server?.disconnect()
         }
     }
@@ -191,13 +196,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             + "With no answer in \(Int(Self.trustPromptSeconds)) seconds, it is not trusted."
         // Don't Trust is first, so it is the default: a stray Return trusts nothing.
         alert.addButton(withTitle: "Don't Trust")
-        alert.addButton(withTitle: "Trust")
-        // .common modes so the timer fires inside the modal loop.
+        let trustButton = alert.addButton(withTitle: "Trust")
+        trustButton.isEnabled = false
+        // .common modes so the timers fire inside the modal loop.
         let timeout = Timer(timeInterval: Self.trustPromptSeconds, repeats: false) { _ in NSApp.abortModal() }
+        let enable = Timer(timeInterval: Self.trustButtonDelaySeconds, repeats: false) { _ in
+            trustButton.isEnabled = true
+        }
         RunLoop.main.add(timeout, forMode: .common)
+        RunLoop.main.add(enable, forMode: .common)
         NSApp.activate(ignoringOtherApps: true)
         let answer = alert.runModal()
+        // abortModal() ends the loop but leaves the window up, still looking like a question nobody will hear.
+        alert.window.orderOut(nil)
         timeout.invalidate()
+        enable.invalidate()
         let trusted = answer == .alertSecondButtonReturn
         Log.write(trusted ? "The owner trusted \(phone)" : "The owner did not trust \(phone)")
         return trusted

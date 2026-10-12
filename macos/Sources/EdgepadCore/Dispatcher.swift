@@ -3,7 +3,6 @@
 /// can name an action; only this table decides what it does.
 public final class Dispatcher {
     private static let maxButton: UInt8 = 2
-    private static let maxPercent = 100
     private static let zoomStep = 120
     private static let brightnessStep = 10
 
@@ -62,7 +61,7 @@ public final class Dispatcher {
         case .runAction(let id):
             return run(id)
         case .setValue(let control, let value):
-            guard Int(value) <= Dispatcher.maxPercent else { return false }
+            guard Int(value) <= Percent.max else { return false }
             return set(control, Int(value))
         case .text(let kind, let value):
             guard kind == TextKind.type.rawValue else { return false }
@@ -131,8 +130,9 @@ public final class Dispatcher {
         case .search:
             // Spotlight.
             input.chord([.command, .space])
-        case .notifications:
-            // macOS has no default shortcut for it.
+        case .notifications, .macroBase:
+            // Notifications: macOS has no default shortcut for it. The macro block is rejected before this
+            // switch; the case is here only so the switch stays exhaustive.
             return false
         case .desktopLeft:
             input.chord([.control, .leftArrow])
@@ -166,8 +166,6 @@ public final class Dispatcher {
             // Answered even though a Mac cannot offer a controller: the phone draws a different screen
             // depending on the token, and one that heard nothing could not say why.
             padStatusReply?(PadStatus.noDriver.rawValue)
-        case .macroBase:
-            return false
         }
         return true
     }
@@ -179,7 +177,7 @@ public final class Dispatcher {
             input.media(fallback)
             return true
         }
-        return brightness.set(min(Dispatcher.maxPercent, max(0, level + delta)))
+        return brightness.set(Percent.clamp(level + delta))
     }
 
     private func set(_ control: UInt8, _ value: Int) -> Bool {

@@ -1,3 +1,5 @@
+import Foundation
+
 /// One connected phone: handshake, trust check (asking the owner, through `askTrust`, about a phone while none
 /// is trusted), then each frame straight into the dispatcher. The Mac's own state (volume, mute, brightness)
 /// goes back as STATE frames: a snapshot after the handshake, then every change `poll` finds, so the phone's
@@ -6,8 +8,9 @@
 /// Transport-agnostic and single-threaded: the app calls every method on the main thread.
 public final class Session {
     private static let mutedFlag: UInt8 = 1
-    private static let maxPercent = 100
-    private static let helloTimeoutSeconds = 10
+    /// How long a connection may stay silent before the app's timer calls `helloTimedOut`. The timer and the
+    /// log line read this one number, so they cannot disagree.
+    public static let helloTimeoutSeconds: TimeInterval = 10
 
     public let address: String
     /// True once HELLO_ACK was sent.
@@ -79,7 +82,7 @@ public final class Session {
     /// says nothing would otherwise hold the one session this Mac serves for as long as the link stayed up.
     public func helloTimedOut() {
         guard !isLive, !isEnded, !isAsking else { return }
-        Log.write("Refused \(address): no HELLO within \(Session.helloTimeoutSeconds) s")
+        Log.write("Refused \(address): no HELLO within \(Int(Session.helloTimeoutSeconds)) s")
         end()
     }
 
@@ -185,9 +188,6 @@ public final class Session {
         case .text(let kind, _) where kind == TextKind.wantIcons.rawValue:
             // No macros, so no icons; not a frame the dispatcher should count as dropped.
             break
-        case .hello:
-            Log.write("Session with \(address) ended: a second HELLO")
-            end()
         default:
             dispatcher.handle(frame)
         }
@@ -239,7 +239,7 @@ public final class Session {
     }
 
     private func percentByte(_ percent: Int) -> UInt8 {
-        UInt8(clamping: min(Session.maxPercent, max(0, percent)))
+        UInt8(clamping: Percent.clamp(percent))
     }
 
     /// A send that finds the link dead ends the session, so nothing after it writes to a closed link.

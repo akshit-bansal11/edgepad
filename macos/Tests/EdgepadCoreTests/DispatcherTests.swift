@@ -279,4 +279,95 @@ final class DispatcherTests: XCTestCase {
         XCTAssertEqual(dispatcher.dropped, 1)
         XCTAssertEqual(input.calls, [])
     }
+
+    func testLockSendsControlCommandQAsOneChord() {
+        dispatcher.handle(.runAction(id: ActionId.lock.rawValue))
+
+        XCTAssertEqual(input.calls, ["chord 59,55,12"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testTaskViewSendsControlUp() {
+        dispatcher.handle(.runAction(id: ActionId.taskView.rawValue))
+
+        XCTAssertEqual(input.calls, ["chord 59,126"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testShowDesktopSendsF11() {
+        dispatcher.handle(.runAction(id: ActionId.showDesktop.rawValue))
+
+        XCTAssertEqual(input.calls, ["chord 103"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testSearchSendsCommandSpace() {
+        dispatcher.handle(.runAction(id: ActionId.search.rawValue))
+
+        XCTAssertEqual(input.calls, ["chord 55,49"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testDesktopLeftSendsControlLeft() {
+        dispatcher.handle(.runAction(id: ActionId.desktopLeft.rawValue))
+
+        XCTAssertEqual(input.calls, ["chord 59,123"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testDesktopRightSendsControlRight() {
+        dispatcher.handle(.runAction(id: ActionId.desktopRight.rawValue))
+
+        XCTAssertEqual(input.calls, ["chord 59,124"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testZoomResetSendsCommandZero() {
+        dispatcher.handle(.runAction(id: ActionId.zoomReset.rawValue))
+
+        XCTAssertEqual(input.calls, ["chord 55,29"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testMuteSendsTheMuteKey() {
+        dispatcher.handle(.runAction(id: ActionId.muteToggle.rawValue))
+
+        XCTAssertEqual(input.calls, ["media 7"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testPlayPauseSendsThePlayKey() {
+        dispatcher.handle(.runAction(id: ActionId.playPause.rawValue))
+
+        XCTAssertEqual(input.calls, ["media 16"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testNextSendsTheNextKey() {
+        dispatcher.handle(.runAction(id: ActionId.nextTrack.rawValue))
+
+        XCTAssertEqual(input.calls, ["media 17"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testPreviousSendsThePreviousKey() {
+        dispatcher.handle(.runAction(id: ActionId.previousTrack.rawValue))
+
+        XCTAssertEqual(input.calls, ["media 18"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testVolumeUpSendsTheSoundUpKey() {
+        dispatcher.handle(.runAction(id: ActionId.volumeUp.rawValue))
+
+        XCTAssertEqual(input.calls, ["media 0"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testVolumeDownSendsTheSoundDownKey() {
+        dispatcher.handle(.runAction(id: ActionId.volumeDown.rawValue))
+
+        XCTAssertEqual(input.calls, ["media 1"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
 }

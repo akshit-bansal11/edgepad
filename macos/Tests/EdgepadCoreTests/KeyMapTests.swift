@@ -54,4 +54,48 @@ final class KeyMapTests: XCTestCase {
     func testAnUnmappedCodeIsNil() {
         XCTAssertNil(KeyMap.target(forWindows: 0xE9))
     }
+
+    func testLeftCommandIsACommandModifier() {
+        XCTAssertEqual(MacKey.command.modifier, .command)
+    }
+
+    func testRightCommandIsACommandModifier() {
+        XCTAssertEqual(MacKey.rightCommand.modifier, .command)
+    }
+
+    func testRightShiftIsAShiftModifier() {
+        XCTAssertEqual(MacKey.rightShift.modifier, .shift)
+    }
+
+    func testRightControlIsAControlModifier() {
+        XCTAssertEqual(MacKey.rightControl.modifier, .control)
+    }
+
+    func testRightOptionIsAnOptionModifier() {
+        XCTAssertEqual(MacKey.rightOption.modifier, .option)
+    }
+
+    func testALetterIsNoModifier() {
+        XCTAssertNil(MacKey.q.modifier)
+    }
+
+    func testDownArrowIsAnArrow() {
+        XCTAssertTrue(MacKey.downArrow.isArrow)
+    }
+
+    func testSpaceIsNotAnArrow() {
+        XCTAssertFalse(MacKey.space.isArrow)
+    }
+
+    func testF11IsFunctionOrNavigation() {
+        XCTAssertTrue(MacKey.f11.isFunctionOrNavigation)
+    }
+
+    func testHomeIsFunctionOrNavigation() {
+        XCTAssertTrue(MacKey(0x73).isFunctionOrNavigation)
+    }
+
+    func testALetterIsNotFunctionOrNavigation() {
+        XCTAssertFalse(MacKey.q.isFunctionOrNavigation)
+    }
 }
