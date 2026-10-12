@@ -22,6 +22,10 @@ TestResults/
 *.user
 .vs/
 
+# Swift
+.build/
+.swiftpm/
+
 # OS
 .DS_Store
 Thumbs.db
