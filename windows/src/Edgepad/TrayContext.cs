@@ -258,14 +258,16 @@ internal sealed class TrayContext : ApplicationContext
 
     /// <summary>
     /// Forgets the trusted phone once the owner says so. Asked first because the menu cannot undo it: every
-    /// phone after it has to be trusted again, the one just forgotten included. The connected phone is hung up
-    /// on before the question and again, with a quiet period, after a yes.
+    /// phone after it has to be trusted again, the one just forgotten included. Connections are refused while the
+    /// question is open; a yes forgets and keeps refusing for the quiet period, and anything else takes
+    /// connections again.
     /// </summary>
     private void ConfirmForget()
     {
         // A connected phone is a keyboard: it could press Enter on this confirmation, where No is the default,
-        // and so keep the owner from ever forgetting it. A phone the owner keeps simply reconnects by itself.
-        server.HangUp(TimeSpan.Zero);
+        // and so keep the owner from ever forgetting it. Hanging up is not enough, since the phone is still trusted
+        // and reconnects within seconds, so nothing may connect until the question is answered.
+        server.HangUp(Timeout.InfiniteTimeSpan);
         var answer = MessageBox.Show(
             $"Forget {trust.Trusted ?? "the trusted phone"}? The next phone to connect, this one included, will not "
                 + "be able to use this laptop until you trust it here.",
@@ -277,6 +279,10 @@ internal sealed class TrayContext : ApplicationContext
         {
             trust.Forget();
             server.HangUp(QuietAfterForget);
+        }
+        else
+        {
+            server.Resume();
         }
     }
 

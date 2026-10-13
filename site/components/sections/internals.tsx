@@ -634,7 +634,7 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
             },
             {
               title: "Trust on first use",
-              body: "Enforced by TrustStore. While no phone is trusted, the first phone to complete the handshake makes the tray ask Trust this phone?, and HELLO_ACK waits for the answer. Trust writes its Bluetooth address to %APPDATA%\\Edgepad\\trusted-phone.txt; Don't trust, or no answer within 60 s, closes the connection. Every other paired phone is refused before HELLO_ACK, and a phone the owner said no to is not asked about again for 30 seconds. The tray menu's Forget trusted phone hangs up on the connected phone, asks, then clears the trust and takes no connection for 30 seconds.",
+              body: "Enforced by TrustStore. While no phone is trusted, the first phone to complete the handshake makes the tray ask Trust this phone?, and HELLO_ACK waits for the answer. Trust writes its Bluetooth address to %APPDATA%\\Edgepad\\trusted-phone.txt; Don't trust, or no answer within 60 s, closes the connection. Every other paired phone is refused before HELLO_ACK, and a phone the owner said no to is not asked about again for 30 seconds. The tray menu's Forget trusted phone hangs up on the connected phone and takes no connection while it asks; a yes clears the trust and keeps refusing for 30 seconds.",
             },
           ].map((item) => (
             <div

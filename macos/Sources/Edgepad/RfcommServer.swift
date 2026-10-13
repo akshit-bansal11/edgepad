@@ -124,14 +124,24 @@ final class RfcommServer: NSObject {
         }
     }
 
-    /// Hangs up on the connected phone, if there is one.
-    func disconnect() {
+    /// Hangs up and refuses every new connection until `resume()` or `stayQuiet()`. A phone that is still
+    /// trusted reconnects within seconds, so hanging up alone would not keep it out while the owner decides.
+    func holdOff() {
+        quietUntil = .infinity
         current?.end()
+    }
+
+    /// Takes connections again after `holdOff()`.
+    func resume() {
+        quietUntil = nil
     }
 
     /// Refuses every new connection for a while: a phone just forgotten would otherwise reconnect by itself and
     /// raise the trust question under the cursor of an owner still clicking in the Forget dialog.
     func stayQuiet() {
+        // Nothing should be live after `holdOff()`, and if something is it must not outlive the Forget. Ended
+        // first because it posts the waiting status, which the status below must replace.
+        current?.end()
         // Uptime, not the wall clock: a clock stepped backwards must not stretch the quiet period.
         quietUntil = ProcessInfo.processInfo.systemUptime + Self.quietAfterForget
         onStatus("Forgot the phone; ready for a new one in \(Int(Self.quietAfterForget)) seconds")
@@ -165,7 +175,7 @@ final class RfcommServer: NSObject {
             return
         }
         if let quietUntil, quietUntil > ProcessInfo.processInfo.systemUptime {
-            Log.write("Refused \(address): this Mac was told to forget its phone a moment ago")
+            Log.write("Refused \(address): this Mac is forgetting its phone, or just forgot it")
             _ = channel.close()
             return
         }

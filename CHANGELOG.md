@@ -16,8 +16,8 @@ The wire protocol stays at version 4, so any 3.x half still speaks to any other.
 
 ### Changed
 
-- **Forget trusted phone hangs up.** On Windows, forgetting used to leave a connected phone connected until its link next dropped. On both laptops it now hangs up on the connected phone before the confirmation appears, since a connected phone could otherwise answer it, and after a yes refuses every connection for 30 seconds. A phone you keep reconnects by itself.
-- **A phone you said no to is not asked about again for 30 seconds,** so its automatic retries cannot put the question straight back on screen.
+- **Forget trusted phone hangs up.** On Windows, forgetting used to leave a connected phone connected until its link next dropped. On both laptops it now hangs up on the connected phone and takes no connection while the confirmation is open, since a connected phone could otherwise answer it, and after a yes refuses every connection for 30 seconds. A phone you keep reconnects by itself if its retries have not run out.
+- **A phone you said no to, or left unanswered, is not asked about again for 30 seconds,** so its automatic retries cannot put the question straight back on screen.
 - The phone app opts out of Android backup outright and runs as a single task.
 
 ### Fixed

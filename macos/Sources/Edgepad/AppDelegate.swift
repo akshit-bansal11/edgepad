@@ -169,11 +169,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     /// Asked first because the menu cannot undo it: every phone after it has to be trusted again. The connected
-    /// phone is hung up on before the question, not after.
+    /// phone is hung up on, and connections are refused, while the question is open.
     @objc private func confirmForget() {
         // A connected phone is a keyboard and could press Return or Escape on this dialog, so the owner could
-        // never forget it. A phone the owner keeps reconnects by itself.
-        server?.disconnect()
+        // never forget it. Hanging up is not enough, since the phone is still trusted and reconnects within
+        // seconds, so nothing may connect until the question is answered.
+        server?.holdOff()
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = "Edgepad"
@@ -189,6 +190,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if answer == .alertSecondButtonReturn {
             trust.forget()
             server?.stayQuiet()
+        } else {
+            server?.resume()
         }
     }
 

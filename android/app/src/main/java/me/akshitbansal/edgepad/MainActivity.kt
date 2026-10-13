@@ -1028,6 +1028,8 @@ class MainActivity :
         picker.setConnecting(null)
         when {
             closure.cause == LaptopLink.Cause.ENDED -> {
+                // A link ended on purpose starts the next one with a full set of attempts.
+                attempts = 0
                 if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.KEYBOARD ||
                     screen == Screen.GAMEPAD || screen == Screen.MACROS
                 ) {
