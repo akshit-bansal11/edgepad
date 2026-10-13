@@ -164,16 +164,16 @@ public enum FrameCodec {
         }
     }
 
-    /// The longest prefix of `value` made of whole Unicode scalars whose UTF-8 fits `maxBytes`. One pass that
+    /// The longest prefix of `value` made of whole Unicode scalars whose UTF-8 fits `maxTextBytes`. One pass that
     /// stops at the limit, so a million-character string is not measured whole, and never between the halves
     /// of a character, which would go out as a replacement character. Every codec cuts by the same rule, so
     /// both sides send the same bytes for the same text.
-    public static func truncate(_ value: String, maxBytes: Int = maxTextBytes) -> String {
+    public static func truncate(_ value: String) -> String {
         var kept = String.UnicodeScalarView()
         var bytes = 0
         for scalar in value.unicodeScalars {
             let width = utf8Width(scalar)
-            if bytes + width > maxBytes {
+            if bytes + width > maxTextBytes {
                 break
             }
             bytes += width

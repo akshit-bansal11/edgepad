@@ -127,6 +127,11 @@ class LaptopLink(
         try {
             val s = device.createRfcommSocketToServiceRecord(ProtocolConstants.SERVICE_ID)
             socket = s
+            // A close() that ran before the line above found no socket to close.
+            if (closed) {
+                s.close()
+                return
+            }
             s.connect()
             val input = DataInputStream(s.inputStream)
             val output = s.outputStream

@@ -22,6 +22,8 @@ final class AudioEndpoint: LevelControl {
         guard has(device, volume),
             let level: Float32 = get(device, volume)
         else { return nil }
+        // A driver can answer NaN or infinity, and converting that to Int traps.
+        guard level.isFinite else { return nil }
         let mute = muteAddress()
         var muted = false
         if has(device, mute), let value: UInt32 = get(device, mute) {

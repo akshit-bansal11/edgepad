@@ -35,6 +35,9 @@ public final class Session {
     /// `receive` can be entered again. They wait here, so they are read after HELLO_ACK and not before it.
     private var isAsking = false
     private var pending: [UInt8] = []
+    /// A healthy phone sends almost nothing before HELLO_ACK, so this is generous. Without it an untrusted
+    /// paired device could stream megabytes during the question and have them all handled in one run.
+    private static let maxPendingBytes = 64 * 1024
 
     private var lastVolume: Level?
     private var lastMicrophone: Level?
@@ -72,6 +75,11 @@ public final class Session {
     public func receive(_ bytes: [UInt8]) {
         guard !isEnded else { return }
         if isAsking {
+            guard pending.count + bytes.count <= Session.maxPendingBytes else {
+                Log.write("Session with \(address) ended: it sent too much while the owner was being asked")
+                end()
+                return
+            }
             pending.append(contentsOf: bytes)
             return
         }
@@ -246,6 +254,7 @@ public final class Session {
     private func send(_ frame: Frame) {
         guard !isEnded else { return }
         if !transport.send(FrameCodec.encode(frame)) {
+            Log.write("Session with \(address) ended: the link stopped taking data")
             end()
         }
     }

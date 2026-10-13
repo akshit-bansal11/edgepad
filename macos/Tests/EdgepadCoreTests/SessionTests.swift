@@ -174,6 +174,29 @@ final class SessionTests: XCTestCase {
         XCTAssertEqual(frames.last, .pong(time: 9))
     }
 
+    func testMoreThanTheCapBufferedWhileTheOwnerIsBeingAskedEndsTheSession() {
+        let box = SessionBox()
+        var asked = 0
+        var endedAtTheCap = true
+        let cap = 64 * 1024
+        let session = makeSession(ask: { _ in
+            asked += 1
+            box.session?.receive([UInt8](repeating: 0, count: cap))
+            endedAtTheCap = box.session?.isEnded ?? false
+            box.session?.receive([0])
+            return true
+        })
+        box.session = session
+
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+
+        XCTAssertFalse(endedAtTheCap)
+        XCTAssertTrue(session.isEnded)
+        XCTAssertEqual(asked, 1)
+        XCTAssertEqual(transport.sent.count, 0)
+        XCTAssertEqual(transport.closeCount, 1)
+    }
+
     func testEndingReleasesAllInputAndClosesTheTransportOnce() {
         let session = connectedSession()
 

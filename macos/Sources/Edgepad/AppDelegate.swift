@@ -14,6 +14,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let trustPromptSeconds: TimeInterval = 60
     /// A click already in flight when the question appears must not land on "Trust".
     private static let trustButtonDelaySeconds: TimeInterval = 2
+    /// How long before Bluetooth is tried again after it failed to start.
+    private static let bluetoothRetrySeconds: TimeInterval = 30
 
     private let runningVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
     private let trust = TrustStore.forCurrentUser()
@@ -51,13 +53,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             askTrust: { [weak self] in self?.askTrust($0) ?? false },
             onStatus: { [weak self] in self?.setStatus($0) })
         self.server = server
-        if !server.start() {
-            setStatus("Bluetooth is unavailable; see the log")
-        }
+        startServer()
 
         checkForUpdate()
         Timer.scheduledTimer(withTimeInterval: UpdateCheck.every, repeats: true) { [weak self] _ in
             self?.checkForUpdate()
+        }
+    }
+
+    /// With Start at login the app can launch before Bluetooth is ready or its permission prompt is answered, so a
+    /// failed start is tried again rather than left for good.
+    private func startServer() {
+        if server?.start() == false {
+            setStatus("Bluetooth is unavailable; see the log")
+            Timer.scheduledTimer(withTimeInterval: Self.bluetoothRetrySeconds, repeats: false) { [weak self] _ in
+                self?.startServer()
+            }
         }
     }
 
@@ -82,7 +93,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(item("Open log", #selector(openLog)))
         menu.addItem(item("Documentation", #selector(openDocumentation)))
         let forget = item("Forget trusted phone", #selector(confirmForget))
-        forget.isEnabled = trust.trusted != nil
+        forget.isEnabled = trust.canForget
         menu.addItem(forget)
         menu.addItem(.separator())
         menu.addItem(item("Quit Edgepad", #selector(quit)))
@@ -157,8 +168,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         open(Self.documentationUrl)
     }
 
-    /// Asked first because the menu cannot undo it: every phone after it has to be trusted again.
+    /// Asked first because the menu cannot undo it: every phone after it has to be trusted again. The connected
+    /// phone is hung up on before the question, not after.
     @objc private func confirmForget() {
+        // A connected phone is a keyboard and could press Return or Escape on this dialog, so the owner could
+        // never forget it. A phone the owner keeps reconnects by itself.
+        server?.disconnect()
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = "Edgepad"
@@ -173,10 +188,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         if answer == .alertSecondButtonReturn {
             trust.forget()
-            // Revoking trust from a phone that is still connected would otherwise change nothing until it next
-            // reconnected.
             server?.stayQuiet()
-            server?.disconnect()
         }
     }
 
@@ -190,10 +202,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = "Trust this phone?"
+        let whatIsTrusted =
+            phone.contains("\"")
+            ? "The name in quotes is only what the phone calls itself; the address is what will be trusted."
+            : "The address is what will be trusted."
         alert.informativeText =
-            "\(phone) is asking to control this Mac's pointer and keyboard. The name in quotes is only what the "
-            + "phone calls itself; the address is what will be trusted. Trust it only if it is yours. "
-            + "With no answer in \(Int(Self.trustPromptSeconds)) seconds, it is not trusted."
+            "\(phone) is asking to control this Mac's pointer and keyboard. \(whatIsTrusted) "
+            + "Trust it only if it is yours. With no answer in \(Int(Self.trustPromptSeconds)) seconds, "
+            + "it is not trusted."
         // Don't Trust is first, so it is the default: a stray Return trusts nothing.
         alert.addButton(withTitle: "Don't Trust")
         let trustButton = alert.addButton(withTitle: "Trust")
@@ -205,6 +221,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         RunLoop.main.add(timeout, forMode: .common)
         RunLoop.main.add(enable, forMode: .common)
+        // Raised by a Bluetooth event while another app is in front, which macOS may not let take the foreground.
+        alert.window.level = .floating
         NSApp.activate(ignoringOtherApps: true)
         let answer = alert.runModal()
         // abortModal() ends the loop but leaves the window up, still looking like a question nobody will hear.

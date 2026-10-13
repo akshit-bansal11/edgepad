@@ -30,6 +30,8 @@ final class DisplayBrightness: BrightnessControl {
         guard let getBrightness, let display = builtInDisplay() else { return nil }
         var value: Float = 0
         guard getBrightness(display, &value) == 0 else { return nil }
+        // A driver can answer NaN or infinity, and converting that to Int traps.
+        guard value.isFinite else { return nil }
         return Percent.clamp(Int((value * Float(Percent.max)).rounded()))
     }
 

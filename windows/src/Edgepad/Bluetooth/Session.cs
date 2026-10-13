@@ -128,6 +128,12 @@ internal sealed class Session(
         {
             Log.Write($"Session with {address} ended: {e.Message}");
         }
+        // Anything else is a bug on this side or a device API failing in a way nobody listed. It ends this one
+        // session, with the whole exception in the log, rather than the tray app.
+        catch (Exception e)
+        {
+            Log.Write($"Session with {address} failed: {e}");
+        }
         finally
         {
             // Releases anything still held down: Alt in the middle of an app switch, a button mid-drag.

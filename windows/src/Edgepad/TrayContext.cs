@@ -28,6 +28,12 @@ internal sealed class TrayContext : ApplicationContext
     /// </summary>
     private static readonly TimeSpan TrustPromptTimeout = TimeSpan.FromSeconds(60);
 
+    /// <summary>
+    /// How long after a Forget every connection is refused. It outlasts the phone's own automatic retries, so
+    /// the trust question can only come back from someone deliberately choosing this laptop on the phone.
+    /// </summary>
+    private static readonly TimeSpan QuietAfterForget = TimeSpan.FromSeconds(30);
+
     private readonly MenuRow startWithWindows = new("Start with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new("Macros…", Icons.Macro);
     private readonly MenuRow forget = new("Forget trusted phone", Icons.Unlink) { Danger = true };
@@ -72,7 +78,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Opening += (_, _) =>
         {
             startWithWindows.Checked = RunAtLogin.IsEnabled;
-            forget.Enabled = trust.Trusted is not null;
+            forget.Enabled = trust.CanForget;
             macrosRow.Hint = $"{macros.Macros.Count} of {MacroStore.MaxMacros}";
             menu.Restyle();
         };
@@ -252,10 +258,14 @@ internal sealed class TrayContext : ApplicationContext
 
     /// <summary>
     /// Forgets the trusted phone once the owner says so. Asked first because the menu cannot undo it: every
-    /// phone after it has to be trusted again, the one just forgotten included.
+    /// phone after it has to be trusted again, the one just forgotten included. The connected phone is hung up
+    /// on before the question and again, with a quiet period, after a yes.
     /// </summary>
     private void ConfirmForget()
     {
+        // A connected phone is a keyboard: it could press Enter on this confirmation, where No is the default,
+        // and so keep the owner from ever forgetting it. A phone the owner keeps simply reconnects by itself.
+        server.HangUp(TimeSpan.Zero);
         var answer = MessageBox.Show(
             $"Forget {trust.Trusted ?? "the trusted phone"}? The next phone to connect, this one included, will not "
                 + "be able to use this laptop until you trust it here.",
@@ -266,6 +276,7 @@ internal sealed class TrayContext : ApplicationContext
         if (answer == DialogResult.Yes)
         {
             trust.Forget();
+            server.HangUp(QuietAfterForget);
         }
     }
 

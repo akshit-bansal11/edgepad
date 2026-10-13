@@ -49,7 +49,31 @@ class ModifierLatchTest {
         assertEquals(listOf("16v", "16^"), sent)
     }
 
+    @Test
+    fun cancelReleasesAnArmedModifierAKeyHasAlreadyPressed() {
+        latch.modifierDown(CTRL)
+        latch.modifierUp(CTRL)
+        latch.keyDown(C)
+        latch.cancel()
+        assertEquals(listOf("17v", "17^", "17v", "67v", "17^"), sent)
+
+        sent.clear()
+        latch.keyDown(A)
+        assertEquals(listOf("65v"), sent)
+    }
+
+    @Test
+    fun aSecondKeyBeforeTheFirstIsReleasedDoesNotPressTheModifierAgain() {
+        latch.modifierDown(CTRL)
+        latch.modifierUp(CTRL)
+        sent.clear()
+        latch.keyDown(A)
+        latch.keyDown(C)
+        assertEquals(listOf("17v", "65v", "67v"), sent)
+    }
+
     private companion object {
+        const val A = 0x41
         const val SHIFT = 0x10
         const val CTRL = 0x11
         const val C = 0x43

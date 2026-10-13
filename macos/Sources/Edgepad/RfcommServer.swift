@@ -31,6 +31,10 @@ final class RfcommServer: NSObject {
     private var current: Session?
     /// Held for as long as its session is current: the channel only keeps its delegate weakly.
     private var currentTransport: RfcommTransport?
+    /// Held while a session is current, so macOS does not throttle the timers and I/O of a windowless app.
+    private var activity: NSObjectProtocol?
+    /// The last start failure written to the log: start is retried, and must not repeat itself every time.
+    private var lastStartFailure: String?
 
     init(trust: TrustStore, askTrust: @escaping (String) -> Bool, onStatus: @escaping (String) -> Void) {
         self.trust = trust
@@ -42,8 +46,7 @@ final class RfcommServer: NSObject {
     /// False when the service could not be published or the channel could not be listened on; the log says which.
     func start() -> Bool {
         guard let uuid = UUID(uuidString: ProtocolConstants.serviceId) else {
-            Log.write("RFCOMM start failed: the service id is not a UUID")
-            return false
+            return startFailed("the service id is not a UUID")
         }
         let serviceUuid = IOBluetoothSDPUUID(data: withUnsafeBytes(of: uuid.uuid) { Data($0) })
         let record: [String: Any] = [
@@ -59,17 +62,15 @@ final class RfcommServer: NSObject {
             "0100 - ServiceName*": "Edgepad",
         ]
         guard let published = IOBluetoothSDPServiceRecord.publishedServiceRecord(with: record) else {
-            Log.write("RFCOMM start failed: the service record could not be published")
-            return false
+            return startFailed("the service record could not be published")
         }
         serviceRecord = published
 
         // macOS may reassign the channel, so ask the record what it was really given.
         var channelID: BluetoothRFCOMMChannelID = 0
         guard published.getRFCOMMChannelID(&channelID) == kIOReturnSuccess else {
-            Log.write("RFCOMM start failed: the published record has no RFCOMM channel")
             withdrawRecord()
-            return false
+            return startFailed("the published record has no RFCOMM channel")
         }
         guard
             let registered = IOBluetoothRFCOMMChannel.register(
@@ -78,12 +79,12 @@ final class RfcommServer: NSObject {
                 withChannelID: channelID,
                 direction: kIOBluetoothUserNotificationChannelDirectionIncoming)
         else {
-            Log.write("RFCOMM start failed: could not listen for channel \(channelID)")
             withdrawRecord()
-            return false
+            return startFailed("could not listen for channel \(channelID)")
         }
         notification = registered
 
+        lastStartFailure = nil
         Log.write("RFCOMM service advertising")
         onStatus(Self.waiting)
         pollTimer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
@@ -92,7 +93,16 @@ final class RfcommServer: NSObject {
         return true
     }
 
+    private func startFailed(_ reason: String) -> Bool {
+        if reason != lastStartFailure {
+            Log.write("RFCOMM start failed: \(reason)")
+            lastStartFailure = reason
+        }
+        return false
+    }
+
     func stop() {
+        endActivity()
         pollTimer?.invalidate()
         pollTimer = nil
         notification?.unregister()
@@ -105,6 +115,13 @@ final class RfcommServer: NSObject {
     private func withdrawRecord() {
         _ = serviceRecord?.remove()
         serviceRecord = nil
+    }
+
+    private func endActivity() {
+        if let held = activity {
+            ProcessInfo.processInfo.endActivity(held)
+            activity = nil
+        }
     }
 
     /// Hangs up on the connected phone, if there is one.
@@ -126,13 +143,17 @@ final class RfcommServer: NSObject {
 
     @objc private func channelOpened(_ notification: IOBluetoothUserNotification, channel: IOBluetoothRFCOMMChannel) {
         let device = channel.getDevice()
-        let address = device?.addressString ?? "unknown"
 
         // Windows demands an authenticated, encrypted socket; macOS has no such switch, so these are the checks.
         // Being paired only says the address is in this Mac's list, and a device can spoof an address. An
         // encrypted link can only exist with a device that holds the link key made at pairing, which an address
         // alone cannot prove.
-        guard let device, device.isPaired() else {
+        guard let device, let address = device.addressString, !address.isEmpty else {
+            Log.write("Refused a device with no address")
+            _ = channel.close()
+            return
+        }
+        guard device.isPaired() else {
             Log.write("Refused \(address): it is not paired with this Mac")
             _ = channel.close()
             return
@@ -150,8 +171,9 @@ final class RfcommServer: NSObject {
         }
         // A device certain to be refused must never displace the connected phone.
         if trust.refuses(address) {
-            let trusted = trust.trusted ?? "nobody"
-            Log.write("Refused \(address) without disturbing the connected phone: this Mac trusts \(trusted)")
+            Log.write(
+                "Refused \(address) without disturbing the connected phone: it is not the trusted phone, "
+                    + "or the owner is being asked about one or just declined it")
             _ = channel.close()
             return
         }
@@ -177,6 +199,7 @@ final class RfcommServer: NSObject {
             onEnded: { [weak self] ended in
                 guard let self, self.current === ended else { return }
                 self.current = nil
+                self.endActivity()
                 self.currentTransport = nil
                 self.onStatus(Self.waiting)
             })
@@ -188,6 +211,12 @@ final class RfcommServer: NSObject {
         let previous = current
         current = session
         currentTransport = transport
+        // AllowingIdleSystemSleep on purpose, so a connected phone does not keep the Mac awake.
+        if activity == nil {
+            activity = ProcessInfo.processInfo.beginActivity(
+                options: [.userInitiatedAllowingIdleSystemSleep, .latencyCritical],
+                reason: "A phone is controlling this Mac")
+        }
         previous?.end()
 
         Timer.scheduledTimer(withTimeInterval: Session.helloTimeoutSeconds, repeats: false) { [weak session] _ in
@@ -248,9 +277,9 @@ final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelega
         guard inFlight == nil, !outbox.isEmpty else { return true }
         let chunk = NSMutableData(data: outbox.removeFirst())
         inFlight = chunk
-        guard
-            channel.writeAsync(chunk.mutableBytes, length: UInt16(chunk.length), refcon: nil) == kIOReturnSuccess
-        else {
+        let result = channel.writeAsync(chunk.mutableBytes, length: UInt16(chunk.length), refcon: nil)
+        guard result == kIOReturnSuccess else {
+            Log.write("A Bluetooth write was refused (\(result))")
             inFlight = nil
             return false
         }
@@ -262,6 +291,13 @@ final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelega
     func close() {
         guard !isClosed else { return }
         isClosed = true
+        // A write error leaves nothing in flight, and nothing else would pump what is still queued.
+        if inFlight == nil && !outbox.isEmpty {
+            if !pump() {
+                hangUp()
+                return
+            }
+        }
         guard inFlight != nil || !outbox.isEmpty else {
             hangUp()
             return
@@ -297,6 +333,9 @@ final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelega
         _ rfcommChannel: IOBluetoothRFCOMMChannel!, refcon: UnsafeMutableRawPointer!, status error: IOReturn
     ) {
         guard !hungUp else { return }
+        if error != kIOReturnSuccess {
+            Log.write("A Bluetooth write failed (\(error))")
+        }
         queuedBytes -= inFlight?.length ?? 0
         inFlight = nil
         if isClosed {

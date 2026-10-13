@@ -634,7 +634,7 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
             },
             {
               title: "Trust on first use",
-              body: "Enforced by TrustStore. While no phone is trusted, the first phone to complete the handshake makes the tray ask Trust this phone?, and HELLO_ACK waits for the answer. Trust writes its Bluetooth address to %APPDATA%\\Edgepad\\trusted-phone.txt; Don't trust, or no answer within 60 s, closes the connection. Every other paired phone is refused before HELLO_ACK. The tray menu's Forget trusted phone clears it, after asking.",
+              body: "Enforced by TrustStore. While no phone is trusted, the first phone to complete the handshake makes the tray ask Trust this phone?, and HELLO_ACK waits for the answer. Trust writes its Bluetooth address to %APPDATA%\\Edgepad\\trusted-phone.txt; Don't trust, or no answer within 60 s, closes the connection. Every other paired phone is refused before HELLO_ACK, and a phone the owner said no to is not asked about again for 30 seconds. The tray menu's Forget trusted phone hangs up on the connected phone, asks, then clears the trust and takes no connection for 30 seconds.",
             },
           ].map((item) => (
             <div
@@ -658,9 +658,8 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
         <P>
           macOS offers no equivalent of the socket&apos;s protection level, so the Mac
           app itself refuses any connecting device that macOS does not report as paired,
-          or whose link is not encrypted, before it reads a byte from it. Forgetting the
-          trusted phone on a Mac also hangs up on it and takes no connection for the
-          next 30 seconds. Its trusted phone is kept in{" "}
+          or whose link is not encrypted, before it reads a byte from it. Its trusted
+          phone is kept in{" "}
           <C>~/Library/Application Support/Edgepad/trusted-phone.txt</C>.
         </P>
 

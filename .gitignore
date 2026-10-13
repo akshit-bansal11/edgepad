@@ -5,6 +5,11 @@
 *.p12
 *.jks
 *.keystore
+*.pfx
+*.pem
+*.key
+*.dpapi
+.secrets/
 
 # Gradle / Android
 .gradle/

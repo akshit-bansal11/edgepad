@@ -3,7 +3,7 @@
 /// can name an action; only this table decides what it does.
 public final class Dispatcher {
     private static let maxButton: UInt8 = 2
-    private static let zoomStep = 120
+    private static let zoomStep = Int(ScrollAccumulator.wireUnitsPerNotch)
     private static let brightnessStep = 10
 
     private let input: InputSink

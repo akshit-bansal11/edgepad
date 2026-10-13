@@ -17,6 +17,13 @@ set -euo pipefail
 version="${1:?usage: bundle.sh <version> <output dir>}"
 out="${2:?usage: bundle.sh <version> <output dir>}"
 
+# The version is written into Info.plist as it stands and comes from a tag name, which may hold anything a
+# ref may: angle brackets included.
+if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+    echo "bundle.sh: '$version' is not a version like 3.4.0 or 3.4.0-draft.1" >&2
+    exit 1
+fi
+
 mkdir -p "$out"
 out="$(cd "$out" && pwd)"
 cd "$(dirname "$0")"

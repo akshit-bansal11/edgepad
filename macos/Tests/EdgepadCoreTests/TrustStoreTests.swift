@@ -135,6 +135,56 @@ final class TrustStoreTests: XCTestCase {
         XCTAssertFalse(store.refuses("(11:22:33:44:55:66)"))
     }
 
+    func testAPhoneJustDeclinedIsRefusedUnaskedUntilTheQuietPeriodPasses() {
+        var time: TimeInterval = 0
+        let store = TrustStore(path: trustPath, now: { time })
+        _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: no)
+
+        XCTAssertTrue(store.refuses("(aa:bb:cc:dd:ee:ff)"))
+        XCTAssertFalse(store.admit("(AA:BB:CC:DD:EE:FF)", ask: unasked))
+
+        time = TrustStore.quietAfterDeclineSeconds
+        var asked = false
+        XCTAssertTrue(
+            store.admit("(AA:BB:CC:DD:EE:FF)") {
+                asked = true
+                return true
+            })
+        XCTAssertTrue(asked)
+    }
+
+    func testADeclineForOnePhoneDoesNotStopAnotherBeingAsked() {
+        let store = TrustStore(path: trustPath, now: { 0 })
+        _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: no)
+
+        XCTAssertFalse(store.refuses("(11:22:33:44:55:66)"))
+        XCTAssertTrue(store.admit("(11:22:33:44:55:66)", ask: yes))
+    }
+
+    func testForgetClearsTheDecline() {
+        let store = TrustStore(path: trustPath, now: { 0 })
+        _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: no)
+
+        store.forget()
+
+        XCTAssertFalse(store.refuses("(AA:BB:CC:DD:EE:FF)"))
+        XCTAssertTrue(store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes))
+    }
+
+    func testForgetIsOfferedOnlyWhenThereIsSomethingToClear() throws {
+        let store = TrustStore(path: trustPath)
+        XCTAssertFalse(store.canForget)
+
+        _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes)
+        XCTAssertTrue(store.canForget)
+
+        store.forget()
+        XCTAssertFalse(store.canForget)
+
+        try FileManager.default.createDirectory(atPath: trustPath, withIntermediateDirectories: true)
+        XCTAssertTrue(store.canForget)
+    }
+
     func testTheTrustFileIsPrivateToTheUser() throws {
         _ = TrustStore(path: trustPath).admit("(AA:BB:CC:DD:EE:FF)", ask: yes)
 

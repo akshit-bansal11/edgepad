@@ -11,9 +11,22 @@ namespace Edgepad.Trust;
 /// as one would re-arm trust on first use and hand this laptop to whichever phone happened to connect
 /// while the file was locked. So a failed read refuses, and only a genuinely absent file admits.
 /// </summary>
-internal sealed class TrustStore(string path)
+internal sealed class TrustStore(string path, Func<long>? clock = null)
 {
+    /// <summary>
+    /// How long a phone the owner just said no to is turned away unasked. Long enough that a phone's automatic
+    /// retries cannot put the question straight back under the owner's cursor.
+    /// </summary>
+    private static readonly TimeSpan QuietAfterDecline = TimeSpan.FromSeconds(30);
+
     private readonly Lock gate = new();
+
+    // Milliseconds, from a clock that only moves forward; a test hands in its own.
+    private readonly Func<long> now = clock ?? (() => Environment.TickCount64);
+
+    // The phone the owner last said no to, and until when it is not asked about again.
+    private string? declined;
+    private long declinedUntil;
 
     // The phone admitted when its address could not be written down. Kept for this run so a failed save
     // narrows trust to that phone rather than leaving it open to whichever bonded device connects next.
@@ -53,6 +66,11 @@ internal sealed class TrustStore(string path)
                 return known;
             }
 
+            if (IsDeclined(address))
+            {
+                return false;
+            }
+
             if (asking)
             {
                 return false;
@@ -76,6 +94,12 @@ internal sealed class TrustStore(string path)
 
         if (!yes)
         {
+            lock (gate)
+            {
+                declined = address;
+                declinedUntil = now() + (long)QuietAfterDecline.TotalMilliseconds;
+            }
+
             return false;
         }
 
@@ -122,16 +146,37 @@ internal sealed class TrustStore(string path)
         return trusted is null ? null : string.Equals(trusted, address, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>Whether the owner said no to <paramref name="address"/> recently. Called under the lock.</summary>
+    private bool IsDeclined(string address) =>
+        declined is not null && now() < declinedUntil && string.Equals(declined, address, StringComparison.OrdinalIgnoreCase);
+
     /// <summary>
-    /// True when <paramref name="address"/> is certain to be refused: another phone is trusted, or the trust
-    /// file cannot be read. Checked before a new connection may displace the current one; unlike
+    /// True when <paramref name="address"/> is certain to be refused: another phone is trusted, the trust
+    /// file cannot be read, or the owner is being asked about a phone right now. A connection arriving during
+    /// the question, or from a phone the owner just declined, is turned away without disturbing the phone
+    /// being asked about. Checked before a new connection may displace the current one; unlike
     /// <see cref="Admit"/> it never grants trust.
     /// </summary>
     public bool Refuses(string address)
     {
         lock (gate)
         {
-            return Decided(address) == false;
+            return asking || IsDeclined(address) || Decided(address) == false;
+        }
+    }
+
+    /// <summary>
+    /// True when there is something for Forget to clear: a trusted phone, or a trust file that cannot be read,
+    /// which refuses every phone until it is removed.
+    /// </summary>
+    public bool CanForget
+    {
+        get
+        {
+            lock (gate)
+            {
+                return !TryRead(out var trusted) || (trusted ?? unsaved) is not null;
+            }
         }
     }
 
@@ -140,6 +185,7 @@ internal sealed class TrustStore(string path)
         lock (gate)
         {
             unsaved = null;
+            declined = null;
             try
             {
                 File.Delete(path);

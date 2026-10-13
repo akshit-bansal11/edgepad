@@ -20,8 +20,20 @@ public final class TrustStore {
     /// rather than stacking a second question on the first, which the owner could answer for the wrong phone.
     private var asking = false
 
-    public init(path: String) {
+    /// How long a phone the owner said no to is turned away unasked. Long enough that a phone's automatic
+    /// retries cannot put the question straight back under the owner's cursor.
+    public static let quietAfterDeclineSeconds: TimeInterval = 30
+
+    /// The phone the owner last declined, and the time the quiet period ends. A paired device could otherwise
+    /// raise the modal question again the instant it is answered, for ever.
+    private var declined: (address: String, until: TimeInterval)?
+
+    /// Uptime, not the wall clock, so a clock stepped backwards cannot stretch the quiet period.
+    private let now: () -> TimeInterval
+
+    public init(path: String, now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }) {
         self.path = path
+        self.now = now
     }
 
     public static func forCurrentUser() -> TrustStore {
@@ -39,6 +51,15 @@ public final class TrustStore {
         }
     }
 
+    /// True when there is something for Forget to clear: a trusted phone, or a trust file that cannot be read,
+    /// which refuses every phone until it is removed.
+    public var canForget: Bool {
+        locked {
+            let read = tryRead()
+            return !read.readable || (read.address ?? unsaved) != nil
+        }
+    }
+
     /// True when `address` may connect. While nothing is trusted, `ask` puts the question to the owner and a
     /// yes is remembered; otherwise it is never called. It blocks for as long as the owner takes, so it runs
     /// outside the lock: the menu reads `trusted` on the very thread that is showing the question, and would
@@ -47,6 +68,9 @@ public final class TrustStore {
         let early: Bool? = locked {
             if let known = decided(address) {
                 return known
+            }
+            if isDeclined(address) {
+                return false
             }
             if asking {
                 return false
@@ -59,7 +83,12 @@ public final class TrustStore {
         }
 
         let yes = ask()
-        locked { asking = false }
+        locked {
+            asking = false
+            if !yes {
+                declined = (address, now() + TrustStore.quietAfterDeclineSeconds)
+            }
+        }
         if !yes {
             return false
         }
@@ -84,14 +113,16 @@ public final class TrustStore {
     /// True when `address` is certain to be refused: another phone is trusted, the trust file cannot be read, or
     /// the owner is being asked about a phone right now. A connection that arrives during the question is turned
     /// away without disturbing the phone being asked about, and may try again once the question is answered.
-    /// Checked before a new connection may displace the current one; unlike `admit` it never grants trust.
+    /// So is a phone the owner just declined. Checked before a new connection may displace the current one;
+    /// unlike `admit` it never grants trust.
     public func refuses(_ address: String) -> Bool {
-        locked { asking || decided(address) == false }
+        locked { asking || isDeclined(address) || decided(address) == false }
     }
 
     public func forget() {
         locked {
             unsaved = nil
+            declined = nil
             do {
                 try FileManager.default.removeItem(atPath: path)
             } catch {
@@ -106,6 +137,12 @@ public final class TrustStore {
         gate.lock()
         defer { gate.unlock() }
         return body()
+    }
+
+    /// Whether `address` is the phone declined within the quiet period. Called under the lock.
+    private func isDeclined(_ address: String) -> Bool {
+        guard let declined, now() < declined.until else { return false }
+        return declined.address.caseInsensitiveCompare(address) == .orderedSame
     }
 
     /// Whether `address` is admitted without asking: true for the trusted phone, false for any other and for a

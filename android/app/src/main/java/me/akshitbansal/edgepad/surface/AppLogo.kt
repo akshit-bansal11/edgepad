@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
+import android.util.Log
 import com.caverock.androidsvg.SVG
 import com.caverock.androidsvg.SVGParseException
 import me.akshitbansal.edgepad.R
@@ -35,7 +36,12 @@ class AppLogo(
         size: Float,
         color: Int,
     ) {
-        val bitmap = resource(app)?.let { id -> bitmaps.getOrPut(id) { render(id) } }
+        val bitmap =
+            resource(app)?.let { id ->
+                // Not getOrPut: it takes a stored null for absent, and a logo that failed would be parsed every draw.
+                if (!bitmaps.containsKey(id)) bitmaps[id] = render(id)
+                bitmaps[id]
+            }
         if (bitmap == null) {
             note.setTint(color)
             val half = (size * NOTE / 2).toInt()
@@ -64,8 +70,10 @@ class AppLogo(
             svg.renderToCanvas(Canvas(bitmap))
             bitmap
         } catch (e: SVGParseException) {
+            Log.w(TAG, "Logo $id could not be parsed", e)
             null
         } catch (e: IllegalArgumentException) {
+            Log.w(TAG, "Logo $id could not be rendered", e)
             null
         }
 
@@ -168,6 +176,7 @@ class AppLogo(
     ): Int = if (this.dark) dark else light
 
     private companion object {
+        const val TAG = "Edgepad"
         const val NOTE = 0.8f
 
         /** Logos are rendered at this width and scaled down; enough for any box the surface draws them in. */

@@ -10,8 +10,6 @@ final class InputInjector: InputSink {
     private static let pixelsPerNotch = 40.0
     /// Two clicks this close, in points, count as one double click.
     private static let doubleClickRadius = 4.0
-    private static let mediaDownFlags: UInt = 0xa00
-    private static let mediaUpFlags: UInt = 0xb00
     private static let mediaDownState = 0xa << 8
     private static let mediaUpState = 0xb << 8
     private static let mediaSubtype: Int16 = 8
@@ -148,8 +146,8 @@ final class InputInjector: InputSink {
     }
 
     func media(_ key: MediaKey) {
-        postMedia(key, flags: Self.mediaDownFlags, state: Self.mediaDownState)
-        postMedia(key, flags: Self.mediaUpFlags, state: Self.mediaUpState)
+        postMedia(key, state: Self.mediaDownState)
+        postMedia(key, state: Self.mediaUpState)
     }
 
     func releaseAll() {
@@ -166,9 +164,10 @@ final class InputInjector: InputSink {
         }
     }
 
-    private func postMedia(_ key: MediaKey, flags: UInt, state: Int) {
+    /// The event's modifier flags and the state field of its data1 carry the same bits, so one value serves both.
+    private func postMedia(_ key: MediaKey, state: Int) {
         NSEvent.otherEvent(
-            with: .systemDefined, location: .zero, modifierFlags: NSEvent.ModifierFlags(rawValue: flags),
+            with: .systemDefined, location: .zero, modifierFlags: NSEvent.ModifierFlags(rawValue: UInt(state)),
             timestamp: 0, windowNumber: 0, context: nil, subtype: Self.mediaSubtype,
             data1: (Int(key.rawValue) << 16) | state, data2: -1)?.cgEvent?.post(tap: .cghidEventTap)
     }

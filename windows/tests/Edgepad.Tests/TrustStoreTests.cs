@@ -141,6 +141,87 @@ public sealed class TrustStoreTests : IDisposable
     }
 
     [Fact]
+    public void EveryPhoneIsRefusedWhileTheOwnerIsBeingAsked()
+    {
+        var store = NewStore();
+        var refused = false;
+
+        store.Admit("(AA:BB:CC:DD:EE:FF)", () =>
+        {
+            refused = store.Refuses("(11:22:33:44:55:66)");
+            return true;
+        });
+
+        Assert.True(refused);
+        Assert.False(store.Refuses("(AA:BB:CC:DD:EE:FF)"));
+    }
+
+    [Fact]
+    public void APhoneTheOwnerDeclinedIsNotAskedAgainUntilTheQuietPeriodEnds()
+    {
+        long time = 0;
+        var store = new TrustStore(Path.Combine(dir, "trusted-phone.txt"), () => time);
+        var asked = 0;
+
+        Assert.False(store.Admit("(AA:BB:CC:DD:EE:FF)", () =>
+        {
+            asked++;
+            return false;
+        }));
+
+        time = 29_999;
+        Assert.False(store.Admit("(aa:bb:cc:dd:ee:ff)", Unasked));
+        Assert.True(store.Refuses("(AA:BB:CC:DD:EE:FF)"));
+
+        time = 30_000;
+        Assert.False(store.Refuses("(AA:BB:CC:DD:EE:FF)"));
+        Assert.True(store.Admit("(AA:BB:CC:DD:EE:FF)", () =>
+        {
+            asked++;
+            return true;
+        }));
+        Assert.Equal(2, asked);
+    }
+
+    [Fact]
+    public void ADeclineDoesNotStopAnotherPhoneBeingAsked()
+    {
+        long time = 0;
+        var store = new TrustStore(Path.Combine(dir, "trusted-phone.txt"), () => time);
+        store.Admit("(AA:BB:CC:DD:EE:FF)", No);
+
+        Assert.False(store.Refuses("(11:22:33:44:55:66)"));
+        Assert.True(store.Admit("(11:22:33:44:55:66)", Yes));
+    }
+
+    [Fact]
+    public void ForgetEndsTheQuietPeriod()
+    {
+        long time = 0;
+        var store = new TrustStore(Path.Combine(dir, "trusted-phone.txt"), () => time);
+        store.Admit("(AA:BB:CC:DD:EE:FF)", No);
+
+        store.Forget();
+
+        Assert.True(store.Admit("(AA:BB:CC:DD:EE:FF)", Yes));
+    }
+
+    [Fact]
+    public void ForgetIsOfferedOnlyWhenThereIsSomethingToClear()
+    {
+        var store = NewStore();
+        Assert.False(store.CanForget);
+
+        store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
+        Assert.True(store.CanForget);
+
+        // Unreadable refuses every phone, and Forget is the way out, so it must be offered.
+        using var held = new FileStream(
+            Path.Combine(dir, "trusted-phone.txt"), FileMode.Open, FileAccess.Read, FileShare.None);
+        Assert.True(store.CanForget);
+    }
+
+    [Fact]
     public void ForgettingWhatIsNotThereIsNotAnError()
     {
         // Forget runs from a tray menu click, where an unhandled exception ends the process.
