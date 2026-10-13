@@ -28,6 +28,9 @@ final class RfcommServer: NSObject {
     private var notification: IOBluetoothUserNotification?
     private var pollTimer: Timer?
     private var quietUntil: TimeInterval?
+    /// Set while the owner is deciding whether to forget; separate from the quiet period so that ending one cannot
+    /// end the other.
+    private var held = false
     private var current: Session?
     /// Held for as long as its session is current: the channel only keeps its delegate weakly.
     private var currentTransport: RfcommTransport?
@@ -124,16 +127,21 @@ final class RfcommServer: NSObject {
         }
     }
 
-    /// Hangs up and refuses every new connection until `resume()` or `stayQuiet()`. A phone that is still
-    /// trusted reconnects within seconds, so hanging up alone would not keep it out while the owner decides.
+    /// Hangs up and refuses every new connection until `resume()`. A phone that is still trusted reconnects
+    /// within seconds, so hanging up alone would not keep it out while the owner decides.
     func holdOff() {
-        quietUntil = .infinity
+        held = true
         current?.end()
     }
 
-    /// Takes connections again after `holdOff()`.
+    /// Ends a `holdOff()`; a quiet period started by `stayQuiet()` runs on.
     func resume() {
-        quietUntil = nil
+        held = false
+    }
+
+    /// Whether new connections are being refused, by a hold or a quiet period.
+    private var refusing: Bool {
+        held || quietUntil.map { $0 > ProcessInfo.processInfo.systemUptime } ?? false
     }
 
     /// Refuses every new connection for a while: a phone just forgotten would otherwise reconnect by itself and
@@ -142,8 +150,9 @@ final class RfcommServer: NSObject {
         // Nothing should be live after `holdOff()`, and if something is it must not outlive the Forget. Ended
         // first because it posts the waiting status, which the status below must replace.
         current?.end()
-        // Uptime, not the wall clock: a clock stepped backwards must not stretch the quiet period.
-        quietUntil = ProcessInfo.processInfo.systemUptime + Self.quietAfterForget
+        // Uptime, not the wall clock: a clock stepped backwards must not stretch the quiet period. Never shortens
+        // one already running.
+        quietUntil = max(quietUntil ?? 0, ProcessInfo.processInfo.systemUptime + Self.quietAfterForget)
         onStatus("Forgot the phone; ready for a new one in \(Int(Self.quietAfterForget)) seconds")
         Timer.scheduledTimer(withTimeInterval: Self.quietAfterForget, repeats: false) { [weak self] _ in
             guard let self, self.current == nil else { return }
@@ -174,7 +183,7 @@ final class RfcommServer: NSObject {
             _ = channel.close()
             return
         }
-        if let quietUntil, quietUntil > ProcessInfo.processInfo.systemUptime {
+        if refusing {
             Log.write("Refused \(address): this Mac is forgetting its phone, or just forgot it")
             _ = channel.close()
             return

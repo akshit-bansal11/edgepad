@@ -23,6 +23,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var server: RfcommServer?
     private var status = "Starting"
     private var newerVersion: Version?
+    /// The menu-bar item may stay clickable under the app-modal alert, and a second Forget would lift the hold while
+    /// the first was still open.
+    private var forgetting = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Newest wins, as on Windows where a newer exe asks the running one to quit.
@@ -169,12 +172,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     /// Asked first because the menu cannot undo it: every phone after it has to be trusted again. The connected
-    /// phone is hung up on, and connections are refused, while the question is open.
+    /// phone is hung up on, and connections are refused, while the question is open. If the trust file cannot be
+    /// removed the owner is told, and the store refuses every phone until a later Forget succeeds.
     @objc private func confirmForget() {
+        guard !forgetting else { return }
+        forgetting = true
         // A connected phone is a keyboard and could press Return or Escape on this dialog, so the owner could
         // never forget it. Hanging up is not enough, since the phone is still trusted and reconnects within
         // seconds, so nothing may connect until the question is answered.
         server?.holdOff()
+        defer {
+            server?.resume()
+            forgetting = false
+        }
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = "Edgepad"
@@ -188,10 +198,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let answer = alert.runModal()
         alert.window.orderOut(nil)
         if answer == .alertSecondButtonReturn {
-            trust.forget()
+            let forgotten = trust.forget()
+            // Started before the hold ends (the defer above), so there is no instant in which a connection would
+            // be taken.
             server?.stayQuiet()
-        } else {
-            server?.resume()
+            if !forgotten {
+                let failure = NSAlert()
+                failure.alertStyle = .critical
+                failure.messageText = "Edgepad"
+                failure.informativeText =
+                    "The trusted phone could not be forgotten: its file could not be removed. No phone can connect "
+                    + "until it is. Choose Forget trusted phone again, or see the log."
+                failure.addButton(withTitle: "OK")
+                _ = failure.runModal()
+                failure.window.orderOut(nil)
+            }
         }
     }
 

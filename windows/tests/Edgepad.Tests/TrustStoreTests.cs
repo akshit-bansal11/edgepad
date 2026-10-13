@@ -231,6 +231,30 @@ public sealed class TrustStoreTests : IDisposable
         Assert.Null(NewStore().Trusted);
     }
 
+    [Fact]
+    public void AForgetThatCannotDeleteTheFileRefusesEveryPhoneUntilOneCan()
+    {
+        // The phone is still named in the file, so a failed delete must not leave it trusted while the owner
+        // believes it is gone.
+        var store = NewStore();
+        store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
+        var held = new FileStream(
+            Path.Combine(dir, "trusted-phone.txt"), FileMode.Open, FileAccess.Read, FileShare.None);
+
+        Assert.False(store.Forget());
+        held.Dispose();
+
+        // Readable again and still naming the phone, yet refused.
+        Assert.True(store.Refuses("(AA:BB:CC:DD:EE:FF)"));
+        Assert.False(store.Admit("(AA:BB:CC:DD:EE:FF)", Unasked));
+        Assert.Null(store.Trusted);
+        Assert.True(store.CanForget);
+
+        Assert.True(store.Forget());
+        Assert.False(store.Refuses("(AA:BB:CC:DD:EE:FF)"));
+        Assert.True(store.Admit("(AA:BB:CC:DD:EE:FF)", Yes));
+    }
+
     private static bool Yes() => true;
 
     private static bool No() => false;

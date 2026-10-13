@@ -42,6 +42,10 @@ internal sealed class RfcommServer(
     // Environment.TickCount64 milliseconds before which every new connection is refused; see HangUp.
     private long refuseUntil;
 
+    // Set while the owner is deciding whether to forget; separate from the quiet period so that ending one
+    // cannot end the other.
+    private bool held;
+
     public async Task StartAsync()
     {
         provider = await RfcommServiceProvider.CreateAsync(RfcommServiceId.FromUuid(ProtocolConstants.ServiceId));
@@ -59,10 +63,10 @@ internal sealed class RfcommServer(
     }
 
     /// <summary>
-    /// Hangs up on the connected phone and refuses every new connection for <paramref name="quiet"/>, or until
-    /// <see cref="Resume"/> when that is <see cref="Timeout.InfiniteTimeSpan"/>. Forgetting
-    /// a phone that stayed connected would otherwise change nothing until it next reconnected, and a phone just
-    /// forgotten would reconnect by itself and raise the trust question under the owner's cursor.
+    /// Hangs up on the connected phone and refuses every new connection for <paramref name="quiet"/>, never
+    /// shortening a quiet period already running. Forgetting a phone that stayed connected would otherwise
+    /// change nothing until it next reconnected, and a phone just forgotten would reconnect by itself and
+    /// raise the trust question under the owner's cursor.
     /// </summary>
     public void HangUp(TimeSpan quiet)
     {
@@ -70,21 +74,42 @@ internal sealed class RfcommServer(
         lock (gate)
         {
             live = current;
-            refuseUntil = quiet == Timeout.InfiniteTimeSpan ? long.MaxValue : Environment.TickCount64 + (long)quiet.TotalMilliseconds;
+            refuseUntil = Math.Max(refuseUntil, Environment.TickCount64 + (long)quiet.TotalMilliseconds);
         }
 
         // Not cleared here: the session's own exit does that, and posts the waiting status when it does.
         live?.Dispose();
     }
 
-    /// <summary>Takes connections again after a <see cref="HangUp"/> that was told to refuse them until further notice.</summary>
+    /// <summary>
+    /// Hangs up on the connected phone and refuses every new connection until <see cref="Resume"/>. A phone
+    /// that is still trusted reconnects within seconds, so hanging up alone would not keep it out while the
+    /// owner decides.
+    /// </summary>
+    public void HoldOff()
+    {
+        Session? live;
+        lock (gate)
+        {
+            live = current;
+            held = true;
+        }
+
+        // Not cleared here: the session's own exit does that, and posts the waiting status when it does.
+        live?.Dispose();
+    }
+
+    /// <summary>Ends a <see cref="HoldOff"/>; a quiet period started by <see cref="HangUp"/> runs on.</summary>
     public void Resume()
     {
         lock (gate)
         {
-            refuseUntil = 0;
+            held = false;
         }
     }
+
+    /// <summary>Whether new connections are being refused, by a hold or a quiet period. Called under the lock.</summary>
+    private bool Refusing() => held || Environment.TickCount64 < refuseUntil;
 
     private void OnConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
     {
@@ -106,13 +131,13 @@ internal sealed class RfcommServer(
             // session would refuse it anyway. Only nothing trusted yet goes on to the session, where the owner is
             // asked about it.
             var address = args.Socket.Information.RemoteHostName.RawName;
-            long quietUntil;
+            bool refusing;
             lock (gate)
             {
-                quietUntil = refuseUntil;
+                refusing = Refusing();
             }
 
-            if (Environment.TickCount64 < quietUntil)
+            if (refusing)
             {
                 LogForgetting(address);
                 args.Socket.Dispose();
@@ -144,7 +169,7 @@ internal sealed class RfcommServer(
             {
                 // Tested again here: a HangUp that ran since the check above has already looked for a session
                 // to end, and would have missed this one.
-                quiet = Environment.TickCount64 < refuseUntil;
+                quiet = Refusing();
                 previous = quiet ? null : current;
                 if (!quiet)
                 {

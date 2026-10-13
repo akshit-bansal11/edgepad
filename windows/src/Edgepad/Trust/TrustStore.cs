@@ -36,6 +36,10 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
     // rather than stacking a second question on the first, which the owner could answer for the wrong phone.
     private bool asking;
 
+    // Set when Forget could not delete the file. Until it really is gone every phone is refused, exactly as for
+    // a file that cannot be read: the phone is still trusted on disk, and the owner believes it is not.
+    private bool forgetFailed;
+
     public static TrustStore ForCurrentUser() => new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "trusted-phone.txt"));
 
@@ -180,7 +184,11 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
         }
     }
 
-    public void Forget()
+    /// <summary>
+    /// True when the trust file is gone, deleted or never there. False when the delete failed: the phone is then
+    /// still trusted on disk, so every phone is refused, as for an unreadable file, until a later Forget succeeds.
+    /// </summary>
+    public bool Forget()
     {
         lock (gate)
         {
@@ -189,24 +197,35 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
             try
             {
                 File.Delete(path);
+                forgetFailed = false;
+                return true;
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
                 // This runs from a click on a tray menu item, where an unhandled exception ends the
-                // process. The menu item failing to do its one job is not worth the app.
+                // process. The menu item failing to do its one job is not worth the app, but pretending it
+                // worked would leave a phone trusted that the owner believes is forgotten.
                 Log.Write($"The trusted phone could not be forgotten at {path}: {e.Message}");
+                forgetFailed = true;
+                return false;
             }
         }
     }
 
     /// <summary>
-    /// False when the file is there and could not be read — the caller must then refuse rather than guess.
+    /// False when the file is there and could not be read, or a Forget could not delete it — the caller must
+    /// then refuse rather than guess.
     /// True with a null address means nothing is trusted yet, which is what an absent file and a blank one
     /// both mean: Forget deletes the file, and a blank one is the same intent written by hand.
     /// </summary>
     private bool TryRead(out string? trusted)
     {
         trusted = null;
+        if (forgetFailed)
+        {
+            return false;
+        }
+
         try
         {
             trusted = File.ReadAllText(path).Trim() is { Length: > 0 } address ? address : null;

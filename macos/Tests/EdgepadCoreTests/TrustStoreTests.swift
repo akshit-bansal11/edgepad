@@ -63,6 +63,28 @@ final class TrustStoreTests: XCTestCase {
         XCTAssertTrue(store.admit("(11:22:33:44:55:66)", ask: yes))
     }
 
+    func testAForgetThatCannotDeleteTheFileRefusesEveryPhoneUntilOneCan() throws {
+        // The phone is still named in the file, so a failed delete must not leave it trusted while the owner
+        // believes it is gone. A directory that cannot be written is how a delete fails for a file that reads fine.
+        let store = TrustStore(path: trustPath)
+        _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes)
+        try FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: directory.path)
+        let forgotten = store.forget()
+        // Restored before anything else can fail, or tearDown could not remove the directory.
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
+
+        XCTAssertFalse(forgotten)
+        // Readable again and still naming the phone, yet refused.
+        XCTAssertTrue(store.refuses("(AA:BB:CC:DD:EE:FF)"))
+        XCTAssertFalse(store.admit("(AA:BB:CC:DD:EE:FF)", ask: unasked))
+        XCTAssertNil(store.trusted)
+        XCTAssertTrue(store.canForget)
+
+        XCTAssertTrue(store.forget())
+        XCTAssertFalse(store.refuses("(AA:BB:CC:DD:EE:FF)"))
+        XCTAssertTrue(store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes))
+    }
+
     func testForgettingWhatIsNotThereIsNotAnError() {
         let store = TrustStore(path: trustPath)
 

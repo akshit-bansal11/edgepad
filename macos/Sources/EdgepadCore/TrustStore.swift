@@ -20,6 +20,10 @@ public final class TrustStore {
     /// rather than stacking a second question on the first, which the owner could answer for the wrong phone.
     private var asking = false
 
+    /// Set when `forget()` could not delete the file. Until it really is gone every phone is refused, exactly as
+    /// for a file that cannot be read: the phone is still trusted on disk, and the owner believes it is not.
+    private var forgetFailed = false
+
     /// How long a phone the owner said no to is turned away unasked. Long enough that a phone's automatic
     /// retries cannot put the question straight back under the owner's cursor.
     public static let quietAfterDeclineSeconds: TimeInterval = 30
@@ -119,7 +123,10 @@ public final class TrustStore {
         locked { asking || isDeclined(address) || decided(address) == false }
     }
 
-    public func forget() {
+    /// True when the trust file is gone, deleted or never there. False when the delete failed: the phone is then
+    /// still trusted on disk, so every phone is refused, as for an unreadable file, until a later forget succeeds.
+    @discardableResult
+    public func forget() -> Bool {
         locked {
             unsaved = nil
             declined = nil
@@ -128,8 +135,12 @@ public final class TrustStore {
             } catch {
                 if !isAbsent(error) {
                     Log.write("The trusted phone could not be forgotten at \(path): \(error.localizedDescription)")
+                    forgetFailed = true
+                    return false
                 }
             }
+            forgetFailed = false
+            return true
         }
     }
 
@@ -163,8 +174,10 @@ public final class TrustStore {
 
     /// Readable is false when the file is there and could not be read: the caller must then refuse rather than
     /// guess. A nil address with readable true means nothing is trusted yet, which an absent file and a blank
-    /// one both mean: Forget deletes the file, and a blank one is the same intent written by hand.
+    /// one both mean: Forget deletes the file, and a blank one is the same intent written by hand. A forget that
+    /// could not delete the file is unreadable too, whatever the file now says.
     private func tryRead() -> (readable: Bool, address: String?) {
+        if forgetFailed { return (false, nil) }
         do {
             let text = try String(contentsOfFile: path, encoding: .utf8)
             let address = text.trimmingCharacters(in: .whitespacesAndNewlines)
