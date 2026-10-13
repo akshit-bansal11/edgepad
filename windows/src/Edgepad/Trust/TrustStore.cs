@@ -197,8 +197,11 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
             try
             {
                 File.Delete(path);
-                forgetFailed = false;
-                return true;
+            }
+            catch (DirectoryNotFoundException)
+            {
+                // Delete is silent about a missing file and not about a missing folder, which is the state
+                // before any phone was ever trusted. Nothing is there either way.
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
@@ -209,6 +212,9 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
                 forgetFailed = true;
                 return false;
             }
+
+            forgetFailed = false;
+            return true;
         }
     }
 
