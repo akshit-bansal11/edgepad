@@ -151,6 +151,7 @@ class MainActivity :
     private var started = false
     private var attempts = 0
     private var lostAt = 0L
+    private var connectedAt = 0L
     private var backCallback: Any? = null
 
     /** Paired devices of every kind in the list, not only the ones that say they are computers. */
@@ -942,6 +943,8 @@ class MainActivity :
         }
 
     private fun connectTo(address: String) {
+        // A tap starts a fresh set of attempts; onConnected no longer does, so a link that drops at once cannot.
+        attempts = 0
         val device = bonded().firstOrNull { it.address == address }
         if (device == null) picker.setMessage(getString(R.string.not_paired)) else connect(device)
     }
@@ -968,7 +971,7 @@ class MainActivity :
 
     override fun onConnected(link: LaptopLink) {
         if (link != this.link) return
-        attempts = 0
+        connectedAt = SystemClock.elapsedRealtime()
         picker.setConnecting(null)
         // The trust hint, if it was showing, has been answered.
         picker.setMessage("")
@@ -1025,6 +1028,8 @@ class MainActivity :
         picker.setConnecting(null)
         when {
             closure.cause == LaptopLink.Cause.ENDED -> {
+                // A link ended on purpose starts the next one with a full set of attempts.
+                attempts = 0
                 if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.KEYBOARD ||
                     screen == Screen.GAMEPAD || screen == Screen.MACROS
                 ) {
@@ -1039,8 +1044,9 @@ class MainActivity :
 
             // It was working and dropped on its own: say so and try to get it back.
             link.wasConnected -> {
-                lostAt = SystemClock.elapsedRealtime()
-                attempts = 0
+                val now = SystemClock.elapsedRealtime()
+                lostAt = now
+                if (now - connectedAt >= STABLE_LINK_MS) attempts = 0 else attempts++
                 goTo(Screen.RECONNECTING)
                 scheduleRetry(RETRY_DELAY_MS)
             }
@@ -1180,6 +1186,9 @@ class MainActivity :
         const val TICK_MS = 1_000L
         const val RETRY_DELAY_MS = 2_000L
         const val MAX_ATTEMPTS = 10
+
+        /** A link that lasted less than this did not really come back, so it does not earn a fresh set of attempts. */
+        const val STABLE_LINK_MS = 5_000L
         const val MILLIS_PER_SECOND = 1_000L
 
         /**

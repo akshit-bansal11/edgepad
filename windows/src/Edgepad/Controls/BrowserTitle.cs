@@ -12,6 +12,9 @@ namespace Edgepad.Controls;
 /// </summary>
 internal static partial class BrowserTitle
 {
+    // The title length comes from another process, so the stack buffer is capped; a service name sits well inside it.
+    private const int MaxTitleLength = 1024;
+
     private static readonly string[] Browsers = ["chrome", "msedge", "firefox", "brave", "opera", "vivaldi"];
 
     // Longer names first, so "YouTube Music" wins over "YouTube" and "Apple TV" over nothing at all.
@@ -108,7 +111,7 @@ internal static partial class BrowserTitle
             return 1;
         }
 
-        var length = GetWindowTextLengthW(window);
+        var length = Math.Min(GetWindowTextLengthW(window), MaxTitleLength);
         if (length > 0)
         {
             // A raw UTF-16 buffer: LibraryImport marshals a pointer with nothing to generate.

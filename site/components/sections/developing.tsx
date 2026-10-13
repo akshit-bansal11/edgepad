@@ -21,8 +21,12 @@ const LAYOUT: { path: string; what: string }[] = [
     what: "The laptop tray app. C# on .NET 10, WinForms for the tray, WinRT for Bluetooth and media, NAudio for volume, WMI for brightness, ViGEmBus for the virtual controller.",
   },
   {
+    path: "macos/",
+    what: "The Mac menu-bar app. Swift, AppKit, IOBluetooth for RFCOMM, CGEvent for input, Core Audio for volume and microphone. No third-party dependencies; Swift Package Manager, no Xcode project.",
+  },
+  {
     path: "protocol/",
-    what: "The wire format and the id tables as plain-text fixtures. Both test suites read them, so the two apps cannot drift apart.",
+    what: "The wire format and the id tables as plain-text fixtures. All three test suites read them, so the apps cannot drift apart.",
   },
   { path: "scripts/", what: "The quality gate and the release-key script." },
   { path: "docs/", what: "Architecture and protocol." },
@@ -200,16 +204,20 @@ export function DevelopingSections({ protocolVersion }: { protocolVersion: numbe
                 Windows 10 version 2004 or later, because the app builds against the
                 Windows SDK projection for Bluetooth.
               </li>
+              <li>
+                For the Mac app: a Mac with Xcode (Swift 5.9 or later). Its gate runs
+                only on a Mac.
+              </li>
             </ul>
           </div>
         </div>
 
         <Note label="Running the two against each other">
-          This needs a Windows machine and an Android phone already paired in Windows
-          Settings, and it is the one part of the repository that cannot be verified
-          from a pull request alone. Without both devices you cannot exercise the
-          Bluetooth handshake, trust-on-first-use, input injection, brightness or volume
-          control, or media-session reading.
+          This needs a Windows machine or a Mac and an Android phone already paired in
+          the laptop&apos;s Bluetooth settings, and it is the one part of the repository
+          that cannot be verified from a pull request alone. Without both devices you
+          cannot exercise the Bluetooth handshake, trust-on-first-use, input injection,
+          brightness or volume control, or media-session reading.
         </Note>
       </Section>
 
@@ -217,13 +225,14 @@ export function DevelopingSections({ protocolVersion }: { protocolVersion: numbe
         id="gate"
         eyebrow="Developing"
         title="The quality gate"
-        lede="One script checks both halves: format, lint, build, test. CI runs the same script in its non-mutating mode, so the local gate and CI cannot disagree."
+        lede="One script checks every half: format, lint, build, test. CI runs the same script in its non-mutating mode, so the local gate and CI cannot disagree."
       >
         <CodeBlock
           title="The gate"
           code={`pwsh scripts/check.ps1                  # formats in place, then checks everything
 pwsh scripts/check.ps1 -Only android    # ktlint, Android lint, unit tests
 pwsh scripts/check.ps1 -Only windows    # dotnet format, build, tests
+pwsh scripts/check.ps1 -Only macos      # swift format lint, build, tests; Mac only
 pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted code`}
           caption="It writes locally because fixing your formatting is useful. CI must not write to your branch, so it fails instead of quietly reformatting the pull request."
         />
@@ -266,6 +275,20 @@ pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted cod
                 dotnet build -warnaserror; dotnet test
               </TableCell>
             </TableRow>
+            <TableRow>
+              <TableCell className="font-mono text-[0.8125rem]">macos</TableCell>
+              <TableCell className="text-[0.875rem]">Swift formatting</TableCell>
+              <TableCell className="font-mono text-[0.8125rem]">
+                swift format lint --strict
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-mono text-[0.8125rem]">macos</TableCell>
+              <TableCell className="text-[0.875rem]">Build, then test</TableCell>
+              <TableCell className="font-mono text-[0.8125rem]">
+                swift build, warnings as errors; swift test
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
 
@@ -281,7 +304,8 @@ pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted cod
         <Sub>What CI does on top</Sub>
         <P>
           <C>.github/workflows/ci.yml</C> runs on every push to <C>main</C> and every
-          pull request, in two jobs: Android on <C>ubuntu-latest</C> with Temurin 17 and
+          pull request, in three jobs, the third being <C>macos</C>, which runs the Mac
+          gate. The first two: Android on <C>ubuntu-latest</C> with Temurin 17 and
           Gradle wrapper validation, Windows on <C>windows-latest</C> with the SDK from{" "}
           <C>global.json</C>. Each runs the gate in <C>-Ci</C> mode and then uploads an
           artifact — a debug APK and the self-contained exe.
@@ -311,6 +335,14 @@ pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted cod
         <CodeBlock
           title="Build only"
           code={`cd windows && dotnet build Edgepad.slnx -c Release`}
+        />
+
+        <Sub>Mac</Sub>
+        <CodeBlock
+          title="Run the menu-bar app, or build the app bundle"
+          code={`cd macos && swift run
+bash macos/bundle.sh 0.0.0-dev out`}
+          caption="swift run starts it unbundled. bundle.sh wraps the binary into Edgepad.app in the directory you name. It has not been run on a real Mac."
         />
 
         <Sub>Phone</Sub>
@@ -350,12 +382,13 @@ npm run check:ci   # the same, non-mutating`}
         id="tests"
         eyebrow="Developing"
         title="Tests"
-        lede="Both suites read the same fixtures. Neither sends real input, opens a real Bluetooth socket, or touches a device."
+        lede="All three suites read the same fixtures. None sends real input, opens a real Bluetooth socket, or touches a device."
       >
         <CodeBlock
           title="Run them"
           code={`cd android && ./gradlew testDebugUnitTest
-cd windows && dotnet test --solution Edgepad.slnx`}
+cd windows && dotnet test --solution Edgepad.slnx
+cd macos && swift test`}
         />
 
         <Sub>The fixture layer</Sub>
@@ -364,7 +397,8 @@ cd windows && dotnet test --solution Edgepad.slnx`}
           <C>protocol/actions.txt</C> the action, control and text-kind ids.{" "}
           <C>FrameFixtureTest</C> and <C>IdsFixtureTest</C> on the phone, and{" "}
           <C>FrameFixtureTests</C> and <C>IdsFixtureTests</C> on the laptop, parse those
-          same files at run time rather than copying them into either codebase.
+          same files at run time rather than copying them into either codebase; the Mac
+          suite in <C>macos/Tests/EdgepadCoreTests</C> reads them too.
         </P>
         <P>
           A protocol change therefore always touches a fixture file and both codecs in
@@ -394,6 +428,15 @@ cd windows && dotnet test --solution Edgepad.slnx`}
               The dispatcher&apos;s drop paths, input batching, trust on first use, the
               macro store, display modes, the level overlay, the media-session title
               mapping, and <C>VirtualPadTests</C>.
+            </p>
+          </div>
+          <div className="bg-card shadow-card rounded-[var(--radius-card)] p-5">
+            <p className="text-base font-bold">Mac</p>
+            <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
+              The stream reassembler, the key map, the dispatcher&apos;s drop paths and
+              action table, the trust store, the handshake and its refusals, and the
+              update-version parsing. Nothing that touches Bluetooth, CGEvent, Core
+              Audio or the display is tested, and none of it has run on a real Mac.
             </p>
           </div>
         </div>
@@ -435,10 +478,10 @@ git remote add upstream https://github.com/akshit-bansal11/edgepad.git`}
             then branch from it on your fork.
           </li>
           <li>
-            <strong className="text-foreground">Keep the two apps in step.</strong> A
+            <strong className="text-foreground">Keep the three apps in step.</strong> A
             protocol change edits <C>protocol/frames.txt</C> or{" "}
-            <C>protocol/actions.txt</C>, both codecs or both enums, and bumps the
-            protocol version on both sides — all in one commit.
+            <C>protocol/actions.txt</C>, all three codecs or enums, and bumps the
+            protocol version on every side — all in one commit.
           </li>
           <li>
             Add or change a test when you add logic or a branch, or fix a bug. Prefer
@@ -460,7 +503,7 @@ git remote add upstream https://github.com/akshit-bansal11/edgepad.git`}
           </li>
           <li>
             Push the branch to your fork and open a pull request against <C>main</C>{" "}
-            here. CI runs the same gate on both halves, and the site&apos;s gate when{" "}
+            here. CI runs the same gate on every half, and the site&apos;s gate when{" "}
             <C>site/</C> or <C>protocol/</C> changed. The maintainer reviews and merges.
           </li>
         </ol>
@@ -469,8 +512,8 @@ git remote add upstream https://github.com/akshit-bansal11/edgepad.git`}
         <ul className="text-dim max-w-[70ch] list-disc space-y-2 pl-5 text-[0.9375rem] leading-relaxed">
           <li>
             No UI libraries on the phone. No third-party packages on the laptop beyond
-            NAudio, <C>System.Management</C> and <C>Nefarius.ViGEm.Client</C>. A new
-            dependency needs a reason in the pull request.
+            NAudio, <C>System.Management</C> and <C>Nefarius.ViGEm.Client</C>, and none
+            at all on the Mac. A new dependency needs a reason in the pull request.
           </li>
           <li>Constants are named. A number that appears twice is a constant.</li>
           <li>Doc comments say why, not what the next line already says.</li>
@@ -511,7 +554,9 @@ git remote add upstream https://github.com/akshit-bansal11/edgepad.git`}
           several downloads on one phone or laptop can be told apart. The app&apos;s{" "}
           <C>versionName</C> comes from the release tag and its <C>versionCode</C> from
           a number that only increases, so an update always installs over the previous
-          one.
+          one. From 3.4.0 a release also carries <C>Edgepad-x.y.z-mac.zip</C>, built by{" "}
+          <C>macos/bundle.sh</C> and listed in <C>SHA256SUMS.txt</C> and the provenance
+          attestation.
         </P>
 
         <Note label="Release builds are signed">

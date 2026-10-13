@@ -37,7 +37,7 @@ After HELLO_ACK the laptop sends a STATE for volume, microphone and brightness, 
 
 `protocol/actions.txt` is the authoritative table; both enums are tested against it.
 
-| Action | Id | Laptop does |
+| Action | Id | Windows laptop does |
 | --- | --- | --- |
 | MUTE_TOGGLE | 1 | mute key |
 | PLAY_PAUSE | 2 | media play/pause key |
@@ -133,6 +133,34 @@ when it falls back to the keyboard. A token the phone does not know is read as `
 it cannot say why. Matching on the laptop's wording instead of on a token would make that wording part of the
 protocol and so unchangeable. The laptop also sends TEXT 8 once after the handshake, so a phone can hide the
 pad rather than offer a button that quietly does nothing.
+
+## On a Mac
+
+The protocol is unchanged: the Mac app speaks version 4 and the tables above are the whole of the wire format. What differs is what the Mac does with a frame.
+
+KEY still carries a Windows virtual-key code, and the Mac maps it by position: Win is Command, Ctrl is Control, Alt is Option. The Menu key has no Mac equivalent and is dropped and counted. Mute, volume and the media keys go out as the Mac's own media keys.
+
+| Action | A Mac does |
+| --- | --- |
+| MUTE_TOGGLE, VOLUME_UP, VOLUME_DOWN, PLAY_PAUSE, NEXT_TRACK, PREVIOUS_TRACK | the Mac's own media key |
+| MIC_MUTE_TOGGLE | toggles the default microphone's mute through Core Audio |
+| LOCK | Control+Command+Q |
+| TASK_VIEW | Mission Control (Control+Up) |
+| SHOW_DESKTOP | F11 |
+| SEARCH | Spotlight (Command+Space) |
+| NOTIFICATIONS | nothing: macOS has no default shortcut, so it is dropped and counted |
+| DESKTOP_LEFT, DESKTOP_RIGHT | Control+Left, Control+Right |
+| APP_SWITCH_BEGIN | holds Command and presses Tab |
+| APP_SWITCH_NEXT, APP_SWITCH_PREVIOUS | Tab, Shift+Tab, only while Command is held |
+| APP_SWITCH_END | releases Command |
+| ZOOM_RESET | Command+0 |
+| BRIGHTNESS_UP, BRIGHTNESS_DOWN | the panel's brightness, plus or minus 10; the brightness key where the panel cannot be read |
+| PAD_ATTACH, PAD_DETACH | nothing is plugged in; answered with TEXT 8 `no-driver` |
+| macro slots (64 to 95) | nothing: macros are not built on the Mac, so they are dropped and counted |
+
+ZOOM sums wheel units until a whole notch (120) is owed, then presses Command+plus or Command+minus once per notch. These are macOS's default shortcuts: if one was changed or switched off in System Settings > Keyboard > Keyboard Shortcuts, the gesture does whatever that shortcut now does, or nothing.
+
+Controls are as on Windows, with these exceptions. MEDIA_POSITION is dropped, because now playing is not built on the Mac. VOLUME and MIC_LEVEL go through Core Audio. BRIGHTNESS and REFRESH_RATE act on the display, and BRIGHTNESS needs a private framework that may be missing; see [ARCHITECTURE.md](ARCHITECTURE.md). The Mac sends TEXT 5 (the macro names) empty, so the phone's grid says there are none, and TEXT 8 is always `no-driver`. PAD_STATE is dropped, and TEXT 7 is ignored. STATE for volume, microphone and brightness is sent after the handshake and then whenever a poll, twice a second, finds a change.
 
 ## Versions
 

@@ -11,9 +11,22 @@ namespace Edgepad.Trust;
 /// as one would re-arm trust on first use and hand this laptop to whichever phone happened to connect
 /// while the file was locked. So a failed read refuses, and only a genuinely absent file admits.
 /// </summary>
-internal sealed class TrustStore(string path)
+internal sealed class TrustStore(string path, Func<long>? clock = null)
 {
+    /// <summary>
+    /// How long a phone the owner just said no to is turned away unasked. Long enough that a phone's automatic
+    /// retries cannot put the question straight back under the owner's cursor.
+    /// </summary>
+    private static readonly TimeSpan QuietAfterDecline = TimeSpan.FromSeconds(30);
+
     private readonly Lock gate = new();
+
+    // Milliseconds, from a clock that only moves forward; a test hands in its own.
+    private readonly Func<long> now = clock ?? (() => Environment.TickCount64);
+
+    // The phone the owner last said no to, and until when it is not asked about again.
+    private string? declined;
+    private long declinedUntil;
 
     // The phone admitted when its address could not be written down. Kept for this run so a failed save
     // narrows trust to that phone rather than leaving it open to whichever bonded device connects next.
@@ -23,8 +36,15 @@ internal sealed class TrustStore(string path)
     // rather than stacking a second question on the first, which the owner could answer for the wrong phone.
     private bool asking;
 
+    // Set when Forget could not delete the file. Until it really is gone every phone is refused, exactly as for
+    // a file that cannot be read: the phone is still trusted on disk, and the owner believes it is not.
+    private bool forgetFailed;
+
     public static TrustStore ForCurrentUser() => new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "trusted-phone.txt"));
+
+    /// <summary>Where the trusted phone is kept, for a message that has to send the owner there.</summary>
+    public string FilePath => path;
 
     /// <summary>The trusted address, or null when there is none or it cannot be read.</summary>
     public string? Trusted
@@ -53,6 +73,11 @@ internal sealed class TrustStore(string path)
                 return known;
             }
 
+            if (IsDeclined(address))
+            {
+                return false;
+            }
+
             if (asking)
             {
                 return false;
@@ -76,6 +101,12 @@ internal sealed class TrustStore(string path)
 
         if (!yes)
         {
+            lock (gate)
+            {
+                declined = address;
+                declinedUntil = now() + (long)QuietAfterDecline.TotalMilliseconds;
+            }
+
             return false;
         }
 
@@ -122,45 +153,100 @@ internal sealed class TrustStore(string path)
         return trusted is null ? null : string.Equals(trusted, address, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>Whether the owner said no to <paramref name="address"/> recently. Called under the lock.</summary>
+    private bool IsDeclined(string address) =>
+        declined is not null && now() < declinedUntil && string.Equals(declined, address, StringComparison.OrdinalIgnoreCase);
+
     /// <summary>
-    /// True when <paramref name="address"/> is certain to be refused: another phone is trusted, or the trust
-    /// file cannot be read. Checked before a new connection may displace the current one; unlike
+    /// True when <paramref name="address"/> is certain to be refused: another phone is trusted, the trust
+    /// file cannot be read, or the owner is being asked about a phone right now. A connection arriving during
+    /// the question, or from a phone the owner just declined, is turned away without disturbing the phone
+    /// being asked about. Checked before a new connection may displace the current one; unlike
     /// <see cref="Admit"/> it never grants trust.
     /// </summary>
     public bool Refuses(string address)
     {
         lock (gate)
         {
-            return Decided(address) == false;
+            return asking || IsDeclined(address) || Decided(address) == false;
         }
     }
 
-    public void Forget()
+    /// <summary>
+    /// True when there is something for Forget to clear: a trusted phone, or a trust file that cannot be read,
+    /// which refuses every phone until it is removed.
+    /// </summary>
+    public bool CanForget
     {
-        lock (gate)
+        get
         {
-            unsaved = null;
-            try
+            lock (gate)
             {
-                File.Delete(path);
-            }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-            {
-                // This runs from a click on a tray menu item, where an unhandled exception ends the
-                // process. The menu item failing to do its one job is not worth the app.
-                Log.Write($"The trusted phone could not be forgotten at {path}: {e.Message}");
+                return !TryRead(out var trusted) || (trusted ?? unsaved) is not null;
             }
         }
     }
 
     /// <summary>
-    /// False when the file is there and could not be read — the caller must then refuse rather than guess.
+    /// True when the phone is forgotten: the trust file is gone (deleted or never there) or, when it could not be
+    /// deleted, emptied, which reads the same. False when neither worked: the phone is then still named on disk,
+    /// so every phone is refused for this run, as for an unreadable file, until a later Forget succeeds, and that
+    /// phone would be trusted again after a restart.
+    /// </summary>
+    public bool Forget()
+    {
+        lock (gate)
+        {
+            unsaved = null;
+            declined = null;
+            try
+            {
+                File.Delete(path);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                // Delete is silent about a missing file and not about a missing folder, which is the state
+                // before any phone was ever trusted. Nothing is there either way.
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // This runs from a click on a tray menu item, where an unhandled exception ends the
+                // process. The menu item failing to do its one job is not worth the app, but pretending it
+                // worked would leave a phone trusted that the owner believes is forgotten. A blank file already
+                // means nothing is trusted, and emptying needs different rights from deleting (a handle that
+                // allows writing but not deleting, say), so that is tried before giving up.
+                try
+                {
+                    File.WriteAllText(path, "");
+                    Log.Write($"The trusted phone's file could not be deleted at {path} and was emptied instead: {e.Message}");
+                }
+                catch (Exception emptyError) when (emptyError is IOException or UnauthorizedAccessException)
+                {
+                    Log.Write($"The trusted phone could not be forgotten at {path}: {e.Message}");
+                    forgetFailed = true;
+                    return false;
+                }
+            }
+
+            forgetFailed = false;
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// False when the file is there and could not be read, or a Forget could not delete it — the caller must
+    /// then refuse rather than guess.
     /// True with a null address means nothing is trusted yet, which is what an absent file and a blank one
     /// both mean: Forget deletes the file, and a blank one is the same intent written by hand.
     /// </summary>
     private bool TryRead(out string? trusted)
     {
         trusted = null;
+        if (forgetFailed)
+        {
+            return false;
+        }
+
         try
         {
             trusted = File.ReadAllText(path).Trim() is { Length: > 0 } address ? address : null;

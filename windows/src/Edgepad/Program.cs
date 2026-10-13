@@ -1,5 +1,9 @@
 using Edgepad.Startup;
 
+// Every native library this app imports is a Windows system DLL. Searching System32 only means a look-alike
+// dropped beside the exe, in Downloads say, is never loaded in its place.
+[assembly: System.Runtime.InteropServices.DefaultDllImportSearchPaths(System.Runtime.InteropServices.DllImportSearchPath.System32)]
+
 namespace Edgepad;
 
 internal static class Program

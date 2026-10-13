@@ -1,14 +1,16 @@
-# The quality gate, for both halves of the repo, in one place.
+# The quality gate, for every app in the repo, in one place.
 #
-#   pwsh scripts/check.ps1            writes: formats Kotlin and C# in place, then checks
+#   pwsh scripts/check.ps1            writes: formats Kotlin, C# and Swift in place, then checks
 #   pwsh scripts/check.ps1 -Ci        non-mutating twin: fails on unformatted code instead of fixing it
-#   pwsh scripts/check.ps1 -Only android|windows
+#   pwsh scripts/check.ps1 -Only android|windows|macos
+#
+# The Mac app's gate needs Swift, so it runs on a Mac only: a plain run on Windows or Linux leaves it to CI.
 #
 # CI runs this same script with -Ci, so the local gate and CI cannot disagree.
 
 param(
     [switch]$Ci,
-    [ValidateSet('all', 'android', 'windows')]
+    [ValidateSet('all', 'android', 'windows', 'macos')]
     [string]$Only = 'all'
 )
 
@@ -44,6 +46,24 @@ if ($Only -in 'all', 'windows') {
         }
         Invoke-Step 'windows: build' { dotnet build Edgepad.slnx -c Release -warnaserror }
         Invoke-Step 'windows: test' { dotnet test --solution Edgepad.slnx -c Release --no-build }
+    }
+    finally { Pop-Location }
+}
+
+if ($Only -eq 'macos' -and -not $IsMacOS) {
+    throw 'The macos gate needs a Mac: it builds against AppKit and IOBluetooth. CI runs it on every push.'
+}
+
+if ($Only -eq 'macos' -or ($Only -eq 'all' -and $IsMacOS)) {
+    Push-Location (Join-Path $root 'macos')
+    try {
+        $sources = 'Sources', 'Tests', 'Package.swift'
+        if (-not $Ci) {
+            Invoke-Step 'macos: format' { swift format format --in-place --recursive @sources }
+        }
+        Invoke-Step 'macos: lint' { swift format lint --strict --recursive @sources }
+        Invoke-Step 'macos: build' { swift build -Xswiftc -warnings-as-errors }
+        Invoke-Step 'macos: test' { swift test -Xswiftc -warnings-as-errors }
     }
     finally { Pop-Location }
 }

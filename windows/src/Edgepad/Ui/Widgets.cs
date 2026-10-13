@@ -213,9 +213,12 @@ internal sealed class Framed : Panel
     }
 }
 
-/// <summary>A faint rounded tile holding a picture: the icon field's preview, and the empty state's badge.</summary>
+/// <summary>A faint rounded tile holding a picture: the icon field's preview.</summary>
 internal sealed class Tile : Control
 {
+    // The picture's share of the tile: 24 of 36.
+    private const float PictureShare = 24f / 36f;
+
     private readonly Palette palette;
 
     public Tile(Palette palette)
@@ -226,7 +229,7 @@ internal sealed class Tile : Control
         TabStop = false;
     }
 
-    /// <summary>A picture to show, which wins over <see cref="Glyph"/>. Not owned: the caller disposes it.</summary>
+    /// <summary>A picture to show. Not owned: the caller disposes it.</summary>
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public Image? Picture
     {
@@ -238,13 +241,6 @@ internal sealed class Tile : Control
         }
     }
 
-    /// <summary>A line icon to show when there is no picture.</summary>
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public string? Glyph { get; init; }
-
-    /// <summary>The picture's share of the tile: 24 of 36 in the icon field, 22 of 48 in the empty state.</summary>
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public float Share { get; init; } = 24f / 36f;
 
     protected override void OnPaint(PaintEventArgs e)
     {
@@ -259,15 +255,10 @@ internal sealed class Tile : Control
             graphics.FillPath(faint, shape);
         }
 
-        var size = Width * Share;
-        var box = new RectangleF((Width - size) / 2, (Height - size) / 2, size, size);
         if (Picture is not null)
         {
-            graphics.DrawImage(Picture, box);
-        }
-        else if (Glyph is not null)
-        {
-            Icons.Draw(graphics, Glyph, box, palette.Ink);
+            var size = Width * PictureShare;
+            graphics.DrawImage(Picture, new RectangleF((Width - size) / 2, (Height - size) / 2, size, size));
         }
     }
 }

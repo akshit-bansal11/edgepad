@@ -594,21 +594,6 @@ class Ui(
             if (end != null) addView(end)
         }
 
-    /** A bold name over a secondary sub-line. */
-    fun stack(
-        title: CharSequence,
-        sub: CharSequence?,
-        titleSp: Float = Type.BODY,
-    ): LinearLayout =
-        LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(0, dp(Space.M), 0, dp(Space.M))
-            addView(text(title, titleSp, palette.ink, face = Type.bold))
-            if (!sub.isNullOrEmpty()) {
-                addView(secondary(sub, Type.SMALL, palette.dim).apply { setPadding(0, dp(Space.SUB_GAP), 0, 0) })
-            }
-        }
-
     /** A separator between two rows in a card. */
     fun hairline(): View = View(context).apply { setBackgroundColor(palette.line) }
 

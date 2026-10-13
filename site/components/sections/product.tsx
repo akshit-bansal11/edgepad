@@ -78,8 +78,8 @@ export function ProductSections() {
         lede={
           <>
             Edgepad turns an Android phone into a trackpad, a media remote and a control
-            panel for a Windows laptop, over a direct Bluetooth link with nothing in
-            between.
+            panel for a Windows laptop or a Mac, over a direct Bluetooth link with
+            nothing in between.
           </>
         }
       >
@@ -233,6 +233,27 @@ export function ProductSections() {
                 while Edgepad is running is noticed on the next reconnect.
               </p>
             </Note>
+            <Note label="On a Mac">
+              <p className="mb-3">
+                macOS 13 or later, one download for Apple Silicon and Intel:{" "}
+                <C>Edgepad-x.y.z-mac.zip</C>, which holds <C>Edgepad.app</C>. Move it to
+                Applications and open it. It is not notarised, so macOS refuses it at
+                first: choose <strong className="text-foreground">Open Anyway</strong>{" "}
+                under System Settings &gt; Privacy &amp; Security.
+              </p>
+              <p className="mb-3">
+                It lives in the menu bar and asks for Bluetooth and for Accessibility,
+                without which macOS silently discards every pointer move and key press
+                the app sends. The signature is ad hoc, so macOS treats each new version
+                as a different app and Accessibility has to be granted again after an
+                update.
+              </p>
+              <p>
+                The Mac app has been compiled and unit-tested in CI but not yet run on a
+                real Mac, and it has no macros, now playing or virtual controller yet.
+                The README lists what differs.
+              </p>
+            </Note>
           </TabsContent>
 
           <TabsContent value="android" className="space-y-4">
@@ -273,12 +294,14 @@ export function ProductSections() {
             <strong className="text-foreground">
               Settings &gt; Bluetooth &amp; devices
             </strong>
-            . Edgepad has no pairing step of its own.
+            or macOS{" "}
+            <strong className="text-foreground">System Settings &gt; Bluetooth</strong>.
+            Edgepad has no pairing step of its own.
           </li>
           <li>
-            Keep Edgepad running in the laptop&apos;s tray. It must already be running
-            before the phone tries to connect: there is no discovery or retry on the
-            laptop side.
+            Keep Edgepad running in the laptop&apos;s tray, or on a Mac in the menu bar.
+            It must already be running before the phone tries to connect: there is no
+            discovery or retry on the laptop side.
           </li>
           <li>
             Open Edgepad on the phone and tap the laptop. The first time, the laptop
@@ -286,7 +309,7 @@ export function ProductSections() {
             Trust there. That phone becomes the laptop&apos;s trusted phone, and any
             other paired phone is refused until you choose{" "}
             <strong className="text-foreground">Forget trusted phone</strong> in the
-            tray menu.
+            tray or menu-bar menu.
           </li>
           <li>
             The phone remembers the laptop and reconnects when the app opens. If the
@@ -495,7 +518,9 @@ export function ProductSections() {
           title="Laptop files"
           code={`%APPDATA%\\Edgepad\\trusted-phone.txt   the trusted phone's Bluetooth address
 %LOCALAPPDATA%\\Edgepad\\edgepad.log    connections, refusals, dropped frames,
-                                      and input batches Windows refused`}
+                                      and input batches Windows refused
+~/Library/Application Support/Edgepad/trusted-phone.txt   the same, on a Mac
+~/Library/Logs/Edgepad/edgepad.log                        the log, on a Mac`}
           caption="The log is also in the tray menu, under Open log."
         />
       </Section>

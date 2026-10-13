@@ -4,9 +4,34 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-10-12
+
+The wire protocol stays at version 4, so any 3.x half still speaks to any other. This release adds a laptop app for the Mac and closes what a security review of all three apps found; as always, install both halves from the same release.
+
 ### Added
 
+- **A Mac app.** A menu-bar app for macOS 13 or later, one download for Apple Silicon and Intel: `Edgepad-<version>-mac.zip` holds `Edgepad.app`. It is Swift with no third-party dependencies, built by Swift Package Manager (`macos/`), and uses IOBluetooth, CGEvent and Core Audio. Pointer, click, drag, scroll, typing, the on-screen keyboard, the dials for volume, microphone, brightness and refresh rate, the media keys and lock work as on Windows; the keyboard maps Win, Ctrl and Alt to Command, Control and Option, and the actions use macOS's default shortcuts. It needs the Bluetooth and Accessibility permissions, and Accessibility has to be granted again after each update. It is ad hoc signed and not notarised, so macOS refuses it on first launch until you choose Open Anyway. It asks before trusting a phone, as the Windows app does, and checks itself that a connecting device is paired and on an encrypted link. It does not have macros, now playing, the on-screen level readout or the virtual game controller yet. It has been compiled and unit-tested in CI but not yet run on a real Mac.
+- **A third codec held to the fixtures, and a `macos` CI job.** The Mac suite reads the same `protocol/frames.txt` and `protocol/actions.txt` as the other two. CI runs `pwsh scripts/check.ps1 -Only macos` on a Mac, and the release builds the zip and lists it in `SHA256SUMS.txt` and the provenance attestation.
 - **A way to support the project.** The README has a Support section with the maintainer's Ko-fi page, PayPal link and UPI ID, and the repository shows a Sponsor button for all three.
+
+### Changed
+
+- **Forget trusted phone hangs up.** On Windows, forgetting used to leave a connected phone connected until its link next dropped. On both laptops it now hangs up on the connected phone and takes no connection while the confirmation is open, since a connected phone could otherwise answer it, and after a yes refuses every connection for 30 seconds. A phone you keep reconnects by itself if its retries have not run out.
+- **A phone you said no to, or left unanswered, is not asked about again for 30 seconds,** so its automatic retries cannot put the question straight back on screen.
+- The phone app opts out of Android backup outright and runs as a single task.
+
+### Fixed
+
+- **A second connection could leave the wrong trust question on screen.** On Windows, a connection arriving while the laptop asked about one phone closed that phone's link and left its question up, still able to trust it. A connection during the question is now refused without disturbing the phone being asked about.
+- **A Forget that could not remove the trust file said nothing,** and the phone stayed trusted. The laptop now empties the file when it cannot delete it; when it can do neither it says so, names the file, and refuses every phone for as long as it stays running.
+- **Forget trusted phone was greyed out when the trust file could not be read,** the one state in which every phone is refused and Forget is the way out.
+- **A tapped modifier could stay held on the laptop.** Tapping Ctrl, Shift, Alt or Menu on the phone's keyboard, pressing a key and having the touch cancelled, by a system gesture or by leaving the app, left the modifier down.
+- **Quitting the Windows app mid-gesture could leave Alt or a mouse button held.** It now waits a moment for the session to release what it held.
+- A laptop that accepted the phone and dropped it at once made the phone retry every two seconds without end; short-lived links now count toward the retry limit.
+- The Windows app no longer loads a native library from the folder it was run from, bounds the browser title it reads from another process, and ends one session rather than the app when a device API fails unexpectedly.
+- The Mac app refuses a device that reports no address, bounds what an untrusted phone can send while the question is open, retries when Bluetooth was not ready at launch, and tells macOS it is latency-sensitive while a phone is connected.
+- A failed update install on the phone can no longer end the app.
+- The Mac build refuses a version string that is not a version, and `.gitignore` covers `.secrets/` and key files.
 
 ## [3.3.0] - 2026-10-01
 
@@ -728,7 +753,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.3.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.4.0...HEAD
+[3.4.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.0...v3.1.1

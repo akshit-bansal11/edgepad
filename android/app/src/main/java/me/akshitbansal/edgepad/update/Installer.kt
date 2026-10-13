@@ -64,6 +64,9 @@ object Installer {
             } catch (e: IOException) {
                 session.abandon()
                 throw e
+            } catch (e: RuntimeException) {
+                session.abandon()
+                throw e
             } finally {
                 session.close()
             }
@@ -72,6 +75,11 @@ object Installer {
             false
         } catch (e: SecurityException) {
             Log.w(TAG, "The system refused the install session", e)
+            false
+        } catch (e: RuntimeException) {
+            // A platform failure nobody listed. It escaped the update thread and ended the app; one lost
+            // update attempt is the most it should cost.
+            Log.w(TAG, "The install session failed", e)
             false
         }
     }

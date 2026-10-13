@@ -1,0 +1,245 @@
+import Foundation
+
+/// Trust on first use, with the owner's say-so. Pairing already limits connections to bonded devices; this
+/// narrows it to one phone, so some other paired device cannot drive the Mac. The first phone to complete the
+/// handshake while nothing is trusted is not taken on its word: the owner is asked, on the Mac, and only a yes
+/// writes it down. Forget clears it, and the next phone is asked about in turn.
+///
+/// Reading is the guard that matters: a file that is there and cannot be read is not the same as no file, and
+/// treating it as one would re-arm trust on first use and hand this Mac to whichever phone connected while
+/// the file was unreadable. So a failed read refuses, and only a genuinely absent file admits.
+public final class TrustStore {
+    private let path: String
+    private let gate = NSLock()
+
+    /// The phone admitted when its address could not be written down. Kept for this run so a failed save
+    /// narrows trust to that phone rather than leaving it open to whichever bonded device connects next.
+    private var unsaved: String?
+
+    /// Set while the owner is being asked about one phone. A second phone arriving then is refused unasked
+    /// rather than stacking a second question on the first, which the owner could answer for the wrong phone.
+    private var asking = false
+
+    /// Set when `forget()` could not delete the file. Until it really is gone every phone is refused, exactly as
+    /// for a file that cannot be read: the phone is still trusted on disk, and the owner believes it is not.
+    private var forgetFailed = false
+
+    /// How long a phone the owner said no to is turned away unasked. Long enough that a phone's automatic
+    /// retries cannot put the question straight back under the owner's cursor.
+    public static let quietAfterDeclineSeconds: TimeInterval = 30
+
+    /// The phone the owner last declined, and the time the quiet period ends. A paired device could otherwise
+    /// raise the modal question again the instant it is answered, for ever.
+    private var declined: (address: String, until: TimeInterval)?
+
+    /// Uptime, not the wall clock, so a clock stepped backwards cannot stretch the quiet period.
+    private let now: () -> TimeInterval
+
+    public init(path: String, now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }) {
+        self.path = path
+        self.now = now
+    }
+
+    public static func forCurrentUser() -> TrustStore {
+        let support =
+            FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?.path
+            ?? NSHomeDirectory() + "/Library/Application Support"
+        return TrustStore(path: support + "/Edgepad/trusted-phone.txt")
+    }
+
+    /// Where the trusted phone is kept, for a message that has to send the owner there.
+    public var filePath: String { path }
+
+    /// The trusted address, or nil when there is none or it cannot be read.
+    public var trusted: String? {
+        locked {
+            let read = tryRead()
+            return read.readable ? read.address ?? unsaved : nil
+        }
+    }
+
+    /// True when there is something for Forget to clear: a trusted phone, or a trust file that cannot be read,
+    /// which refuses every phone until it is removed.
+    public var canForget: Bool {
+        locked {
+            let read = tryRead()
+            return !read.readable || (read.address ?? unsaved) != nil
+        }
+    }
+
+    /// True when `address` may connect. While nothing is trusted, `ask` puts the question to the owner and a
+    /// yes is remembered; otherwise it is never called. It blocks for as long as the owner takes, so it runs
+    /// outside the lock: the menu reads `trusted` on the very thread that is showing the question, and would
+    /// otherwise wait on its own answer.
+    public func admit(_ address: String, ask: () -> Bool) -> Bool {
+        let early: Bool? = locked {
+            if let known = decided(address) {
+                return known
+            }
+            if isDeclined(address) {
+                return false
+            }
+            if asking {
+                return false
+            }
+            asking = true
+            return nil
+        }
+        if let early {
+            return early
+        }
+
+        let yes = ask()
+        locked {
+            asking = false
+            if !yes {
+                declined = (address, now() + TrustStore.quietAfterDeclineSeconds)
+            }
+        }
+        if !yes {
+            return false
+        }
+
+        return locked {
+            // Settled again after the wait: a file edited by hand in that minute is still the one that counts.
+            if let settled = decided(address) {
+                return settled
+            }
+            do {
+                try save(address)
+            } catch {
+                // Admitted anyway, and remembered until the app quits. Refusing the owner's own phone because
+                // the disk is full would be a worse answer than forgetting it at the next start.
+                unsaved = address
+                Log.write("The trusted phone could not be saved to \(path): \(error.localizedDescription)")
+            }
+            return true
+        }
+    }
+
+    /// True when `address` is certain to be refused: another phone is trusted, the trust file cannot be read, or
+    /// the owner is being asked about a phone right now. A connection that arrives during the question is turned
+    /// away without disturbing the phone being asked about, and may try again once the question is answered.
+    /// So is a phone the owner just declined. Checked before a new connection may displace the current one;
+    /// unlike `admit` it never grants trust.
+    public func refuses(_ address: String) -> Bool {
+        locked { asking || isDeclined(address) || decided(address) == false }
+    }
+
+    /// True when the phone is forgotten: the trust file is gone (deleted or never there) or, when it could not be
+    /// deleted, emptied, which reads the same. False when neither worked: the phone is then still named on disk, so
+    /// every phone is refused for this run, as for an unreadable file, until a later forget succeeds, and that
+    /// phone would be trusted again after a restart.
+    @discardableResult
+    public func forget() -> Bool {
+        locked {
+            unsaved = nil
+            declined = nil
+            do {
+                try FileManager.default.removeItem(atPath: path)
+            } catch let deleteError {
+                if !isAbsent(deleteError) {
+                    // A blank file already means nothing is trusted, and emptying needs different rights from
+                    // deleting. It is done in place: an atomic write would need the directory permission the
+                    // delete just lacked.
+                    do {
+                        guard let handle = FileHandle(forWritingAtPath: path) else {
+                            throw CocoaError(.fileWriteUnknown)
+                        }
+                        try handle.truncate(atOffset: 0)
+                        try handle.close()
+                        Log.write(
+                            "The trusted phone's file could not be deleted at \(path) and was emptied instead: "
+                                + deleteError.localizedDescription)
+                    } catch {
+                        Log.write(
+                            "The trusted phone could not be forgotten at \(path): \(deleteError.localizedDescription)")
+                        forgetFailed = true
+                        return false
+                    }
+                }
+            }
+            forgetFailed = false
+            return true
+        }
+    }
+
+    private func locked<T>(_ body: () -> T) -> T {
+        gate.lock()
+        defer { gate.unlock() }
+        return body()
+    }
+
+    /// Whether `address` is the phone declined within the quiet period. Called under the lock.
+    private func isDeclined(_ address: String) -> Bool {
+        guard let declined, now() < declined.until else { return false }
+        return declined.address.caseInsensitiveCompare(address) == .orderedSame
+    }
+
+    /// Whether `address` is admitted without asking: true for the trusted phone, false for any other and for a
+    /// trust file that cannot be read, nil when nothing is trusted yet. Called under the lock.
+    private func decided(_ address: String) -> Bool? {
+        let read = tryRead()
+        if !read.readable {
+            // Fail closed. The phone sees a refusal, the log says why, and Forget is the way out; the
+            // alternative is a Mac that quietly re-pairs itself whenever its own trust file is unreadable,
+            // which is the single thing this class exists to prevent.
+            return false
+        }
+        guard let trusted = read.address ?? unsaved else {
+            return nil
+        }
+        return trusted.caseInsensitiveCompare(address) == .orderedSame
+    }
+
+    /// Readable is false when the file is there and could not be read: the caller must then refuse rather than
+    /// guess. A nil address with readable true means nothing is trusted yet, which an absent file and a blank
+    /// one both mean: Forget deletes the file, and a blank one is the same intent written by hand. A forget that
+    /// could not delete the file is unreadable too, whatever the file now says.
+    private func tryRead() -> (readable: Bool, address: String?) {
+        if forgetFailed { return (false, nil) }
+        do {
+            let text = try String(contentsOfFile: path, encoding: .utf8)
+            let address = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            return (true, address.isEmpty ? nil : address)
+        } catch {
+            if isAbsent(error) {
+                return (true, nil)
+            }
+            Log.write("The trusted phone could not be read from \(path): \(error.localizedDescription)")
+            return (false, nil)
+        }
+    }
+
+    /// Whether `error` says the file is genuinely not there, as opposed to there and unreadable. The thrown
+    /// error decides first; stat settles what Foundation reports vaguely, such as a folder that is really a file.
+    private func isAbsent(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        if nsError.domain == NSCocoaErrorDomain && nsError.code == NSFileReadNoSuchFileError {
+            return true
+        }
+        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError,
+            underlying.domain == NSPOSIXErrorDomain,
+            underlying.code == Int(ENOENT) || underlying.code == Int(ENOTDIR)
+        {
+            return true
+        }
+        var info = stat()
+        return stat(path, &info) != 0 && (errno == ENOENT || errno == ENOTDIR)
+    }
+
+    /// The directory is private to the user and so is the file: the address says which device may drive this Mac.
+    private func save(_ address: String) throws {
+        let manager = FileManager.default
+        let directory = (path as NSString).deletingLastPathComponent
+        try manager.createDirectory(
+            atPath: directory.isEmpty ? "." : directory,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: 0o700]
+        )
+        guard manager.createFile(atPath: path, contents: Data(address.utf8), attributes: [.posixPermissions: 0o600])
+        else {
+            throw CocoaError(.fileWriteUnknown)
+        }
+    }
+}

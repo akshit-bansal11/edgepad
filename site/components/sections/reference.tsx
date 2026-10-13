@@ -218,6 +218,16 @@ const LIMITS: Limit[] = [
     kind: "accepted",
   },
   {
+    title: "The Mac app is ad hoc signed and not notarised",
+    body: "The project has no Apple Developer ID, so macOS refuses the app on first launch until you choose Open Anyway, and treats every new version as a different app, so Accessibility has to be granted again after each update. Check the zip against SHA256SUMS.txt.",
+    kind: "accepted",
+  },
+  {
+    title: "The Mac app has not been run on a real Mac",
+    body: "It has been compiled and unit-tested in CI. Nothing that touches Bluetooth, input injection, audio or the display has been exercised on hardware, and it has no macros, now playing, level readout or virtual controller yet.",
+    kind: "accepted",
+  },
+  {
     title: "Artifact sizes",
     body: "Edgepad.exe is about 58.5 MB as a compressed single file, down from roughly 143 MB uncompressed. Edgepad.apk is about 2.3 MB with R8 off, mostly the Kotlin standard library. Follow-ups, not defects.",
     kind: "accepted",
@@ -403,8 +413,9 @@ export function ReferenceSections() {
             supplied.
           </li>
           <li>
-            The laptop app depends on NAudio (for volume, MIT), <C>System.Management</C>{" "}
-            (for WMI brightness) and{" "}
+            The Mac app has no third-party dependencies. The Windows laptop app depends
+            on NAudio (for volume, MIT), <C>System.Management</C> (for WMI brightness)
+            and{" "}
             <ExternalLink href="https://github.com/nefarius/ViGEm.NET">
               Nefarius.ViGEm.Client
             </ExternalLink>{" "}

@@ -28,6 +28,12 @@ internal sealed class TrayContext : ApplicationContext
     /// </summary>
     private static readonly TimeSpan TrustPromptTimeout = TimeSpan.FromSeconds(60);
 
+    /// <summary>
+    /// How long after a Forget every connection is refused. It outlasts the phone's own automatic retries, so
+    /// the trust question can only come back from someone deliberately choosing this laptop on the phone.
+    /// </summary>
+    private static readonly TimeSpan QuietAfterForget = TimeSpan.FromSeconds(30);
+
     private readonly MenuRow startWithWindows = new("Start with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new("Macros…", Icons.Macro);
     private readonly MenuRow forget = new("Forget trusted phone", Icons.Unlink) { Danger = true };
@@ -46,6 +52,10 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MacroStore macros = MacroStore.ForCurrentUser();
     private readonly LevelOverlay overlay;
     private readonly RfcommServer server;
+
+    // The menu stays clickable under the confirmation, and a second one would lift the hold while the first was
+    // still open. All of this runs on the UI thread, so a plain bool is enough.
+    private bool forgetting;
 
     public TrayContext(EventWaitHandle quit)
     {
@@ -72,7 +82,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Opening += (_, _) =>
         {
             startWithWindows.Checked = RunAtLogin.IsEnabled;
-            forget.Enabled = trust.Trusted is not null;
+            forget.Enabled = trust.CanForget;
             macrosRow.Hint = $"{macros.Macros.Count} of {MacroStore.MaxMacros}";
             menu.Restyle();
         };
@@ -252,20 +262,58 @@ internal sealed class TrayContext : ApplicationContext
 
     /// <summary>
     /// Forgets the trusted phone once the owner says so. Asked first because the menu cannot undo it: every
-    /// phone after it has to be trusted again, the one just forgotten included.
+    /// phone after it has to be trusted again, the one just forgotten included. Connections are refused while the
+    /// question is open; a yes forgets and keeps refusing for the quiet period, and anything else takes
+    /// connections again. If the trust file cannot be removed the owner is told, and the store refuses every
+    /// phone until a later Forget succeeds.
     /// </summary>
     private void ConfirmForget()
     {
-        var answer = MessageBox.Show(
-            $"Forget {trust.Trusted ?? "the trusted phone"}? The next phone to connect, this one included, will not "
-                + "be able to use this laptop until you trust it here.",
-            "Edgepad",
-            MessageBoxButtons.YesNo,
-            MessageBoxIcon.Warning,
-            MessageBoxDefaultButton.Button2);
-        if (answer == DialogResult.Yes)
+        if (forgetting)
         {
-            trust.Forget();
+            return;
+        }
+
+        forgetting = true;
+
+        // A connected phone is a keyboard: it could press Enter on this confirmation, where No is the default,
+        // and so keep the owner from ever forgetting it. Hanging up is not enough, since the phone is still trusted
+        // and reconnects within seconds, so nothing may connect until the question is answered.
+        server.HoldOff();
+        try
+        {
+            var answer = MessageBox.Show(
+                $"Forget {trust.Trusted ?? "the trusted phone"}? The next phone to connect, this one included, will not "
+                    + "be able to use this laptop until you trust it here.",
+                "Edgepad",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning,
+                MessageBoxDefaultButton.Button2);
+            if (answer != DialogResult.Yes)
+            {
+                return;
+            }
+
+            var forgotten = trust.Forget();
+
+            // Started before the hold ends, so there is no instant in which a connection would be taken.
+            server.HangUp(QuietAfterForget);
+            if (!forgotten)
+            {
+                MessageBox.Show(
+                    "The trusted phone could not be forgotten: its file could not be removed or emptied. No phone can "
+                        + "connect while Edgepad stays running, but that phone will be trusted again the next time "
+                        + "Edgepad starts. Close whatever is holding the file and choose Forget trusted phone again, "
+                        + $"or delete it yourself:\n\n{trust.FilePath}",
+                    "Edgepad",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+        finally
+        {
+            server.Resume();
+            forgetting = false;
         }
     }
 
