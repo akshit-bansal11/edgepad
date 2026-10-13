@@ -43,6 +43,9 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
     public static TrustStore ForCurrentUser() => new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "trusted-phone.txt"));
 
+    /// <summary>Where the trusted phone is kept, for a message that has to send the owner there.</summary>
+    public string FilePath => path;
+
     /// <summary>The trusted address, or null when there is none or it cannot be read.</summary>
     public string? Trusted
     {
@@ -185,8 +188,10 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
     }
 
     /// <summary>
-    /// True when the trust file is gone, deleted or never there. False when the delete failed: the phone is then
-    /// still trusted on disk, so every phone is refused, as for an unreadable file, until a later Forget succeeds.
+    /// True when the phone is forgotten: the trust file is gone (deleted or never there) or, when it could not be
+    /// deleted, emptied, which reads the same. False when neither worked: the phone is then still named on disk,
+    /// so every phone is refused for this run, as for an unreadable file, until a later Forget succeeds, and that
+    /// phone would be trusted again after a restart.
     /// </summary>
     public bool Forget()
     {
@@ -207,10 +212,20 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
             {
                 // This runs from a click on a tray menu item, where an unhandled exception ends the
                 // process. The menu item failing to do its one job is not worth the app, but pretending it
-                // worked would leave a phone trusted that the owner believes is forgotten.
-                Log.Write($"The trusted phone could not be forgotten at {path}: {e.Message}");
-                forgetFailed = true;
-                return false;
+                // worked would leave a phone trusted that the owner believes is forgotten. A blank file already
+                // means nothing is trusted, and emptying needs different rights from deleting (a handle that
+                // allows writing but not deleting, say), so that is tried before giving up.
+                try
+                {
+                    File.WriteAllText(path, "");
+                    Log.Write($"The trusted phone's file could not be deleted at {path} and was emptied instead: {e.Message}");
+                }
+                catch (Exception emptyError) when (emptyError is IOException or UnauthorizedAccessException)
+                {
+                    Log.Write($"The trusted phone could not be forgotten at {path}: {e.Message}");
+                    forgetFailed = true;
+                    return false;
+                }
             }
 
             forgetFailed = false;

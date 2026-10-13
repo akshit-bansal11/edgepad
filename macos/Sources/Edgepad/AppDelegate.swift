@@ -207,8 +207,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 failure.alertStyle = .critical
                 failure.messageText = "Edgepad"
                 failure.informativeText =
-                    "The trusted phone could not be forgotten: its file could not be removed. No phone can connect "
-                    + "until it is. Choose Forget trusted phone again, or see the log."
+                    "The trusted phone could not be forgotten: its file could not be removed or emptied. No phone can "
+                    + "connect while Edgepad stays running, but that phone will be trusted again the next time Edgepad "
+                    + "starts. Choose Forget trusted phone again, or delete the file yourself:\n\n\(trust.filePath)"
                 failure.addButton(withTitle: "OK")
                 _ = failure.runModal()
                 failure.window.orderOut(nil)

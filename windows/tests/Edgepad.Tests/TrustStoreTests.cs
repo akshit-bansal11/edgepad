@@ -255,6 +255,25 @@ public sealed class TrustStoreTests : IDisposable
         Assert.True(store.Admit("(AA:BB:CC:DD:EE:FF)", Yes));
     }
 
+    [Fact]
+    public void AFileThatCannotBeDeletedIsEmptiedInstead()
+    {
+        // FileShare.ReadWrite without Delete: the delete hits a sharing violation while a write is still let
+        // through, which is a file that can be emptied but not removed.
+        var store = NewStore();
+        store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
+        var held = new FileStream(
+            Path.Combine(dir, "trusted-phone.txt"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+        Assert.True(store.Forget());
+        held.Dispose();
+
+        Assert.Equal("", File.ReadAllText(Path.Combine(dir, "trusted-phone.txt")));
+        Assert.Null(store.Trusted);
+        Assert.False(store.CanForget);
+        Assert.True(store.Admit("(11:22:33:44:55:66)", Yes));
+    }
+
     private static bool Yes() => true;
 
     private static bool No() => false;

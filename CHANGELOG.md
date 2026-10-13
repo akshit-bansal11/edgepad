@@ -23,7 +23,7 @@ The wire protocol stays at version 4, so any 3.x half still speaks to any other.
 ### Fixed
 
 - **A second connection could leave the wrong trust question on screen.** On Windows, a connection arriving while the laptop asked about one phone closed that phone's link and left its question up, still able to trust it. A connection during the question is now refused without disturbing the phone being asked about.
-- **A Forget that could not remove the trust file said nothing,** and the phone stayed trusted. The laptop now says so and refuses every phone until a Forget succeeds.
+- **A Forget that could not remove the trust file said nothing,** and the phone stayed trusted. The laptop now empties the file when it cannot delete it; when it can do neither it says so, names the file, and refuses every phone for as long as it stays running.
 - **Forget trusted phone was greyed out when the trust file could not be read,** the one state in which every phone is refused and Forget is the way out.
 - **A tapped modifier could stay held on the laptop.** Tapping Ctrl, Shift, Alt or Menu on the phone's keyboard, pressing a key and having the touch cancelled, by a system gesture or by leaving the app, left the modifier down.
 - **Quitting the Windows app mid-gesture could leave Alt or a mouse button held.** It now waits a moment for the session to release what it held.

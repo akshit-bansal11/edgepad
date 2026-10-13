@@ -301,8 +301,10 @@ internal sealed class TrayContext : ApplicationContext
             if (!forgotten)
             {
                 MessageBox.Show(
-                    "The trusted phone could not be forgotten: its file could not be removed. No phone can connect "
-                        + "until it is. Choose Forget trusted phone again, or see the log.",
+                    "The trusted phone could not be forgotten: its file could not be removed or emptied. No phone can "
+                        + "connect while Edgepad stays running, but that phone will be trusted again the next time "
+                        + "Edgepad starts. Close whatever is holding the file and choose Forget trusted phone again, "
+                        + $"or delete it yourself:\n\n{trust.FilePath}",
                     "Edgepad",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);

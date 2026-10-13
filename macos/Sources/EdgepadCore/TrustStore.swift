@@ -47,6 +47,9 @@ public final class TrustStore {
         return TrustStore(path: support + "/Edgepad/trusted-phone.txt")
     }
 
+    /// Where the trusted phone is kept, for a message that has to send the owner there.
+    public var filePath: String { path }
+
     /// The trusted address, or nil when there is none or it cannot be read.
     public var trusted: String? {
         locked {
@@ -123,8 +126,10 @@ public final class TrustStore {
         locked { asking || isDeclined(address) || decided(address) == false }
     }
 
-    /// True when the trust file is gone, deleted or never there. False when the delete failed: the phone is then
-    /// still trusted on disk, so every phone is refused, as for an unreadable file, until a later forget succeeds.
+    /// True when the phone is forgotten: the trust file is gone (deleted or never there) or, when it could not be
+    /// deleted, emptied, which reads the same. False when neither worked: the phone is then still named on disk, so
+    /// every phone is refused for this run, as for an unreadable file, until a later forget succeeds, and that
+    /// phone would be trusted again after a restart.
     @discardableResult
     public func forget() -> Bool {
         locked {
@@ -132,11 +137,26 @@ public final class TrustStore {
             declined = nil
             do {
                 try FileManager.default.removeItem(atPath: path)
-            } catch {
-                if !isAbsent(error) {
-                    Log.write("The trusted phone could not be forgotten at \(path): \(error.localizedDescription)")
-                    forgetFailed = true
-                    return false
+            } catch let deleteError {
+                if !isAbsent(deleteError) {
+                    // A blank file already means nothing is trusted, and emptying needs different rights from
+                    // deleting. It is done in place: an atomic write would need the directory permission the
+                    // delete just lacked.
+                    do {
+                        guard let handle = FileHandle(forWritingAtPath: path) else {
+                            throw CocoaError(.fileWriteUnknown)
+                        }
+                        try handle.truncate(atOffset: 0)
+                        try handle.close()
+                        Log.write(
+                            "The trusted phone's file could not be deleted at \(path) and was emptied instead: "
+                                + deleteError.localizedDescription)
+                    } catch {
+                        Log.write(
+                            "The trusted phone could not be forgotten at \(path): \(deleteError.localizedDescription)")
+                        forgetFailed = true
+                        return false
+                    }
                 }
             }
             forgetFailed = false
