@@ -228,7 +228,7 @@
   <string name="guide_title">Guide</string>
   <string name="documentation_title">Documentation</string>
   <!-- The one place the site's address is written; Settings shows its host as the row's summary. -->
-  <string name="documentation_url" translatable="false">https://edgepad.vercel.app</string>
+  <string name="documentation_url" translatable="false">https://edgepad.akshitbansal.dev</string>
 
 
   <!-- Dials -->

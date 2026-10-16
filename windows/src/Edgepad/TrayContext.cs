@@ -19,7 +19,7 @@ internal sealed class TrayContext : ApplicationContext
 
     // The documentation site. The phone's Settings › Help offers the same link, so the
     // two halves point at one page rather than each explaining itself.
-    private const string DocumentationUrl = "https://edgepad.vercel.app";
+    private const string DocumentationUrl = "https://edgepad.akshitbansal.dev";
 
     /// <summary>
     /// How long the question about a new phone waits for the owner. No answer is a no: a laptop left alone must

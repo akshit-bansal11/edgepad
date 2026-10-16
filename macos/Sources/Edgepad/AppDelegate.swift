@@ -6,7 +6,7 @@ import ServiceManagement
 
 /// The whole UI: a menu-bar item whose menu is rebuilt each time it opens, so it never shows a stale state.
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
-    private static let documentationUrl = "https://edgepad.vercel.app/docs"
+    private static let documentationUrl = "https://edgepad.akshitbansal.dev/docs"
     private static let accessibilityPaneUrl =
         "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
     /// No answer to the trust question within this is a no: a Mac left alone must not end up trusting whichever
