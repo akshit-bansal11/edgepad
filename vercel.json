@@ -9,7 +9,7 @@
     {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "edgepad-docs.vercel.app" }],
-      "destination": "https://edgepad.vercel.app/:path*",
+      "destination": "https://edgepad.akshitbansal.dev/:path*",
       "permanent": true
     }
   ],

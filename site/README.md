@@ -3,7 +3,7 @@
 Two routes, built from the repository they document: a landing page at `/`, and the
 whole documentation on one page at `/docs`.
 
-**Live at [edgepad.vercel.app](https://edgepad.vercel.app).** Deployed to Vercel from the repository root (not from `site/`), because the build reads `../protocol/*.txt` — see *Hosting* below.
+**Live at [edgepad.akshitbansal.dev](https://edgepad.akshitbansal.dev).** Deployed to Vercel from the repository root (not from `site/`), because the build reads `../protocol/*.txt` — see *Hosting* below.
 
 It is **not** part of either app's quality gate: `scripts/check.ps1` checks only `android/` and `windows/`. Its own gate and build run in `.github/workflows/site.yml` on every push and pull request that touches `site/` or `protocol/`.
 
@@ -159,10 +159,11 @@ The site follows `docs/PROTOCOL.md` and the changelog, and says plainly that `SE
 
 ## Hosting
 
-Live at [edgepad.vercel.app](https://edgepad.vercel.app), on Vercel. The Vercel project
-is still named `edgepad-docs`, and its old domain `edgepad-docs.vercel.app` 308s to the
-new one from `vercel.json`, because Edgepad.exe through 3.0.1 has the old address in its
-tray menu. `cleanUrls` there is what makes `/docs` serve `docs.html` from the export.
+Live at [edgepad.akshitbansal.dev](https://edgepad.akshitbansal.dev), on Vercel, in a project named `edgepad`.
+`vercel.json` 308s `edgepad-docs.vercel.app` to it whenever that host is attached to the
+project, because Edgepad.exe through 3.0.1 has that address in its tray menu; releases up
+to 3.4.0 link `edgepad.vercel.app` instead. `cleanUrls` there is what makes `/docs` serve
+`docs.html` from the export.
 
 The site is a **static export** (`output: "export"` in `next.config.ts`): every page is
 prerendered and nothing is read at request time, so it ships as plain files with no

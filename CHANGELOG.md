@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Changed
+
+- **The website moved to https://edgepad.akshitbansal.dev.** The Documentation link in all three apps, the README and the winget manifest point there.
+
 ## [3.4.0] - 2026-10-12
 
 The wire protocol stays at version 4, so any 3.x half still speaks to any other. This release adds a laptop app for the Mac and closes what a security review of all three apps found; as always, install both halves from the same release.
