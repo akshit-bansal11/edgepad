@@ -40,3 +40,5 @@ brag-output/
 
 .vercel
 .env*
+
+out

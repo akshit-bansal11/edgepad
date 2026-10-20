@@ -656,10 +656,11 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
           that trusts a different phone.
         </P>
         <P>
-          macOS offers no equivalent of the socket&apos;s protection level, so the Mac
-          app itself refuses any connecting device that macOS does not report as paired,
-          or whose link is not encrypted, before it reads a byte from it. Its trusted
-          phone is kept in{" "}
+          The Mac app checks that the connecting phone is paired and explicitly
+          authenticates its Bluetooth connection before starting a session. Android
+          requests an authenticated, encrypted RFCOMM socket on both platforms. The Mac
+          relies on that secure transport and the Bluetooth stack for encryption. Its
+          trusted phone is kept in{" "}
           <C>~/Library/Application Support/Edgepad/trusted-phone.txt</C>.
         </P>
 

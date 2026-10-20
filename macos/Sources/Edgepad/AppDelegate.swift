@@ -8,6 +8,7 @@ import ServiceManagement
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let documentationUrl = "https://edgepad.akshitbansal.dev/docs"
     private static let accessibilityPaneUrl =
+        // Still resolves on macOS 27, where the pane is Device Control and Data Access.
         "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
     /// No answer to the trust question within this is a no: a Mac left alone must not end up trusting whichever
     /// paired phone happened to try it.
@@ -48,8 +49,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         item.menu = menu
         statusItem = item
 
-        // Without it macOS silently discards every event this app posts.
-        Log.write("Accessibility permission granted: \(requestAccessibility())")
+        // Without them macOS silently discards every event this app posts.
+        Log.write(
+            "Input access: accessibility=\(AXIsProcessTrusted()), eventPosting=\(CGPreflightPostEventAccess())"
+        )
+        _ = requestAccessibility()
 
         let server = RfcommServer(
             trust: trust,
@@ -86,7 +90,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if let version = newerVersion {
             menu.addItem(item("Update available: \(version)", #selector(openRelease)))
         }
-        if !AXIsProcessTrusted() {
+        // Newer macOS tracks event posting separately from the Accessibility trust, under the
+        // same pane. Either one missing means input goes nowhere.
+        if !AXIsProcessTrusted() || !CGPreflightPostEventAccess() {
             menu.addItem(item("Allow Edgepad to control this Mac…", #selector(allowAccessibility)))
         }
         menu.addItem(.separator())
@@ -146,7 +152,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @objc private func allowAccessibility() {
-        _ = requestAccessibility()
+        // Newer macOS tracks event posting separately from the Accessibility trust. Asking for
+        // both at once can stack two identical dialogs, so the second is only requested once the
+        // first is granted; the menu item stays until both are. On macOS 27 neither call prompts
+        // and the app is never listed on its own, so the pane is opened for a manual add: the +
+        // button, Edgepad switched on including its Events switch, if shown.
+        if !AXIsProcessTrusted() {
+            _ = requestAccessibility()
+        } else {
+            _ = CGRequestPostEventAccess()
+        }
         open(Self.accessibilityPaneUrl)
     }
 
