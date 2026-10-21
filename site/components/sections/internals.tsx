@@ -291,11 +291,19 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
           and <C>SendInput</C>.
         </P>
         <P>
-          A new connection replaces the old one rather than being refused, because after
-          a dropped link the phone reconnects before the laptop&apos;s old socket has
-          noticed it is dead. Audio-change notifications arrive on COM threads and
-          brightness events on a WMI thread, so <C>Session.Send</C> is locked and they
-          interleave safely with the read loop&apos;s PONGs.
+          A new connection starts as a candidate and replaces the connected phone only
+          once its handshake and trust check succeed, just before <C>HELLO_ACK</C>. That
+          lets the same phone replace its own stale link after a drop, which it does
+          before the laptop&apos;s old socket has noticed it is dead, and lets a trusted
+          phone take over from another, while an untrusted phone that merely connects
+          cannot drop the connected one. A phone that was replaced is refused for 30
+          seconds, which outlasts its ten automatic retries, so two phones do not take
+          the laptop back and forth. If starting Bluetooth fails, the server tries again
+          every 30 seconds until it works, and it restarts when the PC resumes from
+          sleep and when the Bluetooth radio is turned back on, without ending a live
+          session. Audio-change notifications arrive on COM threads and brightness
+          events on a WMI thread, so <C>Session.Send</C> is locked and they interleave
+          safely with the read loop&apos;s PONGs.
         </P>
 
         <Sub>The four things that make it feel immediate</Sub>
@@ -634,7 +642,7 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
             },
             {
               title: "Trust on first use",
-              body: "Enforced by TrustStore. While no phone is trusted, the first phone to complete the handshake makes the tray ask Trust this phone?, and HELLO_ACK waits for the answer. Trust writes its Bluetooth address to %APPDATA%\\Edgepad\\trusted-phone.txt; Don't trust, or no answer within 60 s, closes the connection. Every other paired phone is refused before HELLO_ACK, and a phone the owner said no to is not asked about again for 30 seconds. The tray menu's Forget trusted phone hangs up on the connected phone and takes no connection while it asks; a yes clears the trust and keeps refusing for 30 seconds.",
+              body: "Enforced by TrustStore. Any paired phone that is not yet trusted makes the tray ask Trust this phone? once it completes the handshake, and HELLO_ACK waits for the answer. Trust adds its Bluetooth address to %APPDATA%\\Edgepad\\trusted-phone.txt, one address per line, so several phones can be trusted; Don't trust, or no answer within 60 s, closes the connection. A phone the owner said no to is not asked about again for 30 seconds. The tray menu's Forget trusted phones hangs up on the connected phone and takes no connection while it asks; a yes clears every trusted phone and keeps refusing for 30 seconds, and a Forget clicked while a question is open wins over a yes given after it. Every phone you trust has full keyboard-level control, so trust only your own.",
             },
           ].map((item) => (
             <div
@@ -652,15 +660,17 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
           The handshake also carries the protocol version. A mismatch is refused with
           the laptop&apos;s version in the reply, so the phone can say which side needs
           updating instead of misreading frames. A refusal before <C>HELLO_ACK</C> names
-          both possible causes: a laptop app older than the phone&apos;s, or a laptop
-          that trusts a different phone.
+          the possible causes: Trust not yet answered on the laptop, a laptop app older
+          than the phone&apos;s, or another phone that has just taken over the laptop.
         </P>
         <P>
-          The Mac app checks that the connecting phone is paired and explicitly
-          authenticates its Bluetooth connection before starting a session. Android
-          requests an authenticated, encrypted RFCOMM socket on both platforms. The Mac
-          relies on that secure transport and the Bluetooth stack for encryption. Its
-          trusted phone is kept in{" "}
+          The Mac app checks that the connecting phone is paired and requires{" "}
+          <C>requestAuthentication()</C> to succeed before starting a session, and logs
+          how long that took. The socket Android asks for is not a protection, because
+          an attacker chooses their own socket. The laptop-side gates are that the phone
+          is paired, that the link authenticates (on Windows, the socket&apos;s
+          protection level), and the owner&apos;s yes. The Mac relies on the Bluetooth
+          stack for encryption. Its trusted phones are kept in{" "}
           <C>~/Library/Application Support/Edgepad/trusted-phone.txt</C>.
         </P>
 
@@ -712,9 +722,9 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
         <Sub>Known limits</Sub>
         <ul className="text-dim max-w-[70ch] list-disc space-y-2 pl-5 text-[0.9375rem] leading-relaxed">
           <li>
-            The trusted phone&apos;s Bluetooth address is stored in plain text under{" "}
-            <C>%APPDATA%\Edgepad</C>. Anyone who can write that file can change which
-            phone is trusted — and that person can already run programs as you.
+            The trusted phones&apos; Bluetooth addresses are stored in plain text
+            under <C>%APPDATA%\Edgepad</C>. Anyone who can write that file can change
+            which phones are trusted — and that person can already run programs as you.
           </li>
           <li>
             <C>Edgepad.exe</C> is not code-signed, so SmartScreen warns on first run.
@@ -722,9 +732,9 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
           </li>
           <li>
             The Mac app is ad hoc signed and not notarised, so macOS refuses it until
-            you choose Open Anyway, and Accessibility has to be granted again after each
-            update. It has been compiled and unit-tested in CI but has not yet been run
-            on a real Mac.
+            you choose Open Anyway, and the input-control permission has to be granted
+            again after each update. It has been compiled and unit-tested in CI but has
+            not yet been run on a real Mac.
           </li>
           <li>
             Text typed from the phone goes wherever the laptop&apos;s focus is, exactly

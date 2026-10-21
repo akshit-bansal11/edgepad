@@ -4,13 +4,24 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
-### Fixed
+### Added
 
-- **An encrypted phone connection could be refused on macOS 27.** `getEncryptionMode()` reported zero even when the Bluetooth stack confirmed AES-CCM encryption, so Edgepad hung up and Android reported `RET:-1`. The Mac now explicitly authenticates the paired device before starting a session instead of relying on that snapshot. The trusted-phone check remains in place.
+- **Several phones can be trusted.** Any phone paired with the laptop is asked about once, with the same **Trust this phone?** question, **Don't trust** as the default and no answer within 60 seconds counting as no. Each yes is remembered in the same `trusted-phone.txt`, one address per line, and a file from an older release holding one address still works. A phone declined or left unanswered is not asked again for 30 seconds, as before.
+- **One phone drives the laptop at a time, and a trusted phone can take over.** A trusted phone that connects replaces the connected one, but only after its handshake and trust check succeed, so an untrusted phone that connects cannot drop the connected one. The phone it replaced is refused for 30 seconds, which outlasts its automatic retries, so the two phones do not take the laptop back and forth; after that it can reconnect with Retry.
 
 ### Changed
 
+- **Forget trusted phone is now Forget trusted phones and forgets every trusted phone,** with the same handling as before when the trust file cannot be deleted or emptied: it says so and refuses every phone. Every phone you trust has full keyboard-level control, so trust only your own. A trust file that lists two phones is read by an older Edgepad as one unknown address, so going back to an older release after trusting a second phone refuses every phone until you choose Forget.
+- **The phone says why a connection failed** instead of the platform's `read failed, socket might closed or timeout, read ret: -1`. "The laptop did not take the connection" means Edgepad is not running, the laptop's Bluetooth is off, or the pairing is stale (remove it on both sides and pair again). "The laptop hung up before the handshake" means answer Trust on the laptop, update the laptop's Edgepad, or another phone has just taken over (wait 30 seconds). A first connect from the picker that does not reach the laptop is retried once automatically, and reconnecting to a laptop that is no longer paired says so.
+- **The Mac checks input permission differently.** Input needs both the Accessibility trust and permission to post events (Device Control and Data Access on macOS 27), and the setup steps now say so. If input still does nothing after the permission is granted, quit Edgepad from the menu bar and open it again. The Mac also logs how long authenticating a connection took.
 - **The website moved to https://edgepad.akshitbansal.dev.** The Documentation link in all three apps, the README and the winget manifest point there.
+
+### Fixed
+
+- **An encrypted phone connection could be refused on macOS 27.** `getEncryptionMode()` reported zero even when the Bluetooth stack confirmed AES-CCM encryption, so Edgepad hung up and Android reported `RET:-1`. The Mac now explicitly authenticates the paired device before starting a session instead of relying on that snapshot. The trusted-phone check remains in place.
+- **A second paired phone could never connect.** Both laptops trusted exactly one phone and refused every other paired one before asking.
+- **Windows could stop listening and never recover.** If Bluetooth was not ready at sign-in, Edgepad now tries again every 30 seconds until it works instead of needing a restart. It also restarts its Bluetooth service after the PC wakes from sleep and when Bluetooth is turned back on.
+- **A Forget clicked while a trust question was open could be undone by a yes.** The Forget now wins and the yes saves nothing.
 
 ## [3.4.0] - 2026-10-12
 

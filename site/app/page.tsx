@@ -89,7 +89,7 @@ const STEPS: { step: string; title: string; body: string }[] = [
   {
     step: "01",
     title: "Pair once, like a headset",
-    body: "The phone and the laptop pair in Windows Settings > Bluetooth & devices. Edgepad has no pairing step of its own, no account to make and no network to join. The first phone to connect becomes the laptop's trusted phone; every other paired phone is refused until you forget it from the tray menu.",
+    body: "The phone and the laptop pair in Windows Settings > Bluetooth & devices. Edgepad has no pairing step of its own, no account to make and no network to join. Each paired phone is asked about once, and every phone you trust is remembered until you choose Forget trusted phones in the tray menu.",
   },
   {
     step: "02",
