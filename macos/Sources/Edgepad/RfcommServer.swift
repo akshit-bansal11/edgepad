@@ -10,7 +10,6 @@ final class RfcommServer: NSObject {
     private static let publicBrowseRootUuid16: UInt16 = 0x1002
     private static let pollInterval: TimeInterval = 0.5
     private static let waiting = "Waiting for your phone"
-    private static let encryptionDisabled: BluetoothHCIEncryptionMode = 0
     /// Outlasts the phone's own twenty seconds of automatic retries, so after a Forget the trust question can only
     /// come back from someone deliberately tapping this Mac on the phone.
     private static let quietAfterForget: TimeInterval = 30
@@ -163,10 +162,9 @@ final class RfcommServer: NSObject {
     @objc private func channelOpened(_ notification: IOBluetoothUserNotification, channel: IOBluetoothRFCOMMChannel) {
         let device = channel.getDevice()
 
-        // Windows demands an authenticated, encrypted socket; macOS has no such switch, so these are the checks.
-        // Being paired only says the address is in this Mac's list, and a device can spoof an address. An
-        // encrypted link can only exist with a device that holds the link key made at pairing, which an address
-        // alone cannot prove.
+        // A paired address alone is not proof of identity: authenticate the live link before starting a session.
+        // Android requests an authenticated, encrypted RFCOMM socket. Do not gate on getEncryptionMode(): on
+        // macOS 27 it returns 0 even when bluetoothd reports this same RFCOMM link as AES-CCM encrypted.
         guard let device, let address = device.addressString, !address.isEmpty else {
             Log.write("Refused a device with no address")
             _ = channel.close()
@@ -174,12 +172,6 @@ final class RfcommServer: NSObject {
         }
         guard device.isPaired() else {
             Log.write("Refused \(address): it is not paired with this Mac")
-            _ = channel.close()
-            return
-        }
-        let mode = device.getEncryptionMode()
-        guard mode != Self.encryptionDisabled else {
-            Log.write("Refused \(address): the link is not encrypted (mode \(mode))")
             _ = channel.close()
             return
         }
@@ -196,6 +188,14 @@ final class RfcommServer: NSObject {
             _ = channel.close()
             return
         }
+
+        let authentication = device.requestAuthentication()
+        guard authentication == kIOReturnSuccess else {
+            Log.write("Refused \(address): Bluetooth authentication failed (\(authentication))")
+            _ = channel.close()
+            return
+        }
+        Log.write("Authenticated RFCOMM connection from \(address)")
 
         let transport = RfcommTransport(channel: channel)
         let injector = InputInjector()

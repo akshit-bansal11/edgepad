@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Fixed
+
+- **An encrypted phone connection could be refused on macOS 27.** `getEncryptionMode()` reported zero even when the Bluetooth stack confirmed AES-CCM encryption, so Edgepad hung up and Android reported `RET:-1`. The Mac now explicitly authenticates the paired device before starting a session instead of relying on that snapshot. The trusted-phone check remains in place.
+
 ### Changed
 
 - **The website moved to https://edgepad.akshitbansal.dev.** The Documentation link in all three apps, the README and the winget manifest point there.
