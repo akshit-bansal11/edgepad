@@ -61,7 +61,10 @@ class LaptopLink(
         /** The socket failed or the laptop hung up after accepting this phone. */
         LOST,
 
-        /** The laptop hung up before its HELLO_ACK: it trusts another phone, or it said no to this one. */
+        /** The connection never opened: the laptop is off, out of range or not running Edgepad. */
+        UNREACHABLE,
+
+        /** The laptop took the connection, then hung up before its HELLO_ACK: its owner said no, or Edgepad is old. */
         REFUSED,
 
         /** The laptop runs another protocol version, which [Closure.detail] carries. */
@@ -78,9 +81,10 @@ class LaptopLink(
     }
 
     /**
-     * A [Cause], and for LOST the platform's own message (in whatever language the platform wrote it), for
-     * MISMATCH the laptop's protocol version, for UNEXPECTED the frame it sent. Empty otherwise. The words
-     * the user reads are the activity's, from strings.xml; nothing here is shown as it stands.
+     * A [Cause], and for MISMATCH the laptop's protocol version, for UNEXPECTED the frame it sent. Empty
+     * otherwise. The words the user reads are the activity's, from strings.xml; nothing here is shown as it
+     * stands. The platform's own message for a failed socket goes to the log instead: it is the same unhelpful
+     * text for every failure, but it still tells a bug report which call gave up.
      */
     class Closure(
         val cause: Cause,
@@ -124,6 +128,8 @@ class LaptopLink(
     }
 
     fun open() {
+        // Whether connect() returned, which is what tells a laptop that never answered from one that hung up.
+        var connectReturned = false
         try {
             val s = device.createRfcommSocketToServiceRecord(ProtocolConstants.SERVICE_ID)
             socket = s
@@ -133,6 +139,7 @@ class LaptopLink(
                 return
             }
             s.connect()
+            connectReturned = true
             val input = DataInputStream(s.inputStream)
             val output = s.outputStream
             output.write(FrameCodec.encode(Frame.Hello(ProtocolConstants.VERSION)))
@@ -168,18 +175,18 @@ class LaptopLink(
                     deliver { it.onFrame(frame) }
                 }
             }
-        } catch (e: EOFException) {
-            // The laptop hangs up before HELLO_ACK when it trusts a different phone, or its owner said no.
-            close(if (handshakeDone) Closure(Cause.LOST, e.message.orEmpty()) else Closure(Cause.REFUSED))
         } catch (e: IOException) {
-            close(Closure(Cause.LOST, e.message.orEmpty()))
+            // An EOF before HELLO_ACK is the laptop hanging up: its owner said no, or it is too old.
+            val cause = classifyFailure(connectReturned, handshakeDone)
+            Log.w(TAG, "The link closed as $cause", e)
+            close(Closure(cause))
         } catch (e: SecurityException) {
             close(Closure(Cause.NO_PERMISSION))
         } catch (e: RuntimeException) {
             // A bug on this side, not a fault on the link. Before 3.2 it escaped the thread and took the whole
             // app down with it; ending the one link is the most it should cost.
             Log.e(TAG, "The link's reader failed", e)
-            close(Closure(Cause.LOST, e.toString()))
+            close(Closure(Cause.LOST))
         }
     }
 
@@ -228,7 +235,8 @@ class LaptopLink(
                 output.flush()
             }
         } catch (e: IOException) {
-            close(Closure(Cause.LOST, e.message.orEmpty()))
+            Log.w(TAG, "The link's writer failed", e)
+            close(Closure(Cause.LOST))
         } catch (e: InterruptedException) {
             // close() interrupts the writer; nothing left to do.
         }
@@ -286,3 +294,18 @@ class LaptopLink(
         const val NANOS_PER_MS = 1_000_000.0
     }
 }
+
+/**
+ * Why a link failed with an IOException, from how far it got: before [connectReturned] the laptop never
+ * took the connection, before [handshakeDone] it took it and hung up, and after that a working link
+ * dropped. Two flags rather than the exception, so a test can cover it without a socket.
+ */
+internal fun classifyFailure(
+    connectReturned: Boolean,
+    handshakeDone: Boolean,
+): LaptopLink.Cause =
+    when {
+        !connectReturned -> LaptopLink.Cause.UNREACHABLE
+        handshakeDone -> LaptopLink.Cause.LOST
+        else -> LaptopLink.Cause.REFUSED
+    }

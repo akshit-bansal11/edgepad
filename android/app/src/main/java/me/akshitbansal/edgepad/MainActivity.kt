@@ -152,6 +152,13 @@ class MainActivity :
     private var attempts = 0
     private var lostAt = 0L
     private var connectedAt = 0L
+
+    /**
+     * A tap on a laptop has one quick retry coming if its connect never reaches the laptop: the first connect
+     * after a long idle often fails once and then works. Set by [connectTo] only, so the retry itself, the
+     * reconnect screen and the automatic connect at start never earn another.
+     */
+    private var quickRetryLeft = false
     private var backCallback: Any? = null
 
     /** Paired devices of every kind in the list, not only the ones that say they are computers. */
@@ -186,6 +193,9 @@ class MainActivity :
     private val linger = Runnable { link?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED)) }
 
     private val retry = Runnable { attemptReconnect() }
+
+    /** The one automatic second try of a first connect that never reached the laptop; see [quickRetryLeft]. */
+    private val quickRetry = Runnable { if (started && link == null) rememberedDevice()?.let(::connect) }
 
     private val ticker =
         object : Runnable {
@@ -264,6 +274,7 @@ class MainActivity :
         started = false
         releaseHeldInput()
         handler.removeCallbacks(retry)
+        handler.removeCallbacks(quickRetry)
         handler.removeCallbacks(ticker)
         // A detour keeps the link for a while, and a rebuild keeps it outright; see the class comment.
         if (!isChangingConfigurations && link != null) handler.postDelayed(linger, LINGER_MS)
@@ -946,11 +957,18 @@ class MainActivity :
         // A tap starts a fresh set of attempts; onConnected no longer does, so a link that drops at once cannot.
         attempts = 0
         val device = bonded().firstOrNull { it.address == address }
-        if (device == null) picker.setMessage(getString(R.string.not_paired)) else connect(device)
+        if (device == null) {
+            picker.setMessage(getString(R.string.not_paired))
+        } else {
+            connect(device)
+            quickRetryLeft = true
+        }
     }
 
     private fun connect(device: BluetoothDevice) {
         handler.removeCallbacks(retry)
+        handler.removeCallbacks(quickRetry)
+        quickRetryLeft = false
         handler.removeCallbacks(pinger)
         val old = link
         link = null
@@ -1057,6 +1075,14 @@ class MainActivity :
                 updateReconnecting()
             }
 
+            // The first connect of a tap never reached the laptop: once more before saying anything.
+            closure.cause == LaptopLink.Cause.UNREACHABLE && quickRetryLeft -> {
+                quickRetryLeft = false
+                refreshPicker()
+                picker.setConnecting(laptopAddress)
+                handler.postDelayed(quickRetry, QUICK_RETRY_MS)
+            }
+
             else -> {
                 refreshPicker()
                 picker.setMessage(getString(R.string.status_closed, describe(closure)))
@@ -1067,7 +1093,8 @@ class MainActivity :
     /** Why an attempt ended, in the user's language. The link names the cause; the words are the app's. */
     private fun describe(closure: LaptopLink.Closure): String =
         when (closure.cause) {
-            LaptopLink.Cause.ENDED, LaptopLink.Cause.LOST -> closure.detail.ifEmpty { getString(R.string.link_lost) }
+            LaptopLink.Cause.ENDED, LaptopLink.Cause.LOST -> getString(R.string.link_lost)
+            LaptopLink.Cause.UNREACHABLE -> getString(R.string.link_unreachable)
             LaptopLink.Cause.REFUSED -> getString(R.string.link_refused)
             LaptopLink.Cause.MISMATCH -> getString(R.string.link_mismatch, closure.detail, ProtocolConstants.VERSION)
             LaptopLink.Cause.UNEXPECTED -> getString(R.string.link_unexpected, closure.detail)
@@ -1084,7 +1111,9 @@ class MainActivity :
         if (!started || link != null) return
         val device = rememberedDevice()
         if (device == null) {
-            attempts = MAX_ATTEMPTS
+            // Retrying cannot help once the laptop is unpaired, and a bare "Stopped retrying" would not say why.
+            if (screen == Screen.RECONNECTING) goTo(Screen.PAIRING)
+            picker.setMessage(getString(R.string.not_paired))
         } else {
             connect(device)
         }
@@ -1185,6 +1214,9 @@ class MainActivity :
         const val LINGER_MS = 30_000L
         const val TICK_MS = 1_000L
         const val RETRY_DELAY_MS = 2_000L
+
+        /** Long enough for the laptop to finish whatever made the first connect miss, short enough to go unnoticed. */
+        const val QUICK_RETRY_MS = 1_500L
         const val MAX_ATTEMPTS = 10
 
         /** A link that lasted less than this did not really come back, so it does not earn a fresh set of attempts. */
