@@ -1,9 +1,9 @@
 import Foundation
 
-/// One connected phone: handshake, trust check (asking the owner, through `askTrust`, about a phone while none
-/// is trusted), then each frame straight into the dispatcher. The Mac's own state (volume, mute, brightness)
-/// goes back as STATE frames: a snapshot after the handshake, then every change `poll` finds, so the phone's
-/// dials show what the Mac is really at.
+/// One connected phone: handshake, trust check (asking the owner, through `askTrust`, about a phone not trusted
+/// yet), the server's word through `onAdmitted`, then each frame straight into the dispatcher. The Mac's own state
+/// (volume, mute, brightness) goes back as STATE frames: a snapshot after the handshake, then every change `poll`
+/// finds, so the phone's dials show what the Mac is really at.
 ///
 /// Transport-agnostic and single-threaded: the app calls every method on the main thread.
 public final class Session {
@@ -27,6 +27,9 @@ public final class Session {
     private let brightness: BrightnessControl
     private let display: DisplayRates
     private let onStatus: (String) -> Void
+    /// Called once trust has said yes, just before HELLO_ACK: the server decides there whether this phone may take
+    /// over the Mac from the one in use. False ends the session with nothing sent.
+    private let onAdmitted: (Session) -> Bool
     private let onEnded: (Session) -> Void
 
     private var reader = FrameReader()
@@ -55,6 +58,7 @@ public final class Session {
         brightness: BrightnessControl,
         display: DisplayRates,
         onStatus: @escaping (String) -> Void,
+        onAdmitted: @escaping (Session) -> Bool,
         onEnded: @escaping (Session) -> Void
     ) {
         self.address = address
@@ -68,6 +72,7 @@ public final class Session {
         self.brightness = brightness
         self.display = display
         self.onStatus = onStatus
+        self.onAdmitted = onAdmitted
         self.onEnded = onEnded
     }
 
@@ -175,8 +180,14 @@ public final class Session {
         isAsking = false
         guard !isEnded else { return }
         guard admitted else {
-            Log.write("Refused \(address): this Mac trusts \(trust.trusted ?? "no phone yet")")
+            let trusted = trust.trustedPhones.joined(separator: ", ")
+            Log.write("Refused \(address): not trusted; this Mac trusts \(trusted.isEmpty ? "no phone yet" : trusted)")
             onStatus("Refused a phone it does not trust")
+            end()
+            return
+        }
+        guard onAdmitted(self) else {
+            Log.write("Refused \(address): this Mac stopped taking connections while it asked")
             end()
             return
         }

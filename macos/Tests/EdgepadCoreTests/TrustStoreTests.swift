@@ -15,11 +15,20 @@ final class TrustStoreTests: XCTestCase {
         super.tearDown()
     }
 
+    private func writeTrustFile(_ text: String) throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try text.write(toFile: trustPath, atomically: true, encoding: .utf8)
+    }
+
+    private func readTrustFile() throws -> String {
+        try String(contentsOfFile: trustPath, encoding: .utf8)
+    }
+
     func testTheFirstPhoneIsTrustedAndRemembered() {
         let admitted = TrustStore(path: trustPath).admit("(AA:BB:CC:DD:EE:FF)", ask: yes)
 
         XCTAssertTrue(admitted)
-        XCTAssertEqual(TrustStore(path: trustPath).trusted, "(AA:BB:CC:DD:EE:FF)")
+        XCTAssertEqual(TrustStore(path: trustPath).trustedPhones, ["(AA:BB:CC:DD:EE:FF)"])
     }
 
     func testTheTrustedPhoneIsAdmittedWithoutAskingWhateverTheCase() {
@@ -29,11 +38,53 @@ final class TrustStoreTests: XCTestCase {
         XCTAssertTrue(store.admit("(aa:bb:cc:dd:ee:ff)", ask: unasked))
     }
 
-    func testAnotherPhoneIsRefusedWithoutAsking() {
+    func testASecondPhoneIsAskedAboutAndThenBothAreAdmittedUnasked() {
+        let store = TrustStore(path: trustPath)
+        _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes)
+        var asked = false
+
+        XCTAssertTrue(
+            store.admit("(11:22:33:44:55:66)") {
+                asked = true
+                return true
+            })
+
+        XCTAssertTrue(asked)
+        let reopened = TrustStore(path: trustPath)
+        XCTAssertTrue(reopened.admit("(AA:BB:CC:DD:EE:FF)", ask: unasked))
+        XCTAssertTrue(reopened.admit("(11:22:33:44:55:66)", ask: unasked))
+        XCTAssertEqual(reopened.trustedPhones, ["(AA:BB:CC:DD:EE:FF)", "(11:22:33:44:55:66)"])
+    }
+
+    func testAFileFromBeforeThereCouldBeSeveralPhonesIsAListOfOne() throws {
+        // As the old save wrote it: one address, no line break.
+        try writeTrustFile("(AA:BB:CC:DD:EE:FF)")
+        let store = TrustStore(path: trustPath)
+
+        XCTAssertTrue(store.admit("(AA:BB:CC:DD:EE:FF)", ask: unasked))
+        XCTAssertTrue(store.admit("(11:22:33:44:55:66)", ask: yes))
+        XCTAssertEqual(try readTrustFile(), "(AA:BB:CC:DD:EE:FF)\n(11:22:33:44:55:66)\n")
+    }
+
+    func testLinesEndedEitherWayAndPaddedOrBlankAreRead() throws {
+        try writeTrustFile(" (AA:BB:CC:DD:EE:FF) \r\n\r\n(11:22:33:44:55:66)\n")
+
+        XCTAssertEqual(TrustStore(path: trustPath).trustedPhones, ["(AA:BB:CC:DD:EE:FF)", "(11:22:33:44:55:66)"])
+    }
+
+    func testAPhoneAlreadyInTheFileIsNotWrittenTwice() throws {
         let store = TrustStore(path: trustPath)
         _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes)
 
-        XCTAssertFalse(store.admit("(11:22:33:44:55:66)", ask: unasked))
+        // Added by hand while the owner was being asked about it.
+        let admitted = store.admit("(11:22:33:44:55:66)") {
+            try? writeTrustFile("(AA:BB:CC:DD:EE:FF)\n(11:22:33:44:55:66)\n")
+            return true
+        }
+
+        XCTAssertTrue(admitted)
+        XCTAssertTrue(store.admit("(aa:bb:cc:dd:ee:ff)", ask: unasked))
+        XCTAssertEqual(try readTrustFile(), "(AA:BB:CC:DD:EE:FF)\n(11:22:33:44:55:66)\n")
     }
 
     func testAPhoneTheOwnerDoesNotTrustIsRefusedAndNotRemembered() {
@@ -42,7 +93,7 @@ final class TrustStoreTests: XCTestCase {
         let admitted = store.admit("(AA:BB:CC:DD:EE:FF)", ask: no)
 
         XCTAssertFalse(admitted)
-        XCTAssertNil(store.trusted)
+        XCTAssertEqual(store.trustedPhones, [])
     }
 
     func testAPhoneIsAskedAboutAgainAfterANo() {
@@ -50,17 +101,40 @@ final class TrustStoreTests: XCTestCase {
         _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: no)
 
         XCTAssertTrue(store.admit("(11:22:33:44:55:66)", ask: yes))
-        XCTAssertEqual(store.trusted, "(11:22:33:44:55:66)")
+        XCTAssertEqual(store.trustedPhones, ["(11:22:33:44:55:66)"])
     }
 
-    func testForgetLetsTheNextPhoneBecomeTrusted() {
+    func testForgetClearsEveryPhoneAndEachIsAskedAboutAgain() {
+        let store = TrustStore(path: trustPath)
+        _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes)
+        _ = store.admit("(11:22:33:44:55:66)", ask: yes)
+
+        XCTAssertTrue(store.forget())
+
+        XCTAssertEqual(store.trustedPhones, [])
+        XCTAssertFalse(store.canForget)
+        var asked = false
+        XCTAssertTrue(
+            store.admit("(AA:BB:CC:DD:EE:FF)") {
+                asked = true
+                return true
+            })
+        XCTAssertTrue(asked)
+    }
+
+    func testAForgetWhileTheOwnerIsBeingAskedMakesAYesSaveNothing() {
         let store = TrustStore(path: trustPath)
         _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes)
 
-        store.forget()
+        let admitted = store.admit("(11:22:33:44:55:66)") {
+            store.forget()
+            return true
+        }
 
-        XCTAssertNil(store.trusted)
-        XCTAssertTrue(store.admit("(11:22:33:44:55:66)", ask: yes))
+        XCTAssertFalse(admitted)
+        XCTAssertEqual(store.trustedPhones, [])
+        XCTAssertFalse(store.canForget)
+        XCTAssertFalse(store.refuses("(11:22:33:44:55:66)"))
     }
 
     func testAForgetThatCannotDeleteTheFileRefusesEveryPhoneUntilOneCan() throws {
@@ -80,7 +154,7 @@ final class TrustStoreTests: XCTestCase {
         // Readable again and still naming the phone, yet refused.
         XCTAssertTrue(store.refuses("(AA:BB:CC:DD:EE:FF)"))
         XCTAssertFalse(store.admit("(AA:BB:CC:DD:EE:FF)", ask: unasked))
-        XCTAssertNil(store.trusted)
+        XCTAssertEqual(store.trustedPhones, [])
         XCTAssertTrue(store.canForget)
 
         XCTAssertTrue(store.forget())
@@ -99,7 +173,7 @@ final class TrustStoreTests: XCTestCase {
 
         XCTAssertTrue(forgotten)
         XCTAssertEqual(try String(contentsOfFile: trustPath, encoding: .utf8), "")
-        XCTAssertNil(store.trusted)
+        XCTAssertEqual(store.trustedPhones, [])
         XCTAssertFalse(store.canForget)
         XCTAssertTrue(store.admit("(11:22:33:44:55:66)", ask: yes))
     }
@@ -110,7 +184,7 @@ final class TrustStoreTests: XCTestCase {
         store.forget()
         store.forget()
 
-        XCTAssertNil(store.trusted)
+        XCTAssertEqual(store.trustedPhones, [])
     }
 
     func testABlankFileMeansNothingIsTrustedYet() throws {
@@ -118,7 +192,7 @@ final class TrustStoreTests: XCTestCase {
         try "   \r\n".write(toFile: trustPath, atomically: true, encoding: .utf8)
         let store = TrustStore(path: trustPath)
 
-        XCTAssertNil(store.trusted)
+        XCTAssertEqual(store.trustedPhones, [])
         XCTAssertTrue(store.admit("(11:22:33:44:55:66)", ask: yes))
     }
 
@@ -130,10 +204,10 @@ final class TrustStoreTests: XCTestCase {
 
         XCTAssertFalse(store.admit("(AA:BB:CC:DD:EE:FF)", ask: unasked))
         XCTAssertTrue(store.refuses("(AA:BB:CC:DD:EE:FF)"))
-        XCTAssertNil(store.trusted)
+        XCTAssertEqual(store.trustedPhones, [])
     }
 
-    func testAPhoneThatCouldNotBeSavedIsStillTheOnlyOneTrusted() throws {
+    func testAPhoneThatCouldNotBeSavedIsStillTrustedForThisRun() throws {
         // A file where the folder should be: the read finds nothing, and the write cannot create the folder.
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let blocked = directory.appendingPathComponent("blocked").path
@@ -141,19 +215,20 @@ final class TrustStoreTests: XCTestCase {
         let store = TrustStore(path: blocked + "/trusted-phone.txt")
 
         XCTAssertTrue(store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes))
-        XCTAssertFalse(store.admit("(11:22:33:44:55:66)", ask: yes))
-        XCTAssertTrue(store.refuses("(11:22:33:44:55:66)"))
-        XCTAssertEqual(store.trusted, "(AA:BB:CC:DD:EE:FF)")
+        XCTAssertTrue(store.admit("(aa:bb:cc:dd:ee:ff)", ask: unasked))
+        XCTAssertFalse(store.admit("(11:22:33:44:55:66)", ask: no))
+        XCTAssertEqual(store.trustedPhones, ["(AA:BB:CC:DD:EE:FF)"])
+        XCTAssertTrue(store.canForget)
     }
 
-    func testRefusesOnlyWhatTheSessionWouldRefuse() {
+    func testAPhoneNotTrustedYetIsNotRefusedUpFront() {
         let store = TrustStore(path: trustPath)
         XCTAssertFalse(store.refuses("(11:22:33:44:55:66)"))
 
         _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes)
 
         XCTAssertFalse(store.refuses("(aa:bb:cc:dd:ee:ff)"))
-        XCTAssertTrue(store.refuses("(11:22:33:44:55:66)"))
+        XCTAssertFalse(store.refuses("(11:22:33:44:55:66)"))
     }
 
     func testADeviceArrivingWhileTheOwnerIsAskedIsRefusedWithoutBeingAsked() {
@@ -249,7 +324,7 @@ final class TrustStoreTests: XCTestCase {
 
         XCTAssertTrue(first)
         XCTAssertFalse(second)
-        XCTAssertEqual(store.trusted, "(AA:BB:CC:DD:EE:FF)")
+        XCTAssertEqual(store.trustedPhones, ["(AA:BB:CC:DD:EE:FF)"])
     }
 }
 
