@@ -722,9 +722,9 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
         <Sub>Known limits</Sub>
         <ul className="text-dim max-w-[70ch] list-disc space-y-2 pl-5 text-[0.9375rem] leading-relaxed">
           <li>
-            The trusted phones&apos; Bluetooth addresses are stored in plain text
-            under <C>%APPDATA%\Edgepad</C>. Anyone who can write that file can change
-            which phones are trusted — and that person can already run programs as you.
+            The trusted phones&apos; Bluetooth addresses are stored in plain text under{" "}
+            <C>%APPDATA%\Edgepad</C>. Anyone who can write that file can change which
+            phones are trusted — and that person can already run programs as you.
           </li>
           <li>
             <C>Edgepad.exe</C> is not code-signed, so SmartScreen warns on first run.

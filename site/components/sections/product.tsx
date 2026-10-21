@@ -198,8 +198,8 @@ export function ProductSections() {
                 <strong className="text-foreground">Macros…</strong>,{" "}
                 <strong className="text-foreground">Open log</strong>,{" "}
                 <strong className="text-foreground">Documentation</strong>,{" "}
-                <strong className="text-foreground">Forget trusted phones</strong>{" "}
-                and <strong className="text-foreground">Quit Edgepad</strong>, with the
+                <strong className="text-foreground">Forget trusted phones</strong> and{" "}
+                <strong className="text-foreground">Quit Edgepad</strong>, with the
                 version beside it.
               </li>
             </ol>
