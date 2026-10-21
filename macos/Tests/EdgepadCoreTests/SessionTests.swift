@@ -20,6 +20,9 @@ final class SessionTests: XCTestCase {
 
     private var statuses: [String] = []
     private var ended: [Session] = []
+    /// What the server answers when trust admits a phone, and how many frames had been sent each time it was asked.
+    private var admits = true
+    private var admissions: [Int] = []
 
     private lazy var trust = TrustStore(path: directory.appendingPathComponent("trust").path)
     private lazy var dispatcher = Dispatcher(
@@ -54,8 +57,14 @@ final class SessionTests: XCTestCase {
             brightness: brightness,
             display: display,
             onStatus: { [weak self] status in self?.statuses.append(status) },
+            onAdmitted: { [weak self] _ in self?.admitted() ?? false },
             onEnded: { [weak self] session in self?.ended.append(session) }
         )
+    }
+
+    private func admitted() -> Bool {
+        admissions.append(transport.sent.count)
+        return admits
     }
 
     private func connectedSession() -> Session {
@@ -118,7 +127,7 @@ final class SessionTests: XCTestCase {
         XCTAssertEqual(statuses, ["Connected to \(phone)"])
     }
 
-    func testAPhoneOtherThanTheTrustedOneIsRefusedWithoutAsking() {
+    func testAPhoneOtherThanTheTrustedOneIsAsked() {
         var asked = false
         _ = trust.admit("11:22:33:44:55:66") { true }
         let session = makeSession(ask: { _ in
@@ -128,9 +137,38 @@ final class SessionTests: XCTestCase {
 
         session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
 
-        XCTAssertFalse(asked)
+        XCTAssertTrue(asked)
+        XCTAssertTrue(session.isLive)
+    }
+
+    func testAnAdmittedPhoneIsHandedToTheServerOnceBeforeHelloAck() {
+        let session = connectedSession()
+
+        XCTAssertEqual(admissions, [0])
+        XCTAssertEqual(transport.frames().first, .helloAck(version: ProtocolConstants.version))
+        XCTAssertTrue(session.isLive)
+    }
+
+    func testARefusedPhoneIsNeverHandedToTheServer() {
+        let session = makeSession(ask: { _ in false })
+
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+
+        XCTAssertEqual(admissions, [])
         XCTAssertTrue(session.isEnded)
+    }
+
+    func testAPhoneTheServerWillNotTakeEndsWithNoHelloAck() {
+        admits = false
+        let session = makeSession()
+
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+
+        XCTAssertEqual(admissions, [0])
         XCTAssertEqual(transport.sent.count, 0)
+        XCTAssertTrue(session.isEnded)
+        XCTAssertFalse(session.isLive)
+        XCTAssertEqual(ended.count, 1)
     }
 
     func testPingIsAnsweredWithTheSameTime() {

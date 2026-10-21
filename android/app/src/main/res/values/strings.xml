@@ -30,7 +30,8 @@
   <string name="status_closed">Not connected: %1$s</string>
   <string name="status_accept_on_laptop">If the laptop asks, choose Trust there.</string>
   <string name="link_lost">the connection was lost.</string>
-  <string name="link_refused">the laptop hung up before the handshake. Its Edgepad may be older than this app: quit it from the tray and run the latest. Or it trusts another phone, or was told not to trust this one: use Forget in its tray menu, then connect again.</string>
+  <string name="link_refused">the laptop hung up before the handshake. Look at the laptop: answer Trust if it asks about this phone, and update its Edgepad if it is older than this app. If another phone just took over the laptop, try again in 30 seconds.</string>
+  <string name="link_unreachable">the laptop did not take the connection. Check that Edgepad is running on it and its Bluetooth is on. If it still fails, remove the pairing on both this phone and the laptop, then pair them again.</string>
   <string name="link_mismatch">the laptop runs a different Edgepad release (protocol %1$s, this app %2$d). Install both from the same release.</string>
   <string name="link_unexpected">the laptop answered with something other than Edgepad\'s handshake (%1$s).</string>
   <string name="link_no_permission">the Nearby devices permission was turned off.</string>

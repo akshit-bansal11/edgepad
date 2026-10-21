@@ -101,7 +101,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(login)
         menu.addItem(item("Open log", #selector(openLog)))
         menu.addItem(item("Documentation", #selector(openDocumentation)))
-        let forget = item("Forget trusted phone", #selector(confirmForget))
+        let forget = item("Forget trusted phones", #selector(confirmForget))
         forget.isEnabled = trust.canForget
         menu.addItem(forget)
         menu.addItem(.separator())
@@ -187,8 +187,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     /// Asked first because the menu cannot undo it: every phone after it has to be trusted again. The connected
-    /// phone is hung up on, and connections are refused, while the question is open. If the trust file cannot be
-    /// removed the owner is told, and the store refuses every phone until a later Forget succeeds.
+    /// phone, and any still being asked about, is hung up on, and connections are refused, while the question is
+    /// open. If the trust file cannot be removed the owner is told, and the store refuses every phone until a later
+    /// Forget succeeds.
     @objc private func confirmForget() {
         guard !forgetting else { return }
         forgetting = true
@@ -203,9 +204,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = "Edgepad"
+        let phones = trust.trustedPhones
+        let which = phones.isEmpty ? "the trusted phones" : "every trusted phone (\(phones.joined(separator: ", ")))"
         alert.informativeText =
-            "Forget \(trust.trusted ?? "the trusted phone")? The next phone to connect, this one included, will not "
-            + "be able to use this Mac until you trust it here."
+            "Forget \(which)? Each phone, this one included, will have to be trusted here again before it can use "
+            + "this Mac."
         // Cancel is first, so it is the default: a stray Return forgets nothing.
         alert.addButton(withTitle: "Cancel")
         alert.addButton(withTitle: "Forget")
@@ -222,9 +225,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 failure.alertStyle = .critical
                 failure.messageText = "Edgepad"
                 failure.informativeText =
-                    "The trusted phone could not be forgotten: its file could not be removed or emptied. No phone can "
-                    + "connect while Edgepad stays running, but that phone will be trusted again the next time Edgepad "
-                    + "starts. Choose Forget trusted phone again, or delete the file yourself:\n\n\(trust.filePath)"
+                    "The trusted phones could not be forgotten: their file could not be removed or emptied. No phone "
+                    + "can connect while Edgepad stays running, but those phones will be trusted again when Edgepad "
+                    + "starts. Choose Forget trusted phones again, or delete the file yourself:\n\n\(trust.filePath)"
                 failure.addButton(withTitle: "OK")
                 _ = failure.runModal()
                 failure.window.orderOut(nil)

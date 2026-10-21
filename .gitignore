@@ -41,4 +41,5 @@ brag-output/
 .vercel
 .env*
 
-out
+# Mac app bundle output (macos/bundle.sh run from the repo root writes it here).
+/out/

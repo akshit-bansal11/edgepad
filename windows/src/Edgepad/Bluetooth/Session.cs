@@ -12,9 +12,9 @@ using Windows.Networking.Sockets;
 namespace Edgepad.Bluetooth;
 
 /// <summary>
-/// One connected phone: handshake, trust check (asking the owner, through askTrust, about a phone while none
-/// is trusted), then a blocking read loop on its own thread that turns
-/// each frame straight into input. There is no queue between the socket and SendInput. The laptop's own
+/// One connected phone: handshake, trust check (asking the owner, through askTrust, about a phone not trusted
+/// yet), the server's word that it may take over (onAdmitted), then a blocking read loop on its own thread that
+/// turns each frame straight into input. There is no queue between the socket and SendInput. The laptop's own
 /// state (volume, mute, brightness) goes back as STATE frames: a snapshot after the handshake, then every
 /// audio change as it happens, so the phone's dials show what the laptop is really at.
 /// </summary>
@@ -32,6 +32,7 @@ internal sealed class Session(
     DisplayModes display,
     MacroStore macros,
     Action<string> onStatus,
+    Func<Session, bool> onAdmitted,
     Action<Session> onEnded) : IDisposable
 {
     private const byte MutedFlag = 1;
@@ -39,8 +40,7 @@ internal sealed class Session(
 
     /// <summary>
     /// How long an open socket may go without a HELLO. The read has no timeout of its own, so a paired device
-    /// that connects and says nothing held this thread, and before any phone is trusted the one session the
-    /// laptop serves, for as long as the link stayed up.
+    /// that connects and says nothing held this thread, and its socket, for as long as the link stayed up.
     /// </summary>
     private static readonly TimeSpan HelloTimeout = TimeSpan.FromSeconds(10);
 
@@ -61,6 +61,9 @@ internal sealed class Session(
     private bool disposed;
     private MediaState lastMedia = MediaSessions.Nothing;
     private string lastTimeline = "";
+
+    /// <summary>The phone's Bluetooth address, as the log and the status line name it.</summary>
+    public string Address => address;
 
     public void Run()
     {
@@ -92,8 +95,17 @@ internal sealed class Session(
             // bytes a phone it did not trust has always been sent, so no phone needs to learn anything new.
             if (!trust.Admit(address, () => askTrust(address)))
             {
-                Log.Write($"Refused {address}: this laptop trusts {trust.Trusted ?? "no phone yet"}");
+                var trusted = string.Join(", ", trust.TrustedPhones);
+                Log.Write($"Refused {address}: this laptop trusts {(trusted.Length > 0 ? trusted : "no phone yet")}");
                 onStatus("Refused a phone it does not trust");
+                return;
+            }
+
+            // Only now may this phone take over from one already connected: before trust said yes, any bonded
+            // device that merely connected could end the owner's session at will.
+            if (!onAdmitted(this))
+            {
+                Log.Write($"Refused {address}: trusted, but not taken now: phones are being forgotten, Edgepad is quitting, or another phone just took over");
                 return;
             }
 

@@ -36,7 +36,7 @@ internal sealed class TrayContext : ApplicationContext
 
     private readonly MenuRow startWithWindows = new("Start with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new("Macros…", Icons.Macro);
-    private readonly MenuRow forget = new("Forget trusted phone", Icons.Unlink) { Danger = true };
+    private readonly MenuRow forget = new("Forget trusted phones", Icons.Unlink) { Danger = true };
     private readonly MenuRow update = new("Update available", Icons.Download) { Available = false };
     private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
     private readonly TrayMenu menu = new();
@@ -261,8 +261,8 @@ internal sealed class TrayContext : ApplicationContext
     }
 
     /// <summary>
-    /// Forgets the trusted phone once the owner says so. Asked first because the menu cannot undo it: every
-    /// phone after it has to be trusted again, the one just forgotten included. Connections are refused while the
+    /// Forgets every trusted phone once the owner says so. Asked first because the menu cannot undo it: each
+    /// phone has to be trusted again, the one connected included. Connections are refused while the
     /// question is open; a yes forgets and keeps refusing for the quiet period, and anything else takes
     /// connections again. If the trust file cannot be removed the owner is told, and the store refuses every
     /// phone until a later Forget succeeds.
@@ -282,9 +282,10 @@ internal sealed class TrayContext : ApplicationContext
         server.HoldOff();
         try
         {
+            var phones = string.Join(", ", trust.TrustedPhones);
             var answer = MessageBox.Show(
-                $"Forget {trust.Trusted ?? "the trusted phone"}? The next phone to connect, this one included, will not "
-                    + "be able to use this laptop until you trust it here.",
+                (phones.Length > 0 ? $"Forget every trusted phone ({phones})?" : "Forget the trusted phones?")
+                    + " Each phone, this one included, will have to be trusted here again before it can use this laptop.",
                 "Edgepad",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning,
@@ -301,9 +302,9 @@ internal sealed class TrayContext : ApplicationContext
             if (!forgotten)
             {
                 MessageBox.Show(
-                    "The trusted phone could not be forgotten: its file could not be removed or emptied. No phone can "
-                        + "connect while Edgepad stays running, but that phone will be trusted again the next time "
-                        + "Edgepad starts. Close whatever is holding the file and choose Forget trusted phone again, "
+                    "The trusted phones could not be forgotten: their file could not be removed or emptied. No phone can "
+                        + "connect while Edgepad stays running, but those phones will be trusted again the next time "
+                        + "Edgepad starts. Close whatever is holding the file and choose Forget trusted phones again, "
                         + $"or delete it yourself:\n\n{trust.FilePath}",
                     "Edgepad",
                     MessageBoxButtons.OK,

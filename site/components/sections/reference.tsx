@@ -60,7 +60,7 @@ const DECISIONS: Decision[] = [
     id: "trust",
     question: "Why trust on first use rather than a pairing code?",
     answer:
-      "Bluetooth pairing already happened in Windows Settings, and re-asking for a code would be a second, weaker version of a step the OS did properly. The first phone to complete the handshake is remembered by address; the tray menu has Forget.",
+      "Bluetooth pairing already happened in Windows Settings, and re-asking for a code would be a second, weaker version of a step the OS did properly. Each phone is asked about once and remembered by address when the owner says yes; the tray menu has Forget trusted phones, which forgets them all.",
   },
   {
     id: "drop",
@@ -219,7 +219,7 @@ const LIMITS: Limit[] = [
   },
   {
     title: "The Mac app is ad hoc signed and not notarised",
-    body: "The project has no Apple Developer ID, so macOS refuses the app on first launch until you choose Open Anyway, and treats every new version as a different app, so Accessibility has to be granted again after each update. Check the zip against SHA256SUMS.txt.",
+    body: "The project has no Apple Developer ID, so macOS refuses the app on first launch until you choose Open Anyway, and treats every new version as a different app, so the input-control permission has to be granted again after each update. Check the zip against SHA256SUMS.txt.",
     kind: "accepted",
   },
   {

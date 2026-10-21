@@ -13,29 +13,86 @@ public sealed class TrustStoreTests : IDisposable
     public void TheFirstPhoneIsTrustedAndRemembered()
     {
         Assert.True(NewStore().Admit("(AA:BB:CC:DD:EE:FF)", Yes));
-        Assert.Equal("(AA:BB:CC:DD:EE:FF)", NewStore().Trusted);
+        Assert.Equal(["(AA:BB:CC:DD:EE:FF)"], NewStore().TrustedPhones);
     }
 
     [Fact]
-    public void OnlyTheTrustedPhoneIsAdmittedAfterThat()
+    public void ASecondPhoneIsAskedAboutAndThenBothAreAdmittedUnasked()
     {
         var store = NewStore();
         store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
 
-        Assert.True(store.Admit("(aa:bb:cc:dd:ee:ff)", Yes));
-        Assert.False(store.Admit("(11:22:33:44:55:66)", Yes));
-    }
-
-    [Fact]
-    public void ForgetLetsTheNextPhoneBecomeTrusted()
-    {
-        var store = NewStore();
-        store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
-
-        store.Forget();
-
-        Assert.Null(store.Trusted);
+        // Another phone being trusted is no longer a reason to refuse one: it is put to the owner like the first.
+        Assert.False(store.Refuses("(11:22:33:44:55:66)"));
         Assert.True(store.Admit("(11:22:33:44:55:66)", Yes));
+
+        var again = NewStore();
+        Assert.True(again.Admit("(aa:bb:cc:dd:ee:ff)", Unasked));
+        Assert.True(again.Admit("(11:22:33:44:55:66)", Unasked));
+        Assert.Equal(["(AA:BB:CC:DD:EE:FF)", "(11:22:33:44:55:66)"], again.TrustedPhones);
+    }
+
+    [Fact]
+    public void AOneLineFileFromBeforeSeveralPhonesIsHonoured()
+    {
+        // What every earlier version wrote: one address, no line break. No migration; it is a list of one.
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(Path.Combine(dir, "trusted-phone.txt"), "(AA:BB:CC:DD:EE:FF)");
+
+        var store = NewStore();
+
+        Assert.True(store.Admit("(AA:BB:CC:DD:EE:FF)", Unasked));
+        Assert.Equal(["(AA:BB:CC:DD:EE:FF)"], store.TrustedPhones);
+    }
+
+    [Fact]
+    public void APhoneIsNeverWrittenDownTwice()
+    {
+        // A second store on the same file trusts the phone while the first is still asking about it; the first
+        // one's yes then finds it already there. A list edited by hand with the same phone twice reads as one.
+        var file = Path.Combine(dir, "trusted-phone.txt");
+        var store = NewStore();
+
+        Assert.True(store.Admit("(AA:BB:CC:DD:EE:FF)", () => NewStore().Admit("(aa:bb:cc:dd:ee:ff)", Yes)));
+        Assert.Single(File.ReadAllLines(file));
+
+        File.WriteAllText(file, "(AA:BB:CC:DD:EE:FF)\r\n(aa:bb:cc:dd:ee:ff)\n\n  (11:22:33:44:55:66)  \n");
+        Assert.Equal(["(AA:BB:CC:DD:EE:FF)", "(11:22:33:44:55:66)"], NewStore().TrustedPhones);
+    }
+
+    [Fact]
+    public void ForgetClearsEveryPhone()
+    {
+        var store = NewStore();
+        store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
+        store.Admit("(11:22:33:44:55:66)", Yes);
+
+        Assert.True(store.Forget());
+
+        Assert.Empty(store.TrustedPhones);
+        Assert.False(store.CanForget);
+        var asked = 0;
+        Assert.True(store.Admit("(AA:BB:CC:DD:EE:FF)", () => ++asked > 0));
+        Assert.True(store.Admit("(11:22:33:44:55:66)", () => ++asked > 0));
+        Assert.Equal(2, asked);
+    }
+
+    [Fact]
+    public void AForgetWhileTheOwnerIsBeingAskedMakesTheirYesSaveNothing()
+    {
+        // The owner chose Forget after the question appeared, so Forget is the later word.
+        var store = NewStore();
+        store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
+
+        Assert.False(store.Admit("(11:22:33:44:55:66)", () =>
+        {
+            store.Forget();
+            return true;
+        }));
+
+        Assert.Empty(store.TrustedPhones);
+        Assert.Empty(NewStore().TrustedPhones);
+        Assert.False(store.CanForget);
     }
 
     [Fact]
@@ -48,7 +105,7 @@ public sealed class TrustStoreTests : IDisposable
 
         var store = NewStore();
 
-        Assert.Null(store.Trusted);
+        Assert.Empty(store.TrustedPhones);
         Assert.True(store.Admit("(11:22:33:44:55:66)", Yes));
     }
 
@@ -56,8 +113,8 @@ public sealed class TrustStoreTests : IDisposable
     public void AFileThatCannotBeReadRefusesRatherThanReArmingTrust()
     {
         // The security half of guarding the read. A file that is there and unreadable is not the same as
-        // no file: treating it as one would re-arm trust on first use and hand this laptop to whichever
-        // phone connected while it was locked. Holding it open with no sharing is how a locked file
+        // no file: treating it as one would put every phone to the owner again, and a yes would write a list
+        // of one over the phones the read could not see. Holding it open with no sharing is how a locked file
         // actually looks on Windows, which is the only platform this app has.
         var store = NewStore();
         store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
@@ -66,11 +123,11 @@ public sealed class TrustStoreTests : IDisposable
 
         Assert.False(store.Admit("(AA:BB:CC:DD:EE:FF)", Unasked));
         Assert.False(store.Admit("(11:22:33:44:55:66)", Unasked));
-        Assert.Null(store.Trusted);
+        Assert.Empty(store.TrustedPhones);
     }
 
     [Fact]
-    public void APhoneThatCouldNotBeSavedIsStillTheOnlyOneTrusted()
+    public void APhoneThatCouldNotBeSavedIsStillTrustedForThisRun()
     {
         // A file where the folder should be: the read finds nothing, and the write cannot create the folder.
         Directory.CreateDirectory(dir);
@@ -78,9 +135,12 @@ public sealed class TrustStoreTests : IDisposable
         var store = new TrustStore(Path.Combine(dir, "blocked", "trusted-phone.txt"));
 
         Assert.True(store.Admit("(AA:BB:CC:DD:EE:FF)", Yes));
-        Assert.False(store.Admit("(11:22:33:44:55:66)", Yes));
-        Assert.True(store.Refuses("(11:22:33:44:55:66)"));
-        Assert.Equal("(AA:BB:CC:DD:EE:FF)", store.Trusted);
+        Assert.True(store.Admit("(aa:bb:cc:dd:ee:ff)", Unasked));
+        Assert.True(store.CanForget);
+        Assert.Equal(["(AA:BB:CC:DD:EE:FF)"], store.TrustedPhones);
+
+        // Only the owner's yes widens it: another phone is still asked, and a no keeps it out.
+        Assert.False(store.Admit("(11:22:33:44:55:66)", No));
     }
 
     [Fact]
@@ -91,22 +151,31 @@ public sealed class TrustStoreTests : IDisposable
 
         store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
         Assert.False(store.Refuses("(aa:bb:cc:dd:ee:ff)"));
-        Assert.True(store.Refuses("(11:22:33:44:55:66)"));
+
+        // A phone not trusted yet is asked about, not refused before it gets that far.
+        Assert.False(store.Refuses("(11:22:33:44:55:66)"));
 
         using var held = new FileStream(
             Path.Combine(dir, "trusted-phone.txt"), FileMode.Open, FileAccess.Read, FileShare.None);
         Assert.True(store.Refuses("(AA:BB:CC:DD:EE:FF)"));
+        Assert.True(store.Refuses("(11:22:33:44:55:66)"));
     }
 
     [Fact]
-    public void TheOwnerIsAskedOnlyWhileNothingIsTrusted()
+    public void TheOwnerIsAskedOnlyAboutAPhoneNotTrustedYet()
     {
         var store = NewStore();
         Assert.True(store.Admit("(AA:BB:CC:DD:EE:FF)", Yes));
 
-        // The trusted phone comes straight in and any other is refused, neither with a question.
+        // The trusted phone comes straight in without a question; any other is asked about.
         Assert.True(store.Admit("(aa:bb:cc:dd:ee:ff)", Unasked));
-        Assert.False(store.Admit("(11:22:33:44:55:66)", Unasked));
+        var asked = false;
+        Assert.False(store.Admit("(11:22:33:44:55:66)", () =>
+        {
+            asked = true;
+            return false;
+        }));
+        Assert.True(asked);
     }
 
     [Fact]
@@ -115,11 +184,11 @@ public sealed class TrustStoreTests : IDisposable
         var store = NewStore();
 
         Assert.False(store.Admit("(AA:BB:CC:DD:EE:FF)", No));
-        Assert.Null(store.Trusted);
+        Assert.Empty(store.TrustedPhones);
 
         // Nothing was written down, so the next phone is asked about in its turn.
         Assert.True(store.Admit("(11:22:33:44:55:66)", Yes));
-        Assert.Equal("(11:22:33:44:55:66)", store.Trusted);
+        Assert.Equal(["(11:22:33:44:55:66)"], store.TrustedPhones);
     }
 
     [Fact]
@@ -137,7 +206,7 @@ public sealed class TrustStoreTests : IDisposable
         }));
 
         Assert.False(second);
-        Assert.Equal("(AA:BB:CC:DD:EE:FF)", store.Trusted);
+        Assert.Equal(["(AA:BB:CC:DD:EE:FF)"], store.TrustedPhones);
     }
 
     [Fact]
@@ -228,7 +297,7 @@ public sealed class TrustStoreTests : IDisposable
         NewStore().Forget();
         NewStore().Forget();
 
-        Assert.Null(NewStore().Trusted);
+        Assert.Empty(NewStore().TrustedPhones);
     }
 
     [Fact]
@@ -247,7 +316,7 @@ public sealed class TrustStoreTests : IDisposable
         // Readable again and still naming the phone, yet refused.
         Assert.True(store.Refuses("(AA:BB:CC:DD:EE:FF)"));
         Assert.False(store.Admit("(AA:BB:CC:DD:EE:FF)", Unasked));
-        Assert.Null(store.Trusted);
+        Assert.Empty(store.TrustedPhones);
         Assert.True(store.CanForget);
 
         Assert.True(store.Forget());
@@ -269,7 +338,7 @@ public sealed class TrustStoreTests : IDisposable
         held.Dispose();
 
         Assert.Equal("", File.ReadAllText(Path.Combine(dir, "trusted-phone.txt")));
-        Assert.Null(store.Trusted);
+        Assert.Empty(store.TrustedPhones);
         Assert.False(store.CanForget);
         Assert.True(store.Admit("(11:22:33:44:55:66)", Yes));
     }

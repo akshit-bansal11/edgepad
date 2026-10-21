@@ -33,7 +33,7 @@ Both apps come from the [latest release](https://github.com/akshit-bansal11/edge
 
 1. Download `Edgepad-<version>.exe`. It is a single self-contained file; nothing else needs installing.
 2. Run it. It is not code-signed, so SmartScreen asks first: choose **More info**, then **Run anyway**.
-3. It lives in the system tray, and a left or a right click on its icon opens the same menu. The menu shows whether a phone is connected, then **Start with Windows**, **Macros…**, **Open log**, **Documentation**, **Forget trusted phone** and **Quit Edgepad**, with the version beside it. It follows Windows' light or dark app mode.
+3. It lives in the system tray, and a left or a right click on its icon opens the same menu. The menu shows whether a phone is connected, then **Start with Windows**, **Macros…**, **Open log**, **Documentation**, **Forget trusted phones** and **Quit Edgepad**, with the version beside it. It follows Windows' light or dark app mode.
 
 Running a newer release's exe asks the running copy to quit and takes its place. From 3.3.0 the tray app asks GitHub once a day whether a newer release exists, and shows an **Update available** row at the top of its menu when one does.
 
@@ -45,8 +45,8 @@ One download covers Apple Silicon and Intel. The Mac app was compiled and unit-t
 
 1. Download `Edgepad-<version>-mac.zip` and unzip it. It holds `Edgepad.app`; move that to Applications.
 2. Open it. It is ad hoc signed and not notarised, because the project has no Apple Developer ID, so macOS refuses an app it does not recognise. Open **System Settings > Privacy & Security** and choose **Open Anyway** for Edgepad.
-3. It lives in the menu bar. It asks for **Bluetooth**, to listen for the paired phone, and for input control (**System Settings > Privacy & Security > Device Control and Data Access**, named Accessibility before macOS 27). Without it macOS silently discards every pointer move and key press the app sends, and the menu shows **Allow Edgepad to control this Mac…** until it is granted. On macOS 27 the system never lists the app on its own: in that pane click **+**, add Edgepad, and switch it on (including its Events switch where one is shown).
-4. The menu shows whether a phone is connected, then **Update available** when a newer release exists, **Start at login**, **Open log**, **Documentation**, **Forget trusted phone** and **Quit Edgepad**, with the version beside it. The app asks GitHub once at start and once a day whether a newer release exists, and downloads nothing.
+3. It lives in the menu bar. It asks for **Bluetooth**, to listen for the paired phone, and for input control (**System Settings > Privacy & Security > Device Control and Data Access**, named Accessibility before macOS 27). Without it macOS silently discards every pointer move and key press the app sends, and the menu shows **Allow Edgepad to control this Mac…** until it is granted. On macOS 27 the system never lists the app on its own: in that pane click **+**, add Edgepad, and switch it on (including its Events switch where one is shown). If input still does nothing after you grant the permission, quit Edgepad from the menu bar and open it again.
+4. The menu shows whether a phone is connected, then **Update available** when a newer release exists, **Start at login**, **Open log**, **Documentation**, **Forget trusted phones** and **Quit Edgepad**, with the version beside it. The app asks GitHub once at start and once a day whether a newer release exists, and downloads nothing.
 
 Because the signature is ad hoc, macOS treats every new version as a different app, so the Device Control permission has to be granted again after each update: remove the old Edgepad entry in the list, then add the new one.
 
@@ -60,7 +60,7 @@ Because the signature is ad hoc, macOS treats every new version as a different a
 
 1. Pair the phone with the laptop once, in Windows **Settings > Bluetooth & devices** or macOS **System Settings > Bluetooth**, and confirm the code on both sides.
 2. Keep Edgepad running in the laptop's tray, or on a Mac in the menu bar.
-3. Open Edgepad on the phone and tap the laptop. The first time, the laptop asks **Trust this phone?**; choose **Trust** there (no answer within a minute counts as no). That phone becomes the laptop's trusted phone, and any other paired phone is refused until you choose **Forget trusted phone** in the tray or menu-bar menu.
+3. Open Edgepad on the phone and tap the laptop. The first time, the laptop asks **Trust this phone?**; choose **Trust** there (no answer within a minute counts as no). Every paired phone is asked about once, and each one you trust is remembered; **Forget trusted phones** in the tray or menu-bar menu forgets them all. One phone drives the laptop at a time: a trusted phone that connects takes over from the connected one, and the phone it replaced is refused for 30 seconds, so the two do not take the laptop back and forth. After that it can reconnect with Retry.
 4. The phone remembers the laptop and reconnects when the app opens. If the link drops, the phone retries ten times, two seconds apart, and says so.
 
 ### The control surface
@@ -103,7 +103,7 @@ Pointer, click, drag, scroll, typing, the on-screen keyboard, the corner dials f
 - **Mute, volume and media keys go out as the Mac's own media keys**, so macOS shows its own readout. A level set from a dial goes through Core Audio and shows none.
 - **Brightness** uses a private macOS framework, DisplayServices, loaded at run time. Where it is missing or there is no built-in display, the brightness dial has nothing to show and brightness up and down fall back to the brightness keys.
 - **Levels changed on the Mac itself** reach the phone within half a second: the app polls twice a second rather than subscribing.
-- **Trust.** Windows binds its socket so the link layer refuses unpaired devices. The Mac app checks that the phone is paired and explicitly authenticates its Bluetooth connection before starting a session. Android requests an authenticated, encrypted RFCOMM socket on both platforms. On both, **Forget trusted phone** hangs up on the connected phone and takes no connection while it asks, nor for 30 seconds after a yes. The Mac's trust question shows the phone's own name in quotes beside the address, which is the part being trusted.
+- **Trust.** Windows binds its socket so the link layer refuses unpaired devices. The Mac app checks that the phone is paired and explicitly authenticates its Bluetooth connection before starting a session. The socket settings the phone asks for are not a protection, since an attacker chooses their own socket. The laptop-side gates are that the phone is paired, that the link authenticates (on a Mac `requestAuthentication()` succeeds and the log says how long it took; on Windows the socket's `BluetoothEncryptionWithAuthentication` protection level), and the owner's yes. Every phone you trust has full keyboard-level control, so trust only your own. On both, **Forget trusted phones** hangs up on the connected phone and takes no connection while it asks, nor for 30 seconds after a yes. The Mac's trust question shows the phone's own name in quotes beside the address, which is the part being trusted.
 
 **Not in the Mac app yet:** macros (the phone's macro grid says there are none), now playing (title, app, position and seeking; the transport buttons still work), the on-screen level readout, and the virtual game controller (the gamepad screen says **keyboard mode**, because there is no driver; controls bound to keys work).
 
@@ -113,7 +113,7 @@ The laptop app logs to `%LOCALAPPDATA%\Edgepad\edgepad.log` (also in the tray me
 
 On a Mac the log is `~/Library/Logs/Edgepad/edgepad.log` (also **Open log** in the menu). The usual cause of a connected phone that moves nothing is that input control (**Device Control and Data Access**) has not been granted, or has to be granted again after an update: see the Mac install steps above.
 
-If Android reports `read failed, socket might closed or timeout, RET:-1` and the Mac log says `the link is not encrypted (mode 0)`, update the Mac app. The old encryption check can reject an encrypted connection on macOS 27; pairing again does not fix that check.
+If the phone says the laptop hung up before the handshake (an older phone app shows `read failed, socket might closed or timeout, RET:-1`) and the Mac log says `the link is not encrypted (mode 0)`, update the Mac app. The old encryption check can reject an encrypted connection on macOS 27; pairing again does not fix that check.
 
 **Task Manager, and anything run as administrator, ignores the phone** unless Edgepad itself runs as administrator: Windows blocks input from an ordinary program into an elevated one. Quit Edgepad from its tray icon, then right-click the exe › **Run as administrator**. Macros then open programs as administrator too. **The lock screen, UAC prompts and Ctrl+Alt+Del cannot be reached at all:** they run on Windows' secure desktop, which no program can send input to, elevated or not.
 

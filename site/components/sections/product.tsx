@@ -198,7 +198,7 @@ export function ProductSections() {
                 <strong className="text-foreground">Macros…</strong>,{" "}
                 <strong className="text-foreground">Open log</strong>,{" "}
                 <strong className="text-foreground">Documentation</strong>,{" "}
-                <strong className="text-foreground">Forget trusted phone</strong> and{" "}
+                <strong className="text-foreground">Forget trusted phones</strong> and{" "}
                 <strong className="text-foreground">Quit Edgepad</strong>, with the
                 version beside it.
               </li>
@@ -242,11 +242,13 @@ export function ProductSections() {
                 under System Settings &gt; Privacy &amp; Security.
               </p>
               <p className="mb-3">
-                It lives in the menu bar and asks for Bluetooth and for Accessibility,
+                It lives in the menu bar and asks for Bluetooth and for input control
+                (Accessibility, named Device Control and Data Access from macOS 27),
                 without which macOS silently discards every pointer move and key press
-                the app sends. The signature is ad hoc, so macOS treats each new version
-                as a different app and Accessibility has to be granted again after an
-                update.
+                the app sends. If input still does nothing after you grant it, quit
+                Edgepad from the menu bar and open it again. The signature is ad hoc, so
+                macOS treats each new version as a different app and the permission has
+                to be granted again after an update.
               </p>
               <p>
                 The Mac app has been compiled and unit-tested in CI but not yet run on a
@@ -306,10 +308,13 @@ export function ProductSections() {
           <li>
             Open Edgepad on the phone and tap the laptop. The first time, the laptop
             asks <strong className="text-foreground">Trust this phone?</strong>; choose
-            Trust there. That phone becomes the laptop&apos;s trusted phone, and any
-            other paired phone is refused until you choose{" "}
-            <strong className="text-foreground">Forget trusted phone</strong> in the
-            tray or menu-bar menu.
+            Trust there. Every paired phone is asked about once, and each one you trust
+            is remembered; choose{" "}
+            <strong className="text-foreground">Forget trusted phones</strong> in the
+            tray or menu-bar menu to forget them all. One phone drives the laptop at a
+            time: a trusted phone that connects takes over from the connected one, and
+            the phone it replaced is refused for 30 seconds before it can reconnect with
+            Retry.
           </li>
           <li>
             The phone remembers the laptop and reconnects when the app opens. If the
@@ -516,7 +521,7 @@ export function ProductSections() {
         <Sub>Where the laptop keeps things</Sub>
         <CodeBlock
           title="Laptop files"
-          code={`%APPDATA%\\Edgepad\\trusted-phone.txt   the trusted phone's Bluetooth address
+          code={`%APPDATA%\\Edgepad\\trusted-phone.txt   the trusted phones' Bluetooth addresses, one per line
 %LOCALAPPDATA%\\Edgepad\\edgepad.log    connections, refusals, dropped frames,
                                       and input batches Windows refused
 ~/Library/Application Support/Edgepad/trusted-phone.txt   the same, on a Mac

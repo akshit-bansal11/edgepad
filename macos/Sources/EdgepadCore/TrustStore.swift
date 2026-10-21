@@ -1,28 +1,34 @@
 import Foundation
 
-/// Trust on first use, with the owner's say-so. Pairing already limits connections to bonded devices; this
-/// narrows it to one phone, so some other paired device cannot drive the Mac. The first phone to complete the
-/// handshake while nothing is trusted is not taken on its word: the owner is asked, on the Mac, and only a yes
-/// writes it down. Forget clears it, and the next phone is asked about in turn.
+/// Trust with the owner's say-so, one phone at a time. Pairing already limits connections to bonded devices; this
+/// narrows it to the phones the owner has accepted, so some other paired device cannot drive the Mac. A phone that
+/// completes the handshake is not taken on its word: unless it is already trusted the owner is asked, on the Mac,
+/// and only a yes writes its address down, one per line. A trusted phone is let in without asking. Forget clears
+/// every one of them, and each phone after it is asked about again.
 ///
 /// Reading is the guard that matters: a file that is there and cannot be read is not the same as no file, and
-/// treating it as one would re-arm trust on first use and hand this Mac to whichever phone connected while
-/// the file was unreadable. So a failed read refuses, and only a genuinely absent file admits.
+/// treating it as one would hand this Mac to whichever phone connected while the file was unreadable, and let the
+/// next yes overwrite the phones it still names. So a failed read refuses every phone, and only a genuinely absent
+/// file starts the list empty.
 public final class TrustStore {
     private let path: String
     private let gate = NSLock()
 
-    /// The phone admitted when its address could not be written down. Kept for this run so a failed save
-    /// narrows trust to that phone rather than leaving it open to whichever bonded device connects next.
-    private var unsaved: String?
+    /// The phones admitted when their addresses could not be written down. Kept for this run so a disk that will
+    /// not take an address costs the owner one question per run, not one at every reconnect.
+    private var unsaved: [String] = []
 
     /// Set while the owner is being asked about one phone. A second phone arriving then is refused unasked
     /// rather than stacking a second question on the first, which the owner could answer for the wrong phone.
     private var asking = false
 
     /// Set when `forget()` could not delete the file. Until it really is gone every phone is refused, exactly as
-    /// for a file that cannot be read: the phone is still trusted on disk, and the owner believes it is not.
+    /// for a file that cannot be read: the phones are still trusted on disk, and the owner believes they are not.
     private var forgetFailed = false
+
+    /// Moved on by every `forget()`. A Forget chosen while the owner is being asked is the later word: a yes that
+    /// arrives after it saves nothing.
+    private var generation = 0
 
     /// How long a phone the owner said no to is turned away unasked. Long enough that a phone's automatic
     /// retries cannot put the question straight back under the owner's cursor.
@@ -47,14 +53,14 @@ public final class TrustStore {
         return TrustStore(path: support + "/Edgepad/trusted-phone.txt")
     }
 
-    /// Where the trusted phone is kept, for a message that has to send the owner there.
+    /// Where the trusted phones are kept, for a message that has to send the owner there.
     public var filePath: String { path }
 
-    /// The trusted address, or nil when there is none or it cannot be read.
-    public var trusted: String? {
+    /// The trusted addresses, oldest first; empty when there are none or they cannot be read.
+    public var trustedPhones: [String] {
         locked {
             let read = tryRead()
-            return read.readable ? read.address ?? unsaved : nil
+            return read.readable ? withUnsaved(read.addresses) : []
         }
     }
 
@@ -63,15 +69,16 @@ public final class TrustStore {
     public var canForget: Bool {
         locked {
             let read = tryRead()
-            return !read.readable || (read.address ?? unsaved) != nil
+            return !read.readable || !withUnsaved(read.addresses).isEmpty
         }
     }
 
-    /// True when `address` may connect. While nothing is trusted, `ask` puts the question to the owner and a
-    /// yes is remembered; otherwise it is never called. It blocks for as long as the owner takes, so it runs
-    /// outside the lock: the menu reads `trusted` on the very thread that is showing the question, and would
+    /// True when `address` may connect. A phone not trusted yet is put to the owner through `ask`, and a yes adds
+    /// it to the list; for a trusted one `ask` is never called. It blocks for as long as the owner takes, so it runs
+    /// outside the lock: the menu reads `trustedPhones` on the very thread that is showing the question, and would
     /// otherwise wait on its own answer.
     public func admit(_ address: String, ask: () -> Bool) -> Bool {
+        var askedIn = 0
         let early: Bool? = locked {
             if let known = decided(address) {
                 return known
@@ -83,6 +90,7 @@ public final class TrustStore {
                 return false
             }
             asking = true
+            askedIn = generation
             return nil
         }
         if let early {
@@ -101,39 +109,45 @@ public final class TrustStore {
         }
 
         return locked {
-            // Settled again after the wait: a file edited by hand in that minute is still the one that counts.
+            if generation != askedIn {
+                Log.write("Did not trust \(address): the trusted phones were forgotten while the owner was asked")
+                return false
+            }
+            // Settled again after the wait: a file edited by hand in that minute is still the one that counts, and
+            // a phone it already names is not written twice.
             if let settled = decided(address) {
                 return settled
             }
             do {
-                try save(address)
+                try save(tryRead().addresses + [address])
             } catch {
                 // Admitted anyway, and remembered until the app quits. Refusing the owner's own phone because
                 // the disk is full would be a worse answer than forgetting it at the next start.
-                unsaved = address
+                unsaved.append(address)
                 Log.write("The trusted phone could not be saved to \(path): \(error.localizedDescription)")
             }
             return true
         }
     }
 
-    /// True when `address` is certain to be refused: another phone is trusted, the trust file cannot be read, or
-    /// the owner is being asked about a phone right now. A connection that arrives during the question is turned
-    /// away without disturbing the phone being asked about, and may try again once the question is answered.
-    /// So is a phone the owner just declined. Checked before a new connection may displace the current one;
-    /// unlike `admit` it never grants trust.
+    /// True when `address` is certain to be refused: the owner is being asked about a phone right now, or just
+    /// declined this one, or the trust file cannot be read. A connection that arrives during the question is turned
+    /// away without disturbing the phone being asked about, and may try again once the question is answered. A
+    /// phone that is merely not trusted yet is not refused here: it is asked about. Checked before a new connection
+    /// starts its handshake; unlike `admit` it never grants trust.
     public func refuses(_ address: String) -> Bool {
-        locked { asking || isDeclined(address) || decided(address) == false }
+        locked { asking || isDeclined(address) || !tryRead().readable }
     }
 
-    /// True when the phone is forgotten: the trust file is gone (deleted or never there) or, when it could not be
-    /// deleted, emptied, which reads the same. False when neither worked: the phone is then still named on disk, so
-    /// every phone is refused for this run, as for an unreadable file, until a later forget succeeds, and that
-    /// phone would be trusted again after a restart.
+    /// True when every phone is forgotten: the trust file is gone (deleted or never there) or, when it could not be
+    /// deleted, emptied, which reads the same. False when neither worked: the phones are then still named on disk,
+    /// so every phone is refused for this run, as for an unreadable file, until a later forget succeeds, and those
+    /// phones would be trusted again after a restart.
     @discardableResult
     public func forget() -> Bool {
         locked {
-            unsaved = nil
+            generation += 1
+            unsaved = []
             declined = nil
             do {
                 try FileManager.default.removeItem(atPath: path)
@@ -149,11 +163,12 @@ public final class TrustStore {
                         try handle.truncate(atOffset: 0)
                         try handle.close()
                         Log.write(
-                            "The trusted phone's file could not be deleted at \(path) and was emptied instead: "
+                            "The trusted phones' file could not be deleted at \(path) and was emptied instead: "
                                 + deleteError.localizedDescription)
                     } catch {
                         Log.write(
-                            "The trusted phone could not be forgotten at \(path): \(deleteError.localizedDescription)")
+                            "The trusted phones could not be forgotten at \(path), as it could not be emptied either: "
+                                + deleteError.localizedDescription)
                         forgetFailed = true
                         return false
                     }
@@ -176,8 +191,8 @@ public final class TrustStore {
         return declined.address.caseInsensitiveCompare(address) == .orderedSame
     }
 
-    /// Whether `address` is admitted without asking: true for the trusted phone, false for any other and for a
-    /// trust file that cannot be read, nil when nothing is trusted yet. Called under the lock.
+    /// Whether `address` is admitted without asking: true for a trusted phone, false for every phone while the
+    /// trust file cannot be read, nil for a phone the owner has not said yes to. Called under the lock.
     private func decided(_ address: String) -> Bool? {
         let read = tryRead()
         if !read.readable {
@@ -186,28 +201,36 @@ public final class TrustStore {
             // which is the single thing this class exists to prevent.
             return false
         }
-        guard let trusted = read.address ?? unsaved else {
-            return nil
-        }
-        return trusted.caseInsensitiveCompare(address) == .orderedSame
+        return TrustStore.names(withUnsaved(read.addresses), address) ? true : nil
+    }
+
+    /// The addresses in the file, then those admitted this run that could not be saved. Called under the lock.
+    private func withUnsaved(_ addresses: [String]) -> [String] {
+        addresses + unsaved.filter { !TrustStore.names(addresses, $0) }
+    }
+
+    /// Addresses are compared without regard to case, as the phone and macOS may write them differently.
+    private static func names(_ addresses: [String], _ address: String) -> Bool {
+        addresses.contains { $0.caseInsensitiveCompare(address) == .orderedSame }
     }
 
     /// Readable is false when the file is there and could not be read: the caller must then refuse rather than
-    /// guess. A nil address with readable true means nothing is trusted yet, which an absent file and a blank
-    /// one both mean: Forget deletes the file, and a blank one is the same intent written by hand. A forget that
-    /// could not delete the file is unreadable too, whatever the file now says.
-    private func tryRead() -> (readable: Bool, address: String?) {
-        if forgetFailed { return (false, nil) }
+    /// guess. No addresses with readable true means nothing is trusted yet, which an absent file and a blank one
+    /// both mean: Forget deletes the file, and a blank one is the same intent written by hand. A file from before
+    /// there could be several phones holds one address, and is read as a list of one. A forget that could not
+    /// delete the file is unreadable too, whatever the file now says.
+    private func tryRead() -> (readable: Bool, addresses: [String]) {
+        if forgetFailed { return (false, []) }
         do {
             let text = try String(contentsOfFile: path, encoding: .utf8)
-            let address = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            return (true, address.isEmpty ? nil : address)
+            let lines = text.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }
+            return (true, lines.filter { !$0.isEmpty })
         } catch {
             if isAbsent(error) {
-                return (true, nil)
+                return (true, [])
             }
-            Log.write("The trusted phone could not be read from \(path): \(error.localizedDescription)")
-            return (false, nil)
+            Log.write("The trusted phones could not be read from \(path): \(error.localizedDescription)")
+            return (false, [])
         }
     }
 
@@ -228,8 +251,9 @@ public final class TrustStore {
         return stat(path, &info) != 0 && (errno == ENOENT || errno == ENOTDIR)
     }
 
-    /// The directory is private to the user and so is the file: the address says which device may drive this Mac.
-    private func save(_ address: String) throws {
+    /// Rewrites the whole list. The directory is private to the user and so is the file: the addresses say which
+    /// devices may drive this Mac.
+    private func save(_ addresses: [String]) throws {
         let manager = FileManager.default
         let directory = (path as NSString).deletingLastPathComponent
         try manager.createDirectory(
@@ -237,8 +261,8 @@ public final class TrustStore {
             withIntermediateDirectories: true,
             attributes: [.posixPermissions: 0o700]
         )
-        guard manager.createFile(atPath: path, contents: Data(address.utf8), attributes: [.posixPermissions: 0o600])
-        else {
+        let data = Data((addresses.joined(separator: "\n") + "\n").utf8)
+        guard manager.createFile(atPath: path, contents: data, attributes: [.posixPermissions: 0o600]) else {
             throw CocoaError(.fileWriteUnknown)
         }
     }
