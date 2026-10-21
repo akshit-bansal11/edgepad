@@ -187,7 +187,7 @@ public final class Session {
             return
         }
         guard onAdmitted(self) else {
-            Log.write("Refused \(address): this Mac stopped taking connections while it asked")
+            Log.write("Refused \(address): trusted, but not taken now: phones are being forgotten, or it lost the Mac")
             end()
             return
         }
