@@ -19,9 +19,11 @@ Never write secrets, API keys or credential values into Notion. Variable names o
 Conventional Commits, with these trailers:
 
 ```
-Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+Co-Authored-By: <the model actually running, e.g. Claude Opus 5.5> <noreply@anthropic.com>
 Claude-Session: <session url>
 ```
+
+Name the model that is running, not a fixed one: this file named Opus 5 while Opus 5.5 was running (2026-10-21), and a hardcoded name goes stale with every model. Leave `Claude-Session` out when the session has no URL, as a local CLI session does, rather than inventing one.
 
 **No `Ref-ID:` trailer.** Edgepad's mini-project reference ID `yfu0idauhvj2nm9nkp0lcgkd7-zawm4drxxv` was retired on extraction and no id replaced it. Every commit through `1612ee2` still carries it, because history cannot be rewritten; `git log --grep=zawm4drxxv` finds them. Commits after the extraction carry no id.
 
