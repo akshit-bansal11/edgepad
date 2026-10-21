@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-10-21
+
+The wire protocol stays at version 4, so any 3.x half still speaks to any other. This release lets a laptop trust more than one phone, makes the phone say why a connection failed, makes the Windows app start Bluetooth again by itself, and carries a contributor's fix for the Mac on macOS 27; as always, install both halves from the same release.
+
 ### Added
 
 - **Several phones can be trusted.** Any phone paired with the laptop is asked about once, with the same **Trust this phone?** question, **Don't trust** as the default and no answer within 60 seconds counting as no. Each yes is remembered in the same `trusted-phone.txt`, one address per line, and a file from an older release holding one address still works. A phone declined or left unanswered is not asked again for 30 seconds, as before.
@@ -772,7 +776,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.4.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v3.5.0...HEAD
+[3.5.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.1.1...v3.2.0
