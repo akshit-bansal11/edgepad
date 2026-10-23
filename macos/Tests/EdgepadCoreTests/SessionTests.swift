@@ -154,6 +154,7 @@ final class SessionTests: XCTestCase {
                 .text(kind: TextKind.refreshRates.rawValue, value: "60/120"),
                 .state(control: ControlId.refreshRate.rawValue, value: 1, flags: 0),
                 .text(kind: TextKind.padStatus.rawValue, value: "no-driver"),
+                .text(kind: TextKind.features.rawValue, value: Feature.capture.rawValue),
                 .text(kind: TextKind.macros.rawValue, value: ""),
             ]
         )

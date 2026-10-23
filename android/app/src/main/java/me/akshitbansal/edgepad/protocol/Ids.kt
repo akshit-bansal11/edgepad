@@ -36,6 +36,16 @@ enum class ActionId(
     PAD_DETACH(36),
 
     /**
+     * Screen capture, which is the laptop's own tool: a region (a drag), the whole screen, and a recording.
+     * Actions because the phone only asks; what each one presses is the laptop's business. A laptop too old
+     * to know them drops and counts the ids, and the phone shows the buttons only for one that sent
+     * [Feature.CAPTURE].
+     */
+    CAPTURE_REGION(52),
+    CAPTURE_SCREEN(53),
+    CAPTURE_RECORD(54),
+
+    /**
      * The first of 32 macro slots, 64..95; slot n is `MACRO_BASE + n`. The phone sends the index and never
      * what it launches — the laptop's own list decides that, which is the whole security model here.
      * A laptop too old to know the block drops the id and counts it, so this needed no protocol version.
@@ -105,6 +115,13 @@ enum class TextKind(
      * can hide the pad instead of showing a button that quietly does nothing.
      */
     PAD_STATUS(8),
+
+    /**
+     * Laptop to phone: the optional features this laptop has, as [Feature] tokens joined by "/", sent once
+     * after the handshake. A feature missing from the list is off, and a token this build does not know is
+     * ignored, so a newer laptop can name more than an older phone understands.
+     */
+    FEATURES(9),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -167,5 +184,25 @@ enum class PadStatus(
     companion object {
         /** An unknown token reads as [NO_DRIVER]: the pad is unusable and the phone cannot say why. */
         fun of(token: String): PadStatus = entries.firstOrNull { it.token == token } ?: NO_DRIVER
+    }
+}
+
+/**
+ * The whole vocabulary of [TextKind.FEATURES]. A token the phone matches on, never prose, for the reason
+ * [PadStatus] is. Mirrors protocol/actions.txt.
+ */
+enum class Feature(
+    val token: String,
+) {
+    /** The laptop can draw on its screen from the phone. */
+    ANNOTATE("annotate"),
+
+    /** The laptop answers the capture actions. */
+    CAPTURE("capture"),
+    ;
+
+    companion object {
+        /** Null for a token this build does not know: a feature it cannot offer is simply not there. */
+        fun of(token: String): Feature? = entries.firstOrNull { it.token == token }
     }
 }

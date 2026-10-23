@@ -19,7 +19,7 @@ final class IdsFixtureTests: XCTestCase {
     // PAD_BUTTON rows are not checked: a Mac has no virtual controller, so it drops PAD_STATE and never reads
     // the mask. The kind is still recognised below, so an unknown kind in actions.txt still fails.
     func testEveryRowKindInTheSharedTableIsKnown() throws {
-        let known: Set<String> = ["ACTION", "CONTROL", "TEXT", "PAD_BUTTON", "PAD_STATUS", "HANDSHAKE"]
+        let known: Set<String> = ["ACTION", "CONTROL", "TEXT", "PAD_BUTTON", "PAD_STATUS", "FEATURE", "HANDSHAKE"]
         let kinds = try Fixtures.lines("actions.txt")
             .map { $0.split(separator: " ").map(String.init) }
             .filter { $0.count >= 3 }
@@ -37,6 +37,18 @@ final class IdsFixtureTests: XCTestCase {
 
         let enumTable = Dictionary(
             uniqueKeysWithValues: PadStatus.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+    }
+
+    func testFeatureTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("FEATURE") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: Feature.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
 
         XCTAssertEqual(table, enumTable)
     }

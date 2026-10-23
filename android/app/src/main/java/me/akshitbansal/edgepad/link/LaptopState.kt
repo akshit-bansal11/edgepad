@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.ControlId
+import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadStatus
 import me.akshitbansal.edgepad.protocol.TextKind
@@ -55,6 +56,13 @@ class LaptopState {
         private set
 
     /**
+     * What this laptop says it can do beyond the basics. Empty until the laptop says, which is also what a
+     * laptop that predates the list leaves it as, so every optional screen starts hidden.
+     */
+    var features: Set<Feature> = emptySet()
+        private set
+
+    /**
      * The slot whose icon a [take] that returned true just finished, or -1. Read straight after that call, so
      * an open grid can redraw that one button rather than decoding every picture it holds over again.
      */
@@ -97,6 +105,8 @@ class LaptopState {
                     TextKind.MACROS -> macros = macroNames(frame.text)
                     TextKind.MACRO_ICON -> return iconChunk(frame.text)
                     TextKind.PAD_STATUS -> padStatus = PadStatus.of(frame.text)
+                    // A token this build does not know is skipped, not an error: a newer laptop may name more.
+                    TextKind.FEATURES -> features = frame.text.split('/').mapNotNull(Feature::of).toSet()
                     else -> return false
                 }
             }

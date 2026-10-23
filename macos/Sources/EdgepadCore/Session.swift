@@ -357,6 +357,10 @@ public final class Session {
         }
         send(.text(kind: TextKind.padStatus.rawValue, value: PadStatus.noDriver.rawValue))
 
+        // Only what this build can do: the phone hides a feature that is not named, so naming one that is not
+        // here would be a button that quietly does nothing.
+        send(.text(kind: TextKind.features.rawValue, value: Feature.capture.rawValue))
+
         // An empty list: the phone then says to add some on the laptop instead of drawing a broken grid.
         send(.text(kind: TextKind.macros.rawValue, value: ""))
     }

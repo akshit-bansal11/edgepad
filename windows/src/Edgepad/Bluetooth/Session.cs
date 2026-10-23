@@ -195,6 +195,10 @@ internal sealed class Session(
         ReportRefreshRates();
         ReportPad();
 
+        // Only what this build can do: the phone hides a feature that is not named, so naming one that is
+        // not there would be a button that quietly does nothing.
+        Send(new Text((byte)TextKind.Features, Feature.Capture));
+
         Watch(speakers, ControlId.Volume);
         Watch(microphone, ControlId.MicLevel);
         Keep(media.Watch(state => Guarded(() => SendMedia(state))));

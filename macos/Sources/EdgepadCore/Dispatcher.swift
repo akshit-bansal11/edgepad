@@ -162,6 +162,14 @@ public final class Dispatcher {
             return stepBrightness(Dispatcher.brightnessStep, fallback: .brightnessUp)
         case .brightnessDown:
             return stepBrightness(-Dispatcher.brightnessStep, fallback: .brightnessDown)
+        case .captureRegion:
+            // The system's own screenshot tools, which is why there is no capture code of ours to maintain.
+            input.chord([.command, .shift, .four])
+        case .captureScreen:
+            input.chord([.command, .shift, .three])
+        case .captureRecord:
+            // Command+Shift+5 opens the capture toolbar, where recording is one click.
+            input.chord([.command, .shift, .five])
         case .padAttach, .padDetach:
             // Answered even though a Mac cannot offer a controller: the phone draws a different screen
             // depending on the token, and one that heard nothing could not say why.

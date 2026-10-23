@@ -180,6 +180,12 @@ const ACTION_DOCS: Record<string, string> = {
     "Asks the laptop to plug in its virtual Xbox controller. The laptop answers with TEXT 8, so the phone learns whether it may send PAD_STATE or must fall back to the keyboard.",
   PAD_DETACH:
     "Asks the laptop to unplug the virtual controller. Sent when the gamepad screen closes; the laptop also unplugs it by itself when the session ends.",
+  CAPTURE_REGION:
+    "Starts a region screenshot with the laptop's own tool: Win+Shift+S on Windows, Cmd+Shift+4 on a Mac. The drag happens on the laptop's screen.",
+  CAPTURE_SCREEN:
+    "Takes a screenshot of the whole screen: PrtScn on Windows, Cmd+Shift+3 on a Mac.",
+  CAPTURE_RECORD:
+    "Starts screen recording: Win+Shift+R on Windows, which needs a recent Snipping Tool and is unverified, and Cmd+Shift+5 on a Mac, which opens the capture toolbar.",
   MACRO_BASE:
     "The first of 32 reserved macro slots (ids 64-95). Slot n runs as MACRO_BASE + n. The phone sends the index; the laptop's own list decides what it opens.",
 };
@@ -212,6 +218,8 @@ const TEXT_DOCS: Record<string, string> = {
     "Asks for the macro icons, with an empty payload. Sent when the phone opens the macro grid; nothing is pushed unasked. Phone to laptop.",
   PAD_STATUS:
     "Whether a virtual controller can be offered, as one of ready, no-driver or attach-failed. Sent after the handshake and in answer to PAD_ATTACH and PAD_DETACH. An unknown token reads as no-driver, so the phone falls back to the keyboard rather than sending input nothing receives. Laptop to phone.",
+  FEATURES:
+    "The optional features this laptop has, as tokens joined by a slash such as annotate/capture. Sent once after the handshake. A feature that is not named is off, and a token the phone does not know is ignored. Laptop to phone.",
 };
 
 const PAD_BUTTON_DOCS: Record<string, string> = {

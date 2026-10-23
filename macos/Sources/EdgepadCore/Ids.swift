@@ -25,6 +25,11 @@ public enum ActionId: UInt8, CaseIterable {
     /// action costs no protocol version: a build too old to know them drops them and counts them.
     case padAttach = 35
     case padDetach = 36
+    /// Screen capture through the system's own tool: a region, the whole screen, and the toolbar that records.
+    /// Actions because the phone only asks; what each one presses is decided here.
+    case captureRegion = 52
+    case captureScreen = 53
+    case captureRecord = 54
     /// The first of 32 macro slots, 64 to 95; slot n is `macroBase + n`. The phone sends the index and never
     /// what it launches: this computer's own list decides that, which is the whole security model.
     case macroBase = 64
@@ -61,6 +66,15 @@ public enum TextKind: UInt8, CaseIterable {
     case wantIcons = 7
     /// Computer to phone: whether a virtual controller can be offered, as one `PadStatus` token.
     case padStatus = 8
+    /// Computer to phone: the optional features this Mac has, as `Feature` tokens joined by "/".
+    case features = 9
+}
+
+/// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is
+/// literally the bytes that cross the wire.
+public enum Feature: String, CaseIterable {
+    case annotate = "annotate"
+    case capture = "capture"
 }
 
 /// The whole vocabulary of `TextKind.padStatus`: a token the phone matches on, never prose, so the wording

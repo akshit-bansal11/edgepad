@@ -167,6 +167,17 @@ internal sealed class Dispatcher(
                 return Answer(pad.Attach());
             case ActionId.PadDetach:
                 return Answer(pad.Detach());
+            case ActionId.CaptureRegion:
+                // Windows' own Snipping Tool, which is why there is no capture code of ours to maintain.
+                input.Chord(Keys.LWin, Keys.ShiftKey, Keys.S);
+                return true;
+            case ActionId.CaptureScreen:
+                input.Chord(Keys.PrintScreen);
+                return true;
+            case ActionId.CaptureRecord:
+                // Needs a Snipping Tool new enough to record; on an older one the chord does nothing.
+                input.Chord(Keys.LWin, Keys.ShiftKey, Keys.R);
+                return true;
             default:
                 return false;
         }

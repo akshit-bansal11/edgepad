@@ -53,6 +53,14 @@ ACTION 36 = 20 24
 TEXT 8 ready = 41 08 05 72 65 61 64 79
 TEXT 8 no-driver = 41 08 09 6e 6f 2d 64 72 69 76 65 72
 TEXT 8 attach-failed = 41 08 0d 61 74 74 61 63 68 2d 66 61 69 6c 65 64
+# Capture is three ids in the ACTION table, so these are ordinary RUN_ACTION frames: 52 = 0x34, 53 = 0x35, 54 = 0x36.
+ACTION 52 = 20 34
+ACTION 53 = 20 35
+ACTION 54 = 20 36
+# The laptop telling the phone which optional features it has, as tokens joined by "/". "capture" is 7 bytes;
+# "annotate/capture" is 8 + 1 + 7 = 16, which is 0x10.
+TEXT 9 capture = 41 09 07 63 61 70 74 75 72 65
+TEXT 9 annotate/capture = 41 09 10 61 6e 6e 6f 74 61 74 65 2f 63 61 70 74 75 72 65
 # PAD_STATE buttons lt rt lx ly rx ry — the whole controller in one 12-byte payload, laid out exactly like
 # Windows' XINPUT_GAMEPAD so the laptop copies it rather than translating it. Triggers are 0..255; sticks are
 # -32768..32767, positive up and right. The signed lines below are the ones that matter: every i16 here is

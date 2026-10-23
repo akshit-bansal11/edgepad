@@ -37,6 +37,14 @@ class IdsFixtureTest {
     }
 
     @Test
+    fun featureTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("FEATURE").associate { it[2] to it[1] },
+            Feature.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
     fun anUnknownPadStatusTokenReadsAsNoDriver() {
         assertEquals(PadStatus.NO_DRIVER, PadStatus.of("something-a-later-laptop-says"))
     }

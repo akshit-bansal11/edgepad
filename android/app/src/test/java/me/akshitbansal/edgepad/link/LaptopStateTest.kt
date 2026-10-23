@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.ControlId
+import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadStatus
 import me.akshitbansal.edgepad.protocol.TextKind
@@ -35,6 +36,22 @@ class LaptopStateTest {
         // is exactly what NO_DRIVER already means to the screen.
         state.take(Frame.Text(TextKind.PAD_STATUS.id, "unplugged-by-the-cat"))
         assertEquals(PadStatus.NO_DRIVER, state.padStatus)
+    }
+
+    @Test
+    fun readsTheFeaturesTheLaptopNames() {
+        assertEquals(emptySet<Feature>(), state.features)
+        assertTrue(state.take(Frame.Text(TextKind.FEATURES.id, "annotate/capture")))
+        assertEquals(setOf(Feature.ANNOTATE, Feature.CAPTURE), state.features)
+        state.take(Frame.Text(TextKind.FEATURES.id, "capture"))
+        assertEquals(setOf(Feature.CAPTURE), state.features)
+        // Nothing named means nothing on, and a token this build does not know is ignored, not an error.
+        state.take(Frame.Text(TextKind.FEATURES.id, ""))
+        assertEquals(emptySet<Feature>(), state.features)
+        state.take(Frame.Text(TextKind.FEATURES.id, "junk"))
+        assertEquals(emptySet<Feature>(), state.features)
+        state.take(Frame.Text(TextKind.FEATURES.id, "junk/capture"))
+        assertEquals(setOf(Feature.CAPTURE), state.features)
     }
 
     @Test

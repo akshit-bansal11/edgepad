@@ -329,6 +329,16 @@ final class DispatcherTests: XCTestCase {
         XCTAssertEqual(dispatcher.dropped, 0)
     }
 
+    func testCaptureSendsTheSystemsOwnShortcuts() {
+        // Command is 55, Shift 56; the digits 3, 4 and 5 are 20, 21 and 23.
+        dispatcher.handle(.runAction(id: ActionId.captureRegion.rawValue))
+        dispatcher.handle(.runAction(id: ActionId.captureScreen.rawValue))
+        dispatcher.handle(.runAction(id: ActionId.captureRecord.rawValue))
+
+        XCTAssertEqual(input.calls, ["chord 55,56,21", "chord 55,56,20", "chord 55,56,23"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
     func testMuteSendsTheMuteKey() {
         dispatcher.handle(.runAction(id: ActionId.muteToggle.rawValue))
 

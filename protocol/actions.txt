@@ -42,6 +42,12 @@ ACTION 34 BRIGHTNESS_DOWN
 # never receives. The laptop decides whether it can honour the request and answers with TEXT 8.
 ACTION 35 PAD_ATTACH
 ACTION 36 PAD_DETACH
+# Screen capture, which is the laptop's own tool: a region (a drag), the whole screen, and a recording. Actions
+# because the phone only asks; what each one presses is the laptop's business, and a laptop too old to know
+# them drops and counts the id. The phone shows the buttons only for a laptop that sent FEATURES "capture".
+ACTION 52 CAPTURE_REGION
+ACTION 53 CAPTURE_SCREEN
+ACTION 54 CAPTURE_RECORD
 # The first of the 32 macro slots; slot n is MACRO_BASE + n. A laptop older than the macros feature drops an
 # unknown action id rather than erroring, which is why the block needs no new frame type and no version bump.
 ACTION 64 MACRO_BASE
@@ -79,6 +85,10 @@ TEXT 7 WANT_ICONS
 # fixed set below. Sent in answer to PAD_ATTACH and PAD_DETACH, and once after the handshake so the phone can
 # hide the pad rather than offer a button that does nothing.
 TEXT 8 PAD_STATUS
+# Which optional features this laptop has, laptop to phone, as FEATURE tokens joined by "/" (such as
+# "annotate/capture"), sent once after the handshake. A feature missing from the list is off, and a token the
+# phone does not know is ignored, so a newer laptop can name more of them than an older phone understands.
+TEXT 9 FEATURES
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
@@ -110,6 +120,11 @@ PAD_BUTTON 32768 Y
 PAD_STATUS ready READY
 PAD_STATUS no-driver NO_DRIVER
 PAD_STATUS attach-failed ATTACH_FAILED
+
+# The whole vocabulary of TEXT kind 9, as "<token on the wire> <the name both apps call it>". Tokens for the
+# reason PAD_STATUS is: the phone branches on them, so prose would make the laptop's wording unchangeable.
+FEATURE annotate ANNOTATE
+FEATURE capture CAPTURE
 
 HANDSHAKE 5 VERSION
 HANDSHAKE 758bb618-7b72-4cd3-9aa2-c9b88e54d555 SERVICE_ID

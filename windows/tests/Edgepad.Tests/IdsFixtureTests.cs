@@ -47,6 +47,25 @@ public sealed partial class IdsFixtureTests
     }
 
     [Fact]
+    public void FeatureTokensMatchTheSharedTable()
+    {
+        // Written out like the PAD_STATUS names, for the same reason: a const has no name to derive.
+        var expected = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var parts in Rows("FEATURE"))
+        {
+            expected.Add(parts[2], parts[1]);
+        }
+
+        var actual = new SortedDictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["ANNOTATE"] = Feature.Annotate,
+            ["CAPTURE"] = Feature.Capture,
+        };
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
     public void TheHandshakeMatchesTheSharedTable()
     {
         var handshake = Rows("HANDSHAKE").ToDictionary(parts => parts[2], parts => parts[1]);

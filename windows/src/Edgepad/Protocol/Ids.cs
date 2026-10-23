@@ -35,6 +35,16 @@ internal enum ActionId : byte
     PadDetach = 36,
 
     /// <summary>
+    /// Screen capture, which is this laptop's own tool: a region (a drag), the whole screen, and a recording.
+    /// Actions because the phone only asks; what each one presses is decided here. A laptop too old to know
+    /// them drops and counts the ids, and the phone shows the buttons only for one that sent
+    /// <see cref="Feature.Capture"/>.
+    /// </summary>
+    CaptureRegion = 52,
+    CaptureScreen = 53,
+    CaptureRecord = 54,
+
+    /// <summary>
     /// The first of 32 macro slots, 64..95; slot n is <c>MacroBase + n</c>. The phone sends the index and
     /// never what it launches — this laptop's own list decides that, which is the whole security model.
     /// A laptop too old to know the block drops the id and counts it, so this needed no protocol version.
@@ -77,6 +87,13 @@ internal enum TextKind : byte
     /// does nothing.
     /// </summary>
     PadStatus = 8,
+
+    /// <summary>
+    /// Laptop to phone: the optional features this laptop has, as <see cref="Feature"/> tokens joined by "/",
+    /// sent once after the handshake. A feature missing from the list is off, and a token the phone does not
+    /// know is ignored, so a newer laptop can name more than an older phone understands.
+    /// </summary>
+    Features = 9,
 }
 
 /// <summary>
@@ -132,6 +149,20 @@ internal static class PadStatus
 
     /// <summary>The driver is there but plugging the pad in failed.</summary>
     public const string AttachFailed = "attach-failed";
+}
+
+/// <summary>
+/// The whole vocabulary of <see cref="TextKind.Features"/>. Tokens the phone matches on, never prose, for the
+/// reason <see cref="PadStatus"/> is, and strings for the same reason: the constant is literally the bytes.
+/// Mirrors protocol/actions.txt.
+/// </summary>
+internal static class Feature
+{
+    /// <summary>This laptop can draw on its screen from the phone.</summary>
+    public const string Annotate = "annotate";
+
+    /// <summary>This laptop answers the capture actions.</summary>
+    public const string Capture = "capture";
 }
 
 /// <summary>What a SET_VALUE frame may set and a STATE frame reports. Mirrors protocol/actions.txt.</summary>

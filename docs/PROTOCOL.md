@@ -27,13 +27,13 @@ The transport is an RFCOMM byte stream. A frame is one type byte followed by a p
 | `0x03` | PIN_REQUEST | attemptsLeft u8, lockedSeconds u16 | laptop to phone | asks for the PIN, or says the phone is locked out; only between the trust question and HELLO_ACK; see [The PIN](#the-pin) |
 | `0x04` | PIN_ANSWER | six bytes, each 0 to 9 | phone to laptop | the PIN, one digit value per byte (not ASCII); only as the answer to PIN_REQUEST |
 
-TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter, 4 the display's available refresh rates as `60/120/144` (laptop to phone), 5 the laptop's macro names as `Chrome/Spotify/Notes` (laptop to phone), 6 one piece of one macro's icon as `slot/chunk/chunks/base64` (laptop to phone), 7 a request for the macro icons, with an empty payload (phone to laptop), 8 whether a virtual controller can be offered, as one PAD_STATUS token (laptop to phone).
+TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter, 4 the display's available refresh rates as `60/120/144` (laptop to phone), 5 the laptop's macro names as `Chrome/Spotify/Notes` (laptop to phone), 6 one piece of one macro's icon as `slot/chunk/chunks/base64` (laptop to phone), 7 a request for the macro icons, with an empty payload (phone to laptop), 8 whether a virtual controller can be offered, as one PAD_STATUS token (laptop to phone), 9 the optional features the laptop has, as tokens joined by `/` such as `annotate/capture`, where a feature not named is off and a token the phone does not know is ignored (laptop to phone).
 
 An icon does not fit the 255 bytes a payload holds, so TEXT 6 carries a PNG in pieces and the phone joins them: the counts are what let it tell a finished icon from a truncated one. Kinds rather than a frame type of their own, which is what keeps the protocol version where it is — an unknown kind is dropped and counted on both sides, while an unknown type closes the connection. Icons are answered rather than pushed, so a laptop too old to know TEXT 7 drops it and the phone keeps its labels, and a phone too old to send it costs the link nothing.
 
 The handshake has deadlines on both sides, and none of them is a change to the protocol. From version 5 a laptop whose security level asks for a PIN adds one step after the trust question, described in [The PIN](#the-pin). The laptop closes a connection that sends no HELLO within 10 seconds. When the phone that sent HELLO is not one it trusts, the laptop holds HELLO_ACK and asks its owner whether to trust it; no answer within 60 seconds is a no, and a no is the socket closing without a HELLO_ACK, exactly what a phone the laptop does not trust has always been sent. The phone gives up on HELLO_ACK after 90 seconds, longer than the laptop's question, so it hears the answer rather than abandoning it.
 
-After HELLO_ACK the laptop sends a STATE for volume, microphone and brightness, then TEXT 0, 1 and 2 and a STATE for media position, then TEXT 4 and a STATE for the refresh rate, then TEXT 5, and thereafter every change as it happens. Media position is refreshed once a second while playing. Icons are not part of that sequence: the laptop sends TEXT 6 only in answer to TEXT 7.
+After HELLO_ACK the laptop sends a STATE for volume, microphone and brightness, then TEXT 0, 1 and 2 and a STATE for media position, then TEXT 4 and a STATE for the refresh rate, then TEXT 5 and TEXT 9, and thereafter every change as it happens. Media position is refreshed once a second while playing. Icons are not part of that sequence: the laptop sends TEXT 6 only in answer to TEXT 7.
 
 ## The PIN
 
@@ -76,6 +76,9 @@ The digits are never logged, written to a status line or shown by a debug print 
 | BRIGHTNESS_DOWN | 34 | the panel's brightness, minus 10 |
 | PAD_ATTACH | 35 | plugs in the virtual controller, then answers with TEXT 8 |
 | PAD_DETACH | 36 | unplugs it, then answers with TEXT 8 |
+| CAPTURE_REGION | 52 | Win+Shift+S, the Snipping Tool's region capture |
+| CAPTURE_SCREEN | 53 | PrtScn, the whole screen |
+| CAPTURE_RECORD | 54 | Win+Shift+R, screen recording; needs a recent Snipping Tool and is **unverified** |
 
 | Control | Id | SET does | STATE reports |
 | --- | --- | --- | --- |
@@ -170,6 +173,8 @@ KEY still carries a Windows virtual-key code, and the Mac maps it by position: W
 | ZOOM_RESET | Command+0 |
 | BRIGHTNESS_UP, BRIGHTNESS_DOWN | the panel's brightness, plus or minus 10; the brightness key where the panel cannot be read |
 | PAD_ATTACH, PAD_DETACH | nothing is plugged in; answered with TEXT 8 `no-driver` |
+| CAPTURE_REGION, CAPTURE_SCREEN | Command+Shift+4, Command+Shift+3 |
+| CAPTURE_RECORD | Command+Shift+5, which opens the capture toolbar |
 | macro slots (64 to 95) | nothing: macros are not built on the Mac, so they are dropped and counted |
 
 ZOOM sums wheel units until a whole notch (120) is owed, then presses Command+plus or Command+minus once per notch. These are macOS's default shortcuts: if one was changed or switched off in System Settings > Keyboard > Keyboard Shortcuts, the gesture does whatever that shortcut now does, or nothing.
