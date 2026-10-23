@@ -10,6 +10,7 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ### Changed
 
+- **The macro deck drops the card behind each button, and centres a short last row.** Buttons now sit straight on the background, with the press and focus feedback kept; a last row with fewer buttons than the rest sits exactly under the middle of them instead of leaning to one side.
 - **The Orientation setting now applies to every screen but the keyboard and the gamepad.** Settings, Guide, Devices and every editor follow it, where before only the control surface and the media-layout editor did. The keyboard, the gamepad and the gamepad layout editor stay sideways whatever the setting says.
 
 ## [3.5.0] - 2026-10-21
