@@ -11,10 +11,11 @@ final class Annotator: AnnotationSink {
     /// All of these are guarded by `lock`.
     private var redrawQueued = false
     private var ended = false
-    private var observer: NSObjectProtocol?
 
-    /// Only touched on the main queue.
+    /// Only touched on the main queue, where the export and the screen notification that call the two replies
+    /// also run, so clearing them in `end` can never race a call to them.
     private var overlay: AnnotationOverlay?
+    private var observer: NSObjectProtocol?
 
     var signStatusReply: ((String) -> Void)?
     var screenSizeChanged: (() -> Void)?
@@ -35,8 +36,17 @@ final class Annotator: AnnotationSink {
     /// not something it could choose. `NSScreen.main` is the focused window's screen, so it is not used.
     private static var primary: NSScreen? { NSScreen.screens.first }
 
+    /// Read on the main thread, which AppKit requires of `NSScreen`; the session asks from its own thread. Safe to
+    /// wait on: nothing here takes `lock`, so the main thread can never be waiting on the caller.
     var screenSize: (width: Int, height: Int)? {
-        guard let screen = Annotator.primary else { return nil }
+        if Thread.isMainThread {
+            return Annotator.measure()
+        }
+        return DispatchQueue.main.sync { Annotator.measure() }
+    }
+
+    private static func measure() -> (width: Int, height: Int)? {
+        guard let screen = primary else { return nil }
         let scale = screen.backingScaleFactor
         return (Int(screen.frame.width * scale), Int(screen.frame.height * scale))
     }
@@ -78,18 +88,23 @@ final class Annotator: AnnotationSink {
         }
         guard first else { return }
 
+        // Synchronous on the main thread, because a quit would not run a queued block before the process goes.
+        if Thread.isMainThread {
+            tearDown()
+        } else {
+            DispatchQueue.main.async { [weak self] in self?.tearDown() }
+        }
+    }
+
+    /// The main-queue half of `end`.
+    private func tearDown() {
         signStatusReply = nil
         screenSizeChanged = nil
         if let observer {
             NotificationCenter.default.removeObserver(observer)
         }
         observer = nil
-        // Synchronous on the main thread, because a quit would not run a queued block before the process goes.
-        if Thread.isMainThread {
-            removeOverlay()
-        } else {
-            DispatchQueue.main.async { [weak self] in self?.removeOverlay() }
-        }
+        removeOverlay()
     }
 
     private func saveSignature() -> Bool {
