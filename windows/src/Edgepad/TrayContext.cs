@@ -36,6 +36,7 @@ internal sealed class TrayContext : ApplicationContext
 
     private readonly MenuRow startWithWindows = new("Start with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new("Macros…", Icons.Macro);
+    private readonly MenuRow securityRow = new("Security…", Icons.Smartphone);
     private readonly MenuRow forget = new("Forget trusted phones", Icons.Unlink) { Danger = true };
     private readonly MenuRow update = new("Update available", Icons.Download) { Available = false };
     private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
@@ -58,6 +59,9 @@ internal sealed class TrayContext : ApplicationContext
     // still open. All of this runs on the UI thread, so a plain bool is enough.
     private bool forgetting;
 
+    // The same for the Security window, which also holds connections off while it is open.
+    private bool securing;
+
     public TrayContext(EventWaitHandle quit)
     {
         // Click, not CheckedChanged: the menu sets Checked from the registry each time it opens, and that must
@@ -65,6 +69,7 @@ internal sealed class TrayContext : ApplicationContext
         startWithWindows.Click += (_, _) => RunAtLogin.Set(startWithWindows.Checked);
         forget.Click += (_, _) => ConfirmForget();
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
+        securityRow.Click += (_, _) => ShowSecurity();
         update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
 
         // The header is the menu's own. The update row sits right under it and stays hidden until there is one.
@@ -73,6 +78,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(startWithWindows);
         menu.Items.Add(macrosRow);
+        menu.Items.Add(securityRow);
         menu.Items.Add(Row("Open log", Icons.FileText, OpenLog));
         menu.Items.Add(Row("Documentation", Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
         menu.Items.Add(new MenuSeparator());
@@ -84,6 +90,7 @@ internal sealed class TrayContext : ApplicationContext
         {
             startWithWindows.Checked = RunAtLogin.IsEnabled;
             forget.Enabled = trust.CanForget;
+            securityRow.Hint = $"Level {pin.Level}";
             macrosRow.Hint = $"{macros.Macros.Count} of {MacroStore.MaxMacros}";
             menu.Restyle();
         };
@@ -320,6 +327,31 @@ internal sealed class TrayContext : ApplicationContext
     }
 
     /// <summary>
+    /// The Security window, with connections refused while it is open for the reason <see cref="ConfirmForget"/>
+    /// gives: a connected phone is a keyboard and could otherwise answer it, or change the level it is held by.
+    /// </summary>
+    private void ShowSecurity()
+    {
+        if (securing)
+        {
+            return;
+        }
+
+        securing = true;
+        server.HoldOff();
+        try
+        {
+            using var window = new SecurityWindow(pin, trust, () => server.HangUp(QuietAfterForget));
+            window.ShowDialog();
+        }
+        finally
+        {
+            server.Resume();
+            securing = false;
+        }
+    }
+
+    /// <summary>
     /// Asks the owner whether to trust <paramref name="address"/>, and waits for the answer. Called on a session
     /// thread, which holds the phone's HELLO_ACK until this returns; the question itself is shown on this
     /// context's thread, which owns every window the app has. No answer within <see cref="TrustPromptTimeout"/>
@@ -404,6 +436,7 @@ internal sealed class TrayContext : ApplicationContext
             menu.Dispose();
             startWithWindows.Dispose();
             macrosRow.Dispose();
+            securityRow.Dispose();
             forget.Dispose();
             update.Dispose();
             updateTimer.Dispose();
