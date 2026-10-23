@@ -104,3 +104,16 @@ public protocol AnnotationSink: AnyObject {
     /// Takes the overlay down and discards the strokes. Idempotent.
     func end()
 }
+
+/// Opens what a macro points at: an application, a document, a folder or a URL. The only thing in the app that
+/// starts a process on the phone's behalf, and it is handed a target the owner wrote into the list, never one the
+/// phone sent. False when nothing was started.
+public protocol MacroLauncher: AnyObject {
+    func launch(target: String, arguments: String?) -> Bool
+}
+
+/// The picture a macro button shows, as PNG bytes, or nil when none can be had. Behind a seam so the store and the
+/// chunker stay free of AppKit.
+public protocol MacroIconSource: AnyObject {
+    func png(for macro: Macro) -> [UInt8]?
+}

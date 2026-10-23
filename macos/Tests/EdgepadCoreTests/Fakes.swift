@@ -172,3 +172,25 @@ final class FakeAnnotation: AnnotationSink {
         endCount += 1
     }
 }
+
+final class FakeLauncher: MacroLauncher {
+    private(set) var launched: [String] = []
+    var accepts = true
+
+    func launch(target: String, arguments: String?) -> Bool {
+        launched.append(target + "|" + (arguments ?? "-"))
+        return accepts
+    }
+}
+
+final class FakeIcons: MacroIconSource {
+    var bytes: [UInt8]?
+
+    init(bytes: [UInt8]? = nil) {
+        self.bytes = bytes
+    }
+
+    func png(for macro: Macro) -> [UInt8]? {
+        bytes
+    }
+}

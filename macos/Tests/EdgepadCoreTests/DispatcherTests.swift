@@ -36,6 +36,36 @@ final class DispatcherTests: XCTestCase {
         XCTAssertEqual(dispatcher.dropped, 1)
     }
 
+    private func macroStore(launcher: FakeLauncher, names: [String]) -> MacroStore {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("edgepad-dispatch-\(UUID())")
+        addTeardownBlock { try? FileManager.default.removeItem(at: folder) }
+        let path = folder.appendingPathComponent("macros.txt").path
+        let store = MacroStore(path: path, launcher: launcher)
+        store.save(names.map { Macro(name: $0, target: $0 + ".app") })
+        return store
+    }
+
+    func testAFilledSlotLaunchesTheStoredTargetAndNothingElse() {
+        let launcher = FakeLauncher()
+        dispatcher.macros = macroStore(launcher: launcher, names: ["Mail", "Code"])
+
+        dispatcher.handle(.runAction(id: ActionId.macroBase.rawValue + 1))
+
+        XCTAssertEqual(launcher.launched, ["Code.app|-"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testAnEmptySlotIsDroppedAndCounted() {
+        let launcher = FakeLauncher()
+        dispatcher.macros = macroStore(launcher: launcher, names: ["Mail"])
+
+        dispatcher.handle(.runAction(id: ActionId.macroBase.rawValue + 1))
+        dispatcher.handle(.runAction(id: ActionId.macroBase.rawValue + UInt8(ActionId.macroSlots) - 1))
+
+        XCTAssertEqual(launcher.launched, [])
+        XCTAssertEqual(dispatcher.dropped, 2)
+    }
+
     func testAnIdBelowTheMacroBlockIsDropped() {
         dispatcher.handle(.runAction(id: ActionId.macroBase.rawValue - 1))
 

@@ -27,6 +27,10 @@ public final class Dispatcher {
     /// them is dropped and counted. A property and not an initialiser argument because the session reads it too.
     public var annotation: AnnotationSink?
 
+    /// The macro list the slots index into. Nil where the app has none, and then every slot is dropped and counted.
+    /// A property for the same reason as `annotation`: the session reads it too.
+    public var macros: MacroStore?
+
     public init(
         input: InputSink,
         speakers: LevelControl,
@@ -110,9 +114,12 @@ public final class Dispatcher {
     }
 
     private func run(_ id: UInt8) -> Bool {
-        // Macros are a block of ids, not one each, and are not built on the Mac yet.
+        // Macros are a block of ids, not one each. The slot is all that is taken from the frame: what it launches
+        // is the store's, so a slot past the list, or no store, is dropped and counted like any unknown id.
         let macroStart = Int(ActionId.macroBase.rawValue)
-        guard !(macroStart..<(macroStart + ActionId.macroSlots)).contains(Int(id)) else { return false }
+        if (macroStart..<(macroStart + ActionId.macroSlots)).contains(Int(id)) {
+            return macros?.run(Int(id) - macroStart) ?? false
+        }
         guard let action = ActionId(rawValue: id) else { return false }
 
         switch action {
@@ -137,7 +144,7 @@ public final class Dispatcher {
             // Spotlight.
             input.chord([.command, .space])
         case .notifications, .macroBase:
-            // Notifications: macOS has no default shortcut for it. The macro block is rejected before this
+            // Notifications: macOS has no default shortcut for it. The macro block is handled before this
             // switch; the case is here only so the switch stays exhaustive.
             return false
         case .annotateBegin, .annotateEnd, .annotateUndo, .annotateClear, .toolPen, .toolHighlighter, .toolLine,

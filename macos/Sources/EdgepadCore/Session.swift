@@ -62,6 +62,8 @@ public final class Session {
     private var lastVolume: Level?
     private var lastMicrophone: Level?
     private var lastBrightness: Int?
+    /// The label list's subscription, kept so `end()` can let go of it and a dead session is not written to.
+    private var macroWatch: MacroWatch?
 
     public init(
         address: String,
@@ -145,6 +147,8 @@ public final class Session {
         isEnded = true
         input.releaseAll()
         dispatcher.padStatusReply = nil
+        macroWatch?.cancel()
+        macroWatch = nil
         // The overlay goes with the session: a phone that vanishes mid-drawing must leave no layer on the screen.
         dispatcher.annotation?.end()
         if dispatcher.dropped > 0 {
@@ -320,8 +324,8 @@ public final class Session {
         case .ping(let time):
             send(.pong(time: time))
         case .text(let kind, _) where kind == TextKind.wantIcons.rawValue:
-            // No macros, so no icons; not a frame the dispatcher should count as dropped.
-            break
+            // Not a frame the dispatcher should count as dropped, whether or not there is anything to send.
+            sendIcons()
         default:
             dispatcher.handle(frame)
         }
@@ -373,8 +377,33 @@ public final class Session {
         send(.text(kind: TextKind.features.rawValue, value: features.joined(separator: "/")))
         sendScreenSize()
 
-        // An empty list: the phone then says to add some on the laptop instead of drawing a broken grid.
-        send(.text(kind: TextKind.macros.rawValue, value: ""))
+        // Watched rather than sent once, so a macro the owner adds while the phone is connected reaches it. With
+        // no store the list is empty, and the phone then says to add some on the Mac instead of drawing a broken
+        // grid.
+        if let macros = dispatcher.macros {
+            macroWatch = macros.watch { [weak self] names in
+                self?.send(.text(kind: TextKind.macros.rawValue, value: names))
+            }
+        } else {
+            send(.text(kind: TextKind.macros.rawValue, value: ""))
+        }
+    }
+
+    /// Every macro icon the app can supply, in pieces. The phone asks when it opens the macro grid, a screen with
+    /// no trackpad on it, so the pause while they go out falls where nothing is being pointed at. An icon that
+    /// cannot be had is simply not sent and its button keeps its label.
+    private func sendIcons() {
+        guard let macros = dispatcher.macros else { return }
+        let revision = macros.revision
+        for slot in macros.macros.indices {
+            guard let png = macros.icon(at: slot) else { continue }
+            for chunk in MacroIconChunks.chunks(slot: slot, png: png) {
+                // A save swaps the list between chunks of the old one, which would land on whatever moved into
+                // the slot. The phone asks again for the new list.
+                guard macros.revision == revision else { return }
+                send(.text(kind: TextKind.macroIcon.rawValue, value: chunk))
+            }
+        }
     }
 
     /// The phone maps its pad onto this aspect ratio. Nothing is sent without an overlay, so an older phone and a

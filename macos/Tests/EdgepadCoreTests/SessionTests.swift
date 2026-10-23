@@ -431,6 +431,63 @@ final class SessionTests: XCTestCase {
         XCTAssertFalse(session.isEnded)
     }
 
+    private func macroStore(icons: MacroIconSource? = nil) -> MacroStore {
+        let store = MacroStore(path: directory.appendingPathComponent("macros.txt").path, icons: icons)
+        dispatcher.macros = store
+        return store
+    }
+
+    func testTheMacroNamesAreSentAtTheHandshakeAndAgainWhenTheyChange() {
+        let store = macroStore()
+        store.save([Macro(name: "Mail", target: "Mail.app")])
+        let session = connectedSession()
+
+        store.save([Macro(name: "Mail", target: "Mail.app"), Macro(name: "Code", target: "Code.app")])
+
+        let names = transport.frames().compactMap { frame -> String? in
+            guard case .text(let kind, let value) = frame, kind == TextKind.macros.rawValue else { return nil }
+            return value
+        }
+        XCTAssertEqual(names, ["Mail", "Mail/Code"])
+        XCTAssertFalse(session.isEnded)
+    }
+
+    func testAnEndedSessionHearsNoMoreChanges() {
+        let store = macroStore()
+        let session = connectedSession()
+        session.end()
+        let sent = transport.sent.count
+
+        store.save([Macro(name: "Mail", target: "Mail.app")])
+
+        XCTAssertEqual(transport.sent.count, sent)
+    }
+
+    func testAskingForIconsSendsEachSlotsChunks() {
+        let png = [UInt8](repeating: 7, count: 400)
+        let store = macroStore(icons: FakeIcons(bytes: png))
+        store.save([Macro(name: "Mail", target: "Mail.app"), Macro(name: "Code", target: "Code.app")])
+        let session = connectedSession()
+        let before = transport.frames().count
+
+        session.receive(FrameCodec.encode(.text(kind: TextKind.wantIcons.rawValue, value: "")))
+
+        let expected = [0, 1].flatMap { MacroIconChunks.chunks(slot: $0, png: png) }
+            .map { Frame.text(kind: TextKind.macroIcon.rawValue, value: $0) }
+        XCTAssertEqual(framesSince(before), expected)
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testAskingForIconsWithNoPictureSendsNothing() {
+        _ = macroStore()
+        let session = connectedSession()
+        let before = transport.frames().count
+
+        session.receive(FrameCodec.encode(.text(kind: TextKind.wantIcons.rawValue, value: "")))
+
+        XCTAssertEqual(framesSince(before), [])
+    }
+
     // The PIN gate: the cases of the Windows PinGateTests, through the session.
 
     func testLevelOneSendsNoPinFrameAndArmsNoTimeout() {
