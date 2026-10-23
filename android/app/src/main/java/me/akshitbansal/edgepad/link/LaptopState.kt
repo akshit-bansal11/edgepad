@@ -105,8 +105,7 @@ class LaptopState {
                     TextKind.MACROS -> macros = macroNames(frame.text)
                     TextKind.MACRO_ICON -> return iconChunk(frame.text)
                     TextKind.PAD_STATUS -> padStatus = PadStatus.of(frame.text)
-                    // A token this build does not know is skipped, not an error: a newer laptop may name more.
-                    TextKind.FEATURES -> features = frame.text.split('/').mapNotNull(Feature::of).toSet()
+                    TextKind.FEATURES -> features = features(frame.text)
                     else -> return false
                 }
             }
@@ -133,6 +132,9 @@ class LaptopState {
     }
 
     /** "60/120/144": the rates a REFRESH_RATE index counts through, in the laptop's own order. */
+    /** A token this build does not know is skipped, not an error: a newer laptop may name more. */
+    private fun features(text: String): Set<Feature> = text.split('/').mapNotNull(Feature::of).toSet()
+
     private fun rates(text: String): List<Int> {
         val parts = text.split('/').map(String::toIntOrNull)
         // Dropping one unreadable entry would shift every index after it onto the wrong rate, so a list
