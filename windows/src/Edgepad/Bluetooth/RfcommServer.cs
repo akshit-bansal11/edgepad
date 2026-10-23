@@ -24,6 +24,7 @@ namespace Edgepad.Bluetooth;
 internal sealed class RfcommServer(
     Action<string> onStatus,
     TrustStore trust,
+    PinStore pin,
     Func<string, bool> askTrust,
     AudioEndpoint speakers,
     AudioEndpoint microphone,
@@ -611,7 +612,7 @@ internal sealed class RfcommServer(
             var pad = new VirtualPad();
             var dispatcher = new Dispatcher(injector, pad, speakers, microphone, brightness, media, display, macros, overlay);
             session = new Session(
-                socket, trust, askTrust, injector, pad, dispatcher, speakers, microphone, brightness, media, display, macros, onStatus, OnAdmitted, OnSessionEnded);
+                socket, trust, pin, askTrust, injector, pad, dispatcher, speakers, microphone, brightness, media, display, macros, onStatus, OnAdmitted, OnSessionEnded);
 
             // A dedicated thread, not the thread pool: the read loop blocks for the life of the connection,
             // and input is injected from this thread directly, so nothing queues behind other work.

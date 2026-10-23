@@ -21,6 +21,7 @@ namespace Edgepad.Bluetooth;
 internal sealed class Session(
     StreamSocket socket,
     TrustStore trust,
+    PinStore pin,
     Func<string, bool> askTrust,
     InputInjector injector,
     VirtualPad pad,
@@ -91,6 +92,14 @@ internal sealed class Session(
                 return;
             }
 
+            // A phone locked out by wrong PINs is told so and closed before the owner is asked anything, so
+            // guessing cannot also be a way to keep the trust question on the owner's screen.
+            if (PinGate.LockedOut(address, pin, Send, Log.Write))
+            {
+                onStatus("Refused a phone locked out after wrong PINs");
+                return;
+            }
+
             // HELLO_ACK waits on the owner's answer, and a refusal closes the socket without one: the same
             // bytes a phone it did not trust has always been sent, so no phone needs to learn anything new.
             if (!trust.Admit(address, () => askTrust(address)))
@@ -98,6 +107,14 @@ internal sealed class Session(
                 var trusted = string.Join(", ", trust.TrustedPhones);
                 Log.Write($"Refused {address}: this laptop trusts {(trusted.Length > 0 ? trusted : "no phone yet")}");
                 onStatus("Refused a phone it does not trust");
+                return;
+            }
+
+            // The PIN at levels 2 and 3, and still before onAdmitted: a phone that has not given it must never be
+            // able to end the connected phone's session. Level 1 sends nothing here, as before there was a PIN.
+            if (!PinGate.Run(address, pin, () => ReadFrame(payload), Send, Log.Write, Dispose))
+            {
+                onStatus("Refused a phone that did not give the right PIN");
                 return;
             }
 

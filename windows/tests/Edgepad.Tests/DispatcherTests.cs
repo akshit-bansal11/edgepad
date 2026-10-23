@@ -74,6 +74,15 @@ public sealed class DispatcherTests : IDisposable
     }
 
     [Fact]
+    public void APinFrameAfterTheHandshakeIsDropped()
+    {
+        // The PIN is only ever asked between trust and HELLO_ACK; once a phone is in, a PIN frame means nothing.
+        dispatcher.Handle(new PinAnswer(new Pin("123456")));
+        dispatcher.Handle(new PinRequest(5, 0));
+        Assert.Equal(2, dispatcher.Dropped);
+    }
+
+    [Fact]
     public void AnUnknownControlIsDropped()
     {
         dispatcher.Handle(new SetValue(9, 50));
