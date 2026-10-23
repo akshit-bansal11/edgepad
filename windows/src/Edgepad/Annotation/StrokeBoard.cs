@@ -127,7 +127,17 @@ internal sealed class StrokeBoard
     /// </summary>
     internal const int MaxPointsPerStroke = 20_000;
 
+    /// <summary>
+    /// The whole board's ceiling. The per-stroke cap alone bounds nothing: every PEN down starts a new stroke,
+    /// so a stream of them would grow the board, and every redraw, without end. Past it new ink is dropped
+    /// until Undo or Clear makes room, rather than old ink being thrown away unasked.
+    /// </summary>
+    internal const int MaxPointsPerBoard = 200_000;
+
     private readonly List<Stroke> strokes = [];
+
+    // The points held in strokes, so the board ceiling is checked without walking every stroke per frame.
+    private int committedPoints;
 
     public BoardMode Mode { get; private set; }
 
@@ -145,6 +155,7 @@ internal sealed class StrokeBoard
     public void Begin(BoardMode mode)
     {
         strokes.Clear();
+        committedPoints = 0;
         Active = null;
         Mode = mode;
         Tool = StrokeTool.Pen;
@@ -185,6 +196,7 @@ internal sealed class StrokeBoard
             return false;
         }
 
+        committedPoints -= strokes[^1].Points.Count;
         strokes.RemoveAt(strokes.Count - 1);
         return true;
     }
@@ -198,6 +210,7 @@ internal sealed class StrokeBoard
         }
 
         strokes.Clear();
+        committedPoints = 0;
         Active = null;
         return true;
     }
@@ -219,11 +232,17 @@ internal sealed class StrokeBoard
         {
             case 1:
                 Commit();
+                if (committedPoints >= MaxPointsPerBoard)
+                {
+                    return false;
+                }
+
                 Active = new Stroke(Tool, Colour);
                 Active.Points.Add(point);
                 return true;
             case 2 when Active is not null:
-                if (Active.Points.Count >= MaxPointsPerStroke)
+                if (Active.Points.Count >= MaxPointsPerStroke
+                    || committedPoints + Active.Points.Count >= MaxPointsPerBoard)
                 {
                     return false;
                 }
@@ -244,6 +263,7 @@ internal sealed class StrokeBoard
         if (Active is not null)
         {
             strokes.Add(Active);
+            committedPoints += Active.Points.Count;
             Active = null;
         }
     }

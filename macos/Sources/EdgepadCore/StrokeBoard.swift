@@ -140,6 +140,14 @@ public final class StrokeBoard {
     /// rather than left to grow until the process does.
     static let maxPointsPerStroke = 20_000
 
+    /// The whole board's ceiling. The per-stroke cap alone bounds nothing: every PEN down starts a new stroke,
+    /// so a stream of them would grow the board, and every redraw, without end. Past it new ink is dropped
+    /// until undo or clear makes room, rather than old ink being thrown away unasked.
+    static let maxPointsPerBoard = 200_000
+
+    /// The points held in `strokes`, so the board ceiling is checked without walking every stroke per frame.
+    private var committedPoints = 0
+
     public private(set) var mode = BoardMode.off
     public private(set) var tool = StrokeTool.pen
     public private(set) var colour = 0
@@ -155,6 +163,7 @@ public final class StrokeBoard {
     /// Starts a session from nothing, so the last session's strokes never leak into this one.
     public func begin(_ newMode: BoardMode) {
         strokes.removeAll()
+        committedPoints = 0
         active = nil
         mode = newMode
         tool = .pen
@@ -183,8 +192,8 @@ public final class StrokeBoard {
 
     /// Takes back the last finished stroke. False when there is none or no session.
     public func undo() -> Bool {
-        guard mode != .off, !strokes.isEmpty else { return false }
-        strokes.removeLast()
+        guard mode != .off, let last = strokes.popLast() else { return false }
+        committedPoints -= last.points.count
         return true
     }
 
@@ -192,6 +201,7 @@ public final class StrokeBoard {
     public func clear() -> Bool {
         guard mode != .off else { return false }
         strokes.removeAll()
+        committedPoints = 0
         active = nil
         return true
     }
@@ -206,10 +216,12 @@ public final class StrokeBoard {
         switch state {
         case 1:
             commit()
+            guard committedPoints < StrokeBoard.maxPointsPerBoard else { return false }
             active = Stroke(tool: tool, colour: colour, points: [point])
             return true
         case 2:
             guard let open = active, open.points.count < StrokeBoard.maxPointsPerStroke else { return false }
+            guard committedPoints + open.points.count < StrokeBoard.maxPointsPerBoard else { return false }
             open.extend(point)
             return true
         case 0:
@@ -260,6 +272,7 @@ public final class StrokeBoard {
     private func commit() {
         if let open = active {
             strokes.append(open)
+            committedPoints += open.points.count
             active = nil
         }
     }

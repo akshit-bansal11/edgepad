@@ -92,6 +92,24 @@ final class StrokeBoardTests: XCTestCase {
         XCTAssertEqual(board.active?.points.count, StrokeBoard.maxPointsPerStroke)
     }
 
+    func testTheWholeBoardIsCappedAndUndoMakesRoom() {
+        let board = started()
+        let ceiling = StrokeBoard.maxPointsPerBoard / StrokeBoard.maxPointsPerStroke + 1
+        var strokes = 0
+        while board.pen(x: 0, y: 0, state: down) {
+            var points = 1
+            while points < StrokeBoard.maxPointsPerStroke && board.pen(x: 1, y: 1, state: move) {
+                points += 1
+            }
+            XCTAssertTrue(board.pen(x: 2, y: 2, state: up))
+            strokes += 1
+            XCTAssertLessThanOrEqual(strokes, ceiling)
+        }
+
+        XCTAssertTrue(board.undo())
+        XCTAssertTrue(board.pen(x: 0, y: 0, state: down))
+    }
+
     func testAToolChangeMidStrokeAppliesToTheNextStroke() {
         let board = started()
         XCTAssertTrue(board.pen(x: 1, y: 1, state: down))

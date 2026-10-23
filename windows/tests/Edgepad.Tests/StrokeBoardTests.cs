@@ -113,6 +113,28 @@ public sealed class StrokeBoardTests
     }
 
     [Fact]
+    public void TheWholeBoardIsCappedAndUndoMakesRoom()
+    {
+        var board = Started();
+        var strokes = 0;
+        while (board.Pen(0, 0, Down))
+        {
+            var points = 1;
+            while (points < StrokeBoard.MaxPointsPerStroke && board.Pen(1, 1, Move))
+            {
+                points++;
+            }
+
+            Assert.True(board.Pen(2, 2, Up));
+            strokes++;
+            Assert.True(strokes <= (StrokeBoard.MaxPointsPerBoard / StrokeBoard.MaxPointsPerStroke) + 1);
+        }
+
+        Assert.True(board.Undo());
+        Assert.True(board.Pen(0, 0, Down));
+    }
+
+    [Fact]
     public void AToolChangeMidStrokeAppliesToTheNextStroke()
     {
         var board = Started();
