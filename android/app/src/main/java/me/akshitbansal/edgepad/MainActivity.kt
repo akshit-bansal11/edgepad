@@ -402,7 +402,7 @@ class MainActivity :
                 }
 
                 Screen.CORNERS -> {
-                    CornersScreen.build(ui, settings) { navigateBack() }
+                    CornersScreen.build(ui, settings, { goTo(Screen.CORNERS) }) { navigateBack() }
                 }
 
                 Screen.GESTURES -> {

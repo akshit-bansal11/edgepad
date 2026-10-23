@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Added
+
+- **Each corner dial can be split in two.** Settings › Corners has a **Split corners** switch that gives every corner a dial on each of the two edges it joins, eight in all. With it on, the dial a corner already held stays on its side edge and the other four places start empty; any place can take any dial. Turning it off brings back the four single dials exactly as they were.
+
 ### Changed
 
 - **The Orientation setting now applies to every screen but the keyboard and the gamepad.** Settings, Guide, Devices and every editor follow it, where before only the control surface and the media-layout editor did. The keyboard, the gamepad and the gamepad layout editor stay sideways whatever the setting says.

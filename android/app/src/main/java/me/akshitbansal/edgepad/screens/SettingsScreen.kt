@@ -252,13 +252,17 @@ object SettingsScreen {
         return ui.context.resources.getQuantityString(R.plurals.shapes_summary, count, count)
     }
 
-    /** The four corners' dials, clockwise from the top left. */
+    /** The four corners' dials, clockwise from the top left, or a count when each corner is split in two. */
     private fun cornersSummary(
         ui: Ui,
         settings: Settings,
     ): String =
-        (0 until Perimeter.CORNERS).joinToString(", ") { corner ->
-            settings.corner(corner)?.let { ui.string(it.nameRes) } ?: NO_DIAL
+        if (settings.splitCorners) {
+            ui.string(R.string.corners_summary_split)
+        } else {
+            (0 until Perimeter.CORNERS).joinToString(", ") { corner ->
+                settings.corner(corner)?.let { ui.string(it.nameRes) } ?: NO_DIAL
+            }
         }
 
     /**

@@ -114,16 +114,28 @@ class ControlSurface(
     private val showHints = settings.hints
     private val scrubOnADial = settings.hasDial(DialKind.MEDIA)
     private val dials: List<Dial> =
-        (0 until Perimeter.CORNERS).mapNotNull { corner ->
-            settings.corner(corner)?.let { kind ->
-                kind.dial(
-                    corner,
-                    context.getString(kind.shortRes),
-                    Dial.BASE_UNITS_PER_DP * settings.sensitivityOf(kind),
-                    settings.snap,
-                    send,
-                    ::haptic,
-                )
+        run {
+            fun build(
+                kind: DialKind,
+                corner: Int,
+                slot: Int,
+            ) = kind.dial(
+                corner,
+                context.getString(kind.shortRes),
+                Dial.BASE_UNITS_PER_DP * settings.sensitivityOf(kind),
+                settings.snap,
+                send,
+                ::haptic,
+                slot,
+            )
+            if (settings.splitCorners) {
+                (0 until Perimeter.SLOTS).mapNotNull { slot ->
+                    settings.slot(slot)?.let { build(it, CornerSlots.corner(slot), slot) }
+                }
+            } else {
+                (0 until Perimeter.CORNERS).mapNotNull { corner ->
+                    settings.corner(corner)?.let { build(it, corner, Dial.WHOLE) }
+                }
             }
         }
     private val painter =
@@ -325,7 +337,14 @@ class ControlSurface(
         val displayDp = maxOf(corner / density, MIN_BEND_DP)
         perimeter = Perimeter(w.toFloat(), h.toFloat(), dp(displayDp))
         dials.forEachIndexed { i, dial ->
-            centres[i] = perimeter.lengthAt(dial.corner.toFloat())
+            // A half of a split corner sits off the corner on its own edge, clear of the bend; [DialSpan] below
+            // trims it where it would meet its neighbour.
+            centres[i] =
+                if (dial.slot == Dial.WHOLE) {
+                    perimeter.lengthAt(dial.corner.toFloat())
+                } else {
+                    perimeter.lengthAtSlot(dial.slot, dp(painter.halfLengthDp) / 2f)
+                }
             // Upright, only the top corners have the screen to themselves and keep the deep zone: the
             // bottom ones sit near the media pieces, an edge midpoint sits where the thumb swipes, and
             // sideways every slot is near the middle. The rest grab less of the trackpad.

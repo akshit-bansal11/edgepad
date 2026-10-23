@@ -63,6 +63,13 @@
   <string name="corner_bottom_right">Bottom right</string>
   <string name="corner_bottom_left">Bottom left</string>
   <string name="corner_off">Off</string>
+  <string name="corner_split">Split corners</string>
+  <string name="corner_edge_left">left edge</string>
+  <string name="corner_edge_top">top edge</string>
+  <string name="corner_edge_right">right edge</string>
+  <string name="corner_edge_bottom">bottom edge</string>
+  <string name="corner_slot">%1$s · %2$s</string>
+  <string name="corners_summary_split">8 dials, split</string>
   <string name="media_layout_title">Media layout</string>
   <string name="media_layout_hint">Drag a piece to move it. It snaps to the grid and the centre lines.</string>
   <string name="piece_now_playing">Now playing</string>

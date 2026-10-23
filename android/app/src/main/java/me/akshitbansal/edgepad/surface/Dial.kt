@@ -34,6 +34,8 @@ class Dial(
     private val snapTo: Int = 0,
     private val sink: (Frame) -> Unit,
     private val haptic: () -> Unit,
+    /** The half of the corner this dial sits on while corners are split ([CornerSlots]), or [WHOLE]. */
+    val slot: Int = WHOLE,
 ) {
     /** The level under the indicator, 0 to [maxLevel], fractional while sliding. */
     var level: Float = 0f
@@ -178,6 +180,9 @@ class Dial(
     }
 
     companion object {
+        /** [slot] of a dial that takes its whole corner. */
+        const val WHOLE = -1
+
         /** The default top of the level range: every control but the refresh rate is a percentage. */
         const val MAX_LEVEL = 100f
 
