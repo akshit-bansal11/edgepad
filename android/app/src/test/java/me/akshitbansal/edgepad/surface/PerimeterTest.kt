@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.surface
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.math.PI
 import kotlin.math.sqrt
@@ -80,5 +81,38 @@ class PerimeterTest {
         val tiny = Perimeter(1f, 1f, 1f)
         assertEquals(1f, tiny.radius, 1e-3f)
         tiny.point(0f, out)
+    }
+
+    @Test
+    fun slotsSitEitherSideOfTheirCornerAndMirrorEachOther() {
+        for (c in 0 until Perimeter.CORNERS) {
+            val mid = path.lengthAt(c.toFloat())
+            val before = path.delta(mid, path.lengthAtSlot(2 * c, 5f))
+            val after = path.delta(mid, path.lengthAtSlot(2 * c + 1, 5f))
+            assertTrue("corner $c before", before < 0f)
+            assertTrue("corner $c after", after > 0f)
+            assertEquals("corner $c symmetric", -before, after, 1e-3f)
+            assertEquals(arc / 2 + 5f, after, 1e-3f)
+        }
+    }
+
+    @Test
+    fun slotZeroWrapsAcrossThePathStart() {
+        // Corner 0's mid is at -arc / 2, so its first slot lies before the start and wraps to the end.
+        val first = path.lengthAtSlot(0, 5f)
+        assertEquals(path.length - arc - 5f, first, 1e-3f)
+        assertEquals(arc + 10f, path.delta(first, path.lengthAtSlot(1, 5f)), 1e-3f)
+    }
+
+    @Test
+    fun eightSlotCentresAreDistinctAndClockwise() {
+        val centres = FloatArray(Perimeter.SLOTS) { path.lengthAtSlot(it, 5f) }
+        var lap = 0f
+        for (i in 0 until Perimeter.SLOTS) {
+            val step = path.wrap(centres[(i + 1) % Perimeter.SLOTS] - centres[i])
+            assertTrue("slot $i to the next", step > 0f)
+            lap += step
+        }
+        assertEquals(path.length, lap, 1e-2f)
     }
 }
