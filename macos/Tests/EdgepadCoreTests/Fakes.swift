@@ -144,3 +144,31 @@ final class FakeTransport: Transport {
         return (try? reader.append(sent.flatMap { $0 })) ?? []
     }
 }
+
+final class FakeAnnotation: AnnotationSink {
+    var screenSize: (width: Int, height: Int)? = (1920, 1080)
+    var signStatusReply: ((String) -> Void)?
+    var screenSizeChanged: (() -> Void)?
+    var accepts = true
+    private(set) var calls: [String] = []
+    private(set) var endCount = 0
+
+    func pen(x: UInt16, y: UInt16, state: UInt8) -> Bool {
+        calls.append("pen \(x) \(y) \(state)")
+        return accepts
+    }
+
+    func setColour(_ index: Int) -> Bool {
+        calls.append("colour \(index)")
+        return accepts
+    }
+
+    func run(_ action: ActionId) -> Bool {
+        calls.append("run \(action.rawValue)")
+        return accepts
+    }
+
+    func end() {
+        endCount += 1
+    }
+}

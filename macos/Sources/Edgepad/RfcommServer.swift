@@ -236,6 +236,8 @@ final class RfcommServer: NSObject {
         let injector = InputInjector()
         let dispatcher = Dispatcher(
             input: injector, speakers: speakers, microphone: microphone, brightness: brightness, display: display)
+        // Per connection, like the injector: a phone that goes takes its overlay down with it (Session.end).
+        dispatcher.annotation = Annotator()
         let phone = PhoneLabel.describe(name: device.name, address: address)
         let ask = askTrust
         let session = Session(

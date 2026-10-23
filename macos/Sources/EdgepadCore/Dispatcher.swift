@@ -23,6 +23,10 @@ public final class Dispatcher {
     /// the session and not here.
     public var padStatusReply: ((String) -> Void)?
 
+    /// The overlay that takes the pen and the annotate actions. Nil where there is none, and then every one of
+    /// them is dropped and counted. A property and not an initialiser argument because the session reads it too.
+    public var annotation: AnnotationSink?
+
     public init(
         input: InputSink,
         speakers: LevelControl,
@@ -69,9 +73,11 @@ public final class Dispatcher {
             return true
         case .key(let code, let down):
             return key(code, down: down)
-        case .hello, .helloAck, .ping, .pong, .state, .padState, .pen, .pinRequest, .pinAnswer:
-            // A Mac has no virtual controller to give a pad frame to and no annotation overlay to give a pen
-            // point to yet, and the rest are not the phone's to send once the session is live.
+        case .pen(let x, let y, let state):
+            return annotation?.pen(x: x, y: y, state: state) ?? false
+        case .hello, .helloAck, .ping, .pong, .state, .padState, .pinRequest, .pinAnswer:
+            // A Mac has no virtual controller to give a pad frame to, and the rest are not the phone's to send
+            // once the session is live.
             return false
         }
     }
@@ -130,12 +136,14 @@ public final class Dispatcher {
         case .search:
             // Spotlight.
             input.chord([.command, .space])
-        case .notifications, .macroBase, .annotateBegin, .annotateEnd, .annotateUndo, .annotateClear, .toolPen,
-            .toolHighlighter, .toolLine, .toolArrow, .toolRectangle, .toolEllipse, .signBegin, .signSave:
+        case .notifications, .macroBase:
             // Notifications: macOS has no default shortcut for it. The macro block is rejected before this
-            // switch; the case is here only so the switch stays exhaustive. The annotate and sign ids have no
-            // overlay behind them until the Mac gets one, and a drop is the honest answer until then.
+            // switch; the case is here only so the switch stays exhaustive.
             return false
+        case .annotateBegin, .annotateEnd, .annotateUndo, .annotateClear, .toolPen, .toolHighlighter, .toolLine,
+            .toolArrow, .toolRectangle, .toolEllipse, .signBegin, .signSave:
+            // With no overlay behind them these are dropped, which is the honest answer.
+            return annotation?.run(action) ?? false
         case .desktopLeft:
             input.chord([.control, .leftArrow])
         case .desktopRight:
@@ -203,8 +211,8 @@ public final class Dispatcher {
             // Now playing is not built on the Mac yet.
             return false
         case .penColor:
-            // No overlay to colour yet, so a colour is dropped rather than accepted and forgotten.
-            return false
+            // The value is a palette index; the board rejects one it does not have.
+            return annotation?.setColour(value) ?? false
         case .refreshRate:
             // The value is an index into the rate list, never hertz.
             return value < display.rates.count ? display.select(value) : false

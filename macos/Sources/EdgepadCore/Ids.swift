@@ -107,3 +107,14 @@ public enum PadStatus: String, CaseIterable {
     case noDriver = "no-driver"
     case attachFailed = "attach-failed"
 }
+
+/// The whole vocabulary of `TextKind.signStatus`: a token the phone matches on, never prose. The raw value is
+/// literally the bytes that cross the wire.
+public enum SignStatus: String, CaseIterable {
+    /// The signature is on the pasteboard and in the Pictures folder.
+    case saved = "saved"
+    /// Nothing was drawn, so there was nothing to export.
+    case empty = "empty"
+    /// The export or the save failed.
+    case failed = "failed"
+}

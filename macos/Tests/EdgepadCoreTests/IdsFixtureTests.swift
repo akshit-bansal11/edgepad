@@ -16,9 +16,8 @@ final class IdsFixtureTests: XCTestCase {
         XCTAssertEqual(try expected("TEXT"), actual(TextKind.self))
     }
 
-    // PAD_BUTTON, SIGN_STATUS and PALETTE rows are not checked: a Mac has no virtual controller and no overlay yet,
-    // so it drops PAD_STATE and PEN and never reads those values. The kind is still recognised below, so an
-    // unknown kind in actions.txt still fails.
+    // PAD_BUTTON rows are not checked: a Mac has no virtual controller, so it drops PAD_STATE and never reads those
+    // values. The kind is still recognised below, so an unknown kind in actions.txt still fails.
     func testEveryRowKindInTheSharedTableIsKnown() throws {
         let known: Set<String> = [
             "ACTION",
@@ -62,6 +61,27 @@ final class IdsFixtureTests: XCTestCase {
             uniqueKeysWithValues: Feature.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
 
         XCTAssertEqual(table, enumTable)
+    }
+
+    func testSignStatusTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("SIGN_STATUS") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: SignStatus.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+    }
+
+    func testThePaletteMatchesTheSharedTable() throws {
+        let palette = try rows("PALETTE")
+
+        XCTAssertEqual(palette.count, Palette.count)
+        for parts in palette {
+            XCTAssertEqual(Palette.colour(Int(parts[1]) ?? -1), UInt32(parts[3], radix: 16), parts[2])
+        }
     }
 
     func testTheHandshakeMatchesTheSharedTable() throws {

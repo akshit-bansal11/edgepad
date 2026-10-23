@@ -160,6 +160,22 @@ final class SessionTests: XCTestCase {
         )
     }
 
+    func testAnOverlayIsOfferedAsAFeatureWithTheScreenSizeAndTakenDownWithTheSession() {
+        let annotation = FakeAnnotation()
+        dispatcher.annotation = annotation
+
+        let session = connectedSession()
+        let frames = transport.frames()
+
+        XCTAssertTrue(frames.contains(.text(kind: TextKind.features.rawValue, value: "annotate/capture")))
+        XCTAssertTrue(frames.contains(.text(kind: TextKind.screenSize.rawValue, value: "1920/1080")))
+        annotation.signStatusReply?(SignStatus.saved.rawValue)
+        XCTAssertEqual(transport.frames().last, .text(kind: TextKind.signStatus.rawValue, value: "saved"))
+
+        session.end()
+        XCTAssertEqual(annotation.endCount, 1)
+    }
+
     func testAnAcceptedPhoneIsReportedAsConnected() {
         _ = connectedSession()
 

@@ -238,6 +238,43 @@ final class DispatcherTests: XCTestCase {
         XCTAssertEqual(dispatcher.dropped, 12)
     }
 
+    func testWithAnOverlayThePenColourAndEveryAnnotateActionReachIt() {
+        let annotation = FakeAnnotation()
+        dispatcher.annotation = annotation
+
+        dispatcher.handle(.pen(x: 1, y: 2, state: 1))
+        dispatcher.handle(.setValue(control: ControlId.penColor.rawValue, value: 6))
+        for id in UInt8(40)...UInt8(51) {
+            dispatcher.handle(.runAction(id: id))
+        }
+
+        XCTAssertEqual(dispatcher.dropped, 0)
+        XCTAssertEqual(annotation.calls.count, 14)
+        XCTAssertEqual(Array(annotation.calls.prefix(3)), ["pen 1 2 1", "colour 6", "run 40"])
+        XCTAssertEqual(annotation.calls.last, "run 51")
+    }
+
+    func testWhatTheOverlayRefusesIsCountedAsDropped() {
+        let annotation = FakeAnnotation()
+        annotation.accepts = false
+        dispatcher.annotation = annotation
+
+        dispatcher.handle(.pen(x: 0, y: 0, state: 9))
+        dispatcher.handle(.runAction(id: ActionId.toolArrow.rawValue))
+        dispatcher.handle(.setValue(control: ControlId.penColor.rawValue, value: 8))
+
+        XCTAssertEqual(dispatcher.dropped, 3)
+    }
+
+    func testCaptureActionsStillPressTheSystemShortcutsWithAnOverlay() {
+        dispatcher.annotation = FakeAnnotation()
+
+        dispatcher.handle(.runAction(id: ActionId.captureRegion.rawValue))
+
+        XCTAssertEqual(dispatcher.dropped, 0)
+        XCTAssertEqual(input.calls.count, 1)
+    }
+
     func testNotificationsAreDropped() {
         dispatcher.handle(.runAction(id: ActionId.notifications.rawValue))
 

@@ -208,11 +208,11 @@ KEY still carries a Windows virtual-key code, and the Mac maps it by position: W
 | CAPTURE_REGION, CAPTURE_SCREEN | Command+Shift+4, Command+Shift+3 |
 | CAPTURE_RECORD | Command+Shift+5, which opens the capture toolbar |
 | macro slots (64 to 95) | nothing: macros are not built on the Mac, so they are dropped and counted |
-| ANNOTATE_*, TOOL_*, SIGN_* (40 to 51) | nothing yet: the Mac has no overlay, so they are dropped and counted |
+| ANNOTATE_*, TOOL_*, SIGN_* (40 to 51) | the annotation overlay, as on Windows: a borderless, transparent, click-through window over the primary display only, above full-screen apps and never key or main, so it takes no focus. SIGN_SAVE writes a transparent PNG cropped to the ink to the pasteboard (PNG and TIFF) and to `~/Pictures/Edgepad/signature-<timestamp>.png`, never over an existing file (`-2`, `-3` are added), and answers TEXT 11 |
 
 ZOOM sums wheel units until a whole notch (120) is owed, then presses Command+plus or Command+minus once per notch. These are macOS's default shortcuts: if one was changed or switched off in System Settings > Keyboard > Keyboard Shortcuts, the gesture does whatever that shortcut now does, or nothing.
 
-Controls are as on Windows, with these exceptions. MEDIA_POSITION is dropped, because now playing is not built on the Mac. VOLUME and MIC_LEVEL go through Core Audio. BRIGHTNESS and REFRESH_RATE act on the display, and BRIGHTNESS needs a private framework that may be missing; see [ARCHITECTURE.md](ARCHITECTURE.md). The Mac sends TEXT 5 (the macro names) empty, so the phone's grid says there are none, and TEXT 8 is always `no-driver`. PAD_STATE and PEN are dropped, and TEXT 7 is ignored. STATE for volume, microphone and brightness is sent after the handshake and then whenever a poll, twice a second, finds a change.
+Controls are as on Windows, with these exceptions. MEDIA_POSITION is dropped, because now playing is not built on the Mac. VOLUME and MIC_LEVEL go through Core Audio. BRIGHTNESS and REFRESH_RATE act on the display, and BRIGHTNESS needs a private framework that may be missing; see [ARCHITECTURE.md](ARCHITECTURE.md). The Mac sends TEXT 5 (the macro names) empty, so the phone's grid says there are none, and TEXT 8 is always `no-driver`. PAD_STATE is dropped, and TEXT 7 is ignored. PEN, PEN_COLOR and TEXT 9 `annotate/capture` and TEXT 10 (the primary display in pixels, sent again when the displays change) are live as on Windows. Drawing over other apps should not need Screen Recording permission, since the overlay only draws; that is UNKNOWN until tried on a Mac. STATE for volume, microphone and brightness is sent after the handshake and then whenever a poll, twice a second, finds a change.
 
 ## Versions
 

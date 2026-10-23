@@ -145,6 +145,8 @@ public final class Session {
         isEnded = true
         input.releaseAll()
         dispatcher.padStatusReply = nil
+        // The overlay goes with the session: a phone that vanishes mid-drawing must leave no layer on the screen.
+        dispatcher.annotation?.end()
         if dispatcher.dropped > 0 {
             Log.write("Session with \(address): \(dispatcher.dropped) frames dropped")
         }
@@ -359,10 +361,27 @@ public final class Session {
 
         // Only what this build can do: the phone hides a feature that is not named, so naming one that is not
         // here would be a button that quietly does nothing.
-        send(.text(kind: TextKind.features.rawValue, value: Feature.capture.rawValue))
+        var features = [Feature.capture.rawValue]
+        if let annotation = dispatcher.annotation {
+            features.insert(Feature.annotate.rawValue, at: 0)
+            // Written like the pad's status, for the same reason: a dead link here should end the session.
+            annotation.signStatusReply = { [weak self] status in
+                self?.send(.text(kind: TextKind.signStatus.rawValue, value: status))
+            }
+            annotation.screenSizeChanged = { [weak self] in self?.sendScreenSize() }
+        }
+        send(.text(kind: TextKind.features.rawValue, value: features.joined(separator: "/")))
+        sendScreenSize()
 
         // An empty list: the phone then says to add some on the laptop instead of drawing a broken grid.
         send(.text(kind: TextKind.macros.rawValue, value: ""))
+    }
+
+    /// The phone maps its pad onto this aspect ratio. Nothing is sent without an overlay, so an older phone and a
+    /// Mac with no screen both leave the Annotate tile off.
+    private func sendScreenSize() {
+        guard let size = dispatcher.annotation?.screenSize, size.width > 0, size.height > 0 else { return }
+        send(.text(kind: TextKind.screenSize.rawValue, value: "\(size.width)/\(size.height)"))
     }
 
     private func sendLevel(_ control: ControlId, _ level: Level) {
