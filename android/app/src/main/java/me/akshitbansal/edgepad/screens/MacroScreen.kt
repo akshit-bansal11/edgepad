@@ -144,6 +144,9 @@ class MacroScreen(
         // Nothing to arrange in an empty state.
         edit.visibility = if (slots.isEmpty()) View.GONE else View.VISIBLE
         if (slots.isEmpty()) {
+            // Nothing left to arrange, and the chip is hidden: leave edit mode so it is not stuck on Done.
+            editing = false
+            edit.text = ui.string(R.string.macros_edit)
             holder.gravity = Gravity.CENTER
             Column(ui, holder).apply {
                 add(emptyTile(), width = ui.dp(EMPTY_TILE_DP), height = ui.dp(EMPTY_TILE_DP))
@@ -157,8 +160,8 @@ class MacroScreen(
         val names = slots.map { it.value }
         keys = DeckLayout.keys(names)
         shown = DeckLayout.order(settings.deckOrder(DECK), names)
-        // Offered against the room live mode has, so a grid the picker lists is one the deck can really draw.
-        fits = DeckLayout.fitting(slots.size, across, down, ui.dp(Space.S), ui.dp(Space.TOUCH))
+        // Offered against the height the deck is drawn at, so a grid the picker lists is one it can really draw.
+        fits = DeckLayout.fitting(slots.size, across, deckDown(down), ui.dp(Space.S), ui.dp(Space.TOUCH))
         if (editing) picker = gridPicker()
         draw()
     }
@@ -170,8 +173,7 @@ class MacroScreen(
         val columns = settings.deckColumns(DECK).takeIf { stored -> fits.any { it.second == stored } }
         deck.render(
             across,
-            // Half the room while editing, so the picker below is on the screen and not a scroll away.
-            if (editing) down / 2 else down,
+            deckDown(down),
             shown.map { tile(it) },
             labels,
             columns,
@@ -200,7 +202,12 @@ class MacroScreen(
         shown = DeckLayout.move(shown, from, to)
         settings.setDeckOrder(DECK, shown.map { keys[it] })
         draw()
+        // The grid was rebuilt, so the screen reader lost its place: put it back on the tile that moved.
+        deck.focus(slots[shown[to]].index)
     }
+
+    /** The height the deck is drawn at: half the room while editing, so the picker below is not a scroll away. */
+    private fun deckDown(down: Int) = if (editing) down / 2 else down
 
     /** "Automatic" and each grid [fits], the chosen one checked. A pick redraws the deck and keeps the list. */
     private fun gridPicker(): View {
@@ -248,7 +255,6 @@ class MacroScreen(
         val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
         return BitmapDrawable(ui.context.resources, bitmap)
     }
-
 
     /** The empty state's picture: the macro glyph, dim, on a rounded card tile. */
     private fun emptyTile(): View =
