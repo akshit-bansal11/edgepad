@@ -56,6 +56,12 @@ class ControlSurface(
     private val onOpenKeyboard: () -> Unit,
     private val onOpenGamepad: () -> Unit,
     private val onOpenMacros: () -> Unit,
+    /**
+     * Only the trackpad: no dials, buttons, media, hints or caption. The Capture screen wants a pointer and
+     * nothing else, and the recogniser, the trail and the unbuffered dispatch are the surface's own, so this
+     * is a mode of the one view rather than a second recogniser.
+     */
+    private val trackpadOnly: Boolean = false,
 ) : View(context) {
     /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
     constructor(context: Context) : this(context, Settings(context), LaptopState(), {}, {}, {}, {}, {})
@@ -111,10 +117,12 @@ class ControlSurface(
             send,
         )
     private val hapticsOn = settings.haptics
-    private val showHints = settings.hints
+    private val showHints = settings.hints && !trackpadOnly
     private val scrubOnADial = settings.hasDial(DialKind.MEDIA)
     private val dials: List<Dial> =
         run {
+            if (trackpadOnly) return@run emptyList()
+
             fun build(
                 kind: DialKind,
                 corner: Int,
@@ -152,13 +160,17 @@ class ControlSurface(
     private val lockIconOn = icon(R.drawable.ic_lock, accent)
     private val lockButton = TopButton(icon(R.drawable.ic_lock, dim), side = 0f, open = { tapLock() })
     private val topButtons =
-        listOf(
-            TopButton(icon(R.drawable.ic_settings, dim), side = -2f, open = onOpenSettings),
-            TopButton(icon(R.drawable.ic_keyboard, dim), side = -1f, open = onOpenKeyboard),
-            lockButton,
-            TopButton(icon(R.drawable.ic_gamepad_2, dim), side = 1f, open = onOpenGamepad),
-            TopButton(icon(R.drawable.ic_macro, dim), side = 2f, open = onOpenMacros),
-        )
+        if (trackpadOnly) {
+            emptyList()
+        } else {
+            listOf(
+                TopButton(icon(R.drawable.ic_settings, dim), side = -2f, open = onOpenSettings),
+                TopButton(icon(R.drawable.ic_keyboard, dim), side = -1f, open = onOpenKeyboard),
+                lockButton,
+                TopButton(icon(R.drawable.ic_gamepad_2, dim), side = 1f, open = onOpenGamepad),
+                TopButton(icon(R.drawable.ic_macro, dim), side = 2f, open = onOpenMacros),
+            )
+        }
     private val skipBackIcon = icon(R.drawable.ic_skip_back, ink)
     private val skipForwardIcon = icon(R.drawable.ic_skip_forward, ink)
     private val playIcon = icon(R.drawable.ic_play, onAccent)
@@ -169,16 +181,22 @@ class ControlSurface(
     private val nothingPlaying = context.getString(R.string.surface_nothing_playing)
     private val hintLines = context.getString(R.string.surface_hints).split('\n')
     private val accessibilityActions: Map<AccessibilityNodeInfo.AccessibilityAction, () -> Unit> =
-        mapOf(
-            action(R.id.action_play_pause, R.string.surface_play_pause) to { send(ActionId.PLAY_PAUSE.frame()) },
-            action(R.id.action_next_track, R.string.surface_next) to { send(ActionId.NEXT_TRACK.frame()) },
-            action(R.id.action_previous_track, R.string.surface_previous) to { send(ActionId.PREVIOUS_TRACK.frame()) },
-            action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
-            action(R.id.action_keyboard, R.string.surface_keyboard) to onOpenKeyboard,
-            action(R.id.action_pad_lock, R.string.surface_lock) to { tapLock() },
-            action(R.id.action_gamepad, R.string.surface_gamepad) to onOpenGamepad,
-            action(R.id.action_macros, R.string.surface_macros) to onOpenMacros,
-        )
+        if (trackpadOnly) {
+            emptyMap()
+        } else {
+            mapOf(
+                action(R.id.action_play_pause, R.string.surface_play_pause) to { send(ActionId.PLAY_PAUSE.frame()) },
+                action(R.id.action_next_track, R.string.surface_next) to { send(ActionId.NEXT_TRACK.frame()) },
+                action(R.id.action_previous_track, R.string.surface_previous) to {
+                    send(ActionId.PREVIOUS_TRACK.frame())
+                },
+                action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
+                action(R.id.action_keyboard, R.string.surface_keyboard) to onOpenKeyboard,
+                action(R.id.action_pad_lock, R.string.surface_lock) to { tapLock() },
+                action(R.id.action_gamepad, R.string.surface_gamepad) to onOpenGamepad,
+                action(R.id.action_macros, R.string.surface_macros) to onOpenMacros,
+            )
+        }
 
     // Geometry, all set in onSizeChanged so nothing is measured or allocated while drawing.
     private var perimeter = Perimeter(1f, 1f, 1f)
@@ -365,7 +383,7 @@ class ControlSurface(
         // the 16dp the tighter step saves at each end goes back to the top corner dials. See
         // [TOP_BUTTON_OFFSET_PORTRAIT_DP].
         val topCentre = perimeter.lengthAt(TOP_CENTRE)
-        val reach = topButtons.maxOf { abs(it.side) } * topButtonOffsetDp(w.toFloat(), h.toFloat())
+        val reach = (topButtons.maxOfOrNull { abs(it.side) } ?: 0f) * topButtonOffsetDp(w.toFloat(), h.toFloat())
         val zone = dp(reach + Space.TOUCH / 2 + Space.M)
         keepOut[0] = topCentre - zone
         keepOut[1] = topCentre + zone
@@ -605,7 +623,7 @@ class ControlSurface(
      * answering the finger at the same moment they stop being drawn.
      */
     private fun mediaShown(): Boolean =
-        mode != PadMode.FOCUS && (state.app.isNotEmpty() || state.nowPlaying.isNotEmpty())
+        !trackpadOnly && mode != PadMode.FOCUS && (state.app.isNotEmpty() || state.nowPlaying.isNotEmpty())
 
     private fun playedFraction(): Float =
         if (state.duration > 0) {
