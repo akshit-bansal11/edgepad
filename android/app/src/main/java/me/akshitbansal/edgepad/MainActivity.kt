@@ -1062,6 +1062,9 @@ class MainActivity :
         old?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
         // What one laptop reported says nothing about another.
         if (device.address != laptopAddress) state = LaptopState()
+        // Features are said once a connection and never withdrawn, so the same laptop updated to a build without
+        // one, or older than TEXT 9, would otherwise keep offering what it last said it had.
+        state.features = emptySet()
         settings.laptop = device.address
         laptopName = nameOf(device)
         laptopAddress = device.address

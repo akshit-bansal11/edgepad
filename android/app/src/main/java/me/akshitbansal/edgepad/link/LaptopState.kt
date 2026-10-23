@@ -131,10 +131,10 @@ class LaptopState {
         }
     }
 
-    /** "60/120/144": the rates a REFRESH_RATE index counts through, in the laptop's own order. */
     /** A token this build does not know is skipped, not an error: a newer laptop may name more. */
     private fun features(text: String): Set<Feature> = text.split('/').mapNotNull(Feature::of).toSet()
 
+    /** "60/120/144": the rates a REFRESH_RATE index counts through, in the laptop's own order. */
     private fun rates(text: String): List<Int> {
         val parts = text.split('/').map(String::toIntOrNull)
         // Dropping one unreadable entry would shift every index after it onto the wrong rate, so a list
