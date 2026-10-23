@@ -528,18 +528,16 @@ class MainActivity :
     }
 
     /**
-     * Three answers, not two. The keyboard and the gamepad are drawn sideways and only sideways. The control
-     * surface and the two canvases that stand in for it are held the way the Orientation setting says — the
-     * media layout editor because a layout is stored per orientation since 2.3.0, so a phone turned mid-edit
-     * would quietly start changing the other one, and the shape canvas because a stroke is drawn at the pad's
-     * own proportions. Everything else follows the phone, which is what the setting used to override for the
-     * whole app. A change rebuilds the activity; the link survives it.
+     * Two answers, not three. The keyboard, the gamepad and its layout editor are drawn sideways and only
+     * sideways. Every other screen is held the way the Orientation setting says, so a phone turned mid-edit
+     * cannot quietly change a media layout that is stored per orientation since 2.3.0, and a shape is never
+     * drawn at a different pad proportion from the one it is saved for. A change rebuilds the activity; the
+     * link survives it.
      */
     private fun applyOrientation() {
         requestedOrientation =
             when {
                 screen in alwaysSideways -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                screen !in pinned -> ActivityInfo.SCREEN_ORIENTATION_USER
                 settings.landscape -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 else -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }
@@ -1191,14 +1189,6 @@ class MainActivity :
         /** Drawn sideways whatever the phone is doing, because they are laid out for a wide screen and nothing else. */
         val alwaysSideways = setOf(Screen.KEYBOARD, Screen.GAMEPAD, Screen.GAMEPAD_LAYOUT)
 
-        /**
-         * Held the way the Orientation setting says. Everything outside both sets follows the phone.
-         *
-         * The shape canvas is here for a reason of its own: it is held the way the pad is because a shape
-         * is drawn at the pad's own proportions, and because a phone that rotated mid-stroke would turn
-         * half a drawing into a saved shape nobody could reproduce.
-         */
-        val pinned = setOf(Screen.SURFACE, Screen.MEDIA_LAYOUT, Screen.SHAPE_DRAW)
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2
 

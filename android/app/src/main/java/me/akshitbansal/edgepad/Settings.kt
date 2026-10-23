@@ -101,8 +101,9 @@ class Settings(
     var keyTextScale by bounded(KEY_KEY_TEXT_SCALE, DEFAULT_KEY_TEXT_SCALE, MIN_KEY_TEXT_SCALE, MAX_KEY_TEXT_SCALE)
 
     /**
-     * The control surface and the media layout editor are held sideways. The keyboard and gamepad always are,
-     * and every other screen follows the phone: from 3.0 this setting is about the pad, not about the app.
+     * Held sideways on every screen except the keyboard, the gamepad and its layout editor, which are always
+     * sideways. Before 4.0 this setting held only the control surface and the media layout editor, and the
+     * rest of the app followed the phone; now it is the app's orientation, not just the pad's.
      */
     var landscape by flag("landscape", false)
 

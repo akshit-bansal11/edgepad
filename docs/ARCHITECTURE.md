@@ -97,7 +97,7 @@ Settings live in one `SharedPreferences` file; the theme is applied as the syste
 
 The gamepad's layouts are a library rather than one saved arrangement, which is what per-game needs. `GamepadStore` is a thin wrapper over `GamepadLibrary`, and the library is two strings: the saved layouts, and the name of the one in play. The built-in presets are never stored — a saved layout of the same name shadows one instead — so the layout Edgepad ships can always be got back, can never be renamed away, and the list is never empty. A name that collides costs a number and never a layout: overwriting would throw away an arrangement nothing can recover, and refusing needs somewhere to print an error that a popup over a full-screen canvas does not have. A layout saved by 2.x is refused rather than migrated, and the first preset takes its place, because a 2.x layout has no controller bindings in it to migrate and pretending otherwise would be a lie.
 
-The Orientation setting holds the control surface and the media-layout editor, and nothing else. The editor is pinned with the surface on purpose: a media layout has been stored per orientation since 2.3.0, so a phone turned mid-edit would quietly begin changing the other one. The keyboard and the gamepad are always sideways, and every other screen follows the phone.
+The Orientation setting holds every screen except the keyboard, the gamepad and the gamepad layout editor, and those three are always sideways. The media-layout editor is held with the rest on purpose: a media layout has been stored per orientation since 2.3.0, so a phone turned mid-edit would quietly begin changing the other one.
 
 ## What the tests cover
 

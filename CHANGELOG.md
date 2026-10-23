@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Changed
+
+- **The Orientation setting now applies to every screen but the keyboard and the gamepad.** Settings, Guide, Devices and every editor follow it, where before only the control surface and the media-layout editor did. The keyboard, the gamepad and the gamepad layout editor stay sideways whatever the setting says.
+
 ## [3.5.0] - 2026-10-21
 
 The wire protocol stays at version 4, so any 3.x half still speaks to any other. This release lets a laptop trust more than one phone, makes the phone say why a connection failed, makes the Windows app start Bluetooth again by itself, and carries a contributor's fix for the Mac on macOS 27; as always, install both halves from the same release.
