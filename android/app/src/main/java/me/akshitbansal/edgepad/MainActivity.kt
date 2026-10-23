@@ -1,5 +1,3 @@
-        val sized =
-            frame is Frame.Text && (frame.kind == TextKind.FEATURES.id || frame.kind == TextKind.SCREEN_SIZE.id)
 package me.akshitbansal.edgepad
 
 import android.Manifest

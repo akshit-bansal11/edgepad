@@ -1,5 +1,6 @@
 using Edgepad.Protocol;
 using Edgepad.Ui;
+using Palette = Edgepad.Ui.Palette;
 
 namespace Edgepad.Trust;
 
