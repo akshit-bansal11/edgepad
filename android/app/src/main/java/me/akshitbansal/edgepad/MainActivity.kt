@@ -21,6 +21,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
 import android.window.OnBackInvokedCallback
@@ -44,6 +45,7 @@ import me.akshitbansal.edgepad.screens.KeyboardScreen
 import me.akshitbansal.edgepad.screens.MacroScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
+import me.akshitbansal.edgepad.screens.PinScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
 import me.akshitbansal.edgepad.screens.ShapeDrawScreen
@@ -61,10 +63,10 @@ import kotlin.concurrent.thread
 
 /**
  * One activity for every screen: the guide on the first run and from Settings, the Devices list, the
- * control surface, the settings pages, the keyboard, the gamepad, the macros, the two layout editors, and the
- * connection-lost screen that retries after a link drops on its own. [Screen] is the whole set and
- * [goTo] the only way between them — there are no fragments and no back stack, so [navigateBack] is
- * where every screen's way out is written down.
+ * control surface, the settings pages, the keyboard, the gamepad, the macros, the two layout editors, the
+ * laptop's PIN, and the connection-lost screen that retries after a link drops on its own. [Screen] is the
+ * whole set and [goTo] the only way between them — there are no fragments and no back stack, so
+ * [navigateBack] is where every screen's way out is written down.
  *
  * The link and what the laptop has reported outlive the activity across a rotation or a theme change,
  * through [onRetainNonConfigurationInstance]. That matters because changing the theme or the orientation
@@ -109,9 +111,13 @@ class MainActivity :
         MACROS,
         SURFACE,
         RECONNECTING,
+        PIN,
     }
 
-    /** What survives the activity being rebuilt for a rotation or a theme change. */
+    /**
+     * What survives the activity being rebuilt for a rotation or a theme change. Never the PIN: the digits
+     * typed so far go with the screen that held them, and the person types them again.
+     */
     private class Retained(
         val link: LaptopLink?,
         val state: LaptopState,
@@ -123,6 +129,7 @@ class MainActivity :
         val attempts: Int,
         val lostAt: Long,
         val rtt: RttStats,
+        val pinAttemptsLeft: Int,
     )
 
     private val handler = Handler(Looper.getMainLooper())
@@ -152,6 +159,9 @@ class MainActivity :
     private var attempts = 0
     private var lostAt = 0L
     private var connectedAt = 0L
+
+    /** What the laptop's last PIN question allowed, for the PIN screen; a count, never a digit. */
+    private var pinAttemptsLeft = 0
 
     /**
      * A tap on a laptop has one quick retry coming if its connect never reaches the laptop: the first connect
@@ -237,6 +247,7 @@ class MainActivity :
             // Carried over, or the readout would stand blank after a rotation and then restart from one sample.
             rtt = retained.rtt
             picker.setRtt(rtt.median())
+            pinAttemptsLeft = retained.pinAttemptsLeft
         }
         goTo(
             when {
@@ -248,7 +259,19 @@ class MainActivity :
     }
 
     override fun onRetainNonConfigurationInstance(): Any =
-        Retained(link, state, screen, settingsReturn, layoutReturn, laptopName, laptopAddress, attempts, lostAt, rtt)
+        Retained(
+            link,
+            state,
+            screen,
+            settingsReturn,
+            layoutReturn,
+            laptopName,
+            laptopAddress,
+            attempts,
+            lostAt,
+            rtt,
+            pinAttemptsLeft,
+        )
 
     override fun onStart() {
         super.onStart()
@@ -494,6 +517,15 @@ class MainActivity :
                     lost.view
                 }
 
+                Screen.PIN -> {
+                    PinScreen(
+                        ui,
+                        pinAttemptsLeft,
+                        onAnswer = { pin -> link?.answerPin(pin) },
+                        onCancel = { navigateBack() },
+                    ).view
+                }
+
                 Screen.SURFACE -> {
                     ControlSurface(
                         this,
@@ -507,6 +539,12 @@ class MainActivity :
                     ).also { surface = it }
                 }
             }
+        // No screenshot, screen recording or recents thumbnail of the PIN screen, and only of that screen.
+        if (next == Screen.PIN) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
         setContentView(view)
         applyOrientation()
         // The bars are see-through over the page, whose own background is the ground, so they take its colour.
@@ -584,6 +622,16 @@ class MainActivity :
 
             Screen.GAMEPAD_LAYOUT -> {
                 goTo(layoutReturn)
+            }
+
+            // Back is Cancel: the attempt ends, and onClosed takes the screen to Devices.
+            Screen.PIN -> {
+                val current = link
+                if (current != null) {
+                    current.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
+                } else {
+                    goTo(Screen.PAIRING)
+                }
             }
 
             Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS -> {
@@ -994,7 +1042,7 @@ class MainActivity :
         picker.setMessage("")
         startPinger()
         when (screen) {
-            Screen.PAIRING, Screen.RECONNECTING -> goTo(Screen.SURFACE)
+            Screen.PAIRING, Screen.RECONNECTING, Screen.PIN -> goTo(Screen.SURFACE)
             Screen.SETTINGS -> settingsReturn = Screen.SURFACE
             else -> Unit
         }
@@ -1002,6 +1050,21 @@ class MainActivity :
 
     override fun onAwaitingLaptop(link: LaptopLink) {
         if (link == this.link) picker.setMessage(getString(R.string.status_accept_on_laptop))
+    }
+
+    /**
+     * From any screen: the laptop waits for this answer and gives up on its own. While the PIN screen is up
+     * the attempt's link is set, so no retry can start a second connect behind it ([attemptReconnect]).
+     */
+    override fun onPinRequest(
+        link: LaptopLink,
+        attemptsLeft: Int,
+    ) {
+        if (link != this.link) return
+        pinAttemptsLeft = attemptsLeft
+        // The trust hint, if it was showing, has been answered.
+        picker.setMessage("")
+        goTo(Screen.PIN)
     }
 
     override fun onRoundTrip(ms: Double) {
@@ -1043,6 +1106,8 @@ class MainActivity :
         handler.removeCallbacks(pinger)
         this.link = null
         picker.setConnecting(null)
+        // Devices is where the reason is shown, so an attempt that ends at the PIN goes there first.
+        if (screen == Screen.PIN) goTo(Screen.PAIRING)
         when {
             closure.cause == LaptopLink.Cause.ENDED -> {
                 // A link ended on purpose starts the next one with a full set of attempts.
@@ -1099,6 +1164,7 @@ class MainActivity :
             LaptopLink.Cause.UNEXPECTED -> getString(R.string.link_unexpected, closure.detail)
             LaptopLink.Cause.NO_PERMISSION -> getString(R.string.link_no_permission)
             LaptopLink.Cause.NO_ANSWER -> getString(R.string.link_no_answer)
+            LaptopLink.Cause.PIN_LOCKED -> getString(R.string.link_pin_locked, closure.detail)
         }
 
     private fun scheduleRetry(delay: Long) {

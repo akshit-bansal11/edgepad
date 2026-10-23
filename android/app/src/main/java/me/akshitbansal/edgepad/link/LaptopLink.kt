@@ -7,6 +7,7 @@ import android.os.Looper
 import android.util.Log
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.FrameCodec
+import me.akshitbansal.edgepad.protocol.Pin
 import me.akshitbansal.edgepad.protocol.ProtocolConstants
 import java.io.DataInputStream
 import java.io.EOFException
@@ -37,6 +38,16 @@ class LaptopLink(
 
         /** The laptop has had HELLO for a while and not answered; it may be asking its owner about this phone. */
         fun onAwaitingLaptop(link: LaptopLink)
+
+        /**
+         * The laptop wants its PIN before it accepts this phone; answer with [answerPin]. [attemptsLeft] is 5 on
+         * the first question and fewer after a wrong answer. A lock-out is never delivered here: it closes the
+         * link as [Cause.PIN_LOCKED] instead.
+         */
+        fun onPinRequest(
+            link: LaptopLink,
+            attemptsLeft: Int,
+        )
 
         fun onFrame(frame: Frame)
 
@@ -78,13 +89,17 @@ class LaptopLink(
 
         /** The laptop took the connection and never answered HELLO. */
         NO_ANSWER,
+
+        /** Too many wrong PINs: the laptop refuses this phone for the seconds [Closure.detail] carries. */
+        PIN_LOCKED,
     }
 
     /**
-     * A [Cause], and for MISMATCH the laptop's protocol version, for UNEXPECTED the frame it sent. Empty
-     * otherwise. The words the user reads are the activity's, from strings.xml; nothing here is shown as it
-     * stands. The platform's own message for a failed socket goes to the log instead: it is the same unhelpful
-     * text for every failure, but it still tells a bug report which call gave up.
+     * A [Cause], and for MISMATCH the laptop's protocol version, for UNEXPECTED the frame it sent, for
+     * PIN_LOCKED the seconds the laptop will refuse this phone. Empty otherwise. The words the user reads are
+     * the activity's, from strings.xml; nothing here is shown as it stands. The platform's own message for a
+     * failed socket goes to the log instead: it is the same unhelpful text for every failure, but it still tells
+     * a bug report which call gave up.
      */
     class Closure(
         val cause: Cause,
@@ -97,6 +112,12 @@ class LaptopLink(
      */
     private val outbox = LinkedBlockingQueue<Frame>(OUTBOX_CAPACITY)
     private val lock = Any()
+
+    /**
+     * Held for the PIN answer's write. Not [lock]: a write blocked on a stalled link would then hold up
+     * [close], which the main thread calls.
+     */
+    private val writeLock = Any()
     private val main = Handler(Looper.getMainLooper())
 
     @Volatile private var socket: BluetoothSocket? = null
@@ -149,7 +170,22 @@ class LaptopLink(
             // answers no by itself, so that the laptop's no is what the user sees rather than this timeout.
             main.postDelayed(slowAnswer, SLOW_ANSWER_MS)
             main.postDelayed(noAnswer, ANSWER_TIMEOUT_MS)
-            val ack = readFrame(input)
+            var ack = readFrame(input)
+            // A laptop at security level 2 or 3 asks for its PIN between the trust question and HELLO_ACK, and
+            // again after each wrong answer. A level-1 laptop never asks, so for it this loop never runs.
+            while (true) {
+                val request = ack as? Frame.PinRequest ?: break
+                // The person is typing now; the laptop's own 60 s wait is the limit on that, not this side's.
+                main.removeCallbacks(slowAnswer)
+                main.removeCallbacks(noAnswer)
+                val locked = closureFor(request)
+                if (locked != null) {
+                    close(locked)
+                    return
+                }
+                deliver { it.onPinRequest(this, request.attemptsLeft) }
+                ack = readFrame(input)
+            }
             main.removeCallbacks(slowAnswer)
             main.removeCallbacks(noAnswer)
             if (ack is Frame.HelloAck && ack.version != ProtocolConstants.VERSION) {
@@ -187,6 +223,32 @@ class LaptopLink(
             // app down with it; ending the one link is the most it should cost.
             Log.e(TAG, "The link's reader failed", e)
             close(Closure(Cause.LOST))
+        }
+    }
+
+    /**
+     * Answers a PIN_REQUEST. Written straight onto the socket, because [send] drops everything until the
+     * handshake is done, and under [writeLock] on a short thread of its own, so a stalled link never blocks the
+     * main thread. Neither [pin] nor its encoding is kept: the bytes are overwritten once they are written.
+     */
+    fun answerPin(pin: Pin) {
+        val s = socket
+        if (s == null || closed || handshakeDone) return
+        val bytes = FrameCodec.encode(Frame.PinAnswer(pin))
+        // The laptop has something to check now, so the wait for its answer has an end again.
+        main.postDelayed(noAnswer, ANSWER_TIMEOUT_MS)
+        thread(name = "edgepad-pin") {
+            try {
+                synchronized(writeLock) {
+                    s.outputStream.write(bytes)
+                    s.outputStream.flush()
+                }
+            } catch (e: IOException) {
+                Log.w(TAG, "The PIN answer could not be written", e)
+                close(Closure(classifyFailure(connectReturned = true, handshakeDone = handshakeDone)))
+            } finally {
+                bytes.fill(0)
+            }
         }
     }
 
@@ -308,4 +370,16 @@ internal fun classifyFailure(
         !connectReturned -> LaptopLink.Cause.UNREACHABLE
         handshakeDone -> LaptopLink.Cause.LOST
         else -> LaptopLink.Cause.REFUSED
+    }
+
+/**
+ * What a PIN_REQUEST ends the link with: a lock-out (no attempts left and a wait) closes it as
+ * [LaptopLink.Cause.PIN_LOCKED] with the wait in seconds, and a question leaves it open. Pure, so a test can
+ * cover it without a socket.
+ */
+internal fun closureFor(request: Frame.PinRequest): LaptopLink.Closure? =
+    if (request.attemptsLeft == 0 && request.lockedSeconds > 0) {
+        LaptopLink.Closure(LaptopLink.Cause.PIN_LOCKED, request.lockedSeconds.toString())
+    } else {
+        null
     }

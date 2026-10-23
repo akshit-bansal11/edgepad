@@ -36,6 +36,18 @@
   <string name="link_unexpected">the laptop answered with something other than Edgepad\'s handshake (%1$s).</string>
   <string name="link_no_permission">the Nearby devices permission was turned off.</string>
   <string name="link_no_answer">the laptop took the connection and never answered. Check that Edgepad is running there, then try again.</string>
+  <string name="link_pin_locked">too many wrong PINs. Try again in %1$s s.</string>
+
+  <!-- The laptop's PIN. The digits are never shown or read out, only how many are in. -->
+  <string name="pin_title">Enter the PIN</string>
+  <string name="pin_body">Set in Edgepad on your laptop</string>
+  <plurals name="pin_attempts_left">
+    <item quantity="one">Wrong PIN. %1$d attempt left</item>
+    <item quantity="other">Wrong PIN. %1$d attempts left</item>
+  </plurals>
+  <string name="pin_entered">%1$d of %2$d digits entered</string>
+  <string name="pin_delete">Delete</string>
+  <string name="pin_cancel">Cancel</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Laptop out of reach</string>
