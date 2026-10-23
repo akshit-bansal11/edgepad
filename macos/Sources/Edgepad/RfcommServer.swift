@@ -19,6 +19,7 @@ final class RfcommServer: NSObject {
     private static let quietAfterHandOff: TimeInterval = 30
 
     private let trust: TrustStore
+    private let pin: PinStore
     private let askTrust: (String) -> Bool
     private let onStatus: (String) -> Void
 
@@ -48,8 +49,16 @@ final class RfcommServer: NSObject {
     /// The last start failure written to the log: start is retried, and must not repeat itself every time.
     private var lastStartFailure: String?
 
-    init(trust: TrustStore, askTrust: @escaping (String) -> Bool, onStatus: @escaping (String) -> Void) {
+    /// `pin` defaults to the owner's own settings; a caller that also changes them hands in the same store, so the
+    /// lockout counts and the check that a PIN changed mid-answer see one another.
+    init(
+        trust: TrustStore,
+        pin: PinStore = .forCurrentUser(),
+        askTrust: @escaping (String) -> Bool,
+        onStatus: @escaping (String) -> Void
+    ) {
         self.trust = trust
+        self.pin = pin
         self.askTrust = askTrust
         self.onStatus = onStatus
         super.init()
@@ -232,7 +241,15 @@ final class RfcommServer: NSObject {
             address: address,
             transport: transport,
             trust: trust,
+            pin: pin,
             askTrust: { _ in ask(phone) },
+            // Beside the hello timer below, and for each PIN_REQUEST: the session ignores one whose question was
+            // already answered.
+            schedulePinTimeout: { timedOut in
+                _ = Timer.scheduledTimer(withTimeInterval: Session.pinTimeoutSeconds, repeats: false) { _ in
+                    timedOut()
+                }
+            },
             dispatcher: dispatcher,
             input: injector,
             speakers: speakers,
