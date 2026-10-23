@@ -1294,6 +1294,7 @@ class MainActivity :
                 Screen.SURFACE,
                 Screen.KEYBOARD,
                 Screen.GAMEPAD,
+                Screen.CAPTURE,
                 Screen.MEDIA_LAYOUT,
                 Screen.GAMEPAD_LAYOUT,
                 Screen.SHAPE_DRAW,
