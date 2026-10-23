@@ -19,6 +19,8 @@ object FrameCodec {
 
     private const val HELLO = 0x01
     private const val HELLO_ACK = 0x02
+    private const val PIN_REQUEST = 0x03
+    private const val PIN_ANSWER = 0x04
     private const val MOVE = 0x10
     private const val BUTTON = 0x11
     private const val SCROLL = 0x12
@@ -46,6 +48,8 @@ object FrameCodec {
         when (type) {
             HELLO -> 5
             HELLO_ACK, RUN_ACTION -> 1
+            PIN_REQUEST -> 3
+            PIN_ANSWER -> Pin.LENGTH
             BUTTON, ZOOM, SET_VALUE -> 2
             STATE, KEY -> 3
             MOVE, SCROLL -> 4
@@ -143,6 +147,16 @@ object FrameCodec {
                     .i16(frame.rx)
                     .i16(frame.ry)
             }
+
+            is Frame.PinRequest -> {
+                b.type(PIN_REQUEST).u8(frame.attemptsLeft).u16(frame.lockedSeconds)
+            }
+
+            // Each digit goes out as its value 0..9, not its ASCII code, so these bytes can never be read as text.
+            is Frame.PinAnswer -> {
+                b.type(PIN_ANSWER)
+                for (i in 0 until Pin.LENGTH) b.u8(frame.pin.digitAt(i))
+            }
         }
         return b.position() - offset
     }
@@ -175,6 +189,8 @@ object FrameCodec {
             STATE -> Frame.StateReport(b.u8(), b.u8(), b.u8())
             KEY -> Frame.Key(b.u16(), flag(b.u8()))
             PAD_STATE -> decodePadState(b)
+            PIN_REQUEST -> Frame.PinRequest(b.u8(), b.u16())
+            PIN_ANSWER -> decodePinAnswer(b)
             else -> throw StreamCorruptedException("Unknown frame type 0x%02x".format(type))
         }
     }
@@ -230,6 +246,20 @@ object FrameCodec {
      */
     private fun decodePadState(b: ByteBuffer): Frame.PadState =
         Frame.PadState(b.u16(), b.u8(), b.u8(), b.short.toInt(), b.short.toInt(), b.short.toInt(), b.short.toInt())
+
+    /**
+     * A byte above 9 is not a digit. It closes the link like a bad flag byte, and the laptop counts it as a failed
+     * attempt. The message names no value: a rejected byte is still part of somebody's PIN.
+     */
+    private fun decodePinAnswer(b: ByteBuffer): Frame.PinAnswer {
+        val digits = StringBuilder()
+        repeat(Pin.LENGTH) {
+            val digit = b.u8()
+            if (digit > 9) throw StreamCorruptedException("PIN_ANSWER carries a byte that is not a digit")
+            digits.append('0' + digit)
+        }
+        return Frame.PinAnswer(Pin(digits.toString()))
+    }
 
     private fun decodeHello(b: ByteBuffer): Frame.Hello {
         val magic = ByteArray(magicBytes.size).also { b.get(it) }

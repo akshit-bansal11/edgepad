@@ -88,4 +88,46 @@ sealed interface Frame {
         val rx: Int,
         val ry: Int,
     ) : Frame
+
+    /**
+     * The laptop asking for the PIN, or refusing the phone for a while. Sent only between the trust question
+     * and HELLO_ACK. [lockedSeconds] is 0 for a question and the wait for a lock-out, in which case
+     * [attemptsLeft] is 0 and the laptop closes the link after sending it.
+     */
+    data class PinRequest(
+        val attemptsLeft: Int,
+        val lockedSeconds: Int,
+    ) : Frame
+
+    /** The phone's answer to [PinRequest]. [Pin] keeps the digits out of any log line this frame reaches. */
+    data class PinAnswer(
+        val pin: Pin,
+    ) : Frame
+}
+
+/**
+ * Six decimal digits, the one secret that crosses the link. Frames are logged (`LaptopLink` prints the frame
+ * it did not expect), so every way of printing this class hides the digits: [toString] is the only one a
+ * data class or a string template reaches, and it returns stars. Equality compares the digits, which is what
+ * a test needs; nothing here exposes them as text.
+ */
+class Pin(
+    private val digits: String,
+) {
+    init {
+        require(digits.length == LENGTH && digits.all { it in '0'..'9' }) { "A PIN is exactly six digits" }
+    }
+
+    /** The digit at [index] as a value 0..9, which is what goes on the wire (a value, not an ASCII code). */
+    fun digitAt(index: Int): Int = digits[index] - '0'
+
+    override fun equals(other: Any?): Boolean = other is Pin && other.digits == digits
+
+    override fun hashCode(): Int = digits.hashCode()
+
+    override fun toString(): String = "******"
+
+    companion object {
+        const val LENGTH = 6
+    }
 }

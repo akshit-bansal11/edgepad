@@ -19,6 +19,8 @@ internal static class FrameCodec
 
     private const byte HelloType = 0x01;
     private const byte HelloAckType = 0x02;
+    private const byte PinRequestType = 0x03;
+    private const byte PinAnswerType = 0x04;
     private const byte MoveType = 0x10;
     private const byte PointerButtonType = 0x11;
     private const byte ScrollType = 0x12;
@@ -44,8 +46,9 @@ internal static class FrameCodec
     {
         HelloType => 5,
         HelloAckType or RunActionType => 1,
+        PinAnswerType => Pin.Length,
         PointerButtonType or ZoomType or SetValueType => 2,
-        StateType or KeyType => 3,
+        StateType or KeyType or PinRequestType => 3,
         MoveType or ScrollType => 4,
         PingType or PongType => 8,
         PadStateType => 12,
@@ -125,6 +128,20 @@ internal static class FrameCodec
                 BinaryPrimitives.WriteInt16LittleEndian(dest[9..], f.Rx);
                 BinaryPrimitives.WriteInt16LittleEndian(dest[11..], f.Ry);
                 return 13;
+            case PinRequest f:
+                dest[0] = PinRequestType;
+                dest[1] = f.AttemptsLeft;
+                BinaryPrimitives.WriteUInt16LittleEndian(dest[2..], f.LockedSeconds);
+                return 4;
+            // Each digit goes out as its value 0..9, not its ASCII code, so these bytes can never be read as text.
+            case PinAnswer f:
+                dest[0] = PinAnswerType;
+                for (var i = 0; i < Pin.Length; i++)
+                {
+                    dest[1 + i] = (byte)(f.Digits.Digits[i] - '0');
+                }
+
+                return 1 + Pin.Length;
             default:
                 throw new ArgumentException($"No encoding for {frame.GetType().Name}", nameof(frame));
         }
@@ -164,6 +181,8 @@ internal static class FrameCodec
             PongType => new Pong(BinaryPrimitives.ReadInt64LittleEndian(payload)),
             StateType => new StateReport(payload[0], payload[1], payload[2]),
             PadStateType => DecodePadState(payload),
+            PinRequestType => new PinRequest(payload[0], BinaryPrimitives.ReadUInt16LittleEndian(payload[1..])),
+            PinAnswerType => DecodePinAnswer(payload),
             _ => throw new InvalidDataException($"Unknown frame type 0x{type:x2}"),
         };
     }
@@ -222,6 +241,26 @@ internal static class FrameCodec
         ReadInt16(payload[6..]),
         ReadInt16(payload[8..]),
         ReadInt16(payload[10..]));
+
+    /// <summary>
+    /// A byte above 9 is not a digit. It closes the link like a bad flag byte, and the session counts it as a
+    /// failed attempt. The message names no value: a rejected byte is still part of somebody's PIN.
+    /// </summary>
+    private static PinAnswer DecodePinAnswer(ReadOnlySpan<byte> payload)
+    {
+        var digits = new char[Pin.Length];
+        for (var i = 0; i < digits.Length; i++)
+        {
+            if (payload[i] > 9)
+            {
+                throw new InvalidDataException("PIN_ANSWER carries a byte that is not a digit");
+            }
+
+            digits[i] = (char)('0' + payload[i]);
+        }
+
+        return new PinAnswer(new Pin(new string(digits)));
+    }
 
     private static Hello DecodeHello(ReadOnlySpan<byte> payload)
     {

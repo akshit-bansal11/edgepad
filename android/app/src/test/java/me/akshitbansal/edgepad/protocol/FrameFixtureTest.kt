@@ -110,6 +110,24 @@ class FrameFixtureTest {
         assertEquals(frame, FrameCodec.decode(bytes[0].toInt() and 0xFF, bytes.copyOfRange(1, bytes.size)))
     }
 
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsAPinDigitAboveNine() {
+        FrameCodec.decode(0x04, byteArrayOf(1, 2, 3, 4, 5, 10))
+    }
+
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsAFiveByteAnswer() {
+        FrameCodec.decode(0x04, byteArrayOf(1, 2, 3, 4, 5))
+    }
+
+    @Test
+    fun noWayOfPrintingAPinShowsADigit() {
+        val answer = Frame.PinAnswer(Pin("123456"))
+        for (text in listOf(Pin("123456").toString(), answer.toString(), "$answer")) {
+            assertTrue(text, text.none { it.isDigit() })
+        }
+    }
+
     private fun parse(line: String): Pair<Frame, ByteArray> {
         val (left, right) = line.split("=")
         val fields = left.trim().split(" ").filter { it.isNotEmpty() }
@@ -140,6 +158,8 @@ class FrameFixtureTest {
                 "TEXT" -> Frame.Text(int(1), fields.getOrNull(2) ?: "")
                 "KEY" -> Frame.Key(int(1), int(2) == 1)
                 "PAD_STATE" -> Frame.PadState(int(1), int(2), int(3), int(4), int(5), int(6), int(7))
+                "PIN_REQUEST" -> Frame.PinRequest(int(1), int(2))
+                "PIN_ANSWER" -> Frame.PinAnswer(Pin(fields.drop(1).joinToString("")))
                 else -> error("Unknown fixture frame ${fields[0]}")
             }
         return frame to bytes

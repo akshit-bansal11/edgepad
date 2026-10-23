@@ -96,6 +96,24 @@ public sealed class FrameFixtureTests
         Assert.Equal(frame, FrameCodec.Decode(bytes[0], bytes.AsSpan(1)));
     }
 
+    [Fact]
+    public void RejectsAPinDigitAboveNine() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x04, [1, 2, 3, 4, 5, 10]));
+
+    [Fact]
+    public void RejectsAFiveByteAnswer() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x04, [1, 2, 3, 4, 5]));
+
+    [Fact]
+    public void NoWayOfPrintingAPinShowsADigit()
+    {
+        var answer = new PinAnswer(new Pin("123456"));
+        foreach (var text in new[] { new Pin("123456").ToString(), answer.ToString(), $"{answer}" })
+        {
+            Assert.False(text.Any(char.IsAsciiDigit), text);
+        }
+    }
+
     private static (Frame Frame, byte[] Bytes) Parse(string line)
     {
         var halves = line.Split('=');
@@ -119,6 +137,8 @@ public sealed class FrameFixtureTests
             "STATE" => new StateReport((byte)Field(1), (byte)Field(2), (byte)Field(3)),
             "TEXT" => new Text((byte)Field(1), fields.Length > 2 ? fields[2] : ""),
             "KEY" => new Key((ushort)Field(1), Field(2) == 1),
+            "PIN_REQUEST" => new PinRequest((byte)Field(1), (ushort)Field(2)),
+            "PIN_ANSWER" => new PinAnswer(new Pin(string.Concat(fields[1..]))),
             "PAD_STATE" => new PadState(
                 (ushort)Field(1),
                 (byte)Field(2),

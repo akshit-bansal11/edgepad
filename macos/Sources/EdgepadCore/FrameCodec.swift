@@ -4,6 +4,8 @@ public enum ProtocolError: Error, Equatable {
     case wrongLength(type: UInt8, expected: Int, got: Int)
     case badMagic
     case badFlag(UInt8)
+    /// A PIN_ANSWER byte above 9. It carries no value: a rejected byte is still part of somebody's PIN.
+    case badDigit
     case textLengthMismatch
 }
 
@@ -24,6 +26,8 @@ public enum FrameCodec {
 
     private static let helloType: UInt8 = 0x01
     private static let helloAckType: UInt8 = 0x02
+    private static let pinRequestType: UInt8 = 0x03
+    private static let pinAnswerType: UInt8 = 0x04
     private static let moveType: UInt8 = 0x10
     private static let pointerButtonType: UInt8 = 0x11
     private static let scrollType: UInt8 = 0x12
@@ -46,10 +50,12 @@ public enum FrameCodec {
             return .fixed(1)
         case pointerButtonType, zoomType, setValueType:
             return .fixed(2)
-        case stateType, keyType:
+        case stateType, keyType, pinRequestType:
             return .fixed(3)
         case moveType, scrollType:
             return .fixed(4)
+        case pinAnswerType:
+            return .fixed(Pin.length)
         case pingType, pongType:
             return .fixed(8)
         case padStateType:
@@ -102,6 +108,11 @@ public enum FrameCodec {
             out += littleEndian(rx)
             out += littleEndian(ry)
             return out
+        case .pinRequest(let attemptsLeft, let lockedSeconds):
+            return [pinRequestType, attemptsLeft] + littleEndian(lockedSeconds)
+        case .pinAnswer(let pin):
+            // Each digit goes out as its value 0...9, not its ASCII code, so these bytes can never read as text.
+            return [pinAnswerType] + pin.digits
         }
     }
 
@@ -159,6 +170,13 @@ public enum FrameCodec {
                 rx: int16(payload, 8),
                 ry: int16(payload, 10)
             )
+        case pinRequestType:
+            return .pinRequest(attemptsLeft: payload[0], lockedSeconds: uint16(payload, 1))
+        case pinAnswerType:
+            guard let pin = Pin(digits: payload) else {
+                throw ProtocolError.badDigit
+            }
+            return .pinAnswer(pin)
         default:
             throw ProtocolError.unknownType(type)
         }

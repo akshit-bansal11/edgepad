@@ -133,6 +133,18 @@ const FRAME_DOCS: Record<
     meaning:
       "The only variable-length frame: up to 255 bytes, never split inside a character.",
   },
+  PIN_REQUEST: {
+    payload: "attemptsLeft u8, lockedSeconds u16",
+    direction: "laptop-to-phone",
+    meaning:
+      "Asks for the PIN, or says the phone is locked out and for how long. Only between the trust question and HELLO_ACK.",
+  },
+  PIN_ANSWER: {
+    payload: "six bytes, each 0 to 9",
+    direction: "phone-to-laptop",
+    meaning:
+      "The PIN, one digit value per byte rather than ASCII. Only as the answer to PIN_REQUEST; a byte above 9 closes the link.",
+  },
   PAD_STATE: {
     payload: "buttons u16, lt u8, rt u8, lx i16, ly i16, rx i16, ry i16",
     direction: "phone-to-laptop",

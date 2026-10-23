@@ -110,6 +110,30 @@ final class FrameFixtureTests: XCTestCase {
         XCTAssertEqual(try FrameCodec.decode(type: bytes[0], payload: Array(bytes.dropFirst())), frame)
     }
 
+    func testAPinDigitAboveNineIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x04, payload: [1, 2, 3, 4, 5, 10])) { error in
+            XCTAssertEqual(error as? ProtocolError, .badDigit)
+        }
+    }
+
+    func testAFiveByteAnswerIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x04, payload: [1, 2, 3, 4, 5])) { error in
+            XCTAssertEqual(error as? ProtocolError, .wrongLength(type: 0x04, expected: 6, got: 5))
+        }
+    }
+
+    func testNoWayOfPrintingAPinShowsADigit() throws {
+        let pin = try XCTUnwrap(Pin(digits: [1, 2, 3, 4, 5, 6]))
+        let frame = Frame.pinAnswer(pin)
+
+        let texts = [
+            "\(pin)", String(reflecting: pin), "\(frame)", String(reflecting: frame), String(describing: frame),
+        ]
+        for text in texts {
+            XCTAssertNil(text.firstIndex(where: \.isNumber), text)
+        }
+    }
+
     private func parse(_ line: String) throws -> (Frame, [UInt8]) {
         let halves = line.split(separator: "=", omittingEmptySubsequences: false)
         guard halves.count == 2 else {
@@ -167,6 +191,16 @@ final class FrameFixtureTests: XCTestCase {
             return (.text(kind: UInt8(truncatingIfNeeded: try field(1)), value: value), bytes)
         case "KEY":
             return (.key(code: UInt16(truncatingIfNeeded: try field(1)), down: try field(2) == 1), bytes)
+        case "PIN_REQUEST":
+            let attempts = UInt8(truncatingIfNeeded: try field(1))
+            let locked = UInt16(truncatingIfNeeded: try field(2))
+            return (.pinRequest(attemptsLeft: attempts, lockedSeconds: locked), bytes)
+        case "PIN_ANSWER":
+            let values = try (1..<fields.count).map { UInt8(truncatingIfNeeded: try field($0)) }
+            guard let pin = Pin(digits: values) else {
+                throw FixtureError.malformed(line)
+            }
+            return (.pinAnswer(pin), bytes)
         case "PAD_STATE":
             let frame = Frame.padState(
                 buttons: UInt16(truncatingIfNeeded: try field(1)),

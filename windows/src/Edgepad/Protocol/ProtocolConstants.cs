@@ -8,7 +8,7 @@ internal static class ProtocolConstants
     /// updating. protocol/actions.txt holds the same number; a test checks it. When and why it has moved, and
     /// why only a new frame type moves it, is under Versions in docs/PROTOCOL.md, kept there once for both apps.
     /// </summary>
-    public const byte Version = 4;
+    public const byte Version = 5;
 
     /// <summary>Sent in HELLO so a stray connection that is not Edgepad is refused before anything runs.</summary>
     public static ReadOnlySpan<byte> Magic => "EDGP"u8;

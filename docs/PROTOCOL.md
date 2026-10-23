@@ -1,6 +1,6 @@
 # Wire protocol
 
-Version 4. Both apps refuse any other version at the handshake.
+Version 5. Both apps refuse any other version at the handshake.
 
 The transport is an RFCOMM byte stream. A frame is one type byte followed by a payload whose length is fixed by the type, except TEXT, whose second header byte gives the length of the text that follows. All multi-byte integers are little-endian. An unknown type byte, a wrong length, a bad magic or a flag byte other than 0 or 1 is a protocol error and closes the connection. A well-formed frame naming an action or control this side does not know is dropped and counted, never treated as an error, so a newer app can talk to an older one until the version check says otherwise.
 
@@ -24,14 +24,28 @@ The transport is an RFCOMM byte stream. A frame is one type byte followed by a p
 | `0x41` | TEXT | kind u8, length u8, UTF-8 bytes | both ways | up to 255 bytes, never split inside a character |
 | `0x22` | KEY | code u16, down u8 | phone to laptop | press or release one key, by Windows virtual-key code |
 | `0x23` | PAD_STATE | buttons u16, lt u8, rt u8, lx i16, ly i16, rx i16, ry i16 | phone to laptop | the whole gamepad at once; see below |
+| `0x03` | PIN_REQUEST | attemptsLeft u8, lockedSeconds u16 | laptop to phone | asks for the PIN, or says the phone is locked out; only between the trust question and HELLO_ACK; see [The PIN](#the-pin) |
+| `0x04` | PIN_ANSWER | six bytes, each 0 to 9 | phone to laptop | the PIN, one digit value per byte (not ASCII); only as the answer to PIN_REQUEST |
 
 TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter, 4 the display's available refresh rates as `60/120/144` (laptop to phone), 5 the laptop's macro names as `Chrome/Spotify/Notes` (laptop to phone), 6 one piece of one macro's icon as `slot/chunk/chunks/base64` (laptop to phone), 7 a request for the macro icons, with an empty payload (phone to laptop), 8 whether a virtual controller can be offered, as one PAD_STATUS token (laptop to phone).
 
 An icon does not fit the 255 bytes a payload holds, so TEXT 6 carries a PNG in pieces and the phone joins them: the counts are what let it tell a finished icon from a truncated one. Kinds rather than a frame type of their own, which is what keeps the protocol version where it is — an unknown kind is dropped and counted on both sides, while an unknown type closes the connection. Icons are answered rather than pushed, so a laptop too old to know TEXT 7 drops it and the phone keeps its labels, and a phone too old to send it costs the link nothing.
 
-The handshake has deadlines on both sides, and none of them is a change to the protocol. The laptop closes a connection that sends no HELLO within 10 seconds. When the phone that sent HELLO is not one it trusts, the laptop holds HELLO_ACK and asks its owner whether to trust it; no answer within 60 seconds is a no, and a no is the socket closing without a HELLO_ACK, exactly what a phone the laptop does not trust has always been sent. The phone gives up on HELLO_ACK after 90 seconds, longer than the laptop's question, so it hears the answer rather than abandoning it.
+The handshake has deadlines on both sides, and none of them is a change to the protocol. From version 5 a laptop whose security level asks for a PIN adds one step after the trust question, described in [The PIN](#the-pin). The laptop closes a connection that sends no HELLO within 10 seconds. When the phone that sent HELLO is not one it trusts, the laptop holds HELLO_ACK and asks its owner whether to trust it; no answer within 60 seconds is a no, and a no is the socket closing without a HELLO_ACK, exactly what a phone the laptop does not trust has always been sent. The phone gives up on HELLO_ACK after 90 seconds, longer than the laptop's question, so it hears the answer rather than abandoning it.
 
 After HELLO_ACK the laptop sends a STATE for volume, microphone and brightness, then TEXT 0, 1 and 2 and a STATE for media position, then TEXT 4 and a STATE for the refresh rate, then TEXT 5, and thereafter every change as it happens. Media position is refreshed once a second while playing. Icons are not part of that sequence: the laptop sends TEXT 6 only in answer to TEXT 7.
+
+## The PIN
+
+Version 5 lets the laptop ask for a PIN before it admits a phone. The order is: HELLO, the version check, the lock-out check, the trust question, the PIN gate, then HELLO_ACK. Trust comes first and the PIN second, and the gate sits before the laptop lets a new phone take over from the connected one, so a phone that has not proved itself can never displace the one in use.
+
+The laptop's security level decides whether the gate runs. Level 1 (the default) is trust only: it sends neither PIN frame and behaves as 3.5.0 did. Level 2 asks once per phone: the gate runs for an address not yet verified, and a correct PIN adds it to the verified list. Level 3 asks on every connection. The level and the PIN live on the laptop; the phone never stores a PIN.
+
+At the gate the laptop sends PIN_REQUEST with the attempts left and a lock time of 0, then waits 60 seconds for PIN_ANSWER. No answer, or any other frame, closes the connection. A digit byte above 9 is a protocol error and also counts as a failed attempt. A wrong PIN counts as a failure; on every fifth failure the laptop sends PIN_REQUEST with 0 attempts left and the lock time in seconds, then closes, and a phone from a locked address gets the same answer straight after HELLO. The lock lasts 30 seconds for the first five failures and doubles for each further five, up to an hour. A correct PIN zeroes the count.
+
+Changing the PIN or the level clears the verified list, so every phone at level 2 enters the new PIN once. After HELLO_ACK, a PIN_REQUEST or PIN_ANSWER is dropped and counted.
+
+The digits are never logged, written to a status line or shown by a debug print on either side, and they travel in a frame type of their own rather than in TEXT so they can never be routed to typing. RFCOMM already requires the phones to be paired and the Bluetooth stack encrypts the paired link, so the PIN is a second factor and not a second cipher.
 
 ## Actions and controls
 
@@ -136,7 +150,7 @@ pad rather than offer a button that quietly does nothing.
 
 ## On a Mac
 
-The protocol is unchanged: the Mac app speaks version 4 and the tables above are the whole of the wire format. What differs is what the Mac does with a frame.
+The protocol is unchanged: the Mac app speaks version 5 and the tables above are the whole of the wire format. What differs is what the Mac does with a frame.
 
 KEY still carries a Windows virtual-key code, and the Mac maps it by position: Win is Command, Ctrl is Control, Alt is Option. The Menu key has no Mac equivalent and is dropped and counted. Mute, volume and the media keys go out as the Mac's own media keys.
 
@@ -170,8 +184,9 @@ Controls are as on Windows, with these exceptions. MEDIA_POSITION is dropped, be
 | 2 | 0.3.0 | TEXT kind 2; a mismatch is refused with the laptop's version |
 | 3 | 0.6.0 | TEXT kind 3; actions 31 to 34 arrived in 0.5.0, CONTROL 4, TEXT 4 and 5 and the macro block in 1.1.0, and TEXT 6 and 7 in 2.3.0 |
 | 4 | 3.0.0 | PAD_STATE, a new frame type; actions 35 and 36 and TEXT 8 came with it and would not have needed one |
+| 5 | 4.0.0 | PIN_REQUEST and PIN_ANSWER (PEN joins in the same release) |
 
-The first move since v3 in 0.6.0, and it took a new frame type to earn it. PAD_STATE's type byte `0x23` is
+Version 5 is the same kind of move: PIN_REQUEST (`0x03`) and PIN_ANSWER (`0x04`) are new frame types, and a v4 phone meeting a PIN_REQUEST would hang up mid-handshake instead of saying which side is old. The first move since v3 in 0.6.0, and it took a new frame type to earn it. PAD_STATE's type byte `0x23` is
 the whole reason: an unknown type closes the connection, so a v3 laptop meeting a v4 phone's PAD_STATE would
 hang up mid-session instead of ignoring a feature it does not have. Refusing at the handshake turns that into
 a message about which side needs updating. The rest of the gamepad rode along free — PAD_ATTACH, PAD_DETACH

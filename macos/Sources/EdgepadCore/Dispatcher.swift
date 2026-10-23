@@ -69,7 +69,7 @@ public final class Dispatcher {
             return true
         case .key(let code, let down):
             return key(code, down: down)
-        case .hello, .helloAck, .ping, .pong, .state, .padState:
+        case .hello, .helloAck, .ping, .pong, .state, .padState, .pinRequest, .pinAnswer:
             // A Mac has no virtual controller to give a pad frame to, and the rest are not the phone's to
             // send once the session is live.
             return false

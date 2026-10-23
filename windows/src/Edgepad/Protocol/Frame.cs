@@ -49,3 +49,38 @@ internal sealed record Key(ushort Code, bool Down) : Frame;
 /// </para>
 /// </summary>
 internal sealed record PadState(ushort Buttons, byte Lt, byte Rt, short Lx, short Ly, short Rx, short Ry) : Frame;
+
+/// <summary>
+/// The laptop asking for the PIN, or refusing the phone for a while. Sent only between the trust question and
+/// HELLO_ACK. <c>LockedSeconds</c> is 0 for a question; for a lock-out it is the wait, <c>AttemptsLeft</c> is 0
+/// and the link is closed right after.
+/// </summary>
+internal sealed record PinRequest(byte AttemptsLeft, ushort LockedSeconds) : Frame;
+
+/// <summary>The phone's answer to <see cref="PinRequest"/>. <see cref="Pin"/> keeps the digits out of any log line this frame reaches.</summary>
+internal sealed record PinAnswer(Pin Digits) : Frame;
+
+/// <summary>
+/// Six decimal digits, the one secret that crosses the link. Frames are interpolated into log lines
+/// (<c>Log.Write($"... {frame}")</c>), so every way a record prints this reaches <c>ToString</c>, which
+/// returns stars; the digits are only ever read by the one place that compares them.
+/// </summary>
+internal readonly record struct Pin
+{
+    public const int Length = 6;
+
+    public Pin(string digits)
+    {
+        if (digits.Length != Length || !digits.All(char.IsAsciiDigit))
+        {
+            throw new ArgumentException("A PIN is exactly six digits", nameof(digits));
+        }
+
+        Digits = digits;
+    }
+
+    /// <summary>The digits as ASCII text. Not for logging.</summary>
+    public string Digits { get; }
+
+    public override string ToString() => "******";
+}

@@ -6,6 +6,7 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ### Added
 
+- **Protocol version 5.** The wire protocol moves from 4 to 5 and adds the PIN_REQUEST and PIN_ANSWER frames that the security levels will use. Nothing asks for a PIN yet, and a PIN's digits never reach a log or a debug print on any platform. Both halves must come from 4.0.0: a version 4 peer is refused at the handshake.
 - **Each corner dial can be split in two.** Settings › Corners has a **Split corners** switch that gives every corner a dial on each of the two edges it joins, eight in all. With it on, the dial a corner already held stays on its side edge and the other four places start empty; any place can take any dial. Turning it off brings back the four single dials exactly as they were.
 - **The macro deck can be rearranged.** **Edit layout** in the Macros bar lets you drag the buttons into the order you want (or move each one earlier or later with a screen reader's actions) and pick the grid, such as 3 × 2, from a list that leaves out any grid whose buttons would be too small to hit. The order and the grid are kept on the phone; a button still runs the same macro wherever it is placed.
 

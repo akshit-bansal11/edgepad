@@ -1,4 +1,4 @@
-# Golden frames for Edgepad protocol v1.
+# Golden frames for Edgepad protocol v5.
 #
 # Both test suites (android/ in Kotlin, windows/ in C#) read this file. For every
 # line they encode the fields and must get exactly these bytes, then decode the
@@ -14,6 +14,7 @@ HELLO 1 = 01 45 44 47 50 01
 HELLO 2 = 01 45 44 47 50 02
 HELLO 3 = 01 45 44 47 50 03
 HELLO 4 = 01 45 44 47 50 04
+HELLO 5 = 01 45 44 47 50 05
 TEXT 3 hi = 41 03 02 68 69
 HELLO_ACK 1 = 02 01
 MOVE 5 -3 = 10 05 00 fd ff
@@ -70,3 +71,14 @@ PAD_STATE 12305 32 200 -1 1 256 -256 = 23 11 30 20 c8 ff ff 01 00 00 01 00 ff
 # Every button XInput defines, held at once: 0xffff without the unused 0x0800 is 0xf7ff = 63487. The top bit
 # is Y, which is where reading the mask as a signed short instead of a u16 turns a held button into nonsense.
 PAD_STATE 63487 0 0 0 0 0 0 = 23 ff f7 00 00 00 00 00 00 00 00 00 00
+# PIN_REQUEST: attemptsLeft u8, lockedSeconds u16 little-endian (300 = 0x012c). Laptop to phone, only between
+# trust and HELLO_ACK. 65535 is the u16 ceiling, where a sign or byte-order slip shows.
+PIN_REQUEST 5 0 = 03 05 00 00
+PIN_REQUEST 2 0 = 03 02 00 00
+PIN_REQUEST 0 30 = 03 00 1e 00
+PIN_REQUEST 0 300 = 03 00 2c 01
+PIN_REQUEST 0 65535 = 03 00 ff ff
+# PIN_ANSWER: six bytes, each a digit value 0..9 and not its ASCII code, so a mis-routed one can never read as text.
+PIN_ANSWER 1 2 3 4 5 6 = 04 01 02 03 04 05 06
+PIN_ANSWER 0 0 0 0 0 0 = 04 00 00 00 00 00 00
+PIN_ANSWER 9 9 9 9 9 9 = 04 09 09 09 09 09 09
