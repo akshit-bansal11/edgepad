@@ -24,10 +24,11 @@ The transport is an RFCOMM byte stream. A frame is one type byte followed by a p
 | `0x41` | TEXT | kind u8, length u8, UTF-8 bytes | both ways | up to 255 bytes, never split inside a character |
 | `0x22` | KEY | code u16, down u8 | phone to laptop | press or release one key, by Windows virtual-key code |
 | `0x23` | PAD_STATE | buttons u16, lt u8, rt u8, lx i16, ly i16, rx i16, ry i16 | phone to laptop | the whole gamepad at once; see below |
+| `0x24` | PEN | x u16, y u16, state u8 | phone to laptop | one point of a pen stroke on the annotate or sign surface; state 0 is up, 1 down, 2 move; see [Annotate and sign](#annotate-and-sign) |
 | `0x03` | PIN_REQUEST | attemptsLeft u8, lockedSeconds u16 | laptop to phone | asks for the PIN, or says the phone is locked out; only between the trust question and HELLO_ACK; see [The PIN](#the-pin) |
 | `0x04` | PIN_ANSWER | six bytes, each 0 to 9 | phone to laptop | the PIN, one digit value per byte (not ASCII); only as the answer to PIN_REQUEST |
 
-TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter, 4 the display's available refresh rates as `60/120/144` (laptop to phone), 5 the laptop's macro names as `Chrome/Spotify/Notes` (laptop to phone), 6 one piece of one macro's icon as `slot/chunk/chunks/base64` (laptop to phone), 7 a request for the macro icons, with an empty payload (phone to laptop), 8 whether a virtual controller can be offered, as one PAD_STATUS token (laptop to phone), 9 the optional features the laptop has, as tokens joined by `/` such as `annotate/capture`, where a feature not named is off and a token the phone does not know is ignored (laptop to phone).
+TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter, 4 the display's available refresh rates as `60/120/144` (laptop to phone), 5 the laptop's macro names as `Chrome/Spotify/Notes` (laptop to phone), 6 one piece of one macro's icon as `slot/chunk/chunks/base64` (laptop to phone), 7 a request for the macro icons, with an empty payload (phone to laptop), 8 whether a virtual controller can be offered, as one PAD_STATUS token (laptop to phone), 9 the optional features the laptop has, as tokens joined by `/` such as `annotate/capture`, where a feature not named is off and a token the phone does not know is ignored (laptop to phone), 10 the primary display in pixels as `1920/1080` (laptop to phone), 11 how a sign-save ended, as one SIGN_STATUS token: `saved`, `empty` or `failed` (laptop to phone).
 
 An icon does not fit the 255 bytes a payload holds, so TEXT 6 carries a PNG in pieces and the phone joins them: the counts are what let it tell a finished icon from a truncated one. Kinds rather than a frame type of their own, which is what keeps the protocol version where it is — an unknown kind is dropped and counted on both sides, while an unknown type closes the connection. Icons are answered rather than pushed, so a laptop too old to know TEXT 7 drops it and the phone keeps its labels, and a phone too old to send it costs the link nothing.
 
@@ -76,6 +77,13 @@ The digits are never logged, written to a status line or shown by a debug print 
 | BRIGHTNESS_DOWN | 34 | the panel's brightness, minus 10 |
 | PAD_ATTACH | 35 | plugs in the virtual controller, then answers with TEXT 8 |
 | PAD_DETACH | 36 | unplugs it, then answers with TEXT 8 |
+| ANNOTATE_BEGIN | 40 | shows the annotation overlay on the primary display |
+| ANNOTATE_END | 41 | removes the overlay and discards its strokes |
+| ANNOTATE_UNDO | 42 | removes the last stroke |
+| ANNOTATE_CLEAR | 43 | removes every stroke |
+| TOOL_PEN, TOOL_HIGHLIGHTER, TOOL_LINE, TOOL_ARROW, TOOL_RECTANGLE, TOOL_ELLIPSE | 44 to 49 | picks what the next PEN stroke draws |
+| SIGN_BEGIN | 50 | opens a signing surface that shows nothing on the laptop and accepts only the pen tool |
+| SIGN_SAVE | 51 | exports the strokes as a signature image, then answers with TEXT 11 |
 | CAPTURE_REGION | 52 | Win+Shift+S, the Snipping Tool's region capture |
 | CAPTURE_SCREEN | 53 | PrtScn, the whole screen |
 | CAPTURE_RECORD | 54 | Win+Shift+R, screen recording; needs a recent Snipping Tool and is **unverified** |
@@ -87,6 +95,7 @@ The digits are never logged, written to a status line or shown by a debug print 
 | MIC_LEVEL | 2 | the default microphone's level | level, flag muted |
 | MEDIA_POSITION | 3 | seeks the current track to that percent, where the player allows it | percent, flag playing |
 | REFRESH_RATE | 4 | switches the display to the rate at that index of TEXT 4's list | the current rate's index |
+| PEN_COLOR | 5 | picks the stroke colour, by index into the palette below; 8 or more is dropped and counted | not reported |
 
 REFRESH_RATE's value is an index into TEXT 4's list, never a rate in hertz: SET carries value u8 and the laptop drops anything above 100, so 120 or 144 could not cross the wire at all. An index also makes a rate the laptop does not have unrepresentable rather than merely rejected. A laptop that names no rates has none to offer, and the dial has nothing to show.
 
@@ -98,6 +107,29 @@ This is not a containment boundary against a compromised phone, and should not b
 raw virtual-key code and TEXT kind 3 carries arbitrary characters, both of which the laptop injects directly
 — that is what the phone's keyboard screen is. A paired phone is a trusted input device, and the trust
 boundary is the Bluetooth pairing plus trust-on-first-use, not the macro table.
+
+## Annotate and sign
+
+The laptop owns the drawing and the phone only steers it. ANNOTATE_BEGIN shows a transparent overlay on the laptop's primary display; SIGN_BEGIN shows nothing and accepts only the pen tool. PEN outside either mode, and a tool action in the wrong mode, is dropped and counted. A laptop says it can annotate by naming `annotate` in TEXT 9, and sends TEXT 10 (`1920/1080`, the primary display in pixels) after the handshake and again when the display changes, so the phone can shape its surface to the same ratio. A phone that never hears either shows nothing to draw on.
+
+PEN carries a position as a fraction of the screen: x and y use the whole u16 span, 0 the left or top edge and 65535 the right or bottom edge, so no pixel count has to cross the link. A state byte other than 0, 1 or 2 decodes like any other value and is dropped and counted, because a newer phone may add states; it is not a protocol error.
+
+Pen width is 0.4% of the screen height and the highlighter's 2%, with the highlighter at 35% opacity and stroked once per path so a loop does not darken where it crosses itself. Line, arrow, rectangle and ellipse run from the down point to the latest move. The phone's preview is approximate; what the laptop draws is what counts. END, a session ending or the app quitting removes the overlay and discards the strokes.
+
+SIGN_SAVE renders the strokes at screen resolution, transparent and cropped to the ink with an 8 pixel margin, puts the PNG on the clipboard and saves it under `Pictures\Edgepad\`, then answers with TEXT 11: `saved`, `empty` (nothing was drawn) or `failed`.
+
+PEN_COLOR's value indexes this palette, never a colour of the phone's choosing:
+
+| Index | Name | RGB |
+| --- | --- | --- |
+| 0 | BLACK | `000000` |
+| 1 | WHITE | `FFFFFF` |
+| 2 | RED | `FF3B30` |
+| 3 | ORANGE | `FF9500` |
+| 4 | YELLOW | `FFCC00` |
+| 5 | GREEN | `34C759` |
+| 6 | BLUE | `0068D6` |
+| 7 | PURPLE | `AF52DE` |
 
 ## The gamepad
 
@@ -176,10 +208,11 @@ KEY still carries a Windows virtual-key code, and the Mac maps it by position: W
 | CAPTURE_REGION, CAPTURE_SCREEN | Command+Shift+4, Command+Shift+3 |
 | CAPTURE_RECORD | Command+Shift+5, which opens the capture toolbar |
 | macro slots (64 to 95) | nothing: macros are not built on the Mac, so they are dropped and counted |
+| ANNOTATE_*, TOOL_*, SIGN_* (40 to 51) | nothing yet: the Mac has no overlay, so they are dropped and counted |
 
 ZOOM sums wheel units until a whole notch (120) is owed, then presses Command+plus or Command+minus once per notch. These are macOS's default shortcuts: if one was changed or switched off in System Settings > Keyboard > Keyboard Shortcuts, the gesture does whatever that shortcut now does, or nothing.
 
-Controls are as on Windows, with these exceptions. MEDIA_POSITION is dropped, because now playing is not built on the Mac. VOLUME and MIC_LEVEL go through Core Audio. BRIGHTNESS and REFRESH_RATE act on the display, and BRIGHTNESS needs a private framework that may be missing; see [ARCHITECTURE.md](ARCHITECTURE.md). The Mac sends TEXT 5 (the macro names) empty, so the phone's grid says there are none, and TEXT 8 is always `no-driver`. PAD_STATE is dropped, and TEXT 7 is ignored. STATE for volume, microphone and brightness is sent after the handshake and then whenever a poll, twice a second, finds a change.
+Controls are as on Windows, with these exceptions. MEDIA_POSITION is dropped, because now playing is not built on the Mac. VOLUME and MIC_LEVEL go through Core Audio. BRIGHTNESS and REFRESH_RATE act on the display, and BRIGHTNESS needs a private framework that may be missing; see [ARCHITECTURE.md](ARCHITECTURE.md). The Mac sends TEXT 5 (the macro names) empty, so the phone's grid says there are none, and TEXT 8 is always `no-driver`. PAD_STATE and PEN are dropped, and TEXT 7 is ignored. STATE for volume, microphone and brightness is sent after the handshake and then whenever a poll, twice a second, finds a change.
 
 ## Versions
 
@@ -189,7 +222,7 @@ Controls are as on Windows, with these exceptions. MEDIA_POSITION is dropped, be
 | 2 | 0.3.0 | TEXT kind 2; a mismatch is refused with the laptop's version |
 | 3 | 0.6.0 | TEXT kind 3; actions 31 to 34 arrived in 0.5.0, CONTROL 4, TEXT 4 and 5 and the macro block in 1.1.0, and TEXT 6 and 7 in 2.3.0 |
 | 4 | 3.0.0 | PAD_STATE, a new frame type; actions 35 and 36 and TEXT 8 came with it and would not have needed one |
-| 5 | 4.0.0 | PIN_REQUEST and PIN_ANSWER (PEN joins in the same release) |
+| 5 | 4.0.0 | PIN_REQUEST and PIN_ANSWER, and PEN; actions 40 to 51, CONTROL 5 and TEXT 10 and 11 came with PEN and would not have needed a bump |
 
 Version 5 is the same kind of move: PIN_REQUEST (`0x03`) and PIN_ANSWER (`0x04`) are new frame types, and a v4 phone meeting a PIN_REQUEST would hang up mid-handshake instead of saying which side is old. The first move since v3 in 0.6.0, and it took a new frame type to earn it. PAD_STATE's type byte `0x23` is
 the whole reason: an unknown type closes the connection, so a v3 laptop meeting a v4 phone's PAD_STATE would

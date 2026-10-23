@@ -42,6 +42,23 @@ ACTION 34 BRIGHTNESS_DOWN
 # never receives. The laptop decides whether it can honour the request and answers with TEXT 8.
 ACTION 35 PAD_ATTACH
 ACTION 36 PAD_DETACH
+# Annotating the screen and signing, which the laptop draws and the phone only steers. BEGIN shows the laptop's
+# overlay and END removes it (and discards the strokes); UNDO and CLEAR edit the strokes; the six TOOL ids pick
+# what the next PEN stroke draws. SIGN_BEGIN opens a signing pad that shows nothing on the laptop and accepts
+# only the pen tool, and SIGN_SAVE asks the laptop to export what was drawn and answer with SIGN_STATUS. Actions
+# because the phone only asks; a laptop too old to know the ids drops and counts them.
+ACTION 40 ANNOTATE_BEGIN
+ACTION 41 ANNOTATE_END
+ACTION 42 ANNOTATE_UNDO
+ACTION 43 ANNOTATE_CLEAR
+ACTION 44 TOOL_PEN
+ACTION 45 TOOL_HIGHLIGHTER
+ACTION 46 TOOL_LINE
+ACTION 47 TOOL_ARROW
+ACTION 48 TOOL_RECTANGLE
+ACTION 49 TOOL_ELLIPSE
+ACTION 50 SIGN_BEGIN
+ACTION 51 SIGN_SAVE
 # Screen capture, which is the laptop's own tool: a region (a drag), the whole screen, and a recording. Actions
 # because the phone only asks; what each one presses is the laptop's business, and a laptop too old to know
 # them drops and counts the id. The phone shows the buttons only for a laptop that sent FEATURES "capture".
@@ -60,6 +77,9 @@ CONTROL 3 MEDIA_POSITION
 # laptop drops anything above 100, so 120 or 144 could not cross the wire at all; an index is always well
 # under 100. It also makes a rate the laptop does not have unrepresentable rather than merely rejected.
 CONTROL 4 REFRESH_RATE
+# PEN_COLOR's value is an index into the PALETTE rows below, never a colour: the phone cannot name an RGB the
+# laptop did not agree to, and an index of 8 or more is dropped and counted.
+CONTROL 5 PEN_COLOR
 
 TEXT 0 NOW_PLAYING
 TEXT 1 APP
@@ -89,6 +109,12 @@ TEXT 8 PAD_STATUS
 # "annotate/capture"), sent once after the handshake. A feature missing from the list is off, and a token the
 # phone does not know is ignored, so a newer laptop can name more of them than an older phone understands.
 TEXT 9 FEATURES
+# The laptop's primary display in pixels, "<width>/<height>" such as "1920/1080", laptop to phone, once after
+# the handshake and again whenever the display changes. The phone shapes its drawing surface to this ratio so a
+# stroke lands where the finger is; PEN itself carries a fraction of the screen and needs no pixels.
+TEXT 10 SCREEN_SIZE
+# How a SIGN_SAVE ended, laptop to phone, as one SIGN_STATUS token from the set below.
+TEXT 11 SIGN_STATUS
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
@@ -125,6 +151,24 @@ PAD_STATUS attach-failed ATTACH_FAILED
 # reason PAD_STATUS is: the phone branches on them, so prose would make the laptop's wording unchangeable.
 FEATURE annotate ANNOTATE
 FEATURE capture CAPTURE
+
+# The whole vocabulary of TEXT kind 11, as "<token on the wire> <the name both apps call it>". Tokens for the
+# reason PAD_STATUS is: the phone branches on them, so prose would make the laptop's wording unchangeable.
+SIGN_STATUS saved SAVED
+SIGN_STATUS empty EMPTY
+SIGN_STATUS failed FAILED
+
+# The eight colours CONTROL 5 PEN_COLOR indexes, as "<index> <NAME> <RRGGBB>". One list in this file so the
+# phone's swatches and the colours the laptop draws cannot drift apart. The laptop owns the colour: the phone
+# shows these only as a preview.
+PALETTE 0 BLACK 000000
+PALETTE 1 WHITE FFFFFF
+PALETTE 2 RED FF3B30
+PALETTE 3 ORANGE FF9500
+PALETTE 4 YELLOW FFCC00
+PALETTE 5 GREEN 34C759
+PALETTE 6 BLUE 0068D6
+PALETTE 7 PURPLE AF52DE
 
 HANDSHAKE 5 VERSION
 HANDSHAKE 758bb618-7b72-4cd3-9aa2-c9b88e54d555 SERVICE_ID

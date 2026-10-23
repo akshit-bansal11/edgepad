@@ -33,6 +33,7 @@ internal static class FrameCodec
     private const byte TextType = 0x41;
     private const byte KeyType = 0x22;
     private const byte PadStateType = 0x23;
+    private const byte PenType = 0x24;
 
     /// <summary>
     /// Payload length for a type byte, or -1 when the type is unknown.
@@ -52,6 +53,7 @@ internal static class FrameCodec
         MoveType or ScrollType => 4,
         PingType or PongType => 8,
         PadStateType => 12,
+        PenType => 5,
         TextType => LengthPrefixed,
         _ => -1,
     };
@@ -133,6 +135,12 @@ internal static class FrameCodec
                 dest[1] = f.AttemptsLeft;
                 BinaryPrimitives.WriteUInt16LittleEndian(dest[2..], f.LockedSeconds);
                 return 4;
+            case Pen f:
+                dest[0] = PenType;
+                BinaryPrimitives.WriteUInt16LittleEndian(dest[1..], f.X);
+                BinaryPrimitives.WriteUInt16LittleEndian(dest[3..], f.Y);
+                dest[5] = f.State;
+                return 6;
             // Each digit goes out as its value 0..9, not its ASCII code, so these bytes can never be read as text.
             case PinAnswer f:
                 dest[0] = PinAnswerType;
@@ -182,6 +190,7 @@ internal static class FrameCodec
             StateType => new StateReport(payload[0], payload[1], payload[2]),
             PadStateType => DecodePadState(payload),
             PinRequestType => new PinRequest(payload[0], BinaryPrimitives.ReadUInt16LittleEndian(payload[1..])),
+            PenType => DecodePen(payload),
             PinAnswerType => DecodePinAnswer(payload),
             _ => throw new InvalidDataException($"Unknown frame type 0x{type:x2}"),
         };
@@ -241,6 +250,16 @@ internal static class FrameCodec
         ReadInt16(payload[6..]),
         ReadInt16(payload[8..]),
         ReadInt16(payload[10..]));
+
+    /// <summary>
+    /// Nothing here throws: x and y span their whole width, and a state above 2 is not a codec error. A newer
+    /// phone may add states, and an unknown one is dropped and counted by the dispatcher like an unknown id,
+    /// where closing the link would take the whole session down for it.
+    /// </summary>
+    private static Pen DecodePen(ReadOnlySpan<byte> payload) => new(
+        BinaryPrimitives.ReadUInt16LittleEndian(payload),
+        BinaryPrimitives.ReadUInt16LittleEndian(payload[2..]),
+        payload[4]);
 
     /// <summary>
     /// A byte above 9 is not a digit. It closes the link like a bad flag byte, and is not counted as a failed

@@ -90,3 +90,16 @@ PIN_REQUEST 0 65535 = 03 00 ff ff
 PIN_ANSWER 1 2 3 4 5 6 = 04 01 02 03 04 05 06
 PIN_ANSWER 0 0 0 0 0 0 = 04 00 00 00 00 00 00
 PIN_ANSWER 9 9 9 9 9 9 = 04 09 09 09 09 09 09
+# PEN: x u16, y u16, state u8 (0 up, 1 down, 2 move). Phone to laptop. x and y span the whole u16 range, 0 the
+# left/top edge of the laptop screen and 65535 the right/bottom one, so a byte-order or sign slip shows at 65535.
+PEN 0 0 1 = 24 00 00 00 00 01
+PEN 65535 65535 0 = 24 ff ff ff ff 00
+# 32768 = 0x8000 and 12345 = 0x3039, written low byte first: the bytes of x and y differ, so a swapped pair shows.
+PEN 32768 12345 2 = 24 00 80 39 30 02
+# A state above 2 is not a codec error: a newer phone may add states, and the laptop drops and counts the frame.
+PEN 1 2 7 = 24 01 00 02 00 07
+# TEXT 10 SCREEN_SIZE and TEXT 11 SIGN_STATUS, laptop to phone, and the new CONTROL and ACTION ids.
+TEXT 10 1920/1080 = 41 0a 09 31 39 32 30 2f 31 30 38 30
+TEXT 11 saved = 41 0b 05 73 61 76 65 64
+SET 5 6 = 21 05 06
+ACTION 40 = 20 28

@@ -25,6 +25,10 @@ public enum Frame: Equatable {
     case pinRequest(attemptsLeft: UInt8, lockedSeconds: UInt16)
     /// The phone's answer to `pinRequest`. `Pin` keeps the digits out of any description of the frame.
     case pinAnswer(Pin)
+    /// One point of a pen stroke, 0...65535 across the whole screen with 0 the left or top edge. `state` is 0 up,
+    /// 1 down, 2 move and is not range-checked here, because a newer phone may add states: the dispatcher drops
+    /// an unknown one and counts it.
+    case pen(x: UInt16, y: UInt16, state: UInt8)
 }
 
 /// Six decimal digits, the one secret that crosses the link. A frame can end up in a log line or a debug

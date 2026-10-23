@@ -83,6 +83,30 @@ public sealed class DispatcherTests : IDisposable
     }
 
     [Fact]
+    public void TheAnnotateActionsAreDroppedUntilTheOverlayExists()
+    {
+        // Ids 40..51 are in the table so the two sides agree on them, but nothing here draws yet. Counting them
+        // as handled would tell the phone an overlay is up when none is.
+        for (byte id = (byte)ActionId.AnnotateBegin; id <= (byte)ActionId.SignSave; id++)
+        {
+            dispatcher.Handle(new RunAction(id));
+        }
+
+        Assert.Equal(12, dispatcher.Dropped);
+    }
+
+    [Fact]
+    public void PenPointsAndPenColoursAreDroppedUntilTheOverlayExists()
+    {
+        // State 7 is a codec-level success and a dispatcher-level drop: a newer phone may add states.
+        dispatcher.Handle(new Pen(0, 0, 1));
+        dispatcher.Handle(new Pen(1, 2, 7));
+        dispatcher.Handle(new SetValue((byte)ControlId.PenColor, 6));
+        dispatcher.Handle(new SetValue((byte)ControlId.PenColor, 8));
+        Assert.Equal(4, dispatcher.Dropped);
+    }
+
+    [Fact]
     public void AnUnknownControlIsDropped()
     {
         dispatcher.Handle(new SetValue(9, 50));

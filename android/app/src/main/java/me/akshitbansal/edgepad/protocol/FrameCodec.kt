@@ -33,6 +33,7 @@ object FrameCodec {
     private const val TEXT = 0x41
     private const val KEY = 0x22
     private const val PAD_STATE = 0x23
+    private const val PEN = 0x24
 
     /** The first code points that take two and three bytes of UTF-8; four starts at the supplementary planes. */
     private const val UTF8_ONE_BYTE_LIMIT = 0x80
@@ -49,6 +50,7 @@ object FrameCodec {
             HELLO -> 5
             HELLO_ACK, RUN_ACTION -> 1
             PIN_REQUEST -> 3
+            PEN -> 5
             PIN_ANSWER -> Pin.LENGTH
             BUTTON, ZOOM, SET_VALUE -> 2
             STATE, KEY -> 3
@@ -152,6 +154,14 @@ object FrameCodec {
                 b.type(PIN_REQUEST).u8(frame.attemptsLeft).u16(frame.lockedSeconds)
             }
 
+            is Frame.Pen -> {
+                b
+                    .type(PEN)
+                    .u16(frame.x)
+                    .u16(frame.y)
+                    .u8(frame.state)
+            }
+
             // Each digit goes out as its value 0..9, not its ASCII code, so these bytes can never be read as text.
             is Frame.PinAnswer -> {
                 b.type(PIN_ANSWER)
@@ -190,6 +200,7 @@ object FrameCodec {
             KEY -> Frame.Key(b.u16(), flag(b.u8()))
             PAD_STATE -> decodePadState(b)
             PIN_REQUEST -> Frame.PinRequest(b.u8(), b.u16())
+            PEN -> Frame.Pen(b.u16(), b.u16(), b.u8())
             PIN_ANSWER -> decodePinAnswer(b)
             else -> throw StreamCorruptedException("Unknown frame type 0x%02x".format(type))
         }

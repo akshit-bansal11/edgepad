@@ -35,6 +35,27 @@ internal enum ActionId : byte
     PadDetach = 36,
 
     /// <summary>
+    /// Annotating the screen and signing, which this laptop draws and the phone only steers: Begin shows the
+    /// overlay and End removes it, Undo and Clear edit the strokes, and the six tools pick what the next
+    /// <see cref="Pen"/> stroke draws. <see cref="SignBegin"/> opens a surface that shows nothing here and
+    /// accepts only the pen tool, and <see cref="SignSave"/> asks for the export, answered with
+    /// <see cref="TextKind.SignStatus"/>. A laptop too old to know the ids drops and counts them, and the phone
+    /// offers them only for one that sent <see cref="Feature.Annotate"/>.
+    /// </summary>
+    AnnotateBegin = 40,
+    AnnotateEnd = 41,
+    AnnotateUndo = 42,
+    AnnotateClear = 43,
+    ToolPen = 44,
+    ToolHighlighter = 45,
+    ToolLine = 46,
+    ToolArrow = 47,
+    ToolRectangle = 48,
+    ToolEllipse = 49,
+    SignBegin = 50,
+    SignSave = 51,
+
+    /// <summary>
     /// Screen capture, which is this laptop's own tool: a region (a drag), the whole screen, and a recording.
     /// Actions because the phone only asks; what each one presses is decided here. A laptop too old to know
     /// them drops and counts the ids, and the phone shows the buttons only for one that sent
@@ -94,6 +115,15 @@ internal enum TextKind : byte
     /// know is ignored, so a newer laptop can name more than an older phone understands.
     /// </summary>
     Features = 9,
+
+    /// <summary>
+    /// Laptop to phone: the primary display in pixels, "1920/1080", sent after the handshake and whenever the
+    /// display changes, so the phone can shape its drawing surface to the same ratio.
+    /// </summary>
+    ScreenSize = 10,
+
+    /// <summary>Laptop to phone: how a <see cref="ActionId.SignSave"/> ended, as one <see cref="SignStatus"/> token.</summary>
+    SignStatus = 11,
 }
 
 /// <summary>
@@ -179,4 +209,51 @@ internal enum ControlId : byte
     /// is always well under 100. It also makes a rate this display does not have unrepresentable, not merely rejected.
     /// </summary>
     RefreshRate = 4,
+
+    /// <summary>
+    /// The value is an index into <see cref="Palette"/>, never an RGB: the phone cannot name a colour this
+    /// laptop did not agree to, and an index of 8 or more is dropped and counted.
+    /// </summary>
+    PenColor = 5,
+}
+
+/// <summary>
+/// The whole vocabulary of <see cref="TextKind.SignStatus"/>. Tokens the phone matches on, never prose, and
+/// strings, for the reason <see cref="PadStatus"/> is. Mirrors protocol/actions.txt.
+/// </summary>
+internal static class SignStatus
+{
+    /// <summary>The signature is on the clipboard and in the Pictures folder.</summary>
+    public const string Saved = "saved";
+
+    /// <summary>Nothing was drawn, so there was nothing to export.</summary>
+    public const string Empty = "empty";
+
+    /// <summary>The export or the save failed.</summary>
+    public const string Failed = "failed";
+}
+
+/// <summary>
+/// The colours <see cref="ControlId.PenColor"/> indexes, by position. Bytes 0xRRGGBB, a test holds them to
+/// the PALETTE rows of protocol/actions.txt, and the phone keeps its own copy for its swatches. The value
+/// that crosses the wire is only ever the index, so an RGB the phone invented cannot reach the overlay.
+/// </summary>
+internal static class Palette
+{
+    public const int Count = 8;
+
+    private static readonly int[] Rgb =
+    [
+        0x000000, // BLACK
+        0xFFFFFF, // WHITE
+        0xFF3B30, // RED
+        0xFF9500, // ORANGE
+        0xFFCC00, // YELLOW
+        0x34C759, // GREEN
+        0x0068D6, // BLUE
+        0xAF52DE, // PURPLE
+    ];
+
+    /// <summary>The 0xRRGGBB colour at <paramref name="index"/>, or null when the index is not in the palette.</summary>
+    public static int? Colour(int index) => index is >= 0 and < Count ? Rgb[index] : null;
 }

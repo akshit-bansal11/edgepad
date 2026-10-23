@@ -4,6 +4,7 @@ import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadStatus
+import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -52,6 +53,30 @@ class LaptopStateTest {
         assertEquals(emptySet<Feature>(), state.features)
         state.take(Frame.Text(TextKind.FEATURES.id, "junk/capture"))
         assertEquals(setOf(Feature.CAPTURE), state.features)
+    }
+
+    @Test
+    fun readsTheScreenSizeAndKeepsTheLastGoodOne() {
+        assertNull(state.screenSize)
+        assertTrue(state.take(Frame.Text(TextKind.SCREEN_SIZE.id, "1920/1080")))
+        assertEquals(1920 to 1080, state.screenSize)
+        // A size that cannot be a screen is not taken, and the last good one stays rather than going to zero.
+        for (bad in listOf("", "1920", "0/1080", "1920/-1", "a/b", "1/2/3")) {
+            assertFalse(bad, state.take(Frame.Text(TextKind.SCREEN_SIZE.id, bad)))
+        }
+        assertEquals(1920 to 1080, state.screenSize)
+    }
+
+    @Test
+    fun keepsHowTheLastSignatureSaveEnded() {
+        assertNull(state.signStatus)
+        assertTrue(state.take(Frame.Text(TextKind.SIGN_STATUS.id, "saved")))
+        assertEquals(SignStatus.SAVED, state.signStatus)
+        state.take(Frame.Text(TextKind.SIGN_STATUS.id, "empty"))
+        assertEquals(SignStatus.EMPTY, state.signStatus)
+        // A token this build does not know must not look like a success.
+        state.take(Frame.Text(TextKind.SIGN_STATUS.id, "uploaded"))
+        assertEquals(SignStatus.FAILED, state.signStatus)
     }
 
     @Test

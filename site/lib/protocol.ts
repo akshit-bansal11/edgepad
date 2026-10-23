@@ -151,6 +151,12 @@ const FRAME_DOCS: Record<
     meaning:
       "The whole virtual controller in one frame, laid out like Windows' own XINPUT_GAMEPAD so the laptop copies the fields rather than translating them. Triggers are 0-255, sticks -32768 to 32767, positive up and right. A snapshot and not a change, so a backlog of them collapses to the newest.",
   },
+  PEN: {
+    payload: "x u16, y u16, state u8",
+    direction: "phone-to-laptop",
+    meaning:
+      "One point of a pen stroke: state 0 is up, 1 down, 2 move. x and y span the whole u16 range, 0 the left or top edge of the laptop's screen and 65535 the right or bottom. A state above 2 decodes and is dropped and counted.",
+  },
 };
 
 const ACTION_DOCS: Record<string, string> = {
@@ -186,6 +192,26 @@ const ACTION_DOCS: Record<string, string> = {
     "Takes a screenshot of the whole screen: PrtScn on Windows, Cmd+Shift+3 on a Mac.",
   CAPTURE_RECORD:
     "Starts screen recording: Win+Shift+R on Windows, which needs a recent Snipping Tool and is unverified, and Cmd+Shift+5 on a Mac, which opens the capture toolbar.",
+  ANNOTATE_BEGIN:
+    "Shows the annotation overlay on the laptop's primary display. PEN and the tool actions are dropped until it is shown or a signing surface is open.",
+  ANNOTATE_END:
+    "Removes the overlay and discards its strokes. A session ending does the same.",
+  ANNOTATE_UNDO: "Removes the last stroke.",
+  ANNOTATE_CLEAR: "Removes every stroke.",
+  TOOL_PEN: "The next stroke is a pen line, 0.4% of the screen height wide.",
+  TOOL_HIGHLIGHTER:
+    "The next stroke is a highlighter, 2% of the screen height wide at 35% opacity, stroked once per path so a loop does not darken where it crosses itself.",
+  TOOL_LINE: "The next stroke is a straight line from the down point to the latest move.",
+  TOOL_ARROW:
+    "As the line, with an arrow head four times the pen width at the end.",
+  TOOL_RECTANGLE:
+    "The next stroke is a rectangle from the down point to the latest move.",
+  TOOL_ELLIPSE:
+    "The next stroke is an ellipse from the down point to the latest move.",
+  SIGN_BEGIN:
+    "Opens a signing surface that shows nothing on the laptop and accepts only the pen tool.",
+  SIGN_SAVE:
+    "Exports the strokes as a transparent PNG cropped to the ink, to the clipboard and to Pictures\\Edgepad, then answers with TEXT 11.",
   MACRO_BASE:
     "The first of 32 reserved macro slots (ids 64-95). Slot n runs as MACRO_BASE + n. The phone sends the index; the laptop's own list decides what it opens.",
 };
@@ -201,6 +227,8 @@ const CONTROL_DOCS: Record<string, string> = {
     "SET seeks the current track to that percent, where the player allows it; STATE reports the percent and a playing flag.",
   REFRESH_RATE:
     "SET switches the display to the rate at that index of the TEXT 4 list; STATE reports the current rate's index. Never a rate in hertz.",
+  PEN_COLOR:
+    "SET picks the stroke colour by index into the eight-colour palette in protocol/actions.txt. An index of 8 or more is dropped and counted. Never an RGB value.",
 };
 
 const TEXT_DOCS: Record<string, string> = {
@@ -220,6 +248,10 @@ const TEXT_DOCS: Record<string, string> = {
     "Whether a virtual controller can be offered, as one of ready, no-driver or attach-failed. Sent after the handshake and in answer to PAD_ATTACH and PAD_DETACH. An unknown token reads as no-driver, so the phone falls back to the keyboard rather than sending input nothing receives. Laptop to phone.",
   FEATURES:
     "The optional features this laptop has, as tokens joined by a slash such as annotate/capture. Sent once after the handshake. A feature that is not named is off, and a token the phone does not know is ignored. Laptop to phone.",
+  SCREEN_SIZE:
+    "The primary display in pixels as 1920/1080. Sent after the handshake and whenever the display changes, so the phone can shape its drawing surface to the same ratio. Laptop to phone.",
+  SIGN_STATUS:
+    "How a SIGN_SAVE ended, as one of saved, empty or failed. Laptop to phone.",
 };
 
 const PAD_BUTTON_DOCS: Record<string, string> = {

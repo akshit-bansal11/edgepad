@@ -138,6 +138,7 @@ public sealed class FrameFixtureTests
             "TEXT" => new Text((byte)Field(1), fields.Length > 2 ? fields[2] : ""),
             "KEY" => new Key((ushort)Field(1), Field(2) == 1),
             "PIN_REQUEST" => new PinRequest((byte)Field(1), (ushort)Field(2)),
+            "PEN" => new Pen((ushort)Field(1), (ushort)Field(2), (byte)Field(3)),
             "PIN_ANSWER" => new PinAnswer(new Pin(string.Concat(fields[1..]))),
             "PAD_STATE" => new PadState(
                 (ushort)Field(1),

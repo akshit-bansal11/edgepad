@@ -66,6 +66,42 @@ public sealed partial class IdsFixtureTests
     }
 
     [Fact]
+    public void SignStatusTokensMatchTheSharedTable()
+    {
+        var expected = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var parts in Rows("SIGN_STATUS"))
+        {
+            expected.Add(parts[2], parts[1]);
+        }
+
+        var actual = new SortedDictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["SAVED"] = SignStatus.Saved,
+            ["EMPTY"] = SignStatus.Empty,
+            ["FAILED"] = SignStatus.Failed,
+        };
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ThePaletteMatchesTheSharedTable()
+    {
+        // Index and RRGGBB; the names are the phone's and the fixture's business, an index is all that is sent.
+        var rows = Rows("PALETTE");
+        Assert.Equal(Palette.Count, rows.Count);
+        foreach (var parts in rows)
+        {
+            var index = int.Parse(parts[1], CultureInfo.InvariantCulture);
+            var rgb = int.Parse(parts[3], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            Assert.Equal(rgb, Palette.Colour(index));
+        }
+
+        Assert.Null(Palette.Colour(Palette.Count));
+        Assert.Null(Palette.Colour(-1));
+    }
+
+    [Fact]
     public void TheHandshakeMatchesTheSharedTable()
     {
         var handshake = Rows("HANDSHAKE").ToDictionary(parts => parts[2], parts => parts[1]);

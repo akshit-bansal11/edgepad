@@ -36,6 +36,27 @@ enum class ActionId(
     PAD_DETACH(36),
 
     /**
+     * Annotating the screen and signing, which the laptop draws and the phone only steers: BEGIN shows the
+     * laptop's overlay and END removes it, UNDO and CLEAR edit the strokes, and the six tools pick what the
+     * next [Frame.Pen] stroke draws. [SIGN_BEGIN] opens a surface that shows nothing on the laptop and accepts
+     * only the pen tool, and [SIGN_SAVE] asks for the export, answered with [TextKind.SIGN_STATUS]. A laptop
+     * too old to know the ids drops and counts them, and the phone offers them only for one that sent
+     * [Feature.ANNOTATE].
+     */
+    ANNOTATE_BEGIN(40),
+    ANNOTATE_END(41),
+    ANNOTATE_UNDO(42),
+    ANNOTATE_CLEAR(43),
+    TOOL_PEN(44),
+    TOOL_HIGHLIGHTER(45),
+    TOOL_LINE(46),
+    TOOL_ARROW(47),
+    TOOL_RECTANGLE(48),
+    TOOL_ELLIPSE(49),
+    SIGN_BEGIN(50),
+    SIGN_SAVE(51),
+
+    /**
      * Screen capture, which is the laptop's own tool: a region (a drag), the whole screen, and a recording.
      * Actions because the phone only asks; what each one presses is the laptop's business. A laptop too old
      * to know them drops and counts the ids, and the phone shows the buttons only for one that sent
@@ -71,6 +92,12 @@ enum class ControlId(
      * under 100. It also makes a rate the laptop does not have unrepresentable rather than merely rejected.
      */
     REFRESH_RATE(4),
+
+    /**
+     * The value is an index into [PenColor], never an RGB: the phone cannot name a colour the laptop did not
+     * agree to, and the laptop drops an index of 8 or more.
+     */
+    PEN_COLOR(5),
     ;
 
     fun set(value: Int): Frame = Frame.SetValue(id, value)
@@ -122,6 +149,15 @@ enum class TextKind(
      * ignored, so a newer laptop can name more than an older phone understands.
      */
     FEATURES(9),
+
+    /**
+     * Laptop to phone: the primary display in pixels, "1920/1080", sent after the handshake and whenever the
+     * display changes, so the phone can shape its drawing surface to the same ratio.
+     */
+    SCREEN_SIZE(10),
+
+    /** Laptop to phone: how a [ActionId.SIGN_SAVE] ended, as one [SignStatus] token. */
+    SIGN_STATUS(11),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -205,4 +241,46 @@ enum class Feature(
         /** Null for a token this build does not know: a feature it cannot offer is simply not there. */
         fun of(token: String): Feature? = entries.firstOrNull { it.token == token }
     }
+}
+
+/**
+ * The whole vocabulary of [TextKind.SIGN_STATUS]. A token the phone matches on, never prose, for the reason
+ * [PadStatus] is. Mirrors protocol/actions.txt.
+ */
+enum class SignStatus(
+    val token: String,
+) {
+    /** The signature is on the clipboard and in the laptop's Pictures folder. */
+    SAVED("saved"),
+
+    /** Nothing was drawn, so there was nothing to export. */
+    EMPTY("empty"),
+
+    /** The export or the save failed. */
+    FAILED("failed"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [FAILED]: a save the phone cannot confirm must not look like a success. */
+        fun of(token: String): SignStatus = entries.firstOrNull { it.token == token } ?: FAILED
+    }
+}
+
+/**
+ * The colours [ControlId.PEN_COLOR] indexes, by [index]. [rgb] is only for the phone's swatches and its
+ * preview: the laptop draws in its own copy of the same list, and a test holds both to the PALETTE rows of
+ * protocol/actions.txt. Mirrors that file.
+ */
+enum class PenColor(
+    val index: Int,
+    val rgb: Int,
+) {
+    BLACK(0, 0x000000),
+    WHITE(1, 0xFFFFFF),
+    RED(2, 0xFF3B30),
+    ORANGE(3, 0xFF9500),
+    YELLOW(4, 0xFFCC00),
+    GREEN(5, 0x34C759),
+    BLUE(6, 0x0068D6),
+    PURPLE(7, 0xAF52DE),
 }

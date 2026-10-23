@@ -221,6 +221,23 @@ final class DispatcherTests: XCTestCase {
         XCTAssertEqual(dispatcher.dropped, 1)
     }
 
+    func testAPenPointAndAPenColourAreDroppedUntilTheMacHasAnOverlay() {
+        // State 7 decodes fine and is dropped here: a newer phone may add states.
+        dispatcher.handle(.pen(x: 0, y: 0, state: 1))
+        dispatcher.handle(.pen(x: 1, y: 2, state: 7))
+        dispatcher.handle(.setValue(control: ControlId.penColor.rawValue, value: 6))
+
+        XCTAssertEqual(dispatcher.dropped, 3)
+    }
+
+    func testTheAnnotateAndSignActionsAreDropped() {
+        for id in UInt8(40)...UInt8(51) {
+            dispatcher.handle(.runAction(id: id))
+        }
+
+        XCTAssertEqual(dispatcher.dropped, 12)
+    }
+
     func testNotificationsAreDropped() {
         dispatcher.handle(.runAction(id: ActionId.notifications.rawValue))
 

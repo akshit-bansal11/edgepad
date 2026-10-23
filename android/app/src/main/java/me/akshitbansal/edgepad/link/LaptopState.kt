@@ -4,6 +4,7 @@ import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadStatus
+import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
 import java.util.Base64
 
@@ -63,6 +64,18 @@ class LaptopState {
         private set
 
     /**
+     * The laptop's primary display in pixels as (width, height), or null until it says. The annotate surface
+     * is shaped to this ratio. Kept here, not on the screen, because the laptop sends it once and a rotation
+     * rebuilds the screen.
+     */
+    var screenSize: Pair<Int, Int>? = null
+        private set
+
+    /** How the last signature save ended, or null while none has been asked for or answered. */
+    var signStatus: SignStatus? = null
+        private set
+
+    /**
      * The slot whose icon a [take] that returned true just finished, or -1. Read straight after that call, so
      * an open grid can redraw that one button rather than decoding every picture it holds over again.
      */
@@ -106,6 +119,8 @@ class LaptopState {
                     TextKind.MACRO_ICON -> return iconChunk(frame.text)
                     TextKind.PAD_STATUS -> padStatus = PadStatus.of(frame.text)
                     TextKind.FEATURES -> features = features(frame.text)
+                    TextKind.SCREEN_SIZE -> screenSize = size(frame.text) ?: return false
+                    TextKind.SIGN_STATUS -> signStatus = SignStatus.of(frame.text)
                     else -> return false
                 }
             }
@@ -133,6 +148,14 @@ class LaptopState {
 
     /** A token this build does not know is skipped, not an error: a newer laptop may name more. */
     private fun features(text: String): Set<Feature> = text.split('/').mapNotNull(Feature::of).toSet()
+
+    /** "1920/1080". Null for anything else, so a malformed size leaves the last good one in place. */
+    private fun size(text: String): Pair<Int, Int>? {
+        val parts = text.split('/')
+        val width = parts.getOrNull(0)?.toIntOrNull() ?: return null
+        val height = parts.getOrNull(1)?.toIntOrNull() ?: return null
+        return if (parts.size == 2 && width > 0 && height > 0) width to height else null
+    }
 
     /** "60/120/144": the rates a REFRESH_RATE index counts through, in the laptop's own order. */
     private fun rates(text: String): List<Int> {

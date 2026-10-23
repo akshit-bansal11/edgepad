@@ -36,6 +36,7 @@ public enum FrameCodec {
     private static let setValueType: UInt8 = 0x21
     private static let keyType: UInt8 = 0x22
     private static let padStateType: UInt8 = 0x23
+    private static let penType: UInt8 = 0x24
     private static let pingType: UInt8 = 0x30
     private static let pongType: UInt8 = 0x31
     private static let stateType: UInt8 = 0x40
@@ -60,6 +61,8 @@ public enum FrameCodec {
             return .fixed(8)
         case padStateType:
             return .fixed(12)
+        case penType:
+            return .fixed(5)
         case textType:
             return .lengthPrefixed
         default:
@@ -107,6 +110,12 @@ public enum FrameCodec {
             out += littleEndian(ly)
             out += littleEndian(rx)
             out += littleEndian(ry)
+            return out
+        case .pen(let x, let y, let state):
+            var out: [UInt8] = [penType]
+            out += littleEndian(x)
+            out += littleEndian(y)
+            out.append(state)
             return out
         case .pinRequest(let attemptsLeft, let lockedSeconds):
             return [pinRequestType, attemptsLeft] + littleEndian(lockedSeconds)
@@ -170,6 +179,10 @@ public enum FrameCodec {
                 rx: int16(payload, 8),
                 ry: int16(payload, 10)
             )
+        case penType:
+            // Nothing here throws: x and y span their whole width, and a state above 2 is for the dispatcher to
+            // drop and count, since closing the link would take the whole session down for a newer phone's state.
+            return .pen(x: uint16(payload, 0), y: uint16(payload, 2), state: payload[4])
         case pinRequestType:
             return .pinRequest(attemptsLeft: payload[0], lockedSeconds: uint16(payload, 1))
         case pinAnswerType:

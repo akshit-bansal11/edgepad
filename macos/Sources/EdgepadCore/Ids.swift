@@ -25,6 +25,22 @@ public enum ActionId: UInt8, CaseIterable {
     /// action costs no protocol version: a build too old to know them drops them and counts them.
     case padAttach = 35
     case padDetach = 36
+    /// Annotating the screen and signing, which the laptop draws and the phone only steers: begin and end
+    /// show and remove the overlay, undo and clear edit the strokes, and the tools pick what the next `pen`
+    /// stroke draws. `signBegin` opens a surface that shows nothing and takes only the pen tool, and `signSave`
+    /// asks for the export. A build with no overlay drops and counts all of them.
+    case annotateBegin = 40
+    case annotateEnd = 41
+    case annotateUndo = 42
+    case annotateClear = 43
+    case toolPen = 44
+    case toolHighlighter = 45
+    case toolLine = 46
+    case toolArrow = 47
+    case toolRectangle = 48
+    case toolEllipse = 49
+    case signBegin = 50
+    case signSave = 51
     /// Screen capture through the system's own tool: a region, the whole screen, and the toolbar that records.
     /// Actions because the phone only asks; what each one presses is decided here.
     case captureRegion = 52
@@ -46,6 +62,9 @@ public enum ControlId: UInt8, CaseIterable {
     /// The value is an index into the `TextKind.refreshRates` list, never a rate in hertz: SET carries a u8
     /// and anything above 100 is dropped, so 120 or 144 could not cross the wire at all.
     case refreshRate = 4
+    /// The value is an index into the eight-colour palette in `protocol/actions.txt`, never an RGB. An index of 8
+    /// or more is dropped and counted.
+    case penColor = 5
 }
 
 /// What a TEXT frame carries. Only `type` goes phone to computer; the rest go the other way.
@@ -68,6 +87,10 @@ public enum TextKind: UInt8, CaseIterable {
     case padStatus = 8
     /// Computer to phone: the optional features this Mac has, as `Feature` tokens joined by "/".
     case features = 9
+    /// Computer to phone: the primary display in pixels, "1920/1080".
+    case screenSize = 10
+    /// Computer to phone: how a signature save ended, as one token.
+    case signStatus = 11
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is

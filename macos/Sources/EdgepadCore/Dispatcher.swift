@@ -69,9 +69,9 @@ public final class Dispatcher {
             return true
         case .key(let code, let down):
             return key(code, down: down)
-        case .hello, .helloAck, .ping, .pong, .state, .padState, .pinRequest, .pinAnswer:
-            // A Mac has no virtual controller to give a pad frame to, and the rest are not the phone's to
-            // send once the session is live.
+        case .hello, .helloAck, .ping, .pong, .state, .padState, .pen, .pinRequest, .pinAnswer:
+            // A Mac has no virtual controller to give a pad frame to and no annotation overlay to give a pen
+            // point to yet, and the rest are not the phone's to send once the session is live.
             return false
         }
     }
@@ -130,9 +130,11 @@ public final class Dispatcher {
         case .search:
             // Spotlight.
             input.chord([.command, .space])
-        case .notifications, .macroBase:
+        case .notifications, .macroBase, .annotateBegin, .annotateEnd, .annotateUndo, .annotateClear, .toolPen,
+            .toolHighlighter, .toolLine, .toolArrow, .toolRectangle, .toolEllipse, .signBegin, .signSave:
             // Notifications: macOS has no default shortcut for it. The macro block is rejected before this
-            // switch; the case is here only so the switch stays exhaustive.
+            // switch; the case is here only so the switch stays exhaustive. The annotate and sign ids have no
+            // overlay behind them until the Mac gets one, and a drop is the honest answer until then.
             return false
         case .desktopLeft:
             input.chord([.control, .leftArrow])
@@ -199,6 +201,9 @@ public final class Dispatcher {
             return brightness.set(value)
         case .mediaPosition:
             // Now playing is not built on the Mac yet.
+            return false
+        case .penColor:
+            // No overlay to colour yet, so a colour is dropped rather than accepted and forgotten.
             return false
         case .refreshRate:
             // The value is an index into the rate list, never hertz.

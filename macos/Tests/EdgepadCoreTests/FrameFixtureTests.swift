@@ -195,6 +195,10 @@ final class FrameFixtureTests: XCTestCase {
             let attempts = UInt8(truncatingIfNeeded: try field(1))
             let locked = UInt16(truncatingIfNeeded: try field(2))
             return (.pinRequest(attemptsLeft: attempts, lockedSeconds: locked), bytes)
+        case "PEN":
+            let x = UInt16(truncatingIfNeeded: try field(1))
+            let y = UInt16(truncatingIfNeeded: try field(2))
+            return (.pen(x: x, y: y, state: UInt8(truncatingIfNeeded: try field(3))), bytes)
         case "PIN_ANSWER":
             let values = try (1..<fields.count).map { UInt8(truncatingIfNeeded: try field($0)) }
             guard let pin = Pin(digits: values) else {

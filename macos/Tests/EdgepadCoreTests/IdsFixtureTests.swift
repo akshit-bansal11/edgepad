@@ -16,10 +16,21 @@ final class IdsFixtureTests: XCTestCase {
         XCTAssertEqual(try expected("TEXT"), actual(TextKind.self))
     }
 
-    // PAD_BUTTON rows are not checked: a Mac has no virtual controller, so it drops PAD_STATE and never reads
-    // the mask. The kind is still recognised below, so an unknown kind in actions.txt still fails.
+    // PAD_BUTTON, SIGN_STATUS and PALETTE rows are not checked: a Mac has no virtual controller and no overlay yet,
+    // so it drops PAD_STATE and PEN and never reads those values. The kind is still recognised below, so an
+    // unknown kind in actions.txt still fails.
     func testEveryRowKindInTheSharedTableIsKnown() throws {
-        let known: Set<String> = ["ACTION", "CONTROL", "TEXT", "PAD_BUTTON", "PAD_STATUS", "FEATURE", "HANDSHAKE"]
+        let known: Set<String> = [
+            "ACTION",
+            "CONTROL",
+            "TEXT",
+            "PAD_BUTTON",
+            "PAD_STATUS",
+            "FEATURE",
+            "SIGN_STATUS",
+            "PALETTE",
+            "HANDSHAKE",
+        ]
         let kinds = try Fixtures.lines("actions.txt")
             .map { $0.split(separator: " ").map(String.init) }
             .filter { $0.count >= 3 }

@@ -61,6 +61,14 @@ internal sealed record PinRequest(byte AttemptsLeft, ushort LockedSeconds) : Fra
 internal sealed record PinAnswer(Pin Digits) : Frame;
 
 /// <summary>
+/// One point of a pen stroke on the annotate or sign surface. <c>X</c> and <c>Y</c> span the whole 0..65535
+/// range, 0 the left or top edge of the laptop screen and 65535 the right or bottom one, so no pixel count
+/// crosses the link. <c>State</c> is 0 up, 1 down, 2 move; it is not range-checked by the codec, because a
+/// newer phone may add states and the dispatcher drops an unknown one and counts it.
+/// </summary>
+internal sealed record Pen(ushort X, ushort Y, byte State) : Frame;
+
+/// <summary>
 /// Six decimal digits, the one secret that crosses the link. Frames are interpolated into log lines
 /// (<c>Log.Write($"... {frame}")</c>), so every way a record prints this reaches <c>ToString</c>, which
 /// returns stars; the digits are only ever read by the one place that compares them.

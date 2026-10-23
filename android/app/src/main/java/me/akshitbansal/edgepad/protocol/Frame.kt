@@ -103,6 +103,18 @@ sealed interface Frame {
     data class PinAnswer(
         val pin: Pin,
     ) : Frame
+
+    /**
+     * One point of a pen stroke on the annotate or sign surface. [x] and [y] span the whole 0..65535 range, 0
+     * the laptop screen's left and top edge and 65535 its right and bottom, so no pixel count crosses the link.
+     * [state] is 0 up, 1 down, 2 move. It is not range-checked here: a newer phone may add states, and the
+     * laptop drops an unknown one and counts it rather than closing the link.
+     */
+    data class Pen(
+        val x: Int,
+        val y: Int,
+        val state: Int,
+    ) : Frame
 }
 
 /**
