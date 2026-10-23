@@ -152,7 +152,7 @@ public final class TrustStore {
             do {
                 try FileManager.default.removeItem(atPath: path)
             } catch let deleteError {
-                if !isAbsent(deleteError) {
+                if !isAbsent(deleteError, at: path) {
                     // A blank file already means nothing is trusted, and emptying needs different rights from
                     // deleting. It is done in place: an atomic write would need the directory permission the
                     // delete just lacked.
@@ -226,29 +226,12 @@ public final class TrustStore {
             let lines = text.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }
             return (true, lines.filter { !$0.isEmpty })
         } catch {
-            if isAbsent(error) {
+            if isAbsent(error, at: path) {
                 return (true, [])
             }
             Log.write("The trusted phones could not be read from \(path): \(error.localizedDescription)")
             return (false, [])
         }
-    }
-
-    /// Whether `error` says the file is genuinely not there, as opposed to there and unreadable. The thrown
-    /// error decides first; stat settles what Foundation reports vaguely, such as a folder that is really a file.
-    private func isAbsent(_ error: Error) -> Bool {
-        let nsError = error as NSError
-        if nsError.domain == NSCocoaErrorDomain && nsError.code == NSFileReadNoSuchFileError {
-            return true
-        }
-        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError,
-            underlying.domain == NSPOSIXErrorDomain,
-            underlying.code == Int(ENOENT) || underlying.code == Int(ENOTDIR)
-        {
-            return true
-        }
-        var info = stat()
-        return stat(path, &info) != 0 && (errno == ENOENT || errno == ENOTDIR)
     }
 
     /// Rewrites the whole list. The directory is private to the user and so is the file: the addresses say which

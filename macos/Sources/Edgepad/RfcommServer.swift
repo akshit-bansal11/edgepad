@@ -32,9 +32,10 @@ final class RfcommServer: NSObject {
     private var notification: IOBluetoothUserNotification?
     private var pollTimer: Timer?
     private var quietUntil: TimeInterval?
-    /// Set while the owner is deciding whether to forget; separate from the quiet period so that ending one cannot
-    /// end the other.
-    private var held = false
+    /// How many owner dialogs (Forget, Security) are open; separate from the quiet period so that ending one cannot
+    /// end the other. A count rather than a flag: with two dialogs open, closing the first must not let a phone in
+    /// while the second is still on screen, where a connected phone could answer it.
+    private var holds = 0
     private var current: Session?
     /// Held for as long as its session is current: the channel only keeps its delegate weakly.
     private var currentTransport: RfcommTransport?
@@ -49,11 +50,11 @@ final class RfcommServer: NSObject {
     /// The last start failure written to the log: start is retried, and must not repeat itself every time.
     private var lastStartFailure: String?
 
-    /// `pin` defaults to the owner's own settings; a caller that also changes them hands in the same store, so the
-    /// lockout counts and the check that a PIN changed mid-answer see one another.
+    /// `pin` is the store the owner's Security panel changes, so the lockout counts and the check that a PIN changed
+    /// mid-answer see one another.
     init(
         trust: TrustStore,
-        pin: PinStore = .forCurrentUser(),
+        pin: PinStore,
         askTrust: @escaping (String) -> Bool,
         onStatus: @escaping (String) -> Void
     ) {
@@ -153,21 +154,21 @@ final class RfcommServer: NSObject {
         }
     }
 
-    /// Hangs up and refuses every new connection until `resume()`. A phone that is still trusted reconnects
-    /// within seconds, so hanging up alone would not keep it out while the owner decides.
+    /// Hangs up and refuses every new connection until each `holdOff()` has had its `resume()`. A phone that is still
+    /// trusted reconnects within seconds, so hanging up alone would not keep it out while the owner decides.
     func holdOff() {
-        held = true
+        holds += 1
         endAll()
     }
 
-    /// Ends a `holdOff()`; a quiet period started by `stayQuiet()` runs on.
+    /// Ends one `holdOff()`; a quiet period started by `stayQuiet()` runs on.
     func resume() {
-        held = false
+        holds = max(0, holds - 1)
     }
 
     /// Whether new connections are being refused, by a hold or a quiet period.
     private var refusing: Bool {
-        held || quietUntil.map { $0 > ProcessInfo.processInfo.systemUptime } ?? false
+        holds > 0 || quietUntil.map { $0 > ProcessInfo.processInfo.systemUptime } ?? false
     }
 
     /// Refuses every new connection for a while: a phone just forgotten would otherwise reconnect by itself and

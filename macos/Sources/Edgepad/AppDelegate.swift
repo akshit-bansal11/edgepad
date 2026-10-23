@@ -20,6 +20,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private let runningVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
     private let trust = TrustStore.forCurrentUser()
+    /// One store for the server and the Security panel, so a level or PIN change is the one the server reads.
+    private let pin = PinStore.forCurrentUser()
     private var statusItem: NSStatusItem?
     private var server: RfcommServer?
     private var status = "Starting"
@@ -27,6 +29,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// The menu-bar item may stay clickable under the app-modal alert, and a second Forget would lift the hold while
     /// the first was still open.
     private var forgetting = false
+    /// The same guard for the Security panel.
+    private var securing = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Newest wins, as on Windows where a newer exe asks the running one to quit.
@@ -57,6 +61,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         let server = RfcommServer(
             trust: trust,
+            pin: pin,
             askTrust: { [weak self] in self?.askTrust($0) ?? false },
             onStatus: { [weak self] in self?.setStatus($0) })
         self.server = server
@@ -101,6 +106,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(login)
         menu.addItem(item("Open log", #selector(openLog)))
         menu.addItem(item("Documentation", #selector(openDocumentation)))
+        menu.addItem(item("Security… (level \(pin.level))", #selector(showSecurity)))
         let forget = item("Forget trusted phones", #selector(confirmForget))
         forget.isEnabled = trust.canForget
         menu.addItem(forget)
@@ -233,6 +239,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 failure.window.orderOut(nil)
             }
         }
+    }
+
+    /// Held like Forget, for the same reason: a connected phone is a keyboard and could answer the panel.
+    @objc private func showSecurity() {
+        guard !securing else { return }
+        securing = true
+        server?.holdOff()
+        defer {
+            server?.resume()
+            securing = false
+        }
+        SecurityPanel(pin: pin, trust: trust, hangUp: { [weak self] in self?.server?.stayQuiet() }).run()
     }
 
     @objc private func quit() {
