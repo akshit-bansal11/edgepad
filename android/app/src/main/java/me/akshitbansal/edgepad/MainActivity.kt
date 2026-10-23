@@ -475,6 +475,7 @@ class MainActivity :
                 Screen.MACROS -> {
                     MacroScreen(
                         ui,
+                        settings,
                         state.macros,
                         icon = state::macroIcon,
                         labels = settings.macroLabels,

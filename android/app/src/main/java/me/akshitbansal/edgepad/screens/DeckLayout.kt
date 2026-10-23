@@ -22,6 +22,22 @@ object DeckLayout {
     }
 
     /**
+     * [choices] that still leave every cell at least [minCell] on both sides in a room [across] by [down]
+     * with [gap] between cells (all in one unit, pixels). Fifteen tiles in one row of fifteen is a grid
+     * the picker could offer and a thumb could not hit.
+     */
+    fun fitting(
+        count: Int,
+        across: Int,
+        down: Int,
+        gap: Int,
+        minCell: Int,
+    ): List<Pair<Int, Int>> =
+        choices(count).filter { (rows, columns) ->
+            (across - (columns - 1) * gap) / columns >= minCell && (down - (rows - 1) * gap) / rows >= minCell
+        }
+
+    /**
      * Keys for [names] that tell equal names apart: `Chrome`, then `Chrome#2`. The laptop does not forbid
      * two macros with one name, and a stored order keyed by bare name could not say which is which.
      */

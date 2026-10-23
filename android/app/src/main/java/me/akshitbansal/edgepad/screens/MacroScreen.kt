@@ -5,16 +5,21 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.R
+import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
 /** The largest picture accepted from the laptop, which sends 128px; the headroom is for an older or newer laptop. */
 private const val MAX_ICON_PX = 256
+
+/** Which deck this is, to [Settings]: the order and the grid are kept per deck. */
+private const val DECK = "macros"
 
 // The empty state: a tile with the macro glyph in it, over a heavy title.
 private const val EMPTY_TILE_DP = 64f
@@ -38,9 +43,15 @@ private const val EMPTY_ICON_DP = 30f
  * inside the page, and [iconArrived] decodes one picture and dresses one button. Until 3.2 each of them
  * built the whole screen again, which threw away where TalkBack was and decoded every picture in the grid
  * once for each picture that arrived.
+ *
+ * **Edit layout** in the bar turns the grid into something to arrange: tiles are dragged (or moved by a
+ * screen reader's actions) into the order the owner wants, and a list under them picks how many rows and
+ * columns the grid has. Both are phone-side drawing choices. A tap still hands back the laptop's slot index,
+ * never the tile's place on screen, so the order can be anything without a macro running the wrong thing.
  */
 class MacroScreen(
     private val ui: Ui,
+    private val settings: Settings,
     names: List<String>,
     private val icon: (Int) -> ByteArray?,
     private val labels: Boolean,
@@ -55,8 +66,26 @@ class MacroScreen(
 
     // The nav bar every sub-screen has, back to the surface with the name centred. It costs the grid no
     // row: the title sits in the bar's own height, which [measureRoom] takes off the page.
-    private val bar = ui.bar(ui.string(R.string.macros_title), onBack, backLabel = ui.string(R.string.back_to_surface))
+    // Not remembered across a rebuild on purpose: turning the phone mid-edit puts the deck back in live mode,
+    // with the order already saved by every move.
+    private var editing = false
+    private val edit = ui.chip(ui.string(R.string.macros_edit)) { toggleEditing() }
+    private val bar =
+        ui.bar(
+            ui.string(R.string.macros_title),
+            onBack,
+            edit,
+            backLabel = ui.string(R.string.back_to_surface),
+        )
     private lateinit var holder: LinearLayout
+
+    /** The slots in the order they are drawn, as indexes into [slots], and the stored-order key of each slot. */
+    private var shown: List<Int> = emptyList()
+    private var keys: List<String> = emptyList()
+
+    /** The (rows, columns) grids the picker offers, and the picker itself while in edit mode. */
+    private var fits: List<Pair<Int, Int>> = emptyList()
+    private var picker: View? = null
 
     val view: View =
         ui.page(bar) {
@@ -98,11 +127,22 @@ class MacroScreen(
     fun iconArrived(slot: Int) {
         if (slots.none { it.index == slot }) return
         pictures[slot] = decode(icon(slot))
-        deck.setPicture(slot, pictures[slot])
+        // Editing redraws whole: the deck's own rebuild (when the last picture lets the labels go) would take
+        // the picker out of the holder with it.
+        if (editing) draw() else deck.setPicture(slot, pictures[slot])
+    }
+
+    private fun toggleEditing() {
+        editing = !editing
+        edit.text = ui.string(if (editing) R.string.macros_edit_done else R.string.macros_edit)
+        render()
     }
 
     private fun render() {
         deck.clear()
+        picker = null
+        // Nothing to arrange in an empty state.
+        edit.visibility = if (slots.isEmpty()) View.GONE else View.VISIBLE
         if (slots.isEmpty()) {
             holder.gravity = Gravity.CENTER
             Column(ui, holder).apply {
@@ -114,13 +154,75 @@ class MacroScreen(
         }
         holder.gravity = Gravity.NO_GRAVITY
         val (across, down) = room ?: return
+        val names = slots.map { it.value }
+        keys = DeckLayout.keys(names)
+        shown = DeckLayout.order(settings.deckOrder(DECK), names)
+        // Offered against the room live mode has, so a grid the picker lists is one the deck can really draw.
+        fits = DeckLayout.fitting(slots.size, across, down, ui.dp(Space.S), ui.dp(Space.TOUCH))
+        if (editing) picker = gridPicker()
+        draw()
+    }
+
+    /** Draws the deck from [shown], and under it the picker when editing. Both survive a move or a pick. */
+    private fun draw() {
+        val (across, down) = room ?: return
+        // A stored grid that is no longer on offer (a macro was added, the screen turned) falls back to automatic.
+        val columns = settings.deckColumns(DECK).takeIf { stored -> fits.any { it.second == stored } }
         deck.render(
             across,
-            down,
-            slots.map { DeckTile(key = it.value, label = it.value, tag = it.index, picture = pictures[it.index]) },
+            // Half the room while editing, so the picker below is on the screen and not a scroll away.
+            if (editing) down / 2 else down,
+            shown.map { tile(it) },
             labels,
-            columns = null,
-        ) { onRun(it.tag) }
+            columns,
+            onMove = if (editing) ::moved else null,
+        ) { tile ->
+            // The laptop's slot, never the tile's place in the deck: the order on screen is only a drawing.
+            onRun(tile.tag)
+        }
+        picker?.let {
+            holder.addView(
+                it,
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
+            )
+        }
+    }
+
+    /** The tile for [at], an index into [slots]. [DeckTile.tag] is that slot's laptop index. */
+    private fun tile(at: Int) =
+        DeckTile(key = keys[at], label = slots[at].value, tag = slots[at].index, picture = pictures[slots[at].index])
+
+    /** The tile at display place [from] was dropped on [to]. Saved on every move, so leaving loses nothing. */
+    private fun moved(
+        from: Int,
+        to: Int,
+    ) {
+        shown = DeckLayout.move(shown, from, to)
+        settings.setDeckOrder(DECK, shown.map { keys[it] })
+        draw()
+    }
+
+    /** "Automatic" and each grid [fits], the chosen one checked. A pick redraws the deck and keeps the list. */
+    private fun gridPicker(): View {
+        val stored = settings.deckColumns(DECK)
+        val chosen = fits.indexOfFirst { it.second == stored } + 1
+        val names =
+            listOf(ui.string(R.string.macros_grid_auto)) +
+                fits.map { (rows, columns) -> ui.string(R.string.macros_grid_choice, rows, columns) }
+        return LinearLayout(ui.context).apply {
+            orientation = LinearLayout.VERTICAL
+            Column(ui, this).apply {
+                section(ui.string(R.string.macros_grid_title))
+                card {
+                    add(
+                        ui.choices(names, chosen) { pick ->
+                            settings.setDeckColumns(DECK, if (pick == 0) 0 else fits[pick - 1].second)
+                            draw()
+                        },
+                    )
+                }
+            }
+        }
     }
 
     /**

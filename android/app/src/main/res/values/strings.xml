@@ -281,6 +281,14 @@
 
   <!-- Macros -->
   <string name="macros_run">Run %1$s</string>
+  <string name="macros_edit">Edit layout</string>
+  <string name="macros_edit_done">Done</string>
+  <string name="macros_reorder">Reorder %1$s</string>
+  <string name="macros_move_earlier">Move earlier</string>
+  <string name="macros_move_later">Move later</string>
+  <string name="macros_grid_title">Grid, rows × columns</string>
+  <string name="macros_grid_auto">Automatic</string>
+  <string name="macros_grid_choice">%1$d × %2$d</string>
   <string name="macros_empty_title">No macros yet</string>
   <string name="macros_empty_body">Add them from Edgepad\'s tray menu on the laptop. They appear here as soon as it sends the list.</string>
 </resources>

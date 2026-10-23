@@ -216,6 +216,30 @@ class Settings(
     }
 
     /**
+     * The order a deck ([deck] names which) shows its tiles in, as the keys DeckLayout.keys gives them.
+     * Joined by newlines: a macro's name cannot hold a control character, so no key can hold one.
+     */
+    fun deckOrder(deck: String): List<String> =
+        prefs.getString("deck.$deck.order", null)?.split('\n')?.filter { it.isNotEmpty() } ?: emptyList()
+
+    fun setDeckOrder(
+        deck: String,
+        keys: List<String>,
+    ) {
+        prefs.edit().putString("deck.$deck.order", keys.joinToString("\n")).apply()
+    }
+
+    /** How many tiles stand across a row of [deck]; 0 lets the room decide. */
+    fun deckColumns(deck: String): Int = prefs.getInt("deck.$deck.columns", 0).coerceAtLeast(0)
+
+    fun setDeckColumns(
+        deck: String,
+        columns: Int,
+    ) {
+        prefs.edit().putInt("deck.$deck.columns", columns.coerceAtLeast(0)).apply()
+    }
+
+    /**
      * How fast [kind]'s ruler moves, as a multiple of the base rate. Volume wants a slower ruler than the
      * app switcher does, so each kind may override [sensitivity]; none does until the user sets one, and
      * clearing an override puts the kind back on the shared value rather than on a second default.

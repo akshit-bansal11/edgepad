@@ -37,6 +37,22 @@ class DeckLayoutTest {
     }
 
     @Test
+    fun gridsWhoseCellsAreUnderATouchTargetAreNotOffered() {
+        // 1000 x 600 px, 10 px gaps, 100 px minimum cell. Five tiles: 1 x 5 cells are 192 x 600 wide, fine;
+        // 5 x 1 cells are 1000 x 112 tall, fine; 15 in 1 x 15 would be 62 px wide, which is not.
+        assertEquals(DeckLayout.choices(5), DeckLayout.fitting(5, 1000, 600, 10, 100))
+        assertEquals(
+            listOf(2 to 8, 3 to 5, 4 to 4, 5 to 3),
+            DeckLayout.fitting(15, 1000, 600, 10, 100),
+        )
+    }
+
+    @Test
+    fun aRoomTooSmallForAnyCellOffersNothing() {
+        assertTrue(DeckLayout.fitting(5, 90, 90, 10, 100).isEmpty())
+    }
+
+    @Test
     fun equalNamesGetDistinctKeys() {
         assertEquals(
             listOf("Chrome", "Code", "Chrome#2", "Chrome#3"),

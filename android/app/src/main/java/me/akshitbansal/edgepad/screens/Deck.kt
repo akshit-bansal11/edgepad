@@ -1,13 +1,19 @@
 package me.akshitbansal.edgepad.screens
 
+import android.content.ClipData
+import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
+import android.os.Bundle
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.DisplayMetrics
 import android.util.TypedValue
+import android.view.DragEvent
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.LinearLayout
 import android.widget.TextView
 import me.akshitbansal.edgepad.R
@@ -25,6 +31,13 @@ private const val ICON_MIN_DP = 16f
  */
 private const val LABEL_SCALE = 0.08f
 private const val LABEL_MAX_SP = 18f
+
+// The edit-mode outline: dashes, so it reads as "can be moved" rather than as a button's border.
+private const val DASH_DP = 4f
+private const val DASH_GAP_DP = 3f
+
+/** How faint the tile under a dragged one goes, to show that it is where the drop would land. */
+private const val DROP_ALPHA = 0.5f
 
 /**
  * One tile of a [Deck]. [key] names it across renames of its position, [tag] is what a tap hands back and
@@ -69,6 +82,7 @@ class Deck(
     private var columns: Int? = null
     private var across = 0
     private var down = 0
+    private var onMove: ((from: Int, to: Int) -> Unit)? = null
     private var onTap: (DeckTile) -> Unit = {}
     private var grid: Grid? = null
     private val buttons = HashMap<Int, TextView>()
@@ -76,6 +90,10 @@ class Deck(
     /**
      * Draws [tiles] into the room, [across] by [down] pixels. [columns] fixes how many stand across a row;
      * null lets the room decide. [labels] off draws a tile that has a picture without its name.
+     *
+     * [onMove] non-null is edit mode: a tap runs nothing, and a tile is dragged (or moved by a TalkBack
+     * action) to another tile's place, reporting the two display positions. It never says what a tile
+     * does; [onTap] is how live mode reaches the tile's [DeckTile.tag].
      */
     fun render(
         across: Int,
@@ -83,6 +101,7 @@ class Deck(
         tiles: List<DeckTile>,
         labels: Boolean,
         columns: Int?,
+        onMove: ((from: Int, to: Int) -> Unit)?,
         onTap: (DeckTile) -> Unit,
     ) {
         this.across = across
@@ -90,6 +109,7 @@ class Deck(
         this.tiles = tiles
         this.labels = labels
         this.columns = columns
+        this.onMove = onMove
         this.onTap = onTap
         clear()
         if (tiles.isEmpty()) return
@@ -97,7 +117,7 @@ class Deck(
         grid = planned
         tiles.chunked(planned.columns).forEachIndexed { at, line ->
             holder.addView(
-                row(line, planned),
+                row(line, planned, first = at * planned.columns),
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, planned.height).apply {
                     // The first row sits straight under the bar. A gap above it as well would be one gap more
                     // than the height was worked out from, and the last row would fall off the bottom.
@@ -124,7 +144,7 @@ class Deck(
         // The last picture arriving with the labels off takes the label row away from every tile, and
         // that is a new grid rather than one new picture.
         if (bare() != current.bare) {
-            render(across, down, tiles, labels, columns, onTap)
+            render(across, down, tiles, labels, columns, onMove, onTap)
             return
         }
         val button = buttons[tag] ?: return
@@ -200,11 +220,13 @@ class Deck(
      * missing columns are two spacers of half their width each, rather than whole empty cells heaped on
      * one side, so a last row of two under rows of three sits exactly under the middle of them. The gaps a
      * full row would have between its tiles that this row lacks are shared between the two ends for the
-     * same reason, which keeps every tile in the grid the same width.
+     * same reason, which keeps every tile in the grid the same width. [first] is the display position of
+     * the row's first tile.
      */
     private fun row(
         line: List<DeckTile>,
         grid: Grid,
+        first: Int,
     ): LinearLayout =
         LinearLayout(ui.context).apply {
             val missing = grid.columns - line.size
@@ -221,7 +243,7 @@ class Deck(
             if (missing > 0) spacer(0)
             line.forEachIndexed { column, tile ->
                 addView(
-                    button(tile, grid),
+                    button(tile, grid, first + column),
                     LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f).apply {
                         marginStart = if (column == 0) edge else gap
                     },
@@ -239,19 +261,99 @@ class Deck(
     private fun button(
         tile: DeckTile,
         grid: Grid,
+        position: Int,
     ): TextView =
         ui.text("", grid.labelSp, ui.palette.ink, face = Type.bold).apply {
             gravity = Gravity.CENTER
             minHeight = ui.dp(Space.BUTTON)
-            ui.tappable(this, Space.PANEL_RADIUS) { onTap(tile) }
+            val move = onMove
+            if (move == null) {
+                ui.tappable(this, Space.PANEL_RADIUS) { onTap(tile) }
+            } else {
+                reorderable(this, tile, position, move)
+            }
             // A long name is cut rather than wrapped, so every button in the grid stays one row tall.
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
-            // Spoken as the laptop spells it, and named the same way when the label is not drawn at all.
-            contentDescription = ui.string(R.string.macros_run, tile.label)
+            // Spoken as the laptop spells it, and named the same way when the label is not drawn at all. In edit
+            // mode a tap runs nothing, so the tile must not be announced as something that runs.
+            val spoken = if (move == null) R.string.macros_run else R.string.macros_reorder
+            contentDescription = ui.string(spoken, tile.label)
             buttons[tile.tag] = this
             dress(this, tile, grid)
         }
+
+    /**
+     * Edit mode for one tile: a dashed outline, a long press that starts a drag, and the same move as two
+     * TalkBack actions, since a drag cannot be made without sight. A drop onto a tile puts the dragged one
+     * in that tile's place. The move is posted rather than made inside the drop, because it rebuilds the
+     * grid and with it the very views the drag is still being dispatched to.
+     */
+    private fun reorderable(
+        button: TextView,
+        tile: DeckTile,
+        position: Int,
+        move: (from: Int, to: Int) -> Unit,
+    ) {
+        button.isFocusable = true
+        button.background =
+            GradientDrawable().apply {
+                setColor(Color.TRANSPARENT)
+                setStroke(ui.dp(Space.HAIR), ui.palette.dim, ui.dp(DASH_DP).toFloat(), ui.dp(DASH_GAP_DP).toFloat())
+                cornerRadius = ui.dp(Space.PANEL_RADIUS).toFloat()
+            }
+        button.setOnLongClickListener {
+            it.startDragAndDrop(ClipData.newPlainText(tile.key, tile.key), View.DragShadowBuilder(it), position, 0)
+        }
+        button.setOnDragListener { target, event ->
+            when (event.action) {
+                DragEvent.ACTION_DRAG_ENTERED -> target.alpha = DROP_ALPHA
+                DragEvent.ACTION_DRAG_EXITED, DragEvent.ACTION_DRAG_ENDED -> target.alpha = 1f
+                DragEvent.ACTION_DROP -> {
+                    target.alpha = 1f
+                    val from = event.localState as? Int
+                    if (from != null && from != position) target.post { move(from, position) }
+                }
+            }
+            true
+        }
+        val earlier =
+            AccessibilityNodeInfo.AccessibilityAction(
+                R.id.action_move_earlier,
+                ui.string(R.string.macros_move_earlier),
+            )
+        val later =
+            AccessibilityNodeInfo.AccessibilityAction(
+                R.id.action_move_later,
+                ui.string(R.string.macros_move_later),
+            )
+        button.accessibilityDelegate =
+            object : View.AccessibilityDelegate() {
+                override fun onInitializeAccessibilityNodeInfo(
+                    host: View,
+                    info: AccessibilityNodeInfo,
+                ) {
+                    super.onInitializeAccessibilityNodeInfo(host, info)
+                    if (position > 0) info.addAction(earlier)
+                    if (position < tiles.size - 1) info.addAction(later)
+                }
+
+                override fun performAccessibilityAction(
+                    host: View,
+                    action: Int,
+                    args: Bundle?,
+                ): Boolean {
+                    val to =
+                        when (action) {
+                            R.id.action_move_earlier -> position - 1
+                            R.id.action_move_later -> position + 1
+                            else -> return super.performAccessibilityAction(host, action, args)
+                        }
+                    if (to in tiles.indices) move(position, to)
+                    return true
+                }
+            }
+    }
 
     /**
      * What a button shows: its name, or nothing at all when it has a picture and the labels are turned off,
