@@ -248,8 +248,9 @@ object FrameCodec {
         Frame.PadState(b.u16(), b.u8(), b.u8(), b.short.toInt(), b.short.toInt(), b.short.toInt(), b.short.toInt())
 
     /**
-     * A byte above 9 is not a digit. It closes the link like a bad flag byte, and the laptop counts it as a failed
-     * attempt. The message names no value: a rejected byte is still part of somebody's PIN.
+     * A byte above 9 is not a digit. It closes the link like a bad flag byte, and the laptop does not count it as a
+     * failed attempt, since it tests no PIN. The message names no value: a rejected byte is still part of somebody's
+     * PIN.
      */
     private fun decodePinAnswer(b: ByteBuffer): Frame.PinAnswer {
         val digits = StringBuilder()

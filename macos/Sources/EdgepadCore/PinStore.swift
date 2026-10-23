@@ -56,15 +56,25 @@ public final class PinStore {
     /// the entry.
     private var failures: [String: (count: Int, until: TimeInterval)] = [:]
 
-    /// Moved on by every change of PIN or level. A check hashed against the old settings proves nothing about the
-    /// new ones, and must not put a phone on a verified list that the change just cleared.
+    /// Moved on by every change of PIN or level and every clearing of the verified list. A check hashed against the
+    /// old settings proves nothing about the new ones, and must not put a phone on a verified list just cleared.
     private var generation = 0
+
+    /// Set when the verified list could not be deleted, cleared when a later delete works. Until then no phone counts
+    /// as verified and none is added, so level 2 asks on every connection like level 3: a list the owner meant to
+    /// clear must not let a phone skip the PIN. In memory only, as in `TrustStore`: after a restart the file is read
+    /// again, which the caller tells the owner.
+    private var verifiedStale = false
+
+    /// The folder holding `security.txt` and `pin-verified.txt`, for a message that sends the owner there.
+    public let folder: String
 
     public init(
         directory: String,
         now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
         iterations: UInt32 = PinStore.defaultIterations
     ) {
+        folder = directory
         securityPath = directory + "/security.txt"
         verifiedPath = directory + "/pin-verified.txt"
         self.now = now
@@ -99,7 +109,7 @@ public final class PinStore {
             return false
         }
         return locked {
-            guard let read = tryRead(), delete(verifiedPath) else { return false }
+            guard let read = tryRead(), clearVerified() else { return false }
             generation += 1
             return save(level: read.level, pin: hash)
         }
@@ -110,7 +120,7 @@ public final class PinStore {
     public func setLevel(_ level: Int) -> Bool {
         guard (1...3).contains(level) else { return false }
         return locked {
-            guard let read = tryRead(), level == 1 || read.pin != nil, delete(verifiedPath) else { return false }
+            guard let read = tryRead(), level == 1 || read.pin != nil, clearVerified() else { return false }
             generation += 1
             return save(level: level, pin: read.pin)
         }
@@ -193,16 +203,32 @@ public final class PinStore {
         }
     }
 
+    /// Empties the verified list and keeps the level and the PIN, for Forget trusted phones: a forgotten phone that
+    /// had entered the PIN must not get back in at level 2 on one mistaken yes. False when the list could not be
+    /// deleted; every phone is then asked for the PIN on every connection until a later clear works.
+    public func forgetVerified() -> Bool {
+        locked {
+            generation += 1
+            return clearVerified()
+        }
+    }
+
     /// Forgets the PIN and every verified phone and goes back to level 1, for an owner who forgot the PIN. The caller
-    /// also forgets the trusted phones, so the way back in is the owner's own yes on this Mac. False when a file could
-    /// not be deleted; the old settings then still apply.
+    /// forgets the trusted phones first and calls this only once they are gone, so the way back in is the owner's own
+    /// yes on this Mac. False when a file could not be deleted; the old settings then still apply.
     public func reset() -> Bool {
         locked {
             generation += 1
             failures = [:]
-            let verifiedGone = delete(verifiedPath)
+            let verifiedGone = clearVerified()
             return delete(securityPath) && verifiedGone
         }
+    }
+
+    // Called under the lock.
+    private func clearVerified() -> Bool {
+        verifiedStale = !delete(verifiedPath)
+        return !verifiedStale
     }
 
     private func locked<T>(_ body: () -> T) -> T {
@@ -342,9 +368,12 @@ public final class PinStore {
         return nil
     }
 
-    /// The level-2 phones that have entered the PIN. One that cannot be read is an empty list: those phones are asked
-    /// again, which is the safe direction. Called under the lock.
+    /// The level-2 phones that have entered the PIN. One that cannot be read, or could not be cleared, is an empty
+    /// list: those phones are asked again, which is the safe direction. Called under the lock.
     private func readVerified() -> [String] {
+        if verifiedStale {
+            return []
+        }
         do {
             return PinStore.lines(try String(contentsOfFile: verifiedPath, encoding: .utf8))
         } catch {
@@ -356,8 +385,12 @@ public final class PinStore {
         }
     }
 
-    // A phone that cannot be written down is simply asked for the PIN again next time. Called under the lock.
+    // A phone that cannot be written down is simply asked for the PIN again next time. Nothing is added to a list
+    // that could not be cleared: written back, it would keep the phones it should have lost. Called under the lock.
     private func remember(_ address: String) {
+        if verifiedStale {
+            return
+        }
         let verified = readVerified()
         if !verified.contains(where: { $0.caseInsensitiveCompare(address) == .orderedSame }) {
             _ = write(verifiedPath, (verified + [address]).joined(separator: "\n") + "\n")

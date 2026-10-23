@@ -305,6 +305,9 @@ internal sealed class TrayContext : ApplicationContext
 
             var forgotten = trust.Forget();
 
+            // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
+            var verifiedForgotten = pin.ForgetVerified();
+
             // Started before the hold ends, so there is no instant in which a connection would be taken.
             server.HangUp(QuietAfterForget);
             if (!forgotten)
@@ -314,6 +317,18 @@ internal sealed class TrayContext : ApplicationContext
                         + "connect while Edgepad stays running, but those phones will be trusted again the next time "
                         + "Edgepad starts. Close whatever is holding the file and choose Forget trusted phones again, "
                         + $"or delete it yourself:\n\n{trust.FilePath}",
+                    "Edgepad",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+
+            if (!verifiedForgotten)
+            {
+                MessageBox.Show(
+                    "The phones that entered the PIN could not be forgotten: their list could not be removed. While "
+                        + "Edgepad stays running every phone is asked for the PIN on every connection, but those phones "
+                        + "will skip it at level 2 again the next time Edgepad starts. Choose Forget trusted phones "
+                        + $"again, or delete pin-verified.txt yourself from:\n\n{pin.Folder}",
                     "Edgepad",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);

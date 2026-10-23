@@ -258,17 +258,27 @@ internal sealed class SecurityWindow : Form
             return;
         }
 
-        // Each step runs whatever the one before returned, and the phone is hung up on either way: a half-done
-        // reset must not leave a phone connected.
-        var pinGone = pin.Reset();
+        // Trust first, and the PIN only once the phones are gone: a PIN deleted while they stay trusted would start
+        // the next run at level 1, where a stolen trusted phone gets in with nothing to answer. The phone is hung up
+        // on either way, so a half-done reset leaves none connected.
         var forgotten = trust.Forget();
+        var pinGone = forgotten && pin.Reset();
         hangUp();
-        if (!pinGone || !forgotten)
+        if (!forgotten)
         {
             Fail(
-                "The reset was not complete: a settings file could not be removed. No phone can connect while Edgepad "
-                    + "stays running, but the old settings return when it starts again. Close whatever is holding the "
-                    + $"file and choose Reset again, or delete it yourself:\n\n{trust.FilePath}");
+                "Nothing was reset: the trusted phones could not be forgotten, so the PIN and the level were left as "
+                    + "they were. No phone can connect while Edgepad stays running, but those phones will be trusted "
+                    + "again, behind the same PIN, the next time it starts. Close whatever is holding the file and "
+                    + $"choose Reset again, or delete it yourself:\n\n{trust.FilePath}");
+        }
+        else if (!pinGone)
+        {
+            Fail(
+                "The trusted phones were forgotten, but the PIN could not be reset: a settings file could not be "
+                    + "removed, so the old PIN and level may still apply. Each phone has to be trusted here again. "
+                    + "Close whatever is holding the file and choose Reset again, or delete security.txt and "
+                    + $"pin-verified.txt yourself from:\n\n{pin.Folder}");
         }
 
         DialogResult = DialogResult.Abort;

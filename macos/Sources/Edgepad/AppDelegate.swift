@@ -223,6 +223,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         if answer == .alertSecondButtonReturn {
             let forgotten = trust.forget()
+            // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
+            let verifiedForgotten = pin.forgetVerified()
             // Started before the hold ends (the defer above), so there is no instant in which a connection would
             // be taken.
             server?.stayQuiet()
@@ -234,6 +236,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     "The trusted phones could not be forgotten: their file could not be removed or emptied. No phone "
                     + "can connect while Edgepad stays running, but those phones will be trusted again when Edgepad "
                     + "starts. Choose Forget trusted phones again, or delete the file yourself:\n\n\(trust.filePath)"
+                failure.addButton(withTitle: "OK")
+                _ = failure.runModal()
+                failure.window.orderOut(nil)
+            }
+            if !verifiedForgotten {
+                let failure = NSAlert()
+                failure.alertStyle = .critical
+                failure.messageText = "Edgepad"
+                failure.informativeText =
+                    "The phones that entered the PIN could not be forgotten: their list could not be removed. While "
+                    + "Edgepad stays running every phone is asked for the PIN on every connection, but those phones "
+                    + "will skip it at level 2 again when Edgepad starts. Choose Forget trusted phones again, or "
+                    + "delete pin-verified.txt yourself from:\n\n\(pin.folder)"
                 failure.addButton(withTitle: "OK")
                 _ = failure.runModal()
                 failure.window.orderOut(nil)

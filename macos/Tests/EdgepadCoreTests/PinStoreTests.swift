@@ -227,6 +227,41 @@ final class PinStoreTests: XCTestCase {
         XCTAssertTrue(store.required(phone))
     }
 
+    func testForgetVerifiedAsksAgainAndKeepsThePinAndLevel() throws {
+        let store = makeStore(level: 2)
+        _ = store.check(phone, pin("123456"))
+
+        XCTAssertTrue(store.forgetVerified())
+        XCTAssertEqual(store.level, 2)
+        XCTAssertTrue(store.hasPin)
+        XCTAssertTrue(store.required(phone))
+        XCTAssertEqual(store.check(phone, pin("123456")), .accepted)
+        XCTAssertFalse(store.required(phone))
+    }
+
+    func testAVerifiedListThatCannotBeClearedAsksEveryTimeUntilItIs() throws {
+        let store = makeStore(level: 2)
+        _ = store.check(phone, pin("123456"))
+
+        // A read-only directory, so the delete fails and the phone is still on the list.
+        try FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: directory.path)
+        let cleared = store.forgetVerified()
+        // Restored before anything else can fail, or tearDown could not remove the directory.
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
+
+        XCTAssertFalse(cleared)
+        let verifiedPath = directory.appendingPathComponent("pin-verified.txt").path
+        XCTAssertTrue(try String(contentsOfFile: verifiedPath, encoding: .utf8).contains(phone))
+        XCTAssertTrue(store.required(phone))
+        XCTAssertEqual(store.check(phone, pin("123456")), .accepted)
+        XCTAssertTrue(store.required(phone))
+
+        XCTAssertTrue(store.forgetVerified())
+        XCTAssertTrue(store.required(phone))
+        XCTAssertEqual(store.check(phone, pin("123456")), .accepted)
+        XCTAssertFalse(store.required(phone))
+    }
+
     func testTheDigitsAppearInNoFile() throws {
         let store = makeStore(level: 2)
         _ = store.check(phone, pin("123456"))

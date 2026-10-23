@@ -130,6 +130,7 @@ class MainActivity :
         val lostAt: Long,
         val rtt: RttStats,
         val pinAttemptsLeft: Int,
+        val pinAnswered: Boolean,
     )
 
     private val handler = Handler(Looper.getMainLooper())
@@ -162,6 +163,9 @@ class MainActivity :
 
     /** What the laptop's last PIN question allowed, for the PIN screen; a count, never a digit. */
     private var pinAttemptsLeft = 0
+
+    /** True once the PIN screen sent its answer to the current question, so a rebuild cannot send a second. */
+    private var pinAnswered = false
 
     /**
      * A tap on a laptop has one quick retry coming if its connect never reaches the laptop: the first connect
@@ -248,6 +252,7 @@ class MainActivity :
             rtt = retained.rtt
             picker.setRtt(rtt.median())
             pinAttemptsLeft = retained.pinAttemptsLeft
+            pinAnswered = retained.pinAnswered
         }
         goTo(
             when {
@@ -271,6 +276,7 @@ class MainActivity :
             lostAt,
             rtt,
             pinAttemptsLeft,
+            pinAnswered,
         )
 
     override fun onStart() {
@@ -521,7 +527,11 @@ class MainActivity :
                     PinScreen(
                         ui,
                         pinAttemptsLeft,
-                        onAnswer = { pin -> link?.answerPin(pin) },
+                        pinAnswered,
+                        onAnswer = { pin ->
+                            pinAnswered = true
+                            link?.answerPin(pin)
+                        },
                         onCancel = { navigateBack() },
                     ).view
                 }
@@ -1062,6 +1072,7 @@ class MainActivity :
     ) {
         if (link != this.link) return
         pinAttemptsLeft = attemptsLeft
+        pinAnswered = false
         // The trust hint, if it was showing, has been answered.
         picker.setMessage("")
         goTo(Screen.PIN)

@@ -18,17 +18,19 @@ import me.akshitbansal.edgepad.protocol.Pin
  *
  * Six digits send the answer at once; the keypad then stays still until the laptop replies, because a new
  * question rebuilds this screen and an accepted one leaves it. [attemptsLeft] below the full five means the
- * last answer was wrong, which the danger line says.
+ * last answer was wrong, which the danger line says. [answered] is true when this question was already answered
+ * before the activity was rebuilt: the screen then stays waiting, since a second answer would use up an attempt.
  */
 class PinScreen(
     private val ui: Ui,
     attemptsLeft: Int,
+    answered: Boolean,
     private val onAnswer: (Pin) -> Unit,
     onCancel: () -> Unit,
 ) {
     private val entry = PinEntry()
     private val dots = List(Pin.LENGTH) { View(ui.context) }
-    private var sent = false
+    private var sent = answered
     private lateinit var row: LinearLayout
 
     val view: View =
@@ -134,15 +136,17 @@ class PinScreen(
     }
 
     private fun showDots() {
+        // All six once sent, as the screen looked before a rebuild: the entry itself was cleared when they went.
+        val filled = if (sent) Pin.LENGTH else entry.length
         dots.forEachIndexed { i, dot ->
             dot.background =
                 GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
-                    setColor(if (i < entry.length) ui.palette.accent else ui.palette.off)
+                    setColor(if (i < filled) ui.palette.accent else ui.palette.off)
                 }
         }
         // A count, never the digits, so a screen reader can follow along without saying the PIN aloud.
-        row.contentDescription = ui.string(R.string.pin_entered, entry.length, Pin.LENGTH)
+        row.contentDescription = ui.string(R.string.pin_entered, filled, Pin.LENGTH)
     }
 
     private companion object {

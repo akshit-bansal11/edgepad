@@ -73,9 +73,18 @@ internal sealed class PinStore(string directory, Func<long>? clock = null, int i
     // Per address: wrong answers so far, and until when it is locked out. A success removes the entry.
     private readonly Dictionary<string, (int Count, long Until)> failures = new(StringComparer.OrdinalIgnoreCase);
 
-    // Bumped by every change of PIN or level. A check hashed against the old settings proves nothing about the new
-    // ones, and must not put a phone on a verified list that the change just cleared.
+    // Bumped by every change of PIN or level and every clearing of the verified list. A check hashed against the old
+    // settings proves nothing about the new ones, and must not put a phone on a verified list that was just cleared.
     private int generation;
+
+    // Set when the verified list could not be deleted, cleared when a later delete works. Until then no phone counts
+    // as verified and none is added, so level 2 asks on every connection like level 3: a list the owner meant to
+    // clear must not let a phone skip the PIN. In memory only, as in TrustStore: after a restart the file is read
+    // again, which the caller tells the owner.
+    private bool verifiedStale;
+
+    /// <summary>The folder holding both files, for a message that has to send the owner there.</summary>
+    public string Folder { get; } = directory;
 
     public static PinStore ForCurrentUser() => new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad"));
@@ -117,7 +126,7 @@ internal sealed class PinStore(string directory, Func<long>? clock = null, int i
         var hash = Hash(new Pin(sixDigits), iterations);
         lock (gate)
         {
-            if (!TryRead(out var level, out _) || !Delete(verifiedPath))
+            if (!TryRead(out var level, out _) || !ClearVerified())
             {
                 return false;
             }
@@ -140,7 +149,7 @@ internal sealed class PinStore(string directory, Func<long>? clock = null, int i
 
         lock (gate)
         {
-            if (!TryRead(out _, out var pin) || (level > 1 && pin is null) || !Delete(verifiedPath))
+            if (!TryRead(out _, out var pin) || (level > 1 && pin is null) || !ClearVerified())
             {
                 return false;
             }
@@ -261,9 +270,23 @@ internal sealed class PinStore(string directory, Func<long>? clock = null, int i
     }
 
     /// <summary>
+    /// Empties the verified list and keeps the level and the PIN, for Forget trusted phones: a forgotten phone that
+    /// had entered the PIN must not get back in at level 2 on one mistaken yes. False when the list could not be
+    /// deleted; every phone is then asked for the PIN on every connection until a later clear works.
+    /// </summary>
+    public bool ForgetVerified()
+    {
+        lock (gate)
+        {
+            generation++;
+            return ClearVerified();
+        }
+    }
+
+    /// <summary>
     /// Forgets the PIN and every verified phone and goes back to level 1, for an owner who forgot the PIN. The
-    /// caller also forgets the trusted phones, so the way back in is the owner's own yes on this laptop. False when a
-    /// file could not be deleted; the old settings then still apply.
+    /// caller forgets the trusted phones first and calls this only once they are gone, so the way back in is the
+    /// owner's own yes on this laptop. False when a file could not be deleted; the old settings then still apply.
     /// </summary>
     public bool Reset()
     {
@@ -271,9 +294,16 @@ internal sealed class PinStore(string directory, Func<long>? clock = null, int i
         {
             generation++;
             failures.Clear();
-            var verifiedGone = Delete(verifiedPath);
+            var verifiedGone = ClearVerified();
             return Delete(securityPath) && verifiedGone;
         }
+    }
+
+    // Called under the lock.
+    private bool ClearVerified()
+    {
+        verifiedStale = !Delete(verifiedPath);
+        return !verifiedStale;
     }
 
     /// <summary>Milliseconds until <paramref name="address"/> may answer again, or null. Called under the lock.</summary>
@@ -388,11 +418,16 @@ internal sealed class PinStore(string directory, Func<long>? clock = null, int i
     }
 
     /// <summary>
-    /// The level-2 phones that have entered the PIN. One that cannot be read is an empty list: those phones are
-    /// asked again, which is the safe direction. Called under the lock.
+    /// The level-2 phones that have entered the PIN. One that cannot be read, or could not be cleared, is an empty
+    /// list: those phones are asked again, which is the safe direction. Called under the lock.
     /// </summary>
     private List<string> ReadVerified()
     {
+        if (verifiedStale)
+        {
+            return [];
+        }
+
         try
         {
             return [.. File.ReadAllText(verifiedPath)
@@ -410,9 +445,15 @@ internal sealed class PinStore(string directory, Func<long>? clock = null, int i
         }
     }
 
-    // A phone that cannot be written down is simply asked for the PIN again next time. Called under the lock.
+    // A phone that cannot be written down is simply asked for the PIN again next time. Nothing is added to a list
+    // that could not be cleared: written back, it would keep the phones it should have lost. Called under the lock.
     private void Remember(string address)
     {
+        if (verifiedStale)
+        {
+            return;
+        }
+
         var verified = ReadVerified();
         if (!verified.Contains(address, StringComparer.OrdinalIgnoreCase))
         {

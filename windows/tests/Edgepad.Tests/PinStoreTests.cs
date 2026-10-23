@@ -22,6 +22,8 @@ public sealed class PinStoreTests : IDisposable
 
     private string SecurityFile => Path.Combine(dir, "security.txt");
 
+    private string VerifiedFile => Path.Combine(dir, "pin-verified.txt");
+
     private PinStore StoreAtLevel(int level)
     {
         var store = NewStore();
@@ -225,6 +227,43 @@ public sealed class PinStoreTests : IDisposable
         Assert.True(store.SetPin("123456"));
         Assert.True(store.SetLevel(2));
         Assert.True(store.Required(Phone));
+    }
+
+    [Fact]
+    public void ForgetVerifiedAsksAgainAndKeepsThePinAndLevel()
+    {
+        var store = StoreAtLevel(2);
+        store.Check(Phone, Right);
+
+        Assert.True(store.ForgetVerified());
+        Assert.Equal(2, store.Level);
+        Assert.True(store.HasPin);
+        Assert.True(store.Required(Phone));
+        Assert.Equal(new PinResult.Accepted(), store.Check(Phone, Right));
+        Assert.False(store.Required(Phone));
+    }
+
+    [Fact]
+    public void AVerifiedListThatCannotBeClearedAsksEveryTimeUntilItIs()
+    {
+        var store = StoreAtLevel(2);
+        store.Check(Phone, Right);
+
+        // Held open with no sharing, so the delete fails; the phone is still on the list once the handle closes.
+        using (new FileStream(VerifiedFile, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            Assert.False(store.ForgetVerified());
+        }
+
+        Assert.Contains("AA:BB", File.ReadAllText(VerifiedFile), StringComparison.Ordinal);
+        Assert.True(store.Required(Phone));
+        Assert.Equal(new PinResult.Accepted(), store.Check(Phone, Right));
+        Assert.True(store.Required(Phone));
+
+        Assert.True(store.ForgetVerified());
+        Assert.True(store.Required(Phone));
+        Assert.Equal(new PinResult.Accepted(), store.Check(Phone, Right));
+        Assert.False(store.Required(Phone));
     }
 
     [Fact]

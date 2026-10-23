@@ -243,8 +243,8 @@ internal static class FrameCodec
         ReadInt16(payload[10..]));
 
     /// <summary>
-    /// A byte above 9 is not a digit. It closes the link like a bad flag byte, and the session counts it as a
-    /// failed attempt. The message names no value: a rejected byte is still part of somebody's PIN.
+    /// A byte above 9 is not a digit. It closes the link like a bad flag byte, and is not counted as a failed
+    /// attempt, since it tests no PIN. The message names no value: a rejected byte is still part of somebody's PIN.
     /// </summary>
     private static PinAnswer DecodePinAnswer(ReadOnlySpan<byte> payload)
     {
