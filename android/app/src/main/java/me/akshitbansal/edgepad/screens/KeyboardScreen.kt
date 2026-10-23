@@ -84,7 +84,8 @@ object KeyboardScreen {
         onKey: (code: Int, down: Boolean) -> Unit,
         onBack: () -> Unit,
     ): View {
-        val header = ui.bar(ui.string(R.string.keyboard_title), onBack, backLabel = ui.string(R.string.back_to_surface))
+        val header =
+            ui.bar(ui.string(R.string.keyboard_title), onBack, backLabel = ui.string(R.string.back_to_controls))
         val keyboard = KeyboardView(ui.context, textScale, onKey)
         return LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL

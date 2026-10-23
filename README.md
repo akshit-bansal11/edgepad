@@ -74,7 +74,7 @@ Because the signature is ad hoc, macOS treats every new version as a different a
 | Two fingers | drag | scroll both axes |
 | Two fingers | pinch / tap | zoom / right click, or what Settings assigns |
 | Three or four fingers | tap, swipe up, down, left, right | what Settings assigns |
-| Top centre | tap one of the five buttons | Settings, the keyboard, the lock, the gamepad, the macro grid |
+| Top centre | tap one of the four buttons | Settings, Controls (keyboard, gamepad), the lock, the macro grid |
 | Back | | leaves the surface; the link stays up |
 
 Out of the box, three fingers left and right switch desktops, three up opens task view, three down shows the desktop, four fingers left and right walk the app switcher (Alt stays held while the fingers are down), and tapping searches or opens notifications. Every one of those is changed under **Settings > Trackpad**.

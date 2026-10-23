@@ -6,8 +6,7 @@
   <item name="action_next_track" type="id" />
   <item name="action_previous_track" type="id" />
   <item name="action_open_settings" type="id" />
-  <item name="action_keyboard" type="id" />
-  <item name="action_gamepad" type="id" />
+  <item name="action_controls" type="id" />
   <item name="action_macros" type="id" />
   <item name="action_pad_lock" type="id" />
   <!-- The macro deck in edit mode: a tile moves one place earlier or later, for those who cannot drag. -->

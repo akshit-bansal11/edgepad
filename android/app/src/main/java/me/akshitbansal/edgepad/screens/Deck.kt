@@ -41,13 +41,15 @@ private const val DROP_ALPHA = 0.5f
 
 /**
  * One tile of a [Deck]. [key] names it across renames of its position, [tag] is what a tap hands back and
- * is the owner's to give meaning to, and [picture] is drawn over the label when there is one.
+ * is the owner's to give meaning to, and [picture] is drawn over the label when there is one. [spoken] is the
+ * string a screen reader says for a tap, given the label: "Run Chrome" for a macro, "Open Keyboard" for a control.
  */
 data class DeckTile(
     val key: String,
     val label: String,
     val tag: Int,
     val picture: Drawable?,
+    val spoken: Int = R.string.macros_run,
 )
 
 /**
@@ -287,7 +289,7 @@ class Deck(
             ellipsize = TextUtils.TruncateAt.END
             // Spoken as the laptop spells it, and named the same way when the label is not drawn at all. In edit
             // mode a tap runs nothing, so the tile must not be announced as something that runs.
-            val spoken = if (move == null) R.string.macros_run else R.string.macros_reorder
+            val spoken = if (move == null) tile.spoken else R.string.macros_reorder
             contentDescription = ui.string(spoken, tile.label)
             buttons[tile.tag] = this
             dress(this, tile, grid)

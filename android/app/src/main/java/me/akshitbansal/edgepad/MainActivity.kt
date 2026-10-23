@@ -31,10 +31,13 @@ import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.RttStats
 import me.akshitbansal.edgepad.protocol.ActionId
+import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.ProtocolConstants
 import me.akshitbansal.edgepad.protocol.TextKind
 import me.akshitbansal.edgepad.screens.AppearanceScreen
+import me.akshitbansal.edgepad.screens.CaptureScreen
+import me.akshitbansal.edgepad.screens.ControlsScreen
 import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DialFeelScreen
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
@@ -106,6 +109,8 @@ class MainActivity :
         APPEARANCE,
         MEDIA_LAYOUT,
         GAMEPAD_LAYOUT,
+        CONTROLS,
+        CAPTURE,
         KEYBOARD,
         GAMEPAD,
         MACROS,
@@ -477,6 +482,27 @@ class MainActivity :
                     GamepadLayoutScreen.build(ui, gamepads) { navigateBack() }
                 }
 
+                Screen.CONTROLS -> {
+                    ControlsScreen(
+                        ui,
+                        settings,
+                        capture = Feature.CAPTURE in state.features,
+                        onOpen = { target ->
+                            val opened =
+                                when (target) {
+                                    ControlsScreen.Target.KEYBOARD -> Screen.KEYBOARD
+                                    ControlsScreen.Target.GAMEPAD -> Screen.GAMEPAD
+                                    ControlsScreen.Target.CAPTURE -> Screen.CAPTURE
+                                }
+                            goTo(opened)
+                        },
+                    ) { navigateBack() }.view
+                }
+
+                Screen.CAPTURE -> {
+                    CaptureScreen(ui, settings, state, { frame -> link?.send(frame) }) { navigateBack() }.view
+                }
+
                 Screen.KEYBOARD -> {
                     KeyboardScreen.build(ui, settings.keyTextScale, onKey = ::key) { navigateBack() }
                 }
@@ -543,8 +569,7 @@ class MainActivity :
                         state,
                         { frame -> link?.send(frame) },
                         ::openSettings,
-                        onOpenKeyboard = { goTo(Screen.KEYBOARD) },
-                        onOpenGamepad = { goTo(Screen.GAMEPAD) },
+                        onOpenControls = { goTo(Screen.CONTROLS) },
                         onOpenMacros = ::openMacros,
                     ).also { surface = it }
                 }
@@ -644,7 +669,12 @@ class MainActivity :
                 }
             }
 
-            Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS -> {
+            // The keyboard, the gamepad and the capture are opened from Controls, so back returns there.
+            Screen.KEYBOARD, Screen.GAMEPAD, Screen.CAPTURE -> {
+                goTo(Screen.CONTROLS)
+            }
+
+            Screen.CONTROLS, Screen.MACROS -> {
                 goTo(if (link?.connected == true) Screen.SURFACE else Screen.PAIRING)
             }
 
@@ -1086,6 +1116,10 @@ class MainActivity :
     override fun onFrame(frame: Frame) {
         if (!state.take(frame)) return
         surface?.stateChanged()
+        // Controls and Capture are drawn from the features the laptop named, which it sends once after the
+        // handshake: one that lands while either is open rebuilds it rather than leaving it saying "none".
+        val featured = screen == Screen.CONTROLS || screen == Screen.CAPTURE
+        if (featured && frame is Frame.Text && frame.kind == TextKind.FEATURES.id) goTo(screen)
         // The pad decides which of its two modes it is in from this answer, which usually lands a few
         // milliseconds after PAD_ATTACH went out — by then the screen is already up, so it is handed
         // over rather than rebuilt: rebuilding would drop whatever fingers are on the glass.
@@ -1123,8 +1157,9 @@ class MainActivity :
             closure.cause == LaptopLink.Cause.ENDED -> {
                 // A link ended on purpose starts the next one with a full set of attempts.
                 attempts = 0
-                if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.KEYBOARD ||
-                    screen == Screen.GAMEPAD || screen == Screen.MACROS
+                if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.CONTROLS ||
+                    screen == Screen.CAPTURE || screen == Screen.KEYBOARD || screen == Screen.GAMEPAD ||
+                    screen == Screen.MACROS
                 ) {
                     goTo(Screen.PAIRING)
                 }

@@ -281,8 +281,7 @@
   <string name="surface_next">Next track</string>
   <string name="surface_previous">Previous track</string>
   <string name="surface_open_settings">Open settings</string>
-  <string name="surface_keyboard">Open the keyboard</string>
-  <string name="surface_gamepad">Open the gamepad</string>
+  <string name="surface_controls">Open the controls</string>
   <string name="surface_macros">Open the macros</string>
   <string name="surface_lock">Hide the dials, or lock the pad</string>
   <string name="surface_mode_normal">Dials, media and pad all on</string>
@@ -292,6 +291,17 @@
   <string name="surface_locked_caption">Pad locked · tap the lock to unlock</string>
 
   <!-- Macros -->
+  <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
+  <string name="controls_title">Controls</string>
+  <string name="controls_open">Open %1$s</string>
+  <string name="controls_keyboard">Keyboard</string>
+  <string name="controls_gamepad">Gamepad</string>
+  <string name="controls_capture">Capture</string>
+  <string name="capture_region">Region</string>
+  <string name="capture_screen">Full screen</string>
+  <string name="capture_record">Record</string>
+  <string name="capture_hint">For a region, tap Region, then tap, hold and move on the pad to drag out the area.</string>
+  <string name="capture_unavailable">This laptop has not said it can capture. Update Edgepad on it, then reconnect.</string>
   <string name="macros_run">Run %1$s</string>
   <string name="macros_edit">Edit layout</string>
   <string name="macros_edit_done">Done</string>

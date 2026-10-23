@@ -33,7 +33,7 @@ import kotlin.math.roundToInt
 
 /**
  * The control surface: a ruler at each corner that holds a dial, the media pieces wherever the user put
- * them, gear, keyboard, lock, gamepad and macro buttons at the top, and everything else is the trackpad. A
+ * them, gear, Controls, lock and macro buttons at the top, and everything else is the trackpad. A
  * touch that starts inside a corner's zone is that dial's; one that starts on a media piece or a button is
  * a button press; any other is the trackpad. The lock button walks the surface through [PadMode], which is
  * the only thing that can take a piece of it away — and which a drawn shape can walk too, since a locked
@@ -53,8 +53,7 @@ class ControlSurface(
     private val state: LaptopState,
     private val send: (Frame) -> Unit,
     private val onOpenSettings: () -> Unit,
-    private val onOpenKeyboard: () -> Unit,
-    private val onOpenGamepad: () -> Unit,
+    private val onOpenControls: () -> Unit,
     private val onOpenMacros: () -> Unit,
     /**
      * Only the trackpad: no dials, buttons, media, hints or caption. The Capture screen wants a pointer and
@@ -64,7 +63,7 @@ class ControlSurface(
     private val trackpadOnly: Boolean = false,
 ) : View(context) {
     /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
-    constructor(context: Context) : this(context, Settings(context), LaptopState(), {}, {}, {}, {}, {})
+    constructor(context: Context) : this(context, Settings(context), LaptopState(), {}, {}, {}, {})
 
     private val density = resources.displayMetrics.density
     private val palette = Palette.of(context)
@@ -165,10 +164,9 @@ class ControlSurface(
         } else {
             listOf(
                 TopButton(icon(R.drawable.ic_settings, dim), side = -2f, open = onOpenSettings),
-                TopButton(icon(R.drawable.ic_keyboard, dim), side = -1f, open = onOpenKeyboard),
+                TopButton(icon(R.drawable.ic_layout_dashboard, dim), side = -1f, open = onOpenControls),
                 lockButton,
-                TopButton(icon(R.drawable.ic_gamepad_2, dim), side = 1f, open = onOpenGamepad),
-                TopButton(icon(R.drawable.ic_macro, dim), side = 2f, open = onOpenMacros),
+                TopButton(icon(R.drawable.ic_macro, dim), side = 1f, open = onOpenMacros),
             )
         }
     private val skipBackIcon = icon(R.drawable.ic_skip_back, ink)
@@ -191,9 +189,8 @@ class ControlSurface(
                     send(ActionId.PREVIOUS_TRACK.frame())
                 },
                 action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
-                action(R.id.action_keyboard, R.string.surface_keyboard) to onOpenKeyboard,
+                action(R.id.action_controls, R.string.surface_controls) to onOpenControls,
                 action(R.id.action_pad_lock, R.string.surface_lock) to { tapLock() },
-                action(R.id.action_gamepad, R.string.surface_gamepad) to onOpenGamepad,
                 action(R.id.action_macros, R.string.surface_macros) to onOpenMacros,
             )
         }
@@ -1060,7 +1057,7 @@ class ControlSurface(
      * reader is told, and the caption saying so — and a writer that moved the mode and forgot one of them
      * is exactly how a locked pad came to look identical to a working one.
      *
-     * The other four top buttons open a screen, which is its own answer; the lock changes the surface in
+     * The other three top buttons open a screen, which is its own answer; the lock changes the surface in
      * place, so the tick, the lit icon, the caption and the live region are all the confirmation there is.
      */
     private fun enterMode(next: PadMode) {
@@ -1187,9 +1184,9 @@ class ControlSurface(
 
     /**
      * One of the buttons floating at the top of the surface. [side] places it across the centre of the top
-     * edge in steps of [topButtonOffsetDp]: -1 one step left of it, 0 on it, 1 one step right. An
-     * odd-sized row sits on whole steps — the five buttons are at 0 and ±1 and ±2, with the lock on the
-     * centre — where an even-sized one needs half steps to stay centred.
+     * edge in steps of [topButtonOffsetDp]: -1 one step left of it, 0 on it, 1 one step right. The
+     * row of four keeps the lock on the centre and runs from -2 to +1, so settings and Controls are the two on the
+     * left and macros the one on the right; the row is not centred, the lock is.
      */
     private class TopButton(
         val icon: Drawable,
@@ -1333,7 +1330,7 @@ enum class PadMode {
     /** Dials, media and trackpad, all live. */
     NORMAL,
 
-    /** Dials and media are neither drawn nor hit-tested; the trackpad and the five top buttons remain. */
+    /** Dials and media are neither drawn nor hit-tested; the trackpad and the four top buttons remain. */
     FOCUS,
 
     /** Dials and media stay live, and the trackpad refuses every touch, so a palm or a pocket does nothing. */
