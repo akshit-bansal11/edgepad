@@ -83,8 +83,8 @@ final class PinStoreTests: XCTestCase {
         let manager = FileManager.default
         let folder = try manager.attributesOfItem(atPath: directory.path)[.posixPermissions] as? NSNumber
         let security = try manager.attributesOfItem(atPath: securityFile)[.posixPermissions] as? NSNumber
-        let verified = try manager.attributesOfItem(
-            atPath: directory.appendingPathComponent("pin-verified.txt").path)[.posixPermissions] as? NSNumber
+        let verifiedPath = directory.appendingPathComponent("pin-verified.txt").path
+        let verified = try manager.attributesOfItem(atPath: verifiedPath)[.posixPermissions] as? NSNumber
         XCTAssertEqual(folder?.intValue, 0o700)
         XCTAssertEqual(security?.intValue, 0o600)
         XCTAssertEqual(verified?.intValue, 0o600)

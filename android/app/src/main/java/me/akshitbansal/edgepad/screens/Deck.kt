@@ -317,8 +317,14 @@ class Deck(
         }
         button.setOnDragListener { target, event ->
             when (event.action) {
-                DragEvent.ACTION_DRAG_ENTERED -> target.alpha = DROP_ALPHA
-                DragEvent.ACTION_DRAG_EXITED, DragEvent.ACTION_DRAG_ENDED -> target.alpha = 1f
+                DragEvent.ACTION_DRAG_ENTERED -> {
+                    target.alpha = DROP_ALPHA
+                }
+
+                DragEvent.ACTION_DRAG_EXITED, DragEvent.ACTION_DRAG_ENDED -> {
+                    target.alpha = 1f
+                }
+
                 DragEvent.ACTION_DROP -> {
                     target.alpha = 1f
                     val from = event.localState as? Int
