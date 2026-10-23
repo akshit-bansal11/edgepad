@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Edgepad.Annotation;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
 using Edgepad.Gamepad;
@@ -32,7 +33,8 @@ internal sealed class RfcommServer(
     MediaSessions media,
     DisplayModes display,
     MacroStore macros,
-    LevelOverlay overlay) : IDisposable
+    LevelOverlay overlay,
+    SynchronizationContext ui) : IDisposable
 {
     // Joined at exit so the session's own cleanup, which releases held keys and buttons, gets to run.
     private static readonly TimeSpan ExitGrace = TimeSpan.FromSeconds(2);
@@ -614,9 +616,13 @@ internal sealed class RfcommServer(
             // into Windows for as long as the phone that asked for it is there, and no longer.
             var injector = new InputInjector();
             var pad = new VirtualPad();
-            var dispatcher = new Dispatcher(injector, pad, speakers, microphone, brightness, media, display, macros, overlay);
+
+            // The annotation layer too: strokes are one phone's, and the layer goes when that phone does. It is
+            // drawn on the UI thread, which this event's thread is not, so it is handed the tray's context.
+            var annotator = new Annotator(ui);
+            var dispatcher = new Dispatcher(injector, pad, speakers, microphone, brightness, media, display, macros, overlay, annotator);
             session = new Session(
-                socket, trust, pin, askTrust, injector, pad, dispatcher, speakers, microphone, brightness, media, display, macros, onStatus, OnAdmitted, OnSessionEnded);
+                socket, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, onStatus, OnAdmitted, OnSessionEnded);
 
             // A dedicated thread, not the thread pool: the read loop blocks for the life of the connection,
             // and input is injected from this thread directly, so nothing queues behind other work.
@@ -640,6 +646,7 @@ internal sealed class RfcommServer(
                 session.Dispose();
                 injector.Dispose();
                 pad.Dispose();
+                annotator.Dispose();
                 return;
             }
 

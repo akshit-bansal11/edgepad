@@ -1,9 +1,11 @@
 using System.Runtime.InteropServices;
+using Edgepad.Annotation;
 using Edgepad.Controls;
 using Edgepad.Gamepad;
 using Edgepad.Injection;
 using Edgepad.Macros;
 using Edgepad.Protocol;
+using Pen = Edgepad.Protocol.Pen; // System.Drawing.Pen is in scope too, through the WinForms implicit usings
 
 namespace Edgepad.Dispatch;
 
@@ -21,7 +23,8 @@ internal sealed class Dispatcher(
     MediaSessions media,
     DisplayModes display,
     MacroStore macros,
-    LevelOverlay overlay)
+    LevelOverlay overlay,
+    Annotator annotator)
 {
     private const byte MaxButton = 2;
     private const byte MaxPercent = 100;
@@ -86,6 +89,8 @@ internal sealed class Dispatcher(
         // cannot act on. The phone is not meant to send one before its PAD_ATTACH was answered
         // "ready", and a laptop that quietly accepted them would look to it exactly like one playing.
         PadState p => pad.Update(p),
+        // An absolute point on the laptop screen, which only the annotator reads; outside a session it is dropped.
+        Pen p => annotator.Handle(p),
         _ => false,
     };
 
@@ -167,6 +172,20 @@ internal sealed class Dispatcher(
                 return Answer(pad.Attach());
             case ActionId.PadDetach:
                 return Answer(pad.Detach());
+            case ActionId.AnnotateBegin:
+            case ActionId.AnnotateEnd:
+            case ActionId.AnnotateUndo:
+            case ActionId.AnnotateClear:
+            case ActionId.ToolPen:
+            case ActionId.ToolHighlighter:
+            case ActionId.ToolLine:
+            case ActionId.ToolArrow:
+            case ActionId.ToolRectangle:
+            case ActionId.ToolEllipse:
+            case ActionId.SignBegin:
+            case ActionId.SignSave:
+                // The annotator decides which of these the current mode allows; a tool while signing is dropped.
+                return annotator.Run((ActionId)id);
             case ActionId.CaptureRegion:
                 // Windows' own Snipping Tool, which is why there is no capture code of ours to maintain.
                 input.Chord(Keys.LWin, Keys.ShiftKey, Keys.S);
@@ -193,6 +212,8 @@ internal sealed class Dispatcher(
         // safe, and it is also why a rate this display cannot do is unrepresentable rather than merely
         // refused. Queued rather than applied here, because a switch blanks the panel for about a second.
         ControlId.RefreshRate => RefreshRate(percent),
+        // A palette index: the guard above lets 8..100 through, and the palette refuses them.
+        ControlId.PenColor => annotator.SetColour(percent),
         _ => false,
     };
 

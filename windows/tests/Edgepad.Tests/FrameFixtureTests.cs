@@ -1,6 +1,7 @@
 using System.Globalization;
 using Edgepad.Protocol;
 using Xunit;
+using Pen = Edgepad.Protocol.Pen; // System.Drawing.Pen is in scope too, through the WinForms implicit usings
 
 namespace Edgepad.Tests;
 

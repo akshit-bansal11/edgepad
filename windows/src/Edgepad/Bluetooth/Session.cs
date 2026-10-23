@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
+using Edgepad.Annotation;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
 using Edgepad.Gamepad;
@@ -7,6 +8,7 @@ using Edgepad.Injection;
 using Edgepad.Macros;
 using Edgepad.Protocol;
 using Edgepad.Trust;
+using Microsoft.Win32;
 using Windows.Networking.Sockets;
 
 namespace Edgepad.Bluetooth;
@@ -26,6 +28,7 @@ internal sealed class Session(
     InputInjector injector,
     VirtualPad pad,
     Dispatcher dispatcher,
+    Annotator annotator,
     AudioEndpoint speakers,
     AudioEndpoint microphone,
     BrightnessControl brightness,
@@ -172,6 +175,10 @@ internal sealed class Session(
             // mid-game would otherwise leave a pad plugged into Windows with a stick still pushed forward,
             // and nothing left alive to centre it.
             pad.Dispose();
+
+            // And takes the annotation layer down with its strokes: a phone that vanishes mid-drawing must not
+            // leave ink over the owner's screen with nothing left alive that could end it.
+            annotator.Dispose();
             if (dispatcher.Dropped > 0 || injector.RefusedBatches > 0)
             {
                 Log.Write($"Session with {address}: {dispatcher.Dropped} frames dropped, "
@@ -197,7 +204,8 @@ internal sealed class Session(
 
         // Only what this build can do: the phone hides a feature that is not named, so naming one that is
         // not there would be a button that quietly does nothing.
-        Send(new Text((byte)TextKind.Features, Feature.Capture));
+        Send(new Text((byte)TextKind.Features, $"{Feature.Annotate}/{Feature.Capture}"));
+        ReportScreen();
 
         Watch(speakers, ControlId.Volume);
         Watch(microphone, ControlId.MicLevel);
@@ -258,6 +266,30 @@ internal sealed class Session(
         {
             Send(new StateReport((byte)ControlId.RefreshRate, (byte)display.Current, 0));
         }
+    }
+
+    /// <summary>
+    /// The primary display's size, which the phone shapes its drawing surface to, now and whenever it changes
+    /// (a resolution switch, a docked monitor taking over as primary), and where SIGN_SAVE's answer goes.
+    /// </summary>
+    private void ReportScreen()
+    {
+        // From this thread when there is no ink, like the pad's answer; otherwise from the export's own thread,
+        // where the annotator guards it, because a dead socket is the read loop's to notice.
+        annotator.SignStatusReply = status => Send(new Text((byte)TextKind.SignStatus, status));
+        SendScreenSize();
+
+        // SystemEvents may raise this on the UI thread. The write is moved off it, because a write to a phone that
+        // has stopped reading blocks, and the tray must not freeze with it.
+        EventHandler changed = (_, _) => _ = Task.Run(() => Guarded(SendScreenSize));
+        SystemEvents.DisplaySettingsChanged += changed;
+        Keep(new Subscription(() => SystemEvents.DisplaySettingsChanged -= changed));
+    }
+
+    private void SendScreenSize()
+    {
+        var screen = Annotator.PrimaryBounds();
+        Send(new Text((byte)TextKind.ScreenSize, string.Create(CultureInfo.InvariantCulture, $"{screen.Width}/{screen.Height}")));
     }
 
     /// <summary>

@@ -116,7 +116,7 @@ internal sealed class TrayContext : ApplicationContext
         // Built here and nowhere else: the overlay captures this thread's synchronisation context, and the
         // frames that ask it to show something arrive on a Bluetooth thread that has none of its own.
         overlay = new LevelOverlay();
-        server = new RfcommServer(SetStatus, trust, pin, AskTrust, speakers, microphone, brightness, media, display, macros, overlay);
+        server = new RfcommServer(SetStatus, trust, pin, AskTrust, speakers, microphone, brightness, media, display, macros, overlay, ui);
         _ = StartServerAsync();
         _ = StartMediaAsync();
 

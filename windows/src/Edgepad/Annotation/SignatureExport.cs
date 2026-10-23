@@ -83,7 +83,8 @@ internal static class SignatureExport
         return png.ToArray();
     }
 
-    private static void Draw(Graphics g, Stroke stroke, int width, int height)
+    /// <summary>One stroke as it looks on a <paramref name="width"/> by <paramref name="height"/> screen; the overlay draws with it too.</summary>
+    internal static void Draw(Graphics g, Stroke stroke, int width, int height)
     {
         var points = stroke.Path(width, height).Select(p => new PointF(p.X, p.Y)).ToArray();
         if (points.Length == 0)

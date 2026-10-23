@@ -1,3 +1,4 @@
+using Edgepad.Annotation;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
 using Edgepad.Gamepad;
@@ -7,6 +8,7 @@ using Edgepad.Protocol;
 using NAudio.CoreAudioApi;
 using Nefarius.ViGEm.Client.Exceptions;
 using Xunit;
+using Pen = Edgepad.Protocol.Pen; // System.Drawing.Pen is in scope too, through the WinForms implicit usings
 
 namespace Edgepad.Tests;
 
@@ -34,10 +36,18 @@ public sealed class DispatcherTests : IDisposable
     // whoever runs the suite, and the answers are the same on a build machine as on a desk with the driver.
     private readonly VirtualPad pad = new(() => throw new VigemBusNotFoundException());
 
+    // The annotator's UI thread is a context that only counts what is posted to it and runs none of it, so no
+    // overlay can ever be built on whoever runs the suite, and a test can see how many repaints were asked for.
+    private readonly HeldPosts ui = new();
+    private readonly Annotator annotator;
+
     private readonly Dispatcher dispatcher;
 
-    public DispatcherTests() =>
-        dispatcher = new Dispatcher(input, pad, speakers, microphone, brightness, media, display, macros, overlay);
+    public DispatcherTests()
+    {
+        annotator = new Annotator(ui);
+        dispatcher = new Dispatcher(input, pad, speakers, microphone, brightness, media, display, macros, overlay, annotator);
+    }
 
     [Theory]
     [InlineData(0)]
@@ -83,27 +93,94 @@ public sealed class DispatcherTests : IDisposable
     }
 
     [Fact]
-    public void TheAnnotateActionsAreDroppedUntilTheOverlayExists()
+    public void EditingStrokesWithNoSessionOpenIsDropped()
     {
-        // Ids 40..51 are in the table so the two sides agree on them, but nothing here draws yet. Counting them
-        // as handled would tell the phone an overlay is up when none is.
-        for (byte id = (byte)ActionId.AnnotateBegin; id <= (byte)ActionId.SignSave; id++)
+        // Undo, Clear, the six tools and Save all need an annotate or sign session to act on. Counting them as
+        // handled would tell the phone something is drawn when nothing is.
+        for (byte id = (byte)ActionId.AnnotateUndo; id <= (byte)ActionId.ToolEllipse; id++)
         {
             dispatcher.Handle(new RunAction(id));
         }
 
-        Assert.Equal(12, dispatcher.Dropped);
+        dispatcher.Handle(new RunAction((byte)ActionId.SignSave));
+        Assert.Equal(9, dispatcher.Dropped);
+        Assert.Equal(0, ui.Count);
     }
 
     [Fact]
-    public void PenPointsAndPenColoursAreDroppedUntilTheOverlayExists()
+    public void APenPointWithNoSessionOpenIsDropped()
     {
-        // State 7 is a codec-level success and a dispatcher-level drop: a newer phone may add states.
         dispatcher.Handle(new Pen(0, 0, 1));
+        dispatcher.Handle(new Pen(1, 2, 2));
+        dispatcher.Handle(new Pen(1, 2, 0));
+        Assert.Equal(3, dispatcher.Dropped);
+    }
+
+    [Fact]
+    public void AnUnknownPenStateIsDroppedEvenWhileDrawing()
+    {
+        // Signing, because it shows nothing on this laptop. State 7 is a codec-level success and a dispatcher-level
+        // drop: a newer phone may add states, and this one must not guess what they mean.
+        dispatcher.Handle(new RunAction((byte)ActionId.SignBegin));
         dispatcher.Handle(new Pen(1, 2, 7));
+        dispatcher.Handle(new Pen(1, 2, 1));
+        dispatcher.Handle(new Pen(3, 4, 2));
+        dispatcher.Handle(new Pen(3, 4, 0));
+        Assert.Equal(1, dispatcher.Dropped);
+    }
+
+    [Fact]
+    public void OnlyThePenToolIsTakenWhileSigning()
+    {
+        dispatcher.Handle(new RunAction((byte)ActionId.SignBegin));
+        for (byte id = (byte)ActionId.ToolPen; id <= (byte)ActionId.ToolEllipse; id++)
+        {
+            dispatcher.Handle(new RunAction(id));
+        }
+
+        Assert.Equal(5, dispatcher.Dropped);
+    }
+
+    [Fact]
+    public void APenColourOutsideThePaletteIsDropped()
+    {
+        // 8 passes the 0..100 guard every SET goes through; the palette is what refuses it.
         dispatcher.Handle(new SetValue((byte)ControlId.PenColor, 6));
         dispatcher.Handle(new SetValue((byte)ControlId.PenColor, 8));
-        Assert.Equal(4, dispatcher.Dropped);
+        Assert.Equal(1, dispatcher.Dropped);
+    }
+
+    [Fact]
+    public void SavingASignatureWithNoInkAnswersEmptyAndExportsNothing()
+    {
+        List<string> answers = [];
+        annotator.SignStatusReply = answers.Add;
+
+        dispatcher.Handle(new RunAction((byte)ActionId.SignBegin));
+        var posted = ui.Count;
+        dispatcher.Handle(new RunAction((byte)ActionId.SignSave));
+
+        // Answered at once, and nothing handed to the UI thread: the export, the file and the clipboard all run
+        // there, so no post means none of them ran.
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal(SignStatus.Empty, Assert.Single(answers));
+        Assert.Equal(posted, ui.Count);
+    }
+
+    [Fact]
+    public void AStormOfPenPointsAsksForOneRepaint()
+    {
+        // The posts are never run here, so the first is still in flight for every point after it, exactly as when
+        // the UI thread falls behind a finger. Each point must not queue a repaint of its own.
+        dispatcher.Handle(new RunAction((byte)ActionId.AnnotateBegin));
+        dispatcher.Handle(new Pen(0, 0, 1));
+        for (var i = 1; i < 1000; i++)
+        {
+            dispatcher.Handle(new Pen((ushort)i, (ushort)i, 2));
+        }
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal(1, ui.Count);
     }
 
     [Fact]
@@ -220,5 +297,14 @@ public sealed class DispatcherTests : IDisposable
         media.Dispose();
         display.Dispose();
         overlay.Dispose();
+        annotator.Dispose();
+    }
+
+    /// <summary>A UI thread that never runs anything, so a test can count posts without a window appearing.</summary>
+    private sealed class HeldPosts : SynchronizationContext
+    {
+        public int Count { get; private set; }
+
+        public override void Post(SendOrPostCallback d, object? state) => Count++;
     }
 }
