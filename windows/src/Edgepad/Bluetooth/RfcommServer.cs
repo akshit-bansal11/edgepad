@@ -65,9 +65,10 @@ internal sealed class RfcommServer(
     // Environment.TickCount64 milliseconds before which every new connection is refused; see HangUp.
     private long refuseUntil;
 
-    // Set while the owner is deciding whether to forget; separate from the quiet period so that ending one
-    // cannot end the other.
-    private bool held;
+    // How many owner dialogs (Forget, Security) are open; separate from the quiet period so that ending one
+    // cannot end the other. A count rather than a flag: with two dialogs open, closing the first must not let a
+    // phone in while the second is still on screen, where a connected phone could answer it.
+    private int holds;
 
     // Every phone a different one took over from, and until when (Environment.TickCount64) it is refused. One per
     // address, not just the last: with a single record three trusted phones could still take the laptop round in
@@ -485,7 +486,7 @@ internal sealed class RfcommServer(
         List<Session> ending;
         lock (gate)
         {
-            held = true;
+            holds++;
             ending = TakeSessions();
         }
 
@@ -496,12 +497,15 @@ internal sealed class RfcommServer(
         }
     }
 
-    /// <summary>Ends a <see cref="HoldOff"/>; a quiet period started by <see cref="HangUp"/> runs on.</summary>
+    /// <summary>
+    /// Ends one <see cref="HoldOff"/>; connections are refused until every hold has ended. A quiet period started
+    /// by <see cref="HangUp"/> runs on.
+    /// </summary>
     public void Resume()
     {
         lock (gate)
         {
-            held = false;
+            holds = Math.Max(0, holds - 1);
         }
     }
 
@@ -522,7 +526,7 @@ internal sealed class RfcommServer(
     }
 
     /// <summary>Whether new connections are being refused, by a hold or a quiet period. Called under the lock.</summary>
-    private bool Refusing() => held || Environment.TickCount64 < refuseUntil;
+    private bool Refusing() => holds > 0 || Environment.TickCount64 < refuseUntil;
 
     /// <summary>Whether <paramref name="address"/> was just taken over from. Called under the lock.</summary>
     private bool HandedOff(string address)
