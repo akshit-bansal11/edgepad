@@ -9,6 +9,8 @@ import me.akshitbansal.edgepad.protocol.Frame
  * order, KEY frames above all: see [merge].
  */
 object Coalesce {
+    private const val PEN_MOVE = 2
+
     /**
      * A KEY frame is never collapsed into another, and neither is a POINTER_BUTTON: they are edges, and a
      * press and its release are two different messages that happen to name the same key. Dropping either
@@ -41,6 +43,13 @@ object Coalesce {
                 frame is Frame.PadState -> {
                     out.removeAll { it is Frame.PadState }
                     out.add(frame)
+                }
+
+                // A PEN move is a position, so only the newest of a run says where the finger is. Down (1) and
+                // up (0) are edges, like KEY: dropping a down loses the stroke's start and dropping an up
+                // leaves the laptop's stroke open, so only a move directly after a move collapses.
+                frame is Frame.Pen && frame.state == PEN_MOVE && last is Frame.Pen && last.state == PEN_MOVE -> {
+                    out[out.lastIndex] = frame
                 }
 
                 frame is Frame.SetValue -> {
