@@ -151,4 +151,27 @@ public sealed class SignatureExportTests
 
         Assert.Equal(255, image.GetPixel(image.Width / 2, image.Height / 2).A);
     }
+
+    [Fact]
+    public void TwoSavesInOneSecondKeepBothSignatures()
+    {
+        // Same stem, as two saves within one second get: the second must take a new name, never the first's file.
+        var folder = Path.Combine(Path.GetTempPath(), $"edgepad-signatures-{Guid.NewGuid():N}");
+        try
+        {
+            byte[] one = [1];
+            byte[] two = [2];
+            var first = Annotator.WriteNew(folder, "signature-20261024-120000", one);
+            var second = Annotator.WriteNew(folder, "signature-20261024-120000", two);
+
+            Assert.Equal(Path.Combine(folder, "signature-20261024-120000.png"), first);
+            Assert.Equal(Path.Combine(folder, "signature-20261024-120000-2.png"), second);
+            Assert.Equal(one, File.ReadAllBytes(first));
+            Assert.Equal(two, File.ReadAllBytes(second));
+        }
+        finally
+        {
+            Directory.Delete(folder, recursive: true);
+        }
+    }
 }

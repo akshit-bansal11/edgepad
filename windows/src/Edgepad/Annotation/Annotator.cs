@@ -316,11 +316,8 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         }
 
         var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Edgepad");
-        Directory.CreateDirectory(folder);
-
-        // ponytail: two saves in one second share a name and the second wins; add a counter if anyone signs that fast.
-        var name = string.Create(CultureInfo.InvariantCulture, $"signature-{DateTime.Now:yyyyMMdd-HHmmss}.png");
-        File.WriteAllBytes(Path.Combine(folder, name), png);
+        var stem = string.Create(CultureInfo.InvariantCulture, $"signature-{DateTime.Now:yyyyMMdd-HHmmss}");
+        WriteNew(folder, stem, png);
 
         // PNG keeps the transparency for the apps that read it; the bitmap is for the many that only take that.
         // Copied, so the clipboard holds its own rendering once these are disposed.
@@ -332,6 +329,40 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         data.SetImage(image);
         Clipboard.SetDataObject(data, true, 5, 100);
         return SignStatus.Saved;
+    }
+
+    /// <summary>
+    /// Writes <paramref name="png"/> as <c>stem.png</c> in <paramref name="folder"/>, or <c>stem-2.png</c>,
+    /// <c>stem-3.png</c> and on when that is taken, and returns the path. Never over an existing file: two saves
+    /// in one second share a stem, and overwriting would lose the first signature. CreateNew rather than a check
+    /// first, so a file that appears between the check and the write cannot be overwritten either.
+    /// </summary>
+    internal static string WriteNew(string folder, string stem, byte[] png)
+    {
+        Directory.CreateDirectory(folder);
+        for (var n = 1; ; n++)
+        {
+            var name = n == 1 ? $"{stem}.png" : string.Create(CultureInfo.InvariantCulture, $"{stem}-{n}.png");
+            var path = Path.Combine(folder, name);
+            FileStream file;
+            try
+            {
+                file = new FileStream(path, FileMode.CreateNew, FileAccess.Write);
+            }
+            catch (IOException) when (File.Exists(path))
+            {
+                // Taken: try the next number. Only the open is caught, so a failed write (a full disk) still
+                // fails the save rather than spinning through names.
+                continue;
+            }
+
+            using (file)
+            {
+                file.Write(png);
+            }
+
+            return path;
+        }
     }
 
     /// <summary>
