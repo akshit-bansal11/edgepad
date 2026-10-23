@@ -1,3 +1,5 @@
+        val sized =
+            frame is Frame.Text && (frame.kind == TextKind.FEATURES.id || frame.kind == TextKind.SCREEN_SIZE.id)
 package me.akshitbansal.edgepad
 
 import android.Manifest
@@ -34,7 +36,9 @@ import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.ProtocolConstants
+import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
+import me.akshitbansal.edgepad.screens.AnnotateScreen
 import me.akshitbansal.edgepad.screens.AppearanceScreen
 import me.akshitbansal.edgepad.screens.CaptureScreen
 import me.akshitbansal.edgepad.screens.ControlsScreen
@@ -111,6 +115,7 @@ class MainActivity :
         GAMEPAD_LAYOUT,
         CONTROLS,
         CAPTURE,
+        ANNOTATE,
         KEYBOARD,
         GAMEPAD,
         MACROS,
@@ -149,6 +154,12 @@ class MainActivity :
 
     /** The gamepad while it is the screen, so the laptop's answer about its controller can reach it. */
     private var gamepad: GamepadScreen? = null
+
+    /** The annotate screen while it is the screen, so a changed laptop display can redraw its pad. */
+    private var annotate: AnnotateScreen? = null
+
+    /** True from ANNOTATE_BEGIN until the one ANNOTATE_END that answers it, however the screen is left. */
+    private var annotating = false
     private var reconnecting: ReconnectingScreen? = null
 
     /** The macro grid while it is the screen, so a new list or a finished icon can be handed to it. */
@@ -288,6 +299,8 @@ class MainActivity :
         super.onStart()
         handler.removeCallbacks(linger)
         started = true
+        // Back from a detour with the pad still on screen: the laptop has no session, so begin one.
+        if (screen == Screen.ANNOTATE && !annotating) goTo(Screen.ANNOTATE)
         val current = link
         when {
             // Restarted rather than left running: the tick waiting may be a slow one from the background.
@@ -307,6 +320,8 @@ class MainActivity :
         super.onStop()
         started = false
         releaseHeldInput()
+        // The laptop drops its overlay when told; a rotation rebuild begins a fresh session in onCreate.
+        endAnnotate()
         handler.removeCallbacks(retry)
         handler.removeCallbacks(quickRetry)
         handler.removeCallbacks(ticker)
@@ -322,6 +337,13 @@ class MainActivity :
         val current = link
         link = null
         current?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
+    }
+
+    /** Tells the laptop to take its overlay down, once per session, and not at all when there is no link to tell. */
+    private fun endAnnotate() {
+        if (!annotating) return
+        annotating = false
+        link?.send(ActionId.ANNOTATE_END.frame())
     }
 
     /**
@@ -370,11 +392,18 @@ class MainActivity :
         // and because a preset change rebuilds the same screen: that is not a trip out and back.
         if (screen == Screen.GAMEPAD && next != Screen.GAMEPAD) link?.send(ActionId.PAD_DETACH.frame())
         if (next == Screen.GAMEPAD && screen != Screen.GAMEPAD) link?.send(ActionId.PAD_ATTACH.frame())
+        // Annotating is a session on the laptop: begun on the way in, ended on the way out by any route.
+        if (screen == Screen.ANNOTATE && next != Screen.ANNOTATE) endAnnotate()
+        if (next == Screen.ANNOTATE && !annotating && link?.connected == true) {
+            annotating = true
+            link?.send(ActionId.ANNOTATE_BEGIN.frame())
+        }
         // Onto a screen that shows the round trip, the pings speed up now rather than at the next slow tick.
         if (next in showsRtt && screen !in showsRtt && link?.connected == true) startPinger()
         screen = next
         surface = null
         gamepad = null
+        annotate = null
         reconnecting = null
         macros = null
         handler.removeCallbacks(ticker)
@@ -487,12 +516,14 @@ class MainActivity :
                         ui,
                         settings,
                         capture = Feature.CAPTURE in state.features,
+                        annotate = Feature.ANNOTATE in state.features && state.screenSize != null,
                         onOpen = { target ->
                             val opened =
                                 when (target) {
                                     ControlsScreen.Target.KEYBOARD -> Screen.KEYBOARD
                                     ControlsScreen.Target.GAMEPAD -> Screen.GAMEPAD
                                     ControlsScreen.Target.CAPTURE -> Screen.CAPTURE
+                                    ControlsScreen.Target.ANNOTATE -> Screen.ANNOTATE
                                 }
                             goTo(opened)
                         },
@@ -501,6 +532,12 @@ class MainActivity :
 
                 Screen.CAPTURE -> {
                     CaptureScreen(ui, settings, state, { frame -> link?.send(frame) }) { navigateBack() }.view
+                }
+
+                Screen.ANNOTATE -> {
+                    AnnotateScreen(ui, state, { frame -> link?.send(frame) }) { navigateBack() }
+                        .also { annotate = it }
+                        .view
                 }
 
                 Screen.KEYBOARD -> {
@@ -670,7 +707,7 @@ class MainActivity :
             }
 
             // The keyboard, the gamepad and the capture are opened from Controls, so back returns there.
-            Screen.KEYBOARD, Screen.GAMEPAD, Screen.CAPTURE -> {
+            Screen.KEYBOARD, Screen.GAMEPAD, Screen.CAPTURE, Screen.ANNOTATE -> {
                 goTo(Screen.CONTROLS)
             }
 
@@ -793,6 +830,17 @@ class MainActivity :
             when (message) {
                 R.string.image_too_large -> getString(R.string.image_too_large, MAX_IMAGE_MB)
                 else -> getString(message)
+            }
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show()
+    }
+
+    /** The laptop's answer to SIGN_SAVE, as the toast the person is waiting for. */
+    private fun signed(status: SignStatus?) {
+        val text =
+            when (status) {
+                SignStatus.SAVED -> R.string.sign_saved
+                SignStatus.EMPTY -> R.string.sign_empty
+                else -> R.string.sign_failed
             }
         Toast.makeText(this, text, Toast.LENGTH_LONG).show()
     }
@@ -1120,7 +1168,10 @@ class MainActivity :
         // Controls and Capture are drawn from the features the laptop named, which it sends once after the
         // handshake: one that lands while either is open rebuilds it rather than leaving it saying "none".
         val featured = screen == Screen.CONTROLS || screen == Screen.CAPTURE
-        if (featured && frame is Frame.Text && frame.kind == TextKind.FEATURES.id) goTo(screen)
+        val sized = frame is Frame.Text && (frame.kind == TextKind.FEATURES.id || frame.kind == TextKind.SCREEN_SIZE.id)
+        if (featured && sized) goTo(screen)
+        if (frame is Frame.Text && frame.kind == TextKind.SCREEN_SIZE.id) annotate?.refresh()
+        if (frame is Frame.Text && frame.kind == TextKind.SIGN_STATUS.id) signed(state.signStatus)
         // The pad decides which of its two modes it is in from this answer, which usually lands a few
         // milliseconds after PAD_ATTACH went out — by then the screen is already up, so it is handed
         // over rather than rebuilt: rebuilding would drop whatever fingers are on the glass.
@@ -1159,8 +1210,8 @@ class MainActivity :
                 // A link ended on purpose starts the next one with a full set of attempts.
                 attempts = 0
                 if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.CONTROLS ||
-                    screen == Screen.CAPTURE || screen == Screen.KEYBOARD || screen == Screen.GAMEPAD ||
-                    screen == Screen.MACROS
+                    screen == Screen.CAPTURE || screen == Screen.ANNOTATE || screen == Screen.KEYBOARD ||
+                    screen == Screen.GAMEPAD || screen == Screen.MACROS
                 ) {
                     goTo(Screen.PAIRING)
                 }
@@ -1296,6 +1347,7 @@ class MainActivity :
                 Screen.KEYBOARD,
                 Screen.GAMEPAD,
                 Screen.CAPTURE,
+                Screen.ANNOTATE,
                 Screen.MEDIA_LAYOUT,
                 Screen.GAMEPAD_LAYOUT,
                 Screen.SHAPE_DRAW,

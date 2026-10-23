@@ -27,13 +27,14 @@
   </string-array>
 
   <string name="guide_anatomy_kicker">2 · Anatomy</string>
-  <string name="guide_anatomy_title">Five parts, one screen.</string>
+  <string name="guide_anatomy_title">Six parts, one screen.</string>
   <string-array name="guide_anatomy_keys">
     <item>TRACKPAD</item>
     <item>CORNER DIALS</item>
     <item>MEDIA</item>
     <item>KEYBOARD</item>
     <item>GAMEPAD</item>
+    <item>ANNOTATE</item>
   </string-array>
   <string-array name="guide_anatomy_values">
     <item>The whole middle of the screen. Every finger gesture starts here.</item>
@@ -41,6 +42,7 @@
     <item>What is playing, then previous, play and next, while a player is open. Move and resize it in Settings.</item>
     <item>A full keyboard whose modifiers work held or tapped, behind the Controls button.</item>
     <item>Sticks, a D-pad and buttons in four presets, or your own arrangement.</item>
+    <item>Controls › Annotate turns the phone into a pen for the laptop screen, with six tools and eight colours. It appears when the laptop supports it.</item>
   </string-array>
 
   <string name="guide_surface_kicker">3 · The surface</string>

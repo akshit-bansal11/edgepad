@@ -10,19 +10,21 @@ private const val DECK = "controls"
 
 /**
  * What the phone can drive besides the surface itself, as a [DeckPage] of tiles: the keyboard, the gamepad
- * and, when the laptop says it can take one, a capture. The surface keeps a single button for all of it, so
- * the row of buttons at the top stays the size it is however many of these there are.
+ * and, when the laptop says it can, a capture and an annotation. The surface keeps a single button for all of it,
+ * so the row of buttons at the top stays the size it is however many of these there are.
  *
  * A tile carries a [Target] in its tag and nothing about where it is drawn, so a reordered deck opens the
  * same screens.
  *
  * Capture is left out, rather than shown and disabled, when [capture] is false: a tile that opens a page of
- * dead buttons explains nothing that a missing tile does not.
+ * dead buttons explains nothing that a missing tile does not. Annotate is left out the same way until the
+ * laptop has named the feature and its screen size, since the pen pad is shaped to that screen.
  */
 class ControlsScreen(
     private val ui: Ui,
     settings: Settings,
     capture: Boolean,
+    annotate: Boolean,
     onOpen: (Target) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -34,6 +36,7 @@ class ControlsScreen(
         KEYBOARD(R.string.controls_keyboard, R.drawable.ic_keyboard),
         GAMEPAD(R.string.controls_gamepad, R.drawable.ic_gamepad_2),
         CAPTURE(R.string.controls_capture, R.drawable.ic_scan),
+        ANNOTATE(R.string.controls_annotate, R.drawable.ic_pen),
     }
 
     private val page =
@@ -50,7 +53,15 @@ class ControlsScreen(
     val view: View = page.view
 
     init {
-        page.show(Target.entries.filter { it != Target.CAPTURE || capture }.map(::tile))
+        val shown =
+            Target.entries.filter {
+                when (it) {
+                    Target.CAPTURE -> capture
+                    Target.ANNOTATE -> annotate
+                    else -> true
+                }
+            }
+        page.show(shown.map(::tile))
     }
 
     private fun tile(target: Target) =
