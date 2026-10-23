@@ -64,6 +64,14 @@ class LaptopState {
         private set
 
     /**
+     * Forgets [features] for a new connection. They are said once a connection and never withdrawn, so the same
+     * laptop updated to a build without one, or older than TEXT 9, would otherwise keep offering what it last had.
+     */
+    fun forgetFeatures() {
+        features = emptySet()
+    }
+
+    /**
      * The laptop's primary display in pixels as (width, height), or null until it says. The annotate surface
      * is shaped to this ratio. Kept here, not on the screen, because the laptop sends it once and a rotation
      * rebuilds the screen.
