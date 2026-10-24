@@ -1,17 +1,17 @@
 package me.akshitbansal.edgepad.screens
 
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.InsetDrawable
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
-import android.widget.HorizontalScrollView
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
-import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
@@ -27,6 +27,9 @@ import me.akshitbansal.edgepad.surface.Strokes
  * preview agrees. The activity sends ANNOTATE_BEGIN before this is built and ANNOTATE_END when it is left, so
  * a screen that is rebuilt (a rotation) starts a clean session on both sides.
  *
+ * The pad fills the screen. One round handle in the bottom corner opens a menu upward from it, holding every
+ * control, and choosing a tool closes it again; the handle wears the current tool in the current colour.
+ *
  * Sign mode shows nothing on the laptop and accepts only the pen, so the other tools are hidden rather than
  * left to be dropped. Switching either way begins a new session on the laptop, which throws its strokes away,
  * so the preview clears with it.
@@ -35,32 +38,39 @@ class AnnotateScreen(
     private val ui: Ui,
     state: LaptopState,
     private val send: (Frame) -> Unit,
-    onBack: () -> Unit,
+    private val onBack: () -> Unit,
 ) {
     private val strokes = Strokes()
     private val canvas = AnnotateCanvas(ui.context, strokes, { state.screenSize }, send)
-    private val tools = ArrayList<Pair<PenTool, TextView>>()
+    private val tools = ArrayList<Pair<PenTool, ImageView>>()
     private val swatches = ArrayList<View>()
     private val save =
         ui.button(ui.string(R.string.annotate_save_signature), Ui.Style.OUTLINED) {
             send(ActionId.SIGN_SAVE.frame())
         }
+    private val menu = menu()
+    private val handleTool = glyph(R.drawable.ic_tool_pen, null)
+    private val handleChevron = glyph(R.drawable.ic_chevron_up, null)
+    private val handle = handle()
+    private lateinit var signButton: ImageView
 
     val view: View =
-        LinearLayout(ui.context).apply {
-            orientation = LinearLayout.VERTICAL
+        FrameLayout(ui.context).apply {
             setBackgroundColor(ui.palette.background)
-            addView(
-                ui.bar(
-                    ui.string(R.string.controls_annotate),
-                    onBack,
-                    backLabel = ui.string(R.string.annotate_exit),
-                ),
-            )
             canvas.contentDescription = ui.string(R.string.annotate_description)
-            addView(canvas, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
-            addView(toolbar())
-            // Edge-to-edge is enforced: keep the bar and the toolbar clear of the system bars and the cutout.
+            addView(canvas, FrameLayout.LayoutParams(MATCH, MATCH))
+            addView(
+                LinearLayout(ui.context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    gravity = Gravity.END
+                    addView(menu, spaced())
+                    addView(handle, LinearLayout.LayoutParams(WRAP, ui.dp(Space.TOUCH)))
+                },
+                FrameLayout
+                    .LayoutParams(WRAP, WRAP, Gravity.BOTTOM or Gravity.END)
+                    .apply { setMargins(ui.dp(Space.M), ui.dp(Space.M), ui.dp(Space.M), ui.dp(Space.M)) },
+            )
+            // Edge-to-edge is enforced: keep the pad and the menu clear of the system bars and the cutout.
             setOnApplyWindowInsetsListener { page, insets ->
                 val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
                 page.setPadding(bars.left, bars.top, bars.right, bars.bottom)
@@ -72,17 +82,48 @@ class AnnotateScreen(
         // A new session starts on the laptop's own colour, so say which one the preview starts on.
         sendColour()
         paint()
+        open(false)
     }
 
     /** Redraws the pad, for a laptop display that changed shape under it. */
     fun refresh() = canvas.refresh()
 
-    private fun toolbar(): View =
+    /** The menu: the tools, the colours in two rows of four, then undo, clear, Sign and Exit. */
+    private fun menu(): View =
         LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL
-            val side = ui.dp(Space.PAGE)
-            setPadding(side, ui.dp(Space.S), side, ui.dp(Space.S))
-            addView(scroller(pickers()))
+            background = ui.rounded(ui.palette.background, Space.CARD_RADIUS)
+            elevation = ui.dp(Space.S).toFloat()
+            val pad = ui.dp(Space.S)
+            setPadding(pad, pad, pad, pad)
+            addView(
+                row().apply {
+                    for (tool in PenTool.entries) {
+                        val label = ui.string(R.string.annotate_tool_desc, ui.string(TOOL_LABELS.getValue(tool)))
+                        val button =
+                            glyph(TOOL_ICONS.getValue(tool), label) {
+                                if (strokes.select(tool)) {
+                                    send(tool.action.frame())
+                                    paint()
+                                }
+                                open(false)
+                            }
+                        tools.add(tool to button)
+                        addView(button)
+                    }
+                },
+            )
+            for (colours in PenColor.entries.chunked(SWATCHES_PER_ROW)) {
+                addView(
+                    row().apply {
+                        for (colour in colours) {
+                            val swatch = swatch(colour)
+                            swatches.add(swatch)
+                            addView(swatch, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
+                        }
+                    },
+                )
+            }
             addView(actions())
             save.visibility = View.GONE
             addView(
@@ -93,73 +134,74 @@ class AnnotateScreen(
             )
         }
 
-    private fun scroller(row: View): View =
-        HorizontalScrollView(ui.context).apply {
-            isHorizontalScrollBarEnabled = false
-            addView(row)
-        }
-
-    /** The tools, then the colours, in one row that scrolls sideways when the phone is too narrow for all. */
-    private fun pickers(): View =
+    private fun row() =
         LinearLayout(ui.context).apply {
             gravity = Gravity.CENTER_VERTICAL
-            for (tool in PenTool.entries) {
-                val pill = toolPill(tool)
-                tools.add(tool to pill)
-                addView(pill, spaced())
-            }
-            for (colour in PenColor.entries) {
-                val swatch = swatch(colour)
-                swatches.add(swatch)
-                addView(swatch, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
-            }
         }
 
     private fun actions(): View =
-        LinearLayout(ui.context).apply {
-            gravity = Gravity.CENTER_VERTICAL
+        row().apply {
             addView(
-                ui.chip(ui.string(R.string.annotate_undo)) {
+                glyph(R.drawable.ic_undo, ui.string(R.string.annotate_undo)) {
                     strokes.undo()
                     send(ActionId.ANNOTATE_UNDO.frame())
                     canvas.refresh()
                 },
-                spaced(),
             )
             addView(
-                ui.chip(ui.string(R.string.annotate_clear)) {
+                glyph(R.drawable.ic_clear, ui.string(R.string.annotate_clear)) {
                     strokes.clear()
                     send(ActionId.ANNOTATE_CLEAR.frame())
                     canvas.refresh()
                 },
-                spaced(),
             )
-            addView(
-                ui.toggle(ui.string(R.string.annotate_sign), false, ::sign),
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
-            )
+            signButton = glyph(R.drawable.ic_sign, ui.string(R.string.annotate_sign)) { sign(!strokes.signing) }
+            addView(signButton)
+            addView(glyph(R.drawable.ic_close, ui.string(R.string.annotate_exit), onBack))
+        }
+
+    /** The round opener: the current tool in the current colour, and a chevron that points the way it will go. */
+    private fun handle(): View =
+        LinearLayout(ui.context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            contentDescription = ui.string(R.string.annotate_menu)
+            elevation = ui.dp(Space.S).toFloat()
+            handleTool.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            handleChevron.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            addView(handleTool)
+            addView(handleChevron)
+            ui.tappable(this, Space.TOUCH / 2) { open(menu.visibility != View.VISIBLE) }
+        }
+
+    private fun open(on: Boolean) {
+        menu.visibility = if (on) View.VISIBLE else View.GONE
+        handleChevron.setImageResource(if (on) R.drawable.ic_chevron_down else R.drawable.ic_chevron_up)
+        val state = if (on) R.string.annotate_menu_expanded else R.string.annotate_menu_collapsed
+        handle.stateDescription = ui.string(state)
+        paintHandle()
+    }
+
+    /** A 48 dp icon button; [label] is null for the handle's own parts, which the handle speaks for. */
+    private fun glyph(
+        icon: Int,
+        label: String?,
+        onTap: (() -> Unit)? = null,
+    ): ImageView =
+        ImageView(ui.context).apply {
+            scaleType = ImageView.ScaleType.CENTER
+            setImageDrawable(ui.context.getDrawable(icon)?.mutate())
+            layoutParams = LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH))
+            if (label != null) {
+                contentDescription = label
+                tooltipText = label
+            }
+            if (onTap != null) ui.tappable(this, Space.CARD_RADIUS, onTap)
         }
 
     private fun spaced() =
         LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-            marginEnd = ui.dp(Space.S)
+            bottomMargin = ui.dp(Space.S)
         }
-
-    private fun toolPill(tool: PenTool): TextView {
-        val label = ui.string(TOOL_LABELS.getValue(tool))
-        return ui.text(label, Type.LABEL, ui.palette.ink, face = Type.bold).apply {
-            gravity = Gravity.CENTER
-            minHeight = ui.dp(Space.TOUCH)
-            setPadding(ui.dp(Space.L), 0, ui.dp(Space.L), 0)
-            contentDescription = ui.string(R.string.annotate_tool_desc, label)
-            ui.tappable(this, Space.CARD_RADIUS) {
-                if (strokes.select(tool)) {
-                    send(tool.action.frame())
-                    paint()
-                }
-            }
-        }
-    }
 
     private fun swatch(colour: PenColor): View =
         View(ui.context).apply {
@@ -189,13 +231,14 @@ class AnnotateScreen(
     /** Redraws the selection: the chosen tool filled, the chosen colour ringed, no tool but the pen when signing. */
     private fun paint() {
         val selected = ui.string(R.string.annotate_selected)
-        for ((tool, pill) in tools) {
+        for ((tool, button) in tools) {
             val on = tool == strokes.tool
-            pill.background = ui.rounded(if (on) ui.palette.accent else ui.palette.faint, Space.CARD_RADIUS)
-            pill.setTextColor(if (on) ui.palette.onAccent else ui.palette.ink)
-            pill.stateDescription = if (on) selected else null
-            pill.visibility = if (strokes.signing && tool != PenTool.PEN) View.GONE else View.VISIBLE
+            mark(button, on)
+            button.stateDescription = if (on) selected else null
+            button.visibility = if (strokes.signing && tool != PenTool.PEN) View.GONE else View.VISIBLE
         }
+        mark(signButton, strokes.signing)
+        signButton.stateDescription = if (strokes.signing) selected else null
         val inset = (ui.dp(Space.TOUCH) - ui.dp(SWATCH_DP)) / 2
         swatches.forEachIndexed { index, swatch ->
             val on = index == strokes.colour
@@ -208,13 +251,52 @@ class AnnotateScreen(
             swatch.background = InsetDrawable(disc, inset)
             swatch.stateDescription = if (on) selected else null
         }
+        paintHandle()
+    }
+
+    /** A chosen icon button: filled in the accent with its glyph on it, otherwise the glyph in the ink. */
+    private fun mark(
+        button: ImageView,
+        on: Boolean,
+    ) {
+        button.background = if (on) ui.rounded(ui.palette.accent, Space.CARD_RADIUS) else null
+        button.drawable?.setTint(if (on) ui.palette.onAccent else ui.palette.ink)
+    }
+
+    /** The handle on a light or dark disc, whichever the ink stands out against, so black and white both show. */
+    private fun paintHandle() {
+        val ink = OPAQUE or PenColor.entries[strokes.colour].rgb
+        val light = Color.luminance(ink) < LIGHT_BELOW
+        val disc = if (light) LIGHT_DISC else DARK_DISC
+        handle.background = ui.rounded(disc, Space.TOUCH / 2)
+        handleTool.setImageResource(TOOL_ICONS.getValue(strokes.tool))
+        handleTool.drawable?.setTint(ink)
+        handleChevron.drawable?.setTint(if (light) DARK_DISC else LIGHT_DISC)
     }
 
     private companion object {
+        const val MATCH = ViewGroup.LayoutParams.MATCH_PARENT
+        const val WRAP = ViewGroup.LayoutParams.WRAP_CONTENT
         const val SWATCH_DP = 32f
         const val RING_DP = 3f
         const val HAIR_DP = 1f
+        const val SWATCHES_PER_ROW = 4
         const val OPAQUE = 0xFF000000.toInt()
+
+        // Below this luminance an ink colour disappears on a dark disc, so it gets a light one.
+        const val LIGHT_BELOW = 0.35f
+        const val LIGHT_DISC = 0xFFF2F2F7.toInt()
+        const val DARK_DISC = 0xFF1C1C1E.toInt()
+
+        val TOOL_ICONS =
+            mapOf(
+                PenTool.PEN to R.drawable.ic_tool_pen,
+                PenTool.HIGHLIGHTER to R.drawable.ic_tool_highlighter,
+                PenTool.LINE to R.drawable.ic_tool_line,
+                PenTool.ARROW to R.drawable.ic_tool_arrow,
+                PenTool.RECTANGLE to R.drawable.ic_tool_rectangle,
+                PenTool.ELLIPSE to R.drawable.ic_tool_ellipse,
+            )
 
         val TOOL_LABELS =
             mapOf(

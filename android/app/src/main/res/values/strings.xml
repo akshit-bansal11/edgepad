@@ -315,6 +315,9 @@
   <string name="controls_annotate">Annotate</string>
   <string name="annotate_exit">Exit</string>
   <string name="annotate_description">Pen pad: a touch draws at the same place on the laptop screen</string>
+  <string name="annotate_menu">Drawing tools</string>
+  <string name="annotate_menu_expanded">Expanded</string>
+  <string name="annotate_menu_collapsed">Collapsed</string>
   <string name="annotate_selected">Selected</string>
   <string name="annotate_tool_desc">%1$s tool</string>
   <string name="annotate_tool_pen">Pen</string>
