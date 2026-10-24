@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- xunit v3 runs on Microsoft.Testing.Platform (opted into in global.json); no VSTest adapter needed. -->
+    <!-- xunit v3 runs on Microsoft.Testing.Platform (opted into in the root global.json); no VSTest adapter needed. -->
     <PackageReference Include="xunit.v3" Version="4.0.0" />
   </ItemGroup>
 

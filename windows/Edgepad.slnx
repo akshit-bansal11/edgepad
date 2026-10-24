@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="../shared/Edgepad.Core/Edgepad.Core.csproj" />
   <Project Path="src/Edgepad/Edgepad.csproj" />
   <Project Path="tests/Edgepad.Tests/Edgepad.Tests.csproj" />
 </Solution>

@@ -160,7 +160,7 @@ The repository is a monorepo:
 Either half can be worked on alone, so install only what the part you are changing needs.
 
 - **Android:** JDK 17 and the Android SDK with platform 37 and build tools 37.0.0. The Gradle wrapper fetches Gradle itself.
-- **Windows:** the .NET 10 SDK (`windows/global.json` pins 10.0.401 and rolls forward to the latest feature band). Windows 10 version 2004 or later, because the app builds against the Windows SDK projection for Bluetooth.
+- **Windows:** the .NET 10 SDK (`global.json` pins 10.0.401 and rolls forward to the latest feature band). Windows 10 version 2004 or later, because the app builds against the Windows SDK projection for Bluetooth.
 - **Mac:** a Mac with Xcode (Swift 5.9 or later). The gate for this half runs only on a Mac.
 - **Site:** Node 24 or later.
 - **The gate:** PowerShell 7 (`pwsh`), which runs `scripts/check.ps1`.

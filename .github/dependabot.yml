@@ -12,6 +12,10 @@ updates:
     directory: /windows
     schedule:
       interval: monthly
+  - package-ecosystem: nuget
+    directory: /shared
+    schedule:
+      interval: monthly
   # The site, deployed to Vercel. Its versions are pinned exactly (site/README.md), so Dependabot is what
   # moves them; ESLint and TypeScript are held back on purpose, and that README says why.
   - package-ecosystem: npm

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <!-- Plain net10.0, no OS suffix: the laptop apps for Windows and Linux both reference this, and Linux CI builds it. -->
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Edgepad</RootNamespace>
+    <AssemblyName>Edgepad.Core</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Every type moved here stays internal, as it was in the Windows project. -->
+    <InternalsVisibleTo Include="Edgepad" />
+    <InternalsVisibleTo Include="Edgepad.Tests" />
+    <InternalsVisibleTo Include="Edgepad.Core.Tests" />
+    <InternalsVisibleTo Include="Edgepad.Linux" />
+    <InternalsVisibleTo Include="Edgepad.Linux.Tests" />
+  </ItemGroup>
+
+</Project>
