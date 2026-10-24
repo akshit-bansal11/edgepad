@@ -273,6 +273,21 @@ public sealed class HandshakeTests : IDisposable
     }
 
     [Fact]
+    public void AHelloThatArrivesAsTheTimerGivesUpGoesNoFurther()
+    {
+        // The race at the deadline, made certain: the HELLO comes in only once giveUp has closed the link. Going on
+        // would put a dead link to the owner, and at level 1 hand it the live session.
+        using var closed = new ManualResetEventSlim();
+        using var input = new SilentAfter([], closed, FrameCodec.Encode(CurrentHello));
+
+        Assert.False(Run(new FrameStream(input, output), PinAtLevel(1), closed.Set, TimeSpan.FromMilliseconds(1)));
+        Assert.True(closed.IsSet);
+        Assert.Equal(0, asked);
+        Assert.Equal(0, admitted);
+        Assert.Empty(Sent());
+    }
+
+    [Fact]
     public void APhoneThatNeverAnswersThePinIsGivenUpOn()
     {
         TrustThePhone();
@@ -312,11 +327,14 @@ public sealed class HandshakeTests : IDisposable
 
     /// <summary>
     /// A phone that says <paramref name="said"/> and then nothing: the read blocks until the link is closed, and then
-    /// ends, which is what closing a socket does to a blocked read.
+    /// ends, which is what closing a socket does to a blocked read. Bytes in <paramref name="late"/> are read after
+    /// the close and before the end, as a frame already on its way when the link was closed would be.
     /// </summary>
-    private sealed class SilentAfter(byte[] said, ManualResetEventSlim closed) : Stream
+    private sealed class SilentAfter(byte[] said, ManualResetEventSlim closed, byte[]? late = null) : Stream
     {
+        private readonly byte[] afterClose = late ?? [];
         private int position;
+        private bool waited;
 
         public override bool CanRead => true;
 
@@ -334,16 +352,24 @@ public sealed class HandshakeTests : IDisposable
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (position < said.Length)
+            var source = waited ? afterClose : said;
+            if (position < source.Length)
             {
-                var n = Math.Min(count, said.Length - position);
-                Array.Copy(said, position, buffer, offset, n);
+                var n = Math.Min(count, source.Length - position);
+                Array.Copy(source, position, buffer, offset, n);
                 position += n;
                 return n;
             }
 
+            if (waited)
+            {
+                return 0;
+            }
+
             closed.Wait(TimeSpan.FromSeconds(10));
-            return 0;
+            waited = true;
+            position = 0;
+            return Read(buffer, offset, count);
         }
 
         public override void Flush()

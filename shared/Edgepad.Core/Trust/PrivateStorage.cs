@@ -34,4 +34,35 @@ internal static class PrivateStorage
             File.SetUnixFileMode(path, PrivateFile);
         }
     }
+
+    /// <summary>
+    /// Replaces <paramref name="path"/> whole: <paramref name="write"/> fills a private file beside it, which is then
+    /// moved over it. A crash, a full disk or a failed write leaves the old file as it was rather than truncated, so
+    /// what is on disk never falls behind what the caller still holds in memory. Throws what the write or the move
+    /// threw, after removing the half-written file beside it.
+    /// </summary>
+    public static void Replace(string path, Action<string> write)
+    {
+        var temp = path + ".tmp";
+        try
+        {
+            CreateDirectory(Path.GetDirectoryName(path) ?? ".");
+            PrepareFile(temp);
+            write(temp);
+            File.Move(temp, path, overwrite: true);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            try
+            {
+                File.Delete(temp);
+            }
+            catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException)
+            {
+                // The write's failure is the one worth reporting; a leftover temp file is overwritten next time.
+            }
+
+            throw;
+        }
+    }
 }

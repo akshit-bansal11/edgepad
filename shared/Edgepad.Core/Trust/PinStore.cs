@@ -471,13 +471,9 @@ internal sealed class PinStore(string directory, Func<long>? clock = null, int i
     /// </summary>
     private static bool Write(string path, string text)
     {
-        var temp = path + ".tmp";
         try
         {
-            PrivateStorage.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
-            PrivateStorage.PrepareFile(temp);
-            File.WriteAllText(temp, text);
-            File.Move(temp, path, overwrite: true);
+            PrivateStorage.Replace(path, temp => File.WriteAllText(temp, text));
             return true;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)

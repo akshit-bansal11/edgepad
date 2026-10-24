@@ -157,6 +157,32 @@ public sealed class PinGateTests : IDisposable
     }
 
     [Fact]
+    public void AnAnswerThatArrivesAsTheTimerGivesUpIsNotJudged()
+    {
+        // The race at the deadline, made certain: the answer comes back only once giveUp has closed the link,
+        // which is what a PIN landing just as the timer fires looks like. The link is dead, so the right PIN
+        // must not let it through, nor a wrong one cost the phone a try.
+        var store = StoreAtLevel(3);
+        using var closed = new ManualResetEventSlim();
+
+        Assert.False(PinGate.Run(
+            Phone,
+            store,
+            () =>
+            {
+                closed.Wait(TimeSpan.FromSeconds(10));
+                return Right;
+            },
+            sent.Add,
+            logs.Add,
+            closed.Set,
+            TimeSpan.FromMilliseconds(1)));
+        Assert.True(closed.IsSet);
+        Assert.Equal([new PinRequest(5, 0)], sent);
+        Assert.DoesNotContain(logs, line => line.Contains("PIN accepted", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void UnreadableSettingsCloseWithoutCountingTheAnswer()
     {
         var store = StoreAtLevel(3);

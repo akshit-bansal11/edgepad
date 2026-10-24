@@ -102,9 +102,7 @@ internal sealed class MacroStore : IMacroRunner
         {
             try
             {
-                PrivateStorage.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
-                PrivateStorage.PrepareFile(path);
-                File.WriteAllLines(path, clean.Select(Line));
+                PrivateStorage.Replace(path, temp => File.WriteAllLines(temp, clean.Select(Line)));
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {

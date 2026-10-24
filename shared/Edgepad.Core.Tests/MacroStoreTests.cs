@@ -6,8 +6,8 @@ namespace Edgepad.Tests;
 
 /// <summary>
 /// The sanitising is what is worth pinning here: a name that kept a '/' or a tab would split into two on the
-/// phone, and every button after it would run the wrong macro. Nothing here ever calls Run on an index that
-/// exists — a test that launched something would be a test that launched something on whoever ran it.
+/// phone, and every button after it would run the wrong macro. Run only ever reaches a recording launcher here,
+/// never the shell — a test that launched something would be a test that launched something on whoever ran it.
 /// </summary>
 public sealed class MacroStoreTests : IDisposable
 {
@@ -264,6 +264,13 @@ public sealed class MacroStoreTests : IDisposable
     {
         var store = NewStore();
         store.Save([new Macro("Kept", "one.exe", null)]);
+        var seen = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        using var arrived = new CountdownEvent(2);
+        using var watch = store.Watch(names =>
+        {
+            seen.Enqueue(names);
+            arrived.Signal();
+        });
 
         // A folder where the file should be fails the write the same way on Windows and on Linux.
         File.Delete(MacrosFile);
@@ -274,6 +281,16 @@ public sealed class MacroStoreTests : IDisposable
         Assert.False(string.IsNullOrEmpty(failure));
         Assert.Equal("Kept", Assert.Single(store.Macros).Name);
         Assert.Equal("Kept", store.Names());
+        Assert.False(File.Exists(MacrosFile + ".tmp"), "the failed write left its temporary file behind");
+
+        // A save that works afterwards is the fence: the watcher hears its opening report and this, and a phone
+        // told about the failed one would have heard a list that was never on disk.
+        Directory.Delete(MacrosFile);
+        Assert.Null(store.Save([new Macro("Again", "two.exe", null)]));
+        Assert.True(
+            arrived.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken),
+            "the watcher was never told");
+        Assert.Equal(["Kept", "Again"], seen);
     }
 
     [Fact]

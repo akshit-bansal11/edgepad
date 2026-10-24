@@ -69,10 +69,17 @@ internal static class PinGate
 
             // The read has no timeout of its own, so a phone that never answered would hold this thread and its
             // socket for as long as the link stayed up. Armed for each question, so a phone gets a full minute for
-            // every try rather than a minute for all five.
+            // every try rather than a minute for all five. The flag is claimed by whichever of the timer and the
+            // read gets there first, as in the handshake's wait for HELLO.
+            var expired = 0;
             using (new System.Threading.Timer(
                 _ =>
                 {
+                    if (Interlocked.Exchange(ref expired, 1) != 0)
+                    {
+                        return;
+                    }
+
                     log($"Refused {address}: no PIN within {(int)wait.TotalSeconds} s");
                     giveUp();
                 },
@@ -81,6 +88,12 @@ internal static class PinGate
                 Timeout.InfiniteTimeSpan))
             {
                 frame = read();
+            }
+
+            // An answer that came back after giveUp closed the link is not judged: the link it would admit is dead.
+            if (Interlocked.Exchange(ref expired, 1) != 0)
+            {
+                return false;
             }
 
             if (frame is not PinAnswer answer)

@@ -35,10 +35,18 @@ internal static class Handshake
         TimeSpan? pinTimeout = null)
     {
         var helloWait = helloTimeout ?? HelloTimeout;
+
+        // Claimed by whichever of the timer and the read gets there first; the other then does nothing.
+        var expired = 0;
         Frame first;
         using (new System.Threading.Timer(
             _ =>
             {
+                if (Interlocked.Exchange(ref expired, 1) != 0)
+                {
+                    return;
+                }
+
                 log($"Refused {address}: no HELLO within {(int)helloWait.TotalSeconds} s");
 
                 // Closing the socket is what ends the blocked read; the read loop then finishes the session as usual.
@@ -49,6 +57,14 @@ internal static class Handshake
             Timeout.InfiniteTimeSpan))
         {
             first = frames.ReadFrame();
+        }
+
+        // Disposing the timer does not wait for a callback already under way, so a HELLO landing right at the
+        // deadline can come back after giveUp has closed the link. Going on would ask the owner to trust a dead
+        // link, and at level 1 swap the live session for it.
+        if (Interlocked.Exchange(ref expired, 1) != 0)
+        {
+            return false;
         }
 
         if (first is not Hello hello)
