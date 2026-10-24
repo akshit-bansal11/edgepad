@@ -89,7 +89,7 @@ public sealed class PadTests
     }
 
     [Theory]
-    [InlineData(1, 0, 0)] // up
+    [InlineData(1, 0, -1)] // up: negative, since evdev's hat is positive down
     [InlineData(2, 0, 1)] // down: evdev's hat is positive down
     [InlineData(4, -1, 0)] // left
     [InlineData(8, 1, 0)] // right
