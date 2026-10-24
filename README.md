@@ -172,6 +172,7 @@ One script checks all three apps. It formats, lints, builds and tests; CI runs t
 ```powershell
 pwsh scripts/check.ps1                  # formats in place, then checks everything
 pwsh scripts/check.ps1 -Only android    # ktlint, Android lint (warnings are errors), unit tests
+pwsh scripts/check.ps1 -Only core       # the shared core on its own (CI runs it on Linux): format, build, tests
 pwsh scripts/check.ps1 -Only windows    # dotnet format, build (warnings are errors), tests
 pwsh scripts/check.ps1 -Only macos      # swift format lint --strict, swift build (warnings are errors), swift test; Mac only
 pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted code instead of fixing it

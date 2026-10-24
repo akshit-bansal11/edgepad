@@ -196,12 +196,12 @@ public sealed class PinStoreTests : IDisposable
     [Fact]
     public void AFileThatCannotBeReadFailsClosed()
     {
-        // Held open with no sharing, which is how a locked file looks on Windows. A phone verified before is asked
+        // A folder where the file should be: unreadable on every OS. A phone verified before is asked
         // again and cannot be answered: an unreadable PIN is never "no PIN".
         var store = StoreAtLevel(2);
         store.Check(Phone, Right);
 
-        using (new FileStream(SecurityFile, FileMode.Open, FileAccess.Read, FileShare.None))
+        using (new Blocked(SecurityFile))
         {
             Assert.True(store.Required(Phone));
             Assert.Equal(new PinResult.Unavailable(), store.Check(Phone, Right));
@@ -265,8 +265,8 @@ public sealed class PinStoreTests : IDisposable
         var store = StoreAtLevel(2);
         store.Check(Phone, Right);
 
-        // Held open with no sharing, so the delete fails; the phone is still on the list once the handle closes.
-        using (new FileStream(VerifiedFile, FileMode.Open, FileAccess.Read, FileShare.None))
+        // A folder where the file should be, so the delete fails; the phone is still on the list once the handle closes.
+        using (new Blocked(VerifiedFile))
         {
             Assert.False(store.ForgetVerified());
         }

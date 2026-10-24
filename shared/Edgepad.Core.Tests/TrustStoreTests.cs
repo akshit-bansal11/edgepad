@@ -114,12 +114,11 @@ public sealed class TrustStoreTests : IDisposable
     {
         // The security half of guarding the read. A file that is there and unreadable is not the same as
         // no file: treating it as one would put every phone to the owner again, and a yes would write a list
-        // of one over the phones the read could not see. Holding it open with no sharing is how a locked file
-        // actually looks on Windows, which is the only platform this app has.
+        // of one over the phones the read could not see. A folder where the file should be fails the read
+        // the same way on every OS.
         var store = NewStore();
         store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
-        using var held = new FileStream(
-            Path.Combine(dir, "trusted-phone.txt"), FileMode.Open, FileAccess.Read, FileShare.None);
+        using var held = new Blocked(Path.Combine(dir, "trusted-phone.txt"));
 
         Assert.False(store.Admit("(AA:BB:CC:DD:EE:FF)", Unasked));
         Assert.False(store.Admit("(11:22:33:44:55:66)", Unasked));
@@ -155,8 +154,7 @@ public sealed class TrustStoreTests : IDisposable
         // A phone not trusted yet is asked about, not refused before it gets that far.
         Assert.False(store.Refuses("(11:22:33:44:55:66)"));
 
-        using var held = new FileStream(
-            Path.Combine(dir, "trusted-phone.txt"), FileMode.Open, FileAccess.Read, FileShare.None);
+        using var held = new Blocked(Path.Combine(dir, "trusted-phone.txt"));
         Assert.True(store.Refuses("(AA:BB:CC:DD:EE:FF)"));
         Assert.True(store.Refuses("(11:22:33:44:55:66)"));
     }
@@ -285,8 +283,7 @@ public sealed class TrustStoreTests : IDisposable
         Assert.True(store.CanForget);
 
         // Unreadable refuses every phone, and Forget is the way out, so it must be offered.
-        using var held = new FileStream(
-            Path.Combine(dir, "trusted-phone.txt"), FileMode.Open, FileAccess.Read, FileShare.None);
+        using var held = new Blocked(Path.Combine(dir, "trusted-phone.txt"));
         Assert.True(store.CanForget);
     }
 
@@ -307,8 +304,7 @@ public sealed class TrustStoreTests : IDisposable
         // believes it is gone.
         var store = NewStore();
         store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
-        var held = new FileStream(
-            Path.Combine(dir, "trusted-phone.txt"), FileMode.Open, FileAccess.Read, FileShare.None);
+        var held = new Blocked(Path.Combine(dir, "trusted-phone.txt"));
 
         Assert.False(store.Forget());
         held.Dispose();
@@ -327,15 +323,33 @@ public sealed class TrustStoreTests : IDisposable
     [Fact]
     public void AFileThatCannotBeDeletedIsEmptiedInstead()
     {
-        // FileShare.ReadWrite without Delete: the delete hits a sharing violation while a write is still let
-        // through, which is a file that can be emptied but not removed.
+        // A file that can be emptied but not removed. Windows: FileShare.ReadWrite without Delete. Unix: deleting
+        // needs write access to the folder and emptying only needs it to the file, so the folder is made read-only.
+        // Root ignores modes, so there the test has nothing to simulate.
+        if (!OperatingSystem.IsWindows() && Environment.IsPrivilegedProcess)
+        {
+            return;
+        }
+
         var store = NewStore();
         store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
-        var held = new FileStream(
-            Path.Combine(dir, "trusted-phone.txt"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        FileStream? held = null;
+        if (OperatingSystem.IsWindows())
+        {
+            held = new FileStream(
+                Path.Combine(dir, "trusted-phone.txt"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        }
+        else
+        {
+            File.SetUnixFileMode(dir, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+        }
 
         Assert.True(store.Forget());
-        held.Dispose();
+        held?.Dispose();
+        if (!OperatingSystem.IsWindows())
+        {
+            File.SetUnixFileMode(dir, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+        }
 
         Assert.Equal("", File.ReadAllText(Path.Combine(dir, "trusted-phone.txt")));
         Assert.Empty(store.TrustedPhones);
