@@ -53,6 +53,10 @@ export type ProtocolTables = {
   textKinds: IdRow[];
   padButtons: IdRow[];
   padStatuses: IdRow[];
+  features: IdRow[];
+  signStatuses: IdRow[];
+  /** The annotation colours; each description is the fixture's hex. */
+  palette: IdRow[];
   /** Frames described here that no fixture line covers. Drift, surfaced on the page. */
   undescribedInFixture: string[];
 };
@@ -187,11 +191,11 @@ const ACTION_DOCS: Record<string, string> = {
   PAD_DETACH:
     "Asks the laptop to unplug the virtual controller. Sent when the gamepad screen closes; the laptop also unplugs it by itself when the session ends.",
   CAPTURE_REGION:
-    "Starts a region screenshot with the laptop's own tool: Win+Shift+S on Windows, Cmd+Shift+4 on a Mac. The drag happens on the laptop's screen.",
+    "Starts a region screenshot with the laptop's own tool: Win+Shift+S on Windows, Cmd+Shift+4 on a Mac, Print on Linux. The drag happens on the laptop's screen.",
   CAPTURE_SCREEN:
-    "Takes a screenshot of the whole screen: PrtScn on Windows, Cmd+Shift+3 on a Mac.",
+    "Takes a screenshot of the whole screen: PrtScn on Windows, Cmd+Shift+3 on a Mac, Print on Linux.",
   CAPTURE_RECORD:
-    "Starts screen recording: Win+Shift+R on Windows, which needs a recent Snipping Tool and is unverified, and Cmd+Shift+5 on a Mac, which opens the capture toolbar.",
+    "Starts screen recording: Win+Shift+R on Windows, which needs a recent Snipping Tool and is unverified, Cmd+Shift+5 on a Mac, which opens the capture toolbar, and on Linux the desktop's own shortcut, unverified (Ctrl+Shift+Alt+R on GNOME, Meta+Alt+R on KDE).",
   ANNOTATE_BEGIN:
     "Shows the annotation overlay on the laptop's primary display. PEN and the tool actions are dropped until it is shown or a signing surface is open.",
   ANNOTATE_END:
@@ -210,7 +214,7 @@ const ACTION_DOCS: Record<string, string> = {
   SIGN_BEGIN:
     "Opens a signing surface that shows nothing on the laptop and accepts only the pen tool.",
   SIGN_SAVE:
-    "Exports the strokes as a transparent PNG cropped to the ink, to the clipboard and to Pictures\\Edgepad, then answers with TEXT 11.",
+    "Exports the strokes as a transparent PNG cropped to the ink, to the clipboard and to an Edgepad folder in Pictures, never over an earlier file, then answers with TEXT 11.",
   MACRO_BASE:
     "The first of 32 reserved macro slots (ids 64-95). Slot n runs as MACRO_BASE + n. The phone sends the index; the laptop's own list decides what it opens.",
 };
@@ -281,6 +285,19 @@ const PAD_STATUS_DOCS: Record<string, string> = {
     "The driver is there but plugging the pad in did not work. The pad falls back to keys.",
 };
 
+const FEATURE_DOCS: Record<string, string> = {
+  ANNOTATE:
+    "The laptop can show the annotation overlay and a signing surface. The phone shows an Annotate tile only for a laptop that names this.",
+  CAPTURE:
+    "The laptop can start its own screenshot and screen-recording tools. The phone shows a Capture tile only for a laptop that names this.",
+};
+
+const SIGN_STATUS_DOCS: Record<string, string> = {
+  SAVED: "The signature was exported to a PNG and put on the clipboard.",
+  EMPTY: "Nothing had been drawn, so nothing was saved.",
+  FAILED: "The file could not be saved, or every clipboard route failed.",
+};
+
 function read(file: string): string[] {
   const raw = readFileSync(path.join(PROTOCOL_DIR, file), "utf8");
   return raw
@@ -331,7 +348,16 @@ function parseFrames(): FrameRow[] {
   return [...byName.values()].sort((a, b) => a.type.localeCompare(b.type));
 }
 
-const ID_KINDS = ["ACTION", "CONTROL", "TEXT", "PAD_BUTTON", "PAD_STATUS"] as const;
+const ID_KINDS = [
+  "ACTION",
+  "CONTROL",
+  "TEXT",
+  "PAD_BUTTON",
+  "PAD_STATUS",
+  "FEATURE",
+  "SIGN_STATUS",
+  "PALETTE",
+] as const;
 type IdKind = (typeof ID_KINDS)[number];
 
 type ParsedIds = Record<IdKind, IdRow[]> & { HANDSHAKE: Map<string, string> };
@@ -346,6 +372,9 @@ function parseIds(): ParsedIds {
     TEXT: [],
     PAD_BUTTON: [],
     PAD_STATUS: [],
+    FEATURE: [],
+    SIGN_STATUS: [],
+    PALETTE: [],
     HANDSHAKE: new Map(),
   };
 
@@ -355,6 +384,9 @@ function parseIds(): ParsedIds {
     TEXT: TEXT_DOCS,
     PAD_BUTTON: PAD_BUTTON_DOCS,
     PAD_STATUS: PAD_STATUS_DOCS,
+    FEATURE: FEATURE_DOCS,
+    SIGN_STATUS: SIGN_STATUS_DOCS,
+    PALETTE: {},
   };
 
   for (const line of read("actions.txt")) {
@@ -372,7 +404,9 @@ function parseIds(): ParsedIds {
     // stops parsing altogether.
     if (!isIdKind(kind)) continue;
 
-    const description = docsFor[kind][name];
+    // Only a palette row has a fourth field: its colour, which is its description.
+    const hex = kind === "PALETTE" ? parts[3] : undefined;
+    const description = hex ? `#${hex}` : docsFor[kind][name];
     out[kind].push({
       id,
       name,
@@ -409,6 +443,15 @@ function assertParsed(tables: Omit<ProtocolTables, "undescribedInFixture">): voi
   if (tables.padStatuses.length === 0) {
     problems.push("no PAD_STATUS tokens parsed from protocol/actions.txt");
   }
+  if (tables.features.length === 0) {
+    problems.push("no FEATURE tokens parsed from protocol/actions.txt");
+  }
+  if (tables.signStatuses.length === 0) {
+    problems.push("no SIGN_STATUS tokens parsed from protocol/actions.txt");
+  }
+  if (tables.palette.length === 0) {
+    problems.push("no PALETTE rows parsed from protocol/actions.txt");
+  }
   if (!Number.isInteger(tables.version) || tables.version < 1) {
     problems.push("HANDSHAKE VERSION is not a positive integer");
   }
@@ -441,6 +484,9 @@ export function loadProtocol(): ProtocolTables {
     textKinds: ids.TEXT,
     padButtons: ids.PAD_BUTTON,
     padStatuses: ids.PAD_STATUS,
+    features: ids.FEATURE,
+    signStatuses: ids.SIGN_STATUS,
+    palette: ids.PALETTE,
   };
   assertParsed(tables);
 

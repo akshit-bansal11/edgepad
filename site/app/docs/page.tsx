@@ -49,10 +49,10 @@ export default function DocsPage() {
             Everything Edgepad does, and how.
           </h1>
           <p className="text-dim mt-5 max-w-[64ch] text-base leading-relaxed md:text-lg">
-            Install, the control surface, both apps&apos; architecture, the wire
-            protocol and the developer guide. The protocol tables below are generated
-            from the same fixtures both test suites read, so this page cannot drift from
-            the two apps.
+            Install, the control surface, the apps&apos; architecture, the wire protocol
+            and the developer guide. The protocol tables below are generated from the
+            same fixtures every test suite reads, so this page cannot drift from the
+            apps.
           </p>
         </div>
 

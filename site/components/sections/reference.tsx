@@ -23,7 +23,7 @@ const DECISIONS: Decision[] = [
     id: "csharp",
     question: "Why C# on .NET for the laptop half?",
     answer:
-      "The Windows Bluetooth (WinRT), SendInput, Core Audio and WMI APIs are all first-class from .NET, and a self-contained single-file exe needs nothing installed on the laptop.",
+      "The Windows Bluetooth (WinRT), SendInput, Core Audio and WMI APIs are all first-class from .NET, and a self-contained single-file exe needs nothing installed on the laptop. The Linux app is C# too, so it shares the protocol, trust and dispatch code with the Windows one.",
     rejected: "Python, which was left open as a choice.",
   },
   {
@@ -60,7 +60,7 @@ const DECISIONS: Decision[] = [
     id: "trust",
     question: "Why trust on first use rather than a pairing code?",
     answer:
-      "Bluetooth pairing already happened in Windows Settings, and re-asking for a code would be a second, weaker version of a step the OS did properly. Each phone is asked about once and remembered by address when the owner says yes; the tray menu has Forget trusted phones, which forgets them all.",
+      "Bluetooth pairing already happened in the laptop's own Bluetooth settings, and re-asking for a code at every connection would be a second, weaker version of a step the OS did properly. Each phone is asked about once and remembered by address when the owner says yes; the tray menu has Forget trusted phones, which forgets them all. Since 4.0.0 the owner can choose level 2 or 3 to add a six-digit PIN on top. It is only a million values, so what stops guessing is the lock-out, and pairing stays the gate.",
   },
   {
     id: "drop",
@@ -224,8 +224,13 @@ const LIMITS: Limit[] = [
   },
   {
     title: "The Mac app has not been run on a real Mac",
-    body: "It has been compiled and unit-tested in CI. Nothing that touches Bluetooth, input injection, audio or the display has been exercised on hardware, and it has no macros, now playing, level readout or virtual controller yet.",
+    body: "It has been compiled and unit-tested in CI. Nothing that touches Bluetooth, input injection, audio or the display has been exercised on hardware, and it has no now playing, level readout or virtual controller yet.",
     kind: "accepted",
+  },
+  {
+    title: "The Linux app has not been seen working on a Linux laptop",
+    body: "It is built and unit-tested in CI. Nothing that touches BlueZ, uinput, the sound server, the tray or the annotation overlay has been seen working on a Linux laptop. The shortcuts behind task view, show desktop, search, notifications and switching desktops are chosen per desktop for GNOME and KDE and were written from memory, a desktop that is neither drops them, and on Wayland annotate is best effort because the compositor may ignore the overlay's always-on-top request. docs/LINUX.md lists every unverified item.",
+    kind: "unverified",
   },
   {
     title: "Artifact sizes",
@@ -235,6 +240,12 @@ const LIMITS: Limit[] = [
 ];
 
 const HISTORY: { version: string; date: string; summary: string }[] = [
+  {
+    version: "4.0.0",
+    date: "2026-10-24",
+    summary:
+      "A Linux app, and a laptop that can ask for a PIN. The wire protocol moves to version 5. The Linux tray app joins Windows and the Mac, on a shared core. Security levels 1 to 3 add a six-digit PIN asked on the phone's own keypad, with a lock-out after wrong answers. Controls opens the keyboard, the gamepad, Capture and Annotate; Annotate makes the phone an absolute pen for the laptop screen, Sign saves a signature as a transparent PNG, and Capture asks the laptop for its own screenshot or recording tool. Split corners gives each corner two dials. The macro deck can be rearranged and drops the card behind each button, and the Mac gets a macro list. Mac and Linux are still in testing.",
+  },
   {
     version: "3.0.0",
     date: "2026-09-24",
@@ -340,8 +351,8 @@ export function ReferenceSections() {
         <Sub>Not goals</Sub>
         <P>
           No account, no server, no telemetry, and no web deployment: Edgepad ships as
-          two native binaries from GitHub Releases and there is nothing to host. The
-          link does not reach another room or the internet, and it is not meant to.
+          native apps from GitHub Releases and there is nothing to host. The link does
+          not reach another room or the internet, and it is not meant to.
         </P>
       </Section>
 
@@ -380,8 +391,8 @@ export function ReferenceSections() {
           The two apps refuse each other at the handshake when their protocol versions
           differ, and say so. 1.0.0 through 2.3.0 all speak version 3, so any two of
           them interoperate, and only the matching pair knows about the newer controls.
-          3.0.0 speaks version 4 and refuses all of them outright, which is what a new
-          frame type costs.
+          3.0.0 through 3.5.0 speak version 4 and 4.0.0 speaks version 5; each refuses
+          the others outright, which is what a new frame type costs.
         </Note>
       </Section>
 
@@ -426,6 +437,13 @@ export function ReferenceSections() {
             </ExternalLink>{" "}
             (to draw the mark and the logos, Apache 2.0), and on JUnit for its tests
             only.
+          </li>
+          <li>
+            The Linux app depends on{" "}
+            <ExternalLink href="https://avaloniaui.net">Avalonia</ExternalLink>,
+            Avalonia.Desktop and Avalonia.Themes.Fluent (all 12.1.4, for the tray and
+            the windows, MIT) and Tmds.DBus.Protocol (0.94.1, for D-Bus, which BlueZ
+            speaks, MIT). Each licence was read from the package&apos;s own nuspec.
           </li>
           <li>
             The virtual controller itself is{" "}
