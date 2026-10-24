@@ -17,7 +17,7 @@ import me.akshitbansal.edgepad.Type
 private const val MAX_ICON_PX = 256
 
 /** Which deck this is, to [Settings]: the order and the grid are kept per deck. */
-private const val DECK = "macros"
+internal const val MACRO_DECK = "macros"
 
 // The empty state: a tile with the macro glyph in it, over a heavy title.
 private const val EMPTY_TILE_DP = 64f
@@ -42,9 +42,10 @@ private const val EMPTY_ICON_DP = 30f
  * built the whole screen again, which threw away where TalkBack was and decoded every picture in the grid
  * once for each picture that arrived.
  *
- * Arranging the grid (**Edit layout**, the order, the rows and columns) is [DeckPage]'s. It is all
- * phone-side drawing: a tile's [DeckTile.tag] is the laptop's slot index, so a tap hands back the slot and
- * never the tile's place on screen, and the order can be anything without a macro running the wrong thing.
+ * Arranging the grid (pressing and holding a tile to drag it, the gear for [MacroSettingsScreen]) is
+ * [DeckPage]'s. It is all phone-side drawing: a tile's [DeckTile.tag] is the laptop's slot index, so a tap
+ * hands back the slot and never the tile's place on screen, and the order can be anything without a macro
+ * running the wrong thing.
  */
 class MacroScreen(
     private val ui: Ui,
@@ -53,6 +54,7 @@ class MacroScreen(
     private val icon: (Int) -> ByteArray?,
     labels: Boolean,
     onRun: (index: Int) -> Unit,
+    onSettings: () -> Unit,
     onBack: () -> Unit,
 ) {
     private var slots: List<IndexedValue<String>> = emptyList()
@@ -61,12 +63,13 @@ class MacroScreen(
         DeckPage(
             ui,
             settings,
-            DECK,
+            MACRO_DECK,
             title = ui.string(R.string.macros_title),
             backLabel = ui.string(R.string.back_to_surface),
             onBack = onBack,
             labels = labels,
             empty = ::emptyState,
+            onSettings = onSettings,
             // The laptop's slot, never the tile's place in the deck: the order on screen is only a drawing.
             onTap = { tile -> onRun(tile.tag) },
         )

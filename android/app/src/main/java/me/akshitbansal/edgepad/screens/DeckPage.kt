@@ -3,7 +3,6 @@ package me.akshitbansal.edgepad.screens
 import android.graphics.drawable.Drawable
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.R
@@ -12,11 +11,11 @@ import me.akshitbansal.edgepad.Space
 
 /**
  * A page that is a [Deck] under a nav bar, with everything the macro grid and the Controls grid share:
- * the **Edit layout** chip, tiles dragged (or moved by a screen reader's actions) into the owner's order,
- * the picker for how many rows and columns the grid has, and the measuring of the room the grid is drawn in.
- * Both are phone-side drawing choices kept per [deckId]. A tap hands back the [DeckTile] it was given,
- * never its place on screen, so a screen whose tiles stand for something on the laptop (a macro slot) puts
- * that in [DeckTile.tag] and can be arranged freely without running the wrong thing.
+ * tiles pressed and held, then dragged (or moved by a screen reader's actions) into the owner's order, an
+ * optional settings button in the bar, and the measuring of the room the grid is drawn in. The order and
+ * the grid ([MacroSettingsScreen]) are phone-side drawing choices kept per [deckId]. A tap hands back the
+ * [DeckTile] it was given, never its place on screen, so a screen whose tiles stand for something on the
+ * laptop (a macro slot) puts that in [DeckTile.tag] and can be arranged freely without running the wrong thing.
  *
  * An owner supplies tiles with [show], and only what differs between owners stays with them: what the tiles
  * are, what a tap does, and [empty], the state drawn when there are no tiles.
@@ -30,6 +29,7 @@ class DeckPage(
     onBack: () -> Unit,
     private val labels: Boolean,
     private val empty: ((LinearLayout) -> Unit)? = null,
+    onSettings: (() -> Unit)? = null,
     private val onTap: (DeckTile) -> Unit,
 ) {
     private var tiles: List<DeckTile> = emptyList()
@@ -39,20 +39,16 @@ class DeckPage(
 
     // The nav bar every sub-screen has, back with the name centred. It costs the grid no row: the title sits
     // in the bar's own height, which [measureRoom] takes off the page.
-    // Editing is not remembered across a rebuild on purpose: turning the phone mid-edit puts the deck back in
-    // live mode, with the order already saved by every move.
-    private var editing = false
-    private val edit = ui.chip(ui.string(R.string.macros_edit)) { toggleEditing() }
-    private val bar = ui.bar(title, onBack, edit, backLabel = backLabel)
+    private val gear = onSettings?.let { ui.icon(Glyph.Shape.GEAR, ui.string(R.string.macros_settings), it) }
+    private val bar = ui.bar(title, onBack, *listOfNotNull(gear).toTypedArray(), backLabel = backLabel)
     private lateinit var holder: LinearLayout
 
     /** The tiles in the order they are drawn, as indexes into [tiles], and the stored-order key of each tile. */
     private var shown: List<Int> = emptyList()
     private var keys: List<String> = emptyList()
 
-    /** The (rows, columns) grids the picker offers, and the picker itself while in edit mode. */
+    /** The (rows, columns) grids the room can draw, for telling a stored column count that no longer fits. */
     private var fits: List<Pair<Int, Int>> = emptyList()
-    private var picker: View? = null
 
     val view: View =
         ui.page(bar) {
@@ -66,8 +62,8 @@ class DeckPage(
     private val deck = Deck(ui, holder)
 
     init {
-        // Where a moved tile landed is spoken from here; see [moved].
-        edit.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+        // Where a moved tile landed is spoken from the bar, which outlives every rebuild of the grid; see [moved].
+        bar.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
         // The grid is sized from the room the page really has, which is known only once the window's insets
         // have reached it, rather than from the display's size less a guess at the system bars.
         view.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
@@ -93,27 +89,12 @@ class DeckPage(
     ) {
         if (tiles.none { it.tag == tag }) return
         tiles = tiles.map { if (it.tag == tag) it.copy(picture = picture) else it }
-        // Editing redraws whole: the deck's own rebuild (when the last picture lets the labels go) would take
-        // the picker out of the holder with it.
-        if (editing) draw() else deck.setPicture(tag, picture)
-    }
-
-    private fun toggleEditing() {
-        editing = !editing
-        edit.text = ui.string(if (editing) R.string.macros_edit_done else R.string.macros_edit)
-        edit.stateDescription = null
-        render()
+        deck.setPicture(tag, picture)
     }
 
     private fun render() {
         deck.clear()
-        picker = null
-        // Nothing to arrange in an empty state.
-        edit.visibility = if (tiles.isEmpty()) View.GONE else View.VISIBLE
         if (tiles.isEmpty()) {
-            // Nothing left to arrange, and the chip is hidden: leave edit mode so it is not stuck on Done.
-            editing = false
-            edit.text = ui.string(R.string.macros_edit)
             holder.gravity = Gravity.CENTER
             empty?.invoke(holder)
             return
@@ -122,32 +103,16 @@ class DeckPage(
         val (across, down) = room ?: return
         keys = tiles.map { it.key }
         shown = DeckLayout.order(settings.deckOrder(deckId), keys)
-        // Offered against the height the deck is drawn at, so a grid the picker lists is one it can really draw.
-        fits = DeckLayout.fitting(tiles.size, across, deckDown(down), ui.dp(Space.S), ui.dp(Space.TOUCH))
-        if (editing) picker = gridPicker()
+        fits = DeckLayout.fitting(tiles.size, across, down, ui.dp(Space.S), ui.dp(Space.TOUCH))
         draw()
     }
 
-    /** Draws the deck from [shown], and under it the picker when editing. Both survive a move or a pick. */
+    /** Draws the deck from [shown]. It survives a move. */
     private fun draw() {
         val (across, down) = room ?: return
         // A stored grid that is no longer on offer (a tile was added, the screen turned) falls back to automatic.
         val columns = settings.deckColumns(deckId).takeIf { stored -> fits.any { it.second == stored } }
-        deck.render(
-            across,
-            deckDown(down),
-            shown.map { tiles[it] },
-            labels,
-            columns,
-            onMove = if (editing) ::moved else null,
-            onTap = onTap,
-        )
-        picker?.let {
-            holder.addView(
-                it,
-                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
-            )
-        }
+        deck.render(across, down, shown.map { tiles[it] }, labels, columns, onMove = ::moved, onTap = onTap)
     }
 
     /** The tile at display place [from] was dropped on [to]. Saved on every move, so leaving loses nothing. */
@@ -159,36 +124,10 @@ class DeckPage(
         settings.setDeckOrder(deckId, shown.map { keys[it] })
         draw()
         // The rebuilt grid took the screen reader's place with it, and taking its focus back is not the app's
-        // to do. It is told where the tile went instead, through the chip that outlives every rebuild. Cleared
+        // to do. It is told where the tile went instead, through the bar that outlives every rebuild. Cleared
         // first, so the same place twice running is still a change, and is read out again.
-        edit.stateDescription = null
-        edit.stateDescription = ui.string(R.string.macros_moved, to + 1, shown.size)
-    }
-
-    /** The height the deck is drawn at: half the room while editing, so the picker below is not a scroll away. */
-    private fun deckDown(down: Int) = if (editing) down / 2 else down
-
-    /** "Automatic" and each grid [fits], the chosen one checked. A pick redraws the deck and keeps the list. */
-    private fun gridPicker(): View {
-        val stored = settings.deckColumns(deckId)
-        val chosen = fits.indexOfFirst { it.second == stored } + 1
-        val names =
-            listOf(ui.string(R.string.macros_grid_auto)) +
-                fits.map { (rows, columns) -> ui.string(R.string.macros_grid_choice, rows, columns) }
-        return LinearLayout(ui.context).apply {
-            orientation = LinearLayout.VERTICAL
-            Column(ui, this).apply {
-                section(ui.string(R.string.macros_grid_title))
-                card {
-                    add(
-                        ui.choices(names, chosen) { pick ->
-                            settings.setDeckColumns(deckId, if (pick == 0) 0 else fits[pick - 1].second)
-                            draw()
-                        },
-                    )
-                }
-            }
-        }
+        bar.stateDescription = null
+        bar.stateDescription = ui.string(R.string.macros_moved, to + 1, shown.size)
     }
 
     /**

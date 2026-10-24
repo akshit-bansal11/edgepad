@@ -242,6 +242,52 @@ class LaptopStateTest {
     }
 
     @Test
+    fun anUnchangedMacroKeepsItsIconWhenTheListIsSentAgain() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes"))
+        val png = bytes(30)
+        chunks(slot = 0, png = png).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        // A third macro was added: the first two have not changed, so the cache still holds the first one.
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes/Spotify"))
+
+        assertArrayEquals(png, state.macroIcon(0))
+    }
+
+    @Test
+    fun aDeletedMacroLosesItsIconAndTheOthersKeepTheirs() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes/Spotify"))
+        val png = bytes(30)
+        chunks(slot = 0, png = png).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+        chunks(slot = 2, png = png).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        // Spotify is gone from the list.
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes"))
+
+        assertArrayEquals(png, state.macroIcon(0))
+        assertNull(state.macroIcon(2))
+    }
+
+    @Test
+    fun aMacroBlankedInTheListLosesItsIcon() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes"))
+        chunks(slot = 1, png = bytes(30)).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/"))
+
+        assertNull(state.macroIcon(1))
+    }
+
+    @Test
+    fun anEmptyListEmptiesTheCache() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome"))
+        chunks(slot = 0, png = bytes(30)).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        state.take(Frame.Text(TextKind.MACROS.id, ""))
+
+        assertNull(state.macroIcon(0))
+    }
+
+    @Test
     fun anIconSentAgainReplacesTheOneBeforeIt() {
         val first = bytes(30)
         val second = bytes(600)

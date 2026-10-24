@@ -214,15 +214,21 @@ class LaptopState {
 
     /** "Chrome/Spotify/Notes": one name per macro slot, in the order MACRO_BASE indexes them. */
     private fun macroNames(text: String): List<String> {
-        // A new list means the slots mean something else, so an icon kept against a slot number would end up
-        // on whatever moved into it. The phone asks for them again when it sees this.
-        icons.clear()
-        parts.clear()
         // A blank name keeps its slot rather than being dropped: the phone sends an index, so removing the
         // empty name from "Chrome//Notes" would put Notes where the laptop expects the missing slot and
         // launch the wrong thing. Anything past the reserved block has no action id to reach it.
         val names = text.split('/').take(MACRO_SLOTS).map(String::trim)
-        return if (names.none { it.isNotEmpty() }) emptyList() else names
+        val list = if (names.none { it.isNotEmpty() }) emptyList() else names
+        // The cache is keyed by slot and name together: a slot whose macro is deleted, renamed or replaced by
+        // another loses its icon, since one kept against the number would end up on whatever moved into it,
+        // and one that is unchanged keeps it, so the grid opens with its pictures already there. A macro whose
+        // icon alone was edited is sent again after this list (see wantsIcons) and replaces the old one.
+        icons.keys.retainAll { slot ->
+            val name = list.getOrNull(slot)
+            !name.isNullOrEmpty() && name == macros.getOrNull(slot)
+        }
+        parts.clear()
+        return list
     }
 
     companion object {

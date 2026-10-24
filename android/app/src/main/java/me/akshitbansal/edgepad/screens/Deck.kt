@@ -1,9 +1,7 @@
 package me.akshitbansal.edgepad.screens
 
 import android.content.ClipData
-import android.graphics.Color
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.TextPaint
 import android.text.TextUtils
@@ -31,10 +29,6 @@ private const val ICON_MIN_DP = 16f
  */
 private const val LABEL_SCALE = 0.08f
 private const val LABEL_MAX_SP = 18f
-
-// The edit-mode outline: dashes, so it reads as "can be moved" rather than as a button's border.
-private const val DASH_DP = 4f
-private const val DASH_GAP_DP = 3f
 
 /** How faint the tile under a dragged one goes, to show that it is where the drop would land. */
 private const val DROP_ALPHA = 0.5f
@@ -84,7 +78,7 @@ class Deck(
     private var columns: Int? = null
     private var across = 0
     private var down = 0
-    private var onMove: ((from: Int, to: Int) -> Unit)? = null
+    private var onMove: (from: Int, to: Int) -> Unit = { _, _ -> }
     private var onTap: (DeckTile) -> Unit = {}
     private var grid: Grid? = null
     private val buttons = HashMap<Int, TextView>()
@@ -93,9 +87,9 @@ class Deck(
      * Draws [tiles] into the room, [across] by [down] pixels. [columns] fixes how many stand across a row;
      * null lets the room decide. [labels] off draws a tile that has a picture without its name.
      *
-     * [onMove] non-null is edit mode: a tap runs nothing, and a tile is dragged (or moved by a TalkBack
-     * action) to another tile's place, reporting the two display positions. It never says what a tile
-     * does; [onTap] is how live mode reaches the tile's [DeckTile.tag].
+     * A tap runs the tile through [onTap], which is how the owner reaches its [DeckTile.tag]. Pressing and holding
+     * one starts a drag (or a TalkBack action moves it) to another tile's place, reporting the two display
+     * positions through [onMove].
      */
     fun render(
         across: Int,
@@ -103,7 +97,7 @@ class Deck(
         tiles: List<DeckTile>,
         labels: Boolean,
         columns: Int?,
-        onMove: ((from: Int, to: Int) -> Unit)?,
+        onMove: (from: Int, to: Int) -> Unit,
         onTap: (DeckTile) -> Unit,
     ) {
         this.across = across
@@ -269,25 +263,19 @@ class Deck(
         ui.text("", grid.labelSp, ui.palette.ink, face = Type.bold).apply {
             gravity = Gravity.CENTER
             minHeight = ui.dp(Space.BUTTON)
-            val move = onMove
-            if (move == null) {
-                ui.tappable(this, Space.PANEL_RADIUS) { onTap(tile) }
-            } else {
-                reorderable(this, tile, position, move)
-            }
+            ui.tappable(this, Space.PANEL_RADIUS) { onTap(tile) }
+            reorderable(this, tile, position, onMove)
             // A long name is cut rather than wrapped, so every button in the grid stays one row tall.
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
-            // Spoken as the laptop spells it, and named the same way when the label is not drawn at all. In edit
-            // mode a tap runs nothing, so the tile must not be announced as something that runs.
-            val spoken = if (move == null) tile.spoken else R.string.macros_reorder
-            contentDescription = ui.string(spoken, tile.label)
+            // Spoken as the laptop spells it, and named the same way when the label is not drawn at all.
+            contentDescription = ui.string(tile.spoken, tile.label)
             buttons[tile.tag] = this
             dress(this, tile, grid)
         }
 
     /**
-     * Edit mode for one tile: a dashed outline, a long press that starts a drag, and the same move as two
+     * Moving one tile: a long press that starts a drag, and the same move as two
      * TalkBack actions, since a drag cannot be made without sight. A drop onto a tile puts the dragged one
      * in that tile's place. The move is posted rather than made inside the drop, because it rebuilds the
      * grid and with it the very views the drag is still being dispatched to.
@@ -298,13 +286,6 @@ class Deck(
         position: Int,
         move: (from: Int, to: Int) -> Unit,
     ) {
-        button.isFocusable = true
-        button.background =
-            GradientDrawable().apply {
-                setColor(Color.TRANSPARENT)
-                setStroke(ui.dp(Space.HAIR), ui.palette.dim, ui.dp(DASH_DP).toFloat(), ui.dp(DASH_GAP_DP).toFloat())
-                cornerRadius = ui.dp(Space.PANEL_RADIUS).toFloat()
-            }
         button.setOnLongClickListener {
             it.startDragAndDrop(ClipData.newPlainText(tile.key, tile.key), View.DragShadowBuilder(it), position, 0)
         }

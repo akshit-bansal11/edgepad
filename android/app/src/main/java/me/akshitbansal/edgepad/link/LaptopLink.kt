@@ -9,6 +9,7 @@ import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.FrameCodec
 import me.akshitbansal.edgepad.protocol.Pin
 import me.akshitbansal.edgepad.protocol.ProtocolConstants
+import me.akshitbansal.edgepad.protocol.TextKind
 import java.io.DataInputStream
 import java.io.EOFException
 import java.io.IOException
@@ -208,6 +209,9 @@ class LaptopLink(
                     val ms = (System.nanoTime() - frame.time) / NANOS_PER_MS
                     deliver { it.onRoundTrip(ms) }
                 } else {
+                    // Asked for here, ahead of the main thread, so the pictures are on their way before any
+                    // screen wants them and are cached by the time the macro screen opens.
+                    if (wantsIcons(frame)) send(TextKind.WANT_ICONS.frame(""))
                     deliver { it.onFrame(frame) }
                 }
             }
@@ -385,3 +389,12 @@ internal fun closureFor(request: Frame.PinRequest): LaptopLink.Closure? =
     } else {
         null
     }
+
+/**
+ * True for a macro list with at least one name in it: the cue to ask the laptop for the icons. The list
+ * arrives once the handshake is done and again whenever a macro is added or edited, so asking on every one
+ * of them fetches the pictures as soon as the link is up and again for a new or changed macro. Pure, so a
+ * test can cover it without a socket.
+ */
+internal fun wantsIcons(frame: Frame): Boolean =
+    frame is Frame.Text && frame.kind == TextKind.MACROS.id && frame.text.isNotBlank()
