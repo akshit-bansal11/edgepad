@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Edgepad Design Specification</title>
+<!-- The source of docs/design/edgepad-design-spec.pdf and .docx, which the `design-doc` CI job renders:
+     Chrome prints the PDF, LibreOffice converts the DOCX. Every value here is read from the app's code
+     (android/.../Palette.kt, res/values*/colors.xml, surface/RulerPainter.kt, surface/ControlSurface.kt)
+     or the site's globals.css; change it there first, then here. -->
+<style>
+  @font-face { font-family: "Lato"; font-weight: 400; src: url("../../windows/src/Edgepad/Fonts/Lato-Regular.ttf"); }
+  @font-face { font-family: "Lato"; font-weight: 700; src: url("../../windows/src/Edgepad/Fonts/Lato-Bold.ttf"); }
+  @font-face { font-family: "Lato"; font-weight: 900; src: url("../../windows/src/Edgepad/Fonts/Lato-Black.ttf"); }
+  @page { size: A4; margin: 18mm 16mm 20mm; }
+  :root { --ground: #F2F3F7; --card: #FFFFFF; --line: #E3E5EA; --ink: #16171A; --dim: #6B6E76; --blue: #0068D6; --blue-soft: #E6F0FC; }
+  html { background: #FFFFFF; }
+  body { font-family: "Lato", Arial, sans-serif; color: var(--ink); font-size: 10.5pt; line-height: 1.45; margin: 0; }
+  h1 { font-weight: 900; font-size: 30pt; letter-spacing: -0.01em; line-height: 1.05; margin: 0 0 6pt; }
+  h2 { font-weight: 900; font-size: 20pt; letter-spacing: -0.01em; margin: 0 0 4pt; page-break-before: always; break-before: page; }
+  h2 .n { color: var(--blue); }
+  h3 { font-weight: 700; font-size: 12.5pt; margin: 16pt 0 4pt; }
+  p { margin: 0 0 7pt; }
+  .lede { color: var(--dim); font-size: 11.5pt; margin-bottom: 12pt; }
+  .blue { color: var(--blue); }
+  table { border-collapse: collapse; width: 100%; margin: 6pt 0 10pt; font-size: 9.5pt; }
+  th { text-align: left; font-weight: 700; color: var(--dim); font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1.5pt solid var(--ink); padding: 4pt 6pt; }
+  td { border-bottom: 0.75pt solid var(--line); padding: 5pt 6pt; vertical-align: top; }
+  td.sw { width: 34pt; border: 0.75pt solid var(--line); }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 9pt; }
+  .cover { height: 250mm; display: flex; flex-direction: column; justify-content: space-between; }
+  .cover .mark { width: 96pt; height: 96pt; }
+  .cover h1 { font-size: 46pt; margin-top: 18pt; }
+  .cover .meta { color: var(--dim); font-size: 10pt; }
+  .pair { display: flex; gap: 14pt; margin: 8pt 0 12pt; }
+  .pair > div { flex: 1; border-radius: 14pt; padding: 18pt; text-align: center; }
+  .pair svg { width: 110pt; height: 110pt; }
+  .specimen { border-top: 0.75pt solid var(--line); padding: 6pt 0; }
+  .note { background: var(--blue-soft); border-radius: 10pt; padding: 8pt 12pt; margin: 8pt 0 12pt; }
+  ul { margin: 0 0 8pt 16pt; padding: 0; }
+  li { margin-bottom: 3pt; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div>
+    <svg class="mark" viewBox="0 0 1024 1024" role="img" aria-label="The Edgepad mark">
+      <path fill="#1B1C20" d="M354.65 0H669.35C771.47 0 822.53 0 868.58 15.2C937.64 37.99 986.01 86.36 1008.8 155.42C1024 201.47 1024 252.53 1024 354.65V669.35C1024 771.47 1024 822.53 1008.8 868.58C986.01 937.64 937.64 986.01 868.58 1008.8C822.53 1024 771.47 1024 669.35 1024H354.65C252.53 1024 201.47 1024 155.42 1008.8C86.36 986.01 37.99 937.64 15.2 868.58C0 822.53 0 771.47 0 669.35V354.65C0 252.53 0 201.47 15.2 155.42C37.99 86.36 86.36 37.99 155.42 15.2C201.47 0 252.53 0 354.65 0Z"/>
+      <g fill="none" stroke-width="72" stroke-linecap="round" transform="matrix(1.2 0 0 1.2 -102.4 -102.4)"><path stroke="#F2F3F5" d="M394 744H224M420.6 610.1L263.6 545M610.1 420.6L545 263.6M744 394V224"/><path stroke="#4DA3FF" d="M496.5 496.5L348 348M504 744A240 240 0 0 1 744 504"/></g>
+    </svg>
+    <h1>Edgepad<br><span class="blue">Design Specification</span></h1>
+    <p class="lede">The brand, the colours, the type, the spacing, the components and the motion of Edgepad 4.0, on the phone, the laptop, the website and in video.</p>
+  </div>
+  <div class="meta">Version 4.0.0 · October 2026 · github.com/akshit-bansal11/edgepad<br>Every value in this document is read from the shipped code. Where this document and the code disagree, the code wins.</div>
+</section>
+
+<h2><span class="n">1</span> Principles</h2>
+<p class="lede">Edgepad is a tool you reach for from across a room. The design serves that.</p>
+<ul>
+  <li><b>Calm by default, blue when it matters.</b> One accent colour, used only for what is selected, on, live, or the main action. Everything else is ink, grey and soft surfaces.</li>
+  <li><b>Readable at a glance.</b> Dials read like a progress bar bent around a corner; values are set in Lato Black so they read from arm's length.</li>
+  <li><b>iOS-like grouped surfaces.</b> A soft ground, white grouped cards on it, rounded corners, hairline separators.</li>
+  <li><b>Never glare in the dark.</b> Dark mode is a soft near-black with off-white ink, never pure #000 and #FFF.</li>
+  <li><b>Accessible first.</b> Every text pair meets 4.5:1 contrast or better; every touch target is at least 48 dp.</li>
+</ul>
+
+<h2><span class="n">2</span> The mark</h2>
+<p class="lede">A corner dial: five ruler ticks and an arc round a pivot, with the arc and the diagonal indicator in the accent blue.</p>
+<div class="pair">
+  <div style="background:#F2F3F7">
+    <svg viewBox="0 0 1024 1024" role="img" aria-label="Light mark"><path fill="#FFFFFF" d="M354.65 0H669.35C771.47 0 822.53 0 868.58 15.2C937.64 37.99 986.01 86.36 1008.8 155.42C1024 201.47 1024 252.53 1024 354.65V669.35C1024 771.47 1024 822.53 1008.8 868.58C986.01 937.64 937.64 986.01 868.58 1008.8C822.53 1024 771.47 1024 669.35 1024H354.65C252.53 1024 201.47 1024 155.42 1008.8C86.36 986.01 37.99 937.64 15.2 868.58C0 822.53 0 771.47 0 669.35V354.65C0 252.53 0 201.47 15.2 155.42C37.99 86.36 86.36 37.99 155.42 15.2C201.47 0 252.53 0 354.65 0Z"/><g fill="none" stroke-width="72" stroke-linecap="round" transform="matrix(1.2 0 0 1.2 -102.4 -102.4)"><path stroke="#16171A" d="M394 744H224M420.6 610.1L263.6 545M610.1 420.6L545 263.6M744 394V224"/><path stroke="#0068D6" d="M496.5 496.5L348 348M504 744A240 240 0 0 1 744 504"/></g></svg>
+    <p><b>Light</b> · assets/edgepad-light.svg</p>
+  </div>
+  <div style="background:#0E0F12;color:#F2F3F5">
+    <svg viewBox="0 0 1024 1024" role="img" aria-label="Dark mark"><path fill="#1B1C20" d="M354.65 0H669.35C771.47 0 822.53 0 868.58 15.2C937.64 37.99 986.01 86.36 1008.8 155.42C1024 201.47 1024 252.53 1024 354.65V669.35C1024 771.47 1024 822.53 1008.8 868.58C986.01 937.64 937.64 986.01 868.58 1008.8C822.53 1024 771.47 1024 669.35 1024H354.65C252.53 1024 201.47 1024 155.42 1008.8C86.36 986.01 37.99 937.64 15.2 868.58C0 822.53 0 771.47 0 669.35V354.65C0 252.53 0 201.47 15.2 155.42C37.99 86.36 86.36 37.99 155.42 15.2C201.47 0 252.53 0 354.65 0Z"/><g fill="none" stroke-width="72" stroke-linecap="round" transform="matrix(1.2 0 0 1.2 -102.4 -102.4)"><path stroke="#F2F3F5" d="M394 744H224M420.6 610.1L263.6 545M610.1 420.6L545 263.6M744 394V224"/><path stroke="#4DA3FF" d="M496.5 496.5L348 348M504 744A240 240 0 0 1 744 504"/></g></svg>
+    <p><b>Dark</b> · assets/edgepad-dark.svg</p>
+  </div>
+</div>
+<h3>Construction</h3>
+<table>
+  <tr><th>Part</th><th>Specification</th></tr>
+  <tr><td>Canvas</td><td>1024 × 1024 units</td></tr>
+  <tr><td>Tile</td><td>An iOS-style continuous-corner square (a squircle): corner radius 232 units, each corner three cubic curves starting 1.52866 × r from the corner</td></tr>
+  <tr><td>Glyph</td><td>Drawn on a 1024 grid and scaled 1.2× about the centre; strokes 72 units wide with round caps, no fills</td></tr>
+  <tr><td>Ink strokes</td><td>Four ruler ticks: <code>M394 744H224 M420.6 610.1L263.6 545 M610.1 420.6L545 263.6 M744 394V224</code></td></tr>
+  <tr><td>Accent strokes</td><td>The diagonal indicator and the arc: <code>M496.5 496.5L348 348 M504 744A240 240 0 0 1 744 504</code></td></tr>
+</table>
+<h3>Colours of the mark</h3>
+<table>
+  <tr><th></th><th>Variant</th><th>Tile</th><th>Ink</th><th>Accent</th></tr>
+  <tr><td class="sw" bgcolor="#FFFFFF" style="background:#FFFFFF"></td><td>Light</td><td>#FFFFFF</td><td>#16171A</td><td>#0068D6</td></tr>
+  <tr><td class="sw" bgcolor="#1B1C20" style="background:#1B1C20"></td><td>Dark</td><td>#1B1C20</td><td>#F2F3F5</td><td>#4DA3FF</td></tr>
+</table>
+<h3>Use</h3>
+<ul>
+  <li><b>Choose the variant for contrast with what is behind it.</b> On a light ground use the dark tile; on a dark ground use the light tile. Where the system follows a theme (Android launcher, Windows and Linux tray, Mac menu bar and Dock on macOS 26, the website favicon), the icon switches with it.</li>
+  <li><b>Clear space:</b> at least one eighth of the tile's width on every side.</li>
+  <li><b>Smallest size:</b> 16 px. Below 24 px the tray uses a one-colour dial (Mac) or the rendered sizes 16–48 px (Windows, Linux).</li>
+  <li><b>Never</b> recolour the glyph, outline it, add effects, rotate it, or set it on a busy photograph.</li>
+  <li>Files: the SVG masters in <code>assets/</code>; PNGs at 1024, 512 and 256 px in <code>assets/brand/</code>; app icons rendered by <code>scripts/icons.sh</code>.</li>
+</ul>
+<h3>Wordmark</h3>
+<p>“Edgepad” set in Lato Black (900), ink, with tracking −0.01 em. Beside the mark, the wordmark's cap height matches 45% of the tile's height and sits 0.3 × tile width from it.</p>
+
+<h2><span class="n">3</span> Colour</h2>
+<p class="lede">Eleven tokens in two themes. Names match the Android resources (<code>res/values*/colors.xml</code>) and the website's CSS variables.</p>
+<table>
+  <tr><th></th><th>Token</th><th>Light</th><th></th><th>Dark</th><th>Role</th></tr>
+  <tr><td class="sw" bgcolor="#F2F3F7" style="background:#F2F3F7"></td><td>panel (ground)</td><td>#F2F3F7</td><td class="sw" bgcolor="#0E0F12" style="background:#0E0F12"></td><td>#0E0F12</td><td>The page behind everything</td></tr>
+  <tr><td class="sw" bgcolor="#FFFFFF" style="background:#FFFFFF"></td><td>card</td><td>#FFFFFF</td><td class="sw" bgcolor="#1B1C20" style="background:#1B1C20"></td><td>#1B1C20</td><td>A grouped cell on the ground</td></tr>
+  <tr><td class="sw" bgcolor="#E3E5EA" style="background:#E3E5EA"></td><td>line</td><td>#E3E5EA</td><td class="sw" bgcolor="#2B2D33" style="background:#2B2D33"></td><td>#2B2D33</td><td>Hairline separators and borders</td></tr>
+  <tr><td class="sw" bgcolor="#EBEDF2" style="background:#EBEDF2"></td><td>faint</td><td>#EBEDF2</td><td class="sw" bgcolor="#24262B" style="background:#24262B"></td><td>#24262B</td><td>Pressed states, quiet fills</td></tr>
+  <tr><td class="sw" bgcolor="#16171A" style="background:#16171A"></td><td>ink</td><td>#16171A</td><td class="sw" bgcolor="#F2F3F5" style="background:#F2F3F5"></td><td>#F2F3F5</td><td>Text and icons</td></tr>
+  <tr><td class="sw" bgcolor="#6B6E76" style="background:#6B6E76"></td><td>dim</td><td>#6B6E76</td><td class="sw" bgcolor="#9A9CA3" style="background:#9A9CA3"></td><td>#9A9CA3</td><td>Secondary text, sub-lines, footnotes</td></tr>
+  <tr><td class="sw" bgcolor="#0068D6" style="background:#0068D6"></td><td>accent (blue)</td><td>#0068D6</td><td class="sw" bgcolor="#4DA3FF" style="background:#4DA3FF"></td><td>#4DA3FF</td><td>Selected, on, live, the main action</td></tr>
+  <tr><td class="sw" bgcolor="#FFFFFF" style="background:#FFFFFF"></td><td>on_accent</td><td>#FFFFFF</td><td class="sw" bgcolor="#0B1A2E" style="background:#0B1A2E"></td><td>#0B1A2E</td><td>Text on the accent</td></tr>
+  <tr><td class="sw" bgcolor="#E6F0FC" style="background:#E6F0FC"></td><td>accent_soft</td><td>#E6F0FC</td><td class="sw" bgcolor="#1B2A3D" style="background:#1B2A3D"></td><td>#1B2A3D</td><td>A tinted background for selected items</td></tr>
+  <tr><td class="sw" bgcolor="#E3E5EA" style="background:#E3E5EA"></td><td>off</td><td>#E3E5EA</td><td class="sw" bgcolor="#3A3C43" style="background:#3A3C43"></td><td>#3A3C43</td><td>A switch that is off</td></tr>
+  <tr><td class="sw" bgcolor="#D70015" style="background:#D70015"></td><td>danger</td><td>#D70015</td><td class="sw" bgcolor="#FF6961" style="background:#FF6961"></td><td>#FF6961</td><td>Destructive actions and errors</td></tr>
+</table>
+<h3>Contrast (computed, as recorded in colors.xml)</h3>
+<table>
+  <tr><th>Pair</th><th>Light</th><th>Dark</th></tr>
+  <tr><td>ink on panel</td><td>16.2 : 1</td><td>17.3 : 1</td></tr>
+  <tr><td>dim on panel</td><td>4.6 : 1</td><td>—</td></tr>
+  <tr><td>dim on card</td><td>5.1 : 1</td><td>6.2 : 1</td></tr>
+  <tr><td>accent on card</td><td>5.3 : 1</td><td>6.5 : 1</td></tr>
+  <tr><td>accent on panel</td><td>4.8 : 1</td><td>—</td></tr>
+  <tr><td>on_accent on accent</td><td>5.3 : 1</td><td>6.7 : 1</td></tr>
+  <tr><td>danger on faint</td><td>4.6 : 1</td><td>5.4 : 1</td></tr>
+</table>
+<div class="note">Rule: the blue is a signal, not a decoration. A screen with more than two or three blue elements at rest is using it wrong.</div>
+<h3>Elevation (website)</h3>
+<table>
+  <tr><th>Token</th><th>Light</th><th>Dark</th></tr>
+  <tr><td>elev-card</td><td><code>0 1px 2px rgb(16 18 24 / .05), 0 4px 16px rgb(16 18 24 / .05)</code></td><td><code>0 1px 2px rgb(0 0 0 / .3)</code></td></tr>
+  <tr><td>elev-lift</td><td><code>0 12px 40px rgb(16 18 24 / .14)</code></td><td><code>0 12px 40px rgb(0 0 0 / .45)</code></td></tr>
+</table>
+
+<h2><span class="n">4</span> Typography</h2>
+<p class="lede">Lato everywhere, in three weights: 400 for reading, 700 for labels and buttons, 900 for titles and the numbers a dial shows. JetBrains Mono only for real code on the website.</p>
+<div class="specimen" style="font-weight:900;font-size:30pt;line-height:1.1">Your laptop, <span class="blue">from across the room.</span></div>
+<div class="specimen" style="font-weight:700;font-size:15pt">Labels and buttons · Lato Bold 700</div>
+<div class="specimen" style="font-weight:400;font-size:12pt">Running text and rows. Lato Regular 400, set at 1.4 × its size for anything longer than a line.</div>
+<h3>App type scale (sp, from Palette.kt)</h3>
+<table>
+  <tr><th>Token</th><th>Size</th><th>Weight</th><th>Use</th></tr>
+  <tr><td>LARGE_TITLE</td><td>32</td><td>900</td><td>A top-level screen's large title</td></tr>
+  <tr><td>TITLE</td><td>24</td><td>900</td><td>A page's headline</td></tr>
+  <tr><td>LABEL</td><td>17</td><td>700</td><td>Button labels; a sub-screen's name in its nav bar</td></tr>
+  <tr><td>BODY</td><td>16</td><td>400</td><td>Row labels, running text, names in a list</td></tr>
+  <tr><td>VALUE</td><td>15</td><td>400</td><td>The value beside a row</td></tr>
+  <tr><td>SMALL</td><td>13</td><td>400 / 700</td><td>Sub-lines, footnotes, section headers, segmented options; canvas piece labels (700)</td></tr>
+  <tr><td>MICRO</td><td>12</td><td>700</td><td>Tags, badges, the abbreviation over a dial's value</td></tr>
+  <tr><td>Dial value</td><td>26 (32 while held)</td><td>900</td><td>The number a corner dial shows</td></tr>
+  <tr><td>Dial label</td><td>11, tracking 0.06 em</td><td>700</td><td>VOL, BRI, ZOOM, SCRUB over the value</td></tr>
+</table>
+<p>Tracking: −0.01 em on titles. Line height: 1.4 × size for multi-line text. A line's visual centre sits 0.35 × size above its baseline (used to centre text on canvas pieces).</p>
+
+<h2><span class="n">5</span> Space, size and shape</h2>
+<p class="lede">One spacing scale in dp, shared by every screen (Space in Palette.kt).</p>
+<table>
+  <tr><th>Token</th><th>dp</th><th>Use</th></tr>
+  <tr><td>HAIR</td><td>1</td><td>Separators</td></tr>
+  <tr><td>XS · S · M · L · XL</td><td>4 · 8 · 12 · 16 · 24</td><td>The spacing steps</td></tr>
+  <tr><td>SUB_GAP</td><td>2</td><td>Between a name and the sub-line under it</td></tr>
+  <tr><td>PAGE</td><td>16</td><td>A page's side margin</td></tr>
+  <tr><td>CARD_PAD</td><td>16</td><td>Inside a grouped card, either side</td></tr>
+  <tr><td>TOUCH</td><td>48</td><td>The smallest touch target anywhere</td></tr>
+  <tr><td>BAR</td><td>48</td><td>A screen's nav bar</td></tr>
+  <tr><td>BUTTON</td><td>50</td><td>A full-width button</td></tr>
+  <tr><td>ROW</td><td>52</td><td>A settings row</td></tr>
+</table>
+<h3>Radii</h3>
+<table>
+  <tr><th>Token</th><th>dp</th><th>Use</th></tr>
+  <tr><td>TILE_RADIUS</td><td>10</td><td>An icon tile or a small preview inside a row</td></tr>
+  <tr><td>CARD_RADIUS</td><td>14</td><td>A grouped card</td></tr>
+  <tr><td>PANEL_RADIUS</td><td>16</td><td>A panel standing on its own: an options sheet, a preview, a drawing</td></tr>
+  <tr><td>Pill</td><td>height ÷ 2</td><td>Buttons and chips</td></tr>
+</table>
+
+<h2><span class="n">6</span> Components</h2>
+<h3>Corner dial</h3>
+<p>Each corner of the control surface is a dial that wraps around the edge; sliding along it changes the level. With <b>Split corners</b> on (Settings › Corners), every corner holds a dial on each of the two edges it joins: eight in all.</p>
+<table>
+  <tr><th>Part</th><th>Specification (RulerPainter.kt, Dial.kt)</th></tr>
+  <tr><td>Inset from the screen edge</td><td>5 dp</td></tr>
+  <tr><td>Major tick</td><td>20 dp long, 3.2 dp wide (3.6 held), 85% opacity, every 5th notch</td></tr>
+  <tr><td>Notch spacing</td><td>11 dp; dots 3 dp at 42% opacity (60% held, 95% lit)</td></tr>
+  <tr><td>Indicator</td><td>32 dp long, 5 dp wide, accent; a 12 dp glow at 18% (28% held)</td></tr>
+  <tr><td>Held state</td><td>Grows 1.2×; the value grows from 26 to 32 sp</td></tr>
+  <tr><td>Lit marks</td><td>The marks up to the current level light up, so the dial reads like a progress bar bent around the corner</td></tr>
+  <tr><td>Label gap</td><td>40 dp from the corner to the label and value</td></tr>
+  <tr><td>Range</td><td>0–100, 10 units per step</td></tr>
+</table>
+<h3>Now playing</h3>
+<p>A 280 × 52 dp piece on the surface showing the source's logo (40 dp), the title and the source. Play is a 52 dp accent circle with skip buttons 52 dp either side; the piece can be dragged anywhere on the pad.</p>
+<h3>Macro deck</h3>
+<p>Up to fifteen macros. Buttons have no fill and no border: an icon and a Lato Bold label. The grid picks the largest buttons that fit (three macros show large, fifteen small), and a short last row is centred. Press and hold to drag; a grid picker (Automatic, or a fixed rows × columns) sits under the deck in edit mode.</p>
+<h3>Rows, cards and controls</h3>
+<ul>
+  <li><b>Grouped card:</b> card colour, 14 dp corners, 16 dp padding, hairline separators between 52 dp rows.</li>
+  <li><b>Switch:</b> accent when on, <code>off</code> when off.</li>
+  <li><b>Segmented control:</b> faint track, card thumb, SMALL labels.</li>
+  <li><b>Buttons:</b> full-width 50 dp, accent fill with on_accent label; secondary buttons faint.</li>
+  <li><b>Lock:</b> a locked pad is tinted with the accent at 16% across a 44 dp band, so a locked pad never looks like a working one.</li>
+</ul>
+<h3>Iconography</h3>
+<p>Lucide icons (ISC licence), 24-unit grid, 2-unit strokes with round caps and joins, drawn from Lucide's own paths in every app. The licence text ships inside the APK and the exe.</p>
+
+<h2><span class="n">7</span> Motion</h2>
+<ul>
+  <li><b>Purposeful and short.</b> State changes ease out; nothing loops for decoration.</li>
+  <li><b>Reduced motion is honoured</b> on the website: content appears without movement.</li>
+  <li><b>Dials respond instantly</b> to the finger; animation never delays input.</li>
+</ul>
+<h3>Video motion language</h3>
+<table>
+  <tr><th>Element</th><th>Treatment</th></tr>
+  <tr><td>Headline</td><td>Lato Black ~110 px at 1080p, ink, tight leading; words arrive one by one as they are spoken, fading up from a soft blur; one keyword per headline in the accent blue</td></tr>
+  <tr><td>Sub-line</td><td>Lato Bold ~56 px, revealed word by word; secondary words dim, the keyword blue</td></tr>
+  <tr><td>Caption pill</td><td>A white pill with a soft shadow, Lato Bold ~44 px; spoken words ink, the current word blue, the next words grey</td></tr>
+  <tr><td>Phone</td><td>Large and often cropped by the frame; the camera pushes in on what is being described and holds still while it is read; landscape for the keyboard and gamepad</td></tr>
+  <tr><td>Fingers</td><td>Shown as Android “show taps” dots, never hands</td></tr>
+  <tr><td>Ground</td><td>The light panel #F2F3F7 with a soft white radial glow behind the phone</td></tr>
+</table>
+
+<h2><span class="n">8</span> Video and social</h2>
+<table>
+  <tr><th>Asset</th><th>Size</th><th>Notes</th></tr>
+  <tr><td>Full demo and tutorial</td><td>1920 × 1080</td><td>Chapters; the website's demo</td></tr>
+  <tr><td>One-minute cut</td><td>1920 × 1080</td><td>Feeds and posts</td></tr>
+  <tr><td>Reel</td><td>1080 × 1920</td><td>Instagram, ~30 s, hook in the first second</td></tr>
+  <tr><td>Thumbnail, landscape</td><td>1280 × 720</td><td>YouTube</td></tr>
+  <tr><td>Thumbnail, portrait</td><td>1080 × 1920</td><td>Reel cover</td></tr>
+  <tr><td>Social preview</td><td>1280 × 640</td><td>GitHub card and the website's Open Graph image</td></tr>
+</table>
+<ul>
+  <li><b>Voice:</b> Microsoft Edge neural TTS, <code>en-US-AndrewMultilingualNeural</code>, one take per video. Spell Wi-Fi “Why-Fye” in the voice text.</li>
+  <li><b>The app on screen</b> is always drawn by a port of the app's own drawing code, never screenshots or invented mockups.</li>
+  <li><b>Content on screen is neutral:</b> made-up song titles, common apps as macros.</li>
+  <li><b>Captions</b> are burned in, and shipped as WebVTT for the website's player.</li>
+</ul>
+
+<h2><span class="n">9</span> Voice and copy</h2>
+<ul>
+  <li>Plain, second person, short sentences. Say what a thing does, then stop.</li>
+  <li>Name controls exactly as the app does: <b>Split corners</b>, <b>Controls</b>, <b>Annotate</b>, <b>Sign</b>, <b>Capture</b>, <b>Forget trusted phones</b>.</li>
+  <li>Be honest about limits: Mac and Linux are still in testing; Bluetooth does not reach the next room.</li>
+  <li>Never publish a latency figure until the app's own round-trip readout reports one from real devices.</li>
+  <li>Never fabricate a review, a statistic or a testimonial.</li>
+</ul>
+
+</body>
+</html>

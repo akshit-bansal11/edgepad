@@ -11,6 +11,7 @@
 # windows/src/Edgepad/Assets/tray-light.ico, tray-dark.ico   Windows tray, by the taskbar theme (16 to 48 px)
 # site/app/apple-icon.png                               180 px touch icon (site/app/icon.svg is hand-kept text)
 # assets/social-preview.png, site/public/social-preview.png   1280x640 card, from assets/social-preview.svg
+# assets/brand/edgepad-{light,dark}-{256,512,1024}.png   the mark for press and documents
 set -eu
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -45,3 +46,10 @@ cp "$tmp/d64.png" "$root/linux/src/Edgepad.Linux/Assets/edgepad-64-dark.png"
 # The social preview (the repo's card and the site's Open Graph image). Its text is Lato, so the job installs fonts-lato.
 rsvg-convert -w 1280 -h 640 -o "$root/assets/social-preview.png" "$root/assets/social-preview.svg"
 cp "$root/assets/social-preview.png" "$root/site/public/social-preview.png"
+
+# The mark as PNGs for press and documents, both variants.
+mkdir -p "$root/assets/brand"
+for n in 256 512 1024; do
+    rsvg-convert -w "$n" -h "$n" -o "$root/assets/brand/edgepad-light-$n.png" "$src"
+    rsvg-convert -w "$n" -h "$n" -o "$root/assets/brand/edgepad-dark-$n.png" "$dark"
+done

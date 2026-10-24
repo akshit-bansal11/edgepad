@@ -188,6 +188,31 @@ jobs:
           path: publish/Edgepad-mac.zip
           if-no-files-found: error
 
+  # Prints docs/design/design-spec.html to the PDF (Chrome) and the Word file (LibreOffice). Like the icons, nothing
+  # is committed from here: download the artifact and commit the two files beside the HTML.
+  design-doc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install LibreOffice and Lato
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libreoffice-writer fonts-lato
+      - name: Print the PDF and convert the Word file
+        run: |
+          mkdir -p out
+          google-chrome --headless=new --disable-gpu --allow-file-access-from-files --no-pdf-header-footer \
+            --virtual-time-budget=5000 --print-to-pdf=out/edgepad-design-spec.pdf "file://$PWD/docs/design/design-spec.html"
+          soffice --headless --infilter="HTML (StarWriter)" --convert-to 'docx:MS Word 2007 XML' --outdir out docs/design/design-spec.html
+          mv out/design-spec.docx out/edgepad-design-spec.docx
+          ls -l out
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: edgepad-design-spec
+          path: out/
+          if-no-files-found: error
+
   # Renders the social preview and the app icons (Windows .ico, Mac .icns, Linux tray PNG, site touch icon) from assets/edgepad-light.svg and edgepad-dark.svg.
   # Nothing is committed from here: download the artifact with `gh run download`, copy the files to the same
   # paths, commit them. macos/bundle.sh and the Linux build fail until they are in the tree, on purpose.
@@ -215,6 +240,7 @@ jobs:
             site/app/apple-icon.png
             assets/social-preview.png
             site/public/social-preview.png
+            assets/brand/
           if-no-files-found: error
 
   # The demo video: voice, then frames, then ffmpeg. Slow, so it renders only when something under
