@@ -885,14 +885,8 @@ class MainActivity :
         link?.send(Frame.RunAction(ActionId.MACRO_BASE.id + index))
     }
 
-    /**
-     * Opens the macro grid, asking the laptop for the pictures on the way in. Asked for rather than pushed
-     * because an icon is thousands of times the size of an input frame: requesting them here spends the link
-     * on a screen that has no trackpad on it, and a laptop too old to know the request drops it and counts
-     * it, leaving a grid of names.
-     */
+    /** Opens the macro grid. Its pictures are already cached: the link asks for them as each macro list arrives. */
     private fun openMacros() {
-        link?.send(TextKind.WANT_ICONS.frame(""))
         goTo(Screen.MACROS)
     }
 
@@ -1204,10 +1198,8 @@ class MainActivity :
         if (grid != null && frame is Frame.Text) {
             when (frame.kind) {
                 TextKind.MACROS.id -> {
+                    // The link has already asked for this list's pictures; they arrive as MACRO_ICON frames.
                     grid.setMacros(state.macros)
-                    // A new list retires the icons with it, since a slot number now means a different macro.
-                    // Nothing else asks for them again, so this is where a grid left open gets its pictures back.
-                    link?.send(TextKind.WANT_ICONS.frame(""))
                 }
 
                 TextKind.MACRO_ICON.id -> {
