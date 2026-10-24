@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../shared/Edgepad.Core/Edgepad.Core.csproj" />
+  <Project Path="src/Edgepad.Linux/Edgepad.Linux.csproj" />
+  <Project Path="../shared/Edgepad.Core.Tests/Edgepad.Core.Tests.csproj" />
+  <Project Path="tests/Edgepad.Linux.Tests/Edgepad.Linux.Tests.csproj" />
+</Solution>

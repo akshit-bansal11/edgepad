@@ -58,6 +58,20 @@ jobs:
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only core
 
+  # The Linux laptop app, on the OS it runs on. Built and tested only; nothing here can reach BlueZ.
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - name: Quality gate
+        run: pwsh scripts/check.ps1 -Ci -Only linux
+
   windows:
     runs-on: windows-latest
     timeout-minutes: 25
@@ -98,7 +112,8 @@ jobs:
       - name: Regenerate the lock files
         shell: pwsh
         run: |
-          foreach ($project in 'shared/Edgepad.Core', 'shared/Edgepad.Core.Tests', 'windows/src/Edgepad', 'windows/tests/Edgepad.Tests') {
+          foreach ($project in 'shared/Edgepad.Core', 'shared/Edgepad.Core.Tests', 'windows/src/Edgepad', 'windows/tests/Edgepad.Tests',
+                       'linux/src/Edgepad.Linux', 'linux/tests/Edgepad.Linux.Tests') {
             dotnet restore $project --force-evaluate -p:RestoreLockedMode=false
             if ($LASTEXITCODE -ne 0) { throw "restore of $project failed" }
           }
@@ -109,6 +124,7 @@ jobs:
           path: |
             shared/**/packages.lock.json
             windows/**/packages.lock.json
+            linux/**/packages.lock.json
           if-no-files-found: warn
 
   macos:
