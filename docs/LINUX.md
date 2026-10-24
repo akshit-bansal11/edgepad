@@ -18,6 +18,8 @@ sudo ./install.sh            # or: sudo ./install.sh /opt/edgepad  to install un
 
 The app is a self-contained single file, so .NET need not be installed; its graphics libraries are inside it and unpack to `~/.net/` on first start. It still needs what the sections below list (BlueZ, `wpctl` or `pactl`, `xdg-utils`, and so on). A tray icon on GNOME needs the AppIndicator extension.
 
+The licence notices for the bundled libraries and the Lato font are in the archive's `licenses/` folder and are copied to `<prefix>/share/doc/edgepad`.
+
 Uninstall with `sudo ./install.sh --uninstall` (same prefix, if you gave one). It removes those files; your settings in `~/.config/edgepad` stay.
 
 ## The tray, the trust question and Security

@@ -4,7 +4,8 @@
 #   sudo ./install.sh [PREFIX]      install under PREFIX (default /usr/local)
 #   sudo ./install.sh --uninstall [PREFIX]
 #
-# Under PREFIX: bin/edgepad, share/applications/edgepad.desktop, share/icons/hicolor/scalable/apps/edgepad.svg.
+# Under PREFIX: bin/edgepad, share/applications/edgepad.desktop, share/icons/hicolor/scalable/apps/edgepad.svg,
+# and the licence notices from licenses/ in share/doc/edgepad.
 # Always under /etc: udev/rules.d/60-edgepad-uinput.rules and modules-load.d/edgepad.conf, because udev and
 # systemd read only those folders.
 set -eu
@@ -25,6 +26,7 @@ fi
 bin="$prefix/bin/edgepad"
 desktop="$prefix/share/applications/edgepad.desktop"
 icon="$prefix/share/icons/hicolor/scalable/apps/edgepad.svg"
+doc="$prefix/share/doc/edgepad"
 rule=/etc/udev/rules.d/60-edgepad-uinput.rules
 modules=/etc/modules-load.d/edgepad.conf
 
@@ -35,8 +37,9 @@ reload_udev() {
 
 if [ "$uninstall" -eq 1 ]; then
     rm -f "$bin" "$desktop" "$icon" "$rule" "$modules"
+    rm -rf "$doc"
     reload_udev
-    echo "Removed: $bin $desktop $icon $rule $modules"
+    echo "Removed: $bin $desktop $icon $doc $rule $modules"
     echo "Left alone: your settings in ~/.config/edgepad, and the uinput module until the next reboot."
     exit 0
 fi
@@ -44,11 +47,13 @@ fi
 install -D -m 755 "$here/edgepad" "$bin"
 install -D -m 644 "$here/edgepad.desktop" "$desktop"
 install -D -m 644 "$here/edgepad.svg" "$icon"
+install -d -m 755 "$doc"
+install -m 644 "$here"/licenses/* "$doc/"
 install -D -m 644 "$here/60-edgepad-uinput.rules" "$rule"
 install -D -m 644 "$here/edgepad-modules.conf" "$modules"
 modprobe uinput
 reload_udev
 
-echo "Installed: $bin $desktop $icon"
+echo "Installed: $bin $desktop $icon $doc"
 echo "Installed: $rule $modules"
 echo "Loaded the uinput module and reloaded udev. Log out and back in once so your session gets access to /dev/uinput."
