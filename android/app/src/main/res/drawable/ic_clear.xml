@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Edgepad's own icon: 24 x 24, 1.75 stroke, round caps, 1.5 to 2 unit corners -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="24dp"
+  android:height="24dp"
+  android:viewportWidth="24"
+  android:viewportHeight="24"
+  android:tint="#000000">
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="#000000"
+    android:strokeWidth="1.75"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M4 7h16" />
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="#000000"
+    android:strokeWidth="1.75"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M9.5 7V5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2" />
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="#000000"
+    android:strokeWidth="1.75"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M6.5 7l.8 11.5a2 2 0 0 0 2 1.9h5.4a2 2 0 0 0 2-1.9L17.5 7" />
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="#000000"
+    android:strokeWidth="1.75"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M10 11v5M14 11v5" />
+</vector>
