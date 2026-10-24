@@ -77,7 +77,7 @@ Brightness goes through DisplayServices, a private macOS framework loaded at run
 
 The Mac maps keys by position, not by meaning. The wire carries Windows virtual-key codes, so Win is Command, Ctrl is Control and Alt is Option; the actions are macOS's default shortcuts, so a shortcut changed in System Settings changes what the gesture does. [PROTOCOL.md](PROTOCOL.md) lists them. Input only takes effect once the owner has granted input control in Device Control and Data Access (Accessibility before macOS 27); without it macOS silently discards what the app sends. The app needs both the Accessibility trust and permission to post events. If input still does nothing after the permission is granted, quitting Edgepad from the menu bar and opening it again is the fix.
 
-Not built: macros, now playing (and so media seeking), the on-screen level readout, and the virtual game controller. The Mac answers every request for the controller with `no-driver`, so the phone's gamepad falls back to keys exactly as it does on a Windows laptop without ViGEmBus. The Mac app was compiled and unit-tested in CI before its first run on a real Mac.
+Not built: now playing (and so media seeking), the on-screen level readout, and the virtual game controller. The Mac answers every request for the controller with `no-driver`, so the phone's gamepad falls back to keys exactly as it does on a Windows laptop without ViGEmBus. The Mac app was compiled and unit-tested in CI before its first run on a real Mac.
 
 ## The phone's surface
 

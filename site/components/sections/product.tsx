@@ -252,7 +252,7 @@ export function ProductSections() {
               </p>
               <p>
                 The Mac app has been compiled and unit-tested in CI but not yet run on a
-                real Mac, and it has no macros, now playing or virtual controller yet.
+                real Mac, and it has no now playing or virtual controller yet.
                 The README lists what differs.
               </p>
             </Note>

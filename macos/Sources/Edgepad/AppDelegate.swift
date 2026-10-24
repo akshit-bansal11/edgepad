@@ -31,6 +31,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var forgetting = false
     /// The same guard for the Security panel.
     private var securing = false
+    /// And for the macro editor, which is also held like Forget.
+    private var editingMacros = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Newest wins, as on Windows where a newer exe asks the running one to quit.
@@ -107,6 +109,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(item("Open log", #selector(openLog)))
         menu.addItem(item("Documentation", #selector(openDocumentation)))
         menu.addItem(item("Security… (level \(pin.level))", #selector(showSecurity)))
+        let macroCount = server?.macros.macros.count ?? 0
+        menu.addItem(item("Macros… (\(macroCount) of \(MacroStore.maxMacros))", #selector(showMacros)))
         let forget = item("Forget trusted phones", #selector(confirmForget))
         forget.isEnabled = trust.canForget
         menu.addItem(forget)
@@ -266,6 +270,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             securing = false
         }
         SecurityPanel(pin: pin, trust: trust, hangUp: { [weak self] in self?.server?.stayQuiet() }).run()
+    }
+
+    /// Held like the Security panel, for the same reason, and guarded against a second click under the modal alert.
+    @objc private func showMacros() {
+        guard !editingMacros, let server else { return }
+        editingMacros = true
+        server.holdOff()
+        defer {
+            server.resume()
+            editingMacros = false
+        }
+        MacroEditorWindow(store: server.macros).run()
     }
 
     @objc private func quit() {

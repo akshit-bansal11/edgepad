@@ -27,8 +27,8 @@ final class RfcommServer: NSObject {
     private let microphone = AudioEndpoint(direction: .input)
     private let brightness = DisplayBrightness()
     private let display = DisplayModes()
-    /// One list for every connection, so the editor that comes in 6.3 and each phone's session see the same macros.
-    private let macros = MacroStore.forCurrentUser(launcher: WorkspaceMacroLauncher(), icons: WorkspaceMacroIcons())
+    /// One list for every connection, and for the owner's editor, so a saved change reaches each phone's session.
+    let macros = MacroStore.forCurrentUser(launcher: WorkspaceMacroLauncher(), icons: WorkspaceMacroIcons())
 
     private var serviceRecord: IOBluetoothSDPServiceRecord?
     private var notification: IOBluetoothUserNotification?
