@@ -226,9 +226,12 @@
   <string name="shape_target_lock_pad">Lock the pad</string>
 
   <string name="settings_surface">Surface</string>
-  <string name="settings_feel">Gestures &amp; dials</string>
   <string name="settings_controls">Controls</string>
+  <string name="settings_this_screen">This screen</string>
+  <string name="settings_everywhere">Everywhere</string>
   <string name="settings_help">Help</string>
+  <string name="keyboard_settings_title">Keyboard settings</string>
+  <string name="gamepad_settings_title">Gamepad settings</string>
   <string name="updates_title">Updates</string>
   <string name="updates_auto">Check for updates daily</string>
   <string name="updates_checking">Checking…</string>
@@ -290,7 +293,6 @@
   <string name="surface_previous">Previous track</string>
   <string name="surface_open_settings">Open settings</string>
   <string name="surface_controls">Open the controls</string>
-  <string name="surface_macros">Open the macros</string>
   <string name="surface_lock">Hide the dials, or lock the pad</string>
   <string name="surface_mode_normal">Dials, media and pad all on</string>
   <string name="surface_mode_focus">Pad only · dials and media hidden</string>
@@ -304,6 +306,7 @@
   <string name="controls_open">Open %1$s</string>
   <string name="controls_keyboard">Keyboard</string>
   <string name="controls_gamepad">Gamepad</string>
+  <string name="controls_macros">Macros</string>
   <string name="controls_capture">Capture</string>
   <string name="capture_region">Region</string>
   <string name="capture_screen">Full screen</string>
