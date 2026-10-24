@@ -352,7 +352,10 @@
   <string name="macros_grid_title">Grid</string>
   <string name="macros_grid_caption">Press and hold a macro, then drag it to move it. Columns the screen cannot fit fall back to Automatic.</string>
   <string name="macros_grid_auto">Automatic</string>
-  <string name="macros_grid_choice">%1$d columns</string>
+  <plurals name="macros_grid_choice">
+    <item quantity="one">%1$d column</item>
+    <item quantity="other">%1$d columns</item>
+  </plurals>
   <string name="macros_empty_title">No macros yet</string>
   <string name="macros_empty_body">Add them from Edgepad\'s tray menu on the laptop. They appear here as soon as it sends the list.</string>
 </resources>

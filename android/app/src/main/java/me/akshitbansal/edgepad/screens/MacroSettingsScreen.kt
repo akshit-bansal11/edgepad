@@ -21,7 +21,7 @@ object MacroSettingsScreen {
     ): View {
         val names =
             listOf(ui.string(R.string.macros_grid_auto)) +
-                (1..MAX_COLUMNS).map { ui.string(R.string.macros_grid_choice, it) }
+                (1..MAX_COLUMNS).map { ui.context.resources.getQuantityString(R.plurals.macros_grid_choice, it, it) }
         // A stored count past the choices reads as Automatic, which is what the macro screen draws for it too.
         val chosen = settings.deckColumns(MACRO_DECK).takeIf { it in 1..MAX_COLUMNS } ?: 0
         return ui.page(
