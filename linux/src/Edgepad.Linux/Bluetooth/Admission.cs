@@ -76,12 +76,17 @@ internal sealed class Admission<T>(Func<long>? clock = null)
         }
     }
 
-    /// <summary>Registers a candidate. False once <see cref="Close"/> ran; the caller then ends it.</summary>
+    /// <summary>
+    /// Registers a candidate. False once <see cref="Close"/> ran, or while a hold or quiet period refuses everyone;
+    /// the caller then ends it. Checked again here and not only in <see cref="Refusal"/>: a hold that starts
+    /// between the two ends every session it can see, and this one is not a candidate yet, so it would otherwise
+    /// be added afterwards and ask its trust question over the owner's security dialog.
+    /// </summary>
     public bool AddCandidate(T session, string address)
     {
         lock (gate)
         {
-            if (closed)
+            if (closed || Refusing())
             {
                 return false;
             }

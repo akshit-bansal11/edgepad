@@ -157,7 +157,7 @@ internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, b
             OnSessionEnded);
         if (!admission.AddCandidate(session, address))
         {
-            Log.Write($"Refused {address}: Edgepad is quitting");
+            Log.Write($"Refused {address}: Edgepad is quitting, or the owner is changing security settings");
             session.Dispose();
             return false;
         }

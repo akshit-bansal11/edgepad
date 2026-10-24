@@ -201,6 +201,17 @@ public sealed class AdmissionTests
         Assert.NotNull(admission.Refusal(PhoneB));
     }
 
+    [Fact]
+    public void AConnectionAcceptedJustBeforeAHoldIsNotAddedDuringIt()
+    {
+        Assert.Null(admission.Refusal(PhoneB));
+        admission.HoldOff();
+
+        Assert.False(admission.AddCandidate(new Session(), PhoneB));
+        admission.Resume();
+        Assert.True(admission.AddCandidate(new Session(), PhoneB));
+    }
+
     private Session Connect(string address)
     {
         var session = new Session();
