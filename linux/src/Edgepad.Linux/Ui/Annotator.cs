@@ -193,7 +193,7 @@ internal sealed class Annotator : IDisposable
     {
         // Some X setups mark no output primary; the first one is then the one the phone's span maps to.
         var screens = window.Screens;
-        var screen = screens?.Primary ?? screens?.All.FirstOrDefault();
+        var screen = screens?.Primary ?? (screens?.All is { Count: > 0 } all ? all[0] : null);
         primary = screen is null ? null : new PrimaryScreen(screen.Bounds);
     }
 

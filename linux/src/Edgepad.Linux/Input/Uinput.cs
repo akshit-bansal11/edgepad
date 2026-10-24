@@ -142,7 +142,7 @@ internal sealed partial class Uinput : IDisposable
         var fd = OpenFile(path, WriteOnly | NonBlocking | CloseOnExec);
         if (fd < 0)
         {
-            error = $"{path} could not be opened: {Marshal.GetLastPInvokeSystemErrorMessage()}";
+            error = $"{path} could not be opened: {Marshal.GetLastPInvokeErrorMessage()}";
             return null;
         }
 

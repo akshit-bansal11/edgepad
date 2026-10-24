@@ -267,7 +267,7 @@ internal sealed class LinuxInput : IDisposable
         if (!ok)
         {
             // Read before Dispose, whose own calls would overwrite it.
-            var reason = Marshal.GetLastPInvokeSystemErrorMessage();
+            var reason = Marshal.GetLastPInvokeErrorMessage();
             device.Dispose();
             LogOnce(ref deviceFailureLogged, $"The virtual keyboard could not be created: {reason}. Keys and pointer will do nothing");
             return null;

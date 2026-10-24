@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Edgepad.Protocol;
+using Key = Avalonia.Input.Key; // Edgepad.Protocol.Key, the KEY frame, is in scope here too
 
 namespace Edgepad.Ui;
 

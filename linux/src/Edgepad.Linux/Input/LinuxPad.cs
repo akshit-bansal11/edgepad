@@ -60,7 +60,7 @@ internal sealed class LinuxPad(string devicePath = Uinput.DevicePath) : IDisposa
         if (!UinputPad.Create(opened))
         {
             // Read before Dispose, whose own calls would overwrite it.
-            var reason = Marshal.GetLastPInvokeSystemErrorMessage();
+            var reason = Marshal.GetLastPInvokeErrorMessage();
             opened.Dispose();
             Log.Write($"Virtual controller: uinput would not create one: {reason}");
             return PadStatus.AttachFailed;
@@ -98,7 +98,7 @@ internal sealed class LinuxPad(string devicePath = Uinput.DevicePath) : IDisposa
 
         // Logged once and given up on, as on Windows: a device that refused one report will refuse the next, and a
         // log line per frame would be file I/O on the input path. The phone can attach again.
-        Log.Write($"Virtual controller: the pad stopped taking reports: {Marshal.GetLastPInvokeSystemErrorMessage()}");
+        Log.Write($"Virtual controller: the pad stopped taking reports: {Marshal.GetLastPInvokeErrorMessage()}");
         Unplug();
         return false;
     }
