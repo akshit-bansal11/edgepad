@@ -45,7 +45,7 @@ public sealed class CoalescerTests
 
         queue.Post("volume", 2);
         queue.Post("mic", 3);
-        Assert.Equal(new[] { "volume", "mic" }, queue.Take().Select(pair => pair.Key));
+        Assert.Equal(["volume", "mic"], queue.Take().Select(pair => pair.Key));
     }
 
     [Fact]

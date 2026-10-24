@@ -16,7 +16,7 @@ public sealed class LauncherTests
     {
         var plan = LinuxLauncher.Plan(url, "ignored", _ => PathKind.None, Home);
         Assert.Equal("xdg-open", plan.File);
-        Assert.Equal(new[] { url }, plan.Arguments);
+        Assert.Equal([url], plan.Arguments);
     }
 
     [Theory]
@@ -26,7 +26,7 @@ public sealed class LauncherTests
     {
         var plan = LinuxLauncher.Plan("/home/me/notes.txt", null, _ => Enum.Parse<PathKind>(kind), Home);
         Assert.Equal("xdg-open", plan.File);
-        Assert.Equal(new[] { "/home/me/notes.txt" }, plan.Arguments);
+        Assert.Equal(["/home/me/notes.txt"], plan.Arguments);
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public sealed class LauncherTests
     {
         var plan = LinuxLauncher.Plan("/usr/bin/firefox", "--private-window https://example.com", _ => PathKind.Executable, Home);
         Assert.Equal("/usr/bin/firefox", plan.File);
-        Assert.Equal(new[] { "--private-window", "https://example.com" }, plan.Arguments);
+        Assert.Equal(["--private-window", "https://example.com"], plan.Arguments);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public sealed class LauncherTests
             },
             Home);
         Assert.Equal("/home/me/Documents", asked);
-        Assert.Equal(new[] { "/home/me/Documents" }, plan.Arguments);
+        Assert.Equal(["/home/me/Documents"], plan.Arguments);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public sealed class LauncherTests
     {
         var plan = LinuxLauncher.Plan("echo", "a; rm -rf ~ $(whoami) *", _ => PathKind.None, Home);
         Assert.Equal("echo", plan.File);
-        Assert.Equal(new[] { "a;", "rm", "-rf", "~", "$(whoami)", "*" }, plan.Arguments);
+        Assert.Equal(["a;", "rm", "-rf", "~", "$(whoami)", "*"], plan.Arguments);
     }
 
     [Theory]
