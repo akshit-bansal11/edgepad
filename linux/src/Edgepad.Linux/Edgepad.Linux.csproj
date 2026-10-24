@@ -35,13 +35,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Shared with the Windows app by link, not copied: Lato (Edgepad 2.0's typeface) under its OFL text, and the
-         Edgepad mark the tray shows. The UI is built in C#, so no XAML is compiled; avares://Edgepad.Linux/... reads these. -->
+    <!-- Lato (Edgepad 2.0's typeface) is shared with the Windows app by link, not copied, under its OFL text; the
+         Edgepad mark the tray shows (a PNG made by scripts/icons.sh). The UI is built in C#, so no XAML is compiled; avares://Edgepad.Linux/... reads these. -->
     <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\Lato-Regular.ttf" Link="Fonts\Lato-Regular.ttf" />
     <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\Lato-Bold.ttf" Link="Fonts\Lato-Bold.ttf" />
     <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\Lato-Black.ttf" Link="Fonts\Lato-Black.ttf" />
     <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\OFL.txt" Link="Fonts\OFL.txt" />
-    <AvaloniaResource Include="..\..\..\windows\src\Edgepad\edgepad.ico" Link="Assets\edgepad.ico" />
+    <AvaloniaResource Include="Assets\edgepad-64.png" />
   </ItemGroup>
 
   <ItemGroup>

@@ -25,6 +25,7 @@ The wire protocol moves to version 5, so both halves must be installed from this
 
 ### Changed
 
+- **The mark is redrawn in the 2.0 colours, with a blue indicator.** The same corner dial now sits on a white tile (a dark one in dark mode) with the diagonal tick and the arc in the accent blue, on the Android launcher icon, the Windows icon, the README and the app. The Mac app gets an app icon (it had none) and the website gets a favicon and a touch icon (it had none).
 - **The macro deck drops the card behind each button, and centres a short last row.** Buttons now sit straight on the background, with the press and focus feedback kept; a last row with fewer buttons than the rest sits exactly under the middle of them instead of leaning to one side.
 - **The Orientation setting now applies to every screen but the keyboard and the gamepad.** Settings, Guide, Devices and every editor follow it, where before only the control surface and the media-layout editor did. The keyboard, the gamepad and the gamepad layout editor stay sideways whatever the setting says.
 

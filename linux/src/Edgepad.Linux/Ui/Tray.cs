@@ -80,12 +80,12 @@ internal sealed class Tray : IDisposable
         forgetRow.IsEnabled = canForget();
     }
 
-    /// <summary>The Edgepad mark from the Windows app's icon, shared by link. Null (no icon, logged) if it will not decode.</summary>
+    /// <summary>The Edgepad mark as a 64 px PNG (Skia does not decode an .ico). Null (no icon, logged) if it will not decode.</summary>
     private static WindowIcon? LoadMark()
     {
         try
         {
-            using var stream = AssetLoader.Open(new Uri("avares://Edgepad.Linux/Assets/edgepad.ico"));
+            using var stream = AssetLoader.Open(new Uri("avares://Edgepad.Linux/Assets/edgepad-64.png"));
             return new WindowIcon(stream);
         }
         catch (Exception e)

@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A corner dial: five ruler ticks and an arc around a pivot, the app's control in miniature. -->
+<!-- The mark's corner dial on the 108dp adaptive canvas, its ink inside the 66dp safe circle: five ticks and an arc, the arc and the diagonal tick in the accent. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
   android:width="108dp"
   android:height="108dp"
   android:viewportWidth="108"
   android:viewportHeight="108">
   <path
-    android:pathData="M46,74 L34,74 M48.1,63.3 L42.6,61 M54.2,54.2 L45.7,45.7 M63.3,48.1 L61,42.6 M74,46 L74,34"
-    android:strokeWidth="3"
-    android:strokeColor="#CDCDCD"
+    android:pathData="M46.64,75.25 L32.75,75.25 M48.82,64.31 L35.98,58.99 M64.31,48.82 L58.99,35.98 M75.25,46.64 L75.25,32.75"
+    android:strokeWidth="5.89"
+    android:strokeColor="#16171A"
     android:strokeLineCap="round" />
   <path
     android:fillColor="#00000000"
-    android:pathData="M50,74 A24,24 0 0,1 74,50"
-    android:strokeWidth="3"
-    android:strokeColor="#CDCDCD"
+    android:pathData="M55.02,55.02 L42.88,42.88 M55.63,75.25 A19.62,19.62 0 0,1 75.25,55.63"
+    android:strokeWidth="5.89"
+    android:strokeColor="#0068D6"
     android:strokeLineCap="round" />
 </vector>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <color name="ic_launcher_background">#1A1A1A</color>
+  <color name="ic_launcher_background">#FFFFFF</color>
   <!-- Edgepad 2.0, the light set; values-night/colors.xml holds the dark one. iOS-style grouped surfaces:
        [panel] is the ground, [card] the grouped cell on it. One accent, used for what is selected, on,
        live or the main action. Every text pair was computed at 4.5:1 or better: ink on panel 16.2:1, dim

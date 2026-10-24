@@ -38,6 +38,11 @@ rm -rf "$app"
 mkdir -p "$app/Contents/MacOS"
 cp "$bin/Edgepad" "$app/Contents/MacOS/Edgepad"
 
+# The icon is rendered from assets/edgepad-light.svg by scripts/icons.sh (the CI job `icons`) and committed.
+# Missing, the build stops: a release must not go out with the generic icon.
+mkdir -p "$app/Contents/Resources"
+cp Resources/edgepad.icns "$app/Contents/Resources/edgepad.icns" || { echo "bundle.sh: macos/Resources/edgepad.icns is missing; run scripts/icons.sh (CI job icons) and commit it" >&2; exit 1; }
+
 # CFBundleVersion takes numbers only, so a draft's "-draft.45" suffix stays on the display version alone.
 cat > "$app/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -50,6 +55,8 @@ cat > "$app/Contents/Info.plist" <<EOF
   <string>Edgepad</string>
   <key>CFBundleIdentifier</key>
   <string>me.akshitbansal.edgepad</string>
+  <key>CFBundleIconFile</key>
+  <string>edgepad</string>
   <key>CFBundleExecutable</key>
   <string>Edgepad</string>
   <key>CFBundlePackageType</key>
