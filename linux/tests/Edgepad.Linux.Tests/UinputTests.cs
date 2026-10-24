@@ -41,6 +41,23 @@ public sealed class UinputTests
         Assert.Equal(0, bytes[8 + 79]);
     }
 
+    [Fact]
+    public void UinputAbsSetupIsTheKernelsTwentyEightBytes()
+    {
+        Assert.Equal(28, Unsafe.SizeOf<UinputAbsSetup>());
+
+        // code u16, two bytes of padding, then input_absinfo: value, minimum, maximum, fuzz, flat, resolution.
+        var setup = new UinputAbsSetup(0x0102, -32768, 32767, 16, 128);
+        var bytes = MemoryMarshal.AsBytes(new ReadOnlySpan<UinputAbsSetup>(ref setup)).ToArray();
+        Assert.Equal(new byte[] { 0x02, 0x01, 0, 0 }, bytes[..4]);
+        Assert.Equal(0, BitConverter.ToInt32(bytes, 4));
+        Assert.Equal(-32768, BitConverter.ToInt32(bytes, 8));
+        Assert.Equal(32767, BitConverter.ToInt32(bytes, 12));
+        Assert.Equal(16, BitConverter.ToInt32(bytes, 16));
+        Assert.Equal(128, BitConverter.ToInt32(bytes, 20));
+        Assert.Equal(0, BitConverter.ToInt32(bytes, 24));
+    }
+
     // Recomputed here from asm-generic/ioctl.h's _IOC(dir, type, nr, size), independently of the constants' comment.
     private static uint Ioc(uint dir, uint nr, uint size) => (dir << 30) | (size << 16) | ((uint)'U' << 8) | nr;
 
@@ -53,6 +70,9 @@ public sealed class UinputTests
         Assert.Equal(Ioc(1, 100, 4), Uinput.SetEvBit);
         Assert.Equal(Ioc(1, 101, 4), Uinput.SetKeyBit);
         Assert.Equal(Ioc(1, 102, 4), Uinput.SetRelBit);
+        Assert.Equal(Ioc(1, 103, 4), Uinput.SetAbsBit);
+        Assert.Equal(Ioc(1, 4, 28), Uinput.AbsSetup);
+        Assert.Equal(0x401C5504u, Uinput.AbsSetup);
         Assert.Equal(0x405C5503u, Uinput.DevSetup);
         Assert.Equal(0x40045564u, Uinput.SetEvBit);
     }

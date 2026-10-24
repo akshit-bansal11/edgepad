@@ -7,14 +7,15 @@ namespace Edgepad.Platform;
 
 /// <summary>
 /// Linux's half of the <see cref="Dispatcher"/>, one per session. Keys, pointer and typing go to the uinput device
-/// (<see cref="LinuxInput"/>). STAND-IN for the rest until steps 8.3 and 8.4 (the virtual pad, the action table and
-/// Core's MacroStore): every action, control, pad frame, pen frame and macro answers false, so the dispatcher drops
-/// and counts it, and the pad is reported as having no driver, so the phone shows that rather than a pad that does
-/// nothing. Disposing it at the end of a session releases whatever the phone still holds down.
+/// (<see cref="LinuxInput"/>), and the gamepad to a second one plugged in when the phone asks (<see cref="LinuxPad"/>).
+/// STAND-IN for the rest until step 8.4 (the action table and Core's MacroStore): every action, control, pen frame
+/// and macro answers false, so the dispatcher drops and counts it. Disposing it at the end of a session releases
+/// whatever the phone still holds down and unplugs the pad.
 /// </summary>
 internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
 {
     private readonly LinuxInput input = new();
+    private readonly LinuxPad pad = new();
 
     public void Move(int dx, int dy) => input.Move(dx, dy);
 
@@ -32,15 +33,22 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
 
     public bool Set(ControlId control, byte percent) => false;
 
-    public bool Pad(PadState state) => false;
+    public bool Pad(PadState state) => pad.Update(state);
 
     public bool Pen(Pen pen) => false;
 
-    public string AttachPad() => PadStatus.NoDriver;
+    public string AttachPad() => pad.Attach();
 
-    public string DetachPad() => PadStatus.NoDriver;
+    public string DetachPad() => pad.Detach();
+
+    /// <summary>The PAD_STATUS token sent once after the handshake, before the phone can ask.</summary>
+    public string ProbePad() => pad.Probe();
 
     public bool Run(int index) => false;
 
-    public void Dispose() => input.Dispose();
+    public void Dispose()
+    {
+        input.Dispose();
+        pad.Dispose();
+    }
 }

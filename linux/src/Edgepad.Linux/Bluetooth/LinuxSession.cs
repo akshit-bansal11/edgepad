@@ -25,6 +25,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Func<string, bool> askTrust;
     private readonly Dispatcher dispatcher;
     private readonly Action releaseHeldInput;
+    private readonly Func<string> probePad;
     private readonly Action<string> onStatus;
     private readonly Func<LinuxSession, bool> onAdmitted;
     private readonly Action<LinuxSession> onEnded;
@@ -32,7 +33,8 @@ internal sealed class LinuxSession : IDisposable
 
     /// <summary>
     /// Takes ownership of <paramref name="socket"/>. <paramref name="releaseHeldInput"/> releases every key and
-    /// button the phone still holds down when the session ends.
+    /// button the phone still holds down when the session ends, and unplugs its virtual controller.
+    /// <paramref name="probePad"/> answers the PAD_STATUS token sent once after the handshake.
     /// </summary>
     public LinuxSession(
         SafeFileHandle socket,
@@ -42,6 +44,7 @@ internal sealed class LinuxSession : IDisposable
         Func<string, bool> askTrust,
         Dispatcher dispatcher,
         Action releaseHeldInput,
+        Func<string> probePad,
         Action<string> onStatus,
         Func<LinuxSession, bool> onAdmitted,
         Action<LinuxSession> onEnded)
@@ -53,6 +56,7 @@ internal sealed class LinuxSession : IDisposable
         this.askTrust = askTrust;
         this.dispatcher = dispatcher;
         this.releaseHeldInput = releaseHeldInput;
+        this.probePad = probePad;
         this.onStatus = onStatus;
         this.onAdmitted = onAdmitted;
         this.onEnded = onEnded;
@@ -103,8 +107,10 @@ internal sealed class LinuxSession : IDisposable
                 return;
             }
 
-            // On the read loop's thread, like a PONG: a dead socket here should end the session.
+            // On the read loop's thread, like a PONG: a dead socket here should end the session. The opening answer is
+            // sent before the phone can ask, so it can hide the pad rather than offer a button that does nothing.
             dispatcher.PadStatusReply = status => frames.Send(new Text((byte)TextKind.PadStatus, status));
+            frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
 
             while (true)
             {
@@ -135,7 +141,8 @@ internal sealed class LinuxSession : IDisposable
         }
         finally
         {
-            // Releases anything still held down: Alt in the middle of an app switch, a button mid-drag.
+            // Releases anything still held down: Alt in the middle of an app switch, a button mid-drag. Unplugs the
+            // pad too, so a phone that drops mid-game does not leave a stick pushed forward.
             releaseHeldInput();
             if (dispatcher.Dropped > 0)
             {

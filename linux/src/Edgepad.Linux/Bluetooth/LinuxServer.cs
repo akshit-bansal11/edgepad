@@ -140,7 +140,7 @@ internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, b
             return false;
         }
 
-        // Input state belongs to one connection: its own virtual keyboard, destroyed when the session ends.
+        // Input state belongs to one connection: its own virtual keyboard and pad, destroyed when the session ends.
         var platform = new LinuxPlatform();
         var session = new LinuxSession(
             socket,
@@ -150,6 +150,7 @@ internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, b
             askTrust,
             new Dispatcher(platform, platform),
             platform.Dispose,
+            platform.ProbePad,
             onStatus,
             OnAdmitted,
             OnSessionEnded);
