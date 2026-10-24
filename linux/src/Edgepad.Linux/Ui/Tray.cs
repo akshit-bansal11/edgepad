@@ -2,6 +2,8 @@ using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
+using Avalonia.Threading;
+using Edgepad.Platform;
 
 namespace Edgepad.Ui;
 
@@ -18,10 +20,16 @@ internal sealed class Tray : IDisposable
     // The shell's tooltip is short on some desktops; stay under the oldest limit the Windows tray uses.
     private const int MaxTooltipLength = 63;
 
+    // How often the desktop is asked whether it prefers dark.
+    private static readonly TimeSpan SchemeEvery = TimeSpan.FromSeconds(2);
+
     private readonly NativeMenuItem statusRow = new("Starting") { IsEnabled = false };
     private readonly NativeMenuItem securityRow = new("Security…");
     private readonly NativeMenuItem forgetRow = new("Forget trusted phones");
     private readonly TrayIcon icon;
+    private readonly Bus portal = Bus.OnSession();
+    private readonly Timer scheme;
+    private bool dark;
     private readonly Func<string> levelHint;
     private readonly Func<bool> canForget;
 
@@ -53,8 +61,12 @@ internal sealed class Tray : IDisposable
         // this for a StatusNotifierItem menu is UNKNOWN (docs/LINUX.md); the rows are also refreshed on status changes.
         menu.Opening += (_, _) => Safe(Refresh, "Menu opening");
 
-        icon = new TrayIcon { Icon = LoadMark(), ToolTipText = "Edgepad", Menu = menu, IsVisible = true };
+        icon = new TrayIcon { Icon = LoadMark(dark: false), ToolTipText = "Edgepad", Menu = menu, IsVisible = true };
         Refresh();
+
+        // The desktop's light or dark preference, polled (see ColorScheme) on the thread pool: a portal call may
+        // block for its deadline, which the UI thread must not. Only a change reaches the UI thread.
+        scheme = new Timer(_ => Safe(CheckScheme, "Colour scheme"), null, TimeSpan.Zero, SchemeEvery);
     }
 
     /// <summary>Puts the icon on the application's tray. Call on the UI thread once the app is initialised.</summary>
@@ -70,8 +82,20 @@ internal sealed class Tray : IDisposable
 
     public void Dispose()
     {
+        scheme.Dispose();
+        portal.Dispose();
         icon.IsVisible = false;
         icon.Dispose();
+    }
+
+    private void CheckScheme()
+    {
+        var next = ColorScheme.PrefersDark(portal);
+        if (next != dark)
+        {
+            dark = next;
+            Dispatcher.UIThread.Post(() => Safe(() => icon.Icon = LoadMark(next), "Tray icon"));
+        }
     }
 
     private void Refresh()
@@ -80,12 +104,12 @@ internal sealed class Tray : IDisposable
         forgetRow.IsEnabled = canForget();
     }
 
-    /// <summary>The Edgepad mark as a 64 px PNG (Skia does not decode an .ico). Null (no icon, logged) if it will not decode.</summary>
-    private static WindowIcon? LoadMark()
+    /// <summary>The Edgepad mark as a 64 px PNG (Skia does not decode an .ico), the dark tile or the light. Null (no icon, logged) if it will not decode.</summary>
+    private static WindowIcon? LoadMark(bool dark)
     {
         try
         {
-            using var stream = AssetLoader.Open(new Uri("avares://Edgepad.Linux/Assets/edgepad-64.png"));
+            using var stream = AssetLoader.Open(new Uri($"avares://Edgepad.Linux/Assets/{(dark ? "edgepad-64-dark" : "edgepad-64")}.png"));
             return new WindowIcon(stream);
         }
         catch (Exception e)

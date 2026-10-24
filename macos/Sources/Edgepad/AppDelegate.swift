@@ -46,12 +46,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
 
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        if let image = NSImage(systemSymbolName: "macbook.and.iphone", accessibilityDescription: "Edgepad") {
-            image.isTemplate = true
-            item.button?.image = image
-        } else {
-            item.button?.title = "Edgepad"
-        }
+        item.button?.image = MenuBarMark.image()
         let menu = NSMenu()
         menu.delegate = self
         item.menu = menu

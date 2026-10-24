@@ -34,6 +34,9 @@
     <EmbeddedResource Include="Fonts\Lato-Bold.ttf" LogicalName="Edgepad.Fonts.Lato-Bold.ttf" />
     <EmbeddedResource Include="Fonts\Lato-Black.ttf" LogicalName="Edgepad.Fonts.Lato-Black.ttf" />
     <EmbeddedResource Include="Fonts\OFL.txt" LogicalName="Edgepad.Fonts.OFL.txt" />
+    <!-- The tray icon in both tiles, picked by the taskbar theme (TrayContext); made by scripts/icons.sh. -->
+    <EmbeddedResource Include="Assets\tray-dark.ico" LogicalName="Edgepad.Assets.tray-dark.ico" />
+    <EmbeddedResource Include="Assets\tray-light.ico" LogicalName="Edgepad.Assets.tray-light.ico" />
     <!-- Ui/Icons draws Lucide's paths, and Lucide's ISC licence asks the same of them. -->
     <EmbeddedResource Include="Ui\Lucide-LICENSE.txt" LogicalName="Edgepad.Ui.Lucide-LICENSE.txt" />
   </ItemGroup>

@@ -7,6 +7,7 @@ using Edgepad.Startup;
 using Edgepad.Trust;
 using Edgepad.Ui;
 using Edgepad.Updates;
+using Microsoft.Win32;
 using NAudio.CoreAudioApi;
 
 namespace Edgepad;
@@ -43,6 +44,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly TrayMenu menu = new();
     private readonly NotifyIcon icon;
     private readonly SynchronizationContext ui;
+    private Icon? themed;
 
     private readonly TrustStore trust = TrustStore.ForCurrentUser();
     private readonly PinStore pin = PinStore.ForCurrentUser();
@@ -112,6 +114,10 @@ internal sealed class TrayContext : ApplicationContext
         // Creating the menu installed the WinForms context on this thread; status updates arrive from
         // Bluetooth threads and are marshalled back here.
         ui = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
+
+        // The taskbar's tile, light or dark, now and whenever Windows' theme changes (that arrives as General).
+        ApplyTrayIcon();
+        SystemEvents.UserPreferenceChanged += OnPreferenceChanged;
 
         // Built here and nowhere else: the overlay captures this thread's synchronisation context, and the
         // frames that ask it to show something arrive on a Bluetooth thread that has none of its own.
@@ -453,6 +459,38 @@ internal sealed class TrayContext : ApplicationContext
         }
     }
 
+    // SystemEvents raises on its own thread; the icon is the UI thread's.
+    private void OnPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
+    {
+        if (e.Category == UserPreferenceCategory.General)
+        {
+            ui.Post(_ => ApplyTrayIcon(), null);
+        }
+    }
+
+    /// <summary>Shows the tile that suits the taskbar. Anything missing or failing leaves the icon as it is.</summary>
+    private void ApplyTrayIcon()
+    {
+        try
+        {
+            var name = Palette.TaskbarIsDark ? "Edgepad.Assets.tray-dark.ico" : "Edgepad.Assets.tray-light.ico";
+            using var stream = typeof(TrayContext).Assembly.GetManifestResourceStream(name);
+            if (stream is null)
+            {
+                return;
+            }
+
+            var next = new Icon(stream);
+            icon.Icon = next;
+            themed?.Dispose();
+            themed = next;
+        }
+        catch (Exception e) when (e is ArgumentException or IOException or Win32Exception)
+        {
+            Log.Write($"The tray icon could not follow the taskbar theme: {e.Message}");
+        }
+    }
+
     protected override void ExitThreadCore()
     {
         icon.Visible = false;
@@ -463,7 +501,9 @@ internal sealed class TrayContext : ApplicationContext
     {
         if (disposing)
         {
+            SystemEvents.UserPreferenceChanged -= OnPreferenceChanged;
             icon.Dispose();
+            themed?.Dispose();
             menu.Dispose();
             startWithWindows.Dispose();
             macrosRow.Dispose();

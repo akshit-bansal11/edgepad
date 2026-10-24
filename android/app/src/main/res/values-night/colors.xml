@@ -3,6 +3,7 @@
   <!-- Dark: a soft near-black with off-white ink rather than #000 and #FFF, so a dark room is not a glare.
        Ink on panel 17.3:1, dim on card 6.2:1, accent on card 6.5:1, navy on accent 6.7:1, danger on faint
        5.4:1. -->
+  <color name="ic_launcher_background">#1B1C20</color>
   <color name="panel">#0E0F12</color>
   <color name="card">#1B1C20</color>
   <color name="line">#2B2D33</color>
