@@ -153,14 +153,17 @@ internal static class Typing
         }
     }
 
+    /// <summary>Puts <paramref name="text"/> on the clipboard with <paramref name="tool"/>, as UTF-8 with no BOM.</summary>
+    public static string? Copy(ClipboardTool tool, string text) => Copy(tool, Encoding.UTF8.GetBytes(text));
+
     /// <summary>
-    /// Puts <paramref name="text"/> on the clipboard with <paramref name="tool"/>, started directly with its
-    /// arguments and never through a shell; the text goes in on standard input. Null on success, else the reason.
+    /// Puts <paramref name="data"/> on the clipboard with <paramref name="tool"/>, started directly with its
+    /// arguments and never through a shell; the data goes in on standard input. Null on success, else the reason.
     /// Both tools leave a copy of themselves running to serve the clipboard and let the started process exit, so
     /// that exit is what is waited for. Standard output and error are not redirected: that running copy would keep
     /// the pipes open, and nothing would ever finish reading them.
     /// </summary>
-    public static string? Copy(ClipboardTool tool, string text)
+    public static string? Copy(ClipboardTool tool, byte[] data)
     {
         try
         {
@@ -168,7 +171,6 @@ internal static class Typing
             {
                 UseShellExecute = false,
                 RedirectStandardInput = true,
-                StandardInputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
             };
             foreach (var argument in tool.Arguments)
             {
@@ -181,7 +183,7 @@ internal static class Typing
                 return $"{tool.Program} did not start";
             }
 
-            process.StandardInput.Write(text);
+            process.StandardInput.BaseStream.Write(data);
             process.StandardInput.Close();
             if (!process.WaitForExit(ToolTimeout))
             {

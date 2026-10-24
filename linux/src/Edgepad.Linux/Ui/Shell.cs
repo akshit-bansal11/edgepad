@@ -120,6 +120,9 @@ internal sealed class Shell
 
         ready = true;
 
+        // The hidden overlay, the screen size and whether annotate is offered: only knowable once the UI is up.
+        Annotator.StartUi();
+
         // A signal that arrived while Avalonia was still starting.
         if (quitRequested)
         {

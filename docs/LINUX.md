@@ -72,13 +72,13 @@ Each of these runs a small tool or asks a service, so they depend on what is ins
 | `wpctl` (WirePlumber, PipeWire's session manager) or `pactl` (PulseAudio, or `pipewire-pulse`) | the volume and microphone dials, microphone mute, and the phone's dials following the laptop's own volume | `wpctl` is tried first and `pactl` is used when it is not installed; with neither, the dials do nothing |
 | `loginctl` (systemd) | Lock (`loginctl lock-session`) | Lock does nothing |
 | `xdg-open` (`xdg-utils`) | macros that open a web address, a folder or a document | those macros do nothing; macros that run a program do not need it |
-| `wl-copy` (`wl-clipboard`) or `xclip` | optional: typing text that is not plain ASCII (see Input above) | that text does nothing |
+| `wl-copy` (`wl-clipboard`) or `xclip` | optional: typing text that is not plain ASCII (see Input above), and the signature fallback (see Annotate and Sign) | that text does nothing |
 | systemd-logind on the system bus and a `/sys/class/backlight/*` device | the brightness dial, which a desktop PC has none of | the dial does nothing and the phone is not told |
 | A media player that exports MPRIS (Spotify, Firefox, Chromium, VLC and most others) | now playing, the media position dial, play/pause/next/previous | those buttons press the media keys instead, which the desktop sends to whatever it thinks is the active player |
 
 The volume, microphone and brightness values on the phone are read twice a second, so a change made on the laptop reaches the dials within about half a second. When several players are open, the phone follows the one that is playing (else one that is paused, else the first); two playing at once keep whichever it followed first. The player's name on the phone is its D-Bus name, for example `Spotify`, not its display name.
 
-Volume up, volume down and mute press the keyboard's volume keys, so the desktop's own on-screen display appears. The refresh-rate dial is not offered (Linux has no shared way to switch display modes). Annotate and Sign are not offered yet.
+Volume up, volume down and mute press the keyboard's volume keys, so the desktop's own on-screen display appears. The refresh-rate dial is not offered (Linux has no shared way to switch display modes). Annotate and Sign are below.
 
 ### Macros
 
@@ -109,6 +109,25 @@ Task view, show desktop, search, notifications and switching desktops press a di
 | App switcher, zoom reset | Alt+Tab (Alt held across swipes), Ctrl+0 on every desktop | |
 
 Region and whole-screen both press Print, which opens the desktop's own screenshot tool (GNOME's screenshot UI, KDE's Spectacle) where you pick either; this is also tried on an unknown desktop. Recording is dropped on an unknown desktop.
+
+## Annotate and Sign (best effort, in testing)
+
+Annotate draws the phone's strokes on a transparent layer over the primary screen; Sign takes a pen signature without showing anything and saves it as a PNG. Both follow the Windows app: the same pen and highlighter widths, the same tools, the same crop (the ink plus 8 px, transparent). **None of it has been seen working on Linux.**
+
+How it works. Avalonia 12.1.4 has only an X11 backend on Linux, so on a Wayland session the app runs under XWayland (`DISPLAY` must be set; it is on GNOME and KDE). When the tray starts, the app builds the layer hidden: a borderless, topmost (`_NET_WM_STATE_ABOVE`), never-activated window with a transparent (ARGB) background, and gives it an empty X input shape (libXext's `XShapeCombineRectangles`) so clicks pass through to the window below. Annotate is offered to the phone (TEXT 9 `annotate/capture`) only if all of that worked: the window is an X11 one, a compositor is running (without one the layer would cover the screen in black), and the X server took the input shape. Otherwise the phone gets `capture` only and hides the Annotate tile, and the log says why once (`Annotate is not offered (...)`). If showing the layer fails later, annotate is turned off for the rest of the run and the phone is told. A phone that disconnects, or Edgepad quitting, takes the layer down and throws its strokes away.
+
+The phone is sent the primary screen's size in physical pixels (TEXT 10), again whenever Avalonia reports the screens changed.
+
+A saved signature goes to `Edgepad/` in your Pictures folder: `$XDG_PICTURES_DIR` if set, else the `XDG_PICTURES_DIR` line of `~/.config/user-dirs.dirs`, else `~/Pictures`. It is named `signature-yyyyMMdd-HHmmss.png`, with `-2`, `-3` and on added rather than ever overwriting a file. It is then put on the clipboard as `image/png`, through Avalonia's X11 clipboard (Edgepad serves it while it runs), else `wl-copy --type image/png`, else `xclip -selection clipboard -t image/png`. The phone is told `saved`, `empty` (nothing drawn) or `failed` (the save or every clipboard route failed; the log says which).
+
+| What | Why it is unknown | How to check |
+| --- | --- | --- |
+| The layer stays above other windows on GNOME Wayland | Mutter decides whether an XWayland window's above-state puts it over native Wayland windows. KDE is believed to honour it. | Start annotating with a native Wayland app (GNOME Text Editor, Files) focused and maximised: the strokes show over it. Then click that app: the strokes stay on top. |
+| Clicks pass through under XWayland | The empty input shape is an X11 request. Whether Mutter and KWin pass the click on to a Wayland window underneath, and whether the window manager's frame around the layer catches it, is not known. | While annotating, click and type in the window below: it reacts, and the layer never takes focus (the window below keeps its focused title bar). |
+| Without a compositor | On X11 with no compositor the layer cannot be transparent, so annotate should not be offered. | On a plain X11 window manager with no compositor, connect: the phone shows no Annotate tile and the log says `no compositor is running`. |
+| Coordinates under fractional scaling | The layer is sized from the primary screen's pixels divided by the scale Avalonia gives the window; with 125% or 150% scaling under XWayland these may not match the screen. | At 150% scaling, draw a line from one corner to the opposite corner on the phone: it runs corner to corner on the laptop, not short or past the edge. |
+| A second monitor, or a change of resolution | The layer follows the primary screen and is resized on each stroke; Avalonia's screen-change event is believed to fire on a resolution change. | Change the resolution or the primary monitor while connected, then annotate: the strokes land where the phone puts them, and the phone's surface takes the new shape. |
+| A PNG on the clipboard on Wayland | Avalonia offers the image as X11 `image/png`; whether Mutter and KWin pass that to Wayland apps is not known, and `wl-copy` on GNOME has the problem described under Typing. | Sign on the phone and save, then paste into a native Wayland app that takes images (LibreOffice, GIMP): a transparent signature appears. The file in `~/Pictures/Edgepad/` is there either way. |
 
 ## Unverified
 

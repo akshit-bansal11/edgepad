@@ -6,7 +6,7 @@ namespace Edgepad.Platform;
 
 /// <summary>
 /// Tells the phone what the laptop is doing, for the life of one session: the volume, microphone and brightness
-/// dials, what is playing, the macro names, and which optional features this laptop has. Linux has no change events
+/// dials, what is playing and the macro names. Linux has no change events
 /// for these that every setup shares, so it polls twice a second like the Mac app and sends only what changed;
 /// a change the laptop makes itself (its own volume keys) reaches the phone's dials within half a second. The
 /// polling runs on a thread of its own because each read starts a process or makes a D-Bus call. A send that fails
@@ -65,9 +65,9 @@ internal sealed class StateReporter : IDisposable
     {
         try
         {
-            // Only what this build can do: the phone hides a feature that is not named. The refresh-rate list is
-            // empty because Linux has no shared way to switch modes; the phone's dial then has no travel.
-            send(new Text((byte)TextKind.Features, Feature.Capture));
+            // The features (TEXT 9) are the annotator's to send, since annotate depends on the display. The
+            // refresh-rate list is empty because Linux has no shared way to switch modes; the phone's dial then has
+            // no travel.
             send(new Text((byte)TextKind.RefreshRates, ""));
 
             // Reports the names now and again whenever the file is reloaded, and is released with this thread.

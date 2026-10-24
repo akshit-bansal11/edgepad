@@ -2,6 +2,7 @@ using Edgepad.Dispatch;
 using Edgepad.Input;
 using Edgepad.Macros;
 using Edgepad.Protocol;
+using Edgepad.Ui;
 
 namespace Edgepad.Platform;
 
@@ -13,8 +14,9 @@ namespace Edgepad.Platform;
 ///
 /// Everything slow (starting wpctl, a D-Bus call, loginctl) is posted to <see cref="Worker"/> and answers true at
 /// once, so the session's reader never waits on it; the cost is that a frame whose work then fails is not counted as
-/// dropped. Only Pen is still a stand-in, refused until annotate lands (step 8.7), as are the annotate and sign
-/// actions. Disposing releases whatever the phone still holds down, unplugs the pad and stops the threads.
+/// dropped. Pen, the annotate and sign actions and the pen colour go to the session's <see cref="Annotator"/>, best
+/// effort (docs/LINUX.md). Disposing releases whatever the phone still holds down, unplugs the pad, takes the overlay
+/// down and stops the threads.
 /// </summary>
 internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
 {
@@ -40,6 +42,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     private readonly Audio microphone = new(microphone: true);
     private readonly Backlight backlight = new();
     private readonly Mpris mpris = new();
+    private readonly Annotator annotator = new();
     private readonly MacroStore macros = new(Path.Combine(Xdg.ConfigFolder, "macros.txt"), new LinuxLauncher());
     private readonly Worker worker;
     private readonly Lock reporting = new();
@@ -119,8 +122,22 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
                 return backlight.Available && Do(() => worker.Post(() => backlight.Step(BrightnessStep)));
             case ActionId.BrightnessDown:
                 return backlight.Available && Do(() => worker.Post(() => backlight.Step(-BrightnessStep)));
+            case ActionId.AnnotateBegin:
+            case ActionId.AnnotateEnd:
+            case ActionId.AnnotateUndo:
+            case ActionId.AnnotateClear:
+            case ActionId.ToolPen:
+            case ActionId.ToolHighlighter:
+            case ActionId.ToolLine:
+            case ActionId.ToolArrow:
+            case ActionId.ToolRectangle:
+            case ActionId.ToolEllipse:
+            case ActionId.SignBegin:
+            case ActionId.SignSave:
+                // The annotator decides which of these the current mode allows; a tool while signing is dropped.
+                return annotator.Run(id);
             default:
-                // Annotate and sign (step 8.7); the pad actions never get here, the dispatcher answers them.
+                // The pad actions never get here, the dispatcher answers them.
                 return false;
         }
     }
@@ -143,15 +160,17 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
 
                 worker.Set(control, percent);
                 return true;
+            case ControlId.PenColor:
+                return annotator.SetColour(percent);
             default:
-                // Refresh rate (no shared way to switch modes) and pen colour (no annotate yet).
+                // Refresh rate: Linux has no shared way to switch modes.
                 return false;
         }
     }
 
     public bool Pad(PadState state) => pad.Update(state);
 
-    public bool Pen(Pen pen) => false;
+    public bool Pen(Pen pen) => annotator.Handle(pen);
 
     public string AttachPad() => pad.Attach();
 
@@ -168,6 +187,8 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     /// </summary>
     public void StartReporting(Action<Frame> send)
     {
+        // On the reader, before the reporter's thread: the features and the screen size go out first.
+        annotator.Start(send);
         lock (reporting)
         {
             reporter ??= new StateReporter(speakers, microphone, backlight, mpris, macros, send);
@@ -179,6 +200,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
         // Input first: letting go of keys and unplugging the pad is what matters if a join below runs long.
         input.Dispose();
         pad.Dispose();
+        annotator.Dispose();
         lock (reporting)
         {
             reporter?.Dispose();
