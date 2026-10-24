@@ -1,27 +1,34 @@
-"""CI only: one edge-tts take of script.json, cut apart at its pauses so the gaps between scenes can be widened.
+"""CI only: the narration for each script in scripts/, one edge-tts take per script.
 
-Writes out/voice.mp3, out/timing.json and out/edgepad-demo.en.vtt. Needs `pip install edge-tts` and ffmpeg.
-Silence is only ever inserted between lines; nothing is re-synthesised."""
+For every script id given (all of scripts/*.json when none are) it writes out/<id>/voice.mp3, out/<id>/timing.json,
+out/<id>/timing.js (the same data as `window.TIMING`, which the composition loads with a plain <script>) and
+out/<id>/<id>.en.vtt. Needs `pip install edge-tts` and ffmpeg.
+
+The take is cut apart midway through the silence after each line and laid out again with set pauses, so the
+pacing is ours while every word stays as it was spoken. Silence is only ever inserted; nothing is re-synthesised.
+Every word keeps its own timing, shifted with its line, which is what the captions and the headline reveals key off.
+"""
 import asyncio
 import json
 import pathlib
 import re
 import subprocess
+import sys
 
 import edge_tts
 from edge_tts.exceptions import NoAudioReceived
 
 HERE = pathlib.Path(__file__).parent
-OUT = HERE / "out"
 VOICE = "en-US-AndrewMultilingualNeural"
-LEAD = 0.6  # silence before the first word
-PAD = 0.25  # a scene starts this long before its line is spoken
-GAP = 0.7  # least silence after a line before the next scene
-TAIL = 1.5  # least time the end card holds after the last word
+RATE = "+4%"  # a touch brisker than the default, like the reference narration
+LEAD = 0.5  # silence before the first word
+GAP = 0.35  # between two lines of one chapter
+CHAPTER_GAP = 0.85  # between chapters, where the picture changes the most
+TAIL = 3.0  # the end card holds this long after the last word
 
 
 def letters(s):
-    return re.sub(r"[^a-z]", "", s.lower())
+    return re.sub(r"[^a-z0-9]", "", s.lower())
 
 
 async def take(text):
@@ -29,7 +36,7 @@ async def take(text):
     for attempt in range(1, 5):
         mp3 = bytearray()
         words = []
-        comm = edge_tts.Communicate(text, VOICE, boundary="WordBoundary")
+        comm = edge_tts.Communicate(text, VOICE, rate=RATE, boundary="WordBoundary")
         try:
             async for chunk in comm.stream():
                 if chunk["type"] == "audio":
@@ -44,19 +51,42 @@ async def take(text):
             await asyncio.sleep(10 * attempt)
 
 
-def align(lines, words):
-    """Per line: first word start, last word end, next line's first word start (None for the last)."""
-    spans, w, used, total = [], 0, 0, 0
-    for line in lines:
-        total += len(letters(line["say"]))
+def split(lines, words):
+    """The spoken words of each line, matched by counting letters, so punctuation and splits cannot drift them."""
+    out, w, used, total = [], 0, 0, 0
+    for text in lines:
+        total += len(letters(text))
         first = w
         while w < len(words) and used < total:
             used += len(letters(words[w][0]))
             w += 1
-        assert w > first, "no words matched " + line["id"]
-        spans.append((words[first][1], words[w - 1][2], words[w][1] if w < len(words) else None))
+        assert w > first, "no words matched: " + text
+        out.append(words[first:w])
     assert w == len(words), f"{len(words) - w} spoken words matched no line; the script and the take disagree"
-    return spans
+    return out
+
+
+def tokens(text, spoken):
+    """The line's own words (with their punctuation), each timed from the spoken words whose letters it holds."""
+    toks = text.split()
+    ends, n = [], 0
+    for tok in toks:
+        n += len(letters(tok))
+        ends.append(n)
+    out = [[tok, None, None] for tok in toks]
+    c = 0
+    for word, s, e in spoken:
+        k = next((i for i, end in enumerate(ends) if c < end), len(toks) - 1)
+        if out[k][1] is None:
+            out[k][1] = s
+        out[k][2] = e
+        c += len(letters(word))
+    # A token with no letters of its own takes the time of the one before it (or after, at the start).
+    for i, t in enumerate(out):
+        if t[1] is None:
+            near = next((out[j] for j in [*range(i - 1, -1, -1), *range(i + 1, len(out))] if out[j][1] is not None), None)
+            t[1] = t[2] = near[2] if near else spoken[0][1]
+    return out
 
 
 def stamp(sec):
@@ -64,49 +94,90 @@ def stamp(sec):
     return "%02d:%02d:%02d.%03d" % (ms // 3600000, ms // 60000 % 60, ms // 1000 % 60, ms % 1000)
 
 
-def main():
-    OUT.mkdir(exist_ok=True)
-    lines = json.loads((HERE / "script.json").read_text(encoding="utf-8"))
-    audio, words = asyncio.run(take(" ".join(line["say"] for line in lines)))
-    (OUT / "take.mp3").write_bytes(audio)
-    spans = align(lines, words)
+def cues(lines):
+    """Subtitle cues of a few words each, broken after punctuation, so a cue never outstays its words."""
+    out = []
+    for line in lines:
+        group = []
+        for i, w in enumerate(line["words"]):
+            group.append(w)
+            last = i == len(line["words"]) - 1
+            if last or len(group) >= 7 or (w[0][-1] in ".,?!:" and len(group) >= 3):
+                out.append((group[0][1], group[-1][2], " ".join(x[0] for x in group)))
+                group = []
+    return "WEBVTT\n\n" + "\n".join(f"{stamp(a)} --> {stamp(b)}\n{t}\n" for a, b, t in out)
+
+
+def build(sid):
+    script = json.loads((HERE / "scripts" / f"{sid}.json").read_text(encoding="utf-8"))
+    out = HERE / "out" / sid
+    out.mkdir(parents=True, exist_ok=True)
+    flat = [(ci, text) for ci, ch in enumerate(script["chapters"]) for text in ch["lines"]]
+    texts = [t for _, t in flat]
+    audio, words = asyncio.run(take(" ".join(texts)))
+    (out / "take.mp3").write_bytes(audio)
+    spoken = split(texts, words)
+    starts = [s[0][1] for s in spoken]
+    ends = [s[-1][2] for s in spoken]
 
     # Cut each line out of the take midway through the silence after it, then lay the pieces out again.
-    cuts = [0.0] + [(end + nxt) / 2 for _, end, nxt in spans[:-1]] + [spans[-1][1] + 0.3]
-    filters, order, at, timing = [], [], 0.0, []
-    for i, (line, (start, end, _)) in enumerate(zip(lines, spans)):
-        lead = LEAD if i == 0 else PAD
-        speech = end - start
-        slot = max(lead + speech + GAP, line.get("hold", 0))
-        if i == len(lines) - 1:
-            slot = max(slot, lead + speech + TAIL)
-        a = max(cuts[i], start - 0.15)
-        b = min(cuts[i + 1], end + 0.3)
-        before = max(lead - (start - a), 0.001)  # silence ahead of the cut, so the first word lands on `lead`
-        filters.append(f"[0:a]atrim={a:.3f}:{b:.3f},asetpts=PTS-STARTPTS,apad=whole_dur={slot - before:.3f}[s{i}]")
+    cuts = [0.0] + [(ends[i] + starts[i + 1]) / 2 for i in range(len(flat) - 1)] + [ends[-1] + 0.3]
+    filters, order, at, lines, chapters = [], [], 0.0, [], []
+    for i, (ci, text) in enumerate(flat):
+        last = i == len(flat) - 1
+        lead = LEAD if i == 0 else 0.0
+        a = max(cuts[i], starts[i] - 0.12)
+        b = min(cuts[i + 1], ends[i] + 0.25)
+        speech = ends[i] - starts[i]
+        gap = TAIL if last else CHAPTER_GAP if flat[i + 1][0] != ci else GAP
+        slot = lead + speech + gap
+        before = max(lead + (0.12 if i else 0) - (starts[i] - a), 0.001)  # silence ahead of the cut
+        first = at + before + (starts[i] - a)  # where this line's first word lands
+        shift = first - starts[i]
+        if not chapters or chapters[-1]["index"] != ci:
+            chapters.append({"index": ci, "title": script["chapters"][ci]["title"], "start": round(at, 3)})
+        filters.append(f"[0:a]atrim={a:.3f}:{b:.3f},asetpts=PTS-STARTPTS,apad=whole_dur={slot + (0.12 if i else 0) - before:.3f},atrim=0:{slot + (0.12 if i else 0) - before:.3f}[s{i}]")
         filters.append(f"anullsrc=r=24000:cl=mono,atrim=0:{before:.3f}[p{i}]")
         order.append(f"[p{i}][s{i}]")
-        timing.append(
+        toks = tokens(text, spoken[i])
+        lines.append(
             {
-                "id": line["id"],
-                "scene": line["scene"],
-                "start": round(at + lead, 3),
-                "end": round(at + lead + speech, 3),
-                "caption": line["caption"],
+                "chapter": ci,
+                "text": text,
+                "start": round(first, 3),
+                "end": round(ends[i] + shift, 3),
+                "words": [[t, round(s + shift, 3), round(e + shift, 3)] for t, s, e in toks],
             }
         )
-        at += slot
-    graph = ";".join(filters) + ";" + "".join(order) + f"concat=n={2 * len(lines)}:v=0:a=1[out]"
+        at += slot + (0.12 if i else 0)
+    graph = ";".join(filters) + ";" + "".join(order) + f"concat=n={2 * len(flat)}:v=0:a=1[out]"
     subprocess.run(
-        ["ffmpeg", "-y", "-loglevel", "error", "-i", str(OUT / "take.mp3"), "-filter_complex", graph,
-         "-map", "[out]", "-ar", "24000", "-ac", "1", "-b:a", "96k", str(OUT / "voice.mp3")],
+        ["ffmpeg", "-y", "-loglevel", "error", "-i", str(out / "take.mp3"), "-filter_complex", graph,
+         "-map", "[out]", "-ar", "24000", "-ac", "1", "-b:a", "128k", str(out / "voice.mp3")],
         check=True,
     )
-    (OUT / "take.mp3").unlink()
-    (OUT / "timing.json").write_text(json.dumps({"duration": round(at, 3), "lines": timing}, indent=1), encoding="utf-8")
-    cues = "\n".join(f"{stamp(t['start'])} --> {stamp(t['end'])}\n{t['caption']}\n" for t in timing)
-    (OUT / "edgepad-demo.en.vtt").write_text("WEBVTT\n\n" + cues, encoding="utf-8")
-    print(f"voice: {at:.1f}s, {len(words)} words, {len(lines)} lines")
+    (out / "take.mp3").unlink()
+    # The poster is a frame from the corner-dial beat, the picture that says the most about the app.
+    dial = next((ln for ln in lines if "dial" in ln["text"].lower()), lines[len(lines) // 2])
+    timing = {
+        "id": sid,
+        "title": script["title"],
+        "duration": round(at, 3),
+        "poster": round(min(dial["end"], dial["start"] + 3.0), 3),
+        "chapters": [{"title": c["title"], "start": c["start"]} for c in chapters],
+        "lines": lines,
+    }
+    data = json.dumps(timing, indent=1)
+    (out / "timing.json").write_text(data, encoding="utf-8")
+    (out / "timing.js").write_text(f"window.TIMING = {data};\n", encoding="utf-8")
+    (out / f"{sid}.en.vtt").write_text(cues(lines), encoding="utf-8")
+    print(f"voice {sid}: {at:.1f}s, {len(words)} words, {len(lines)} lines, {len(chapters)} chapters")
+
+
+def main():
+    ids = sys.argv[1:] or sorted(p.stem for p in (HERE / "scripts").glob("*.json"))
+    for sid in ids:
+        build(sid)
 
 
 main()

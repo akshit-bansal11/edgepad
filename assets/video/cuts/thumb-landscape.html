@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280, height=720">
+<title>Edgepad cover 1280 x 720</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<link rel="stylesheet" href="../film.css">
+</head>
+<body>
+<!-- A cover in the film's style: the mark, a huge headline with its keyword in blue, and the phone on the surface, a
+     finger on the volume dial. One still frame, rendered to PNG by CI. -->
+<div id="root" data-composition-id="thumb-landscape" data-start="0" data-duration="1" data-width="1280" data-height="720">
+  <canvas id="film-canvas"></canvas>
+  <div id="film-text"></div>
+</div>
+<script>
+  window.CUT = {
+    id: 'thumb-landscape', w: 1280, h: 720, base: '../',
+    setup(D) {
+      D.cam = new EP.Track({ x: 1010, y: 610, s: 1.12, r: -6 });
+      D.vol.set(-1, 64);
+      D.bri.set(-1, 82);
+      D.zoom.set(-1, 2);
+      D.armed.push([-1, 2, 'VOL']);
+      D.touch([[-1, 31, 31], [2, 31, 31]], false);
+    },
+    // The text: built once, never animated.
+    still(layer) {
+      const el = document.createElement('div');
+      el.className = 'still';
+      const L = { x: 64, y: 70, mark: 84, big: 104, tag: 32, gap: 26 };
+      el.innerHTML =
+        '<img class="mark" src="../brand/edgepad-dark.svg" alt="" style="width:' + L.mark + 'px;height:' + L.mark + 'px">' +
+        '<div class="big" style="font-size:' + L.big + 'px;margin-top:' + L.gap + 'px">Your phone,<br>your laptop\'s<br><span class="k">remote.</span></div>' +
+        '<div class="tag" style="font-size:' + L.tag + 'px;margin-top:' + L.gap + 'px">Edgepad 4.0 · free and <span class="k">open source</span></div>';
+      el.style.left = L.x + 'px';
+      el.style.top = L.y + 'px';
+      layer.appendChild(el);
+    },
+  };
+</script>
+<script src="../ui/kit.js"></script>
+<script src="../ui/icons.js"></script>
+<script src="../ui/surface.js"></script>
+<script src="../ui/screens.js"></script>
+<script src="../ui/beats.js"></script>
+<script src="../ui/film.js"></script>
+</body>
+</html>

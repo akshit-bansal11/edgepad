@@ -18,6 +18,7 @@
   const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
   const DARK = { bg: '#0E0F12', card: '#1B1C20', line: '#2B2D33', faint: '#24262B', ink: '#F2F3F5', dim: '#9A9CA3', accent: '#4DA3FF', onAccent: '#0B1A2E', accentSoft: '#1B2A3D', off: '#3A3C43' };
   const LIGHT = { bg: '#F2F3F7', card: '#FFFFFF', line: '#E3E5EA', faint: '#EBEDF2', ink: '#16171A', dim: '#6B6E76', accent: '#0068D6', onAccent: '#FFFFFF', accentSoft: '#E6F0FC', off: '#E3E5EA' };
+  EP.mixRgb = (a, b, k) => a.map((v, i) => v + (b[i] - v) * EP.clamp(k));
   EP.rgba = (c, a = 1) => `rgba(${Math.round(c[0])},${Math.round(c[1])},${Math.round(c[2])},${a})`;
   // k = 0 the dark theme, 1 the light one; in between is a cross-fade, for the theme switch.
   EP.palette = (k) => {
@@ -87,6 +88,15 @@
     terminal: 'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z M7 9l3 3-3 3 M13 15h4',
     image: 'M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z M9 8.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21',
     check: 'M20 6L9 17l-5-5',
+    volume: 'M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z M16 9a5 5 0 0 1 0 6 M19.364 18.364a9 9 0 0 0 0-12.728',
+    sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M12 2v2 M12 20v2 M4.93 4.93l1.41 1.41 M17.66 17.66l1.41 1.41 M2 12h2 M20 12h2 M6.34 17.66l-1.41 1.41 M19.07 4.93l-1.41 1.41',
+    download: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M7 10l5 5 5-5 M12 15V3',
+    bluetooth: 'M7 7l10 10-5 5V2l5 5L7 17',
+    smartphone: 'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z M12 18h.01',
+    unlink: 'M18.84 12.25l1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71 M5.17 11.75l-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71 M8 2v3 M2 8h3 M16 19v3 M19 16h3',
+    power: 'M12 2v10 M18.4 6.6a9 9 0 1 1-12.77.04',
+    laptop: 'M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16',
+    shield: 'M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z',
   };
   const paths = {};
   // Draws icon `name` centred on (cx, cy), `size` px square, stroked in `color`.
@@ -123,6 +133,108 @@
     ctx.strokeStyle = dark ? '#4DA3FF' : '#0068D6';
     ctx.stroke(ARC);
     ctx.restore();
+  };
+
+  // ---- images: loaded once, before the timeline is registered, so a frame never waits on one. ----
+  // name -> [file, width / height]; the logos are the app's own res/raw SVGs, the marks assets/edgepad-*.svg.
+  const IMAGES = {
+    youtube: ['logo_youtube.svg', 256 / 180],
+    spotify: ['logo_spotify.svg', 1],
+    markLight: ['edgepad-light.svg', 1],
+    markDark: ['edgepad-dark.svg', 1],
+  };
+  EP.img = {};
+  // `base` is the brand/ folder relative to the page.
+  EP.loadImages = (base) =>
+    Promise.all(
+      Object.entries(IMAGES).map(([name, [file, aspect]]) => {
+        const im = new Image();
+        im.src = base + file;
+        EP.img[name] = { im, aspect };
+        return im.decode().catch(() => undefined);
+      }),
+    );
+  // An image fitted inside a size x size box centred on (cx, cy).
+  EP.image = (ctx, name, cx, cy, size, a = 1) => {
+    const e = EP.img[name];
+    if (!e || !e.im.complete || !e.im.naturalWidth) return false;
+    const w = e.aspect >= 1 ? size : size * e.aspect;
+    const h = e.aspect >= 1 ? size / e.aspect : size;
+    const g = ctx.globalAlpha;
+    ctx.globalAlpha = g * a;
+    ctx.drawImage(e.im, cx - w / 2, cy - h / 2, w, h);
+    ctx.globalAlpha = g;
+    return true;
+  };
+  // AppLogo.kt: the playing app's logo, or a music note when there is none.
+  EP.appLogo = (ctx, app, cx, cy, size, pal) => {
+    const name = (app || '').toLowerCase();
+    const key = name.includes('spotify') ? 'spotify' : name.includes('youtube') ? 'youtube' : null;
+    if (!key || !EP.image(ctx, key, cx, cy, size)) EP.icon(ctx, 'music', cx, cy, size * 0.8, pal.ink);
+  };
+
+  // ---- brand marks for the macro deck (ui/icons.js, Simple Icons), filled in a colour at `size` px. ----
+  const brandPaths = {};
+  EP.brand = (ctx, name, cx, cy, size, color, a = 1) => {
+    const d = window.EP_BRANDS && window.EP_BRANDS[name];
+    if (!d) return;
+    const p = (brandPaths[name] ||= new Path2D(d));
+    ctx.save();
+    ctx.globalAlpha *= a;
+    ctx.translate(cx - size / 2, cy - size / 2);
+    ctx.scale(size / 24, size / 24);
+    ctx.fillStyle = color;
+    ctx.fill(p);
+    ctx.restore();
+  };
+
+  // ---- time: tracks of eased moves, and warps that map film time onto a screen's own choreography ----
+  EP.easeInOut = (t) => {
+    t = EP.clamp(t);
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  };
+  // A track is a start value and a list of moves [t0, t1, value]: from t0 to t1 it eases from wherever it was
+  // to `value`. Values are numbers or objects of numbers (a camera). Moves are kept sorted by t0.
+  EP.Track = class {
+    constructor(v0, ease = EP.easeInOut) {
+      this.v0 = v0;
+      this.moves = [];
+      this.ease = ease;
+    }
+    to(t0, t1, v) {
+      this.moves.push([t0, Math.max(t1, t0 + 1e-3), v]);
+      this.moves.sort((a, b) => a[0] - b[0]);
+      return this;
+    }
+    set(t, v) {
+      return this.to(t, t + 1e-3, v);
+    }
+    at(t) {
+      let v = this.v0;
+      for (const [t0, t1, to] of this.moves) {
+        if (t < t0) break;
+        const k = this.ease((t - t0) / (t1 - t0));
+        v = mix(v, to, k);
+      }
+      return v;
+    }
+  };
+  function mix(a, b, k) {
+    if (typeof b === 'number') return EP.lerp(typeof a === 'number' ? a : 0, b, k);
+    if (typeof b !== 'object' || b === null) return k < 0.5 ? a : b;
+    const o = {};
+    for (const key of Object.keys(b)) o[key] = mix(a && key in a ? a[key] : b[key], b[key], k);
+    return o;
+  }
+  // Piecewise-linear map through anchors [[t, local], ...], with slope 1 outside them.
+  EP.warp = (t, anchors) => {
+    if (t <= anchors[0][0]) return anchors[0][1] + (t - anchors[0][0]);
+    for (let i = 0; i + 1 < anchors.length; i++) {
+      const [a, la] = anchors[i], [b, lb] = anchors[i + 1];
+      if (t <= b) return la + ((t - a) / (b - a)) * (lb - la);
+    }
+    const [a, la] = anchors[anchors.length - 1];
+    return la + (t - a);
   };
 
   // ---- Perimeter.kt: a rounded rectangle walked clockwise from the left end of the top edge. ----

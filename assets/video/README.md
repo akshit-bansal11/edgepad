@@ -1,7 +1,10 @@
-The 4.0.0 demo video, rendered by the `video` job in `.github/workflows/ci.yml` (nothing here runs locally).
+The 4.0.0 marketing videos: a HyperFrames project, rendered by the `video` job in `.github/workflows/ci.yml`. Nothing here runs locally.
 
-1. `voice.py` speaks `script.json` in one edge-tts take, cuts it at the pauses, widens them and writes `out/voice.mp3`, `out/timing.json` and `out/edgepad-demo.en.vtt`.
-2. `index.html` and `ui/*.js` draw each frame on a canvas as a pure function of time, ported from the Android drawing code. Open `index.html?aspect=16x9&t=20` for a still (`9x16` and `4x5` too); without `out/timing.json` it uses a stand-in timeline.
-3. `render.mjs` serves the repo, drives headless Chrome over CDP and pipes 30 fps frames and the voice into ffmpeg.
-4. It runs only when something under `assets/video/` changed. The `edgepad-video` artifact holds `out/`: `edgepad-demo-16x9.mp4`, `-9x16.mp4`, `-4x5.mp4`, `edgepad-demo-poster.jpg`, `demo.gif` and the `.vtt`.
-5. `assets/demo.gif` is not replaced by the job; copy `out/demo.gif` over it by hand if it should be.
+- `scripts/<id>.json`: the narration, in chapters and lines. `full` (about 4.5 min, 16:9), `minute` (about 60 s, 16:9), `reel` (about 30 s, 9:16).
+- `voice.py`: one edge-tts take per script (`en-US-AndrewMultilingualNeural`), cut at the line breaks and laid out with set pauses. It writes `out/<id>/voice.mp3`, `timing.json` (every word's time, line times, chapter starts, the poster frame), `timing.js` (the same, for the page) and `<id>.en.vtt`.
+- `index.html` is the `full` composition; `cuts/` holds `minute`, `reel` and the two covers, `thumb-landscape` (1280 x 720) and `thumb-portrait` (1080 x 1920). Each is a standalone composition rendered with `render -c`.
+- `ui/beats.js` says what each line shows: its headline (one keyword in blue), its sub-line and an act (camera moves, screens, fingers, laptop cards) keyed to the spoken words. `ui/film.js` turns that into one paused GSAP timeline: the text is DOM revealed word by word, and the phone, the laptop cards and the ground are one canvas redrawn from a proxy tween's `onUpdate`, so every frame is a pure function of time.
+- `ui/kit.js`, `ui/surface.js` and `ui/screens.js` are the phone's screens, ported from the Android drawing code; each block names the Kotlin it follows. `icons/` holds the Simple Icons marks for the macro deck (see `icons/NOTICE`); `brand/` the app's Lato, the Edgepad marks and the app's own YouTube and Spotify logos.
+- A still for checking by eye, with no narration run: open `index.html?line=13&f=0.4` (line 13, 40 % through) in Chrome with `--allow-file-access-from-files`; it times the words from the script instead.
+- The job runs only when something under `assets/video/` changed. The `edgepad-video` artifact holds the three cuts, a web copy of `full` and `minute` (CRF 23, under about 40 MB), a poster for each, the two cover PNGs, every `.vtt` and every `timing.json`. No music: the narration stands alone.
+- The site's `/edgepad-demo.*` files are not replaced by the job; copy the ones wanted over by hand.

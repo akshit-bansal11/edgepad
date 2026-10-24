@@ -2,27 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Edgepad demo</title>
-<style>
-  @font-face { font-family: Lato; font-weight: 400; src: url(../../windows/src/Edgepad/Fonts/Lato-Regular.ttf); }
-  @font-face { font-family: Lato; font-weight: 700; src: url(../../windows/src/Edgepad/Fonts/Lato-Bold.ttf); }
-  @font-face { font-family: Lato; font-weight: 900; src: url(../../windows/src/Edgepad/Fonts/Lato-Black.ttf); }
-  html, body { margin: 0; background: #F2F3F7; overflow: hidden; }
-  canvas { display: block; }
-  #err { position: fixed; left: 0; top: 0; margin: 0; padding: 8px; font: 14px monospace; color: #c00; background: #fff; white-space: pre-wrap; }
-</style>
+<meta name="viewport" content="width=1920, height=1080">
+<title>Edgepad 4.0: the full demo</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<link rel="stylesheet" href="film.css">
 </head>
 <body>
-<canvas id="c"></canvas>
-<pre id="err" hidden></pre>
-<script>
-  // A script error would otherwise leave a blank frame; show it so a still screenshot says what broke.
-  addEventListener('error', (e) => { const p = document.getElementById('err'); p.hidden = false; p.textContent += `${e.filename}:${e.lineno} ${e.message}\n`; });
-  addEventListener('unhandledrejection', (e) => { const p = document.getElementById('err'); p.hidden = false; p.textContent += `${e.reason}\n`; });
-</script>
+<!-- Edgepad 4.0: the full demo. The narration (voice.py) sets the length; the director (ui/film.js) builds the rest. -->
+<div id="root" data-composition-id="full" data-start="0" data-width="1920" data-height="1080">
+  <canvas id="film-canvas"></canvas>
+  <div id="film-text"></div>
+  <audio id="voice" src="out/full/voice.mp3" data-start="0"></audio>
+</div>
+<script>window.CUT = { id: 'full', w: 1920, h: 1080, base: '' };</script>
+<script src="out/full/timing.js"></script>
 <script src="ui/kit.js"></script>
+<script src="ui/icons.js"></script>
 <script src="ui/surface.js"></script>
 <script src="ui/screens.js"></script>
-<script src="ui/main.js"></script>
+<script src="ui/beats.js"></script>
+<script src="ui/film.js"></script>
 </body>
 </html>

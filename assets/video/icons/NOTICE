@@ -1,0 +1,8 @@
+Brand icons for the macro deck in the demo video, from Simple Icons 16.35.0 (https://simpleicons.org),
+released under CC0 1.0 Universal. Fetched unchanged from
+https://cdn.jsdelivr.net/npm/simple-icons@16.35.0/icons/<name>.svg
+Brand names and marks remain the property of their owners; they are shown as the apps a macro might open.
+Simple Icons has no Visual Studio Code or Slack mark, so the deck shows Obsidian and VLC in their place.
+
+ui/icons.js is generated from these files (Git Bash, from assets/video/):
+  { head -2 ui/icons.js; echo "window.EP_BRANDS = {"; for f in icons/*.svg; do echo "  $(basename $f .svg): '$(grep -o ' d="[^"]*"' $f | sed 's/ d="//;s/"$//')',"; done; echo "};"; } > ui/icons.new && mv ui/icons.new ui/icons.js
