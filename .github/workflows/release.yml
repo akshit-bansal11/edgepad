@@ -133,11 +133,10 @@ jobs:
           global-json-file: global.json
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only windows
-      # Restored for the RID first, so the runtime pack's notices are in the cache; the exe embeds the file.
+      # The quality gate has restored every package into the cache; the exe embeds the file.
       - name: Write the licence notices
         shell: bash
         run: |
-          dotnet restore windows/src/Edgepad/Edgepad.csproj -r win-x64 --locked-mode
           sh scripts/notices.sh windows/src/Edgepad/packages.lock.json win-x64 windows/src/Edgepad/THIRD-PARTY-NOTICES.txt
       - name: Publish the exe
         shell: pwsh

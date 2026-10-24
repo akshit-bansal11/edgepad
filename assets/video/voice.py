@@ -9,6 +9,7 @@ import re
 import subprocess
 
 import edge_tts
+from edge_tts.exceptions import NoAudioReceived
 
 HERE = pathlib.Path(__file__).parent
 OUT = HERE / "out"
@@ -24,15 +25,23 @@ def letters(s):
 
 
 async def take(text):
-    mp3 = bytearray()
-    words = []
-    comm = edge_tts.Communicate(text, VOICE, boundary="WordBoundary")
-    async for chunk in comm.stream():
-        if chunk["type"] == "audio":
-            mp3 += chunk["data"]
-        elif chunk["type"] == "WordBoundary":
-            words.append((chunk["text"], chunk["offset"] / 1e7, (chunk["offset"] + chunk["duration"]) / 1e7))
-    return bytes(mp3), words
+    # The service now and then answers with no audio at all; the same request usually succeeds a little later.
+    for attempt in range(1, 5):
+        mp3 = bytearray()
+        words = []
+        comm = edge_tts.Communicate(text, VOICE, boundary="WordBoundary")
+        try:
+            async for chunk in comm.stream():
+                if chunk["type"] == "audio":
+                    mp3 += chunk["data"]
+                elif chunk["type"] == "WordBoundary":
+                    words.append((chunk["text"], chunk["offset"] / 1e7, (chunk["offset"] + chunk["duration"]) / 1e7))
+            return bytes(mp3), words
+        except NoAudioReceived:
+            if attempt == 4:
+                raise
+            print(f"voice: no audio on attempt {attempt}, retrying")
+            await asyncio.sleep(10 * attempt)
 
 
 def align(lines, words):

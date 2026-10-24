@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <title>Edgepad</title>
   <!-- The Edgepad mark without its tile, ink and accent switched for a dark browser tab bar. -->
   <style>
     .i { stroke: #16171A } .a { stroke: #0068D6 }
