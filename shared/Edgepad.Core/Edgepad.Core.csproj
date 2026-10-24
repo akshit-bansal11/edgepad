@@ -7,6 +7,11 @@
     <RootNamespace>Edgepad</RootNamespace>
     <AssemblyName>Edgepad.Core</AssemblyName>
     <IsPackable>false</IsPackable>
+    <!-- A laptop app's `dotnet publish -r <rid> -p:PublishSingleFile=true` hands both to this project too, so
+         its locked-mode restore needs those runtimes and the single-file analyzer's ILLink package in this lock
+         file as well. Named here for the same reason the Windows project names its own. -->
+    <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
   </PropertyGroup>
 
   <ItemGroup>
