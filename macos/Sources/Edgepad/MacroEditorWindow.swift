@@ -67,7 +67,11 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
             warn("\(label) has nothing to open. Browse to an app or file, or type a web address.")
             return false
         }
-        store.save(working)
+        if let failure = store.save(working) {
+            // The edits stay in the window, so the owner can fix the cause and press Save again, or cancel.
+            warn("The macros could not be saved to \(store.filePath): \(failure).")
+            return false
+        }
         return true
     }
 

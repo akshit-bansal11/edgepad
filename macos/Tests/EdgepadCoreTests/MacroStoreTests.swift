@@ -31,6 +31,17 @@ final class MacroStoreTests: XCTestCase {
         return text.split(separator: "\n", omittingEmptySubsequences: false).dropLast().map(String.init)
     }
 
+    func testAFailedWriteIsReportedAndLeavesTheListAsItWas() throws {
+        let store = newStore()
+        XCTAssertNil(store.save([Macro(name: "Mail", target: "Mail.app")]))
+        try FileManager.default.removeItem(at: directory)
+        // A file where the folder should be, so nothing can be created under it.
+        try "in the way".write(to: directory, atomically: true, encoding: .utf8)
+
+        XCTAssertNotNil(store.save([Macro(name: "Code", target: "Code.app")]))
+        XCTAssertEqual(store.names(), "Mail")
+    }
+
     func testNamesAreTheButtonLabelsJoinedForOneTextFrame() {
         let store = newStore()
         store.save([Macro(name: "Mail", target: "https://mail.google.com"), Macro(name: "Code", target: "Code.app")])

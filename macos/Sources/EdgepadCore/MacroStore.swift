@@ -91,15 +91,19 @@ public final class MacroStore {
         publish(replacing: MacroStore.read(path))
     }
 
-    public func save(_ macros: [Macro]) {
+    /// Nil once the list is written and published, otherwise why the write failed. On a failure the list in use is
+    /// left as it was, so what the phone shows is what is on disk and the owner, told by the caller, can retry. The
+    /// Windows store keeps the new list for the session instead; here the owner is told, so nothing is silently lost.
+    @discardableResult
+    public func save(_ macros: [Macro]) -> String? {
         let clean = MacroStore.clean(macros)
         let text = clean.map { MacroStore.line($0) + "\n" }.joined()
         if let failure = writePrivately(text, to: path) {
-            // The list still takes effect for this session; only the next start loses it. Failing the save
-            // would leave the owner's editor open on a list the phone is not showing.
             Log.write("Macros could not be saved to \(path): \(failure)")
+            return failure
         }
         publish(replacing: clean)
+        return nil
     }
 
     /// Reports the label list now and whenever it changes, until the returned token is cancelled. A session
