@@ -201,13 +201,12 @@ const ACTION_DOCS: Record<string, string> = {
   TOOL_PEN: "The next stroke is a pen line, 0.4% of the screen height wide.",
   TOOL_HIGHLIGHTER:
     "The next stroke is a highlighter, 2% of the screen height wide at 35% opacity, stroked once per path so a loop does not darken where it crosses itself.",
-  TOOL_LINE: "The next stroke is a straight line from the down point to the latest move.",
-  TOOL_ARROW:
-    "As the line, with an arrow head four times the pen width at the end.",
+  TOOL_LINE:
+    "The next stroke is a straight line from the down point to the latest move.",
+  TOOL_ARROW: "As the line, with an arrow head four times the pen width at the end.",
   TOOL_RECTANGLE:
     "The next stroke is a rectangle from the down point to the latest move.",
-  TOOL_ELLIPSE:
-    "The next stroke is an ellipse from the down point to the latest move.",
+  TOOL_ELLIPSE: "The next stroke is an ellipse from the down point to the latest move.",
   SIGN_BEGIN:
     "Opens a signing surface that shows nothing on the laptop and accepts only the pen tool.",
   SIGN_SAVE:
