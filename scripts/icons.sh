@@ -7,6 +7,8 @@
 # windows/src/Edgepad/edgepad.ico                       exe icon and Windows tray
 # macos/Resources/edgepad.icns                          copied into Edgepad.app by macos/bundle.sh
 # linux/src/Edgepad.Linux/Assets/edgepad-64.png         Linux tray (Skia does not decode an .ico)
+# linux/src/Edgepad.Linux/Assets/edgepad-64-dark.png    Linux tray on a dark desktop, from edgepad-dark.svg
+# windows/src/Edgepad/Assets/tray-light.ico, tray-dark.ico   Windows tray, by the taskbar theme (16 to 48 px)
 # site/app/apple-icon.png                               180 px touch icon (site/app/icon.svg is hand-kept text)
 set -eu
 
@@ -25,3 +27,16 @@ icotool -c -o "$root/windows/src/Edgepad/edgepad.ico" "$tmp/16.png" "$tmp/24.png
 png2icns "$root/macos/Resources/edgepad.icns" "$tmp/16.png" "$tmp/32.png" "$tmp/128.png" "$tmp/256.png" "$tmp/512.png"
 cp "$tmp/64.png" "$root/linux/src/Edgepad.Linux/Assets/edgepad-64.png"
 cp "$tmp/180.png" "$root/site/app/apple-icon.png"
+# The tray in both tiles, at the sizes a tray uses across DPI: Windows picks by the taskbar theme, Linux by the desktop's.
+dark="$root/assets/edgepad-dark.svg"
+for n in 20 40; do
+    rsvg-convert -w "$n" -h "$n" -o "$tmp/$n.png" "$src"
+    rsvg-convert -w "$n" -h "$n" -o "$tmp/d$n.png" "$dark"
+done
+for n in 16 24 32 48 64; do
+    rsvg-convert -w "$n" -h "$n" -o "$tmp/d$n.png" "$dark"
+done
+mkdir -p "$root/windows/src/Edgepad/Assets"
+icotool -c -o "$root/windows/src/Edgepad/Assets/tray-light.ico" "$tmp/16.png" "$tmp/20.png" "$tmp/24.png" "$tmp/32.png" "$tmp/40.png" "$tmp/48.png"
+icotool -c -o "$root/windows/src/Edgepad/Assets/tray-dark.ico" "$tmp/d16.png" "$tmp/d20.png" "$tmp/d24.png" "$tmp/d32.png" "$tmp/d40.png" "$tmp/d48.png"
+cp "$tmp/d64.png" "$root/linux/src/Edgepad.Linux/Assets/edgepad-64-dark.png"
