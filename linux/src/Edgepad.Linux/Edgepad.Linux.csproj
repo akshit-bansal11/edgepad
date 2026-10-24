@@ -28,10 +28,20 @@
     <!-- D-Bus: BlueZ's profile manager, and the RFCOMM socket it hands over as a file descriptor. The exact
          version Avalonia.FreeDesktop 12.1.4 asks for, so only one copy is ever restored. -->
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.94.1" />
-    <!-- The tray, the trust prompt and the Security window (step 8.5). Referenced now so the lock file is made once. -->
+    <!-- The tray, the trust prompt and the Security window (Ui/). -->
     <PackageReference Include="Avalonia" Version="12.1.4" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shared with the Windows app by link, not copied: Lato (Edgepad 2.0's typeface) under its OFL text, and the
+         Edgepad mark the tray shows. The UI is built in C#, so no XAML is compiled; avares://Edgepad.Linux/... reads these. -->
+    <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\Lato-Regular.ttf" Link="Fonts\Lato-Regular.ttf" />
+    <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\Lato-Bold.ttf" Link="Fonts\Lato-Bold.ttf" />
+    <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\Lato-Black.ttf" Link="Fonts\Lato-Black.ttf" />
+    <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\OFL.txt" Link="Fonts\OFL.txt" />
+    <AvaloniaResource Include="..\..\..\windows\src\Edgepad\edgepad.ico" Link="Assets\edgepad.ico" />
   </ItemGroup>
 
   <ItemGroup>

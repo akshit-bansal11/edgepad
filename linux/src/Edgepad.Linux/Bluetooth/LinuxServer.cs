@@ -196,6 +196,27 @@ internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, b
         return true;
     }
 
+    /// <summary>
+    /// Hangs up on every phone and refuses new connections until <see cref="Resume"/>. For an owner dialog that
+    /// changes security: a connected phone is a keyboard, and a trusted one reconnects within seconds.
+    /// </summary>
+    public void HoldOff() => End(admission.HoldOff());
+
+    /// <summary>Ends one <see cref="HoldOff"/>.</summary>
+    public void Resume() => admission.Resume();
+
+    /// <summary>Hangs up on every phone and refuses new connections for <paramref name="quiet"/>.</summary>
+    public void HangUp(TimeSpan quiet) => End(admission.HangUp(quiet));
+
+    // Outside the admission lock: each session's exit calls OnSessionEnded.
+    private static void End(List<LinuxSession> sessions)
+    {
+        foreach (var session in sessions)
+        {
+            session.Dispose();
+        }
+    }
+
     private void OnSessionEnded(LinuxSession session)
     {
         admission.Ended(session);

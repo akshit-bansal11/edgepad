@@ -4,9 +4,19 @@ The Linux laptop app (`linux/`) is built and unit-tested on GitHub Actions only.
 
 The app logs to `~/.local/share/Edgepad/edgepad.log`. Its settings live in `$XDG_CONFIG_HOME/edgepad/` (normally `~/.config/edgepad/`).
 
-## Until the tray app lands (step 8.5)
+## The tray, the trust question and Security
 
-There is no trust prompt yet. Every phone that is not already trusted is refused, and the log says so. To test, trust a phone by hand. Pair it in the desktop's Bluetooth settings first. Then put its address, upper case, on a line of its own in `~/.config/edgepad/trusted-phone.txt` (for example `AA:BB:CC:DD:EE:FF`; `bluetoothctl devices` lists it).
+Edgepad draws its tray icon, the trust question and the Security window with Avalonia (built in C#, no XAML). Everything here was written from Avalonia's documentation and source, and none of it has been seen working. Report results on the issue tracker.
+
+**The tray icon (UNVERIFIED).** Avalonia shows it through the StatusNotifierItem D-Bus interface, which KDE Plasma, XFCE, Cinnamon, MATE and similar desktops serve. **GNOME does not show it by default**: it needs the "AppIndicator and KStatusNotifierItem Support" extension (UNKNOWN until tested on a GNOME laptop). The menu rows are the Windows ones: the connection status, Security…, Open log, Documentation, Forget trusted phones, and Quit Edgepad with the version. Open log and Documentation call `xdg-open`, so `xdg-utils` must be installed. The icon is read from the Windows `edgepad.ico` by Avalonia's own decoder; if that fails the log says "The tray icon could not be loaded" and the tray has no picture (UNKNOWN until tested). Whether the menu's "Security… (Level N)" and Forget rows refresh when the menu opens, and not only when the status changes, also depends on the desktop (UNKNOWN).
+
+**Without a tray.** The app still serves: phones that are already trusted connect, and the Bluetooth service does not depend on the UI. But the trust question and the Security window are then out of reach. There is no command-line way to open Security yet. A phone that is not trusted can still be asked about, because the trust question is a window and not a tray row, so a desktop with no tray can still trust a phone. Changing the security level or the PIN needs the tray, so on GNOME install the extension first. If Avalonia cannot open a display at all (an ssh session, no X11 or Wayland), the app says so on stderr, keeps serving trusted phones, and refuses every phone it would have had to ask about.
+
+**The trust question.** A paired phone that is not trusted opens a window naming its Bluetooth address, with "Don't trust" as the default button and the Escape key. "Trust" is disabled for the first 2 seconds, so a click already in flight cannot land on it. No answer in 60 seconds, a window that cannot open, or any error is a no.
+
+**Wayland and always-on-top.** The windows ask to be on top, but Wayland compositors may ignore that, and nothing relies on it: the question also appears in the status line and the log, and the window may open behind the one you are using (UNKNOWN per desktop). Dialogs that change security hold connections off while open (the same HoldOff the Windows and Mac apps use), because a connected phone is a keyboard.
+
+**Fonts.** Lato is bundled with its OFL text (`Fonts/OFL.txt` inside the app), linked from the Windows project's font folder.
 
 Keys, the pointer, scrolling, pinch zoom, typing and the gamepad work through virtual input devices. Volume, brightness, media, lock, capture and macros are below.
 

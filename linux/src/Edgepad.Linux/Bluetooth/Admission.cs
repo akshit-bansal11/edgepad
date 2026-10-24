@@ -37,6 +37,11 @@ internal sealed class Admission<T>(Func<long>? clock = null)
     private string? currentAddress;
     private bool closed;
 
+    // Owner dialogs that change security (HoldOff/Resume, counted so two cannot lift each other's hold), and the
+    // clock reading before which everything is refused after a HangUp.
+    private int holds;
+    private long refuseUntil;
+
     /// <summary>The connected phone's address, or null.</summary>
     public string? CurrentAddress
     {
@@ -60,6 +65,11 @@ internal sealed class Admission<T>(Func<long>? clock = null)
             if (closed)
             {
                 return $"Refused {address}: Edgepad is quitting";
+            }
+
+            if (Refusing())
+            {
+                return $"Refused {address}: the owner is changing security settings";
             }
 
             return HandedOff(address) ? TookOver(address) : null;
@@ -93,9 +103,9 @@ internal sealed class Admission<T>(Func<long>? clock = null)
         replaced = null;
         lock (gate)
         {
-            if (closed || !candidates.Remove(session, out var address))
+            if (closed || Refusing() || !candidates.Remove(session, out var address))
             {
-                refusal = "it stopped being a candidate: Edgepad is quitting, or the connection ended meanwhile";
+                refusal = "it stopped being a candidate: Edgepad is quitting, the owner is changing security settings, or the connection ended meanwhile";
                 return false;
             }
 
@@ -151,6 +161,41 @@ internal sealed class Admission<T>(Func<long>? clock = null)
         }
     }
 
+    /// <summary>
+    /// Refuses every new connection until <see cref="Resume"/>, and hands back the connected phone and every
+    /// candidate for the caller to end. A connected phone is a keyboard: it could answer the owner's dialog.
+    /// </summary>
+    public List<T> HoldOff()
+    {
+        lock (gate)
+        {
+            holds++;
+            return TakeSessions();
+        }
+    }
+
+    /// <summary>Ends one <see cref="HoldOff"/>; a quiet period started by <see cref="HangUp"/> runs on.</summary>
+    public void Resume()
+    {
+        lock (gate)
+        {
+            holds = Math.Max(0, holds - 1);
+        }
+    }
+
+    /// <summary>
+    /// Refuses every new connection for <paramref name="quiet"/> (never shortening one already running) and hands
+    /// back everyone live, for the caller to end.
+    /// </summary>
+    public List<T> HangUp(TimeSpan quiet)
+    {
+        lock (gate)
+        {
+            refuseUntil = Math.Max(refuseUntil, now() + (long)quiet.TotalMilliseconds);
+            return TakeSessions();
+        }
+    }
+
     /// <summary>Stops admitting anyone, for good, and hands back every live session for the caller to end.</summary>
     public List<T> Close()
     {
@@ -167,6 +212,22 @@ internal sealed class Admission<T>(Func<long>? clock = null)
             return all;
         }
     }
+
+    /// <summary>The connected phone and every candidate, who stop being candidates. Called under the lock.</summary>
+    private List<T> TakeSessions()
+    {
+        List<T> all = [.. candidates.Keys];
+        candidates.Clear();
+        if (current is not null)
+        {
+            all.Add(current);
+        }
+
+        return all;
+    }
+
+    /// <summary>Whether new connections are being refused, by a hold or a quiet period. Called under the lock.</summary>
+    private bool Refusing() => holds > 0 || now() < refuseUntil;
 
     private static string TookOver(string address) =>
         $"Refused {address}: another phone took over this laptop less than {(int)QuietAfterHandOff.TotalSeconds} seconds ago";

@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Edgepad.Bluetooth;
 using Edgepad.Trust;
+using Edgepad.Ui;
 
 // On Linux only AssemblyDirectory has any meaning here, and leaving it out means libc is never loaded from a
 // look-alike dropped beside the app: the system loader's own search finds it.
@@ -38,15 +39,30 @@ internal static class Program
         var trust = new TrustStore(Path.Combine(config, "trusted-phone.txt"));
         var pin = new PinStore(config);
 
-        // SIGTERM (a logout, systemd, kill) and Ctrl+C end the wait below instead of the process, so the server's
-        // Dispose runs and releases whatever the phone was holding down.
+        // SIGTERM (a logout, systemd, kill) and Ctrl+C end the UI loop, or the wait below when there is no UI,
+        // instead of the process, so the server's Dispose runs and releases whatever the phone was holding down.
+        var shell = new Shell(trust, pin, Version);
         using var quit = new ManualResetEventSlim();
         using var terminate = PosixSignalRegistration.Create(PosixSignal.SIGTERM, Stop);
         using var interrupt = PosixSignalRegistration.Create(PosixSignal.SIGINT, Stop);
-        using (var server = new LinuxServer(trust, pin, AskTrust, status => Log.Write($"Status: {status}")))
+        using (var server = new LinuxServer(trust, pin, shell.AskTrust, shell.SetStatus))
         {
+            shell.Attach(server);
             server.Start();
-            quit.Wait();
+            try
+            {
+                // The tray and the dialogs: Avalonia owns this thread until Quit. The Bluetooth service runs on
+                // its own threads and keeps serving whatever happens here.
+                shell.Run();
+            }
+            catch (Exception e)
+            {
+                // No display (a session over ssh, no X11 or Wayland), or Avalonia could not start. Still serve:
+                // phones already trusted connect, and any other is refused because there is nobody to ask.
+                Log.Write($"The tray could not start, so Edgepad runs without one until it is stopped: {e}");
+                Console.Error.WriteLine("Edgepad could not open a display; running without a tray.");
+                quit.Wait();
+            }
         }
 
         Log.Write($"Edgepad {Version} quitting");
@@ -56,6 +72,7 @@ internal static class Program
         {
             context.Cancel = true;
             quit.Set();
+            shell.RequestQuit();
         }
     }
 
@@ -74,16 +91,5 @@ internal static class Program
         {
             return null;
         }
-    }
-
-    /// <summary>
-    /// STAND-IN until the trust prompt (step 8.5): every phone not already trusted is refused. A phone is a
-    /// keyboard, so with nobody to ask the answer is no. Until then a phone is trusted by writing its address
-    /// into trusted-phone.txt by hand (docs/LINUX.md).
-    /// </summary>
-    private static bool AskTrust(string address)
-    {
-        Log.Write($"Not trusting {address}: this build has no trust prompt yet; add it to {Path.Combine(Xdg.ConfigFolder, "trusted-phone.txt")} by hand");
-        return false;
     }
 }

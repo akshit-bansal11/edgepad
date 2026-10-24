@@ -147,6 +147,60 @@ public sealed class AdmissionTests
         Assert.NotNull(admission.Refusal(PhoneC));
     }
 
+    [Fact]
+    public void HoldOffHandsBackEveryoneAndRefusesUntilTheLastResume()
+    {
+        var a = Connect(PhoneA);
+        var b = new Session();
+        admission.AddCandidate(b, PhoneB);
+
+        var ending = admission.HoldOff();
+        Assert.Equal(2, ending.Count);
+        Assert.Contains(a, ending);
+        Assert.Contains(b, ending);
+        Assert.False(admission.Admit(b, out _, out _));
+
+        admission.HoldOff();
+        Assert.NotNull(admission.Refusal(PhoneC));
+        admission.Resume();
+        Assert.NotNull(admission.Refusal(PhoneC));
+        admission.Resume();
+        Assert.Null(admission.Refusal(PhoneC));
+    }
+
+    [Fact]
+    public void ExtraResumesNeverGoBelowZero()
+    {
+        admission.Resume();
+        admission.HoldOff();
+        Assert.NotNull(admission.Refusal(PhoneA));
+        admission.Resume();
+        Assert.Null(admission.Refusal(PhoneA));
+    }
+
+    [Fact]
+    public void HangUpRefusesForTheQuietPeriodAndNeverShortensIt()
+    {
+        Connect(PhoneA);
+        admission.HangUp(TimeSpan.FromSeconds(30));
+        admission.HangUp(TimeSpan.FromSeconds(1));
+
+        time += Quiet - 1;
+        Assert.NotNull(admission.Refusal(PhoneB));
+        time += 1;
+        Assert.Null(admission.Refusal(PhoneB));
+    }
+
+    [Fact]
+    public void ResumeDoesNotEndAQuietPeriod()
+    {
+        admission.HoldOff();
+        admission.HangUp(TimeSpan.FromSeconds(30));
+        admission.Resume();
+
+        Assert.NotNull(admission.Refusal(PhoneB));
+    }
+
     private Session Connect(string address)
     {
         var session = new Session();
