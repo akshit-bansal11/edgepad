@@ -22,7 +22,13 @@ let profile;
 function cleanup() {
   for (const c of children) if (c.exitCode === null) c.kill('SIGKILL');
   server?.close();
-  if (profile) rmSync(profile, { recursive: true, force: true });
+  // Chrome's helpers can still be writing to the profile just after the kill. A leftover temp folder costs
+  // nothing on a throwaway runner, so a failed removal must not fail a finished render.
+  try {
+    if (profile) rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+  } catch (e) {
+    console.warn(`left ${profile}: ${e.code}`);
+  }
 }
 process.on('exit', cleanup);
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => process.exit(1));
