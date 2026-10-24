@@ -15,7 +15,9 @@ public sealed class MacroStoreTests : IDisposable
 
     private string MacrosFile => Path.Combine(dir, "macros.txt");
 
-    private MacroStore NewStore() => new(MacrosFile);
+    private readonly RecordingLauncher launcher = new();
+
+    private MacroStore NewStore() => new(MacrosFile, launcher);
 
     [Fact]
     public void NamesAreTheButtonLabelsJoinedForOneTextFrame()
@@ -218,7 +220,66 @@ public sealed class MacroStoreTests : IDisposable
 
         Assert.False(store.Run(-1));
         Assert.False(store.Run(1));
-        Assert.False(new MacroStore(Path.Combine(dir, "none.txt")).Run(0));
+        Assert.False(new MacroStore(Path.Combine(dir, "none.txt"), launcher).Run(0));
+    }
+
+    [Fact]
+    public void RunLaunchesTheTargetOfThatSlotAndNothingElse()
+    {
+        var store = NewStore();
+        store.Save([new Macro("One", "one.exe", null), new Macro("Two", "two.exe", "-x")]);
+
+        Assert.True(store.Run(1));
+        Assert.True(store.Run(0));
+
+        Assert.Equal(2, launcher.Launched.Count);
+        Assert.Equal(("two.exe", "-x"), launcher.Launched[0]);
+        Assert.Equal(("one.exe", (string?)null), launcher.Launched[1]);
+    }
+
+    [Fact]
+    public void AnEmptyOrOutOfRangeSlotLaunchesNothing()
+    {
+        var store = NewStore();
+        store.Save([new Macro("Only", "one.exe", null)]);
+
+        Assert.False(store.Run(-1));
+        Assert.False(store.Run(1));
+        Assert.False(store.Run(IMacroRunner.MaxMacros));
+        Assert.Empty(launcher.Launched);
+    }
+
+    [Fact]
+    public void ALaunchThatThrowsIsReportedAsFailedRatherThanEscaping()
+    {
+        launcher.Fail = true;
+        var store = NewStore();
+        store.Save([new Macro("Gone", "moved.exe", null)]);
+
+        Assert.False(store.Run(0));
+    }
+
+    [Fact]
+    public void AFailedSaveReportsWhyAndLeavesTheListAlone()
+    {
+        var store = NewStore();
+        store.Save([new Macro("Kept", "one.exe", null)]);
+
+        // A folder where the file should be fails the write the same way on Windows and on Linux.
+        File.Delete(MacrosFile);
+        Directory.CreateDirectory(MacrosFile);
+
+        var failure = store.Save([new Macro("Lost", "two.exe", null)]);
+
+        Assert.False(string.IsNullOrEmpty(failure));
+        Assert.Equal("Kept", Assert.Single(store.Macros).Name);
+        Assert.Equal("Kept", store.Names());
+    }
+
+    [Fact]
+    public void ASuccessfulSaveReturnsNoFailure()
+    {
+        Assert.Null(NewStore().Save([new Macro("Fine", "one.exe", null)]));
     }
 
     [Fact]
@@ -277,6 +338,23 @@ public sealed class MacroStoreTests : IDisposable
 
         Assert.Null(store.Macros[0].Icon);
         Assert.Null(NewStore().Macros[0].Icon);
+    }
+
+    private sealed class RecordingLauncher : IMacroLauncher
+    {
+        public List<(string Target, string? Arguments)> Launched { get; } = [];
+
+        public bool Fail { get; set; }
+
+        public void Launch(string target, string? arguments)
+        {
+            if (Fail)
+            {
+                throw new InvalidOperationException("no such target");
+            }
+
+            Launched.Add((target, arguments));
+        }
     }
 
     public void Dispose()

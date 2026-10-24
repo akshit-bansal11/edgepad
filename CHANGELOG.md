@@ -21,6 +21,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 - **The macro deck drops the card behind each button, and centres a short last row.** Buttons now sit straight on the background, with the press and focus feedback kept; a last row with fewer buttons than the rest sits exactly under the middle of them instead of leaning to one side.
 - **The Orientation setting now applies to every screen but the keyboard and the gamepad.** Settings, Guide, Devices and every editor follow it, where before only the control surface and the media-layout editor did. The keyboard, the gamepad and the gamepad layout editor stay sideways whatever the setting says.
 
+### Fixed
+
+- **A macro list that cannot be saved on Windows now says so.** If the macros file could not be written, the editor used to close as if it had saved and the list was lost at the next start. It now stays open with the reason and the file's path, and the buttons on the phone change only once the save has worked.
+
 ## [3.5.0] - 2026-10-21
 
 The wire protocol stays at version 4, so any 3.x half still speaks to any other. This release lets a laptop trust more than one phone, makes the phone say why a connection failed, makes the Windows app start Bluetooth again by itself, and carries a contributor's fix for the Mac on macOS 27; as always, install both halves from the same release.

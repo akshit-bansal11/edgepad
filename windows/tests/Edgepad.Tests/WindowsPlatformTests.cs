@@ -30,7 +30,7 @@ public sealed class WindowsPlatformTests : IDisposable
     // A store pointed at a file that does not exist, so it holds no macros: every macro id is therefore
     // out of range and must be dropped. Nothing is written, nothing run.
     private readonly MacroStore macros =
-        new(Path.Combine(Path.GetTempPath(), $"edgepad-dispatcher-{Guid.NewGuid():N}.txt"));
+        new(Path.Combine(Path.GetTempPath(), $"edgepad-dispatcher-{Guid.NewGuid():N}.txt"), new ShellLauncher());
 
     // A pad whose driver is missing whatever the machine running these tests actually has installed: the
     // client it would open throws what an absent ViGEmBus throws. Nothing here can plug a controller into

@@ -1,7 +1,7 @@
-using System.Diagnostics;
 using System.Text;
 using Edgepad.Controls;
 using Edgepad.Protocol;
+using Edgepad.Trust;
 
 namespace Edgepad.Macros;
 
@@ -13,7 +13,7 @@ namespace Edgepad.Macros;
 /// the action table. A launcher is where that rule is easiest to break and worst to break. So the phone
 /// sends an index and nothing else — <see cref="Run"/> takes an <see cref="int"/>, and there is deliberately
 /// no overload taking a path, a URL or a command line. No string that arrives over Bluetooth ever reaches
-/// <see cref="Process"/>. The only way a target gets into this list is the owner typing or browsing to it in
+/// <c>Process</c>. The only way a target gets into this list is the owner typing or browsing to it in
 /// the editor dialog, on the laptop, in front of the machine it will run on.
 ///
 /// What that buys, stated honestly, because an overstated invariant is worse than none. It means a macro
@@ -54,6 +54,7 @@ internal sealed class MacroStore : IMacroRunner
     private readonly Lock gate = new();
     private readonly List<Action<string>> watchers = [];
     private readonly string path;
+    private readonly IMacroLauncher launcher;
 
     /// <summary>
     /// Replaced whole, never mutated in place, so a Bluetooth thread reading it while the UI thread saves
@@ -61,14 +62,19 @@ internal sealed class MacroStore : IMacroRunner
     /// </summary>
     private volatile IReadOnlyList<Macro> macros = [];
 
-    public MacroStore(string path)
+    public MacroStore(string path, IMacroLauncher launcher)
     {
         this.path = path;
+        this.launcher = launcher;
         Reload();
     }
 
-    public static MacroStore ForCurrentUser() => new(Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "macros.txt"));
+    public static MacroStore ForCurrentUser(IMacroLauncher launcher) => new(
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "macros.txt"),
+        launcher);
+
+    /// <summary>Where the list is kept, for an error message that has to say which file could not be written.</summary>
+    public string FilePath => path;
 
     /// <summary>The macros in order. Index is what the phone names. Never longer than MaxMacros.</summary>
     public IReadOnlyList<Macro> Macros => macros;
@@ -84,34 +90,42 @@ internal sealed class MacroStore : IMacroRunner
         Published();
     }
 
-    public void Save(IReadOnlyList<Macro> macros)
+    /// <summary>
+    /// Writes the list, and only then takes it as the current one. Returns why the write failed, or null on
+    /// success; on failure the list in memory and the one the phone was told are left as they were, so what the
+    /// owner sees in the app is what is on disk. The editor shows the reason and keeps its edits open.
+    /// </summary>
+    public string? Save(IReadOnlyList<Macro> macros)
     {
         var clean = Clean(macros);
         lock (gate)
         {
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
+                PrivateStorage.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
+                PrivateStorage.PrepareFile(path);
                 File.WriteAllLines(path, clean.Select(Line));
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
-                // The list still takes effect for this session; only the next start loses it. Throwing here
-                // would come out of a button click as an unhandled exception and take the tray app with it.
+                // Throwing here would come out of a button click as an unhandled exception and take the tray
+                // app with it, so the reason goes back to the caller to show instead.
                 Log.Write($"Macros could not be saved to {path}: {e.Message}");
+                return e.Message;
             }
 
             this.macros = clean;
         }
 
         Published();
+        return null;
     }
 
     /// <summary>
     /// Reports the label list whenever it changes, starting with what it is now, until the handle is
     /// disposed. A session subscribes instead of asking once at the handshake: the owner adds a macro on
     /// the laptop and expects the button on the phone, not a reason to restart the app. Shaped like
-    /// <see cref="Controls.MediaSessions.Watch"/> because it is the same problem.
+    /// <c>MediaSessions.Watch</c> because it is the same problem.
     /// </summary>
     public IDisposable Watch(Action<string> onChange)
     {
@@ -179,16 +193,7 @@ internal sealed class MacroStore : IMacroRunner
         var macro = current[index];
         try
         {
-            // UseShellExecute is what makes a document, a folder and an https:// URL work as targets and not
-            // only an .exe: Windows applies whatever is registered for them, exactly as a double-click would.
-            // Nothing here waits on or watches what it started, so the handle is let go immediately; a null
-            // back means the shell handed the target to something already running, such as a browser opening
-            // a URL in a window it already had, which is a success with no new process to hold.
-            Process.Start(new ProcessStartInfo(macro.Target, macro.Arguments ?? string.Empty)
-            {
-                UseShellExecute = true,
-            })?.Dispose();
-
+            launcher.Launch(macro.Target, macro.Arguments);
             return true;
         }
         catch (Exception e)
