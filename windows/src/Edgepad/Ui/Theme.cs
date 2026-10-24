@@ -43,12 +43,12 @@ internal sealed record Palette(
     /// The set for Windows' app mode right now. Read fresh on every call, because the owner can flip the mode
     /// while the tray app runs and the next menu should follow without a restart.
     /// </summary>
-    public static Palette Current => IsDark("AppsUseLightTheme") ? Dark : Light;
+    public static Palette Current => PrefersDark("AppsUseLightTheme") ? Dark : Light;
 
     /// <summary>Whether the taskbar is dark: it follows Windows' System mode, which is not the app mode.</summary>
-    public static bool TaskbarIsDark => IsDark("SystemUsesLightTheme");
+    public static bool TaskbarIsDark => PrefersDark("SystemUsesLightTheme");
 
-    private static bool IsDark(string lightThemeValue)
+    private static bool PrefersDark(string lightThemeValue)
     {
         try
         {
