@@ -474,7 +474,8 @@ internal sealed class PinStore(string directory, Func<long>? clock = null, int i
         var temp = path + ".tmp";
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
+            PrivateStorage.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
+            PrivateStorage.PrepareFile(temp);
             File.WriteAllText(temp, text);
             File.Move(temp, path, overwrite: true);
             return true;

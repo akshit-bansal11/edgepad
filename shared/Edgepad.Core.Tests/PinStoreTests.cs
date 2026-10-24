@@ -33,6 +33,22 @@ public sealed class PinStoreTests : IDisposable
     }
 
     [Fact]
+    public void OnUnixTheSecurityFilesArePrivateToTheirOwner()
+    {
+        // The Windows per-user folder already is; there is nothing to assert there.
+        if (OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        StoreAtLevel(2).Check(Phone, Right);
+
+        Assert.Equal(UnixFileMode.UserRead | UnixFileMode.UserWrite, File.GetUnixFileMode(SecurityFile));
+        Assert.Equal(UnixFileMode.UserRead | UnixFileMode.UserWrite, File.GetUnixFileMode(VerifiedFile));
+        Assert.Equal(UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute, File.GetUnixFileMode(dir));
+    }
+
+    [Fact]
     public void NoFileIsLevelOneWithNoPin()
     {
         var store = NewStore();

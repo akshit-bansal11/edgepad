@@ -343,6 +343,21 @@ public sealed class TrustStoreTests : IDisposable
         Assert.True(store.Admit("(11:22:33:44:55:66)", Yes));
     }
 
+    [Fact]
+    public void OnUnixTheTrustFileIsPrivateToItsOwner()
+    {
+        // The Windows per-user folder already is; there is nothing to assert there.
+        if (OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        NewStore().Admit("(AA:BB:CC:DD:EE:FF)", Yes);
+
+        Assert.Equal(UnixFileMode.UserRead | UnixFileMode.UserWrite, File.GetUnixFileMode(Path.Combine(dir, "trusted-phone.txt")));
+        Assert.Equal(UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute, File.GetUnixFileMode(dir));
+    }
+
     private static bool Yes() => true;
 
     private static bool No() => false;

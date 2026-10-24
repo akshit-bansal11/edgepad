@@ -149,7 +149,8 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
 
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
+                PrivateStorage.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
+                PrivateStorage.PrepareFile(path);
                 File.WriteAllLines(path, trusted.Append(address));
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)

@@ -47,4 +47,9 @@
     <PackageReference Include="Nefarius.ViGEm.Client" Version="1.21.256" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The protocol, trust and logging code the Windows and Linux apps share. -->
+    <ProjectReference Include="..\..\..\shared\Edgepad.Core\Edgepad.Core.csproj" />
+  </ItemGroup>
+
 </Project>
