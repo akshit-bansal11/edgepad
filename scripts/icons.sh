@@ -10,6 +10,7 @@
 # linux/src/Edgepad.Linux/Assets/edgepad-64-dark.png    Linux tray on a dark desktop, from edgepad-dark.svg
 # windows/src/Edgepad/Assets/tray-light.ico, tray-dark.ico   Windows tray, by the taskbar theme (16 to 48 px)
 # site/app/apple-icon.png                               180 px touch icon (site/app/icon.svg is hand-kept text)
+# assets/social-preview.png, site/public/social-preview.png   1280x640 card, from assets/social-preview.svg
 set -eu
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -40,3 +41,7 @@ mkdir -p "$root/windows/src/Edgepad/Assets"
 icotool -c -o "$root/windows/src/Edgepad/Assets/tray-light.ico" "$tmp/16.png" "$tmp/20.png" "$tmp/24.png" "$tmp/32.png" "$tmp/40.png" "$tmp/48.png"
 icotool -c -o "$root/windows/src/Edgepad/Assets/tray-dark.ico" "$tmp/d16.png" "$tmp/d20.png" "$tmp/d24.png" "$tmp/d32.png" "$tmp/d40.png" "$tmp/d48.png"
 cp "$tmp/d64.png" "$root/linux/src/Edgepad.Linux/Assets/edgepad-64-dark.png"
+
+# The social preview (the repo's card and the site's Open Graph image). Its text is Lato, so the job installs fonts-lato.
+rsvg-convert -w 1280 -h 640 -o "$root/assets/social-preview.png" "$root/assets/social-preview.svg"
+cp "$root/assets/social-preview.png" "$root/site/public/social-preview.png"

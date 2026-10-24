@@ -1,4 +1,4 @@
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/edgepad-dark.svg"><img src="assets/edgepad-light.svg" width="96" alt="Edgepad"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/edgepad-light.svg"><img src="assets/edgepad-dark.svg" width="96" alt="Edgepad"></picture></p>
 
 # Edgepad
 
