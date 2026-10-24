@@ -401,33 +401,12 @@ public final class PinStore {
         write(securityPath, pin.map { "level=\(level)\npin=\($0)\n" } ?? "level=\(level)\n")
     }
 
-    /// Writes beside the file and renames it over, so a crash or a full disk mid-write leaves the old file whole
-    /// rather than a half-written one that would read as malformed and refuse every phone. The directory is private
-    /// to the user and so is the file, as for the trusted phones.
+    /// Through `writePrivately`, so a crash or a full disk mid-write leaves the old file whole rather than a
+    /// half-written one that would read as malformed and refuse every phone.
     private func write(_ path: String, _ text: String) -> Bool {
-        let manager = FileManager.default
-        let temp = path + ".tmp"
-        do {
-            try manager.createDirectory(
-                atPath: (path as NSString).deletingLastPathComponent,
-                withIntermediateDirectories: true,
-                attributes: [.posixPermissions: 0o700]
-            )
-        } catch {
-            Log.write("Could not save \(path): \(error.localizedDescription)")
-            return false
-        }
-        let data = Data(text.utf8)
-        guard manager.createFile(atPath: temp, contents: data, attributes: [.posixPermissions: 0o600]) else {
-            Log.write("Could not save \(path): the file could not be written")
-            return false
-        }
-        guard rename(temp, path) == 0 else {
-            Log.write("Could not save \(path): \(String(cString: strerror(errno)))")
-            try? manager.removeItem(atPath: temp)
-            return false
-        }
-        return true
+        guard let failure = writePrivately(text, to: path) else { return true }
+        Log.write("Could not save \(path): \(failure)")
+        return false
     }
 
     private func delete(_ path: String) -> Bool {

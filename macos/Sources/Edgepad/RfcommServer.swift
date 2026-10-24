@@ -27,6 +27,8 @@ final class RfcommServer: NSObject {
     private let microphone = AudioEndpoint(direction: .input)
     private let brightness = DisplayBrightness()
     private let display = DisplayModes()
+    /// One list for every connection, so the editor that comes in 6.3 and each phone's session see the same macros.
+    private let macros = MacroStore.forCurrentUser(launcher: WorkspaceMacroLauncher(), icons: WorkspaceMacroIcons())
 
     private var serviceRecord: IOBluetoothSDPServiceRecord?
     private var notification: IOBluetoothUserNotification?
@@ -238,6 +240,7 @@ final class RfcommServer: NSObject {
             input: injector, speakers: speakers, microphone: microphone, brightness: brightness, display: display)
         // Per connection, like the injector: a phone that goes takes its overlay down with it (Session.end).
         dispatcher.annotation = Annotator()
+        dispatcher.macros = macros
         let phone = PhoneLabel.describe(name: device.name, address: address)
         let ask = askTrust
         let session = Session(

@@ -94,10 +94,10 @@ public final class MacroStore {
     public func save(_ macros: [Macro]) {
         let clean = MacroStore.clean(macros)
         let text = clean.map { MacroStore.line($0) + "\n" }.joined()
-        if !write(text) {
+        if let failure = writePrivately(text, to: path) {
             // The list still takes effect for this session; only the next start loses it. Failing the save
             // would leave the owner's editor open on a list the phone is not showing.
-            Log.write("Macros could not be saved to \(path)")
+            Log.write("Macros could not be saved to \(path): \(failure)")
         }
         publish(replacing: clean)
     }
@@ -277,32 +277,6 @@ public final class MacroStore {
         // Through `clean` rather than straight out, so a hand-edited file is held to the same rules as an
         // editor's output, including the cap: a file with a thousand lines cannot become a thousand macros.
         return clean(read)
-    }
-
-    /// Writes beside the file and renames it over, so a crash or a full disk mid-write leaves the old list whole.
-    /// The directory is private to the user and so is the file, as for the trusted phones and the PIN.
-    private func write(_ text: String) -> Bool {
-        let manager = FileManager.default
-        let temp = path + ".tmp"
-        let directory = (path as NSString).deletingLastPathComponent
-        let data = Data(text.utf8)
-        do {
-            try manager.createDirectory(
-                atPath: directory,
-                withIntermediateDirectories: true,
-                attributes: [.posixPermissions: 0o700]
-            )
-        } catch {
-            return false
-        }
-        guard manager.createFile(atPath: temp, contents: data, attributes: [.posixPermissions: 0o600]) else {
-            return false
-        }
-        guard rename(temp, path) == 0 else {
-            try? manager.removeItem(atPath: temp)
-            return false
-        }
-        return true
     }
 }
 
