@@ -76,6 +76,23 @@ jobs:
           global-json-file: global.json
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only linux
+      # Self-contained single file: runs on a laptop with no .NET installed. The native libraries (SkiaSharp,
+      # HarfBuzz) are bundled into it and unpacked on first start, so the archive needs no .so beside the binary.
+      - name: Publish the app
+        run: >
+          dotnet publish linux/src/Edgepad.Linux/Edgepad.Linux.csproj -c Release -r linux-x64 --self-contained
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish
+      - name: Validate the desktop entry
+        run: |
+          sudo apt-get install -y --no-install-recommends desktop-file-utils
+          desktop-file-validate linux/packaging/edgepad.desktop
+      - name: Build the archive
+        run: sh linux/packaging/pack.sh 0.0.0-dev publish Edgepad-linux-x64.tar.gz
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: edgepad-linux
+          path: Edgepad-linux-x64.tar.gz
+          if-no-files-found: error
 
   windows:
     runs-on: windows-latest

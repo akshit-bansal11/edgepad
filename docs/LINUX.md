@@ -4,6 +4,22 @@ The Linux laptop app (`linux/`) is built and unit-tested on GitHub Actions only.
 
 The app logs to `~/.local/share/Edgepad/edgepad.log`. Its settings live in `$XDG_CONFIG_HOME/edgepad/` (normally `~/.config/edgepad/`).
 
+## Install
+
+Download `Edgepad-<version>-linux-x64.tar.gz` from the release (check it against `SHA256SUMS.txt`), then:
+
+```sh
+tar xzf Edgepad-<version>-linux-x64.tar.gz
+cd edgepad-<version>
+sudo ./install.sh            # or: sudo ./install.sh /opt/edgepad  to install under another prefix
+```
+
+`install.sh` only copies files and loads a module; it downloads nothing. It puts `edgepad` in `<prefix>/bin`, the launcher entry in `<prefix>/share/applications`, the icon in `<prefix>/share/icons/hicolor/scalable/apps` (prefix defaults to `/usr/local`), the udev rule in `/etc/udev/rules.d/60-edgepad-uinput.rules` and `uinput` in `/etc/modules-load.d/edgepad.conf`. Then it runs `modprobe uinput` and reloads udev. **Log out and back in once** so your session gets access to `/dev/uinput`. Start Edgepad from the launcher or run `edgepad`.
+
+The app is a self-contained single file, so .NET need not be installed; its graphics libraries are inside it and unpack to `~/.net/` on first start. It still needs what the sections below list (BlueZ, `wpctl` or `pactl`, `xdg-utils`, and so on). A tray icon on GNOME needs the AppIndicator extension.
+
+Uninstall with `sudo ./install.sh --uninstall` (same prefix, if you gave one). It removes those files; your settings in `~/.config/edgepad` stay.
+
 ## The tray, the trust question and Security
 
 Edgepad draws its tray icon, the trust question and the Security window with Avalonia (built in C#, no XAML). Everything here was written from Avalonia's documentation and source, and none of it has been seen working. Report results on the issue tracker.
@@ -22,7 +38,7 @@ Keys, the pointer, scrolling, pinch zoom, typing and the gamepad work through vi
 
 ## Input: what it needs
 
-Input goes through the kernel's `uinput` module as a virtual keyboard and mouse named `Edgepad`. It works the same on Wayland and X11, and needs no root, but your user must be able to open `/dev/uinput`. The release will ship a udev rule for this (step 8.6). Until then, as root:
+Input goes through the kernel's `uinput` module as a virtual keyboard and mouse named `Edgepad`. It works the same on Wayland and X11, and needs no root, but your user must be able to open `/dev/uinput`. `install.sh` (above) sets this up. To do it by hand, as root:
 
 ```sh
 echo 'KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"' > /etc/udev/rules.d/60-edgepad-uinput.rules

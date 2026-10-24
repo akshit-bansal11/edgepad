@@ -1,0 +1,4 @@
+# Lets the person logged in at the keyboard open /dev/uinput, so Edgepad can create its virtual keyboard,
+# mouse and gamepad without root and without joining a group. TAG+="uaccess" makes systemd-logind grant the
+# device to the active local seat's user; static_node makes the device node exist from boot, once uinput is loaded.
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"
