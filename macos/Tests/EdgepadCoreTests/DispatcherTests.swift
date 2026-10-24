@@ -36,6 +36,36 @@ final class DispatcherTests: XCTestCase {
         XCTAssertEqual(dispatcher.dropped, 1)
     }
 
+    private func macroStore(launcher: FakeLauncher, names: [String]) -> MacroStore {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("edgepad-dispatch-\(UUID())")
+        addTeardownBlock { try? FileManager.default.removeItem(at: folder) }
+        let path = folder.appendingPathComponent("macros.txt").path
+        let store = MacroStore(path: path, launcher: launcher)
+        store.save(names.map { Macro(name: $0, target: $0 + ".app") })
+        return store
+    }
+
+    func testAFilledSlotLaunchesTheStoredTargetAndNothingElse() {
+        let launcher = FakeLauncher()
+        dispatcher.macros = macroStore(launcher: launcher, names: ["Mail", "Code"])
+
+        dispatcher.handle(.runAction(id: ActionId.macroBase.rawValue + 1))
+
+        XCTAssertEqual(launcher.launched, ["Code.app|-"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testAnEmptySlotIsDroppedAndCounted() {
+        let launcher = FakeLauncher()
+        dispatcher.macros = macroStore(launcher: launcher, names: ["Mail"])
+
+        dispatcher.handle(.runAction(id: ActionId.macroBase.rawValue + 1))
+        dispatcher.handle(.runAction(id: ActionId.macroBase.rawValue + UInt8(ActionId.macroSlots) - 1))
+
+        XCTAssertEqual(launcher.launched, [])
+        XCTAssertEqual(dispatcher.dropped, 2)
+    }
+
     func testAnIdBelowTheMacroBlockIsDropped() {
         dispatcher.handle(.runAction(id: ActionId.macroBase.rawValue - 1))
 
@@ -221,6 +251,60 @@ final class DispatcherTests: XCTestCase {
         XCTAssertEqual(dispatcher.dropped, 1)
     }
 
+    func testAPenPointAndAPenColourAreDroppedUntilTheMacHasAnOverlay() {
+        // State 7 decodes fine and is dropped here: a newer phone may add states.
+        dispatcher.handle(.pen(x: 0, y: 0, state: 1))
+        dispatcher.handle(.pen(x: 1, y: 2, state: 7))
+        dispatcher.handle(.setValue(control: ControlId.penColor.rawValue, value: 6))
+
+        XCTAssertEqual(dispatcher.dropped, 3)
+    }
+
+    func testTheAnnotateAndSignActionsAreDropped() {
+        for id in UInt8(40)...UInt8(51) {
+            dispatcher.handle(.runAction(id: id))
+        }
+
+        XCTAssertEqual(dispatcher.dropped, 12)
+    }
+
+    func testWithAnOverlayThePenColourAndEveryAnnotateActionReachIt() {
+        let annotation = FakeAnnotation()
+        dispatcher.annotation = annotation
+
+        dispatcher.handle(.pen(x: 1, y: 2, state: 1))
+        dispatcher.handle(.setValue(control: ControlId.penColor.rawValue, value: 6))
+        for id in UInt8(40)...UInt8(51) {
+            dispatcher.handle(.runAction(id: id))
+        }
+
+        XCTAssertEqual(dispatcher.dropped, 0)
+        XCTAssertEqual(annotation.calls.count, 14)
+        XCTAssertEqual(Array(annotation.calls.prefix(3)), ["pen 1 2 1", "colour 6", "run 40"])
+        XCTAssertEqual(annotation.calls.last, "run 51")
+    }
+
+    func testWhatTheOverlayRefusesIsCountedAsDropped() {
+        let annotation = FakeAnnotation()
+        annotation.accepts = false
+        dispatcher.annotation = annotation
+
+        dispatcher.handle(.pen(x: 0, y: 0, state: 9))
+        dispatcher.handle(.runAction(id: ActionId.toolArrow.rawValue))
+        dispatcher.handle(.setValue(control: ControlId.penColor.rawValue, value: 8))
+
+        XCTAssertEqual(dispatcher.dropped, 3)
+    }
+
+    func testCaptureActionsStillPressTheSystemShortcutsWithAnOverlay() {
+        dispatcher.annotation = FakeAnnotation()
+
+        dispatcher.handle(.runAction(id: ActionId.captureRegion.rawValue))
+
+        XCTAssertEqual(dispatcher.dropped, 0)
+        XCTAssertEqual(input.calls.count, 1)
+    }
+
     func testNotificationsAreDropped() {
         dispatcher.handle(.runAction(id: ActionId.notifications.rawValue))
 
@@ -326,6 +410,29 @@ final class DispatcherTests: XCTestCase {
         dispatcher.handle(.runAction(id: ActionId.zoomReset.rawValue))
 
         XCTAssertEqual(input.calls, ["chord 55,29"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testCaptureSendsTheSystemsOwnShortcuts() {
+        // Command is 55, Shift 56; the digits 3, 4 and 5 are 20, 21 and 23.
+        dispatcher.handle(.runAction(id: ActionId.captureRegion.rawValue))
+        dispatcher.handle(.runAction(id: ActionId.captureScreen.rawValue))
+        dispatcher.handle(.runAction(id: ActionId.captureRecord.rawValue))
+
+        // The region crosshair may still be open when Full screen arrives, so Escape (53) closes it first.
+        XCTAssertEqual(input.calls, ["chord 55,56,21", "chord 53", "chord 55,56,20", "chord 55,56,23"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testCaptureCancelPressesEscapeOnlyWhileAnOverlayIsPending() {
+        dispatcher.handle(.runAction(id: ActionId.captureCancel.rawValue))
+        XCTAssertEqual(input.calls, [])
+
+        dispatcher.handle(.runAction(id: ActionId.captureRegion.rawValue))
+        dispatcher.handle(.runAction(id: ActionId.captureCancel.rawValue))
+        dispatcher.handle(.runAction(id: ActionId.captureCancel.rawValue))
+
+        XCTAssertEqual(input.calls, ["chord 55,56,21", "chord 53"])
         XCTAssertEqual(dispatcher.dropped, 0)
     }
 

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <title>Edgepad</title>
+  <!-- The Edgepad mark without its tile, ink and accent switched for a dark browser tab bar. -->
+  <style>
+    .i { stroke: #16171A } .a { stroke: #0068D6 }
+    @media (prefers-color-scheme: dark) { .i { stroke: #F2F3F5 } .a { stroke: #4DA3FF } }
+  </style>
+  <g fill="none" stroke-width="72" stroke-linecap="round" transform="matrix(1.2 0 0 1.2 -102.4 -102.4)">
+    <path class="i" d="M394 744H224M420.6 610.1L263.6 545M610.1 420.6L545 263.6M744 394V224"/>
+    <path class="a" d="M496.5 496.5L348 348M504 744A240 240 0 0 1 744 504"/>
+  </g>
+</svg>

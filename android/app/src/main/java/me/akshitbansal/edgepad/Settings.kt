@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad
 
 import android.content.Context
 import android.content.SharedPreferences
+import me.akshitbansal.edgepad.surface.CornerSlots
 import me.akshitbansal.edgepad.surface.DialKind
 import me.akshitbansal.edgepad.surface.Gesture
 import me.akshitbansal.edgepad.surface.GestureAction
@@ -63,6 +64,12 @@ class Settings(
 
     var onboarded by flag("onboarded", false)
 
+    /**
+     * Two dials a corner, one on each edge it joins, in place of one. It only chooses which keys are read:
+     * the `corner.*` keys are never written by the toggle, so turning it off gives back the unsplit surface.
+     */
+    var splitCorners by flag("splitCorners", false)
+
     /** Connect to the remembered laptop when the app opens, and retry after a dropped link. */
     var reconnect by flag("reconnect", true)
 
@@ -101,8 +108,9 @@ class Settings(
     var keyTextScale by bounded(KEY_KEY_TEXT_SCALE, DEFAULT_KEY_TEXT_SCALE, MIN_KEY_TEXT_SCALE, MAX_KEY_TEXT_SCALE)
 
     /**
-     * The control surface and the media layout editor are held sideways. The keyboard and gamepad always are,
-     * and every other screen follows the phone: from 3.0 this setting is about the pad, not about the app.
+     * Held sideways on every screen except the keyboard, the gamepad and its layout editor, which are always
+     * sideways. Before 4.0 this setting held only the control surface and the media layout editor, and the
+     * rest of the app followed the phone; now it is the app's orientation, not just the pad's.
      */
     var landscape by flag("landscape", false)
 
@@ -189,6 +197,49 @@ class Settings(
     }
 
     /**
+     * The dial in [slot] (two a corner, see [CornerSlots]), or null for none. A slot never set takes what its
+     * corner holds if it is the corner's inherited half, so splitting changes nothing until a slot is picked;
+     * the other half starts empty.
+     */
+    fun slot(slot: Int): DialKind? {
+        val name = prefs.getString("slot.$slot", null)
+        if (name == NONE) return null
+        return DialKind.entries.firstOrNull { it.name == name }
+            ?: CornerSlots.fallbackFor(slot)?.let { corner(it) }
+    }
+
+    fun setSlot(
+        slot: Int,
+        kind: DialKind?,
+    ) {
+        prefs.edit().putString("slot.$slot", kind?.name ?: NONE).apply()
+    }
+
+    /**
+     * The order a deck ([deck] names which) shows its tiles in, as the keys DeckLayout.keys gives them.
+     * Joined by newlines: a macro's name cannot hold a control character, so no key can hold one.
+     */
+    fun deckOrder(deck: String): List<String> =
+        prefs.getString("deck.$deck.order", null)?.split('\n')?.filter { it.isNotEmpty() } ?: emptyList()
+
+    fun setDeckOrder(
+        deck: String,
+        keys: List<String>,
+    ) {
+        prefs.edit().putString("deck.$deck.order", keys.joinToString("\n")).apply()
+    }
+
+    /** How many tiles stand across a row of [deck]; 0 lets the room decide. */
+    fun deckColumns(deck: String): Int = prefs.getInt("deck.$deck.columns", 0).coerceAtLeast(0)
+
+    fun setDeckColumns(
+        deck: String,
+        columns: Int,
+    ) {
+        prefs.edit().putInt("deck.$deck.columns", columns.coerceAtLeast(0)).apply()
+    }
+
+    /**
      * How fast [kind]'s ruler moves, as a multiple of the base rate. Volume wants a slower ruler than the
      * app switcher does, so each kind may override [sensitivity]; none does until the user sets one, and
      * clearing an override puts the kind back on the shared value rather than on a second default.
@@ -213,8 +264,13 @@ class Settings(
 
     private fun sensitivityKey(kind: DialKind): String = "sensitivity.${kind.name}"
 
-    /** True when some corner holds [kind]. */
-    fun hasDial(kind: DialKind): Boolean = (0 until Perimeter.CORNERS).any { corner(it) == kind }
+    /** True when some corner, or some slot while the corners are split, holds [kind]. */
+    fun hasDial(kind: DialKind): Boolean =
+        if (splitCorners) {
+            (0 until Perimeter.SLOTS).any { slot(it) == kind }
+        } else {
+            (0 until Perimeter.CORNERS).any { corner(it) == kind }
+        }
 
     fun gesture(gesture: Gesture): GestureAction {
         val name = prefs.getString("gesture.${gesture.name}", null) ?: return gesture.default

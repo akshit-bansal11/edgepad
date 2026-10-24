@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.surface
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DialSpanTest {
@@ -45,5 +46,20 @@ class DialSpanTest {
         DialSpan.compute(floatArrayOf(100f, 104f), 50f, 1000f, FloatArray(0), 20f, after, before)
         assertEquals(0f, after[0], 0f)
         assertEquals(0f, before[1], 0f)
+    }
+
+    @Test
+    fun eightSlotCentresNeverOverlap() {
+        val path = Perimeter(100f, 200f, 10f)
+        val centres = FloatArray(Perimeter.SLOTS) { path.lengthAtSlot(it, 20f) }
+        val a = FloatArray(Perimeter.SLOTS)
+        val b = FloatArray(Perimeter.SLOTS)
+        val gap = 4f
+        DialSpan.compute(centres, 100f, path.length, FloatArray(0), gap, a, b)
+        for (i in 0 until Perimeter.SLOTS) {
+            val next = (i + 1) % Perimeter.SLOTS
+            val distance = (centres[next] - centres[i] + path.length) % path.length
+            assertTrue("slots $i and $next", a[i] + b[next] <= distance - gap + 1e-3f)
+        }
     }
 }

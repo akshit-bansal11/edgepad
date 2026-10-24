@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Edgepad.Annotation;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
 using Edgepad.Gamepad;
@@ -24,14 +25,16 @@ namespace Edgepad.Bluetooth;
 internal sealed class RfcommServer(
     Action<string> onStatus,
     TrustStore trust,
-    Func<string, bool> askTrust,
+    PinStore pin,
+    Func<string, CancellationToken, bool> askTrust,
     AudioEndpoint speakers,
     AudioEndpoint microphone,
     BrightnessControl brightness,
     MediaSessions media,
     DisplayModes display,
     MacroStore macros,
-    LevelOverlay overlay) : IDisposable
+    LevelOverlay overlay,
+    SynchronizationContext ui) : IDisposable
 {
     // Joined at exit so the session's own cleanup, which releases held keys and buttons, gets to run.
     private static readonly TimeSpan ExitGrace = TimeSpan.FromSeconds(2);
@@ -64,9 +67,10 @@ internal sealed class RfcommServer(
     // Environment.TickCount64 milliseconds before which every new connection is refused; see HangUp.
     private long refuseUntil;
 
-    // Set while the owner is deciding whether to forget; separate from the quiet period so that ending one
-    // cannot end the other.
-    private bool held;
+    // How many owner dialogs (Forget, Security) are open; separate from the quiet period so that ending one
+    // cannot end the other. A count rather than a flag: with two dialogs open, closing the first must not let a
+    // phone in while the second is still on screen, where a connected phone could answer it.
+    private int holds;
 
     // Every phone a different one took over from, and until when (Environment.TickCount64) it is refused. One per
     // address, not just the last: with a single record three trusted phones could still take the laptop round in
@@ -484,7 +488,7 @@ internal sealed class RfcommServer(
         List<Session> ending;
         lock (gate)
         {
-            held = true;
+            holds++;
             ending = TakeSessions();
         }
 
@@ -495,12 +499,15 @@ internal sealed class RfcommServer(
         }
     }
 
-    /// <summary>Ends a <see cref="HoldOff"/>; a quiet period started by <see cref="HangUp"/> runs on.</summary>
+    /// <summary>
+    /// Ends one <see cref="HoldOff"/>; connections are refused until every hold has ended. A quiet period started
+    /// by <see cref="HangUp"/> runs on.
+    /// </summary>
     public void Resume()
     {
         lock (gate)
         {
-            held = false;
+            holds = Math.Max(0, holds - 1);
         }
     }
 
@@ -521,7 +528,7 @@ internal sealed class RfcommServer(
     }
 
     /// <summary>Whether new connections are being refused, by a hold or a quiet period. Called under the lock.</summary>
-    private bool Refusing() => held || Environment.TickCount64 < refuseUntil;
+    private bool Refusing() => holds > 0 || Environment.TickCount64 < refuseUntil;
 
     /// <summary>Whether <paramref name="address"/> was just taken over from. Called under the lock.</summary>
     private bool HandedOff(string address)
@@ -609,9 +616,14 @@ internal sealed class RfcommServer(
             // into Windows for as long as the phone that asked for it is there, and no longer.
             var injector = new InputInjector();
             var pad = new VirtualPad();
-            var dispatcher = new Dispatcher(injector, pad, speakers, microphone, brightness, media, display, macros, overlay);
+
+            // The annotation layer too: strokes are one phone's, and the layer goes when that phone does. It is
+            // drawn on the UI thread, which this event's thread is not, so it is handed the tray's context.
+            var annotator = new Annotator(ui);
+            var platform = new WindowsPlatform(injector, pad, speakers, microphone, brightness, media, display, overlay, annotator);
+            var dispatcher = new Dispatcher(platform, macros);
             session = new Session(
-                socket, trust, askTrust, injector, pad, dispatcher, speakers, microphone, brightness, media, display, macros, onStatus, OnAdmitted, OnSessionEnded);
+                socket, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, onStatus, OnAdmitted, OnSessionEnded);
 
             // A dedicated thread, not the thread pool: the read loop blocks for the life of the connection,
             // and input is injected from this thread directly, so nothing queues behind other work.
@@ -635,6 +647,7 @@ internal sealed class RfcommServer(
                 session.Dispose();
                 injector.Dispose();
                 pad.Dispose();
+                annotator.Dispose();
                 return;
             }
 

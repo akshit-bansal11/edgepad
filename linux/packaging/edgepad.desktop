@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Edgepad
+Comment=Use your phone as a touchpad, keyboard and gamepad
+Exec=edgepad
+Icon=edgepad
+Terminal=false
+Categories=Utility;

@@ -37,6 +37,36 @@ class IdsFixtureTest {
     }
 
     @Test
+    fun featureTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("FEATURE").associate { it[2] to it[1] },
+            Feature.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
+    fun signStatusTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("SIGN_STATUS").associate { it[2] to it[1] },
+            SignStatus.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
+    fun anUnknownSignStatusTokenReadsAsFailed() {
+        assertEquals(SignStatus.FAILED, SignStatus.of("something-a-later-laptop-says"))
+    }
+
+    @Test
+    fun penColorsMatchTheSharedPalette() {
+        // Index, name and RRGGBB, so a swatch the phone previews cannot differ from the colour the laptop draws.
+        assertEquals(
+            rows("PALETTE").associate { it[1].toInt() to (it[2] to it[3]) },
+            PenColor.entries.associate { it.index to (it.name to "%06X".format(it.rgb)) },
+        )
+    }
+
+    @Test
     fun anUnknownPadStatusTokenReadsAsNoDriver() {
         assertEquals(PadStatus.NO_DRIVER, PadStatus.of("something-a-later-laptop-says"))
     }

@@ -7,6 +7,7 @@ using Edgepad.Startup;
 using Edgepad.Trust;
 using Edgepad.Ui;
 using Edgepad.Updates;
+using Microsoft.Win32;
 using NAudio.CoreAudioApi;
 
 namespace Edgepad;
@@ -36,26 +37,32 @@ internal sealed class TrayContext : ApplicationContext
 
     private readonly MenuRow startWithWindows = new("Start with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new("Macros…", Icons.Macro);
+    private readonly MenuRow securityRow = new("Security…", Icons.Smartphone);
     private readonly MenuRow forget = new("Forget trusted phones", Icons.Unlink) { Danger = true };
     private readonly MenuRow update = new("Update available", Icons.Download) { Available = false };
     private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
     private readonly TrayMenu menu = new();
     private readonly NotifyIcon icon;
     private readonly SynchronizationContext ui;
+    private Icon? themed;
 
     private readonly TrustStore trust = TrustStore.ForCurrentUser();
+    private readonly PinStore pin = PinStore.ForCurrentUser();
     private readonly AudioEndpoint speakers = new(DataFlow.Render);
     private readonly AudioEndpoint microphone = new(DataFlow.Capture);
     private readonly BrightnessControl brightness = new();
     private readonly MediaSessions media = new();
     private readonly DisplayModes display = new();
-    private readonly MacroStore macros = MacroStore.ForCurrentUser();
+    private readonly MacroStore macros = MacroStore.ForCurrentUser(new ShellLauncher());
     private readonly LevelOverlay overlay;
     private readonly RfcommServer server;
 
     // The menu stays clickable under the confirmation, and a second one would lift the hold while the first was
     // still open. All of this runs on the UI thread, so a plain bool is enough.
     private bool forgetting;
+
+    // The same for the Security window, which also holds connections off while it is open.
+    private bool securing;
 
     public TrayContext(EventWaitHandle quit)
     {
@@ -64,6 +71,7 @@ internal sealed class TrayContext : ApplicationContext
         startWithWindows.Click += (_, _) => RunAtLogin.Set(startWithWindows.Checked);
         forget.Click += (_, _) => ConfirmForget();
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
+        securityRow.Click += (_, _) => ShowSecurity();
         update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
 
         // The header is the menu's own. The update row sits right under it and stays hidden until there is one.
@@ -72,6 +80,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(startWithWindows);
         menu.Items.Add(macrosRow);
+        menu.Items.Add(securityRow);
         menu.Items.Add(Row("Open log", Icons.FileText, OpenLog));
         menu.Items.Add(Row("Documentation", Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
         menu.Items.Add(new MenuSeparator());
@@ -83,6 +92,7 @@ internal sealed class TrayContext : ApplicationContext
         {
             startWithWindows.Checked = RunAtLogin.IsEnabled;
             forget.Enabled = trust.CanForget;
+            securityRow.Hint = $"Level {pin.Level}";
             macrosRow.Hint = $"{macros.Macros.Count} of {MacroStore.MaxMacros}";
             menu.Restyle();
         };
@@ -105,10 +115,14 @@ internal sealed class TrayContext : ApplicationContext
         // Bluetooth threads and are marshalled back here.
         ui = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
 
+        // The taskbar's tile, light or dark, now and whenever Windows' theme changes (that arrives as General).
+        ApplyTrayIcon();
+        SystemEvents.UserPreferenceChanged += OnPreferenceChanged;
+
         // Built here and nowhere else: the overlay captures this thread's synchronisation context, and the
         // frames that ask it to show something arrive on a Bluetooth thread that has none of its own.
         overlay = new LevelOverlay();
-        server = new RfcommServer(SetStatus, trust, AskTrust, speakers, microphone, brightness, media, display, macros, overlay);
+        server = new RfcommServer(SetStatus, trust, pin, AskTrust, speakers, microphone, brightness, media, display, macros, overlay, ui);
         _ = StartServerAsync();
         _ = StartMediaAsync();
 
@@ -297,6 +311,9 @@ internal sealed class TrayContext : ApplicationContext
 
             var forgotten = trust.Forget();
 
+            // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
+            var verifiedForgotten = pin.ForgetVerified();
+
             // Started before the hold ends, so there is no instant in which a connection would be taken.
             server.HangUp(QuietAfterForget);
             if (!forgotten)
@@ -310,6 +327,18 @@ internal sealed class TrayContext : ApplicationContext
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
+
+            if (!verifiedForgotten)
+            {
+                MessageBox.Show(
+                    "The phones that entered the PIN could not be forgotten: their list could not be removed. While "
+                        + "Edgepad stays running every phone is asked for the PIN on every connection, but those phones "
+                        + "will skip it at level 2 again the next time Edgepad starts. Choose Forget trusted phones "
+                        + $"again, or delete pin-verified.txt yourself from:\n\n{pin.Folder}",
+                    "Edgepad",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
         finally
         {
@@ -319,12 +348,38 @@ internal sealed class TrayContext : ApplicationContext
     }
 
     /// <summary>
+    /// The Security window, with connections refused while it is open for the reason <see cref="ConfirmForget"/>
+    /// gives: a connected phone is a keyboard and could otherwise answer it, or change the level it is held by.
+    /// </summary>
+    private void ShowSecurity()
+    {
+        if (securing)
+        {
+            return;
+        }
+
+        securing = true;
+        server.HoldOff();
+        try
+        {
+            using var window = new SecurityWindow(pin, trust, () => server.HangUp(QuietAfterForget));
+            window.ShowDialog();
+        }
+        finally
+        {
+            server.Resume();
+            securing = false;
+        }
+    }
+
+    /// <summary>
     /// Asks the owner whether to trust <paramref name="address"/>, and waits for the answer. Called on a session
     /// thread, which holds the phone's HELLO_ACK until this returns; the question itself is shown on this
     /// context's thread, which owns every window the app has. No answer within <see cref="TrustPromptTimeout"/>
-    /// is a no. The phone is named by its address, as the status line names it once it has connected.
+    /// is a no, and so is a session that ends meanwhile (<paramref name="ended"/>: a hold, a hang-up), which also
+    /// closes the question. The phone is named by its address, as the status line names it once it has connected.
     /// </summary>
-    private bool AskTrust(string address)
+    private bool AskTrust(string address, CancellationToken ended)
     {
         SetStatus($"Asking whether to trust {address}");
         var deadline = Environment.TickCount64 + (long)TrustPromptTimeout.TotalMilliseconds;
@@ -334,17 +389,26 @@ internal sealed class TrayContext : ApplicationContext
             {
                 // Only while the session is still waiting: a question whose answer nobody would read must not
                 // be left on screen for the owner to answer.
-                if (!answer.Task.IsCompleted)
+                if (!answer.Task.IsCompleted && !ended.IsCancellationRequested)
                 {
                     // The dialog may open behind whatever has focus, since a tray app cannot take the
                     // foreground; the notification is what the owner notices.
                     icon.ShowBalloonTip(0, "Edgepad", $"{address} wants to connect. Choose Trust or Don't trust.", ToolTipIcon.Info);
-                    answer.TrySetResult(ShowTrustPrompt(address, deadline));
+                    answer.TrySetResult(ShowTrustPrompt(address, deadline, ended));
                 }
             },
             null);
 
-        var trusted = answer.Task.Wait(TrustPromptTimeout) && answer.Task.Result;
+        bool trusted;
+        try
+        {
+            trusted = answer.Task.Wait(TrustPromptTimeout, ended) && answer.Task.Result;
+        }
+        catch (OperationCanceledException)
+        {
+            trusted = false;
+        }
+
         answer.TrySetResult(false);
         Log.Write(trusted ? $"The owner trusted {address}" : $"The owner did not trust {address}");
         return trusted;
@@ -352,9 +416,10 @@ internal sealed class TrayContext : ApplicationContext
 
     /// <summary>
     /// The question itself: Trust or Don't trust, with Don't trust the default so a stray Enter trusts nothing.
-    /// It answers itself with Don't trust at <paramref name="deadline"/>, when the session stops waiting.
+    /// It answers itself with Don't trust at <paramref name="deadline"/>, when the session stops waiting, or once
+    /// <paramref name="ended"/> is cancelled.
     /// </summary>
-    private static bool ShowTrustPrompt(string address, long deadline)
+    private static bool ShowTrustPrompt(string address, long deadline, CancellationToken ended)
     {
         var yes = new TaskDialogButton("Trust");
         var no = new TaskDialogButton("Don't trust");
@@ -370,11 +435,16 @@ internal sealed class TrayContext : ApplicationContext
             DefaultButton = no,
         };
 
-        using var timeout = new System.Windows.Forms.Timer { Interval = (int)Math.Max(1, deadline - Environment.TickCount64) };
+        // Polled on this thread rather than registered on the token, so the click can never land on a dialog that
+        // has already closed.
+        using var timeout = new System.Windows.Forms.Timer { Interval = 250 };
         timeout.Tick += (_, _) =>
         {
-            timeout.Stop();
-            no.PerformClick();
+            if (ended.IsCancellationRequested || Environment.TickCount64 >= deadline)
+            {
+                timeout.Stop();
+                no.PerformClick();
+            }
         };
         timeout.Start();
         try
@@ -389,6 +459,38 @@ internal sealed class TrayContext : ApplicationContext
         }
     }
 
+    // SystemEvents raises on its own thread; the icon is the UI thread's.
+    private void OnPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
+    {
+        if (e.Category == UserPreferenceCategory.General)
+        {
+            ui.Post(_ => ApplyTrayIcon(), null);
+        }
+    }
+
+    /// <summary>Shows the tile that suits the taskbar. Anything missing or failing leaves the icon as it is.</summary>
+    private void ApplyTrayIcon()
+    {
+        try
+        {
+            var name = Palette.TaskbarIsDark ? "Edgepad.Assets.tray-dark.ico" : "Edgepad.Assets.tray-light.ico";
+            using var stream = typeof(TrayContext).Assembly.GetManifestResourceStream(name);
+            if (stream is null)
+            {
+                return;
+            }
+
+            var next = new Icon(stream);
+            icon.Icon = next;
+            themed?.Dispose();
+            themed = next;
+        }
+        catch (Exception e) when (e is ArgumentException or IOException or Win32Exception)
+        {
+            Log.Write($"The tray icon could not follow the taskbar theme: {e.Message}");
+        }
+    }
+
     protected override void ExitThreadCore()
     {
         icon.Visible = false;
@@ -399,10 +501,13 @@ internal sealed class TrayContext : ApplicationContext
     {
         if (disposing)
         {
+            SystemEvents.UserPreferenceChanged -= OnPreferenceChanged;
             icon.Dispose();
+            themed?.Dispose();
             menu.Dispose();
             startWithWindows.Dispose();
             macrosRow.Dispose();
+            securityRow.Dispose();
             forget.Dispose();
             update.Dispose();
             updateTimer.Dispose();

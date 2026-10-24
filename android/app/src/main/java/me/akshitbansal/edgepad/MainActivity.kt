@@ -21,6 +21,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
 import android.window.OnBackInvokedCallback
@@ -30,20 +31,29 @@ import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.RttStats
 import me.akshitbansal.edgepad.protocol.ActionId
+import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.ProtocolConstants
+import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
+import me.akshitbansal.edgepad.screens.AnnotateScreen
 import me.akshitbansal.edgepad.screens.AppearanceScreen
+import me.akshitbansal.edgepad.screens.CaptureScreen
+import me.akshitbansal.edgepad.screens.ControlsScreen
 import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DialFeelScreen
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
 import me.akshitbansal.edgepad.screens.GamepadScreen
+import me.akshitbansal.edgepad.screens.GamepadSettingsScreen
 import me.akshitbansal.edgepad.screens.GestureScreen
 import me.akshitbansal.edgepad.screens.GuideScreen
 import me.akshitbansal.edgepad.screens.KeyboardScreen
+import me.akshitbansal.edgepad.screens.KeyboardSettingsScreen
 import me.akshitbansal.edgepad.screens.MacroScreen
+import me.akshitbansal.edgepad.screens.MacroSettingsScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
+import me.akshitbansal.edgepad.screens.PinScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
 import me.akshitbansal.edgepad.screens.ShapeDrawScreen
@@ -61,10 +71,10 @@ import kotlin.concurrent.thread
 
 /**
  * One activity for every screen: the guide on the first run and from Settings, the Devices list, the
- * control surface, the settings pages, the keyboard, the gamepad, the macros, the two layout editors, and the
- * connection-lost screen that retries after a link drops on its own. [Screen] is the whole set and
- * [goTo] the only way between them — there are no fragments and no back stack, so [navigateBack] is
- * where every screen's way out is written down.
+ * control surface, the settings pages, the keyboard, the gamepad, the macros, the two layout editors, the
+ * laptop's PIN, and the connection-lost screen that retries after a link drops on its own. [Screen] is the
+ * whole set and [goTo] the only way between them — there are no fragments and no back stack, so
+ * [navigateBack] is where every screen's way out is written down.
  *
  * The link and what the laptop has reported outlive the activity across a rotation or a theme change,
  * through [onRetainNonConfigurationInstance]. That matters because changing the theme or the orientation
@@ -104,25 +114,36 @@ class MainActivity :
         APPEARANCE,
         MEDIA_LAYOUT,
         GAMEPAD_LAYOUT,
+        KEYBOARD_SETTINGS,
+        GAMEPAD_SETTINGS,
+        MACRO_SETTINGS,
+        CONTROLS,
+        CAPTURE,
+        ANNOTATE,
         KEYBOARD,
         GAMEPAD,
         MACROS,
         SURFACE,
         RECONNECTING,
+        PIN,
     }
 
-    /** What survives the activity being rebuilt for a rotation or a theme change. */
+    /**
+     * What survives the activity being rebuilt for a rotation or a theme change. Never the PIN: the digits
+     * typed so far go with the screen that held them, and the person types them again.
+     */
     private class Retained(
         val link: LaptopLink?,
         val state: LaptopState,
         val screen: Screen,
         val settingsReturn: Screen,
-        val layoutReturn: Screen,
         val laptopName: String,
         val laptopAddress: String,
         val attempts: Int,
         val lostAt: Long,
         val rtt: RttStats,
+        val pinAttemptsLeft: Int,
+        val pinAnswered: Boolean,
     )
 
     private val handler = Handler(Looper.getMainLooper())
@@ -136,6 +157,12 @@ class MainActivity :
 
     /** The gamepad while it is the screen, so the laptop's answer about its controller can reach it. */
     private var gamepad: GamepadScreen? = null
+
+    /** The annotate screen while it is the screen, so a changed laptop display can redraw its pad. */
+    private var annotate: AnnotateScreen? = null
+
+    /** True from ANNOTATE_BEGIN until the one ANNOTATE_END that answers it, however the screen is left. */
+    private var annotating = false
     private var reconnecting: ReconnectingScreen? = null
 
     /** The macro grid while it is the screen, so a new list or a finished icon can be handed to it. */
@@ -144,14 +171,17 @@ class MainActivity :
     private var laptopAddress = ""
     private var screen = Screen.PAIRING
     private var settingsReturn = Screen.PAIRING
-
-    /** Where the gamepad layout editor goes back to: Settings, or the gamepad it was opened from. */
-    private var layoutReturn = Screen.SETTINGS
     private lateinit var gamepads: GamepadStore
     private var started = false
     private var attempts = 0
     private var lostAt = 0L
     private var connectedAt = 0L
+
+    /** What the laptop's last PIN question allowed, for the PIN screen; a count, never a digit. */
+    private var pinAttemptsLeft = 0
+
+    /** True once the PIN screen sent its answer to the current question, so a rebuild cannot send a second. */
+    private var pinAnswered = false
 
     /**
      * A tap on a laptop has one quick retry coming if its connect never reaches the laptop: the first connect
@@ -229,7 +259,6 @@ class MainActivity :
             link = retained.link?.also { it.listener = this }
             state = retained.state
             settingsReturn = retained.settingsReturn
-            layoutReturn = retained.layoutReturn
             laptopName = retained.laptopName
             laptopAddress = retained.laptopAddress
             attempts = retained.attempts
@@ -237,6 +266,8 @@ class MainActivity :
             // Carried over, or the readout would stand blank after a rotation and then restart from one sample.
             rtt = retained.rtt
             picker.setRtt(rtt.median())
+            pinAttemptsLeft = retained.pinAttemptsLeft
+            pinAnswered = retained.pinAnswered
         }
         goTo(
             when {
@@ -248,12 +279,26 @@ class MainActivity :
     }
 
     override fun onRetainNonConfigurationInstance(): Any =
-        Retained(link, state, screen, settingsReturn, layoutReturn, laptopName, laptopAddress, attempts, lostAt, rtt)
+        Retained(
+            link,
+            state,
+            screen,
+            settingsReturn,
+            laptopName,
+            laptopAddress,
+            attempts,
+            lostAt,
+            rtt,
+            pinAttemptsLeft,
+            pinAnswered,
+        )
 
     override fun onStart() {
         super.onStart()
         handler.removeCallbacks(linger)
         started = true
+        // Back from a detour with the pad still on screen: the laptop has no session, so begin one.
+        if (screen == Screen.ANNOTATE && !annotating) goTo(Screen.ANNOTATE)
         val current = link
         when {
             // Restarted rather than left running: the tick waiting may be a slow one from the background.
@@ -273,6 +318,8 @@ class MainActivity :
         super.onStop()
         started = false
         releaseHeldInput()
+        // The laptop drops its overlay when told; a rotation rebuild begins a fresh session in onCreate.
+        endAnnotate()
         handler.removeCallbacks(retry)
         handler.removeCallbacks(quickRetry)
         handler.removeCallbacks(ticker)
@@ -288,6 +335,13 @@ class MainActivity :
         val current = link
         link = null
         current?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
+    }
+
+    /** Tells the laptop to take its overlay down, once per session, and not at all when there is no link to tell. */
+    private fun endAnnotate() {
+        if (!annotating) return
+        annotating = false
+        link?.send(ActionId.ANNOTATE_END.frame())
     }
 
     /**
@@ -336,11 +390,18 @@ class MainActivity :
         // and because a preset change rebuilds the same screen: that is not a trip out and back.
         if (screen == Screen.GAMEPAD && next != Screen.GAMEPAD) link?.send(ActionId.PAD_DETACH.frame())
         if (next == Screen.GAMEPAD && screen != Screen.GAMEPAD) link?.send(ActionId.PAD_ATTACH.frame())
+        // Annotating is a session on the laptop: begun on the way in, ended on the way out by any route.
+        if (screen == Screen.ANNOTATE && next != Screen.ANNOTATE) endAnnotate()
+        if (next == Screen.ANNOTATE && !annotating && link?.connected == true) {
+            annotating = true
+            link?.send(ActionId.ANNOTATE_BEGIN.frame())
+        }
         // Onto a screen that shows the round trip, the pings speed up now rather than at the next slow tick.
         if (next in showsRtt && screen !in showsRtt && link?.connected == true) startPinger()
         screen = next
         surface = null
         gamepad = null
+        annotate = null
         reconnecting = null
         macros = null
         handler.removeCallbacks(ticker)
@@ -369,7 +430,6 @@ class MainActivity :
                         ui,
                         settings,
                         connectionInfo(),
-                        gamepads.current.name,
                         versionLine(),
                         getString(backLabel),
                         SettingsScreen.Update(updateSummary()) { view ->
@@ -383,10 +443,6 @@ class MainActivity :
                             gestures = { goTo(Screen.GESTURES) },
                             shapes = { goTo(Screen.SHAPES) },
                             dialFeel = { goTo(Screen.DIAL_FEEL) },
-                            gamepadLayout = {
-                                layoutReturn = Screen.SETTINGS
-                                goTo(Screen.GAMEPAD_LAYOUT)
-                            },
                             mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
                             appearance = { goTo(Screen.APPEARANCE) },
                             guide = { goTo(Screen.GUIDE) },
@@ -402,7 +458,7 @@ class MainActivity :
                 }
 
                 Screen.CORNERS -> {
-                    CornersScreen.build(ui, settings) { navigateBack() }
+                    CornersScreen.build(ui, settings, { goTo(Screen.CORNERS) }) { navigateBack() }
                 }
 
                 Screen.GESTURES -> {
@@ -448,38 +504,86 @@ class MainActivity :
                     GamepadLayoutScreen.build(ui, gamepads) { navigateBack() }
                 }
 
+                Screen.CONTROLS -> {
+                    ControlsScreen(
+                        ui,
+                        settings,
+                        capture = Feature.CAPTURE in state.features,
+                        annotate = Feature.ANNOTATE in state.features && state.screenSize != null,
+                        onOpen = { target ->
+                            when (target) {
+                                ControlsScreen.Target.KEYBOARD -> goTo(Screen.KEYBOARD)
+                                ControlsScreen.Target.GAMEPAD -> goTo(Screen.GAMEPAD)
+                                ControlsScreen.Target.MACROS -> openMacros()
+                                ControlsScreen.Target.CAPTURE -> goTo(Screen.CAPTURE)
+                                ControlsScreen.Target.ANNOTATE -> goTo(Screen.ANNOTATE)
+                            }
+                        },
+                    ) { navigateBack() }.view
+                }
+
+                Screen.CAPTURE -> {
+                    CaptureScreen(ui, settings, state, { frame -> link?.send(frame) }) { navigateBack() }.view
+                }
+
+                Screen.ANNOTATE -> {
+                    AnnotateScreen(ui, state, { frame -> link?.send(frame) }) { navigateBack() }
+                        .also { annotate = it }
+                        .view
+                }
+
                 Screen.KEYBOARD -> {
-                    KeyboardScreen.build(ui, settings.keyTextScale, onKey = ::key) { navigateBack() }
+                    KeyboardScreen.build(
+                        ui,
+                        settings.keyTextScale,
+                        onKey = ::key,
+                        onSettings = { goTo(Screen.KEYBOARD_SETTINGS) },
+                    ) { navigateBack() }
+                }
+
+                Screen.KEYBOARD_SETTINGS -> {
+                    KeyboardSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.GAMEPAD -> {
                     GamepadScreen(
                         ui,
                         gamepads.current,
-                        gamepads.all.map { it.name },
                         state.padStatus,
                         onKey = ::key,
                         onPad = { pad -> link?.send(pad) },
                         onBack = { navigateBack() },
-                        onChoose = { name ->
-                            gamepads.choose(name)
-                            goTo(Screen.GAMEPAD)
-                        },
-                        onEdit = {
-                            layoutReturn = Screen.GAMEPAD
-                            goTo(Screen.GAMEPAD_LAYOUT)
-                        },
+                        onSettings = { goTo(Screen.GAMEPAD_SETTINGS) },
                     ).also { gamepad = it }.view
+                }
+
+                Screen.GAMEPAD_SETTINGS -> {
+                    GamepadSettingsScreen.build(
+                        ui,
+                        gamepads.all.map { it.name },
+                        gamepads.current.name,
+                        onPick = { name ->
+                            gamepads.choose(name)
+                            goTo(Screen.GAMEPAD_SETTINGS)
+                        },
+                        onEdit = { goTo(Screen.GAMEPAD_LAYOUT) },
+                    ) { navigateBack() }
                 }
 
                 Screen.MACROS -> {
                     MacroScreen(
                         ui,
+                        settings,
                         state.macros,
                         icon = state::macroIcon,
                         labels = settings.macroLabels,
                         onRun = ::runMacro,
+                        onSettings = { goTo(Screen.MACRO_SETTINGS) },
                     ) { navigateBack() }.also { macros = it }.view
+                }
+
+                Screen.MACRO_SETTINGS -> {
+                    MacroSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.RECONNECTING -> {
@@ -493,6 +597,19 @@ class MainActivity :
                     lost.view
                 }
 
+                Screen.PIN -> {
+                    PinScreen(
+                        ui,
+                        pinAttemptsLeft,
+                        pinAnswered,
+                        onAnswer = { pin ->
+                            pinAnswered = true
+                            link?.answerPin(pin)
+                        },
+                        onCancel = { navigateBack() },
+                    ).view
+                }
+
                 Screen.SURFACE -> {
                     ControlSurface(
                         this,
@@ -500,12 +617,16 @@ class MainActivity :
                         state,
                         { frame -> link?.send(frame) },
                         ::openSettings,
-                        onOpenKeyboard = { goTo(Screen.KEYBOARD) },
-                        onOpenGamepad = { goTo(Screen.GAMEPAD) },
-                        onOpenMacros = ::openMacros,
+                        onOpenControls = { goTo(Screen.CONTROLS) },
                     ).also { surface = it }
                 }
             }
+        // No screenshot, screen recording or recents thumbnail of the PIN screen, and only of that screen.
+        if (next == Screen.PIN) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
         setContentView(view)
         applyOrientation()
         // The bars are see-through over the page, whose own background is the ground, so they take its colour.
@@ -528,18 +649,16 @@ class MainActivity :
     }
 
     /**
-     * Three answers, not two. The keyboard and the gamepad are drawn sideways and only sideways. The control
-     * surface and the two canvases that stand in for it are held the way the Orientation setting says — the
-     * media layout editor because a layout is stored per orientation since 2.3.0, so a phone turned mid-edit
-     * would quietly start changing the other one, and the shape canvas because a stroke is drawn at the pad's
-     * own proportions. Everything else follows the phone, which is what the setting used to override for the
-     * whole app. A change rebuilds the activity; the link survives it.
+     * Two answers, not three. The keyboard, the gamepad and its layout editor are drawn sideways and only
+     * sideways. Every other screen is held the way the Orientation setting says, so a phone turned mid-edit
+     * cannot quietly change a media layout that is stored per orientation since 2.3.0, and a shape is never
+     * drawn at a different pad proportion from the one it is saved for. A change rebuilds the activity; the
+     * link survives it.
      */
     private fun applyOrientation() {
         requestedOrientation =
             when {
                 screen in alwaysSideways -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                screen !in pinned -> ActivityInfo.SCREEN_ORIENTATION_USER
                 settings.landscape -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 else -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }
@@ -584,10 +703,37 @@ class MainActivity :
             }
 
             Screen.GAMEPAD_LAYOUT -> {
-                goTo(layoutReturn)
+                goTo(Screen.GAMEPAD_SETTINGS)
             }
 
-            Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS -> {
+            Screen.KEYBOARD_SETTINGS -> {
+                goTo(Screen.KEYBOARD)
+            }
+
+            Screen.GAMEPAD_SETTINGS -> {
+                goTo(Screen.GAMEPAD)
+            }
+
+            Screen.MACRO_SETTINGS -> {
+                goTo(Screen.MACROS)
+            }
+
+            // Back is Cancel: the attempt ends, and onClosed takes the screen to Devices.
+            Screen.PIN -> {
+                val current = link
+                if (current != null) {
+                    current.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
+                } else {
+                    goTo(Screen.PAIRING)
+                }
+            }
+
+            // The keyboard, the gamepad and the capture are opened from Controls, so back returns there.
+            Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE -> {
+                goTo(Screen.CONTROLS)
+            }
+
+            Screen.CONTROLS -> {
                 goTo(if (link?.connected == true) Screen.SURFACE else Screen.PAIRING)
             }
 
@@ -710,6 +856,17 @@ class MainActivity :
         Toast.makeText(this, text, Toast.LENGTH_LONG).show()
     }
 
+    /** The laptop's answer to SIGN_SAVE, as the toast the person is waiting for. */
+    private fun signed(status: SignStatus?) {
+        val text =
+            when (status) {
+                SignStatus.SAVED -> R.string.sign_saved
+                SignStatus.EMPTY -> R.string.sign_empty
+                else -> R.string.sign_failed
+            }
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show()
+    }
+
     /** A key pressed or released on the keyboard or gamepad screen. */
     private fun key(
         code: Int,
@@ -728,14 +885,8 @@ class MainActivity :
         link?.send(Frame.RunAction(ActionId.MACRO_BASE.id + index))
     }
 
-    /**
-     * Opens the macro grid, asking the laptop for the pictures on the way in. Asked for rather than pushed
-     * because an icon is thousands of times the size of an input frame: requesting them here spends the link
-     * on a screen that has no trackpad on it, and a laptop too old to know the request drops it and counts
-     * it, leaving a grid of names.
-     */
+    /** Opens the macro grid. Its pictures are already cached: the link asks for them as each macro list arrives. */
     private fun openMacros() {
-        link?.send(TextKind.WANT_ICONS.frame(""))
         goTo(Screen.MACROS)
     }
 
@@ -975,6 +1126,7 @@ class MainActivity :
         old?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
         // What one laptop reported says nothing about another.
         if (device.address != laptopAddress) state = LaptopState()
+        state.forgetFeatures()
         settings.laptop = device.address
         laptopName = nameOf(device)
         laptopAddress = device.address
@@ -995,7 +1147,7 @@ class MainActivity :
         picker.setMessage("")
         startPinger()
         when (screen) {
-            Screen.PAIRING, Screen.RECONNECTING -> goTo(Screen.SURFACE)
+            Screen.PAIRING, Screen.RECONNECTING, Screen.PIN -> goTo(Screen.SURFACE)
             Screen.SETTINGS -> settingsReturn = Screen.SURFACE
             else -> Unit
         }
@@ -1003,6 +1155,22 @@ class MainActivity :
 
     override fun onAwaitingLaptop(link: LaptopLink) {
         if (link == this.link) picker.setMessage(getString(R.string.status_accept_on_laptop))
+    }
+
+    /**
+     * From any screen: the laptop waits for this answer and gives up on its own. While the PIN screen is up
+     * the attempt's link is set, so no retry can start a second connect behind it ([attemptReconnect]).
+     */
+    override fun onPinRequest(
+        link: LaptopLink,
+        attemptsLeft: Int,
+    ) {
+        if (link != this.link) return
+        pinAttemptsLeft = attemptsLeft
+        pinAnswered = false
+        // The trust hint, if it was showing, has been answered.
+        picker.setMessage("")
+        goTo(Screen.PIN)
     }
 
     override fun onRoundTrip(ms: Double) {
@@ -1013,6 +1181,13 @@ class MainActivity :
     override fun onFrame(frame: Frame) {
         if (!state.take(frame)) return
         surface?.stateChanged()
+        // Controls and Capture are drawn from the features the laptop named, which it sends once after the
+        // handshake: one that lands while either is open rebuilds it rather than leaving it saying "none".
+        val featured = screen == Screen.CONTROLS || screen == Screen.CAPTURE
+        val sized = frame is Frame.Text && (frame.kind == TextKind.FEATURES.id || frame.kind == TextKind.SCREEN_SIZE.id)
+        if (featured && sized) goTo(screen)
+        if (frame is Frame.Text && frame.kind == TextKind.SCREEN_SIZE.id) annotate?.refresh()
+        if (frame is Frame.Text && frame.kind == TextKind.SIGN_STATUS.id) signed(state.signStatus)
         // The pad decides which of its two modes it is in from this answer, which usually lands a few
         // milliseconds after PAD_ATTACH went out — by then the screen is already up, so it is handed
         // over rather than rebuilt: rebuilding would drop whatever fingers are on the glass.
@@ -1023,10 +1198,8 @@ class MainActivity :
         if (grid != null && frame is Frame.Text) {
             when (frame.kind) {
                 TextKind.MACROS.id -> {
+                    // The link has already asked for this list's pictures; they arrive as MACRO_ICON frames.
                     grid.setMacros(state.macros)
-                    // A new list retires the icons with it, since a slot number now means a different macro.
-                    // Nothing else asks for them again, so this is where a grid left open gets its pictures back.
-                    link?.send(TextKind.WANT_ICONS.frame(""))
                 }
 
                 TextKind.MACRO_ICON.id -> {
@@ -1044,12 +1217,15 @@ class MainActivity :
         handler.removeCallbacks(pinger)
         this.link = null
         picker.setConnecting(null)
+        // Devices is where the reason is shown, so an attempt that ends at the PIN goes there first.
+        if (screen == Screen.PIN) goTo(Screen.PAIRING)
         when {
             closure.cause == LaptopLink.Cause.ENDED -> {
                 // A link ended on purpose starts the next one with a full set of attempts.
                 attempts = 0
-                if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.KEYBOARD ||
-                    screen == Screen.GAMEPAD || screen == Screen.MACROS
+                if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.CONTROLS ||
+                    screen == Screen.CAPTURE || screen == Screen.ANNOTATE || screen == Screen.KEYBOARD ||
+                    screen == Screen.GAMEPAD || screen == Screen.MACROS || screen in settingsOfControls
                 ) {
                     goTo(Screen.PAIRING)
                 }
@@ -1100,7 +1276,17 @@ class MainActivity :
             LaptopLink.Cause.UNEXPECTED -> getString(R.string.link_unexpected, closure.detail)
             LaptopLink.Cause.NO_PERMISSION -> getString(R.string.link_no_permission)
             LaptopLink.Cause.NO_ANSWER -> getString(R.string.link_no_answer)
+            LaptopLink.Cause.PIN_LOCKED -> lockedFor(closure.detail.toIntOrNull() ?: 0)
         }
+
+    /** The lock-out wait as a person reads it: an hour is 60 minutes, not 3600 s. Minutes round up, never down. */
+    private fun lockedFor(seconds: Int): String {
+        if (seconds < SECONDS_PER_MINUTE) {
+            return resources.getQuantityString(R.plurals.link_pin_locked_seconds, seconds, seconds)
+        }
+        val minutes = (seconds + SECONDS_PER_MINUTE - 1) / SECONDS_PER_MINUTE
+        return resources.getQuantityString(R.plurals.link_pin_locked_minutes, minutes, minutes)
+    }
 
     private fun scheduleRetry(delay: Long) {
         handler.removeCallbacks(retry)
@@ -1183,22 +1369,28 @@ class MainActivity :
                 Screen.SURFACE,
                 Screen.KEYBOARD,
                 Screen.GAMEPAD,
+                Screen.CAPTURE,
+                Screen.ANNOTATE,
                 Screen.MEDIA_LAYOUT,
                 Screen.GAMEPAD_LAYOUT,
                 Screen.SHAPE_DRAW,
             )
 
         /** Drawn sideways whatever the phone is doing, because they are laid out for a wide screen and nothing else. */
-        val alwaysSideways = setOf(Screen.KEYBOARD, Screen.GAMEPAD, Screen.GAMEPAD_LAYOUT)
+        val alwaysSideways =
+            setOf(
+                Screen.KEYBOARD,
+                Screen.GAMEPAD,
+                Screen.GAMEPAD_LAYOUT,
+                // Their settings pages too: a form reached from a sideways screen stays sideways rather than
+                // turning the phone upright and back. They show the bars, unlike the screens they came from.
+                Screen.KEYBOARD_SETTINGS,
+                Screen.GAMEPAD_SETTINGS,
+            )
 
-        /**
-         * Held the way the Orientation setting says. Everything outside both sets follows the phone.
-         *
-         * The shape canvas is here for a reason of its own: it is held the way the pad is because a shape
-         * is drawn at the pad's own proportions, and because a phone that rotated mid-stroke would turn
-         * half a drawing into a saved shape nobody could reproduce.
-         */
-        val pinned = setOf(Screen.SURFACE, Screen.MEDIA_LAYOUT, Screen.SHAPE_DRAW)
+        /** The pages that need the link: with it gone they go back to Devices, as the screens they belong to do. */
+        val settingsOfControls = setOf(Screen.KEYBOARD_SETTINGS, Screen.GAMEPAD_SETTINGS, Screen.MACRO_SETTINGS)
+
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2
 
@@ -1222,6 +1414,7 @@ class MainActivity :
         /** A link that lasted less than this did not really come back, so it does not earn a fresh set of attempts. */
         const val STABLE_LINK_MS = 5_000L
         const val MILLIS_PER_SECOND = 1_000L
+        const val SECONDS_PER_MINUTE = 60
 
         /**
          * The largest background image accepted. A phone camera's photo is a few megabytes and a panorama

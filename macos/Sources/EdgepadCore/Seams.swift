@@ -86,3 +86,34 @@ public protocol Transport: AnyObject {
     func send(_ bytes: [UInt8]) -> Bool
     func close()
 }
+
+/// The annotation overlay and signature export, which draw on this Mac's screen. The dispatcher hands it the pen
+/// and the annotate actions; a Mac without one (and a test) leaves it nil, and those frames are dropped and counted.
+/// Every answer is false for a frame it did not take.
+public protocol AnnotationSink: AnyObject {
+    /// The primary display in pixels, or nil when there is none.
+    var screenSize: (width: Int, height: Int)? { get }
+    /// Where the answer to SIGN_SAVE goes. Set by the session, which owns the link, and cleared by `end()`.
+    var signStatusReply: ((String) -> Void)? { get set }
+    /// Called when the display changes, so the session can send the phone the new size.
+    var screenSizeChanged: (() -> Void)? { get set }
+    func pen(x: UInt16, y: UInt16, state: UInt8) -> Bool
+    func setColour(_ index: Int) -> Bool
+    /// One of the annotate and sign actions, 40..51.
+    func run(_ action: ActionId) -> Bool
+    /// Takes the overlay down and discards the strokes. Idempotent.
+    func end()
+}
+
+/// Opens what a macro points at: an application, a document, a folder or a URL. The only thing in the app that
+/// starts a process on the phone's behalf, and it is handed a target the owner wrote into the list, never one the
+/// phone sent. False when nothing was started.
+public protocol MacroLauncher: AnyObject {
+    func launch(target: String, arguments: String?) -> Bool
+}
+
+/// The picture a macro button shows, as PNG bytes, or nil when none can be had. Behind a seam so the store and the
+/// chunker stay free of AppKit.
+public protocol MacroIconSource: AnyObject {
+    func png(for macro: Macro) -> [UInt8]?
+}

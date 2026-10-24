@@ -4,6 +4,8 @@ public enum ProtocolError: Error, Equatable {
     case wrongLength(type: UInt8, expected: Int, got: Int)
     case badMagic
     case badFlag(UInt8)
+    /// A PIN_ANSWER byte above 9. It carries no value: a rejected byte is still part of somebody's PIN.
+    case badDigit
     case textLengthMismatch
 }
 
@@ -24,6 +26,8 @@ public enum FrameCodec {
 
     private static let helloType: UInt8 = 0x01
     private static let helloAckType: UInt8 = 0x02
+    private static let pinRequestType: UInt8 = 0x03
+    private static let pinAnswerType: UInt8 = 0x04
     private static let moveType: UInt8 = 0x10
     private static let pointerButtonType: UInt8 = 0x11
     private static let scrollType: UInt8 = 0x12
@@ -32,6 +36,7 @@ public enum FrameCodec {
     private static let setValueType: UInt8 = 0x21
     private static let keyType: UInt8 = 0x22
     private static let padStateType: UInt8 = 0x23
+    private static let penType: UInt8 = 0x24
     private static let pingType: UInt8 = 0x30
     private static let pongType: UInt8 = 0x31
     private static let stateType: UInt8 = 0x40
@@ -46,14 +51,18 @@ public enum FrameCodec {
             return .fixed(1)
         case pointerButtonType, zoomType, setValueType:
             return .fixed(2)
-        case stateType, keyType:
+        case stateType, keyType, pinRequestType:
             return .fixed(3)
         case moveType, scrollType:
             return .fixed(4)
+        case pinAnswerType:
+            return .fixed(Pin.length)
         case pingType, pongType:
             return .fixed(8)
         case padStateType:
             return .fixed(12)
+        case penType:
+            return .fixed(5)
         case textType:
             return .lengthPrefixed
         default:
@@ -102,6 +111,17 @@ public enum FrameCodec {
             out += littleEndian(rx)
             out += littleEndian(ry)
             return out
+        case .pen(let x, let y, let state):
+            var out: [UInt8] = [penType]
+            out += littleEndian(x)
+            out += littleEndian(y)
+            out.append(state)
+            return out
+        case .pinRequest(let attemptsLeft, let lockedSeconds):
+            return [pinRequestType, attemptsLeft] + littleEndian(lockedSeconds)
+        case .pinAnswer(let pin):
+            // Each digit goes out as its value 0...9, not its ASCII code, so these bytes can never read as text.
+            return [pinAnswerType] + pin.digits
         }
     }
 
@@ -159,6 +179,17 @@ public enum FrameCodec {
                 rx: int16(payload, 8),
                 ry: int16(payload, 10)
             )
+        case penType:
+            // Nothing here throws: x and y span their whole width, and a state above 2 is for the dispatcher to
+            // drop and count, since closing the link would take the whole session down for a newer phone's state.
+            return .pen(x: uint16(payload, 0), y: uint16(payload, 2), state: payload[4])
+        case pinRequestType:
+            return .pinRequest(attemptsLeft: payload[0], lockedSeconds: uint16(payload, 1))
+        case pinAnswerType:
+            guard let pin = Pin(digits: payload) else {
+                throw ProtocolError.badDigit
+            }
+            return .pinAnswer(pin)
         default:
             throw ProtocolError.unknownType(type)
         }

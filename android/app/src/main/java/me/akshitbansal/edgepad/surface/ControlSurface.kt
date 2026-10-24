@@ -33,7 +33,7 @@ import kotlin.math.roundToInt
 
 /**
  * The control surface: a ruler at each corner that holds a dial, the media pieces wherever the user put
- * them, gear, keyboard, lock, gamepad and macro buttons at the top, and everything else is the trackpad. A
+ * them, gear, lock and Controls buttons at the top, and everything else is the trackpad. A
  * touch that starts inside a corner's zone is that dial's; one that starts on a media piece or a button is
  * a button press; any other is the trackpad. The lock button walks the surface through [PadMode], which is
  * the only thing that can take a piece of it away — and which a drawn shape can walk too, since a locked
@@ -53,12 +53,16 @@ class ControlSurface(
     private val state: LaptopState,
     private val send: (Frame) -> Unit,
     private val onOpenSettings: () -> Unit,
-    private val onOpenKeyboard: () -> Unit,
-    private val onOpenGamepad: () -> Unit,
-    private val onOpenMacros: () -> Unit,
+    private val onOpenControls: () -> Unit,
+    /**
+     * Only the trackpad: no dials, buttons, media, hints or caption. The Capture screen wants a pointer and
+     * nothing else, and the recogniser, the trail and the unbuffered dispatch are the surface's own, so this
+     * is a mode of the one view rather than a second recogniser.
+     */
+    private val trackpadOnly: Boolean = false,
 ) : View(context) {
     /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
-    constructor(context: Context) : this(context, Settings(context), LaptopState(), {}, {}, {}, {}, {})
+    constructor(context: Context) : this(context, Settings(context), LaptopState(), {}, {}, {})
 
     private val density = resources.displayMetrics.density
     private val palette = Palette.of(context)
@@ -111,19 +115,33 @@ class ControlSurface(
             send,
         )
     private val hapticsOn = settings.haptics
-    private val showHints = settings.hints
+    private val showHints = settings.hints && !trackpadOnly
     private val scrubOnADial = settings.hasDial(DialKind.MEDIA)
     private val dials: List<Dial> =
-        (0 until Perimeter.CORNERS).mapNotNull { corner ->
-            settings.corner(corner)?.let { kind ->
-                kind.dial(
-                    corner,
-                    context.getString(kind.shortRes),
-                    Dial.BASE_UNITS_PER_DP * settings.sensitivityOf(kind),
-                    settings.snap,
-                    send,
-                    ::haptic,
-                )
+        run {
+            if (trackpadOnly) return@run emptyList()
+
+            fun build(
+                kind: DialKind,
+                corner: Int,
+                slot: Int,
+            ) = kind.dial(
+                corner,
+                context.getString(kind.shortRes),
+                Dial.BASE_UNITS_PER_DP * settings.sensitivityOf(kind),
+                settings.snap,
+                send,
+                ::haptic,
+                slot,
+            )
+            if (settings.splitCorners) {
+                (0 until Perimeter.SLOTS).mapNotNull { slot ->
+                    settings.slot(slot)?.let { build(it, CornerSlots.corner(slot), slot) }
+                }
+            } else {
+                (0 until Perimeter.CORNERS).mapNotNull { corner ->
+                    settings.corner(corner)?.let { build(it, corner, Dial.WHOLE) }
+                }
             }
         }
     private val painter =
@@ -140,13 +158,15 @@ class ControlSurface(
     private val lockIconOn = icon(R.drawable.ic_lock, accent)
     private val lockButton = TopButton(icon(R.drawable.ic_lock, dim), side = 0f, open = { tapLock() })
     private val topButtons =
-        listOf(
-            TopButton(icon(R.drawable.ic_settings, dim), side = -2f, open = onOpenSettings),
-            TopButton(icon(R.drawable.ic_keyboard, dim), side = -1f, open = onOpenKeyboard),
-            lockButton,
-            TopButton(icon(R.drawable.ic_gamepad_2, dim), side = 1f, open = onOpenGamepad),
-            TopButton(icon(R.drawable.ic_macro, dim), side = 2f, open = onOpenMacros),
-        )
+        if (trackpadOnly) {
+            emptyList()
+        } else {
+            listOf(
+                TopButton(icon(R.drawable.ic_settings, dim), side = -1f, open = onOpenSettings),
+                lockButton,
+                TopButton(icon(R.drawable.ic_controls, dim), side = 1f, open = onOpenControls),
+            )
+        }
     private val skipBackIcon = icon(R.drawable.ic_skip_back, ink)
     private val skipForwardIcon = icon(R.drawable.ic_skip_forward, ink)
     private val playIcon = icon(R.drawable.ic_play, onAccent)
@@ -157,16 +177,20 @@ class ControlSurface(
     private val nothingPlaying = context.getString(R.string.surface_nothing_playing)
     private val hintLines = context.getString(R.string.surface_hints).split('\n')
     private val accessibilityActions: Map<AccessibilityNodeInfo.AccessibilityAction, () -> Unit> =
-        mapOf(
-            action(R.id.action_play_pause, R.string.surface_play_pause) to { send(ActionId.PLAY_PAUSE.frame()) },
-            action(R.id.action_next_track, R.string.surface_next) to { send(ActionId.NEXT_TRACK.frame()) },
-            action(R.id.action_previous_track, R.string.surface_previous) to { send(ActionId.PREVIOUS_TRACK.frame()) },
-            action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
-            action(R.id.action_keyboard, R.string.surface_keyboard) to onOpenKeyboard,
-            action(R.id.action_pad_lock, R.string.surface_lock) to { tapLock() },
-            action(R.id.action_gamepad, R.string.surface_gamepad) to onOpenGamepad,
-            action(R.id.action_macros, R.string.surface_macros) to onOpenMacros,
-        )
+        if (trackpadOnly) {
+            emptyMap()
+        } else {
+            mapOf(
+                action(R.id.action_play_pause, R.string.surface_play_pause) to { send(ActionId.PLAY_PAUSE.frame()) },
+                action(R.id.action_next_track, R.string.surface_next) to { send(ActionId.NEXT_TRACK.frame()) },
+                action(R.id.action_previous_track, R.string.surface_previous) to {
+                    send(ActionId.PREVIOUS_TRACK.frame())
+                },
+                action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
+                action(R.id.action_controls, R.string.surface_controls) to onOpenControls,
+                action(R.id.action_pad_lock, R.string.surface_lock) to { tapLock() },
+            )
+        }
 
     // Geometry, all set in onSizeChanged so nothing is measured or allocated while drawing.
     private var perimeter = Perimeter(1f, 1f, 1f)
@@ -325,7 +349,14 @@ class ControlSurface(
         val displayDp = maxOf(corner / density, MIN_BEND_DP)
         perimeter = Perimeter(w.toFloat(), h.toFloat(), dp(displayDp))
         dials.forEachIndexed { i, dial ->
-            centres[i] = perimeter.lengthAt(dial.corner.toFloat())
+            // A half of a split corner sits off the corner on its own edge, clear of the bend; [DialSpan] below
+            // trims it where it would meet its neighbour.
+            centres[i] =
+                if (dial.slot == Dial.WHOLE) {
+                    perimeter.lengthAt(dial.corner.toFloat())
+                } else {
+                    perimeter.lengthAtSlot(dial.slot, dp(painter.halfLengthDp) / 2f)
+                }
             // Upright, only the top corners have the screen to themselves and keep the deep zone: the
             // bottom ones sit near the media pieces, an edge midpoint sits where the thumb swipes, and
             // sideways every slot is near the middle. The rest grab less of the trackpad.
@@ -346,7 +377,7 @@ class ControlSurface(
         // the 16dp the tighter step saves at each end goes back to the top corner dials. See
         // [TOP_BUTTON_OFFSET_PORTRAIT_DP].
         val topCentre = perimeter.lengthAt(TOP_CENTRE)
-        val reach = topButtons.maxOf { abs(it.side) } * topButtonOffsetDp(w.toFloat(), h.toFloat())
+        val reach = (topButtons.maxOfOrNull { abs(it.side) } ?: 0f) * topButtonOffsetDp(w.toFloat(), h.toFloat())
         val zone = dp(reach + Space.TOUCH / 2 + Space.M)
         keepOut[0] = topCentre - zone
         keepOut[1] = topCentre + zone
@@ -586,7 +617,7 @@ class ControlSurface(
      * answering the finger at the same moment they stop being drawn.
      */
     private fun mediaShown(): Boolean =
-        mode != PadMode.FOCUS && (state.app.isNotEmpty() || state.nowPlaying.isNotEmpty())
+        !trackpadOnly && mode != PadMode.FOCUS && (state.app.isNotEmpty() || state.nowPlaying.isNotEmpty())
 
     private fun playedFraction(): Float =
         if (state.duration > 0) {
@@ -1023,7 +1054,7 @@ class ControlSurface(
      * reader is told, and the caption saying so — and a writer that moved the mode and forgot one of them
      * is exactly how a locked pad came to look identical to a working one.
      *
-     * The other four top buttons open a screen, which is its own answer; the lock changes the surface in
+     * The other three top buttons open a screen, which is its own answer; the lock changes the surface in
      * place, so the tick, the lit icon, the caption and the live region are all the confirmation there is.
      */
     private fun enterMode(next: PadMode) {
@@ -1150,9 +1181,8 @@ class ControlSurface(
 
     /**
      * One of the buttons floating at the top of the surface. [side] places it across the centre of the top
-     * edge in steps of [topButtonOffsetDp]: -1 one step left of it, 0 on it, 1 one step right. An
-     * odd-sized row sits on whole steps — the five buttons are at 0 and ±1 and ±2, with the lock on the
-     * centre — where an even-sized one needs half steps to stay centred.
+     * edge in steps of [topButtonOffsetDp]: -1 one step left of it, 0 on it, 1 one step right. The
+     * row of three is centred on the lock: settings to its left, Controls to its right.
      */
     private class TopButton(
         val icon: Drawable,
@@ -1296,7 +1326,7 @@ enum class PadMode {
     /** Dials, media and trackpad, all live. */
     NORMAL,
 
-    /** Dials and media are neither drawn nor hit-tested; the trackpad and the five top buttons remain. */
+    /** Dials and media are neither drawn nor hit-tested; the trackpad and the four top buttons remain. */
     FOCUS,
 
     /** Dials and media stay live, and the trackpad refuses every touch, so a palm or a pocket does nothing. */

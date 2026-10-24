@@ -11,7 +11,7 @@ import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 
 /**
- * The Edgepad mark, from the SVG made for the current theme (a dark tile on the light theme, a light
+ * The Edgepad mark, from the SVG made for the current theme (a white tile on the light theme, a dark
  * tile on the dark one). Rendered once per size into a bitmap, so drawing allocates nothing.
  *
  * It is decoration beside a title, so nothing about drawing it may take the app down: a size of nothing

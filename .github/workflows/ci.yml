@@ -13,6 +13,11 @@ on:
 permissions:
   contents: read
 
+# Avalonia's build tasks report usage to its makers unless told not to. Nothing about this repo's builds
+# is theirs to collect.
+env:
+  AVALONIA_TELEMETRY_OPTOUT: "1"
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -43,6 +48,52 @@ jobs:
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
+  # The shared core on Linux, where the Linux app will run it: catches anything that only passed because
+  # Windows was forgiving (path case, file locks, line endings).
+  core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - name: Quality gate
+        run: pwsh scripts/check.ps1 -Ci -Only core
+
+  # The Linux laptop app, on the OS it runs on. Built and tested only; nothing here can reach BlueZ.
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - name: Quality gate
+        run: pwsh scripts/check.ps1 -Ci -Only linux
+      # Self-contained single file: runs on a laptop with no .NET installed. The native libraries (SkiaSharp,
+      # HarfBuzz) are bundled into it and unpacked on first start, so the archive needs no .so beside the binary.
+      - name: Publish the app
+        run: >
+          dotnet publish linux/src/Edgepad.Linux/Edgepad.Linux.csproj -c Release -r linux-x64 --self-contained
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish
+      - name: Validate the desktop entry
+        run: |
+          sudo apt-get install -y --no-install-recommends desktop-file-utils
+          desktop-file-validate linux/packaging/edgepad.desktop
+      - name: Build the archive
+        run: sh linux/packaging/pack.sh 0.0.0-dev publish Edgepad-linux-x64.tar.gz
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: edgepad-linux
+          path: Edgepad-linux-x64.tar.gz
+          if-no-files-found: error
+
   windows:
     runs-on: windows-latest
     timeout-minutes: 25
@@ -52,9 +103,14 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
         with:
-          global-json-file: windows/global.json
+          global-json-file: global.json
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only windows
+      # As the release job does it, so a notices file that cannot be written fails here first.
+      - name: Write the licence notices
+        shell: bash
+        run: |
+          sh scripts/notices.sh windows/src/Edgepad/packages.lock.json win-x64 windows/src/Edgepad/THIRD-PARTY-NOTICES.txt
       # Self-contained single file: runs on a laptop with no .NET installed.
       - name: Publish exe
         run: >
@@ -63,8 +119,42 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: edgepad-windows
-          path: publish/Edgepad.exe
+          path: |
+            publish/Edgepad.exe
+            windows/src/Edgepad/THIRD-PARTY-NOTICES.txt
           if-no-files-found: error
+
+  # Produces the packages.lock.json files the locked-mode restore needs. GitHub runs a workflow_dispatch only
+  # from the default branch, so this is an ordinary job: download the artifact with `gh run download`, commit
+  # the files, push again. Locked mode is switched off on the command line because CI=true would otherwise
+  # fail the restore over the very lock files being written.
+  lockfiles:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - name: Regenerate the lock files
+        shell: pwsh
+        run: |
+          foreach ($project in 'shared/Edgepad.Core', 'shared/Edgepad.Core.Tests', 'windows/src/Edgepad', 'windows/tests/Edgepad.Tests',
+                       'linux/src/Edgepad.Linux', 'linux/tests/Edgepad.Linux.Tests') {
+            dotnet restore $project --force-evaluate -p:RestoreLockedMode=false
+            if ($LASTEXITCODE -ne 0) { throw "restore of $project failed" }
+          }
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: edgepad-lockfiles
+          path: |
+            shared/**/packages.lock.json
+            windows/**/packages.lock.json
+            linux/**/packages.lock.json
+          if-no-files-found: warn
 
   macos:
     runs-on: macos-latest
@@ -96,4 +186,180 @@ jobs:
         with:
           name: edgepad-macos
           path: publish/Edgepad-mac.zip
+          if-no-files-found: error
+
+  # Prints docs/design/design-spec.html to the PDF (Chrome) and the Word file (LibreOffice). Like the icons, nothing
+  # is committed from here: download the artifact and commit the two files beside the HTML.
+  design-doc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install LibreOffice and Lato
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libreoffice-writer fonts-lato
+      - name: Print the PDF and convert the Word file
+        run: |
+          mkdir -p out
+          google-chrome --headless=new --disable-gpu --allow-file-access-from-files --no-pdf-header-footer \
+            --virtual-time-budget=5000 --print-to-pdf=out/edgepad-design-spec.pdf "file://$PWD/docs/design/design-spec.html"
+          soffice --headless --infilter="HTML (StarWriter)" --convert-to 'docx:MS Word 2007 XML' --outdir out docs/design/design-spec.html
+          mv out/design-spec.docx out/edgepad-design-spec.docx
+          ls -l out
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: edgepad-design-spec
+          path: out/
+          if-no-files-found: error
+
+  # Renders the social preview and the app icons (Windows .ico, Mac .icns, Linux tray PNG, site touch icon) from assets/edgepad-light.svg and edgepad-dark.svg.
+  # Nothing is committed from here: download the artifact with `gh run download`, copy the files to the same
+  # paths, commit them. macos/bundle.sh and the Linux build fail until they are in the tree, on purpose.
+  icons:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install the renderers
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends librsvg2-bin icoutils icnsutils fonts-lato
+      - name: Render the icons
+        run: sh scripts/icons.sh
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: edgepad-icons
+          path: |
+            windows/src/Edgepad/edgepad.ico
+            macos/Resources/edgepad.icns
+            linux/src/Edgepad.Linux/Assets/edgepad-64.png
+            linux/src/Edgepad.Linux/Assets/edgepad-64-dark.png
+            windows/src/Edgepad/Assets/tray-light.ico
+            windows/src/Edgepad/Assets/tray-dark.ico
+            site/app/apple-icon.png
+            assets/social-preview.png
+            site/public/social-preview.png
+            assets/brand/
+          if-no-files-found: error
+
+  # The marketing videos, a HyperFrames project at assets/video/ (its README): one narration take per script, then
+  # the three cuts, their web copies, posters and captions, and the two covers. Slow, so it renders only when something
+  # under assets/video/ changed in the push (or, on a pull request, against its base). A change anywhere else skips
+  # every step after the check, and the job still passes.
+  video:
+    # Off: the owner postponed the videos and covers until the app's bugs are fixed (2026-10-25). Delete this
+    # line to render again.
+    if: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      # The HyperFrames CLI, pinned: a render is only reproducible against the version that made it.
+      HYPERFRAMES: hyperframes@0.8.193
+      HYPERFRAMES_SKIP_SKILLS: "1"
+      DO_NOT_TRACK: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Did assets/video change?
+        id: changed
+        env:
+          BEFORE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: |
+          # No usable "before" (a new branch is all zeros, or the commit is not here): treat as changed.
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = 0000000000000000000000000000000000000000 ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          elif git diff --quiet "$BEFORE" HEAD -- assets/video; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        if: steps.changed.outputs.changed == 'true'
+        with:
+          node-version: '24'
+      - name: Install ffmpeg and edge-tts
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg python3-venv
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install edge-tts==7.3.1
+      # One short sentence in the narration's voice and one in the default, so a failed take shows whether the
+      # service, the voice or the script is at fault.
+      - name: Check the voice service
+        if: steps.changed.outputs.changed == 'true'
+        continue-on-error: true
+        run: |
+          "$RUNNER_TEMP/venv/bin/edge-tts" --voice en-US-AndrewMultilingualNeural --text "Edgepad, a test." --write-media "$RUNNER_TEMP/a.mp3" && ls -l "$RUNNER_TEMP/a.mp3" || echo "the narration voice failed"
+          "$RUNNER_TEMP/venv/bin/edge-tts" --text "Edgepad, a test." --write-media "$RUNNER_TEMP/b.mp3" && ls -l "$RUNNER_TEMP/b.mp3" || echo "the default voice failed"
+      - name: Voice
+        if: steps.changed.outputs.changed == 'true'
+        run: '"$RUNNER_TEMP/venv/bin/python" assets/video/voice.py'
+      # Lint gates the render. `check` also audits layout, motion and contrast in a browser; its findings are worth
+      # reading in this log, but the phone is a canvas the audits cannot see into, so they do not stop the render.
+      - name: Lint the compositions
+        if: steps.changed.outputs.changed == 'true'
+        working-directory: assets/video
+        run: |
+          npx --yes "$HYPERFRAMES" lint
+          for f in cuts/*.html; do npx --yes "$HYPERFRAMES" lint "$f"; done
+      - name: Check the compositions
+        if: steps.changed.outputs.changed == 'true'
+        continue-on-error: true
+        working-directory: assets/video
+        run: npx --yes "$HYPERFRAMES" check
+      # H.264 at 30 fps on the delivery (quality-based) setting. A render that wrote its file and then failed while
+      # tidying up keeps the file: only a missing output fails the step.
+      - name: Render
+        if: steps.changed.outputs.changed == 'true'
+        working-directory: assets/video
+        run: |
+          set -euo pipefail
+          V="$RUNNER_TEMP/video"
+          mkdir -p "$V"
+          render() {
+            local out="$1"; shift
+            if ! npx --yes "$HYPERFRAMES" render "$@" --fps 30 --output "$out"; then
+              if [ -s "$out" ] || [ -n "$(find "$out" -name '*.png' 2>/dev/null | head -n 1)" ]; then
+                echo "::warning::the render of $out exited non-zero after writing it; kept"
+              else
+                echo "::error::the render of $out wrote nothing"
+                return 1
+              fi
+            fi
+          }
+          render "$V/full.mp4" --quality delivery
+          render "$V/minute.mp4" -c cuts/minute.html --quality delivery
+          render "$V/reel.mp4" -c cuts/reel.html --quality delivery
+          for id in thumb-landscape thumb-portrait; do
+            render "$RUNNER_TEMP/frames-$id" -c "cuts/$id.html" --format png-sequence
+            cp "$(find "$RUNNER_TEMP/frames-$id" -name '*.png' | sort | head -n 1)" "$V/$id.png"
+          done
+      # The web copies are for the site: CRF 23, capped so a 4.5-minute cut stays under about 40 MB.
+      - name: Web copies, posters and captions
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          V="$RUNNER_TEMP/video"
+          for id in full minute; do
+            ffmpeg -y -loglevel error -i "$V/$id.mp4" -c:v libx264 -preset slow -crf 23 -maxrate 1000k -bufsize 2000k \
+              -pix_fmt yuv420p -c:a aac -b:a 96k -movflags +faststart "$V/$id-web.mp4"
+            size=$(stat -c %s "$V/$id-web.mp4")
+            if [ "$size" -gt 41943040 ]; then echo "::warning::$id-web.mp4 is $((size / 1048576)) MB, over 40"; fi
+            poster=$(node -p "require('./assets/video/out/$id/timing.json').poster")
+            ffmpeg -y -loglevel error -ss "$poster" -i "$V/$id.mp4" -frames:v 1 -q:v 2 "$V/$id-poster.jpg"
+          done
+          for id in full minute reel; do
+            cp "assets/video/out/$id/$id.en.vtt" "$V/"
+            cp "assets/video/out/$id/timing.json" "$V/$id.timing.json"
+          done
+          ls -la "$V"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: steps.changed.outputs.changed == 'true'
+        with:
+          name: edgepad-video
+          path: ${{ runner.temp }}/video/
           if-no-files-found: error

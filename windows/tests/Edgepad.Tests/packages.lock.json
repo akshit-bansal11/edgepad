@@ -163,10 +163,14 @@
       "edgepad": {
         "type": "Project",
         "dependencies": {
+          "Edgepad.Core": "[1.0.0, )",
           "NAudio.Wasapi": "[3.1.0, )",
           "Nefarius.ViGEm.Client": "[1.21.256, )",
           "System.Management": "[10.0.12, )"
         }
+      },
+      "edgepad.core": {
+        "type": "Project"
       }
     }
   }

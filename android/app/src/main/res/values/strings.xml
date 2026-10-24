@@ -36,6 +36,26 @@
   <string name="link_unexpected">the laptop answered with something other than Edgepad\'s handshake (%1$s).</string>
   <string name="link_no_permission">the Nearby devices permission was turned off.</string>
   <string name="link_no_answer">the laptop took the connection and never answered. Check that Edgepad is running there, then try again.</string>
+  <!-- The laptop's lock-out runs from 30 s to an hour: under a minute in seconds, else whole minutes rounded up. -->
+  <plurals name="link_pin_locked_seconds">
+    <item quantity="one">too many wrong PINs. Try again in %1$d second.</item>
+    <item quantity="other">too many wrong PINs. Try again in %1$d seconds.</item>
+  </plurals>
+  <plurals name="link_pin_locked_minutes">
+    <item quantity="one">too many wrong PINs. Try again in %1$d minute.</item>
+    <item quantity="other">too many wrong PINs. Try again in %1$d minutes.</item>
+  </plurals>
+
+  <!-- The laptop's PIN. The digits are never shown or read out, only how many are in. -->
+  <string name="pin_title">Enter the PIN</string>
+  <string name="pin_body">Set in Edgepad on your laptop</string>
+  <plurals name="pin_attempts_left">
+    <item quantity="one">Wrong PIN. %1$d attempt left</item>
+    <item quantity="other">Wrong PIN. %1$d attempts left</item>
+  </plurals>
+  <string name="pin_entered">Digits entered: %1$d of %2$d</string>
+  <string name="pin_delete">Delete</string>
+  <string name="pin_cancel">Cancel</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Laptop out of reach</string>
@@ -63,6 +83,13 @@
   <string name="corner_bottom_right">Bottom right</string>
   <string name="corner_bottom_left">Bottom left</string>
   <string name="corner_off">Off</string>
+  <string name="corner_split">Split corners</string>
+  <string name="corner_edge_left">left edge</string>
+  <string name="corner_edge_top">top edge</string>
+  <string name="corner_edge_right">right edge</string>
+  <string name="corner_edge_bottom">bottom edge</string>
+  <string name="corner_slot">%1$s · %2$s</string>
+  <string name="corners_summary_split">8 dials, split</string>
   <string name="media_layout_title">Media layout</string>
   <string name="media_layout_hint">Drag a piece to move it. It snaps to the grid and the centre lines.</string>
   <string name="piece_now_playing">Now playing</string>
@@ -128,7 +155,6 @@
   <string name="orientation_upright">Upright</string>
   <string name="orientation_sideways">Sideways</string>
   <string name="dial_preview_description">Preview of a corner dial at the chosen size</string>
-  <string name="macro_labels">Show macro labels</string>
   <string name="keyboard_text_size">Keyboard text size</string>
   <string name="control_color">Control colour</string>
   <string name="control_color_auto">Auto</string>
@@ -199,9 +225,12 @@
   <string name="shape_target_lock_pad">Lock the pad</string>
 
   <string name="settings_surface">Surface</string>
-  <string name="settings_feel">Gestures &amp; dials</string>
   <string name="settings_controls">Controls</string>
+  <string name="settings_this_screen">This screen</string>
+  <string name="settings_everywhere">Everywhere</string>
   <string name="settings_help">Help</string>
+  <string name="keyboard_settings_title">Keyboard settings</string>
+  <string name="gamepad_settings_title">Gamepad settings</string>
   <string name="updates_title">Updates</string>
   <string name="updates_auto">Check for updates daily</string>
   <string name="updates_checking">Checking…</string>
@@ -262,9 +291,7 @@
   <string name="surface_next">Next track</string>
   <string name="surface_previous">Previous track</string>
   <string name="surface_open_settings">Open settings</string>
-  <string name="surface_keyboard">Open the keyboard</string>
-  <string name="surface_gamepad">Open the gamepad</string>
-  <string name="surface_macros">Open the macros</string>
+  <string name="surface_controls">Open the controls</string>
   <string name="surface_lock">Hide the dials, or lock the pad</string>
   <string name="surface_mode_normal">Dials, media and pad all on</string>
   <string name="surface_mode_focus">Pad only · dials and media hidden</string>
@@ -273,7 +300,61 @@
   <string name="surface_locked_caption">Pad locked · tap the lock to unlock</string>
 
   <!-- Macros -->
+  <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
+  <string name="controls_title">Controls</string>
+  <string name="controls_open">Open %1$s</string>
+  <string name="controls_keyboard">Keyboard</string>
+  <string name="controls_gamepad">Gamepad</string>
+  <string name="controls_macros">Macros</string>
+  <string name="controls_capture">Capture</string>
+  <string name="capture_region">Region</string>
+  <string name="capture_screen">Full screen</string>
+  <string name="capture_record">Record</string>
+  <string name="capture_hint">For a region, tap Region, then tap, hold and move on the pad to drag out the area.</string>
+  <string name="controls_annotate">Annotate</string>
+  <string name="annotate_exit">Exit</string>
+  <string name="annotate_description">Pen pad: a touch draws at the same place on the laptop screen</string>
+  <string name="annotate_menu">Drawing tools</string>
+  <string name="annotate_menu_expanded">Expanded</string>
+  <string name="annotate_menu_collapsed">Collapsed</string>
+  <string name="annotate_selected">Selected</string>
+  <string name="annotate_tool_desc">%1$s tool</string>
+  <string name="annotate_tool_pen">Pen</string>
+  <string name="annotate_tool_highlighter">Highlighter</string>
+  <string name="annotate_tool_line">Line</string>
+  <string name="annotate_tool_arrow">Arrow</string>
+  <string name="annotate_tool_rectangle">Rectangle</string>
+  <string name="annotate_tool_ellipse">Ellipse</string>
+  <string name="annotate_colour_black">Black</string>
+  <string name="annotate_colour_white">White</string>
+  <string name="annotate_colour_red">Red</string>
+  <string name="annotate_colour_orange">Orange</string>
+  <string name="annotate_colour_yellow">Yellow</string>
+  <string name="annotate_colour_green">Green</string>
+  <string name="annotate_colour_blue">Blue</string>
+  <string name="annotate_colour_purple">Purple</string>
+  <string name="annotate_undo">Undo</string>
+  <string name="annotate_clear">Clear</string>
+  <string name="annotate_sign">Sign</string>
+  <string name="annotate_save_signature">Save signature</string>
+  <string name="sign_saved">Copied and saved to Pictures/Edgepad</string>
+  <string name="sign_empty">Nothing drawn yet</string>
+  <string name="sign_failed">Could not save</string>
+  <string name="capture_unavailable">This laptop has not said it can capture. Update Edgepad on it, then reconnect.</string>
   <string name="macros_run">Run %1$s</string>
+  <string name="macros_settings">Macro settings</string>
+  <string name="macros_labels">Macro labels</string>
+  <string name="macros_labels_caption">Names under the pictures. A macro with no picture always shows its name.</string>
+  <string name="macros_move_earlier">Move earlier</string>
+  <string name="macros_move_later">Move later</string>
+  <string name="macros_moved">Moved to place %1$d of %2$d</string>
+  <string name="macros_grid_title">Grid</string>
+  <string name="macros_grid_caption">Press and hold a macro, then drag it to move it. Columns the screen cannot fit fall back to Automatic.</string>
+  <string name="macros_grid_auto">Automatic</string>
+  <plurals name="macros_grid_choice">
+    <item quantity="one">%1$d column</item>
+    <item quantity="other">%1$d columns</item>
+  </plurals>
   <string name="macros_empty_title">No macros yet</string>
   <string name="macros_empty_body">Add them from Edgepad\'s tray menu on the laptop. They appear here as soon as it sends the list.</string>
 </resources>

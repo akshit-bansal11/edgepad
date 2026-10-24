@@ -21,16 +21,27 @@ const LAYOUT: { path: string; what: string }[] = [
     what: "The laptop tray app. C# on .NET 10, WinForms for the tray, WinRT for Bluetooth and media, NAudio for volume, WMI for brightness, ViGEmBus for the virtual controller.",
   },
   {
+    path: "shared/",
+    what: "The core every .NET laptop app shares: the protocol, the dispatcher, trust and the PIN, the handshake, the macro store, the stroke board and the update check, with its own tests.",
+  },
+  {
+    path: "linux/",
+    what: "The Linux tray app. C# on .NET, Avalonia for the tray and windows, BlueZ over D-Bus for Bluetooth, uinput for input.",
+  },
+  {
     path: "macos/",
     what: "The Mac menu-bar app. Swift, AppKit, IOBluetooth for RFCOMM, CGEvent for input, Core Audio for volume and microphone. No third-party dependencies; Swift Package Manager, no Xcode project.",
   },
   {
     path: "protocol/",
-    what: "The wire format and the id tables as plain-text fixtures. All three test suites read them, so the apps cannot drift apart.",
+    what: "The wire format and the id tables as plain-text fixtures. Every test suite reads them, so the apps cannot drift apart.",
   },
   { path: "scripts/", what: "The quality gate and the release-key script." },
   { path: "docs/", what: "Architecture and protocol." },
-  { path: "site/", what: "This documentation site. Next.js; not part of either gate." },
+  {
+    path: "site/",
+    what: "This documentation site. Next.js; its own gate, run by site.yml and not part of check.ps1.",
+  },
 ];
 
 const ANDROID_PACKAGES: { path: string; what: string; pure: boolean }[] = [
@@ -52,17 +63,16 @@ const ANDROID_PACKAGES: { path: string; what: string; pure: boolean }[] = [
   },
   {
     path: "screens/",
-    what: "Every screen: guide, devices, settings and its per-control pages, layout editors, shapes, keyboard, gamepad, macros.",
+    what: "Every screen: guide, devices, settings and its per-control pages, layout editors, shapes, Controls, keyboard, gamepad, capture, annotate and sign, macros, the PIN keypad.",
     pure: false,
   },
 ];
 
 const WINDOWS_FOLDERS: { path: string; what: string; pure: boolean }[] = [
-  { path: "Protocol/", what: "Frame and id coding.", pure: true },
   {
     path: "Dispatch/",
-    what: "The dispatcher: what each action id does, and every drop path.",
-    pure: true,
+    what: "WindowsPlatform: what each action id does on Windows. The dispatcher itself, the frame coding and trust are in shared/.",
+    pure: false,
   },
   {
     path: "Bluetooth/",
@@ -84,8 +94,21 @@ const WINDOWS_FOLDERS: { path: string; what: string; pure: boolean }[] = [
     what: "VirtualPad: the ViGEmBus controller, and the PAD_STATUS answer when there is no driver.",
     pure: false,
   },
-  { path: "Trust/", what: "TrustStore: trust on first use.", pure: false },
-  { path: "Macros/", what: "The macro list and its tray-menu editor.", pure: false },
+  {
+    path: "Annotation/",
+    what: "The click-through annotation overlay, the pen, and the signature export.",
+    pure: false,
+  },
+  {
+    path: "Trust/",
+    what: "SecurityWindow: the security level and the PIN.",
+    pure: false,
+  },
+  {
+    path: "Macros/",
+    what: "The macro editor, the icons and the launcher.",
+    pure: false,
+  },
 ];
 
 export function DevelopingSections({ protocolVersion }: { protocolVersion: number }) {
@@ -95,7 +118,7 @@ export function DevelopingSections({ protocolVersion }: { protocolVersion: numbe
         id="repo"
         eyebrow="Developing"
         title="Repository layout"
-        lede="A monorepo. One slug, one repository, two programs that must ship together."
+        lede="A monorepo. One slug, one repository, a phone app and three laptop apps that must ship together."
       >
         <Table>
           <TableHeader>
@@ -197,12 +220,16 @@ export function DevelopingSections({ protocolVersion }: { protocolVersion: numbe
             <p className="text-base font-bold">Laptop app</p>
             <ul className="text-dim mt-3 space-y-2 text-[0.9375rem] leading-relaxed">
               <li>
-                The .NET SDK version pinned in <C>windows/global.json</C>: 10.0.401,
-                with <C>rollForward: latestFeature</C>.
+                The .NET SDK version pinned in <C>global.json</C>: 10.0.401, with
+                <C>rollForward: latestFeature</C>.
               </li>
               <li>
-                Windows 10 version 2004 or later, because the app builds against the
-                Windows SDK projection for Bluetooth.
+                Windows 10 version 2004 or later for the Windows app, because it builds
+                against the Windows SDK projection for Bluetooth.
+              </li>
+              <li>
+                The Linux app and the shared core build and test on Linux with the same
+                SDK.
               </li>
               <li>
                 For the Mac app: a Mac with Xcode (Swift 5.9 or later). Its gate runs
@@ -213,11 +240,11 @@ export function DevelopingSections({ protocolVersion }: { protocolVersion: numbe
         </div>
 
         <Note label="Running the two against each other">
-          This needs a Windows machine or a Mac and an Android phone already paired in
-          the laptop&apos;s Bluetooth settings, and it is the one part of the repository
-          that cannot be verified from a pull request alone. Without both devices you
-          cannot exercise the Bluetooth handshake, trust-on-first-use, input injection,
-          brightness or volume control, or media-session reading.
+          This needs a Windows, Mac or Linux laptop and an Android phone already paired
+          over Bluetooth, and it is the one part of the repository that cannot be
+          verified from a pull request alone. Without both devices you cannot exercise
+          the Bluetooth handshake, trust-on-first-use, input injection, brightness or
+          volume control, or media-session reading.
         </Note>
       </Section>
 
@@ -231,7 +258,9 @@ export function DevelopingSections({ protocolVersion }: { protocolVersion: numbe
           title="The gate"
           code={`pwsh scripts/check.ps1                  # formats in place, then checks everything
 pwsh scripts/check.ps1 -Only android    # ktlint, Android lint, unit tests
+pwsh scripts/check.ps1 -Only core       # the shared core: dotnet format, build, tests
 pwsh scripts/check.ps1 -Only windows    # dotnet format, build, tests
+pwsh scripts/check.ps1 -Only linux      # dotnet format, build, tests
 pwsh scripts/check.ps1 -Only macos      # swift format lint, build, tests; Mac only
 pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted code`}
           caption="It writes locally because fixing your formatting is useful. CI must not write to your branch, so it fails instead of quietly reformatting the pull request."
@@ -262,6 +291,15 @@ pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted cod
               <TableCell className="font-mono text-[0.8125rem]">same</TableCell>
             </TableRow>
             <TableRow>
+              <TableCell className="font-mono text-[0.8125rem]">core</TableCell>
+              <TableCell className="text-[0.875rem]">
+                C# formatting, build, then test
+              </TableCell>
+              <TableCell className="font-mono text-[0.8125rem]">
+                same commands as windows, on shared/
+              </TableCell>
+            </TableRow>
+            <TableRow>
               <TableCell className="font-mono text-[0.8125rem]">windows</TableCell>
               <TableCell className="text-[0.875rem]">C# formatting</TableCell>
               <TableCell className="font-mono text-[0.8125rem]">
@@ -273,6 +311,15 @@ pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted cod
               <TableCell className="text-[0.875rem]">Build, then test</TableCell>
               <TableCell className="font-mono text-[0.8125rem]">
                 dotnet build -warnaserror; dotnet test
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-mono text-[0.8125rem]">linux</TableCell>
+              <TableCell className="text-[0.875rem]">
+                C# formatting, build, then test
+              </TableCell>
+              <TableCell className="font-mono text-[0.8125rem]">
+                same commands as windows, on linux/
               </TableCell>
             </TableRow>
             <TableRow>
@@ -304,11 +351,14 @@ pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted cod
         <Sub>What CI does on top</Sub>
         <P>
           <C>.github/workflows/ci.yml</C> runs on every push to <C>main</C> and every
-          pull request, in three jobs, the third being <C>macos</C>, which runs the Mac
-          gate. The first two: Android on <C>ubuntu-latest</C> with Temurin 17 and
-          Gradle wrapper validation, Windows on <C>windows-latest</C> with the SDK from{" "}
-          <C>global.json</C>. Each runs the gate in <C>-Ci</C> mode and then uploads an
-          artifact — a debug APK and the self-contained exe.
+          pull request, in six jobs. Each of android, core, windows, linux and macos
+          runs the gate in <C>-Ci</C> mode: Android on <C>ubuntu-latest</C> with Temurin
+          17 and Gradle wrapper validation, core and linux on <C>ubuntu-latest</C>,
+          Windows on <C>windows-latest</C> with the SDK from <C>global.json</C>, and the
+          Mac on <C>macos-latest</C>. The sixth, <C>lockfiles</C>, only regenerates the
+          NuGet lock files and uploads them as an artifact to commit; it checks nothing.
+          The Android, Linux, Windows and Mac jobs also upload an artifact: a debug APK,
+          the Linux archive, the self-contained exe and the Mac app.
         </P>
       </Section>
 
@@ -337,6 +387,18 @@ pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted cod
           code={`cd windows && dotnet build Edgepad.slnx -c Release`}
         />
 
+        <Sub>Linux</Sub>
+        <CodeBlock
+          title="Run the tray app, or build the archive"
+          code={`dotnet run --project linux/src/Edgepad.Linux
+dotnet publish linux/src/Edgepad.Linux/Edgepad.Linux.csproj -c Release \\
+  -r linux-x64 --self-contained -p:PublishSingleFile=true \\
+  -p:IncludeNativeLibrariesForSelfExtract=true \\
+  -p:EnableCompressionInSingleFile=true -o publish
+sh linux/packaging/pack.sh 0.0.0-dev publish Edgepad-linux-x64.tar.gz`}
+          caption="The same flags CI publishes with. pack.sh builds the release archive from the publish folder. The app has not been seen working on a Linux laptop yet."
+        />
+
         <Sub>Mac</Sub>
         <CodeBlock
           title="Run the menu-bar app, or build the app bundle"
@@ -355,13 +417,15 @@ bash macos/bundle.sh 0.0.0-dev out`}
 
         <Sub>Together</Sub>
         <ol className="text-dim max-w-[68ch] list-decimal space-y-2 pl-5 text-[0.9375rem] leading-relaxed">
-          <li>Pair the phone and the laptop in Windows Settings.</li>
+          <li>Pair the phone with the laptop in its Bluetooth settings.</li>
           <li>
-            Start the tray app with <C>dotnet run</C>.
+            Start the tray app with <C>dotnet run</C>, or <C>swift run</C> on a Mac.
           </li>
           <li>Install and open the phone app, then tap the laptop.</li>
           <li>
-            Read <C>%LOCALAPPDATA%\Edgepad\edgepad.log</C> for dropped frames or refused
+            Read <C>%LOCALAPPDATA%\Edgepad\edgepad.log</C> (on Linux{" "}
+            <C>~/.local/share/Edgepad/edgepad.log</C>, on a Mac{" "}
+            <C>~/Library/Logs/Edgepad/edgepad.log</C>) for dropped frames or refused
             input batches.
           </li>
         </ol>
@@ -374,7 +438,7 @@ npm install
 npm run dev        # http://localhost:3000
 npm run check      # Biome -> ESLint -> tsc, the site's own gate
 npm run check:ci   # the same, non-mutating`}
-          caption="Biome owns formatting and import order, ESLint owns React hooks and the Next.js rules, tsc owns types. It reads ../protocol/*.txt at build time, so it must be built from inside the repository. It is not part of either app's quality gate and CI does not run it."
+          caption="Biome owns formatting and import order, ESLint owns React hooks and the Next.js rules, tsc owns types. It reads ../protocol/*.txt at build time, so it must be built from inside the repository. It is not part of any app's quality gate; .github/workflows/site.yml runs npm run check:ci and npm run build on it."
         />
       </Section>
 
@@ -382,12 +446,14 @@ npm run check:ci   # the same, non-mutating`}
         id="tests"
         eyebrow="Developing"
         title="Tests"
-        lede="All three suites read the same fixtures. None sends real input, opens a real Bluetooth socket, or touches a device."
+        lede="Every suite reads the same fixtures. None sends real input, opens a real Bluetooth socket, or touches a device."
       >
         <CodeBlock
           title="Run them"
           code={`cd android && ./gradlew testDebugUnitTest
+cd shared && dotnet test --solution Edgepad.Core.slnx
 cd windows && dotnet test --solution Edgepad.slnx
+cd linux && dotnet test --solution Edgepad.Linux.slnx
 cd macos && swift test`}
         />
 
@@ -396,9 +462,10 @@ cd macos && swift test`}
           <C>protocol/frames.txt</C> holds every frame type as golden bytes, and{" "}
           <C>protocol/actions.txt</C> the action, control and text-kind ids.{" "}
           <C>FrameFixtureTest</C> and <C>IdsFixtureTest</C> on the phone, and{" "}
-          <C>FrameFixtureTests</C> and <C>IdsFixtureTests</C> on the laptop, parse those
-          same files at run time rather than copying them into either codebase; the Mac
-          suite in <C>macos/Tests/EdgepadCoreTests</C> reads them too.
+          <C>FrameFixtureTests</C> and <C>IdsFixtureTests</C> in{" "}
+          <C>shared/Edgepad.Core.Tests</C> for the .NET apps, parse those same files at
+          run time rather than copying them into any codebase; the Mac suite in{" "}
+          <C>macos/Tests/EdgepadCoreTests</C> reads them too.
         </P>
         <P>
           A protocol change therefore always touches a fixture file and both codecs in
@@ -425,9 +492,26 @@ cd macos && swift test`}
           <div className="bg-card shadow-card rounded-[var(--radius-card)] p-5">
             <p className="text-base font-bold">Windows</p>
             <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
-              The dispatcher&apos;s drop paths, input batching, trust on first use, the
-              macro store, display modes, the level overlay, the media-session title
-              mapping, and <C>VirtualPadTests</C>.
+              Input batching, display modes, the level overlay, the media-session title
+              mapping, the signature export and <C>VirtualPadTests</C>. The dispatcher,
+              trust and the macro store are tested in shared/.
+            </p>
+          </div>
+          <div className="bg-card shadow-card rounded-[var(--radius-card)] p-5">
+            <p className="text-base font-bold">Shared core</p>
+            <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
+              The dispatcher&apos;s drop paths and action table, the handshake and its
+              refusals, trust, the PIN gate and its store, the macro store, the stroke
+              board and the update check. CI runs these on Linux.
+            </p>
+          </div>
+          <div className="bg-card shadow-card rounded-[var(--radius-card)] p-5">
+            <p className="text-base font-bold">Linux</p>
+            <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
+              Admission, the PIN entry and the trust prompt, the key map, typing,
+              uinput, the virtual pad, audio, backlight, MPRIS, the per-desktop
+              shortcuts, the macro launcher, annotate and the XDG paths. None of it has
+              been seen working on a Linux laptop.
             </p>
           </div>
           <div className="bg-card shadow-card rounded-[var(--radius-card)] p-5">
@@ -478,10 +562,11 @@ git remote add upstream https://github.com/akshit-bansal11/edgepad.git`}
             then branch from it on your fork.
           </li>
           <li>
-            <strong className="text-foreground">Keep the three apps in step.</strong> A
+            <strong className="text-foreground">Keep the apps in step.</strong> A
             protocol change edits <C>protocol/frames.txt</C> or{" "}
-            <C>protocol/actions.txt</C>, all three codecs or enums, and bumps the
-            protocol version on every side — all in one commit.
+            <C>protocol/actions.txt</C>, the codec and enums in <C>shared/</C>, on the
+            phone and on the Mac, and bumps the protocol version on every side — all in
+            one commit.
           </li>
           <li>
             Add or change a test when you add logic or a branch, or fix a bug. Prefer
@@ -511,9 +596,10 @@ git remote add upstream https://github.com/akshit-bansal11/edgepad.git`}
         <Sub>Style</Sub>
         <ul className="text-dim max-w-[70ch] list-disc space-y-2 pl-5 text-[0.9375rem] leading-relaxed">
           <li>
-            No UI libraries on the phone. No third-party packages on the laptop beyond
-            NAudio, <C>System.Management</C> and <C>Nefarius.ViGEm.Client</C>, and none
-            at all on the Mac. A new dependency needs a reason in the pull request.
+            No UI libraries on the phone. No third-party packages in the Windows app
+            beyond NAudio, <C>System.Management</C> and <C>Nefarius.ViGEm.Client</C>,
+            none in the Linux app beyond Avalonia and <C>Tmds.DBus.Protocol</C>, and
+            none at all on the Mac. A new dependency needs a reason in the pull request.
           </li>
           <li>Constants are named. A number that appears twice is a constant.</li>
           <li>Doc comments say why, not what the next line already says.</li>
@@ -555,8 +641,9 @@ git remote add upstream https://github.com/akshit-bansal11/edgepad.git`}
           <C>versionName</C> comes from the release tag and its <C>versionCode</C> from
           a number that only increases, so an update always installs over the previous
           one. From 3.4.0 a release also carries <C>Edgepad-x.y.z-mac.zip</C>, built by{" "}
-          <C>macos/bundle.sh</C> and listed in <C>SHA256SUMS.txt</C> and the provenance
-          attestation.
+          <C>macos/bundle.sh</C>, and from 4.0.0 <C>Edgepad-x.y.z-linux-x64.tar.gz</C>,
+          packed by <C>linux/packaging/pack.sh</C>; both are listed in{" "}
+          <C>SHA256SUMS.txt</C> and the provenance attestation.
         </P>
 
         <Note label="Release builds are signed">
@@ -573,11 +660,16 @@ git remote add upstream https://github.com/akshit-bansal11/edgepad.git`}
             new ids in tables that already existed, and an unknown id is dropped rather
             than erroring, so a 2.0.0 half and a 1.0.0 half still speak to each other.
           </p>
-          <p>
-            3.0.0 did move it, to {protocolVersion}, because <C>PAD_STATE</C> is a new
-            frame type and an unknown type byte closes the connection. Only a new frame{" "}
+          <p className="mb-3">
+            3.0.0 did move it, to 4, because <C>PAD_STATE</C> is a new frame type and an
+            unknown type byte closes the connection. Only a new frame{" "}
             <strong>type</strong> forces a bump, and a 3.0.0 half genuinely refuses a
             2.x one at the handshake.
+          </p>
+          <p>
+            4.0.0 moved it again, to {protocolVersion}, for the same reason:{" "}
+            <C>PIN_REQUEST</C>, <C>PIN_ANSWER</C> and <C>PEN</C> are new frame types,
+            and a 4.0.0 half refuses a 3.x one at the handshake.
           </p>
         </Note>
       </Section>

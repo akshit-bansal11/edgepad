@@ -10,7 +10,7 @@ object ProtocolConstants {
      * it has moved, and why only a new frame type moves it, is under Versions in docs/PROTOCOL.md, kept
      * there once for both apps.
      */
-    const val VERSION = 4
+    const val VERSION = 5
 
     /** Sent in HELLO so the laptop refuses a stray connection before anything runs. */
     const val MAGIC = "EDGP"

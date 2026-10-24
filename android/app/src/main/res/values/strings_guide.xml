@@ -23,24 +23,30 @@
     <item>Measured live from the phone to the laptop and back, and shown beside the laptop on the Devices screen.</item>
     <item>No account, no internet, no Wi-Fi. The phone reaches the laptop directly.</item>
     <item>Pair once in the laptop Bluetooth settings. After that Edgepad can connect on launch.</item>
-    <item>Haptic notches, light and dark, your own media and gamepad layouts.</item>
+    <item>Haptic notches, light and dark, upright or sideways (the keyboard and gamepad stay sideways), your own media and gamepad layouts.</item>
   </string-array>
 
   <string name="guide_anatomy_kicker">2 · Anatomy</string>
-  <string name="guide_anatomy_title">Five parts, one screen.</string>
+  <string name="guide_anatomy_title">Eight parts, one screen.</string>
   <string-array name="guide_anatomy_keys">
     <item>TRACKPAD</item>
     <item>CORNER DIALS</item>
     <item>MEDIA</item>
     <item>KEYBOARD</item>
     <item>GAMEPAD</item>
+    <item>ANNOTATE</item>
+    <item>CAPTURE</item>
+    <item>MACROS</item>
   </string-array>
   <string-array name="guide_anatomy_values">
     <item>The whole middle of the screen. Every finger gesture starts here.</item>
-    <item>Rulers folded into the corners: volume, brightness, zoom, media scrub, app switcher or mic.</item>
+    <item>Rulers folded into the corners, or split two to a corner: volume, brightness, zoom, media scrub, app switcher, mic or refresh rate.</item>
     <item>What is playing, then previous, play and next, while a player is open. Move and resize it in Settings.</item>
-    <item>A full keyboard whose modifiers work held or tapped, one tap away.</item>
+    <item>A full keyboard whose modifiers work held or tapped, behind the Controls button.</item>
     <item>Sticks, a D-pad and buttons in four presets, or your own arrangement.</item>
+    <item>Controls › Annotate turns the phone into a pen for the laptop screen, with six tools and eight colours. It appears when the laptop supports it.</item>
+    <item>Controls › Capture asks the laptop for a region screenshot, a full-screen one or a recording. For a region, drag it out on the pad under the buttons. It appears when the laptop supports it.</item>
+    <item>A grid of buttons that open a program, file or web address on the laptop, behind the macros button. Edit layout drags them into your order and picks the grid; Controls has the same.</item>
   </string-array>
 
   <string name="guide_surface_kicker">3 · The surface</string>
@@ -57,7 +63,7 @@
     <item>Tap to right-click. Slide to scroll. Pinch to zoom.</item>
     <item>Three sideways for desktops, up for task view, down for the desktop. Four sideways through open apps. Taps search or open notifications.</item>
     <item>Slide along a ruler, clockwise raises. Tap it to mute, play, reset zoom or open task view.</item>
-    <item>Settings › Corners picks each dial. Dial feel sets sensitivity, size and haptics. Gestures reassigns the rest.</item>
+    <item>Settings › Corners picks each dial and can split every corner into two, one on each edge. Dial feel sets sensitivity, size and haptics. Trackpad reassigns the rest.</item>
   </string-array>
 
   <string name="guide_keyboard_kicker">4 · Keyboard</string>
@@ -69,7 +75,7 @@
     <item>CLOSE</item>
   </string-array>
   <string-array name="guide_keyboard_values">
-    <item>The keyboard icon at the top of the surface. It opens sideways.</item>
+    <item>The Controls icon at the top of the surface, then Keyboard. It opens sideways.</item>
     <item>Every key goes straight to the laptop: function row, arrows, Esc and Tab included.</item>
     <item>Hold Ctrl, Alt or Shift while pressing a key, or tap one to apply it to the next key. Tap it again to cancel.</item>
     <item>The back arrow at the top, or the system back gesture.</item>
@@ -84,7 +90,7 @@
     <item>MAKE IT YOURS</item>
   </string-array>
   <string-array name="guide_gamepad_values">
-    <item>The gamepad icon at the top of the surface. It opens sideways.</item>
+    <item>The Controls icon at the top of the surface, then Gamepad. It opens sideways.</item>
     <item>Xbox, Platformer, Racing and Shooter, picked from the options button on the gamepad.</item>
     <item>Hold and slide a stick, tap the buttons. Several fingers at once work.</item>
     <item>Settings › Gamepad layout. Drag controls where your thumbs land; long press one to resize it.</item>

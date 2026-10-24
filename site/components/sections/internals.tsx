@@ -75,9 +75,10 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
           Every touch is turned into a semantic frame on the phone — pointer moved,
           button pressed, scroll, zoom, run action 3, set control 0 to 55, type
           &ldquo;hi&rdquo; — and the laptop carries it out with its own input, audio,
-          display and media APIs (Windows&apos;, or on a Mac CGEvent and Core Audio).
-          The laptop owns the table of what each action id does. The phone can name an
-          action; it cannot invent one.
+          display and media APIs (Windows&apos; on Windows, CGEvent and Core Audio on a
+          Mac, uinput and the desktop&apos;s sound server on Linux). The laptop owns the
+          table of what each action id does. The phone can name an action; it cannot
+          invent one.
         </P>
         <P>
           The gamepad is the one place where the phone sends state rather than an event,
@@ -259,8 +260,34 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
           microphone and brightness twice a second instead of subscribing, so a change
           made on the Mac reaches the phone within half a second. Brightness uses a
           private framework, DisplayServices, loaded at run time; where it is missing
-          the dial has nothing to show. Macros, now playing and the virtual controller
-          are not built. The README and docs/ARCHITECTURE.md in the repository say more.
+          the dial has nothing to show. Now playing and the virtual controller are not
+          built. The README and docs/ARCHITECTURE.md in the repository say more.
+        </P>
+
+        <Sub>The shared core</Sub>
+        <P>
+          <C>shared/Edgepad.Core</C> holds what the Windows and Linux apps would
+          otherwise each write: the frame codec and ids, the dispatcher, the handshake,
+          the trust store and the PIN gate, the macro store, the stroke board that
+          annotation draws, the log and the update check. It reaches the machine only
+          through small interfaces such as <C>IPlatform</C>, so its tests run on Linux
+          in CI with no radio and no input device. The Mac app has its own Swift core,
+          held to the same fixtures.
+        </P>
+
+        <Sub>The Linux app</Sub>
+        <P>
+          The Linux half is a tray app in C# on .NET, in <C>linux/</C>, built on that
+          core. It serves the same Bluetooth service through BlueZ over D-Bus and
+          injects pointer, scroll, pinch, keys and typing through uinput, so it works on
+          Wayland and on X11. The tray, the trust question, the Security window and the
+          annotation overlay are drawn with Avalonia. Volume and the microphone go
+          through <C>wpctl</C> or <C>pactl</C>, lock and brightness through
+          systemd-logind, and media through MPRIS. The shortcuts behind task view, show
+          desktop, search, notifications and switching desktops are chosen per desktop,
+          for GNOME and KDE, and were written from memory. It is built and unit-tested
+          in CI and has not been seen working on a Linux laptop; <C>docs/LINUX.md</C> in
+          the repository lists what is unverified.
         </P>
       </Section>
 
@@ -379,9 +406,9 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
         <Note label="These tables are generated">
           Every row below is parsed from <C>protocol/frames.txt</C> and{" "}
           <C>protocol/actions.txt</C> in this repository when the site is built — the
-          same two files the Kotlin and the C# test suites read at run time. The type
-          bytes and ids are not retyped here, so this page cannot drift from the two
-          apps the way a hand-written copy would.
+          same two files the Kotlin, C# and Swift test suites read at run time. The type
+          bytes and ids are not retyped here, so this page cannot drift from the apps
+          the way a hand-written copy would.
         </Note>
 
         <Sub>Errors, and what is merely ignored</Sub>
@@ -445,11 +472,11 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
 
         <Sub>Golden bytes</Sub>
         <P>
-          Each line of the fixture is a frame&apos;s fields and its exact bytes. Both
-          test suites encode the fields and must get exactly those bytes, then decode
+          Each line of the fixture is a frame&apos;s fields and its exact bytes. Every
+          test suite encodes the fields and must get exactly those bytes, then decodes
           the bytes and must get exactly those fields. Because one file drives
-          assertions in two codebases, changing one side&apos;s codec without the other
-          fails that side&apos;s test immediately. The fixture is what stops the two
+          assertions in three codebases, changing one side&apos;s codec without the
+          others fails that side&apos;s test immediately. The fixture is what stops the
           apps from drifting apart — not code review.
         </P>
         <Table>
@@ -494,6 +521,27 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
           caption="The whole vocabulary of TEXT kind 8, read from protocol/actions.txt. A token the phone does not know reads as no-driver."
         />
 
+        <Sub>FEATURE tokens</Sub>
+        <IdTable
+          rows={protocol.features}
+          idHeading="Token"
+          caption="The whole vocabulary of TEXT kind 9, read from protocol/actions.txt. A feature that is not named is off, and a token the phone does not know is ignored."
+        />
+
+        <Sub>SIGN_STATUS tokens</Sub>
+        <IdTable
+          rows={protocol.signStatuses}
+          idHeading="Token"
+          caption="The whole vocabulary of TEXT kind 11, read from protocol/actions.txt."
+        />
+
+        <Sub>The annotation palette</Sub>
+        <IdTable
+          rows={protocol.palette}
+          idHeading="Index"
+          caption="The eight colours CONTROL 5 indexes, read from protocol/actions.txt. The laptop owns the colour; the phone shows these only as a preview."
+        />
+
         <Sub>What the laptop sends, and when</Sub>
         <CodeBlock
           title="After HELLO_ACK"
@@ -504,6 +552,8 @@ TEXT   8 whether a virtual controller can be offered
 TEXT   0 now playing, 1 the app, 2 the timeline
 STATE  media position
 TEXT   5 the laptop's macro names
+TEXT   9 which optional features it has
+TEXT  10 the primary display's size in pixels
 
 then every change as it happens.
 Media position is refreshed once a second while playing.
@@ -552,6 +602,16 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
                 icons, in 2.3.0.
               </TableCell>
             </TableRow>
+            <TableRow>
+              <TableCell className="font-mono text-[0.8125rem]">5</TableCell>
+              <TableCell className="font-mono text-[0.8125rem]">4.0.0</TableCell>
+              <TableCell className="text-[0.875rem]">
+                <C>PIN_REQUEST</C> and <C>PIN_ANSWER</C>, and <C>PEN</C>: three new
+                frame types. Actions 40 to 54 (annotate, sign and capture), CONTROL 5
+                and TEXT 9 to 11 came with them and would not have needed a bump on
+                their own.
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
         <P>
@@ -562,7 +622,7 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
           u8 the laptop rejects above 100, and the only pair of signed i16s belongs to
           the mouse — so a real gamepad needed a type of its own, and a new type is the
           one thing that moves the version. This number moves only in a major release,
-          and any change to what a frame means bumps it on both sides in the same commit
+          and any change to what a frame means bumps it everywhere in the same commit
           and adds a fixture line.
         </P>
       </Section>
@@ -582,6 +642,13 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
             " action ids, read from protocol/actions.txt. Sent as the payload of the ACTION frame."
           }
         />
+
+        <P>
+          The shortcut each action presses is the Windows one. A Mac uses macOS&apos;s
+          own defaults, listed in the README, and a Linux laptop chooses per desktop,
+          listed in <C>docs/LINUX.md</C>; an id a laptop has no shortcut for is dropped
+          and counted.
+        </P>
 
         <Sub>Controls</Sub>
         <IdTable
@@ -631,18 +698,22 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
         id="security"
         eyebrow="How it works"
         title="Security and trust"
-        lede="Edgepad lets a phone drive a laptop, so its boundaries matter. There are two layers, and one common misreading of them."
+        lede="Edgepad lets a phone drive a laptop, so its boundaries matter. There are three layers, and one common misreading of them."
       >
-        <Sub>The two layers</Sub>
+        <Sub>The layers</Sub>
         <div className="grid gap-3 sm:grid-cols-2">
           {[
             {
               title: "Pairing",
-              body: "Enforced by the socket's protection level. The link is bound at BluetoothEncryptionWithAuthentication, so a device not already bonded with the laptop through Windows cannot connect at all, and the stream is encrypted by the link layer.",
+              body: "On Windows, enforced by the socket's protection level. The link is bound at BluetoothEncryptionWithAuthentication, so a device not already bonded with the laptop cannot connect at all, and the stream is encrypted by the link layer. The Mac app checks the pairing itself, as below.",
             },
             {
               title: "Trust on first use",
-              body: "Enforced by TrustStore. Any paired phone that is not yet trusted makes the tray ask Trust this phone? once it completes the handshake, and HELLO_ACK waits for the answer. Trust adds its Bluetooth address to %APPDATA%\\Edgepad\\trusted-phone.txt, one address per line, so several phones can be trusted; Don't trust, or no answer within 60 s, closes the connection. A phone the owner said no to is not asked about again for 30 seconds. The tray menu's Forget trusted phones hangs up on the connected phone and takes no connection while it asks; a yes clears every trusted phone and keeps refusing for 30 seconds, and a Forget clicked while a question is open wins over a yes given after it. Every phone you trust has full keyboard-level control, so trust only your own.",
+              body: "Enforced by TrustStore. Any paired phone that is not yet trusted makes the tray ask Trust this phone? once it completes the handshake, and HELLO_ACK waits for the answer. Trust adds its Bluetooth address to trusted-phone.txt (in %APPDATA%\\Edgepad on Windows), one address per line, so several phones can be trusted; Don't trust, or no answer within 60 s, closes the connection. A phone the owner said no to is not asked about again for 30 seconds. The tray menu's Forget trusted phones hangs up on the connected phone and takes no connection while it asks; a yes clears every trusted phone and keeps refusing for 30 seconds, and a Forget clicked while a question is open wins over a yes given after it. Every phone you trust has full keyboard-level control, so trust only your own.",
+            },
+            {
+              title: "Security level and PIN",
+              body: "Chosen on the laptop under Security…, never from the phone. Level 1 is the trust question alone. Level 2 also asks each phone for a six-digit PIN the first time, level 3 on every connection. The phone asks on its own keypad, never stores the PIN, and its screen cannot be captured. After five wrong answers the laptop refuses that phone for 30 seconds, doubling with each further five, up to an hour; the counters are kept in memory, so quitting the laptop app resets them. A six-digit PIN is only a million values, so what stops guessing is that lock-out. It does not protect against someone who can copy the laptop's settings file, and the laptop keeps only a salted hash of the PIN. A forgotten PIN can only be reset on the laptop, which also forgets every trusted phone.",
             },
           ].map((item) => (
             <div
@@ -664,6 +735,14 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
           than the phone&apos;s, or another phone that has just taken over the laptop.
         </P>
         <P>
+          At level 2 or 3 the laptop sends <C>PIN_REQUEST</C> between the trust check
+          and <C>HELLO_ACK</C>, carrying the attempts left or the seconds the phone is
+          locked out for, and the phone answers with <C>PIN_ANSWER</C>. Each digit goes
+          as a value from 0 to 9, never as text, and a PIN frame after <C>HELLO_ACK</C>{" "}
+          is dropped and counted. A PIN&apos;s digits never reach a log or a debug print
+          on any platform.
+        </P>
+        <P>
           The Mac app checks that the connecting phone is paired and requires{" "}
           <C>requestAuthentication()</C> to succeed before starting a session, and logs
           how long that took. The socket Android asks for is not a protection, because
@@ -672,6 +751,10 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
           protection level), and the owner&apos;s yes. The Mac relies on the Bluetooth
           stack for encryption. Its trusted phones are kept in{" "}
           <C>~/Library/Application Support/Edgepad/trusted-phone.txt</C>.
+        </P>
+        <P>
+          The Linux app asks the same trust question, and the PIN at levels 2 and 3. Its
+          trusted phones are kept in <C>~/.config/edgepad/trusted-phone.txt</C>.
         </P>
 
         <Sub>What the action table is, and is not</Sub>
@@ -722,9 +805,13 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
         <Sub>Known limits</Sub>
         <ul className="text-dim max-w-[70ch] list-disc space-y-2 pl-5 text-[0.9375rem] leading-relaxed">
           <li>
-            The trusted phones&apos; Bluetooth addresses are stored in plain text under{" "}
-            <C>%APPDATA%\Edgepad</C>. Anyone who can write that file can change which
-            phones are trusted — and that person can already run programs as you.
+            The trusted phones&apos; Bluetooth addresses sit in plain text in{" "}
+            <C>trusted-phone.txt</C>: under <C>%APPDATA%\Edgepad</C> on Windows, under{" "}
+            <C>~/Library/Application Support/Edgepad</C> on a Mac and under{" "}
+            <C>~/.config/edgepad</C> (or <C>$XDG_CONFIG_HOME/edgepad</C>) on Linux, the
+            last two readable by their owner only. Anyone who can write that file can
+            change which phones are trusted — and that person can already run programs
+            as you.
           </li>
           <li>
             <C>Edgepad.exe</C> is not code-signed, so SmartScreen warns on first run.
@@ -735,6 +822,12 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
             you choose Open Anyway, and the input-control permission has to be granted
             again after each update. It has been compiled and unit-tested in CI but has
             not yet been run on a real Mac.
+          </li>
+          <li>
+            Mac and Linux are still in testing. Please use them at your own risk. The
+            Windows app is the one that has been run on a real laptop, and the Linux app
+            has not been seen working on a Linux laptop yet; docs/LINUX.md lists what is
+            unverified.
           </li>
           <li>
             Text typed from the phone goes wherever the laptop&apos;s focus is, exactly

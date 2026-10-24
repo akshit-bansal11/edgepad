@@ -15,11 +15,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let trustPromptSeconds: TimeInterval = 60
     /// A click already in flight when the question appears must not land on "Trust".
     private static let trustButtonDelaySeconds: TimeInterval = 2
+    /// How often an open trust question checks whether its session ended under it, as Windows polls its dialog.
+    private static let trustWithdrawPollSeconds: TimeInterval = 0.25
     /// How long before Bluetooth is tried again after it failed to start.
     private static let bluetoothRetrySeconds: TimeInterval = 30
 
     private let runningVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
     private let trust = TrustStore.forCurrentUser()
+    /// One store for the server and the Security panel, so a level or PIN change is the one the server reads.
+    private let pin = PinStore.forCurrentUser()
     private var statusItem: NSStatusItem?
     private var server: RfcommServer?
     private var status = "Starting"
@@ -27,6 +31,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// The menu-bar item may stay clickable under the app-modal alert, and a second Forget would lift the hold while
     /// the first was still open.
     private var forgetting = false
+    /// The same guard for the Security panel.
+    private var securing = false
+    /// And for the macro editor, which is also held like Forget.
+    private var editingMacros = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Newest wins, as on Windows where a newer exe asks the running one to quit.
@@ -38,12 +46,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
 
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        if let image = NSImage(systemSymbolName: "macbook.and.iphone", accessibilityDescription: "Edgepad") {
-            image.isTemplate = true
-            item.button?.image = image
-        } else {
-            item.button?.title = "Edgepad"
-        }
+        item.button?.image = MenuBarMark.image()
         let menu = NSMenu()
         menu.delegate = self
         item.menu = menu
@@ -57,7 +60,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         let server = RfcommServer(
             trust: trust,
-            askTrust: { [weak self] in self?.askTrust($0) ?? false },
+            pin: pin,
+            askTrust: { [weak self] in self?.askTrust($0, $1) ?? false },
             onStatus: { [weak self] in self?.setStatus($0) })
         self.server = server
         startServer()
@@ -101,6 +105,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(login)
         menu.addItem(item("Open log", #selector(openLog)))
         menu.addItem(item("Documentation", #selector(openDocumentation)))
+        menu.addItem(item("Security… (level \(pin.level))", #selector(showSecurity)))
+        let macroCount = server?.macros.macros.count ?? 0
+        menu.addItem(item("Macros… (\(macroCount) of \(MacroStore.maxMacros))", #selector(showMacros)))
         let forget = item("Forget trusted phones", #selector(confirmForget))
         forget.isEnabled = trust.canForget
         menu.addItem(forget)
@@ -217,6 +224,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         if answer == .alertSecondButtonReturn {
             let forgotten = trust.forget()
+            // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
+            let verifiedForgotten = pin.forgetVerified()
             // Started before the hold ends (the defer above), so there is no instant in which a connection would
             // be taken.
             server?.stayQuiet()
@@ -232,15 +241,54 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 _ = failure.runModal()
                 failure.window.orderOut(nil)
             }
+            if !verifiedForgotten {
+                let failure = NSAlert()
+                failure.alertStyle = .critical
+                failure.messageText = "Edgepad"
+                failure.informativeText =
+                    "The phones that entered the PIN could not be forgotten: their list could not be removed. While "
+                    + "Edgepad stays running every phone is asked for the PIN on every connection, but those phones "
+                    + "will skip it at level 2 again when Edgepad starts. Choose Forget trusted phones again, or "
+                    + "delete pin-verified.txt yourself from:\n\n\(pin.folder)"
+                failure.addButton(withTitle: "OK")
+                _ = failure.runModal()
+                failure.window.orderOut(nil)
+            }
         }
+    }
+
+    /// Held like Forget, for the same reason: a connected phone is a keyboard and could answer the panel.
+    @objc private func showSecurity() {
+        guard !securing else { return }
+        securing = true
+        server?.holdOff()
+        defer {
+            server?.resume()
+            securing = false
+        }
+        SecurityPanel(pin: pin, trust: trust, hangUp: { [weak self] in self?.server?.stayQuiet() }).run()
+    }
+
+    /// Held like the Security panel, for the same reason, and guarded against a second click under the modal alert.
+    @objc private func showMacros() {
+        guard !editingMacros, let server else { return }
+        editingMacros = true
+        server.holdOff()
+        defer {
+            server.resume()
+            editingMacros = false
+        }
+        MacroEditorWindow(store: server.macros).run()
     }
 
     @objc private func quit() {
         NSApp.terminate(nil)
     }
 
-    /// Asks whether to trust `phone`, and waits. Called by the session while it holds the phone's HELLO_ACK.
-    private func askTrust(_ phone: String) -> Bool {
+    /// Asks whether to trust `phone`, and waits. Called by the session while it holds the phone's HELLO_ACK. A
+    /// session that ends meanwhile (`ended`: a hold, a hang-up) is a no too, and takes the question down.
+    private func askTrust(_ phone: String, _ ended: Cancellation) -> Bool {
+        guard !ended.isCancelled else { return false }
         setStatus("Asking whether to trust \(phone)")
         let alert = NSAlert()
         alert.alertStyle = .warning
@@ -262,8 +310,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let enable = Timer(timeInterval: Self.trustButtonDelaySeconds, repeats: false) { _ in
             trustButton.isEnabled = true
         }
+        // Polled on the main run loop rather than called back from end(), which can run inside another dialog's
+        // action (Security holds phones off before its panel opens) where an abort would end the wrong loop. The
+        // window goes at once; the loop is aborted only while it is this alert's, so a panel opened over the
+        // question keeps its own, and the alert's loop ends at the next tick after that panel closes.
+        let withdraw = Timer(timeInterval: Self.trustWithdrawPollSeconds, repeats: true) { _ in
+            guard ended.isCancelled else { return }
+            alert.window.orderOut(nil)
+            if NSApp.modalWindow === alert.window {
+                NSApp.abortModal()
+            }
+        }
         RunLoop.main.add(timeout, forMode: .common)
         RunLoop.main.add(enable, forMode: .common)
+        RunLoop.main.add(withdraw, forMode: .common)
         // Raised by a Bluetooth event while another app is in front, which macOS may not let take the foreground.
         alert.window.level = .floating
         NSApp.activate(ignoringOtherApps: true)
@@ -272,6 +332,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         timeout.invalidate()
         enable.invalidate()
+        withdraw.invalidate()
+        if ended.isCancelled {
+            // A Trust click that raced the hold counts for nothing: the session is gone and reads no answer.
+            Log.write("Withdrew the trust question about \(phone): its session ended")
+            return false
+        }
         let trusted = answer == .alertSecondButtonReturn
         Log.write(trusted ? "The owner trusted \(phone)" : "The owner did not trust \(phone)")
         return trusted

@@ -16,10 +16,20 @@ final class IdsFixtureTests: XCTestCase {
         XCTAssertEqual(try expected("TEXT"), actual(TextKind.self))
     }
 
-    // PAD_BUTTON rows are not checked: a Mac has no virtual controller, so it drops PAD_STATE and never reads
-    // the mask. The kind is still recognised below, so an unknown kind in actions.txt still fails.
+    // PAD_BUTTON rows are not checked: a Mac has no virtual controller, so it drops PAD_STATE and never reads those
+    // values. The kind is still recognised below, so an unknown kind in actions.txt still fails.
     func testEveryRowKindInTheSharedTableIsKnown() throws {
-        let known: Set<String> = ["ACTION", "CONTROL", "TEXT", "PAD_BUTTON", "PAD_STATUS", "HANDSHAKE"]
+        let known: Set<String> = [
+            "ACTION",
+            "CONTROL",
+            "TEXT",
+            "PAD_BUTTON",
+            "PAD_STATUS",
+            "FEATURE",
+            "SIGN_STATUS",
+            "PALETTE",
+            "HANDSHAKE",
+        ]
         let kinds = try Fixtures.lines("actions.txt")
             .map { $0.split(separator: " ").map(String.init) }
             .filter { $0.count >= 3 }
@@ -39,6 +49,39 @@ final class IdsFixtureTests: XCTestCase {
             uniqueKeysWithValues: PadStatus.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
 
         XCTAssertEqual(table, enumTable)
+    }
+
+    func testFeatureTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("FEATURE") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: Feature.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+    }
+
+    func testSignStatusTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("SIGN_STATUS") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: SignStatus.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+    }
+
+    func testThePaletteMatchesTheSharedTable() throws {
+        let palette = try rows("PALETTE")
+
+        XCTAssertEqual(palette.count, Palette.count)
+        for parts in palette {
+            XCTAssertEqual(Palette.colour(Int(parts[1]) ?? -1), UInt32(parts[3], radix: 16), parts[2])
+        }
     }
 
     func testTheHandshakeMatchesTheSharedTable() throws {

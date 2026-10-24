@@ -1,8 +1,10 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.ControlId
+import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadStatus
+import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -35,6 +37,46 @@ class LaptopStateTest {
         // is exactly what NO_DRIVER already means to the screen.
         state.take(Frame.Text(TextKind.PAD_STATUS.id, "unplugged-by-the-cat"))
         assertEquals(PadStatus.NO_DRIVER, state.padStatus)
+    }
+
+    @Test
+    fun readsTheFeaturesTheLaptopNames() {
+        assertEquals(emptySet<Feature>(), state.features)
+        assertTrue(state.take(Frame.Text(TextKind.FEATURES.id, "annotate/capture")))
+        assertEquals(setOf(Feature.ANNOTATE, Feature.CAPTURE), state.features)
+        state.take(Frame.Text(TextKind.FEATURES.id, "capture"))
+        assertEquals(setOf(Feature.CAPTURE), state.features)
+        // Nothing named means nothing on, and a token this build does not know is ignored, not an error.
+        state.take(Frame.Text(TextKind.FEATURES.id, ""))
+        assertEquals(emptySet<Feature>(), state.features)
+        state.take(Frame.Text(TextKind.FEATURES.id, "junk"))
+        assertEquals(emptySet<Feature>(), state.features)
+        state.take(Frame.Text(TextKind.FEATURES.id, "junk/capture"))
+        assertEquals(setOf(Feature.CAPTURE), state.features)
+    }
+
+    @Test
+    fun readsTheScreenSizeAndKeepsTheLastGoodOne() {
+        assertNull(state.screenSize)
+        assertTrue(state.take(Frame.Text(TextKind.SCREEN_SIZE.id, "1920/1080")))
+        assertEquals(1920 to 1080, state.screenSize)
+        // A size that cannot be a screen is not taken, and the last good one stays rather than going to zero.
+        for (bad in listOf("", "1920", "0/1080", "1920/-1", "a/b", "1/2/3")) {
+            assertFalse(bad, state.take(Frame.Text(TextKind.SCREEN_SIZE.id, bad)))
+        }
+        assertEquals(1920 to 1080, state.screenSize)
+    }
+
+    @Test
+    fun keepsHowTheLastSignatureSaveEnded() {
+        assertNull(state.signStatus)
+        assertTrue(state.take(Frame.Text(TextKind.SIGN_STATUS.id, "saved")))
+        assertEquals(SignStatus.SAVED, state.signStatus)
+        state.take(Frame.Text(TextKind.SIGN_STATUS.id, "empty"))
+        assertEquals(SignStatus.EMPTY, state.signStatus)
+        // A token this build does not know must not look like a success.
+        state.take(Frame.Text(TextKind.SIGN_STATUS.id, "uploaded"))
+        assertEquals(SignStatus.FAILED, state.signStatus)
     }
 
     @Test
@@ -197,6 +239,52 @@ class LaptopStateTest {
         state.take(Frame.Text(TextKind.MACROS.id, "Notes/Chrome"))
 
         assertNull(state.macroIcon(1))
+    }
+
+    @Test
+    fun anUnchangedMacroKeepsItsIconWhenTheListIsSentAgain() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes"))
+        val png = bytes(30)
+        chunks(slot = 0, png = png).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        // A third macro was added: the first two have not changed, so the cache still holds the first one.
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes/Spotify"))
+
+        assertArrayEquals(png, state.macroIcon(0))
+    }
+
+    @Test
+    fun aDeletedMacroLosesItsIconAndTheOthersKeepTheirs() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes/Spotify"))
+        val png = bytes(30)
+        chunks(slot = 0, png = png).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+        chunks(slot = 2, png = png).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        // Spotify is gone from the list.
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes"))
+
+        assertArrayEquals(png, state.macroIcon(0))
+        assertNull(state.macroIcon(2))
+    }
+
+    @Test
+    fun aMacroBlankedInTheListLosesItsIcon() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes"))
+        chunks(slot = 1, png = bytes(30)).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/"))
+
+        assertNull(state.macroIcon(1))
+    }
+
+    @Test
+    fun anEmptyListEmptiesTheCache() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome"))
+        chunks(slot = 0, png = bytes(30)).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        state.take(Frame.Text(TextKind.MACROS.id, ""))
+
+        assertNull(state.macroIcon(0))
     }
 
     @Test

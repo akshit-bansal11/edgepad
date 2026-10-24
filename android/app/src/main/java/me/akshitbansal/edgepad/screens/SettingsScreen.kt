@@ -15,10 +15,10 @@ import me.akshitbansal.edgepad.surface.Shapes
 import kotlin.math.roundToInt
 
 /**
- * The Settings hub: the remembered laptop, then grouped cards of settings — a row into each page with a
- * summary of what is set there, and the settings small enough to need no page of their own set right
- * here — the theme, and the version. Every change is saved as it is made. Sideways, the groups sit in two
- * columns.
+ * The surface's settings: its own, under "This screen" — corners, gestures, shapes, dial feel, media layout —
+ * and the ones that hold everywhere, under "Everywhere": the remembered laptop, the theme and orientation,
+ * help and updates. The keyboard, the gamepad and the macros each have a page of their own, opened from
+ * their own bar. Every change is saved as it is made. Sideways, the two sections sit side by side.
  */
 object SettingsScreen {
     /** What the laptop card shows: the remembered laptop, if any, its state, and whether it is connected now. */
@@ -35,7 +35,6 @@ object SettingsScreen {
         val gestures: () -> Unit,
         val shapes: () -> Unit,
         val dialFeel: () -> Unit,
-        val gamepadLayout: () -> Unit,
         val mediaLayout: () -> Unit,
         val appearance: () -> Unit,
         val guide: () -> Unit,
@@ -46,8 +45,6 @@ object SettingsScreen {
     )
 
     private const val NO_DIAL = "—"
-
-    private val textRange = StepRange(Settings.MIN_KEY_TEXT_SCALE, Settings.MAX_KEY_TEXT_SCALE, 0.1f)
 
     /**
      * The Updates row: what its summary says as the page opens, and [onSummary], which is handed the
@@ -64,7 +61,6 @@ object SettingsScreen {
         ui: Ui,
         settings: Settings,
         connection: Connection,
-        preset: String,
         version: String,
         backLabel: String,
         update: Update,
@@ -75,17 +71,7 @@ object SettingsScreen {
             largeTitle(ui.string(R.string.settings_title))
             columns(
                 {
-                    card(Space.M) {
-                        add(laptop(ui, connection, routes.forget))
-                        hairline()
-                        add(
-                            ui.toggle(ui.string(R.string.reconnect_automatically), settings.reconnect) {
-                                settings.reconnect = it
-                            },
-                        )
-                    }
-
-                    section(ui.string(R.string.settings_feel))
+                    section(ui.string(R.string.settings_this_screen))
                     card {
                         add(ui.link(ui.string(R.string.corners_title), cornersSummary(ui, settings), routes.corners))
                         hairline()
@@ -96,24 +82,22 @@ object SettingsScreen {
                         val feel =
                             ui.string(R.string.feel_summary, settings.sensitivity, settings.dialLength.roundToInt())
                         add(ui.link(ui.string(R.string.dial_feel_title), feel, routes.dialFeel))
-                    }
-
-                    // Grouped by the thing being set, not by the kind of editor it opens: a layout canvas and a
-                    // slider belong together when they configure the same control, and apart when they do not.
-                    // The keyboard's text size and the macro labels were each a page of one control until 2.0;
-                    // a page that holds a single row is a tap spent on nothing, so they sit here instead.
-                    section(ui.string(R.string.settings_controls))
-                    card {
-                        add(keyTextSize(ui, settings))
-                        hairline()
-                        add(ui.link(ui.string(R.string.gamepad_layout_title), preset, routes.gamepadLayout))
-                        hairline()
-                        add(macroLabels(ui, settings))
                         hairline()
                         add(ui.link(ui.string(R.string.media_layout_title), null, routes.mediaLayout))
                     }
                 },
                 {
+                    section(ui.string(R.string.settings_everywhere))
+                    card {
+                        add(laptop(ui, connection, routes.forget))
+                        hairline()
+                        add(
+                            ui.toggle(ui.string(R.string.reconnect_automatically), settings.reconnect) {
+                                settings.reconnect = it
+                            },
+                        )
+                    }
+
                     section(ui.string(R.string.settings_appearance))
                     card {
                         val themes =
@@ -214,30 +198,6 @@ object SettingsScreen {
         return ui.laptop(connection.name ?: ui.string(R.string.no_laptop), detail, on, forget, large = true)
     }
 
-    /** How large the keyboard's key labels are drawn; the keyboard shrinks the lot if any would leave its key. */
-    private fun keyTextSize(
-        ui: Ui,
-        settings: Settings,
-    ): View =
-        ui.slider(
-            ui.string(R.string.keyboard_text_size),
-            textRange.steps,
-            textRange.stepOf(settings.keyTextScale),
-            { step -> ui.string(R.string.multiplier_value, textRange.valueAt(step)) },
-        ) { step ->
-            settings.keyTextScale = textRange.valueAt(step)
-        }
-
-    /**
-     * Whether a macro button carries its name under its picture. Only ever half a choice: a slot the laptop
-     * sent no picture for shows its name whichever way this is set, because the alternative is a button with
-     * nothing on it at all.
-     */
-    private fun macroLabels(
-        ui: Ui,
-        settings: Settings,
-    ): View = ui.toggle(ui.string(R.string.macro_labels), settings.macroLabels) { settings.macroLabels = it }
-
     /**
      * How many shapes are drawn. A set that failed to decode counts as none, because that is exactly what
      * the pad will do with it, and a hub row claiming four shapes over a trackpad that recognises none
@@ -252,13 +212,17 @@ object SettingsScreen {
         return ui.context.resources.getQuantityString(R.plurals.shapes_summary, count, count)
     }
 
-    /** The four corners' dials, clockwise from the top left. */
+    /** The four corners' dials, clockwise from the top left, or a count when each corner is split in two. */
     private fun cornersSummary(
         ui: Ui,
         settings: Settings,
     ): String =
-        (0 until Perimeter.CORNERS).joinToString(", ") { corner ->
-            settings.corner(corner)?.let { ui.string(it.nameRes) } ?: NO_DIAL
+        if (settings.splitCorners) {
+            ui.string(R.string.corners_summary_split)
+        } else {
+            (0 until Perimeter.CORNERS).joinToString(", ") { corner ->
+                settings.corner(corner)?.let { ui.string(it.nameRes) } ?: NO_DIAL
+            }
         }
 
     /**

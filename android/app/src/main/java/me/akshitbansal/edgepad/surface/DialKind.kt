@@ -33,6 +33,7 @@ enum class DialKind(
         snap: Boolean,
         send: (Frame) -> Unit,
         haptic: () -> Unit,
+        slot: Int = Dial.WHOLE,
     ): Dial {
         val snapTo = if (snap) SNAP_STEP else 0
         return when (this) {
@@ -47,6 +48,7 @@ enum class DialKind(
                     snapTo = snapTo,
                     sink = send,
                     haptic = haptic,
+                    slot = slot,
                 )
             }
 
@@ -60,6 +62,7 @@ enum class DialKind(
                     snapTo = snapTo,
                     sink = send,
                     haptic = haptic,
+                    slot = slot,
                 )
             }
 
@@ -74,6 +77,7 @@ enum class DialKind(
                     snapTo = snapTo,
                     sink = send,
                     haptic = haptic,
+                    slot = slot,
                 )
             }
 
@@ -91,6 +95,7 @@ enum class DialKind(
                     // off the list entirely. No tap: there is no sensible thing for it to toggle.
                     sink = send,
                     haptic = haptic,
+                    slot = slot,
                 )
             }
 
@@ -104,6 +109,7 @@ enum class DialKind(
                     tap = ActionId.PLAY_PAUSE,
                     sink = send,
                     haptic = haptic,
+                    slot = slot,
                 )
             }
 
@@ -118,6 +124,7 @@ enum class DialKind(
                     keepsSteps = true,
                     sink = send,
                     haptic = haptic,
+                    slot = slot,
                 )
             }
 
@@ -133,6 +140,7 @@ enum class DialKind(
                     onRelease = { send(ActionId.APP_SWITCH_END.frame()) },
                     sink = send,
                     haptic = haptic,
+                    slot = slot,
                 )
             }
         }
