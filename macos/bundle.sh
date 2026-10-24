@@ -41,6 +41,19 @@ cp "$bin/Edgepad" "$app/Contents/MacOS/Edgepad"
 # The icon is rendered from assets/edgepad-light.svg by scripts/icons.sh (the CI job `icons`) and committed.
 # Missing, the build stops: a release must not go out with the generic icon.
 mkdir -p "$app/Contents/Resources"
+# macOS 26 draws the Dock and Finder icon from Assets.car, compiled from the Icon Composer file
+# Resources/edgepad.icon: the white tile in light mode, the dark tile in dark mode. Older systems read the .icns.
+# A car with no dark rendition fails the build, so the icon cannot quietly stop following the theme.
+xcrun actool Resources/edgepad.icon --compile "$app/Contents/Resources" --app-icon edgepad \
+    --platform macosx --target-device mac --minimum-deployment-target 13.0 \
+    --output-partial-info-plist "$out/actool-partial.plist" >/dev/null
+rm -f "$out/actool-partial.plist"
+appearances=$(xcrun assetutil --info "$app/Contents/Resources/Assets.car" | grep -o '"Appearance" : "[^"]*"' | sort | uniq -c)
+echo "Assets.car appearances: $appearances"
+case "$appearances" in
+    *Dark*) ;;
+    *) echo "bundle.sh: Assets.car has no dark rendition of the icon" >&2; exit 1 ;;
+esac
 cp Resources/edgepad.icns "$app/Contents/Resources/edgepad.icns" || { echo "bundle.sh: macos/Resources/edgepad.icns is missing; run scripts/icons.sh (CI job icons) and commit it" >&2; exit 1; }
 
 # CFBundleVersion takes numbers only, so a draft's "-draft.45" suffix stays on the display version alone.
@@ -56,6 +69,8 @@ cat > "$app/Contents/Info.plist" <<EOF
   <key>CFBundleIdentifier</key>
   <string>me.akshitbansal.edgepad</string>
   <key>CFBundleIconFile</key>
+  <string>edgepad</string>
+  <key>CFBundleIconName</key>
   <string>edgepad</string>
   <key>CFBundleExecutable</key>
   <string>Edgepad</string>
