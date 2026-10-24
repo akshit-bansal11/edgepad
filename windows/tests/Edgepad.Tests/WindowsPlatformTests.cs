@@ -13,10 +13,11 @@ using Pen = Edgepad.Protocol.Pen; // System.Drawing.Pen is in scope too, through
 namespace Edgepad.Tests;
 
 /// <summary>
-/// The paths that must never reach the desktop. Every frame here is dropped before any input is sent or
-/// any device is touched, so these run safely on a build machine.
+/// The paths that must never reach the desktop, through the shared dispatcher and Windows' own table. Every frame
+/// here is dropped before any input is sent or any device is touched, so these run safely on a build machine.
+/// The routing itself is tested once, for every laptop, in the core's DispatcherTests.
 /// </summary>
-public sealed class DispatcherTests : IDisposable
+public sealed class WindowsPlatformTests : IDisposable
 {
     private readonly InputInjector input = new();
     private readonly AudioEndpoint speakers = new(DataFlow.Render);
@@ -27,7 +28,7 @@ public sealed class DispatcherTests : IDisposable
     private readonly LevelOverlay overlay = new();
 
     // A store pointed at a file that does not exist, so it holds no macros: every macro id is therefore
-    // out of range and must be dropped, which is what these tests check. Nothing is written, nothing run.
+    // out of range and must be dropped. Nothing is written, nothing run.
     private readonly MacroStore macros =
         new(Path.Combine(Path.GetTempPath(), $"edgepad-dispatcher-{Guid.NewGuid():N}.txt"));
 
@@ -43,21 +44,11 @@ public sealed class DispatcherTests : IDisposable
 
     private readonly Dispatcher dispatcher;
 
-    public DispatcherTests()
+    public WindowsPlatformTests()
     {
         annotator = new Annotator(ui);
-        dispatcher = new Dispatcher(input, pad, speakers, microphone, brightness, media, display, macros, overlay, annotator);
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(7)]
-    [InlineData(99)]
-    [InlineData(255)]
-    public void AnUnknownActionIsDropped(byte id)
-    {
-        dispatcher.Handle(new RunAction(id));
-        Assert.Equal(1, dispatcher.Dropped);
+        var platform = new WindowsPlatform(input, pad, speakers, microphone, brightness, media, display, overlay, annotator);
+        dispatcher = new Dispatcher(platform, macros);
     }
 
     [Theory]
@@ -66,30 +57,9 @@ public sealed class DispatcherTests : IDisposable
     [InlineData(78)]
     public void AMacroSlotWithNothingInItIsDropped(byte id)
     {
-        // The block is 64..95 whether or not the laptop has filled it. An empty slot must be refused the
-        // same way an unknown id is, rather than counting as handled and silently doing nothing.
+        // The real store, empty: a slot it does not have is refused, not counted as handled.
         dispatcher.Handle(new RunAction(id));
         Assert.Equal(1, dispatcher.Dropped);
-    }
-
-    [Theory]
-    [InlineData(63)]
-    [InlineData(79)]
-    public void AnIdEitherSideOfTheMacroBlockIsNotAMacro(byte id)
-    {
-        // 63 is below the block and 79 is the first slot past the grid's fifteen. Neither is in the action
-        // table either, so both drop — the point is that the arithmetic stops at the grid, not at the block.
-        dispatcher.Handle(new RunAction(id));
-        Assert.Equal(1, dispatcher.Dropped);
-    }
-
-    [Fact]
-    public void APinFrameAfterTheHandshakeIsDropped()
-    {
-        // The PIN is only ever asked between trust and HELLO_ACK; once a phone is in, a PIN frame means nothing.
-        dispatcher.Handle(new PinAnswer(new Pin("123456")));
-        dispatcher.Handle(new PinRequest(5, 0));
-        Assert.Equal(2, dispatcher.Dropped);
     }
 
     [Fact]
@@ -183,27 +153,6 @@ public sealed class DispatcherTests : IDisposable
         Assert.Equal(1, ui.Count);
     }
 
-    [Fact]
-    public void AnUnknownControlIsDropped()
-    {
-        dispatcher.Handle(new SetValue(9, 50));
-        Assert.Equal(1, dispatcher.Dropped);
-    }
-
-    [Fact]
-    public void AValueAboveOneHundredIsDropped()
-    {
-        dispatcher.Handle(new SetValue((byte)ControlId.Volume, 101));
-        Assert.Equal(1, dispatcher.Dropped);
-    }
-
-    [Fact]
-    public void AnUnknownMouseButtonIsDropped()
-    {
-        dispatcher.Handle(new PointerButton(3, Down: true));
-        Assert.Equal(1, dispatcher.Dropped);
-    }
-
     [Theory]
     [InlineData((byte)ActionId.AppSwitchNext)]
     [InlineData((byte)ActionId.AppSwitchPrevious)]
@@ -212,16 +161,6 @@ public sealed class DispatcherTests : IDisposable
         // Otherwise it would type a bare Tab into whatever window has focus.
         dispatcher.Handle(new RunAction(id));
         Assert.Equal(1, dispatcher.Dropped);
-    }
-
-    [Fact]
-    public void FramesOnlyTheLaptopSendsAreDropped()
-    {
-        dispatcher.Handle(new Pong(1));
-        dispatcher.Handle(new StateReport(0, 0, 0));
-        dispatcher.Handle(new HelloAck(1));
-        dispatcher.Handle(new Text(0, "x"));
-        Assert.Equal(4, dispatcher.Dropped);
     }
 
     [Fact]
@@ -249,33 +188,19 @@ public sealed class DispatcherTests : IDisposable
 
         dispatcher.Handle(new RunAction(id));
 
-        // Answered rather than dropped: the laptop understood the ask and said what it could do about it.
-        // A phone that heard nothing back could not tell this laptop from one too old to know the id.
+        // The real pad, with no driver behind it, says so rather than failing.
         Assert.Equal(0, dispatcher.Dropped);
         Assert.Equal(PadStatus.NoDriver, Assert.Single(answers));
     }
 
-    [Fact]
-    public void AHandlerThatThrowsIsDroppedRatherThanEndingTheApp()
+    [Theory]
+    [InlineData((byte)ActionId.CaptureRegion, new[] { Keys.LWin, Keys.ShiftKey, Keys.S })]
+    [InlineData((byte)ActionId.CaptureScreen, new[] { Keys.PrintScreen })]
+    [InlineData((byte)ActionId.CaptureRecord, new[] { Keys.LWin, Keys.ShiftKey, Keys.R })]
+    public void ACaptureActionPressesTheSystemsOwnShortcut(byte id, Keys[] chord)
     {
-        // The reply is the one handler a test can make throw without touching a device. Anything that is not a
-        // dead socket is counted and the session carries on, where it used to escape the session thread.
-        dispatcher.PadStatusReply = _ => throw new InvalidOperationException("a bug in a handler");
-
-        dispatcher.Handle(new RunAction((byte)ActionId.PadAttach));
-
-        Assert.Equal(1, dispatcher.Dropped);
-        Assert.Equal(1, dispatcher.Failed);
-    }
-
-    [Fact]
-    public void ADeadSocketStillEndsTheSession()
-    {
-        // The reply writes to the socket. A failed write is the session's to see, not a frame to count.
-        dispatcher.PadStatusReply = _ => throw new IOException("the phone went away");
-
-        Assert.Throws<IOException>(() => dispatcher.Handle(new RunAction((byte)ActionId.PadAttach)));
-        Assert.Equal(0, dispatcher.Failed);
+        // Read from the table, never pressed: injecting these would open Snipping Tool on whoever runs the suite.
+        Assert.Equal(chord, WindowsPlatform.CaptureChord((ActionId)id));
     }
 
     [Theory]

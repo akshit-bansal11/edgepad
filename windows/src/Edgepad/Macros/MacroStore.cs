@@ -31,15 +31,14 @@ namespace Edgepad.Macros;
 /// name, target, arguments. Not JSON — a format a human can fix in Notepad is worth more here than one a
 /// parser likes.
 /// </summary>
-internal sealed class MacroStore
+internal sealed class MacroStore : IMacroRunner
 {
     /// <summary>
-    /// A 5x3 grid on the phone, which is a page of buttons rather than a start menu. Fifteen is also exactly
-    /// what one TEXT frame can name: 15 x <see cref="MaxNameBytes"/> plus 14 separators is 254 of the 255 a
-    /// payload holds, so a full list always reaches the phone labelled. The number is not a coincidence and
-    /// must not be raised without cutting the name budget to match.
+    /// The phone's grid. Defined with the dispatcher's seam, because the dispatcher checks a slot against it before
+    /// the slot ever reaches this store; why it is fifteen is explained there, and it is tied to
+    /// <see cref="MaxNameBytes"/>.
     /// </summary>
-    public const int MaxMacros = 15;
+    public const int MaxMacros = IMacroRunner.MaxMacros;
 
     /// <summary>
     /// A name's budget, counted in UTF-8 bytes rather than characters. Bytes are what the frame's single

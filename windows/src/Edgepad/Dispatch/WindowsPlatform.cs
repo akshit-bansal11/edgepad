@@ -1,20 +1,18 @@
-using System.Runtime.InteropServices;
 using Edgepad.Annotation;
 using Edgepad.Controls;
 using Edgepad.Gamepad;
 using Edgepad.Injection;
-using Edgepad.Macros;
 using Edgepad.Protocol;
 using Pen = Edgepad.Protocol.Pen; // System.Drawing.Pen is in scope too, through the WinForms implicit usings
 
 namespace Edgepad.Dispatch;
 
 /// <summary>
-/// Turns frames from the trusted phone into input and control changes, on the session thread. Every id is
-/// checked against the protocol's own enums: an id this laptop does not know is dropped and counted,
-/// never guessed at. The phone can name an action; only this table decides what it does.
+/// Windows' half of the <see cref="Dispatcher"/>: what each action, control and input frame does to this
+/// desktop. The dispatcher has already checked every id and bound, so this table only decides what Windows
+/// can do with one, and answers false when it cannot.
 /// </summary>
-internal sealed class Dispatcher(
+internal sealed class WindowsPlatform(
     InputInjector input,
     VirtualPad pad,
     AudioEndpoint speakers,
@@ -22,91 +20,35 @@ internal sealed class Dispatcher(
     BrightnessControl brightness,
     MediaSessions media,
     DisplayModes display,
-    MacroStore macros,
     LevelOverlay overlay,
-    Annotator annotator)
+    Annotator annotator) : IPlatform
 {
-    private const byte MaxButton = 2;
-    private const byte MaxPercent = 100;
     private const int BrightnessStep = 10;
 
-    /// <summary>Frames that asked for something unknown, out of range, or unavailable (no microphone).</summary>
-    public int Dropped { get; private set; }
+    public void Move(int dx, int dy) => input.Move(dx, dy);
 
-    /// <summary>Frames whose handler threw, all of them also counted in <see cref="Dropped"/>.</summary>
-    public int Failed { get; private set; }
+    public void Button(byte id, bool down) => input.Button(id, down);
 
-    /// <summary>
-    /// Where the answer to PAD_ATTACH and PAD_DETACH goes. Set by the session once it has a socket to write
-    /// to: this class deliberately holds no reference to the connection, for the same reason PONG is
-    /// answered in the session and not here. The pad is the one thing in this table the phone has to hear
-    /// back about, because it draws a different screen depending on the token.
-    /// </summary>
-    public Action<string>? PadStatusReply { get; set; }
+    public void Scroll(int dx, int dy) => input.Scroll(dx, dy);
 
-    /// <summary>
-    /// Carries out one frame. A handler that throws is dropped and counted like an unknown id, because this
-    /// runs on the session thread, where an escape ends the tray app and releases nothing the phone was
-    /// holding down. Only what the session reads as a dead link passes through: the pad's reply writes to the
-    /// socket, and a write that failed must still end the session rather than be counted and ignored.
-    /// </summary>
-    public void Handle(Frame frame)
+    public void Zoom(int delta) => input.Zoom(delta);
+
+    public void Type(string text) => input.Type(text);
+
+    public void Key(ushort code, bool down) => input.Key(code, down);
+
+    public bool Pad(PadState state) => pad.Update(state);
+
+    public bool Pen(Pen pen) => annotator.Handle(pen);
+
+    public string AttachPad() => pad.Attach();
+
+    public string DetachPad() => pad.Detach();
+
+    public bool Run(ActionId id)
     {
-        bool handled;
-        try
-        {
-            handled = Carry(frame);
-        }
-        catch (Exception e) when (e is not (IOException or ObjectDisposedException or COMException or OperationCanceledException))
-        {
-            // Logged once per connection: the same fault on every frame of a drag would write the log from
-            // the input path dozens of times a second. The rest show in the session's closing count.
-            if (Failed++ == 0)
-            {
-                Log.Write($"A {frame.GetType().Name} frame failed and was dropped: {e}");
-            }
-
-            handled = false;
-        }
-
-        if (!handled)
-        {
-            Dropped++;
-        }
-    }
-
-    private bool Carry(Frame frame) => frame switch
-    {
-        Move m => Do(() => input.Move(m.Dx, m.Dy)),
-        PointerButton b when b.Id <= MaxButton => Do(() => input.Button(b.Id, b.Down)),
-        Scroll s => Do(() => input.Scroll(s.Dx, s.Dy)),
-        Zoom z => Do(() => input.Zoom(z.Delta)),
-        RunAction a => Run(a.Id),
-        SetValue v when v.Value <= MaxPercent => Set(v.Control, v.Value),
-        Text t when t.Kind == (byte)TextKind.Type => Do(() => input.Type(t.Value)),
-        Key k => Do(() => input.Key(k.Code, k.Down)),
-        // A pad frame with no pad plugged in is dropped and counted like any other id this laptop
-        // cannot act on. The phone is not meant to send one before its PAD_ATTACH was answered
-        // "ready", and a laptop that quietly accepted them would look to it exactly like one playing.
-        PadState p => pad.Update(p),
-        // An absolute point on the laptop screen, which only the annotator reads; outside a session it is dropped.
-        Pen p => annotator.Handle(p),
-        _ => false,
-    };
-
-    private bool Run(byte id)
-    {
-        // Macros are a block of ids, not one each, so they are checked before the table. The phone names a
-        // slot and nothing else: what that slot opens was typed into this laptop's own editor, which is the
-        // whole reason a phone can be trusted with the button at all.
-        var slot = id - (byte)ActionId.MacroBase;
-        if (slot >= 0 && slot < MacroStore.MaxMacros)
-        {
-            return macros.Run(slot);
-        }
-
-        // The default arm rejects ids this laptop does not know; there is no pre-check to keep in step.
-        switch ((ActionId)id)
+        // The default arm drops what this laptop cannot do; the dispatcher has already rejected ids it does not know.
+        switch (id)
         {
             case ActionId.MuteToggle:
                 input.Chord(Keys.VolumeMute);
@@ -168,10 +110,6 @@ internal sealed class Dispatcher(
                 return brightness.Step(BrightnessStep);
             case ActionId.BrightnessDown:
                 return brightness.Step(-BrightnessStep);
-            case ActionId.PadAttach:
-                return Answer(pad.Attach());
-            case ActionId.PadDetach:
-                return Answer(pad.Detach());
             case ActionId.AnnotateBegin:
             case ActionId.AnnotateEnd:
             case ActionId.AnnotateUndo:
@@ -185,34 +123,42 @@ internal sealed class Dispatcher(
             case ActionId.SignBegin:
             case ActionId.SignSave:
                 // The annotator decides which of these the current mode allows; a tool while signing is dropped.
-                return annotator.Run((ActionId)id);
+                return annotator.Run(id);
             case ActionId.CaptureRegion:
-                // Windows' own Snipping Tool, which is why there is no capture code of ours to maintain.
-                input.Chord(Keys.LWin, Keys.ShiftKey, Keys.S);
-                return true;
             case ActionId.CaptureScreen:
-                input.Chord(Keys.PrintScreen);
-                return true;
             case ActionId.CaptureRecord:
-                // Needs a Snipping Tool new enough to record; on an older one the chord does nothing.
-                input.Chord(Keys.LWin, Keys.ShiftKey, Keys.R);
+                input.Chord(CaptureChord(id));
                 return true;
             default:
                 return false;
         }
     }
 
-    private bool Set(byte control, byte percent) => (ControlId)control switch
+    /// <summary>
+    /// The keys each capture action presses, apart from the injector so a test can read the table without
+    /// pressing anything into the desktop that runs it.
+    /// </summary>
+    internal static Keys[] CaptureChord(ActionId id) => id switch
+    {
+        // Windows' own Snipping Tool, which is why there is no capture code of ours to maintain.
+        ActionId.CaptureRegion => [Keys.LWin, Keys.ShiftKey, Keys.S],
+        ActionId.CaptureScreen => [Keys.PrintScreen],
+        // Needs a Snipping Tool new enough to record; on an older one the chord does nothing.
+        ActionId.CaptureRecord => [Keys.LWin, Keys.ShiftKey, Keys.R],
+        _ => throw new ArgumentOutOfRangeException(nameof(id), id, "Not a capture action."),
+    };
+
+    public bool Set(ControlId control, byte percent) => control switch
     {
         ControlId.Volume => Show(LevelKind.Volume, percent, speakers.SetLevel(percent)),
         ControlId.MicLevel => Show(LevelKind.Microphone, percent, microphone.SetLevel(percent)),
         ControlId.Brightness => Show(LevelKind.Brightness, percent, Do(() => brightness.Set(percent))),
         ControlId.MediaPosition => media.Seek(percent),
-        // The value is an index into the rate list, never hertz: the 0-100 guard above is what makes that
+        // The value is an index into the rate list, never hertz: the dispatcher's 0-100 guard is what makes that
         // safe, and it is also why a rate this display cannot do is unrepresentable rather than merely
         // refused. Queued rather than applied here, because a switch blanks the panel for about a second.
         ControlId.RefreshRate => RefreshRate(percent),
-        // A palette index: the guard above lets 8..100 through, and the palette refuses them.
+        // A palette index: the dispatcher's guard lets 8..100 through, and the palette refuses them.
         ControlId.PenColor => annotator.SetColour(percent),
         _ => false,
     };
@@ -250,17 +196,6 @@ internal sealed class Dispatcher(
         }
 
         return changed;
-    }
-
-    /// <summary>
-    /// Sends the pad's state back to the phone. Always handled, even for "no-driver": the ask was
-    /// understood and answered, and a phone that heard nothing could not tell a laptop without the driver
-    /// from one too old to know the id at all — which are two different things to put on its screen.
-    /// </summary>
-    private bool Answer(string status)
-    {
-        PadStatusReply?.Invoke(status);
-        return true;
     }
 
     private static bool Do(Action action)

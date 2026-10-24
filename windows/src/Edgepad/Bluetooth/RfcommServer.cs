@@ -620,7 +620,8 @@ internal sealed class RfcommServer(
             // The annotation layer too: strokes are one phone's, and the layer goes when that phone does. It is
             // drawn on the UI thread, which this event's thread is not, so it is handed the tray's context.
             var annotator = new Annotator(ui);
-            var dispatcher = new Dispatcher(injector, pad, speakers, microphone, brightness, media, display, macros, overlay, annotator);
+            var platform = new WindowsPlatform(injector, pad, speakers, microphone, brightness, media, display, overlay, annotator);
+            var dispatcher = new Dispatcher(platform, macros);
             session = new Session(
                 socket, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, onStatus, OnAdmitted, OnSessionEnded);
 
