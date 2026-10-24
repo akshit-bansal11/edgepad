@@ -1,6 +1,6 @@
 # Wire protocol
 
-Version 5. Both apps refuse any other version at the handshake.
+Version 5. The laptop apps (Windows, Mac and Linux) and the phone app refuse any other version at the handshake.
 
 The transport is an RFCOMM byte stream. A frame is one type byte followed by a payload whose length is fixed by the type, except TEXT, whose second header byte gives the length of the text that follows. All multi-byte integers are little-endian. An unknown type byte, a wrong length, a bad magic or a flag byte other than 0 or 1 is a protocol error and closes the connection. A well-formed frame naming an action or control this side does not know is dropped and counted, never treated as an error, so a newer app can talk to an older one until the version check says otherwise.
 
@@ -214,6 +214,38 @@ ZOOM sums wheel units until a whole notch (120) is owed, then presses Command+pl
 
 Controls are as on Windows, with these exceptions. MEDIA_POSITION is dropped, because now playing is not built on the Mac. VOLUME and MIC_LEVEL go through Core Audio. BRIGHTNESS and REFRESH_RATE act on the display, and BRIGHTNESS needs a private framework that may be missing; see [ARCHITECTURE.md](ARCHITECTURE.md). The Mac sends TEXT 5 (the macro names) from the list edited under **Macros…** in its menu bar, again whenever that list is saved, and answers TEXT 7 with the icons as TEXT 6 chunks, read from the target or the icon file with NSWorkspace; TEXT 8 is always `no-driver`. PAD_STATE is dropped. PEN, PEN_COLOR and TEXT 9 `annotate/capture` and TEXT 10 (the primary display in pixels, sent again when the displays change) are live as on Windows. Drawing over other apps should not need Screen Recording permission, since the overlay only draws; that is UNKNOWN until tried on a Mac. STATE for volume, microphone and brightness is sent after the handshake and then whenever a poll, twice a second, finds a change.
 
+## On Linux
+
+The protocol is unchanged: the Linux app speaks version 5 and the tables above are the whole of the wire format. It is the shared C# core with a Linux action table, so everything the Windows app drops and counts, it drops and counts the same way. What differs is what it does with a frame, and what it cannot do. Nothing here has been seen working on a Linux laptop; [LINUX.md](LINUX.md) says how to check each item.
+
+KEY still carries a Windows virtual-key code, and Linux maps it by position to an evdev key: Win is the left Meta key and the Menu key is `KEY_COMPOSE`. Input goes through a uinput keyboard and mouse, so it works the same on Wayland and X11. A KEY for SysRq (the phone's PrtSc) is dropped and counted while Alt is held, since Alt+SysRq+key is the kernel's magic SysRq. ZOOM is Ctrl plus the wheel.
+
+| Action | Linux does |
+| --- | --- |
+| MUTE_TOGGLE, VOLUME_UP, VOLUME_DOWN | the keyboard's own volume keys, so the desktop's on-screen display shows |
+| PLAY_PAUSE, NEXT_TRACK, PREVIOUS_TRACK | the MPRIS player that is playing (else a paused one, else the first); the media key when none exports MPRIS |
+| MIC_MUTE_TOGGLE | toggles the default microphone's mute through `wpctl`, else `pactl` |
+| LOCK | `loginctl lock-session` |
+| TASK_VIEW, SHOW_DESKTOP, SEARCH, NOTIFICATIONS, DESKTOP_LEFT, DESKTOP_RIGHT | the default shortcut of the running desktop, chosen from `XDG_CURRENT_DESKTOP`; GNOME and KDE only, dropped and counted on any other. **Written from memory, unverified** |
+| APP_SWITCH_BEGIN, APP_SWITCH_NEXT, APP_SWITCH_PREVIOUS, APP_SWITCH_END | holds Alt and presses Tab; Tab and Shift+Tab only while Alt is held; End releases Alt |
+| ZOOM_RESET | Ctrl+0 |
+| BRIGHTNESS_UP, BRIGHTNESS_DOWN | the panel's brightness, plus or minus 10, through logind and a `/sys/class/backlight` device; dropped and counted on a laptop with none |
+| PAD_ATTACH, PAD_DETACH | plugs in and removes a virtual Xbox 360 controller through uinput; TEXT 8 is `no-driver` when `/dev/uinput` cannot be opened |
+| CAPTURE_REGION, CAPTURE_SCREEN | Print, which opens the desktop's own screenshot tool where either is picked; tried on an unknown desktop too |
+| CAPTURE_RECORD | the GNOME or KDE recording shortcut; dropped and counted on any other desktop. **Unverified** |
+| macro slots (64 to 95) | the macro in that slot of `~/.config/edgepad/macros.txt`, a text file edited by hand (there is no editor): a web address, folder or non-executable file is opened with `xdg-open`, anything else is run as a program with its arguments split on spaces, never through a shell. An empty or missing slot is dropped and counted. The phone sends only the slot number |
+| ANNOTATE_*, TOOL_*, SIGN_* (40 to 51) | best effort, below |
+
+Controls are as on Windows, with these exceptions. VOLUME and MIC_LEVEL go through `wpctl`, else `pactl`, and follow the laptop's own volume within half a second. BRIGHTNESS needs logind and a backlight device; where there is none the dial has nothing to show and the phone is not told one. MEDIA_POSITION reads and seeks through MPRIS, as far as the player reports a position and allows seeking. **REFRESH_RATE is not offered:** Linux has no shared way to switch display modes, so TEXT 4 is an empty list and the dial has nothing to show. TEXT 5 lists the names in `macros.txt` and TEXT 6 is never sent: **there are no macro icons on Linux**, and the phone keeps its labels.
+
+**Annotate is best effort.** Avalonia has only an X11 backend on Linux, so on a Wayland session the overlay is an XWayland window: borderless, topmost, never activated, with an ARGB background and an empty X input shape so clicks pass through. A laptop names `annotate` in TEXT 9 only if the window is an X11 one, a compositor is running and the X server took the input shape; otherwise TEXT 9 is `capture` alone and a phone shows no Annotate tile. If showing the layer fails later, annotate is turned off for the rest of the run and the phone is told. Whether the layer stays above native Wayland windows on GNOME, whether clicks reach the window beneath, and where strokes land under fractional scaling are UNKNOWN. TEXT 10 is the primary display in physical pixels, sent again when Avalonia reports the screens changed. SIGN_SAVE writes a transparent PNG cropped to the ink to `Edgepad/signature-<timestamp>.png` in the Pictures folder (`$XDG_PICTURES_DIR`, else `~/.config/user-dirs.dirs`, else `~/Pictures`), never over an existing file, and puts it on the clipboard as `image/png`; TEXT 11 answers `saved`, `empty` or `failed`.
+
+**Capture is per desktop**, as the table says: Linux has no one screenshot or recording shortcut, so the laptop presses the running desktop's own and the phone cannot tell which. TEXT 9 names `capture` always; whether a given press does anything depends on the desktop.
+
+**The pad is uinput.** The controller is a second virtual device that copies what the kernel's `xpad` driver reports for a wired Xbox 360 pad (USB `045e:028e`), with the sticks, triggers, hat and A, B, X, Y laid out as `xpad` lays them out, so PAD_STATE's `XINPUT_GAMEPAD` fields map onto it directly. There is no rumble. It exists only while the phone has the gamepad open and is destroyed with the session.
+
+**Sessions are the logged-in user's.** Edgepad runs as the user and hangs up on the phone while logind says that user's session is not the one in front, so a fast user switch cannot let the phone type into another user's desktop. STATE for volume, microphone and brightness is sent after the handshake and then whenever a poll, twice a second, finds a change.
+
 ## Versions
 
 | Version | Release | Change |
@@ -222,13 +254,15 @@ Controls are as on Windows, with these exceptions. MEDIA_POSITION is dropped, be
 | 2 | 0.3.0 | TEXT kind 2; a mismatch is refused with the laptop's version |
 | 3 | 0.6.0 | TEXT kind 3; actions 31 to 34 arrived in 0.5.0, CONTROL 4, TEXT 4 and 5 and the macro block in 1.1.0, and TEXT 6 and 7 in 2.3.0 |
 | 4 | 3.0.0 | PAD_STATE, a new frame type; actions 35 and 36 and TEXT 8 came with it and would not have needed one |
-| 5 | 4.0.0 | PIN_REQUEST and PIN_ANSWER, and PEN; actions 40 to 51, CONTROL 5 and TEXT 10 and 11 came with PEN and would not have needed a bump |
+| 5 | 4.0.0 | PIN_REQUEST and PIN_ANSWER, and PEN, all new frame types; actions 40 to 54, CONTROL 5 and TEXT 9, 10 and 11 came with them and would not have needed a bump |
 
-Version 5 is the same kind of move: PIN_REQUEST (`0x03`) and PIN_ANSWER (`0x04`) are new frame types, and a v4 phone meeting a PIN_REQUEST would hang up mid-handshake instead of saying which side is old. The first move since v3 in 0.6.0, and it took a new frame type to earn it. PAD_STATE's type byte `0x23` is
+Version 4 was a new frame type. PAD_STATE's type byte `0x23` is
 the whole reason: an unknown type closes the connection, so a v3 laptop meeting a v4 phone's PAD_STATE would
 hang up mid-session instead of ignoring a feature it does not have. Refusing at the handshake turns that into
 a message about which side needs updating. The rest of the gamepad rode along free — PAD_ATTACH, PAD_DETACH
 and TEXT 8 are new ids in tables that already existed, and an older build drops and counts them.
+
+Version 5 is the same kind of move, made for three new frame types: PIN_REQUEST (`0x03`), PIN_ANSWER (`0x04`) and PEN (`0x24`). A v4 phone meeting a PIN_REQUEST would hang up mid-handshake instead of saying which side is old, and a v4 laptop meeting a PEN would close the link mid-session. From version 5 a v4 peer is refused at HELLO exactly as before: the laptop answers with its own version, then closes. Everything else in 4.0.0 (actions 40 to 54, CONTROL 5, TEXT 9, 10 and 11, the Linux app) is a new id in a table that already existed, so an older build drops and counts it. Because 4.0.0 is the first release at version 5, a frame added while it was being built was still "version 5": every half in a build comes from one commit.
 
 The refresh-rate dial and the macro buttons both arrived in 1.1.0 **without** a bump, which is the rule
 working rather than being broken. An unknown action, control or text kind is dropped and counted, so a
