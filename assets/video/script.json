@@ -11,7 +11,7 @@
   { "id": "keyboard", "scene": "keyboard", "hold": 4.5, "say": "A full keyboard, with modifier keys for shortcuts.", "caption": "A full keyboard, with modifier keys for shortcuts." },
   { "id": "annotate", "scene": "annotate", "hold": 7, "say": "Annotate turns the phone into a pen on the laptop's screen, and Sign saves your signature as an image.", "caption": "Annotate turns the phone into a pen on the laptop's screen, and Sign saves your signature as an image." },
   { "id": "capture", "scene": "capture", "hold": 5, "say": "Capture takes a screenshot or a recording, using the laptop's own tool.", "caption": "Capture takes a screenshot or a recording, using the laptop's own tool." },
-  { "id": "gamepad", "scene": "gamepad", "hold": 4.5, "say": "And a gamepad, still in development.", "caption": "And a gamepad, still in development." },
+  { "id": "gamepad", "scene": "gamepad", "hold": 4.5, "say": "And a gamepad, for games on Windows and Linux.", "caption": "And a gamepad, for games on Windows and Linux." },
   { "id": "pin", "scene": "pin", "hold": 6, "say": "Choose how much a phone is trusted: a yes once, a six-digit P I N the first time, or the P I N every time.", "caption": "Choose how much a phone is trusted: a yes once, a six-digit PIN the first time, or the PIN every time." },
   { "id": "look", "scene": "look", "hold": 6, "say": "Light or dark, upright or sideways.", "caption": "Light or dark, upright or sideways." },
   { "id": "platforms", "scene": "platforms", "hold": 5, "say": "It works with Windows, and now with Mac and Linux, which are still in testing.", "caption": "It works with Windows, and now with Mac and Linux, which are still in testing." },

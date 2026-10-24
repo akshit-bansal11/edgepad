@@ -31,7 +31,7 @@
     keyboard: { type: 'L', screen: 'keyboard', h: 'A full keyboard.', sub: ['Modifier keys for shortcuts.'] },
     annotate: { type: 'P', screen: 'annotate', h: 'Annotate and Sign.', sub: ['A pen on the laptop’s screen.', 'A signature, saved as an image.'] },
     capture: { type: 'P', screen: 'capture', h: 'Capture.', sub: ['A screenshot or a recording, with the laptop’s own tool.'] },
-    gamepad: { type: 'L', screen: 'gamepad', h: 'A gamepad.', sub: ['Still in development.'] },
+    gamepad: { type: 'L', screen: 'gamepad', h: 'A gamepad.', sub: ['For games on Windows and Linux.'] },
     pin: { type: 'P', screen: 'pin', h: 'Choose how much a phone is trusted.', sub: ['A yes, once.', 'A six-digit PIN the first time.', 'The PIN every time.'], levels: true },
     look: { type: 'S', screen: 'surface', h: 'Light or dark.', sub: ['Upright or sideways.'] },
     platforms: { type: 'S', screen: 'surface', h: 'Windows, Mac and Linux.', sub: ['Mac and Linux are still in testing.'] },

@@ -413,10 +413,6 @@
       fillRR(ctx, X(fx) - 34, Y(fy) - 15, 68, 30, 15, idle);
       textMid(ctx, n, X(fx), Y(fy), { size: 13, w: 'Bold', color: pal.ink, align: 'center' });
     });
-    // The label this video adds: the gamepad is still in development.
-    const tw = measure(ctx, 'In development', 15, 'Bold') + 32;
-    fillRR(ctx, (w - tw) / 2, 44, tw, 34, 17, pal.accentSoft);
-    textMid(ctx, 'In development', w / 2, 61, { size: 15, w: 'Bold', color: pal.accent, align: 'center' });
     dot(ctx, EP.path(lt, [[0.4, ...thumb], [4.4, ...thumb]]));
     const at = (n) => [X(face.find((q) => q[0] === n)[1]), Y(face.find((q) => q[0] === n)[2])];
     dot(ctx, EP.path(lt, [[0.8, ...at('A')], [1.2, ...at('A')], [1.6, ...at('X')], [1.9, ...at('X')], [2.1, ...at('B')], [2.4, ...at('B')], [3.2, ...at('Y')], [3.5, ...at('Y')]]));
