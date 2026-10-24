@@ -1,4 +1,5 @@
 using Edgepad.Dispatch;
+using Edgepad.Platform;
 using Edgepad.Trust;
 using Microsoft.Win32.SafeHandles;
 using Tmds.DBus.Protocol;
@@ -139,8 +140,8 @@ internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, b
             return false;
         }
 
-        // Input state belongs to one connection. STAND-IN until steps 8.2-8.4: a platform that acts on nothing.
-        var platform = new NullPlatform();
+        // Input state belongs to one connection: its own virtual keyboard, destroyed when the session ends.
+        var platform = new LinuxPlatform();
         var session = new LinuxSession(
             socket,
             address,
