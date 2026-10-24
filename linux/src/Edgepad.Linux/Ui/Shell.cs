@@ -84,9 +84,10 @@ internal sealed class Shell
     /// <summary>
     /// Asks the owner whether to trust <paramref name="address"/>, and waits for the answer. Called on a session
     /// thread, which holds the phone's HELLO_ACK until this returns. No answer, or no UI to ask on, is a no.
-    /// The phone is named by its address, as the status line names it once it has connected.
+    /// A session that ends meanwhile (<paramref name="ended"/>: a hold, a hang-up) is a no too, and closes the
+    /// question. The phone is named by its address, as the status line names it once it has connected.
     /// </summary>
-    public bool AskTrust(string address)
+    public bool AskTrust(string address, CancellationToken ended)
     {
         if (!ready)
         {
@@ -95,7 +96,7 @@ internal sealed class Shell
         }
 
         SetStatus($"Asking whether to trust {address}");
-        var trusted = prompt.Ask(address);
+        var trusted = prompt.Ask(address, ended);
         Log.Write(trusted ? $"The owner trusted {address}" : $"The owner did not trust {address}");
         return trusted;
     }

@@ -13,7 +13,7 @@ namespace Edgepad.Bluetooth;
 /// profile. A start that fails (no system bus, bluetoothd not running, the call refused) is tried again every
 /// 30 s for as long as it takes, as on Windows: all of them are states to wait out, not an end.
 /// </summary>
-internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, bool> askTrust, Action<string> onStatus) : IDisposable
+internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, CancellationToken, bool> askTrust, Action<string> onStatus) : IDisposable
 {
     // Joined at exit so each session's own cleanup, which releases held keys and buttons, gets to run.
     private static readonly TimeSpan ExitGrace = TimeSpan.FromSeconds(2);

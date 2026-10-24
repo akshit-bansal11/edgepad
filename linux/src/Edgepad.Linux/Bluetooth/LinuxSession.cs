@@ -22,7 +22,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Thread thread;
     private readonly TrustStore trust;
     private readonly PinStore pin;
-    private readonly Func<string, bool> askTrust;
+    private readonly Func<string, CancellationToken, bool> askTrust;
     private readonly Dispatcher dispatcher;
     private readonly Action releaseHeldInput;
     private readonly Func<string> probePad;
@@ -31,6 +31,9 @@ internal sealed class LinuxSession : IDisposable
     private readonly Func<LinuxSession, bool> onAdmitted;
     private readonly Action<LinuxSession> onEnded;
     private int disposed;
+
+    // Cancelled by Dispose, so a trust question open for this session, or about to be put, is withdrawn.
+    private readonly CancellationTokenSource ended = new();
 
     /// <summary>
     /// Takes ownership of <paramref name="socket"/>. <paramref name="releaseHeldInput"/> releases every key and
@@ -43,7 +46,7 @@ internal sealed class LinuxSession : IDisposable
         string address,
         TrustStore trust,
         PinStore pin,
-        Func<string, bool> askTrust,
+        Func<string, CancellationToken, bool> askTrust,
         Dispatcher dispatcher,
         Action releaseHeldInput,
         Func<string> probePad,
@@ -106,7 +109,7 @@ internal sealed class LinuxSession : IDisposable
         {
             // A refusal comes back here and the finally below closes the socket; a phone gone silent mid-handshake
             // is ended through Dispose, which wakes the blocked read.
-            if (!Handshake.Run(frames, Address, trust, pin, askTrust, () => onAdmitted(this), onStatus, Log.Write, Dispose))
+            if (!Handshake.Run(frames, Address, trust, pin, askTrust, () => onAdmitted(this), onStatus, Log.Write, Dispose, ended.Token))
             {
                 return;
             }
@@ -167,6 +170,8 @@ internal sealed class LinuxSession : IDisposable
             return;
         }
 
+        ended.Cancel();
+
         // Shut down first, and outside the send lock: a Send blocked in a write to a phone that has stopped
         // reading holds that lock for as long as the write blocks. Shutting the socket down fails that write and
         // ends the blocked read, and only then are the streams disposed, never under a writer's feet.
@@ -184,6 +189,9 @@ internal sealed class LinuxSession : IDisposable
             writer.Dispose();
             reader.Dispose();
         }
+
+        // Already cancelled, so a question still reading the token sees that, never a live one.
+        ended.Dispose();
 
         // Both streams closed it already; said again so the handle is plainly this class's to close.
         socket.Dispose();

@@ -26,7 +26,7 @@ internal sealed class RfcommServer(
     Action<string> onStatus,
     TrustStore trust,
     PinStore pin,
-    Func<string, bool> askTrust,
+    Func<string, CancellationToken, bool> askTrust,
     AudioEndpoint speakers,
     AudioEndpoint microphone,
     BrightnessControl brightness,

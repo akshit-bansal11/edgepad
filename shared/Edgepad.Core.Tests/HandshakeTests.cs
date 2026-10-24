@@ -31,6 +31,10 @@ public sealed class HandshakeTests : IDisposable
 
     private bool ownerSaysYes = true;
     private bool serverTakesIt = true;
+
+    // The session's own end: a hold or a hang-up cancels it, and run by the owner's question while it is open.
+    private readonly CancellationTokenSource ended = new();
+    private Action? whileAsking;
     private int asked;
     private int admitted;
 
@@ -82,10 +86,12 @@ public sealed class HandshakeTests : IDisposable
             Phone,
             trust,
             pin,
-            address =>
+            (address, cancel) =>
             {
                 Assert.Equal(Phone, address);
+                Assert.Equal(ended.Token, cancel);
                 asked++;
+                whileAsking?.Invoke();
                 return ownerSaysYes;
             },
             () =>
@@ -97,6 +103,7 @@ public sealed class HandshakeTests : IDisposable
             statuses.Add,
             logs.Add,
             giveUp,
+            ended.Token,
             helloTimeout,
             pinTimeout);
 
@@ -316,8 +323,36 @@ public sealed class HandshakeTests : IDisposable
             line => line.Contains("123456", StringComparison.Ordinal) || line.Contains("654321", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void ASessionEndedBetweenHelloAndTheQuestionIsNeverAsked()
+    {
+        ended.Cancel();
+
+        Assert.Throws<OperationCanceledException>(() => Connect(PinAtLevel(1), CurrentHello));
+        Assert.Equal(0, asked);
+        Assert.Equal(0, admitted);
+        Assert.Empty(Sent());
+
+        // Not taken as the owner declining it, and not left asking: the next phone is asked as usual.
+        Assert.False(trust.Refuses(Phone));
+    }
+
+    [Fact]
+    public void ASessionEndedUnderAnOpenQuestionIsRefusedEvenOnAYes()
+    {
+        whileAsking = ended.Cancel;
+
+        Assert.Throws<OperationCanceledException>(() => Connect(PinAtLevel(1), CurrentHello));
+        Assert.Equal(1, asked);
+        Assert.Equal(0, admitted);
+        Assert.Empty(Sent());
+        Assert.Empty(trust.TrustedPhones);
+        Assert.False(trust.Refuses(Phone));
+    }
+
     public void Dispose()
     {
+        ended.Dispose();
         output.Dispose();
         if (Directory.Exists(dir))
         {

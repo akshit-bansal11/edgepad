@@ -19,15 +19,27 @@ internal sealed class TrustPrompt(Func<string, CancellationToken, Task<bool>> sh
 
     /// <summary>
     /// True only if <paramref name="show"/> answered yes within the timeout. The token it is given is cancelled
-    /// when this returns, so a question nobody is waiting for any more closes itself.
+    /// when this returns, so a question nobody is waiting for any more closes itself. <paramref name="ended"/> is
+    /// the session's: cancelled before the question goes up, it is never put; cancelled while it is open, the
+    /// answer is a no at once and the question closes.
     /// </summary>
-    public bool Ask(string address)
+    public bool Ask(string address, CancellationToken ended = default)
     {
-        using var over = new CancellationTokenSource();
+        using var over = CancellationTokenSource.CreateLinkedTokenSource(ended);
         try
         {
+            if (ended.IsCancellationRequested)
+            {
+                return false;
+            }
+
             var answer = show(address, over.Token);
-            return answer.Wait(timeout) && answer.Result;
+            return answer.Wait(timeout, ended) && answer.Result;
+        }
+        catch (OperationCanceledException) when (ended.IsCancellationRequested)
+        {
+            // The session ended under the question; cancelling over below takes it off the screen.
+            return false;
         }
         catch (Exception e)
         {

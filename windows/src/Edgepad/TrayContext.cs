@@ -370,9 +370,10 @@ internal sealed class TrayContext : ApplicationContext
     /// Asks the owner whether to trust <paramref name="address"/>, and waits for the answer. Called on a session
     /// thread, which holds the phone's HELLO_ACK until this returns; the question itself is shown on this
     /// context's thread, which owns every window the app has. No answer within <see cref="TrustPromptTimeout"/>
-    /// is a no. The phone is named by its address, as the status line names it once it has connected.
+    /// is a no, and so is a session that ends meanwhile (<paramref name="ended"/>: a hold, a hang-up), which also
+    /// closes the question. The phone is named by its address, as the status line names it once it has connected.
     /// </summary>
-    private bool AskTrust(string address)
+    private bool AskTrust(string address, CancellationToken ended)
     {
         SetStatus($"Asking whether to trust {address}");
         var deadline = Environment.TickCount64 + (long)TrustPromptTimeout.TotalMilliseconds;
@@ -382,17 +383,26 @@ internal sealed class TrayContext : ApplicationContext
             {
                 // Only while the session is still waiting: a question whose answer nobody would read must not
                 // be left on screen for the owner to answer.
-                if (!answer.Task.IsCompleted)
+                if (!answer.Task.IsCompleted && !ended.IsCancellationRequested)
                 {
                     // The dialog may open behind whatever has focus, since a tray app cannot take the
                     // foreground; the notification is what the owner notices.
                     icon.ShowBalloonTip(0, "Edgepad", $"{address} wants to connect. Choose Trust or Don't trust.", ToolTipIcon.Info);
-                    answer.TrySetResult(ShowTrustPrompt(address, deadline));
+                    answer.TrySetResult(ShowTrustPrompt(address, deadline, ended));
                 }
             },
             null);
 
-        var trusted = answer.Task.Wait(TrustPromptTimeout) && answer.Task.Result;
+        bool trusted;
+        try
+        {
+            trusted = answer.Task.Wait(TrustPromptTimeout, ended) && answer.Task.Result;
+        }
+        catch (OperationCanceledException)
+        {
+            trusted = false;
+        }
+
         answer.TrySetResult(false);
         Log.Write(trusted ? $"The owner trusted {address}" : $"The owner did not trust {address}");
         return trusted;
@@ -400,9 +410,10 @@ internal sealed class TrayContext : ApplicationContext
 
     /// <summary>
     /// The question itself: Trust or Don't trust, with Don't trust the default so a stray Enter trusts nothing.
-    /// It answers itself with Don't trust at <paramref name="deadline"/>, when the session stops waiting.
+    /// It answers itself with Don't trust at <paramref name="deadline"/>, when the session stops waiting, or once
+    /// <paramref name="ended"/> is cancelled.
     /// </summary>
-    private static bool ShowTrustPrompt(string address, long deadline)
+    private static bool ShowTrustPrompt(string address, long deadline, CancellationToken ended)
     {
         var yes = new TaskDialogButton("Trust");
         var no = new TaskDialogButton("Don't trust");
@@ -418,11 +429,16 @@ internal sealed class TrayContext : ApplicationContext
             DefaultButton = no,
         };
 
-        using var timeout = new System.Windows.Forms.Timer { Interval = (int)Math.Max(1, deadline - Environment.TickCount64) };
+        // Polled on this thread rather than registered on the token, so the click can never land on a dialog that
+        // has already closed.
+        using var timeout = new System.Windows.Forms.Timer { Interval = 250 };
         timeout.Tick += (_, _) =>
         {
-            timeout.Stop();
-            no.PerformClick();
+            if (ended.IsCancellationRequested || Environment.TickCount64 >= deadline)
+            {
+                timeout.Stop();
+                no.PerformClick();
+            }
         };
         timeout.Start();
         try

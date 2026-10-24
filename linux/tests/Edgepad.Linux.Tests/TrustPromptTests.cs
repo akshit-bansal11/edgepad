@@ -47,6 +47,46 @@ public sealed class TrustPromptTests
     }
 
     [Fact]
+    public void ASessionAlreadyEndedIsNeverAsked()
+    {
+        using var ended = new CancellationTokenSource();
+        ended.Cancel();
+        var asked = false;
+        var prompt = new TrustPrompt(
+            (_, _) =>
+            {
+                asked = true;
+                return Task.FromResult(true);
+            },
+            TimeSpan.FromMinutes(1));
+
+        Assert.False(prompt.Ask("AA:AA:AA:AA:AA:AA", ended.Token));
+        Assert.False(asked);
+    }
+
+    [Fact]
+    public void ASessionEndingUnderAnOpenQuestionRefusesAtOnceAndWithdrawsIt()
+    {
+        using var ended = new CancellationTokenSource();
+        CancellationToken seen = default;
+        var never = new TaskCompletionSource<bool>();
+        var prompt = new TrustPrompt(
+            (_, token) =>
+            {
+                seen = token;
+                ended.CancelAfter(TimeSpan.FromMilliseconds(50));
+                return never.Task;
+            },
+            TimeSpan.FromMinutes(1));
+
+        // Well inside the minute the question would otherwise wait.
+        var waited = System.Diagnostics.Stopwatch.StartNew();
+        Assert.False(prompt.Ask("AA:AA:AA:AA:AA:AA", ended.Token));
+        Assert.True(waited.Elapsed < TimeSpan.FromSeconds(30));
+        Assert.True(seen.IsCancellationRequested);
+    }
+
+    [Fact]
     public void AQuestionThatThrowsRefuses() =>
         Assert.False(new TrustPrompt((_, _) => throw new InvalidOperationException("no display"), Short).Ask("AA:AA:AA:AA:AA:AA"));
 

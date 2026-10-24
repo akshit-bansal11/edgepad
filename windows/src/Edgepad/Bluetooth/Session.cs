@@ -25,7 +25,7 @@ internal sealed class Session(
     StreamSocket socket,
     TrustStore trust,
     PinStore pin,
-    Func<string, bool> askTrust,
+    Func<string, CancellationToken, bool> askTrust,
     InputInjector injector,
     VirtualPad pad,
     Dispatcher dispatcher,
@@ -52,6 +52,9 @@ internal sealed class Session(
     // adding watches: both the list and the flag are only touched under this.
     private readonly Lock watchGate = new();
     private readonly List<IDisposable> watches = [];
+
+    // Cancelled by Dispose, so a trust question open for this session, or about to be put, is withdrawn.
+    private readonly CancellationTokenSource ended = new();
     private bool disposed;
     private MediaState lastMedia = MediaSessions.Nothing;
     private string lastTimeline = "";
@@ -65,7 +68,7 @@ internal sealed class Session(
         {
             // A refusal comes back here and the finally below closes the socket; a phone gone silent mid-handshake
             // is ended through Dispose, which aborts the blocked read.
-            if (!Handshake.Run(frames, address, trust, pin, askTrust, () => onAdmitted(this), onStatus, Log.Write, Dispose))
+            if (!Handshake.Run(frames, address, trust, pin, askTrust, () => onAdmitted(this), onStatus, Log.Write, Dispose, ended.Token))
             {
                 return;
             }
@@ -344,6 +347,8 @@ internal sealed class Session(
             watches.Clear();
         }
 
+        ended.Cancel();
+
         foreach (var watch in ending)
         {
             watch.Dispose();
@@ -367,5 +372,8 @@ internal sealed class Session(
                 // socket. Those bytes were never going to arrive.
             }
         }
+
+        // Already cancelled, so a question still reading the token sees that, never a live one.
+        ended.Dispose();
     }
 }

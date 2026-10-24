@@ -8,7 +8,8 @@ namespace Edgepad.Net;
 /// locked-out check, the owner's trust (asked through askTrust about a phone not trusted yet), the PIN at levels 2
 /// and 3, the server's word that this phone may take over (onAdmitted), and only then HELLO_ACK. It blocks on the
 /// session's read thread, and ends a silent wait through <c>giveUp</c>, which must close the link so the blocked
-/// read ends.
+/// read ends. <c>ended</c> is cancelled when the session ends under the handshake (a hold, a hang-up, quitting):
+/// the trust question is then never put, or is withdrawn if it is open.
 ///
 /// True means HELLO_ACK went out and the session is live. False, or any exception, means the caller closes the
 /// link: nothing that comes after HELLO_ACK is reachable without it.
@@ -26,11 +27,12 @@ internal static class Handshake
         string address,
         TrustStore trust,
         PinStore pin,
-        Func<string, bool> askTrust,
+        Func<string, CancellationToken, bool> askTrust,
         Func<bool> onAdmitted,
         Action<string> onStatus,
         Action<string> log,
         Action giveUp,
+        CancellationToken ended,
         TimeSpan? helloTimeout = null,
         TimeSpan? pinTimeout = null)
     {
@@ -92,7 +94,21 @@ internal static class Handshake
 
         // HELLO_ACK waits on the owner's answer, and a refusal closes the socket without one: the same
         // bytes a phone it did not trust has always been sent, so no phone needs to learn anything new.
-        if (!trust.Admit(address, () => askTrust(address)))
+        //
+        // A session ended between HELLO and here (an owner's Security window holding phones off, a hang-up) is
+        // never asked about: the question would sit over that window, and its asking would refuse every phone
+        // after Resume. Ended while the question is open, the answer is not read, a yes included. Both throw
+        // rather than answer no, so the owner is not recorded as having declined a phone they were never asked
+        // about; the caller closes the link on the exception, as on any other.
+        if (!trust.Admit(
+            address,
+            () =>
+            {
+                ended.ThrowIfCancellationRequested();
+                var yes = askTrust(address, ended);
+                ended.ThrowIfCancellationRequested();
+                return yes;
+            }))
         {
             var trusted = string.Join(", ", trust.TrustedPhones);
             log($"Refused {address}: this laptop trusts {(trusted.Length > 0 ? trusted : "no phone yet")}");
