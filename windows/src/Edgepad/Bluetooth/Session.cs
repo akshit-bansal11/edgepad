@@ -6,6 +6,7 @@ using Edgepad.Dispatch;
 using Edgepad.Gamepad;
 using Edgepad.Injection;
 using Edgepad.Macros;
+using Edgepad.Net;
 using Edgepad.Protocol;
 using Edgepad.Trust;
 using Microsoft.Win32;
@@ -42,21 +43,10 @@ internal sealed class Session(
     private const byte MutedFlag = 1;
     private const byte PlayingFlag = 1;
 
-    /// <summary>
-    /// How long an open socket may go without a HELLO. The read has no timeout of its own, so a paired device
-    /// that connects and says nothing held this thread, and its socket, for as long as the link stayed up.
-    /// </summary>
-    private static readonly TimeSpan HelloTimeout = TimeSpan.FromSeconds(10);
-
     // The WinRT adapters read with partial-read semantics, so the default buffer returns as soon as
     // any bytes arrive — it saves per-byte calls without holding data back.
-    private readonly Stream input = socket.InputStream.AsStreamForRead();
-    private readonly Stream output = socket.OutputStream.AsStreamForWrite();
-    private readonly byte[] sendBuffer = new byte[FrameCodec.MaxFrameLength];
+    private readonly FrameStream frames = new(socket.InputStream.AsStreamForRead(), socket.OutputStream.AsStreamForWrite());
     private readonly string address = socket.Information.RemoteHostName.RawName;
-
-    // Audio notifications arrive on COM threads while the read loop sends PONGs: one writer at a time.
-    private readonly Lock sendGate = new();
 
     // Dispose runs from the server's thread, a timer's or the read loop's, while the read loop may still be
     // adding watches: both the list and the flag are only touched under this.
@@ -71,72 +61,20 @@ internal sealed class Session(
 
     public void Run()
     {
-        var payload = new byte[FrameCodec.MaxFrameLength];
         try
         {
-            Frame first;
-            using (new System.Threading.Timer(_ => GiveUpOnHello(), null, HelloTimeout, Timeout.InfiniteTimeSpan))
+            // A refusal comes back here and the finally below closes the socket; a phone gone silent mid-handshake
+            // is ended through Dispose, which aborts the blocked read.
+            if (!Handshake.Run(frames, address, trust, pin, askTrust, () => onAdmitted(this), onStatus, Log.Write, Dispose))
             {
-                first = ReadFrame(payload);
-            }
-
-            if (first is not Hello hello)
-            {
-                Log.Write($"Refused {address}: no valid HELLO");
                 return;
             }
 
-            if (hello.Version != ProtocolConstants.Version)
-            {
-                // Answered with this laptop's version, so the phone can say which side needs updating.
-                Send(new HelloAck(ProtocolConstants.Version));
-                Log.Write($"Refused {address}: it speaks protocol {hello.Version}, this laptop {ProtocolConstants.Version}");
-                onStatus($"Refused a phone on protocol {hello.Version}; this laptop is on {ProtocolConstants.Version}");
-                return;
-            }
-
-            // A phone locked out by wrong PINs is told so and closed before the owner is asked anything, so
-            // guessing cannot also be a way to keep the trust question on the owner's screen.
-            if (PinGate.LockedOut(address, pin, Send, Log.Write))
-            {
-                onStatus("Refused a phone locked out after wrong PINs");
-                return;
-            }
-
-            // HELLO_ACK waits on the owner's answer, and a refusal closes the socket without one: the same
-            // bytes a phone it did not trust has always been sent, so no phone needs to learn anything new.
-            if (!trust.Admit(address, () => askTrust(address)))
-            {
-                var trusted = string.Join(", ", trust.TrustedPhones);
-                Log.Write($"Refused {address}: this laptop trusts {(trusted.Length > 0 ? trusted : "no phone yet")}");
-                onStatus("Refused a phone it does not trust");
-                return;
-            }
-
-            // The PIN at levels 2 and 3, and still before onAdmitted: a phone that has not given it must never be
-            // able to end the connected phone's session. Level 1 sends nothing here, as before there was a PIN.
-            if (!PinGate.Run(address, pin, () => ReadFrame(payload), Send, Log.Write, Dispose))
-            {
-                onStatus("Refused a phone that did not give the right PIN");
-                return;
-            }
-
-            // Only now may this phone take over from one already connected: before trust said yes, any bonded
-            // device that merely connected could end the owner's session at will.
-            if (!onAdmitted(this))
-            {
-                Log.Write($"Refused {address}: trusted, but not taken now: phones are being forgotten, Edgepad is quitting, or another phone just took over");
-                return;
-            }
-
-            Send(new HelloAck(ProtocolConstants.Version));
-            Log.Write($"Connected {address}");
-            onStatus($"Connected to {address}");
             ReportState();
 
             while (true)
             {
-                var frame = ReadFrame(payload);
+                var frame = frames.ReadFrame();
                 if (frame is Ping ping)
                 {
                     Send(new Pong(ping.Time));
@@ -245,14 +183,6 @@ internal sealed class Session(
         watch.Dispose();
     }
 
-    private void GiveUpOnHello()
-    {
-        Log.Write($"Refused {address}: no HELLO within {(int)HelloTimeout.TotalSeconds} s");
-
-        // Closing the socket is what ends the blocked read; the read loop then finishes the session as usual.
-        Dispose();
-    }
-
     /// <summary>
     /// The rates this display offers and which one is in force. The list goes first because the level is an
     /// index into it, though the phone corrects itself either way if they arrive the other way round.
@@ -327,7 +257,7 @@ internal sealed class Session(
                 // A save in the tray editor swaps the list and then sends it from another thread. Checked
                 // under the send lock, no chunk of the old list can follow the new one to the phone, where
                 // it would land on whatever macro moved into its slot. The phone asks again for the new list.
-                lock (sendGate)
+                lock (frames.SendGate)
                 {
                     if (!ReferenceEquals(macros.Macros, current))
                     {
@@ -395,42 +325,7 @@ internal sealed class Session(
         }
     }
 
-    private Frame ReadFrame(byte[] buffer)
-    {
-        var type = input.ReadByte();
-        if (type < 0)
-        {
-            throw new EndOfStreamException("The phone closed the connection");
-        }
-
-        var length = FrameCodec.PayloadLength((byte)type);
-        if (length == FrameCodec.LengthPrefixed)
-        {
-            input.ReadExactly(buffer, 0, FrameCodec.TextHeaderLength);
-            length = FrameCodec.TextHeaderLength + buffer[1];
-            input.ReadExactly(buffer, FrameCodec.TextHeaderLength, buffer[1]);
-        }
-        else if (length < 0)
-        {
-            throw new InvalidDataException($"Unknown frame type 0x{type:x2}");
-        }
-        else
-        {
-            input.ReadExactly(buffer, 0, length);
-        }
-
-        return FrameCodec.Decode((byte)type, buffer.AsSpan(0, length));
-    }
-
-    private void Send(Frame frame)
-    {
-        lock (sendGate)
-        {
-            var length = FrameCodec.Encode(frame, sendBuffer);
-            output.Write(sendBuffer, 0, length);
-            output.Flush();
-        }
-    }
+    private void Send(Frame frame) => frames.Send(frame);
 
     public void Dispose()
     {
@@ -459,12 +354,12 @@ internal sealed class Session(
         // thread, and with it the new phone's session. Closing the socket aborts the write, the Send throws
         // and lets go, and only then are the streams disposed, never under a writer's feet.
         socket.Dispose();
-        lock (sendGate)
+        lock (frames.SendGate)
         {
-            input.Dispose();
+            frames.Input.Dispose();
             try
             {
-                output.Dispose();
+                frames.Output.Dispose();
             }
             catch (Exception e) when (e is IOException or ObjectDisposedException or COMException or OperationCanceledException)
             {
