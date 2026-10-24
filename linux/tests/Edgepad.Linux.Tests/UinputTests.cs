@@ -122,4 +122,49 @@ public sealed class UinputTests
 
         Assert.Equal(0, LinuxInput.WheelEvents(ref wheel, 0x0B, 0x08, 0, events));
     }
+
+    [Fact]
+    public void PrintScreenAloneIsSent()
+    {
+        InputEvent[] events = [Key(KeyMap.SysRq, 1), Sync, Key(KeyMap.SysRq, 0), Sync];
+
+        Assert.Equal(events, Kept(events, leftAlt: false, rightAlt: false));
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void PrintScreenWithAltHeldNeverPressesSysRq(bool leftAlt, bool rightAlt)
+    {
+        var kept = Kept([Key(KeyMap.SysRq, 1), Sync], leftAlt, rightAlt);
+
+        Assert.DoesNotContain(kept, e => e.Code == KeyMap.SysRq && e.Value != 0);
+    }
+
+    [Fact]
+    public void AChordThatPressesAltFirstNeverPressesSysRq()
+    {
+        var kept = Kept([Key(KeyMap.LeftAlt, 1), Sync, Key(KeyMap.SysRq, 1), Sync, Key(KeyMap.SysRq, 0), Sync, Key(KeyMap.LeftAlt, 0), Sync], false, false);
+
+        Assert.DoesNotContain(kept, e => e.Code == KeyMap.SysRq && e.Value != 0);
+        Assert.Contains(kept, e => e.Code == KeyMap.LeftAlt && e.Value == 1);
+    }
+
+    [Fact]
+    public void PrintScreenAfterAltIsLetGoIsSent()
+    {
+        var kept = Kept([Key(KeyMap.RightAlt, 0), Sync, Key(KeyMap.SysRq, 1), Sync], leftAlt: false, rightAlt: true);
+
+        Assert.Contains(kept, e => e.Code == KeyMap.SysRq && e.Value == 1);
+    }
+
+    private static InputEvent Sync => new(Uinput.EvSyn, Uinput.SynReport, 0);
+
+    private static InputEvent Key(ushort code, int value) => new(Uinput.EvKey, code, value);
+
+    private static InputEvent[] Kept(InputEvent[] events, bool leftAlt, bool rightAlt)
+    {
+        var into = new InputEvent[events.Length];
+        return into[..LinuxInput.WithoutMagicSysRq(events, leftAlt, rightAlt, into)];
+    }
 }

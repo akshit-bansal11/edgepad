@@ -15,6 +15,11 @@ internal static class KeyMap
     public const ushort Tab = 15;
     public const ushort Space = 57;
     public const ushort V = 47;
+    public const ushort LeftAlt = 56;
+    public const ushort RightAlt = 100;
+
+    /// <summary>KEY_SYSRQ, which Alt turns into the kernel's magic SysRq: see LinuxInput.WithoutMagicSysRq.</summary>
+    public const ushort SysRq = 99;
 
     // Above AllKeys, which reads them: static fields are initialised in the order they are written.
     // KEY_A..KEY_Z follow the keyboard's rows, not the alphabet.
@@ -38,8 +43,8 @@ internal static class KeyMap
         0xA1 => 54, // KEY_RIGHTSHIFT
         0x11 or 0xA2 => LeftCtrl,
         0xA3 => 97, // KEY_RIGHTCTRL
-        0x12 or 0xA4 => 56, // KEY_LEFTALT
-        0xA5 => 100, // KEY_RIGHTALT
+        0x12 or 0xA4 => LeftAlt,
+        0xA5 => RightAlt,
         0x13 => 119, // KEY_PAUSE
         0x14 => 58, // KEY_CAPSLOCK
         0x1B => 1, // KEY_ESC
@@ -52,7 +57,7 @@ internal static class KeyMap
         0x26 => 103, // KEY_UP
         0x27 => 106, // KEY_RIGHT
         0x28 => 108, // KEY_DOWN
-        0x2C => 99, // KEY_SYSRQ: what a PC keyboard's PrtSc sends; desktops bind Print to it
+        0x2C => SysRq, // what a PC keyboard's PrtSc sends; desktops bind Print to it
         0x2D => 110, // KEY_INSERT
         0x2E => 111, // KEY_DELETE
         0x2F => 138, // KEY_HELP

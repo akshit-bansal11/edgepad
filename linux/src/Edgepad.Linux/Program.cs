@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Edgepad.Bluetooth;
+using Edgepad.Platform;
 using Edgepad.Trust;
 using Edgepad.Ui;
 
@@ -49,6 +50,9 @@ internal static class Program
         {
             shell.Attach(server);
             server.Start();
+
+            // Disposed before the server, whose HoldOff and Resume it calls.
+            using var away = new SessionWatch(server.HoldOff, server.Resume);
             try
             {
                 // The tray and the dialogs: Avalonia owns this thread until Quit. The Bluetooth service runs on

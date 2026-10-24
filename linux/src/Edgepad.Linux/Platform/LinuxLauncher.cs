@@ -142,7 +142,9 @@ internal sealed class LinuxLauncher : IMacroLauncher
 
         try
         {
-            return (File.GetUnixFileMode(path) & (UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute)) != 0
+            // The guard is for the platform analyzer, which the class-level attribute in Program.cs does not reach.
+            return !OperatingSystem.IsWindows()
+                && (File.GetUnixFileMode(path) & (UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute)) != 0
                 ? PathKind.Executable
                 : PathKind.File;
         }

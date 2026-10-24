@@ -141,24 +141,37 @@ internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, b
         }
 
         // Input state belongs to one connection: its own virtual keyboard and pad, destroyed when the session ends.
+        // Until the session starts, nothing else disposes the platform: a session that never runs never reaches
+        // the finally that releases its input, so its uinput keyboard and worker thread are this method's to end.
         var platform = new LinuxPlatform();
-        var session = new LinuxSession(
-            socket,
-            address,
-            trust,
-            pin,
-            askTrust,
-            new Dispatcher(platform, platform),
-            platform.Dispose,
-            platform.ProbePad,
-            platform.StartReporting,
-            onStatus,
-            OnAdmitted,
-            OnSessionEnded);
+        LinuxSession session;
+        try
+        {
+            session = new LinuxSession(
+                socket,
+                address,
+                trust,
+                pin,
+                askTrust,
+                new Dispatcher(platform, platform),
+                platform.Dispose,
+                platform.ProbePad,
+                platform.StartReporting,
+                onStatus,
+                OnAdmitted,
+                OnSessionEnded);
+        }
+        catch
+        {
+            platform.Dispose();
+            throw;
+        }
+
         if (!admission.AddCandidate(session, address))
         {
             Log.Write($"Refused {address}: Edgepad is quitting, or the owner is changing security settings");
             session.Dispose();
+            platform.Dispose();
             return false;
         }
 

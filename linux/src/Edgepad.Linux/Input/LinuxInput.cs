@@ -322,9 +322,47 @@ internal sealed class LinuxInput : IDisposable
         Chord(KeyMap.LeftCtrl, KeyMap.V);
     }
 
+    /// <summary>
+    /// Copies <paramref name="events"/> into <paramref name="into"/> less every KEY_SYSRQ press made while an Alt
+    /// is down, and answers how many were kept. Alt+SysRq+key is the kernel's magic SysRq (reboot, sync, kill
+    /// all), which the kernel honours from any keyboard, this virtual one too, and even on a locked screen; a phone
+    /// must never reach it. The kernel tracks Alt per device, so this device's own Alt is the one that counts:
+    /// <paramref name="leftAlt"/> and <paramref name="rightAlt"/> say which were already held before these events.
+    /// </summary>
+    internal static int WithoutMagicSysRq(ReadOnlySpan<InputEvent> events, bool leftAlt, bool rightAlt, Span<InputEvent> into)
+    {
+        var count = 0;
+        foreach (var e in events)
+        {
+            if (e.Type == Uinput.EvKey)
+            {
+                if (e.Code == KeyMap.LeftAlt)
+                {
+                    leftAlt = e.Value != 0;
+                }
+                else if (e.Code == KeyMap.RightAlt)
+                {
+                    rightAlt = e.Value != 0;
+                }
+                else if (e.Code == KeyMap.SysRq && e.Value != 0 && (leftAlt || rightAlt))
+                {
+                    continue;
+                }
+            }
+
+            into[count++] = e;
+        }
+
+        return count;
+    }
+
+    // Every write goes through here, single keys and chords alike, so the SysRq rule has one place to hold.
     private void Send(ReadOnlySpan<InputEvent> events)
     {
-        if (device is null || !device.Write(events))
+        Span<InputEvent> kept = stackalloc InputEvent[events.Length];
+        var count = WithoutMagicSysRq(events, held.Contains(KeyMap.LeftAlt), held.Contains(KeyMap.RightAlt), kept);
+        Refused += events.Length - count;
+        if (device is null || !device.Write(kept[..count]))
         {
             Refused++;
         }
