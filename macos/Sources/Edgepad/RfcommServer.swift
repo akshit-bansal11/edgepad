@@ -20,7 +20,7 @@ final class RfcommServer: NSObject {
 
     private let trust: TrustStore
     private let pin: PinStore
-    private let askTrust: (String) -> Bool
+    private let askTrust: (String, Cancellation) -> Bool
     private let onStatus: (String) -> Void
 
     private let speakers = AudioEndpoint(direction: .output)
@@ -57,7 +57,7 @@ final class RfcommServer: NSObject {
     init(
         trust: TrustStore,
         pin: PinStore,
-        askTrust: @escaping (String) -> Bool,
+        askTrust: @escaping (String, Cancellation) -> Bool,
         onStatus: @escaping (String) -> Void
     ) {
         self.trust = trust
@@ -248,7 +248,7 @@ final class RfcommServer: NSObject {
             transport: transport,
             trust: trust,
             pin: pin,
-            askTrust: { _ in ask(phone) },
+            askTrust: { _, ended in ask(phone, ended) },
             // Beside the hello timer below, and for each PIN_REQUEST: the session ignores one whose question was
             // already answered.
             schedulePinTimeout: { timedOut in

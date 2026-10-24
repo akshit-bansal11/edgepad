@@ -15,6 +15,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let trustPromptSeconds: TimeInterval = 60
     /// A click already in flight when the question appears must not land on "Trust".
     private static let trustButtonDelaySeconds: TimeInterval = 2
+    /// How often an open trust question checks whether its session ended under it, as Windows polls its dialog.
+    private static let trustWithdrawPollSeconds: TimeInterval = 0.25
     /// How long before Bluetooth is tried again after it failed to start.
     private static let bluetoothRetrySeconds: TimeInterval = 30
 
@@ -64,7 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let server = RfcommServer(
             trust: trust,
             pin: pin,
-            askTrust: { [weak self] in self?.askTrust($0) ?? false },
+            askTrust: { [weak self] in self?.askTrust($0, $1) ?? false },
             onStatus: { [weak self] in self?.setStatus($0) })
         self.server = server
         startServer()
@@ -288,8 +290,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSApp.terminate(nil)
     }
 
-    /// Asks whether to trust `phone`, and waits. Called by the session while it holds the phone's HELLO_ACK.
-    private func askTrust(_ phone: String) -> Bool {
+    /// Asks whether to trust `phone`, and waits. Called by the session while it holds the phone's HELLO_ACK. A
+    /// session that ends meanwhile (`ended`: a hold, a hang-up) is a no too, and takes the question down.
+    private func askTrust(_ phone: String, _ ended: Cancellation) -> Bool {
+        guard !ended.isCancelled else { return false }
         setStatus("Asking whether to trust \(phone)")
         let alert = NSAlert()
         alert.alertStyle = .warning
@@ -311,8 +315,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let enable = Timer(timeInterval: Self.trustButtonDelaySeconds, repeats: false) { _ in
             trustButton.isEnabled = true
         }
+        // Polled on the main run loop rather than called back from end(), which can run inside another dialog's
+        // action (Security holds phones off before its panel opens) where an abort would end the wrong loop. The
+        // window goes at once; the loop is aborted only while it is this alert's, so a panel opened over the
+        // question keeps its own, and the alert's loop ends at the next tick after that panel closes.
+        let withdraw = Timer(timeInterval: Self.trustWithdrawPollSeconds, repeats: true) { _ in
+            guard ended.isCancelled else { return }
+            alert.window.orderOut(nil)
+            if NSApp.modalWindow === alert.window {
+                NSApp.abortModal()
+            }
+        }
         RunLoop.main.add(timeout, forMode: .common)
         RunLoop.main.add(enable, forMode: .common)
+        RunLoop.main.add(withdraw, forMode: .common)
         // Raised by a Bluetooth event while another app is in front, which macOS may not let take the foreground.
         alert.window.level = .floating
         NSApp.activate(ignoringOtherApps: true)
@@ -321,6 +337,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         timeout.invalidate()
         enable.invalidate()
+        withdraw.invalidate()
+        if ended.isCancelled {
+            // A Trust click that raced the hold counts for nothing: the session is gone and reads no answer.
+            Log.write("Withdrew the trust question about \(phone): its session ended")
+            return false
+        }
         let trusted = answer == .alertSecondButtonReturn
         Log.write(trusted ? "The owner trusted \(phone)" : "The owner did not trust \(phone)")
         return trusted

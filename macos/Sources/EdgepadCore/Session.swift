@@ -33,7 +33,8 @@ public final class Session {
     private let transport: Transport
     private let trust: TrustStore
     private let pin: PinStore
-    private let askTrust: (String) -> Bool
+    /// Handed the session's end, so a question still open when a hold or a hang-up ends the session is withdrawn.
+    private let askTrust: (String, Cancellation) -> Bool
     /// Arms the app's timer for one PIN_REQUEST: the closure it is handed ends the session if that question is still
     /// unanswered when called. Session keeps no timers of its own, so a test can fire the timeout by hand.
     private let schedulePinTimeout: (@escaping () -> Void) -> Void
@@ -64,13 +65,15 @@ public final class Session {
     private var lastBrightness: Int?
     /// The label list's subscription, kept so `end()` can let go of it and a dead session is not written to.
     private var macroWatch: MacroWatch?
+    /// Cancelled by `end()`, so the owner's question about this phone is never put, or is withdrawn if it is open.
+    private let ended = Cancellation()
 
     public init(
         address: String,
         transport: Transport,
         trust: TrustStore,
         pin: PinStore,
-        askTrust: @escaping (String) -> Bool,
+        askTrust: @escaping (String, Cancellation) -> Bool,
         schedulePinTimeout: @escaping (@escaping () -> Void) -> Void,
         dispatcher: Dispatcher,
         input: InputSink,
@@ -145,6 +148,7 @@ public final class Session {
     public func end() {
         guard !isEnded else { return }
         isEnded = true
+        ended.cancel()
         input.releaseAll()
         dispatcher.padStatusReply = nil
         macroWatch?.cancel()
@@ -215,8 +219,25 @@ public final class Session {
 
         // HELLO_ACK waits on the owner's answer, and a refusal closes the link without one: the same
         // bytes a phone it did not trust has always been sent, so no phone needs to learn anything new.
+        //
+        // A session ended before the question (a hold for the owner's Security panel, a hang-up) is never asked
+        // about, and one ended while it is open has its answer ignored, a yes included. Both throw rather than
+        // answer no, so the owner is not recorded as having declined a phone they never answered about.
         isAsking = true
-        let admitted = trust.admit(address) { askTrust(address) }
+        let admitted: Bool
+        do {
+            admitted = try trust.admit(address) {
+                try ended.check()
+                let yes = askTrust(address, ended)
+                try ended.check()
+                return yes
+            }
+        } catch {
+            isAsking = false
+            Log.write("Refused \(address): its session ended before the owner answered")
+            end()
+            return
+        }
         isAsking = false
         guard !isEnded else { return }
         guard admitted else {

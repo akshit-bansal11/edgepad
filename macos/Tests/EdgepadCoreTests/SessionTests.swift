@@ -25,6 +25,8 @@ final class SessionTests: XCTestCase {
     private var admissions: [Int] = []
     /// The PIN timeouts the session asked for, one per PIN_REQUEST, fired by hand.
     private var timeouts: [() -> Void] = []
+    /// The session's end, as the owner's question was handed it.
+    private var askedWith: Cancellation?
     /// Seconds on the PIN store's clock, moved by hand.
     private var time: TimeInterval = 0
 
@@ -57,7 +59,10 @@ final class SessionTests: XCTestCase {
             transport: transport,
             trust: trust,
             pin: pins,
-            askTrust: ask,
+            askTrust: { [weak self] address, ended in
+                self?.askedWith = ended
+                return ask(address)
+            },
             schedulePinTimeout: { [weak self] timedOut in self?.timeouts.append(timedOut) },
             dispatcher: dispatcher,
             input: input,
@@ -374,6 +379,43 @@ final class SessionTests: XCTestCase {
 
         XCTAssertEqual(transport.sent.count, 0)
         XCTAssertFalse(session.isLive)
+    }
+
+    func testASessionEndedBeforeItsHelloIsHandledIsNeverAsked() {
+        var asked = 0
+        let session = makeSession(ask: { _ in
+            asked += 1
+            return true
+        })
+
+        session.end()
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+
+        XCTAssertEqual(asked, 0)
+        XCTAssertTrue(admissions.isEmpty)
+        XCTAssertEqual(transport.sent.count, 0)
+        // Not taken as the owner declining it, and not left asking: the next phone is asked as usual.
+        XCTAssertFalse(trust.refuses(phone))
+    }
+
+    func testASessionEndedUnderAnOpenQuestionIsRefusedEvenOnAYes() {
+        let box = SessionBox()
+        var asked = 0
+        let session = makeSession(ask: { _ in
+            asked += 1
+            box.session?.end()
+            return true
+        })
+        box.session = session
+
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+
+        XCTAssertEqual(asked, 1)
+        XCTAssertEqual(askedWith?.isCancelled, true)
+        XCTAssertTrue(admissions.isEmpty)
+        XCTAssertEqual(transport.sent.count, 0)
+        XCTAssertTrue(trust.trustedPhones.isEmpty)
+        XCTAssertFalse(trust.refuses(phone))
     }
 
     func testTheHelloTimeoutWhileTheOwnerIsBeingAskedDoesNotEndTheSession() {

@@ -326,6 +326,17 @@ final class TrustStoreTests: XCTestCase {
         XCTAssertFalse(second)
         XCTAssertEqual(store.trustedPhones, ["(AA:BB:CC:DD:EE:FF)"])
     }
+
+    func testAQuestionWithdrawnByItsSessionEndingRecordsNothingAndAsksTheNextPhone() {
+        let store = TrustStore(path: trustPath)
+
+        XCTAssertThrowsError(try store.admit("(AA:BB:CC:DD:EE:FF)") { throw CancellationError() })
+
+        // Not declined and not still asking: the same phone is asked about again, and trusted on a yes.
+        XCTAssertFalse(store.refuses("(AA:BB:CC:DD:EE:FF)"))
+        XCTAssertTrue(store.trustedPhones.isEmpty)
+        XCTAssertTrue(store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes))
+    }
 }
 
 private func yes() -> Bool {

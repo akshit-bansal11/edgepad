@@ -76,8 +76,9 @@ public final class TrustStore {
     /// True when `address` may connect. A phone not trusted yet is put to the owner through `ask`, and a yes adds
     /// it to the list; for a trusted one `ask` is never called. It blocks for as long as the owner takes, so it runs
     /// outside the lock: the menu reads `trustedPhones` on the very thread that is showing the question, and would
-    /// otherwise wait on its own answer.
-    public func admit(_ address: String, ask: () -> Bool) -> Bool {
+    /// otherwise wait on its own answer. An `ask` that throws (the session ended under the question) rethrows here
+    /// with nothing recorded: the owner never answered, so the phone is not taken as declined.
+    public func admit(_ address: String, ask: () throws -> Bool) rethrows -> Bool {
         var askedIn = 0
         let early: Bool? = locked {
             if let known = decided(address) {
@@ -97,7 +98,14 @@ public final class TrustStore {
             return early
         }
 
-        let yes = ask()
+        let yes: Bool
+        do {
+            yes = try ask()
+        } catch {
+            // Cleared, or every phone after this one would be refused as if the question were still open.
+            locked { asking = false }
+            throw error
+        }
         locked {
             asking = false
             if !yes {
