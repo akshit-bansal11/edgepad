@@ -1260,8 +1260,17 @@ class MainActivity :
             LaptopLink.Cause.UNEXPECTED -> getString(R.string.link_unexpected, closure.detail)
             LaptopLink.Cause.NO_PERMISSION -> getString(R.string.link_no_permission)
             LaptopLink.Cause.NO_ANSWER -> getString(R.string.link_no_answer)
-            LaptopLink.Cause.PIN_LOCKED -> getString(R.string.link_pin_locked, closure.detail)
+            LaptopLink.Cause.PIN_LOCKED -> lockedFor(closure.detail.toIntOrNull() ?: 0)
         }
+
+    /** The lock-out wait as a person reads it: an hour is 60 minutes, not 3600 s. Minutes round up, never down. */
+    private fun lockedFor(seconds: Int): String {
+        if (seconds < SECONDS_PER_MINUTE) {
+            return resources.getQuantityString(R.plurals.link_pin_locked_seconds, seconds, seconds)
+        }
+        val minutes = (seconds + SECONDS_PER_MINUTE - 1) / SECONDS_PER_MINUTE
+        return resources.getQuantityString(R.plurals.link_pin_locked_minutes, minutes, minutes)
+    }
 
     private fun scheduleRetry(delay: Long) {
         handler.removeCallbacks(retry)
@@ -1377,6 +1386,7 @@ class MainActivity :
         /** A link that lasted less than this did not really come back, so it does not earn a fresh set of attempts. */
         const val STABLE_LINK_MS = 5_000L
         const val MILLIS_PER_SECOND = 1_000L
+        const val SECONDS_PER_MINUTE = 60
 
         /**
          * The largest background image accepted. A phone camera's photo is a few megabytes and a panorama
