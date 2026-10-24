@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Edgepad demo</title>
+<style>
+  @font-face { font-family: Lato; font-weight: 400; src: url(../../windows/src/Edgepad/Fonts/Lato-Regular.ttf); }
+  @font-face { font-family: Lato; font-weight: 700; src: url(../../windows/src/Edgepad/Fonts/Lato-Bold.ttf); }
+  @font-face { font-family: Lato; font-weight: 900; src: url(../../windows/src/Edgepad/Fonts/Lato-Black.ttf); }
+  html, body { margin: 0; background: #F2F3F7; overflow: hidden; }
+  canvas { display: block; }
+  #err { position: fixed; left: 0; top: 0; margin: 0; padding: 8px; font: 14px monospace; color: #c00; background: #fff; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<pre id="err" hidden></pre>
+<script>
+  // A script error would otherwise leave a blank frame; show it so a still screenshot says what broke.
+  addEventListener('error', (e) => { const p = document.getElementById('err'); p.hidden = false; p.textContent += `${e.filename}:${e.lineno} ${e.message}\n`; });
+  addEventListener('unhandledrejection', (e) => { const p = document.getElementById('err'); p.hidden = false; p.textContent += `${e.reason}\n`; });
+</script>
+<script src="ui/kit.js"></script>
+<script src="ui/surface.js"></script>
+<script src="ui/screens.js"></script>
+<script src="ui/main.js"></script>
+</body>
+</html>

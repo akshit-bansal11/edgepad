@@ -217,3 +217,51 @@ jobs:
             assets/social-preview.png
             site/public/social-preview.png
           if-no-files-found: error
+
+  # The demo video: voice, then frames, then ffmpeg. Slow, so it renders only when something under
+  # assets/video/ changed in the push (or, on a pull request, against its base). A change anywhere else
+  # skips every step after the check, and the job still passes.
+  video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Did assets/video change?
+        id: changed
+        env:
+          BEFORE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: |
+          # No usable "before" (a new branch is all zeros, or the commit is not here): treat as changed.
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = 0000000000000000000000000000000000000000 ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          elif git diff --quiet "$BEFORE" HEAD -- assets/video; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        if: steps.changed.outputs.changed == 'true'
+        with:
+          node-version: '24'
+      - name: Install ffmpeg and edge-tts
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg python3-venv
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install edge-tts==7.3.1
+      - name: Voice
+        if: steps.changed.outputs.changed == 'true'
+        run: '"$RUNNER_TEMP/venv/bin/python" assets/video/voice.py'
+      - name: Render
+        if: steps.changed.outputs.changed == 'true'
+        run: node assets/video/render.mjs
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: steps.changed.outputs.changed == 'true'
+        with:
+          name: edgepad-video
+          path: assets/video/out/
+          if-no-files-found: error

@@ -46,3 +46,6 @@ brag-output/
 
 # Written by scripts/notices.sh in CI and the release job, embedded in the exe.
 windows/src/Edgepad/THIRD-PARTY-NOTICES.txt
+
+# The demo video, rendered by CI (assets/video/README.md).
+/assets/video/out/
