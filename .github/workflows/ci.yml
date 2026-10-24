@@ -13,6 +13,11 @@ on:
 permissions:
   contents: read
 
+# Avalonia's build tasks report usage to its makers unless told not to. Nothing about this repo's builds
+# is theirs to collect.
+env:
+  AVALONIA_TELEMETRY_OPTOUT: "1"
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
