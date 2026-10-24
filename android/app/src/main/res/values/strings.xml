@@ -45,7 +45,7 @@
     <item quantity="one">Wrong PIN. %1$d attempt left</item>
     <item quantity="other">Wrong PIN. %1$d attempts left</item>
   </plurals>
-  <string name="pin_entered">%1$d of %2$d digits entered</string>
+  <string name="pin_entered">Digits entered: %1$d of %2$d</string>
   <string name="pin_delete">Delete</string>
   <string name="pin_cancel">Cancel</string>
 
