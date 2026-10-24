@@ -244,13 +244,18 @@ jobs:
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
           subject-path: 'dist/Edgepad-*'
-      # A tagged run takes that version's section of CHANGELOG.md; a hand-run draft takes Unreleased,
-      # because a draft is a build of work in progress and has no section of its own yet.
+      # A tagged run takes that version's section of CHANGELOG.md. A hand-run draft takes the section of
+      # the version it was given when the changelog already has one (a release candidate: the work moved
+      # out of Unreleased before the tag), and Unreleased otherwise, as a build of work in progress.
       - name: Take the notes from the changelog
         env:
           SECTION: ${{ github.event_name == 'workflow_dispatch' && 'Unreleased' || '' }}
+          DRAFT_VERSION: ${{ inputs.version }}
         run: |
           section="${SECTION:-${GITHUB_REF_NAME#v}}"
+          if [ -n "$SECTION" ] && grep -q "^## \[$DRAFT_VERSION\]" CHANGELOG.md; then
+            section="$DRAFT_VERSION"
+          fi
           awk -v v="$section" '
             index($0, "## [" v "]") == 1 { on = 1; next }
             on && index($0, "## [") == 1 { exit }
