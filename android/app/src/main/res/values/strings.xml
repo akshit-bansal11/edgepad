@@ -155,7 +155,6 @@
   <string name="orientation_upright">Upright</string>
   <string name="orientation_sideways">Sideways</string>
   <string name="dial_preview_description">Preview of a corner dial at the chosen size</string>
-  <string name="macro_labels">Show macro labels</string>
   <string name="keyboard_text_size">Keyboard text size</string>
   <string name="control_color">Control colour</string>
   <string name="control_color_auto">Auto</string>
