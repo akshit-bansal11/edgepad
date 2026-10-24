@@ -64,14 +64,14 @@ public sealed class UinputTests
     [Fact]
     public void IoctlNumbersMatchTheHeaderMacros()
     {
-        Assert.Equal(Ioc(0, 1, 0), Uinput.DevCreate);
-        Assert.Equal(Ioc(0, 2, 0), Uinput.DevDestroy);
-        Assert.Equal(Ioc(1, 3, 92), Uinput.DevSetup);
-        Assert.Equal(Ioc(1, 100, 4), Uinput.SetEvBit);
-        Assert.Equal(Ioc(1, 101, 4), Uinput.SetKeyBit);
-        Assert.Equal(Ioc(1, 102, 4), Uinput.SetRelBit);
-        Assert.Equal(Ioc(1, 103, 4), Uinput.SetAbsBit);
-        Assert.Equal(Ioc(1, 4, 28), Uinput.AbsSetup);
+        Assert.Equal(Uinput.DevCreate, Ioc(0, 1, 0));
+        Assert.Equal(Uinput.DevDestroy, Ioc(0, 2, 0));
+        Assert.Equal(Uinput.DevSetup, Ioc(1, 3, 92));
+        Assert.Equal(Uinput.SetEvBit, Ioc(1, 100, 4));
+        Assert.Equal(Uinput.SetKeyBit, Ioc(1, 101, 4));
+        Assert.Equal(Uinput.SetRelBit, Ioc(1, 102, 4));
+        Assert.Equal(Uinput.SetAbsBit, Ioc(1, 103, 4));
+        Assert.Equal(Uinput.AbsSetup, Ioc(1, 4, 28));
         Assert.Equal(0x401C5504u, Uinput.AbsSetup);
         Assert.Equal(0x405C5503u, Uinput.DevSetup);
         Assert.Equal(0x40045564u, Uinput.SetEvBit);

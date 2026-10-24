@@ -318,10 +318,10 @@ export function ProductSections() {
                 <C>install.sh</C> only copies files and loads a module; it downloads
                 nothing. It puts <C>edgepad</C> in <C>/usr/local/bin</C>, the launcher
                 entry and the icon under <C>/usr/local/share</C>, a udev rule in{" "}
-                <C>/etc/udev/rules.d</C> and <C>uinput</C> in{" "}
-                <C>/etc/modules-load.d</C>, then runs <C>modprobe uinput</C>. Another
-                prefix goes after the command, and <C>--uninstall</C> removes it all and
-                leaves your settings in <C>~/.config/edgepad</C>.
+                <C>/etc/udev/rules.d</C> and <C>uinput</C> in <C>/etc/modules-load.d</C>
+                , then runs <C>modprobe uinput</C>. Another prefix goes after the
+                command, and <C>--uninstall</C> removes it all and leaves your settings
+                in <C>~/.config/edgepad</C>.
               </p>
               <p className="mb-3">
                 The app is a self-contained single file, so .NET need not be installed.
@@ -567,9 +567,9 @@ sudo ./install.sh`}
         <Sub>Security levels and the PIN</Sub>
         <P>
           Set from the laptop&apos;s tray or menu-bar menu under{" "}
-          <strong>Security…</strong>, never from the phone. Level 1, the default, is
-          the Trust this phone? question and nothing else. Level 2 also asks each phone
-          for a six-digit PIN the first time it connects, and level 3 asks on every
+          <strong>Security…</strong>, never from the phone. Level 1, the default, is the
+          Trust this phone? question and nothing else. Level 2 also asks each phone for
+          a six-digit PIN the first time it connects, and level 3 asks on every
           connection.
         </P>
         <P>

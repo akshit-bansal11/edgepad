@@ -13,11 +13,11 @@ public sealed class TrustPromptTests
 
     [Fact]
     public void AYesTrusts() =>
-        Assert.True(new TrustPrompt((_, _) => Task.FromResult(true), Short).Ask("AA:AA:AA:AA:AA:AA"));
+        Assert.True(new TrustPrompt((_, _) => Task.FromResult(true), Short).Ask("AA:AA:AA:AA:AA:AA", TestContext.Current.CancellationToken));
 
     [Fact]
     public void ANoRefuses() =>
-        Assert.False(new TrustPrompt((_, _) => Task.FromResult(false), Short).Ask("AA:AA:AA:AA:AA:AA"));
+        Assert.False(new TrustPrompt((_, _) => Task.FromResult(false), Short).Ask("AA:AA:AA:AA:AA:AA", TestContext.Current.CancellationToken));
 
     [Fact]
     public void NoAnswerInTimeRefusesAndWithdrawsTheQuestion()
@@ -32,7 +32,7 @@ public sealed class TrustPromptTests
             },
             Short);
 
-        Assert.False(prompt.Ask("AA:AA:AA:AA:AA:AA"));
+        Assert.False(prompt.Ask("AA:AA:AA:AA:AA:AA", TestContext.Current.CancellationToken));
         Assert.True(seen.IsCancellationRequested);
     }
 
@@ -42,7 +42,7 @@ public sealed class TrustPromptTests
         var late = new TaskCompletionSource<bool>();
         var prompt = new TrustPrompt((_, _) => late.Task, Short);
 
-        Assert.False(prompt.Ask("AA:AA:AA:AA:AA:AA"));
+        Assert.False(prompt.Ask("AA:AA:AA:AA:AA:AA", TestContext.Current.CancellationToken));
         late.SetResult(true);
     }
 
@@ -88,11 +88,11 @@ public sealed class TrustPromptTests
 
     [Fact]
     public void AQuestionThatThrowsRefuses() =>
-        Assert.False(new TrustPrompt((_, _) => throw new InvalidOperationException("no display"), Short).Ask("AA:AA:AA:AA:AA:AA"));
+        Assert.False(new TrustPrompt((_, _) => throw new InvalidOperationException("no display"), Short).Ask("AA:AA:AA:AA:AA:AA", TestContext.Current.CancellationToken));
 
     [Fact]
     public void AQuestionThatFailsLaterRefuses() =>
-        Assert.False(new TrustPrompt((_, _) => Task.FromException<bool>(new InvalidOperationException("window failed")), Short).Ask("AA:AA:AA:AA:AA:AA"));
+        Assert.False(new TrustPrompt((_, _) => Task.FromException<bool>(new InvalidOperationException("window failed")), Short).Ask("AA:AA:AA:AA:AA:AA", TestContext.Current.CancellationToken));
 
     [Fact]
     public void TheDefaultsAreTheDocumentedOnes()

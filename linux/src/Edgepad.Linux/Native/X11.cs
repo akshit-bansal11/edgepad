@@ -41,7 +41,7 @@ internal static partial class X11
         {
             if (XShapeQueryExtension(display, out _, out _) == 0
                 || XShapeQueryVersion(display, out var major, out var minor) == 0
-                || (major, minor) is (< 1, _) or (1, < 1))
+                || major < 1 || (major == 1 && minor < 1))
             {
                 return false;
             }

@@ -806,12 +806,12 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
         <ul className="text-dim max-w-[70ch] list-disc space-y-2 pl-5 text-[0.9375rem] leading-relaxed">
           <li>
             The trusted phones&apos; Bluetooth addresses sit in plain text in{" "}
-            <C>trusted-phone.txt</C>: under <C>%APPDATA%\Edgepad</C> on Windows,
-            under <C>~/Library/Application Support/Edgepad</C> on a Mac and under{" "}
-            <C>~/.config/edgepad</C> (or <C>$XDG_CONFIG_HOME/edgepad</C>) on Linux,
-            the last two readable by their owner only. Anyone who can write that file
-            can change which phones are trusted — and that person can already run
-            programs as you.
+            <C>trusted-phone.txt</C>: under <C>%APPDATA%\Edgepad</C> on Windows, under{" "}
+            <C>~/Library/Application Support/Edgepad</C> on a Mac and under{" "}
+            <C>~/.config/edgepad</C> (or <C>$XDG_CONFIG_HOME/edgepad</C>) on Linux, the
+            last two readable by their owner only. Anyone who can write that file can
+            change which phones are trusted — and that person can already run programs
+            as you.
           </li>
           <li>
             <C>Edgepad.exe</C> is not code-signed, so SmartScreen warns on first run.

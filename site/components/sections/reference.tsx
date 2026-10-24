@@ -444,10 +444,10 @@ export function ReferenceSections() {
             Avalonia.Desktop and Avalonia.Themes.Fluent (all 12.1.4, for the tray and
             the windows, MIT) and Tmds.DBus.Protocol (0.94.1, for D-Bus, which BlueZ
             speaks, MIT). Avalonia in turn brings SkiaSharp (3.119.4) and HarfBuzzSharp
-            (8.3.1.3) with their Linux native libraries, all MIT, which are bundled
-            into the app; those packages&apos; own THIRD-PARTY-NOTICES.txt lists the
-            code compiled into the native libraries (Skia, HarfBuzz, FreeType, libpng,
-            zlib and others) under its own licences. Each licence was read from the
+            (8.3.1.3) with their Linux native libraries, all MIT, which are bundled into
+            the app; those packages&apos; own THIRD-PARTY-NOTICES.txt lists the code
+            compiled into the native libraries (Skia, HarfBuzz, FreeType, libpng, zlib
+            and others) under its own licences. Each licence was read from the
             package&apos;s own nuspec.
           </li>
           <li>
