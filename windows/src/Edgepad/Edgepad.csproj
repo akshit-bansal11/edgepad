@@ -39,6 +39,9 @@
     <EmbeddedResource Include="Assets\tray-light.ico" LogicalName="Edgepad.Assets.tray-light.ico" />
     <!-- Ui/Icons draws Lucide's paths, and Lucide's ISC licence asks the same of them. -->
     <EmbeddedResource Include="Ui\Lucide-LICENSE.txt" LogicalName="Edgepad.Ui.Lucide-LICENSE.txt" />
+    <!-- The notices of every package and of the .NET runtime that the self-contained exe bundles, written by
+         scripts/notices.sh in the release job just before the publish. Not committed: it follows the lock file. -->
+    <EmbeddedResource Include="THIRD-PARTY-NOTICES.txt" LogicalName="Edgepad.THIRD-PARTY-NOTICES.txt" Condition="Exists('THIRD-PARTY-NOTICES.txt')" />
   </ItemGroup>
 
   <ItemGroup>

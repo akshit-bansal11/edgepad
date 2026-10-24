@@ -106,6 +106,12 @@ jobs:
           global-json-file: global.json
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only windows
+      # As the release job does it, so a notices file that cannot be written fails here first.
+      - name: Write the licence notices
+        shell: bash
+        run: |
+          dotnet restore windows/src/Edgepad/Edgepad.csproj -r win-x64 --locked-mode
+          sh scripts/notices.sh windows/src/Edgepad/packages.lock.json win-x64 windows/src/Edgepad/THIRD-PARTY-NOTICES.txt
       # Self-contained single file: runs on a laptop with no .NET installed.
       - name: Publish exe
         run: >
@@ -114,7 +120,9 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: edgepad-windows
-          path: publish/Edgepad.exe
+          path: |
+            publish/Edgepad.exe
+            windows/src/Edgepad/THIRD-PARTY-NOTICES.txt
           if-no-files-found: error
 
   # Produces the packages.lock.json files the locked-mode restore needs. GitHub runs a workflow_dispatch only
