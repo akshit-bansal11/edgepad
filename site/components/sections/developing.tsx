@@ -197,8 +197,8 @@ export function DevelopingSections({ protocolVersion }: { protocolVersion: numbe
             <p className="text-base font-bold">Laptop app</p>
             <ul className="text-dim mt-3 space-y-2 text-[0.9375rem] leading-relaxed">
               <li>
-                The .NET SDK version pinned in <C>windows/global.json</C>: 10.0.401,
-                with <C>rollForward: latestFeature</C>.
+                The .NET SDK version pinned in <C>global.json</C>: 10.0.401, with
+                <C>rollForward: latestFeature</C>.
               </li>
               <li>
                 Windows 10 version 2004 or later, because the app builds against the

@@ -17,7 +17,7 @@ cd edgepad
 git remote add upstream https://github.com/akshit-bansal11/edgepad.git
 ```
 
-You need JDK 17 and the Android SDK (platform 37, build tools 37.0.0; the Gradle wrapper fetches Gradle itself) for the phone app, and the .NET SDK version pinned in `windows/global.json` (10.0.401, roll-forward to the latest feature band) on Windows 10 version 2004 or later for the Windows laptop app. The Mac app needs a Mac with Xcode (Swift 5.9 or later) and has no other dependency; its gate runs only there. Any half can be worked on alone: `pwsh scripts/check.ps1 -Only android`, `-Only windows` or `-Only macos` runs just that gate.
+You need JDK 17 and the Android SDK (platform 37, build tools 37.0.0; the Gradle wrapper fetches Gradle itself) for the phone app, and the .NET SDK version pinned in the root `global.json` (10.0.401, roll-forward to the latest feature band) on Windows 10 version 2004 or later for the Windows laptop app. The Mac app needs a Mac with Xcode (Swift 5.9 or later) and has no other dependency; its gate runs only there. Any half can be worked on alone: `pwsh scripts/check.ps1 -Only android`, `-Only windows` or `-Only macos` runs just that gate.
 
 Build each half directly, without the gate, while iterating:
 
