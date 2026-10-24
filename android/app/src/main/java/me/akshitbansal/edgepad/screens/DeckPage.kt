@@ -66,6 +66,8 @@ class DeckPage(
     private val deck = Deck(ui, holder)
 
     init {
+        // Where a moved tile landed is spoken from here; see [moved].
+        edit.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
         // The grid is sized from the room the page really has, which is known only once the window's insets
         // have reached it, rather than from the display's size less a guess at the system bars.
         view.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
@@ -99,6 +101,7 @@ class DeckPage(
     private fun toggleEditing() {
         editing = !editing
         edit.text = ui.string(if (editing) R.string.macros_edit_done else R.string.macros_edit)
+        edit.stateDescription = null
         render()
     }
 
@@ -155,8 +158,11 @@ class DeckPage(
         shown = DeckLayout.move(shown, from, to)
         settings.setDeckOrder(deckId, shown.map { keys[it] })
         draw()
-        // The grid was rebuilt, so the screen reader lost its place: put it back on the tile that moved.
-        deck.focus(tiles[shown[to]].tag)
+        // The rebuilt grid took the screen reader's place with it, and taking its focus back is not the app's
+        // to do. It is told where the tile went instead, through the chip that outlives every rebuild. Cleared
+        // first, so the same place twice running is still a change, and is read out again.
+        edit.stateDescription = null
+        edit.stateDescription = ui.string(R.string.macros_moved, to + 1, shown.size)
     }
 
     /** The height the deck is drawn at: half the room while editing, so the picker below is not a scroll away. */

@@ -129,15 +129,6 @@ class Deck(
         }
     }
 
-    /**
-     * Puts accessibility focus on the tile for [tag], once it is attached to the rebuilt grid. Through the
-     * public action rather than `requestAccessibilityFocus()`, which the SDK hides from apps.
-     */
-    fun focus(tag: Int) {
-        val tile = buttons[tag] ?: return
-        tile.post { tile.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null) }
-    }
-
     /** Takes every tile away, for an owner that has an empty state to put in the holder instead. */
     fun clear() {
         holder.removeAllViews()
