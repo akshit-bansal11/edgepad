@@ -159,6 +159,12 @@ async function main() {
     const page = await openPage(cdp, port, aspect);
     await renderVideo(page, aspect);
     if (aspect === '16x9') {
+      // The website's copy: the same picture at a quality-based rate, small enough to keep in the repo.
+      await ffmpeg([
+        '-nostdin', '-i', join(OUT, 'edgepad-demo-16x9.mp4'), '-c:v', 'libx264', '-crf', '23', '-preset', 'slow',
+        '-pix_fmt', 'yuv420p', '-c:a', 'copy', '-movflags', '+faststart', join(OUT, 'edgepad-demo.mp4'),
+      ]).done;
+      console.log(`edgepad-demo.mp4: ${statSync(join(OUT, 'edgepad-demo.mp4')).size} bytes`);
       // A good frame: the trackpad scene a few seconds in, with a finger mid-glide.
       const line = timing.lines.find((l) => l.id === 'trackpad');
       writeFileSync(join(OUT, 'edgepad-demo-poster.jpg'), await page.frame(line.start + 2.4));

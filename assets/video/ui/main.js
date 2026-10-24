@@ -8,7 +8,7 @@
   // Each aspect is laid out on its own: the headline box, where the phone stands, and the caption.
   const LAYOUT = {
     '16x9': { W: 1920, H: 1080, head: { x: 130, y: 250, w: 700 }, hs: 80, ss: 34, phone: { cx: 1330, cy: 500, sp: 1.05, sl: 1.15 }, cap: { y: 1010, size: 38, w: 1500 } },
-    '9x16': { W: 1080, H: 1920, head: { x: 80, y: 120, w: 920 }, hs: 84, ss: 38, phone: { cx: 540, cy: 1030, sp: 1.3, sl: 1.08 }, cap: { y: 1740, size: 40, w: 920 } },
+    '9x16': { W: 1080, H: 1920, head: { x: 80, y: 120, w: 920 }, hs: 84, ss: 38, phone: { cx: 540, cy: 1010, sp: 1.4, sl: 1.08 }, cap: { y: 1740, size: 40, w: 920 } },
     '4x5': { W: 1080, H: 1350, head: { x: 80, y: 70, w: 920 }, hs: 66, ss: 30, phone: { cx: 540, cy: 765, sp: 1.0, sl: 1.1 }, cap: { y: 1262, size: 36, w: 920 } },
     gif: { W: 880, H: 660, phone: { cx: 440, cy: 464, sp: 1.0, sl: 1.0 } },
   }[aspect];
