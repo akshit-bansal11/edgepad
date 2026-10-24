@@ -79,6 +79,7 @@ public sealed class DispatcherTests
     [InlineData((byte)ActionId.CaptureRegion, "Run CaptureRegion")]
     [InlineData((byte)ActionId.CaptureScreen, "Run CaptureScreen")]
     [InlineData((byte)ActionId.CaptureRecord, "Run CaptureRecord")]
+    [InlineData((byte)ActionId.CaptureCancel, "Run CaptureCancel")]
     public void ACaptureActionReachesThePlatformAsItself(byte id, string expected)
     {
         dispatcher.Handle(new RunAction(id));

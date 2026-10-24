@@ -196,6 +196,8 @@ const ACTION_DOCS: Record<string, string> = {
     "Takes a screenshot of the whole screen: PrtScn on Windows, Cmd+Shift+3 on a Mac, Print on Linux.",
   CAPTURE_RECORD:
     "Starts screen recording: Win+Shift+R on Windows, which needs a recent Snipping Tool and is unverified, Cmd+Shift+5 on a Mac, which opens the capture toolbar, and on Linux the desktop's own shortcut, unverified (Ctrl+Shift+Alt+R on GNOME, Meta+Alt+R on KDE).",
+  CAPTURE_CANCEL:
+    "Sent when the phone leaves its capture screen. Presses Escape on the laptop, only while a region or recording overlay it opened may still be open (8 seconds).",
   ANNOTATE_BEGIN:
     "Shows the annotation overlay on the laptop's primary display. PEN and the tool actions are dropped until it is shown or a signing surface is open.",
   ANNOTATE_END:

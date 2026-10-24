@@ -66,6 +66,12 @@ internal enum ActionId : byte
     CaptureRecord = 54,
 
     /// <summary>
+    /// The phone left its capture screen: dismiss a capture overlay this laptop opened, only if one may still be
+    /// open. Within protocol 5, which is unreleased, so it needed no version.
+    /// </summary>
+    CaptureCancel = 55,
+
+    /// <summary>
     /// The first of 32 macro slots, 64..95; slot n is <c>MacroBase + n</c>. The phone sends the index and
     /// never what it launches — this laptop's own list decides that, which is the whole security model.
     /// A laptop too old to know the block drops the id and counts it, so this needed no protocol version.

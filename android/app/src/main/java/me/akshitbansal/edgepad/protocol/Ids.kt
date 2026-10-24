@@ -67,6 +67,12 @@ enum class ActionId(
     CAPTURE_RECORD(54),
 
     /**
+     * The phone left its capture screen: the laptop dismisses a capture overlay it opened, only if one may still
+     * be open. Sent within protocol 5, which is unreleased, so it needed no version.
+     */
+    CAPTURE_CANCEL(55),
+
+    /**
      * The first of 32 macro slots, 64..95; slot n is `MACRO_BASE + n`. The phone sends the index and never
      * what it launches — the laptop's own list decides that, which is the whole security model here.
      * A laptop too old to know the block drops the id and counts it, so this needed no protocol version.

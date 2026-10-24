@@ -65,6 +65,8 @@ ACTION 51 SIGN_SAVE
 ACTION 52 CAPTURE_REGION
 ACTION 53 CAPTURE_SCREEN
 ACTION 54 CAPTURE_RECORD
+# The phone left its capture screen: the laptop dismisses a capture overlay it opened, only if one may still be open.
+ACTION 55 CAPTURE_CANCEL
 # The first of the 32 macro slots; slot n is MACRO_BASE + n. A laptop older than the macros feature drops an
 # unknown action id rather than erroring, which is why the block needs no new frame type and no version bump.
 ACTION 64 MACRO_BASE
