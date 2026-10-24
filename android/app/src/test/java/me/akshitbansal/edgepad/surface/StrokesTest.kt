@@ -19,7 +19,8 @@ class StrokesTest {
     fun aFreehandStrokeKeepsEveryPoint() {
         val strokes = Strokes()
         strokes.drag(0, 0, 1, 1, 2, 2, 3, 3)
-        assertEquals(4, strokes.strokes.single().points.size)
+        val stroke = strokes.strokes.single()
+        assertEquals(4, stroke.points.size)
         assertNull(strokes.active)
     }
 
@@ -55,7 +56,8 @@ class StrokesTest {
         strokes.drag(0, 0, 1, 1)
         strokes.drag(2, 2, 3, 3)
         assertTrue(strokes.undo())
-        assertEquals(WirePoint(0, 0), strokes.strokes.single().points.first())
+        val left = strokes.strokes.single()
+        assertEquals(WirePoint(0, 0), left.points.first())
         assertTrue(strokes.undo())
         assertFalse(strokes.undo())
     }

@@ -30,7 +30,7 @@ if ($Only -in 'all', 'android') {
     try {
         $gradle = if ($IsWindows) { '.\gradlew.bat' } else { './gradlew' }
         $format = if ($Ci) { 'ktlintCheck' } else { 'ktlintFormat' }
-        Invoke-Step "android: $format, lint, unit tests" { & $gradle --no-daemon $format lint testDebugUnitTest }
+        Invoke-Step "android: $format, lint, unit tests" { & $gradle --no-daemon --continue $format lint testDebugUnitTest }
     }
     finally { Pop-Location }
 }
