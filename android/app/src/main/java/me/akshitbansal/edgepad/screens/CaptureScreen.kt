@@ -51,12 +51,23 @@ class CaptureScreen(
                     send,
                     onOpenSettings = {},
                     onOpenControls = {},
-                    onOpenMacros = {},
                     trackpadOnly = true,
                 ),
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f),
             )
             // Edge-to-edge is enforced: keep the bar and the pad clear of the system bars and the cutout.
+            // Leaving the screen, by any route, closes a capture overlay the laptop may still have open. A view hook
+            // and not the caller's back handler, so every way out is covered; the laptop presses Escape only if
+            // an overlay is pending, so a stray detach costs nothing.
+            addOnAttachStateChangeListener(
+                object : View.OnAttachStateChangeListener {
+                    override fun onViewAttachedToWindow(v: View) = Unit
+
+                    override fun onViewDetachedFromWindow(v: View) {
+                        if (available) send(ActionId.CAPTURE_CANCEL.frame())
+                    }
+                },
+            )
             setOnApplyWindowInsetsListener { page, insets ->
                 val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
                 page.setPadding(bars.left, bars.top, bars.right, bars.bottom)

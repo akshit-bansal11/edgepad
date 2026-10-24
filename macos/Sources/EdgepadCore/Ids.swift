@@ -46,6 +46,8 @@ public enum ActionId: UInt8, CaseIterable {
     case captureRegion = 52
     case captureScreen = 53
     case captureRecord = 54
+    /// The phone left its capture screen: dismiss a capture overlay this computer opened, only if one may still be open.
+    case captureCancel = 55
     /// The first of 32 macro slots, 64 to 95; slot n is `macroBase + n`. The phone sends the index and never
     /// what it launches: this computer's own list decides that, which is the whole security model.
     case macroBase = 64

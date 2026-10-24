@@ -9,6 +9,7 @@ extension MacKey {
     public static let shift = MacKey(0x38)
     public static let control = MacKey(0x3B)
     public static let option = MacKey(0x3A)
+    public static let escape = MacKey(0x35)
     public static let tab = MacKey(0x30)
     public static let space = MacKey(0x31)
     public static let q = MacKey(0x0C)

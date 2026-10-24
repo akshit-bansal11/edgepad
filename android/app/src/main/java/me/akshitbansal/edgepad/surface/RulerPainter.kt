@@ -35,6 +35,7 @@ class RulerPainter(
             textAlign = Paint.Align.CENTER
             letterSpacing = LABEL_TRACKING
         }
+    private val split = FloatArray(2)
     private val valuePaint =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = Type.black
@@ -120,13 +121,39 @@ class RulerPainter(
 
         // The label and the number sit inside the corner, on its normal, clear of the longest mark the
         // height allows, so they do not move when the dial arms and its marks grow.
-        val depth = dp(RulerGeometry.reach(height) + LABEL_GAP_DP)
-        val ax = pt[0] + pt[2] * depth
-        val ay = pt[1] + pt[3] * depth
         val labelSize = sp(LABEL_SP)
         val valueSize = sp(if (armed) ARMED_VALUE_SP else VALUE_SP)
         val block = if (number.isEmpty()) labelSize else labelSize + dp(GAP_DP) + valueSize
-        val top = ay - block / 2
+        val ax: Float
+        val ay: Float
+        var span = block
+        var align = Paint.Align.CENTER
+        if (isSplit(perimeter, centre)) {
+            // One half of a split corner. Its indicator is on a straight edge, so the text goes in from that edge
+            // and, on a side edge, slides away from the bend ([SplitLabel]). Laid out for the held size, so
+            // arming moves nothing.
+            val heldBlock = labelSize + dp(GAP_DP) + sp(ARMED_VALUE_SP)
+            span = heldBlock
+            SplitLabel.anchor(
+                perimeter,
+                centre,
+                dp(RulerGeometry.reach(height) + SPLIT_LABEL_GAP_DP),
+                span,
+                dp(SPLIT_SEPARATION_DP),
+                pt,
+                split,
+            )
+            ax = split[0]
+            ay = split[1]
+            if (SplitLabel.isSideEdge(pt[2], pt[3])) align = if (pt[2] > 0) Paint.Align.LEFT else Paint.Align.RIGHT
+        } else {
+            val depth = dp(RulerGeometry.reach(height) + LABEL_GAP_DP)
+            ax = pt[0] + pt[2] * depth
+            ay = pt[1] + pt[3] * depth
+        }
+        labelPaint.textAlign = align
+        valuePaint.textAlign = align
+        val top = ay - span / 2
         labelPaint.textSize = labelSize
         labelPaint.color = dim
         canvas.drawText(label, ax, top + labelSize * BASELINE, labelPaint)
@@ -136,6 +163,16 @@ class RulerPainter(
             canvas.drawText(number, ax, top + labelSize + dp(GAP_DP) + valueSize * BASELINE, valuePaint)
         }
     }
+
+    /**
+     * Whether [centre] is one half of a split corner. The control surface puts a half exactly half the ruler
+     * out from the bend along its edge, a place a whole dial never has (it sits mid-bend, or mid-edge, far out
+     * of that). Read off the position so the painter's signature, which two screens share, stays as it is.
+     */
+    private fun isSplit(
+        perimeter: Perimeter,
+        centre: Float,
+    ): Boolean = abs(perimeter.fromBend(centre) - dp(halfLengthDp) / 2f) < SPLIT_MATCH_PX
 
     /** [color] at [opacity] of its own alpha. */
     private fun tint(
@@ -186,6 +223,11 @@ class RulerPainter(
         const val ARMED_GLOW_OPACITY = 0.28f
 
         const val LABEL_GAP_DP = 40f
+
+        /** A split half's text starts this far past its longest mark, and the two halves of a corner this far apart. */
+        const val SPLIT_LABEL_GAP_DP = 6f
+        const val SPLIT_SEPARATION_DP = 2f
+        const val SPLIT_MATCH_PX = 0.5f
         const val LABEL_SP = 11f
 
         /** The one place 2.0 spaces letters: a three-letter abbreviation in capitals reads better opened up. */

@@ -419,7 +419,20 @@ final class DispatcherTests: XCTestCase {
         dispatcher.handle(.runAction(id: ActionId.captureScreen.rawValue))
         dispatcher.handle(.runAction(id: ActionId.captureRecord.rawValue))
 
-        XCTAssertEqual(input.calls, ["chord 55,56,21", "chord 55,56,20", "chord 55,56,23"])
+        // The region crosshair may still be open when Full screen arrives, so Escape (53) closes it first.
+        XCTAssertEqual(input.calls, ["chord 55,56,21", "chord 53", "chord 55,56,20", "chord 55,56,23"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testCaptureCancelPressesEscapeOnlyWhileAnOverlayIsPending() {
+        dispatcher.handle(.runAction(id: ActionId.captureCancel.rawValue))
+        XCTAssertEqual(input.calls, [])
+
+        dispatcher.handle(.runAction(id: ActionId.captureRegion.rawValue))
+        dispatcher.handle(.runAction(id: ActionId.captureCancel.rawValue))
+        dispatcher.handle(.runAction(id: ActionId.captureCancel.rawValue))
+
+        XCTAssertEqual(input.calls, ["chord 55,56,21", "chord 53"])
         XCTAssertEqual(dispatcher.dropped, 0)
     }
 

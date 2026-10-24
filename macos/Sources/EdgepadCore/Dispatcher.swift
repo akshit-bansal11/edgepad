@@ -1,3 +1,5 @@
+import Foundation
+
 /// Turns frames from the trusted phone into input and control changes. Every id is checked against the
 /// protocol's own enums: an id this Mac does not know is dropped and counted, never guessed at. The phone
 /// can name an action; only this table decides what it does.
@@ -14,6 +16,9 @@ public final class Dispatcher {
 
     /// Zoom arrives as wheel units; a Mac zooms by key chord, so the units add up until a whole step is owed.
     private var zoomSum = 0
+
+    /// Whether a capture crosshair or toolbar may still be open, so the next capture action can close it first.
+    private var capture = CaptureOverlay()
 
     /// Frames that asked for something unknown, out of range, or unavailable on this Mac.
     public private(set) var dropped = 0
@@ -181,18 +186,35 @@ public final class Dispatcher {
             return stepBrightness(-Dispatcher.brightnessStep, fallback: .brightnessDown)
         case .captureRegion:
             // The system's own screenshot tools, which is why there is no capture code of ours to maintain.
+            dismissCapture(opensOverlay: true)
             input.chord([.command, .shift, .four])
         case .captureScreen:
+            // Takes the shot at once and leaves no overlay open.
+            dismissCapture(opensOverlay: false)
             input.chord([.command, .shift, .three])
         case .captureRecord:
-            // Command+Shift+5 opens the capture toolbar, where recording is one click.
+            // Command+Shift+5 opens the capture toolbar, where recording is one click. Escape closes the toolbar,
+            // but not a recording that has started: that is stopped from the menu bar, which we do not drive.
+            dismissCapture(opensOverlay: true)
             input.chord([.command, .shift, .five])
+        case .captureCancel:
+            if capture.cancel() {
+                input.chord([.escape])
+            }
         case .padAttach, .padDetach:
             // Answered even though a Mac cannot offer a controller: the phone draws a different screen
             // depending on the token, and one that heard nothing could not say why.
             padStatusReply?(PadStatus.noDriver.rawValue)
         }
         return true
+    }
+
+    /// Presses Escape and waits a moment when the last capture action may have left an overlay open.
+    private func dismissCapture(opensOverlay: Bool) {
+        if capture.begin(opensOverlay: opensOverlay) {
+            input.chord([.escape])
+            Thread.sleep(forTimeInterval: CaptureOverlay.dismissWait)
+        }
     }
 
     /// Steps the panel from its own level when this Mac will say it; otherwise falls back to the brightness

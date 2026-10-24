@@ -25,6 +25,8 @@ internal sealed class WindowsPlatform(
 {
     private const int BrightnessStep = 10;
 
+    private readonly CaptureOverlay capture = new(() => Environment.TickCount64);
+
     public void Move(int dx, int dy) => input.Move(dx, dy);
 
     public void Button(byte id, bool down) => input.Button(id, down);
@@ -127,11 +129,34 @@ internal sealed class WindowsPlatform(
             case ActionId.CaptureRegion:
             case ActionId.CaptureScreen:
             case ActionId.CaptureRecord:
+                // Region and Record leave a selection overlay open until a drag or Escape. PrtScn is left out: it
+                // opens the Snipping Tool overlay only where that setting is on, and a guess here would send an
+                // Escape into the person's app on every other machine.
+                if (capture.Begin(id != ActionId.CaptureScreen))
+                {
+                    Dismiss();
+                }
+
                 input.Chord(CaptureChord(id));
+                return true;
+            case ActionId.CaptureCancel:
+                // A recording that has started is not stopped: Escape does not stop it on Windows, and a second
+                // Win+Shift+R would risk starting another. Only a selection still waiting is dismissed.
+                if (capture.Cancel())
+                {
+                    input.Chord(Keys.Escape);
+                }
+
                 return true;
             default:
                 return false;
         }
+    }
+
+    private void Dismiss()
+    {
+        input.Chord(Keys.Escape);
+        Thread.Sleep(CaptureOverlay.DismissWaitMs);
     }
 
     /// <summary>

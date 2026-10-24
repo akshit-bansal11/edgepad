@@ -87,6 +87,7 @@ The digits are never logged, written to a status line or shown by a debug print 
 | CAPTURE_REGION | 52 | Win+Shift+S, the Snipping Tool's region capture |
 | CAPTURE_SCREEN | 53 | PrtScn, the whole screen |
 | CAPTURE_RECORD | 54 | Win+Shift+R, screen recording; needs a recent Snipping Tool and is **unverified** |
+| CAPTURE_CANCEL | 55 | Escape, only while a capture overlay opened by REGION or RECORD may still be open (8 seconds); otherwise nothing. Sent when the phone leaves its capture screen |
 
 | Control | Id | SET does | STATE reports |
 | --- | --- | --- | --- |
@@ -207,6 +208,7 @@ KEY still carries a Windows virtual-key code, and the Mac maps it by position: W
 | PAD_ATTACH, PAD_DETACH | nothing is plugged in; answered with TEXT 8 `no-driver` |
 | CAPTURE_REGION, CAPTURE_SCREEN | Command+Shift+4, Command+Shift+3 |
 | CAPTURE_RECORD | Command+Shift+5, which opens the capture toolbar |
+| CAPTURE_CANCEL | Escape, only while the crosshair or the toolbar may still be open (8 seconds). Any capture action sent while one may be open presses Escape first, then waits 50 ms. A recording already running is not stopped: Escape does not stop it, and its stop button is in the menu bar |
 | macro slots (64 to 95) | the macro in that slot of the Mac's own list, opened through NSWorkspace: a file, folder or web address is opened, and an `.app` is launched with its arguments split on spaces, with no quoting. An empty or missing slot is dropped and counted. Never a shell, and never anything the phone sent |
 | ANNOTATE_*, TOOL_*, SIGN_* (40 to 51) | the annotation overlay, as on Windows: a borderless, transparent, click-through window over the primary display only, above full-screen apps and never key or main, so it takes no focus. SIGN_SAVE writes a transparent PNG cropped to the ink to the pasteboard (PNG and TIFF) and to `~/Pictures/Edgepad/signature-<timestamp>.png`, never over an existing file (`-2`, `-3` are added), and answers TEXT 11 |
 
@@ -233,6 +235,7 @@ KEY still carries a Windows virtual-key code, and Linux maps it by position to a
 | PAD_ATTACH, PAD_DETACH | plugs in and removes a virtual Xbox 360 controller through uinput; TEXT 8 is `no-driver` when `/dev/uinput` cannot be opened |
 | CAPTURE_REGION, CAPTURE_SCREEN | Print, which opens the desktop's own screenshot tool where either is picked; tried on an unknown desktop too |
 | CAPTURE_RECORD | the GNOME or KDE recording shortcut; dropped and counted on any other desktop. **Unverified** |
+| CAPTURE_CANCEL | Escape, only while the screenshot tool opened by Print may still be open (8 seconds). A capture action sent while it may be open presses Escape first. The recording shortcut opens no overlay and a running recording is never touched |
 | macro slots (64 to 95) | the macro in that slot of `~/.config/edgepad/macros.txt`, a text file edited by hand (there is no editor): a web address, folder or non-executable file is opened with `xdg-open`, anything else is run as a program with its arguments split on spaces, never through a shell. An empty or missing slot is dropped and counted. The phone sends only the slot number |
 | ANNOTATE_*, TOOL_*, SIGN_* (40 to 51) | best effort, below |
 

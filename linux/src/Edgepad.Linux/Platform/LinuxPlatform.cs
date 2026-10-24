@@ -23,6 +23,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     private const int BrightnessStep = 10;
 
     // Windows virtual-key codes, for the keys that are the same on every desktop.
+    private const ushort VkEscape = 0x1B;
     private const ushort VkAlt = 0x12;
     private const ushort VkTab = 0x09;
     private const ushort VkShift = 0x10;
@@ -45,6 +46,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     private readonly Annotator annotator = new();
     private readonly MacroStore macros = new(Path.Combine(Xdg.ConfigFolder, "macros.txt"), new LinuxLauncher());
     private readonly Worker worker;
+    private readonly CaptureOverlay capture = new(() => Environment.TickCount64);
     private readonly Lock reporting = new();
     private StateReporter? reporter;
 
@@ -95,11 +97,21 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
             case ActionId.Notifications:
             case ActionId.DesktopLeft:
             case ActionId.DesktopRight:
+                // A desktop with no known chord for it drops the action: the dispatcher counts a false.
+                return Desktop.Chord(desktop, id) is { } shortcut && Do(() => input.Chord(shortcut));
             case ActionId.CaptureRegion:
             case ActionId.CaptureScreen:
             case ActionId.CaptureRecord:
-                // A desktop with no known chord for it drops the action: the dispatcher counts a false.
-                return Desktop.Chord(desktop, id) is { } chord && Do(() => input.Chord(chord));
+                return Capture(id);
+            case ActionId.CaptureCancel:
+                // Only a screenshot tool still waiting is dismissed; a recording that is running is never touched,
+                // since its shortcut is a toggle and Escape does not stop it.
+                if (capture.Cancel())
+                {
+                    worker.Post(() => Tap(VkEscape));
+                }
+
+                return true;
             case ActionId.AppSwitchBegin:
                 // Alt stays down across frames, as a three-finger swipe keeps the switcher open; released by End or
                 // by the session ending.
@@ -245,6 +257,32 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
             {
                 Tap(fallbackKey);
             }
+        });
+        return true;
+    }
+
+    /// <summary>
+    /// A capture shortcut, after dismissing a screenshot tool that may still be open. Print opens the desktop's tool
+    /// (an overlay, for Region and Screen alike); the recording shortcut is a toggle that opens none. The Escape and
+    /// the pause go through the worker, so the session's reader does not wait, and the order is kept.
+    /// </summary>
+    private bool Capture(ActionId id)
+    {
+        if (Desktop.Chord(desktop, id) is not { } shortcut)
+        {
+            return false;
+        }
+
+        var dismiss = capture.Begin(id != ActionId.CaptureRecord);
+        worker.Post(() =>
+        {
+            if (dismiss)
+            {
+                Tap(VkEscape);
+                Thread.Sleep(CaptureOverlay.DismissWaitMs);
+            }
+
+            input.Chord(shortcut);
         });
         return true;
     }
