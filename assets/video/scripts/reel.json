@@ -1,0 +1,16 @@
+{
+  "id": "reel",
+  "title": "Edgepad reel",
+  "aspect": "9x16",
+  "chapters": [
+    { "title": "Edgepad", "lines": [
+      "Your phone's already in your hand.",
+      "Make it your laptop's remote.",
+      "A trackpad in the middle. A dial on every corner.",
+      "Volume, brightness, zoom, scrub. Split them, and get eight.",
+      "Macros, a keyboard, a pen for the screen.",
+      "Windows, Mac and Linux. No account. No internet.",
+      "Edgepad. Free, on GitHub."
+    ]}
+  ]
+}

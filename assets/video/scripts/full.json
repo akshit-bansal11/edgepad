@@ -1,0 +1,63 @@
+{
+  "id": "full",
+  "title": "Edgepad 4.0: the full demo and tutorial",
+  "aspect": "16x9",
+  "chapters": [
+    { "title": "What it is", "lines": [
+      "Laptop's plugged into the TV. You're on the couch. Your phone's already in your hand.",
+      "That's your remote now. Meet Edgepad.",
+      "It turns an Android phone into a trackpad, a remote and a control panel for your laptop. Windows, Mac or Linux.",
+      "It talks over plain Bluetooth. No account, no server, no internet."
+    ]},
+    { "title": "Setup", "lines": [
+      "Setting it up takes a minute, and you only do it once.",
+      "Install the phone app, and the laptop app for your system. Both are free, on GitHub.",
+      "Pair them in your phone's Bluetooth settings, the way you'd pair a headset.",
+      "Open Edgepad and tap your laptop's name. The laptop asks if it should trust this phone. Say yes, and you're in.",
+      "Want more than a yes? Turn on a six-digit PIN, asked the first time, or every time a phone connects."
+    ]},
+    { "title": "The trackpad", "lines": [
+      "The middle is a trackpad. One finger moves, and a tap clicks. Tap and hold to drag.",
+      "Two fingers scroll, and pinch to zoom.",
+      "Three fingers switch desktops. Four flip between apps.",
+      "Don't like that? Remap any gesture."
+    ]},
+    { "title": "Corner dials", "lines": [
+      "Every corner is a dial that wraps around the edge. Slide for volume, brightness, zoom, or to scrub a video.",
+      "The marks light up as you go, so you can read the level at a glance.",
+      "Want more? Flip one switch, and every corner splits in two. Four dials become eight.",
+      "And it stays in sync. Turn the volume down on the laptop, and the dial follows."
+    ]},
+    { "title": "Now playing", "lines": [
+      "Whatever's playing lives right on the pad. Play, pause, skip, and drag it wherever you want."
+    ]},
+    { "title": "Lock", "lines": [
+      "Phone going in your pocket? Lock the trackpad, and only the dials stay live."
+    ]},
+    { "title": "Controls", "lines": [
+      "Everything else is one tap away, in Controls.",
+      "A full keyboard, with Control, Alt and Shift you can hold or tap.",
+      "A gamepad the laptop sees as a real Xbox controller, on Windows and Linux.",
+      "Annotate turns your phone into a pen on the laptop's screen. Draw, highlight, add arrows and boxes, then clear it all.",
+      "Switch on Sign, write your signature, and it's saved as an image, ready for any document.",
+      "And Capture grabs a region, the full screen, or a recording, with the laptop's own tools."
+    ]},
+    { "title": "Macros", "lines": [
+      "Up to fifteen macros. Apps, sites, scripts, one tap away.",
+      "They sit in a clean deck. Press and hold to rearrange them, and pick the grid that suits you.",
+      "Or skip the tap. Draw a shape on the trackpad to fire one."
+    ]},
+    { "title": "Make it yours", "lines": [
+      "Make it yours. Pick what each corner does, and tune how the dials feel.",
+      "Go dark or light, set your own background, and turn it sideways if that's how you hold it."
+    ]},
+    { "title": "Who gets in", "lines": [
+      "Your laptop decides who gets in. Trust more than one phone, let a trusted phone take over, or forget them all from the laptop.",
+      "Windows has been run on real laptops. The Mac and Linux apps are new, and still in testing."
+    ]},
+    { "title": "Get it", "lines": [
+      "No account. No server. No internet. Just your phone and your laptop.",
+      "Edgepad. Free, open source, on GitHub."
+    ]}
+  ]
+}
