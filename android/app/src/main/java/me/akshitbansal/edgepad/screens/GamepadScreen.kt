@@ -9,8 +9,6 @@ import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
-import android.widget.LinearLayout
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
@@ -39,40 +37,21 @@ import kotlin.math.roundToInt
 class GamepadScreen(
     ui: Ui,
     layout: GamepadLayout,
-    names: List<String>,
     status: PadStatus?,
     onKey: (code: Int, down: Boolean) -> Unit,
     onPad: (state: Frame.PadState) -> Unit,
     onBack: () -> Unit,
-    onChoose: (String) -> Unit,
-    onEdit: () -> Unit,
+    onSettings: () -> Unit,
 ) {
     private val pad = Surface(ui.context, layout, onKey, onPad)
 
+    // The options sheet holds the one way into the gamepad's settings page, where the layouts are chosen and edited.
     val view: View =
         EditorFrame
             .build(ui, layout.name, pad, onBack) { close ->
-                LinearLayout(ui.context).apply {
-                    orientation = LinearLayout.VERTICAL
-                    addView(
-                        GamepadLayoutScreen.layouts(ui, names, layout.name) { name ->
-                            close()
-                            onChoose(name)
-                        },
-                    )
-                    addView(
-                        ui.button(ui.string(R.string.gamepad_edit), Ui.Style.QUIET) {
-                            close()
-                            onEdit()
-                        },
-                        LinearLayout
-                            .LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.WRAP_CONTENT,
-                            ).apply {
-                                topMargin = ui.dp(Space.S)
-                            },
-                    )
+                ui.button(ui.string(R.string.gamepad_settings_title), Ui.Style.QUIET) {
+                    close()
+                    onSettings()
                 }
             }.apply {
                 keepScreenOn = true

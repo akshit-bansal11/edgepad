@@ -44,10 +44,13 @@ import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DialFeelScreen
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
 import me.akshitbansal.edgepad.screens.GamepadScreen
+import me.akshitbansal.edgepad.screens.GamepadSettingsScreen
 import me.akshitbansal.edgepad.screens.GestureScreen
 import me.akshitbansal.edgepad.screens.GuideScreen
 import me.akshitbansal.edgepad.screens.KeyboardScreen
+import me.akshitbansal.edgepad.screens.KeyboardSettingsScreen
 import me.akshitbansal.edgepad.screens.MacroScreen
+import me.akshitbansal.edgepad.screens.MacroSettingsScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.PinScreen
@@ -111,6 +114,9 @@ class MainActivity :
         APPEARANCE,
         MEDIA_LAYOUT,
         GAMEPAD_LAYOUT,
+        KEYBOARD_SETTINGS,
+        GAMEPAD_SETTINGS,
+        MACRO_SETTINGS,
         CONTROLS,
         CAPTURE,
         ANNOTATE,
@@ -131,7 +137,6 @@ class MainActivity :
         val state: LaptopState,
         val screen: Screen,
         val settingsReturn: Screen,
-        val layoutReturn: Screen,
         val laptopName: String,
         val laptopAddress: String,
         val attempts: Int,
@@ -166,9 +171,6 @@ class MainActivity :
     private var laptopAddress = ""
     private var screen = Screen.PAIRING
     private var settingsReturn = Screen.PAIRING
-
-    /** Where the gamepad layout editor goes back to: Settings, or the gamepad it was opened from. */
-    private var layoutReturn = Screen.SETTINGS
     private lateinit var gamepads: GamepadStore
     private var started = false
     private var attempts = 0
@@ -257,7 +259,6 @@ class MainActivity :
             link = retained.link?.also { it.listener = this }
             state = retained.state
             settingsReturn = retained.settingsReturn
-            layoutReturn = retained.layoutReturn
             laptopName = retained.laptopName
             laptopAddress = retained.laptopAddress
             attempts = retained.attempts
@@ -283,7 +284,6 @@ class MainActivity :
             state,
             screen,
             settingsReturn,
-            layoutReturn,
             laptopName,
             laptopAddress,
             attempts,
@@ -430,7 +430,6 @@ class MainActivity :
                         ui,
                         settings,
                         connectionInfo(),
-                        gamepads.current.name,
                         versionLine(),
                         getString(backLabel),
                         SettingsScreen.Update(updateSummary()) { view ->
@@ -444,10 +443,6 @@ class MainActivity :
                             gestures = { goTo(Screen.GESTURES) },
                             shapes = { goTo(Screen.SHAPES) },
                             dialFeel = { goTo(Screen.DIAL_FEEL) },
-                            gamepadLayout = {
-                                layoutReturn = Screen.SETTINGS
-                                goTo(Screen.GAMEPAD_LAYOUT)
-                            },
                             mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
                             appearance = { goTo(Screen.APPEARANCE) },
                             guide = { goTo(Screen.GUIDE) },
@@ -516,14 +511,13 @@ class MainActivity :
                         capture = Feature.CAPTURE in state.features,
                         annotate = Feature.ANNOTATE in state.features && state.screenSize != null,
                         onOpen = { target ->
-                            val opened =
-                                when (target) {
-                                    ControlsScreen.Target.KEYBOARD -> Screen.KEYBOARD
-                                    ControlsScreen.Target.GAMEPAD -> Screen.GAMEPAD
-                                    ControlsScreen.Target.CAPTURE -> Screen.CAPTURE
-                                    ControlsScreen.Target.ANNOTATE -> Screen.ANNOTATE
-                                }
-                            goTo(opened)
+                            when (target) {
+                                ControlsScreen.Target.KEYBOARD -> goTo(Screen.KEYBOARD)
+                                ControlsScreen.Target.GAMEPAD -> goTo(Screen.GAMEPAD)
+                                ControlsScreen.Target.MACROS -> openMacros()
+                                ControlsScreen.Target.CAPTURE -> goTo(Screen.CAPTURE)
+                                ControlsScreen.Target.ANNOTATE -> goTo(Screen.ANNOTATE)
+                            }
                         },
                     ) { navigateBack() }.view
                 }
@@ -539,27 +533,41 @@ class MainActivity :
                 }
 
                 Screen.KEYBOARD -> {
-                    KeyboardScreen.build(ui, settings.keyTextScale, onKey = ::key) { navigateBack() }
+                    KeyboardScreen.build(
+                        ui,
+                        settings.keyTextScale,
+                        onKey = ::key,
+                        onSettings = { goTo(Screen.KEYBOARD_SETTINGS) },
+                    ) { navigateBack() }
+                }
+
+                Screen.KEYBOARD_SETTINGS -> {
+                    KeyboardSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.GAMEPAD -> {
                     GamepadScreen(
                         ui,
                         gamepads.current,
-                        gamepads.all.map { it.name },
                         state.padStatus,
                         onKey = ::key,
                         onPad = { pad -> link?.send(pad) },
                         onBack = { navigateBack() },
-                        onChoose = { name ->
-                            gamepads.choose(name)
-                            goTo(Screen.GAMEPAD)
-                        },
-                        onEdit = {
-                            layoutReturn = Screen.GAMEPAD
-                            goTo(Screen.GAMEPAD_LAYOUT)
-                        },
+                        onSettings = { goTo(Screen.GAMEPAD_SETTINGS) },
                     ).also { gamepad = it }.view
+                }
+
+                Screen.GAMEPAD_SETTINGS -> {
+                    GamepadSettingsScreen.build(
+                        ui,
+                        gamepads.all.map { it.name },
+                        gamepads.current.name,
+                        onPick = { name ->
+                            gamepads.choose(name)
+                            goTo(Screen.GAMEPAD_SETTINGS)
+                        },
+                        onEdit = { goTo(Screen.GAMEPAD_LAYOUT) },
+                    ) { navigateBack() }
                 }
 
                 Screen.MACROS -> {
@@ -570,7 +578,12 @@ class MainActivity :
                         icon = state::macroIcon,
                         labels = settings.macroLabels,
                         onRun = ::runMacro,
+                        onSettings = { goTo(Screen.MACRO_SETTINGS) },
                     ) { navigateBack() }.also { macros = it }.view
+                }
+
+                Screen.MACRO_SETTINGS -> {
+                    MacroSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.RECONNECTING -> {
@@ -605,7 +618,6 @@ class MainActivity :
                         { frame -> link?.send(frame) },
                         ::openSettings,
                         onOpenControls = { goTo(Screen.CONTROLS) },
-                        onOpenMacros = ::openMacros,
                     ).also { surface = it }
                 }
             }
@@ -691,7 +703,19 @@ class MainActivity :
             }
 
             Screen.GAMEPAD_LAYOUT -> {
-                goTo(layoutReturn)
+                goTo(Screen.GAMEPAD_SETTINGS)
+            }
+
+            Screen.KEYBOARD_SETTINGS -> {
+                goTo(Screen.KEYBOARD)
+            }
+
+            Screen.GAMEPAD_SETTINGS -> {
+                goTo(Screen.GAMEPAD)
+            }
+
+            Screen.MACRO_SETTINGS -> {
+                goTo(Screen.MACROS)
             }
 
             // Back is Cancel: the attempt ends, and onClosed takes the screen to Devices.
@@ -705,11 +729,11 @@ class MainActivity :
             }
 
             // The keyboard, the gamepad and the capture are opened from Controls, so back returns there.
-            Screen.KEYBOARD, Screen.GAMEPAD, Screen.CAPTURE, Screen.ANNOTATE -> {
+            Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE -> {
                 goTo(Screen.CONTROLS)
             }
 
-            Screen.CONTROLS, Screen.MACROS -> {
+            Screen.CONTROLS -> {
                 goTo(if (link?.connected == true) Screen.SURFACE else Screen.PAIRING)
             }
 
@@ -1209,7 +1233,7 @@ class MainActivity :
                 attempts = 0
                 if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.CONTROLS ||
                     screen == Screen.CAPTURE || screen == Screen.ANNOTATE || screen == Screen.KEYBOARD ||
-                    screen == Screen.GAMEPAD || screen == Screen.MACROS
+                    screen == Screen.GAMEPAD || screen == Screen.MACROS || screen in settingsOfControls
                 ) {
                     goTo(Screen.PAIRING)
                 }
@@ -1361,7 +1385,19 @@ class MainActivity :
             )
 
         /** Drawn sideways whatever the phone is doing, because they are laid out for a wide screen and nothing else. */
-        val alwaysSideways = setOf(Screen.KEYBOARD, Screen.GAMEPAD, Screen.GAMEPAD_LAYOUT)
+        val alwaysSideways =
+            setOf(
+                Screen.KEYBOARD,
+                Screen.GAMEPAD,
+                Screen.GAMEPAD_LAYOUT,
+                // Their settings pages too: a form reached from a sideways screen stays sideways rather than
+                // turning the phone upright and back. They show the bars, unlike the screens they came from.
+                Screen.KEYBOARD_SETTINGS,
+                Screen.GAMEPAD_SETTINGS,
+            )
+
+        /** The pages that need the link: with it gone they go back to Devices, as the screens they belong to do. */
+        val settingsOfControls = setOf(Screen.KEYBOARD_SETTINGS, Screen.GAMEPAD_SETTINGS, Screen.MACRO_SETTINGS)
 
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2

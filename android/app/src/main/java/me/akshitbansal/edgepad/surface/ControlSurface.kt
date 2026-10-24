@@ -33,7 +33,7 @@ import kotlin.math.roundToInt
 
 /**
  * The control surface: a ruler at each corner that holds a dial, the media pieces wherever the user put
- * them, gear, Controls, lock and macro buttons at the top, and everything else is the trackpad. A
+ * them, gear, lock and Controls buttons at the top, and everything else is the trackpad. A
  * touch that starts inside a corner's zone is that dial's; one that starts on a media piece or a button is
  * a button press; any other is the trackpad. The lock button walks the surface through [PadMode], which is
  * the only thing that can take a piece of it away — and which a drawn shape can walk too, since a locked
@@ -54,7 +54,6 @@ class ControlSurface(
     private val send: (Frame) -> Unit,
     private val onOpenSettings: () -> Unit,
     private val onOpenControls: () -> Unit,
-    private val onOpenMacros: () -> Unit,
     /**
      * Only the trackpad: no dials, buttons, media, hints or caption. The Capture screen wants a pointer and
      * nothing else, and the recogniser, the trail and the unbuffered dispatch are the surface's own, so this
@@ -63,7 +62,7 @@ class ControlSurface(
     private val trackpadOnly: Boolean = false,
 ) : View(context) {
     /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
-    constructor(context: Context) : this(context, Settings(context), LaptopState(), {}, {}, {}, {})
+    constructor(context: Context) : this(context, Settings(context), LaptopState(), {}, {}, {})
 
     private val density = resources.displayMetrics.density
     private val palette = Palette.of(context)
@@ -163,10 +162,9 @@ class ControlSurface(
             emptyList()
         } else {
             listOf(
-                TopButton(icon(R.drawable.ic_settings, dim), side = -2f, open = onOpenSettings),
-                TopButton(icon(R.drawable.ic_layout_dashboard, dim), side = -1f, open = onOpenControls),
+                TopButton(icon(R.drawable.ic_settings, dim), side = -1f, open = onOpenSettings),
                 lockButton,
-                TopButton(icon(R.drawable.ic_macro, dim), side = 1f, open = onOpenMacros),
+                TopButton(icon(R.drawable.ic_controls, dim), side = 1f, open = onOpenControls),
             )
         }
     private val skipBackIcon = icon(R.drawable.ic_skip_back, ink)
@@ -191,7 +189,6 @@ class ControlSurface(
                 action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
                 action(R.id.action_controls, R.string.surface_controls) to onOpenControls,
                 action(R.id.action_pad_lock, R.string.surface_lock) to { tapLock() },
-                action(R.id.action_macros, R.string.surface_macros) to onOpenMacros,
             )
         }
 
@@ -1185,8 +1182,7 @@ class ControlSurface(
     /**
      * One of the buttons floating at the top of the surface. [side] places it across the centre of the top
      * edge in steps of [topButtonOffsetDp]: -1 one step left of it, 0 on it, 1 one step right. The
-     * row of four keeps the lock on the centre and runs from -2 to +1, so settings and Controls are the two on the
-     * left and macros the one on the right; the row is not centred, the lock is.
+     * row of three is centred on the lock: settings to its left, Controls to its right.
      */
     private class TopButton(
         val icon: Drawable,

@@ -9,9 +9,9 @@ import me.akshitbansal.edgepad.Settings
 private const val DECK = "controls"
 
 /**
- * What the phone can drive besides the surface itself, as a [DeckPage] of tiles: the keyboard, the gamepad
- * and, when the laptop says it can, a capture and an annotation. The surface keeps a single button for all of it,
- * so the row of buttons at the top stays the size it is however many of these there are.
+ * What the phone can drive besides the surface itself, as a [DeckPage] of tiles: the keyboard, the gamepad,
+ * the macros and, when the laptop says it can, a capture and an annotation. The surface keeps a single button
+ * for all of it, so the row of buttons at the top stays the size it is however many of these there are.
  *
  * A tile carries a [Target] in its tag and nothing about where it is drawn, so a reordered deck opens the
  * same screens.
@@ -35,6 +35,7 @@ class ControlsScreen(
     ) {
         KEYBOARD(R.string.controls_keyboard, R.drawable.ic_keyboard),
         GAMEPAD(R.string.controls_gamepad, R.drawable.ic_gamepad_2),
+        MACROS(R.string.controls_macros, R.drawable.ic_macro),
         CAPTURE(R.string.controls_capture, R.drawable.ic_scan),
         ANNOTATE(R.string.controls_annotate, R.drawable.ic_pen),
     }
