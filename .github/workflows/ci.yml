@@ -248,6 +248,9 @@ jobs:
   # under assets/video/ changed in the push (or, on a pull request, against its base). A change anywhere else skips
   # every step after the check, and the job still passes.
   video:
+    # Off: the owner postponed the videos and covers until the app's bugs are fixed (2026-10-25). Delete this
+    # line to render again.
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
