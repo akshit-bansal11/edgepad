@@ -151,6 +151,7 @@ internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, b
             new Dispatcher(platform, platform),
             platform.Dispose,
             platform.ProbePad,
+            platform.StartReporting,
             onStatus,
             OnAdmitted,
             OnSessionEnded);

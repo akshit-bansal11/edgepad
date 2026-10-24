@@ -8,7 +8,7 @@ The app logs to `~/.local/share/Edgepad/edgepad.log`. Its settings live in `$XDG
 
 There is no trust prompt yet. Every phone that is not already trusted is refused, and the log says so. To test, trust a phone by hand. Pair it in the desktop's Bluetooth settings first. Then put its address, upper case, on a line of its own in `~/.config/edgepad/trusted-phone.txt` (for example `AA:BB:CC:DD:EE:FF`; `bluetoothctl devices` lists it).
 
-Keys, the pointer, scrolling, pinch zoom, typing and the gamepad work through virtual input devices. Actions, dials and media are still received and dropped until step 8.4.
+Keys, the pointer, scrolling, pinch zoom, typing and the gamepad work through virtual input devices. Volume, brightness, media, lock, capture and macros are below.
 
 ## Input: what it needs
 
@@ -37,6 +37,53 @@ To check it, with the phone's gamepad open:
 3. In Steam, **Settings › Controller** shows an Xbox 360 controller, and its test screen shows A where A is pressed and X where X is pressed. Steam Input may also take the pad over; in a game that reads the pad itself, turn Steam Input off for that game.
 4. SDL: `sdl2-jstest --list` (or any SDL game) names it as an Xbox 360 controller with a game controller mapping, not as a plain joystick.
 
+## Volume, brightness, media, lock, capture and macros
+
+Each of these runs a small tool or asks a service, so they depend on what is installed. Anything missing makes only that control do nothing (the log says so once); nothing else is affected.
+
+| Needs | For | Without it |
+| --- | --- | --- |
+| `wpctl` (WirePlumber, PipeWire's session manager) or `pactl` (PulseAudio, or `pipewire-pulse`) | the volume and microphone dials, microphone mute, and the phone's dials following the laptop's own volume | `wpctl` is tried first and `pactl` is used when it is not installed; with neither, the dials do nothing |
+| `loginctl` (systemd) | Lock (`loginctl lock-session`) | Lock does nothing |
+| `xdg-open` (`xdg-utils`) | macros that open a web address, a folder or a document | those macros do nothing; macros that run a program do not need it |
+| `wl-copy` (`wl-clipboard`) or `xclip` | optional: typing text that is not plain ASCII (see Input above) | that text does nothing |
+| systemd-logind on the system bus and a `/sys/class/backlight/*` device | the brightness dial, which a desktop PC has none of | the dial does nothing and the phone is not told |
+| A media player that exports MPRIS (Spotify, Firefox, Chromium, VLC and most others) | now playing, the media position dial, play/pause/next/previous | those buttons press the media keys instead, which the desktop sends to whatever it thinks is the active player |
+
+The volume, microphone and brightness values on the phone are read twice a second, so a change made on the laptop reaches the dials within about half a second. When several players are open, the phone follows the one that is playing (else one that is paused, else the first); two playing at once keep whichever it followed first. The player's name on the phone is its D-Bus name, for example `Spotify`, not its display name.
+
+Volume up, volume down and mute press the keyboard's volume keys, so the desktop's own on-screen display appears. The refresh-rate dial is not offered (Linux has no shared way to switch display modes). Annotate and Sign are not offered yet.
+
+### Macros
+
+Macros are a text file you edit by hand: there is no editor in this release. It is `~/.config/edgepad/macros.txt` (`$XDG_CONFIG_HOME/edgepad/macros.txt`), read when a phone connects. One macro per line, fields separated by a **tab**: name, target, arguments (optional). At most 15; a name is cut at 16 bytes and `/` in it becomes `-`. For example (tabs between the fields):
+
+```
+Browser	https://example.com
+Notes	~/Documents/notes.txt
+Terminal	gnome-terminal	--maximize
+Screenshots	~/Pictures
+```
+
+A target that is a web address (`scheme://...` or `mailto:`), a folder, or a file that is not executable is opened with `xdg-open`, which ignores the arguments. Anything else is run as a program, by name from `PATH` or by path, with the arguments split on spaces (single or double quotes group a word; nothing else is interpreted). It is never run through a shell, so `;`, `$(...)`, `*` and `~` inside arguments are plain characters (only a leading `~/` in the target means your home folder). The phone sends only the slot number, never what to run. Macro icons are not shown on Linux; the buttons carry the names.
+
+### Desktop shortcuts (UNVERIFIED)
+
+Task view, show desktop, search, notifications and switching desktops press a different shortcut on each desktop, chosen from `XDG_CURRENT_DESKTOP`. **Every one of these was written from memory of the default shortcuts and has not been seen working**; they also differ between versions and users can rebind them. A desktop other than GNOME or KDE drops those actions (the closing log line counts the dropped frames). The table lives in one file, `linux/src/Edgepad.Linux/Platform/Desktop.cs`; this is the list to try:
+
+| Action | GNOME | KDE Plasma |
+| --- | --- | --- |
+| Task view | Super (tap) | Meta+W |
+| Show desktop | Super+D | Meta+D |
+| Search | Super+A | Alt+Space |
+| Notifications | Super+V | Meta+N |
+| Desktop left / right | Super+PageUp / Super+PageDown | Ctrl+Meta+Left / Ctrl+Meta+Right |
+| Screenshot (region and whole screen) | Print | Print |
+| Screen recording | Ctrl+Shift+Alt+R | Meta+Alt+R |
+| App switcher, zoom reset | Alt+Tab (Alt held across swipes), Ctrl+0 on every desktop | |
+
+Region and whole-screen both press Print, which opens the desktop's own screenshot tool (GNOME's screenshot UI, KDE's Spectacle) where you pick either; this is also tried on an unknown desktop. Recording is dropped on an unknown desktop.
+
 ## Unverified
 
 | What | Why it is unknown | How to check |
@@ -55,3 +102,9 @@ To check it, with the phone's gamepad open:
 | The paste arrives after the clipboard is set | Ctrl+V is sent as soon as `wl-copy` or `xclip` exits. Both are believed to hold the clipboard before they exit. | Type `é` several times quickly: each one appears, and never the previous clipboard. |
 | SDL's mapping for the virtual pad | SDL keys its controller mappings on a GUID made from the bus, vendor, product and version. The pad sends version `0x0114`, believed to be a wired 360 pad's own; whether every SDL version maps it, and whether SDL or Steam treat a device without a USB parent differently, is not known. | Step 4 above. A plain joystick with numbered buttons means the mapping missed. |
 | Y-axis sign and button positions in games | Copied from `xpad` (Y is flipped with a bitwise NOT, so a centred stick reads -1; X is `BTN_X`), not seen in a game. | In a game, push the stick up: the character moves forward. Press X: the game shows X, not Y. |
+| Every desktop shortcut above | Written from memory of GNOME's and KDE's defaults. | Press each action from the phone on each desktop; report the ones that do nothing, with the desktop and its version. |
+| `SetBrightness` on `/org/freedesktop/login1/session/auto` | logind's documentation names `auto` as the caller's session and `SetBrightness` as available to unprivileged programs, but it was not run. | Drag the brightness dial: the panel changes. The log shows a failed call on the system bus once if it is refused. |
+| A launched program is reaped | A macro starts its program with `Process.Start` and lets go of the handle, expecting the runtime to collect the child when it exits. | Run a macro for a short-lived program, then `ps -ef \| grep defunct`: nothing is listed. |
+| A launched program outlives Edgepad | The child stays in Edgepad's process group and has no new session. | Run a macro for a long-running program, quit Edgepad from a terminal with Ctrl+C: the program may stop with it. |
+| MPRIS `Position` and seeking | Read with `GetAll` on every poll, and `SetPosition` needs the player's track id. Players differ in whether they report position and allow seeking. | Play something in Spotify and Firefox: the timeline moves and the media dial seeks. |
+| Media and mute keys with no MPRIS player | Pressed as virtual keys, so the desktop decides what receives them. | With a player that has no MPRIS, press play/pause on the phone. |

@@ -10,8 +10,8 @@ namespace Edgepad.Bluetooth;
 /// <summary>
 /// One connected phone over the RFCOMM socket BlueZ handed over: the shared handshake (trust, asked through
 /// askTrust, then the PIN, then the server's word through onAdmitted), then a blocking read loop on its own thread
-/// that turns each frame straight into input, as the Windows session does. State reports (volume, brightness,
-/// media, macros) come with the platform in step 8.4.
+/// that turns each frame straight into input, as the Windows session does. The platform reports state (volume,
+/// brightness, media, macros) through the sink the session hands it after the handshake, from threads of its own.
 /// </summary>
 internal sealed class LinuxSession : IDisposable
 {
@@ -26,6 +26,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Dispatcher dispatcher;
     private readonly Action releaseHeldInput;
     private readonly Func<string> probePad;
+    private readonly Action<Action<Frame>> startReporting;
     private readonly Action<string> onStatus;
     private readonly Func<LinuxSession, bool> onAdmitted;
     private readonly Action<LinuxSession> onEnded;
@@ -34,7 +35,8 @@ internal sealed class LinuxSession : IDisposable
     /// <summary>
     /// Takes ownership of <paramref name="socket"/>. <paramref name="releaseHeldInput"/> releases every key and
     /// button the phone still holds down when the session ends, and unplugs its virtual controller.
-    /// <paramref name="probePad"/> answers the PAD_STATUS token sent once after the handshake.
+    /// <paramref name="probePad"/> answers the PAD_STATUS token sent once after the handshake, and
+    /// <paramref name="startReporting"/> is given the sink the platform sends its state reports through.
     /// </summary>
     public LinuxSession(
         SafeFileHandle socket,
@@ -45,6 +47,7 @@ internal sealed class LinuxSession : IDisposable
         Dispatcher dispatcher,
         Action releaseHeldInput,
         Func<string> probePad,
+        Action<Action<Frame>> startReporting,
         Action<string> onStatus,
         Func<LinuxSession, bool> onAdmitted,
         Action<LinuxSession> onEnded)
@@ -57,6 +60,7 @@ internal sealed class LinuxSession : IDisposable
         this.dispatcher = dispatcher;
         this.releaseHeldInput = releaseHeldInput;
         this.probePad = probePad;
+        this.startReporting = startReporting;
         this.onStatus = onStatus;
         this.onAdmitted = onAdmitted;
         this.onEnded = onEnded;
@@ -111,6 +115,7 @@ internal sealed class LinuxSession : IDisposable
             // sent before the phone can ask, so it can hide the pad rather than offer a button that does nothing.
             dispatcher.PadStatusReply = status => frames.Send(new Text((byte)TextKind.PadStatus, status));
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
+            startReporting(frames.Send);
 
             while (true)
             {
