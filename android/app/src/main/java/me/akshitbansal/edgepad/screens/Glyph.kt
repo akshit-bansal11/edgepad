@@ -6,7 +6,10 @@ import android.graphics.drawable.Drawable
 import android.view.View
 import me.akshitbansal.edgepad.R
 
-/** A Lucide icon for the plain screens, tinted and centred in its view. */
+/**
+ * One of Edgepad's icons for the plain screens, tinted and centred in its view. It is drawn at the 24 dp its
+ * grid was drawn on, so its 20 dp live area lands on the dp grid; drawn smaller, every stroke fell between pixels.
+ */
 class Glyph(
     context: Context,
     shape: Shape,
@@ -48,6 +51,6 @@ class Glyph(
     }
 
     private companion object {
-        const val ICON_DP = 20f
+        const val ICON_DP = 24f
     }
 }

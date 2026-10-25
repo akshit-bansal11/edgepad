@@ -1257,9 +1257,9 @@ class ControlSurface(
         /** Corners 0 and 1 are the top two, where the hit zone may reach further down the screen. */
         private const val FIRST_BOTTOM_CORNER = 2
 
-        private const val ICON_DP = 22f
-        private const val SKIP_DP = 22f
-        private const val PLAY_ICON_DP = 22f
+        private const val ICON_DP = 24f
+        private const val SKIP_DP = 24f
+        private const val PLAY_ICON_DP = 24f
         private const val HIT_SLACK_DP = 12f
         private const val JUMP_DP = 64f
         private const val SAMPLE_DP = 8f
