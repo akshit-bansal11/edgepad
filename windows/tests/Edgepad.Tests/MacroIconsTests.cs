@@ -149,6 +149,23 @@ public sealed class MacroIconsTests : IDisposable
         Assert.Empty(MacroIcons.Chunks(0, []));
     }
 
+    [Theory]
+    [InlineData(@"""C:\Program Files\App\app.exe"",-101", @"C:\Program Files\App\app.exe", -101)]
+    [InlineData(@"C:\Windows\System32\imageres.dll,  -102", @"C:\Windows\System32\imageres.dll", -102)]
+    [InlineData(@"C:\Icons\doc.ico", @"C:\Icons\doc.ico", 0)]
+    [InlineData(@"C:\Tools\a,b.exe,3", @"C:\Tools\a,b.exe", 3)]
+    public void AFileTypesIconIsReadAsTheFileAndIndexItNames(string value, string file, int index) =>
+        Assert.Equal((file, index), MacroIcons.ParseDefaultIcon(value));
+
+    [Theory]
+    [InlineData("%1")]
+    [InlineData("\"%1\"")]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public void ATypeWhoseFilesAreTheirOwnIconsOrThatNamesNothingHasNone(string? value) =>
+        Assert.Null(MacroIcons.ParseDefaultIcon(value));
+
     /// <summary>Bytes that do not compress to nothing, so a size asked for is a size encoded.</summary>
     private static byte[] Bytes(int size) => [.. Enumerable.Range(0, size).Select(i => (byte)(i * 31 % 251))];
 

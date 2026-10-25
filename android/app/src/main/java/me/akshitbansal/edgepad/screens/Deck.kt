@@ -1,17 +1,19 @@
 package me.akshitbansal.edgepad.screens
 
-import android.content.ClipData
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.DisplayMetrics
 import android.util.TypedValue
-import android.view.DragEvent
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
 import me.akshitbansal.edgepad.R
@@ -22,6 +24,12 @@ import me.akshitbansal.edgepad.Type
 private const val ICON_MIN_DP = 16f
 
 /**
+ * How far past its own pixels a laptop's picture is stretched on a big tile. The laptop sends 128 px, so
+ * this keeps one at 160 px however large the tile; past about this much the filtering shows as softness.
+ */
+private const val MAX_UPSCALE = 1.25f
+
+/**
  * The label's size as a fraction of the cell's shorter side. It is held between [Type.LABEL], the size every
  * macro button used to be drawn at, and [LABEL_MAX_SP]: a grid of three has room for text the size of a
  * headline, and a headline on a button reads as a mistake rather than as a size. The ceiling is a bound on a
@@ -30,8 +38,16 @@ private const val ICON_MIN_DP = 16f
 private const val LABEL_SCALE = 0.08f
 private const val LABEL_MAX_SP = 18f
 
-/** How faint the tile under a dragged one goes, to show that it is where the drop would land. */
-private const val DROP_ALPHA = 0.5f
+/**
+ * A held tile, the way a launcher lifts an icon: a little larger than its cell, on a card with a shadow
+ * under it, so it reads as picked up off the page rather than as pressed into it.
+ */
+private const val LIFT_SCALE = 1.1f
+private const val LIFT_MS = 150L
+
+/** How long the other tiles take to slide out of the held one's way, and the held one to settle on a drop. */
+private const val REFLOW_MS = 220L
+private const val SETTLE_MS = 180L
 
 /**
  * One tile of a [Deck]. [key] names it across renames of its position, [tag] is what a tap hands back and
@@ -83,6 +99,38 @@ class Deck(
     private var grid: Grid? = null
     private val buttons = HashMap<Int, TextView>()
 
+    /** Every tile's view, by its display position: the views a drag slides about. */
+    private val cells = ArrayList<View>()
+
+    /**
+     * A tile pressed and held. [home] is the place it was drawn at, [lefts] and [tops] where every cell of
+     * the grid stands in the holder, [startX] and [startY] where the finger was when it lifted, and
+     * [target] the place the tile would land if it were let go now.
+     */
+    private class Lift(
+        val view: View,
+        val home: Int,
+        val lefts: IntArray,
+        val tops: IntArray,
+        val startX: Float,
+        val startY: Float,
+    ) {
+        var target = home
+    }
+
+    private var lift: Lift? = null
+
+    /** The latest finger position over the holder, which is where a long press lifts its tile from. */
+    private var lastX = 0f
+    private var lastY = 0f
+
+    private val easeOut = DecelerateInterpolator()
+
+    init {
+        // A held tile is drawn over its neighbours and its row's edges, and is scaled past its own cell.
+        holder.clipChildren = false
+    }
+
     /**
      * Draws [tiles] into the room, [across] by [down] pixels. [columns] fixes how many stand across a row;
      * null lets the room decide. [labels] off draws a tile that has a picture without its name.
@@ -127,6 +175,10 @@ class Deck(
     fun clear() {
         holder.removeAllViews()
         buttons.clear()
+        cells.clear()
+        // A rebuild under a held tile drops the hold: the view it held is gone, and the finger's next move
+        // goes to the new grid as an ordinary touch.
+        lift = null
         grid = null
     }
 
@@ -225,6 +277,8 @@ class Deck(
         first: Int,
     ): LinearLayout =
         LinearLayout(ui.context).apply {
+            // A tile on its way to another row, or held, is drawn outside this one.
+            clipChildren = false
             val missing = grid.columns - line.size
             val half = missing / 2f
             val gap = ui.dp(Space.S)
@@ -264,49 +318,28 @@ class Deck(
             gravity = Gravity.CENTER
             minHeight = ui.dp(Space.BUTTON)
             ui.tappable(this, Space.PANEL_RADIUS) { onTap(tile) }
-            reorderable(this, tile, position, onMove)
+            reorderable(this, position)
             // A long name is cut rather than wrapped, so every button in the grid stays one row tall.
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
             // Spoken as the laptop spells it, and named the same way when the label is not drawn at all.
             contentDescription = ui.string(tile.spoken, tile.label)
             buttons[tile.tag] = this
+            cells.add(this)
             dress(this, tile, grid)
         }
 
     /**
-     * Moving one tile: a long press that starts a drag, and the same move as two
-     * TalkBack actions, since a drag cannot be made without sight. A drop onto a tile puts the dragged one
-     * in that tile's place. The move is posted rather than made inside the drop, because it rebuilds the
-     * grid and with it the very views the drag is still being dispatched to.
+     * Moving one tile: pressed and held, it lifts and follows the finger while the others slide out of its
+     * way, the way a phone's home screen reflows; and the same move as two TalkBack actions, since a drag
+     * cannot be made without sight. The long press is the system's own, so it comes with the system's
+     * haptic and with its timeout, and a press that lifts a tile never runs it.
      */
     private fun reorderable(
         button: TextView,
-        tile: DeckTile,
         position: Int,
-        move: (from: Int, to: Int) -> Unit,
     ) {
-        button.setOnLongClickListener {
-            it.startDragAndDrop(ClipData.newPlainText(tile.key, tile.key), View.DragShadowBuilder(it), position, 0)
-        }
-        button.setOnDragListener { target, event ->
-            when (event.action) {
-                DragEvent.ACTION_DRAG_ENTERED -> {
-                    target.alpha = DROP_ALPHA
-                }
-
-                DragEvent.ACTION_DRAG_EXITED, DragEvent.ACTION_DRAG_ENDED -> {
-                    target.alpha = 1f
-                }
-
-                DragEvent.ACTION_DROP -> {
-                    target.alpha = 1f
-                    val from = event.localState as? Int
-                    if (from != null && from != position) target.post { move(from, position) }
-                }
-            }
-            true
-        }
+        button.setOnLongClickListener { pickUp(it, position) }
         val earlier =
             AccessibilityNodeInfo.AccessibilityAction(
                 R.id.action_move_earlier,
@@ -339,9 +372,126 @@ class Deck(
                             R.id.action_move_later -> position + 1
                             else -> return super.performAccessibilityAction(host, action, args)
                         }
-                    if (to in tiles.indices) move(position, to)
+                    if (to in tiles.indices) onMove(position, to)
                     return true
                 }
+            }
+    }
+
+    /**
+     * Every touch over the holder, before its tiles see it, from the holder's own dispatch. While no tile is
+     * held it only notes where the finger is and lets the touch through; once one is held it takes the rest
+     * of the gesture, so the tile under the finger never sees its release and never runs. True when taken.
+     */
+    fun touch(event: MotionEvent): Boolean {
+        lastX = event.x
+        lastY = event.y
+        val held = lift ?: return false
+        // A cancel from above (a call coming in, the window losing focus) sends everything back home.
+        when (event.actionMasked) {
+            MotionEvent.ACTION_MOVE -> follow(held, event.x, event.y)
+            MotionEvent.ACTION_UP -> drop(held, held.target)
+            MotionEvent.ACTION_CANCEL -> drop(held, held.home)
+        }
+        return true
+    }
+
+    /**
+     * Lifts the tile at [position]: larger, on a card with a shadow, over the rows around it. The cells'
+     * places are read once here, from the laid-out grid, so nothing is measured while the finger moves.
+     */
+    private fun pickUp(
+        view: View,
+        position: Int,
+    ): Boolean {
+        if (lift != null || cells.size != tiles.size) return false
+        val lefts = IntArray(cells.size) { (cells[it].parent as View).left + cells[it].left }
+        val tops = IntArray(cells.size) { (cells[it].parent as View).top + cells[it].top }
+        lift = Lift(view, position, lefts, tops, lastX, lastY)
+        // The press shading goes: the tile is held now, not pressed, and it never sees the touch end.
+        view.isPressed = false
+        view.background = ui.rounded(ui.palette.card, Space.PANEL_RADIUS)
+        val raised = ui.dp(Space.S).toFloat()
+        // Rows are drawn in order, so the held tile's row is raised above the others or a later row hides it.
+        (view.parent as View).translationZ = raised
+        view
+            .animate()
+            .scaleX(LIFT_SCALE)
+            .scaleY(LIFT_SCALE)
+            .translationZ(raised)
+            .setDuration(LIFT_MS)
+            .setInterpolator(easeOut)
+        // The page scrolls; a held tile dragged up or down must move the tile, not the page.
+        holder.parent?.requestDisallowInterceptTouchEvent(true)
+        return true
+    }
+
+    /**
+     * The held tile under the finger, and the cell the finger is over as the place it would land. A gap
+     * between cells keeps the last place, so a tile crossing one does not flicker; off the deck altogether
+     * is no place, and everything slides back home until the finger returns.
+     */
+    private fun follow(
+        held: Lift,
+        x: Float,
+        y: Float,
+    ) {
+        held.view.translationX = x - held.startX
+        held.view.translationY = y - held.startY
+        val inside = x >= 0 && y >= 0 && x < holder.width && y < holder.height
+        val over = DeckLayout.slotAt(x, y, held.lefts, held.tops, held.view.width, held.view.height)
+        val target =
+            when {
+                !inside -> held.home
+                over >= 0 -> over
+                else -> held.target
+            }
+        if (target == held.target) return
+        held.target = target
+        held.view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+        reflow(held)
+    }
+
+    /** Slides every tile but the held one to where it stands with the held one over [Lift.target]. */
+    private fun reflow(held: Lift) {
+        val places = DeckLayout.places(cells.size, held.home, held.target)
+        cells.forEachIndexed { at, cell ->
+            if (at == held.home) return@forEachIndexed
+            cell
+                .animate()
+                .translationX((held.lefts[places[at]] - held.lefts[at]).toFloat())
+                .translationY((held.tops[places[at]] - held.tops[at]).toFloat())
+                .setDuration(REFLOW_MS)
+                .setInterpolator(easeOut)
+        }
+    }
+
+    /**
+     * Lets the held tile go at place [to]: it settles into that cell, and only then is the order changed,
+     * because that rebuilds the grid and the rebuilt grid draws every tile exactly where the slide left it.
+     * [to] at home is a cancel, or a press that never moved, and moves nothing.
+     */
+    private fun drop(
+        held: Lift,
+        to: Int,
+    ) {
+        lift = null
+        held.target = to
+        reflow(held)
+        val view = held.view
+        view
+            .animate()
+            .translationX((held.lefts[to] - held.lefts[held.home]).toFloat())
+            .translationY((held.tops[to] - held.tops[held.home]).toFloat())
+            .scaleX(1f)
+            .scaleY(1f)
+            .translationZ(0f)
+            .setDuration(SETTLE_MS)
+            .setInterpolator(easeOut)
+            .withEndAction {
+                view.background = null
+                (view.parent as? View)?.translationZ = 0f
+                if (to != held.home) onMove(held.home, to)
             }
     }
 
@@ -363,12 +513,21 @@ class Deck(
         val gap = if (shown.isEmpty()) 0 else ui.dp(Space.XS)
         val reserved = if (shown.isEmpty()) 0 else grid.line
         button.text = shown
+        // A vector is drawn at the cell's full size and stays sharp at any of them. A laptop's picture is a
+        // bitmap of a fixed size, and stretched past a little over that it reads as a blur rather than as
+        // an icon, so on a big tile it is drawn at most [MAX_UPSCALE] times its own pixels, centred.
+        val icon =
+            if (picture is BitmapDrawable) {
+                minOf(grid.icon, (picture.bitmap.width * MAX_UPSCALE).toInt())
+            } else {
+                grid.icon
+            }
         // TextView draws a top compound drawable at its own top padding and centres the text in what is
         // left under it, so the two are only centred together when the padding above and below is the
         // room left over. In a cell this tall, leaving it even would pin the picture to the ceiling.
-        val slack = if (picture == null) side else ((grid.height - grid.icon - gap - reserved) / 2).coerceAtLeast(0)
+        val slack = if (picture == null) side else ((grid.height - icon - gap - reserved) / 2).coerceAtLeast(0)
         button.setPadding(side, slack, side, slack)
-        picture?.setBounds(0, 0, grid.icon, grid.icon)
+        picture?.setBounds(0, 0, icon, icon)
         button.setCompoundDrawables(null, picture, null, null)
         button.compoundDrawablePadding = gap
     }
