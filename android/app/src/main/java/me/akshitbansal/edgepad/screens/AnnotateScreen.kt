@@ -193,7 +193,12 @@ class AnnotateScreen(
     ): ImageView =
         ImageView(ui.context).apply {
             scaleType = ImageView.ScaleType.CENTER
-            setImageDrawable(ui.context.getDrawable(icon)?.mutate()?.apply { setTint(ui.palette.ink) })
+            setImageDrawable(
+                ui.context
+                    .getDrawable(icon)
+                    ?.mutate()
+                    ?.apply { setTint(ui.palette.ink) },
+            )
             layoutParams = LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH))
             if (label != null) {
                 contentDescription = label

@@ -44,7 +44,7 @@ object CaptureInbox {
         resolver: ContentResolver,
         chosen: CaptureTarget,
     ) {
-        if (inbox == null) inbox = FileInbox(GalleryStore(resolver)) { step -> post(step) }
+        if (inbox == null) inbox = FileInbox(GalleryStore(resolver), report = { step -> post(step) })
         target = chosen
     }
 

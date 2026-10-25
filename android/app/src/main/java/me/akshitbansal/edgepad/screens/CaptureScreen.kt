@@ -28,7 +28,7 @@ import me.akshitbansal.edgepad.surface.ControlSurface
  * The pad is the control surface in its trackpad-only mode, so it is the recogniser the main screen uses
  * and a drag is made the same way. The buttons are disabled, with the reason written under them, when the
  * laptop has not named [Feature.CAPTURE]: a button the laptop would silently drop is worse than one that
-  * says why it is off.
+ * says why it is off.
  *
  * "Save to" picks where a capture ends up. Laptop leaves it where the laptop's tool saved it; Phone has the laptop send
  * it here, into the gallery through [CaptureInbox], and the line under the buttons follows it as it arrives.

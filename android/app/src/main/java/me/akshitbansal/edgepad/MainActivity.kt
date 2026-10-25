@@ -1177,10 +1177,16 @@ class MainActivity :
         picker.setMessage("")
         startPinger()
         when (screen) {
-            Screen.PAIRING, Screen.RECONNECTING, Screen.PIN -> goTo(Screen.SURFACE)
+            Screen.PAIRING, Screen.RECONNECTING, Screen.PIN -> {
+                goTo(Screen.SURFACE)
+            }
+
             // Opened from Devices, back now leads to the surface the connect would have gone to.
-            Screen.SETTINGS -> if (settingsReturn == Screen.PAIRING) settingsReturn = Screen.SURFACE
-            else -> Unit
+            Screen.SETTINGS -> {
+                if (settingsReturn == Screen.PAIRING) settingsReturn = Screen.SURFACE
+            }
+
+            else -> {}
         }
     }
 

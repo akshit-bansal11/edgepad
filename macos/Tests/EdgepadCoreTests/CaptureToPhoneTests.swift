@@ -48,7 +48,7 @@ final class CaptureToPhoneTests: XCTestCase {
         for _ in 0..<times {
             let now = scheduled
             scheduled.removeAll()
-            now.forEach { $0() }
+            for task in now { task() }
         }
     }
 

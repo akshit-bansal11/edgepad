@@ -318,7 +318,11 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
             return false;
         }
 
+        // Read now: a FileInfo fills itself on first use, which would otherwise be after the send and so already
+        // describe whatever changed meanwhile.
         var before = new FileInfo(path);
+        var length = before.Length;
+        var written = before.LastWriteTimeUtc;
         byte[]? sent;
         using (var data = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
         {
@@ -332,7 +336,7 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
 
         // Closed first: Windows will not delete a file this process still has open.
         var now = new FileInfo(path);
-        if (!now.Exists || now.Length != before.Length || now.LastWriteTimeUtc != before.LastWriteTimeUtc || !Sha256(path).AsSpan().SequenceEqual(sent))
+        if (!now.Exists || now.Length != length || now.LastWriteTimeUtc != written || !Sha256(path).AsSpan().SequenceEqual(sent))
         {
             Log.Write("Capture: the file changed after it was sent, so it stays here");
             return false;
