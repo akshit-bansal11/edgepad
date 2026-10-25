@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
 using Edgepad.Annotation;
+using Edgepad.Capture;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
 using Edgepad.Gamepad;
@@ -142,6 +143,11 @@ internal sealed class Session(
 
         ReportRefreshRates();
         ReportPad();
+
+        // Captures go to the phone once it asks (SET CAPTURE_TARGET); until then, and after the session, they stay here.
+        var capture = new CaptureToPhone(new WindowsCaptureFolders(), Send, () => dispatcher.LastInputMs);
+        dispatcher.Capture = capture;
+        Keep(capture);
 
         // Only what this build can do: the phone hides a feature that is not named, so naming one that is
         // not there would be a button that quietly does nothing.

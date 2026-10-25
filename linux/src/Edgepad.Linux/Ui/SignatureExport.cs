@@ -161,7 +161,13 @@ internal static class SignatureExport
     /// the Pictures line of <c>user-dirs.dirs</c> (the file <c>xdg-user-dir</c> itself reads, so no process and no
     /// package is needed for it), else <c>~/Pictures</c>.
     /// </summary>
-    public static string Folder()
+    public static string Folder() => Path.Combine(UserFolder("PICTURES", "Pictures"), "Edgepad");
+
+    /// <summary>
+    /// One of the XDG user folders, by its <c>user-dirs.dirs</c> key without the <c>XDG_</c> and <c>_DIR</c> (such as
+    /// <c>PICTURES</c> or <c>VIDEOS</c>), found as <see cref="Folder"/> finds Pictures, else <c>~/<paramref name="fallback"/></c>.
+    /// </summary>
+    public static string UserFolder(string key, string fallback)
     {
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var config = Xdg.Resolve(Environment.GetEnvironmentVariable("XDG_CONFIG_HOME"), home, ".config");
@@ -175,7 +181,7 @@ internal static class SignatureExport
             // No file (a desktop without xdg-user-dirs): the default below.
         }
 
-        return Path.Combine(Pictures(Environment.GetEnvironmentVariable("XDG_PICTURES_DIR"), dirs, home), "Edgepad");
+        return UserDir($"XDG_{key}_DIR", fallback, Environment.GetEnvironmentVariable($"XDG_{key}_DIR"), dirs, home);
     }
 
     /// <summary>
@@ -183,15 +189,19 @@ internal static class SignatureExport
     /// <c>XDG_PICTURES_DIR="$HOME/Pictures"</c>; only an absolute path or one under <c>$HOME/</c> is valid there),
     /// else <c>~/Pictures</c>. The home folder itself means the folder is turned off, so it is not used.
     /// </summary>
-    internal static string Pictures(string? variable, string? userDirs, string home)
+    internal static string Pictures(string? variable, string? userDirs, string home) =>
+        UserDir("XDG_PICTURES_DIR", "Pictures", variable, userDirs, home);
+
+    /// <summary>As <see cref="Pictures"/>, for the user folder whose line in <c>user-dirs.dirs</c> is <paramref name="name"/>.</summary>
+    internal static string UserDir(string name, string fallbackName, string? variable, string? userDirs, string home)
     {
-        var fallback = Path.Combine(home, "Pictures");
+        var fallback = Path.Combine(home, fallbackName);
         var chosen = variable;
         if (string.IsNullOrEmpty(chosen) && userDirs is not null)
         {
-            const string Key = "XDG_PICTURES_DIR=";
-            var line = userDirs.Split('\n').Select(l => l.Trim()).LastOrDefault(l => l.StartsWith(Key, StringComparison.Ordinal));
-            var value = line?[Key.Length..].Trim('"');
+            var key = name + "=";
+            var line = userDirs.Split('\n').Select(l => l.Trim()).LastOrDefault(l => l.StartsWith(key, StringComparison.Ordinal));
+            var value = line?[key.Length..].Trim('"');
             chosen = value is null ? null
                 : value.StartsWith("$HOME/", StringComparison.Ordinal) ? Path.Combine(home, value["$HOME/".Length..])
                 : value;

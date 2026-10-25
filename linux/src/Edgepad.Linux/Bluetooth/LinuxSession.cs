@@ -1,6 +1,8 @@
+using Edgepad.Capture;
 using Edgepad.Dispatch;
 using Edgepad.Native;
 using Edgepad.Net;
+using Edgepad.Platform;
 using Edgepad.Protocol;
 using Edgepad.Trust;
 using Microsoft.Win32.SafeHandles;
@@ -120,6 +122,9 @@ internal sealed class LinuxSession : IDisposable
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
             startReporting(frames.Send);
 
+            // Captures go to the phone once it asks (SET CAPTURE_TARGET); until then, and after the session, they stay here.
+            dispatcher.Capture = new CaptureToPhone(new LinuxCaptureFolders(), frames.Send, () => dispatcher.LastInputMs);
+
             while (true)
             {
                 var frame = frames.ReadFrame();
@@ -152,6 +157,7 @@ internal sealed class LinuxSession : IDisposable
             // Releases anything still held down: Alt in the middle of an app switch, a button mid-drag. Unplugs the
             // pad too, so a phone that drops mid-game does not leave a stick pushed forward.
             releaseHeldInput();
+            dispatcher.Capture?.Dispose();
             if (dispatcher.Dropped > 0)
             {
                 Log.Write($"Session with {Address}: {dispatcher.Dropped} frames dropped");
