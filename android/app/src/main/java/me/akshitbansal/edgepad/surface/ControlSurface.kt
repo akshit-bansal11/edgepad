@@ -417,6 +417,10 @@ class ControlSurface(
             val cx = w / 2 + button.side * offset
             button.hit.set(cx - touch, top - touch, cx + touch, top + touch)
         }
+        // A split corner's text stays out from under the row.
+        if (topButtons.isNotEmpty()) {
+            painter.clearOf(topButtons.minOf { it.hit.left }, topButtons.maxOf { it.hit.right }, top + touch)
+        }
     }
 
     /** Keeps Android's back gesture off each dial; the bottom edge (home) cannot be claimed. */

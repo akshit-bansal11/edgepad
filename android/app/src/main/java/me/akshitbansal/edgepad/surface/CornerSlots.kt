@@ -32,61 +32,62 @@ object CornerSlots {
 }
 
 /**
- * Where the label and number of one half of a split corner sit. Pure, so the promise that the two halves of a
- * corner never draw over each other is tested on the JVM at the smallest screen.
+ * Where the label and number of one half of a split corner sit. Pure, so the promise that none of the eight
+ * draws over another, the top buttons or the media is tested on the JVM.
  *
- * The geometry, for a top-left corner with a half on each edge. A half's indicator sits on its own edge, a
- * distance `along` from the corner point (the bend's radius plus the offset past the arc). Its text goes
- * inward of the indicator, clear of the longest mark: [depth] in from the edge.
+ * Eight numbers at the four-dial size, each pushed in from its own indicator, fought over the same square
+ * inside every bend and read as a pile. Split mode uses one rigid system instead:
  *
- *     corner
- *       +-----------------------------> top edge
- *       |      ind(top) = (along, 0)
- *       |        [ TOP ]   text from y = depth to y = depth + block, centred on the indicator
- *       |  [SIDE]          text from x = depth, left aligned, centred on ind(side) = (0, along)
- *       v
- *   side edge
+ * - Every unit, a small label over a smaller number, lives inside one frame inset [anchor]'s depth from every
+ *   edge, clear of the longest mark the height allows, so no text crosses a ruler and every corner is inset
+ *   the same.
+ * - A corner's two units form one column flush with that frame: left aligned in a left corner, right aligned
+ *   in a right one, so the column's outer edge never moves as a number changes width.
+ * - The top or bottom edge's unit is the row nearest that edge and the side edge's unit the next row in, so
+ *   each sits beside its own ruler and the order is the same in all four corners.
+ * - Each row is reserved for the held size and the widest number, so arming a dial or a value changing moves
+ *   nothing. A half with no dial draws nothing, and the other row stays where it is.
+ * - A top corner's column drops below the button row only when its reserved width would reach under it.
  *
- * Both texts want the square just inside the bend, and with `along` about the same on both edges they land
- * on it together. The top-edge text keeps its place, under its indicator and clear of the top row of buttons.
- * The side-edge text slides down its own edge, away from the bend, until its block starts a [separation]
- * below the top-edge block's end: centre >= depth + 1.5 * block + separation. Separation is vertical, so it
- * does not depend on how wide either text is, and it is the cheaper way out because a block is narrower
- * than it is wide. The same holds at the bottom corners, mirrored, so the side-edge text slides up, and
- * on the right edge, so the text is right aligned. The block is sized for the held value, the larger one, so
- * arming a dial moves nothing.
+ *     +--[ruler]---------   ( buttons )
+ *     |  APPS               the top edge's unit, depth in from both edges
+ *     |  -
+ *    [r] VOL                the side edge's unit, one row in
+ *    [u] 32
+ *     |
  */
 object SplitLabel {
     /**
-     * Writes the centre of the text block of the half whose indicator is at path length [centre] into [out]
-     * as x, y. [pt] is scratch for the point. [depth] is the distance in from the edge where the text starts,
-     * and [block] the height of the label plus the number. A side-edge block is aligned by its inner edge at
-     * x, so it does not move as the number's width changes; a top or bottom one is centred on x.
+     * Writes where the unit of the half whose indicator is at path length [centre] starts into [out] as x, top,
+     * align: x is the edge the unit is aligned on, top is its block's top, and align is 1 for left aligned and
+     * -1 for right. [pt] is scratch. [depth] is the frame's inset, [block] the label plus the held number, [gap]
+     * the space between rows and below the buttons, [wide] the widest number's width, and [row] the top
+     * buttons' left, right and bottom, all zero when there are none.
      */
     fun anchor(
         perimeter: Perimeter,
         centre: Float,
         depth: Float,
         block: Float,
-        separation: Float,
+        gap: Float,
+        wide: Float,
+        row: FloatArray,
         pt: FloatArray,
         out: FloatArray,
     ) {
         perimeter.point(centre, pt)
-        val nx = pt[2]
-        val ny = pt[3]
-        val side = isSideEdge(nx, ny)
-        val here = perimeter.fromBend(centre)
-        // Whether the path's clockwise direction, (ny, -nx), leads away from the corner this half belongs to.
-        val away = if (perimeter.fromBend(centre + 1f) > here) 1f else -1f
-        var slide = 0f
-        if (side) {
-            val needed = depth + 1.5f * block + separation
-            slide = maxOf(0f, needed - (here + perimeter.radius))
+        val left = pt[0] < perimeter.width / 2
+        val top = pt[1] < perimeter.height / 2
+        val x = if (left) depth else perimeter.width - depth
+        var edge = depth
+        if (top && row[2] > 0f) {
+            val from = if (left) x else x - wide
+            if (from + wide > row[0] && from < row[1]) edge = maxOf(depth, row[2] + gap)
         }
-        val inward = depth + if (side) 0f else block / 2
-        out[0] = pt[0] + nx * inward + away * ny * slide
-        out[1] = pt[1] + ny * inward - away * nx * slide
+        val inward = edge + if (isSideEdge(pt[2], pt[3])) block + gap else 0f
+        out[0] = x
+        out[1] = if (top) inward else perimeter.height - inward - block
+        out[2] = if (left) 1f else -1f
     }
 
     /** Whether a normal belongs to a left or right edge. */

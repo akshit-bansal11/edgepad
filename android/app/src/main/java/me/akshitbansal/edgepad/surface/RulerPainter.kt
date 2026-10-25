@@ -35,7 +35,8 @@ class RulerPainter(
             textAlign = Paint.Align.CENTER
             letterSpacing = LABEL_TRACKING
         }
-    private val split = FloatArray(2)
+    private val split = FloatArray(3)
+    private val row = FloatArray(3)
     private val valuePaint =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = Type.black
@@ -119,41 +120,21 @@ class RulerPainter(
         mark.strokeWidth = dp(INDICATOR_WIDTH_DP)
         line(canvas, start, end, pt)
 
+        if (isSplit(perimeter, centre)) {
+            drawSplitText(canvas, perimeter, centre, armed, ink, accent, dim, label, number, pt)
+            return
+        }
         // The label and the number sit inside the corner, on its normal, clear of the longest mark the
         // height allows, so they do not move when the dial arms and its marks grow.
         val labelSize = sp(LABEL_SP)
         val valueSize = sp(if (armed) ARMED_VALUE_SP else VALUE_SP)
         val block = if (number.isEmpty()) labelSize else labelSize + dp(GAP_DP) + valueSize
-        val ax: Float
-        val ay: Float
-        var span = block
-        var align = Paint.Align.CENTER
-        if (isSplit(perimeter, centre)) {
-            // One half of a split corner. Its indicator is on a straight edge, so the text goes in from that edge
-            // and, on a side edge, slides away from the bend ([SplitLabel]). Laid out for the held size, so
-            // arming moves nothing.
-            val heldBlock = labelSize + dp(GAP_DP) + sp(ARMED_VALUE_SP)
-            span = heldBlock
-            SplitLabel.anchor(
-                perimeter,
-                centre,
-                dp(RulerGeometry.reach(height) + SPLIT_LABEL_GAP_DP),
-                span,
-                dp(SPLIT_SEPARATION_DP),
-                pt,
-                split,
-            )
-            ax = split[0]
-            ay = split[1]
-            if (SplitLabel.isSideEdge(pt[2], pt[3])) align = if (pt[2] > 0) Paint.Align.LEFT else Paint.Align.RIGHT
-        } else {
-            val depth = dp(RulerGeometry.reach(height) + LABEL_GAP_DP)
-            ax = pt[0] + pt[2] * depth
-            ay = pt[1] + pt[3] * depth
-        }
-        labelPaint.textAlign = align
-        valuePaint.textAlign = align
-        val top = ay - span / 2
+        val depth = dp(RulerGeometry.reach(height) + LABEL_GAP_DP)
+        val ax = pt[0] + pt[2] * depth
+        val ay = pt[1] + pt[3] * depth
+        labelPaint.textAlign = Paint.Align.CENTER
+        valuePaint.textAlign = Paint.Align.CENTER
+        val top = ay - block / 2
         labelPaint.textSize = labelSize
         labelPaint.color = dim
         canvas.drawText(label, ax, top + labelSize * BASELINE, labelPaint)
@@ -161,6 +142,65 @@ class RulerPainter(
             valuePaint.textSize = valueSize
             valuePaint.color = if (armed) accent else ink
             canvas.drawText(number, ax, top + labelSize + dp(GAP_DP) + valueSize * BASELINE, valuePaint)
+        }
+    }
+
+    /**
+     * The top buttons' left, right and bottom in pixels, which a top corner's split text stays out from under
+     * ([SplitLabel]). The control surface sets it after laying the row out; the Settings preview has no row.
+     */
+    fun clearOf(
+        left: Float,
+        right: Float,
+        bottom: Float,
+    ) {
+        row[0] = left
+        row[1] = right
+        row[2] = bottom
+    }
+
+    /**
+     * One half of a split corner: a smaller label and number, in the column [SplitLabel] lays out, so eight
+     * dials read as four tidy pairs. Laid out for the held size and the widest number, so nothing moves.
+     */
+    private fun drawSplitText(
+        canvas: Canvas,
+        perimeter: Perimeter,
+        centre: Float,
+        armed: Boolean,
+        ink: Int,
+        accent: Int,
+        dim: Int,
+        label: String,
+        number: String,
+        pt: FloatArray,
+    ) {
+        val labelSize = sp(SPLIT_LABEL_SP)
+        val held = sp(SPLIT_ARMED_VALUE_SP)
+        val gap = dp(SPLIT_GAP_DP)
+        SplitLabel.anchor(
+            perimeter,
+            centre,
+            dp(RulerGeometry.reach(height) + SPLIT_INSET_DP),
+            labelSize + gap + held,
+            dp(SPLIT_ROW_GAP_DP),
+            held * SPLIT_WIDE_EMS,
+            row,
+            pt,
+            split,
+        )
+        val align = if (split[2] > 0) Paint.Align.LEFT else Paint.Align.RIGHT
+        val top = split[1]
+        labelPaint.textAlign = align
+        labelPaint.textSize = labelSize
+        labelPaint.color = dim
+        canvas.drawText(label, split[0], top + labelSize * BASELINE, labelPaint)
+        if (number.isNotEmpty()) {
+            val valueSize = if (armed) held else sp(SPLIT_VALUE_SP)
+            valuePaint.textAlign = align
+            valuePaint.textSize = valueSize
+            valuePaint.color = if (armed) accent else ink
+            canvas.drawText(number, split[0], top + labelSize + gap + valueSize * BASELINE, valuePaint)
         }
     }
 
@@ -224,9 +264,19 @@ class RulerPainter(
 
         const val LABEL_GAP_DP = 40f
 
-        /** A split half's text starts this far past its longest mark, and the two halves of a corner this far apart. */
-        const val SPLIT_LABEL_GAP_DP = 6f
-        const val SPLIT_SEPARATION_DP = 2f
+        /**
+         * Split mode's text, smaller so eight fit: a 10 sp label over an 18 sp number, 22 held, the same growth as
+         * the whole dial's 26 to 32. It starts 5 dp past the longest mark, rows are 8 dp apart, and each row is
+         * reserved 3.2 em of the held size, "240 Hz" in Lato Black (3.17 em) rounded up. At the default height
+         * that keeps a 360 dp phone's columns clear of the buttons and the transport. See [SplitLabel].
+         */
+        const val SPLIT_LABEL_SP = 10f
+        const val SPLIT_VALUE_SP = 18f
+        const val SPLIT_ARMED_VALUE_SP = 22f
+        const val SPLIT_GAP_DP = 2f
+        const val SPLIT_INSET_DP = 5f
+        const val SPLIT_ROW_GAP_DP = 8f
+        const val SPLIT_WIDE_EMS = 3.2f
         const val SPLIT_MATCH_PX = 0.5f
         const val LABEL_SP = 11f
 
