@@ -42,7 +42,7 @@ object AppearanceScreen {
             Settings.Pattern.CHECKER to R.string.pattern_checker,
         )
 
-    /** The Settings hub's one-line summary, read as a phrase: the background, then the pattern. */
+    /** The surface settings row's one-line summary, read as a phrase: the background, then the pattern. */
     fun summary(
         ui: Ui,
         settings: Settings,
@@ -57,7 +57,8 @@ object AppearanceScreen {
         onBack: () -> Unit,
     ): View {
         val preview = Preview(ui.context, settings)
-        val bar = ui.bar(ui.string(R.string.appearance_title), onBack, backLabel = ui.string(R.string.settings_title))
+        val bar =
+            ui.bar(ui.string(R.string.appearance_title), onBack, backLabel = ui.string(R.string.settings_surface_title))
         return ui.page(bar) {
             columns(
                 {

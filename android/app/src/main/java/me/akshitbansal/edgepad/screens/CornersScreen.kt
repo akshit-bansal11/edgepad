@@ -128,7 +128,7 @@ object CornersScreen {
         }
         fillAssign()
         return ui.page(
-            ui.bar(ui.string(R.string.corners_title), onBack, backLabel = ui.string(R.string.settings_title)),
+            ui.bar(ui.string(R.string.corners_title), onBack, backLabel = ui.string(R.string.settings_surface_title)),
         ) {
             card {
                 add(

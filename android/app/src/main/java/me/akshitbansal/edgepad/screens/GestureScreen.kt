@@ -70,7 +70,7 @@ object GestureScreen {
         render()
         val (first, rest) = blocks.values.toList().let { it.first() to it.drop(1) }
         return ui.page(
-            ui.bar(ui.string(R.string.gestures_title), onBack, backLabel = ui.string(R.string.settings_title)),
+            ui.bar(ui.string(R.string.gestures_title), onBack, backLabel = ui.string(R.string.settings_surface_title)),
         ) {
             columns(
                 {

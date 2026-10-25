@@ -10,15 +10,13 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
-import me.akshitbansal.edgepad.surface.Perimeter
-import me.akshitbansal.edgepad.surface.Shapes
-import kotlin.math.roundToInt
 
 /**
- * The surface's settings: its own, under "This screen" — corners, gestures, shapes, dial feel, media layout —
- * and the ones that hold everywhere, under "Everywhere": the remembered laptop, the theme and orientation,
- * help and updates. The keyboard, the gamepad and the macros each have a page of their own, opened from
- * their own bar. Every change is saved as it is made. Sideways, the two sections sit side by side.
+ * The app's settings: only what holds everywhere — the remembered laptop and the paired devices, the theme
+ * and orientation, help and updates. Every feature's own settings sit behind that feature's gear instead:
+ * the surface's, the keyboard's, the gamepad's and the macros'. Opened from the Devices list's gear and from
+ * the last row of the surface's settings. Every change is saved as it is made. Sideways, the sections sit in
+ * two columns.
  */
 object SettingsScreen {
     /** What the laptop card shows: the remembered laptop, if any, its state, and whether it is connected now. */
@@ -28,23 +26,16 @@ object SettingsScreen {
         val connected: Boolean,
     )
 
-    /** Where the hub's rows lead. */
+    /** Where the rows lead. [showAll] lifts the Devices list's filter to computers, as its own button does. */
     class Routes(
         val forget: () -> Unit,
-        val corners: () -> Unit,
-        val gestures: () -> Unit,
-        val shapes: () -> Unit,
-        val dialFeel: () -> Unit,
-        val mediaLayout: () -> Unit,
-        val appearance: () -> Unit,
+        val showAll: (Boolean) -> Unit,
         val guide: () -> Unit,
         val documentation: () -> Unit,
         val update: () -> Unit,
         val sideways: (Boolean) -> Unit,
         val back: () -> Unit,
     )
-
-    private const val NO_DIAL = "—"
 
     /**
      * The Updates row: what its summary says as the page opens, and [onSummary], which is handed the
@@ -56,11 +47,12 @@ object SettingsScreen {
         val onSummary: (TextView) -> Unit,
     )
 
-    /** [backLabel] names the screen the back link returns to: Devices, or the controls it was opened from. */
+    /** [backLabel] names the screen the back link returns to: Devices, the surface or the surface's settings. */
     fun build(
         ui: Ui,
         settings: Settings,
         connection: Connection,
+        showingAll: Boolean,
         version: String,
         backLabel: String,
         update: Update,
@@ -68,26 +60,10 @@ object SettingsScreen {
     ): View =
         // The nav bar draws no title: the large title under it is the screen's name, and says so to a screen reader.
         ui.page(ui.bar("", routes.back, backLabel = backLabel)) {
-            largeTitle(ui.string(R.string.settings_title))
+            largeTitle(ui.string(R.string.settings_app))
             columns(
                 {
-                    section(ui.string(R.string.settings_this_screen))
-                    card {
-                        add(ui.link(ui.string(R.string.corners_title), cornersSummary(ui, settings), routes.corners))
-                        hairline()
-                        add(ui.link(ui.string(R.string.gestures_title), null, routes.gestures))
-                        hairline()
-                        add(ui.link(ui.string(R.string.shapes_title), shapesSummary(ui, settings), routes.shapes))
-                        hairline()
-                        val feel =
-                            ui.string(R.string.feel_summary, settings.sensitivity, settings.dialLength.roundToInt())
-                        add(ui.link(ui.string(R.string.dial_feel_title), feel, routes.dialFeel))
-                        hairline()
-                        add(ui.link(ui.string(R.string.media_layout_title), null, routes.mediaLayout))
-                    }
-                },
-                {
-                    section(ui.string(R.string.settings_everywhere))
+                    section(ui.string(R.string.pairing_title))
                     card {
                         add(laptop(ui, connection, routes.forget))
                         hairline()
@@ -96,6 +72,8 @@ object SettingsScreen {
                                 settings.reconnect = it
                             },
                         )
+                        hairline()
+                        add(ui.toggle(ui.string(R.string.show_laptops_only), !showingAll) { routes.showAll(!it) })
                     }
 
                     section(ui.string(R.string.settings_appearance))
@@ -123,16 +101,9 @@ object SettingsScreen {
                                 ui.segmented(held, if (settings.landscape) 1 else 0) { i -> routes.sideways(i == 1) },
                             ),
                         )
-                        hairline()
-                        add(
-                            ui.link(
-                                ui.string(R.string.appearance_title),
-                                AppearanceScreen.summary(ui, settings),
-                                routes.appearance,
-                            ),
-                        )
                     }
-
+                },
+                {
                     section(ui.string(R.string.settings_help))
                     card {
                         add(ui.link(ui.string(R.string.guide_title), null, routes.guide))
@@ -197,33 +168,6 @@ object SettingsScreen {
             }
         return ui.laptop(connection.name ?: ui.string(R.string.no_laptop), detail, on, forget, large = true)
     }
-
-    /**
-     * How many shapes are drawn. A set that failed to decode counts as none, because that is exactly what
-     * the pad will do with it, and a hub row claiming four shapes over a trackpad that recognises none
-     * would send the owner looking in the wrong place.
-     */
-    private fun shapesSummary(
-        ui: Ui,
-        settings: Settings,
-    ): String {
-        val count = Shapes.decode(settings.shapes)?.size ?: 0
-        if (count == 0) return ui.string(R.string.shapes_none)
-        return ui.context.resources.getQuantityString(R.plurals.shapes_summary, count, count)
-    }
-
-    /** The four corners' dials, clockwise from the top left, or a count when each corner is split in two. */
-    private fun cornersSummary(
-        ui: Ui,
-        settings: Settings,
-    ): String =
-        if (settings.splitCorners) {
-            ui.string(R.string.corners_summary_split)
-        } else {
-            (0 until Perimeter.CORNERS).joinToString(", ") { corner ->
-                settings.corner(corner)?.let { ui.string(it.nameRes) } ?: NO_DIAL
-            }
-        }
 
     /**
      * The Theme choice as last made. Before 3.2 only Dark and Light existed and neither was written down, so

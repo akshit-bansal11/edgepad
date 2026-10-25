@@ -58,6 +58,7 @@ import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
 import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
+import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.surface.BackgroundImage
 import me.akshitbansal.edgepad.surface.ControlSurface
@@ -106,6 +107,7 @@ class MainActivity :
         GUIDE,
         PAIRING,
         SETTINGS,
+        SURFACE_SETTINGS,
         CORNERS,
         GESTURES,
         SHAPES,
@@ -424,12 +426,17 @@ class MainActivity :
                 }
 
                 Screen.SETTINGS -> {
-                    val backTo = settingsBack()
-                    val backLabel = if (backTo == Screen.SURFACE) R.string.settings_surface else R.string.pairing_title
+                    val backLabel =
+                        when (settingsBack()) {
+                            Screen.SURFACE -> R.string.settings_surface
+                            Screen.SURFACE_SETTINGS -> R.string.settings_surface_title
+                            else -> R.string.pairing_title
+                        }
                     SettingsScreen.build(
                         ui,
                         settings,
                         connectionInfo(),
+                        showAllDevices,
                         versionLine(),
                         getString(backLabel),
                         SettingsScreen.Update(updateSummary()) { view ->
@@ -439,12 +446,10 @@ class MainActivity :
                         },
                         SettingsScreen.Routes(
                             forget = ::forget,
-                            corners = { goTo(Screen.CORNERS) },
-                            gestures = { goTo(Screen.GESTURES) },
-                            shapes = { goTo(Screen.SHAPES) },
-                            dialFeel = { goTo(Screen.DIAL_FEEL) },
-                            mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
-                            appearance = { goTo(Screen.APPEARANCE) },
+                            showAll = { all ->
+                                showAllDevices = all
+                                refreshPicker()
+                            },
                             guide = { goTo(Screen.GUIDE) },
                             documentation = { open(getString(R.string.documentation_url)) },
                             update = ::openUpdate,
@@ -452,6 +457,24 @@ class MainActivity :
                                 settings.landscape = on
                                 applyOrientation()
                             },
+                            back = { navigateBack() },
+                        ),
+                    )
+                }
+
+                Screen.SURFACE_SETTINGS -> {
+                    SurfaceSettingsScreen.build(
+                        ui,
+                        settings,
+                        getString(R.string.settings_surface),
+                        SurfaceSettingsScreen.Routes(
+                            corners = { goTo(Screen.CORNERS) },
+                            gestures = { goTo(Screen.GESTURES) },
+                            shapes = { goTo(Screen.SHAPES) },
+                            dialFeel = { goTo(Screen.DIAL_FEEL) },
+                            mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
+                            appearance = { goTo(Screen.APPEARANCE) },
+                            app = ::openSettings,
                             back = { navigateBack() },
                         ),
                     )
@@ -616,7 +639,7 @@ class MainActivity :
                         settings,
                         state,
                         { frame -> link?.send(frame) },
-                        ::openSettings,
+                        { goTo(Screen.SURFACE_SETTINGS) },
                         onOpenControls = { goTo(Screen.CONTROLS) },
                     ).also { surface = it }
                 }
@@ -692,9 +715,14 @@ class MainActivity :
                 goTo(Screen.PAIRING)
             }
 
-            Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.GUIDE, Screen.MEDIA_LAYOUT,
+            // The surface's own pages go back to the surface's settings, which they are reached from.
+            Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.MEDIA_LAYOUT,
             Screen.SHAPES,
             -> {
+                goTo(Screen.SURFACE_SETTINGS)
+            }
+
+            Screen.GUIDE -> {
                 goTo(Screen.SETTINGS)
             }
 
@@ -733,7 +761,8 @@ class MainActivity :
                 goTo(Screen.CONTROLS)
             }
 
-            Screen.CONTROLS -> {
+            // Both are opened from the surface, which is only there while the link holds.
+            Screen.CONTROLS, Screen.SURFACE_SETTINGS -> {
                 goTo(if (link?.connected == true) Screen.SURFACE else Screen.PAIRING)
             }
 
@@ -745,8 +774,9 @@ class MainActivity :
     }
 
     /**
-     * Where back from Settings leads, which its back link is also named for: the surface it was opened from
-     * while the link still holds, and the Devices list otherwise.
+     * Where back from Settings leads, which its back link is also named for: the surface's settings or the
+     * Devices list it was opened from, or the surface once a link made from there holds, and the Devices
+     * list once it no longer does.
      */
     private fun settingsBack(): Screen =
         if (settingsReturn == Screen.SURFACE && link?.connected != true) Screen.PAIRING else settingsReturn
@@ -1148,7 +1178,8 @@ class MainActivity :
         startPinger()
         when (screen) {
             Screen.PAIRING, Screen.RECONNECTING, Screen.PIN -> goTo(Screen.SURFACE)
-            Screen.SETTINGS -> settingsReturn = Screen.SURFACE
+            // Opened from Devices, back now leads to the surface the connect would have gone to.
+            Screen.SETTINGS -> if (settingsReturn == Screen.PAIRING) settingsReturn = Screen.SURFACE
             else -> Unit
         }
     }

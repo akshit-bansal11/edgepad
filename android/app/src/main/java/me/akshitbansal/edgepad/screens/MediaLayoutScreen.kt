@@ -32,7 +32,7 @@ object MediaLayoutScreen {
             ui.string(R.string.media_layout_title),
             canvas,
             onBack,
-            backLabel = ui.string(R.string.settings_title),
+            backLabel = ui.string(R.string.settings_surface_title),
         ) { close ->
             LinearLayout(ui.context).apply {
                 orientation = LinearLayout.VERTICAL
