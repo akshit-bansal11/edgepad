@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Edgepad's own icon: 24 x 24, 1.75 stroke, round caps, 1.5 to 2 unit corners -->
+<!-- Edgepad's own icon: 24 x 24 grid, 20 x 20 live area, 1.5 stroke, round caps and joins, 1 to 1.5 unit corners -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
   android:width="24dp"
   android:height="24dp"
@@ -9,15 +9,8 @@
   <path
     android:fillColor="#00000000"
     android:strokeColor="#000000"
-    android:strokeWidth="1.75"
+    android:strokeWidth="1.5"
     android:strokeLineCap="round"
     android:strokeLineJoin="round"
-    android:pathData="M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
-  <path
-    android:fillColor="#00000000"
-    android:strokeColor="#000000"
-    android:strokeWidth="1.75"
-    android:strokeLineCap="round"
-    android:strokeLineJoin="round"
-    android:pathData="M7 9h.01M11 9h.01M15 9h.01M7 12.5h.01M11 12.5h.01M15 12.5h.01M8.5 16h7" />
+    android:pathData="M4.25 6H19.75A1.5 1.5 0 0 1 21.25 7.5V16.5A1.5 1.5 0 0 1 19.75 18H4.25A1.5 1.5 0 0 1 2.75 16.5V7.5A1.5 1.5 0 0 1 4.25 6ZM6.5 9.5H6.51M9.83 9.5H9.84M13.17 9.5H13.18M16.5 9.5H16.51M8.17 12.25H8.18M11.5 12.25H11.51M14.83 12.25H14.84M8 15H16" />
 </vector>
