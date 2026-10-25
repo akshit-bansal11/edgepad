@@ -90,6 +90,12 @@ class Settings(
      */
     var macroLabels by flag("macroLabels", true)
 
+    /**
+     * Captures go to this phone's gallery rather than staying where the laptop's own tool saved them. Set on the
+     * Capture screen and sent to the laptop on every connection.
+     */
+    var captureToPhone by flag("captureToPhone", false)
+
     /** Ask GitHub once a day, as the app opens, whether a newer release exists. */
     var autoUpdateCheck by flag("autoUpdateCheck", true)
 
