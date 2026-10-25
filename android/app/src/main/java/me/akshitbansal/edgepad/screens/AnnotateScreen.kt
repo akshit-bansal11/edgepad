@@ -175,13 +175,17 @@ class AnnotateScreen(
 
     private fun open(on: Boolean) {
         menu.visibility = if (on) View.VISIBLE else View.GONE
-        handleChevron.setImageResource(if (on) R.drawable.ic_chevron_down else R.drawable.ic_chevron_up)
+        val chevron = if (on) R.drawable.ic_chevron_down else R.drawable.ic_chevron_up
+        handleChevron.setImageDrawable(ui.context.getDrawable(chevron)?.mutate())
         val state = if (on) R.string.annotate_menu_expanded else R.string.annotate_menu_collapsed
         handle.stateDescription = ui.string(state)
         paintHandle()
     }
 
-    /** A 48 dp icon button; [label] is null for the handle's own parts, which the handle speaks for. */
+    /**
+     * A 48 dp icon button in the ink, on its own copy of the drawable so tinting it leaves the shared one alone;
+     * [label] is null for the handle's own parts, which the handle speaks for.
+     */
     private fun glyph(
         icon: Int,
         label: String?,
@@ -189,7 +193,7 @@ class AnnotateScreen(
     ): ImageView =
         ImageView(ui.context).apply {
             scaleType = ImageView.ScaleType.CENTER
-            setImageDrawable(ui.context.getDrawable(icon)?.mutate())
+            setImageDrawable(ui.context.getDrawable(icon)?.mutate()?.apply { setTint(ui.palette.ink) })
             layoutParams = LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH))
             if (label != null) {
                 contentDescription = label
@@ -263,15 +267,27 @@ class AnnotateScreen(
         button.drawable?.setTint(if (on) ui.palette.onAccent else ui.palette.ink)
     }
 
-    /** The handle on a light or dark disc, whichever the ink stands out against, so black and white both show. */
+    /**
+     * The handle on the theme's card, or on the theme's ink where the pen colour would vanish into the card, so
+     * every colour shows in both themes. Each image is its own copy, so its tint stays off the shared drawable.
+     */
     private fun paintHandle() {
         val ink = OPAQUE or PenColor.entries[strokes.colour].rgb
-        val light = Color.luminance(ink) < LIGHT_BELOW
-        val disc = if (light) LIGHT_DISC else DARK_DISC
-        handle.background = ui.rounded(disc, Space.TOUCH / 2)
-        handleTool.setImageResource(TOOL_ICONS.getValue(strokes.tool))
+        val onCard = contrast(ink, ui.palette.card) >= MIN_CONTRAST
+        handle.background = ui.rounded(if (onCard) ui.palette.card else ui.palette.ink, Space.TOUCH / 2)
+        handleTool.setImageDrawable(ui.context.getDrawable(TOOL_ICONS.getValue(strokes.tool))?.mutate())
         handleTool.drawable?.setTint(ink)
-        handleChevron.drawable?.setTint(if (light) DARK_DISC else LIGHT_DISC)
+        handleChevron.drawable?.setTint(if (onCard) ui.palette.dim else ui.palette.card)
+    }
+
+    /** The WCAG contrast ratio between two opaque colours, from 1 for the same to 21 for black on white. */
+    private fun contrast(
+        a: Int,
+        b: Int,
+    ): Float {
+        val la = Color.luminance(a)
+        val lb = Color.luminance(b)
+        return (maxOf(la, lb) + FLARE) / (minOf(la, lb) + FLARE)
     }
 
     private companion object {
@@ -283,10 +299,10 @@ class AnnotateScreen(
         const val SWATCHES_PER_ROW = 4
         const val OPAQUE = 0xFF000000.toInt()
 
-        // Below this luminance an ink colour disappears on a dark disc, so it gets a light one.
-        const val LIGHT_BELOW = 0.35f
-        const val LIGHT_DISC = 0xFFF2F2F7.toInt()
-        const val DARK_DISC = 0xFF1C1C1E.toInt()
+        // WCAG's 3:1 for graphics: a pen colour under it on the card gets the ink disc instead. FLARE is the
+        // formula's allowance for ambient light.
+        const val MIN_CONTRAST = 3f
+        const val FLARE = 0.05f
 
         val TOOL_ICONS =
             mapOf(

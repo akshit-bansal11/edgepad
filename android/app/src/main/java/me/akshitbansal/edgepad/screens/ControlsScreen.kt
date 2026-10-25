@@ -74,7 +74,7 @@ class ControlsScreen(
             spoken = R.string.controls_open,
         )
 
-    /** The target's Lucide icon in the ink colour, its own copy so tinting it leaves the shared drawable alone. */
+    /** The target's icon in the ink colour, its own copy so tinting it leaves the shared drawable alone. */
     private fun picture(target: Target): Drawable? {
         val icon = ui.context.getDrawable(target.icon)?.mutate()
         icon?.setTint(ui.palette.ink)
