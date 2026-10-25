@@ -21,6 +21,9 @@ internal sealed class LinuxCaptureFolders : ICaptureFolders
         return [new(Path.Combine(folder, sub), Shared: false), new(folder, Shared: true)];
     }
 
+    /// <summary>GNOME's and KDE's recording shortcuts both start and stop a recording.</summary>
+    public bool RecordToggles => true;
+
     public long? ClipboardStamp() => null;
 
     public byte[]? ClipboardPng() => null;

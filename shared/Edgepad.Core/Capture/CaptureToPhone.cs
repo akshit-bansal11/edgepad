@@ -45,7 +45,8 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
     public const int AnswerTimeoutMs = 30_000;
 
     private const int ScreenshotSettledPolls = 2;
-    private const int RecordingSettledPolls = 6;
+    /// <summary>Ten seconds of a recording's file not changing at all, on top of the tool's own end where there is one.</summary>
+    private const int RecordingSettledPolls = 20;
     private const int NoAnswer = -1;
 
     private readonly CancellationTokenSource ended = new();
@@ -59,6 +60,18 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
     private volatile bool toPhone;
     private int answer = NoAnswer;
     private bool awaiting;
+
+    /// <summary>FILE_END has gone for the file in flight. An answer before it can only be a refusal.</summary>
+    private bool endSent;
+
+    /// <summary>The answer in hand came before FILE_END, so even a SAVED in it deletes nothing.</summary>
+    private bool early;
+
+    /// <summary>The watch for a recording on a desktop where the same shortcut stops it; default when there is none.</summary>
+    private CancellationToken recordingWatch;
+
+    /// <summary>That recording was toggled off from the phone, so its file can be complete.</summary>
+    private volatile bool recordingStopped;
 
     private static long Now => Environment.TickCount64;
 
@@ -93,9 +106,17 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
             return press();
         }
 
+        var recording = capture == ActionId.CaptureRecord;
+        if (recording && folders.RecordToggles && RecordingWatched())
+        {
+            // The second press of a toggle stops the recording the watch is waiting for, and starts nothing new.
+            var stopped = press();
+            recordingStopped |= stopped;
+            return stopped;
+        }
+
         var watched = folders.For(capture);
         var before = CapturePick.Before(List(watched));
-        var recording = capture == ActionId.CaptureRecord;
         var clipboard = recording ? null : folders.ClipboardStamp();
         if (!press())
         {
@@ -104,7 +125,17 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
 
         var token = StartWatch(recording ? RecordingWindowMs : ScreenshotWindowMs);
         var settled = recording ? RecordingSettledPolls : ScreenshotSettledPolls;
-        _ = Task.Run(() => Watch(watched, before, clipboard, settled, token), CancellationToken.None);
+        var toggled = recording && folders.RecordToggles;
+        if (toggled)
+        {
+            recordingStopped = false;
+            lock (gate)
+            {
+                recordingWatch = token;
+            }
+        }
+
+        _ = Task.Run(() => Watch(watched, before, clipboard, settled, toggled, token), CancellationToken.None);
         return true;
     }
 
@@ -134,6 +165,7 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
             }
 
             answer = result.Status;
+            early = !endSent;
         }
 
         answered.Set();
@@ -173,6 +205,14 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
         }
     }
 
+    private bool RecordingWatched()
+    {
+        lock (gate)
+        {
+            return recordingWatch.CanBeCanceled && !recordingWatch.IsCancellationRequested;
+        }
+    }
+
     private long Deadline()
     {
         lock (gate)
@@ -181,7 +221,8 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
         }
     }
 
-    private void Watch(IReadOnlyList<CaptureFolder> watched, HashSet<string> before, long? clipboard, int settledPolls, CancellationToken token)
+    private void Watch(
+        IReadOnlyList<CaptureFolder> watched, HashSet<string> before, long? clipboard, int settledPolls, bool toggled, CancellationToken token)
     {
         try
         {
@@ -208,7 +249,8 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
                 {
                     still = CapturePick.Unchanged(last, file) ? still + 1 : 0;
                     last = file;
-                    if (still >= settledPolls && Readable(file.Path))
+                    // A recording on a desktop whose shortcut toggles it is complete only once the phone has stopped it.
+                    if (still >= settledPolls && (!toggled || recordingStopped) && Readable(file.Path))
                     {
                         SendFile(file.Path);
                         return;
@@ -252,38 +294,72 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
             // A dead link, a folder taken away, the session ending: the file, if there was one, stays here.
             Log.Write($"Capture: nothing was sent to the phone: {e.Message}");
         }
-    }
-
-    private void SendFile(string path)
-    {
-        if (FileTypes.FromPath(path) is not { } type)
+        finally
         {
-            return;
-        }
-
-        using (var data = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-        {
-            if (!Send(Path.GetFileName(path), type, data, path))
+            lock (gate)
             {
-                return;
+                if (recordingWatch == token)
+                {
+                    recordingWatch = default;
+                }
             }
         }
-
-        // Closed first: Windows will not delete a file this process still has open.
-        File.Delete(path);
-        Log.Write("Capture: saved on the phone, and deleted here");
     }
 
     /// <summary>
-    /// Sends one file and waits for the phone's answer. True only for SAVED after FILE_END, which is the one case in
-    /// which the caller may delete its copy.
+    /// Sends the file at <paramref name="path"/> and deletes it only when the phone saved it after FILE_END and the file
+    /// on disk is still, byte for byte, what was sent: the same length, the same write time and the same SHA-256 the
+    /// phone confirmed. Anything that changed it meanwhile (a tool still writing, an edit) keeps it. True when deleted.
     /// </summary>
-    private bool Send(string name, FileType type, Stream data, string? path)
+    internal bool SendFile(string path)
+    {
+        if (FileTypes.FromPath(path) is not { } type)
+        {
+            return false;
+        }
+
+        var before = new FileInfo(path);
+        byte[]? sent;
+        using (var data = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            sent = Send(Path.GetFileName(path), type, data, path);
+        }
+
+        if (sent is null)
+        {
+            return false;
+        }
+
+        // Closed first: Windows will not delete a file this process still has open.
+        var now = new FileInfo(path);
+        if (!now.Exists || now.Length != before.Length || now.LastWriteTimeUtc != before.LastWriteTimeUtc || !Sha256(path).AsSpan().SequenceEqual(sent))
+        {
+            Log.Write("Capture: the file changed after it was sent, so it stays here");
+            return false;
+        }
+
+        File.Delete(path);
+        Log.Write("Capture: saved on the phone, and deleted here");
+        return true;
+    }
+
+    private static byte[] Sha256(string path)
+    {
+        using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        return SHA256.HashData(file);
+    }
+
+    /// <summary>
+    /// Sends one file and waits for the phone's answer. The SHA-256 that was sent, only for a SAVED that came after
+    /// FILE_END, which is the one case in which the caller may delete its copy; null otherwise. An answer before
+    /// FILE_END stops the sending and is a refusal, whatever it says.
+    /// </summary>
+    private byte[]? Send(string name, FileType type, Stream data, string? path)
     {
         if (data.Length > FileTypes.Limit(type))
         {
             Status(CaptureStatus.TooLarge);
-            return false;
+            return null;
         }
 
         sending.Wait(ended.Token);
@@ -292,6 +368,8 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
             lock (gate)
             {
                 answer = NoAnswer;
+                early = false;
+                endSent = false;
                 awaiting = true;
             }
 
@@ -318,27 +396,41 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
                     sent = 0;
                     if (ended.Token.WaitHandle.WaitOne(TickMs))
                     {
-                        return false;
+                        return null;
                     }
                 }
             }
 
+            var digest = hash.GetHashAndReset();
             if (Volatile.Read(ref answer) == NoAnswer)
             {
-                send(new FileEnd(hash.GetHashAndReset()));
+                send(new FileEnd(digest));
+                // Marked only once the frame is written: an answer racing it is treated as early, which keeps the file.
+                lock (gate)
+                {
+                    endSent = true;
+                }
+
                 answered.Wait(AnswerTimeoutMs, ended.Token);
             }
 
-            var status = Volatile.Read(ref answer);
-            if (status == (int)FileStatus.Saved)
+            int status;
+            bool before;
+            lock (gate)
             {
-                return true;
+                status = answer;
+                before = early;
+            }
+
+            if (status == (int)FileStatus.Saved && !before)
+            {
+                return digest;
             }
 
             Log.Write(status == NoAnswer
                 ? $"Capture: the phone did not answer, so {path ?? "the clipboard image"} stays here"
-                : $"Capture: the phone answered {(FileStatus)status}, so {path ?? "the clipboard image"} stays here");
-            return false;
+                : $"Capture: the phone answered {(FileStatus)status}{(before ? " before FILE_END" : "")}, so {path ?? "the clipboard image"} stays here");
+            return null;
         }
         finally
         {

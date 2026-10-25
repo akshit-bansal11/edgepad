@@ -15,6 +15,12 @@ internal interface ICaptureFolders
     /// <summary>The folders a file from <paramref name="capture"/> may appear in. Missing ones are skipped.</summary>
     IReadOnlyList<CaptureFolder> For(ActionId capture);
 
+    /// <summary>
+    /// Whether the record shortcut is a toggle, pressed again to stop (GNOME, KDE). There a recording is sent only once
+    /// the phone has pressed it again; elsewhere only after a long quiet spell of its file.
+    /// </summary>
+    bool RecordToggles { get; }
+
     /// <summary>Something that changes whenever the clipboard does, or null where the clipboard is not watched.</summary>
     long? ClipboardStamp();
 

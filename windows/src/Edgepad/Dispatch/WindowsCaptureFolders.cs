@@ -16,6 +16,9 @@ internal sealed partial class WindowsCaptureFolders : ICaptureFolders
         ? [new(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), "Screen Recordings"), Shared: false)]
         : [new(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Screenshots"), Shared: false)];
 
+    /// <summary>Win+Shift+R opens the Snipping Tool's recorder, which is stopped in its own window, not by the chord.</summary>
+    public bool RecordToggles => false;
+
     public long? ClipboardStamp() => GetClipboardSequenceNumber();
 
     /// <summary>The clipboard is an STA's to read, which a watch's pool thread is not, so it gets one of its own.</summary>

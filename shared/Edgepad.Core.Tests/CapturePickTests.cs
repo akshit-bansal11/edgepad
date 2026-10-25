@@ -1,4 +1,5 @@
 using Edgepad.Capture;
+using Edgepad.Protocol;
 using Xunit;
 
 namespace Edgepad.Tests;
@@ -102,7 +103,7 @@ public sealed class CapturePickTests
     {
         using var capture = new CaptureToPhone(new NoFolders(), _ => { }, () => 0);
 
-        Assert.False(capture.Take(new Protocol.FileResult(0)));
+        Assert.False(capture.Take(new FileResult(0)));
     }
 
     [Fact]
@@ -111,13 +112,88 @@ public sealed class CapturePickTests
         using var capture = new CaptureToPhone(new NoFolders(), _ => Assert.Fail("nothing may be sent"), () => 0);
         var pressed = 0;
 
-        Assert.True(capture.Run(Protocol.ActionId.CaptureScreen, () => ++pressed == 1));
+        Assert.True(capture.Run(ActionId.CaptureScreen, () => ++pressed == 1));
         Assert.Equal(1, pressed);
+    }
+
+    [Fact]
+    public void ASavedBeforeTheEndKeepsTheFile()
+    {
+        var path = TempCapture();
+        CaptureToPhone? capture = null;
+        capture = new CaptureToPhone(
+            new NoFolders(),
+            frame =>
+            {
+                // A phone, or a bug, claiming SAVED for a file it cannot have had yet.
+                if (frame is FileBegin)
+                {
+                    capture!.Take(new FileResult((byte)FileStatus.Saved));
+                }
+            },
+            () => 0);
+
+        using (capture)
+        {
+            Assert.False(capture.SendFile(path));
+        }
+
+        Assert.True(System.IO.File.Exists(path));
+        System.IO.File.Delete(path);
+    }
+
+    [Fact]
+    public void AFileThatChangedAfterItWasSentIsKept()
+    {
+        var path = TempCapture();
+        using var capture = Answering(path, () => System.IO.File.SetLastWriteTimeUtc(path, DateTime.UtcNow.AddHours(1)));
+
+        Assert.False(capture.SendFile(path));
+        Assert.True(System.IO.File.Exists(path));
+        System.IO.File.Delete(path);
+    }
+
+    [Fact]
+    public void AnUnchangedFileSavedAfterItsEndIsDeleted()
+    {
+        var path = TempCapture();
+        using var capture = Answering(path, () => { });
+
+        Assert.True(capture.SendFile(path));
+        Assert.False(System.IO.File.Exists(path));
+    }
+
+    /// <summary>A capture that answers SAVED a moment after FILE_END, as a phone would, after <paramref name="meanwhile"/>.</summary>
+    private static CaptureToPhone Answering(string path, Action meanwhile)
+    {
+        CaptureToPhone? capture = null;
+        capture = new CaptureToPhone(
+            new NoFolders(),
+            frame =>
+            {
+                if (frame is FileEnd)
+                {
+                    meanwhile();
+                    _ = Task.Delay(50).ContinueWith(_ => capture!.Take(new FileResult((byte)FileStatus.Saved)), TaskScheduler.Default);
+                }
+            },
+            () => 0);
+        Assert.True(System.IO.File.Exists(path));
+        return capture;
+    }
+
+    private static string TempCapture()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"Screenshot {Guid.NewGuid():N}.png");
+        System.IO.File.WriteAllBytes(path, [.. Enumerable.Range(0, 600).Select(i => (byte)i)]);
+        return path;
     }
 
     private sealed class NoFolders : ICaptureFolders
     {
-        public IReadOnlyList<CaptureFolder> For(Protocol.ActionId capture) => [];
+        public IReadOnlyList<CaptureFolder> For(ActionId capture) => [];
+
+        public bool RecordToggles => false;
 
         public long? ClipboardStamp() => null;
 

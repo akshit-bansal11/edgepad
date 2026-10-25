@@ -241,6 +241,9 @@ final class RfcommServer: NSObject {
         // Per connection, like the injector: a phone that goes takes its overlay down with it (Session.end).
         dispatcher.annotation = Annotator()
         dispatcher.macros = macros
+        // Per connection too: the phone says where captures go each time it connects.
+        dispatcher.capture = CaptureToPhone(
+            folders: MacCaptureFolders(), lastInput: { [weak dispatcher] in dispatcher?.lastInput ?? 0 })
         let phone = PhoneLabel.describe(name: device.name, address: address)
         let ask = askTrust
         let session = Session(

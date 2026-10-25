@@ -18,7 +18,7 @@ public final class Dispatcher {
     private var zoomSum = 0
 
     /// Whether a capture crosshair or toolbar may still be open, so the next capture action can close it first.
-    private var capture = CaptureOverlay()
+    private var overlay = CaptureOverlay()
 
     /// Frames that asked for something unknown, out of range, or unavailable on this Mac.
     public private(set) var dropped = 0
@@ -36,6 +36,13 @@ public final class Dispatcher {
     /// A property for the same reason as `annotation`: the session reads it too.
     public var macros: MacroStore?
 
+    /// Sends captures to the phone when it asks for that. Set by the app per connection; without one,
+    /// CAPTURE_TARGET and FILE_RESULT are dropped and counted.
+    public var capture: CaptureToPhone?
+
+    /// When the phone last sent input, by system uptime: a capture on its way slows down for it.
+    public private(set) var lastInput: TimeInterval = 0
+
     public init(
         input: InputSink,
         speakers: LevelControl,
@@ -51,6 +58,12 @@ public final class Dispatcher {
     }
 
     public func handle(_ frame: Frame) {
+        switch frame {
+        case .move, .scroll, .pointerButton, .zoom, .key, .pen, .text:
+            lastInput = ProcessInfo.processInfo.systemUptime
+        default:
+            break
+        }
         if !carry(frame) {
             dropped += 1
         }
@@ -84,8 +97,11 @@ public final class Dispatcher {
             return key(code, down: down)
         case .pen(let x, let y, let state):
             return annotation?.pen(x: x, y: y, state: state) ?? false
-        case .hello, .helloAck, .ping, .pong, .state, .padState, .pinRequest, .pinAnswer, .fileBegin, .fileChunk, .fileEnd,
-            .fileResult:
+        case .fileResult(let status):
+            // The phone's answer to a capture this Mac sent it. Only the transfer waiting for one takes it.
+            return capture?.take(status: status) ?? false
+        case .hello, .helloAck, .ping, .pong, .state, .padState, .pinRequest, .pinAnswer, .fileBegin, .fileChunk,
+            .fileEnd:
             // A Mac has no virtual controller to give a pad frame to, and the rest are not the phone's to send
             // once the session is live.
             return false
@@ -185,23 +201,15 @@ public final class Dispatcher {
             return stepBrightness(Dispatcher.brightnessStep, fallback: .brightnessUp)
         case .brightnessDown:
             return stepBrightness(-Dispatcher.brightnessStep, fallback: .brightnessDown)
-        case .captureRegion:
-            // The system's own screenshot tools, which is why there is no capture code of ours to maintain.
-            dismissCapture(opensOverlay: true)
-            input.chord([.command, .shift, .four])
-        case .captureScreen:
-            // Takes the shot at once and leaves no overlay open.
-            dismissCapture(opensOverlay: false)
-            input.chord([.command, .shift, .three])
-        case .captureRecord:
-            // Command+Shift+5 opens the capture toolbar, where recording is one click. Escape closes the toolbar,
-            // but not a recording that has started: that is stopped from the menu bar, which we do not drive.
-            dismissCapture(opensOverlay: true)
-            input.chord([.command, .shift, .five])
+        case .captureRegion, .captureScreen, .captureRecord:
+            // The capture lists its folders before the shortcut is pressed, so the press can be told apart from them.
+            guard let capture else { return pressCapture(action) }
+            return capture.run(action) { pressCapture(action) }
         case .captureCancel:
-            if capture.cancel() {
+            if overlay.cancel() {
                 input.chord([.escape])
             }
+            capture?.cancel()
         case .padAttach, .padDetach:
             // Answered even though a Mac cannot offer a controller: the phone draws a different screen
             // depending on the token, and one that heard nothing could not say why.
@@ -210,9 +218,28 @@ public final class Dispatcher {
         return true
     }
 
+    /// The system's own screenshot tools, which is why there is no capture code of ours to maintain.
+    private func pressCapture(_ action: ActionId) -> Bool {
+        switch action {
+        case .captureRegion:
+            dismissCapture(opensOverlay: true)
+            input.chord([.command, .shift, .four])
+        case .captureScreen:
+            // Takes the shot at once and leaves no overlay open.
+            dismissCapture(opensOverlay: false)
+            input.chord([.command, .shift, .three])
+        default:
+            // Command+Shift+5 opens the capture toolbar, where recording is one click. Escape closes the toolbar,
+            // but not a recording that has started: that is stopped from the menu bar, which we do not drive.
+            dismissCapture(opensOverlay: true)
+            input.chord([.command, .shift, .five])
+        }
+        return true
+    }
+
     /// Presses Escape and waits a moment when the last capture action may have left an overlay open.
     private func dismissCapture(opensOverlay: Bool) {
-        if capture.begin(opensOverlay: opensOverlay) {
+        if overlay.begin(opensOverlay: opensOverlay) {
             input.chord([.escape])
             Thread.sleep(forTimeInterval: CaptureOverlay.dismissWait)
         }
@@ -247,7 +274,7 @@ public final class Dispatcher {
             // The value is an index into the rate list, never hertz.
             return value < display.rates.count ? display.select(value) : false
         case .captureTarget:
-            return false
+            return capture?.setTarget(value) ?? false
         }
     }
 }
