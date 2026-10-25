@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.link
 
+import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.CaptureStatus
 import me.akshitbansal.edgepad.protocol.FileStatus
 import me.akshitbansal.edgepad.protocol.FileType
@@ -14,12 +15,18 @@ import java.security.MessageDigest
  * arrive in order and add up to the size, and the SHA-256 must match. Anything else throws the file away and says
  * why, and the laptop keeps its copy.
  *
+ * Nor is a file taken unasked. A FILE_BEGIN is accepted only while [toPhone] is on and against a permit: one capture
+ * action this phone itself sent ([permit]) allows one file, within [SCREENSHOT_WINDOW_MS] for a screenshot or
+ * [RECORDING_WINDOW_MS] for a recording, which is sent only once it stops. A connection takes at most [MAX_FILES]
+ * files and [MAX_BYTES] bytes. Turning [toPhone] off, or [abort], throws away a file half here.
+ *
  * Plain Kotlin: the bytes go to a [Store], which on a phone is the gallery, so a test can drive every path. Called on
  * the link's reading thread, and [abort] from whichever thread closes the link, hence the lock.
  */
 class FileInbox(
     private val store: Store,
     private val report: (Progress) -> Unit,
+    private val clock: () -> Long = System::currentTimeMillis,
 ) {
     /** Where a file goes while it arrives. */
     fun interface Store {
@@ -78,6 +85,50 @@ class FileInbox(
 
     private var current: Transfer? = null
 
+    /** When each unused permit runs out, oldest first. */
+    private val permits = ArrayDeque<Long>()
+    private var files = 0
+    private var bytes = 0L
+
+    /** Whether this phone wants captures. Off revokes every permit and throws away a file on its way in. */
+    @get:Synchronized
+    @set:Synchronized
+    var toPhone = false
+        set(value) {
+            field = value
+            if (!value) {
+                permits.clear()
+                abort()
+            }
+        }
+
+    /** This phone sent [action]. A capture action, while [toPhone] is on, allows the laptop one file for it. */
+    @Synchronized
+    fun permit(action: ActionId) {
+        val window =
+            when (action) {
+                ActionId.CAPTURE_REGION, ActionId.CAPTURE_SCREEN -> SCREENSHOT_WINDOW_MS
+                ActionId.CAPTURE_RECORD -> RECORDING_WINDOW_MS
+                else -> return
+            }
+        if (toPhone) permits.addLast(clock() + window)
+    }
+
+    /** The laptop said a capture is staying with it, which settles that capture's permit. */
+    @Synchronized
+    fun settle() {
+        permits.removeFirstOrNull()
+    }
+
+    /** A link closed: its permits and its counts go with it, and so does a file half here. */
+    @Synchronized
+    fun reset() {
+        permits.clear()
+        files = 0
+        bytes = 0
+        abort()
+    }
+
     /** One file frame from the laptop. Returns the FILE_RESULT to send back, or null when there is nothing to say. */
     @Synchronized
     fun take(frame: Frame): Frame? =
@@ -98,10 +149,17 @@ class FileInbox(
     private fun begin(frame: Frame.FileBegin): Frame? {
         // A new file while one is still arriving means the laptop gave up on the old one.
         abort()
+        // Unasked, or past what one connection may send: refused before a byte is looked at.
+        val now = clock()
+        while (permits.isNotEmpty() && permits.first() < now) permits.removeFirst()
+        if (permits.removeFirstOrNull() == null) return refuse(FileStatus.REJECTED)
+        if (files >= MAX_FILES || bytes + frame.size > MAX_BYTES) return refuse(FileStatus.REJECTED)
         val type = FileType.of(frame.type) ?: return refuse(FileStatus.REJECTED)
         if (frame.size !in 1..type.limit) return refuse(FileStatus.REJECTED)
         val name = safeName(frame.name, type) ?: return refuse(FileStatus.REJECTED)
         val pending = store.open(name, type) ?: return refuse(FileStatus.WRITE_FAILED)
+        files++
+        bytes += frame.size
         current = Transfer(name, frame.size, pending).also { progress(it) }
         return null
     }
@@ -153,9 +211,18 @@ class FileInbox(
         report(Progress.Receiving(transfer.name, percent))
     }
 
-    private companion object {
-        const val SEQ_MASK = 0xFF
-        const val PERCENT = 100L
+    companion object {
+        /** A region is a drag on the laptop, so this is the laptop's two-minute watch and the sending after it. */
+        const val SCREENSHOT_WINDOW_MS = 5L * 60 * 1000
+
+        /** A recording is sent when it stops, and the laptop watches for one for an hour. */
+        const val RECORDING_WINDOW_MS = 65L * 60 * 1000
+
+        const val MAX_FILES = 20
+        const val MAX_BYTES = 1024L * 1024 * 1024
+
+        private const val SEQ_MASK = 0xFF
+        private const val PERCENT = 100L
     }
 }
 

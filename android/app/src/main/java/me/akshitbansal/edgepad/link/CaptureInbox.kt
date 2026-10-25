@@ -3,6 +3,7 @@ package me.akshitbansal.edgepad.link
 import android.content.ContentResolver
 import android.os.Handler
 import android.os.Looper
+import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.CaptureStatus
 import me.akshitbansal.edgepad.protocol.CaptureTarget
 import me.akshitbansal.edgepad.protocol.FileStatus
@@ -22,8 +23,15 @@ object CaptureInbox {
 
     @Volatile private var inbox: FileInbox? = null
 
-    /** What this phone last chose, sent again whenever a link opens; null until the capture screen has been built. */
+    /**
+     * What this phone last chose, sent again whenever a link opens; null until the capture screen has been built.
+     * Laptop turns the inbox off: every permit goes and a file on its way in is thrown away.
+     */
     @Volatile var target: CaptureTarget? = null
+        set(value) {
+            field = value
+            inbox?.toPhone = value == CaptureTarget.PHONE
+        }
 
     /** Told of every step of every file, on the main thread. The capture screen sets it while it is showing. */
     var listener: ((FileInbox.Progress) -> Unit)? = null
@@ -36,8 +44,18 @@ object CaptureInbox {
         resolver: ContentResolver,
         chosen: CaptureTarget,
     ) {
-        target = chosen
         if (inbox == null) inbox = FileInbox(GalleryStore(resolver)) { step -> post(step) }
+        target = chosen
+    }
+
+    /** This phone sent a capture action: with the target at Phone, the laptop may send one file for it. */
+    fun permit(action: ActionId) {
+        inbox?.permit(action)
+    }
+
+    /** The capture screen closed: a file on its way in is thrown away. Permits stay, for a recording still running. */
+    fun cancel() {
+        inbox?.abort()
     }
 
     /**
@@ -59,6 +77,7 @@ object CaptureInbox {
 
             is Frame.Text -> {
                 if (frame.kind != TextKind.CAPTURE_STATUS.id) return false
+                inbox?.settle()
                 post(FileInbox.Progress.Kept(CaptureStatus.of(frame.text)))
             }
 
@@ -69,9 +88,12 @@ object CaptureInbox {
         return true
     }
 
-    /** The link closed. A file that was half here is thrown away; the laptop never heard SAVED and keeps it. */
+    /**
+     * The link closed. A file that was half here is thrown away (the laptop never heard SAVED and keeps it), and the
+     * permits and the per-connection counts go with the link.
+     */
     fun abort() {
-        inbox?.abort()
+        inbox?.reset()
     }
 
     private fun post(step: FileInbox.Progress) {

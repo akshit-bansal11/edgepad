@@ -82,6 +82,7 @@ class CaptureScreen(
 
                     override fun onViewDetachedFromWindow(v: View) {
                         if (CaptureInbox.listener === onStep) CaptureInbox.listener = null
+                        CaptureInbox.cancel()
                         if (available) send(ActionId.CAPTURE_CANCEL.frame())
                     }
                 },
@@ -105,7 +106,12 @@ class CaptureScreen(
                 R.string.capture_screen to ActionId.CAPTURE_SCREEN,
                 R.string.capture_record to ActionId.CAPTURE_RECORD,
             ).forEachIndexed { at, (label, action) ->
-                val button = ui.button(ui.string(label), Ui.Style.OUTLINED) { send(action.frame()) }
+                val button =
+                    ui.button(ui.string(label), Ui.Style.OUTLINED) {
+                        // Before the send, so the file this action may bring back always finds its permit.
+                        CaptureInbox.permit(action)
+                        send(action.frame())
+                    }
                 ui.enable(button, available)
                 row.addView(
                     button,

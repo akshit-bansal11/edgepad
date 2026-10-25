@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.link
 
+import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.FileStatus
 import me.akshitbansal.edgepad.protocol.FileType
 import me.akshitbansal.edgepad.protocol.Frame
@@ -46,6 +47,17 @@ class FileInboxTest {
     }
 
     private val steps = ArrayList<FileInbox.Progress>()
+    private var now = 0L
+
+    /** An inbox that wants captures and holds [permits] of them, as if this phone had sent that many actions. */
+    private fun inbox(
+        store: Memory,
+        permits: Int = 5,
+    ): FileInbox =
+        FileInbox(store, { steps.add(it) }, { now }).apply {
+            toPhone = true
+            repeat(permits) { permit(ActionId.CAPTURE_SCREEN) }
+        }
 
     private fun sha(bytes: ByteArray): ByteArray = MessageDigest.getInstance("SHA-256").digest(bytes)
 
@@ -68,7 +80,7 @@ class FileInboxTest {
     fun aWholeFileWithTheRightHashIsSaved() {
         val store = Memory()
         val data = ByteArray(1000) { it.toByte() }
-        val inbox = FileInbox(store) { steps.add(it) }
+        val inbox = inbox(store)
 
         val answers = run(inbox, file(Frame.FileBegin(0, 1000, "Screenshot.png"), data, sha(data)))
 
@@ -81,7 +93,7 @@ class FileInboxTest {
     fun aWrongHashIsThrownAwayAndSaid() {
         val store = Memory()
         val data = ByteArray(10) { 1 }
-        val inbox = FileInbox(store) { steps.add(it) }
+        val inbox = inbox(store)
 
         val answers = run(inbox, file(Frame.FileBegin(0, 10, "a.png"), data, ByteArray(32)))
 
@@ -93,7 +105,7 @@ class FileInboxTest {
     @Test
     fun aFileOverItsLimitIsRefusedBeforeAnythingIsOpened() {
         val store = Memory()
-        val inbox = FileInbox(store) { steps.add(it) }
+        val inbox = inbox(store)
 
         assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(0, FileType.IMAGE_LIMIT + 1, "a.png")))
         assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(2, FileType.VIDEO_LIMIT + 1, "a.mp4")))
@@ -105,7 +117,7 @@ class FileInboxTest {
     @Test
     fun anUnknownTypeIsRefused() {
         val store = Memory()
-        val inbox = FileInbox(store) { steps.add(it) }
+        val inbox = inbox(store)
 
         assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(99, 10, "a.png")))
         assertTrue(store.opened.isEmpty())
@@ -114,7 +126,7 @@ class FileInboxTest {
     @Test
     fun aChunkOutOfOrderOrPastTheSizeRefusesTheFile() {
         val store = Memory()
-        val inbox = FileInbox(store) { steps.add(it) }
+        val inbox = inbox(store)
 
         inbox.take(Frame.FileBegin(0, 4, "a.png"))
         assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileChunk(1, byteArrayOf(1))))
@@ -130,7 +142,7 @@ class FileInboxTest {
     @Test
     fun aShortFileIsRefusedAtItsEnd() {
         val store = Memory()
-        val inbox = FileInbox(store) { steps.add(it) }
+        val inbox = inbox(store)
         val data = byteArrayOf(1, 2, 3)
 
         val answers = run(inbox, file(Frame.FileBegin(0, 4, "a.png"), data, sha(data)))
@@ -142,7 +154,7 @@ class FileInboxTest {
     @Test
     fun aWriteThatFailsIsSaidAndTheFileThrownAway() {
         val store = Memory(failWrites = true)
-        val inbox = FileInbox(store) { steps.add(it) }
+        val inbox = inbox(store)
 
         inbox.take(Frame.FileBegin(0, 1, "a.png"))
 
@@ -153,7 +165,7 @@ class FileInboxTest {
     @Test
     fun theSequenceWrapsAt256() {
         val store = Memory()
-        val inbox = FileInbox(store) { steps.add(it) }
+        val inbox = inbox(store)
         val data = ByteArray(300) { it.toByte() }
 
         inbox.take(Frame.FileBegin(0, 300, "a.png"))
@@ -164,7 +176,7 @@ class FileInboxTest {
 
     @Test
     fun progressIsReportedOncePerPercentNotOncePerChunk() {
-        val inbox = FileInbox(Memory()) { steps.add(it) }
+        val inbox = inbox(Memory())
         val data = ByteArray(255 * 1000)
 
         run(inbox, listOf<Frame>(Frame.FileBegin(0, data.size.toLong(), "a.png")) + chunks(data))
@@ -175,7 +187,7 @@ class FileInboxTest {
     @Test
     fun aLinkThatDropsMidFileLeavesNothing() {
         val store = Memory()
-        val inbox = FileInbox(store) { steps.add(it) }
+        val inbox = inbox(store)
 
         inbox.take(Frame.FileBegin(0, 4, "a.png"))
         inbox.take(Frame.FileChunk(0, byteArrayOf(1, 2)))
@@ -208,6 +220,116 @@ class FileInboxTest {
 
         assertEquals("a".repeat(95) + ".png", name)
         assertTrue(name!!.length <= MAX_NAME_LENGTH)
+    }
+
+    @Test
+    fun aFileNobodyAskedForIsRefused() {
+        val store = Memory()
+        val inbox = inbox(store, permits = 0)
+
+        assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(0, 1, "a.png")))
+        // Its chunks and end, for a transfer never begun, are dropped without a word.
+        assertNull(inbox.take(Frame.FileChunk(0, byteArrayOf(1))))
+        assertNull(inbox.take(Frame.FileEnd(ByteArray(32))))
+        assertTrue(store.opened.isEmpty())
+    }
+
+    @Test
+    fun aCaptureActionWhileSavingToTheLaptopAllowsNothing() {
+        val store = Memory()
+        val inbox = FileInbox(store, { steps.add(it) }, { now })
+
+        inbox.permit(ActionId.CAPTURE_REGION)
+        inbox.toPhone = true
+
+        assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(0, 1, "a.png")))
+        assertTrue(store.opened.isEmpty())
+    }
+
+    @Test
+    fun anActionThatIsNotACaptureAllowsNothing() {
+        val inbox = inbox(Memory(), permits = 0)
+
+        inbox.permit(ActionId.PLAY_PAUSE)
+
+        assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(0, 1, "a.png")))
+    }
+
+    @Test
+    fun oneCaptureActionAllowsOneFile() {
+        val store = Memory()
+        val inbox = inbox(store, permits = 1)
+        val data = byteArrayOf(1)
+
+        val answers = run(inbox, file(Frame.FileBegin(0, 1, "a.png"), data, sha(data)))
+
+        assertEquals(listOf(FileStatus.SAVED.frame()), answers)
+        assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(0, 1, "b.png")))
+        assertEquals(listOf("a.png"), store.opened)
+    }
+
+    @Test
+    fun aPermitRunsOut() {
+        val inbox = inbox(Memory(), permits = 0)
+        inbox.permit(ActionId.CAPTURE_SCREEN)
+        inbox.permit(ActionId.CAPTURE_RECORD)
+
+        now = FileInbox.SCREENSHOT_WINDOW_MS + 1
+        // The screenshot's permit has gone; the recording's, with its longer window, is still there.
+        assertNull(inbox.take(Frame.FileBegin(2, 1, "a.mp4")))
+
+        now += FileInbox.RECORDING_WINDOW_MS
+        inbox.permit(ActionId.CAPTURE_SCREEN)
+        now += FileInbox.SCREENSHOT_WINDOW_MS + 1
+        assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(0, 1, "b.png")))
+    }
+
+    @Test
+    fun aCaptureTheLaptopKeptSettlesItsPermit() {
+        val inbox = inbox(Memory(), permits = 1)
+
+        inbox.settle()
+
+        assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(0, 1, "a.png")))
+    }
+
+    @Test
+    fun switchingToTheLaptopThrowsAwayTheFileOnItsWayAndEveryPermit() {
+        val store = Memory()
+        val inbox = inbox(store, permits = 2)
+        inbox.take(Frame.FileBegin(0, 4, "a.png"))
+        inbox.take(Frame.FileChunk(0, byteArrayOf(1, 2)))
+
+        inbox.toPhone = false
+
+        assertEquals(1, store.discarded)
+        assertNull(inbox.take(Frame.FileChunk(1, byteArrayOf(3, 4))))
+        inbox.toPhone = true
+        assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(0, 1, "b.png")))
+    }
+
+    @Test
+    fun aConnectionTakesAtMostItsFileCount() {
+        val store = Memory()
+        val inbox = inbox(store, permits = FileInbox.MAX_FILES + 1)
+
+        repeat(FileInbox.MAX_FILES) { assertNull(inbox.take(Frame.FileBegin(0, 1, "a.png"))) }
+
+        assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(0, 1, "a.png")))
+    }
+
+    @Test
+    fun aConnectionTakesAtMostItsByteCount() {
+        val inbox = inbox(Memory(), permits = 7)
+
+        repeat(5) { assertNull(inbox.take(Frame.FileBegin(2, FileType.VIDEO_LIMIT, "a.mp4"))) }
+
+        assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(2, FileType.VIDEO_LIMIT, "a.mp4")))
+        // A new connection starts the counts again, and takes away the old one's permits.
+        inbox.reset()
+        assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(0, 1, "a.png")))
+        inbox.permit(ActionId.CAPTURE_SCREEN)
+        assertNull(inbox.take(Frame.FileBegin(2, FileType.VIDEO_LIMIT, "a.mp4")))
     }
 
     private companion object {
