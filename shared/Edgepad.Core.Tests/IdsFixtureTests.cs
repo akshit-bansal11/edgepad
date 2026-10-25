@@ -85,6 +85,52 @@ public sealed partial class IdsFixtureTests
     }
 
     [Fact]
+    public void CaptureStatusTokensMatchTheSharedTable()
+    {
+        var expected = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var parts in Rows("CAPTURE_STATUS"))
+        {
+            expected.Add(parts[2], parts[1]);
+        }
+
+        var actual = new SortedDictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["TOO_LARGE"] = CaptureStatus.TooLarge,
+            ["NOT_FOUND"] = CaptureStatus.NotFound,
+            ["FAILED"] = CaptureStatus.Failed,
+        };
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void FileTypesMatchTheSharedTable()
+    {
+        Assert.Equal(Expected("FILE_TYPE"), Actual<FileType>());
+        foreach (var parts in Rows("FILE_TYPE"))
+        {
+            var type = (FileType)int.Parse(parts[1], CultureInfo.InvariantCulture);
+            Assert.Equal(parts[3], FileTypes.Mime(type));
+            Assert.Equal(parts[4], FileTypes.Extension(type));
+            Assert.Equal(type, FileTypes.FromPath("Screenshot 1." + parts[4].ToUpperInvariant()));
+        }
+
+        Assert.Null(FileTypes.FromPath("notes.txt"));
+    }
+
+    [Fact]
+    public void FileLimitsMatchTheSharedTable()
+    {
+        var limits = Rows("FILE_LIMIT").ToDictionary(parts => parts[2], parts => long.Parse(parts[1], CultureInfo.InvariantCulture));
+        Assert.Equal(FileTypes.ImageLimit, limits["IMAGE"]);
+        Assert.Equal(FileTypes.VideoLimit, limits["VIDEO"]);
+    }
+
+    [Fact]
+    public void FileStatusesMatchTheSharedTable() =>
+        Assert.Equal(Expected("FILE_STATUS"), Actual<FileStatus>());
+
+    [Fact]
     public void ThePaletteMatchesTheSharedTable()
     {
         // Index and RRGGBB; the names are the phone's and the fixture's business, an index is all that is sent.

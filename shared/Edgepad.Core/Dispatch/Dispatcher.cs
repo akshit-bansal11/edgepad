@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Edgepad.Capture;
 using Edgepad.Macros;
 using Edgepad.Protocol;
 
@@ -32,6 +33,17 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     public Action<string>? PadStatusReply { get; set; }
 
     /// <summary>
+    /// Sends captures to the phone when it asks for that. Set by the session, which owns the link, like
+    /// <see cref="PadStatusReply"/>; without one, CAPTURE_TARGET and FILE_RESULT are dropped and counted.
+    /// </summary>
+    public CaptureToPhone? Capture { get; set; }
+
+    /// <summary>When the phone last sent input, by <see cref="Environment.TickCount64"/>: a capture on its way slows down for it.</summary>
+    public long LastInputMs => Interlocked.Read(ref lastInput);
+
+    private long lastInput;
+
+    /// <summary>
     /// Carries out one frame. A handler that throws is dropped and counted like an unknown id, because this
     /// runs on the session thread, where an escape ends the tray app and releases nothing the phone was
     /// holding down. Only what the session reads as a dead link passes through: the pad's reply writes to the
@@ -39,6 +51,11 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     /// </summary>
     public void Handle(Frame frame)
     {
+        if (frame is Move or PointerButton or Scroll or Zoom or Key or PadState or Pen or Text)
+        {
+            Interlocked.Exchange(ref lastInput, Environment.TickCount64);
+        }
+
         bool handled;
         try
         {
@@ -78,6 +95,8 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         PadState p => platform.Pad(p),
         // An absolute point on the laptop screen, which only the annotator reads; outside a session it is dropped.
         Pen p => platform.Pen(p),
+        // The phone's answer to a capture this laptop sent it. Only the transfer waiting for one takes it.
+        FileResult r => Capture?.Take(r) ?? false,
         _ => false,
     };
 
@@ -104,12 +123,27 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         {
             ActionId.PadAttach => Answer(platform.AttachPad()),
             ActionId.PadDetach => Answer(platform.DetachPad()),
+            // The capture lists its folders before the shortcut is pressed, so the press can be told apart from them.
+            ActionId.CaptureRegion or ActionId.CaptureScreen or ActionId.CaptureRecord when Capture is { } capture =>
+                capture.Run(action, () => platform.Run(action)),
+            ActionId.CaptureCancel => Cancel(),
             _ => platform.Run(action),
         };
     }
 
-    private bool Set(byte control, byte percent) =>
-        Enum.IsDefined((ControlId)control) && platform.Set((ControlId)control, percent);
+    private bool Set(byte control, byte percent) => (ControlId)control switch
+    {
+        ControlId.CaptureTarget => Capture?.SetTarget(percent) ?? false,
+        var id => Enum.IsDefined(id) && platform.Set(id, percent),
+    };
+
+    /// <summary>The overlay's Escape is the platform's; the watch it may cut short is the capture's.</summary>
+    private bool Cancel()
+    {
+        var handled = platform.Run(ActionId.CaptureCancel);
+        Capture?.Cancel();
+        return handled;
+    }
 
     /// <summary>
     /// Sends the pad's state back to the phone. Always handled, even for "no-driver": the ask was

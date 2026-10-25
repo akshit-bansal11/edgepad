@@ -311,6 +311,17 @@
   <string name="capture_screen">Full screen</string>
   <string name="capture_record">Record</string>
   <string name="capture_hint">For a region, tap Region, then tap, hold and move on the pad to drag out the area.</string>
+  <string name="capture_save_to">Save to</string>
+  <string name="capture_save_laptop">Laptop</string>
+  <string name="capture_save_phone">Phone</string>
+  <string name="capture_receiving">Receiving %1$s, %2$d%%</string>
+  <string name="capture_saved">Saved to %1$s</string>
+  <string name="capture_bad_hash">The capture arrived damaged. It is still on the laptop.</string>
+  <string name="capture_rejected">This phone refused the capture. It is still on the laptop.</string>
+  <string name="capture_write_failed">Could not save the capture here. It is still on the laptop.</string>
+  <string name="capture_too_large">Too large to send. It is still on the laptop.</string>
+  <string name="capture_not_found">No new capture turned up on the laptop, so nothing was sent.</string>
+  <string name="capture_send_failed">The laptop could not send the capture. It is still on the laptop.</string>
   <string name="controls_annotate">Annotate</string>
   <string name="annotate_exit">Exit</string>
   <string name="annotate_description">Pen pad: a touch draws at the same place on the laptop screen</string>

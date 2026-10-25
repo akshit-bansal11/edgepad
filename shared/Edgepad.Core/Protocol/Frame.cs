@@ -69,6 +69,35 @@ internal sealed record PinAnswer(Pin Digits) : Frame;
 internal sealed record Pen(ushort X, ushort Y, byte State) : Frame;
 
 /// <summary>
+/// The start of a file sent to the phone: a capture, when the phone asked for captures to be saved there.
+/// <c>Type</c> is a <see cref="FileType"/> id, never a MIME string; <c>Size</c> is the whole file in bytes and
+/// <c>Name</c> its file name with no folder. The phone checks all three before it writes anything.
+/// </summary>
+internal sealed record FileBegin(byte Type, uint Size, string Name) : Frame;
+
+/// <summary>
+/// One piece of the file, at most <see cref="FrameCodec.MaxChunkBytes"/> bytes. <c>Seq</c> is the piece's index mod
+/// 256, so the phone sees a piece go missing. Equal by content, which a record holding an array is not by default.
+/// </summary>
+internal sealed record FileChunk(byte Seq, byte[] Data) : Frame
+{
+    public bool Equals(FileChunk? other) => other is not null && other.Seq == Seq && other.Data.AsSpan().SequenceEqual(Data);
+
+    public override int GetHashCode() => HashCode.Combine(Seq, Data.Length);
+}
+
+/// <summary>The end of the file: the SHA-256 of all of it, which the phone checks before it keeps the file.</summary>
+internal sealed record FileEnd(byte[] Sha256) : Frame
+{
+    public bool Equals(FileEnd? other) => other is not null && other.Sha256.AsSpan().SequenceEqual(Sha256);
+
+    public override int GetHashCode() => Sha256.Length == 0 ? 0 : Sha256[0];
+}
+
+/// <summary>The phone's answer to a file, one <see cref="FileStatus"/> id. Only <see cref="FileStatus.Saved"/> lets this laptop delete its copy.</summary>
+internal sealed record FileResult(byte Status) : Frame;
+
+/// <summary>
 /// Six decimal digits, the one secret that crosses the link. Frames are interpolated into log lines
 /// (<c>Log.Write($"... {frame}")</c>), so every way a record prints this reaches <c>ToString</c>, which
 /// returns stars; the digits are only ever read by the one place that compares them.

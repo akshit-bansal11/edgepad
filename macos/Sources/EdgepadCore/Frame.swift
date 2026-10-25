@@ -29,6 +29,15 @@ public enum Frame: Equatable {
     /// 1 down, 2 move and is not range-checked here, because a newer phone may add states: the dispatcher drops
     /// an unknown one and counts it.
     case pen(x: UInt16, y: UInt16, state: UInt8)
+    /// The start of a file sent to the phone: a capture, when the phone asked for captures to be saved there. `type` is
+    /// a `FileType` id, never a MIME string; `size` is the whole file in bytes and `name` its name with no folder.
+    case fileBegin(type: UInt8, size: UInt32, name: String)
+    /// One piece of the file, at most `FrameCodec.maxChunkBytes`. `seq` is its index mod 256, so a lost piece shows.
+    case fileChunk(seq: UInt8, data: [UInt8])
+    /// The end of the file: the SHA-256 of all of it, which the phone checks before it keeps the file.
+    case fileEnd(sha256: [UInt8])
+    /// The phone's answer to a file, one `FileStatus` id. Only `FileStatus.saved` lets this Mac delete its copy.
+    case fileResult(status: UInt8)
 }
 
 /// Six decimal digits, the one secret that crosses the link. A frame can end up in a log line or a debug

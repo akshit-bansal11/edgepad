@@ -99,6 +99,32 @@ class FrameFixtureTest {
         assertEquals(1 + FrameCodec.TEXT_HEADER_LENGTH + FrameCodec.MAX_TEXT_BYTES, bytes.size)
     }
 
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsAFileBeginTooShortToHoldASize() {
+        FrameCodec.decode(0x50, byteArrayOf(0, 3, 1, 2, 3))
+    }
+
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsAFileEndThatIsNotAWholeHash() {
+        FrameCodec.decode(0x52, ByteArray(31))
+    }
+
+    @Test
+    fun aFullChunkIsTheLongestFrameAndNoLonger() {
+        val bytes = FrameCodec.encode(Frame.FileChunk(7, ByteArray(FrameCodec.MAX_CHUNK_BYTES) { it.toByte() }))
+        assertEquals(FrameCodec.MAX_FRAME_LENGTH, bytes.size)
+        assertEquals(
+            Frame.FileChunk(7, ByteArray(FrameCodec.MAX_CHUNK_BYTES) { it.toByte() }),
+            FrameCodec.decode(bytes[0].toInt() and 0xFF, bytes.copyOfRange(1, bytes.size)),
+        )
+    }
+
+    @Test
+    fun aLongFileNameIsCutSoTheBeginFrameStillFits() {
+        val bytes = FrameCodec.encode(Frame.FileBegin(0, 10, "a".repeat(400) + ".png"))
+        assertEquals(FrameCodec.MAX_FRAME_LENGTH, bytes.size)
+    }
+
     @Test
     fun padStateKeepsSignedSticksSignedAndUnsignedFieldsUnsigned() {
         // The three mistakes that are invisible in hex: a stick read as a u16 comes back 32768 and not
@@ -161,10 +187,16 @@ class FrameFixtureTest {
                 "PIN_REQUEST" -> Frame.PinRequest(int(1), int(2))
                 "PEN" -> Frame.Pen(int(1), int(2), int(3))
                 "PIN_ANSWER" -> Frame.PinAnswer(Pin(fields.drop(1).joinToString("")))
+                "FILE_BEGIN" -> Frame.FileBegin(int(1), field(2), fields[3])
+                "FILE_CHUNK" -> Frame.FileChunk(int(1), hex(fields[2]))
+                "FILE_END" -> Frame.FileEnd(hex(fields[1]))
+                "FILE_RESULT" -> Frame.FileResult(int(1))
                 else -> error("Unknown fixture frame ${fields[0]}")
             }
         return frame to bytes
     }
+
+    private fun hex(run: String): ByteArray = run.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
 
     private fun fixture(): File {
         var dir: File? = File("").absoluteFile

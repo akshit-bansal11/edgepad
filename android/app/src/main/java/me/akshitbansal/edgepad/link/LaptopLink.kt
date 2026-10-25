@@ -199,6 +199,8 @@ class LaptopLink(
             }
             handshakeDone = true
             deliver { it.onConnected(this) }
+            // The laptop forgets where captures go when a session ends, so every new one is told again.
+            CaptureInbox.target?.let { send(it.frame()) }
             val w = thread(name = "edgepad-writer", priority = Thread.MAX_PRIORITY) { writeLoop(output) }
             writer = w
             // A close() that raced the line above found no writer to interrupt.
@@ -208,7 +210,7 @@ class LaptopLink(
                 if (frame is Frame.Pong) {
                     val ms = (System.nanoTime() - frame.time) / NANOS_PER_MS
                     deliver { it.onRoundTrip(ms) }
-                } else {
+                } else if (!CaptureInbox.take(frame, ::send)) {
                     // Asked for here, ahead of the main thread, so the pictures are on their way before any
                     // screen wants them and are cached by the time the macro screen opens.
                     if (wantsIcons(frame)) send(TextKind.WANT_ICONS.frame(""))
@@ -272,6 +274,7 @@ class LaptopLink(
         }
         writer?.interrupt()
         outbox.clear()
+        CaptureInbox.abort()
         deliver { it.onClosed(this, closure) }
     }
 

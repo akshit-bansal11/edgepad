@@ -161,6 +161,30 @@ const FRAME_DOCS: Record<
     meaning:
       "One point of a pen stroke: state 0 is up, 1 down, 2 move. x and y span the whole u16 range, 0 the left or top edge of the laptop's screen and 65535 the right or bottom. A state above 2 decodes and is dropped and counted.",
   },
+  FILE_BEGIN: {
+    payload: "fileType u8, length u8, size u32, UTF-8 name",
+    direction: "laptop-to-phone",
+    meaning:
+      "Starts sending a capture to the phone, when the phone asked for captures to be saved there. TEXT's header shape, so the length counts the size and the name. The type is an id from the FILE_TYPE table, never a MIME string.",
+  },
+  FILE_CHUNK: {
+    payload: "seq u8, length u8, bytes",
+    direction: "laptop-to-phone",
+    meaning:
+      "Up to 255 bytes of the file. seq is the chunk's index mod 256, so a lost chunk shows. Paced, and slower while the phone is sending input, so the trackpad stays responsive.",
+  },
+  FILE_END: {
+    payload: "sha256, 32 bytes",
+    direction: "laptop-to-phone",
+    meaning:
+      "The SHA-256 of the whole file. The phone keeps the file only if it matches.",
+  },
+  FILE_RESULT: {
+    payload: "status u8",
+    direction: "phone-to-laptop",
+    meaning:
+      "The phone's answer: 0 saved, 1 bad hash, 2 rejected, 3 write failed. Only 0 lets the laptop delete its copy.",
+  },
 };
 
 const ACTION_DOCS: Record<string, string> = {
@@ -234,6 +258,8 @@ const CONTROL_DOCS: Record<string, string> = {
     "SET switches the display to the rate at that index of the TEXT 4 list; STATE reports the current rate's index. Never a rate in hertz.",
   PEN_COLOR:
     "SET picks the stroke colour by index into the eight-colour palette in protocol/actions.txt. An index of 8 or more is dropped and counted. Never an RGB value.",
+  CAPTURE_TARGET:
+    "Where a capture ends up: 0 the laptop keeps it, 1 the laptop sends it to the phone and deletes its copy only once the phone says it saved it. Sent on connect and whenever the setting changes.",
 };
 
 const TEXT_DOCS: Record<string, string> = {
@@ -257,6 +283,8 @@ const TEXT_DOCS: Record<string, string> = {
     "The primary display in pixels as 1920/1080. Sent after the handshake and whenever the display changes, so the phone can shape its drawing surface to the same ratio. Laptop to phone.",
   SIGN_STATUS:
     "How a SIGN_SAVE ended, as one of saved, empty or failed. Laptop to phone.",
+  CAPTURE_STATUS:
+    "Why a capture the phone asked for stayed on the laptop, as one of too-large, not-found or failed. Laptop to phone.",
 };
 
 const PAD_BUTTON_DOCS: Record<string, string> = {

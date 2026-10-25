@@ -28,6 +28,10 @@ final class IdsFixtureTests: XCTestCase {
             "FEATURE",
             "SIGN_STATUS",
             "PALETTE",
+            "CAPTURE_STATUS",
+            "FILE_TYPE",
+            "FILE_LIMIT",
+            "FILE_STATUS",
             "HANDSHAKE",
         ]
         let kinds = try Fixtures.lines("actions.txt")
@@ -73,6 +77,43 @@ final class IdsFixtureTests: XCTestCase {
             uniqueKeysWithValues: SignStatus.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
 
         XCTAssertEqual(table, enumTable)
+    }
+
+    func testCaptureStatusTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("CAPTURE_STATUS") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: CaptureStatus.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+    }
+
+    func testFileTypesMatchTheSharedTable() throws {
+        XCTAssertEqual(try expected("FILE_TYPE"), actual(FileType.self))
+        for parts in try rows("FILE_TYPE") {
+            let type = try XCTUnwrap(FileType(rawValue: UInt8(parts[1]) ?? 255))
+            XCTAssertEqual(type.mime, parts[3])
+            XCTAssertEqual(type.fileExtension, parts[4])
+            XCTAssertEqual(FileType(path: "/tmp/Screen Shot 1." + parts[4].uppercased()), type)
+        }
+        XCTAssertNil(FileType(path: "/tmp/notes.txt"))
+        XCTAssertNil(FileType(path: "/tmp/png"))
+    }
+
+    func testFileLimitsMatchTheSharedTable() throws {
+        var limits: [String: Int] = [:]
+        for parts in try rows("FILE_LIMIT") {
+            limits[parts[2]] = Int(parts[1])
+        }
+
+        XCTAssertEqual(limits, ["IMAGE": FileType.imageLimit, "VIDEO": FileType.videoLimit])
+    }
+
+    func testFileStatusesMatchTheSharedTable() throws {
+        XCTAssertEqual(try expected("FILE_STATUS"), actual(FileStatus.self))
     }
 
     func testThePaletteMatchesTheSharedTable() throws {

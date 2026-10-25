@@ -103,3 +103,25 @@ TEXT 10 1920/1080 = 41 0a 09 31 39 32 30 2f 31 30 38 30
 TEXT 11 saved = 41 0b 05 73 61 76 65 64
 SET 5 6 = 21 05 06
 ACTION 40 = 20 28
+# Saving a capture on the phone. SET 6 is CAPTURE_TARGET: 0 the laptop keeps the file where its tool saved it,
+# 1 it sends the file to the phone. Phone to laptop, on connect and whenever the setting changes.
+SET 6 0 = 21 06 00
+SET 6 1 = 21 06 01
+# FILE_BEGIN fileType size name, laptop to phone. The two header bytes are TEXT's shape (an id, then a length), so
+# every reader already frames it: fileType u8, length u8, then size u32 and the UTF-8 name, the length counting
+# both. "shot.png" is 8 bytes, so the length is 4 + 8 = 12 = 0x0c; 1234 = 0x04d2, written low byte first.
+FILE_BEGIN 0 1234 shot.png = 50 00 0c d2 04 00 00 73 68 6f 74 2e 70 6e 67
+# 200 MB, the video cap, is 209715200 = 0x0c800000. "rec.mp4" is 7 bytes, so the length is 11 = 0x0b.
+FILE_BEGIN 2 209715200 rec.mp4 = 50 02 0b 00 00 80 0c 72 65 63 2e 6d 70 34
+# FILE_CHUNK seq bytes, laptop to phone: seq u8 (the chunk's index mod 256) and a length u8, then that many bytes,
+# written here as one run of hex. 255 bytes at most, so a chunk is never longer than the longest TEXT.
+FILE_CHUNK 0 68656c6c6f = 51 00 05 68 65 6c 6c 6f
+FILE_CHUNK 255 ff00 = 51 ff 02 ff 00
+# FILE_END sha256, laptop to phone: the SHA-256 of the whole file, 32 bytes. This one is the hash of "hello".
+FILE_END 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 = 52 2c f2 4d ba 5f b0 a3 0e 26 e8 3b 2a c5 b9 e2 9e 1b 16 1e 5c 1f a7 42 5e 73 04 33 62 93 8b 98 24
+# FILE_RESULT status, phone to laptop, one FILE_STATUS id. 0 SAVED is the only answer that lets the laptop delete
+# its copy; any other id, one this build does not know included, keeps it.
+FILE_RESULT 0 = 53 00
+FILE_RESULT 1 = 53 01
+# TEXT 12 CAPTURE_STATUS, laptop to phone: why a capture was kept on the laptop or never found.
+TEXT 12 too-large = 41 0c 09 74 6f 6f 2d 6c 61 72 67 65
