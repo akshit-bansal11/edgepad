@@ -117,7 +117,10 @@ class MacroScreen(
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
         if (bounds.outWidth !in 1..MAX_ICON_PX || bounds.outHeight !in 1..MAX_ICON_PX) return null
         val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
-        return BitmapDrawable(ui.context.resources, bitmap)
+        // Decoded at full size and scaled once, by the tile, to its final bounds with filtering on. A full
+        // grid draws the picture smaller than it was sent, and a mip chain keeps that from aliasing.
+        bitmap.setHasMipMap(true)
+        return BitmapDrawable(ui.context.resources, bitmap).apply { isFilterBitmap = true }
     }
 
     /** The empty state's picture: the macro glyph, dim, on a rounded card tile. */

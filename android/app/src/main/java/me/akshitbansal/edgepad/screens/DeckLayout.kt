@@ -74,4 +74,35 @@ object DeckLayout {
         if (from !in order.indices || to !in order.indices) return order
         return order.toMutableList().apply { add(to, removeAt(from)) }
     }
+
+    /**
+     * The slot whose cell holds the point ([x], [y]): cell i is [width] by [height] from ([lefts] i, [tops] i).
+     * -1 in a gap between cells or outside all of them, which a drag reads as "stay where you are".
+     */
+    fun slotAt(
+        x: Float,
+        y: Float,
+        lefts: IntArray,
+        tops: IntArray,
+        width: Int,
+        height: Int,
+    ): Int =
+        lefts.indices.firstOrNull {
+            x >= lefts[it] && x < lefts[it] + width && y >= tops[it] && y < tops[it] + height
+        } ?: -1
+
+    /**
+     * Where each of [count] tiles stands while the one at [from] is held over [to]: entry p is the slot the
+     * tile drawn at p slides to. It is [move] seen from the tiles rather than from the slots, so what the
+     * drag shows is exactly what the drop will store.
+     */
+    fun places(
+        count: Int,
+        from: Int,
+        to: Int,
+    ): IntArray {
+        val places = IntArray(count)
+        move(List(count) { it }, from, to).forEachIndexed { slot, tile -> places[tile] = slot }
+        return places
+    }
 }

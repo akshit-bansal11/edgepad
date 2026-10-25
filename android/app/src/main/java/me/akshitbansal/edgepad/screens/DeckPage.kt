@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.screens
 
 import android.graphics.drawable.Drawable
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
 import android.widget.LinearLayout
@@ -52,9 +53,15 @@ class DeckPage(
 
     val view: View =
         ui.page(bar) {
-            // Takes the page's whole height, so an empty state can centre itself in it.
+            // Takes the page's whole height, so an empty state can centre itself in it. The deck sees every
+            // touch before its tiles do, which is how a held tile keeps the finger once it has left its cell.
+            val grid =
+                object : LinearLayout(ui.context) {
+                    override fun dispatchTouchEvent(event: MotionEvent): Boolean =
+                        deck.touch(event) || super.dispatchTouchEvent(event)
+                }
             holder =
-                add(LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }, height = 0).apply {
+                add(grid.apply { orientation = LinearLayout.VERTICAL }, height = 0).apply {
                     (layoutParams as LinearLayout.LayoutParams).weight = 1f
                 }
         }
