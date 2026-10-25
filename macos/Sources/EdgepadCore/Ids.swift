@@ -67,6 +67,9 @@ public enum ControlId: UInt8, CaseIterable {
     /// The value is an index into the eight-colour palette in `protocol/actions.txt`, never an RGB. An index of 8
     /// or more is dropped and counted.
     case penColor = 5
+    /// Where a capture ends up, as a `CaptureTarget` value: this Mac keeps it, or sends it to the phone and deletes its
+    /// copy once the phone says it saved it.
+    case captureTarget = 6
 }
 
 /// What a TEXT frame carries. Only `type` goes phone to computer; the rest go the other way.
@@ -93,6 +96,8 @@ public enum TextKind: UInt8, CaseIterable {
     case screenSize = 10
     /// Computer to phone: how a signature save ended, as one token.
     case signStatus = 11
+    /// Computer to phone: why a capture the phone asked for did not reach it, as one `CaptureStatus` token.
+    case captureStatus = 12
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is
@@ -119,4 +124,91 @@ public enum SignStatus: String, CaseIterable {
     case empty = "empty"
     /// The export or the save failed.
     case failed = "failed"
+}
+
+/// The values of `ControlId.captureTarget`.
+public enum CaptureTarget: UInt8 {
+    /// The system's tool saves where it saves, and nothing crosses the link.
+    case laptop = 0
+    /// Each capture goes to the phone, and the copy here is deleted only once the phone says it saved it.
+    case phone = 1
+}
+
+/// The whole vocabulary of `TextKind.captureStatus`: why a capture stayed on this Mac. A token the phone matches on,
+/// never prose. The raw value is literally the bytes that cross the wire.
+public enum CaptureStatus: String, CaseIterable {
+    /// The file is over its kind's limit, so it stays here.
+    case tooLarge = "too-large"
+    /// No new file turned up where the system's tool saves, so nothing was sent and nothing deleted.
+    case notFound = "not-found"
+    /// The file was found and could not be read or sent.
+    case failed = "failed"
+}
+
+/// What a FILE_BEGIN may carry. An id, never a MIME string, so the phone writes only these types; this Mac sends only
+/// a file whose extension is listed. Mirrors the FILE_TYPE and FILE_LIMIT rows of `protocol/actions.txt`.
+public enum FileType: UInt8, CaseIterable {
+    case png = 0
+    case jpeg = 1
+    case mp4 = 2
+    case mov = 3
+    case webm = 4
+
+    public static let imageLimit = 50 * 1024 * 1024
+    public static let videoLimit = 200 * 1024 * 1024
+
+    public var mime: String {
+        switch self {
+        case .png:
+            return "image/png"
+        case .jpeg:
+            return "image/jpeg"
+        case .mp4:
+            return "video/mp4"
+        case .mov:
+            return "video/quicktime"
+        case .webm:
+            return "video/webm"
+        }
+    }
+
+    public var fileExtension: String {
+        switch self {
+        case .png:
+            return "png"
+        case .jpeg:
+            return "jpg"
+        case .mp4:
+            return "mp4"
+        case .mov:
+            return "mov"
+        case .webm:
+            return "webm"
+        }
+    }
+
+    public var isVideo: Bool { mime.hasPrefix("video/") }
+
+    /// The largest file of this kind that may cross the link, in bytes.
+    public var limit: Int { isVideo ? FileType.videoLimit : FileType.imageLimit }
+
+    /// The type a path's extension names, or nil for one that is not in the table.
+    public init?(path: String) {
+        guard let dot = path.lastIndex(of: "."), !path[dot...].contains("/") else { return nil }
+        let ext = path[path.index(after: dot)...].lowercased()
+        guard let type = FileType.allCases.first(where: { $0.fileExtension == ext }) else { return nil }
+        self = type
+    }
+}
+
+/// What a FILE_RESULT says. Only `saved` lets this Mac delete its copy. Mirrors `protocol/actions.txt`.
+public enum FileStatus: UInt8, CaseIterable {
+    /// The file is in the phone's gallery and its SHA-256 matched.
+    case saved = 0
+    /// Every byte arrived and the SHA-256 did not match.
+    case badHash = 1
+    /// The phone refused the file: a type, size, name or chunk it will not take.
+    case rejected = 2
+    /// The phone could not write the file.
+    case writeFailed = 3
 }

@@ -85,6 +85,27 @@ public sealed class FrameFixtureTests
     }
 
     [Fact]
+    public void RejectsAFileBeginTooShortToHoldASize() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x50, [0, 3, 1, 2, 3]));
+
+    [Fact]
+    public void RejectsAFileEndThatIsNotAWholeHash() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x52, new byte[31]));
+
+    [Fact]
+    public void AFullChunkIsTheLongestFrameAndNoLonger()
+    {
+        var chunk = new FileChunk(7, [.. Enumerable.Range(0, FrameCodec.MaxChunkBytes).Select(i => (byte)i)]);
+        var bytes = FrameCodec.Encode(chunk);
+        Assert.Equal(FrameCodec.MaxFrameLength, bytes.Length);
+        Assert.Equal(chunk, FrameCodec.Decode(bytes[0], bytes.AsSpan(1)));
+    }
+
+    [Fact]
+    public void ALongFileNameIsCutSoTheBeginFrameStillFits() =>
+        Assert.Equal(FrameCodec.MaxFrameLength, FrameCodec.Encode(new FileBegin(0, 10, new string('a', 400) + ".png")).Length);
+
+    [Fact]
     public void PadStateKeepsSignedSticksSignedAndUnsignedFieldsUnsigned()
     {
         // The three mistakes that are invisible in hex: a stick read as a ushort comes back 32768 and not
@@ -140,6 +161,10 @@ public sealed class FrameFixtureTests
             "PIN_REQUEST" => new PinRequest((byte)Field(1), (ushort)Field(2)),
             "PEN" => new Pen((ushort)Field(1), (ushort)Field(2), (byte)Field(3)),
             "PIN_ANSWER" => new PinAnswer(new Pin(string.Concat(fields[1..]))),
+            "FILE_BEGIN" => new FileBegin((byte)Field(1), (uint)Field(2), fields[3]),
+            "FILE_CHUNK" => new FileChunk((byte)Field(1), Convert.FromHexString(fields[2])),
+            "FILE_END" => new FileEnd(Convert.FromHexString(fields[1])),
+            "FILE_RESULT" => new FileResult((byte)Field(1)),
             "PAD_STATE" => new PadState(
                 (ushort)Field(1),
                 (byte)Field(2),

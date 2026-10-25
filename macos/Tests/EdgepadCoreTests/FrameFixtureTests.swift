@@ -122,6 +122,33 @@ final class FrameFixtureTests: XCTestCase {
         }
     }
 
+    func testAFileBeginTooShortToHoldASizeIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x50, payload: [0, 3, 1, 2, 3])) { error in
+            XCTAssertEqual(error as? ProtocolError, .fileBeginTooShort)
+        }
+    }
+
+    func testAFileEndThatIsNotAWholeHashIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x52, payload: [UInt8](repeating: 0, count: 31))) { error in
+            XCTAssertEqual(error as? ProtocolError, .wrongLength(type: 0x52, expected: 32, got: 31))
+        }
+    }
+
+    func testAFullChunkIsTheLongestFrameAndNoLonger() throws {
+        let frame = Frame.fileChunk(seq: 7, data: (0..<FrameCodec.maxChunkBytes).map { UInt8(truncatingIfNeeded: $0) })
+
+        let bytes = FrameCodec.encode(frame)
+
+        XCTAssertEqual(bytes.count, 1 + FrameCodec.textHeaderLength + FrameCodec.maxTextBytes)
+        XCTAssertEqual(try FrameCodec.decode(type: bytes[0], payload: Array(bytes.dropFirst())), frame)
+    }
+
+    func testALongFileNameIsCutSoTheBeginFrameStillFits() {
+        let frame = Frame.fileBegin(type: 0, size: 10, name: String(repeating: "a", count: 400) + ".png")
+
+        XCTAssertEqual(FrameCodec.encode(frame).count, 1 + FrameCodec.textHeaderLength + FrameCodec.maxTextBytes)
+    }
+
     func testNoWayOfPrintingAPinShowsADigit() throws {
         let pin = try XCTUnwrap(Pin(digits: [1, 2, 3, 4, 5, 6]))
         let frame = Frame.pinAnswer(pin)
@@ -216,8 +243,40 @@ final class FrameFixtureTests: XCTestCase {
                 ry: Int16(truncatingIfNeeded: try field(7))
             )
             return (frame, bytes)
+        case "FILE_BEGIN":
+            guard fields.count == 4 else {
+                throw FixtureError.malformed(line)
+            }
+            let type = UInt8(truncatingIfNeeded: try field(1))
+            return (.fileBegin(type: type, size: UInt32(truncatingIfNeeded: try field(2)), name: fields[3]), bytes)
+        case "FILE_CHUNK":
+            guard fields.count == 3 else {
+                throw FixtureError.malformed(line)
+            }
+            return (.fileChunk(seq: UInt8(truncatingIfNeeded: try field(1)), data: try hex(fields[2], line)), bytes)
+        case "FILE_END":
+            guard fields.count == 2 else {
+                throw FixtureError.malformed(line)
+            }
+            return (.fileEnd(sha256: try hex(fields[1], line)), bytes)
+        case "FILE_RESULT":
+            return (.fileResult(status: UInt8(truncatingIfNeeded: try field(1))), bytes)
         default:
             throw FixtureError.malformed(line)
+        }
+    }
+
+    /// A run of hex digits with no spaces, two to a byte.
+    private func hex(_ run: String, _ line: String) throws -> [UInt8] {
+        let digits = Array(run)
+        guard digits.count % 2 == 0 else {
+            throw FixtureError.malformed(line)
+        }
+        return try stride(from: 0, to: digits.count, by: 2).map { at in
+            guard let byte = UInt8(String(digits[at...at + 1]), radix: 16) else {
+                throw FixtureError.malformed(line)
+            }
+            return byte
         }
     }
 }

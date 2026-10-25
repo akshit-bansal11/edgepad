@@ -130,6 +130,9 @@ internal enum TextKind : byte
 
     /// <summary>Laptop to phone: how a <see cref="ActionId.SignSave"/> ended, as one <see cref="SignStatus"/> token.</summary>
     SignStatus = 11,
+
+    /// <summary>Laptop to phone: why a capture the phone asked for did not reach it, as one <see cref="CaptureStatus"/> token.</summary>
+    CaptureStatus = 12,
 }
 
 /// <summary>
@@ -221,6 +224,12 @@ internal enum ControlId : byte
     /// laptop did not agree to, and an index of 8 or more is dropped and counted.
     /// </summary>
     PenColor = 5,
+
+    /// <summary>
+    /// Where a capture ends up, as a <see cref="CaptureTarget"/> value: this laptop keeps it, or sends it to the phone
+    /// and deletes its copy once the phone says it saved it. Anything else is dropped and counted.
+    /// </summary>
+    CaptureTarget = 6,
 }
 
 /// <summary>
@@ -262,4 +271,105 @@ internal static class Palette
 
     /// <summary>The 0xRRGGBB colour at <paramref name="index"/>, or null when the index is not in the palette.</summary>
     public static int? Colour(int index) => index is >= 0 and < Count ? Rgb[index] : null;
+}
+
+/// <summary>The values of <see cref="ControlId.CaptureTarget"/>.</summary>
+internal enum CaptureTarget : byte
+{
+    /// <summary>The OS tool saves where it saves, and nothing crosses the link.</summary>
+    Laptop = 0,
+
+    /// <summary>Each capture goes to the phone, and the copy here is deleted only once the phone says it saved it.</summary>
+    Phone = 1,
+}
+
+/// <summary>
+/// The whole vocabulary of <see cref="TextKind.CaptureStatus"/>: why a capture stayed on this laptop. Tokens the phone
+/// matches on, never prose, and strings, for the reason <see cref="PadStatus"/> is. Mirrors protocol/actions.txt.
+/// </summary>
+internal static class CaptureStatus
+{
+    /// <summary>The file is over its kind's limit, so it stays here.</summary>
+    public const string TooLarge = "too-large";
+
+    /// <summary>No new file turned up where the OS tool saves, so nothing was sent and nothing deleted.</summary>
+    public const string NotFound = "not-found";
+
+    /// <summary>The file was found and could not be read or sent.</summary>
+    public const string Failed = "failed";
+}
+
+/// <summary>
+/// What a <see cref="FileBegin"/> may carry. An id, never a MIME string, so the phone writes only these types; this
+/// laptop sends only a file whose extension is listed. Mirrors the FILE_TYPE and FILE_LIMIT rows of
+/// protocol/actions.txt; <see cref="FileTypes"/> holds the rest of each row.
+/// </summary>
+internal enum FileType : byte
+{
+    Png = 0,
+    Jpeg = 1,
+    Mp4 = 2,
+    Mov = 3,
+    Webm = 4,
+}
+
+/// <summary>The MIME type, extension and size limit of each <see cref="FileType"/>.</summary>
+internal static class FileTypes
+{
+    public const long ImageLimit = 50L * 1024 * 1024;
+    public const long VideoLimit = 200L * 1024 * 1024;
+
+    public static string Mime(FileType type) => type switch
+    {
+        FileType.Png => "image/png",
+        FileType.Jpeg => "image/jpeg",
+        FileType.Mp4 => "video/mp4",
+        FileType.Mov => "video/quicktime",
+        _ => "video/webm",
+    };
+
+    public static string Extension(FileType type) => type switch
+    {
+        FileType.Png => "png",
+        FileType.Jpeg => "jpg",
+        FileType.Mp4 => "mp4",
+        FileType.Mov => "mov",
+        _ => "webm",
+    };
+
+    public static bool IsVideo(FileType type) => type is FileType.Mp4 or FileType.Mov or FileType.Webm;
+
+    /// <summary>The largest file of this kind that may cross the link, in bytes.</summary>
+    public static long Limit(FileType type) => IsVideo(type) ? VideoLimit : ImageLimit;
+
+    /// <summary>The type a file name's extension names, or null for one that is not in the table.</summary>
+    public static FileType? FromPath(string path)
+    {
+        var extension = Path.GetExtension(path).TrimStart('.');
+        foreach (var type in Enum.GetValues<FileType>())
+        {
+            if (string.Equals(Extension(type), extension, StringComparison.OrdinalIgnoreCase))
+            {
+                return type;
+            }
+        }
+
+        return null;
+    }
+}
+
+/// <summary>What a <see cref="FileResult"/> says. Only <see cref="Saved"/> lets this laptop delete its copy. Mirrors protocol/actions.txt.</summary>
+internal enum FileStatus : byte
+{
+    /// <summary>The file is in the phone's gallery and its SHA-256 matched.</summary>
+    Saved = 0,
+
+    /// <summary>Every byte arrived and the SHA-256 did not match.</summary>
+    BadHash = 1,
+
+    /// <summary>The phone refused the file: a type, size, name or chunk it will not take.</summary>
+    Rejected = 2,
+
+    /// <summary>The phone could not write the file.</summary>
+    WriteFailed = 3,
 }

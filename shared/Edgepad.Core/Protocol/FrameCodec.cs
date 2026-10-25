@@ -34,9 +34,26 @@ internal static class FrameCodec
     private const byte KeyType = 0x22;
     private const byte PadStateType = 0x23;
     private const byte PenType = 0x24;
+    private const byte FileBeginType = 0x50;
+    private const byte FileChunkType = 0x51;
+    private const byte FileEndType = 0x52;
+    private const byte FileResultType = 0x53;
+
+    /// <summary>FILE_BEGIN's size field, ahead of the name in the length-prefixed part.</summary>
+    private const int FileSizeBytes = 4;
+
+    /// <summary>The most one FILE_CHUNK carries: the 255 bytes a TEXT does, so no frame grows past <see cref="MaxFrameLength"/>.</summary>
+    public const int MaxChunkBytes = MaxTextBytes;
+
+    /// <summary>The most of a name one FILE_BEGIN carries: what is left of the 255 bytes after the size.</summary>
+    public const int MaxFileNameBytes = MaxTextBytes - FileSizeBytes;
+
+    public const int Sha256Bytes = 32;
 
     /// <summary>
-    /// Payload length for a type byte, or -1 when the type is unknown.
+    /// Payload length for a type byte, <see cref="LengthPrefixed"/> for TEXT, FILE_BEGIN and FILE_CHUNK, or -1 when the
+    /// type is unknown. The two file frames borrow TEXT's header shape, an id and then a length, so a reader frames
+    /// them without knowing what they are.
     /// <para>
     /// PAD_STATE is the longest fixed payload at 12 bytes, so 13 on the wire — well inside
     /// <see cref="MaxFrameLength"/>, which a 255-byte TEXT still sets at 258. No buffer had to move to let
@@ -46,7 +63,7 @@ internal static class FrameCodec
     public static int PayloadLength(byte type) => type switch
     {
         HelloType => 5,
-        HelloAckType or RunActionType => 1,
+        HelloAckType or RunActionType or FileResultType => 1,
         PinAnswerType => Pin.Length,
         PointerButtonType or ZoomType or SetValueType => 2,
         StateType or KeyType or PinRequestType => 3,
@@ -54,7 +71,8 @@ internal static class FrameCodec
         PingType or PongType => 8,
         PadStateType => 12,
         PenType => 5,
-        TextType => LengthPrefixed,
+        FileEndType => Sha256Bytes,
+        TextType or FileBeginType or FileChunkType => LengthPrefixed,
         _ => -1,
     };
 
@@ -141,6 +159,36 @@ internal static class FrameCodec
                 BinaryPrimitives.WriteUInt16LittleEndian(dest[3..], f.Y);
                 dest[5] = f.State;
                 return 6;
+            // TEXT's shape: the type id, then one length byte counting the size and the name together.
+            case FileBegin f:
+                var nameBytes = Encoding.UTF8.GetBytes(Truncate(f.Name, MaxFileNameBytes), dest[(1 + TextHeaderLength + FileSizeBytes)..]);
+                dest[0] = FileBeginType;
+                dest[1] = f.Type;
+                dest[2] = (byte)(FileSizeBytes + nameBytes);
+                BinaryPrimitives.WriteUInt32LittleEndian(dest[(1 + TextHeaderLength)..], f.Size);
+                return 1 + TextHeaderLength + FileSizeBytes + nameBytes;
+            case FileChunk f:
+                if (f.Data.Length > MaxChunkBytes)
+                {
+                    throw new ArgumentException($"A chunk is at most {MaxChunkBytes} bytes", nameof(frame));
+                }
+
+                dest[0] = FileChunkType;
+                dest[1] = f.Seq;
+                dest[2] = (byte)f.Data.Length;
+                f.Data.CopyTo(dest[(1 + TextHeaderLength)..]);
+                return 1 + TextHeaderLength + f.Data.Length;
+            case FileEnd f:
+                if (f.Sha256.Length != Sha256Bytes)
+                {
+                    throw new ArgumentException($"A SHA-256 is {Sha256Bytes} bytes", nameof(frame));
+                }
+
+                dest[0] = FileEndType;
+                f.Sha256.CopyTo(dest[1..]);
+                return 1 + Sha256Bytes;
+            case FileResult f:
+                return WriteByte(dest, FileResultType, f.Status);
             // Each digit goes out as its value 0..9, not its ASCII code, so these bytes can never be read as text.
             case PinAnswer f:
                 dest[0] = PinAnswerType;
@@ -161,7 +209,7 @@ internal static class FrameCodec
         var expected = PayloadLength(type);
         if (expected == LengthPrefixed)
         {
-            return DecodeText(payload);
+            return DecodePrefixed(type, payload);
         }
 
         if (expected < 0)
@@ -192,6 +240,8 @@ internal static class FrameCodec
             PinRequestType => new PinRequest(payload[0], BinaryPrimitives.ReadUInt16LittleEndian(payload[1..])),
             PenType => DecodePen(payload),
             PinAnswerType => DecodePinAnswer(payload),
+            FileEndType => new FileEnd(payload.ToArray()),
+            FileResultType => new FileResult(payload[0]),
             _ => throw new InvalidDataException($"Unknown frame type 0x{type:x2}"),
         };
     }
@@ -224,14 +274,35 @@ internal static class FrameCodec
         return end == value.Length ? value : value[..end];
     }
 
-    private static Text DecodeText(ReadOnlySpan<byte> payload)
+    /// <summary>
+    /// TEXT, FILE_BEGIN and FILE_CHUNK: an id byte, a length byte, then that many bytes. The length is checked once here
+    /// for all three, so a header that lies closes the link whatever frame it heads.
+    /// </summary>
+    private static Frame DecodePrefixed(byte type, ReadOnlySpan<byte> payload)
     {
         if (payload.Length < TextHeaderLength || payload.Length != TextHeaderLength + payload[1])
         {
-            throw new InvalidDataException("TEXT length does not match its header");
+            throw new InvalidDataException($"Frame 0x{type:x2} length does not match its header");
         }
 
-        return new Text(payload[0], Encoding.UTF8.GetString(payload[TextHeaderLength..]));
+        var body = payload[TextHeaderLength..];
+        return type switch
+        {
+            FileBeginType => DecodeFileBegin(payload[0], body),
+            FileChunkType => new FileChunk(payload[0], body.ToArray()),
+            _ => new Text(payload[0], Encoding.UTF8.GetString(body)),
+        };
+    }
+
+    /// <summary>The size, then the name. Shorter than the size field is malformed; an empty name is the phone's to refuse.</summary>
+    private static FileBegin DecodeFileBegin(byte fileType, ReadOnlySpan<byte> body)
+    {
+        if (body.Length < FileSizeBytes)
+        {
+            throw new InvalidDataException("FILE_BEGIN is too short to hold a size");
+        }
+
+        return new FileBegin(fileType, BinaryPrimitives.ReadUInt32LittleEndian(body), Encoding.UTF8.GetString(body[FileSizeBytes..]));
     }
 
     /// <summary>

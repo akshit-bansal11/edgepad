@@ -104,6 +104,12 @@ enum class ControlId(
      * agree to, and the laptop drops an index of 8 or more.
      */
     PEN_COLOR(5),
+
+    /**
+     * Where a capture ends up, as a [CaptureTarget] index: the laptop keeps it, or sends it here and deletes its copy
+     * once this phone says it saved it. Sent on connect and whenever the setting changes.
+     */
+    CAPTURE_TARGET(6),
     ;
 
     fun set(value: Int): Frame = Frame.SetValue(id, value)
@@ -164,6 +170,9 @@ enum class TextKind(
 
     /** Laptop to phone: how a [ActionId.SIGN_SAVE] ended, as one [SignStatus] token. */
     SIGN_STATUS(11),
+
+    /** Laptop to phone: why a capture this phone asked for did not reach it, as one [CaptureStatus] token. */
+    CAPTURE_STATUS(12),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -289,4 +298,94 @@ enum class PenColor(
     GREEN(5, 0x34C759),
     BLUE(6, 0x0068D6),
     PURPLE(7, 0xAF52DE),
+}
+
+/** The values of [ControlId.CAPTURE_TARGET], by [value]. */
+enum class CaptureTarget(
+    val value: Int,
+) {
+    /** The laptop's own tool saves where it saves, and nothing crosses the link. */
+    LAPTOP(0),
+
+    /** The laptop sends each capture here and deletes its copy only once this phone says it saved it. */
+    PHONE(1),
+    ;
+
+    fun frame(): Frame = ControlId.CAPTURE_TARGET.set(value)
+}
+
+/**
+ * The whole vocabulary of [TextKind.CAPTURE_STATUS]: why a capture stayed on the laptop. A token the phone matches
+ * on, never prose, for the reason [PadStatus] is. Mirrors protocol/actions.txt.
+ */
+enum class CaptureStatus(
+    val token: String,
+) {
+    /** The file is over [FileType.limit] for its kind, so it stays on the laptop. */
+    TOO_LARGE("too-large"),
+
+    /** No new file turned up where the laptop's tool saves, so nothing was sent and nothing deleted. */
+    NOT_FOUND("not-found"),
+
+    /** The laptop found the file and could not read or send it. */
+    FAILED("failed"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [FAILED]: the phone cannot say why, only that nothing arrived. */
+        fun of(token: String): CaptureStatus = entries.firstOrNull { it.token == token } ?: FAILED
+    }
+}
+
+/**
+ * What a [Frame.FileBegin] may carry, by [id]. The laptop sends an id and never a MIME string, so the phone writes
+ * only these types, and an id it does not know is refused. Mirrors the FILE_TYPE and FILE_LIMIT rows of
+ * protocol/actions.txt.
+ */
+enum class FileType(
+    val id: Int,
+    val mime: String,
+    val extension: String,
+) {
+    PNG(0, "image/png", "png"),
+    JPEG(1, "image/jpeg", "jpg"),
+    MP4(2, "video/mp4", "mp4"),
+    MOV(3, "video/quicktime", "mov"),
+    WEBM(4, "video/webm", "webm"),
+    ;
+
+    val video: Boolean get() = mime.startsWith("video/")
+
+    /** The largest file of this kind that may cross the link, in bytes. */
+    val limit: Long get() = if (video) VIDEO_LIMIT else IMAGE_LIMIT
+
+    companion object {
+        const val IMAGE_LIMIT = 50L * 1024 * 1024
+        const val VIDEO_LIMIT = 200L * 1024 * 1024
+
+        fun of(id: Int): FileType? = entries.firstOrNull { it.id == id }
+    }
+}
+
+/**
+ * What a [Frame.FileResult] says, by [id]. Only [SAVED] lets the laptop delete its copy. Mirrors
+ * protocol/actions.txt.
+ */
+enum class FileStatus(
+    val id: Int,
+) {
+    /** The file is in this phone's gallery and its SHA-256 matched. */
+    SAVED(0),
+
+    /** Every byte arrived and the SHA-256 did not match, so the file was thrown away. */
+    BAD_HASH(1),
+
+    /** The file was refused before or while it arrived: a type, size, name or chunk this phone will not take. */
+    REJECTED(2),
+
+    /** This phone could not write the file. */
+    WRITE_FAILED(3),
+    ;
+
+    fun frame(): Frame = Frame.FileResult(id)
 }

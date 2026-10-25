@@ -53,6 +53,40 @@ class IdsFixtureTest {
     }
 
     @Test
+    fun captureStatusTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("CAPTURE_STATUS").associate { it[2] to it[1] },
+            CaptureStatus.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
+    fun anUnknownCaptureStatusTokenReadsAsFailed() {
+        assertEquals(CaptureStatus.FAILED, CaptureStatus.of("something-a-later-laptop-says"))
+    }
+
+    @Test
+    fun fileTypesMatchTheSharedTable() {
+        assertEquals(
+            rows("FILE_TYPE").associate { it[1].toInt() to listOf(it[2], it[3], it[4]) },
+            FileType.entries.associate { it.id to listOf(it.name, it.mime, it.extension) },
+        )
+    }
+
+    @Test
+    fun fileLimitsMatchTheSharedTable() {
+        assertEquals(
+            rows("FILE_LIMIT").associate { it[2] to it[1].toLong() },
+            mapOf("IMAGE" to FileType.IMAGE_LIMIT, "VIDEO" to FileType.VIDEO_LIMIT),
+        )
+    }
+
+    @Test
+    fun fileStatusesMatchTheSharedTable() {
+        assertEquals(expected("FILE_STATUS"), FileStatus.entries.associate { it.id to it.name })
+    }
+
+    @Test
     fun anUnknownSignStatusTokenReadsAsFailed() {
         assertEquals(SignStatus.FAILED, SignStatus.of("something-a-later-laptop-says"))
     }

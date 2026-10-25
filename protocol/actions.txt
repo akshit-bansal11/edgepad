@@ -82,6 +82,9 @@ CONTROL 4 REFRESH_RATE
 # PEN_COLOR's value is an index into the PALETTE rows below, never a colour: the phone cannot name an RGB the
 # laptop did not agree to, and an index of 8 or more is dropped and counted.
 CONTROL 5 PEN_COLOR
+# Where a capture ends up: 0 the laptop keeps it where its own tool saved it, 1 the laptop sends it to the phone
+# and deletes its copy only once the phone says it saved it. Any other value is dropped and counted.
+CONTROL 6 CAPTURE_TARGET
 
 TEXT 0 NOW_PLAYING
 TEXT 1 APP
@@ -117,6 +120,8 @@ TEXT 9 FEATURES
 TEXT 10 SCREEN_SIZE
 # How a SIGN_SAVE ended, laptop to phone, as one SIGN_STATUS token from the set below.
 TEXT 11 SIGN_STATUS
+# Why a capture the phone asked for did not reach it, laptop to phone, as one CAPTURE_STATUS token from the set below.
+TEXT 12 CAPTURE_STATUS
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
@@ -159,6 +164,32 @@ FEATURE capture CAPTURE
 SIGN_STATUS saved SAVED
 SIGN_STATUS empty EMPTY
 SIGN_STATUS failed FAILED
+
+# The whole vocabulary of TEXT kind 12, as "<token on the wire> <the name both apps call it>". The file stays on the
+# laptop in every case. An unknown token reads as FAILED.
+CAPTURE_STATUS too-large TOO_LARGE
+CAPTURE_STATUS not-found NOT_FOUND
+CAPTURE_STATUS failed FAILED
+
+# What a FILE_BEGIN may carry, as "<id> <NAME> <MIME type> <extension>". An id, never a MIME string of the laptop's
+# choosing: the phone writes only these types, and an id it does not know is refused. The laptop sends only a file
+# whose extension is in this list.
+FILE_TYPE 0 PNG image/png png
+FILE_TYPE 1 JPEG image/jpeg jpg
+FILE_TYPE 2 MP4 video/mp4 mp4
+FILE_TYPE 3 MOV video/quicktime mov
+FILE_TYPE 4 WEBM video/webm webm
+
+# The largest file of each kind that crosses the link, in bytes, as "<bytes> <KIND>": an image type is IMAGE and a
+# video type VIDEO. The laptop keeps a bigger one and says too-large; the phone refuses a bigger FILE_BEGIN.
+FILE_LIMIT 52428800 IMAGE
+FILE_LIMIT 209715200 VIDEO
+
+# What a FILE_RESULT says, phone to laptop. Only SAVED lets the laptop delete its copy.
+FILE_STATUS 0 SAVED
+FILE_STATUS 1 BAD_HASH
+FILE_STATUS 2 REJECTED
+FILE_STATUS 3 WRITE_FAILED
 
 # The eight colours CONTROL 5 PEN_COLOR indexes, as "<index> <NAME> <RRGGBB>". One list in this file so the
 # phone's swatches and the colours the laptop draws cannot drift apart. The laptop owns the colour: the phone

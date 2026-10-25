@@ -84,7 +84,8 @@ public final class Dispatcher {
             return key(code, down: down)
         case .pen(let x, let y, let state):
             return annotation?.pen(x: x, y: y, state: state) ?? false
-        case .hello, .helloAck, .ping, .pong, .state, .padState, .pinRequest, .pinAnswer:
+        case .hello, .helloAck, .ping, .pong, .state, .padState, .pinRequest, .pinAnswer, .fileBegin, .fileChunk, .fileEnd,
+            .fileResult:
             // A Mac has no virtual controller to give a pad frame to, and the rest are not the phone's to send
             // once the session is live.
             return false
@@ -245,6 +246,8 @@ public final class Dispatcher {
         case .refreshRate:
             // The value is an index into the rate list, never hertz.
             return value < display.rates.count ? display.select(value) : false
+        case .captureTarget:
+            return false
         }
     }
 }

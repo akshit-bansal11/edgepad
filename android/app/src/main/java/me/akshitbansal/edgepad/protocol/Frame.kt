@@ -115,6 +115,49 @@ sealed interface Frame {
         val y: Int,
         val state: Int,
     ) : Frame
+
+    /**
+     * The start of a file the laptop is sending: a capture, when the phone asked for captures to be saved here.
+     * [type] is a [FileType] id, never a MIME string, [size] the whole file in bytes, [name] the laptop's file
+     * name with no folder. Nothing here is trusted: the phone checks all three before it writes anything.
+     */
+    data class FileBegin(
+        val type: Int,
+        val size: Long,
+        val name: String,
+    ) : Frame
+
+    /**
+     * One piece of the file, 255 bytes at most. [seq] is the piece's index mod 256, so a lost or repeated piece
+     * shows. Not a data class: an array compares by identity, and two chunks of the same bytes must be equal.
+     */
+    class FileChunk(
+        val seq: Int,
+        val data: ByteArray,
+    ) : Frame {
+        override fun equals(other: Any?): Boolean =
+            other is FileChunk && other.seq == seq && other.data.contentEquals(data)
+
+        override fun hashCode(): Int = 31 * seq + data.contentHashCode()
+
+        override fun toString(): String = "FileChunk(seq=$seq, ${data.size} bytes)"
+    }
+
+    /** The end of the file: the SHA-256 of all of it, 32 bytes, which the phone checks before it keeps the file. */
+    class FileEnd(
+        val sha256: ByteArray,
+    ) : Frame {
+        override fun equals(other: Any?): Boolean = other is FileEnd && other.sha256.contentEquals(sha256)
+
+        override fun hashCode(): Int = sha256.contentHashCode()
+
+        override fun toString(): String = "FileEnd(${sha256.joinToString("") { "%02x".format(it) }})"
+    }
+
+    /** The phone's answer to a file, one [FileStatus] id. Only [FileStatus.SAVED] lets the laptop delete its copy. */
+    data class FileResult(
+        val status: Int,
+    ) : Frame
 }
 
 /**
