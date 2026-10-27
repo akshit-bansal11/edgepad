@@ -114,6 +114,14 @@ public sealed class LinuxMacroIconsTests : IDisposable
             writer.Write(0);
         }
 
+        // Skia must open the header and report the claimed size, or the null below would come from an unreadable
+        // file and say nothing about the side cap.
+        using (var codec = SKCodec.Create(path))
+        {
+            Assert.NotNull(codec);
+            Assert.Equal(side, codec.Info.Width);
+        }
+
         Assert.Null(LinuxMacroIcons.Render(path));
     }
 
