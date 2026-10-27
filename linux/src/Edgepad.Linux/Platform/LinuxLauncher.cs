@@ -128,7 +128,7 @@ internal sealed class LinuxLauncher : IMacroLauncher
         return result;
     }
 
-    private static PathKind Classify(string path)
+    internal static PathKind Classify(string path)
     {
         if (Directory.Exists(path))
         {
