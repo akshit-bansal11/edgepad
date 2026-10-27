@@ -130,7 +130,7 @@ internal static class DesktopIcons
     }
 
     /// <summary>The <c>.desktop</c> files directly in <paramref name="folder"/>, sorted so the answer never depends on the disk.</summary>
-    private static IEnumerable<string> DesktopFiles(string folder)
+    private static List<string> DesktopFiles(string folder)
     {
         try
         {
