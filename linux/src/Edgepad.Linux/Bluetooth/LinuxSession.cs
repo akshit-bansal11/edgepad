@@ -1,5 +1,6 @@
 using Edgepad.Capture;
 using Edgepad.Dispatch;
+using Edgepad.Macros;
 using Edgepad.Native;
 using Edgepad.Net;
 using Edgepad.Platform;
@@ -29,6 +30,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Action releaseHeldInput;
     private readonly Func<string> probePad;
     private readonly Action<Action<Frame>> startReporting;
+    private readonly Func<IReadOnlyList<Macro>> macros;
     private readonly Action<string> onStatus;
     private readonly Func<LinuxSession, bool> onAdmitted;
     private readonly Action<LinuxSession> onEnded;
@@ -41,7 +43,8 @@ internal sealed class LinuxSession : IDisposable
     /// Takes ownership of <paramref name="socket"/>. <paramref name="releaseHeldInput"/> releases every key and
     /// button the phone still holds down when the session ends, and unplugs its virtual controller.
     /// <paramref name="probePad"/> answers the PAD_STATUS token sent once after the handshake, and
-    /// <paramref name="startReporting"/> is given the sink the platform sends its state reports through.
+    /// <paramref name="startReporting"/> is given the sink the platform sends its state reports through, and
+    /// <paramref name="macros"/> is read each time the phone asks for the macro icons.
     /// </summary>
     public LinuxSession(
         SafeFileHandle socket,
@@ -53,6 +56,7 @@ internal sealed class LinuxSession : IDisposable
         Action releaseHeldInput,
         Func<string> probePad,
         Action<Action<Frame>> startReporting,
+        Func<IReadOnlyList<Macro>> macros,
         Action<string> onStatus,
         Func<LinuxSession, bool> onAdmitted,
         Action<LinuxSession> onEnded)
@@ -66,6 +70,7 @@ internal sealed class LinuxSession : IDisposable
         this.releaseHeldInput = releaseHeldInput;
         this.probePad = probePad;
         this.startReporting = startReporting;
+        this.macros = macros;
         this.onStatus = onStatus;
         this.onAdmitted = onAdmitted;
         this.onEnded = onEnded;
@@ -132,10 +137,14 @@ internal sealed class LinuxSession : IDisposable
                 {
                     frames.Send(new Pong(ping.Time));
                 }
+                else if (frame is Text { Kind: (byte)TextKind.WantIcons })
+                {
+                    // Answered here rather than in the dispatcher, for the same reason PONG is: the reply goes back
+                    // down this socket, and the dispatcher holds no reference to it.
+                    SendIcons();
+                }
                 else
                 {
-                    // TEXT 7 (the phone asking for macro icons) lands here too and is dropped: the Linux app
-                    // sends labels only.
                     dispatcher.Handle(frame);
                 }
             }
@@ -165,6 +174,39 @@ internal sealed class LinuxSession : IDisposable
 
             Dispose();
             onEnded(this);
+        }
+    }
+
+    /// <summary>
+    /// Every macro icon this laptop can read, in pieces. Runs on the read loop, so no input frame is read while it
+    /// goes out. The phone asks when it opens the macro grid, a screen with no trackpad on it, so the pause falls
+    /// where nothing is being pointed at. An icon that cannot be read is not sent, and its button keeps its name.
+    /// </summary>
+    private void SendIcons()
+    {
+        var current = macros();
+        for (var slot = 0; slot < current.Count; slot++)
+        {
+            if (LinuxMacroIcons.Png(current[slot]) is not { } png)
+            {
+                continue;
+            }
+
+            foreach (var chunk in MacroIconChunks.Chunks(slot, png))
+            {
+                // The list can be reloaded while this runs, which swaps it. Checked under the send lock, no chunk of
+                // the old list can follow the new one to the phone, where it would land on whatever macro moved into
+                // its slot. The phone asks again for the new list.
+                lock (frames.SendGate)
+                {
+                    if (!ReferenceEquals(macros(), current))
+                    {
+                        return;
+                    }
+
+                    frames.Send(new Text((byte)TextKind.MacroIcon, chunk));
+                }
+            }
         }
     }
 

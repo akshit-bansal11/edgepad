@@ -193,6 +193,9 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
 
     public bool Run(int index) => macros.Run(index);
 
+    /// <summary>The list the session answers WANT_ICONS from; the store replaces it whole on a change, so the reference is what the session compares.</summary>
+    public IReadOnlyList<Macro> Macros => macros.Macros;
+
     /// <summary>
     /// Starts reporting the laptop's levels, media, macro names and features through <paramref name="send"/>, for the
     /// rest of the session. Called once, on the session's reader, after the handshake.

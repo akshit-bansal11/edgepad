@@ -157,6 +157,7 @@ internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, C
                 platform.Dispose,
                 platform.ProbePad,
                 platform.StartReporting,
+                () => platform.Macros,
                 onStatus,
                 OnAdmitted,
                 OnSessionEnded);
