@@ -298,7 +298,7 @@ public final class MacroWatch {
     }
 }
 
-/// Splits one icon into TEXT 6 payloads, "slot/chunk/chunks/base64", the twin of the Windows `MacroIcons.Chunks`.
+/// Splits one icon into TEXT 6 payloads, "slot/chunk/chunks/base64", the twin of the laptop core's `MacroIconChunks.Chunks`.
 public enum MacroIconChunks {
     /// The most an icon may weigh on the wire: 24 KiB is 137 frames for one button, the point past which a picture
     /// costs the link more than a label is worth. A real program icon is a fraction of it.

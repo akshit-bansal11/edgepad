@@ -161,7 +161,7 @@ class LaptopStateTest {
 
     @Test
     fun joinsAnIconFromItsChunks() {
-        // The other half of this format is MacroIcons.Chunks on the laptop, and the two are only held
+        // The other half of this format is MacroIconChunks.Chunks on the laptop, and the two are only held
         // together by the C# suite and this one agreeing about it. Both are written out by hand for that
         // reason: a helper shared with the code would agree with the code whatever the code did.
         val png = bytes(600)
@@ -302,7 +302,7 @@ class LaptopStateTest {
     private fun bytes(size: Int): ByteArray = ByteArray(size) { (it * 31 % 251).toByte() }
 
     /**
-     * What MacroIcons.Chunks produces on the laptop, written out again here rather than shared: 240 bytes
+     * What MacroIconChunks.Chunks produces on the laptop, written out again here rather than shared: 240 bytes
      * of base64 per frame behind a "slot/chunk/chunks/" header.
      */
     private fun chunks(
@@ -318,7 +318,7 @@ class LaptopStateTest {
     }
 
     private companion object {
-        /** MacroIcons.ChunkBytes on the laptop. Written out, because agreeing with it is the point. */
+        /** MacroIconChunks.ChunkBytes on the laptop. Written out, because agreeing with it is the point. */
         const val CHUNK_BYTES = 240
     }
 }

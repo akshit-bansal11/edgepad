@@ -74,6 +74,50 @@ public sealed class LinuxMacroIconsTests : IDisposable
     }
 
     [Fact]
+    public void RenderOfAFileOverTheByteCapIsNull()
+    {
+        // Sparse, so the test writes almost nothing to disk.
+        var path = Path.Combine(root, "huge.png");
+        using (var stream = new FileStream(path, FileMode.CreateNew))
+        {
+            stream.SetLength(LinuxMacroIcons.MaxSourceBytes + 1);
+        }
+
+        Assert.Null(LinuxMacroIcons.Render(path));
+    }
+
+    [Fact]
+    public void RenderOfAPictureDeclaringHugeDimensionsIsNull()
+    {
+        // A BMP header alone: 54 bytes claiming 5000 x 5000 at 24 bits, no pixels. BMP rather than PNG because its
+        // header carries no checksum, so it can be written out here by hand. Without the side cap, decoding would
+        // allocate the whole bitmap and hand back a picture of the missing rows.
+        var path = Path.Combine(root, "claims-huge.bmp");
+        const int side = LinuxMacroIcons.MaxSourceSide + 904;
+        using (var writer = new BinaryWriter(File.Create(path)))
+        {
+            writer.Write((byte)'B');
+            writer.Write((byte)'M');
+            writer.Write(54 + (side * 3 * side));
+            writer.Write(0);
+            writer.Write(54);
+            writer.Write(40);
+            writer.Write(side);
+            writer.Write(side);
+            writer.Write((short)1);
+            writer.Write((short)24);
+            writer.Write(0);
+            writer.Write(0);
+            writer.Write(2835);
+            writer.Write(2835);
+            writer.Write(0);
+            writer.Write(0);
+        }
+
+        Assert.Null(LinuxMacroIcons.Render(path));
+    }
+
+    [Fact]
     public void PngOfAUrlIsNull() => Assert.Null(LinuxMacroIcons.Png(new Macro("Mail", "https://mail.google.com", null)));
 
     [Fact]

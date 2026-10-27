@@ -20,7 +20,14 @@ internal static class LinuxMacroIcons
     /// The largest file this will open. An owner's icon path can point at anything, and a photograph or a disk image
     /// read whole on the session's thread would stall the phone for a picture that would be refused anyway.
     /// </summary>
-    private const long MaxSourceBytes = 8 * 1024 * 1024;
+    internal const long MaxSourceBytes = 8 * 1024 * 1024;
+
+    /// <summary>
+    /// The widest or tallest raster this will decode. A small file can declare huge dimensions (a compressed PNG of one
+    /// colour, say), and decoding allocates width × height × 4 bytes whatever the file weighs, so the byte cap above
+    /// does not cover it. 4096 is eight times the largest hicolor size searched (512) and still a 64 MB bitmap at worst.
+    /// </summary>
+    internal const int MaxSourceSide = 4096;
 
     /// <summary>Mitchell is a cubic that stays sharp downscaling a 256 or 512 pixel icon to the phone's square.</summary>
     private static readonly SKSamplingOptions Sampling = new(SKCubicResampler.Mitchell);
@@ -41,42 +48,53 @@ internal static class LinuxMacroIcons
     /// </summary>
     public static byte[]? Png(Macro macro)
     {
-        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var dirs = DesktopIcons.DataDirs(
-            Environment.GetEnvironmentVariable("XDG_DATA_HOME"), Environment.GetEnvironmentVariable("XDG_DATA_DIRS"), home);
-
-        // Not logged: a URL or a folder has no picture, and that is normal.
-        var path = DesktopIcons.Find(macro, dirs, home, LinuxLauncher.Classify);
-        if (path is null)
-        {
-            return null;
-        }
-
-        string key;
+        // Unfiltered for the same reason as Render's catch: this runs on the session's read thread when the phone asks
+        // for the icons, and an exception escaping there would drop the phone's connection over one bad icon. Nothing
+        // is cached from here, so a failure that was only passing is tried again on the next request.
         try
         {
-            key = $"{path}|{File.GetLastWriteTimeUtc(path).Ticks}";
+            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var dirs = DesktopIcons.DataDirs(
+                Environment.GetEnvironmentVariable("XDG_DATA_HOME"), Environment.GetEnvironmentVariable("XDG_DATA_DIRS"), home);
+
+            // Not logged: a URL or a folder has no picture, and that is normal.
+            var path = DesktopIcons.Find(macro, dirs, home, LinuxLauncher.Classify);
+            if (path is null)
+            {
+                return null;
+            }
+
+            string key;
+            try
+            {
+                key = $"{path}|{File.GetLastWriteTimeUtc(path).Ticks}";
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
+            {
+                return null;
+            }
+
+            lock (Gate)
+            {
+                if (Cache.TryGetValue(key, out var cached))
+                {
+                    return cached;
+                }
+            }
+
+            var png = Render(path);
+            lock (Gate)
+            {
+                Cache[key] = png;
+            }
+
+            return png;
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
+        catch (Exception e)
         {
+            Log.Write($"No icon for macro {macro.Name}: {e.Message}");
             return null;
         }
-
-        lock (Gate)
-        {
-            if (Cache.TryGetValue(key, out var cached))
-            {
-                return cached;
-            }
-        }
-
-        var png = Render(path);
-        lock (Gate)
-        {
-            Cache[key] = png;
-        }
-
-        return png;
     }
 
     /// <summary>
@@ -115,7 +133,20 @@ internal static class LinuxMacroIcons
                 });
             }
 
-            using var bitmap = SKBitmap.Decode(path);
+            // The header is read before any pixel, so a picture that only claims to be enormous is refused unallocated.
+            using var codec = SKCodec.Create(path);
+            if (codec is null)
+            {
+                return Undecodable(path);
+            }
+
+            if (codec.Info.Width > MaxSourceSide || codec.Info.Height > MaxSourceSide)
+            {
+                Log.Write($"No icon for {path}: the picture is too large to be an icon");
+                return null;
+            }
+
+            using var bitmap = SKBitmap.Decode(codec);
             if (bitmap is null)
             {
                 return Undecodable(path);

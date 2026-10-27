@@ -145,6 +145,18 @@ public sealed class DesktopIconsTests : IDisposable
         Assert.Equal(icon, Find(new Macro("n", entry, null)));
     }
 
+    [Theory]
+    [InlineData("art.png")]
+    [InlineData("art.SVG")]
+    [InlineData("art.xpm")]
+    public void AnOldIconNameWithItsExtensionIsFoundWithoutIt(string name)
+    {
+        var icon = Write(Path.Combine("usr", "share", "icons", "hicolor", "48x48", "apps", "art.png"));
+        var entry = Write("app.desktop", $"[Desktop Entry]\nIcon={name}\n");
+
+        Assert.Equal(icon, Find(new Macro("n", entry, null)));
+    }
+
     [Fact]
     public void AnExecutablesDesktopEntryIsFoundByItsFileNameInDataHomeBeforeSystem()
     {

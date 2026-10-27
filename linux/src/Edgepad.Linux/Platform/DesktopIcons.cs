@@ -228,6 +228,11 @@ internal static class DesktopIcons
     }
 
     /// <summary>
+    /// Extensions an old <c>Icon=</c> name carries that the theme search must not see (an .xpm may have a .png twin).
+    /// </summary>
+    private static readonly string[] LegacyExtensions = [".png", ".svg", ".xpm"];
+
+    /// <summary>
     /// The file an <c>Icon=</c> value names, or null. An absolute path is that file or nothing, and never falls to a
     /// name search. A name is looked up in hicolor and then in pixmaps; a name that is itself a path is refused, since
     /// a name is never one.
@@ -247,6 +252,13 @@ internal static class DesktopIcons
         if (icon.Contains('/', StringComparison.Ordinal) || icon.Contains('\\', StringComparison.Ordinal))
         {
             return null;
+        }
+
+        // Old entries write the file name, Icon=foo.png; the spec says a name has no extension, and the theme search
+        // adds its own, so foo.png would be looked for as foo.png.png and never found.
+        if (LegacyExtensions.Contains(Path.GetExtension(icon), StringComparer.OrdinalIgnoreCase))
+        {
+            icon = Path.GetFileNameWithoutExtension(icon);
         }
 
         foreach (var dir in dataDirs)
