@@ -20,6 +20,11 @@ updates:
     directory: /linux
     schedule:
       interval: monthly
+    # Svg.Skia 5.2 needs SkiaSharp 4.148 and Avalonia 12.1.4 ships 3.119.4; two Skia versions in one
+    # process do not mix. Hold it below 5.2 until Avalonia moves (Edgepad.Linux.csproj says the same).
+    ignore:
+      - dependency-name: Svg.Skia
+        versions: ['>=5.2.0']
   # global.json pins the SDK exactly: each SDK carries its own Microsoft.NET.ILLink.Tasks version, which the
   # lock files record, so an SDK that moved on its own broke locked-mode restore on a commit that had passed
   # (release run 40193265879, 10.0.402 -> 10.0.403). This PR is red until CI's lockfiles job is run and its

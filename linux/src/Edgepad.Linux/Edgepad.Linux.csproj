@@ -32,6 +32,12 @@
     <PackageReference Include="Avalonia" Version="12.1.4" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+    <!-- Rasterises an SVG icon for a macro button (Platform/LinuxMacroIcons.cs). SkiaSharp itself is not referenced
+         directly: it arrives through Avalonia, at 3.119.4. 5.1.1 is the last Svg.Skia whose SkiaSharp floor
+         (>= 3.119.2) and HarfBuzzSharp (8.3.1.3) match Avalonia 12.1.4's; 5.2.0 and later need SkiaSharp 4.148, which
+         would split Avalonia's copy from this one. Raise it only when Avalonia moves to SkiaSharp 4
+         (.github/dependabot.yml holds it until then). -->
+    <PackageReference Include="Svg.Skia" Version="5.1.1" />
   </ItemGroup>
 
   <ItemGroup>
