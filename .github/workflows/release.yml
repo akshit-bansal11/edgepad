@@ -74,13 +74,14 @@ jobs:
         run: >
           ./gradlew --no-daemon assembleRelease
           -PversionName="${VERSION:-${GITHUB_REF_NAME#v}}" -PversionCode="${{ github.run_number }}"
-      # Only the sign job reads it, straight away; a day is enough for a re-run of that job alone.
+      # Only the sign job reads it, once the owner approves. A week, not a day: run 40193265879 lost it when the
+      # approval came three days after the build. An unsigned APK holds no secret, so keeping it longer costs nothing.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: apk-unsigned
           path: android/app/build/outputs/apk/release/app-release-unsigned.apk
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 7
 
   sign:
     needs: android
