@@ -261,7 +261,7 @@ internal sealed class Session(
                 continue;
             }
 
-            foreach (var chunk in MacroIcons.Chunks(slot, png))
+            foreach (var chunk in MacroIconChunks.Chunks(slot, png))
             {
                 // A save in the tray editor swaps the list and then sends it from another thread. Checked
                 // under the send lock, no chunk of the old list can follow the new one to the phone, where
