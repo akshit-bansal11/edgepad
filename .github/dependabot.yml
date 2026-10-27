@@ -20,6 +20,14 @@ updates:
     directory: /linux
     schedule:
       interval: monthly
+  # global.json pins the SDK exactly: each SDK carries its own Microsoft.NET.ILLink.Tasks version, which the
+  # lock files record, so an SDK that moved on its own broke locked-mode restore on a commit that had passed
+  # (release run 40193265879, 10.0.402 -> 10.0.403). This PR is red until CI's lockfiles job is run and its
+  # files are committed onto it.
+  - package-ecosystem: dotnet-sdk
+    directory: /
+    schedule:
+      interval: monthly
   # The site, deployed to Vercel. Its versions are pinned exactly (site/README.md), so Dependabot is what
   # moves them; ESLint and TypeScript are held back on purpose, and that README says why.
   - package-ecosystem: npm
