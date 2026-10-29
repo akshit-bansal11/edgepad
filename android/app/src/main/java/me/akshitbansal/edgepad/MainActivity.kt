@@ -1289,15 +1289,17 @@ class MainActivity :
     private fun deviceOf(
         found: Found,
         all: List<Found>,
-    ): PickerScreen.Device =
-        PickerScreen.Device(
+    ): PickerScreen.Device {
+        val host = found.hosts.firstOrNull()?.hostAddress.orEmpty()
+        return PickerScreen.Device(
             address = targetOf(found).key,
             name = found.name,
             transport = found.transport,
-            detail = found.hosts.firstOrNull()?.hostAddress.orEmpty(),
+            detail = host,
             found = found,
             alsoVia = otherTransport(found, all),
         )
+    }
 
     private fun targetOf(found: Found) = Target.Network(found.laptopId, found.name, found.hosts, found.port)
 
@@ -1431,8 +1433,7 @@ class MainActivity :
         }
 
     /** What the laptop's pairing prompt calls this phone: the name set in the phone's settings, else its model. */
-    private fun phoneName(): String =
-        Global.getString(contentResolver, Global.DEVICE_NAME) ?: Build.MODEL
+    private fun phoneName(): String = Global.getString(contentResolver, Global.DEVICE_NAME) ?: Build.MODEL
 
     override fun onConnected(link: LaptopLink) {
         if (link != this.link) return

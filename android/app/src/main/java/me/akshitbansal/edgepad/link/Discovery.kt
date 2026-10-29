@@ -1,6 +1,5 @@
 package me.akshitbansal.edgepad.link
 
-import android.annotation.TargetApi
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.nsd.NsdManager
@@ -186,34 +185,29 @@ class Discovery(
     private fun resolve(info: NsdServiceInfo) {
         if (listener == null) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            watch(info)
+            val name = info.serviceName
+            val manager = nsd
+            if (name in watching || manager == null) return
+            val callback =
+                object : NsdManager.ServiceInfoCallback {
+                    override fun onServiceInfoCallbackRegistrationFailed(errorCode: Int) = Unit
+
+                    override fun onServiceUpdated(serviceInfo: NsdServiceInfo) =
+                        update(serviceInfo, serviceInfo.hostAddresses)
+
+                    override fun onServiceLost() = lost(name)
+
+                    override fun onServiceInfoCallbackUnregistered() = Unit
+                }
+            try {
+                manager.registerServiceInfoCallback(info, direct, callback)
+                watching[name] = { manager.unregisterServiceInfoCallback(callback) }
+            } catch (e: IllegalArgumentException) {
+                Log.w("Edgepad", "Could not watch $name", e)
+            }
         } else {
             queue.addLast(info)
             resolveNext()
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    private fun watch(info: NsdServiceInfo) {
-        val name = info.serviceName
-        if (name in watching) return
-        val callback =
-            object : NsdManager.ServiceInfoCallback {
-                override fun onServiceInfoCallbackRegistrationFailed(errorCode: Int) = Unit
-
-                override fun onServiceUpdated(serviceInfo: NsdServiceInfo) =
-                    update(serviceInfo, serviceInfo.hostAddresses)
-
-                override fun onServiceLost() = lost(name)
-
-                override fun onServiceInfoCallbackUnregistered() = Unit
-            }
-        val manager = nsd ?: return
-        try {
-            manager.registerServiceInfoCallback(info, direct, callback)
-            watching[name] = { manager.unregisterServiceInfoCallback(callback) }
-        } catch (e: IllegalArgumentException) {
-            Log.w("Edgepad", "Could not watch $name", e)
         }
     }
 
