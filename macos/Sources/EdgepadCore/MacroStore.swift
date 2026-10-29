@@ -54,6 +54,7 @@ public final class MacroStore {
     private let path: String
     private let launcher: MacroLauncher?
     private let icons: MacroIconSource?
+    private let schedule: (@escaping () -> Void) -> Void
     private let gate = NSLock()
     private var watchers: [Int: (String) -> Void] = [:]
     private var nextWatcher = 0
@@ -61,11 +62,16 @@ public final class MacroStore {
     private var changes = 0
 
     /// `launcher` and `icons` are nil in the core's own tests; the app supplies both. Without a launcher `run`
-    /// starts nothing and says so.
-    public init(path: String, launcher: MacroLauncher? = nil, icons: MacroIconSource? = nil) {
+    /// starts nothing and says so. `schedule` runs a launch off the session's read thread; the main queue by default,
+    /// which is where AppKit wants it. Tests pass `{ $0() }` so an assertion can follow `run` directly.
+    public init(
+        path: String, launcher: MacroLauncher? = nil, icons: MacroIconSource? = nil,
+        schedule: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) }
+    ) {
         self.path = path
         self.launcher = launcher
         self.icons = icons
+        self.schedule = schedule
         list = MacroStore.read(path)
     }
 
@@ -121,18 +127,23 @@ public final class MacroStore {
         }
     }
 
-    /// Launches `macros[index]`. False when the index is out of range, there is no launcher, or the launch failed.
-    /// An index and nothing else: see the type's comment.
+    /// Starts `macros[index]` and returns at once. False when the index is out of range or there is no launcher. The
+    /// launch runs on `schedule`, not on the caller's thread, which is the one reading the phone's frames. An index
+    /// and nothing else: see the type's comment.
     public func run(_ index: Int) -> Bool {
         let current = macros
         // A phone with a longer list than this Mac has, an editor open on the Mac say, is not an error, just a
         // button that does nothing. The dispatcher counts it and carries on.
         guard current.indices.contains(index), let launcher else { return false }
         let macro = current[index]
-        guard launcher.launch(target: macro.target, arguments: macro.arguments) else {
-            // A target that has been moved, deleted or renamed since it was added is the ordinary case.
-            Log.write("Macro \(index) (\(macro.name)) could not start \(macro.target)")
-            return false
+        schedule {
+            let began = DispatchTime.now().uptimeNanoseconds
+            if !launcher.launch(target: macro.target, arguments: macro.arguments) {
+                // A target that has been moved, deleted or renamed since it was added is the ordinary case.
+                Log.write("Macro \(index) (\(macro.name)) could not start \(macro.target)")
+            }
+            let milliseconds = (DispatchTime.now().uptimeNanoseconds - began) / 1_000_000
+            Log.write("Macro \(index) launch call returned in \(milliseconds) ms")
         }
         return true
     }

@@ -17,7 +17,7 @@ public sealed class MacroStoreTests : IDisposable
 
     private readonly RecordingLauncher launcher = new();
 
-    private MacroStore NewStore() => new(MacrosFile, launcher);
+    private MacroStore NewStore() => new(MacrosFile, launcher, work => work());
 
     [Fact]
     public void NamesAreTheButtonLabelsJoinedForOneTextFrame()
@@ -220,7 +220,7 @@ public sealed class MacroStoreTests : IDisposable
 
         Assert.False(store.Run(-1));
         Assert.False(store.Run(1));
-        Assert.False(new MacroStore(Path.Combine(dir, "none.txt"), launcher).Run(0));
+        Assert.False(new MacroStore(Path.Combine(dir, "none.txt"), launcher, work => work()).Run(0));
     }
 
     [Fact]
@@ -250,13 +250,36 @@ public sealed class MacroStoreTests : IDisposable
     }
 
     [Fact]
-    public void ALaunchThatThrowsIsReportedAsFailedRatherThanEscaping()
+    public void ALaunchThatThrowsDoesNotEscape()
     {
         launcher.Fail = true;
         var store = NewStore();
         store.Save([new Macro("Gone", "moved.exe", null)]);
 
-        Assert.False(store.Run(0));
+        Assert.True(store.Run(0));
+        Assert.Empty(launcher.Launched);
+    }
+
+    [Fact]
+    public void ASlowLaunchDoesNotBlockTheCaller()
+    {
+        using var release = new ManualResetEventSlim();
+        using var started = new ManualResetEventSlim();
+        var blocking = new BlockingLauncher(started, release);
+        var store = new MacroStore(MacrosFile, blocking);
+        store.Save([new Macro("Slow", "slow.exe", null)]);
+
+        try
+        {
+            Assert.True(store.Run(0));
+            Assert.True(started.Wait(TimeSpan.FromSeconds(10)));
+        }
+        finally
+        {
+            release.Set();
+        }
+
+        Assert.True(blocking.Done.Wait(TimeSpan.FromSeconds(10)));
     }
 
     [Fact]
@@ -371,6 +394,18 @@ public sealed class MacroStoreTests : IDisposable
             }
 
             Launched.Add((target, arguments));
+        }
+    }
+
+    private sealed class BlockingLauncher(ManualResetEventSlim started, ManualResetEventSlim release) : IMacroLauncher
+    {
+        public ManualResetEventSlim Done { get; } = new();
+
+        public void Launch(string target, string? arguments)
+        {
+            started.Set();
+            release.Wait();
+            Done.Set();
         }
     }
 

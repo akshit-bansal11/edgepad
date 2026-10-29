@@ -4,7 +4,7 @@ import EdgepadCore
 /// Opens a macro's target through `NSWorkspace`. Never a shell: a target is opened as a file, a folder, a URL or an
 /// application bundle, so nothing in it can be read as a command line. The target is whatever the owner typed into
 /// the list on this Mac; the phone only ever names a slot, and the store turns that into a target before getting here.
-/// Main thread only, like the rest of the AppKit calls.
+/// Main thread only, like the rest of the AppKit calls; the store's default scheduler is what puts it there.
 final class WorkspaceMacroLauncher: MacroLauncher {
     func launch(target: String, arguments: String?) -> Bool {
         let workspace = NSWorkspace.shared

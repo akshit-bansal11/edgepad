@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using Edgepad.Controls;
 using Edgepad.Protocol;
@@ -55,6 +56,7 @@ internal sealed class MacroStore : IMacroRunner
     private readonly List<Action<string>> watchers = [];
     private readonly string path;
     private readonly IMacroLauncher launcher;
+    private readonly Action<Action> schedule;
 
     /// <summary>
     /// Replaced whole, never mutated in place, so a Bluetooth thread reading it while the UI thread saves
@@ -62,10 +64,15 @@ internal sealed class MacroStore : IMacroRunner
     /// </summary>
     private volatile IReadOnlyList<Macro> macros = [];
 
-    public MacroStore(string path, IMacroLauncher launcher)
+    /// <summary>
+    /// <paramref name="schedule"/> runs a launch somewhere other than the caller. The default is the thread pool;
+    /// tests pass <c>work => work()</c> so an assertion can follow <see cref="Run"/> directly.
+    /// </summary>
+    public MacroStore(string path, IMacroLauncher launcher, Action<Action>? schedule = null)
     {
         this.path = path;
         this.launcher = launcher;
+        this.schedule = schedule ?? (work => ThreadPool.UnsafeQueueUserWorkItem(_ => work(), null));
         Reload();
     }
 
@@ -177,7 +184,11 @@ internal sealed class MacroStore : IMacroRunner
         }
     }
 
-    /// <summary>Launches Macros[index]. False when the index is out of range or the launch failed.</summary>
+    /// <summary>
+    /// Starts Macros[index] and returns at once. False only when the index is out of range. The launch itself runs
+    /// off the caller's thread: the caller is the one that reads the phone's frames, and a shell start that takes
+    /// a while would hold up every frame behind it.
+    /// </summary>
     public bool Run(int index)
     {
         var current = macros;
@@ -189,18 +200,23 @@ internal sealed class MacroStore : IMacroRunner
         }
 
         var macro = current[index];
-        try
+        schedule(() =>
         {
-            launcher.Launch(macro.Target, macro.Arguments);
-            return true;
-        }
-        catch (Exception e)
-        {
-            // This runs on the Bluetooth receive thread. A target that has been moved, deleted or renamed
-            // since it was added is the ordinary case, and it must not take the connection down with it.
-            Log.Write($"Macro {index} ({macro.Name}) could not start {macro.Target}: {e.Message}");
-            return false;
-        }
+            var clock = Stopwatch.StartNew();
+            try
+            {
+                launcher.Launch(macro.Target, macro.Arguments);
+            }
+            catch (Exception e)
+            {
+                // A target that has been moved, deleted or renamed since it was added is the ordinary case, and
+                // an escape from a pool thread ends the process.
+                Log.Write($"Macro {index} ({macro.Name}) could not start {macro.Target}: {e.Message}");
+            }
+
+            Log.Write($"Macro {index} launch call returned in {clock.ElapsedMilliseconds} ms");
+        });
+        return true;
     }
 
     /// <summary>The names, in order, for sending to the phone.</summary>

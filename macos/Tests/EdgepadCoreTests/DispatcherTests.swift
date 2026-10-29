@@ -40,7 +40,7 @@ final class DispatcherTests: XCTestCase {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("edgepad-dispatch-\(UUID())")
         addTeardownBlock { try? FileManager.default.removeItem(at: folder) }
         let path = folder.appendingPathComponent("macros.txt").path
-        let store = MacroStore(path: path, launcher: launcher)
+        let store = MacroStore(path: path, launcher: launcher, schedule: { $0() })
         store.save(names.map { Macro(name: $0, target: $0 + ".app") })
         return store
     }

@@ -18,7 +18,7 @@ final class MacroStoreTests: XCTestCase {
     }
 
     private func newStore(launcher: MacroLauncher? = nil, icons: MacroIconSource? = nil) -> MacroStore {
-        MacroStore(path: macrosPath, launcher: launcher, icons: icons)
+        MacroStore(path: macrosPath, launcher: launcher, icons: icons, schedule: { $0() })
     }
 
     private func writeFile(_ lines: [String]) throws {
@@ -232,13 +232,28 @@ final class MacroStoreTests: XCTestCase {
         XCTAssertEqual(launcher.launched, ["Mail.app|-", "Code.app|-n"])
     }
 
-    func testAFailedLaunchIsFalseAndNotAnError() {
+    func testAFailedLaunchIsNotAnError() {
         let launcher = FakeLauncher()
         launcher.accepts = false
         let store = newStore(launcher: launcher)
         store.save([Macro(name: "Gone", target: "Gone.app")])
 
-        XCTAssertFalse(store.run(0))
+        XCTAssertTrue(store.run(0))
+        XCTAssertEqual(launcher.launched, ["Gone.app|-"])
+    }
+
+    func testTheDefaultSchedulerDoesNotLaunchOnTheCallersThread() {
+        let launcher = FakeLauncher()
+        let store = MacroStore(path: macrosPath, launcher: launcher)
+        store.save([Macro(name: "Only", target: "one.app")])
+
+        XCTAssertTrue(store.run(0))
+        XCTAssertEqual(launcher.launched, [])
+
+        let ran = expectation(description: "the launch ran on the main queue")
+        DispatchQueue.main.async { ran.fulfill() }
+        wait(for: [ran], timeout: 5)
+        XCTAssertEqual(launcher.launched, ["one.app|-"])
     }
 
     func testWithoutALauncherNothingRuns() {

@@ -6,6 +6,7 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ### Fixed
 
+- **A slow macro launch no longer holds up the link.** The laptop starts a macro on a separate thread instead of the one that reads the phone's input, and logs how long the start took.
 - **The guide's Next button stays at the bottom.** On a short screen or a large font the buttons scrolled away with the page; only the guide's text scrolls now.
 - **Annotate has a back button.** It had only an Exit in its menu; a round back button now sits in the top-left corner like the gamepad's, and the keyboard's back link is no longer hidden under a display cutout.
 
