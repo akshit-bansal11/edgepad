@@ -39,19 +39,24 @@ class LinkInitiator(
     /**
      * A pairing: commit to a fresh key, read the laptop's, reveal, then hand [showCode] the six digits for the
      * owner to type on the laptop. The phone sends nothing that depends on the digits. It then waits for the
-     * laptop's confirmation, which the laptop sends only once its owner typed the code of this transcript, and
-     * answers with its own only if that confirmation checks out. A laptop that closes, or confirms the wrong keys,
-     * leaves the phone with no channel and no key.
+     * laptop's confirmation and checks it against this transcript. That confirmation proves only that the peer ran
+     * this exchange, not that anyone typed the code (a rogue laptop or a relay can send it too), so the phone then
+     * asks its own owner through [confirmed] whether the laptop said the code matched, and answers with its own
+     * confirmation only on a yes. A laptop that closes, confirms the wrong keys, or an owner who says no, leaves the
+     * phone with no channel and no key.
      *
-     * [showCode] runs on this thread just before the long wait, so it is also where the caller lengthens the read
-     * timeout for the owner's typing. To cancel, close the transport from another thread: the wait ends and this
-     * returns with no channel.
+     * [expectedLaptopId], when the caller already knows which laptop it meant, ends the pairing before the reveal if
+     * another one answers. [showCode] runs on this thread just before the long wait, so it is also where the caller
+     * lengthens the read timeout for the owner's typing; [confirmed] blocks this thread until the owner answers.
+     * To cancel, close the transport from another thread: the wait ends and this returns with no channel.
      */
     fun pair(
         input: InputStream,
         output: OutputStream,
         phoneId: ByteArray,
         name: String,
+        expectedLaptopId: ByteArray?,
+        confirmed: () -> Boolean,
         showCode: (Sas) -> Unit,
     ): Initiated {
         val own = newKeyPair()
@@ -59,6 +64,9 @@ class LinkInitiator(
         LinkWire.write(output, LinkWire.pairRequest(phoneId, name, LinkCrypto.commit(own.publicKey, nonce)))
         val offer = LinkWire.decodeReply(LinkWire.MODE_PAIR, LinkWire.read(input))
         if (offer.status != LinkWire.STATUS_OK) return Initiated(offer.status, null, offer.laptopId, NONE)
+        if (expectedLaptopId != null && !offer.laptopId.contentEquals(expectedLaptopId)) {
+            return Initiated(LinkWire.STATUS_OK, null, offer.laptopId, NONE)
+        }
 
         LinkWire.write(output, LinkWire.reveal(own.publicKey, nonce))
         val transcript =
@@ -87,6 +95,8 @@ class LinkInitiator(
             if (!LinkCrypto.tagsEqual(tag, LinkCrypto.laptopTag(prk, transcript, pairing = true))) {
                 return Initiated(LinkWire.STATUS_OK, null, offer.laptopId, NONE)
             }
+            // The phone's owner saw the laptop accept the code, or the pairing ends here with nothing sent.
+            if (!confirmed()) return Initiated(LinkWire.STATUS_OK, null, offer.laptopId, NONE)
             LinkWire.write(output, LinkWire.tag(LinkCrypto.phoneTag(prk, transcript, pairing = true)))
             val channel = SecureChannel(input, output, prk, isPhone = true)
             return Initiated(LinkWire.STATUS_OK, channel, offer.laptopId, LinkCrypto.pairingKey(prk))

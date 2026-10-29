@@ -62,7 +62,7 @@ class LinkInitiatorTest {
         val sent = ByteArrayOutputStream()
         val shown = ArrayList<Sas>()
 
-        val result = pairing().pair(ByteArrayInputStream(fromLaptop), sent, phoneId, "Phone") { shown.add(it) }
+        val result = pair(fromLaptop, sent) { shown.add(it) }
 
         assertEquals("009 019", shown.single().display())
         assertArrayEquals(laptopId, result.laptopId)
@@ -95,9 +95,28 @@ class LinkInitiatorTest {
     }
 
     @Test
+    fun anOwnerWhoSaysTheLaptopDidNotAcceptTheCodeSendsNoConfirmation() {
+        // The laptop's confirmation checks out, which any peer that ran the exchange can send: only the owner's
+        // yes on the phone sends the phone's half.
+        assertNotPaired(offer + Vectors.frame(Vectors.bytes("PAIR_KEYS", "tagL")), ownerSaysYes = false)
+    }
+
+    @Test
+    fun anotherLaptopAnsweringEndsThePairingBeforeTheReveal() {
+        val other = laptopId.copyOf()
+        other[0] = (other[0].toInt() xor 1).toByte()
+        val sent = ByteArrayOutputStream()
+        val shown = ArrayList<Sas>()
+        val result = pair(offer, sent, expectedLaptopId = other) { shown.add(it) }
+        assertNull(result.channel)
+        assertEquals(0, shown.size)
+        assertArrayEquals(pairRequest, sent.toByteArray())
+    }
+
+    @Test
     fun aBusyLaptopEndsThePairingAfterTheRequest() {
         val sent = ByteArrayOutputStream()
-        val result = pairing().pair(ByteArrayInputStream(Vectors.frame(byteArrayOf(1))), sent, phoneId, "Phone") {}
+        val result = pair(Vectors.frame(byteArrayOf(1)), sent)
         assertEquals(LinkWire.STATUS_BUSY, result.status)
         assertNull(result.channel)
         assertArrayEquals(pairRequest, sent.toByteArray())
@@ -111,7 +130,7 @@ class LinkInitiatorTest {
         val sent = ByteArrayOutputStream()
         val shown = ArrayList<Sas>()
         assertThrows(GeneralSecurityException::class.java) {
-            pairing().pair(ByteArrayInputStream(badOffer), sent, phoneId, "Phone") { shown.add(it) }
+            pair(badOffer, sent) { shown.add(it) }
         }
         assertEquals(0, shown.size)
         assertArrayEquals(pairRequest + reveal, sent.toByteArray())
@@ -150,11 +169,25 @@ class LinkInitiatorTest {
         assertNull(result.channel)
     }
 
-    private fun pairing() = LinkInitiator({ phone }, { nP.copyOf() })
+    private fun pair(
+        fromLaptop: ByteArray,
+        sent: ByteArrayOutputStream,
+        expectedLaptopId: ByteArray? = laptopId,
+        ownerSaysYes: Boolean = true,
+        showCode: (Sas) -> Unit = {},
+    ): Initiated {
+        val initiator = LinkInitiator({ phone }, { nP.copyOf() })
+        val input = ByteArrayInputStream(fromLaptop)
+        return initiator.pair(input, sent, phoneId, "Phone", expectedLaptopId, { ownerSaysYes }, showCode)
+    }
 
-    private fun assertNotPaired(fromLaptop: ByteArray) {
+    private fun assertNotPaired(
+        fromLaptop: ByteArray,
+        expectedLaptopId: ByteArray? = laptopId,
+        ownerSaysYes: Boolean = true,
+    ) {
         val sent = ByteArrayOutputStream()
-        val result = pairing().pair(ByteArrayInputStream(fromLaptop), sent, phoneId, "Phone") {}
+        val result = pair(fromLaptop, sent, expectedLaptopId, ownerSaysYes)
         assertNull(result.channel)
         assertEquals(0, result.pairingKey.size)
         // The request and the reveal, and nothing after them: no confirmation, no record.

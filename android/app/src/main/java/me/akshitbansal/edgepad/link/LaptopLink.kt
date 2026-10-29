@@ -15,6 +15,7 @@ import java.io.IOException
 import java.io.OutputStream
 import java.io.StreamCorruptedException
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 /**
@@ -51,13 +52,19 @@ class LaptopLink(
         )
 
         /**
-         * A network pairing: show [code] for the laptop's owner to type there. Nothing is answered; the link
-         * carries on by itself once the laptop confirms, and closing it is how the pairing is cancelled.
+         * A network pairing: show [code] for the laptop's owner to type there. Closing the link is how the
+         * pairing is cancelled.
          */
         fun onPairingCode(
             link: LaptopLink,
             code: Sas,
         )
+
+        /**
+         * The laptop answered the pairing. Ask the owner whether the laptop said the code matched, and answer with
+         * [answerPairing]; no answer within [CONFIRM_TIMEOUT_MS] is a no, and so is closing the link.
+         */
+        fun onPairingConfirm(link: LaptopLink)
 
         fun onFrame(frame: Frame)
 
@@ -130,6 +137,9 @@ class LaptopLink(
      * reading, and a queue this deep behind a blocked write is a link that has already failed: see [send].
      */
     private val outbox = LinkedBlockingQueue<Frame>(OUTBOX_CAPACITY)
+
+    /** The owner's one answer to [Listener.onPairingConfirm]; [close] puts a no in, so the wait for it ends. */
+    private val pairingAnswer = LinkedBlockingQueue<Boolean>(1)
     private val lock = Any()
 
     /**
@@ -171,7 +181,7 @@ class LaptopLink(
         // Whether connect() returned, which is what tells a laptop that never answered from one that hung up.
         var connectReturned = false
         try {
-            val opened = transport.open { code -> deliver { it.onPairingCode(this, code) } }
+            val opened = transport.open({ code -> deliver { it.onPairingCode(this, code) } }, ::askOwner)
             streams = opened
             connectReturned = true
             val input = DataInputStream(opened.input)
@@ -251,6 +261,23 @@ class LaptopLink(
      * not a wipe of the digits: they also sit in the [Pin]'s immutable String and in the codec's buffer until
      * the garbage collector reclaims them, which nothing on the JVM can hurry.
      */
+    /** The owner's answer to [Listener.onPairingConfirm]: true only when the laptop said the code matched. */
+    fun answerPairing(accepted: Boolean) {
+        pairingAnswer.offer(accepted)
+    }
+
+    // Runs on the link's thread, which waits here for the owner; a no, a close or the timeout all keep nothing.
+    private fun askOwner(): Boolean {
+        if (closed) return false
+        pairingAnswer.clear()
+        deliver { it.onPairingConfirm(this) }
+        return try {
+            pairingAnswer.poll(CONFIRM_TIMEOUT_MS, TimeUnit.MILLISECONDS) == true && !closed
+        } catch (e: InterruptedException) {
+            false
+        }
+    }
+
     fun answerPin(pin: Pin) {
         val s = streams
         if (s == null || closed || handshakeDone) return
@@ -280,6 +307,7 @@ class LaptopLink(
         main.removeCallbacks(slowAnswer)
         main.removeCallbacks(noAnswer)
         transport.close()
+        pairingAnswer.offer(false)
         writer?.interrupt()
         outbox.clear()
         CaptureInbox.abort()
@@ -370,6 +398,9 @@ class LaptopLink(
 
         /** The laptop's trust prompt gives up after 60 s; this waits longer, so the laptop's answer arrives first. */
         const val ANSWER_TIMEOUT_MS = 90_000L
+
+        /** How long the owner has to say whether the laptop accepted the pairing code. */
+        const val CONFIRM_TIMEOUT_MS = 60_000L
         const val NANOS_PER_MS = 1_000_000.0
     }
 }

@@ -17,7 +17,10 @@ class BluetoothTransport(
 
     @Volatile private var closed = false
 
-    override fun open(showCode: (Sas) -> Unit): Streams {
+    override fun open(
+        showCode: (Sas) -> Unit,
+        confirmed: () -> Boolean,
+    ): Streams {
         val s = device.createRfcommSocketToServiceRecord(ProtocolConstants.SERVICE_ID)
         socket = s
         // A close() that ran before the line above found no socket to close.

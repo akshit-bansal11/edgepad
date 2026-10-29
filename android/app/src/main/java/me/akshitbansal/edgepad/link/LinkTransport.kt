@@ -20,8 +20,15 @@ class Streams(
  * during [open], and ends it; it is also how a pairing in progress is cancelled.
  */
 interface LinkTransport {
-    /** [showCode] is called on this thread when a pairing needs the owner to type a code on the laptop. */
-    fun open(showCode: (Sas) -> Unit): Streams
+    /**
+     * [showCode] is called on this thread when a pairing needs the owner to type a code on the laptop, and
+     * [confirmed] once the laptop has answered, blocking until the owner says on the phone whether the laptop
+     * accepted the code. Nothing is kept unless it returns true.
+     */
+    fun open(
+        showCode: (Sas) -> Unit,
+        confirmed: () -> Boolean,
+    ): Streams
 
     fun close()
 }
@@ -41,11 +48,16 @@ sealed interface Target {
         override val key: String get() = device.address
     }
 
+    /**
+     * [pairAgain] pairs even when a key for [laptopId] is stored, for the user's "Pair again": a stored key is only
+     * ever replaced by a pairing its owner confirmed, never dropped because the network said so.
+     */
     class Network(
         val laptopId: ByteArray,
         val name: String,
         val hosts: List<InetAddress>,
         val port: Int,
+        val pairAgain: Boolean = false,
     ) : Target {
         override val key: String = "net:" + laptopId.joinToString("") { "%02x".format(it) }
     }

@@ -36,7 +36,7 @@
   <string name="link_unexpected">the laptop answered with something other than Edgepad\'s handshake (%1$s).</string>
   <string name="link_no_permission">the Nearby devices permission was turned off.</string>
   <string name="link_no_answer">the laptop took the connection and never answered. Check that Edgepad is running there, then try again.</string>
-  <string name="link_not_paired">the laptop no longer knows this phone. Tap it again to pair with a new code.</string>
+  <string name="link_not_paired">the laptop did not recognise this phone. Choose Pair again to pair with a new code.</string>
   <string name="link_pairing_failed">pairing did not finish: the code was not typed on the laptop in time, or not correctly. Tap the laptop to try again with a new code.</string>
   <string name="link_pairing_locked">the laptop is pairing another phone, or has paused pairing after wrong codes. Try again in a few minutes.</string>
   <!-- The laptop's lock-out runs from 30 s to an hour: under a minute in seconds, else whole minutes rounded up. -->
@@ -65,6 +65,10 @@
   <string name="pair_body">Type this code in Edgepad on %1$s.</string>
   <string name="pair_code_spoken">Pairing code: %1$s</string>
   <string name="pair_expires">Expires in %1$s</string>
+  <string name="pair_confirm_title">Did %1$s say the code matched?</string>
+  <string name="pair_confirm_body">If it said the code was wrong, tap No: another device may be answering in its place.</string>
+  <string name="pair_confirm_yes">Yes, paired</string>
+  <string name="pair_confirm_no">No</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Laptop out of reach</string>

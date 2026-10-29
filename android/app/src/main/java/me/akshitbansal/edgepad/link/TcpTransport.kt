@@ -19,8 +19,10 @@ import java.security.GeneralSecurityException
  * one after another, the likeliest first ([orderHosts]), each for at most [CONNECT_TIMEOUT_MS].
  *
  * Once the socket is up every failure is a [LinkFailure]: the laptop was reached, so it is never
- * [LaptopLink.Cause.UNREACHABLE]. A laptop that no longer knows this phone, or answers a resume with the wrong key,
- * costs the stored key, so the next tap pairs afresh with a code the owner types on the laptop.
+ * [LaptopLink.Cause.UNREACHABLE]. A stored key is never dropped on anything the network says, since a status or a
+ * failed confirmation is no proof: a laptop that no longer knows this phone closes as
+ * [LaptopLink.Cause.NOT_PAIRED], and the key is replaced only by a new pairing, [forcePair], that the owner
+ * confirmed on the phone.
  */
 class TcpTransport(
     private val hosts: List<InetAddress>,
@@ -28,6 +30,7 @@ class TcpTransport(
     private val laptopId: ByteArray,
     private val keys: PairingKeys,
     private val phoneName: String,
+    private val forcePair: Boolean = false,
     private val initiator: LinkInitiator = LinkInitiator(),
     private val ownAddresses: () -> List<InetAddress> = ::localAddresses,
 ) : LinkTransport {
@@ -35,10 +38,13 @@ class TcpTransport(
 
     @Volatile private var closed = false
 
-    override fun open(showCode: (Sas) -> Unit): Streams {
+    override fun open(
+        showCode: (Sas) -> Unit,
+        confirmed: () -> Boolean,
+    ): Streams {
         val s = connect()
         try {
-            return handshake(s, showCode)
+            return handshake(s, showCode, confirmed)
         } catch (e: IOException) {
             close()
             throw e as? LinkFailure ?: LinkFailure(LaptopLink.Closure(LaptopLink.Cause.REFUSED))
@@ -86,10 +92,11 @@ class TcpTransport(
     private fun handshake(
         s: Socket,
         showCode: (Sas) -> Unit,
+        confirmed: () -> Boolean,
     ): Streams {
         val input = s.getInputStream()
         val output = s.getOutputStream()
-        val key = keys.pairingKey(laptopId)
+        val key = if (forcePair) null else keys.pairingKey(laptopId)
         val result =
             if (key != null) {
                 try {
@@ -98,27 +105,23 @@ class TcpTransport(
                     key.fill(0)
                 }
             } else {
-                initiator.pair(input, output, keys.phoneId, phoneName) { sas ->
+                initiator.pair(input, output, keys.phoneId, phoneName, laptopId, confirmed) { sas ->
                     // The owner walks to the laptop and types; the phone's own limit on that is the screen's.
                     s.soTimeout = PAIRING_TIMEOUT_MS
                     showCode(sas)
                 }
             }
-        val refused = closureForStatus(result.status)
-        if (refused != null) {
-            if (refused.cause == LaptopLink.Cause.NOT_PAIRED) keys.forget(laptopId)
-            throw LinkFailure(refused)
-        }
+        closureForStatus(result.status)?.let { throw LinkFailure(it) }
+        // A resume the laptop could not confirm, or a pairing another laptop answered, nobody finished on the
+        // laptop, or the owner said was not accepted. Nothing is stored or forgotten either way.
         val channel = result.channel
         if (channel == null) {
-            // A pairing nobody finished on the laptop, or a resume the laptop could not confirm.
-            if (key != null) keys.forget(laptopId)
             val cause = if (key != null) LaptopLink.Cause.NOT_PAIRED else LaptopLink.Cause.PAIRING_FAILED
             throw LinkFailure(LaptopLink.Closure(cause))
         }
         if (key == null) {
-            // Kept under the id the laptop proved, which is the one its later resumes will check.
-            keys.save(result.laptopId, result.pairingKey)
+            // The owner said yes, and the laptop proved it is the one asked for: only now is a key kept or replaced.
+            keys.save(laptopId, result.pairingKey)
             result.pairingKey.fill(0)
         }
         s.soTimeout = 0

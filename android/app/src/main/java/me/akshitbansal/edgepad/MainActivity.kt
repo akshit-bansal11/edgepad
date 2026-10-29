@@ -15,6 +15,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.provider.Settings.Global
 import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -156,6 +157,7 @@ class MainActivity :
         val pinAnswered: Boolean,
         val pairCode: Sas?,
         val pairDeadline: Long,
+        val pairAsking: Boolean,
         val lastTarget: Target?,
     )
 
@@ -199,6 +201,9 @@ class MainActivity :
     /** The code a network pairing shows, and when its countdown ends; null when no pairing is waiting. */
     private var pairCode: Sas? = null
     private var pairDeadline = 0L
+
+    /** True once the laptop answered the pairing and the owner is asked whether it accepted the code. */
+    private var pairAsking = false
 
     /** What the current or last connect aimed at, so a dropped network link can be retried like a Bluetooth one. */
     private var lastTarget: Target? = null
@@ -293,6 +298,7 @@ class MainActivity :
             pinAnswered = retained.pinAnswered
             pairCode = retained.pairCode
             pairDeadline = retained.pairDeadline
+            pairAsking = retained.pairAsking
             lastTarget = retained.lastTarget
         }
         goTo(
@@ -319,6 +325,7 @@ class MainActivity :
             pinAnswered,
             pairCode,
             pairDeadline,
+            pairAsking,
             lastTarget,
         )
 
@@ -666,6 +673,8 @@ class MainActivity :
                         pairCode?.display().orEmpty(),
                         laptopName,
                         pairDeadline,
+                        pairAsking,
+                        onYes = { link?.answerPairing(true) },
                         onCancel = { navigateBack() },
                     ).view
                 }
@@ -1199,7 +1208,13 @@ class MainActivity :
         // What one laptop reported says nothing about another.
         if (target.key != laptopAddress) state = LaptopState()
         state.forgetFeatures()
-        lastTarget = target
+        // A retry resumes: "Pair again" is the user's choice for one attempt, never something a retry repeats.
+        lastTarget =
+            if (target is Target.Network && target.pairAgain) {
+                Target.Network(target.laptopId, target.name, target.hosts, target.port)
+            } else {
+                target
+            }
         laptopName =
             when (target) {
                 is Target.Bluetooth -> {
@@ -1223,19 +1238,24 @@ class MainActivity :
 
     private fun transportFor(target: Target): LinkTransport =
         when (target) {
-            is Target.Bluetooth -> BluetoothTransport(target.device)
-            is Target.Network -> TcpTransport(target.hosts, target.port, target.laptopId, linkKeys, phoneName())
+            is Target.Bluetooth -> {
+                BluetoothTransport(target.device)
+            }
+
+            is Target.Network -> {
+                TcpTransport(target.hosts, target.port, target.laptopId, linkKeys, phoneName(), target.pairAgain)
+            }
         }
 
     /** What the laptop's pairing prompt calls this phone: the name set in the phone's settings, else its model. */
     private fun phoneName(): String =
-        android.provider.Settings.Global.getString(contentResolver, android.provider.Settings.Global.DEVICE_NAME)
-            ?: Build.MODEL
+        Global.getString(contentResolver, Global.DEVICE_NAME) ?: Build.MODEL
 
     override fun onConnected(link: LaptopLink) {
         if (link != this.link) return
         connectedAt = SystemClock.elapsedRealtime()
         pairCode = null
+        pairAsking = false
         picker.setConnecting(null)
         // The trust hint, if it was showing, has been answered.
         picker.setMessage("")
@@ -1282,7 +1302,15 @@ class MainActivity :
         if (link != this.link) return
         pairCode = code
         pairDeadline = SystemClock.elapsedRealtime() + PAIR_CODE_MS
+        pairAsking = false
         picker.setMessage("")
+        goTo(Screen.PAIR_CODE)
+    }
+
+    /** The laptop answered the pairing; only the owner's Yes on this screen keeps it ([LaptopLink.answerPairing]). */
+    override fun onPairingConfirm(link: LaptopLink) {
+        if (link != this.link) return
+        pairAsking = true
         goTo(Screen.PAIR_CODE)
     }
 
@@ -1331,6 +1359,7 @@ class MainActivity :
         this.link = null
         picker.setConnecting(null)
         pairCode = null
+        pairAsking = false
         // Devices is where the reason is shown, so an attempt that ends at the PIN or a pairing code goes there first.
         if (screen == Screen.PIN || screen == Screen.PAIR_CODE) goTo(Screen.PAIRING)
         when {

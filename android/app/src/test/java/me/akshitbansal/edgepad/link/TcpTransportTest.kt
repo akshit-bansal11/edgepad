@@ -3,6 +3,7 @@ package me.akshitbansal.edgepad.link
 import me.akshitbansal.edgepad.link.net.LinkInitiator
 import me.akshitbansal.edgepad.link.net.LinkWire
 import me.akshitbansal.edgepad.link.net.PairingKeys
+import me.akshitbansal.edgepad.link.net.Sas
 import me.akshitbansal.edgepad.link.net.SecureChannel
 import me.akshitbansal.edgepad.link.net.Vectors
 import org.junit.Assert.assertArrayEquals
@@ -71,8 +72,10 @@ class TcpTransportTest {
                 assertArrayEquals(laptopId, info.laptopId)
                 assertEquals("Laptop", info.name)
             }
-            val transport = transport(server.localPort, keys, LinkInitiator({ phone }, { Vectors.bytes("RESUME_INPUT", "nP") }))
-            val streams = transport.open { fail("A resume shows no code") }
+            val resumer = LinkInitiator({ phone }, { Vectors.bytes("RESUME_INPUT", "nP") })
+            val transport = transport(server.localPort, keys, resumer)
+            val streams =
+                transport.open(showCode = { fail("A resume shows no code") }, confirmed = { fail("Nor asks") })
             streams.output.write(plain)
             streams.output.write(plain)
             streams.output.flush()
@@ -83,43 +86,82 @@ class TcpTransportTest {
     }
 
     @Test(timeout = TIMEOUT_MS)
-    fun aPairingShowsTheCodeAndKeepsTheKey() {
+    fun aPairingShowsTheCodeAndKeepsTheKeyOnlyOnTheOwnersYes() {
         val keys = FakeKeys()
-        val nP = Vectors.bytes("PAIR_INPUT", "nP")
+        val shown = ArrayList<String>()
+        pairing(keys, ownerSaysYes = true) { shown.add(it.display()) }
+        assertEquals(listOf("009 019"), shown)
+        assertArrayEquals(Vectors.bytes("PAIR_KEYS", "pk"), keys.pairingKey(laptopId))
+    }
+
+    @Test(timeout = TIMEOUT_MS)
+    fun anOwnersNoSendsNoConfirmationAndKeepsNothing() {
+        // The laptop's confirmation checks out, which a device in the middle could send just the same.
+        val keys = FakeKeys()
+        val failure = assertThrows(LinkFailure::class.java) { pairing(keys, ownerSaysYes = false) }
+        assertEquals(LaptopLink.Cause.PAIRING_FAILED, failure.closure.cause)
+        assertNull(keys.pairingKey(laptopId))
+    }
+
+    @Test(timeout = TIMEOUT_MS)
+    fun pairingAgainReplacesTheStoredKeyOnlyOnTheOwnersYes() {
+        val old = ByteArray(Vectors.bytes("PAIR_KEYS", "pk").size) { 7 }
+        val refused = FakeKeys().apply { save(laptopId, old) }
+        assertThrows(LinkFailure::class.java) { pairing(refused, ownerSaysYes = false, forcePair = true) }
+        assertArrayEquals(old, refused.pairingKey(laptopId))
+
+        val accepted = FakeKeys().apply { save(laptopId, old) }
+        pairing(accepted, ownerSaysYes = true, forcePair = true)
+        assertArrayEquals(Vectors.bytes("PAIR_KEYS", "pk"), accepted.pairingKey(laptopId))
+    }
+
+    @Test(timeout = TIMEOUT_MS)
+    fun aPairingAnsweredByAnotherLaptopEndsBeforeAnyCodeIsShown() {
+        val other = laptopId.copyOf()
+        other[0] = (other[0].toInt() xor 1).toByte()
+        val keys = FakeKeys()
+        val shown = ArrayList<Sas>()
         ServerSocket(0, 1, loopback).use { server ->
             val laptopDone =
                 respond {
                     server.accept().use { s ->
                         val input = DataInputStream(s.getInputStream())
-                        val output = s.getOutputStream()
-                        val request = magic + byteArrayOf(1, 1) + phoneId + nameP + Vectors.bytes("PAIR", "commit")
-                        assertArrayEquals(Vectors.frame(request), readFrame(input))
-                        val nL = Vectors.bytes("PAIR_INPUT", "nL")
-                        output.write(Vectors.frame(byteArrayOf(0) + laptopId + nameL + laptop.publicKey + nL))
-                        assertArrayEquals(Vectors.frame(phone.publicKey + nP), readFrame(input))
-                        // The owner typed the code on the laptop.
-                        output.write(Vectors.frame(Vectors.bytes("PAIR_KEYS", "tagL")))
-                        assertArrayEquals(Vectors.frame(Vectors.bytes("PAIR_KEYS", "tagP")), readFrame(input))
-                        laptopChannel(input, output, Vectors.bytes("PAIR_KEYS", "prk")).output.write(plain)
+                        readFrame(input)
+                        s.getOutputStream().write(Vectors.frame(offer()))
+                        // No reveal: the phone hangs up.
+                        assertEquals(-1, input.read())
                     }
                 }
-            val shown = ArrayList<String>()
-            val transport = transport(server.localPort, keys, LinkInitiator({ phone }, { nP.copyOf() }))
-            val streams = transport.open { shown.add(it.display()) }
-            assertArrayEquals(plain, readBytes(DataInputStream(streams.input), plain.size))
+            val transport = transport(server.localPort, keys, pairingInitiator(), expected = other)
+            val failure =
+                assertThrows(LinkFailure::class.java) {
+                    transport.open(showCode = { shown.add(it) }, confirmed = { true })
+                }
             laptopDone()
-            transport.close()
-            assertEquals(listOf("009 019"), shown)
+            assertEquals(LaptopLink.Cause.PAIRING_FAILED, failure.closure.cause)
         }
-        assertArrayEquals(Vectors.bytes("PAIR_KEYS", "pk"), keys.pairingKey(laptopId))
+        assertEquals(0, shown.size)
+        assertNull(keys.pairingKey(other))
     }
 
     @Test(timeout = TIMEOUT_MS)
-    fun aLaptopThatNoLongerKnowsThePhoneCostsTheKey() {
-        val keys = FakeKeys().apply { save(laptopId, Vectors.bytes("RESUME_INPUT", "pk")) }
+    fun aLaptopThatSaysItDoesNotKnowThePhoneCostsNoKey() {
+        val key = Vectors.bytes("RESUME_INPUT", "pk")
+        val keys = FakeKeys().apply { save(laptopId, key) }
         val failure = refusedWith(byteArrayOf(LinkWire.STATUS_UNKNOWN_PHONE.toByte()), keys)
         assertEquals(LaptopLink.Cause.NOT_PAIRED, failure.closure.cause)
-        assertNull(keys.pairingKey(laptopId))
+        assertArrayEquals(key, keys.pairingKey(laptopId))
+    }
+
+    @Test(timeout = TIMEOUT_MS)
+    fun aResumeTheLaptopCannotConfirmCostsNoKey() {
+        val key = Vectors.bytes("RESUME_INPUT", "pk")
+        val keys = FakeKeys().apply { save(laptopId, key) }
+        val wrongTag = ByteArray(Vectors.bytes("RESUME", "tagL").size)
+        val reply = byteArrayOf(0) + laptop.publicKey + Vectors.bytes("RESUME_INPUT", "nL") + wrongTag
+        val failure = refusedWith(reply, keys)
+        assertEquals(LaptopLink.Cause.NOT_PAIRED, failure.closure.cause)
+        assertArrayEquals(key, keys.pairingKey(laptopId))
     }
 
     @Test(timeout = TIMEOUT_MS)
@@ -131,16 +173,18 @@ class TcpTransportTest {
     @Test(timeout = TIMEOUT_MS)
     fun aLaptopNotListeningIsUnreachable() {
         val port = ServerSocket(0, 1, loopback).use { it.localPort }
-        val e = assertThrows(IOException::class.java) { transport(port, FakeKeys(), LinkInitiator()).open {} }
+        val transport = transport(port, FakeKeys(), LinkInitiator())
+        val e = assertThrows(IOException::class.java) { transport.open(showCode = {}, confirmed = { true }) }
         assertFalse(e is LinkFailure)
         assertEquals(LaptopLink.Cause.UNREACHABLE, closureOf(e, connectReturned = false, handshakeDone = false).cause)
     }
-
     @Test
     fun aTransportsOwnReasonOutranksHowFarTheLinkGot() {
         val failure = LinkFailure(LaptopLink.Closure(LaptopLink.Cause.PAIRING_FAILED))
-        assertEquals(LaptopLink.Cause.PAIRING_FAILED, closureOf(failure, connectReturned = false, handshakeDone = false).cause)
-        assertEquals(LaptopLink.Cause.LOST, closureOf(IOException(), connectReturned = true, handshakeDone = true).cause)
+        val reason = closureOf(failure, connectReturned = false, handshakeDone = false)
+        assertEquals(LaptopLink.Cause.PAIRING_FAILED, reason.cause)
+        val dropped = closureOf(IOException(), connectReturned = true, handshakeDone = true)
+        assertEquals(LaptopLink.Cause.LOST, dropped.cause)
     }
 
     @Test
@@ -161,8 +205,54 @@ class TcpTransportTest {
         assertEquals(listOf(other, same, v6), orderHosts(listOf(v6, other, same), emptyList()))
     }
 
+    /**
+     * A whole pairing against the vector laptop, which confirms as if its owner typed the code. The laptop gets the
+     * phone's confirmation and sends a record only when [ownerSaysYes]; otherwise it sees the phone hang up.
+     */
+    private fun pairing(
+        keys: FakeKeys,
+        ownerSaysYes: Boolean,
+        forcePair: Boolean = false,
+        showCode: (Sas) -> Unit = {},
+    ) {
+        ServerSocket(0, 1, loopback).use { server ->
+            val laptopDone =
+                respond {
+                    server.accept().use { s ->
+                        val input = DataInputStream(s.getInputStream())
+                        val output = s.getOutputStream()
+                        val request = magic + byteArrayOf(1, 1) + phoneId + nameP + Vectors.bytes("PAIR", "commit")
+                        assertArrayEquals(Vectors.frame(request), readFrame(input))
+                        output.write(Vectors.frame(offer()))
+                        val reveal = phone.publicKey + Vectors.bytes("PAIR_INPUT", "nP")
+                        assertArrayEquals(Vectors.frame(reveal), readFrame(input))
+                        output.write(Vectors.frame(Vectors.bytes("PAIR_KEYS", "tagL")))
+                        if (ownerSaysYes) {
+                            assertArrayEquals(Vectors.frame(Vectors.bytes("PAIR_KEYS", "tagP")), readFrame(input))
+                            laptopChannel(input, output, Vectors.bytes("PAIR_KEYS", "prk")).output.write(plain)
+                        } else {
+                            assertEquals(-1, input.read())
+                        }
+                    }
+                }
+            val transport = transport(server.localPort, keys, pairingInitiator(), forcePair = forcePair)
+            try {
+                val streams = transport.open(showCode = showCode, confirmed = { ownerSaysYes })
+                assertArrayEquals(plain, readBytes(DataInputStream(streams.input), plain.size))
+            } finally {
+                transport.close()
+                laptopDone()
+            }
+        }
+    }
+
+    private fun offer(): ByteArray =
+        byteArrayOf(0) + laptopId + nameL + laptop.publicKey + Vectors.bytes("PAIR_INPUT", "nL")
+
+    private fun pairingInitiator() = LinkInitiator({ phone }, { Vectors.bytes("PAIR_INPUT", "nP") })
+
     private fun refusedWith(
-        status: ByteArray,
+        reply: ByteArray,
         keys: FakeKeys,
     ): LinkFailure =
         ServerSocket(0, 1, loopback).use { server ->
@@ -170,11 +260,12 @@ class TcpTransportTest {
                 respond {
                     server.accept().use { s ->
                         readFrame(DataInputStream(s.getInputStream()))
-                        s.getOutputStream().write(Vectors.frame(status))
+                        s.getOutputStream().write(Vectors.frame(reply))
                     }
                 }
             val transport = transport(server.localPort, keys, LinkInitiator())
-            val failure = assertThrows(LinkFailure::class.java) { transport.open {} }
+            val failure =
+                assertThrows(LinkFailure::class.java) { transport.open(showCode = {}, confirmed = { true }) }
             laptopDone()
             failure
         }
@@ -183,7 +274,9 @@ class TcpTransportTest {
         port: Int,
         keys: PairingKeys,
         initiator: LinkInitiator,
-    ) = TcpTransport(listOf(loopback), port, laptopId, keys, "Phone", initiator) { emptyList() }
+        expected: ByteArray = laptopId,
+        forcePair: Boolean = false,
+    ) = TcpTransport(listOf(loopback), port, expected, keys, "Phone", forcePair, initiator) { emptyList() }
 
     private fun laptopChannel(
         input: DataInputStream,
