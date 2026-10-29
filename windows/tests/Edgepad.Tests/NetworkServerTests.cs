@@ -36,7 +36,7 @@ public sealed class NetworkServerTests : IDisposable
         trust = new TrustStore(Path.Combine(dir, "trusted-phone.txt"));
         pin = new PinStore(dir);
         paired = new PairedLinks(Path.Combine(dir, "paired-links.txt"));
-        server = new NetworkServer(new LinkIdentity(LaptopId, "Laptop"), paired, trust, owner, Serve, pairedNames.Enqueue);
+        server = new NetworkServer(new LinkIdentity(LaptopId, "Laptop"), paired, trust, owner, Serve, pairedNames.Enqueue, () => false);
     }
 
     public void Dispose()
@@ -158,7 +158,7 @@ public sealed class NetworkServerTests : IDisposable
 
         public void PhoneShows(string digits) => code.TrySetResult(digits);
 
-        public IDisposable Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled)
+        public IPairingQuestion Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled)
         {
             if (Cancels)
             {
@@ -175,8 +175,21 @@ public sealed class NetworkServerTests : IDisposable
         private async Task TypeWhenShownAsync(Action<string> onTyped) => onTyped(await code.Task.ConfigureAwait(false));
     }
 
-    private sealed class Withdrawn : IDisposable
+    // Nothing on screen to tell or take down.
+    private sealed class Withdrawn : IPairingQuestion
     {
+        public void Matched()
+        {
+        }
+
+        public void Mismatched()
+        {
+        }
+
+        public void Finished(bool paired)
+        {
+        }
+
         public void Dispose()
         {
             // Nothing on screen to take down.

@@ -12,13 +12,15 @@ namespace Edgepad.Network;
 /// </summary>
 /// <param name="accept">Takes a link the phone has proved itself on; <c>SessionHost.Accept</c> in the app.</param>
 /// <param name="onPaired">Told the phone's name when a pairing has just succeeded, before that link is handed on.</param>
+/// <param name="refusing">True while the owner holds phones off (a Forget, the Security window): no pairing may start then.</param>
 internal sealed class NetworkServer(
     LinkIdentity identity,
     PairedLinks paired,
     TrustStore trust,
     IPairingPrompt prompt,
     Action<IPhoneLink> accept,
-    Action<string> onPaired) : IDisposable
+    Action<string> onPaired,
+    Func<bool> refusing) : IDisposable
 {
     // Outlives a stop and a start, so turning the listener off and on again does not lift a pairing lock.
     private readonly PairingLimiter limiter = new();
@@ -166,7 +168,7 @@ internal sealed class NetworkServer(
         LinkResult? result = null;
         try
         {
-            result = LinkResponder.Accept(raw, identity, paired, limiter, prompt, trust, Log.Write, socket.Dispose, ended.Token);
+            result = LinkResponder.Accept(raw, identity, paired, limiter, prompt, trust, Log.Write, socket.Dispose, ended.Token, refusing: refusing);
         }
         finally
         {

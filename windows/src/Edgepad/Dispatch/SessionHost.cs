@@ -46,6 +46,9 @@ internal sealed class SessionHost(
     /// <summary>The connected phone's address, or null.</summary>
     public string? CurrentAddress => admission.CurrentAddress;
 
+    /// <summary>Whether a hold or a quiet period refuses new connections right now; no pairing may start then.</summary>
+    public bool IsRefusing => admission.IsRefusing;
+
     // How the owner reads each Wi-Fi or USB phone's address. Only phones a pairing or a resume let through get here,
     // so it grows with this laptop's own phones, not with whoever opens a socket.
     private readonly ConcurrentDictionary<string, string> shown = new(StringComparer.OrdinalIgnoreCase);

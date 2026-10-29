@@ -156,7 +156,8 @@ internal sealed class TrayContext : ApplicationContext
             trust,
             new PairingPrompt(ui, AnnouncePairing),
             host.Accept,
-            name => SetStatus($"Paired with {name}"));
+            name => SetStatus($"Paired with {name}"),
+            () => host.IsRefusing);
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
         ApplyNetwork();
         _ = StartMediaAsync();

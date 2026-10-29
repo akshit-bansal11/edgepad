@@ -10,7 +10,7 @@ namespace Edgepad.Ui;
 /// </summary>
 internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> announce) : IPairingPrompt
 {
-    public IDisposable Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled)
+    public IPairingQuestion Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled)
     {
         var deadline = Environment.TickCount64 + (long)LinkResponder.OwnerTimeout.TotalMilliseconds;
         var shown = new Shown(ui);
@@ -35,11 +35,15 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
     /// <summary>The countdown: whole seconds left before <paramref name="deadline"/>, rounded up, never below zero.</summary>
     public static int SecondsLeft(long deadline, long now) => (int)Math.Max(0, (deadline - now + 999) / 1000);
 
-    /// <summary>The handle LinkResponder disposes once it has its answer or stops waiting; that takes the window down.</summary>
-    private sealed class Shown(SynchronizationContext ui) : IDisposable
+    /// <summary>
+    /// The question LinkResponder tells how the code went and disposes when it is done; every call is posted to the
+    /// tray's thread, in order, so it reaches the window after the post that opened it.
+    /// </summary>
+    private sealed class Shown(SynchronizationContext ui) : IPairingQuestion
     {
-        // Both touched on the UI thread only.
+        // All touched on the UI thread only.
         private PairingWindow? window;
+        private string phone = "";
         private bool withdrawn;
 
         public void Open(string phoneName, long deadline, Action<string> onTyped, Action onOwnerCancelled)
@@ -50,6 +54,7 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
                 return;
             }
 
+            phone = phoneName;
             window = new PairingWindow(phoneName, deadline, onTyped, onOwnerCancelled);
             window.FormClosed += (_, _) => window = null;
 
@@ -58,20 +63,28 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
             window.Activate();
         }
 
-        public void Dispose() => ui.Post(
-            _ =>
-            {
-                withdrawn = true;
-                window?.Withdraw();
-            },
-            null);
+        public void Matched() => Post(() => window?.Tell(PairingText.Matched(phone), closeSoon: false));
+
+        public void Mismatched() => Post(() => window?.Tell(PairingText.Mismatched, closeSoon: false));
+
+        public void Finished(bool paired) =>
+            Post(() => window?.Tell(paired ? PairingText.Paired(phone) : PairingText.NotFinished, closeSoon: paired));
+
+        public void Dispose() => Post(() =>
+        {
+            withdrawn = true;
+            window?.Withdraw();
+        });
+
+        private void Post(Action work) => ui.Post(_ => work(), null);
     }
 }
 
 /// <summary>
 /// "Pair Pixel? Type the code shown on the phone:": a box for six digits, Pair and Cancel, and the seconds left.
 /// Exactly one answer leaves it: the digits on Pair, a cancel on Cancel or the close box, or none at all when it is
-/// withdrawn or runs out, which the pairing's own timer then settles.
+/// withdrawn or runs out, which the pairing's own timer then settles. After the digits it stays up to say how they
+/// went (<see cref="Tell"/>), until the owner closes it, or by itself a moment after a pairing that worked.
 /// </summary>
 internal sealed class PairingWindow : Form
 {
@@ -101,8 +114,14 @@ internal sealed class PairingWindow : Form
     private readonly FlatButton pair;
     private readonly System.Windows.Forms.Timer tick = new() { Interval = 250 };
 
+    // How long "Paired with Pixel." stays before the window goes by itself.
+    private const int LingerMs = 2000;
+
     // Set by the first answer, or by withdrawing, so no second one follows.
     private bool answered;
+
+    // Set once the window says how the code went: it no longer asks, and is no longer withdrawn.
+    private bool told;
 
     public PairingWindow(string phoneName, long deadline, Action<string> onTyped, Action onOwnerCancelled)
     {
@@ -156,8 +175,36 @@ internal sealed class PairingWindow : Form
     /// <summary>Takes the window down without an answer: the pairing ended, or stopped waiting for one.</summary>
     public void Withdraw()
     {
+        if (told)
+        {
+            return;
+        }
+
         answered = true;
         Close();
+    }
+
+    /// <summary>
+    /// Says how the code went in place of the question, with Close in place of Cancel and Pair; with
+    /// <paramref name="closeSoon"/> the window then goes by itself a moment later.
+    /// </summary>
+    public void Tell(string message, bool closeSoon)
+    {
+        answered = true;
+        told = true;
+        tick.Stop();
+        ask.Text = message;
+        ask.AccessibleName = message;
+        countdown.Text = "";
+        code.Enabled = false;
+        pair.Enabled = false;
+        cancel.Text = "Close";
+        Relayout();
+        if (closeSoon)
+        {
+            tick.Interval = LingerMs;
+            tick.Start();
+        }
     }
 
     private int S(int value) => Theme.Scale(value, DeviceDpi);
@@ -211,13 +258,24 @@ internal sealed class PairingWindow : Form
             return;
         }
 
+        // The window stays: the pairing tells it at once whether the code matched.
         answered = true;
+        tick.Stop();
+        code.Enabled = false;
+        pair.Enabled = false;
+        countdown.Text = "Checking the code";
         onTyped(PairingPrompt.Digits(code.Text));
-        Close();
     }
 
     private void Count()
     {
+        // Told how it went: the tick now only times the close after a pairing that worked.
+        if (told)
+        {
+            Close();
+            return;
+        }
+
         var left = PairingPrompt.SecondsLeft(deadline, Environment.TickCount64);
         countdown.Text = $"Closes in {left} s";
 
