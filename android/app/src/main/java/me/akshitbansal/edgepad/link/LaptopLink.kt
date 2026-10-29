@@ -254,13 +254,6 @@ class LaptopLink(
         }
     }
 
-    /**
-     * Answers a PIN_REQUEST. Written straight onto the socket, because [send] drops everything until the
-     * handshake is done, and under [writeLock] on a short thread of its own, so a stalled link never blocks the
-     * main thread. Nothing here holds [pin] once the answer is written. Zeroing the encoded frame afterwards is
-     * not a wipe of the digits: they also sit in the [Pin]'s immutable String and in the codec's buffer until
-     * the garbage collector reclaims them, which nothing on the JVM can hurry.
-     */
     /** The owner's answer to [Listener.onPairingConfirm]: true only when the laptop said the code matched. */
     fun answerPairing(accepted: Boolean) {
         pairingAnswer.offer(accepted)
@@ -278,6 +271,13 @@ class LaptopLink(
         }
     }
 
+    /**
+     * Answers a PIN_REQUEST. Written straight onto the socket, because [send] drops everything until the
+     * handshake is done, and under [writeLock] on a short thread of its own, so a stalled link never blocks the
+     * main thread. Nothing here holds [pin] once the answer is written. Zeroing the encoded frame afterwards is
+     * not a wipe of the digits: they also sit in the [Pin]'s immutable String and in the codec's buffer until
+     * the garbage collector reclaims them, which nothing on the JVM can hurry.
+     */
     fun answerPin(pin: Pin) {
         val s = streams
         if (s == null || closed || handshakeDone) return

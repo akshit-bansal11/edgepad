@@ -1290,7 +1290,11 @@ class MainActivity :
         found: Found,
         all: List<Found>,
     ): PickerScreen.Device {
-        val host = found.hosts.firstOrNull()?.hostAddress.orEmpty()
+        val host =
+            found.hosts
+                .firstOrNull()
+                ?.hostAddress
+                .orEmpty()
         return PickerScreen.Device(
             address = targetOf(found).key,
             name = found.name,
