@@ -110,8 +110,14 @@ class LaptopLink(
         /** Too many wrong PINs: the laptop refuses this phone for the seconds [Closure.detail] carries. */
         PIN_LOCKED,
 
-        /** The laptop has no pairing with this phone over the network, or could not prove it has; pair again. */
+        /** The laptop said it has no pairing with this phone over the network; pair again. */
         NOT_PAIRED,
+
+        /**
+         * A device answered as the laptop but could not prove it holds the pairing key: maybe not the laptop at all,
+         * so pairing again is not the answer. The key stays.
+         */
+        NOT_THIS_LAPTOP,
 
         /** A network pairing did not finish: the code was not typed on the laptop in time, or not correctly. */
         PAIRING_FAILED,

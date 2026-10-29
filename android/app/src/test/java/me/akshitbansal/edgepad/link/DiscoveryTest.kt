@@ -49,12 +49,13 @@ class DiscoveryTest {
     }
 
     @Test
-    fun theSameLaptopOnTwoAddressesIsOneRowWithBoth() {
+    fun theSameLaptopAnnouncedTwiceIsOneRowWithTheFirstAnnouncementsAddressesOnly() {
+        // The second could be anything on the LAN announcing the laptop's id: its address must not join the row.
         val rows =
             mergeFound(
                 listOf(
-                    found(id, "Desk", Transport.WIFI, "192.168.1.5"),
                     found(id, "Desk", Transport.WIFI, "192.168.1.5", "10.0.0.5"),
+                    found(id, "Desk", Transport.WIFI, "192.168.1.66"),
                 ),
             )
         assertEquals(1, rows.size)

@@ -49,22 +49,7 @@ class TcpTransportTest {
                         s.getOutputStream().write(Vectors.frame(byteArrayOf(0) + laptopId + byteArrayOf(5) + nameL))
                     }
                     // Then the resume.
-                    server.accept().use { s ->
-                        val input = DataInputStream(s.getInputStream())
-                        val output = s.getOutputStream()
-                        val request =
-                            magic + byteArrayOf(1, 2) + phoneId + phone.publicKey + Vectors.bytes("RESUME_INPUT", "nP")
-                        assertArrayEquals(Vectors.frame(request), readFrame(input))
-                        val reply =
-                            byteArrayOf(0) + laptop.publicKey + Vectors.bytes("RESUME_INPUT", "nL") +
-                                Vectors.bytes("RESUME", "tagL")
-                        output.write(Vectors.frame(reply))
-                        assertArrayEquals(Vectors.frame(Vectors.bytes("RESUME", "tagP")), readFrame(input))
-                        val records = Vectors.records("RESUME_RECORD")
-                        val sealed = records[0] + records[1]
-                        assertArrayEquals(sealed, readBytes(input, sealed.size))
-                        laptopChannel(input, output, Vectors.bytes("RESUME", "prk")).output.write(plain)
-                    }
+                    server.accept().use(::answerResume)
                 }
 
             Socket(loopback, server.localPort).use { s ->
@@ -72,22 +57,29 @@ class TcpTransportTest {
                 assertArrayEquals(laptopId, info.laptopId)
                 assertEquals("Laptop", info.name)
             }
-            val resumer = LinkInitiator({ phone }, { Vectors.bytes("RESUME_INPUT", "nP") })
-            val transport = transport(server.localPort, keys, resumer)
-            val streams =
-                transport.open(
-                    showCode = { fail("A resume shows no code") },
-                    confirmed = {
-                        fail("Nor asks")
-                        false
-                    },
-                )
-            streams.output.write(plain)
-            streams.output.write(plain)
-            streams.output.flush()
-            assertArrayEquals(plain, readBytes(DataInputStream(streams.input), plain.size))
+            resumeAndExchange(server.localPort, keys, listOf(loopback))
             laptopDone()
-            transport.close()
+        }
+    }
+
+    @Test(timeout = TIMEOUT_MS)
+    fun anAddressThatCannotProveItIsTheLaptopIsPassedOverForTheNext() {
+        val keys = FakeKeys().apply { save(laptopId, Vectors.bytes("RESUME_INPUT", "pk")) }
+        ServerSocket(0, 2, loopback).use { server ->
+            val laptopDone =
+                respond {
+                    // An impostor at the first address: it answers the resume with a tag it cannot make.
+                    server.accept().use { s ->
+                        val input = DataInputStream(s.getInputStream())
+                        readFrame(input)
+                        s.getOutputStream().write(Vectors.frame(wrongTagReply()))
+                        assertEquals(-1, input.read())
+                    }
+                    // The laptop at the second.
+                    server.accept().use(::answerResume)
+                }
+            resumeAndExchange(server.localPort, keys, listOf(loopback, loopback))
+            laptopDone()
         }
     }
 
@@ -160,13 +152,11 @@ class TcpTransportTest {
     }
 
     @Test(timeout = TIMEOUT_MS)
-    fun aResumeTheLaptopCannotConfirmCostsNoKey() {
+    fun aResumeNoAddressCanConfirmIsNotThisLaptopAndCostsNoKey() {
         val key = Vectors.bytes("RESUME_INPUT", "pk")
         val keys = FakeKeys().apply { save(laptopId, key) }
-        val wrongTag = ByteArray(Vectors.bytes("RESUME", "tagL").size)
-        val reply = byteArrayOf(0) + laptop.publicKey + Vectors.bytes("RESUME_INPUT", "nL") + wrongTag
-        val failure = refusedWith(reply, keys)
-        assertEquals(LaptopLink.Cause.NOT_PAIRED, failure.closure.cause)
+        val failure = refusedWith(wrongTagReply(), keys, answers = 2)
+        assertEquals(LaptopLink.Cause.NOT_THIS_LAPTOP, failure.closure.cause)
         assertArrayEquals(key, keys.pairingKey(laptopId))
     }
 
@@ -258,19 +248,66 @@ class TcpTransportTest {
 
     private fun pairingInitiator() = LinkInitiator({ phone }, { Vectors.bytes("PAIR_INPUT", "nP") })
 
+    private fun wrongTagReply(): ByteArray =
+        byteArrayOf(0) + laptop.publicKey + Vectors.bytes("RESUME_INPUT", "nL") +
+            ByteArray(Vectors.bytes("RESUME", "tagL").size)
+
+    /** The laptop's side of a whole resume with the vector keys, ending with one record of [plain]. */
+    private fun answerResume(s: Socket) {
+        val input = DataInputStream(s.getInputStream())
+        val output = s.getOutputStream()
+        val request = magic + byteArrayOf(1, 2) + phoneId + phone.publicKey + Vectors.bytes("RESUME_INPUT", "nP")
+        assertArrayEquals(Vectors.frame(request), readFrame(input))
+        val reply =
+            byteArrayOf(0) + laptop.publicKey + Vectors.bytes("RESUME_INPUT", "nL") + Vectors.bytes("RESUME", "tagL")
+        output.write(Vectors.frame(reply))
+        assertArrayEquals(Vectors.frame(Vectors.bytes("RESUME", "tagP")), readFrame(input))
+        val records = Vectors.records("RESUME_RECORD")
+        val sealed = records[0] + records[1]
+        assertArrayEquals(sealed, readBytes(input, sealed.size))
+        laptopChannel(input, output, Vectors.bytes("RESUME", "prk")).output.write(plain)
+    }
+
+    /** The phone's side of [answerResume]: it resumes over [hosts], sends [plain] twice and reads it once. */
+    private fun resumeAndExchange(
+        port: Int,
+        keys: FakeKeys,
+        hosts: List<InetAddress>,
+    ) {
+        val resumer = LinkInitiator({ phone }, { Vectors.bytes("RESUME_INPUT", "nP") })
+        val transport = transport(port, keys, resumer, hosts = hosts)
+        val streams =
+            transport.open(
+                showCode = { fail("A resume shows no code") },
+                confirmed = {
+                    fail("Nor asks")
+                    false
+                },
+            )
+        streams.output.write(plain)
+        streams.output.write(plain)
+        streams.output.flush()
+        assertArrayEquals(plain, readBytes(DataInputStream(streams.input), plain.size))
+        transport.close()
+    }
+
+    /** Every one of [answers] connections gets [reply]; the transport is given that many addresses. */
     private fun refusedWith(
         reply: ByteArray,
         keys: FakeKeys,
+        answers: Int = 1,
     ): LinkFailure =
-        ServerSocket(0, 1, loopback).use { server ->
+        ServerSocket(0, answers, loopback).use { server ->
             val laptopDone =
                 respond {
-                    server.accept().use { s ->
-                        readFrame(DataInputStream(s.getInputStream()))
-                        s.getOutputStream().write(Vectors.frame(reply))
+                    repeat(answers) {
+                        server.accept().use { s ->
+                            readFrame(DataInputStream(s.getInputStream()))
+                            s.getOutputStream().write(Vectors.frame(reply))
+                        }
                     }
                 }
-            val transport = transport(server.localPort, keys, LinkInitiator())
+            val transport = transport(server.localPort, keys, LinkInitiator(), hosts = List(answers) { loopback })
             val failure =
                 assertThrows(LinkFailure::class.java) { transport.open(showCode = {}, confirmed = { true }) }
             laptopDone()
@@ -283,7 +320,8 @@ class TcpTransportTest {
         initiator: LinkInitiator,
         expected: ByteArray = laptopId,
         forcePair: Boolean = false,
-    ) = TcpTransport(listOf(loopback), port, expected, keys, "Phone", forcePair, initiator) { emptyList() }
+        hosts: List<InetAddress> = listOf(loopback),
+    ) = TcpTransport(hosts, port, expected, keys, "Phone", forcePair, initiator) { emptyList() }
 
     private fun laptopChannel(
         input: DataInputStream,

@@ -16,7 +16,8 @@ import java.security.GeneralSecurityException
 /**
  * A TCP connection to a laptop on the same Wi-Fi or over USB tethering, with EDGL1 in front of the frames: a
  * resume when [keys] holds a pairing key for [laptopId], a pairing otherwise. The laptop's addresses are tried
- * one after another, the likeliest first ([orderHosts]), each for at most [CONNECT_TIMEOUT_MS].
+ * one after another, the likeliest first ([orderHosts]), each for at most [CONNECT_TIMEOUT_MS]; one that answers
+ * a resume but cannot prove it is the laptop ([LaptopLink.Cause.NOT_THIS_LAPTOP]) is passed over for the next.
  *
  * Once the socket is up every failure is a [LinkFailure]: the laptop was reached, so it is never
  * [LaptopLink.Cause.UNREACHABLE]. A stored key is never dropped on anything the network says, since a status or a
@@ -42,51 +43,70 @@ class TcpTransport(
         showCode: (Sas) -> Unit,
         confirmed: () -> Boolean,
     ): Streams {
-        val s = connect()
-        try {
-            return handshake(s, showCode, confirmed)
-        } catch (e: IOException) {
-            close()
-            throw e as? LinkFailure ?: LinkFailure(LaptopLink.Closure(LaptopLink.Cause.REFUSED))
-        } catch (e: GeneralSecurityException) {
-            // The laptop sent a key that is not a point on the curve: nothing it says can be trusted.
-            close()
-            throw LinkFailure(LaptopLink.Closure(LaptopLink.Cause.PAIRING_FAILED))
+        var last = IOException("The laptop has no address to connect to")
+        for (host in orderHosts(hosts, ownAddresses())) {
+            val s =
+                try {
+                    connect(host)
+                } catch (e: IOException) {
+                    if (closed) throw e
+                    last = e
+                    continue
+                }
+            try {
+                return handshake(s, showCode, confirmed)
+            } catch (e: LinkFailure) {
+                // Something else on the network may answer at one of the laptop's addresses: one that cannot
+                // prove it is the laptop ends the try at that address only, never the attempt.
+                closeQuietly(s)
+                if (closed || e.closure.cause != LaptopLink.Cause.NOT_THIS_LAPTOP) {
+                    close()
+                    throw e
+                }
+                last = e
+            } catch (e: IOException) {
+                close()
+                throw LinkFailure(LaptopLink.Closure(LaptopLink.Cause.REFUSED))
+            } catch (e: GeneralSecurityException) {
+                // The laptop sent a key that is not a point on the curve: nothing it says can be trusted.
+                close()
+                throw LinkFailure(LaptopLink.Closure(LaptopLink.Cause.PAIRING_FAILED))
+            }
         }
+        throw last
     }
 
     override fun close() {
         closed = true
+        socket?.let(::closeQuietly)
+    }
+
+    private fun closeQuietly(s: Socket) {
         try {
-            socket?.close()
+            s.close()
         } catch (e: IOException) {
             // Already broken; closing is all that was asked for.
         }
     }
 
-    private fun connect(): Socket {
-        var last = IOException("The laptop has no address to connect to")
-        for (host in orderHosts(hosts, ownAddresses())) {
-            val s = Socket()
-            socket = s
-            // A close() that ran before the line above found no socket to close.
-            if (closed) {
-                s.close()
-                throw IOException("Closed before connecting")
-            }
-            try {
-                s.connect(InetSocketAddress(host, port), CONNECT_TIMEOUT_MS)
-                s.tcpNoDelay = true
-                s.keepAlive = true
-                s.soTimeout = MESSAGE_TIMEOUT_MS
-                return s
-            } catch (e: IOException) {
-                s.close()
-                if (closed) throw e
-                last = e
-            }
+    private fun connect(host: InetAddress): Socket {
+        val s = Socket()
+        socket = s
+        // A close() that ran before the line above found no socket to close.
+        if (closed) {
+            s.close()
+            throw IOException("Closed before connecting")
         }
-        throw last
+        try {
+            s.connect(InetSocketAddress(host, port), CONNECT_TIMEOUT_MS)
+            s.tcpNoDelay = true
+            s.keepAlive = true
+            s.soTimeout = MESSAGE_TIMEOUT_MS
+            return s
+        } catch (e: IOException) {
+            s.close()
+            throw e
+        }
     }
 
     private fun handshake(
@@ -112,11 +132,12 @@ class TcpTransport(
                 }
             }
         closureForStatus(result.status)?.let { throw LinkFailure(it) }
-        // A resume the laptop could not confirm, or a pairing another laptop answered, nobody finished on the
-        // laptop, or the owner said was not accepted. Nothing is stored or forgotten either way.
+        // A resume whose answer could not prove it came from the laptop, or a pairing another laptop answered,
+        // nobody finished on the laptop, or the owner said was not accepted. Nothing is stored or forgotten either
+        // way, and a failed proof is no reason to pair again: whatever answered may not be the laptop at all.
         val channel = result.channel
         if (channel == null) {
-            val cause = if (key != null) LaptopLink.Cause.NOT_PAIRED else LaptopLink.Cause.PAIRING_FAILED
+            val cause = if (key != null) LaptopLink.Cause.NOT_THIS_LAPTOP else LaptopLink.Cause.PAIRING_FAILED
             throw LinkFailure(LaptopLink.Closure(cause))
         }
         if (key == null) {

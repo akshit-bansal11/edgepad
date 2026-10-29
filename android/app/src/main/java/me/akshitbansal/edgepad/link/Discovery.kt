@@ -57,9 +57,12 @@ internal fun parseHex(text: String): ByteArray? {
 }
 
 /**
- * One row per laptop per transport: the same laptop announced twice, or found on two addresses, is one Wi-Fi row
- * with the addresses together; the same laptop on Wi-Fi and over USB stays two rows, one to connect on each,
- * each marked by [otherTransport] with the other. Sorted by name, then transport.
+ * One row per laptop per transport: the same laptop announced twice, or found on two addresses, is one row with
+ * the addresses of the one found first; the same laptop on Wi-Fi and over USB stays two rows, one to connect on
+ * each, each marked by [otherTransport] with the other. Sorted by name, then transport.
+ *
+ * Addresses are never pooled across announcements: anything on the LAN can announce a real laptop's id, and
+ * pooling would let it add its own address to that laptop's row. A row's addresses all come from one service.
  */
 internal fun mergeFound(all: List<Found>): List<Found> =
     all
@@ -70,7 +73,7 @@ internal fun mergeFound(all: List<Found>): List<Found> =
             Found(
                 first.laptopId,
                 first.name,
-                group.flatMap { it.hosts }.distinct(),
+                first.hosts,
                 first.port,
                 first.transport,
                 group.firstNotNullOfOrNull { it.version },

@@ -10,7 +10,7 @@ class TetherProbeTest {
     private fun hosts(
         address: String,
         prefix: Int,
-    ) = hostsOf(InetAddress.getByName(address), prefix).map { it.hostAddress }
+    ) = hostsOf(InetAddress.getByName(address), prefix).mapNotNull { it.hostAddress }
 
     @Test
     fun aSlash24IsEveryOtherHostButNotTheEnds() {

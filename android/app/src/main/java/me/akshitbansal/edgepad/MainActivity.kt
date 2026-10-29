@@ -1609,6 +1609,7 @@ class MainActivity :
             LaptopLink.Cause.NO_ANSWER -> getString(R.string.link_no_answer)
             LaptopLink.Cause.PIN_LOCKED -> lockedFor(closure.detail.toIntOrNull() ?: 0)
             LaptopLink.Cause.NOT_PAIRED -> getString(R.string.link_not_paired)
+            LaptopLink.Cause.NOT_THIS_LAPTOP -> getString(R.string.link_not_this_laptop)
             LaptopLink.Cause.PAIRING_FAILED -> getString(R.string.link_pairing_failed)
             LaptopLink.Cause.PAIRING_LOCKED -> getString(R.string.link_pairing_locked)
         }
