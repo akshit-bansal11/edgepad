@@ -38,6 +38,16 @@ object DeckLayout {
         }
 
     /**
+     * The pages [count] tiles fall on when a page holds [perPage]: each is the range of display positions it
+     * shows. Every page is planned as a grid of [perPage] cells, so only the last can be short, and it leaves
+     * its cells empty at the end rather than growing its tiles.
+     */
+    fun pages(
+        count: Int,
+        perPage: Int,
+    ): List<IntRange> = (0 until count).chunked(perPage) { it.first()..it.last() }
+
+    /**
      * Keys for [names] that tell equal names apart: `Chrome`, then `Chrome#2`. The laptop does not forbid
      * two macros with one name, and a stored order keyed by bare name could not say which is which.
      */

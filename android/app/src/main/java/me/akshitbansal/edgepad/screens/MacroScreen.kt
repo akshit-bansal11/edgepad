@@ -33,9 +33,9 @@ private const val EMPTY_ICON_DP = 30f
  * before they land is the same grid with labels on it, which is also what a laptop too old to send them
  * leaves behind for good.
  *
- * However many slots there are, they are spread over the whole page: three macros are drawn as large as the
- * screen allows and fifteen as small as they have to be, because a grid of three buttons huddled at the top
- * of an empty page wastes the one thing a wall-mounted phone has plenty of.
+ * A page shows [Settings.macrosPerPage] macros, spread over the whole page so a wall-mounted phone has no
+ * empty room, and the laptop's rest continue on further pages that a finger slides to. Every page has the same
+ * grid, so a tile keeps its size from page to page and a short last page leaves cells empty at the end.
  *
  * What the laptop sends later is handed in rather than rebuilding the screen: [setMacros] redraws the grid
  * inside the page, and [iconArrived] decodes one picture and dresses one button. Until 3.2 each of them
@@ -70,6 +70,7 @@ class MacroScreen(
             labels = labels,
             empty = ::emptyState,
             onSettings = onSettings,
+            perPage = settings.macrosPerPage,
             // The laptop's slot, never the tile's place in the deck: the order on screen is only a drawing.
             onTap = { tile -> onRun(tile.tag) },
         )

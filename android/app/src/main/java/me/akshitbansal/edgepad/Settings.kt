@@ -234,6 +234,13 @@ class Settings(
         prefs.edit().putString("deck.$deck.order", keys.joinToString("\n")).apply()
     }
 
+    /** How many macros one page of the macro screen shows; the rest of the laptop's continue on the next page. */
+    var macrosPerPage: Int
+        get() = prefs.getInt(KEY_MACROS_PER_PAGE, MAX_MACROS_PER_PAGE).coerceIn(PER_PAGE_RANGE)
+        set(value) {
+            prefs.edit().putInt(KEY_MACROS_PER_PAGE, value.coerceIn(PER_PAGE_RANGE)).apply()
+        }
+
     /** How many tiles stand across a row of [deck]; 0 lets the room decide. */
     fun deckColumns(deck: String): Int = prefs.getInt("deck.$deck.columns", 0).coerceAtLeast(0)
 
@@ -391,6 +398,9 @@ class Settings(
         const val MIN_KEY_TEXT_SCALE = 0.6f
         const val MAX_KEY_TEXT_SCALE = 2f
         const val DEFAULT_KEY_TEXT_SCALE = 1f
+        const val MIN_MACROS_PER_PAGE = 2
+        const val MAX_MACROS_PER_PAGE = 10
+        private val PER_PAGE_RANGE = MIN_MACROS_PER_PAGE..MAX_MACROS_PER_PAGE
         const val MAX_ANGLE = 360f
         const val DEFAULT_GRADIENT_ANGLE = 90f
         const val MIN_PATTERN_SIZE = 8f
@@ -410,6 +420,7 @@ class Settings(
         private const val KEY_SENSITIVITY = "sensitivity"
         private const val KEY_POINTER_SPEED = "pointerSpeed"
         private const val KEY_SCROLL_SPEED = "scrollSpeed"
+        private const val KEY_MACROS_PER_PAGE = "macrosPerPage"
         private const val KEY_DIAL_LENGTH = "dialLength"
         private const val KEY_DIAL_HEIGHT = "dialHeight"
         private const val KEY_CONTROL_COLOR = "controlColor"

@@ -92,6 +92,7 @@ class Deck(
     private var tiles: List<DeckTile> = emptyList()
     private var labels = true
     private var columns: Int? = null
+    private var planFor = 0
     private var across = 0
     private var down = 0
     private var onMove: (from: Int, to: Int) -> Unit = { _, _ -> }
@@ -137,7 +138,8 @@ class Deck(
      *
      * A tap runs the tile through [onTap], which is how the owner reaches its [DeckTile.tag]. Pressing and holding
      * one starts a drag (or a TalkBack action moves it) to another tile's place, reporting the two display
-     * positions through [onMove].
+     * positions through [onMove]. [slots] is how many cells the grid is planned for when that is more than
+     * the tiles it holds, so that a short last page of a pager keeps the tile size of the full ones.
      */
     fun render(
         across: Int,
@@ -147,7 +149,9 @@ class Deck(
         columns: Int?,
         onMove: (from: Int, to: Int) -> Unit,
         onTap: (DeckTile) -> Unit,
+        slots: Int = tiles.size,
     ) {
+        this.planFor = slots
         this.across = across
         this.down = down
         this.tiles = tiles
@@ -192,7 +196,7 @@ class Deck(
         // The last picture arriving with the labels off takes the label row away from every tile, and
         // that is a new grid rather than one new picture.
         if (bare() != current.bare) {
-            render(across, down, tiles, labels, columns, onMove, onTap)
+            render(across, down, tiles, labels, columns, onMove, onTap, planFor)
             return
         }
         val button = buttons[tag] ?: return
@@ -215,7 +219,7 @@ class Deck(
      */
     private fun plan(bare: Boolean): Grid {
         val metrics = ui.context.resources.displayMetrics
-        val count = tiles.size
+        val count = maxOf(planFor, tiles.size)
         val gap = ui.dp(Space.S)
         val pad = 2 * ui.dp(Space.S)
         // The column count that leaves the cell's shorter side longest, which is the largest a button can be

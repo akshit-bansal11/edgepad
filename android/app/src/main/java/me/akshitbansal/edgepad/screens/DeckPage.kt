@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.R
@@ -20,6 +21,10 @@ import me.akshitbansal.edgepad.Space
  *
  * An owner supplies tiles with [show], and only what differs between owners stays with them: what the tiles
  * are, what a tap does, and [empty], the state drawn when there are no tiles.
+ *
+ * With [perPage] the tiles are split into pages of that many, which a finger slides between; every page is a
+ * grid planned for [perPage] cells, so a tile keeps its size from page to page. Without it there is one page and
+ * the stored column count of [deckId] applies.
  */
 class DeckPage(
     private val ui: Ui,
@@ -31,6 +36,7 @@ class DeckPage(
     private val labels: Boolean,
     private val empty: ((LinearLayout) -> Unit)? = null,
     onSettings: (() -> Unit)? = null,
+    private val perPage: Int? = null,
     private val onTap: (DeckTile) -> Unit,
 ) {
     private var tiles: List<DeckTile> = emptyList()
@@ -50,6 +56,22 @@ class DeckPage(
 
     /** The (rows, columns) grids the room can draw, for telling a stored column count that no longer fits. */
     private var fits: List<Pair<Int, Int>> = emptyList()
+
+    /** The page showing, and the deck of each page once there are two or more. */
+    private var page = 0
+    private val pageDecks = ArrayList<Deck>()
+
+    /** One page of the pager: a deck of its own, which sees every touch before its tiles do, like the grid below. */
+    private inner class PageHolder : LinearLayout(ui.context) {
+        val deck = Deck(ui, this)
+
+        init {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        override fun dispatchTouchEvent(event: MotionEvent): Boolean =
+            deck.touch(event) || super.dispatchTouchEvent(event)
+    }
 
     val view: View =
         ui.page(bar) {
@@ -97,6 +119,7 @@ class DeckPage(
         if (tiles.none { it.tag == tag }) return
         tiles = tiles.map { if (it.tag == tag) it.copy(picture = picture) else it }
         deck.setPicture(tag, picture)
+        pageDecks.forEach { it.setPicture(tag, picture) }
     }
 
     private fun render() {
@@ -117,9 +140,66 @@ class DeckPage(
     /** Draws the deck from [shown]. It survives a move. */
     private fun draw() {
         val (across, down) = room ?: return
+        pageDecks.clear()
+        val ordered = shown.map { tiles[it] }
+        val pages = perPage?.let { DeckLayout.pages(ordered.size, it) }.orEmpty()
+        if (perPage != null && pages.size > 1) {
+            drawPages(across, down, ordered, pages, perPage)
+            return
+        }
         // A stored grid that is no longer on offer (a tile was added, the screen turned) falls back to automatic.
-        val columns = settings.deckColumns(deckId).takeIf { stored -> fits.any { it.second == stored } }
-        deck.render(across, down, shown.map { tiles[it] }, labels, columns, onMove = ::moved, onTap = onTap)
+        // A paged deck has no stored grid: its page size is the choice, and the grid follows from it.
+        val columns =
+            if (perPage != null) {
+                null
+            } else {
+                settings.deckColumns(deckId).takeIf { stored -> fits.any { it.second == stored } }
+            }
+        val slots = perPage ?: ordered.size
+        deck.render(across, down, ordered, labels, columns, onMove = ::moved, onTap = onTap, slots = slots)
+    }
+
+    /**
+     * Two or more pages: a [Pager] of decks over a row of dots. Every deck is planned for [per] cells in the
+     * room less the dots, and a tile moves within its own page only. A page's positions are offset by where
+     * the page starts, so the stored order stays one list.
+     */
+    private fun drawPages(
+        across: Int,
+        down: Int,
+        ordered: List<DeckTile>,
+        pages: List<IntRange>,
+        per: Int,
+    ) {
+        // ponytail: a tile cannot be dragged onto another page; edge-hover paging would need the pager to scroll
+        // under a held tile. Within a page it moves as on a single one, and the pager is held still meanwhile.
+        deck.clear()
+        val dots = PageDots(ui, pages.size)
+        val pager =
+            Pager(ui.context) { at ->
+                page = at
+                dots.select(at)
+            }
+        pages.forEach { range ->
+            val pageHolder = PageHolder()
+            pageDecks.add(pageHolder.deck)
+            pager.row.addView(pageHolder, LinearLayout.LayoutParams(across, ViewGroup.LayoutParams.MATCH_PARENT))
+            pageHolder.deck.render(
+                across,
+                down - ui.dp(Space.XL),
+                ordered.slice(range),
+                labels,
+                null,
+                onMove = { from, to -> moved(range.first + from, range.first + to) },
+                onTap = onTap,
+                slots = per,
+            )
+        }
+        holder.addView(pager, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+        holder.addView(dots, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(Space.XL)))
+        page = page.coerceAtMost(pages.lastIndex)
+        dots.select(page)
+        pager.jumpTo(page)
     }
 
     /** The tile at display place [from] was dropped on [to]. Saved on every move, so leaving loses nothing. */

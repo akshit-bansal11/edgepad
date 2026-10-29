@@ -132,4 +132,28 @@ class DeckLayoutTest {
         val places = DeckLayout.places(5, 1, 3)
         moved.forEachIndexed { slot, tile -> assertEquals(slot, places[tile]) }
     }
+
+    @Test
+    fun pagesHoldPerPageEachAndOnlyTheLastIsShort() {
+        for (perPage in 2..10) {
+            assertTrue(DeckLayout.pages(0, perPage).isEmpty())
+            for (count in listOf(1, perPage, perPage + 1, 15)) {
+                val pages = DeckLayout.pages(count, perPage)
+                assertEquals((count + perPage - 1) / perPage, pages.size)
+                assertEquals((0 until count).toList(), pages.flatMap { it.toList() })
+                pages.dropLast(1).forEach { assertEquals(perPage, it.count()) }
+                assertTrue(pages.last().count() in 1..perPage)
+            }
+        }
+    }
+
+    @Test
+    fun everyPageIsPlannedAsTheSameGridThatFitsPerPage() {
+        // The deck plans each page for perPage cells whatever the page holds, so one grid serves them all.
+        for (perPage in 2..10) {
+            val grids = DeckLayout.choices(perPage)
+            assertTrue(grids.isNotEmpty())
+            assertTrue(grids.all { (rows, columns) -> rows * columns >= perPage })
+        }
+    }
 }
