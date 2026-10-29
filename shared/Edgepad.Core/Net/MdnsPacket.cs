@@ -74,11 +74,19 @@ internal static class MdnsPacket
 
         var answers = MdnsKinds.None;
         var unicast = false;
+        var echoed = new List<MdnsQuestion>();
         foreach (var q in query.Questions)
         {
             var asked = Asked(service, q);
             answers |= asked;
             unicast |= asked != MdnsKinds.None && q.Unicast;
+            if (asked != MdnsKinds.None)
+            {
+                // Only a question about this service is echoed, and under this service's own spelling of the name:
+                // a stranger's name copied back could fail the builder's label rules, or make the reply larger
+                // than the query that asked for it.
+                echoed.Add(q with { Name = Same(q.Name, ServiceType) ? ServiceType : Same(q.Name, service.InstanceName) ? service.InstanceName : service.HostName });
+            }
         }
 
         if (answers == MdnsKinds.None || (answers == MdnsKinds.A && service.Addresses.Count == 0))
@@ -98,7 +106,8 @@ internal static class MdnsPacket
 
         // RFC 6762 6.7: a one-shot querier (any source port but 5353) gets a unicast reply that echoes its ID and
         // questions, with short TTLs and no cache-flush bit, because it cannot cache like a multicast listener.
-        return new MdnsReply(Build(service, goodbye: false, answers, additional & ~answers, oneShot ? query : null), unicast || oneShot);
+        var legacy = oneShot ? query with { Questions = echoed } : null;
+        return new MdnsReply(Build(service, goodbye: false, answers, additional & ~answers, legacy), unicast || oneShot);
     }
 
     public static byte[] Build(MdnsService service, bool goodbye, MdnsKinds answers, MdnsKinds additional, MdnsMessage? legacyOf = null)

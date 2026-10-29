@@ -126,6 +126,25 @@ public sealed class MdnsPacketTests
     }
 
     [Fact]
+    public void AOneShotReplyEchoesOnlyItsOwnQuestionsUnderItsOwnSpelling()
+    {
+        // A stranger's question, here one whose label no builder may write, is left out rather than copied back.
+        var query = new MdnsMessage(
+            0x55,
+            false,
+            [
+                new MdnsQuestion(MdnsPacket.ServiceType.ToUpperInvariant(), MdnsPacket.TypePtr, false),
+                new MdnsQuestion(new string('x', 70) + ".local", MdnsPacket.TypePtr, false),
+            ],
+            []);
+
+        var reply = MdnsPacket.Answer(Service, query, oneShot: true);
+
+        Assert.NotNull(reply);
+        Assert.Equal([MdnsPacket.ServiceType], Parse(reply.Packet).Questions.Select(q => q.Name));
+    }
+
+    [Fact]
     public void TheUnicastBitAsksForAUnicastReply()
     {
         var reply = MdnsPacket.Answer(Service, Parse(Query(MdnsPacket.ServiceType, MdnsPacket.TypePtr, cls: 0x8001)));
@@ -281,5 +300,18 @@ public sealed class MdnsPacketTests
         Assert.Equal("ab", MdnsPacket.Label("a\u0007b"));
         Assert.True(System.Text.Encoding.UTF8.GetByteCount(MdnsPacket.Label(new string('é', 100))) <= 63);
         Assert.Equal("ab", MdnsPacket.Truncate("ab\U0001F600", 5));
+    }
+
+    [Fact]
+    public void AUnicastAnswerGoesOnlyToAnAskerOnTheLaptopsOwnSubnet()
+    {
+        (int, IPAddress, IPAddress)[] local = [(3, IPAddress.Parse("192.168.1.20"), IPAddress.Parse("255.255.255.0"))];
+
+        Assert.True(MdnsAdvertiser.OnLink(IPAddress.Parse("192.168.1.77"), local));
+        Assert.True(MdnsAdvertiser.OnLink(IPAddress.Parse("192.168.1.77").MapToIPv6(), local));
+        Assert.False(MdnsAdvertiser.OnLink(IPAddress.Parse("192.168.2.77"), local));
+        Assert.False(MdnsAdvertiser.OnLink(IPAddress.Parse("8.8.8.8"), local));
+        Assert.False(MdnsAdvertiser.OnLink(IPAddress.IPv6Loopback, local));
+        Assert.False(MdnsAdvertiser.OnLink(IPAddress.Parse("192.168.1.77"), []));
     }
 }
