@@ -463,7 +463,15 @@ internal static class LinkResponder
             wait,
             Timeout.InfiniteTimeSpan))
         {
-            body = LinkWire.Read(raw);
+            try
+            {
+                body = LinkWire.Read(raw);
+            }
+            catch (Exception e) when ((e is IOException or ObjectDisposedException) && Volatile.Read(ref expired) != 0)
+            {
+                // giveUp closed the link under the read: the wait ran out, which is a null, not a failure to report.
+                return null;
+            }
         }
 
         return Interlocked.Exchange(ref expired, 1) != 0 ? null : body;
