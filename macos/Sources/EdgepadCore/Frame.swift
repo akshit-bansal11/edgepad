@@ -38,6 +38,14 @@ public enum Frame: Equatable {
     case fileEnd(sha256: [UInt8])
     /// The phone's answer to a file, one `FileStatus` id. Only `FileStatus.saved` lets this Mac delete its copy.
     case fileResult(status: UInt8)
+    /// The start of a blob: the clipboard, or an app list or icon, in either direction, on a lane of its own beside the
+    /// file one. FILE_BEGIN's shape. `kind` is a `BlobKind` id but is data here, not a codec error: the receiver reads
+    /// an unknown kind to its end and drops it. `size` is the whole blob in bytes and `label` a short name.
+    case blobBegin(kind: UInt8, size: UInt32, label: String)
+    /// One piece of the blob, at most `FrameCodec.maxChunkBytes`.
+    case blobChunk(seq: UInt8, data: [UInt8])
+    /// The end of the blob: the SHA-256 of all of it.
+    case blobEnd(sha256: [UInt8])
 }
 
 /// Six decimal digits, the one secret that crosses the link. A frame can end up in a log line or a debug

@@ -67,6 +67,11 @@ ACTION 53 CAPTURE_SCREEN
 ACTION 54 CAPTURE_RECORD
 # The phone left its capture screen: the laptop dismisses a capture overlay it opened, only if one may still be open.
 ACTION 55 CAPTURE_CANCEL
+# Adding a macro from the phone. APPS_LIST asks the laptop to list the apps it could add (names as a BLOB kind 2, then
+# one BLOB kind 3 icon each); APPS_CANCEL stops that list and its icons. The phone shows the buttons only for a laptop
+# that sent FEATURES "apps".
+ACTION 56 APPS_LIST
+ACTION 57 APPS_CANCEL
 # The first of the 32 macro slots; slot n is MACRO_BASE + n. A laptop older than the macros feature drops an
 # unknown action id rather than erroring, which is why the block needs no new frame type and no version bump.
 ACTION 64 MACRO_BASE
@@ -85,6 +90,9 @@ CONTROL 5 PEN_COLOR
 # Where a capture ends up: 0 the laptop keeps it where its own tool saved it, 1 the laptop sends it to the phone
 # and deletes its copy only once the phone says it saved it. Any other value is dropped and counted.
 CONTROL 6 CAPTURE_TARGET
+# Whether this link shares the clipboard: 1 yes, 0 no, phone to laptop. The laptop forgets it when the session ends and
+# honours it only while its own clipboard toggle is on (FEATURES "clipboard"). Any other value is dropped and counted.
+CONTROL 7 CLIPBOARD
 
 TEXT 0 NOW_PLAYING
 TEXT 1 APP
@@ -122,6 +130,14 @@ TEXT 10 SCREEN_SIZE
 TEXT 11 SIGN_STATUS
 # Why a capture the phone asked for did not reach it, laptop to phone, as one CAPTURE_STATUS token from the set below.
 TEXT 12 CAPTURE_STATUS
+# Which laptop this is, laptop to phone, once after HELLO_ACK: "<32 hex id>/<os>/<name>", os one of the DEVICE_OS tokens
+# below. The id is the laptop's stable link id, so the phone can tell one laptop seen over two transports from two.
+TEXT 13 DEVICE
+# Adding an app as a macro, phone to laptop: "<epoch>.<index>", an index into the list this laptop sent for that epoch.
+# The phone never names a path or a command; the laptop keeps the list and an epoch other than its latest is stale.
+TEXT 14 APP_ADD
+# How an APP_ADD ended, laptop to phone, as one APP_ADD_STATUS token from the set below.
+TEXT 15 APP_ADD_STATUS
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
@@ -158,6 +174,32 @@ PAD_STATUS attach-failed ATTACH_FAILED
 # reason PAD_STATUS is: the phone branches on them, so prose would make the laptop's wording unchangeable.
 FEATURE annotate ANNOTATE
 FEATURE capture CAPTURE
+# Named only while the laptop's own clipboard toggle is on.
+FEATURE clipboard CLIPBOARD
+# The laptop can list its apps for the phone to add as macros.
+FEATURE apps APPS
+
+# The whole vocabulary of TEXT kind 13's second field, as "<token on the wire> <the name both apps call it>". The phone
+# uses it only to word hints that differ by OS; an unknown token reads as no OS known.
+DEVICE_OS windows WINDOWS
+DEVICE_OS linux LINUX
+DEVICE_OS macos MACOS
+
+# The whole vocabulary of TEXT kind 15, as "<token on the wire> <the name both apps call it>". Only ADDED changed the
+# laptop's macro list. An unknown token reads as FAILED.
+APP_ADD_STATUS added ADDED
+APP_ADD_STATUS full FULL
+APP_ADD_STATUS duplicate DUPLICATE
+APP_ADD_STATUS stale STALE
+APP_ADD_STATUS failed FAILED
+
+# What a BLOB_BEGIN carries, either direction, as "<id> <NAME>". The shape is FILE_BEGIN's, on a lane of its own so a
+# clipboard copy never waits behind a capture. An id this build does not know is read to its BLOB_END and dropped.
+# CLIP_TEXT is UTF-8, CLIP_IMAGE and APP_ICON are PNG, APP_LIST is the list of apps, whose layout the apps step defines.
+BLOB_KIND 0 CLIP_TEXT
+BLOB_KIND 1 CLIP_IMAGE
+BLOB_KIND 2 APP_LIST
+BLOB_KIND 3 APP_ICON
 
 # The whole vocabulary of TEXT kind 11, as "<token on the wire> <the name both apps call it>". Tokens for the
 # reason PAD_STATUS is: the phone branches on them, so prose would make the laptop's wording unchangeable.

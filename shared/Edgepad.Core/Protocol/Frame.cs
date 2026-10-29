@@ -94,6 +94,30 @@ internal sealed record FileEnd(byte[] Sha256) : Frame
     public override int GetHashCode() => Sha256.Length == 0 ? 0 : Sha256[0];
 }
 
+/// <summary>
+/// The start of a blob: the clipboard, or an app list or icon, in either direction, on a lane of its own beside the file
+/// one. FILE_BEGIN's shape. <c>Kind</c> is a <see cref="BlobKind"/> id, but it is data here and not a codec error,
+/// because the receiver reads an unknown kind to its end and drops it. <c>Size</c> is the whole blob in bytes and
+/// <c>Label</c> a short UTF-8 name.
+/// </summary>
+internal sealed record BlobBegin(byte Kind, uint Size, string Label) : Frame;
+
+/// <summary>One piece of the blob, at most <see cref="FrameCodec.MaxChunkBytes"/> bytes. Equal by content, like <see cref="FileChunk"/>.</summary>
+internal sealed record BlobChunk(byte Seq, byte[] Data) : Frame
+{
+    public bool Equals(BlobChunk? other) => other is not null && other.Seq == Seq && other.Data.AsSpan().SequenceEqual(Data);
+
+    public override int GetHashCode() => HashCode.Combine(Seq, Data.Length);
+}
+
+/// <summary>The end of the blob: the SHA-256 of all of it.</summary>
+internal sealed record BlobEnd(byte[] Sha256) : Frame
+{
+    public bool Equals(BlobEnd? other) => other is not null && other.Sha256.AsSpan().SequenceEqual(Sha256);
+
+    public override int GetHashCode() => Sha256.Length == 0 ? 0 : Sha256[0];
+}
+
 /// <summary>The phone's answer to a file, one <see cref="FileStatus"/> id. Only <see cref="FileStatus.Saved"/> lets this laptop delete its copy.</summary>
 internal sealed record FileResult(byte Status) : Frame;
 

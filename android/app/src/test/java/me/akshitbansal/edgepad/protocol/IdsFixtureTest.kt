@@ -66,6 +66,32 @@ class IdsFixtureTest {
     }
 
     @Test
+    fun deviceOsTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("DEVICE_OS").associate { it[2] to it[1] },
+            DeviceOs.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
+    fun appAddStatusTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("APP_ADD_STATUS").associate { it[2] to it[1] },
+            AppAddStatus.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
+    fun anUnknownAppAddStatusTokenReadsAsFailed() {
+        assertEquals(AppAddStatus.FAILED, AppAddStatus.of("something-a-later-laptop-says"))
+    }
+
+    @Test
+    fun blobKindsMatchTheSharedTable() {
+        assertEquals(expected("BLOB_KIND"), BlobKind.entries.associate { it.id to it.name })
+    }
+
+    @Test
     fun fileTypesMatchTheSharedTable() {
         assertEquals(
             rows("FILE_TYPE").associate { it[1].toInt() to listOf(it[2], it[3], it[4]) },

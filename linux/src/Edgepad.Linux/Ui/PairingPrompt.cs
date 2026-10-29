@@ -44,9 +44,11 @@ internal sealed class PairingPrompt(Action<Action> ui, Action<string> announce, 
 
     private sealed class Shown(Action<Action> ui) : IPairingQuestion
     {
-        // Both touched on the UI thread only.
+        // Touched on the UI thread only.
         private IPairingQuestion? window;
-        private bool withdrawn;
+
+        // Set at once by Dispose, on the pairing's thread, so an Open already queued ahead of the withdrawal sees it.
+        private volatile bool withdrawn;
 
         public void Open(Func<IPairingQuestion> opener, long deadline)
         {
@@ -62,10 +64,10 @@ internal sealed class PairingPrompt(Action<Action> ui, Action<string> announce, 
 
         public void Finished(bool paired) => ui(() => window?.Finished(paired));
 
-        public void Dispose() => ui(() =>
+        public void Dispose()
         {
             withdrawn = true;
-            window?.Dispose();
-        });
+            ui(() => window?.Dispose());
+        }
     }
 }

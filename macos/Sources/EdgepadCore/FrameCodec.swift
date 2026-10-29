@@ -7,14 +7,15 @@ public enum ProtocolError: Error, Equatable {
     /// A PIN_ANSWER byte above 9. It carries no value: a rejected byte is still part of somebody's PIN.
     case badDigit
     case textLengthMismatch
-    /// A FILE_BEGIN too short to hold its size.
+    /// A FILE_BEGIN or BLOB_BEGIN too short to hold its size.
     case fileBeginTooShort
 }
 
 /// How many payload bytes follow a type byte.
 public enum PayloadLength: Equatable {
     case fixed(Int)
-    /// TEXT, FILE_BEGIN and FILE_CHUNK: two header bytes (an id, a length), then as many bytes as the length says.
+    /// TEXT and the file and blob BEGIN and CHUNK frames: two header bytes (an id, a length), then as many bytes as
+    /// the length says.
     case lengthPrefixed
     case unknown
 }
@@ -47,6 +48,9 @@ public enum FrameCodec {
     private static let fileChunkType: UInt8 = 0x51
     private static let fileEndType: UInt8 = 0x52
     private static let fileResultType: UInt8 = 0x53
+    private static let blobBeginType: UInt8 = 0x54
+    private static let blobChunkType: UInt8 = 0x55
+    private static let blobEndType: UInt8 = 0x56
 
     /// FILE_BEGIN's size field, ahead of the name in the length-prefixed part.
     private static let fileSizeBytes = 4
@@ -77,9 +81,9 @@ public enum FrameCodec {
             return .fixed(12)
         case penType:
             return .fixed(5)
-        case fileEndType:
+        case fileEndType, blobEndType:
             return .fixed(sha256Bytes)
-        case textType, fileBeginType, fileChunkType:
+        case textType, fileBeginType, fileChunkType, blobBeginType, blobChunkType:
             return .lengthPrefixed
         default:
             return .unknown
@@ -148,6 +152,17 @@ public enum FrameCodec {
             return [fileEndType] + sha256
         case .fileResult(let status):
             return [fileResultType, status]
+        case .blobBegin(let kind, let size, let label):
+            // The same three shapes as the file frames, under their own type bytes.
+            let body = Array(truncate(label, maxBytes: maxFileNameBytes).utf8)
+            let length = UInt8(truncatingIfNeeded: fileSizeBytes + body.count)
+            return [blobBeginType, kind, length] + littleEndian(size) + body
+        case .blobChunk(let seq, let data):
+            precondition(data.count <= maxChunkBytes, "A chunk is at most (maxChunkBytes) bytes")
+            return [blobChunkType, seq, UInt8(truncatingIfNeeded: data.count)] + data
+        case .blobEnd(let sha256):
+            precondition(sha256.count == sha256Bytes, "A SHA-256 is (sha256Bytes) bytes")
+            return [blobEndType] + sha256
         case .pinAnswer(let pin):
             // Each digit goes out as its value 0...9, not its ASCII code, so these bytes can never read as text.
             return [pinAnswerType] + pin.digits
@@ -223,6 +238,8 @@ public enum FrameCodec {
             return .fileEnd(sha256: payload)
         case fileResultType:
             return .fileResult(status: payload[0])
+        case blobEndType:
+            return .blobEnd(sha256: payload)
         default:
             throw ProtocolError.unknownType(type)
         }
@@ -246,8 +263,8 @@ public enum FrameCodec {
         return String(kept)
     }
 
-    /// TEXT, FILE_BEGIN and FILE_CHUNK: an id byte, a length byte, then that many bytes. The length is checked once
-    /// here for all three, so a header that lies closes the link whatever frame it heads.
+    /// TEXT, FILE_BEGIN, FILE_CHUNK, BLOB_BEGIN and BLOB_CHUNK: an id byte, a length byte, then that many bytes. The
+    /// length is checked once here for all of them, so a header that lies closes the link whatever frame it heads.
     private static func decodePrefixed(_ type: UInt8, _ payload: [UInt8]) throws -> Frame {
         guard payload.count >= textHeaderLength, payload.count == textHeaderLength + Int(payload[1]) else {
             throw ProtocolError.textLengthMismatch
@@ -263,6 +280,15 @@ public enum FrameCodec {
             return .fileBegin(type: payload[0], size: size, name: name)
         case fileChunkType:
             return .fileChunk(seq: payload[0], data: body)
+        case blobBeginType:
+            guard body.count >= fileSizeBytes else {
+                throw ProtocolError.fileBeginTooShort
+            }
+            let size = UInt32(body[0]) | UInt32(body[1]) << 8 | UInt32(body[2]) << 16 | UInt32(body[3]) << 24
+            let label = String(decoding: body[fileSizeBytes...], as: UTF8.self)
+            return .blobBegin(kind: payload[0], size: size, label: label)
+        case blobChunkType:
+            return .blobChunk(seq: payload[0], data: body)
         default:
             // Invalid UTF-8 becomes U+FFFD rather than an error, so a bad title cannot drop the connection.
             return .text(kind: payload[0], value: String(decoding: body, as: UTF8.self))

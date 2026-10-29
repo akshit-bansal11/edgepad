@@ -125,3 +125,26 @@ FILE_RESULT 0 = 53 00
 FILE_RESULT 1 = 53 01
 # TEXT 12 CAPTURE_STATUS, laptop to phone: why a capture was kept on the laptop or never found.
 TEXT 12 too-large = 41 0c 09 74 6f 6f 2d 6c 61 72 67 65
+# TEXT 13 DEVICE, laptop to phone, once after HELLO_ACK: "<32 hex id>/<os>/<name>", os one of windows, linux, macos. 45 bytes, so 0x2d.
+TEXT 13 00112233445566778899aabbccddeeff/windows/Desk = 41 0d 2d 30 30 31 31 32 32 33 33 34 34 35 35 36 36 37 37 38 38 39 39 61 61 62 62 63 63 64 64 65 65 66 66 2f 77 69 6e 64 6f 77 73 2f 44 65 73 6b
+# TEXT 14 APP_ADD, phone to laptop: "<epoch>.<index>" into the list the laptop last sent. TEXT 15 APP_ADD_STATUS, laptop to phone: one token.
+TEXT 14 7.12 = 41 0e 04 37 2e 31 32
+TEXT 15 added = 41 0f 05 61 64 64 65 64
+# CONTROL 7 CLIPBOARD, phone to laptop: 1 the link shares the clipboard, 0 it does not.
+SET 7 1 = 21 07 01
+SET 7 0 = 21 07 00
+# ACTION 56 APPS_LIST and ACTION 57 APPS_CANCEL, phone to laptop.
+ACTION 56 = 20 38
+ACTION 57 = 20 39
+# BLOB_BEGIN kind size label, either direction, FILE_BEGIN's shape: kind u8, length u8, then size u32 and the UTF-8 label,
+# the length counting both. Kind 0 CLIP_TEXT, "clip" is 4 bytes so the length is 8; 1234 = 0x04d2, low byte first.
+BLOB_BEGIN 0 1234 clip = 54 00 08 d2 04 00 00 63 6c 69 70
+# Kind 3 APP_ICON, label an app token: "chrome" is 6 bytes, so the length is 10 = 0x0a; 8192 = 0x2000.
+BLOB_BEGIN 3 8192 chrome = 54 03 0a 00 20 00 00 63 68 72 6f 6d 65
+# An unknown kind is data, not a codec error: the receiver reads it to its BLOB_END and drops it.
+BLOB_BEGIN 9 1 x = 54 09 05 01 00 00 00 78
+# BLOB_CHUNK seq bytes, FILE_CHUNK's shape.
+BLOB_CHUNK 0 68656c6c6f = 55 00 05 68 65 6c 6c 6f
+BLOB_CHUNK 255 ff00 = 55 ff 02 ff 00
+# BLOB_END sha256, FILE_END's shape: the SHA-256 of the whole blob. This one is the hash of "hello".
+BLOB_END 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 = 56 2c f2 4d ba 5f b0 a3 0e 26 e8 3b 2a c5 b9 e2 9e 1b 16 1e 5c 1f a7 42 5e 73 04 33 62 93 8b 98 24

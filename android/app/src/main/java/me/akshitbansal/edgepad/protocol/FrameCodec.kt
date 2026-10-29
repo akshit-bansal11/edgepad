@@ -38,6 +38,9 @@ object FrameCodec {
     private const val FILE_CHUNK = 0x51
     private const val FILE_END = 0x52
     private const val FILE_RESULT = 0x53
+    private const val BLOB_BEGIN = 0x54
+    private const val BLOB_CHUNK = 0x55
+    private const val BLOB_END = 0x56
 
     /** FILE_BEGIN's size field, ahead of the name in the length-prefixed part. */
     private const val FILE_SIZE_BYTES = 4
@@ -57,9 +60,9 @@ object FrameCodec {
     private const val UTF8_TWO_BYTE_LIMIT = 0x800
 
     /**
-     * Payload length for a type byte, [LENGTH_PREFIXED] for TEXT, FILE_BEGIN and FILE_CHUNK, or -1 when the type
-     * is unknown. The two file frames borrow TEXT's header shape, an id and then a length, so a reader frames them
-     * without knowing what they are.
+     * Payload length for a type byte, [LENGTH_PREFIXED] for TEXT and the file and blob BEGIN and CHUNK frames, or -1
+     * when the type is unknown. The file and blob frames borrow TEXT's header shape, an id and then a length, so a
+     * reader frames them without knowing what they are.
      *
      * PAD_STATE is the longest fixed payload at 12 bytes, so 13 on the wire — well inside [MAX_FRAME_LENGTH],
      * which a 255-byte TEXT still sets at 258. Nothing about the buffers had to move to let the pad in.
@@ -76,8 +79,8 @@ object FrameCodec {
             MOVE, SCROLL -> 4
             PING, PONG -> 8
             PAD_STATE -> 12
-            FILE_END -> SHA256_BYTES
-            TEXT, FILE_BEGIN, FILE_CHUNK -> LENGTH_PREFIXED
+            FILE_END, BLOB_END -> SHA256_BYTES
+            TEXT, FILE_BEGIN, FILE_CHUNK, BLOB_BEGIN, BLOB_CHUNK -> LENGTH_PREFIXED
             else -> -1
         }
 
@@ -212,6 +215,32 @@ object FrameCodec {
                 b.type(FILE_RESULT).u8(frame.status)
             }
 
+            // The same three shapes as the file frames, under their own type bytes.
+            is Frame.BlobBegin -> {
+                require(frame.size in 0..MAX_U32) { "u32 out of range: ${frame.size}" }
+                val label = truncate(frame.label, MAX_FILE_NAME_BYTES).toByteArray(Charsets.UTF_8)
+                b
+                    .type(BLOB_BEGIN)
+                    .u8(frame.kind)
+                    .u8(FILE_SIZE_BYTES + label.size)
+                    .putInt(frame.size.toInt())
+                    .put(label)
+            }
+
+            is Frame.BlobChunk -> {
+                require(frame.data.size <= MAX_CHUNK_BYTES) { "A chunk is at most $MAX_CHUNK_BYTES bytes" }
+                b
+                    .type(BLOB_CHUNK)
+                    .u8(frame.seq)
+                    .u8(frame.data.size)
+                    .put(frame.data)
+            }
+
+            is Frame.BlobEnd -> {
+                require(frame.sha256.size == SHA256_BYTES) { "A SHA-256 is $SHA256_BYTES bytes" }
+                b.type(BLOB_END).put(frame.sha256)
+            }
+
             // Each digit goes out as its value 0..9, not its ASCII code, so these bytes can never be read as text.
             is Frame.PinAnswer -> {
                 b.type(PIN_ANSWER)
@@ -253,6 +282,7 @@ object FrameCodec {
             PEN -> Frame.Pen(b.u16(), b.u16(), b.u8())
             PIN_ANSWER -> decodePinAnswer(b)
             FILE_END -> Frame.FileEnd(payload.copyOf())
+            BLOB_END -> Frame.BlobEnd(payload.copyOf())
             FILE_RESULT -> Frame.FileResult(b.u8())
             else -> throw StreamCorruptedException("Unknown frame type 0x%02x".format(type))
         }
@@ -295,8 +325,8 @@ object FrameCodec {
     private val magicBytes = ProtocolConstants.MAGIC.toByteArray(Charsets.US_ASCII)
 
     /**
-     * TEXT, FILE_BEGIN and FILE_CHUNK: an id byte, a length byte, then that many bytes. The length is checked once
-     * here for all three, so a header that lies closes the link whatever frame it heads.
+     * TEXT, FILE_BEGIN, FILE_CHUNK, BLOB_BEGIN and BLOB_CHUNK: an id byte, a length byte, then that many bytes. The
+     * length is checked once here for all of them, so a header that lies closes the link whatever frame it heads.
      */
     private fun decodePrefixed(
         type: Int,
@@ -309,6 +339,8 @@ object FrameCodec {
         return when (type) {
             FILE_BEGIN -> decodeFileBegin(id, payload)
             FILE_CHUNK -> Frame.FileChunk(id, payload.copyOfRange(TEXT_HEADER_LENGTH, payload.size))
+            BLOB_BEGIN -> decodeBlobBegin(id, payload)
+            BLOB_CHUNK -> Frame.BlobChunk(id, payload.copyOfRange(TEXT_HEADER_LENGTH, payload.size))
             else -> Frame.Text(id, utf8(payload, TEXT_HEADER_LENGTH))
         }
     }
@@ -323,6 +355,18 @@ object FrameCodec {
         }
         val size = ByteBuffer.wrap(payload, TEXT_HEADER_LENGTH, FILE_SIZE_BYTES).order(ByteOrder.LITTLE_ENDIAN).int
         return Frame.FileBegin(type, size.toLong() and MAX_U32, utf8(payload, TEXT_HEADER_LENGTH + FILE_SIZE_BYTES))
+    }
+
+    /** The size, then the label, as FILE_BEGIN. Shorter than the size field is malformed; the kind is not checked. */
+    private fun decodeBlobBegin(
+        kind: Int,
+        payload: ByteArray,
+    ): Frame.BlobBegin {
+        if (payload.size < TEXT_HEADER_LENGTH + FILE_SIZE_BYTES) {
+            throw StreamCorruptedException("BLOB_BEGIN is too short to hold a size")
+        }
+        val size = ByteBuffer.wrap(payload, TEXT_HEADER_LENGTH, FILE_SIZE_BYTES).order(ByteOrder.LITTLE_ENDIAN).int
+        return Frame.BlobBegin(kind, size.toLong() and MAX_U32, utf8(payload, TEXT_HEADER_LENGTH + FILE_SIZE_BYTES))
     }
 
     private fun utf8(

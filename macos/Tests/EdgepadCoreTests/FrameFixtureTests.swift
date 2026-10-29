@@ -134,6 +134,30 @@ final class FrameFixtureTests: XCTestCase {
         }
     }
 
+    func testABlobBeginTooShortToHoldASizeIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x54, payload: [0, 3, 1, 2, 3])) { error in
+            XCTAssertEqual(error as? ProtocolError, .fileBeginTooShort)
+        }
+    }
+
+    func testABlobEndThatIsNotAWholeHashIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x56, payload: [UInt8](repeating: 0, count: 31))) { error in
+            XCTAssertEqual(error as? ProtocolError, .wrongLength(type: 0x56, expected: 32, got: 31))
+        }
+    }
+
+    func testABlobChunkWhoseLengthDoesNotMatchItsHeaderIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x55, payload: [0, 3, 1])) { error in
+            XCTAssertEqual(error as? ProtocolError, .textLengthMismatch)
+        }
+    }
+
+    func testALongBlobLabelIsCutSoTheBeginFrameStillFits() {
+        let frame = Frame.blobBegin(kind: 0, size: 10, label: String(repeating: "a", count: 400))
+
+        XCTAssertEqual(FrameCodec.encode(frame).count, 1 + FrameCodec.textHeaderLength + FrameCodec.maxTextBytes)
+    }
+
     func testAFullChunkIsTheLongestFrameAndNoLonger() throws {
         let frame = Frame.fileChunk(seq: 7, data: (0..<FrameCodec.maxChunkBytes).map { UInt8(truncatingIfNeeded: $0) })
 
@@ -261,6 +285,22 @@ final class FrameFixtureTests: XCTestCase {
             return (.fileEnd(sha256: try hex(fields[1], line)), bytes)
         case "FILE_RESULT":
             return (.fileResult(status: UInt8(truncatingIfNeeded: try field(1))), bytes)
+        case "BLOB_BEGIN":
+            guard fields.count == 4 else {
+                throw FixtureError.malformed(line)
+            }
+            let kind = UInt8(truncatingIfNeeded: try field(1))
+            return (.blobBegin(kind: kind, size: UInt32(truncatingIfNeeded: try field(2)), label: fields[3]), bytes)
+        case "BLOB_CHUNK":
+            guard fields.count == 3 else {
+                throw FixtureError.malformed(line)
+            }
+            return (.blobChunk(seq: UInt8(truncatingIfNeeded: try field(1)), data: try hex(fields[2], line)), bytes)
+        case "BLOB_END":
+            guard fields.count == 2 else {
+                throw FixtureError.malformed(line)
+            }
+            return (.blobEnd(sha256: try hex(fields[1], line)), bytes)
         default:
             throw FixtureError.malformed(line)
         }

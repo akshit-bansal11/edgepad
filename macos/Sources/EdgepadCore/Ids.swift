@@ -48,6 +48,10 @@ public enum ActionId: UInt8, CaseIterable {
     case captureRecord = 54
     /// The phone left its capture screen: dismiss a capture overlay this computer opened, only if one may still be open.
     case captureCancel = 55
+    /// Adding a macro from the phone: `appsList` asks this computer to send the apps it could add, as a `BlobKind.appList`
+    /// blob and then a `BlobKind.appIcon` blob each, and `appsCancel` stops that list and its icons.
+    case appsList = 56
+    case appsCancel = 57
     /// The first of 32 macro slots, 64 to 95; slot n is `macroBase + n`. The phone sends the index and never
     /// what it launches: this computer's own list decides that, which is the whole security model.
     case macroBase = 64
@@ -70,6 +74,8 @@ public enum ControlId: UInt8, CaseIterable {
     /// Where a capture ends up, as a `CaptureTarget` value: this Mac keeps it, or sends it to the phone and deletes its
     /// copy once the phone says it saved it.
     case captureTarget = 6
+    /// Whether this link shares the clipboard, 1 or 0, phone to computer. Forgotten when the session ends.
+    case clipboard = 7
 }
 
 /// What a TEXT frame carries. Only `type` goes phone to computer; the rest go the other way.
@@ -98,6 +104,12 @@ public enum TextKind: UInt8, CaseIterable {
     case signStatus = 11
     /// Computer to phone: why a capture the phone asked for did not reach it, as one `CaptureStatus` token.
     case captureStatus = 12
+    /// Computer to phone, once after the handshake: "id/os/name", the id 32 hex digits, the os a `DeviceOs` token.
+    case device = 13
+    /// Phone to computer: "epoch.index", an index into the app list this computer sent for that epoch.
+    case appAdd = 14
+    /// Computer to phone: how an `appAdd` ended, as one `AppAddStatus` token.
+    case appAddStatus = 15
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is
@@ -105,6 +117,8 @@ public enum TextKind: UInt8, CaseIterable {
 public enum Feature: String, CaseIterable {
     case annotate = "annotate"
     case capture = "capture"
+    case clipboard = "clipboard"
+    case apps = "apps"
 }
 
 /// The whole vocabulary of `TextKind.padStatus`: a token the phone matches on, never prose, so the wording
@@ -211,4 +225,30 @@ public enum FileStatus: UInt8, CaseIterable {
     case rejected = 2
     /// The phone could not write the file.
     case writeFailed = 3
+}
+
+/// The OS token in `TextKind.device`. The raw value is literally the bytes that cross the wire.
+public enum DeviceOs: String, CaseIterable {
+    case windows = "windows"
+    case linux = "linux"
+    case macos = "macos"
+}
+
+/// The whole vocabulary of `TextKind.appAddStatus`: a token the phone matches on, never prose. Only `added` changed
+/// the macro list. The raw value is literally the bytes that cross the wire.
+public enum AppAddStatus: String, CaseIterable {
+    case added = "added"
+    case full = "full"
+    case duplicate = "duplicate"
+    case stale = "stale"
+    case failed = "failed"
+}
+
+/// What a BLOB_BEGIN carries. The frame holds the raw id, since one this build does not know is read to its end and
+/// dropped. Mirrors the BLOB_KIND rows of `protocol/actions.txt`.
+public enum BlobKind: UInt8, CaseIterable {
+    case clipText = 0
+    case clipImage = 1
+    case appList = 2
+    case appIcon = 3
 }

@@ -60,6 +60,8 @@ public sealed partial class IdsFixtureTests
         {
             ["ANNOTATE"] = Feature.Annotate,
             ["CAPTURE"] = Feature.Capture,
+            ["CLIPBOARD"] = Feature.Clipboard,
+            ["APPS"] = Feature.Apps,
         };
 
         Assert.Equal(expected, actual);
@@ -102,6 +104,50 @@ public sealed partial class IdsFixtureTests
 
         Assert.Equal(expected, actual);
     }
+
+    [Fact]
+    public void DeviceOsTokensMatchTheSharedTable()
+    {
+        var expected = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var parts in Rows("DEVICE_OS"))
+        {
+            expected.Add(parts[2], parts[1]);
+        }
+
+        var actual = new SortedDictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["WINDOWS"] = DeviceOs.Windows,
+            ["LINUX"] = DeviceOs.Linux,
+            ["MACOS"] = DeviceOs.Macos,
+        };
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void AppAddStatusTokensMatchTheSharedTable()
+    {
+        var expected = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var parts in Rows("APP_ADD_STATUS"))
+        {
+            expected.Add(parts[2], parts[1]);
+        }
+
+        var actual = new SortedDictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["ADDED"] = AppAddStatus.Added,
+            ["FULL"] = AppAddStatus.Full,
+            ["DUPLICATE"] = AppAddStatus.Duplicate,
+            ["STALE"] = AppAddStatus.Stale,
+            ["FAILED"] = AppAddStatus.Failed,
+        };
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void BlobKindsMatchTheSharedTable() =>
+        Assert.Equal(Expected("BLOB_KIND"), Actual<BlobKind>());
 
     [Fact]
     public void FileTypesMatchTheSharedTable()

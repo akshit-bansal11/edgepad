@@ -109,6 +109,27 @@ class FrameFixtureTest {
         FrameCodec.decode(0x52, ByteArray(31))
     }
 
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsABlobBeginTooShortToHoldASize() {
+        FrameCodec.decode(0x54, byteArrayOf(0, 3, 1, 2, 3))
+    }
+
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsABlobEndThatIsNotAWholeHash() {
+        FrameCodec.decode(0x56, ByteArray(31))
+    }
+
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsABlobChunkWhoseLengthDoesNotMatchItsHeader() {
+        FrameCodec.decode(0x55, byteArrayOf(0, 3, 1))
+    }
+
+    @Test
+    fun aLongBlobLabelIsCutSoTheBeginFrameStillFits() {
+        val bytes = FrameCodec.encode(Frame.BlobBegin(0, 10, "a".repeat(400)))
+        assertEquals(FrameCodec.MAX_FRAME_LENGTH, bytes.size)
+    }
+
     @Test
     fun aFullChunkIsTheLongestFrameAndNoLonger() {
         val bytes = FrameCodec.encode(Frame.FileChunk(7, ByteArray(FrameCodec.MAX_CHUNK_BYTES) { it.toByte() }))
@@ -191,6 +212,9 @@ class FrameFixtureTest {
                 "FILE_CHUNK" -> Frame.FileChunk(int(1), hex(fields[2]))
                 "FILE_END" -> Frame.FileEnd(hex(fields[1]))
                 "FILE_RESULT" -> Frame.FileResult(int(1))
+                "BLOB_BEGIN" -> Frame.BlobBegin(int(1), field(2), fields[3])
+                "BLOB_CHUNK" -> Frame.BlobChunk(int(1), hex(fields[2]))
+                "BLOB_END" -> Frame.BlobEnd(hex(fields[1]))
                 else -> error("Unknown fixture frame ${fields[0]}")
             }
         return frame to bytes

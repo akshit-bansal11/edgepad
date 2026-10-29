@@ -154,6 +154,41 @@ sealed interface Frame {
         override fun toString(): String = "FileEnd(${sha256.joinToString("") { "%02x".format(it) }})"
     }
 
+    /**
+     * The start of a blob: the clipboard, or an app list or icon, in either direction, on a lane of its own beside the
+     * file one. FILE_BEGIN's shape. [kind] is a [BlobKind] id but is data here, not a codec error: the receiver reads
+     * an unknown kind to its end and drops it. [size] is the whole blob in bytes and [label] a short UTF-8 name.
+     */
+    data class BlobBegin(
+        val kind: Int,
+        val size: Long,
+        val label: String,
+    ) : Frame
+
+    /** One piece of the blob, 255 bytes at most. Not a data class, for the reason [FileChunk] is not. */
+    class BlobChunk(
+        val seq: Int,
+        val data: ByteArray,
+    ) : Frame {
+        override fun equals(other: Any?): Boolean =
+            other is BlobChunk && other.seq == seq && other.data.contentEquals(data)
+
+        override fun hashCode(): Int = 31 * seq + data.contentHashCode()
+
+        override fun toString(): String = "BlobChunk(seq=$seq, ${data.size} bytes)"
+    }
+
+    /** The end of the blob: the SHA-256 of all of it, 32 bytes. */
+    class BlobEnd(
+        val sha256: ByteArray,
+    ) : Frame {
+        override fun equals(other: Any?): Boolean = other is BlobEnd && other.sha256.contentEquals(sha256)
+
+        override fun hashCode(): Int = sha256.contentHashCode()
+
+        override fun toString(): String = "BlobEnd(${sha256.joinToString("") { "%02x".format(it) }})"
+    }
+
     /** The phone's answer to a file, one [FileStatus] id. Only [FileStatus.SAVED] lets the laptop delete its copy. */
     data class FileResult(
         val status: Int,

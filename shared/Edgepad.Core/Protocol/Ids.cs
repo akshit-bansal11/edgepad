@@ -72,6 +72,14 @@ internal enum ActionId : byte
     CaptureCancel = 55,
 
     /// <summary>
+    /// Adding a macro from the phone: AppsList asks this laptop to send the apps it could add, as a <see cref="BlobKind.AppList"/>
+    /// blob and then a <see cref="BlobKind.AppIcon"/> blob each, and AppsCancel stops that list and its icons. The phone offers
+    /// them only for a laptop that sent <see cref="Feature.Apps"/>.
+    /// </summary>
+    AppsList = 56,
+    AppsCancel = 57,
+
+    /// <summary>
     /// The first of 32 macro slots, 64..95; slot n is <c>MacroBase + n</c>. The phone sends the index and
     /// never what it launches — this laptop's own list decides that, which is the whole security model.
     /// A laptop too old to know the block drops the id and counts it, so this needed no protocol version.
@@ -133,6 +141,18 @@ internal enum TextKind : byte
 
     /// <summary>Laptop to phone: why a capture the phone asked for did not reach it, as one <see cref="CaptureStatus"/> token.</summary>
     CaptureStatus = 12,
+
+    /// <summary>
+    /// Laptop to phone, once after the handshake: "id/os/name", the id 32 hex digits, the os a <see cref="DeviceOs"/> token
+    /// and this laptop's own name. The id lets the phone tell one laptop seen over two transports from two.
+    /// </summary>
+    Device = 13,
+
+    /// <summary>Phone to laptop: "epoch.index", an index into the app list this laptop sent for that epoch. The phone names no path.</summary>
+    AppAdd = 14,
+
+    /// <summary>Laptop to phone: how an <see cref="AppAdd"/> ended, as one <see cref="AppAddStatus"/> token.</summary>
+    AppAddStatus = 15,
 }
 
 /// <summary>
@@ -202,6 +222,12 @@ internal static class Feature
 
     /// <summary>This laptop answers the capture actions.</summary>
     public const string Capture = "capture";
+
+    /// <summary>This laptop's clipboard toggle is on, so <see cref="ControlId.Clipboard"/> is honoured.</summary>
+    public const string Clipboard = "clipboard";
+
+    /// <summary>This laptop can list its apps for the phone to add as macros.</summary>
+    public const string Apps = "apps";
 }
 
 /// <summary>What a SET_VALUE frame may set and a STATE frame reports. Mirrors protocol/actions.txt.</summary>
@@ -230,6 +256,12 @@ internal enum ControlId : byte
     /// and deletes its copy once the phone says it saved it. Anything else is dropped and counted.
     /// </summary>
     CaptureTarget = 6,
+
+    /// <summary>
+    /// Whether this link shares the clipboard, 1 or 0, phone to laptop. This laptop forgets it when the session ends.
+    /// Anything else is dropped and counted.
+    /// </summary>
+    Clipboard = 7,
 }
 
 /// <summary>
@@ -372,4 +404,37 @@ internal enum FileStatus : byte
 
     /// <summary>The phone could not write the file.</summary>
     WriteFailed = 3,
+}
+
+/// <summary>The OS token in <see cref="TextKind.Device"/>. Strings, for the reason <see cref="PadStatus"/> is. Mirrors protocol/actions.txt.</summary>
+internal static class DeviceOs
+{
+    public const string Windows = "windows";
+    public const string Linux = "linux";
+    public const string Macos = "macos";
+}
+
+/// <summary>
+/// The whole vocabulary of <see cref="TextKind.AppAddStatus"/>. Only <see cref="Added"/> changed the macro list. Tokens the
+/// phone matches on, never prose, and strings, for the reason <see cref="PadStatus"/> is. Mirrors protocol/actions.txt.
+/// </summary>
+internal static class AppAddStatus
+{
+    public const string Added = "added";
+    public const string Full = "full";
+    public const string Duplicate = "duplicate";
+    public const string Stale = "stale";
+    public const string Failed = "failed";
+}
+
+/// <summary>
+/// What a <see cref="BlobBegin"/> carries. A <see cref="BlobBegin"/> holds the raw byte, since an id this build does not
+/// know is read to its end and dropped. Mirrors the BLOB_KIND rows of protocol/actions.txt.
+/// </summary>
+internal enum BlobKind : byte
+{
+    ClipText = 0,
+    ClipImage = 1,
+    AppList = 2,
+    AppIcon = 3,
 }

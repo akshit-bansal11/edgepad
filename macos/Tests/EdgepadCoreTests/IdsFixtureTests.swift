@@ -32,6 +32,9 @@ final class IdsFixtureTests: XCTestCase {
             "FILE_TYPE",
             "FILE_LIMIT",
             "FILE_STATUS",
+            "DEVICE_OS",
+            "APP_ADD_STATUS",
+            "BLOB_KIND",
             "HANDSHAKE",
         ]
         let kinds = try Fixtures.lines("actions.txt")
@@ -89,6 +92,34 @@ final class IdsFixtureTests: XCTestCase {
             uniqueKeysWithValues: CaptureStatus.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
 
         XCTAssertEqual(table, enumTable)
+    }
+
+    func testDeviceOsTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("DEVICE_OS") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: DeviceOs.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+    }
+
+    func testAppAddStatusTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("APP_ADD_STATUS") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: AppAddStatus.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+    }
+
+    func testBlobKindsMatchTheSharedTable() throws {
+        XCTAssertEqual(try expected("BLOB_KIND"), actual(BlobKind.self))
     }
 
     func testFileTypesMatchTheSharedTable() throws {

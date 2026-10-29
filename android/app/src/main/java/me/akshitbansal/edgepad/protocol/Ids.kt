@@ -73,6 +73,14 @@ enum class ActionId(
     CAPTURE_CANCEL(55),
 
     /**
+     * Adding a macro from the phone: APPS_LIST asks the laptop to send the apps it could add, as a [BlobKind.APP_LIST]
+     * blob and then a [BlobKind.APP_ICON] blob each, and APPS_CANCEL stops that list and its icons. The phone offers
+     * them only for a laptop that sent [Feature.APPS].
+     */
+    APPS_LIST(56),
+    APPS_CANCEL(57),
+
+    /**
      * The first of 32 macro slots, 64..95; slot n is `MACRO_BASE + n`. The phone sends the index and never
      * what it launches — the laptop's own list decides that, which is the whole security model here.
      * A laptop too old to know the block drops the id and counts it, so this needed no protocol version.
@@ -110,6 +118,12 @@ enum class ControlId(
      * once this phone says it saved it. Sent on connect and whenever the setting changes.
      */
     CAPTURE_TARGET(6),
+
+    /**
+     * Whether this link shares the clipboard, 1 or 0, phone to laptop. The laptop forgets it when the session ends and
+     * drops any other value.
+     */
+    CLIPBOARD(7),
     ;
 
     fun set(value: Int): Frame = Frame.SetValue(id, value)
@@ -173,6 +187,18 @@ enum class TextKind(
 
     /** Laptop to phone: why a capture this phone asked for did not reach it, as one [CaptureStatus] token. */
     CAPTURE_STATUS(12),
+
+    /**
+     * Laptop to phone, once after the handshake: "id/os/name", the id 32 hex digits, the os a [DeviceOs] token and the
+     * laptop's own name. The id lets the phone tell one laptop seen over two transports from two.
+     */
+    DEVICE(13),
+
+    /** Phone to laptop: "epoch.index", an index into the app list the laptop sent for that epoch. No path is named. */
+    APP_ADD(14),
+
+    /** Laptop to phone: how an [APP_ADD] ended, as one [AppAddStatus] token. */
+    APP_ADD_STATUS(15),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -250,6 +276,12 @@ enum class Feature(
 
     /** The laptop answers the capture actions. */
     CAPTURE("capture"),
+
+    /** The laptop's clipboard toggle is on, so [ControlId.CLIPBOARD] is honoured. */
+    CLIPBOARD("clipboard"),
+
+    /** The laptop can list its apps for the phone to add as macros. */
+    APPS("apps"),
     ;
 
     companion object {
@@ -388,4 +420,59 @@ enum class FileStatus(
     ;
 
     fun frame(): Frame = Frame.FileResult(id)
+}
+
+/**
+ * The OS token in [TextKind.DEVICE]. A token the phone matches on, never prose. Mirrors protocol/actions.txt.
+ */
+enum class DeviceOs(
+    val token: String,
+) {
+    WINDOWS("windows"),
+    LINUX("linux"),
+    MACOS("macos"),
+    ;
+
+    companion object {
+        /** Null for a token this build does not know: a hint that depends on the OS is simply not shown. */
+        fun of(token: String): DeviceOs? = entries.firstOrNull { it.token == token }
+    }
+}
+
+/**
+ * The whole vocabulary of [TextKind.APP_ADD_STATUS]. Only [ADDED] changed the laptop's macro list. A token the phone
+ * matches on, never prose, for the reason [PadStatus] is. Mirrors protocol/actions.txt.
+ */
+enum class AppAddStatus(
+    val token: String,
+) {
+    ADDED("added"),
+    FULL("full"),
+    DUPLICATE("duplicate"),
+    STALE("stale"),
+    FAILED("failed"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [FAILED]: an add the phone cannot confirm must not look like a success. */
+        fun of(token: String): AppAddStatus = entries.firstOrNull { it.token == token } ?: FAILED
+    }
+}
+
+/**
+ * What a [Frame.BlobBegin] carries, by [id]. The frame holds the raw id, since one this build does not know is read to
+ * its end and dropped. Mirrors the BLOB_KIND rows of protocol/actions.txt.
+ */
+enum class BlobKind(
+    val id: Int,
+) {
+    CLIP_TEXT(0),
+    CLIP_IMAGE(1),
+    APP_LIST(2),
+    APP_ICON(3),
+    ;
+
+    companion object {
+        fun of(id: Int): BlobKind? = entries.firstOrNull { it.id == id }
+    }
 }

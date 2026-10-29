@@ -101,7 +101,7 @@ public final class Dispatcher {
             // The phone's answer to a capture this Mac sent it. Only the transfer waiting for one takes it.
             return capture?.take(status: status) ?? false
         case .hello, .helloAck, .ping, .pong, .state, .padState, .pinRequest, .pinAnswer, .fileBegin, .fileChunk,
-            .fileEnd:
+            .fileEnd, .blobBegin, .blobChunk, .blobEnd:
             // A Mac has no virtual controller to give a pad frame to, and the rest are not the phone's to send
             // once the session is live.
             return false
@@ -165,9 +165,10 @@ public final class Dispatcher {
         case .search:
             // Spotlight.
             input.chord([.command, .space])
-        case .notifications, .macroBase:
+        case .notifications, .macroBase, .appsList, .appsCancel:
             // Notifications: macOS has no default shortcut for it. The macro block is handled before this
-            // switch; the case is here only so the switch stays exhaustive.
+            // switch; the case is here only so the switch stays exhaustive. The app list is not built on the Mac
+            // yet, so its two actions are dropped and counted.
             return false
         case .annotateBegin, .annotateEnd, .annotateUndo, .annotateClear, .toolPen, .toolHighlighter, .toolLine,
             .toolArrow, .toolRectangle, .toolEllipse, .signBegin, .signSave:
@@ -275,6 +276,9 @@ public final class Dispatcher {
             return value < display.rates.count ? display.select(value) : false
         case .captureTarget:
             return capture?.setTarget(value) ?? false
+        case .clipboard:
+            // Not built on the Mac yet: dropped and counted.
+            return false
         }
     }
 }

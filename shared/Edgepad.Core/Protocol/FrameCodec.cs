@@ -38,6 +38,9 @@ internal static class FrameCodec
     private const byte FileChunkType = 0x51;
     private const byte FileEndType = 0x52;
     private const byte FileResultType = 0x53;
+    private const byte BlobBeginType = 0x54;
+    private const byte BlobChunkType = 0x55;
+    private const byte BlobEndType = 0x56;
 
     /// <summary>FILE_BEGIN's size field, ahead of the name in the length-prefixed part.</summary>
     private const int FileSizeBytes = 4;
@@ -51,7 +54,7 @@ internal static class FrameCodec
     public const int Sha256Bytes = 32;
 
     /// <summary>
-    /// Payload length for a type byte, <see cref="LengthPrefixed"/> for TEXT, FILE_BEGIN and FILE_CHUNK, or -1 when the
+    /// Payload length for a type byte, <see cref="LengthPrefixed"/> for TEXT and the file and blob BEGIN and CHUNK frames, or -1 when the
     /// type is unknown. The two file frames borrow TEXT's header shape, an id and then a length, so a reader frames
     /// them without knowing what they are.
     /// <para>
@@ -71,8 +74,8 @@ internal static class FrameCodec
         PingType or PongType => 8,
         PadStateType => 12,
         PenType => 5,
-        FileEndType => Sha256Bytes,
-        TextType or FileBeginType or FileChunkType => LengthPrefixed,
+        FileEndType or BlobEndType => Sha256Bytes,
+        TextType or FileBeginType or FileChunkType or BlobBeginType or BlobChunkType => LengthPrefixed,
         _ => -1,
     };
 
@@ -187,6 +190,34 @@ internal static class FrameCodec
                 dest[0] = FileEndType;
                 f.Sha256.CopyTo(dest[1..]);
                 return 1 + Sha256Bytes;
+            // The same three shapes as the file frames, under their own type bytes.
+            case BlobBegin f:
+                var labelBytes = Encoding.UTF8.GetBytes(Truncate(f.Label, MaxFileNameBytes), dest[(1 + TextHeaderLength + FileSizeBytes)..]);
+                dest[0] = BlobBeginType;
+                dest[1] = f.Kind;
+                dest[2] = (byte)(FileSizeBytes + labelBytes);
+                BinaryPrimitives.WriteUInt32LittleEndian(dest[(1 + TextHeaderLength)..], f.Size);
+                return 1 + TextHeaderLength + FileSizeBytes + labelBytes;
+            case BlobChunk f:
+                if (f.Data.Length > MaxChunkBytes)
+                {
+                    throw new ArgumentException($"A chunk is at most {MaxChunkBytes} bytes", nameof(frame));
+                }
+
+                dest[0] = BlobChunkType;
+                dest[1] = f.Seq;
+                dest[2] = (byte)f.Data.Length;
+                f.Data.CopyTo(dest[(1 + TextHeaderLength)..]);
+                return 1 + TextHeaderLength + f.Data.Length;
+            case BlobEnd f:
+                if (f.Sha256.Length != Sha256Bytes)
+                {
+                    throw new ArgumentException($"A SHA-256 is {Sha256Bytes} bytes", nameof(frame));
+                }
+
+                dest[0] = BlobEndType;
+                f.Sha256.CopyTo(dest[1..]);
+                return 1 + Sha256Bytes;
             case FileResult f:
                 return WriteByte(dest, FileResultType, f.Status);
             // Each digit goes out as its value 0..9, not its ASCII code, so these bytes can never be read as text.
@@ -241,6 +272,7 @@ internal static class FrameCodec
             PenType => DecodePen(payload),
             PinAnswerType => DecodePinAnswer(payload),
             FileEndType => new FileEnd(payload.ToArray()),
+            BlobEndType => new BlobEnd(payload.ToArray()),
             FileResultType => new FileResult(payload[0]),
             _ => throw new InvalidDataException($"Unknown frame type 0x{type:x2}"),
         };
@@ -275,8 +307,8 @@ internal static class FrameCodec
     }
 
     /// <summary>
-    /// TEXT, FILE_BEGIN and FILE_CHUNK: an id byte, a length byte, then that many bytes. The length is checked once here
-    /// for all three, so a header that lies closes the link whatever frame it heads.
+    /// TEXT, FILE_BEGIN, FILE_CHUNK, BLOB_BEGIN and BLOB_CHUNK: an id byte, a length byte, then that many bytes. The
+    /// length is checked once here for all of them, so a header that lies closes the link whatever frame it heads.
     /// </summary>
     private static Frame DecodePrefixed(byte type, ReadOnlySpan<byte> payload)
     {
@@ -289,9 +321,22 @@ internal static class FrameCodec
         return type switch
         {
             FileBeginType => DecodeFileBegin(payload[0], body),
+            BlobBeginType => DecodeBlobBegin(payload[0], body),
             FileChunkType => new FileChunk(payload[0], body.ToArray()),
+            BlobChunkType => new BlobChunk(payload[0], body.ToArray()),
             _ => new Text(payload[0], Encoding.UTF8.GetString(body)),
         };
+    }
+
+    /// <summary>The size, then the label, as FILE_BEGIN. Shorter than the size field is malformed; the kind is not checked here.</summary>
+    private static BlobBegin DecodeBlobBegin(byte kind, ReadOnlySpan<byte> body)
+    {
+        if (body.Length < FileSizeBytes)
+        {
+            throw new InvalidDataException("BLOB_BEGIN is too short to hold a size");
+        }
+
+        return new BlobBegin(kind, BinaryPrimitives.ReadUInt32LittleEndian(body), Encoding.UTF8.GetString(body[FileSizeBytes..]));
     }
 
     /// <summary>The size, then the name. Shorter than the size field is malformed; an empty name is the phone's to refuse.</summary>

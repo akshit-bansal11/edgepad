@@ -31,8 +31,11 @@ The transport is a byte stream: RFCOMM, or the encrypted network link described 
 | `0x51` | FILE_CHUNK | seq u8, length u8, up to 255 bytes | laptop to phone | one piece of that file; seq is the piece's index mod 256 |
 | `0x52` | FILE_END | sha256, 32 bytes | laptop to phone | the SHA-256 of the whole file |
 | `0x53` | FILE_RESULT | status u8 | phone to laptop | the phone's answer to the file: 0 saved, 1 bad hash, 2 rejected, 3 write failed |
+| `0x54` | BLOB_BEGIN | kind u8, length u8, size u32, UTF-8 label | both ways | starts a blob: clipboard contents, an app list or an app icon; FILE_BEGIN's shape on a lane of its own; see [Blobs](#blobs) |
+| `0x55` | BLOB_CHUNK | seq u8, length u8, up to 255 bytes | both ways | one piece of that blob; seq is the piece's index mod 256 |
+| `0x56` | BLOB_END | sha256, 32 bytes | both ways | the SHA-256 of the whole blob |
 
-TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter, 4 the display's available refresh rates as `60/120/144` (laptop to phone), 5 the laptop's macro names as `Chrome/Spotify/Notes` (laptop to phone), 6 one piece of one macro's icon as `slot/chunk/chunks/base64` (laptop to phone), 7 a request for the macro icons, with an empty payload (phone to laptop), 8 whether a virtual controller can be offered, as one PAD_STATUS token (laptop to phone), 9 the optional features the laptop has, as tokens joined by `/` such as `annotate/capture`, where a feature not named is off and a token the phone does not know is ignored (laptop to phone), 10 the primary display in pixels as `1920/1080` (laptop to phone), 11 how a sign-save ended, as one SIGN_STATUS token: `saved`, `empty` or `failed` (laptop to phone), 12 why a capture the phone asked for stayed on the laptop, as one CAPTURE_STATUS token: `too-large`, `not-found` or `failed` (laptop to phone).
+TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter, 4 the display's available refresh rates as `60/120/144` (laptop to phone), 5 the laptop's macro names as `Chrome/Spotify/Notes` (laptop to phone), 6 one piece of one macro's icon as `slot/chunk/chunks/base64` (laptop to phone), 7 a request for the macro icons, with an empty payload (phone to laptop), 8 whether a virtual controller can be offered, as one PAD_STATUS token (laptop to phone), 9 the optional features the laptop has, as tokens joined by `/` such as `annotate/capture`, where a feature not named is off and a token the phone does not know is ignored (laptop to phone), 10 the primary display in pixels as `1920/1080` (laptop to phone), 11 how a sign-save ended, as one SIGN_STATUS token: `saved`, `empty` or `failed` (laptop to phone), 12 why a capture the phone asked for stayed on the laptop, as one CAPTURE_STATUS token: `too-large`, `not-found` or `failed` (laptop to phone), 13 which laptop this is, as `id/os/name` with the id 32 hex digits and the os one of `windows`, `linux` or `macos` (laptop to phone, once after HELLO_ACK), 14 an app to add as a macro, as `epoch.index` into the list the laptop last sent (phone to laptop), 15 how that add ended, as one APP_ADD_STATUS token: `added`, `full`, `duplicate`, `stale` or `failed` (laptop to phone).
 
 An icon does not fit the 255 bytes a payload holds, so TEXT 6 carries a PNG in pieces and the phone joins them: the counts are what let it tell a finished icon from a truncated one. Kinds rather than a frame type of their own, which is what keeps the protocol version where it is — an unknown kind is dropped and counted on both sides, while an unknown type closes the connection. Icons are answered rather than pushed, so a laptop too old to know TEXT 7 drops it and the phone keeps its labels, and a phone too old to send it costs the link nothing.
 
@@ -112,6 +115,8 @@ The laptop deletes its copy only after a FILE_RESULT of 0 that arrives after its
 | CAPTURE_SCREEN | 53 | PrtScn, the whole screen |
 | CAPTURE_RECORD | 54 | Win+Shift+R, screen recording; needs a recent Snipping Tool and is **unverified** |
 | CAPTURE_CANCEL | 55 | Escape, only while a capture overlay opened by REGION or RECORD may still be open (8 seconds); otherwise nothing. Sent when the phone leaves its capture screen |
+| APPS_LIST | 56 | sends the apps it could add as a macro, as BLOB kind 2 and then a kind 3 icon each; only for a laptop that named `apps` in TEXT 9 |
+| APPS_CANCEL | 57 | stops that list and its icons |
 
 | Control | Id | SET does | STATE reports |
 | --- | --- | --- | --- |
@@ -122,6 +127,7 @@ The laptop deletes its copy only after a FILE_RESULT of 0 that arrives after its
 | REFRESH_RATE | 4 | switches the display to the rate at that index of TEXT 4's list | the current rate's index |
 | PEN_COLOR | 5 | picks the stroke colour, by index into the palette below; 8 or more is dropped and counted | not reported |
 | CAPTURE_TARGET | 6 | where a capture ends up: 0 the laptop keeps it, 1 it is sent to the phone; anything else is dropped and counted | not reported |
+| CLIPBOARD | 7 | whether this link shares the clipboard: 1 yes, 0 no; forgotten when the session ends, and honoured only while the laptop's own clipboard toggle is on (it names `clipboard` in TEXT 9 then); anything else is dropped and counted | not reported |
 
 REFRESH_RATE's value is an index into TEXT 4's list, never a rate in hertz: SET carries value u8 and the laptop drops anything above 100, so 120 or 144 could not cross the wire at all. An index also makes a rate the laptop does not have unrepresentable rather than merely rejected. A laptop that names no rates has none to offer, and the dial has nothing to show.
 
@@ -133,6 +139,21 @@ This is not a containment boundary against a compromised phone, and should not b
 raw virtual-key code and TEXT kind 3 carries arbitrary characters, both of which the laptop injects directly
 — that is what the phone's keyboard screen is. A paired phone is a trusted input device, and the trust
 boundary is the Bluetooth pairing plus trust-on-first-use, not the macro table.
+
+## Blobs
+
+BLOB_BEGIN, BLOB_CHUNK and BLOB_END (`0x54` to `0x56`) are FILE_BEGIN, FILE_CHUNK and FILE_END byte for byte under their own type bytes, and go **both ways**. They are a lane of their own so a clipboard copy never waits behind a 200 MB capture, and because the file frames' logic (permits, FILE_RESULT) is specific to captures. BEGIN is `kind u8, length u8, size u32, UTF-8 label`, the length counting the size and the label; CHUNK is `seq u8, length u8, up to 255 bytes`; END is the 32-byte SHA-256 of the whole blob. Every decoder bounds them exactly as it bounds the file frames: a length that does not match its header, a BEGIN too short to hold its size or an END that is not 32 bytes closes the link.
+
+The kind is data, not a codec error:
+
+| Kind | Name | Carries |
+| --- | --- | --- |
+| 0 | CLIP_TEXT | the clipboard's text, UTF-8 |
+| 1 | CLIP_IMAGE | the clipboard's image, PNG |
+| 2 | APP_LIST | the apps a laptop could add as macros, in response to APPS_LIST |
+| 3 | APP_ICON | one app's icon, PNG, the label naming the app |
+
+A receiver reads a kind it does not know to its BLOB_END and drops it, counting it. Which side sends which kind, the size caps and the pacing belong to the feature that uses each kind; this section fixes only the frames. The codecs carry them and nothing in the apps sends or acts on them yet.
 
 ## Annotate and sign
 
@@ -398,6 +419,8 @@ a message about which side needs updating. The rest of the gamepad rode along fr
 and TEXT 8 are new ids in tables that already existed, and an older build drops and counts them.
 
 Version 5 is the same kind of move, made for new frame types: PIN_REQUEST (`0x03`), PIN_ANSWER (`0x04`), PEN (`0x24`) and the four file frames (`0x50` to `0x53`). A v4 phone meeting a PIN_REQUEST would hang up mid-handshake instead of saying which side is old, and a v4 laptop meeting a PEN would close the link mid-session. From version 5 a v4 peer is refused at HELLO exactly as before: the laptop answers with its own version, then closes. Everything else in 4.0.0 (actions 40 to 55, CONTROL 5 and 6, TEXT 9 to 12, the Linux app) is a new id in a table that already existed, so an older build drops and counts it. Because 4.0.0 is the first release at version 5, a frame added while it was being built was still "version 5": every half in a build comes from one commit.
+
+The blob frames (`0x54` to `0x56`) are new frame types too, and the version stays 5 because version 5 has not shipped: they belong to the same unreleased step as the file frames. CONTROL 7, ACTION 56 and 57 and TEXT 13 to 15 are new ids in existing tables and would not have needed a bump.
 
 The refresh-rate dial and the macro buttons both arrived in 1.1.0 **without** a bump, which is the rule
 working rather than being broken. An unknown action, control or text kind is dropped and counted, so a

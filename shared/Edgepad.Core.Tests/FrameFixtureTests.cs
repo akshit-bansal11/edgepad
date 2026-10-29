@@ -93,6 +93,22 @@ public sealed class FrameFixtureTests
         Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x52, new byte[31]));
 
     [Fact]
+    public void RejectsABlobBeginTooShortToHoldASize() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x54, [0, 3, 1, 2, 3]));
+
+    [Fact]
+    public void RejectsABlobEndThatIsNotAWholeHash() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x56, new byte[31]));
+
+    [Fact]
+    public void RejectsABlobChunkWhoseLengthDoesNotMatchItsHeader() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x55, [0, 3, 1]));
+
+    [Fact]
+    public void ALongBlobLabelIsCutSoTheBeginFrameStillFits() =>
+        Assert.Equal(FrameCodec.MaxFrameLength, FrameCodec.Encode(new BlobBegin(0, 10, new string('a', 400))).Length);
+
+    [Fact]
     public void AFullChunkIsTheLongestFrameAndNoLonger()
     {
         var chunk = new FileChunk(7, [.. Enumerable.Range(0, FrameCodec.MaxChunkBytes).Select(i => (byte)i)]);
@@ -165,6 +181,9 @@ public sealed class FrameFixtureTests
             "FILE_CHUNK" => new FileChunk((byte)Field(1), Convert.FromHexString(fields[2])),
             "FILE_END" => new FileEnd(Convert.FromHexString(fields[1])),
             "FILE_RESULT" => new FileResult((byte)Field(1)),
+            "BLOB_BEGIN" => new BlobBegin((byte)Field(1), (uint)Field(2), fields[3]),
+            "BLOB_CHUNK" => new BlobChunk((byte)Field(1), Convert.FromHexString(fields[2])),
+            "BLOB_END" => new BlobEnd(Convert.FromHexString(fields[1])),
             "PAD_STATE" => new PadState(
                 (ushort)Field(1),
                 (byte)Field(2),
