@@ -6,7 +6,7 @@ namespace Edgepad.Trust;
 
 /// <summary>
 /// The owner's way into <see cref="PinStore"/>: choose the security level, set the PIN, or give up on a forgotten
-/// PIN. It is only ever opened by the tray, under <c>RfcommServer.HoldOff</c>, because a connected phone is a
+/// PIN. It is only ever opened by the tray, under <c>SessionHost.HoldOff</c>, because a connected phone is a
 /// keyboard and could otherwise answer it.
 ///
 /// Level and PIN are a working copy until Save, so closing the window any other way changes nothing. Reset is the
