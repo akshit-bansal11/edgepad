@@ -259,7 +259,7 @@ internal sealed class Session(
             // Nothing may escape a pool thread. A dead socket is the read loop's to notice, as for any report.
             try
             {
-                Guarded(() => SendIcons(run));
+                SendIcons(run);
             }
             catch (Exception e)
             {

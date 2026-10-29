@@ -241,16 +241,6 @@ class Settings(
             prefs.edit().putInt(KEY_MACROS_PER_PAGE, value.coerceIn(PER_PAGE_RANGE)).apply()
         }
 
-    /** How many tiles stand across a row of [deck]; 0 lets the room decide. */
-    fun deckColumns(deck: String): Int = prefs.getInt("deck.$deck.columns", 0).coerceAtLeast(0)
-
-    fun setDeckColumns(
-        deck: String,
-        columns: Int,
-    ) {
-        prefs.edit().putInt("deck.$deck.columns", columns.coerceAtLeast(0)).apply()
-    }
-
     /**
      * How fast [kind]'s ruler moves, as a multiple of the base rate. Volume wants a slower ruler than the
      * app switcher does, so each kind may override [sensitivity]; none does until the user sets one, and

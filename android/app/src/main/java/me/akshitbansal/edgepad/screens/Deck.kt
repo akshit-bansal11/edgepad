@@ -91,7 +91,6 @@ class Deck(
 
     private var tiles: List<DeckTile> = emptyList()
     private var labels = true
-    private var columns: Int? = null
     private var planFor = 0
     private var across = 0
     private var down = 0
@@ -133,8 +132,7 @@ class Deck(
     }
 
     /**
-     * Draws [tiles] into the room, [across] by [down] pixels. [columns] fixes how many stand across a row;
-     * null lets the room decide. [labels] off draws a tile that has a picture without its name.
+     * Draws [tiles] into the room, [across] by [down] pixels. [labels] off draws a tile that has a picture without its name.
      *
      * A tap runs the tile through [onTap], which is how the owner reaches its [DeckTile.tag]. Pressing and holding
      * one starts a drag (or a TalkBack action moves it) to another tile's place, reporting the two display
@@ -146,7 +144,6 @@ class Deck(
         down: Int,
         tiles: List<DeckTile>,
         labels: Boolean,
-        columns: Int?,
         onMove: (from: Int, to: Int) -> Unit,
         onTap: (DeckTile) -> Unit,
         slots: Int = tiles.size,
@@ -156,7 +153,6 @@ class Deck(
         this.down = down
         this.tiles = tiles
         this.labels = labels
-        this.columns = columns
         this.onMove = onMove
         this.onTap = onTap
         clear()
@@ -196,7 +192,7 @@ class Deck(
         // The last picture arriving with the labels off takes the label row away from every tile, and
         // that is a new grid rather than one new picture.
         if (bare() != current.bare) {
-            render(across, down, tiles, labels, columns, onMove, onTap, planFor)
+            render(across, down, tiles, labels, onMove, onTap, planFor)
             return
         }
         val button = buttons[tag] ?: return
@@ -224,18 +220,16 @@ class Deck(
         val pad = 2 * ui.dp(Space.S)
         // The column count that leaves the cell's shorter side longest, which is the largest a button can be
         // drawn without one of its sides being wasted on the other. Counted up to the number of tiles rather
-        // than to what fits: three tiles are then three big ones, not three small ones in a wide row. A
-        // fixed count is the only candidate there is, and is taken as it stands.
-        val fixed = columns?.coerceIn(1, count)
+        // than to what fits: three tiles are then three big ones, not three small ones in a wide row.
         var chosen = 1
         var width = 1
         var height = ui.dp(Space.TOUCH)
-        for (candidate in if (fixed != null) fixed..fixed else 1..count) {
+        for (candidate in 1..count) {
             val rows = (count + candidate - 1) / candidate
             val cellWidth = ((across - (candidate - 1) * gap) / candidate).coerceAtLeast(1)
             // Never under a touch target, however many tiles there are: below that the page scrolls instead.
             val cellHeight = ((down - (rows - 1) * gap) / rows).coerceAtLeast(ui.dp(Space.TOUCH))
-            if (fixed != null || minOf(cellWidth, cellHeight) > minOf(width, height)) {
+            if (minOf(cellWidth, cellHeight) > minOf(width, height)) {
                 chosen = candidate
                 width = cellWidth
                 height = cellHeight

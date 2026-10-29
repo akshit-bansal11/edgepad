@@ -54,9 +54,6 @@ class DeckPage(
     private var shown: List<Int> = emptyList()
     private var keys: List<String> = emptyList()
 
-    /** The (rows, columns) grids the room can draw, for telling a stored column count that no longer fits. */
-    private var fits: List<Pair<Int, Int>> = emptyList()
-
     /** The page showing, and the deck of each page once there are two or more. */
     private var page = 0
     private val pageDecks = ArrayList<Deck>()
@@ -133,7 +130,6 @@ class DeckPage(
         val (across, down) = room ?: return
         keys = tiles.map { it.key }
         shown = DeckLayout.order(settings.deckOrder(deckId), keys)
-        fits = DeckLayout.fitting(tiles.size, across, down, ui.dp(Space.S), ui.dp(Space.TOUCH))
         draw()
     }
 
@@ -147,16 +143,8 @@ class DeckPage(
             drawPages(across, down, ordered, pages, perPage)
             return
         }
-        // A stored grid that is no longer on offer (a tile was added, the screen turned) falls back to automatic.
-        // A paged deck has no stored grid: its page size is the choice, and the grid follows from it.
-        val columns =
-            if (perPage != null) {
-                null
-            } else {
-                settings.deckColumns(deckId).takeIf { stored -> fits.any { it.second == stored } }
-            }
         val slots = perPage ?: ordered.size
-        deck.render(across, down, ordered, labels, columns, onMove = ::moved, onTap = onTap, slots = slots)
+        deck.render(across, down, ordered, labels, onMove = ::moved, onTap = onTap, slots = slots)
     }
 
     /**
@@ -189,7 +177,6 @@ class DeckPage(
                 down - ui.dp(Space.XL),
                 ordered.slice(range),
                 labels,
-                null,
                 onMove = { from, to -> moved(range.first + from, range.first + to) },
                 onTap = onTap,
                 slots = per,
