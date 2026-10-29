@@ -56,6 +56,18 @@ internal sealed class Admission<T>(Func<long>? clock = null)
         }
     }
 
+    /// <summary>Whether a hold or a quiet period refuses every new connection right now; no pairing may start then.</summary>
+    public bool IsRefusing
+    {
+        get
+        {
+            lock (gate)
+            {
+                return Refusing();
+            }
+        }
+    }
+
     /// <summary>
     /// Why a new connection from <paramref name="address"/> is turned away before it costs a thread, or null when
     /// it may become a candidate.

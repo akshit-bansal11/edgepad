@@ -20,6 +20,21 @@ public sealed class AdmissionTests
     public AdmissionTests() => admission = new Admission<Session>(() => time);
 
     [Fact]
+    public void IsRefusingWhileHeldOffOrQuiet()
+    {
+        Assert.False(admission.IsRefusing);
+        _ = admission.HoldOff();
+        Assert.True(admission.IsRefusing);
+        admission.Resume();
+        Assert.False(admission.IsRefusing);
+
+        _ = admission.HangUp(TimeSpan.FromSeconds(5));
+        Assert.True(admission.IsRefusing);
+        time += 5_000;
+        Assert.False(admission.IsRefusing);
+    }
+
+    [Fact]
     public void ACandidateLeavesTheConnectedPhoneAloneUntilAdmitted()
     {
         var a = Connect(PhoneA);

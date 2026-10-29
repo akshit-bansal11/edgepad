@@ -26,9 +26,10 @@ public sealed class TcpLinkListenerTests : IDisposable
         return listener;
     }
 
-    private static async Task<TcpClient> ConnectAsync(TcpLinkListener listener)
+    // From 127.0.0.<host>: every address in 127/8 is loopback on Windows and Linux, so each is a host of its own.
+    private static async Task<TcpClient> ConnectAsync(TcpLinkListener listener, int host = 1)
     {
-        var client = new TcpClient();
+        var client = new TcpClient(new IPEndPoint(new IPAddress([127, 0, 0, (byte)host]), 0));
         try
         {
             await client.ConnectAsync(IPAddress.Loopback, listener.Port, TestContext.Current.CancellationToken);
@@ -87,11 +88,11 @@ public sealed class TcpLinkListenerTests : IDisposable
         {
             for (var i = 0; i < TcpLinkListener.MaxUnauthenticated; i++)
             {
-                clients.Add(await ConnectAsync(listener));
+                clients.Add(await ConnectAsync(listener, host: i + 1));
             }
 
             await WaitForAsync(TcpLinkListener.MaxUnauthenticated);
-            using var fifth = await ConnectAsync(listener);
+            using var fifth = await ConnectAsync(listener, host: TcpLinkListener.MaxUnauthenticated + 1);
 
             Assert.Equal(0, await ReadUntilClosedAsync(fifth));
             Assert.Equal(TcpLinkListener.MaxUnauthenticated, accepted.Count);
@@ -114,16 +115,49 @@ public sealed class TcpLinkListenerTests : IDisposable
         {
             for (var i = 0; i < TcpLinkListener.MaxUnauthenticated; i++)
             {
-                clients.Add(await ConnectAsync(listener));
+                clients.Add(await ConnectAsync(listener, host: i + 1));
             }
 
             await WaitForAsync(TcpLinkListener.MaxUnauthenticated);
             Assert.True(accepted.TryPeek(out var first));
             first.Done();
             first.Done();
-            clients.Add(await ConnectAsync(listener));
+            clients.Add(await ConnectAsync(listener, host: TcpLinkListener.MaxUnauthenticated + 1));
 
             await WaitForAsync(TcpLinkListener.MaxUnauthenticated + 1);
+        }
+        finally
+        {
+            foreach (var client in clients)
+            {
+                client.Dispose();
+            }
+        }
+    }
+
+    [Fact]
+    public async Task OneHostCannotTakeEveryPlace()
+    {
+        using var listener = Listen();
+        var clients = new List<TcpClient>();
+        try
+        {
+            for (var i = 0; i < TcpLinkListener.MaxUnauthenticatedPerHost; i++)
+            {
+                clients.Add(await ConnectAsync(listener));
+            }
+
+            await WaitForAsync(TcpLinkListener.MaxUnauthenticatedPerHost);
+            using var third = await ConnectAsync(listener);
+            Assert.Equal(0, await ReadUntilClosedAsync(third));
+
+            // Another host still gets in, and the first gets a place back once one of its own is done.
+            clients.Add(await ConnectAsync(listener, host: 2));
+            await WaitForAsync(TcpLinkListener.MaxUnauthenticatedPerHost + 1);
+            Assert.True(accepted.TryPeek(out var first));
+            first.Done();
+            clients.Add(await ConnectAsync(listener));
+            await WaitForAsync(TcpLinkListener.MaxUnauthenticatedPerHost + 2);
         }
         finally
         {

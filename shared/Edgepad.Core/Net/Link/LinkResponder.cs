@@ -10,11 +10,41 @@ internal sealed record LinkResult(Stream Secure, string Address, string PhoneNam
 /// <summary>
 /// The laptop's half of pairing: a window that names the phone and asks the owner to type the code the phone shows.
 /// It must not block. Exactly one of the callbacks may be called, from any thread: the digits typed, or the owner
-/// cancelling. Disposing the handle withdraws the window, answered or not.
+/// cancelling. The question it returns is then told how the typed code went.
 /// </summary>
 internal interface IPairingPrompt
 {
-    IDisposable Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled);
+    IPairingQuestion Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled);
+}
+
+/// <summary>
+/// One pairing question on screen. After the owner types a code it is told either <see cref="Mismatched"/>, or
+/// <see cref="Finished"/> (with <see cref="Matched"/> before it when the code matched), each at most once, from any
+/// thread, never blocking. Disposing it takes down a question still asking for the code; once it has been told an
+/// outcome, the window stays up to show it.
+/// </summary>
+internal interface IPairingQuestion : IDisposable
+{
+    /// <summary>The code matched and the phone was told so; now the phone's owner confirms on the phone.</summary>
+    void Matched();
+
+    /// <summary>The code typed is not the one the phone shows; nothing was paired.</summary>
+    void Mismatched();
+
+    /// <summary>The pairing ended after the code was typed: paired, or not (no confirmation, or a Forget).</summary>
+    void Finished(bool paired);
+}
+
+/// <summary>What the pairing window says once the code is typed, the same on Windows and Linux.</summary>
+internal static class PairingText
+{
+    public const string Mismatched = "That code did not match. Nothing was paired.";
+
+    public const string NotFinished = "Pairing did not finish.";
+
+    public static string Matched(string phoneName) => $"Code matched. Tap Yes on {phoneName} to finish.";
+
+    public static string Paired(string phoneName) => $"Paired with {phoneName}.";
 }
 
 /// <summary>
@@ -63,7 +93,8 @@ internal static class LinkResponder
         Action giveUp,
         CancellationToken ended,
         TimeSpan? messageTimeout = null,
-        TimeSpan? ownerTimeout = null)
+        TimeSpan? ownerTimeout = null,
+        Func<bool>? refusing = null)
     {
         var wait = messageTimeout ?? MessageTimeout;
         var body = ReadWithin(raw, wait, "request", log, giveUp);
@@ -84,6 +115,14 @@ internal static class LinkResponder
                 return null;
 
             case PairRequest pair:
+                // While the owner holds phones off (a Forget, the Security window), no pairing may even start.
+                if (refusing?.Invoke() == true)
+                {
+                    LinkWire.Write(raw, LinkWire.Status(LinkWire.StatusBusy));
+                    log($"Refused to pair {AddressOf(pair.PhoneId)}: the owner is changing security settings, or this laptop is forgetting its phones");
+                    return null;
+                }
+
                 return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, ended);
 
             case ResumeRequest resume:
@@ -123,6 +162,11 @@ internal static class LinkResponder
         // Anything that ends this short of a pairing counts against the lock, except the owner's own word.
         var outcome = PairingOutcome.Failed;
         byte[]? prk = null;
+        IPairingQuestion? question = null;
+
+        // Set once the window has said the code matched: from then on it is told how the pairing ended, whatever ends it.
+        var matched = false;
+        var name = PhoneLabel.Shown(request.Name);
 
         bool ForgottenSince() => trust.Generation != trustGeneration || paired.Generation != pairedGeneration;
 
@@ -163,7 +207,9 @@ internal static class LinkResponder
                 CryptographicOperations.ZeroMemory(shared);
             }
 
-            var (answer, typed) = AskOwner(prompt, request.Name, ownerWait, ended);
+            var asked = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            question = prompt.Show(name, digits => asked.TrySetResult(digits), () => asked.TrySetResult(null));
+            var (answer, typed) = AwaitOwner(asked, ownerWait, ended);
             switch (answer)
             {
                 case OwnerAnswer.Cancelled:
@@ -185,22 +231,26 @@ internal static class LinkResponder
             // it does not count against the lock.
             if (ForgottenSince())
             {
+                question.Finished(paired: false);
                 return Forgotten();
             }
 
             // The one check that needs the owner. Until it passes, nothing that depends on it is sent.
             if (!LinkCrypto.CodeMatches(typed, LinkCrypto.Sas(transcript)))
             {
+                question.Mismatched();
                 log($"Refused to pair {address}: the code typed on this laptop is not the one that phone shows");
                 return null;
             }
 
+            matched = true;
             LinkWire.Write(raw, LinkWire.Tag(LinkCrypto.LaptopTag(prk, transcript, pairing: true)));
+            question.Matched();
 
             // The phone's owner confirms too, on the phone, that this laptop said the code matched: the only check
             // that tells the phone it reached this laptop and not something in between. That takes a person, so the
-            // wait is the owner's, not a message's.
-            var confirmed = ReadWithin(raw, ownerWait, "confirmation", log, giveUp);
+            // wait is the owner's, not a message's, and the listener's per-message read deadline must not cut it short.
+            var confirmed = ReadOwnerLength(raw, ownerWait, log, giveUp);
             if (confirmed is null)
             {
                 return null;
@@ -242,7 +292,7 @@ internal static class LinkResponder
 
             outcome = PairingOutcome.Paired;
             log($"Paired {address}");
-            return new LinkResult(new SecureStream(raw, prk, isPhone: false), address, request.Name, JustPaired: true);
+            return new LinkResult(new SecureStream(raw, prk, isPhone: false), address, name, JustPaired: true);
         }
         catch (CryptographicException)
         {
@@ -256,6 +306,12 @@ internal static class LinkResponder
                 CryptographicOperations.ZeroMemory(prk);
             }
 
+            if (matched)
+            {
+                question?.Finished(outcome == PairingOutcome.Paired);
+            }
+
+            question?.Dispose();
             limiter.End(outcome);
         }
     }
@@ -306,7 +362,7 @@ internal static class LinkResponder
                 return null;
             }
 
-            return new LinkResult(new SecureStream(raw, prk, isPhone: false), address, name, JustPaired: false);
+            return new LinkResult(new SecureStream(raw, prk, isPhone: false), address, PhoneLabel.Shown(name), JustPaired: false);
         }
         catch (CryptographicException)
         {
@@ -324,26 +380,21 @@ internal static class LinkResponder
     }
 
     /// <summary>
-    /// Puts the code question to the owner and waits for whichever comes first: the digits, a cancel, the timer, or
-    /// the link ending. The answer is claimed once, so a click landing with the timer is either taken or ignored,
-    /// never both.
+    /// Waits for whichever answer to the code question comes first: the digits, a cancel, the timer, or the link
+    /// ending. The answer is claimed once, so a click landing with the timer is either taken or ignored, never both.
     /// </summary>
-    private static (OwnerAnswer Answer, string Typed) AskOwner(IPairingPrompt prompt, string phoneName, TimeSpan wait, CancellationToken ended)
+    private static (OwnerAnswer Answer, string Typed) AwaitOwner(TaskCompletionSource<string?> answer, TimeSpan wait, CancellationToken ended)
     {
-        var answer = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        using (prompt.Show(phoneName, digits => answer.TrySetResult(digits), () => answer.TrySetResult(null)))
+        try
         {
-            try
-            {
-                _ = answer.Task.Wait(wait, ended);
-            }
-            catch (OperationCanceledException)
-            {
-                // The link ended under the question; settled below.
-            }
-
-            _ = answer.TrySetCanceled(CancellationToken.None);
+            _ = answer.Task.Wait(wait, ended);
         }
+        catch (OperationCanceledException)
+        {
+            // The link ended under the question; settled below.
+        }
+
+        _ = answer.TrySetCanceled(CancellationToken.None);
 
         if (ended.IsCancellationRequested)
         {
@@ -356,6 +407,37 @@ internal static class LinkResponder
         }
 
         return answer.Task.Result is { } digits ? (OwnerAnswer.Typed, digits) : (OwnerAnswer.Cancelled, "");
+    }
+
+    /// <summary>
+    /// The phone's confirmation, read as <see cref="ReadWithin"/> does over the owner's wait, which is longer than
+    /// the listener's per-message read timeout on the socket: that is lifted for this read, so only
+    /// <paramref name="wait"/> bounds it, and put back after.
+    /// </summary>
+    private static byte[]? ReadOwnerLength(Stream raw, TimeSpan wait, Action<string> log, Action giveUp)
+    {
+        if (!raw.CanTimeout)
+        {
+            return ReadWithin(raw, wait, "confirmation", log, giveUp);
+        }
+
+        var bounded = raw.ReadTimeout;
+        raw.ReadTimeout = Timeout.Infinite;
+        try
+        {
+            return ReadWithin(raw, wait, "confirmation", log, giveUp);
+        }
+        finally
+        {
+            try
+            {
+                raw.ReadTimeout = bounded;
+            }
+            catch (ObjectDisposedException)
+            {
+                // Given up on and closed: nothing left to bound.
+            }
+        }
     }
 
     /// <summary>

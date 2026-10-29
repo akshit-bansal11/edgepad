@@ -5,8 +5,9 @@ namespace Edgepad.Net;
 
 /// <summary>
 /// Accepts the TCP connections of Wi-Fi and USB phones and hands each socket on. At most <see cref="MaxUnauthenticated"/>
-/// connections may be in the unauthenticated phase at once (anyone on the network can open sockets), and each has a
-/// read and write deadline until its owner calls the <c>done</c> it was given, which is when the link layer has
+/// connections may be in the unauthenticated phase at once (anyone on the network can open sockets), no more
+/// than <see cref="MaxUnauthenticatedPerHost"/> of them from one address, so one host cannot take every place and keep
+/// paired phones from resuming. Each has a read and write deadline until its owner calls the <c>done</c> it was given, which is when the link layer has
 /// finished with it. A connection over the cap is closed at once. Nothing here lets an exception end a thread.
 /// </summary>
 /// <param name="requestedPort">The port to listen on; 0 for any free one.</param>
@@ -20,8 +21,13 @@ internal sealed class TcpLinkListener(int requestedPort, Action<Socket, Action> 
 {
     public const int MaxUnauthenticated = 4;
 
+    public const int MaxUnauthenticatedPerHost = 2;
+
     private readonly Lock gate = new();
     private readonly int deadlineMs = (int)(deadline ?? TimeSpan.FromSeconds(10)).TotalMilliseconds;
+
+    // Unauthenticated connections from each address. Both counts are under the gate.
+    private readonly Dictionary<IPAddress, int> perHost = [];
 
     private Socket? listener;
     private Thread? thread;
@@ -143,11 +149,37 @@ internal sealed class TcpLinkListener(int requestedPort, Action<Socket, Action> 
         }
     }
 
+    // An IPv4 phone reaches the dual-stack socket as ::ffff:a.b.c.d, the same host as a.b.c.d.
+    private static IPAddress HostOf(Socket client)
+    {
+        try
+        {
+            var address = ((IPEndPoint)client.RemoteEndPoint!).Address;
+            return address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address;
+        }
+        catch (Exception e) when (e is SocketException or ObjectDisposedException)
+        {
+            return IPAddress.None;
+        }
+    }
+
     private void Admit(Socket client)
     {
-        if (Interlocked.Increment(ref unauthenticated) > MaxUnauthenticated)
+        var host = HostOf(client);
+        bool admitted;
+        lock (gate)
         {
-            Interlocked.Decrement(ref unauthenticated);
+            _ = perHost.TryGetValue(host, out var fromHost);
+            admitted = unauthenticated < MaxUnauthenticated && fromHost < MaxUnauthenticatedPerHost;
+            if (admitted)
+            {
+                unauthenticated++;
+                perHost[host] = fromHost + 1;
+            }
+        }
+
+        if (!admitted)
+        {
             client.Dispose();
             return;
         }
@@ -170,7 +202,14 @@ internal sealed class TcpLinkListener(int requestedPort, Action<Socket, Action> 
                 // Already closed: nothing left to relax.
             }
 
-            Interlocked.Decrement(ref unauthenticated);
+            lock (gate)
+            {
+                unauthenticated--;
+                if (--perHost[host] == 0)
+                {
+                    _ = perHost.Remove(host);
+                }
+            }
         }
 
         try

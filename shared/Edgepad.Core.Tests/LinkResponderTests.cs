@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Threading.Channels;
-using Edgepad.Controls;
 using Edgepad.Net;
 using Edgepad.Protocol;
 using Edgepad.Trust;
@@ -48,13 +47,13 @@ public sealed class LinkResponderTests : IDisposable
     }
 
     /// <summary>The laptop, accepting on <paramref name="end"/>; when it gives no link it closes the end, as the listener will.</summary>
-    private Task<LinkResult?> Laptop(Stream end, TimeSpan? ownerWait = null) => Task.Run(
+    private Task<LinkResult?> Laptop(Stream end, TimeSpan? ownerWait = null, bool refusing = false) => Task.Run(
         () =>
         {
             LinkResult? result = null;
             try
             {
-                result = LinkResponder.Accept(end, laptop, paired, limiter, owner, trust, logs.Enqueue, end.Dispose, ended.Token, MessageWait, ownerWait ?? MessageWait);
+                result = LinkResponder.Accept(end, laptop, paired, limiter, owner, trust, logs.Enqueue, end.Dispose, ended.Token, MessageWait, ownerWait ?? MessageWait, () => refusing);
                 return result;
             }
             finally
@@ -144,6 +143,7 @@ public sealed class LinkResponderTests : IDisposable
         Assert.Equal(PhoneName, result.PhoneName);
         Assert.Equal(PhoneName, owner.LastPhoneName);
         Assert.Equal(1, owner.Withdrawn);
+        Assert.Equal(["matched", "finished:True"], owner.Told);
         AssertTheyTalk(phone.Secure, result.Secure);
 
         Assert.True(paired.TryGet(Convert.ToHexStringLower(PhoneId), out var key, out _));
@@ -164,6 +164,7 @@ public sealed class LinkResponderTests : IDisposable
         Assert.Null(phone.Secure);
         AssertNotPaired();
         Assert.Contains(logs, line => line.Contains("not the one that phone shows", StringComparison.Ordinal));
+        Assert.Equal(["mismatched"], owner.Told);
 
         // It counted: four more and pairing is locked.
         for (var i = 0; i < 4; i++)
@@ -252,6 +253,60 @@ public sealed class LinkResponderTests : IDisposable
         Assert.Null(await laptopSide);
         Assert.Null(phone.Secure);
         AssertNotPaired();
+        Assert.Empty(owner.Told);
+        Assert.Equal(1, owner.Withdrawn);
+    }
+
+    [Fact]
+    public async Task AMatchedCodeThePhonesOwnerNeverConfirmsEndsAsNotFinished()
+    {
+        // The phone's owner never taps Yes: the laptop said the code matched, then gives up on the confirmation.
+        owner.Types = code => code;
+        var (phoneEnd, laptopEnd) = Duplex.Create();
+        var laptopSide = Laptop(laptopEnd, TimeSpan.FromSeconds(1));
+
+        using var own = LinkCrypto.NewKeyPair();
+        var nonce = RandomNumberGenerator.GetBytes(LinkWire.NonceLength);
+        LinkWire.Write(phoneEnd, LinkWire.EncodePairRequest(PhoneId, PhoneName, LinkCrypto.Commit(own.PublicKey, nonce)));
+        var offer = LinkWire.DecodeReply(LinkWire.ModePair, LinkWire.Read(phoneEnd));
+        LinkWire.Write(phoneEnd, LinkWire.Reveal(own.PublicKey, nonce));
+        ShowOnPhone(LinkCrypto.Sas(LinkCrypto.PairTranscript(
+            PhoneId, offer.LaptopId, LinkWire.NameField(PhoneName), offer.NameField, own.PublicKey, nonce, offer.PublicKey, offer.Nonce)));
+        _ = LinkWire.Read(phoneEnd);
+
+        Assert.Null(await laptopSide);
+        AssertNotPaired();
+        Assert.Equal(["matched", "finished:False"], owner.Told);
+    }
+
+    [Fact]
+    public async Task NoPairingStartsWhileTheOwnerHoldsPhonesOff()
+    {
+        owner.Types = code => code;
+        var (phoneEnd, laptopEnd) = Duplex.Create();
+        var laptopSide = Laptop(laptopEnd, refusing: true);
+
+        Assert.Equal(LinkWire.StatusBusy, LinkInitiator.Pair(phoneEnd, PhoneId, PhoneName, ShowOnPhone).Status);
+
+        Assert.Null(await laptopSide);
+        Assert.Equal(0, owner.Shown);
+        AssertNotPaired();
+    }
+
+    [Fact]
+    public async Task ThePhonesNameIsCleanedBeforeItIsShown()
+    {
+        owner.Types = code => code;
+        var (phoneEnd, laptopEnd) = Duplex.Create();
+        var laptopSide = Laptop(laptopEnd);
+
+        var phone = LinkInitiator.Pair(phoneEnd, PhoneId, "Pixel‮\n\"Trusted\"", ShowOnPhone);
+        var result = await laptopSide;
+
+        Assert.NotNull(phone.Secure);
+        Assert.NotNull(result);
+        Assert.Equal("PixelTrusted", owner.LastPhoneName);
+        Assert.Equal("PixelTrusted", result.PhoneName);
     }
 
     [Fact]
@@ -312,6 +367,7 @@ public sealed class LinkResponderTests : IDisposable
 
         AssertNotPaired();
         Assert.Equal(6, owner.Shown);
+        Assert.Empty(owner.Told);
     }
 
     [Fact]
@@ -449,9 +505,14 @@ public sealed class LinkResponderTests : IDisposable
 
         public int Withdrawn => Volatile.Read(ref withdrawn);
 
+        /// <summary>What every question was told after the code was typed, in order.</summary>
+        public List<string> Told => [.. told];
+
+        private readonly ConcurrentQueue<string> told = new();
+
         public void PhoneShows(string code) => _ = shownOnPhone.Writer.TryWrite(code);
 
-        public IDisposable Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled)
+        public IPairingQuestion Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled)
         {
             Interlocked.Increment(ref shown);
             LastPhoneName = phoneName;
@@ -466,7 +527,18 @@ public sealed class LinkResponderTests : IDisposable
                 _ = Task.Run(async () => onTyped(types(await shownOnPhone.Reader.ReadAsync(token))), token);
             }
 
-            return new Subscription(() => Interlocked.Increment(ref withdrawn));
+            return new Question(this);
+        }
+
+        private sealed class Question(Owner owner) : IPairingQuestion
+        {
+            public void Matched() => owner.told.Enqueue("matched");
+
+            public void Mismatched() => owner.told.Enqueue("mismatched");
+
+            public void Finished(bool paired) => owner.told.Enqueue($"finished:{paired}");
+
+            public void Dispose() => Interlocked.Increment(ref owner.withdrawn);
         }
     }
 }
