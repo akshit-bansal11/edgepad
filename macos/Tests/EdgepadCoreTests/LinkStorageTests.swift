@@ -118,7 +118,8 @@ final class LinkStorageTests: XCTestCase {
 
         XCTAssertNil(links.find(id))
         XCTAssertFalse(
-            links.add(id, key: Hex.random(32), name: "Pixel", since: links.generation), "wrote over phones it could not read")
+            links.add(id, key: Hex.random(32), name: "Pixel", since: links.generation),
+            "wrote over phones it could not read")
         XCTAssertTrue(links.canForget)
         XCTAssertTrue(links.forget())
         XCTAssertTrue(links.add(id, key: Hex.random(32), name: "Pixel", since: links.generation))
