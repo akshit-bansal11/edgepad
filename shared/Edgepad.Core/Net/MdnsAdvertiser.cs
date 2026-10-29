@@ -262,7 +262,7 @@ internal sealed class MdnsAdvertiser(LinkIdentity identity, ushort port) : IDisp
             return;
         }
 
-        var reply = MdnsPacket.Answer(Current(), query);
+        var reply = MdnsPacket.Answer(Current(), query, oneShot: sender is not null && sender.Port != MdnsPort);
         if (reply is null)
         {
             return;

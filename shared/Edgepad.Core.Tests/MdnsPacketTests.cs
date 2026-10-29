@@ -105,6 +105,27 @@ public sealed class MdnsPacketTests
     }
 
     [Fact]
+    public void AOneShotQueryIsAnsweredWithItsIdAndQuestionAndShortTtls()
+    {
+        // Sent from port 51234, so the advertiser passes oneShot: the reply is unicast, ID 0x1234, question repeated.
+        byte[] query = [.. PtrQuery];
+        query[0] = 0x12;
+        query[1] = 0x34;
+
+        var reply = MdnsPacket.Answer(Service, Parse(query), oneShot: true);
+
+        Assert.NotNull(reply);
+        Assert.True(reply.Unicast);
+        byte[] header = [0x12, 0x34, 0x84, 0, 0, 1, 0, 1, 0, 0, 0, 4];
+        Assert.Equal(header, reply.Packet[..12]);
+        Assert.Equal(PtrQuery[12..], reply.Packet[12..PtrQuery.Length]);
+        var message = Parse(reply.Packet);
+        Assert.Equal(TwoServiceNames[..1], message.Questions.Select(q => q.Name));
+        Assert.All(message.Records, r => Assert.True(r.Ttl <= 10));
+        Assert.Equal(5, message.Records.Count);
+    }
+
+    [Fact]
     public void TheUnicastBitAsksForAUnicastReply()
     {
         var reply = MdnsPacket.Answer(Service, Parse(Query(MdnsPacket.ServiceType, MdnsPacket.TypePtr, cls: 0x8001)));

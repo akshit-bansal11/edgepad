@@ -27,7 +27,7 @@ internal sealed record MdnsQuestion(string Name, ushort Type, bool Unicast);
 /// <summary>One record read from a packet. Only the fields of its own type are set; other types are not kept.</summary>
 internal sealed record MdnsRecord(string Name, ushort Type, uint Ttl, string Target, ushort Port, IReadOnlyList<string> Text, IPAddress? Address);
 
-internal sealed record MdnsMessage(bool IsResponse, IReadOnlyList<MdnsQuestion> Questions, IReadOnlyList<MdnsRecord> Records);
+internal sealed record MdnsMessage(ushort Id, bool IsResponse, IReadOnlyList<MdnsQuestion> Questions, IReadOnlyList<MdnsRecord> Records);
 
 /// <summary>An answer to a query, and whether the asker wanted it by unicast (the QU bit).</summary>
 internal sealed record MdnsReply(byte[] Packet, bool Unicast);
@@ -59,12 +59,13 @@ internal static class MdnsPacket
     private const int MaxLabelLength = 63;
     private const uint LongTtl = 4500;
     private const uint ShortTtl = 120;
+    private const uint LegacyTtl = 10;
 
     /// <summary>
     /// The response to <paramref name="query"/>, or null when it asks for nothing this service has: a response, an
     /// unknown name or type, or the host's address when there is none to give.
     /// </summary>
-    public static MdnsReply? Answer(MdnsService service, MdnsMessage query)
+    public static MdnsReply? Answer(MdnsService service, MdnsMessage query, bool oneShot = false)
     {
         if (query.IsResponse)
         {
@@ -95,20 +96,29 @@ internal static class MdnsPacket
             additional = MdnsKinds.A;
         }
 
-        return new MdnsReply(Build(service, goodbye: false, answers, additional & ~answers), unicast);
+        // RFC 6762 6.7: a one-shot querier (any source port but 5353) gets a unicast reply that echoes its ID and
+        // questions, with short TTLs and no cache-flush bit, because it cannot cache like a multicast listener.
+        return new MdnsReply(Build(service, goodbye: false, answers, additional & ~answers, oneShot ? query : null), unicast || oneShot);
     }
 
-    public static byte[] Build(MdnsService service, bool goodbye, MdnsKinds answers, MdnsKinds additional)
+    public static byte[] Build(MdnsService service, bool goodbye, MdnsKinds answers, MdnsKinds additional, MdnsMessage? legacyOf = null)
     {
         var packet = new List<byte>(512);
-        U16(packet, 0);
+        U16(packet, legacyOf?.Id ?? 0);
         U16(packet, 0x8400);
-        U16(packet, 0);
+        U16(packet, legacyOf?.Questions.Count ?? 0);
         U16(packet, Count(service, answers));
         U16(packet, 0);
         U16(packet, Count(service, additional));
-        Write(packet, service, goodbye, answers);
-        Write(packet, service, goodbye, additional);
+        foreach (var q in legacyOf?.Questions ?? Array.Empty<MdnsQuestion>())
+        {
+            Name(packet, q.Name);
+            U16(packet, q.Type);
+            U16(packet, 1);
+        }
+
+        Write(packet, service, goodbye, answers, legacyOf is not null);
+        Write(packet, service, goodbye, additional, legacyOf is not null);
         return [.. packet];
     }
 
@@ -172,7 +182,7 @@ internal static class MdnsPacket
             }
         }
 
-        message = new MdnsMessage((U16(packet, 2) & 0x8000) != 0, parsedQuestions, parsedRecords);
+        message = new MdnsMessage((ushort)U16(packet, 0), (U16(packet, 2) & 0x8000) != 0, parsedQuestions, parsedRecords);
         return true;
     }
 
@@ -198,11 +208,11 @@ internal static class MdnsPacket
         (kinds.HasFlag(MdnsKinds.Ptr) ? 1 : 0) + (kinds.HasFlag(MdnsKinds.Srv) ? 1 : 0) + (kinds.HasFlag(MdnsKinds.Txt) ? 1 : 0)
         + (kinds.HasFlag(MdnsKinds.A) ? service.Addresses.Count : 0);
 
-    private static void Write(List<byte> packet, MdnsService service, bool goodbye, MdnsKinds kinds)
+    private static void Write(List<byte> packet, MdnsService service, bool goodbye, MdnsKinds kinds, bool legacy)
     {
         // A goodbye is the same records with a TTL of 0. The cache-flush bit goes on every record that is the only one
         // of its name and type, which is all but the shared PTR.
-        uint Ttl(uint normal) => goodbye ? 0 : normal;
+        uint Ttl(uint normal) => goodbye ? 0 : legacy ? Math.Min(normal, LegacyTtl) : normal;
         if (kinds.HasFlag(MdnsKinds.Ptr))
         {
             Record(packet, ServiceType, TypePtr, flush: false, Ttl(LongTtl), data => Name(data, service.InstanceName));
@@ -210,7 +220,7 @@ internal static class MdnsPacket
 
         if (kinds.HasFlag(MdnsKinds.Srv))
         {
-            Record(packet, service.InstanceName, TypeSrv, flush: true, Ttl(ShortTtl), data =>
+            Record(packet, service.InstanceName, TypeSrv, flush: !legacy, Ttl(ShortTtl), data =>
             {
                 U16(data, 0);
                 U16(data, 0);
@@ -221,7 +231,7 @@ internal static class MdnsPacket
 
         if (kinds.HasFlag(MdnsKinds.Txt))
         {
-            Record(packet, service.InstanceName, TypeTxt, flush: true, Ttl(LongTtl), data =>
+            Record(packet, service.InstanceName, TypeTxt, flush: !legacy, Ttl(LongTtl), data =>
             {
                 foreach (var entry in service.Text)
                 {
@@ -242,7 +252,7 @@ internal static class MdnsPacket
         {
             foreach (var address in service.Addresses)
             {
-                Record(packet, service.HostName, TypeA, flush: true, Ttl(ShortTtl), data => data.AddRange(address.GetAddressBytes()));
+                Record(packet, service.HostName, TypeA, flush: !legacy, Ttl(ShortTtl), data => data.AddRange(address.GetAddressBytes()));
             }
         }
     }
