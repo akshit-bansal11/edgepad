@@ -1,26 +1,22 @@
 using Edgepad.Capture;
 using Edgepad.Dispatch;
 using Edgepad.Macros;
-using Edgepad.Native;
 using Edgepad.Net;
 using Edgepad.Platform;
 using Edgepad.Protocol;
 using Edgepad.Trust;
-using Microsoft.Win32.SafeHandles;
 
 namespace Edgepad.Bluetooth;
 
 /// <summary>
-/// One connected phone over the RFCOMM socket BlueZ handed over: the shared handshake (trust, asked through
+/// One connected phone over its link: the shared handshake (trust, asked through
 /// askTrust, then the PIN, then the server's word through onAdmitted), then a blocking read loop on its own thread
 /// that turns each frame straight into input, as the Windows session does. The platform reports state (volume,
 /// brightness, media, macros) through the sink the session hands it after the handshake, from threads of its own.
 /// </summary>
 internal sealed class LinuxSession : IDisposable
 {
-    private readonly SafeFileHandle socket;
-    private readonly FileStream reader;
-    private readonly FileStream writer;
+    private readonly IPhoneLink link;
     private readonly FrameStream frames;
     private readonly Thread thread;
     private readonly TrustStore trust;
@@ -43,15 +39,14 @@ internal sealed class LinuxSession : IDisposable
     private readonly CancellationTokenSource ended = new();
 
     /// <summary>
-    /// Takes ownership of <paramref name="socket"/>. <paramref name="releaseHeldInput"/> releases every key and
+    /// Takes ownership of <paramref name="link"/>. <paramref name="releaseHeldInput"/> releases every key and
     /// button the phone still holds down when the session ends, and unplugs its virtual controller.
     /// <paramref name="probePad"/> answers the PAD_STATUS token sent once after the handshake, and
     /// <paramref name="startReporting"/> is given the sink the platform sends its state reports through, and
     /// <paramref name="macros"/> is read each time the phone asks for the macro icons.
     /// </summary>
     public LinuxSession(
-        SafeFileHandle socket,
-        string address,
+        IPhoneLink link,
         TrustStore trust,
         PinStore pin,
         Func<string, CancellationToken, bool> askTrust,
@@ -64,8 +59,8 @@ internal sealed class LinuxSession : IDisposable
         Func<LinuxSession, bool> onAdmitted,
         Action<LinuxSession> onEnded)
     {
-        this.socket = socket;
-        Address = address;
+        this.link = link;
+        Address = link.Address;
         this.trust = trust;
         this.pin = pin;
         this.askTrust = askTrust;
@@ -77,29 +72,14 @@ internal sealed class LinuxSession : IDisposable
         this.onStatus = onStatus;
         this.onAdmitted = onAdmitted;
         this.onEnded = onEnded;
-
-        Libc.MakeBlocking(socket);
-
-        // A FileStream over the socket's descriptor: on Linux it reads and writes a handle that cannot seek with
-        // plain read(2) and write(2), which is all an RFCOMM stream socket needs. The alternative, a Socket over a
-        // SafeSocketHandle, asks the kernel for the socket's address family on construction, and .NET has no
-        // mapping for AF_BLUETOOTH. UNVERIFIED on a real link (docs/LINUX.md); if it fails there, the fallback is
-        // `new NetworkStream(new Socket(new SafeSocketHandle(fd, ownsHandle: true)), ownsSocket: true)`.
-        //
-        // Two streams over the one handle, because a FileStream is not safe for a read on one thread and a write
-        // on another. The reader is buffered (one read(2) returns whatever the phone has sent, never waiting to
-        // fill the buffer); the writer is not, so a frame leaves when Send writes it. Both dispose the same
-        // SafeHandle, which closes the descriptor once.
-        reader = new FileStream(socket, FileAccess.Read, bufferSize: 4096);
-        writer = new FileStream(socket, FileAccess.Write, bufferSize: 0);
-        frames = new FrameStream(reader, writer);
+        frames = new FrameStream(link.Input, link.Output);
 
         // A dedicated thread, not the thread pool: the read loop blocks for the life of the connection, and
         // input is injected from this thread directly, so nothing queues behind other work.
         thread = new Thread(Run) { IsBackground = true, Name = "edgepad-session", Priority = ThreadPriority.AboveNormal };
     }
 
-    /// <summary>The phone's Bluetooth address, as the log and the trust file name it.</summary>
+    /// <summary>The phone's address, as the log and the trust file name it.</summary>
     public string Address { get; }
 
     public void Start() => thread.Start();
@@ -258,28 +238,18 @@ internal sealed class LinuxSession : IDisposable
         ended.Cancel();
         Interlocked.Increment(ref iconRun);
 
-        // Shut down first, and outside the send lock: a Send blocked in a write to a phone that has stopped
-        // reading holds that lock for as long as the write blocks. Shutting the socket down fails that write and
+        // Closed first, and outside the send lock: a Send blocked in a write to a phone that has stopped
+        // reading holds that lock for as long as the write blocks. Closing the link fails that write and
         // ends the blocked read, and only then are the streams disposed, never under a writer's feet.
-        try
-        {
-            Libc.Shutdown(socket);
-        }
-        catch (ObjectDisposedException)
-        {
-            // Already closed: nothing left to wake.
-        }
+        link.Close();
 
         lock (frames.SendGate)
         {
-            writer.Dispose();
-            reader.Dispose();
+            frames.Output.Dispose();
+            frames.Input.Dispose();
         }
 
         // Already cancelled, so a question still reading the token sees that, never a live one.
         ended.Dispose();
-
-        // Both streams closed it already; said again so the handle is plainly this class's to close.
-        socket.Dispose();
     }
 }

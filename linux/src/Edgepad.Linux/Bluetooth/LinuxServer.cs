@@ -1,4 +1,3 @@
-using Edgepad.Dispatch;
 using Edgepad.Platform;
 using Edgepad.Trust;
 using Microsoft.Win32.SafeHandles;
@@ -7,15 +6,15 @@ using Tmds.DBus.Protocol;
 namespace Edgepad.Bluetooth;
 
 /// <summary>
-/// Serves the Edgepad RFCOMM service through BlueZ, one phone at a time, with the Windows hand-off rules
-/// (<see cref="Admission{T}"/>). It registers the profile with whichever bluetoothd owns <c>org.bluez</c> and
+/// Serves the Edgepad RFCOMM service through BlueZ, handing each connection to a <see cref="SessionHost"/>, which
+/// serves one phone at a time. It registers the profile with whichever bluetoothd owns <c>org.bluez</c> and
 /// registers it again each time that name changes hands, since a restarted bluetoothd has forgotten every
 /// profile. A start that fails (no system bus, bluetoothd not running, the call refused) is tried again every
 /// 30 s for as long as it takes, as on Windows: all of them are states to wait out, not an end.
 /// </summary>
-internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, CancellationToken, bool> askTrust, Action<string> onStatus) : IDisposable
+internal sealed class LinuxServer : IDisposable
 {
-    // Joined at exit so each session's own cleanup, which releases held keys and buttons, gets to run.
+    // How long Dispose waits for the service's own loop to stop.
     private static readonly TimeSpan ExitGrace = TimeSpan.FromSeconds(2);
 
     private static readonly TimeSpan RetryStartEvery = TimeSpan.FromSeconds(30);
@@ -23,13 +22,20 @@ internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, C
     private const string Waiting = "Waiting for your phone";
     private const string StartFailing = "Bluetooth is off or unavailable; trying again";
 
-    private readonly Admission<LinuxSession> admission = new();
+    private readonly Action<string> onStatus;
+    private readonly SessionHost host;
     private readonly CancellationTokenSource stopping = new();
 
     // The unique bus name (":1.42") of the bluetoothd the profile is registered with; null while there is none.
     // Read on the D-Bus dispatch thread to check who is calling the profile.
     private volatile string? bluetoothd;
     private Task? serving;
+
+    public LinuxServer(TrustStore trust, PinStore pin, Func<string, CancellationToken, bool> askTrust, Action<string> onStatus)
+    {
+        this.onStatus = onStatus;
+        host = new SessionHost(trust, pin, askTrust, onStatus, OnSessionEnded);
+    }
 
     public void Start() => serving = Task.Run(() => ServeAsync(stopping.Token));
 
@@ -100,7 +106,7 @@ internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, C
             bluetoothd = NameOwnerWatcher.GetOwnerBusName(id);
             await bus.CallMethodAsync(BluezProfile.RegisterMessage(bus, id));
             Log.Write($"RFCOMM profile registered with bluetoothd ({bluetoothd})");
-            onStatus(admission.CurrentAddress is { } live ? $"Connected to {live}" : Waiting);
+            onStatus(host.CurrentAddress is { } live ? $"Connected to {live}" : Waiting);
 
             using var until = CancellationTokenSource.CreateLinkedTokenSource(stop, changed);
             await Task.WhenAny(Task.Delay(Timeout.Infinite, until.Token), disconnected);
@@ -123,120 +129,27 @@ internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, C
     /// Called on the D-Bus thread, which must not block: the session runs on a thread of its own. True when the
     /// socket was taken; false when it was refused, and the profile then closes it.
     /// </summary>
-    private bool OnNewConnection(string address, SafeFileHandle socket)
-    {
-        // A device this laptop already knows it will refuse is turned away before it costs a thread. Nothing that
-        // gets past this touches the connected phone yet: that waits for the handshake's onAdmitted.
-        var refusal = admission.Refusal(address);
-        if (refusal is null && trust.Refuses(address))
-        {
-            refusal = $"Refused {address} without disturbing the connected phone: the owner is being asked about a phone "
-                + "or just declined this one, or the trust file cannot be read";
-        }
+    private bool OnNewConnection(string address, SafeFileHandle socket) => host.Accept(new BluezLink(socket, address));
 
-        if (refusal is not null)
-        {
-            Log.Write(refusal);
-            return false;
-        }
-
-        // Input state belongs to one connection: its own virtual keyboard and pad, destroyed when the session ends.
-        // Until the session starts, nothing else disposes the platform: a session that never runs never reaches
-        // the finally that releases its input, so its uinput keyboard and worker thread are this method's to end.
-        var platform = new LinuxPlatform();
-        LinuxSession session;
-        try
-        {
-            session = new LinuxSession(
-                socket,
-                address,
-                trust,
-                pin,
-                askTrust,
-                new Dispatcher(platform, platform),
-                platform.Dispose,
-                platform.ProbePad,
-                platform.StartReporting,
-                () => platform.Macros,
-                onStatus,
-                OnAdmitted,
-                OnSessionEnded);
-        }
-        catch
-        {
-            platform.Dispose();
-            throw;
-        }
-
-        if (!admission.AddCandidate(session, address))
-        {
-            Log.Write($"Refused {address}: Edgepad is quitting, or the owner is changing security settings");
-            session.Dispose();
-            platform.Dispose();
-            return false;
-        }
-
-        session.Start();
-        return true;
-    }
-
-    private void OnRequestDisconnection(string address)
-    {
-        foreach (var session in admission.Sessions(address))
-        {
-            session.Dispose();
-        }
-    }
-
-    /// <summary>
-    /// Called by a session once trust and the PIN have said yes, just before it answers HELLO_ACK: the moment a
-    /// new phone may replace the connected one.
-    /// </summary>
-    private bool OnAdmitted(LinuxSession session)
-    {
-        if (!admission.Admit(session, out var replaced, out var refusal))
-        {
-            Log.Write($"Refused {session.Address}: {refusal}");
-            return false;
-        }
-
-        // Outside the admission lock: the replaced session's exit calls OnSessionEnded.
-        if (replaced is not null)
-        {
-            Log.Write($"{session.Address} replaced the connection with {replaced.Address}");
-            replaced.Dispose();
-        }
-
-        return true;
-    }
+    private void OnRequestDisconnection(string address) => host.Disconnect(address);
 
     /// <summary>
     /// Hangs up on every phone and refuses new connections until <see cref="Resume"/>. For an owner dialog that
     /// changes security: a connected phone is a keyboard, and a trusted one reconnects within seconds.
     /// </summary>
-    public void HoldOff() => End(admission.HoldOff());
+    public void HoldOff() => host.HoldOff();
 
     /// <summary>Ends one <see cref="HoldOff"/>.</summary>
-    public void Resume() => admission.Resume();
+    public void Resume() => host.Resume();
 
     /// <summary>Hangs up on every phone and refuses new connections for <paramref name="quiet"/>.</summary>
-    public void HangUp(TimeSpan quiet) => End(admission.HangUp(quiet));
+    public void HangUp(TimeSpan quiet) => host.HangUp(quiet);
 
-    // Outside the admission lock: each session's exit calls OnSessionEnded.
-    private static void End(List<LinuxSession> sessions)
+    private void OnSessionEnded()
     {
-        foreach (var session in sessions)
-        {
-            session.Dispose();
-        }
-    }
-
-    private void OnSessionEnded(LinuxSession session)
-    {
-        admission.Ended(session);
         if (!stopping.IsCancellationRequested)
         {
-            onStatus(admission.CurrentAddress is { } live ? $"Connected to {live}" : bluetoothd is null ? StartFailing : Waiting);
+            onStatus(host.CurrentAddress is { } live ? $"Connected to {live}" : bluetoothd is null ? StartFailing : Waiting);
         }
     }
 
@@ -244,18 +157,8 @@ internal sealed class LinuxServer(TrustStore trust, PinStore pin, Func<string, C
     {
         stopping.Cancel();
 
-        // Outside any lock, because each session's exit calls OnSessionEnded. Held keys and buttons are released
-        // in the session's own finally on its thread, and the process can exit before that runs.
-        var ending = admission.Close();
-        foreach (var session in ending)
-        {
-            session.Dispose();
-        }
-
-        foreach (var session in ending)
-        {
-            session.Join(ExitGrace);
-        }
+        // Ends every session and waits for each one's cleanup, which releases held keys and buttons.
+        host.Dispose();
 
         try
         {
