@@ -25,7 +25,7 @@ internal sealed class Tray : IDisposable
 
     private readonly NativeMenuItem statusRow = new("Starting") { IsEnabled = false };
     private readonly NativeMenuItem securityRow = new("Security…");
-    private readonly NativeMenuItem networkRow = new("Wi-Fi and USB connections") { ToggleType = NativeMenuItemToggleType.CheckBox };
+    private readonly NativeMenuItem networkRow = new("Wi-Fi and USB connections");
     private readonly NativeMenuItem forgetRow = new("Forget trusted phones");
     private readonly TrayIcon icon;
     private readonly Bus portal = Bus.OnSession();
@@ -117,8 +117,7 @@ internal sealed class Tray : IDisposable
     public void Refresh()
     {
         securityRow.Header = $"Security… ({levelHint()})";
-        networkRow.Header = $"Wi-Fi and USB connections ({networkHint()})";
-        networkRow.IsChecked = networkOn();
+        networkRow.Header = $"{(networkOn() ? "✓ " : "")}Wi-Fi and USB connections ({networkHint()})";
         forgetRow.IsEnabled = canForget();
     }
 
