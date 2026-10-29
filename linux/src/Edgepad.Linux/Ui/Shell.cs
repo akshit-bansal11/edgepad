@@ -16,7 +16,7 @@ namespace Edgepad.Ui;
 /// and a trusted one reconnects within seconds. Everything that touches a window runs on the UI thread; the
 /// Bluetooth threads reach it only through <see cref="AskTrust"/> and <see cref="SetStatus"/>.
 /// </summary>
-internal sealed class Shell
+internal sealed class Shell : IDisposable
 {
     /// <summary>
     /// How long after a Forget every connection is refused. It outlasts the phone's own automatic retries, so
@@ -78,6 +78,9 @@ internal sealed class Shell
 
     /// <summary>Stops listening for Wi-Fi and USB phones and closes theirs. Before the server is disposed; harmless twice.</summary>
     public void StopNetwork() => network?.Dispose();
+
+    /// <summary>Stops the network server if <see cref="StopNetwork"/> has not already; Program calls that earlier, before the server goes.</summary>
+    public void Dispose() => network?.Dispose();
 
     /// <summary>Runs the UI on the calling thread until Quit; returns Avalonia's exit code. Throws if no display can be opened.</summary>
     public int Run() =>

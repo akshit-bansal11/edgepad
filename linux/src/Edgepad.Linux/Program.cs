@@ -48,7 +48,7 @@ internal static class Program
 
         // SIGTERM (a logout, systemd, kill) and Ctrl+C end the UI loop, or the wait below when there is no UI,
         // instead of the process, so the server's Dispose runs and releases whatever the phone was holding down.
-        var shell = new Shell(trust, pin, networkSettings, paired, identity, Version);
+        using var shell = new Shell(trust, pin, networkSettings, paired, identity, Version);
         using var quit = new ManualResetEventSlim();
         using var terminate = PosixSignalRegistration.Create(PosixSignal.SIGTERM, Stop);
         using var interrupt = PosixSignalRegistration.Create(PosixSignal.SIGINT, Stop);
