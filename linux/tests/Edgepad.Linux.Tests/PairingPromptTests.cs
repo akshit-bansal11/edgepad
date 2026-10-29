@@ -77,6 +77,9 @@ public sealed class PairingPromptTests
         var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, _, _, _) => window);
 
         var handle = prompt.Show("Pixel", _ => { }, () => { });
+
+        // The window is up, as it is by the time anyone types a code.
+        queue.Dequeue()();
         handle.Matched();
         handle.Finished(paired: true);
         handle.Dispose();
@@ -100,6 +103,7 @@ public sealed class PairingPromptTests
 
         using (var handle = prompt.Show("Pixel", _ => { }, () => { }))
         {
+            queue.Dequeue()();
             handle.Mismatched();
         }
 
