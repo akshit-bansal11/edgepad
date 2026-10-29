@@ -372,6 +372,25 @@ public sealed class TrustStoreTests : IDisposable
         Assert.Equal(UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute, File.GetUnixFileMode(dir));
     }
 
+    [Fact]
+    public void AGrantedPhoneIsAdmittedUnaskedAndRemembered()
+    {
+        NewStore().Grant("link:00112233445566778899aabbccddeeff");
+
+        Assert.True(NewStore().Admit("link:00112233445566778899aabbccddeeff", Unasked));
+        Assert.Equal(["link:00112233445566778899aabbccddeeff"], NewStore().TrustedPhones);
+    }
+
+    [Fact]
+    public void AGrantIsForgottenWithTheRest()
+    {
+        var store = NewStore();
+        store.Grant("link:00112233445566778899aabbccddeeff");
+
+        Assert.True(store.Forget());
+        Assert.Empty(store.TrustedPhones);
+    }
+
     private static bool Yes() => true;
 
     private static bool No() => false;

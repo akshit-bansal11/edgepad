@@ -142,24 +142,45 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
                 return false;
             }
 
-            if (Holds(trusted, address))
+            if (!Holds(trusted, address))
             {
-                return true;
-            }
-
-            try
-            {
-                PrivateStorage.Replace(path, temp => File.WriteAllLines(temp, trusted.Append(address)));
-            }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-            {
-                // Admitted anyway, and remembered until the app quits. Refusing the owner's own phone
-                // because the disk is full would be a worse answer than forgetting it at the next start.
-                unsaved.Add(address);
-                Log.Write($"A trusted phone could not be saved to {path}: {e.Message}");
+                Save(trusted, address);
             }
 
             return true;
+        }
+    }
+
+    /// <summary>
+    /// Trusts <paramref name="address"/> without a question, for a phone the owner has already said yes to some other
+    /// way: a network pairing, where typing the phone's code on this laptop is the owner's yes. A trust file that
+    /// cannot be read is left as it is, so the phone is refused at <see cref="Admit"/> like every other until the
+    /// owner forgets them.
+    /// </summary>
+    public void Grant(string address)
+    {
+        lock (gate)
+        {
+            if (TryRead(out var trusted) && !Holds(trusted, address))
+            {
+                Save(trusted, address);
+            }
+        }
+    }
+
+    /// <summary>Writes <paramref name="address"/> down after <paramref name="trusted"/>. Called under the lock.</summary>
+    private void Save(List<string> trusted, string address)
+    {
+        try
+        {
+            PrivateStorage.Replace(path, temp => File.WriteAllLines(temp, trusted.Append(address)));
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // Admitted anyway, and remembered until the app quits. Refusing the owner's own phone
+            // because the disk is full would be a worse answer than forgetting it at the next start.
+            unsaved.Add(address);
+            Log.Write($"A trusted phone could not be saved to {path}: {e.Message}");
         }
     }
 
