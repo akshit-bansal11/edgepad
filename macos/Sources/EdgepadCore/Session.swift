@@ -49,6 +49,11 @@ public final class Session {
     /// over the Mac from the one in use. False ends the session with nothing sent.
     private let onAdmitted: (Session) -> Bool
     private let onEnded: (Session) -> Void
+    /// Runs one macro icon's turn. The main queue by default, so frames that arrive meanwhile are read between
+    /// icons rather than after all of them. Tests pass `{ $0() }` so the icons follow `receive` directly.
+    private let schedule: (@escaping () -> Void) -> Void
+    /// Which icon run may still send: each WANT_ICONS moves it on, and a run that sees it moved stops.
+    private var iconRun = 0
 
     private var reader = FrameReader()
 
@@ -83,7 +88,8 @@ public final class Session {
         display: DisplayRates,
         onStatus: @escaping (String) -> Void,
         onAdmitted: @escaping (Session) -> Bool,
-        onEnded: @escaping (Session) -> Void
+        onEnded: @escaping (Session) -> Void,
+        schedule: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) }
     ) {
         self.address = address
         self.transport = transport
@@ -100,6 +106,7 @@ public final class Session {
         self.onStatus = onStatus
         self.onAdmitted = onAdmitted
         self.onEnded = onEnded
+        self.schedule = schedule
     }
 
     /// Bytes from the phone, in arrival order.
@@ -347,7 +354,7 @@ public final class Session {
             send(.pong(time: time))
         case .text(let kind, _) where kind == TextKind.wantIcons.rawValue:
             // Not a frame the dispatcher should count as dropped, whether or not there is anything to send.
-            sendIcons()
+            startIcons()
         default:
             dispatcher.handle(frame)
         }
@@ -417,20 +424,31 @@ public final class Session {
         }
     }
 
-    /// Every macro icon the app can supply, in pieces. The phone asks when it opens the macro grid, a screen with
-    /// no trackpad on it, so the pause while they go out falls where nothing is being pointed at. An icon that
-    /// cannot be had is simply not sent and its button keeps its label.
-    private func sendIcons() {
+    /// Every macro icon the app can supply, one icon per scheduled turn and none inline: the phone asks as soon as
+    /// it connects and whenever the list changes, so a macro tapped then would otherwise wait behind every icon. A
+    /// newer WANT_ICONS supersedes this run, and `end()` stops it.
+    private func startIcons() {
         guard let macros = dispatcher.macros else { return }
-        let revision = macros.revision
-        for slot in macros.macros.indices {
-            guard let png = macros.icon(at: slot) else { continue }
-            for chunk in MacroIconChunks.chunks(slot: slot, png: png) {
-                // A save swaps the list between chunks of the old one, which would land on whatever moved into
-                // the slot. The phone asks again for the new list.
-                guard macros.revision == revision else { return }
-                send(.text(kind: TextKind.macroIcon.rawValue, value: chunk))
+        iconRun += 1
+        sendIcons(from: 0, of: macros, revision: macros.revision, run: iconRun)
+    }
+
+    /// The icon in `slot`, in pieces, then the next slot's turn. An icon that cannot be had is simply not sent and
+    /// its button keeps its label.
+    private func sendIcons(from slot: Int, of macros: MacroStore, revision: Int, run: Int) {
+        schedule { [weak self] in
+            guard let self, !self.isEnded, self.iconRun == run, macros.revision == revision,
+                slot < macros.macros.count
+            else { return }
+            if let png = macros.icon(at: slot) {
+                for chunk in MacroIconChunks.chunks(slot: slot, png: png) {
+                    // A save swaps the list between chunks of the old one, which would land on whatever moved into
+                    // the slot. The phone asks again for the new list.
+                    guard macros.revision == revision else { return }
+                    self.send(.text(kind: TextKind.macroIcon.rawValue, value: chunk))
+                }
             }
+            self.sendIcons(from: slot + 1, of: macros, revision: revision, run: run)
         }
     }
 

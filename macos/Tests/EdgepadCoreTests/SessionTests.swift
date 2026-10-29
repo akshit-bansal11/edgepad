@@ -29,6 +29,9 @@ final class SessionTests: XCTestCase {
     private var askedWith: Cancellation?
     /// Seconds on the PIN store's clock, moved by hand.
     private var time: TimeInterval = 0
+    /// False runs each icon turn as soon as it is scheduled; true holds them here until `runIconTurns`.
+    private var holdsIcons = false
+    private var iconTurns: [() -> Void] = []
 
     private lazy var trust = TrustStore(path: directory.appendingPathComponent("trust").path)
     /// One iteration, as in PinStoreTests: the real work factor would take most of a second per answer.
@@ -72,8 +75,19 @@ final class SessionTests: XCTestCase {
             display: display,
             onStatus: { [weak self] status in self?.statuses.append(status) },
             onAdmitted: { [weak self] _ in self?.admitted() ?? false },
-            onEnded: { [weak self] session in self?.ended.append(session) }
+            onEnded: { [weak self] session in self?.ended.append(session) },
+            schedule: { [weak self] turn in
+                guard let self, self.holdsIcons else { return turn() }
+                self.iconTurns.append(turn)
+            }
         )
+    }
+
+    /// Runs each held icon turn in order, including the turns those queue.
+    private func runIconTurns() {
+        while !iconTurns.isEmpty {
+            iconTurns.removeFirst()()
+        }
     }
 
     private func admitted() -> Bool {
@@ -518,6 +532,42 @@ final class SessionTests: XCTestCase {
             .map { Frame.text(kind: TextKind.macroIcon.rawValue, value: $0) }
         XCTAssertEqual(framesSince(before), expected)
         XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testAFrameAfterAskingForIconsIsHandledBeforeAnyIconAndANewerAskSupersedes() {
+        let png = [UInt8](repeating: 7, count: 400)
+        let store = macroStore(icons: FakeIcons(bytes: png))
+        store.save([Macro(name: "Mail", target: "Mail.app"), Macro(name: "Code", target: "Code.app")])
+        holdsIcons = true
+        let session = connectedSession()
+        let before = transport.frames().count
+        let wantIcons = FrameCodec.encode(.text(kind: TextKind.wantIcons.rawValue, value: ""))
+
+        session.receive(wantIcons)
+        session.receive(FrameCodec.encode(.ping(time: 3)))
+        XCTAssertEqual(framesSince(before), [.pong(time: 3)])
+
+        // The first run's turn is still queued; only the second run's icons may go out, once each.
+        session.receive(wantIcons)
+        runIconTurns()
+
+        let icons = [0, 1].flatMap { MacroIconChunks.chunks(slot: $0, png: png) }
+            .map { Frame.text(kind: TextKind.macroIcon.rawValue, value: $0) }
+        XCTAssertEqual(framesSince(before), [.pong(time: 3)] + icons)
+    }
+
+    func testAnEndedSessionSendsNoQueuedIcon() {
+        let store = macroStore(icons: FakeIcons(bytes: [UInt8](repeating: 7, count: 400)))
+        store.save([Macro(name: "Mail", target: "Mail.app")])
+        holdsIcons = true
+        let session = connectedSession()
+        session.receive(FrameCodec.encode(.text(kind: TextKind.wantIcons.rawValue, value: "")))
+        session.end()
+        let sent = transport.sent.count
+
+        runIconTurns()
+
+        XCTAssertEqual(transport.sent.count, sent)
     }
 
     func testAskingForIconsWithNoPictureSendsNothing() {

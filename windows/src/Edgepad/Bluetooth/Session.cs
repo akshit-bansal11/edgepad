@@ -57,6 +57,8 @@ internal sealed class Session(
     // Cancelled by Dispose, so a trust question open for this session, or about to be put, is withdrawn.
     private readonly CancellationTokenSource ended = new();
     private bool disposed;
+    // Which icon run may still send: each WANT_ICONS and Dispose move it on, and a run that sees it moved stops.
+    private int iconRun;
     private MediaState lastMedia = MediaSessions.Nothing;
     private string lastTimeline = "";
 
@@ -87,7 +89,7 @@ internal sealed class Session(
                 {
                     // Answered here rather than in the dispatcher, for the same reason PONG is: the reply
                     // goes back down this socket, and the dispatcher deliberately holds no reference to it.
-                    SendIcons();
+                    StartIcons();
                 }
                 else
                 {
@@ -245,17 +247,42 @@ internal sealed class Session(
     }
 
     /// <summary>
-    /// Every macro icon this laptop can read, in pieces. Runs on the read loop, which means no input frame
-    /// is read while it goes out — and that is the point of the phone asking rather than being pushed at:
-    /// it asks when it opens the macro grid, which is a screen with no trackpad on it, so the pause is in a
-    /// moment where nothing is being pointed at. An icon that cannot be read is simply not sent, and its
-    /// button keeps the label it already had.
+    /// Sends the icons from a pool thread, never the read loop: the phone asks as soon as it connects and
+    /// whenever the list changes, so a macro tapped then would otherwise wait behind every icon's extraction.
+    /// A newer WANT_ICONS supersedes this run, and Dispose ends it.
     /// </summary>
-    private void SendIcons()
+    private void StartIcons()
+    {
+        var run = Interlocked.Increment(ref iconRun);
+        _ = Task.Run(() =>
+        {
+            // Nothing may escape a pool thread. A dead socket is the read loop's to notice, as for any report.
+            try
+            {
+                Guarded(() => SendIcons(run));
+            }
+            catch (Exception e)
+            {
+                Log.Write($"Macro icons for {address} failed: {e}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Every macro icon this laptop can read, in pieces, for as long as <paramref name="run"/> is the current
+    /// run. An icon that cannot be read is simply not sent, and its button keeps the label it already had.
+    /// </summary>
+    private void SendIcons(int run)
     {
         var current = macros.Macros;
         for (var slot = 0; slot < current.Count; slot++)
         {
+            // Before each extraction too, so a superseded run stops reading icons nobody will be sent.
+            if (Volatile.Read(ref iconRun) != run)
+            {
+                return;
+            }
+
             if (MacroIcons.Png(current[slot]) is not { } png)
             {
                 continue;
@@ -266,9 +293,11 @@ internal sealed class Session(
                 // A save in the tray editor swaps the list and then sends it from another thread. Checked
                 // under the send lock, no chunk of the old list can follow the new one to the phone, where
                 // it would land on whatever macro moved into its slot. The phone asks again for the new list.
+                // Checking the run there too keeps a superseded run from interleaving with the one after it,
+                // and a disposed session from writing at all: Dispose moves the run on before closing anything.
                 lock (frames.SendGate)
                 {
-                    if (!ReferenceEquals(macros.Macros, current))
+                    if (!ReferenceEquals(macros.Macros, current) || Volatile.Read(ref iconRun) != run)
                     {
                         return;
                     }
@@ -354,6 +383,7 @@ internal sealed class Session(
         }
 
         ended.Cancel();
+        Interlocked.Increment(ref iconRun);
 
         foreach (var watch in ending)
         {

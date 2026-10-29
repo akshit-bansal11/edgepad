@@ -36,6 +36,9 @@ internal sealed class LinuxSession : IDisposable
     private readonly Action<LinuxSession> onEnded;
     private int disposed;
 
+    // Which icon run may still send: each WANT_ICONS and Dispose move it on, and a run that sees it moved stops.
+    private int iconRun;
+
     // Cancelled by Dispose, so a trust question open for this session, or about to be put, is withdrawn.
     private readonly CancellationTokenSource ended = new();
 
@@ -141,7 +144,7 @@ internal sealed class LinuxSession : IDisposable
                 {
                     // Answered here rather than in the dispatcher, for the same reason PONG is: the reply goes back
                     // down this socket, and the dispatcher holds no reference to it.
-                    SendIcons();
+                    StartIcons();
                 }
                 else
                 {
@@ -178,15 +181,47 @@ internal sealed class LinuxSession : IDisposable
     }
 
     /// <summary>
-    /// Every macro icon this laptop can read, in pieces. Runs on the read loop, so no input frame is read while it
-    /// goes out. The phone asks when it opens the macro grid, a screen with no trackpad on it, so the pause falls
-    /// where nothing is being pointed at. An icon that cannot be read is not sent, and its button keeps its name.
+    /// Sends the icons from a pool thread, never the read loop: the phone asks as soon as it connects and whenever
+    /// the list changes, so a macro tapped then would otherwise wait behind every icon's rendering. A newer
+    /// WANT_ICONS supersedes this run, and Dispose ends it. Not the platform's worker thread: a long icon run would
+    /// hold up the volume and mute jobs queued behind it.
     /// </summary>
-    private void SendIcons()
+    private void StartIcons()
+    {
+        var run = Interlocked.Increment(ref iconRun);
+        _ = Task.Run(() =>
+        {
+            // Nothing may escape a pool thread.
+            try
+            {
+                SendIcons(run);
+            }
+            catch (Exception e) when (e is IOException or ObjectDisposedException or OperationCanceledException)
+            {
+                // The read loop notices the dead socket and ends the session; a lost icon costs nothing.
+            }
+            catch (Exception e)
+            {
+                Log.Write($"Macro icons for {Address} failed: {e}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Every macro icon this laptop can read, in pieces, for as long as <paramref name="run"/> is the current run.
+    /// An icon that cannot be read is not sent, and its button keeps its name.
+    /// </summary>
+    private void SendIcons(int run)
     {
         var current = macros();
         for (var slot = 0; slot < current.Count; slot++)
         {
+            // Before each render too, so a superseded run stops reading icons nobody will be sent.
+            if (Volatile.Read(ref iconRun) != run)
+            {
+                return;
+            }
+
             if (LinuxMacroIcons.Png(current[slot]) is not { } png)
             {
                 continue;
@@ -196,10 +231,12 @@ internal sealed class LinuxSession : IDisposable
             {
                 // The list can be reloaded while this runs, which swaps it. Checked under the send lock, no chunk of
                 // the old list can follow the new one to the phone, where it would land on whatever macro moved into
-                // its slot. The phone asks again for the new list.
+                // its slot. The phone asks again for the new list. Checking the run there too keeps a superseded run
+                // from interleaving with the one after it, and a disposed session from writing at all: Dispose moves
+                // the run on before closing anything.
                 lock (frames.SendGate)
                 {
-                    if (!ReferenceEquals(macros(), current))
+                    if (!ReferenceEquals(macros(), current) || Volatile.Read(ref iconRun) != run)
                     {
                         return;
                     }
@@ -219,6 +256,7 @@ internal sealed class LinuxSession : IDisposable
         }
 
         ended.Cancel();
+        Interlocked.Increment(ref iconRun);
 
         // Shut down first, and outside the send lock: a Send blocked in a write to a phone that has stopped
         // reading holds that lock for as long as the write blocks. Shutting the socket down fails that write and
