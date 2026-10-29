@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Fixed
+
+- **The guide's Next button stays at the bottom.** On a short screen or a large font the buttons scrolled away with the page; only the guide's text scrolls now.
+
 ## [4.0.0] - 2026-10-24
 
 The wire protocol moves to version 5, so both halves must be installed from this release.

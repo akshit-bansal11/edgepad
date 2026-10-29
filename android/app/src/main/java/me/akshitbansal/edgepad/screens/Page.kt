@@ -94,11 +94,12 @@ class Ui(
 
     /**
      * A page that scrolls when it must and otherwise fills the screen, so [Column.grow] can push content
-     * down. A [bar] stays put above the scrolling part.
+     * down. A [bar] stays put above the scrolling part and a [footer] below it.
      */
     fun page(
         bar: View? = null,
         centred: Boolean = false,
+        footer: (Column.() -> Unit)? = null,
         fill: Column.() -> Unit,
     ): LinearLayout {
         val column =
@@ -108,8 +109,16 @@ class Ui(
             }
         Column(this, column).fill()
         val side = dp(Space.PAGE)
-        val end = dp(Space.XL)
-        val top = if (bar == null) end else 0
+        val end = dp(if (footer == null) Space.XL else Space.M)
+        val top = if (bar == null) dp(Space.XL) else 0
+        val pinned =
+            footer?.let { build ->
+                LinearLayout(context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(side, 0, side, dp(Space.S))
+                    Column(this@Ui, this).build()
+                }
+            }
         val scroll =
             ScrollView(context).apply {
                 isFillViewport = true
@@ -127,12 +136,17 @@ class Ui(
                 setBackgroundColor(palette.background)
                 if (bar != null) addView(bar)
                 addView(scroll, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+                if (pinned != null) addView(pinned)
             }
         // Edge-to-edge is enforced from targetSdk 35: keep content clear of the system bars and the cutout.
         root.setOnApplyWindowInsetsListener { page, insets ->
             val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
             page.setPadding(bars.left, bars.top, bars.right, 0)
-            scroll.setPadding(side, top, side, end + bars.bottom)
+            if (pinned == null) {
+                scroll.setPadding(side, top, side, end + bars.bottom)
+            } else {
+                pinned.setPadding(side, 0, side, dp(Space.S) + bars.bottom)
+            }
             insets
         }
         return root

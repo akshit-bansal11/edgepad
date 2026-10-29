@@ -123,50 +123,55 @@ object GuideScreen {
                 }
             val page =
                 if (settings.guideScroll) {
-                    ui.page(bar) { everything(ui, intro, onFinish) }
+                    val find: (Column.() -> Unit)? =
+                        if (intro) {
+                            { add(ui.button(ui.string(R.string.guide_find_laptop), Ui.Style.FILLED, onFinish)) }
+                        } else {
+                            null
+                        }
+                    ui.page(bar, footer = find) { everything(ui) }
                 } else {
                     val last = step == pages.lastIndex
-                    ui.page(bar) {
-                        one(ui, pages[step])
-                        grow()
-                        add(
-                            progress(ui, step) { i ->
-                                root.step = i
-                                show(i.compareTo(step))
-                            },
-                            Space.L,
-                        )
-                        val back =
-                            ui.button(ui.string(R.string.guide_back), Ui.Style.QUIET) {
-                                root.step = step - 1
-                                show(-1)
-                            }
-                        back.visibility = if (step == 0) View.INVISIBLE else View.VISIBLE
-                        val nextLabel =
+                    val dots =
+                        progress(ui, step) { i ->
+                            root.step = i
+                            show(i.compareTo(step))
+                        }
+                    val back =
+                        ui.button(ui.string(R.string.guide_back), Ui.Style.QUIET) {
+                            root.step = step - 1
+                            show(-1)
+                        }
+                    back.visibility = if (step == 0) View.INVISIBLE else View.VISIBLE
+                    val nextLabel =
+                        when {
+                            !last -> R.string.guide_next
+                            intro -> R.string.guide_find_laptop
+                            else -> R.string.guide_done
+                        }
+                    val next =
+                        ui.button(ui.string(nextLabel), Ui.Style.FILLED) {
                             when {
-                                !last -> R.string.guide_next
-                                intro -> R.string.guide_find_laptop
-                                else -> R.string.guide_done
-                            }
-                        val next =
-                            ui.button(ui.string(nextLabel), Ui.Style.FILLED) {
-                                when {
-                                    !last -> {
-                                        root.step = step + 1
-                                        show(1)
-                                    }
+                                !last -> {
+                                    root.step = step + 1
+                                    show(1)
+                                }
 
-                                    intro -> {
-                                        onFinish()
-                                    }
+                                intro -> {
+                                    onFinish()
+                                }
 
-                                    else -> {
-                                        onBack()
-                                    }
+                                else -> {
+                                    onBack()
                                 }
                             }
+                        }
+                    // Sideways there is no height to spare: the dots sit between the buttons in one row.
+                    val pinned: Column.() -> Unit = {
+                        if (!ui.landscape) add(dots, Space.S)
                         add(
                             LinearLayout(ui.context).apply {
+                                gravity = Gravity.CENTER_VERTICAL
                                 addView(
                                     back,
                                     LinearLayout.LayoutParams(
@@ -174,17 +179,28 @@ object GuideScreen {
                                         ViewGroup.LayoutParams.WRAP_CONTENT,
                                     ),
                                 )
-                                addView(
-                                    next,
-                                    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                                        marginStart =
-                                            ui.dp(Space.S)
-                                    },
-                                )
+                                if (ui.landscape) {
+                                    addView(dots, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                                    addView(
+                                        next,
+                                        LinearLayout.LayoutParams(
+                                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                                        ),
+                                    )
+                                } else {
+                                    addView(
+                                        next,
+                                        LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                                            marginStart = ui.dp(Space.S)
+                                        },
+                                    )
+                                }
                             },
-                            Space.M,
+                            if (ui.landscape) 0f else Space.M,
                         )
                     }
+                    ui.page(bar, footer = pinned) { one(ui, pages[step]) }
                 }
             root.addView(page)
             if (direction != 0) enter(ui, page.getChildAt(1), direction)
@@ -267,17 +283,12 @@ object GuideScreen {
         }
 
     /** Every page, one after another, split into two columns sideways. */
-    private fun Column.everything(
-        ui: Ui,
-        intro: Boolean,
-        onFinish: () -> Unit,
-    ) {
+    private fun Column.everything(ui: Ui) {
         val split = (pages.size + 1) / 2
         columns(
             { pages.take(split).forEach { brief(ui, it) } },
             { pages.drop(split).forEach { brief(ui, it) } },
         )
-        if (intro) add(ui.button(ui.string(R.string.guide_find_laptop), Ui.Style.FILLED, onFinish), Space.S)
     }
 
     /** One page in the scrolling view: its kicker and title as a header over its items' card. */
