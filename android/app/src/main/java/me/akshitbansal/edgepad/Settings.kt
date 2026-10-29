@@ -7,7 +7,6 @@ import me.akshitbansal.edgepad.surface.DialKind
 import me.akshitbansal.edgepad.surface.Gesture
 import me.akshitbansal.edgepad.surface.GestureAction
 import me.akshitbansal.edgepad.surface.MediaPiece
-import me.akshitbansal.edgepad.surface.Perimeter
 import java.io.File
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -269,14 +268,6 @@ class Settings(
     fun hasOwnSensitivity(kind: DialKind): Boolean = prefs.contains(sensitivityKey(kind))
 
     private fun sensitivityKey(kind: DialKind): String = "sensitivity.${kind.name}"
-
-    /** True when some corner, or some slot while the corners are split, holds [kind]. */
-    fun hasDial(kind: DialKind): Boolean =
-        if (splitCorners) {
-            (0 until Perimeter.SLOTS).any { slot(it) == kind }
-        } else {
-            (0 until Perimeter.CORNERS).any { corner(it) == kind }
-        }
 
     fun gesture(gesture: Gesture): GestureAction {
         val name = prefs.getString("gesture.${gesture.name}", null) ?: return gesture.default

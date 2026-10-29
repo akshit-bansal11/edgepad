@@ -116,7 +116,6 @@ class ControlSurface(
         )
     private val hapticsOn = settings.haptics
     private val showHints = settings.hints && !trackpadOnly
-    private val scrubOnADial = settings.hasDial(DialKind.MEDIA)
     private val dials: List<Dial> =
         run {
             if (trackpadOnly) return@run emptyList()
@@ -144,6 +143,9 @@ class ControlSurface(
                 }
             }
         }
+
+    // Derived from what was built, so the progress line goes away exactly when a Scrub dial is drawn.
+    private val scrubOnADial = dials.any { it.kind == DialKind.MEDIA }
     private val painter =
         RulerPainter(resources.displayMetrics, settings.dialLength, settings.dialHeight)
     private val pieces = MediaPiece.entries.associateWith { settings.piece(it) }
