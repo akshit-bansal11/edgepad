@@ -415,7 +415,7 @@ internal sealed class RfcommServer(Action<string> onStatus, SessionHost host) : 
     {
         if (host.CurrentAddress is { } live)
         {
-            return $"Connected to {live}";
+            return $"Connected to {host.Shown(live)}";
         }
 
         return radioOff ? BluetoothOff : Waiting;

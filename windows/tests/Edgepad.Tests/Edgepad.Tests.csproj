@@ -17,4 +17,10 @@
     <ProjectReference Include="..\..\src\Edgepad\Edgepad.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The phone's half of EDGL1 from the core tests, linked rather than copied, so the network server is tested
+         against the same reference the Kotlin port follows. -->
+    <Compile Include="..\..\..\shared\Edgepad.Core.Tests\LinkInitiator.cs" Link="LinkInitiator.cs" />
+  </ItemGroup>
+
 </Project>

@@ -4,6 +4,8 @@ using Edgepad.Bluetooth;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
 using Edgepad.Macros;
+using Edgepad.Net;
+using Edgepad.Network;
 using Edgepad.Startup;
 using Edgepad.Trust;
 using Edgepad.Ui;
@@ -39,6 +41,8 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MenuRow startWithWindows = new("Start with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new("Macros…", Icons.Macro);
     private readonly MenuRow securityRow = new("Security…", Icons.Smartphone);
+    private readonly MenuRow networkRow = new("Wi-Fi and USB connections", Icons.Wifi) { CheckOnClick = true, Switch = true };
+    private readonly MenuRow firewallRow = new("Allow through Windows Firewall…", Icons.Shield);
     private readonly MenuRow forget = new("Forget trusted phones", Icons.Unlink) { Danger = true };
     private readonly MenuRow update = new("Update available", Icons.Download) { Available = false };
     private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
@@ -58,6 +62,12 @@ internal sealed class TrayContext : ApplicationContext
     private readonly LevelOverlay overlay;
     private readonly SessionHost host;
     private readonly RfcommServer server;
+    private readonly PairedLinks pairedLinks = PairedLinks.ForCurrentUser();
+    private readonly NetworkSettings networkSettings;
+    private readonly NetworkServer network;
+
+    // The Wi-Fi and USB row's hint: off, the port listened on, or why not. Only the UI thread touches it.
+    private string networkHint = "Off";
 
     // The menu stays clickable under the confirmation, and a second one would lift the hold while the first was
     // still open. All of this runs on the UI thread, so a plain bool is enough.
@@ -74,6 +84,8 @@ internal sealed class TrayContext : ApplicationContext
         forget.Click += (_, _) => ConfirmForget();
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
         securityRow.Click += (_, _) => ShowSecurity();
+        networkRow.Click += (_, _) => ToggleNetwork(networkRow.Checked);
+        firewallRow.Click += (_, _) => Firewall.Allow();
         update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
 
         // The header is the menu's own. The update row sits right under it and stays hidden until there is one.
@@ -83,6 +95,8 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(startWithWindows);
         menu.Items.Add(macrosRow);
         menu.Items.Add(securityRow);
+        menu.Items.Add(networkRow);
+        menu.Items.Add(firewallRow);
         menu.Items.Add(Row("Open log", Icons.FileText, OpenLog));
         menu.Items.Add(Row("Documentation", Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
         menu.Items.Add(new MenuSeparator());
@@ -93,8 +107,11 @@ internal sealed class TrayContext : ApplicationContext
         menu.Opening += (_, _) =>
         {
             startWithWindows.Checked = RunAtLogin.IsEnabled;
-            forget.Enabled = trust.CanForget;
+            forget.Enabled = trust.CanForget || pairedLinks.CanForget;
             securityRow.Hint = $"Level {pin.Level}";
+            networkRow.Checked = networkSettings.Load().Enabled;
+            networkRow.Hint = networkHint;
+            firewallRow.Available = networkRow.Checked;
             macrosRow.Hint = $"{macros.Macros.Count} of {MacroStore.MaxMacros}";
             menu.Restyle();
         };
@@ -128,6 +145,18 @@ internal sealed class TrayContext : ApplicationContext
             SetStatus, trust, pin, AskTrust, speakers, microphone, brightness, media, display, macros, overlay, ui, OnSessionEnded);
         server = new RfcommServer(SetStatus, host);
         _ = StartServerAsync();
+
+        // Off until the owner turns it on (network.txt); only a phone that proves itself is handed to the host.
+        networkSettings = NetworkSettings.ForCurrentUser(pin.Folder);
+        network = new NetworkServer(
+            LinkIdentity.ForCurrentUser(pin.Folder),
+            pairedLinks,
+            trust,
+            new PairingPrompt(ui, AnnouncePairing),
+            host.Accept,
+            name => SetStatus($"Paired with {name}"));
+        SystemEvents.PowerModeChanged += OnPowerModeChanged;
+        ApplyNetwork();
         _ = StartMediaAsync();
 
         // Once now and once a day after, for a tray app that is left running for weeks.
@@ -222,6 +251,69 @@ internal sealed class TrayContext : ApplicationContext
     // A method rather than a lambda in the constructor, where the server is not assigned yet. A session can only
     // end once the server has started, after the constructor.
     private void OnSessionEnded(Func<bool> end) => server.OnSessionEnded(end);
+
+    /// <summary>
+    /// The Wi-Fi and USB switch. Turning it on says first what will happen, since the first listen raises Windows'
+    /// firewall question; a no there leaves it off. A setting that cannot be saved leaves things as they were.
+    /// </summary>
+    private void ToggleNetwork(bool on)
+    {
+        if (on && MessageBox.Show(
+            "Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. "
+                + "Pairing needs you to type here the code the phone shows. Windows may now ask whether Edgepad may use "
+                + "the network: tick both Private and Public networks. If you miss it, choose Allow through Windows "
+                + "Firewall in this menu.",
+            "Edgepad",
+            MessageBoxButtons.OKCancel,
+            MessageBoxIcon.Information) != DialogResult.OK)
+        {
+            networkRow.Checked = false;
+            return;
+        }
+
+        if (!networkSettings.SetEnabled(on))
+        {
+            networkRow.Checked = !on;
+            MessageBox.Show(
+                "The setting could not be saved, so nothing was changed. The log has the reason.",
+                "Edgepad",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+            return;
+        }
+
+        ApplyNetwork();
+    }
+
+    /// <summary>Listens or stops as network.txt says, and words the row's hint for it. On the UI thread only.</summary>
+    private void ApplyNetwork()
+    {
+        var config = networkSettings.Load();
+        if (!config.Enabled)
+        {
+            network.Stop();
+            networkHint = "Off";
+            return;
+        }
+
+        networkHint = !network.Start(config.Port) ? "Could not listen; see the log"
+            : network.Port == config.Port ? $"Listening on {config.Port}"
+            : $"Port in use, using {network.Port}";
+    }
+
+    // Sockets opened before sleep may not survive it. Raised on SystemEvents' thread; the listener is the UI thread's.
+    private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
+    {
+        if (e.Mode == PowerModes.Resume)
+        {
+            ui.Post(_ => ApplyNetwork(), null);
+        }
+    }
+
+    /// <summary>The pairing window may open behind whatever has focus; the notification is what the owner notices.</summary>
+    private void AnnouncePairing(string phoneName) => ui.Post(
+        _ => icon.ShowBalloonTip(0, "Edgepad", $"{phoneName} wants to pair. Type the code it shows.", ToolTipIcon.Info),
+        null);
 
     private void SetStatus(string text) => ui.Post(
         _ =>
@@ -319,6 +411,10 @@ internal sealed class TrayContext : ApplicationContext
 
             var forgotten = trust.Forget();
 
+            // The Wi-Fi and USB pairings too, or a forgotten phone would resume its link and only meet the trust
+            // question, not a new pairing.
+            var unpaired = pairedLinks.Forget();
+
             // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
             var verifiedForgotten = pin.ForgetVerified();
 
@@ -331,6 +427,18 @@ internal sealed class TrayContext : ApplicationContext
                         + "connect while Edgepad stays running, but those phones will be trusted again the next time "
                         + "Edgepad starts. Close whatever is holding the file and choose Forget trusted phones again, "
                         + $"or delete it yourself:\n\n{trust.FilePath}",
+                    "Edgepad",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+
+            if (!unpaired)
+            {
+                MessageBox.Show(
+                    "The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. "
+                        + "Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will "
+                        + "be able to again the next time it starts. Choose Forget trusted phones again, or delete "
+                        + $"paired-links.txt yourself from:\n\n{pin.Folder}",
                     "Edgepad",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
@@ -385,11 +493,12 @@ internal sealed class TrayContext : ApplicationContext
     /// thread, which holds the phone's HELLO_ACK until this returns; the question itself is shown on this
     /// context's thread, which owns every window the app has. No answer within <see cref="TrustPromptTimeout"/>
     /// is a no, and so is a session that ends meanwhile (<paramref name="ended"/>: a hold, a hang-up), which also
-    /// closes the question. The phone is named by its address, as the status line names it once it has connected.
+    /// closes the question. The phone is named as the status line names it once it has connected (SessionHost.Shown).
     /// </summary>
     private bool AskTrust(string address, CancellationToken ended)
     {
-        SetStatus($"Asking whether to trust {address}");
+        var phone = host.Shown(address);
+        SetStatus($"Asking whether to trust {phone}");
         var deadline = Environment.TickCount64 + (long)TrustPromptTimeout.TotalMilliseconds;
         var answer = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         ui.Post(
@@ -401,8 +510,8 @@ internal sealed class TrayContext : ApplicationContext
                 {
                     // The dialog may open behind whatever has focus, since a tray app cannot take the
                     // foreground; the notification is what the owner notices.
-                    icon.ShowBalloonTip(0, "Edgepad", $"{address} wants to connect. Choose Trust or Don't trust.", ToolTipIcon.Info);
-                    answer.TrySetResult(ShowTrustPrompt(address, deadline, ended));
+                    icon.ShowBalloonTip(0, "Edgepad", $"{phone} wants to connect. Choose Trust or Don't trust.", ToolTipIcon.Info);
+                    answer.TrySetResult(ShowTrustPrompt(phone, deadline, ended));
                 }
             },
             null);
@@ -510,6 +619,7 @@ internal sealed class TrayContext : ApplicationContext
         if (disposing)
         {
             SystemEvents.UserPreferenceChanged -= OnPreferenceChanged;
+            SystemEvents.PowerModeChanged -= OnPowerModeChanged;
             icon.Dispose();
             themed?.Dispose();
             menu.Dispose();
@@ -517,11 +627,14 @@ internal sealed class TrayContext : ApplicationContext
             macrosRow.Dispose();
             securityRow.Dispose();
             forget.Dispose();
+            networkRow.Dispose();
+            firewallRow.Dispose();
             update.Dispose();
             updateTimer.Dispose();
             server.Dispose();
+            network.Dispose();
 
-            // After the server, so no connection arrives once the sessions are ended.
+            // After both servers, so no connection arrives once the sessions are ended.
             host.Dispose();
             media.Dispose();
             brightness.Dispose();
