@@ -83,9 +83,7 @@ class SecureChannelTest {
             object : OutputStream() {
                 var closed = false
 
-                override fun write(b: Int) {
-                    throw IOException("The socket is gone")
-                }
+                override fun write(b: Int): Unit = throw IOException("The socket is gone")
 
                 override fun close() {
                     closed = true
