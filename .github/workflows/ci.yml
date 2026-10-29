@@ -62,6 +62,17 @@ jobs:
           global-json-file: global.json
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only core
+      # The vectors the Kotlin and Swift ports check themselves against, written by the same code the laptop runs.
+      # The main session downloads this artifact and commits it as protocol/link-vectors.txt.
+      - name: Link vectors
+        env:
+          EDGEPAD_LINK_VECTORS_OUT: ${{ runner.temp }}/link-vectors.txt
+        run: dotnet test --project shared/Edgepad.Core.Tests -c Release --no-build --filter-class "*LinkVectorsOutput"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: edgepad-link-vectors
+          path: ${{ runner.temp }}/link-vectors.txt
+          if-no-files-found: error
 
   # The Linux laptop app, on the OS it runs on. Built and tested only; nothing here can reach BlueZ.
   linux:

@@ -2,7 +2,7 @@
 
 Version 5. The laptop apps (Windows, Mac and Linux) and the phone app refuse any other version at the handshake.
 
-The transport is an RFCOMM byte stream. A frame is one type byte followed by a payload whose length is fixed by the type, except TEXT, FILE_BEGIN and FILE_CHUNK, whose second header byte gives the length of what follows. All multi-byte integers are little-endian. An unknown type byte, a wrong length, a bad magic or a flag byte other than 0 or 1 is a protocol error and closes the connection. A well-formed frame naming an action or control this side does not know is dropped and counted, never treated as an error, so a newer app can talk to an older one until the version check says otherwise.
+The transport is a byte stream: RFCOMM, or the encrypted network link described below. A frame is one type byte followed by a payload whose length is fixed by the type, except TEXT, FILE_BEGIN and FILE_CHUNK, whose second header byte gives the length of what follows. All multi-byte integers are little-endian. An unknown type byte, a wrong length, a bad magic or a flag byte other than 0 or 1 is a protocol error and closes the connection. A well-formed frame naming an action or control this side does not know is dropped and counted, never treated as an error, so a newer app can talk to an older one until the version check says otherwise.
 
 `protocol/frames.txt` is the authoritative fixture: every line is a frame's fields and its exact bytes, and both test suites encode and decode every line.
 
@@ -50,7 +50,7 @@ At the gate the laptop sends PIN_REQUEST with the attempts left and a lock time 
 
 Changing the PIN or the level clears the verified list, so every phone at level 2 enters the new PIN once. After HELLO_ACK, a PIN_REQUEST or PIN_ANSWER is dropped and counted.
 
-The digits are never logged, written to a status line or shown by a debug print on either side, and they travel in a frame type of their own rather than in TEXT so they can never be routed to typing. RFCOMM already requires the phones to be paired and the Bluetooth stack encrypts the paired link, so the PIN is a second factor and not a second cipher.
+The digits are never logged, written to a status line or shown by a debug print on either side, and they travel in a frame type of their own rather than in TEXT so they can never be routed to typing. RFCOMM already requires the phones to be paired and the Bluetooth stack encrypts the paired link, so the PIN is a second factor and not a second cipher. On the network link the PIN travels inside the encrypted channel.
 
 ## Saving a capture on the phone
 
@@ -273,6 +273,113 @@ Controls are as on Windows, with these exceptions. VOLUME and MIC_LEVEL go throu
 **The pad is uinput.** The controller is a second virtual device that copies what the kernel's `xpad` driver reports for a wired Xbox 360 pad (USB `045e:028e`), with the sticks, triggers, hat and A, B, X, Y laid out as `xpad` lays them out, so PAD_STATE's `XINPUT_GAMEPAD` fields map onto it directly. There is no rumble. It exists only while the phone has the gamepad open and is destroyed with the session.
 
 **Sessions are the logged-in user's.** Edgepad runs as the user and hangs up on the phone while logind says that user's session is not the one in front, so a fast user switch cannot let the phone type into another user's desktop. STATE for volume, microphone and brightness is sent after the handshake and then whenever a poll, twice a second, finds a change.
+
+## The network link (Wi-Fi and USB)
+
+The same frames run over TCP, inside a link layer of their own called EDGL1. It has its own version byte, `linkVersion` (1), independent of the protocol version above: the protocol version stays 5, and a change to this layer moves `linkVersion` only. Everything below the frames is EDGL1; `FrameStream` and every frame above it are unchanged. `protocol/link-vectors.txt` holds worked values for every derivation here, written by the core test `LinkVectorsOutput` from the same code the laptop runs (CI uploads it as the `edgepad-link-vectors` artifact). The C#, Kotlin and Swift suites must each reproduce every line of it. It is a cross-check between implementations, not a review of the scheme.
+
+Network listening is off until the laptop's owner turns it on. All crypto is platform crypto: P-256 ECDH, HKDF and HMAC over SHA-256, AES-256-GCM.
+
+### Discovery
+
+The laptop listens on TCP port 47321 by default (configurable) and announces the service `_edgepad._tcp` over mDNS, instance name = the laptop's name, with TXT keys `id` (the laptop id, 32 hex digits), `n` (its name), `v` (the protocol version) and `lv` (the link version). A phone may also be given `host:port` by hand. Over USB tethering the phone probes the tether subnet for the port and asks INFO. The port, service name and TXT keys were chosen here; none was checked against a registry.
+
+### Notation
+
+All multi-byte integers are little-endian unless marked BE. `H` is SHA-256. `pkP` and `pkL` are 65-byte X9.63 uncompressed P-256 points (`04 | X | Y`); a receiver rejects any other length, any other first byte and any point off the curve. `nP` and `nL` are 16 random bytes. `phoneId` and `laptopId` are 16 random bytes, kept per install. A name field is `u8 length | UTF-8`, cut at a character boundary to at most 255 bytes, and always used exactly as sent.
+
+Every cleartext message is `u16 length | body`, the length at most 512; a longer one closes the connection. The raw ECDH secret `Z` is the X coordinate of the shared point. HKDF is RFC 5869 with SHA-256; `Expand(prk, label, n)` takes the label as `info`.
+
+### Modes
+
+A phone opens with `"EDGL" | linkVersion u8 | mode u8`. A laptop that does not speak that link version answers status 2 and closes, without reading further.
+
+| Mode | Name | Purpose |
+| --- | --- | --- |
+| 0 | INFO | Who is this laptop. No secret. |
+| 1 | PAIR | First connection: the owner confirms, both ends keep a key. |
+| 2 | RESUME | Every later connection: prove the key, fresh session keys. |
+
+**INFO.**
+
+```
+P->L  "EDGL" lv=1 mode=0
+L->P  status=0 | laptopId[16] | protocolVersion u8 | name field        then the laptop closes
+```
+
+**PAIR.** The phone commits to its key before it sees the laptop's.
+
+```
+P->L  "EDGL" lv=1 mode=1 | phoneId[16] | phone name field | commit[32]
+        commit = H("EDGL1 commit" | pkP | nP)
+L->P  status=0 | laptopId[16] | laptop name field | pkL[65] | nL[16]
+        status 1 = busy or pairing locked, 2 = link version unsupported; either is the whole reply, then the laptop closes
+P->L  pkP[65] | nP[16]                      the reveal; the laptop checks it against commit, else closes and counts a failure
+        both: Z = ECDH; PRK = HKDF-Extract(salt = th, ikm = Z)
+        the phone shows SAS; the laptop shows a prompt and waits for the owner to type it
+L->P  tagL[32]                              sent ONLY if the typed digits equal the laptop's own SAS
+P->L  tagP[32]                              sent only if tagL verifies
+        both: PK = Expand(PRK, "EDGL1 pairing key", 32), stored under the peer's id
+```
+
+**RESUME.**
+
+```
+P->L  "EDGL" lv=1 mode=2 | phoneId[16] | pkP[65] | nP[16]
+L->P  status=0 | pkL[65] | nL[16] | tagL[32]
+        status 3 = phone unknown (the whole reply; the phone offers to pair again, never silently)
+        PRK = HKDF-Extract(salt = th, ikm = Z | PK)
+P->L  tagP[32]
+```
+
+After the last message of PAIR or RESUME the same TCP connection carries encrypted records.
+
+### Transcript, code and confirmation
+
+```
+th (PAIR)   = H("EDGL1 th" | 0x01 | phoneId | laptopId | phoneNameField | laptopNameField | pkP | nP | pkL | nL)
+th (RESUME) = H("EDGL1 th" | 0x02 | phoneId | laptopId | pkP | nP | pkL | nL)          no names travel in a resume
+SAS         = ( u32_BE( H("EDGL1 sas" | th)[0..4] ) mod 1_000_000 ) as six decimal digits, zero padded
+tagL (PAIR)   = HMAC( Expand(PRK, "EDGL1 confirm laptop", 32), "pair" | th )
+tagP (PAIR)   = HMAC( Expand(PRK, "EDGL1 confirm phone", 32),  "pair" | th )
+tagL (RESUME) = HMAC( Expand(PRK, "EDGL1 confirm laptop", 32), th )
+tagP (RESUME) = HMAC( Expand(PRK, "EDGL1 confirm phone", 32),  th )
+```
+
+Both names are in the pairing transcript as sent, so a relay that changes either name changes the code. Every tag, commitment and code is compared in constant time.
+
+### Who types the code
+
+**The phone shows the six digits; the owner types them on the laptop.** The laptop shows "Pair <phone name>?" with a field for the code, a Pair button and a Cancel button. Any device on the network that runs the protocol can work out its own code, but only a person at this laptop can type one, and only the code of the phone in their hand matches this laptop's transcript. The phone sends no value that depends on the digits. The laptop's `tagL` goes out only after the typed digits match, so a phone that receives a valid `tagL` knows the owner typed this phone's code for this transcript. The phone's `tagP` follows, and only when the laptop has verified it does the laptop trust the phone (`TrustStore.Grant`) and store PK. A relay between a phone and a laptop gets the same code on both legs with probability about 2^-20, because the phone's commitment fixes `pkP` and `nP` before the relay sees the laptop's; the owner would then type a code that does not match the laptop's leg.
+
+A rogue device on the network can start a pairing, which makes the laptop show a prompt; it cannot complete it, because the owner cannot read its code. Typing their own phone's code into that prompt fails and counts as a failure.
+
+### Session keys and records
+
+```
+kP2L = Expand(PRK, "EDGL1 key p2l", 32)      kL2P = Expand(PRK, "EDGL1 key l2p", 32)      iv = Expand(PRK, "EDGL1 iv", 8)
+nonce (12 bytes) = prefix[4] | counter u64 BE        prefix = iv[0..4] phone to laptop, iv[4..8] laptop to phone; counters start at 0
+record = u16 length | ciphertext | tag[16]          length = ciphertext + 16; at most 16384 bytes of plaintext per record
+AES-256-GCM, 16-byte tag, AAD = the 2 length bytes
+```
+
+A record carries any bytes; the frame stream above does not know where one ends. A write over 16384 bytes is split into several records. A length of 16 or less, or over 16384 + 16, is an error. A record that fails its tag, arrives out of order, repeats, or is cut short closes the link for good in both directions; nothing is read or sent after the first failure.
+
+### Limits, timeouts and lockout
+
+The phone has 10 seconds for each message the laptop waits on (the request, the reveal, each confirmation); the owner has 60 seconds on the laptop to type the code. At most 4 connections that have not authenticated are open at once, each with a 10 second deadline until the link layer finishes. Only one pairing runs at a time; another is answered with status 1. Five pairings in a row that fail (a wrong code typed, a commitment that does not open, a phone that does not confirm, no code typed in time) lock pairing for 5 minutes, doubling with every further five and never more than an hour; a successful pairing clears the count. The owner cancelling, or the link ending under the prompt, does not count. Failures are counted in memory only. Every attempt uses fresh keys, so an old code is useless.
+
+### Trust
+
+After a pairing the laptop calls `TrustStore.Grant("link:<phoneIdHex>")`, where `<phoneIdHex>` is the phone id as 32 lowercase hex digits. The owner has already consented by typing the code, so the handshake finds the phone trusted. The PIN levels, the lock-out and the hand-off rules use the same `link:<hex>` address and run unchanged inside the encrypted channel. The laptop keeps `paired-links.txt` beside the trust file (one line per phone: `idHex<TAB>base64(PK)<TAB>name`), written through the private-folder helper. A file that exists and cannot be read refuses every network phone; Bluetooth is unaffected. "Forget trusted phones" also forgets paired links. The phone keeps PK wrapped by a non-exportable Android Keystore key.
+
+### What this does not protect
+
+- Someone who copies PK from a phone or a laptop can impersonate that phone to that laptop. This is the same posture as the existing trust file.
+- A device on the same network can open sockets and send pairing requests (rate-limited as above), and can see the phone's and the laptop's names, the laptop's id and its port; mDNS shows the same.
+- A passive capture of a whole pairing or resume exchange yields nothing that can be tested offline, and the session keys do not depend on the digits.
+- The scheme is implemented three times against shared vectors. No cryptographer has reviewed it, and nothing here claims one has.
+- No latency over this link has been measured, and none is stated.
 
 ## Versions
 
