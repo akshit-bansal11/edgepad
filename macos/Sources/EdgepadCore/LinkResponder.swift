@@ -56,6 +56,9 @@ public final class LinkResponder {
         let commit: [UInt8]
         let own: P256.KeyAgreement.PrivateKey
         let nonce: [UInt8]
+        /// Read when the pairing started: a Forget moves them, and the pairing then keeps and trusts nothing.
+        let trustGeneration: Int
+        let pairedGeneration: Int
     }
 
     private let identity: LinkIdentity
@@ -129,13 +132,30 @@ public final class LinkResponder {
         }
     }
 
-    /// The connection closed, or the Mac stopped listening. A pairing waiting on the owner does not count against the
-    /// lock: nobody guessed anything.
-    public func cancel() {
+    /// The phone closed the connection (`byPeer`), or this Mac stopped it: the listener stopping, a Forget or another
+    /// owner dialog. A phone that hangs up mid-pairing counts against the lock, whatever the stage, or it could put
+    /// the pairing question on the owner's screen again and again for free; this Mac stopping it does not count.
+    public func cancel(byPeer: Bool) {
         guard stage != .done else { return }
-        finish(
-            nil, outcome: stage == .owner ? .abandoned : .failed,
-            pairing == nil ? nil : "Stopped pairing \(address): the network link was closed")
+        let why =
+            byPeer
+            ? "Refused to pair \(address): it closed the network link"
+            : "Stopped pairing \(address): this Mac stopped it"
+        finish(nil, outcome: byPeer ? .failed : .abandoned, pairing == nil ? nil : why)
+    }
+
+    /// A responder let go of mid-pairing still frees the one pairing slot, counted as a failure as a phone that hung
+    /// up would be. The app never does this; it ends each one through `cancel`.
+    deinit {
+        if stage != .done, pairing != nil {
+            withdraw?()
+            limiter.end(.failed)
+        }
+    }
+
+    /// Whether a Forget came after this pairing started, so that it must not trust or keep the phone.
+    private func forgottenSince(_ pairing: Pairing) -> Bool {
+        trust.forgetGeneration != pairing.trustGeneration || paired.generation != pairing.pairedGeneration
     }
 
     private func handle(_ body: [UInt8]) throws {
@@ -176,7 +196,8 @@ public final class LinkResponder {
             }
             let started = Pairing(
                 phoneId: phoneId, name: name, nameField: nameField, commit: commit, own: LinkCrypto.newKeyPair(),
-                nonce: Hex.random(LinkWire.nonceLength))
+                nonce: Hex.random(LinkWire.nonceLength), trustGeneration: trust.forgetGeneration,
+                pairedGeneration: paired.generation)
             pairing = started
             let offer = LinkWire.pairOffer(
                 laptopId: identity.id, name: identity.name, publicKey: LinkCrypto.publicKey(started.own),
@@ -243,8 +264,12 @@ public final class LinkResponder {
 
     /// The owner's digits. The one check that needs the owner: until it passes, nothing that depends on it is sent.
     private func typed(_ digits: String, _ asked: Int) {
-        guard stage == .owner, step == asked else { return }
+        guard stage == .owner, step == asked, let pairing else { return }
         withdraw?()
+        if forgottenSince(pairing) {
+            forgotten()
+            return
+        }
         guard LinkCrypto.codeMatches(digits, LinkCrypto.sas(transcript)) else {
             refuse("the code typed on this Mac is not the one that phone shows")
             return
@@ -255,6 +280,14 @@ public final class LinkResponder {
         }
         stage = .pairConfirm
         wait("confirmation")
+    }
+
+    /// The owner forgot the trusted phones while this one was pairing: the later word wins, and it is the owner's, so
+    /// it does not count against the lock.
+    private func forgotten() {
+        finish(
+            nil, outcome: .abandoned,
+            "Did not pair \(address): the trusted phones were forgotten while it was pairing")
     }
 
     private func ownerCancelled(_ asked: Int) {
@@ -270,12 +303,25 @@ public final class LinkResponder {
             return
         }
         if isPairing, let pairing {
-            if !paired.add(Hex.string(pairing.phoneId), key: LinkCrypto.pairingKey(prk), name: pairing.name) {
+            if forgottenSince(pairing) {
+                forgotten()
+                return
+            }
+            let key = LinkCrypto.pairingKey(prk)
+            let idHex = Hex.string(pairing.phoneId)
+            if !paired.add(idHex, key: key, name: pairing.name, since: pairing.pairedGeneration) {
+                guard paired.generation == pairing.pairedGeneration else {
+                    forgotten()
+                    return
+                }
                 Log.write(
                     "Paired \(address) for this connection only: the pairing could not be saved, so it will pair "
                         + "again next time")
             }
-            trust.grant(address)
+            guard trust.grant(address, since: pairing.trustGeneration) else {
+                forgotten()
+                return
+            }
             Log.write("Paired \(address)")
         }
         let result = LinkResult(

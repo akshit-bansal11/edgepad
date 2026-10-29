@@ -100,7 +100,7 @@ final class LinkStorageTests: XCTestCase {
         let key = Hex.random(32)
         XCTAssertFalse(links.canForget)
 
-        XCTAssertTrue(links.add(id, key: key, name: "Pixel\tline\nbreak"))
+        XCTAssertTrue(links.add(id, key: key, name: "Pixel\tline\nbreak", since: links.generation))
         let found = PairedLinks(path: path("paired-links.txt")).find(id.uppercased())
         XCTAssertEqual(found?.key, key)
         XCTAssertEqual(found?.name, "Pixel line break")
@@ -117,10 +117,11 @@ final class LinkStorageTests: XCTestCase {
         let links = PairedLinks(path: path("paired-links.txt"))
 
         XCTAssertNil(links.find(id))
-        XCTAssertFalse(links.add(id, key: Hex.random(32), name: "Pixel"), "wrote over phones it could not read")
+        XCTAssertFalse(
+            links.add(id, key: Hex.random(32), name: "Pixel", since: links.generation), "wrote over phones it could not read")
         XCTAssertTrue(links.canForget)
         XCTAssertTrue(links.forget())
-        XCTAssertTrue(links.add(id, key: Hex.random(32), name: "Pixel"))
+        XCTAssertTrue(links.add(id, key: Hex.random(32), name: "Pixel", since: links.generation))
     }
 
     func testAFileThatCannotBeReadRefusesEveryPhone() throws {
@@ -134,8 +135,8 @@ final class LinkStorageTests: XCTestCase {
 
     func testAGrantedPhoneIsAdmittedWithoutAsking() {
         let trust = TrustStore(path: path("trusted-phone.txt"))
-        trust.grant("link:00")
-        trust.grant("link:00")
+        trust.grant("link:00", since: trust.forgetGeneration)
+        trust.grant("link:00", since: trust.forgetGeneration)
 
         var asked = false
         XCTAssertTrue(
@@ -151,7 +152,7 @@ final class LinkStorageTests: XCTestCase {
         try FileManager.default.createDirectory(
             atPath: path("trusted-phone.txt"), withIntermediateDirectories: true)
         let trust = TrustStore(path: path("trusted-phone.txt"))
-        trust.grant("link:00")
+        trust.grant("link:00", since: trust.forgetGeneration)
 
         XCTAssertFalse(trust.admit("link:00") { true })
     }

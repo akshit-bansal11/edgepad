@@ -138,19 +138,33 @@ public final class TrustStore {
         }
     }
 
+    /// Moved on by every `forget()`. A pairing reads it when it starts and hands it to `grant`, so that a Forget chosen
+    /// while the phone was pairing is the later word.
+    public var forgetGeneration: Int {
+        locked { generation }
+    }
+
     /// Trusts `address` without asking: the owner already said yes another way, by typing a network phone's pairing
-    /// code on this Mac. A trust file that cannot be read is left as it is, so the phone is refused at `admit` like
-    /// every other until the owner forgets them; one that cannot be written keeps the phone for this run, as `admit`.
-    public func grant(_ address: String) {
+    /// code on this Mac. False, with nothing written, when the trusted phones were forgotten since `generation` was
+    /// read: the pairing then must not trust the phone again. A trust file that cannot be read is left as it is, so
+    /// the phone is refused at `admit` like every other until the owner forgets them; one that cannot be written keeps
+    /// the phone for this run, as `admit`.
+    @discardableResult
+    public func grant(_ address: String, since generation: Int) -> Bool {
         locked {
+            guard self.generation == generation else {
+                Log.write("Did not trust \(address): the trusted phones were forgotten while it was pairing")
+                return false
+            }
             let read = tryRead()
-            guard read.readable, !TrustStore.names(withUnsaved(read.addresses), address) else { return }
+            guard read.readable, !TrustStore.names(withUnsaved(read.addresses), address) else { return true }
             do {
                 try save(read.addresses + [address])
             } catch {
                 unsaved.append(address)
                 Log.write("The trusted phone could not be saved to \(path): \(error.localizedDescription)")
             }
+            return true
         }
     }
 

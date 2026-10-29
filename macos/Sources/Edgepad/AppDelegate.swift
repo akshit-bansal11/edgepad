@@ -250,9 +250,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         if answer == .alertSecondButtonReturn {
             let forgotten = trust.forget()
-            // The Wi-Fi and USB pairings too, or a forgotten phone would resume its link and only meet the trust
-            // question, not a new pairing.
-            let unpaired = paired.forget()
             // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
             let verifiedForgotten = pin.forgetVerified()
             // Started before the hold ends (the defer above), so there is no instant in which a connection would
@@ -270,19 +267,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 _ = failure.runModal()
                 failure.window.orderOut(nil)
             }
-            if !unpaired {
-                let failure = NSAlert()
-                failure.alertStyle = .critical
-                failure.messageText = "Edgepad"
-                failure.informativeText =
-                    "The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. "
-                    + "Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will be "
-                    + "able to again the next time it starts. Choose Forget trusted phones again, or delete "
-                    + "paired-links.txt yourself from:\n\n\(paired.folder)"
-                failure.addButton(withTitle: "OK")
-                _ = failure.runModal()
-                failure.window.orderOut(nil)
-            }
+            // The Wi-Fi and USB pairings too, or a forgotten phone would resume its link and only meet the trust
+            // question, not a new pairing. Still under the hold and the quiet period, so none can pair meanwhile.
+            forgetPairedLinks()
             if !verifiedForgotten {
                 let failure = NSAlert()
                 failure.alertStyle = .critical
@@ -308,7 +295,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             host?.resume()
             securing = false
         }
-        SecurityPanel(pin: pin, trust: trust, hangUp: { [weak self] in self?.host?.stayQuiet() }).run()
+        SecurityPanel(
+            pin: pin, trust: trust, forgetPairings: { [weak self] in self?.forgetPairedLinks() },
+            hangUp: { [weak self] in self?.host?.stayQuiet() }
+        ).run()
+    }
+
+    /// Forgets the Wi-Fi and USB pairings, and tells the owner when they could not be. Every way of forgetting phones
+    /// (Forget trusted phones, Reset PIN in the Security panel) goes through here.
+    private func forgetPairedLinks() {
+        guard !paired.forget() else { return }
+        let failure = NSAlert()
+        failure.alertStyle = .critical
+        failure.messageText = "Edgepad"
+        failure.informativeText =
+            "The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. Paired "
+            + "phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will be able to again "
+            + "the next time it starts. Choose Forget trusted phones again, or delete paired-links.txt yourself "
+            + "from:\n\n\(paired.folder)"
+        failure.addButton(withTitle: "OK")
+        _ = failure.runModal()
+        failure.window.orderOut(nil)
     }
 
     /// Held like the Security panel, for the same reason, and guarded against a second click under the modal alert.

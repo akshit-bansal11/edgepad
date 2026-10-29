@@ -42,6 +42,8 @@ final class NetworkServer {
         self.prompt = prompt
         self.host = host
         self.onPaired = onPaired
+        // A Forget or another owner dialog ends every pairing still under way, so none can trust a phone after it.
+        host.onHold = { [weak self] in self?.dropUnproved() }
     }
 
     /// Listens on `port`, or on a free one when that is taken, and announces this Mac; whatever ran before is stopped
@@ -56,19 +58,25 @@ final class NetworkServer {
         let listening = listener
         listener = nil
         listening?.cancel()
-        // Copied first: each responder's end removes its own entry.
-        let pending = unproved
-        unproved = [:]
-        for entry in pending.values {
-            entry.responder.cancel()
-            entry.link.close()
-        }
+        dropUnproved()
         for link in live {
             link.close()
         }
         live = []
         if listening != nil {
             Log.write("Stopped listening for Wi-Fi and USB phones")
+        }
+    }
+
+    /// Ends every connection still proving itself, a pairing question included, without counting it against the lock:
+    /// this Mac stopped it, not the phone.
+    private func dropUnproved() {
+        // Copied first: each responder's end removes its own entry.
+        let pending = unproved
+        unproved = [:]
+        for entry in pending.values {
+            entry.responder.cancel(byPeer: false)
+            entry.link.close()
         }
     }
 
@@ -131,6 +139,11 @@ final class NetworkServer {
     }
 
     private func accept(_ connection: NWConnection) {
+        // While the owner is forgetting phones or has a dialog open, no pairing may even start.
+        guard !host.isRefusing else {
+            connection.cancel()
+            return
+        }
         guard unproved.count < Self.maxUnproved else {
             Log.write("Refused a network connection: \(Self.maxUnproved) others are still proving themselves")
             connection.cancel()
@@ -155,7 +168,7 @@ final class NetworkServer {
             })
         unproved[key] = (link: link, responder: responder)
         link.onBytes = { [weak responder] bytes in responder?.receive(bytes) }
-        link.onClosed = { [weak responder] in responder?.cancel() }
+        link.onClosed = { [weak responder] in responder?.cancel(byPeer: true) }
         link.start()
     }
 

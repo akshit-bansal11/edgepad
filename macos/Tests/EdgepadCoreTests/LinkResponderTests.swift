@@ -239,9 +239,11 @@ final class LinkResponderTests: XCTestCase {
         XCTAssertNotEqual(laptopSide, first.transcript)
     }
 
+    // Each responder is held for its whole pairing, as the app holds it: let go of, its prompt callbacks go nowhere.
     func testTheOwnerCancellingDoesNotCountTowardTheLock() throws {
         for _ in 0..<6 {
-            _ = try pairToCode(responder())
+            let link = responder()
+            _ = try pairToCode(link)
             prompt.cancel()
             XCTAssertNil(try XCTUnwrap(results.first))
         }
@@ -250,8 +252,10 @@ final class LinkResponderTests: XCTestCase {
 
     func testFiveWrongCodesLockPairingAndABusyPhoneIsTold() throws {
         for _ in 0..<5 {
-            let phone = try pairToCode(responder())
+            let link = responder()
+            let phone = try pairToCode(link)
             prompt.type(phone.code == "000000" ? "000001" : "000000")
+            XCTAssertNil(try XCTUnwrap(results.first))
         }
 
         let link = responder()
@@ -261,9 +265,60 @@ final class LinkResponderTests: XCTestCase {
         XCTAssertNil(try XCTUnwrap(results.first))
     }
 
+    /// Otherwise a peer could put the pairing question on the owner's screen again and again by hanging up under it.
+    func testAPhoneThatHangsUpWhileTheOwnerIsAskedCountsTowardTheLock() throws {
+        for _ in 0..<5 {
+            let link = responder()
+            _ = try pairToCode(link)
+            link.cancel(byPeer: true)
+            XCTAssertNil(try XCTUnwrap(results.first))
+            XCTAssertGreaterThan(prompt.withdrawn, 0)
+        }
+
+        XCTAssertFalse(limiter.tryBegin())
+    }
+
+    func testAForgetWhileTheOwnerIsAskedKeepsAndTrustsNothing() throws {
+        let link = responder()
+        let phone = try pairToCode(link)
+        let sentBefore = sent.count
+
+        XCTAssertTrue(trust.forget())
+        XCTAssertTrue(paired.forget())
+        prompt.type(phone.code)
+
+        XCTAssertEqual(sent.count, sentBefore, "the Mac confirmed a pairing begun before the Forget")
+        XCTAssertNil(try XCTUnwrap(results.first))
+        XCTAssertTrue(trust.trustedPhones.isEmpty)
+        XCTAssertNil(paired.find(Hex.string(phoneId)))
+        XCTAssertTrue(limiter.tryBegin(), "the owner's Forget counted against the lock")
+    }
+
+    func testAForgetBeforeThePhoneConfirmsKeepsAndTrustsNothing() throws {
+        let link = responder()
+        let phone = try pairToCode(link)
+        prompt.type(phone.code)
+
+        XCTAssertTrue(trust.forget())
+        link.receive(LinkWire.message(LinkCrypto.phoneTag(phone.prk, phone.transcript, pairing: true)))
+
+        XCTAssertNil(try XCTUnwrap(results.first))
+        XCTAssertTrue(trust.trustedPhones.isEmpty)
+        XCTAssertNil(paired.find(Hex.string(phoneId)))
+        XCTAssertFalse(trust.grant(address, since: trust.forgetGeneration - 1))
+    }
+
+    func testAForgottenPairingsFileRefusesALateAdd() {
+        let generation = paired.generation
+        XCTAssertTrue(paired.forget())
+
+        XCTAssertFalse(paired.add(Hex.string(phoneId), key: Hex.random(32), name: "Pixel", since: generation))
+        XCTAssertNil(paired.find(Hex.string(phoneId)))
+    }
+
     func testAPairedPhoneResumes() throws {
         let pairingKey = Hex.random(32)
-        XCTAssertTrue(paired.add(Hex.string(phoneId), key: pairingKey, name: "Pixel"))
+        XCTAssertTrue(paired.add(Hex.string(phoneId), key: pairingKey, name: "Pixel", since: paired.generation))
         let link = responder()
         let key = LinkCrypto.newKeyPair()
         let nonce = Hex.random(16)
@@ -301,7 +356,7 @@ final class LinkResponderTests: XCTestCase {
     }
 
     func testAPhoneWithTheWrongKeyFailsBothTags() throws {
-        XCTAssertTrue(paired.add(Hex.string(phoneId), key: Hex.random(32), name: "Pixel"))
+        XCTAssertTrue(paired.add(Hex.string(phoneId), key: Hex.random(32), name: "Pixel", since: paired.generation))
         let link = responder()
         let key = LinkCrypto.newKeyPair()
         let nonce = Hex.random(16)
@@ -340,11 +395,11 @@ final class LinkResponderTests: XCTestCase {
         XCTAssertTrue(sent.isEmpty)
     }
 
-    func testAClosedConnectionWhileTheOwnerIsAskedWithdrawsTheQuestionUncounted() throws {
+    func testThisMacStoppingAPairingWithdrawsTheQuestionUncounted() throws {
         let link = responder()
         _ = try pairToCode(link)
 
-        link.cancel()
+        link.cancel(byPeer: false)
 
         XCTAssertNil(try XCTUnwrap(results.first))
         XCTAssertGreaterThan(prompt.withdrawn, 0)

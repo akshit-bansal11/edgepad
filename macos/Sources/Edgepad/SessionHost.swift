@@ -49,6 +49,8 @@ final class SessionHost {
     /// What the owner reads for a network phone's address, `link:` and 32 hex digits: its name and the way it came.
     /// Filled only by links that proved themselves, so it grows with this Mac's own phones, not with whoever connects.
     private var names: [String: String] = [:]
+    /// Told whenever the owner holds phones off or forgets them, so whatever is still pairing ends with it.
+    var onHold: (() -> Void)?
 
     /// `pin` is the store the owner's Security panel changes, so the lockout counts and the check that a PIN changed
     /// mid-answer see one another.
@@ -167,12 +169,16 @@ final class SessionHost {
     func holdOff() {
         holds += 1
         endAll()
+        onHold?()
     }
 
     /// Ends one `holdOff()`; a quiet period started by `stayQuiet()` runs on.
     func resume() {
         holds = max(0, holds - 1)
     }
+
+    /// Whether new connections are being refused right now; the network server refuses to start a pairing then.
+    var isRefusing: Bool { refusing }
 
     /// Whether new connections are being refused, by a hold or a quiet period.
     private var refusing: Bool {
@@ -185,6 +191,7 @@ final class SessionHost {
         // Nothing should be connected after `holdOff()`, and if something is it must not outlive the Forget. Ended
         // first because it posts the waiting status, which the status below must replace.
         endAll()
+        onHold?()
         // Uptime, not the wall clock: a clock stepped backwards must not stretch the quiet period. Never shortens
         // one already running.
         quietUntil = max(quietUntil ?? 0, ProcessInfo.processInfo.systemUptime + Self.quietAfterForget)

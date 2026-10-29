@@ -16,6 +16,10 @@ public final class PairedLinks {
     /// does.
     private var forgetFailed = false
 
+    /// Moved on by every `forget()`. A pairing reads it when it starts and hands it to `add`, so a Forget chosen while
+    /// the phone was pairing is the later word.
+    public private(set) var generation = 0
+
     public init(path: String) {
         self.path = path
     }
@@ -37,11 +41,12 @@ public final class PairedLinks {
         return links.first { $0.id.caseInsensitiveCompare(idHex) == .orderedSame }.map { (key: $0.key, name: $0.name) }
     }
 
-    /// Records a phone's pairing, replacing an older one for the same id. False when it could not be written, or the
-    /// file could not be read (written over, it would lose the phones the read could not see).
-    func add(_ idHex: String, key: [UInt8], name: String) -> Bool {
+    /// Records a phone's pairing, replacing an older one for the same id. False when it could not be written, the file
+    /// could not be read (written over, it would lose the phones the read could not see), or the pairings were
+    /// forgotten since `generation` was read; the caller tells the last from the others by `generation`.
+    func add(_ idHex: String, key: [UInt8], name: String, since generation: Int) -> Bool {
         precondition(key.count == Self.keyLength, "A pairing key is \(Self.keyLength) bytes")
-        guard var links = tryRead() else { return false }
+        guard self.generation == generation, var links = tryRead() else { return false }
         links.removeAll { $0.id.caseInsensitiveCompare(idHex) == .orderedSame }
         // The name is the phone's own say, shown only; a tab or line break in it would end its line early.
         let clean = String(name.map { $0.isNewline || $0 == "\t" ? " " : $0 })
@@ -63,6 +68,7 @@ public final class PairedLinks {
     /// phone is then refused for this run, as for an unreadable file.
     @discardableResult
     public func forget() -> Bool {
+        generation += 1
         do {
             try FileManager.default.removeItem(atPath: path)
         } catch let deleteError {

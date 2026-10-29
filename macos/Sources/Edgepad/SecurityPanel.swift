@@ -14,6 +14,7 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     private let pin: PinStore
     private let trust: TrustStore
     private let hangUp: () -> Void
+    private let forgetPairings: () -> Void
 
     /// The level the radios show.
     private var level: Int
@@ -23,10 +24,12 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     private let pinState = NSTextField(labelWithString: "")
     private let setPinButton = NSButton(title: "", target: nil, action: nil)
 
-    init(pin: PinStore, trust: TrustStore, hangUp: @escaping () -> Void) {
+    /// `forgetPairings` forgets the Wi-Fi and USB pairings and tells the owner if it could not, as Forget does.
+    init(pin: PinStore, trust: TrustStore, forgetPairings: @escaping () -> Void, hangUp: @escaping () -> Void) {
         self.pin = pin
         self.trust = trust
         self.hangUp = hangUp
+        self.forgetPairings = forgetPairings
         level = pin.level
         super.init()
     }
@@ -207,6 +210,9 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
         // the next run at level 1, where a stolen trusted phone gets in with nothing to answer. The phone is hung up
         // on either way, so a half-done reset leaves none connected.
         let forgotten = trust.forget()
+        // Every way of forgetting phones forgets the network pairings too, whatever became of the trust file: a paired
+        // phone would otherwise resume its link and meet only the trust question.
+        forgetPairings()
         let pinGone = forgotten && pin.reset()
         hangUp()
         if !forgotten {
