@@ -143,6 +143,87 @@ public sealed class SecureStreamTests
         Assert.Throws<InvalidDataException>(() => reader.ReadByte());
     }
 
+    [Fact]
+    public void AWriteThatFailsPartWayClosesTheStreamForGood()
+    {
+        // Ten bytes of a 21-byte record reach the wire, then the cable is pulled. Nothing may be sent after that:
+        // not a retry under the same nonce, and not a new record the peer would read as the old one's end.
+        var inner = new FailsAfter(10);
+        using var phone = new SecureStream(inner, Prk, isPhone: true);
+
+        Assert.Throws<IOException>(() => phone.Write(Three));
+        Assert.True(inner.Disposed);
+        Assert.Equal(10, inner.Written);
+        Assert.Throws<IOException>(() => phone.Write(One));
+        Assert.Throws<IOException>(() => phone.ReadByte());
+        Assert.Equal(10, inner.Written);
+    }
+
+    [Fact]
+    public void AFlushThatFailsClosesTheStreamForGood()
+    {
+        var inner = new FailsAfter(int.MaxValue, flushFails: true);
+        using var phone = new SecureStream(inner, Prk, isPhone: true);
+        phone.Write(One);
+
+        Assert.Throws<IOException>(phone.Flush);
+        Assert.True(inner.Disposed);
+        Assert.Throws<IOException>(() => phone.Write(One));
+    }
+
+    /// <summary>A wire that takes <c>limit</c> bytes and then throws, as a socket does when the link drops.</summary>
+    private sealed class FailsAfter(int limit, bool flushFails = false) : Stream
+    {
+        public int Written { get; private set; }
+
+        public bool Disposed { get; private set; }
+
+        public override bool CanRead => false;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => true;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            ObjectDisposedException.ThrowIf(Disposed, this);
+            var taken = Math.Min(count, limit - Written);
+            Written += taken;
+            if (taken < count)
+            {
+                throw new IOException("The link dropped");
+            }
+        }
+
+        public override void Flush()
+        {
+            if (flushFails)
+            {
+                throw new IOException("The link dropped");
+            }
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        protected override void Dispose(bool disposing)
+        {
+            Disposed = true;
+            base.Dispose(disposing);
+        }
+    }
+
     /// <summary>A stream that ignores Dispose, so what was written can still be read back after the writer is closed.</summary>
     private sealed class Untouched(MemoryStream inner) : Stream
     {

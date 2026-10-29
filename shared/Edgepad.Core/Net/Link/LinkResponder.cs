@@ -138,7 +138,7 @@ internal static class LinkResponder
                 return null;
             }
 
-            var transcript = LinkCrypto.Transcript(LinkWire.ModePair, request.PhoneId, self.Id, phonePublic, phoneNonce, own.PublicKey, nonce);
+            var transcript = LinkCrypto.PairTranscript(request.PhoneId, self.Id, request.NameField, LinkWire.NameField(self.Name), phonePublic, phoneNonce, own.PublicKey, nonce);
             var shared = LinkCrypto.Agree(own, phonePublic);
             try
             {
@@ -243,7 +243,7 @@ internal static class LinkResponder
         {
             using var own = LinkCrypto.NewKeyPair();
             var nonce = RandomNumberGenerator.GetBytes(LinkWire.NonceLength);
-            var transcript = LinkCrypto.Transcript(LinkWire.ModeResume, request.PhoneId, self.Id, request.PublicKey, request.Nonce, own.PublicKey, nonce);
+            var transcript = LinkCrypto.ResumeTranscript(request.PhoneId, self.Id, request.PublicKey, request.Nonce, own.PublicKey, nonce);
             var shared = LinkCrypto.Agree(own, request.PublicKey);
             try
             {
@@ -303,7 +303,7 @@ internal static class LinkResponder
                 // The link ended under the question; settled below.
             }
 
-            _ = answer.TrySetCanceled();
+            _ = answer.TrySetCanceled(CancellationToken.None);
         }
 
         if (ended.IsCancellationRequested)

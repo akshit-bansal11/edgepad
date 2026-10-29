@@ -34,7 +34,7 @@ internal static class LinkInitiator
         }
 
         LinkWire.Write(link, LinkWire.Reveal(own.PublicKey, nonce));
-        var transcript = LinkCrypto.Transcript(LinkWire.ModePair, phoneId, offer.LaptopId, own.PublicKey, nonce, offer.PublicKey, offer.Nonce);
+        var transcript = LinkCrypto.PairTranscript(phoneId, offer.LaptopId, LinkWire.NameField(name), offer.NameField, own.PublicKey, nonce, offer.PublicKey, offer.Nonce);
         var shared = LinkCrypto.Agree(own, offer.PublicKey);
         var prk = LinkCrypto.PairPrk(transcript, shared);
         CryptographicOperations.ZeroMemory(shared);
@@ -81,7 +81,7 @@ internal static class LinkInitiator
             return new Initiated(reply.Status, null, []);
         }
 
-        var transcript = LinkCrypto.Transcript(LinkWire.ModeResume, phoneId, laptopId, own.PublicKey, nonce, reply.PublicKey, reply.Nonce);
+        var transcript = LinkCrypto.ResumeTranscript(phoneId, laptopId, own.PublicKey, nonce, reply.PublicKey, reply.Nonce);
         var shared = LinkCrypto.Agree(own, reply.PublicKey);
         var prk = LinkCrypto.ResumePrk(transcript, shared, pairingKey);
         CryptographicOperations.ZeroMemory(shared);

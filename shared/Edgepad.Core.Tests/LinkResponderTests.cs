@@ -203,7 +203,7 @@ public sealed class LinkResponderTests : IDisposable
         LinkWire.Write(phoneEnd, LinkWire.EncodePairRequest(PhoneId, "Rogue", LinkCrypto.Commit(own.PublicKey, nonce)));
         var offer = LinkWire.DecodeReply(LinkWire.ModePair, LinkWire.Read(phoneEnd));
         LinkWire.Write(phoneEnd, LinkWire.Reveal(own.PublicKey, nonce));
-        var transcript = LinkCrypto.Transcript(LinkWire.ModePair, PhoneId, offer.LaptopId, own.PublicKey, nonce, offer.PublicKey, offer.Nonce);
+        var transcript = LinkCrypto.PairTranscript(PhoneId, offer.LaptopId, LinkWire.NameField("Rogue"), offer.NameField, own.PublicKey, nonce, offer.PublicKey, offer.Nonce);
         var prk = LinkCrypto.PairPrk(transcript, LinkCrypto.Agree(own, offer.PublicKey));
         LinkWire.Write(phoneEnd, LinkWire.Tag(LinkCrypto.PhoneTag(prk, transcript, pairing: true)));
 
@@ -213,6 +213,30 @@ public sealed class LinkResponderTests : IDisposable
         Assert.Contains(logs, line => line.Contains("no code was typed", StringComparison.Ordinal));
 
         // Nothing came back that depends on the code: the laptop closed without a confirmation.
+        Assert.Throws<EndOfStreamException>(() => LinkWire.Read(phoneEnd));
+    }
+
+    [Fact]
+    public async Task ANameChangedOnTheWayIsNotPairedOnTheOwnersCode()
+    {
+        // A relay renames the phone, so the laptop asks about "Owner's phone" while the phone in the owner's hand
+        // says "Pixel". The names are in the transcript as sent, so the code the phone shows is not the laptop's.
+        owner.Types = code => code;
+        var (phoneEnd, laptopEnd) = Duplex.Create();
+        var laptopSide = Laptop(laptopEnd);
+
+        using var own = LinkCrypto.NewKeyPair();
+        var nonce = RandomNumberGenerator.GetBytes(LinkWire.NonceLength);
+        LinkWire.Write(phoneEnd, LinkWire.EncodePairRequest(PhoneId, "Owner's phone", LinkCrypto.Commit(own.PublicKey, nonce)));
+        var offer = LinkWire.DecodeReply(LinkWire.ModePair, LinkWire.Read(phoneEnd));
+        LinkWire.Write(phoneEnd, LinkWire.Reveal(own.PublicKey, nonce));
+        ShowOnPhone(LinkCrypto.Sas(LinkCrypto.PairTranscript(
+            PhoneId, offer.LaptopId, LinkWire.NameField(PhoneName), offer.NameField, own.PublicKey, nonce, offer.PublicKey, offer.Nonce)));
+
+        Assert.Null(await laptopSide);
+        Assert.Equal("Owner's phone", owner.LastPhoneName);
+        AssertNotPaired();
+        Assert.Contains(logs, line => line.Contains("not the one that phone shows", StringComparison.Ordinal));
         Assert.Throws<EndOfStreamException>(() => LinkWire.Read(phoneEnd));
     }
 

@@ -18,6 +18,8 @@ public sealed class LinkVectorsOutput
     private static readonly byte[] ResumePhoneNonce = Counting(0x40, 16);
     private static readonly byte[] ResumeLaptopNonce = Counting(0x50, 16);
     private static readonly byte[] Plain = "EDGL1 record"u8.ToArray();
+    private static readonly byte[] PhoneName = LinkWire.NameField("Phone");
+    private static readonly byte[] LaptopName = LinkWire.NameField("Laptop");
 
     [Fact]
     public void WritesTheLinkVectorsWhenAsked()
@@ -43,12 +45,13 @@ public sealed class LinkVectorsOutput
             "# suites all read this file and must derive every value on each line from the INPUT line before it.",
             "#",
             "# Format:  NAME key=value ...   Values are hex, except sas (six decimal digits) and counter (decimal).",
+            "# nameP and nameL are the names as sent: a length byte, then UTF-8. Only a pairing hashes them.",
             "# Keys are RFC 5903 section 8.1's: the phone uses i, the laptop r. Records are sealed by the phone.",
             "",
         ];
 
         // Pairing.
-        var pairTh = LinkCrypto.Transcript(LinkWire.ModePair, PhoneId, LaptopId, phone.PublicKey, PairPhoneNonce, laptop.PublicKey, PairLaptopNonce);
+        var pairTh = LinkCrypto.PairTranscript(PhoneId, LaptopId, PhoneName, LaptopName, phone.PublicKey, PairPhoneNonce, laptop.PublicKey, PairLaptopNonce);
         var pairPrk = LinkCrypto.PairPrk(pairTh, LinkCrypto.Agree(laptop, phone.PublicKey));
         var pairingKey = LinkCrypto.PairingKey(pairPrk);
         lines.Add(Line(
@@ -59,6 +62,8 @@ public sealed class LinkVectorsOutput
             ("pkL", laptop.PublicKey),
             ("phoneId", PhoneId),
             ("laptopId", LaptopId),
+            ("nameP", PhoneName),
+            ("nameL", LaptopName),
             ("nP", PairPhoneNonce),
             ("nL", PairLaptopNonce)));
         lines.Add(Line(
@@ -75,7 +80,7 @@ public sealed class LinkVectorsOutput
         lines.AddRange(Session("PAIR", pairPrk));
 
         // Resuming with the key that pairing left.
-        var resumeTh = LinkCrypto.Transcript(LinkWire.ModeResume, PhoneId, LaptopId, phone.PublicKey, ResumePhoneNonce, laptop.PublicKey, ResumeLaptopNonce);
+        var resumeTh = LinkCrypto.ResumeTranscript(PhoneId, LaptopId, phone.PublicKey, ResumePhoneNonce, laptop.PublicKey, ResumeLaptopNonce);
         var resumePrk = LinkCrypto.ResumePrk(resumeTh, LinkCrypto.Agree(laptop, phone.PublicKey), pairingKey);
         lines.Add("");
         lines.Add(Line("RESUME_INPUT", ("pk", pairingKey), ("nP", ResumePhoneNonce), ("nL", ResumeLaptopNonce)));

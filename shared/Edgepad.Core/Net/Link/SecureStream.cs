@@ -114,13 +114,16 @@ internal sealed class SecureStream : Stream
             {
                 if (failed)
                 {
-                    throw new IOException("The link was closed after a record failed its check");
+                    throw new IOException("The link was closed after a record failed");
                 }
 
                 var chunk = buffer[..Math.Min(buffer.Length, LinkWire.MaxRecordPlain)];
                 var length = chunk.Length + LinkCrypto.AeadTagLength;
                 BinaryPrimitives.WriteUInt16LittleEndian(outRecord, (ushort)length);
                 LinkCrypto.Nonce(sendPrefix, sent, nonce);
+
+                // Spent before anything can fail: a nonce is sealed under once, whatever then happens to the record.
+                sent++;
                 LinkCrypto.Seal(
                     sealer,
                     nonce,
@@ -132,13 +135,20 @@ internal sealed class SecureStream : Stream
                 {
                     inner.Write(outRecord, 0, 2 + length);
                 }
-                catch (ObjectDisposedException e)
+                catch (Exception e)
                 {
-                    // Closed under this write by a failed read or the session ending; the sessions expect an IOException.
-                    throw new IOException("The link is closed", e);
+                    // Closed for good: part of a record may be on the wire, and the peer would read whatever came next as
+                    // its continuation. A stream closed under this write (a failed read, the session ending) is reported
+                    // as the IOException the sessions expect.
+                    Fail();
+                    if (e is ObjectDisposedException)
+                    {
+                        throw new IOException("The link is closed", e);
+                    }
+
+                    throw;
                 }
 
-                sent++;
                 buffer = buffer[chunk.Length..];
             }
         }
@@ -146,13 +156,22 @@ internal sealed class SecureStream : Stream
 
     public override void Flush()
     {
-        try
+        lock (writeGate)
         {
-            inner.Flush();
-        }
-        catch (ObjectDisposedException e)
-        {
-            throw new IOException("The link is closed", e);
+            try
+            {
+                inner.Flush();
+            }
+            catch (Exception e)
+            {
+                Fail();
+                if (e is ObjectDisposedException)
+                {
+                    throw new IOException("The link is closed", e);
+                }
+
+                throw;
+            }
         }
     }
 
@@ -182,7 +201,7 @@ internal sealed class SecureStream : Stream
     {
         if (failed)
         {
-            throw new IOException("The link was closed after a record failed its check");
+            throw new IOException("The link was closed after a record failed");
         }
 
         Span<byte> header = stackalloc byte[2];

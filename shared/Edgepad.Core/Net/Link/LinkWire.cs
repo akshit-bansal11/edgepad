@@ -102,7 +102,7 @@ internal static class LinkWire
         LinkRequest request = r.Byte() switch
         {
             ModeInfo => new InfoRequest(),
-            ModePair => new PairRequest(r.Bytes(IdLength).ToArray(), r.Name(), r.Bytes(HashLength).ToArray()),
+            ModePair => Pair(r.Bytes(IdLength).ToArray(), r.NameField(), r.Bytes(HashLength).ToArray()),
             ModeResume => new ResumeRequest(r.Bytes(IdLength).ToArray(), r.Bytes(PublicKeyLength).ToArray(), r.Bytes(NonceLength).ToArray()),
             var mode => throw new InvalidDataException($"Unknown link mode {mode}"),
         };
@@ -155,19 +155,43 @@ internal static class LinkWire
         if (status != StatusOk)
         {
             r.End();
-            return new LinkReply(status, [], 0, "", [], [], []);
+            return new LinkReply(status, [], 0, "", [], [], [], []);
         }
 
         LinkReply reply = mode switch
         {
-            ModeInfo => new LinkReply(status, r.Bytes(IdLength).ToArray(), r.Byte(), r.Name(), [], [], []),
-            ModePair => new LinkReply(status, r.Bytes(IdLength).ToArray(), 0, r.Name(), r.Bytes(PublicKeyLength).ToArray(), r.Bytes(NonceLength).ToArray(), []),
-            ModeResume => new LinkReply(status, [], 0, "", r.Bytes(PublicKeyLength).ToArray(), r.Bytes(NonceLength).ToArray(), r.Bytes(HashLength).ToArray()),
+            ModeInfo => Reply(status, r.Bytes(IdLength).ToArray(), r.Byte(), r.NameField(), [], []),
+            ModePair => Reply(status, r.Bytes(IdLength).ToArray(), 0, r.NameField(), r.Bytes(PublicKeyLength).ToArray(), r.Bytes(NonceLength).ToArray()),
+            ModeResume => new LinkReply(status, [], 0, "", [], r.Bytes(PublicKeyLength).ToArray(), r.Bytes(NonceLength).ToArray(), r.Bytes(HashLength).ToArray()),
             _ => throw new ArgumentOutOfRangeException(nameof(mode)),
         };
         r.End();
         return reply;
     }
+
+    /// <summary>
+    /// A display name as the wire carries it: a one-byte length, then UTF-8 cut at a character boundary to fit. Both
+    /// names go into the pairing transcript in exactly this form, as sent, so a relay that changes either one changes
+    /// the code.
+    /// </summary>
+    public static byte[] NameField(string name)
+    {
+        var utf8 = Encoding.UTF8.GetBytes(name);
+        var length = Math.Min(utf8.Length, MaxNameBytes);
+        while (length < utf8.Length && length > 0 && (utf8[length] & 0xC0) == 0x80)
+        {
+            length--;
+        }
+
+        return [(byte)length, .. utf8.AsSpan(0, length)];
+    }
+
+    private static string Text(byte[] nameField) => Encoding.UTF8.GetString(nameField.AsSpan(1));
+
+    private static PairRequest Pair(byte[] phoneId, byte[] nameField, byte[] commit) => new(phoneId, Text(nameField), nameField, commit);
+
+    private static LinkReply Reply(byte status, byte[] laptopId, byte protocolVersion, byte[] nameField, byte[] publicKey, byte[] nonce) =>
+        new(status, laptopId, protocolVersion, Text(nameField), nameField, publicKey, nonce, []);
 
     private static Builder Request(byte mode) => new Builder().Bytes(Magic, Magic.Length).Byte(LinkVersion).Byte(mode);
 
@@ -192,18 +216,9 @@ internal static class LinkWire
             return this;
         }
 
-        /// <summary>A display name, UTF-8 behind a one-byte length, cut at a character boundary to fit.</summary>
         public Builder Name(string name)
         {
-            var utf8 = Encoding.UTF8.GetBytes(name);
-            var length = Math.Min(utf8.Length, MaxNameBytes);
-            while (length < utf8.Length && length > 0 && (utf8[length] & 0xC0) == 0x80)
-            {
-                length--;
-            }
-
-            bytes.Add((byte)length);
-            bytes.AddRange(utf8.AsSpan(0, length));
+            bytes.AddRange(NameField(name));
             return this;
         }
 
@@ -231,7 +246,12 @@ internal static class LinkWire
 
         public byte Byte() => Bytes(1)[0];
 
-        public string Name() => Encoding.UTF8.GetString(Bytes(Byte()));
+        /// <summary>A name with its length byte, exactly as sent.</summary>
+        public byte[] NameField()
+        {
+            var length = Byte();
+            return [length, .. Bytes(length)];
+        }
 
         public readonly void End()
         {
@@ -249,9 +269,10 @@ internal sealed record InfoRequest : LinkRequest;
 
 internal sealed record UnsupportedRequest(byte Version) : LinkRequest;
 
-internal sealed record PairRequest(byte[] PhoneId, string Name, byte[] Commit) : LinkRequest;
+/// <summary>A pairing request; <c>NameField</c> is the name as sent, length byte included, for the transcript.</summary>
+internal sealed record PairRequest(byte[] PhoneId, string Name, byte[] NameField, byte[] Commit) : LinkRequest;
 
 internal sealed record ResumeRequest(byte[] PhoneId, byte[] PublicKey, byte[] Nonce) : LinkRequest;
 
 /// <summary>A laptop's reply as a phone decodes it; fields a mode does not carry are empty.</summary>
-internal sealed record LinkReply(byte Status, byte[] LaptopId, byte ProtocolVersion, string Name, byte[] PublicKey, byte[] Nonce, byte[] Tag);
+internal sealed record LinkReply(byte Status, byte[] LaptopId, byte ProtocolVersion, string Name, byte[] NameField, byte[] PublicKey, byte[] Nonce, byte[] Tag);

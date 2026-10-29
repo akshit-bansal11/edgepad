@@ -92,9 +92,17 @@ internal static class LinkCrypto
     /// <summary>What the phone binds itself to before it sees the laptop's key and nonce.</summary>
     public static byte[] Commit(byte[] phonePublic, byte[] phoneNonce) => Hash(CommitLabel, phonePublic, phoneNonce);
 
-    /// <summary>Everything both sides said, in one hash: any difference between their views changes every key.</summary>
-    public static byte[] Transcript(byte mode, byte[] phoneId, byte[] laptopId, byte[] phonePublic, byte[] phoneNonce, byte[] laptopPublic, byte[] laptopNonce) =>
-        Hash(TranscriptLabel, [mode], phoneId, laptopId, phonePublic, phoneNonce, laptopPublic, laptopNonce);
+    /// <summary>
+    /// Everything both sides said in a pairing, in one hash: any difference between their views changes the code and
+    /// every key. The names are the fields as sent (<see cref="LinkWire.NameField"/>), so a relay cannot change the name
+    /// the laptop shows the owner, or the phone shows its owner, without changing the code too.
+    /// </summary>
+    public static byte[] PairTranscript(byte[] phoneId, byte[] laptopId, byte[] phoneNameField, byte[] laptopNameField, byte[] phonePublic, byte[] phoneNonce, byte[] laptopPublic, byte[] laptopNonce) =>
+        Hash(TranscriptLabel, [LinkWire.ModePair], phoneId, laptopId, phoneNameField, laptopNameField, phonePublic, phoneNonce, laptopPublic, laptopNonce);
+
+    /// <summary>A resume's transcript: no names travel in a resume, so none are in it.</summary>
+    public static byte[] ResumeTranscript(byte[] phoneId, byte[] laptopId, byte[] phonePublic, byte[] phoneNonce, byte[] laptopPublic, byte[] laptopNonce) =>
+        Hash(TranscriptLabel, [LinkWire.ModeResume], phoneId, laptopId, phonePublic, phoneNonce, laptopPublic, laptopNonce);
 
     /// <summary>
     /// The six digits the phone shows and the laptop's owner types: the first four bytes of a hash of the transcript,

@@ -20,6 +20,9 @@ public sealed class LinkCryptoTests
     internal const string Gry = "56FBF3CA366CC23E8157854C13C58D6AAC23F046ADA30F8353E74F33039872AB";
     private const string Girx = "D6840F6B42F6EDAFD13116E0E12565202FEF8E9ECE7DCE03812464D04B9442DE";
 
+    private static readonly byte[] PhoneName = LinkWire.NameField("Pixel");
+    private static readonly byte[] LaptopName = LinkWire.NameField("Laptop");
+
     internal static Ephemeral Fixed(string d, string x, string y) => LinkCrypto.Import(new ECParameters
     {
         Curve = ECCurve.NamedCurves.nistP256,
@@ -124,8 +127,27 @@ public sealed class LinkCryptoTests
 
         Assert.False(LinkCrypto.TagsEqual(LinkCrypto.Commit(phone.PublicKey, committed), LinkCrypto.Commit(phone.PublicKey, other)));
         Assert.NotEqual(
-            LinkCrypto.Sas(LinkCrypto.Transcript(LinkWire.ModePair, phoneId, laptopId, phone.PublicKey, committed, laptop.PublicKey, laptopNonce)),
-            LinkCrypto.Sas(LinkCrypto.Transcript(LinkWire.ModePair, phoneId, laptopId, phone.PublicKey, other, laptop.PublicKey, laptopNonce)));
+            LinkCrypto.Sas(LinkCrypto.PairTranscript(phoneId, laptopId, PhoneName, LaptopName, phone.PublicKey, committed, laptop.PublicKey, laptopNonce)),
+            LinkCrypto.Sas(LinkCrypto.PairTranscript(phoneId, laptopId, PhoneName, LaptopName, phone.PublicKey, other, laptop.PublicKey, laptopNonce)));
+    }
+
+    [Fact]
+    public void TheCodeTurnsOnBothNamesAsSent()
+    {
+        // A relay that renames either end, so the owner is asked about a phone that is not the one in their hand, moves
+        // the code: the owner then types a code the laptop does not have.
+        var id = new byte[LinkWire.IdLength];
+        var nonce = new byte[LinkWire.NonceLength];
+        using var key = Fixed(I, Gix, Giy);
+        string Code(byte[] phoneName, byte[] laptopName) =>
+            LinkCrypto.Sas(LinkCrypto.PairTranscript(id, id, phoneName, laptopName, key.PublicKey, nonce, key.PublicKey, nonce));
+
+        var honest = Code(PhoneName, LaptopName);
+        Assert.NotEqual(honest, Code(LinkWire.NameField("Pixel 9"), LaptopName));
+        Assert.NotEqual(honest, Code(PhoneName, LinkWire.NameField("Laptop 2")));
+
+        // Length-prefixed, so moving a byte from one name to the other is a different transcript too.
+        Assert.NotEqual(Code(LinkWire.NameField("ab"), LinkWire.NameField("c")), Code(LinkWire.NameField("a"), LinkWire.NameField("bc")));
     }
 
     [Fact]
