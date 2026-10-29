@@ -7,6 +7,7 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 ### Fixed
 
 - **The guide's Next button stays at the bottom.** On a short screen or a large font the buttons scrolled away with the page; only the guide's text scrolls now.
+- **Annotate has a back button.** It had only an Exit in its menu; a round back button now sits in the top-left corner like the gamepad's, and the keyboard's back link is no longer hidden under a display cutout.
 
 ## [4.0.0] - 2026-10-24
 

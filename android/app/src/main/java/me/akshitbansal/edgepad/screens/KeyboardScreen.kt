@@ -96,6 +96,7 @@ object KeyboardScreen {
         return LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(ui.palette.background)
+            ui.padToBars(this)
             addView(header)
             addView(keyboard, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         }

@@ -152,6 +152,15 @@ class Ui(
         return root
     }
 
+    /** Keeps a full-screen view clear of the system bars and the display cutout, which edge-to-edge no longer does. */
+    fun padToBars(view: View) {
+        view.setOnApplyWindowInsetsListener { v, insets ->
+            val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
+    }
+
     /**
      * A screen's nav bar. With somewhere to go back to, an accent chevron and [backLabel] (the screen it
      * returns to) sit at the start and [title] is centred; a top-level screen passes no [onBack] and shows its

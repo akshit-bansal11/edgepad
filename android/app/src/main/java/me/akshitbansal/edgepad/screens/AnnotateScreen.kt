@@ -6,7 +6,6 @@ import android.graphics.drawable.InsetDrawable
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -59,6 +58,7 @@ class AnnotateScreen(
             setBackgroundColor(ui.palette.background)
             canvas.contentDescription = ui.string(R.string.annotate_description)
             addView(canvas, FrameLayout.LayoutParams(MATCH, MATCH))
+            EditorFrame.addBack(this, ui, onBack)
             addView(
                 LinearLayout(ui.context).apply {
                     orientation = LinearLayout.VERTICAL
@@ -70,12 +70,7 @@ class AnnotateScreen(
                     .LayoutParams(WRAP, WRAP, Gravity.BOTTOM or Gravity.END)
                     .apply { setMargins(ui.dp(Space.M), ui.dp(Space.M), ui.dp(Space.M), ui.dp(Space.M)) },
             )
-            // Edge-to-edge is enforced: keep the pad and the menu clear of the system bars and the cutout.
-            setOnApplyWindowInsetsListener { page, insets ->
-                val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
-                page.setPadding(bars.left, bars.top, bars.right, bars.bottom)
-                insets
-            }
+            ui.padToBars(this)
         }
 
     init {

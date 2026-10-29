@@ -3,7 +3,6 @@ package me.akshitbansal.edgepad.screens
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
 import android.widget.LinearLayout
 import android.widget.TextView
 import me.akshitbansal.edgepad.R
@@ -70,7 +69,6 @@ class CaptureScreen(
                 ),
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f),
             )
-            // Edge-to-edge is enforced: keep the bar and the pad clear of the system bars and the cutout.
             // Leaving the screen, by any route, closes a capture overlay the laptop may still have open. A view hook
             // and not the caller's back handler, so every way out is covered; the laptop presses Escape only if
             // an overlay is pending, so a stray detach costs nothing.
@@ -87,11 +85,7 @@ class CaptureScreen(
                     }
                 },
             )
-            setOnApplyWindowInsetsListener { page, insets ->
-                val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
-                page.setPadding(bars.left, bars.top, bars.right, bars.bottom)
-                insets
-            }
+            ui.padToBars(this)
         }
 
     /** The three buttons in a row, and under them either the hint for a region or the reason they are off. */
