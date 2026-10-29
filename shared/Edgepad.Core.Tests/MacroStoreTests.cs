@@ -272,14 +272,14 @@ public sealed class MacroStoreTests : IDisposable
         try
         {
             Assert.True(store.Run(0));
-            Assert.True(started.Wait(TimeSpan.FromSeconds(10)));
+            Assert.True(started.Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
         }
         finally
         {
             release.Set();
         }
 
-        Assert.True(blocking.Done.Wait(TimeSpan.FromSeconds(10)));
+        Assert.True(blocking.Done.Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
     }
 
     [Fact]
