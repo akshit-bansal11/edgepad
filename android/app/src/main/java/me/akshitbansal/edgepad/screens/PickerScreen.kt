@@ -8,9 +8,12 @@ import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.link.Found
+import me.akshitbansal.edgepad.link.Transport
 
 /**
- * The paired laptops. Tapping one connects to it, or opens the controls when it is already connected; the
+ * The laptops: paired over Bluetooth, found on the Wi-Fi, found over USB tethering, or added by address.
+ * Tapping one connects to it, or opens the controls when it is already connected; the
  * connected one shows its live round trip. Refresh, Bluetooth settings and Settings sit in the nav bar, and
  * the mark stands beside the large title.
  *
@@ -20,16 +23,27 @@ import me.akshitbansal.edgepad.Type
  */
 class PickerScreen(
     private val ui: Ui,
-    private val onConnect: (String) -> Unit,
+    private val onConnect: (Device) -> Unit,
     private val onOpenControls: () -> Unit,
     onBluetoothSettings: () -> Unit,
     onSettings: () -> Unit,
     private val onRefresh: () -> Unit,
     private val onShowAll: (Boolean) -> Unit,
+    private val onAddAddress: () -> Unit,
+    private val onUsbHelp: () -> Unit,
 ) {
+    /**
+     * One row. [address] is what connected and connecting are compared by, [detail] the sub-line when nothing
+     * more telling is to be said, [found] the network laptop a tap connects to (null for a Bluetooth one) and
+     * [alsoVia] the other way the same laptop was found.
+     */
     class Device(
         val address: String,
         val name: String,
+        val transport: Transport = Transport.BLUETOOTH,
+        val detail: String = address,
+        val found: Found? = null,
+        val alsoVia: Transport? = null,
     )
 
     private var devices: List<Device> = emptyList()
@@ -69,6 +83,8 @@ class PickerScreen(
                     list = card {}
                     legend = footnote("")
                     filter = add(ui.button("", Ui.Style.QUIET) { onShowAll(!showingAll) }, Space.S)
+                    add(ui.button(ui.string(R.string.add_by_address), Ui.Style.QUIET, onAddAddress), Space.S)
+                    add(ui.button(ui.string(R.string.usb_tethering), Ui.Style.QUIET, onUsbHelp), Space.S)
                     message = body("", Space.L).apply { visibility = View.GONE }
                     messageButton =
                         add(ui.button("", Ui.Style.QUIET) { messageAction?.invoke() }).apply {
@@ -192,6 +208,7 @@ class PickerScreen(
         val isConnected = device.address == connected
         val isConnecting = device.address == connecting
         val live = isConnected || isConnecting
+        val other = device.alsoVia?.let { transportName(it) }
         val status =
             when {
                 isConnected -> R.string.device_connected
@@ -208,7 +225,8 @@ class PickerScreen(
                 }
                 addView(
                     ui.secondary(
-                        status?.let { ui.string(it) } ?: device.address,
+                        status?.let { ui.string(it) } ?: other?.let { ui.string(R.string.also_via, it) }
+                            ?: device.detail,
                         Type.SMALL,
                         if (live) ui.palette.accent else ui.palette.dim,
                     ),
@@ -216,10 +234,34 @@ class PickerScreen(
             }
         val tag = ui.secondary(if (isConnected) rttText() else "", Type.SMALL, ui.palette.dim)
         if (isConnected) rttTag = tag
-        return ui.laptop(device.name, sub, isConnected, tag).apply {
-            ui.tappable(this) { if (isConnected) onOpenControls() else onConnect(device.address) }
+        val end =
+            LinearLayout(ui.context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                addView(transportChip(device.transport))
+                val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
+                addView(tag, LinearLayout.LayoutParams(wrap, wrap).apply { marginStart = ui.dp(Space.S) })
+            }
+        return ui.laptop(device.name, sub, isConnected, end).apply {
+            ui.tappable(this) { if (isConnected) onOpenControls() else onConnect(device) }
         }
     }
+
+    /** The small label naming how a row is reached. */
+    private fun transportChip(transport: Transport): View =
+        ui.secondary(transportName(transport), Type.SMALL, ui.palette.ink).apply {
+            background = ui.rounded(ui.palette.faint, CHIP_RADIUS_DP)
+            val across = ui.dp(Space.S)
+            setPadding(across, ui.dp(Space.XS), across, ui.dp(Space.XS))
+        }
+
+    private fun transportName(transport: Transport): String =
+        ui.string(
+            when (transport) {
+                Transport.BLUETOOTH -> R.string.transport_bluetooth
+                Transport.WIFI -> R.string.transport_wifi
+                Transport.USB -> R.string.transport_usb
+            },
+        )
 
     private fun rttText(): String = if (rtt.isNaN()) "" else ui.string(R.string.device_rtt, rtt)
 
@@ -236,6 +278,7 @@ class PickerScreen(
 
     private companion object {
         const val MARK_DP = 34f
+        const val CHIP_RADIUS_DP = 8f
 
         /** The dot is drawn 6 dp across; the rest of its box is room for the ring it sends out while connecting. */
         const val PULSE_DP = 14f

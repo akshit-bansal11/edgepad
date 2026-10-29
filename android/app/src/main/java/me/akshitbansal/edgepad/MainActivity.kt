@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -16,6 +17,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings.Global
+import android.text.InputType
 import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -23,20 +25,30 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
 import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.link.BluetoothTransport
+import me.akshitbansal.edgepad.link.Discovery
+import me.akshitbansal.edgepad.link.Found
+import me.akshitbansal.edgepad.link.HostPort
 import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.LinkTransport
+import me.akshitbansal.edgepad.link.LocalNetwork
 import me.akshitbansal.edgepad.link.RttStats
 import me.akshitbansal.edgepad.link.Target
 import me.akshitbansal.edgepad.link.TcpTransport
+import me.akshitbansal.edgepad.link.TetherProbe
+import me.akshitbansal.edgepad.link.mergeFound
 import me.akshitbansal.edgepad.link.net.LinkKeys
 import me.akshitbansal.edgepad.link.net.Sas
+import me.akshitbansal.edgepad.link.otherTransport
+import me.akshitbansal.edgepad.link.parseHostPort
+import me.akshitbansal.edgepad.link.probeAddress
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
@@ -68,6 +80,7 @@ import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
 import me.akshitbansal.edgepad.screens.Ui
+import me.akshitbansal.edgepad.screens.showOver
 import me.akshitbansal.edgepad.surface.BackgroundImage
 import me.akshitbansal.edgepad.surface.ControlSurface
 import me.akshitbansal.edgepad.update.Installer
@@ -238,6 +251,28 @@ class MainActivity :
     /** The system's permission prompt is up, so the Devices list offers no way round it underneath. */
     private var permissionPending = false
 
+    /** The local-network permission has been asked for once, so the list offers the way back and does not nag. */
+    private var askedLocalNetwork = false
+
+    /** Laptops found by NsdManager and by the tether probe, and by the last address typed; the picker merges them. */
+    private var wifiFound: List<Found> = emptyList()
+    private var usbFound: List<Found> = emptyList()
+    private var discovery: Discovery? = null
+    private val probe = TetherProbe()
+    private var probing = false
+
+    /** Rescans every [SCAN_EVERY_MS] while the Devices list is on screen, and only then. */
+    private val rescan =
+        object : Runnable {
+            override fun run() {
+                if (!started || screen != Screen.PAIRING) return
+                discovery?.start()
+                probeTether()
+                refreshPicker()
+                handler.postDelayed(this, SCAN_EVERY_MS)
+            }
+        }
+
     private val pinger =
         object : Runnable {
             override fun run() {
@@ -276,12 +311,24 @@ class MainActivity :
                 onOpenControls = { goTo(Screen.SURFACE) },
                 onBluetoothSettings = ::openBluetoothSettings,
                 onSettings = ::openSettings,
-                onRefresh = ::refreshPicker,
+                onRefresh = {
+                    refreshPicker()
+                    startScan()
+                },
                 onShowAll = { all ->
                     showAllDevices = all
                     refreshPicker()
                 },
+                onAddAddress = ::askAddress,
+                onUsbHelp = ::openTetherSettings,
             )
+        discovery =
+            Discovery(this) { list ->
+                handler.post {
+                    wifiFound = list
+                    if (screen == Screen.PAIRING) refreshPicker()
+                }
+            }
         val retained = lastNonConfigurationInstance as? Retained
         if (retained != null) {
             link = retained.link?.also { it.listener = this }
@@ -346,6 +393,7 @@ class MainActivity :
         }
         if (screen == Screen.RECONNECTING) handler.post(ticker)
         refreshPicker()
+        startScan()
         val sinceCheck = System.currentTimeMillis() - settings.lastUpdateCheck
         if (settings.autoUpdateCheck && sinceCheck >= Updates.CHECK_EVERY_MS) checkForUpdate()
     }
@@ -359,6 +407,7 @@ class MainActivity :
         handler.removeCallbacks(retry)
         handler.removeCallbacks(quickRetry)
         handler.removeCallbacks(ticker)
+        stopScan()
         // A detour keeps the link for a while, and a rebuild keeps it outright; see the class comment.
         if (!isChangingConfigurations && link != null) handler.postDelayed(linger, LINGER_MS)
     }
@@ -414,10 +463,43 @@ class MainActivity :
         grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode != REQUEST_BLUETOOTH) return
+        if (requestCode != REQUEST_BLUETOOTH && requestCode != REQUEST_LOCAL_NETWORK) return
         permissionPending = false
         // Refused as well as granted: a refusal changes what the list offers, from nothing to a way back.
         refreshPicker()
+        // Browsing does nothing until the permission is held, so it begins now that it may be.
+        startScan()
+    }
+
+    /** Begins looking for laptops on the network, if the Devices list is what is showing. */
+    private fun startScan() {
+        if (!started || screen != Screen.PAIRING) return
+        handler.removeCallbacks(rescan)
+        handler.post(rescan)
+    }
+
+    private fun stopScan() {
+        handler.removeCallbacks(rescan)
+        discovery?.stop()
+        probe.stop()
+        wifiFound = emptyList()
+        usbFound = emptyList()
+    }
+
+    /** One pass of the tether probe on its own thread; a pass still running is left to finish. */
+    private fun probeTether() {
+        if (probing || !LocalNetwork.granted(this)) return
+        probing = true
+        thread(name = "edgepad-probe") {
+            val hits = probe.run()
+            handler.post {
+                probing = false
+                if (started && screen == Screen.PAIRING) {
+                    usbFound = hits
+                    refreshPicker()
+                }
+            }
+        }
     }
 
     private fun goTo(next: Screen) {
@@ -441,6 +523,7 @@ class MainActivity :
         reconnecting = null
         macros = null
         handler.removeCallbacks(ticker)
+        if (next == Screen.PAIRING) startScan() else stopScan()
         val view: View =
             when (next) {
                 Screen.ONBOARDING -> {
@@ -1069,7 +1152,13 @@ class MainActivity :
         val paired = bonded()
         val laptops = paired.filter { isComputer(it) || it.address == settings.laptop }
         val shown = if (showAllDevices) paired else laptops
-        val devices = shown.map { PickerScreen.Device(it.address, nameOf(it)) }.sortedBy { it.name }
+        if (!permissionPending && !askedLocalNetwork && LocalNetwork.required && !LocalNetwork.granted(this)) {
+            askLocalNetwork()
+        }
+        val network = mergeFound(wifiFound + usbFound)
+        val devices =
+            (shown.map { PickerScreen.Device(it.address, nameOf(it)) } + network.map { deviceOf(it, network) })
+                .sortedBy { it.name.lowercase() }
         picker.showDevices(
             devices,
             settings.laptop,
@@ -1101,7 +1190,7 @@ class MainActivity :
                 }
             }
 
-            paired.isEmpty() -> {
+            paired.isEmpty() && network.isEmpty() -> {
                 picker.setMessage(getString(R.string.no_paired), getString(R.string.open_bluetooth_settings)) {
                     openBluetoothSettings()
                 }
@@ -1110,6 +1199,18 @@ class MainActivity :
             // Paired devices, none of them claiming to be a computer: the list's own button shows them all.
             devices.isEmpty() -> {
                 picker.setMessage(getString(R.string.no_laptop_paired))
+            }
+
+            // Last, so a Bluetooth problem is not hidden behind it: Wi-Fi and USB laptops cannot be found without it.
+            !LocalNetwork.granted(this) && !permissionPending -> {
+                if (shouldShowRequestPermissionRationale(LocalNetwork.PERMISSION)) {
+                    val allow = getString(R.string.allow_local_network)
+                    picker.setMessage(getString(R.string.local_network_needed), allow) { askLocalNetwork() }
+                } else {
+                    picker.setMessage(getString(R.string.local_network_needed), getString(R.string.open_app_settings)) {
+                        openAppSettings()
+                    }
+                }
             }
 
             else -> {
@@ -1184,15 +1285,97 @@ class MainActivity :
             device.address
         }
 
-    private fun connectTo(address: String) {
+    /** A row for a laptop found on the network; [all] is every row, to say where else the same laptop is. */
+    private fun deviceOf(
+        found: Found,
+        all: List<Found>,
+    ): PickerScreen.Device =
+        PickerScreen.Device(
+            address = targetOf(found).key,
+            name = found.name,
+            transport = found.transport,
+            detail = found.hosts.firstOrNull()?.hostAddress.orEmpty(),
+            found = found,
+            alsoVia = otherTransport(found, all),
+        )
+
+    private fun targetOf(found: Found) = Target.Network(found.laptopId, found.name, found.hosts, found.port)
+
+    private fun connectTo(device: PickerScreen.Device) {
         // A tap starts a fresh set of attempts; onConnected no longer does, so a link that drops at once cannot.
         attempts = 0
-        val device = bonded().firstOrNull { it.address == address }
-        if (device == null) {
+        val found = device.found
+        if (found != null) {
+            connect(targetOf(found))
+            quickRetryLeft = true
+            return
+        }
+        val bonded = bonded().firstOrNull { it.address == device.address }
+        if (bonded == null) {
             picker.setMessage(getString(R.string.not_paired))
         } else {
-            connect(Target.Bluetooth(device))
+            connect(Target.Bluetooth(bonded))
             quickRetryLeft = true
+        }
+    }
+
+    private fun askLocalNetwork() {
+        askedLocalNetwork = true
+        permissionPending = true
+        requestPermissions(arrayOf(LocalNetwork.PERMISSION), REQUEST_LOCAL_NETWORK)
+    }
+
+    /** "Add by address": a host and optional port typed by hand, asked INFO of off the main thread, then connected. */
+    private fun askAddress() {
+        val field =
+            EditText(this).apply {
+                setSingleLine()
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+                hint = getString(R.string.add_by_address_hint)
+                importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
+                val pad = ui.dp(Space.L)
+                setPadding(pad, pad, pad, pad)
+            }
+        AlertDialog
+            .Builder(this)
+            .setTitle(R.string.add_by_address)
+            .setView(field)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val address = parseHostPort(field.text.toString())
+                if (address == null) {
+                    picker.setMessage(getString(R.string.address_invalid))
+                } else {
+                    probeManual(address)
+                }
+            }.setNegativeButton(android.R.string.cancel, null)
+            .showOver(picker.view)
+    }
+
+    private fun probeManual(address: HostPort) {
+        picker.setMessage("")
+        thread(name = "edgepad-probe-address") {
+            val found = probeAddress(address)
+            handler.post {
+                if (found == null) {
+                    picker.setMessage(getString(R.string.address_no_laptop))
+                } else {
+                    attempts = 0
+                    connect(targetOf(found))
+                    quickRetryLeft = true
+                }
+            }
+        }
+    }
+
+    /** The system's tethering page, where USB tethering is switched on; failing that, the wireless settings. */
+    private fun openTetherSettings() {
+        for (action in listOf("android.settings.TETHER_SETTINGS", android.provider.Settings.ACTION_WIRELESS_SETTINGS)) {
+            try {
+                startActivity(Intent(action))
+                return
+            } catch (e: ActivityNotFoundException) {
+                Log.w("Edgepad", "No activity for $action", e)
+            }
         }
     }
 
@@ -1540,6 +1723,10 @@ class MainActivity :
 
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2
+        const val REQUEST_LOCAL_NETWORK = 3
+
+        /** How often the Devices list looks again for laptops on the network while it is showing. */
+        const val SCAN_EVERY_MS = 10_000L
 
         /**
          * The screens that show the round trip: Devices beside the connected laptop, live, and Settings on
