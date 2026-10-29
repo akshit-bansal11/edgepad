@@ -22,22 +22,6 @@ object DeckLayout {
     }
 
     /**
-     * [choices] that still leave every cell at least [minCell] on both sides in a room [across] by [down]
-     * with [gap] between cells (all in one unit, pixels). Fifteen tiles in one row of fifteen is a grid
-     * the picker could offer and a thumb could not hit.
-     */
-    fun fitting(
-        count: Int,
-        across: Int,
-        down: Int,
-        gap: Int,
-        minCell: Int,
-    ): List<Pair<Int, Int>> =
-        choices(count).filter { (rows, columns) ->
-            (across - (columns - 1) * gap) / columns >= minCell && (down - (rows - 1) * gap) / rows >= minCell
-        }
-
-    /**
      * The pages [count] tiles fall on when a page holds [perPage]: each is the range of display positions it
      * shows. Every page is planned as a grid of [perPage] cells, so only the last can be short, and it leaves
      * its cells empty at the end rather than growing its tiles.
