@@ -78,6 +78,9 @@ internal sealed class TrayContext : ApplicationContext
 
     public TrayContext(EventWaitHandle quit)
     {
+        // First, because the menu's Opening handler below reads it.
+        networkSettings = NetworkSettings.ForCurrentUser(pin.Folder);
+
         // Click, not CheckedChanged: the menu sets Checked from the registry each time it opens, and that must
         // read the key without writing it back — least of all deleting it after a failed read.
         startWithWindows.Click += (_, _) => RunAtLogin.Set(startWithWindows.Checked);
@@ -147,7 +150,6 @@ internal sealed class TrayContext : ApplicationContext
         _ = StartServerAsync();
 
         // Off until the owner turns it on (network.txt); only a phone that proves itself is handed to the host.
-        networkSettings = NetworkSettings.ForCurrentUser(pin.Folder);
         network = new NetworkServer(
             LinkIdentity.ForCurrentUser(pin.Folder),
             pairedLinks,
