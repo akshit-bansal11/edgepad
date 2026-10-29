@@ -41,10 +41,12 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
     /// </summary>
     private sealed class Shown(SynchronizationContext ui) : IPairingQuestion
     {
-        // All touched on the UI thread only.
+        // Both touched on the UI thread only.
         private PairingWindow? window;
         private string phone = "";
-        private bool withdrawn;
+
+        // Set at once by Dispose, on the pairing's thread, so an Open already posted ahead of the withdrawal sees it.
+        private volatile bool withdrawn;
 
         public void Open(string phoneName, long deadline, Action<string> onTyped, Action onOwnerCancelled)
         {
@@ -70,11 +72,11 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
         public void Finished(bool paired) =>
             Post(() => window?.Tell(paired ? PairingText.Paired(phone) : PairingText.NotFinished, closeSoon: paired));
 
-        public void Dispose() => Post(() =>
+        public void Dispose()
         {
             withdrawn = true;
-            window?.Withdraw();
-        });
+            Post(() => window?.Withdraw());
+        }
 
         private void Post(Action work) => ui.Post(_ => work(), null);
     }

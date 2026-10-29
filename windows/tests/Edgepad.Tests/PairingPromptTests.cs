@@ -40,4 +40,35 @@ public sealed class PairingPromptTests
     {
         Assert.Equal(seconds, PairingPrompt.SecondsLeft(deadline, now));
     }
+
+    [Fact]
+    public void AQuestionWithdrawnBeforeTheUiGotToItIsNeverPut()
+    {
+        var ui = new Queued();
+        var announced = new List<string>();
+        var prompt = new PairingPrompt(ui, announced.Add);
+
+        prompt.Show("Pixel", _ => { }, () => { }).Dispose();
+        ui.RunAll();
+
+        // The name is announced at once; the window, which would be an open form, never went up.
+        Assert.Equal("Pixel", Assert.Single(announced));
+        Assert.Empty(Application.OpenForms);
+    }
+
+    /// <summary>A UI thread that runs what was posted to it only when the test says so, in order.</summary>
+    private sealed class Queued : SynchronizationContext
+    {
+        private readonly Queue<(SendOrPostCallback Work, object? State)> posted = new();
+
+        public override void Post(SendOrPostCallback d, object? state) => posted.Enqueue((d, state));
+
+        public void RunAll()
+        {
+            while (posted.TryDequeue(out var next))
+            {
+                next.Work(next.State);
+            }
+        }
+    }
 }
