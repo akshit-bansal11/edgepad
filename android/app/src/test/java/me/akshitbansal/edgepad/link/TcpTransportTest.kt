@@ -75,7 +75,13 @@ class TcpTransportTest {
             val resumer = LinkInitiator({ phone }, { Vectors.bytes("RESUME_INPUT", "nP") })
             val transport = transport(server.localPort, keys, resumer)
             val streams =
-                transport.open(showCode = { fail("A resume shows no code") }, confirmed = { fail("Nor asks") })
+                transport.open(
+                    showCode = { fail("A resume shows no code") },
+                    confirmed = {
+                        fail("Nor asks")
+                        false
+                    },
+                )
             streams.output.write(plain)
             streams.output.write(plain)
             streams.output.flush()
@@ -178,6 +184,7 @@ class TcpTransportTest {
         assertFalse(e is LinkFailure)
         assertEquals(LaptopLink.Cause.UNREACHABLE, closureOf(e, connectReturned = false, handshakeDone = false).cause)
     }
+
     @Test
     fun aTransportsOwnReasonOutranksHowFarTheLinkGot() {
         val failure = LinkFailure(LaptopLink.Closure(LaptopLink.Cause.PAIRING_FAILED))
