@@ -59,4 +59,18 @@ internal sealed class BluezLink : IPhoneLink
             // Already closed: nothing left to wake.
         }
     }
+
+    public void Release()
+    {
+        try
+        {
+            Output.Dispose();
+            Input.Dispose();
+        }
+        finally
+        {
+            // Both streams closed it already, unless one threw; said again so the descriptor never leaks.
+            socket.Dispose();
+        }
+    }
 }

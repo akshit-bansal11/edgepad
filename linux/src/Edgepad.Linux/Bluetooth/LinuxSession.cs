@@ -245,8 +245,7 @@ internal sealed class LinuxSession : IDisposable
 
         lock (frames.SendGate)
         {
-            frames.Output.Dispose();
-            frames.Input.Dispose();
+            link.Release();
         }
 
         // Already cancelled, so a question still reading the token sees that, never a live one.

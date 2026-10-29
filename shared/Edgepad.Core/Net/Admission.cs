@@ -71,10 +71,10 @@ internal sealed class Admission<T>(Func<long>? clock = null)
 
             if (Refusing())
             {
-                return $"Refused {address}: the owner is changing security settings";
+                return $"Refused {address}: the owner is changing security settings, or this laptop is forgetting its phones or just forgot them";
             }
 
-            return HandedOff(address) ? TookOver(address) : null;
+            return HandedOff(address) ? $"Refused {address}: {TookOver}" : null;
         }
     }
 
@@ -118,7 +118,7 @@ internal sealed class Admission<T>(Func<long>? clock = null)
 
             if (HandedOff(address))
             {
-                refusal = TookOver(address);
+                refusal = TookOver;
                 return false;
             }
 
@@ -239,8 +239,8 @@ internal sealed class Admission<T>(Func<long>? clock = null)
     /// <summary>Whether new connections are being refused, by a hold or a quiet period. Called under the lock.</summary>
     private bool Refusing() => holds > 0 || now() < refuseUntil;
 
-    private static string TookOver(string address) =>
-        $"Refused {address}: another phone took over this laptop less than {(int)QuietAfterHandOff.TotalSeconds} seconds ago";
+    private static string TookOver =>
+        $"another phone took over this laptop less than {(int)QuietAfterHandOff.TotalSeconds} seconds ago";
 
     /// <summary>Whether <paramref name="address"/> was just taken over from. Called under the lock.</summary>
     private bool HandedOff(string address)

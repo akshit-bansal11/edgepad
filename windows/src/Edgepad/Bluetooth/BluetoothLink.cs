@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Edgepad.Net;
 using Windows.Networking.Sockets;
 
@@ -19,4 +20,20 @@ internal sealed class BluetoothLink(StreamSocket socket) : IPhoneLink
     public Stream Output { get; } = socket.OutputStream.AsStreamForWrite();
 
     public void Close() => socket.Dispose();
+
+    public void Release()
+    {
+        // The socket again first: a link refused before any session was never closed.
+        socket.Dispose();
+        Input.Dispose();
+        try
+        {
+            Output.Dispose();
+        }
+        catch (Exception e) when (e is IOException or ObjectDisposedException or COMException or OperationCanceledException)
+        {
+            // Its buffer may still hold the aborted write, which disposing tries to flush to a closed
+            // socket. Those bytes were never going to arrive.
+        }
+    }
 }

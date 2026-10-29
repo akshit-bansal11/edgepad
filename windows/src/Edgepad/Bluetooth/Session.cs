@@ -394,16 +394,7 @@ internal sealed class Session(
         link.Close();
         lock (frames.SendGate)
         {
-            frames.Input.Dispose();
-            try
-            {
-                frames.Output.Dispose();
-            }
-            catch (Exception e) when (e is IOException or ObjectDisposedException or COMException or OperationCanceledException)
-            {
-                // Its buffer may still hold the aborted write, which disposing tries to flush to a closed
-                // socket. Those bytes were never going to arrive.
-            }
+            link.Release();
         }
 
         // Already cancelled, so a question still reading the token sees that, never a live one.

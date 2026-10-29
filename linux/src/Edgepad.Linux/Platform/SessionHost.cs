@@ -27,7 +27,7 @@ internal sealed class SessionHost(
 
     /// <summary>
     /// Must not block: the session runs on a thread of its own. True when the link was taken; false when it was
-    /// refused, and the caller then closes the connection.
+    /// refused, and the link is then already released.
     /// </summary>
     public bool Accept(IPhoneLink link)
     {
@@ -45,6 +45,7 @@ internal sealed class SessionHost(
         if (refusal is not null)
         {
             Log.Write(refusal);
+            link.Release();
             return false;
         }
 

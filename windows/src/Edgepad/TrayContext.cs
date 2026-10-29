@@ -124,9 +124,8 @@ internal sealed class TrayContext : ApplicationContext
         // Built here and nowhere else: the overlay captures this thread's synchronisation context, and the
         // frames that ask it to show something arrive on a Bluetooth thread that has none of its own.
         overlay = new LevelOverlay();
-        // The server is read when a session ends, which cannot happen before it starts below.
         host = new SessionHost(
-            SetStatus, trust, pin, AskTrust, speakers, microphone, brightness, media, display, macros, overlay, ui, end => server.OnSessionEnded(end));
+            SetStatus, trust, pin, AskTrust, speakers, microphone, brightness, media, display, macros, overlay, ui, OnSessionEnded);
         server = new RfcommServer(SetStatus, host);
         _ = StartServerAsync();
         _ = StartMediaAsync();
@@ -219,6 +218,10 @@ internal sealed class TrayContext : ApplicationContext
             SetStatus("Bluetooth is off or unavailable");
         }
     }
+
+    // A method rather than a lambda in the constructor, where the server is not assigned yet. A session can only
+    // end once the server has started, after the constructor.
+    private void OnSessionEnded(Func<bool> end) => server.OnSessionEnded(end);
 
     private void SetStatus(string text) => ui.Post(
         _ =>

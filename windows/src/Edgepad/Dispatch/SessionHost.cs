@@ -74,7 +74,7 @@ internal sealed class SessionHost(
             if (refusal is not null)
             {
                 Log.Write(refusal);
-                link.Close();
+                link.Release();
                 return;
             }
 
@@ -130,7 +130,7 @@ internal sealed class SessionHost(
     /// </summary>
     private void Drop(IPhoneLink link, Session? session)
     {
-        link.Close();
+        link.Release();
         if (session is not null)
         {
             admission.Ended(session);

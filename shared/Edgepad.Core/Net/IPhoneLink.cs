@@ -9,7 +9,7 @@ internal enum LinkKind
 
 /// <summary>
 /// One phone's connection, whatever carries it: the byte streams a session reads and writes frames on, and the
-/// address trust and the hand-off rules know the phone by. A session closes it before it disposes the streams.
+/// address trust and the hand-off rules know the phone by. A session closes it, then releases it.
 /// </summary>
 internal interface IPhoneLink
 {
@@ -30,4 +30,11 @@ internal interface IPhoneLink
     /// than once.
     /// </summary>
     void Close();
+
+    /// <summary>
+    /// Disposes the streams and whatever they leave open, once, after <see cref="Close"/>: a stream that throws
+    /// on the way never leaves the connection's handle open. The session calls it under its send lock, so never
+    /// under a writer's feet; a link refused before any session is released by whoever refused it.
+    /// </summary>
+    void Release();
 }
