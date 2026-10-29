@@ -116,9 +116,23 @@ internal static class LinkResponder
             return null;
         }
 
+        // Read before anything else: a Forget moves them, and a pairing that outlives one keeps and trusts nothing.
+        var trustGeneration = trust.Generation;
+        var pairedGeneration = paired.Generation;
+
         // Anything that ends this short of a pairing counts against the lock, except the owner's own word.
         var outcome = PairingOutcome.Failed;
         byte[]? prk = null;
+
+        bool ForgottenSince() => trust.Generation != trustGeneration || paired.Generation != pairedGeneration;
+
+        LinkResult? Forgotten()
+        {
+            outcome = PairingOutcome.Abandoned;
+            log($"Did not pair {address}: the trusted phones were forgotten while it was pairing");
+            return null;
+        }
+
         try
         {
             using var own = LinkCrypto.NewKeyPair();
@@ -167,6 +181,13 @@ internal static class LinkResponder
                     break;
             }
 
+            // The owner forgot the trusted phones while this one was pairing: the later word, and the owner's, so
+            // it does not count against the lock.
+            if (ForgottenSince())
+            {
+                return Forgotten();
+            }
+
             // The one check that needs the owner. Until it passes, nothing that depends on it is sent.
             if (!LinkCrypto.CodeMatches(typed, LinkCrypto.Sas(transcript)))
             {
@@ -187,11 +208,21 @@ internal static class LinkResponder
                 return null;
             }
 
+            if (ForgottenSince())
+            {
+                return Forgotten();
+            }
+
             var key = LinkCrypto.PairingKey(prk);
             try
             {
-                if (!paired.Add(Convert.ToHexStringLower(request.PhoneId), key, request.Name))
+                if (!paired.Add(Convert.ToHexStringLower(request.PhoneId), key, request.Name, pairedGeneration))
                 {
+                    if (paired.Generation != pairedGeneration)
+                    {
+                        return Forgotten();
+                    }
+
                     log($"Paired {address} for this connection only: the pairing could not be saved, so it will pair again next time");
                 }
             }
@@ -200,7 +231,11 @@ internal static class LinkResponder
                 CryptographicOperations.ZeroMemory(key);
             }
 
-            trust.Grant(address);
+            if (!trust.Grant(address, trustGeneration))
+            {
+                return Forgotten();
+            }
+
             outcome = PairingOutcome.Paired;
             log($"Paired {address}");
             return new LinkResult(new SecureStream(raw, prk, isPhone: false), address, request.Name, JustPaired: true);

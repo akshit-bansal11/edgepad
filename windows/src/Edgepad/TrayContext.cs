@@ -396,6 +396,7 @@ internal sealed class TrayContext : ApplicationContext
         // and so keep the owner from ever forgetting it. Hanging up is not enough, since the phone is still trusted
         // and reconnects within seconds, so nothing may connect until the question is answered.
         host.HoldOff();
+        network.DropPending();
         try
         {
             var phones = string.Join(", ", trust.TrustedPhones);
@@ -412,10 +413,6 @@ internal sealed class TrayContext : ApplicationContext
             }
 
             var forgotten = trust.Forget();
-
-            // The Wi-Fi and USB pairings too, or a forgotten phone would resume its link and only meet the trust
-            // question, not a new pairing.
-            var unpaired = pairedLinks.Forget();
 
             // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
             var verifiedForgotten = pin.ForgetVerified();
@@ -434,17 +431,9 @@ internal sealed class TrayContext : ApplicationContext
                     MessageBoxIcon.Error);
             }
 
-            if (!unpaired)
-            {
-                MessageBox.Show(
-                    "The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. "
-                        + "Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will "
-                        + "be able to again the next time it starts. Choose Forget trusted phones again, or delete "
-                        + $"paired-links.txt yourself from:\n\n{pin.Folder}",
-                    "Edgepad",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-            }
+            // The Wi-Fi and USB pairings too, or a forgotten phone would resume its link and only meet the trust
+            // question, not a new pairing.
+            ForgetPairedLinks();
 
             if (!verifiedForgotten)
             {
@@ -466,6 +455,27 @@ internal sealed class TrayContext : ApplicationContext
     }
 
     /// <summary>
+    /// Forgets the Wi-Fi and USB pairings, and tells the owner when they could not be. Every way of forgetting phones
+    /// (Forget trusted phones, Reset PIN in the Security window) goes through here.
+    /// </summary>
+    private void ForgetPairedLinks()
+    {
+        if (pairedLinks.Forget())
+        {
+            return;
+        }
+
+        MessageBox.Show(
+            "The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. "
+                + "Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will "
+                + "be able to again the next time it starts. Choose Forget trusted phones again, or delete "
+                + $"paired-links.txt yourself from:\n\n{pin.Folder}",
+            "Edgepad",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error);
+    }
+
+    /// <summary>
     /// The Security window, with connections refused while it is open for the reason <see cref="ConfirmForget"/>
     /// gives: a connected phone is a keyboard and could otherwise answer it, or change the level it is held by.
     /// </summary>
@@ -478,9 +488,10 @@ internal sealed class TrayContext : ApplicationContext
 
         securing = true;
         host.HoldOff();
+        network.DropPending();
         try
         {
-            using var window = new SecurityWindow(pin, trust, () => host.HangUp(QuietAfterForget));
+            using var window = new SecurityWindow(pin, trust, ForgetPairedLinks, () => host.HangUp(QuietAfterForget));
             window.ShowDialog();
         }
         finally

@@ -28,6 +28,9 @@ internal sealed class SecurityWindow
     private readonly PinStore pin;
     private readonly TrustStore trust;
     private readonly Action hangUp;
+
+    // Forgets the Wi-Fi and USB pairings and tells the owner if it could not, as Forget trusted phones does.
+    private readonly Func<Task> forgetPairings;
     private readonly Look look = Look.Current;
     private readonly Window window;
     private readonly RadioButton[] levels;
@@ -44,11 +47,12 @@ internal sealed class SecurityWindow
     private bool filling;
     private bool busy;
 
-    public SecurityWindow(PinStore pin, TrustStore trust, Action hangUp)
+    public SecurityWindow(PinStore pin, TrustStore trust, Func<Task> forgetPairings, Action hangUp)
     {
         this.pin = pin;
         this.trust = trust;
         this.hangUp = hangUp;
+        this.forgetPairings = forgetPairings;
         level = pin.Level;
 
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 8 };
@@ -242,6 +246,11 @@ internal sealed class SecurityWindow
         // the next run at level 1, where a stolen trusted phone gets in with nothing to answer. The phone is hung up
         // on either way, so a half-done reset leaves none connected.
         var forgotten = trust.Forget();
+
+        // Every way of forgetting phones forgets the network pairings too, whatever became of the trust file: a
+        // paired phone would otherwise resume its link and meet only the trust question.
+        await forgetPairings();
+
         var pinGone = forgotten && pin.Reset();
         hangUp();
         if (!forgotten)

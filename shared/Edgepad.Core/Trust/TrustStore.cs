@@ -152,19 +152,43 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
     }
 
     /// <summary>
-    /// Trusts <paramref name="address"/> without a question, for a phone the owner has already said yes to some other
-    /// way: a network pairing, where typing the phone's code on this laptop is the owner's yes. A trust file that
-    /// cannot be read is left as it is, so the phone is refused at <see cref="Admit"/> like every other until the
-    /// owner forgets them.
+    /// Moved on by every <see cref="Forget"/>. A network pairing reads it when it starts and hands it to
+    /// <see cref="Grant"/>, so a Forget chosen while the phone was pairing is the later word.
     /// </summary>
-    public void Grant(string address)
+    public int Generation
+    {
+        get
+        {
+            lock (gate)
+            {
+                return generation;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Trusts <paramref name="address"/> without a question, for a phone the owner has already said yes to some other
+    /// way: a network pairing, where typing the phone's code on this laptop is the owner's yes. False, with nothing
+    /// written, when the trusted phones were forgotten since <paramref name="since"/> was read from
+    /// <see cref="Generation"/>: the pairing must then not trust the phone again. A trust file that cannot be read is
+    /// left as it is, so the phone is refused at <see cref="Admit"/> like every other until the owner forgets them.
+    /// </summary>
+    public bool Grant(string address, int? since = null)
     {
         lock (gate)
         {
+            if (since is { } started && started != generation)
+            {
+                Log.Write($"Did not trust {address}: the trusted phones were forgotten while it was pairing");
+                return false;
+            }
+
             if (TryRead(out var trusted) && !Holds(trusted, address))
             {
                 Save(trusted, address);
             }
+
+            return true;
         }
     }
 

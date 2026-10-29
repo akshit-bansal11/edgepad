@@ -37,6 +37,10 @@ internal sealed class NetworkServer(
     // ponytail: never disposed, it has no timer or wait handle; one per start.
     private CancellationTokenSource? running;
 
+    // Cancelled by DropPending, when the owner holds phones off or forgets them: every pairing question still open
+    // is withdrawn, uncounted, so no pairing begun before can finish after. Replaced each time.
+    private CancellationTokenSource pending = new();
+
     /// <summary>The port listened on, or null when not listening.</summary>
     public int? Port
     {
@@ -96,7 +100,32 @@ internal sealed class NetworkServer(
         }
     }
 
-    public void Dispose() => Stop();
+    public void Dispose()
+    {
+        Stop();
+        lock (gate)
+        {
+            pending.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Ends every pairing still waiting on the owner, without counting it against the lock: the owner is holding
+    /// phones off or forgetting them. Called beside <c>SessionHost.HoldOff</c>; harmless when nothing is pairing.
+    /// </summary>
+    public void DropPending()
+    {
+        CancellationTokenSource dropped;
+        lock (gate)
+        {
+            dropped = pending;
+            pending = new CancellationTokenSource();
+        }
+
+        // ponytail: not disposed, as `running` is not: a connection may be linking to its token right now, and a
+        // cancelled source with no timer holds nothing.
+        dropped.Cancel();
+    }
 
     private void StopLocked()
     {
@@ -126,11 +155,18 @@ internal sealed class NetworkServer(
     /// </summary>
     private void Serve(Socket socket, Action done, CancellationToken stopping)
     {
+        CancellationToken dropped;
+        lock (gate)
+        {
+            dropped = pending.Token;
+        }
+
+        using var ended = CancellationTokenSource.CreateLinkedTokenSource(stopping, dropped);
         var raw = new NetworkStream(socket, ownsSocket: true);
         LinkResult? result = null;
         try
         {
-            result = LinkResponder.Accept(raw, identity, paired, limiter, prompt, trust, Log.Write, socket.Dispose, stopping);
+            result = LinkResponder.Accept(raw, identity, paired, limiter, prompt, trust, Log.Write, socket.Dispose, ended.Token);
         }
         finally
         {

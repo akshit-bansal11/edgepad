@@ -255,6 +255,48 @@ public sealed class LinkResponderTests : IDisposable
     }
 
     [Fact]
+    public async Task AForgetWhileTheOwnerIsAskedKeepsAndTrustsNothing()
+    {
+        // The owner chooses Forget trusted phones while the pairing question is still open, then types the code
+        // anyway: the Forget is the later word, so the pairing neither keeps the key nor trusts the phone.
+        owner.Types = code =>
+        {
+            Assert.True(trust.Forget());
+            Assert.True(paired.Forget());
+            return code;
+        };
+        var (phoneEnd, laptopEnd) = Duplex.Create();
+        var laptopSide = Laptop(laptopEnd);
+
+        var phone = LinkInitiator.Pair(phoneEnd, PhoneId, PhoneName, ShowOnPhone);
+
+        Assert.Null(await laptopSide);
+        Assert.Null(phone.Secure);
+        AssertNotPaired();
+        Assert.Contains(logs, line => line.Contains("forgotten while it was pairing", StringComparison.Ordinal));
+
+        // Not counted against the lock, and a pairing begun after the Forget goes through.
+        await PairAsync();
+        Assert.Equal([Address], trust.TrustedPhones);
+    }
+
+    [Fact]
+    public void AGrantOrAnAddReadBeforeAForgetIsRefused()
+    {
+        var trustGeneration = trust.Generation;
+        var pairedGeneration = paired.Generation;
+        Assert.True(trust.Forget());
+        Assert.True(paired.Forget());
+
+        Assert.False(trust.Grant(Address, trustGeneration));
+        Assert.False(paired.Add(Convert.ToHexStringLower(PhoneId), new byte[32], PhoneName, pairedGeneration));
+        AssertNotPaired();
+
+        Assert.True(trust.Grant(Address, trust.Generation));
+        Assert.True(paired.Add(Convert.ToHexStringLower(PhoneId), new byte[32], PhoneName, paired.Generation));
+    }
+
+    [Fact]
     public async Task TheOwnerCancellingRefusesWithoutCounting()
     {
         owner.Cancels = true;

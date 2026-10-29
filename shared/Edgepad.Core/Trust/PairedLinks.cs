@@ -20,6 +20,22 @@ internal sealed class PairedLinks(string path)
     // Set when Forget could not delete or empty the file: every phone is refused until it can, as TrustStore does.
     private bool forgetFailed;
 
+    // Moved on by every Forget. A pairing reads it when it starts and hands it to Add, so a Forget chosen while the
+    // phone was pairing is the later word.
+    private int generation;
+
+    /// <summary>Moved on by every <see cref="Forget"/>; read by a pairing as it starts, for <see cref="Add"/>.</summary>
+    public int Generation
+    {
+        get
+        {
+            lock (gate)
+            {
+                return generation;
+            }
+        }
+    }
+
     public static PairedLinks ForCurrentUser() => new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "paired-links.txt"));
 
@@ -48,10 +64,12 @@ internal sealed class PairedLinks(string path)
     }
 
     /// <summary>
-    /// Records a phone's pairing, replacing an older one for the same id. False when it could not be written, or
-    /// the file could not be read (written over, it would lose the phones the read could not see).
+    /// Records a phone's pairing, replacing an older one for the same id. False when it could not be written, the
+    /// file could not be read (written over, it would lose the phones the read could not see), or the pairings were
+    /// forgotten since <paramref name="since"/> was read from <see cref="Generation"/>; the caller tells the last
+    /// from the others by <see cref="Generation"/>.
     /// </summary>
-    public bool Add(string idHex, byte[] key, string name)
+    public bool Add(string idHex, byte[] key, string name, int? since = null)
     {
         if (key.Length != KeyLength)
         {
@@ -60,7 +78,7 @@ internal sealed class PairedLinks(string path)
 
         lock (gate)
         {
-            if (!TryRead(out var links))
+            if ((since is { } started && started != generation) || !TryRead(out var links))
             {
                 return false;
             }
@@ -105,6 +123,7 @@ internal sealed class PairedLinks(string path)
     {
         lock (gate)
         {
+            generation++;
             try
             {
                 File.Delete(path);
