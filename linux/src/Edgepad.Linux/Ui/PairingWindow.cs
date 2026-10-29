@@ -11,13 +11,17 @@ namespace Edgepad.Ui;
 /// <summary>
 /// "Pair Pixel? Type the code shown on the phone:": a box for six digits, Pair and Cancel, and the seconds left.
 /// Exactly one answer leaves it: the digits on Pair, a cancel on Cancel, Escape or the close box, or none at all when
-/// it is withdrawn or runs out, which the pairing's own timer then settles. Nothing here relies on the window being
-/// on top (it asks, and Wayland may refuse). Every handler runs on the UI thread and none may throw.
+/// it is withdrawn or runs out, which the pairing's own timer then settles. After the digits it stays up to say how
+/// they went, until the owner closes it, or by itself a moment after a pairing that worked. Nothing here relies on the
+/// window being on top (it asks, and Wayland may refuse). Every handler runs on the UI thread and none may throw.
 /// </summary>
 internal static class PairingWindow
 {
-    /// <summary>Opens the question. Call on the UI thread.</summary>
-    public static void Open(string phoneName, long deadline, Action<string> onTyped, Action onOwnerCancelled, CancellationToken withdrawn)
+    // How long "Paired with Pixel." stays before the window goes by itself.
+    private static readonly TimeSpan Linger = TimeSpan.FromSeconds(2);
+
+    /// <summary>Opens the question, and returns it to be told how the code went. Call it, and the question, on the UI thread.</summary>
+    public static IPairingQuestion Open(string phoneName, long deadline, Action<string> onTyped, Action onOwnerCancelled)
     {
         var look = Look.Current;
         var code = new TextBox
@@ -39,7 +43,8 @@ internal static class PairingWindow
         pair.IsDefault = true;
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 10 };
         body.Children.Add(look.Text($"Pair {phoneName}?", 18, FontWeight.Bold));
-        body.Children.Add(look.Text("Type the code shown on the phone:", 14, dim: true));
+        var ask = look.Text("Type the code shown on the phone:", 14, dim: true);
+        body.Children.Add(ask);
         body.Children.Add(code);
         body.Children.Add(countdown);
         body.Children.Add(Look.Footer(cancel, pair));
@@ -48,16 +53,55 @@ internal static class PairingWindow
 
         // Set by the first answer, or by withdrawing, so no second one follows.
         var answered = false;
+
+        // Set once the window says how the code went (it no longer asks, and is no longer withdrawn), and once it closed.
+        var told = false;
+        var closed = false;
         var tick = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
 
         void Withdraw()
         {
+            if (told || closed)
+            {
+                return;
+            }
+
             answered = true;
             Close(window);
         }
 
+        // Says how the code went in place of the question, with Close in place of Cancel and Pair.
+        void Tell(string message, bool closeSoon)
+        {
+            if (closed)
+            {
+                return;
+            }
+
+            answered = true;
+            told = true;
+            tick.Stop();
+            ask.Text = message;
+            countdown.Text = "";
+            code.IsEnabled = false;
+            pair.IsVisible = false;
+            cancel.Content = "Close";
+            if (closeSoon)
+            {
+                tick.Interval = Linger;
+                tick.Start();
+            }
+        }
+
         void Count()
         {
+            // Told how it went: the tick now only times the close after a pairing that worked.
+            if (told)
+            {
+                Close(window);
+                return;
+            }
+
             var left = PairingPrompt.SecondsLeft(deadline, Environment.TickCount64);
             countdown.Text = $"Closes in {left} s";
 
@@ -92,9 +136,13 @@ internal static class PairingWindow
                 return;
             }
 
+            // The window stays: the pairing tells it at once whether the code matched.
             answered = true;
+            tick.Stop();
+            code.IsEnabled = false;
+            pair.IsEnabled = false;
+            countdown.Text = "Checking the code";
             Deliver(() => onTyped(PairingPrompt.Digits(code.Text)));
-            Close(window);
         };
         cancel.Click += (_, _) => Close(window);
         window.KeyDown += (_, e) =>
@@ -116,6 +164,7 @@ internal static class PairingWindow
         // Cancel, the close box and Escape are all the owner saying no, unless an answer was already given.
         window.Closed += (_, _) =>
         {
+            closed = true;
             tick.Stop();
             if (!answered)
             {
@@ -123,9 +172,20 @@ internal static class PairingWindow
                 Deliver(onOwnerCancelled);
             }
         };
-        withdrawn.Register(() => Dispatcher.UIThread.Post(Withdraw));
 
         window.Show();
+        return new Question(phoneName, Tell, Withdraw);
+    }
+
+    private sealed class Question(string phone, Action<string, bool> tell, Action withdraw) : IPairingQuestion
+    {
+        public void Matched() => tell(PairingText.Matched(phone), false);
+
+        public void Mismatched() => tell(PairingText.Mismatched, false);
+
+        public void Finished(bool paired) => tell(paired ? PairingText.Paired(phone) : PairingText.NotFinished, paired);
+
+        public void Dispose() => withdraw();
     }
 
     // The callbacks belong to the link's pairing; whatever they do, an exception must not end the UI thread.

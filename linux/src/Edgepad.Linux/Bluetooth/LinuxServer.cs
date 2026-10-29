@@ -146,6 +146,9 @@ internal sealed class LinuxServer : IDisposable
     /// </summary>
     public void HoldOff() => host.HoldOff();
 
+    /// <summary>Whether a hold or a quiet period refuses new connections right now; no pairing may start then.</summary>
+    public bool IsRefusing => host.IsRefusing;
+
     /// <summary>Ends one <see cref="HoldOff"/>.</summary>
     public void Resume() => host.Resume();
 

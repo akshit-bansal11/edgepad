@@ -1,3 +1,4 @@
+using Edgepad.Net;
 using Edgepad.Ui;
 using Xunit;
 
@@ -50,10 +51,11 @@ public sealed class PairingPromptTests
         var announced = new List<string>();
         string? opened = null;
         long deadline = 0;
-        var prompt = new PairingPrompt(queue.Enqueue, announced.Add, (phone, until, _, _, _) =>
+        var prompt = new PairingPrompt(queue.Enqueue, announced.Add, (phone, until, _, _) =>
         {
             opened = phone;
             deadline = until;
+            return new Window();
         });
         var before = Environment.TickCount64;
 
@@ -68,18 +70,45 @@ public sealed class PairingPromptTests
     }
 
     [Fact]
-    public void DisposingTheHandleWithdrawsAnOpenQuestion()
+    public void WhatThePairingTellsTheQuestionReachesTheWindowOnTheUiThreadInOrder()
     {
         var queue = new Queue<Action>();
-        CancellationToken seen = default;
-        var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, _, _, _, withdrawn) => seen = withdrawn);
+        using var window = new Window();
+        var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, _, _, _) => window);
 
         var handle = prompt.Show("Pixel", _ => { }, () => { });
-        queue.Dequeue()();
-        Assert.False(seen.IsCancellationRequested);
-
+        handle.Matched();
+        handle.Finished(paired: true);
         handle.Dispose();
-        Assert.True(seen.IsCancellationRequested);
+
+        // Nothing reaches the window off the UI thread.
+        Assert.Empty(window.Told);
+        while (queue.Count > 0)
+        {
+            queue.Dequeue()();
+        }
+
+        Assert.Equal(["matched", "finished:True", "withdrawn"], window.Told);
+    }
+
+    [Fact]
+    public void AMismatchIsPassedOn()
+    {
+        var queue = new Queue<Action>();
+        using var window = new Window();
+        var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, _, _, _) => window);
+
+        using (var handle = prompt.Show("Pixel", _ => { }, () => { }))
+        {
+            handle.Mismatched();
+        }
+
+        while (queue.Count > 0)
+        {
+            queue.Dequeue()();
+        }
+
+        Assert.Equal(["mismatched", "withdrawn"], window.Told);
     }
 
     [Fact]
@@ -87,11 +116,34 @@ public sealed class PairingPromptTests
     {
         var queue = new Queue<Action>();
         var opened = false;
-        var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, _, _, _, _) => opened = true);
+        var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, _, _, _) =>
+        {
+            opened = true;
+            return new Window();
+        });
 
-        prompt.Show("Pixel", _ => { }, () => { }).Dispose();
-        queue.Dequeue()();
+        var handle = prompt.Show("Pixel", _ => { }, () => { });
+        handle.Dispose();
+        handle.Finished(paired: false);
+        while (queue.Count > 0)
+        {
+            queue.Dequeue()();
+        }
 
         Assert.False(opened);
+    }
+
+    /// <summary>The window, as far as the pairing can tell it anything.</summary>
+    private sealed class Window : IPairingQuestion
+    {
+        public List<string> Told { get; } = [];
+
+        public void Matched() => Told.Add("matched");
+
+        public void Mismatched() => Told.Add("mismatched");
+
+        public void Finished(bool paired) => Told.Add($"finished:{paired}");
+
+        public void Dispose() => Told.Add("withdrawn");
     }
 }
