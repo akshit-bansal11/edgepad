@@ -279,7 +279,9 @@ public final class LinkResponder {
             return
         }
         stage = .pairConfirm
-        wait("confirmation")
+        // The phone's owner confirms on the phone that this Mac said the code matched, the one check that tells the
+        // phone it reached this Mac; that takes a person, so the wait is the owner's, not a message's.
+        wait("confirmation", seconds: Self.ownerTimeoutSeconds)
     }
 
     /// The owner forgot the trusted phones while this one was pairing: the later word wins, and it is the owner's, so
@@ -330,14 +332,14 @@ public final class LinkResponder {
     }
 
     /// Arms the wait for the phone's next message.
-    private func wait(_ what: String) {
+    private func wait(_ what: String, seconds: TimeInterval = LinkResponder.messageTimeoutSeconds) {
         step += 1
         let waiting = step
-        schedule(Self.messageTimeoutSeconds) { [weak self] in
+        schedule(seconds) { [weak self] in
             guard let self, self.stage != .done, self.step == waiting else { return }
             self.finish(
                 nil, outcome: .failed,
-                "Gave up on \(self.address): no \(what) within \(Int(Self.messageTimeoutSeconds)) s")
+                "Gave up on \(self.address): no \(what) within \(Int(seconds)) s")
         }
     }
 

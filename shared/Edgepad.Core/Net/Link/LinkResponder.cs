@@ -196,7 +196,11 @@ internal static class LinkResponder
             }
 
             LinkWire.Write(raw, LinkWire.Tag(LinkCrypto.LaptopTag(prk, transcript, pairing: true)));
-            var confirmed = ReadWithin(raw, wait, "confirmation", log, giveUp);
+
+            // The phone's owner confirms too, on the phone, that this laptop said the code matched: the only check
+            // that tells the phone it reached this laptop and not something in between. That takes a person, so the
+            // wait is the owner's, not a message's.
+            var confirmed = ReadWithin(raw, ownerWait, "confirmation", log, giveUp);
             if (confirmed is null)
             {
                 return null;
