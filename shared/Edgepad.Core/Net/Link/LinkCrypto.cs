@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Globalization;
+using System.Numerics;
 using System.Security.Cryptography;
 
 namespace Edgepad.Net;
@@ -24,6 +25,13 @@ internal static class LinkCrypto
     private static readonly byte[] CommitLabel = "EDGL1 commit"u8.ToArray();
     private static readonly byte[] PairLabel = "pair"u8.ToArray();
 
+    // P-256's field prime and b (SEC 2, section 2.4.2); a is -3. The leading 0 keeps the parse positive.
+    private static readonly BigInteger P = BigInteger.Parse(
+        "0FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF", NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+
+    private static readonly BigInteger B = BigInteger.Parse(
+        "05AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B", NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+
     /// <summary>A fresh key pair, used for one connection and disposed with it.</summary>
     public static Ephemeral NewKeyPair() => new(ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256));
 
@@ -32,13 +40,15 @@ internal static class LinkCrypto
 
     /// <summary>
     /// The raw shared secret, the X coordinate of the shared point, as Android's <c>KeyAgreement "ECDH"</c> and
-    /// CryptoKit also give it. The peer's key must be a 65-byte uncompressed point; the platform's import rejects a
-    /// point off the curve, and the encoding cannot express the point at infinity. Either way the caller gets a
-    /// <see cref="CryptographicException"/> and closes. The caller zeroes what this returns.
+    /// CryptoKit also give it. The peer's key must be a 65-byte uncompressed point on the curve, checked here rather
+    /// than left to the platform's import: Windows reports a point off the curve as PlatformNotSupportedException,
+    /// Linux as CryptographicException, and the Kotlin port makes the same check by hand. The encoding cannot
+    /// express the point at infinity. A bad key is a <see cref="CryptographicException"/> and the caller closes.
+    /// The caller zeroes what this returns.
     /// </summary>
     public static byte[] Agree(Ephemeral own, ReadOnlySpan<byte> peerPublic)
     {
-        if (peerPublic.Length != LinkWire.PublicKeyLength || peerPublic[0] != 0x04)
+        if (peerPublic.Length != LinkWire.PublicKeyLength || peerPublic[0] != 0x04 || !OnCurve(peerPublic[1..33], peerPublic[33..]))
         {
             throw new CryptographicException("The peer's key is not an uncompressed P-256 point");
         }
@@ -49,6 +59,20 @@ internal static class LinkCrypto
             Q = new ECPoint { X = peerPublic[1..33].ToArray(), Y = peerPublic[33..].ToArray() },
         });
         return own.Key.DeriveRawSecretAgreement(peer.PublicKey);
+    }
+
+    /// <summary>True when (x, y), big-endian, are both below p and satisfy y² = x³ − 3x + b (mod p).</summary>
+    private static bool OnCurve(ReadOnlySpan<byte> xBytes, ReadOnlySpan<byte> yBytes)
+    {
+        var x = new BigInteger(xBytes, isUnsigned: true, isBigEndian: true);
+        var y = new BigInteger(yBytes, isUnsigned: true, isBigEndian: true);
+        if (x >= P || y >= P)
+        {
+            return false;
+        }
+
+        var right = BigInteger.Remainder((BigInteger.ModPow(x, 3, P) - (3 * x) + B) % P + P, P);
+        return BigInteger.ModPow(y, 2, P) == right;
     }
 
     /// <summary>HKDF-Extract (RFC 5869) with SHA-256.</summary>
