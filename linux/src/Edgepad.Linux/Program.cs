@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Edgepad.Bluetooth;
+using Edgepad.Net;
 using Edgepad.Platform;
 using Edgepad.Trust;
 using Edgepad.Ui;
@@ -40,9 +41,14 @@ internal static class Program
         var trust = new TrustStore(Path.Combine(config, "trusted-phone.txt"));
         var pin = new PinStore(config);
 
+        // Wi-Fi and USB: off until the owner turns it on in the tray (network.txt); the pairings and this laptop's id live beside it.
+        var networkSettings = NetworkSettings.ForCurrentUser(config);
+        var paired = new PairedLinks(Path.Combine(config, "paired-links.txt"));
+        var identity = LinkIdentity.ForCurrentUser(config);
+
         // SIGTERM (a logout, systemd, kill) and Ctrl+C end the UI loop, or the wait below when there is no UI,
         // instead of the process, so the server's Dispose runs and releases whatever the phone was holding down.
-        var shell = new Shell(trust, pin, Version);
+        var shell = new Shell(trust, pin, networkSettings, paired, identity, Version);
         using var quit = new ManualResetEventSlim();
         using var terminate = PosixSignalRegistration.Create(PosixSignal.SIGTERM, Stop);
         using var interrupt = PosixSignalRegistration.Create(PosixSignal.SIGINT, Stop);
@@ -67,6 +73,9 @@ internal static class Program
                 Console.Error.WriteLine("Edgepad could not open a display; running without a tray.");
                 quit.Wait();
             }
+
+            // Before the server goes: it closes the Wi-Fi and USB links, whose sessions the server's host ends.
+            shell.StopNetwork();
         }
 
         Log.Write($"Edgepad {Version} quitting");

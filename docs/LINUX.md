@@ -137,6 +137,7 @@ A saved signature goes to `Edgepad/` in your Pictures folder: `$XDG_PICTURES_DIR
 
 | What | Why it is unknown | How to check |
 | --- | --- | --- |
+| Network (Wi-Fi and USB phones) | Everything in the tray switch **Wi-Fi and USB connections** (off by default, `network.txt`) is unverified: that the tray toggle row shows its check mark and refreshes on every desktop; that the pairing window opens (and is not hidden behind other windows, Wayland ignores always-on-top); that the laptop's mDNS responder, which binds UDP 5353 with address reuse, coexists with Avahi or systemd-resolved's own listener on the same port; that a phone finds the laptop over Wi-Fi and over USB tethering (`usb0`/`enx*`, cdc_ether); and that ufw or firewalld lets it through. | Turn the switch on, then pair a phone: the tray row reads `Listening on 47321`, the log says `Listening for Wi-Fi and USB phones`, and the phone lists the laptop. If it does not, `ss -ltn sport = :47321` shows the TCP listener, `avahi-browse -rt _edgepad._tcp` shows the announcement, and the firewall below is the first suspect. |
 | BlueZ writes an SDP record for the bare service id | `RegisterProfile` is called with `Role=server` and no `Channel` or `ServiceRecord`, trusting bluetoothd to pick a channel and describe the id itself. BlueZ's docs do not say it does this for an id it does not know. | `sdptool browse local` lists a record with `758bb618-7b72-4cd3-9aa2-c9b88e54d555`, and the phone finds the laptop. If it does not, the fix is a `ServiceRecord` XML option. |
 | A `FileStream` reads and writes the RFCOMM socket | The connected socket arrives as a file descriptor over D-Bus and is wrapped in a `FileStream` (`linux/src/Edgepad.Linux/Bluetooth/LinuxSession.cs` says why). .NET is documented to use plain `read`/`write` on a handle that cannot seek, but not on this kind of socket. | Connect a phone: the log shows `Connected AA:...`. A failure on the first read or write points here; the fallback is written in that file's comment. |
 | Shutting the socket down ends a blocked read | Ending a session (a phone replacing another, quitting, the 10 s HELLO timeout) relies on `shutdown(2)` waking the reader thread. | Connect a phone, then a second trusted one: the log shows the first replaced and its session ended within a second. |
@@ -157,3 +158,18 @@ A saved signature goes to `Edgepad/` in your Pictures folder: `$XDG_PICTURES_DIR
 | A launched program outlives Edgepad | The child stays in Edgepad's process group and has no new session. | Run a macro for a long-running program, quit Edgepad from a terminal with Ctrl+C: the program may stop with it. |
 | MPRIS `Position` and seeking | Read with `GetAll` on every poll, and `SetPosition` needs the player's track id. Players differ in whether they report position and allow seeking. | Play something in Spotify and Firefox: the timeline moves and the media dial seeks. |
 | Media and mute keys with no MPRIS player | Pressed as virtual keys, so the desktop decides what receives them. | With a player that has no MPRIS, press play/pause on the phone. |
+
+## Firewall for Wi-Fi and USB connections
+
+Only needed if you turn on **Wi-Fi and USB connections** in the tray, and only if a firewall is running. Edgepad has no helper for this on Linux; run what matches yours as root:
+
+```sh
+# ufw
+ufw allow 47321/tcp
+ufw allow 5353/udp
+
+# firewalld
+firewall-cmd --permanent --add-port=47321/tcp --add-port=5353/udp && firewall-cmd --reload
+```
+
+47321 is the default; the tray row shows another number when that port was taken. 5353/udp is multicast DNS, which is how a phone finds the laptop. A USB-tethering network is often put in a stricter zone than your Wi-Fi, so allow it in that zone too. None of this has been tried on a real firewall.

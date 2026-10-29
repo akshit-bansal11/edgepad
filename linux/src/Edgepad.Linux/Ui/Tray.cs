@@ -8,7 +8,7 @@ using Edgepad.Platform;
 namespace Edgepad.Ui;
 
 /// <summary>
-/// The tray icon and its menu, rows as on Windows: status, Security…, Open log, Documentation, Forget trusted
+/// The tray icon and its menu, rows as on Windows: status, Security…, Wi-Fi and USB connections, Open log, Documentation, Forget trusted
 /// phones, Quit and the version. Every handler runs on the UI thread and none may throw: an exception there ends
 /// the whole app, and with it the Bluetooth service.
 /// </summary>
@@ -25,6 +25,7 @@ internal sealed class Tray : IDisposable
 
     private readonly NativeMenuItem statusRow = new("Starting") { IsEnabled = false };
     private readonly NativeMenuItem securityRow = new("Security…");
+    private readonly NativeMenuItem networkRow = new("Wi-Fi and USB connections") { ToggleType = NativeMenuItemToggleType.CheckBox };
     private readonly NativeMenuItem forgetRow = new("Forget trusted phones");
     private readonly TrayIcon icon;
     private readonly Bus portal = Bus.OnSession();
@@ -32,13 +33,27 @@ internal sealed class Tray : IDisposable
     private bool dark;
     private readonly Func<string> levelHint;
     private readonly Func<bool> canForget;
+    private readonly Func<bool> networkOn;
+    private readonly Func<string> networkHint;
 
-    public Tray(string version, Func<string> levelHint, Func<bool> canForget, Action security, Action forget, Action quit)
+    public Tray(
+        string version,
+        Func<string> levelHint,
+        Func<bool> canForget,
+        Func<bool> networkOn,
+        Func<string> networkHint,
+        Action security,
+        Action toggleNetwork,
+        Action forget,
+        Action quit)
     {
         this.levelHint = levelHint;
         this.canForget = canForget;
+        this.networkOn = networkOn;
+        this.networkHint = networkHint;
 
         securityRow.Click += (_, _) => Safe(security, "Security");
+        networkRow.Click += (_, _) => Safe(toggleNetwork, "Wi-Fi and USB connections");
         forgetRow.Click += (_, _) => Safe(forget, "Forget trusted phones");
         var log = new NativeMenuItem("Open log");
         log.Click += (_, _) => Safe(() => OpenWithDesktop(Log.FilePath, "the log"), "Open log");
@@ -51,6 +66,7 @@ internal sealed class Tray : IDisposable
         menu.Add(statusRow);
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(securityRow);
+        menu.Add(networkRow);
         menu.Add(log);
         menu.Add(docs);
         menu.Add(new NativeMenuItemSeparator());
@@ -98,9 +114,11 @@ internal sealed class Tray : IDisposable
         }
     }
 
-    private void Refresh()
+    public void Refresh()
     {
         securityRow.Header = $"Security… ({levelHint()})";
+        networkRow.Header = $"Wi-Fi and USB connections ({networkHint()})";
+        networkRow.IsChecked = networkOn();
         forgetRow.IsEnabled = canForget();
     }
 

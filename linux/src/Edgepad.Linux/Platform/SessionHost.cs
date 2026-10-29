@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Edgepad.Bluetooth;
 using Edgepad.Dispatch;
 using Edgepad.Net;
@@ -24,6 +25,30 @@ internal sealed class SessionHost(
 
     /// <summary>The connected phone's address, or null.</summary>
     public string? CurrentAddress => admission.CurrentAddress;
+
+    // How the owner reads each Wi-Fi or USB phone's address. Only phones a pairing or a resume let through get here,
+    // so it grows with this laptop's own phones, not with whoever opens a socket.
+    private readonly ConcurrentDictionary<string, string> shown = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// What the owner reads for <paramref name="address"/>: a Wi-Fi or USB phone's name and the way it came, since its
+    /// address is a string of hex; a Bluetooth phone's address as it is.
+    /// </summary>
+    public string Shown(string address) => shown.TryGetValue(address, out var name) ? name : address;
+
+    /// <summary>The status line for <paramref name="link"/>'s session, naming the phone as <see cref="Shown"/> does.</summary>
+    private Action<string> StatusFor(IPhoneLink link)
+    {
+        if (link.Kind != LinkKind.Network)
+        {
+            return onStatus;
+        }
+
+        var address = link.Address;
+        var name = $"{link.Label} · over Wi-Fi or USB";
+        shown[address] = name;
+        return status => onStatus(status.Replace(address, name, StringComparison.Ordinal));
+    }
 
     /// <summary>
     /// Must not block: the session runs on a thread of its own. True when the link was taken; false when it was
@@ -66,7 +91,7 @@ internal sealed class SessionHost(
                 platform.ProbePad,
                 platform.StartReporting,
                 () => platform.Macros,
-                onStatus,
+                StatusFor(link),
                 OnAdmitted,
                 OnSessionEnded);
         }

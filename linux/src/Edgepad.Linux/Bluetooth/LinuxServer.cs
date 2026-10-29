@@ -1,3 +1,4 @@
+using Edgepad.Net;
 using Edgepad.Platform;
 using Edgepad.Trust;
 using Microsoft.Win32.SafeHandles;
@@ -106,7 +107,7 @@ internal sealed class LinuxServer : IDisposable
             bluetoothd = NameOwnerWatcher.GetOwnerBusName(id);
             await bus.CallMethodAsync(BluezProfile.RegisterMessage(bus, id));
             Log.Write($"RFCOMM profile registered with bluetoothd ({bluetoothd})");
-            onStatus(host.CurrentAddress is { } live ? $"Connected to {live}" : Waiting);
+            onStatus(host.CurrentAddress is { } live ? $"Connected to {host.Shown(live)}" : Waiting);
 
             using var until = CancellationTokenSource.CreateLinkedTokenSource(stop, changed);
             await Task.WhenAny(Task.Delay(Timeout.Infinite, until.Token), disconnected);
@@ -131,6 +132,12 @@ internal sealed class LinuxServer : IDisposable
     /// </summary>
     private bool OnNewConnection(string address, SafeFileHandle socket) => host.Accept(new BluezLink(socket, address));
 
+    /// <summary>Takes a Wi-Fi or USB phone's link, as <see cref="SessionHost.Accept"/> does; <c>NetworkServer</c> calls it.</summary>
+    public bool Accept(IPhoneLink link) => host.Accept(link);
+
+    /// <summary>What the owner reads for <paramref name="address"/>: a network phone's name, else the address itself.</summary>
+    public string Shown(string address) => host.Shown(address);
+
     private void OnRequestDisconnection(string address) => host.Disconnect(address);
 
     /// <summary>
@@ -149,7 +156,7 @@ internal sealed class LinuxServer : IDisposable
     {
         if (!stopping.IsCancellationRequested)
         {
-            onStatus(host.CurrentAddress is { } live ? $"Connected to {live}" : bluetoothd is null ? StartFailing : Waiting);
+            onStatus(host.CurrentAddress is { } live ? $"Connected to {host.Shown(live)}" : bluetoothd is null ? StartFailing : Waiting);
         }
     }
 

@@ -3,6 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Edgepad.Bluetooth;
+using Edgepad.Net;
+using Edgepad.Network;
 using Edgepad.Trust;
 
 namespace Edgepad.Ui;
@@ -26,8 +28,13 @@ internal sealed class Shell
     private readonly PinStore pin;
     private readonly string version;
     private readonly TrustPrompt prompt;
+    private readonly NetworkSettings networkSettings;
+    private readonly PairedLinks paired;
+    private readonly LinkIdentity identity;
+    private readonly PairingPrompt pairing;
 
     private LinuxServer? server;
+    private NetworkServer? network;
     private Tray? tray;
     private IClassicDesktopStyleApplicationLifetime? lifetime;
 
@@ -41,11 +48,18 @@ internal sealed class Shell
     private bool forgetting;
     private bool securing;
 
-    public Shell(TrustStore trust, PinStore pin, string version)
+    // The Wi-Fi and USB row's hint: off, the port listened on, or why not. Only the UI thread touches it.
+    private string networkHint = "Off";
+
+    public Shell(TrustStore trust, PinStore pin, NetworkSettings networkSettings, PairedLinks paired, LinkIdentity identity, string version)
     {
         this.trust = trust;
         this.pin = pin;
+        this.networkSettings = networkSettings;
+        this.paired = paired;
+        this.identity = identity;
         this.version = version;
+        pairing = PairingPrompt.OnUiThread(phone => SetStatus($"Pair {phone}: type the code shown on the phone"));
         prompt = new TrustPrompt(
             (address, stillWaiting) => Dispatcher.UIThread.InvokeAsync<bool>(() => TrustWindow.Open(address, stillWaiting)),
             TrustPrompt.DefaultTimeout);
@@ -54,7 +68,16 @@ internal sealed class Shell
     private LinuxServer Server => server ?? throw new InvalidOperationException("The Bluetooth server was never attached");
 
     /// <summary>Hands over the server the dialogs hold off. Before <see cref="Run"/>.</summary>
-    public void Attach(LinuxServer bluetooth) => server = bluetooth;
+    public void Attach(LinuxServer bluetooth)
+    {
+        server = bluetooth;
+
+        // Off until the owner turns it on (network.txt); only a phone that proves itself is handed to the server.
+        network = new NetworkServer(identity, paired, trust, pairing, bluetooth.Accept, name => SetStatus($"Paired with {name}"));
+    }
+
+    /// <summary>Stops listening for Wi-Fi and USB phones and closes theirs. Before the server is disposed; harmless twice.</summary>
+    public void StopNetwork() => network?.Dispose();
 
     /// <summary>Runs the UI on the calling thread until Quit; returns Avalonia's exit code. Throws if no display can be opened.</summary>
     public int Run() =>
@@ -95,7 +118,7 @@ internal sealed class Shell
             return false;
         }
 
-        SetStatus($"Asking whether to trust {address}");
+        SetStatus($"Asking whether to trust {Server.Shown(address)}");
         var trusted = prompt.Ask(address, ended);
         Log.Write(trusted ? $"The owner trusted {address}" : $"The owner did not trust {address}");
         return trusted;
@@ -107,8 +130,11 @@ internal sealed class Shell
         var menu = new Tray(
             version,
             () => $"Level {pin.Level}",
-            () => trust.CanForget,
+            () => trust.CanForget || paired.CanForget,
+            () => networkSettings.Load().Enabled,
+            () => networkHint,
             () => _ = Guard(ShowSecurityAsync),
+            () => _ = Guard(ToggleNetworkAsync),
             () => _ = Guard(ConfirmForgetAsync),
             RequestQuit);
         tray = menu;
@@ -120,6 +146,7 @@ internal sealed class Shell
         }
 
         ready = true;
+        ApplyNetwork();
 
         // The hidden overlay, the screen size and whether annotate is offered: only knowable once the UI is up.
         Annotator.StartUi();
@@ -189,6 +216,10 @@ internal sealed class Shell
 
             var forgotten = trust.Forget();
 
+            // The Wi-Fi and USB pairings too, or a forgotten phone would resume its link and only meet the trust
+            // question, not a new pairing.
+            var unpaired = paired.Forget();
+
             // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
             var verifiedForgotten = pin.ForgetVerified();
 
@@ -202,6 +233,16 @@ internal sealed class Shell
                         + "connect while Edgepad stays running, but those phones will be trusted again the next time "
                         + "Edgepad starts. Close whatever is holding the file and choose Forget trusted phones again, "
                         + $"or delete it yourself:\n\n{trust.FilePath}");
+            }
+
+            if (!unpaired)
+            {
+                await Dialogs.Inform(
+                    null,
+                    "The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. "
+                        + "Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will "
+                        + "be able to again the next time it starts. Choose Forget trusted phones again, or delete "
+                        + $"paired-links.txt yourself from:\n\n{pin.Folder}");
             }
 
             if (!verifiedForgotten)
@@ -219,6 +260,53 @@ internal sealed class Shell
             bluetooth.Resume();
             forgetting = false;
         }
+    }
+
+    /// <summary>
+    /// The Wi-Fi and USB switch. Turning it on says first what will happen, since a firewall may block it; a no there
+    /// leaves it off. A setting that cannot be saved leaves things as they were.
+    /// </summary>
+    private async Task ToggleNetworkAsync()
+    {
+        var on = !networkSettings.Load().Enabled;
+        if (on && !await Dialogs.Confirm(
+            null,
+            "Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. "
+                + "Pairing needs you to type here the code the phone shows. A firewall may block them: allow "
+                + $"{NetworkSettings.DefaultPort}/tcp and 5353/udp (docs/LINUX.md).",
+            "Turn on",
+            "Cancel"))
+        {
+            return;
+        }
+
+        if (!networkSettings.SetEnabled(on))
+        {
+            await Dialogs.Inform(null, "The setting could not be saved, so nothing was changed. The log has the reason.");
+            return;
+        }
+
+        ApplyNetwork();
+    }
+
+    /// <summary>Listens or stops as network.txt says, and words the row's hint for it. On the UI thread only.</summary>
+    private void ApplyNetwork()
+    {
+        var net = network ?? throw new InvalidOperationException("The network server was never created");
+        var config = networkSettings.Load();
+        if (!config.Enabled)
+        {
+            net.Stop();
+            networkHint = "Off";
+        }
+        else
+        {
+            networkHint = !net.Start(config.Port) ? "Could not listen; see the log"
+                : net.Port == config.Port ? $"Listening on {config.Port}"
+                : $"Port in use, using {net.Port}";
+        }
+
+        tray?.Refresh();
     }
 
     /// <summary>Nothing may throw out of a menu handler: an exception on the UI thread ends the whole app.</summary>
