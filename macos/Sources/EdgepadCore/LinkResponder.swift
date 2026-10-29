@@ -3,9 +3,25 @@ import Foundation
 
 /// The Mac's half of pairing: a window that names the phone and asks the owner to type the code the phone shows. It
 /// must not block. At most one of the callbacks is called, on the main thread: the digits typed, or the owner
-/// cancelling. The closure it returns withdraws the window, answered or not, and may be called more than once.
+/// cancelling. The question it returns is then told how the typed code went.
 public protocol PairingPrompt: AnyObject {
-    func show(phoneName: String, onTyped: @escaping (String) -> Void, onCancelled: @escaping () -> Void) -> () -> Void
+    func show(
+        phoneName: String, onTyped: @escaping (String) -> Void, onCancelled: @escaping () -> Void
+    ) -> PairingQuestion
+}
+
+/// One pairing question on screen, the twin of the C# `IPairingQuestion`. After the owner types a code it is told
+/// either `mismatched`, or `finished` (with `matched` before it when the code matched), each at most once, on the main
+/// thread. `withdraw` takes down a question still asking for the code, and may be called more than once; once the
+/// question has been told an outcome, the window stays up to show it.
+public protocol PairingQuestion: AnyObject {
+    /// The code matched and the phone was told so; now the phone's owner confirms on the phone.
+    func matched()
+    /// The code typed is not the one the phone shows; nothing was paired.
+    func mismatched()
+    /// The pairing ended after the code was typed: paired, or not (no confirmation, or a Forget).
+    func finished(paired: Bool)
+    func withdraw()
 }
 
 /// A network link that came through: the secret its records are keyed from, who is on the other end, and whatever the
@@ -79,7 +95,7 @@ public final class LinkResponder {
     private var pairing: Pairing?
     private var transcript: [UInt8] = []
     private var prk: [UInt8] = []
-    private var withdraw: (() -> Void)?
+    private var question: PairingQuestion?
 
     /// Starts waiting for the phone's request at once. `send` takes a whole message or record and is false when the
     /// connection is dead; `schedule` runs its closure once after the delay.
@@ -148,7 +164,7 @@ public final class LinkResponder {
     /// up would be. The app never does this; it ends each one through `cancel`.
     deinit {
         if stage != .done, pairing != nil {
-            withdraw?()
+            question?.withdraw()
             limiter.end(.failed)
         }
     }
@@ -256,7 +272,7 @@ public final class LinkResponder {
             guard let self, self.stage == .owner, self.step == asked else { return }
             self.refuse("no code was typed within \(Int(Self.ownerTimeoutSeconds)) s")
         }
-        withdraw = prompt.show(
+        question = prompt.show(
             phoneName: pairing.name,
             onTyped: { [weak self] typed in self?.typed(typed, asked) },
             onCancelled: { [weak self] in self?.ownerCancelled(asked) })
@@ -265,20 +281,24 @@ public final class LinkResponder {
     /// The owner's digits. The one check that needs the owner: until it passes, nothing that depends on it is sent.
     private func typed(_ digits: String, _ asked: Int) {
         guard stage == .owner, step == asked, let pairing else { return }
-        withdraw?()
         if forgottenSince(pairing) {
+            question?.finished(paired: false)
             forgotten()
             return
         }
         guard LinkCrypto.codeMatches(digits, LinkCrypto.sas(transcript)) else {
+            question?.mismatched()
             refuse("the code typed on this Mac is not the one that phone shows")
             return
         }
         guard send(LinkWire.message(LinkWire.tag(LinkCrypto.laptopTag(prk, transcript, pairing: true)))) else {
+            question?.finished(paired: false)
             refuse("the link stopped taking data")
             return
         }
         stage = .pairConfirm
+        // From here `finish` tells the window how the pairing ended, whatever ends it.
+        question?.matched()
         // The phone's owner confirms on the phone that this Mac said the code matched, the one check that tells the
         // phone it reached this Mac; that takes a person, so the wait is the owner's, not a message's.
         wait("confirmation", seconds: Self.ownerTimeoutSeconds)
@@ -350,10 +370,13 @@ public final class LinkResponder {
 
     private func finish(_ result: LinkResult?, outcome: PairingOutcome, _ message: String?) {
         guard stage != .done else { return }
+        if stage == .pairConfirm {
+            question?.finished(paired: result != nil)
+        }
         stage = .done
         step += 1
-        withdraw?()
-        withdraw = nil
+        question?.withdraw()
+        question = nil
         if pairing != nil {
             limiter.end(outcome)
         }

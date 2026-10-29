@@ -7,16 +7,42 @@ import XCTest
 private final class FakePairingPrompt: PairingPrompt {
     private(set) var shown: [String] = []
     private(set) var withdrawn = 0
+    /// What every question was told after the code was typed, in order.
+    private(set) var told: [String] = []
     private var typed: ((String) -> Void)?
     private var cancelled: (() -> Void)?
 
+    private final class Question: PairingQuestion {
+        weak var owner: FakePairingPrompt?
+
+        init(_ owner: FakePairingPrompt) {
+            self.owner = owner
+        }
+
+        func matched() {
+            owner?.told.append("matched")
+        }
+
+        func mismatched() {
+            owner?.told.append("mismatched")
+        }
+
+        func finished(paired: Bool) {
+            owner?.told.append("finished:\(paired)")
+        }
+
+        func withdraw() {
+            owner?.withdrawn += 1
+        }
+    }
+
     func show(
         phoneName: String, onTyped: @escaping (String) -> Void, onCancelled: @escaping () -> Void
-    ) -> () -> Void {
+    ) -> PairingQuestion {
         shown.append(phoneName)
         typed = onTyped
         cancelled = onCancelled
-        return { [weak self] in self?.withdrawn += 1 }
+        return Question(self)
     }
 
     func type(_ digits: String) {
@@ -140,6 +166,7 @@ final class LinkResponderTests: XCTestCase {
         XCTAssertEqual(trust.trustedPhones, [address])
         XCTAssertEqual(paired.find(Hex.string(phoneId))?.key, LinkCrypto.pairingKey(phone.prk))
         XCTAssertGreaterThan(prompt.withdrawn, 0)
+        XCTAssertEqual(prompt.told, ["matched", "finished:true"])
     }
 
     func testAWrongCodeIsAFailureAndNothingIsTrusted() throws {
@@ -150,6 +177,7 @@ final class LinkResponderTests: XCTestCase {
         prompt.type(phone.code == "000000" ? "000001" : "000000")
 
         XCTAssertEqual(sent.count, sentBefore, "the Mac confirmed after a wrong code")
+        XCTAssertEqual(prompt.told, ["mismatched"])
         XCTAssertEqual(results.count, 1)
         XCTAssertNil(results[0])
         XCTAssertTrue(trust.trustedPhones.isEmpty)
@@ -192,6 +220,7 @@ final class LinkResponderTests: XCTestCase {
 
         link.receive(LinkWire.message([UInt8](repeating: 7, count: 32)))
 
+        XCTAssertEqual(prompt.told, ["matched", "finished:false"])
         XCTAssertNil(try XCTUnwrap(results.first))
         XCTAssertTrue(trust.trustedPhones.isEmpty)
         XCTAssertNil(paired.find(Hex.string(phoneId)))
@@ -247,6 +276,7 @@ final class LinkResponderTests: XCTestCase {
             prompt.cancel()
             XCTAssertNil(try XCTUnwrap(results.first))
         }
+        XCTAssertTrue(prompt.told.isEmpty)
         XCTAssertTrue(limiter.tryBegin())
     }
 
@@ -288,6 +318,7 @@ final class LinkResponderTests: XCTestCase {
         prompt.type(phone.code)
 
         XCTAssertEqual(sent.count, sentBefore, "the Mac confirmed a pairing begun before the Forget")
+        XCTAssertEqual(prompt.told, ["finished:false"])
         XCTAssertNil(try XCTUnwrap(results.first))
         XCTAssertTrue(trust.trustedPhones.isEmpty)
         XCTAssertNil(paired.find(Hex.string(phoneId)))
@@ -302,6 +333,7 @@ final class LinkResponderTests: XCTestCase {
         XCTAssertTrue(trust.forget())
         link.receive(LinkWire.message(LinkCrypto.phoneTag(phone.prk, phone.transcript, pairing: true)))
 
+        XCTAssertEqual(prompt.told, ["matched", "finished:false"])
         XCTAssertNil(try XCTUnwrap(results.first))
         XCTAssertTrue(trust.trustedPhones.isEmpty)
         XCTAssertNil(paired.find(Hex.string(phoneId)))
