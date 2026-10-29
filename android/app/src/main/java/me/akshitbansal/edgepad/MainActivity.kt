@@ -27,9 +27,15 @@ import android.widget.Toast
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
 import me.akshitbansal.edgepad.gamepad.GamepadStore
+import me.akshitbansal.edgepad.link.BluetoothTransport
 import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopState
+import me.akshitbansal.edgepad.link.LinkTransport
 import me.akshitbansal.edgepad.link.RttStats
+import me.akshitbansal.edgepad.link.Target
+import me.akshitbansal.edgepad.link.TcpTransport
+import me.akshitbansal.edgepad.link.net.LinkKeys
+import me.akshitbansal.edgepad.link.net.Sas
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
@@ -52,6 +58,7 @@ import me.akshitbansal.edgepad.screens.KeyboardSettingsScreen
 import me.akshitbansal.edgepad.screens.MacroScreen
 import me.akshitbansal.edgepad.screens.MacroSettingsScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
+import me.akshitbansal.edgepad.screens.PairCodeScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.PinScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
@@ -128,6 +135,7 @@ class MainActivity :
         SURFACE,
         RECONNECTING,
         PIN,
+        PAIR_CODE,
     }
 
     /**
@@ -146,6 +154,9 @@ class MainActivity :
         val rtt: RttStats,
         val pinAttemptsLeft: Int,
         val pinAnswered: Boolean,
+        val pairCode: Sas?,
+        val pairDeadline: Long,
+        val lastTarget: Target?,
     )
 
     private val handler = Handler(Looper.getMainLooper())
@@ -184,6 +195,16 @@ class MainActivity :
 
     /** True once the PIN screen sent its answer to the current question, so a rebuild cannot send a second. */
     private var pinAnswered = false
+
+    /** The code a network pairing shows, and when its countdown ends; null when no pairing is waiting. */
+    private var pairCode: Sas? = null
+    private var pairDeadline = 0L
+
+    /** What the current or last connect aimed at, so a dropped network link can be retried like a Bluetooth one. */
+    private var lastTarget: Target? = null
+
+    /** This phone's network link id and pairing keys, opened the first time a network laptop is tried. */
+    private val linkKeys by lazy { LinkKeys.open(this) }
 
     /**
      * A tap on a laptop has one quick retry coming if its connect never reaches the laptop: the first connect
@@ -227,7 +248,7 @@ class MainActivity :
     private val retry = Runnable { attemptReconnect() }
 
     /** The one automatic second try of a first connect that never reached the laptop; see [quickRetryLeft]. */
-    private val quickRetry = Runnable { if (started && link == null) rememberedDevice()?.let(::connect) }
+    private val quickRetry = Runnable { if (started && link == null) rememberedTarget()?.let(::connect) }
 
     private val ticker =
         object : Runnable {
@@ -270,6 +291,9 @@ class MainActivity :
             picker.setRtt(rtt.median())
             pinAttemptsLeft = retained.pinAttemptsLeft
             pinAnswered = retained.pinAnswered
+            pairCode = retained.pairCode
+            pairDeadline = retained.pairDeadline
+            lastTarget = retained.lastTarget
         }
         goTo(
             when {
@@ -293,6 +317,9 @@ class MainActivity :
             rtt,
             pinAttemptsLeft,
             pinAnswered,
+            pairCode,
+            pairDeadline,
+            lastTarget,
         )
 
     override fun onStart() {
@@ -308,7 +335,7 @@ class MainActivity :
 
             screen == Screen.RECONNECTING -> scheduleRetry(0L)
 
-            screen != Screen.ONBOARDING && settings.reconnect -> rememberedDevice()?.let(::connect)
+            screen != Screen.ONBOARDING && settings.reconnect -> rememberedTarget()?.let(::connect)
         }
         if (screen == Screen.RECONNECTING) handler.post(ticker)
         refreshPicker()
@@ -413,7 +440,7 @@ class MainActivity :
                     GuideScreen.build(ui, settings, intro = true, onFinish = {
                         settings.onboarded = true
                         goTo(Screen.PAIRING)
-                        if (settings.reconnect) rememberedDevice()?.let(::connect)
+                        if (settings.reconnect) rememberedTarget()?.let(::connect)
                     }) { navigateBack() }
                 }
 
@@ -633,6 +660,16 @@ class MainActivity :
                     ).view
                 }
 
+                Screen.PAIR_CODE -> {
+                    PairCodeScreen(
+                        ui,
+                        pairCode?.display().orEmpty(),
+                        laptopName,
+                        pairDeadline,
+                        onCancel = { navigateBack() },
+                    ).view
+                }
+
                 Screen.SURFACE -> {
                     ControlSurface(
                         this,
@@ -644,8 +681,8 @@ class MainActivity :
                     ).also { surface = it }
                 }
             }
-        // No screenshot, screen recording or recents thumbnail of the PIN screen, and only of that screen.
-        if (next == Screen.PIN) {
+        // No screenshot, screen recording or recents thumbnail of the PIN or pairing code, and only of those screens.
+        if (next == Screen.PIN || next == Screen.PAIR_CODE) {
             window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -747,7 +784,7 @@ class MainActivity :
             }
 
             // Back is Cancel: the attempt ends, and onClosed takes the screen to Devices.
-            Screen.PIN -> {
+            Screen.PIN, Screen.PAIR_CODE -> {
                 val current = link
                 if (current != null) {
                     current.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
@@ -1127,6 +1164,10 @@ class MainActivity :
         return bonded().firstOrNull { it.address == address }
     }
 
+    /** The network laptop last connected to, or else the remembered Bluetooth one if it is still bonded. */
+    private fun rememberedTarget(): Target? =
+        lastTarget as? Target.Network ?: rememberedDevice()?.let { Target.Bluetooth(it) }
+
     private fun nameOf(device: BluetoothDevice): String =
         try {
             device.name ?: device.address
@@ -1141,12 +1182,13 @@ class MainActivity :
         if (device == null) {
             picker.setMessage(getString(R.string.not_paired))
         } else {
-            connect(device)
+            connect(Target.Bluetooth(device))
             quickRetryLeft = true
         }
     }
 
-    private fun connect(device: BluetoothDevice) {
+    /** One link at a time: a connect ends whatever link there was first. */
+    private fun connect(target: Target) {
         handler.removeCallbacks(retry)
         handler.removeCallbacks(quickRetry)
         quickRetryLeft = false
@@ -1155,29 +1197,51 @@ class MainActivity :
         link = null
         old?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
         // What one laptop reported says nothing about another.
-        if (device.address != laptopAddress) state = LaptopState()
+        if (target.key != laptopAddress) state = LaptopState()
         state.forgetFeatures()
-        settings.laptop = device.address
-        laptopName = nameOf(device)
-        laptopAddress = device.address
+        lastTarget = target
+        laptopName =
+            when (target) {
+                is Target.Bluetooth -> {
+                    settings.laptop = target.device.address
+                    nameOf(target.device)
+                }
+
+                is Target.Network -> {
+                    target.name
+                }
+            }
+        laptopAddress = target.key
         rtt.clear()
         picker.setRtt(Double.NaN)
         picker.setMessage("")
         picker.setConnecting(laptopAddress)
-        val next = LaptopLink(device, this)
+        val next = LaptopLink(transportFor(target), this)
         link = next
         thread(name = "edgepad-link") { next.open() }
     }
 
+    private fun transportFor(target: Target): LinkTransport =
+        when (target) {
+            is Target.Bluetooth -> BluetoothTransport(target.device)
+            is Target.Network -> TcpTransport(target.hosts, target.port, target.laptopId, linkKeys, phoneName())
+        }
+
+    /** What the laptop's pairing prompt calls this phone: the name set in the phone's settings, else its model. */
+    private fun phoneName(): String =
+        android.provider.Settings.Global.getString(contentResolver, android.provider.Settings.Global.DEVICE_NAME)
+            ?: Build.MODEL
+
     override fun onConnected(link: LaptopLink) {
         if (link != this.link) return
         connectedAt = SystemClock.elapsedRealtime()
+        pairCode = null
         picker.setConnecting(null)
         // The trust hint, if it was showing, has been answered.
         picker.setMessage("")
         startPinger()
         when (screen) {
-            Screen.PAIRING, Screen.RECONNECTING, Screen.PIN -> {
+            Screen.PAIRING, Screen.RECONNECTING, Screen.PIN, Screen.PAIR_CODE -> {
                 goTo(Screen.SURFACE)
             }
 
@@ -1208,6 +1272,18 @@ class MainActivity :
         // The trust hint, if it was showing, has been answered.
         picker.setMessage("")
         goTo(Screen.PIN)
+    }
+
+    /** A network pairing waits on the laptop's owner typing [code] there; the countdown matches the link's wait. */
+    override fun onPairingCode(
+        link: LaptopLink,
+        code: Sas,
+    ) {
+        if (link != this.link) return
+        pairCode = code
+        pairDeadline = SystemClock.elapsedRealtime() + PAIR_CODE_MS
+        picker.setMessage("")
+        goTo(Screen.PAIR_CODE)
     }
 
     override fun onRoundTrip(ms: Double) {
@@ -1254,8 +1330,9 @@ class MainActivity :
         handler.removeCallbacks(pinger)
         this.link = null
         picker.setConnecting(null)
-        // Devices is where the reason is shown, so an attempt that ends at the PIN goes there first.
-        if (screen == Screen.PIN) goTo(Screen.PAIRING)
+        pairCode = null
+        // Devices is where the reason is shown, so an attempt that ends at the PIN or a pairing code goes there first.
+        if (screen == Screen.PIN || screen == Screen.PAIR_CODE) goTo(Screen.PAIRING)
         when {
             closure.cause == LaptopLink.Cause.ENDED -> {
                 // A link ended on purpose starts the next one with a full set of attempts.
@@ -1314,6 +1391,9 @@ class MainActivity :
             LaptopLink.Cause.NO_PERMISSION -> getString(R.string.link_no_permission)
             LaptopLink.Cause.NO_ANSWER -> getString(R.string.link_no_answer)
             LaptopLink.Cause.PIN_LOCKED -> lockedFor(closure.detail.toIntOrNull() ?: 0)
+            LaptopLink.Cause.NOT_PAIRED -> getString(R.string.link_not_paired)
+            LaptopLink.Cause.PAIRING_FAILED -> getString(R.string.link_pairing_failed)
+            LaptopLink.Cause.PAIRING_LOCKED -> getString(R.string.link_pairing_locked)
         }
 
     /** The lock-out wait as a person reads it: an hour is 60 minutes, not 3600 s. Minutes round up, never down. */
@@ -1332,13 +1412,13 @@ class MainActivity :
 
     private fun attemptReconnect() {
         if (!started || link != null) return
-        val device = rememberedDevice()
-        if (device == null) {
+        val target = rememberedTarget()
+        if (target == null) {
             // Retrying cannot help once the laptop is unpaired, and a bare "Stopped retrying" would not say why.
             if (screen == Screen.RECONNECTING) goTo(Screen.PAIRING)
             picker.setMessage(getString(R.string.not_paired))
         } else {
-            connect(device)
+            connect(target)
         }
         updateReconnecting()
     }
@@ -1373,6 +1453,7 @@ class MainActivity :
 
     private fun forget() {
         settings.laptop = null
+        lastTarget = null
         val current = link
         if (current != null) {
             current.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
@@ -1446,6 +1527,9 @@ class MainActivity :
 
         /** Long enough for the laptop to finish whatever made the first connect miss, short enough to go unnoticed. */
         const val QUICK_RETRY_MS = 1_500L
+
+        /** The pairing code's countdown, the same 90 s the network transport waits for the laptop's answer. */
+        const val PAIR_CODE_MS = 90_000L
         const val MAX_ATTEMPTS = 10
 
         /** A link that lasted less than this did not really come back, so it does not earn a fresh set of attempts. */

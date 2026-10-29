@@ -1,10 +1,9 @@
 package me.akshitbansal.edgepad.link
 
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothSocket
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import me.akshitbansal.edgepad.link.net.Sas
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.FrameCodec
 import me.akshitbansal.edgepad.protocol.Pin
@@ -19,7 +18,8 @@ import java.util.concurrent.LinkedBlockingQueue
 import kotlin.concurrent.thread
 
 /**
- * One RFCOMM connection to the laptop.
+ * One connection to the laptop, over Bluetooth or the network: the [LinkTransport] opens the byte pipe and
+ * everything from HELLO on is the same on both.
  *
  * [open] blocks for the life of the connection, so callers run it on their own thread; it reads on that
  * thread. Frames go out through one writer thread, so a slow link can only ever block that thread —
@@ -31,7 +31,7 @@ import kotlin.concurrent.thread
  * message, so anything the link reports in between lands on the new activity instead of the dead one.
  */
 class LaptopLink(
-    private val device: BluetoothDevice,
+    private val transport: LinkTransport,
     @Volatile var listener: Listener,
 ) {
     interface Listener {
@@ -48,6 +48,15 @@ class LaptopLink(
         fun onPinRequest(
             link: LaptopLink,
             attemptsLeft: Int,
+        )
+
+        /**
+         * A network pairing: show [code] for the laptop's owner to type there. Nothing is answered; the link
+         * carries on by itself once the laptop confirms, and closing it is how the pairing is cancelled.
+         */
+        fun onPairingCode(
+            link: LaptopLink,
+            code: Sas,
         )
 
         fun onFrame(frame: Frame)
@@ -93,6 +102,15 @@ class LaptopLink(
 
         /** Too many wrong PINs: the laptop refuses this phone for the seconds [Closure.detail] carries. */
         PIN_LOCKED,
+
+        /** The laptop has no pairing with this phone over the network, or could not prove it has; pair again. */
+        NOT_PAIRED,
+
+        /** A network pairing did not finish: the code was not typed on the laptop in time, or not correctly. */
+        PAIRING_FAILED,
+
+        /** The laptop is pairing another phone, or pauses pairing after too many wrong codes. */
+        PAIRING_LOCKED,
     }
 
     /**
@@ -121,7 +139,7 @@ class LaptopLink(
     private val writeLock = Any()
     private val main = Handler(Looper.getMainLooper())
 
-    @Volatile private var socket: BluetoothSocket? = null
+    @Volatile private var streams: Streams? = null
 
     @Volatile private var writer: Thread? = null
 
@@ -153,17 +171,11 @@ class LaptopLink(
         // Whether connect() returned, which is what tells a laptop that never answered from one that hung up.
         var connectReturned = false
         try {
-            val s = device.createRfcommSocketToServiceRecord(ProtocolConstants.SERVICE_ID)
-            socket = s
-            // A close() that ran before the line above found no socket to close.
-            if (closed) {
-                s.close()
-                return
-            }
-            s.connect()
+            val opened = transport.open { code -> deliver { it.onPairingCode(this, code) } }
+            streams = opened
             connectReturned = true
-            val input = DataInputStream(s.inputStream)
-            val output = s.outputStream
+            val input = DataInputStream(opened.input)
+            val output = opened.output
             output.write(FrameCodec.encode(Frame.Hello(ProtocolConstants.VERSION)))
             output.flush()
             // The laptop may hold its answer while its owner decides whether to trust this phone, so the
@@ -219,9 +231,9 @@ class LaptopLink(
             }
         } catch (e: IOException) {
             // An EOF before HELLO_ACK is the laptop hanging up: its owner said no, or it is too old.
-            val cause = classifyFailure(connectReturned, handshakeDone)
-            Log.w(TAG, "The link closed as $cause", e)
-            close(Closure(cause))
+            val closure = closureOf(e, connectReturned, handshakeDone)
+            Log.w(TAG, "The link closed as ${closure.cause}", e)
+            close(closure)
         } catch (e: SecurityException) {
             close(Closure(Cause.NO_PERMISSION))
         } catch (e: RuntimeException) {
@@ -240,7 +252,7 @@ class LaptopLink(
      * the garbage collector reclaims them, which nothing on the JVM can hurry.
      */
     fun answerPin(pin: Pin) {
-        val s = socket
+        val s = streams
         if (s == null || closed || handshakeDone) return
         val bytes = FrameCodec.encode(Frame.PinAnswer(pin))
         // The laptop has something to check now, so the wait for its answer has an end again.
@@ -248,8 +260,8 @@ class LaptopLink(
         thread(name = "edgepad-pin") {
             try {
                 synchronized(writeLock) {
-                    s.outputStream.write(bytes)
-                    s.outputStream.flush()
+                    s.output.write(bytes)
+                    s.output.flush()
                 }
             } catch (e: IOException) {
                 Log.w(TAG, "The PIN answer could not be written", e)
@@ -267,11 +279,7 @@ class LaptopLink(
         }
         main.removeCallbacks(slowAnswer)
         main.removeCallbacks(noAnswer)
-        try {
-            socket?.close()
-        } catch (e: IOException) {
-            // Already broken; closing is all that was asked for.
-        }
+        transport.close()
         writer?.interrupt()
         outbox.clear()
         CaptureInbox.abort()
@@ -380,6 +388,17 @@ internal fun classifyFailure(
         handshakeDone -> LaptopLink.Cause.LOST
         else -> LaptopLink.Cause.REFUSED
     }
+
+/**
+ * What an IOException ends the link with: the transport's own reason when it reached the laptop and was turned
+ * away, otherwise [classifyFailure]'s reading of how far the link got.
+ */
+internal fun closureOf(
+    e: IOException,
+    connectReturned: Boolean,
+    handshakeDone: Boolean,
+): LaptopLink.Closure =
+    (e as? LinkFailure)?.closure ?: LaptopLink.Closure(classifyFailure(connectReturned, handshakeDone))
 
 /**
  * What a PIN_REQUEST ends the link with: a lock-out (no attempts left and a wait) closes it as

@@ -87,6 +87,20 @@ class KeystoreWrapper : Wrapper {
     }
 }
 
+/** What a network transport needs of [LinkKeys]; a JVM test hands it a map instead of SharedPreferences. */
+interface PairingKeys {
+    val phoneId: ByteArray
+
+    fun pairingKey(laptopId: ByteArray): ByteArray?
+
+    fun save(
+        laptopId: ByteArray,
+        pairingKey: ByteArray,
+    )
+
+    fun forget(laptopId: ByteArray)
+}
+
 /**
  * The phone's side of the pairings it has made: its own id, 16 random bytes made once per install, and one
  * pairing key per laptop, each sealed by [wrapper] before it is written. The SharedPreferences plumbing is thin
@@ -95,19 +109,20 @@ class KeystoreWrapper : Wrapper {
 class LinkKeys(
     private val prefs: SharedPreferences,
     private val wrapper: Wrapper,
-) {
+) : PairingKeys {
     /** This phone's link id, made and saved the first time it is asked for. */
-    val phoneId: ByteArray by lazy { idOf(prefs.getString(KEY_PHONE_ID, null)) ?: newPhoneId() }
+    override val phoneId: ByteArray by lazy { idOf(prefs.getString(KEY_PHONE_ID, null)) ?: newPhoneId() }
 
     /** The key a pairing with [laptopId] left, or null: never paired, forgotten, or no longer openable. */
-    fun pairingKey(laptopId: ByteArray): ByteArray? = unseal(wrapper, laptopId, prefs.getString(entry(laptopId), null))
+    override fun pairingKey(laptopId: ByteArray): ByteArray? =
+        unseal(wrapper, laptopId, prefs.getString(entry(laptopId), null))
 
-    fun save(
+    override fun save(
         laptopId: ByteArray,
         pairingKey: ByteArray,
     ) = commit(prefs.edit().putString(entry(laptopId), seal(wrapper, laptopId, pairingKey)))
 
-    fun forget(laptopId: ByteArray) = commit(prefs.edit().remove(entry(laptopId)))
+    override fun forget(laptopId: ByteArray) = commit(prefs.edit().remove(entry(laptopId)))
 
     private fun newPhoneId(): ByteArray {
         val id = LinkCrypto.randomBytes(LinkWire.ID_LENGTH)
