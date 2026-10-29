@@ -8,11 +8,11 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
+import me.akshitbansal.edgepad.R
+import me.akshitbansal.edgepad.Space
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
-import me.akshitbansal.edgepad.R
-import me.akshitbansal.edgepad.Space
 
 /**
  * Pages side by side, each as wide as the pager, that a finger slides between and that always come to rest
@@ -24,6 +24,8 @@ class Pager(
     context: Context,
     private val onPage: (Int) -> Unit,
 ) : HorizontalScrollView(context) {
+    constructor(context: Context) : this(context, {})
+
     val row = LinearLayout(context)
     private var page = 0
     private var flung = false
@@ -82,6 +84,8 @@ class PageDots(
     private val ui: Ui,
     private val count: Int,
 ) : LinearLayout(ui.context) {
+    constructor(context: Context) : this(Ui(context), 1)
+
     private val dots = List(count) { View(ui.context) }
 
     init {
