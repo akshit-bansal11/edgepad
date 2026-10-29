@@ -5,6 +5,7 @@ import android.graphics.Paint
 import android.text.TextPaint
 import android.util.DisplayMetrics
 import android.util.TypedValue
+import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -36,7 +37,7 @@ class RulerPainter(
             letterSpacing = LABEL_TRACKING
         }
     private val split = FloatArray(3)
-    private val row = FloatArray(3)
+    private val keepOut = FloatArray(2)
     private val valuePaint =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = Type.black
@@ -121,7 +122,7 @@ class RulerPainter(
         line(canvas, start, end, pt)
 
         if (isSplit(perimeter, centre)) {
-            drawSplitText(canvas, perimeter, centre, armed, ink, accent, dim, label, number, pt)
+            drawSplitText(canvas, perimeter, centre, after, before, armed, ink, accent, dim, label, number, pt)
             return
         }
         // The label and the number sit inside the corner, on its normal, clear of the longest mark the
@@ -146,27 +147,28 @@ class RulerPainter(
     }
 
     /**
-     * The top buttons' left, right and bottom in pixels, which a top corner's split text stays out from under
-     * ([SplitLabel]). The control surface sets it after laying the row out; the Settings preview has no row.
+     * The left and right of the buttons' keep-out along the top edge in pixels, which a top edge's split text
+     * stays out of ([SplitLabel]). The control surface sets it with the dials' own keep-out; the Settings
+     * preview has no buttons.
      */
     fun clearOf(
         left: Float,
         right: Float,
-        bottom: Float,
     ) {
-        row[0] = left
-        row[1] = right
-        row[2] = bottom
+        keepOut[0] = left
+        keepOut[1] = right
     }
 
     /**
-     * One half of a split corner: a smaller label and number, in the column [SplitLabel] lays out, so eight
-     * dials read as four tidy pairs. Laid out for the held size and the widest number, so nothing moves.
+     * One half of a split corner: a smaller label and number at the far end of its own ruler, where
+     * [SplitLabel] puts it. Laid out for the held size and the widest number, so nothing moves.
      */
     private fun drawSplitText(
         canvas: Canvas,
         perimeter: Perimeter,
         centre: Float,
+        after: Float,
+        before: Float,
         armed: Boolean,
         ink: Int,
         accent: Int,
@@ -181,11 +183,12 @@ class RulerPainter(
         SplitLabel.anchor(
             perimeter,
             centre,
+            SplitLabel.farEnd(perimeter, centre, after, before),
             dp(RulerGeometry.reach(height) + SPLIT_INSET_DP),
             labelSize + gap + held,
-            dp(SPLIT_ROW_GAP_DP),
             held * SPLIT_WIDE_EMS,
-            row,
+            dp(Space.S),
+            keepOut,
             pt,
             split,
         )
@@ -266,16 +269,14 @@ class RulerPainter(
 
         /**
          * Split mode's text, smaller so eight fit: a 10 sp label over an 18 sp number, 22 held, the same growth as
-         * the whole dial's 26 to 32. It starts 5 dp past the longest mark, rows are 8 dp apart, and each row is
-         * reserved 3.2 em of the held size, "240 Hz" in Lato Black (3.17 em) rounded up. At the default height
-         * that keeps a 360 dp phone's columns clear of the buttons and the transport. See [SplitLabel].
+         * the whole dial's 26 to 32. It starts 5 dp past the longest mark, and each unit is reserved 3.2 em of
+         * the held size, "240 Hz" in Lato Black (3.17 em) rounded up. See [SplitLabel].
          */
         const val SPLIT_LABEL_SP = 10f
         const val SPLIT_VALUE_SP = 18f
         const val SPLIT_ARMED_VALUE_SP = 22f
         const val SPLIT_GAP_DP = 2f
         const val SPLIT_INSET_DP = 5f
-        const val SPLIT_ROW_GAP_DP = 8f
         const val SPLIT_WIDE_EMS = 3.2f
         const val SPLIT_MATCH_PX = 0.5f
         const val LABEL_SP = 11f

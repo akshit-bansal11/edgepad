@@ -44,7 +44,7 @@ The wire protocol moves to version 5, so both halves must be installed from this
 
 ### Fixed
 
-- **Split dials' labels sat on top of each other.** With Split corners on, each corner now lists its two dials in one tidy column, the edge's dial nearest the edge, with a smaller label and value that keep their place when a dial is held. Four-dial mode is unchanged.
+- **Split dials' labels sat on top of each other.** With Split corners on, each dial's label and value sit at the far end of its own ruler, beside a side ruler and above or below a top or bottom one, so the eight never pile up. Four-dial mode is unchanged.
 - **A trust question could stay open, or open, after the session behind it ended.** A hang-up, or the Security window holding connections off, now withdraws the question at once and records no refusal, where the question used to stay up for 60 seconds and the laptop refused every phone after the hold ended. The Windows, Linux and Mac apps all do this.
 - **A frame arriving as the handshake gave up could be accepted.** The handshake timeout, the PIN wait and the read now settle the same decision, so a late frame is refused. The macro list and the trusted-phones file are written beside the file and moved over it, so a failed write no longer leaves them truncated. A connection racing a hold on the laptop is refused instead of being asked about over the owner's dialog.
 - **A saved signature on Windows is never overwritten.**

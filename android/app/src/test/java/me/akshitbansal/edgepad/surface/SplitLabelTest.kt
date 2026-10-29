@@ -1,15 +1,17 @@
 package me.akshitbansal.edgepad.surface
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The eight split halves' labels and numbers never draw over each other or the top buttons, at every dial height,
- * nor over the media at the default height and layout, on 360 by 640 and 360 by 800 dp phones, upright and
- * sideways, at the normal and the held size. Dimensions are dp and the painter's own constants: a 5 dp inset past
- * the marks, 8 dp between rows, a 10 sp label, 2 dp, an 18 sp number held at 22, each 3.2 em wide at worst.
- * The buttons and media are laid out as ControlSurface lays them out, with the widest now-playing card. A taller
- * dial can meet the media, which the owner can move anyway, so only the default height is held to that.
+ * The eight split halves' labels and numbers never draw over each other or the top buttons, nor leave the screen,
+ * at every dial length and height the settings allow, on 360 by 640 and 360 by 800 dp phones, upright and
+ * sideways, at the normal and the held size; at the default length and height each sits at its own ruler's far
+ * end. Dimensions are dp and the painter's own constants: a 5 dp inset past the marks, an 8 dp gap, a 10 sp label,
+ * 2 dp, an 18 sp number held at 22, each 3.2 em wide at worst. The rulers are trimmed as ControlSurface trims
+ * them, and the buttons are laid out as it lays them out. The media is not held to: the labels sit where the
+ * owner's sketch puts them, and both media pieces can be moved in Media layout.
  */
 class SplitLabelTest {
     private class Box(
@@ -30,13 +32,11 @@ class SplitLabelTest {
         h: Float,
     ): Float = if (w > h) 56f else 48f
 
-    private fun row(
+    /** Half the buttons' keep-out, reach plus half a touch target plus a margin, as ControlSurface has it. */
+    private fun zone(
         w: Float,
         h: Float,
-    ): FloatArray {
-        val reach = buttonOffset(w, h) + TOUCH / 2
-        return floatArrayOf(w / 2 - reach, w / 2 + reach, TOP + TOUCH / 2)
-    }
+    ): Float = buttonOffset(w, h) + TOUCH / 2 + M
 
     private fun buttons(
         w: Float,
@@ -47,55 +47,66 @@ class SplitLabelTest {
             Box(cx - TOUCH / 2, TOP - TOUCH / 2, cx + TOUCH / 2, TOP + TOUCH / 2)
         }
 
-    private fun media(
-        w: Float,
-        h: Float,
-    ): List<Box> {
-        val room = maxOf(w - 2 * (HALF + 16f) - LOGO - 12f, 120f)
-        val half = (LOGO + 12f + room) / 2
-        val y = 0.78f * h
-        // The card itself. Its progress line, 16 dp under it, can meet a held "240 Hz" by a few dp on a 360 by 640
-        // phone; a real number is far narrower.
-        val nowPlaying = Box(w / 2 - half, y - 26f, w / 2 + half, y + 26f)
-        val ty = 0.9f * h
-        val transport = Box(w / 2 - 52f - TOUCH / 2, ty - 26f, w / 2 + 52f + TOUCH / 2, ty + 26f)
-        return listOf(nowPlaying, transport)
-    }
+    /** One half's centre, far end and anchor, for each of the eight slots. */
+    private class Placed(
+        val centre: Float,
+        val end: Float,
+        val x: Float,
+        val top: Float,
+        val align: Float,
+        val box: Box,
+    )
 
     private fun units(
         w: Float,
         h: Float,
         dialHeight: Float,
         value: Float,
-    ): List<Box> {
+        half: Float = HALF,
+    ): List<Placed> {
         val path = Perimeter(w, h, BEND)
+        val centres = FloatArray(Perimeter.SLOTS) { path.lengthAtSlot(it, half / 2f) }
+        val topCentre = path.lengthAt(0.5f)
+        val zone = zone(w, h)
+        val after = FloatArray(Perimeter.SLOTS)
+        val before = FloatArray(Perimeter.SLOTS)
+        val keepOut = floatArrayOf(topCentre - zone, topCentre + zone)
+        DialSpan.compute(centres, half, path.length, keepOut, 16f, after, before)
         val depth = RulerGeometry.reach(dialHeight) + 5f
         val drawn = LABEL + GAP + value
         val wide = value * EMS
-        return (0 until Perimeter.SLOTS).map { slot ->
-            val centre = path.lengthAtSlot(slot, HALF / 2f)
-            SplitLabel.anchor(path, centre, depth, BLOCK, 8f, HELD * EMS, row(w, h), pt, out)
+        val clear = floatArrayOf(w / 2 - zone, w / 2 + zone)
+        return centres.indices.map { slot ->
+            val end = SplitLabel.farEnd(path, centres[slot], after[slot], before[slot])
+            SplitLabel.anchor(path, centres[slot], end, depth, BLOCK, HELD * EMS, S, clear, pt, out)
             val x = out[0]
             val top = out[1]
-            if (out[2] > 0) Box(x, top, x + wide, top + drawn) else Box(x - wide, top, x, top + drawn)
+            val box = if (out[2] > 0) Box(x, top, x + wide, top + drawn) else Box(x - wide, top, x, top + drawn)
+            Placed(centres[slot], end, x, top, out[2], box)
         }
     }
 
     private val screens = listOf(360f to 640f, 640f to 360f, 360f to 800f, 800f to 360f)
+    private val lengths = listOf(60f, 80f, 100f, 140f, 160f, 200f, 240f, 280f, 320f)
+    private val heights = listOf(0.4f, 0.6f, 0.8f, 1.0f, 1.2f, 1.4f, 1.6f, 1.8f)
 
     @Test
-    fun noTwoUnitsOverlapEachOtherOrTheButtons() {
+    fun noTwoUnitsOverlapEachOtherOrTheButtonsAtEveryLengthAndHeight() {
         for ((w, h) in screens) {
-            for (dialHeight in listOf(0.4f, 0.6f, 0.8f, 1.0f, 1.4f, 1.8f)) {
-                for (value in listOf(VALUE, HELD)) {
-                    val all = units(w, h, dialHeight, value)
-                    val where = "$w x $h, height $dialHeight, size $value"
-                    for (a in all.indices) {
-                        val box = all[a]
-                        for (b in a + 1 until all.size) assertTrue("slots $a and $b at $where", !box.meets(all[b]))
-                        for (button in buttons(w, h)) assertTrue("slot $a and a button at $where", !box.meets(button))
-                        val inside = box.left >= 0 && box.right <= w && box.top >= 0 && box.bottom <= h
-                        assertTrue("slot $a off screen at $where", inside)
+            for (half in lengths) {
+                for (dialHeight in heights) {
+                    for (value in listOf(VALUE, HELD)) {
+                        val all = units(w, h, dialHeight, value, half).map { it.box }
+                        val where = "$w x $h, length $half, height $dialHeight, size $value"
+                        for (a in all.indices) {
+                            val box = all[a]
+                            for (b in a + 1 until all.size) assertTrue("slots $a and $b at $where", !box.meets(all[b]))
+                            for (button in buttons(w, h)) {
+                                assertTrue("slot $a and a button at $where", !box.meets(button))
+                            }
+                            val inside = box.left >= 0 && box.right <= w && box.top >= 0 && box.bottom <= h
+                            assertTrue("slot $a off screen at $where", inside)
+                        }
                     }
                 }
             }
@@ -103,20 +114,70 @@ class SplitLabelTest {
     }
 
     @Test
-    fun noUnitOverlapsTheMediaAtTheDefaults() {
-        for ((w, h) in screens) {
-            for (value in listOf(VALUE, HELD)) {
-                for ((slot, unit) in units(w, h, 0.6f, value).withIndex()) {
-                    for (piece in media(w, h)) assertTrue("slot $slot and the media at $w x $h", !unit.meets(piece))
+    fun topEdgeUnitsStayOutOfTheButtonsKeepOut() {
+        for ((w, h) in listOf(360f to 640f, 640f to 360f)) {
+            val zone = zone(w, h)
+            for (half in lengths) {
+                for (dialHeight in heights) {
+                    val all = units(w, h, dialHeight, HELD, half)
+                    for (slot in listOf(1, 2)) {
+                        val box = all[slot].box
+                        val clear = box.right <= w / 2 - zone || box.left >= w / 2 + zone
+                        assertTrue("slot $slot at $w x $h, length $half, height $dialHeight", clear)
+                    }
                 }
             }
         }
     }
 
     @Test
-    fun aSmallDialKeepsTheTopColumnUpAgainstItsRuler() {
-        units(360f, 800f, 0.6f, HELD).forEachIndexed { slot, box ->
-            if (slot in listOf(1, 2)) assertTrue("slot $slot", box.top < TOP + TOUCH / 2)
+    fun theFarEndIsTheEndAwayFromTheBend() {
+        for ((w, h) in screens) {
+            val path = Perimeter(w, h, BEND)
+            units(w, h, 0.6f, HELD).forEachIndexed { slot, unit ->
+                assertTrue("slot $slot at $w x $h", path.fromBend(unit.end) > path.fromBend(unit.centre))
+            }
+        }
+    }
+
+    @Test
+    fun eachUnitSitsAtItsOwnRulersFarEndAtTheDefaults() {
+        for ((w, h) in screens) {
+            val path = Perimeter(w, h, BEND)
+            val depth = RulerGeometry.reach(0.6f) + 5f
+            units(w, h, 0.6f, HELD).forEachIndexed { slot, unit ->
+                val where = "slot $slot at $w x $h"
+                path.point(unit.end, pt)
+                val left = slot in listOf(0, 1, 6, 7)
+                val top = slot in listOf(0, 1, 2, 3)
+                if (slot in listOf(0, 3, 4, 7)) {
+                    // A side edge: depth in from that edge, flush with the end, lying back toward the corner.
+                    assertEquals(where, if (left) depth else w - depth, unit.x, EPS)
+                    assertEquals(where, if (top) pt[1] - BLOCK else pt[1], unit.top, EPS)
+                    assertEquals(where, if (left) 1f else -1f, unit.align)
+                } else {
+                    // A top or bottom edge: depth in from that edge, aligned on the end toward the corner.
+                    assertEquals(where, pt[0], unit.x, EPS)
+                    assertEquals(where, if (top) depth else h - depth - BLOCK, unit.top, EPS)
+                    assertEquals(where, if (left) -1f else 1f, unit.align)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun mirroredSlotsMirrorTheirUnits() {
+        for ((w, h) in screens) {
+            for (half in lengths) {
+                val all = units(w, h, 0.6f, HELD, half).map { it.box }
+                for (slot in all.indices) {
+                    // 0 and 3, 1 and 2, 4 and 7, 5 and 6 face each other across the vertical midline.
+                    val mirror = slot / 4 * 4 + 3 - slot % 4
+                    val where = "slots $slot and $mirror at $w x $h, length $half"
+                    assertEquals(where, w - all[mirror].right, all[slot].left, EPS)
+                    assertEquals(where, all[mirror].top, all[slot].top, EPS)
+                }
+            }
         }
     }
 
@@ -129,8 +190,10 @@ class SplitLabelTest {
         const val HELD = 22f
         const val BLOCK = LABEL + GAP + HELD
         const val EMS = 3.2f
+        const val S = 8f
+        const val M = 12f
         const val TOUCH = 48f
         const val TOP = 40f
-        const val LOGO = 40f
+        const val EPS = 0.01f
     }
 }

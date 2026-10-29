@@ -383,6 +383,8 @@ class ControlSurface(
         val zone = dp(reach + Space.TOUCH / 2 + Space.M)
         keepOut[0] = topCentre - zone
         keepOut[1] = topCentre + zone
+        // A split corner's text stays out of the same zone, which is centred on the top edge.
+        painter.clearOf(w / 2f - zone, w / 2f + zone)
         DialSpan.compute(centres, dp(painter.halfLengthDp), perimeter.length, keepOut, dp(DIAL_GAP_DP), after, before)
         excludeBackGesture()
         rebuildText()
@@ -418,10 +420,6 @@ class ControlSurface(
         for (button in topButtons) {
             val cx = w / 2 + button.side * offset
             button.hit.set(cx - touch, top - touch, cx + touch, top + touch)
-        }
-        // A split corner's text stays out from under the row.
-        if (topButtons.isNotEmpty()) {
-            painter.clearOf(topButtons.minOf { it.hit.left }, topButtons.maxOf { it.hit.right }, top + touch)
         }
     }
 

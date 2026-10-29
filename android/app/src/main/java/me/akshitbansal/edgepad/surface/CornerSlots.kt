@@ -33,61 +33,94 @@ object CornerSlots {
 
 /**
  * Where the label and number of one half of a split corner sit. Pure, so the promise that none of the eight
- * draws over another, the top buttons or the media is tested on the JVM.
+ * draws over another or the top buttons is tested on the JVM.
  *
- * Eight numbers at the four-dial size, each pushed in from its own indicator, fought over the same square
- * inside every bend and read as a pile. Split mode uses one rigid system instead:
+ * Each half's unit, a small label over a smaller number, sits at the far end of its own ruler, the end away
+ * from the bend, [anchor]'s depth in from that ruler's edge, so it is clear of the longest mark the height
+ * allows and lies back over the ruler's span, flush with its end:
  *
- * - Every unit, a small label over a smaller number, lives inside one frame inset [anchor]'s depth from every
- *   edge, clear of the longest mark the height allows, so no text crosses a ruler and every corner is inset
- *   the same.
- * - A corner's two units form one column flush with that frame: left aligned in a left corner, right aligned
- *   in a right one, so the column's outer edge never moves as a number changes width.
- * - The top or bottom edge's unit is the row nearest that edge and the side edge's unit the next row in, so
- *   each sits beside its own ruler and the order is the same in all four corners.
- * - Each row is reserved for the held size and the widest number, so arming a dial or a value changing moves
- *   nothing. A half with no dial draws nothing, and the other row stays where it is.
- * - A top corner's column drops below the button row only when its reserved width would reach under it.
+ * - A side edge's unit is aligned on that edge's frame line, its top at the end in a bottom corner and its
+ *   bottom at the end in a top one.
+ * - A top or bottom edge's unit is depth in from that edge, right aligned at the end in a left corner and
+ *   left aligned in a right one.
+ * - Each unit is reserved the held size and the widest number, so arming a dial or a value changing moves
+ *   nothing, and kept on its own corner's half of the edge, which only bites when two rulers cross.
+ * - Where a short ruler would bring a side unit over the top or bottom edge's band, the side unit moves out
+ *   along its edge until it clears that band by a gap; the top or bottom unit stays put.
+ * - A top edge's unit moves toward its corner until it clears the buttons' keep-out.
  *
- *     +--[ruler]---------   ( buttons )
- *     |  APPS               the top edge's unit, depth in from both edges
- *     |  -
- *    [r] VOL                the side edge's unit, one row in
- *    [u] 32
- *     |
+ *     +--[ruler]----   ( buttons )
+ *     |       APPS      the top edge's unit, at its ruler's far end
+ *    [r]
+ *    [u]
+ *     |  VOL            the side edge's unit, at its ruler's far end
+ *        32
  */
 object SplitLabel {
     /**
-     * Writes where the unit of the half whose indicator is at path length [centre] starts into [out] as x, top,
-     * align: x is the edge the unit is aligned on, top is its block's top, and align is 1 for left aligned and
-     * -1 for right. [pt] is scratch. [depth] is the frame's inset, [block] the label plus the held number, [gap]
-     * the space between rows and below the buttons, [wide] the widest number's width, and [row] the top
-     * buttons' left, right and bottom, all zero when there are none.
+     * The path length of the far end of the half centred at [centre] that reaches [after] clockwise and
+     * [before] anticlockwise: whichever end lies further from the bend.
+     */
+    fun farEnd(
+        perimeter: Perimeter,
+        centre: Float,
+        after: Float,
+        before: Float,
+    ): Float {
+        val ahead = centre + after
+        val back = centre - before
+        return if (perimeter.fromBend(ahead) >= perimeter.fromBend(back)) ahead else back
+    }
+
+    /**
+     * Writes where the unit of the half whose indicator is at path length [centre] and whose ruler ends at [end]
+     * ([farEnd]) starts into [out] as x, top, align: x is the edge the unit is aligned on, top is its block's top,
+     * and align is 1 for left aligned and -1 for right. [pt] is scratch. [depth] is the inset from the edge,
+     * [block] the label plus the held number, [wide] the widest number's width, [gap] the space kept between
+     * units, and [keepOut] the buttons' left and right, equal when there are none.
      */
     fun anchor(
         perimeter: Perimeter,
         centre: Float,
+        end: Float,
         depth: Float,
         block: Float,
-        gap: Float,
         wide: Float,
-        row: FloatArray,
+        gap: Float,
+        keepOut: FloatArray,
         pt: FloatArray,
         out: FloatArray,
     ) {
+        val w = perimeter.width
+        val h = perimeter.height
         perimeter.point(centre, pt)
-        val left = pt[0] < perimeter.width / 2
-        val top = pt[1] < perimeter.height / 2
-        val x = if (left) depth else perimeter.width - depth
-        var edge = depth
-        if (top && row[2] > 0f) {
-            val from = if (left) x else x - wide
-            if (from + wide > row[0] && from < row[1]) edge = maxOf(depth, row[2] + gap)
+        val left = pt[0] < w / 2
+        val top = pt[1] < h / 2
+        val side = isSideEdge(pt[2], pt[3])
+        perimeter.point(end, pt)
+        if (side) {
+            // Clear of the top or bottom edge's band, which wins over the end and the corner's own half.
+            val clear = depth + block + gap
+            out[0] = if (left) depth else w - depth
+            out[1] =
+                if (top) {
+                    maxOf(minOf(pt[1], h / 2 - gap / 2), clear + block) - block
+                } else {
+                    minOf(maxOf(pt[1], h / 2 + gap / 2), h - clear - block)
+                }
+        } else {
+            val buttons = top && keepOut[1] > keepOut[0]
+            out[0] =
+                if (left) {
+                    val x = minOf(pt[0], w / 2 - gap / 2)
+                    maxOf(if (buttons) minOf(x, keepOut[0]) else x, wide)
+                } else {
+                    val x = maxOf(pt[0], w / 2 + gap / 2)
+                    minOf(if (buttons) maxOf(x, keepOut[1]) else x, w - wide)
+                }
+            out[1] = if (top) depth else h - depth - block
         }
-        val inward = edge + if (isSideEdge(pt[2], pt[3])) block + gap else 0f
-        out[0] = x
-        out[1] = if (top) inward else perimeter.height - inward - block
-        out[2] = if (left) 1f else -1f
+        out[2] = if (side == left) 1f else -1f
     }
 
     /** Whether a normal belongs to a left or right edge. */
