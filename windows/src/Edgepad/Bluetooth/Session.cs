@@ -11,7 +11,6 @@ using Edgepad.Net;
 using Edgepad.Protocol;
 using Edgepad.Trust;
 using Microsoft.Win32;
-using Windows.Networking.Sockets;
 
 namespace Edgepad.Bluetooth;
 
@@ -23,7 +22,7 @@ namespace Edgepad.Bluetooth;
 /// audio change as it happens, so the phone's dials show what the laptop is really at.
 /// </summary>
 internal sealed class Session(
-    StreamSocket socket,
+    IPhoneLink link,
     TrustStore trust,
     PinStore pin,
     Func<string, CancellationToken, bool> askTrust,
@@ -44,10 +43,8 @@ internal sealed class Session(
     private const byte MutedFlag = 1;
     private const byte PlayingFlag = 1;
 
-    // The WinRT adapters read with partial-read semantics, so the default buffer returns as soon as
-    // any bytes arrive — it saves per-byte calls without holding data back.
-    private readonly FrameStream frames = new(socket.InputStream.AsStreamForRead(), socket.OutputStream.AsStreamForWrite());
-    private readonly string address = socket.Information.RemoteHostName.RawName;
+    private readonly FrameStream frames = new(link.Input, link.Output);
+    private readonly string address = link.Address;
 
     // Dispose runs from the server's thread, a timer's or the read loop's, while the read loop may still be
     // adding watches: both the list and the flag are only touched under this.
@@ -62,7 +59,7 @@ internal sealed class Session(
     private MediaState lastMedia = MediaSessions.Nothing;
     private string lastTimeline = "";
 
-    /// <summary>The phone's Bluetooth address, as the log and the status line name it.</summary>
+    /// <summary>The phone's address, as the log and the status line name it.</summary>
     public string Address => address;
 
     public void Run()
@@ -390,11 +387,11 @@ internal sealed class Session(
             watch.Dispose();
         }
 
-        // The socket first, and outside the send lock. A Send blocked in a write to a phone that has stopped
+        // The link first, and outside the send lock. A Send blocked in a write to a phone that has stopped
         // reading holds that lock for as long as the write blocks; waiting for it here stalled the server's
-        // thread, and with it the new phone's session. Closing the socket aborts the write, the Send throws
+        // thread, and with it the new phone's session. Closing the link aborts the write, the Send throws
         // and lets go, and only then are the streams disposed, never under a writer's feet.
-        socket.Dispose();
+        link.Close();
         lock (frames.SendGate)
         {
             frames.Input.Dispose();

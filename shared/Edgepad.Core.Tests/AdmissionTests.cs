@@ -1,4 +1,4 @@
-using Edgepad.Bluetooth;
+using Edgepad.Net;
 using Xunit;
 
 namespace Edgepad.Tests;

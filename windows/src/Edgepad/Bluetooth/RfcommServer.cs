@@ -1,12 +1,6 @@
 using System.Runtime.InteropServices;
-using Edgepad.Annotation;
-using Edgepad.Controls;
 using Edgepad.Dispatch;
-using Edgepad.Gamepad;
-using Edgepad.Injection;
-using Edgepad.Macros;
 using Edgepad.Protocol;
-using Edgepad.Trust;
 using Microsoft.Win32;
 using Windows.Devices.Bluetooth.Rfcomm;
 using Windows.Devices.Radios;
@@ -15,37 +9,13 @@ using Windows.Networking.Sockets;
 namespace Edgepad.Bluetooth;
 
 /// <summary>
-/// Advertises the Edgepad RFCOMM service and serves one phone at a time. A new connection starts as a candidate
-/// beside the connected phone and leaves it alone until trust says yes; only then does it replace the old one
-/// rather than being refused: after a dropped link the phone reconnects before the old socket has noticed it is
-/// dead, and refusing would lock the phone out until it did. The service is started again by itself when a start
-/// fails, when the laptop wakes from sleep and when the Bluetooth radio comes back on, any of which used to leave
-/// it deaf while the tray still said it was waiting.
+/// Advertises the Edgepad RFCOMM service and hands each connection to the <see cref="SessionHost"/>, which serves one
+/// phone at a time. The service is started again by itself when a start fails, when the laptop wakes from sleep
+/// and when the Bluetooth radio comes back on, any of which used to leave it deaf while the tray still said it was
+/// waiting.
 /// </summary>
-internal sealed class RfcommServer(
-    Action<string> onStatus,
-    TrustStore trust,
-    PinStore pin,
-    Func<string, CancellationToken, bool> askTrust,
-    AudioEndpoint speakers,
-    AudioEndpoint microphone,
-    BrightnessControl brightness,
-    MediaSessions media,
-    DisplayModes display,
-    MacroStore macros,
-    LevelOverlay overlay,
-    SynchronizationContext ui) : IDisposable
+internal sealed class RfcommServer(Action<string> onStatus, SessionHost host) : IDisposable
 {
-    // Joined at exit so the session's own cleanup, which releases held keys and buttons, gets to run.
-    private static readonly TimeSpan ExitGrace = TimeSpan.FromSeconds(2);
-
-    /// <summary>
-    /// How long the phone another one took over from is refused. It outlasts the phone's own automatic retries
-    /// (10 attempts, 2 s apart), so the displaced phone stops by itself instead of taking the laptop back, and two
-    /// trusted phones cannot go on taking it from each other.
-    /// </summary>
-    private static readonly TimeSpan QuietAfterHandOff = TimeSpan.FromSeconds(30);
-
     /// <summary>How long a failed start waits before the next try, for as long as it takes.</summary>
     private static readonly TimeSpan RetryStartEvery = TimeSpan.FromSeconds(30);
 
@@ -55,27 +25,8 @@ internal sealed class RfcommServer(
 
     private readonly Lock gate = new();
 
-    // Connections that have not yet been admitted, with the threads they run on. They are not the connected phone
-    // and touch nothing of it, but HangUp, HoldOff and Dispose still have to be able to end them.
-    private readonly Dictionary<Session, Thread> candidates = new();
-
     private RfcommServiceProvider? provider;
     private StreamSocketListener? listener;
-    private Session? current;
-    private Thread? sessionThread;
-
-    // Environment.TickCount64 milliseconds before which every new connection is refused; see HangUp.
-    private long refuseUntil;
-
-    // How many owner dialogs (Forget, Security) are open; separate from the quiet period so that ending one
-    // cannot end the other. A count rather than a flag: with two dialogs open, closing the first must not let a
-    // phone in while the second is still on screen, where a connected phone could answer it.
-    private int holds;
-
-    // Every phone a different one took over from, and until when (Environment.TickCount64) it is refused. One per
-    // address, not just the last: with a single record three trusted phones could still take the laptop round in
-    // a circle. Expired entries are pruned on every use, so it cannot grow.
-    private readonly Dictionary<string, long> handedOff = new(StringComparer.OrdinalIgnoreCase);
 
     // Set while a start, or the wait before retrying one, is under way. There is only ever one; a restart asked
     // for meanwhile is folded into it through startAgain.
@@ -138,10 +89,10 @@ internal sealed class RfcommServer(
                     }
 
                     // A phone admitted since the restart was asked for keeps its link; the restart waits for it.
-                    if (restart is not null && current is { } live)
+                    if (restart is not null && host.CurrentAddress is { } live)
                     {
                         deferredRestart = restart;
-                        deferredFor = live.Address;
+                        deferredFor = live;
                         starting = false;
                     }
                     else
@@ -180,7 +131,7 @@ internal sealed class RfcommServer(
 
                     lock (gate)
                     {
-                        if (!disposed && current is null)
+                        if (!disposed && host.CurrentAddress is null)
                         {
                             onStatus(StartFailing);
                         }
@@ -320,10 +271,10 @@ internal sealed class RfcommServer(
                 return;
             }
 
-            if (current is { } live)
+            if (host.CurrentAddress is { } live)
             {
                 deferredRestart = reason;
-                deferredFor = live.Address;
+                deferredFor = live;
             }
             else if (starting)
             {
@@ -457,111 +408,14 @@ internal sealed class RfcommServer(
     }
 
     /// <summary>
-    /// Hangs up on the connected phone and refuses every new connection for <paramref name="quiet"/>, never
-    /// shortening a quiet period already running. Forgetting a phone that stayed connected would otherwise
-    /// change nothing until it next reconnected, and a phone just forgotten would reconnect by itself and
-    /// raise the trust question under the owner's cursor. A connection still waiting to be admitted is ended too.
-    /// </summary>
-    public void HangUp(TimeSpan quiet)
-    {
-        List<Session> ending;
-        lock (gate)
-        {
-            refuseUntil = Math.Max(refuseUntil, Environment.TickCount64 + (long)quiet.TotalMilliseconds);
-            ending = TakeSessions();
-        }
-
-        // Not cleared here: each session's own exit does that, and posts the status when it does.
-        foreach (var session in ending)
-        {
-            session.Dispose();
-        }
-    }
-
-    /// <summary>
-    /// Hangs up on the connected phone and refuses every new connection until <see cref="Resume"/>. A phone
-    /// that is still trusted reconnects within seconds, so hanging up alone would not keep it out while the
-    /// owner decides. A connection still waiting to be admitted is ended too.
-    /// </summary>
-    public void HoldOff()
-    {
-        List<Session> ending;
-        lock (gate)
-        {
-            holds++;
-            ending = TakeSessions();
-        }
-
-        // Not cleared here: each session's own exit does that, and posts the status when it does.
-        foreach (var session in ending)
-        {
-            session.Dispose();
-        }
-    }
-
-    /// <summary>
-    /// Ends one <see cref="HoldOff"/>; connections are refused until every hold has ended. A quiet period started
-    /// by <see cref="HangUp"/> runs on.
-    /// </summary>
-    public void Resume()
-    {
-        lock (gate)
-        {
-            holds = Math.Max(0, holds - 1);
-        }
-    }
-
-    /// <summary>
-    /// The connected phone's session and every candidate's, for the caller to end. The candidates stop being
-    /// candidates here, so a trust question answered after this cannot admit one. Called under the lock.
-    /// </summary>
-    private List<Session> TakeSessions()
-    {
-        List<Session> all = [.. candidates.Keys];
-        candidates.Clear();
-        if (current is not null)
-        {
-            all.Add(current);
-        }
-
-        return all;
-    }
-
-    /// <summary>Whether new connections are being refused, by a hold or a quiet period. Called under the lock.</summary>
-    private bool Refusing() => holds > 0 || Environment.TickCount64 < refuseUntil;
-
-    /// <summary>Whether <paramref name="address"/> was just taken over from. Called under the lock.</summary>
-    private bool HandedOff(string address)
-    {
-        PruneHandOffs();
-        return handedOff.ContainsKey(address);
-    }
-
-    /// <summary>Drops the hand-offs whose quiet period is over. Called under the lock.</summary>
-    private void PruneHandOffs()
-    {
-        var now = Environment.TickCount64;
-        foreach (var (address, until) in handedOff.ToList())
-        {
-            if (now >= until)
-            {
-                handedOff.Remove(address);
-            }
-        }
-    }
-
-    private static string TookOver(string address) =>
-        $"Refused {address}: another phone took over this laptop less than {(int)QuietAfterHandOff.TotalSeconds} seconds ago";
-
-    /// <summary>
     /// What the tray says when nothing more particular is going on: the connected phone, a radio that is off, or
     /// waiting. The "Connected to " prefix is what the tray's badge reads. Called under the lock.
     /// </summary>
     private string StatusNow()
     {
-        if (current is { } live)
+        if (host.CurrentAddress is { } live)
         {
-            return $"Connected to {live.Address}";
+            return $"Connected to {live}";
         }
 
         return radioOff ? BluetoothOff : Waiting;
@@ -569,172 +423,40 @@ internal sealed class RfcommServer(
 
     private void OnConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
     {
-        // Declared out here so the catches can dispose the socket and drop a session registered before the failure.
+        // Declared out here so the catches can dispose the socket.
         StreamSocket? socket = null;
-        Session? session = null;
+        BluetoothLink link;
 
         // A peer that drops in the instant after connecting makes these calls throw, and an exception out of
         // a WinRT event handler would leak the socket.
         try
         {
             socket = args.Socket;
-            var address = socket.Information.RemoteHostName.RawName;
-
-            // A device this laptop already knows it will refuse is turned away here, before it costs a thread.
-            // Nothing that gets past this touches the connected phone yet: a new session only replaces it once
-            // trust has said yes (OnAdmitted), because trust must not be handed to something that has not proved
-            // it speaks this protocol, and anything less would let any bonded device drop the owner's link at
-            // will just by connecting, over and over.
-            string? refusal = null;
-            lock (gate)
-            {
-                if (Refusing())
-                {
-                    refusal = Forgetting(address);
-                }
-                else if (HandedOff(address))
-                {
-                    refusal = TookOver(address);
-                }
-            }
-
-            if (refusal is null && trust.Refuses(address))
-            {
-                refusal = $"Refused {address} without disturbing the connected phone: the owner is being asked about a phone "
-                    + "or just declined this one, or the trust file cannot be read";
-            }
-
-            if (refusal is not null)
-            {
-                Log.Write(refusal);
-                socket.Dispose();
-                return;
-            }
-
-            // Input state (what is held down) belongs to one connection; the devices are shared. The virtual
-            // controller belongs to the connection for the same reason and one more: it is a device plugged
-            // into Windows for as long as the phone that asked for it is there, and no longer.
-            var injector = new InputInjector();
-            var pad = new VirtualPad();
-
-            // The annotation layer too: strokes are one phone's, and the layer goes when that phone does. It is
-            // drawn on the UI thread, which this event's thread is not, so it is handed the tray's context.
-            var annotator = new Annotator(ui);
-            var platform = new WindowsPlatform(injector, pad, speakers, microphone, brightness, media, display, overlay, annotator);
-            var dispatcher = new Dispatcher(platform, macros);
-            session = new Session(
-                socket, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, onStatus, OnAdmitted, OnSessionEnded);
-
-            // A dedicated thread, not the thread pool: the read loop blocks for the life of the connection,
-            // and input is injected from this thread directly, so nothing queues behind other work.
-            var thread = new Thread(session.Run) { IsBackground = true, Name = "edgepad-session", Priority = ThreadPriority.AboveNormal };
-            bool quiet;
-            lock (gate)
-            {
-                // Tested again here: a HangUp that ran since the check above has already looked for sessions
-                // to end, and would have missed this one.
-                quiet = disposed || Refusing();
-                if (!quiet)
-                {
-                    candidates.Add(session, thread);
-                }
-            }
-
-            if (quiet)
-            {
-                // HangUp ran between the check above and here; this connection is one it meant to refuse.
-                Log.Write(Forgetting(address));
-                session.Dispose();
-                injector.Dispose();
-                pad.Dispose();
-                annotator.Dispose();
-                return;
-            }
-
-            thread.Start();
+            link = new BluetoothLink(socket);
         }
         catch (Exception e) when (e is COMException or ObjectDisposedException or InvalidOperationException)
         {
             Log.Write($"A connection was dropped before it could be served: {e.Message}");
-            Drop(socket, session);
+            socket?.Dispose();
+            return;
         }
         catch (Exception e)
         {
             // Top-level boundary of a WinRT event: nothing may escape it, and the socket must not leak.
             Log.Write($"A connection could not be served: {e}");
-            Drop(socket, session);
+            socket?.Dispose();
+            return;
         }
+
+        // Catches everything itself, and closes the link on every path that does not hand it to a session.
+        host.Accept(link);
     }
 
     /// <summary>
-    /// Closes a connection that failed before its session could run. A session registered but never started
-    /// would otherwise stay a candidate, and nothing would end it.
+    /// Called by the host as each session ends, with the step that ends it, which says whether it was the
+    /// connected phone. Run under the lock, so a restart deferred for that phone is taken together with it.
     /// </summary>
-    private void Drop(StreamSocket? socket, Session? session)
-    {
-        socket?.Dispose();
-        if (session is not null)
-        {
-            lock (gate)
-            {
-                candidates.Remove(session);
-            }
-        }
-    }
-
-    private static string Forgetting(string address) =>
-        $"Refused {address}: this laptop is forgetting its phones, or just forgot them";
-
-    /// <summary>
-    /// Called by a session once trust has said yes, just before it answers HELLO_ACK: the moment a new phone
-    /// may replace the connected one. False when connections stopped being taken while the owner was asked, or
-    /// the session was ended meanwhile; the session then ends without answering.
-    /// </summary>
-    private bool OnAdmitted(Session session)
-    {
-        Session? previous;
-        bool tookOver;
-        lock (gate)
-        {
-            if (!candidates.Remove(session, out var thread) || disposed || Refusing())
-            {
-                return false;
-            }
-
-            // Checked again here, not only at accept: a connection the displaced phone opened just before it was
-            // taken over from would otherwise be admitted now and take the laptop back.
-            tookOver = HandedOff(session.Address);
-            previous = tookOver ? null : current;
-            if (!tookOver)
-            {
-                current = session;
-                sessionThread = thread;
-
-                // The same address is the phone replacing its own stale link after a drop, not a hand-off.
-                if (previous is not null && !string.Equals(previous.Address, session.Address, StringComparison.OrdinalIgnoreCase))
-                {
-                    handedOff[previous.Address] = Environment.TickCount64 + (long)QuietAfterHandOff.TotalMilliseconds;
-                }
-            }
-        }
-
-        if (tookOver)
-        {
-            Log.Write(TookOver(session.Address));
-            return false;
-        }
-
-        // Outside the lock, like every other Dispose here: the replaced session's exit calls OnSessionEnded.
-        if (previous is not null)
-        {
-            Log.Write($"{session.Address} replaced the connection with {previous.Address}");
-            previous.Dispose();
-        }
-
-        return true;
-    }
-
-    private void OnSessionEnded(Session session)
+    public void OnSessionEnded(Func<bool> end)
     {
         string? restart = null;
         lock (gate)
@@ -744,10 +466,8 @@ internal sealed class RfcommServer(
                 return;
             }
 
-            candidates.Remove(session);
-            if (current == session)
+            if (end())
             {
-                current = null;
                 restart = deferredRestart;
                 deferredRestart = null;
             }
@@ -764,13 +484,15 @@ internal sealed class RfcommServer(
         }
     }
 
+    /// <summary>
+    /// Stops advertising and watching the radio. The sessions are the host's, which its owner disposes after this,
+    /// once no new connection can arrive.
+    /// </summary>
     public void Dispose()
     {
         SystemEvents.PowerModeChanged -= OnPowerModeChanged;
         RfcommServiceProvider? stopping;
         StreamSocketListener? closing;
-        List<Session> ending;
-        Thread? thread;
         Radio? watched;
         lock (gate)
         {
@@ -780,28 +502,12 @@ internal sealed class RfcommServer(
             closing = listener;
             provider = null;
             listener = null;
-            ending = TakeSessions();
-            thread = sessionThread;
-            current = null;
             watched = radio;
             radio = null;
         }
 
         StopAdvertising(stopping);
         closing?.Dispose();
-
-        // Outside the lock, because each session's exit calls OnSessionEnded, which takes it. The injected keys
-        // and buttons are released in Session.Run's finally on that background thread, and the process can
-        // exit before it runs, leaving Alt or a mouse button held down in Windows.
-        foreach (var session in ending)
-        {
-            session.Dispose();
-        }
-
-        if (thread is { IsAlive: true })
-        {
-            thread.Join(ExitGrace);
-        }
 
         try
         {

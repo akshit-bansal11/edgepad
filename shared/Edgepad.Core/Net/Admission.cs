@@ -1,8 +1,8 @@
-namespace Edgepad.Bluetooth;
+namespace Edgepad.Net;
 
 /// <summary>
-/// Who is connected, who is waiting to be, and who was just taken over from: the Windows server's hand-off rules
-/// (<c>windows/src/Edgepad/Bluetooth/RfcommServer.cs</c>) without its transport, so they can be tested. One phone
+/// Who is connected, who is waiting to be, and who was just taken over from: the hand-off rules both laptops serve
+/// phones by, kept apart from any transport so they can be tested. One phone
 /// at a time. A new connection is a candidate beside the connected phone and leaves it alone until the handshake
 /// has passed trust and the PIN; only then does it replace the old one, because after a dropped link the phone
 /// reconnects before the old socket has noticed it is dead. The phone it took over from is refused for 30 s, so
@@ -37,8 +37,10 @@ internal sealed class Admission<T>(Func<long>? clock = null)
     private string? currentAddress;
     private bool closed;
 
-    // Owner dialogs that change security (HoldOff/Resume, counted so two cannot lift each other's hold), and the
-    // clock reading before which everything is refused after a HangUp.
+    // Owner dialogs that change security (HoldOff/Resume), and the clock reading before which everything is
+    // refused after a HangUp; separate, so that ending one cannot end the other. A count rather than a flag: with
+    // two dialogs open, closing the first must not let a phone in while the second is still on screen, where a
+    // connected phone could answer it.
     private int holds;
     private long refuseUntil;
 
@@ -218,7 +220,10 @@ internal sealed class Admission<T>(Func<long>? clock = null)
         }
     }
 
-    /// <summary>The connected phone and every candidate, who stop being candidates. Called under the lock.</summary>
+    /// <summary>
+    /// The connected phone and every candidate, who stop being candidates, so a trust question answered after this
+    /// cannot admit one. Called under the lock.
+    /// </summary>
     private List<T> TakeSessions()
     {
         List<T> all = [.. candidates.Keys];

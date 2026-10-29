@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using Edgepad.Bluetooth;
 using Edgepad.Controls;
+using Edgepad.Dispatch;
 using Edgepad.Macros;
 using Edgepad.Startup;
 using Edgepad.Trust;
@@ -55,6 +56,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly DisplayModes display = new();
     private readonly MacroStore macros = MacroStore.ForCurrentUser(new ShellLauncher());
     private readonly LevelOverlay overlay;
+    private readonly SessionHost host;
     private readonly RfcommServer server;
 
     // The menu stays clickable under the confirmation, and a second one would lift the hold while the first was
@@ -122,7 +124,10 @@ internal sealed class TrayContext : ApplicationContext
         // Built here and nowhere else: the overlay captures this thread's synchronisation context, and the
         // frames that ask it to show something arrive on a Bluetooth thread that has none of its own.
         overlay = new LevelOverlay();
-        server = new RfcommServer(SetStatus, trust, pin, AskTrust, speakers, microphone, brightness, media, display, macros, overlay, ui);
+        // The server is read when a session ends, which cannot happen before it starts below.
+        host = new SessionHost(
+            SetStatus, trust, pin, AskTrust, speakers, microphone, brightness, media, display, macros, overlay, ui, end => server.OnSessionEnded(end));
+        server = new RfcommServer(SetStatus, host);
         _ = StartServerAsync();
         _ = StartMediaAsync();
 
@@ -293,7 +298,7 @@ internal sealed class TrayContext : ApplicationContext
         // A connected phone is a keyboard: it could press Enter on this confirmation, where No is the default,
         // and so keep the owner from ever forgetting it. Hanging up is not enough, since the phone is still trusted
         // and reconnects within seconds, so nothing may connect until the question is answered.
-        server.HoldOff();
+        host.HoldOff();
         try
         {
             var phones = string.Join(", ", trust.TrustedPhones);
@@ -315,7 +320,7 @@ internal sealed class TrayContext : ApplicationContext
             var verifiedForgotten = pin.ForgetVerified();
 
             // Started before the hold ends, so there is no instant in which a connection would be taken.
-            server.HangUp(QuietAfterForget);
+            host.HangUp(QuietAfterForget);
             if (!forgotten)
             {
                 MessageBox.Show(
@@ -342,7 +347,7 @@ internal sealed class TrayContext : ApplicationContext
         }
         finally
         {
-            server.Resume();
+            host.Resume();
             forgetting = false;
         }
     }
@@ -359,15 +364,15 @@ internal sealed class TrayContext : ApplicationContext
         }
 
         securing = true;
-        server.HoldOff();
+        host.HoldOff();
         try
         {
-            using var window = new SecurityWindow(pin, trust, () => server.HangUp(QuietAfterForget));
+            using var window = new SecurityWindow(pin, trust, () => host.HangUp(QuietAfterForget));
             window.ShowDialog();
         }
         finally
         {
-            server.Resume();
+            host.Resume();
             securing = false;
         }
     }
@@ -512,6 +517,9 @@ internal sealed class TrayContext : ApplicationContext
             update.Dispose();
             updateTimer.Dispose();
             server.Dispose();
+
+            // After the server, so no connection arrives once the sessions are ended.
+            host.Dispose();
             media.Dispose();
             brightness.Dispose();
             speakers.Dispose();
