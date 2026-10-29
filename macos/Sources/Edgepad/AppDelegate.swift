@@ -24,8 +24,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let trust = TrustStore.forCurrentUser()
     /// One store for the server and the Security panel, so a level or PIN change is the one the server reads.
     private let pin = PinStore.forCurrentUser()
+    /// The Wi-Fi and USB pairings, forgotten with the trusted phones.
+    private let paired = PairedLinks.forCurrentUser()
+    private let networkSettings = NetworkSettings.forCurrentUser()
     private var statusItem: NSStatusItem?
+    private var host: SessionHost?
     private var server: RfcommServer?
+    private var network: NetworkServer?
+    /// The Wi-Fi and USB row's hint: off, the port listened on, or why not.
+    private var networkHint = "Off"
     private var status = "Starting"
     private var newerVersion: Version?
     /// The menu-bar item may stay clickable under the app-modal alert, and a second Forget would lift the hold while
@@ -58,13 +65,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         )
         _ = requestAccessibility()
 
-        let server = RfcommServer(
+        let host = SessionHost(
             trust: trust,
             pin: pin,
             askTrust: { [weak self] in self?.askTrust($0, $1) ?? false },
             onStatus: { [weak self] in self?.setStatus($0) })
-        self.server = server
+        self.host = host
+        server = RfcommServer(host: host, onStatus: { [weak self] in self?.setStatus($0) })
         startServer()
+
+        // Off until the owner turns it on (network.txt); only a phone that proves itself is handed to the host.
+        network = NetworkServer(
+            identity: LinkIdentity.forCurrentUser(name: Host.current().localizedName ?? "Mac"),
+            paired: paired,
+            trust: trust,
+            prompt: PairingPanel(announce: { [weak self] in
+                self?.setStatus("Pair \($0): type the code shown on the phone")
+            }),
+            host: host,
+            onPaired: { [weak self] in self?.setStatus("Paired with \($0)") })
+        applyNetwork()
 
         checkForUpdate()
         Timer.scheduledTimer(withTimeInterval: UpdateCheck.every, repeats: true) { [weak self] _ in
@@ -85,7 +105,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     /// Releases everything the phone was holding down before the app goes.
     func applicationWillTerminate(_ notification: Notification) {
+        network?.stop()
         server?.stop()
+        host?.stop()
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
@@ -106,10 +128,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(item("Open log", #selector(openLog)))
         menu.addItem(item("Documentation", #selector(openDocumentation)))
         menu.addItem(item("Security… (level \(pin.level))", #selector(showSecurity)))
-        let macroCount = server?.macros.macros.count ?? 0
+        let macroCount = host?.macros.macros.count ?? 0
         menu.addItem(item("Macros… (\(macroCount) of \(MacroStore.maxMacros))", #selector(showMacros)))
+        let wifi = item("Wi-Fi and USB connections", #selector(toggleNetwork))
+        wifi.state = networkSettings.load().enabled ? .on : .off
+        menu.addItem(wifi)
+        menu.addItem(disabled("    \(networkHint)"))
         let forget = item("Forget trusted phones", #selector(confirmForget))
-        forget.isEnabled = trust.canForget
+        forget.isEnabled = trust.canForget || paired.canForget
         menu.addItem(forget)
         menu.addItem(.separator())
         menu.addItem(item("Quit Edgepad", #selector(quit)))
@@ -203,9 +229,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // A connected phone is a keyboard and could press Return or Escape on this dialog, so the owner could
         // never forget it. Hanging up is not enough, since the phone is still trusted and reconnects within
         // seconds, so nothing may connect until the question is answered.
-        server?.holdOff()
+        host?.holdOff()
         defer {
-            server?.resume()
+            host?.resume()
             forgetting = false
         }
         let alert = NSAlert()
@@ -224,11 +250,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         if answer == .alertSecondButtonReturn {
             let forgotten = trust.forget()
+            // The Wi-Fi and USB pairings too, or a forgotten phone would resume its link and only meet the trust
+            // question, not a new pairing.
+            let unpaired = paired.forget()
             // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
             let verifiedForgotten = pin.forgetVerified()
             // Started before the hold ends (the defer above), so there is no instant in which a connection would
             // be taken.
-            server?.stayQuiet()
+            host?.stayQuiet()
             if !forgotten {
                 let failure = NSAlert()
                 failure.alertStyle = .critical
@@ -237,6 +266,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     "The trusted phones could not be forgotten: their file could not be removed or emptied. No phone "
                     + "can connect while Edgepad stays running, but those phones will be trusted again when Edgepad "
                     + "starts. Choose Forget trusted phones again, or delete the file yourself:\n\n\(trust.filePath)"
+                failure.addButton(withTitle: "OK")
+                _ = failure.runModal()
+                failure.window.orderOut(nil)
+            }
+            if !unpaired {
+                let failure = NSAlert()
+                failure.alertStyle = .critical
+                failure.messageText = "Edgepad"
+                failure.informativeText =
+                    "The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. "
+                    + "Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will be "
+                    + "able to again the next time it starts. Choose Forget trusted phones again, or delete "
+                    + "paired-links.txt yourself from:\n\n\(paired.folder)"
                 failure.addButton(withTitle: "OK")
                 _ = failure.runModal()
                 failure.window.orderOut(nil)
@@ -261,24 +303,70 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func showSecurity() {
         guard !securing else { return }
         securing = true
-        server?.holdOff()
+        host?.holdOff()
         defer {
-            server?.resume()
+            host?.resume()
             securing = false
         }
-        SecurityPanel(pin: pin, trust: trust, hangUp: { [weak self] in self?.server?.stayQuiet() }).run()
+        SecurityPanel(pin: pin, trust: trust, hangUp: { [weak self] in self?.host?.stayQuiet() }).run()
     }
 
     /// Held like the Security panel, for the same reason, and guarded against a second click under the modal alert.
     @objc private func showMacros() {
-        guard !editingMacros, let server else { return }
+        guard !editingMacros, let host else { return }
         editingMacros = true
-        server.holdOff()
+        host.holdOff()
         defer {
-            server.resume()
+            host.resume()
             editingMacros = false
         }
-        MacroEditorWindow(store: server.macros).run()
+        MacroEditorWindow(store: host.macros).run()
+    }
+
+    /// The Wi-Fi and USB switch. Turning it on says first what will happen, since macOS may ask about it; a no there
+    /// leaves it off. A setting that cannot be saved leaves things as they were.
+    @objc private func toggleNetwork() {
+        let on = !networkSettings.load().enabled
+        if on {
+            let alert = NSAlert()
+            alert.messageText = "Wi-Fi and USB connections"
+            alert.informativeText =
+                "Phones on the same Wi-Fi will be able to find this Mac and ask to pair. Pairing needs you to type "
+                + "here the code the phone shows. macOS may ask whether Edgepad may find devices on your local "
+                + "network, and the firewall whether it may accept incoming connections: allow both. USB tethering "
+                + "needs a driver macOS does not include, so it is not supported on a Mac."
+            // Cancel is first, so it is the default: a stray Return turns nothing on.
+            alert.addButton(withTitle: "Cancel")
+            alert.addButton(withTitle: "Turn on")
+            NSApp.activate(ignoringOtherApps: true)
+            let answer = alert.runModal()
+            alert.window.orderOut(nil)
+            guard answer == .alertSecondButtonReturn else { return }
+        }
+        guard networkSettings.setEnabled(on) else {
+            let failure = NSAlert()
+            failure.alertStyle = .critical
+            failure.messageText = "Edgepad"
+            failure.informativeText = "The setting could not be saved, so nothing was changed. The log has the reason."
+            failure.addButton(withTitle: "OK")
+            _ = failure.runModal()
+            failure.window.orderOut(nil)
+            return
+        }
+        applyNetwork()
+    }
+
+    /// Listens or stops as network.txt says, and words the row's hint for it.
+    private func applyNetwork() {
+        guard let network else { return }
+        let config = networkSettings.load()
+        guard config.enabled else {
+            network.stop()
+            networkHint = "Off"
+            return
+        }
+        networkHint = "Starting"
+        network.start(port: config.port) { [weak self] hint in self?.networkHint = hint }
     }
 
     @objc private func quit() {

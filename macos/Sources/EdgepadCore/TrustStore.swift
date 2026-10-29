@@ -138,6 +138,22 @@ public final class TrustStore {
         }
     }
 
+    /// Trusts `address` without asking: the owner already said yes another way, by typing a network phone's pairing
+    /// code on this Mac. A trust file that cannot be read is left as it is, so the phone is refused at `admit` like
+    /// every other until the owner forgets them; one that cannot be written keeps the phone for this run, as `admit`.
+    public func grant(_ address: String) {
+        locked {
+            let read = tryRead()
+            guard read.readable, !TrustStore.names(withUnsaved(read.addresses), address) else { return }
+            do {
+                try save(read.addresses + [address])
+            } catch {
+                unsaved.append(address)
+                Log.write("The trusted phone could not be saved to \(path): \(error.localizedDescription)")
+            }
+        }
+    }
+
     /// True when `address` is certain to be refused: the owner is being asked about a phone right now, or just
     /// declined this one, or the trust file cannot be read. A connection that arrives during the question is turned
     /// away without disturbing the phone being asked about, and may try again once the question is answered. A

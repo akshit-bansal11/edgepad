@@ -2,67 +2,24 @@ import EdgepadCore
 import Foundation
 import IOBluetooth
 
-/// Advertises Edgepad's RFCOMM service and hands each phone that connects to a `Session`. Everything here runs
-/// on the main thread: IOBluetooth delivers its callbacks on the main run loop and `Session` is single-threaded.
+/// Advertises Edgepad's RFCOMM service and hands each phone that connects, once Bluetooth has authenticated it, to
+/// the `SessionHost`. Everything here runs on the main thread: IOBluetooth delivers its callbacks on the main run loop
+/// and `Session` is single-threaded.
 final class RfcommServer: NSObject {
     private static let l2capUuid16: UInt16 = 0x0100
     private static let rfcommUuid16: UInt16 = 0x0003
     private static let publicBrowseRootUuid16: UInt16 = 0x1002
-    private static let pollInterval: TimeInterval = 0.5
-    private static let waiting = "Waiting for your phone"
-    /// Outlasts the phone's own twenty seconds of automatic retries, so after a Forget the trust question can only
-    /// come back from someone deliberately tapping this Mac on the phone.
-    private static let quietAfterForget: TimeInterval = 30
-    /// Outlasts the phone's own automatic retries (ten attempts, two seconds apart), so a phone another one just took
-    /// over from stops by itself instead of taking this Mac straight back, and two trusted phones cannot displace
-    /// each other for ever through their reconnects.
-    private static let quietAfterHandOff: TimeInterval = 30
 
-    private let trust: TrustStore
-    private let pin: PinStore
-    private let askTrust: (String, Cancellation) -> Bool
+    private let host: SessionHost
     private let onStatus: (String) -> Void
-
-    private let speakers = AudioEndpoint(direction: .output)
-    private let microphone = AudioEndpoint(direction: .input)
-    private let brightness = DisplayBrightness()
-    private let display = DisplayModes()
-    /// One list for every connection, and for the owner's editor, so a saved change reaches each phone's session.
-    let macros = MacroStore.forCurrentUser(launcher: WorkspaceMacroLauncher(), icons: WorkspaceMacroIcons())
 
     private var serviceRecord: IOBluetoothSDPServiceRecord?
     private var notification: IOBluetoothUserNotification?
-    private var pollTimer: Timer?
-    private var quietUntil: TimeInterval?
-    /// How many owner dialogs (Forget, Security) are open; separate from the quiet period so that ending one cannot
-    /// end the other. A count rather than a flag: with two dialogs open, closing the first must not let a phone in
-    /// while the second is still on screen, where a connected phone could answer it.
-    private var holds = 0
-    private var current: Session?
-    /// Held for as long as its session is current: the channel only keeps its delegate weakly.
-    private var currentTransport: RfcommTransport?
-    /// Connections still in their handshake, held the same way. None is current until trust has admitted it, so a
-    /// phone that merely connects never disturbs the one in use.
-    private var candidates: [(session: Session, transport: RfcommTransport)] = []
-    /// Every phone that lost this Mac to another one within the quiet period, by lowercased address, and the uptime
-    /// at which it may connect again. One entry each, so three trusted phones cannot take turns displacing each other.
-    private var handedOff: [String: TimeInterval] = [:]
-    /// Held while a session is current, so macOS does not throttle the timers and I/O of a windowless app.
-    private var activity: NSObjectProtocol?
     /// The last start failure written to the log: start is retried, and must not repeat itself every time.
     private var lastStartFailure: String?
 
-    /// `pin` is the store the owner's Security panel changes, so the lockout counts and the check that a PIN changed
-    /// mid-answer see one another.
-    init(
-        trust: TrustStore,
-        pin: PinStore,
-        askTrust: @escaping (String, Cancellation) -> Bool,
-        onStatus: @escaping (String) -> Void
-    ) {
-        self.trust = trust
-        self.pin = pin
-        self.askTrust = askTrust
+    init(host: SessionHost, onStatus: @escaping (String) -> Void) {
+        self.host = host
         self.onStatus = onStatus
         super.init()
     }
@@ -110,10 +67,7 @@ final class RfcommServer: NSObject {
 
         lastStartFailure = nil
         Log.write("RFCOMM service advertising")
-        onStatus(Self.waiting)
-        pollTimer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
-            self?.current?.poll()
-        }
+        onStatus(SessionHost.waiting)
         return true
     }
 
@@ -126,67 +80,15 @@ final class RfcommServer: NSObject {
     }
 
     func stop() {
-        endActivity()
-        pollTimer?.invalidate()
-        pollTimer = nil
         notification?.unregister()
         notification = nil
         withdrawRecord()
-        endAll()
-    }
-
-    /// Ends the phone in use and every connection still in its handshake.
-    private func endAll() {
-        current?.end()
-        for candidate in candidates {
-            candidate.session.end()
-        }
     }
 
     /// Takes the SDP record down, so the Mac never advertises a service nothing listens on.
     private func withdrawRecord() {
         _ = serviceRecord?.remove()
         serviceRecord = nil
-    }
-
-    private func endActivity() {
-        if let held = activity {
-            ProcessInfo.processInfo.endActivity(held)
-            activity = nil
-        }
-    }
-
-    /// Hangs up and refuses every new connection until each `holdOff()` has had its `resume()`. A phone that is still
-    /// trusted reconnects within seconds, so hanging up alone would not keep it out while the owner decides.
-    func holdOff() {
-        holds += 1
-        endAll()
-    }
-
-    /// Ends one `holdOff()`; a quiet period started by `stayQuiet()` runs on.
-    func resume() {
-        holds = max(0, holds - 1)
-    }
-
-    /// Whether new connections are being refused, by a hold or a quiet period.
-    private var refusing: Bool {
-        holds > 0 || quietUntil.map { $0 > ProcessInfo.processInfo.systemUptime } ?? false
-    }
-
-    /// Refuses every new connection for a while: a phone just forgotten would otherwise reconnect by itself and
-    /// raise the trust question under the cursor of an owner still clicking in the Forget dialog.
-    func stayQuiet() {
-        // Nothing should be connected after `holdOff()`, and if something is it must not outlive the Forget. Ended
-        // first because it posts the waiting status, which the status below must replace.
-        endAll()
-        // Uptime, not the wall clock: a clock stepped backwards must not stretch the quiet period. Never shortens
-        // one already running.
-        quietUntil = max(quietUntil ?? 0, ProcessInfo.processInfo.systemUptime + Self.quietAfterForget)
-        onStatus("Forgot the trusted phones; ready for a new one in \(Int(Self.quietAfterForget)) seconds")
-        Timer.scheduledTimer(withTimeInterval: Self.quietAfterForget, repeats: false) { [weak self] _ in
-            guard let self, self.current == nil else { return }
-            self.onStatus(Self.waiting)
-        }
     }
 
     @objc private func channelOpened(_ notification: IOBluetoothUserNotification, channel: IOBluetoothRFCOMMChannel) {
@@ -205,20 +107,8 @@ final class RfcommServer: NSObject {
             _ = channel.close()
             return
         }
-        if refusing {
-            Log.write("Refused \(address): this Mac is forgetting its trusted phones, or just forgot them")
-            _ = channel.close()
-            return
-        }
-        if refusesHandedOff(address) {
-            _ = channel.close()
-            return
-        }
-        // Turned away before the handshake: the session would refuse it after one anyway.
-        if trust.refuses(address) {
-            Log.write(
-                "Refused \(address) without disturbing the connected phone: the owner is being asked about a phone "
-                    + "or just declined this one, or the trust file cannot be read")
+        // Turned away before authentication, the slow step: the session would refuse it after one anyway.
+        if host.refuses(address) {
             _ = channel.close()
             return
         }
@@ -235,99 +125,12 @@ final class RfcommServer: NSObject {
         Log.write("Authenticated RFCOMM connection from \(address) in \(milliseconds) ms")
 
         let transport = RfcommTransport(channel: channel)
-        let injector = InputInjector()
-        let dispatcher = Dispatcher(
-            input: injector, speakers: speakers, microphone: microphone, brightness: brightness, display: display)
-        // Per connection, like the injector: a phone that goes takes its overlay down with it (Session.end).
-        dispatcher.annotation = Annotator()
-        dispatcher.macros = macros
-        // Per connection too: the phone says where captures go each time it connects.
-        dispatcher.capture = CaptureToPhone(
-            folders: MacCaptureFolders(), lastInput: { [weak dispatcher] in dispatcher?.lastInput ?? 0 })
-        let phone = PhoneLabel.describe(name: device.name, address: address)
-        let ask = askTrust
-        let session = Session(
-            address: address,
-            transport: transport,
-            trust: trust,
-            pin: pin,
-            askTrust: { _, ended in ask(phone, ended) },
-            // Beside the hello timer below, and for each PIN_REQUEST: the session ignores one whose question was
-            // already answered.
-            schedulePinTimeout: { timedOut in
-                _ = Timer.scheduledTimer(withTimeInterval: Session.pinTimeoutSeconds, repeats: false) { _ in
-                    timedOut()
-                }
-            },
-            dispatcher: dispatcher,
-            input: injector,
-            speakers: speakers,
-            microphone: microphone,
-            brightness: brightness,
-            display: display,
-            onStatus: onStatus,
-            onAdmitted: { [weak self] admitted in self?.admit(admitted) ?? false },
-            onEnded: { [weak self] ended in self?.sessionEnded(ended) })
+        // Held by the host until it ends; the transport only points at it.
+        let session = host.accept(
+            address: address, phone: PhoneLabel.describe(name: device.name, address: address), shownAs: nil,
+            transport: transport)
         transport.session = session
         channel.setDelegate(transport)
-        // Not current yet: the phone in use is left alone until trust has admitted this one.
-        candidates.append((session: session, transport: transport))
-
-        Timer.scheduledTimer(withTimeInterval: Session.helloTimeoutSeconds, repeats: false) { [weak session] _ in
-            session?.helloTimedOut()
-        }
-    }
-
-    /// True, and logged, when `address` is a phone another one took over from within the quiet period. Expired
-    /// entries are dropped first, so the record never outgrows the phones displaced in the last half minute.
-    private func refusesHandedOff(_ address: String) -> Bool {
-        let now = ProcessInfo.processInfo.systemUptime
-        handedOff = handedOff.filter { $0.value > now }
-        guard handedOff[address.lowercased()] != nil else { return false }
-        Log.write(
-            "Refused \(address): another phone took over this Mac less than \(Int(Self.quietAfterHandOff)) seconds "
-                + "ago")
-        return true
-    }
-
-    /// Trust has said yes to `candidate`, which now takes over from the phone in use, if any. False when this Mac
-    /// started refusing connections while the owner was being asked, or when the candidate is a phone just taken
-    /// over from: a connection it opened just before the hand-off must not take this Mac straight back.
-    private func admit(_ candidate: Session) -> Bool {
-        guard !refusing, !refusesHandedOff(candidate.address) else { return false }
-        guard let index = candidates.firstIndex(where: { $0.session === candidate }) else { return false }
-        let transport = candidates.remove(at: index).transport
-        let previous = current
-        current = candidate
-        currentTransport = transport
-        // The same address is the phone replacing its own link: after a drop it reconnects before the old channel
-        // has noticed it is dead, and there is no other phone to keep out.
-        if let previous, previous.address.caseInsensitiveCompare(candidate.address) != .orderedSame {
-            handedOff[previous.address.lowercased()] = ProcessInfo.processInfo.systemUptime + Self.quietAfterHandOff
-        }
-        // AllowingIdleSystemSleep on purpose, so a connected phone does not keep the Mac awake.
-        if activity == nil {
-            activity = ProcessInfo.processInfo.beginActivity(
-                options: [.userInitiatedAllowingIdleSystemSleep, .latencyCritical],
-                reason: "A phone is controlling this Mac")
-        }
-        previous?.end()
-        return true
-    }
-
-    /// The phone in use ending leaves this Mac waiting. A candidate ending puts back the status of the phone still
-    /// in use, which the candidate's question or refusal replaced.
-    private func sessionEnded(_ ended: Session) {
-        if current === ended {
-            current = nil
-            endActivity()
-            currentTransport = nil
-            onStatus(Self.waiting)
-            return
-        }
-        guard let index = candidates.firstIndex(where: { $0.session === ended }) else { return }
-        candidates.remove(at: index)
-        onStatus(current.map { "Connected to \($0.address)" } ?? Self.waiting)
     }
 }
 

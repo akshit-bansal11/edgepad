@@ -57,6 +57,8 @@ esac
 cp Resources/edgepad.icns "$app/Contents/Resources/edgepad.icns" || { echo "bundle.sh: macos/Resources/edgepad.icns is missing; run scripts/icons.sh (CI job icons) and commit it" >&2; exit 1; }
 
 # CFBundleVersion takes numbers only, so a draft's "-draft.45" suffix stays on the display version alone.
+# NSLocalNetworkUsageDescription and NSBonjourServices are for the Wi-Fi link's Bonjour listener. Whether macOS asks
+# them of an app that only publishes a service is unverified; with them the Local Network prompt has a reason to show.
 cat > "$app/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -90,6 +92,12 @@ cat > "$app/Contents/Info.plist" <<EOF
   <true/>
   <key>NSBluetoothAlwaysUsageDescription</key>
   <string>Edgepad uses Bluetooth to listen for the phone you have paired with this Mac.</string>
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>Edgepad lets your phone find this Mac and connect to it over Wi-Fi, when you turn Wi-Fi and USB connections on.</string>
+  <key>NSBonjourServices</key>
+  <array>
+    <string>_edgepad._tcp</string>
+  </array>
 </dict>
 </plist>
 EOF
