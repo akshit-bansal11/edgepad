@@ -82,10 +82,14 @@ internal static class MdnsPacket
             unicast |= asked != MdnsKinds.None && q.Unicast;
             if (asked != MdnsKinds.None)
             {
-                // Only a question about this service is echoed, and under this service's own spelling of the name:
-                // a stranger's name copied back could fail the builder's label rules, or make the reply larger
-                // than the query that asked for it.
-                echoed.Add(q with { Name = Same(q.Name, ServiceType) ? ServiceType : Same(q.Name, service.InstanceName) ? service.InstanceName : service.HostName });
+                // Only a question about this service is echoed, once per name and type, and under this service's
+                // own spelling of the name: a stranger's name copied back could fail the builder's label rules, and
+                // a question repeated many times would make the reply far larger than the query that asked for it.
+                var own = q with { Name = Same(q.Name, ServiceType) ? ServiceType : Same(q.Name, service.InstanceName) ? service.InstanceName : service.HostName, Unicast = false };
+                if (!echoed.Contains(own))
+                {
+                    echoed.Add(own);
+                }
             }
         }
 

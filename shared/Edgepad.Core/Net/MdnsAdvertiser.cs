@@ -20,9 +20,17 @@ internal sealed class MdnsAdvertiser(LinkIdentity identity, ushort port) : IDisp
     // queries must not become a flood of ours.
     private const long MinReplyGapMs = 250;
 
-    // How many askers' last unicast answer is remembered; past it the table starts again, which only lets an asker
-    // through early, never a flood (each one is still on the LAN and still gapped from then on).
+    // How many askers' last unicast answer is remembered. A full table first loses the entries whose gap has passed;
+    // if every entry is still live, the reply is dropped rather than the table cleared, so many askers cannot reset
+    // each other's gap.
     private const int MaxAskers = 64;
+
+    // All unicast answers together, per second: a cap that holds however many addresses the asks come from.
+    private const int MaxUnicastPerSecond = 20;
+
+    // An interface whose mask is shorter than this is not trusted to say what is on-link: a 0.0.0.0 mask would
+    // make every address on the internet look local.
+    private const int MinPrefixBits = 8;
 
     private static readonly IPAddress Group = IPAddress.Parse("224.0.0.251");
     private static readonly IPEndPoint GroupEndPoint = new(Group, MdnsPort);
@@ -50,6 +58,8 @@ internal sealed class MdnsAdvertiser(LinkIdentity identity, ushort port) : IDisp
     // Both are touched only by the receive thread, the one caller of Handle.
     private readonly Dictionary<IPAddress, long> lastUnicast = [];
     private long lastMulticast = long.MinValue / 2;
+    private long unicastWindow;
+    private int unicastInWindow;
     private bool disposed;
 
     /// <summary>
@@ -189,6 +199,11 @@ internal sealed class MdnsAdvertiser(LinkIdentity identity, ushort port) : IDisp
         {
             var own = address.GetAddressBytes();
             var bits = mask.GetAddressBytes();
+            if (bits.Length != 4 || bits.Sum(b => System.Numerics.BitOperations.PopCount(b)) < MinPrefixBits)
+            {
+                continue;
+            }
+
             var same = true;
             for (var i = 0; i < 4 && same; i++)
             {
@@ -326,11 +341,31 @@ internal sealed class MdnsAdvertiser(LinkIdentity identity, ushort port) : IDisp
                 return;
             }
 
-            if (lastUnicast.Count >= MaxAskers)
+            if (now - unicastWindow >= 1000)
             {
-                lastUnicast.Clear();
+                unicastWindow = now;
+                unicastInWindow = 0;
             }
 
+            if (unicastInWindow >= MaxUnicastPerSecond)
+            {
+                return;
+            }
+
+            if (lastUnicast.Count >= MaxAskers && !lastUnicast.ContainsKey(sender.Address))
+            {
+                foreach (var stale in lastUnicast.Where(e => now - e.Value >= MinReplyGapMs).Select(e => e.Key).ToList())
+                {
+                    lastUnicast.Remove(stale);
+                }
+
+                if (lastUnicast.Count >= MaxAskers)
+                {
+                    return;
+                }
+            }
+
+            unicastInWindow++;
             lastUnicast[sender.Address] = now;
             Send(reply.Packet, sender);
             return;

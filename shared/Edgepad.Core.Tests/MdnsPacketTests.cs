@@ -313,5 +313,21 @@ public sealed class MdnsPacketTests
         Assert.False(MdnsAdvertiser.OnLink(IPAddress.Parse("8.8.8.8"), local));
         Assert.False(MdnsAdvertiser.OnLink(IPAddress.IPv6Loopback, local));
         Assert.False(MdnsAdvertiser.OnLink(IPAddress.Parse("192.168.1.77"), []));
+
+        // A mask too short to mean anything makes nothing on-link, rather than everything.
+        (int, IPAddress, IPAddress)[] open = [(3, IPAddress.Parse("10.0.0.5"), IPAddress.Any)];
+        Assert.False(MdnsAdvertiser.OnLink(IPAddress.Parse("8.8.8.8"), open));
+    }
+
+    [Fact]
+    public void ARepeatedQuestionIsEchoedOnce()
+    {
+        var question = new MdnsQuestion(MdnsPacket.ServiceType, MdnsPacket.TypePtr, false);
+        var query = new MdnsMessage(7, false, [.. Enumerable.Repeat(question, 30)], []);
+
+        var reply = MdnsPacket.Answer(Service, query, oneShot: true);
+
+        Assert.NotNull(reply);
+        Assert.Single(Parse(reply.Packet).Questions);
     }
 }
