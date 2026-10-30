@@ -43,6 +43,17 @@ object DeckLayout {
     ): Boolean = rows * touch + (rows - 1) * gap <= down
 
     /**
+     * The side of the area that answers for a tile's close cross, on a tile whose shorter side is [side]: a full
+     * [touch] target where the tile has room for one, half the tile where it has not, so most of a small tile still
+     * runs the macro, and never under [floor].
+     */
+    fun crossHit(
+        side: Int,
+        touch: Int,
+        floor: Int,
+    ): Int = minOf(touch, side / 2).coerceAtLeast(floor)
+
+    /**
      * The pages [count] tiles fall on when a page holds [perPage]: each is the range of display positions it
      * shows. Every page is planned as a grid of [perPage] cells, so only the last can be short, and it leaves
      * its cells empty at the end rather than growing its tiles.

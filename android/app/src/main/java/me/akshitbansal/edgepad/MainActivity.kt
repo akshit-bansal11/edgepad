@@ -199,6 +199,9 @@ class MainActivity :
     /** The macro grid while it is the screen, so a new list or a finished icon can be handed to it. */
     private var macros: MacroScreen? = null
 
+    /** True from MACROS_WATCH until the one MACROS_UNWATCH that answers it, however the grid is left. */
+    private var watchingMacros = false
+
     /** The Controls popup over the surface, while it is open. */
     private var controls: ControlsPopup? = null
     private var laptopName = ""
@@ -394,6 +397,8 @@ class MainActivity :
         started = true
         // Back from a detour with the pad still on screen: the laptop has no session, so begin one.
         if (screen == Screen.ANNOTATE && !annotating) goTo(Screen.ANNOTATE)
+        // The same for the macro grid: onStop told the laptop to stop looking.
+        if (screen == Screen.MACROS) watchMacros()
         val current = link
         when {
             // Restarted rather than left running: the tick waiting may be a slow one from the background.
@@ -416,6 +421,7 @@ class MainActivity :
         releaseHeldInput()
         // The laptop drops its overlay when told; a rotation rebuild begins a fresh session in onCreate.
         endAnnotate()
+        unwatchMacros()
         handler.removeCallbacks(retry)
         handler.removeCallbacks(quickRetry)
         handler.removeCallbacks(ticker)
@@ -439,6 +445,20 @@ class MainActivity :
         if (!annotating) return
         annotating = false
         link?.send(ActionId.ANNOTATE_END.frame())
+    }
+
+    /** Asks the laptop to say which macro apps are open, if it can tell. One that never said so is never asked. */
+    private fun watchMacros() {
+        if (watchingMacros || Feature.RUNNING !in state.features || link?.connected != true) return
+        watchingMacros = true
+        link?.send(ActionId.MACROS_WATCH.frame())
+    }
+
+    /** Tells the laptop to stop looking, once per watch, and not at all when there is no link to tell. */
+    private fun unwatchMacros() {
+        if (!watchingMacros) return
+        watchingMacros = false
+        link?.send(ActionId.MACROS_UNWATCH.frame())
     }
 
     /**
@@ -533,6 +553,8 @@ class MainActivity :
         if (next == Screen.GAMEPAD && screen != Screen.GAMEPAD) link?.send(ActionId.PAD_ATTACH.frame())
         // Annotating is a session on the laptop: begun on the way in, ended on the way out by any route.
         if (screen == Screen.ANNOTATE && next != Screen.ANNOTATE) endAnnotate()
+        if (screen == Screen.MACROS && next != Screen.MACROS) unwatchMacros()
+        if (next == Screen.MACROS) watchMacros()
         if (next == Screen.ANNOTATE && !annotating && link?.connected == true) {
             annotating = true
             link?.send(ActionId.ANNOTATE_BEGIN.frame())
@@ -730,8 +752,10 @@ class MainActivity :
                         settings,
                         state.macros,
                         icon = state::macroIcon,
+                        isOpen = state::isOpen,
                         labels = settings.macroLabels,
                         onRun = ::runMacro,
+                        onClose = ::closeMacro,
                         onSettings = { goTo(Screen.MACRO_SETTINGS) },
                     ) { navigateBack() }.also { macros = it }.view
                 }
@@ -1060,6 +1084,11 @@ class MainActivity :
      */
     private fun runMacro(index: Int) {
         link?.send(Frame.RunAction(ActionId.MACRO_BASE.id + index))
+    }
+
+    /** Asks the laptop to close the app of macro slot [index]. As in [runMacro], only the index crosses the link. */
+    private fun closeMacro(index: Int) {
+        link?.send(Frame.RunAction(ActionId.MACRO_CLOSE_BASE.id + index))
     }
 
     private fun controlsCapture() = Feature.CAPTURE in state.features
@@ -1470,6 +1499,8 @@ class MainActivity :
         // What one laptop reported says nothing about another.
         if (target.key != laptopAddress) state = LaptopState()
         state.forgetFeatures()
+        state.forgetMacroOpen()
+        watchingMacros = false
         // A retry resumes: "Pair again" is the user's choice for one attempt, never something a retry repeats.
         lastTarget =
             if (target is Target.Network && target.pairAgain) {
@@ -1587,6 +1618,8 @@ class MainActivity :
         // lands while it is open rebuilds it rather than leaving it saying "none". The Controls popup is redrawn.
         val sized = frame is Frame.Text && (frame.kind == TextKind.FEATURES.id || frame.kind == TextKind.SCREEN_SIZE.id)
         if (screen == Screen.CAPTURE && sized) goTo(screen)
+        // The grid can be open before the laptop has named what it can do.
+        if (screen == Screen.MACROS && frame is Frame.Text && frame.kind == TextKind.FEATURES.id) watchMacros()
         if (sized) controls?.refresh(controlsCapture(), controlsAnnotate())
         if (frame is Frame.Text && frame.kind == TextKind.SCREEN_SIZE.id) annotate?.refresh()
         if (frame is Frame.Text && frame.kind == TextKind.SIGN_STATUS.id) signed(state.signStatus)
@@ -1607,6 +1640,10 @@ class MainActivity :
                 TextKind.MACRO_ICON.id -> {
                     grid.iconArrived(state.lastIcon)
                 }
+
+                TextKind.MACRO_OPEN.id -> {
+                    grid.openChanged()
+                }
             }
         }
     }
@@ -1618,6 +1655,8 @@ class MainActivity :
         if (link != this.link) return
         handler.removeCallbacks(pinger)
         this.link = null
+        watchingMacros = false
+        state.forgetMacroOpen()
         picker.setConnecting(null)
         pairCode = null
         pairAsking = false

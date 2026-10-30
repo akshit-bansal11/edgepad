@@ -55,6 +55,19 @@ class DeckLayoutTest {
     }
 
     @Test
+    fun theCrossTakesAFullTouchTargetOnABigTile() {
+        assertEquals(48, DeckLayout.crossHit(side = 200, touch = 48, floor = 24))
+        assertEquals(48, DeckLayout.crossHit(side = 96, touch = 48, floor = 24))
+    }
+
+    @Test
+    fun theCrossTakesHalfASmallTileAndNeverLessThanTheFloor() {
+        assertEquals(30, DeckLayout.crossHit(side = 60, touch = 48, floor = 24))
+        assertEquals(24, DeckLayout.crossHit(side = 48, touch = 48, floor = 24))
+        assertEquals(24, DeckLayout.crossHit(side = 30, touch = 48, floor = 24))
+    }
+
+    @Test
     fun columnsForAgreesWithChoices() {
         for (count in 2..10) {
             val offered = DeckLayout.choices(count)

@@ -153,6 +153,47 @@ class LaptopStateTest {
     }
 
     @Test
+    fun readsWhichMacroAppsAreOpen() {
+        assertTrue(state.take(Frame.Text(TextKind.MACRO_OPEN.id, "-012")))
+        assertEquals(listOf(OpenState.UNTRACKED, OpenState.CLOSED, OpenState.OPEN, OpenState.FRONT), state.macroOpen)
+        assertEquals(listOf(false, false, true, true), (0..3).map(state::isOpen))
+        assertFalse("a slot past the list is not open", state.isOpen(4))
+    }
+
+    @Test
+    fun anUnknownOpenCharacterReadsAsUntracked() {
+        state.take(Frame.Text(TextKind.MACRO_OPEN.id, "1x"))
+        assertEquals(listOf(OpenState.OPEN, OpenState.UNTRACKED), state.macroOpen)
+        assertFalse(state.isOpen(1))
+    }
+
+    @Test
+    fun nothingIsOpenUntilTheLaptopSays() {
+        assertEquals(emptyList<OpenState>(), state.macroOpen)
+        assertFalse(state.isOpen(0))
+    }
+
+    @Test
+    fun aChangedMacroListForgetsWhatWasOpen() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes"))
+        state.take(Frame.Text(TextKind.MACRO_OPEN.id, "12"))
+
+        // The same list sent again moves no slot, and the laptop would not say the same state twice.
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes"))
+        assertTrue(state.isOpen(0))
+
+        state.take(Frame.Text(TextKind.MACROS.id, "Notes/Chrome"))
+        assertEquals(emptyList<OpenState>(), state.macroOpen)
+    }
+
+    @Test
+    fun forgettingWhatWasOpenLeavesNothingOpen() {
+        state.take(Frame.Text(TextKind.MACRO_OPEN.id, "2"))
+        state.forgetMacroOpen()
+        assertFalse(state.isOpen(0))
+    }
+
+    @Test
     fun framesThatAreNotStateAreNotKept() {
         assertFalse(state.take(Frame.Pong(1)))
         // A kind no build knows, and one this end never receives: WANT_ICONS only ever goes the other way.

@@ -20,7 +20,8 @@ import me.akshitbansal.edgepad.Space
  * laptop (a macro slot) puts that in [DeckTile.tag] and can be arranged freely without running the wrong thing.
  *
  * An owner supplies tiles with [show], and only what differs between owners stays with them: what the tiles
- * are, what a tap does, and [empty], the state drawn when there are no tiles.
+ * are, what a tap does, what a tile's close cross does ([onClose], and [setOpen] says which tiles have one), and
+ * [empty], the state drawn when there are no tiles.
  *
  * With [perPage] the tiles are split into pages of that many, which a finger slides between; every page is a
  * grid planned for [perPage] cells, so a tile keeps its size from page to page. Without it there is one page.
@@ -38,6 +39,7 @@ class DeckPage(
     onSettings: (() -> Unit)? = null,
     private val perPage: Int? = null,
     private val rows: Int? = null,
+    private val onClose: (DeckTile) -> Unit,
     private val onTap: (DeckTile) -> Unit,
 ) {
     private var tiles: List<DeckTile> = emptyList()
@@ -120,6 +122,13 @@ class DeckPage(
         pageDecks.forEach { it.setPicture(tag, picture) }
     }
 
+    /** The tiles tagged in [open] have a close cross and the rest do not, without building the grid again. */
+    fun setOpen(open: Set<Int>) {
+        tiles = tiles.map { it.copy(closable = it.tag in open) }
+        deck.setOpen(open)
+        pageDecks.forEach { it.setOpen(open) }
+    }
+
     private fun render() {
         deck.clear()
         if (tiles.isEmpty()) {
@@ -145,7 +154,17 @@ class DeckPage(
             return
         }
         val slots = perPage ?: ordered.size
-        deck.render(across, down, ordered, labels, onMove = ::moved, onTap = onTap, slots = slots, rows = rows)
+        deck.render(
+            across,
+            down,
+            ordered,
+            labels,
+            onMove = ::moved,
+            onTap = onTap,
+            slots = slots,
+            rows = rows,
+            onClose = onClose,
+        )
     }
 
     /**
@@ -182,6 +201,7 @@ class DeckPage(
                 onTap = onTap,
                 slots = per,
                 rows = rows,
+                onClose = onClose,
             )
         }
         holder.addView(pager, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))

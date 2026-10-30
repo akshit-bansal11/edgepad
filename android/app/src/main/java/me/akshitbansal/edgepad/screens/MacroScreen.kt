@@ -40,7 +40,7 @@ private const val EMPTY_ICON_DP = 30f
  * What the laptop sends later is handed in rather than rebuilding the screen: [setMacros] redraws the grid
  * inside the page, and [iconArrived] decodes one picture and dresses one button. Until 3.2 each of them
  * built the whole screen again, which threw away where TalkBack was and decoded every picture in the grid
- * once for each picture that arrived.
+ * once for each picture that arrived. [openChanged] does the same for the crosses on open macros.
  *
  * Arranging the grid (pressing and holding a tile to drag it, the gear for [MacroSettingsScreen]) is
  * [DeckPage]'s. It is all phone-side drawing: a tile's [DeckTile.tag] is the laptop's slot index, so a tap
@@ -52,8 +52,10 @@ class MacroScreen(
     settings: Settings,
     names: List<String>,
     private val icon: (Int) -> ByteArray?,
+    private val isOpen: (Int) -> Boolean,
     labels: Boolean,
     onRun: (index: Int) -> Unit,
+    onClose: (index: Int) -> Unit,
     onSettings: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -74,6 +76,7 @@ class MacroScreen(
             rows = settings.macroRows.takeIf { it != Settings.AUTO_MACRO_ROWS },
             // The laptop's slot, never the tile's place in the deck: the order on screen is only a drawing.
             onTap = { tile -> onRun(tile.tag) },
+            onClose = { tile -> onClose(tile.tag) },
         )
 
     val view: View = page.view
@@ -90,7 +93,13 @@ class MacroScreen(
         val keys = DeckLayout.keys(slots.map { it.value })
         page.show(
             slots.mapIndexed { at, slot ->
-                DeckTile(key = keys[at], label = slot.value, tag = slot.index, picture = decode(icon(slot.index)))
+                DeckTile(
+                    key = keys[at],
+                    label = slot.value,
+                    tag = slot.index,
+                    picture = decode(icon(slot.index)),
+                    closable = isOpen(slot.index),
+                )
             },
         )
     }
@@ -99,6 +108,11 @@ class MacroScreen(
     fun iconArrived(slot: Int) {
         if (slots.none { it.index == slot }) return
         page.setPicture(slot, decode(icon(slot)))
+    }
+
+    /** The laptop said which macros' apps are open: the crosses follow, and only the crosses. */
+    fun openChanged() {
+        page.setOpen(slots.map { it.index }.filter(isOpen).toSet())
     }
 
     /** The empty state, drawn into the page's holder. */

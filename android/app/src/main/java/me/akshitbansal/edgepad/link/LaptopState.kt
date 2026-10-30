@@ -9,6 +9,27 @@ import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
 import java.util.Base64
 
+/** One character of TEXT MACRO_OPEN: what the laptop knows of a macro's app. An unknown one reads as [UNTRACKED]. */
+enum class OpenState(
+    val char: Char,
+) {
+    /** Nothing the laptop can follow: a link, a folder, a document. */
+    UNTRACKED('-'),
+
+    CLOSED('0'),
+    OPEN('1'),
+
+    /** Open and in front of everything else. */
+    FRONT('2'),
+    ;
+
+    val isOpen: Boolean get() = this == OPEN || this == FRONT
+
+    companion object {
+        fun of(char: Char): OpenState = entries.firstOrNull { it.char == char } ?: UNTRACKED
+    }
+}
+
 /**
  * The latest of everything the laptop has reported: levels, mute and play flags, what is playing and
  * where in it. The activity keeps one per laptop, so a control surface built later (reopened, rotated,
@@ -61,6 +82,13 @@ class LaptopState {
         private set
 
     /**
+     * What the laptop last said of each macro slot's app, in [macros] order. Empty until it says, which is also what
+     * a laptop that cannot tell leaves it as, so no macro reads as open.
+     */
+    var macroOpen: List<OpenState> = emptyList()
+        private set
+
+    /**
      * The laptop's last word on whether it can offer a virtual controller, or null while it has said
      * nothing at all — which is also where a laptop too old to know PAD_ATTACH leaves it, since it drops
      * the action and never answers. The gamepad screen reads this to decide whether it is a controller or
@@ -83,6 +111,11 @@ class LaptopState {
      */
     fun forgetFeatures() {
         features = emptySet()
+    }
+
+    /** Forgets [macroOpen] when a link ends or a new one starts: the laptop says it afresh when next watched. */
+    fun forgetMacroOpen() {
+        macroOpen = emptyList()
     }
 
     /**
@@ -116,6 +149,9 @@ class LaptopState {
      */
     fun macroIcon(slot: Int): ByteArray? = icons[slot]
 
+    /** Whether the laptop last said the app of macro slot [slot] is open, in front or not. */
+    fun isOpen(slot: Int): Boolean = macroOpen.getOrNull(slot)?.isOpen == true
+
     /** The last level the laptop reported for [control], or null when it has not reported one. */
     fun level(control: ControlId): Int? = levels[control]
 
@@ -138,6 +174,7 @@ class LaptopState {
                     TextKind.TIMELINE -> timeline(frame.text)
                     TextKind.REFRESH_RATES -> refreshRates = rates(frame.text)
                     TextKind.MACROS -> macros = macroNames(frame.text)
+                    TextKind.MACRO_OPEN -> macroOpen = frame.text.take(MACRO_SLOTS).map(OpenState::of)
                     TextKind.MACRO_ICON -> return iconChunk(frame.text)
                     TextKind.PAD_STATUS -> padStatus = PadStatus.of(frame.text)
                     TextKind.FEATURES -> features = features(frame.text)
@@ -256,6 +293,8 @@ class LaptopState {
             !name.isNullOrEmpty() && name == macros.getOrNull(slot)
         }
         parts.clear()
+        // A slot number now means another macro, so what was said of the old one must not stay on it.
+        if (list != macros) forgetMacroOpen()
         return list
     }
 

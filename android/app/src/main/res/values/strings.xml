@@ -389,6 +389,7 @@
   <string name="sign_failed">Could not save</string>
   <string name="capture_unavailable">This laptop has not said it can capture. Update Edgepad on it, then reconnect.</string>
   <string name="macros_run">Run %1$s</string>
+  <string name="macros_close">Close %1$s</string>
   <string name="macros_settings">Macro settings</string>
   <string name="macros_labels">Macro labels</string>
   <string name="macros_labels_caption">Names under the pictures. A macro with no picture always shows its name.</string>
