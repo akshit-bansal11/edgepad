@@ -201,6 +201,9 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     /// <summary>The list the session answers WANT_ICONS from; the store replaces it whole on a change, so the reference is what the session compares.</summary>
     public IReadOnlyList<Macro> Macros => macros.Macros;
 
+    /// <summary>The store itself, which the app picker adds to.</summary>
+    public MacroStore Store => macros;
+
     /// <summary>
     /// Starts reporting the laptop's levels, media, macro names and features through <paramref name="send"/>, for the
     /// rest of the session. Called once, on the session's reader, after the handshake. Returns what turns the macro

@@ -94,7 +94,7 @@ internal sealed class SessionHost(
                 platform.Dispose,
                 platform.ProbePad,
                 platform.StartReporting,
-                () => platform.Macros,
+                () => platform.Store,
                 identity,
                 StatusFor(link),
                 OnAdmitted,

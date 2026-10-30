@@ -27,7 +27,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Action releaseHeldInput;
     private readonly Func<string> probePad;
     private readonly Func<Action<Frame>, Action<bool>?> startReporting;
-    private readonly Func<IReadOnlyList<Macro>> macros;
+    private readonly Func<MacroStore> macros;
     private readonly LinkIdentity identity;
     private readonly Action<string> onStatus;
     private readonly Func<LinuxSession, bool> onAdmitted;
@@ -57,7 +57,7 @@ internal sealed class LinuxSession : IDisposable
         Action releaseHeldInput,
         Func<string> probePad,
         Func<Action<Frame>, Action<bool>?> startReporting,
-        Func<IReadOnlyList<Macro>> macros,
+        Func<MacroStore> macros,
         LinkIdentity identity,
         Action<string> onStatus,
         Func<LinuxSession, bool> onAdmitted,
@@ -129,6 +129,10 @@ internal sealed class LinuxSession : IDisposable
             var sync = new ClipboardSync(surface, sender, () => ClipboardSetting.Enabled, ended.Token);
             dispatcher.Clipboard = sync;
             _ = Task.Run(() => LinuxClipboard.Poll(surface, sync, () => ClipboardSetting.Enabled, ended.Token));
+
+            // The apps the phone may pick from: a pick is a token into a list built here, never a path from the phone.
+            dispatcher.Apps = new AppPicker(new DesktopEntryCatalog(), macros(), sender, ended.Token);
+            dispatcher.AppAddReply = status => frames.Send(new Text((byte)TextKind.AppAddStatus, status));
 
             while (true)
             {
@@ -215,7 +219,7 @@ internal sealed class LinuxSession : IDisposable
     /// </summary>
     private void SendIcons(int run, int size)
     {
-        var current = macros();
+        var current = macros().Macros;
         for (var slot = 0; slot < current.Count; slot++)
         {
             // Before each render too, so a superseded run stops reading icons nobody will be sent.
@@ -238,7 +242,7 @@ internal sealed class LinuxSession : IDisposable
                 // the run on before closing anything.
                 lock (frames.SendGate)
                 {
-                    if (!ReferenceEquals(macros(), current) || Volatile.Read(ref iconRun) != run)
+                    if (!ReferenceEquals(macros().Macros, current) || Volatile.Read(ref iconRun) != run)
                     {
                         return;
                     }
