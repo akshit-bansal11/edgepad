@@ -486,6 +486,8 @@ class MainActivity :
     }
 
     private fun askNotifications() {
+        // Below Android 13 notifications need no permission, and the constant does not exist there.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         val granted = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         // One system prompt at a time: while another is up this waits for the next time the service is needed.
         if (granted || askedNotifications || permissionPending) return
