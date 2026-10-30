@@ -12,7 +12,7 @@ import kotlin.math.roundToInt
  * clockwise raises the value, like turning a knob. A tap without a slide runs [tap]. A [control] dial holds
  * a level between 0 and [maxLevel] and sends SET frames; a dial with none is a stepper that calls [step] with
  * +1 or -1 once per step of travel, with [onArm] and [onRelease] bracketing the slide (the app switcher holds
- * Alt that way).
+ * Alt that way). A tap may also run [tapRun], for what is not a frame: the Devices dial opens its list that way.
  *
  * Distances are in dp, and [unitsPerDp] is the sensitivity: how many value units one dp of slide is worth.
  * Pure state, tested on the JVM; the View measures the finger along the edge and draws the ruler.
@@ -25,6 +25,7 @@ class Dial(
     private val unitsPerDp: Float,
     val control: ControlId? = null,
     private val tap: ActionId? = null,
+    private val tapRun: (() -> Unit)? = null,
     private val step: ((Int) -> Unit)? = null,
     private val onArm: (() -> Unit)? = null,
     private val onRelease: (() -> Unit)? = null,
@@ -127,6 +128,7 @@ class Dial(
         armed = false
         if (wasTap) {
             tap?.let { sink(it.frame()) }
+            tapRun?.invoke()
             if (keepsSteps) steps = 0
         }
         if (wasArmed) {
@@ -176,7 +178,9 @@ class Dial(
         if (n == 0) return
         steps += n
         val fire = step ?: return
-        repeat(abs(n)) { fire(if (n > 0) 1 else -1) }
+        // A step may end the slide under us (the Devices dial swaps the laptop, which cancels the touch), and the
+        // notches left over in this move belong to a slide that is gone.
+        repeat(abs(n)) { if (armed) fire(if (n > 0) 1 else -1) }
     }
 
     companion object {

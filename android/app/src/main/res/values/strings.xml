@@ -325,6 +325,8 @@
   <string name="dial_desktops_short">DESK</string>
   <string name="dial_tabs">Browser tabs</string>
   <string name="dial_tabs_short">TABS</string>
+  <string name="dial_devices">Switch laptop</string>
+  <string name="dial_devices_short">LAPTOP</string>
 
   <!-- Control surface -->
   <string name="surface_description">Laptop control surface</string>

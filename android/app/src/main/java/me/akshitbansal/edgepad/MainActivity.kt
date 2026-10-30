@@ -101,6 +101,7 @@ import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.screens.showOver
 import me.akshitbansal.edgepad.surface.BackgroundImage
+import me.akshitbansal.edgepad.surface.ConnectedLaptops
 import me.akshitbansal.edgepad.surface.ControlSurface
 import me.akshitbansal.edgepad.update.Installer
 import me.akshitbansal.edgepad.update.Updates
@@ -197,6 +198,12 @@ class MainActivity :
     private val state: LaptopState get() = selected?.state ?: noLaptop
     private val connected: Boolean get() = selected?.connected == true
     private var surface: ControlSurface? = null
+
+    /**
+     * What the Devices dial moves through: a step selects another connected laptop, which runs [onDeselecting] and
+     * rebuilds the surface like any change of selection, so a slide in flight is cancelled by that and not here.
+     */
+    private val deviceSwitch by lazy { ConnectedLaptops(manager) { goTo(Screen.PAIRING) } }
 
     /** The gamepad while it is the screen, so the laptop's answer about its controller can reach it. */
     private var gamepad: GamepadScreen? = null
@@ -756,6 +763,7 @@ class MainActivity :
                         send,
                         { goTo(Screen.SURFACE_SETTINGS) },
                         onOpenControls = ::openControls,
+                        devices = deviceSwitch,
                     ).also { surface = it }
                 }
             }

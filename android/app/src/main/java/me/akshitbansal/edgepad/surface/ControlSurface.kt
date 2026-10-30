@@ -54,6 +54,8 @@ class ControlSurface(
     private val send: (Frame) -> Unit,
     private val onOpenSettings: () -> Unit,
     private val onOpenControls: () -> Unit,
+    /** The connected laptops, for a Devices dial; a surface with none has no such dial to serve. */
+    private val devices: DeviceSwitch = DeviceSwitch.None,
     /**
      * Only the trackpad: no dials, buttons, media, hints or caption. The Capture screen wants a pointer and
      * nothing else, and the recogniser, the trail and the unbuffered dispatch are the surface's own, so this
@@ -132,6 +134,7 @@ class ControlSurface(
                 send,
                 ::haptic,
                 slot,
+                devices,
             )
             if (settings.splitCorners) {
                 (0 until Perimeter.SLOTS).mapNotNull { slot ->
@@ -796,6 +799,11 @@ class ControlSurface(
 
             DialKind.ZOOM -> {
                 if (dial.steps > 0) "+${dial.steps}" else dial.steps.toString()
+            }
+
+            DialKind.DEVICES -> {
+                // Cut short: the dial is a corner wide and a laptop's name is whatever its owner typed.
+                devices.names.getOrNull(devices.activeIndex)?.let { DeviceSwitch.fit(it) } ?: unknownText
             }
 
             DialKind.APP_SWITCHER, DialKind.SCROLL, DialKind.SCROLL_H, DialKind.DESKTOPS, DialKind.TABS -> {

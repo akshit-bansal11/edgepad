@@ -5,6 +5,7 @@ import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -16,7 +17,26 @@ class DialTest {
     private fun dial(
         kind: DialKind,
         snap: Boolean = false,
-    ) = kind.dial(0, "X", UNITS_PER_DP, snap, { out.add(it) }, { haptics++ })
+        devices: DeviceSwitch = DeviceSwitch.None,
+    ) = kind.dial(0, "X", UNITS_PER_DP, snap, { out.add(it) }, { haptics++ }, devices = devices)
+
+    /** Records what the Devices dial asks of the laptops, and answers nothing. */
+    private class Devices : DeviceSwitch {
+        val steps = mutableListOf<Int>()
+        var opened = 0
+        var onStep: () -> Unit = {}
+        override val names = listOf("A", "B", "C")
+        override val activeIndex = 0
+
+        override fun step(direction: Int) {
+            steps.add(direction)
+            onStep()
+        }
+
+        override fun open() {
+            opened++
+        }
+    }
 
     /** Presses, slides past the slop so the dial arms, then slides [dp] more. */
     private fun Dial.slideBy(dp: Float) {
@@ -255,6 +275,76 @@ class DialTest {
         refresh.fromLaptop(4, flag = false)
         refresh.maxLevel = 1f
         assertEquals(1, refresh.value)
+    }
+
+    @Test
+    fun slidingTheDevicesDialStepsOncePerNotchAndNeverSendsAFrame() {
+        val devices = Devices()
+        val dial = dial(DialKind.DEVICES, devices = devices)
+        dial.down()
+        dial.slideBy(120f)
+        dial.slide(-80f, SLOP)
+        dial.up()
+        assertEquals(listOf(1, 1, 1, -1, -1), devices.steps)
+        assertEquals(0, devices.opened)
+        assertTrue(out.isEmpty())
+    }
+
+    @Test
+    fun aDevicesTapOpensTheListAndSendsNothing() {
+        val devices = Devices()
+        val dial = dial(DialKind.DEVICES, devices = devices)
+        dial.down()
+        assertTrue(dial.up())
+        assertEquals(1, devices.opened)
+        assertTrue(devices.steps.isEmpty())
+        assertTrue(out.isEmpty())
+    }
+
+    @Test
+    fun aSlideThatEndsTheDevicesSlideStopsStepping() {
+        // One move can cross several notches. The first step swaps the laptop and cancels the touch, so the others
+        // would otherwise carry on from the new laptop to the one after it.
+        val devices = Devices()
+        val dial = dial(DialKind.DEVICES, devices = devices)
+        devices.onStep = { dial.cancel() }
+        dial.down()
+        dial.slideBy(120f)
+        assertEquals(listOf(1), devices.steps)
+        assertFalse(dial.armed)
+        assertTrue(out.isEmpty())
+    }
+
+    @Test
+    fun theDevicesDialIsLastAndTakesNoCorner() {
+        assertEquals(DialKind.DEVICES, DialKind.entries.last())
+        assertNull(DialKind.DEVICES.defaultCorner)
+        assertEquals(listOf(0, 1, 2, 3), DialKind.entries.mapNotNull { it.defaultCorner })
+    }
+
+    @Test
+    fun everyOlderKindKeepsItsStoredNameAndPlace() {
+        // Corners and sensitivities are stored by kind name, and the name list is also the ordinal order.
+        assertEquals(
+            listOf(
+                "VOLUME",
+                "BRIGHTNESS",
+                "ZOOM",
+                "MEDIA",
+                "APP_SWITCHER",
+                "REFRESH",
+                "SCROLL",
+                "SCROLL_H",
+                "DESKTOPS",
+                "TABS",
+                "DEVICES",
+            ),
+            DialKind.entries.map { it.name },
+        )
+        assertEquals(
+            listOf(DialKind.VOLUME, DialKind.BRIGHTNESS, DialKind.ZOOM, DialKind.MEDIA),
+            DialKind.entries.filter { it.defaultCorner != null }.sortedBy { it.defaultCorner },
+        )
     }
 
     private companion object {
