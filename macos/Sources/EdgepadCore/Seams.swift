@@ -137,8 +137,8 @@ public protocol MacroWindows: AnyObject {
     func close(_ macro: Macro) -> Bool
 }
 
-/// The picture a macro button shows, as PNG bytes, or nil when none can be had. Behind a seam so the store and the
-/// chunker stay free of AppKit.
+/// The picture a macro button shows, as PNG bytes at about `size` pixels square (falling back to smaller tiers if it
+/// is too heavy), or nil when none can be had. Behind a seam so the store and the chunker stay free of AppKit.
 public protocol MacroIconSource: AnyObject {
-    func png(for macro: Macro) -> [UInt8]?
+    func png(for macro: Macro, size: Int) -> [UInt8]?
 }

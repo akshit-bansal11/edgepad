@@ -221,7 +221,11 @@ final class FakeIcons: MacroIconSource {
         self.bytes = bytes
     }
 
-    func png(for macro: Macro) -> [UInt8]? {
-        bytes
+    /// The sizes asked for, in order.
+    private(set) var sizes: [Int] = []
+
+    func png(for macro: Macro, size: Int) -> [UInt8]? {
+        sizes.append(size)
+        return bytes
     }
 }

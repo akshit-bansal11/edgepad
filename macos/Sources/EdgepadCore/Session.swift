@@ -369,9 +369,9 @@ public final class Session {
         switch frame {
         case .ping(let time):
             send(.pong(time: time))
-        case .text(let kind, _) where kind == TextKind.wantIcons.rawValue:
+        case .text(let kind, let value) where kind == TextKind.wantIcons.rawValue:
             // Not a frame the dispatcher should count as dropped, whether or not there is anything to send.
-            startIcons()
+            startIcons(size: MacroIconChunks.snap(value, max: MacroIconChunks.largestSize))
         default:
             dispatcher.handle(frame)
         }
@@ -469,20 +469,20 @@ public final class Session {
     /// Every macro icon the app can supply, one icon per scheduled turn and none inline: the phone asks as soon as
     /// it connects and whenever the list changes, so a macro tapped then would otherwise wait behind every icon. A
     /// newer WANT_ICONS supersedes this run, and `end()` stops it.
-    private func startIcons() {
+    private func startIcons(size: Int) {
         guard let macros = dispatcher.macros else { return }
         iconRun += 1
-        sendIcons(from: 0, of: macros, revision: macros.revision, run: iconRun)
+        sendIcons(from: 0, of: macros, revision: macros.revision, run: iconRun, size: size)
     }
 
     /// The icon in `slot`, in pieces, then the next slot's turn. An icon that cannot be had is simply not sent and
     /// its button keeps its label.
-    private func sendIcons(from slot: Int, of macros: MacroStore, revision: Int, run: Int) {
+    private func sendIcons(from slot: Int, of macros: MacroStore, revision: Int, run: Int, size: Int) {
         schedule { [weak self] in
             guard let self, !self.isEnded, self.iconRun == run, macros.revision == revision,
                 slot < macros.macros.count
             else { return }
-            if let png = macros.icon(at: slot) {
+            if let png = macros.icon(at: slot, size: size) {
                 for chunk in MacroIconChunks.chunks(slot: slot, png: png) {
                     // A save swaps the list between chunks of the old one, which would land on whatever moved into
                     // the slot. The phone asks again for the new list.
@@ -490,7 +490,7 @@ public final class Session {
                     self.send(.text(kind: TextKind.macroIcon.rawValue, value: chunk))
                 }
             }
-            self.sendIcons(from: slot + 1, of: macros, revision: revision, run: run)
+            self.sendIcons(from: slot + 1, of: macros, revision: revision, run: run, size: size)
         }
     }
 

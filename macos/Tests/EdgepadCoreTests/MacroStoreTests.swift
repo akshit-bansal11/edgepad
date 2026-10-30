@@ -322,12 +322,51 @@ final class MacroStoreTests: XCTestCase {
     }
 
     func testAnIconOverTheCapIsNotOffered() {
-        let big = [UInt8](repeating: 1, count: MacroIconChunks.maxBytes + 1)
-        let store = newStore(icons: FakeIcons(bytes: big))
+        let big = [UInt8](repeating: 1, count: MacroIconChunks.maxBytes(size: 128) + 1)
+        let icons = FakeIcons(bytes: big)
+        let store = newStore(icons: icons)
         store.save([Macro(name: "Big", target: "one.app")])
 
         XCTAssertNil(store.icon(at: 0))
         XCTAssertNil(store.icon(at: 5))
+        XCTAssertNotNil(store.icon(at: 0, size: 256))
+        XCTAssertEqual(icons.sizes, [128, 256])
+    }
+
+    func testSnapRoundsUpClampsAndDefaults() {
+        let cases: [(String, Int, Int)] = [
+            ("", 512, 128), ("abc", 512, 128), ("0", 512, 128), ("-5", 512, 128), ("96", 512, 128),
+            ("64", 512, 64), ("65", 512, 128), ("200", 512, 256), ("300", 512, 384), ("512", 512, 512),
+            ("9999", 512, 512), ("9999", 256, 256),
+        ]
+        for (payload, max, expected) in cases {
+            XCTAssertEqual(MacroIconChunks.snap(payload, max: max), expected, "\(payload) max \(max)")
+        }
+    }
+
+    func testTheChainDescendsFromTheRequestToSixtyFour() {
+        XCTAssertEqual(MacroIconChunks.fallbackChain(size: 512), [512, 384, 256, 128, 64])
+        XCTAssertEqual(MacroIconChunks.fallbackChain(size: 128), [128, 64])
+        XCTAssertEqual(MacroIconChunks.fallbackChain(size: 64), [64])
+    }
+
+    func testTheByteBudgetGrowsWithTheSide() {
+        XCTAssertEqual(MacroIconChunks.maxBytes(size: 128), 24 * 1024)
+        XCTAssertEqual(MacroIconChunks.maxBytes(size: 64), 12 * 1024)
+        XCTAssertEqual(MacroIconChunks.maxBytes(size: 512), 96 * 1024)
+    }
+
+    func testTheLargestIconStillHasAShortHeader() throws {
+        let png = [UInt8](repeating: 9, count: MacroIconChunks.maxBytes(size: 512))
+
+        let frames = MacroIconChunks.chunks(slot: 99, png: png)
+
+        XCTAssertLessThan(frames.count, 1000)
+        for frame in frames {
+            let body = try XCTUnwrap(frame.split(separator: "/", maxSplits: 3, omittingEmptySubsequences: false).last)
+            XCTAssertLessThanOrEqual(frame.utf8.count - body.utf8.count, 11)
+            XCTAssertLessThanOrEqual(frame.utf8.count, FrameCodec.maxTextBytes)
+        }
     }
 
     func testChunksRoundTripAndEachFitsOneFrame() throws {

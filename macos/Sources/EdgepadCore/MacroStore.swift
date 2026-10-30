@@ -222,11 +222,14 @@ public final class MacroStore {
         return acted
     }
 
-    /// The picture for `macros[index]`, as PNG bytes, if the app can supply one small enough to send.
-    public func icon(at index: Int) -> [UInt8]? {
+    /// The picture for `macros[index]` at about `size` pixels, as PNG bytes, if the app can supply one small enough to
+    /// send.
+    public func icon(at index: Int, size: Int = MacroIconChunks.defaultSize) -> [UInt8]? {
         let current = macros
-        guard current.indices.contains(index), let png = icons?.png(for: current[index]) else { return nil }
-        return png.count <= MacroIconChunks.maxBytes ? png : nil
+        guard current.indices.contains(index), let png = icons?.png(for: current[index], size: size) else {
+            return nil
+        }
+        return png.count <= MacroIconChunks.maxBytes(size: size) ? png : nil
     }
 
     /// The names, in order, for sending to the phone.
@@ -425,9 +428,31 @@ public final class MacroWatch {
 
 /// Splits one icon into TEXT 6 payloads, "slot/chunk/chunks/base64", the twin of the laptop core's `MacroIconChunks.Chunks`.
 public enum MacroIconChunks {
-    /// The most an icon may weigh on the wire: 24 KiB is 137 frames for one button, the point past which a picture
-    /// costs the link more than a label is worth. A real program icon is a fraction of it.
-    public static let maxBytes = 24 * 1024
+    /// The sides the phone may ask for. A request is rounded up to one of these.
+    public static let tiers = [64, 128, 256, 384, 512]
+    /// What an empty or unreadable WANT_ICONS means: an old phone, which gets exactly what it always did.
+    public static let defaultSize = 128
+    /// The largest side the Mac renders; the system icon's multi-resolution picture covers it.
+    public static let largestSize = 512
+
+    /// The side to render for a WANT_ICONS payload: decimal text, anything else is the default, clamped to `max`
+    /// and rounded up to a tier.
+    public static func snap(_ payload: String, max: Int) -> Int {
+        let asked = Int(payload).flatMap { $0 > 0 ? $0 : nil } ?? defaultSize
+        let capped = min(asked, max)
+        return tiers.first { $0 >= capped } ?? tiers[tiers.count - 1]
+    }
+
+    /// The most an icon of this side may weigh on the wire: 24 KiB at 128 px, growing with the area's side so a
+    /// bigger picture is allowed more, and 96 KiB at 512. Past it a picture costs the link more than a label is worth.
+    public static func maxBytes(size: Int) -> Int {
+        24 * 1024 * size / 128
+    }
+
+    /// The sides to try for a request, largest first: the tiers at or below `size`, down to 64.
+    public static func fallbackChain(size: Int) -> [Int] {
+        tiers.filter { $0 <= size }.reversed()
+    }
 
     /// How much base64 rides in one frame. A payload is 255 bytes and the rest is the "slot/chunk/chunks/" header:
     /// two digits of slot and three of chunk count at most is eleven characters, so 240 leaves four to spare. If

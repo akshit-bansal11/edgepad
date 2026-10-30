@@ -5,25 +5,21 @@ import EdgepadCore
 /// override path if the macro has one, else the target, and nothing for a URL.
 /// Main thread only: it draws with AppKit.
 final class WorkspaceMacroIcons: MacroIconSource {
-    /// The square the phone is sent, as on Windows: sharp at the sizes the grid draws, and fixed so one oversized
-    /// source cannot cost the whole grid.
-    private static let size = 128
-    /// Tried when `size` encodes past the wire cap, as on Windows; a photograph will.
-    private static let fallback = 64
-
-    func png(for macro: Macro) -> [UInt8]? {
+    /// The requested square, then each smaller tier when it encodes past that side's wire cap (a photograph will), so
+    /// one oversized source cannot cost the whole grid.
+    func png(for macro: Macro, size: Int) -> [UInt8]? {
         let source = macro.icon.flatMap { $0.isEmpty ? nil : $0 } ?? macro.target
         guard let path = WorkspaceMacroIcons.filePath(source) else {
             return nil
         }
         let image = NSWorkspace.shared.icon(forFile: path)
-        for side in [WorkspaceMacroIcons.size, WorkspaceMacroIcons.fallback] {
+        for side in MacroIconChunks.fallbackChain(size: size) {
             guard let png = WorkspaceMacroIcons.encode(image, side: side) else { return nil }
-            if png.count <= MacroIconChunks.maxBytes {
+            if png.count <= MacroIconChunks.maxBytes(size: side) {
                 return png
             }
         }
-        Log.write("Macro icon from \(path) is too large even at \(WorkspaceMacroIcons.fallback) px and was not sent")
+        Log.write("Macro icon from \(path) is too large even at 64 px and was not sent")
         return nil
     }
 
