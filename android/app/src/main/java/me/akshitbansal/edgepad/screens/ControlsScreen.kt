@@ -31,13 +31,13 @@ class ControlsScreen(
     /** The screens a tile can open. The order here is the order of a deck nobody has arranged. */
     enum class Target(
         val label: Int,
-        val icon: Int,
+        val icon: StencilIcon.Kind,
     ) {
-        KEYBOARD(R.string.controls_keyboard, R.drawable.ic_keyboard),
-        GAMEPAD(R.string.controls_gamepad, R.drawable.ic_gamepad_2),
-        MACROS(R.string.controls_macros, R.drawable.ic_macro),
-        CAPTURE(R.string.controls_capture, R.drawable.ic_scan),
-        ANNOTATE(R.string.controls_annotate, R.drawable.ic_pen),
+        KEYBOARD(R.string.controls_keyboard, StencilIcon.Kind.KEYBOARD),
+        GAMEPAD(R.string.controls_gamepad, StencilIcon.Kind.GAMEPAD),
+        MACROS(R.string.controls_macros, StencilIcon.Kind.MACROS),
+        CAPTURE(R.string.controls_capture, StencilIcon.Kind.CAPTURE),
+        ANNOTATE(R.string.controls_annotate, StencilIcon.Kind.ANNOTATE),
     }
 
     private val page =
@@ -74,10 +74,6 @@ class ControlsScreen(
             spoken = R.string.controls_open,
         )
 
-    /** The target's icon in the ink colour, its own copy so tinting it leaves the shared drawable alone. */
-    private fun picture(target: Target): Drawable? {
-        val icon = ui.context.getDrawable(target.icon)?.mutate()
-        icon?.setTint(ui.palette.ink)
-        return icon
-    }
+    /** The target's stencil icon, in the ink and accent of the palette so a changed accent follows. */
+    private fun picture(target: Target): Drawable = StencilIcon(target.icon, ui.palette.ink, ui.palette.accent)
 }
