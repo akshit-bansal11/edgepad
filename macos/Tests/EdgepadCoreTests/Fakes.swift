@@ -183,6 +183,37 @@ final class FakeLauncher: MacroLauncher {
     }
 }
 
+/// A desktop that writes each action down and answers whatever the test set.
+final class FakeWindows: MacroWindows {
+    var available = true
+    var acts = true
+    var state: (Macro) -> OpenState = { _ in .closed }
+    private(set) var calls: [String] = []
+    private(set) var surveys = 0
+
+    func survey(_ macros: [Macro]) -> [OpenState] {
+        surveys += 1
+        return macros.map(state)
+    }
+
+    func minimize(_ macro: Macro) -> Bool {
+        record("minimize \(macro.name)")
+    }
+
+    func raise(_ macro: Macro) -> Bool {
+        record("raise \(macro.name)")
+    }
+
+    func close(_ macro: Macro) -> Bool {
+        record("close \(macro.name)")
+    }
+
+    private func record(_ call: String) -> Bool {
+        calls.append(call)
+        return acts
+    }
+}
+
 final class FakeIcons: MacroIconSource {
     var bytes: [UInt8]?
 

@@ -13,6 +13,8 @@ public final class Session {
     public static let helloTimeoutSeconds: TimeInterval = 10
     /// How long a phone has to answer each PIN_REQUEST: the same minute the owner gets for the trust question.
     public static let pinTimeoutSeconds: TimeInterval = 60
+    /// How often the macro apps are surveyed while the phone's grid is open.
+    private static let macroSurveySeconds: TimeInterval = 1
 
     private enum Stage {
         case hello
@@ -53,8 +55,15 @@ public final class Session {
     /// Runs one macro icon's turn. The main queue by default, so frames that arrive meanwhile are read between
     /// icons rather than after all of them. Tests pass `{ $0() }` so the icons follow `receive` directly.
     private let schedule: (@escaping () -> Void) -> Void
+    /// Runs the macro survey's next tick after a delay, once. Tests hold the ticks and fire them by hand.
+    private let scheduleAfter: (TimeInterval, @escaping () -> Void) -> Void
     /// Which icon run may still send: each WANT_ICONS moves it on, and a run that sees it moved stops.
     private var iconRun = 0
+    /// Which macro watch may still survey: MACROS_WATCH and MACROS_UNWATCH move it on, and a tick that sees it moved
+    /// stops.
+    private var macroSurveyRun = 0
+    /// The states the phone was last told, so it hears only a change.
+    private var lastMacroOpen: String?
 
     private var reader = FrameReader()
 
@@ -91,7 +100,10 @@ public final class Session {
         onStatus: @escaping (String) -> Void,
         onAdmitted: @escaping (Session) -> Bool,
         onEnded: @escaping (Session) -> Void,
-        schedule: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) }
+        schedule: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) },
+        scheduleAfter: @escaping (TimeInterval, @escaping () -> Void) -> Void = { seconds, work in
+            DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: work)
+        }
     ) {
         self.address = address
         self.transport = transport
@@ -110,6 +122,7 @@ public final class Session {
         self.onAdmitted = onAdmitted
         self.onEnded = onEnded
         self.schedule = schedule
+        self.scheduleAfter = scheduleAfter
     }
 
     /// Bytes from the phone, in arrival order.
@@ -161,6 +174,7 @@ public final class Session {
         ended.cancel()
         input.releaseAll()
         dispatcher.padStatusReply = nil
+        dispatcher.macroWatch = nil
         macroWatch?.cancel()
         macroWatch = nil
         // The overlay goes with the session: a phone that vanishes mid-drawing must leave no layer on the screen.
@@ -413,6 +427,10 @@ public final class Session {
             }
             annotation.screenSizeChanged = { [weak self] in self?.sendScreenSize() }
         }
+        if dispatcher.macros?.seesApps == true {
+            features.append(Feature.running.rawValue)
+            dispatcher.macroWatch = { [weak self] open in self?.watchMacroApps(open) }
+        }
         send(.text(kind: TextKind.features.rawValue, value: features.joined(separator: "/")))
         sendScreenSize()
 
@@ -426,6 +444,26 @@ public final class Session {
         } else {
             send(.text(kind: TextKind.macros.rawValue, value: ""))
         }
+    }
+
+    /// The phone's macro grid opened or closed. Each opening hears the state afresh, whatever was last sent.
+    private func watchMacroApps(_ open: Bool) {
+        macroSurveyRun += 1
+        lastMacroOpen = nil
+        if open {
+            surveyMacroApps(run: macroSurveyRun)
+        }
+    }
+
+    /// One survey, one send if it changed anything, and the next tick. `end()` stops it through `isEnded`.
+    private func surveyMacroApps(run: Int) {
+        guard !isEnded, run == macroSurveyRun, let macros = dispatcher.macros else { return }
+        let states = macros.openStates()
+        if states != lastMacroOpen {
+            lastMacroOpen = states
+            send(.text(kind: TextKind.macroOpen.rawValue, value: states))
+        }
+        scheduleAfter(Session.macroSurveySeconds) { [weak self] in self?.surveyMacroApps(run: run) }
     }
 
     /// Every macro icon the app can supply, one icon per scheduled turn and none inline: the phone asks as soon as

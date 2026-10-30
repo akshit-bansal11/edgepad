@@ -112,6 +112,31 @@ public protocol MacroLauncher: AnyObject {
     func launch(target: String, arguments: String?) -> Bool
 }
 
+/// What a macro's app is doing on this Mac right now. The raw value is the character the phone reads.
+public enum OpenState: Character {
+    /// Nothing this Mac can follow: a URL, a folder, a document, anything that is not an application bundle.
+    case untracked = "-"
+    case closed = "0"
+    case open = "1"
+    case front = "2"
+}
+
+/// The running apps macros open: the OS-specific part of the toggle and the close cross. Every call takes a `Macro`
+/// out of this Mac's own list: the phone names a slot, and no string of its ever reaches a match, a raise or a close.
+/// Main thread only, like the launcher; the store's default scheduler is what puts it there.
+public protocol MacroWindows: AnyObject {
+    /// False where this desktop cannot be surveyed at all: no crosses on the phone, and a press just launches.
+    var available: Bool { get }
+    /// One state per macro, in order, from one pass over the desktop.
+    func survey(_ macros: [Macro]) -> [OpenState]
+    /// Hides the macro's app. False when it did not act.
+    func minimize(_ macro: Macro) -> Bool
+    /// Brings the macro's app to the front, unhiding it if need be. False when it did not act.
+    func raise(_ macro: Macro) -> Bool
+    /// Asks the macro's app to quit, so it may ask to save. Never a kill. False when it did not act.
+    func close(_ macro: Macro) -> Bool
+}
+
 /// The picture a macro button shows, as PNG bytes, or nil when none can be had. Behind a seam so the store and the
 /// chunker stay free of AppKit.
 public protocol MacroIconSource: AnyObject {

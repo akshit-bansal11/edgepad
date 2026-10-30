@@ -36,11 +36,11 @@ final class DispatcherTests: XCTestCase {
         XCTAssertEqual(dispatcher.dropped, 1)
     }
 
-    private func macroStore(launcher: FakeLauncher, names: [String]) -> MacroStore {
+    private func macroStore(launcher: FakeLauncher, names: [String], windows: FakeWindows? = nil) -> MacroStore {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("edgepad-dispatch-\(UUID())")
         addTeardownBlock { try? FileManager.default.removeItem(at: folder) }
         let path = folder.appendingPathComponent("macros.txt").path
-        let store = MacroStore(path: path, launcher: launcher, schedule: { $0() })
+        let store = MacroStore(path: path, launcher: launcher, windows: windows, schedule: { $0() })
         store.save(names.map { Macro(name: $0, target: $0 + ".app") })
         return store
     }
@@ -70,6 +70,61 @@ final class DispatcherTests: XCTestCase {
         dispatcher.handle(.runAction(id: ActionId.macroBase.rawValue - 1))
 
         XCTAssertEqual(dispatcher.dropped, 1)
+    }
+
+    func testACloseSlotClosesTheMacroInThatSlotAndLaunchesNothing() {
+        let launcher = FakeLauncher()
+        let windows = FakeWindows()
+        dispatcher.macros = macroStore(launcher: launcher, names: ["Mail", "Code"], windows: windows)
+
+        dispatcher.handle(.runAction(id: ActionId.macroCloseBase.rawValue + 1))
+
+        XCTAssertEqual(windows.calls, ["close Code"])
+        XCTAssertEqual(launcher.launched, [])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testTheLastCloseSlotIsTheLastMacroAndOnePastItIsDropped() {
+        let windows = FakeWindows()
+        let names = (0..<MacroStore.maxMacros).map { "M\($0)" }
+        dispatcher.macros = macroStore(launcher: FakeLauncher(), names: names, windows: windows)
+        let last = ActionId.macroCloseBase.rawValue + UInt8(MacroStore.maxMacros) - 1
+
+        dispatcher.handle(.runAction(id: last))
+        dispatcher.handle(.runAction(id: last + 1))
+
+        XCTAssertEqual(windows.calls, ["close M14"])
+        XCTAssertEqual(dispatcher.dropped, 1)
+    }
+
+    func testACloseOnAnEmptySlotOrWithNoStoreIsDropped() {
+        dispatcher.handle(.runAction(id: ActionId.macroCloseBase.rawValue))
+        XCTAssertEqual(dispatcher.dropped, 1)
+
+        let windows = FakeWindows()
+        dispatcher.macros = macroStore(launcher: FakeLauncher(), names: ["Mail"], windows: windows)
+        dispatcher.handle(.runAction(id: ActionId.macroCloseBase.rawValue + 1))
+
+        XCTAssertEqual(windows.calls, [])
+        XCTAssertEqual(dispatcher.dropped, 2)
+    }
+
+    func testTheMacroWatchIsToldWhenTheGridOpensAndCloses() {
+        var told: [Bool] = []
+        dispatcher.macroWatch = { told.append($0) }
+
+        dispatcher.handle(.runAction(id: ActionId.macrosWatch.rawValue))
+        dispatcher.handle(.runAction(id: ActionId.macrosUnwatch.rawValue))
+
+        XCTAssertEqual(told, [true, false])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testTheMacroWatchActionsAreDroppedWithNoWatch() {
+        dispatcher.handle(.runAction(id: ActionId.macrosWatch.rawValue))
+        dispatcher.handle(.runAction(id: ActionId.macrosUnwatch.rawValue))
+
+        XCTAssertEqual(dispatcher.dropped, 2)
     }
 
     func testAnUnknownMouseButtonIsDropped() {

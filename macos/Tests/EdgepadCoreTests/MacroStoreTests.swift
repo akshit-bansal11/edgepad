@@ -21,6 +21,13 @@ final class MacroStoreTests: XCTestCase {
         MacroStore(path: macrosPath, launcher: launcher, icons: icons, schedule: { $0() })
     }
 
+    private func storeWith(_ windows: FakeWindows, launcher: FakeLauncher = FakeLauncher()) -> MacroStore {
+        let store = MacroStore(
+            path: macrosPath, launcher: launcher, windows: windows, schedule: { $0() }, delay: { _, work in work() })
+        store.save([Macro(name: "One", target: "one.app"), Macro(name: "Two", target: "two.app", arguments: "-x")])
+        return store
+    }
+
     private func writeFile(_ lines: [String]) throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         try lines.map { $0 + "\n" }.joined().write(toFile: macrosPath, atomically: true, encoding: .utf8)
@@ -342,5 +349,227 @@ final class MacroStoreTests: XCTestCase {
 
     func testNoBytesMeansNoFramesRatherThanOneEmptyOne() {
         XCTAssertEqual(MacroIconChunks.chunks(slot: 0, png: []), [])
+    }
+
+    // The toggle: the cases of the core's MacroStoreTests, against a fake desktop.
+
+    func testAnAppInFrontIsMinimizedAndNeverLaunched() {
+        let windows = FakeWindows()
+        windows.state = { _ in .front }
+        let launcher = FakeLauncher()
+
+        XCTAssertTrue(storeWith(windows, launcher: launcher).run(1))
+
+        XCTAssertEqual(windows.calls, ["minimize Two"])
+        XCTAssertEqual(launcher.launched, [])
+    }
+
+    func testAnAppBehindOthersIsRaisedAndNeverLaunched() {
+        let windows = FakeWindows()
+        windows.state = { _ in .open }
+        let launcher = FakeLauncher()
+
+        XCTAssertTrue(storeWith(windows, launcher: launcher).run(0))
+
+        XCTAssertEqual(windows.calls, ["raise One"])
+        XCTAssertEqual(launcher.launched, [])
+    }
+
+    func testAClosedAppLaunches() {
+        let windows = FakeWindows()
+        let launcher = FakeLauncher()
+
+        XCTAssertTrue(storeWith(windows, launcher: launcher).run(1))
+
+        XCTAssertEqual(launcher.launched, ["two.app|-x"])
+        XCTAssertEqual(windows.calls, [])
+    }
+
+    func testAnUntrackedTargetLaunchesAndIsNotFollowed() {
+        let windows = FakeWindows()
+        windows.state = { _ in .untracked }
+        let launcher = FakeLauncher()
+
+        XCTAssertTrue(storeWith(windows, launcher: launcher).run(0))
+
+        XCTAssertEqual(launcher.launched, ["one.app|-"])
+        XCTAssertEqual(windows.surveys, 1)
+    }
+
+    func testAMacThatCannotSeeAppsNeverSurveysAndLaunches() {
+        let windows = FakeWindows()
+        windows.available = false
+        windows.state = { _ in .front }
+        let launcher = FakeLauncher()
+
+        XCTAssertTrue(storeWith(windows, launcher: launcher).run(0))
+
+        XCTAssertEqual(windows.surveys, 0)
+        XCTAssertEqual(launcher.launched, ["one.app|-"])
+    }
+
+    func testAMinimizeThatDidNotActFallsThroughToALaunch() {
+        let windows = FakeWindows()
+        windows.state = { _ in .front }
+        windows.acts = false
+        let launcher = FakeLauncher()
+
+        XCTAssertTrue(storeWith(windows, launcher: launcher).run(0))
+
+        XCTAssertEqual(windows.calls, ["minimize One"])
+        XCTAssertEqual(launcher.launched, ["one.app|-"])
+    }
+
+    func testARaiseThatDidNotActFallsThroughToALaunch() {
+        let windows = FakeWindows()
+        windows.state = { _ in .open }
+        windows.acts = false
+        let launcher = FakeLauncher()
+
+        XCTAssertTrue(storeWith(windows, launcher: launcher).run(0))
+
+        XCTAssertEqual(windows.calls, ["raise One"])
+        XCTAssertEqual(launcher.launched, ["one.app|-"])
+    }
+
+    func testALaunchFromClosedRaisesAnAppThatComesUpBehind() {
+        let windows = FakeWindows()
+        var surveys = 0
+        windows.state = { _ in
+            surveys += 1
+            return surveys == 1 ? .closed : .open
+        }
+        let launcher = FakeLauncher()
+
+        XCTAssertTrue(storeWith(windows, launcher: launcher).run(0))
+
+        XCTAssertEqual(launcher.launched, ["one.app|-"])
+        XCTAssertEqual(windows.calls, ["raise One"])
+    }
+
+    func testALaunchThatFailedIsNotFollowed() {
+        let windows = FakeWindows()
+        let launcher = FakeLauncher()
+        launcher.accepts = false
+
+        XCTAssertTrue(storeWith(windows, launcher: launcher).run(0))
+
+        XCTAssertEqual(windows.surveys, 1)
+    }
+
+    func testCloseActsOnTheMacroInThatSlotAndLaunchesNothing() {
+        let windows = FakeWindows()
+        let launcher = FakeLauncher()
+
+        XCTAssertTrue(storeWith(windows, launcher: launcher).close(1))
+
+        XCTAssertEqual(windows.calls, ["close Two"])
+        XCTAssertEqual(launcher.launched, [])
+    }
+
+    func testCloseRefusesABadSlotAndAMacWithoutWindows() {
+        let windows = FakeWindows()
+        let store = storeWith(windows)
+        let blind = FakeWindows()
+        blind.available = false
+
+        XCTAssertFalse(store.close(-1))
+        XCTAssertFalse(store.close(2))
+        XCTAssertFalse(storeWith(blind).close(0))
+        XCTAssertFalse(newStore().close(0))
+        XCTAssertEqual(windows.calls, [])
+        XCTAssertEqual(blind.calls, [])
+    }
+
+    func testOpenStatesAreOneWireCharacterPerSlot() {
+        let windows = FakeWindows()
+        let store = storeWith(windows)
+        let states: [String: OpenState] = ["One": .untracked, "Two": .closed, "Three": .open, "Four": .front]
+        windows.state = { states[$0.name] ?? .closed }
+        store.save(["One", "Two", "Three", "Four"].map { Macro(name: $0, target: $0 + ".app") })
+
+        XCTAssertEqual(store.openStates(), "-012")
+    }
+
+    func testOnlyAMacThatCanSeeAppsSaysSo() {
+        let blind = FakeWindows()
+        blind.available = false
+
+        XCTAssertTrue(storeWith(FakeWindows()).seesApps)
+        XCTAssertFalse(storeWith(blind).seesApps)
+        XCTAssertFalse(newStore().seesApps)
+        XCTAssertEqual(newStore().openStates(), "")
+    }
+
+    func testWindowActionsNeverTouchTheFile() throws {
+        let windows = FakeWindows()
+        windows.state = { _ in .front }
+        let store = storeWith(windows)
+        let before = try fileLines()
+
+        _ = store.run(0)
+        windows.state = { _ in .open }
+        _ = store.run(1)
+        windows.state = { _ in .closed }
+        _ = store.run(0)
+        _ = store.close(1)
+
+        XCTAssertEqual(try fileLines(), before)
+    }
+
+    func testAnAppThatComesUpInFrontIsNeverRaised() {
+        var states: [OpenState] = [.closed, .front]
+        var raises = 0
+        var logged: [String] = []
+
+        MacroLaunchFollow.run(
+            survey: { states.removeFirst() },
+            raise: {
+                raises += 1
+                return true
+            },
+            delay: { _, work in work() },
+            log: { logged.append($0) })
+
+        XCTAssertEqual(raises, 0)
+        XCTAssertEqual(logged.count, 1)
+        XCTAssertTrue(logged[0].contains("in front: true, raised: false"))
+    }
+
+    func testAnAppThatComesUpBehindIsRaisedOnce() {
+        var states: [OpenState] = [.closed, .closed, .open, .open]
+        var raises = 0
+        var logged: [String] = []
+
+        MacroLaunchFollow.run(
+            survey: { states.removeFirst() },
+            raise: {
+                raises += 1
+                return true
+            },
+            delay: { _, work in work() },
+            log: { logged.append($0) })
+
+        XCTAssertEqual(raises, 1)
+        XCTAssertEqual(logged.count, 1)
+        XCTAssertTrue(logged[0].contains("in front: false, raised: true"))
+    }
+
+    func testAnAppThatNeverComesUpEndsTheFollowAndSaysSo() {
+        var delays = 0
+        var logged: [String] = []
+
+        MacroLaunchFollow.run(
+            survey: { .closed },
+            raise: { true },
+            delay: { _, work in
+                delays += 1
+                work()
+            },
+            log: { logged.append($0) })
+
+        XCTAssertGreaterThan(delays, 0)
+        XCTAssertEqual(logged.count, 1)
+        XCTAssertTrue(logged[0].contains("not running"))
     }
 }

@@ -27,7 +27,8 @@ final class SessionHost {
     private let brightness = DisplayBrightness()
     private let display = DisplayModes()
     /// One list for every connection, and for the owner's editor, so a saved change reaches each phone's session.
-    let macros = MacroStore.forCurrentUser(launcher: WorkspaceMacroLauncher(), icons: WorkspaceMacroIcons())
+    let macros = MacroStore.forCurrentUser(
+        launcher: WorkspaceMacroLauncher(), icons: WorkspaceMacroIcons(), windows: WorkspaceMacroWindows())
 
     private var pollTimer: Timer?
     private var quietUntil: TimeInterval?

@@ -32,6 +32,8 @@ final class SessionTests: XCTestCase {
     /// False runs each icon turn as soon as it is scheduled; true holds them here until `runIconTurns`.
     private var holdsIcons = false
     private var iconTurns: [() -> Void] = []
+    /// The macro survey's next ticks, as the session armed them, fired by hand.
+    private var watchTicks: [(seconds: TimeInterval, tick: () -> Void)] = []
 
     private lazy var trust = TrustStore(path: directory.appendingPathComponent("trust").path)
     /// One iteration, as in PinStoreTests: the real work factor would take most of a second per answer.
@@ -80,7 +82,8 @@ final class SessionTests: XCTestCase {
             schedule: { [weak self] turn in
                 guard let self, self.holdsIcons else { return turn() }
                 self.iconTurns.append(turn)
-            }
+            },
+            scheduleAfter: { [weak self] seconds, tick in self?.watchTicks.append((seconds, tick)) }
         )
     }
 
@@ -489,10 +492,106 @@ final class SessionTests: XCTestCase {
         XCTAssertFalse(session.isEnded)
     }
 
-    private func macroStore(icons: MacroIconSource? = nil) -> MacroStore {
-        let store = MacroStore(path: directory.appendingPathComponent("macros.txt").path, icons: icons)
+    private func macroStore(icons: MacroIconSource? = nil, windows: MacroWindows? = nil) -> MacroStore {
+        let path = directory.appendingPathComponent("macros.txt").path
+        let store = MacroStore(path: path, icons: icons, windows: windows)
         dispatcher.macros = store
         return store
+    }
+
+    /// The tick armed last, as the timer would fire it.
+    private func fireWatchTick() {
+        let ticks = watchTicks
+        watchTicks = []
+        for armed in ticks {
+            armed.tick()
+        }
+    }
+
+    private func macroOpenTexts() -> [String] {
+        transport.frames().compactMap { frame -> String? in
+            guard case .text(let kind, let value) = frame, kind == TextKind.macroOpen.rawValue else { return nil }
+            return value
+        }
+    }
+
+    private func watchFrame(_ action: ActionId) -> [UInt8] {
+        FrameCodec.encode(.runAction(id: action.rawValue))
+    }
+
+    func testRunningIsNamedOnlyWhereThisMacCanSeeApps() {
+        _ = macroStore(windows: FakeWindows())
+        _ = connectedSession()
+
+        XCTAssertTrue(transport.frames().contains(.text(kind: TextKind.features.rawValue, value: "capture/running")))
+    }
+
+    func testRunningIsNotNamedWhereThisMacCannotSeeApps() {
+        let windows = FakeWindows()
+        windows.available = false
+        _ = macroStore(windows: windows)
+        let session = connectedSession()
+
+        session.receive(watchFrame(.macrosWatch))
+
+        XCTAssertTrue(transport.frames().contains(.text(kind: TextKind.features.rawValue, value: "capture")))
+        XCTAssertEqual(macroOpenTexts(), [])
+        XCTAssertEqual(dispatcher.dropped, 1)
+    }
+
+    func testTheWatchSendsOneCharacterPerSlotAtOnceAndOnlyAChangeAfter() {
+        let windows = FakeWindows()
+        windows.state = { $0.name == "Mail" ? .front : .closed }
+        let store = macroStore(windows: windows)
+        store.save([Macro(name: "Mail", target: "Mail.app"), Macro(name: "Code", target: "Code.app")])
+        let session = connectedSession()
+        XCTAssertEqual(macroOpenTexts(), [])
+
+        session.receive(watchFrame(.macrosWatch))
+        XCTAssertEqual(macroOpenTexts(), ["20"])
+        XCTAssertEqual(watchTicks.map { $0.seconds }, [1])
+
+        fireWatchTick()
+        XCTAssertEqual(macroOpenTexts(), ["20"])
+
+        windows.state = { _ in .open }
+        fireWatchTick()
+        XCTAssertEqual(macroOpenTexts(), ["20", "11"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testUnwatchStopsTheSurveyAndAWatchHearsTheStateAfresh() {
+        let windows = FakeWindows()
+        let store = macroStore(windows: windows)
+        store.save([Macro(name: "Mail", target: "Mail.app")])
+        let session = connectedSession()
+        session.receive(watchFrame(.macrosWatch))
+
+        session.receive(watchFrame(.macrosUnwatch))
+        windows.state = { _ in .open }
+        fireWatchTick()
+        XCTAssertEqual(macroOpenTexts(), ["0"])
+        XCTAssertTrue(watchTicks.isEmpty)
+
+        windows.state = { _ in .closed }
+        session.receive(watchFrame(.macrosWatch))
+        XCTAssertEqual(macroOpenTexts(), ["0", "0"])
+    }
+
+    func testAnEndedSessionSurveysNoMore() {
+        let windows = FakeWindows()
+        let store = macroStore(windows: windows)
+        store.save([Macro(name: "Mail", target: "Mail.app")])
+        let session = connectedSession()
+        session.receive(watchFrame(.macrosWatch))
+        session.end()
+        let surveys = windows.surveys
+
+        fireWatchTick()
+
+        XCTAssertEqual(windows.surveys, surveys)
+        XCTAssertTrue(watchTicks.isEmpty)
+        XCTAssertNil(dispatcher.macroWatch)
     }
 
     func testTheMacroNamesAreSentAtTheHandshakeAndAgainWhenTheyChange() {

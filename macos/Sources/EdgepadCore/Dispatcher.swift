@@ -36,6 +36,10 @@ public final class Dispatcher {
     /// A property for the same reason as `annotation`: the session reads it too.
     public var macros: MacroStore?
 
+    /// Told when the phone's macro grid opens (true) and closes (false). Set by the session on a Mac that can see
+    /// apps, like `padStatusReply`; without one, MACROS_WATCH and MACROS_UNWATCH are dropped and counted.
+    public var macroWatch: ((Bool) -> Void)?
+
     /// Sends captures to the phone when it asks for that. Set by the app per connection; without one,
     /// CAPTURE_TARGET and FILE_RESULT are dropped and counted.
     public var capture: CaptureToPhone?
@@ -147,6 +151,11 @@ public final class Dispatcher {
         if (macroStart..<(macroStart + ActionId.macroSlots)).contains(Int(id)) {
             return macros?.run(Int(id) - macroStart) ?? false
         }
+        // The close block on the same terms: a slot, and this Mac decides what that slot is.
+        let closing = Int(id) - Int(ActionId.macroCloseBase.rawValue)
+        if (0..<MacroStore.maxMacros).contains(closing) {
+            return macros?.close(closing) ?? false
+        }
         guard let action = ActionId(rawValue: id) else { return false }
 
         switch action {
@@ -170,11 +179,14 @@ public final class Dispatcher {
         case .search:
             // Spotlight.
             input.chord([.command, .space])
-        case .notifications, .macroBase, .appsList, .appsCancel, .macrosWatch, .macrosUnwatch, .macroCloseBase:
-            // Notifications: macOS has no default shortcut for it. The macro block is handled before this
-            // switch; the case is here only so the switch stays exhaustive. The app list is not built on the Mac
+        case .notifications, .macroBase, .appsList, .appsCancel, .macroCloseBase:
+            // Notifications: macOS has no default shortcut for it. The macro blocks are handled before this
+            // switch; their cases are here only so the switch stays exhaustive. The app list is not built on the Mac
             // yet, so its two actions are dropped and counted.
             return false
+        case .macrosWatch, .macrosUnwatch:
+            guard let macroWatch else { return false }
+            macroWatch(action == .macrosWatch)
         case .annotateBegin, .annotateEnd, .annotateUndo, .annotateClear, .toolPen, .toolHighlighter, .toolLine,
             .toolArrow, .toolRectangle, .toolEllipse, .signBegin, .signSave:
             // With no overlay behind them these are dropped, which is the honest answer.

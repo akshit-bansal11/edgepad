@@ -33,6 +33,9 @@ public struct Macro: Equatable {
 /// anything through KEY and TEXT, so it is a trusted input device, and the trust boundary is the pairing, not this
 /// list.
 ///
+/// The same applies to `close`: a slot, never a name. The phone cannot choose which app a press hides, raises or
+/// closes; this Mac decides that from the macro in the slot.
+///
 /// The file is plain tab-separated text: one macro per line, name, target, arguments, and an icon path only when
 /// there is one. Not JSON: a format a human can fix in a text editor is worth more here than one a parser likes.
 ///
@@ -54,7 +57,9 @@ public final class MacroStore {
     private let path: String
     private let launcher: MacroLauncher?
     private let icons: MacroIconSource?
+    private let windows: MacroWindows?
     private let schedule: (@escaping () -> Void) -> Void
+    private let delay: (TimeInterval, @escaping () -> Void) -> Void
     private let gate = NSLock()
     private var watchers: [Int: (String) -> Void] = [:]
     private var nextWatcher = 0
@@ -63,23 +68,31 @@ public final class MacroStore {
 
     /// `launcher` and `icons` are nil in the core's own tests; the app supplies both. Without a launcher `run`
     /// starts nothing and says so. `schedule` runs a launch off the session's read thread; the main queue by default,
-    /// which is where AppKit wants it. Tests pass `{ $0() }` so an assertion can follow `run` directly.
+    /// which is where AppKit wants it. Tests pass `{ $0() }` so an assertion can follow `run` directly. Without
+    /// `windows`, a press launches and nothing more. `delay` paces the watch on a new app, so a test need not sleep.
     public init(
-        path: String, launcher: MacroLauncher? = nil, icons: MacroIconSource? = nil,
-        schedule: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) }
+        path: String, launcher: MacroLauncher? = nil, icons: MacroIconSource? = nil, windows: MacroWindows? = nil,
+        schedule: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) },
+        delay: @escaping (TimeInterval, @escaping () -> Void) -> Void = { seconds, work in
+            DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: work)
+        }
     ) {
         self.path = path
         self.launcher = launcher
         self.icons = icons
+        self.windows = windows
         self.schedule = schedule
+        self.delay = delay
         list = MacroStore.read(path)
     }
 
-    public static func forCurrentUser(launcher: MacroLauncher?, icons: MacroIconSource?) -> MacroStore {
+    public static func forCurrentUser(
+        launcher: MacroLauncher?, icons: MacroIconSource?, windows: MacroWindows?
+    ) -> MacroStore {
         let support =
             FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?.path
             ?? NSHomeDirectory() + "/Library/Application Support"
-        return MacroStore(path: support + "/Edgepad/macros.txt", launcher: launcher, icons: icons)
+        return MacroStore(path: support + "/Edgepad/macros.txt", launcher: launcher, icons: icons, windows: windows)
     }
 
     /// Where the macros are kept, for a message that has to send the owner there.
@@ -91,6 +104,9 @@ public final class MacroStore {
     /// Moves on with every list swap. A sender that spans several frames compares it before each one, so no frame
     /// of the old list can follow the new one to the phone, where it would land on whatever moved into its slot.
     public var revision: Int { locked { changes } }
+
+    /// Whether this Mac can tell which macro apps are running. The phone is told only when it can.
+    public var seesApps: Bool { windows?.available ?? false }
 
     /// Re-reads from disk, and tells anyone watching what came back.
     public func reload() {
@@ -130,22 +146,80 @@ public final class MacroStore {
     /// Starts `macros[index]` and returns at once. False when the index is out of range or there is no launcher. The
     /// launch runs on `schedule`, not on the caller's thread, which is the one reading the phone's frames. An index
     /// and nothing else: see the type's comment.
+    ///
+    /// Where this Mac can see apps the press is a toggle: an app in front is hidden, one that is open behind others
+    /// or hidden comes to the front, and anything else launches. Whatever could not be done also launches, because a
+    /// button that did nothing is the worse failure.
     public func run(_ index: Int) -> Bool {
         let current = macros
         // A phone with a longer list than this Mac has, an editor open on the Mac say, is not an error, just a
         // button that does nothing. The dispatcher counts it and carries on.
         guard current.indices.contains(index), let launcher else { return false }
         let macro = current[index]
-        schedule {
-            let began = DispatchTime.now().uptimeNanoseconds
-            if !launcher.launch(target: macro.target, arguments: macro.arguments) {
-                // A target that has been moved, deleted or renamed since it was added is the ordinary case.
-                Log.write("Macro \(index) (\(macro.name)) could not start \(macro.target)")
-            }
-            let milliseconds = (DispatchTime.now().uptimeNanoseconds - began) / 1_000_000
-            Log.write("Macro \(index) launch call returned in \(milliseconds) ms")
-        }
+        schedule { [self] in press(index, macro, launcher) }
         return true
+    }
+
+    /// Asks the app in `macros[index]` to quit, on the same terms as `run`: at once, on `schedule`, and from the slot
+    /// alone. False when the index is out of range or this Mac cannot see apps.
+    public func close(_ index: Int) -> Bool {
+        let current = macros
+        guard current.indices.contains(index), seesApps else { return false }
+        let macro = current[index]
+        schedule { [self] in act(index, macro, "close") { $0.close(macro) } }
+        return true
+    }
+
+    /// One character per macro, in order, as the phone reads them. Empty where this Mac cannot see apps.
+    public func openStates() -> String {
+        String((windows?.survey(macros) ?? []).map(\.rawValue))
+    }
+
+    private func press(_ index: Int, _ macro: Macro, _ launcher: MacroLauncher) {
+        let state = stateOf(macro)
+        let toggled: Bool
+        switch state {
+        case .front:
+            toggled = act(index, macro, "minimize") { $0.minimize(macro) }
+        case .open:
+            toggled = act(index, macro, "raise") { $0.raise(macro) }
+        case .untracked, .closed:
+            toggled = false
+        }
+        if toggled {
+            return
+        }
+
+        let began = DispatchTime.now().uptimeNanoseconds
+        let launched = launcher.launch(target: macro.target, arguments: macro.arguments)
+        let milliseconds = (DispatchTime.now().uptimeNanoseconds - began) / 1_000_000
+        if !launched {
+            // A target that has been moved, deleted or renamed since it was added is the ordinary case.
+            Log.write("Macro \(index) (\(macro.name)) could not start \(macro.target)")
+        }
+        guard launched, state == .closed else {
+            Log.write("Macro \(index) launch call returned in \(milliseconds) ms")
+            return
+        }
+        MacroLaunchFollow.run(
+            survey: { [self] in stateOf(macro) },
+            raise: { [self] in act(index, macro, "raise") { $0.raise(macro) } },
+            delay: delay,
+            log: { Log.write("Macro \(index) (\(macro.name)): launch call \(milliseconds) ms, \($0)") })
+    }
+
+    /// The app's state, or untracked when there is nothing to ask: a press with no answer still launches.
+    private func stateOf(_ macro: Macro) -> OpenState {
+        guard let windows, windows.available else { return .untracked }
+        return windows.survey([macro]).first ?? .untracked
+    }
+
+    /// One window action, logged. Whether it acted.
+    @discardableResult
+    private func act(_ index: Int, _ macro: Macro, _ what: String, _ action: (MacroWindows) -> Bool) -> Bool {
+        let acted = windows.map(action) ?? false
+        Log.write("Macro \(index) (\(macro.name)) \(what): \(acted ? "done" : "did not act")")
+        return acted
     }
 
     /// The picture for `macros[index]`, as PNG bytes, if the app can supply one small enough to send.
@@ -292,6 +366,46 @@ public final class MacroStore {
         // Through `clean` rather than straight out, so a hand-edited file is held to the same rules as an
         // editor's output, including the cap: a file with a thousand lines cannot become a thousand macros.
         return clean(read)
+    }
+}
+
+/// What happens after a launch call returns, which that call cannot say: when the app was running, and whether it
+/// came up in front. The log line is the measurement, for the owner to read. An app that arrives behind others is
+/// raised once, because one started in the background is not always allowed to take the front for itself.
+enum MacroLaunchFollow {
+    /// A count rather than a deadline, so a test with an instant delay ends instead of spinning out the clock.
+    private static let polls = 40
+    private static let every: TimeInterval = 0.25
+
+    /// Polls `survey` until the app is running or the polls run out. The time it logs counts from this call, which
+    /// is the launch call's return.
+    static func run(
+        survey: @escaping () -> OpenState,
+        raise: @escaping () -> Bool,
+        delay: @escaping (TimeInterval, @escaping () -> Void) -> Void,
+        log: @escaping (String) -> Void
+    ) {
+        let began = DispatchTime.now().uptimeNanoseconds
+        func elapsed() -> UInt64 {
+            (DispatchTime.now().uptimeNanoseconds - began) / 1_000_000
+        }
+        func poll(_ left: Int) {
+            let state = survey()
+            switch state {
+            case .open, .front:
+                let seen = elapsed()
+                let front = state == .front
+                let raised = !front && raise()
+                log("the app was running after \(seen) ms, in front: \(front), raised: \(raised)")
+            case .closed, .untracked:
+                if left > 1 {
+                    delay(every) { poll(left - 1) }
+                } else {
+                    log("the app was not running after \(elapsed()) ms")
+                }
+            }
+        }
+        poll(polls)
     }
 }
 
