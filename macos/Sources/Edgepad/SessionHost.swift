@@ -30,6 +30,10 @@ final class SessionHost {
     let macros = MacroStore.forCurrentUser(
         launcher: WorkspaceMacroLauncher(), icons: WorkspaceMacroIcons(), windows: WorkspaceMacroWindows())
 
+    /// The apps the phone may add as macros, listed afresh on each APPS_LIST. Its own icon cache: a list is many small
+    /// pictures, which would only push the grid's out of the one `macros` holds.
+    private let appCatalog = ApplicationsCatalog(icons: WorkspaceMacroIcons())
+
     /// One pasteboard for every connection, polled on the timer below. The sessions' clipboards are held weakly: a
     /// session that ended has already stopped its own.
     private let pasteboard = PasteboardSurface()
@@ -130,6 +134,8 @@ final class SessionHost {
         let clipboard = ClipboardSync(surface: pasteboard, sender: sender, allowed: { ClipboardSetting.enabled })
         dispatcher.clipboard = clipboard
         clipboards.add(clipboard)
+        // On the same sender, so a list and a clipboard copy queue behind one another: the phone holds one transfer.
+        dispatcher.apps = AppPicker(catalog: appCatalog, store: macros, sender: sender)
         let ask = askTrust
         let status = onStatus
         let session = Session(
