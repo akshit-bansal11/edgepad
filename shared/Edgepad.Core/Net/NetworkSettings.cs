@@ -7,10 +7,12 @@ namespace Edgepad.Net;
 internal sealed record NetworkConfig(bool Enabled, int Port);
 
 /// <summary>
-/// <c>network.txt</c>: <c>enabled=0|1</c> and <c>port=</c>. No file means on: phones found nothing while this was
-/// opt-in, and pairing still needs the code typed on the laptop. Read strictly, like <c>security.txt</c>: a file that
-/// cannot be read, or holds anything Edgepad would not have written, leaves the network link OFF (fail closed) and
-/// never changes the file, so the owner can see what is wrong. Bluetooth does not read this file.
+/// <c>network.txt</c>: <c>enabled=0|1</c> and <c>port=</c>. Nothing here ever means on without the file saying so: no
+/// file is off too. "On by default" is the first-launch question alone, put when <see cref="HasChoice"/> is false,
+/// because phones found nothing while the owner had to go looking for the switch. Read strictly, like
+/// <c>security.txt</c>: a file that cannot be read, or holds anything Edgepad would not have written, leaves the network
+/// link OFF (fail closed) and never changes the file, so the owner can see what is wrong. Bluetooth does not read this
+/// file.
 /// </summary>
 internal sealed class NetworkSettings(string path)
 {
@@ -19,15 +21,13 @@ internal sealed class NetworkSettings(string path)
 
     private static readonly NetworkConfig Off = new(false, DefaultPort);
 
-    private static readonly NetworkConfig Unset = new(true, DefaultPort);
-
     private readonly Lock gate = new();
 
     public static NetworkSettings ForCurrentUser(string directory) => new(Path.Combine(directory, "network.txt"));
 
     /// <summary>
     /// True once the file exists, whatever it holds: a choice has been saved, or something there needs the owner's
-    /// eye. A folder in its place counts, since that reads as off rather than as no file.
+    /// eye. False is the only reason to put the first-launch question. A folder in its place counts as there.
     /// </summary>
     public bool HasChoice => Path.Exists(path);
 
@@ -67,7 +67,7 @@ internal sealed class NetworkSettings(string path)
         }
         catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
         {
-            return Unset;
+            return Off;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {

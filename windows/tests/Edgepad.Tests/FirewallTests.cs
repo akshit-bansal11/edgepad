@@ -7,10 +7,10 @@ namespace Edgepad.Tests;
 public sealed class FirewallTests
 {
     [Fact]
-    public void TheRuleNamesThisExeQuotedForEveryProfile()
+    public void TheRuleNamesThisExeQuotedForEveryProfileButOnlyTheLocalSubnet()
     {
         Assert.Equal(
-            "advfirewall firewall add rule name=\"Edgepad\" dir=in action=allow program=\"C:\\Program Files\\Edgepad\\Edgepad.exe\" enable=yes profile=any",
+            "advfirewall firewall add rule name=\"Edgepad\" dir=in action=allow program=\"C:\\Program Files\\Edgepad\\Edgepad.exe\" enable=yes profile=any remoteip=localsubnet",
             Firewall.Arguments(@"C:\Program Files\Edgepad\Edgepad.exe"));
     }
 
@@ -31,7 +31,7 @@ public sealed class FirewallTests
 
         Assert.Equal(
             $"\"\"{netsh}\" advfirewall firewall delete rule name=all dir=in program=\"{exe}\" & "
-                + $"\"{netsh}\" advfirewall firewall add rule name=\"Edgepad\" dir=in action=allow program=\"{exe}\" enable=yes profile=any\"",
+                + $"\"{netsh}\" advfirewall firewall add rule name=\"Edgepad\" dir=in action=allow program=\"{exe}\" enable=yes profile=any remoteip=localsubnet\"",
             Firewall.CommandLine(exe));
     }
 

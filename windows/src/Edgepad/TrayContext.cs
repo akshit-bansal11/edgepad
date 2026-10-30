@@ -120,7 +120,7 @@ internal sealed class TrayContext : ApplicationContext
             startWithWindows.Checked = RunAtLogin.IsEnabled;
             forget.Enabled = trust.CanForget || pairedLinks.CanForget;
             securityRow.Hint = $"Level {pin.Level}";
-            networkRow.Checked = networkSettings.HasChoice && networkSettings.Load().Enabled;
+            networkRow.Checked = networkSettings.Load().Enabled;
             networkRow.Enabled = !allowingNetwork;
             networkRow.Hint = networkHint;
             firewallRow.Available = networkRow.Checked && !allowingNetwork;
@@ -381,9 +381,8 @@ internal sealed class TrayContext : ApplicationContext
             return;
         }
 
-        // No file reads as on, but on Windows that waits for the owner's answer, however the asking went.
         var config = networkSettings.Load();
-        if (!config.Enabled || !networkSettings.HasChoice)
+        if (!config.Enabled)
         {
             network.Stop();
             networkHint = "Off";

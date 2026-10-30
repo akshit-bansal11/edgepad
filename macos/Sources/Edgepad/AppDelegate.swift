@@ -74,7 +74,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         server = RfcommServer(host: host, onStatus: { [weak self] in self?.setStatus($0) })
         startServer()
 
-        // On unless the owner turned it off (network.txt); only a phone that proves itself is handed to the host.
+        // Off until the owner says yes (network.txt); only a phone that proves itself is handed to the host.
         network = NetworkServer(
             identity: LinkIdentity.forCurrentUser(name: Host.current().localizedName ?? "Mac"),
             paired: paired,
@@ -84,7 +84,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }),
             host: host,
             onPaired: { [weak self] in self?.setStatus("Paired with \($0)") })
-        applyNetwork()
+        if networkSettings.hasChoice {
+            applyNetwork()
+        } else {
+            // On the next turn, so launch finishes rather than waiting on the answer.
+            DispatchQueue.main.async { [weak self] in self?.askAboutNetwork() }
+        }
 
         checkForUpdate()
         Timer.scheduledTimer(withTimeInterval: UpdateCheck.every, repeats: true) { [weak self] _ in
@@ -331,25 +336,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     /// The Wi-Fi and USB switch. Turning it on says first what will happen, since macOS may ask about it; a no there
-    /// leaves it off. A setting that cannot be saved leaves things as they were.
+    /// leaves it off.
     @objc private func toggleNetwork() {
         let on = !networkSettings.load().enabled
-        if on {
-            let alert = NSAlert()
-            alert.messageText = "Wi-Fi and USB connections"
-            alert.informativeText =
-                "Phones on the same Wi-Fi will be able to find this Mac and ask to pair. Pairing needs you to type "
-                + "here the code the phone shows. macOS may ask whether Edgepad may find devices on your local "
-                + "network, and the firewall whether it may accept incoming connections: allow both. USB tethering "
-                + "needs a driver macOS does not include, so it is not supported on a Mac."
-            // Cancel is first, so it is the default: a stray Return turns nothing on.
-            alert.addButton(withTitle: "Cancel")
-            alert.addButton(withTitle: "Turn on")
-            NSApp.activate(ignoringOtherApps: true)
-            let answer = alert.runModal()
-            alert.window.orderOut(nil)
-            guard answer == .alertSecondButtonReturn else { return }
+        if on && !confirmNetwork(yes: "Turn on", no: "Cancel") {
+            return
         }
+        saveNetwork(on)
+    }
+
+    /// The first launch's one question. Nothing listens until it is answered, and either answer is saved, so it is
+    /// never asked again; the switch in the menu is the way back.
+    private func askAboutNetwork() {
+        saveNetwork(confirmNetwork(yes: "Allow", no: "Not Now"))
+    }
+
+    /// Says what turning this on will do. True only for `yes`.
+    private func confirmNetwork(yes: String, no: String) -> Bool {
+        let alert = NSAlert()
+        alert.messageText = "Wi-Fi and USB connections"
+        alert.informativeText =
+            "Phones on the same Wi-Fi will be able to find this Mac and ask to pair. Nothing connects without the "
+            + "code typed here. macOS may ask whether Edgepad may find devices on your local network, and the "
+            + "firewall whether it may accept incoming connections: allow both. USB tethering needs a driver macOS "
+            + "does not include, so it is not supported on a Mac."
+        // The no is first, so it is the default: a stray Return turns nothing on.
+        alert.addButton(withTitle: no)
+        alert.addButton(withTitle: yes)
+        NSApp.activate(ignoringOtherApps: true)
+        let answer = alert.runModal()
+        alert.window.orderOut(nil)
+        return answer == .alertSecondButtonReturn
+    }
+
+    /// Saves the owner's answer and acts on it. A setting that cannot be saved leaves things as they were.
+    private func saveNetwork(_ on: Bool) {
         guard networkSettings.setEnabled(on) else {
             let failure = NSAlert()
             failure.alertStyle = .critical

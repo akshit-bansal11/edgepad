@@ -6,9 +6,10 @@ namespace Edgepad.Network;
 /// <summary>
 /// One inbound rule for this exe on every network profile, added behind Windows' own elevation prompt. The rule names
 /// the program, not a port, so it covers the TCP listener and mDNS on UDP 5353 alike, and a port the listener fell back
-/// to. Inbound rules already naming this exe go first, because an allow rule cannot beat the block rule a dismissed
-/// Windows prompt leaves. System32's <c>cmd.exe</c> is what gets elevated, never this exe: a DLL planted beside it, in
-/// Downloads for example, must never load elevated.
+/// to. It takes only addresses on this laptop's own subnets, on every profile: a laptop with a routable address must not
+/// expose the pairing port beyond its own networks. Inbound rules already naming this exe go first, because an allow
+/// rule cannot beat the block rule a dismissed Windows prompt leaves. System32's <c>cmd.exe</c> is what gets elevated,
+/// never this exe: a DLL planted beside it, in Downloads for example, must never load elevated.
 /// </summary>
 internal static class Firewall
 {
@@ -23,7 +24,7 @@ internal static class Firewall
     /// A path with a percent sign is refused too, because <c>cmd</c> would expand it.
     /// </summary>
     public static string Arguments(string exe) =>
-        $"advfirewall firewall add rule name=\"{RuleName}\" dir=in action=allow program=\"{Quotable(exe)}\" enable=yes profile=any";
+        $"advfirewall firewall add rule name=\"{RuleName}\" dir=in action=allow program=\"{Quotable(exe)}\" enable=yes profile=any remoteip=localsubnet";
 
     /// <summary>The arguments for <c>netsh</c> to delete every inbound rule naming this exe, allow or block.</summary>
     public static string DeleteArguments(string exe) =>

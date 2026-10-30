@@ -5,8 +5,9 @@ using Avalonia.Input;
 namespace Edgepad.Ui;
 
 /// <summary>
-/// The two message boxes Avalonia does not have. Both complete when the window closes, however it closes, and the
-/// safe answer is the default one: Escape, the close button and a stray Enter all choose "No". Call on the UI thread.
+/// The message boxes Avalonia does not have. Each completes when the window closes, however it closes, and the safe
+/// answer is the default one: a stray Enter chooses "No", and so do Escape and the close button except in
+/// <see cref="Ask"/>, where they choose nothing. Call on the UI thread.
 /// </summary>
 internal static class Dialogs
 {
@@ -21,7 +22,26 @@ internal static class Dialogs
         var window = look.Dialog("Edgepad", 440, Body(look, question, Look.Footer(noButton, yesButton)));
         yesButton.Click += (_, _) => Finish(window, answer, true);
         noButton.Click += (_, _) => Finish(window, answer, false);
-        Present(window, owner, answer, noButton);
+        Present(window, owner, answer, false, noButton);
+        return answer.Task;
+    }
+
+    /// <summary>
+    /// Asks a question whose answer is kept for good, so going away is not an answer: true for <paramref name="yes"/>,
+    /// false for <paramref name="no"/>, null when the window closed some other way.
+    /// </summary>
+    public static Task<bool?> Ask(string question, string yes, string no)
+    {
+        var look = Look.Current;
+        var answer = new TaskCompletionSource<bool?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var yesButton = look.Button(yes, primary: true);
+        var noButton = look.Button(no);
+        noButton.IsDefault = true;
+        var window = look.Dialog("Edgepad", 440, Body(look, question, Look.Footer(noButton, yesButton)));
+        window.Topmost = true;
+        yesButton.Click += (_, _) => Finish(window, answer, true);
+        noButton.Click += (_, _) => Finish(window, answer, false);
+        Present(window, null, answer, null, noButton);
         return answer.Task;
     }
 
@@ -34,7 +54,7 @@ internal static class Dialogs
         ok.IsDefault = true;
         var window = look.Dialog("Edgepad", 440, Body(look, message, Look.Footer(ok)));
         ok.Click += (_, _) => Finish(window, closed, true);
-        Present(window, owner, closed, ok);
+        Present(window, owner, closed, false, ok);
         return closed.Task;
     }
 
@@ -45,10 +65,10 @@ internal static class Dialogs
         Children = { look.Text(text, 14), footer },
     };
 
-    private static void Present(Window window, Window? owner, TaskCompletionSource<bool> result, Control focus)
+    private static void Present<T>(Window window, Window? owner, TaskCompletionSource<T> result, T otherwise, Control focus)
     {
-        // Closing any other way is a No, and finishes the task so nothing waits on a window that is gone.
-        window.Closed += (_, _) => result.TrySetResult(false);
+        // Closing any other way gives otherwise, and finishes the task so nothing waits on a window that is gone.
+        window.Closed += (_, _) => result.TrySetResult(otherwise);
         window.KeyDown += (_, e) =>
         {
             if (e.Key == Key.Escape)
@@ -71,11 +91,11 @@ internal static class Dialogs
         catch (Exception e)
         {
             Log.Write($"Could not open a dialog: {e.Message}");
-            result.TrySetResult(false);
+            result.TrySetResult(otherwise);
         }
     }
 
-    private static void Finish(Window window, TaskCompletionSource<bool> result, bool value)
+    private static void Finish<T>(Window window, TaskCompletionSource<T> result, T value)
     {
         result.TrySetResult(value);
         try

@@ -158,9 +158,9 @@ final class LinkStorageTests: XCTestCase {
         XCTAssertFalse(trust.admit("link:00") { true })
     }
 
-    func testNetworkSettingsAreOnWithNoFileAndFailClosed() throws {
+    func testNetworkSettingsAreOffUntilChosenAndFailClosed() throws {
         let settings = NetworkSettings(path: path("network.txt"))
-        XCTAssertTrue(settings.load().enabled)
+        XCTAssertFalse(settings.load().enabled)
         XCTAssertFalse(settings.hasChoice)
         XCTAssertEqual(settings.load().port, NetworkSettings.defaultPort)
 
@@ -185,6 +185,12 @@ final class LinkStorageTests: XCTestCase {
         let unreadable = NetworkSettings(path: path("folder.txt"))
         XCTAssertFalse(unreadable.load().enabled)
         XCTAssertTrue(unreadable.hasChoice)
+
+        // Neither a folder that is not there nor a link to nothing reads as on.
+        XCTAssertFalse(NetworkSettings(path: path("gone/network.txt")).load().enabled)
+        try FileManager.default.createSymbolicLink(
+            atPath: path("dangling.txt"), withDestinationPath: path("nothing.txt"))
+        XCTAssertFalse(NetworkSettings(path: path("dangling.txt")).load().enabled)
     }
 
     func testTheLinkIdIsMadeOnceAndKept() {

@@ -24,6 +24,11 @@ internal sealed class Shell : IDisposable
     /// </summary>
     private static readonly TimeSpan QuietAfterForget = TimeSpan.FromSeconds(30);
 
+    private static readonly string NetworkNotice =
+        "Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. "
+            + "Nothing connects without the code typed here. A firewall may block them: allow "
+            + $"{NetworkSettings.DefaultPort}/tcp and 5353/udp (docs/LINUX.md).";
+
     private readonly TrustStore trust;
     private readonly PinStore pin;
     private readonly string version;
@@ -72,7 +77,7 @@ internal sealed class Shell : IDisposable
     {
         server = bluetooth;
 
-        // On unless the owner turned it off (network.txt); only a phone that proves itself is handed to the server.
+        // Off until the owner says yes (network.txt); only a phone that proves itself is handed to the server.
         network = new NetworkServer(identity, paired, trust, pairing, link => _ = bluetooth.Accept(link), name => SetStatus($"Paired with {name}"), () => bluetooth.IsRefusing);
     }
 
@@ -150,6 +155,11 @@ internal sealed class Shell : IDisposable
 
         ready = true;
         ApplyNetwork();
+        if (!networkSettings.HasChoice)
+        {
+            // Posted, so the tray is up and running first.
+            Dispatcher.UIThread.Post(() => _ = Guard(AskAboutNetworkAsync));
+        }
 
         // The hidden overlay, the screen size and whether annotate is offered: only knowable once the UI is up.
         Annotator.StartUi();
@@ -278,22 +288,35 @@ internal sealed class Shell : IDisposable
 
     /// <summary>
     /// The Wi-Fi and USB switch. Turning it on says first what will happen, since a firewall may block it; a no there
-    /// leaves it off. A setting that cannot be saved leaves things as they were.
+    /// leaves it off.
     /// </summary>
     private async Task ToggleNetworkAsync()
     {
         var on = !networkSettings.Load().Enabled;
-        if (on && !await Dialogs.Confirm(
-            null,
-            "Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. "
-                + "Pairing needs you to type here the code the phone shows. A firewall may block them: allow "
-                + $"{NetworkSettings.DefaultPort}/tcp and 5353/udp (docs/LINUX.md).",
-            "Turn on",
-            "Cancel"))
+        if (on && !await Dialogs.Confirm(null, NetworkNotice, "Turn on", "Cancel"))
         {
             return;
         }
 
+        await SaveNetworkAsync(on);
+    }
+
+    /// <summary>
+    /// The first launch's one question, with Not now the default so a stray Enter opens nothing. Nothing listens until
+    /// it is answered. Not now is saved, so it is never asked again; closing the window is no answer, so the next
+    /// launch asks.
+    /// </summary>
+    private async Task AskAboutNetworkAsync()
+    {
+        if (await Dialogs.Ask(NetworkNotice, "Allow", "Not now") is bool on)
+        {
+            await SaveNetworkAsync(on);
+        }
+    }
+
+    /// <summary>Saves the owner's answer and acts on it. A setting that cannot be saved leaves things as they were.</summary>
+    private async Task SaveNetworkAsync(bool on)
+    {
         if (!networkSettings.SetEnabled(on))
         {
             await Dialogs.Inform(null, "The setting could not be saved, so nothing was changed. The log has the reason.");

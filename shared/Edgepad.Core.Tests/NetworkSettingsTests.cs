@@ -18,19 +18,30 @@ public sealed class NetworkSettingsTests : IDisposable
     }
 
     [Fact]
-    public void NoFileMeansOnWithNoChoiceMade()
+    public void NoFolderMeansOffAndTheQuestionIsStillToAsk()
     {
-        Assert.Equal(new NetworkConfig(true, NetworkSettings.DefaultPort), NewSettings().Load());
+        Assert.Equal(new NetworkConfig(false, NetworkSettings.DefaultPort), NewSettings().Load());
         Assert.False(NewSettings().HasChoice);
     }
 
     [Fact]
-    public void TurningItOffIsAChoiceThatStays()
+    public void NoFileInTheFolderMeansOffAndTheQuestionIsStillToAsk()
     {
-        Assert.True(NewSettings().SetEnabled(false));
+        Directory.CreateDirectory(dir);
+
+        Assert.Equal(new NetworkConfig(false, NetworkSettings.DefaultPort), NewSettings().Load());
+        Assert.False(NewSettings().HasChoice);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void EitherAnswerIsKeptSoTheQuestionIsNotAskedAgain(bool answer)
+    {
+        Assert.True(NewSettings().SetEnabled(answer));
 
         Assert.True(NewSettings().HasChoice);
-        Assert.Equal(new NetworkConfig(false, NetworkSettings.DefaultPort), NewSettings().Load());
+        Assert.Equal(new NetworkConfig(answer, NetworkSettings.DefaultPort), NewSettings().Load());
     }
 
     [Fact]

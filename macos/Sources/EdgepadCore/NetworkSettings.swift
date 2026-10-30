@@ -1,7 +1,8 @@
 import Foundation
 
-/// `network.txt`: `enabled=0|1` and `port=`, the twin of the C# `NetworkSettings`. No file means on: phones found
-/// nothing while this was opt-in, and pairing still needs the code typed on the laptop. Read strictly, like
+/// `network.txt`: `enabled=0|1` and `port=`, the twin of the C# `NetworkSettings`. Nothing here ever means on without
+/// the file saying so: no file is off too. "On by default" is the first-launch question alone, put when `hasChoice` is
+/// false, because phones found nothing while the owner had to go looking for the switch. Read strictly, like
 /// `security.txt`: a file that cannot be read, or holds anything Edgepad would not have written, leaves the network
 /// link off (fail closed) and is never changed here, so the owner can see what is wrong. Bluetooth does not read this
 /// file.
@@ -23,7 +24,7 @@ public final class NetworkSettings {
     }
 
     /// True once the file exists, whatever it holds: a choice has been saved, or something there needs the owner's eye.
-    /// A folder in its place counts, since that reads as off rather than as no file.
+    /// False is the only reason to put the first-launch question. A folder in its place counts as there.
     public var hasChoice: Bool {
         FileManager.default.fileExists(atPath: path)
     }
@@ -34,12 +35,11 @@ public final class NetworkSettings {
         do {
             text = try String(contentsOfFile: path, encoding: .utf8)
         } catch {
-            if isAbsent(error, at: path) {
-                return (enabled: true, port: Self.defaultPort)
+            if !isAbsent(error, at: path) {
+                Log.write(
+                    "The network settings could not be read from \(path), so Wi-Fi and USB phones are refused: "
+                        + error.localizedDescription)
             }
-            Log.write(
-                "The network settings could not be read from \(path), so Wi-Fi and USB phones are refused: "
-                    + error.localizedDescription)
             return off
         }
         var enabled = false
