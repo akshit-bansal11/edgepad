@@ -140,20 +140,14 @@ class DialTest {
     }
 
     @Test
-    fun tracksSkipByStepAndATapPlaysOrPauses() {
-        val tracks = dial(DialKind.TRACKS)
-        tracks.down()
-        tracks.slideBy(80f)
-        tracks.slide(-40f, SLOP)
-        tracks.up()
-        assertEquals(
-            listOf(ActionId.NEXT_TRACK.frame(), ActionId.NEXT_TRACK.frame(), ActionId.PREVIOUS_TRACK.frame()),
-            out,
-        )
-        out.clear()
-        tracks.down()
-        assertTrue(tracks.up())
-        assertEquals(listOf(ActionId.PLAY_PAUSE.frame()), out)
+    fun horizontalScrollSendsOneSidewaysNotchPerStepAndClockwiseGoesRight() {
+        val side = dial(DialKind.SCROLL_H)
+        side.down()
+        side.slideBy(80f)
+        side.slide(-40f, SLOP)
+        side.up()
+        val notch = TrackpadRecognizer.WHEEL_NOTCH
+        assertEquals(listOf(Frame.Scroll(notch, 0), Frame.Scroll(notch, 0), Frame.Scroll(-notch, 0)), out)
     }
 
     @Test

@@ -7,6 +7,8 @@ import me.akshitbansal.edgepad.surface.DialKind
 import me.akshitbansal.edgepad.surface.Gesture
 import me.akshitbansal.edgepad.surface.GestureAction
 import me.akshitbansal.edgepad.surface.MediaPiece
+import me.akshitbansal.edgepad.surface.NO_DIAL
+import me.akshitbansal.edgepad.surface.resolveStoredDial
 import java.io.File
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -188,10 +190,9 @@ class Settings(
 
     /** The dial in [corner] (0 top-left, clockwise), or null for none. */
     fun corner(corner: Int): DialKind? {
-        val name = prefs.getString("corner.$corner", null)
-        if (name == NONE) return null
-        return DialKind.entries.firstOrNull { it.name == name }
-            ?: DialKind.entries.firstOrNull { it.defaultCorner == corner }
+        return resolveStoredDial(prefs.getString("corner.$corner", null)) {
+            DialKind.entries.firstOrNull { it.defaultCorner == corner }
+        }
     }
 
     fun setCorner(
@@ -207,10 +208,9 @@ class Settings(
      * the other half starts empty.
      */
     fun slot(slot: Int): DialKind? {
-        val name = prefs.getString("slot.$slot", null)
-        if (name == NONE) return null
-        return DialKind.entries.firstOrNull { it.name == name }
-            ?: CornerSlots.fallbackFor(slot)?.let { corner(it) }
+        return resolveStoredDial(prefs.getString("slot.$slot", null)) {
+            CornerSlots.fallbackFor(slot)?.let { corner(it) }
+        }
     }
 
     fun setSlot(
@@ -413,7 +413,7 @@ class Settings(
         const val DEFAULT_GRADIENT_END = 0xFF2B2B33.toInt()
         const val DEFAULT_PATTERN_COLOR = 0xFF84848C.toInt()
         private const val NAME = "edgepad"
-        private const val NONE = "-"
+        private const val NONE = NO_DIAL
         private const val IMAGE_FILE = "background.img"
         private const val KEY_LAPTOP = "laptop"
         private const val KEY_SHAPES = "shapes"

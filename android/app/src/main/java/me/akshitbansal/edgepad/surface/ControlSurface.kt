@@ -754,7 +754,7 @@ class ControlSurface(
 
     private fun valueText(dial: Dial): String =
         when (dial.kind) {
-            DialKind.VOLUME, DialKind.MIC -> {
+            DialKind.VOLUME -> {
                 when {
                     !dial.known -> unknownText
                     dial.flag -> muteText
@@ -798,7 +798,7 @@ class ControlSurface(
                 if (dial.steps > 0) "+${dial.steps}" else dial.steps.toString()
             }
 
-            DialKind.APP_SWITCHER, DialKind.SCROLL, DialKind.TRACKS, DialKind.DESKTOPS, DialKind.TABS -> {
+            DialKind.APP_SWITCHER, DialKind.SCROLL, DialKind.SCROLL_H, DialKind.DESKTOPS, DialKind.TABS -> {
                 ""
             }
         }

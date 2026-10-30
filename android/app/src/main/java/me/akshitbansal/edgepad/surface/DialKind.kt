@@ -19,14 +19,13 @@ enum class DialKind(
     ZOOM(R.string.dial_zoom_short, R.string.dial_zoom, 2),
     MEDIA(R.string.dial_media_short, R.string.dial_media, 3),
     APP_SWITCHER(R.string.dial_apps_short, R.string.dial_apps, null),
-    MIC(R.string.dial_mic_short, R.string.dial_mic, null),
 
     // Off by default: there are more kinds than the four corners hold, and this one is the least often wanted.
     REFRESH(R.string.dial_refresh_short, R.string.dial_refresh, null),
 
     // Off by default too: the four corners keep the dials most wanted; these are one slide away in Settings.
     SCROLL(R.string.dial_scroll_short, R.string.dial_scroll, null),
-    TRACKS(R.string.dial_tracks_short, R.string.dial_tracks, null),
+    SCROLL_H(R.string.dial_scroll_h_short, R.string.dial_scroll_h, null),
     DESKTOPS(R.string.dial_desktops_short, R.string.dial_desktops, null),
     TABS(R.string.dial_tabs_short, R.string.dial_tabs, null),
     ;
@@ -65,21 +64,6 @@ enum class DialKind(
                     label,
                     unitsPerDp,
                     ControlId.BRIGHTNESS,
-                    snapTo = snapTo,
-                    sink = send,
-                    haptic = haptic,
-                    slot = slot,
-                )
-            }
-
-            MIC -> {
-                Dial(
-                    this,
-                    corner,
-                    label,
-                    unitsPerDp,
-                    ControlId.MIC_LEVEL,
-                    tap = ActionId.MIC_MUTE_TOGGLE,
                     snapTo = snapTo,
                     sink = send,
                     haptic = haptic,
@@ -164,14 +148,14 @@ enum class DialKind(
                 )
             }
 
-            TRACKS -> {
+            SCROLL_H -> {
                 Dial(
                     this,
                     corner,
                     label,
                     unitsPerDp,
-                    tap = ActionId.PLAY_PAUSE,
-                    step = { direction -> send(trackStep(direction).frame()) },
+                    // A positive dx is right, so a clockwise turn scrolls right.
+                    step = { direction -> send(Frame.Scroll(direction * TrackpadRecognizer.WHEEL_NOTCH, 0)) },
                     sink = send,
                     haptic = haptic,
                     slot = slot,
@@ -210,9 +194,6 @@ enum class DialKind(
         }
     }
 
-    private fun trackStep(direction: Int): ActionId =
-        if (direction > 0) ActionId.NEXT_TRACK else ActionId.PREVIOUS_TRACK
-
     private fun desktopStep(direction: Int): ActionId =
         if (direction > 0) ActionId.DESKTOP_RIGHT else ActionId.DESKTOP_LEFT
 
@@ -239,3 +220,20 @@ enum class DialKind(
         const val VK_CTRL = 0x11
     }
 }
+
+/** What Settings stores for a corner or slot left empty. */
+internal const val NO_DIAL = "-"
+
+/**
+ * The dial a stored [name] stands for: [whenNeverSet] when nothing was stored, null for [NO_DIAL], and null for a
+ * name no kind has any more (a removed dial), so a corner never falls back to a default that may already be taken.
+ */
+internal fun resolveStoredDial(
+    name: String?,
+    whenNeverSet: () -> DialKind?,
+): DialKind? =
+    when (name) {
+        null -> whenNeverSet()
+        NO_DIAL -> null
+        else -> DialKind.entries.firstOrNull { it.name == name }
+    }

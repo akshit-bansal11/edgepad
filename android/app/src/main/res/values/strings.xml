@@ -302,16 +302,14 @@
   <string name="dial_media_short">SCRUB</string>
   <string name="dial_apps">App switcher</string>
   <string name="dial_apps_short">APPS</string>
-  <string name="dial_mic">Mic level</string>
-  <string name="dial_mic_short">MIC</string>
   <string name="dial_refresh">Refresh rate</string>
   <string name="dial_refresh_short">RATE</string>
   <!-- The ruler shows the rate the laptop named for this step, not the step's own number. -->
   <string name="dial_refresh_value">%1$d Hz</string>
-  <string name="dial_scroll">Scroll</string>
+  <string name="dial_scroll">Vertical scroll</string>
+  <string name="dial_scroll_h">Horizontal scroll</string>
+  <string name="dial_scroll_h_short">SIDE</string>
   <string name="dial_scroll_short">SCROLL</string>
-  <string name="dial_tracks">Track skip</string>
-  <string name="dial_tracks_short">TRACK</string>
   <string name="dial_desktops">Virtual desktops</string>
   <string name="dial_desktops_short">DESK</string>
   <string name="dial_tabs">Browser tabs</string>
