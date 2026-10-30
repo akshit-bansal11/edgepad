@@ -51,7 +51,7 @@ class CaptureScreen(
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(ui.palette.background)
             addView(
-                ui.bar(ui.string(R.string.controls_capture), onBack, backLabel = ui.string(R.string.back_to_controls)),
+                ui.bar(ui.string(R.string.controls_capture), onBack, backLabel = ui.string(R.string.back_to_surface)),
             )
             addView(
                 buttons(),

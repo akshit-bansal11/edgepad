@@ -886,6 +886,11 @@ private class NavBar(
  * dialog still holds leaks. Nothing it asked about is on screen any more by then, so closing it loses nothing.
  */
 fun AlertDialog.Builder.showOver(owner: View) {
+    openOver(owner)
+}
+
+/** As [showOver], for a caller that shapes the dialog's window once it is up. */
+fun AlertDialog.Builder.openOver(owner: View): AlertDialog {
     val dialog = show()
     val closer =
         object : View.OnAttachStateChangeListener {
@@ -895,6 +900,7 @@ fun AlertDialog.Builder.showOver(owner: View) {
         }
     owner.addOnAttachStateChangeListener(closer)
     dialog.setOnDismissListener { owner.removeOnAttachStateChangeListener(closer) }
+    return dialog
 }
 
 /** A vertical run of views on a page, with the design's spacing built in. */

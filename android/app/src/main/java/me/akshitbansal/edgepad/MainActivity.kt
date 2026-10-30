@@ -58,7 +58,7 @@ import me.akshitbansal.edgepad.protocol.TextKind
 import me.akshitbansal.edgepad.screens.AnnotateScreen
 import me.akshitbansal.edgepad.screens.AppearanceScreen
 import me.akshitbansal.edgepad.screens.CaptureScreen
-import me.akshitbansal.edgepad.screens.ControlsScreen
+import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DialFeelScreen
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
@@ -140,7 +140,6 @@ class MainActivity :
         KEYBOARD_SETTINGS,
         GAMEPAD_SETTINGS,
         MACRO_SETTINGS,
-        CONTROLS,
         CAPTURE,
         ANNOTATE,
         KEYBOARD,
@@ -195,6 +194,9 @@ class MainActivity :
 
     /** The macro grid while it is the screen, so a new list or a finished icon can be handed to it. */
     private var macros: MacroScreen? = null
+
+    /** The Controls popup over the surface, while it is open. */
+    private var controls: ControlsPopup? = null
     private var laptopName = ""
     private var laptopAddress = ""
     private var screen = Screen.PAIRING
@@ -522,6 +524,7 @@ class MainActivity :
         annotate = null
         reconnecting = null
         macros = null
+        controls = null
         handler.removeCallbacks(ticker)
         if (next == Screen.PAIRING) startScan() else stopScan()
         val view: View =
@@ -644,24 +647,6 @@ class MainActivity :
                     GamepadLayoutScreen.build(ui, gamepads) { navigateBack() }
                 }
 
-                Screen.CONTROLS -> {
-                    ControlsScreen(
-                        ui,
-                        settings,
-                        capture = Feature.CAPTURE in state.features,
-                        annotate = Feature.ANNOTATE in state.features && state.screenSize != null,
-                        onOpen = { target ->
-                            when (target) {
-                                ControlsScreen.Target.KEYBOARD -> goTo(Screen.KEYBOARD)
-                                ControlsScreen.Target.GAMEPAD -> goTo(Screen.GAMEPAD)
-                                ControlsScreen.Target.MACROS -> openMacros()
-                                ControlsScreen.Target.CAPTURE -> goTo(Screen.CAPTURE)
-                                ControlsScreen.Target.ANNOTATE -> goTo(Screen.ANNOTATE)
-                            }
-                        },
-                    ) { navigateBack() }.view
-                }
-
                 Screen.CAPTURE -> {
                     CaptureScreen(ui, settings, state, { frame -> link?.send(frame) }) { navigateBack() }.view
                 }
@@ -769,7 +754,7 @@ class MainActivity :
                         state,
                         { frame -> link?.send(frame) },
                         { goTo(Screen.SURFACE_SETTINGS) },
-                        onOpenControls = { goTo(Screen.CONTROLS) },
+                        onOpenControls = ::openControls,
                     ).also { surface = it }
                 }
             }
@@ -885,13 +870,13 @@ class MainActivity :
                 }
             }
 
-            // The keyboard, the gamepad and the capture are opened from Controls, so back returns there.
+            // These are opened from the Controls popup over the surface, so back returns to it.
             Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE -> {
-                goTo(Screen.CONTROLS)
+                goTo(if (link?.connected == true) Screen.SURFACE else Screen.PAIRING)
             }
 
-            // Both are opened from the surface, which is only there while the link holds.
-            Screen.CONTROLS, Screen.SURFACE_SETTINGS -> {
+            // Opened from the surface, which is only there while the link holds.
+            Screen.SURFACE_SETTINGS -> {
                 goTo(if (link?.connected == true) Screen.SURFACE else Screen.PAIRING)
             }
 
@@ -1042,6 +1027,26 @@ class MainActivity :
      */
     private fun runMacro(index: Int) {
         link?.send(Frame.RunAction(ActionId.MACRO_BASE.id + index))
+    }
+
+    private fun controlsCapture() = Feature.CAPTURE in state.features
+
+    private fun controlsAnnotate() = Feature.ANNOTATE in state.features && state.screenSize != null
+
+    /** Opens the Controls popup over the surface. A tile closes it and opens that control. */
+    private fun openControls() {
+        val owner = surface ?: return
+        controls?.dismiss()
+        controls =
+            ControlsPopup(ui, settings) { target ->
+                when (target) {
+                    ControlsPopup.Target.KEYBOARD -> goTo(Screen.KEYBOARD)
+                    ControlsPopup.Target.GAMEPAD -> goTo(Screen.GAMEPAD)
+                    ControlsPopup.Target.MACROS -> openMacros()
+                    ControlsPopup.Target.CAPTURE -> goTo(Screen.CAPTURE)
+                    ControlsPopup.Target.ANNOTATE -> goTo(Screen.ANNOTATE)
+                }
+            }.also { it.show(owner, controlsCapture(), controlsAnnotate()) }
     }
 
     /** Opens the macro grid. Its pictures are already cached: the link asks for them as each macro list arrives. */
@@ -1510,11 +1515,11 @@ class MainActivity :
     override fun onFrame(frame: Frame) {
         if (!state.take(frame)) return
         surface?.stateChanged()
-        // Controls and Capture are drawn from the features the laptop named, which it sends once after the
-        // handshake: one that lands while either is open rebuilds it rather than leaving it saying "none".
-        val featured = screen == Screen.CONTROLS || screen == Screen.CAPTURE
+        // Capture is drawn from the features the laptop named, which it sends once after the handshake: one that
+        // lands while it is open rebuilds it rather than leaving it saying "none". The Controls popup is redrawn.
         val sized = frame is Frame.Text && (frame.kind == TextKind.FEATURES.id || frame.kind == TextKind.SCREEN_SIZE.id)
-        if (featured && sized) goTo(screen)
+        if (screen == Screen.CAPTURE && sized) goTo(screen)
+        if (sized) controls?.refresh(controlsCapture(), controlsAnnotate())
         if (frame is Frame.Text && frame.kind == TextKind.SCREEN_SIZE.id) annotate?.refresh()
         if (frame is Frame.Text && frame.kind == TextKind.SIGN_STATUS.id) signed(state.signStatus)
         // The pad decides which of its two modes it is in from this answer, which usually lands a few
@@ -1554,7 +1559,7 @@ class MainActivity :
             closure.cause == LaptopLink.Cause.ENDED -> {
                 // A link ended on purpose starts the next one with a full set of attempts.
                 attempts = 0
-                if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.CONTROLS ||
+                if (screen == Screen.SURFACE || screen == Screen.RECONNECTING ||
                     screen == Screen.CAPTURE || screen == Screen.ANNOTATE || screen == Screen.KEYBOARD ||
                     screen == Screen.GAMEPAD || screen == Screen.MACROS || screen in settingsOfControls
                 ) {

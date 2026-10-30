@@ -90,7 +90,7 @@ object KeyboardScreen {
                 ui.string(R.string.keyboard_title),
                 onBack,
                 ui.icon(Glyph.Shape.GEAR, ui.string(R.string.settings_title), onSettings),
-                backLabel = ui.string(R.string.back_to_controls),
+                backLabel = ui.string(R.string.back_to_surface),
             )
         val keyboard = KeyboardView(ui.context, textScale, onKey)
         return LinearLayout(ui.context).apply {

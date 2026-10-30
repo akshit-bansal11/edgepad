@@ -65,7 +65,7 @@ class MacroScreen(
             settings,
             MACRO_DECK,
             title = ui.string(R.string.macros_title),
-            backLabel = ui.string(R.string.back_to_controls),
+            backLabel = ui.string(R.string.back_to_surface),
             onBack = onBack,
             labels = labels,
             empty = ::emptyState,
