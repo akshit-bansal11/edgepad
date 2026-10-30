@@ -371,6 +371,37 @@ final class BlobTests: XCTestCase {
         XCTAssertEqual(chunksAtEachTick[1], BlobSender.busyChunksPerTick + BlobSender.bluetoothChunksPerTick)
     }
 
+    func testAFastLinkNeverQueuesPastTheBacklog() {
+        var ticks: [() -> Void] = []
+        var backlog = 0
+        var highest = 0
+        let blobs = BlobSender(
+            link: .network,
+            clock: { 0 },
+            schedule: { _, work in ticks.append(work) },
+            lastInput: { -.infinity }
+        )
+        blobs.output = { [unowned self] frame in
+            self.wire.append(frame)
+            backlog += FrameCodec.encode(frame).count
+            highest = max(highest, backlog)
+            return true
+        }
+        blobs.backlog = { backlog }
+        let data = payload(4 * BlobSender.networkChunksPerTick * FrameCodec.maxChunkBytes)
+
+        blobs.send(.clipText, label: "", data: data)
+        // Half a drain each tick: a whole one would stay under the bound on the tick budget alone.
+        while !ticks.isEmpty {
+            backlog /= 2
+            ticks.removeFirst()()
+        }
+
+        XCTAssertLessThan(highest, BlobSender.maxBacklog + 2 * FrameCodec.maxChunkBytes)
+        XCTAssertTrue(wire.allSatisfy { feed($0) })
+        XCTAssertEqual(received.map { $0.data }, [data])
+    }
+
     func testAnEndedSessionStopsATransferWithNoEnd() {
         var ending: BlobSender?
         let blobs = sender { _ in ending?.end() }

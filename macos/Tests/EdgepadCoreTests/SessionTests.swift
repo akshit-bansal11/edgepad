@@ -599,6 +599,42 @@ final class SessionTests: XCTestCase {
         XCTAssertNil(dispatcher.macroWatch)
     }
 
+    func testARepeatedWatchSkipsTheSurveyAndTheNextTickReportsAfresh() {
+        let windows = FakeWindows()
+        let store = macroStore(windows: windows)
+        store.save([Macro(name: "Mail", target: "Mail.app")])
+        let session = connectedSession()
+        session.receive(watchFrame(.macrosWatch))
+        let surveys = windows.surveys
+
+        session.receive(watchFrame(.macrosWatch))
+        session.receive(watchFrame(.macrosWatch))
+
+        XCTAssertEqual(windows.surveys, surveys)
+        XCTAssertEqual(watchTicks.count, 1)
+        XCTAssertEqual(macroOpenTexts(), ["0"])
+
+        fireWatchTick()
+        XCTAssertEqual(windows.surveys, surveys + 1)
+        XCTAssertEqual(macroOpenTexts(), ["0", "0"])
+        XCTAssertEqual(watchTicks.count, 1)
+    }
+
+    func testAWatchAfterAnUnwatchInTheSameTickSurveysAtOnceWithOneTickArmed() {
+        let windows = FakeWindows()
+        let store = macroStore(windows: windows)
+        store.save([Macro(name: "Mail", target: "Mail.app")])
+        let session = connectedSession()
+        session.receive(watchFrame(.macrosWatch))
+
+        session.receive(watchFrame(.macrosUnwatch))
+        session.receive(watchFrame(.macrosWatch))
+        XCTAssertEqual(macroOpenTexts(), ["0", "0"])
+
+        fireWatchTick()
+        XCTAssertEqual(watchTicks.count, 1)
+    }
+
     func testTheMacroNamesAreSentAtTheHandshakeAndAgainWhenTheyChange() {
         let store = macroStore()
         store.save([Macro(name: "Mail", target: "Mail.app")])
@@ -674,6 +710,101 @@ final class SessionTests: XCTestCase {
         runIconTurns()
 
         XCTAssertEqual(transport.sent.count, sent)
+    }
+
+    /// A live session on a link capped like the real outboxes, with two macros whose icons each outweigh it unpaced.
+    private func connectedOverACappedLink(png: [UInt8]) -> Session {
+        let store = macroStore(icons: FakeIcons(bytes: png))
+        store.save([Macro(name: "Mail", target: "Mail.app"), Macro(name: "Code", target: "Code.app")])
+        let session = connectedSession()
+        heldSession = session
+        transport.cap = 64 * 1024
+        return session
+    }
+
+    private func wantIcons(_ size: Int) -> [UInt8] {
+        FrameCodec.encode(.text(kind: TextKind.wantIcons.rawValue, value: String(size)))
+    }
+
+    /// Lets the link drain and fires the ticks armed, until none is.
+    private func drainTheLink() {
+        while !watchTicks.isEmpty {
+            transport.backlog = 0
+            fireWatchTick()
+        }
+    }
+
+    func testAnIconHeavierThanTheOutboxIsPacedAndArrivesWhole() {
+        let png = [UInt8](repeating: 7, count: MacroIconChunks.maxBytes(size: 512))
+        let session = connectedOverACappedLink(png: png)
+        let before = transport.frames().count
+
+        session.receive(wantIcons(512))
+
+        XCTAssertFalse(session.isEnded)
+        XCTAssertEqual(watchTicks.map { $0.seconds }, [CaptureToPhone.tick])
+        XCTAssertLessThan(transport.backlog, 64 * 1024)
+        drainTheLink()
+
+        XCTAssertFalse(session.isEnded)
+        let icons = [0, 1].flatMap { MacroIconChunks.chunks(slot: $0, png: png) }
+            .map { Frame.text(kind: TextKind.macroIcon.rawValue, value: $0) }
+        XCTAssertEqual(framesSince(before), icons)
+    }
+
+    func testANewerAskSupersedesARunWaitingOnTheLink() {
+        let old = [UInt8](repeating: 7, count: MacroIconChunks.maxBytes(size: 512))
+        let session = connectedOverACappedLink(png: old)
+        let before = transport.frames().count
+        session.receive(wantIcons(512))
+        let partWay = framesSince(before)
+
+        session.receive(wantIcons(512))
+        drainTheLink()
+
+        let whole = [0, 1].flatMap { MacroIconChunks.chunks(slot: $0, png: old) }
+            .map { Frame.text(kind: TextKind.macroIcon.rawValue, value: $0) }
+        XCTAssertEqual(framesSince(before), partWay + whole)
+        XCTAssertFalse(session.isEnded)
+    }
+
+    func testTheSessionsEndStopsARunWaitingOnTheLink() {
+        let session = connectedOverACappedLink(png: [UInt8](repeating: 7, count: MacroIconChunks.maxBytes(size: 512)))
+        session.receive(wantIcons(512))
+        XCTAssertFalse(watchTicks.isEmpty)
+        session.end()
+        let sent = transport.sent.count
+
+        drainTheLink()
+
+        XCTAssertEqual(transport.sent.count, sent)
+    }
+
+    func testASaveStopsARunWaitingOnTheLink() {
+        let session = connectedOverACappedLink(png: [UInt8](repeating: 7, count: MacroIconChunks.maxBytes(size: 512)))
+        session.receive(wantIcons(512))
+        dispatcher.macros?.save([Macro(name: "Mail", target: "Mail.app")])
+        let sent = transport.sent.count
+
+        drainTheLink()
+
+        XCTAssertEqual(transport.sent.count, sent)
+    }
+
+    func testAFullLinkHoldsABlobBackUntilItDrains() {
+        let data: [UInt8] = [1, 2, 3]
+        let (_, clipboard, _) = sharing(data)
+        transport.backlog = CaptureToPhone.maxBacklog
+
+        clipboard.localChanged()
+
+        XCTAssertEqual(blobTicks.count, 1)
+        XCTAssertEqual(transport.frames().last, .blobBegin(kind: BlobKind.clipText.rawValue, size: 3, label: ""))
+
+        transport.backlog = 0
+        blobTicks.removeFirst()()
+
+        XCTAssertEqual(transport.frames().last, .blobEnd(sha256: Array(SHA256.hash(data: data))))
     }
 
     func testAskingForIconsWithNoPictureSendsNothing() {

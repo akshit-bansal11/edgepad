@@ -84,6 +84,8 @@ public protocol DisplayRates: AnyObject {
 public protocol Transport: AnyObject {
     /// False when the link is dead and the bytes went nowhere.
     func send(_ bytes: [UInt8]) -> Bool
+    /// Bytes taken and not yet gone. Whatever sends many frames holds off at `CaptureToPhone.maxBacklog`.
+    var backlog: Int { get }
     func close()
 }
 
@@ -141,7 +143,8 @@ public protocol MacroLauncher: AnyObject {
 
 /// What a macro's app is doing on this Mac right now. The raw value is the character the phone reads.
 public enum OpenState: Character {
-    /// Nothing this Mac can follow: a URL, a folder, a document, anything that is not an application bundle.
+    /// Nothing this Mac can follow: a URL, a folder, a document, anything that is not an application bundle, or a macro
+    /// with arguments, which always launches.
     case untracked = "-"
     case closed = "0"
     case open = "1"

@@ -65,6 +65,9 @@ public final class SecureTransport: Transport {
         return true
     }
 
+    /// Sealed bytes, tags and headers included, since those are what fill the connection's outbox.
+    public var backlog: Int { inner.backlog }
+
     public func close() {
         failed = true
         inner.close()

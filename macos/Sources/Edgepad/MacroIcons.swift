@@ -5,16 +5,43 @@ import EdgepadCore
 /// override path if the macro has one, else the target, and nothing for a URL.
 /// Main thread only: it draws with AppKit.
 final class WorkspaceMacroIcons: MacroIconSource {
-    /// The requested square, then each smaller tier when it encodes past that side's wire cap (a photograph will), so
-    /// one oversized source cannot cost the whole grid.
+    private struct Key: Hashable {
+        let path: String
+        let modified: Date?
+        let size: Int
+    }
+
+    /// One phone asks at one size, so this holds every slot at every tier before it ever needs emptying.
+    private static let maxCached = MacroStore.maxMacros * MacroIconChunks.tiers.count
+
+    /// Drawing and encoding is the slow part, and the phone asks again each time its grid opens. A nil is kept too: an
+    /// icon too heavy at every tier stays too heavy until its file changes.
+    private var cache: [Key: [UInt8]?] = [:]
+
     func png(for macro: Macro, size: Int) -> [UInt8]? {
         let source = macro.icon.flatMap { $0.isEmpty ? nil : $0 } ?? macro.target
         guard let path = WorkspaceMacroIcons.filePath(source) else {
             return nil
         }
+        let modified = (try? FileManager.default.attributesOfItem(atPath: path))?[.modificationDate] as? Date
+        let key = Key(path: path, modified: modified, size: size)
+        if let cached = cache[key] {
+            return cached
+        }
+        let png = WorkspaceMacroIcons.render(path, size: size)
+        if cache.count >= WorkspaceMacroIcons.maxCached {
+            cache.removeAll()
+        }
+        cache.updateValue(png, forKey: key)
+        return png
+    }
+
+    /// The requested square, then each smaller tier when it encodes past that side's wire cap (a photograph will), so
+    /// one oversized source cannot cost the whole grid.
+    private static func render(_ path: String, size: Int) -> [UInt8]? {
         let image = NSWorkspace.shared.icon(forFile: path)
         for side in MacroIconChunks.fallbackChain(size: size) {
-            guard let png = WorkspaceMacroIcons.encode(image, side: side) else { return nil }
+            guard let png = encode(image, side: side) else { return nil }
             if png.count <= MacroIconChunks.maxBytes(size: side) {
                 return png
             }

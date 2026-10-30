@@ -412,6 +412,34 @@ enum MacroLaunchFollow {
     }
 }
 
+/// Which application a macro follows, the twin of the Windows `MacroTarget.Program`. Here rather than beside
+/// `NSWorkspace` so the rule is a test.
+public enum MacroTarget {
+    /// The canonical path of the application bundle the macro opens, or nil when there is none to follow. A URL never
+    /// gets through: nothing exists at a path spelled like one.
+    public static func bundlePath(of macro: Macro) -> String? {
+        bundlePath(of: macro) { path in
+            var isFolder: ObjCBool = false
+            return FileManager.default.fileExists(atPath: path, isDirectory: &isFolder) && isFolder.boolValue
+        }
+    }
+
+    /// A macro with arguments is nil however it is spelled: it asks the app for something, an app opened on a folder
+    /// say, so a press must run it rather than hide the app, and its cross must not quit the whole app.
+    static func bundlePath(of macro: Macro, isFolder: (String) -> Bool) -> String? {
+        guard macro.arguments == nil else { return nil }
+        let path = (macro.target as NSString).expandingTildeInPath
+        guard isFolder(path) else { return nil }
+        let url = URL(fileURLWithPath: path)
+        return url.pathExtension.lowercased() == "app" ? canonical(url) : nil
+    }
+
+    /// Paths rather than URLs, so a trailing slash cannot make one bundle two.
+    public static func canonical(_ url: URL) -> String {
+        url.standardizedFileURL.resolvingSymlinksInPath().path
+    }
+}
+
 /// A subscription to the label list. Cancelling is idempotent, and a session cancels in `end()`.
 public final class MacroWatch {
     private var onCancel: (() -> Void)?

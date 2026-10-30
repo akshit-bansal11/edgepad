@@ -55,13 +55,25 @@ public final class Session {
     /// Runs one macro icon's turn. The main queue by default, so frames that arrive meanwhile are read between
     /// icons rather than after all of them. Tests pass `{ $0() }` so the icons follow `receive` directly.
     private let schedule: (@escaping () -> Void) -> Void
-    /// Runs the macro survey's next tick after a delay, once. Tests hold the ticks and fire them by hand.
+    /// Runs the macro survey's next tick, or an icon waiting on the link, after a delay, once. Tests hold the ticks and
+    /// fire them by hand.
     private let scheduleAfter: (TimeInterval, @escaping () -> Void) -> Void
+
+    /// One answer to WANT_ICONS, whose icons may span many turns.
+    private struct IconRun {
+        let id: Int
+        let macros: MacroStore
+        let revision: Int
+        let size: Int
+    }
+
     /// Which icon run may still send: each WANT_ICONS moves it on, and a run that sees it moved stops.
     private var iconRun = 0
-    /// Which macro watch may still survey: MACROS_WATCH and MACROS_UNWATCH move it on, and a tick that sees it moved
+    /// Which macro watch may still survey: a watch that starts or stops moves it on, and a tick that sees it moved
     /// stops.
     private var macroSurveyRun = 0
+    /// Whether a survey's next tick is armed, so a repeated MACROS_WATCH does not survey again.
+    private var isWatchingMacros = false
     /// The states the phone was last told, so it hears only a change.
     private var lastMacroOpen: String?
 
@@ -413,8 +425,11 @@ public final class Session {
             self.send(frame)
             return !self.isEnded
         }
+        let backlog: () -> Int = { [weak self] in self?.transport.backlog ?? 0 }
         dispatcher.capture?.send = write
+        dispatcher.capture?.backlog = backlog
         dispatcher.clipboard?.sender.output = write
+        dispatcher.clipboard?.sender.backlog = backlog
         dispatcher.padStatusReply = { [weak self] status in
             self?.send(.text(kind: TextKind.padStatus.rawValue, value: status))
         }
@@ -453,10 +468,16 @@ public final class Session {
         }
     }
 
-    /// The phone's macro grid opened or closed. Each opening hears the state afresh, whatever was last sent.
+    /// The phone's macro grid opened or closed. Each opening hears the state afresh, whatever was last sent: at once
+    /// when no survey is running, and from the next tick when one is, since the phone also sends MACROS_WATCH each time
+    /// its macro list changes and a survey is the dear part.
     private func watchMacroApps(_ open: Bool) {
-        macroSurveyRun += 1
         lastMacroOpen = nil
+        if open && isWatchingMacros {
+            return
+        }
+        isWatchingMacros = open
+        macroSurveyRun += 1
         if open {
             surveyMacroApps(run: macroSurveyRun)
         }
@@ -479,26 +500,40 @@ public final class Session {
     private func startIcons(size: Int) {
         guard let macros = dispatcher.macros else { return }
         iconRun += 1
-        sendIcons(from: 0, of: macros, revision: macros.revision, run: iconRun, size: size)
+        sendIcons(from: 0, IconRun(id: iconRun, macros: macros, revision: macros.revision, size: size))
     }
 
-    /// The icon in `slot`, in pieces, then the next slot's turn. An icon that cannot be had is simply not sent and
-    /// its button keeps its label.
-    private func sendIcons(from slot: Int, of macros: MacroStore, revision: Int, run: Int, size: Int) {
+    /// False once the session ended, a newer WANT_ICONS came, or a save swapped the list: a chunk of the old list would
+    /// land on whatever moved into its slot, and the phone asks again for the new one.
+    private func mayContinue(_ run: IconRun) -> Bool {
+        !isEnded && iconRun == run.id && run.macros.revision == run.revision
+    }
+
+    /// The icon in `slot`, then the next slot's turn. An icon that cannot be had is simply not sent and its button
+    /// keeps its label.
+    private func sendIcons(from slot: Int, _ run: IconRun) {
         schedule { [weak self] in
-            guard let self, !self.isEnded, self.iconRun == run, macros.revision == revision,
-                slot < macros.macros.count
-            else { return }
-            if let png = macros.icon(at: slot, size: size) {
-                for chunk in MacroIconChunks.chunks(slot: slot, png: png) {
-                    // A save swaps the list between chunks of the old one, which would land on whatever moved into
-                    // the slot. The phone asks again for the new list.
-                    guard macros.revision == revision else { return }
-                    self.send(.text(kind: TextKind.macroIcon.rawValue, value: chunk))
-                }
-            }
-            self.sendIcons(from: slot + 1, of: macros, revision: revision, run: run, size: size)
+            guard let self, self.mayContinue(run), slot < run.macros.macros.count else { return }
+            let png = run.macros.icon(at: slot, size: run.size)
+            let chunks = png.map { MacroIconChunks.chunks(slot: slot, png: $0) } ?? []
+            self.sendIconChunks(chunks, from: 0, slot: slot, run)
         }
+    }
+
+    /// One icon's pieces from `first` on. An icon can outweigh the transport's outbox, which drains only on later turns
+    /// of the main queue, so the rest waits for a tick whenever the link holds `maxBacklog`.
+    private func sendIconChunks(_ chunks: [String], from first: Int, slot: Int, _ run: IconRun) {
+        for index in first..<chunks.count {
+            guard mayContinue(run) else { return }
+            guard transport.backlog < CaptureToPhone.maxBacklog else {
+                scheduleAfter(CaptureToPhone.tick) { [weak self] in
+                    self?.sendIconChunks(chunks, from: index, slot: slot, run)
+                }
+                return
+            }
+            send(.text(kind: TextKind.macroIcon.rawValue, value: chunks[index]))
+        }
+        sendIcons(from: slot + 1, run)
     }
 
     /// The phone maps its pad onto this aspect ratio. Nothing is sent without an overlay, so an older phone and a

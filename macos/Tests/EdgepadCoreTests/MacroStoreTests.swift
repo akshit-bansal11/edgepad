@@ -530,6 +530,20 @@ final class MacroStoreTests: XCTestCase {
         XCTAssertEqual(store.openStates(), "-012")
     }
 
+    func testOnlyAnAppBundleWithNoArgumentsIsFollowed() {
+        let folder: (String) -> Bool = { _ in true }
+
+        XCTAssertEqual(
+            MacroTarget.bundlePath(of: Macro(name: "Code", target: "/Applications/Code.app"), isFolder: folder),
+            "/Applications/Code.app")
+        XCTAssertNil(
+            MacroTarget.bundlePath(
+                of: Macro(name: "Code", target: "/Applications/Code.app", arguments: "~/work"), isFolder: folder))
+        XCTAssertNil(MacroTarget.bundlePath(of: Macro(name: "Work", target: "/Users/me/work"), isFolder: folder))
+        XCTAssertNil(
+            MacroTarget.bundlePath(of: Macro(name: "Code", target: "/Applications/Code.app"), isFolder: { _ in false }))
+    }
+
     func testOnlyAMacThatCanSeeAppsSaysSo() {
         let blind = FakeWindows()
         blind.available = false

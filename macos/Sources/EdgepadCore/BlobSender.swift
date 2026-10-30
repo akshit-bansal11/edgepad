@@ -7,16 +7,20 @@ import Foundation
 /// it schedules its ticks where the shared core blocks a thread of its own.
 ///
 /// Paced exactly as a capture is (`CaptureToPhone`): each chunk is its own send, so a PONG or a STATE gets between any
-/// two, and a tick's budget drops to `busyChunksPerTick` while the phone is sending input.
+/// two, a tick's budget drops to `busyChunksPerTick` while the phone is sending input, and no chunk goes while the link
+/// holds `maxBacklog`.
 public final class BlobSender {
     public static let tick = CaptureToPhone.tick
     public static let bluetoothChunksPerTick = CaptureToPhone.chunksPerTick
     public static let networkChunksPerTick = 128
     public static let busyChunksPerTick = CaptureToPhone.busyChunksPerTick
     public static let inputQuiet = CaptureToPhone.inputQuiet
+    public static let maxBacklog = CaptureToPhone.maxBacklog
 
     /// Where frames go; false when the link is dead. Set by the session once it has a link to write to.
     public var output: ((Frame) -> Bool)?
+    /// What the link still holds. Set by the session along with `output`.
+    public var backlog: () -> Int = { 0 }
 
     private struct Job {
         let kind: BlobKind
@@ -105,6 +109,10 @@ public final class BlobSender {
         while let transfer = current, transfer.id == id, transfer.offset < transfer.job.data.count {
             if transfer.job.abandoned() {
                 stop(false)
+                return
+            }
+            if backlog() >= BlobSender.maxBacklog {
+                schedule(BlobSender.tick) { [weak self] in self?.pump(id) }
                 return
             }
             let data = transfer.job.data

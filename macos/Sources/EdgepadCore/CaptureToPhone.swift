@@ -76,8 +76,8 @@ public protocol CaptureFolders: AnyObject {
 /// slept, so a transfer never holds the input up.
 ///
 /// Every doubt keeps the file: no file, two files, a file that vanishes or is too large, an answer other than SAVED
-/// or none at all. Chunks go out `chunksPerTick` every `tick`, and only `busyChunksPerTick` while the phone has sent
-/// input within `inputQuiet`.
+/// or none at all. Chunks go out `chunksPerTick` every `tick`, only `busyChunksPerTick` while the phone has sent input
+/// within `inputQuiet`, and none while the link holds `maxBacklog`.
 public final class CaptureToPhone {
     public static let poll: TimeInterval = 0.5
     public static let screenshotWindow: TimeInterval = 120
@@ -87,6 +87,9 @@ public final class CaptureToPhone {
     public static let chunksPerTick = 16
     public static let busyChunksPerTick = 2
     public static let inputQuiet: TimeInterval = 0.25
+    /// What a sender of many frames lets the link hold before it waits a `tick`. Half of the 64 KiB past which a
+    /// transport calls the link dead, so a slow link is never mistaken for a dead one and a PONG always fits.
+    public static let maxBacklog = 32 * 1024
     public static let answerTimeout: TimeInterval = 30
     static let screenshotSettledPolls = 2
     /// Ten seconds of a recording's file not changing at all: macOS writes it whole when the recording stops.
@@ -94,6 +97,8 @@ public final class CaptureToPhone {
 
     /// Where frames go; false when the link is dead.
     public var send: ((Frame) -> Bool)?
+    /// What the link still holds. Set by the session along with `send`.
+    public var backlog: () -> Int = { 0 }
 
     private let folders: CaptureFolders
     private let clock: () -> TimeInterval
@@ -272,7 +277,7 @@ public final class CaptureToPhone {
     private func pump(_ id: Int) {
         guard var current = transfer, current.id == id, !current.finished else { return }
         let budget = clock() - lastInput() < Self.inputQuiet ? Self.busyChunksPerTick : Self.chunksPerTick
-        for _ in 0..<budget {
+        for _ in 0..<budget where backlog() < Self.maxBacklog {
             let data = (try? current.handle.read(upToCount: FrameCodec.maxChunkBytes)) ?? Data()
             if data.isEmpty {
                 current.finished = true

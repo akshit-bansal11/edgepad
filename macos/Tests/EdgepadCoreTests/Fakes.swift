@@ -123,6 +123,10 @@ final class FakeTransport: Transport {
     private(set) var sent: [[UInt8]] = []
     var alive = true
     private(set) var closeCount = 0
+    /// What the link still holds, which a test clears to stand for the link draining.
+    var backlog = 0
+    /// When set, the link fails a send that would take `backlog` past this, as the real transports' outboxes do.
+    var cap: Int?
 
     var closed: Bool {
         closeCount > 0
@@ -130,6 +134,10 @@ final class FakeTransport: Transport {
 
     func send(_ bytes: [UInt8]) -> Bool {
         guard alive else { return false }
+        if let cap {
+            guard backlog + bytes.count <= cap else { return false }
+            backlog += bytes.count
+        }
         sent.append(bytes)
         return true
     }

@@ -103,6 +103,20 @@ final class CaptureToPhoneTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: path))
     }
 
+    func testAFullLinkHoldsTheChunksBackUntilItDrains() {
+        var held = CaptureToPhone.maxBacklog
+        let capture = capture()
+        capture.backlog = { held }
+        _ = shoot(capture)
+
+        fire(4)
+        XCTAssertEqual(sent.count, 1, "only FILE_BEGIN may go while the link is full")
+
+        held = 0
+        fire()
+        XCTAssertTrue(endSent)
+    }
+
     func testAnAnswerWithNothingOnItsWayIsNotTaken() {
         XCTAssertFalse(capture().take(status: FileStatus.saved.rawValue))
     }

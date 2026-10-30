@@ -138,8 +138,8 @@ final class RfcommServer: NSObject {
 /// so a phone that stops reading cannot block the main thread that also runs input, timers and new connections.
 /// Closing drains first: what is queued gets a couple of seconds to go out before the channel is really closed.
 final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelegate {
-    /// 64 KiB is far more than a healthy link ever queues (frames are at most 258 bytes); a phone that has let this
-    /// much pile up has stopped reading, and the link is treated as dead.
+    /// Twice what a sender of many frames lets queue (`CaptureToPhone.maxBacklog`), so a healthy link never gets here;
+    /// a phone that has let this much pile up has stopped reading, and the link is treated as dead.
     private static let maxQueuedBytes = 64 * 1024
 
     /// The channel is already closed by then, so the abandoned write has long since stopped.
@@ -165,6 +165,8 @@ final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelega
         self.channel = channel
         super.init()
     }
+
+    var backlog: Int { queuedBytes }
 
     /// Queues in chunks because an RFCOMM write may not exceed the channel's MTU. False means the link is dead.
     func send(_ bytes: [UInt8]) -> Bool {

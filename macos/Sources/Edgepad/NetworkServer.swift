@@ -220,7 +220,7 @@ final class NetworkServer {
 /// Network.framework; past 64 KiB queued the phone has stopped reading and the link is treated as dead, as over
 /// RFCOMM. Closing lets what is queued go out first, so a refused phone still reads the status byte that says why.
 final class NetworkTransport: Transport {
-    /// Far more than a healthy link ever queues: frames are at most 258 bytes, and records add 18 to each write.
+    /// Twice what a sender of many frames lets queue (`CaptureToPhone.maxBacklog`), so a healthy link never gets here.
     private static let maxQueuedBytes = 64 * 1024
     /// Long enough for what is queued to leave over a healthy link, short enough that a stalled phone does not keep
     /// the connection open.
@@ -272,6 +272,8 @@ final class NetworkTransport: Transport {
             }
         }
     }
+
+    var backlog: Int { queuedBytes }
 
     /// False means the link is dead, or so far behind that it may as well be.
     func send(_ bytes: [UInt8]) -> Bool {
