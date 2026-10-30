@@ -1630,6 +1630,11 @@ class MainActivity :
         // The macro grid is handed what changed rather than built again, which would throw away where
         // TalkBack was and decode every picture over again for each one that arrived.
         val grid = macros
+        // A new list clears the open states, and a laptop only reports on change, so a watch already running is
+        // asked again: every laptop forgets its last report on a WATCH and says what is open afresh.
+        if (watchingMacros && frame is Frame.Text && frame.kind == TextKind.MACROS.id) {
+            link?.send(ActionId.MACROS_WATCH.frame())
+        }
         if (grid != null && frame is Frame.Text) {
             when (frame.kind) {
                 TextKind.MACROS.id -> {
