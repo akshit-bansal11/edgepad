@@ -28,6 +28,9 @@ internal sealed class Annotator : IDisposable
 
     // Set once, on the session's reader, before the first frame is read.
     private Action<Frame>? send;
+
+    // Set with it: whether this session's TEXT 9 names the running-apps watch.
+    private bool offersRunning;
     private int disposed;
     private int posted;
 
@@ -49,8 +52,15 @@ internal sealed class Annotator : IDisposable
     /// <summary>Raised on the UI thread when the screen or what is offered changes.</summary>
     private static event Action? Changed;
 
-    /// <summary>The TEXT 9 tokens for a laptop that can, or cannot, show the overlay. Capture is always offered.</summary>
-    internal static string Features(bool annotate) => annotate ? $"{Feature.Annotate}/{Feature.Capture}" : Feature.Capture;
+    /// <summary>
+    /// The TEXT 9 tokens for a laptop that can, or cannot, show the overlay and see macro apps' windows. Capture is
+    /// always offered.
+    /// </summary>
+    internal static string Features(bool annotate, bool running = false)
+    {
+        var features = annotate ? $"{Feature.Annotate}/{Feature.Capture}" : Feature.Capture;
+        return running ? $"{features}/{Feature.Running}" : features;
+    }
 
     /// <summary>
     /// Why the overlay cannot be used, or null when it can: the window is not an X11 one, there is no compositor
@@ -102,10 +112,12 @@ internal sealed class Annotator : IDisposable
     /// <summary>
     /// Sends TEXT 9 and TEXT 10 through <paramref name="sink"/>, now and whenever they change, and keeps it for the
     /// TEXT 11 answers. On the session's reader, after the handshake: a dead socket here ends the session.
+    /// <paramref name="running"/> says this session's TEXT 9 may name the running-apps watch.
     /// </summary>
-    public void Start(Action<Frame> sink)
+    public void Start(Action<Frame> sink, bool running)
     {
         send = sink;
+        offersRunning = running;
         Changed += OnChanged;
         Report();
     }
@@ -248,7 +260,7 @@ internal sealed class Annotator : IDisposable
             return;
         }
 
-        sink(new Text((byte)TextKind.Features, Features(annotating)));
+        sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning)));
         if (primary is { } screen)
         {
             sink(new Text(

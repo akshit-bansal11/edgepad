@@ -44,11 +44,14 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     private readonly Backlight backlight = new();
     private readonly Mpris mpris = new();
     private readonly Annotator annotator = new();
-    private readonly MacroStore macros = new(Path.Combine(Xdg.ConfigFolder, "macros.txt"), new LinuxLauncher());
+    private readonly MacroStore macros = new(
+        Path.Combine(Xdg.ConfigFolder, "macros.txt"), new LinuxLauncher(), windows: new LinuxMacroWindows());
     private readonly Worker worker;
     private readonly CaptureOverlay capture = new(() => Environment.TickCount64);
     private readonly Lock reporting = new();
     private StateReporter? reporter;
+    private MacroOpenWatcher? openApps;
+    private bool ended;
 
     // Whether the app switcher's Alt is down, so Next and Previous without a Begin are dropped, not a bare Tab. Only
     // the session's reader touches it.
@@ -200,15 +203,44 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
 
     /// <summary>
     /// Starts reporting the laptop's levels, media, macro names and features through <paramref name="send"/>, for the
-    /// rest of the session. Called once, on the session's reader, after the handshake.
+    /// rest of the session. Called once, on the session's reader, after the handshake. Returns what turns the macro
+    /// apps' watch on and off, or null where this desktop cannot be surveyed. The features name that watch before the
+    /// caller has this, which is safe because the same reader must return here before it can read the phone's answer.
     /// </summary>
-    public void StartReporting(Action<Frame> send)
+    public Action<bool>? StartReporting(Action<Frame> send)
     {
+        // A failed survey or send stays inside the watcher, so nothing here can cost a macro its launch.
+        var open = macros.CreateWatcher(states => send(new Text((byte)TextKind.MacroOpen, states)));
+
         // On the reader, before the reporter's thread: the features and the screen size go out first.
-        annotator.Start(send);
+        annotator.Start(send, open is not null);
         lock (reporting)
         {
             reporter ??= new StateReporter(speakers, microphone, backlight, mpris, macros, send);
+            openApps = open;
+        }
+
+        return open is null ? null : on => WatchMacros(open, on);
+    }
+
+    /// <summary>Under the lock Dispose takes, because a start after Dispose would leave the timer running for the life of the app.</summary>
+    private void WatchMacros(MacroOpenWatcher open, bool on)
+    {
+        lock (reporting)
+        {
+            if (ended)
+            {
+                return;
+            }
+
+            if (on)
+            {
+                open.Start();
+            }
+            else
+            {
+                open.Stop();
+            }
         }
     }
 
@@ -220,6 +252,8 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
         annotator.Dispose();
         lock (reporting)
         {
+            ended = true;
+            openApps?.Dispose();
             reporter?.Dispose();
         }
 

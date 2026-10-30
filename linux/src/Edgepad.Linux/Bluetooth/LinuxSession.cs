@@ -25,7 +25,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Dispatcher dispatcher;
     private readonly Action releaseHeldInput;
     private readonly Func<string> probePad;
-    private readonly Action<Action<Frame>> startReporting;
+    private readonly Func<Action<Frame>, Action<bool>?> startReporting;
     private readonly Func<IReadOnlyList<Macro>> macros;
     private readonly LinkIdentity identity;
     private readonly Action<string> onStatus;
@@ -43,7 +43,8 @@ internal sealed class LinuxSession : IDisposable
     /// Takes ownership of <paramref name="link"/>. <paramref name="releaseHeldInput"/> releases every key and
     /// button the phone still holds down when the session ends, and unplugs its virtual controller.
     /// <paramref name="probePad"/> answers the PAD_STATUS token sent once after the handshake, and
-    /// <paramref name="startReporting"/> is given the sink the platform sends its state reports through, and
+    /// <paramref name="startReporting"/> is given the sink the platform sends its state reports through and answers
+    /// with the macro apps' watch, if this desktop has one, and
     /// <paramref name="macros"/> is read each time the phone asks for the macro icons.
     /// </summary>
     public LinuxSession(
@@ -54,7 +55,7 @@ internal sealed class LinuxSession : IDisposable
         Dispatcher dispatcher,
         Action releaseHeldInput,
         Func<string> probePad,
-        Action<Action<Frame>> startReporting,
+        Func<Action<Frame>, Action<bool>?> startReporting,
         Func<IReadOnlyList<Macro>> macros,
         LinkIdentity identity,
         Action<string> onStatus,
@@ -113,7 +114,7 @@ internal sealed class LinuxSession : IDisposable
             frames.Send(new Text((byte)TextKind.Device, identity.DeviceText(DeviceOs.Linux)));
             dispatcher.PadStatusReply = status => frames.Send(new Text((byte)TextKind.PadStatus, status));
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
-            startReporting(frames.Send);
+            dispatcher.MacroWatch = startReporting(frames.Send);
 
             // Captures go to the phone once it asks (SET CAPTURE_TARGET); until then, and after the session, they stay here.
             dispatcher.Capture = new CaptureToPhone(new LinuxCaptureFolders(), frames.Send, () => dispatcher.LastInputMs);
