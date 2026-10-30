@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.ControlId
+import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadStatus
@@ -315,6 +316,35 @@ class LaptopStateTest {
             val start = i * CHUNK_BYTES
             "$slot/$i/$count/" + encoded.substring(start, minOf(start + CHUNK_BYTES, encoded.length))
         }
+    }
+
+    @Test
+    fun readsTheLaptopsIdentityFromDevice() {
+        val id = "0123456789abcdef0123456789abcdef"
+        assertTrue(state.take(Frame.Text(TextKind.DEVICE.id, "$id/windows/Office/PC")))
+        assertEquals(id, state.laptopId)
+        assertEquals(DeviceOs.WINDOWS, state.os)
+        assertEquals("Office/PC", state.laptopName)
+    }
+
+    @Test
+    fun aDeviceTokenThisBuildDoesNotKnowLeavesOsNull() {
+        val id = "0123456789abcdef0123456789abcdef"
+        assertTrue(state.take(Frame.Text(TextKind.DEVICE.id, "$id/haiku/Desk")))
+        assertEquals(null, state.os)
+        assertEquals("Desk", state.laptopName)
+    }
+
+    @Test
+    fun malformedDeviceTextIsIgnored() {
+        val id = "0123456789abcdef0123456789abcdef"
+        assertTrue(state.take(Frame.Text(TextKind.DEVICE.id, "$id/linux/Good")))
+        for (bad in listOf("$id", "$id/linux", "$id/linux/", "0123/linux/Short", "$id-x/linux/Name")) {
+            assertFalse(bad, state.take(Frame.Text(TextKind.DEVICE.id, bad)))
+        }
+        assertEquals(id, state.laptopId)
+        assertEquals("Good", state.laptopName)
+        assertEquals(DeviceOs.LINUX, state.os)
     }
 
     private companion object {

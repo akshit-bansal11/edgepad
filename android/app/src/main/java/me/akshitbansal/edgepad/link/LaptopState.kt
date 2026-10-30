@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.ControlId
+import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadStatus
@@ -16,6 +17,19 @@ import java.util.Base64
 class LaptopState {
     private val levels = HashMap<ControlId, Int>()
     private val flags = HashMap<ControlId, Boolean>()
+
+    /**
+     * The laptop's identity from TEXT DEVICE. Null until the laptop says so, which is also where a laptop too old
+     * to send it stays. [os] is null for a token this build does not know, so an OS-dependent hint is not shown.
+     */
+    var laptopId: String? = null
+        private set
+
+    var laptopName: String? = null
+        private set
+
+    var os: DeviceOs? = null
+        private set
 
     var nowPlaying = ""
         private set
@@ -129,6 +143,7 @@ class LaptopState {
                     TextKind.FEATURES -> features = features(frame.text)
                     TextKind.SCREEN_SIZE -> screenSize = size(frame.text) ?: return false
                     TextKind.SIGN_STATUS -> signStatus = SignStatus.of(frame.text)
+                    TextKind.DEVICE -> return device(frame.text)
                     else -> return false
                 }
             }
@@ -137,6 +152,19 @@ class LaptopState {
                 return false
             }
         }
+        return true
+    }
+
+    /**
+     * "idhex/os/name". Malformed text (fewer than two slashes, an id that is not 32 hex digits, an empty name) is
+     * ignored and the last good identity stays. The name may contain slashes, so only the first two split.
+     */
+    private fun device(text: String): Boolean {
+        val parts = text.split('/', limit = DEVICE_FIELDS)
+        if (parts.size != DEVICE_FIELDS || !ID_HEX.matches(parts[0]) || parts[2].isEmpty()) return false
+        laptopId = parts[0]
+        os = DeviceOs.of(parts[1])
+        laptopName = parts[2]
         return true
     }
 
@@ -244,6 +272,12 @@ class LaptopState {
         const val MACRO_SLOTS = 15
 
         private const val FLAG_BIT = 1
+
+        /** "idhex/os/name". */
+        private const val DEVICE_FIELDS = 3
+
+        /** A link id: 16 bytes, written as 32 hex digits. */
+        private val ID_HEX = Regex("[0-9a-fA-F]{32}")
         private const val MAX_LEVEL = 100
 
         /** "slot/chunk/chunks/base64". */
