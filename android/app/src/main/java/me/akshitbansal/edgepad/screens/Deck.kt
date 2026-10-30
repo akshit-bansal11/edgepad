@@ -27,12 +27,6 @@ import me.akshitbansal.edgepad.Type
 private const val ICON_MIN_DP = 16f
 
 /**
- * How far past its own pixels a laptop's picture is stretched on a big tile. The laptop sends 128 px, so
- * this keeps one at 160 px however large the tile; past about this much the filtering shows as softness.
- */
-private const val MAX_UPSCALE = 1.25f
-
-/**
  * The label's size as a fraction of the cell's shorter side. It is held between [Type.LABEL], the size every
  * macro button used to be drawn at, and [LABEL_MAX_SP]: a grid of three has room for text the size of a
  * headline, and a headline on a button reads as a mistake rather than as a size. The ceiling is a bound on a
@@ -111,6 +105,10 @@ class Deck(
     private var labels = true
     private var planFor = 0
     private var wantedRows: Int? = null
+    private var iconZoom = 1f
+
+    /** The side, in pixels, a picture is planned at once the grid is drawn; 0 before that. */
+    val iconSide: Int get() = grid?.icon ?: 0
     private var across = 0
     private var down = 0
     private var onMove: (from: Int, to: Int) -> Unit = { _, _ -> }
@@ -177,7 +175,9 @@ class Deck(
         slots: Int = tiles.size,
         rows: Int? = null,
         onClose: (DeckTile) -> Unit = {},
+        iconZoom: Float = 1f,
     ) {
+        this.iconZoom = iconZoom
         this.planFor = slots
         this.wantedRows = rows
         this.across = across
@@ -298,7 +298,8 @@ class Deck(
         // that the blur was what the eye read rather than the icon. The laptop sends 128 from 3.0.1, which
         // is sharp at the sizes this grid produces, so the cap became the thing making a big button look
         // empty rather than the thing keeping it honest.
-        val icon = minOf(width - pad, height - pad - line - ui.dp(Space.XS)).coerceAtLeast(ui.dp(ICON_MIN_DP))
+        val box = minOf(width - pad, height - pad - line - ui.dp(Space.XS))
+        val icon = DeckLayout.iconSide(box, iconZoom, ui.dp(ICON_MIN_DP))
         return Grid(chosen, height, labelSp, line, icon, bare, minOf(width, height))
     }
 
@@ -663,10 +664,10 @@ class Deck(
         button.text = shown
         // A vector is drawn at the cell's full size and stays sharp at any of them. A laptop's picture is a
         // bitmap of a fixed size, and stretched past a little over that it reads as a blur rather than as
-        // an icon, so on a big tile it is drawn at most [MAX_UPSCALE] times its own pixels, centred.
+        // an icon, so on a big tile it is never drawn larger than its own pixels, centred.
         val icon =
             if (picture is BitmapDrawable) {
-                minOf(grid.icon, (picture.bitmap.width * MAX_UPSCALE).toInt())
+                minOf(grid.icon, picture.bitmap.width)
             } else {
                 grid.icon
             }

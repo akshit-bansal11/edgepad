@@ -68,6 +68,13 @@ class DeckLayoutTest {
     }
 
     @Test
+    fun iconSideIsTheZoomedBoxAndNeverUnderTheFloor() {
+        assertEquals(400, DeckLayout.iconSide(box = 400, zoom = 1f, minPx = 32))
+        assertEquals(160, DeckLayout.iconSide(box = 400, zoom = 0.4f, minPx = 32))
+        assertEquals(32, DeckLayout.iconSide(box = 50, zoom = 0.4f, minPx = 32))
+    }
+
+    @Test
     fun columnsForAgreesWithChoices() {
         for (count in 2..10) {
             val offered = DeckLayout.choices(count)

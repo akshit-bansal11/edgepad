@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
+import kotlin.math.roundToInt
 
 /**
  * The macro screen's own settings: how many macros one page shows, how that many are laid out and whether the
@@ -15,6 +16,8 @@ import me.akshitbansal.edgepad.Settings
 object MacroSettingsScreen {
     /** Chips per line: seven at most (Auto and six grids), which do not fit one line at a readable size. */
     private const val CHIPS_PER_LINE = 4
+    private const val PERCENT = 100
+    private val zoomRange = StepRange(Settings.MIN_ICON_ZOOM, Settings.MAX_ICON_ZOOM, 0.05f)
 
     fun build(
         ui: Ui,
@@ -50,6 +53,18 @@ object MacroSettingsScreen {
                 add(ui.toggle(ui.string(R.string.macros_labels), settings.macroLabels) { settings.macroLabels = it })
             }
             footnote(ui.string(R.string.macros_labels_caption))
+            section(ui.string(R.string.macros_icons_title))
+            card {
+                add(
+                    ui.slider(
+                        ui.string(R.string.macros_icon_size),
+                        zoomRange.steps,
+                        zoomRange.stepOf(settings.macroIconZoom),
+                        { step -> ui.string(R.string.percent_value, (zoomRange.valueAt(step) * PERCENT).roundToInt()) },
+                    ) { step -> settings.macroIconZoom = zoomRange.valueAt(step) },
+                )
+            }
+            footnote(ui.string(R.string.macros_icon_size_caption))
             systemSettings(onSystem)
         }
     }

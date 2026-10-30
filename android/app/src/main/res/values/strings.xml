@@ -393,6 +393,9 @@
   <string name="macros_settings">Macro settings</string>
   <string name="macros_labels">Macro labels</string>
   <string name="macros_labels_caption">Names under the pictures. A macro with no picture always shows its name.</string>
+  <string name="macros_icons_title">Icons</string>
+  <string name="macros_icon_size">Icon size</string>
+  <string name="macros_icon_size_caption">How much of each button the picture fills. Pictures are never stretched past their own pixels, so they stay sharp. They may be small on a big button until the laptop sends larger ones.</string>
   <string name="macros_move_earlier">Move earlier</string>
   <string name="macros_move_later">Move later</string>
   <string name="macros_moved">Moved to place %1$d of %2$d</string>

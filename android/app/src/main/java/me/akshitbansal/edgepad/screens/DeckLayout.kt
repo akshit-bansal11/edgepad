@@ -42,6 +42,13 @@ object DeckLayout {
         gap: Int,
     ): Boolean = rows * touch + (rows - 1) * gap <= down
 
+    /** The side a picture is drawn at: [zoom] of the [box] it has room for, never under [minPx]. */
+    fun iconSide(
+        box: Int,
+        zoom: Float,
+        minPx: Int,
+    ): Int = maxOf(minPx, (box * zoom).toInt())
+
     /**
      * The side of the area that answers for a tile's close cross, on a tile whose shorter side is [side]: a full
      * [touch] target where the tile has room for one, half the tile where it has not, so most of a small tile still

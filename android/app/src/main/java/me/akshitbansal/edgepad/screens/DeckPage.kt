@@ -164,6 +164,7 @@ class DeckPage(
             slots = slots,
             rows = rows,
             onClose = onClose,
+            iconZoom = settings.macroIconZoom,
         )
     }
 
@@ -202,6 +203,7 @@ class DeckPage(
                 slots = per,
                 rows = rows,
                 onClose = onClose,
+                iconZoom = settings.macroIconZoom,
             )
         }
         holder.addView(pager, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))

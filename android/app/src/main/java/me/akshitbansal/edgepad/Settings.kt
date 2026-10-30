@@ -93,6 +93,9 @@ class Settings(
      */
     var macroLabels by flag("macroLabels", true)
 
+    /** How much of the room a macro tile gives its picture the picture fills, from 0.4 to 1. */
+    var macroIconZoom by bounded(KEY_MACRO_ICON_ZOOM, DEFAULT_ICON_ZOOM, MIN_ICON_ZOOM, MAX_ICON_ZOOM)
+
     /**
      * Captures go to this phone's gallery rather than staying where the laptop's own tool saved them. Set on the
      * Capture screen and sent to the laptop on every connection.
@@ -414,6 +417,9 @@ class Settings(
         const val MIN_MACROS_PER_PAGE = 2
         const val MAX_MACROS_PER_PAGE = 10
         const val AUTO_MACRO_ROWS = 0
+        const val MIN_ICON_ZOOM = 0.4f
+        const val MAX_ICON_ZOOM = 1f
+        const val DEFAULT_ICON_ZOOM = 1f
         private val PER_PAGE_RANGE = MIN_MACROS_PER_PAGE..MAX_MACROS_PER_PAGE
         const val MAX_ANGLE = 360f
         const val DEFAULT_GRADIENT_ANGLE = 90f
@@ -436,6 +442,7 @@ class Settings(
         private const val KEY_SCROLL_SPEED = "scrollSpeed"
         private const val KEY_MACROS_PER_PAGE = "macrosPerPage"
         private const val KEY_MACRO_ROWS = "macroRows"
+        private const val KEY_MACRO_ICON_ZOOM = "macroIconZoom"
         private const val KEY_DIAL_LENGTH = "dialLength"
         private const val KEY_DIAL_HEIGHT = "dialHeight"
         private const val KEY_CONTROL_COLOR = "controlColor"
