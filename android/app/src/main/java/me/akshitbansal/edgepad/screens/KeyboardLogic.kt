@@ -77,13 +77,20 @@ fun labelFor(
     os: DeviceOs?,
 ): String =
     when ((cap.base as? KeyOut.Code)?.code) {
-        CODE_ALT_LEFT, CODE_ALT_RIGHT -> if (os == DeviceOs.MACOS) "Option" else "Alt"
-        CODE_WIN_LEFT, CODE_WIN_RIGHT ->
+        CODE_ALT_LEFT, CODE_ALT_RIGHT -> {
+            if (os == DeviceOs.MACOS) "Option" else "Alt"
+        }
+
+        CODE_WIN_LEFT, CODE_WIN_RIGHT -> {
             when (os) {
                 DeviceOs.WINDOWS -> "Win"
                 DeviceOs.LINUX -> "Super"
                 DeviceOs.MACOS -> "Cmd"
                 null -> "Meta"
             }
-        else -> cap.label
+        }
+
+        else -> {
+            cap.label
+        }
     }
