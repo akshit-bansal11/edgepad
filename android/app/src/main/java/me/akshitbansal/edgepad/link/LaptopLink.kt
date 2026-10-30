@@ -3,6 +3,7 @@ package me.akshitbansal.edgepad.link
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import me.akshitbansal.edgepad.link.blob.isBlob
 import me.akshitbansal.edgepad.link.net.Sas
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.FrameCodec
@@ -161,6 +162,15 @@ class LaptopLink(
     /** The icon side, in pixels, asked of the laptop; raised by the activity as tiles grow, and 128 again on a new link. */
     @Volatile var iconPx: Int = 128
 
+    /**
+     * Takes this link's blob frames on the reading thread, so a blob never passes through the main thread. With none
+     * set they are dropped. Whether a laptop's blob may reach anything is the sink's to decide, not the link's.
+     */
+    @Volatile var blobs: ((Frame) -> Unit)? = null
+
+    /** The frames [send] has queued and the writer has not taken yet. */
+    val queued: Int get() = outbox.size
+
     @Volatile private var streams: Streams? = null
 
     @Volatile private var writer: Thread? = null
@@ -244,6 +254,8 @@ class LaptopLink(
                 if (frame is Frame.Pong) {
                     val ms = (System.nanoTime() - frame.time) / NANOS_PER_MS
                     deliver { it.onRoundTrip(ms) }
+                } else if (isBlob(frame)) {
+                    blobs?.invoke(frame)
                 } else if (!CaptureInbox.take(frame, id, ::send)) {
                     // Asked for here, ahead of the main thread, so the pictures are on their way before any
                     // screen wants them and are cached by the time the macro screen opens.
