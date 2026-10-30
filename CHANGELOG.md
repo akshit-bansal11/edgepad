@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Added
+
+- **Stroke width, opacity and any colour in Annotate and Sign.** The pen screen has a width slider, an opacity slider and, after the eight colours, a swatch that opens the colour picker. The laptop draws each stroke, and the saved signature, at the width, opacity and colour it was drawn with. The choices are kept on the phone. The protocol gains PEN_WIDTH, PEN_OPACITY and PEN_RGB, new ids that need no new version.
+
 ### Fixed
 
 - **A slow macro launch no longer holds up the link.** The laptop starts a macro on a separate thread instead of the one that reads the phone's input, and logs how long the start took, and macro pictures are sent without pausing input.

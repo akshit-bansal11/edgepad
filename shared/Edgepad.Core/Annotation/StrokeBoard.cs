@@ -29,18 +29,73 @@ internal enum StrokeTool
 internal readonly record struct NormPoint(ushort X, ushort Y);
 
 /// <summary>
+/// What the next stroke will look like, fixed when its finger goes down so a later change never repaints ink already
+/// on the screen. Width and opacity are the phone's own numbers (SET PEN_WIDTH and PEN_OPACITY), kept as sent and
+/// turned into pixels and alpha only where a stroke is drawn.
+/// </summary>
+/// <param name="Rgb">0xRRGGBB, from the palette or from <see cref="TryParseRgb"/>; nothing else can reach it.</param>
+/// <param name="Width">1..100, in steps of 0.02% of the screen's height.</param>
+/// <param name="Opacity">10..100 percent.</param>
+internal readonly record struct PenStyle(int Rgb, int Width, int Opacity)
+{
+    /// <summary>
+    /// 20 steps are 0.4% of the screen's height, the pen's width before the phone could choose, and a round number
+    /// to send as the phone's default.
+    /// </summary>
+    public const int DefaultWidth = 20;
+
+    /// <summary>Below this the width is the 0.1% floor: 1..4 are accepted and all mean 5, so a slider may start at 5.</summary>
+    public const int MinWidth = 5;
+
+    public const int MaxWidth = 100;
+
+    public const int DefaultOpacity = 100;
+    public const int MinOpacity = 10;
+    public const int MaxOpacity = 100;
+
+    /// <summary>The highlighter is this many times as wide as the pen is set to be, which is today's 2% against 0.4%.</summary>
+    public const float HighlighterWidths = 5f;
+
+    /// <summary>One width step is 0.02% of the screen's height, written as a divisor so 20 steps are exactly 0.004.</summary>
+    private const float WidthStep = 5000f;
+
+    /// <summary>Black, the first palette colour, at the default width and fully opaque.</summary>
+    public static PenStyle Default { get; } = new(0x000000, DefaultWidth, DefaultOpacity);
+
+    public static bool IsWidth(int value) => value is >= 1 and <= MaxWidth;
+
+    public static bool IsOpacity(int value) => value is >= MinOpacity and <= MaxOpacity;
+
+    /// <summary>The pen's width as a share of the screen's height, 0.001 to 0.02.</summary>
+    public float PenShare => Math.Max(MinWidth, Width) / WidthStep;
+
+    /// <summary>
+    /// Exactly six hex digits, either case, and nothing around them: no "#", no sign, no space, no "0x". Parsed by
+    /// hand because the number parsers in the framework accept more than that, and this one string is the phone's
+    /// to choose.
+    /// </summary>
+    public static bool TryParseRgb(string? text, out int rgb)
+    {
+        rgb = 0;
+        if (text is not { Length: 6 } || !text.All(char.IsAsciiHexDigit))
+        {
+            return false;
+        }
+
+        rgb = Convert.ToInt32(text, 16);
+        return true;
+    }
+}
+
+/// <summary>
 /// One finger-down to finger-up. Freehand tools keep every point; the shape tools keep the down point and the
 /// latest one, because a shape is only ever its two corners.
 /// </summary>
-internal sealed class Stroke(StrokeTool tool, int colour)
+internal sealed class Stroke(StrokeTool tool, PenStyle style)
 {
-    /// <summary>Pen and highlighter widths, as a share of the screen's height so a stroke looks alike on any display.</summary>
-    public const float PenShare = 0.004f;
-    public const float HighlighterShare = 0.02f;
-
     /// <summary>
-    /// The highlighter is translucent so the text under it stays readable. It is stroked once per path, so an
-    /// overlapping stretch of one stroke is not darker than the rest.
+    /// The highlighter is translucent so the text under it stays readable: 35% of its colour, times the opacity the
+    /// phone set. It is stroked once per path, so an overlapping stretch of one stroke is not darker than the rest.
     /// </summary>
     public const float HighlighterAlpha = 0.35f;
 
@@ -52,15 +107,22 @@ internal sealed class Stroke(StrokeTool tool, int colour)
 
     public StrokeTool Tool { get; } = tool;
 
-    /// <summary>An index into <see cref="Palette"/>.</summary>
-    public int Colour { get; } = colour;
+    public PenStyle Style { get; } = style;
+
+    /// <summary>The colour as 0xRRGGBB, without the alpha <see cref="Alpha"/> gives it.</summary>
+    public int Rgb => Style.Rgb;
+
+    /// <summary>The ink's alpha, 0..255: the opacity the phone set, and for the highlighter that of its 35%.</summary>
+    public byte Alpha =>
+        (byte)Math.Round(255f * (Tool == StrokeTool.Highlighter ? HighlighterAlpha : 1f) * Style.Opacity / 100f);
 
     public List<NormPoint> Points { get; } = [];
 
     private bool IsShape => Tool is StrokeTool.Line or StrokeTool.Arrow or StrokeTool.Rectangle or StrokeTool.Ellipse;
 
+    /// <summary>The width as a share of the screen's height, so a stroke looks alike on any display; at least one pixel.</summary>
     public float WidthPx(int height) =>
-        Math.Max(1f, (Tool == StrokeTool.Highlighter ? HighlighterShare : PenShare) * height);
+        Math.Max(1f, Style.PenShare * (Tool == StrokeTool.Highlighter ? PenStyle.HighlighterWidths : 1f) * height);
 
     /// <summary>The points in pixels of a <paramref name="width"/> by <paramref name="height"/> screen.</summary>
     public Vector2[] Path(int width, int height) =>
@@ -143,7 +205,8 @@ internal sealed class StrokeBoard
 
     public StrokeTool Tool { get; private set; } = StrokeTool.Pen;
 
-    public int Colour { get; private set; }
+    /// <summary>The colour, width and opacity the next stroke takes. They outlive <see cref="Begin"/>, as the colour always did, and end with the board.</summary>
+    public PenStyle Style { get; private set; } = PenStyle.Default;
 
     /// <summary>The strokes whose finger has lifted, oldest first.</summary>
     public IReadOnlyList<Stroke> Strokes => strokes;
@@ -179,12 +242,48 @@ internal sealed class StrokeBoard
     /// <summary>False when <paramref name="index"/> is not in the palette.</summary>
     public bool SetColour(int index)
     {
-        if (Palette.Colour(index) is null)
+        if (Palette.Colour(index) is not { } rgb)
         {
             return false;
         }
 
-        Colour = index;
+        Style = Style with { Rgb = rgb };
+        return true;
+    }
+
+    /// <summary>Any 0xRRGGBB: the caller has already checked it came from <see cref="PenStyle.TryParseRgb"/>.</summary>
+    public bool SetRgb(int rgb)
+    {
+        if (rgb is < 0 or > 0xFFFFFF)
+        {
+            return false;
+        }
+
+        Style = Style with { Rgb = rgb };
+        return true;
+    }
+
+    /// <summary>False, and nothing changes, unless <paramref name="width"/> is 1..100.</summary>
+    public bool SetWidth(int width)
+    {
+        if (!PenStyle.IsWidth(width))
+        {
+            return false;
+        }
+
+        Style = Style with { Width = width };
+        return true;
+    }
+
+    /// <summary>False, and nothing changes, unless <paramref name="opacity"/> is 10..100.</summary>
+    public bool SetOpacity(int opacity)
+    {
+        if (!PenStyle.IsOpacity(opacity))
+        {
+            return false;
+        }
+
+        Style = Style with { Opacity = opacity };
         return true;
     }
 
@@ -237,7 +336,7 @@ internal sealed class StrokeBoard
                     return false;
                 }
 
-                Active = new Stroke(Tool, Colour);
+                Active = new Stroke(Tool, Style);
                 Active.Points.Add(point);
                 return true;
             case 2 when Active is not null:

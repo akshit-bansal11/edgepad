@@ -317,10 +317,68 @@ public sealed class DispatcherTests : IDisposable
         Assert.Equal(["Set PenColor 6", "Set PenColor 8"], platform.Calls);
     }
 
+    [Theory]
+    [InlineData(ControlId.PenWidth, 20)]
+    [InlineData(ControlId.PenWidth, 100)]
+    [InlineData(ControlId.PenOpacity, 10)]
+    [InlineData(ControlId.PenOpacity, 100)]
+    public void APenWidthOrOpacityReachesThePlatformAsAControl(ControlId control, int value)
+    {
+        dispatcher.Handle(new SetValue((byte)control, (byte)value));
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal([Invariant($"Set {control} {value}")], platform.Calls);
+    }
+
+    [Theory]
+    [InlineData(ControlId.PenWidth)]
+    [InlineData(ControlId.PenOpacity)]
+    public void APenWidthOrOpacityAbove100IsDroppedBeforeThePlatform(ControlId control)
+    {
+        dispatcher.Handle(new SetValue((byte)control, 101));
+        dispatcher.Handle(new SetValue((byte)control, 255));
+
+        Assert.Equal(2, dispatcher.Dropped);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void APenRgbReachesThePlatformAsANumberAndOnlyWhenItIsSixHexDigits()
+    {
+        dispatcher.Handle(new Text((byte)TextKind.PenRgb, "FF3B30"));
+        dispatcher.Handle(new Text((byte)TextKind.PenRgb, "0068d6"));
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal(["PenRgb 16726832", "PenRgb 26838"], platform.Calls);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("12345")]
+    [InlineData("GGGGGG")]
+    [InlineData("#123456")]
+    [InlineData("1234567")]
+    public void AMalformedPenRgbIsDroppedBeforeThePlatform(string text)
+    {
+        dispatcher.Handle(new Text((byte)TextKind.PenRgb, text));
+
+        Assert.Equal(1, dispatcher.Dropped);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void APenRgbThePlatformRefusesIsDropped()
+    {
+        platform.Answer = false;
+        dispatcher.Handle(new Text((byte)TextKind.PenRgb, "123456"));
+
+        Assert.Equal(1, dispatcher.Dropped);
+    }
+
     [Fact]
     public void AnUnknownControlIsDropped()
     {
-        dispatcher.Handle(new SetValue(9, 50));
+        dispatcher.Handle(new SetValue(99, 50));
         Assert.Equal(1, dispatcher.Dropped);
         Assert.Empty(platform.Calls);
     }
@@ -442,6 +500,8 @@ public sealed class DispatcherTests : IDisposable
         public bool Pad(PadState state) => Record("Pad");
 
         public bool Pen(Pen pen) => Record(Invariant($"Pen {pen.X} {pen.Y} {pen.State}"));
+
+        public bool PenRgb(int rgb) => Record(Invariant($"PenRgb {rgb}"));
 
         public string AttachPad()
         {

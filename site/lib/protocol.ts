@@ -257,9 +257,13 @@ const CONTROL_DOCS: Record<string, string> = {
   REFRESH_RATE:
     "SET switches the display to the rate at that index of the TEXT 4 list; STATE reports the current rate's index. Never a rate in hertz.",
   PEN_COLOR:
-    "SET picks the stroke colour by index into the eight-colour palette in protocol/actions.txt. An index of 8 or more is dropped and counted. Never an RGB value.",
+    "SET picks the stroke colour by index into the eight-colour palette in protocol/actions.txt. An index of 8 or more is dropped and counted. A colour outside the palette is TEXT 17.",
   CAPTURE_TARGET:
     "Where a capture ends up: 0 the laptop keeps it, 1 the laptop sends it to the phone and deletes its copy only once the phone says it saved it. Sent on connect and whenever the setting changes.",
+  PEN_WIDTH:
+    "SET sets the width of new pen-tool strokes, 1 to 100, as 0.02% of the screen's height per step: 5 is 0.1%, 20 is the default 0.4% and 100 is 2.0%. The highlighter is always 5 times the pen's width. 0 or more than 100 is dropped and counted. Forgotten when the session ends.",
+  PEN_OPACITY:
+    "SET sets the opacity of new strokes in percent, 10 to 100. The highlighter multiplies its own 35% by it. Anything else is dropped and counted. Forgotten when the session ends.",
 };
 
 const TEXT_DOCS: Record<string, string> = {
@@ -285,6 +289,8 @@ const TEXT_DOCS: Record<string, string> = {
     "How a SIGN_SAVE ended, as one of saved, empty or failed. Laptop to phone.",
   CAPTURE_STATUS:
     "Why a capture the phone asked for stayed on the laptop, as one of too-large, not-found or failed. Laptop to phone.",
+  PEN_RGB:
+    "A stroke colour as exactly six hex digits, RRGGBB, either case. Anything else, a leading # included, is dropped and counted. It sets the colour until the next PEN_COLOR or PEN_RGB. Phone to laptop.",
 };
 
 const PAD_BUTTON_DOCS: Record<string, string> = {

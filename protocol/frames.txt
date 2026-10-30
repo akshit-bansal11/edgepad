@@ -135,6 +135,13 @@ TEXT 16 -012 = 41 10 04 2d 30 31 32
 # CONTROL 7 CLIPBOARD, phone to laptop: 1 the link shares the clipboard, 0 it does not.
 SET 7 1 = 21 07 01
 SET 7 0 = 21 07 00
+# CONTROL 8 PEN_WIDTH (1..100, 20 is the default 0.4%), CONTROL 9 PEN_OPACITY (10..100) and TEXT 17 PEN_RGB (six hex
+# digits), phone to laptop.
+SET 8 20 = 21 08 14
+SET 8 100 = 21 08 64
+SET 9 35 = 21 09 23
+SET 9 100 = 21 09 64
+TEXT 17 FF3B30 = 41 11 06 46 46 33 42 33 30
 # ACTION 56 APPS_LIST and ACTION 57 APPS_CANCEL, phone to laptop.
 ACTION 56 = 20 38
 ACTION 57 = 20 39

@@ -36,6 +36,12 @@ internal interface IPlatform
     /// <summary>One PEN frame for the annotate layer. False outside an annotate or sign session.</summary>
     bool Pen(Pen pen);
 
+    /// <summary>
+    /// The stroke colour as 0xRRGGBB, from a TEXT PEN_RGB the dispatcher has already held to six hex digits. False when
+    /// this laptop has no annotate layer.
+    /// </summary>
+    bool PenRgb(int rgb);
+
     /// <summary>Plugs in the virtual controller; the answer is the <see cref="PadStatus"/> token to send back.</summary>
     string AttachPad();
 
