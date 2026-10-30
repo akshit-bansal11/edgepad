@@ -37,6 +37,8 @@ final class SessionTests: XCTestCase {
     private var watchTicks: [(seconds: TimeInterval, tick: () -> Void)] = []
     /// A blob's next tick, as its sender armed it, fired by hand.
     private var blobTicks: [() -> Void] = []
+    /// Keeps a session alive as `SessionHost` does: its writers hold it weakly, so a test that drops it has no link.
+    private var heldSession: Session?
 
     private lazy var trust = TrustStore(path: directory.appendingPathComponent("trust").path)
     /// One iteration, as in PinStoreTests: the real work factor would take most of a second per answer.
@@ -908,6 +910,7 @@ final class SessionTests: XCTestCase {
         )
         dispatcher.clipboard = clipboard
         let session = connectedSession()
+        heldSession = session
         session.receive(FrameCodec.encode(.setValue(control: ControlId.clipboard.rawValue, value: 1)))
         return (session, clipboard, surface)
     }
