@@ -130,12 +130,17 @@ TEXT 13 00112233445566778899aabbccddeeff/windows/Desk = 41 0d 2d 30 30 31 31 32 
 # TEXT 14 APP_ADD, phone to laptop: "<epoch>.<index>" into the list the laptop last sent. TEXT 15 APP_ADD_STATUS, laptop to phone: one token.
 TEXT 14 7.12 = 41 0e 04 37 2e 31 32
 TEXT 15 added = 41 0f 05 61 64 64 65 64
+# TEXT 16 MACRO_OPEN, laptop to phone: one state character per macro slot.
+TEXT 16 -012 = 41 10 04 2d 30 31 32
 # CONTROL 7 CLIPBOARD, phone to laptop: 1 the link shares the clipboard, 0 it does not.
 SET 7 1 = 21 07 01
 SET 7 0 = 21 07 00
 # ACTION 56 APPS_LIST and ACTION 57 APPS_CANCEL, phone to laptop.
 ACTION 56 = 20 38
 ACTION 57 = 20 39
+ACTION 58 = 20 3a
+ACTION 59 = 20 3b
+ACTION 96 = 20 60
 # BLOB_BEGIN kind size label, either direction, FILE_BEGIN's shape: kind u8, length u8, then size u32 and the UTF-8 label,
 # the length counting both. Kind 0 CLIP_TEXT, "clip" is 4 bytes so the length is 8; 1234 = 0x04d2, low byte first.
 BLOB_BEGIN 0 1234 clip = 54 00 08 d2 04 00 00 63 6c 69 70

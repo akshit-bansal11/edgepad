@@ -80,11 +80,24 @@ internal enum ActionId : byte
     AppsCancel = 57,
 
     /// <summary>
+    /// The macro grid is open and wants to know which macro apps are running: MacrosWatch starts this laptop's survey, which
+    /// reports <see cref="TextKind.MacroOpen"/> on change only, and MacrosUnwatch stops it. Forgotten when the session ends.
+    /// </summary>
+    MacrosWatch = 58,
+    MacrosUnwatch = 59,
+
+    /// <summary>
     /// The first of 32 macro slots, 64..95; slot n is <c>MacroBase + n</c>. The phone sends the index and
     /// never what it launches — this laptop's own list decides that, which is the whole security model.
     /// A laptop too old to know the block drops the id and counts it, so this needed no protocol version.
     /// </summary>
     MacroBase = 64,
+
+    /// <summary>
+    /// A reserved block of 32, 96..127: close the app macro slot n opens, as its own close button would, never a kill.
+    /// The phone sends the slot and nothing else; this laptop decides what that slot is.
+    /// </summary>
+    MacroCloseBase = 96,
 }
 
 /// <summary>What a TEXT frame carries. Only kind 3 goes phone to laptop; the rest go laptop to phone. Mirrors protocol/actions.txt.</summary>
@@ -153,6 +166,12 @@ internal enum TextKind : byte
 
     /// <summary>Laptop to phone: how an <see cref="AppAdd"/> ended, as one <see cref="AppAddStatus"/> token.</summary>
     AppAddStatus = 15,
+
+    /// <summary>
+    /// Laptop to phone: one character per macro slot, in <see cref="Macros"/> order. '-' not trackable, '0' not running,
+    /// '1' running, '2' running and in front. Sent when it changes while watched; an unknown character reads as untracked.
+    /// </summary>
+    MacroOpen = 16,
 }
 
 /// <summary>
@@ -228,6 +247,9 @@ internal static class Feature
 
     /// <summary>This laptop can list its apps for the phone to add as macros.</summary>
     public const string Apps = "apps";
+
+    /// <summary>This laptop can tell which macro apps are running, in <see cref="TextKind.MacroOpen"/>.</summary>
+    public const string Running = "running";
 }
 
 /// <summary>What a SET_VALUE frame may set and a STATE frame reports. Mirrors protocol/actions.txt.</summary>

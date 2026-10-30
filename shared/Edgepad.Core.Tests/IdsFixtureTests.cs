@@ -62,6 +62,7 @@ public sealed partial class IdsFixtureTests
             ["CAPTURE"] = Feature.Capture,
             ["CLIPBOARD"] = Feature.Clipboard,
             ["APPS"] = Feature.Apps,
+            ["RUNNING"] = Feature.Running,
         };
 
         Assert.Equal(expected, actual);

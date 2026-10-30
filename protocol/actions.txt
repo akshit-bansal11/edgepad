@@ -75,6 +75,13 @@ ACTION 57 APPS_CANCEL
 # The first of the 32 macro slots; slot n is MACRO_BASE + n. A laptop older than the macros feature drops an
 # unknown action id rather than erroring, which is why the block needs no new frame type and no version bump.
 ACTION 64 MACRO_BASE
+# Phone to laptop: whether the macro grid is open and wants to know which macro apps are running. MACROS_WATCH starts the
+# laptop's once-a-second survey (it reports TEXT 16 on change only); MACROS_UNWATCH stops it. Both are forgotten when the session ends.
+ACTION 58 MACROS_WATCH
+ACTION 59 MACROS_UNWATCH
+# Reserved block of 32, like MACRO_BASE: close the app macro slot n opens, as its own close button would (never a kill).
+# The phone sends the slot and nothing else; the laptop decides what that slot is.
+ACTION 96 MACRO_CLOSE_BASE
 
 CONTROL 0 VOLUME
 CONTROL 1 BRIGHTNESS
@@ -114,6 +121,7 @@ TEXT 6 MACRO_ICON
 # older than this feature drops the request and the phone shows names, and a phone older than it never asks,
 # so neither half spends the link on icons the other cannot use. The payload is empty.
 TEXT 7 WANT_ICONS
+# The payload may carry a decimal pixel size, see the icon step.
 # Whether the laptop can offer a virtual controller at all, laptop to phone, as one PAD_STATUS token from the
 # fixed set below. Sent in answer to PAD_ATTACH and PAD_DETACH, and once after the handshake so the phone can
 # hide the pad rather than offer a button that does nothing.
@@ -138,6 +146,9 @@ TEXT 13 DEVICE
 TEXT 14 APP_ADD
 # How an APP_ADD ended, laptop to phone, as one APP_ADD_STATUS token from the set below.
 TEXT 15 APP_ADD_STATUS
+# Laptop to phone: one character per macro slot, in MACROS order: '-' not trackable (a URL, folder, document or an app the
+# laptop cannot see), '0' not running, '1' running, '2' running and in front. Sent when it changes while watched.
+TEXT 16 MACRO_OPEN
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
@@ -178,6 +189,7 @@ FEATURE capture CAPTURE
 FEATURE clipboard CLIPBOARD
 # The laptop can list its apps for the phone to add as macros.
 FEATURE apps APPS
+FEATURE running RUNNING
 
 # The whole vocabulary of TEXT kind 13's second field, as "<token on the wire> <the name both apps call it>". The phone
 # uses it only to word hints that differ by OS; an unknown token reads as no OS known.

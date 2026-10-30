@@ -81,11 +81,24 @@ enum class ActionId(
     APPS_CANCEL(57),
 
     /**
+     * The macro grid is open and wants to know which macro apps are running: MACROS_WATCH starts the laptop's survey, which
+     * reports [TextKind.MACRO_OPEN] on change only, and MACROS_UNWATCH stops it. Forgotten when the session ends.
+     */
+    MACROS_WATCH(58),
+    MACROS_UNWATCH(59),
+
+    /**
      * The first of 32 macro slots, 64..95; slot n is `MACRO_BASE + n`. The phone sends the index and never
      * what it launches — the laptop's own list decides that, which is the whole security model here.
      * A laptop too old to know the block drops the id and counts it, so this needed no protocol version.
      */
     MACRO_BASE(64),
+
+    /**
+     * A reserved block of 32, 96..127: close the app macro slot n opens, as its own close button would, never a kill.
+     * The phone sends the slot and nothing else; the laptop decides what that slot is.
+     */
+    MACRO_CLOSE_BASE(96),
     ;
 
     fun frame(): Frame = Frame.RunAction(id)
@@ -199,6 +212,12 @@ enum class TextKind(
 
     /** Laptop to phone: how an [APP_ADD] ended, as one [AppAddStatus] token. */
     APP_ADD_STATUS(15),
+
+    /**
+     * Laptop to phone: one character per macro slot, in [MACROS] order. '-' not trackable, '0' not running, '1' running,
+     * '2' running and in front. Sent when it changes while watched; an unknown character reads as untracked.
+     */
+    MACRO_OPEN(16),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -282,6 +301,9 @@ enum class Feature(
 
     /** The laptop can list its apps for the phone to add as macros. */
     APPS("apps"),
+
+    /** The laptop can tell which macro apps are running, in [TextKind.MACRO_OPEN]. */
+    RUNNING("running"),
     ;
 
     companion object {

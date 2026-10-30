@@ -52,9 +52,15 @@ public enum ActionId: UInt8, CaseIterable {
     /// blob and then a `BlobKind.appIcon` blob each, and `appsCancel` stops that list and its icons.
     case appsList = 56
     case appsCancel = 57
+    /// The macro grid is open and wants to know which macro apps are running: `macrosWatch` starts this computer's survey,
+    /// which reports `TextKind.macroOpen` on change only, and `macrosUnwatch` stops it. Forgotten when the session ends.
+    case macrosWatch = 58
+    case macrosUnwatch = 59
     /// The first of 32 macro slots, 64 to 95; slot n is `macroBase + n`. The phone sends the index and never
     /// what it launches: this computer's own list decides that, which is the whole security model.
     case macroBase = 64
+    /// A reserved block of 32, 96 to 127: close the app macro slot n opens, as its own close button would, never a kill.
+    case macroCloseBase = 96
 
     public static let macroSlots = 32
 }
@@ -110,6 +116,9 @@ public enum TextKind: UInt8, CaseIterable {
     case appAdd = 14
     /// Computer to phone: how an `appAdd` ended, as one `AppAddStatus` token.
     case appAddStatus = 15
+    /// Computer to phone: one character per macro slot, in `macros` order. "-" not trackable, "0" not running, "1" running,
+    /// "2" running and in front. Sent when it changes while watched; an unknown character reads as untracked.
+    case macroOpen = 16
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is
@@ -119,6 +128,7 @@ public enum Feature: String, CaseIterable {
     case capture = "capture"
     case clipboard = "clipboard"
     case apps = "apps"
+    case running = "running"
 }
 
 /// The whole vocabulary of `TextKind.padStatus`: a token the phone matches on, never prose, so the wording

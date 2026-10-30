@@ -170,7 +170,7 @@ public final class Dispatcher {
         case .search:
             // Spotlight.
             input.chord([.command, .space])
-        case .notifications, .macroBase, .appsList, .appsCancel:
+        case .notifications, .macroBase, .appsList, .appsCancel, .macrosWatch, .macrosUnwatch, .macroCloseBase:
             // Notifications: macOS has no default shortcut for it. The macro block is handled before this
             // switch; the case is here only so the switch stays exhaustive. The app list is not built on the Mac
             // yet, so its two actions are dropped and counted.
