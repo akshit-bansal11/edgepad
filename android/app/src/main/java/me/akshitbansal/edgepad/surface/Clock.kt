@@ -17,3 +17,18 @@ object Clock {
         }
     }
 }
+
+/** What the line under the now-playing title says. */
+internal enum class SubLine { APP_AND_TIME, TIME, APP }
+
+/** The time is left off while a Scrub dial is built: that dial's own value text shows it. */
+internal fun subLine(
+    app: String,
+    duration: Int,
+    scrubOnADial: Boolean,
+): SubLine =
+    when {
+        duration <= 0 || scrubOnADial -> SubLine.APP
+        app.isNotEmpty() -> SubLine.APP_AND_TIME
+        else -> SubLine.TIME
+    }

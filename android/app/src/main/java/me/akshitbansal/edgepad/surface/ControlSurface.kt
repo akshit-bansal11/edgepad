@@ -486,8 +486,8 @@ class ControlSurface(
         // The app's name as the laptop spells it: sentence case, never shouted.
         val app = state.app
         val sub =
-            when {
-                state.duration > 0 && app.isNotEmpty() -> {
+            when (subLine(app, state.duration, scrubOnADial)) {
+                SubLine.APP_AND_TIME -> {
                     context.getString(
                         R.string.surface_app_time,
                         app,
@@ -496,11 +496,11 @@ class ControlSurface(
                     )
                 }
 
-                state.duration > 0 -> {
+                SubLine.TIME -> {
                     context.getString(R.string.surface_time, Clock.format(state.position), Clock.format(state.duration))
                 }
 
-                else -> {
+                SubLine.APP -> {
                     app
                 }
             }
@@ -584,7 +584,7 @@ class ControlSurface(
         val box = nowPlayingBox
         val size = media(LOGO_DP)
         val cx = box.left + size / 2
-        val cy = box.centerY() - dp(PROGRESS_BELOW_DP) / 2
+        val cy = box.centerY() - (if (scrubOnADial) 0f else dp(PROGRESS_BELOW_DP) / 2)
         if (state.app.isEmpty()) {
             stroke.color = faint
             val corner = size * LOGO_ROUNDING
