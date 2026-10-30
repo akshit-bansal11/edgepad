@@ -37,6 +37,8 @@ final class SessionTests: XCTestCase {
     private var watchTicks: [(seconds: TimeInterval, tick: () -> Void)] = []
     /// A blob's next tick, as its sender armed it, fired by hand.
     private var blobTicks: [() -> Void] = []
+    /// The app list's next icon, as its picker armed it, fired by hand.
+    private var appTicks: [() -> Void] = []
     /// Keeps a session alive as `SessionHost` does: its writers hold it weakly, so a test that drops it has no link.
     private var heldSession: Session?
 
@@ -542,6 +544,82 @@ final class SessionTests: XCTestCase {
         XCTAssertTrue(transport.frames().contains(.text(kind: TextKind.features.rawValue, value: "capture")))
         XCTAssertEqual(macroOpenTexts(), [])
         XCTAssertEqual(dispatcher.dropped, 1)
+    }
+
+    /// A picker over two apps with a small icon each, on the session's dispatcher. The icons' ticks wait in `appTicks`.
+    private func appPicker(store: MacroStore) -> AppPicker {
+        let catalog = FakeCatalog()
+        catalog.apps = [
+            AppEntry(name: "Mail", target: "/Applications/Mail.app"),
+            AppEntry(name: "Notes", target: "/Applications/Notes.app"),
+        ]
+        catalog.iconFor = { _ in [1, 2, 3] }
+        let picker = AppPicker(
+            catalog: catalog,
+            store: store,
+            sender: BlobSender(link: .bluetooth, schedule: { _, work in work() }, lastInput: { -.infinity }),
+            schedule: { $0() },
+            scheduleAfter: { [weak self] _, tick in self?.appTicks.append(tick) }
+        )
+        dispatcher.apps = picker
+        return picker
+    }
+
+    func testAppsIsNamedAfterCaptureAndBeforeRunning() {
+        let store = macroStore(windows: FakeWindows())
+        _ = appPicker(store: store)
+        _ = connectedSession()
+
+        XCTAssertTrue(
+            transport.frames().contains(.text(kind: TextKind.features.rawValue, value: "capture/apps/running")))
+    }
+
+    func testAnAppListAndAnAddGoOutAndBackOnTheLink() {
+        let store = macroStore()
+        _ = appPicker(store: store)
+        let session = connectedSession()
+        heldSession = session
+
+        session.receive(FrameCodec.encode(.runAction(id: ActionId.appsList.rawValue)))
+        let listSize = UInt32("1.0\tMail\n1.1\tNotes\n".utf8.count)
+        let frames = transport.frames()
+        XCTAssertTrue(frames.contains(.blobBegin(kind: BlobKind.appList.rawValue, size: listSize, label: "")))
+        XCTAssertTrue(frames.contains(.blobBegin(kind: BlobKind.appIcon.rawValue, size: 3, label: "1.0")))
+
+        session.receive(FrameCodec.encode(.text(kind: TextKind.appAdd.rawValue, value: "1.1")))
+
+        XCTAssertEqual(store.macros.map(\.name), ["Notes"])
+        XCTAssertTrue(transport.frames().contains(.text(kind: TextKind.appAddStatus.rawValue, value: "added")))
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testAnAddThatNamesNoRowIsAnsweredStaleAndChangesNothing() {
+        let store = macroStore()
+        _ = appPicker(store: store)
+        let session = connectedSession()
+        heldSession = session
+
+        session.receive(FrameCodec.encode(.text(kind: TextKind.appAdd.rawValue, value: "7.7")))
+
+        XCTAssertEqual(store.macros, [])
+        XCTAssertTrue(transport.frames().contains(.text(kind: TextKind.appAddStatus.rawValue, value: "stale")))
+    }
+
+    func testTheSessionsEndStopsAnAppListOnItsWay() {
+        let store = macroStore()
+        _ = appPicker(store: store)
+        let session = connectedSession()
+        heldSession = session
+        session.receive(FrameCodec.encode(.runAction(id: ActionId.appsList.rawValue)))
+        let sent = transport.sent.count
+        XCTAssertFalse(appTicks.isEmpty)
+
+        session.end()
+        for tick in appTicks {
+            tick()
+        }
+
+        XCTAssertEqual(transport.sent.count, sent)
     }
 
     func testTheWatchSendsOneCharacterPerSlotAtOnceAndOnlyAChangeAfter() {

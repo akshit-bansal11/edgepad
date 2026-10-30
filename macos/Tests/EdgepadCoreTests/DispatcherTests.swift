@@ -35,6 +35,70 @@ final class DispatcherTests: XCTestCase {
         XCTAssertEqual(input.calls, [])
     }
 
+    private var appWire: [Frame] = []
+    private var appAnswers: [String] = []
+
+    /// A picker over one app, with a store in a folder of its own, that scans and sends as soon as it is asked.
+    private func appPicker() -> (AppPicker, MacroStore) {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("edgepad-apps-\(UUID())")
+        addTeardownBlock { try? FileManager.default.removeItem(at: folder) }
+        let store = MacroStore(path: folder.appendingPathComponent("macros.txt").path, schedule: { $0() })
+        let catalog = FakeCatalog()
+        catalog.apps = [AppEntry(name: "Tool", target: "/Applications/Tool.app")]
+        let sender = BlobSender(link: .bluetooth, schedule: { _, work in work() }, lastInput: { -.infinity })
+        sender.output = { [unowned self] frame in
+            self.appWire.append(frame)
+            return true
+        }
+        let picker = AppPicker(
+            catalog: catalog, store: store, sender: sender, schedule: { $0() }, scheduleAfter: { _, work in work() })
+        dispatcher.apps = picker
+        dispatcher.appAddReply = { [unowned self] status in self.appAnswers.append(status) }
+        return (picker, store)
+    }
+
+    func testAppFramesWithNoPickerSetAreDroppedAndCounted() {
+        dispatcher.appAddReply = { [unowned self] status in self.appAnswers.append(status) }
+
+        dispatcher.handle(.runAction(id: ActionId.appsList.rawValue))
+        dispatcher.handle(.runAction(id: ActionId.appsCancel.rawValue))
+        dispatcher.handle(.text(kind: TextKind.appAdd.rawValue, value: "1.0"))
+
+        XCTAssertEqual(dispatcher.dropped, 3)
+        XCTAssertEqual(appAnswers, [])
+        XCTAssertEqual(input.calls, [])
+    }
+
+    func testAPickFromTheListAddsWhatThisMacOfferedAndAnswers() {
+        let (picker, store) = appPicker()
+
+        dispatcher.handle(.runAction(id: ActionId.appsList.rawValue))
+        dispatcher.handle(.runAction(id: ActionId.appsCancel.rawValue))
+        dispatcher.handle(.text(kind: TextKind.appAdd.rawValue, value: "1.0"))
+
+        XCTAssertEqual(dispatcher.dropped, 0)
+        XCTAssertTrue(appWire.contains(.blobBegin(kind: BlobKind.appList.rawValue, size: 9, label: "")))
+        XCTAssertEqual(appAnswers, [AppAddStatus.added.rawValue])
+        XCTAssertEqual(store.macros.map(\.target), ["/Applications/Tool.app"])
+        XCTAssertEqual(input.calls, [])
+        picker.end()
+    }
+
+    func testNoTextFromThePhoneBecomesATarget() {
+        let hostile = "/System/Applications/Utilities/Terminal.app"
+        let (picker, store) = appPicker()
+        dispatcher.handle(.runAction(id: ActionId.appsList.rawValue))
+
+        for kind in 0...UInt8.max {
+            dispatcher.handle(.text(kind: kind, value: hostile))
+        }
+
+        XCTAssertEqual(store.macros, [])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: store.filePath))
+        XCTAssertEqual(appAnswers, [AppAddStatus.stale.rawValue])
+        picker.end()
+    }
+
     func testABlobReachesTheClipboardOnceThePhoneTurnedItOn() {
         let surface = FakeClipboard()
         dispatcher.clipboard = ClipboardSync(

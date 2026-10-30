@@ -22,16 +22,21 @@ public struct Macro: Equatable {
 ///
 /// The founding rule of this project is that gestures are recognised on the phone and the computer only executes:
 /// the phone sends semantic frames, never an arbitrary key or command line, and the computer owns the action table.
-/// A launcher is where that rule is easiest to break and worst to break. So the phone sends an index and nothing
+/// A launcher is where that rule is easiest to break and worst to break. So a press carries an index and nothing
 /// else: `run` takes an `Int`, and there is deliberately no overload taking a path, a URL or a command line. No
-/// string that arrives over Bluetooth ever reaches the launcher. The only way a target gets into this list is the
-/// owner putting it there, on this Mac, in front of the machine it will run on.
+/// string that arrives over the link ever reaches the launcher.
 ///
-/// What that buys, stated honestly: a macro button cannot be repointed from the phone. A slot runs what the owner
-/// put in it or nothing, and the protocol stays semantic. Do not "simplify" it by letting the phone name what it
-/// wants to launch. What it does NOT buy is containment of a compromised phone: a paired phone already types
-/// anything through KEY and TEXT, so it is a trusted input device, and the trust boundary is the pairing, not this
-/// list.
+/// A target gets into this list in two ways, and the phone supplies it in neither. The owner types or browses to it
+/// in the editor, on this Mac, in front of the machine it will run on. Or the phone picks a row of a list this Mac
+/// generated for this session: `AppPicker.add` takes a token and nothing else, looks the row up in what its own
+/// `AppCatalog` scanned, and hands that row to `tryAdd`. That is the only way a macro appears without the owner
+/// typing it, and the only path from any text the phone sends to this store.
+///
+/// What that buys, stated honestly: a macro button cannot be repointed from the phone. A slot runs what this Mac put
+/// in it or nothing, a pick can only append what this Mac offered, and the protocol stays semantic. Do not
+/// "simplify" it by letting the phone name what it wants to launch. What it does NOT buy is containment of a
+/// compromised phone: a paired phone already types anything through KEY and TEXT, so it is a trusted input device,
+/// and the trust boundary is the pairing, not this list.
 ///
 /// The same applies to `close`: a slot, never a name. The phone cannot choose which app a press hides, raises or
 /// closes; this Mac decides that from the macro in the slot.
@@ -118,7 +123,28 @@ public final class MacroStore {
     /// Windows store keeps the new list for the session instead; here the owner is told, so nothing is silently lost.
     @discardableResult
     public func save(_ macros: [Macro]) -> String? {
-        let clean = MacroStore.clean(macros)
+        commit(MacroStore.clean(macros))
+    }
+
+    /// Appends one macro from the phone's pick, as an `AppAddStatus`. Only `added` changed anything; every other answer
+    /// leaves the file and the list alone. The target is never the phone's: see the type's comment.
+    public func tryAdd(_ macro: Macro) -> AppAddStatus {
+        let current = macros
+        guard current.count < MacroStore.maxMacros else { return .full }
+        guard let clean = MacroStore.clean([macro]).first else { return .failed }
+        // After `clean`, so the comparison is between what would be stored and what is.
+        guard !current.contains(where: { MacroStore.sameTarget($0, clean) }) else { return .duplicate }
+        return commit(current + [clean]) == nil ? .added : .failed
+    }
+
+    private static func sameTarget(_ one: Macro, _ other: Macro) -> Bool {
+        one.target.caseInsensitiveCompare(other.target) == .orderedSame
+            && (one.arguments ?? "").caseInsensitiveCompare(other.arguments ?? "") == .orderedSame
+    }
+
+    /// Writes a clean list and, only once it is on disk, takes it as the current one and tells the watchers. Nil on
+    /// success, otherwise why not, with the list in use and the one the phone was told left as they were.
+    private func commit(_ clean: [Macro]) -> String? {
         let text = clean.map { MacroStore.line($0) + "\n" }.joined()
         if let failure = writePrivately(text, to: path) {
             Log.write("Macros could not be saved to \(path): \(failure)")
@@ -320,7 +346,7 @@ public final class MacroStore {
     /// Whatever would corrupt a tab-separated line, tabs, newlines and the rest of the control characters, becomes
     /// a space. A space rather than nothing, because dropping the tab out of "foo<tab>bar" would run the two sides
     /// together into a word that was never in either of them; trailing ones come off in the trim.
-    private static func plain(_ value: String) -> String {
+    static func plain(_ value: String) -> String {
         var plain = String.UnicodeScalarView()
         for scalar in value.unicodeScalars {
             plain.append(scalar.properties.generalCategory == .control ? " " : scalar)

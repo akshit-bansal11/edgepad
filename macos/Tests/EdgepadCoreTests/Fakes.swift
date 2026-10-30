@@ -237,3 +237,42 @@ final class FakeIcons: MacroIconSource {
         return bytes
     }
 }
+
+/// A catalogue in memory, which answers what the test set.
+final class FakeCatalog: AppCatalog {
+    struct Gone: Error {}
+
+    var apps: [AppEntry] = []
+    var scanThrows = false
+    /// What `icon(for:)` answers; a test sets it to return a picture, return nothing or throw.
+    var iconFor: (AppEntry) throws -> [UInt8]? = { _ in nil }
+    private(set) var scans = 0
+
+    func scan() throws -> [AppEntry] {
+        scans += 1
+        if scanThrows {
+            throw Gone()
+        }
+        return apps
+    }
+
+    func icon(for app: AppEntry) throws -> [UInt8]? {
+        try iconFor(app)
+    }
+}
+
+/// Folders in memory: a path maps to what is directly inside it, and a path with no entry is one that is not there.
+final class FakeFolders: AppFolders {
+    var tree: [String: [AppFolderEntry]]
+    /// Every path asked for, in order.
+    private(set) var reads: [String] = []
+
+    init(_ tree: [String: [AppFolderEntry]] = [:]) {
+        self.tree = tree
+    }
+
+    func entries(in path: String) -> [AppFolderEntry]? {
+        reads.append(path)
+        return tree[path]
+    }
+}

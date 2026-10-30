@@ -625,4 +625,45 @@ final class MacroStoreTests: XCTestCase {
         XCTAssertEqual(logged.count, 1)
         XCTAssertTrue(logged[0].contains("not running"))
     }
+
+    func testTryAddAppendsThroughTheSameCleaningAsSaveAndTellsTheWatchers() throws {
+        let store = newStore()
+        store.save([Macro(name: "Mail", target: "Mail.app")])
+        var seen: [String] = []
+        let watch = store.watch { seen.append($0) }
+        defer { watch.cancel() }
+
+        XCTAssertEqual(store.tryAdd(Macro(name: "In/box\tnow", target: " Code.app ", arguments: "")), .added)
+
+        XCTAssertEqual(store.macros.map(\.name), ["Mail", "In-box now"])
+        XCTAssertEqual(store.macros[1].target, "Code.app")
+        XCTAssertNil(store.macros[1].arguments)
+        XCTAssertEqual(try fileLines(), ["Mail\tMail.app\t", "In-box now\tCode.app\t"])
+        XCTAssertEqual(seen, ["Mail", "Mail/In-box now"])
+    }
+
+    func testTryAddRefusesAFullListADuplicateAndABlankTargetWithoutTouchingTheFile() throws {
+        let store = newStore()
+        store.save((0..<MacroStore.maxMacros).map { Macro(name: "M\($0)", target: "m\($0).app") })
+        let before = try fileLines()
+
+        XCTAssertEqual(store.tryAdd(Macro(name: "New", target: "new.app")), .full)
+        store.save([Macro(name: "One", target: "One.APP", arguments: "-x")])
+        XCTAssertEqual(store.tryAdd(Macro(name: "Again", target: "one.app", arguments: "-X")), .duplicate)
+        XCTAssertEqual(store.tryAdd(Macro(name: "Blank", target: " \t ")), .failed)
+
+        XCTAssertEqual(before.count, MacroStore.maxMacros)
+        XCTAssertEqual(try fileLines(), ["One\tOne.APP\t-x"])
+    }
+
+    func testTryAddReportsAFailedWriteAndLeavesTheListAsItWas() throws {
+        let store = newStore()
+        store.save([Macro(name: "Mail", target: "Mail.app")])
+        try FileManager.default.removeItem(at: directory)
+        try "in the way".write(to: directory, atomically: true, encoding: .utf8)
+
+        XCTAssertEqual(store.tryAdd(Macro(name: "Code", target: "Code.app")), .failed)
+
+        XCTAssertEqual(store.names(), "Mail")
+    }
 }
