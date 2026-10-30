@@ -60,7 +60,7 @@ object SettingsScreen {
     ): View =
         // The nav bar draws no title: the large title under it is the screen's name, and says so to a screen reader.
         ui.page(ui.bar("", routes.back, backLabel = backLabel)) {
-            largeTitle(ui.string(R.string.settings_app))
+            largeTitle(ui.string(R.string.settings_system))
             columns(
                 {
                     section(ui.string(R.string.pairing_title))

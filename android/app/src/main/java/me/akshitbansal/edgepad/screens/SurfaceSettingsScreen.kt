@@ -21,7 +21,7 @@ object SurfaceSettingsScreen {
         val dialFeel: () -> Unit,
         val mediaLayout: () -> Unit,
         val appearance: () -> Unit,
-        val app: () -> Unit,
+        val system: () -> Unit,
         val back: () -> Unit,
     )
 
@@ -56,7 +56,7 @@ object SurfaceSettingsScreen {
                     ),
                 )
             }
-            card { add(ui.link(ui.string(R.string.settings_app), null, routes.app)) }
+            systemSettings(routes.system)
         }
 
     /**

@@ -257,7 +257,7 @@
   <string name="settings_surface">Surface</string>
   <string name="settings_controls">Controls</string>
   <string name="settings_surface_title">Surface settings</string>
-  <string name="settings_app">App settings</string>
+  <string name="settings_system">System settings</string>
   <string name="settings_help">Help</string>
   <string name="keyboard_settings_title">Keyboard settings</string>
   <string name="gamepad_settings_title">Gamepad settings</string>

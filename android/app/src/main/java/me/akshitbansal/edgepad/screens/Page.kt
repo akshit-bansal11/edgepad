@@ -982,6 +982,11 @@ class Column(
         return add(inner, topDp)
     }
 
+    /** The way on to the app's own settings, ended onto every feature's settings page. */
+    fun systemSettings(onOpen: () -> Unit) {
+        card(Space.XL) { add(ui.link(ui.string(R.string.settings_system), null, onOpen)) }
+    }
+
     /** Two runs of rows: side by side when the screen is sideways, one after the other when it is upright. */
     fun columns(
         first: Column.() -> Unit,

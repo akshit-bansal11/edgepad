@@ -19,6 +19,7 @@ object MacroSettingsScreen {
     fun build(
         ui: Ui,
         settings: Settings,
+        onSystem: () -> Unit,
         onBack: () -> Unit,
     ): View {
         val min = Settings.MIN_MACROS_PER_PAGE
@@ -49,6 +50,7 @@ object MacroSettingsScreen {
                 add(ui.toggle(ui.string(R.string.macros_labels), settings.macroLabels) { settings.macroLabels = it })
             }
             footnote(ui.string(R.string.macros_labels_caption))
+            systemSettings(onSystem)
         }
     }
 

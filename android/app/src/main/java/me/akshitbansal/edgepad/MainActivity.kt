@@ -571,6 +571,9 @@ class MainActivity :
                         when (settingsBack()) {
                             Screen.SURFACE -> R.string.settings_surface
                             Screen.SURFACE_SETTINGS -> R.string.settings_surface_title
+                            Screen.KEYBOARD_SETTINGS -> R.string.keyboard_settings_title
+                            Screen.GAMEPAD_SETTINGS -> R.string.gamepad_settings_title
+                            Screen.MACRO_SETTINGS -> R.string.macros_settings
                             else -> R.string.pairing_title
                         }
                     SettingsScreen.build(
@@ -615,7 +618,7 @@ class MainActivity :
                             dialFeel = { goTo(Screen.DIAL_FEEL) },
                             mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
                             appearance = { goTo(Screen.APPEARANCE) },
-                            app = ::openSettings,
+                            system = ::openSettings,
                             back = { navigateBack() },
                         ),
                     )
@@ -688,7 +691,7 @@ class MainActivity :
                 }
 
                 Screen.KEYBOARD_SETTINGS -> {
-                    KeyboardSettingsScreen.build(ui, settings) { navigateBack() }
+                    KeyboardSettingsScreen.build(ui, settings, onSystem = ::openSettings) { navigateBack() }
                 }
 
                 Screen.GAMEPAD -> {
@@ -713,6 +716,7 @@ class MainActivity :
                             goTo(Screen.GAMEPAD_SETTINGS)
                         },
                         onEdit = { goTo(Screen.GAMEPAD_LAYOUT) },
+                        onSystem = ::openSettings,
                     ) { navigateBack() }
                 }
 
@@ -729,7 +733,7 @@ class MainActivity :
                 }
 
                 Screen.MACRO_SETTINGS -> {
-                    MacroSettingsScreen.build(ui, settings) { navigateBack() }
+                    MacroSettingsScreen.build(ui, settings, onSystem = ::openSettings) { navigateBack() }
                 }
 
                 Screen.RECONNECTING -> {
@@ -816,7 +820,8 @@ class MainActivity :
     private fun applyOrientation() {
         requestedOrientation =
             when {
-                screen in alwaysSideways -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                screen in alwaysSideways || (screen == Screen.SETTINGS && settingsReturn in alwaysSideways) ->
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 settings.landscape -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 else -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }
@@ -914,7 +919,11 @@ class MainActivity :
      * list once it no longer does.
      */
     private fun settingsBack(): Screen =
-        if (settingsReturn == Screen.SURFACE && link?.connected != true) Screen.PAIRING else settingsReturn
+        if ((settingsReturn == Screen.SURFACE || settingsReturn in settingsOfControls) && link?.connected != true) {
+            Screen.PAIRING
+        } else {
+            settingsReturn
+        }
 
     /** Asks the system's picker for an image; the copy lands in app storage so the surface can read it any time. */
     private fun pickImage() {
@@ -1622,7 +1631,9 @@ class MainActivity :
                     goTo(Screen.PAIRING)
                 }
                 if (screen == Screen.SETTINGS) {
-                    if (settingsReturn == Screen.SURFACE) settingsReturn = Screen.PAIRING
+                    if (settingsReturn == Screen.SURFACE || settingsReturn in settingsOfControls) {
+                        settingsReturn = Screen.PAIRING
+                    }
                     goTo(Screen.SETTINGS)
                 }
                 refreshPicker()
