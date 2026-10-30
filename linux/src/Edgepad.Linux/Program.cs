@@ -41,7 +41,7 @@ internal static class Program
         var trust = new TrustStore(Path.Combine(config, "trusted-phone.txt"));
         var pin = new PinStore(config);
 
-        // Wi-Fi and USB: off until the owner turns it on in the tray (network.txt); the pairings and this laptop's id live beside it.
+        // Wi-Fi and USB: on unless the owner turned it off in the tray (network.txt); the pairings and this laptop's id live beside it.
         var networkSettings = NetworkSettings.ForCurrentUser(config);
         var paired = new PairedLinks(Path.Combine(config, "paired-links.txt"));
         var identity = LinkIdentity.ForCurrentUser(config);

@@ -74,7 +74,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         server = RfcommServer(host: host, onStatus: { [weak self] in self?.setStatus($0) })
         startServer()
 
-        // Off until the owner turns it on (network.txt); only a phone that proves itself is handed to the host.
+        // On unless the owner turned it off (network.txt); only a phone that proves itself is handed to the host.
         network = NetworkServer(
             identity: LinkIdentity.forCurrentUser(name: Host.current().localizedName ?? "Mac"),
             paired: paired,

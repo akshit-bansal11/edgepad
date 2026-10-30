@@ -1,4 +1,3 @@
-using Edgepad.Network;
 using Edgepad.Startup;
 
 // Every native library this app imports is a Windows system DLL. Searching System32 only means a look-alike
@@ -19,16 +18,8 @@ internal static class Program
     public static string Version => Application.ProductVersion.Split('+')[0];
 
     [STAThread]
-    private static void Main(string[] args)
+    private static void Main()
     {
-        // The elevated half of Firewall.Allow, ahead of the mutex: the copy that asked for it holds that and is waiting.
-        // Exactly this one argument; anything else starts the app as usual, and no argument's text is ever used.
-        if (args is [Firewall.ElevatedArgument])
-        {
-            Environment.ExitCode = Firewall.RunElevated();
-            return;
-        }
-
         AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Write($"Unhandled: {e.ExceptionObject}");
         ApplicationConfiguration.Initialize();
 

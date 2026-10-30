@@ -22,12 +22,26 @@ public sealed class FirewallTests
             Firewall.DeleteArguments(@"C:\Program Files\Edgepad\Edgepad.exe"));
     }
 
-    [Fact]
-    public void APathThatCouldEndTheQuotingIsRefused()
+    [Theory]
+    [InlineData(@"C:\Program Files\Edgepad\Edgepad.exe")]
+    [InlineData(@"C:\Tools & Apps\Edgepad.exe")]
+    public void CmdRunsTheDeleteThenTheAddWithNetshByItsFullPath(string exe)
     {
-        var hostile = "C:\\x\" action=block program=\"C:\\y.exe";
+        var netsh = Path.Combine(Environment.SystemDirectory, "netsh.exe");
 
+        Assert.Equal(
+            $"\"\"{netsh}\" advfirewall firewall delete rule name=all dir=in program=\"{exe}\" & "
+                + $"\"{netsh}\" advfirewall firewall add rule name=\"Edgepad\" dir=in action=allow program=\"{exe}\" enable=yes profile=any\"",
+            Firewall.CommandLine(exe));
+    }
+
+    [Theory]
+    [InlineData("C:\\x\" action=block program=\"C:\\y.exe")]
+    [InlineData(@"C:\%TEMP%\Edgepad.exe")]
+    public void APathCmdCouldMisreadIsRefused(string hostile)
+    {
         Assert.Throws<ArgumentException>(() => Firewall.Arguments(hostile));
         Assert.Throws<ArgumentException>(() => Firewall.DeleteArguments(hostile));
+        Assert.Throws<ArgumentException>(() => Firewall.CommandLine(hostile));
     }
 }
