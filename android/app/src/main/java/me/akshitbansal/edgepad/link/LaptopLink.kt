@@ -330,12 +330,12 @@ class LaptopLink(
         try {
             while (!closed) {
                 pending.clear()
-                pending.add(outbox.take())
                 // Everything queued behind the first frame goes out now, the whole backlog and not just the
                 // next few frames of it, so a run of moves really does collapse into one (see Coalesce)
                 // instead of replaying late. The buffer is written whenever it fills, so a long backlog is
-                // several writes, never a bigger buffer.
-                outbox.drainTo(pending)
+                // several writes, never a bigger buffer. A transport with a write pace holds a run of motion
+                // briefly first, and never an edge (see PacedBatch).
+                PacedBatch.collect(outbox.take(), outbox, transport.writePaceMs, System::nanoTime, pending)
                 var length = 0
                 for (frame in Coalesce.merge(pending)) {
                     if (length + FrameCodec.MAX_FRAME_LENGTH > buffer.size) {

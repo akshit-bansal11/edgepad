@@ -30,6 +30,12 @@ interface LinkTransport {
         confirmed: () -> Boolean,
     ): Streams
 
+    /**
+     * How long the writer may hold a run of motion to batch it before writing, in milliseconds. 0 writes at once,
+     * which is what a link that drains fast wants; see [PacedBatch].
+     */
+    val writePaceMs: Int get() = 0
+
     fun close()
 }
 
