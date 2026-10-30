@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Edgepad.Blob;
 using Edgepad.Capture;
 using Edgepad.Macros;
 using Edgepad.Protocol;
@@ -44,6 +45,12 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     /// windows, like <see cref="Capture"/>; without one, MACROS_WATCH and MACROS_UNWATCH are dropped and counted.
     /// </summary>
     public Action<bool>? MacroWatch { get; set; }
+
+    /// <summary>
+    /// Shares the clipboard when the phone asks for that. Set by the session, like <see cref="Capture"/>; without one,
+    /// SET CLIPBOARD and the blob frames are dropped and counted.
+    /// </summary>
+    public ClipboardSync? Clipboard { get; set; }
 
     /// <summary>When the phone last sent input, by <see cref="Environment.TickCount64"/>: a capture on its way slows down for it.</summary>
     public long LastInputMs => Interlocked.Read(ref lastInput);
@@ -113,6 +120,9 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         Pen p => platform.Pen(p),
         // The phone's answer to a capture this laptop sent it. Only the transfer waiting for one takes it.
         FileResult r => Capture?.Take(r) ?? false,
+        BlobBegin b => Clipboard?.Take(b) ?? false,
+        BlobChunk c => Clipboard?.Take(c) ?? false,
+        BlobEnd e => Clipboard?.Take(e) ?? false,
         _ => false,
     };
 
@@ -170,6 +180,7 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     private bool Set(byte control, byte percent) => (ControlId)control switch
     {
         ControlId.CaptureTarget => Capture?.SetTarget(percent) ?? false,
+        ControlId.Clipboard => Clipboard?.SetShared(percent) ?? false,
         var id => Enum.IsDefined(id) && platform.Set(id, percent),
     };
 

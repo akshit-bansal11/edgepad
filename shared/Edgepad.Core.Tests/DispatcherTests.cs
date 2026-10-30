@@ -1,5 +1,8 @@
+using System.Security.Cryptography;
+using Edgepad.Blob;
 using Edgepad.Dispatch;
 using Edgepad.Macros;
+using Edgepad.Net;
 using Edgepad.Protocol;
 using Xunit;
 using static System.FormattableString;
@@ -29,6 +32,41 @@ public sealed class DispatcherTests
         // Rejected before any platform sees it, so no table has to know what this build's enum does not name.
         dispatcher.Handle(new RunAction(id));
         Assert.Equal(1, dispatcher.Dropped);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void BlobFramesAndSetClipboardWithNoClipboardSetAreDroppedAndCounted()
+    {
+        dispatcher.Handle(new SetValue((byte)ControlId.Clipboard, 1));
+        dispatcher.Handle(new BlobBegin((byte)BlobKind.ClipText, 1, ""));
+        dispatcher.Handle(new BlobChunk(0, new byte[1]));
+        dispatcher.Handle(new BlobEnd(new byte[SHA256.HashSizeInBytes]));
+
+        Assert.Equal(4, dispatcher.Dropped);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void ABlobReachesTheClipboardOnceThePhoneTurnedItOn()
+    {
+        var surface = new FakeClipboard();
+        var token = TestContext.Current.CancellationToken;
+        dispatcher.Clipboard = new ClipboardSync(
+            surface,
+            new BlobSender(_ => { }, LinkKind.Bluetooth, () => 0, token),
+            () => true,
+            token,
+            later: (_, work) => work());
+        var data = "hi"u8.ToArray();
+
+        dispatcher.Handle(new SetValue((byte)ControlId.Clipboard, 1));
+        dispatcher.Handle(new BlobBegin((byte)BlobKind.ClipText, (uint)data.Length, ""));
+        dispatcher.Handle(new BlobChunk(0, data));
+        dispatcher.Handle(new BlobEnd(SHA256.HashData(data)));
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal(data, Assert.Single(surface.Writes).Data);
         Assert.Empty(platform.Calls);
     }
 
