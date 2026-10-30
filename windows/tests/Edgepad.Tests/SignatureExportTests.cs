@@ -123,6 +123,53 @@ public sealed class SignatureExportTests
         Assert.Equal(89, image.GetPixel(image.Width / 2, image.Height / 2).A);
     }
 
+    // A level line across the middle of a 1000 x 1000 screen, drawn in the style the phone set.
+    private static StrokeBoard Level(int rgb, int width, int opacity, StrokeTool tool = StrokeTool.Pen)
+    {
+        var board = new StrokeBoard();
+        board.Begin(tool == StrokeTool.Pen ? BoardMode.Sign : BoardMode.Annotate);
+        Assert.True(board.SetTool(tool));
+        Assert.True(board.SetRgb(rgb));
+        Assert.True(board.SetWidth(width));
+        Assert.True(board.SetOpacity(opacity));
+        Assert.True(board.Pen(10000, 32768, Down));
+        Assert.True(board.Pen(50000, 32768, Up));
+        return board;
+    }
+
+    [Fact]
+    public void TheSignatureHonoursTheStrokesColourAndOpacity()
+    {
+        using var image = Decode(SignatureExport.Render(Level(0x123456, 50, 50).Strokes, 1000, 1000)!);
+
+        // 50% of 255 is 127.5, which rounds to the even 128, in the middle of a 10 px band.
+        var middle = image.GetPixel(image.Width / 2, image.Height / 2);
+        Assert.Equal(128, middle.A);
+        Assert.InRange(middle.R, 0x12 - 2, 0x12 + 2);
+        Assert.InRange(middle.G, 0x34 - 2, 0x34 + 2);
+        Assert.InRange(middle.B, 0x56 - 2, 0x56 + 2);
+    }
+
+    [Fact]
+    public void TheSignatureHonoursTheStrokesWidth()
+    {
+        var thin = SignatureExport.CropRect(Level(0, 20, 100).Strokes, 1000, 1000)!.Value;
+        var thick = SignatureExport.CropRect(Level(0, 100, 100).Strokes, 1000, 1000)!.Value;
+
+        // 4 px against 20 px of ink, with the same margin either side.
+        Assert.True(thick.Height - thin.Height >= 15);
+    }
+
+    [Fact]
+    public void TheHighlighterMultipliesItsOwnTranslucencyByTheOpacity()
+    {
+        using var image = Decode(
+            SignatureExport.Render(Level(0, 20, 50, StrokeTool.Highlighter).Strokes, 1000, 1000)!);
+
+        // 0.35 of 255 at half opacity is 44.6, in the middle of a 20 px band.
+        Assert.Equal(45, image.GetPixel(image.Width / 2, image.Height / 2).A);
+    }
+
     [Theory]
     [InlineData(3)]
     [InlineData(4)]

@@ -43,6 +43,8 @@ internal sealed class WindowsPlatform(
 
     public bool Pen(Pen pen) => annotator.Handle(pen);
 
+    public bool PenRgb(int rgb) => annotator.SetRgb(rgb);
+
     public string AttachPad() => pad.Attach();
 
     public string DetachPad() => pad.Detach();
@@ -185,6 +187,9 @@ internal sealed class WindowsPlatform(
         ControlId.RefreshRate => RefreshRate(percent),
         // A palette index: the dispatcher's guard lets 8..100 through, and the palette refuses them.
         ControlId.PenColor => annotator.SetColour(percent),
+        // Width and opacity as the phone sent them; the board refuses what is out of range, 0 for the width included.
+        ControlId.PenWidth => annotator.SetWidth(percent),
+        ControlId.PenOpacity => annotator.SetOpacity(percent),
         _ => false,
     };
 
