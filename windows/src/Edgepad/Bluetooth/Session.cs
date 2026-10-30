@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
 using Edgepad.Annotation;
+using Edgepad.Blob;
 using Edgepad.Capture;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
@@ -37,6 +38,8 @@ internal sealed class Session(
     DisplayModes display,
     MacroStore macros,
     LinkIdentity identity,
+    WindowsClipboard clipboard,
+    Func<bool> shareClipboard,
     Action<string> onStatus,
     Func<Session, bool> onAdmitted,
     Action<Session> onEnded) : IDisposable
@@ -164,10 +167,27 @@ internal sealed class Session(
             dispatcher.MacroWatch = on => WatchMacros(open, on);
         }
 
+        // The clipboard stays here until the phone asks (SET CLIPBOARD), and the owner's switch is read at every step, so
+        // turning it off holds even for a phone that was told it was on. It only reaches FEATURES at the next connection.
+        var sharing = new ClipboardSync(
+            clipboard, new BlobSender(Send, link.Kind, () => dispatcher.LastInputMs, ended.Token), shareClipboard, ended.Token);
+        dispatcher.Clipboard = sharing;
+        Keep(clipboard.Watch(sharing.LocalChanged));
+
         // Only what this build can do: the phone hides a feature that is not named, so naming one that is
         // not there would be a button that quietly does nothing.
-        var features = $"{Feature.Annotate}/{Feature.Capture}";
-        Send(new Text((byte)TextKind.Features, open is null ? features : $"{features}/{Feature.Running}"));
+        List<string> features = [Feature.Annotate, Feature.Capture];
+        if (open is not null)
+        {
+            features.Add(Feature.Running);
+        }
+
+        if (shareClipboard())
+        {
+            features.Add(Feature.Clipboard);
+        }
+
+        Send(new Text((byte)TextKind.Features, string.Join('/', features)));
         ReportScreen();
 
         Watch(speakers, ControlId.Volume);

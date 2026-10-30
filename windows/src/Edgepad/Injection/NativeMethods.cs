@@ -4,7 +4,7 @@ namespace Edgepad.Injection;
 
 /// <summary>
 /// The Win32 surface: SendInput and LockWorkStation for input, the few GDI calls the annotation layer needs to
-/// draw with per-pixel alpha, and the structs they take.
+/// draw with per-pixel alpha, the clipboard calls WinForms has no way to make, and the structs they take.
 /// </summary>
 internal static partial class NativeMethods
 {
@@ -73,6 +73,55 @@ internal static partial class NativeMethods
         uint colourKey,
         in BlendFunction blend,
         uint flags);
+
+    /// <summary>WM_CLIPBOARDUPDATE, posted to a window that asked with <see cref="AddClipboardFormatListener"/>.</summary>
+    public const int WmClipboardUpdate = 0x031D;
+
+    /// <summary>HWND_MESSAGE: the parent that makes a window message-only, with no surface and no place on any desktop.</summary>
+    public const nint MessageOnlyParent = -3;
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool AddClipboardFormatListener(nint window);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool RemoveClipboardFormatListener(nint window);
+
+    /// <summary>Changes whenever the clipboard does; 0 when this session cannot see it.</summary>
+    [LibraryImport("user32.dll")]
+    public static partial uint GetClipboardSequenceNumber();
+
+    /// <summary>Fails while another window has the clipboard open. Every open is paired with <see cref="CloseClipboard"/>.</summary>
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool OpenClipboard(nint owner);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool CloseClipboard();
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool IsClipboardFormatAvailable(uint format);
+
+    /// <summary>A named format's id, the same for every process; 0 on failure.</summary>
+    [LibraryImport("user32.dll", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    public static partial uint RegisterClipboardFormatW(string name);
+
+    /// <summary>The clipboard's own block for a format, which it keeps. Only between open and close.</summary>
+    [LibraryImport("user32.dll", SetLastError = true)]
+    public static partial nint GetClipboardData(uint format);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    public static partial nuint GlobalSize(nint block);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    public static partial nint GlobalLock(nint block);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool GlobalUnlock(nint block);
 }
 
 [StructLayout(LayoutKind.Sequential)]

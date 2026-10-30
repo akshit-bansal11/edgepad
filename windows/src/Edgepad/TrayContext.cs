@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using Edgepad.Blob;
 using Edgepad.Bluetooth;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
@@ -42,11 +43,16 @@ internal sealed class TrayContext : ApplicationContext
         "Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. "
             + "Nothing connects without the code typed here. Windows will ask for permission once.";
 
+    // Lucide's clipboard, on the same grid as the paths in Ui/Icons.
+    private const string ClipboardGlyph = "M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1H9a1 1 0 0 1 -1 -1V3a1 1 0 0 1 1 -1z"
+        + "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2H6a2 2 0 0 1 -2 -2V6a2 2 0 0 1 2 -2h2";
+
     private readonly MenuRow startWithWindows = new("Start with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new("Macros…", Icons.Macro);
     private readonly MenuRow securityRow = new("Security…", Icons.Smartphone);
     private readonly MenuRow networkRow = new("Wi-Fi and USB connections", Icons.Wifi) { CheckOnClick = true, Switch = true };
     private readonly MenuRow firewallRow = new("Allow through Windows Firewall…", Icons.Shield);
+    private readonly MenuRow clipboardRow = new("Share clipboard", ClipboardGlyph) { CheckOnClick = true, Switch = true };
     private readonly MenuRow forget = new("Forget trusted phones", Icons.Unlink) { Danger = true };
     private readonly MenuRow update = new("Update available", Icons.Download) { Available = false };
     private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
@@ -70,6 +76,8 @@ internal sealed class TrayContext : ApplicationContext
     private readonly NetworkSettings networkSettings;
     private readonly FirewallMemory firewallMemory;
     private readonly NetworkServer network;
+    private readonly ClipboardSetting clipboardSetting;
+    private readonly WindowsClipboard clipboard;
 
     // The Wi-Fi and USB row's hint: off, the port listened on, or why not. Only the UI thread touches it.
     private string networkHint = "Off";
@@ -90,6 +98,7 @@ internal sealed class TrayContext : ApplicationContext
         // First, because the menu's Opening handler below reads it.
         networkSettings = NetworkSettings.ForCurrentUser(pin.Folder);
         firewallMemory = FirewallMemory.ForCurrentUser(pin.Folder);
+        clipboardSetting = ClipboardSetting.ForCurrentUser(pin.Folder);
 
         // Click, not CheckedChanged: the menu sets Checked from the registry each time it opens, and that must
         // read the key without writing it back — least of all deleting it after a failed read.
@@ -99,6 +108,7 @@ internal sealed class TrayContext : ApplicationContext
         securityRow.Click += (_, _) => ShowSecurity();
         networkRow.Click += (_, _) => ToggleNetwork(networkRow.Checked);
         firewallRow.Click += (_, _) => AllowFirewall(ReportFirewall);
+        clipboardRow.Click += (_, _) => SaveClipboard(clipboardRow.Checked);
         update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
 
         // The header is the menu's own. The update row sits right under it and stays hidden until there is one.
@@ -110,6 +120,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(securityRow);
         menu.Items.Add(networkRow);
         menu.Items.Add(firewallRow);
+        menu.Items.Add(clipboardRow);
         menu.Items.Add(Row("Open log", Icons.FileText, OpenLog));
         menu.Items.Add(Row("Documentation", Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
         menu.Items.Add(new MenuSeparator());
@@ -126,6 +137,7 @@ internal sealed class TrayContext : ApplicationContext
             networkRow.Enabled = !allowingNetwork;
             networkRow.Hint = networkHint;
             firewallRow.Available = networkRow.Checked && !allowingNetwork;
+            clipboardRow.Checked = clipboardSetting.Enabled;
             macrosRow.Hint = $"{macros.Macros.Count} of {MacroStore.MaxMacros}";
             menu.Restyle();
         };
@@ -156,8 +168,26 @@ internal sealed class TrayContext : ApplicationContext
         // frames that ask it to show something arrive on a Bluetooth thread that has none of its own.
         overlay = new LevelOverlay();
         var identity = LinkIdentity.ForCurrentUser(pin.Folder);
+
+        // Here for the same reason: its window, and every clipboard call after it, belong to this thread.
+        clipboard = new WindowsClipboard(ui, () => clipboardSetting.Enabled);
         host = new SessionHost(
-            SetStatus, trust, pin, AskTrust, speakers, microphone, brightness, media, display, macros, overlay, identity, ui, OnSessionEnded);
+            SetStatus,
+            trust,
+            pin,
+            AskTrust,
+            speakers,
+            microphone,
+            brightness,
+            media,
+            display,
+            macros,
+            overlay,
+            identity,
+            clipboard,
+            () => clipboardSetting.Enabled,
+            ui,
+            OnSessionEnded);
         server = new RfcommServer(SetStatus, host);
         _ = StartServerAsync();
 
@@ -415,6 +445,22 @@ internal sealed class TrayContext : ApplicationContext
                 0,
                 "Edgepad",
                 "Windows Firewall was not changed, so phones may not reach this laptop. Allow through Windows Firewall in this menu tries again.",
+                ToolTipIcon.Warning);
+        }
+    }
+
+    /// <summary>
+    /// The Share clipboard switch. It holds from this moment whether or not it could be saved, because a session reads it
+    /// at every step; a phone already connected keeps showing the old state until it next connects.
+    /// </summary>
+    private void SaveClipboard(bool on)
+    {
+        if (!clipboardSetting.Set(on))
+        {
+            icon.ShowBalloonTip(
+                0,
+                "Edgepad",
+                "Share clipboard changed for now, but could not be saved, so the next launch may not remember it.",
                 ToolTipIcon.Warning);
         }
     }
@@ -785,6 +831,7 @@ internal sealed class TrayContext : ApplicationContext
             forget.Dispose();
             networkRow.Dispose();
             firewallRow.Dispose();
+            clipboardRow.Dispose();
             update.Dispose();
             updateTimer.Dispose();
             server.Dispose();
@@ -792,6 +839,7 @@ internal sealed class TrayContext : ApplicationContext
 
             // After both servers, so no connection arrives once the sessions are ended.
             host.Dispose();
+            clipboard.Dispose();
             media.Dispose();
             brightness.Dispose();
             speakers.Dispose();
