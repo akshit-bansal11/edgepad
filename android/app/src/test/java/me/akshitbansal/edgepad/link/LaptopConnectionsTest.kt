@@ -525,6 +525,9 @@ class LaptopConnectionsTest {
         override var connected = false
         override var wasConnected = false
         override var iconPx = 128
+        override var blobs: ((Frame) -> Unit)? = null
+        override val queued = 0
+        override val lastInputMs = 0L
 
         fun accept() {
             connected = true

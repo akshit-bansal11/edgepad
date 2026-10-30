@@ -119,6 +119,9 @@
     <item quantity="other">%1$d more connected</item>
   </plurals>
   <string name="reconnect_automatically">Reconnect automatically</string>
+  <string name="settings_clipboard">Clipboard</string>
+  <string name="clipboard_share">Share the clipboard with this laptop</string>
+  <string name="clipboard_share_caption">Text and images you copy here go to this laptop, and what you copy there comes here. Android lets Edgepad read a copy made on this phone only while Edgepad is open. Only the laptop you are controlling shares, and its own clipboard switch must be on as well.</string>
   <string name="corner_top_left">Top left</string>
   <string name="corner_top_right">Top right</string>
   <string name="corner_bottom_right">Bottom right</string>

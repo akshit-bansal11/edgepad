@@ -36,6 +36,7 @@ import android.window.OnBackInvokedDispatcher
 import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.link.BluetoothTransport
 import me.akshitbansal.edgepad.link.CaptureInbox
+import me.akshitbansal.edgepad.link.ClipboardShare
 import me.akshitbansal.edgepad.link.Discovery
 import me.akshitbansal.edgepad.link.Found
 import me.akshitbansal.edgepad.link.HostPort
@@ -54,6 +55,7 @@ import me.akshitbansal.edgepad.link.Target
 import me.akshitbansal.edgepad.link.TcpTransport
 import me.akshitbansal.edgepad.link.TetherProbe
 import me.akshitbansal.edgepad.link.Transport
+import me.akshitbansal.edgepad.link.clipboardShare
 import me.akshitbansal.edgepad.link.decodeSaved
 import me.akshitbansal.edgepad.link.encodeSaved
 import me.akshitbansal.edgepad.link.forgotten
@@ -182,6 +184,7 @@ class MainActivity :
      */
     private class Retained(
         val manager: LaptopConnections,
+        val clipboard: ClipboardShare,
         val screen: Screen,
         val settingsReturn: Screen,
     )
@@ -191,6 +194,9 @@ class MainActivity :
     private lateinit var ui: Ui
     private lateinit var picker: PickerScreen
     private lateinit var manager: LaptopConnections
+
+    /** The shared clipboard, kept with [manager] since the links it is wired to outlive the activity. */
+    private lateinit var clipboard: ClipboardShare
 
     /** What the screens read while no laptop is selected. */
     private val noLaptop = LaptopState()
@@ -326,6 +332,9 @@ class MainActivity :
         manager =
             retained?.manager?.also { it.events = this }
                 ?: LaptopConnections(laptopLinks(transports(applicationContext)), MainScheduler(), this)
+        // The toggle is read through a Settings of its own, so the retained clipboard never holds this activity.
+        val owner = Settings(applicationContext)
+        clipboard = retained?.clipboard ?: clipboardShare(applicationContext) { owner.clipboardSync }
         if (retained != null) {
             settingsReturn = retained.settingsReturn
             // Carried over, or the readout would stand blank after a rotation and then restart from one sample.
@@ -340,12 +349,13 @@ class MainActivity :
         )
     }
 
-    override fun onRetainNonConfigurationInstance(): Any = Retained(manager, screen, settingsReturn)
+    override fun onRetainNonConfigurationInstance(): Any = Retained(manager, clipboard, screen, settingsReturn)
 
     override fun onStart() {
         super.onStart()
         handler.removeCallbacks(linger)
         started = true
+        clipboard.bridge.start()
         manager.reconnect = settings.reconnect
         // This also starts a lost laptop's retries at once, which is what the reconnect screen wants.
         manager.foreground = true
@@ -366,6 +376,7 @@ class MainActivity :
     override fun onStop() {
         super.onStop()
         started = false
+        clipboard.bridge.stop()
         releaseHeldInput()
         // The laptop drops its overlay when told; a rotation rebuild begins a fresh session in onCreate.
         endAnnotate()
@@ -379,6 +390,15 @@ class MainActivity :
             handler.postDelayed(linger, LINGER_MS)
         }
     }
+
+    // A copy made in another app is readable only once this window has focus.
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) clipboard.bridge.focused()
+    }
+
+    /** Points every link's clipboard at the selected laptop alone; see [me.akshitbansal.edgepad.link.ClipboardLinks]. */
+    private fun shareClipboard() = clipboard.links.refresh(manager.laptops, manager.selected)
 
     override fun onDestroy() {
         super.onDestroy()
@@ -566,6 +586,7 @@ class MainActivity :
                             guide = { goTo(Screen.GUIDE) },
                             documentation = { open(getString(R.string.documentation_url)) },
                             update = ::openUpdate,
+                            clipboard = ::shareClipboard,
                             sideways = { on ->
                                 settings.landscape = on
                                 applyOrientation()
@@ -1639,6 +1660,8 @@ class MainActivity :
         laptop: Laptop,
         frame: Frame,
     ) {
+        // Said once a connection, for any laptop: the one that offers the clipboard may be the one selected.
+        if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) shareClipboard()
         if (frame is Frame.Text && frame.kind == TextKind.DEVICE.id) {
             remember(laptop)
             refreshDevices()
@@ -1689,6 +1712,7 @@ class MainActivity :
         laptop: Laptop,
         closure: LaptopLink.Closure,
     ) {
+        shareClipboard()
         if (laptop !== selected) {
             refreshDevices()
             // Unreachable is a laptop that is off, which is nothing to report at every launch; its row says so.
@@ -1753,6 +1777,7 @@ class MainActivity :
 
     /** Every screen draws [selected], so the one showing is built again on the new laptop, or left if it cannot be. */
     override fun onSelected(laptop: Laptop?) {
+        shareClipboard()
         CaptureInbox.owner = laptop?.link?.id
         picker.setRtt(laptop?.rtt?.median() ?: Double.NaN)
         laptop?.let { saved = promoted(saved, setOf(it.id)) }
@@ -1867,7 +1892,8 @@ class MainActivity :
             }
         val others = manager.laptops.count { it !== laptop && it.connected }
         val more = resources.getQuantityString(R.plurals.detail_more_connected, others, others)
-        return SettingsScreen.Connection(name, if (others > 0) "$detail · $more" else detail, connected)
+        val offered = connected && Feature.CLIPBOARD in state.features
+        return SettingsScreen.Connection(name, if (others > 0) "$detail · $more" else detail, connected, offered)
     }
 
     private companion object {

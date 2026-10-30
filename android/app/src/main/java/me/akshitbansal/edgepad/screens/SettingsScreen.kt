@@ -24,6 +24,8 @@ object SettingsScreen {
         val name: String?,
         val detail: String,
         val connected: Boolean,
+        /** The active laptop named the clipboard, so the switch for sharing it is shown. */
+        val clipboard: Boolean = false,
     )
 
     /** Where the rows lead. [showAll] lifts the Devices list's filter to computers, as its own button does. */
@@ -34,6 +36,7 @@ object SettingsScreen {
         val documentation: () -> Unit,
         val update: () -> Unit,
         val sideways: (Boolean) -> Unit,
+        val clipboard: () -> Unit,
         val back: () -> Unit,
     )
 
@@ -74,6 +77,19 @@ object SettingsScreen {
                         )
                         hairline()
                         add(ui.toggle(ui.string(R.string.show_laptops_only), !showingAll) { routes.showAll(!it) })
+                    }
+
+                    if (connection.clipboard) {
+                        section(ui.string(R.string.settings_clipboard))
+                        card {
+                            add(
+                                ui.toggle(ui.string(R.string.clipboard_share), settings.clipboardSync) {
+                                    settings.clipboardSync = it
+                                    routes.clipboard()
+                                },
+                            )
+                        }
+                        footnote(ui.string(R.string.clipboard_share_caption))
                     }
 
                     section(ui.string(R.string.settings_appearance))

@@ -37,6 +37,13 @@
       android:name=".update.Installer$StatusReceiver"
       android:exported="false" />
 
+    <!-- Serves the one image a laptop sent to the clipboard. The app a user pastes into is granted that one URI. -->
+    <provider
+      android:name=".link.ClipProvider"
+      android:authorities="${applicationId}.clip"
+      android:exported="false"
+      android:grantUriPermissions="true" />
+
   </application>
 
 </manifest>

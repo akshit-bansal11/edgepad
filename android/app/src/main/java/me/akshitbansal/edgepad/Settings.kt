@@ -87,6 +87,9 @@ class Settings(
 
     var haptics by flag("haptics", true)
 
+    /** Share the clipboard with the selected laptop, when it offers to. Each laptop's own switch must be on too. */
+    var clipboardSync by flag("clipboardSync", true)
+
     /** Round volume, brightness and mic to a multiple of 5 when the finger lifts. */
     var snap by flag("snap", false)
 
