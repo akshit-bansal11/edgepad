@@ -118,9 +118,9 @@ internal sealed class DesktopEntryCatalog(IReadOnlyList<string> folders, IReadOn
 
     /// <summary>The value with the escapes the Desktop Entry spec defines for strings turned into what they stand for.</summary>
     internal static string Unescape(string value) =>
-        value.Contains('\', StringComparison.Ordinal)
-            ? value.Replace("\s", " ", StringComparison.Ordinal).Replace("\n", "\n", StringComparison.Ordinal)
-                .Replace("\t", "\t", StringComparison.Ordinal).Replace("\r", "\r", StringComparison.Ordinal)
+        value.Contains('\\', StringComparison.Ordinal)
+            ? value.Replace("\\s", " ", StringComparison.Ordinal).Replace("\\n", "\n", StringComparison.Ordinal)
+                .Replace("\\t", "\t", StringComparison.Ordinal).Replace("\\r", "\r", StringComparison.Ordinal)
                 .Replace("\\\\", "\\", StringComparison.Ordinal)
             : value;
 
