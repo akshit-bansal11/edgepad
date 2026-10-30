@@ -67,6 +67,9 @@ public final class ClipboardSync {
         self.schedule = schedule
     }
 
+    /// Whether the owner's toggle is on now; the session names `clipboard` in FEATURES only then.
+    public var isAllowed: Bool { allowed() }
+
     private var active: Bool { shared && !ended && allowed() }
 
     /// SET CLIPBOARD. False, dropped and counted, for a value that is neither 0 nor 1, and for a 1 while the owner's

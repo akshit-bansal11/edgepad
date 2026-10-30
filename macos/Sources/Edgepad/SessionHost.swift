@@ -30,6 +30,10 @@ final class SessionHost {
     let macros = MacroStore.forCurrentUser(
         launcher: WorkspaceMacroLauncher(), icons: WorkspaceMacroIcons(), windows: WorkspaceMacroWindows())
 
+    /// One pasteboard for every connection, polled on the timer below. The sessions' clipboards are held weakly: a
+    /// session that ended has already stopped its own.
+    private let pasteboard = PasteboardSurface()
+    private let clipboards = NSHashTable<ClipboardSync>.weakObjects()
     private var pollTimer: Timer?
     private var quietUntil: TimeInterval?
     /// How many owner dialogs (Forget, Security) are open; separate from the quiet period so that ending one cannot
@@ -69,7 +73,13 @@ final class SessionHost {
         self.identity = identity
         self.onStatus = onStatus
         pollTimer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
-            self?.current?.poll()
+            guard let self else { return }
+            self.current?.poll()
+            if self.pasteboard.changed() {
+                for clipboard in self.clipboards.allObjects {
+                    clipboard.localChanged()
+                }
+            }
         }
     }
 
@@ -113,6 +123,13 @@ final class SessionHost {
         // Per connection too: the phone says where captures go each time it connects.
         dispatcher.capture = CaptureToPhone(
             folders: MacCaptureFolders(), lastInput: { [weak dispatcher] in dispatcher?.lastInput ?? 0 })
+        // Per connection as well. A network phone is the one the status line names (`shownAs`).
+        let sender = BlobSender(
+            link: shownAs == nil ? .bluetooth : .network,
+            lastInput: { [weak dispatcher] in dispatcher?.lastInput ?? 0 })
+        let clipboard = ClipboardSync(surface: pasteboard, sender: sender, allowed: { ClipboardSetting.enabled })
+        dispatcher.clipboard = clipboard
+        clipboards.add(clipboard)
         let ask = askTrust
         let status = onStatus
         let session = Session(

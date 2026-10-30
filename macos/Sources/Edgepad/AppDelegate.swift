@@ -141,6 +141,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         wifi.state = networkSettings.load().enabled ? .on : .off
         menu.addItem(wifi)
         menu.addItem(disabled("    \(networkHint)"))
+        let clipboard = item("Share clipboard with the phone", #selector(toggleClipboard))
+        clipboard.state = ClipboardSetting.enabled ? .on : .off
+        menu.addItem(clipboard)
         let forget = item("Forget trusted phones", #selector(confirmForget))
         forget.isEnabled = trust.canForget || paired.canForget
         menu.addItem(forget)
@@ -215,6 +218,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         } catch {
             Log.write("Could not change start at login: \(error.localizedDescription)")
         }
+    }
+
+    @objc private func toggleClipboard() {
+        ClipboardSetting.enabled.toggle()
     }
 
     @objc private func openLog() {

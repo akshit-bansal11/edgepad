@@ -435,6 +435,9 @@ public final class Session {
             features.append(Feature.running.rawValue)
             dispatcher.macroWatch = { [weak self] open in self?.watchMacroApps(open) }
         }
+        if dispatcher.clipboard?.isAllowed == true {
+            features.append(Feature.clipboard.rawValue)
+        }
         send(.text(kind: TextKind.features.rawValue, value: features.joined(separator: "/")))
         sendScreenSize()
 

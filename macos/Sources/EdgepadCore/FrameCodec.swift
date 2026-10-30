@@ -145,10 +145,10 @@ public enum FrameCodec {
             let length = UInt8(truncatingIfNeeded: fileSizeBytes + body.count)
             return [fileBeginType, type, length] + littleEndian(size) + body
         case .fileChunk(let seq, let data):
-            precondition(data.count <= maxChunkBytes, "A chunk is at most (maxChunkBytes) bytes")
+            precondition(data.count <= maxChunkBytes, "A chunk is at most \(maxChunkBytes) bytes")
             return [fileChunkType, seq, UInt8(truncatingIfNeeded: data.count)] + data
         case .fileEnd(let sha256):
-            precondition(sha256.count == sha256Bytes, "A SHA-256 is (sha256Bytes) bytes")
+            precondition(sha256.count == sha256Bytes, "A SHA-256 is \(sha256Bytes) bytes")
             return [fileEndType] + sha256
         case .fileResult(let status):
             return [fileResultType, status]
@@ -158,10 +158,10 @@ public enum FrameCodec {
             let length = UInt8(truncatingIfNeeded: fileSizeBytes + body.count)
             return [blobBeginType, kind, length] + littleEndian(size) + body
         case .blobChunk(let seq, let data):
-            precondition(data.count <= maxChunkBytes, "A chunk is at most (maxChunkBytes) bytes")
+            precondition(data.count <= maxChunkBytes, "A chunk is at most \(maxChunkBytes) bytes")
             return [blobChunkType, seq, UInt8(truncatingIfNeeded: data.count)] + data
         case .blobEnd(let sha256):
-            precondition(sha256.count == sha256Bytes, "A SHA-256 is (sha256Bytes) bytes")
+            precondition(sha256.count == sha256Bytes, "A SHA-256 is \(sha256Bytes) bytes")
             return [blobEndType] + sha256
         case .pinAnswer(let pin):
             // Each digit goes out as its value 0...9, not its ASCII code, so these bytes can never read as text.
