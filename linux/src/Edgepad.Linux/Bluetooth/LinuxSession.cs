@@ -111,7 +111,7 @@ internal sealed class LinuxSession : IDisposable
             // sent before the phone can ask, so it can hide the pad rather than offer a button that does nothing.
             // The same id the link's INFO reply gives, so a phone sees one laptop over Bluetooth and Wi-Fi.
             frames.Send(new Text((byte)TextKind.Device, identity.DeviceText(DeviceOs.Linux)));
-            dispatcher.PadStatusReply =status => frames.Send(new Text((byte)TextKind.PadStatus, status));
+            dispatcher.PadStatusReply = status => frames.Send(new Text((byte)TextKind.PadStatus, status));
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
             startReporting(frames.Send);
 

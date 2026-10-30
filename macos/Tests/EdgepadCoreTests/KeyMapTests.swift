@@ -113,7 +113,7 @@ final class KeyMapTests: XCTestCase {
             if code == 0x5D {
                 XCTAssertNil(KeyMap.target(forWindows: code))
             } else {
-                XCTAssertNotNil(KeyMap.target(forWindows: code), "0x(String(code, radix: 16)) has no Mac key")
+                XCTAssertNotNil(KeyMap.target(forWindows: code), "0x\(String(code, radix: 16)) has no Mac key")
             }
         }
     }
@@ -123,8 +123,7 @@ final class KeyMapTests: XCTestCase {
         while dir.path != "/" {
             let candidate = dir.appendingPathComponent("protocol/keys.txt")
             if let text = try? String(contentsOf: candidate, encoding: .utf8) {
-                return text.split(separator: "
-").compactMap { line in
+                return text.split(separator: "\n").compactMap { line in
                     let parts = line.split(separator: " ")
                     guard parts.count == 3, parts[0] == "KEY" else { return nil }
                     return UInt16(parts[1].dropFirst(2), radix: 16)
@@ -132,7 +131,7 @@ final class KeyMapTests: XCTestCase {
             }
             dir.deleteLastPathComponent()
         }
-        XCTFail("protocol/keys.txt was not found above (#filePath)")
+        XCTFail("protocol/keys.txt was not found above \(#filePath)")
         return []
     }
 }
