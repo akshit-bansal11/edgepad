@@ -8,34 +8,34 @@ public sealed class DesktopEntryCatalogTests
     private static readonly string[] None = [];
 
     [Fact]
-    public void An_application_is_listed_by_its_name() =>
+    public void AnApplicationIsListedByItsName() =>
         Assert.Equal("Files", DesktopEntryCatalog.Parse(["[Desktop Entry]", "Type=Application", "Name=Files"], None));
 
     [Theory]
     [InlineData("NoDisplay=true")]
     [InlineData("Hidden=true")]
-    public void A_hidden_entry_is_not_listed(string line) =>
+    public void AHiddenEntryIsNotListed(string line) =>
         Assert.Null(DesktopEntryCatalog.Parse(["[Desktop Entry]", "Type=Application", "Name=X", line], None));
 
     [Fact]
-    public void A_link_or_a_nameless_entry_is_not_listed()
+    public void ALinkOrANamelessEntryIsNotListed()
     {
         Assert.Null(DesktopEntryCatalog.Parse(["[Desktop Entry]", "Type=Link", "Name=X"], None));
         Assert.Null(DesktopEntryCatalog.Parse(["[Desktop Entry]", "Type=Application"], None));
     }
 
     [Fact]
-    public void An_action_group_is_ignored() =>
+    public void AnActionGroupIsIgnored() =>
         Assert.Equal("Browser", DesktopEntryCatalog.Parse(
             ["[Desktop Entry]", "Type=Application", "Name=Browser", "[Desktop Action new]", "Name=New window", "NoDisplay=true"], None));
 
     [Fact]
-    public void A_localised_name_wins_when_asked_for() =>
+    public void ALocalisedNameWinsWhenAskedFor() =>
         Assert.Equal("Dateien", DesktopEntryCatalog.Parse(
             ["[Desktop Entry]", "Type=Application", "Name=Files", "Name[de]=Dateien"], ["de_AT", "de"]));
 
     [Fact]
-    public void Control_characters_in_a_name_cannot_corrupt_the_list()
+    public void ControlCharactersInANameCannotCorruptTheList()
     {
         var name = DesktopEntryCatalog.Parse(["[Desktop Entry]", "Type=Application", @"Name=A\tB\nC"], None);
         Assert.NotNull(name);
@@ -44,14 +44,14 @@ public sealed class DesktopEntryCatalogTests
     }
 
     [Fact]
-    public void Languages_come_from_LANG()
+    public void LanguagesComeFromLang()
     {
         Assert.Equal(["de_AT", "de"], DesktopEntryCatalog.Languages("de_AT.UTF-8"));
         Assert.Empty(DesktopEntryCatalog.Languages("C"));
     }
 
     [Fact]
-    public void The_owners_folder_wins_and_a_space_in_the_path_is_skipped()
+    public void TheOwnersFolderWinsAndASpaceInThePathIsSkipped()
     {
         var root = Directory.CreateTempSubdirectory().FullName;
         try

@@ -252,7 +252,6 @@ class LaptopConnections(
         laptop.awaiting = false
     }
 
-
     private fun end(laptop: Laptop) {
         stopRetry(laptop)
         laptop.reconnecting = false
