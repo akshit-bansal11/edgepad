@@ -40,6 +40,7 @@ class CaptureInboxTest {
 
     @Before
     fun install() {
+        CaptureInbox.poster = { it() }
         CaptureInbox.store = store
         CaptureInbox.target = CaptureTarget.PHONE
         CaptureInbox.owner = ours
@@ -53,6 +54,7 @@ class CaptureInboxTest {
         CaptureInbox.owner = null
         CaptureInbox.target = null
         CaptureInbox.store = null
+        CaptureInbox.last = null
     }
 
     @Test
