@@ -310,13 +310,12 @@ internal sealed class Shell : IDisposable
     /// </summary>
     private async Task ToggleClipboardAsync()
     {
-        if (!ClipboardSetting.Set(!ClipboardSetting.Enabled))
-        {
-            await Dialogs.Inform(null, "The setting could not be saved, so nothing was changed. The log has the reason.");
-            return;
-        }
-
+        var saved = ClipboardSetting.Set(!ClipboardSetting.Enabled);
         Annotator.FeaturesChanged();
+        if (!saved)
+        {
+            await Dialogs.Inform(null, "This applies now, but it could not be saved, so it will go back after a restart. The log has the reason.");
+        }
         tray?.Refresh();
     }
 

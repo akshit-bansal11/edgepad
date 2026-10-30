@@ -66,9 +66,7 @@ internal sealed class LinuxClipboard : IClipboardSurface
             return null;
         }
 
-        var listing = wayland
-            ? Capture("wl-paste", ["--list-types"], MaxListingBytes)
-            : Capture("xclip", ["-selection", "clipboard", "-o", "-t", "TARGETS"], MaxListingBytes);
+        var listing = ListTypes();
         if (listing is null)
         {
             return null;
@@ -90,8 +88,19 @@ internal sealed class LinuxClipboard : IClipboardSurface
         var data = wayland
             ? Capture("wl-paste", ["--no-newline", "--type", target], limit)
             : Capture("xclip", ["-selection", "clipboard", "-o", "-t", target], limit);
-        return data is null ? null : new ClipboardContent(kind, data);
+        if (data is null)
+        {
+            return null;
+        }
+
+        // The listing and the fetch are two reads, so a password manager can copy between them. Anything but the same
+        // listing afterwards means these bytes may be its, and they are dropped unsent.
+        return ListTypes()?.SequenceEqual(listing) == true ? new ClipboardContent(kind, data) : null;
     }
+
+    private byte[]? ListTypes() => wayland
+        ? Capture("wl-paste", ["--list-types"], MaxListingBytes)
+        : Capture("xclip", ["-selection", "clipboard", "-o", "-t", "TARGETS"], MaxListingBytes);
 
     public void Write(ClipboardContent content)
     {

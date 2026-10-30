@@ -13,14 +13,17 @@ internal static class ClipboardSetting
 
     public static bool Enabled => enabled;
 
-    /// <summary>Saves the choice; false (and unchanged) when the file cannot be written.</summary>
+    /// <summary>
+    /// Applies the choice at once, and saves it. False means only that it will not survive a restart: an owner turning
+    /// sharing off on a full disk still gets it off.
+    /// </summary>
     public static bool Set(bool on)
     {
+        enabled = on;
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
             File.WriteAllText(FilePath, on ? "on\n" : "off\n");
-            enabled = on;
             return true;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
