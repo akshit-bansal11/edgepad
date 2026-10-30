@@ -2,6 +2,8 @@ package me.akshitbansal.edgepad
 
 import android.content.Context
 import android.content.SharedPreferences
+import me.akshitbansal.edgepad.screens.FnMode
+import me.akshitbansal.edgepad.screens.KeyboardSize
 import me.akshitbansal.edgepad.surface.CornerSlots
 import me.akshitbansal.edgepad.surface.DialKind
 import me.akshitbansal.edgepad.surface.Gesture
@@ -113,6 +115,16 @@ class Settings(
      * keyboard may lower, never raise: a label that would not fit inside its key is drawn smaller instead.
      */
     var keyTextScale by bounded(KEY_KEY_TEXT_SCALE, DEFAULT_KEY_TEXT_SCALE, MIN_KEY_TEXT_SCALE, MAX_KEY_TEXT_SCALE)
+
+    /** Which of the six boards the keyboard draws. */
+    var keyboardSize: KeyboardSize
+        get() = enum(KEY_KEYBOARD_SIZE, DEFAULT_KEYBOARD_SIZE)
+        set(value) = prefs.edit().putString(KEY_KEYBOARD_SIZE, value.name).apply()
+
+    /** Whether the top row does what is printed on it, with Fn for F1 to F12, or the reverse. */
+    var functionKeys: FnMode
+        get() = enum(KEY_FUNCTION_KEYS, DEFAULT_FUNCTION_KEYS)
+        set(value) = prefs.edit().putString(KEY_FUNCTION_KEYS, value.name).apply()
 
     /**
      * Held sideways on every screen except the keyboard, the gamepad and its layout editor, which are always
@@ -397,6 +409,8 @@ class Settings(
         const val MIN_KEY_TEXT_SCALE = 0.6f
         const val MAX_KEY_TEXT_SCALE = 2f
         const val DEFAULT_KEY_TEXT_SCALE = 1f
+        val DEFAULT_KEYBOARD_SIZE = KeyboardSize.SEVENTY_FIVE
+        val DEFAULT_FUNCTION_KEYS = FnMode.WITH_FN
         const val MIN_MACROS_PER_PAGE = 2
         const val MAX_MACROS_PER_PAGE = 10
         const val AUTO_MACRO_ROWS = 0
@@ -433,6 +447,8 @@ class Settings(
         private const val KEY_THEME = "theme"
         private const val KEY_MEDIA_SCALE = "mediaScale"
         private const val KEY_KEY_TEXT_SCALE = "keyTextScale"
+        private const val KEY_KEYBOARD_SIZE = "keyboardSize"
+        private const val KEY_FUNCTION_KEYS = "functionKeys"
         private const val KEY_PATTERN_SIZE = "patternSize"
         private const val KEY_PATTERN_COLOR = "patternColor"
         private const val KEY_PATTERN_OPACITY = "patternOpacity"

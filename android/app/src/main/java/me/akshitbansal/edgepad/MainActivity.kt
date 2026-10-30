@@ -685,7 +685,11 @@ class MainActivity :
                     KeyboardScreen.build(
                         ui,
                         settings.keyTextScale,
+                        settings.keyboardSize,
+                        settings.functionKeys,
+                        state.os,
                         onKey = ::key,
+                        onAction = { link?.send(it.frame()) },
                         onSettings = { goTo(Screen.KEYBOARD_SETTINGS) },
                     ) { navigateBack() }
                 }

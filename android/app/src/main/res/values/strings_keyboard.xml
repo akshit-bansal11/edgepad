@@ -5,4 +5,11 @@
   <string name="back_to_surface">Surface</string>
   <string name="macros_title">Macros</string>
   <string name="keyboard_description">On-screen keyboard for the laptop</string>
+  <string name="keyboard_size">Size</string>
+  <string name="keyboard_size_caption">Larger sizes fit more keys, so each key is smaller. They want a wider screen.</string>
+  <string name="keyboard_function_keys">Function keys</string>
+  <string name="keyboard_with_fn">With Fn</string>
+  <string name="keyboard_direct">Direct</string>
+  <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
+  <string name="keyboard_function_keys_caption">With Fn: the top row does what is printed on it (brightness, media, volume) and Fn plus a key sends F1 to F12. On 65%% and 60%%, which have no F row, the number row types numbers and Fn plus a number sends F1 to F12. Direct: the top row sends F1 to F12 and Fn plus a key does the printed action; on 65%% and 60%% the number row sends F1 to F12 and Fn plus a number types the number.</string>
 </resources>

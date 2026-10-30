@@ -76,8 +76,8 @@
   </string-array>
   <string-array name="guide_keyboard_values">
     <item>The Controls icon at the top of the surface, then Keyboard. It opens sideways.</item>
-    <item>Every key goes straight to the laptop: function row, arrows, Esc and Tab included.</item>
-    <item>Hold Ctrl, Alt or Shift while pressing a key, or tap one to apply it to the next key. Tap it again to cancel.</item>
+    <item>Every key goes straight to the laptop. The top row does what is printed on it; hold Fn for F1 to F12 (Settings changes this).</item>
+    <item>Hold Ctrl, Alt, Shift or Fn while pressing a key, or tap one to apply it to the next key. Tap it again to cancel.</item>
     <item>The back arrow at the top, or the system back gesture.</item>
   </string-array>
 
