@@ -157,6 +157,33 @@ internal sealed class Annotator : IDisposable
         }
     }
 
+    /// <summary>The colour of the next stroke from PEN_RGB, already held to six hex digits by the dispatcher.</summary>
+    public bool SetRgb(int rgb)
+    {
+        lock (gate)
+        {
+            return board.SetRgb(rgb);
+        }
+    }
+
+    /// <summary>The width of the next stroke, 1..100. False when it is not.</summary>
+    public bool SetWidth(byte width)
+    {
+        lock (gate)
+        {
+            return board.SetWidth(width);
+        }
+    }
+
+    /// <summary>The opacity of the next stroke in percent, 10..100. False when it is not.</summary>
+    public bool SetOpacity(byte opacity)
+    {
+        lock (gate)
+        {
+            return board.SetOpacity(opacity);
+        }
+    }
+
     /// <summary>One of the annotate and sign actions, 40..51. False means dropped.</summary>
     public bool Run(ActionId id)
     {
@@ -401,7 +428,7 @@ internal sealed class Annotator : IDisposable
                 return [.. board.Strokes];
             }
 
-            var copy = new Stroke(active.Tool, active.Colour);
+            var copy = new Stroke(active.Tool, active.Style);
             copy.Points.AddRange(active.Points);
             return [.. board.Strokes, copy];
         }

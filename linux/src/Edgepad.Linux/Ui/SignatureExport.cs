@@ -100,9 +100,10 @@ internal static class SignatureExport
             return;
         }
 
-        var rgb = Palette.Colour(stroke.Colour) ?? 0;
-        var alpha = stroke.Tool == StrokeTool.Highlighter ? (byte)Math.Round(255 * Stroke.HighlighterAlpha) : (byte)255;
-        var brush = new ImmutableSolidColorBrush(Color.FromArgb(alpha, (byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb));
+        // The stroke's own colour, width and opacity, so the signature saved is the one the phone's sliders showed.
+        var rgb = stroke.Rgb;
+        var brush = new ImmutableSolidColorBrush(
+            Color.FromArgb(stroke.Alpha, (byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb));
         double size = stroke.WidthPx(height);
 
         // A tap is a dot, not nothing: a line of no length draws no pixels.
