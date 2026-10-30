@@ -798,7 +798,7 @@ class ControlSurface(
                 if (dial.steps > 0) "+${dial.steps}" else dial.steps.toString()
             }
 
-            DialKind.APP_SWITCHER -> {
+            DialKind.APP_SWITCHER, DialKind.SCROLL, DialKind.TRACKS, DialKind.DESKTOPS, DialKind.TABS -> {
                 ""
             }
         }

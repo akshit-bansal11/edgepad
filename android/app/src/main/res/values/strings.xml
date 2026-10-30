@@ -303,6 +303,14 @@
   <string name="dial_refresh_short">RATE</string>
   <!-- The ruler shows the rate the laptop named for this step, not the step's own number. -->
   <string name="dial_refresh_value">%1$d Hz</string>
+  <string name="dial_scroll">Scroll</string>
+  <string name="dial_scroll_short">SCROLL</string>
+  <string name="dial_tracks">Track skip</string>
+  <string name="dial_tracks_short">TRACK</string>
+  <string name="dial_desktops">Virtual desktops</string>
+  <string name="dial_desktops_short">DESK</string>
+  <string name="dial_tabs">Browser tabs</string>
+  <string name="dial_tabs_short">TABS</string>
 
   <!-- Control surface -->
   <string name="surface_description">Laptop control surface</string>

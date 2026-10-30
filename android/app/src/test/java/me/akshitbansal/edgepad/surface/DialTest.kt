@@ -129,6 +129,96 @@ class DialTest {
     }
 
     @Test
+    fun scrollSendsOneWheelNotchPerStepAndClockwiseGoesDown() {
+        val scroll = dial(DialKind.SCROLL)
+        scroll.down()
+        scroll.slideBy(80f)
+        scroll.slide(-40f, SLOP)
+        scroll.up()
+        val notch = TrackpadRecognizer.WHEEL_NOTCH
+        assertEquals(listOf(Frame.Scroll(0, -notch), Frame.Scroll(0, -notch), Frame.Scroll(0, notch)), out)
+    }
+
+    @Test
+    fun tracksSkipByStepAndATapPlaysOrPauses() {
+        val tracks = dial(DialKind.TRACKS)
+        tracks.down()
+        tracks.slideBy(80f)
+        tracks.slide(-40f, SLOP)
+        tracks.up()
+        assertEquals(
+            listOf(ActionId.NEXT_TRACK.frame(), ActionId.NEXT_TRACK.frame(), ActionId.PREVIOUS_TRACK.frame()),
+            out,
+        )
+        out.clear()
+        tracks.down()
+        assertTrue(tracks.up())
+        assertEquals(listOf(ActionId.PLAY_PAUSE.frame()), out)
+    }
+
+    @Test
+    fun desktopsMoveByStepAndATapOpensTaskView() {
+        val desktops = dial(DialKind.DESKTOPS)
+        desktops.down()
+        desktops.slideBy(80f)
+        desktops.slide(-40f, SLOP)
+        desktops.up()
+        assertEquals(
+            listOf(ActionId.DESKTOP_RIGHT.frame(), ActionId.DESKTOP_RIGHT.frame(), ActionId.DESKTOP_LEFT.frame()),
+            out,
+        )
+        out.clear()
+        desktops.down()
+        assertTrue(desktops.up())
+        assertEquals(listOf(ActionId.TASK_VIEW.frame()), out)
+    }
+
+    @Test
+    fun tabsHoldCtrlForTheWholeSlideAndShiftOnlyGoingBack() {
+        val tabs = dial(DialKind.TABS)
+        tabs.down()
+        tabs.slideBy(40f)
+        tabs.slide(-40f, SLOP)
+        tabs.up()
+        assertEquals(
+            listOf(
+                Frame.Key(CTRL, true),
+                Frame.Key(TAB, true),
+                Frame.Key(TAB, false),
+                Frame.Key(SHIFT, true),
+                Frame.Key(TAB, true),
+                Frame.Key(TAB, false),
+                Frame.Key(SHIFT, false),
+                Frame.Key(CTRL, false),
+            ),
+            out,
+        )
+    }
+
+    @Test
+    fun aCancelledTabSlideStillLetsGoOfCtrl() {
+        val tabs = dial(DialKind.TABS)
+        tabs.down()
+        tabs.slideBy(40f)
+        tabs.cancel()
+        assertEquals(Frame.Key(CTRL, false), out.last())
+    }
+
+    @Test
+    fun aTabsTapSendsNothing() {
+        val tabs = dial(DialKind.TABS)
+        tabs.down()
+        assertTrue(tabs.up())
+        assertTrue(out.isEmpty())
+    }
+
+    @Test
+    fun theNewDialsTakeNoCornerByDefault() {
+        val taken = DialKind.entries.mapNotNull { it.defaultCorner }
+        assertEquals(listOf(0, 1, 2, 3), taken)
+    }
+
+    @Test
     fun zoomCountsNotchesUntilATapResetsIt() {
         val zoom = dial(DialKind.ZOOM)
         zoom.down()
@@ -176,5 +266,8 @@ class DialTest {
     private companion object {
         const val UNITS_PER_DP = 0.25f
         const val SLOP = 8f
+        const val TAB = 0x09
+        const val SHIFT = 0x10
+        const val CTRL = 0x11
     }
 }
