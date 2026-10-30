@@ -42,6 +42,13 @@ internal static class Firewall
     }
 
     /// <summary>
+    /// Everything <c>cmd</c> is started with. <c>/d</c> skips the AutoRun commands in the user's registry, which would
+    /// otherwise run elevated too. <c>/v:off</c> holds whatever the registry says about delayed expansion, under which
+    /// <c>!VAR!</c> in a path would expand. <c>/s</c> makes the outer quotes the only ones stripped, whatever the paths hold.
+    /// </summary>
+    public static string CmdArguments(string exe) => $"/d /v:off /s /c {CommandLine(exe)}";
+
+    /// <summary>
     /// Asks Windows for the rule, off the UI thread, and tells <paramref name="done"/> on the UI thread whether it is
     /// there. The owner declining the prompt is their answer, logged, not an error. Call it on the UI thread.
     /// </summary>
@@ -63,9 +70,7 @@ internal static class Firewall
 
         try
         {
-            // /d skips the AutoRun commands in the user's registry, which would otherwise run elevated too. /s makes the
-            // outer quotes the only ones stripped, whatever the paths hold.
-            var start = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "cmd.exe"), $"/d /s /c {CommandLine(exe)}")
+            var start = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "cmd.exe"), CmdArguments(exe))
             {
                 Verb = "runas",
                 UseShellExecute = true,

@@ -68,6 +68,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly RfcommServer server;
     private readonly PairedLinks pairedLinks = PairedLinks.ForCurrentUser();
     private readonly NetworkSettings networkSettings;
+    private readonly FirewallMemory firewallMemory;
     private readonly NetworkServer network;
 
     // The Wi-Fi and USB row's hint: off, the port listened on, or why not. Only the UI thread touches it.
@@ -88,6 +89,7 @@ internal sealed class TrayContext : ApplicationContext
     {
         // First, because the menu's Opening handler below reads it.
         networkSettings = NetworkSettings.ForCurrentUser(pin.Folder);
+        firewallMemory = FirewallMemory.ForCurrentUser(pin.Folder);
 
         // Click, not CheckedChanged: the menu sets Checked from the registry each time it opens, and that must
         // read the key without writing it back — least of all deleting it after a failed read.
@@ -96,7 +98,7 @@ internal sealed class TrayContext : ApplicationContext
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
         securityRow.Click += (_, _) => ShowSecurity();
         networkRow.Click += (_, _) => ToggleNetwork(networkRow.Checked);
-        firewallRow.Click += (_, _) => Firewall.Allow(ReportFirewall);
+        firewallRow.Click += (_, _) => AllowFirewall(ReportFirewall);
         update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
 
         // The header is the menu's own. The update row sits right under it and stays hidden until there is one.
@@ -168,7 +170,17 @@ internal sealed class TrayContext : ApplicationContext
             name => SetStatus($"Paired with {name}"),
             () => host.IsRefusing);
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
+
+        // An update is a new exe with no rule. Held before the first listen, or Windows' own alert would come first.
+        var followExe = networkSettings.Load().Enabled && FirewallMemory.IsNew(firewallMemory.Load(), Environment.ProcessPath);
+        allowingNetwork = followExe;
         ApplyNetwork();
+        if (followExe)
+        {
+            // Posted, for the same reason as the question below: the firewall step needs the tray running.
+            ui.Post(_ => FollowExe(), null);
+        }
+
         if (!networkSettings.HasChoice)
         {
             // Posted, so it waits for the tray to be up and running rather than holding up this constructor.
@@ -350,12 +362,46 @@ internal sealed class TrayContext : ApplicationContext
             return;
         }
 
+        AllowThenListen();
+    }
+
+    /// <summary>The first launch of a new exe with the network on: says why Windows is about to ask, then asks.</summary>
+    private void FollowExe()
+    {
+        icon.ShowBalloonTip(
+            0,
+            "Edgepad",
+            "This version of Edgepad is a new file, so Windows will ask once to let phones reach it.",
+            ToolTipIcon.Info);
+        AllowThenListen();
+    }
+
+    /// <summary>The firewall step, then listening whatever it reported, so nothing listens before the rule exists.</summary>
+    private void AllowThenListen()
+    {
         allowingNetwork = true;
-        Firewall.Allow(allowed =>
+        AllowFirewall(allowed =>
         {
             allowingNetwork = false;
             ReportFirewall(allowed);
             ApplyNetwork();
+        });
+    }
+
+    /// <summary>
+    /// Every way to the firewall step. The exe is remembered whatever the answer, so a no is not asked again at the next
+    /// launch; the menu's Allow row is the way back.
+    /// </summary>
+    private void AllowFirewall(Action<bool> done)
+    {
+        Firewall.Allow(allowed =>
+        {
+            if (Environment.ProcessPath is { } exe)
+            {
+                firewallMemory.Remember(exe);
+            }
+
+            done(allowed);
         });
     }
 

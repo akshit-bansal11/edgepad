@@ -35,6 +35,14 @@ public sealed class FirewallTests
             Firewall.CommandLine(exe));
     }
 
+    [Fact]
+    public void CmdRunsWithoutAutoRunOrDelayedExpansion()
+    {
+        var exe = @"C:\Tools!PATH!\Edgepad.exe";
+
+        Assert.Equal($"/d /v:off /s /c {Firewall.CommandLine(exe)}", Firewall.CmdArguments(exe));
+    }
+
     [Theory]
     [InlineData("C:\\x\" action=block program=\"C:\\y.exe")]
     [InlineData(@"C:\%TEMP%\Edgepad.exe")]
@@ -43,5 +51,6 @@ public sealed class FirewallTests
         Assert.Throws<ArgumentException>(() => Firewall.Arguments(hostile));
         Assert.Throws<ArgumentException>(() => Firewall.DeleteArguments(hostile));
         Assert.Throws<ArgumentException>(() => Firewall.CommandLine(hostile));
+        Assert.Throws<ArgumentException>(() => Firewall.CmdArguments(hostile));
     }
 }
