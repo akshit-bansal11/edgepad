@@ -95,6 +95,12 @@ class AndroidClipboard(
     /** The timestamp of the clip [settle] saw. */
     @Volatile private var settled = Long.MIN_VALUE
 
+    /**
+     * [settle] could not see the clipboard (Android hides it from an app without focus), so the first clip [read]
+     * sees is taken as the settled one and not sent: what was there before sharing turned on never goes.
+     */
+    @Volatile private var settlePending = false
+
     override fun listen(onChanged: (() -> Unit)?) {
         callback = onChanged
         if (onChanged != null) {
@@ -105,15 +111,25 @@ class AndroidClipboard(
     }
 
     override fun settle() {
-        manager.primaryClipDescription?.let { settled = it.timestamp }
+        val description = manager.primaryClipDescription
+        settlePending = description == null
+        if (description != null) settled = description.timestamp
     }
 
+    // The description first: it carries the timestamp and the sensitive flag, and reading it neither shows Android's
+    // "pasted from your clipboard" notice nor opens the content, so a clip that will not be sent is never read.
     override fun read(): ClipboardContent? {
-        val clip = manager.primaryClip ?: return null
-        val description = clip.description
-        if (clip.itemCount == 0 || description.timestamp <= settled) return null
+        val description = manager.primaryClipDescription ?: return null
+        if (settlePending) {
+            settlePending = false
+            settled = description.timestamp
+            return null
+        }
+        if (description.timestamp <= settled) return null
         // Before anything is opened: a password manager's copy is never touched, let alone sent.
         if (isSensitive(description)) return null
+        val clip = manager.primaryClip ?: return null
+        if (clip.itemCount == 0 || isSensitive(clip.description)) return null
         val item = clip.getItemAt(0)
         return when {
             description.hasMimeType(IMAGE_ANY) -> item.uri?.let(::readImage)
@@ -160,6 +176,11 @@ class AndroidClipboard(
             null
         } catch (e: SecurityException) {
             Log.w(TAG, "Clipboard: the image is not ours to read")
+            null
+        } catch (e: OutOfMemoryError) {
+            // A photo within the pixel cap can still be too big to decode on a small phone; losing one copy beats
+            // the whole app, and every link with it.
+            Log.w(TAG, "Clipboard: the image was too large to convert")
             null
         }
     }
