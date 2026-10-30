@@ -230,6 +230,14 @@ object KeyboardScreen {
         private val pointerKeys = mutableMapOf<Int, Key>()
         private val modifiers = ModifierLatch(onKey)
 
+        // Repeats go through the latch like the first press, so an armed modifier wraps them too; no haptic.
+        private val keyRepeat =
+            KeyRepeat(
+                post = { task, delay -> postDelayed(task, delay) },
+                cancel = { task -> removeCallbacks(task) },
+                fire = { code -> modifiers.keyDown(code) },
+            )
+
         init {
             contentDescription = context.getString(R.string.keyboard_description)
             isClickable = true
@@ -326,17 +334,29 @@ object KeyboardScreen {
                     val key = keyAt(event.getX(index), event.getY(index)) ?: return false
                     performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                     pointerKeys[event.getPointerId(index)] = key
-                    if (key.sticky) modifiers.modifierDown(key.code) else modifiers.keyDown(key.code)
+                    if (key.sticky) {
+                        modifiers.modifierDown(key.code)
+                    } else {
+                        modifiers.keyDown(key.code)
+                        // Caps Lock toggles on every down, so a repeat would flip it back and forth.
+                        if (key.code != CODE_CAPS) keyRepeat.press(key.code)
+                    }
                 }
 
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                     val index = event.actionIndex
                     val key = pointerKeys.remove(event.getPointerId(index)) ?: return false
-                    if (key.sticky) modifiers.modifierUp(key.code) else modifiers.keyUp(key.code)
+                    if (key.sticky) {
+                        modifiers.modifierUp(key.code)
+                    } else {
+                        keyRepeat.release(key.code)
+                        modifiers.keyUp(key.code)
+                    }
                     performClick()
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
+                    keyRepeat.stop()
                     for (key in pointerKeys.values) if (!key.sticky) onKey(key.code, false)
                     pointerKeys.clear()
                     modifiers.cancel()
@@ -353,6 +373,11 @@ object KeyboardScreen {
         override fun performClick(): Boolean {
             super.performClick()
             return true
+        }
+
+        override fun onDetachedFromWindow() {
+            keyRepeat.stop()
+            super.onDetachedFromWindow()
         }
     }
 }
