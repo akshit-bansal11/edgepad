@@ -32,6 +32,17 @@ object DeckLayout {
     ): Int? = choices(count).firstOrNull { it.first == rows }?.second
 
     /**
+     * Whether [rows] rows stand in [down] pixels at [touch] each, [gap] apart. A row under a touch target is not
+     * drawn shorter, it is drawn past the bottom, and a pager has no scroll to reach it by.
+     */
+    fun rowsFit(
+        rows: Int,
+        down: Int,
+        touch: Int,
+        gap: Int,
+    ): Boolean = rows * touch + (rows - 1) * gap <= down
+
+    /**
      * The pages [count] tiles fall on when a page holds [perPage]: each is the range of display positions it
      * shows. Every page is planned as a grid of [perPage] cells, so only the last can be short, and it leaves
      * its cells empty at the end rather than growing its tiles.

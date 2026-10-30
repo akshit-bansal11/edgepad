@@ -1184,11 +1184,12 @@ class MainActivity :
         val network = mergeFound(wifiFound + usbFound)
         val hint =
             pickerHint(
+                permissionPending = permissionPending,
                 bluetoothOn = adapter?.isEnabled ?: true,
                 bluetoothPermitted = permitted || adapter == null,
                 localNetworkGranted = LocalNetwork.granted(this),
                 usbCable = usbCable,
-                usbUp = sweep?.usb != null,
+                usbUp = sweep?.let { it.usb != null },
                 anyDevices = network.isNotEmpty() || shown.isNotEmpty(),
             )
         val devices =
@@ -1228,9 +1229,7 @@ class MainActivity :
             }
 
             PickerHint.BLUETOOTH_PERMISSION -> {
-                if (permissionPending) {
-                    picker.setMessage(getString(R.string.permission_needed))
-                } else if (shouldShowRequestPermissionRationale(Manifest.permission.BLUETOOTH_CONNECT)) {
+                if (shouldShowRequestPermissionRationale(Manifest.permission.BLUETOOTH_CONNECT)) {
                     picker.setMessage(getString(R.string.permission_needed), getString(R.string.allow_permission)) {
                         askPermission()
                     }

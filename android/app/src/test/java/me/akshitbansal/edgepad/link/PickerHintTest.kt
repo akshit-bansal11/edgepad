@@ -5,13 +5,28 @@ import org.junit.Test
 
 class PickerHintTest {
     private fun hint(
+        permissionPending: Boolean = false,
         bluetoothOn: Boolean = true,
         bluetoothPermitted: Boolean = true,
         localNetworkGranted: Boolean = true,
         usbCable: Boolean = false,
-        usbUp: Boolean = false,
+        usbUp: Boolean? = false,
         anyDevices: Boolean = false,
-    ) = pickerHint(bluetoothOn, bluetoothPermitted, localNetworkGranted, usbCable, usbUp, anyDevices)
+    ) = pickerHint(permissionPending, bluetoothOn, bluetoothPermitted, localNetworkGranted, usbCable, usbUp, anyDevices)
+
+    @Test
+    fun aPromptOnScreenSilencesEveryHint() {
+        assertEquals(
+            PickerHint.NONE,
+            hint(permissionPending = true, localNetworkGranted = false, usbCable = true, bluetoothPermitted = false),
+        )
+        assertEquals(PickerHint.NONE, hint(permissionPending = true, bluetoothPermitted = false))
+    }
+
+    @Test
+    fun noSweepYetDoesNotCallTetheringOff() {
+        assertEquals(PickerHint.NOTHING_FOUND, hint(usbCable = true, usbUp = null))
+    }
 
     @Test
     fun missingLocalNetworkPermissionComesFirst() {

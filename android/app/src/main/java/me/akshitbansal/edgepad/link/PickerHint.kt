@@ -22,20 +22,24 @@ enum class PickerHint {
 }
 
 /**
- * What to tell the user, in precedence order. Bluetooth being off or unpermitted is reported only when no laptop is
- * listed, so it never hides laptops that were found on Wi-Fi or USB, nor the hints that explain those.
+ * What to tell the user, in precedence order. Nothing while a permission prompt is on screen: it is the question
+ * already, and its answer refreshes this. Bluetooth being off or unpermitted is reported only when no laptop is
+ * listed, so it never hides laptops that were found on Wi-Fi or USB, nor the hints that explain those. [usbUp] is
+ * null until a sweep has finished, when nobody knows yet and tethering is not called off.
  */
 internal fun pickerHint(
+    permissionPending: Boolean,
     bluetoothOn: Boolean,
     bluetoothPermitted: Boolean,
     localNetworkGranted: Boolean,
     usbCable: Boolean,
-    usbUp: Boolean,
+    usbUp: Boolean?,
     anyDevices: Boolean,
 ): PickerHint =
     when {
+        permissionPending -> PickerHint.NONE
         !localNetworkGranted -> PickerHint.LOCAL_NETWORK
-        usbCable && !usbUp -> PickerHint.USB_TETHER_OFF
+        usbCable && usbUp == false -> PickerHint.USB_TETHER_OFF
         anyDevices -> PickerHint.NONE
         !bluetoothOn -> PickerHint.BLUETOOTH_OFF
         !bluetoothPermitted -> PickerHint.BLUETOOTH_PERMISSION

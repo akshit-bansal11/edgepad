@@ -49,6 +49,9 @@ private const val CODE_UP = 0x26
 private const val CODE_RIGHT = 0x27
 private const val CODE_DOWN = 0x28
 
+/** Keys a held finger presses once: Caps Lock toggles on every down, and Win would flash the Start menu. */
+private val ONE_SHOT_CODES = setOf(CODE_CAPS, CODE_WIN)
+
 private const val F_KEY_COUNT = 12
 private const val DIGIT_COUNT = 10
 
@@ -338,8 +341,7 @@ object KeyboardScreen {
                         modifiers.modifierDown(key.code)
                     } else {
                         modifiers.keyDown(key.code)
-                        // Caps Lock toggles on every down, so a repeat would flip it back and forth.
-                        if (key.code != CODE_CAPS) keyRepeat.press(key.code)
+                        if (key.code !in ONE_SHOT_CODES) keyRepeat.press(key.code)
                     }
                 }
 

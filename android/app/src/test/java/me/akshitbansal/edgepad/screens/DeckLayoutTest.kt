@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.screens
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -43,6 +44,14 @@ class DeckLayoutTest {
         assertNull(DeckLayout.columnsFor(6, 4))
         assertNull(DeckLayout.columnsFor(6, 5))
         assertNull(DeckLayout.columnsFor(6, 0))
+    }
+
+    @Test
+    fun rowsFitOnlyAtFullTouchHeightGapsIncluded() {
+        assertTrue(DeckLayout.rowsFit(rows = 1, down = 48, touch = 48, gap = 8))
+        assertTrue(DeckLayout.rowsFit(rows = 3, down = 160, touch = 48, gap = 8))
+        assertFalse(DeckLayout.rowsFit(rows = 3, down = 159, touch = 48, gap = 8))
+        assertFalse(DeckLayout.rowsFit(rows = 6, down = 300, touch = 48, gap = 8))
     }
 
     @Test

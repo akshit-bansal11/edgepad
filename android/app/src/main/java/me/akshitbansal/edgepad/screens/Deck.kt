@@ -139,7 +139,8 @@ class Deck(
      * one starts a drag (or a TalkBack action moves it) to another tile's place, reporting the two display
      * positions through [onMove]. [slots] is how many cells the grid is planned for when that is more than
      * the tiles it holds, so that a short last page of a pager keeps the tile size of the full ones. [rows] asks
-     * for that many rows; null, or a count the grid cannot be split into, leaves the choice to [plan].
+     * for that many rows; null, a count the grid cannot be split into, or one that does not fit in [down], leaves
+     * the choice to [plan].
      */
     fun render(
         across: Int,
@@ -228,8 +229,12 @@ class Deck(
         var chosen = 1
         var width = 1
         var height = ui.dp(Space.TOUCH)
-        // A row count the owner chose fixes the columns; the touch floor below still applies to its cells.
-        val forced = wantedRows?.let { DeckLayout.columnsFor(count, it) }
+        // A row count the owner chose fixes the columns, as long as its rows fit: the touch floor below would push
+        // the bottom ones off a pager page, where nothing scrolls to them.
+        val forced =
+            wantedRows
+                ?.takeIf { DeckLayout.rowsFit(it, down, ui.dp(Space.TOUCH), gap) }
+                ?.let { DeckLayout.columnsFor(count, it) }
         val candidates = if (forced != null) forced..forced else 1..count
         for (candidate in candidates) {
             val rows = (count + candidate - 1) / candidate
