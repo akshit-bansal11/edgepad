@@ -16,4 +16,10 @@ internal interface IMacroRunner
 
     /// <summary>Launches the macro in slot <paramref name="index"/>. False when it is empty or the launch failed.</summary>
     bool Run(int index);
+
+    /// <summary>
+    /// Closes the app in slot <paramref name="index"/>, as its own close button would. False when the slot is empty
+    /// or this laptop cannot see windows. Like <see cref="Run"/>, it takes a slot and never a name.
+    /// </summary>
+    bool Close(int index);
 }

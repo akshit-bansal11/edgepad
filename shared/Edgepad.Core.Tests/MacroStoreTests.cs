@@ -19,6 +19,13 @@ public sealed class MacroStoreTests : IDisposable
 
     private MacroStore NewStore() => new(MacrosFile, launcher, work => work());
 
+    private MacroStore StoreWith(MacroOpenWatcherTests.FakeWindows windows)
+    {
+        var store = new MacroStore(MacrosFile, launcher, work => work(), windows, _ => Task.CompletedTask);
+        store.Save([new Macro("One", "one.exe", null), new Macro("Two", "two.exe", "-x")]);
+        return store;
+    }
+
     [Fact]
     public void NamesAreTheButtonLabelsJoinedForOneTextFrame()
     {
@@ -378,6 +385,162 @@ public sealed class MacroStoreTests : IDisposable
 
         Assert.Null(store.Macros[0].Icon);
         Assert.Null(NewStore().Macros[0].Icon);
+    }
+
+    [Fact]
+    public void AnAppInFrontIsMinimizedAndNeverLaunched()
+    {
+        var windows = new MacroOpenWatcherTests.FakeWindows { State = _ => OpenState.Front };
+
+        Assert.True(StoreWith(windows).Run(1));
+
+        Assert.Equal(["Minimize Two"], windows.Calls);
+        Assert.Empty(launcher.Launched);
+    }
+
+    [Fact]
+    public void AnAppBehindOthersIsRaisedAndNeverLaunched()
+    {
+        var windows = new MacroOpenWatcherTests.FakeWindows { State = _ => OpenState.Open };
+
+        Assert.True(StoreWith(windows).Run(0));
+
+        Assert.Equal(["Raise One"], windows.Calls);
+        Assert.Empty(launcher.Launched);
+    }
+
+    [Fact]
+    public void AClosedAppLaunches()
+    {
+        var windows = new MacroOpenWatcherTests.FakeWindows { State = _ => OpenState.Closed };
+
+        Assert.True(StoreWith(windows).Run(1));
+
+        Assert.Equal(("two.exe", "-x"), Assert.Single(launcher.Launched));
+        Assert.Empty(windows.Calls);
+    }
+
+    [Fact]
+    public void AnUntrackedTargetLaunchesAndIsNotFollowed()
+    {
+        var windows = new MacroOpenWatcherTests.FakeWindows { State = _ => OpenState.Untracked };
+
+        Assert.True(StoreWith(windows).Run(0));
+
+        Assert.Single(launcher.Launched);
+        Assert.Equal(1, windows.Surveys);
+    }
+
+    [Fact]
+    public void ASurveyThatThrowsLaunches()
+    {
+        var windows = new MacroOpenWatcherTests.FakeWindows { State = _ => throw new InvalidOperationException("no desktop") };
+
+        Assert.True(StoreWith(windows).Run(0));
+
+        Assert.Single(launcher.Launched);
+    }
+
+    [Fact]
+    public void ALaptopThatCannotSeeWindowsNeverSurveysAndLaunches()
+    {
+        var windows = new MacroOpenWatcherTests.FakeWindows { Available = false, State = _ => OpenState.Front };
+
+        Assert.True(StoreWith(windows).Run(0));
+
+        Assert.Equal(0, windows.Surveys);
+        Assert.Single(launcher.Launched);
+    }
+
+    [Fact]
+    public void AMinimizeThatDidNotActFallsThroughToALaunch()
+    {
+        var windows = new MacroOpenWatcherTests.FakeWindows { State = _ => OpenState.Front, Acts = false };
+
+        Assert.True(StoreWith(windows).Run(0));
+
+        Assert.Equal(["Minimize One"], windows.Calls);
+        Assert.Single(launcher.Launched);
+    }
+
+    [Fact]
+    public void ALaunchFromClosedRaisesAWindowThatAppearsBehind()
+    {
+        var surveys = 0;
+        var windows = new MacroOpenWatcherTests.FakeWindows
+        {
+            State = _ => ++surveys == 1 ? OpenState.Closed : OpenState.Open,
+        };
+
+        Assert.True(StoreWith(windows).Run(0));
+
+        Assert.Single(launcher.Launched);
+        Assert.Equal(["Raise One"], windows.Calls);
+    }
+
+    [Fact]
+    public void ALaunchThatThrowsIsNotFollowed()
+    {
+        launcher.Fail = true;
+        var windows = new MacroOpenWatcherTests.FakeWindows { State = _ => OpenState.Closed };
+
+        Assert.True(StoreWith(windows).Run(0));
+
+        Assert.Equal(1, windows.Surveys);
+    }
+
+    [Fact]
+    public void CloseActsOnTheMacroInThatSlot()
+    {
+        var windows = new MacroOpenWatcherTests.FakeWindows();
+
+        Assert.True(StoreWith(windows).Close(1));
+
+        Assert.Equal(["Close Two"], windows.Calls);
+        Assert.Empty(launcher.Launched);
+    }
+
+    [Fact]
+    public void CloseRefusesABadSlotAndALaptopWithoutWindows()
+    {
+        var windows = new MacroOpenWatcherTests.FakeWindows();
+        var store = StoreWith(windows);
+
+        Assert.False(store.Close(-1));
+        Assert.False(store.Close(2));
+        Assert.False(StoreWith(new MacroOpenWatcherTests.FakeWindows { Available = false }).Close(0));
+        Assert.False(NewStore().Close(0));
+        Assert.Empty(windows.Calls);
+    }
+
+    [Fact]
+    public void AWatcherExistsOnlyWhereWindowsCanBeSeen()
+    {
+        var available = StoreWith(new MacroOpenWatcherTests.FakeWindows());
+        var unavailable = StoreWith(new MacroOpenWatcherTests.FakeWindows { Available = false });
+
+        using var watcher = available.CreateWatcher(_ => { });
+
+        Assert.NotNull(watcher);
+        Assert.Null(unavailable.CreateWatcher(_ => { }));
+        Assert.Null(NewStore().CreateWatcher(_ => { }));
+    }
+
+    [Fact]
+    public void WindowActionsNeverTouchTheFile()
+    {
+        var windows = new MacroOpenWatcherTests.FakeWindows { State = _ => OpenState.Front };
+        var store = StoreWith(windows);
+        var before = File.ReadAllBytes(MacrosFile);
+
+        store.Run(0);
+        windows.State = _ => OpenState.Open;
+        store.Run(1);
+        windows.State = _ => OpenState.Closed;
+        store.Run(0);
+        store.Close(1);
+
+        Assert.Equal(before, File.ReadAllBytes(MacrosFile));
     }
 
     private sealed class RecordingLauncher : IMacroLauncher

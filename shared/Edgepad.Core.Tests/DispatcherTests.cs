@@ -22,7 +22,7 @@ public sealed class DispatcherTests
     [Theory]
     [InlineData(0)]
     [InlineData(7)]
-    [InlineData(99)]
+    [InlineData(120)]
     [InlineData(255)]
     public void AnUnknownActionIsDropped(byte id)
     {
@@ -72,6 +72,69 @@ public sealed class DispatcherTests
 
         Assert.Equal(1, dispatcher.Dropped);
         Assert.Empty(macros.Slots);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Theory]
+    [InlineData(96, 0)]
+    [InlineData(102, 6)]
+    [InlineData(110, 14)]
+    public void ACloseIdReachesTheStoreAsASlotIndexOnly(byte id, int slot)
+    {
+        macros.Answer = true;
+
+        dispatcher.Handle(new RunAction(id));
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal(slot, Assert.Single(macros.Closed));
+        Assert.Empty(macros.Slots);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Theory]
+    [InlineData(111)]
+    [InlineData(127)]
+    public void ACloseIdPastTheGridIsDropped(byte id)
+    {
+        macros.Answer = true;
+
+        dispatcher.Handle(new RunAction(id));
+
+        Assert.Equal(1, dispatcher.Dropped);
+        Assert.Empty(macros.Closed);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void ACloseTheStoreRefusesIsDropped()
+    {
+        dispatcher.Handle(new RunAction((byte)ActionId.MacroCloseBase));
+
+        Assert.Equal(1, dispatcher.Dropped);
+    }
+
+    [Fact]
+    public void TheMacroGridOpeningAndClosingReachTheSession()
+    {
+        List<bool> seen = [];
+        dispatcher.MacroWatch = seen.Add;
+
+        dispatcher.Handle(new RunAction((byte)ActionId.MacrosWatch));
+        dispatcher.Handle(new RunAction((byte)ActionId.MacrosUnwatch));
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal([true, false], seen);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void WithNoWatcherTheMacroGridIdsAreDropped()
+    {
+        // A laptop that cannot see windows answers the way an older one would.
+        dispatcher.Handle(new RunAction((byte)ActionId.MacrosWatch));
+        dispatcher.Handle(new RunAction((byte)ActionId.MacrosUnwatch));
+
+        Assert.Equal(2, dispatcher.Dropped);
         Assert.Empty(platform.Calls);
     }
 
@@ -285,11 +348,19 @@ public sealed class DispatcherTests
     {
         public List<int> Slots { get; } = [];
 
+        public List<int> Closed { get; } = [];
+
         public bool Answer { get; set; }
 
         public bool Run(int index)
         {
             Slots.Add(index);
+            return Answer;
+        }
+
+        public bool Close(int index)
+        {
+            Closed.Add(index);
             return Answer;
         }
     }

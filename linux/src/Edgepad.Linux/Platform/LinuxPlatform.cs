@@ -193,6 +193,8 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
 
     public bool Run(int index) => macros.Run(index);
 
+    public bool Close(int index) => macros.Close(index);
+
     /// <summary>The list the session answers WANT_ICONS from; the store replaces it whole on a change, so the reference is what the session compares.</summary>
     public IReadOnlyList<Macro> Macros => macros.Macros;
 

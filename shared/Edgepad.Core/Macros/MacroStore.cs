@@ -28,6 +28,9 @@ namespace Edgepad.Macros;
 /// whatever this class does. A paired phone is a trusted input device — a keyboard plugged into this
 /// laptop, not a sandboxed client — and the trust boundary is the Bluetooth pairing, not this list.
 ///
+/// The same applies to <see cref="Close"/>: a slot, never a name. The phone cannot choose which window a press
+/// minimizes, raises or closes; the laptop decides that from the macro in the slot.
+///
 /// The file is plain tab-separated text, like every other data file this project writes: one macro per line,
 /// name, target, arguments. Not JSON — a format a human can fix in Notepad is worth more here than one a
 /// parser likes.
@@ -57,6 +60,9 @@ internal sealed class MacroStore : IMacroRunner
     private readonly string path;
     private readonly IMacroLauncher launcher;
     private readonly Action<Action> schedule;
+    private readonly IMacroWindows? windows;
+    private readonly Func<TimeSpan, Task> delay;
+    private int surveyFailed;
 
     /// <summary>
     /// Replaced whole, never mutated in place, so a Bluetooth thread reading it while the UI thread saves
@@ -66,22 +72,35 @@ internal sealed class MacroStore : IMacroRunner
 
     /// <summary>
     /// <paramref name="schedule"/> runs a launch somewhere other than the caller. The default is the thread pool;
-    /// tests pass <c>work => work()</c> so an assertion can follow <see cref="Run"/> directly.
+    /// tests pass <c>work => work()</c> so an assertion can follow <see cref="Run"/> directly. Without
+    /// <paramref name="windows"/>, a press launches and nothing more. <paramref name="delay"/> paces the watch on a new
+    /// window, so a test need not sleep through it.
     /// </summary>
-    public MacroStore(string path, IMacroLauncher launcher, Action<Action>? schedule = null)
+    public MacroStore(
+        string path,
+        IMacroLauncher launcher,
+        Action<Action>? schedule = null,
+        IMacroWindows? windows = null,
+        Func<TimeSpan, Task>? delay = null)
     {
         this.path = path;
         this.launcher = launcher;
         this.schedule = schedule ?? (work => ThreadPool.UnsafeQueueUserWorkItem(_ => work(), null));
+        this.windows = windows;
+        this.delay = delay ?? Task.Delay;
         Reload();
     }
 
-    public static MacroStore ForCurrentUser(IMacroLauncher launcher) => new(
+    public static MacroStore ForCurrentUser(IMacroLauncher launcher, IMacroWindows? windows = null) => new(
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "macros.txt"),
-        launcher);
+        launcher,
+        windows: windows);
 
     /// <summary>Where the list is kept, for an error message that has to say which file could not be written.</summary>
     public string FilePath => path;
+
+    /// <summary>This laptop's window control, or null where it has none.</summary>
+    public IMacroWindows? Windows => windows;
 
     /// <summary>The macros in order. Index is what the phone names. Never longer than MaxMacros.</summary>
     public IReadOnlyList<Macro> Macros => macros;
@@ -185,9 +204,13 @@ internal sealed class MacroStore : IMacroRunner
     }
 
     /// <summary>
-    /// Starts Macros[index] and returns at once. False only when the index is out of range. The launch itself runs
+    /// Presses Macros[index] and returns at once. False only when the index is out of range. The work itself runs
     /// off the caller's thread: the caller is the one that reads the phone's frames, and a shell start that takes
     /// a while would hold up every frame behind it.
+    ///
+    /// Where this laptop can see windows the press is a toggle: an app in front is minimized, one that is open
+    /// behind others or minimized comes to the front, and anything else launches. Whatever cannot be told or could
+    /// not be done also launches, because a button that did nothing is the worse failure.
     /// </summary>
     public bool Run(int index)
     {
@@ -200,23 +223,107 @@ internal sealed class MacroStore : IMacroRunner
         }
 
         var macro = current[index];
-        schedule(() =>
+        schedule(() => Press(index, macro));
+        return true;
+    }
+
+    /// <summary>
+    /// Closes the app in Macros[index] on the same terms as <see cref="Run"/>: at once, off the caller's thread, and
+    /// from the slot alone. False when the index is out of range or this laptop cannot see windows.
+    /// </summary>
+    public bool Close(int index)
+    {
+        var current = macros;
+        if ((uint)index >= (uint)current.Count || windows is not { Available: true })
         {
-            var clock = Stopwatch.StartNew();
-            try
+            return false;
+        }
+
+        var macro = current[index];
+        schedule(() => Act(index, macro, "close", target => target.Close(macro)));
+        return true;
+    }
+
+    /// <summary>The running-apps reporter for one session, or null where this laptop cannot see windows.</summary>
+    public MacroOpenWatcher? CreateWatcher(Action<string> send) => windows is { Available: true } seen
+        ? new MacroOpenWatcher(() => macros, seen, send, TimeSpan.FromSeconds(1))
+        : null;
+
+    private void Press(int index, Macro macro)
+    {
+        var state = StateOf(macro);
+        var toggled = state switch
+        {
+            OpenState.Front => Act(index, macro, "minimize", target => target.Minimize(macro)),
+            OpenState.Open => Act(index, macro, "raise", target => target.Raise(macro)),
+            _ => false,
+        };
+        if (toggled)
+        {
+            return;
+        }
+
+        var clock = Stopwatch.StartNew();
+        var launched = false;
+        try
+        {
+            launcher.Launch(macro.Target, macro.Arguments);
+            launched = true;
+        }
+        catch (Exception e)
+        {
+            // A target that has been moved, deleted or renamed since it was added is the ordinary case, and
+            // an escape from a pool thread ends the process.
+            Log.Write($"Macro {index} ({macro.Name}) could not start {macro.Target}: {e.Message}");
+        }
+
+        var took = clock.ElapsedMilliseconds;
+        if (launched && state == OpenState.Closed)
+        {
+            // Not waited for: this thread has nothing to do between polls, and the pool should not lose it.
+            _ = MacroLaunchFollow.Run(
+                () => StateOf(macro),
+                () => Act(index, macro, "raise", target => target.Raise(macro)),
+                delay,
+                text => Log.Write($"Macro {index} ({macro.Name}): launch call {took} ms, {text}"));
+            return;
+        }
+
+        Log.Write($"Macro {index} launch call returned in {took} ms");
+    }
+
+    /// <summary>The app's state, or Untracked when it cannot be told: a survey that fails must not cost the launch.</summary>
+    private OpenState StateOf(Macro macro)
+    {
+        try
+        {
+            return windows is { Available: true } seen ? seen.Survey([macro])[0] : OpenState.Untracked;
+        }
+        catch (Exception e)
+        {
+            if (Interlocked.Exchange(ref surveyFailed, 1) == 0)
             {
-                launcher.Launch(macro.Target, macro.Arguments);
-            }
-            catch (Exception e)
-            {
-                // A target that has been moved, deleted or renamed since it was added is the ordinary case, and
-                // an escape from a pool thread ends the process.
-                Log.Write($"Macro {index} ({macro.Name}) could not start {macro.Target}: {e.Message}");
+                Log.Write($"Macro windows could not be surveyed: {e.Message}");
             }
 
-            Log.Write($"Macro {index} launch call returned in {clock.ElapsedMilliseconds} ms");
-        });
-        return true;
+            return OpenState.Untracked;
+        }
+    }
+
+    /// <summary>One window action, logged. Whether it acted; an exception counts as not, and goes no further.</summary>
+    private bool Act(int index, Macro macro, string what, Func<IMacroWindows, bool> action)
+    {
+        try
+        {
+            var acted = windows is { } target && action(target);
+            Log.Write($"Macro {index} ({macro.Name}) {what}: {(acted ? "done" : "did not act")}");
+            return acted;
+        }
+        catch (Exception e)
+        {
+            Log.Write($"Macro {index} ({macro.Name}) could not {what}: {e.Message}");
+            return false;
+        }
     }
 
     /// <summary>The names, in order, for sending to the phone.</summary>

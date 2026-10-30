@@ -39,6 +39,12 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     /// </summary>
     public CaptureToPhone? Capture { get; set; }
 
+    /// <summary>
+    /// Told when the phone's macro grid opens (true) and closes (false). Set by the session on a laptop that can see
+    /// windows, like <see cref="Capture"/>; without one, MACROS_WATCH and MACROS_UNWATCH are dropped and counted.
+    /// </summary>
+    public Action<bool>? MacroWatch { get; set; }
+
     /// <summary>When the phone last sent input, by <see cref="Environment.TickCount64"/>: a capture on its way slows down for it.</summary>
     public long LastInputMs => Interlocked.Read(ref lastInput);
 
@@ -121,6 +127,13 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
             return macros.Run(slot);
         }
 
+        // The close block on the same terms: a slot, and the laptop decides what that slot is.
+        var closing = id - (byte)ActionId.MacroCloseBase;
+        if (closing >= 0 && closing < IMacroRunner.MaxMacros)
+        {
+            return macros.Close(closing);
+        }
+
         // An id the enum does not name is rejected here, so no platform is ever handed one; an id it names but
         // a laptop cannot do falls to that platform's own table, which drops it.
         var action = (ActionId)id;
@@ -137,8 +150,21 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
             ActionId.CaptureRegion or ActionId.CaptureScreen or ActionId.CaptureRecord when Capture is { } capture =>
                 capture.Run(action, () => platform.Run(action)),
             ActionId.CaptureCancel => Cancel(),
+            ActionId.MacrosWatch => Watch(true),
+            ActionId.MacrosUnwatch => Watch(false),
             _ => platform.Run(action),
         };
+    }
+
+    private bool Watch(bool open)
+    {
+        if (MacroWatch is not { } watch)
+        {
+            return false;
+        }
+
+        watch(open);
+        return true;
     }
 
     private bool Set(byte control, byte percent) => (ControlId)control switch
