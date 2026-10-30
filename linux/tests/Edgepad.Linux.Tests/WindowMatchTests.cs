@@ -18,6 +18,15 @@ public sealed class WindowMatchTests
         WindowMatch.Program(target, _ => kind, Home, SearchPath, exists ?? (_ => false), linkTarget ?? (_ => null));
 
     [Fact]
+    public void AProgramWithArgumentsIsNotFollowed()
+    {
+        var program = WindowMatch.Program(
+            "firefox", _ => PathKind.None, Home, SearchPath, path => path == "/usr/bin/firefox", _ => null, "/home/me/proj");
+
+        Assert.Null(program);
+    }
+
+    [Fact]
     public void ABareNameIsLookedUpOnPath()
     {
         var program = Program("firefox", path => path == "/usr/bin/firefox");

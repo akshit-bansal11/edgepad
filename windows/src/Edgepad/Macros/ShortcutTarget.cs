@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 
@@ -10,7 +11,12 @@ internal static unsafe partial class ShortcutTarget
     private const uint ReadOnly = 0;
     private const int MaxPath = 1024;
 
-    private static readonly Guid ShellLink = new("00021401-0000-0000-C000-000000000046");
+    private static readonly StrategyBasedComWrappers Wrappers = new();
+
+    private static readonly ConcurrentDictionary<string, (DateTime Written, string? Target)> Known =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    private static readonly Guid ShellLink =new("00021401-0000-0000-C000-000000000046");
     private static readonly Guid ShellLinkInterface = new("000214F9-0000-0000-C000-000000000046");
 
     /// <summary>
@@ -21,7 +27,17 @@ internal static unsafe partial class ShortcutTarget
     {
         try
         {
-            return Read(path);
+            // A survey asks once a second, so an answer stands until the file is written again. A failure is not kept:
+            // it may be passing, and the next survey should try again.
+            var written = File.GetLastWriteTimeUtc(path);
+            if (Known.TryGetValue(path, out var known) && known.Written == written)
+            {
+                return known.Target;
+            }
+
+            var target = Read(path);
+            Known[path] = (written, target);
+            return target;
         }
         catch (Exception)
         {
@@ -33,12 +49,13 @@ internal static unsafe partial class ShortcutTarget
     {
         if (CoCreateInstance(ShellLink, 0, InProcessServer, ShellLinkInterface, out var instance) < 0)
         {
-            return null;
+            throw new InvalidOperationException("The shell link object could not be created");
         }
 
         try
         {
-            var link = new StrategyBasedComWrappers().GetOrCreateObjectForComInstance(instance, CreateObjectFlags.None);
+            // UniqueInstance, or FinalRelease below does nothing and the release waits for the finalizer.
+            var link = Wrappers.GetOrCreateObjectForComInstance(instance, CreateObjectFlags.UniqueInstance);
             try
             {
                 if (((IPersistFile)link).Load(path, ReadOnly) < 0)

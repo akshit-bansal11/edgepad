@@ -123,7 +123,7 @@ internal enum TextKind : byte
     MacroIcon = 6,
 
     /// <summary>
-    /// Phone to laptop: send the macro icons. Empty payload. Icons are answered rather than pushed, so they
+    /// Phone to laptop: send the macro icons. The payload is a decimal side in pixels, and empty means 128. Icons are answered rather than pushed, so they
     /// cross the link when the phone opens the macro grid and never while a finger is on the trackpad.
     /// </summary>
     WantIcons = 7,

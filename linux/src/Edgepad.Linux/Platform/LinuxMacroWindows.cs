@@ -92,7 +92,8 @@ internal sealed class LinuxMacroWindows(Func<string, string?> environment, Func<
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
         Environment.GetEnvironmentVariable("PATH"),
         File.Exists,
-        LinkTarget);
+        LinkTarget,
+        macro.Arguments);
 
     private static string? ImageOf(uint pid) => LinkTarget(string.Create(CultureInfo.InvariantCulture, $"/proc/{pid}/exe"));
 

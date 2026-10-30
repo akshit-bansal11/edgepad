@@ -12,6 +12,7 @@ internal sealed class MacroOpenWatcher(
     private readonly Lock polling = new();
     private System.Threading.Timer? timer;
     private volatile bool stopped;
+    private bool disposed;
     private string? last;
 
     /// <summary>Polls now and then on the interval. The phone hears the state afresh, whatever it was last told.</summary>
@@ -19,18 +20,31 @@ internal sealed class MacroOpenWatcher(
     {
         lock (gate)
         {
+            if (disposed)
+            {
+                return;
+            }
+
+            stopped = false;
+
+            // Under the polling lock, so a tick in flight cannot write its answer over the reset.
+            lock (polling)
+            {
+                last = null;
+            }
+
             if (timer is null)
             {
-                stopped = false;
-                last = null;
                 timer = new System.Threading.Timer(_ => Poll(), null, TimeSpan.Zero, every);
+            }
+            else
+            {
+                _ = timer.Change(TimeSpan.Zero, every);
             }
         }
     }
 
-    public void Stop() => Dispose();
-
-    public void Dispose()
+    public void Stop()
     {
         lock (gate)
         {
@@ -38,6 +52,16 @@ internal sealed class MacroOpenWatcher(
             timer?.Dispose();
             timer = null;
         }
+    }
+
+    public void Dispose()
+    {
+        lock (gate)
+        {
+            disposed = true;
+        }
+
+        Stop();
     }
 
     /// <summary>One survey, and one send if it changed anything. A tick that finds the last one still running skips.</summary>

@@ -162,7 +162,9 @@ internal static class LinuxMacroIcons
                 return Undecodable(path);
             }
 
-            return Fit(path, size, image.Width, image.Height, (canvas, dest) => canvas.DrawImage(image, dest, Sampling));
+            // A small raster is not blown up to the asked tier: that adds bytes and no detail. An SVG has no such limit.
+            var capped = Math.Max(MacroIconChunks.Tiers[0], Math.Min(size, Math.Max(image.Width, image.Height)));
+            return Fit(path, capped, image.Width, image.Height, (canvas, dest) => canvas.DrawImage(image, dest, Sampling));
         }
         catch (Exception e)
         {

@@ -19,8 +19,15 @@ internal static class WindowMatch
         string home,
         string? searchPath,
         Func<string, bool> exists,
-        Func<string, string?> linkTarget)
+        Func<string, string?> linkTarget,
+        string? arguments = null)
     {
+        // Arguments make the launch something else (a program opened on a folder), so its windows are not the macro's.
+        if (!string.IsNullOrWhiteSpace(arguments))
+        {
+            return null;
+        }
+
         var plan = LinuxLauncher.Plan(target, null, classify, home);
         if (plan.File == "xdg-open" || Find(plan.File, searchPath, exists) is not { } path)
         {

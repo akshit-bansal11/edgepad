@@ -119,9 +119,8 @@ TEXT 5 MACROS
 TEXT 6 MACRO_ICON
 # The phone asking for the icons, sent when it opens the macro grid. Nothing is pushed unasked: a laptop
 # older than this feature drops the request and the phone shows names, and a phone older than it never asks,
-# so neither half spends the link on icons the other cannot use. The payload is empty.
+# so neither half spends the link on icons the other cannot use. The payload is a decimal side in pixels, and empty means 128.
 TEXT 7 WANT_ICONS
-# The payload may carry a decimal pixel size, see the icon step.
 # Whether the laptop can offer a virtual controller at all, laptop to phone, as one PAD_STATUS token from the
 # fixed set below. Sent in answer to PAD_ATTACH and PAD_DETACH, and once after the handshake so the phone can
 # hide the pad rather than offer a button that does nothing.

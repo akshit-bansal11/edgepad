@@ -225,7 +225,7 @@ class Deck(
         // The last picture arriving with the labels off takes the label row away from every tile, and
         // that is a new grid rather than one new picture.
         if (bare() != current.bare) {
-            render(across, down, tiles, labels, onMove, onTap, planFor, wantedRows, onClose)
+            render(across, down, tiles, labels, onMove, onTap, planFor, wantedRows, onClose, iconZoom = iconZoom)
             return
         }
         val button = buttons[tag] ?: return

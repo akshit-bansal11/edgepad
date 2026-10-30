@@ -59,6 +59,13 @@ public sealed class MacroTargetTests
         Assert.Null(MacroTarget.Program(@"C:\Links\app.lnk", _ => false, NoShortcut));
 
     [Fact]
+    public void AProgramWithArgumentsIsUntracked() =>
+        Assert.Null(MacroTarget.Program(App, _ => true, NoShortcut, @"D:\proj"));
+
+    [Fact]
+    public void BlankArgumentsAreNone() => Assert.Equal(App, MacroTarget.Program(App, _ => true, NoShortcut, "  "));
+
+    [Fact]
     public void AnImageMatchesWhateverItsCase() => Assert.True(MacroTarget.Same(App.ToUpperInvariant(), App));
 
     [Fact]

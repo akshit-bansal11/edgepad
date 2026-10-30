@@ -96,7 +96,7 @@ internal sealed partial class WindowsMacroWindows : IMacroWindows
         return mine.Contains(front) ? OpenState.Front : OpenState.Open;
     }
 
-    private static string? Program(Macro macro) => MacroTarget.Program(macro.Target, File.Exists, ShortcutTarget.Resolve);
+    private static string? Program(Macro macro) => MacroTarget.Program(macro.Target, File.Exists, ShortcutTarget.Resolve, macro.Arguments);
 
     private static List<nint> WindowsOf(Macro macro) => Program(macro) is { } program ? Matching(AppWindows(), program) : [];
 

@@ -11,8 +11,15 @@ internal static class MacroTarget
     /// The normalized path of the program, or null when the target is not one. Environment variables are not
     /// expanded, so a target that needs them is untracked rather than matched against the wrong program.
     /// </summary>
-    public static string? Program(string target, Func<string, bool> exists, Func<string, string?> resolve)
+    public static string? Program(
+        string target, Func<string, bool> exists, Func<string, string?> resolve, string? arguments = null)
     {
+        // Arguments make the launch something else (a program opened on a folder), so its windows are not the macro's.
+        if (!string.IsNullOrWhiteSpace(arguments))
+        {
+            return null;
+        }
+
         var path = target.Trim().Trim('"');
         if (!Path.IsPathFullyQualified(path))
         {
