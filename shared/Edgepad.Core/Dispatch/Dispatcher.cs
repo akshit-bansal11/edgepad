@@ -52,6 +52,15 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     /// </summary>
     public ClipboardSync? Clipboard { get; set; }
 
+    /// <summary>
+    /// Offers this laptop's apps to the phone as macros. Set by the session, like <see cref="Capture"/>; without one,
+    /// APPS_LIST, APPS_CANCEL and APP_ADD are dropped and counted.
+    /// </summary>
+    public AppPicker? Apps { get; set; }
+
+    /// <summary>Where the answer to APP_ADD goes, one <see cref="AppAddStatus"/> token. Set by the session, like <see cref="PadStatusReply"/>.</summary>
+    public Action<string>? AppAddReply { get; set; }
+
     /// <summary>When the phone last sent input, by <see cref="Environment.TickCount64"/>: a capture on its way slows down for it.</summary>
     public long LastInputMs => Interlocked.Read(ref lastInput);
 
@@ -111,6 +120,8 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         RunAction a => Run(a.Id),
         SetValue v when v.Value <= MaxPercent => Set(v.Control, v.Value),
         Text t when t.Kind == (byte)TextKind.Type => Do(() => platform.Type(t.Value)),
+        // The one phone string that can end in a macro, and it is only ever a token: see AppPicker.
+        Text t when t.Kind == (byte)TextKind.AppAdd => AddApp(t.Value),
         Key k => Do(() => platform.Key(k.Code, k.Down)),
         // A pad frame with no pad plugged in is dropped and counted like any other id this laptop
         // cannot act on. The phone is not meant to send one before its PAD_ATTACH was answered
@@ -129,8 +140,8 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     private bool Run(byte id)
     {
         // Macros are a block of ids, not one each, so they are checked before the table. The phone names a
-        // slot and nothing else: what that slot opens was typed into this laptop's own editor, which is the
-        // whole reason a phone can be trusted with the button at all.
+        // slot and nothing else: what that slot opens was put there on this laptop, by its own editor or from
+        // its own app list, which is the whole reason a phone can be trusted with the button at all.
         var slot = id - (byte)ActionId.MacroBase;
         if (slot >= 0 && slot < IMacroRunner.MaxMacros)
         {
@@ -162,8 +173,21 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
             ActionId.CaptureCancel => Cancel(),
             ActionId.MacrosWatch => Watch(true),
             ActionId.MacrosUnwatch => Watch(false),
+            ActionId.AppsList => Apps?.List() ?? false,
+            ActionId.AppsCancel => Apps?.Cancel() ?? false,
             _ => platform.Run(action),
         };
+    }
+
+    private bool AddApp(string token)
+    {
+        if (Apps is not { } apps)
+        {
+            return false;
+        }
+
+        AppAddReply?.Invoke(apps.Add(token));
+        return true;
     }
 
     private bool Watch(bool open)

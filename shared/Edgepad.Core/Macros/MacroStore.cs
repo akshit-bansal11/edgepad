@@ -11,16 +11,23 @@ namespace Edgepad.Macros;
 ///
 /// The founding rule of this project is that gestures are recognised on the phone and the laptop only
 /// executes: the phone sends semantic frames, never an arbitrary key or command line, and the laptop owns
-/// the action table. A launcher is where that rule is easiest to break and worst to break. So the phone
-/// sends an index and nothing else — <see cref="Run"/> takes an <see cref="int"/>, and there is deliberately
-/// no overload taking a path, a URL or a command line. No string that arrives over Bluetooth ever reaches
-/// <c>Process</c>. The only way a target gets into this list is the owner typing or browsing to it in
-/// the editor dialog, on the laptop, in front of the machine it will run on.
+/// the action table. A launcher is where that rule is easiest to break and worst to break. So a press
+/// carries an index and nothing else — <see cref="Run"/> takes an <see cref="int"/>, and there is deliberately
+/// no overload taking a path, a URL or a command line. No string that arrives over the link ever reaches
+/// <c>Process</c>.
+///
+/// A target gets into this list in two ways, and the phone supplies it in neither. The owner types or browses
+/// to it in the editor dialog, on the laptop, in front of the machine it will run on. Or the phone picks a row of
+/// a list this laptop generated for this session: <see cref="AppPicker.Add"/> takes a token and nothing else,
+/// looks the row up in what its own <see cref="IAppCatalog"/> scanned, and hands that row to
+/// <see cref="TryAdd"/>. That is the only way a macro appears without the owner typing it, and the only path from
+/// any text the phone sends to this store.
 ///
 /// What that buys, stated honestly, because an overstated invariant is worse than none. It means a macro
-/// button cannot be repointed from the phone: a slot runs what the owner put in it or nothing, and the
-/// protocol stays semantic, exactly as the refresh-rate dial sends a position in a list rather than a rate
-/// in hertz. Do not "simplify" it by letting the phone name what it wants to launch.
+/// button cannot be repointed from the phone: a slot runs what this laptop put in it or nothing, a pick can only
+/// append what this laptop offered, and the protocol stays semantic, exactly as the refresh-rate dial sends a
+/// position in a list rather than a rate in hertz. Do not "simplify" it by letting the phone name what it wants
+/// to launch.
 ///
 /// What it does NOT buy is containment of a compromised phone. A paired phone already has the keyboard
 /// screen: KEY carries a raw virtual-key code and TEXT kind 3 carries arbitrary characters, both straight
@@ -126,22 +133,72 @@ internal sealed class MacroStore : IMacroRunner
         var clean = Clean(macros);
         lock (gate)
         {
-            try
+            if (Commit(clean) is { } failure)
             {
-                PrivateStorage.Replace(path, temp => File.WriteAllLines(temp, clean.Select(Line)));
+                return failure;
             }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-            {
-                // Throwing here would come out of a button click as an unhandled exception and take the tray
-                // app with it, so the reason goes back to the caller to show instead.
-                Log.Write($"Macros could not be saved to {path}: {e.Message}");
-                return e.Message;
-            }
-
-            this.macros = clean;
         }
 
         Published();
+        return null;
+    }
+
+    /// <summary>
+    /// Appends one macro from the phone's pick, as an <see cref="AppAddStatus"/> token. The list is checked and written
+    /// under one lock, so an editor saving at the same moment cannot be raced past the cap. Only
+    /// <see cref="AppAddStatus.Added"/> changed anything; every other answer leaves the file and the list alone.
+    /// </summary>
+    public string TryAdd(Macro macro)
+    {
+        lock (gate)
+        {
+            var current = macros;
+            if (current.Count >= MaxMacros)
+            {
+                return AppAddStatus.Full;
+            }
+
+            if (Clean([macro]) is not [var clean])
+            {
+                return AppAddStatus.Failed;
+            }
+
+            // After Clean, so the comparison is between what would be stored and what is.
+            if (current.Any(existing => SameTarget(existing, clean)))
+            {
+                return AppAddStatus.Duplicate;
+            }
+
+            if (Commit([.. current, clean]) is not null)
+            {
+                return AppAddStatus.Failed;
+            }
+        }
+
+        Published();
+        return AppAddStatus.Added;
+    }
+
+    private static bool SameTarget(Macro one, Macro other) =>
+        string.Equals(one.Target, other.Target, StringComparison.OrdinalIgnoreCase)
+        && string.Equals(one.Arguments, other.Arguments, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Writes a clean list and takes it as the current one, or returns why not. The caller holds the gate.</summary>
+    private string? Commit(List<Macro> clean)
+    {
+        try
+        {
+            PrivateStorage.Replace(path, temp => File.WriteAllLines(temp, clean.Select(Line)));
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // Throwing here would come out of a button click as an unhandled exception and take the tray
+            // app with it, so the reason goes back to the caller to show instead.
+            Log.Write($"Macros could not be saved to {path}: {e.Message}");
+            return e.Message;
+        }
+
+        macros = clean;
         return null;
     }
 
@@ -430,7 +487,7 @@ internal sealed class MacroStore : IMacroRunner
     /// becomes a space. A space rather than nothing, because dropping the tab out of "foo\tbar" would run the
     /// two sides together into a word that was never in either of them; trailing ones come off in the trim.
     /// </summary>
-    private static string Plain(string value)
+    public static string Plain(string value)
     {
         var plain = new StringBuilder(value.Length);
         foreach (var character in value)

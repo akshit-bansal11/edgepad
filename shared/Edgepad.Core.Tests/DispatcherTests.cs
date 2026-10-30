@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Security.Cryptography;
 using Edgepad.Blob;
 using Edgepad.Dispatch;
@@ -14,13 +15,22 @@ namespace Edgepad.Tests;
 /// here reaches a desktop, so it runs the same on Windows, Linux and a build machine; what a call does to the
 /// desktop is each platform's own table, tested where that platform lives.
 /// </summary>
-public sealed class DispatcherTests
+public sealed class DispatcherTests : IDisposable
 {
+    private readonly string dir = Path.Combine(Path.GetTempPath(), "edgepad-tests-" + Guid.NewGuid().ToString("N"));
     private readonly RecordingPlatform platform = new();
     private readonly RecordingMacros macros = new();
     private readonly Dispatcher dispatcher;
 
     public DispatcherTests() => dispatcher = new Dispatcher(platform, macros);
+
+    public void Dispose()
+    {
+        if (Directory.Exists(dir))
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
 
     [Theory]
     [InlineData(0)]
@@ -68,6 +78,77 @@ public sealed class DispatcherTests
         Assert.Equal(0, dispatcher.Dropped);
         Assert.Equal(data, Assert.Single(surface.Writes).Data);
         Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void AppFramesWithNoPickerSetAreDroppedAndCounted()
+    {
+        var answers = new List<string>();
+        dispatcher.AppAddReply = answers.Add;
+
+        dispatcher.Handle(new RunAction((byte)ActionId.AppsList));
+        dispatcher.Handle(new RunAction((byte)ActionId.AppsCancel));
+        dispatcher.Handle(new Text((byte)TextKind.AppAdd, "1.0"));
+
+        Assert.Equal(3, dispatcher.Dropped);
+        Assert.Empty(answers);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void APickFromTheListAddsWhatThisLaptopOfferedAndAnswers()
+    {
+        var store = TempStore();
+        var wire = new List<Frame>();
+        var answers = new List<string>();
+        dispatcher.Apps = PickerOver(store, wire);
+        dispatcher.AppAddReply = answers.Add;
+
+        dispatcher.Handle(new RunAction((byte)ActionId.AppsList));
+        dispatcher.Handle(new RunAction((byte)ActionId.AppsCancel));
+        dispatcher.Handle(new Text((byte)TextKind.AppAdd, "1.0"));
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Contains(wire, frame => frame is BlobBegin { Kind: (byte)BlobKind.AppList });
+        Assert.Equal(AppAddStatus.Added, Assert.Single(answers));
+        Assert.Equal("tool.lnk", Assert.Single(store.Macros).Target);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void NoTextFromThePhoneBecomesATarget()
+    {
+        const string Hostile = "C:\\Windows\\System32\\cmd.exe";
+        var store = TempStore();
+        var answers = new List<string>();
+        dispatcher.Apps = PickerOver(store, []);
+        dispatcher.AppAddReply = answers.Add;
+        dispatcher.Handle(new RunAction((byte)ActionId.AppsList));
+
+        for (var kind = 0; kind <= byte.MaxValue; kind++)
+        {
+            dispatcher.Handle(new Text((byte)kind, Hostile));
+        }
+
+        Assert.Empty(store.Macros);
+        Assert.Empty(Directory.GetFiles(dir));
+        Assert.Equal(AppAddStatus.Stale, Assert.Single(answers));
+    }
+
+    [Fact]
+    public void AppPickerAddIsTheOnlyPathFromPhoneTextToTheStore()
+    {
+        // The shape that makes the test above hold for every string, not only the ones it tried: the dispatcher holds
+        // no store, its runner takes slots, and the picker's one door that accepts text is Add.
+        var fields = typeof(Dispatcher).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        Assert.DoesNotContain(fields, field => field.FieldType == typeof(MacroStore));
+        Assert.All(
+            typeof(IMacroRunner).GetMethods(),
+            method => Assert.Equal(typeof(int), Assert.Single(method.GetParameters()).ParameterType));
+        var takingText = typeof(AppPicker)
+            .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+            .Where(method => method.GetParameters().Any(parameter => parameter.ParameterType == typeof(string)));
+        Assert.Equal(nameof(AppPicker.Add), Assert.Single(takingText).Name);
     }
 
     [Theory]
@@ -379,6 +460,29 @@ public sealed class DispatcherTests
             Calls.Add(call);
             return Answer;
         }
+    }
+
+    private static AppPicker PickerOver(MacroStore store, List<Frame> wire)
+    {
+        var token = TestContext.Current.CancellationToken;
+        return new AppPicker(
+            new FakeCatalog { Apps = [new("Tool", "tool.lnk", null)] },
+            store,
+            new BlobSender(wire.Add, LinkKind.Bluetooth, () => 0, token),
+            token,
+            work => work(),
+            _ => true);
+    }
+
+    private MacroStore TempStore()
+    {
+        Directory.CreateDirectory(dir);
+        return new MacroStore(Path.Combine(dir, "macros.txt"), new NoLauncher(), work => work());
+    }
+
+    private sealed class NoLauncher : IMacroLauncher
+    {
+        public void Launch(string target, string? arguments) => throw new InvalidOperationException("nothing launches here");
     }
 
     /// <summary>A macro list that runs nothing: it notes the slot it was handed and answers what the test set.</summary>
