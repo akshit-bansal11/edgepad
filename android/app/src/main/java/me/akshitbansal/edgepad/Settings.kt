@@ -189,11 +189,10 @@ class Settings(
     var patternOpacity by bounded(KEY_PATTERN_OPACITY, DEFAULT_PATTERN_OPACITY, 0f, 1f)
 
     /** The dial in [corner] (0 top-left, clockwise), or null for none. */
-    fun corner(corner: Int): DialKind? {
-        return resolveStoredDial(prefs.getString("corner.$corner", null)) {
+    fun corner(corner: Int): DialKind? =
+        resolveStoredDial(prefs.getString("corner.$corner", null)) {
             DialKind.entries.firstOrNull { it.defaultCorner == corner }
         }
-    }
 
     fun setCorner(
         corner: Int,
@@ -207,11 +206,10 @@ class Settings(
      * corner holds if it is the corner's inherited half, so splitting changes nothing until a slot is picked;
      * the other half starts empty.
      */
-    fun slot(slot: Int): DialKind? {
-        return resolveStoredDial(prefs.getString("slot.$slot", null)) {
+    fun slot(slot: Int): DialKind? =
+        resolveStoredDial(prefs.getString("slot.$slot", null)) {
             CornerSlots.fallbackFor(slot)?.let { corner(it) }
         }
-    }
 
     fun setSlot(
         slot: Int,

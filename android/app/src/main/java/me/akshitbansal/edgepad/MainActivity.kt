@@ -818,11 +818,10 @@ class MainActivity :
      * link survives it.
      */
     private fun applyOrientation() {
+        val sideways = screen in alwaysSideways || (screen == Screen.SETTINGS && settingsReturn in alwaysSideways)
         requestedOrientation =
             when {
-                screen in alwaysSideways || (screen == Screen.SETTINGS && settingsReturn in alwaysSideways) ->
-                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                settings.landscape -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                sideways || settings.landscape -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 else -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }
     }
