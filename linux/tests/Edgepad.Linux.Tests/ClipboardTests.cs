@@ -1,5 +1,5 @@
-using Edgepad.Blob;
 using Edgepad.Platform;
+using Edgepad.Protocol;
 using Edgepad.Ui;
 using Xunit;
 

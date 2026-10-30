@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Edgepad.Blob;
 using Edgepad.Input;
+using Edgepad.Protocol;
 
 namespace Edgepad.Platform;
 
