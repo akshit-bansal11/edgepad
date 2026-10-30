@@ -66,6 +66,18 @@ final class Annotator: AnnotationSink {
         locked { board.setColour(index) }
     }
 
+    func setRgb(_ rgb: UInt32) -> Bool {
+        locked { board.setRgb(rgb) }
+    }
+
+    func setWidth(_ width: Int) -> Bool {
+        locked { board.setWidth(width) }
+    }
+
+    func setOpacity(_ opacity: Int) -> Bool {
+        locked { board.setOpacity(opacity) }
+    }
+
     func run(_ action: ActionId) -> Bool {
         if action == .signSave {
             return saveSignature()
@@ -195,7 +207,7 @@ final class Annotator: AnnotationSink {
         guard !ended, board.mode == .annotate else { return nil }
         // The stroke under the finger is still growing, so it alone is copied.
         guard let active = board.active else { return board.strokes }
-        return board.strokes + [Stroke(tool: active.tool, colour: active.colour, points: active.points)]
+        return board.strokes + [Stroke(tool: active.tool, style: active.style, points: active.points)]
     }
 
     private func removeOverlay() {

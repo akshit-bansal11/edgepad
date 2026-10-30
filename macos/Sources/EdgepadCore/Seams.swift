@@ -128,6 +128,11 @@ public protocol AnnotationSink: AnyObject {
     var screenSizeChanged: (() -> Void)? { get set }
     func pen(x: UInt16, y: UInt16, state: UInt8) -> Bool
     func setColour(_ index: Int) -> Bool
+    /// The colour of the next stroke from PEN_RGB, already held to six hex digits by the dispatcher.
+    func setRgb(_ rgb: UInt32) -> Bool
+    /// The width and the opacity of the next stroke, as the phone sent them; false for one out of range.
+    func setWidth(_ width: Int) -> Bool
+    func setOpacity(_ opacity: Int) -> Bool
     /// One of the annotate and sign actions, 40..51.
     func run(_ action: ActionId) -> Bool
     /// Takes the overlay down and discards the strokes. Idempotent.

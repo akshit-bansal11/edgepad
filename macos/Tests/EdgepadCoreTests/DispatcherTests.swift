@@ -256,7 +256,7 @@ final class DispatcherTests: XCTestCase {
     }
 
     func testAnUnknownControlIsDropped() {
-        dispatcher.handle(.setValue(control: 9, value: 50))
+        dispatcher.handle(.setValue(control: 99, value: 50))
 
         XCTAssertEqual(dispatcher.dropped, 1)
     }
@@ -432,6 +432,51 @@ final class DispatcherTests: XCTestCase {
         XCTAssertEqual(annotation.calls.count, 14)
         XCTAssertEqual(Array(annotation.calls.prefix(3)), ["pen 1 2 1", "colour 6", "run 40"])
         XCTAssertEqual(annotation.calls.last, "run 51")
+    }
+
+    func testPenWidthOpacityAndRgbReachTheOverlay() {
+        let annotation = FakeAnnotation()
+        dispatcher.annotation = annotation
+
+        dispatcher.handle(.setValue(control: ControlId.penWidth.rawValue, value: 20))
+        dispatcher.handle(.setValue(control: ControlId.penOpacity.rawValue, value: 35))
+        dispatcher.handle(.text(kind: TextKind.penRgb.rawValue, value: "FF3b30"))
+
+        XCTAssertEqual(dispatcher.dropped, 0)
+        XCTAssertEqual(annotation.calls, ["width 20", "opacity 35", "rgb 16726832"])
+    }
+
+    func testAPenWidthOrOpacityAbove100IsDroppedBeforeTheOverlay() {
+        let annotation = FakeAnnotation()
+        dispatcher.annotation = annotation
+
+        for control in [ControlId.penWidth, ControlId.penOpacity] {
+            dispatcher.handle(.setValue(control: control.rawValue, value: 101))
+            dispatcher.handle(.setValue(control: control.rawValue, value: 255))
+        }
+
+        XCTAssertEqual(dispatcher.dropped, 4)
+        XCTAssertEqual(annotation.calls, [])
+    }
+
+    func testAMalformedPenRgbIsDroppedBeforeTheOverlay() {
+        let annotation = FakeAnnotation()
+        dispatcher.annotation = annotation
+
+        for text in ["", "12345", "GGGGGG", "#123456", "1234567"] {
+            dispatcher.handle(.text(kind: TextKind.penRgb.rawValue, value: text))
+        }
+
+        XCTAssertEqual(dispatcher.dropped, 5)
+        XCTAssertEqual(annotation.calls, [])
+    }
+
+    func testPenWidthOpacityAndRgbWithNoOverlayAreDropped() {
+        dispatcher.handle(.setValue(control: ControlId.penWidth.rawValue, value: 20))
+        dispatcher.handle(.setValue(control: ControlId.penOpacity.rawValue, value: 50))
+        dispatcher.handle(.text(kind: TextKind.penRgb.rawValue, value: "123456"))
+
+        XCTAssertEqual(dispatcher.dropped, 3)
     }
 
     func testWhatTheOverlayRefusesIsCountedAsDropped() {

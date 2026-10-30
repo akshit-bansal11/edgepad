@@ -171,6 +171,21 @@ final class FakeAnnotation: AnnotationSink {
         return accepts
     }
 
+    func setRgb(_ rgb: UInt32) -> Bool {
+        calls.append("rgb \(rgb)")
+        return accepts
+    }
+
+    func setWidth(_ width: Int) -> Bool {
+        calls.append("width \(width)")
+        return accepts
+    }
+
+    func setOpacity(_ opacity: Int) -> Bool {
+        calls.append("opacity \(opacity)")
+        return accepts
+    }
+
     func run(_ action: ActionId) -> Bool {
         calls.append("run \(action.rawValue)")
         return accepts

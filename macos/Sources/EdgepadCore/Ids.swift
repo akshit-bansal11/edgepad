@@ -74,14 +74,19 @@ public enum ControlId: UInt8, CaseIterable {
     /// The value is an index into the `TextKind.refreshRates` list, never a rate in hertz: SET carries a u8
     /// and anything above 100 is dropped, so 120 or 144 could not cross the wire at all.
     case refreshRate = 4
-    /// The value is an index into the eight-colour palette in `protocol/actions.txt`, never an RGB. An index of 8
-    /// or more is dropped and counted.
+    /// The value is an index into the eight-colour palette in `protocol/actions.txt`. An index of 8 or more is
+    /// dropped and counted. A colour outside the palette is `TextKind.penRgb`.
     case penColor = 5
     /// Where a capture ends up, as a `CaptureTarget` value: this Mac keeps it, or sends it to the phone and deletes its
     /// copy once the phone says it saved it.
     case captureTarget = 6
     /// Whether this link shares the clipboard, 1 or 0, phone to computer. Forgotten when the session ends.
     case clipboard = 7
+    /// The width of the next pen-tool strokes, 1...100, phone to computer: 0.02% of the screen's height per step, so
+    /// 5 is 0.1%, 20 is the default 0.4% and 100 is 2.0%. 0 or more than 100 is dropped and counted.
+    case penWidth = 8
+    /// The opacity of the next strokes in percent, 10...100, phone to computer. Anything else is dropped and counted.
+    case penOpacity = 9
 }
 
 /// What a TEXT frame carries. Only `type` goes phone to computer; the rest go the other way.
@@ -119,6 +124,10 @@ public enum TextKind: UInt8, CaseIterable {
     /// Computer to phone: one character per macro slot, in `macros` order. "-" not trackable, "0" not running, "1" running,
     /// "2" running and in front. Sent when it changes while watched; an unknown character reads as untracked.
     case macroOpen = 16
+    /// Phone to computer: a stroke colour as exactly six hex digits, "RRGGBB". Safe to take from the phone, unlike a
+    /// path or a command, because it is only a colour: `PenStyle.parseRgb` accepts those six bytes and nothing else,
+    /// and what it returns is a number that can only be drawn with.
+    case penRgb = 17
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is

@@ -60,8 +60,9 @@ enum StrokePainter {
         let points = stroke.path(width: width, height: height).map { CGPoint(x: CGFloat($0.x), y: CGFloat($0.y)) }
         guard let first = points.first else { return }
 
-        let alpha = stroke.tool == .highlighter ? CGFloat(Stroke.highlighterAlpha) : 1
-        let rgb = Palette.colour(stroke.colour) ?? 0
+        // The stroke's own colour, width and opacity, so the signature saved is the one the phone's sliders showed.
+        let alpha = CGFloat(stroke.alpha)
+        let rgb = stroke.rgb
         let red = CGFloat((rgb >> 16) & 0xFF) / 255
         let green = CGFloat((rgb >> 8) & 0xFF) / 255
         let blue = CGFloat(rgb & 0xFF) / 255

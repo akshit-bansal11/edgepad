@@ -106,6 +106,11 @@ public final class Dispatcher {
             guard Int(value) <= Percent.max else { return false }
             return set(control, Int(value))
         case .text(let kind, let value):
+            if kind == TextKind.penRgb.rawValue {
+                // A colour and only a colour: held to exactly six hex digits here, before the overlay sees it.
+                guard let rgb = PenStyle.parseRgb(value) else { return false }
+                return annotation?.setRgb(rgb) ?? false
+            }
             if kind == TextKind.appAdd.rawValue {
                 // The one phone string that can end in a macro, and it is only ever a token: see `AppPicker`.
                 return addApp(value)
@@ -320,6 +325,11 @@ public final class Dispatcher {
         case .penColor:
             // The value is a palette index; the board rejects one it does not have.
             return annotation?.setColour(value) ?? false
+        case .penWidth:
+            // As the phone sent it; the board refuses what is out of range, 0 included.
+            return annotation?.setWidth(value) ?? false
+        case .penOpacity:
+            return annotation?.setOpacity(value) ?? false
         case .refreshRate:
             // The value is an index into the rate list, never hertz.
             return value < display.rates.count ? display.select(value) : false
