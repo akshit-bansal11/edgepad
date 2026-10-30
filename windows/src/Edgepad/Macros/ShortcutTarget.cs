@@ -16,7 +16,7 @@ internal static unsafe partial class ShortcutTarget
     private static readonly ConcurrentDictionary<string, (DateTime Written, string? Target)> Known =
         new(StringComparer.OrdinalIgnoreCase);
 
-    private static readonly Guid ShellLink =new("00021401-0000-0000-C000-000000000046");
+    private static readonly Guid ShellLink = new("00021401-0000-0000-C000-000000000046");
     private static readonly Guid ShellLinkInterface = new("000214F9-0000-0000-C000-000000000046");
 
     /// <summary>
