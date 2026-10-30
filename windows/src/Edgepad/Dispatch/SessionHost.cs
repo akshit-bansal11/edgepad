@@ -33,6 +33,7 @@ internal sealed class SessionHost(
     LinkIdentity identity,
     WindowsClipboard clipboard,
     Func<bool> shareClipboard,
+    Action<string> onMacroAdded,
     SynchronizationContext ui,
     Action<Func<bool>> onEnded) : IDisposable
 {
@@ -122,7 +123,7 @@ internal sealed class SessionHost(
             var platform = new WindowsPlatform(injector, pad, speakers, microphone, brightness, media, display, overlay, annotator);
             var dispatcher = new Dispatcher(platform, macros);
             session = new Session(
-                link, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, identity, clipboard, shareClipboard, StatusFor(link), OnAdmitted, OnSessionEnded);
+                link, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, identity, clipboard, shareClipboard, onMacroAdded, StatusFor(link), OnAdmitted, OnSessionEnded);
 
             // A dedicated thread, not the thread pool: the read loop blocks for the life of the connection,
             // and input is injected from this thread directly, so nothing queues behind other work.

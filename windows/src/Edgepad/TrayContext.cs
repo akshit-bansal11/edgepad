@@ -186,6 +186,7 @@ internal sealed class TrayContext : ApplicationContext
             identity,
             clipboard,
             () => clipboardSetting.Enabled,
+            AnnounceMacro,
             ui,
             OnSessionEnded);
         server = new RfcommServer(SetStatus, host);
@@ -435,6 +436,10 @@ internal sealed class TrayContext : ApplicationContext
             done(allowed);
         });
     }
+
+    /// <summary>Says a macro was added from the phone. Called from a session's thread, so the balloon is posted to the UI thread.</summary>
+    private void AnnounceMacro(string name) =>
+        ui.Post(_ => icon.ShowBalloonTip(0, "Edgepad", $"Added {name} from your phone", ToolTipIcon.Info), null);
 
     /// <summary>One notice when the rule did not go in, a declined prompt among the reasons. Asks nothing again.</summary>
     private void ReportFirewall(bool allowed)

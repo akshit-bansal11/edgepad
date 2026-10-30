@@ -40,6 +40,7 @@ internal sealed class Session(
     LinkIdentity identity,
     WindowsClipboard clipboard,
     Func<bool> shareClipboard,
+    Action<string> onMacroAdded,
     Action<string> onStatus,
     Func<Session, bool> onAdmitted,
     Action<Session> onEnded) : IDisposable
@@ -174,9 +175,22 @@ internal sealed class Session(
         dispatcher.Clipboard = sharing;
         Keep(clipboard.Watch(sharing.LocalChanged));
 
+        // The Start menu apps the phone may pick from. A pick is a token into the list built here, and the owner is told
+        // when one lands, since it is the one macro that appears without anyone typing it on the laptop.
+        dispatcher.Apps = new AppPicker(
+            new StartMenuCatalog(), macros, new BlobSender(Send, link.Kind, () => dispatcher.LastInputMs, ended.Token), ended.Token);
+        dispatcher.AppAddReply = status =>
+        {
+            Send(new Text((byte)TextKind.AppAddStatus, status));
+            if (status == AppAddStatus.Added && macros.Macros is [.., var added])
+            {
+                onMacroAdded(added.Name);
+            }
+        };
+
         // Only what this build can do: the phone hides a feature that is not named, so naming one that is
         // not there would be a button that quietly does nothing.
-        List<string> features = [Feature.Annotate, Feature.Capture];
+        List<string> features = [Feature.Annotate, Feature.Capture, Feature.Apps];
         if (open is not null)
         {
             features.Add(Feature.Running);
