@@ -8,6 +8,9 @@ public struct LinkIdentity {
 
     public var idHex: String { Hex.string(id) }
 
+    /// The payload of TEXT DEVICE: "id/os/name", the id being the one the link's INFO reply gives.
+    public var deviceText: String { "\(idHex)/\(DeviceOs.macos.rawValue)/\(name)" }
+
     public static func forCurrentUser(name: String) -> LinkIdentity {
         let support =
             FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?.path

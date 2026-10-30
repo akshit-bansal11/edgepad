@@ -44,6 +44,7 @@ public final class Session {
     private let microphone: LevelControl
     private let brightness: BrightnessControl
     private let display: DisplayRates
+    private let identity: LinkIdentity
     private let onStatus: (String) -> Void
     /// Called once trust has said yes, just before HELLO_ACK: the server decides there whether this phone may take
     /// over the Mac from the one in use. False ends the session with nothing sent.
@@ -86,6 +87,7 @@ public final class Session {
         microphone: LevelControl,
         brightness: BrightnessControl,
         display: DisplayRates,
+        identity: LinkIdentity,
         onStatus: @escaping (String) -> Void,
         onAdmitted: @escaping (Session) -> Bool,
         onEnded: @escaping (Session) -> Void,
@@ -103,6 +105,7 @@ public final class Session {
         self.microphone = microphone
         self.brightness = brightness
         self.display = display
+        self.identity = identity
         self.onStatus = onStatus
         self.onAdmitted = onAdmitted
         self.onEnded = onEnded
@@ -362,6 +365,7 @@ public final class Session {
 
     /// What the phone's dials start from, in the order docs/PROTOCOL.md describes.
     private func reportState() {
+        send(.text(kind: TextKind.device.rawValue, value: identity.deviceText))
         if let level = speakers.read() {
             lastVolume = level
             sendLevel(.volume, level)

@@ -65,10 +65,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         )
         _ = requestAccessibility()
 
+        let identity = LinkIdentity.forCurrentUser(name: Host.current().localizedName ?? "Mac")
         let host = SessionHost(
             trust: trust,
             pin: pin,
             askTrust: { [weak self] in self?.askTrust($0, $1) ?? false },
+            identity: identity,
             onStatus: { [weak self] in self?.setStatus($0) })
         self.host = host
         server = RfcommServer(host: host, onStatus: { [weak self] in self?.setStatus($0) })
@@ -76,7 +78,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         // Off until the owner says yes (network.txt); only a phone that proves itself is handed to the host.
         network = NetworkServer(
-            identity: LinkIdentity.forCurrentUser(name: Host.current().localizedName ?? "Mac"),
+            identity: identity,
             paired: paired,
             trust: trust,
             prompt: PairingPanel(announce: { [weak self] in

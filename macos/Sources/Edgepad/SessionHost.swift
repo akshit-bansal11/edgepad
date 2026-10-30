@@ -19,6 +19,7 @@ final class SessionHost {
     private let trust: TrustStore
     private let pin: PinStore
     private let askTrust: (String, Cancellation) -> Bool
+    private let identity: LinkIdentity
     private let onStatus: (String) -> Void
 
     private let speakers = AudioEndpoint(direction: .output)
@@ -58,11 +59,13 @@ final class SessionHost {
         trust: TrustStore,
         pin: PinStore,
         askTrust: @escaping (String, Cancellation) -> Bool,
+        identity: LinkIdentity,
         onStatus: @escaping (String) -> Void
     ) {
         self.trust = trust
         self.pin = pin
         self.askTrust = askTrust
+        self.identity = identity
         self.onStatus = onStatus
         pollTimer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
             self?.current?.poll()
@@ -130,6 +133,7 @@ final class SessionHost {
             microphone: microphone,
             brightness: brightness,
             display: display,
+            identity: identity,
             onStatus: { text in status(shownAs.map { text.replacingOccurrences(of: address, with: $0) } ?? text) },
             onAdmitted: { [weak self] admitted in self?.admit(admitted) ?? false },
             onEnded: { [weak self] ended in self?.sessionEnded(ended) })

@@ -52,7 +52,7 @@ internal static class Program
         using var quit = new ManualResetEventSlim();
         using var terminate = PosixSignalRegistration.Create(PosixSignal.SIGTERM, Stop);
         using var interrupt = PosixSignalRegistration.Create(PosixSignal.SIGINT, Stop);
-        using (var server = new LinuxServer(trust, pin, shell.AskTrust, shell.SetStatus))
+        using (var server = new LinuxServer(trust, pin, shell.AskTrust, identity, shell.SetStatus))
         {
             shell.Attach(server);
             server.Start();

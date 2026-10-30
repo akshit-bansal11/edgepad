@@ -73,6 +73,7 @@ final class SessionTests: XCTestCase {
             microphone: microphone,
             brightness: brightness,
             display: display,
+            identity: LinkIdentity(id: Array(UInt8(16)..<32), name: "Mac"),
             onStatus: { [weak self] status in self?.statuses.append(status) },
             onAdmitted: { [weak self] _ in self?.admitted() ?? false },
             onEnded: { [weak self] session in self?.ended.append(session) },
@@ -167,6 +168,7 @@ final class SessionTests: XCTestCase {
             transport.frames(),
             [
                 .helloAck(version: ProtocolConstants.version),
+                .text(kind: TextKind.device.rawValue, value: "101112131415161718191a1b1c1d1e1f/macos/Mac"),
                 .state(control: ControlId.volume.rawValue, value: 40, flags: 1),
                 .state(control: ControlId.micLevel.rawValue, value: 30, flags: 0),
                 .state(control: ControlId.brightness.rawValue, value: 70, flags: 0),

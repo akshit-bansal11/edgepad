@@ -36,6 +36,7 @@ internal sealed class Session(
     MediaSessions media,
     DisplayModes display,
     MacroStore macros,
+    LinkIdentity identity,
     Action<string> onStatus,
     Func<Session, bool> onAdmitted,
     Action<Session> onEnded) : IDisposable
@@ -138,6 +139,8 @@ internal sealed class Session(
 
     private void ReportState()
     {
+        // The same id the link's INFO reply gives, so a phone sees one laptop over Bluetooth and Wi-Fi.
+        Send(new Text((byte)TextKind.Device, identity.DeviceText(DeviceOs.Windows)));
         SendState(ControlId.Volume, speakers.Read());
         SendState(ControlId.MicLevel, microphone.Read());
         if (brightness.Read() is { } level)

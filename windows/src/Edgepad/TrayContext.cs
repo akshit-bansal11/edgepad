@@ -155,14 +155,15 @@ internal sealed class TrayContext : ApplicationContext
         // Built here and nowhere else: the overlay captures this thread's synchronisation context, and the
         // frames that ask it to show something arrive on a Bluetooth thread that has none of its own.
         overlay = new LevelOverlay();
+        var identity = LinkIdentity.ForCurrentUser(pin.Folder);
         host = new SessionHost(
-            SetStatus, trust, pin, AskTrust, speakers, microphone, brightness, media, display, macros, overlay, ui, OnSessionEnded);
+            SetStatus, trust, pin, AskTrust, speakers, microphone, brightness, media, display, macros, overlay, identity, ui, OnSessionEnded);
         server = new RfcommServer(SetStatus, host);
         _ = StartServerAsync();
 
         // Starts once the owner has said yes (network.txt); only a phone that proves itself is handed to the host.
         network = new NetworkServer(
-            LinkIdentity.ForCurrentUser(pin.Folder),
+            identity,
             pairedLinks,
             trust,
             new PairingPrompt(ui, AnnouncePairing),

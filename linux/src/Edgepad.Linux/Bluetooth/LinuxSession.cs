@@ -27,6 +27,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Func<string> probePad;
     private readonly Action<Action<Frame>> startReporting;
     private readonly Func<IReadOnlyList<Macro>> macros;
+    private readonly LinkIdentity identity;
     private readonly Action<string> onStatus;
     private readonly Func<LinuxSession, bool> onAdmitted;
     private readonly Action<LinuxSession> onEnded;
@@ -55,10 +56,12 @@ internal sealed class LinuxSession : IDisposable
         Func<string> probePad,
         Action<Action<Frame>> startReporting,
         Func<IReadOnlyList<Macro>> macros,
+        LinkIdentity identity,
         Action<string> onStatus,
         Func<LinuxSession, bool> onAdmitted,
         Action<LinuxSession> onEnded)
     {
+        this.identity = identity;
         this.link = link;
         Address = link.Address;
         this.trust = trust;
@@ -106,7 +109,9 @@ internal sealed class LinuxSession : IDisposable
 
             // On the read loop's thread, like a PONG: a dead socket here should end the session. The opening answer is
             // sent before the phone can ask, so it can hide the pad rather than offer a button that does nothing.
-            dispatcher.PadStatusReply = status => frames.Send(new Text((byte)TextKind.PadStatus, status));
+            // The same id the link's INFO reply gives, so a phone sees one laptop over Bluetooth and Wi-Fi.
+            frames.Send(new Text((byte)TextKind.Device, identity.DeviceText(DeviceOs.Linux)));
+            dispatcher.PadStatusReply =status => frames.Send(new Text((byte)TextKind.PadStatus, status));
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
             startReporting(frames.Send);
 

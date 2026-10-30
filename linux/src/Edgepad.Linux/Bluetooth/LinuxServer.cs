@@ -32,10 +32,10 @@ internal sealed class LinuxServer : IDisposable
     private volatile string? bluetoothd;
     private Task? serving;
 
-    public LinuxServer(TrustStore trust, PinStore pin, Func<string, CancellationToken, bool> askTrust, Action<string> onStatus)
+    public LinuxServer(TrustStore trust, PinStore pin, Func<string, CancellationToken, bool> askTrust, LinkIdentity identity, Action<string> onStatus)
     {
         this.onStatus = onStatus;
-        host = new SessionHost(trust, pin, askTrust, onStatus, OnSessionEnded);
+        host = new SessionHost(trust, pin, askTrust, identity, onStatus, OnSessionEnded);
     }
 
     public void Start() => serving = Task.Run(() => ServeAsync(stopping.Token));

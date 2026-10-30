@@ -15,6 +15,7 @@ internal sealed class SessionHost(
     TrustStore trust,
     PinStore pin,
     Func<string, CancellationToken, bool> askTrust,
+    LinkIdentity identity,
     Action<string> onStatus,
     Action onEnded) : IDisposable
 {
@@ -94,6 +95,7 @@ internal sealed class SessionHost(
                 platform.ProbePad,
                 platform.StartReporting,
                 () => platform.Macros,
+                identity,
                 StatusFor(link),
                 OnAdmitted,
                 OnSessionEnded);

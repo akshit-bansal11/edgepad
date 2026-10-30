@@ -15,6 +15,9 @@ internal sealed class LinkIdentity(byte[] id, string name)
 
     public string IdHex => Convert.ToHexStringLower(id);
 
+    /// <summary>The payload of TEXT DEVICE: "id/os/name", the id being the one the link's INFO reply gives.</summary>
+    public string DeviceText(string os) => $"{IdHex}/{os}/{name}";
+
     public static LinkIdentity ForCurrentUser(string directory) =>
         Load(Path.Combine(directory, "link-id.txt"), Environment.MachineName);
 
