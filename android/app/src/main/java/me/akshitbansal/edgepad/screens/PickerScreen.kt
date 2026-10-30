@@ -60,6 +60,7 @@ class PickerScreen(
     private val refresh = ui.icon(Glyph.Shape.REFRESH, ui.string(R.string.refresh)) { spinAndRefresh() }
     private lateinit var list: LinearLayout
     private lateinit var legend: TextView
+    private lateinit var sweepLine: TextView
     private lateinit var message: TextView
     private lateinit var messageButton: TextView
     private lateinit var filter: TextView
@@ -82,6 +83,7 @@ class PickerScreen(
                     section(ui.string(R.string.paired_laptops))
                     list = card {}
                     legend = footnote("")
+                    sweepLine = footnote("")
                     filter = add(ui.button("", Ui.Style.QUIET) { onShowAll(!showingAll) }, Space.S)
                     add(ui.button(ui.string(R.string.add_by_address), Ui.Style.QUIET, onAddAddress), Space.S)
                     add(ui.button(ui.string(R.string.usb_tethering), Ui.Style.QUIET, onUsbHelp), Space.S)
@@ -146,6 +148,12 @@ class PickerScreen(
         messageButton.text = actionLabel
         val offered = text.isNotEmpty() && actionLabel != null && onAction != null
         messageButton.visibility = if (offered) View.VISIBLE else View.GONE
+    }
+
+    /** One line under the list about what the last network sweep saw; empty hides it. */
+    fun setStatus(text: CharSequence) {
+        sweepLine.text = text
+        sweepLine.visibility = if (text.isEmpty()) View.GONE else View.VISIBLE
     }
 
     /** The address a connection is being made to, or null when none is. */

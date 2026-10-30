@@ -18,13 +18,36 @@ import java.util.concurrent.Future
 const val LINK_PORT = 47321
 
 /**
- * Whether [name] looks like a tethering interface: USB tethering (`rndis`, `usb`, `ncm`), or this phone's own
- * hotspot (`ap`, `swlan`), or an Ethernet-class link (`eth`). NsdManager is not assumed to see mDNS on these, so
- * they are probed for the laptop's port instead. A name is a guess at what the interface is, never proof.
+ * What kind of link the interface called [name] is, or null for one that is neither: USB tethering (`rndis`, `usb`,
+ * `ncm`) or an Ethernet-class link (`eth`) is [Transport.USB]; Wi-Fi (`wlan`, `wifi`) or this phone's own hotspot
+ * (`ap`, `swlan`) is [Transport.WIFI]. A name is a guess at what the interface is, never proof.
  */
-internal fun isTetherName(name: String): Boolean = TETHER_PREFIXES.any { name.startsWith(it) }
+internal fun transportOfInterface(name: String): Transport? =
+    when {
+        USB_PREFIXES.any { name.startsWith(it) } -> Transport.USB
+        WIFI_PREFIXES.any { name.startsWith(it) } -> Transport.WIFI
+        else -> null
+    }
 
-private val TETHER_PREFIXES = listOf("rndis", "usb", "ncm", "ap", "swlan", "eth")
+private val USB_PREFIXES = listOf("rndis", "usb", "ncm", "eth")
+private val WIFI_PREFIXES = listOf("wlan", "wifi", "ap", "swlan")
+
+// ponytail: a /24 every rescan while mDNS is empty; back off or probe only the router's neighbours if it costs.
+/**
+ * Whether a subnet of [transport] is swept. USB always is. Wi-Fi only while mDNS has found nothing: multicast is
+ * unreliable on many routers, which is what the sweep is for, and a repeated sweep of a /24 is not free.
+ */
+internal fun shouldSweep(
+    transport: Transport,
+    mdnsFound: Boolean,
+): Boolean = transport == Transport.USB || !mdnsFound
+
+/** What one pass saw: the laptops found, and the address of the Wi-Fi and USB interface seen (null when none). */
+class Sweep(
+    val found: List<Found>,
+    val wifi: String?,
+    val usb: String?,
+)
 
 /**
  * The other addresses on the subnet of [address]/[prefix], to try the laptop's port on. A subnet wider than a /24
@@ -51,7 +74,7 @@ internal fun hostsOf(
 private const val MIN_PREFIX = 24
 
 /**
- * Looks for laptops on the tether-like interfaces by connecting to [LINK_PORT] on every host of their subnet, 32
+ * Looks for laptops on the Wi-Fi and tether-like interfaces by connecting to [LINK_PORT] on every host of their subnet, 32
  * at a time, 250 ms each, and asking INFO of whoever answers. Blocking: run it on its own thread, and [stop] from
  * any other to abandon it. Only a reply that is a well-formed EDGL1 INFO counts, so some other service on the port
  * is not listed.
@@ -65,45 +88,71 @@ class TetherProbe(
         stopped = true
     }
 
-    fun run(port: Int = LINK_PORT): List<Found> {
+    /** [mdnsFound] is whether mDNS has already found a laptop, which spares the Wi-Fi sweep; see [shouldSweep]. */
+    fun run(
+        port: Int = LINK_PORT,
+        mdnsFound: Boolean = false,
+    ): Sweep {
         stopped = false
-        val targets = tetherHosts()
-        if (targets.isEmpty()) return emptyList()
+        val nets = interfaces()
+        val wifi = nets.firstOrNull { it.transport == Transport.WIFI }?.address?.hostAddress
+        val usb = nets.firstOrNull { it.transport == Transport.USB }?.address?.hostAddress
+        val targets =
+            nets
+                .filter { shouldSweep(it.transport, mdnsFound) }
+                .flatMap { net -> hostsOf(net.address, net.prefix).map { it to net.transport } }
+                .distinctBy { it.first }
+        if (targets.isEmpty()) return Sweep(emptyList(), wifi, usb)
         val pool = Executors.newFixedThreadPool(IN_FLIGHT)
         try {
-            val results: List<Future<Found?>> = targets.map { host -> pool.submit(Callable { ask(host, port) }) }
-            return mergeFound(
-                results.mapNotNull {
-                    try {
-                        it.get()
-                    } catch (e: ExecutionException) {
-                        null
-                    }
-                },
-            )
+            val results: List<Future<Found?>> =
+                targets.map { (host, transport) -> pool.submit(Callable { ask(host, transport, port) }) }
+            val found =
+                mergeFound(
+                    results.mapNotNull {
+                        try {
+                            it.get()
+                        } catch (e: ExecutionException) {
+                            null
+                        }
+                    },
+                )
+            return Sweep(found, wifi, usb)
         } finally {
             pool.shutdownNow()
         }
     }
 
-    private fun tetherHosts(): List<InetAddress> =
+    private class Net(
+        val transport: Transport,
+        val address: InetAddress,
+        val prefix: Int,
+    )
+
+    private fun interfaces(): List<Net> =
         try {
             NetworkInterface
                 .getNetworkInterfaces()
                 ?.toList()
                 .orEmpty()
-                .filter { it.isUp && !it.isLoopback && isTetherName(it.name) }
+                .filter { it.isUp && !it.isLoopback }
                 .flatMap { net ->
-                    net.interfaceAddresses
-                        .filter { it.address is Inet4Address && it.address.isSiteLocalAddress }
-                        .flatMap { hostsOf(it.address, it.networkPrefixLength.toInt()) }
-                }.distinct()
+                    val transport = transportOfInterface(net.name)
+                    if (transport == null) {
+                        emptyList()
+                    } else {
+                        net.interfaceAddresses
+                            .filter { it.address is Inet4Address && it.address.isSiteLocalAddress }
+                            .map { Net(transport, it.address, it.networkPrefixLength.toInt()) }
+                    }
+                }
         } catch (e: SocketException) {
             emptyList()
         }
 
     private fun ask(
         host: InetAddress,
+        transport: Transport,
         port: Int,
     ): Found? {
         if (stopped) return null
@@ -114,7 +163,7 @@ class TetherProbe(
                 val reply = initiator.info(s.getInputStream(), s.getOutputStream())
                 if (reply.status != LinkWire.STATUS_OK || reply.laptopId.size != LinkWire.ID_LENGTH) return null
                 val name = reply.name.ifBlank { host.hostAddress.orEmpty() }
-                return Found(reply.laptopId, name, listOf(host), port, Transport.USB, reply.protocolVersion)
+                return Found(reply.laptopId, name, listOf(host), port, transport, reply.protocolVersion)
             }
         } catch (e: IOException) {
             // Nothing there, or not Edgepad: most of a subnet is.

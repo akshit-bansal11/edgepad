@@ -7,7 +7,9 @@ import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -39,7 +41,9 @@ import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.LinkTransport
 import me.akshitbansal.edgepad.link.LocalNetwork
+import me.akshitbansal.edgepad.link.PickerHint
 import me.akshitbansal.edgepad.link.RttStats
+import me.akshitbansal.edgepad.link.Sweep
 import me.akshitbansal.edgepad.link.Target
 import me.akshitbansal.edgepad.link.TcpTransport
 import me.akshitbansal.edgepad.link.TetherProbe
@@ -48,6 +52,7 @@ import me.akshitbansal.edgepad.link.net.LinkKeys
 import me.akshitbansal.edgepad.link.net.Sas
 import me.akshitbansal.edgepad.link.otherTransport
 import me.akshitbansal.edgepad.link.parseHostPort
+import me.akshitbansal.edgepad.link.pickerHint
 import me.akshitbansal.edgepad.link.probeAddress
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.Feature
@@ -259,6 +264,10 @@ class MainActivity :
     /** Laptops found by NsdManager and by the tether probe, and by the last address typed; the picker merges them. */
     private var wifiFound: List<Found> = emptyList()
     private var usbFound: List<Found> = emptyList()
+
+    /** What the last sweep saw and whether a USB cable is in; the Devices list says both under the list. */
+    private var sweep: Sweep? = null
+    private var usbCable = false
     private var discovery: Discovery? = null
     private val probe = TetherProbe()
     private var probing = false
@@ -269,6 +278,7 @@ class MainActivity :
             override fun run() {
                 if (!started || screen != Screen.PAIRING) return
                 discovery?.start()
+                usbCable = usbCableIn()
                 probeTether()
                 refreshPicker()
                 handler.postDelayed(this, SCAN_EVERY_MS)
@@ -486,18 +496,22 @@ class MainActivity :
         probe.stop()
         wifiFound = emptyList()
         usbFound = emptyList()
+        sweep = null
+        usbCable = false
     }
 
-    /** One pass of the tether probe on its own thread; a pass still running is left to finish. */
+    /** One pass of the network probe on its own thread; a pass still running is left to finish. */
     private fun probeTether() {
         if (probing || !LocalNetwork.granted(this)) return
         probing = true
+        val mdnsFound = wifiFound.isNotEmpty()
         thread(name = "edgepad-probe") {
-            val hits = probe.run()
+            val result = probe.run(mdnsFound = mdnsFound)
             handler.post {
                 probing = false
                 if (started && screen == Screen.PAIRING) {
-                    usbFound = hits
+                    usbFound = result.found
+                    sweep = result
                     refreshPicker()
                 }
             }
@@ -1161,6 +1175,15 @@ class MainActivity :
             askLocalNetwork()
         }
         val network = mergeFound(wifiFound + usbFound)
+        val hint =
+            pickerHint(
+                bluetoothOn = adapter?.isEnabled ?: true,
+                bluetoothPermitted = permitted || adapter == null,
+                localNetworkGranted = LocalNetwork.granted(this),
+                usbCable = usbCable,
+                usbUp = sweep?.usb != null,
+                anyDevices = network.isNotEmpty() || shown.isNotEmpty(),
+            )
         val devices =
             (shown.map { PickerScreen.Device(it.address, nameOf(it)) } + network.map { deviceOf(it, network) })
                 .sortedBy { it.name.lowercase() }
@@ -1172,42 +1195,9 @@ class MainActivity :
             hidden = paired.size - laptops.size,
             showingAll = showAllDevices,
         )
-        when {
-            adapter == null || !adapter.isEnabled -> {
-                picker.setMessage(getString(R.string.bluetooth_off), getString(R.string.open_bluetooth_settings)) {
-                    openBluetoothSettings()
-                }
-            }
-
-            !permitted && permissionPending -> {
-                picker.setMessage(getString(R.string.permission_needed))
-            }
-
-            !permitted && shouldShowRequestPermissionRationale(Manifest.permission.BLUETOOTH_CONNECT) -> {
-                picker.setMessage(getString(R.string.permission_needed), getString(R.string.allow_permission)) {
-                    askPermission()
-                }
-            }
-
-            !permitted -> {
-                picker.setMessage(getString(R.string.permission_needed), getString(R.string.open_app_settings)) {
-                    openAppSettings()
-                }
-            }
-
-            paired.isEmpty() && network.isEmpty() -> {
-                picker.setMessage(getString(R.string.no_paired), getString(R.string.open_bluetooth_settings)) {
-                    openBluetoothSettings()
-                }
-            }
-
-            // Paired devices, none of them claiming to be a computer: the list's own button shows them all.
-            devices.isEmpty() -> {
-                picker.setMessage(getString(R.string.no_laptop_paired))
-            }
-
-            // Last, so a Bluetooth problem is not hidden behind it: Wi-Fi and USB laptops cannot be found without it.
-            !LocalNetwork.granted(this) && !permissionPending -> {
+        when (hint) {
+            // First, because Wi-Fi and USB laptops cannot be found without it.
+            PickerHint.LOCAL_NETWORK -> {
                 if (shouldShowRequestPermissionRationale(LocalNetwork.PERMISSION)) {
                     val allow = getString(R.string.allow_local_network)
                     picker.setMessage(getString(R.string.local_network_needed), allow) { askLocalNetwork() }
@@ -1218,10 +1208,68 @@ class MainActivity :
                 }
             }
 
-            else -> {
+            PickerHint.USB_TETHER_OFF -> {
+                picker.setMessage(getString(R.string.usb_cable_tether_off), getString(R.string.usb_tethering)) {
+                    openTetherSettings()
+                }
+            }
+
+            PickerHint.BLUETOOTH_OFF -> {
+                picker.setMessage(getString(R.string.bluetooth_off), getString(R.string.open_bluetooth_settings)) {
+                    openBluetoothSettings()
+                }
+            }
+
+            PickerHint.BLUETOOTH_PERMISSION -> {
+                if (permissionPending) {
+                    picker.setMessage(getString(R.string.permission_needed))
+                } else if (shouldShowRequestPermissionRationale(Manifest.permission.BLUETOOTH_CONNECT)) {
+                    picker.setMessage(getString(R.string.permission_needed), getString(R.string.allow_permission)) {
+                        askPermission()
+                    }
+                } else {
+                    picker.setMessage(getString(R.string.permission_needed), getString(R.string.open_app_settings)) {
+                        openAppSettings()
+                    }
+                }
+            }
+
+            PickerHint.NOTHING_FOUND -> {
+                if (paired.isEmpty()) {
+                    picker.setMessage(getString(R.string.no_paired), getString(R.string.open_bluetooth_settings)) {
+                        openBluetoothSettings()
+                    }
+                } else {
+                    // Paired devices, none of them claiming to be a computer: the list's own button shows them all.
+                    picker.setMessage(getString(R.string.no_laptop_paired))
+                }
+            }
+
+            PickerHint.NONE -> {
                 picker.setMessage("")
             }
         }
+        picker.setStatus(sweepStatus())
+    }
+
+    /** What the last sweep saw, in one line; it is also the diagnostic, as this machine has no adb. */
+    private fun sweepStatus(): String {
+        val last = sweep ?: return ""
+        val wifi = last.wifi?.let { getString(R.string.status_wifi, it) } ?: getString(R.string.status_no_wifi)
+        val usb =
+            when {
+                last.usb != null -> getString(R.string.status_usb_on, last.usb)
+                usbCable -> getString(R.string.status_usb_off)
+                else -> null
+            }
+        return listOfNotNull(wifi, usb).joinToString(" ")
+    }
+
+    /** Whether a USB cable is in, from the sticky `USB_STATE` broadcast; nothing is left registered. */
+    private fun usbCableIn(): Boolean {
+        val state =
+            registerReceiver(null, IntentFilter("android.hardware.usb.action.USB_STATE"), Context.RECEIVER_NOT_EXPORTED)
+        return state?.getBooleanExtra("connected", false) == true
     }
 
     private fun askPermission() {

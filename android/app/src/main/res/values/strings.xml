@@ -26,9 +26,14 @@
   <string name="open_controls_hint">Connect to a laptop to open the controls.</string>
   <string name="open_bluetooth_settings">Bluetooth settings</string>
   <string name="refresh">Refresh the list</string>
-  <string name="bluetooth_off">Bluetooth is off. Turn it on, then come back.</string>
+  <string name="bluetooth_off">No laptops found. Open Edgepad on your laptop, on the same Wi-Fi, or connect by USB and turn on USB tethering. Or turn Bluetooth on and pair it.</string>
+  <string name="usb_cable_tether_off">Cable connected. Turn on USB tethering.</string>
+  <string name="status_wifi">Looking on Wi-Fi %1$s.</string>
+  <string name="status_no_wifi">Not connected to Wi-Fi.</string>
+  <string name="status_usb_on">USB tethering is on (%1$s).</string>
+  <string name="status_usb_off">USB tethering is off.</string>
   <string name="permission_needed">Edgepad needs the Nearby devices permission to reach your laptop.</string>
-  <string name="no_paired">Nothing is paired with this phone yet. Pair your laptop in Bluetooth settings, then come back.</string>
+  <string name="no_paired">No laptops found. Open Edgepad on your laptop, on the same Wi-Fi, or connect by USB and turn on USB tethering. Or pair it in Bluetooth settings.</string>
   <string name="no_laptop_paired">None of the devices paired with this phone says it is a computer. If your laptop is paired, show them all.</string>
   <plurals name="show_all_paired">
     <item quantity="one">Show all paired devices (%1$d more)</item>

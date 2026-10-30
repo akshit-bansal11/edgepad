@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.link
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.net.InetAddress
@@ -50,8 +51,17 @@ class TetherProbeTest {
     }
 
     @Test
-    fun tetherInterfacesAreTheRndisUsbNcmApSwlanAndEthFamilies() {
-        listOf("rndis0", "usb0", "ncm0", "ap0", "swlan0", "eth0").forEach { assertTrue(it, isTetherName(it)) }
-        listOf("wlan0", "lo", "rmnet_data0", "dummy0", "tun0").forEach { assertFalse(it, isTetherName(it)) }
+    fun interfacesAreClassifiedByName() {
+        listOf("rndis0", "usb0", "ncm0", "eth0").forEach { assertEquals(it, Transport.USB, transportOfInterface(it)) }
+        listOf("wlan0", "wifi0", "ap0", "swlan0").forEach { assertEquals(it, Transport.WIFI, transportOfInterface(it)) }
+        listOf("lo", "rmnet_data0", "dummy0", "tun0").forEach { assertNull(it, transportOfInterface(it)) }
+    }
+
+    @Test
+    fun wifiIsSweptOnlyWhileMdnsFoundNothingAndUsbAlways() {
+        assertTrue(shouldSweep(Transport.WIFI, mdnsFound = false))
+        assertFalse(shouldSweep(Transport.WIFI, mdnsFound = true))
+        assertTrue(shouldSweep(Transport.USB, mdnsFound = false))
+        assertTrue(shouldSweep(Transport.USB, mdnsFound = true))
     }
 }
