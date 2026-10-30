@@ -186,7 +186,11 @@ class TetherProbe(
                 s.soTimeout = REPLY_MS
                 val reply = initiator.info(s.getInputStream(), s.getOutputStream())
                 if (reply.status != LinkWire.STATUS_OK || reply.laptopId.size != LinkWire.ID_LENGTH) return null
-                val name = reply.name.trim().take(MAX_LAPTOP_NAME).ifBlank { host.hostAddress.orEmpty() }
+                val name =
+                    reply.name
+                        .trim()
+                        .take(MAX_LAPTOP_NAME)
+                        .ifBlank { host.hostAddress.orEmpty() }
                 return Found(reply.laptopId, name, listOf(host), port, transport, reply.protocolVersion)
             }
         } catch (e: IOException) {
