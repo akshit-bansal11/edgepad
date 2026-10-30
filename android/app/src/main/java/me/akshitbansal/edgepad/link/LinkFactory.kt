@@ -32,8 +32,13 @@ interface LinkEvents {
  * it is built, which a unit test does not have.
  */
 interface ManagedLink {
+    /** Tells this link from every other, which is how [CaptureInbox] binds its permits to one. */
+    val id: Any
     val connected: Boolean
     val wasConnected: Boolean
+
+    /** [LaptopLink.iconPx]. */
+    var iconPx: Int
 
     /** Opens the link on a thread of its own and returns at once. */
     fun start()
@@ -69,8 +74,14 @@ private class TransportLink(
     LaptopLink.Listener {
     private val laptopLink = LaptopLink(transport, this)
 
+    override val id: Any get() = laptopLink.id
     override val connected: Boolean get() = laptopLink.connected
     override val wasConnected: Boolean get() = laptopLink.wasConnected
+    override var iconPx: Int
+        get() = laptopLink.iconPx
+        set(value) {
+            laptopLink.iconPx = value
+        }
 
     override fun start() {
         thread(name = "edgepad-link") { laptopLink.open() }

@@ -337,8 +337,10 @@ class LaptopConnectionsTest {
     ) : ManagedLink {
         val sent = ArrayList<Frame>()
         var closedWith: LaptopLink.Cause? = null
+        override val id: Any = Any()
         override var connected = false
         override var wasConnected = false
+        override var iconPx = 128
 
         fun accept() {
             connected = true

@@ -155,6 +155,9 @@ class LaptopLink(
     private val writeLock = Any()
     private val main = Handler(Looper.getMainLooper())
 
+    /** Tells this link from every other, for [CaptureInbox]. */
+    val id = Any()
+
     /** The icon side, in pixels, asked of the laptop; raised by the activity as tiles grow, and 128 again on a new link. */
     @Volatile var iconPx: Int = 128
 
@@ -241,7 +244,7 @@ class LaptopLink(
                 if (frame is Frame.Pong) {
                     val ms = (System.nanoTime() - frame.time) / NANOS_PER_MS
                     deliver { it.onRoundTrip(ms) }
-                } else if (!CaptureInbox.take(frame, ::send)) {
+                } else if (!CaptureInbox.take(frame, id, ::send)) {
                     // Asked for here, ahead of the main thread, so the pictures are on their way before any
                     // screen wants them and are cached by the time the macro screen opens.
                     if (wantsIcons(frame)) send(TextKind.WANT_ICONS.frame(iconPx.toString()))
@@ -319,7 +322,7 @@ class LaptopLink(
         pairingAnswer.offer(false)
         writer?.interrupt()
         outbox.clear()
-        CaptureInbox.abort()
+        CaptureInbox.abort(id)
         deliver { it.onClosed(this, closure) }
     }
 

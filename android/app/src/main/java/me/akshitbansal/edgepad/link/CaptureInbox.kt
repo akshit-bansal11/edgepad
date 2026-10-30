@@ -15,13 +15,23 @@ import me.akshitbansal.edgepad.protocol.TextKind
  * app rather than per screen, because a recording arrives when it stops, which may be long after the person left the
  * capture screen. The screen installs it ([install]); until then a FILE_BEGIN is refused and the laptop keeps the file.
  *
+ * Permits belong to one link, [owner]: the one the capture screen sends to. A permit granted for one laptop must never
+ * be spent by another's FILE_BEGIN, so a file frame from any other link is refused here.
+ *
  * [take] runs on the link's reading thread, so a file never passes through the main thread. [listener] and [last] are
  * main-thread only.
  */
 object CaptureInbox {
     private val main by lazy { Handler(Looper.getMainLooper()) }
 
-    @Volatile private var inbox: FileInbox? = null
+    @Volatile internal var inbox: FileInbox? = null
+
+    /** The [ManagedLink.id] whose captures are wanted. Moving on takes the permits and a file half here with it. */
+    @Volatile var owner: Any? = null
+        set(value) {
+            if (value !== field) inbox?.reset()
+            field = value
+        }
 
     /**
      * What this phone last chose, sent again whenever a link opens; null until the capture screen has been built.
@@ -59,15 +69,17 @@ object CaptureInbox {
     }
 
     /**
-     * True when [frame] was a file frame or a capture status, which go nowhere else. [send] carries the answer back.
+     * True when [frame] was a file frame or a capture status, which go nowhere else. [link] is the [ManagedLink.id] it
+     * came on, and [send] carries the answer back on that link.
      */
     fun take(
         frame: Frame,
+        link: Any,
         send: (Frame) -> Unit,
     ): Boolean {
         when (frame) {
             is Frame.FileBegin, is Frame.FileChunk, is Frame.FileEnd -> {
-                val current = inbox
+                val current = inbox.takeIf { link === owner }
                 if (current != null) {
                     current.take(frame)?.let(send)
                 } else if (frame is Frame.FileBegin) {
@@ -77,8 +89,10 @@ object CaptureInbox {
 
             is Frame.Text -> {
                 if (frame.kind != TextKind.CAPTURE_STATUS.id) return false
-                inbox?.settle()
-                post(FileInbox.Progress.Kept(CaptureStatus.of(frame.text)))
+                if (link === owner) {
+                    inbox?.settle()
+                    post(FileInbox.Progress.Kept(CaptureStatus.of(frame.text)))
+                }
             }
 
             else -> {
@@ -89,11 +103,11 @@ object CaptureInbox {
     }
 
     /**
-     * The link closed. A file that was half here is thrown away (the laptop never heard SAVED and keeps it), and the
-     * permits and the per-connection counts go with the link.
+     * [link] closed. If it was the [owner], a file that was half here is thrown away (the laptop never heard SAVED and
+     * keeps it), and the permits and the per-connection counts go with it.
      */
-    fun abort() {
-        inbox?.reset()
+    fun abort(link: Any) {
+        if (link === owner) inbox?.reset()
     }
 
     private fun post(step: FileInbox.Progress) {
