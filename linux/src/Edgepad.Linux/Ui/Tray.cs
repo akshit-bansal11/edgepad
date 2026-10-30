@@ -26,6 +26,7 @@ internal sealed class Tray : IDisposable
     private readonly NativeMenuItem statusRow = new("Starting") { IsEnabled = false };
     private readonly NativeMenuItem securityRow = new("Security…");
     private readonly NativeMenuItem networkRow = new("Wi-Fi and USB connections");
+    private readonly NativeMenuItem clipboardRow = new("Share clipboard");
     private readonly NativeMenuItem forgetRow = new("Forget trusted phones");
     private readonly TrayIcon icon;
     private readonly Bus portal = Bus.OnSession();
@@ -35,6 +36,7 @@ internal sealed class Tray : IDisposable
     private readonly Func<bool> canForget;
     private readonly Func<bool> networkOn;
     private readonly Func<string> networkHint;
+    private readonly Func<bool> clipboardOn;
 
     public Tray(
         string version,
@@ -42,8 +44,10 @@ internal sealed class Tray : IDisposable
         Func<bool> canForget,
         Func<bool> networkOn,
         Func<string> networkHint,
+        Func<bool> clipboardOn,
         Action security,
         Action toggleNetwork,
+        Action toggleClipboard,
         Action forget,
         Action quit)
     {
@@ -51,9 +55,11 @@ internal sealed class Tray : IDisposable
         this.canForget = canForget;
         this.networkOn = networkOn;
         this.networkHint = networkHint;
+        this.clipboardOn = clipboardOn;
 
         securityRow.Click += (_, _) => Safe(security, "Security");
         networkRow.Click += (_, _) => Safe(toggleNetwork, "Wi-Fi and USB connections");
+        clipboardRow.Click += (_, _) => Safe(toggleClipboard, "Share clipboard");
         forgetRow.Click += (_, _) => Safe(forget, "Forget trusted phones");
         var log = new NativeMenuItem("Open log");
         log.Click += (_, _) => Safe(() => OpenWithDesktop(Log.FilePath, "the log"), "Open log");
@@ -67,6 +73,7 @@ internal sealed class Tray : IDisposable
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(securityRow);
         menu.Add(networkRow);
+        menu.Add(clipboardRow);
         menu.Add(log);
         menu.Add(docs);
         menu.Add(new NativeMenuItemSeparator());
@@ -118,6 +125,7 @@ internal sealed class Tray : IDisposable
     {
         securityRow.Header = $"Security… ({levelHint()})";
         networkRow.Header = $"{(networkOn() ? "✓ " : "")}Wi-Fi and USB connections ({networkHint()})";
+        clipboardRow.Header = $"{(clipboardOn() ? "✓ " : "")}Share clipboard";
         forgetRow.IsEnabled = canForget();
     }
 

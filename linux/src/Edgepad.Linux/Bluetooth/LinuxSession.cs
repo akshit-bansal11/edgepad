@@ -1,3 +1,4 @@
+using Edgepad.Blob;
 using Edgepad.Capture;
 using Edgepad.Dispatch;
 using Edgepad.Macros;
@@ -118,6 +119,16 @@ internal sealed class LinuxSession : IDisposable
 
             // Captures go to the phone once it asks (SET CAPTURE_TARGET); until then, and after the session, they stay here.
             dispatcher.Capture = new CaptureToPhone(new LinuxCaptureFolders(), frames.Send, () => dispatcher.LastInputMs);
+
+            // The shared clipboard: moves nothing until the phone asks on this link, and stops at once when the tray
+            // switch goes off. Polled, since there is no change event to listen to.
+            var surface = new LinuxClipboard(
+                Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"),
+                Environment.GetEnvironmentVariable("DISPLAY"));
+            var sender = new BlobSender(frames.Send, link.Kind, () => dispatcher.LastInputMs, ended.Token);
+            var sync = new ClipboardSync(surface, sender, () => ClipboardSetting.Enabled, ended.Token);
+            dispatcher.Clipboard = sync;
+            _ = Task.Run(() => LinuxClipboard.Poll(surface, sync, () => ClipboardSetting.Enabled, ended.Token));
 
             while (true)
             {

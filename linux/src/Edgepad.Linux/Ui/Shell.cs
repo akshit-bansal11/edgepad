@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using Edgepad.Bluetooth;
 using Edgepad.Net;
 using Edgepad.Network;
+using Edgepad.Platform;
 using Edgepad.Trust;
 
 namespace Edgepad.Ui;
@@ -141,8 +142,10 @@ internal sealed class Shell : IDisposable
             () => trust.CanForget || paired.CanForget,
             () => networkSettings.Load().Enabled,
             () => networkHint,
+            () => ClipboardSetting.Enabled,
             () => _ = Guard(ShowSecurityAsync),
             () => _ = Guard(ToggleNetworkAsync),
+            () => _ = Guard(ToggleClipboardAsync),
             () => _ = Guard(ConfirmForgetAsync),
             RequestQuit);
         tray = menu;
@@ -299,6 +302,22 @@ internal sealed class Shell : IDisposable
         }
 
         await SaveNetworkAsync(on);
+    }
+
+    /// <summary>
+    /// The Share clipboard switch. Off stops every read, send and apply at once; the phones are told again, since the
+    /// feature token follows the switch.
+    /// </summary>
+    private async Task ToggleClipboardAsync()
+    {
+        if (!ClipboardSetting.Set(!ClipboardSetting.Enabled))
+        {
+            await Dialogs.Inform(null, "The setting could not be saved, so nothing was changed. The log has the reason.");
+            return;
+        }
+
+        Annotator.FeaturesChanged();
+        tray?.Refresh();
     }
 
     /// <summary>

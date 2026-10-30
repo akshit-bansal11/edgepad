@@ -2,6 +2,7 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Threading;
 using Edgepad.Annotation;
+using Edgepad.Platform;
 using Edgepad.Protocol;
 
 namespace Edgepad.Ui;
@@ -56,11 +57,15 @@ internal sealed class Annotator : IDisposable
     /// The TEXT 9 tokens for a laptop that can, or cannot, show the overlay and see macro apps' windows. Capture is
     /// always offered.
     /// </summary>
-    internal static string Features(bool annotate, bool running = false)
+    internal static string Features(bool annotate, bool running = false, bool clipboard = false)
     {
         var features = annotate ? $"{Feature.Annotate}/{Feature.Capture}" : Feature.Capture;
-        return running ? $"{features}/{Feature.Running}" : features;
+        features = running ? $"{features}/{Feature.Running}" : features;
+        return clipboard ? $"{features}/{Feature.Clipboard}" : features;
     }
+
+    /// <summary>Tells every connected phone the features again, after the clipboard switch moved.</summary>
+    internal static void FeaturesChanged() => Changed?.Invoke();
 
     /// <summary>
     /// Why the overlay cannot be used, or null when it can: the window is not an X11 one, there is no compositor
@@ -260,7 +265,7 @@ internal sealed class Annotator : IDisposable
             return;
         }
 
-        sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning)));
+        sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning, ClipboardSetting.Enabled)));
         if (primary is { } screen)
         {
             sink(new Text(
