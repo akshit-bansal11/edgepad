@@ -120,6 +120,11 @@ internal sealed class Session(
             // And takes the annotation layer down with its strokes: a phone that vanishes mid-drawing must not
             // leave ink over the owner's screen with nothing left alive that could end it.
             annotator.Dispose();
+            if (dispatcher.Cadence.Summary() is { } cadence)
+            {
+                Log.Write($"Pointer frames from {address} over {link.Kind}: {cadence}");
+            }
+
             if (dispatcher.Dropped > 0 || injector.RefusedBatches > 0)
             {
                 Log.Write($"Session with {address}: {dispatcher.Dropped} frames dropped, "

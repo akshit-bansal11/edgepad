@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Edgepad.Capture;
 using Edgepad.Macros;
@@ -43,6 +44,9 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
 
     private long lastInput;
 
+    /// <summary>How evenly this session's Move frames arrived; the session logs it when it ends.</summary>
+    public PointerCadence Cadence { get; } = new();
+
     /// <summary>
     /// Carries out one frame. A handler that throws is dropped and counted like an unknown id, because this
     /// runs on the session thread, where an escape ends the tray app and releases nothing the phone was
@@ -54,6 +58,12 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         if (frame is Move or PointerButton or Scroll or Zoom or Key or PadState or Pen or Text)
         {
             Interlocked.Exchange(ref lastInput, Environment.TickCount64);
+        }
+
+        if (frame is Move)
+        {
+            // Stopwatch, never TickCount64: its resolution is about 15 ms on Windows, coarser than the gaps measured.
+            Cadence.Record(Stopwatch.GetTimestamp());
         }
 
         bool handled;

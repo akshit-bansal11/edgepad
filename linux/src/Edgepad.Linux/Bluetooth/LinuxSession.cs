@@ -150,6 +150,11 @@ internal sealed class LinuxSession : IDisposable
             // pad too, so a phone that drops mid-game does not leave a stick pushed forward.
             releaseHeldInput();
             dispatcher.Capture?.Dispose();
+            if (dispatcher.Cadence.Summary() is { } cadence)
+            {
+                Log.Write($"Pointer frames from {Address} over {link.Kind}: {cadence}");
+            }
+
             if (dispatcher.Dropped > 0)
             {
                 Log.Write($"Session with {Address}: {dispatcher.Dropped} frames dropped");
