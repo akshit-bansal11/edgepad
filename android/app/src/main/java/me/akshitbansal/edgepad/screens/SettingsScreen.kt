@@ -37,6 +37,7 @@ object SettingsScreen {
         val update: () -> Unit,
         val sideways: (Boolean) -> Unit,
         val clipboard: () -> Unit,
+        val stayConnected: () -> Unit,
         val back: () -> Unit,
     )
 
@@ -76,8 +77,16 @@ object SettingsScreen {
                             },
                         )
                         hairline()
+                        add(
+                            ui.toggle(ui.string(R.string.stay_connected), settings.stayConnected) {
+                                settings.stayConnected = it
+                                routes.stayConnected()
+                            },
+                        )
+                        hairline()
                         add(ui.toggle(ui.string(R.string.show_laptops_only), !showingAll) { routes.showAll(!it) })
                     }
+                    footnote(ui.string(R.string.stay_connected_caption))
 
                     if (connection.clipboard) {
                         section(ui.string(R.string.settings_clipboard))

@@ -47,6 +47,9 @@ import me.akshitbansal.edgepad.link.LaptopConnections
 import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopRow
 import me.akshitbansal.edgepad.link.LaptopState
+import me.akshitbansal.edgepad.link.LinkHooks
+import me.akshitbansal.edgepad.link.LinkNotice
+import me.akshitbansal.edgepad.link.LinkService
 import me.akshitbansal.edgepad.link.LinkTransport
 import me.akshitbansal.edgepad.link.LocalNetwork
 import me.akshitbansal.edgepad.link.MainScheduler
@@ -63,6 +66,7 @@ import me.akshitbansal.edgepad.link.encodeSaved
 import me.akshitbansal.edgepad.link.forgotten
 import me.akshitbansal.edgepad.link.laptopLinks
 import me.akshitbansal.edgepad.link.laptopRows
+import me.akshitbansal.edgepad.link.linkNotice
 import me.akshitbansal.edgepad.link.mergeFound
 import me.akshitbansal.edgepad.link.net.LinkKeys
 import me.akshitbansal.edgepad.link.net.Sas
@@ -142,13 +146,18 @@ import kotlin.concurrent.thread
  * - Started (onStart to onStop): the links are used; the selected one is pinged every
  *   [LaptopConnections.PING_FAST_MS] on a screen that shows the round trip, and the rest every
  *   [LaptopConnections.PING_SLOW_MS], where the ping only proves the link is still there.
- * - Stopped, and not for a rebuild: whatever a finger holds is let go at once ([releaseHeldInput]); the
- *   links stay up for [LINGER_MS], pinged slowly. The image picker, Bluetooth settings, the documentation
- *   in a browser and the screen going off are all a stop, and until 3.2 every one of them dropped the link.
- * - Started again inside [LINGER_MS]: nothing happened; the links carry on.
+ * - Stopped, and not for a rebuild: whatever a finger holds is let go at once ([releaseHeldInput]). The links
+ *   stay up, pinged slowly, in one of two ways. With Stay connected on and a laptop connected, [LinkService] is
+ *   running and holds the process, so they stay up for as long as it runs and nothing is scheduled; it is started
+ *   only in the foreground ([syncService]), since Android refuses to start one from the background, and it
+ *   stops with the last link. Otherwise they stay for [LINGER_MS]. The image picker, Bluetooth settings, the
+ *   documentation in a browser and the screen going off are all a stop, and until 3.2 every one of them dropped
+ *   the link.
+ * - Started again inside [LINGER_MS], or with the service running: nothing happened; the links carry on.
  * - [LINGER_MS] passes: every link closes as [LaptopLink.Cause.ENDED], which is what onStop did at once
- *   before 3.2.
- * - Destroyed, and not for a rebuild (backed out of, or finished): closed at once.
+ *   before 3.2. A service that stops while the app is away leaves whatever links remain to the same wait.
+ * - Destroyed, and not for a rebuild (backed out of, finished, or swiped from the recent apps): closed at
+ *   once, and the service stopped.
  * - Rebuilt: [manager] is handed over in [Retained] and its events swapped in onCreate. It reads them when
  *   each event is delivered on the main thread, so nothing lands on the old activity.
  */
@@ -250,6 +259,12 @@ class MainActivity :
     private lateinit var gamepads: GamepadStore
     private var started = false
 
+    /** [LinkService] is running, as far as this activity knows; a rebuilt one starts again and finds out in onStart. */
+    private var serviceUp = false
+
+    /** What the service's notification says now, so it is only rewritten when it changes. */
+    private var shownNotice: LinkNotice? = null
+
     private var backCallback: Any? = null
 
     /** Paired devices of every kind in the list, not only the ones that say they are computers. */
@@ -273,6 +288,9 @@ class MainActivity :
 
     /** The local-network permission has been asked for once, so the list offers the way back and does not nag. */
     private var askedLocalNetwork = false
+
+    /** Notifications have been asked for once; a refusal is fine, as the service runs and Android still lists it. */
+    private var askedNotifications = false
 
     /** Laptops found by NsdManager and by the tether probe, and by the last address typed; the picker merges them. */
     private var wifiFound: List<Found> = emptyList()
@@ -350,6 +368,10 @@ class MainActivity :
                 ?: LaptopConnections(laptopLinks(transports(applicationContext)), MainScheduler(), this)
         // The toggle is read through a Settings of its own, so the retained clipboard never holds this activity.
         val owner = Settings(applicationContext)
+        // The service ends every link through this and holds nothing of the activity: only the manager, which survives
+        // a rebuild, so the new activity sets the same thing again.
+        val links = manager
+        LinkHooks.disconnectAll = { links.closeAll(LaptopLink.Cause.ENDED) }
         if (retained != null) {
             clipboard = retained.clipboard
             apps = retained.apps
@@ -389,6 +411,7 @@ class MainActivity :
         manager.reconnect = settings.reconnect
         // This also starts a lost laptop's retries at once, which is what the reconnect screen wants.
         manager.foreground = true
+        syncService()
         // Rising, so the tick waiting, which may be a slow one from the background, does not hold it up.
         manager.fastPing = screen in showsRtt
         // Back from a detour with the pad still on screen: the laptop has no session, so begin one.
@@ -421,10 +444,50 @@ class MainActivity :
         manager.fastPing = false
         handler.removeCallbacks(ticker)
         stopScan()
-        // A detour keeps the link for a while, and a rebuild keeps it outright; see the class comment.
+        // The service keeps the links outright, a detour for a while and a rebuild too; see the class comment.
+        if (!serviceUp) lingerLinks()
+    }
+
+    /** Gives the links [LINGER_MS] and then ends them, unless a rebuild or a start comes first. */
+    private fun lingerLinks() {
+        handler.removeCallbacks(linger)
         if (!isChangingConfigurations && manager.laptops.any { it.link != null }) {
             handler.postDelayed(linger, LINGER_MS)
         }
+    }
+
+    /**
+     * Brings [LinkService] in line with the links: running, with the selected laptop named, while one is connected and
+     * Stay connected is on; stopped otherwise. It is only ever started while the activity is on screen, because
+     * Android 12 and later refuse a foreground service start from the background, so a laptop that connects while
+     * minimized waits for the next onStart. Stopping is allowed from anywhere, and when it happens with the app away
+     * the links that remain get the usual wait.
+     */
+    private fun syncService() {
+        val notice = if (settings.stayConnected) linkNotice(manager.laptops, manager.selected) else null
+        if (notice == null) {
+            if (!serviceUp) return
+            serviceUp = false
+            shownNotice = null
+            LinkService.stop(applicationContext)
+            if (!started) lingerLinks()
+            return
+        }
+        if (!started && !serviceUp) return
+        if (serviceUp && notice == shownNotice) return
+        // Asked for when the service is first needed. A denial costs only the notification: the service runs anyway.
+        if (!serviceUp) askNotifications()
+        LinkService.show(applicationContext, notice, serviceUp)
+        serviceUp = true
+        shownNotice = notice
+    }
+
+    private fun askNotifications() {
+        val granted = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        // One system prompt at a time: while another is up this waits for the next time the service is needed.
+        if (granted || askedNotifications || permissionPending) return
+        askedNotifications = true
+        requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATIONS)
     }
 
     // A copy made in another app is readable only once this window has focus.
@@ -447,7 +510,11 @@ class MainActivity :
         // A rebuilt activity's waiting ticks go with it; the new one starts its own in onStart.
         handler.removeCallbacksAndMessages(null)
         apps.events = null
-        if (!isChangingConfigurations) manager.shutDown()
+        if (!isChangingConfigurations) {
+            LinkHooks.disconnectAll = null
+            manager.shutDown()
+            LinkService.stop(applicationContext)
+        }
     }
 
     /** Tells the laptop to take its overlay down, once per session, and not at all when there is no link to tell. */
@@ -657,6 +724,7 @@ class MainActivity :
                             documentation = { open(getString(R.string.documentation_url)) },
                             update = ::openUpdate,
                             clipboard = ::shareClipboard,
+                            stayConnected = ::syncService,
                             sideways = { on ->
                                 settings.landscape = on
                                 applyOrientation()
@@ -1570,6 +1638,7 @@ class MainActivity :
         val row = device.row
         saved = saved.map { if (it.isIn(row.keys)) it.copy(autoConnect = false) else it }
         row.laptop?.let { manager.disconnect(it.id) }
+        syncService()
         refreshDevices()
     }
 
@@ -1699,6 +1768,7 @@ class MainActivity :
 
     override fun onConnected(laptop: Laptop) {
         remember(laptop)
+        syncService()
         if (laptop !== selected) {
             refreshDevices()
             return
@@ -1831,6 +1901,7 @@ class MainActivity :
         closure: LaptopLink.Closure,
     ) {
         refreshBlobLinks()
+        syncService()
         if (laptop !== selected) {
             refreshDevices()
             // Unreachable is a laptop that is off, which is nothing to report at every launch; its row says so.
@@ -1899,6 +1970,7 @@ class MainActivity :
     /** Every screen draws [selected], so the one showing is built again on the new laptop, or left if it cannot be. */
     override fun onSelected(laptop: Laptop?) {
         refreshBlobLinks()
+        syncService()
         CaptureInbox.owner = laptop?.link?.id
         picker.setRtt(laptop?.rtt?.median() ?: Double.NaN)
         laptop?.let { saved = promoted(saved, setOf(it.id)) }
@@ -1984,6 +2056,7 @@ class MainActivity :
     ) {
         saved = forgotten(saved, keys)
         laptop?.let { manager.forget(it.id) }
+        syncService()
         if (screen == Screen.SETTINGS) goTo(Screen.SETTINGS) else refreshDevices()
     }
 
@@ -2064,6 +2137,7 @@ class MainActivity :
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2
         const val REQUEST_LOCAL_NETWORK = 3
+        const val REQUEST_NOTIFICATIONS = 4
 
         /** How often the Devices list looks again for laptops on the network while it is showing. */
         const val SCAN_EVERY_MS = 10_000L

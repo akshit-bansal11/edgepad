@@ -85,6 +85,12 @@ class Settings(
     /** Connect to the remembered laptops when the app opens, and retry after a dropped link. */
     var reconnect by flag("reconnect", true)
 
+    /**
+     * Keep the links up while the app is minimized, through a foreground service and its notification. Off, they close
+     * after a short linger once the app leaves the screen, as before the service existed.
+     */
+    var stayConnected by flag("stayConnected", true)
+
     var haptics by flag("haptics", true)
 
     /** Share the clipboard with the selected laptop, when it offers to. Each laptop's own switch must be on too. */

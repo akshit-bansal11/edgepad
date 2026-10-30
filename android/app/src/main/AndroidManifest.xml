@@ -14,6 +14,10 @@
   <!-- To install that release over this app. The second lets Android 12 and later skip its question. -->
   <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
   <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
+  <!-- Staying connected while minimized: a foreground service of type connectedDevice (link/LinkService.kt) and its notification. -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
   <application
     android:allowBackup="false"
@@ -32,6 +36,13 @@
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
+
+    <!-- Android 14 lets a connectedDevice service start only if the app holds one of a list of permissions;
+         CHANGE_WIFI_MULTICAST_STATE above, declared for finding laptops, is on it, and so is BLUETOOTH_CONNECT. -->
+    <service
+      android:name=".link.LinkService"
+      android:exported="false"
+      android:foregroundServiceType="connectedDevice" />
 
     <receiver
       android:name=".update.Installer$StatusReceiver"
