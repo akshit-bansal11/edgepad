@@ -158,10 +158,15 @@ final class LinkStorageTests: XCTestCase {
         XCTAssertFalse(trust.admit("link:00") { true })
     }
 
-    func testNetworkSettingsAreOffUntilTurnedOnAndFailClosed() throws {
+    func testNetworkSettingsAreOnWithNoFileAndFailClosed() throws {
         let settings = NetworkSettings(path: path("network.txt"))
-        XCTAssertFalse(settings.load().enabled)
+        XCTAssertTrue(settings.load().enabled)
+        XCTAssertFalse(settings.hasChoice)
         XCTAssertEqual(settings.load().port, NetworkSettings.defaultPort)
+
+        XCTAssertTrue(settings.setEnabled(false))
+        XCTAssertFalse(settings.load().enabled)
+        XCTAssertTrue(settings.hasChoice)
 
         XCTAssertTrue(settings.setEnabled(true))
         XCTAssertTrue(settings.load().enabled)
@@ -172,7 +177,14 @@ final class LinkStorageTests: XCTestCase {
         for text in ["enabled=yes\n", "enabled=1\nport=+5\n", "enabled=1\nport=70000\n", "enabled=1\nother=1\n"] {
             try write(text, to: "network.txt")
             XCTAssertFalse(settings.load().enabled, text)
+            XCTAssertTrue(settings.hasChoice, text)
         }
+
+        // A folder where the file should be: there, and not readable.
+        try FileManager.default.createDirectory(atPath: path("folder.txt"), withIntermediateDirectories: true)
+        let unreadable = NetworkSettings(path: path("folder.txt"))
+        XCTAssertFalse(unreadable.load().enabled)
+        XCTAssertTrue(unreadable.hasChoice)
     }
 
     func testTheLinkIdIsMadeOnceAndKept() {

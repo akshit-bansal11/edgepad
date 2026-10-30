@@ -1,9 +1,10 @@
 import Foundation
 
-/// `network.txt`: `enabled=0|1` and `port=`, the twin of the C# `NetworkSettings`. Off until the owner turns it on, so
-/// a Bluetooth-only Mac never listens on the network. Read strictly, like `security.txt`: a file that cannot be read,
-/// or holds anything Edgepad would not have written, leaves the network link off (fail closed) and is never changed
-/// here, so the owner can see what is wrong. Bluetooth does not read this file.
+/// `network.txt`: `enabled=0|1` and `port=`, the twin of the C# `NetworkSettings`. No file means on: phones found
+/// nothing while this was opt-in, and pairing still needs the code typed on the laptop. Read strictly, like
+/// `security.txt`: a file that cannot be read, or holds anything Edgepad would not have written, leaves the network
+/// link off (fail closed) and is never changed here, so the owner can see what is wrong. Bluetooth does not read this
+/// file.
 public final class NetworkSettings {
     /// Chosen, not checked against any registry.
     public static let defaultPort = 47321
@@ -21,17 +22,24 @@ public final class NetworkSettings {
         return NetworkSettings(path: support + "/Edgepad/network.txt")
     }
 
+    /// True once the file exists, whatever it holds: a choice has been saved, or something there needs the owner's eye.
+    /// A folder in its place counts, since that reads as off rather than as no file.
+    public var hasChoice: Bool {
+        FileManager.default.fileExists(atPath: path)
+    }
+
     public func load() -> (enabled: Bool, port: Int) {
         let off = (enabled: false, port: Self.defaultPort)
         let text: String
         do {
             text = try String(contentsOfFile: path, encoding: .utf8)
         } catch {
-            if !isAbsent(error, at: path) {
-                Log.write(
-                    "The network settings could not be read from \(path), so Wi-Fi and USB phones are refused: "
-                        + error.localizedDescription)
+            if isAbsent(error, at: path) {
+                return (enabled: true, port: Self.defaultPort)
             }
+            Log.write(
+                "The network settings could not be read from \(path), so Wi-Fi and USB phones are refused: "
+                    + error.localizedDescription)
             return off
         }
         var enabled = false

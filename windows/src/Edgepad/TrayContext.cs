@@ -38,6 +38,10 @@ internal sealed class TrayContext : ApplicationContext
     /// </summary>
     private static readonly TimeSpan QuietAfterForget = TimeSpan.FromSeconds(30);
 
+    private const string NetworkNotice =
+        "Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. "
+            + "Nothing connects without the code typed here. Windows will ask for permission once.";
+
     private readonly MenuRow startWithWindows = new("Start with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new("Macros…", Icons.Macro);
     private readonly MenuRow securityRow = new("Security…", Icons.Smartphone);
@@ -69,6 +73,10 @@ internal sealed class TrayContext : ApplicationContext
     // The Wi-Fi and USB row's hint: off, the port listened on, or why not. Only the UI thread touches it.
     private string networkHint = "Off";
 
+    // True from the question being put until the firewall step is over: nothing may listen before the rule exists, or
+    // Windows' own alert appears as well. Only the UI thread touches it.
+    private bool allowingNetwork;
+
     // The menu stays clickable under the confirmation, and a second one would lift the hold while the first was
     // still open. All of this runs on the UI thread, so a plain bool is enough.
     private bool forgetting;
@@ -88,7 +96,7 @@ internal sealed class TrayContext : ApplicationContext
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
         securityRow.Click += (_, _) => ShowSecurity();
         networkRow.Click += (_, _) => ToggleNetwork(networkRow.Checked);
-        firewallRow.Click += (_, _) => Firewall.Allow();
+        firewallRow.Click += (_, _) => Firewall.Allow(ReportFirewall);
         update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
 
         // The header is the menu's own. The update row sits right under it and stays hidden until there is one.
@@ -112,9 +120,10 @@ internal sealed class TrayContext : ApplicationContext
             startWithWindows.Checked = RunAtLogin.IsEnabled;
             forget.Enabled = trust.CanForget || pairedLinks.CanForget;
             securityRow.Hint = $"Level {pin.Level}";
-            networkRow.Checked = networkSettings.Load().Enabled;
+            networkRow.Checked = networkSettings.HasChoice && networkSettings.Load().Enabled;
+            networkRow.Enabled = !allowingNetwork;
             networkRow.Hint = networkHint;
-            firewallRow.Available = networkRow.Checked;
+            firewallRow.Available = networkRow.Checked && !allowingNetwork;
             macrosRow.Hint = $"{macros.Macros.Count} of {MacroStore.MaxMacros}";
             menu.Restyle();
         };
@@ -149,7 +158,7 @@ internal sealed class TrayContext : ApplicationContext
         server = new RfcommServer(SetStatus, host);
         _ = StartServerAsync();
 
-        // Off until the owner turns it on (network.txt); only a phone that proves itself is handed to the host.
+        // Starts once the owner has said yes (network.txt); only a phone that proves itself is handed to the host.
         network = new NetworkServer(
             LinkIdentity.ForCurrentUser(pin.Folder),
             pairedLinks,
@@ -160,6 +169,12 @@ internal sealed class TrayContext : ApplicationContext
             () => host.IsRefusing);
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
         ApplyNetwork();
+        if (!networkSettings.HasChoice)
+        {
+            // Posted, so it waits for the tray to be up and running rather than holding up this constructor.
+            ui.Post(_ => AskAboutNetwork(), null);
+        }
+
         _ = StartMediaAsync();
 
         // Once now and once a day after, for a tray app that is left running for weeks.
@@ -256,16 +271,12 @@ internal sealed class TrayContext : ApplicationContext
     private void OnSessionEnded(Func<bool> end) => server.OnSessionEnded(end);
 
     /// <summary>
-    /// The Wi-Fi and USB switch. Turning it on says first what will happen, since the first listen raises Windows'
-    /// firewall question; a no there leaves it off. A setting that cannot be saved leaves things as they were.
+    /// The Wi-Fi and USB switch. Turning it on says first what will happen; a no there leaves it off.
     /// </summary>
     private void ToggleNetwork(bool on)
     {
         if (on && MessageBox.Show(
-            "Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. "
-                + "Pairing needs you to type here the code the phone shows. Windows may now ask whether Edgepad may use "
-                + "the network: tick both Private and Public networks. If you miss it, choose Allow through Windows "
-                + "Firewall in this menu.",
+            NetworkNotice,
             "Edgepad",
             MessageBoxButtons.OKCancel,
             MessageBoxIcon.Information) != DialogResult.OK)
@@ -274,6 +285,54 @@ internal sealed class TrayContext : ApplicationContext
             return;
         }
 
+        SaveNetwork(on);
+    }
+
+    /// <summary>
+    /// The first launch's one question, with Not now the default so a stray Enter opens nothing. Nothing listens until
+    /// it is answered, and closing it is not an answer. Not now is saved, so it is never asked again; the switch in the
+    /// menu is the way back.
+    /// </summary>
+    private void AskAboutNetwork()
+    {
+        var allow = new TaskDialogButton("Allow");
+        var notNow = new TaskDialogButton("Not now");
+        var page = new TaskDialogPage
+        {
+            Caption = "Edgepad",
+            Heading = "Let phones find this laptop?",
+            Text = NetworkNotice,
+            Icon = TaskDialogIcon.Shield,
+            Buttons = { allow, notNow },
+            DefaultButton = notNow,
+        };
+
+        allowingNetwork = true;
+        bool on;
+        try
+        {
+            on = TaskDialog.ShowDialog(page, TaskDialogStartupLocation.CenterScreen) == allow;
+        }
+        catch (Exception e) when (e is InvalidOperationException or Win32Exception)
+        {
+            // Nothing listens, and the next launch asks again.
+            Log.Write($"Could not ask about Wi-Fi and USB phones: {e.Message}");
+            return;
+        }
+        finally
+        {
+            allowingNetwork = false;
+        }
+
+        SaveNetwork(on);
+    }
+
+    /// <summary>
+    /// Saves the owner's answer and acts on it: turning on runs the firewall step and listens only after it, whatever
+    /// it reported, so the rule is in place first. A setting that cannot be saved leaves things as they were.
+    /// </summary>
+    private void SaveNetwork(bool on)
+    {
         if (!networkSettings.SetEnabled(on))
         {
             networkRow.Checked = !on;
@@ -285,23 +344,60 @@ internal sealed class TrayContext : ApplicationContext
             return;
         }
 
-        ApplyNetwork();
+        if (!on)
+        {
+            ApplyNetwork();
+            return;
+        }
+
+        allowingNetwork = true;
+        Firewall.Allow(allowed =>
+        {
+            allowingNetwork = false;
+            ReportFirewall(allowed);
+            ApplyNetwork();
+        });
+    }
+
+    /// <summary>One notice when the rule did not go in, a declined prompt among the reasons. Asks nothing again.</summary>
+    private void ReportFirewall(bool allowed)
+    {
+        if (!allowed)
+        {
+            icon.ShowBalloonTip(
+                0,
+                "Edgepad",
+                "Windows Firewall was not changed, so phones may not reach this laptop. Allow through Windows Firewall in this menu tries again.",
+                ToolTipIcon.Warning);
+        }
     }
 
     /// <summary>Listens or stops as network.txt says, and words the row's hint for it. On the UI thread only.</summary>
     private void ApplyNetwork()
     {
+        // The question or the firewall step is open, and the end of that calls this. A wake now must not listen first.
+        if (allowingNetwork)
+        {
+            return;
+        }
+
+        // No file reads as on, but on Windows that waits for the owner's answer, however the asking went.
         var config = networkSettings.Load();
-        if (!config.Enabled)
+        if (!config.Enabled || !networkSettings.HasChoice)
         {
             network.Stop();
             networkHint = "Off";
             return;
         }
 
-        networkHint = !network.Start(config.Port) ? "Could not listen; see the log"
-            : network.Port == config.Port ? $"Listening on {config.Port}"
-            : $"Port in use, using {network.Port}";
+        if (!network.Start(config.Port))
+        {
+            networkHint = "Could not listen; see the log";
+            return;
+        }
+
+        var listening = network.Port == config.Port ? $"Listening on {config.Port}" : $"Port in use, using {network.Port}";
+        networkHint = network.IsAnnounced ? listening : $"{listening}, not announced";
     }
 
     // Sockets opened before sleep may not survive it. Raised on SystemEvents' thread; the listener is the UI thread's.

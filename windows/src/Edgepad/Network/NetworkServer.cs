@@ -34,6 +34,7 @@ internal sealed class NetworkServer(
 
     private TcpLinkListener? listener;
     private MdnsAdvertiser? advertiser;
+    private bool announced;
 
     // Cancelled by a stop, which withdraws a pairing question still open and refuses a link let through after it.
     // ponytail: never disposed, it has no timer or wait handle; one per start.
@@ -51,6 +52,18 @@ internal sealed class NetworkServer(
             lock (gate)
             {
                 return listener?.Port;
+            }
+        }
+    }
+
+    /// <summary>True while the laptop is announced; when listening without it, a phone must already know the address.</summary>
+    public bool IsAnnounced
+    {
+        get
+        {
+            lock (gate)
+            {
+                return announced;
             }
         }
     }
@@ -85,7 +98,7 @@ internal sealed class NetworkServer(
 
             // False is logged by the advertiser: the laptop is then not announced, and a phone can still reach it by address.
             var announcing = new MdnsAdvertiser(identity, (ushort)opened.Port);
-            _ = announcing.Start();
+            announced = announcing.Start();
             listener = opened;
             advertiser = announcing;
             running = stopping;
@@ -147,6 +160,7 @@ internal sealed class NetworkServer(
         live.Clear();
         listener = null;
         advertiser = null;
+        announced = false;
         running = null;
         Log.Write("Stopped listening for Wi-Fi and USB phones");
     }

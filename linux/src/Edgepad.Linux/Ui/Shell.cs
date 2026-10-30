@@ -72,7 +72,7 @@ internal sealed class Shell : IDisposable
     {
         server = bluetooth;
 
-        // Off until the owner turns it on (network.txt); only a phone that proves itself is handed to the server.
+        // On unless the owner turned it off (network.txt); only a phone that proves itself is handed to the server.
         network = new NetworkServer(identity, paired, trust, pairing, link => _ = bluetooth.Accept(link), name => SetStatus($"Paired with {name}"), () => bluetooth.IsRefusing);
     }
 

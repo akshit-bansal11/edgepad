@@ -18,8 +18,18 @@ public sealed class NetworkSettingsTests : IDisposable
     }
 
     [Fact]
-    public void ThereIsNoListeningUntilTheOwnerTurnsItOn()
+    public void NoFileMeansOnWithNoChoiceMade()
     {
+        Assert.Equal(new NetworkConfig(true, NetworkSettings.DefaultPort), NewSettings().Load());
+        Assert.False(NewSettings().HasChoice);
+    }
+
+    [Fact]
+    public void TurningItOffIsAChoiceThatStays()
+    {
+        Assert.True(NewSettings().SetEnabled(false));
+
+        Assert.True(NewSettings().HasChoice);
         Assert.Equal(new NetworkConfig(false, NetworkSettings.DefaultPort), NewSettings().Load());
     }
 
@@ -58,6 +68,7 @@ public sealed class NetworkSettingsTests : IDisposable
         Write(content);
 
         Assert.Equal(new NetworkConfig(false, NetworkSettings.DefaultPort), NewSettings().Load());
+        Assert.True(NewSettings().HasChoice);
         Assert.Equal(content, File.ReadAllText(FilePath));
     }
 
@@ -68,6 +79,7 @@ public sealed class NetworkSettingsTests : IDisposable
         Directory.CreateDirectory(FilePath);
 
         Assert.False(NewSettings().Load().Enabled);
+        Assert.True(NewSettings().HasChoice);
     }
 
     public void Dispose()

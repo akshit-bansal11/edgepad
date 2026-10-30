@@ -7,10 +7,10 @@ namespace Edgepad.Net;
 internal sealed record NetworkConfig(bool Enabled, int Port);
 
 /// <summary>
-/// <c>network.txt</c>: <c>enabled=0|1</c> and <c>port=</c>. Off until the owner turns it on, because the first listen
-/// raises the firewall prompt that Bluetooth-only users should never see. Read strictly, like <c>security.txt</c>: a file
-/// that cannot be read, or holds anything Edgepad would not have written, leaves the network link OFF (fail closed)
-/// and never changes the file, so the owner can see what is wrong. Bluetooth does not read this file.
+/// <c>network.txt</c>: <c>enabled=0|1</c> and <c>port=</c>. No file means on: phones found nothing while this was
+/// opt-in, and pairing still needs the code typed on the laptop. Read strictly, like <c>security.txt</c>: a file that
+/// cannot be read, or holds anything Edgepad would not have written, leaves the network link OFF (fail closed) and
+/// never changes the file, so the owner can see what is wrong. Bluetooth does not read this file.
 /// </summary>
 internal sealed class NetworkSettings(string path)
 {
@@ -19,9 +19,17 @@ internal sealed class NetworkSettings(string path)
 
     private static readonly NetworkConfig Off = new(false, DefaultPort);
 
+    private static readonly NetworkConfig Unset = new(true, DefaultPort);
+
     private readonly Lock gate = new();
 
     public static NetworkSettings ForCurrentUser(string directory) => new(Path.Combine(directory, "network.txt"));
+
+    /// <summary>
+    /// True once the file exists, whatever it holds: a choice has been saved, or something there needs the owner's
+    /// eye. A folder in its place counts, since that reads as off rather than as no file.
+    /// </summary>
+    public bool HasChoice => Path.Exists(path);
 
     public NetworkConfig Load()
     {
@@ -59,7 +67,7 @@ internal sealed class NetworkSettings(string path)
         }
         catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
         {
-            return Off;
+            return Unset;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
