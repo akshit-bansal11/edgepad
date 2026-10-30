@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.screens
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -32,6 +33,24 @@ class DeckLayoutTest {
             for ((rows, columns) in DeckLayout.choices(count)) {
                 assertTrue(rows * columns >= count)
                 assertTrue((rows - 1) * columns < count)
+            }
+        }
+    }
+
+    @Test
+    fun columnsForReadsTheOfferedGridsAndNothingElse() {
+        assertEquals(listOf(6, 3, 2, 1), listOf(1, 2, 3, 6).map { DeckLayout.columnsFor(6, it) })
+        assertNull(DeckLayout.columnsFor(6, 4))
+        assertNull(DeckLayout.columnsFor(6, 5))
+        assertNull(DeckLayout.columnsFor(6, 0))
+    }
+
+    @Test
+    fun columnsForAgreesWithChoices() {
+        for (count in 2..10) {
+            val offered = DeckLayout.choices(count)
+            for (rows in 0..count + 1) {
+                assertEquals(offered.firstOrNull { it.first == rows }?.second, DeckLayout.columnsFor(count, rows))
             }
         }
     }

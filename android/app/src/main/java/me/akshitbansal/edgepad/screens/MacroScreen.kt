@@ -71,6 +71,7 @@ class MacroScreen(
             empty = ::emptyState,
             onSettings = onSettings,
             perPage = settings.macrosPerPage,
+            rows = settings.macroRows.takeIf { it != Settings.AUTO_MACRO_ROWS },
             // The laptop's slot, never the tile's place in the deck: the order on screen is only a drawing.
             onTap = { tile -> onRun(tile.tag) },
         )

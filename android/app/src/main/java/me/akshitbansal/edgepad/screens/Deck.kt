@@ -92,6 +92,7 @@ class Deck(
     private var tiles: List<DeckTile> = emptyList()
     private var labels = true
     private var planFor = 0
+    private var wantedRows: Int? = null
     private var across = 0
     private var down = 0
     private var onMove: (from: Int, to: Int) -> Unit = { _, _ -> }
@@ -137,7 +138,8 @@ class Deck(
      * A tap runs the tile through [onTap], which is how the owner reaches its [DeckTile.tag]. Pressing and holding
      * one starts a drag (or a TalkBack action moves it) to another tile's place, reporting the two display
      * positions through [onMove]. [slots] is how many cells the grid is planned for when that is more than
-     * the tiles it holds, so that a short last page of a pager keeps the tile size of the full ones.
+     * the tiles it holds, so that a short last page of a pager keeps the tile size of the full ones. [rows] asks
+     * for that many rows; null, or a count the grid cannot be split into, leaves the choice to [plan].
      */
     fun render(
         across: Int,
@@ -147,8 +149,10 @@ class Deck(
         onMove: (from: Int, to: Int) -> Unit,
         onTap: (DeckTile) -> Unit,
         slots: Int = tiles.size,
+        rows: Int? = null,
     ) {
         this.planFor = slots
+        this.wantedRows = rows
         this.across = across
         this.down = down
         this.tiles = tiles
@@ -192,7 +196,7 @@ class Deck(
         // The last picture arriving with the labels off takes the label row away from every tile, and
         // that is a new grid rather than one new picture.
         if (bare() != current.bare) {
-            render(across, down, tiles, labels, onMove, onTap, planFor)
+            render(across, down, tiles, labels, onMove, onTap, planFor, wantedRows)
             return
         }
         val button = buttons[tag] ?: return
@@ -224,7 +228,10 @@ class Deck(
         var chosen = 1
         var width = 1
         var height = ui.dp(Space.TOUCH)
-        for (candidate in 1..count) {
+        // A row count the owner chose fixes the columns; the touch floor below still applies to its cells.
+        val forced = wantedRows?.let { DeckLayout.columnsFor(count, it) }
+        val candidates = if (forced != null) forced..forced else 1..count
+        for (candidate in candidates) {
             val rows = (count + candidate - 1) / candidate
             val cellWidth = ((across - (candidate - 1) * gap) / candidate).coerceAtLeast(1)
             // Never under a touch target, however many tiles there are: below that the page scrolls instead.

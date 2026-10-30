@@ -242,6 +242,17 @@ class Settings(
         }
 
     /**
+     * How many rows the macro grid has, or [AUTO_MACRO_ROWS] to let the screen pick whatever makes the biggest
+     * buttons. Only a row count [DeckLayout.choices] offers for the current page size is used; anything else,
+     * such as a value left over from a larger page size, reads as Auto.
+     */
+    var macroRows: Int
+        get() = prefs.getInt(KEY_MACRO_ROWS, AUTO_MACRO_ROWS)
+        set(value) {
+            prefs.edit().putInt(KEY_MACRO_ROWS, value).apply()
+        }
+
+    /**
      * How fast [kind]'s ruler moves, as a multiple of the base rate. Volume wants a slower ruler than the
      * app switcher does, so each kind may override [sensitivity]; none does until the user sets one, and
      * clearing an override puts the kind back on the shared value rather than on a second default.
@@ -390,6 +401,7 @@ class Settings(
         const val DEFAULT_KEY_TEXT_SCALE = 1f
         const val MIN_MACROS_PER_PAGE = 2
         const val MAX_MACROS_PER_PAGE = 10
+        const val AUTO_MACRO_ROWS = 0
         private val PER_PAGE_RANGE = MIN_MACROS_PER_PAGE..MAX_MACROS_PER_PAGE
         const val MAX_ANGLE = 360f
         const val DEFAULT_GRADIENT_ANGLE = 90f
@@ -411,6 +423,7 @@ class Settings(
         private const val KEY_POINTER_SPEED = "pointerSpeed"
         private const val KEY_SCROLL_SPEED = "scrollSpeed"
         private const val KEY_MACROS_PER_PAGE = "macrosPerPage"
+        private const val KEY_MACRO_ROWS = "macroRows"
         private const val KEY_DIAL_LENGTH = "dialLength"
         private const val KEY_DIAL_HEIGHT = "dialHeight"
         private const val KEY_CONTROL_COLOR = "controlColor"

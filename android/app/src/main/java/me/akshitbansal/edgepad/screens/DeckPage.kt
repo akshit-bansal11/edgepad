@@ -23,8 +23,8 @@ import me.akshitbansal.edgepad.Space
  * are, what a tap does, and [empty], the state drawn when there are no tiles.
  *
  * With [perPage] the tiles are split into pages of that many, which a finger slides between; every page is a
- * grid planned for [perPage] cells, so a tile keeps its size from page to page. Without it there is one page and
- * the stored column count of [deckId] applies.
+ * grid planned for [perPage] cells, so a tile keeps its size from page to page. Without it there is one page.
+ * [rows] asks for that many rows in every grid; null lets each grid pick the columns that make the biggest tiles.
  */
 class DeckPage(
     private val ui: Ui,
@@ -37,6 +37,7 @@ class DeckPage(
     private val empty: ((LinearLayout) -> Unit)? = null,
     onSettings: (() -> Unit)? = null,
     private val perPage: Int? = null,
+    private val rows: Int? = null,
     private val onTap: (DeckTile) -> Unit,
 ) {
     private var tiles: List<DeckTile> = emptyList()
@@ -144,7 +145,7 @@ class DeckPage(
             return
         }
         val slots = perPage ?: ordered.size
-        deck.render(across, down, ordered, labels, onMove = ::moved, onTap = onTap, slots = slots)
+        deck.render(across, down, ordered, labels, onMove = ::moved, onTap = onTap, slots = slots, rows = rows)
     }
 
     /**
@@ -180,6 +181,7 @@ class DeckPage(
                 onMove = { from, to -> moved(range.first + from, range.first + to) },
                 onTap = onTap,
                 slots = per,
+                rows = rows,
             )
         }
         holder.addView(pager, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))

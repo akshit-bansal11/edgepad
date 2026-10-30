@@ -22,6 +22,16 @@ object DeckLayout {
     }
 
     /**
+     * The columns of the [choices] grid that has [rows] rows, or null when [rows] is not one of them. A stored
+     * row count that the page size has since made impossible then reads as "not chosen" instead of as a grid
+     * with an empty row.
+     */
+    fun columnsFor(
+        count: Int,
+        rows: Int,
+    ): Int? = choices(count).firstOrNull { it.first == rows }?.second
+
+    /**
      * The pages [count] tiles fall on when a page holds [perPage]: each is the range of display positions it
      * shows. Every page is planned as a grid of [perPage] cells, so only the last can be short, and it leaves
      * its cells empty at the end rather than growing its tiles.

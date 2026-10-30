@@ -385,6 +385,11 @@
   <string name="macros_move_later">Move later</string>
   <string name="macros_moved">Moved to place %1$d of %2$d</string>
   <string name="macros_pages_title">Pages</string>
+  <string name="macros_layout">Layout</string>
+  <string name="macros_layout_auto">Auto</string>
+  <string name="macros_layout_grid">%1$d × %2$d</string>
+  <string name="macros_layout_grid_description">%1$d rows by %2$d columns</string>
+  <string name="macros_layout_caption">The first number is rows, the second is columns. Auto picks whatever makes the buttons biggest.</string>
   <string name="macros_per_page">Macros on screen</string>
   <string name="macros_per_page_caption">How many macros one page shows. The rest continue on more pages, reached by sliding a finger sideways. Press and hold a macro, then drag it to move it within its page.</string>
   <string name="macros_page_of">Page %1$d of %2$d</string>
