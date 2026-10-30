@@ -268,8 +268,9 @@ class MainActivity :
     private var sweep: Sweep? = null
     private var usbCable = false
     private var discovery: Discovery? = null
-    private val probe = TetherProbe()
-    private var probing = false
+
+    /** The network probe's pass under way, a fresh one each time; null when none is, or [stopScan] abandoned it. */
+    private var probe: TetherProbe? = null
 
     /** Rescans every [SCAN_EVERY_MS] while the Devices list is on screen, and only then. */
     private val rescan =
@@ -492,26 +493,33 @@ class MainActivity :
     private fun stopScan() {
         handler.removeCallbacks(rescan)
         discovery?.stop()
-        probe.stop()
+        probe?.stop()
+        probe = null
         wifiFound = emptyList()
         usbFound = emptyList()
         sweep = null
         usbCable = false
     }
 
-    /** One pass of the network probe on its own thread; a pass still running is left to finish. */
+    /**
+     * One pass of the network probe on its own thread; a pass still running is left to finish. One that [stopScan]
+     * abandoned is no longer [probe], so what it found goes nowhere and the next pass need not wait for it.
+     */
     private fun probeTether() {
-        if (probing || !LocalNetwork.granted(this)) return
-        probing = true
+        if (probe != null || !LocalNetwork.granted(this)) return
+        val pass = TetherProbe()
+        probe = pass
         val mdnsFound = wifiFound.isNotEmpty()
         thread(name = "edgepad-probe") {
-            val result = probe.run(mdnsFound = mdnsFound)
+            val result = pass.run(mdnsFound = mdnsFound)
             handler.post {
-                probing = false
-                if (started && screen == Screen.PAIRING) {
-                    usbFound = result.found
-                    sweep = result
-                    refreshPicker()
+                if (probe === pass) {
+                    probe = null
+                    if (started && screen == Screen.PAIRING) {
+                        usbFound = result.found
+                        sweep = result
+                        refreshPicker()
+                    }
                 }
             }
         }

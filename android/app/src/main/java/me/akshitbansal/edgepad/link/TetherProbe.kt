@@ -10,9 +10,12 @@ import java.net.NetworkInterface
 import java.net.Socket
 import java.net.SocketException
 import java.util.concurrent.Callable
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 /** The port a laptop listens on by default; docs/PROTOCOL.md has it once for both apps. */
 const val LINK_PORT = 47321
@@ -78,15 +81,19 @@ private const val MIN_PREFIX = 24
  * Looks for laptops on the Wi-Fi and tether-like interfaces by connecting to [LINK_PORT] on every host of their subnet, 32
  * at a time, 250 ms each, and asking INFO of whoever answers. Blocking: run it on its own thread, and [stop] from
  * any other to abandon it. Only a reply that is a well-formed EDGL1 INFO counts, so some other service on the port
- * is not listed.
+ * is not listed. One pass per instance: a stop is for good, so one that lands before [run] begins still counts.
  */
 class TetherProbe(
     private val initiator: LinkInitiator = LinkInitiator(),
 ) {
     @Volatile private var stopped = false
 
+    /** Every socket in use: closing one is the only thing that ends a read already blocked on it. */
+    private val open = ConcurrentLinkedQueue<Socket>()
+
     fun stop() {
         stopped = true
+        open.forEach { socket -> runCatching { socket.close() } }
     }
 
     /** [mdnsFound] is whether mDNS has already found a laptop, which spares the Wi-Fi sweep; see [shouldSweep]. */
@@ -94,7 +101,6 @@ class TetherProbe(
         port: Int = LINK_PORT,
         mdnsFound: Boolean = false,
     ): Sweep {
-        stopped = false
         val nets = interfaces()
         val wifi = nets.firstOrNull { it.transport == Transport.WIFI }?.address?.hostAddress
         val usb = nets.firstOrNull { it.transport == Transport.USB }?.address?.hostAddress
@@ -103,23 +109,37 @@ class TetherProbe(
                 .filter { shouldSweep(it.transport, mdnsFound) }
                 .flatMap { net -> hostsOf(net.address, net.prefix).map { it to net.transport } }
                 .distinctBy { it.first }
-        if (targets.isEmpty()) return Sweep(emptyList(), wifi, usb)
+        return Sweep(askAll(targets, port), wifi, usb)
+    }
+
+    /**
+     * Asks every one of [targets], for [passMs] in all. The socket timeout is per read, so a host dripping a byte at a
+     * time could otherwise hold a pass for minutes. Whoever had answered by then is returned; the rest are hung up on.
+     */
+    internal fun askAll(
+        targets: List<Pair<InetAddress, Transport>>,
+        port: Int,
+        passMs: Long = PASS_MS,
+    ): List<Found> {
+        val deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(passMs)
         val pool = Executors.newFixedThreadPool(IN_FLIGHT)
         try {
             val results: List<Future<Found?>> =
                 targets.map { (host, transport) -> pool.submit(Callable { ask(host, transport, port) }) }
-            val found =
-                mergeFound(
-                    results.mapNotNull {
-                        try {
-                            it.get()
-                        } catch (e: ExecutionException) {
-                            null
-                        }
-                    },
-                )
-            return Sweep(found, wifi, usb)
+            return mergeFound(
+                results.mapNotNull {
+                    try {
+                        // With no time left this still reads a result that is already there.
+                        it.get(deadline - System.nanoTime(), TimeUnit.NANOSECONDS)
+                    } catch (e: ExecutionException) {
+                        null
+                    } catch (e: TimeoutException) {
+                        null
+                    }
+                },
+            )
         } finally {
+            stop()
             pool.shutdownNow()
         }
     }
@@ -156,19 +176,24 @@ class TetherProbe(
         transport: Transport,
         port: Int,
     ): Found? {
-        if (stopped) return null
+        val socket = Socket()
+        open.add(socket)
         try {
-            Socket().use { s ->
+            socket.use { s ->
+                // After the add: stop sets the flag before it closes what is open, so one of the two catches this.
+                if (stopped) return null
                 s.connect(InetSocketAddress(host, port), CONNECT_MS)
                 s.soTimeout = REPLY_MS
                 val reply = initiator.info(s.getInputStream(), s.getOutputStream())
                 if (reply.status != LinkWire.STATUS_OK || reply.laptopId.size != LinkWire.ID_LENGTH) return null
-                val name = reply.name.ifBlank { host.hostAddress.orEmpty() }
+                val name = reply.name.trim().take(MAX_LAPTOP_NAME).ifBlank { host.hostAddress.orEmpty() }
                 return Found(reply.laptopId, name, listOf(host), port, transport, reply.protocolVersion)
             }
         } catch (e: IOException) {
             // Nothing there, or not Edgepad: most of a subnet is.
             return null
+        } finally {
+            open.remove(socket)
         }
     }
 
@@ -176,5 +201,8 @@ class TetherProbe(
         const val IN_FLIGHT = 32
         const val CONNECT_MS = 250
         const val REPLY_MS = 2_000
+
+        /** A /24 finishes in about 2 s; this is what a host that keeps a read alive may cost, not the usual pass. */
+        const val PASS_MS = 5_000L
     }
 }

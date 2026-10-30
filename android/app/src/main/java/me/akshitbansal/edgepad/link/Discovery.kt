@@ -44,12 +44,14 @@ internal fun parseTxt(attributes: Map<String, ByteArray?>): Txt? {
             ?.let { parseHex(String(it, Charsets.UTF_8)) }
             ?.takeIf { it.size == LinkWire.ID_LENGTH }
             ?: return null
-    val name = attributes["n"]?.let { String(it, Charsets.UTF_8).trim().take(MAX_NAME) }?.takeIf { it.isNotEmpty() }
+    val name =
+        attributes["n"]?.let { String(it, Charsets.UTF_8).trim().take(MAX_LAPTOP_NAME) }?.takeIf { it.isNotEmpty() }
     val version = attributes["v"]?.let { String(it, Charsets.UTF_8).trim().toIntOrNull() }
     return Txt(id, name, version)
 }
 
-private const val MAX_NAME = 64
+/** The longest laptop name shown, however it was learned: anything on the network can announce one. */
+internal const val MAX_LAPTOP_NAME = 64
 
 internal fun parseHex(text: String): ByteArray? {
     if (text.length % 2 != 0 || text.any { it !in '0'..'9' && it !in 'a'..'f' && it !in 'A'..'F' }) return null
