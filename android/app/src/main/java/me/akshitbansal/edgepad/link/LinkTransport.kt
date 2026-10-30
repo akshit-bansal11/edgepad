@@ -44,7 +44,10 @@ class LinkFailure(
     val closure: LaptopLink.Closure,
 ) : IOException(closure.cause.name)
 
-/** What a connect is aimed at. [key] is what the picker marks as connecting and the activity compares laptops by. */
+/** What starts a [Target.Network]'s key; the rest is the laptop id in lower-case hex. */
+internal const val NET_KEY = "net:"
+
+/** What a connect is aimed at. [key] is what the activity compares laptops by, and [Laptop.id]. */
 sealed interface Target {
     val key: String
 
@@ -65,6 +68,6 @@ sealed interface Target {
         val port: Int,
         val pairAgain: Boolean = false,
     ) : Target {
-        override val key: String = "net:" + laptopId.joinToString("") { "%02x".format(it) }
+        override val key: String = NET_KEY + laptopId.joinToString("") { "%02x".format(it) }
     }
 }

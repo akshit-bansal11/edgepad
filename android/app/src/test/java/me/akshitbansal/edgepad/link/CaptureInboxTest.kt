@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.ActionId
+import me.akshitbansal.edgepad.protocol.CaptureTarget
 import me.akshitbansal.edgepad.protocol.FileStatus
 import me.akshitbansal.edgepad.protocol.Frame
 import org.junit.After
@@ -11,7 +12,7 @@ import org.junit.Before
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
 
-/** Permits belong to one link: a laptop can never spend the permit this phone gave another. */
+/** Permits belong to the link they were granted on: no laptop can spend another's, and none is lost by moving on. */
 class CaptureInboxTest {
     private val ours = Any()
     private val theirs = Any()
@@ -39,15 +40,19 @@ class CaptureInboxTest {
 
     @Before
     fun install() {
-        CaptureInbox.inbox = FileInbox(store, {}).apply { toPhone = true }
+        CaptureInbox.store = store
+        CaptureInbox.target = CaptureTarget.PHONE
         CaptureInbox.owner = ours
         CaptureInbox.permit(ActionId.CAPTURE_SCREEN)
     }
 
     @After
     fun uninstall() {
+        CaptureInbox.abort(ours)
+        CaptureInbox.abort(theirs)
         CaptureInbox.owner = null
-        CaptureInbox.inbox = null
+        CaptureInbox.target = null
+        CaptureInbox.store = null
     }
 
     @Test
@@ -91,6 +96,32 @@ class CaptureInboxTest {
         CaptureInbox.take(begin, theirs, answers::add)
         assertEquals(listOf(FileStatus.REJECTED.frame()), answers)
         assertEquals(0, opened.get())
+    }
+
+    @Test
+    fun aPermitOutlivesTheSelectionMovingOn() {
+        CaptureInbox.owner = theirs
+        CaptureInbox.take(begin, ours, answers::add)
+        assertEquals(1, opened.get())
+        assertTrue(answers.isEmpty())
+    }
+
+    @Test
+    fun aFileOnItsWaySurvivesTheCaptureScreenClosingOnANewOwner() {
+        CaptureInbox.take(begin, ours, answers::add)
+        CaptureInbox.owner = null
+        CaptureInbox.cancel()
+        assertEquals(0, discarded.get())
+    }
+
+    @Test
+    fun aPermitGrantedOnTheNewOwnerIsItsOwn() {
+        CaptureInbox.owner = theirs
+        CaptureInbox.permit(ActionId.CAPTURE_SCREEN)
+        CaptureInbox.take(begin, theirs, answers::add)
+        CaptureInbox.take(begin, ours, answers::add)
+        assertEquals(2, opened.get())
+        assertTrue(answers.isEmpty())
     }
 
     @Test

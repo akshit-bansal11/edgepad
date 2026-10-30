@@ -60,8 +60,8 @@ internal fun parseHex(text: String): ByteArray? {
 
 /**
  * One row per laptop per transport: the same laptop announced twice, or found on two addresses, is one row with
- * the addresses of the one found first; the same laptop on Wi-Fi and over USB stays two rows, one to connect on
- * each, each marked by [otherTransport] with the other. Sorted by name, then transport.
+ * the addresses of the one found first; the same laptop on Wi-Fi and over USB stays two entries, one to connect
+ * on each, which [laptopRows] folds into its one row. Sorted by name, then transport.
  *
  * Addresses are never pooled across announcements: anything on the LAN can announce a real laptop's id, and
  * pooling would let it add its own address to that laptop's row. A row's addresses all come from one service.
@@ -81,12 +81,6 @@ internal fun mergeFound(all: List<Found>): List<Found> =
                 group.firstNotNullOfOrNull { it.version },
             )
         }.sortedWith(compareBy({ it.name.lowercase() }, { it.transport }))
-
-/** The other transport [row]'s laptop is also found on, if any. */
-internal fun otherTransport(
-    row: Found,
-    all: List<Found>,
-): Transport? = all.firstOrNull { it.idHex == row.idHex && it.transport != row.transport }?.transport
 
 /**
  * Android 17 keeps an app targeting API 37 off the local network until it holds this runtime permission, of the

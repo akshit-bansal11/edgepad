@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad
 
 import android.content.Context
 import android.content.SharedPreferences
+import me.akshitbansal.edgepad.link.migrateSaved
 import me.akshitbansal.edgepad.screens.FnMode
 import me.akshitbansal.edgepad.screens.KeyboardSize
 import me.akshitbansal.edgepad.surface.CornerSlots
@@ -49,12 +50,20 @@ class Settings(
             }
             edit.apply()
         }
+        // One remembered laptop until the phone could hold several. One edit, so neither key changes without the other.
+        prefs.getString(KEY_LAPTOP, null)?.let { old ->
+            prefs
+                .edit()
+                .putString(KEY_SAVED_LAPTOPS, migrateSaved(savedLaptops, old))
+                .remove(KEY_LAPTOP)
+                .apply()
+        }
     }
 
-    /** The Bluetooth address of the laptop to reconnect to, once one has been chosen. */
-    var laptop: String?
-        get() = prefs.getString(KEY_LAPTOP, null)
-        set(value) = prefs.edit().putString(KEY_LAPTOP, value).apply()
+    /** The laptops to remember, in the text [me.akshitbansal.edgepad.link.encodeSaved] writes; the first was active. */
+    var savedLaptops: String
+        get() = prefs.getString(KEY_SAVED_LAPTOPS, "").orEmpty()
+        set(value) = prefs.edit().putString(KEY_SAVED_LAPTOPS, value).apply()
 
     /**
      * The shapes the user has drawn and what each one runs, in the text [me.akshitbansal.edgepad.surface.Shapes]
@@ -73,7 +82,7 @@ class Settings(
      */
     var splitCorners by flag("splitCorners", false)
 
-    /** Connect to the remembered laptop when the app opens, and retry after a dropped link. */
+    /** Connect to the remembered laptops when the app opens, and retry after a dropped link. */
     var reconnect by flag("reconnect", true)
 
     var haptics by flag("haptics", true)
@@ -434,6 +443,7 @@ class Settings(
         private const val NONE = NO_DIAL
         private const val IMAGE_FILE = "background.img"
         private const val KEY_LAPTOP = "laptop"
+        private const val KEY_SAVED_LAPTOPS = "savedLaptops"
         private const val KEY_SHAPES = "shapes"
         private const val KEY_LAST_UPDATE_CHECK = "lastUpdateCheck"
         private const val KEY_LATEST_VERSION = "latestVersion"

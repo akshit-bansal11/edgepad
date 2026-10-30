@@ -46,6 +46,9 @@ class LaptopConnectionsTest {
 
     private fun linksTo(n: Int) = made.count { it.target.key == id(n) }
 
+    private fun rowOf(n: Int) =
+        laptopRows(emptyList(), manager.laptops, emptyList(), emptyList()).first { id(n) in it.keys }
+
     @Test
     fun sendGoesOnlyToTheSelectedLink() {
         val a = up(1)
@@ -320,6 +323,187 @@ class LaptopConnectionsTest {
     }
 
     @Test
+    fun threeLaptopsLosingOneNeverTouchesTheSelected() {
+        val a = up(1)
+        val b = up(2)
+        val c = up(3)
+        manager.select(id(2))
+        log.lines.clear()
+        a.drop()
+        assertSame(laptop(2), manager.selected)
+        assertTrue(laptop(1).reconnecting)
+        assertTrue(b.connected)
+        assertTrue(c.connected)
+        assertEquals(listOf("closed ${id(1)}"), log.lines)
+    }
+
+    @Test
+    fun forgettingTheActiveOfThreeMovesToTheNextConnectedThenToNone() {
+        up(1).drop()
+        manager.select(id(1))
+        val b = up(2)
+        up(3)
+        manager.select(id(2))
+        manager.forget(id(2))
+        assertEquals(LaptopLink.Cause.ENDED, b.closedWith)
+        assertSame(laptop(3), manager.selected)
+        manager.forget(id(3))
+        assertNull(manager.selected)
+    }
+
+    @Test
+    fun theOldLaptopHearsReleasesBeforeTheSelectionMoves() {
+        val a = up(1)
+        val b = up(2)
+        log.onDeselecting = { manager.send(Frame.Key(7, false)) }
+        manager.select(id(2))
+        assertEquals(listOf<Frame>(Frame.Key(7, false)), a.sent)
+        assertTrue(b.sent.isEmpty())
+        assertEquals(1, log.deselected)
+    }
+
+    @Test
+    fun disconnectingTheSelectedMovesToTheNextConnected() {
+        up(1)
+        up(2)
+        manager.disconnect(id(1))
+        assertSame(laptop(2), manager.selected)
+        assertEquals(2, manager.laptops.size)
+    }
+
+    @Test
+    fun aDisconnectWithNoOtherKeepsTheSelection() {
+        up(1)
+        manager.disconnect(id(1))
+        assertSame(laptop(1), manager.selected)
+    }
+
+    @Test
+    fun aSelectedLaptopThatFailsForGoodGivesWayToAConnectedOne() {
+        val first = connect(1)
+        up(2)
+        first.drop(LaptopLink.Cause.REFUSED)
+        assertSame(laptop(2), manager.selected)
+        assertTrue(laptop(1).failed)
+    }
+
+    @Test
+    fun theFirstLaptopUpTakesOverFromASelectedOneThatGaveUp() {
+        connect(1).drop(LaptopLink.Cause.UNREACHABLE)
+        assertSame(laptop(1), manager.selected)
+        up(2)
+        assertSame(laptop(2), manager.selected)
+    }
+
+    @Test
+    fun aLostSelectedLaptopKeepsTheSelectionWhileItRetries() {
+        up(1).drop()
+        up(2)
+        assertSame(laptop(1), manager.selected)
+    }
+
+    @Test
+    fun aTapThatAsksForTheSelectionTakesIt() {
+        up(1)
+        manager.connect(net(2), "Laptop 2", Transport.WIFI, tapped = true, select = true)
+        assertSame(laptop(2), manager.selected)
+    }
+
+    @Test
+    fun aSecondTransportLandsOnTheSameRecordAndReplacesItsLink() {
+        val wifi = up(1)
+        manager.connect(net(1), "Laptop 1", Transport.USB)
+        assertEquals(1, manager.laptops.size)
+        assertEquals(LaptopLink.Cause.ENDED, wifi.closedWith)
+        assertEquals(Transport.USB, laptop(1).kind)
+    }
+
+    @Test
+    fun aLaptopClaimingAnotherLaptopsIdChangesNothing() {
+        val wifi = up(1)
+        // Stands in for a Bluetooth link, which no unit test can build: nothing here has proven the id it names.
+        val claimant = up(2)
+        log.lines.clear()
+        claimant.events.onFrame(Frame.Text(TextKind.DEVICE.id, "${"01".repeat(16)}/windows/Desk"))
+        assertTrue(wifi.connected)
+        assertTrue(claimant.connected)
+        assertNull(wifi.closedWith)
+        assertEquals(2, manager.laptops.size)
+        assertSame(laptop(1), manager.selected)
+        assertEquals(listOf("frame ${id(2)}"), log.lines)
+        assertEquals(2, laptopRows(emptyList(), manager.laptops, emptyList(), emptyList()).size)
+    }
+
+    @Test
+    fun aPinFromALaptopNotSelectedWaitsOnItsRowAndATimeoutFailsOnlyThatLaptop() {
+        val a = up(1)
+        val pin = connect(2)
+        pin.events.onPinRequest(3)
+        assertEquals(Laptop.Ask.PIN, laptop(2).asking)
+        assertEquals(RowStatus.ASKING, rowOf(2).status)
+        assertSame(laptop(1), manager.selected)
+        pin.drop(LaptopLink.Cause.NO_ANSWER)
+        assertNull(laptop(2).asking)
+        assertEquals(RowStatus.FAILED, rowOf(2).status)
+        assertTrue(a.connected)
+        assertSame(laptop(1), manager.selected)
+    }
+
+    @Test
+    fun aPairingCodeWaitsOnItsLaptopWithItsOwnDeadline() {
+        up(1)
+        val pairing = connect(2)
+        val code = Sas("123456")
+        pairing.events.onPairingCode(code)
+        assertSame(code, laptop(2).pairCode)
+        assertEquals(LaptopConnections.PAIR_CODE_MS, laptop(2).pairDeadline)
+        assertEquals(Laptop.Ask.PAIR_CODE, laptop(2).asking)
+        pairing.events.onPairingConfirm()
+        assertTrue(laptop(2).pairAsking)
+        pairing.accept()
+        assertNull(laptop(2).asking)
+        assertFalse(laptop(2).pairAsking)
+    }
+
+    @Test
+    fun aRowFollowsItsLaptop() {
+        up(1)
+        val b = connect(2)
+        assertEquals(RowStatus.CONNECTED, rowOf(1).status)
+        assertEquals(RowStatus.CONNECTING, rowOf(2).status)
+        b.events.onAwaitingLaptop()
+        assertEquals(RowStatus.AWAITING, rowOf(2).status)
+        b.accept()
+        b.drop()
+        assertEquals(RowStatus.RECONNECTING, rowOf(2).status)
+    }
+
+    @Test
+    fun shutDownClosesEverythingWithNoEvent() {
+        val a = up(1)
+        val b = up(2)
+        log.lines.clear()
+        manager.shutDown()
+        assertEquals(LaptopLink.Cause.ENDED, a.closedWith)
+        assertEquals(LaptopLink.Cause.ENDED, b.closedWith)
+        assertTrue(log.lines.isEmpty())
+        assertTrue(manager.laptops.isEmpty())
+        assertNull(manager.selected)
+    }
+
+    @Test
+    fun aSelectionChangeSpeedsUpTheNewLaptopsPings() {
+        up(1)
+        val b = up(2)
+        manager.fastPing = true
+        scheduler.advance(0L)
+        val before = b.sent.size
+        manager.select(id(2))
+        scheduler.advance(LaptopConnections.PING_FAST_MS * 2)
+        assertEquals(before + 3, b.sent.size)
+    }
+
+    @Test
     fun aPinQuestionDuringARetryEndsTheRetrying() {
         up(1).drop()
         scheduler.advance(LaptopConnections.RETRY_DELAY_MS)
@@ -370,6 +554,8 @@ class LaptopConnectionsTest {
 
     private class Recorder : LaptopConnections.Events {
         val lines = ArrayList<String>()
+        var onDeselecting: () -> Unit = {}
+        var deselected = 0
 
         override fun onConnecting(laptop: Laptop) {
             lines.add("connecting ${laptop.id}")
@@ -417,6 +603,11 @@ class LaptopConnectionsTest {
             closure: LaptopLink.Closure,
         ) {
             lines.add("closed ${laptop.id}")
+        }
+
+        override fun onDeselecting(laptop: Laptop) {
+            deselected++
+            onDeselecting()
         }
 
         override fun onSelected(laptop: Laptop?) {

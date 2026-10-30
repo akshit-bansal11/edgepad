@@ -85,6 +85,12 @@ class LaptopConnections(
             closure: LaptopLink.Closure,
         )
 
+        /**
+         * [laptop] is about to stop being [selected], and still is: the last moment a release can reach it. Every
+         * change of selection comes through here first.
+         */
+        fun onDeselecting(laptop: Laptop)
+
         /** [selected] changed. Null when no laptop is left to select. */
         fun onSelected(laptop: Laptop?)
     }
@@ -120,15 +126,20 @@ class LaptopConnections(
         }
 
     /**
-     * Connects to [target], ending any link that laptop already had; other laptops are left alone. Selects it only
-     * when nothing is selected. [tapped] is the owner's own tap, which starts a fresh set of attempts and earns the
-     * one quick retry; a retry or the automatic connect at start never does.
+     * Connects to [target], ending any link that laptop already had; other laptops are left alone. Selects it when
+     * nothing is selected or [select] says so. [tapped] is the owner's own tap, which starts a fresh set of attempts
+     * and earns the one quick retry; a retry or the automatic connect at start never does.
+     *
+     * Only [Target.key] finds a record. TEXT DEVICE is a claim, and over Bluetooth nothing proves it, so what a laptop
+     * says of itself never ends a link, removes a record or moves the selection: a laptop reached over Bluetooth and
+     * the network is two records. Wi-Fi and USB share a key because EDGL1 verifies that pinned id on every connect.
      */
     fun connect(
         target: Target,
         name: String,
         kind: Transport,
         tapped: Boolean = false,
+        select: Boolean = false,
     ) {
         val laptop =
             all.firstOrNull { it.id == target.key }
@@ -137,14 +148,16 @@ class LaptopConnections(
         laptop.kind = kind
         laptop.reconnecting = false
         if (tapped) laptop.attempts = 0
-        if (selected == null) change(laptop)
+        if (selected == null || (select && laptop !== selected)) change(laptop)
         open(laptop, target)
         laptop.quickRetryLeft = tapped
     }
 
-    /** Ends [id]'s link and its retries. The laptop stays listed. */
+    /** Ends [id]'s link and its retries. The laptop stays listed; if it was [selected], the next connected one is. */
     fun disconnect(id: String) {
-        find(id)?.let(::end)
+        val laptop = find(id) ?: return
+        moveOn(laptop)
+        end(laptop)
     }
 
     /** [disconnect], and off the list. If it was [selected], the next connected laptop is, or none. */
@@ -191,6 +204,7 @@ class LaptopConnections(
             laptop.link = null
             attempt.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
         }
+        moveOn(laptop)
     }
 
     /**
@@ -201,12 +215,43 @@ class LaptopConnections(
         all.forEach { it.link?.close(LaptopLink.Closure(cause)) }
     }
 
+    /** The app is going away: every link closes and no event follows, for an activity that is no longer there. */
+    fun shutDown() {
+        for (laptop in all) {
+            stopRetry(laptop)
+            stopPinger(laptop)
+            val link = laptop.link
+            // Cleared first, as in [open]: this link's own close is then an event for a closed link.
+            laptop.link = null
+            link?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
+        }
+        all.clear()
+        selected = null
+    }
+
     private fun find(id: String): Laptop? = all.firstOrNull { it.id == id }
 
+    /** The only place [selected] moves. */
     private fun change(laptop: Laptop?) {
+        selected?.let(events::onDeselecting)
         selected = laptop
         events.onSelected(laptop)
+        // The tick waiting for this laptop may be a slow one.
+        if (fastPing && laptop?.connected == true) startPinger(laptop)
     }
+
+    /** [laptop] is done with for now: if the screens were on it, they go to the next connected laptop, if any. */
+    private fun moveOn(laptop: Laptop) {
+        if (laptop === selected) all.firstOrNull { it !== laptop && it.connected }?.let(::change)
+    }
+
+    private fun clearAsking(laptop: Laptop) {
+        laptop.pinAsked = false
+        laptop.pairCode = null
+        laptop.pairAsking = false
+        laptop.awaiting = false
+    }
+
 
     private fun end(laptop: Laptop) {
         stopRetry(laptop)
@@ -221,6 +266,8 @@ class LaptopConnections(
         stopRetry(laptop)
         stopPinger(laptop)
         laptop.quickRetryLeft = false
+        laptop.failed = false
+        clearAsking(laptop)
         val old = laptop.link
         // Cleared first, so the old link's own close is an event for a closed link.
         laptop.link = null
@@ -253,6 +300,8 @@ class LaptopConnections(
         stopPinger(laptop)
         laptop.link = null
         laptop.state.forgetMacroOpen()
+        clearAsking(laptop)
+        laptop.failed = closure.cause != LaptopLink.Cause.ENDED
         when {
             // A link ended on purpose starts the next one with a full set of attempts.
             closure.cause == LaptopLink.Cause.ENDED -> {
@@ -280,6 +329,8 @@ class LaptopConnections(
                 attemptIn(laptop, QUICK_RETRY_MS)
             }
         }
+        // Before the event, so a laptop that failed for good is reported as one no longer on screen.
+        if (laptop.failed && laptop.idle) moveOn(laptop)
         events.onClosed(laptop, closure)
     }
 
@@ -345,12 +396,17 @@ class LaptopConnections(
             if (!current) return
             laptop.connectedAt = scheduler.now()
             laptop.reconnecting = false
+            clearAsking(laptop)
             startPinger(laptop)
+            // The selected one gave up or never answered: the first laptop to come up takes over.
+            if (selected?.idle == true) change(laptop)
             events.onConnected(laptop)
         }
 
         override fun onAwaitingLaptop() {
-            if (current) events.onAwaitingLaptop(laptop)
+            if (!current) return
+            laptop.awaiting = true
+            events.onAwaitingLaptop(laptop)
         }
 
         /** From here the owner is answering, so a failure is theirs to see and not one to retry. */
@@ -358,6 +414,8 @@ class LaptopConnections(
             if (!current) return
             laptop.pinAttemptsLeft = attemptsLeft
             laptop.pinAnswered = false
+            laptop.pinAsked = true
+            laptop.awaiting = false
             laptop.reconnecting = false
             events.onPinRequest(laptop)
         }
@@ -365,11 +423,17 @@ class LaptopConnections(
         override fun onPairingCode(code: Sas) {
             if (!current) return
             laptop.reconnecting = false
+            laptop.awaiting = false
+            laptop.pairCode = code
+            laptop.pairDeadline = scheduler.now() + PAIR_CODE_MS
+            laptop.pairAsking = false
             events.onPairingCode(laptop, code)
         }
 
         override fun onPairingConfirm() {
-            if (current) events.onPairingConfirm(laptop)
+            if (!current) return
+            laptop.pairAsking = true
+            events.onPairingConfirm(laptop)
         }
 
         override fun onFrame(frame: Frame) {
@@ -398,5 +462,8 @@ class LaptopConnections(
         const val STABLE_LINK_MS = 5_000L
         const val PING_FAST_MS = 500L
         const val PING_SLOW_MS = 5_000L
+
+        /** The pairing code's countdown, the same 90 s the network transport waits for the laptop's answer. */
+        const val PAIR_CODE_MS = 90_000L
     }
 }

@@ -24,6 +24,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
@@ -41,24 +42,31 @@ import me.akshitbansal.edgepad.link.HostPort
 import me.akshitbansal.edgepad.link.Laptop
 import me.akshitbansal.edgepad.link.LaptopConnections
 import me.akshitbansal.edgepad.link.LaptopLink
+import me.akshitbansal.edgepad.link.LaptopRow
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.LinkTransport
 import me.akshitbansal.edgepad.link.LocalNetwork
 import me.akshitbansal.edgepad.link.MainScheduler
 import me.akshitbansal.edgepad.link.PickerHint
+import me.akshitbansal.edgepad.link.SavedLaptop
 import me.akshitbansal.edgepad.link.Sweep
 import me.akshitbansal.edgepad.link.Target
 import me.akshitbansal.edgepad.link.TcpTransport
 import me.akshitbansal.edgepad.link.TetherProbe
 import me.akshitbansal.edgepad.link.Transport
+import me.akshitbansal.edgepad.link.decodeSaved
+import me.akshitbansal.edgepad.link.encodeSaved
+import me.akshitbansal.edgepad.link.forgotten
 import me.akshitbansal.edgepad.link.laptopLinks
+import me.akshitbansal.edgepad.link.laptopRows
 import me.akshitbansal.edgepad.link.mergeFound
 import me.akshitbansal.edgepad.link.net.LinkKeys
 import me.akshitbansal.edgepad.link.net.Sas
-import me.akshitbansal.edgepad.link.otherTransport
 import me.akshitbansal.edgepad.link.parseHostPort
 import me.akshitbansal.edgepad.link.pickerHint
 import me.akshitbansal.edgepad.link.probeAddress
+import me.akshitbansal.edgepad.link.promoted
+import me.akshitbansal.edgepad.link.rememberLaptop
 import me.akshitbansal.edgepad.link.snapUp
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.Feature
@@ -109,22 +117,28 @@ import kotlin.concurrent.thread
  * whole set and [goTo] the only way between them — there are no fragments and no back stack, so
  * [navigateBack] is where every screen's way out is written down.
  *
- * The link and what the laptop has reported live in [manager], which outlives the activity across a
+ * The links and what each laptop has reported live in [manager], which outlives the activity across a
  * rotation or a theme change, through [onRetainNonConfigurationInstance]. That matters because changing the
  * theme or the orientation setting rebuilds the activity, and a link dropped there would make every settings
- * change look like a disconnection. There is still one laptop at a time: [connect] drops any other, so the
- * manager's list holds one laptop at most and every screen draws [selected].
+ * change look like a disconnection.
  *
- * The link against the activity's lifecycle, which is the whole of it:
+ * Several laptops stay connected at once, and every screen draws and sends to [selected]. A laptop's events
+ * reach the screens only while it is selected; any other shows on its row in Devices and nowhere else, so
+ * losing it never means RECONNECTING and its PIN or pairing code waits there until the row is tapped. A
+ * change of selection goes through [onDeselecting] then [onSelected]: the first lets go of everything on
+ * the old laptop while frames still reach it, and the second rebuilds the screen on the new one. A view
+ * left over from before a change is built on [boundSend], so nothing late can land on the wrong laptop.
  *
- * - Started (onStart to onStop): the link is used, and pinged every [LaptopConnections.PING_FAST_MS] on a
- *   screen that shows the round trip and every [LaptopConnections.PING_SLOW_MS] elsewhere, where the ping
- *   only proves the link is still there.
+ * The links against the activity's lifecycle, which is the whole of it:
+ *
+ * - Started (onStart to onStop): the links are used; the selected one is pinged every
+ *   [LaptopConnections.PING_FAST_MS] on a screen that shows the round trip, and the rest every
+ *   [LaptopConnections.PING_SLOW_MS], where the ping only proves the link is still there.
  * - Stopped, and not for a rebuild: whatever a finger holds is let go at once ([releaseHeldInput]); the
- *   link stays up for [LINGER_MS], pinged slowly. The image picker, Bluetooth settings, the documentation
+ *   links stay up for [LINGER_MS], pinged slowly. The image picker, Bluetooth settings, the documentation
  *   in a browser and the screen going off are all a stop, and until 3.2 every one of them dropped the link.
- * - Started again inside [LINGER_MS]: nothing happened; the link carries on.
- * - [LINGER_MS] passes: the link closes as [LaptopLink.Cause.ENDED], which is what onStop did at once
+ * - Started again inside [LINGER_MS]: nothing happened; the links carry on.
+ * - [LINGER_MS] passes: every link closes as [LaptopLink.Cause.ENDED], which is what onStop did at once
  *   before 3.2.
  * - Destroyed, and not for a rebuild (backed out of, or finished): closed at once.
  * - Rebuilt: [manager] is handed over in [Retained] and its events swapped in onCreate. It reads them when
@@ -169,10 +183,6 @@ class MainActivity :
         val manager: LaptopConnections,
         val screen: Screen,
         val settingsReturn: Screen,
-        val pairCode: Sas?,
-        val pairDeadline: Long,
-        val pairAsking: Boolean,
-        val lastTarget: Target?,
     )
 
     private val handler = Handler(Looper.getMainLooper())
@@ -211,15 +221,6 @@ class MainActivity :
     private lateinit var gamepads: GamepadStore
     private var started = false
 
-    /** The code a network pairing shows, and when its countdown ends; null when no pairing is waiting. */
-    private var pairCode: Sas? = null
-    private var pairDeadline = 0L
-
-    /** True once the laptop answered the pairing and the owner is asked whether it accepted the code. */
-    private var pairAsking = false
-
-    /** What the current or last connect aimed at, until Forget; the automatic connect at start goes back to it. */
-    private var lastTarget: Target? = null
     private var backCallback: Any? = null
 
     /** Paired devices of every kind in the list, not only the ones that say they are computers. */
@@ -288,7 +289,11 @@ class MainActivity :
         picker =
             PickerScreen(
                 ui,
-                onConnect = ::connectTo,
+                onTap = ::tapDevice,
+                onVia = { device, transport -> connectTo(device.row, transport) },
+                onMakeActive = { device -> device.row.laptop?.let { manager.select(it.id) } },
+                onDisconnect = ::disconnectDevice,
+                onForget = { device -> forgetLaptop(device.row.laptop, device.row.keys) },
                 onOpenControls = { goTo(Screen.SURFACE) },
                 onBluetoothSettings = ::openBluetoothSettings,
                 onSettings = ::openSettings,
@@ -318,10 +323,6 @@ class MainActivity :
             settingsReturn = retained.settingsReturn
             // Carried over, or the readout would stand blank after a rotation and then restart from one sample.
             picker.setRtt(selected?.rtt?.median() ?: Double.NaN)
-            pairCode = retained.pairCode
-            pairDeadline = retained.pairDeadline
-            pairAsking = retained.pairAsking
-            lastTarget = retained.lastTarget
         }
         goTo(
             when {
@@ -332,16 +333,7 @@ class MainActivity :
         )
     }
 
-    override fun onRetainNonConfigurationInstance(): Any =
-        Retained(
-            manager,
-            screen,
-            settingsReturn,
-            pairCode,
-            pairDeadline,
-            pairAsking,
-            lastTarget,
-        )
+    override fun onRetainNonConfigurationInstance(): Any = Retained(manager, screen, settingsReturn)
 
     override fun onStart() {
         super.onStart()
@@ -356,8 +348,7 @@ class MainActivity :
         if (screen == Screen.ANNOTATE && !annotating) goTo(Screen.ANNOTATE)
         // The same for the macro grid: onStop told the laptop to stop looking.
         if (screen == Screen.MACROS) watchMacros()
-        val waiting = selected?.link != null || screen == Screen.RECONNECTING
-        if (!waiting && screen != Screen.ONBOARDING && settings.reconnect) rememberedTarget()?.let { connect(it) }
+        if (screen != Screen.ONBOARDING && settings.reconnect) connectSaved()
         if (screen == Screen.RECONNECTING) handler.post(ticker)
         refreshPicker()
         startScan()
@@ -377,16 +368,16 @@ class MainActivity :
         handler.removeCallbacks(ticker)
         stopScan()
         // A detour keeps the link for a while, and a rebuild keeps it outright; see the class comment.
-        if (!isChangingConfigurations && selected?.link != null) handler.postDelayed(linger, LINGER_MS)
+        if (!isChangingConfigurations && manager.laptops.any { it.link != null }) {
+            handler.postDelayed(linger, LINGER_MS)
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         // A rebuilt activity's waiting ticks go with it; the new one starts its own in onStart.
         handler.removeCallbacksAndMessages(null)
-        if (isChangingConfigurations) return
-        // Forgotten, not just closed: their closing is then an event this dead activity ignores.
-        dropLaptops()
+        if (!isChangingConfigurations) manager.shutDown()
     }
 
     /** Tells the laptop to take its overlay down, once per session, and not at all when there is no link to tell. */
@@ -517,13 +508,15 @@ class MainActivity :
         controls = null
         handler.removeCallbacks(ticker)
         if (next == Screen.PAIRING) startScan() else stopScan()
+        val send = boundSend()
+        val sendKey = { code: Int, down: Boolean -> send(Frame.Key(code, down)) }
         val view: View =
             when (next) {
                 Screen.ONBOARDING -> {
                     GuideScreen.build(ui, settings, intro = true, onFinish = {
                         settings.onboarded = true
                         goTo(Screen.PAIRING)
-                        if (settings.reconnect) rememberedTarget()?.let { connect(it) }
+                        if (settings.reconnect) connectSaved()
                     }) { navigateBack() }
                 }
 
@@ -641,11 +634,11 @@ class MainActivity :
                 }
 
                 Screen.CAPTURE -> {
-                    CaptureScreen(ui, settings, state, manager::send) { navigateBack() }.view
+                    CaptureScreen(ui, settings, state, send) { navigateBack() }.view
                 }
 
                 Screen.ANNOTATE -> {
-                    AnnotateScreen(ui, state, manager::send) { navigateBack() }
+                    AnnotateScreen(ui, state, send) { navigateBack() }
                         .also { annotate = it }
                         .view
                 }
@@ -657,8 +650,8 @@ class MainActivity :
                         settings.keyboardSize,
                         settings.functionKeys,
                         state.os,
-                        onKey = ::key,
-                        onAction = { manager.send(it.frame()) },
+                        onKey = sendKey,
+                        onAction = { send(it.frame()) },
                         onSettings = { goTo(Screen.KEYBOARD_SETTINGS) },
                     ) { navigateBack() }
                 }
@@ -672,8 +665,8 @@ class MainActivity :
                         ui,
                         gamepads.current,
                         state.padStatus,
-                        onKey = ::key,
-                        onPad = manager::send,
+                        onKey = sendKey,
+                        onPad = send,
                         onBack = { navigateBack() },
                         onSettings = { goTo(Screen.GAMEPAD_SETTINGS) },
                     ).also { gamepad = it }.view
@@ -746,10 +739,10 @@ class MainActivity :
                 Screen.PAIR_CODE -> {
                     PairCodeScreen(
                         ui,
-                        pairCode?.display().orEmpty(),
+                        selected?.pairCode?.display().orEmpty(),
                         selected?.name.orEmpty(),
-                        pairDeadline,
-                        pairAsking,
+                        selected?.pairDeadline ?: 0L,
+                        selected?.pairAsking == true,
                         onYes = { selected?.link?.answerPairing(true) },
                         onCancel = { navigateBack() },
                     ).view
@@ -760,7 +753,7 @@ class MainActivity :
                         this,
                         settings,
                         state,
-                        manager::send,
+                        send,
                         { goTo(Screen.SURFACE_SETTINGS) },
                         onOpenControls = ::openControls,
                     ).also { surface = it }
@@ -1023,12 +1016,14 @@ class MainActivity :
         Toast.makeText(this, text, Toast.LENGTH_LONG).show()
     }
 
-    /** A key pressed or released on the keyboard or gamepad screen. */
-    private fun key(
-        code: Int,
-        down: Boolean,
-    ) {
-        manager.send(Frame.Key(code, down))
+    /**
+     * What a screen built now sends through: to [selected], and only while that is still the laptop it was built for.
+     * The screen goes when the selection does, but a tick of a dial or a pad already posted would otherwise land on the
+     * new laptop; it is dropped instead.
+     */
+    private fun boundSend(): (Frame) -> Unit {
+        val laptop = selected
+        return { frame -> if (selected === laptop) manager.send(frame) }
     }
 
     /**
@@ -1185,12 +1180,20 @@ class MainActivity :
         // since asking again would then be refused without a word.
         if (adapter != null && adapter.isEnabled && !permitted && !askedPermission) askPermission()
         val paired = bonded()
-        val laptops = paired.filter { isComputer(it) || it.address == settings.laptop }
+        val remembered = saved
+        val addresses = remembered.map { it.btAddress }
+        val laptops = paired.filter { isComputer(it) || it.address in addresses }
         val shown = if (showAllDevices) paired else laptops
         if (!permissionPending && !askedLocalNetwork && LocalNetwork.required && !LocalNetwork.granted(this)) {
             askLocalNetwork()
         }
-        val network = mergeFound(wifiFound + usbFound)
+        val rows =
+            laptopRows(
+                remembered,
+                manager.laptops,
+                shown.map { it.address to nameOf(it) },
+                mergeFound(wifiFound + usbFound),
+            )
         val hint =
             pickerHint(
                 permissionPending = permissionPending,
@@ -1199,15 +1202,11 @@ class MainActivity :
                 localNetworkGranted = LocalNetwork.granted(this),
                 usbCable = usbCable,
                 usbUp = sweep?.let { it.usb != null },
-                anyDevices = network.isNotEmpty() || shown.isNotEmpty(),
+                anyDevices = rows.isNotEmpty(),
             )
-        val devices =
-            (shown.map { PickerScreen.Device(it.address, nameOf(it)) } + network.map { deviceOf(it, network) })
-                .sortedBy { it.name.lowercase() }
         picker.showDevices(
-            devices,
-            settings.laptop,
-            if (connected) selected?.address else null,
+            rows.map { PickerScreen.Device(it, it.laptop != null && it.laptop === selected) },
+            connected,
             settings.reconnect,
             hidden = paired.size - laptops.size,
             showingAll = showAllDevices,
@@ -1339,14 +1338,28 @@ class MainActivity :
             false
         }
 
-    private fun rememberedDevice(): BluetoothDevice? {
-        val address = settings.laptop ?: return null
-        return bonded().firstOrNull { it.address == address }
-    }
+    /** The laptops to remember, as Settings holds them. */
+    private var saved: List<SavedLaptop>
+        get() = decodeSaved(settings.savedLaptops)
+        set(value) {
+            settings.savedLaptops = encodeSaved(value)
+        }
 
-    /** The network laptop last connected to, or else the remembered Bluetooth one if it is still bonded. */
-    private fun rememberedTarget(): Target? =
-        lastTarget as? Target.Network ?: rememberedDevice()?.let { Target.Bluetooth(it) }
+    /**
+     * Every remembered laptop that connects on its own and has nothing going on, each over the transport it last used,
+     * active one first. Lost ones are left to their retries.
+     */
+    private fun connectSaved() {
+        val paired = bonded()
+        for (entry in saved.filter { it.autoConnect }) {
+            val live = manager.laptops.firstOrNull { it.id in entry.keys }
+            if (live != null && !live.idle) continue
+            val device = paired.firstOrNull { it.address == entry.btAddress }?.let { Target.Bluetooth(it) }
+            val network = entry.networkTarget()
+            val target = if (entry.kind == Transport.BLUETOOTH) device ?: network else network ?: device
+            target?.let { connect(it, entry.kind.takeUnless { kind -> kind == Transport.BLUETOOTH }) }
+        }
+    }
 
     private fun nameOf(device: BluetoothDevice): String =
         try {
@@ -1355,42 +1368,69 @@ class MainActivity :
             device.address
         }
 
-    /** A row for a laptop found on the network; [all] is every row, to say where else the same laptop is. */
-    private fun deviceOf(
-        found: Found,
-        all: List<Found>,
-    ): PickerScreen.Device {
-        val host =
-            found.hosts
-                .firstOrNull()
-                ?.hostAddress
-                .orEmpty()
-        return PickerScreen.Device(
-            address = targetOf(found).key,
-            name = found.name,
-            transport = found.transport,
-            detail = host,
-            found = found,
-            alsoVia = otherTransport(found, all),
-        )
-    }
-
     private fun targetOf(found: Found) = Target.Network(found.laptopId, found.name, found.hosts, found.port)
 
-    private fun connectTo(device: PickerScreen.Device) {
+    /** A tap on a row: the prompt it is waiting on, the controls of a connected laptop, or else a connect. */
+    private fun tapDevice(device: PickerScreen.Device) {
+        val row = device.row
+        val laptop = row.laptop
+        val ask = laptop?.asking
+        when {
+            laptop == null -> {
+                connectTo(row, row.via)
+            }
+
+            ask != null -> {
+                manager.select(laptop.id)
+                goTo(if (ask == Laptop.Ask.PIN) Screen.PIN else Screen.PAIR_CODE)
+            }
+
+            laptop.connected -> {
+                manager.select(laptop.id)
+                goTo(Screen.SURFACE)
+            }
+
+            else -> {
+                connectTo(row, row.via)
+            }
+        }
+    }
+
+    /** The row's laptop over [via]. Connected already, its link there is replaced by this one. */
+    private fun connectTo(
+        row: LaptopRow,
+        via: Transport?,
+    ) {
         // A tap starts a fresh set of attempts and earns the quick retry: the first connect after a long idle often
         // fails once and then works.
-        val found = device.found
-        if (found != null) {
-            connect(targetOf(found), found.transport, tapped = true)
-            return
-        }
-        val bonded = bonded().firstOrNull { it.address == device.address }
-        if (bonded == null) {
+        val target =
+            when (via) {
+                null -> {
+                    null
+                }
+
+                Transport.BLUETOOTH -> {
+                    bonded().firstOrNull { it.address == row.bluetooth }?.let { Target.Bluetooth(it) }
+                }
+
+                else -> {
+                    row.network.firstOrNull { it.transport == via }?.let(::targetOf) ?: row.saved?.networkTarget()
+                }
+            }
+        val chosen = target ?: row.laptop?.target
+        if (chosen == null) {
             picker.setMessage(getString(R.string.not_paired))
         } else {
-            connect(Target.Bluetooth(bonded), tapped = true)
+            connect(chosen, via, tapped = true)
         }
+    }
+
+    /** It stays listed and off the automatic connect, until the next time it is connected to. */
+    private fun disconnectDevice(device: PickerScreen.Device) {
+        val row = device.row
+        saved = saved.map { if (it.isIn(row.keys)) it.copy(autoConnect = false) else it }
+        row.laptop?.let { manager.disconnect(it.id) }
+        refreshDevices()
     }
 
     private fun askLocalNetwork() {
@@ -1452,32 +1492,45 @@ class MainActivity :
     }
 
     /**
-     * One laptop at a time: a connect ends whatever link there was first, and what another laptop reported goes with
-     * it, because that says nothing about this one. [via] is how a network laptop was found; a reconnect keeps the
-     * last answer.
+     * Leaves every other laptop alone. A tap with no working laptop on screen takes the selection, so what was tapped
+     * is what opens; otherwise the new laptop waits on its row. [via] is how a network laptop was found.
      */
     private fun connect(
         target: Target,
         via: Transport? = null,
         tapped: Boolean = false,
     ) {
-        dropLaptops(keep = target.key)
+        val select = tapped && !connected
         when (target) {
             is Target.Bluetooth -> {
-                settings.laptop = target.device.address
-                manager.connect(target, nameOf(target.device), Transport.BLUETOOTH, tapped)
+                manager.connect(target, nameOf(target.device), Transport.BLUETOOTH, tapped, select)
             }
 
             is Target.Network -> {
-                manager.connect(target, target.name, via ?: selected?.kind ?: Transport.WIFI, tapped)
+                manager.connect(target, target.name, via ?: Transport.WIFI, tapped, select)
             }
         }
-        lastTarget = selected?.target
     }
 
-    /** Takes every laptop but [keep] off the manager's list. It holds one at most; see the class comment. */
-    private fun dropLaptops(keep: String? = null) {
-        manager.laptops.filter { it.id != keep }.forEach { manager.forget(it.id) }
+    /** [laptop] works, so it is remembered, under the key it was reached by; TEXT DEVICE brings its real name here. */
+    private fun remember(laptop: Laptop) {
+        val target = laptop.target
+        val network = target as? Target.Network
+        val entry =
+            SavedLaptop(
+                id = target.key,
+                kind = laptop.kind,
+                name = laptop.state.laptopName ?: laptop.name,
+                btAddress = (target as? Target.Bluetooth)?.device?.address.orEmpty(),
+                hosts = network?.hosts?.mapNotNull { it.hostAddress }.orEmpty(),
+                port = network?.port ?: 0,
+            )
+        saved = rememberLaptop(saved, entry, first = laptop === selected)
+    }
+
+    /** Devices follows every laptop's state, the selected one's or not. */
+    private fun refreshDevices() {
+        if (screen == Screen.PAIRING) refreshPicker()
     }
 
     /**
@@ -1485,27 +1538,30 @@ class MainActivity :
      * laptop no longer bonded stops it: retrying cannot help, and a bare "Stopped retrying" would not say why.
      */
     override fun onConnecting(laptop: Laptop) {
-        if (laptop !== selected) return
         val target = laptop.target
         if (target is Target.Bluetooth && bonded().none { it.address == target.key }) {
+            val shown = laptop === selected
             manager.stopRetrying(laptop.id)
-            if (screen == Screen.RECONNECTING) goTo(Screen.PAIRING)
-            picker.setMessage(getString(R.string.not_paired))
+            if (shown && screen == Screen.RECONNECTING) goTo(Screen.PAIRING)
+            if (shown) picker.setMessage(getString(R.string.not_paired))
             return
         }
-        CaptureInbox.owner = laptop.link?.id
-        watchingMacros = false
-        picker.setRtt(Double.NaN)
-        picker.setMessage("")
-        picker.setConnecting(laptop.id)
-        updateReconnecting()
+        if (laptop === selected) {
+            CaptureInbox.owner = laptop.link?.id
+            watchingMacros = false
+            picker.setRtt(Double.NaN)
+            picker.setMessage("")
+            updateReconnecting()
+        }
+        refreshDevices()
     }
 
     override fun onConnected(laptop: Laptop) {
-        if (laptop !== selected) return
-        pairCode = null
-        pairAsking = false
-        picker.setConnecting(null)
+        remember(laptop)
+        if (laptop !== selected) {
+            refreshDevices()
+            return
+        }
         // The trust hint, if it was showing, has been answered.
         picker.setMessage("")
         when (screen) {
@@ -1523,39 +1579,45 @@ class MainActivity :
     }
 
     override fun onAwaitingLaptop(laptop: Laptop) {
+        refreshDevices()
         if (laptop === selected) picker.setMessage(getString(R.string.status_accept_on_laptop))
     }
 
     /**
      * From any screen: the laptop waits for this answer and gives up on its own. While the PIN screen is up
      * the attempt's link is set, so no retry can start a second connect behind it. A laptop that is not [selected]
-     * is not asked about at all: with one laptop at a time that is only one already dropped.
+     * interrupts nothing: [Laptop.asking] shows on its row, and tapping that opens this. If it gives up first, that
+     * is a failed connect for that laptop alone.
      */
     override fun onPinRequest(laptop: Laptop) {
-        if (laptop !== selected) return
+        if (laptop !== selected) {
+            refreshDevices()
+            return
+        }
         // The trust hint, if it was showing, has been answered.
         picker.setMessage("")
         goTo(Screen.PIN)
     }
 
-    /** A network pairing waits on the laptop's owner typing [code] there; the countdown matches the link's wait. */
+    /**
+     * A network pairing waits on the laptop's owner typing [code] there; the countdown matches the link's wait. A
+     * laptop that is not [selected] waits on its row, as in [onPinRequest].
+     */
     override fun onPairingCode(
         laptop: Laptop,
         code: Sas,
     ) {
-        if (laptop !== selected) return
-        pairCode = code
-        pairDeadline = SystemClock.elapsedRealtime() + PAIR_CODE_MS
-        pairAsking = false
+        if (laptop !== selected) {
+            refreshDevices()
+            return
+        }
         picker.setMessage("")
         goTo(Screen.PAIR_CODE)
     }
 
     /** The laptop answered the pairing; only the owner's Yes on this screen keeps it ([LaptopLink.answerPairing]). */
     override fun onPairingConfirm(laptop: Laptop) {
-        if (laptop !== selected) return
-        pairAsking = true
-        goTo(Screen.PAIR_CODE)
+        if (laptop === selected) goTo(Screen.PAIR_CODE) else refreshDevices()
     }
 
     override fun onRoundTrip(
@@ -1569,6 +1631,10 @@ class MainActivity :
         laptop: Laptop,
         frame: Frame,
     ) {
+        if (frame is Frame.Text && frame.kind == TextKind.DEVICE.id) {
+            remember(laptop)
+            refreshDevices()
+        }
         if (laptop !== selected) return
         surface?.stateChanged()
         // Capture is drawn from the features the laptop named, which it sends once after the handshake: one that
@@ -1615,11 +1681,15 @@ class MainActivity :
         laptop: Laptop,
         closure: LaptopLink.Closure,
     ) {
-        if (laptop !== selected) return
+        if (laptop !== selected) {
+            refreshDevices()
+            // Unreachable is a laptop that is off, which is nothing to report at every launch; its row says so.
+            if (laptop.failed && laptop.idle && closure.cause != LaptopLink.Cause.UNREACHABLE) {
+                picker.setMessage(getString(R.string.status_closed_named, laptop.name, describe(closure)))
+            }
+            return
+        }
         watchingMacros = false
-        picker.setConnecting(null)
-        pairCode = null
-        pairAsking = false
         // Devices is where the reason is shown, so an attempt that ends at the PIN or a pairing code goes there first.
         if (screen == Screen.PIN || screen == Screen.PAIR_CODE) goTo(Screen.PAIRING)
         when {
@@ -1647,7 +1717,6 @@ class MainActivity :
             // The first connect of a tap never reached the laptop: once more before saying anything.
             laptop.retryTimer != null -> {
                 refreshPicker()
-                picker.setConnecting(laptop.id)
             }
 
             else -> {
@@ -1657,8 +1726,48 @@ class MainActivity :
         }
     }
 
-    /** Only [connect] moves the selection here, and the events that follow it say everything the screens need. */
-    override fun onSelected(laptop: Laptop?) = Unit
+    /**
+     * The last moment frames reach [laptop], so everything held on it is let go here: fingers first, then the pad, the
+     * overlay and the macro watch, then the screen itself, whose views release what they hold as they detach. A
+     * capture still running is left alone: a recording cannot be stopped from here, because Stop is an action and this
+     * laptop has stopped being the one actions go to. Its permit stays with its link, and [CaptureInbox.owner] is
+     * cleared first so the capture screen closing does not throw away a file on its way in.
+     */
+    override fun onDeselecting(laptop: Laptop) {
+        CaptureInbox.owner = null
+        releaseHeldInput()
+        controls?.dismiss()
+        if (screen == Screen.GAMEPAD) manager.send(ActionId.PAD_DETACH.frame())
+        endAnnotate()
+        unwatchMacros()
+        if (screen in laptopScreens) findViewById<ViewGroup>(android.R.id.content).removeAllViews()
+    }
+
+    /** Every screen draws [selected], so the one showing is built again on the new laptop, or left if it cannot be. */
+    override fun onSelected(laptop: Laptop?) {
+        CaptureInbox.owner = laptop?.link?.id
+        picker.setRtt(laptop?.rtt?.median() ?: Double.NaN)
+        laptop?.let { saved = promoted(saved, setOf(it.id)) }
+        val needsLink = screen in laptopScreens || screen in settingsOfControls || screen == Screen.RECONNECTING
+        when {
+            screen == Screen.PIN || screen == Screen.PAIR_CODE || (needsLink && !connected) -> {
+                goTo(Screen.PAIRING)
+            }
+
+            screen in laptopScreens -> {
+                goTo(screen)
+                if (screen == Screen.GAMEPAD) manager.send(ActionId.PAD_ATTACH.frame())
+            }
+
+            screen == Screen.RECONNECTING -> {
+                goTo(Screen.SURFACE)
+            }
+
+            else -> {
+                refreshDevices()
+            }
+        }
+    }
 
     /** Why an attempt ended, in the user's language. The link names the cause; the words are the app's. */
     private fun describe(closure: LaptopLink.Closure): String =
@@ -1709,25 +1818,38 @@ class MainActivity :
         lost.update((laptop.attempts + 1).coerceAtMost(most), most, status, seconds)
     }
 
-    /** Disconnected rather than forgotten by the manager: what the laptop reported stays until another is connected. */
-    private fun forget() {
-        settings.laptop = null
-        lastTarget = null
-        val laptop = selected
-        val linked = laptop?.link != null
-        laptop?.let { manager.disconnect(it.id) }
-        if (!linked) goTo(Screen.SETTINGS)
+    /** Off the remembered list and the manager's. If it was selected, the next connected laptop is, or none. */
+    private fun forgetLaptop(
+        laptop: Laptop?,
+        keys: Set<String>,
+    ) {
+        saved = forgotten(saved, keys)
+        laptop?.let { manager.forget(it.id) }
+        if (screen == Screen.SETTINGS) goTo(Screen.SETTINGS) else refreshDevices()
     }
 
-    private fun connectionInfo(): SettingsScreen.Connection {
-        val remembered = settings.laptop ?: return SettingsScreen.Connection(null, "", connected = false)
+    /** Settings' card: the laptop it would forget. */
+    private fun cardLaptop(): SavedLaptop? {
         val laptop = selected
+        return if (laptop == null) saved.firstOrNull() else saved.firstOrNull { laptop.id in it.keys }
+    }
+
+    /** Settings' Forget. */
+    private fun forget() {
+        val laptop = selected
+        val keys = laptop?.let { setOf(it.id) } ?: cardLaptop()?.keys ?: return
+        forgetLaptop(laptop, keys)
+    }
+
+    /** The active laptop, or the first remembered one with none active, and how many more are connected. */
+    private fun connectionInfo(): SettingsScreen.Connection {
+        val laptop = selected
+        val entry = cardLaptop()
+        if (laptop == null && entry == null) return SettingsScreen.Connection(null, "", connected = false)
         val name =
-            if (laptop != null && remembered == laptop.address && laptop.name.isNotEmpty()) {
-                laptop.name
-            } else {
-                bonded().firstOrNull { it.address == remembered }?.let(::nameOf) ?: remembered
-            }
+            laptop?.name?.takeIf { it.isNotEmpty() }
+                ?: bonded().firstOrNull { it.address == entry?.btAddress }?.let(::nameOf)
+                ?: entry?.name
         val median = laptop?.rtt?.median() ?: Double.NaN
         val detail =
             when {
@@ -1735,7 +1857,9 @@ class MainActivity :
                 connected -> getString(R.string.detail_connected)
                 else -> getString(R.string.detail_remembered)
             }
-        return SettingsScreen.Connection(name, detail, connected)
+        val others = manager.laptops.count { it !== laptop && it.connected }
+        val more = resources.getQuantityString(R.plurals.detail_more_connected, others, others)
+        return SettingsScreen.Connection(name, if (others > 0) "$detail · $more" else detail, connected)
     }
 
     private companion object {
@@ -1766,6 +1890,17 @@ class MainActivity :
         /** The pages that need the link: with it gone they go back to Devices, as the screens they belong to do. */
         val settingsOfControls = setOf(Screen.KEYBOARD_SETTINGS, Screen.GAMEPAD_SETTINGS, Screen.MACRO_SETTINGS)
 
+        /** The screens built on one laptop's state and sending to it: a change of selection rebuilds them. */
+        val laptopScreens =
+            setOf(
+                Screen.SURFACE,
+                Screen.KEYBOARD,
+                Screen.GAMEPAD,
+                Screen.MACROS,
+                Screen.CAPTURE,
+                Screen.ANNOTATE,
+            )
+
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2
         const val REQUEST_LOCAL_NETWORK = 3
@@ -1783,8 +1918,6 @@ class MainActivity :
         const val LINGER_MS = 30_000L
         const val TICK_MS = 1_000L
 
-        /** The pairing code's countdown, the same 90 s the network transport waits for the laptop's answer. */
-        const val PAIR_CODE_MS = 90_000L
         const val MILLIS_PER_SECOND = 1_000L
         const val SECONDS_PER_MINUTE = 60
 

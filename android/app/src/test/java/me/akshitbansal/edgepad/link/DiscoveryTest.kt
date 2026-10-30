@@ -63,7 +63,7 @@ class DiscoveryTest {
     }
 
     @Test
-    fun theSameLaptopOnWifiAndUsbIsOneRowPerTransportEachMarkedWithTheOther() {
+    fun theSameLaptopOnWifiAndUsbStaysOneEntryPerTransport() {
         val all =
             mergeFound(
                 listOf(
@@ -72,14 +72,6 @@ class DiscoveryTest {
                 ),
             )
         assertEquals(listOf(Transport.WIFI, Transport.USB), all.map { it.transport })
-        assertEquals(Transport.USB, otherTransport(all[0], all))
-        assertEquals(Transport.WIFI, otherTransport(all[1], all))
-    }
-
-    @Test
-    fun aLaptopOnOneTransportHasNoOther() {
-        val all = mergeFound(listOf(found(id, "Desk", Transport.WIFI, "192.168.1.5")))
-        assertNull(otherTransport(all[0], all))
     }
 
     @Test
