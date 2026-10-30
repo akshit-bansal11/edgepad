@@ -156,9 +156,18 @@ internal sealed class Session(
         dispatcher.Capture = capture;
         Keep(capture);
 
+        // The phone starts and stops this as its macro grid opens and closes. Set before FEATURES names it.
+        var open = macros.CreateWatcher(states => Guarded(() => Send(new Text((byte)TextKind.MacroOpen, states))));
+        if (open is not null)
+        {
+            Keep(open);
+            dispatcher.MacroWatch = on => WatchMacros(open, on);
+        }
+
         // Only what this build can do: the phone hides a feature that is not named, so naming one that is
         // not there would be a button that quietly does nothing.
-        Send(new Text((byte)TextKind.Features, $"{Feature.Annotate}/{Feature.Capture}"));
+        var features = $"{Feature.Annotate}/{Feature.Capture}";
+        Send(new Text((byte)TextKind.Features, open is null ? features : $"{features}/{Feature.Running}"));
         ReportScreen();
 
         Watch(speakers, ControlId.Volume);
@@ -197,6 +206,30 @@ internal sealed class Session(
         }
 
         watch.Dispose();
+    }
+
+    /// <summary>
+    /// Under the watch gate, because the read loop can land here after Dispose has been through the list: a start
+    /// then would leave the timer running against a closed socket for the life of the app.
+    /// </summary>
+    private void WatchMacros(MacroOpenWatcher watcher, bool on)
+    {
+        lock (watchGate)
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            if (on)
+            {
+                watcher.Start();
+            }
+            else
+            {
+                watcher.Stop();
+            }
+        }
     }
 
     /// <summary>

@@ -62,7 +62,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly BrightnessControl brightness = new();
     private readonly MediaSessions media = new();
     private readonly DisplayModes display = new();
-    private readonly MacroStore macros = MacroStore.ForCurrentUser(new ShellLauncher());
+    private readonly MacroStore macros = MacroStore.ForCurrentUser(new ShellLauncher(), new WindowsMacroWindows());
     private readonly LevelOverlay overlay;
     private readonly SessionHost host;
     private readonly RfcommServer server;
