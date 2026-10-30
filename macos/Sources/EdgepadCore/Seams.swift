@@ -87,6 +87,33 @@ public protocol Transport: AnyObject {
     func close()
 }
 
+/// What carries the link, which sets how fast a blob may go.
+public enum LinkKind {
+    case bluetooth
+    case network
+}
+
+/// What a clipboard holds. `sensitive` is the platform's verdict; a flag it could not read counts as set.
+public struct ClipboardContent: Equatable {
+    public let kind: BlobKind
+    public let data: [UInt8]
+    public let sensitive: Bool
+
+    public init(kind: BlobKind, data: [UInt8], sensitive: Bool = false) {
+        self.kind = kind
+        self.data = data
+        self.sensitive = sensitive
+    }
+}
+
+/// This Mac's pasteboard. Main thread only, like the launcher; a denied read is nil, never an error.
+public protocol ClipboardSurface: AnyObject {
+    /// The clipboard now, or nil for nothing that can be shared.
+    func read() -> ClipboardContent?
+    /// False when it would not take the content.
+    func write(_ content: ClipboardContent) -> Bool
+}
+
 /// The annotation overlay and signature export, which draw on this Mac's screen. The dispatcher hands it the pen
 /// and the annotate actions; a Mac without one (and a test) leaves it nil, and those frames are dropped and counted.
 /// Every answer is false for a frame it did not take.

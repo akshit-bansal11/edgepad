@@ -180,6 +180,7 @@ public final class Session {
         // The overlay goes with the session: a phone that vanishes mid-drawing must leave no layer on the screen.
         dispatcher.annotation?.end()
         dispatcher.capture?.end()
+        dispatcher.clipboard?.end()
         if dispatcher.dropped > 0 {
             Log.write("Session with \(address): \(dispatcher.dropped) frames dropped")
         }
@@ -405,12 +406,15 @@ public final class Session {
         // Written like a PONG and not like a watcher's report: a dead link here should end the session. The
         // opening answer is sent before the phone can ask, so it can hide the pad rather than offer a button
         // that quietly does nothing.
-        // A capture on its way writes through the session, so a dead link ends the session here as for any send.
-        dispatcher.capture?.send = { [weak self] frame in
+        // A capture or a blob on its way writes through the session, so a dead link ends the session here as for any
+        // send.
+        let write: (Frame) -> Bool = { [weak self] frame in
             guard let self, !self.isEnded else { return false }
             self.send(frame)
             return !self.isEnded
         }
+        dispatcher.capture?.send = write
+        dispatcher.clipboard?.sender.output = write
         dispatcher.padStatusReply = { [weak self] status in
             self?.send(.text(kind: TextKind.padStatus.rawValue, value: status))
         }

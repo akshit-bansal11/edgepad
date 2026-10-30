@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import XCTest
 
@@ -34,6 +35,8 @@ final class SessionTests: XCTestCase {
     private var iconTurns: [() -> Void] = []
     /// The macro survey's next ticks, as the session armed them, fired by hand.
     private var watchTicks: [(seconds: TimeInterval, tick: () -> Void)] = []
+    /// A blob's next tick, as its sender armed it, fired by hand.
+    private var blobTicks: [() -> Void] = []
 
     private lazy var trust = TrustStore(path: directory.appendingPathComponent("trust").path)
     /// One iteration, as in PinStoreTests: the real work factor would take most of a second per answer.
@@ -887,6 +890,77 @@ final class SessionTests: XCTestCase {
         XCTAssertEqual(Array(frames.prefix(2)), [question(5), .helloAck(version: ProtocolConstants.version)])
         XCTAssertEqual(frames.last, .pong(time: 9))
         XCTAssertTrue(session.isLive)
+    }
+
+    /// A live session with sharing turned on and `content` on the clipboard, about to be sent.
+    private func sharing(_ content: [UInt8]) -> (Session, ClipboardSync, FakeClipboard) {
+        let surface = FakeClipboard()
+        surface.current = ClipboardContent(kind: .clipText, data: content)
+        let clipboard = ClipboardSync(
+            surface: surface,
+            sender: BlobSender(
+                link: .bluetooth,
+                schedule: { [weak self] _, tick in self?.blobTicks.append(tick) },
+                lastInput: { -.infinity }
+            ),
+            allowed: { true },
+            schedule: { _, work in work() }
+        )
+        dispatcher.clipboard = clipboard
+        let session = connectedSession()
+        session.receive(FrameCodec.encode(.setValue(control: ControlId.clipboard.rawValue, value: 1)))
+        return (session, clipboard, surface)
+    }
+
+    func testABlobGoesOutThroughTheSession() {
+        let data: [UInt8] = [1, 2, 3]
+        let (_, clipboard, _) = sharing(data)
+
+        clipboard.localChanged()
+
+        XCTAssertEqual(
+            Array(transport.frames().suffix(3)),
+            [
+                .blobBegin(kind: BlobKind.clipText.rawValue, size: 3, label: ""),
+                .blobChunk(seq: 0, data: data),
+                .blobEnd(sha256: Array(SHA256.hash(data: data))),
+            ]
+        )
+    }
+
+    func testABlobFromThePhoneReachesTheClipboardThroughTheSession() {
+        let (session, _, surface) = sharing([1])
+        let data = Array("hi".utf8)
+
+        session.receive(FrameCodec.encode(.blobBegin(kind: BlobKind.clipText.rawValue, size: 2, label: "")))
+        session.receive(FrameCodec.encode(.blobChunk(seq: 0, data: data)))
+        session.receive(FrameCodec.encode(.blobEnd(sha256: Array(SHA256.hash(data: data)))))
+
+        XCTAssertEqual(surface.writes.map(\.data), [data])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testADeadLinkEndsTheSessionWhenABlobIsSent() {
+        let (session, clipboard, _) = sharing([UInt8](repeating: 7, count: 100 * FrameCodec.maxChunkBytes))
+        transport.alive = false
+
+        clipboard.localChanged()
+
+        XCTAssertTrue(session.isEnded)
+        XCTAssertTrue(blobTicks.isEmpty)
+    }
+
+    func testTheSessionsEndStopsABlobOnItsWay() {
+        let (session, clipboard, _) = sharing([UInt8](repeating: 7, count: 100 * FrameCodec.maxChunkBytes))
+        clipboard.localChanged()
+        let sent = transport.sent.count
+
+        session.end()
+        for tick in blobTicks {
+            tick()
+        }
+
+        XCTAssertEqual(transport.sent.count, sent)
     }
 
     func testNoLogLineHoldsTheDigits() {

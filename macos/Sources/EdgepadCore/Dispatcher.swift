@@ -44,6 +44,10 @@ public final class Dispatcher {
     /// CAPTURE_TARGET and FILE_RESULT are dropped and counted.
     public var capture: CaptureToPhone?
 
+    /// Shares the clipboard when the phone asks for that. Set by the app per connection, like `capture`; without one,
+    /// SET CLIPBOARD and the blob frames are dropped and counted.
+    public var clipboard: ClipboardSync?
+
     /// When the phone last sent input, by system uptime: a capture on its way slows down for it.
     public private(set) var lastInput: TimeInterval = 0
 
@@ -104,8 +108,14 @@ public final class Dispatcher {
         case .fileResult(let status):
             // The phone's answer to a capture this Mac sent it. Only the transfer waiting for one takes it.
             return capture?.take(status: status) ?? false
+        case .blobBegin(let kind, let size, let label):
+            return clipboard?.take(kind: kind, size: size, label: label) ?? false
+        case .blobChunk(let seq, let data):
+            return clipboard?.take(seq: seq, data: data) ?? false
+        case .blobEnd(let sha256):
+            return clipboard?.take(sha256: sha256) ?? false
         case .hello, .helloAck, .ping, .pong, .state, .padState, .pinRequest, .pinAnswer, .fileBegin, .fileChunk,
-            .fileEnd, .blobBegin, .blobChunk, .blobEnd:
+            .fileEnd:
             // A Mac has no virtual controller to give a pad frame to, and the rest are not the phone's to send
             // once the session is live.
             return false
@@ -294,8 +304,7 @@ public final class Dispatcher {
         case .captureTarget:
             return capture?.setTarget(value) ?? false
         case .clipboard:
-            // Not built on the Mac yet: dropped and counted.
-            return false
+            return clipboard?.setShared(value) ?? false
         }
     }
 }

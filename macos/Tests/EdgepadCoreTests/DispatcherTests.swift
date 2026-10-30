@@ -1,3 +1,4 @@
+import CryptoKit
 import XCTest
 
 @testable import EdgepadCore
@@ -21,6 +22,36 @@ final class DispatcherTests: XCTestCase {
         dispatcher.handle(.runAction(id: 99))
 
         XCTAssertEqual(dispatcher.dropped, 1)
+        XCTAssertEqual(input.calls, [])
+    }
+
+    func testBlobFramesAndSetClipboardWithNoClipboardSetAreDroppedAndCounted() {
+        dispatcher.handle(.setValue(control: ControlId.clipboard.rawValue, value: 1))
+        dispatcher.handle(.blobBegin(kind: BlobKind.clipText.rawValue, size: 1, label: ""))
+        dispatcher.handle(.blobChunk(seq: 0, data: [0]))
+        dispatcher.handle(.blobEnd(sha256: [UInt8](repeating: 0, count: FrameCodec.sha256Bytes)))
+
+        XCTAssertEqual(dispatcher.dropped, 4)
+        XCTAssertEqual(input.calls, [])
+    }
+
+    func testABlobReachesTheClipboardOnceThePhoneTurnedItOn() {
+        let surface = FakeClipboard()
+        dispatcher.clipboard = ClipboardSync(
+            surface: surface,
+            sender: BlobSender(link: .bluetooth, lastInput: { 0 }),
+            allowed: { true },
+            schedule: { _, work in work() }
+        )
+        let data = Array("hi".utf8)
+
+        dispatcher.handle(.setValue(control: ControlId.clipboard.rawValue, value: 1))
+        dispatcher.handle(.blobBegin(kind: BlobKind.clipText.rawValue, size: UInt32(data.count), label: ""))
+        dispatcher.handle(.blobChunk(seq: 0, data: data))
+        dispatcher.handle(.blobEnd(sha256: Array(SHA256.hash(data: data))))
+
+        XCTAssertEqual(dispatcher.dropped, 0)
+        XCTAssertEqual(surface.writes.map(\.data), [data])
         XCTAssertEqual(input.calls, [])
     }
 
