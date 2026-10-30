@@ -39,6 +39,7 @@ import me.akshitbansal.edgepad.link.BlobRoutes
 import me.akshitbansal.edgepad.link.BluetoothTransport
 import me.akshitbansal.edgepad.link.CaptureInbox
 import me.akshitbansal.edgepad.link.ClipboardShare
+import me.akshitbansal.edgepad.link.DeviceTap
 import me.akshitbansal.edgepad.link.Discovery
 import me.akshitbansal.edgepad.link.Found
 import me.akshitbansal.edgepad.link.HostPort
@@ -62,6 +63,7 @@ import me.akshitbansal.edgepad.link.TetherProbe
 import me.akshitbansal.edgepad.link.Transport
 import me.akshitbansal.edgepad.link.clipboardShare
 import me.akshitbansal.edgepad.link.decodeSaved
+import me.akshitbansal.edgepad.link.deviceState
 import me.akshitbansal.edgepad.link.encodeSaved
 import me.akshitbansal.edgepad.link.forgotten
 import me.akshitbansal.edgepad.link.laptopLinks
@@ -76,6 +78,7 @@ import me.akshitbansal.edgepad.link.probeAddress
 import me.akshitbansal.edgepad.link.promoted
 import me.akshitbansal.edgepad.link.rememberLaptop
 import me.akshitbansal.edgepad.link.snapUp
+import me.akshitbansal.edgepad.link.tap
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.AppAddStatus
 import me.akshitbansal.edgepad.protocol.DeviceOs
@@ -339,7 +342,7 @@ class MainActivity :
                 onTap = ::tapDevice,
                 onVia = { device, transport -> connectTo(device.row, transport) },
                 onMakeActive = { device -> device.row.laptop?.let { manager.select(it.id) } },
-                onDisconnect = ::disconnectDevice,
+                onDisconnect = { device -> disconnectRow(device.row) },
                 onForget = { device -> forgetLaptop(device.row.laptop, device.row.keys) },
                 onOpenControls = { goTo(Screen.SURFACE) },
                 onBluetoothSettings = ::openBluetoothSettings,
@@ -705,7 +708,7 @@ class MainActivity :
                     SettingsScreen.build(
                         ui,
                         settings,
-                        connectionInfo(),
+                        connections(),
                         showAllDevices,
                         versionLine(),
                         getString(backLabel),
@@ -715,7 +718,7 @@ class MainActivity :
                             updateSummaryView = view
                         },
                         SettingsScreen.Routes(
-                            forget = ::forget,
+                            devices = { goTo(Screen.PAIRING) },
                             showAll = { all ->
                                 showAllDevices = all
                                 refreshPicker()
@@ -1634,8 +1637,7 @@ class MainActivity :
     }
 
     /** It stays listed and off the automatic connect, until the next time it is connected to. */
-    private fun disconnectDevice(device: PickerScreen.Device) {
-        val row = device.row
+    private fun disconnectRow(row: LaptopRow) {
         saved = saved.map { if (it.isIn(row.keys)) it.copy(autoConnect = false) else it }
         row.laptop?.let { manager.disconnect(it.id) }
         syncService()
@@ -1737,9 +1739,19 @@ class MainActivity :
         saved = rememberLaptop(saved, entry, first = laptop === selected)
     }
 
-    /** Devices follows every laptop's state, the selected one's or not. */
+    /** Devices and the laptops card in System settings follow every laptop's state, the selected one's or not. */
     private fun refreshDevices() {
-        if (screen == Screen.PAIRING) refreshPicker()
+        when (screen) {
+            Screen.PAIRING -> {
+                refreshPicker()
+            }
+
+            Screen.SETTINGS -> {
+                goTo(Screen.SETTINGS)
+            }
+
+            else -> {}
+        }
     }
 
     /**
@@ -1783,6 +1795,7 @@ class MainActivity :
             // Opened from Devices, back now leads to the surface the connect would have gone to.
             Screen.SETTINGS -> {
                 if (settingsReturn == Screen.PAIRING) settingsReturn = Screen.SURFACE
+                refreshDevices()
             }
 
             else -> {}
@@ -2057,42 +2070,49 @@ class MainActivity :
         saved = forgotten(saved, keys)
         laptop?.let { manager.forget(it.id) }
         syncService()
-        if (screen == Screen.SETTINGS) goTo(Screen.SETTINGS) else refreshDevices()
+        refreshDevices()
     }
 
-    /** Settings' card: the laptop it would forget. */
-    private fun cardLaptop(): SavedLaptop? {
-        val laptop = selected
-        return if (laptop == null) saved.firstOrNull() else saved.firstOrNull { laptop.id in it.keys }
-    }
-
-    /** Settings' Forget. */
-    private fun forget() {
-        val laptop = selected
-        val keys = laptop?.let { setOf(it.id) } ?: cardLaptop()?.keys ?: return
-        forgetLaptop(laptop, keys)
-    }
-
-    /** The active laptop, or the first remembered one with none active, and how many more are connected. */
-    private fun connectionInfo(): SettingsScreen.Connection {
-        val laptop = selected
-        val entry = cardLaptop()
-        if (laptop == null && entry == null) return SettingsScreen.Connection(null, "", connected = false)
-        val name =
-            laptop?.name?.takeIf { it.isNotEmpty() }
-                ?: bonded().firstOrNull { it.address == entry?.btAddress }?.let(::nameOf)
-                ?: entry?.name
-        val median = laptop?.rtt?.median() ?: Double.NaN
-        val detail =
-            when {
-                connected && !median.isNaN() -> getString(R.string.detail_connected_rtt, median)
-                connected -> getString(R.string.detail_connected)
-                else -> getString(R.string.detail_remembered)
+    /** Every laptop System settings lists, as Devices has them: the remembered ones and the ones with a link. */
+    private fun connections(): SettingsScreen.Connections {
+        val remembered = saved
+        val addresses = remembered.map { it.btAddress }.toSet()
+        val bonded = bonded().filter { it.address in addresses }.map { it.address to nameOf(it) }
+        val devices =
+            laptopRows(remembered, manager.laptops, bonded, emptyList()).map { row ->
+                SettingsScreen.Device(
+                    row.name,
+                    deviceState(row, selected),
+                    row.via,
+                    onTap = { tapSettingsRow(row) },
+                    onDisconnect = { disconnectRow(row) },
+                )
             }
-        val others = manager.laptops.count { it !== laptop && it.connected }
-        val more = resources.getQuantityString(R.plurals.detail_more_connected, others, others)
         val offered = connected && Feature.CLIPBOARD in state.features
-        return SettingsScreen.Connection(name, if (others > 0) "$detail · $more" else detail, connected, offered)
+        return SettingsScreen.Connections(devices, offered)
+    }
+
+    /** A tap on a laptop in System settings: make it active, answer its prompt, or connect it, as [deviceState] says. */
+    private fun tapSettingsRow(row: LaptopRow) {
+        val laptop = row.laptop
+        when (deviceState(row, selected).tap()) {
+            DeviceTap.NOTHING -> {}
+
+            DeviceTap.SELECT -> {
+                laptop?.let { manager.select(it.id) }
+            }
+
+            DeviceTap.ANSWER -> {
+                if (laptop != null) {
+                    manager.select(laptop.id)
+                    goTo(if (laptop.asking == Laptop.Ask.PIN) Screen.PIN else Screen.PAIR_CODE)
+                }
+            }
+
+            DeviceTap.CONNECT -> {
+                connectTo(row, row.via)
+            }
+        }
     }
 
     private companion object {
@@ -2143,10 +2163,10 @@ class MainActivity :
         const val SCAN_EVERY_MS = 10_000L
 
         /**
-         * The screens that show the round trip: Devices beside the connected laptop, live, and Settings on
-         * its laptop card. Everywhere else a ping only has to prove the link is still there.
+         * The screens that show the round trip: Devices, beside the connected laptop, live. Everywhere else a ping
+         * only has to prove the link is still there.
          */
-        val showsRtt = setOf(Screen.PAIRING, Screen.SETTINGS)
+        val showsRtt = setOf(Screen.PAIRING)
 
         /** How long a link outlives the app leaving the screen: a trip to the picker, a glance at the lock screen. */
         const val LINGER_MS = 30_000L

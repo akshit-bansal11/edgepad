@@ -14,10 +14,15 @@
   <string name="device_active">Active</string>
   <string name="device_make_active">Make active</string>
   <string name="device_disconnect">Disconnect</string>
+  <string name="device_connect">Connect</string>
+  <string name="device_state_connected">Connected</string>
+  <string name="device_not_connected">Not connected</string>
+  <string name="device_state_via">%1$s · %2$s</string>
   <string name="connect_via">Connect over %1$s</string>
   <string name="device_rtt">%1$.0f ms</string>
   <string name="devices_legend">Remembered laptops connect when Edgepad opens.</string>
   <string name="devices_legend_off">Tap a laptop to connect.</string>
+  <string name="devices_multi_hint">Connect several laptops at once. The active one is the laptop the controls are driving; tap Make active to switch.</string>
   <string name="transport_bluetooth">Bluetooth</string>
   <string name="transport_wifi">Wi-Fi</string>
   <string name="transport_usb">USB</string>
@@ -111,13 +116,6 @@
   <string name="forget">Forget</string>
   <string name="forget_laptop_title">Forget %1$s?</string>
   <string name="forget_laptop_body">Edgepad disconnects and stops reconnecting to it on its own. It stays paired, so you can pick it again from the list.</string>
-  <string name="detail_connected">Connected</string>
-  <string name="detail_connected_rtt">Connected · %1$.0f ms</string>
-  <string name="detail_remembered">Remembered · not connected</string>
-  <plurals name="detail_more_connected">
-    <item quantity="one">%1$d more connected</item>
-    <item quantity="other">%1$d more connected</item>
-  </plurals>
   <string name="reconnect_automatically">Reconnect automatically</string>
   <string name="stay_connected">Stay connected in the background</string>
   <string name="stay_connected_caption">Keeps your laptops connected while Edgepad is minimized, with a notification to disconnect. Off, they disconnect shortly after you leave the app.</string>

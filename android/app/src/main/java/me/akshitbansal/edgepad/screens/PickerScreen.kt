@@ -79,6 +79,7 @@ class PickerScreen(
                     section(ui.string(R.string.paired_laptops))
                     list = card {}
                     legend = footnote("")
+                    footnote(ui.string(R.string.devices_multi_hint))
                     sweepLine = footnote("")
                     filter = add(ui.button("", Ui.Style.QUIET) { onShowAll(!showingAll) }, Space.S)
                     add(ui.button(ui.string(R.string.add_by_address), Ui.Style.QUIET, onAddAddress), Space.S)
@@ -251,8 +252,8 @@ class PickerScreen(
         }
 
     /**
-     * The line under a row: the Active badge or Make active, any other transport to connect over, Disconnect and
-     * Forget, as far as each applies. It scrolls sideways on a narrow phone; null when nothing applies.
+     * The line under a row: Connect, the Active badge or Make active, any other transport to connect over, Disconnect
+     * and Forget, as far as each applies. It scrolls sideways on a narrow phone; null when nothing applies.
      */
     private fun actions(device: Device): View? {
         val row = device.row
@@ -264,6 +265,10 @@ class PickerScreen(
             line.addView(view, LinearLayout.LayoutParams(wrap, wrap).apply { marginEnd = ui.dp(Space.S) })
         }
 
+        // The one way to connect that says so; a tap on the row does the same. Not while something is going on already.
+        if (row.status in setOf(RowStatus.NONE, RowStatus.REMEMBERED, RowStatus.FAILED)) {
+            row.via?.let { via -> add(ui.chip(ui.string(R.string.device_connect)) { onVia(device, via) }) }
+        }
         if (laptop?.connected == true && device.active) {
             add(ui.secondary(ui.string(R.string.device_active), Type.SMALL, ui.palette.accent))
         } else if (laptop?.connected == true) {
@@ -309,14 +314,7 @@ class PickerScreen(
             setPadding(across, ui.dp(Space.XS), across, ui.dp(Space.XS))
         }
 
-    private fun transportName(transport: Transport): String =
-        ui.string(
-            when (transport) {
-                Transport.BLUETOOTH -> R.string.transport_bluetooth
-                Transport.WIFI -> R.string.transport_wifi
-                Transport.USB -> R.string.transport_usb
-            },
-        )
+    private fun transportName(transport: Transport): String = ui.string(transport.label)
 
     private fun rttText(): String = if (rtt.isNaN()) "" else ui.string(R.string.device_rtt, rtt)
 
@@ -341,3 +339,12 @@ class PickerScreen(
         const val SPIN_MS = 600L
     }
 }
+
+/** The name of how a laptop is reached, as a string resource. */
+internal val Transport.label: Int
+    get() =
+        when (this) {
+            Transport.BLUETOOTH -> R.string.transport_bluetooth
+            Transport.WIFI -> R.string.transport_wifi
+            Transport.USB -> R.string.transport_usb
+        }
