@@ -121,8 +121,8 @@ enum class ControlId(
     REFRESH_RATE(4),
 
     /**
-     * The value is an index into [PenColor], never an RGB: the phone cannot name a colour the laptop did not
-     * agree to, and the laptop drops an index of 8 or more.
+     * The value is an index into [PenColor], the eight stock colours; the laptop drops an index of 8 or more. A colour
+     * outside the palette is [TextKind.PEN_RGB].
      */
     PEN_COLOR(5),
 
@@ -137,6 +137,16 @@ enum class ControlId(
      * drops any other value.
      */
     CLIPBOARD(7),
+
+    /**
+     * The width of the strokes that start after this, 1 to 100, as 0.02% of the laptop screen's height per step: 5 is
+     * 0.1%, 20 is the default 0.4% and 100 is 2.0%. The laptop drops 0 and anything above 100, and forgets the value
+     * when the session ends.
+     */
+    PEN_WIDTH(8),
+
+    /** The opacity of the strokes that start after this, 10 to 100 percent. The laptop drops anything else. */
+    PEN_OPACITY(9),
     ;
 
     fun set(value: Int): Frame = Frame.SetValue(id, value)
@@ -146,7 +156,7 @@ enum class ControlId(
     }
 }
 
-/** What a TEXT frame carries. Only kind 3 goes phone to laptop. Mirrors protocol/actions.txt. */
+/** What a TEXT frame carries. Only kinds 3, 7, 14 and 17 go phone to laptop. Mirrors protocol/actions.txt. */
 enum class TextKind(
     val id: Int,
 ) {
@@ -218,6 +228,12 @@ enum class TextKind(
      * '2' running and in front. Sent when it changes while watched; an unknown character reads as untracked.
      */
     MACRO_OPEN(16),
+
+    /**
+     * Phone to laptop: a stroke colour as exactly six hex digits, "RRGGBB". Safe to send because it is only a colour:
+     * the laptop takes those six characters and nothing else, and what it makes of them is a number it can only draw with.
+     */
+    PEN_RGB(17),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)

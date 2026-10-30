@@ -809,7 +809,7 @@ class MainActivity :
                 }
 
                 Screen.ANNOTATE -> {
-                    AnnotateScreen(ui, state, send) { navigateBack() }
+                    AnnotateScreen(ui, settings, state, send) { navigateBack() }
                         .also { annotate = it }
                         .view
                 }

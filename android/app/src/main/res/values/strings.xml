@@ -403,6 +403,10 @@
   <string name="annotate_colour_green">Green</string>
   <string name="annotate_colour_blue">Blue</string>
   <string name="annotate_colour_purple">Purple</string>
+  <string name="annotate_colour_custom">Custom colour</string>
+  <string name="annotate_width">Width</string>
+  <string name="annotate_width_value">%1$d</string>
+  <string name="annotate_opacity">Opacity</string>
   <string name="annotate_undo">Undo</string>
   <string name="annotate_clear">Clear</string>
   <string name="annotate_sign">Sign</string>

@@ -82,7 +82,7 @@ class LaptopStateTest {
 
     @Test
     fun anUnknownControlIsNotKept() {
-        assertFalse(state.take(Frame.StateReport(9, 1, 0)))
+        assertFalse(state.take(Frame.StateReport(99, 1, 0)))
     }
 
     @Test

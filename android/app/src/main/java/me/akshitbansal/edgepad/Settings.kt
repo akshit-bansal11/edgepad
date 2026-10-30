@@ -11,6 +11,7 @@ import me.akshitbansal.edgepad.surface.Gesture
 import me.akshitbansal.edgepad.surface.GestureAction
 import me.akshitbansal.edgepad.surface.MediaPiece
 import me.akshitbansal.edgepad.surface.NO_DIAL
+import me.akshitbansal.edgepad.surface.Strokes
 import me.akshitbansal.edgepad.surface.resolveStoredDial
 import java.io.File
 import kotlin.properties.ReadWriteProperty
@@ -119,6 +120,21 @@ class Settings(
      * Capture screen and sent to the laptop on every connection.
      */
     var captureToPhone by flag("captureToPhone", false)
+
+    /** The pen's colour on the Annotate and Sign surface, 0xRRGGBB: one of the eight stock colours or a picked one. */
+    var penRgb by pref({ prefs.getInt(KEY_PEN_RGB, Strokes.DEFAULT_RGB) and PEN_RGB_MASK }) {
+        putInt(KEY_PEN_RGB, it and PEN_RGB_MASK)
+    }
+
+    /** The pen's width on the wire's scale, as [me.akshitbansal.edgepad.protocol.ControlId.PEN_WIDTH] sends it. */
+    var penWidth by pref({ prefs.getInt(KEY_PEN_WIDTH, Strokes.DEFAULT_WIDTH).coerceIn(PEN_WIDTHS) }) {
+        putInt(KEY_PEN_WIDTH, it.coerceIn(PEN_WIDTHS))
+    }
+
+    /** The pen's opacity in percent, as [me.akshitbansal.edgepad.protocol.ControlId.PEN_OPACITY] sends it. */
+    var penOpacity by pref({ prefs.getInt(KEY_PEN_OPACITY, Strokes.DEFAULT_OPACITY).coerceIn(PEN_OPACITIES) }) {
+        putInt(KEY_PEN_OPACITY, it.coerceIn(PEN_OPACITIES))
+    }
 
     /** Ask GitHub once a day, as the app opens, whether a newer release exists. */
     var autoUpdateCheck by flag("autoUpdateCheck", true)
@@ -439,6 +455,9 @@ class Settings(
         const val MAX_ICON_ZOOM = 1f
         const val DEFAULT_ICON_ZOOM = 1f
         private val PER_PAGE_RANGE = MIN_MACROS_PER_PAGE..MAX_MACROS_PER_PAGE
+        private val PEN_WIDTHS = Strokes.MIN_WIDTH..Strokes.MAX_WIDTH
+        private val PEN_OPACITIES = Strokes.MIN_OPACITY..Strokes.MAX_OPACITY
+        private const val PEN_RGB_MASK = 0xFFFFFF
         const val MAX_ANGLE = 360f
         const val DEFAULT_GRADIENT_ANGLE = 90f
         const val MIN_PATTERN_SIZE = 8f
@@ -478,6 +497,9 @@ class Settings(
         private const val KEY_PATTERN_SIZE = "patternSize"
         private const val KEY_PATTERN_COLOR = "patternColor"
         private const val KEY_PATTERN_OPACITY = "patternOpacity"
+        private const val KEY_PEN_RGB = "penRgb"
+        private const val KEY_PEN_WIDTH = "penWidth"
+        private const val KEY_PEN_OPACITY = "penOpacity"
 
         /** Prefixes a media layout key to make its landscape twin. */
         private const val LANDSCAPE = "landscape."
