@@ -155,6 +155,9 @@ class LaptopLink(
     private val writeLock = Any()
     private val main = Handler(Looper.getMainLooper())
 
+    /** The icon side, in pixels, asked of the laptop; raised by the activity as tiles grow, and 128 again on a new link. */
+    @Volatile var iconPx: Int = 128
+
     @Volatile private var streams: Streams? = null
 
     @Volatile private var writer: Thread? = null
@@ -241,7 +244,7 @@ class LaptopLink(
                 } else if (!CaptureInbox.take(frame, ::send)) {
                     // Asked for here, ahead of the main thread, so the pictures are on their way before any
                     // screen wants them and are cached by the time the macro screen opens.
-                    if (wantsIcons(frame)) send(TextKind.WANT_ICONS.frame(""))
+                    if (wantsIcons(frame)) send(TextKind.WANT_ICONS.frame(iconPx.toString()))
                     deliver { it.onFrame(frame) }
                 }
             }
@@ -457,3 +460,8 @@ internal fun closureFor(request: Frame.PinRequest): LaptopLink.Closure? =
  */
 internal fun wantsIcons(frame: Frame): Boolean =
     frame is Frame.Text && frame.kind == TextKind.MACROS.id && frame.text.isNotBlank()
+
+private val ICON_TIERS = intArrayOf(128, 256, 384, 512)
+
+/** The smallest icon size the laptop offers that is at least [px], or the largest when none is. */
+internal fun snapUp(px: Int): Int = ICON_TIERS.firstOrNull { it >= px } ?: ICON_TIERS.last()

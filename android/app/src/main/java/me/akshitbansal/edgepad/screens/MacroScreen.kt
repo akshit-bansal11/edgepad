@@ -13,8 +13,8 @@ import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
-/** The largest picture accepted from the laptop, which sends 128px; the headroom is for an older or newer laptop. */
-private const val MAX_ICON_PX = 256
+/** The largest picture accepted from the laptop, which sends at most the 512px this phone can ask for. */
+private const val MAX_ICON_PX = 512
 
 /** Which deck this is, to [Settings]: the order and the grid are kept per deck. */
 internal const val MACRO_DECK = "macros"
@@ -57,6 +57,7 @@ class MacroScreen(
     onRun: (index: Int) -> Unit,
     onClose: (index: Int) -> Unit,
     onSettings: () -> Unit,
+    onIconSide: (Int) -> Unit,
     onBack: () -> Unit,
 ) {
     private var slots: List<IndexedValue<String>> = emptyList()
@@ -77,6 +78,7 @@ class MacroScreen(
             // The laptop's slot, never the tile's place in the deck: the order on screen is only a drawing.
             onTap = { tile -> onRun(tile.tag) },
             onClose = { tile -> onClose(tile.tag) },
+            onIconSide = onIconSide,
         )
 
     val view: View = page.view

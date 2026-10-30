@@ -48,6 +48,17 @@ class LaptopLinkTest {
     }
 
     @Test
+    fun snapUpRoundsToTheNextSizeTheLaptopOffers() {
+        assertEquals(128, snapUp(0))
+        assertEquals(128, snapUp(128))
+        assertEquals(256, snapUp(129))
+        assertEquals(256, snapUp(256))
+        assertEquals(384, snapUp(300))
+        assertEquals(512, snapUp(512))
+        assertEquals(512, snapUp(9999))
+    }
+
+    @Test
     fun otherFramesAskForNothing() {
         assertFalse(wantsIcons(Frame.Text(TextKind.NOW_PLAYING.id, "Chrome")))
         assertFalse(wantsIcons(Frame.Text(TextKind.MACRO_ICON.id, "0/0/1/AAAA")))

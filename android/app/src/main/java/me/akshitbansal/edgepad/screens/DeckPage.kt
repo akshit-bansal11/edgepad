@@ -39,6 +39,7 @@ class DeckPage(
     onSettings: (() -> Unit)? = null,
     private val perPage: Int? = null,
     private val rows: Int? = null,
+    private val onIconSide: (Int) -> Unit = {},
     private val onClose: (DeckTile) -> Unit,
     private val onTap: (DeckTile) -> Unit,
 ) {
@@ -145,6 +146,13 @@ class DeckPage(
 
     /** Draws the deck from [shown]. It survives a move. */
     private fun draw() {
+        drawDecks()
+        // 0 is a deck not drawn yet, which says nothing.
+        val side = (pageDecks + deck).maxOf { it.iconSide }
+        if (side > 0) onIconSide(side)
+    }
+
+    private fun drawDecks() {
         val (across, down) = room ?: return
         pageDecks.clear()
         val ordered = shown.map { tiles[it] }

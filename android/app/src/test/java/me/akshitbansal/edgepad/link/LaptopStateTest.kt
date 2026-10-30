@@ -340,6 +340,17 @@ class LaptopStateTest {
         assertArrayEquals(second, state.macroIcon(3))
     }
 
+    @Test
+    fun aFullSizeIconOfNinetySixKilobytesIsAccepted() {
+        val png = bytes(96 * 1024)
+        val pieces = chunks(slot = 1, png = png)
+
+        pieces.forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        assertEquals(547, pieces.size)
+        assertArrayEquals(png, state.macroIcon(1))
+    }
+
     /** Bytes that do not repeat, so a wrongly joined icon cannot happen to equal the right one. */
     private fun bytes(size: Int): ByteArray = ByteArray(size) { (it * 31 % 251).toByte() }
 

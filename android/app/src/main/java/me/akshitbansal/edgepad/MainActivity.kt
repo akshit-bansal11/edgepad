@@ -53,6 +53,7 @@ import me.akshitbansal.edgepad.link.otherTransport
 import me.akshitbansal.edgepad.link.parseHostPort
 import me.akshitbansal.edgepad.link.pickerHint
 import me.akshitbansal.edgepad.link.probeAddress
+import me.akshitbansal.edgepad.link.snapUp
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
@@ -757,6 +758,7 @@ class MainActivity :
                         onRun = ::runMacro,
                         onClose = ::closeMacro,
                         onSettings = { goTo(Screen.MACRO_SETTINGS) },
+                        onIconSide = ::requestIcons,
                     ) { navigateBack() }.also { macros = it }.view
                 }
 
@@ -1084,6 +1086,19 @@ class MainActivity :
      */
     private fun runMacro(index: Int) {
         link?.send(Frame.RunAction(ActionId.MACRO_BASE.id + index))
+    }
+
+    /**
+     * The macro grid draws icons [px] across. Asks the laptop for that size, snapped up, only when it is more than
+     * this link already asked for: a larger picture draws sharp when shrunk, and a resend costs the link. A new
+     * link starts at 128, so the grid asks again after a reconnect, and a call that changes nothing sends nothing.
+     */
+    private fun requestIcons(px: Int) {
+        val current = link ?: return
+        val size = snapUp(px)
+        if (!current.connected || size <= current.iconPx) return
+        current.iconPx = size
+        current.send(TextKind.WANT_ICONS.frame(size.toString()))
     }
 
     /** Asks the laptop to close the app of macro slot [index]. As in [runMacro], only the index crosses the link. */
