@@ -17,6 +17,9 @@ class ModifierLatch(
 
     fun isArmed(code: Int): Boolean = code in armed
 
+    /** Held under a finger or armed for the next key. */
+    fun isActive(code: Int): Boolean = code in held || code in armed
+
     fun modifierDown(code: Int) {
         if (armed.remove(code)) return
         if (held.add(code)) {

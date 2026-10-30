@@ -72,7 +72,26 @@ class ModifierLatchTest {
         assertEquals(listOf("17v", "65v", "67v"), sent)
     }
 
+    @Test
+    fun aTappedKeyIsActiveForExactlyTheNextKeyAndAHeldOneWhileHeld() {
+        latch.modifierDown(FN)
+        latch.modifierUp(FN)
+        assertTrue(latch.isActive(FN))
+        latch.keyDown(A)
+        latch.keyUp(A)
+        assertFalse(latch.isActive(FN))
+
+        latch.modifierDown(FN)
+        assertTrue(latch.isActive(FN))
+        latch.keyDown(A)
+        latch.keyUp(A)
+        assertTrue(latch.isActive(FN))
+        latch.modifierUp(FN)
+        assertFalse(latch.isActive(FN))
+    }
+
     private companion object {
+        const val FN = 0x1FFFF
         const val A = 0x41
         const val SHIFT = 0x10
         const val CTRL = 0x11
