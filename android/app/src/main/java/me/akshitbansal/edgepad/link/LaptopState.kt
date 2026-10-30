@@ -131,6 +131,12 @@ class LaptopState {
         private set
 
     /**
+     * The apps this laptop offered to add as macros. The blobs that fill it come through [AppLinks], which is also what
+     * forgets them when the link goes; only the status of an add arrives as a frame, in [take].
+     */
+    val apps = AppCatalogState()
+
+    /**
      * The slot whose icon a [take] that returned true just finished, or -1. Read straight after that call, so
      * an open grid can redraw that one button rather than decoding every picture it holds over again.
      */
@@ -181,6 +187,7 @@ class LaptopState {
                     TextKind.SCREEN_SIZE -> screenSize = size(frame.text) ?: return false
                     TextKind.SIGN_STATUS -> signStatus = SignStatus.of(frame.text)
                     TextKind.DEVICE -> return device(frame.text)
+                    TextKind.APP_ADD_STATUS -> apps.addStatus(frame.text)
                     else -> return false
                 }
             }

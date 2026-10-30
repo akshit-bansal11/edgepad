@@ -273,6 +273,8 @@ class LaptopConnections(
         old?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
         laptop.state.forgetFeatures()
         laptop.state.forgetMacroOpen()
+        // A list belongs to the session that asked for it: its tokens mean nothing to the next one.
+        laptop.state.apps.clear()
         laptop.target = resumable(target)
         laptop.rtt.clear()
         val attempt = Attempt(laptop)

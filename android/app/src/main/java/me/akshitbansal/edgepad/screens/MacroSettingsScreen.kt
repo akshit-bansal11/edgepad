@@ -11,7 +11,7 @@ import kotlin.math.roundToInt
  * The macro screen's own settings: how many macros one page shows, how that many are laid out and whether the
  * labels are drawn. All are phone-side drawing choices. The grid of a page is worked out from the first, so
  * every page has the same tiles; the macros past it continue on further pages, which the macro screen pages
- * through sideways.
+ * through sideways. A laptop that can list its apps adds a button on top that picks a macro from that list.
  */
 object MacroSettingsScreen {
     /** Chips per line: seven at most (Auto and six grids), which do not fit one line at a readable size. */
@@ -23,6 +23,7 @@ object MacroSettingsScreen {
         ui: Ui,
         settings: Settings,
         onSystem: () -> Unit,
+        onAddFromLaptop: (() -> Unit)? = null,
         onBack: () -> Unit,
     ): View {
         val min = Settings.MIN_MACROS_PER_PAGE
@@ -31,6 +32,12 @@ object MacroSettingsScreen {
         return ui.page(
             ui.bar(ui.string(R.string.macros_settings), onBack, backLabel = ui.string(R.string.macros_title)),
         ) {
+            // Only for a laptop that lists its apps: a macro from its own list, with nothing typed on either side.
+            onAddFromLaptop?.let { open ->
+                section(ui.string(R.string.apps_title))
+                add(ui.button(ui.string(R.string.apps_add_from_laptop), Ui.Style.OUTLINED, open))
+                footnote(ui.string(R.string.apps_add_caption))
+            }
             section(ui.string(R.string.macros_pages_title))
             card {
                 add(

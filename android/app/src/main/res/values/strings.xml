@@ -426,4 +426,22 @@
   <string name="macros_page_of">Page %1$d of %2$d</string>
   <string name="macros_empty_title">No macros yet</string>
   <string name="macros_empty_body">Add them from Edgepad\'s tray menu on the laptop. They appear here as soon as it sends the list.</string>
+
+  <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
+  <string name="apps_add_from_laptop">Add from laptop</string>
+  <string name="apps_add_caption">Pick an app the laptop lists, and it becomes a macro there. Nothing but your choice is sent.</string>
+  <string name="apps_title">Add a macro</string>
+  <string name="apps_search_hint">Search apps</string>
+  <string name="apps_loading">Looking for apps on %1$s…</string>
+  <string name="apps_none">%1$s listed no apps.</string>
+  <string name="apps_no_match">No app matches that search.</string>
+  <string name="apps_windows_hint">Not in the list? Add the app to the Start menu on the laptop, then refresh.</string>
+  <string name="apps_confirm_title">Add %1$s to %2$s?</string>
+  <string name="apps_confirm_body">It becomes a macro that opens this app on the laptop.</string>
+  <string name="apps_confirm_action">Add</string>
+  <string name="apps_added">Added. It is in the macros now.</string>
+  <string name="apps_full">The laptop cannot hold more macros. Remove one first.</string>
+  <string name="apps_duplicate">That app is already a macro.</string>
+  <string name="apps_stale">That list is out of date. Refresh it and pick again.</string>
+  <string name="apps_failed">The laptop could not add it.</string>
 </resources>

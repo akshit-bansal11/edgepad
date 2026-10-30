@@ -22,12 +22,14 @@ import me.akshitbansal.edgepad.protocol.Feature
  * @param surface This phone's clipboard.
  * @param allowed The owner's own toggle, read every time.
  * @param settle Called just before sharing turns on for a laptop, so what is on the clipboard now is not sent to it.
+ * @param routes Where a link's blobs are shared with the other features that take them, so this takes the clipboard's.
  * @param syncFor Makes a link's [ClipboardSync], so a test can give it a clock and a scheduler of its own.
  */
 class ClipboardLinks(
     private val surface: ClipboardSurface,
     private val allowed: () -> Boolean,
     private val settle: () -> Unit = {},
+    private val routes: BlobRoutes = BlobRoutes(),
     private val syncFor: (ClipboardSurface, BlobSender, () -> Boolean, () -> Boolean) -> ClipboardSync =
         { surface, sender, allowed, ended -> ClipboardSync(surface, sender, allowed, ended) },
 ) {
@@ -56,7 +58,7 @@ class ClipboardLinks(
             val share = iterator.next()
             if (live.none { it.link === share.link }) {
                 share.sync.setShared(0)
-                share.link.blobs = null
+                routes.attach(share.link, BlobRoutes.Lane.CLIPBOARD, null)
                 iterator.remove()
             }
         }
@@ -78,7 +80,7 @@ class ClipboardLinks(
         val ended = { !link.connected }
         val sender = BlobSender(link::send, laptop.kind, link::lastInputMs, ended, backlog = link::queued)
         val sync = syncFor(surface, sender, allowed, ended)
-        link.blobs = { frame -> sync.take(frame) }
+        routes.attach(link, BlobRoutes.Lane.CLIPBOARD) { frame -> sync.take(frame) }
         return Share(link, sync).also { shares.add(it) }
     }
 
@@ -107,14 +109,16 @@ class ClipboardShare(
 
 /**
  * The real clipboard shared across the links. [context] must be the application's: this outlives the activity, like the
- * manager. [allowed] is the owner's own toggle, and must not hold the activity either.
+ * manager. [routes] is shared with the other features that take a link's blobs. [allowed] is the owner's own toggle,
+ * and must not hold the activity either.
  */
 fun clipboardShare(
     context: Context,
+    routes: BlobRoutes,
     allowed: () -> Boolean,
 ): ClipboardShare {
     val bridge = ClipboardBridge(AndroidClipboard(context))
-    val links = ClipboardLinks(bridge, allowed, bridge::settle)
+    val links = ClipboardLinks(bridge, allowed, bridge::settle, routes)
     bridge.onChanged = links::localChanged
     return ClipboardShare(bridge, links)
 }
