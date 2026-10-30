@@ -36,9 +36,9 @@ public sealed class LinuxMacroIconsTests : IDisposable
         Assert.Equal(PngSignature, png[..4]);
         using var decoded = SKBitmap.Decode(png);
         Assert.NotNull(decoded);
-        Assert.Equal(MacroIconChunks.Size, decoded.Width);
-        Assert.Equal(MacroIconChunks.Size, decoded.Height);
-        var middle = decoded.GetPixel(MacroIconChunks.Size / 2, MacroIconChunks.Size / 2);
+        Assert.Equal(MacroIconChunks.DefaultSize, decoded.Width);
+        Assert.Equal(MacroIconChunks.DefaultSize, decoded.Height);
+        var middle = decoded.GetPixel(MacroIconChunks.DefaultSize / 2, MacroIconChunks.DefaultSize / 2);
         Assert.Equal(255, middle.Alpha);
         Assert.True(middle.Red > 200 && middle.Green < 50 && middle.Blue < 50, middle.ToString());
         Assert.Equal(0, decoded.GetPixel(0, 0).Alpha);
@@ -57,11 +57,58 @@ public sealed class LinuxMacroIconsTests : IDisposable
         Assert.NotNull(png);
         using var decoded = SKBitmap.Decode(png);
         Assert.NotNull(decoded);
-        Assert.Equal(MacroIconChunks.Size, decoded.Width);
-        Assert.Equal(MacroIconChunks.Size, decoded.Height);
-        var centre = decoded.GetPixel(MacroIconChunks.Size / 2, MacroIconChunks.Size / 2);
+        Assert.Equal(MacroIconChunks.DefaultSize, decoded.Width);
+        Assert.Equal(MacroIconChunks.DefaultSize, decoded.Height);
+        var centre = decoded.GetPixel(MacroIconChunks.DefaultSize / 2, MacroIconChunks.DefaultSize / 2);
         Assert.Equal(255, centre.Alpha);
         Assert.True(centre.Green > 200 && centre.Red < 50 && centre.Blue < 50, centre.ToString());
+    }
+
+    [Fact]
+    public void RenderDrawsAnSvgAtTheSizeAsked()
+    {
+        var path = Path.Combine(root, "large.svg");
+        File.WriteAllText(
+            path,
+            """<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="#00ff00"/></svg>""");
+
+        var png = LinuxMacroIcons.Render(path, LinuxMacroIcons.MaxSize);
+
+        Assert.NotNull(png);
+        using var decoded = SKBitmap.Decode(png);
+        Assert.NotNull(decoded);
+        Assert.Equal(LinuxMacroIcons.MaxSize, decoded.Width);
+    }
+
+    [Fact]
+    public void RenderOfATooHeavyPictureFallsDownTheChainWithinEachBudget()
+    {
+        // Noise does not compress, so 512 pixels of it is far past the 512 budget and has to land lower.
+        var path = Path.Combine(root, "noise.png");
+        using (var bitmap = new SKBitmap(512, 512))
+        {
+            var seed = 7u;
+            for (var y = 0; y < 512; y++)
+            {
+                for (var x = 0; x < 512; x++)
+                {
+                    seed = (seed * 1103515245u) + 12345u;
+                    bitmap.SetPixel(x, y, new SKColor((byte)(seed >> 8), (byte)(seed >> 16), (byte)(seed >> 24)));
+                }
+            }
+
+            using var image = SKImage.FromBitmap(bitmap);
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            File.WriteAllBytes(path, data.ToArray());
+        }
+
+        var png = LinuxMacroIcons.Render(path, LinuxMacroIcons.MaxSize);
+
+        Assert.NotNull(png);
+        using var decoded = SKBitmap.Decode(png);
+        Assert.NotNull(decoded);
+        Assert.True(decoded.Width < LinuxMacroIcons.MaxSize, $"{decoded.Width}px is {png.Length} bytes");
+        Assert.True(png.Length <= MacroIconChunks.MaxBytes(decoded.Width), $"{decoded.Width}px is {png.Length} bytes");
     }
 
     [Fact]

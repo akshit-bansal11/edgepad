@@ -126,11 +126,11 @@ internal sealed class LinuxSession : IDisposable
                 {
                     frames.Send(new Pong(ping.Time));
                 }
-                else if (frame is Text { Kind: (byte)TextKind.WantIcons })
+                else if (frame is Text { Kind: (byte)TextKind.WantIcons } want)
                 {
                     // Answered here rather than in the dispatcher, for the same reason PONG is: the reply goes back
                     // down this socket, and the dispatcher holds no reference to it.
-                    StartIcons();
+                    StartIcons(MacroIconChunks.Snap(want.Value, LinuxMacroIcons.MaxSize));
                 }
                 else
                 {
@@ -177,7 +177,7 @@ internal sealed class LinuxSession : IDisposable
     /// WANT_ICONS supersedes this run, and Dispose ends it. Not the platform's worker thread: a long icon run would
     /// hold up the volume and mute jobs queued behind it.
     /// </summary>
-    private void StartIcons()
+    private void StartIcons(int size)
     {
         var run = Interlocked.Increment(ref iconRun);
         _ = Task.Run(() =>
@@ -185,7 +185,7 @@ internal sealed class LinuxSession : IDisposable
             // Nothing may escape a pool thread.
             try
             {
-                SendIcons(run);
+                SendIcons(run, size);
             }
             catch (Exception e) when (e is IOException or ObjectDisposedException or OperationCanceledException)
             {
@@ -199,10 +199,10 @@ internal sealed class LinuxSession : IDisposable
     }
 
     /// <summary>
-    /// Every macro icon this laptop can read, in pieces, for as long as <paramref name="run"/> is the current run.
-    /// An icon that cannot be read is not sent, and its button keeps its name.
+    /// Every macro icon this laptop can read, at <paramref name="size"/> and in pieces, for as long as
+    /// <paramref name="run"/> is the current run. An icon that cannot be read is not sent, and its button keeps its name.
     /// </summary>
-    private void SendIcons(int run)
+    private void SendIcons(int run, int size)
     {
         var current = macros();
         for (var slot = 0; slot < current.Count; slot++)
@@ -213,7 +213,7 @@ internal sealed class LinuxSession : IDisposable
                 return;
             }
 
-            if (LinuxMacroIcons.Png(current[slot]) is not { } png)
+            if (LinuxMacroIcons.Png(current[slot], size) is not { } png)
             {
                 continue;
             }

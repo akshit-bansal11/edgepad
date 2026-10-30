@@ -1,3 +1,4 @@
+using System.Drawing.Imaging;
 using Edgepad.Macros;
 using Xunit;
 
@@ -65,6 +66,48 @@ public sealed class MacroIconsTests : IDisposable
         // target that is a URL falls through to no icon — a button with a label, never an error.
         Assert.Null(MacroIcons.Png(new Macro("Mail", "https://mail.google.com", null)));
         Assert.Null(MacroIcons.Png(new Macro("Mail", "https://mail.google.com", null, Path.Combine(dir, "gone.png"))));
+    }
+
+    [Fact]
+    public void WindowsNeverSendsMoreThanTheSourceHolds() =>
+        Assert.Equal(256, MacroIconChunks.Snap("512", MacroIcons.MaxSize));
+
+    [Fact]
+    public void AnEmptyRequestIsTheDefaultSizeAsBefore()
+    {
+        var path = Path.Combine(dir, "wide.png");
+        using (var bitmap = new Bitmap(40, 20))
+        {
+            bitmap.Save(path, ImageFormat.Png);
+        }
+
+        var png = MacroIcons.Png(new Macro("Pic", path, null), MacroIconChunks.Snap(string.Empty, MacroIcons.MaxSize));
+
+        Assert.NotNull(png);
+        using var stream = new MemoryStream(png);
+        using var decoded = new Bitmap(stream);
+        Assert.Equal(128, decoded.Width);
+        Assert.Equal(128, decoded.Height);
+    }
+
+    [Fact]
+    public void ASizeIsCachedApartFromAnotherSize()
+    {
+        var path = Path.Combine(dir, "both.png");
+        using (var bitmap = new Bitmap(40, 40))
+        {
+            bitmap.Save(path, ImageFormat.Png);
+        }
+
+        var macro = new Macro("Pic", path, null);
+        var small = MacroIcons.Png(macro);
+        var large = MacroIcons.Png(macro, MacroIcons.MaxSize);
+
+        Assert.NotNull(small);
+        Assert.NotNull(large);
+        using var stream = new MemoryStream(large);
+        using var decoded = new Bitmap(stream);
+        Assert.Equal(MacroIcons.MaxSize, decoded.Width);
     }
 
     [Theory]

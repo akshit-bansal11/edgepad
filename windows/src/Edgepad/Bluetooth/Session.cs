@@ -83,11 +83,11 @@ internal sealed class Session(
                 {
                     Send(new Pong(ping.Time));
                 }
-                else if (frame is Text { Kind: (byte)TextKind.WantIcons })
+                else if (frame is Text { Kind: (byte)TextKind.WantIcons } want)
                 {
                     // Answered here rather than in the dispatcher, for the same reason PONG is: the reply
                     // goes back down this socket, and the dispatcher deliberately holds no reference to it.
-                    StartIcons();
+                    StartIcons(MacroIconChunks.Snap(want.Value, MacroIcons.MaxSize));
                 }
                 else
                 {
@@ -289,7 +289,7 @@ internal sealed class Session(
     /// whenever the list changes, so a macro tapped then would otherwise wait behind every icon's extraction.
     /// A newer WANT_ICONS supersedes this run, and Dispose ends it.
     /// </summary>
-    private void StartIcons()
+    private void StartIcons(int size)
     {
         var run = Interlocked.Increment(ref iconRun);
         _ = Task.Run(() =>
@@ -297,7 +297,7 @@ internal sealed class Session(
             // Nothing may escape a pool thread. A dead socket is the read loop's to notice, as for any report.
             try
             {
-                SendIcons(run);
+                SendIcons(run, size);
             }
             catch (Exception e)
             {
@@ -307,10 +307,10 @@ internal sealed class Session(
     }
 
     /// <summary>
-    /// Every macro icon this laptop can read, in pieces, for as long as <paramref name="run"/> is the current
-    /// run. An icon that cannot be read is simply not sent, and its button keeps the label it already had.
+    /// Every macro icon this laptop can read, at <paramref name="size"/> and in pieces, for as long as
+    /// <paramref name="run"/> is the current run. An icon that cannot be read is simply not sent, and its button keeps the label it already had.
     /// </summary>
-    private void SendIcons(int run)
+    private void SendIcons(int run, int size)
     {
         var current = macros.Macros;
         for (var slot = 0; slot < current.Count; slot++)
@@ -321,7 +321,7 @@ internal sealed class Session(
                 return;
             }
 
-            if (MacroIcons.Png(current[slot]) is not { } png)
+            if (MacroIcons.Png(current[slot], size) is not { } png)
             {
                 continue;
             }

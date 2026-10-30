@@ -29,13 +29,16 @@ internal static class LinuxMacroIcons
     /// </summary>
     internal const int MaxSourceSide = 4096;
 
+    /// <summary>The largest square sent: the top tier, which hicolor's 512 folder and an SVG can both fill.</summary>
+    internal const int MaxSize = 512;
+
     /// <summary>Mitchell is a cubic that stays sharp downscaling a 256 or 512 pixel icon to the phone's square.</summary>
     private static readonly SKSamplingOptions Sampling = new(SKCubicResampler.Mitchell);
 
     private static readonly Lock Gate = new();
 
     /// <summary>
-    /// Keyed by path and last-write time together, as on Windows: a replaced icon is picked up rather than served stale
+    /// Keyed by path, last-write time and size together, as on Windows: a replaced icon is picked up rather than served stale
     /// for the life of the process, and a phone reconnecting costs no work at all. A null result is cached too, so a
     /// bad file is logged once and not on every connect.
     /// </summary>
@@ -43,10 +46,11 @@ internal static class LinuxMacroIcons
     private static readonly Dictionary<string, byte[]?> Cache = [];
 
     /// <summary>
-    /// The PNG for <paramref name="macro"/>, or null when it has no readable picture. Safe from any thread; two callers
-    /// may render the same icon at once, which costs a duplicate read and never a wrong answer.
+    /// The PNG for <paramref name="macro"/> at <paramref name="size"/>, a tier no larger than <see cref="MaxSize"/>, or
+    /// null when it has no readable picture. Safe from any thread; two callers may render the same icon at once, which
+    /// costs a duplicate read and never a wrong answer.
     /// </summary>
-    public static byte[]? Png(Macro macro)
+    public static byte[]? Png(Macro macro, int size = MacroIconChunks.DefaultSize)
     {
         // Unfiltered for the same reason as Render's catch: this runs on the session's read thread when the phone asks
         // for the icons, and an exception escaping there would drop the phone's connection over one bad icon. Nothing
@@ -67,7 +71,7 @@ internal static class LinuxMacroIcons
             string key;
             try
             {
-                key = $"{path}|{File.GetLastWriteTimeUtc(path).Ticks}";
+                key = $"{path}|{File.GetLastWriteTimeUtc(path).Ticks}|{size}";
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
             {
@@ -82,7 +86,7 @@ internal static class LinuxMacroIcons
                 }
             }
 
-            var png = Render(path);
+            var png = Render(path, size);
             lock (Gate)
             {
                 Cache[key] = png;
@@ -98,10 +102,10 @@ internal static class LinuxMacroIcons
     }
 
     /// <summary>
-    /// <paramref name="path"/> as a PNG of <see cref="MacroIconChunks.Size"/>, or of <see cref="MacroIconChunks.Fallback"/>
-    /// when that is too heavy for the wire, or null when it cannot be read or is too heavy even then.
+    /// <paramref name="path"/> as a PNG of <paramref name="size"/>, or of the next tier down while that is too heavy for
+    /// the wire, or null when it cannot be read or is too heavy even at the smallest.
     /// </summary>
-    internal static byte[]? Render(string path)
+    internal static byte[]? Render(string path, int size = MacroIconChunks.DefaultSize)
     {
         // Unfiltered on purpose, as LinuxSession.Run's last catch is: a third-party SVG parser can throw anything, and
         // an exception escaping onto the session's read thread would drop the phone's connection over one bad icon.
@@ -124,7 +128,7 @@ internal static class LinuxMacroIcons
                 }
 
                 var cull = picture.CullRect;
-                return Fit(path, cull.Width, cull.Height, (canvas, dest) =>
+                return Fit(path, size, cull.Width, cull.Height, (canvas, dest) =>
                 {
                     canvas.Translate(dest.Left, dest.Top);
                     canvas.Scale(dest.Width / cull.Width);
@@ -158,7 +162,7 @@ internal static class LinuxMacroIcons
                 return Undecodable(path);
             }
 
-            return Fit(path, image.Width, image.Height, (canvas, dest) => canvas.DrawImage(image, dest, Sampling));
+            return Fit(path, size, image.Width, image.Height, (canvas, dest) => canvas.DrawImage(image, dest, Sampling));
         }
         catch (Exception e)
         {
@@ -173,27 +177,24 @@ internal static class LinuxMacroIcons
         return null;
     }
 
-    /// <summary>The square at <see cref="MacroIconChunks.Size"/>, else at the fallback, else null and logged.</summary>
-    private static byte[]? Fit(string path, float width, float height, Action<SKCanvas, SKRect> draw)
+    /// <summary>The square at the first size of the fallback chain that fits the wire, else null and logged.</summary>
+    private static byte[]? Fit(string path, int size, float width, float height, Action<SKCanvas, SKRect> draw)
     {
         if (!(width > 0 && height > 0))
         {
             return null;
         }
 
-        var png = Encode(MacroIconChunks.Size, width, height, draw);
-        if (png.Length <= MacroIconChunks.MaxBytes)
+        foreach (var side in MacroIconChunks.FallbackChain(size))
         {
-            return png;
+            var png = Encode(side, width, height, draw);
+            if (png.Length <= MacroIconChunks.MaxBytes(side))
+            {
+                return png;
+            }
         }
 
-        var small = Encode(MacroIconChunks.Fallback, width, height, draw);
-        if (small.Length <= MacroIconChunks.MaxBytes)
-        {
-            return small;
-        }
-
-        Log.Write($"Macro icon from {path} is {small.Length} bytes even at {MacroIconChunks.Fallback}px and was not sent");
+        Log.Write($"Macro icon from {path} is too heavy even at {MacroIconChunks.Tiers[0]}px and was not sent");
         return null;
     }
 

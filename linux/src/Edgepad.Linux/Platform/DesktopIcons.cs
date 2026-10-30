@@ -24,12 +24,12 @@ internal static class DesktopIcons
     private static readonly string[] Pictures = [".png", ".svg", ".jpg", ".jpeg"];
 
     /// <summary>
-    /// Folders under <c>icons/hicolor</c>, best first. 128 and up lead because the phone is sent 128 pixels and a
-    /// smaller picture only soft-scales up; <c>scalable</c> is a vector, sharp at any size, so it ranks above the
-    /// small rasters but after the big ones, which are already the right size and need no render.
+    /// Folders under <c>icons/hicolor</c>, best first, largest leading because a phone may ask for up to 512 pixels and
+    /// a smaller picture only soft-scales up; <c>scalable</c> is a vector, sharp at any size, so it ranks above the
+    /// small rasters but after the big ones, which need no render.
     /// </summary>
     private static readonly string[] HicolorSizes =
-        ["256x256", "512x512", "128x128", "scalable", "96x96", "72x72", "64x64", "48x48", "36x36", "32x32"];
+        ["512x512", "256x256", "128x128", "scalable", "96x96", "72x72", "64x64", "48x48", "36x36", "32x32"];
 
     /// <summary>
     /// The folders to look in, best first: <c>$XDG_DATA_HOME</c> (or <c>~/.local/share</c>), then

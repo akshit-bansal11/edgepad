@@ -23,11 +23,13 @@ internal static partial class MacroIcons
 {
     /// <summary>
     /// The size asked of the shell, which is the jumbo icon where the program or file type has one. It is
-    /// drawn down to <see cref="MacroIconChunks.Size"/> with bicubic filtering, so a modern icon's 256 image
-    /// is the one read rather than whichever image the shell picks and stretches for a size the icon may not
-    /// carry.
+    /// drawn down to the size asked for with bicubic filtering, so a modern icon's 256 image is the one read
+    /// rather than whichever image the shell picks and stretches for a size the icon may not carry.
     /// </summary>
     private const int Extract = 256;
+
+    /// <summary>The largest square sent. The source never has more, and scaling it up adds bytes and no detail.</summary>
+    internal const int MaxSize = Extract;
 
     /// <summary>ASSOCSTR_DEFAULTICON: the "file,index" a file type's icon is read from.</summary>
     private const uint DefaultIconString = 15;
@@ -35,7 +37,7 @@ internal static partial class MacroIcons
     private static readonly Lock Gate = new();
 
     /// <summary>
-    /// Keyed by path and last-write time together, so rebuilding an exe replaces its icon rather than
+    /// Keyed by path, last-write time and size together, so rebuilding an exe replaces its icon rather than
     /// serving the old one for the life of the process, and a phone reconnecting costs no work at all.
     /// </summary>
     // ponytail: never evicted, so a session that rebuilds the same exe many times keeps every icon it ever
@@ -66,10 +68,11 @@ internal static partial class MacroIcons
     }
 
     /// <summary>
-    /// The PNG for <paramref name="macro"/>, or null when it has no readable picture. Safe from any thread;
-    /// two callers may extract the same icon at once, which costs a duplicate read and never a wrong answer.
+    /// The PNG for <paramref name="macro"/> at <paramref name="size"/>, a tier no larger than
+    /// <see cref="MaxSize"/>, or null when it has no readable picture. Safe from any thread; two callers may
+    /// extract the same icon at once, which costs a duplicate read and never a wrong answer.
     /// </summary>
-    public static byte[]? Png(Macro macro)
+    public static byte[]? Png(Macro macro, int size = MacroIconChunks.DefaultSize)
     {
         // The override wins when it is there, and falls through to the target when it is not: a macro whose
         // icon file has been deleted should go back to the program's own icon, not to no icon at all.
@@ -82,7 +85,7 @@ internal static partial class MacroIcons
         string key;
         try
         {
-            key = $"{path}|{File.GetLastWriteTimeUtc(path).Ticks}";
+            key = $"{path}|{File.GetLastWriteTimeUtc(path).Ticks}|{size}";
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
         {
@@ -97,7 +100,7 @@ internal static partial class MacroIcons
             }
         }
 
-        var png = Render(path);
+        var png = Render(path, size);
         lock (Gate)
         {
             Cache[key] = png;
@@ -133,7 +136,7 @@ internal static partial class MacroIcons
     /// <summary>The path if it is a file this can read something from, else null.</summary>
     private static string? Readable(string? path) => SourceFor(path) == Source.None ? null : path;
 
-    private static byte[]? Render(string path)
+    private static byte[]? Render(string path, int size)
     {
         try
         {
@@ -143,19 +146,16 @@ internal static partial class MacroIcons
                 return null;
             }
 
-            var png = Encode(source, MacroIconChunks.Size);
-            if (png.Length <= MacroIconChunks.MaxBytes)
+            foreach (var side in MacroIconChunks.FallbackChain(size))
             {
-                return png;
+                var png = Encode(source, side);
+                if (png.Length <= MacroIconChunks.MaxBytes(side))
+                {
+                    return png;
+                }
             }
 
-            var small = Encode(source, MacroIconChunks.Fallback);
-            if (small.Length <= MacroIconChunks.MaxBytes)
-            {
-                return small;
-            }
-
-            Log.Write($"Macro icon from {path} is {small.Length} bytes even at {MacroIconChunks.Fallback}px and was not sent");
+            Log.Write($"Macro icon from {path} is too heavy even at {MacroIconChunks.Tiers[0]}px and was not sent");
             return null;
         }
         catch (Exception e) when (e is IOException or ArgumentException or UnauthorizedAccessException
