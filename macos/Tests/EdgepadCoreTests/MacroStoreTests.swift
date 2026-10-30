@@ -352,7 +352,7 @@ final class MacroStoreTests: XCTestCase {
 
     func testTheByteBudgetGrowsWithTheSide() {
         XCTAssertEqual(MacroIconChunks.maxBytes(size: 128), 24 * 1024)
-        XCTAssertEqual(MacroIconChunks.maxBytes(size: 64), 12 * 1024)
+        XCTAssertEqual(MacroIconChunks.maxBytes(size: 64), 24 * 1024)
         XCTAssertEqual(MacroIconChunks.maxBytes(size: 512), 96 * 1024)
     }
 

@@ -443,10 +443,11 @@ public enum MacroIconChunks {
         return tiers.first { $0 >= capped } ?? tiers[tiers.count - 1]
     }
 
-    /// The most an icon of this side may weigh on the wire: 24 KiB at 128 px, growing with the area's side so a
-    /// bigger picture is allowed more, and 96 KiB at 512. Past it a picture costs the link more than a label is worth.
+    /// The most an icon of this side may weigh on the wire: 24 KiB up to 128 px, growing with the side above that
+    /// so a bigger picture is allowed more, and 96 KiB at 512. Past it a picture costs the link more than a label
+    /// is worth. The floor keeps every fallback an old phone gets today.
     public static func maxBytes(size: Int) -> Int {
-        24 * 1024 * size / 128
+        24 * 1024 * max(size, defaultSize) / defaultSize
     }
 
     /// The sides to try for a request, largest first: the tiers at or below `size`, down to 64.
