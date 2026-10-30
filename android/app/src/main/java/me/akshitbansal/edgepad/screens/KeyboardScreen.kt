@@ -343,11 +343,7 @@ object KeyboardScreen {
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
-                    keyRepeat.stop()
-                    for (press in pointerKeys.values) if (!press.sticky) send(press.wire, false)
-                    pointerKeys.clear()
-                    pressCount.fill(0)
-                    modifiers.cancel()
+                    releaseAll()
                 }
 
                 else -> {
@@ -363,8 +359,17 @@ object KeyboardScreen {
             return true
         }
 
-        override fun onDetachedFromWindow() {
+        // Lets go of every key still down; also run on detach, when the up events will never arrive.
+        private fun releaseAll() {
             keyRepeat.stop()
+            for (press in pointerKeys.values) if (!press.sticky) send(press.wire, false)
+            pointerKeys.clear()
+            pressCount.fill(0)
+            modifiers.cancel()
+        }
+
+        override fun onDetachedFromWindow() {
+            releaseAll()
             super.onDetachedFromWindow()
         }
     }

@@ -90,6 +90,38 @@ class ModifierLatchTest {
         assertFalse(latch.isActive(FN))
     }
 
+    @Test
+    fun twoFingersOnOneModifierKeepItDownUntilTheLastLeaves() {
+        latch.modifierDown(FN)
+        latch.modifierDown(FN)
+        latch.modifierUp(FN)
+        assertTrue(latch.isActive(FN))
+        latch.modifierUp(FN)
+        assertEquals(listOf("131071v", "131071^"), sent)
+    }
+
+    @Test
+    fun twoFingersOnOneKeyPressAndReleaseItOnce() {
+        latch.keyDown(A)
+        latch.keyDown(A)
+        latch.keyUp(A)
+        assertEquals(listOf("65v"), sent)
+        latch.keyUp(A)
+        assertEquals(listOf("65v", "65^"), sent)
+    }
+
+    @Test
+    fun aModifierUsedWhileHeldIsNotArmedByAnotherModifiersTap() {
+        latch.modifierDown(SHIFT)
+        latch.keyDown(A)
+        latch.keyUp(A)
+        latch.modifierDown(FN)
+        latch.modifierUp(FN)
+        latch.modifierUp(SHIFT)
+        assertFalse(latch.isArmed(SHIFT))
+        assertTrue(latch.isArmed(FN))
+    }
+
     private companion object {
         const val FN = 0x1FFFF
         const val A = 0x41

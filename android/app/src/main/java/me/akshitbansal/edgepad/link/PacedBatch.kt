@@ -46,6 +46,5 @@ object PacedBatch {
             frame is Frame.Scroll ||
             frame is Frame.Zoom ||
             frame is Frame.SetValue ||
-            frame is Frame.PadState ||
             (frame is Frame.Pen && frame.state == PEN_MOVE)
 }

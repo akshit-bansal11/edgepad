@@ -54,6 +54,15 @@ class PacedBatchTest {
     }
 
     @Test
+    fun aPadStateNeverWaitsOnThePace() {
+        val pad = Frame.PadState(1, 0, 0, 0, 0, 0, 0)
+        val started = System.nanoTime()
+        val got = batch(pad, emptyList(), 2_000)
+        assertEquals(listOf(pad), got)
+        assertTrue(System.nanoTime() - started < 1_000_000_000L)
+    }
+
+    @Test
     fun aKeyArrivingDuringTheWaitEndsIt() {
         val outbox = LinkedBlockingQueue<Frame>()
         val into = ArrayList<Frame>()

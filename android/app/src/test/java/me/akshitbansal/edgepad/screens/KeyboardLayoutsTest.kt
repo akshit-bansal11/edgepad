@@ -21,6 +21,13 @@ class KeyboardLayoutsTest {
     }
 
     @Test
+    fun printScreenNeverAutoRepeats() {
+        for (layout in layouts) {
+            for (cap in caps(layout).filter { it.label == "PrtSc" }) assertTrue("${layout.size}", cap.oneShot)
+        }
+    }
+
+    @Test
     fun aTallKeyHasASpacerOfItsWidthUnderIt() {
         for (layout in layouts) {
             layout.rows.forEachIndexed { i, row ->

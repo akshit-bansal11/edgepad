@@ -232,7 +232,7 @@ private fun seventyFive(): Layout =
         KeyboardSize.SEVENTY_FIVE,
         WIDTH_75,
         listOf(
-            row(escape(), fRow(0, 12), key("PrtSc", CODE_PRTSC), key("Del", CODE_DELETE), light()),
+            row(escape(), fRow(0, 12), key("PrtSc", CODE_PRTSC, oneShot = true), key("Del", CODE_DELETE), light()),
             row(n15(), key("PgUp", CODE_PGUP)),
             row(t15(), key("PgDn", CODE_PGDN)),
             row(c15(), key("Home", CODE_HOME)),
@@ -306,9 +306,11 @@ private fun key(
     units: Float = 1f,
     fns: Fns = emptyMap(),
     rows: Int = 1,
+    oneShot: Boolean = false,
 ): Cap {
     val fn = fns[label]
-    return Cap(label, units, KeyOut.Code(code), fn?.let { KeyOut.Code(it.first) }, fn?.second, rows = rows)
+    val fnOut = fn?.let { KeyOut.Code(it.first) }
+    return Cap(label, units, KeyOut.Code(code), fnOut, fn?.second, rows = rows, oneShot = oneShot)
 }
 
 private fun escape() = key("Esc", CODE_ESC)
@@ -340,7 +342,7 @@ private fun light() = Cap("Light", 1f, KeyOut.None)
 
 private fun extras() =
     listOf(
-        key("PrtSc", CODE_PRTSC),
+        key("PrtSc", CODE_PRTSC, oneShot = true),
         Cap("Mic", 1f, KeyOut.Act(ActionId.MIC_MUTE_TOGGLE)),
         light(),
     )
