@@ -32,10 +32,11 @@ internal fun transportOfInterface(name: String): Transport? =
 private val USB_PREFIXES = listOf("rndis", "usb", "ncm", "eth")
 private val WIFI_PREFIXES = listOf("wlan", "wifi", "ap", "swlan")
 
-// ponytail: a /24 every rescan while mDNS is empty; back off or probe only the router's neighbours if it costs.
 /**
  * Whether a subnet of [transport] is swept. USB always is. Wi-Fi only while mDNS has found nothing: multicast is
  * unreliable on many routers, which is what the sweep is for, and a repeated sweep of a /24 is not free.
+ *
+ * ponytail: a /24 every rescan while mDNS is empty; back off or probe only the router's neighbours if it costs.
  */
 internal fun shouldSweep(
     transport: Transport,

@@ -7,7 +7,6 @@ import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ActivityInfo
@@ -1265,10 +1264,12 @@ class MainActivity :
         return listOfNotNull(wifi, usb).joinToString(" ")
     }
 
-    /** Whether a USB cable is in, from the sticky `USB_STATE` broadcast; nothing is left registered. */
+    /**
+     * Whether a USB cable is in, from the sticky `USB_STATE` broadcast. A null receiver only reads the last one, so
+     * nothing is left registered and the exported flag, which is for receivers and needs API 33, does not apply.
+     */
     private fun usbCableIn(): Boolean {
-        val state =
-            registerReceiver(null, IntentFilter("android.hardware.usb.action.USB_STATE"), Context.RECEIVER_NOT_EXPORTED)
+        val state = registerReceiver(null, IntentFilter("android.hardware.usb.action.USB_STATE"))
         return state?.getBooleanExtra("connected", false) == true
     }
 
