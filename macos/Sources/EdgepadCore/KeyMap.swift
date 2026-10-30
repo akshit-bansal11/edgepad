@@ -2,6 +2,8 @@
 public enum KeyTarget: Equatable {
     case key(MacKey)
     case media(MediaKey)
+    /// Several keys pressed together, once, on key-down only.
+    case chord([MacKey])
 }
 
 extension MacKey {
@@ -95,6 +97,7 @@ public enum KeyMap {
             0x21: MacKey.pageUp.code, 0x22: MacKey.pageDown.code, 0x23: MacKey.end.code, 0x24: MacKey.home.code,
             0x25: 0x7B, 0x26: 0x7E, 0x27: 0x7C, 0x28: 0x7D,
             0x2D: MacKey.help.code, 0x2E: MacKey.forwardDelete.code,
+            0x90: 0x47,
             0x6A: 0x43, 0x6B: 0x45, 0x6D: 0x4E, 0x6E: 0x41, 0x6F: 0x4B,
             0xBA: 0x29, 0xBB: 0x18, 0xBC: 0x2B, 0xBD: 0x1B, 0xBE: 0x2F, 0xBF: 0x2C,
             0xC0: 0x32, 0xDB: 0x21, 0xDC: 0x2A, 0xDD: 0x1E, 0xDE: 0x27,
@@ -121,6 +124,8 @@ public enum KeyMap {
         addRun(from: 0x70, functionKeys)
         addRun(from: 0x60, numpadDigits)
 
+        // PrtSc is the full-screen screenshot shortcut; the Mac has no such key.
+        table[0x2C] = .chord([.shift, .command, .three])
         table[0xAD] = .media(.mute)
         table[0xAE] = .media(.soundDown)
         table[0xAF] = .media(.soundUp)

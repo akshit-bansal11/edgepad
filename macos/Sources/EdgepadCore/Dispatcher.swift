@@ -131,6 +131,11 @@ public final class Dispatcher {
             if down {
                 input.media(media)
             }
+        case .chord(let keys):
+            // Like a media key, a chord is a press: the release has nothing to undo.
+            if down {
+                input.chord(keys)
+            }
         }
         return true
     }

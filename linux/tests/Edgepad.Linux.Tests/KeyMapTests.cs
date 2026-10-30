@@ -59,4 +59,29 @@ public sealed class KeyMapTests
         // KEY_MAX is 0x2ff; buttons start at 0x100, and the keyboard must declare none of them.
         Assert.All(KeyMap.AllKeys, key => Assert.InRange(key, (ushort)1, (ushort)0xFF));
     }
+
+    [Fact]
+    public void EveryKeyInTheSharedTableHasAnEvdevCode()
+    {
+        var codes = SharedKeyCodes();
+        Assert.NotEmpty(codes);
+        Assert.All(codes, code => Assert.NotEqual(0, KeyMap.ToEvdev(code)));
+    }
+
+    private static List<ushort> SharedKeyCodes()
+    {
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+        {
+            var path = Path.Combine(dir.FullName, "protocol", "keys.txt");
+            if (File.Exists(path))
+            {
+                return File.ReadAllLines(path)
+                    .Where(line => line.StartsWith("KEY ", StringComparison.Ordinal))
+                    .Select(line => Convert.ToUInt16(line.Split(' ')[1][2..], 16))
+                    .ToList();
+            }
+        }
+
+        throw new FileNotFoundException("protocol/keys.txt was not found above " + AppContext.BaseDirectory);
+    }
 }
