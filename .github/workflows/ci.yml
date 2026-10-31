@@ -42,7 +42,7 @@ jobs:
       - name: Build APK
         working-directory: android
         run: ./gradlew --no-daemon assembleDebug
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: edgepad-android
           path: android/app/build/outputs/apk/debug/*.apk
@@ -68,7 +68,7 @@ jobs:
         env:
           EDGEPAD_LINK_VECTORS_OUT: ${{ runner.temp }}/link-vectors.txt
         run: dotnet test --project shared/Edgepad.Core.Tests -c Release --no-build --filter-class "*LinkVectorsOutput"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: edgepad-link-vectors
           path: ${{ runner.temp }}/link-vectors.txt
@@ -99,7 +99,7 @@ jobs:
           desktop-file-validate linux/packaging/edgepad.desktop
       - name: Build the archive
         run: sh linux/packaging/pack.sh 0.0.0-dev publish Edgepad-linux-x64.tar.gz
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: edgepad-linux
           path: Edgepad-linux-x64.tar.gz
@@ -127,7 +127,7 @@ jobs:
         run: >
           dotnet publish windows/src/Edgepad/Edgepad.csproj -c Release -r win-x64 --self-contained
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: edgepad-windows
           path: |
@@ -157,7 +157,7 @@ jobs:
             dotnet restore $project --force-evaluate -p:RestoreLockedMode=false
             if ($LASTEXITCODE -ne 0) { throw "restore of $project failed" }
           }
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: edgepad-lockfiles
@@ -184,7 +184,7 @@ jobs:
         run: |
           swift format format --in-place --recursive Sources Tests Package.swift
           git diff > "$RUNNER_TEMP/macos-format.patch"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: failure()
         with:
           name: macos-format-patch
@@ -193,7 +193,7 @@ jobs:
       # A universal menu bar app, ad hoc signed: it runs on an Intel or Apple Silicon Mac once Gatekeeper is told to open it.
       - name: Build the app
         run: bash macos/bundle.sh 0.0.0-dev publish
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: edgepad-macos
           path: publish/Edgepad-mac.zip
@@ -218,7 +218,7 @@ jobs:
           soffice --headless --infilter="HTML (StarWriter)" --convert-to 'docx:MS Word 2007 XML' --outdir out docs/design/design-spec.html
           mv out/design-spec.docx out/edgepad-design-spec.docx
           ls -l out
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: edgepad-design-spec
           path: out/
@@ -238,7 +238,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends librsvg2-bin icoutils icnsutils fonts-lato
       - name: Render the icons
         run: sh scripts/icons.sh
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: edgepad-icons
           path: |
@@ -368,7 +368,7 @@ jobs:
             cp "assets/video/out/$id/timing.json" "$V/$id.timing.json"
           done
           ls -la "$V"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: steps.changed.outputs.changed == 'true'
         with:
           name: edgepad-video
