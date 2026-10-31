@@ -193,6 +193,8 @@ public final class Session {
         dispatcher.annotation?.end()
         dispatcher.capture?.end()
         dispatcher.clipboard?.end()
+        dispatcher.apps?.end()
+        dispatcher.appAddReply = nil
         if dispatcher.dropped > 0 {
             Log.write("Session with \(address): \(dispatcher.dropped) frames dropped")
         }
@@ -430,6 +432,8 @@ public final class Session {
         dispatcher.capture?.backlog = backlog
         dispatcher.clipboard?.sender.output = write
         dispatcher.clipboard?.sender.backlog = backlog
+        dispatcher.apps?.sender.output = write
+        dispatcher.apps?.sender.backlog = backlog
         dispatcher.padStatusReply = { [weak self] status in
             self?.send(.text(kind: TextKind.padStatus.rawValue, value: status))
         }
@@ -445,6 +449,13 @@ public final class Session {
                 self?.send(.text(kind: TextKind.signStatus.rawValue, value: status))
             }
             annotation.screenSizeChanged = { [weak self] in self?.sendScreenSize() }
+        }
+        if dispatcher.apps != nil {
+            features.append(Feature.apps.rawValue)
+            // Written like the pad's status, for the same reason: a dead link here should end the session.
+            dispatcher.appAddReply = { [weak self] status in
+                self?.send(.text(kind: TextKind.appAddStatus.rawValue, value: status))
+            }
         }
         if dispatcher.macros?.seesApps == true {
             features.append(Feature.running.rawValue)

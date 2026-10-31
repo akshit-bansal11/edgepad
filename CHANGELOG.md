@@ -4,13 +4,7 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
-### Fixed
-
-- **A slow macro launch no longer holds up the link.** The laptop starts a macro on a separate thread instead of the one that reads the phone's input, and logs how long the start took, and macro pictures are sent without pausing input.
-- **The guide's Next button stays at the bottom.** On a short screen or a large font the buttons scrolled away with the page; only the guide's text scrolls now.
-- **Annotate has a back button.** It had only an Exit in its menu; a round back button now sits in the top-left corner like the gamepad's, and the keyboard's back link is no longer hidden under a display cutout.
-
-## [4.0.0] - 2026-10-24
+## [4.0.0] - 2026-10-31
 
 The wire protocol moves to version 5, so both halves must be installed from this release.
 
@@ -18,6 +12,11 @@ The wire protocol moves to version 5, so both halves must be installed from this
 
 ### Added
 
+- **A shared clipboard.** Text and images copied on the laptop arrive on the phone at once. Android lets Edgepad read the clipboard only while it is on screen, so to send a copy from the phone, go back to Edgepad after copying and it goes then. Tapping Edgepad's notification does the same. Copying on the phone and pasting on the laptop without returning to Edgepad cannot work. A large photo is sent smaller, and a password manager's copy is never sent. Only the laptop you are controlling shares, and the phone and laptop each have a switch.
+- **Several laptops at once.** The phone stays connected to every laptop you connect and you choose which one you control, from System settings, Devices or the new Devices dial.
+- **Stay connected while minimized.** A notification shows the connection, with a Disconnect button. Stay connected can be turned off in System settings.
+- **Add a macro from the phone.** Macro settings can list the laptop's apps to pick from, on Windows, Linux and the Mac.
+- **Stroke width, opacity and any colour in Annotate and Sign.** The pen screen has a width slider, an opacity slider and, after the eight colours, a swatch that opens the colour picker. The laptop draws each stroke, and the saved signature, at the width, opacity and colour it was drawn with. The choices are kept on the phone. The protocol gains PEN_WIDTH, PEN_OPACITY and PEN_RGB, new ids that need no new version.
 - **Wi-Fi and USB connections on Windows.** The tray menu has a **Wi-Fi and USB connections** switch, off until you turn it on. With it on, the laptop listens on port 47321 (or a free port when that one is taken, which the menu shows) and announces itself on the local network. A phone pairs once: the phone shows a six-digit code and you type it into the window the laptop opens; after that it reconnects without asking. **Allow through Windows Firewall…** adds the inbound rule if you missed Windows' own prompt. **Forget trusted phones** forgets these pairings too. The phone's half, the firewall prompt, finding the laptop from a phone and USB tethering have not been tried on real devices yet.
 - **Wi-Fi and USB connections on Linux.** The tray menu has a **Wi-Fi and USB connections** switch, off until you turn it on (`~/.config/edgepad/network.txt`). With it on, the laptop listens on port 47321 (or a free port when that one is taken, which the menu shows) and announces itself on the local network. A phone pairs once: the phone shows a six-digit code and you type it into the window the laptop opens; after that it reconnects without asking. A firewall may block it: `ufw allow 47321/tcp` and `ufw allow 5353/udp`. **Forget trusted phones** forgets these pairings too. The phone's half, finding the laptop from a phone, Avahi next to our mDNS socket, the firewall and USB tethering have not been tried on real devices yet.
 - **Wi-Fi and USB connections on the Mac.** The menu has a **Wi-Fi and USB connections** switch, off until you turn it on. With it on, the Mac listens on port 47321 (or a free port when that one is taken, which the menu shows) and announces itself over Bonjour. A phone pairs once: the phone shows a six-digit code and you type it into the window the Mac opens; after that it reconnects without asking. **Forget trusted phones** forgets these pairings too. USB tethering needs a driver macOS does not include, so it is not supported on a Mac. The phone's half, finding the Mac from a phone, the Local Network prompt and the firewall have not been tried on real devices yet.
@@ -49,6 +48,9 @@ The wire protocol moves to version 5, so both halves must be installed from this
 
 ### Fixed
 
+- **A slow macro launch no longer holds up the link.** The laptop starts a macro on a separate thread instead of the one that reads the phone's input, and logs how long the start took, and macro pictures are sent without pausing input.
+- **The guide's Next button stays at the bottom.** On a short screen or a large font the buttons scrolled away with the page; only the guide's text scrolls now.
+- **Annotate has a back button.** It had only an Exit in its menu; a round back button now sits in the top-left corner like the gamepad's, and the keyboard's back link is no longer hidden under a display cutout.
 - **Split dials' labels sat on top of each other.** With Split corners on, each dial's label and value sit at the far end of its own ruler, beside a side ruler and above or below a top or bottom one, so the eight never pile up. Four-dial mode is unchanged.
 - **A trust question could stay open, or open, after the session behind it ended.** A hang-up, or the Security window holding connections off, now withdraws the question at once and records no refusal, where the question used to stay up for 60 seconds and the laptop refused every phone after the hold ended. The Windows, Linux and Mac apps all do this.
 - **A frame arriving as the handshake gave up could be accepted.** The handshake timeout, the PIN wait and the read now settle the same decision, so a late frame is refused. The macro list and the trusted-phones file are written beside the file and moved over it, so a failed write no longer leaves them truncated. A connection racing a hold on the laptop is refused instead of being asked about over the owner's dialog.

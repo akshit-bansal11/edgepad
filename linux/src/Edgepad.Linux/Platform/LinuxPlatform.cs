@@ -177,6 +177,11 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
                 return true;
             case ControlId.PenColor:
                 return annotator.SetColour(percent);
+            // As the phone sent them; the board refuses what is out of range, 0 for the width included.
+            case ControlId.PenWidth:
+                return annotator.SetWidth(percent);
+            case ControlId.PenOpacity:
+                return annotator.SetOpacity(percent);
             default:
                 // Refresh rate: Linux has no shared way to switch modes.
                 return false;
@@ -186,6 +191,8 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     public bool Pad(PadState state) => pad.Update(state);
 
     public bool Pen(Pen pen) => annotator.Handle(pen);
+
+    public bool PenRgb(int rgb) => annotator.SetRgb(rgb);
 
     public string AttachPad() => pad.Attach();
 

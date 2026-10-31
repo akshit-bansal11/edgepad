@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Edgepad.Annotation;
 using Edgepad.Blob;
 using Edgepad.Capture;
 using Edgepad.Macros;
@@ -120,6 +121,8 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         RunAction a => Run(a.Id),
         SetValue v when v.Value <= MaxPercent => Set(v.Control, v.Value),
         Text t when t.Kind == (byte)TextKind.Type => Do(() => platform.Type(t.Value)),
+        // A colour and only a colour: held to exactly six hex digits here, before any platform sees it.
+        Text t when t.Kind == (byte)TextKind.PenRgb => PenStyle.TryParseRgb(t.Value, out var rgb) && platform.PenRgb(rgb),
         // The one phone string that can end in a macro, and it is only ever a token: see AppPicker.
         Text t when t.Kind == (byte)TextKind.AppAdd => AddApp(t.Value),
         Key k => Do(() => platform.Key(k.Code, k.Down)),

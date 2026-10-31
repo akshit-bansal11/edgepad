@@ -28,6 +28,10 @@ enum class DialKind(
     SCROLL_H(R.string.dial_scroll_h_short, R.string.dial_scroll_h, null),
     DESKTOPS(R.string.dial_desktops_short, R.string.dial_desktops, null),
     TABS(R.string.dial_tabs_short, R.string.dial_tabs, null),
+
+    // Last, so no stored corner or sensitivity, which are kept by name, moves. Off by default: it is for people
+    // with more than one laptop connected, and a slide here is the one gesture that changes who the pad drives.
+    DEVICES(R.string.dial_devices_short, R.string.dial_devices, null),
     ;
 
     /** Builds the dial with this kind's behaviour: what a slide sets, what a tap runs, what a step does. */
@@ -39,6 +43,7 @@ enum class DialKind(
         send: (Frame) -> Unit,
         haptic: () -> Unit,
         slot: Int = Dial.WHOLE,
+        devices: DeviceSwitch = DeviceSwitch.None,
     ): Dial {
         val snapTo = if (snap) SNAP_STEP else 0
         return when (this) {
@@ -186,6 +191,22 @@ enum class DialKind(
                     // Ctrl is held for the whole slide, so each Tab is Ctrl+Tab; let go when it ends or is cancelled.
                     onArm = { send(Frame.Key(VK_CTRL, true)) },
                     onRelease = { send(Frame.Key(VK_CTRL, false)) },
+                    sink = send,
+                    haptic = haptic,
+                    slot = slot,
+                )
+            }
+
+            DEVICES -> {
+                Dial(
+                    this,
+                    corner,
+                    label,
+                    unitsPerDp,
+                    // Clockwise is the next laptop. Nothing here is sent: the phone moves its own selection, and
+                    // the screens rebuilt on the new laptop do the rest.
+                    tapRun = devices::open,
+                    step = devices::step,
                     sink = send,
                     haptic = haptic,
                     slot = slot,

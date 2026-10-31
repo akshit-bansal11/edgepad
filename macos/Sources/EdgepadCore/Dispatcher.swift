@@ -48,6 +48,14 @@ public final class Dispatcher {
     /// SET CLIPBOARD and the blob frames are dropped and counted.
     public var clipboard: ClipboardSync?
 
+    /// Offers this Mac's apps to the phone as macros. Set by the app per connection, like `clipboard`; without one,
+    /// APPS_LIST, APPS_CANCEL and APP_ADD are dropped and counted. It is given a token, never a target.
+    public var apps: AppPicker?
+
+    /// Where the answer to APP_ADD goes, one `AppAddStatus` token. Set by the session once it has a link to write to,
+    /// like `padStatusReply`.
+    public var appAddReply: ((String) -> Void)?
+
     /// When the phone last sent input, by system uptime: a capture on its way slows down for it.
     public private(set) var lastInput: TimeInterval = 0
 
@@ -98,6 +106,15 @@ public final class Dispatcher {
             guard Int(value) <= Percent.max else { return false }
             return set(control, Int(value))
         case .text(let kind, let value):
+            if kind == TextKind.penRgb.rawValue {
+                // A colour and only a colour: held to exactly six hex digits here, before the overlay sees it.
+                guard let rgb = PenStyle.parseRgb(value) else { return false }
+                return annotation?.setRgb(rgb) ?? false
+            }
+            if kind == TextKind.appAdd.rawValue {
+                // The one phone string that can end in a macro, and it is only ever a token: see `AppPicker`.
+                return addApp(value)
+            }
             guard kind == TextKind.type.rawValue else { return false }
             input.type(value)
             return true
@@ -120,6 +137,13 @@ public final class Dispatcher {
             // once the session is live.
             return false
         }
+    }
+
+    /// Hands the phone's token to the picker, which answers it. Dropped and counted with no picker.
+    private func addApp(_ token: String) -> Bool {
+        guard let apps else { return false }
+        appAddReply?(apps.add(token).rawValue)
+        return true
     }
 
     /// A Mac has no Ctrl+wheel zoom, so zoom is Command-plus and Command-minus, one press per whole step.
@@ -189,11 +213,14 @@ public final class Dispatcher {
         case .search:
             // Spotlight.
             input.chord([.command, .space])
-        case .notifications, .macroBase, .appsList, .appsCancel, .macroCloseBase:
+        case .notifications, .macroBase, .macroCloseBase:
             // Notifications: macOS has no default shortcut for it. The macro blocks are handled before this
-            // switch; their cases are here only so the switch stays exhaustive. The app list is not built on the Mac
-            // yet, so its two actions are dropped and counted.
+            // switch; their cases are here only so the switch stays exhaustive.
             return false
+        case .appsList:
+            return apps?.list() ?? false
+        case .appsCancel:
+            return apps?.cancel() ?? false
         case .macrosWatch, .macrosUnwatch:
             guard let macroWatch else { return false }
             macroWatch(action == .macrosWatch)
@@ -298,6 +325,11 @@ public final class Dispatcher {
         case .penColor:
             // The value is a palette index; the board rejects one it does not have.
             return annotation?.setColour(value) ?? false
+        case .penWidth:
+            // As the phone sent it; the board refuses what is out of range, 0 included.
+            return annotation?.setWidth(value) ?? false
+        case .penOpacity:
+            return annotation?.setOpacity(value) ?? false
         case .refreshRate:
             // The value is an index into the rate list, never hertz.
             return value < display.rates.count ? display.select(value) : false

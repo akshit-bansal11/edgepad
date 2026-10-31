@@ -30,7 +30,8 @@ public struct NormPoint: Equatable {
 }
 
 /// The colours `ControlId.penColor` indexes, by position, as 0xRRGGBB. A test holds them to the PALETTE rows of
-/// `protocol/actions.txt`. Only the index crosses the wire, so an RGB the phone invented cannot reach the overlay.
+/// `protocol/actions.txt`. A colour of the phone's own choosing arrives as `TextKind.penRgb` and only through
+/// `PenStyle.parseRgb`.
 public enum Palette {
     public static let count = 8
 
@@ -51,15 +52,86 @@ public enum Palette {
     }
 }
 
+/// What the next stroke will look like, fixed when its finger goes down so a later change never repaints ink already
+/// on the screen. Width and opacity are the phone's own numbers (SET PEN_WIDTH and PEN_OPACITY), kept as sent and
+/// turned into pixels and alpha only where a stroke is drawn.
+public struct PenStyle: Equatable {
+    /// 20 steps are 0.4% of the screen's height, the pen's width before the phone could choose, and a round number
+    /// to send as the phone's default.
+    public static let defaultWidth = 20
+    /// Below this the width is the 0.1% floor: 1...4 are accepted and all mean 5, so a slider may start at 5.
+    public static let minWidth = 5
+    public static let maxWidth = 100
+    public static let defaultOpacity = 100
+    public static let minOpacity = 10
+    public static let maxOpacity = 100
+
+    /// The highlighter is this many times as wide as the pen is set to be, which is today's 2% against 0.4%.
+    public static let highlighterWidths: Float = 5
+
+    /// One width step is 0.02% of the screen's height, written as a divisor so 20 steps are exactly 0.004.
+    private static let widthStep: Float = 5000
+
+    /// Black, the first palette colour, at the default width and fully opaque.
+    public static let `default` = PenStyle(rgb: 0x00_0000, width: defaultWidth, opacity: defaultOpacity)
+
+    /// 0xRRGGBB, from the palette or from `parseRgb`; nothing else can reach it.
+    public var rgb: UInt32
+    /// 1...100, in steps of 0.02% of the screen's height.
+    public var width: Int
+    /// 10...100 percent.
+    public var opacity: Int
+
+    public init(rgb: UInt32, width: Int, opacity: Int) {
+        self.rgb = rgb
+        self.width = width
+        self.opacity = opacity
+    }
+
+    public static func isWidth(_ value: Int) -> Bool {
+        (1...maxWidth).contains(value)
+    }
+
+    public static func isOpacity(_ value: Int) -> Bool {
+        (minOpacity...maxOpacity).contains(value)
+    }
+
+    /// The pen's width as a share of the screen's height, 0.001 to 0.02.
+    public var penShare: Float {
+        Float(max(PenStyle.minWidth, width)) / PenStyle.widthStep
+    }
+
+    /// Exactly six hex digits, either case, and nothing around them: no "#", no sign, no space, no "0x". Read byte by
+    /// byte because a string's own count is in characters, where "\r\n" is one, and this one string is the phone's to
+    /// choose.
+    public static func parseRgb(_ text: String) -> UInt32? {
+        let bytes = Array(text.utf8)
+        guard bytes.count == 6 else { return nil }
+
+        var value: UInt32 = 0
+        for byte in bytes {
+            let digit: UInt32
+            switch byte {
+            case UInt8(ascii: "0")...UInt8(ascii: "9"):
+                digit = UInt32(byte - UInt8(ascii: "0"))
+            case UInt8(ascii: "A")...UInt8(ascii: "F"):
+                digit = UInt32(byte - UInt8(ascii: "A")) + 10
+            case UInt8(ascii: "a")...UInt8(ascii: "f"):
+                digit = UInt32(byte - UInt8(ascii: "a")) + 10
+            default:
+                return nil
+            }
+            value = value << 4 | digit
+        }
+        return value
+    }
+}
+
 /// One finger-down to finger-up. Freehand tools keep every point; the shape tools keep the down point and the
 /// latest one, because a shape is only ever its two corners.
 public final class Stroke {
-    /// Pen and highlighter widths, as a share of the screen's height so a stroke looks alike on any display.
-    public static let penShare: Float = 0.004
-    public static let highlighterShare: Float = 0.02
-
-    /// The highlighter is translucent so the text under it stays readable. It is stroked once per path, so an
-    /// overlapping stretch of one stroke is not darker than the rest.
+    /// The highlighter is translucent so the text under it stays readable: 35% of its colour, times the opacity the
+    /// phone set. It is stroked once per path, so an overlapping stretch of one stroke is not darker than the rest.
     public static let highlighterAlpha: Float = 0.35
 
     /// The arrow head's wings are this many pen widths long.
@@ -70,23 +142,33 @@ public final class Stroke {
 
     public let tool: StrokeTool
 
-    /// An index into `Palette`.
-    public let colour: Int
+    public let style: PenStyle
 
     public internal(set) var points: [NormPoint]
 
-    public init(tool: StrokeTool, colour: Int, points: [NormPoint] = []) {
+    public init(tool: StrokeTool, style: PenStyle, points: [NormPoint] = []) {
         self.tool = tool
-        self.colour = colour
+        self.style = style
         self.points = points
+    }
+
+    /// The colour as 0xRRGGBB, without the alpha `alpha` gives it.
+    public var rgb: UInt32 {
+        style.rgb
+    }
+
+    /// The ink's alpha, 0...1: the opacity the phone set, and for the highlighter that of its 35%.
+    public var alpha: Float {
+        (tool == .highlighter ? Stroke.highlighterAlpha : 1) * Float(style.opacity) / 100
     }
 
     private var isShape: Bool {
         tool == .line || tool == .arrow || tool == .rectangle || tool == .ellipse
     }
 
+    /// The width as a share of the screen's height, so a stroke looks alike on any display; at least one pixel.
     public func widthPx(height: Int) -> Float {
-        max(1, (tool == .highlighter ? Stroke.highlighterShare : Stroke.penShare) * Float(height))
+        max(1, style.penShare * (tool == .highlighter ? PenStyle.highlighterWidths : 1) * Float(height))
     }
 
     /// The points in pixels of a `width` by `height` screen, y down.
@@ -150,7 +232,9 @@ public final class StrokeBoard {
 
     public private(set) var mode = BoardMode.off
     public private(set) var tool = StrokeTool.pen
-    public private(set) var colour = 0
+    /// The colour, width and opacity the next stroke takes. They outlive `begin`, as the colour always did, and end
+    /// with the board.
+    public private(set) var style = PenStyle.default
 
     /// The strokes whose finger has lifted, oldest first.
     public private(set) var strokes: [Stroke] = []
@@ -185,8 +269,29 @@ public final class StrokeBoard {
 
     /// False when `index` is not in the palette.
     public func setColour(_ index: Int) -> Bool {
-        guard Palette.colour(index) != nil else { return false }
-        colour = index
+        guard let rgb = Palette.colour(index) else { return false }
+        style.rgb = rgb
+        return true
+    }
+
+    /// Any 0xRRGGBB: the caller has already checked it came from `PenStyle.parseRgb`.
+    public func setRgb(_ rgb: UInt32) -> Bool {
+        guard rgb <= 0xFF_FFFF else { return false }
+        style.rgb = rgb
+        return true
+    }
+
+    /// False, and nothing changes, unless `width` is 1...100.
+    public func setWidth(_ width: Int) -> Bool {
+        guard PenStyle.isWidth(width) else { return false }
+        style.width = width
+        return true
+    }
+
+    /// False, and nothing changes, unless `opacity` is 10...100.
+    public func setOpacity(_ opacity: Int) -> Bool {
+        guard PenStyle.isOpacity(opacity) else { return false }
+        style.opacity = opacity
         return true
     }
 
@@ -217,7 +322,7 @@ public final class StrokeBoard {
         case 1:
             commit()
             guard committedPoints < StrokeBoard.maxPointsPerBoard else { return false }
-            active = Stroke(tool: tool, colour: colour, points: [point])
+            active = Stroke(tool: tool, style: style, points: [point])
             return true
         case 2:
             guard let open = active, open.points.count < StrokeBoard.maxPointsPerStroke else { return false }

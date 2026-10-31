@@ -120,9 +120,9 @@ final class StrokeBoardTests: XCTestCase {
         XCTAssertTrue(board.pen(x: 3, y: 3, state: down))
 
         XCTAssertEqual(board.strokes[0].tool, .pen)
-        XCTAssertEqual(board.strokes[0].colour, 0)
+        XCTAssertEqual(board.strokes[0].rgb, 0x00_0000)
         XCTAssertEqual(board.active?.tool, .rectangle)
-        XCTAssertEqual(board.active?.colour, 2)
+        XCTAssertEqual(board.active?.rgb, 0xFF_3B30)
     }
 
     func testSigningAcceptsOnlyThePenTool() {
@@ -157,8 +157,119 @@ final class StrokeBoardTests: XCTestCase {
             let board = started()
 
             XCTAssertEqual(board.setColour(index), accepted)
-            XCTAssertEqual(board.colour, accepted ? index : 0)
+            XCTAssertEqual(board.style.rgb, accepted ? (Palette.colour(index) ?? 0) : 0x00_0000)
         }
+    }
+
+    func testOnlyOneToOneHundredSetsTheWidth() {
+        let cases = [(0, false), (1, true), (5, true), (20, true), (100, true), (101, false), (255, false)]
+        for (width, accepted) in cases {
+            let board = started()
+
+            XCTAssertEqual(board.setWidth(width), accepted)
+            XCTAssertEqual(board.style.width, accepted ? width : PenStyle.defaultWidth)
+        }
+    }
+
+    func testOnlyTenToOneHundredSetsTheOpacity() {
+        for (opacity, accepted) in [(0, false), (9, false), (10, true), (35, true), (100, true), (101, false)] {
+            let board = started()
+
+            XCTAssertEqual(board.setOpacity(opacity), accepted)
+            XCTAssertEqual(board.style.opacity, accepted ? opacity : PenStyle.defaultOpacity)
+        }
+    }
+
+    func testAnRgbReplacesThePaletteColourAndAPaletteIndexReplacesAnRgb() {
+        let board = started()
+
+        XCTAssertTrue(board.setRgb(0x12_3456))
+        XCTAssertEqual(board.style.rgb, 0x12_3456)
+        XCTAssertTrue(board.setColour(1))
+        XCTAssertEqual(board.style.rgb, 0xFF_FFFF)
+        XCTAssertFalse(board.setRgb(0x100_0000))
+        XCTAssertEqual(board.style.rgb, 0xFF_FFFF)
+    }
+
+    func testAStrokeKeepsTheStyleItStartedWithWhateverIsSetLater() {
+        let board = started()
+        XCTAssertTrue(board.setRgb(0xAB_CDEF))
+        XCTAssertTrue(board.setWidth(60))
+        XCTAssertTrue(board.setOpacity(40))
+        XCTAssertTrue(board.pen(x: 1, y: 1, state: down))
+
+        XCTAssertTrue(board.setRgb(0x01_0203))
+        XCTAssertTrue(board.setWidth(10))
+        XCTAssertTrue(board.setOpacity(90))
+        XCTAssertTrue(board.pen(x: 2, y: 2, state: up))
+        XCTAssertTrue(board.pen(x: 3, y: 3, state: down))
+
+        XCTAssertEqual(board.strokes[0].style, PenStyle(rgb: 0xAB_CDEF, width: 60, opacity: 40))
+        XCTAssertEqual(board.active?.style, PenStyle(rgb: 0x01_0203, width: 10, opacity: 90))
+    }
+
+    func testTheStyleSurvivesABeginAndSoDoesTheColourAlwaysHave() {
+        let board = started()
+        XCTAssertTrue(board.setRgb(0xAB_CDEF))
+        XCTAssertTrue(board.setWidth(60))
+
+        board.begin(.sign)
+
+        XCTAssertEqual(board.style, PenStyle(rgb: 0xAB_CDEF, width: 60, opacity: PenStyle.defaultOpacity))
+    }
+
+    func testSixHexDigitsOfEitherCaseParseAsAnRgb() {
+        XCTAssertEqual(PenStyle.parseRgb("000000"), 0x00_0000)
+        XCTAssertEqual(PenStyle.parseRgb("FF3B30"), 0xFF_3B30)
+        XCTAssertEqual(PenStyle.parseRgb("ff3b30"), 0xFF_3B30)
+        XCTAssertEqual(PenStyle.parseRgb("aBcDeF"), 0xAB_CDEF)
+        XCTAssertEqual(PenStyle.parseRgb("FFFFFF"), 0xFF_FFFF)
+    }
+
+    func testAnythingButSixAsciiHexDigitsIsNotAnRgb() {
+        let malformed = [
+            "", "12345", "1234567", "GGGGGG", "#123456", "#12345", "0x1234", " 12345", "12345 ", "+12345", "-12345",
+            "12 456", "12345\n", "12345\r\n", "12345\0", "１２３４５６", "12345é",
+        ]
+        for text in malformed {
+            XCTAssertNil(PenStyle.parseRgb(text), text)
+        }
+    }
+
+    func testThePenIsFourTenthsOfAPercentByDefaultAndWidthStepsAreLinear() {
+        func at(_ width: Int) -> Float {
+            Stroke(tool: .pen, style: PenStyle(rgb: 0, width: width, opacity: 100)).widthPx(height: 10_000)
+        }
+
+        XCTAssertEqual(at(PenStyle.defaultWidth), 40, accuracy: 0.001)
+        XCTAssertEqual(at(5), 10, accuracy: 0.001)
+        XCTAssertEqual(at(100), 200, accuracy: 0.001)
+        XCTAssertEqual(at(50), 100, accuracy: 0.001)
+        // 1...4 sit on the 0.1% floor, so the first steps of a slider that began at 1 would do nothing.
+        XCTAssertEqual(at(1), 10, accuracy: 0.001)
+        XCTAssertEqual(at(4), 10, accuracy: 0.001)
+    }
+
+    func testTheHighlighterIsFiveTimesThePensWidth() {
+        func at(_ width: Int) -> Float {
+            Stroke(tool: .highlighter, style: PenStyle(rgb: 0, width: width, opacity: 100)).widthPx(height: 10_000)
+        }
+
+        XCTAssertEqual(at(PenStyle.defaultWidth), 200, accuracy: 0.001)
+        XCTAssertEqual(at(100), 1000, accuracy: 0.001)
+    }
+
+    func testAlphaIsTheOpacityAndTheHighlighterMultipliesItsOwn() {
+        func alpha(_ tool: StrokeTool, _ opacity: Int) -> Float {
+            Stroke(tool: tool, style: PenStyle(rgb: 0, width: 20, opacity: opacity)).alpha
+        }
+
+        XCTAssertEqual(alpha(.pen, 100), 1, accuracy: 0.0001)
+        XCTAssertEqual(alpha(.pen, 50), 0.5, accuracy: 0.0001)
+        XCTAssertEqual(alpha(.line, 10), 0.1, accuracy: 0.0001)
+        XCTAssertEqual(alpha(.highlighter, 100), 0.35, accuracy: 0.0001)
+        XCTAssertEqual(alpha(.highlighter, 50), 0.175, accuracy: 0.0001)
+        XCTAssertEqual(alpha(.highlighter, 10), 0.035, accuracy: 0.0001)
     }
 
     func testUndoTakesBackTheLastFinishedStrokeAndNeverTheOneUnderTheFinger() {
@@ -254,14 +365,14 @@ final class StrokeBoardTests: XCTestCase {
     }
 
     func testWidthsAreASharePerScreenHeightAndNeverBelowOnePixel() {
-        XCTAssertEqual(Stroke(tool: .pen, colour: 0).widthPx(height: 1000), 4, accuracy: 0.001)
-        XCTAssertEqual(Stroke(tool: .arrow, colour: 0).widthPx(height: 1000), 4, accuracy: 0.001)
-        XCTAssertEqual(Stroke(tool: .highlighter, colour: 0).widthPx(height: 1000), 20, accuracy: 0.001)
-        XCTAssertEqual(Stroke(tool: .pen, colour: 0).widthPx(height: 100), 1, accuracy: 0.001)
+        XCTAssertEqual(Stroke(tool: .pen, style: .default).widthPx(height: 1000), 4, accuracy: 0.001)
+        XCTAssertEqual(Stroke(tool: .arrow, style: .default).widthPx(height: 1000), 4, accuracy: 0.001)
+        XCTAssertEqual(Stroke(tool: .highlighter, style: .default).widthPx(height: 1000), 20, accuracy: 0.001)
+        XCTAssertEqual(Stroke(tool: .pen, style: .default).widthPx(height: 100), 1, accuracy: 0.001)
     }
 
     func testPointsMapTheWholeSpanOntoTheScreen() {
-        let stroke = Stroke(tool: .pen, colour: 0, points: [NormPoint(0, 0), NormPoint(65535, 65535)])
+        let stroke = Stroke(tool: .pen, style: .default, points: [NormPoint(0, 0), NormPoint(65535, 65535)])
 
         let path = stroke.path(width: 1920, height: 1080)
 
@@ -270,7 +381,7 @@ final class StrokeBoardTests: XCTestCase {
     }
 
     func testAnArrowHeadIsFourPenWidthsLongAndSitsBehindTheTip() {
-        let stroke = Stroke(tool: .arrow, colour: 0, points: [NormPoint(0, 32768), NormPoint(65535, 32768)])
+        let stroke = Stroke(tool: .arrow, style: .default, points: [NormPoint(0, 32768), NormPoint(65535, 32768)])
 
         let wings = stroke.arrowWings(width: 1000, height: 1000)
         let tip = stroke.path(width: 1000, height: 1000)[1]
@@ -286,11 +397,11 @@ final class StrokeBoardTests: XCTestCase {
     }
 
     func testOnlyAnArrowWithLengthHasAHead() {
-        let line = Stroke(tool: .line, colour: 0, points: [NormPoint(0, 0), NormPoint(900, 900)])
-        let still = Stroke(tool: .arrow, colour: 0, points: [NormPoint(5, 5), NormPoint(5, 5)])
+        let line = Stroke(tool: .line, style: .default, points: [NormPoint(0, 0), NormPoint(900, 900)])
+        let still = Stroke(tool: .arrow, style: .default, points: [NormPoint(5, 5), NormPoint(5, 5)])
 
         XCTAssertTrue(line.arrowWings(width: 1000, height: 1000).isEmpty)
         XCTAssertTrue(still.arrowWings(width: 1000, height: 1000).isEmpty)
-        XCTAssertTrue(Stroke(tool: .arrow, colour: 0).arrowWings(width: 1000, height: 1000).isEmpty)
+        XCTAssertTrue(Stroke(tool: .arrow, style: .default).arrowWings(width: 1000, height: 1000).isEmpty)
     }
 }

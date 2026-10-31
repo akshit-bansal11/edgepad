@@ -49,6 +49,9 @@ class Laptop(
     /** The last attempt ended and nobody ended it on purpose. */
     var failed = false
 
+    /** This phone ended the link and has not opened another: of what it still has queued, only the close counts. */
+    var ending = false
+
     /** True from a working link dropping until it is back or given up on: a failed attempt then retries. */
     var reconnecting = false
 

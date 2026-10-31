@@ -40,6 +40,15 @@ interface ManagedLink {
     /** [LaptopLink.iconPx]. */
     var iconPx: Int
 
+    /** [LaptopLink.blobs]. */
+    var blobs: ((Frame) -> Unit)?
+
+    /** [LaptopLink.queued]. */
+    val queued: Int
+
+    /** [LaptopLink.lastInputMs]. */
+    val lastInputMs: Long
+
     /** Opens the link on a thread of its own and returns at once. */
     fun start()
 
@@ -82,6 +91,13 @@ private class TransportLink(
         set(value) {
             laptopLink.iconPx = value
         }
+    override var blobs: ((Frame) -> Unit)?
+        get() = laptopLink.blobs
+        set(value) {
+            laptopLink.blobs = value
+        }
+    override val queued: Int get() = laptopLink.queued
+    override val lastInputMs: Long get() = laptopLink.lastInputMs
 
     override fun start() {
         thread(name = "edgepad-link") { laptopLink.open() }

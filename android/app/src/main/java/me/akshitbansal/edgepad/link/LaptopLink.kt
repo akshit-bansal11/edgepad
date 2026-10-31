@@ -171,6 +171,13 @@ class LaptopLink(
     /** The frames [send] has queued and the writer has not taken yet. */
     val queued: Int get() = outbox.size
 
+    /**
+     * When [send] last took anything but a ping or a blob frame, in milliseconds on [System.nanoTime]'s clock: what a
+     * blob's pacing reads to give way to input. Far in the past until the first.
+     */
+    @Volatile var lastInputMs: Long = Long.MIN_VALUE / 2
+        private set
+
     @Volatile private var streams: Streams? = null
 
     @Volatile private var writer: Thread? = null
@@ -196,6 +203,7 @@ class LaptopLink(
      */
     fun send(frame: Frame) {
         if (!connected) return
+        if (frame !is Frame.Ping && !isBlob(frame)) lastInputMs = System.nanoTime() / NANOS_PER_MS_LONG
         if (!outbox.offer(frame)) close(Closure(Cause.LOST))
     }
 
@@ -426,6 +434,7 @@ class LaptopLink(
         /** How long the owner has to say whether the laptop accepted the pairing code. */
         const val CONFIRM_TIMEOUT_MS = 60_000L
         const val NANOS_PER_MS = 1_000_000.0
+        const val NANOS_PER_MS_LONG = 1_000_000L
     }
 }
 

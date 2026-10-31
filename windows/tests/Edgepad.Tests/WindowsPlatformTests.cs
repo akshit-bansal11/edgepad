@@ -121,6 +121,34 @@ public sealed class WindowsPlatformTests : IDisposable
     }
 
     [Fact]
+    public void APenWidthOrOpacityOutOfRangeIsDropped()
+    {
+        dispatcher.Handle(new SetValue((byte)ControlId.PenWidth, 1));
+        dispatcher.Handle(new SetValue((byte)ControlId.PenWidth, 100));
+        dispatcher.Handle(new SetValue((byte)ControlId.PenOpacity, 10));
+        dispatcher.Handle(new SetValue((byte)ControlId.PenOpacity, 100));
+        Assert.Equal(0, dispatcher.Dropped);
+
+        dispatcher.Handle(new SetValue((byte)ControlId.PenWidth, 0));
+        dispatcher.Handle(new SetValue((byte)ControlId.PenWidth, 101));
+        dispatcher.Handle(new SetValue((byte)ControlId.PenOpacity, 9));
+        dispatcher.Handle(new SetValue((byte)ControlId.PenOpacity, 0));
+        Assert.Equal(4, dispatcher.Dropped);
+    }
+
+    [Fact]
+    public void OnlySixHexDigitsSetThePenRgb()
+    {
+        dispatcher.Handle(new Text((byte)TextKind.PenRgb, "12abEF"));
+        Assert.Equal(0, dispatcher.Dropped);
+
+        dispatcher.Handle(new Text((byte)TextKind.PenRgb, "12345"));
+        dispatcher.Handle(new Text((byte)TextKind.PenRgb, "#123456"));
+        dispatcher.Handle(new Text((byte)TextKind.PenRgb, "GGGGGG"));
+        Assert.Equal(3, dispatcher.Dropped);
+    }
+
+    [Fact]
     public void SavingASignatureWithNoInkAnswersEmptyAndExportsNothing()
     {
         List<string> answers = [];

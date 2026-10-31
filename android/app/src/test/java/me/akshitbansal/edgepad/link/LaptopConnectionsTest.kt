@@ -273,6 +273,51 @@ class LaptopConnectionsTest {
     }
 
     @Test
+    fun whatAForgottenLinkHadQueuedIsDroppedAndOnlyItsCloseArrives() {
+        val attempt = connect(1)
+        attempt.holdClose = true
+        manager.forget(id(1))
+        log.lines.clear()
+        attempt.events.onConnected()
+        attempt.events.onFrame(Frame.Text(TextKind.DEVICE.id, "${"01".repeat(16)}/windows/Desk"))
+        assertTrue(log.lines.isEmpty())
+        attempt.events.onClosed(LaptopLink.Closure(LaptopLink.Cause.ENDED))
+        assertEquals(listOf("closed ${id(1)}"), log.lines)
+    }
+
+    @Test
+    fun whatADisconnectedLinkHadQueuedIsDropped() {
+        val link = up(1)
+        link.holdClose = true
+        manager.disconnect(id(1))
+        log.lines.clear()
+        link.events.onFrame(Frame.Text(TextKind.DEVICE.id, "${"01".repeat(16)}/windows/Desk"))
+        link.events.onRoundTrip(1.0)
+        assertTrue(log.lines.isEmpty())
+    }
+
+    @Test
+    fun aLossQueuedBehindADisconnectIsNotRetried() {
+        val link = up(1)
+        link.holdClose = true
+        link.drop()
+        manager.disconnect(id(1))
+        link.events.onClosed(LaptopLink.Closure(LaptopLink.Cause.LOST))
+        scheduler.advance(LaptopConnections.RETRY_DELAY_MS)
+        assertEquals(1, made.size)
+        assertFalse(laptop(1).failed)
+    }
+
+    @Test
+    fun connectingAgainAfterADisconnectHearsTheNewLink() {
+        up(1)
+        manager.disconnect(id(1))
+        log.lines.clear()
+        up(1)
+        assertTrue("connected ${id(1)}" in log.lines)
+    }
+
+    @Test
     fun disconnectKeepsTheLaptopAndEndsItsRetries() {
         up(1).drop()
         manager.disconnect(id(1))
@@ -521,10 +566,16 @@ class LaptopConnectionsTest {
     ) : ManagedLink {
         val sent = ArrayList<Frame>()
         var closedWith: LaptopLink.Cause? = null
+
+        /** A real link posts its close: a test sets this and delivers what was queued by hand, then the close. */
+        var holdClose = false
         override val id: Any = Any()
         override var connected = false
         override var wasConnected = false
         override var iconPx = 128
+        override var blobs: ((Frame) -> Unit)? = null
+        override val queued = 0
+        override val lastInputMs = 0L
 
         fun accept() {
             connected = true
@@ -548,7 +599,7 @@ class LaptopConnectionsTest {
             if (closedWith != null) return
             closedWith = closure.cause
             connected = false
-            events.onClosed(closure)
+            if (!holdClose) events.onClosed(closure)
         }
     }
 

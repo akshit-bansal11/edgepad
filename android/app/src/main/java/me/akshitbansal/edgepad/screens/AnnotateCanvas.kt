@@ -9,7 +9,6 @@ import android.view.MotionEvent
 import android.view.View
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.protocol.Frame
-import me.akshitbansal.edgepad.protocol.PenColor
 import me.akshitbansal.edgepad.surface.Letterbox
 import me.akshitbansal.edgepad.surface.PenTool
 import me.akshitbansal.edgepad.surface.Stroke
@@ -68,14 +67,15 @@ class AnnotateCanvas(
     ) {
         val points = stroke.points.map { box.toPixels(it.x, it.y) }
         if (points.isEmpty()) return
-        val penWidth = maxOf(1f, Strokes.PEN_SHARE * box.height)
+        val penWidth = maxOf(1f, Strokes.penShare(stroke.width) * box.height)
         paint.style = Paint.Style.STROKE
         paint.strokeCap = Paint.Cap.ROUND
         paint.strokeJoin = Paint.Join.ROUND
-        paint.strokeWidth = maxOf(1f, Strokes.widthShare(stroke.tool) * box.height)
-        paint.color = OPAQUE or PenColor.entries[stroke.colour.coerceIn(0, Strokes.PALETTE_SIZE - 1)].rgb
-        // The whole path is one stroke() call, so an overlapping stretch is not darker than the rest.
-        if (stroke.tool == PenTool.HIGHLIGHTER) paint.alpha = (Strokes.HIGHLIGHTER_ALPHA * OPAQUE_ALPHA).toInt()
+        paint.strokeWidth = maxOf(1f, Strokes.widthShare(stroke.tool, stroke.width) * box.height)
+        // The stroke's own colour, width and opacity, as the laptop draws it. The whole path is one drawPath call, so
+        // an overlapping stretch is not darker than the rest, at any opacity.
+        paint.color = stroke.rgb or OPAQUE
+        paint.alpha = Strokes.alpha(stroke.tool, stroke.opacity)
         val (x0, y0) = points.first()
         val (x1, y1) = points.last()
         when (stroke.tool) {
@@ -170,6 +170,5 @@ class AnnotateCanvas(
 
     private companion object {
         const val OPAQUE = 0xFF000000.toInt()
-        const val OPAQUE_ALPHA = 255
     }
 }

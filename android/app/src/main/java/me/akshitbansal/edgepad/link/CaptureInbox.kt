@@ -26,6 +26,9 @@ import java.util.concurrent.ConcurrentHashMap
 object CaptureInbox {
     private val main by lazy { Handler(Looper.getMainLooper()) }
 
+    /** Hands a step to the main thread. Tests run it in place, since a JVM test has no main looper. */
+    @Volatile internal var poster: (() -> Unit) -> Unit = { block -> main.post { block() } }
+
     /** Set once the capture screen has been built. */
     @Volatile internal var store: FileInbox.Store? = null
 
@@ -121,7 +124,7 @@ object CaptureInbox {
     }
 
     private fun post(step: FileInbox.Progress) {
-        main.post {
+        poster {
             last = step
             listener?.invoke(step)
         }

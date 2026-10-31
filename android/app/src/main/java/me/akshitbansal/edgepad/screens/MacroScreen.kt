@@ -42,6 +42,9 @@ private const val EMPTY_ICON_DP = 30f
  * built the whole screen again, which threw away where TalkBack was and decoded every picture in the grid
  * once for each picture that arrived. [openChanged] does the same for the crosses on open macros.
  *
+ * [onAddFromLaptop] is null unless the laptop can list its apps; the empty state then offers it, and so does
+ * [MacroSettingsScreen]. What it opens is [AppListScreen].
+ *
  * Arranging the grid (pressing and holding a tile to drag it, the gear for [MacroSettingsScreen]) is
  * [DeckPage]'s. It is all phone-side drawing: a tile's [DeckTile.tag] is the laptop's slot index, so a tap
  * hands back the slot and never the tile's place on screen, and the order can be anything without a macro
@@ -58,6 +61,7 @@ class MacroScreen(
     onClose: (index: Int) -> Unit,
     onSettings: () -> Unit,
     onIconSide: (Int) -> Unit,
+    private val onAddFromLaptop: (() -> Unit)? = null,
     onBack: () -> Unit,
 ) {
     private var slots: List<IndexedValue<String>> = emptyList()
@@ -123,23 +127,15 @@ class MacroScreen(
             add(emptyTile(), width = ui.dp(EMPTY_TILE_DP), height = ui.dp(EMPTY_TILE_DP))
             headline(ui.string(R.string.macros_empty_title), Type.TITLE, Space.L).gravity = Gravity.CENTER
             body(ui.string(R.string.macros_empty_body), Space.S).gravity = Gravity.CENTER
+            // Only for a laptop that lists its apps; the one thing here that fills the grid from this side.
+            onAddFromLaptop?.let { open ->
+                add(ui.button(ui.string(R.string.apps_add_from_laptop), Ui.Style.FILLED, open), Space.XL)
+            }
         }
     }
 
     /** The bitmap for a slot, or null when there is none or the bytes are not a picture after all. */
-    private fun decode(png: ByteArray?): BitmapDrawable? {
-        val bytes = png ?: return null
-        // The header first: a few kilobytes of PNG can claim any size, and decoding a claimed 30000px square
-        // would take gigabytes. The laptop sends 128px squares, so anything past the cap is not an icon.
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
-        if (bounds.outWidth !in 1..MAX_ICON_PX || bounds.outHeight !in 1..MAX_ICON_PX) return null
-        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
-        // Decoded at full size and scaled once, by the tile, to its final bounds with filtering on. A full
-        // grid draws the picture smaller than it was sent, and a mip chain keeps that from aliasing.
-        bitmap.setHasMipMap(true)
-        return BitmapDrawable(ui.context.resources, bitmap).apply { isFilterBitmap = true }
-    }
+    private fun decode(png: ByteArray?): BitmapDrawable? = iconDrawable(ui, png)
 
     /** The empty state's picture: the macro glyph, dim, on a rounded card tile. */
     private fun emptyTile(): View =
@@ -154,4 +150,25 @@ class MacroScreen(
                 FrameLayout.LayoutParams(ui.dp(EMPTY_ICON_DP), ui.dp(EMPTY_ICON_DP), Gravity.CENTER),
             )
         }
+}
+
+/**
+ * The picture [png] holds, ready to draw, or null when there is none or the bytes are not a picture after all. Shared
+ * by every screen that dresses a tile in an icon the laptop sent.
+ */
+internal fun iconDrawable(
+    ui: Ui,
+    png: ByteArray?,
+): BitmapDrawable? {
+    val bytes = png ?: return null
+    // The header first: a few kilobytes of PNG can claim any size, and decoding a claimed 30000px square
+    // would take gigabytes. The laptop sends 128px squares, so anything past the cap is not an icon.
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+    if (bounds.outWidth !in 1..MAX_ICON_PX || bounds.outHeight !in 1..MAX_ICON_PX) return null
+    val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
+    // Decoded at full size and scaled once, by the tile, to its final bounds with filtering on. A full
+    // grid draws the picture smaller than it was sent, and a mip chain keeps that from aliasing.
+    bitmap.setHasMipMap(true)
+    return BitmapDrawable(ui.context.resources, bitmap).apply { isFilterBitmap = true }
 }

@@ -91,8 +91,8 @@ CONTROL 3 MEDIA_POSITION
 # laptop drops anything above 100, so 120 or 144 could not cross the wire at all; an index is always well
 # under 100. It also makes a rate the laptop does not have unrepresentable rather than merely rejected.
 CONTROL 4 REFRESH_RATE
-# PEN_COLOR's value is an index into the PALETTE rows below, never a colour: the phone cannot name an RGB the
-# laptop did not agree to, and an index of 8 or more is dropped and counted.
+# PEN_COLOR's value is an index into the PALETTE rows below: a palette index is the cheapest way to say one of the
+# eight stock colours, and an index of 8 or more is dropped and counted. A colour outside the palette is TEXT 17 PEN_RGB.
 CONTROL 5 PEN_COLOR
 # Where a capture ends up: 0 the laptop keeps it where its own tool saved it, 1 the laptop sends it to the phone
 # and deletes its copy only once the phone says it saved it. Any other value is dropped and counted.
@@ -100,6 +100,14 @@ CONTROL 6 CAPTURE_TARGET
 # Whether this link shares the clipboard: 1 yes, 0 no, phone to laptop. The laptop forgets it when the session ends and
 # honours it only while its own clipboard toggle is on (FEATURES "clipboard"). Any other value is dropped and counted.
 CONTROL 7 CLIPBOARD
+# The stroke width of the next pen-tool strokes, phone to laptop, 1..100. The laptop maps it linearly to a share of the
+# screen's height, 0.02% per step: 5 is 0.1% and 100 is 2.0%, and 20 is today's 0.4%, which is what the phone sends as its
+# default. 1..4 are accepted and all mean the 0.1% floor. The highlighter keeps its width at 5 times the pen's. 0 or
+# more than 100 is dropped and counted. New strokes only; forgotten when the session ends.
+CONTROL 8 PEN_WIDTH
+# The opacity of the next strokes in percent, phone to laptop, 10..100, 100 by default. The highlighter multiplies its
+# own 35% by it. Anything else is dropped and counted. New strokes only; forgotten when the session ends.
+CONTROL 9 PEN_OPACITY
 
 TEXT 0 NOW_PLAYING
 TEXT 1 APP
@@ -148,6 +156,10 @@ TEXT 15 APP_ADD_STATUS
 # Laptop to phone: one character per macro slot, in MACROS order: '-' not trackable (a URL, folder, document or an app the
 # laptop cannot see), '0' not running, '1' running, '2' running and in front. Sent when it changes while watched.
 TEXT 16 MACRO_OPEN
+# A stroke colour of the phone's choosing, phone to laptop: exactly six hex digits, "RRGGBB", either case. It sets the
+# colour of new strokes until the next PEN_COLOR or PEN_RGB. Anything else, a "#", a short or long string or a non-hex
+# character included, is dropped and counted.
+TEXT 17 PEN_RGB
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping

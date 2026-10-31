@@ -1,5 +1,6 @@
 using System.Numerics;
 using Edgepad.Annotation;
+using Edgepad.Protocol;
 using Xunit;
 
 namespace Edgepad.Tests;
@@ -146,9 +147,9 @@ public sealed class StrokeBoardTests
         Assert.True(board.Pen(3, 3, Down));
 
         Assert.Equal(StrokeTool.Pen, board.Strokes[0].Tool);
-        Assert.Equal(0, board.Strokes[0].Colour);
+        Assert.Equal(0x000000, board.Strokes[0].Rgb);
         Assert.Equal(StrokeTool.Rectangle, board.Active!.Tool);
-        Assert.Equal(2, board.Active.Colour);
+        Assert.Equal(0xFF3B30, board.Active.Rgb);
     }
 
     [Theory]
@@ -203,7 +204,157 @@ public sealed class StrokeBoardTests
         var board = Started();
 
         Assert.Equal(accepted, board.SetColour(index));
-        Assert.Equal(accepted ? index : 0, board.Colour);
+        Assert.Equal(accepted ? Palette.Colour(index) : 0x000000, board.Style.Rgb);
+    }
+
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(1, true)]
+    [InlineData(5, true)]
+    [InlineData(20, true)]
+    [InlineData(100, true)]
+    [InlineData(101, false)]
+    [InlineData(255, false)]
+    public void OnlyOneToOneHundredSetsTheWidth(int width, bool accepted)
+    {
+        var board = Started();
+
+        Assert.Equal(accepted, board.SetWidth(width));
+        Assert.Equal(accepted ? width : PenStyle.DefaultWidth, board.Style.Width);
+    }
+
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(9, false)]
+    [InlineData(10, true)]
+    [InlineData(35, true)]
+    [InlineData(100, true)]
+    [InlineData(101, false)]
+    public void OnlyTenToOneHundredSetsTheOpacity(int opacity, bool accepted)
+    {
+        var board = Started();
+
+        Assert.Equal(accepted, board.SetOpacity(opacity));
+        Assert.Equal(accepted ? opacity : PenStyle.DefaultOpacity, board.Style.Opacity);
+    }
+
+    [Fact]
+    public void AnRgbReplacesThePaletteColourAndAPaletteIndexReplacesAnRgb()
+    {
+        var board = Started();
+
+        Assert.True(board.SetRgb(0x123456));
+        Assert.Equal(0x123456, board.Style.Rgb);
+        Assert.True(board.SetColour(1));
+        Assert.Equal(0xFFFFFF, board.Style.Rgb);
+        Assert.False(board.SetRgb(0x1000000));
+        Assert.False(board.SetRgb(-1));
+        Assert.Equal(0xFFFFFF, board.Style.Rgb);
+    }
+
+    [Fact]
+    public void AStrokeKeepsTheStyleItStartedWithWhateverIsSetLater()
+    {
+        var board = Started();
+        Assert.True(board.SetRgb(0xABCDEF));
+        Assert.True(board.SetWidth(60));
+        Assert.True(board.SetOpacity(40));
+        Assert.True(board.Pen(1, 1, Down));
+
+        Assert.True(board.SetRgb(0x010203));
+        Assert.True(board.SetWidth(10));
+        Assert.True(board.SetOpacity(90));
+        Assert.True(board.Pen(2, 2, Up));
+        Assert.True(board.Pen(3, 3, Down));
+
+        Assert.Equal(new PenStyle(0xABCDEF, 60, 40), board.Strokes[0].Style);
+        Assert.Equal(new PenStyle(0x010203, 10, 90), board.Active!.Style);
+    }
+
+    [Fact]
+    public void TheStyleSurvivesABeginAndSoDoesTheColourAlwaysHave()
+    {
+        var board = Started();
+        Assert.True(board.SetRgb(0xABCDEF));
+        Assert.True(board.SetWidth(60));
+
+        board.Begin(BoardMode.Sign);
+
+        Assert.Equal(new PenStyle(0xABCDEF, 60, PenStyle.DefaultOpacity), board.Style);
+    }
+
+    [Theory]
+    [InlineData("000000", 0x000000)]
+    [InlineData("FF3B30", 0xFF3B30)]
+    [InlineData("ff3b30", 0xFF3B30)]
+    [InlineData("aBcDeF", 0xABCDEF)]
+    [InlineData("FFFFFF", 0xFFFFFF)]
+    public void SixHexDigitsOfEitherCaseParseAsAnRgb(string text, int expected)
+    {
+        Assert.True(PenStyle.TryParseRgb(text, out var rgb));
+        Assert.Equal(expected, rgb);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("12345")]
+    [InlineData("1234567")]
+    [InlineData("GGGGGG")]
+    [InlineData("#123456")]
+    [InlineData("#12345")]
+    [InlineData("0x1234")]
+    [InlineData(" 12345")]
+    [InlineData("12345 ")]
+    [InlineData("+12345")]
+    [InlineData("-12345")]
+    [InlineData("12 456")]
+    [InlineData("12345\n")]
+    [InlineData("12345\0")]
+    [InlineData("１２３４５６")]
+    public void AnythingButSixAsciiHexDigitsIsNotAnRgb(string text)
+    {
+        Assert.False(PenStyle.TryParseRgb(text, out var rgb));
+        Assert.Equal(0, rgb);
+        Assert.False(PenStyle.TryParseRgb(null, out _));
+    }
+
+    [Fact]
+    public void ThePenIsFourTenthsOfAPercentByDefaultAndWidthStepsAreLinear()
+    {
+        var at = (int width) => new Stroke(StrokeTool.Pen, PenStyle.Default with { Width = width }).WidthPx(10_000);
+
+        Assert.Equal(40f, at(PenStyle.DefaultWidth), 3);
+        Assert.Equal(10f, at(5), 3);
+        Assert.Equal(200f, at(100), 3);
+        Assert.Equal(100f, at(50), 3);
+        // 1..4 sit on the 0.1% floor, so the first steps of a slider that began at 1 would do nothing.
+        Assert.Equal(10f, at(1), 3);
+        Assert.Equal(10f, at(4), 3);
+    }
+
+    [Fact]
+    public void TheHighlighterIsFiveTimesThePensWidth()
+    {
+        var at = (int width) => new Stroke(StrokeTool.Highlighter, PenStyle.Default with { Width = width }).WidthPx(10_000);
+
+        Assert.Equal(200f, at(PenStyle.DefaultWidth), 3);
+        Assert.Equal(1000f, at(100), 3);
+    }
+
+    [Theory]
+    [InlineData(StrokeTool.Pen, 100, 255)]
+    [InlineData((int)StrokeTool.Pen, 50, 128)]
+    [InlineData((int)StrokeTool.Pen, 10, 26)]
+    [InlineData((int)StrokeTool.Line, 100, 255)]
+    [InlineData((int)StrokeTool.Highlighter, 100, 89)]
+    [InlineData((int)StrokeTool.Highlighter, 50, 45)]
+    [InlineData((int)StrokeTool.Highlighter, 10, 9)]
+    public void AlphaIsTheOpacityAndTheHighlighterMultipliesItsOwn(int tool, int opacity, int alpha)
+    {
+        // An int, not the internal StrokeTool: a public test method cannot take an internal type.
+        var stroke = new Stroke((StrokeTool)tool, PenStyle.Default with { Opacity = opacity });
+
+        Assert.Equal(alpha, stroke.Alpha);
     }
 
     [Fact]
@@ -294,16 +445,16 @@ public sealed class StrokeBoardTests
     [Fact]
     public void WidthsAreASharePerScreenHeightAndNeverBelowOnePixel()
     {
-        Assert.Equal(4f, new Stroke(StrokeTool.Pen, 0).WidthPx(1000), 3);
-        Assert.Equal(4f, new Stroke(StrokeTool.Arrow, 0).WidthPx(1000), 3);
-        Assert.Equal(20f, new Stroke(StrokeTool.Highlighter, 0).WidthPx(1000), 3);
-        Assert.Equal(1f, new Stroke(StrokeTool.Pen, 0).WidthPx(100), 3);
+        Assert.Equal(4f, new Stroke(StrokeTool.Pen, PenStyle.Default).WidthPx(1000), 3);
+        Assert.Equal(4f, new Stroke(StrokeTool.Arrow, PenStyle.Default).WidthPx(1000), 3);
+        Assert.Equal(20f, new Stroke(StrokeTool.Highlighter, PenStyle.Default).WidthPx(1000), 3);
+        Assert.Equal(1f, new Stroke(StrokeTool.Pen, PenStyle.Default).WidthPx(100), 3);
     }
 
     [Fact]
     public void PointsMapTheWholeSpanOntoTheScreen()
     {
-        var stroke = new Stroke(StrokeTool.Pen, 0);
+        var stroke = new Stroke(StrokeTool.Pen, PenStyle.Default);
         stroke.Points.Add(new NormPoint(0, 0));
         stroke.Points.Add(new NormPoint(65535, 65535));
 
@@ -316,7 +467,7 @@ public sealed class StrokeBoardTests
     [Fact]
     public void AnArrowHeadIsFourPenWidthsLongAndSitsBehindTheTip()
     {
-        var stroke = new Stroke(StrokeTool.Arrow, 0);
+        var stroke = new Stroke(StrokeTool.Arrow, PenStyle.Default);
         stroke.Points.Add(new NormPoint(0, 32768));
         stroke.Points.Add(new NormPoint(65535, 32768));
 
@@ -337,15 +488,15 @@ public sealed class StrokeBoardTests
     [Fact]
     public void OnlyAnArrowWithLengthHasAHead()
     {
-        var line = new Stroke(StrokeTool.Line, 0);
+        var line = new Stroke(StrokeTool.Line, PenStyle.Default);
         line.Points.Add(new NormPoint(0, 0));
         line.Points.Add(new NormPoint(900, 900));
-        var still = new Stroke(StrokeTool.Arrow, 0);
+        var still = new Stroke(StrokeTool.Arrow, PenStyle.Default);
         still.Points.Add(new NormPoint(5, 5));
         still.Points.Add(new NormPoint(5, 5));
 
         Assert.Empty(line.ArrowWings(1000, 1000));
         Assert.Empty(still.ArrowWings(1000, 1000));
-        Assert.Empty(new Stroke(StrokeTool.Arrow, 0).ArrowWings(1000, 1000));
+        Assert.Empty(new Stroke(StrokeTool.Arrow, PenStyle.Default).ArrowWings(1000, 1000));
     }
 }

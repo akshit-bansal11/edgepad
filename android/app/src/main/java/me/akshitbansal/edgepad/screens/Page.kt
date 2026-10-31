@@ -141,11 +141,14 @@ class Ui(
         // Edge-to-edge is enforced from targetSdk 35: keep content clear of the system bars and the cutout.
         root.setOnApplyWindowInsetsListener { page, insets ->
             val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
+            // An open keyboard covers the bottom of the page unless the page makes room for it, as the bars' own
+            // inset is already inside the keyboard's. Only a page with a text field ever sees one.
+            val bottom = maxOf(bars.bottom, insets.getInsets(WindowInsets.Type.ime()).bottom)
             page.setPadding(bars.left, bars.top, bars.right, 0)
             if (pinned == null) {
-                scroll.setPadding(side, top, side, end + bars.bottom)
+                scroll.setPadding(side, top, side, end + bottom)
             } else {
-                pinned.setPadding(side, 0, side, dp(Space.S) + bars.bottom)
+                pinned.setPadding(side, 0, side, dp(Space.S) + bottom)
             }
             insets
         }

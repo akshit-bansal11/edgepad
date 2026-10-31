@@ -172,6 +172,13 @@ internal enum TextKind : byte
     /// '1' running, '2' running and in front. Sent when it changes while watched; an unknown character reads as untracked.
     /// </summary>
     MacroOpen = 16,
+
+    /// <summary>
+    /// Phone to laptop: a stroke colour as exactly six hex digits, "RRGGBB". Safe to take from the phone, unlike a path
+    /// or a command, because it is only a colour: <see cref="Edgepad.Annotation.PenStyle.TryParseRgb"/> accepts those six
+    /// characters and nothing else, and what it returns is an int that can only be drawn with.
+    /// </summary>
+    PenRgb = 17,
 }
 
 /// <summary>
@@ -268,8 +275,8 @@ internal enum ControlId : byte
     RefreshRate = 4,
 
     /// <summary>
-    /// The value is an index into <see cref="Palette"/>, never an RGB: the phone cannot name a colour this
-    /// laptop did not agree to, and an index of 8 or more is dropped and counted.
+    /// The value is an index into <see cref="Palette"/>, the eight stock colours; an index of 8 or more is dropped and
+    /// counted. A colour outside the palette is <see cref="TextKind.PenRgb"/>.
     /// </summary>
     PenColor = 5,
 
@@ -284,6 +291,15 @@ internal enum ControlId : byte
     /// Anything else is dropped and counted.
     /// </summary>
     Clipboard = 7,
+
+    /// <summary>
+    /// The width of the next pen-tool strokes, 1..100, phone to laptop: 0.02% of the screen's height per step, so 5 is
+    /// 0.1%, 20 is the default 0.4% and 100 is 2.0%. 0 or more than 100 is dropped and counted.
+    /// </summary>
+    PenWidth = 8,
+
+    /// <summary>The opacity of the next strokes in percent, 10..100, phone to laptop. Anything else is dropped and counted.</summary>
+    PenOpacity = 9,
 }
 
 /// <summary>

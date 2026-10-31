@@ -64,6 +64,23 @@ public sealed class AnnotateTests
     }
 
     [Fact]
+    public void TheCropFollowsTheWidthTheStrokeWasDrawnWith()
+    {
+        PixelRect Level(int width)
+        {
+            var board = new StrokeBoard();
+            board.Begin(BoardMode.Sign);
+            Assert.True(board.SetWidth(width));
+            Assert.True(board.Pen(10000, 32768, Down));
+            Assert.True(board.Pen(50000, 32768, Up));
+            return SignatureExport.CropRect(board.Strokes, 1000, 1000)!.Value;
+        }
+
+        // 4 px against 20 px of ink on a 1000 px screen, with the same margin either side.
+        Assert.True(Level(100).Height - Level(PenStyle.DefaultWidth).Height >= 15);
+    }
+
+    [Fact]
     public void TheCropNeverLeavesTheScreen()
     {
         var board = new StrokeBoard();

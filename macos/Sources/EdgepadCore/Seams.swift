@@ -128,6 +128,11 @@ public protocol AnnotationSink: AnyObject {
     var screenSizeChanged: (() -> Void)? { get set }
     func pen(x: UInt16, y: UInt16, state: UInt8) -> Bool
     func setColour(_ index: Int) -> Bool
+    /// The colour of the next stroke from PEN_RGB, already held to six hex digits by the dispatcher.
+    func setRgb(_ rgb: UInt32) -> Bool
+    /// The width and the opacity of the next stroke, as the phone sent them; false for one out of range.
+    func setWidth(_ width: Int) -> Bool
+    func setOpacity(_ opacity: Int) -> Bool
     /// One of the annotate and sign actions, 40..51.
     func run(_ action: ActionId) -> Bool
     /// Takes the overlay down and discards the strokes. Idempotent.
@@ -171,4 +176,48 @@ public protocol MacroWindows: AnyObject {
 /// is too heavy), or nil when none can be had. Behind a seam so the store and the chunker stay free of AppKit.
 public protocol MacroIconSource: AnyObject {
     func png(for macro: Macro, size: Int) -> [UInt8]?
+}
+
+/// One app on offer: what its macro would be. `iconPath` becomes `Macro.icon`; nil takes the picture from the target.
+/// Everything in it comes from this Mac, never from the phone: see `AppPicker`.
+public struct AppEntry: Equatable {
+    public let name: String
+    public let target: String
+    public let arguments: String?
+    public let iconPath: String?
+
+    public init(name: String, target: String, arguments: String? = nil, iconPath: String? = nil) {
+        self.name = name
+        self.target = target
+        self.arguments = arguments
+        self.iconPath = iconPath
+    }
+}
+
+/// The apps this Mac would offer the phone as macros. Everything an entry says comes from this machine, which is what
+/// lets the phone add a macro at all. Main thread only, like the launcher: the icons are drawn with AppKit.
+public protocol AppCatalog: AnyObject {
+    /// What is installed now. May be slow and may throw; `AppPicker` runs it on a turn of its own, never inline with
+    /// the frame that asked.
+    func scan() throws -> [AppEntry]
+    /// A PNG of this app, or nil for none. Asked per entry, after the list has gone, because it is the slow part.
+    func icon(for app: AppEntry) throws -> [UInt8]?
+}
+
+/// One thing directly inside a folder.
+public struct AppFolderEntry: Equatable {
+    public let name: String
+    /// A folder, or a link to one. An `.app` bundle is one.
+    public let isFolder: Bool
+
+    public init(name: String, isFolder: Bool) {
+        self.name = name
+        self.isFolder = isFolder
+    }
+}
+
+/// The folders `AppBundles` walks, behind a seam so the walk is a unit test over literal listings.
+public protocol AppFolders: AnyObject {
+    /// What is directly inside `path`, or nil when it is not there or cannot be read.
+    func entries(in path: String) -> [AppFolderEntry]?
 }
