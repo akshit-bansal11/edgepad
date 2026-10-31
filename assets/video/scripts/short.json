@@ -1,0 +1,28 @@
+{
+  "id": "short",
+  "title": "Edgepad 4 in a minute",
+  "gap": 0.6,
+  "chapters": [
+    { "title": "Hook", "energy": 0.4, "lines": [
+      "Your laptop's on the TV. Or the projector. Or across the room.",
+      "This is Edgepad version four. An open-source Android app that turns your phone into a control deck for your laptop."
+    ]},
+    { "title": "The surface", "energy": 0.75, "lines": [
+      "A multi-touch trackpad with remappable gestures.",
+      "Corner dials for volume, brightness, zoom and scrubbing. Flip one switch, and four become eight."
+    ]},
+    { "title": "Controls", "energy": 0.9, "lines": [
+      "A full keyboard. A gamepad your laptop sees as a real Xbox controller, on Windows and Linux.",
+      "A pen that draws on your screen. Screenshots and recordings, saved to your phone.",
+      "Macros for apps, URLs and scripts. Clipboard sync, both ways."
+    ]},
+    { "title": "Everywhere", "energy": 0.7, "lines": [
+      "Bluetooth, Wi-Fi or USB. Windows, Mac and Linux. Mac, Linux, Wi-Fi and USB are new and in beta.",
+      "No account. No server. No cloud. Every line of code is public."
+    ]},
+    { "title": "Get it", "energy": 1, "lines": [
+      "Edgepad. Free and open source, on GitHub.",
+      "Your laptop, from anywhere in the room."
+    ]}
+  ]
+}

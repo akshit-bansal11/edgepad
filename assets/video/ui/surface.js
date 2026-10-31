@@ -17,14 +17,47 @@
   EP.RULER_LENGTH = 100 / (0.25 * 1.4);
   EP.levelToRuler = (level) => level / (0.25 * 1.4);
 
-  // DialKind short labels (strings.xml dial_*_short), and whether the dial is a level with a lit length.
-  const KINDS = { VOL: ['VOL', true], BRI: ['BRI', true], ZOOM: ['ZOOM', false], SCRUB: ['SCRUB', true], APPS: ['APPS', false], MIC: ['MIC', true], RATE: ['RATE', false], ZOOM2: ['ZOOM', false] };
+  // DialKind short labels (strings.xml dial_*_short), and whether the dial is a level with a lit length. The levels are
+  // VOLUME, BRIGHTNESS and MEDIA; every other kind is a stepper whose ruler has no ends. MIC is gone (b4b121e).
+  // ZOOM2 is a second ZOOM, so the kinds can fill eight halves.
+  const KINDS = { VOL: ['VOL', true], BRI: ['BRI', true], ZOOM: ['ZOOM', false], SCRUB: ['SCRUB', true], APPS: ['APPS', false], RATE: ['RATE', false], ZOOM2: ['ZOOM', false], SCROLL: ['SCROLL', false], SIDE: ['SIDE', false], DESK: ['DESK', false], TABS: ['TABS', false], DEVICES: ['LAPTOP', false] };
   const UNSPLIT = ['VOL', 'BRI', 'ZOOM', 'SCRUB']; // DialKind.defaultCorner: volume, brightness, zoom, media scrub
   const INHERITED = [0, 3, 4, 7]; // CornerSlots.inheritedSlot
   // A split half sits off its corner by half the dial's length (ControlSurface: lengthAtSlot(slot, halfLengthDp / 2)).
   const SLOT_OFFSET = HALF / 2;
-  // The halves a split leaves empty, as the owner fills them in Corners. Seven kinds for eight halves: one repeats.
-  const EXTRA = [[1, 'APPS'], [2, 'MIC'], [5, 'RATE'], [6, 'ZOOM2']];
+  // The halves a split leaves empty, as the owner fills them in Corners (slot, kind). S.extraKinds replaces the kinds.
+  const EXTRA = [[1, 'APPS'], [2, 'SCROLL'], [5, 'RATE'], [6, 'ZOOM2']];
+  // RulerPainter: a split half's text is smaller, 10 over 18 (22 held), and SplitLabel.anchor places it at its ruler's far end.
+  const SPLIT_LABEL = 10, SPLIT_VALUE = 18, SPLIT_ARMED = 22, SPLIT_GAP = 2, SPLIT_INSET = 5, SPLIT_WIDE_EMS = 3.2, SPACE_S = 8;
+  const farEnd = (per, centre, after, before) => {
+    const ahead = centre + after, back = centre - before;
+    return per.fromBend(ahead) >= per.fromBend(back) ? ahead : back;
+  };
+  // CornerSlots.kt SplitLabel.anchor: out = [x, top, align], align 1 left aligned, -1 right.
+  function splitAnchor(per, centre, end, depth, block, wide, gap, keepOut, out) {
+    const w = per.width, h = per.height;
+    const p = [0, 0, 0, 0];
+    per.point(centre, p);
+    const left = p[0] < w / 2, top = p[1] < h / 2;
+    const side = Math.abs(p[2]) > Math.abs(p[3]);
+    per.point(end, p);
+    if (side) {
+      const clear = depth + block + gap;
+      out[0] = left ? depth : w - depth;
+      out[1] = top ? Math.max(Math.min(p[1], h / 2 - gap / 2), clear + block) - block : Math.min(Math.max(p[1], h / 2 + gap / 2), h - clear - block);
+    } else {
+      const buttons = top && keepOut[1] > keepOut[0];
+      if (left) {
+        const x = Math.min(p[0], w / 2 - gap / 2);
+        out[0] = Math.max(buttons ? Math.min(x, keepOut[0]) : x, wide);
+      } else {
+        const x = Math.max(p[0], w / 2 + gap / 2);
+        out[0] = Math.min(buttons ? Math.max(x, keepOut[1]) : x, w - wide);
+      }
+      out[1] = top ? depth : h - depth - block;
+    }
+    out[2] = side === left ? 1 : -1;
+  }
 
   const forward = (from, to, len) => (((to - from) % len) + len) % len;
   // DialSpan.compute
@@ -57,7 +90,7 @@
   }
 
   // RulerPainter.draw: notches, the fixed indicator, and the label and number inside the bend.
-  function ruler(ctx, per, centre, after, before, rulerDp, rulerLen, armed, pal, label, number, alpha) {
+  function ruler(ctx, per, centre, after, before, rulerDp, rulerLen, armed, pal, label, number, alpha, splitText, clearX) {
     if (alpha <= 0.01) return;
     ctx.save();
     ctx.globalAlpha *= alpha;
@@ -98,6 +131,20 @@
     ctx.strokeStyle = rgba(pal.accent, 1);
     ctx.lineWidth = 5;
     stroke(ctx, pt, start, end);
+    if (splitText) {
+      // RulerPainter.drawSplitText: the unit at the ruler's far end, depth = the longest mark + 5.
+      const out = [0, 0, 0];
+      const block = SPLIT_LABEL + SPLIT_GAP + SPLIT_ARMED;
+      splitAnchor(per, centre, farEnd(per, centre, after, before), indicatorEnd(true) + SPLIT_INSET, block, SPLIT_ARMED * SPLIT_WIDE_EMS, SPACE_S, clearX, out);
+      const align = out[2] > 0 ? 'left' : 'right';
+      text(ctx, label, out[0], out[1] + SPLIT_LABEL * 0.8, { size: SPLIT_LABEL, w: 'Bold', color: pal.dim, align, track: 0.06 });
+      if (number !== '') {
+        const vs = armed ? SPLIT_ARMED : SPLIT_VALUE;
+        text(ctx, number, out[0], out[1] + SPLIT_LABEL + SPLIT_GAP + vs * 0.8, { size: vs, w: 'Black', color: armed ? pal.accent : pal.ink, align });
+      }
+      ctx.restore();
+      return;
+    }
     const depth = indicatorEnd(true) + 40;
     const ax = pt[0] + pt[2] * depth;
     const ay = pt[1] + pt[3] * depth;
@@ -212,7 +259,11 @@
   }
 
   // S: { pal, bg, radius, split 0..1, extra 0..1, dials {KIND:{ruler,text,armed}}, mode 'normal'|'focus'|'locked',
-  //      media {a, playing, app, title, sub, at:[x,y]}, hint 0..1, press {name,k}, fingers, trail, shaping }
+  //      media {a, playing, app, title, sub, at:[x,y]}, hint 0..1, press {name,k}, fingers, trail, shaping,
+  //      extraKinds [4 kinds for the empty halves, slots 1 2 5 6; default APPS SCROLL RATE ZOOM2],
+  //      scrubOnADial (default true: a scrub dial is on the pad, so now playing shows the app and no time) }
+  // press.name: 'settings', 'lock' or 'controls' ('dashboard' is read as 'controls'). Dial keys: VOL BRI ZOOM SCRUB APPS RATE
+  // ZOOM2 SCROLL SIDE DESK TABS DEVICES (the LAPTOP dial: text is the laptop's name, cut to 10).
   EP.drawSurface = (ctx, w, h, S) => {
     const pal = S.pal;
     EP.drawBackdrop(ctx, w, h, pal, S.bg);
@@ -231,7 +282,8 @@
       const fixed = 40 + 12;
       const room = Math.max(w - 2 * (HALF + 16) - fixed, 120);
       const title = ellipsize(ctx, m.title, 15, 'Bold', room);
-      const sub = ellipsize(ctx, m.sub, 13, 'Regular', room);
+      // Clock.subLine: with a scrub dial on the pad the time is on the dial, so the line is the app alone.
+      const sub = ellipsize(ctx, S.scrubOnADial === false ? m.sub : m.app || '', 13, 'Regular', room);
       const tw = Math.max(EP.measure(ctx, title, 15, 'Bold'), EP.measure(ctx, sub, 13));
       const half = (fixed + clamp(tw, 120, room)) / 2;
       const left = nx * w - half;
@@ -241,8 +293,8 @@
       text(ctx, sub, left + fixed, cy + 13 + 8, { size: 13, color: pal.dim });
       const [tx, ty0] = m.transport || [0.5, 0.9];
       const ty = ty0 * h, cx = tx * w;
-      icon(ctx, 'skipBack', cx - 52, ty, 22, pal.ink, 1);
-      icon(ctx, 'skipForward', cx + 52, ty, 22, pal.ink, 1);
+      icon(ctx, 'skip_back', cx - 52, ty, 24, pal.ink, 1);
+      icon(ctx, 'skip_forward', cx + 52, ty, 24, pal.ink, 1);
       const pk = m.press || 0;
       ctx.shadowColor = rgba(pal.accent, 0.35);
       ctx.shadowBlur = 14;
@@ -252,17 +304,19 @@
       ctx.arc(cx, ty, 26 * (1 - 0.08 * pk), 0, Math.PI * 2);
       ctx.fill();
       ctx.shadowColor = 'transparent';
-      icon(ctx, m.playing ? 'pause' : 'play', cx, ty, 22, pal.onAccent, 1);
+      icon(ctx, m.playing ? 'pause' : 'play', cx, ty, 24, pal.onAccent, 1);
       ctx.restore();
     }
 
-    // Top row of buttons: settings, Controls, lock, macros. The lock is lit on an accent disc outside normal mode.
+    // Top row of three (TopButton, side -1, 0, 1 in steps of `step`): Settings, Lock, Controls, 24 dp icons. The lock is
+    // lit on a 44 dp accent tint outside normal mode.
     const chrome = S.chrome ?? 1;
-    const buttons = [['settings', -2], ['dashboard', -1], ['lock', 0], ['grid', 1]];
+    const buttons = [['settings', -1], ['lock', 0], ['controls', 1]];
+    const pressed = S.press && (S.press.name === 'dashboard' ? 'controls' : S.press.name);
     for (const [name, side] of buttons) {
       const cx = w / 2 + side * step;
       const lit = name === 'lock' && mode !== 'normal';
-      if (S.press && S.press.name === name && S.press.k > 0) {
+      if (pressed === name && S.press.k > 0) {
         ctx.fillStyle = rgba(pal.faint, S.press.k);
         ctx.beginPath();
         ctx.arc(cx, 40, 24, 0, Math.PI * 2);
@@ -274,7 +328,7 @@
         ctx.arc(cx, 40, 22, 0, Math.PI * 2);
         ctx.fill();
       }
-      icon(ctx, name, cx, 40, 22, lit ? pal.accent : pal.dim, chrome);
+      icon(ctx, name, cx, 40, 24, lit ? pal.accent : pal.dim, chrome);
     }
 
     // Hints, the way the app prints them in the middle of an idle pad, and the mode caption a gap above them.
@@ -293,10 +347,11 @@
     // Dials, drawn last: 4 corners, then the halves a split adds. Each span is cut so neighbours and the buttons stay clear.
     if (mode !== 'focus') {
       const topCentre = per.lengthAt(0.5);
-      const zone = 2 * step + 24 + 12;
+      const zone = step + 24 + 12; // the reach (one step) + Space.TOUCH / 2 + Space.M
+      const clearX = [w / 2 - zone, w / 2 + zone]; // painter.clearOf
       const keepOut = [topCentre - zone, topCentre + zone];
       const unsplit = span([0, 1, 2, 3].map((c) => per.cornerMid[c]), per.length, keepOut, 16);
-      const slots = [...INHERITED.map((s, c) => [s, UNSPLIT[c], c]), ...EXTRA.map(([s, k]) => [s, k, null])];
+      const slots = [...INHERITED.map((s, c) => [s, UNSPLIT[c], c]), ...EXTRA.map(([s, k], i) => [s, (S.extraKinds && S.extraKinds[i]) || k, null])];
       const extra = S.extra ?? f;
       // The empty halves only count once they hold a dial, so the four move first and the new four join after.
       const live = slots.map(([, , corner]) => corner !== null || extra > 0.02);
@@ -312,7 +367,7 @@
         const centre = moves ? lerp(per.cornerMid[corner], centres[i], f) : centres[i];
         const after = moves ? lerp(unsplit.after[corner], split.after[k], f) : split.after[k];
         const before = moves ? lerp(unsplit.before[corner], split.before[k], f) : split.before[k];
-        ruler(ctx, per, centre, after, before, d.ruler, level ? EP.RULER_LENGTH : null, d.armed, pal, label, d.text, moves ? 1 : smooth(extra));
+        ruler(ctx, per, centre, after, before, d.ruler, level ? EP.RULER_LENGTH : null, d.armed, pal, label, d.text, moves ? 1 : smooth(extra), f >= 0.5 || !moves, clearX);
       });
     }
     return per;

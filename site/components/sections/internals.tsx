@@ -125,7 +125,7 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
         id="transport"
         eyebrow="How it works"
         title="Transport"
-        lede="Bluetooth Classic RFCOMM: an ordered, encrypted byte stream between two already-paired devices, with no server, no discovery and no network anywhere in the product."
+        lede="Bluetooth Classic RFCOMM by default: an ordered, encrypted byte stream between two already-paired devices, with no server and no discovery. Wi-Fi and USB connections are optional and off until you turn them on."
       >
         <div className="flex flex-wrap gap-2">
           <Badge variant="solid">RFCOMM</Badge>
@@ -152,7 +152,7 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
             },
             {
               title: "Wi-Fi / LAN",
-              body: "Needs a shared network and a discovery step. Bluetooth was also the requirement.",
+              body: "Needs a shared network and a discovery step, so it was not the default. Bluetooth was also the requirement. Since 4.0.0 Wi-Fi and USB connections are an optional extra: off until you turn them on, a one-time six-digit code to pair, and the phone's half is not yet tried on real devices.",
             },
             {
               title: "Phone as a Bluetooth HID touchpad",
@@ -176,7 +176,7 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
         id="architecture"
         eyebrow="How it works"
         title="Architecture"
-        lede="One product in two programs, in one repository. This is the map of both and of the single seam between them."
+        lede="One product in four programs, in one repository: the Android app and the Windows, Mac and Linux apps. This is the map of them and of the single seam between them."
       >
         <FlowDiagram />
 
@@ -606,10 +606,13 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
               <TableCell className="font-mono text-[0.8125rem]">5</TableCell>
               <TableCell className="font-mono text-[0.8125rem]">4.0.0</TableCell>
               <TableCell className="text-[0.875rem]">
-                <C>PIN_REQUEST</C> and <C>PIN_ANSWER</C>, and <C>PEN</C>: three new
-                frame types. Actions 40 to 54 (annotate, sign and capture), CONTROL 5
-                and TEXT 9 to 11 came with them and would not have needed a bump on
-                their own.
+                <C>PIN_REQUEST</C> and <C>PIN_ANSWER</C>, <C>PEN</C>, and{" "}
+                <C>FILE_BEGIN</C>, <C>FILE_CHUNK</C>, <C>FILE_END</C> and{" "}
+                <C>FILE_RESULT</C> for a capture saved on the phone, all new frame
+                types. <C>BLOB_BEGIN</C>, <C>BLOB_CHUNK</C> and <C>BLOB_END</C> carry
+                the clipboard, an app list and an app icon, both ways. Actions 40 to 55,
+                CONTROL 5 and 6 and TEXT 9 to 12 came with them and would not have
+                needed a bump on their own.
               </TableCell>
             </TableRow>
           </TableBody>
@@ -840,9 +843,10 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
             without it.
           </li>
           <li>
-            Nothing leaves the two devices: no network, no server, no account, no
-            telemetry. The laptop writes a local log of connections and errors and
-            nothing else.
+            Nothing leaves the two devices: no server, no account, no telemetry. With
+            the optional Wi-Fi link on, they talk over the local network and nowhere
+            else. The laptop writes a local log of connections and errors and nothing
+            else.
           </li>
           <li>
             Release builds are signed, and every release is signed with the same key, so
