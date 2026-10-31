@@ -259,9 +259,6 @@ jobs:
   # under assets/video/ changed in the push (or, on a pull request, against its base). A change anywhere else skips
   # every step after the check, and the job still passes.
   video:
-    # Off: the owner postponed the videos and covers until the app's bugs are fixed (2026-10-25). Delete this
-    # line to render again.
-    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -291,13 +288,13 @@ jobs:
         if: steps.changed.outputs.changed == 'true'
         with:
           node-version: '24'
-      - name: Install ffmpeg and edge-tts
+      - name: Install ffmpeg, edge-tts and numpy
         if: steps.changed.outputs.changed == 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends ffmpeg python3-venv
           python3 -m venv "$RUNNER_TEMP/venv"
-          "$RUNNER_TEMP/venv/bin/pip" install edge-tts==7.3.1
+          "$RUNNER_TEMP/venv/bin/pip" install edge-tts==7.3.1 numpy==2.5.4
       # One short sentence in the narration's voice and one in the default, so a failed take shows whether the
       # service, the voice or the script is at fault.
       - name: Check the voice service
@@ -309,6 +306,9 @@ jobs:
       - name: Voice
         if: steps.changed.outputs.changed == 'true'
         run: '"$RUNNER_TEMP/venv/bin/python" assets/video/voice.py'
+      - name: Music
+        if: steps.changed.outputs.changed == 'true'
+        run: '"$RUNNER_TEMP/venv/bin/python" assets/video/music.py'
       # Lint gates the render. `check` also audits layout, motion and contrast in a browser; its findings are worth
       # reading in this log, but the phone is a canvas the audits cannot see into, so they do not stop the render.
       - name: Lint the compositions
@@ -343,8 +343,8 @@ jobs:
             fi
           }
           render "$V/full.mp4" --quality delivery
-          render "$V/minute.mp4" -c cuts/minute.html --quality delivery
-          render "$V/reel.mp4" -c cuts/reel.html --quality delivery
+          render "$V/linkedin.mp4" -c cuts/linkedin.html --quality delivery
+          render "$V/instagram.mp4" -c cuts/instagram.html --quality delivery
           for id in thumb-landscape thumb-portrait; do
             render "$RUNNER_TEMP/frames-$id" -c "cuts/$id.html" --format png-sequence
             cp "$(find "$RUNNER_TEMP/frames-$id" -name '*.png' | sort | head -n 1)" "$V/$id.png"
@@ -355,7 +355,7 @@ jobs:
         run: |
           set -euo pipefail
           V="$RUNNER_TEMP/video"
-          for id in full minute; do
+          for id in full; do
             ffmpeg -y -loglevel error -i "$V/$id.mp4" -c:v libx264 -preset slow -crf 23 -maxrate 1000k -bufsize 2000k \
               -pix_fmt yuv420p -c:a aac -b:a 96k -movflags +faststart "$V/$id-web.mp4"
             size=$(stat -c %s "$V/$id-web.mp4")
@@ -363,9 +363,21 @@ jobs:
             poster=$(node -p "require('./assets/video/out/$id/timing.json').poster")
             ffmpeg -y -loglevel error -ss "$poster" -i "$V/$id.mp4" -frames:v 1 -q:v 2 "$V/$id-poster.jpg"
           done
-          for id in full minute reel; do
+          for id in full short; do
             cp "assets/video/out/$id/$id.en.vtt" "$V/"
             cp "assets/video/out/$id/timing.json" "$V/$id.timing.json"
+            cp "assets/video/out/$id/music.mp3" "$V/$id-music.mp3"
+          done
+          # The balance, for an ear that cannot be in this log: the voice should sit well above the bed.
+          for f in full short; do
+            for s in voice music; do
+              echo "$f $s: $(ffmpeg -hide_banner -i "assets/video/out/$f/$s.mp3" -af ebur128 -f null - 2>&1 | grep -E '^ +I:' | tail -n 1)"
+            done
+          done
+          # Small contact sheets, so a review need not download the renders.
+          mkdir -p "$RUNNER_TEMP/sheets"
+          for id in full linkedin instagram; do
+            ffmpeg -y -loglevel error -i "$V/$id.mp4" -vf "fps=1/3,scale=-1:360,tile=8x6" -q:v 4 -vsync vfr "$RUNNER_TEMP/sheets/$id-%02d.jpg"
           done
           ls -la "$V"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -373,4 +385,10 @@ jobs:
         with:
           name: edgepad-video
           path: ${{ runner.temp }}/video/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: steps.changed.outputs.changed == 'true'
+        with:
+          name: edgepad-video-sheets
+          path: ${{ runner.temp }}/sheets/
           if-no-files-found: error

@@ -10,6 +10,7 @@ Every word keeps its own timing, shifted with its line, which is what the captio
 """
 import asyncio
 import json
+import math
 import pathlib
 import re
 import subprocess
@@ -25,6 +26,10 @@ LEAD = 0.5  # silence before the first word
 GAP = 0.35  # between two lines of one chapter
 CHAPTER_GAP = 0.85  # between chapters, where the picture changes the most
 TAIL = 3.0  # the end card holds this long after the last word
+BPM = 108  # music.py plays at this tempo; every chapter starts on one of its beats
+BEAT = 60 / BPM
+# Said differently from how it is written, one word for one word, so the captions keep the written form.
+SPOKEN = {"Wi-Fi": "Why-Fye"}
 
 
 def letters(s):
@@ -51,6 +56,12 @@ async def take(text):
             await asyncio.sleep(10 * attempt)
 
 
+def say(text):
+    for written, spoken in SPOKEN.items():
+        text = text.replace(written, spoken)
+    return text
+
+
 def split(lines, words):
     """The spoken words of each line, matched by counting letters, so punctuation and splits cannot drift them."""
     out, w, used, total = [], 0, 0, 0
@@ -70,7 +81,7 @@ def tokens(text, spoken):
     """The line's own words (with their punctuation), each timed from the spoken words whose letters it holds."""
     toks = text.split()
     ends, n = [], 0
-    for tok in toks:
+    for tok in say(text).split():
         n += len(letters(tok))
         ends.append(n)
     out = [[tok, None, None] for tok in toks]
@@ -114,9 +125,10 @@ def build(sid):
     out.mkdir(parents=True, exist_ok=True)
     flat = [(ci, text) for ci, ch in enumerate(script["chapters"]) for text in ch["lines"]]
     texts = [t for _, t in flat]
-    audio, words = asyncio.run(take(" ".join(texts)))
+    spoken_texts = [say(t) for t in texts]
+    audio, words = asyncio.run(take(" ".join(spoken_texts)))
     (out / "take.mp3").write_bytes(audio)
-    spoken = split(texts, words)
+    spoken = split(spoken_texts, words)
     starts = [s[0][1] for s in spoken]
     ends = [s[-1][2] for s in spoken]
 
@@ -129,7 +141,10 @@ def build(sid):
         a = max(cuts[i], starts[i] - 0.12)
         b = min(cuts[i + 1], ends[i] + 0.25)
         speech = ends[i] - starts[i]
-        gap = TAIL if last else CHAPTER_GAP if flat[i + 1][0] != ci else GAP
+        gap = TAIL if last else CHAPTER_GAP if flat[i + 1][0] != ci else script.get("gap", GAP)
+        if not last and flat[i + 1][0] != ci:  # the next chapter lands on a beat, so the music can hit it
+            end = at + lead + speech + gap + (0.12 if i else 0)
+            gap += math.ceil(end / BEAT) * BEAT - end
         slot = lead + speech + gap
         before = max(lead + (0.12 if i else 0) - (starts[i] - a), 0.001)  # silence ahead of the cut
         first = at + before + (starts[i] - a)  # where this line's first word lands
@@ -162,6 +177,7 @@ def build(sid):
     timing = {
         "id": sid,
         "title": script["title"],
+        "bpm": BPM,
         "duration": round(at, 3),
         "poster": round(min(dial["end"], dial["start"] + 3.0), 3),
         "chapters": [{"title": c["title"], "start": c["start"]} for c in chapters],
