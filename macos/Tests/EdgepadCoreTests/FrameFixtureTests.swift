@@ -110,6 +110,81 @@ final class FrameFixtureTests: XCTestCase {
         XCTAssertEqual(try FrameCodec.decode(type: bytes[0], payload: Array(bytes.dropFirst())), frame)
     }
 
+    func testAPinDigitAboveNineIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x04, payload: [1, 2, 3, 4, 5, 10])) { error in
+            XCTAssertEqual(error as? ProtocolError, .badDigit)
+        }
+    }
+
+    func testAFiveByteAnswerIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x04, payload: [1, 2, 3, 4, 5])) { error in
+            XCTAssertEqual(error as? ProtocolError, .wrongLength(type: 0x04, expected: 6, got: 5))
+        }
+    }
+
+    func testAFileBeginTooShortToHoldASizeIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x50, payload: [0, 3, 1, 2, 3])) { error in
+            XCTAssertEqual(error as? ProtocolError, .fileBeginTooShort)
+        }
+    }
+
+    func testAFileEndThatIsNotAWholeHashIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x52, payload: [UInt8](repeating: 0, count: 31))) { error in
+            XCTAssertEqual(error as? ProtocolError, .wrongLength(type: 0x52, expected: 32, got: 31))
+        }
+    }
+
+    func testABlobBeginTooShortToHoldASizeIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x54, payload: [0, 3, 1, 2, 3])) { error in
+            XCTAssertEqual(error as? ProtocolError, .fileBeginTooShort)
+        }
+    }
+
+    func testABlobEndThatIsNotAWholeHashIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x56, payload: [UInt8](repeating: 0, count: 31))) { error in
+            XCTAssertEqual(error as? ProtocolError, .wrongLength(type: 0x56, expected: 32, got: 31))
+        }
+    }
+
+    func testABlobChunkWhoseLengthDoesNotMatchItsHeaderIsRejected() {
+        XCTAssertThrowsError(try FrameCodec.decode(type: 0x55, payload: [0, 3, 1])) { error in
+            XCTAssertEqual(error as? ProtocolError, .textLengthMismatch)
+        }
+    }
+
+    func testALongBlobLabelIsCutSoTheBeginFrameStillFits() {
+        let frame = Frame.blobBegin(kind: 0, size: 10, label: String(repeating: "a", count: 400))
+
+        XCTAssertEqual(FrameCodec.encode(frame).count, 1 + FrameCodec.textHeaderLength + FrameCodec.maxTextBytes)
+    }
+
+    func testAFullChunkIsTheLongestFrameAndNoLonger() throws {
+        let frame = Frame.fileChunk(seq: 7, data: (0..<FrameCodec.maxChunkBytes).map { UInt8(truncatingIfNeeded: $0) })
+
+        let bytes = FrameCodec.encode(frame)
+
+        XCTAssertEqual(bytes.count, 1 + FrameCodec.textHeaderLength + FrameCodec.maxTextBytes)
+        XCTAssertEqual(try FrameCodec.decode(type: bytes[0], payload: Array(bytes.dropFirst())), frame)
+    }
+
+    func testALongFileNameIsCutSoTheBeginFrameStillFits() {
+        let frame = Frame.fileBegin(type: 0, size: 10, name: String(repeating: "a", count: 400) + ".png")
+
+        XCTAssertEqual(FrameCodec.encode(frame).count, 1 + FrameCodec.textHeaderLength + FrameCodec.maxTextBytes)
+    }
+
+    func testNoWayOfPrintingAPinShowsADigit() throws {
+        let pin = try XCTUnwrap(Pin(digits: [1, 2, 3, 4, 5, 6]))
+        let frame = Frame.pinAnswer(pin)
+
+        let texts = [
+            "\(pin)", String(reflecting: pin), "\(frame)", String(reflecting: frame), String(describing: frame),
+        ]
+        for text in texts {
+            XCTAssertNil(text.firstIndex(where: \.isNumber), text)
+        }
+    }
+
     private func parse(_ line: String) throws -> (Frame, [UInt8]) {
         let halves = line.split(separator: "=", omittingEmptySubsequences: false)
         guard halves.count == 2 else {
@@ -167,6 +242,20 @@ final class FrameFixtureTests: XCTestCase {
             return (.text(kind: UInt8(truncatingIfNeeded: try field(1)), value: value), bytes)
         case "KEY":
             return (.key(code: UInt16(truncatingIfNeeded: try field(1)), down: try field(2) == 1), bytes)
+        case "PIN_REQUEST":
+            let attempts = UInt8(truncatingIfNeeded: try field(1))
+            let locked = UInt16(truncatingIfNeeded: try field(2))
+            return (.pinRequest(attemptsLeft: attempts, lockedSeconds: locked), bytes)
+        case "PEN":
+            let x = UInt16(truncatingIfNeeded: try field(1))
+            let y = UInt16(truncatingIfNeeded: try field(2))
+            return (.pen(x: x, y: y, state: UInt8(truncatingIfNeeded: try field(3))), bytes)
+        case "PIN_ANSWER":
+            let values = try (1..<fields.count).map { UInt8(truncatingIfNeeded: try field($0)) }
+            guard let pin = Pin(digits: values) else {
+                throw FixtureError.malformed(line)
+            }
+            return (.pinAnswer(pin), bytes)
         case "PAD_STATE":
             let frame = Frame.padState(
                 buttons: UInt16(truncatingIfNeeded: try field(1)),
@@ -178,8 +267,56 @@ final class FrameFixtureTests: XCTestCase {
                 ry: Int16(truncatingIfNeeded: try field(7))
             )
             return (frame, bytes)
+        case "FILE_BEGIN":
+            guard fields.count == 4 else {
+                throw FixtureError.malformed(line)
+            }
+            let type = UInt8(truncatingIfNeeded: try field(1))
+            return (.fileBegin(type: type, size: UInt32(truncatingIfNeeded: try field(2)), name: fields[3]), bytes)
+        case "FILE_CHUNK":
+            guard fields.count == 3 else {
+                throw FixtureError.malformed(line)
+            }
+            return (.fileChunk(seq: UInt8(truncatingIfNeeded: try field(1)), data: try hex(fields[2], line)), bytes)
+        case "FILE_END":
+            guard fields.count == 2 else {
+                throw FixtureError.malformed(line)
+            }
+            return (.fileEnd(sha256: try hex(fields[1], line)), bytes)
+        case "FILE_RESULT":
+            return (.fileResult(status: UInt8(truncatingIfNeeded: try field(1))), bytes)
+        case "BLOB_BEGIN":
+            guard fields.count == 4 else {
+                throw FixtureError.malformed(line)
+            }
+            let kind = UInt8(truncatingIfNeeded: try field(1))
+            return (.blobBegin(kind: kind, size: UInt32(truncatingIfNeeded: try field(2)), label: fields[3]), bytes)
+        case "BLOB_CHUNK":
+            guard fields.count == 3 else {
+                throw FixtureError.malformed(line)
+            }
+            return (.blobChunk(seq: UInt8(truncatingIfNeeded: try field(1)), data: try hex(fields[2], line)), bytes)
+        case "BLOB_END":
+            guard fields.count == 2 else {
+                throw FixtureError.malformed(line)
+            }
+            return (.blobEnd(sha256: try hex(fields[1], line)), bytes)
         default:
             throw FixtureError.malformed(line)
+        }
+    }
+
+    /// A run of hex digits with no spaces, two to a byte.
+    private func hex(_ run: String, _ line: String) throws -> [UInt8] {
+        let digits = Array(run)
+        guard digits.count % 2 == 0 else {
+            throw FixtureError.malformed(line)
+        }
+        return try stride(from: 0, to: digits.count, by: 2).map { at in
+            guard let byte = UInt8(String(digits[at...at + 1]), radix: 16) else {
+                throw FixtureError.malformed(line)
+            }
+            return byte
         }
     }
 }

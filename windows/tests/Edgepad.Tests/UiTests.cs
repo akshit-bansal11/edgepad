@@ -20,6 +20,15 @@ public sealed class UiTests
         Assert.False(status.Waiting);
     }
 
+    [Fact]
+    public void AWiFiOrUsbPhoneKeepsTheWayItCame()
+    {
+        var status = TrayStatus.Describe("Connected to Pixel · over Wi-Fi or USB");
+
+        Assert.Equal("Trusted", status.Badge);
+        Assert.Equal("Pixel · over Wi-Fi or USB", status.Line);
+    }
+
     [Theory]
     [InlineData("Waiting for your phone")]
     [InlineData("Refused a phone it does not trust")]

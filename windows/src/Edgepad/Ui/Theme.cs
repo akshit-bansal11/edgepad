@@ -43,21 +43,23 @@ internal sealed record Palette(
     /// The set for Windows' app mode right now. Read fresh on every call, because the owner can flip the mode
     /// while the tray app runs and the next menu should follow without a restart.
     /// </summary>
-    public static Palette Current
+    public static Palette Current => PrefersDark("AppsUseLightTheme") ? Dark : Light;
+
+    /// <summary>Whether the taskbar is dark: it follows Windows' System mode, which is not the app mode.</summary>
+    public static bool TaskbarIsDark => PrefersDark("SystemUsesLightTheme");
+
+    private static bool PrefersDark(string lightThemeValue)
     {
-        get
+        try
         {
-            try
-            {
-                // Absent on a fresh install, which is light: that is Windows' own default.
-                var value = Registry.GetValue(
-                    @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "AppsUseLightTheme", 1);
-                return value is 0 ? Dark : Light;
-            }
-            catch (Exception e) when (e is System.Security.SecurityException or IOException or UnauthorizedAccessException)
-            {
-                return Light;
-            }
+            // Absent on a fresh install, which is light: that is Windows' own default.
+            var value = Registry.GetValue(
+                @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", lightThemeValue, 1);
+            return value is 0;
+        }
+        catch (Exception e) when (e is System.Security.SecurityException or IOException or UnauthorizedAccessException)
+        {
+            return false;
         }
     }
 

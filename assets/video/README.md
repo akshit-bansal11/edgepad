@@ -1,0 +1,10 @@
+The 4.0.0 marketing videos: a HyperFrames project, rendered by the `video` job in `.github/workflows/ci.yml`. Nothing here runs locally.
+
+- `scripts/<id>.json`: the narration, in chapters and lines. `full` (about 4.5 min, 16:9), `minute` (about 60 s, 16:9), `reel` (about 30 s, 9:16).
+- `voice.py`: one edge-tts take per script (`en-US-AndrewMultilingualNeural`), cut at the line breaks and laid out with set pauses. It writes `out/<id>/voice.mp3`, `timing.json` (every word's time, line times, chapter starts, the poster frame), `timing.js` (the same, for the page) and `<id>.en.vtt`.
+- `index.html` is the `full` composition; `cuts/` holds `minute`, `reel` and the two covers, `thumb-landscape` (1280 x 720) and `thumb-portrait` (1080 x 1920). Each is a standalone composition rendered with `render -c`.
+- `ui/beats.js` says what each line shows: its headline (one keyword in blue), its sub-line and an act (camera moves, screens, fingers, laptop cards) keyed to the spoken words. `ui/film.js` turns that into one paused GSAP timeline: the text is DOM revealed word by word, and the phone, the laptop cards and the ground are one canvas redrawn from a proxy tween's `onUpdate`, so every frame is a pure function of time.
+- `ui/kit.js`, `ui/surface.js` and `ui/screens.js` are the phone's screens, ported from the Android drawing code; each block names the Kotlin it follows. `icons/` holds the Simple Icons marks for the macro deck (see `icons/NOTICE`); `brand/` the app's Lato, the Edgepad marks and the app's own YouTube and Spotify logos.
+- A still for checking by eye, with no narration run: open `index.html?line=13&f=0.4` (line 13, 40 % through) in Chrome with `--allow-file-access-from-files`; it times the words from the script instead.
+- The job runs only when something under `assets/video/` changed. The `edgepad-video` artifact holds the three cuts, a web copy of `full` and `minute` (CRF 23, under about 40 MB), a poster for each, the two cover PNGs, every `.vtt` and every `timing.json`. No music: the narration stands alone.
+- The site's `/edgepad-demo.*` files are not replaced by the job; copy the ones wanted over by hand.

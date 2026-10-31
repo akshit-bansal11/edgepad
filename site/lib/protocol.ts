@@ -53,6 +53,10 @@ export type ProtocolTables = {
   textKinds: IdRow[];
   padButtons: IdRow[];
   padStatuses: IdRow[];
+  features: IdRow[];
+  signStatuses: IdRow[];
+  /** The annotation colours; each description is the fixture's hex. */
+  palette: IdRow[];
   /** Frames described here that no fixture line covers. Drift, surfaced on the page. */
   undescribedInFixture: string[];
 };
@@ -133,11 +137,53 @@ const FRAME_DOCS: Record<
     meaning:
       "The only variable-length frame: up to 255 bytes, never split inside a character.",
   },
+  PIN_REQUEST: {
+    payload: "attemptsLeft u8, lockedSeconds u16",
+    direction: "laptop-to-phone",
+    meaning:
+      "Asks for the PIN, or says the phone is locked out and for how long. Only between the trust question and HELLO_ACK.",
+  },
+  PIN_ANSWER: {
+    payload: "six bytes, each 0 to 9",
+    direction: "phone-to-laptop",
+    meaning:
+      "The PIN, one digit value per byte rather than ASCII. Only as the answer to PIN_REQUEST; a byte above 9 closes the link.",
+  },
   PAD_STATE: {
     payload: "buttons u16, lt u8, rt u8, lx i16, ly i16, rx i16, ry i16",
     direction: "phone-to-laptop",
     meaning:
       "The whole virtual controller in one frame, laid out like Windows' own XINPUT_GAMEPAD so the laptop copies the fields rather than translating them. Triggers are 0-255, sticks -32768 to 32767, positive up and right. A snapshot and not a change, so a backlog of them collapses to the newest.",
+  },
+  PEN: {
+    payload: "x u16, y u16, state u8",
+    direction: "phone-to-laptop",
+    meaning:
+      "One point of a pen stroke: state 0 is up, 1 down, 2 move. x and y span the whole u16 range, 0 the left or top edge of the laptop's screen and 65535 the right or bottom. A state above 2 decodes and is dropped and counted.",
+  },
+  FILE_BEGIN: {
+    payload: "fileType u8, length u8, size u32, UTF-8 name",
+    direction: "laptop-to-phone",
+    meaning:
+      "Starts sending a capture to the phone, when the phone asked for captures to be saved there. TEXT's header shape, so the length counts the size and the name. The type is an id from the FILE_TYPE table, never a MIME string.",
+  },
+  FILE_CHUNK: {
+    payload: "seq u8, length u8, bytes",
+    direction: "laptop-to-phone",
+    meaning:
+      "Up to 255 bytes of the file. seq is the chunk's index mod 256, so a lost chunk shows. Paced, and slower while the phone is sending input, so the trackpad stays responsive.",
+  },
+  FILE_END: {
+    payload: "sha256, 32 bytes",
+    direction: "laptop-to-phone",
+    meaning:
+      "The SHA-256 of the whole file. The phone keeps the file only if it matches.",
+  },
+  FILE_RESULT: {
+    payload: "status u8",
+    direction: "phone-to-laptop",
+    meaning:
+      "The phone's answer: 0 saved, 1 bad hash, 2 rejected, 3 write failed. Only 0 lets the laptop delete its copy.",
   },
 };
 
@@ -168,6 +214,33 @@ const ACTION_DOCS: Record<string, string> = {
     "Asks the laptop to plug in its virtual Xbox controller. The laptop answers with TEXT 8, so the phone learns whether it may send PAD_STATE or must fall back to the keyboard.",
   PAD_DETACH:
     "Asks the laptop to unplug the virtual controller. Sent when the gamepad screen closes; the laptop also unplugs it by itself when the session ends.",
+  CAPTURE_REGION:
+    "Starts a region screenshot with the laptop's own tool: Win+Shift+S on Windows, Cmd+Shift+4 on a Mac, Print on Linux. The drag happens on the laptop's screen.",
+  CAPTURE_SCREEN:
+    "Takes a screenshot of the whole screen: PrtScn on Windows, Cmd+Shift+3 on a Mac, Print on Linux.",
+  CAPTURE_RECORD:
+    "Starts screen recording: Win+Shift+R on Windows, which needs a recent Snipping Tool and is unverified, Cmd+Shift+5 on a Mac, which opens the capture toolbar, and on Linux the desktop's own shortcut, unverified (Ctrl+Shift+Alt+R on GNOME, Meta+Alt+R on KDE).",
+  CAPTURE_CANCEL:
+    "Sent when the phone leaves its capture screen. Presses Escape on the laptop, only while a region or recording overlay it opened may still be open (8 seconds).",
+  ANNOTATE_BEGIN:
+    "Shows the annotation overlay on the laptop's primary display. PEN and the tool actions are dropped until it is shown or a signing surface is open.",
+  ANNOTATE_END:
+    "Removes the overlay and discards its strokes. A session ending does the same.",
+  ANNOTATE_UNDO: "Removes the last stroke.",
+  ANNOTATE_CLEAR: "Removes every stroke.",
+  TOOL_PEN: "The next stroke is a pen line, 0.4% of the screen height wide.",
+  TOOL_HIGHLIGHTER:
+    "The next stroke is a highlighter, 2% of the screen height wide at 35% opacity, stroked once per path so a loop does not darken where it crosses itself.",
+  TOOL_LINE:
+    "The next stroke is a straight line from the down point to the latest move.",
+  TOOL_ARROW: "As the line, with an arrow head four times the pen width at the end.",
+  TOOL_RECTANGLE:
+    "The next stroke is a rectangle from the down point to the latest move.",
+  TOOL_ELLIPSE: "The next stroke is an ellipse from the down point to the latest move.",
+  SIGN_BEGIN:
+    "Opens a signing surface that shows nothing on the laptop and accepts only the pen tool.",
+  SIGN_SAVE:
+    "Exports the strokes as a transparent PNG cropped to the ink, to the clipboard and to an Edgepad folder in Pictures, never over an earlier file, then answers with TEXT 11.",
   MACRO_BASE:
     "The first of 32 reserved macro slots (ids 64-95). Slot n runs as MACRO_BASE + n. The phone sends the index; the laptop's own list decides what it opens.",
 };
@@ -183,6 +256,14 @@ const CONTROL_DOCS: Record<string, string> = {
     "SET seeks the current track to that percent, where the player allows it; STATE reports the percent and a playing flag.",
   REFRESH_RATE:
     "SET switches the display to the rate at that index of the TEXT 4 list; STATE reports the current rate's index. Never a rate in hertz.",
+  PEN_COLOR:
+    "SET picks the stroke colour by index into the eight-colour palette in protocol/actions.txt. An index of 8 or more is dropped and counted. A colour outside the palette is TEXT 17.",
+  CAPTURE_TARGET:
+    "Where a capture ends up: 0 the laptop keeps it, 1 the laptop sends it to the phone and deletes its copy only once the phone says it saved it. Sent on connect and whenever the setting changes.",
+  PEN_WIDTH:
+    "SET sets the width of new pen-tool strokes, 1 to 100, as 0.02% of the screen's height per step: 5 is 0.1%, 20 is the default 0.4% and 100 is 2.0%. The highlighter is always 5 times the pen's width. 0 or more than 100 is dropped and counted. Forgotten when the session ends.",
+  PEN_OPACITY:
+    "SET sets the opacity of new strokes in percent, 10 to 100. The highlighter multiplies its own 35% by it. Anything else is dropped and counted. Forgotten when the session ends.",
 };
 
 const TEXT_DOCS: Record<string, string> = {
@@ -200,6 +281,16 @@ const TEXT_DOCS: Record<string, string> = {
     "Asks for the macro icons, with an empty payload. Sent when the phone opens the macro grid; nothing is pushed unasked. Phone to laptop.",
   PAD_STATUS:
     "Whether a virtual controller can be offered, as one of ready, no-driver or attach-failed. Sent after the handshake and in answer to PAD_ATTACH and PAD_DETACH. An unknown token reads as no-driver, so the phone falls back to the keyboard rather than sending input nothing receives. Laptop to phone.",
+  FEATURES:
+    "The optional features this laptop has, as tokens joined by a slash such as annotate/capture. Sent once after the handshake. A feature that is not named is off, and a token the phone does not know is ignored. Laptop to phone.",
+  SCREEN_SIZE:
+    "The primary display in pixels as 1920/1080. Sent after the handshake and whenever the display changes, so the phone can shape its drawing surface to the same ratio. Laptop to phone.",
+  SIGN_STATUS:
+    "How a SIGN_SAVE ended, as one of saved, empty or failed. Laptop to phone.",
+  CAPTURE_STATUS:
+    "Why a capture the phone asked for stayed on the laptop, as one of too-large, not-found or failed. Laptop to phone.",
+  PEN_RGB:
+    "A stroke colour as exactly six hex digits, RRGGBB, either case. Anything else, a leading # included, is dropped and counted. It sets the colour until the next PEN_COLOR or PEN_RGB. Phone to laptop.",
 };
 
 const PAD_BUTTON_DOCS: Record<string, string> = {
@@ -228,6 +319,19 @@ const PAD_STATUS_DOCS: Record<string, string> = {
     "The virtual-controller driver, ViGEmBus, is not installed on the laptop. The pad falls back to keys.",
   ATTACH_FAILED:
     "The driver is there but plugging the pad in did not work. The pad falls back to keys.",
+};
+
+const FEATURE_DOCS: Record<string, string> = {
+  ANNOTATE:
+    "The laptop can show the annotation overlay and a signing surface. The phone shows an Annotate tile only for a laptop that names this.",
+  CAPTURE:
+    "The laptop can start its own screenshot and screen-recording tools. The phone shows a Capture tile only for a laptop that names this.",
+};
+
+const SIGN_STATUS_DOCS: Record<string, string> = {
+  SAVED: "The signature was exported to a PNG and put on the clipboard.",
+  EMPTY: "Nothing had been drawn, so nothing was saved.",
+  FAILED: "The file could not be saved, or every clipboard route failed.",
 };
 
 function read(file: string): string[] {
@@ -280,7 +384,16 @@ function parseFrames(): FrameRow[] {
   return [...byName.values()].sort((a, b) => a.type.localeCompare(b.type));
 }
 
-const ID_KINDS = ["ACTION", "CONTROL", "TEXT", "PAD_BUTTON", "PAD_STATUS"] as const;
+const ID_KINDS = [
+  "ACTION",
+  "CONTROL",
+  "TEXT",
+  "PAD_BUTTON",
+  "PAD_STATUS",
+  "FEATURE",
+  "SIGN_STATUS",
+  "PALETTE",
+] as const;
 type IdKind = (typeof ID_KINDS)[number];
 
 type ParsedIds = Record<IdKind, IdRow[]> & { HANDSHAKE: Map<string, string> };
@@ -295,6 +408,9 @@ function parseIds(): ParsedIds {
     TEXT: [],
     PAD_BUTTON: [],
     PAD_STATUS: [],
+    FEATURE: [],
+    SIGN_STATUS: [],
+    PALETTE: [],
     HANDSHAKE: new Map(),
   };
 
@@ -304,6 +420,9 @@ function parseIds(): ParsedIds {
     TEXT: TEXT_DOCS,
     PAD_BUTTON: PAD_BUTTON_DOCS,
     PAD_STATUS: PAD_STATUS_DOCS,
+    FEATURE: FEATURE_DOCS,
+    SIGN_STATUS: SIGN_STATUS_DOCS,
+    PALETTE: {},
   };
 
   for (const line of read("actions.txt")) {
@@ -321,7 +440,9 @@ function parseIds(): ParsedIds {
     // stops parsing altogether.
     if (!isIdKind(kind)) continue;
 
-    const description = docsFor[kind][name];
+    // Only a palette row has a fourth field: its colour, which is its description.
+    const hex = kind === "PALETTE" ? parts[3] : undefined;
+    const description = hex ? `#${hex}` : docsFor[kind][name];
     out[kind].push({
       id,
       name,
@@ -358,6 +479,15 @@ function assertParsed(tables: Omit<ProtocolTables, "undescribedInFixture">): voi
   if (tables.padStatuses.length === 0) {
     problems.push("no PAD_STATUS tokens parsed from protocol/actions.txt");
   }
+  if (tables.features.length === 0) {
+    problems.push("no FEATURE tokens parsed from protocol/actions.txt");
+  }
+  if (tables.signStatuses.length === 0) {
+    problems.push("no SIGN_STATUS tokens parsed from protocol/actions.txt");
+  }
+  if (tables.palette.length === 0) {
+    problems.push("no PALETTE rows parsed from protocol/actions.txt");
+  }
   if (!Number.isInteger(tables.version) || tables.version < 1) {
     problems.push("HANDSHAKE VERSION is not a positive integer");
   }
@@ -390,6 +520,9 @@ export function loadProtocol(): ProtocolTables {
     textKinds: ids.TEXT,
     padButtons: ids.PAD_BUTTON,
     padStatuses: ids.PAD_STATUS,
+    features: ids.FEATURE,
+    signStatuses: ids.SIGN_STATUS,
+    palette: ids.PALETTE,
   };
   assertParsed(tables);
 

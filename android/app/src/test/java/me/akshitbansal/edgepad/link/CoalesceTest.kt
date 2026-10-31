@@ -76,4 +76,26 @@ class CoalesceTest {
     fun zoomsAreSummedToo() {
         assertEquals(listOf(Frame.Zoom(240)), Coalesce.merge(listOf(Frame.Zoom(120), Frame.Zoom(120))))
     }
+
+    @Test
+    fun aPenStrokeCollapsesToDownMoveUp() {
+        val merged =
+            Coalesce.merge(
+                listOf(Frame.Pen(0, 0, 1), Frame.Pen(10, 10, 2), Frame.Pen(20, 20, 2), Frame.Pen(30, 30, 0)),
+            )
+        assertEquals(listOf(Frame.Pen(0, 0, 1), Frame.Pen(20, 20, 2), Frame.Pen(30, 30, 0)), merged)
+    }
+
+    @Test
+    fun penEdgesAreNeverMergedOrDropped() {
+        val frames =
+            listOf(Frame.Pen(0, 0, 1), Frame.Pen(0, 0, 1), Frame.Pen(5, 5, 0), Frame.Pen(5, 5, 0), Frame.Pen(9, 9, 1))
+        assertEquals(frames, Coalesce.merge(frames))
+    }
+
+    @Test
+    fun penMovesAcrossAnotherFrameStayApart() {
+        val frames = listOf(Frame.Pen(1, 1, 2), Frame.RunAction(42), Frame.Pen(2, 2, 2))
+        assertEquals(frames, Coalesce.merge(frames))
+    }
 }

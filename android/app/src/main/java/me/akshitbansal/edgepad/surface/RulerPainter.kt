@@ -5,6 +5,7 @@ import android.graphics.Paint
 import android.text.TextPaint
 import android.util.DisplayMetrics
 import android.util.TypedValue
+import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -35,6 +36,8 @@ class RulerPainter(
             textAlign = Paint.Align.CENTER
             letterSpacing = LABEL_TRACKING
         }
+    private val split = FloatArray(3)
+    private val keepOut = FloatArray(2)
     private val valuePaint =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = Type.black
@@ -118,14 +121,20 @@ class RulerPainter(
         mark.strokeWidth = dp(INDICATOR_WIDTH_DP)
         line(canvas, start, end, pt)
 
+        if (isSplit(perimeter, centre)) {
+            drawSplitText(canvas, perimeter, centre, after, before, armed, ink, accent, dim, label, number, pt)
+            return
+        }
         // The label and the number sit inside the corner, on its normal, clear of the longest mark the
         // height allows, so they do not move when the dial arms and its marks grow.
-        val depth = dp(RulerGeometry.reach(height) + LABEL_GAP_DP)
-        val ax = pt[0] + pt[2] * depth
-        val ay = pt[1] + pt[3] * depth
         val labelSize = sp(LABEL_SP)
         val valueSize = sp(if (armed) ARMED_VALUE_SP else VALUE_SP)
         val block = if (number.isEmpty()) labelSize else labelSize + dp(GAP_DP) + valueSize
+        val depth = dp(RulerGeometry.reach(height) + LABEL_GAP_DP)
+        val ax = pt[0] + pt[2] * depth
+        val ay = pt[1] + pt[3] * depth
+        labelPaint.textAlign = Paint.Align.CENTER
+        valuePaint.textAlign = Paint.Align.CENTER
         val top = ay - block / 2
         labelPaint.textSize = labelSize
         labelPaint.color = dim
@@ -136,6 +145,77 @@ class RulerPainter(
             canvas.drawText(number, ax, top + labelSize + dp(GAP_DP) + valueSize * BASELINE, valuePaint)
         }
     }
+
+    /**
+     * The left and right of the buttons' keep-out along the top edge in pixels, which a top edge's split text
+     * stays out of ([SplitLabel]). The control surface sets it with the dials' own keep-out; the Settings
+     * preview has no buttons.
+     */
+    fun clearOf(
+        left: Float,
+        right: Float,
+    ) {
+        keepOut[0] = left
+        keepOut[1] = right
+    }
+
+    /**
+     * One half of a split corner: a smaller label and number at the far end of its own ruler, where
+     * [SplitLabel] puts it. Laid out for the held size and the widest number, so nothing moves.
+     */
+    private fun drawSplitText(
+        canvas: Canvas,
+        perimeter: Perimeter,
+        centre: Float,
+        after: Float,
+        before: Float,
+        armed: Boolean,
+        ink: Int,
+        accent: Int,
+        dim: Int,
+        label: String,
+        number: String,
+        pt: FloatArray,
+    ) {
+        val labelSize = sp(SPLIT_LABEL_SP)
+        val held = sp(SPLIT_ARMED_VALUE_SP)
+        val gap = dp(SPLIT_GAP_DP)
+        SplitLabel.anchor(
+            perimeter,
+            centre,
+            SplitLabel.farEnd(perimeter, centre, after, before),
+            dp(RulerGeometry.reach(height) + SPLIT_INSET_DP),
+            labelSize + gap + held,
+            held * SPLIT_WIDE_EMS,
+            dp(Space.S),
+            keepOut,
+            pt,
+            split,
+        )
+        val align = if (split[2] > 0) Paint.Align.LEFT else Paint.Align.RIGHT
+        val top = split[1]
+        labelPaint.textAlign = align
+        labelPaint.textSize = labelSize
+        labelPaint.color = dim
+        canvas.drawText(label, split[0], top + labelSize * BASELINE, labelPaint)
+        if (number.isNotEmpty()) {
+            val valueSize = if (armed) held else sp(SPLIT_VALUE_SP)
+            valuePaint.textAlign = align
+            valuePaint.textSize = valueSize
+            valuePaint.color = if (armed) accent else ink
+            canvas.drawText(number, split[0], top + labelSize + gap + valueSize * BASELINE, valuePaint)
+        }
+    }
+
+    /**
+     * Whether [centre] is one half of a split corner. The control surface puts a half exactly half the ruler
+     * out from the bend along its edge, a place a whole dial never has (it sits mid-bend, or mid-edge, far out
+     * of that). Read off the position so the painter's signature, which two screens share, stays as it is.
+     */
+    private fun isSplit(
+        perimeter: Perimeter,
+        centre: Float,
+    ): Boolean = abs(perimeter.fromBend(centre) - dp(halfLengthDp) / 2f) < SPLIT_MATCH_PX
 
     /** [color] at [opacity] of its own alpha. */
     private fun tint(
@@ -186,6 +266,19 @@ class RulerPainter(
         const val ARMED_GLOW_OPACITY = 0.28f
 
         const val LABEL_GAP_DP = 40f
+
+        /**
+         * Split mode's text, smaller so eight fit: a 10 sp label over an 18 sp number, 22 held, the same growth as
+         * the whole dial's 26 to 32. It starts 5 dp past the longest mark, and each unit is reserved 3.2 em of
+         * the held size, "240 Hz" in Lato Black (3.17 em) rounded up. See [SplitLabel].
+         */
+        const val SPLIT_LABEL_SP = 10f
+        const val SPLIT_VALUE_SP = 18f
+        const val SPLIT_ARMED_VALUE_SP = 22f
+        const val SPLIT_GAP_DP = 2f
+        const val SPLIT_INSET_DP = 5f
+        const val SPLIT_WIDE_EMS = 3.2f
+        const val SPLIT_MATCH_PX = 0.5f
         const val LABEL_SP = 11f
 
         /** The one place 2.0 spaces letters: a three-letter abbreviation in capitals reads better opened up. */

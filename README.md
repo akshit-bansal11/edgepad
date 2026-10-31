@@ -1,14 +1,16 @@
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/edgepad-dark.svg"><img src="assets/edgepad-light.svg" width="96" alt="Edgepad"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/edgepad-light.svg"><img src="assets/edgepad-dark.svg" width="96" alt="Edgepad"></picture></p>
 
 # Edgepad
 
-Edgepad turns an Android phone into a trackpad, a media remote and a control panel for a Windows laptop or a Mac, over a direct Bluetooth link with nothing in between.
+Edgepad turns an Android phone into a trackpad, a media remote and a control panel for a Windows laptop, a Mac or a Linux laptop, over a direct Bluetooth link with nothing in between.
 
 <p align="center"><img src="assets/demo.gif" width="880" alt="A finger crossing the phone's trackpad, then sliding the corner ruler to change the laptop's volume"></p>
 
 <p align="center"><sub>The phone's screen. The finger crosses the trackpad, then slides the corner ruler and the volume follows.</sub></p>
 
 It is for the times the laptop is across the room rather than under your hands: plugged into a television, docked on a desk you are not sitting at, parked somewhere a mouse dongle will not reach. The alternatives are a remote app that only sends media keys, or a remote-desktop app that streams the whole screen and wants an account and a network round trip to change the volume. Edgepad is neither. The phone and the laptop pair once, the way a headset does, and after that they talk directly: no account, no Wi-Fi, no service in between that can be slow or down. The cost is Bluetooth's own — both ends need it, and it does not reach another room or the internet.
+
+**Mac and Linux are still in testing. Please use them at your own risk.** The Windows app is the one that has been run on a real laptop; the Mac app has been compiled and unit-tested in CI, and the Linux app has not been seen working on a Linux laptop yet. Expect rough edges, and report what you find.
 
 [![CI](https://github.com/akshit-bansal11/edgepad/actions/workflows/ci.yml/badge.svg)](https://github.com/akshit-bansal11/edgepad/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/akshit-bansal11/edgepad)](https://github.com/akshit-bansal11/edgepad/releases/latest)
@@ -17,17 +19,22 @@ It is for the times the laptop is across the room rather than under your hands: 
 
 ## What it does
 
-- **Corner rulers.** Each corner of the phone holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher or microphone level; Settings picks what each corner does, how long the rulers are and how tall.
+- **Corner rulers.** Each corner of the phone holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher or microphone level; Settings picks what each corner does, how long the rulers are and how tall. **Split corners** in Settings › Corners gives each corner two dials, one on each edge it joins, eight in all.
 - **Trackpad.** Everything between the corners moves the laptop's pointer. One finger moves and clicks, two scroll and pinch, three and four fingers do whatever you assign them: desktops, task view, media, volume, app switcher, and more. Press one finger and hold it still until it ticks, then draw without lifting: a shape you have drawn in Settings runs a laptop action, a macro, or hides or locks the pad itself. A stroke that matches nothing does nothing.
 - **Media.** The track, the app playing it and where it is, with previous, play/pause and next. Drag the three pieces anywhere on the surface.
-- **Keyboard and gamepad.** A full on-screen keyboard whose modifiers work held or tapped, and a gamepad that drives a real virtual Xbox controller on the laptop, sticks and triggers analog, where the [ViGEmBus](#install) driver is installed; where it is not, the same pad falls back to pressing keys and says so. Every control is yours to add, bind, label, size, move or delete, and layouts are a library rather than one arrangement, so a phone can keep one per game. Both open sideways.
+- **Controls.** One button on the surface opens a grid of the keyboard, the gamepad, capture and annotate; the grid can be rearranged like the macro deck.
+- **Keyboard and gamepad.** A full on-screen keyboard whose modifiers work held or tapped, and a gamepad that drives a real virtual Xbox controller on the laptop, sticks and triggers analog, where the [ViGEmBus](#install) driver is installed; where it is not, the same pad falls back to pressing keys and says so. Every control is yours to add, bind, label, size, move or delete, and layouts are a library rather than one arrangement, so a phone can keep one per game. Both open sideways. On Linux the gamepad plugs in a virtual Xbox 360 controller; the Mac has no controller driver, so there it presses keys.
+- **Annotate and sign.** The phone becomes an absolute pen for the laptop's screen: a touch lands at the same place on the laptop. Pen, highlighter, line, arrow, rectangle and ellipse in eight colours, with Undo and Clear. The **Sign** switch turns the same pad into a signature pad: nothing is drawn on the laptop, and **Save signature** copies a transparent PNG to the clipboard and saves it (see [Annotate and sign](#annotate-and-sign)). Primary display only.
+- **Shared clipboard.** Text and images copied on the laptop arrive on the phone at once. To send a copy from the phone, go back to Edgepad after copying: Android lets an app read the clipboard only while it is on screen, so nothing is sent until you return. A large photo is sent smaller.
+- **Capture.** Buttons for a region screenshot, the whole screen and a screen recording, which press the laptop's own shortcut (see [Capture](#capture)).
+- **Macros.** A grid of buttons that open a program, file, folder or web address on the laptop. They live in **Controls**. Press and hold a button to drag it into the order you want, and pick the grid and labels under the macro screen's settings; the phone still sends only the slot number.
 - **Live state.** The dials show the laptop's real volume, mute, brightness and playback position, and follow changes made on the laptop itself.
 - **Guide.** Five pages on the first run, and again from Settings, one at a time or on one page.
-- Black on white or white on black, and upright or sideways: both are toggles in Settings. The orientation holds the control surface and the media-layout editor, and nothing else — a media layout is stored per orientation, so a phone turned mid-edit would quietly start changing the other one. The keyboard and the gamepad are always sideways; every other screen follows the phone.
+- Black on white or white on black, and upright or sideways: both are toggles in Settings. The orientation applies to every screen but the keyboard and the gamepad, which are always sideways.
 
 ## Install
 
-Both apps come from the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest), under **Assets**. Each file is named for its release, so `Edgepad-3.1.1.exe` and `Edgepad-3.1.1.apk` are the two halves of 3.1.1; on a Mac the laptop half is `Edgepad-<version>-mac.zip`, from 3.4.0. Always install both from the same release: the two refuse each other at the handshake when their protocol versions differ, and say so. 3.0.0 moved the protocol from version 3 to version 4, so a 2.x app on either side will not talk to a 3.x one — update both halves together or neither connects. Releases after 3.1.1 also carry `SHA256SUMS.txt`, and `gh attestation verify Edgepad-<version>.apk --repo akshit-bansal11/edgepad` checks that a file was built by this repository's release workflow.
+Both apps come from the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest), under **Assets**. Each file is named for its release, so `Edgepad-3.1.1.exe` and `Edgepad-3.1.1.apk` are the two halves of 3.1.1; on a Mac the laptop half is `Edgepad-<version>-mac.zip`, from 3.4.0, and on Linux `Edgepad-<version>-linux-x64.tar.gz`, from 4.0.0. Always install both from the same release: the two refuse each other at the handshake when their protocol versions differ, and say so. 3.0.0 moved the protocol from version 3 to version 4, so a 2.x app on either side will not talk to a 3.x one — update both halves together or neither connects. 4.0.0 moves it to version 5, so a 3.x app will not talk to a 4.x one either. Releases after 3.1.1 also carry `SHA256SUMS.txt`, and `gh attestation verify Edgepad-<version>.apk --repo akshit-bansal11/edgepad` checks that a file was built by this repository's release workflow.
 
 ### Laptop (Windows 10 version 2004 or later, 64-bit)
 
@@ -50,6 +57,33 @@ One download covers Apple Silicon and Intel. The Mac app was compiled and unit-t
 
 Because the signature is ad hoc, macOS treats every new version as a different app, so the Device Control permission has to be granted again after each update: remove the old Edgepad entry in the list, then add the new one.
 
+### Laptop (Linux, 64-bit)
+
+**Still in testing; use it at your own risk.** [docs/LINUX.md](docs/LINUX.md) lists everything that has not been seen working.
+
+1. Download `Edgepad-<version>-linux-x64.tar.gz` and check it against `SHA256SUMS.txt`.
+2. Extract it and run the installer as root:
+
+   ```sh
+   tar xzf Edgepad-<version>-linux-x64.tar.gz
+   cd edgepad-<version>
+   sudo ./install.sh            # or: sudo ./install.sh /opt/edgepad  to install under another prefix
+   ```
+
+3. **Log out and back in once**, so your session gets access to `/dev/uinput`. Then start Edgepad from the launcher, or run `edgepad`.
+
+`install.sh` only copies files and loads a module; it downloads nothing. It puts `edgepad` in `<prefix>/bin` (the prefix defaults to `/usr/local`), the launcher entry in `<prefix>/share/applications`, the icon in `<prefix>/share/icons/hicolor/scalable/apps`, a udev rule in `/etc/udev/rules.d/60-edgepad-uinput.rules` and `uinput` in `/etc/modules-load.d/edgepad.conf`, then runs `modprobe uinput` and reloads udev. Uninstall with `sudo ./install.sh --uninstall` (same prefix, if you gave one); your settings in `~/.config/edgepad` stay.
+
+The app is a self-contained single file, so .NET need not be installed. It does need:
+
+- **BlueZ** (`bluetoothd`) for the Bluetooth link.
+- **PipeWire's `wpctl`, or `pactl`**, for the volume and microphone dials.
+- **systemd-logind** (`loginctl`) for Lock and for brightness, and **`xdg-open`** (`xdg-utils`) for macros that open a file, folder or web address and for the tray's Open log and Documentation.
+- Optional: **`wl-copy`** (`wl-clipboard`) on Wayland or **`xclip`** on X11, for typing text that is not plain ASCII.
+- **GNOME needs the AppIndicator extension** to show the tray icon. Without a tray the app still serves phones that are already trusted, but the Security window is out of reach.
+
+On Wayland, the layer annotate draws on runs under XWayland and the compositor may ignore its always-on-top request, so annotate is best effort: Edgepad offers it to the phone only when it can work, and the phone hides the Annotate tile otherwise. The shortcuts behind task view, show desktop, search, notifications and switching desktops differ per desktop; the GNOME and KDE tables were written from memory and are unverified, and on any other desktop those actions do nothing. Macros are a text file you edit by hand, `~/.config/edgepad/macros.txt`; there is no editor on Linux yet.
+
 ### Phone (Android 12 or later)
 
 1. Download `Edgepad-<version>.apk` on the phone and open it. Allow installing from this source if asked.
@@ -58,8 +92,8 @@ Because the signature is ad hoc, macOS treats every new version as a different a
 
 ## Use
 
-1. Pair the phone with the laptop once, in Windows **Settings > Bluetooth & devices** or macOS **System Settings > Bluetooth**, and confirm the code on both sides.
-2. Keep Edgepad running in the laptop's tray, or on a Mac in the menu bar.
+1. Pair the phone with the laptop once, in Windows **Settings > Bluetooth & devices**, macOS **System Settings > Bluetooth** or your Linux desktop's Bluetooth settings, and confirm the code on both sides.
+2. Keep Edgepad running in the laptop's tray, or on a Mac in the menu bar. On Linux the tray needs a desktop that shows StatusNotifier icons; GNOME needs the AppIndicator extension.
 3. Open Edgepad on the phone and tap the laptop. The first time, the laptop asks **Trust this phone?**; choose **Trust** there (no answer within a minute counts as no). Every paired phone is asked about once, and each one you trust is remembered; **Forget trusted phones** in the tray or menu-bar menu forgets them all. One phone drives the laptop at a time: a trusted phone that connects takes over from the connected one, and the phone it replaced is refused for 30 seconds, so the two do not take the laptop back and forth. After that it can reconnect with Retry.
 4. The phone remembers the laptop and reconnects when the app opens. If the link drops, the phone retries ten times, two seconds apart, and says so.
 
@@ -74,12 +108,48 @@ Because the signature is ad hoc, macOS treats every new version as a different a
 | Two fingers | drag | scroll both axes |
 | Two fingers | pinch / tap | zoom / right click, or what Settings assigns |
 | Three or four fingers | tap, swipe up, down, left, right | what Settings assigns |
-| Top centre | tap one of the five buttons | Settings, the keyboard, the lock, the gamepad, the macro grid |
+| Top centre | tap one of the four buttons | Settings, Controls (keyboard, gamepad, capture, annotate), the lock, the macro grid |
 | Back | | leaves the surface; the link stays up |
 
 Out of the box, three fingers left and right switch desktops, three up opens task view, three down shows the desktop, four fingers left and right walk the app switcher (Alt stays held while the fingers are down), and tapping searches or opens notifications. Every one of those is changed under **Settings > Trackpad**.
 
 The lock in the middle of that row is the one button that changes the surface instead of opening a screen. One tap hides the dials and the media and leaves the trackpad; a second tap straight after locks the trackpad instead and puts the dials and the media back, so the phone can sit in a pocket or under a palm and answer only its rulers. Any later tap returns the whole surface. The mode is not stored: a phone that came back up silently locked would read as broken.
+
+### Security levels and the PIN
+
+Set in the laptop's tray or menu-bar menu under **Security…**, never from the phone.
+
+1. **Level 1, the default.** You say yes to a phone once, as above.
+2. **Level 2.** Each phone also enters a six-digit PIN the first time it connects.
+3. **Level 3.** The phone enters the PIN on every connection.
+
+The phone asks on its own keypad, so no keyboard app sees the digits; it never stores the PIN, and the screen cannot be captured. A wrong answer shows the attempts left; after five wrong answers the laptop refuses that phone for 30 seconds, doubling with each further five, up to an hour. The counters are kept in memory, so quitting the laptop app resets them. Changing the PIN or the level makes every phone enter the PIN again.
+
+**A forgotten PIN can only be reset on the laptop**, with **Reset PIN and forget phones…**. That removes the PIN, goes back to level 1 and forgets every trusted phone, so each one is asked **Trust this phone?** again. A six-digit PIN is only a million values, so what stops guessing is the lock-out; it does not protect against someone who can copy the laptop's settings file. The laptop stores only a salted hash of it.
+
+### Controls, annotate, sign and capture
+
+**Controls** on the surface opens a grid of Keyboard, Gamepad, Capture and Annotate. A laptop shows only what it can do, so a phone shows no Annotate tile when the laptop does not offer it.
+
+#### Annotate and sign
+
+**Annotate** draws on the laptop's primary display, with the phone as an absolute pen. **Sign** is the same pad without the overlay; **Save signature** copies a transparent PNG to the clipboard and saves it as `signature-yyyyMMdd-HHmmss.png` in an `Edgepad` folder, never overwriting an earlier one:
+
+| | Saved in | Notes |
+| --- | --- | --- |
+| Windows | `Pictures\Edgepad` | |
+| Mac | `~/Pictures/Edgepad` | The clipboard gets the PNG and a TIFF. |
+| Linux | `Pictures/Edgepad` (your `XDG_PICTURES_DIR`) | Annotate is best effort and in testing; see [docs/LINUX.md](docs/LINUX.md). |
+
+#### Capture
+
+Capture presses the laptop's own screenshot shortcut; the phone has a trackpad under the buttons to drag out the region.
+
+| | Region | Whole screen | Recording |
+| --- | --- | --- | --- |
+| Windows | Win+Shift+S | PrtScn | Win+Shift+R (needs a recent Snipping Tool; unverified) |
+| Mac | Cmd+Shift+4 | Cmd+Shift+3 | Cmd+Shift+5 |
+| Linux | Print | Print | Ctrl+Shift+Alt+R on GNOME, Meta+Alt+R on KDE (unverified) |
 
 ### On a Mac
 
@@ -105,7 +175,9 @@ Pointer, click, drag, scroll, typing, the on-screen keyboard, the corner dials f
 - **Levels changed on the Mac itself** reach the phone within half a second: the app polls twice a second rather than subscribing.
 - **Trust.** Windows binds its socket so the link layer refuses unpaired devices. The Mac app checks that the phone is paired and explicitly authenticates its Bluetooth connection before starting a session. The socket settings the phone asks for are not a protection, since an attacker chooses their own socket. The laptop-side gates are that the phone is paired, that the link authenticates (on a Mac `requestAuthentication()` succeeds and the log says how long it took; on Windows the socket's `BluetoothEncryptionWithAuthentication` protection level), and the owner's yes. Every phone you trust has full keyboard-level control, so trust only your own. On both, **Forget trusted phones** hangs up on the connected phone and takes no connection while it asks, nor for 30 seconds after a yes. The Mac's trust question shows the phone's own name in quotes beside the address, which is the part being trusted.
 
-**Not in the Mac app yet:** macros (the phone's macro grid says there are none), now playing (title, app, position and seeking; the transport buttons still work), the on-screen level readout, and the virtual game controller (the gamepad screen says **keyboard mode**, because there is no driver; controls bound to keys work).
+**Macros** are edited under **Macros…** in the menu bar: add, edit, remove, reorder, browse for an app or file, and an optional icon. Files, folders and web addresses are opened; for an `.app`, arguments are split on spaces with no quoting.
+
+**Not in the Mac app yet:** now playing (title, app, position and seeking; the transport buttons still work), the on-screen level readout, and the virtual game controller (the gamepad screen says **keyboard mode**, because there is no driver; controls bound to keys work).
 
 ### When the laptop ignores the phone
 
@@ -149,6 +221,8 @@ The repository is a monorepo:
 | --- | --- |
 | `android/` | The phone app. Kotlin, Android platform views, no UI framework; AndroidSVG draws the mark and the player logos, and JUnit 4 is the only test dependency. |
 | `windows/` | The laptop tray app. C# on .NET 10, WinForms for the tray, WinRT for Bluetooth and media, NAudio for volume, WMI for brightness, ViGEmBus for the virtual controller. |
+| `shared/` | The core every .NET laptop app shares: the protocol, trust, the handshake and logging, with its own tests. |
+| `linux/` | The Linux tray app. C# on .NET, Avalonia for the tray and windows, BlueZ over D-Bus for Bluetooth, uinput for input. |
 | `macos/` | The Mac menu-bar app. Swift, AppKit, IOBluetooth for RFCOMM, CGEvent for input, Core Audio for volume and microphone. No third-party dependencies. Swift Package Manager, no Xcode project. |
 | `protocol/` | The wire format and the id tables as plain text fixtures. Both test suites run them, so the two apps cannot drift apart. |
 | `scripts/` | The quality gate, and the maintainer's release-signing script. |
@@ -160,7 +234,8 @@ The repository is a monorepo:
 Either half can be worked on alone, so install only what the part you are changing needs.
 
 - **Android:** JDK 17 and the Android SDK with platform 37 and build tools 37.0.0. The Gradle wrapper fetches Gradle itself.
-- **Windows:** the .NET 10 SDK (`windows/global.json` pins 10.0.401 and rolls forward to the latest feature band). Windows 10 version 2004 or later, because the app builds against the Windows SDK projection for Bluetooth.
+- **Windows:** the .NET 10 SDK (`global.json` pins 10.0.401 and rolls forward to the latest feature band). Windows 10 version 2004 or later, because the app builds against the Windows SDK projection for Bluetooth.
+- **Linux:** the .NET SDK, as for Windows. The Linux app and the shared core build and test on Linux.
 - **Mac:** a Mac with Xcode (Swift 5.9 or later). The gate for this half runs only on a Mac.
 - **Site:** Node 24 or later.
 - **The gate:** PowerShell 7 (`pwsh`), which runs `scripts/check.ps1`.
@@ -172,6 +247,8 @@ One script checks all three apps. It formats, lints, builds and tests; CI runs t
 ```powershell
 pwsh scripts/check.ps1                  # formats in place, then checks everything
 pwsh scripts/check.ps1 -Only android    # ktlint, Android lint (warnings are errors), unit tests
+pwsh scripts/check.ps1 -Only core       # the shared core on its own (CI runs it on Linux): format, build, tests
+pwsh scripts/check.ps1 -Only linux      # the Linux app: format, build, tests (CI runs it on Linux)
 pwsh scripts/check.ps1 -Only windows    # dotnet format, build (warnings are errors), tests
 pwsh scripts/check.ps1 -Only macos      # swift format lint --strict, swift build (warnings are errors), swift test; Mac only
 pwsh scripts/check.ps1 -Ci              # what CI runs: fails on unformatted code instead of fixing it
@@ -217,7 +294,7 @@ A star, a bug report or telling someone about it helps as much.
 
 ## Credits
 
-- Icons are [Lucide](https://lucide.dev), ISC licence; the few that came from Feather are MIT. Both apps draw Lucide's own paths, and the licence text ships inside the APK as `assets/licenses/Lucide-LICENSE.txt` and inside the exe beside the icons.
+- The phone app's icons are Edgepad's own, drawn for it (24 px grid, 1.75 stroke, round caps). The desktop apps' icons are [Lucide](https://lucide.dev), ISC licence; the few that came from Feather are MIT. The desktop apps draw Lucide's own paths, and the licence text ships inside the exe beside the icons. The APK also carries it as `assets/licenses/Lucide-LICENSE.txt`, because the app logo's music note is still Lucide's.
 - The typeface is [Lato](https://www.latofonts.com), by Łukasz Dziedzic, SIL Open Font License 1.1. Both apps bundle it, and its licence ships inside the APK as `assets/licenses/Lato-OFL.txt` and inside the exe beside the fonts. The website also sets code in [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono), under the same licence.
 - The media players' logos (Spotify, Netflix, YouTube and the rest, in `android/app/src/main/res/raw`) are trademarks of their owners. The phone shows one only to say which app is playing on the laptop; that implies no endorsement by, or affiliation with, any of them. The SVG files were supplied by the maintainer and are drawn as supplied.
-- The laptop app uses [NAudio](https://github.com/naudio/NAudio) (MIT), `System.Management` and [Nefarius.ViGEm.Client](https://github.com/nefarius/ViGEm.NET) (MIT); the phone app uses [AndroidSVG](https://github.com/BigBadaboom/androidsvg) (Apache 2.0). [ViGEmBus](https://github.com/nefarius/ViGEmBus) (BSD 3-Clause) is a separate install and is not distributed with Edgepad.
+- The Windows app uses [NAudio](https://github.com/naudio/NAudio) (MIT), `System.Management` and [Nefarius.ViGEm.Client](https://github.com/nefarius/ViGEm.NET) (MIT); the Linux app uses [Avalonia](https://avaloniaui.net), Avalonia.Desktop and Avalonia.Themes.Fluent (12.1.4, MIT) and Tmds.DBus.Protocol (0.94.1, MIT), each licence read from the package's nuspec; Avalonia also brings SkiaSharp (3.119.4) and HarfBuzzSharp (8.3.1.3) with their `NativeAssets.Linux` packages (MIT), whose native libraries are bundled into the Linux app and compile in Skia, HarfBuzz, FreeType, libpng, zlib and other code under its own licences, listed in those packages' `THIRD-PARTY-NOTICES.txt`; the phone app uses [AndroidSVG](https://github.com/BigBadaboom/androidsvg) (Apache 2.0). The notices of every package each desktop app bundles, and of the .NET runtime, are written by `scripts/notices.sh` at build time: embedded in the exe as `THIRD-PARTY-NOTICES.txt`, and in the Linux archive under `licenses/`. [ViGEmBus](https://github.com/nefarius/ViGEmBus) (BSD 3-Clause) is a separate install and is not distributed with Edgepad.

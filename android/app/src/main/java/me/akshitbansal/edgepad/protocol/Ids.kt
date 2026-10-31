@@ -36,11 +36,69 @@ enum class ActionId(
     PAD_DETACH(36),
 
     /**
+     * Annotating the screen and signing, which the laptop draws and the phone only steers: BEGIN shows the
+     * laptop's overlay and END removes it, UNDO and CLEAR edit the strokes, and the six tools pick what the
+     * next [Frame.Pen] stroke draws. [SIGN_BEGIN] opens a surface that shows nothing on the laptop and accepts
+     * only the pen tool, and [SIGN_SAVE] asks for the export, answered with [TextKind.SIGN_STATUS]. A laptop
+     * too old to know the ids drops and counts them, and the phone offers them only for one that sent
+     * [Feature.ANNOTATE].
+     */
+    ANNOTATE_BEGIN(40),
+    ANNOTATE_END(41),
+    ANNOTATE_UNDO(42),
+    ANNOTATE_CLEAR(43),
+    TOOL_PEN(44),
+    TOOL_HIGHLIGHTER(45),
+    TOOL_LINE(46),
+    TOOL_ARROW(47),
+    TOOL_RECTANGLE(48),
+    TOOL_ELLIPSE(49),
+    SIGN_BEGIN(50),
+    SIGN_SAVE(51),
+
+    /**
+     * Screen capture, which is the laptop's own tool: a region (a drag), the whole screen, and a recording.
+     * Actions because the phone only asks; what each one presses is the laptop's business. A laptop too old
+     * to know them drops and counts the ids, and the phone shows the buttons only for one that sent
+     * [Feature.CAPTURE].
+     */
+    CAPTURE_REGION(52),
+    CAPTURE_SCREEN(53),
+    CAPTURE_RECORD(54),
+
+    /**
+     * The phone left its capture screen: the laptop dismisses a capture overlay it opened, only if one may still
+     * be open. Sent within protocol 5, which is unreleased, so it needed no version.
+     */
+    CAPTURE_CANCEL(55),
+
+    /**
+     * Adding a macro from the phone: APPS_LIST asks the laptop to send the apps it could add, as a [BlobKind.APP_LIST]
+     * blob and then a [BlobKind.APP_ICON] blob each, and APPS_CANCEL stops that list and its icons. The phone offers
+     * them only for a laptop that sent [Feature.APPS].
+     */
+    APPS_LIST(56),
+    APPS_CANCEL(57),
+
+    /**
+     * The macro grid is open and wants to know which macro apps are running: MACROS_WATCH starts the laptop's survey, which
+     * reports [TextKind.MACRO_OPEN] on change only, and MACROS_UNWATCH stops it. Forgotten when the session ends.
+     */
+    MACROS_WATCH(58),
+    MACROS_UNWATCH(59),
+
+    /**
      * The first of 32 macro slots, 64..95; slot n is `MACRO_BASE + n`. The phone sends the index and never
      * what it launches — the laptop's own list decides that, which is the whole security model here.
      * A laptop too old to know the block drops the id and counts it, so this needed no protocol version.
      */
     MACRO_BASE(64),
+
+    /**
+     * A reserved block of 32, 96..127: close the app macro slot n opens, as its own close button would, never a kill.
+     * The phone sends the slot and nothing else; the laptop decides what that slot is.
+     */
+    MACRO_CLOSE_BASE(96),
     ;
 
     fun frame(): Frame = Frame.RunAction(id)
@@ -61,6 +119,34 @@ enum class ControlId(
      * under 100. It also makes a rate the laptop does not have unrepresentable rather than merely rejected.
      */
     REFRESH_RATE(4),
+
+    /**
+     * The value is an index into [PenColor], the eight stock colours; the laptop drops an index of 8 or more. A colour
+     * outside the palette is [TextKind.PEN_RGB].
+     */
+    PEN_COLOR(5),
+
+    /**
+     * Where a capture ends up, as a [CaptureTarget] index: the laptop keeps it, or sends it here and deletes its copy
+     * once this phone says it saved it. Sent on connect and whenever the setting changes.
+     */
+    CAPTURE_TARGET(6),
+
+    /**
+     * Whether this link shares the clipboard, 1 or 0, phone to laptop. The laptop forgets it when the session ends and
+     * drops any other value.
+     */
+    CLIPBOARD(7),
+
+    /**
+     * The width of the strokes that start after this, 1 to 100, as 0.02% of the laptop screen's height per step: 5 is
+     * 0.1%, 20 is the default 0.4% and 100 is 2.0%. The laptop drops 0 and anything above 100, and forgets the value
+     * when the session ends.
+     */
+    PEN_WIDTH(8),
+
+    /** The opacity of the strokes that start after this, 10 to 100 percent. The laptop drops anything else. */
+    PEN_OPACITY(9),
     ;
 
     fun set(value: Int): Frame = Frame.SetValue(id, value)
@@ -70,7 +156,7 @@ enum class ControlId(
     }
 }
 
-/** What a TEXT frame carries. Only kind 3 goes phone to laptop. Mirrors protocol/actions.txt. */
+/** What a TEXT frame carries. Only kinds 3, 7, 14 and 17 go phone to laptop. Mirrors protocol/actions.txt. */
 enum class TextKind(
     val id: Int,
 ) {
@@ -105,6 +191,49 @@ enum class TextKind(
      * can hide the pad instead of showing a button that quietly does nothing.
      */
     PAD_STATUS(8),
+
+    /**
+     * Laptop to phone: the optional features this laptop has, as [Feature] tokens joined by "/", sent once
+     * after the handshake. A feature missing from the list is off, and a token this build does not know is
+     * ignored, so a newer laptop can name more than an older phone understands.
+     */
+    FEATURES(9),
+
+    /**
+     * Laptop to phone: the primary display in pixels, "1920/1080", sent after the handshake and whenever the
+     * display changes, so the phone can shape its drawing surface to the same ratio.
+     */
+    SCREEN_SIZE(10),
+
+    /** Laptop to phone: how a [ActionId.SIGN_SAVE] ended, as one [SignStatus] token. */
+    SIGN_STATUS(11),
+
+    /** Laptop to phone: why a capture this phone asked for did not reach it, as one [CaptureStatus] token. */
+    CAPTURE_STATUS(12),
+
+    /**
+     * Laptop to phone, once after the handshake: "id/os/name", the id 32 hex digits, the os a [DeviceOs] token and the
+     * laptop's own name. The id lets the phone tell one laptop seen over two transports from two.
+     */
+    DEVICE(13),
+
+    /** Phone to laptop: "epoch.index", an index into the app list the laptop sent for that epoch. No path is named. */
+    APP_ADD(14),
+
+    /** Laptop to phone: how an [APP_ADD] ended, as one [AppAddStatus] token. */
+    APP_ADD_STATUS(15),
+
+    /**
+     * Laptop to phone: one character per macro slot, in [MACROS] order. '-' not trackable, '0' not running, '1' running,
+     * '2' running and in front. Sent when it changes while watched; an unknown character reads as untracked.
+     */
+    MACRO_OPEN(16),
+
+    /**
+     * Phone to laptop: a stroke colour as exactly six hex digits, "RRGGBB". Safe to send because it is only a colour:
+     * the laptop takes those six characters and nothing else, and what it makes of them is a number it can only draw with.
+     */
+    PEN_RGB(17),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -167,5 +296,221 @@ enum class PadStatus(
     companion object {
         /** An unknown token reads as [NO_DRIVER]: the pad is unusable and the phone cannot say why. */
         fun of(token: String): PadStatus = entries.firstOrNull { it.token == token } ?: NO_DRIVER
+    }
+}
+
+/**
+ * The whole vocabulary of [TextKind.FEATURES]. A token the phone matches on, never prose, for the reason
+ * [PadStatus] is. Mirrors protocol/actions.txt.
+ */
+enum class Feature(
+    val token: String,
+) {
+    /** The laptop can draw on its screen from the phone. */
+    ANNOTATE("annotate"),
+
+    /** The laptop answers the capture actions. */
+    CAPTURE("capture"),
+
+    /** The laptop's clipboard toggle is on, so [ControlId.CLIPBOARD] is honoured. */
+    CLIPBOARD("clipboard"),
+
+    /** The laptop can list its apps for the phone to add as macros. */
+    APPS("apps"),
+
+    /** The laptop can tell which macro apps are running, in [TextKind.MACRO_OPEN]. */
+    RUNNING("running"),
+    ;
+
+    companion object {
+        /** Null for a token this build does not know: a feature it cannot offer is simply not there. */
+        fun of(token: String): Feature? = entries.firstOrNull { it.token == token }
+    }
+}
+
+/**
+ * The whole vocabulary of [TextKind.SIGN_STATUS]. A token the phone matches on, never prose, for the reason
+ * [PadStatus] is. Mirrors protocol/actions.txt.
+ */
+enum class SignStatus(
+    val token: String,
+) {
+    /** The signature is on the clipboard and in the laptop's Pictures folder. */
+    SAVED("saved"),
+
+    /** Nothing was drawn, so there was nothing to export. */
+    EMPTY("empty"),
+
+    /** The export or the save failed. */
+    FAILED("failed"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [FAILED]: a save the phone cannot confirm must not look like a success. */
+        fun of(token: String): SignStatus = entries.firstOrNull { it.token == token } ?: FAILED
+    }
+}
+
+/**
+ * The colours [ControlId.PEN_COLOR] indexes, by [index]. [rgb] is only for the phone's swatches and its
+ * preview: the laptop draws in its own copy of the same list, and a test holds both to the PALETTE rows of
+ * protocol/actions.txt. Mirrors that file.
+ */
+enum class PenColor(
+    val index: Int,
+    val rgb: Int,
+) {
+    BLACK(0, 0x000000),
+    WHITE(1, 0xFFFFFF),
+    RED(2, 0xFF3B30),
+    ORANGE(3, 0xFF9500),
+    YELLOW(4, 0xFFCC00),
+    GREEN(5, 0x34C759),
+    BLUE(6, 0x0068D6),
+    PURPLE(7, 0xAF52DE),
+}
+
+/** The values of [ControlId.CAPTURE_TARGET], by [value]. */
+enum class CaptureTarget(
+    val value: Int,
+) {
+    /** The laptop's own tool saves where it saves, and nothing crosses the link. */
+    LAPTOP(0),
+
+    /** The laptop sends each capture here and deletes its copy only once this phone says it saved it. */
+    PHONE(1),
+    ;
+
+    fun frame(): Frame = ControlId.CAPTURE_TARGET.set(value)
+}
+
+/**
+ * The whole vocabulary of [TextKind.CAPTURE_STATUS]: why a capture stayed on the laptop. A token the phone matches
+ * on, never prose, for the reason [PadStatus] is. Mirrors protocol/actions.txt.
+ */
+enum class CaptureStatus(
+    val token: String,
+) {
+    /** The file is over [FileType.limit] for its kind, so it stays on the laptop. */
+    TOO_LARGE("too-large"),
+
+    /** No new file turned up where the laptop's tool saves, so nothing was sent and nothing deleted. */
+    NOT_FOUND("not-found"),
+
+    /** The laptop found the file and could not read or send it. */
+    FAILED("failed"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [FAILED]: the phone cannot say why, only that nothing arrived. */
+        fun of(token: String): CaptureStatus = entries.firstOrNull { it.token == token } ?: FAILED
+    }
+}
+
+/**
+ * What a [Frame.FileBegin] may carry, by [id]. The laptop sends an id and never a MIME string, so the phone writes
+ * only these types, and an id it does not know is refused. Mirrors the FILE_TYPE and FILE_LIMIT rows of
+ * protocol/actions.txt.
+ */
+enum class FileType(
+    val id: Int,
+    val mime: String,
+    val extension: String,
+) {
+    PNG(0, "image/png", "png"),
+    JPEG(1, "image/jpeg", "jpg"),
+    MP4(2, "video/mp4", "mp4"),
+    MOV(3, "video/quicktime", "mov"),
+    WEBM(4, "video/webm", "webm"),
+    ;
+
+    val video: Boolean get() = mime.startsWith("video/")
+
+    /** The largest file of this kind that may cross the link, in bytes. */
+    val limit: Long get() = if (video) VIDEO_LIMIT else IMAGE_LIMIT
+
+    companion object {
+        const val IMAGE_LIMIT = 50L * 1024 * 1024
+        const val VIDEO_LIMIT = 200L * 1024 * 1024
+
+        fun of(id: Int): FileType? = entries.firstOrNull { it.id == id }
+    }
+}
+
+/**
+ * What a [Frame.FileResult] says, by [id]. Only [SAVED] lets the laptop delete its copy. Mirrors
+ * protocol/actions.txt.
+ */
+enum class FileStatus(
+    val id: Int,
+) {
+    /** The file is in this phone's gallery and its SHA-256 matched. */
+    SAVED(0),
+
+    /** Every byte arrived and the SHA-256 did not match, so the file was thrown away. */
+    BAD_HASH(1),
+
+    /** The file was refused before or while it arrived: a type, size, name or chunk this phone will not take. */
+    REJECTED(2),
+
+    /** This phone could not write the file. */
+    WRITE_FAILED(3),
+    ;
+
+    fun frame(): Frame = Frame.FileResult(id)
+}
+
+/**
+ * The OS token in [TextKind.DEVICE]. A token the phone matches on, never prose. Mirrors protocol/actions.txt.
+ */
+enum class DeviceOs(
+    val token: String,
+) {
+    WINDOWS("windows"),
+    LINUX("linux"),
+    MACOS("macos"),
+    ;
+
+    companion object {
+        /** Null for a token this build does not know: a hint that depends on the OS is simply not shown. */
+        fun of(token: String): DeviceOs? = entries.firstOrNull { it.token == token }
+    }
+}
+
+/**
+ * The whole vocabulary of [TextKind.APP_ADD_STATUS]. Only [ADDED] changed the laptop's macro list. A token the phone
+ * matches on, never prose, for the reason [PadStatus] is. Mirrors protocol/actions.txt.
+ */
+enum class AppAddStatus(
+    val token: String,
+) {
+    ADDED("added"),
+    FULL("full"),
+    DUPLICATE("duplicate"),
+    STALE("stale"),
+    FAILED("failed"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [FAILED]: an add the phone cannot confirm must not look like a success. */
+        fun of(token: String): AppAddStatus = entries.firstOrNull { it.token == token } ?: FAILED
+    }
+}
+
+/**
+ * What a [Frame.BlobBegin] carries, by [id]. The frame holds the raw id, since one this build does not know is read to
+ * its end and dropped. Mirrors the BLOB_KIND rows of protocol/actions.txt.
+ */
+enum class BlobKind(
+    val id: Int,
+) {
+    CLIP_TEXT(0),
+    CLIP_IMAGE(1),
+    APP_LIST(2),
+    APP_ICON(3),
+    ;
+
+    companion object {
+        fun of(id: Int): BlobKind? = entries.firstOrNull { it.id == id }
     }
 }

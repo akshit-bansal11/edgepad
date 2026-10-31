@@ -46,6 +46,9 @@ android {
     lint {
         warningsAsErrors = true
         abortOnError = true
+        // CI shows only the first finding otherwise, and every one costs a push to find.
+        textReport = true
+        textOutput = file("stdout")
         // Version-freshness checks turn a green build red on the day a new release ships, with no change
         // to this repo. Upgrading is a deliberate step, not a lint failure. Every other check stays on.
         disable += setOf("GradleDependency", "AndroidGradlePluginVersion", "NewerVersionAvailable", "OldTargetApi")

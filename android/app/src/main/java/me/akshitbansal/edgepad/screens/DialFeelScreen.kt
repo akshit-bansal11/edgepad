@@ -41,7 +41,7 @@ object DialFeelScreen {
                 addView(preview)
             }
         return ui.page(
-            ui.bar(ui.string(R.string.dial_feel_title), onBack, backLabel = ui.string(R.string.settings_title)),
+            ui.bar(ui.string(R.string.dial_feel_title), onBack, backLabel = ui.string(R.string.settings_surface_title)),
         ) {
             columns(
                 {

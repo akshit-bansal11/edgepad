@@ -3,16 +3,21 @@ package me.akshitbansal.edgepad.screens
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.link.LaptopRow
+import me.akshitbansal.edgepad.link.RowStatus
+import me.akshitbansal.edgepad.link.Transport
 
 /**
- * The paired laptops. Tapping one connects to it, or opens the controls when it is already connected; the
- * connected one shows its live round trip. Refresh, Bluetooth settings and Settings sit in the nav bar, and
- * the mark stands beside the large title.
+ * The laptops: paired over Bluetooth, found on the Wi-Fi, found over USB tethering, or added by address, one row each
+ * however many ways a laptop was seen. Tapping one connects to it, opens the controls when it is connected, or raises
+ * the prompt it is waiting on; under each is the rest of what can be done to it. The active one shows its live round
+ * trip. Refresh, Bluetooth settings and Settings sit in the nav bar, and the mark stands beside the large title.
  *
  * The list is filtered to computers, because headsets, watches and mice are paired too and none of them runs
  * the laptop app. Bluetooth's idea of a device's class is the device's own claim, though, and a laptop that
@@ -20,22 +25,27 @@ import me.akshitbansal.edgepad.Type
  */
 class PickerScreen(
     private val ui: Ui,
-    private val onConnect: (String) -> Unit,
-    private val onOpenControls: () -> Unit,
+    private val onTap: (Device) -> Unit,
+    private val onVia: (Device, Transport) -> Unit,
+    private val onMakeActive: (Device) -> Unit,
+    private val onDisconnect: (Device) -> Unit,
+    private val onForget: (Device) -> Unit,
+    onOpenControls: () -> Unit,
     onBluetoothSettings: () -> Unit,
     onSettings: () -> Unit,
     private val onRefresh: () -> Unit,
     private val onShowAll: (Boolean) -> Unit,
+    private val onAddAddress: () -> Unit,
+    private val onUsbHelp: () -> Unit,
 ) {
+    /** One row. [active] says it is the laptop the screens and every frame go to. */
     class Device(
-        val address: String,
-        val name: String,
+        val row: LaptopRow,
+        val active: Boolean,
     )
 
     private var devices: List<Device> = emptyList()
-    private var remembered: String? = null
-    private var connected: String? = null
-    private var connecting: String? = null
+    private var canOpen = false
     private var autoConnect = true
     private var hidden = 0
     private var showingAll = false
@@ -46,6 +56,7 @@ class PickerScreen(
     private val refresh = ui.icon(Glyph.Shape.REFRESH, ui.string(R.string.refresh)) { spinAndRefresh() }
     private lateinit var list: LinearLayout
     private lateinit var legend: TextView
+    private lateinit var sweepLine: TextView
     private lateinit var message: TextView
     private lateinit var messageButton: TextView
     private lateinit var filter: TextView
@@ -68,7 +79,11 @@ class PickerScreen(
                     section(ui.string(R.string.paired_laptops))
                     list = card {}
                     legend = footnote("")
+                    footnote(ui.string(R.string.devices_multi_hint))
+                    sweepLine = footnote("")
                     filter = add(ui.button("", Ui.Style.QUIET) { onShowAll(!showingAll) }, Space.S)
+                    add(ui.button(ui.string(R.string.add_by_address), Ui.Style.QUIET, onAddAddress), Space.S)
+                    add(ui.button(ui.string(R.string.usb_tethering), Ui.Style.QUIET, onUsbHelp), Space.S)
                     message = body("", Space.L).apply { visibility = View.GONE }
                     messageButton =
                         add(ui.button("", Ui.Style.QUIET) { messageAction?.invoke() }).apply {
@@ -94,20 +109,19 @@ class PickerScreen(
     }
 
     /**
-     * [devices] is what the list shows. [hidden] counts the paired devices the computer filter kept out of it,
-     * and [showingAll] says the filter is off; between them they decide what the filter button offers.
+     * [devices] is what the list shows, and [canOpen] says the active laptop is connected. [hidden] counts the
+     * paired devices the computer filter kept out of it, and [showingAll] says the filter is off; between them
+     * they decide what the filter button offers.
      */
     fun showDevices(
         devices: List<Device>,
-        remembered: String?,
-        connected: String?,
+        canOpen: Boolean,
         autoConnect: Boolean,
         hidden: Int,
         showingAll: Boolean,
     ) {
         this.devices = devices
-        this.remembered = remembered
-        this.connected = connected
+        this.canOpen = canOpen
         this.autoConnect = autoConnect
         this.hidden = hidden
         this.showingAll = showingAll
@@ -132,13 +146,13 @@ class PickerScreen(
         messageButton.visibility = if (offered) View.VISIBLE else View.GONE
     }
 
-    /** The address a connection is being made to, or null when none is. */
-    fun setConnecting(address: String?) {
-        connecting = address
-        render()
+    /** One line under the list about what the last network sweep saw; empty hides it. */
+    fun setStatus(text: CharSequence) {
+        sweepLine.text = text
+        sweepLine.visibility = if (text.isEmpty()) View.GONE else View.VISIBLE
     }
 
-    /** The connected laptop's median round trip in milliseconds; NaN before the first answer. */
+    /** The active laptop's median round trip in milliseconds; NaN before the first answer. */
     fun setRtt(ms: Double) {
         rtt = ms
         rttTag?.text = rttText()
@@ -175,7 +189,7 @@ class PickerScreen(
         val any = devices.isNotEmpty()
         list.visibility = if (any) View.VISIBLE else View.GONE
         legend.visibility = if (any) View.VISIBLE else View.GONE
-        val remembers = autoConnect && devices.any { it.address == remembered }
+        val remembers = autoConnect && devices.any { it.row.saved?.autoConnect == true }
         legend.text = ui.string(if (remembers) R.string.devices_legend else R.string.devices_legend_off)
         filter.visibility = if (showingAll || hidden > 0) View.VISIBLE else View.GONE
         filter.text =
@@ -184,42 +198,123 @@ class PickerScreen(
             } else {
                 ui.context.resources.getQuantityString(R.plurals.show_all_paired, hidden, hidden)
             }
-        actionHint.visibility = if (connected != null) View.GONE else View.VISIBLE
-        ui.enable(action, connected != null)
+        actionHint.visibility = if (canOpen) View.GONE else View.VISIBLE
+        ui.enable(action, canOpen)
     }
 
     private fun row(device: Device): View {
-        val isConnected = device.address == connected
-        val isConnecting = device.address == connecting
-        val live = isConnected || isConnecting
-        val status =
-            when {
-                isConnected -> R.string.device_connected
-                isConnecting -> R.string.device_connecting
-                device.address == remembered -> R.string.device_remembered
-                else -> null
-            }
+        val status = device.row.status
+        val isConnected = status == RowStatus.CONNECTED
+        val live = status !in setOf(RowStatus.NONE, RowStatus.REMEMBERED, RowStatus.FAILED)
         val sub =
             LinearLayout(ui.context).apply {
                 gravity = Gravity.CENTER_VERTICAL
                 if (live) {
-                    val dot = Pulse(ui.context, ui.palette.accent).apply { pulsing = isConnecting }
+                    val dot = Pulse(ui.context, ui.palette.accent).apply { pulsing = !isConnected }
                     addView(dot, LinearLayout.LayoutParams(ui.dp(PULSE_DP), ui.dp(PULSE_DP)))
                 }
                 addView(
                     ui.secondary(
-                        status?.let { ui.string(it) } ?: device.address,
+                        statusText(device.row),
                         Type.SMALL,
                         if (live) ui.palette.accent else ui.palette.dim,
                     ),
                 )
             }
-        val tag = ui.secondary(if (isConnected) rttText() else "", Type.SMALL, ui.palette.dim)
-        if (isConnected) rttTag = tag
-        return ui.laptop(device.name, sub, isConnected, tag).apply {
-            ui.tappable(this) { if (isConnected) onOpenControls() else onConnect(device.address) }
+        val timed = isConnected && device.active
+        val tag = ui.secondary(if (timed) rttText() else "", Type.SMALL, ui.palette.dim)
+        if (timed) rttTag = tag
+        val end =
+            LinearLayout(ui.context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                device.row.via?.let { addView(transportChip(it)) }
+                val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
+                addView(tag, LinearLayout.LayoutParams(wrap, wrap).apply { marginStart = ui.dp(Space.S) })
+            }
+        val line = ui.laptop(device.row.name, sub, isConnected, end).apply { ui.tappable(this) { onTap(device) } }
+        return LinearLayout(ui.context).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(line)
+            actions(device)?.let { addView(it) }
         }
     }
+
+    private fun statusText(row: LaptopRow): String =
+        when (row.status) {
+            RowStatus.NONE -> row.detail
+            RowStatus.REMEMBERED -> ui.string(R.string.device_remembered)
+            RowStatus.CONNECTING -> ui.string(R.string.device_connecting)
+            RowStatus.AWAITING -> ui.string(R.string.status_accept_on_laptop)
+            RowStatus.ASKING -> ui.string(R.string.device_asking)
+            RowStatus.RECONNECTING -> ui.string(R.string.device_reconnecting)
+            RowStatus.CONNECTED -> ui.string(R.string.device_connected_via, row.via?.let(::transportName).orEmpty())
+            RowStatus.FAILED -> ui.string(R.string.device_failed)
+        }
+
+    /**
+     * The line under a row: Connect, the Active badge or Make active, any other transport to connect over, Disconnect
+     * and Forget, as far as each applies. It scrolls sideways on a narrow phone; null when nothing applies.
+     */
+    private fun actions(device: Device): View? {
+        val row = device.row
+        val laptop = row.laptop
+        val line = LinearLayout(ui.context).apply { gravity = Gravity.CENTER_VERTICAL }
+
+        fun add(view: View) {
+            val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
+            line.addView(view, LinearLayout.LayoutParams(wrap, wrap).apply { marginEnd = ui.dp(Space.S) })
+        }
+
+        // The one way to connect that says so; a tap on the row does the same. Not while something is going on already.
+        if (row.status in setOf(RowStatus.NONE, RowStatus.REMEMBERED, RowStatus.FAILED)) {
+            row.via?.let { via -> add(ui.chip(ui.string(R.string.device_connect)) { onVia(device, via) }) }
+        }
+        if (laptop?.connected == true && device.active) {
+            add(ui.secondary(ui.string(R.string.device_active), Type.SMALL, ui.palette.accent))
+        } else if (laptop?.connected == true) {
+            add(ui.chip(ui.string(R.string.device_make_active)) { onMakeActive(device) })
+        }
+        for (transport in row.reach - setOfNotNull(row.via)) {
+            val name = transportName(transport)
+            add(
+                ui.chip(name) { onVia(device, transport) }.apply {
+                    contentDescription = ui.string(R.string.connect_via, name)
+                },
+            )
+        }
+        if (laptop != null && !laptop.idle) {
+            add(ui.chip(ui.string(R.string.device_disconnect)) { onDisconnect(device) })
+        }
+        if (laptop != null || row.saved != null) {
+            add(
+                ui.chip(ui.string(R.string.forget), danger = true) {
+                    // Over the list and not this chip: a rescan rebuilds the rows, and the question would go with it.
+                    ui.confirm(
+                        list,
+                        ui.string(R.string.forget_laptop_title, row.name),
+                        ui.string(R.string.forget_laptop_body),
+                        ui.string(R.string.forget),
+                    ) { onForget(device) }
+                },
+            )
+        }
+        if (line.childCount == 0) return null
+        return HorizontalScrollView(ui.context).apply {
+            isHorizontalScrollBarEnabled = false
+            setPadding(ui.dp(Space.L), 0, ui.dp(Space.L), ui.dp(Space.XS))
+            addView(line)
+        }
+    }
+
+    /** The small label naming how a row is reached. */
+    private fun transportChip(transport: Transport): View =
+        ui.secondary(transportName(transport), Type.SMALL, ui.palette.ink).apply {
+            background = ui.rounded(ui.palette.faint, CHIP_RADIUS_DP)
+            val across = ui.dp(Space.S)
+            setPadding(across, ui.dp(Space.XS), across, ui.dp(Space.XS))
+        }
+
+    private fun transportName(transport: Transport): String = ui.string(transport.label)
 
     private fun rttText(): String = if (rtt.isNaN()) "" else ui.string(R.string.device_rtt, rtt)
 
@@ -236,6 +331,7 @@ class PickerScreen(
 
     private companion object {
         const val MARK_DP = 34f
+        const val CHIP_RADIUS_DP = 8f
 
         /** The dot is drawn 6 dp across; the rest of its box is room for the ring it sends out while connecting. */
         const val PULSE_DP = 14f
@@ -243,3 +339,12 @@ class PickerScreen(
         const val SPIN_MS = 600L
     }
 }
+
+/** The name of how a laptop is reached, as a string resource. */
+internal val Transport.label: Int
+    get() =
+        when (this) {
+            Transport.BLUETOOTH -> R.string.transport_bluetooth
+            Transport.WIFI -> R.string.transport_wifi
+            Transport.USB -> R.string.transport_usb
+        }

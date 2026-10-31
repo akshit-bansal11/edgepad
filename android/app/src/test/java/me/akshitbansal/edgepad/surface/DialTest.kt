@@ -5,6 +5,7 @@ import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -16,7 +17,26 @@ class DialTest {
     private fun dial(
         kind: DialKind,
         snap: Boolean = false,
-    ) = kind.dial(0, "X", UNITS_PER_DP, snap, { out.add(it) }, { haptics++ })
+        devices: DeviceSwitch = DeviceSwitch.None,
+    ) = kind.dial(0, "X", UNITS_PER_DP, snap, { out.add(it) }, { haptics++ }, devices = devices)
+
+    /** Records what the Devices dial asks of the laptops, and answers nothing. */
+    private class Devices : DeviceSwitch {
+        val steps = mutableListOf<Int>()
+        var opened = 0
+        var onStep: () -> Unit = {}
+        override val names = listOf("A", "B", "C")
+        override val activeIndex = 0
+
+        override fun step(direction: Int) {
+            steps.add(direction)
+            onStep()
+        }
+
+        override fun open() {
+            opened++
+        }
+    }
 
     /** Presses, slides past the slop so the dial arms, then slides [dp] more. */
     private fun Dial.slideBy(dp: Float) {
@@ -129,6 +149,90 @@ class DialTest {
     }
 
     @Test
+    fun scrollSendsOneWheelNotchPerStepAndClockwiseGoesDown() {
+        val scroll = dial(DialKind.SCROLL)
+        scroll.down()
+        scroll.slideBy(80f)
+        scroll.slide(-40f, SLOP)
+        scroll.up()
+        val notch = TrackpadRecognizer.WHEEL_NOTCH
+        assertEquals(listOf(Frame.Scroll(0, -notch), Frame.Scroll(0, -notch), Frame.Scroll(0, notch)), out)
+    }
+
+    @Test
+    fun horizontalScrollSendsOneSidewaysNotchPerStepAndClockwiseGoesRight() {
+        val side = dial(DialKind.SCROLL_H)
+        side.down()
+        side.slideBy(80f)
+        side.slide(-40f, SLOP)
+        side.up()
+        val notch = TrackpadRecognizer.WHEEL_NOTCH
+        assertEquals(listOf(Frame.Scroll(notch, 0), Frame.Scroll(notch, 0), Frame.Scroll(-notch, 0)), out)
+    }
+
+    @Test
+    fun desktopsMoveByStepAndATapOpensTaskView() {
+        val desktops = dial(DialKind.DESKTOPS)
+        desktops.down()
+        desktops.slideBy(80f)
+        desktops.slide(-40f, SLOP)
+        desktops.up()
+        assertEquals(
+            listOf(ActionId.DESKTOP_RIGHT.frame(), ActionId.DESKTOP_RIGHT.frame(), ActionId.DESKTOP_LEFT.frame()),
+            out,
+        )
+        out.clear()
+        desktops.down()
+        assertTrue(desktops.up())
+        assertEquals(listOf(ActionId.TASK_VIEW.frame()), out)
+    }
+
+    @Test
+    fun tabsHoldCtrlForTheWholeSlideAndShiftOnlyGoingBack() {
+        val tabs = dial(DialKind.TABS)
+        tabs.down()
+        tabs.slideBy(40f)
+        tabs.slide(-40f, SLOP)
+        tabs.up()
+        assertEquals(
+            listOf(
+                Frame.Key(CTRL, true),
+                Frame.Key(TAB, true),
+                Frame.Key(TAB, false),
+                Frame.Key(SHIFT, true),
+                Frame.Key(TAB, true),
+                Frame.Key(TAB, false),
+                Frame.Key(SHIFT, false),
+                Frame.Key(CTRL, false),
+            ),
+            out,
+        )
+    }
+
+    @Test
+    fun aCancelledTabSlideStillLetsGoOfCtrl() {
+        val tabs = dial(DialKind.TABS)
+        tabs.down()
+        tabs.slideBy(40f)
+        tabs.cancel()
+        assertEquals(Frame.Key(CTRL, false), out.last())
+    }
+
+    @Test
+    fun aTabsTapSendsNothing() {
+        val tabs = dial(DialKind.TABS)
+        tabs.down()
+        assertTrue(tabs.up())
+        assertTrue(out.isEmpty())
+    }
+
+    @Test
+    fun theNewDialsTakeNoCornerByDefault() {
+        val taken = DialKind.entries.mapNotNull { it.defaultCorner }
+        assertEquals(listOf(0, 1, 2, 3), taken)
+    }
+
+    @Test
     fun zoomCountsNotchesUntilATapResetsIt() {
         val zoom = dial(DialKind.ZOOM)
         zoom.down()
@@ -173,8 +277,81 @@ class DialTest {
         assertEquals(1, refresh.value)
     }
 
+    @Test
+    fun slidingTheDevicesDialStepsOncePerNotchAndNeverSendsAFrame() {
+        val devices = Devices()
+        val dial = dial(DialKind.DEVICES, devices = devices)
+        dial.down()
+        dial.slideBy(120f)
+        dial.slide(-80f, SLOP)
+        dial.up()
+        assertEquals(listOf(1, 1, 1, -1, -1), devices.steps)
+        assertEquals(0, devices.opened)
+        assertTrue(out.isEmpty())
+    }
+
+    @Test
+    fun aDevicesTapOpensTheListAndSendsNothing() {
+        val devices = Devices()
+        val dial = dial(DialKind.DEVICES, devices = devices)
+        dial.down()
+        assertTrue(dial.up())
+        assertEquals(1, devices.opened)
+        assertTrue(devices.steps.isEmpty())
+        assertTrue(out.isEmpty())
+    }
+
+    @Test
+    fun aSlideThatEndsTheDevicesSlideStopsStepping() {
+        // One move can cross several notches. The first step swaps the laptop and cancels the touch, so the others
+        // would otherwise carry on from the new laptop to the one after it.
+        val devices = Devices()
+        val dial = dial(DialKind.DEVICES, devices = devices)
+        devices.onStep = { dial.cancel() }
+        dial.down()
+        dial.slideBy(120f)
+        assertEquals(listOf(1), devices.steps)
+        assertFalse(dial.armed)
+        assertTrue(out.isEmpty())
+    }
+
+    @Test
+    fun theDevicesDialIsLastAndTakesNoCorner() {
+        assertEquals(DialKind.DEVICES, DialKind.entries.last())
+        assertNull(DialKind.DEVICES.defaultCorner)
+        assertEquals(listOf(0, 1, 2, 3), DialKind.entries.mapNotNull { it.defaultCorner })
+    }
+
+    @Test
+    fun everyOlderKindKeepsItsStoredNameAndPlace() {
+        // Corners and sensitivities are stored by kind name, and the name list is also the ordinal order.
+        assertEquals(
+            listOf(
+                "VOLUME",
+                "BRIGHTNESS",
+                "ZOOM",
+                "MEDIA",
+                "APP_SWITCHER",
+                "REFRESH",
+                "SCROLL",
+                "SCROLL_H",
+                "DESKTOPS",
+                "TABS",
+                "DEVICES",
+            ),
+            DialKind.entries.map { it.name },
+        )
+        assertEquals(
+            listOf(DialKind.VOLUME, DialKind.BRIGHTNESS, DialKind.ZOOM, DialKind.MEDIA),
+            DialKind.entries.filter { it.defaultCorner != null }.sortedBy { it.defaultCorner },
+        )
+    }
+
     private companion object {
         const val UNITS_PER_DP = 0.25f
         const val SLOP = 8f
+        const val TAB = 0x09
+        const val SHIFT = 0x10
+        const val CTRL = 0x11
     }
 }

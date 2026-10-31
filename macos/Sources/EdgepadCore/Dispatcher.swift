@@ -1,3 +1,5 @@
+import Foundation
+
 /// Turns frames from the trusted phone into input and control changes. Every id is checked against the
 /// protocol's own enums: an id this Mac does not know is dropped and counted, never guessed at. The phone
 /// can name an action; only this table decides what it does.
@@ -15,6 +17,9 @@ public final class Dispatcher {
     /// Zoom arrives as wheel units; a Mac zooms by key chord, so the units add up until a whole step is owed.
     private var zoomSum = 0
 
+    /// Whether a capture crosshair or toolbar may still be open, so the next capture action can close it first.
+    private var overlay = CaptureOverlay()
+
     /// Frames that asked for something unknown, out of range, or unavailable on this Mac.
     public private(set) var dropped = 0
 
@@ -22,6 +27,37 @@ public final class Dispatcher {
     /// this class deliberately holds no reference to the connection, for the same reason PONG is answered in
     /// the session and not here.
     public var padStatusReply: ((String) -> Void)?
+
+    /// The overlay that takes the pen and the annotate actions. Nil where there is none, and then every one of
+    /// them is dropped and counted. A property and not an initialiser argument because the session reads it too.
+    public var annotation: AnnotationSink?
+
+    /// The macro list the slots index into. Nil where the app has none, and then every slot is dropped and counted.
+    /// A property for the same reason as `annotation`: the session reads it too.
+    public var macros: MacroStore?
+
+    /// Told when the phone's macro grid opens (true) and closes (false). Set by the session on a Mac that can see
+    /// apps, like `padStatusReply`; without one, MACROS_WATCH and MACROS_UNWATCH are dropped and counted.
+    public var macroWatch: ((Bool) -> Void)?
+
+    /// Sends captures to the phone when it asks for that. Set by the app per connection; without one,
+    /// CAPTURE_TARGET and FILE_RESULT are dropped and counted.
+    public var capture: CaptureToPhone?
+
+    /// Shares the clipboard when the phone asks for that. Set by the app per connection, like `capture`; without one,
+    /// SET CLIPBOARD and the blob frames are dropped and counted.
+    public var clipboard: ClipboardSync?
+
+    /// Offers this Mac's apps to the phone as macros. Set by the app per connection, like `clipboard`; without one,
+    /// APPS_LIST, APPS_CANCEL and APP_ADD are dropped and counted. It is given a token, never a target.
+    public var apps: AppPicker?
+
+    /// Where the answer to APP_ADD goes, one `AppAddStatus` token. Set by the session once it has a link to write to,
+    /// like `padStatusReply`.
+    public var appAddReply: ((String) -> Void)?
+
+    /// When the phone last sent input, by system uptime: a capture on its way slows down for it.
+    public private(set) var lastInput: TimeInterval = 0
 
     public init(
         input: InputSink,
@@ -38,6 +74,12 @@ public final class Dispatcher {
     }
 
     public func handle(_ frame: Frame) {
+        switch frame {
+        case .move, .scroll, .pointerButton, .zoom, .key, .pen, .text:
+            lastInput = ProcessInfo.processInfo.systemUptime
+        default:
+            break
+        }
         if !carry(frame) {
             dropped += 1
         }
@@ -64,16 +106,44 @@ public final class Dispatcher {
             guard Int(value) <= Percent.max else { return false }
             return set(control, Int(value))
         case .text(let kind, let value):
+            if kind == TextKind.penRgb.rawValue {
+                // A colour and only a colour: held to exactly six hex digits here, before the overlay sees it.
+                guard let rgb = PenStyle.parseRgb(value) else { return false }
+                return annotation?.setRgb(rgb) ?? false
+            }
+            if kind == TextKind.appAdd.rawValue {
+                // The one phone string that can end in a macro, and it is only ever a token: see `AppPicker`.
+                return addApp(value)
+            }
             guard kind == TextKind.type.rawValue else { return false }
             input.type(value)
             return true
         case .key(let code, let down):
             return key(code, down: down)
-        case .hello, .helloAck, .ping, .pong, .state, .padState:
-            // A Mac has no virtual controller to give a pad frame to, and the rest are not the phone's to
-            // send once the session is live.
+        case .pen(let x, let y, let state):
+            return annotation?.pen(x: x, y: y, state: state) ?? false
+        case .fileResult(let status):
+            // The phone's answer to a capture this Mac sent it. Only the transfer waiting for one takes it.
+            return capture?.take(status: status) ?? false
+        case .blobBegin(let kind, let size, let label):
+            return clipboard?.take(kind: kind, size: size, label: label) ?? false
+        case .blobChunk(let seq, let data):
+            return clipboard?.take(seq: seq, data: data) ?? false
+        case .blobEnd(let sha256):
+            return clipboard?.take(sha256: sha256) ?? false
+        case .hello, .helloAck, .ping, .pong, .state, .padState, .pinRequest, .pinAnswer, .fileBegin, .fileChunk,
+            .fileEnd:
+            // A Mac has no virtual controller to give a pad frame to, and the rest are not the phone's to send
+            // once the session is live.
             return false
         }
+    }
+
+    /// Hands the phone's token to the picker, which answers it. Dropped and counted with no picker.
+    private func addApp(_ token: String) -> Bool {
+        guard let apps else { return false }
+        appAddReply?(apps.add(token).rawValue)
+        return true
     }
 
     /// A Mac has no Ctrl+wheel zoom, so zoom is Command-plus and Command-minus, one press per whole step.
@@ -99,14 +169,27 @@ public final class Dispatcher {
             if down {
                 input.media(media)
             }
+        case .chord(let keys):
+            // Like a media key, a chord is a press: the release has nothing to undo.
+            if down {
+                input.chord(keys)
+            }
         }
         return true
     }
 
     private func run(_ id: UInt8) -> Bool {
-        // Macros are a block of ids, not one each, and are not built on the Mac yet.
+        // Macros are a block of ids, not one each. The slot is all that is taken from the frame: what it launches
+        // is the store's, so a slot past the list, or no store, is dropped and counted like any unknown id.
         let macroStart = Int(ActionId.macroBase.rawValue)
-        guard !(macroStart..<(macroStart + ActionId.macroSlots)).contains(Int(id)) else { return false }
+        if (macroStart..<(macroStart + ActionId.macroSlots)).contains(Int(id)) {
+            return macros?.run(Int(id) - macroStart) ?? false
+        }
+        // The close block on the same terms: a slot, and this Mac decides what that slot is.
+        let closing = Int(id) - Int(ActionId.macroCloseBase.rawValue)
+        if (0..<MacroStore.maxMacros).contains(closing) {
+            return macros?.close(closing) ?? false
+        }
         guard let action = ActionId(rawValue: id) else { return false }
 
         switch action {
@@ -130,10 +213,21 @@ public final class Dispatcher {
         case .search:
             // Spotlight.
             input.chord([.command, .space])
-        case .notifications, .macroBase:
-            // Notifications: macOS has no default shortcut for it. The macro block is rejected before this
-            // switch; the case is here only so the switch stays exhaustive.
+        case .notifications, .macroBase, .macroCloseBase:
+            // Notifications: macOS has no default shortcut for it. The macro blocks are handled before this
+            // switch; their cases are here only so the switch stays exhaustive.
             return false
+        case .appsList:
+            return apps?.list() ?? false
+        case .appsCancel:
+            return apps?.cancel() ?? false
+        case .macrosWatch, .macrosUnwatch:
+            guard let macroWatch else { return false }
+            macroWatch(action == .macrosWatch)
+        case .annotateBegin, .annotateEnd, .annotateUndo, .annotateClear, .toolPen, .toolHighlighter, .toolLine,
+            .toolArrow, .toolRectangle, .toolEllipse, .signBegin, .signSave:
+            // With no overlay behind them these are dropped, which is the honest answer.
+            return annotation?.run(action) ?? false
         case .desktopLeft:
             input.chord([.control, .leftArrow])
         case .desktopRight:
@@ -162,12 +256,48 @@ public final class Dispatcher {
             return stepBrightness(Dispatcher.brightnessStep, fallback: .brightnessUp)
         case .brightnessDown:
             return stepBrightness(-Dispatcher.brightnessStep, fallback: .brightnessDown)
+        case .captureRegion, .captureScreen, .captureRecord:
+            // The capture lists its folders before the shortcut is pressed, so the press can be told apart from them.
+            guard let capture else { return pressCapture(action) }
+            return capture.run(action) { pressCapture(action) }
+        case .captureCancel:
+            if overlay.cancel() {
+                input.chord([.escape])
+            }
+            capture?.cancel()
         case .padAttach, .padDetach:
             // Answered even though a Mac cannot offer a controller: the phone draws a different screen
             // depending on the token, and one that heard nothing could not say why.
             padStatusReply?(PadStatus.noDriver.rawValue)
         }
         return true
+    }
+
+    /// The system's own screenshot tools, which is why there is no capture code of ours to maintain.
+    private func pressCapture(_ action: ActionId) -> Bool {
+        switch action {
+        case .captureRegion:
+            dismissCapture(opensOverlay: true)
+            input.chord([.command, .shift, .four])
+        case .captureScreen:
+            // Takes the shot at once and leaves no overlay open.
+            dismissCapture(opensOverlay: false)
+            input.chord([.command, .shift, .three])
+        default:
+            // Command+Shift+5 opens the capture toolbar, where recording is one click. Escape closes the toolbar,
+            // but not a recording that has started: that is stopped from the menu bar, which we do not drive.
+            dismissCapture(opensOverlay: true)
+            input.chord([.command, .shift, .five])
+        }
+        return true
+    }
+
+    /// Presses Escape and waits a moment when the last capture action may have left an overlay open.
+    private func dismissCapture(opensOverlay: Bool) {
+        if overlay.begin(opensOverlay: opensOverlay) {
+            input.chord([.escape])
+            Thread.sleep(forTimeInterval: CaptureOverlay.dismissWait)
+        }
     }
 
     /// Steps the panel from its own level when this Mac will say it; otherwise falls back to the brightness
@@ -192,9 +322,21 @@ public final class Dispatcher {
         case .mediaPosition:
             // Now playing is not built on the Mac yet.
             return false
+        case .penColor:
+            // The value is a palette index; the board rejects one it does not have.
+            return annotation?.setColour(value) ?? false
+        case .penWidth:
+            // As the phone sent it; the board refuses what is out of range, 0 included.
+            return annotation?.setWidth(value) ?? false
+        case .penOpacity:
+            return annotation?.setOpacity(value) ?? false
         case .refreshRate:
             // The value is an index into the rate list, never hertz.
             return value < display.rates.count ? display.select(value) : false
+        case .captureTarget:
+            return capture?.setTarget(value) ?? false
+        case .clipboard:
+            return clipboard?.setShared(value) ?? false
         }
     }
 }

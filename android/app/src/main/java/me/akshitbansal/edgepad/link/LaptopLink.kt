@@ -1,23 +1,27 @@
 package me.akshitbansal.edgepad.link
 
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothSocket
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import me.akshitbansal.edgepad.link.blob.isBlob
+import me.akshitbansal.edgepad.link.net.Sas
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.FrameCodec
+import me.akshitbansal.edgepad.protocol.Pin
 import me.akshitbansal.edgepad.protocol.ProtocolConstants
+import me.akshitbansal.edgepad.protocol.TextKind
 import java.io.DataInputStream
 import java.io.EOFException
 import java.io.IOException
 import java.io.OutputStream
 import java.io.StreamCorruptedException
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 /**
- * One RFCOMM connection to the laptop.
+ * One connection to the laptop, over Bluetooth or the network: the [LinkTransport] opens the byte pipe and
+ * everything from HELLO on is the same on both.
  *
  * [open] blocks for the life of the connection, so callers run it on their own thread; it reads on that
  * thread. Frames go out through one writer thread, so a slow link can only ever block that thread —
@@ -29,7 +33,7 @@ import kotlin.concurrent.thread
  * message, so anything the link reports in between lands on the new activity instead of the dead one.
  */
 class LaptopLink(
-    private val device: BluetoothDevice,
+    private val transport: LinkTransport,
     @Volatile var listener: Listener,
 ) {
     interface Listener {
@@ -37,6 +41,31 @@ class LaptopLink(
 
         /** The laptop has had HELLO for a while and not answered; it may be asking its owner about this phone. */
         fun onAwaitingLaptop(link: LaptopLink)
+
+        /**
+         * The laptop wants its PIN before it accepts this phone; answer with [answerPin]. [attemptsLeft] is 5 on
+         * the first question and fewer after a wrong answer. A lock-out is never delivered here: it closes the
+         * link as [Cause.PIN_LOCKED] instead.
+         */
+        fun onPinRequest(
+            link: LaptopLink,
+            attemptsLeft: Int,
+        )
+
+        /**
+         * A network pairing: show [code] for the laptop's owner to type there. Closing the link is how the
+         * pairing is cancelled.
+         */
+        fun onPairingCode(
+            link: LaptopLink,
+            code: Sas,
+        )
+
+        /**
+         * The laptop answered the pairing. Ask the owner whether the laptop said the code matched, and answer with
+         * [answerPairing]; no answer within [CONFIRM_TIMEOUT_MS] is a no, and so is closing the link.
+         */
+        fun onPairingConfirm(link: LaptopLink)
 
         fun onFrame(frame: Frame)
 
@@ -78,13 +107,32 @@ class LaptopLink(
 
         /** The laptop took the connection and never answered HELLO. */
         NO_ANSWER,
+
+        /** Too many wrong PINs: the laptop refuses this phone for the seconds [Closure.detail] carries. */
+        PIN_LOCKED,
+
+        /** The laptop said it has no pairing with this phone over the network; pair again. */
+        NOT_PAIRED,
+
+        /**
+         * A device answered as the laptop but could not prove it holds the pairing key: maybe not the laptop at all,
+         * so pairing again is not the answer. The key stays.
+         */
+        NOT_THIS_LAPTOP,
+
+        /** A network pairing did not finish: the code was not typed on the laptop in time, or not correctly. */
+        PAIRING_FAILED,
+
+        /** The laptop is pairing another phone, or pauses pairing after too many wrong codes. */
+        PAIRING_LOCKED,
     }
 
     /**
-     * A [Cause], and for MISMATCH the laptop's protocol version, for UNEXPECTED the frame it sent. Empty
-     * otherwise. The words the user reads are the activity's, from strings.xml; nothing here is shown as it
-     * stands. The platform's own message for a failed socket goes to the log instead: it is the same unhelpful
-     * text for every failure, but it still tells a bug report which call gave up.
+     * A [Cause], and for MISMATCH the laptop's protocol version, for UNEXPECTED the frame it sent, for
+     * PIN_LOCKED the seconds the laptop will refuse this phone. Empty otherwise. The words the user reads are
+     * the activity's, from strings.xml; nothing here is shown as it stands. The platform's own message for a
+     * failed socket goes to the log instead: it is the same unhelpful text for every failure, but it still tells
+     * a bug report which call gave up.
      */
     class Closure(
         val cause: Cause,
@@ -96,10 +144,41 @@ class LaptopLink(
      * reading, and a queue this deep behind a blocked write is a link that has already failed: see [send].
      */
     private val outbox = LinkedBlockingQueue<Frame>(OUTBOX_CAPACITY)
+
+    /** The owner's one answer to [Listener.onPairingConfirm]; [close] puts a no in, so the wait for it ends. */
+    private val pairingAnswer = LinkedBlockingQueue<Boolean>(1)
     private val lock = Any()
+
+    /**
+     * Held for the PIN answer's write. Not [lock]: a write blocked on a stalled link would then hold up
+     * [close], which the main thread calls.
+     */
+    private val writeLock = Any()
     private val main = Handler(Looper.getMainLooper())
 
-    @Volatile private var socket: BluetoothSocket? = null
+    /** Tells this link from every other, for [CaptureInbox]. */
+    val id = Any()
+
+    /** The icon side, in pixels, asked of the laptop; raised by the activity as tiles grow, and 128 again on a new link. */
+    @Volatile var iconPx: Int = 128
+
+    /**
+     * Takes this link's blob frames on the reading thread, so a blob never passes through the main thread. With none
+     * set they are dropped. Whether a laptop's blob may reach anything is the sink's to decide, not the link's.
+     */
+    @Volatile var blobs: ((Frame) -> Unit)? = null
+
+    /** The frames [send] has queued and the writer has not taken yet. */
+    val queued: Int get() = outbox.size
+
+    /**
+     * When [send] last took anything but a ping or a blob frame, in milliseconds on [System.nanoTime]'s clock: what a
+     * blob's pacing reads to give way to input. Far in the past until the first.
+     */
+    @Volatile var lastInputMs: Long = Long.MIN_VALUE / 2
+        private set
+
+    @Volatile private var streams: Streams? = null
 
     @Volatile private var writer: Thread? = null
 
@@ -124,6 +203,7 @@ class LaptopLink(
      */
     fun send(frame: Frame) {
         if (!connected) return
+        if (frame !is Frame.Ping && !isBlob(frame)) lastInputMs = System.nanoTime() / NANOS_PER_MS_LONG
         if (!outbox.offer(frame)) close(Closure(Cause.LOST))
     }
 
@@ -131,17 +211,11 @@ class LaptopLink(
         // Whether connect() returned, which is what tells a laptop that never answered from one that hung up.
         var connectReturned = false
         try {
-            val s = device.createRfcommSocketToServiceRecord(ProtocolConstants.SERVICE_ID)
-            socket = s
-            // A close() that ran before the line above found no socket to close.
-            if (closed) {
-                s.close()
-                return
-            }
-            s.connect()
+            val opened = transport.open({ code -> deliver { it.onPairingCode(this, code) } }, ::askOwner)
+            streams = opened
             connectReturned = true
-            val input = DataInputStream(s.inputStream)
-            val output = s.outputStream
+            val input = DataInputStream(opened.input)
+            val output = opened.output
             output.write(FrameCodec.encode(Frame.Hello(ProtocolConstants.VERSION)))
             output.flush()
             // The laptop may hold its answer while its owner decides whether to trust this phone, so the
@@ -149,7 +223,22 @@ class LaptopLink(
             // answers no by itself, so that the laptop's no is what the user sees rather than this timeout.
             main.postDelayed(slowAnswer, SLOW_ANSWER_MS)
             main.postDelayed(noAnswer, ANSWER_TIMEOUT_MS)
-            val ack = readFrame(input)
+            var ack = readFrame(input)
+            // A laptop at security level 2 or 3 asks for its PIN between the trust question and HELLO_ACK, and
+            // again after each wrong answer. A level-1 laptop never asks, so for it this loop never runs.
+            while (true) {
+                val request = ack as? Frame.PinRequest ?: break
+                // The person is typing now; the laptop's own 60 s wait is the limit on that, not this side's.
+                main.removeCallbacks(slowAnswer)
+                main.removeCallbacks(noAnswer)
+                val locked = closureFor(request)
+                if (locked != null) {
+                    close(locked)
+                    return
+                }
+                deliver { it.onPinRequest(this, request.attemptsLeft) }
+                ack = readFrame(input)
+            }
             main.removeCallbacks(slowAnswer)
             main.removeCallbacks(noAnswer)
             if (ack is Frame.HelloAck && ack.version != ProtocolConstants.VERSION) {
@@ -162,6 +251,8 @@ class LaptopLink(
             }
             handshakeDone = true
             deliver { it.onConnected(this) }
+            // The laptop forgets where captures go when a session ends, so every new one is told again.
+            CaptureInbox.target?.let { send(it.frame()) }
             val w = thread(name = "edgepad-writer", priority = Thread.MAX_PRIORITY) { writeLoop(output) }
             writer = w
             // A close() that raced the line above found no writer to interrupt.
@@ -171,15 +262,20 @@ class LaptopLink(
                 if (frame is Frame.Pong) {
                     val ms = (System.nanoTime() - frame.time) / NANOS_PER_MS
                     deliver { it.onRoundTrip(ms) }
-                } else {
+                } else if (isBlob(frame)) {
+                    blobs?.invoke(frame)
+                } else if (!CaptureInbox.take(frame, id, ::send)) {
+                    // Asked for here, ahead of the main thread, so the pictures are on their way before any
+                    // screen wants them and are cached by the time the macro screen opens.
+                    if (wantsIcons(frame)) send(TextKind.WANT_ICONS.frame(iconPx.toString()))
                     deliver { it.onFrame(frame) }
                 }
             }
         } catch (e: IOException) {
             // An EOF before HELLO_ACK is the laptop hanging up: its owner said no, or it is too old.
-            val cause = classifyFailure(connectReturned, handshakeDone)
-            Log.w(TAG, "The link closed as $cause", e)
-            close(Closure(cause))
+            val closure = closureOf(e, connectReturned, handshakeDone)
+            Log.w(TAG, "The link closed as ${closure.cause}", e)
+            close(closure)
         } catch (e: SecurityException) {
             close(Closure(Cause.NO_PERMISSION))
         } catch (e: RuntimeException) {
@@ -190,6 +286,51 @@ class LaptopLink(
         }
     }
 
+    /** The owner's answer to [Listener.onPairingConfirm]: true only when the laptop said the code matched. */
+    fun answerPairing(accepted: Boolean) {
+        pairingAnswer.offer(accepted)
+    }
+
+    // Runs on the link's thread, which waits here for the owner; a no, a close or the timeout all keep nothing.
+    private fun askOwner(): Boolean {
+        if (closed) return false
+        pairingAnswer.clear()
+        deliver { it.onPairingConfirm(this) }
+        return try {
+            pairingAnswer.poll(CONFIRM_TIMEOUT_MS, TimeUnit.MILLISECONDS) == true && !closed
+        } catch (e: InterruptedException) {
+            false
+        }
+    }
+
+    /**
+     * Answers a PIN_REQUEST. Written straight onto the socket, because [send] drops everything until the
+     * handshake is done, and under [writeLock] on a short thread of its own, so a stalled link never blocks the
+     * main thread. Nothing here holds [pin] once the answer is written. Zeroing the encoded frame afterwards is
+     * not a wipe of the digits: they also sit in the [Pin]'s immutable String and in the codec's buffer until
+     * the garbage collector reclaims them, which nothing on the JVM can hurry.
+     */
+    fun answerPin(pin: Pin) {
+        val s = streams
+        if (s == null || closed || handshakeDone) return
+        val bytes = FrameCodec.encode(Frame.PinAnswer(pin))
+        // The laptop has something to check now, so the wait for its answer has an end again.
+        main.postDelayed(noAnswer, ANSWER_TIMEOUT_MS)
+        thread(name = "edgepad-pin") {
+            try {
+                synchronized(writeLock) {
+                    s.output.write(bytes)
+                    s.output.flush()
+                }
+            } catch (e: IOException) {
+                Log.w(TAG, "The PIN answer could not be written", e)
+                close(Closure(classifyFailure(connectReturned = true, handshakeDone = handshakeDone)))
+            } finally {
+                bytes.fill(0)
+            }
+        }
+    }
+
     fun close(closure: Closure) {
         synchronized(lock) {
             if (closed) return
@@ -197,13 +338,11 @@ class LaptopLink(
         }
         main.removeCallbacks(slowAnswer)
         main.removeCallbacks(noAnswer)
-        try {
-            socket?.close()
-        } catch (e: IOException) {
-            // Already broken; closing is all that was asked for.
-        }
+        transport.close()
+        pairingAnswer.offer(false)
         writer?.interrupt()
         outbox.clear()
+        CaptureInbox.abort(id)
         deliver { it.onClosed(this, closure) }
     }
 
@@ -217,12 +356,12 @@ class LaptopLink(
         try {
             while (!closed) {
                 pending.clear()
-                pending.add(outbox.take())
                 // Everything queued behind the first frame goes out now, the whole backlog and not just the
                 // next few frames of it, so a run of moves really does collapse into one (see Coalesce)
                 // instead of replaying late. The buffer is written whenever it fills, so a long backlog is
-                // several writes, never a bigger buffer.
-                outbox.drainTo(pending)
+                // several writes, never a bigger buffer. A transport with a write pace holds a run of motion
+                // briefly first, and never an edge (see PacedBatch).
+                PacedBatch.collect(outbox.take(), outbox, transport.writePaceMs, System::nanoTime, pending)
                 var length = 0
                 for (frame in Coalesce.merge(pending)) {
                     if (length + FrameCodec.MAX_FRAME_LENGTH > buffer.size) {
@@ -291,7 +430,11 @@ class LaptopLink(
 
         /** The laptop's trust prompt gives up after 60 s; this waits longer, so the laptop's answer arrives first. */
         const val ANSWER_TIMEOUT_MS = 90_000L
+
+        /** How long the owner has to say whether the laptop accepted the pairing code. */
+        const val CONFIRM_TIMEOUT_MS = 60_000L
         const val NANOS_PER_MS = 1_000_000.0
+        const val NANOS_PER_MS_LONG = 1_000_000L
     }
 }
 
@@ -309,3 +452,40 @@ internal fun classifyFailure(
         handshakeDone -> LaptopLink.Cause.LOST
         else -> LaptopLink.Cause.REFUSED
     }
+
+/**
+ * What an IOException ends the link with: the transport's own reason when it reached the laptop and was turned
+ * away, otherwise [classifyFailure]'s reading of how far the link got.
+ */
+internal fun closureOf(
+    e: IOException,
+    connectReturned: Boolean,
+    handshakeDone: Boolean,
+): LaptopLink.Closure =
+    (e as? LinkFailure)?.closure ?: LaptopLink.Closure(classifyFailure(connectReturned, handshakeDone))
+
+/**
+ * What a PIN_REQUEST ends the link with: a lock-out (no attempts left and a wait) closes it as
+ * [LaptopLink.Cause.PIN_LOCKED] with the wait in seconds, and a question leaves it open. Pure, so a test can
+ * cover it without a socket.
+ */
+internal fun closureFor(request: Frame.PinRequest): LaptopLink.Closure? =
+    if (request.attemptsLeft == 0 && request.lockedSeconds > 0) {
+        LaptopLink.Closure(LaptopLink.Cause.PIN_LOCKED, request.lockedSeconds.toString())
+    } else {
+        null
+    }
+
+/**
+ * True for a macro list with at least one name in it: the cue to ask the laptop for the icons. The list
+ * arrives once the handshake is done and again whenever a macro is added or edited, so asking on every one
+ * of them fetches the pictures as soon as the link is up and again for a new or changed macro. Pure, so a
+ * test can cover it without a socket.
+ */
+internal fun wantsIcons(frame: Frame): Boolean =
+    frame is Frame.Text && frame.kind == TextKind.MACROS.id && frame.text.isNotBlank()
+
+private val ICON_TIERS = intArrayOf(128, 256, 384, 512)
+
+/** The smallest icon size the laptop offers that is at least [px], or the largest when none is. */
+internal fun snapUp(px: Int): Int = ICON_TIERS.firstOrNull { it >= px } ?: ICON_TIERS.last()

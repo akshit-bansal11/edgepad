@@ -37,6 +37,96 @@ class IdsFixtureTest {
     }
 
     @Test
+    fun featureTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("FEATURE").associate { it[2] to it[1] },
+            Feature.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
+    fun signStatusTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("SIGN_STATUS").associate { it[2] to it[1] },
+            SignStatus.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
+    fun captureStatusTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("CAPTURE_STATUS").associate { it[2] to it[1] },
+            CaptureStatus.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
+    fun anUnknownCaptureStatusTokenReadsAsFailed() {
+        assertEquals(CaptureStatus.FAILED, CaptureStatus.of("something-a-later-laptop-says"))
+    }
+
+    @Test
+    fun deviceOsTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("DEVICE_OS").associate { it[2] to it[1] },
+            DeviceOs.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
+    fun appAddStatusTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("APP_ADD_STATUS").associate { it[2] to it[1] },
+            AppAddStatus.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
+    fun anUnknownAppAddStatusTokenReadsAsFailed() {
+        assertEquals(AppAddStatus.FAILED, AppAddStatus.of("something-a-later-laptop-says"))
+    }
+
+    @Test
+    fun blobKindsMatchTheSharedTable() {
+        assertEquals(expected("BLOB_KIND"), BlobKind.entries.associate { it.id to it.name })
+    }
+
+    @Test
+    fun fileTypesMatchTheSharedTable() {
+        assertEquals(
+            rows("FILE_TYPE").associate { it[1].toInt() to listOf(it[2], it[3], it[4]) },
+            FileType.entries.associate { it.id to listOf(it.name, it.mime, it.extension) },
+        )
+    }
+
+    @Test
+    fun fileLimitsMatchTheSharedTable() {
+        assertEquals(
+            rows("FILE_LIMIT").associate { it[2] to it[1].toLong() },
+            mapOf("IMAGE" to FileType.IMAGE_LIMIT, "VIDEO" to FileType.VIDEO_LIMIT),
+        )
+    }
+
+    @Test
+    fun fileStatusesMatchTheSharedTable() {
+        assertEquals(expected("FILE_STATUS"), FileStatus.entries.associate { it.id to it.name })
+    }
+
+    @Test
+    fun anUnknownSignStatusTokenReadsAsFailed() {
+        assertEquals(SignStatus.FAILED, SignStatus.of("something-a-later-laptop-says"))
+    }
+
+    @Test
+    fun penColorsMatchTheSharedPalette() {
+        // Index, name and RRGGBB, so a swatch the phone previews cannot differ from the colour the laptop draws.
+        assertEquals(
+            rows("PALETTE").associate { it[1].toInt() to (it[2] to it[3]) },
+            PenColor.entries.associate { it.index to (it.name to "%06X".format(it.rgb)) },
+        )
+    }
+
+    @Test
     fun anUnknownPadStatusTokenReadsAsNoDriver() {
         assertEquals(PadStatus.NO_DRIVER, PadStatus.of("something-a-later-laptop-says"))
     }

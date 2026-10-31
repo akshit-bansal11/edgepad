@@ -16,10 +16,27 @@ final class IdsFixtureTests: XCTestCase {
         XCTAssertEqual(try expected("TEXT"), actual(TextKind.self))
     }
 
-    // PAD_BUTTON rows are not checked: a Mac has no virtual controller, so it drops PAD_STATE and never reads
-    // the mask. The kind is still recognised below, so an unknown kind in actions.txt still fails.
+    // PAD_BUTTON rows are not checked: a Mac has no virtual controller, so it drops PAD_STATE and never reads those
+    // values. The kind is still recognised below, so an unknown kind in actions.txt still fails.
     func testEveryRowKindInTheSharedTableIsKnown() throws {
-        let known: Set<String> = ["ACTION", "CONTROL", "TEXT", "PAD_BUTTON", "PAD_STATUS", "HANDSHAKE"]
+        let known: Set<String> = [
+            "ACTION",
+            "CONTROL",
+            "TEXT",
+            "PAD_BUTTON",
+            "PAD_STATUS",
+            "FEATURE",
+            "SIGN_STATUS",
+            "PALETTE",
+            "CAPTURE_STATUS",
+            "FILE_TYPE",
+            "FILE_LIMIT",
+            "FILE_STATUS",
+            "DEVICE_OS",
+            "APP_ADD_STATUS",
+            "BLOB_KIND",
+            "HANDSHAKE",
+        ]
         let kinds = try Fixtures.lines("actions.txt")
             .map { $0.split(separator: " ").map(String.init) }
             .filter { $0.count >= 3 }
@@ -39,6 +56,104 @@ final class IdsFixtureTests: XCTestCase {
             uniqueKeysWithValues: PadStatus.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
 
         XCTAssertEqual(table, enumTable)
+    }
+
+    func testFeatureTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("FEATURE") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: Feature.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+    }
+
+    func testSignStatusTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("SIGN_STATUS") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: SignStatus.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+    }
+
+    func testCaptureStatusTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("CAPTURE_STATUS") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: CaptureStatus.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+    }
+
+    func testDeviceOsTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("DEVICE_OS") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: DeviceOs.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+    }
+
+    func testAppAddStatusTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("APP_ADD_STATUS") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: AppAddStatus.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+    }
+
+    func testBlobKindsMatchTheSharedTable() throws {
+        XCTAssertEqual(try expected("BLOB_KIND"), actual(BlobKind.self))
+    }
+
+    func testFileTypesMatchTheSharedTable() throws {
+        XCTAssertEqual(try expected("FILE_TYPE"), actual(FileType.self))
+        for parts in try rows("FILE_TYPE") {
+            let type = try XCTUnwrap(FileType(rawValue: UInt8(parts[1]) ?? 255))
+            XCTAssertEqual(type.mime, parts[3])
+            XCTAssertEqual(type.fileExtension, parts[4])
+            XCTAssertEqual(FileType(path: "/tmp/Screen Shot 1." + parts[4].uppercased()), type)
+        }
+        XCTAssertNil(FileType(path: "/tmp/notes.txt"))
+        XCTAssertNil(FileType(path: "/tmp/png"))
+    }
+
+    func testFileLimitsMatchTheSharedTable() throws {
+        var limits: [String: Int] = [:]
+        for parts in try rows("FILE_LIMIT") {
+            limits[parts[2]] = Int(parts[1])
+        }
+
+        XCTAssertEqual(limits, ["IMAGE": FileType.imageLimit, "VIDEO": FileType.videoLimit])
+    }
+
+    func testFileStatusesMatchTheSharedTable() throws {
+        XCTAssertEqual(try expected("FILE_STATUS"), actual(FileStatus.self))
+    }
+
+    func testThePaletteMatchesTheSharedTable() throws {
+        let palette = try rows("PALETTE")
+
+        XCTAssertEqual(palette.count, Palette.count)
+        for parts in palette {
+            XCTAssertEqual(Palette.colour(Int(parts[1]) ?? -1), UInt32(parts[3], radix: 16), parts[2])
+        }
     }
 
     func testTheHandshakeMatchesTheSharedTable() throws {

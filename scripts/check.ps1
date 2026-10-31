@@ -2,7 +2,7 @@
 #
 #   pwsh scripts/check.ps1            writes: formats Kotlin, C# and Swift in place, then checks
 #   pwsh scripts/check.ps1 -Ci        non-mutating twin: fails on unformatted code instead of fixing it
-#   pwsh scripts/check.ps1 -Only android|windows|macos
+#   pwsh scripts/check.ps1 -Only android|core|windows|linux|macos
 #
 # The Mac app's gate needs Swift, so it runs on a Mac only: a plain run on Windows or Linux leaves it to CI.
 #
@@ -10,7 +10,7 @@
 
 param(
     [switch]$Ci,
-    [ValidateSet('all', 'android', 'windows', 'macos')]
+    [ValidateSet('all', 'android', 'core', 'windows', 'linux', 'macos')]
     [string]$Only = 'all'
 )
 
@@ -30,7 +30,22 @@ if ($Only -in 'all', 'android') {
     try {
         $gradle = if ($IsWindows) { '.\gradlew.bat' } else { './gradlew' }
         $format = if ($Ci) { 'ktlintCheck' } else { 'ktlintFormat' }
-        Invoke-Step "android: $format, lint, unit tests" { & $gradle --no-daemon $format lint testDebugUnitTest }
+        Invoke-Step "android: $format, lint, unit tests" { & $gradle --no-daemon --continue $format lint testDebugUnitTest }
+    }
+    finally { Pop-Location }
+}
+
+if ($Only -in 'all', 'core') {
+    Push-Location (Join-Path $root 'shared')
+    try {
+        if ($Ci) {
+            Invoke-Step 'core: format (verify)' { dotnet format Edgepad.Core.slnx --verify-no-changes }
+        }
+        else {
+            Invoke-Step 'core: format' { dotnet format Edgepad.Core.slnx }
+        }
+        Invoke-Step 'core: build' { dotnet build Edgepad.Core.slnx -c Release -warnaserror }
+        Invoke-Step 'core: test' { dotnet test --solution Edgepad.Core.slnx -c Release --no-build }
     }
     finally { Pop-Location }
 }
@@ -46,6 +61,21 @@ if ($Only -in 'all', 'windows') {
         }
         Invoke-Step 'windows: build' { dotnet build Edgepad.slnx -c Release -warnaserror }
         Invoke-Step 'windows: test' { dotnet test --solution Edgepad.slnx -c Release --no-build }
+    }
+    finally { Pop-Location }
+}
+
+if ($Only -in 'all', 'linux') {
+    Push-Location (Join-Path $root 'linux')
+    try {
+        if ($Ci) {
+            Invoke-Step 'linux: format (verify)' { dotnet format Edgepad.Linux.slnx --verify-no-changes }
+        }
+        else {
+            Invoke-Step 'linux: format' { dotnet format Edgepad.Linux.slnx }
+        }
+        Invoke-Step 'linux: build' { dotnet build Edgepad.Linux.slnx -c Release -warnaserror }
+        Invoke-Step 'linux: test' { dotnet test --solution Edgepad.Linux.slnx -c Release --no-build }
     }
     finally { Pop-Location }
 }

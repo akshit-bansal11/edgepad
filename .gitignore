@@ -43,3 +43,11 @@ brag-output/
 
 # Mac app bundle output (macos/bundle.sh run from the repo root writes it here).
 /out/
+
+# Written by scripts/notices.sh in CI and the release job, embedded in the exe.
+windows/src/Edgepad/THIRD-PARTY-NOTICES.txt
+
+# The marketing videos, rendered by CI (assets/video/README.md), and what HyperFrames keeps beside a project.
+/assets/video/out/
+/assets/video/.hyperframes/
+/assets/video/renders/

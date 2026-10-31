@@ -99,6 +99,53 @@ class FrameFixtureTest {
         assertEquals(1 + FrameCodec.TEXT_HEADER_LENGTH + FrameCodec.MAX_TEXT_BYTES, bytes.size)
     }
 
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsAFileBeginTooShortToHoldASize() {
+        FrameCodec.decode(0x50, byteArrayOf(0, 3, 1, 2, 3))
+    }
+
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsAFileEndThatIsNotAWholeHash() {
+        FrameCodec.decode(0x52, ByteArray(31))
+    }
+
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsABlobBeginTooShortToHoldASize() {
+        FrameCodec.decode(0x54, byteArrayOf(0, 3, 1, 2, 3))
+    }
+
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsABlobEndThatIsNotAWholeHash() {
+        FrameCodec.decode(0x56, ByteArray(31))
+    }
+
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsABlobChunkWhoseLengthDoesNotMatchItsHeader() {
+        FrameCodec.decode(0x55, byteArrayOf(0, 3, 1))
+    }
+
+    @Test
+    fun aLongBlobLabelIsCutSoTheBeginFrameStillFits() {
+        val bytes = FrameCodec.encode(Frame.BlobBegin(0, 10, "a".repeat(400)))
+        assertEquals(FrameCodec.MAX_FRAME_LENGTH, bytes.size)
+    }
+
+    @Test
+    fun aFullChunkIsTheLongestFrameAndNoLonger() {
+        val bytes = FrameCodec.encode(Frame.FileChunk(7, ByteArray(FrameCodec.MAX_CHUNK_BYTES) { it.toByte() }))
+        assertEquals(FrameCodec.MAX_FRAME_LENGTH, bytes.size)
+        assertEquals(
+            Frame.FileChunk(7, ByteArray(FrameCodec.MAX_CHUNK_BYTES) { it.toByte() }),
+            FrameCodec.decode(bytes[0].toInt() and 0xFF, bytes.copyOfRange(1, bytes.size)),
+        )
+    }
+
+    @Test
+    fun aLongFileNameIsCutSoTheBeginFrameStillFits() {
+        val bytes = FrameCodec.encode(Frame.FileBegin(0, 10, "a".repeat(400) + ".png"))
+        assertEquals(FrameCodec.MAX_FRAME_LENGTH, bytes.size)
+    }
+
     @Test
     fun padStateKeepsSignedSticksSignedAndUnsignedFieldsUnsigned() {
         // The three mistakes that are invisible in hex: a stick read as a u16 comes back 32768 and not
@@ -108,6 +155,24 @@ class FrameFixtureTest {
         val bytes = FrameCodec.encode(frame)
         assertEquals(1 + 12, bytes.size)
         assertEquals(frame, FrameCodec.decode(bytes[0].toInt() and 0xFF, bytes.copyOfRange(1, bytes.size)))
+    }
+
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsAPinDigitAboveNine() {
+        FrameCodec.decode(0x04, byteArrayOf(1, 2, 3, 4, 5, 10))
+    }
+
+    @Test(expected = StreamCorruptedException::class)
+    fun rejectsAFiveByteAnswer() {
+        FrameCodec.decode(0x04, byteArrayOf(1, 2, 3, 4, 5))
+    }
+
+    @Test
+    fun noWayOfPrintingAPinShowsADigit() {
+        val answer = Frame.PinAnswer(Pin("123456"))
+        for (text in listOf(Pin("123456").toString(), answer.toString(), "$answer")) {
+            assertTrue(text, text.none { it.isDigit() })
+        }
     }
 
     private fun parse(line: String): Pair<Frame, ByteArray> {
@@ -140,10 +205,22 @@ class FrameFixtureTest {
                 "TEXT" -> Frame.Text(int(1), fields.getOrNull(2) ?: "")
                 "KEY" -> Frame.Key(int(1), int(2) == 1)
                 "PAD_STATE" -> Frame.PadState(int(1), int(2), int(3), int(4), int(5), int(6), int(7))
+                "PIN_REQUEST" -> Frame.PinRequest(int(1), int(2))
+                "PEN" -> Frame.Pen(int(1), int(2), int(3))
+                "PIN_ANSWER" -> Frame.PinAnswer(Pin(fields.drop(1).joinToString("")))
+                "FILE_BEGIN" -> Frame.FileBegin(int(1), field(2), fields[3])
+                "FILE_CHUNK" -> Frame.FileChunk(int(1), hex(fields[2]))
+                "FILE_END" -> Frame.FileEnd(hex(fields[1]))
+                "FILE_RESULT" -> Frame.FileResult(int(1))
+                "BLOB_BEGIN" -> Frame.BlobBegin(int(1), field(2), fields[3])
+                "BLOB_CHUNK" -> Frame.BlobChunk(int(1), hex(fields[2]))
+                "BLOB_END" -> Frame.BlobEnd(hex(fields[1]))
                 else -> error("Unknown fixture frame ${fields[0]}")
             }
         return frame to bytes
     }
+
+    private fun hex(run: String): ByteArray = run.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
 
     private fun fixture(): File {
         var dir: File? = File("").absoluteFile

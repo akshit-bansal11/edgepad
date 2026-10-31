@@ -2,11 +2,17 @@ package me.akshitbansal.edgepad
 
 import android.content.Context
 import android.content.SharedPreferences
+import me.akshitbansal.edgepad.link.migrateSaved
+import me.akshitbansal.edgepad.screens.FnMode
+import me.akshitbansal.edgepad.screens.KeyboardSize
+import me.akshitbansal.edgepad.surface.CornerSlots
 import me.akshitbansal.edgepad.surface.DialKind
 import me.akshitbansal.edgepad.surface.Gesture
 import me.akshitbansal.edgepad.surface.GestureAction
 import me.akshitbansal.edgepad.surface.MediaPiece
-import me.akshitbansal.edgepad.surface.Perimeter
+import me.akshitbansal.edgepad.surface.NO_DIAL
+import me.akshitbansal.edgepad.surface.Strokes
+import me.akshitbansal.edgepad.surface.resolveStoredDial
 import java.io.File
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -45,12 +51,20 @@ class Settings(
             }
             edit.apply()
         }
+        // One remembered laptop until the phone could hold several. One edit, so neither key changes without the other.
+        prefs.getString(KEY_LAPTOP, null)?.let { old ->
+            prefs
+                .edit()
+                .putString(KEY_SAVED_LAPTOPS, migrateSaved(savedLaptops, old))
+                .remove(KEY_LAPTOP)
+                .apply()
+        }
     }
 
-    /** The Bluetooth address of the laptop to reconnect to, once one has been chosen. */
-    var laptop: String?
-        get() = prefs.getString(KEY_LAPTOP, null)
-        set(value) = prefs.edit().putString(KEY_LAPTOP, value).apply()
+    /** The laptops to remember, in the text [me.akshitbansal.edgepad.link.encodeSaved] writes; the first was active. */
+    var savedLaptops: String
+        get() = prefs.getString(KEY_SAVED_LAPTOPS, "").orEmpty()
+        set(value) = prefs.edit().putString(KEY_SAVED_LAPTOPS, value).apply()
 
     /**
      * The shapes the user has drawn and what each one runs, in the text [me.akshitbansal.edgepad.surface.Shapes]
@@ -63,10 +77,25 @@ class Settings(
 
     var onboarded by flag("onboarded", false)
 
-    /** Connect to the remembered laptop when the app opens, and retry after a dropped link. */
+    /**
+     * Two dials a corner, one on each edge it joins, in place of one. It only chooses which keys are read:
+     * the `corner.*` keys are never written by the toggle, so turning it off gives back the unsplit surface.
+     */
+    var splitCorners by flag("splitCorners", false)
+
+    /** Connect to the remembered laptops when the app opens, and retry after a dropped link. */
     var reconnect by flag("reconnect", true)
 
+    /**
+     * Keep the links up while the app is minimized, through a foreground service and its notification. Off, they close
+     * after a short linger once the app leaves the screen, as before the service existed.
+     */
+    var stayConnected by flag("stayConnected", true)
+
     var haptics by flag("haptics", true)
+
+    /** Share the clipboard with the selected laptop, when it offers to. Each laptop's own switch must be on too. */
+    var clipboardSync by flag("clipboardSync", true)
 
     /** Round volume, brightness and mic to a multiple of 5 when the finger lifts. */
     var snap by flag("snap", false)
@@ -82,6 +111,30 @@ class Settings(
      * way, because the alternative is a blank button.
      */
     var macroLabels by flag("macroLabels", true)
+
+    /** How much of the room a macro tile gives its picture the picture fills, from 0.4 to 1. */
+    var macroIconZoom by bounded(KEY_MACRO_ICON_ZOOM, DEFAULT_ICON_ZOOM, MIN_ICON_ZOOM, MAX_ICON_ZOOM)
+
+    /**
+     * Captures go to this phone's gallery rather than staying where the laptop's own tool saved them. Set on the
+     * Capture screen and sent to the laptop on every connection.
+     */
+    var captureToPhone by flag("captureToPhone", false)
+
+    /** The pen's colour on the Annotate and Sign surface, 0xRRGGBB: one of the eight stock colours or a picked one. */
+    var penRgb by pref({ prefs.getInt(KEY_PEN_RGB, Strokes.DEFAULT_RGB) and PEN_RGB_MASK }) {
+        putInt(KEY_PEN_RGB, it and PEN_RGB_MASK)
+    }
+
+    /** The pen's width on the wire's scale, as [me.akshitbansal.edgepad.protocol.ControlId.PEN_WIDTH] sends it. */
+    var penWidth by pref({ prefs.getInt(KEY_PEN_WIDTH, Strokes.DEFAULT_WIDTH).coerceIn(PEN_WIDTHS) }) {
+        putInt(KEY_PEN_WIDTH, it.coerceIn(PEN_WIDTHS))
+    }
+
+    /** The pen's opacity in percent, as [me.akshitbansal.edgepad.protocol.ControlId.PEN_OPACITY] sends it. */
+    var penOpacity by pref({ prefs.getInt(KEY_PEN_OPACITY, Strokes.DEFAULT_OPACITY).coerceIn(PEN_OPACITIES) }) {
+        putInt(KEY_PEN_OPACITY, it.coerceIn(PEN_OPACITIES))
+    }
 
     /** Ask GitHub once a day, as the app opens, whether a newer release exists. */
     var autoUpdateCheck by flag("autoUpdateCheck", true)
@@ -100,9 +153,20 @@ class Settings(
      */
     var keyTextScale by bounded(KEY_KEY_TEXT_SCALE, DEFAULT_KEY_TEXT_SCALE, MIN_KEY_TEXT_SCALE, MAX_KEY_TEXT_SCALE)
 
+    /** Which of the six boards the keyboard draws. */
+    var keyboardSize: KeyboardSize
+        get() = enum(KEY_KEYBOARD_SIZE, DEFAULT_KEYBOARD_SIZE)
+        set(value) = prefs.edit().putString(KEY_KEYBOARD_SIZE, value.name).apply()
+
+    /** Whether the top row does what is printed on it, with Fn for F1 to F12, or the reverse. */
+    var functionKeys: FnMode
+        get() = enum(KEY_FUNCTION_KEYS, DEFAULT_FUNCTION_KEYS)
+        set(value) = prefs.edit().putString(KEY_FUNCTION_KEYS, value.name).apply()
+
     /**
-     * The control surface and the media layout editor are held sideways. The keyboard and gamepad always are,
-     * and every other screen follows the phone: from 3.0 this setting is about the pad, not about the app.
+     * Held sideways on every screen except the keyboard, the gamepad and its layout editor, which are always
+     * sideways. Before 4.0 this setting held only the control surface and the media layout editor, and the
+     * rest of the app followed the phone; now it is the app's orientation, not just the pad's.
      */
     var landscape by flag("landscape", false)
 
@@ -174,12 +238,10 @@ class Settings(
     var patternOpacity by bounded(KEY_PATTERN_OPACITY, DEFAULT_PATTERN_OPACITY, 0f, 1f)
 
     /** The dial in [corner] (0 top-left, clockwise), or null for none. */
-    fun corner(corner: Int): DialKind? {
-        val name = prefs.getString("corner.$corner", null)
-        if (name == NONE) return null
-        return DialKind.entries.firstOrNull { it.name == name }
-            ?: DialKind.entries.firstOrNull { it.defaultCorner == corner }
-    }
+    fun corner(corner: Int): DialKind? =
+        resolveStoredDial(prefs.getString("corner.$corner", null)) {
+            DialKind.entries.firstOrNull { it.defaultCorner == corner }
+        }
 
     fun setCorner(
         corner: Int,
@@ -187,6 +249,55 @@ class Settings(
     ) {
         prefs.edit().putString("corner.$corner", kind?.name ?: NONE).apply()
     }
+
+    /**
+     * The dial in [slot] (two a corner, see [CornerSlots]), or null for none. A slot never set takes what its
+     * corner holds if it is the corner's inherited half, so splitting changes nothing until a slot is picked;
+     * the other half starts empty.
+     */
+    fun slot(slot: Int): DialKind? =
+        resolveStoredDial(prefs.getString("slot.$slot", null)) {
+            CornerSlots.fallbackFor(slot)?.let { corner(it) }
+        }
+
+    fun setSlot(
+        slot: Int,
+        kind: DialKind?,
+    ) {
+        prefs.edit().putString("slot.$slot", kind?.name ?: NONE).apply()
+    }
+
+    /**
+     * The order a deck ([deck] names which) shows its tiles in, as the keys DeckLayout.keys gives them.
+     * Joined by newlines: a macro's name cannot hold a control character, so no key can hold one.
+     */
+    fun deckOrder(deck: String): List<String> =
+        prefs.getString("deck.$deck.order", null)?.split('\n')?.filter { it.isNotEmpty() } ?: emptyList()
+
+    fun setDeckOrder(
+        deck: String,
+        keys: List<String>,
+    ) {
+        prefs.edit().putString("deck.$deck.order", keys.joinToString("\n")).apply()
+    }
+
+    /** How many macros one page of the macro screen shows; the rest of the laptop's continue on the next page. */
+    var macrosPerPage: Int
+        get() = prefs.getInt(KEY_MACROS_PER_PAGE, MAX_MACROS_PER_PAGE).coerceIn(PER_PAGE_RANGE)
+        set(value) {
+            prefs.edit().putInt(KEY_MACROS_PER_PAGE, value.coerceIn(PER_PAGE_RANGE)).apply()
+        }
+
+    /**
+     * How many rows the macro grid has, or [AUTO_MACRO_ROWS] to let the screen pick whatever makes the biggest
+     * buttons. Only a row count [DeckLayout.choices] offers for the current page size is used; anything else,
+     * such as a value left over from a larger page size, reads as Auto.
+     */
+    var macroRows: Int
+        get() = prefs.getInt(KEY_MACRO_ROWS, AUTO_MACRO_ROWS)
+        set(value) {
+            prefs.edit().putInt(KEY_MACRO_ROWS, value).apply()
+        }
 
     /**
      * How fast [kind]'s ruler moves, as a multiple of the base rate. Volume wants a slower ruler than the
@@ -212,9 +323,6 @@ class Settings(
     fun hasOwnSensitivity(kind: DialKind): Boolean = prefs.contains(sensitivityKey(kind))
 
     private fun sensitivityKey(kind: DialKind): String = "sensitivity.${kind.name}"
-
-    /** True when some corner holds [kind]. */
-    fun hasDial(kind: DialKind): Boolean = (0 until Perimeter.CORNERS).any { corner(it) == kind }
 
     fun gesture(gesture: Gesture): GestureAction {
         val name = prefs.getString("gesture.${gesture.name}", null) ?: return gesture.default
@@ -338,6 +446,18 @@ class Settings(
         const val MIN_KEY_TEXT_SCALE = 0.6f
         const val MAX_KEY_TEXT_SCALE = 2f
         const val DEFAULT_KEY_TEXT_SCALE = 1f
+        val DEFAULT_KEYBOARD_SIZE = KeyboardSize.SEVENTY_FIVE
+        val DEFAULT_FUNCTION_KEYS = FnMode.WITH_FN
+        const val MIN_MACROS_PER_PAGE = 2
+        const val MAX_MACROS_PER_PAGE = 10
+        const val AUTO_MACRO_ROWS = 0
+        const val MIN_ICON_ZOOM = 0.4f
+        const val MAX_ICON_ZOOM = 1f
+        const val DEFAULT_ICON_ZOOM = 1f
+        private val PER_PAGE_RANGE = MIN_MACROS_PER_PAGE..MAX_MACROS_PER_PAGE
+        private val PEN_WIDTHS = Strokes.MIN_WIDTH..Strokes.MAX_WIDTH
+        private val PEN_OPACITIES = Strokes.MIN_OPACITY..Strokes.MAX_OPACITY
+        private const val PEN_RGB_MASK = 0xFFFFFF
         const val MAX_ANGLE = 360f
         const val DEFAULT_GRADIENT_ANGLE = 90f
         const val MIN_PATTERN_SIZE = 8f
@@ -348,15 +468,19 @@ class Settings(
         const val DEFAULT_GRADIENT_END = 0xFF2B2B33.toInt()
         const val DEFAULT_PATTERN_COLOR = 0xFF84848C.toInt()
         private const val NAME = "edgepad"
-        private const val NONE = "-"
+        private const val NONE = NO_DIAL
         private const val IMAGE_FILE = "background.img"
         private const val KEY_LAPTOP = "laptop"
+        private const val KEY_SAVED_LAPTOPS = "savedLaptops"
         private const val KEY_SHAPES = "shapes"
         private const val KEY_LAST_UPDATE_CHECK = "lastUpdateCheck"
         private const val KEY_LATEST_VERSION = "latestVersion"
         private const val KEY_SENSITIVITY = "sensitivity"
         private const val KEY_POINTER_SPEED = "pointerSpeed"
         private const val KEY_SCROLL_SPEED = "scrollSpeed"
+        private const val KEY_MACROS_PER_PAGE = "macrosPerPage"
+        private const val KEY_MACRO_ROWS = "macroRows"
+        private const val KEY_MACRO_ICON_ZOOM = "macroIconZoom"
         private const val KEY_DIAL_LENGTH = "dialLength"
         private const val KEY_DIAL_HEIGHT = "dialHeight"
         private const val KEY_CONTROL_COLOR = "controlColor"
@@ -368,9 +492,14 @@ class Settings(
         private const val KEY_THEME = "theme"
         private const val KEY_MEDIA_SCALE = "mediaScale"
         private const val KEY_KEY_TEXT_SCALE = "keyTextScale"
+        private const val KEY_KEYBOARD_SIZE = "keyboardSize"
+        private const val KEY_FUNCTION_KEYS = "functionKeys"
         private const val KEY_PATTERN_SIZE = "patternSize"
         private const val KEY_PATTERN_COLOR = "patternColor"
         private const val KEY_PATTERN_OPACITY = "patternOpacity"
+        private const val KEY_PEN_RGB = "penRgb"
+        private const val KEY_PEN_WIDTH = "penWidth"
+        private const val KEY_PEN_OPACITY = "penOpacity"
 
         /** Prefixes a media layout key to make its landscape twin. */
         private const val LANDSCAPE = "landscape."

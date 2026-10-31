@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Exe, not WinExe: there is no console window to hide on Linux, and WinExe means nothing there. -->
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Edgepad</RootNamespace>
+    <!-- Edgepad.Linux because the shared core's InternalsVisibleTo names this assembly, and every core type is
+         internal. The release's file name is packaging's to choose (step 8.6), not the assembly's. -->
+    <AssemblyName>Edgepad.Linux</AssemblyName>
+    <!-- A self-contained single file must start on a distribution with no libicu installed. -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- LibraryImport generates unsafe marshalling code for the libc P/Invokes. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- The release publishes for linux-x64. Naming it here puts that runtime's packages in packages.lock.json,
+         which the locked-mode restore of `dotnet publish -r linux-x64` needs. -->
+    <RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
+    <!-- As in the Windows project: the analyzer's ILLink package then sits in every restore, so one lock file
+         serves build, test and publish, and single-file hazards show at build time. -->
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Edgepad.Linux.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- D-Bus: BlueZ's profile manager, and the RFCOMM socket it hands over as a file descriptor. The exact
+         version Avalonia.FreeDesktop 12.1.4 asks for, so only one copy is ever restored. -->
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.94.1" />
+    <!-- The tray, the trust prompt and the Security window (Ui/). -->
+    <PackageReference Include="Avalonia" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+    <!-- Rasterises an SVG icon for a macro button (Platform/LinuxMacroIcons.cs). SkiaSharp itself is not referenced
+         directly: it arrives through Avalonia, at 3.119.4. 5.1.1 is the last Svg.Skia whose SkiaSharp floor
+         (>= 3.119.2) and HarfBuzzSharp (8.3.1.3) match Avalonia 12.1.4's; 5.2.0 and later need SkiaSharp 4.148, which
+         would split Avalonia's copy from this one. Raise it only when Avalonia moves to SkiaSharp 4
+         (.github/dependabot.yml holds it until then). -->
+    <PackageReference Include="Svg.Skia" Version="5.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Lato (Edgepad 2.0's typeface) is shared with the Windows app by link, not copied, under its OFL text; the
+         Edgepad mark the tray shows (a PNG made by scripts/icons.sh). The UI is built in C#, so no XAML is compiled; avares://Edgepad.Linux/... reads these. -->
+    <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\Lato-Regular.ttf" Link="Fonts\Lato-Regular.ttf" />
+    <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\Lato-Bold.ttf" Link="Fonts\Lato-Bold.ttf" />
+    <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\Lato-Black.ttf" Link="Fonts\Lato-Black.ttf" />
+    <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\OFL.txt" Link="Fonts\OFL.txt" />
+    <AvaloniaResource Include="Assets\edgepad-64.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The protocol, handshake, trust and dispatch code the laptop apps share. -->
+    <ProjectReference Include="..\..\..\shared\Edgepad.Core\Edgepad.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,6 +1,7 @@
 import {
   Activity,
   ArrowRight,
+  Camera,
   Gamepad2,
   Gauge,
   Keyboard,
@@ -9,6 +10,8 @@ import {
   type LucideIcon,
   MousePointer2,
   Music,
+  PenLine,
+  ShieldCheck,
   SlidersHorizontal,
   Smartphone,
   Spline,
@@ -41,7 +44,7 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
   {
     title: "Corner dials",
     Icon: Gauge,
-    body: "Each corner holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher, microphone level or refresh rate — Settings picks what each corner does.",
+    body: "Each corner holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher, microphone level or refresh rate — Settings picks what each corner does, and Split corners gives each corner two dials.",
   },
   {
     title: "Trackpad",
@@ -61,7 +64,7 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
   {
     title: "Gamepad",
     Icon: Gamepad2,
-    body: "Install ViGEmBus on the laptop and the phone drives a real virtual Xbox controller, sticks and triggers analog, so games that only accept a controller can be played from across the room. Without the driver the same pad sends keyboard keys, and says which of the two it is in.",
+    body: "On Windows, install ViGEmBus and the phone drives a real virtual Xbox controller, sticks and triggers analog, so games that only accept a controller can be played from across the room; a Linux laptop plugs in a virtual Xbox 360 controller by itself. Without a controller, and on a Mac, the same pad sends keyboard keys, and says which of the two it is in.",
   },
   {
     title: "Your pad, your bindings",
@@ -76,7 +79,22 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
   {
     title: "Macro buttons",
     Icon: LayoutGrid,
-    body: "Fifteen slots the laptop's tray menu names with an app, a document, a folder or a URL each; the phone sends the slot number and never what it opens. The grid sizes its buttons to the longest name and fits as many across as the screen allows.",
+    body: "Fifteen slots the laptop names with an app, a document, a folder or a URL each; the phone sends the slot number and never what it opens. The grid sizes its buttons to the longest name and fits as many across as the screen allows, and you can drag the buttons into the order you want.",
+  },
+  {
+    title: "Annotate and sign",
+    Icon: PenLine,
+    body: "Controls > Annotate turns the phone into an absolute pen for the laptop screen, with a pen, a highlighter, a line, an arrow, a rectangle and an ellipse in eight colours. Sign is the same pad as a signature, saved as a transparent PNG.",
+  },
+  {
+    title: "Capture",
+    Icon: Camera,
+    body: "Buttons for a region, the whole screen and a recording press the laptop's own screenshot shortcut, with a trackpad under them to drag out the region.",
+  },
+  {
+    title: "Security levels and a PIN",
+    Icon: ShieldCheck,
+    body: "Beyond saying yes to a phone once, the laptop can ask each phone for a six-digit PIN, the first time or on every connection, on the phone's own keypad. Five wrong answers lock a phone out for 30 seconds, then longer.",
   },
   {
     title: "Live state",
@@ -89,7 +107,7 @@ const STEPS: { step: string; title: string; body: string }[] = [
   {
     step: "01",
     title: "Pair once, like a headset",
-    body: "The phone and the laptop pair in Windows Settings > Bluetooth & devices. Edgepad has no pairing step of its own, no account to make and no network to join. Each paired phone is asked about once, and every phone you trust is remembered until you choose Forget trusted phones in the tray menu.",
+    body: "The phone and the laptop pair in the laptop's own Bluetooth settings: Windows Settings > Bluetooth & devices, macOS System Settings > Bluetooth, or your Linux desktop's. Edgepad has no pairing step of its own, no account to make and no network to join. Each paired phone is asked about once, and every phone you trust is remembered until you choose Forget trusted phones in the tray menu.",
   },
   {
     step: "02",
@@ -105,7 +123,8 @@ const STEPS: { step: string; title: string; body: string }[] = [
 
 const LIMITS: string[] = [
   "It is Bluetooth, so both ends need it, and it does not reach another room or the internet.",
-  "The laptop half needs Windows 10 version 2004 or later, 64-bit. The phone half needs Android 12 or later.",
+  "Mac and Linux are still in testing. Please use them at your own risk. The Windows app is the one that has been run on a real laptop; the Linux app has not been seen working on a Linux laptop yet.",
+  "The laptop half needs Windows 10 version 2004 or later (64-bit), macOS 13 or later, or a 64-bit Linux laptop with BlueZ. The phone half needs Android 12 or later.",
   "Edgepad.exe is not code-signed, so SmartScreen warns the first time you run it.",
   "The gamepad's virtual controller needs ViGEmBus, a third-party signed kernel driver you install yourself. It was archived by its author in November 2023 and receives no updates, though it remains signed and working. Without it the gamepad sends keyboard keys instead, and the laptop tells the phone which of the two it is in.",
   "Task Manager, and anything running as administrator, ignores the phone unless Edgepad runs as administrator too. The lock screen, UAC prompts and Ctrl+Alt+Del cannot be reached at all.",
@@ -195,7 +214,7 @@ export default function Page() {
     { term: "Transport", value: "Bluetooth Classic RFCOMM" },
     { term: "Protocol", value: `Version ${protocol.version}` },
     { term: "Phone", value: "Kotlin, Android 12+" },
-    { term: "Laptop", value: "C# on .NET 10, Windows 10 2004+" },
+    { term: "Laptop", value: "Windows, Mac and Linux" },
   ];
 
   return (
@@ -217,7 +236,7 @@ export default function Page() {
             <div>
               <p className="bg-card shadow-card inline-flex rounded-full px-4 py-1.5 text-sm font-bold">
                 <AnimatedShinyText>
-                  Phone · Bluetooth · Windows laptop
+                  Phone · Bluetooth · Windows, Mac, Linux
                 </AnimatedShinyText>
               </p>
               <h1 className="mt-6 max-w-[13ch] text-[2.75rem] leading-[1.02] font-black tracking-[-0.025em] sm:text-6xl lg:text-7xl">
@@ -225,9 +244,9 @@ export default function Page() {
               </h1>
               <p className="text-dim mt-6 max-w-[56ch] text-lg leading-relaxed md:text-xl">
                 Edgepad turns an Android phone into a trackpad, a media remote and a
-                control panel for a Windows laptop, over a direct Bluetooth link with
-                nothing in between. The two pair once, the way a headset does, and after
-                that they talk straight to each other.
+                control panel for a Windows, Mac or Linux laptop, over a direct
+                Bluetooth link with nothing in between. The two pair once, the way a
+                headset does, and after that they talk straight to each other.
               </p>
 
               <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -460,6 +479,27 @@ export default function Page() {
               </BlurFade>
             ))}
           </div>
+
+          <BlurFade>
+            <Card className="bg-accent-soft mt-4 px-6 py-6 shadow-none">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Mac and Linux are still in testing. Please use them at your own risk.
+                </h3>
+                <p className="mt-2 max-w-[76ch] text-[0.9375rem] leading-relaxed">
+                  The Windows app is the one that has been run on a real laptop. The Mac
+                  app has been compiled and unit-tested in CI, and the Linux app has not
+                  been seen working on a Linux laptop yet. Expect rough edges, and
+                  report what you find. On a Mac the laptop half is
+                  Edgepad-x.y.z-mac.zip; on Linux it is Edgepad-x.y.z-linux-x64.tar.gz,
+                  installed with sudo ./install.sh.
+                </p>
+                <p className="mt-2">
+                  <MoreLink href="/docs#install">Mac and Linux install steps</MoreLink>
+                </p>
+              </div>
+            </Card>
+          </BlurFade>
 
           <BlurFade>
             <div className="mt-10 flex flex-wrap items-center gap-3">

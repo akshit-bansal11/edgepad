@@ -19,52 +19,25 @@ namespace Edgepad.Macros;
 /// IS the icon. Running a .png through the document path would put the image viewer's icon on the button,
 /// which looks like a bug in the extractor rather than the wrong branch.
 /// </summary>
-internal static class MacroIcons
+internal static partial class MacroIcons
 {
     /// <summary>
-    /// The square the phone is sent, and a fixed size rather than the source's own so one oversized icon
-    /// cannot cost the whole grid.
-    /// <para>
-    /// It was 48 until 3.0.1, which was enough while a macro button drew its picture at a fixed 28dp. The
-    /// grid now sizes its buttons to the screen, so a short list draws them large, and 48 upscaled to that
-    /// was visibly soft. 128 is sharp at the sizes the grid actually produces. The cost is real and lands
-    /// on the link: an icon is several times the bytes it was. It is paid only when the macro grid opens,
-    /// which is a screen with no trackpad on it, and never while a finger is moving the pointer.
-    /// </para>
+    /// The size asked of the shell, which is the jumbo icon where the program or file type has one. It is
+    /// drawn down to the size asked for with bicubic filtering, so a modern icon's 256 image is the one read
+    /// rather than whichever image the shell picks and stretches for a size the icon may not carry.
     /// </summary>
-    public const int Size = 128;
+    private const int Extract = 256;
 
-    /// <summary>Tried when <see cref="Size"/> encodes past <see cref="MaxBytes"/>; a photograph will.</summary>
-    private const int Fallback = 64;
+    /// <summary>The largest square sent. The source never has more, and scaling it up adds bytes and no detail.</summary>
+    internal const int MaxSize = Extract;
 
-    /// <summary>
-    /// The most an icon may weigh on the wire. Twenty-four kilobytes is 137 frames for one button at
-    /// <see cref="ChunkBytes"/> — the point past which a picture is costing the link more than a label is
-    /// worth. A real program icon is a fraction of it; the cap is there for the photograph somebody points
-    /// the override at.
-    /// <para>
-    /// It was six kilobytes and 35 frames while <see cref="Size"/> was 48. Raising the square raised this
-    /// with it, and the phone's own ceiling on chunks per icon had to rise in the same change — a count it
-    /// refuses is an icon silently dropped, not a smaller one.
-    /// </para>
-    /// </summary>
-    internal const int MaxBytes = 24 * 1024;
-
-    /// <summary>
-    /// How much of an icon's base64 rides in one TEXT frame. A payload is 255 bytes and the rest is the
-    /// "slot/chunk/chunks/" header in front of it. A slot is two digits at <see cref="MacroStore.MaxMacros"/>
-    /// and a chunk count is three at <see cref="MaxBytes"/>, so the header is at most eleven characters and
-    /// 240 of payload leaves four to spare. It was nine characters and six to spare while an icon was
-    /// capped at six kilobytes and the count stayed under a hundred; the margin narrowed when the square
-    /// grew, and it is still a margin. A header that outgrew it would cost a truncated icon, so the count
-    /// and this number have to be checked together if either moves again.
-    /// </summary>
-    internal const int ChunkBytes = 240;
+    /// <summary>ASSOCSTR_DEFAULTICON: the "file,index" a file type's icon is read from.</summary>
+    private const uint DefaultIconString = 15;
 
     private static readonly Lock Gate = new();
 
     /// <summary>
-    /// Keyed by path and last-write time together, so rebuilding an exe replaces its icon rather than
+    /// Keyed by path, last-write time and size together, so rebuilding an exe replaces its icon rather than
     /// serving the old one for the life of the process, and a phone reconnecting costs no work at all.
     /// </summary>
     // ponytail: never evicted, so a session that rebuilds the same exe many times keeps every icon it ever
@@ -95,10 +68,11 @@ internal static class MacroIcons
     }
 
     /// <summary>
-    /// The PNG for <paramref name="macro"/>, or null when it has no readable picture. Safe from any thread;
-    /// two callers may extract the same icon at once, which costs a duplicate read and never a wrong answer.
+    /// The PNG for <paramref name="macro"/> at <paramref name="size"/>, a tier no larger than
+    /// <see cref="MaxSize"/>, or null when it has no readable picture. Safe from any thread; two callers may
+    /// extract the same icon at once, which costs a duplicate read and never a wrong answer.
     /// </summary>
-    public static byte[]? Png(Macro macro)
+    public static byte[]? Png(Macro macro, int size = MacroIconChunks.DefaultSize)
     {
         // The override wins when it is there, and falls through to the target when it is not: a macro whose
         // icon file has been deleted should go back to the program's own icon, not to no icon at all.
@@ -111,7 +85,7 @@ internal static class MacroIcons
         string key;
         try
         {
-            key = $"{path}|{File.GetLastWriteTimeUtc(path).Ticks}";
+            key = $"{path}|{File.GetLastWriteTimeUtc(path).Ticks}|{size}";
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
         {
@@ -126,42 +100,13 @@ internal static class MacroIcons
             }
         }
 
-        var png = Render(path);
+        var png = Render(path, size);
         lock (Gate)
         {
             Cache[key] = png;
         }
 
         return png;
-    }
-
-    /// <summary>
-    /// <paramref name="png"/> as the TEXT payloads that carry it: "slot/chunk/chunks/" then that much of its
-    /// base64. Base64 because TEXT is UTF-8 by definition, and it is ASCII, so a character is a byte here and
-    /// the budget can be counted in either without the two drifting apart.
-    ///
-    /// Here rather than in the session that sends them, because this is the half of a wire format whose other
-    /// half is on the phone, and a format neither side can test alone is one that drifts. An empty icon
-    /// yields no frames rather than one empty frame, which would reach the phone as a finished icon of
-    /// nothing.
-    /// </summary>
-    /// <remarks>
-    /// Built into a list rather than yielded: a span cannot live across a yield, and the alternative —
-    /// a substring per chunk — allocates the same pieces this does, one iterator object later.
-    /// </remarks>
-    public static IReadOnlyList<string> Chunks(int slot, byte[] png)
-    {
-        var encoded = Convert.ToBase64String(png);
-        var chunks = (encoded.Length + ChunkBytes - 1) / ChunkBytes;
-        var frames = new List<string>(chunks);
-        for (var chunk = 0; chunk < chunks; chunk++)
-        {
-            var start = chunk * ChunkBytes;
-            var piece = encoded.AsSpan(start, Math.Min(ChunkBytes, encoded.Length - start));
-            frames.Add(string.Create(CultureInfo.InvariantCulture, $"{slot}/{chunk}/{chunks}/{piece}"));
-        }
-
-        return frames;
     }
 
     /// <summary>
@@ -191,7 +136,7 @@ internal static class MacroIcons
     /// <summary>The path if it is a file this can read something from, else null.</summary>
     private static string? Readable(string? path) => SourceFor(path) == Source.None ? null : path;
 
-    private static byte[]? Render(string path)
+    private static byte[]? Render(string path, int size)
     {
         try
         {
@@ -201,19 +146,16 @@ internal static class MacroIcons
                 return null;
             }
 
-            var png = Encode(source, Size);
-            if (png.Length <= MaxBytes)
+            foreach (var side in MacroIconChunks.FallbackChain(size))
             {
-                return png;
+                var png = Encode(source, side);
+                if (png.Length <= MacroIconChunks.MaxBytes(side))
+                {
+                    return png;
+                }
             }
 
-            var small = Encode(source, Fallback);
-            if (small.Length <= MaxBytes)
-            {
-                return small;
-            }
-
-            Log.Write($"Macro icon from {path} is {small.Length} bytes even at {Fallback}px and was not sent");
+            Log.Write($"Macro icon from {path} is too heavy even at {MacroIconChunks.Tiers[0]}px and was not sent");
             return null;
         }
         catch (Exception e) when (e is IOException or ArgumentException or UnauthorizedAccessException
@@ -229,11 +171,83 @@ internal static class MacroIcons
 
     private static Bitmap? Load(string path) => SourceFor(path) switch
     {
-        Source.Resource => FromIcon(Icon.ExtractIcon(path, 0, Size)),
-        Source.Associated => FromIcon(Icon.ExtractAssociatedIcon(path)),
+        Source.Resource => FromIcon(Icon.ExtractIcon(path, 0, Extract)),
+        Source.Associated => Associated(path),
         Source.Picture => new Bitmap(path),
         _ => null,
     };
+
+    /// <summary>
+    /// A document's file-type icon at <see cref="Extract"/>, read from where the type says its icon lives.
+    /// <see cref="Icon.ExtractAssociatedIcon"/> alone answers with a 32 pixel icon, which the phone's big
+    /// tiles showed as a blur; it stays as the fallback for a type whose icon is not in a file (a store app's
+    /// type names a package resource instead).
+    /// </summary>
+    private static Bitmap? Associated(string path)
+    {
+        if (DefaultIcon(Path.GetExtension(path)) is { } icon && File.Exists(icon.File))
+        {
+            try
+            {
+                var found = FromIcon(Icon.ExtractIcon(icon.File, icon.Index, Extract));
+                if (found is not null)
+                {
+                    return found;
+                }
+            }
+            catch (Exception e) when (e is IOException or ArgumentException)
+            {
+                Log.Write($"No {Extract}px type icon in {icon.File}: {e.Message}");
+            }
+        }
+
+        return FromIcon(Icon.ExtractAssociatedIcon(path));
+    }
+
+    /// <summary>The DefaultIcon of <paramref name="extension"/>'s file type, or null when it names none.</summary>
+    private static unsafe (string File, int Index)? DefaultIcon(string extension)
+    {
+        if (string.IsNullOrEmpty(extension))
+        {
+            return null;
+        }
+
+        const int capacity = 1024;
+        var buffer = stackalloc char[capacity];
+        var length = (uint)capacity;
+        return AssocQueryStringW(0, DefaultIconString, extension, null, buffer, ref length) == 0 && length > 1
+            ? ParseDefaultIcon(Environment.ExpandEnvironmentVariables(new string(buffer, 0, (int)length - 1)))
+            : null;
+    }
+
+    /// <summary>
+    /// A DefaultIcon value, <c>"C:\path\app.exe",-101</c>, as the file and index <see cref="Icon.ExtractIcon"/>
+    /// takes: quotes off, the index after the last comma (a negative one is a resource id), 0 with none.
+    /// Null for <c>%1</c>, which means each file is its own icon and is the program case, not a type's.
+    /// </summary>
+    internal static (string File, int Index)? ParseDefaultIcon(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var file = value.Trim();
+        var index = 0;
+        var comma = file.LastIndexOf(',');
+        if (comma > 0 && int.TryParse(file.AsSpan(comma + 1), CultureInfo.InvariantCulture, out var parsed))
+        {
+            index = parsed;
+            file = file[..comma];
+        }
+
+        file = file.Trim().Trim('"');
+        return file.Length == 0 || file.Contains('%', StringComparison.Ordinal) ? null : (file, index);
+    }
+
+    [LibraryImport("shlwapi.dll", StringMarshalling = StringMarshalling.Utf16)]
+    private static unsafe partial int AssocQueryStringW(
+        uint flags, uint str, string assoc, string? extra, char* output, ref uint length);
 
     private static Bitmap? FromIcon(Icon? icon)
     {

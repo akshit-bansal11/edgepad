@@ -449,8 +449,17 @@ internal sealed record TrayStatus(string Headline, string Badge, string Line, bo
     /// </summary>
     private const string ConnectedPrefix = "Connected to ";
 
-    public static TrayStatus Describe(string status) =>
-        status.StartsWith(ConnectedPrefix, StringComparison.Ordinal)
-            ? new TrayStatus("Phone connected", "Trusted", $"{status[ConnectedPrefix.Length..]} · over Bluetooth", Waiting: false)
-            : new TrayStatus("No phone yet", "Waiting", status, Waiting: true);
+    // A phone the status already says the way of (a Wi-Fi or USB one: SessionHost.Shown) keeps it; a bare address is Bluetooth.
+    private const string Way = " · ";
+
+    public static TrayStatus Describe(string status)
+    {
+        if (!status.StartsWith(ConnectedPrefix, StringComparison.Ordinal))
+        {
+            return new TrayStatus("No phone yet", "Waiting", status, Waiting: true);
+        }
+
+        var phone = status[ConnectedPrefix.Length..];
+        return new TrayStatus("Phone connected", "Trusted", phone.Contains(Way, StringComparison.Ordinal) ? phone : $"{phone}{Way}over Bluetooth", Waiting: false);
+    }
 }

@@ -1,0 +1,200 @@
+using System.Globalization;
+using Edgepad.Protocol;
+using Xunit;
+
+namespace Edgepad.Tests;
+
+/// <summary>Runs protocol/frames.txt — the same golden frames the Android suite runs.</summary>
+public sealed class FrameFixtureTests
+{
+    public static TheoryData<string> Lines() => [.. Fixtures.Lines("frames.txt")];
+
+    [Theory]
+    [MemberData(nameof(Lines))]
+    public void EncodesToTheGoldenBytes(string line)
+    {
+        var (frame, bytes) = Parse(line);
+        Assert.Equal(bytes, FrameCodec.Encode(frame));
+    }
+
+    [Theory]
+    [MemberData(nameof(Lines))]
+    public void DecodesTheGoldenBytes(string line)
+    {
+        var (frame, bytes) = Parse(line);
+        Assert.Equal(frame, FrameCodec.Decode(bytes[0], bytes.AsSpan(1)));
+    }
+
+    [Fact]
+    public void RejectsAnUnknownType() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x7f, []));
+
+    [Fact]
+    public void RejectsHelloWithoutTheMagic() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x01, [0, 0, 0, 0, 1]));
+
+    [Fact]
+    public void RejectsAButtonFlagOtherThanZeroOrOne() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x11, [0, 2]));
+
+    [Fact]
+    public void RejectsAShortPayload() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x10, [1, 2]));
+
+    [Fact]
+    public void RejectsTextWhoseLengthDoesNotMatchItsHeader() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x41, [0, 3, 0x41]));
+
+    [Fact]
+    public void LongTextIsCutToTheLimitWithoutSplittingACharacter()
+    {
+        var text = new Text(0, new string('a', 254) + "é");
+        var bytes = FrameCodec.Encode(text);
+        Assert.Equal(1 + FrameCodec.TextHeaderLength + 254, bytes.Length);
+        Assert.Equal(new Text(0, new string('a', 254)), FrameCodec.Decode(bytes[0], bytes.AsSpan(1)));
+    }
+
+    [Fact]
+    public void AnEmojiStraddlingTheLimitIsDroppedWholeRatherThanHalved()
+    {
+        // 252 bytes of "a", then a four-byte emoji over bytes 253 to 256. Cutting a UTF-16 unit at a time stopped
+        // after the emoji's high surrogate, three bytes of replacement character that fit exactly, and sent 255
+        // bytes of text the phone never typed. Not in frames.txt: every fixture line must also decode back to
+        // its own fields, and a cut line cannot.
+        var bytes = FrameCodec.Encode(new Text(0, new string('a', 252) + "\U0001F3B5"));
+
+        Assert.Equal(1 + FrameCodec.TextHeaderLength + 252, bytes.Length);
+        Assert.Equal((byte)252, bytes[2]);
+        Assert.Equal(new Text(0, new string('a', 252)), FrameCodec.Decode(bytes[0], bytes.AsSpan(1)));
+    }
+
+    [Fact]
+    public void AnEmojiEndingExactlyOnTheLimitIsKept()
+    {
+        var text = new string('a', 251) + "\U0001F3B5";
+
+        Assert.Equal(text, FrameCodec.Truncate(text));
+        Assert.Equal(1 + FrameCodec.TextHeaderLength + 255, FrameCodec.Encode(new Text(0, text)).Length);
+    }
+
+    [Fact]
+    public void ALongTextIsCutWithoutReadingAllOfIt()
+    {
+        // A million characters used to be re-measured once per character removed. The cut stops at the limit.
+        Assert.Equal(new string('a', FrameCodec.MaxTextBytes), FrameCodec.Truncate(new string('a', 1_000_000)));
+    }
+
+    [Fact]
+    public void RejectsAFileBeginTooShortToHoldASize() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x50, [0, 3, 1, 2, 3]));
+
+    [Fact]
+    public void RejectsAFileEndThatIsNotAWholeHash() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x52, new byte[31]));
+
+    [Fact]
+    public void RejectsABlobBeginTooShortToHoldASize() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x54, [0, 3, 1, 2, 3]));
+
+    [Fact]
+    public void RejectsABlobEndThatIsNotAWholeHash() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x56, new byte[31]));
+
+    [Fact]
+    public void RejectsABlobChunkWhoseLengthDoesNotMatchItsHeader() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x55, [0, 3, 1]));
+
+    [Fact]
+    public void ALongBlobLabelIsCutSoTheBeginFrameStillFits() =>
+        Assert.Equal(FrameCodec.MaxFrameLength, FrameCodec.Encode(new BlobBegin(0, 10, new string('a', 400))).Length);
+
+    [Fact]
+    public void AFullChunkIsTheLongestFrameAndNoLonger()
+    {
+        var chunk = new FileChunk(7, [.. Enumerable.Range(0, FrameCodec.MaxChunkBytes).Select(i => (byte)i)]);
+        var bytes = FrameCodec.Encode(chunk);
+        Assert.Equal(FrameCodec.MaxFrameLength, bytes.Length);
+        Assert.Equal(chunk, FrameCodec.Decode(bytes[0], bytes.AsSpan(1)));
+    }
+
+    [Fact]
+    public void ALongFileNameIsCutSoTheBeginFrameStillFits() =>
+        Assert.Equal(FrameCodec.MaxFrameLength, FrameCodec.Encode(new FileBegin(0, 10, new string('a', 400) + ".png")).Length);
+
+    [Fact]
+    public void PadStateKeepsSignedSticksSignedAndUnsignedFieldsUnsigned()
+    {
+        // The three mistakes that are invisible in hex: a stick read as a ushort comes back 32768 and not
+        // -32768, a trigger read as an sbyte comes back -1 and not 255, and the button mask read as a short
+        // turns Y, the top bit, negative. One frame holding all three at once, through both directions.
+        var frame = new PadState(0xF7FF, 255, 255, short.MinValue, short.MaxValue, -1, 1);
+        var bytes = FrameCodec.Encode(frame);
+        Assert.Equal(1 + 12, bytes.Length);
+        Assert.Equal(frame, FrameCodec.Decode(bytes[0], bytes.AsSpan(1)));
+    }
+
+    [Fact]
+    public void RejectsAPinDigitAboveNine() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x04, [1, 2, 3, 4, 5, 10]));
+
+    [Fact]
+    public void RejectsAFiveByteAnswer() =>
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x04, [1, 2, 3, 4, 5]));
+
+    [Fact]
+    public void NoWayOfPrintingAPinShowsADigit()
+    {
+        var answer = new PinAnswer(new Pin("123456"));
+        foreach (var text in new[] { new Pin("123456").ToString(), answer.ToString(), $"{answer}" })
+        {
+            Assert.False(text.Any(char.IsAsciiDigit), text);
+        }
+    }
+
+    private static (Frame Frame, byte[] Bytes) Parse(string line)
+    {
+        var halves = line.Split('=');
+        var fields = halves[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var bytes = Convert.FromHexString(halves[1].Replace(" ", "", StringComparison.Ordinal));
+
+        long Field(int i) => long.Parse(fields[i], CultureInfo.InvariantCulture);
+
+        Frame frame = fields[0] switch
+        {
+            "HELLO" => new Hello((byte)Field(1)),
+            "HELLO_ACK" => new HelloAck((byte)Field(1)),
+            "MOVE" => new Move((short)Field(1), (short)Field(2)),
+            "BUTTON" => new PointerButton((byte)Field(1), Field(2) == 1),
+            "SCROLL" => new Scroll((short)Field(1), (short)Field(2)),
+            "ZOOM" => new Zoom((short)Field(1)),
+            "ACTION" => new RunAction((byte)Field(1)),
+            "SET" => new SetValue((byte)Field(1), (byte)Field(2)),
+            "PING" => new Ping(Field(1)),
+            "PONG" => new Pong(Field(1)),
+            "STATE" => new StateReport((byte)Field(1), (byte)Field(2), (byte)Field(3)),
+            "TEXT" => new Text((byte)Field(1), fields.Length > 2 ? fields[2] : ""),
+            "KEY" => new Key((ushort)Field(1), Field(2) == 1),
+            "PIN_REQUEST" => new PinRequest((byte)Field(1), (ushort)Field(2)),
+            "PEN" => new Pen((ushort)Field(1), (ushort)Field(2), (byte)Field(3)),
+            "PIN_ANSWER" => new PinAnswer(new Pin(string.Concat(fields[1..]))),
+            "FILE_BEGIN" => new FileBegin((byte)Field(1), (uint)Field(2), fields[3]),
+            "FILE_CHUNK" => new FileChunk((byte)Field(1), Convert.FromHexString(fields[2])),
+            "FILE_END" => new FileEnd(Convert.FromHexString(fields[1])),
+            "FILE_RESULT" => new FileResult((byte)Field(1)),
+            "BLOB_BEGIN" => new BlobBegin((byte)Field(1), (uint)Field(2), fields[3]),
+            "BLOB_CHUNK" => new BlobChunk((byte)Field(1), Convert.FromHexString(fields[2])),
+            "BLOB_END" => new BlobEnd(Convert.FromHexString(fields[1])),
+            "PAD_STATE" => new PadState(
+                (ushort)Field(1),
+                (byte)Field(2),
+                (byte)Field(3),
+                (short)Field(4),
+                (short)Field(5),
+                (short)Field(6),
+                (short)Field(7)),
+            _ => throw new InvalidDataException($"Unknown fixture frame {fields[0]}"),
+        };
+
+        return (frame, bytes);
+    }
+}

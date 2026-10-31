@@ -20,4 +20,51 @@ public enum Frame: Equatable {
     /// The whole controller at once, laid out like Windows' `XINPUT_GAMEPAD`. A Mac has no virtual
     /// controller to give it to, so it is decoded for the fixture's sake and then dropped.
     case padState(buttons: UInt16, lt: UInt8, rt: UInt8, lx: Int16, ly: Int16, rx: Int16, ry: Int16)
+    /// The laptop asking for the PIN, or refusing the phone for `lockedSeconds`. Only a laptop sends it, so a
+    /// Mac decodes it for the fixture's sake and then drops it.
+    case pinRequest(attemptsLeft: UInt8, lockedSeconds: UInt16)
+    /// The phone's answer to `pinRequest`. `Pin` keeps the digits out of any description of the frame.
+    case pinAnswer(Pin)
+    /// One point of a pen stroke, 0...65535 across the whole screen with 0 the left or top edge. `state` is 0 up,
+    /// 1 down, 2 move and is not range-checked here, because a newer phone may add states: the dispatcher drops
+    /// an unknown one and counts it.
+    case pen(x: UInt16, y: UInt16, state: UInt8)
+    /// The start of a file sent to the phone: a capture, when the phone asked for captures to be saved there. `type` is
+    /// a `FileType` id, never a MIME string; `size` is the whole file in bytes and `name` its name with no folder.
+    case fileBegin(type: UInt8, size: UInt32, name: String)
+    /// One piece of the file, at most `FrameCodec.maxChunkBytes`. `seq` is its index mod 256, so a lost piece shows.
+    case fileChunk(seq: UInt8, data: [UInt8])
+    /// The end of the file: the SHA-256 of all of it, which the phone checks before it keeps the file.
+    case fileEnd(sha256: [UInt8])
+    /// The phone's answer to a file, one `FileStatus` id. Only `FileStatus.saved` lets this Mac delete its copy.
+    case fileResult(status: UInt8)
+    /// The start of a blob: the clipboard, or an app list or icon, in either direction, on a lane of its own beside the
+    /// file one. FILE_BEGIN's shape. `kind` is a `BlobKind` id but is data here, not a codec error: the receiver reads
+    /// an unknown kind to its end and drops it. `size` is the whole blob in bytes and `label` a short name.
+    case blobBegin(kind: UInt8, size: UInt32, label: String)
+    /// One piece of the blob, at most `FrameCodec.maxChunkBytes`.
+    case blobChunk(seq: UInt8, data: [UInt8])
+    /// The end of the blob: the SHA-256 of all of it.
+    case blobEnd(sha256: [UInt8])
+}
+
+/// Six decimal digits, the one secret that crosses the link. A frame can end up in a log line or a debug
+/// print, so both descriptions hide the digits; the values are stored as 0...9 because that is what the wire
+/// carries, and nothing here turns them back into text.
+public struct Pin: Equatable, CustomStringConvertible, CustomDebugStringConvertible {
+    public static let length = 6
+
+    let digits: [UInt8]
+
+    /// Nil unless there are exactly six values, each 0...9.
+    public init?(digits: [UInt8]) {
+        guard digits.count == Pin.length, digits.allSatisfy({ $0 <= 9 }) else {
+            return nil
+        }
+        self.digits = digits
+    }
+
+    public var description: String { "••••••" }
+
+    public var debugDescription: String { "••••••" }
 }

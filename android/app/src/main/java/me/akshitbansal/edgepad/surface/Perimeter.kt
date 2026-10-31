@@ -98,6 +98,20 @@ class Perimeter(
         return wrap(cornerMid[k] + f * (cornerMid[k + 1] - cornerMid[k]))
     }
 
+    /**
+     * The length along the path of one half of a split corner. A corner holds two slots, one on each edge
+     * it joins: even [slot] 2c is the edge the clockwise path arrives on, odd 2c + 1 the edge it leaves on.
+     * [offset] is how far past the arc's end the slot's centre sits, along that edge, so 0 puts it where
+     * the straight edge begins.
+     */
+    fun lengthAtSlot(
+        slot: Int,
+        offset: Float,
+    ): Float {
+        val sign = if (slot % 2 == 0) -1f else 1f
+        return wrap(cornerMid[slot / 2] + sign * (arc / 2 + offset))
+    }
+
     /** Writes the point at length [s] and its inward unit normal into [out] as x, y, nx, ny. */
     fun point(
         s: Float,
@@ -234,6 +248,9 @@ class Perimeter(
          * settings key, the surface's loop over them.
          */
         const val CORNERS = 4
+
+        /** Two slots a corner, one on each edge it joins, numbered clockwise: slot / 2 is its corner. */
+        const val SLOTS = CORNERS * 2
 
         private const val PIECES = 8
         private const val MIN_RADIUS = 1f

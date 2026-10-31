@@ -469,7 +469,19 @@ internal sealed class MacroWindow : Form
         var missing = MacroStore.WithoutTarget(working);
         if (missing < 0)
         {
-            store.Save(working);
+            if (store.Save(working) is not { } failure)
+            {
+                return;
+            }
+
+            // The edits stay in the dialog, so the owner can fix the cause and press OK again, or cancel.
+            DialogResult = DialogResult.None;
+            MessageBox.Show(
+                this,
+                $"The macros could not be saved to {store.FilePath}: {failure}",
+                "Macros",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
             return;
         }
 

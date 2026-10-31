@@ -12,7 +12,7 @@ enum class MediaPiece(
     val defaultX: Float,
     val defaultY: Float,
 ) {
-    /** The app's logo, the title and the time, with the progress line under them when no corner scrubs. */
+    /** The app's logo, the title and the time, with the progress line under them; the time and the line only when no corner scrubs. */
     NOW_PLAYING(R.string.piece_now_playing, 0.5f, 0.78f),
 
     /** Previous, play/pause and next in a row. */

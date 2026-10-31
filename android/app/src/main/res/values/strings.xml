@@ -4,20 +4,47 @@
 
   <!-- Finding the laptop -->
   <string name="pairing_title">Devices</string>
-  <string name="paired_laptops">Paired laptops</string>
-  <string name="device_connected">Connected</string>
+  <string name="paired_laptops">Laptops</string>
+  <string name="device_connected_via">Connected via %1$s</string>
   <string name="device_remembered">Remembered</string>
   <string name="device_connecting">Connecting…</string>
+  <string name="device_reconnecting">Reconnecting…</string>
+  <string name="device_failed">Could not connect</string>
+  <string name="device_asking">Waiting for you. Tap to answer.</string>
+  <string name="device_active">Active</string>
+  <string name="device_make_active">Make active</string>
+  <string name="device_disconnect">Disconnect</string>
+  <string name="device_connect">Connect</string>
+  <string name="device_state_connected">Connected</string>
+  <string name="device_not_connected">Not connected</string>
+  <string name="device_state_via">%1$s · %2$s</string>
+  <string name="connect_via">Connect over %1$s</string>
   <string name="device_rtt">%1$.0f ms</string>
-  <string name="devices_legend">The remembered laptop connects when Edgepad opens.</string>
+  <string name="devices_legend">Remembered laptops connect when Edgepad opens.</string>
   <string name="devices_legend_off">Tap a laptop to connect.</string>
+  <string name="devices_multi_hint">Connect several laptops at once. The active one is the laptop the controls are driving; tap Make active to switch.</string>
+  <string name="transport_bluetooth">Bluetooth</string>
+  <string name="transport_wifi">Wi-Fi</string>
+  <string name="transport_usb">USB</string>
+  <string name="add_by_address">Add by address</string>
+  <string name="add_by_address_hint">192.168.1.20 or 192.168.1.20:47321</string>
+  <string name="address_invalid">That is not an address. Type a host name or IP address, with a port if it is not 47321.</string>
+  <string name="address_no_laptop">Nothing on that address answered as a laptop running Edgepad.</string>
+  <string name="usb_tethering">USB tethering</string>
+  <string name="local_network_needed">Edgepad needs the Nearby devices permission to find laptops on your Wi-Fi and over USB.</string>
+  <string name="allow_local_network">Allow Nearby devices</string>
   <string name="open_controls">Open controls</string>
   <string name="open_controls_hint">Connect to a laptop to open the controls.</string>
   <string name="open_bluetooth_settings">Bluetooth settings</string>
   <string name="refresh">Refresh the list</string>
-  <string name="bluetooth_off">Bluetooth is off. Turn it on, then come back.</string>
+  <string name="bluetooth_off">No laptops found. Open Edgepad on your laptop, on the same Wi-Fi, or connect by USB and turn on USB tethering. Or turn Bluetooth on and pair it.</string>
+  <string name="usb_cable_tether_off">Cable connected. Turn on USB tethering.</string>
+  <string name="status_wifi">Looking on Wi-Fi %1$s.</string>
+  <string name="status_no_wifi">Not connected to Wi-Fi.</string>
+  <string name="status_usb_on">USB tethering is on (%1$s).</string>
+  <string name="status_usb_off">USB tethering is off.</string>
   <string name="permission_needed">Edgepad needs the Nearby devices permission to reach your laptop.</string>
-  <string name="no_paired">Nothing is paired with this phone yet. Pair your laptop in Bluetooth settings, then come back.</string>
+  <string name="no_paired">No laptops found. Open Edgepad on your laptop, on the same Wi-Fi, or connect by USB and turn on USB tethering. Or pair it in Bluetooth settings.</string>
   <string name="no_laptop_paired">None of the devices paired with this phone says it is a computer. If your laptop is paired, show them all.</string>
   <plurals name="show_all_paired">
     <item quantity="one">Show all paired devices (%1$d more)</item>
@@ -28,14 +55,49 @@
   <string name="open_app_settings">Open Edgepad\'s app settings</string>
   <string name="not_paired">That laptop is no longer paired with this phone. Pair it again in Bluetooth settings.</string>
   <string name="status_closed">Not connected: %1$s</string>
+  <string name="status_closed_named">%1$s not connected: %2$s</string>
   <string name="status_accept_on_laptop">If the laptop asks, choose Trust there.</string>
   <string name="link_lost">the connection was lost.</string>
   <string name="link_refused">the laptop hung up before the handshake. Look at the laptop: answer Trust if it asks about this phone, and update its Edgepad if it is older than this app. If another phone just took over the laptop, try again in 30 seconds.</string>
-  <string name="link_unreachable">the laptop did not take the connection. Check that Edgepad is running on it and its Bluetooth is on. If it still fails, remove the pairing on both this phone and the laptop, then pair them again.</string>
+  <string name="link_unreachable">the laptop did not take the connection. Check that Edgepad is running on it and that its Bluetooth, or its Wi-Fi and USB connections, are on. If a Bluetooth laptop still fails, remove the pairing on both this phone and the laptop, then pair them again.</string>
   <string name="link_mismatch">the laptop runs a different Edgepad release (protocol %1$s, this app %2$d). Install both from the same release.</string>
   <string name="link_unexpected">the laptop answered with something other than Edgepad\'s handshake (%1$s).</string>
   <string name="link_no_permission">the Nearby devices permission was turned off.</string>
   <string name="link_no_answer">the laptop took the connection and never answered. Check that Edgepad is running there, then try again.</string>
+  <string name="link_not_paired">the laptop did not recognise this phone. Choose Pair again to pair with a new code.</string>
+  <string name="link_not_this_laptop">a device answered as this laptop but could not prove it. Check that this phone is on the right network.</string>
+  <string name="link_pairing_failed">pairing did not finish: the code was not typed on the laptop in time, or not correctly. Tap the laptop to try again with a new code.</string>
+  <string name="link_pairing_locked">the laptop is pairing another phone, or has paused pairing after wrong codes. Try again in a few minutes.</string>
+  <!-- The laptop's lock-out runs from 30 s to an hour: under a minute in seconds, else whole minutes rounded up. -->
+  <plurals name="link_pin_locked_seconds">
+    <item quantity="one">too many wrong PINs. Try again in %1$d second.</item>
+    <item quantity="other">too many wrong PINs. Try again in %1$d seconds.</item>
+  </plurals>
+  <plurals name="link_pin_locked_minutes">
+    <item quantity="one">too many wrong PINs. Try again in %1$d minute.</item>
+    <item quantity="other">too many wrong PINs. Try again in %1$d minutes.</item>
+  </plurals>
+
+  <!-- The laptop's PIN. The digits are never shown or read out, only how many are in. -->
+  <string name="pin_title">Enter the PIN</string>
+  <string name="pin_body">Set in Edgepad on your laptop</string>
+  <plurals name="pin_attempts_left">
+    <item quantity="one">Wrong PIN. %1$d attempt left</item>
+    <item quantity="other">Wrong PIN. %1$d attempts left</item>
+  </plurals>
+  <string name="pin_entered">Digits entered: %1$d of %2$d</string>
+  <string name="pin_delete">Delete</string>
+  <string name="pin_cancel">Cancel</string>
+
+  <!-- A network pairing: the phone shows a code and the laptop's owner types it there. -->
+  <string name="pair_title">Pairing code</string>
+  <string name="pair_body">Type this code in Edgepad on %1$s.</string>
+  <string name="pair_code_spoken">Pairing code: %1$s</string>
+  <string name="pair_expires">Expires in %1$s</string>
+  <string name="pair_confirm_title">Did %1$s say the code matched?</string>
+  <string name="pair_confirm_body">If it said the code was wrong, tap No: another device may be answering in its place.</string>
+  <string name="pair_confirm_yes">Yes, paired</string>
+  <string name="pair_confirm_no">No</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Laptop out of reach</string>
@@ -54,15 +116,31 @@
   <string name="forget">Forget</string>
   <string name="forget_laptop_title">Forget %1$s?</string>
   <string name="forget_laptop_body">Edgepad disconnects and stops reconnecting to it on its own. It stays paired, so you can pick it again from the list.</string>
-  <string name="detail_connected">Connected</string>
-  <string name="detail_connected_rtt">Connected · %1$.0f ms</string>
-  <string name="detail_remembered">Remembered · not connected</string>
   <string name="reconnect_automatically">Reconnect automatically</string>
+  <string name="stay_connected">Stay connected in the background</string>
+  <string name="stay_connected_caption">Keeps your laptops connected while Edgepad is minimized, with a notification to disconnect. Off, they disconnect shortly after you leave the app.</string>
+  <string name="link_channel">Connection</string>
+  <string name="link_notice">Connected to %1$s</string>
+  <plurals name="link_notice_more">
+    <item quantity="one">Connected to %1$s and %2$d other laptop</item>
+    <item quantity="other">Connected to %1$s and %2$d other laptops</item>
+  </plurals>
+  <string name="link_notice_text">Tap to open Edgepad. With clipboard sharing on, that also sends what you copied.</string>
+  <string name="settings_clipboard">Clipboard</string>
+  <string name="clipboard_share">Share the clipboard with this laptop</string>
+  <string name="clipboard_share_caption">What you copy on this laptop arrives here at once. To send a copy from this phone, go back to Edgepad after copying: Android lets Edgepad read the clipboard only while it is on screen, so nothing is sent until you return. Text and images both go, and a large photo is sent smaller. Only the laptop you are controlling shares, and its own clipboard switch must be on as well.</string>
   <string name="corner_top_left">Top left</string>
   <string name="corner_top_right">Top right</string>
   <string name="corner_bottom_right">Bottom right</string>
   <string name="corner_bottom_left">Bottom left</string>
   <string name="corner_off">Off</string>
+  <string name="corner_split">Split corners</string>
+  <string name="corner_edge_left">left edge</string>
+  <string name="corner_edge_top">top edge</string>
+  <string name="corner_edge_right">right edge</string>
+  <string name="corner_edge_bottom">bottom edge</string>
+  <string name="corner_slot">%1$s · %2$s</string>
+  <string name="corners_summary_split">8 dials, split</string>
   <string name="media_layout_title">Media layout</string>
   <string name="media_layout_hint">Drag a piece to move it. It snaps to the grid and the centre lines.</string>
   <string name="piece_now_playing">Now playing</string>
@@ -128,7 +206,6 @@
   <string name="orientation_upright">Upright</string>
   <string name="orientation_sideways">Sideways</string>
   <string name="dial_preview_description">Preview of a corner dial at the chosen size</string>
-  <string name="macro_labels">Show macro labels</string>
   <string name="keyboard_text_size">Keyboard text size</string>
   <string name="control_color">Control colour</string>
   <string name="control_color_auto">Auto</string>
@@ -199,9 +276,12 @@
   <string name="shape_target_lock_pad">Lock the pad</string>
 
   <string name="settings_surface">Surface</string>
-  <string name="settings_feel">Gestures &amp; dials</string>
   <string name="settings_controls">Controls</string>
+  <string name="settings_surface_title">Surface settings</string>
+  <string name="settings_system">System settings</string>
   <string name="settings_help">Help</string>
+  <string name="keyboard_settings_title">Keyboard settings</string>
+  <string name="gamepad_settings_title">Gamepad settings</string>
   <string name="updates_title">Updates</string>
   <string name="updates_auto">Check for updates daily</string>
   <string name="updates_checking">Checking…</string>
@@ -243,12 +323,20 @@
   <string name="dial_media_short">SCRUB</string>
   <string name="dial_apps">App switcher</string>
   <string name="dial_apps_short">APPS</string>
-  <string name="dial_mic">Mic level</string>
-  <string name="dial_mic_short">MIC</string>
   <string name="dial_refresh">Refresh rate</string>
   <string name="dial_refresh_short">RATE</string>
   <!-- The ruler shows the rate the laptop named for this step, not the step's own number. -->
   <string name="dial_refresh_value">%1$d Hz</string>
+  <string name="dial_scroll">Vertical scroll</string>
+  <string name="dial_scroll_h">Horizontal scroll</string>
+  <string name="dial_scroll_h_short">SIDE</string>
+  <string name="dial_scroll_short">SCROLL</string>
+  <string name="dial_desktops">Virtual desktops</string>
+  <string name="dial_desktops_short">DESK</string>
+  <string name="dial_tabs">Browser tabs</string>
+  <string name="dial_tabs_short">TABS</string>
+  <string name="dial_devices">Switch laptop</string>
+  <string name="dial_devices_short">LAPTOP</string>
 
   <!-- Control surface -->
   <string name="surface_description">Laptop control surface</string>
@@ -262,9 +350,7 @@
   <string name="surface_next">Next track</string>
   <string name="surface_previous">Previous track</string>
   <string name="surface_open_settings">Open settings</string>
-  <string name="surface_keyboard">Open the keyboard</string>
-  <string name="surface_gamepad">Open the gamepad</string>
-  <string name="surface_macros">Open the macros</string>
+  <string name="surface_controls">Open the controls</string>
   <string name="surface_lock">Hide the dials, or lock the pad</string>
   <string name="surface_mode_normal">Dials, media and pad all on</string>
   <string name="surface_mode_focus">Pad only · dials and media hidden</string>
@@ -273,7 +359,100 @@
   <string name="surface_locked_caption">Pad locked · tap the lock to unlock</string>
 
   <!-- Macros -->
+  <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
+  <string name="controls_title">Controls</string>
+  <string name="controls_open">Open %1$s</string>
+  <string name="controls_keyboard">Keyboard</string>
+  <string name="controls_gamepad">Gamepad</string>
+  <string name="controls_macros">Macros</string>
+  <string name="controls_capture">Capture</string>
+  <string name="capture_region">Region</string>
+  <string name="capture_screen">Full screen</string>
+  <string name="capture_record">Record</string>
+  <string name="capture_hint">For a region, tap Region, then tap, hold and move on the pad to drag out the area.</string>
+  <string name="capture_save_to">Save to</string>
+  <string name="capture_save_laptop">Laptop</string>
+  <string name="capture_save_phone">Phone</string>
+  <string name="capture_receiving">Receiving %1$s, %2$d%%</string>
+  <string name="capture_saved">Saved to %1$s</string>
+  <string name="capture_bad_hash">The capture arrived damaged. It is still on the laptop.</string>
+  <string name="capture_rejected">This phone refused the capture. It is still on the laptop.</string>
+  <string name="capture_write_failed">Could not save the capture here. It is still on the laptop.</string>
+  <string name="capture_too_large">Too large to send. It is still on the laptop.</string>
+  <string name="capture_not_found">No new capture turned up on the laptop, so nothing was sent.</string>
+  <string name="capture_send_failed">The laptop could not send the capture. It is still on the laptop.</string>
+  <string name="controls_annotate">Annotate</string>
+  <string name="annotate_exit">Exit</string>
+  <string name="annotate_description">Pen pad: a touch draws at the same place on the laptop screen</string>
+  <string name="annotate_menu">Drawing tools</string>
+  <string name="annotate_menu_expanded">Expanded</string>
+  <string name="annotate_menu_collapsed">Collapsed</string>
+  <string name="annotate_selected">Selected</string>
+  <string name="annotate_tool_desc">%1$s tool</string>
+  <string name="annotate_tool_pen">Pen</string>
+  <string name="annotate_tool_highlighter">Highlighter</string>
+  <string name="annotate_tool_line">Line</string>
+  <string name="annotate_tool_arrow">Arrow</string>
+  <string name="annotate_tool_rectangle">Rectangle</string>
+  <string name="annotate_tool_ellipse">Ellipse</string>
+  <string name="annotate_colour_black">Black</string>
+  <string name="annotate_colour_white">White</string>
+  <string name="annotate_colour_red">Red</string>
+  <string name="annotate_colour_orange">Orange</string>
+  <string name="annotate_colour_yellow">Yellow</string>
+  <string name="annotate_colour_green">Green</string>
+  <string name="annotate_colour_blue">Blue</string>
+  <string name="annotate_colour_purple">Purple</string>
+  <string name="annotate_colour_custom">Custom colour</string>
+  <string name="annotate_width">Width</string>
+  <string name="annotate_width_value">%1$d</string>
+  <string name="annotate_opacity">Opacity</string>
+  <string name="annotate_undo">Undo</string>
+  <string name="annotate_clear">Clear</string>
+  <string name="annotate_sign">Sign</string>
+  <string name="annotate_save_signature">Save signature</string>
+  <string name="sign_saved">Copied and saved to Pictures/Edgepad</string>
+  <string name="sign_empty">Nothing drawn yet</string>
+  <string name="sign_failed">Could not save</string>
+  <string name="capture_unavailable">This laptop has not said it can capture. Update Edgepad on it, then reconnect.</string>
   <string name="macros_run">Run %1$s</string>
+  <string name="macros_close">Close %1$s</string>
+  <string name="macros_settings">Macro settings</string>
+  <string name="macros_labels">Macro labels</string>
+  <string name="macros_labels_caption">Names under the pictures. A macro with no picture always shows its name.</string>
+  <string name="macros_icons_title">Icons</string>
+  <string name="macros_icon_size">Icon size</string>
+  <string name="macros_icon_size_caption">How much of each button the picture fills. Pictures are never stretched past their own pixels, so they stay sharp. They may be small on a big button until the laptop sends larger ones.</string>
+  <string name="macros_move_earlier">Move earlier</string>
+  <string name="macros_move_later">Move later</string>
+  <string name="macros_moved">Moved to place %1$d of %2$d</string>
+  <string name="macros_pages_title">Pages</string>
+  <string name="macros_layout">Layout</string>
+  <string name="macros_layout_auto">Auto</string>
+  <string name="macros_layout_grid">%1$d × %2$d</string>
+  <string name="macros_layout_grid_description">Rows: %1$d, columns: %2$d</string>
+  <string name="macros_layout_caption">The first number is rows, the second is columns. Auto picks whatever makes the buttons biggest.</string>
+  <string name="macros_per_page">Macros on screen</string>
+  <string name="macros_per_page_caption">How many macros one page shows. The rest continue on more pages, reached by sliding a finger sideways. Press and hold a macro, then drag it to move it within its page.</string>
+  <string name="macros_page_of">Page %1$d of %2$d</string>
   <string name="macros_empty_title">No macros yet</string>
   <string name="macros_empty_body">Add them from Edgepad\'s tray menu on the laptop. They appear here as soon as it sends the list.</string>
+
+  <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
+  <string name="apps_add_from_laptop">Add from laptop</string>
+  <string name="apps_add_caption">Pick an app the laptop lists, and it becomes a macro there. Nothing but your choice is sent.</string>
+  <string name="apps_title">Add a macro</string>
+  <string name="apps_search_hint">Search apps</string>
+  <string name="apps_loading">Looking for apps on %1$s…</string>
+  <string name="apps_none">%1$s listed no apps.</string>
+  <string name="apps_no_match">No app matches that search.</string>
+  <string name="apps_windows_hint">Not in the list? Add the app to the Start menu on the laptop, then refresh.</string>
+  <string name="apps_confirm_title">Add %1$s to %2$s?</string>
+  <string name="apps_confirm_body">It becomes a macro that opens this app on the laptop.</string>
+  <string name="apps_confirm_action">Add</string>
+  <string name="apps_added">Added. It is in the macros now.</string>
+  <string name="apps_full">The laptop cannot hold more macros. Remove one first.</string>
+  <string name="apps_duplicate">That app is already a macro.</string>
+  <string name="apps_stale">That list is out of date. Refresh it and pick again.</string>
+  <string name="apps_failed">The laptop could not add it.</string>
 </resources>

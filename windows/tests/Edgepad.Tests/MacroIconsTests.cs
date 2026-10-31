@@ -1,20 +1,14 @@
-using System.Globalization;
-using System.Text;
+using System.Drawing.Imaging;
 using Edgepad.Macros;
-using Edgepad.Protocol;
 using Xunit;
 
 namespace Edgepad.Tests;
 
 /// <summary>
-/// The two halves of macro icons a build machine can actually reach: which extraction path a target takes,
-/// and the chunk format that carries the result to the phone.
-///
-/// Nothing here extracts a real icon. The calls behind the branch are Win32 and a runner has no program
-/// icons worth reading, so the branch is what gets pinned — a .png routed down the document path would put
-/// the image viewer's icon on the button, which reads as a broken extractor rather than a wrong case.
-///
-/// The chunking is the opposite: pure, and the half of a wire format whose other half is on the phone.
+/// Which extraction path a macro target takes. Nothing here extracts a real icon: the calls behind the
+/// branch are Win32 and a runner has no program icons worth reading, so the branch is what gets pinned — a
+/// .png routed down the document path would put the image viewer's icon on the button, which reads as a
+/// broken extractor rather than a wrong case.
 /// </summary>
 public sealed class MacroIconsTests : IDisposable
 {
@@ -74,83 +68,64 @@ public sealed class MacroIconsTests : IDisposable
         Assert.Null(MacroIcons.Png(new Macro("Mail", "https://mail.google.com", null, Path.Combine(dir, "gone.png"))));
     }
 
-    [Theory]
-    [InlineData(1)]
-    [InlineData(179)]
-    [InlineData(180)]
-    [InlineData(181)]
-    [InlineData(MacroIcons.ChunkBytes - 1)]
-    [InlineData(MacroIcons.ChunkBytes)]
-    [InlineData(MacroIcons.ChunkBytes + 1)]
-    [InlineData(MacroIcons.MaxBytes)]
-    public void EveryChunkFitsOneTextPayload(int size)
-    {
-        // The sizes either side of a chunk boundary are the ones worth naming: an off-by-one in the ceiling
-        // division shows up as a trailing empty frame or a lost tail, and only at exactly these lengths.
-        var chunks = MacroIcons.Chunks(MacroStore.MaxMacros - 1, Bytes(size));
-
-        Assert.All(chunks, chunk => Assert.True(
-            Encoding.UTF8.GetByteCount(chunk) <= FrameCodec.MaxTextBytes,
-            $"{Encoding.UTF8.GetByteCount(chunk)} bytes is past what a TEXT payload's length byte can say"));
-    }
+    [Fact]
+    public void WindowsNeverSendsMoreThanTheSourceHolds() =>
+        Assert.Equal(256, MacroIconChunks.Snap("512", MacroIcons.MaxSize));
 
     [Fact]
-    public void TheHeaviestIconStaysUnderTheCeilingThePhoneWillAccept()
+    public void AnEmptyRequestIsTheDefaultSizeAsBefore()
     {
-        // The phone refuses a chunk count over MAX_CHUNKS in LaptopState.kt and drops the frame, so an icon
-        // past that ceiling does not arrive smaller -- it does not arrive at all, and nothing says why.
-        // The two numbers are in different languages with no fixture between them, so this is what holds
-        // them together: raising MacroIcons.MaxBytes without raising MAX_CHUNKS fails here.
-        const int phoneMaxChunks = 160;
-
-        var chunks = MacroIcons.Chunks(MacroStore.MaxMacros - 1, Bytes(MacroIcons.MaxBytes)).Count;
-
-        Assert.True(
-            chunks <= phoneMaxChunks,
-            $"an icon at the cap is {chunks} chunks and the phone accepts {phoneMaxChunks}");
-    }
-
-    [Theory]
-    [InlineData(1)]
-    [InlineData(MacroIcons.ChunkBytes)]
-    [InlineData(MacroIcons.ChunkBytes + 1)]
-    [InlineData(MacroIcons.MaxBytes)]
-    public void TheChunksRejoinIntoExactlyWhatWentIn(int size)
-    {
-        // The phone's half of this format, written out here so both halves are pinned by something. If this
-        // and the Kotlin twin ever disagree, an icon arrives as a grey box and nothing says why.
-        var png = Bytes(size);
-
-        var joined = string.Concat(MacroIcons.Chunks(3, png).Select(chunk => chunk.Split('/', 4)[3]));
-
-        Assert.Equal(png, Convert.FromBase64String(joined));
-    }
-
-    [Fact]
-    public void EachChunkNamesItsSlotAndHowManyThereAre()
-    {
-        var chunks = MacroIcons.Chunks(7, Bytes(MacroIcons.ChunkBytes * 2));
-
-        Assert.All(chunks, chunk =>
+        var path = Path.Combine(dir, "wide.png");
+        using (var bitmap = new Bitmap(40, 20))
         {
-            var header = chunk.Split('/', 4);
-            Assert.Equal("7", header[0]);
-            Assert.Equal(chunks.Count.ToString(CultureInfo.InvariantCulture), header[2]);
-        });
-        var counted = Enumerable.Range(0, chunks.Count).Select(i => i.ToString(CultureInfo.InvariantCulture));
-        Assert.Equal(counted, chunks.Select(chunk => chunk.Split('/', 4)[1]));
+            bitmap.Save(path, ImageFormat.Png);
+        }
+
+        var png = MacroIcons.Png(new Macro("Pic", path, null), MacroIconChunks.Snap(string.Empty, MacroIcons.MaxSize));
+
+        Assert.NotNull(png);
+        using var stream = new MemoryStream(png);
+        using var decoded = new Bitmap(stream);
+        Assert.Equal(128, decoded.Width);
+        Assert.Equal(128, decoded.Height);
     }
 
     [Fact]
-    public void AnIconOfNothingIsNoFramesRatherThanOneEmptyOne()
+    public void ASizeIsCachedApartFromAnotherSize()
     {
-        // An empty frame would reach the phone as a finished icon of nothing, which draws as a hole in the
-        // grid. Png never returns an empty array, so this pins the floor rather than a case that happens.
-        Assert.Empty(MacroIcons.Chunks(0, []));
+        var path = Path.Combine(dir, "both.png");
+        using (var bitmap = new Bitmap(40, 40))
+        {
+            bitmap.Save(path, ImageFormat.Png);
+        }
+
+        var macro = new Macro("Pic", path, null);
+        var small = MacroIcons.Png(macro);
+        var large = MacroIcons.Png(macro, MacroIcons.MaxSize);
+
+        Assert.NotNull(small);
+        Assert.NotNull(large);
+        using var stream = new MemoryStream(large);
+        using var decoded = new Bitmap(stream);
+        Assert.Equal(MacroIcons.MaxSize, decoded.Width);
     }
 
-    /// <summary>Bytes that do not compress to nothing, so a size asked for is a size encoded.</summary>
-    private static byte[] Bytes(int size) => [.. Enumerable.Range(0, size).Select(i => (byte)(i * 31 % 251))];
+    [Theory]
+    [InlineData(@"""C:\Program Files\App\app.exe"",-101", @"C:\Program Files\App\app.exe", -101)]
+    [InlineData(@"C:\Windows\System32\imageres.dll,  -102", @"C:\Windows\System32\imageres.dll", -102)]
+    [InlineData(@"C:\Icons\doc.ico", @"C:\Icons\doc.ico", 0)]
+    [InlineData(@"C:\Tools\a,b.exe,3", @"C:\Tools\a,b.exe", 3)]
+    public void AFileTypesIconIsReadAsTheFileAndIndexItNames(string value, string file, int index) =>
+        Assert.Equal((file, index), MacroIcons.ParseDefaultIcon(value));
+
+    [Theory]
+    [InlineData("%1")]
+    [InlineData("\"%1\"")]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public void ATypeWhoseFilesAreTheirOwnIconsOrThatNamesNothingHasNone(string? value) =>
+        Assert.Null(MacroIcons.ParseDefaultIcon(value));
 
     /// <summary>An empty file with the given name. Only its path and its extension are ever looked at.</summary>
     private string Make(string name)

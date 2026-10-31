@@ -5,7 +5,6 @@ import android.graphics.drawable.InsetDrawable
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.PopupWindow
@@ -111,8 +110,7 @@ object EditorFrame {
                 ),
             )
         } else {
-            val back = round(ui, Glyph.Shape.CHEVRON_LEFT, ui.string(R.string.back), onBack)
-            root.addView(back, corner(ui, Gravity.TOP or Gravity.START))
+            addBack(root, ui, onBack)
             val label =
                 ui.text(title, Type.VALUE, ui.palette.dim, face = Type.bold).apply {
                     isAccessibilityHeading = true
@@ -132,12 +130,20 @@ object EditorFrame {
         }
 
         // Keep the floating buttons clear of a cutout or any system bar that is showing.
-        root.setOnApplyWindowInsetsListener { frame, insets ->
-            val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
-            frame.setPadding(bars.left, bars.top, bars.right, bars.bottom)
-            insets
-        }
+        ui.padToBars(root)
         return root
+    }
+
+    /** The round back button in a frame's top-left corner, the same on every full-screen surface. */
+    fun addBack(
+        root: FrameLayout,
+        ui: Ui,
+        onBack: () -> Unit,
+    ) {
+        root.addView(
+            round(ui, Glyph.Shape.CHEVRON_LEFT, ui.string(R.string.back), onBack),
+            corner(ui, Gravity.TOP or Gravity.START),
+        )
     }
 
     /**

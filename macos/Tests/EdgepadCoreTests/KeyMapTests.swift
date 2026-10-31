@@ -98,4 +98,40 @@ final class KeyMapTests: XCTestCase {
     func testALetterIsNotFunctionOrNavigation() {
         XCTAssertFalse(MacKey.q.isFunctionOrNavigation)
     }
+
+    func testPrintScreenIsTheScreenshotChord() {
+        XCTAssertEqual(KeyMap.target(forWindows: 0x2C), .chord([.shift, .command, .three]))
+    }
+
+    func testNumLockIsTheKeypadClearKey() {
+        XCTAssertEqual(KeyMap.target(forWindows: 0x90), .key(MacKey(0x47)))
+    }
+
+    // The Menu key (0x5D) is the one code a Mac drops on purpose; every other code in keys.txt must map.
+    func testEveryKeyInTheSharedTableIsMappedExceptMenu() {
+        for code in sharedKeyCodes() {
+            if code == 0x5D {
+                XCTAssertNil(KeyMap.target(forWindows: code))
+            } else {
+                XCTAssertNotNil(KeyMap.target(forWindows: code), "0x\(String(code, radix: 16)) has no Mac key")
+            }
+        }
+    }
+
+    private func sharedKeyCodes() -> [UInt16] {
+        var dir = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        while dir.path != "/" {
+            let candidate = dir.appendingPathComponent("protocol/keys.txt")
+            if let text = try? String(contentsOf: candidate, encoding: .utf8) {
+                return text.split(separator: "\n").compactMap { line in
+                    let parts = line.split(separator: " ")
+                    guard parts.count == 3, parts[0] == "KEY" else { return nil }
+                    return UInt16(parts[1].dropFirst(2), radix: 16)
+                }
+            }
+            dir.deleteLastPathComponent()
+        }
+        XCTFail("protocol/keys.txt was not found above \(#filePath)")
+        return []
+    }
 }

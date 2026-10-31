@@ -44,9 +44,9 @@ const SURFACE: { where: string; touch: string; laptop: string }[] = [
   },
   {
     where: "Top centre",
-    touch: "tap one of the five buttons",
+    touch: "tap one of the four buttons",
     laptop:
-      "Settings, the keyboard, the lock, the gamepad, the macros, left to right. The lock stays on the phone.",
+      "Settings, Controls (keyboard, gamepad, capture, annotate), the lock, the macros, left to right. The lock stays on the phone.",
   },
   { where: "Back", touch: "", laptop: "Leaves the surface. The link stays up." },
 ];
@@ -68,6 +68,27 @@ const DEFAULT_GESTURES: { fingers: string; gesture: string; does: string }[] = [
   { fingers: "Four", gesture: "tap", does: "Notifications" },
 ];
 
+const CAPTURE: { os: string; region: string; screen: string; record: string }[] = [
+  {
+    os: "Windows",
+    region: "Win+Shift+S",
+    screen: "PrtScn",
+    record: "Win+Shift+R (needs a recent Snipping Tool; unverified)",
+  },
+  {
+    os: "Mac",
+    region: "Cmd+Shift+4",
+    screen: "Cmd+Shift+3",
+    record: "Cmd+Shift+5",
+  },
+  {
+    os: "Linux",
+    region: "Print",
+    screen: "Print",
+    record: "Ctrl+Shift+Alt+R on GNOME, Meta+Alt+R on KDE (unverified)",
+  },
+];
+
 export function ProductSections() {
   return (
     <>
@@ -78,7 +99,7 @@ export function ProductSections() {
         lede={
           <>
             Edgepad turns an Android phone into a trackpad, a media remote and a control
-            panel for a Windows laptop or a Mac, over a direct Bluetooth link with
+            panel for a Windows, Mac or Linux laptop, over a direct Bluetooth link with
             nothing in between.
           </>
         }
@@ -105,7 +126,7 @@ export function ProductSections() {
           {[
             {
               title: "Corner rulers",
-              body: "Each corner holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher, microphone level or refresh rate; Settings picks what each corner does, how long the rulers are and how tall.",
+              body: "Each corner holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher, microphone level or refresh rate; Settings picks what each corner does, how long the rulers are and how tall. Split corners gives each corner two dials, eight in all.",
             },
             {
               title: "Trackpad",
@@ -129,7 +150,23 @@ export function ProductSections() {
             },
             {
               title: "Macro buttons",
-              body: "Fifteen slots the laptop's tray menu names with an app, a document, a folder or a URL each; the phone sends the slot number and never what it opens. The grid sizes every button to the longest name and fits as many across as the screen has room for.",
+              body: "Fifteen slots the laptop names with an app, a document, a folder or a URL each, in its tray or menu-bar menu (a text file on Linux); the phone sends the slot number and never what it opens. The grid sizes every button to the longest name and fits as many across as the screen has room for, and Edit layout drags the buttons into the order you want.",
+            },
+            {
+              title: "Controls",
+              body: "One button on the surface opens a grid of the keyboard, the gamepad, capture and annotate. A laptop shows only what it can do, and the grid can be rearranged like the macro deck.",
+            },
+            {
+              title: "Annotate and sign",
+              body: "Controls > Annotate turns the phone into an absolute pen for the laptop screen: a pen, a highlighter, a line, an arrow, a rectangle and an ellipse in eight colours. Sign is the same pad as a signature, saved as a transparent PNG.",
+            },
+            {
+              title: "Capture",
+              body: "Buttons for a region, the whole screen and a recording press the laptop's own screenshot shortcut, with a trackpad under them to drag out the region.",
+            },
+            {
+              title: "Security levels and a PIN",
+              body: "Level 2 also asks each phone for a six-digit PIN the first time, level 3 on every connection, on the phone's own keypad. It is set on the laptop, and five wrong answers lock a phone out for 30 seconds, then longer.",
             },
             {
               title: "Live state",
@@ -169,6 +206,19 @@ export function ProductSections() {
           </>
         }
       >
+        <Note label="In testing">
+          <p className="mb-3">
+            <strong className="text-foreground">
+              Mac and Linux are still in testing. Please use them at your own risk.
+            </strong>
+          </p>
+          <p>
+            The Windows app is the one that has been run on a real laptop. The Mac app
+            has been compiled and unit-tested in CI, and the Linux app has not been seen
+            working on a Linux laptop yet. Expect rough edges, and report what you find.
+          </p>
+        </Note>
+
         <Tabs defaultValue="windows">
           <TabsList>
             <TabsTrigger value="windows">Laptop</TabsTrigger>
@@ -252,10 +302,56 @@ export function ProductSections() {
               </p>
               <p>
                 The Mac app has been compiled and unit-tested in CI but not yet run on a
-                real Mac, and it has no macros, now playing or virtual controller yet.
-                The README lists what differs.
+                real Mac, and it has no now playing, level readout or virtual controller
+                yet. The README lists what differs.
               </p>
             </Note>
+            <Note label="On Linux">
+              <p className="mb-3">
+                Download <C>Edgepad-x.y.z-linux-x64.tar.gz</C> (64-bit) and check it
+                against <C>SHA256SUMS.txt</C>, then extract it and run the installer as
+                root. Log out and back in once so your session gets access to{" "}
+                <C>/dev/uinput</C>, then start Edgepad from the launcher or run{" "}
+                <C>edgepad</C>.
+              </p>
+              <p className="mb-3">
+                <C>install.sh</C> only copies files and loads a module; it downloads
+                nothing. It puts <C>edgepad</C> in <C>/usr/local/bin</C>, the launcher
+                entry and the icon under <C>/usr/local/share</C>, a udev rule in{" "}
+                <C>/etc/udev/rules.d</C> and <C>uinput</C> in <C>/etc/modules-load.d</C>
+                , then runs <C>modprobe uinput</C>. Another prefix goes after the
+                command, and <C>--uninstall</C> removes it all and leaves your settings
+                in <C>~/.config/edgepad</C>.
+              </p>
+              <p className="mb-3">
+                The app is a self-contained single file, so .NET need not be installed.
+                It needs BlueZ for Bluetooth, <C>wpctl</C> (PipeWire) or <C>pactl</C>{" "}
+                for the volume and microphone dials, systemd-logind for Lock and
+                brightness, and <C>xdg-open</C> for macros that open a file, folder or
+                web address and for Open log and Documentation. <C>wl-copy</C> on
+                Wayland or <C>xclip</C> on X11 is optional, for typing text that is not
+                plain ASCII. GNOME needs the AppIndicator extension to show the tray
+                icon.
+              </p>
+              <p>
+                On Wayland, annotate runs under XWayland and the compositor may ignore
+                its always-on-top request, so it is best effort: the phone shows an
+                Annotate tile only when it can work. The shortcuts for task view, show
+                desktop, search, notifications and switching desktops differ per
+                desktop; the GNOME and KDE tables were written from memory and are
+                unverified, and on any other desktop those actions do nothing. Macros
+                are a text file you edit by hand, <C>~/.config/edgepad/macros.txt</C>,
+                with no editor on Linux yet. <C>docs/LINUX.md</C> in the repository
+                lists everything that has not been seen working.
+              </p>
+            </Note>
+            <CodeBlock
+              title="Install on Linux"
+              code={`tar xzf Edgepad-x.y.z-linux-x64.tar.gz
+cd edgepad-x.y.z
+sudo ./install.sh`}
+              caption="Then log out and back in once. sudo ./install.sh /opt/edgepad installs under another prefix, and sudo ./install.sh --uninstall removes it."
+            />
           </TabsContent>
 
           <TabsContent value="android" className="space-y-4">
@@ -298,7 +394,8 @@ export function ProductSections() {
             </strong>
             or macOS{" "}
             <strong className="text-foreground">System Settings &gt; Bluetooth</strong>.
-            Edgepad has no pairing step of its own.
+            Edgepad has no pairing step of its own; on Linux, use your desktop&apos;s
+            Bluetooth settings.
           </li>
           <li>
             Keep Edgepad running in the laptop&apos;s tray, or on a Mac in the menu bar.
@@ -401,16 +498,20 @@ export function ProductSections() {
         <P>
           Seven kinds compete for four places: volume, brightness, media scrub, zoom,
           app switcher, microphone level and refresh rate. A corner may also hold
-          nothing. A dial shows the laptop&apos;s real value from <C>STATE</C> frames,
-          and dragging sends absolute <C>SET</C> frames.
+          nothing. With <strong>Split corners</strong> on, in{" "}
+          <strong>Settings &gt; Corners</strong>, each corner takes a dial on each of
+          the two edges it joins, eight places in all. The dial a corner already held
+          stays on its side edge, any place can take any dial, and turning it off brings
+          the four single dials back as they were. A dial shows the laptop&apos;s real
+          value from <C>STATE</C> frames, and dragging sends absolute <C>SET</C> frames.
         </P>
 
         <Sub>Focusing and locking the pad</Sub>
         <P>
-          The middle of the five top buttons is the lock. One tap hides the dials and
-          the media and leaves the trackpad. A second tap inside the double-tap window
-          locks the trackpad instead and puts the dials and the media back, so the phone
-          can sit in a pocket or under a palm and answer only its rulers. Any later tap
+          The third of the four top buttons is the lock. One tap hides the dials and the
+          media and leaves the trackpad. A second tap inside the double-tap window locks
+          the trackpad instead and puts the dials and the media back, so the phone can
+          sit in a pocket or under a palm and answer only its rulers. Any later tap
           returns the whole surface. A locked pad keeps the lock button drawn in the
           full ink, because a surface that silently swallows every touch reads as a
           crash rather than as a mode.
@@ -437,11 +538,12 @@ export function ProductSections() {
 
         <Sub>Macro buttons</Sub>
         <P>
-          Fifteen slots, named from the laptop&apos;s tray menu. Fifteen is what one
-          frame can name — fifteen names at sixteen bytes with fourteen separators is
-          254 of the 255 bytes a <C>TEXT</C> frame carries — so a full grid always
-          arrives labelled rather than trailing off into blank buttons. A macro added
-          while the phone is connected appears at once.
+          Fifteen slots, named from the laptop&apos;s tray or menu-bar menu, or on Linux
+          from a text file. Fifteen is what one frame can name — fifteen names at
+          sixteen bytes with fourteen separators is 254 of the 255 bytes a <C>TEXT</C>{" "}
+          frame carries — so a full grid always arrives labelled rather than trailing
+          off into blank buttons. A macro saved in the Windows or Mac editor while the
+          phone is connected appears at once.
         </P>
         <P>
           The grid is no longer a fixed 5x3. Every cell is as wide as the widest label
@@ -450,6 +552,88 @@ export function ProductSections() {
           rather than by how many slots are filled, so two macros are two ordinary
           buttons at the left of a full-width row and not two half-screen slabs.
         </P>
+
+        <P>
+          <strong>Edit layout</strong> in the Macros bar lets you drag the buttons into
+          the order you want, or move each one earlier or later with a screen
+          reader&apos;s actions, and pick the grid, such as 3 × 2, from a list that
+          leaves out any grid whose buttons would be too small to hit. The order and the
+          grid are kept on the phone, and a button still runs the same macro wherever it
+          is placed. The buttons sit straight on the background with the press and focus
+          feedback kept, and a last row with fewer buttons than the rest sits under the
+          middle of them.
+        </P>
+
+        <Sub>Security levels and the PIN</Sub>
+        <P>
+          Set from the laptop&apos;s tray or menu-bar menu under{" "}
+          <strong>Security…</strong>, never from the phone. Level 1, the default, is the
+          Trust this phone? question and nothing else. Level 2 also asks each phone for
+          a six-digit PIN the first time it connects, and level 3 asks on every
+          connection.
+        </P>
+        <P>
+          The phone asks on its own keypad, so no keyboard app sees the digits. It never
+          stores the PIN, and the screen cannot be captured. A wrong answer shows the
+          attempts left; after five wrong answers the laptop refuses that phone for 30
+          seconds, doubling with each further five, up to an hour. The counters are kept
+          in memory, so quitting the laptop app resets them, and changing the PIN or the
+          level makes every phone enter the PIN again.
+        </P>
+        <P>
+          A forgotten PIN can only be reset on the laptop, with Reset PIN and forget
+          phones…, which removes the PIN, goes back to level 1 and forgets every trusted
+          phone, so each one is asked Trust this phone? again. A six-digit PIN is only a
+          million values, so what stops guessing is the lock-out. It does not protect
+          against someone who can copy the laptop&apos;s settings file, and the laptop
+          stores only a salted hash of the PIN.
+        </P>
+
+        <Sub>Controls, annotate, sign and capture</Sub>
+        <P>
+          <strong>Controls</strong> on the surface opens a grid of Keyboard, Gamepad,
+          Capture and Annotate. A laptop shows only what it can do, so a phone shows no
+          Annotate tile when the laptop does not offer it, and no Capture tile when it
+          cannot capture. Back from the keyboard, the gamepad and Capture returns to
+          Controls.
+        </P>
+        <P>
+          Annotate draws on the laptop&apos;s primary display, with the phone as an
+          absolute pen: a touch lands at the same place on the laptop. It has a pen, a
+          highlighter, a line, an arrow, a rectangle and an ellipse in eight colours,
+          plus Undo and Clear. The Sign switch turns the same pad into a signature:
+          nothing shows on the laptop, only the pen is offered, and Save signature
+          copies a transparent PNG to the clipboard and saves it as{" "}
+          <C>signature-yyyyMMdd-HHmmss.png</C> in an <C>Edgepad</C> folder in Pictures,
+          never over an earlier one. Annotate works on Windows, on the Mac and on Linux;
+          on Linux it is best effort and in testing.
+        </P>
+        <P>
+          Capture presses the laptop&apos;s own screenshot or recording shortcut, and
+          has a trackpad under its buttons to drag out the region.
+        </P>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Laptop</TableHead>
+              <TableHead>Region</TableHead>
+              <TableHead>Whole screen</TableHead>
+              <TableHead>Recording</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {CAPTURE.map((row) => (
+              <TableRow key={row.os}>
+                <TableCell className="font-mono text-[0.8125rem] whitespace-nowrap">
+                  {row.os}
+                </TableCell>
+                <TableCell className="text-[0.875rem]">{row.region}</TableCell>
+                <TableCell className="text-[0.875rem]">{row.screen}</TableCell>
+                <TableCell className="text-[0.875rem]">{row.record}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </Section>
 
       <Section
@@ -508,14 +692,12 @@ export function ProductSections() {
           in landscape.
         </P>
         <P>
-          Orientation is a toggle — upright or sideways — not free rotation, and since
-          3.0.0 it speaks only for the control surface and the two canvases that stand
-          in for it: the media layout editor, because a media layout has been stored per
-          orientation since 2.3.0 and a phone turned mid-edit would quietly begin
-          changing the other one, and the shape canvas, because a stroke is drawn at the
-          pad&apos;s own proportions. The keyboard, the gamepad and the gamepad&apos;s
-          editor are sideways and only sideways. Every other screen follows the phone,
-          which is what the setting used to override for the whole app.
+          Orientation is a toggle — upright or sideways — not free rotation. Since 4.0.0
+          it applies to every screen except the keyboard, the gamepad and the
+          gamepad&apos;s editor, which are sideways whatever it says. From 3.0.0 until
+          then it spoke only for the control surface and the two canvases that stand in
+          for it, the media layout editor and the shape canvas; every other screen
+          followed the phone.
         </P>
 
         <Sub>Where the laptop keeps things</Sub>
@@ -525,7 +707,9 @@ export function ProductSections() {
 %LOCALAPPDATA%\\Edgepad\\edgepad.log    connections, refusals, dropped frames,
                                       and input batches Windows refused
 ~/Library/Application Support/Edgepad/trusted-phone.txt   the same, on a Mac
-~/Library/Logs/Edgepad/edgepad.log                        the log, on a Mac`}
+~/Library/Logs/Edgepad/edgepad.log                        the log, on a Mac
+~/.config/edgepad/trusted-phone.txt                       the same, on Linux
+~/.local/share/Edgepad/edgepad.log                        the log, on Linux`}
           caption="The log is also in the tray menu, under Open log."
         />
       </Section>

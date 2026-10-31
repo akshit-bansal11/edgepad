@@ -1,8 +1,11 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.ControlId
+import me.akshitbansal.edgepad.protocol.DeviceOs
+import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadStatus
+import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -38,8 +41,48 @@ class LaptopStateTest {
     }
 
     @Test
+    fun readsTheFeaturesTheLaptopNames() {
+        assertEquals(emptySet<Feature>(), state.features)
+        assertTrue(state.take(Frame.Text(TextKind.FEATURES.id, "annotate/capture")))
+        assertEquals(setOf(Feature.ANNOTATE, Feature.CAPTURE), state.features)
+        state.take(Frame.Text(TextKind.FEATURES.id, "capture"))
+        assertEquals(setOf(Feature.CAPTURE), state.features)
+        // Nothing named means nothing on, and a token this build does not know is ignored, not an error.
+        state.take(Frame.Text(TextKind.FEATURES.id, ""))
+        assertEquals(emptySet<Feature>(), state.features)
+        state.take(Frame.Text(TextKind.FEATURES.id, "junk"))
+        assertEquals(emptySet<Feature>(), state.features)
+        state.take(Frame.Text(TextKind.FEATURES.id, "junk/capture"))
+        assertEquals(setOf(Feature.CAPTURE), state.features)
+    }
+
+    @Test
+    fun readsTheScreenSizeAndKeepsTheLastGoodOne() {
+        assertNull(state.screenSize)
+        assertTrue(state.take(Frame.Text(TextKind.SCREEN_SIZE.id, "1920/1080")))
+        assertEquals(1920 to 1080, state.screenSize)
+        // A size that cannot be a screen is not taken, and the last good one stays rather than going to zero.
+        for (bad in listOf("", "1920", "0/1080", "1920/-1", "a/b", "1/2/3")) {
+            assertFalse(bad, state.take(Frame.Text(TextKind.SCREEN_SIZE.id, bad)))
+        }
+        assertEquals(1920 to 1080, state.screenSize)
+    }
+
+    @Test
+    fun keepsHowTheLastSignatureSaveEnded() {
+        assertNull(state.signStatus)
+        assertTrue(state.take(Frame.Text(TextKind.SIGN_STATUS.id, "saved")))
+        assertEquals(SignStatus.SAVED, state.signStatus)
+        state.take(Frame.Text(TextKind.SIGN_STATUS.id, "empty"))
+        assertEquals(SignStatus.EMPTY, state.signStatus)
+        // A token this build does not know must not look like a success.
+        state.take(Frame.Text(TextKind.SIGN_STATUS.id, "uploaded"))
+        assertEquals(SignStatus.FAILED, state.signStatus)
+    }
+
+    @Test
     fun anUnknownControlIsNotKept() {
-        assertFalse(state.take(Frame.StateReport(9, 1, 0)))
+        assertFalse(state.take(Frame.StateReport(99, 1, 0)))
     }
 
     @Test
@@ -110,6 +153,47 @@ class LaptopStateTest {
     }
 
     @Test
+    fun readsWhichMacroAppsAreOpen() {
+        assertTrue(state.take(Frame.Text(TextKind.MACRO_OPEN.id, "-012")))
+        assertEquals(listOf(OpenState.UNTRACKED, OpenState.CLOSED, OpenState.OPEN, OpenState.FRONT), state.macroOpen)
+        assertEquals(listOf(false, false, true, true), (0..3).map(state::isOpen))
+        assertFalse("a slot past the list is not open", state.isOpen(4))
+    }
+
+    @Test
+    fun anUnknownOpenCharacterReadsAsUntracked() {
+        state.take(Frame.Text(TextKind.MACRO_OPEN.id, "1x"))
+        assertEquals(listOf(OpenState.OPEN, OpenState.UNTRACKED), state.macroOpen)
+        assertFalse(state.isOpen(1))
+    }
+
+    @Test
+    fun nothingIsOpenUntilTheLaptopSays() {
+        assertEquals(emptyList<OpenState>(), state.macroOpen)
+        assertFalse(state.isOpen(0))
+    }
+
+    @Test
+    fun aChangedMacroListForgetsWhatWasOpen() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes"))
+        state.take(Frame.Text(TextKind.MACRO_OPEN.id, "12"))
+
+        // The same list sent again moves no slot, and the laptop would not say the same state twice.
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes"))
+        assertTrue(state.isOpen(0))
+
+        state.take(Frame.Text(TextKind.MACROS.id, "Notes/Chrome"))
+        assertEquals(emptyList<OpenState>(), state.macroOpen)
+    }
+
+    @Test
+    fun forgettingWhatWasOpenLeavesNothingOpen() {
+        state.take(Frame.Text(TextKind.MACRO_OPEN.id, "2"))
+        state.forgetMacroOpen()
+        assertFalse(state.isOpen(0))
+    }
+
+    @Test
     fun framesThatAreNotStateAreNotKept() {
         assertFalse(state.take(Frame.Pong(1)))
         // A kind no build knows, and one this end never receives: WANT_ICONS only ever goes the other way.
@@ -119,7 +203,7 @@ class LaptopStateTest {
 
     @Test
     fun joinsAnIconFromItsChunks() {
-        // The other half of this format is MacroIcons.Chunks on the laptop, and the two are only held
+        // The other half of this format is MacroIconChunks.Chunks on the laptop, and the two are only held
         // together by the C# suite and this one agreeing about it. Both are written out by hand for that
         // reason: a helper shared with the code would agree with the code whatever the code did.
         val png = bytes(600)
@@ -200,6 +284,52 @@ class LaptopStateTest {
     }
 
     @Test
+    fun anUnchangedMacroKeepsItsIconWhenTheListIsSentAgain() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes"))
+        val png = bytes(30)
+        chunks(slot = 0, png = png).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        // A third macro was added: the first two have not changed, so the cache still holds the first one.
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes/Spotify"))
+
+        assertArrayEquals(png, state.macroIcon(0))
+    }
+
+    @Test
+    fun aDeletedMacroLosesItsIconAndTheOthersKeepTheirs() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes/Spotify"))
+        val png = bytes(30)
+        chunks(slot = 0, png = png).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+        chunks(slot = 2, png = png).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        // Spotify is gone from the list.
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes"))
+
+        assertArrayEquals(png, state.macroIcon(0))
+        assertNull(state.macroIcon(2))
+    }
+
+    @Test
+    fun aMacroBlankedInTheListLosesItsIcon() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/Notes"))
+        chunks(slot = 1, png = bytes(30)).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome/"))
+
+        assertNull(state.macroIcon(1))
+    }
+
+    @Test
+    fun anEmptyListEmptiesTheCache() {
+        state.take(Frame.Text(TextKind.MACROS.id, "Chrome"))
+        chunks(slot = 0, png = bytes(30)).forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        state.take(Frame.Text(TextKind.MACROS.id, ""))
+
+        assertNull(state.macroIcon(0))
+    }
+
+    @Test
     fun anIconSentAgainReplacesTheOneBeforeIt() {
         val first = bytes(30)
         val second = bytes(600)
@@ -210,11 +340,22 @@ class LaptopStateTest {
         assertArrayEquals(second, state.macroIcon(3))
     }
 
+    @Test
+    fun aFullSizeIconOfNinetySixKilobytesIsAccepted() {
+        val png = bytes(96 * 1024)
+        val pieces = chunks(slot = 1, png = png)
+
+        pieces.forEach { state.take(Frame.Text(TextKind.MACRO_ICON.id, it)) }
+
+        assertEquals(547, pieces.size)
+        assertArrayEquals(png, state.macroIcon(1))
+    }
+
     /** Bytes that do not repeat, so a wrongly joined icon cannot happen to equal the right one. */
     private fun bytes(size: Int): ByteArray = ByteArray(size) { (it * 31 % 251).toByte() }
 
     /**
-     * What MacroIcons.Chunks produces on the laptop, written out again here rather than shared: 240 bytes
+     * What MacroIconChunks.Chunks produces on the laptop, written out again here rather than shared: 240 bytes
      * of base64 per frame behind a "slot/chunk/chunks/" header.
      */
     private fun chunks(
@@ -229,8 +370,37 @@ class LaptopStateTest {
         }
     }
 
+    @Test
+    fun readsTheLaptopsIdentityFromDevice() {
+        val id = "0123456789abcdef0123456789abcdef"
+        assertTrue(state.take(Frame.Text(TextKind.DEVICE.id, "$id/windows/Office/PC")))
+        assertEquals(id, state.laptopId)
+        assertEquals(DeviceOs.WINDOWS, state.os)
+        assertEquals("Office/PC", state.laptopName)
+    }
+
+    @Test
+    fun aDeviceTokenThisBuildDoesNotKnowLeavesOsNull() {
+        val id = "0123456789abcdef0123456789abcdef"
+        assertTrue(state.take(Frame.Text(TextKind.DEVICE.id, "$id/haiku/Desk")))
+        assertEquals(null, state.os)
+        assertEquals("Desk", state.laptopName)
+    }
+
+    @Test
+    fun malformedDeviceTextIsIgnored() {
+        val id = "0123456789abcdef0123456789abcdef"
+        assertTrue(state.take(Frame.Text(TextKind.DEVICE.id, "$id/linux/Good")))
+        for (bad in listOf("$id", "$id/linux", "$id/linux/", "0123/linux/Short", "$id-x/linux/Name")) {
+            assertFalse(bad, state.take(Frame.Text(TextKind.DEVICE.id, bad)))
+        }
+        assertEquals(id, state.laptopId)
+        assertEquals("Good", state.laptopName)
+        assertEquals(DeviceOs.LINUX, state.os)
+    }
+
     private companion object {
-        /** MacroIcons.ChunkBytes on the laptop. Written out, because agreeing with it is the point. */
+        /** MacroIconChunks.ChunkBytes on the laptop. Written out, because agreeing with it is the point. */
         const val CHUNK_BYTES = 240
     }
 }

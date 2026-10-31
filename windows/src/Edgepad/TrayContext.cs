@@ -1,12 +1,17 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using Edgepad.Blob;
 using Edgepad.Bluetooth;
 using Edgepad.Controls;
+using Edgepad.Dispatch;
 using Edgepad.Macros;
+using Edgepad.Net;
+using Edgepad.Network;
 using Edgepad.Startup;
 using Edgepad.Trust;
 using Edgepad.Ui;
 using Edgepad.Updates;
+using Microsoft.Win32;
 using NAudio.CoreAudioApi;
 
 namespace Edgepad;
@@ -34,36 +39,76 @@ internal sealed class TrayContext : ApplicationContext
     /// </summary>
     private static readonly TimeSpan QuietAfterForget = TimeSpan.FromSeconds(30);
 
+    private const string NetworkNotice =
+        "Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. "
+            + "Nothing connects without the code typed here. Windows will ask for permission once.";
+
+    // Lucide's clipboard, on the same grid as the paths in Ui/Icons.
+    private const string ClipboardGlyph = "M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1H9a1 1 0 0 1 -1 -1V3a1 1 0 0 1 1 -1z"
+        + "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2H6a2 2 0 0 1 -2 -2V6a2 2 0 0 1 2 -2h2";
+
     private readonly MenuRow startWithWindows = new("Start with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new("Macros…", Icons.Macro);
+    private readonly MenuRow securityRow = new("Security…", Icons.Smartphone);
+    private readonly MenuRow networkRow = new("Wi-Fi and USB connections", Icons.Wifi) { CheckOnClick = true, Switch = true };
+    private readonly MenuRow firewallRow = new("Allow through Windows Firewall…", Icons.Shield);
+    private readonly MenuRow clipboardRow = new("Share clipboard", ClipboardGlyph) { CheckOnClick = true, Switch = true };
     private readonly MenuRow forget = new("Forget trusted phones", Icons.Unlink) { Danger = true };
     private readonly MenuRow update = new("Update available", Icons.Download) { Available = false };
     private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
     private readonly TrayMenu menu = new();
     private readonly NotifyIcon icon;
     private readonly SynchronizationContext ui;
+    private Icon? themed;
 
     private readonly TrustStore trust = TrustStore.ForCurrentUser();
+    private readonly PinStore pin = PinStore.ForCurrentUser();
     private readonly AudioEndpoint speakers = new(DataFlow.Render);
     private readonly AudioEndpoint microphone = new(DataFlow.Capture);
     private readonly BrightnessControl brightness = new();
     private readonly MediaSessions media = new();
     private readonly DisplayModes display = new();
-    private readonly MacroStore macros = MacroStore.ForCurrentUser();
+    private readonly MacroStore macros = MacroStore.ForCurrentUser(new ShellLauncher(), new WindowsMacroWindows());
     private readonly LevelOverlay overlay;
+    private readonly SessionHost host;
     private readonly RfcommServer server;
+    private readonly PairedLinks pairedLinks = PairedLinks.ForCurrentUser();
+    private readonly NetworkSettings networkSettings;
+    private readonly FirewallMemory firewallMemory;
+    private readonly NetworkServer network;
+    private readonly ClipboardSetting clipboardSetting;
+    private readonly WindowsClipboard clipboard;
+
+    // The Wi-Fi and USB row's hint: off, the port listened on, or why not. Only the UI thread touches it.
+    private string networkHint = "Off";
+
+    // True from the question being put until the firewall step is over: nothing may listen before the rule exists, or
+    // Windows' own alert appears as well. Only the UI thread touches it.
+    private bool allowingNetwork;
 
     // The menu stays clickable under the confirmation, and a second one would lift the hold while the first was
     // still open. All of this runs on the UI thread, so a plain bool is enough.
     private bool forgetting;
 
+    // The same for the Security window, which also holds connections off while it is open.
+    private bool securing;
+
     public TrayContext(EventWaitHandle quit)
     {
+        // First, because the menu's Opening handler below reads it.
+        networkSettings = NetworkSettings.ForCurrentUser(pin.Folder);
+        firewallMemory = FirewallMemory.ForCurrentUser(pin.Folder);
+        clipboardSetting = ClipboardSetting.ForCurrentUser(pin.Folder);
+
         // Click, not CheckedChanged: the menu sets Checked from the registry each time it opens, and that must
         // read the key without writing it back — least of all deleting it after a failed read.
         startWithWindows.Click += (_, _) => RunAtLogin.Set(startWithWindows.Checked);
         forget.Click += (_, _) => ConfirmForget();
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
+        securityRow.Click += (_, _) => ShowSecurity();
+        networkRow.Click += (_, _) => ToggleNetwork(networkRow.Checked);
+        firewallRow.Click += (_, _) => AllowFirewall(ReportFirewall);
+        clipboardRow.Click += (_, _) => SaveClipboard(clipboardRow.Checked);
         update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
 
         // The header is the menu's own. The update row sits right under it and stays hidden until there is one.
@@ -72,6 +117,10 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(startWithWindows);
         menu.Items.Add(macrosRow);
+        menu.Items.Add(securityRow);
+        menu.Items.Add(networkRow);
+        menu.Items.Add(firewallRow);
+        menu.Items.Add(clipboardRow);
         menu.Items.Add(Row("Open log", Icons.FileText, OpenLog));
         menu.Items.Add(Row("Documentation", Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
         menu.Items.Add(new MenuSeparator());
@@ -82,7 +131,13 @@ internal sealed class TrayContext : ApplicationContext
         menu.Opening += (_, _) =>
         {
             startWithWindows.Checked = RunAtLogin.IsEnabled;
-            forget.Enabled = trust.CanForget;
+            forget.Enabled = trust.CanForget || pairedLinks.CanForget;
+            securityRow.Hint = $"Level {pin.Level}";
+            networkRow.Checked = networkSettings.Load().Enabled;
+            networkRow.Enabled = !allowingNetwork;
+            networkRow.Hint = networkHint;
+            firewallRow.Available = networkRow.Checked && !allowingNetwork;
+            clipboardRow.Checked = clipboardSetting.Enabled;
             macrosRow.Hint = $"{macros.Macros.Count} of {MacroStore.MaxMacros}";
             menu.Restyle();
         };
@@ -105,11 +160,65 @@ internal sealed class TrayContext : ApplicationContext
         // Bluetooth threads and are marshalled back here.
         ui = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
 
+        // The taskbar's tile, light or dark, now and whenever Windows' theme changes (that arrives as General).
+        ApplyTrayIcon();
+        SystemEvents.UserPreferenceChanged += OnPreferenceChanged;
+
         // Built here and nowhere else: the overlay captures this thread's synchronisation context, and the
         // frames that ask it to show something arrive on a Bluetooth thread that has none of its own.
         overlay = new LevelOverlay();
-        server = new RfcommServer(SetStatus, trust, AskTrust, speakers, microphone, brightness, media, display, macros, overlay);
+        var identity = LinkIdentity.ForCurrentUser(pin.Folder);
+
+        // Here for the same reason: its window, and every clipboard call after it, belong to this thread.
+        clipboard = new WindowsClipboard(ui, () => clipboardSetting.Enabled);
+        host = new SessionHost(
+            SetStatus,
+            trust,
+            pin,
+            AskTrust,
+            speakers,
+            microphone,
+            brightness,
+            media,
+            display,
+            macros,
+            overlay,
+            identity,
+            clipboard,
+            () => clipboardSetting.Enabled,
+            AnnounceMacro,
+            ui,
+            OnSessionEnded);
+        server = new RfcommServer(SetStatus, host);
         _ = StartServerAsync();
+
+        // Starts once the owner has said yes (network.txt); only a phone that proves itself is handed to the host.
+        network = new NetworkServer(
+            identity,
+            pairedLinks,
+            trust,
+            new PairingPrompt(ui, AnnouncePairing),
+            host.Accept,
+            name => SetStatus($"Paired with {name}"),
+            () => host.IsRefusing);
+        SystemEvents.PowerModeChanged += OnPowerModeChanged;
+
+        // An update is a new exe with no rule. Held before the first listen, or Windows' own alert would come first.
+        var followExe = networkSettings.Load().Enabled && FirewallMemory.IsNew(firewallMemory.Load(), Environment.ProcessPath);
+        allowingNetwork = followExe;
+        ApplyNetwork();
+        if (followExe)
+        {
+            // Posted, for the same reason as the question below: the firewall step needs the tray running.
+            ui.Post(_ => FollowExe(), null);
+        }
+
+        if (!networkSettings.HasChoice)
+        {
+            // Posted, so it waits for the tray to be up and running rather than holding up this constructor.
+            ui.Post(_ => AskAboutNetwork(), null);
+        }
+
         _ = StartMediaAsync();
 
         // Once now and once a day after, for a tray app that is left running for weeks.
@@ -201,6 +310,207 @@ internal sealed class TrayContext : ApplicationContext
         }
     }
 
+    // A method rather than a lambda in the constructor, where the server is not assigned yet. A session can only
+    // end once the server has started, after the constructor.
+    private void OnSessionEnded(Func<bool> end) => server.OnSessionEnded(end);
+
+    /// <summary>
+    /// The Wi-Fi and USB switch. Turning it on says first what will happen; a no there leaves it off.
+    /// </summary>
+    private void ToggleNetwork(bool on)
+    {
+        if (on && MessageBox.Show(
+            NetworkNotice,
+            "Edgepad",
+            MessageBoxButtons.OKCancel,
+            MessageBoxIcon.Information) != DialogResult.OK)
+        {
+            networkRow.Checked = false;
+            return;
+        }
+
+        SaveNetwork(on);
+    }
+
+    /// <summary>
+    /// The first launch's one question, with Not now the default so a stray Enter opens nothing. Nothing listens until
+    /// it is answered, and closing it is not an answer. Not now is saved, so it is never asked again; the switch in the
+    /// menu is the way back.
+    /// </summary>
+    private void AskAboutNetwork()
+    {
+        var allow = new TaskDialogButton("Allow");
+        var notNow = new TaskDialogButton("Not now");
+        var page = new TaskDialogPage
+        {
+            Caption = "Edgepad",
+            Heading = "Let phones find this laptop?",
+            Text = NetworkNotice,
+            Icon = TaskDialogIcon.Shield,
+            Buttons = { allow, notNow },
+            DefaultButton = notNow,
+        };
+
+        allowingNetwork = true;
+        bool on;
+        try
+        {
+            on = TaskDialog.ShowDialog(page, TaskDialogStartupLocation.CenterScreen) == allow;
+        }
+        catch (Exception e) when (e is InvalidOperationException or Win32Exception)
+        {
+            // Nothing listens, and the next launch asks again.
+            Log.Write($"Could not ask about Wi-Fi and USB phones: {e.Message}");
+            return;
+        }
+        finally
+        {
+            allowingNetwork = false;
+        }
+
+        SaveNetwork(on);
+    }
+
+    /// <summary>
+    /// Saves the owner's answer and acts on it: turning on runs the firewall step and listens only after it, whatever
+    /// it reported, so the rule is in place first. A setting that cannot be saved leaves things as they were.
+    /// </summary>
+    private void SaveNetwork(bool on)
+    {
+        if (!networkSettings.SetEnabled(on))
+        {
+            networkRow.Checked = !on;
+            MessageBox.Show(
+                "The setting could not be saved, so nothing was changed. The log has the reason.",
+                "Edgepad",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+            return;
+        }
+
+        if (!on)
+        {
+            ApplyNetwork();
+            return;
+        }
+
+        AllowThenListen();
+    }
+
+    /// <summary>The first launch of a new exe with the network on: says why Windows is about to ask, then asks.</summary>
+    private void FollowExe()
+    {
+        icon.ShowBalloonTip(
+            0,
+            "Edgepad",
+            "This version of Edgepad is a new file, so Windows will ask once to let phones reach it.",
+            ToolTipIcon.Info);
+        AllowThenListen();
+    }
+
+    /// <summary>The firewall step, then listening whatever it reported, so nothing listens before the rule exists.</summary>
+    private void AllowThenListen()
+    {
+        allowingNetwork = true;
+        AllowFirewall(allowed =>
+        {
+            allowingNetwork = false;
+            ReportFirewall(allowed);
+            ApplyNetwork();
+        });
+    }
+
+    /// <summary>
+    /// Every way to the firewall step. The exe is remembered whatever the answer, so a no is not asked again at the next
+    /// launch; the menu's Allow row is the way back.
+    /// </summary>
+    private void AllowFirewall(Action<bool> done)
+    {
+        Firewall.Allow(allowed =>
+        {
+            if (Environment.ProcessPath is { } exe)
+            {
+                firewallMemory.Remember(exe);
+            }
+
+            done(allowed);
+        });
+    }
+
+    /// <summary>Says a macro was added from the phone. Called from a session's thread, so the balloon is posted to the UI thread.</summary>
+    private void AnnounceMacro(string name) =>
+        ui.Post(_ => icon.ShowBalloonTip(0, "Edgepad", $"Added {name} from your phone", ToolTipIcon.Info), null);
+
+    /// <summary>One notice when the rule did not go in, a declined prompt among the reasons. Asks nothing again.</summary>
+    private void ReportFirewall(bool allowed)
+    {
+        if (!allowed)
+        {
+            icon.ShowBalloonTip(
+                0,
+                "Edgepad",
+                "Windows Firewall was not changed, so phones may not reach this laptop. Allow through Windows Firewall in this menu tries again.",
+                ToolTipIcon.Warning);
+        }
+    }
+
+    /// <summary>
+    /// The Share clipboard switch. It holds from this moment whether or not it could be saved, because a session reads it
+    /// at every step; a phone already connected keeps showing the old state until it next connects.
+    /// </summary>
+    private void SaveClipboard(bool on)
+    {
+        if (!clipboardSetting.Set(on))
+        {
+            icon.ShowBalloonTip(
+                0,
+                "Edgepad",
+                "Share clipboard changed for now, but could not be saved, so the next launch may not remember it.",
+                ToolTipIcon.Warning);
+        }
+    }
+
+    /// <summary>Listens or stops as network.txt says, and words the row's hint for it. On the UI thread only.</summary>
+    private void ApplyNetwork()
+    {
+        // The question or the firewall step is open, and the end of that calls this. A wake now must not listen first.
+        if (allowingNetwork)
+        {
+            return;
+        }
+
+        var config = networkSettings.Load();
+        if (!config.Enabled)
+        {
+            network.Stop();
+            networkHint = "Off";
+            return;
+        }
+
+        if (!network.Start(config.Port))
+        {
+            networkHint = "Could not listen; see the log";
+            return;
+        }
+
+        var listening = network.Port == config.Port ? $"Listening on {config.Port}" : $"Port in use, using {network.Port}";
+        networkHint = network.IsAnnounced ? listening : $"{listening}, not announced";
+    }
+
+    // Sockets opened before sleep may not survive it. Raised on SystemEvents' thread; the listener is the UI thread's.
+    private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
+    {
+        if (e.Mode == PowerModes.Resume)
+        {
+            ui.Post(_ => ApplyNetwork(), null);
+        }
+    }
+
+    /// <summary>The pairing window may open behind whatever has focus; the notification is what the owner notices.</summary>
+    private void AnnouncePairing(string phoneName) => ui.Post(
+        _ => icon.ShowBalloonTip(0, "Edgepad", $"{phoneName} wants to pair. Type the code it shows.", ToolTipIcon.Info),
+        null);
+
     private void SetStatus(string text) => ui.Post(
         _ =>
         {
@@ -279,7 +589,8 @@ internal sealed class TrayContext : ApplicationContext
         // A connected phone is a keyboard: it could press Enter on this confirmation, where No is the default,
         // and so keep the owner from ever forgetting it. Hanging up is not enough, since the phone is still trusted
         // and reconnects within seconds, so nothing may connect until the question is answered.
-        server.HoldOff();
+        host.HoldOff();
+        network.DropPending();
         try
         {
             var phones = string.Join(", ", trust.TrustedPhones);
@@ -297,8 +608,11 @@ internal sealed class TrayContext : ApplicationContext
 
             var forgotten = trust.Forget();
 
+            // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
+            var verifiedForgotten = pin.ForgetVerified();
+
             // Started before the hold ends, so there is no instant in which a connection would be taken.
-            server.HangUp(QuietAfterForget);
+            host.HangUp(QuietAfterForget);
             if (!forgotten)
             {
                 MessageBox.Show(
@@ -310,11 +624,74 @@ internal sealed class TrayContext : ApplicationContext
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
+
+            // The Wi-Fi and USB pairings too, or a forgotten phone would resume its link and only meet the trust
+            // question, not a new pairing.
+            ForgetPairedLinks();
+
+            if (!verifiedForgotten)
+            {
+                MessageBox.Show(
+                    "The phones that entered the PIN could not be forgotten: their list could not be removed. While "
+                        + "Edgepad stays running every phone is asked for the PIN on every connection, but those phones "
+                        + "will skip it at level 2 again the next time Edgepad starts. Choose Forget trusted phones "
+                        + $"again, or delete pin-verified.txt yourself from:\n\n{pin.Folder}",
+                    "Edgepad",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
         finally
         {
-            server.Resume();
+            host.Resume();
             forgetting = false;
+        }
+    }
+
+    /// <summary>
+    /// Forgets the Wi-Fi and USB pairings, and tells the owner when they could not be. Every way of forgetting phones
+    /// (Forget trusted phones, Reset PIN in the Security window) goes through here.
+    /// </summary>
+    private void ForgetPairedLinks()
+    {
+        if (pairedLinks.Forget())
+        {
+            return;
+        }
+
+        MessageBox.Show(
+            "The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. "
+                + "Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will "
+                + "be able to again the next time it starts. Choose Forget trusted phones again, or delete "
+                + $"paired-links.txt yourself from:\n\n{pin.Folder}",
+            "Edgepad",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error);
+    }
+
+    /// <summary>
+    /// The Security window, with connections refused while it is open for the reason <see cref="ConfirmForget"/>
+    /// gives: a connected phone is a keyboard and could otherwise answer it, or change the level it is held by.
+    /// </summary>
+    private void ShowSecurity()
+    {
+        if (securing)
+        {
+            return;
+        }
+
+        securing = true;
+        host.HoldOff();
+        network.DropPending();
+        try
+        {
+            using var window = new SecurityWindow(pin, trust, ForgetPairedLinks, () => host.HangUp(QuietAfterForget));
+            window.ShowDialog();
+        }
+        finally
+        {
+            host.Resume();
+            securing = false;
         }
     }
 
@@ -322,11 +699,13 @@ internal sealed class TrayContext : ApplicationContext
     /// Asks the owner whether to trust <paramref name="address"/>, and waits for the answer. Called on a session
     /// thread, which holds the phone's HELLO_ACK until this returns; the question itself is shown on this
     /// context's thread, which owns every window the app has. No answer within <see cref="TrustPromptTimeout"/>
-    /// is a no. The phone is named by its address, as the status line names it once it has connected.
+    /// is a no, and so is a session that ends meanwhile (<paramref name="ended"/>: a hold, a hang-up), which also
+    /// closes the question. The phone is named as the status line names it once it has connected (SessionHost.Shown).
     /// </summary>
-    private bool AskTrust(string address)
+    private bool AskTrust(string address, CancellationToken ended)
     {
-        SetStatus($"Asking whether to trust {address}");
+        var phone = host.Shown(address);
+        SetStatus($"Asking whether to trust {phone}");
         var deadline = Environment.TickCount64 + (long)TrustPromptTimeout.TotalMilliseconds;
         var answer = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         ui.Post(
@@ -334,17 +713,26 @@ internal sealed class TrayContext : ApplicationContext
             {
                 // Only while the session is still waiting: a question whose answer nobody would read must not
                 // be left on screen for the owner to answer.
-                if (!answer.Task.IsCompleted)
+                if (!answer.Task.IsCompleted && !ended.IsCancellationRequested)
                 {
                     // The dialog may open behind whatever has focus, since a tray app cannot take the
                     // foreground; the notification is what the owner notices.
-                    icon.ShowBalloonTip(0, "Edgepad", $"{address} wants to connect. Choose Trust or Don't trust.", ToolTipIcon.Info);
-                    answer.TrySetResult(ShowTrustPrompt(address, deadline));
+                    icon.ShowBalloonTip(0, "Edgepad", $"{phone} wants to connect. Choose Trust or Don't trust.", ToolTipIcon.Info);
+                    answer.TrySetResult(ShowTrustPrompt(phone, deadline, ended));
                 }
             },
             null);
 
-        var trusted = answer.Task.Wait(TrustPromptTimeout) && answer.Task.Result;
+        bool trusted;
+        try
+        {
+            trusted = answer.Task.Wait(TrustPromptTimeout, ended) && answer.Task.Result;
+        }
+        catch (OperationCanceledException)
+        {
+            trusted = false;
+        }
+
         answer.TrySetResult(false);
         Log.Write(trusted ? $"The owner trusted {address}" : $"The owner did not trust {address}");
         return trusted;
@@ -352,9 +740,10 @@ internal sealed class TrayContext : ApplicationContext
 
     /// <summary>
     /// The question itself: Trust or Don't trust, with Don't trust the default so a stray Enter trusts nothing.
-    /// It answers itself with Don't trust at <paramref name="deadline"/>, when the session stops waiting.
+    /// It answers itself with Don't trust at <paramref name="deadline"/>, when the session stops waiting, or once
+    /// <paramref name="ended"/> is cancelled.
     /// </summary>
-    private static bool ShowTrustPrompt(string address, long deadline)
+    private static bool ShowTrustPrompt(string address, long deadline, CancellationToken ended)
     {
         var yes = new TaskDialogButton("Trust");
         var no = new TaskDialogButton("Don't trust");
@@ -370,11 +759,16 @@ internal sealed class TrayContext : ApplicationContext
             DefaultButton = no,
         };
 
-        using var timeout = new System.Windows.Forms.Timer { Interval = (int)Math.Max(1, deadline - Environment.TickCount64) };
+        // Polled on this thread rather than registered on the token, so the click can never land on a dialog that
+        // has already closed.
+        using var timeout = new System.Windows.Forms.Timer { Interval = 250 };
         timeout.Tick += (_, _) =>
         {
-            timeout.Stop();
-            no.PerformClick();
+            if (ended.IsCancellationRequested || Environment.TickCount64 >= deadline)
+            {
+                timeout.Stop();
+                no.PerformClick();
+            }
         };
         timeout.Start();
         try
@@ -389,6 +783,38 @@ internal sealed class TrayContext : ApplicationContext
         }
     }
 
+    // SystemEvents raises on its own thread; the icon is the UI thread's.
+    private void OnPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
+    {
+        if (e.Category == UserPreferenceCategory.General)
+        {
+            ui.Post(_ => ApplyTrayIcon(), null);
+        }
+    }
+
+    /// <summary>Shows the tile that suits the taskbar. Anything missing or failing leaves the icon as it is.</summary>
+    private void ApplyTrayIcon()
+    {
+        try
+        {
+            var name = Palette.TaskbarIsDark ? "Edgepad.Assets.tray-dark.ico" : "Edgepad.Assets.tray-light.ico";
+            using var stream = typeof(TrayContext).Assembly.GetManifestResourceStream(name);
+            if (stream is null)
+            {
+                return;
+            }
+
+            var next = new Icon(stream);
+            icon.Icon = next;
+            themed?.Dispose();
+            themed = next;
+        }
+        catch (Exception e) when (e is ArgumentException or IOException or Win32Exception)
+        {
+            Log.Write($"The tray icon could not follow the taskbar theme: {e.Message}");
+        }
+    }
+
     protected override void ExitThreadCore()
     {
         icon.Visible = false;
@@ -399,14 +825,26 @@ internal sealed class TrayContext : ApplicationContext
     {
         if (disposing)
         {
+            SystemEvents.UserPreferenceChanged -= OnPreferenceChanged;
+            SystemEvents.PowerModeChanged -= OnPowerModeChanged;
             icon.Dispose();
+            themed?.Dispose();
             menu.Dispose();
             startWithWindows.Dispose();
             macrosRow.Dispose();
+            securityRow.Dispose();
             forget.Dispose();
+            networkRow.Dispose();
+            firewallRow.Dispose();
+            clipboardRow.Dispose();
             update.Dispose();
             updateTimer.Dispose();
             server.Dispose();
+            network.Dispose();
+
+            // After both servers, so no connection arrives once the sessions are ended.
+            host.Dispose();
+            clipboard.Dispose();
             media.Dispose();
             brightness.Dispose();
             speakers.Dispose();

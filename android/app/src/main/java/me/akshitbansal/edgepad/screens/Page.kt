@@ -94,11 +94,12 @@ class Ui(
 
     /**
      * A page that scrolls when it must and otherwise fills the screen, so [Column.grow] can push content
-     * down. A [bar] stays put above the scrolling part.
+     * down. A [bar] stays put above the scrolling part and a [footer] below it.
      */
     fun page(
         bar: View? = null,
         centred: Boolean = false,
+        footer: (Column.() -> Unit)? = null,
         fill: Column.() -> Unit,
     ): LinearLayout {
         val column =
@@ -108,8 +109,16 @@ class Ui(
             }
         Column(this, column).fill()
         val side = dp(Space.PAGE)
-        val end = dp(Space.XL)
-        val top = if (bar == null) end else 0
+        val end = dp(if (footer == null) Space.XL else Space.M)
+        val top = if (bar == null) dp(Space.XL) else 0
+        val pinned =
+            footer?.let { build ->
+                LinearLayout(context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(side, 0, side, dp(Space.S))
+                    Column(this@Ui, this).build()
+                }
+            }
         val scroll =
             ScrollView(context).apply {
                 isFillViewport = true
@@ -127,15 +136,32 @@ class Ui(
                 setBackgroundColor(palette.background)
                 if (bar != null) addView(bar)
                 addView(scroll, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+                if (pinned != null) addView(pinned)
             }
         // Edge-to-edge is enforced from targetSdk 35: keep content clear of the system bars and the cutout.
         root.setOnApplyWindowInsetsListener { page, insets ->
             val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
+            // An open keyboard covers the bottom of the page unless the page makes room for it, as the bars' own
+            // inset is already inside the keyboard's. Only a page with a text field ever sees one.
+            val bottom = maxOf(bars.bottom, insets.getInsets(WindowInsets.Type.ime()).bottom)
             page.setPadding(bars.left, bars.top, bars.right, 0)
-            scroll.setPadding(side, top, side, end + bars.bottom)
+            if (pinned == null) {
+                scroll.setPadding(side, top, side, end + bottom)
+            } else {
+                pinned.setPadding(side, 0, side, dp(Space.S) + bottom)
+            }
             insets
         }
         return root
+    }
+
+    /** Keeps a full-screen view clear of the system bars and the display cutout, which edge-to-edge no longer does. */
+    fun padToBars(view: View) {
+        view.setOnApplyWindowInsetsListener { v, insets ->
+            val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
     }
 
     /**
@@ -863,6 +889,11 @@ private class NavBar(
  * dialog still holds leaks. Nothing it asked about is on screen any more by then, so closing it loses nothing.
  */
 fun AlertDialog.Builder.showOver(owner: View) {
+    openOver(owner)
+}
+
+/** As [showOver], for a caller that shapes the dialog's window once it is up. */
+fun AlertDialog.Builder.openOver(owner: View): AlertDialog {
     val dialog = show()
     val closer =
         object : View.OnAttachStateChangeListener {
@@ -872,6 +903,7 @@ fun AlertDialog.Builder.showOver(owner: View) {
         }
     owner.addOnAttachStateChangeListener(closer)
     dialog.setOnDismissListener { owner.removeOnAttachStateChangeListener(closer) }
+    return dialog
 }
 
 /** A vertical run of views on a page, with the design's spacing built in. */
@@ -951,6 +983,11 @@ class Column(
             }
         Column(ui, inner).fill()
         return add(inner, topDp)
+    }
+
+    /** The way on to the app's own settings, ended onto every feature's settings page. */
+    fun systemSettings(onOpen: () -> Unit) {
+        card(Space.XL) { add(ui.link(ui.string(R.string.settings_system), null, onOpen)) }
     }
 
     /** Two runs of rows: side by side when the screen is sideways, one after the other when it is upright. */

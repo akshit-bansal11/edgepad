@@ -9,12 +9,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- xunit v3 runs on Microsoft.Testing.Platform (opted into in global.json); no VSTest adapter needed. -->
+    <!-- xunit v3 runs on Microsoft.Testing.Platform (opted into in the root global.json); no VSTest adapter needed. -->
     <PackageReference Include="xunit.v3" Version="4.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Edgepad\Edgepad.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The phone's half of EDGL1 from the core tests, linked rather than copied, so the network server is tested
+         against the same reference the Kotlin port follows. -->
+    <Compile Include="..\..\..\shared\Edgepad.Core.Tests\LinkInitiator.cs" Link="LinkInitiator.cs" />
   </ItemGroup>
 
 </Project>

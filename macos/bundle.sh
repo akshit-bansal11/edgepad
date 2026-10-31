@@ -38,7 +38,27 @@ rm -rf "$app"
 mkdir -p "$app/Contents/MacOS"
 cp "$bin/Edgepad" "$app/Contents/MacOS/Edgepad"
 
+# The icon is rendered from assets/edgepad-light.svg by scripts/icons.sh (the CI job `icons`) and committed.
+# Missing, the build stops: a release must not go out with the generic icon.
+mkdir -p "$app/Contents/Resources"
+# macOS 26 draws the Dock and Finder icon from Assets.car, compiled from the Icon Composer file
+# Resources/edgepad.icon: the white tile in light mode, the dark tile in dark mode. Older systems read the .icns.
+# A car with no dark rendition fails the build, so the icon cannot quietly stop following the theme.
+xcrun actool Resources/edgepad.icon --compile "$app/Contents/Resources" --app-icon edgepad \
+    --platform macosx --target-device mac --minimum-deployment-target 13.0 \
+    --output-partial-info-plist "$out/actool-partial.plist" >/dev/null
+rm -f "$out/actool-partial.plist"
+appearances=$(xcrun assetutil --info "$app/Contents/Resources/Assets.car" | grep -o '"Appearance" : "[^"]*"' | sort | uniq -c)
+echo "Assets.car appearances: $appearances"
+case "$appearances" in
+    *Dark*) ;;
+    *) echo "bundle.sh: Assets.car has no dark rendition of the icon" >&2; exit 1 ;;
+esac
+cp Resources/edgepad.icns "$app/Contents/Resources/edgepad.icns" || { echo "bundle.sh: macos/Resources/edgepad.icns is missing; run scripts/icons.sh (CI job icons) and commit it" >&2; exit 1; }
+
 # CFBundleVersion takes numbers only, so a draft's "-draft.45" suffix stays on the display version alone.
+# NSLocalNetworkUsageDescription and NSBonjourServices are for the Wi-Fi link's Bonjour listener. Whether macOS asks
+# them of an app that only publishes a service is unverified; with them the Local Network prompt has a reason to show.
 cat > "$app/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -50,6 +70,10 @@ cat > "$app/Contents/Info.plist" <<EOF
   <string>Edgepad</string>
   <key>CFBundleIdentifier</key>
   <string>me.akshitbansal.edgepad</string>
+  <key>CFBundleIconFile</key>
+  <string>edgepad</string>
+  <key>CFBundleIconName</key>
+  <string>edgepad</string>
   <key>CFBundleExecutable</key>
   <string>Edgepad</string>
   <key>CFBundlePackageType</key>
@@ -68,6 +92,12 @@ cat > "$app/Contents/Info.plist" <<EOF
   <true/>
   <key>NSBluetoothAlwaysUsageDescription</key>
   <string>Edgepad uses Bluetooth to listen for the phone you have paired with this Mac.</string>
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>Edgepad lets your phone find this Mac and connect to it over Wi-Fi, when you turn Wi-Fi and USB connections on.</string>
+  <key>NSBonjourServices</key>
+  <array>
+    <string>_edgepad._tcp</string>
+  </array>
 </dict>
 </plist>
 EOF

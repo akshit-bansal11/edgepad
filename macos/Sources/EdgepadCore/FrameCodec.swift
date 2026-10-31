@@ -4,13 +4,18 @@ public enum ProtocolError: Error, Equatable {
     case wrongLength(type: UInt8, expected: Int, got: Int)
     case badMagic
     case badFlag(UInt8)
+    /// A PIN_ANSWER byte above 9. It carries no value: a rejected byte is still part of somebody's PIN.
+    case badDigit
     case textLengthMismatch
+    /// A FILE_BEGIN or BLOB_BEGIN too short to hold its size.
+    case fileBeginTooShort
 }
 
 /// How many payload bytes follow a type byte.
 public enum PayloadLength: Equatable {
     case fixed(Int)
-    /// TEXT: two header bytes (kind, length), then as many bytes as the length says.
+    /// TEXT and the file and blob BEGIN and CHUNK frames: two header bytes (an id, a length), then as many bytes as
+    /// the length says.
     case lengthPrefixed
     case unknown
 }
@@ -24,6 +29,8 @@ public enum FrameCodec {
 
     private static let helloType: UInt8 = 0x01
     private static let helloAckType: UInt8 = 0x02
+    private static let pinRequestType: UInt8 = 0x03
+    private static let pinAnswerType: UInt8 = 0x04
     private static let moveType: UInt8 = 0x10
     private static let pointerButtonType: UInt8 = 0x11
     private static let scrollType: UInt8 = 0x12
@@ -32,29 +39,51 @@ public enum FrameCodec {
     private static let setValueType: UInt8 = 0x21
     private static let keyType: UInt8 = 0x22
     private static let padStateType: UInt8 = 0x23
+    private static let penType: UInt8 = 0x24
     private static let pingType: UInt8 = 0x30
     private static let pongType: UInt8 = 0x31
     private static let stateType: UInt8 = 0x40
     private static let textType: UInt8 = 0x41
+    private static let fileBeginType: UInt8 = 0x50
+    private static let fileChunkType: UInt8 = 0x51
+    private static let fileEndType: UInt8 = 0x52
+    private static let fileResultType: UInt8 = 0x53
+    private static let blobBeginType: UInt8 = 0x54
+    private static let blobChunkType: UInt8 = 0x55
+    private static let blobEndType: UInt8 = 0x56
+
+    /// FILE_BEGIN's size field, ahead of the name in the length-prefixed part.
+    private static let fileSizeBytes = 4
+    /// The most one FILE_CHUNK carries: the 255 bytes a TEXT does, so no frame grows past the longest TEXT.
+    public static let maxChunkBytes = maxTextBytes
+    /// The most of a name one FILE_BEGIN carries: what is left of the 255 bytes after the size.
+    public static let maxFileNameBytes = maxTextBytes - fileSizeBytes
+    public static let sha256Bytes = 32
 
     /// PAD_STATE is the longest fixed payload at 12 bytes, so 13 on the wire.
     public static func payloadLength(_ type: UInt8) -> PayloadLength {
         switch type {
         case helloType:
             return .fixed(5)
-        case helloAckType, runActionType:
+        case helloAckType, runActionType, fileResultType:
             return .fixed(1)
         case pointerButtonType, zoomType, setValueType:
             return .fixed(2)
-        case stateType, keyType:
+        case stateType, keyType, pinRequestType:
             return .fixed(3)
         case moveType, scrollType:
             return .fixed(4)
+        case pinAnswerType:
+            return .fixed(Pin.length)
         case pingType, pongType:
             return .fixed(8)
         case padStateType:
             return .fixed(12)
-        case textType:
+        case penType:
+            return .fixed(5)
+        case fileEndType, blobEndType:
+            return .fixed(sha256Bytes)
+        case textType, fileBeginType, fileChunkType, blobBeginType, blobChunkType:
             return .lengthPrefixed
         default:
             return .unknown
@@ -102,6 +131,41 @@ public enum FrameCodec {
             out += littleEndian(rx)
             out += littleEndian(ry)
             return out
+        case .pen(let x, let y, let state):
+            var out: [UInt8] = [penType]
+            out += littleEndian(x)
+            out += littleEndian(y)
+            out.append(state)
+            return out
+        case .pinRequest(let attemptsLeft, let lockedSeconds):
+            return [pinRequestType, attemptsLeft] + littleEndian(lockedSeconds)
+        case .fileBegin(let type, let size, let name):
+            // TEXT's shape: the type id, then one length byte counting the size and the name together.
+            let body = Array(truncate(name, maxBytes: maxFileNameBytes).utf8)
+            let length = UInt8(truncatingIfNeeded: fileSizeBytes + body.count)
+            return [fileBeginType, type, length] + littleEndian(size) + body
+        case .fileChunk(let seq, let data):
+            precondition(data.count <= maxChunkBytes, "A chunk is at most \(maxChunkBytes) bytes")
+            return [fileChunkType, seq, UInt8(truncatingIfNeeded: data.count)] + data
+        case .fileEnd(let sha256):
+            precondition(sha256.count == sha256Bytes, "A SHA-256 is \(sha256Bytes) bytes")
+            return [fileEndType] + sha256
+        case .fileResult(let status):
+            return [fileResultType, status]
+        case .blobBegin(let kind, let size, let label):
+            // The same three shapes as the file frames, under their own type bytes.
+            let body = Array(truncate(label, maxBytes: maxFileNameBytes).utf8)
+            let length = UInt8(truncatingIfNeeded: fileSizeBytes + body.count)
+            return [blobBeginType, kind, length] + littleEndian(size) + body
+        case .blobChunk(let seq, let data):
+            precondition(data.count <= maxChunkBytes, "A chunk is at most \(maxChunkBytes) bytes")
+            return [blobChunkType, seq, UInt8(truncatingIfNeeded: data.count)] + data
+        case .blobEnd(let sha256):
+            precondition(sha256.count == sha256Bytes, "A SHA-256 is \(sha256Bytes) bytes")
+            return [blobEndType] + sha256
+        case .pinAnswer(let pin):
+            // Each digit goes out as its value 0...9, not its ASCII code, so these bytes can never read as text.
+            return [pinAnswerType] + pin.digits
         }
     }
 
@@ -112,7 +176,7 @@ public enum FrameCodec {
         case .unknown:
             throw ProtocolError.unknownType(type)
         case .lengthPrefixed:
-            return try decodeText(payload)
+            return try decodePrefixed(type, payload)
         case .fixed(let expected):
             guard payload.count == expected else {
                 throw ProtocolError.wrongLength(type: type, expected: expected, got: payload.count)
@@ -159,6 +223,23 @@ public enum FrameCodec {
                 rx: int16(payload, 8),
                 ry: int16(payload, 10)
             )
+        case penType:
+            // Nothing here throws: x and y span their whole width, and a state above 2 is for the dispatcher to
+            // drop and count, since closing the link would take the whole session down for a newer phone's state.
+            return .pen(x: uint16(payload, 0), y: uint16(payload, 2), state: payload[4])
+        case pinRequestType:
+            return .pinRequest(attemptsLeft: payload[0], lockedSeconds: uint16(payload, 1))
+        case pinAnswerType:
+            guard let pin = Pin(digits: payload) else {
+                throw ProtocolError.badDigit
+            }
+            return .pinAnswer(pin)
+        case fileEndType:
+            return .fileEnd(sha256: payload)
+        case fileResultType:
+            return .fileResult(status: payload[0])
+        case blobEndType:
+            return .blobEnd(sha256: payload)
         default:
             throw ProtocolError.unknownType(type)
         }
@@ -168,12 +249,12 @@ public enum FrameCodec {
     /// stops at the limit, so a million-character string is not measured whole, and never between the halves
     /// of a character, which would go out as a replacement character. Every codec cuts by the same rule, so
     /// both sides send the same bytes for the same text.
-    public static func truncate(_ value: String) -> String {
+    public static func truncate(_ value: String, maxBytes: Int = maxTextBytes) -> String {
         var kept = String.UnicodeScalarView()
         var bytes = 0
         for scalar in value.unicodeScalars {
             let width = utf8Width(scalar)
-            if bytes + width > maxTextBytes {
+            if bytes + width > maxBytes {
                 break
             }
             bytes += width
@@ -182,12 +263,36 @@ public enum FrameCodec {
         return String(kept)
     }
 
-    private static func decodeText(_ payload: [UInt8]) throws -> Frame {
+    /// TEXT, FILE_BEGIN, FILE_CHUNK, BLOB_BEGIN and BLOB_CHUNK: an id byte, a length byte, then that many bytes. The
+    /// length is checked once here for all of them, so a header that lies closes the link whatever frame it heads.
+    private static func decodePrefixed(_ type: UInt8, _ payload: [UInt8]) throws -> Frame {
         guard payload.count >= textHeaderLength, payload.count == textHeaderLength + Int(payload[1]) else {
             throw ProtocolError.textLengthMismatch
         }
-        // Invalid UTF-8 becomes U+FFFD rather than an error, so a bad title cannot drop the connection.
-        return .text(kind: payload[0], value: String(decoding: payload[textHeaderLength...], as: UTF8.self))
+        let body = Array(payload[textHeaderLength...])
+        switch type {
+        case fileBeginType:
+            guard body.count >= fileSizeBytes else {
+                throw ProtocolError.fileBeginTooShort
+            }
+            let size = UInt32(body[0]) | UInt32(body[1]) << 8 | UInt32(body[2]) << 16 | UInt32(body[3]) << 24
+            let name = String(decoding: body[fileSizeBytes...], as: UTF8.self)
+            return .fileBegin(type: payload[0], size: size, name: name)
+        case fileChunkType:
+            return .fileChunk(seq: payload[0], data: body)
+        case blobBeginType:
+            guard body.count >= fileSizeBytes else {
+                throw ProtocolError.fileBeginTooShort
+            }
+            let size = UInt32(body[0]) | UInt32(body[1]) << 8 | UInt32(body[2]) << 16 | UInt32(body[3]) << 24
+            let label = String(decoding: body[fileSizeBytes...], as: UTF8.self)
+            return .blobBegin(kind: payload[0], size: size, label: label)
+        case blobChunkType:
+            return .blobChunk(seq: payload[0], data: body)
+        default:
+            // Invalid UTF-8 becomes U+FFFD rather than an error, so a bad title cannot drop the connection.
+            return .text(kind: payload[0], value: String(decoding: body, as: UTF8.self))
+        }
     }
 
     /// Only 0 and 1 are legal: a flag with two legal values out of 256 means a corrupt stream, not a newer app.
@@ -237,6 +342,10 @@ public enum FrameCodec {
 
     private static func littleEndian(_ value: Int16) -> [UInt8] {
         littleEndian(UInt16(bitPattern: value))
+    }
+
+    private static func littleEndian(_ value: UInt32) -> [UInt8] {
+        (0..<4).map { UInt8(truncatingIfNeeded: value >> UInt32($0 * 8)) }
     }
 
     private static func littleEndian(_ value: Int64) -> [UInt8] {

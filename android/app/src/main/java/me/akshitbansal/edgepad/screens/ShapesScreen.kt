@@ -40,7 +40,8 @@ object ShapesScreen {
         onBack: () -> Unit,
     ): View {
         val shapes = Shapes.decode(settings.shapes).orEmpty()
-        val bar = ui.bar(ui.string(R.string.shapes_title), onBack, backLabel = ui.string(R.string.settings_title))
+        val bar =
+            ui.bar(ui.string(R.string.shapes_title), onBack, backLabel = ui.string(R.string.settings_surface_title))
         if (shapes.isEmpty()) {
             return ui.page(bar, centred = true) {
                 grow()

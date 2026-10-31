@@ -42,9 +42,46 @@ ACTION 34 BRIGHTNESS_DOWN
 # never receives. The laptop decides whether it can honour the request and answers with TEXT 8.
 ACTION 35 PAD_ATTACH
 ACTION 36 PAD_DETACH
+# Annotating the screen and signing, which the laptop draws and the phone only steers. BEGIN shows the laptop's
+# overlay and END removes it (and discards the strokes); UNDO and CLEAR edit the strokes; the six TOOL ids pick
+# what the next PEN stroke draws. SIGN_BEGIN opens a signing pad that shows nothing on the laptop and accepts
+# only the pen tool, and SIGN_SAVE asks the laptop to export what was drawn and answer with SIGN_STATUS. Actions
+# because the phone only asks; a laptop too old to know the ids drops and counts them.
+ACTION 40 ANNOTATE_BEGIN
+ACTION 41 ANNOTATE_END
+ACTION 42 ANNOTATE_UNDO
+ACTION 43 ANNOTATE_CLEAR
+ACTION 44 TOOL_PEN
+ACTION 45 TOOL_HIGHLIGHTER
+ACTION 46 TOOL_LINE
+ACTION 47 TOOL_ARROW
+ACTION 48 TOOL_RECTANGLE
+ACTION 49 TOOL_ELLIPSE
+ACTION 50 SIGN_BEGIN
+ACTION 51 SIGN_SAVE
+# Screen capture, which is the laptop's own tool: a region (a drag), the whole screen, and a recording. Actions
+# because the phone only asks; what each one presses is the laptop's business, and a laptop too old to know
+# them drops and counts the id. The phone shows the buttons only for a laptop that sent FEATURES "capture".
+ACTION 52 CAPTURE_REGION
+ACTION 53 CAPTURE_SCREEN
+ACTION 54 CAPTURE_RECORD
+# The phone left its capture screen: the laptop dismisses a capture overlay it opened, only if one may still be open.
+ACTION 55 CAPTURE_CANCEL
+# Adding a macro from the phone. APPS_LIST asks the laptop to list the apps it could add (names as a BLOB kind 2, then
+# one BLOB kind 3 icon each); APPS_CANCEL stops that list and its icons. The phone shows the buttons only for a laptop
+# that sent FEATURES "apps".
+ACTION 56 APPS_LIST
+ACTION 57 APPS_CANCEL
 # The first of the 32 macro slots; slot n is MACRO_BASE + n. A laptop older than the macros feature drops an
 # unknown action id rather than erroring, which is why the block needs no new frame type and no version bump.
 ACTION 64 MACRO_BASE
+# Phone to laptop: whether the macro grid is open and wants to know which macro apps are running. MACROS_WATCH starts the
+# laptop's once-a-second survey (it reports TEXT 16 on change only); MACROS_UNWATCH stops it. Both are forgotten when the session ends.
+ACTION 58 MACROS_WATCH
+ACTION 59 MACROS_UNWATCH
+# Reserved block of 32, like MACRO_BASE: close the app macro slot n opens, as its own close button would (never a kill).
+# The phone sends the slot and nothing else; the laptop decides what that slot is.
+ACTION 96 MACRO_CLOSE_BASE
 
 CONTROL 0 VOLUME
 CONTROL 1 BRIGHTNESS
@@ -54,6 +91,23 @@ CONTROL 3 MEDIA_POSITION
 # laptop drops anything above 100, so 120 or 144 could not cross the wire at all; an index is always well
 # under 100. It also makes a rate the laptop does not have unrepresentable rather than merely rejected.
 CONTROL 4 REFRESH_RATE
+# PEN_COLOR's value is an index into the PALETTE rows below: a palette index is the cheapest way to say one of the
+# eight stock colours, and an index of 8 or more is dropped and counted. A colour outside the palette is TEXT 17 PEN_RGB.
+CONTROL 5 PEN_COLOR
+# Where a capture ends up: 0 the laptop keeps it where its own tool saved it, 1 the laptop sends it to the phone
+# and deletes its copy only once the phone says it saved it. Any other value is dropped and counted.
+CONTROL 6 CAPTURE_TARGET
+# Whether this link shares the clipboard: 1 yes, 0 no, phone to laptop. The laptop forgets it when the session ends and
+# honours it only while its own clipboard toggle is on (FEATURES "clipboard"). Any other value is dropped and counted.
+CONTROL 7 CLIPBOARD
+# The stroke width of the next pen-tool strokes, phone to laptop, 1..100. The laptop maps it linearly to a share of the
+# screen's height, 0.02% per step: 5 is 0.1% and 100 is 2.0%, and 20 is today's 0.4%, which is what the phone sends as its
+# default. 1..4 are accepted and all mean the 0.1% floor. The highlighter keeps its width at 5 times the pen's. 0 or
+# more than 100 is dropped and counted. New strokes only; forgotten when the session ends.
+CONTROL 8 PEN_WIDTH
+# The opacity of the next strokes in percent, phone to laptop, 10..100, 100 by default. The highlighter multiplies its
+# own 35% by it. Anything else is dropped and counted. New strokes only; forgotten when the session ends.
+CONTROL 9 PEN_OPACITY
 
 TEXT 0 NOW_PLAYING
 TEXT 1 APP
@@ -73,12 +127,39 @@ TEXT 5 MACROS
 TEXT 6 MACRO_ICON
 # The phone asking for the icons, sent when it opens the macro grid. Nothing is pushed unasked: a laptop
 # older than this feature drops the request and the phone shows names, and a phone older than it never asks,
-# so neither half spends the link on icons the other cannot use. The payload is empty.
+# so neither half spends the link on icons the other cannot use. The payload is a decimal side in pixels, and empty means 128.
 TEXT 7 WANT_ICONS
 # Whether the laptop can offer a virtual controller at all, laptop to phone, as one PAD_STATUS token from the
 # fixed set below. Sent in answer to PAD_ATTACH and PAD_DETACH, and once after the handshake so the phone can
 # hide the pad rather than offer a button that does nothing.
 TEXT 8 PAD_STATUS
+# Which optional features this laptop has, laptop to phone, as FEATURE tokens joined by "/" (such as
+# "annotate/capture"), sent once after the handshake. A feature missing from the list is off, and a token the
+# phone does not know is ignored, so a newer laptop can name more of them than an older phone understands.
+TEXT 9 FEATURES
+# The laptop's primary display in pixels, "<width>/<height>" such as "1920/1080", laptop to phone, once after
+# the handshake and again whenever the display changes. The phone shapes its drawing surface to this ratio so a
+# stroke lands where the finger is; PEN itself carries a fraction of the screen and needs no pixels.
+TEXT 10 SCREEN_SIZE
+# How a SIGN_SAVE ended, laptop to phone, as one SIGN_STATUS token from the set below.
+TEXT 11 SIGN_STATUS
+# Why a capture the phone asked for did not reach it, laptop to phone, as one CAPTURE_STATUS token from the set below.
+TEXT 12 CAPTURE_STATUS
+# Which laptop this is, laptop to phone, once after HELLO_ACK: "<32 hex id>/<os>/<name>", os one of the DEVICE_OS tokens
+# below. The id is the laptop's stable link id, so the phone can tell one laptop seen over two transports from two.
+TEXT 13 DEVICE
+# Adding an app as a macro, phone to laptop: "<epoch>.<index>", an index into the list this laptop sent for that epoch.
+# The phone never names a path or a command; the laptop keeps the list and an epoch other than its latest is stale.
+TEXT 14 APP_ADD
+# How an APP_ADD ended, laptop to phone, as one APP_ADD_STATUS token from the set below.
+TEXT 15 APP_ADD_STATUS
+# Laptop to phone: one character per macro slot, in MACROS order: '-' not trackable (a URL, folder, document or an app the
+# laptop cannot see), '0' not running, '1' running, '2' running and in front. Sent when it changes while watched.
+TEXT 16 MACRO_OPEN
+# A stroke colour of the phone's choosing, phone to laptop: exactly six hex digits, "RRGGBB", either case. It sets the
+# colour of new strokes until the next PEN_COLOR or PEN_RGB. Anything else, a "#", a short or long string or a non-hex
+# character included, is dropped and counted.
+TEXT 17 PEN_RGB
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
@@ -111,5 +192,81 @@ PAD_STATUS ready READY
 PAD_STATUS no-driver NO_DRIVER
 PAD_STATUS attach-failed ATTACH_FAILED
 
-HANDSHAKE 4 VERSION
+# The whole vocabulary of TEXT kind 9, as "<token on the wire> <the name both apps call it>". Tokens for the
+# reason PAD_STATUS is: the phone branches on them, so prose would make the laptop's wording unchangeable.
+FEATURE annotate ANNOTATE
+FEATURE capture CAPTURE
+# Named only while the laptop's own clipboard toggle is on.
+FEATURE clipboard CLIPBOARD
+# The laptop can list its apps for the phone to add as macros.
+FEATURE apps APPS
+FEATURE running RUNNING
+
+# The whole vocabulary of TEXT kind 13's second field, as "<token on the wire> <the name both apps call it>". The phone
+# uses it only to word hints that differ by OS; an unknown token reads as no OS known.
+DEVICE_OS windows WINDOWS
+DEVICE_OS linux LINUX
+DEVICE_OS macos MACOS
+
+# The whole vocabulary of TEXT kind 15, as "<token on the wire> <the name both apps call it>". Only ADDED changed the
+# laptop's macro list. An unknown token reads as FAILED.
+APP_ADD_STATUS added ADDED
+APP_ADD_STATUS full FULL
+APP_ADD_STATUS duplicate DUPLICATE
+APP_ADD_STATUS stale STALE
+APP_ADD_STATUS failed FAILED
+
+# What a BLOB_BEGIN carries, either direction, as "<id> <NAME>". The shape is FILE_BEGIN's, on a lane of its own so a
+# clipboard copy never waits behind a capture. An id this build does not know is read to its BLOB_END and dropped.
+# CLIP_TEXT is UTF-8, CLIP_IMAGE and APP_ICON are PNG, APP_LIST is the list of apps, whose layout the apps step defines.
+BLOB_KIND 0 CLIP_TEXT
+BLOB_KIND 1 CLIP_IMAGE
+BLOB_KIND 2 APP_LIST
+BLOB_KIND 3 APP_ICON
+
+# The whole vocabulary of TEXT kind 11, as "<token on the wire> <the name both apps call it>". Tokens for the
+# reason PAD_STATUS is: the phone branches on them, so prose would make the laptop's wording unchangeable.
+SIGN_STATUS saved SAVED
+SIGN_STATUS empty EMPTY
+SIGN_STATUS failed FAILED
+
+# The whole vocabulary of TEXT kind 12, as "<token on the wire> <the name both apps call it>". The file stays on the
+# laptop in every case. An unknown token reads as FAILED.
+CAPTURE_STATUS too-large TOO_LARGE
+CAPTURE_STATUS not-found NOT_FOUND
+CAPTURE_STATUS failed FAILED
+
+# What a FILE_BEGIN may carry, as "<id> <NAME> <MIME type> <extension>". An id, never a MIME string of the laptop's
+# choosing: the phone writes only these types, and an id it does not know is refused. The laptop sends only a file
+# whose extension is in this list.
+FILE_TYPE 0 PNG image/png png
+FILE_TYPE 1 JPEG image/jpeg jpg
+FILE_TYPE 2 MP4 video/mp4 mp4
+FILE_TYPE 3 MOV video/quicktime mov
+FILE_TYPE 4 WEBM video/webm webm
+
+# The largest file of each kind that crosses the link, in bytes, as "<bytes> <KIND>": an image type is IMAGE and a
+# video type VIDEO. The laptop keeps a bigger one and says too-large; the phone refuses a bigger FILE_BEGIN.
+FILE_LIMIT 52428800 IMAGE
+FILE_LIMIT 209715200 VIDEO
+
+# What a FILE_RESULT says, phone to laptop. Only SAVED lets the laptop delete its copy.
+FILE_STATUS 0 SAVED
+FILE_STATUS 1 BAD_HASH
+FILE_STATUS 2 REJECTED
+FILE_STATUS 3 WRITE_FAILED
+
+# The eight colours CONTROL 5 PEN_COLOR indexes, as "<index> <NAME> <RRGGBB>". One list in this file so the
+# phone's swatches and the colours the laptop draws cannot drift apart. The laptop owns the colour: the phone
+# shows these only as a preview.
+PALETTE 0 BLACK 000000
+PALETTE 1 WHITE FFFFFF
+PALETTE 2 RED FF3B30
+PALETTE 3 ORANGE FF9500
+PALETTE 4 YELLOW FFCC00
+PALETTE 5 GREEN 34C759
+PALETTE 6 BLUE 0068D6
+PALETTE 7 PURPLE AF52DE
+
+HANDSHAKE 5 VERSION
 HANDSHAKE 758bb618-7b72-4cd3-9aa2-c9b88e54d555 SERVICE_ID

@@ -1,13 +1,17 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
+using Edgepad.Annotation;
+using Edgepad.Blob;
+using Edgepad.Capture;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
 using Edgepad.Gamepad;
 using Edgepad.Injection;
 using Edgepad.Macros;
+using Edgepad.Net;
 using Edgepad.Protocol;
 using Edgepad.Trust;
-using Windows.Networking.Sockets;
+using Microsoft.Win32;
 
 namespace Edgepad.Bluetooth;
 
@@ -19,18 +23,24 @@ namespace Edgepad.Bluetooth;
 /// audio change as it happens, so the phone's dials show what the laptop is really at.
 /// </summary>
 internal sealed class Session(
-    StreamSocket socket,
+    IPhoneLink link,
     TrustStore trust,
-    Func<string, bool> askTrust,
+    PinStore pin,
+    Func<string, CancellationToken, bool> askTrust,
     InputInjector injector,
     VirtualPad pad,
     Dispatcher dispatcher,
+    Annotator annotator,
     AudioEndpoint speakers,
     AudioEndpoint microphone,
     BrightnessControl brightness,
     MediaSessions media,
     DisplayModes display,
     MacroStore macros,
+    LinkIdentity identity,
+    WindowsClipboard clipboard,
+    Func<bool> shareClipboard,
+    Action<string> onMacroAdded,
     Action<string> onStatus,
     Func<Session, bool> onAdmitted,
     Action<Session> onEnded) : IDisposable
@@ -38,94 +48,50 @@ internal sealed class Session(
     private const byte MutedFlag = 1;
     private const byte PlayingFlag = 1;
 
-    /// <summary>
-    /// How long an open socket may go without a HELLO. The read has no timeout of its own, so a paired device
-    /// that connects and says nothing held this thread, and its socket, for as long as the link stayed up.
-    /// </summary>
-    private static readonly TimeSpan HelloTimeout = TimeSpan.FromSeconds(10);
-
-    // The WinRT adapters read with partial-read semantics, so the default buffer returns as soon as
-    // any bytes arrive — it saves per-byte calls without holding data back.
-    private readonly Stream input = socket.InputStream.AsStreamForRead();
-    private readonly Stream output = socket.OutputStream.AsStreamForWrite();
-    private readonly byte[] sendBuffer = new byte[FrameCodec.MaxFrameLength];
-    private readonly string address = socket.Information.RemoteHostName.RawName;
-
-    // Audio notifications arrive on COM threads while the read loop sends PONGs: one writer at a time.
-    private readonly Lock sendGate = new();
+    private readonly FrameStream frames = new(link.Input, link.Output);
+    private readonly string address = link.Address;
 
     // Dispose runs from the server's thread, a timer's or the read loop's, while the read loop may still be
     // adding watches: both the list and the flag are only touched under this.
     private readonly Lock watchGate = new();
     private readonly List<IDisposable> watches = [];
+
+    // Cancelled by Dispose, so a trust question open for this session, or about to be put, is withdrawn.
+    private readonly CancellationTokenSource ended = new();
     private bool disposed;
+    // Which icon run may still send: each WANT_ICONS and Dispose move it on, and a run that sees it moved stops.
+    private int iconRun;
     private MediaState lastMedia = MediaSessions.Nothing;
     private string lastTimeline = "";
 
-    /// <summary>The phone's Bluetooth address, as the log and the status line name it.</summary>
+    /// <summary>The phone's address, as the log and the status line name it.</summary>
     public string Address => address;
 
     public void Run()
     {
-        var payload = new byte[FrameCodec.MaxFrameLength];
         try
         {
-            Frame first;
-            using (new System.Threading.Timer(_ => GiveUpOnHello(), null, HelloTimeout, Timeout.InfiniteTimeSpan))
+            // A refusal comes back here and the finally below closes the socket; a phone gone silent mid-handshake
+            // is ended through Dispose, which aborts the blocked read.
+            if (!Handshake.Run(frames, address, trust, pin, askTrust, () => onAdmitted(this), onStatus, Log.Write, Dispose, ended.Token))
             {
-                first = ReadFrame(payload);
-            }
-
-            if (first is not Hello hello)
-            {
-                Log.Write($"Refused {address}: no valid HELLO");
                 return;
             }
 
-            if (hello.Version != ProtocolConstants.Version)
-            {
-                // Answered with this laptop's version, so the phone can say which side needs updating.
-                Send(new HelloAck(ProtocolConstants.Version));
-                Log.Write($"Refused {address}: it speaks protocol {hello.Version}, this laptop {ProtocolConstants.Version}");
-                onStatus($"Refused a phone on protocol {hello.Version}; this laptop is on {ProtocolConstants.Version}");
-                return;
-            }
-
-            // HELLO_ACK waits on the owner's answer, and a refusal closes the socket without one: the same
-            // bytes a phone it did not trust has always been sent, so no phone needs to learn anything new.
-            if (!trust.Admit(address, () => askTrust(address)))
-            {
-                var trusted = string.Join(", ", trust.TrustedPhones);
-                Log.Write($"Refused {address}: this laptop trusts {(trusted.Length > 0 ? trusted : "no phone yet")}");
-                onStatus("Refused a phone it does not trust");
-                return;
-            }
-
-            // Only now may this phone take over from one already connected: before trust said yes, any bonded
-            // device that merely connected could end the owner's session at will.
-            if (!onAdmitted(this))
-            {
-                Log.Write($"Refused {address}: trusted, but not taken now: phones are being forgotten, Edgepad is quitting, or another phone just took over");
-                return;
-            }
-
-            Send(new HelloAck(ProtocolConstants.Version));
-            Log.Write($"Connected {address}");
-            onStatus($"Connected to {address}");
             ReportState();
 
             while (true)
             {
-                var frame = ReadFrame(payload);
+                var frame = frames.ReadFrame();
                 if (frame is Ping ping)
                 {
                     Send(new Pong(ping.Time));
                 }
-                else if (frame is Text { Kind: (byte)TextKind.WantIcons })
+                else if (frame is Text { Kind: (byte)TextKind.WantIcons } want)
                 {
                     // Answered here rather than in the dispatcher, for the same reason PONG is: the reply
                     // goes back down this socket, and the dispatcher deliberately holds no reference to it.
-                    SendIcons();
+                    StartIcons(MacroIconChunks.Snap(want.Value, MacroIcons.MaxSize));
                 }
                 else
                 {
@@ -155,6 +121,15 @@ internal sealed class Session(
             // mid-game would otherwise leave a pad plugged into Windows with a stick still pushed forward,
             // and nothing left alive to centre it.
             pad.Dispose();
+
+            // And takes the annotation layer down with its strokes: a phone that vanishes mid-drawing must not
+            // leave ink over the owner's screen with nothing left alive that could end it.
+            annotator.Dispose();
+            if (dispatcher.Cadence.Summary() is { } cadence)
+            {
+                Log.Write($"Pointer frames from {address} over {link.Kind}: {cadence}");
+            }
+
             if (dispatcher.Dropped > 0 || injector.RefusedBatches > 0)
             {
                 Log.Write($"Session with {address}: {dispatcher.Dropped} frames dropped, "
@@ -168,6 +143,8 @@ internal sealed class Session(
 
     private void ReportState()
     {
+        // The same id the link's INFO reply gives, so a phone sees one laptop over Bluetooth and Wi-Fi.
+        Send(new Text((byte)TextKind.Device, identity.DeviceText(DeviceOs.Windows)));
         SendState(ControlId.Volume, speakers.Read());
         SendState(ControlId.MicLevel, microphone.Read());
         if (brightness.Read() is { } level)
@@ -177,6 +154,55 @@ internal sealed class Session(
 
         ReportRefreshRates();
         ReportPad();
+
+        // Captures go to the phone once it asks (SET CAPTURE_TARGET); until then, and after the session, they stay here.
+        var capture = new CaptureToPhone(new WindowsCaptureFolders(), Send, () => dispatcher.LastInputMs);
+        dispatcher.Capture = capture;
+        Keep(capture);
+
+        // The phone starts and stops this as its macro grid opens and closes. Set before FEATURES names it.
+        var open = macros.CreateWatcher(states => Guarded(() => Send(new Text((byte)TextKind.MacroOpen, states))));
+        if (open is not null)
+        {
+            Keep(open);
+            dispatcher.MacroWatch = on => WatchMacros(open, on);
+        }
+
+        // The clipboard stays here until the phone asks (SET CLIPBOARD), and the owner's switch is read at every step, so
+        // turning it off holds even for a phone that was told it was on. It only reaches FEATURES at the next connection.
+        var sharing = new ClipboardSync(
+            clipboard, new BlobSender(Send, link.Kind, () => dispatcher.LastInputMs, ended.Token), shareClipboard, ended.Token);
+        dispatcher.Clipboard = sharing;
+        Keep(clipboard.Watch(sharing.LocalChanged));
+
+        // The Start menu apps the phone may pick from. A pick is a token into the list built here, and the owner is told
+        // when one lands, since it is the one macro that appears without anyone typing it on the laptop.
+        dispatcher.Apps = new AppPicker(
+            new StartMenuCatalog(), macros, new BlobSender(Send, link.Kind, () => dispatcher.LastInputMs, ended.Token), ended.Token);
+        dispatcher.AppAddReply = status =>
+        {
+            Send(new Text((byte)TextKind.AppAddStatus, status));
+            if (status == AppAddStatus.Added && macros.Macros is [.., var added])
+            {
+                onMacroAdded(added.Name);
+            }
+        };
+
+        // Only what this build can do: the phone hides a feature that is not named, so naming one that is
+        // not there would be a button that quietly does nothing.
+        List<string> features = [Feature.Annotate, Feature.Capture, Feature.Apps];
+        if (open is not null)
+        {
+            features.Add(Feature.Running);
+        }
+
+        if (shareClipboard())
+        {
+            features.Add(Feature.Clipboard);
+        }
+
+        Send(new Text((byte)TextKind.Features, string.Join('/', features)));
+        ReportScreen();
 
         Watch(speakers, ControlId.Volume);
         Watch(microphone, ControlId.MicLevel);
@@ -216,12 +242,28 @@ internal sealed class Session(
         watch.Dispose();
     }
 
-    private void GiveUpOnHello()
+    /// <summary>
+    /// Under the watch gate, because the read loop can land here after Dispose has been through the list: a start
+    /// then would leave the timer running against a closed socket for the life of the app.
+    /// </summary>
+    private void WatchMacros(MacroOpenWatcher watcher, bool on)
     {
-        Log.Write($"Refused {address}: no HELLO within {(int)HelloTimeout.TotalSeconds} s");
+        lock (watchGate)
+        {
+            if (disposed)
+            {
+                return;
+            }
 
-        // Closing the socket is what ends the blocked read; the read loop then finishes the session as usual.
-        Dispose();
+            if (on)
+            {
+                watcher.Start();
+            }
+            else
+            {
+                watcher.Stop();
+            }
+        }
     }
 
     /// <summary>
@@ -240,6 +282,30 @@ internal sealed class Session(
     }
 
     /// <summary>
+    /// The primary display's size, which the phone shapes its drawing surface to, now and whenever it changes
+    /// (a resolution switch, a docked monitor taking over as primary), and where SIGN_SAVE's answer goes.
+    /// </summary>
+    private void ReportScreen()
+    {
+        // From this thread when there is no ink, like the pad's answer; otherwise from the export's own thread,
+        // where the annotator guards it, because a dead socket is the read loop's to notice.
+        annotator.SignStatusReply = status => Send(new Text((byte)TextKind.SignStatus, status));
+        SendScreenSize();
+
+        // SystemEvents may raise this on the UI thread. The write is moved off it, because a write to a phone that
+        // has stopped reading blocks, and the tray must not freeze with it.
+        EventHandler changed = (_, _) => _ = Task.Run(() => Guarded(SendScreenSize));
+        SystemEvents.DisplaySettingsChanged += changed;
+        Keep(new Subscription(() => SystemEvents.DisplaySettingsChanged -= changed));
+    }
+
+    private void SendScreenSize()
+    {
+        var screen = Annotator.PrimaryBounds();
+        Send(new Text((byte)TextKind.ScreenSize, string.Create(CultureInfo.InvariantCulture, $"{screen.Width}/{screen.Height}")));
+    }
+
+    /// <summary>
     /// Whether this laptop can offer a virtual controller, and where the answers to PAD_ATTACH and
     /// PAD_DETACH go from here on. Both land on the read loop's thread, so they are written like a PONG and
     /// not like a watcher's report: a dead socket here should end the session, not be swallowed as a lost
@@ -253,30 +319,57 @@ internal sealed class Session(
     }
 
     /// <summary>
-    /// Every macro icon this laptop can read, in pieces. Runs on the read loop, which means no input frame
-    /// is read while it goes out — and that is the point of the phone asking rather than being pushed at:
-    /// it asks when it opens the macro grid, which is a screen with no trackpad on it, so the pause is in a
-    /// moment where nothing is being pointed at. An icon that cannot be read is simply not sent, and its
-    /// button keeps the label it already had.
+    /// Sends the icons from a pool thread, never the read loop: the phone asks as soon as it connects and
+    /// whenever the list changes, so a macro tapped then would otherwise wait behind every icon's extraction.
+    /// A newer WANT_ICONS supersedes this run, and Dispose ends it.
     /// </summary>
-    private void SendIcons()
+    private void StartIcons(int size)
+    {
+        var run = Interlocked.Increment(ref iconRun);
+        _ = Task.Run(() =>
+        {
+            // Nothing may escape a pool thread. A dead socket is the read loop's to notice, as for any report.
+            try
+            {
+                SendIcons(run, size);
+            }
+            catch (Exception e)
+            {
+                Log.Write($"Macro icons for {address} failed: {e}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Every macro icon this laptop can read, at <paramref name="size"/> and in pieces, for as long as
+    /// <paramref name="run"/> is the current run. An icon that cannot be read is simply not sent, and its button keeps the label it already had.
+    /// </summary>
+    private void SendIcons(int run, int size)
     {
         var current = macros.Macros;
         for (var slot = 0; slot < current.Count; slot++)
         {
-            if (MacroIcons.Png(current[slot]) is not { } png)
+            // Before each extraction too, so a superseded run stops reading icons nobody will be sent.
+            if (Volatile.Read(ref iconRun) != run)
+            {
+                return;
+            }
+
+            if (MacroIcons.Png(current[slot], size) is not { } png)
             {
                 continue;
             }
 
-            foreach (var chunk in MacroIcons.Chunks(slot, png))
+            foreach (var chunk in MacroIconChunks.Chunks(slot, png))
             {
                 // A save in the tray editor swaps the list and then sends it from another thread. Checked
                 // under the send lock, no chunk of the old list can follow the new one to the phone, where
                 // it would land on whatever macro moved into its slot. The phone asks again for the new list.
-                lock (sendGate)
+                // Checking the run there too keeps a superseded run from interleaving with the one after it,
+                // and a disposed session from writing at all: Dispose moves the run on before closing anything.
+                lock (frames.SendGate)
                 {
-                    if (!ReferenceEquals(macros.Macros, current))
+                    if (!ReferenceEquals(macros.Macros, current) || Volatile.Read(ref iconRun) != run)
                     {
                         return;
                     }
@@ -342,42 +435,7 @@ internal sealed class Session(
         }
     }
 
-    private Frame ReadFrame(byte[] buffer)
-    {
-        var type = input.ReadByte();
-        if (type < 0)
-        {
-            throw new EndOfStreamException("The phone closed the connection");
-        }
-
-        var length = FrameCodec.PayloadLength((byte)type);
-        if (length == FrameCodec.LengthPrefixed)
-        {
-            input.ReadExactly(buffer, 0, FrameCodec.TextHeaderLength);
-            length = FrameCodec.TextHeaderLength + buffer[1];
-            input.ReadExactly(buffer, FrameCodec.TextHeaderLength, buffer[1]);
-        }
-        else if (length < 0)
-        {
-            throw new InvalidDataException($"Unknown frame type 0x{type:x2}");
-        }
-        else
-        {
-            input.ReadExactly(buffer, 0, length);
-        }
-
-        return FrameCodec.Decode((byte)type, buffer.AsSpan(0, length));
-    }
-
-    private void Send(Frame frame)
-    {
-        lock (sendGate)
-        {
-            var length = FrameCodec.Encode(frame, sendBuffer);
-            output.Write(sendBuffer, 0, length);
-            output.Flush();
-        }
-    }
+    private void Send(Frame frame) => frames.Send(frame);
 
     public void Dispose()
     {
@@ -396,28 +454,25 @@ internal sealed class Session(
             watches.Clear();
         }
 
+        ended.Cancel();
+        Interlocked.Increment(ref iconRun);
+
         foreach (var watch in ending)
         {
             watch.Dispose();
         }
 
-        // The socket first, and outside the send lock. A Send blocked in a write to a phone that has stopped
+        // The link first, and outside the send lock. A Send blocked in a write to a phone that has stopped
         // reading holds that lock for as long as the write blocks; waiting for it here stalled the server's
-        // thread, and with it the new phone's session. Closing the socket aborts the write, the Send throws
+        // thread, and with it the new phone's session. Closing the link aborts the write, the Send throws
         // and lets go, and only then are the streams disposed, never under a writer's feet.
-        socket.Dispose();
-        lock (sendGate)
+        link.Close();
+        lock (frames.SendGate)
         {
-            input.Dispose();
-            try
-            {
-                output.Dispose();
-            }
-            catch (Exception e) when (e is IOException or ObjectDisposedException or COMException or OperationCanceledException)
-            {
-                // Its buffer may still hold the aborted write, which disposing tries to flush to a closed
-                // socket. Those bytes were never going to arrive.
-            }
+            link.Release();
         }
+
+        // Already cancelled, so a question still reading the token sees that, never a live one.
+        ended.Dispose();
     }
 }

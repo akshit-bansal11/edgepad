@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Lucide "settings", ISC licence: https://lucide.dev -->
+<!-- Edgepad's own icon: 24 x 24 grid, 20 x 20 live area, 1.5 stroke, round caps and joins, 1 to 1.5 unit corners -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
   android:width="24dp"
   android:height="24dp"
@@ -9,15 +9,8 @@
   <path
     android:fillColor="#00000000"
     android:strokeColor="#000000"
-    android:strokeWidth="2"
+    android:strokeWidth="1.5"
     android:strokeLineCap="round"
     android:strokeLineJoin="round"
-    android:pathData="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
-  <path
-    android:fillColor="#00000000"
-    android:strokeColor="#000000"
-    android:strokeWidth="2"
-    android:strokeLineCap="round"
-    android:strokeLineJoin="round"
-    android:pathData="M9,12a3,3 0 1,0 6,0a3,3 0 1,0 -6,0" />
+    android:pathData="M18.76 10.19L21.16 10.71L21.16 13.29L18.76 13.81A7 7 0 0 1 18.06 15.50L19.39 17.57L17.57 19.39L15.50 18.06A7 7 0 0 1 13.81 18.76L13.29 21.16L10.71 21.16L10.19 18.76A7 7 0 0 1 8.50 18.06L6.43 19.39L4.61 17.57L5.94 15.50A7 7 0 0 1 5.24 13.81L2.84 13.29L2.84 10.71L5.24 10.19A7 7 0 0 1 5.94 8.50L4.61 6.43L6.43 4.61L8.50 5.94A7 7 0 0 1 10.19 5.24L10.71 2.84L13.29 2.84L13.81 5.24A7 7 0 0 1 15.50 5.94L17.57 4.61L19.39 6.43L18.06 8.50A7 7 0 0 1 18.76 10.19ZM12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6Z" />
 </vector>

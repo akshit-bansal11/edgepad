@@ -34,8 +34,14 @@
     <EmbeddedResource Include="Fonts\Lato-Bold.ttf" LogicalName="Edgepad.Fonts.Lato-Bold.ttf" />
     <EmbeddedResource Include="Fonts\Lato-Black.ttf" LogicalName="Edgepad.Fonts.Lato-Black.ttf" />
     <EmbeddedResource Include="Fonts\OFL.txt" LogicalName="Edgepad.Fonts.OFL.txt" />
+    <!-- The tray icon in both tiles, picked by the taskbar theme (TrayContext); made by scripts/icons.sh. -->
+    <EmbeddedResource Include="Assets\tray-dark.ico" LogicalName="Edgepad.Assets.tray-dark.ico" />
+    <EmbeddedResource Include="Assets\tray-light.ico" LogicalName="Edgepad.Assets.tray-light.ico" />
     <!-- Ui/Icons draws Lucide's paths, and Lucide's ISC licence asks the same of them. -->
     <EmbeddedResource Include="Ui\Lucide-LICENSE.txt" LogicalName="Edgepad.Ui.Lucide-LICENSE.txt" />
+    <!-- The notices of every package and of the .NET runtime that the self-contained exe bundles, written by
+         scripts/notices.sh in the release job just before the publish. Not committed: it follows the lock file. -->
+    <EmbeddedResource Include="THIRD-PARTY-NOTICES.txt" LogicalName="Edgepad.THIRD-PARTY-NOTICES.txt" Condition="Exists('THIRD-PARTY-NOTICES.txt')" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,6 +51,11 @@
     <PackageReference Include="System.Management" Version="10.0.12" />
     <!-- ViGEmBus: the virtual Xbox controller the phone's gamepad drives. -->
     <PackageReference Include="Nefarius.ViGEm.Client" Version="1.21.256" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The protocol, trust and logging code the Windows and Linux apps share. -->
+    <ProjectReference Include="..\..\..\shared\Edgepad.Core\Edgepad.Core.csproj" />
   </ItemGroup>
 
 </Project>

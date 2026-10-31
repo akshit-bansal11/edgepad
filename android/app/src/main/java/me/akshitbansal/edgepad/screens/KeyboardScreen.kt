@@ -16,55 +16,18 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.protocol.ActionId
+import me.akshitbansal.edgepad.protocol.DeviceOs
 
-// Windows virtual-key codes, sent to the laptop over the existing key-frame protocol.
-private const val CODE_ESC = 0x1B
-private const val CODE_F1 = 0x70
-private const val CODE_DEL = 0x2E
-private const val CODE_BACKTICK = 0xC0
-private const val CODE_DIGIT_0 = 0x30
-private const val CODE_MINUS = 0xBD
-private const val CODE_EQUALS = 0xBB
-private const val CODE_BACKSPACE = 0x08
-private const val CODE_TAB = 0x09
-private const val CODE_A = 0x41
-private const val CODE_OPEN_BRACKET = 0xDB
-private const val CODE_CLOSE_BRACKET = 0xDD
-private const val CODE_BACKSLASH = 0xDC
-private const val CODE_CAPS = 0x14
-private const val CODE_SEMICOLON = 0xBA
-private const val CODE_QUOTE = 0xDE
-private const val CODE_ENTER = 0x0D
-private const val CODE_SHIFT = 0x10
-private const val CODE_COMMA = 0xBC
-private const val CODE_PERIOD = 0xBE
-private const val CODE_SLASH = 0xBF
-private const val CODE_CTRL = 0x11
-private const val CODE_WIN = 0x5B
-private const val CODE_ALT = 0x12
 private const val CODE_SPACE = 0x20
-private const val CODE_MENU = 0x5D
 private const val CODE_LEFT = 0x25
-private const val CODE_UP = 0x26
-private const val CODE_RIGHT = 0x27
 private const val CODE_DOWN = 0x28
 
-private const val F_KEY_COUNT = 12
-private const val DIGIT_COUNT = 10
-
-// Key widths, in row units. A row's key fills (its share of units / the row's unit total) of the width.
-private const val W1 = 1f
-private const val W1_25 = 1.25f
-private const val W1_5 = 1.5f
-private const val W1_75 = 1.75f
-private const val W2 = 2f
-private const val W2_25 = 2.25f
-private const val W2_75 = 2.75f
-private const val W6_25 = 6.25f
-
-private const val ROW_COUNT = 6
 private const val PADDING_DP = 6f
+
+/** The gap between keys, shrunk on a crowded board to this share of a cell so the keys do not vanish. */
 private const val GAP_DP = 6f
+private const val GAP_SHARE = 0.15f
 
 /** A key's corners, and never more than a third of its width, so a narrow key stays a key and not a pill. */
 private const val CORNER_DP = 10f
@@ -76,117 +39,101 @@ private const val SHADOW_DP = 1f
 /** The label size asked for, before the text-size setting scales it and [KeyboardView.fitLabels] fits it. */
 private const val LABEL_SP = 14f
 
-/** A full on-screen keyboard: six rows, drawn and hit-tested on one canvas so several keys can be held at once. */
+/** The small legend naming a key's other side, as a share of the label size. */
+private const val SECONDARY_SHARE = 0.6f
+
+/** A full on-screen keyboard, drawn and hit-tested on one canvas so several keys can be held at once. */
 object KeyboardScreen {
     fun build(
         ui: Ui,
         textScale: Float,
+        size: KeyboardSize,
+        mode: FnMode,
+        os: DeviceOs?,
         onKey: (code: Int, down: Boolean) -> Unit,
+        onAction: (ActionId) -> Unit,
+        onSettings: () -> Unit,
         onBack: () -> Unit,
     ): View {
-        val header = ui.bar(ui.string(R.string.keyboard_title), onBack, backLabel = ui.string(R.string.back_to_surface))
-        val keyboard = KeyboardView(ui.context, textScale, onKey)
+        val header =
+            ui.bar(
+                ui.string(R.string.keyboard_title),
+                onBack,
+                ui.icon(Glyph.Shape.GEAR, ui.string(R.string.settings_title), onSettings),
+                backLabel = ui.string(R.string.back_to_surface),
+            )
+        val keyboard = KeyboardView(ui.context, textScale, layoutFor(size), mode, os, onKey, onAction)
         return LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(ui.palette.background)
+            ui.padToBars(this)
             addView(header)
             addView(keyboard, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         }
     }
 
-    // Reference identity, deliberately: two keys can share a label, code and width (the two Ctrl keys,
-    // the two Shift keys), and each must be tracked as held independently of its twin.
-    private class Key(
-        val label: String,
-        val code: Int,
-        val units: Float,
-        val sticky: Boolean = false,
-    ) {
-        /**
-         * Everything that is not a character: named keys (Esc, F1, Tab, Shift…) and the arrows. They sit a
-         * step greyer than the character keys, as on an iOS keyboard. Space is the one named key that types.
-         */
-        val function: Boolean = (label.length > 1 && code != CODE_SPACE) || code in CODE_LEFT..CODE_DOWN
+    /**
+     * Everything that is not a character: named keys (Esc, Tab, Shift…) and the arrows. They sit a step greyer
+     * than the character keys, as on an iOS keyboard. Space is the one named key that types.
+     */
+    private fun isFunctionKey(cap: Cap): Boolean {
+        val code = (cap.base as? KeyOut.Code)?.code ?: 0
+        return (cap.label.length > 1 && code != CODE_SPACE) || code in CODE_LEFT..CODE_DOWN
     }
 
-    private fun buildRows(): List<List<Key>> {
-        val row0 =
-            listOf(Key("Esc", CODE_ESC, W1)) +
-                (0 until F_KEY_COUNT).map { Key("F${it + 1}", CODE_F1 + it, W1) } +
-                listOf(Key("Del", CODE_DEL, W1))
-        val row1 =
-            listOf(Key("`", CODE_BACKTICK, W1)) +
-                (0 until DIGIT_COUNT).map { Key(('0' + it).toString(), CODE_DIGIT_0 + it, W1) } +
-                listOf(
-                    Key("-", CODE_MINUS, W1),
-                    Key("=", CODE_EQUALS, W1),
-                    Key("Backspace", CODE_BACKSPACE, W2),
-                )
-        val row2 =
-            listOf(Key("Tab", CODE_TAB, W1_5)) +
-                "qwertyuiop".map { Key(it.uppercase(), CODE_A + (it - 'a'), W1) } +
-                listOf(
-                    Key("[", CODE_OPEN_BRACKET, W1),
-                    Key("]", CODE_CLOSE_BRACKET, W1),
-                    Key("\\", CODE_BACKSLASH, W1_5),
-                )
-        val row3 =
-            listOf(Key("Caps", CODE_CAPS, W1_75)) +
-                "asdfghjkl".map { Key(it.uppercase(), CODE_A + (it - 'a'), W1) } +
-                listOf(
-                    Key(";", CODE_SEMICOLON, W1),
-                    Key("'", CODE_QUOTE, W1),
-                    Key("Enter", CODE_ENTER, W2_25),
-                )
-        val row4 =
-            listOf(Key("Shift", CODE_SHIFT, W2_25, sticky = true)) +
-                "zxcvbnm".map { Key(it.uppercase(), CODE_A + (it - 'a'), W1) } +
-                listOf(
-                    Key(",", CODE_COMMA, W1),
-                    Key(".", CODE_PERIOD, W1),
-                    Key("/", CODE_SLASH, W1),
-                    Key("Shift", CODE_SHIFT, W2_75, sticky = true),
-                )
-        val row5 =
-            listOf(
-                Key("Ctrl", CODE_CTRL, W1_25, sticky = true),
-                Key("Win", CODE_WIN, W1_25),
-                Key("Alt", CODE_ALT, W1_25, sticky = true),
-                Key("Space", CODE_SPACE, W6_25),
-                Key("Alt", CODE_ALT, W1_25, sticky = true),
-                Key("Menu", CODE_MENU, W1_25, sticky = true),
-                Key("Ctrl", CODE_CTRL, W1_25, sticky = true),
-                Key("←", CODE_LEFT, W1),
-                Key("↑", CODE_UP, W1),
-                Key("↓", CODE_DOWN, W1),
-                Key("→", CODE_RIGHT, W1),
-            )
-        return listOf(row0, row1, row2, row3, row4, row5)
-    }
+    /**
+     * One finger's key, resolved once at touch-down: the release and every repeat use this [wire], so Fn
+     * changing during the hold cannot release a different key from the one that went down.
+     */
+    private class Press(
+        val index: Int,
+        val wire: Int,
+        val sticky: Boolean,
+    )
 
     /**
      * An iOS-style board: rounded keys with no outline, character keys on the brighter fill and function
      * keys a step greyer, a soft shadow line under each key on the light board, and a held or armed key in
-     * the accent.
+     * the accent. A key that would do nothing is drawn dimmed.
      *
      * Draws and hit-tests every key itself, rather than inflating one view per key, so several pointers
      * can each hold a different key at once: a modifier plus a letter, or four arrow/WASD keys in a game.
+     * Keys are tracked by index, not by [Cap]: two caps can be equal (the two Fn keys), and each is its own key.
      */
     private class KeyboardView(
         context: Context,
         textScale: Float,
-        private val onKey: (code: Int, down: Boolean) -> Unit,
+        private val board: Layout,
+        private val mode: FnMode,
+        os: DeviceOs?,
+        onKey: (code: Int, down: Boolean) -> Unit,
+        onAction: (ActionId) -> Unit,
     ) : View(context) {
         /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
-        constructor(context: Context) : this(context, Settings.DEFAULT_KEY_TEXT_SCALE, { _, _ -> })
+        constructor(context: Context) : this(
+            context,
+            Settings.DEFAULT_KEY_TEXT_SCALE,
+            layoutFor(Settings.DEFAULT_KEYBOARD_SIZE),
+            Settings.DEFAULT_FUNCTION_KEYS,
+            null,
+            { _, _ -> },
+            {},
+        )
 
         private val density = resources.displayMetrics.density
         private val palette = Palette.of(context)
-        private val rows = buildRows()
-        private val keys = rows.flatten()
-        private val rects = List(keys.size) { RectF() }
+        private val caps = board.rows.flatten().filterIsInstance<Cap>()
+        private val rects = List(caps.size) { RectF() }
+        private val legends = caps.map { labelFor(it, os) }
+        private val functionKeys = caps.map { isFunctionKey(it) }
+
+        /** What each modifier and Fn key is called in [modifiers]; meaningless on any other key. */
+        private val modifierCodes = IntArray(caps.size) { wireOf(caps[it], caps[it].base) ?: 0 }
+
+        /** How many fingers are on each key. */
+        private val pressCount = IntArray(caps.size)
         private val padding = PADDING_DP * density
-        private val gap = GAP_DP * density
+        private val maxGap = GAP_DP * density
         private val corner = CORNER_DP * density
         private val shadow = SHADOW_DP * density
         private val labelInset = Space.XS * density
@@ -213,20 +160,40 @@ object KeyboardScreen {
                 color = palette.onAccent
                 textSize = wantedTextSize
             }
-        private val labelOff =
-            TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-                set(labelOn)
-                color = palette.ink
-            }
+        private val labelOff = paintLike(labelOn, palette.ink)
+        private val labelDim = paintLike(labelOn, palette.dim)
+        private val secondaryOn = paintLike(labelOn, palette.onAccent)
+        private val secondaryOff = paintLike(labelOn, palette.dim)
 
-        private val pointerKeys = mutableMapOf<Int, Key>()
-        private val modifiers = ModifierLatch(onKey)
+        private val pointerKeys = mutableMapOf<Int, Press>()
+
+        // Fn goes through the latch like Shift, so it is sticky the same way; it stops here and never reaches
+        // the laptop. The latch also carries the action codes, which go out as actions on down only.
+        private val send: (Int, Boolean) -> Unit = { code, down -> sendWire(code, down, onKey, onAction) }
+        private val modifiers = ModifierLatch(send)
+
+        // Repeats go through the latch like the first press, so an armed modifier wraps them too; no haptic.
+        private val keyRepeat =
+            KeyRepeat(
+                post = { task, delay -> postDelayed(task, delay) },
+                cancel = { task -> removeCallbacks(task) },
+                fire = { code -> modifiers.keyDown(code) },
+            )
 
         init {
             contentDescription = context.getString(R.string.keyboard_description)
             isClickable = true
             isFocusable = true
         }
+
+        private fun paintLike(
+            paint: TextPaint,
+            tint: Int,
+        ): TextPaint =
+            TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+                set(paint)
+                color = tint
+            }
 
         override fun onSizeChanged(
             w: Int,
@@ -235,18 +202,27 @@ object KeyboardScreen {
             oldh: Int,
         ) {
             super.onSizeChanged(w, h, oldw, oldh)
-            val rowHeight = (h - 2 * padding - (ROW_COUNT - 1) * gap) / ROW_COUNT
+            val unit = (w - 2 * padding) / board.width
+            val rowHeight = (h - 2 * padding) / board.rows.size
+            val gap = minOf(maxGap, GAP_SHARE * minOf(unit, rowHeight))
             var keyIndex = 0
-            rows.forEachIndexed { rowIndex, row ->
-                val top = padding + rowIndex * (rowHeight + gap)
-                val totalUnits = row.sumOf { it.units.toDouble() }.toFloat()
-                val unitWidth = (w - 2 * padding - (row.size - 1) * gap) / totalUnits
-                var x = padding
-                for (key in row) {
-                    val keyWidth = unitWidth * key.units
-                    rects[keyIndex].set(x, top, x + keyWidth, top + rowHeight)
-                    x += keyWidth + gap
-                    keyIndex++
+            board.rows.forEachIndexed { rowIndex, row ->
+                val top = padding + rowIndex * rowHeight + gap / 2
+                var column = 0f
+                for (item in row) {
+                    when (item) {
+                        is Gap -> {
+                            column += item.units
+                        }
+
+                        is Cap -> {
+                            val left = padding + column * unit + gap / 2
+                            val right = left + item.units * unit - gap
+                            rects[keyIndex].set(left, top, right, top + item.rows * rowHeight - gap)
+                            keyIndex++
+                            column += item.units
+                        }
+                    }
                 }
             }
             fitLabels()
@@ -255,6 +231,7 @@ object KeyboardScreen {
         /**
          * One text size for every key, so labels stay consistent: the wanted size, shrunk until each label's
          * width and the line's full height fit inside its own key with [labelInset] to spare on every side.
+         * A key can show either of its two labels large, so both are measured.
          * Width and height both scale linearly with the size, so one measurement at the wanted size is enough.
          * Runs here rather than in onDraw, where lint rejects the allocation getFontMetrics makes.
          */
@@ -263,24 +240,31 @@ object KeyboardScreen {
             val metrics = labelOn.fontMetrics
             val lineHeight = metrics.descent - metrics.ascent
             var fit = 1f
-            for (i in keys.indices) {
+            for (i in caps.indices) {
                 // A key with no room inside its inset (a zero-sized first layout) fits a size of zero: no text at all.
                 val availableWidth = maxOf(0f, rects[i].width() - 2 * labelInset)
                 val availableHeight = maxOf(0f, rects[i].height() - 2 * labelInset)
-                val width = labelOn.measureText(keys[i].label)
+                val fnWidth = caps[i].fnLabel?.let { labelOn.measureText(it) } ?: 0f
+                val width = maxOf(labelOn.measureText(legends[i]), fnWidth)
                 if (width > 0f) fit = minOf(fit, availableWidth / width)
                 if (lineHeight > 0f) fit = minOf(fit, availableHeight / lineHeight)
             }
             labelOn.textSize = wantedTextSize * fit
             labelOff.textSize = labelOn.textSize
+            labelDim.textSize = labelOn.textSize
+            secondaryOn.textSize = labelOn.textSize * SECONDARY_SHARE
+            secondaryOff.textSize = secondaryOn.textSize
         }
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
-            for (i in keys.indices) {
-                val key = keys[i]
+            val fnActive = modifiers.isActive(FN_CODE)
+            for (i in caps.indices) {
+                val cap = caps[i]
                 val rect = rects[i]
-                val held = pointerKeys.containsValue(key) || (key.sticky && modifiers.isArmed(key.code))
+                val out = resolve(cap, fnActive, mode)
+                val modifier = cap.role != KeyRole.NORMAL
+                val held = pressCount[i] > 0 || (modifier && modifiers.isActive(modifierCodes[i]))
                 val radius = minOf(corner, rect.width() / CORNER_SHARE)
                 if (!palette.dark) {
                     // The shadow is the same key shape one step lower; the key drawn over it leaves only its
@@ -292,21 +276,34 @@ object KeyboardScreen {
                 fillPaint.color =
                     when {
                         held -> palette.accent
-                        key.function -> functionFill
+                        functionKeys[i] -> functionFill
                         else -> keyFill
                     }
                 canvas.drawRoundRect(rect, radius, radius, fillPaint)
-                val label = if (held) labelOn else labelOff
-                canvas.drawText(key.label, rect.centerX(), rect.centerY() + label.textSize * Type.CAP_CENTRE, label)
+                // resolve() hands back this very object exactly when the key's Fn side is the active one.
+                val fnSide = out === cap.fn
+                val primary = if (fnSide) cap.fnLabel ?: legends[i] else legends[i]
+                val other = if (fnSide) legends[i] else cap.fnLabel
+                val label =
+                    when {
+                        held -> labelOn
+                        !modifier && out === KeyOut.None -> labelDim
+                        else -> labelOff
+                    }
+                canvas.drawText(primary, rect.centerX(), rect.centerY() + label.textSize * Type.CAP_CENTRE, label)
+                if (other != null) {
+                    val small = if (held) secondaryOn else secondaryOff
+                    canvas.drawText(other, rect.centerX(), rect.top + labelInset + small.textSize, small)
+                }
             }
         }
 
         private fun keyAt(
             x: Float,
             y: Float,
-        ): Key? {
-            for (i in keys.indices) {
-                if (rects[i].contains(x, y)) return keys[i]
+        ): Int? {
+            for (i in caps.indices) {
+                if (rects[i].contains(x, y)) return i
             }
             return null
         }
@@ -315,23 +312,38 @@ object KeyboardScreen {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                     val index = event.actionIndex
-                    val key = keyAt(event.getX(index), event.getY(index)) ?: return false
+                    // True, not false, on a hole or a dead key: false would drop the gesture and every finger in it.
+                    val key = keyAt(event.getX(index), event.getY(index)) ?: return true
+                    val cap = caps[key]
+                    val out = resolve(cap, modifiers.isActive(FN_CODE), mode)
+                    val wire = wireOf(cap, out) ?: return true
+                    val sticky = cap.role != KeyRole.NORMAL
                     performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                    pointerKeys[event.getPointerId(index)] = key
-                    if (key.sticky) modifiers.modifierDown(key.code) else modifiers.keyDown(key.code)
+                    pointerKeys[event.getPointerId(index)] = Press(key, wire, sticky)
+                    pressCount[key]++
+                    if (sticky) {
+                        modifiers.modifierDown(wire)
+                    } else {
+                        modifiers.keyDown(wire)
+                        if (repeats(cap, out)) keyRepeat.press(wire)
+                    }
                 }
 
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                     val index = event.actionIndex
-                    val key = pointerKeys.remove(event.getPointerId(index)) ?: return false
-                    if (key.sticky) modifiers.modifierUp(key.code) else modifiers.keyUp(key.code)
+                    val press = pointerKeys.remove(event.getPointerId(index)) ?: return true
+                    pressCount[press.index]--
+                    if (press.sticky) {
+                        modifiers.modifierUp(press.wire)
+                    } else {
+                        keyRepeat.release(press.wire)
+                        modifiers.keyUp(press.wire)
+                    }
                     performClick()
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
-                    for (key in pointerKeys.values) if (!key.sticky) onKey(key.code, false)
-                    pointerKeys.clear()
-                    modifiers.cancel()
+                    releaseAll()
                 }
 
                 else -> {
@@ -345,6 +357,20 @@ object KeyboardScreen {
         override fun performClick(): Boolean {
             super.performClick()
             return true
+        }
+
+        // Lets go of every key still down; also run on detach, when the up events will never arrive.
+        private fun releaseAll() {
+            keyRepeat.stop()
+            for (press in pointerKeys.values) if (!press.sticky) send(press.wire, false)
+            pointerKeys.clear()
+            pressCount.fill(0)
+            modifiers.cancel()
+        }
+
+        override fun onDetachedFromWindow() {
+            releaseAll()
+            super.onDetachedFromWindow()
         }
     }
 }

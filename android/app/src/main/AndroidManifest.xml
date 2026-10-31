@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-  <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
+  <!-- Not required: a phone without Bluetooth can still reach a laptop over Wi-Fi or USB tethering. -->
+  <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
   <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+  <!-- Finding laptops on the Wi-Fi and over USB tethering. -->
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+  <!-- Android 17 blocks an app targeting API 37 from the local network until this runtime permission (Nearby devices group) is granted. -->
+  <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
   <!-- For one thing only: asking GitHub which release is newest, and fetching it. See update/Updates.kt. -->
   <uses-permission android:name="android.permission.INTERNET" />
   <!-- To install that release over this app. The second lets Android 12 and later skip its question. -->
   <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
   <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
+  <!-- Staying connected while minimized: a foreground service of type connectedDevice (link/LinkService.kt) and its notification. -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
   <application
     android:allowBackup="false"
@@ -27,9 +37,23 @@
       </intent-filter>
     </activity>
 
+    <!-- Android 14 lets a connectedDevice service start only if the app holds one of a list of permissions;
+         CHANGE_WIFI_MULTICAST_STATE above, declared for finding laptops, is on it, and so is BLUETOOTH_CONNECT. -->
+    <service
+      android:name=".link.LinkService"
+      android:exported="false"
+      android:foregroundServiceType="connectedDevice" />
+
     <receiver
       android:name=".update.Installer$StatusReceiver"
       android:exported="false" />
+
+    <!-- Serves the one image a laptop sent to the clipboard. The app a user pastes into is granted that one URI. -->
+    <provider
+      android:name=".link.ClipProvider"
+      android:authorities="${applicationId}.clip"
+      android:exported="false"
+      android:grantUriPermissions="true" />
 
   </application>
 

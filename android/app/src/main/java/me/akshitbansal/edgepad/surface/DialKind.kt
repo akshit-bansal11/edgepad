@@ -19,10 +19,19 @@ enum class DialKind(
     ZOOM(R.string.dial_zoom_short, R.string.dial_zoom, 2),
     MEDIA(R.string.dial_media_short, R.string.dial_media, 3),
     APP_SWITCHER(R.string.dial_apps_short, R.string.dial_apps, null),
-    MIC(R.string.dial_mic_short, R.string.dial_mic, null),
 
-    // Off by default: there are seven kinds and only four corners, and this one is the least often wanted.
+    // Off by default: there are more kinds than the four corners hold, and this one is the least often wanted.
     REFRESH(R.string.dial_refresh_short, R.string.dial_refresh, null),
+
+    // Off by default too: the four corners keep the dials most wanted; these are one slide away in Settings.
+    SCROLL(R.string.dial_scroll_short, R.string.dial_scroll, null),
+    SCROLL_H(R.string.dial_scroll_h_short, R.string.dial_scroll_h, null),
+    DESKTOPS(R.string.dial_desktops_short, R.string.dial_desktops, null),
+    TABS(R.string.dial_tabs_short, R.string.dial_tabs, null),
+
+    // Last, so no stored corner or sensitivity, which are kept by name, moves. Off by default: it is for people
+    // with more than one laptop connected, and a slide here is the one gesture that changes who the pad drives.
+    DEVICES(R.string.dial_devices_short, R.string.dial_devices, null),
     ;
 
     /** Builds the dial with this kind's behaviour: what a slide sets, what a tap runs, what a step does. */
@@ -33,6 +42,8 @@ enum class DialKind(
         snap: Boolean,
         send: (Frame) -> Unit,
         haptic: () -> Unit,
+        slot: Int = Dial.WHOLE,
+        devices: DeviceSwitch = DeviceSwitch.None,
     ): Dial {
         val snapTo = if (snap) SNAP_STEP else 0
         return when (this) {
@@ -47,6 +58,7 @@ enum class DialKind(
                     snapTo = snapTo,
                     sink = send,
                     haptic = haptic,
+                    slot = slot,
                 )
             }
 
@@ -60,20 +72,7 @@ enum class DialKind(
                     snapTo = snapTo,
                     sink = send,
                     haptic = haptic,
-                )
-            }
-
-            MIC -> {
-                Dial(
-                    this,
-                    corner,
-                    label,
-                    unitsPerDp,
-                    ControlId.MIC_LEVEL,
-                    tap = ActionId.MIC_MUTE_TOGGLE,
-                    snapTo = snapTo,
-                    sink = send,
-                    haptic = haptic,
+                    slot = slot,
                 )
             }
 
@@ -91,6 +90,7 @@ enum class DialKind(
                     // off the list entirely. No tap: there is no sensible thing for it to toggle.
                     sink = send,
                     haptic = haptic,
+                    slot = slot,
                 )
             }
 
@@ -104,6 +104,7 @@ enum class DialKind(
                     tap = ActionId.PLAY_PAUSE,
                     sink = send,
                     haptic = haptic,
+                    slot = slot,
                 )
             }
 
@@ -118,6 +119,7 @@ enum class DialKind(
                     keepsSteps = true,
                     sink = send,
                     haptic = haptic,
+                    slot = slot,
                 )
             }
 
@@ -133,9 +135,98 @@ enum class DialKind(
                     onRelease = { send(ActionId.APP_SWITCH_END.frame()) },
                     sink = send,
                     haptic = haptic,
+                    slot = slot,
+                )
+            }
+
+            SCROLL -> {
+                Dial(
+                    this,
+                    corner,
+                    label,
+                    unitsPerDp,
+                    // Wheel forward is positive, so a clockwise turn, which scrolls down, is negative.
+                    step = { direction -> send(Frame.Scroll(0, -direction * TrackpadRecognizer.WHEEL_NOTCH)) },
+                    sink = send,
+                    haptic = haptic,
+                    slot = slot,
+                )
+            }
+
+            SCROLL_H -> {
+                Dial(
+                    this,
+                    corner,
+                    label,
+                    unitsPerDp,
+                    // A positive dx is right, so a clockwise turn scrolls right.
+                    step = { direction -> send(Frame.Scroll(direction * TrackpadRecognizer.WHEEL_NOTCH, 0)) },
+                    sink = send,
+                    haptic = haptic,
+                    slot = slot,
+                )
+            }
+
+            DESKTOPS -> {
+                Dial(
+                    this,
+                    corner,
+                    label,
+                    unitsPerDp,
+                    tap = ActionId.TASK_VIEW,
+                    step = { direction -> send(desktopStep(direction).frame()) },
+                    sink = send,
+                    haptic = haptic,
+                    slot = slot,
+                )
+            }
+
+            TABS -> {
+                Dial(
+                    this,
+                    corner,
+                    label,
+                    unitsPerDp,
+                    step = { direction -> tabStep(direction, send) },
+                    // Ctrl is held for the whole slide, so each Tab is Ctrl+Tab; let go when it ends or is cancelled.
+                    onArm = { send(Frame.Key(VK_CTRL, true)) },
+                    onRelease = { send(Frame.Key(VK_CTRL, false)) },
+                    sink = send,
+                    haptic = haptic,
+                    slot = slot,
+                )
+            }
+
+            DEVICES -> {
+                Dial(
+                    this,
+                    corner,
+                    label,
+                    unitsPerDp,
+                    // Clockwise is the next laptop. Nothing here is sent: the phone moves its own selection, and
+                    // the screens rebuilt on the new laptop do the rest.
+                    tapRun = devices::open,
+                    step = devices::step,
+                    sink = send,
+                    haptic = haptic,
+                    slot = slot,
                 )
             }
         }
+    }
+
+    private fun desktopStep(direction: Int): ActionId =
+        if (direction > 0) ActionId.DESKTOP_RIGHT else ActionId.DESKTOP_LEFT
+
+    /** Ctrl+Tab forward, Ctrl+Shift+Tab back: the Ctrl is the slide's, so only Tab and, going back, Shift go here. */
+    private fun tabStep(
+        direction: Int,
+        send: (Frame) -> Unit,
+    ) {
+        if (direction < 0) send(Frame.Key(VK_SHIFT, true))
+        send(Frame.Key(VK_TAB, true))
+        send(Frame.Key(VK_TAB, false))
+        if (direction < 0) send(Frame.Key(VK_SHIFT, false))
     }
 
     private fun appSwitchStep(direction: Int): ActionId =
@@ -143,5 +234,27 @@ enum class DialKind(
 
     private companion object {
         const val SNAP_STEP = 5
+
+        // Windows virtual-key codes, as the on-screen keyboard sends them.
+        const val VK_TAB = 0x09
+        const val VK_SHIFT = 0x10
+        const val VK_CTRL = 0x11
     }
 }
+
+/** What Settings stores for a corner or slot left empty. */
+internal const val NO_DIAL = "-"
+
+/**
+ * The dial a stored [name] stands for: [whenNeverSet] when nothing was stored, null for [NO_DIAL], and null for a
+ * name no kind has any more (a removed dial), so a corner never falls back to a default that may already be taken.
+ */
+internal fun resolveStoredDial(
+    name: String?,
+    whenNeverSet: () -> DialKind?,
+): DialKind? =
+    when (name) {
+        null -> whenNeverSet()
+        NO_DIAL -> null
+        else -> DialKind.entries.firstOrNull { it.name == name }
+    }

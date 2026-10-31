@@ -13,6 +13,14 @@ public enum PhoneLabel {
 
     /// `"<name>" (<address>)`, or just the address when the phone gave no usable name.
     public static func describe(name: String?, address: String) -> String {
+        let shown = clean(name)
+        return shown.isEmpty ? address : "\"\(shown)\" (\(address))"
+    }
+
+    /// The name as the owner may be shown it: letters, digits, spaces and a little punctuation, at most 40 scalars.
+    /// Empty when nothing usable is left. A network phone's status line uses it on its own, with no address beside
+    /// it: its address is a string of hex that says nothing to the owner.
+    public static func clean(_ name: String?) -> String {
         var kept = String.UnicodeScalarView()
         kept.append(
             contentsOf: (name ?? "").unicodeScalars.prefix(maxInputScalars).filter {
@@ -23,7 +31,6 @@ public enum PhoneLabel {
         let collapsed = String(kept).split(separator: " ", omittingEmptySubsequences: true).joined(separator: " ")
         var cut = String.UnicodeScalarView()
         cut.append(contentsOf: collapsed.unicodeScalars.prefix(maxNameLength))
-        let clean = String(cut).trimmingCharacters(in: .whitespaces)
-        return clean.isEmpty ? address : "\"\(clean)\" (\(address))"
+        return String(cut).trimmingCharacters(in: .whitespaces)
     }
 }

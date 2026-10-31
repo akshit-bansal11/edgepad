@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Lucide "music", ISC licence: https://lucide.dev -->
+<!-- Edgepad's own icon: 24 x 24 grid, 20 x 20 live area, 1.5 stroke, round caps and joins, 1 to 1.5 unit corners -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
   android:width="24dp"
   android:height="24dp"
@@ -9,22 +9,8 @@
   <path
     android:fillColor="#00000000"
     android:strokeColor="#000000"
-    android:strokeWidth="2"
+    android:strokeWidth="1.5"
     android:strokeLineCap="round"
     android:strokeLineJoin="round"
-    android:pathData="M9 18V5l12-2v13" />
-  <path
-    android:fillColor="#00000000"
-    android:strokeColor="#000000"
-    android:strokeWidth="2"
-    android:strokeLineCap="round"
-    android:strokeLineJoin="round"
-    android:pathData="M3,18a3,3 0 1,0 6,0a3,3 0 1,0 -6,0" />
-  <path
-    android:fillColor="#00000000"
-    android:strokeColor="#000000"
-    android:strokeWidth="2"
-    android:strokeLineCap="round"
-    android:strokeLineJoin="round"
-    android:pathData="M15,16a3,3 0 1,0 6,0a3,3 0 1,0 -6,0" />
+    android:pathData="M9 17.5V6L19 4V15.5M4.75 17.5A2.25 2.25 0 1 0 9.25 17.5A2.25 2.25 0 1 0 4.75 17.5ZM14.75 15.5A2.25 2.25 0 1 0 19.25 15.5A2.25 2.25 0 1 0 14.75 15.5Z" />
 </vector>

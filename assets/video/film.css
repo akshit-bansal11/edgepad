@@ -1,0 +1,36 @@
+/* Shared by every composition: Lato (the app's own face, brand/OFL.txt) and the page text the director builds. */
+@font-face { font-family: Lato; font-weight: 400; src: url(brand/Lato-Regular.ttf); }
+@font-face { font-family: Lato; font-weight: 700; src: url(brand/Lato-Bold.ttf); }
+@font-face { font-family: Lato; font-weight: 900; src: url(brand/Lato-Black.ttf); }
+
+html,
+body { width: 100%; height: 100%; margin: 0; background: #f2f3f7; }
+#root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #f2f3f7; font-family: Lato, sans-serif; }
+#film-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#film-text { position: absolute; inset: 0; }
+
+/* Headline: Lato Black, tight, ink; the keyword in the accent. */
+.hl, .sub, .pill, .end, .mkb, .still { position: absolute; }
+.hl { font-weight: 900; line-height: 1; letter-spacing: -0.01em; color: #16171a; white-space: nowrap; }
+/* Sub-line: Lato Bold in the secondary grey, its keyword in the accent. */
+.sub { font-weight: 700; line-height: 1.15; color: #6b6e76; white-space: nowrap; }
+.ln { display: block; }
+.w { display: inline-block; }
+.k { color: #0068d6; }
+.mkb .mk { display: block; filter: drop-shadow(0 8px 16px rgba(20, 24, 40, 0.16)); }
+
+/* The caption pill: words already said in ink, the one being said in blue, those to come in grey (set by the timeline). */
+.pill { box-sizing: border-box; background: #fff; border-radius: 999px; font-weight: 700; color: #6b6e76; text-align: center; white-space: nowrap; box-shadow: 0 10px 30px rgba(22, 28, 48, 0.1), 0 1px 3px rgba(22, 28, 48, 0.06); }
+
+/* The end card. */
+.end { width: 900px; }
+.end-mark { display: block; width: 112px; height: 112px; filter: drop-shadow(0 12px 24px rgba(20, 24, 40, 0.18)); }
+.end-name { font-weight: 900; font-size: 150px; line-height: 1; letter-spacing: -0.015em; color: #16171a; margin-top: 28px; }
+.end-tag { font-weight: 900; font-size: 72px; line-height: 1; letter-spacing: -0.01em; color: #16171a; margin-top: 18px; }
+.end-btn { display: inline-flex; align-items: center; gap: 18px; margin-top: 52px; height: 84px; padding: 0 40px 0 32px; border-radius: 42px; background: #0068d6; color: #fff; font-weight: 700; font-size: 38px; box-shadow: 0 16px 34px rgba(0, 104, 214, 0.3); }
+.end-btn svg { width: 40px; height: 40px; }
+
+/* The covers. */
+.still .mark { display: block; filter: drop-shadow(0 10px 22px rgba(20, 24, 40, 0.18)); }
+.still .big { font-weight: 900; line-height: 0.98; letter-spacing: -0.015em; color: #16171a; }
+.still .tag { font-weight: 700; color: #6b6e76; }

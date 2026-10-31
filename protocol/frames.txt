@@ -1,4 +1,4 @@
-# Golden frames for Edgepad protocol v1.
+# Golden frames for Edgepad protocol v5.
 #
 # Both test suites (android/ in Kotlin, windows/ in C#) read this file. For every
 # line they encode the fields and must get exactly these bytes, then decode the
@@ -14,6 +14,7 @@ HELLO 1 = 01 45 44 47 50 01
 HELLO 2 = 01 45 44 47 50 02
 HELLO 3 = 01 45 44 47 50 03
 HELLO 4 = 01 45 44 47 50 04
+HELLO 5 = 01 45 44 47 50 05
 TEXT 3 hi = 41 03 02 68 69
 HELLO_ACK 1 = 02 01
 MOVE 5 -3 = 10 05 00 fd ff
@@ -52,6 +53,14 @@ ACTION 36 = 20 24
 TEXT 8 ready = 41 08 05 72 65 61 64 79
 TEXT 8 no-driver = 41 08 09 6e 6f 2d 64 72 69 76 65 72
 TEXT 8 attach-failed = 41 08 0d 61 74 74 61 63 68 2d 66 61 69 6c 65 64
+# Capture is three ids in the ACTION table, so these are ordinary RUN_ACTION frames: 52 = 0x34, 53 = 0x35, 54 = 0x36.
+ACTION 52 = 20 34
+ACTION 53 = 20 35
+ACTION 54 = 20 36
+# The laptop telling the phone which optional features it has, as tokens joined by "/". "capture" is 7 bytes;
+# "annotate/capture" is 8 + 1 + 7 = 16, which is 0x10.
+TEXT 9 capture = 41 09 07 63 61 70 74 75 72 65
+TEXT 9 annotate/capture = 41 09 10 61 6e 6e 6f 74 61 74 65 2f 63 61 70 74 75 72 65
 # PAD_STATE buttons lt rt lx ly rx ry — the whole controller in one 12-byte payload, laid out exactly like
 # Windows' XINPUT_GAMEPAD so the laptop copies it rather than translating it. Triggers are 0..255; sticks are
 # -32768..32767, positive up and right. The signed lines below are the ones that matter: every i16 here is
@@ -70,3 +79,84 @@ PAD_STATE 12305 32 200 -1 1 256 -256 = 23 11 30 20 c8 ff ff 01 00 00 01 00 ff
 # Every button XInput defines, held at once: 0xffff without the unused 0x0800 is 0xf7ff = 63487. The top bit
 # is Y, which is where reading the mask as a signed short instead of a u16 turns a held button into nonsense.
 PAD_STATE 63487 0 0 0 0 0 0 = 23 ff f7 00 00 00 00 00 00 00 00 00 00
+# PIN_REQUEST: attemptsLeft u8, lockedSeconds u16 little-endian (300 = 0x012c). Laptop to phone, only between
+# trust and HELLO_ACK. 65535 is the u16 ceiling, where a sign or byte-order slip shows.
+PIN_REQUEST 5 0 = 03 05 00 00
+PIN_REQUEST 2 0 = 03 02 00 00
+PIN_REQUEST 0 30 = 03 00 1e 00
+PIN_REQUEST 0 300 = 03 00 2c 01
+PIN_REQUEST 0 65535 = 03 00 ff ff
+# PIN_ANSWER: six bytes, each a digit value 0..9 and not its ASCII code, so a mis-routed one can never read as text.
+PIN_ANSWER 1 2 3 4 5 6 = 04 01 02 03 04 05 06
+PIN_ANSWER 0 0 0 0 0 0 = 04 00 00 00 00 00 00
+PIN_ANSWER 9 9 9 9 9 9 = 04 09 09 09 09 09 09
+# PEN: x u16, y u16, state u8 (0 up, 1 down, 2 move). Phone to laptop. x and y span the whole u16 range, 0 the
+# left/top edge of the laptop screen and 65535 the right/bottom one, so a byte-order or sign slip shows at 65535.
+PEN 0 0 1 = 24 00 00 00 00 01
+PEN 65535 65535 0 = 24 ff ff ff ff 00
+# 32768 = 0x8000 and 12345 = 0x3039, written low byte first: the bytes of x and y differ, so a swapped pair shows.
+PEN 32768 12345 2 = 24 00 80 39 30 02
+# A state above 2 is not a codec error: a newer phone may add states, and the laptop drops and counts the frame.
+PEN 1 2 7 = 24 01 00 02 00 07
+# TEXT 10 SCREEN_SIZE and TEXT 11 SIGN_STATUS, laptop to phone, and the new CONTROL and ACTION ids.
+TEXT 10 1920/1080 = 41 0a 09 31 39 32 30 2f 31 30 38 30
+TEXT 11 saved = 41 0b 05 73 61 76 65 64
+SET 5 6 = 21 05 06
+ACTION 40 = 20 28
+# Saving a capture on the phone. SET 6 is CAPTURE_TARGET: 0 the laptop keeps the file where its tool saved it,
+# 1 it sends the file to the phone. Phone to laptop, on connect and whenever the setting changes.
+SET 6 0 = 21 06 00
+SET 6 1 = 21 06 01
+# FILE_BEGIN fileType size name, laptop to phone. The two header bytes are TEXT's shape (an id, then a length), so
+# every reader already frames it: fileType u8, length u8, then size u32 and the UTF-8 name, the length counting
+# both. "shot.png" is 8 bytes, so the length is 4 + 8 = 12 = 0x0c; 1234 = 0x04d2, written low byte first.
+FILE_BEGIN 0 1234 shot.png = 50 00 0c d2 04 00 00 73 68 6f 74 2e 70 6e 67
+# 200 MB, the video cap, is 209715200 = 0x0c800000. "rec.mp4" is 7 bytes, so the length is 11 = 0x0b.
+FILE_BEGIN 2 209715200 rec.mp4 = 50 02 0b 00 00 80 0c 72 65 63 2e 6d 70 34
+# FILE_CHUNK seq bytes, laptop to phone: seq u8 (the chunk's index mod 256) and a length u8, then that many bytes,
+# written here as one run of hex. 255 bytes at most, so a chunk is never longer than the longest TEXT.
+FILE_CHUNK 0 68656c6c6f = 51 00 05 68 65 6c 6c 6f
+FILE_CHUNK 255 ff00 = 51 ff 02 ff 00
+# FILE_END sha256, laptop to phone: the SHA-256 of the whole file, 32 bytes. This one is the hash of "hello".
+FILE_END 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 = 52 2c f2 4d ba 5f b0 a3 0e 26 e8 3b 2a c5 b9 e2 9e 1b 16 1e 5c 1f a7 42 5e 73 04 33 62 93 8b 98 24
+# FILE_RESULT status, phone to laptop, one FILE_STATUS id. 0 SAVED is the only answer that lets the laptop delete
+# its copy; any other id, one this build does not know included, keeps it.
+FILE_RESULT 0 = 53 00
+FILE_RESULT 1 = 53 01
+# TEXT 12 CAPTURE_STATUS, laptop to phone: why a capture was kept on the laptop or never found.
+TEXT 12 too-large = 41 0c 09 74 6f 6f 2d 6c 61 72 67 65
+# TEXT 13 DEVICE, laptop to phone, once after HELLO_ACK: "<32 hex id>/<os>/<name>", os one of windows, linux, macos. 45 bytes, so 0x2d.
+TEXT 13 00112233445566778899aabbccddeeff/windows/Desk = 41 0d 2d 30 30 31 31 32 32 33 33 34 34 35 35 36 36 37 37 38 38 39 39 61 61 62 62 63 63 64 64 65 65 66 66 2f 77 69 6e 64 6f 77 73 2f 44 65 73 6b
+# TEXT 14 APP_ADD, phone to laptop: "<epoch>.<index>" into the list the laptop last sent. TEXT 15 APP_ADD_STATUS, laptop to phone: one token.
+TEXT 14 7.12 = 41 0e 04 37 2e 31 32
+TEXT 15 added = 41 0f 05 61 64 64 65 64
+# TEXT 16 MACRO_OPEN, laptop to phone: one state character per macro slot.
+TEXT 16 -012 = 41 10 04 2d 30 31 32
+# CONTROL 7 CLIPBOARD, phone to laptop: 1 the link shares the clipboard, 0 it does not.
+SET 7 1 = 21 07 01
+SET 7 0 = 21 07 00
+# CONTROL 8 PEN_WIDTH (1..100, 20 is the default 0.4%), CONTROL 9 PEN_OPACITY (10..100) and TEXT 17 PEN_RGB (six hex
+# digits), phone to laptop.
+SET 8 20 = 21 08 14
+SET 8 100 = 21 08 64
+SET 9 35 = 21 09 23
+SET 9 100 = 21 09 64
+TEXT 17 FF3B30 = 41 11 06 46 46 33 42 33 30
+# ACTION 56 APPS_LIST and ACTION 57 APPS_CANCEL, phone to laptop.
+ACTION 56 = 20 38
+ACTION 57 = 20 39
+ACTION 58 = 20 3a
+ACTION 59 = 20 3b
+ACTION 96 = 20 60
+# BLOB_BEGIN kind size label, either direction, FILE_BEGIN's shape: kind u8, length u8, then size u32 and the UTF-8 label,
+# the length counting both. Kind 0 CLIP_TEXT, "clip" is 4 bytes so the length is 8; 1234 = 0x04d2, low byte first.
+BLOB_BEGIN 0 1234 clip = 54 00 08 d2 04 00 00 63 6c 69 70
+# Kind 3 APP_ICON, label an app token: "chrome" is 6 bytes, so the length is 10 = 0x0a; 8192 = 0x2000.
+BLOB_BEGIN 3 8192 chrome = 54 03 0a 00 20 00 00 63 68 72 6f 6d 65
+# An unknown kind is data, not a codec error: the receiver reads it to its BLOB_END and drops it.
+BLOB_BEGIN 9 1 x = 54 09 05 01 00 00 00 78
+# BLOB_CHUNK seq bytes, FILE_CHUNK's shape.
+BLOB_CHUNK 0 68656c6c6f = 55 00 05 68 65 6c 6c 6f
+BLOB_CHUNK 255 ff00 = 55 ff 02 ff 00
+# BLOB_END sha256, FILE_END's shape: the SHA-256 of the whole blob. This one is the hash of "hello".
+BLOB_END 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 = 56 2c f2 4d ba 5f b0 a3 0e 26 e8 3b 2a c5 b9 e2 9e 1b 16 1e 5c 1f a7 42 5e 73 04 33 62 93 8b 98 24
