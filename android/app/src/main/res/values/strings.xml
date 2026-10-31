@@ -125,10 +125,10 @@
     <item quantity="one">Connected to %1$s and %2$d other laptop</item>
     <item quantity="other">Connected to %1$s and %2$d other laptops</item>
   </plurals>
-  <string name="link_notice_text">Tap to open Edgepad.</string>
+  <string name="link_notice_text">Tap to open Edgepad. With clipboard sharing on, that also sends what you copied.</string>
   <string name="settings_clipboard">Clipboard</string>
   <string name="clipboard_share">Share the clipboard with this laptop</string>
-  <string name="clipboard_share_caption">Text and images you copy here go to this laptop, and what you copy there comes here. Android lets Edgepad read a copy made on this phone only while Edgepad is open. Only the laptop you are controlling shares, and its own clipboard switch must be on as well.</string>
+  <string name="clipboard_share_caption">What you copy on this laptop arrives here at once. To send a copy from this phone, go back to Edgepad after copying: Android lets Edgepad read the clipboard only while it is on screen, so nothing is sent until you return. Text and images both go, and a large photo is sent smaller. Only the laptop you are controlling shares, and its own clipboard switch must be on as well.</string>
   <string name="corner_top_left">Top left</string>
   <string name="corner_top_right">Top right</string>
   <string name="corner_bottom_right">Bottom right</string>

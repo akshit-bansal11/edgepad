@@ -113,6 +113,43 @@ class ClipboardBridgeTest {
         assertFalse(isPngSignature(ByteArray(0)))
     }
 
+    // A photo came to more than the cap, and was dropped without a word: the owner's report on build 60.
+    @Test
+    fun aPictureOverTheCapIsShrunkUntilItFits() {
+        val fitted = fittedEncoding(100) { scale -> ByteArray((1000 * scale * scale).toInt()) }
+
+        assertNotNull(fitted)
+        assertTrue(fitted!!.size in 50..100)
+    }
+
+    @Test
+    fun aPictureWithinTheCapKeepsItsSize() {
+        val scales = ArrayList<Double>()
+
+        fittedEncoding(100) { scale -> ByteArray(100).also { scales.add(scale) } }
+
+        assertEquals(listOf(1.0), scales)
+    }
+
+    @Test
+    fun aPictureThatNeverFitsIsNotSent() {
+        assertNull(fittedEncoding(100) { ByteArray(101) })
+    }
+
+    @Test
+    fun aHugePictureIsDecodedSmallerAndASmallOneIsNot() {
+        val scale = decodeScale(4000, 3000)
+
+        assertEquals(1.0, decodeScale(100, 100), 0.0)
+        assertEquals(2309, scaled(4000, scale))
+        assertEquals(1732, scaled(3000, scale))
+    }
+
+    @Test
+    fun aSideNeverScalesToNothing() {
+        assertEquals(1, scaled(1, 0.001))
+    }
+
     private class FakeDevice : ClipboardDevice {
         var current: ClipboardContent? = null
         val writes = ArrayList<ClipboardContent>()

@@ -114,11 +114,13 @@ class LinkService : Service() {
                         context.getString(R.string.device_disconnect),
                         disconnect,
                     ).build()
+            val text = context.getString(R.string.link_notice_text)
             return Notification
                 .Builder(context, CHANNEL)
                 .setSmallIcon(R.drawable.ic_laptop)
                 .setContentTitle(title)
-                .setContentText(context.getString(R.string.link_notice_text))
+                .setContentText(text)
+                .setStyle(Notification.BigTextStyle().bigText(text))
                 .setContentIntent(open)
                 .addAction(action)
                 .setOngoing(true)

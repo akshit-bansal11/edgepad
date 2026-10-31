@@ -6,7 +6,7 @@ import android.content.ClipboardManager
 import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.net.Uri
 import android.util.Log
 import me.akshitbansal.edgepad.link.blob.ClipboardContent
@@ -16,6 +16,8 @@ import me.akshitbansal.edgepad.protocol.BlobKind
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
+import kotlin.math.min
+import kotlin.math.sqrt
 
 /**
  * What the platform's clipboard can do, apart from when the app may use it. [ClipboardBridge] is the rules; the real
@@ -81,7 +83,7 @@ class ClipboardBridge(
 
 /**
  * The real clipboard. Built on the application context, since it outlives the activity. Never reads a clip flagged
- * sensitive, and never more of an image than [ClipboardSync.MAX_IMAGE_BYTES].
+ * sensitive. An image travels as a PNG of at most [ClipboardSync.MAX_IMAGE_BYTES], so a larger one is sent smaller.
  */
 class AndroidClipboard(
     private val context: Context,
@@ -121,8 +123,9 @@ class AndroidClipboard(
         val clip = manager.primaryClip ?: return null
         if (clip.itemCount == 0 || isSensitive(clip.description)) return null
         val item = clip.getItemAt(0)
+        val uri = item.uri
         return when {
-            description.hasMimeType(IMAGE_ANY) -> item.uri?.let(::readImage)
+            uri != null && (description.hasMimeType(IMAGE_ANY) || isImage(uri)) -> readImage(uri)
             description.hasMimeType(TEXT_ANY) -> textOf(item.coerceToText(context).toString())
             else -> null
         }
@@ -154,12 +157,16 @@ class AndroidClipboard(
     private fun textOf(text: String): ClipboardContent? =
         if (text.isEmpty()) null else ClipboardContent(BlobKind.CLIP_TEXT, text.toByteArray())
 
-    // Another app's content URI is read through its own provider, up to the cap; a file or any other scheme is not.
+    // Some apps put an image on the clipboard as a bare URI, which describes itself as text/uri-list.
+    private fun isImage(uri: Uri): Boolean = resolver.getType(uri)?.startsWith(IMAGE_PREFIX) == true
+
+    // Another app's content URI is read through its own provider; a file or any other scheme is not. A PNG within the
+    // cap goes as it is, and anything else is decoded and sent as the largest PNG that fits.
     private fun readImage(uri: Uri): ClipboardContent? {
         if (uri.scheme != ContentResolver.SCHEME_CONTENT) return null
         return try {
-            val bytes = resolver.openInputStream(uri)?.use { readCapped(it) } ?: return null
-            val png = if (isPngSignature(bytes)) bytes else toPng(bytes)
+            val original = resolver.openInputStream(uri)?.use { readCapped(it) }
+            val png = original?.takeIf(::isPngSignature) ?: shrunkPng(uri)
             png?.let { ClipboardContent(BlobKind.CLIP_IMAGE, it) }
         } catch (e: IOException) {
             Log.w(TAG, "Clipboard: the image could not be read: ${e.javaClass.simpleName}")
@@ -190,17 +197,34 @@ class AndroidClipboard(
         return out.toByteArray()
     }
 
-    // The bounds are read first: a small file can decode to far more pixels than the far end will take.
-    private fun toPng(bytes: ByteArray): ByteArray? {
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
-        val pixels = bounds.outWidth.toLong() * bounds.outHeight
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0 || pixels > ClipboardSync.MAX_IMAGE_PIXELS) return null
-        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
+    // ponytail: a photo as a 4 MiB PNG is far smaller than the photo. JPEG on the wire would keep more, and needs a
+    // protocol change on all three laptops.
+    // Decoded to size from the header, so a huge image never fills the memory; this also applies its EXIF rotation.
+    private fun shrunkPng(uri: Uri): ByteArray? {
+        val decoded =
+            ImageDecoder.decodeBitmap(ImageDecoder.createSource(resolver, uri)) { decoder, info, _ ->
+                val scale = decodeScale(info.size.width, info.size.height)
+                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                decoder.setTargetSize(scaled(info.size.width, scale), scaled(info.size.height, scale))
+            }
         return try {
-            ByteArrayOutputStream().also { bitmap.compress(Bitmap.CompressFormat.PNG, PNG_QUALITY, it) }.toByteArray()
+            fittedEncoding(ClipboardSync.MAX_IMAGE_BYTES) { scale -> png(decoded, scale) }
         } finally {
-            bitmap.recycle()
+            decoded.recycle()
+        }
+    }
+
+    private fun png(
+        bitmap: Bitmap,
+        scale: Double,
+    ): ByteArray {
+        val width = scaled(bitmap.width, scale)
+        val height = scaled(bitmap.height, scale)
+        val sized = if (scale == 1.0) bitmap else Bitmap.createScaledBitmap(bitmap, width, height, true)
+        return try {
+            ByteArrayOutputStream().also { sized.compress(Bitmap.CompressFormat.PNG, PNG_QUALITY, it) }.toByteArray()
+        } finally {
+            if (sized !== bitmap) sized.recycle()
         }
     }
 
@@ -209,6 +233,7 @@ class AndroidClipboard(
         const val LABEL = "Edgepad"
         const val TEXT_ANY = "text/*"
         const val IMAGE_ANY = "image/*"
+        const val IMAGE_PREFIX = "image/"
         const val BUFFER_BYTES = 8192
 
         /** PNG is lossless and takes no quality; the number is ignored. */
@@ -220,6 +245,41 @@ class AndroidClipboard(
 }
 
 private val PNG_SIGNATURE = byteArrayOf(-119, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)
+
+/** Well past what fits in the cap as a PNG unless the picture is mostly flat colour, and far under what fills memory. */
+private const val MAX_DECODED_PIXELS = 4_000_000.0
+private const val MAX_SHRINKS = 5
+
+/** A try lands a little under the size it aims for, so the next one rarely misses by a few bytes. */
+private const val SHRINK_MARGIN = 0.9
+
+/** The scale that brings a picture down to [MAX_DECODED_PIXELS], and never above its own size. */
+internal fun decodeScale(
+    width: Int,
+    height: Int,
+): Double = min(1.0, sqrt(MAX_DECODED_PIXELS / (width.toDouble() * height)))
+
+internal fun scaled(
+    side: Int,
+    scale: Double,
+): Int = (side * scale).toInt().coerceAtLeast(1)
+
+/**
+ * The first of [encode]'s results within [cap], or null if none is. A PNG's size goes with its pixels, the square of
+ * the scale, so each try shrinks by the square root of how far over the last one was.
+ */
+internal fun fittedEncoding(
+    cap: Long,
+    encode: (Double) -> ByteArray,
+): ByteArray? {
+    var scale = 1.0
+    repeat(MAX_SHRINKS) {
+        val bytes = encode(scale)
+        if (bytes.size <= cap) return bytes
+        scale *= sqrt(cap.toDouble() / bytes.size) * SHRINK_MARGIN
+    }
+    return null
+}
 
 /** True when [data] starts with the PNG signature, so it needs no re-encoding. */
 internal fun isPngSignature(data: ByteArray): Boolean =
