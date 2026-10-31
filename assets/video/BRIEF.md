@@ -40,3 +40,13 @@ pushes into, turns sideways for the keyboard and gamepad, and holds still while 
 - Nothing renders locally: every HyperFrames command runs in CI (the laptop crashes under load).
 - No music: media-use resolves a music bed only through a HeyGen account this project does not have.
 - No latency figure may appear anywhere.
+
+## 2026-10-31 — dark look, hook, music, social cuts
+
+- Cuts: `full` (1920x1080) and two cuts of the `short` script, `linkedin` (1080x1440) and `instagram` (1080x1920). The one-minute and reel cuts are gone; the `minute` and `reel` scripts went with them.
+- Look: a dark ground (`#1E2026`) with ink `#F2F3F5`, grey `#9A9CA3` and blue `#4DA3FF`; the caption pill is `#2B2D33`; the mark is the white tile. The white glow is replaced by a slow blue light behind the phone that swells at each chapter start, and the phone has a thin rim light. Contrast on the ground: ink 14.7:1, grey 5.9:1, blue 6.2:1; on the pill ink 12.4:1, blue 5.2:1, grey 5.0:1.
+- Hook: the first line of each script opens on a dark room, a laptop glowing on a TV stand far across it, and one continuous move in to the phone rising into frame. No cut.
+- Beats: one per script line, written from the new scripts. A feature is on screen when the voice names it.
+- End card: the mark (still moving), "Edgepad", "Free & open source.", the GitHub button, then "Your laptop, from anywhere in the room." landing last.
+- Music: an original bed per script (`music.py`), mixed under the voice at `data-volume="0.16"`.
+- Still true: no latency figure anywhere; nothing renders locally.

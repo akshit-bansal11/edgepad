@@ -46,3 +46,16 @@ timings, so a camera move or a tap lands on the word that names it.
 ## Frame 9 — CTA
 - duration: 10s
 - scene: No account / No server / No internet; end card with the mark, "Edgepad", "Free & open source." and the GitHub button.
+
+## 2026-10-31 — frames for the new scripts
+
+`full` has 23 lines, `short` 11; per-line detail is in ui/beats.js.
+
+- Hook: dark room, a laptop glowing on a TV stand across it, one move in; the phone rises as "running the show" (full) or "across" (short) is said.
+- Meet: glide on the pad, a reach for Controls, Windows, Mac and Linux named on cards. Setup: tray card, Bluetooth pairing, the Devices screen held short of its round-trip time. No account, no server, no cloud.
+- Trackpad: one, two, three and four fingers, then the gestures page. Dials: each corner visited with the laptop's level overlay, Corners switch, four become eight. Volume syncs: the laptop's flyout moves the dial and back. Now playing, then the lock: dials and media stay live.
+- Controls: the popup, the keyboard and gamepad sideways, the pen's menu (width, opacity) and strokes on the laptop's screen, Sign saved as an image, Capture with Save to Phone.
+- Macros: the deck with a slide to page two, then a shape drawn on the pad fires one. Clipboard: text copied on a laptop card appears on the phone, and goes back.
+- Connections: Devices with transport chips; System settings with two laptops, the LAPTOP dial among eight halves, Stay connected and its notification; the trust question, the tray's Forget, the PIN and the laptop's security levels.
+- Make it yours: Corners, dark or light, a background, sideways. Straight talk: the phone steps aside and plain cards hold the words.
+- End: the mark, "Edgepad", "Free & open source.", the GitHub button; then the closing line lands with the mark still moving.
