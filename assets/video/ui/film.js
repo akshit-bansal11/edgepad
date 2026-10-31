@@ -742,8 +742,6 @@
     const clock = { t: 0 };
     tl.to(clock, { t: DUR, duration: DUR, ease: 'none', onUpdate: () => drawFrame(clock.t) }, 0);
     drawFrame(0);
-    window.__timelines = window.__timelines || {};
-    window.__timelines[CUT.id] = tl;
     const q = new URLSearchParams(location.search);
     // A still for checking by eye: ?t=seconds, or ?line=N&f=0..1 for a point through line N (0-based).
     const at = q.has('line') ? ((l) => l.start + parseFloat(q.get('f') || '0.5') * (l.end - l.start))(LINES[+q.get('line')]) : parseFloat(q.get('t'));
@@ -752,6 +750,7 @@
       tl.seek(t, false);
       drawFrame(t);
     }
+    return tl; // the composition registers it inline, once built: an early, empty registration renders blank
   })().catch((e) => {
     // A failed build would otherwise be a silent blank frame: say why where a screenshot or the DOM shows it.
     document.documentElement.dataset.filmError = String(e && e.stack ? e.stack : e);

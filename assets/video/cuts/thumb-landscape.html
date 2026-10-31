@@ -10,7 +10,7 @@
 <body>
 <!-- A cover in the film's style: the mark, a huge headline with its keyword in blue, and the phone on the surface, a
      finger on the volume dial. One still frame, rendered to PNG by CI. -->
-<div id="root" data-composition-id="thumb-landscape" data-start="0" data-duration="1" data-width="1280" data-height="720">
+<div id="root" data-composition-id="thumb-landscape" data-duration="1" data-start="0" data-duration="1" data-width="1280" data-height="720">
   <canvas id="film-canvas"></canvas>
   <div id="film-text"></div>
 </div>
@@ -46,5 +46,6 @@
 <script src="../ui/screens.js"></script>
 <script src="../ui/beats.js"></script>
 <script src="../ui/film.js"></script>
+<script>window.__filmReady.then((tl) => { window.__timelines["thumb-landscape"] = tl; window.__hfForceTimelineRebind?.(); });</script>
 </body>
 </html>

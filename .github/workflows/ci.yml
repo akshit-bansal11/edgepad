@@ -309,6 +309,15 @@ jobs:
       - name: Music
         if: steps.changed.outputs.changed == 'true'
         run: '"$RUNNER_TEMP/venv/bin/python" assets/video/music.py'
+      # The root's length is read before scripts run, so it is written in here from the take.
+      - name: Stamp each cut's length
+        if: steps.changed.outputs.changed == 'true'
+        working-directory: assets/video
+        run: |
+          for p in full:index.html short:cuts/linkedin.html short:cuts/instagram.html; do
+            d=$(node -p "require('./out/${p%%:*}/timing.json').duration")
+            sed -i "s/data-composition-id=\"[a-z]*\"/& data-duration=\"$d\"/" "${p#*:}"
+          done
       # Lint gates the render. `check` also audits layout, motion and contrast in a browser; its findings are worth
       # reading in this log, but the phone is a canvas the audits cannot see into, so they do not stop the render.
       - name: Lint the compositions
