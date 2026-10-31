@@ -255,6 +255,7 @@ class LaptopConnections(
     private fun end(laptop: Laptop) {
         stopRetry(laptop)
         laptop.reconnecting = false
+        laptop.ending = true
         laptop.link?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
     }
 
@@ -266,6 +267,7 @@ class LaptopConnections(
         stopPinger(laptop)
         laptop.quickRetryLeft = false
         laptop.failed = false
+        laptop.ending = false
         clearAsking(laptop)
         val old = laptop.link
         // Cleared first, so the old link's own close is an event for a closed link.
@@ -393,8 +395,15 @@ class LaptopConnections(
 
         private val current: Boolean get() = laptop.link === link
 
+        /**
+         * [current], and not ended by this phone. A link posts to the main thread, so what it had queued still arrives
+         * after [end]; let through, a late TEXT DEVICE would remember a forgotten laptop, or turn a disconnected one's
+         * automatic connect back on.
+         */
+        private val live: Boolean get() = current && !laptop.ending
+
         override fun onConnected() {
-            if (!current) return
+            if (!live) return
             laptop.connectedAt = scheduler.now()
             laptop.reconnecting = false
             clearAsking(laptop)
@@ -405,14 +414,14 @@ class LaptopConnections(
         }
 
         override fun onAwaitingLaptop() {
-            if (!current) return
+            if (!live) return
             laptop.awaiting = true
             events.onAwaitingLaptop(laptop)
         }
 
         /** From here the owner is answering, so a failure is theirs to see and not one to retry. */
         override fun onPinRequest(attemptsLeft: Int) {
-            if (!current) return
+            if (!live) return
             laptop.pinAttemptsLeft = attemptsLeft
             laptop.pinAnswered = false
             laptop.pinAsked = true
@@ -422,7 +431,7 @@ class LaptopConnections(
         }
 
         override fun onPairingCode(code: Sas) {
-            if (!current) return
+            if (!live) return
             laptop.reconnecting = false
             laptop.awaiting = false
             laptop.pairCode = code
@@ -432,23 +441,25 @@ class LaptopConnections(
         }
 
         override fun onPairingConfirm() {
-            if (!current) return
+            if (!live) return
             laptop.pairAsking = true
             events.onPairingConfirm(laptop)
         }
 
         override fun onFrame(frame: Frame) {
-            if (current && laptop.state.take(frame)) events.onFrame(laptop, frame)
+            if (live && laptop.state.take(frame)) events.onFrame(laptop, frame)
         }
 
         override fun onRoundTrip(ms: Double) {
-            if (!current) return
+            if (!live) return
             laptop.rtt.add(ms)
             events.onRoundTrip(laptop, ms)
         }
 
+        // A loss already queued when this phone ended the link is still the phone's ending: no retry follows it.
         override fun onClosed(closure: LaptopLink.Closure) {
-            if (current) closed(laptop, link, closure)
+            if (!current) return
+            closed(laptop, link, if (laptop.ending) LaptopLink.Closure(LaptopLink.Cause.ENDED) else closure)
         }
     }
 
