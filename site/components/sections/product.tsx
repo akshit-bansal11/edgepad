@@ -539,10 +539,10 @@ sudo ./install.sh`}
         <P>
           Press one finger on the trackpad, hold it still until it ticks, then draw
           without lifting. On lift the stroke is matched against the shapes drawn under{" "}
-          <strong>Surface settings &gt; Shapes</strong>, and the one it matches runs: a laptop
-          action, a macro slot, or the pad&apos;s own focus or lock. A stroke that
-          matches nothing does nothing, which is the right answer — the alternative is
-          the nearest binding firing on a scrawl.
+          <strong>Surface settings &gt; Shapes</strong>, and the one it matches runs: a
+          laptop action, a macro slot, or the pad&apos;s own focus or lock. A stroke
+          that matches nothing does nothing, which is the right answer — the alternative
+          is the nearest binding firing on a scrawl.
         </P>
         <P>
           Shape mode will not arm while dragging, and stops the moment a second finger
@@ -568,12 +568,12 @@ sudo ./install.sh`}
         </P>
         <P>
           Press and hold a button to lift it, and the others slide out of its way as you
-          drag it to a new place within its own page; let go and it settles. A tap
-          still runs it, there is no separate edit mode, and TalkBack offers Move
-          earlier and Move later on each. The order is kept on the phone, and a button
-          still runs the same macro wherever it is placed. The buttons sit straight on
-          the background with the press and focus feedback kept, and a last row with
-          fewer buttons than the rest sits under the middle of them.
+          drag it to a new place within its own page; let go and it settles. A tap still
+          runs it, there is no separate edit mode, and TalkBack offers Move earlier and
+          Move later on each. The order is kept on the phone, and a button still runs
+          the same macro wherever it is placed. The buttons sit straight on the
+          background with the press and focus feedback kept, and a last row with fewer
+          buttons than the rest sits under the middle of them.
         </P>
         <P>
           The macro settings can list the laptop&apos;s apps to pick from, on Windows,
@@ -590,8 +590,8 @@ sudo ./install.sh`}
         </P>
         <P>
           A large photo is sent smaller, and a password manager&apos;s copy is never
-          sent. Only the laptop you are controlling shares, and the phone and the
-          laptop each have a switch.
+          sent. Only the laptop you are controlling shares, and the phone and the laptop
+          each have a switch.
         </P>
 
         <Sub>Security levels and the PIN</Sub>
@@ -630,17 +630,20 @@ sudo ./install.sh`}
         <P>
           Annotate draws on the laptop&apos;s primary display, with the phone as an
           absolute pen: a touch lands at the same place on the laptop. It has a pen, a
-          highlighter, a line, an arrow, a rectangle and an ellipse in eight colours or any colour you pick, at the width and opacity you set,
-          plus Undo and Clear. The Sign switch turns the same pad into a signature:
-          nothing shows on the laptop, only the pen is offered, and Save signature
-          copies a transparent PNG to the clipboard and saves it as{" "}
-          <C>signature-yyyyMMdd-HHmmss.png</C> in an <C>Edgepad</C> folder in Pictures,
-          never over an earlier one. Annotate works on Windows, on the Mac and on Linux;
-          on Linux it is best effort and in testing.
+          highlighter, a line, an arrow, a rectangle and an ellipse in eight colours or
+          any colour you pick, at the width and opacity you set, plus Undo and Clear.
+          The Sign switch turns the same pad into a signature: nothing shows on the
+          laptop, only the pen is offered, and Save signature copies a transparent PNG
+          to the clipboard and saves it as <C>signature-yyyyMMdd-HHmmss.png</C> in an{" "}
+          <C>Edgepad</C> folder in Pictures, never over an earlier one. Annotate works
+          on Windows, on the Mac and on Linux; on Linux it is best effort and in
+          testing.
         </P>
         <P>
           Capture presses the laptop&apos;s own screenshot or recording shortcut, and
-          has a trackpad under its buttons to drag out the region. With Save to: Phone, the laptop sends what it just captured to the phone, unverified on real laptops.
+          has a trackpad under its buttons to drag out the region. With Save to: Phone,
+          the laptop sends what it just captured to the phone, unverified on real
+          laptops.
         </P>
         <Table>
           <TableHeader>
