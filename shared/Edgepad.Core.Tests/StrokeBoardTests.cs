@@ -1,5 +1,6 @@
 using System.Numerics;
 using Edgepad.Annotation;
+using Edgepad.Protocol;
 using Xunit;
 
 namespace Edgepad.Tests;
