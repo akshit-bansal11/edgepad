@@ -164,7 +164,7 @@
         });
     },
     // The saved signature, as the picture Sign writes to Pictures/Edgepad.
-    saved(tShow) {
+    saved(entry, tShow) {
       return (ctx, t, a, pos) =>
         frame(ctx, a, pos, 'Saved to Pictures/Edgepad', () => {
           white(ctx, 0, 24, 420, 210, 18);
@@ -172,7 +172,8 @@
           ctx.save();
           ctx.globalAlpha *= k;
           ctx.translate(30, 44);
-          EP.annotSignature(ctx, 360, 170, CI, 4);
+          // The phone's own signature, stroke by stroke as it is written, then held.
+          EP.annotStrokes(ctx, 360, 170, Math.max(3.95, EP.warp(t, entry.anchors)), CI, true);
           ctx.restore();
         });
     },
@@ -197,7 +198,7 @@
         });
     },
     // Rows of pills that arrive one by one: items {name, desc, at, icon, hot, descAt}.
-    rows(items, label = null) {
+    rows(items, label = null, dk = false) {
       return (ctx, t, a, pos) =>
         frame(ctx, a, pos, label, () => {
           items.forEach((it, i) => {
@@ -206,21 +207,42 @@
             ctx.save();
             ctx.globalAlpha *= k;
             const y = i * 92 + (1 - k) * 14 + (label ? 24 : 0);
-            white(ctx, 0, y, 500, 76, 38);
+            if (dk) dark(ctx, 0, y, 500, 76, 38);
+            else white(ctx, 0, y, 500, 76, 38);
             if (it.icon) icon(ctx, it.icon, 46, y + 38, 28, it.hot ? CB : CI);
-            text(ctx, it.name, it.icon ? 82 : 36, y + 47, { size: 26, w: 'Black', color: CI });
-            if (it.desc) text(ctx, it.desc, 482, y + 46, { size: 21, w: 'Bold', color: it.hot ? CB : CG, align: 'right', a: it.descAt == null ? 1 : ease(seg(t, it.descAt, it.descAt + 0.4)) });
+            text(ctx, it.name, it.icon ? 82 : 36, y + 47, { size: 26, w: 'Black', color: dk ? '#F2F3F5' : CI });
+            if (it.desc) text(ctx, it.desc, 482, y + 46, { size: 21, w: 'Bold', color: dk ? '#4DA3FF' : it.hot ? CB : CG, align: 'right', a: it.descAt == null ? 1 : ease(seg(t, it.descAt, it.descAt + 0.4)) });
+            ctx.restore();
+          });
+        });
+    },
+    // The same three as a horizontal row of chips, for the band above the phone in the tall cuts.
+    chips(items) {
+      return (ctx, t, a, pos) =>
+        frame(ctx, a, pos, null, () => {
+          const gap = 16, w = (EP.F.head.max - 2 * gap) / 3, h = 64;
+          items.forEach((it, i) => {
+            const k = ease(seg(t, it.at - 0.1, it.at + 0.35));
+            if (k <= 0) return;
+            ctx.save();
+            ctx.globalAlpha *= k;
+            const x = i * (w + gap), y = (1 - k) * 12;
+            white(ctx, x, y, w, h, 32);
+            icon(ctx, 'laptop', x + 38, y + 32, 26, it.hot ? CB : CI);
+            text(ctx, it.name, x + 70, y + 41, { size: 24, w: 'Black', color: CI });
+            if (it.desc) text(ctx, 'Beta', x + w - 22, y + 40, { size: 18, w: 'Bold', color: CG, align: 'right', a: ease(seg(t, it.descAt, it.descAt + 0.4)) });
             ctx.restore();
           });
         });
     },
     // The laptops the app runs on. `beta` is when Mac and Linux are marked new and in beta; none, and the names stand alone.
     platforms(at, beta = null) {
-      return C.rows([
+      const items = [
         { name: 'Windows', at: at[0], icon: 'laptop', hot: true },
         { name: 'macOS', at: at[1], icon: 'laptop', desc: 'New, in beta', descAt: beta === null ? 1e9 : beta },
         { name: 'Linux', at: at[2], icon: 'laptop', desc: 'New, in beta', descAt: beta === null ? 1e9 : beta },
-      ]);
+      ];
+      return EP.F.tall ? C.chips(items) : C.rows(items);
     },
     // Straight talk, as the script says it, row by row at the words that say each.
     talk(at) {
@@ -231,11 +253,55 @@
         { name: 'Wi-Fi', desc: 'New, in beta', at: at[3] },
         { name: 'USB', desc: 'New, in beta', at: at[4] },
         { name: 'Expect bugs', desc: 'Open an issue', at: at[5], hot: true },
-      ]);
+      ], null, true);
     },
     // Clipboard sync: text copied on the laptop's card arrives on the phone; from the phone, back in Edgepad, it goes the
     // other way. `img` is when images are named (none: null), `back` when the phone's copy is sent.
-    clip(copy, arrive, img, back) {
+    clip(...a) {
+      return EP.F.tall ? C.clipRow(...a) : C.clipCard(...a);
+    },
+    // The same, as one row for the band between the sub-line and the phone (the tall cuts).
+    clipRow(copy, arrive, img, back) {
+      const SAMPLE = 'Dinner at 8, bring the cable';
+      return (ctx, t, a, pos) =>
+        frame(ctx, a, pos, null, () => {
+          const bw = 400, h = 72, gx = EP.F.head.max - bw;
+          white(ctx, 0, 0, bw, h, 18);
+          ctx.save();
+          ctx.globalAlpha *= ease(seg(t, copy - 0.35, copy));
+          fillRR(ctx, 14, 14, measure(ctx, SAMPLE, 22) + 20, 44, 8, '#E6F0FC');
+          ctx.restore();
+          text(ctx, SAMPLE, 24, 46, { size: 22, color: CI });
+          const arrow = (dir, k, y) => {
+            ctx.save();
+            ctx.globalAlpha *= k;
+            ctx.strokeStyle = LBL;
+            ctx.lineWidth = 4;
+            ctx.lineCap = ctx.lineJoin = 'round';
+            const x0 = bw + 28, x1 = gx - 28;
+            ctx.beginPath();
+            ctx.moveTo(x0, y);
+            ctx.lineTo(x1, y);
+            ctx.moveTo(dir > 0 ? x1 - 9 : x0 + 9, y - 9);
+            ctx.lineTo(dir > 0 ? x1 : x0, y);
+            ctx.lineTo(dir > 0 ? x1 - 9 : x0 + 9, y + 9);
+            ctx.stroke();
+            ctx.restore();
+          };
+          arrow(1, ease(seg(t, arrive - 0.3, arrive)), 26);
+          arrow(-1, ease(seg(t, back - 0.3, back)), 48);
+          const ph = ease(seg(t, arrive, arrive + 0.35));
+          if (ph > 0) {
+            ctx.save();
+            ctx.globalAlpha *= ph;
+            dark(ctx, gx, 0, bw, h, 18);
+            text(ctx, SAMPLE, gx + 24, 46, { size: 22, color: '#F2F3F5' });
+            if (img !== null && t > img) icon(ctx, 'image', gx + bw - 30, 36, 26, '#4DA3FF');
+            ctx.restore();
+          }
+        });
+    },
+    clipCard(copy, arrive, img, back) {
       const SAMPLE = 'Dinner at 8, bring the cable';
       return (ctx, t, a, pos) =>
         frame(ctx, a, pos, 'On the laptop · Notes', () => {
@@ -317,7 +383,7 @@
     D.touch([[g - 0.1, 160, 380], [g + 0.4, 210, 420], [g + 0.9, 250, 470]]);
     D.tap(L.w('control'), ...CONTROLS);
     D.press(L.w('control'), 'controls');
-    D.card(L.w('windows') - 0.2, L.next - 0.1, C.platforms([L.w('windows'), L.w('mac'), L.w('linux')]));
+    D.card(L.w('windows') - 0.2, L.next - 0.1, C.platforms([L.w('windows'), L.w('mac'), L.w('linux')]), EP.F.band);
   };
   // A short meet: the same glide and reach, no laptops.
   A.meetShort = (L, D) => {
@@ -466,8 +532,8 @@
     D.move(t0 - 0.3, 'right', 0.9);
     D.screen(t0 - 0.1, 'annotate', {}, [[t0 - 0.1, 0], [pen, 0.15], [pen + 1.1, 0.7], [and - 0.3, 3.2], [sig, 3.85], [sv + 0.1, 4.5], [doc + 0.3, 6.45], [L.next - 0.1, 6.7]]);
     const entry = D.screens[D.screens.length - 1];
-    D.card(pen + 0.4, sig - 0.1, strokes(entry));
-    D.card(img - 0.1, L.next, C.saved(img + 0.1));
+    D.card(pen + 0.4, sig - 0.5, strokes(entry));
+    D.card(sig + 0.1, L.next, C.saved(entry, sig + 0.2));
   };
   // Capture: Region, a drag on the pad that draws the box in the laptop's Snipping Tool, Record; then Save to Phone.
   A.capture = (L, D) => {
@@ -496,11 +562,16 @@
   // The short pen and capture line: the pen's menu and an ellipse, then Capture saved to the phone.
   A.penShort = (L, D) => {
     const pen = L.w('pen'), ss = L.w('screenshots'), rec = L.w('recordings'), sv = L.w('saved');
-    D.turn.to(L.t0 - 0.3, L.t0 + 0.6, 0);
-    D.move(L.t0 - 0.3, 'right', 0.9);
-    D.screen(L.t0 - 0.1, 'annotate', {}, [[L.t0 - 0.1, 0], [pen, 0.15], [pen + 1.0, 0.7], [ss - 0.3, 1.9]]);
-    D.screen(ss - 0.2, 'capture', {}, [[ss - 0.2, 0.4], [ss + 0.3, 1.0], [rec - 0.2, 3.4], [rec + 0.2, 4.95]]);
-    D.screen(sv - 0.15, 'capture', { phone: true, folder: 'Pictures/Edgepad' }, [[sv - 0.15, 5.6], [sv + 2.5, 8.1]]);
+    // Annotate is held at least 3 s with a stroke on it: it starts as early as the gap before the line allows, and
+    // Capture waits for it if Screenshots is said sooner.
+    const an = Math.max(L.t0 - 0.6, Math.min(L.t0 - 0.1, ss - 3.2));
+    const cap = Math.max(ss - 0.2, an + 3.2);
+    const cr = Math.max(rec, cap + 1.6);
+    D.turn.to(an - 0.3, an + 0.6, 0);
+    D.move(an - 0.3, 'right', 0.9);
+    D.screen(an, 'annotate', {}, [[an, 0.1], [an + 0.6, 0.7], [an + 1.0, 0.9], [cap - 0.2, 2.4]]);
+    D.screen(cap, 'capture', {}, [[cap, 0.4], [cap + 0.4, 1.0], [cr, 3.4], [cr + 0.4, 4.95]]);
+    D.screen(Math.max(sv - 0.15, cr + 0.7), 'capture', { phone: true, folder: 'Pictures/Edgepad' }, [[Math.max(sv - 0.15, cr + 0.7), 5.6], [Math.max(sv - 0.15, cr + 0.7) + 2.5, 8.1]]);
   };
   // Macros: the deck (a tap runs one, a slide to page two and back), then a shape drawn on the pad fires one.
   // The finger rests until the stroke turns solid, draws a circle, lifts, and the macro runs.
@@ -524,7 +595,7 @@
     D.screen(L.t0 - 0.25, 'macros', {}, [[L.t0 - 0.25, 0.2], [apps, 0.95], [urls, 2.0], [sc + 0.2, 3.1]]);
     D.screen(cb - 0.2, 'settings', { back: 'Surface' }, [[cb - 0.2, 1.6], [both, 2.0], [both + 1.5, 2.6]]);
     D.move(cb - 0.3, 'wide', 0.9);
-    D.card(cb - 0.1, L.next - 0.1, C.clip(cb, both, null, L.w('ways') + 0.2));
+    D.card(cb - 0.1, L.next - 0.1, C.clip(cb, both, null, L.w('ways') + 0.2), EP.F.band);
   };
   // Clipboard: text copied on the laptop card arrives on the phone; from the phone, back in Edgepad, it goes the other way.
   A.clipboard = (L, D) => {
@@ -532,7 +603,7 @@
     D.screen(L.t0 - 0.2, 'settings', { back: 'Surface' }, [[L.t0 - 0.2, 1.6], [both, 2.0], [come - 0.2, 2.9]]);
     D.move(L.t0 - 0.3, 'wide', 1.0);
     D.screen(come - 0.2, 'surface');
-    D.card(L.t0, L.next - 0.1, C.clip(copy, both, im, back));
+    D.card(L.t0, L.next - 0.1, C.clip(copy, both, im, back), EP.F.band);
   };
   // Bluetooth by default, Wi-Fi and USB if you want them: the Devices screen with its transport chips, held connected.
   A.transports = (L, D) => {
@@ -592,7 +663,7 @@
   A.platformsShort = (L, D) => {
     D.screen(L.t0 - 0.2, 'devices', {}, [[L.t0 - 0.2, 2.6], [L.next + 1.2, 2.85]]);
     D.move(L.t0 - 0.3, 'hero', 1.0);
-    D.card(L.w('windows') - 0.2, L.next - 0.1, C.platforms([L.w('windows'), L.w('mac'), L.w('linux')], L.w('new')));
+    D.card(L.w('windows') - 0.2, L.next - 0.1, C.platforms([L.w('windows'), L.w('mac'), L.w('linux')], L.w('new')), EP.F.band);
   };
   A.calm = (L, D) => {
     D.screen(L.t0 - 0.3, 'surface');
@@ -601,11 +672,12 @@
   A.end = (L, D) => D.move(L.t0 - 0.4, 'end', 1.3);
   A.keyboardShort = (L, D) => {
     const kb = L.w('keyboard'), g = L.w('gamepad');
-    D.move(L.t0 - 0.9, 'right', 0.9);
-    D.screen(L.t0 - 0.9, 'controls', {}, [[L.t0 - 0.9, 0], [kb + 0.05, 2.2]]);
-    D.turn.to(kb, kb + 0.95, 1);
-    D.move(kb, 'land', 0.95);
-    D.screen(kb, 'keyboard', {}, [[kb, 0.3], [kb + 1.0, 1.3], [g - 0.1, 2.5]], true);
+    // The keyboard is landed sideways by "keyboard" and held at least 3 s before the gamepad, which comes in only on "gamepad".
+    const land = Math.min(kb, g - 3.0);
+    const rot = land - 0.95;
+    D.turn.to(rot, land, 1);
+    D.move(rot, 'land', 0.95);
+    D.screen(rot, 'keyboard', {}, [[rot, 0.3], [land + 0.2, 1.1], [g - 0.1, 3.5]], true);
     D.screen(g - 0.2, 'gamepad', {}, [[g - 0.2, 0], [L.w('xbox'), 1.0], [L.t1, 3.6]], true);
   };
 
@@ -614,7 +686,7 @@
       // What it is
       { h: "Your laptop's on the *TV.*", s: ['Or the *projector.*@projector', 'Or across the *room.*@across'], act: A.hook('running') },
       { h: "You're not next to *it.*", s: "You don't *need* to be.@don't", act: A.settle },
-      { h: 'Meet *Edgepad 4.*', s: ['An *open-source* Android app@open', 'A trackpad, a remote, a *control deck*@trackpad', 'Windows · Mac · *Linux*@windows'], act: A.meet },
+      { h: 'Meet | *Edgepad 4.*', s: ['An *open-source* Android app@open', 'A trackpad, a remote, a *control deck*@trackpad', 'Windows · Mac · *Linux*@windows'], act: A.meet },
       // Setup
       { h: 'Pair *once.*', s: ['A *companion app* on the laptop@a', 'Over *Bluetooth,* like a headset@pair'], act: A.pair },
       { h: 'No account. | No server. | No *cloud.*', s: 'Your phone talks *straight* to your laptop@your', act: A.direct },

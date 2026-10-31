@@ -20,7 +20,7 @@ body { width: 100%; height: 100%; margin: 0; background: #1e2026; }
 .k { color: #4da3ff; }
 
 /* The caption pill: words already said in ink, the one being said in blue, those to come in grey (set by the timeline). */
-.pill { box-sizing: border-box; background: #2b2d33; border-radius: 999px; font-weight: 700; color: #9a9ca3; text-align: center; white-space: nowrap; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3); }
+.pill { box-sizing: border-box; border: 1px solid #3a3c43; background: #2b2d33; border-radius: 999px; font-weight: 700; color: #9a9ca3; text-align: center; white-space: nowrap; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3); }
 
 /* The end card. */
 .end-mark { display: block; width: 112px; height: 112px; filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.55)); }

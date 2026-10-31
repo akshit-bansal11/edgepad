@@ -22,11 +22,11 @@
   const HEAD916 = { x: 80, y: 210, size: 96, max: 920 };
   const HEAD34 = { x: 72, y: 84, size: 84, max: 936 };
   const F = {
-    '169': { head: { x: 150, y: 250, size: 110, max: 800 }, top: { x: 360, y: 42, size: 96, max: 1300 }, sub: { size: 56, gap: 52, min: 488 }, topSub: 44, cap: { cx: 550, cy: 990, size: 44 }, card: { x: 150, y: 640, s: 1 }, end: { y: 200, close: 56, w: 900 }, room: { x: 0.69, y: 0.5, u: 0.0062 } },
-    '916': { head: HEAD916, top: HEAD916, sub: { size: 50, gap: 36, min: 0 }, topSub: 50, cap: { cx: 540, cy: 1664, size: 44 }, card: { x: 90, y: 1130, s: 0.8 }, end: { y: 230, close: 54, w: 920 }, room: { x: 0.5, y: 0.5, u: 0.0098 } },
-    '34': { head: HEAD34, top: HEAD34, sub: { size: 42, gap: 28, min: 0 }, topSub: 42, cap: { cx: 540, cy: 1372, size: 40 }, card: { x: 60, y: 960, s: 0.72 }, end: { y: 70, close: 50, w: 936 }, room: { x: 0.5, y: 0.46, u: 0.0098 } },
+    '169': { head: { x: 150, y: 250, size: 110, max: 800 }, top: { x: 360, y: 42, size: 96, max: 1300 }, sub: { size: 56, gap: 52, min: 488 }, topSub: 44, cap: { cx: 550, cy: 990, size: 44 }, card: { x: 150, y: 640, s: 1 }, end: { y: 200, close: 56, w: 1000 }, room: { x: 0.69, y: 0.5, u: 0.0062 }, band: null, scrim: null },
+    '916': { head: HEAD916, top: HEAD916, sub: { size: 50, gap: 36, min: 0 }, topSub: 50, cap: { cx: 540, cy: 1664, size: 44 }, card: { x: 90, y: 1130, s: 0.8 }, end: { y: 230, close: 54, w: 920 }, room: { x: 0.5, y: 0.5, u: 0.0098 }, tall: true, band: { x: 80, y: 512, s: 1 }, scrim: { solid: 540, to: 610 } },
+    '34': { head: HEAD34, top: HEAD34, sub: { size: 42, gap: 28, min: 0 }, topSub: 42, cap: { cx: 540, cy: 1372, size: 40 }, card: { x: 60, y: 960, s: 0.72 }, end: { y: 70, close: 50, w: 936 }, room: { x: 0.5, y: 0.46, u: 0.0098 }, tall: true, band: { x: 72, y: 372, s: 1 }, scrim: { solid: 380, to: 470 } },
   }[LAY];
-  F.talk = { '169': { x: 1020, y: 200, s: 1 }, '916': { x: 90, y: 640, s: 1 }, '34': { x: 72, y: 520, s: 0.9 } }[LAY];
+  F.talk = { '169': { x: 1000, y: 165, s: 1.4 }, '916': { x: 190, y: 585, s: 1.4 }, '34': { x: 190, y: 345, s: 1.4 } }[LAY];
   EP.F = F;
 
   // Camera presets: the phone's centre in page pixels, its scale in pixels per dp, and its turn in degrees.
@@ -38,15 +38,15 @@
       land: { x: 1040, y: 615, s: 1.55, r: -90 }, landRight: { x: 1330, y: 560, s: 1.0, r: -90 }, end: { x: 1350, y: 545, s: 0.845, r: 0 }, wide: { x: 1300, y: 548, s: 1.0, r: 0 },
     },
     '916': {
-      off: { x: 540, y: 2500, s: 1.15, r: 0 }, right: { x: 540, y: 1105, s: 1.15, r: 0 }, hero: { x: 540, y: 1110, s: 1.2, r: 0 },
+      off: { x: 540, y: 2500, s: 1.15, r: 0 }, right: { x: 540, y: 1085, s: 1.1, r: 0 }, hero: { x: 540, y: 1085, s: 1.1, r: 0 },
       tl: { x: 820, y: 1430, s: 2.0, r: 0 }, tr: { x: 260, y: 1430, s: 2.0, r: 0 }, br: { x: 300, y: 740, s: 2.0, r: 0 }, bl: { x: 780, y: 740, s: 2.0, r: 0 },
-      top: { x: 540, y: 1500, s: 1.7, r: 0 }, media: { x: 540, y: 1000, s: 1.6, r: 0 }, settings: { x: 540, y: 1460, s: 1.6, r: 0 },
-      land: { x: 540, y: 1150, s: 1.18, r: -90 }, landRight: { x: 540, y: 1200, s: 1.1, r: -90 }, end: { x: 540, y: 1260, s: 0.8, r: 0 }, wide: { x: 540, y: 1110, s: 1.14, r: 0 },
+      top: { x: 540, y: 1500, s: 1.7, r: 0 }, media: { x: 540, y: 1000, s: 1.6, r: 0 }, settings: { x: 540, y: 1085, s: 1.1, r: 0 },
+      land: { x: 540, y: 1150, s: 1.18, r: -90 }, landRight: { x: 540, y: 1200, s: 1.1, r: -90 }, end: { x: 540, y: 1240, s: 0.76, r: 0 }, wide: { x: 540, y: 1085, s: 1.1, r: 0 },
     },
     '34': {
       off: { x: 540, y: 1900, s: 0.9, r: 0 }, right: { x: 540, y: 880, s: 0.9, r: 0 }, hero: { x: 540, y: 885, s: 0.92, r: 0 },
       tl: { x: 511, y: 1081, s: 1.5, r: 0 }, tr: { x: 570, y: 1081, s: 1.5, r: 0 }, br: { x: 570, y: 479, s: 1.5, r: 0 }, bl: { x: 511, y: 479, s: 1.5, r: 0 },
-      top: { x: 540, y: 1031, s: 1.5, r: 0 }, media: { x: 540, y: 573, s: 1.3, r: 0 }, settings: { x: 540, y: 900, s: 1.15, r: 0 },
+      top: { x: 540, y: 1031, s: 1.5, r: 0 }, media: { x: 540, y: 573, s: 1.3, r: 0 }, settings: { x: 540, y: 885, s: 0.92, r: 0 },
       land: { x: 540, y: 900, s: 0.98, r: -90 }, landRight: { x: 540, y: 900, s: 0.9, r: -90 }, end: { x: 540, y: 1040, s: 0.62, r: 0 }, wide: { x: 540, y: 885, s: 0.92, r: 0 },
     },
   };
@@ -408,7 +408,7 @@
       const d = t - s;
       if (d > -0.2 && d < 6) swell += 0.1 * Math.min(1, (d + 0.2) / 0.5) * Math.exp(-Math.max(0, d) / 1.6);
     }
-    const a = 0.14 + 0.025 * Math.sin(t * 0.45) + Math.min(swell, 0.16);
+    const a = 0.7 * (0.14 + 0.025 * Math.sin(t * 0.45) + Math.min(swell, 0.16));
     const cam = D.cam.at(t);
     const x = cam.x, y = clamp(cam.y, H * 0.25, H * 0.8), r = TALL ? W * 1.0 : W * 0.44;
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
@@ -444,10 +444,11 @@
     ctx.fillStyle = g;
     ctx.fillRect(-30 * u, -30 * u, 60 * u, 60 * u);
     // The floor, and the glow it gives back.
-    ctx.fillStyle = 'rgba(255,255,255,0.035)';
-    ctx.fillRect(-3 * W, 9 * u, 6 * W, 4 * H);
-    ctx.fillStyle = 'rgba(255,255,255,0.07)';
-    ctx.fillRect(-3 * W, 9 * u, 6 * W, 0.12 * u);
+    g = ctx.createLinearGradient(0, 4 * u, 0, 12 * u);
+    g.addColorStop(0, 'rgba(255,255,255,0)');
+    g.addColorStop(1, 'rgba(255,255,255,0.045)');
+    ctx.fillStyle = g;
+    ctx.fillRect(-3 * W, 4 * u, 6 * W, 4 * H);
     ctx.save();
     ctx.translate(0, 9.6 * u);
     ctx.scale(1, 0.16);
@@ -505,6 +506,14 @@
     room(ctx, t);
     glow(ctx, t);
     drawPhone(ctx, t);
+    if (F.scrim) {
+      const g = ctx.createLinearGradient(0, 0, 0, F.scrim.to);
+      g.addColorStop(0, GROUND);
+      g.addColorStop(F.scrim.solid / F.scrim.to, GROUND);
+      g.addColorStop(1, 'rgba(30,32,38,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, F.scrim.to);
+    }
     for (const c of D.cards) {
       const a = ease(seg(t, c.t0, c.t0 + 0.4)) * (1 - ease(seg(t, c.t1 - 0.35, c.t1)));
       if (a > 0) c.draw(ctx, t, a, c.pos || F.card);
@@ -676,12 +685,13 @@
   function buildClose(tl, b, i, endEl) {
     const line = LINES[i];
     const ws = parse(b.h);
-    const size = F.end.close;
+    const one = ws.map((x) => x.w).join(' ');
+    const size = Math.min(F.end.close, Math.floor((100 * F.end.w) / widthOf(one, 900, 100, -0.01)));
     const el = document.createElement('div');
     el.className = 'end-close';
     el.style.fontSize = `${size}px`;
     endEl.appendChild(el);
-    reveal(tl, words(el, wrap(ws, 900, size, F.end.w, -0.01)), times(ws, line, line.start));
+    reveal(tl, words(el, [ws]), times(ws, line, line.start));
   }
 
   // The caption pill: two to four words at a time around the voice. Spoken words in ink, the one being said in
