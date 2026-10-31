@@ -23,8 +23,8 @@
   const HEAD34 = { x: 72, y: 84, size: 84, max: 936 };
   const F = {
     '169': { head: { x: 150, y: 250, size: 110, max: 800 }, top: { x: 360, y: 42, size: 96, max: 1300 }, sub: { size: 56, gap: 52, min: 488 }, topSub: 44, cap: { cx: 550, cy: 990, size: 44 }, card: { x: 150, y: 640, s: 1 }, end: { y: 200, close: 56, w: 1000 }, room: { x: 0.69, y: 0.5, u: 0.0062 }, band: null, scrim: null },
-    '916': { head: HEAD916, top: HEAD916, sub: { size: 50, gap: 36, min: 0 }, topSub: 50, cap: { cx: 540, cy: 1664, size: 44 }, card: { x: 90, y: 1130, s: 0.8 }, end: { y: 230, close: 54, w: 920 }, room: { x: 0.5, y: 0.5, u: 0.0098 }, tall: true, band: { x: 80, y: 512, s: 1 }, scrim: { solid: 540, to: 610 } },
-    '34': { head: HEAD34, top: HEAD34, sub: { size: 42, gap: 28, min: 0 }, topSub: 42, cap: { cx: 540, cy: 1372, size: 40 }, card: { x: 60, y: 960, s: 0.72 }, end: { y: 70, close: 50, w: 936 }, room: { x: 0.5, y: 0.46, u: 0.0098 }, tall: true, band: { x: 72, y: 372, s: 1 }, scrim: { solid: 380, to: 470 } },
+    '916': { head: HEAD916, top: HEAD916, sub: { size: 50, gap: 36, min: 0 }, topSub: 50, cap: { cx: 540, cy: 1664, size: 44 }, card: { x: 90, y: 1130, s: 0.8 }, end: { y: 230, close: 54, w: 920 }, room: { x: 0.5, y: 0.5, u: 0.0098 }, tall: true, band: { x: 80, y: 512, s: 1 }, scrim: { solid: 520, to: 800 } },
+    '34': { head: HEAD34, top: HEAD34, sub: { size: 42, gap: 28, min: 0 }, topSub: 42, cap: { cx: 540, cy: 1372, size: 40 }, card: { x: 60, y: 960, s: 0.72 }, end: { y: 70, close: 50, w: 936 }, room: { x: 0.5, y: 0.46, u: 0.0098 }, tall: true, band: { x: 72, y: 372, s: 1 }, scrim: { solid: 400, to: 670 } },
   }[LAY];
   F.talk = { '169': { x: 1000, y: 165, s: 1.4 }, '916': { x: 190, y: 585, s: 1.4 }, '34': { x: 190, y: 345, s: 1.4 } }[LAY];
   EP.F = F;
@@ -96,6 +96,7 @@
       i,
       t0: line.start,
       t1: line.end,
+      prev: i > 0 ? LINES[i - 1].end : 0,
       next: i + 1 < LINES.length ? LINES[i + 1].start : DUR,
       w: (word, n) => (find(word, n) || [0, line.start])[1],
       we: (word, n) => (find(word, n) || [0, 0, line.end])[2],
@@ -437,18 +438,14 @@
     ctx.globalAlpha *= a;
     ctx.translate(W * F.room.x, H * F.room.y - e * H * 0.42);
     ctx.scale(z, z);
-    // The wall washed by the screen.
+    // The glow the screen throws: round, so it has no edge. The floor below is the ground itself, with a soft reflection.
     let g = ctx.createRadialGradient(0, -4 * u, 0, 0, -4 * u, 26 * u);
     g.addColorStop(0, 'rgba(77,163,255,0.24)');
     g.addColorStop(1, 'rgba(77,163,255,0)');
     ctx.fillStyle = g;
-    ctx.fillRect(-30 * u, -30 * u, 60 * u, 60 * u);
-    // The floor, and the glow it gives back.
-    g = ctx.createLinearGradient(0, 4 * u, 0, 12 * u);
-    g.addColorStop(0, 'rgba(255,255,255,0)');
-    g.addColorStop(1, 'rgba(255,255,255,0.045)');
-    ctx.fillStyle = g;
-    ctx.fillRect(-3 * W, 4 * u, 6 * W, 4 * H);
+    ctx.beginPath();
+    ctx.arc(0, -4 * u, 26 * u, 0, Math.PI * 2);
+    ctx.fill();
     ctx.save();
     ctx.translate(0, 9.6 * u);
     ctx.scale(1, 0.16);
@@ -506,13 +503,18 @@
     room(ctx, t);
     glow(ctx, t);
     drawPhone(ctx, t);
-    if (F.scrim) {
+    // A scrim of the ground under the headline, only while the camera is pushed in; at rest there is none.
+    const push = F.scrim ? ease(seg(D.cam.at(t).s, CAM.hero.s * 1.1, CAM.hero.s * 1.4)) : 0;
+    if (push > 0.003) {
+      ctx.save();
+      ctx.globalAlpha = push;
       const g = ctx.createLinearGradient(0, 0, 0, F.scrim.to);
       g.addColorStop(0, GROUND);
       g.addColorStop(F.scrim.solid / F.scrim.to, GROUND);
       g.addColorStop(1, 'rgba(30,32,38,0)');
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, W, F.scrim.to);
+      ctx.restore();
     }
     for (const c of D.cards) {
       const a = ease(seg(t, c.t0, c.t0 + 0.4)) * (1 - ease(seg(t, c.t1 - 0.35, c.t1)));

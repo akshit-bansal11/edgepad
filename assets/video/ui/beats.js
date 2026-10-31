@@ -567,8 +567,9 @@
     const an = Math.max(L.t0 - 0.6, Math.min(L.t0 - 0.1, ss - 3.2));
     const cap = Math.max(ss - 0.2, an + 3.2);
     const cr = Math.max(rec, cap + 1.6);
-    D.turn.to(an - 0.3, an + 0.6, 0);
-    D.move(an - 0.3, 'right', 0.9);
+    const back = Math.max(an - 0.3, L.prev + 0.05);
+    D.turn.to(back, back + 0.9, 0);
+    D.move(back, 'right', 0.9);
     D.screen(an, 'annotate', {}, [[an, 0.1], [an + 0.6, 0.7], [an + 1.0, 0.9], [cap - 0.2, 2.4]]);
     D.screen(cap, 'capture', {}, [[cap, 0.4], [cap + 0.4, 1.0], [cr, 3.4], [cr + 0.4, 4.95]]);
     D.screen(Math.max(sv - 0.15, cr + 0.7), 'capture', { phone: true, folder: 'Pictures/Edgepad' }, [[Math.max(sv - 0.15, cr + 0.7), 5.6], [Math.max(sv - 0.15, cr + 0.7) + 2.5, 8.1]]);
@@ -672,11 +673,11 @@
   A.end = (L, D) => D.move(L.t0 - 0.4, 'end', 1.3);
   A.keyboardShort = (L, D) => {
     const kb = L.w('keyboard'), g = L.w('gamepad');
-    // The keyboard is landed sideways by "keyboard" and held at least 3 s before the gamepad, which comes in only on "gamepad".
-    const land = Math.min(kb, g - 3.0);
-    const rot = land - 0.95;
+    // The whole turn happens in the gap after the dials line's last word, and lands by "keyboard"; the gamepad comes in only on "gamepad".
+    const rot = L.prev + 0.1;
+    const land = rot + Math.max(0.5, Math.min(0.95, kb - rot));
     D.turn.to(rot, land, 1);
-    D.move(rot, 'land', 0.95);
+    D.move(rot, 'land', land - rot);
     D.screen(rot, 'keyboard', {}, [[rot, 0.3], [land + 0.2, 1.1], [g - 0.1, 3.5]], true);
     D.screen(g - 0.2, 'gamepad', {}, [[g - 0.2, 0], [L.w('xbox'), 1.0], [L.t1, 3.6]], true);
   };
