@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DemoVideo } from "@/components/demo-video";
 import { GithubMark } from "@/components/icons/github";
 import { LegacyHashRedirect } from "@/components/legacy-hash-redirect";
 import { LinkBeam } from "@/components/link-beam";
@@ -313,17 +312,6 @@ export default function Page() {
             </dl>
           </BlurFade>
         </div>
-
-        {/* The demo */}
-        <section id="demo" className={SECTION}>
-          <Heading
-            eyebrow="Demo, 7:28"
-            title="Every feature, from setup to how it works."
-          />
-          <BlurFade delay={0.05} className="mt-10">
-            <DemoVideo />
-          </BlurFade>
-        </section>
 
         {/* What it does */}
         <section id="features" className={SECTION}>
