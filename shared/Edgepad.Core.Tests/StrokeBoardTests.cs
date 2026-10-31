@@ -342,15 +342,16 @@ public sealed class StrokeBoardTests
 
     [Theory]
     [InlineData(StrokeTool.Pen, 100, 255)]
-    [InlineData(StrokeTool.Pen, 50, 128)]
-    [InlineData(StrokeTool.Pen, 10, 26)]
-    [InlineData(StrokeTool.Line, 100, 255)]
-    [InlineData(StrokeTool.Highlighter, 100, 89)]
-    [InlineData(StrokeTool.Highlighter, 50, 45)]
-    [InlineData(StrokeTool.Highlighter, 10, 9)]
-    public void AlphaIsTheOpacityAndTheHighlighterMultipliesItsOwn(StrokeTool tool, int opacity, int alpha)
+    [InlineData((int)StrokeTool.Pen, 50, 128)]
+    [InlineData((int)StrokeTool.Pen, 10, 26)]
+    [InlineData((int)StrokeTool.Line, 100, 255)]
+    [InlineData((int)StrokeTool.Highlighter, 100, 89)]
+    [InlineData((int)StrokeTool.Highlighter, 50, 45)]
+    [InlineData((int)StrokeTool.Highlighter, 10, 9)]
+    public void AlphaIsTheOpacityAndTheHighlighterMultipliesItsOwn(int tool, int opacity, int alpha)
     {
-        var stroke = new Stroke(tool, PenStyle.Default with { Opacity = opacity });
+        // An int, not the internal StrokeTool: a public test method cannot take an internal type.
+        var stroke = new Stroke((StrokeTool)tool, PenStyle.Default with { Opacity = opacity });
 
         Assert.Equal(alpha, stroke.Alpha);
     }

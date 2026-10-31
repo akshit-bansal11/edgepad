@@ -456,6 +456,9 @@ private class CappedScroll(
     context: Context,
     private val limit: () -> Int,
 ) : ScrollView(context) {
+    // The constructor lint asks every custom view for; nothing inflates this one.
+    constructor(context: Context) : this(context, { Int.MAX_VALUE })
+
     override fun onMeasure(
         widthMeasureSpec: Int,
         heightMeasureSpec: Int,

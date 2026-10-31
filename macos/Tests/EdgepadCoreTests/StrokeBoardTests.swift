@@ -157,7 +157,7 @@ final class StrokeBoardTests: XCTestCase {
             let board = started()
 
             XCTAssertEqual(board.setColour(index), accepted)
-            XCTAssertEqual(board.style.rgb, accepted ? Palette.colour(index) : 0x00_0000)
+            XCTAssertEqual(board.style.rgb, accepted ? (Palette.colour(index) ?? 0) : 0x00_0000)
         }
     }
 

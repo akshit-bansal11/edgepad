@@ -318,12 +318,14 @@ public sealed class DispatcherTests : IDisposable
     }
 
     [Theory]
-    [InlineData(ControlId.PenWidth, 20)]
-    [InlineData(ControlId.PenWidth, 100)]
-    [InlineData(ControlId.PenOpacity, 10)]
-    [InlineData(ControlId.PenOpacity, 100)]
-    public void APenWidthOrOpacityReachesThePlatformAsAControl(ControlId control, int value)
+    [InlineData((byte)ControlId.PenWidth, 20)]
+    [InlineData((byte)ControlId.PenWidth, 100)]
+    [InlineData((byte)ControlId.PenOpacity, 10)]
+    [InlineData((byte)ControlId.PenOpacity, 100)]
+    public void APenWidthOrOpacityReachesThePlatformAsAControl(byte id, int value)
     {
+        // A byte, not the internal ControlId: a public test method cannot take an internal type.
+        var control = (ControlId)id;
         dispatcher.Handle(new SetValue((byte)control, (byte)value));
 
         Assert.Equal(0, dispatcher.Dropped);
@@ -331,12 +333,12 @@ public sealed class DispatcherTests : IDisposable
     }
 
     [Theory]
-    [InlineData(ControlId.PenWidth)]
-    [InlineData(ControlId.PenOpacity)]
-    public void APenWidthOrOpacityAbove100IsDroppedBeforeThePlatform(ControlId control)
+    [InlineData((byte)ControlId.PenWidth)]
+    [InlineData((byte)ControlId.PenOpacity)]
+    public void APenWidthOrOpacityAbove100IsDroppedBeforeThePlatform(byte control)
     {
-        dispatcher.Handle(new SetValue((byte)control, 101));
-        dispatcher.Handle(new SetValue((byte)control, 255));
+        dispatcher.Handle(new SetValue(control, 101));
+        dispatcher.Handle(new SetValue(control, 255));
 
         Assert.Equal(2, dispatcher.Dropped);
         Assert.Empty(platform.Calls);
