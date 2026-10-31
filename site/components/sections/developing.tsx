@@ -468,8 +468,8 @@ cd macos && swift test`}
           <C>macos/Tests/EdgepadCoreTests</C> reads them too.
         </P>
         <P>
-          A protocol change therefore always touches a fixture file and all three codecs in
-          the same commit. Change one side&apos;s codec without the other and that
+          A protocol change therefore always touches a fixture file and all three codecs
+          in the same commit. Change one side&apos;s codec without the other and that
           side&apos;s test fails immediately.
         </P>
 

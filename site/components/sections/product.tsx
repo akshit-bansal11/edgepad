@@ -117,10 +117,10 @@ export function ProductSections() {
           no account, no service in between that can be slow or down.
         </P>
         <P>
-          The cost of the default link is Bluetooth&apos;s own. Both ends need it, and it
-          does not reach another room or the internet. Wi-Fi and USB connections are
-          optional, off until you turn them on in the laptop&apos;s menu, and the phone&apos;s
-          half of them has not been tried on real devices yet.
+          The cost of the default link is Bluetooth&apos;s own. Both ends need it, and
+          it does not reach another room or the internet. Wi-Fi and USB connections are
+          optional, off until you turn them on in the laptop&apos;s menu, and the
+          phone&apos;s half of them has not been tried on real devices yet.
         </P>
 
         <Sub>What it does</Sub>
@@ -336,12 +336,11 @@ export function ProductSections() {
               <p className="mb-3">
                 The app is a self-contained single file, so .NET need not be installed.
                 It needs BlueZ for Bluetooth, <C>wpctl</C> (PipeWire) or <C>pactl</C>{" "}
-                for the volume dial, systemd-logind for Lock and
-                brightness, and <C>xdg-open</C> for macros that open a file, folder or
-                web address and for Open log and Documentation. <C>wl-copy</C> on
-                Wayland or <C>xclip</C> on X11 is optional, for typing text that is not
-                plain ASCII. GNOME needs the AppIndicator extension to show the tray
-                icon.
+                for the volume dial, systemd-logind for Lock and brightness, and{" "}
+                <C>xdg-open</C> for macros that open a file, folder or web address and
+                for Open log and Documentation. <C>wl-copy</C> on Wayland or{" "}
+                <C>xclip</C> on X11 is optional, for typing text that is not plain
+                ASCII. GNOME needs the AppIndicator extension to show the tray icon.
               </p>
               <p>
                 On Wayland, annotate runs under XWayland and the compositor may ignore
@@ -426,9 +425,9 @@ sudo ./install.sh`}
           <li>
             The phone remembers the laptop and reconnects when the app opens. If the
             link drops after a completed handshake, the phone retries ten times, two
-            seconds apart, and says so. Disconnecting on purpose does not retry.
-            The phone stays connected to every laptop you connect and you choose which
-            one you control; with Stay connected on, a notification holds the link while
+            seconds apart, and says so. Disconnecting on purpose does not retry. The
+            phone stays connected to every laptop you connect and you choose which one
+            you control; with Stay connected on, a notification holds the link while
             Edgepad is minimized, with a Disconnect button.
           </li>
         </ol>
@@ -510,13 +509,15 @@ sudo ./install.sh`}
         </P>
         <P>
           Eleven kinds compete for four places: volume, brightness, media scrub, zoom,
-          app switcher, refresh rate, scroll, horizontal scroll, desktops, browser tabs and the Devices dial. A corner may also hold
-          nothing. With <strong>Split corners</strong> on, in{" "}
-          <strong>Surface settings &gt; Corners</strong>, each corner takes a dial on each of
-          the two edges it joins, eight places in all. The dial a corner already held
-          stays on its side edge, any place can take any dial, and turning it off brings
-          the four single dials back as they were. A dial shows the laptop&apos;s real
-          value from <C>STATE</C> frames, and dragging sends absolute <C>SET</C> frames.
+          app switcher, refresh rate, scroll, horizontal scroll, desktops, browser tabs
+          and the Devices dial. A corner may also hold nothing. With{" "}
+          <strong>Split corners</strong> on, in{" "}
+          <strong>Surface settings &gt; Corners</strong>, each corner takes a dial on
+          each of the two edges it joins, eight places in all. The dial a corner already
+          held stays on its side edge, any place can take any dial, and turning it off
+          brings the four single dials back as they were. A dial shows the laptop&apos;s
+          real value from <C>STATE</C> frames, and dragging sends absolute <C>SET</C>{" "}
+          frames.
         </P>
 
         <Sub>Focusing and locking the pad</Sub>

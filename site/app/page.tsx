@@ -265,9 +265,9 @@ export default function Page() {
               <p className="text-dim mt-6 max-w-[56ch] text-lg leading-relaxed md:text-xl">
                 Edgepad turns an Android phone into a trackpad, a media remote and a
                 control panel for a Windows, Mac or Linux laptop, over a direct
-                Bluetooth link with nothing in between; Wi-Fi and USB are optional.
-                The two pair once, the way a headset does, and after that they talk
-                straight to each other.
+                Bluetooth link with nothing in between; Wi-Fi and USB are optional. The
+                two pair once, the way a headset does, and after that they talk straight
+                to each other.
               </p>
 
               <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -419,13 +419,12 @@ export default function Page() {
                 <h3 className="text-lg font-bold">The transport</h3>
                 {/* Ink on the tint, not dim: dim on accent-soft is 4.4:1 in light. */}
                 <p className="mt-2 max-w-[76ch] text-[0.9375rem] leading-relaxed">
-                  Bluetooth Classic RFCOMM by default: an ordered, encrypted byte
-                  stream between two already-paired devices, with no server and no
-                  discovery. The optional Wi-Fi and USB connections listen on port
-                  47321 and pair once with a six-digit code. Frames are 2 to 258 bytes
-                  and go out in a single write per batch; a backlog of pointer moves
-                  collapses into one before it is sent, so a slow link catches up
-                  instead of lagging.
+                  Bluetooth Classic RFCOMM by default: an ordered, encrypted byte stream
+                  between two already-paired devices, with no server and no discovery.
+                  The optional Wi-Fi and USB connections listen on port 47321 and pair
+                  once with a six-digit code. Frames are 2 to 258 bytes and go out in a
+                  single write per batch; a backlog of pointer moves collapses into one
+                  before it is sent, so a slow link catches up instead of lagging.
                 </p>
                 <p className="mt-2">
                   <MoreLink href="/docs#protocol">

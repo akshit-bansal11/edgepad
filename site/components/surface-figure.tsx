@@ -362,8 +362,8 @@ export function SurfaceFigure({ className }: { className?: string }) {
       {/* The three top buttons: settings, lock, controls */}
       {TOP_BUTTONS.map(({ name, Icon }, i) => (
         <Icon
+          key={name}
           x={W / 2 - 48 + i * 48 - 12}
-          x={W / 2 - 2 * 48 + i * 48 - 12}
           y={34}
           width={24}
           height={24}
