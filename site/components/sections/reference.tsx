@@ -15,9 +15,9 @@ const DECISIONS: Decision[] = [
     id: "transport",
     question: "Why Bluetooth Classic RFCOMM?",
     answer:
-      "It gives an ordered, encrypted byte stream on both ends between two already-paired devices, with no server, no discovery and no network. Bluetooth was also the requirement.",
+      "It gives an ordered, encrypted byte stream on both ends between two already-paired devices, with no server and no discovery. Bluetooth was also the requirement. Wi-Fi and USB connections are an optional extra from 4.0.0.",
     rejected:
-      "BLE GATT — Windows as a GATT server is unreliable across adapters, and GATT is datagram-shaped where an ordered stream is wanted. Wi-Fi or LAN — needs a shared network and a discovery step.",
+      "BLE GATT — Windows as a GATT server is unreliable across adapters, and GATT is datagram-shaped where an ordered stream is wanted. Wi-Fi or LAN — needs a shared network and a discovery step, so it is an optional extra rather than the default.",
   },
   {
     id: "csharp",
@@ -89,7 +89,7 @@ const DECISIONS: Decision[] = [
     id: "placement",
     question: "Why are the dials fixed to corners?",
     answer:
-      "Dials were freely placeable along the edge for several releases. They are back in the four corners because seven kinds competing for four named places is a choice a settings screen can present, where an arbitrary position along an edge is a fiddle. The corner arc follows the display's own rounding.",
+      "Dials were freely placeable along the edge for several releases. They are back in the four corners because eleven kinds competing for four named places is a choice a settings screen can present, where an arbitrary position along an edge is a fiddle. The corner arc follows the display's own rounding.",
   },
   {
     id: "twofinger",
@@ -141,7 +141,7 @@ const DECISIONS: Decision[] = [
     id: "versionednames",
     question: "Why are the release assets named for their version?",
     answer:
-      "So several downloads on one phone or laptop can be told apart: Edgepad-3.1.1.apk, not a fourth Edgepad (3).apk. Until September 2026 they had stable names so releases/latest/download/Edgepad.apk always resolved to the newest build, but nothing used that link. CI artifacts were rejected as a distribution channel because they expire and need a GitHub login.",
+      "So several downloads on one phone or laptop can be told apart: Edgepad-4.0.0.apk, not a fourth Edgepad (3).apk. Until September 2026 they had stable names so releases/latest/download/Edgepad.apk always resolved to the newest build, but nothing used that link. CI artifacts were rejected as a distribution channel because they expire and need a GitHub login.",
   },
 ];
 
@@ -242,9 +242,9 @@ const LIMITS: Limit[] = [
 const HISTORY: { version: string; date: string; summary: string }[] = [
   {
     version: "4.0.0",
-    date: "2026-10-24",
+    date: "2026-10-31",
     summary:
-      "A Linux app, and a laptop that can ask for a PIN. The wire protocol moves to version 5. The Linux tray app joins Windows and the Mac, on a shared core. Security levels 1 to 3 add a six-digit PIN asked on the phone's own keypad, with a lock-out after wrong answers. Controls opens the keyboard, the gamepad, Capture and Annotate; Annotate makes the phone an absolute pen for the laptop screen, Sign saves a signature as a transparent PNG, and Capture asks the laptop for its own screenshot or recording tool. Split corners gives each corner two dials. The macro deck can be rearranged and drops the card behind each button, and the Mac gets a macro list. Mac and Linux are still in testing.",
+      "A Linux app, a shared clipboard, several laptops at once, and a laptop that can ask for a PIN. The wire protocol moves to version 5. The Linux tray app joins Windows and the Mac, on a shared core. The clipboard carries text and images from the laptop to the phone at once; to send one from the phone, go back to Edgepad after copying. The phone stays connected to every laptop you connect and stays connected while minimized. Wi-Fi and USB connections are optional on Windows, Linux and the Mac, paired once with a six-digit code and unverified on real devices. Security levels 1 to 3 add a six-digit PIN asked on the phone's own keypad, with a lock-out after wrong answers. Controls opens the keyboard, the gamepad, macros, Annotate and Capture; Annotate makes the phone an absolute pen for the laptop screen, Sign saves a signature as a transparent PNG, and Capture asks the laptop for its own screenshot or recording tool and can save it to the phone. Split corners gives each corner two dials. The macro deck can be rearranged, has pages, and drops the card behind each button; macros can be added from the phone, and the Mac gets a macro list. Mac and Linux are still in testing.",
   },
   {
     version: "3.0.0",
@@ -351,8 +351,9 @@ export function ReferenceSections() {
         <Sub>Not goals</Sub>
         <P>
           No account, no server, no telemetry, and no web deployment: Edgepad ships as
-          native apps from GitHub Releases and there is nothing to host. The link does
-          not reach another room or the internet, and it is not meant to.
+          native apps from GitHub Releases and there is nothing to host. The default
+          Bluetooth link does not reach another room or the internet, and it is not
+          meant to; the optional Wi-Fi link stays on the local network.
         </P>
       </Section>
 
@@ -399,11 +400,13 @@ export function ReferenceSections() {
       <Section id="credits" eyebrow="Reference" title="Licence and credits" lede="MIT.">
         <ul className="text-dim max-w-[70ch] list-disc space-y-2 pl-5 text-[0.9375rem] leading-relaxed">
           <li>
-            Icons are <ExternalLink href="https://lucide.dev">Lucide</ExternalLink>, ISC
-            licence; the few that came from Feather are MIT. Both apps draw
-            Lucide&apos;s own paths, and the licence text ships inside the APK as{" "}
-            <C>assets/licenses/Lucide-LICENSE.txt</C> and inside the exe beside the
-            icons.
+            The phone app&apos;s icons are Edgepad&apos;s own, drawn for it. The desktop
+            apps&apos; icons are{" "}
+            <ExternalLink href="https://lucide.dev">Lucide</ExternalLink>, ISC licence;
+            the few that came from Feather are MIT. The desktop apps draw Lucide&apos;s
+            own paths, and the licence text ships inside the exe beside the icons. The
+            APK also carries it as <C>assets/licenses/Lucide-LICENSE.txt</C>, because
+            the app logo&apos;s music note is still Lucide&apos;s.
           </li>
           <li>
             The typeface is{" "}

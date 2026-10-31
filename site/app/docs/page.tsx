@@ -11,7 +11,7 @@ import { loadProtocol } from "@/lib/protocol";
 
 const TITLE = "Edgepad — documentation";
 const DESCRIPTION =
-  "Full Edgepad documentation: install, the control surface, both apps' architecture, the wire protocol, and the developer guide, on one page.";
+  "Full Edgepad documentation: install, the control surface, all four apps' architecture, the wire protocol, and the developer guide, on one page.";
 
 // A page's openGraph replaces the layout's whole object rather than merging into it,
 // hence type, site name and image again here.

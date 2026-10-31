@@ -468,7 +468,7 @@ cd macos && swift test`}
           <C>macos/Tests/EdgepadCoreTests</C> reads them too.
         </P>
         <P>
-          A protocol change therefore always touches a fixture file and both codecs in
+          A protocol change therefore always touches a fixture file and all three codecs in
           the same commit. Change one side&apos;s codec without the other and that
           side&apos;s test fails immediately.
         </P>
@@ -636,7 +636,7 @@ git remote add upstream https://github.com/akshit-bansal11/edgepad.git`}
       >
         <P>
           Each release carries a signed APK and a compressed self-contained exe, named
-          for the version, <C>Edgepad-3.1.1.apk</C> and <C>Edgepad-3.1.1.exe</C>, so
+          for the version, <C>Edgepad-4.0.0.apk</C> and <C>Edgepad-4.0.0.exe</C>, so
           several downloads on one phone or laptop can be told apart. The app&apos;s{" "}
           <C>versionName</C> comes from the release tag and its <C>versionCode</C> from
           a number that only increases, so an update always installs over the previous
