@@ -165,7 +165,7 @@ def build(sid):
             }
         )
         at += slot + (0.12 if i else 0)
-    graph = ";".join(filters) + ";" + "".join(order) + f"concat=n={2 * len(flat)}:v=0:a=1[out]"
+    graph = ";".join(filters) + ";" + "".join(order) + f"concat=n={2 * len(flat)}:v=0:a=1,loudnorm=I=-16:TP=-1.5:LRA=11[out]"
     subprocess.run(
         ["ffmpeg", "-y", "-loglevel", "error", "-i", str(out / "take.mp3"), "-filter_complex", graph,
          "-map", "[out]", "-ar", "24000", "-ac", "1", "-b:a", "128k", str(out / "voice.mp3")],
