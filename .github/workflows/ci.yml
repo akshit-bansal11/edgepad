@@ -39,6 +39,10 @@ jobs:
       # The same script as the local gate, in its non-mutating mode.
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only android
+      # TEMPORARY (deps/agp-9.5 experiment): AGP 9.5 no longer prints the lint report.
+      - name: Lint report
+        if: failure()
+        run: grep -E "Error:|Warning:" android/app/build/intermediates/lint_intermediate_text_report/debug/lintReportDebug/lint-results-debug.txt || cat android/app/stdout
       - name: Build APK
         working-directory: android
         run: ./gradlew --no-daemon assembleDebug
