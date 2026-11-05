@@ -3,7 +3,7 @@
 Two routes, built from the repository they document: a landing page at `/`, and the
 whole documentation on one page at `/docs`.
 
-**Live at [edgepad.akshitbansal.dev](https://edgepad.akshitbansal.dev).** Deployed to Vercel from the repository root (not from `site/`), because the build reads `../protocol/*.txt` — see *Hosting* below.
+**Live at [edgepad.akshitbansal.dev](https://edgepad.akshitbansal.dev).** Deployed to Vercel from the repository root (not from `site/`), because the build reads `../protocol/*.txt` — see _Hosting_ below.
 
 It is **not** part of either app's quality gate: `scripts/check.ps1` covers the Android, shared core, Windows, Linux and Mac apps and not `site/`. Its own gate and build run in `.github/workflows/site.yml` on every push and pull request that touches `site/` or `protocol/`.
 
@@ -26,11 +26,11 @@ npm run check:ci   # the same, non-mutating: fails on unformatted code
 
 `check` writes, because fixing your own formatting is useful. `check:ci` must not write to a branch, so it fails instead of quietly reformatting a pull request. That is the same split `scripts/check.ps1` uses for the two apps.
 
-| Tool | Owns | Command |
-| --- | --- | --- |
-| **Biome** | Formatting, import order, general JS/TS lint | `biome check --write .` |
-| **ESLint** | React hooks, JSX, accessibility, Next.js rules | `eslint .` |
-| **tsc** | Type checking | `tsc --noEmit` |
+| Tool       | Owns                                           | Command                 |
+| ---------- | ---------------------------------------------- | ----------------------- |
+| **Biome**  | Formatting, import order, general JS/TS lint   | `biome check --write .` |
+| **ESLint** | React hooks, JSX, accessibility, Next.js rules | `eslint .`              |
+| **tsc**    | Type checking                                  | `tsc --noEmit`          |
 
 Individually: `npm run format`, `npm run lint`, `npm run typecheck`.
 
@@ -58,7 +58,7 @@ npm run build      # next build, kept out of the gate
 
 That is deliberate. A hand-typed copy of those tables would be a third place the protocol is written down, and nothing would check it. As it stands the site cannot drift from the two apps: if a fixture gains a frame, the page grows a row.
 
-The merge is left-joined **from the fixture**. Prose (what a frame means, what an action does) lives in `lib/protocol.ts` because it cannot come from a fixture, but a row that exists in the fixture with no prose is still rendered, marked *"In the fixture, not yet described on this page"* — never silently dropped. Prose describing a frame no fixture covers is surfaced on the page as a drift warning.
+The merge is left-joined **from the fixture**. Prose (what a frame means, what an action does) lives in `lib/protocol.ts` because it cannot come from a fixture, but a row that exists in the fixture with no prose is still rendered, marked _"In the fixture, not yet described on this page"_ — never silently dropped. Prose describing a frame no fixture covers is surfaced on the page as a drift warning.
 
 If the fixtures cannot be parsed at all, `assertParsed` throws and the build fails. A protocol page that renders an empty protocol table would be worse than no page.
 
@@ -136,20 +136,20 @@ Both are safe to revisit — just run `npm run check` after.
 
 Everything on both pages traces to something in this repository:
 
-| Section | Source |
-| --- | --- |
-| What Edgepad is, install, using it | `README.md` |
-| The split, transport, architecture, threads | `docs/ARCHITECTURE.md` |
-| Wire protocol, actions and controls | `protocol/*.txt` (generated) and `docs/PROTOCOL.md` |
-| Security and trust | `SECURITY.md`, `docs/PROTOCOL.md`, `CHANGELOG.md` |
+| Section                                                     | Source                                                       |
+| ----------------------------------------------------------- | ------------------------------------------------------------ |
+| What Edgepad is, install, using it                          | `README.md`                                                  |
+| The split, transport, architecture, threads                 | `docs/ARCHITECTURE.md`                                       |
+| Wire protocol, actions and controls                         | `protocol/*.txt` (generated) and `docs/PROTOCOL.md`          |
+| Security and trust                                          | `SECURITY.md`, `docs/PROTOCOL.md`, `CHANGELOG.md`            |
 | Repository layout, prerequisites, gate, tests, contributing | `CONTRIBUTING.md`, `scripts/check.ps1`, `.github/workflows/` |
-| Version history | `CHANGELOG.md` |
-| The landing page, end to end | `README.md`, and the four section files it summarises |
+| Version history                                             | `CHANGELOG.md`                                               |
+| The landing page, end to end                                | `README.md`, and the four section files it summarises        |
 
 Two deliberate omissions, both of which are project rules rather than oversights:
 
 - **No latency figure appears anywhere.** None has ever been measured on real hardware. The app carries a live round-trip readout for exactly this reason. Nothing goes on either page until a real number is reported.
-- **Nothing is invented to fill a section.** Where something is unverified or not built, the site says so — see the *Known limits* section, which labels each entry `not built`, `unverified` or `accepted`.
+- **Nothing is invented to fill a section.** Where something is unverified or not built, the site says so — see the _Known limits_ section, which labels each entry `not built`, `unverified` or `accepted`.
 
 ## Hosting
 

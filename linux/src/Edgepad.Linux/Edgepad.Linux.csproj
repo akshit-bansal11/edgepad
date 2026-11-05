@@ -27,7 +27,7 @@
   <ItemGroup>
     <!-- D-Bus: BlueZ's profile manager, and the RFCOMM socket it hands over as a file descriptor. The exact
          version Avalonia.FreeDesktop 12.1.4 asks for, so only one copy is ever restored. -->
-    <PackageReference Include="Tmds.DBus.Protocol" Version="0.94.1" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.95.2" />
     <!-- The tray, the trust prompt and the Security window (Ui/). -->
     <PackageReference Include="Avalonia" Version="12.1.4" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
