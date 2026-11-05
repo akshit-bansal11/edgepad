@@ -76,7 +76,7 @@ jobs:
           -PversionName="${VERSION:-${GITHUB_REF_NAME#v}}" -PversionCode="${{ github.run_number }}"
       # Only the sign job reads it, once the owner approves. A week, not a day: run 40193265879 lost it when the
       # approval came three days after the build. An unsigned APK holds no secret, so keeping it longer costs nothing.
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: apk-unsigned
           path: android/app/build/outputs/apk/release/app-release-unsigned.apk
@@ -116,7 +116,7 @@ jobs:
           "$tools/apksigner" sign --ks "$keystore" --ks-type pkcs12 \
             --ks-pass env:EDGEPAD_KS_PASS --key-pass env:EDGEPAD_KS_PASS --out Edgepad.apk aligned.apk
           "$tools/apksigner" verify --print-certs Edgepad.apk
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: apk
           path: Edgepad.apk
@@ -145,7 +145,7 @@ jobs:
           dotnet publish windows/src/Edgepad/Edgepad.csproj -c Release -r win-x64 --self-contained
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
           -p:Version=$(if ($env:VERSION) { $env:VERSION } else { $env:GITHUB_REF_NAME.TrimStart('v') }) -o publish
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: exe
           path: publish/Edgepad.exe
@@ -164,7 +164,7 @@ jobs:
       # this job and there is nothing here for an approval gate to guard.
       - name: Build the app
         run: bash macos/bundle.sh "${VERSION:-${GITHUB_REF_NAME#v}}" publish
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: mac
           path: publish/Edgepad-mac.zip
@@ -194,7 +194,7 @@ jobs:
           desktop-file-validate linux/packaging/edgepad.desktop
       - name: Build the archive
         run: sh linux/packaging/pack.sh "${VERSION:-${GITHUB_REF_NAME#v}}" publish Edgepad-linux-x64.tar.gz
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: linux
           path: Edgepad-linux-x64.tar.gz
