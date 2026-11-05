@@ -276,6 +276,7 @@ All three suites read the same fixtures. `protocol/frames.txt` holds every frame
 
 - **A bug, or something Edgepad should do:** [open an issue](https://github.com/akshit-bansal11/edgepad/issues/new/choose). The bug report and feature request templates ask for what is needed to act on it. Open one before starting anything bigger than a fix, so the design can be talked through before code exists.
 - **A security hole:** report it privately, as [SECURITY.md](SECURITY.md) describes, not in a public issue.
+- **Someone behaving badly:** everyone here is held to the [code of conduct](CODE_OF_CONDUCT.md), and it says how to report a breach privately.
 - **A change:** make it on a branch of your fork, run the gate until it is clean, push the branch to your fork and open a pull request against `main` here. CI runs the gate on every app for every pull request, and the site's gate when the site or the protocol fixtures change. [CONTRIBUTING.md](CONTRIBUTING.md) has the details: keeping the apps in step, tests, commit messages and style.
 
 Releases are built and published by the maintainer; [CHANGELOG.md](CHANGELOG.md) lists what each one changed.
