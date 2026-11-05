@@ -10,6 +10,7 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.surface.Backdrop
+import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
 /**
@@ -312,18 +313,32 @@ object AppearanceScreen {
 
         private val density = resources.displayMetrics.density
         private val palette = Palette.of(context)
-        private var backdrop = Backdrop(settings, density, palette.background)
+        private var backdrop: Backdrop? = null
+
+        /** Counts updates on the UI thread, so a slow decode cannot replace a newer one's backdrop. */
+        private var generation = 0
 
         init {
             contentDescription = context.getString(R.string.background_preview_description)
+            update()
         }
 
-        /** Re-reads the settings; the backdrop reads them once, when it is made. */
+        /**
+         * Re-reads the settings; the backdrop reads them once, when it is made. Making one decodes the
+         * background image, which must not run on the UI thread, so it is made on a worker and handed back.
+         */
         fun update() {
-            backdrop = Backdrop(settings, density, palette.background)
-            // Before the first layout there is no size, and an image cannot be cropped to nothing.
-            if (width > 0 && height > 0) backdrop.resize(width, height)
-            invalidate()
+            val made = ++generation
+            thread(name = "edgepad-preview") {
+                val next = Backdrop(settings, density, palette.background)
+                post {
+                    if (made != generation) return@post
+                    // Before the first layout there is no size, and an image cannot be cropped to nothing.
+                    if (width > 0 && height > 0) next.resize(width, height)
+                    backdrop = next
+                    invalidate()
+                }
+            }
         }
 
         override fun onSizeChanged(
@@ -333,12 +348,12 @@ object AppearanceScreen {
             oldh: Int,
         ) {
             super.onSizeChanged(w, h, oldw, oldh)
-            backdrop.resize(w, h)
+            backdrop?.resize(w, h)
         }
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
-            backdrop.draw(canvas)
+            backdrop?.draw(canvas)
         }
     }
 }
