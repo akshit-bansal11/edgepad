@@ -6,6 +6,7 @@ Thanks for looking. Edgepad is small on purpose; the bar for a change is that it
 
 - Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The split between the phone and the laptop apps, what lives in the shared core and what in each app, and what the phone is and is not allowed to send, are deliberate.
 - Open an issue for anything bigger than a fix, so the design can be talked through before code exists.
+- Read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). It applies in issues, pull requests and Discussions alike.
 
 ## Setting up
 
