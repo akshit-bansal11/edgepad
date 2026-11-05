@@ -21,8 +21,8 @@
   <string-array name="guide_features_values">
     <item>Every move goes out as you make it. A slow link merges waiting moves instead of queueing them.</item>
     <item>Measured live from the phone to the laptop and back, and shown beside the laptop on the Devices screen.</item>
-    <item>No account, no internet, no Wi-Fi. The phone reaches the laptop directly.</item>
-    <item>Pair once in the laptop Bluetooth settings. After that Edgepad can connect on launch.</item>
+    <item>No account, no internet needed. The phone reaches the laptop directly.</item>
+    <item>Bluetooth by default: pair once in the laptop Bluetooth settings, then Edgepad can connect on launch. Wi-Fi and USB connections are optional.</item>
     <item>Haptic notches, light and dark, upright or sideways (the keyboard and gamepad stay sideways), your own media and gamepad layouts.</item>
   </string-array>
 
@@ -40,13 +40,13 @@
   </string-array>
   <string-array name="guide_anatomy_values">
     <item>The whole middle of the screen. Every finger gesture starts here.</item>
-    <item>Rulers folded into the corners, or split two to a corner: volume, brightness, zoom, media scrub, app switcher, refresh rate or scrolling.</item>
-    <item>What is playing, then previous, play and next, while a player is open. Move and resize it in Settings.</item>
+    <item>Rulers folded into the corners, or split two to a corner: volume, brightness, zoom, media scrub, app switcher, refresh rate, scrolling, desktops, browser tabs or the Devices dial.</item>
+    <item>What is playing, then previous, play and next, while a player is open. Move and resize it in Surface settings.</item>
     <item>A full keyboard whose modifiers work held or tapped, behind the Controls button.</item>
     <item>Sticks, a D-pad and buttons in four presets, or your own arrangement.</item>
     <item>Controls › Annotate turns the phone into a pen for the laptop screen, with six tools and eight colours. It appears when the laptop supports it.</item>
     <item>Controls › Capture asks the laptop for a region screenshot, a full-screen one or a recording. For a region, drag it out on the pad under the buttons. It appears when the laptop supports it.</item>
-    <item>A grid of buttons that open a program, file or web address on the laptop, behind the macros button. Edit layout drags them into your order and picks the grid; Controls has the same.</item>
+    <item>A grid of buttons that open a program, file or web address on the laptop, behind Controls. Press and hold one to drag it into your order; more than ten continue on pages you slide to.</item>
   </string-array>
 
   <string name="guide_surface_kicker">3 · The surface</string>
@@ -63,7 +63,7 @@
     <item>Tap to right-click. Slide to scroll. Pinch to zoom.</item>
     <item>Three sideways for desktops, up for task view, down for the desktop. Four sideways through open apps. Taps search or open notifications.</item>
     <item>Slide along a ruler, clockwise raises. Tap it to mute, play, reset zoom or open task view.</item>
-    <item>Settings › Corners picks each dial and can split every corner into two, one on each edge. Dial feel sets sensitivity, size and haptics. Trackpad reassigns the rest.</item>
+    <item>Surface settings › Corners picks each dial and can split every corner into two, one on each edge. Dial feel sets sensitivity, size and haptics. Gestures reassigns the rest.</item>
   </string-array>
 
   <string name="guide_keyboard_kicker">4 · Keyboard</string>
@@ -99,7 +99,7 @@
   <!-- Words inside the guide drawings. -->
   <string name="guide_art_phone">Phone</string>
   <string name="guide_art_laptop">Laptop</string>
-  <string name="guide_art_link">Bluetooth · no Wi-Fi · no account</string>
+  <string name="guide_art_link">Bluetooth first · no account</string>
   <string name="guide_art_dials">Dials</string>
   <string name="guide_art_trackpad">Trackpad</string>
   <string name="guide_art_media">Media</string>

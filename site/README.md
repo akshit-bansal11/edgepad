@@ -5,7 +5,7 @@ whole documentation on one page at `/docs`.
 
 **Live at [edgepad.akshitbansal.dev](https://edgepad.akshitbansal.dev).** Deployed to Vercel from the repository root (not from `site/`), because the build reads `../protocol/*.txt` — see *Hosting* below.
 
-It is **not** part of either app's quality gate: `scripts/check.ps1` checks only `android/` and `windows/`. Its own gate and build run in `.github/workflows/site.yml` on every push and pull request that touches `site/` or `protocol/`.
+It is **not** part of either app's quality gate: `scripts/check.ps1` covers the Android, shared core, Windows, Linux and Mac apps and not `site/`. Its own gate and build run in `.github/workflows/site.yml` on every push and pull request that touches `site/` or `protocol/`.
 
 ## Running it
 
@@ -150,12 +150,6 @@ Two deliberate omissions, both of which are project rules rather than oversights
 
 - **No latency figure appears anywhere.** None has ever been measured on real hardware. The app carries a live round-trip readout for exactly this reason. Nothing goes on either page until a real number is reported.
 - **Nothing is invented to fill a section.** Where something is unverified or not built, the site says so — see the *Known limits* section, which labels each entry `not built`, `unverified` or `accepted`.
-
-## One known contradiction in the repository
-
-`SECURITY.md` still carries pre-2.0.0 wording: *"There is no frame for a key code, a scan code or a command."* There is — `0x22 KEY` carries a raw Windows virtual-key code, and `TEXT` kind 3 carries arbitrary text. The 2.0.0 changelog explicitly retracted that claim and `docs/PROTOCOL.md` documents the corrected position.
-
-The site follows `docs/PROTOCOL.md` and the changelog, and says plainly that `SECURITY.md` is stale. Fixing `SECURITY.md` itself is a separate change to the repository's own docs and was left alone.
 
 ## Hosting
 

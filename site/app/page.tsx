@@ -2,11 +2,13 @@ import {
   Activity,
   ArrowRight,
   Camera,
+  ClipboardCopy,
   Gamepad2,
   Gauge,
   Keyboard,
   Laptop,
   LayoutGrid,
+  Link2,
   type LucideIcon,
   MousePointer2,
   Music,
@@ -44,7 +46,7 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
   {
     title: "Corner dials",
     Icon: Gauge,
-    body: "Each corner holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher, microphone level or refresh rate — Settings picks what each corner does, and Split corners gives each corner two dials.",
+    body: "Each corner holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher, refresh rate, scroll, desktops, browser tabs or the Devices dial — Surface settings pick what each corner does, and Split corners gives each corner two dials.",
   },
   {
     title: "Trackpad",
@@ -79,17 +81,32 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
   {
     title: "Macro buttons",
     Icon: LayoutGrid,
-    body: "Fifteen slots the laptop names with an app, a document, a folder or a URL each; the phone sends the slot number and never what it opens. The grid sizes its buttons to the longest name and fits as many across as the screen allows, and you can drag the buttons into the order you want.",
+    body: "Fifteen slots the laptop names with an app, a document, a folder or a URL each; the phone sends the slot number and never what it opens. The screen shows 2 to 10 at a time and the rest sit on pages you slide to. Press and hold a button to drag it into the order you want, or add one from the phone by picking from the laptop's apps. Macros live in Controls.",
   },
   {
     title: "Annotate and sign",
     Icon: PenLine,
-    body: "Controls > Annotate turns the phone into an absolute pen for the laptop screen, with a pen, a highlighter, a line, an arrow, a rectangle and an ellipse in eight colours. Sign is the same pad as a signature, saved as a transparent PNG.",
+    body: "Controls > Annotate turns the phone into an absolute pen for the laptop screen, with a pen, a highlighter, a line, an arrow, a rectangle and an ellipse in eight colours or any colour you pick, at the width and opacity you set. Sign is the same pad as a signature, saved as a transparent PNG.",
   },
   {
     title: "Capture",
     Icon: Camera,
-    body: "Buttons for a region, the whole screen and a recording press the laptop's own screenshot shortcut, with a trackpad under them to drag out the region.",
+    body: "Buttons for a region, the whole screen and a recording press the laptop's own screenshot shortcut, with a trackpad under them to drag out the region. Set Save to: Phone and the laptop sends what it just captured to the phone, unverified on real laptops.",
+  },
+  {
+    title: "Shared clipboard",
+    Icon: ClipboardCopy,
+    body: "Text and images copied on the laptop arrive on the phone at once. Android lets Edgepad read the clipboard only while it is on screen, so to send a copy from the phone, go back to Edgepad after copying. A password manager's copy is never sent.",
+  },
+  {
+    title: "Several laptops",
+    Icon: Laptop,
+    body: "The phone stays connected to every laptop you connect, and you choose which one you control from System settings or the Devices dial.",
+  },
+  {
+    title: "Stay connected",
+    Icon: Link2,
+    body: "A notification keeps the connection while Edgepad is minimized, with a Disconnect button. Turn it off in System settings.",
   },
   {
     title: "Security levels and a PIN",
@@ -107,7 +124,7 @@ const STEPS: { step: string; title: string; body: string }[] = [
   {
     step: "01",
     title: "Pair once, like a headset",
-    body: "The phone and the laptop pair in the laptop's own Bluetooth settings: Windows Settings > Bluetooth & devices, macOS System Settings > Bluetooth, or your Linux desktop's. Edgepad has no pairing step of its own, no account to make and no network to join. Each paired phone is asked about once, and every phone you trust is remembered until you choose Forget trusted phones in the tray menu.",
+    body: "The phone and the laptop pair in the laptop's own Bluetooth settings: Windows Settings > Bluetooth & devices, macOS System Settings > Bluetooth, or your Linux desktop's. Edgepad has no pairing step of its own and no account to make; Bluetooth is the default, and Wi-Fi and USB connections are optional and off until you turn them on in the laptop's tray menu. Each paired phone is asked about once, and every phone you trust is remembered until you choose Forget trusted phones in the tray menu.",
   },
   {
     step: "02",
@@ -122,7 +139,7 @@ const STEPS: { step: string; title: string; body: string }[] = [
 ];
 
 const LIMITS: string[] = [
-  "It is Bluetooth, so both ends need it, and it does not reach another room or the internet.",
+  "The default link is Bluetooth, so both ends need it, and it does not reach another room or the internet. Wi-Fi and USB connections are optional, and the phone's half of them has not been tried on real devices yet.",
   "Mac and Linux are still in testing. Please use them at your own risk. The Windows app is the one that has been run on a real laptop; the Linux app has not been seen working on a Linux laptop yet.",
   "The laptop half needs Windows 10 version 2004 or later (64-bit), macOS 13 or later, or a 64-bit Linux laptop with BlueZ. The phone half needs Android 12 or later.",
   "Edgepad.exe is not code-signed, so SmartScreen warns the first time you run it.",
@@ -211,7 +228,10 @@ export default function Page() {
   const protocol = loadProtocol();
 
   const facts: { term: string; value: string }[] = [
-    { term: "Transport", value: "Bluetooth Classic RFCOMM" },
+    {
+      term: "Transport",
+      value: "Bluetooth Classic RFCOMM, Wi-Fi and USB optional",
+    },
     { term: "Protocol", value: `Version ${protocol.version}` },
     { term: "Phone", value: "Kotlin, Android 12+" },
     { term: "Laptop", value: "Windows, Mac and Linux" },
@@ -236,7 +256,7 @@ export default function Page() {
             <div>
               <p className="bg-card shadow-card inline-flex rounded-full px-4 py-1.5 text-sm font-bold">
                 <AnimatedShinyText>
-                  Phone · Bluetooth · Windows, Mac, Linux
+                  Phone · Bluetooth, Wi-Fi, USB · Windows, Mac, Linux
                 </AnimatedShinyText>
               </p>
               <h1 className="mt-6 max-w-[13ch] text-[2.75rem] leading-[1.02] font-black tracking-[-0.025em] sm:text-6xl lg:text-7xl">
@@ -245,8 +265,9 @@ export default function Page() {
               <p className="text-dim mt-6 max-w-[56ch] text-lg leading-relaxed md:text-xl">
                 Edgepad turns an Android phone into a trackpad, a media remote and a
                 control panel for a Windows, Mac or Linux laptop, over a direct
-                Bluetooth link with nothing in between. The two pair once, the way a
-                headset does, and after that they talk straight to each other.
+                Bluetooth link with nothing in between; Wi-Fi and USB are optional. The
+                two pair once, the way a headset does, and after that they talk straight
+                to each other.
               </p>
 
               <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -317,8 +338,8 @@ export default function Page() {
         {/* The demo */}
         <section id="demo" className={SECTION}>
           <Heading
-            eyebrow="Demo, 7:28"
-            title="Every feature, from setup to how it works."
+            eyebrow="Demo, 2:40"
+            title="Every feature, in under three minutes."
           />
           <BlurFade delay={0.05} className="mt-10">
             <DemoVideo />
@@ -398,11 +419,12 @@ export default function Page() {
                 <h3 className="text-lg font-bold">The transport</h3>
                 {/* Ink on the tint, not dim: dim on accent-soft is 4.4:1 in light. */}
                 <p className="mt-2 max-w-[76ch] text-[0.9375rem] leading-relaxed">
-                  Bluetooth Classic RFCOMM: an ordered, encrypted byte stream between
-                  two already-paired devices, with no server, no discovery and no
-                  network anywhere in the product. Frames are 2 to 258 bytes and go out
-                  in a single write per batch; a backlog of pointer moves collapses into
-                  one before it is sent, so a slow link catches up instead of lagging.
+                  Bluetooth Classic RFCOMM by default: an ordered, encrypted byte stream
+                  between two already-paired devices, with no server and no discovery.
+                  The optional Wi-Fi and USB connections listen on port 47321 and pair
+                  once with a six-digit code. Frames are 2 to 258 bytes and go out in a
+                  single write per batch; a backlog of pointer moves collapses into one
+                  before it is sent, so a slow link catches up instead of lagging.
                 </p>
                 <p className="mt-2">
                   <MoreLink href="/docs#protocol">
@@ -418,8 +440,8 @@ export default function Page() {
         <section className={SECTION}>
           <div className="grid gap-10 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:gap-16">
             <Heading eyebrow="The cost" title="What it will not do.">
-              Bluetooth&apos;s own limits are the price of having no server in the
-              middle. Nothing here is hidden because it is inconvenient.
+              The default Bluetooth link&apos;s own limits are the price of having no
+              server in the middle. Nothing here is hidden because it is inconvenient.
             </Heading>
 
             <BlurFade delay={0.05}>

@@ -67,5 +67,5 @@ export const SOCIAL_IMAGE = {
   url: "/social-preview.png",
   width: 1280,
   height: 640,
-  alt: "Edgepad: your phone as a trackpad, media remote and control panel for a Windows laptop. No account, no Wi-Fi, no cloud.",
+  alt: "Edgepad: your phone as a trackpad, media remote and control panel for a Windows, Mac or Linux laptop. No account, no server, no cloud.",
 };

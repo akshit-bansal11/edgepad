@@ -10,7 +10,7 @@
 <body>
 <!-- A cover in the film's style: the mark, a huge headline with its keyword in blue, and the phone on the surface, a
      finger on the volume dial. One still frame, rendered to PNG by CI. -->
-<div id="root" data-composition-id="thumb-portrait" data-start="0" data-duration="1" data-width="1080" data-height="1920">
+<div id="root" data-composition-id="thumb-portrait" data-duration="1" data-start="0" data-duration="1" data-width="1080" data-height="1920">
   <canvas id="film-canvas"></canvas>
   <div id="film-text"></div>
 </div>
@@ -31,7 +31,7 @@
       el.className = 'still';
       const L = { x: 80, y: 130, mark: 120, big: 136, tag: 46, gap: 36 };
       el.innerHTML =
-        '<img class="mark" src="../brand/edgepad-dark.svg" alt="" style="width:' + L.mark + 'px;height:' + L.mark + 'px">' +
+        '<img class="mark" src="../brand/edgepad-light.svg" alt="" style="width:' + L.mark + 'px;height:' + L.mark + 'px">' +
         '<div class="big" style="font-size:' + L.big + 'px;margin-top:' + L.gap + 'px">Your phone,<br>your laptop\'s<br><span class="k">remote.</span></div>' +
         '<div class="tag" style="font-size:' + L.tag + 'px;margin-top:' + L.gap + 'px">Edgepad 4.0 · free and <span class="k">open source</span></div>';
       el.style.left = L.x + 'px';
@@ -46,5 +46,6 @@
 <script src="../ui/screens.js"></script>
 <script src="../ui/beats.js"></script>
 <script src="../ui/film.js"></script>
+<script>window.__filmReady.then((tl) => { window.__timelines["thumb-portrait"] = tl; window.__hfForceTimelineRebind?.(); });</script>
 </body>
 </html>

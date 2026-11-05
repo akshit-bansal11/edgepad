@@ -29,13 +29,13 @@ export const metadata: Metadata = {
   // canonical link is each page's own, so a future page never inherits "/" by accident.
   title: "Edgepad — your laptop, from across the room",
   description:
-    "Edgepad turns an Android phone into a trackpad, a media remote and a control panel for a Windows, Mac or Linux laptop, over a direct Bluetooth link with nothing in between. No account, no server, no telemetry. MIT.",
+    "Edgepad turns an Android phone into a trackpad, a media remote and a control panel for a Windows, Mac or Linux laptop, over a direct Bluetooth link with nothing in between, with Wi-Fi and USB optional. No account, no server, no telemetry. MIT.",
   applicationName: "Edgepad",
   authors: [{ name: "akshit-bansal11" }],
   openGraph: {
     title: "Edgepad — your laptop, from across the room",
     description:
-      "Phone as a control surface for a Windows, Mac or Linux laptop, over Bluetooth Classic RFCOMM. No account, no Wi-Fi, no server.",
+      "Phone as a control surface for a Windows, Mac or Linux laptop, over Bluetooth by default, Wi-Fi and USB optional. No account, no server.",
     type: "website",
     url: "/",
     siteName: "Edgepad",

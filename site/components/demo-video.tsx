@@ -5,27 +5,23 @@ import { useRef } from "react";
 /** Chapter starts in seconds, from the narration timings the demo was rendered with. */
 const CHAPTERS: { at: number; title: string }[] = [
   { at: 0, title: "What it is" },
-  { at: 28, title: "Setup" },
-  { at: 83, title: "The surface" },
-  { at: 97, title: "The trackpad" },
-  { at: 146, title: "Corner dials" },
-  { at: 205, title: "Media" },
-  { at: 223, title: "The top row and locking" },
-  { at: 254, title: "The keyboard" },
-  { at: 275, title: "Macros" },
-  { at: 310, title: "Shapes" },
-  { at: 330, title: "Make it yours" },
-  { at: 358, title: "The gamepad" },
-  { at: 387, title: "Under the hood" },
-  { at: 432, title: "Open source" },
+  { at: 19, title: "Setup" },
+  { at: 31, title: "The trackpad" },
+  { at: 42, title: "Corner dials" },
+  { at: 62, title: "Controls" },
+  { at: 90, title: "Macros and clipboard" },
+  { at: 108, title: "Connections and trust" },
+  { at: 128, title: "Make it yours" },
+  { at: 137, title: "Straight talk" },
+  { at: 149, title: "Get it" },
 ];
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 /**
- * The full 7:28 walkthrough. The picture has captions burned in; the text track is
+ * The full 2:40 walkthrough. The picture has captions burned in; the text track is
  * the same narration for screen readers and caption styling, off until chosen.
- * `preload="none"` keeps the 25 MB file off the wire until someone presses play.
+ * `preload="none"` keeps the 13 MB file off the wire until someone presses play.
  */
 export function DemoVideo() {
   const video = useRef<HTMLVideoElement>(null);

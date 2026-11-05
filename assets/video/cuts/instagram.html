@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080, height=1920">
+<title>Edgepad 4: Instagram cut</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<link rel="stylesheet" href="../film.css">
+</head>
+<body>
+<!-- Edgepad 4: Instagram cut: the `short` script, laid out for 1080 x 1920. The narration (voice.py) sets the length; the director (ui/film.js) builds the rest. -->
+<div id="root" data-composition-id="instagram" data-start="0" data-width="1080" data-height="1920">
+  <canvas id="film-canvas"></canvas>
+  <div id="film-text"></div>
+  <audio id="voice" src="../out/short/voice.mp3" data-start="0" data-track-index="0"></audio>
+  <audio id="music" src="../out/short/music.mp3" data-start="0" data-track-index="1" data-volume="0.2"></audio>
+</div>
+<script>window.CUT = { id: 'instagram', script: 'short', w: 1080, h: 1920, base: '../' };</script>
+<script src="../out/short/timing.js"></script>
+<script src="../ui/kit.js"></script>
+<script src="../ui/icons.js"></script>
+<script src="../ui/surface.js"></script>
+<script src="../ui/screens.js"></script>
+<script src="../ui/beats.js"></script>
+<script src="../ui/film.js"></script>
+<script>window.__filmReady.then((tl) => { window.__timelines["instagram"] = tl; window.__hfForceTimelineRebind?.(); });</script>
+</body>
+</html>

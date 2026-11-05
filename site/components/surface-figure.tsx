@@ -1,17 +1,8 @@
-import {
-  Gamepad2,
-  Keyboard,
-  LayoutGrid,
-  Lock,
-  Play,
-  Settings,
-  SkipBack,
-  SkipForward,
-} from "lucide-react";
+import { LayoutGrid, Lock, Play, Settings, SkipBack, SkipForward } from "lucide-react";
 
 /**
  * The phone's control surface, drawn rather than photographed, in the 2.0 look: four
- * corner dials, the five top buttons, the media pieces, and the trackpad that is
+ * corner dials, the three top buttons, the media pieces, and the trackpad that is
  * everything else. The same anatomy the docs page describes in words.
  *
  * The dials are drawn by the app's own ruler geometry, ported from the design
@@ -275,10 +266,8 @@ const DIALS: {
 
 const TOP_BUTTONS = [
   { name: "settings", Icon: Settings },
-  { name: "keyboard", Icon: Keyboard },
   { name: "lock", Icon: Lock },
-  { name: "gamepad", Icon: Gamepad2 },
-  { name: "macros", Icon: LayoutGrid },
+  { name: "controls", Icon: LayoutGrid },
 ];
 const GRID = 35;
 
@@ -288,7 +277,7 @@ export function SurfaceFigure({ className }: { className?: string }) {
       viewBox={`0 0 ${W} ${H}`}
       className={className}
       role="img"
-      aria-label="The phone's control surface: a dial wrapping each of the four corners, five buttons along the top, the media pieces in the middle, and the trackpad filling everything else."
+      aria-label="The phone's control surface: a dial wrapping each of the four corners, three buttons along the top, the media pieces in the middle, and the trackpad filling everything else."
       fill="none"
     >
       <title>The phone&apos;s control surface</title>
@@ -370,11 +359,11 @@ export function SurfaceFigure({ className }: { className?: string }) {
         </g>
       ))}
 
-      {/* The five top buttons: settings, keyboard, lock, gamepad, macros */}
+      {/* The three top buttons: settings, lock, controls */}
       {TOP_BUTTONS.map(({ name, Icon }, i) => (
         <Icon
           key={name}
-          x={W / 2 - 2 * 48 + i * 48 - 12}
+          x={W / 2 - 48 + i * 48 - 12}
           y={34}
           width={24}
           height={24}

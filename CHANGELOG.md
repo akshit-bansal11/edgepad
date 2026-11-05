@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Changed
+
+- The guide text and the website now describe 4.0: Bluetooth by default with Wi-Fi and USB optional, three buttons on the surface, the shared clipboard, several laptops, macro pages, and the demo film.
+
 ## [4.0.0] - 2026-10-31
 
 The wire protocol moves to version 5, so both halves must be installed from this release.
@@ -36,7 +40,7 @@ The wire protocol moves to version 5, so both halves must be installed from this
 ### Changed
 
 - **Three buttons on the surface: Settings, Lock and Controls.** Macros moved into Controls, next to Keyboard, Gamepad, Annotate and Capture, and back from them returns to Controls.
-- **Each screen has its own settings.** A feature's settings live only behind its own gear: the surface's gear opens Surface settings (Corners and Split corners, Gestures, Shapes, Dial feel, Media layout, Background), and the keyboard, the gamepad and the macro screen each have theirs. **App settings**, from the Devices screen's gear or the last row of Surface settings, keeps only what applies everywhere: the laptop, theme, orientation, the guide and updates.
+- **Each screen has its own settings.** A feature's settings live only behind its own gear: the surface's gear opens Surface settings (Corners and Split corners, Gestures, Shapes, Dial feel, Media layout, Background), and the keyboard, the gamepad and the macro screen each have theirs. **System settings**, from the Devices screen's gear or the last row of Surface settings, keeps only what applies everywhere: the laptop, theme, orientation, the guide and updates.
 - **Macros are rearranged the way a home screen is.** Press and hold a macro to lift it, drag it, and the others slide out of its way as it moves; let go and it settles into place. A tap still runs it, there is no separate edit mode, and TalkBack offers Move earlier and Move later on each. Icons from Windows are now taken at 256 px and sent at 128, and the phone never stretches one past a quarter over its size, so they stay sharp on large buttons.
 - **Macro icons are ready when the grid opens.** The phone asks for them as soon as it connects and whenever the laptop's macro list changes, keeps them while the app runs, and drops a deleted macro's icon.
 - **Annotate gives the pen the whole screen.** The tools, colours, undo, clear, Sign and Exit are icons in a menu that opens upward from one button, which shows the current tool in the current colour.

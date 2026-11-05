@@ -21,7 +21,7 @@ const SURFACE: { where: string; touch: string; laptop: string }[] = [
   {
     where: "A corner ruler",
     touch: "tap",
-    laptop: "The dial's action: mute, play/pause, mic mute, task view, reset zoom.",
+    laptop: "The dial's action: mute, play/pause, task view, reset zoom.",
   },
   {
     where: "Anywhere else, one finger",
@@ -44,9 +44,9 @@ const SURFACE: { where: string; touch: string; laptop: string }[] = [
   },
   {
     where: "Top centre",
-    touch: "tap one of the four buttons",
+    touch: "tap one of the three buttons",
     laptop:
-      "Settings, Controls (keyboard, gamepad, capture, annotate), the lock, the macros, left to right. The lock stays on the phone.",
+      "Settings, the lock, Controls (keyboard, gamepad, macros, annotate, capture), left to right. The lock stays on the phone.",
   },
   { where: "Back", touch: "", laptop: "Leaves the surface. The link stays up." },
 ];
@@ -100,7 +100,7 @@ export function ProductSections() {
           <>
             Edgepad turns an Android phone into a trackpad, a media remote and a control
             panel for a Windows, Mac or Linux laptop, over a direct Bluetooth link with
-            nothing in between.
+            nothing in between. Wi-Fi and USB connections are optional.
           </>
         }
       >
@@ -114,11 +114,13 @@ export function ProductSections() {
           remote-desktop app that streams the whole screen and wants an account and a
           network round trip to change the volume. Edgepad is neither. The phone and the
           laptop pair once, the way a headset does, and after that they talk directly:
-          no account, no Wi-Fi, no service in between that can be slow or down.
+          no account, no service in between that can be slow or down.
         </P>
         <P>
-          The cost is Bluetooth&apos;s own. Both ends need it, and it does not reach
-          another room or the internet.
+          The cost of the default link is Bluetooth&apos;s own. Both ends need it, and
+          it does not reach another room or the internet. Wi-Fi and USB connections are
+          optional, off until you turn them on in the laptop&apos;s menu, and the
+          phone&apos;s half of them has not been tried on real devices yet.
         </P>
 
         <Sub>What it does</Sub>
@@ -126,7 +128,7 @@ export function ProductSections() {
           {[
             {
               title: "Corner rulers",
-              body: "Each corner holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher, microphone level or refresh rate; Settings picks what each corner does, how long the rulers are and how tall. Split corners gives each corner two dials, eight in all.",
+              body: "Each corner holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher, refresh rate, scroll, desktops, browser tabs or the Devices dial; Surface settings pick what each corner does, how long the rulers are and how tall. Split corners gives each corner two dials, eight in all.",
             },
             {
               title: "Trackpad",
@@ -150,11 +152,19 @@ export function ProductSections() {
             },
             {
               title: "Macro buttons",
-              body: "Fifteen slots the laptop names with an app, a document, a folder or a URL each, in its tray or menu-bar menu (a text file on Linux); the phone sends the slot number and never what it opens. The grid sizes every button to the longest name and fits as many across as the screen has room for, and Edit layout drags the buttons into the order you want.",
+              body: "Fifteen slots the laptop names with an app, a document, a folder or a URL each, in its tray or menu-bar menu (a text file on Linux); the phone sends the slot number and never what it opens. The screen shows 2 to 10 at a time and the rest sit on pages you slide to. Press and hold a button to drag it into the order you want, or add one from the phone by picking from the laptop's apps.",
             },
             {
               title: "Controls",
-              body: "One button on the surface opens a grid of the keyboard, the gamepad, capture and annotate. A laptop shows only what it can do, and the grid can be rearranged like the macro deck.",
+              body: "One button on the surface opens a grid of the keyboard, the gamepad, macros, annotate and capture. A laptop shows only what it can do, and the grid can be rearranged like the macro deck.",
+            },
+            {
+              title: "Shared clipboard",
+              body: "Text and images copied on the laptop arrive on the phone at once. Android lets Edgepad read the clipboard only while it is on screen, so to send a copy from the phone, go back to Edgepad after copying.",
+            },
+            {
+              title: "Several laptops",
+              body: "The phone stays connected to every laptop you connect, and you choose which one you control from System settings or the Devices dial. Stay connected keeps the link in a notification while Edgepad is minimized.",
             },
             {
               title: "Annotate and sign",
@@ -326,12 +336,11 @@ export function ProductSections() {
               <p className="mb-3">
                 The app is a self-contained single file, so .NET need not be installed.
                 It needs BlueZ for Bluetooth, <C>wpctl</C> (PipeWire) or <C>pactl</C>{" "}
-                for the volume and microphone dials, systemd-logind for Lock and
-                brightness, and <C>xdg-open</C> for macros that open a file, folder or
-                web address and for Open log and Documentation. <C>wl-copy</C> on
-                Wayland or <C>xclip</C> on X11 is optional, for typing text that is not
-                plain ASCII. GNOME needs the AppIndicator extension to show the tray
-                icon.
+                for the volume dial, systemd-logind for Lock and brightness, and{" "}
+                <C>xdg-open</C> for macros that open a file, folder or web address and
+                for Open log and Documentation. <C>wl-copy</C> on Wayland or{" "}
+                <C>xclip</C> on X11 is optional, for typing text that is not plain
+                ASCII. GNOME needs the AppIndicator extension to show the tray icon.
               </p>
               <p>
                 On Wayland, annotate runs under XWayland and the compositor may ignore
@@ -416,7 +425,10 @@ sudo ./install.sh`}
           <li>
             The phone remembers the laptop and reconnects when the app opens. If the
             link drops after a completed handshake, the phone retries ten times, two
-            seconds apart, and says so. Disconnecting on purpose does not retry.
+            seconds apart, and says so. Disconnecting on purpose does not retry. The
+            phone stays connected to every laptop you connect and you choose which one
+            you control; with Stay connected on, a notification holds the link while
+            Edgepad is minimized, with a Disconnect button.
           </li>
         </ol>
       </Section>
@@ -461,7 +473,7 @@ sudo ./install.sh`}
         <Sub>Default three- and four-finger gestures</Sub>
         <P>
           Swapped from Windows&apos; own defaults on purpose. Every one of these is
-          changed under <strong>Settings &gt; Gestures</strong>.
+          changed under <strong>Surface settings &gt; Gestures</strong>.
         </P>
         <Table>
           <TableHeader>
@@ -496,14 +508,16 @@ sudo ./install.sh`}
           slide runs the dial&apos;s action instead.
         </P>
         <P>
-          Seven kinds compete for four places: volume, brightness, media scrub, zoom,
-          app switcher, microphone level and refresh rate. A corner may also hold
-          nothing. With <strong>Split corners</strong> on, in{" "}
-          <strong>Settings &gt; Corners</strong>, each corner takes a dial on each of
-          the two edges it joins, eight places in all. The dial a corner already held
-          stays on its side edge, any place can take any dial, and turning it off brings
-          the four single dials back as they were. A dial shows the laptop&apos;s real
-          value from <C>STATE</C> frames, and dragging sends absolute <C>SET</C> frames.
+          Eleven kinds compete for four places: volume, brightness, media scrub, zoom,
+          app switcher, refresh rate, scroll, horizontal scroll, desktops, browser tabs
+          and the Devices dial. A corner may also hold nothing. With{" "}
+          <strong>Split corners</strong> on, in{" "}
+          <strong>Surface settings &gt; Corners</strong>, each corner takes a dial on
+          each of the two edges it joins, eight places in all. The dial a corner already
+          held stays on its side edge, any place can take any dial, and turning it off
+          brings the four single dials back as they were. A dial shows the laptop&apos;s
+          real value from <C>STATE</C> frames, and dragging sends absolute <C>SET</C>{" "}
+          frames.
         </P>
 
         <Sub>Focusing and locking the pad</Sub>
@@ -525,10 +539,10 @@ sudo ./install.sh`}
         <P>
           Press one finger on the trackpad, hold it still until it ticks, then draw
           without lifting. On lift the stroke is matched against the shapes drawn under{" "}
-          <strong>Settings &gt; Shapes</strong>, and the one it matches runs: a laptop
-          action, a macro slot, or the pad&apos;s own focus or lock. A stroke that
-          matches nothing does nothing, which is the right answer — the alternative is
-          the nearest binding firing on a scrawl.
+          <strong>Surface settings &gt; Shapes</strong>, and the one it matches runs: a
+          laptop action, a macro slot, or the pad&apos;s own focus or lock. A stroke
+          that matches nothing does nothing, which is the right answer — the alternative
+          is the nearest binding firing on a scrawl.
         </P>
         <P>
           Shape mode will not arm while dragging, and stops the moment a second finger
@@ -546,22 +560,38 @@ sudo ./install.sh`}
           phone is connected appears at once.
         </P>
         <P>
-          The grid is no longer a fixed 5x3. Every cell is as wide as the widest label
-          in it, so no button is a different size from its neighbour, and a row holds as
-          many as the screen actually has room for. The count is capped by what fits
-          rather than by how many slots are filled, so two macros are two ordinary
-          buttons at the left of a full-width row and not two half-screen slabs.
+          The screen shows 2 to 10 macros at a time, set with{" "}
+          <strong>Macros on screen</strong> in the macro settings (10 by default). The
+          laptop&apos;s other macros, up to its 15, continue on further pages that you
+          reach by sliding a finger sideways; every page has the same grid, and dots
+          under it show which page you are on. Macros live in Controls.
+        </P>
+        <P>
+          Press and hold a button to lift it, and the others slide out of its way as you
+          drag it to a new place within its own page; let go and it settles. A tap still
+          runs it, there is no separate edit mode, and TalkBack offers Move earlier and
+          Move later on each. The order is kept on the phone, and a button still runs
+          the same macro wherever it is placed. The buttons sit straight on the
+          background with the press and focus feedback kept, and a last row with fewer
+          buttons than the rest sits under the middle of them.
+        </P>
+        <P>
+          The macro settings can list the laptop&apos;s apps to pick from, on Windows,
+          Linux and the Mac, so a macro can be added from the phone.
         </P>
 
+        <Sub>Shared clipboard</Sub>
         <P>
-          <strong>Edit layout</strong> in the Macros bar lets you drag the buttons into
-          the order you want, or move each one earlier or later with a screen
-          reader&apos;s actions, and pick the grid, such as 3 × 2, from a list that
-          leaves out any grid whose buttons would be too small to hit. The order and the
-          grid are kept on the phone, and a button still runs the same macro wherever it
-          is placed. The buttons sit straight on the background with the press and focus
-          feedback kept, and a last row with fewer buttons than the rest sits under the
-          middle of them.
+          Text and images copied on the laptop arrive on the phone at once. Android lets
+          Edgepad read the clipboard only while it is on screen, so to send a copy from
+          the phone, go back to Edgepad after copying and it goes then; tapping
+          Edgepad&apos;s notification does the same. Copying on the phone and pasting on
+          the laptop without returning to Edgepad cannot work.
+        </P>
+        <P>
+          A large photo is sent smaller, and a password manager&apos;s copy is never
+          sent. Only the laptop you are controlling shares, and the phone and the laptop
+          each have a switch.
         </P>
 
         <Sub>Security levels and the PIN</Sub>
@@ -600,17 +630,20 @@ sudo ./install.sh`}
         <P>
           Annotate draws on the laptop&apos;s primary display, with the phone as an
           absolute pen: a touch lands at the same place on the laptop. It has a pen, a
-          highlighter, a line, an arrow, a rectangle and an ellipse in eight colours,
-          plus Undo and Clear. The Sign switch turns the same pad into a signature:
-          nothing shows on the laptop, only the pen is offered, and Save signature
-          copies a transparent PNG to the clipboard and saves it as{" "}
-          <C>signature-yyyyMMdd-HHmmss.png</C> in an <C>Edgepad</C> folder in Pictures,
-          never over an earlier one. Annotate works on Windows, on the Mac and on Linux;
-          on Linux it is best effort and in testing.
+          highlighter, a line, an arrow, a rectangle and an ellipse in eight colours or
+          any colour you pick, at the width and opacity you set, plus Undo and Clear.
+          The Sign switch turns the same pad into a signature: nothing shows on the
+          laptop, only the pen is offered, and Save signature copies a transparent PNG
+          to the clipboard and saves it as <C>signature-yyyyMMdd-HHmmss.png</C> in an{" "}
+          <C>Edgepad</C> folder in Pictures, never over an earlier one. Annotate works
+          on Windows, on the Mac and on Linux; on Linux it is best effort and in
+          testing.
         </P>
         <P>
           Capture presses the laptop&apos;s own screenshot or recording shortcut, and
-          has a trackpad under its buttons to drag out the region.
+          has a trackpad under its buttons to drag out the region. With Save to: Phone,
+          the laptop sends what it just captured to the phone, unverified on real
+          laptops.
         </P>
         <Table>
           <TableHeader>
@@ -643,33 +676,23 @@ sudo ./install.sh`}
         lede="One SharedPreferences file holds all of it. Dial positions and the gesture map are stored by enum name, so renumbering an action can never silently remap a corner."
       >
         <P>
-          The hub groups its rows by the thing each one configures, not by the kind of
-          editor the row opens. Until 3.0.0 it did the opposite, which is how the
-          keyboard&apos;s text size and the macro buttons&apos; appearance both ended up
-          on a page titled <strong>Background &amp; pattern</strong> — a title that
-          described neither.
+          Each screen has its own settings behind its own gear, and a feature&apos;s
+          settings live only there. Since 4.0.0 the old single settings hub is split
+          that way.
         </P>
         <div className="grid gap-3 sm:grid-cols-2">
           {[
             {
-              title: "Connection",
-              body: "The remembered laptop with its round trip, Forget, and whether to reconnect automatically.",
+              title: "Surface settings",
+              body: "From the surface's gear: Corners and Split corners, Gestures (pointer and scroll speed, natural scrolling, the three- and four-finger map and the on-screen hints), Shapes (draw one, bind it, delete it), Dial feel (slide sensitivity — shared or per dial kind — dial length and height, haptic ticks, snapping to round numbers, with a live preview), Media layout and Background (a control colour, a colour, gradient or image behind the surface, and a grid, dots or checker over it).",
             },
             {
-              title: "Surface",
-              body: "Corners (which dial each corner holds, or none), Trackpad (pointer and scroll speed, natural scrolling, the three- and four-finger map and the on-screen hints), Shapes (draw one, bind it, delete it), and Dial feel (slide sensitivity — shared or per dial kind — dial length and height, haptic ticks, snapping to round numbers, with a live preview).",
+              title: "Keyboard, gamepad and macros",
+              body: "Each has its own gear and holds everything about its own control: the keyboard's text size, the gamepad's canvas and layout library, how many macros show on a page, whether a macro button shows its icon alone or its icon and label, and adding a macro from the laptop's apps.",
             },
             {
-              title: "Controls",
-              body: "One page each for the Keyboard, the Gamepad layout, the Macro buttons and the Media layout. A page holds everything about its own control: the keyboard's text size, the gamepad's canvas and layout library, whether a macro button shows its icon alone or its icon and label, and where the three media pieces sit.",
-            },
-            {
-              title: "Appearance",
-              body: "Dark or light, upright or sideways, and Background & pattern: a control colour, a colour, gradient or image behind the surface, and a grid, dots or checker over it.",
-            },
-            {
-              title: "Help",
-              body: "The five-page guide, shown one page at a time with a drawing or all on one scrolling page. It opens on the first run and again from here. Below it, Documentation opens this page in a browser.",
+              title: "System settings",
+              body: "From the Devices screen's gear or the last row of Surface settings, and only what applies everywhere: the laptop, theme, upright or sideways, Stay connected, the guide and updates. The guide opens on the first run and again from here.",
             },
           ].map((item) => (
             <div
