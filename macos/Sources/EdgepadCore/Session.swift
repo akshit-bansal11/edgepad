@@ -281,8 +281,9 @@ public final class Session {
         isAsking = false
         guard !isEnded else { return }
         guard admitted else {
-            let trusted = trust.trustedPhones.joined(separator: ", ")
-            Log.write("Refused \(address): not trusted; this Mac trusts \(trusted.isEmpty ? "no phone yet" : trusted)")
+            // A count, not the list: the log is plain text anyone with the user's files can read, and the trusted
+            // phones' identities are the one thing it must not hand out. The menu shows the list to the owner.
+            Log.write("Refused \(address): not trusted; this Mac trusts \(trust.trustedPhones.count) phone(s)")
             onStatus("Refused a phone it does not trust")
             end()
             return
