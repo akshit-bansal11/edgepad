@@ -18,6 +18,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.provider.DocumentsContract
 import android.provider.Settings.Global
 import android.text.InputType
 import android.util.Log
@@ -1117,7 +1118,9 @@ class MainActivity :
         // A cancelled picker is the user changing their mind, and needs no answer.
         if (requestCode != REQUEST_IMAGE || resultCode != RESULT_OK) return
         val uri = data?.data
-        if (uri == null) {
+        // Only a document the system picker vouches for: a file:// or this app's own provider would let whatever
+        // answered the intent point the copy at Edgepad's private files.
+        if (uri == null || !DocumentsContract.isDocumentUri(this, uri)) {
             // The picker said yes and handed back nothing, which some providers do. Silence would read as success.
             imageRefused(R.string.image_unreadable)
             return
