@@ -1026,8 +1026,17 @@ class MainActivity :
         val sideways = screen in alwaysSideways || (screen == Screen.SETTINGS && settingsReturn in alwaysSideways)
         requestedOrientation =
             when {
-                sideways || settings.landscape -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                else -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                sideways || (settings.landscape && screen !in followsPhone) -> {
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                }
+
+                screen in followsPhone -> {
+                    ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+                }
+
+                else -> {
+                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                }
             }
     }
 
@@ -2313,6 +2322,18 @@ class MainActivity :
                 // turning the phone upright and back. They show the bars, unlike the screens they came from.
                 Screen.KEYBOARD_SETTINGS,
                 Screen.GAMEPAD_SETTINGS,
+            )
+
+        /** Pages that read, not draw to a proportion: they turn with the phone, whatever the Orientation setting says. */
+        val followsPhone =
+            setOf(
+                Screen.ONBOARDING,
+                Screen.GUIDE,
+                Screen.PAIRING,
+                Screen.SHARING,
+                Screen.RECONNECTING,
+                Screen.PIN,
+                Screen.PAIR_CODE,
             )
 
         /** The pages that need the link: with it gone they go back to Devices, as the screens they belong to do. */
