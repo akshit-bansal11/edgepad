@@ -2,14 +2,23 @@ import AppKit
 import EdgepadCore
 import Foundation
 
-/// The owner's switch for the shared clipboard: on unless they turned it off in the menu. Read every time, so turning
-/// it off stops every read, send and write at once, whatever the phone thinks.
+/// The owner's switch for the shared clipboard: off until they answer the first-run question or tick it in the menu
+/// (an install from before the question keeps what it had: `adoptEarlierDefault`). Read every time, so turning it
+/// off stops every read, send and write at once, whatever the phone thinks.
 enum ClipboardSetting {
     private static let key = "clipboardSync"
 
     static var enabled: Bool {
-        get { UserDefaults.standard.object(forKey: key) as? Bool ?? true }
+        get { UserDefaults.standard.object(forKey: key) as? Bool ?? false }
         set { UserDefaults.standard.set(newValue, forKey: key) }
+    }
+
+    /// True once the owner has answered, by the question or by an earlier version's switch.
+    static var answered: Bool { UserDefaults.standard.object(forKey: key) != nil }
+
+    /// An install that never stored a value ran with the clipboard on, and keeps it.
+    static func adoptEarlierDefault() {
+        if !answered { enabled = true }
     }
 }
 
