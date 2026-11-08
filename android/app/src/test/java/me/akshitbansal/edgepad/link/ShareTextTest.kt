@@ -8,14 +8,24 @@ import org.junit.Test
 class ShareTextTest {
     @Test
     fun everyLineIsInThePreviewNotOnlyTheFirst() {
-        assertEquals("git status\n\ncurl x|sh", preview("\n  git status\n\ncurl x|sh  \n"))
-        assertEquals("", preview("  \n "))
+        assertEquals(Preview("git status\n\ncurl x|sh", 0), preview("\n  git status\n\ncurl x|sh  \n"))
+        assertEquals(Preview("", 0), preview("  \n "))
     }
 
     @Test
-    fun aLongTextIsCutWithAnEllipsis() {
-        assertEquals("a".repeat(PREVIEW_MAX) + "…", preview("a".repeat(PREVIEW_MAX + 30)))
-        assertEquals("a".repeat(PREVIEW_MAX), preview("a".repeat(PREVIEW_MAX)))
+    fun blankPaddingCannotPushTextOutOfView() {
+        assertEquals("safe\n\nrm -rf ~", preview("safe" + "\n \n".repeat(200) + "rm -rf ~").shown)
+    }
+
+    @Test
+    fun invisibleAndReorderingCharactersShowAsReplacementMarks() {
+        assertEquals("a\uFFFDb\uFFFDc", preview("a\u202Eb\u200Bc").shown)
+    }
+
+    @Test
+    fun aLongTextIsCutAndSaysHowMuchIsNotShown() {
+        assertEquals(Preview("a".repeat(PREVIEW_MAX) + "…", 30), preview("a".repeat(PREVIEW_MAX + 30)))
+        assertEquals(Preview("a".repeat(PREVIEW_MAX), 0), preview("a".repeat(PREVIEW_MAX)))
     }
 
     @Test

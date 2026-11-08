@@ -11,4 +11,9 @@
   <string name="share_nothing">There is nothing here Edgepad can send.</string>
   <string name="share_text_too_long">That text is too long to send. The limit is 1 MB.</string>
   <string name="share_image_failed">That image can\'t be read, or is too large to send.</string>
+  <!-- Under a shared text cut for the confirm: everything is still sent. -->
+  <plurals name="share_not_shown">
+    <item quantity="one">%1$d more character isn\'t shown here. Send sends all of it.</item>
+    <item quantity="other">%1$d more characters aren\'t shown here. Send sends all of it.</item>
+  </plurals>
 </resources>

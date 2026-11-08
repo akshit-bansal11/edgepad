@@ -85,7 +85,14 @@ class ShareActivity : Activity() {
             }
 
             is SharedText.Ok -> {
-                confirm(preview(text), target) { deliver(target, BlobKind.CLIP_TEXT) { shared.bytes } }
+                val (shown, notShown) = preview(text)
+                val what =
+                    if (notShown == 0) {
+                        shown
+                    } else {
+                        shown + "\n\n" + resources.getQuantityString(R.plurals.share_not_shown, notShown, notShown)
+                    }
+                confirm(what, target) { deliver(target, BlobKind.CLIP_TEXT) { shared.bytes } }
             }
         }
     }
