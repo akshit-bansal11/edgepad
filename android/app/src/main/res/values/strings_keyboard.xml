@@ -4,7 +4,7 @@
   <string name="keyboard_type_text">Type text</string>
   <string name="keyboard_type_send">Type</string>
   <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
-  <string name="back_to_surface">Surface</string>
+  <string name="back_to_surface">Controls</string>
   <string name="macros_title">Macros</string>
   <string name="keyboard_description">On-screen keyboard for the laptop</string>
   <string name="keyboard_size">Size</string>

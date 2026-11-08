@@ -1135,6 +1135,8 @@ class MainActivity :
             // These are opened from the Controls popup over the surface, so back returns to it.
             Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE -> {
                 goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
+                // AND-A-32: back lands where the user came from, so the popup opens again over the surface.
+                if (connected) surface?.post { openControls() }
             }
 
             // Opened from the surface, which is only there while the link holds.
