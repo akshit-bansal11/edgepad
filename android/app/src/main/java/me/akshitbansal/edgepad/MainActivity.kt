@@ -2324,7 +2324,7 @@ class MainActivity :
                 Screen.GAMEPAD_SETTINGS,
             )
 
-        /** Pages that read, not draw to a proportion: they turn with the phone, whatever the Orientation setting says. */
+        /** Pages that only read: they turn with the phone, whatever the Orientation setting says. */
         val followsPhone =
             setOf(
                 Screen.ONBOARDING,
