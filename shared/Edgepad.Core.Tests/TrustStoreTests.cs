@@ -391,6 +391,33 @@ public sealed class TrustStoreTests : IDisposable
         Assert.Empty(store.TrustedPhones);
     }
 
+    [Fact]
+    public void ForgettingOnePhoneKeepsTheOthers()
+    {
+        var store = NewStore();
+        store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
+        store.Admit("(11:22:33:44:55:66)", Yes);
+
+        Assert.True(store.ForgetOne("(aa:bb:cc:dd:ee:ff)"));
+
+        Assert.Equal(["(11:22:33:44:55:66)"], NewStore().TrustedPhones);
+        Assert.True(store.ForgetOne("(11:22:33:44:55:66)"));
+        Assert.Empty(NewStore().TrustedPhones);
+        Assert.True(store.ForgetOne("(11:22:33:44:55:66)"));
+    }
+
+    [Fact]
+    public void AQuestionOpenAcrossForgettingOneSavesNothing()
+    {
+        var store = NewStore();
+
+        Assert.False(store.Admit("(AA:BB:CC:DD:EE:FF)", () =>
+        {
+            store.ForgetOne("(11:22:33:44:55:66)");
+            return true;
+        }));
+    }
+
     private static bool Yes() => true;
 
     private static bool No() => false;

@@ -103,6 +103,58 @@ internal sealed class PairedLinks(string path)
         }
     }
 
+    /// <summary>The id and name of every paired phone, for a list the owner can forget from; empty while the file cannot be read.</summary>
+    public IReadOnlyList<(string Id, string Name)> List()
+    {
+        lock (gate)
+        {
+            return TryRead(out var links) ? [.. links.Select(link => (link.Id, link.Name))] : [];
+        }
+    }
+
+    /// <summary>
+    /// Forgets one phone's pairing and keeps the others. True when it is gone or was never there; false when the file
+    /// could not be read or rewritten. Moves <see cref="Generation"/> on, as <see cref="Forget"/> does.
+    /// </summary>
+    public bool ForgetOne(string idHex)
+    {
+        lock (gate)
+        {
+            generation++;
+            if (!TryRead(out var links))
+            {
+                return false;
+            }
+
+            var rest = links.Where(link => !string.Equals(link.Id, idHex, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (rest.Count == links.Count)
+            {
+                return true;
+            }
+
+            try
+            {
+                if (rest.Count == 0)
+                {
+                    File.Delete(path);
+                }
+                else
+                {
+                    PrivateStorage.Replace(path, temp => File.WriteAllLines(
+                        temp,
+                        rest.Select(link => $"{link.Id}\t{Convert.ToBase64String(link.Key)}\t{link.Name}")));
+                }
+
+                return true;
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                Log.Write($"A paired phone could not be forgotten at {path}: {e.Message}");
+                return false;
+            }
+        }
+    }
+
     /// <summary>True when there is something for Forget to clear: a paired phone, or a file that cannot be read.</summary>
     public bool CanForget
     {

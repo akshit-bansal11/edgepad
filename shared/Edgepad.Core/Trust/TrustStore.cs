@@ -317,6 +317,55 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
     }
 
     /// <summary>
+    /// Forgets one phone and keeps the others, for a Forget chosen from the list. True when <paramref name="address"/>
+    /// is no longer trusted: it was removed, or was not there. False when the file could not be read or rewritten; the
+    /// phone is then still trusted. Like <see cref="Forget"/> it moves <see cref="Generation"/> on, so a question open
+    /// across it saves nothing.
+    /// </summary>
+    public bool ForgetOne(string address)
+    {
+        lock (gate)
+        {
+            generation++;
+            unsaved.Remove(address);
+            if (IsDeclined(address))
+            {
+                declined = null;
+            }
+
+            if (!TryRead(out var trusted))
+            {
+                return false;
+            }
+
+            var rest = trusted.Where(known => !string.Equals(known, address, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (rest.Count == trusted.Count)
+            {
+                return true;
+            }
+
+            try
+            {
+                if (rest.Count == 0)
+                {
+                    File.Delete(path);
+                }
+                else
+                {
+                    PrivateStorage.Replace(path, temp => File.WriteAllLines(temp, rest));
+                }
+
+                return true;
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                Log.Write($"A trusted phone could not be forgotten at {path}: {e.Message}");
+                return false;
+            }
+        }
+    }
+
+    /// <summary>
     /// False when the file is there and could not be read, or a Forget could not delete it — the caller must
     /// then refuse rather than guess.
     /// True with an empty list means nothing is trusted yet, which is what an absent file and a blank one
