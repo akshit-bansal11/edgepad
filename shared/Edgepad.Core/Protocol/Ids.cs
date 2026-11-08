@@ -179,6 +179,12 @@ internal enum TextKind : byte
     /// characters and nothing else, and what it returns is an int that can only be drawn with.
     /// </summary>
     PenRgb = 17,
+
+    /// <summary>
+    /// Laptop to phone: "blocked" while the OS discards synthetic input, "ok" otherwise. The Linux app sends it (no
+    /// uinput access); Windows never does.
+    /// </summary>
+    InputState = 18,
 }
 
 /// <summary>

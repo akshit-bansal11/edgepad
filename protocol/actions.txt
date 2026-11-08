@@ -160,6 +160,10 @@ TEXT 16 MACRO_OPEN
 # colour of new strokes until the next PEN_COLOR or PEN_RGB. Anything else, a "#", a short or long string or a non-hex
 # character included, is dropped and counted.
 TEXT 17 PEN_RGB
+# Laptop to phone: "blocked" while the OS discards synthetic input (Mac without Accessibility trust, Linux without
+# write access to /dev/uinput), "ok" otherwise. Sent after HELLO_ACK and on change; never sent by Windows. Never received
+# reads as ok.
+TEXT 18 INPUT_STATE
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
