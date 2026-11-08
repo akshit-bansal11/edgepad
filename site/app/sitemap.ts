@@ -6,9 +6,5 @@ export const dynamic = "force-static";
 
 /** The routes there are. No lastModified: a build date would claim a change on every deploy. */
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    { url: SITE },
-    { url: `${SITE}/docs` },
-    { url: `${SITE}/docs/developers` },
-  ];
+  return [{ url: SITE }, { url: `${SITE}/docs` }, { url: `${SITE}/docs/developers` }];
 }

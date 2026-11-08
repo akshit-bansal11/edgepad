@@ -53,6 +53,16 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["components/ui/table.tsx", "components/code-block.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": { "noNoninteractiveTabindex": "off" }
+        }
+      }
+    }
+  ],
   "javascript": {
     "formatter": {
       "quoteStyle": "double",
