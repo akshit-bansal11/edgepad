@@ -64,7 +64,7 @@ internal sealed class SessionHost(
 
     /// <summary>The connected status for <paramref name="address"/>, "Connected to Pixel · Bluetooth".</summary>
     public string Connected(string address) =>
-        shown.TryGetValue(address, out var phone) ? StatusText.Connected(phone.Name(), phone.Way) : StatusText.Connected(address, "Bluetooth");
+        shown.TryGetValue(address, out var phone) ? LaptopStatus.Connected(phone.Name(), phone.Way) : LaptopStatus.Connected(address, "Bluetooth");
 
     /// <summary>The status line for <paramref name="link"/>'s session, naming the phone as <see cref="Shown"/> does.</summary>
     private Action<string> StatusFor(IPhoneLink link)
@@ -72,7 +72,9 @@ internal sealed class SessionHost(
         var address = link.Address;
         shown[address] = (() => link.Label, link.Kind == LinkKind.Network ? "Wi-Fi or USB" : "Bluetooth");
         return status => onStatus(
-            StatusText.IsConnected(status) ? Connected(address) : status.Replace(address, Shown(address), StringComparison.Ordinal));
+            LaptopStatus.IsConnected(status)
+                ? Connected(address)
+                : LaptopStatus.Rewrite(status, Shown(address)).Replace(address, Shown(address), StringComparison.Ordinal));
     }
 
     /// <summary>

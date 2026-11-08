@@ -20,7 +20,7 @@ internal sealed class RfcommServer(Action<string> onStatus, SessionHost host) : 
     /// <summary>How long a failed start waits before the next try, for as long as it takes.</summary>
     private static readonly TimeSpan RetryStartEvery = TimeSpan.FromSeconds(30);
 
-    private const string Waiting = StatusText.Waiting;
+    private const string Waiting = LaptopStatus.Waiting;
     private const string BluetoothOff = "Bluetooth is off";
     private const string StartFailing = "Bluetooth is off or unavailable; trying again";
 

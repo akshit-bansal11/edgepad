@@ -22,21 +22,21 @@ internal sealed class StatusMemory
     /// <summary>The text to show for <paramref name="status"/> at <paramref name="now"/> (milliseconds on a forward clock).</summary>
     public string Resolve(string status, long now)
     {
-        if (StatusText.IsProblem(status))
+        if (LaptopStatus.IsProblem(status))
         {
             problem = status;
             problemUntil = now + (long)Sticky.TotalMilliseconds;
             return status;
         }
 
-        if (StatusText.IsConnected(status))
+        if (LaptopStatus.IsConnected(status))
         {
             problem = null;
             quiet = null;
             return status;
         }
 
-        if (status != StatusText.Waiting)
+        if (status != LaptopStatus.Waiting)
         {
             return status;
         }
@@ -52,7 +52,7 @@ internal sealed class StatusMemory
     /// <summary>True once per cause per hour for a protocol mismatch: the one refusal the owner cannot see coming.</summary>
     public bool ShouldAnnounce(string status, long now)
     {
-        if (!StatusText.IsProblem(status) || status.StartsWith("Refused ", StringComparison.Ordinal) || status.StartsWith("Bluetooth", StringComparison.Ordinal))
+        if (!LaptopStatus.IsProblem(status) || status.StartsWith("Refused ", StringComparison.Ordinal) || status.StartsWith("Bluetooth", StringComparison.Ordinal))
         {
             return false;
         }

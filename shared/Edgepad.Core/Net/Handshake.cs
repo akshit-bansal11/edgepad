@@ -80,7 +80,7 @@ internal static class Handshake
             // Answered with this laptop's version, so the phone can say which side needs updating.
             frames.Send(new HelloAck(ProtocolConstants.Version));
             log($"Refused {address}: it speaks protocol {hello.Version}, this laptop {ProtocolConstants.Version}");
-            onStatus(StatusText.Mismatch(address, hello.Version, ProtocolConstants.Version));
+            onStatus($"Refused a phone on protocol {hello.Version}; this laptop is on {ProtocolConstants.Version}");
             return false;
         }
 

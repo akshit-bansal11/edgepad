@@ -4,7 +4,7 @@ namespace Edgepad.Net;
 /// The words the laptop apps use for the connection, so Windows and Linux say the same thing. The canonical copy lives in
 /// the UX plan; change it there first.
 /// </summary>
-internal static class StatusText
+internal static class LaptopStatus
 {
     public const string Starting = "Starting…";
     public const string Waiting = "Waiting for your phone";
@@ -25,6 +25,27 @@ internal static class StatusText
     public static string Mismatch(string name, int phoneVersion, int laptopVersion) => phoneVersion < laptopVersion
         ? $"{name}{CouldNotConnect} its Edgepad app is older. Update Edgepad on the phone."
         : $"{name}{CouldNotConnect} Edgepad on this laptop is older. Update Edgepad here.";
+
+    private const string Refused = "Refused a phone on protocol ";
+    private const string Separator = "; this laptop is on ";
+
+    /// <summary>
+    /// The shared handshake reports a mismatch as two protocol numbers (the log keeps them); this words it for the
+    /// owner, naming the phone as <paramref name="name"/>. Any other status is returned as it is.
+    /// </summary>
+    public static string Rewrite(string status, string name)
+    {
+        if (status.StartsWith(Refused, StringComparison.Ordinal))
+        {
+            var numbers = status[Refused.Length..].Split(Separator);
+            if (numbers.Length == 2 && int.TryParse(numbers[0], out var phone) && int.TryParse(numbers[1], out var laptop) && phone != laptop)
+            {
+                return Mismatch(name, phone, laptop);
+            }
+        }
+
+        return status;
+    }
 
     /// <summary>
     /// True for a status that reports something wrong rather than the plain state: a refusal, a mismatch, a radio that

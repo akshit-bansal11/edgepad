@@ -136,14 +136,7 @@ public sealed class HandshakeTests : IDisposable
         Assert.Equal([Ack], Sent());
         Assert.Equal(0, asked);
         Assert.Equal(0, admitted);
-        Assert.Contains(statuses, s => s.Contains("its Edgepad app is older. Update Edgepad on the phone.", StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public void ANewerPhoneIsToldTheLaptopIsTheOlderHalf()
-    {
-        Assert.False(Connect(PinAtLevel(1), new Hello(ProtocolConstants.Version + 1)));
-        Assert.Contains(statuses, s => s.EndsWith("Edgepad on this laptop is older. Update Edgepad here.", StringComparison.Ordinal));
+        Assert.Single(statuses, s => s.StartsWith("Refused a phone on protocol ", StringComparison.Ordinal));
     }
 
     [Fact]

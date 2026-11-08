@@ -631,7 +631,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Header.SetStatus(shown);
         icon.Text = TrayStatus.Tooltip(shown, MaxTooltipLength);
 
-        var connected = StatusText.IsConnected(shown);
+        var connected = LaptopStatus.IsConnected(shown);
         if (connected == wasConnected)
         {
             return;
@@ -809,7 +809,7 @@ internal sealed class TrayContext : ApplicationContext
                 {
                     if (shownNow?.StartsWith("Phones can connect again", StringComparison.Ordinal) == true)
                     {
-                        ApplyStatus(StatusText.Waiting);
+                        ApplyStatus(LaptopStatus.Waiting);
                     }
                 },
                 null),

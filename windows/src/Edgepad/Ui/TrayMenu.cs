@@ -494,13 +494,13 @@ internal sealed record TrayStatus(string Headline, string Badge, string Line, bo
 
     public static TrayStatus Describe(string status)
     {
-        if (StatusText.IsConnected(status))
+        if (LaptopStatus.IsConnected(status))
         {
-            var phone = status[StatusText.ConnectedStart.Length..];
+            var phone = status[LaptopStatus.ConnectedStart.Length..];
             return new TrayStatus("Phone connected", "Connected", phone.Contains(Way, StringComparison.Ordinal) ? phone : $"{phone}{Way}Bluetooth", Waiting: false);
         }
 
-        return StatusText.IsProblem(status)
+        return LaptopStatus.IsProblem(status)
             ? new TrayStatus("No phone connected", "Problem", status, Waiting: false, Problem: true)
             : new TrayStatus("No phone connected", "Waiting", status, Waiting: true);
     }
