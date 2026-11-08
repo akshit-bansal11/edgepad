@@ -291,17 +291,22 @@ internal sealed class Session(
         // where the annotator guards it, because a dead socket is the read loop's to notice.
         annotator.SignStatusReply = status => Send(new Text((byte)TextKind.SignStatus, status));
         SendScreenSize();
+        annotator.ScreenChanged = SendScreenSize;
 
         // SystemEvents may raise this on the UI thread. The write is moved off it, because a write to a phone that
         // has stopped reading blocks, and the tray must not freeze with it.
-        EventHandler changed = (_, _) => _ = Task.Run(() => Guarded(SendScreenSize));
+        EventHandler changed = (_, _) =>
+        {
+            annotator.Refresh();
+            _ = Task.Run(() => Guarded(SendScreenSize));
+        };
         SystemEvents.DisplaySettingsChanged += changed;
         Keep(new Subscription(() => SystemEvents.DisplaySettingsChanged -= changed));
     }
 
     private void SendScreenSize()
     {
-        var screen = Annotator.PrimaryBounds();
+        var screen = annotator.Bounds();
         Send(new Text((byte)TextKind.ScreenSize, string.Create(CultureInfo.InvariantCulture, $"{screen.Width}/{screen.Height}")));
     }
 

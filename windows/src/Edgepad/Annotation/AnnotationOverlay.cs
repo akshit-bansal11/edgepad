@@ -50,10 +50,8 @@ internal sealed class AnnotationOverlay : Form
     protected override bool ShowWithoutActivation => true;
 
     /// <summary>Repaints the whole layer with <paramref name="strokes"/> and shows it if it is not up yet.</summary>
-    public void Present(IReadOnlyList<Stroke> strokes)
+    public void Present(IReadOnlyList<Stroke> strokes, Rectangle screen)
     {
-        // Read every time, so a resolution change or a new primary display is followed on the next point.
-        var screen = Annotator.PrimaryBounds();
         if (canvas is null || canvas.Size != screen.Size)
         {
             canvas?.Dispose();
