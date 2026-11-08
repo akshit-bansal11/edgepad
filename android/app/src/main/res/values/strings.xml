@@ -511,6 +511,7 @@
   <string name="apps_confirm_title">Add %1$s to %2$s?</string>
   <string name="apps_confirm_body">It becomes a macro that opens this app on the laptop.</string>
   <string name="apps_confirm_action">Add</string>
+  <string name="macro_opening">Opening</string>
   <string name="apps_row_added">Added</string>
   <string name="apps_row_added_description">%1$s, already added</string>
   <string name="apps_added">Added. It is in the macros now.</string>

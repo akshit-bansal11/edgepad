@@ -57,6 +57,10 @@ private const val CROSS_MIN_HIT_DP = 24f
 private const val CLOSE_WAIT_MS = 3000L
 private const val CLOSING_ALPHA = 0.4f
 
+/** AND-A-13: how dim a tile is, and for how long, after a tap while the laptop opens the app. */
+private const val LAUNCH_ALPHA = 0.6f
+private const val LAUNCH_WAIT_MS = 2_500L
+
 /** How dim a tile is that the laptop cannot use yet. */
 private const val DIMMED_ALPHA = 0.45f
 
@@ -127,6 +131,7 @@ class Deck(
 
     /** The tags of the tiles whose cross was tapped and is waiting on the laptop. */
     private val closing = HashSet<Int>()
+    private val launching = HashSet<Int>()
 
     /** Every tile's cell, by its display position: the views a drag slides about, cross and all. */
     private val cells = ArrayList<View>()
@@ -439,6 +444,30 @@ class Deck(
         onClose(tile)
     }
 
+    /**
+     * AND-A-13: a tap ticks, dims the tile and says "Opening" for a moment, and a second tap in that moment is
+     * ignored, so a laptop that is slow to open the app is not asked twice.
+     */
+    private fun launch(
+        tile: DeckTile,
+        view: View,
+    ) {
+        if (!launching.add(tile.tag)) return
+        view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        view.alpha = LAUNCH_ALPHA
+        view.stateDescription = ui.string(R.string.macro_opening)
+        onTap(tile)
+        holder.postDelayed(
+            {
+                launching.remove(tile.tag)
+                val now = tiles.firstOrNull { it.tag == tile.tag } ?: return@postDelayed
+                view.alpha = if (now.note == null) 1f else DIMMED_ALPHA
+                view.stateDescription = now.note
+            },
+            LAUNCH_WAIT_MS,
+        )
+    }
+
     private fun redressCross(tag: Int) {
         val cross = crosses[tag] ?: return
         dressCross(cross, tiles.firstOrNull { it.tag == tag } ?: return)
@@ -458,7 +487,7 @@ class Deck(
         ui.text("", grid.labelSp, ui.palette.ink, face = Type.bold).apply {
             gravity = Gravity.CENTER
             minHeight = ui.dp(Space.BUTTON)
-            ui.tappable(this, Space.PANEL_RADIUS) { onTap(tile) }
+            ui.tappable(this, Space.PANEL_RADIUS) { launch(tile, this) }
             reorderable(this, tile, position)
             // A long name is cut rather than wrapped, so every button in the grid stays one row tall.
             maxLines = 1
