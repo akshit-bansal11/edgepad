@@ -96,7 +96,11 @@ object ColorPicker {
         // colour puts back the one that is chosen, rather than leaving the field saying something else.
         fun commit() {
             val typed = colourOf(hex.text.toString())
-            if (typed == null) hex.text = hexOf(current) else if (typed != current) choose(typed)
+            if (typed == null) {
+                hex.text = hexOf(current)
+            } else if (typed != current) {
+                choose(typed)
+            }
         }
         if (editable) {
             hex.setOnEditorActionListener { _, _, _ ->
@@ -204,8 +208,8 @@ object ColorPicker {
             gravity = Gravity.CENTER_VERTICAL or Gravity.END
             inputType =
                 InputType.TYPE_CLASS_TEXT or
-                    InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or
-                    InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+                InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or
+                InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
             imeOptions = EditorInfo.IME_ACTION_DONE
             importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
             filters = arrayOf(InputFilter.LengthFilter(HEX_LENGTH))
