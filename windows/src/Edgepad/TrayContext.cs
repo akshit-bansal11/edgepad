@@ -941,6 +941,16 @@ internal sealed class TrayContext : ApplicationContext
     private bool AskTrust(string address, CancellationToken ended)
     {
         var phone = host.Shown(address);
+
+        // Windows' name for a Bluetooth phone is looked up as it connects and may not be back yet. This is the session's
+        // own thread, which is about to block on the owner anyway, so a short wait costs nothing; no name by then, the
+        // address stands in as before.
+        for (var tries = 0; tries < 10 && phone == address && !ended.IsCancellationRequested; tries++)
+        {
+            Thread.Sleep(200);
+            phone = host.Shown(address);
+        }
+
         SetStatus($"Asking whether to trust {phone}");
         var deadline = Environment.TickCount64 + (long)TrustPromptTimeout.TotalMilliseconds;
         var answer = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
