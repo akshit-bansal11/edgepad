@@ -243,7 +243,7 @@ export default function Page() {
 
   return (
     <div id="top" className="min-h-dvh">
-      <LegacyHashRedirect />
+      <LegacyHashRedirect from="landing" />
       <SiteHeader />
 
       <main id="main" className="scroll-mt-16">
@@ -429,7 +429,7 @@ export default function Page() {
                   before it is sent, so a slow link catches up instead of lagging.
                 </p>
                 <p className="mt-2">
-                  <MoreLink href="/docs#protocol">
+                  <MoreLink href="/docs/developers#protocol">
                     The wire protocol, byte by byte
                   </MoreLink>
                 </p>

@@ -7,7 +7,8 @@
 export type NavItem = { id: string; label: string };
 export type NavGroup = { label: string; items: NavItem[] };
 
-export const NAV: NavGroup[] = [
+/** /docs: the user guide, plus the reference list (limits and licence are for users too). */
+export const DOCS_NAV: NavGroup[] = [
   {
     label: "Start here",
     items: [
@@ -18,6 +19,19 @@ export const NAV: NavGroup[] = [
       { id: "troubleshooting", label: "Troubleshooting" },
     ],
   },
+  {
+    label: "Reference",
+    items: [
+      { id: "decisions", label: "Design decisions" },
+      { id: "limits", label: "Known limits" },
+      { id: "history", label: "Version history" },
+      { id: "credits", label: "Licence and credits" },
+    ],
+  },
+];
+
+/** /docs/developers: protocol, architecture and the quality gate. */
+export const DEV_NAV: NavGroup[] = [
   {
     label: "How it works",
     items: [
@@ -42,20 +56,13 @@ export const NAV: NavGroup[] = [
       { id: "releases", label: "Releases" },
     ],
   },
-  {
-    label: "Reference",
-    items: [
-      { id: "decisions", label: "Design decisions" },
-      { id: "limits", label: "Known limits" },
-      { id: "history", label: "Version history" },
-      { id: "credits", label: "Licence and credits" },
-    ],
-  },
 ];
 
-export const ALL_NAV_IDS: string[] = NAV.flatMap((group) =>
-  group.items.map((item) => item.id),
-);
+const ids = (groups: NavGroup[]): string[] =>
+  groups.flatMap((group) => group.items.map((item) => item.id));
+
+export const DOCS_NAV_IDS: string[] = ids(DOCS_NAV);
+export const DEV_NAV_IDS: string[] = ids(DEV_NAV);
 
 export const REPO = "https://github.com/akshit-bansal11/edgepad";
 export const LATEST_RELEASE = `${REPO}/releases/latest`;

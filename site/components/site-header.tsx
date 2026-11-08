@@ -3,7 +3,7 @@ import Link from "next/link";
 import { GithubMark } from "@/components/icons/github";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { NAV, REPO } from "@/lib/nav";
+import { type NavGroup, REPO } from "@/lib/nav";
 
 /** The landing page's own anchors. The docs page uses NAV instead. */
 const LANDING_LINKS: { href: string; label: string }[] = [
@@ -48,7 +48,13 @@ function MenuLink({
  * landing page, plus whichever buttons the width has dropped. Below `sm` its summary
  * is an icon alone, so the header fits a 360px screen with the theme toggle in it.
  */
-export function SiteHeader({ variant = "landing" }: { variant?: "landing" | "docs" }) {
+export function SiteHeader({
+  variant = "landing",
+  groups = [],
+}: {
+  variant?: "landing" | "docs";
+  groups?: NavGroup[];
+}) {
   const docs = variant === "docs";
 
   return (
@@ -119,7 +125,7 @@ export function SiteHeader({ variant = "landing" }: { variant?: "landing" | "doc
             </summary>
             <div className="bg-card shadow-lift absolute right-0 mt-2 max-h-[75vh] w-[min(20rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl p-2">
               {docs ? (
-                NAV.map((group) => (
+                groups.map((group) => (
                   <div key={group.label} className="mb-2">
                     <p className="label px-3 pt-2 pb-1">{group.label}</p>
                     <ul>

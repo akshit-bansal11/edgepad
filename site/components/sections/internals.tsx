@@ -789,7 +789,7 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
           the controller needs a third-party signed kernel driver, ViGEmBus, which you
           install and Edgepad only talks to — see{" "}
           <a
-            href="#limits"
+            href="/docs#limits"
             className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
           >
             Known limits
