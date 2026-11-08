@@ -45,6 +45,7 @@ internal sealed class Shell : IDisposable
     private Timer? updateTimer;
     private IClassicDesktopStyleApplicationLifetime? lifetime;
     private readonly Autostart autostart = Autostart.ForCurrentUser();
+    private readonly UpdateSetting updateSetting = UpdateSetting.ForCurrentUser();
 
     // Set once the tray exists. Read on Bluetooth threads, so volatile; the trust question is refused until then.
     private volatile bool ready;
@@ -205,11 +206,13 @@ internal sealed class Shell : IDisposable
             () => networkHint,
             () => ClipboardSetting.Enabled,
             () => autostart.Enabled,
+            () => updateSetting.Enabled,
             () => _ = Guard(ShowSecurityAsync),
             () => _ = Guard(ShowMacrosAsync),
             () => _ = Guard(ToggleNetworkAsync),
             () => _ = Guard(ToggleClipboardAsync),
             () => _ = Guard(ToggleAutostartAsync),
+            () => _ = Guard(ToggleUpdatesAsync),
             RequestQuit);
         var menu = new Tray(hooks);
         tray = menu;
@@ -226,8 +229,8 @@ internal sealed class Shell : IDisposable
         ShowProblem();
         _ = Guard(() => ShowFallbackIfNoTrayAsync(hooks));
 
-        // Once now and then daily, as on Windows and the Mac. Only a newer release shows anything.
-        updateTimer = new Timer(_ => _ = Guard(CheckForUpdateAsync), null, TimeSpan.FromSeconds(5), UpdateCheck.Every);
+        // Once now and then daily, as on Windows and the Mac, unless the owner turned it off.
+        ApplyUpdateTimer();
         if (!networkSettings.HasChoice || !ClipboardSetting.HasChoice)
         {
             // Posted, so the tray is up and running first.
@@ -404,6 +407,28 @@ internal sealed class Shell : IDisposable
         }
 
         RefreshViews();
+    }
+
+    /// <summary>
+    /// The Check for updates daily switch. Off stops the timer, so no check is made until it is on again; on checks once
+    /// now and then daily. An update already found stays in the menu.
+    /// </summary>
+    private async Task ToggleUpdatesAsync()
+    {
+        if (!updateSetting.Set(!updateSetting.Enabled))
+        {
+            await Dialogs.Inform(null, "This applies now, but it could not be saved, so it will go back after a restart. The log has the reason.");
+        }
+
+        ApplyUpdateTimer();
+        RefreshViews();
+    }
+
+    /// <summary>Runs or stops the daily check as the setting says. A manual check does not exist on Linux, so off means none.</summary>
+    private void ApplyUpdateTimer()
+    {
+        var old = Interlocked.Exchange(ref updateTimer, updateSetting.Enabled ? new Timer(_ => _ = Guard(CheckForUpdateAsync), null, TimeSpan.FromSeconds(5), UpdateCheck.Every) : null);
+        old?.Dispose();
     }
 
     /// <summary>The Macros… editor, one at a time; a save reaches the connected phone through the shared store.</summary>

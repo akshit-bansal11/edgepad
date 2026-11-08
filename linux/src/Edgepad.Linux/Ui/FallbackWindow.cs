@@ -22,6 +22,7 @@ internal sealed class FallbackWindow
     private readonly CheckBox network;
     private readonly CheckBox clipboard;
     private readonly CheckBox autostart;
+    private readonly CheckBox updates;
     private readonly Button macros;
     private readonly Button security;
     private bool refreshing;
@@ -39,6 +40,7 @@ internal sealed class FallbackWindow
         network = Check(look, "Wi-Fi and USB connections", () => hooks.ToggleNetwork());
         clipboard = Check(look, "Share clipboard", () => hooks.ToggleClipboard());
         autostart = Check(look, "Start at login", () => hooks.ToggleAutostart());
+        updates = Check(look, "Check for updates daily", () => hooks.ToggleUpdates());
         macros = look.Button("Macros…");
         macros.Click += (_, _) => hooks.Macros();
         security = look.Button("Security…");
@@ -54,6 +56,7 @@ internal sealed class FallbackWindow
         body.Children.Add(network);
         body.Children.Add(clipboard);
         body.Children.Add(autostart);
+        body.Children.Add(updates);
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(0, 6, 0, 0) };
         buttons.Children.Add(macros);
         buttons.Children.Add(security);
@@ -122,6 +125,7 @@ internal sealed class FallbackWindow
         network.Content = $"Wi-Fi and USB connections ({hooks.NetworkHint()})";
         clipboard.IsChecked = hooks.ClipboardOn();
         autostart.IsChecked = hooks.AutostartOn();
+        updates.IsChecked = hooks.UpdatesOn();
         macros.Content = $"Macros… ({hooks.MacrosHint()})";
         security.Content = $"Security… ({hooks.SecurityHint()})";
         refreshing = false;

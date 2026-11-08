@@ -16,16 +16,18 @@ internal sealed record TrayHooks(
     Func<string> NetworkHint,
     Func<bool> ClipboardOn,
     Func<bool> AutostartOn,
+    Func<bool> UpdatesOn,
     Action Security,
     Action Macros,
     Action ToggleNetwork,
     Action ToggleClipboard,
     Action ToggleAutostart,
+    Action ToggleUpdates,
     Action Quit);
 
 /// <summary>
 /// The tray icon and its menu, in the order every laptop uses: status, Update available, a problem row, then Wi-Fi and
-/// USB connections, Share clipboard, Start at login, Macros…, Security…, Documentation, Open log and Quit Edgepad.
+/// USB connections, Share clipboard, Start at login, Check for updates daily, Macros…, Security…, Documentation, Open log and Quit Edgepad.
 /// Every handler runs on the UI thread and none may throw: an exception there ends the whole app, and with it the
 /// Bluetooth service.
 /// </summary>
@@ -46,6 +48,7 @@ internal sealed class Tray : IDisposable
     private readonly NativeMenuItem networkRow = Toggle("Wi-Fi and USB connections");
     private readonly NativeMenuItem clipboardRow = Toggle("Share clipboard");
     private readonly NativeMenuItem autostartRow = Toggle("Start at login");
+    private readonly NativeMenuItem updatesRow = Toggle("Check for updates daily");
     private readonly NativeMenuItem macrosRow = new("Macros…");
     private readonly NativeMenuItem securityRow = new("Security…");
     private readonly TrayIcon icon;
@@ -62,6 +65,7 @@ internal sealed class Tray : IDisposable
         networkRow.Click += (_, _) => Safe(hooks.ToggleNetwork, "Wi-Fi and USB connections");
         clipboardRow.Click += (_, _) => Safe(hooks.ToggleClipboard, "Share clipboard");
         autostartRow.Click += (_, _) => Safe(hooks.ToggleAutostart, "Start at login");
+        updatesRow.Click += (_, _) => Safe(hooks.ToggleUpdates, "Check for updates daily");
         macrosRow.Click += (_, _) => Safe(hooks.Macros, "Macros");
         securityRow.Click += (_, _) => Safe(hooks.Security, "Security");
         var docs = new NativeMenuItem("Documentation");
@@ -79,6 +83,7 @@ internal sealed class Tray : IDisposable
         menu.Add(networkRow);
         menu.Add(clipboardRow);
         menu.Add(autostartRow);
+        menu.Add(updatesRow);
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(macrosRow);
         menu.Add(securityRow);
@@ -141,6 +146,7 @@ internal sealed class Tray : IDisposable
         networkRow.IsChecked = hooks.NetworkOn();
         clipboardRow.IsChecked = hooks.ClipboardOn();
         autostartRow.IsChecked = hooks.AutostartOn();
+        updatesRow.IsChecked = hooks.UpdatesOn();
     }
 
     private static NativeMenuItem Toggle(string header) => new(header) { ToggleType = MenuItemToggleType.CheckBox };
