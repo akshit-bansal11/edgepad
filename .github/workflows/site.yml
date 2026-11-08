@@ -16,6 +16,7 @@ on:
       - 'site/**'
       - 'protocol/**'
       - '.github/workflows/site.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read

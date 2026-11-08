@@ -9,6 +9,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # A work branch can be checked without opening a pull request: gh workflow run ci.yml --ref <branch>.
+  workflow_dispatch:
 
 permissions:
   contents: read
