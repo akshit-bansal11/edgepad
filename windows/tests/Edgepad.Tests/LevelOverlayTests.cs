@@ -19,17 +19,13 @@ public sealed class LevelOverlayTests
 
     [Fact]
     public void TheValueIsTheBareNumber() =>
-        Assert.Equal("45", LevelOverlay.Metrics.Caption(45, muted: false));
-
-    [Fact]
-    public void AMutedEndpointSaysSoInsteadOfShowingANumber() =>
-        Assert.Equal("Muted", LevelOverlay.Metrics.Caption(45, muted: true));
+        Assert.Equal("45", LevelOverlay.Metrics.Caption(45));
 
     [Theory]
     [InlineData(-5, "0")]
     [InlineData(140, "100")]
     public void AValueOutsideTheRangeIsClampedRatherThanPrinted(int percent, string shown) =>
-        Assert.Equal(shown, LevelOverlay.Metrics.Caption(percent, muted: false));
+        Assert.Equal(shown, LevelOverlay.Metrics.Caption(percent));
 
     [Theory]
     [InlineData(0, 0)]
