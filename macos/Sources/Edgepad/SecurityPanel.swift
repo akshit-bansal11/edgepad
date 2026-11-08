@@ -16,10 +16,10 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     private let hangUp: () -> Void
     private let forgetPairings: () -> Void
     private let forgetAll: () -> Bool
-    private let phones: () -> [(address: String, name: String)]
+    private let phones: () -> [(address: String, name: String, shown: String)]
     private let forgetOne: (String, String) -> Bool
     /// The phones the list shows, so a Forget button's tag says which one.
-    private var listed: [(address: String, name: String)] = []
+    private var listed: [(address: String, name: String, shown: String)] = []
     private let listStack = NSStackView()
     private var body: NSStackView?
     private var alert: NSAlert?
@@ -36,7 +36,8 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     /// `forgetAll` asks and forgets every trusted phone, true when it did; the panel then closes.
     init(
         pin: PinStore, trust: TrustStore, forgetPairings: @escaping () -> Void, forgetAll: @escaping () -> Bool,
-        phones: @escaping () -> [(address: String, name: String)], forgetOne: @escaping (String, String) -> Bool,
+        phones: @escaping () -> [(address: String, name: String, shown: String)],
+        forgetOne: @escaping (String, String) -> Bool,
         hangUp: @escaping () -> Void
     ) {
         self.phones = phones
@@ -270,7 +271,7 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
         heading.font = .boldSystemFont(ofSize: NSFont.systemFontSize)
         listStack.addArrangedSubview(heading)
         for (index, phone) in listed.enumerated() {
-            let name = NSTextField(labelWithString: phone.name)
+            let name = NSTextField(labelWithString: phone.shown)
             name.lineBreakMode = .byTruncatingMiddle
             name.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
             let forget = NSButton(title: "Forget", target: self, action: #selector(forgetOnePhone(_:)))

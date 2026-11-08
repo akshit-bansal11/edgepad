@@ -35,6 +35,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let pin = PinStore.forCurrentUser()
     /// The Wi-Fi pairings, forgotten with the trusted phones.
     private let paired = PairedLinks.forCurrentUser()
+    private let lastConnected = LastConnected.forCurrentUser()
     private let networkSettings = NetworkSettings.forCurrentUser()
     private var statusItem: NSStatusItem?
     private var host: SessionHost?
@@ -105,6 +106,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             identity: identity,
             onStatus: { [weak self] in self?.setStatus($0) })
         host.inputBlocked = { !AXIsProcessTrusted() }
+        host.onVerified = { [weak self] in self?.lastConnected.record($0) }
         self.host = host
         server =RfcommServer(host: host, onStatus: { [weak self] in self?.setStatus($0) })
         startServer()
@@ -510,6 +512,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         guard answer == .alertSecondButtonReturn else { return false }
         let forgotten = trust.forget()
+        lastConnected.forgetAll()
         // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
         let verifiedForgotten = pin.forgetVerified()
         // Started before the hold ends (the defer above), so there is no instant in which a connection would
@@ -539,10 +542,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     /// Every trusted phone with the name the owner knows it by: a Wi-Fi phone's pairing name, else its address.
-    private func trustedList() -> [(address: String, name: String)] {
+    private func trustedList() -> [(address: String, name: String, shown: String)] {
         let names = Dictionary(
             paired.list().map { ("link:" + $0.id.lowercased(), $0.name) }, uniquingKeysWith: { first, _ in first })
-        return trust.trustedPhones.map { (address: $0, name: names[$0.lowercased()] ?? $0) }
+        return trust.trustedPhones.map { address in
+            let name = names[address.lowercased()] ?? address
+            return (
+                address: address, name: name,
+                shown: LastConnected.rowText(name: name, last: lastConnected.date(for: address))
+            )
+        }
     }
 
     /// Forgets one phone after asking. The Security window already holds phones off, so nothing can answer. The
@@ -562,6 +571,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         guard answer == .alertSecondButtonReturn else { return false }
         var failed = !trust.forgetOne(address)
+        lastConnected.forget(address)
         failed = !pin.forgetVerified(address) || failed
         if address.lowercased().hasPrefix("link:") {
             failed = !paired.forgetOne(String(address.dropFirst(5))) || failed

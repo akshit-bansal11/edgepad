@@ -64,6 +64,9 @@ final class SessionHost {
     /// Whether macOS is discarding this Mac's input (no Accessibility trust); set by the app, read for TEXT 18.
     var inputBlocked: () -> Bool = { false }
 
+    /// Told the address of each phone as it is admitted, for the Security window's "last connected".
+    var onVerified: ((String) -> Void)?
+
     /// Whether a phone is connected and admitted.
     var hasPhone: Bool { current != nil }
 
@@ -286,6 +289,8 @@ final class SessionHost {
                 reason: "A phone is controlling this Mac")
         }
         previous?.end()
+        // Once per connection: the phone has proved itself and been admitted.
+        onVerified?(candidate.address)
         return true
     }
 
