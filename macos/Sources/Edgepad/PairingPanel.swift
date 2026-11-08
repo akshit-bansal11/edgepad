@@ -15,9 +15,17 @@ final class PairingPanel: PairingPrompt {
     func show(
         phoneName: String, onTyped: @escaping (String) -> Void, onCancelled: @escaping () -> Void
     ) -> PairingQuestion {
+        show(phoneName: phoneName, source: "", onTyped: onTyped, onCancelled: onCancelled)
+    }
+
+    /// `source` is the line that says where the request came from, "from 192.168.1.23, over Wi-Fi".
+    func show(
+        phoneName: String, source: String, onTyped: @escaping (String) -> Void,
+        onCancelled: @escaping () -> Void
+    ) -> PairingQuestion {
         let name = PhoneLabel.clean(phoneName)
         let shown = name.isEmpty ? "this phone" : name
-        let window = PairingWindow(phone: shown, onTyped: onTyped, onCancelled: onCancelled)
+        let window = PairingWindow(phone: shown, source: source, onTyped: onTyped, onCancelled: onCancelled)
         announce(name.isEmpty ? "A phone" : name)
         // The question returned is what keeps the window's controller alive until the pairing is settled.
         return window
@@ -33,7 +41,8 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
     private static let lingerSeconds: TimeInterval = 2
 
     private let panel = NSPanel(
-        contentRect: NSRect(x: 0, y: 0, width: 400, height: 190), styleMask: [.titled, .closable], backing: .buffered,
+        contentRect: NSRect(x: 0, y: 0, width: 400, height: 260),
+        styleMask: [.titled, .closable, .nonactivatingPanel], backing: .buffered,
         defer: false)
     private let phone: String
     private let ask = NSTextField(wrappingLabelWithString: "Type the pairing code shown on the phone:")
@@ -52,7 +61,9 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
     /// The window holds itself while it shows an outcome: the pairing lets go of its question when it ends.
     private var keepAlive: PairingWindow?
 
-    init(phone: String, onTyped: @escaping (String) -> Void, onCancelled: @escaping () -> Void) {
+    init(
+        phone: String, source: String, onTyped: @escaping (String) -> Void, onCancelled: @escaping () -> Void
+    ) {
         self.phone = phone
         self.onTyped = onTyped
         self.onCancelled = onCancelled
@@ -60,6 +71,13 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
 
         let title = NSTextField(labelWithString: "Pair \(phone)?")
         title.font = .boldSystemFont(ofSize: 15)
+        let from = NSTextField(labelWithString: source)
+        from.textColor = .secondaryLabelColor
+        from.isHidden = source.isEmpty
+        let warning = NSTextField(
+            wrappingLabelWithString:
+                "Only pair a phone that is yours. If you did not just start pairing, choose Cancel.")
+        warning.preferredMaxLayoutWidth = 360
         ask.preferredMaxLayoutWidth = 360
         code.font = .monospacedDigitSystemFont(ofSize: 20, weight: .regular)
         code.placeholderString = "000000"
@@ -76,7 +94,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         pair.isEnabled = false
         let buttons = NSStackView(views: [cancel, pair])
         buttons.spacing = 12
-        let stack = NSStackView(views: [title, ask, code, countdown, buttons])
+        let stack = NSStackView(views: [title, from, warning, ask, code, countdown, buttons])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 10
@@ -93,9 +111,10 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         panel.center()
         count()
         tick = Self.timer(every: Self.tickSeconds, repeats: true) { [weak self] in self?.count() }
-        NSApp.activate(ignoringOtherApps: true)
-        panel.makeKeyAndOrderFront(nil)
-        panel.makeFirstResponder(code)
+        // Not activated and not key: typing meant for another app must not land in the code box. The owner clicks
+        // the box, and the Dock icon bounces to say a question waits.
+        panel.orderFrontRegardless()
+        NSApp.requestUserAttention(.criticalRequest)
         Announce.say("Pair \(phone)? Closes in \(Int(LinkResponder.ownerTimeoutSeconds)) s.")
     }
 

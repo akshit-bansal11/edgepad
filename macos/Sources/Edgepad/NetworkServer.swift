@@ -16,7 +16,7 @@ final class NetworkServer {
     private let identity: LinkIdentity
     private let paired: PairedLinks
     private let trust: TrustStore
-    private let prompt: PairingPrompt
+    private let prompt: PairingPanel
     private let host: SessionHost
     private let onPaired: (String) -> Void
     /// Outlives a stop and a start, so turning the listener off and on again does not lift a pairing lock.
@@ -32,7 +32,7 @@ final class NetworkServer {
         identity: LinkIdentity,
         paired: PairedLinks,
         trust: TrustStore,
-        prompt: PairingPrompt,
+        prompt: PairingPanel,
         host: SessionHost,
         onPaired: @escaping (String) -> Void
     ) {
@@ -138,6 +138,17 @@ final class NetworkServer {
         opened.start(queue: .main)
     }
 
+    /// "from 192.168.1.23, over Wi-Fi", or "over USB" for a loopback address (USB tethering reaches this Mac through
+    /// the phone's own forwarding, which arrives from loopback).
+    static func sourceLine(_ endpoint: NWEndpoint) -> String {
+        guard case .hostPort(let host, _) = endpoint else { return "" }
+        let address = "\(host)".split(separator: "%").first.map(String.init) ?? ""
+        if address == "127.0.0.1" || address == "::1" || address == "::ffff:127.0.0.1" {
+            return "over USB"
+        }
+        return address.isEmpty ? "over Wi-Fi" : "from \(address), over Wi-Fi"
+    }
+
     private func accept(_ connection: NWConnection) {
         // While the owner is forgetting phones or has a dialog open, no pairing may even start.
         guard !host.isRefusing else {
@@ -155,7 +166,7 @@ final class NetworkServer {
             identity: identity,
             paired: paired,
             limiter: limiter,
-            prompt: prompt,
+            prompt: SourcedPrompt(panel: prompt, source: Self.sourceLine(connection.endpoint)),
             trust: trust,
             send: { [weak link] bytes in link?.send(bytes) ?? false },
             schedule: { delay, run in
@@ -314,5 +325,22 @@ final class NetworkTransport: Transport {
         let closed = onClosed
         onClosed = nil
         closed?()
+    }
+}
+
+/// The shared pairing window, asked on behalf of one connection so its question can say where the request came from.
+private final class SourcedPrompt: PairingPrompt {
+    private let panel: PairingPanel
+    private let source: String
+
+    init(panel: PairingPanel, source: String) {
+        self.panel = panel
+        self.source = source
+    }
+
+    func show(
+        phoneName: String, onTyped: @escaping (String) -> Void, onCancelled: @escaping () -> Void
+    ) -> PairingQuestion {
+        panel.show(phoneName: phoneName, source: source, onTyped: onTyped, onCancelled: onCancelled)
     }
 }
