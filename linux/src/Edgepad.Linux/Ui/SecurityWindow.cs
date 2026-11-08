@@ -198,7 +198,7 @@ internal sealed class SecurityWindow
         foreach (var (id, linkName) in paired.List())
         {
             any = true;
-            AddPhone($"{linkName} (Wi-Fi or USB)", () => ForgetOneAsync(linkName, () => paired.ForgetOne(id), $"can still reconnect over Wi-Fi or USB, because its pairing was not removed. Close whatever is holding the pairings file in {pin.Folder} and choose Forget again"));
+            AddPhone($"{linkName} (Wi-Fi or USB)", () => ForgetOneAsync(linkName, () => paired.ForgetOne(id), $"is refused over Wi-Fi or USB while Edgepad stays running, but is paired again the next time it starts. Close whatever is holding the pairings file in {pin.Folder} and choose Forget again"));
         }
 
         if (!any)
