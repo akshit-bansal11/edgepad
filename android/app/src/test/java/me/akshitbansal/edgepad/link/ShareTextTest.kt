@@ -39,6 +39,17 @@ class ShareTextTest {
     }
 
     @Test
+    fun combiningMarksCannotPadOrPileUp() {
+        val acute = Char(0x0301)
+        // On spaces they draw nothing; piled on one letter they overlay the lines around it. Both cut to eight.
+        assertEquals("a" + " ".repeat(8) + "b", preview("a" + " $acute".repeat(300) + "b").shown)
+        assertEquals("x" + " ".repeat(8) + "y", preview("x" + acute.toString().repeat(300) + "y").shown)
+        // Real accents, a letter between each, are left alone.
+        val word = "e${acute}e${acute}e$acute"
+        assertEquals(word, preview(word).shown)
+    }
+
+    @Test
     fun aTrailingLineBreakCountsAsALine() {
         assertEquals(Preview("ls", 2, 0), preview("ls\n"))
     }

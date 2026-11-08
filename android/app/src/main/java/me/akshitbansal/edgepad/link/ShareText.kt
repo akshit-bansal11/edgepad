@@ -47,8 +47,10 @@ private fun blank(line: String): Boolean =
 // them become '\n' before the preview splits and counts, so none can break a "line" in two out of sight.
 private val BREAKS = Regex("\r\n|[\r\u0085\u2028\u2029]")
 
-// A run of blank space inside a line, longer than any indent. It wraps in the dialog like blank lines would.
-private val SPACE_RUN = Regex("""[\p{javaWhitespace}\p{javaSpaceChar}]{9,}""")
+// A run of blank space inside a line, longer than any indent; it wraps in the dialog like blank lines would. Combining
+// and enclosing marks count as blank here: put on spaces they draw nothing, and piled up they overlay other text.
+// In real writing letters sit between them, so a run of nine or more is never text.
+private val SPACE_RUN = Regex("""[\p{javaWhitespace}\p{javaSpaceChar}\p{Mn}\p{Me}]{9,}""")
 
 /** What a long run of blank space inside a line shows as: eight spaces, enough for any indent. */
 private const val SPACE_RUN_SHOWN = "        "
@@ -57,8 +59,8 @@ private const val SPACE_RUN_SHOWN = "        "
  * The text as the confirm dialog shows it: every line, not the first only (a first line alone could ask about
  * "git status" and send what follows it), each code point that could disguise text shown as U+FFFD, every kind of
  * line break treated as one, blank lines at the ends dropped and every run of them shown as one, long runs of space
- * inside a line cut to eight, cut at [PREVIEW_MAX] characters. Only the preview changes: what is sent is the text
- * as shared.
+ * or combining marks inside a line cut to eight spaces, cut at [PREVIEW_MAX] characters. Only the preview changes:
+ * what is sent is the text as shared.
  */
 internal fun preview(text: CharSequence): Preview {
     val all = text.toString().replace(BREAKS, "\n")
