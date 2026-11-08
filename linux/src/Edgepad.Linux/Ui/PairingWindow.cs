@@ -47,6 +47,7 @@ internal static class PairingWindow
         body.Children.Add(ask);
         body.Children.Add(code);
         body.Children.Add(countdown);
+        body.Children.Add(look.Text(PairingText.Warning, 13, dim: true));
         body.Children.Add(Look.Footer(cancel, pair));
         var window = look.Dialog("Pair a phone", 400, body);
         window.Topmost = true;
@@ -63,6 +64,13 @@ internal static class PairingWindow
         {
             if (told || closed)
             {
+                return;
+            }
+
+            // Out of time, not called off: say nothing was paired rather than let the window vanish.
+            if (!answered && PairingPrompt.SecondsLeft(deadline, Environment.TickCount64) == 0)
+            {
+                Tell(PairingText.TimedOut, closeSoon: false);
                 return;
             }
 

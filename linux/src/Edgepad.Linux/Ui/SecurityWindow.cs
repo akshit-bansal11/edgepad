@@ -30,7 +30,8 @@ internal sealed class SecurityWindow
     private readonly TrustStore trust;
     private readonly Action hangUp;
     private readonly Func<Task> forgetAll;
-    private readonly TextBlock phones;
+    private readonly PairedLinks paired;
+    private readonly StackPanel phoneRows = new() { Spacing = 6 };
     private readonly Button forgetAllButton;
 
     // Forgets the Wi-Fi and USB pairings and tells the owner if it could not, as Forget trusted phones does.
@@ -51,9 +52,10 @@ internal sealed class SecurityWindow
     private bool filling;
     private bool busy;
 
-    public SecurityWindow(PinStore pin, TrustStore trust, Func<Task> forgetPairings, Func<Task> forgetAll, Action hangUp)
+    public SecurityWindow(PinStore pin, TrustStore trust, PairedLinks paired, Func<Task> forgetPairings, Func<Task> forgetAll, Action hangUp)
     {
         this.forgetAll = forgetAll;
+        this.paired = paired;
         this.pin = pin;
         this.trust = trust;
         this.hangUp = hangUp;
@@ -93,8 +95,7 @@ internal sealed class SecurityWindow
         body.Children.Add(look.Text("Saving a new PIN or level makes phones that entered the PIN once enter it again.", 14, dim: true));
 
         body.Children.Add(look.Text("Trusted phones", 14, FontWeight.Bold));
-        phones = look.Text("", 14, dim: true);
-        body.Children.Add(phones);
+        body.Children.Add(phoneRows);
         forgetAllButton = look.Button("Forget all…", danger: true);
         forgetAllButton.HorizontalAlignment = HorizontalAlignment.Left;
         forgetAllButton.Click += (_, _) => _ = Guard(ForgetAllAsync);
@@ -142,9 +143,8 @@ internal sealed class SecurityWindow
     {
         setPin.Content = HavePin ? "Change PIN…" : "Set PIN…";
         pinState.Text = staged is not null ? "A new PIN will be saved." : pin.HasPin ? "A PIN is set." : "No PIN is set.";
-        var trusted = trust.TrustedPhones;
-        phones.Text = trusted.Count == 0 ? "No phone is trusted yet." : string.Join(Environment.NewLine, trusted.Select(address => PhoneName.Cached(address) is { } name ? $"{name} ({address})" : address));
-        forgetAllButton.IsEnabled = trust.CanForget;
+        FillPhones();
+        forgetAllButton.IsEnabled = trust.CanForget || paired.CanForget;
     }
 
     /// <summary>Nothing may throw out of a handler: an exception on the UI thread ends the whole tray app.</summary>
@@ -181,6 +181,61 @@ internal sealed class SecurityWindow
         }
 
         level = chosen;
+    }
+
+    /// <summary>One row per trusted phone (Bluetooth) and per paired phone (Wi-Fi and USB), each with its own Forget.</summary>
+    private void FillPhones()
+    {
+        phoneRows.Children.Clear();
+        var any = false;
+        foreach (var address in trust.TrustedPhones)
+        {
+            any = true;
+            var name = PhoneName.Cached(address) is { } known ? $"{known} ({address})" : address;
+            AddPhone(name, () => ForgetOneAsync(name, () => trust.ForgetOne(address), $"is blocked from connecting while Edgepad stays running, but is trusted again the next time it starts. Close whatever is holding {trust.FilePath} and choose Forget again"));
+        }
+
+        foreach (var (id, linkName) in paired.List())
+        {
+            any = true;
+            AddPhone($"{linkName} (Wi-Fi or USB)", () => ForgetOneAsync(linkName, () => paired.ForgetOne(id), $"can still reconnect over Wi-Fi or USB, because its pairing was not removed. Close whatever is holding the pairings file in {pin.Folder} and choose Forget again"));
+        }
+
+        if (!any)
+        {
+            phoneRows.Children.Add(look.Text("No phone is trusted yet.", 14, dim: true));
+        }
+    }
+
+    private void AddPhone(string label, Func<Task> forget)
+    {
+        var forgetButton = look.Button("Forget", danger: true);
+        forgetButton.Click += (_, _) => _ = Guard(forget);
+        var text = look.Text(label, 14, dim: true);
+        text.VerticalAlignment = VerticalAlignment.Center;
+        var row = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+        row.Children.Add(text);
+        Grid.SetColumn(forgetButton, 1);
+        row.Children.Add(forgetButton);
+        phoneRows.Children.Add(row);
+    }
+
+    private async Task ForgetOneAsync(string name, Func<bool> forget, string ifFailed)
+    {
+        var yes = await Dialogs.Confirm(window, $"Forget {name}? It will have to be trusted here again before it can use this laptop.", "Forget", "Cancel", dangerous: true);
+        if (!yes)
+        {
+            return;
+        }
+
+        var done = forget();
+        hangUp();
+        if (!done)
+        {
+            await Dialogs.Inform(window, $"{name} could not be forgotten: its file could not be rewritten. It {ifFailed}.");
+        }
+
+        Refresh();
     }
 
     private async Task ForgetAllAsync()

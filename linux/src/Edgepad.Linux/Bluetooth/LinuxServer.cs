@@ -20,7 +20,7 @@ internal sealed class LinuxServer : IDisposable
 
     private static readonly TimeSpan RetryStartEvery = TimeSpan.FromSeconds(30);
 
-    private const string Waiting = "Waiting for your phone";
+    private const string Waiting = LaptopStatus.Waiting;
     private const string StartFailing = "Bluetooth is off or unavailable; trying again";
 
     private readonly Action<string> onStatus;

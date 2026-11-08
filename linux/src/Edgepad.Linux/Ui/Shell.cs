@@ -49,7 +49,7 @@ internal sealed class Shell : IDisposable
     // Set once the tray exists. Read on Bluetooth threads, so volatile; the trust question is refused until then.
     private volatile bool ready;
     private volatile bool quitRequested;
-    private volatile string status = "Starting…";
+    private volatile string status = LaptopStatus.Starting;
 
     // /dev/uinput cannot be opened: input would do nothing while the phone shows connected. Set from any thread.
     private volatile bool inputBlocked;
@@ -121,7 +121,7 @@ internal sealed class Shell : IDisposable
     public void SetStatus(string text)
     {
         // "Connected to" is only true if the phone's input can do anything: check each time, as the log said only at the end.
-        if (text.StartsWith("Connected to", StringComparison.Ordinal))
+        if (LaptopStatus.IsConnected(text))
         {
             CheckInput();
             if (inputBlocked)
@@ -260,7 +260,7 @@ internal sealed class Shell : IDisposable
         network?.DropPending();
         try
         {
-            var window = new SecurityWindow(pin, trust, ForgetPairedLinksAsync, ConfirmForgetAsync, () => bluetooth.HangUp(QuietAfterForget));
+            var window = new SecurityWindow(pin, trust, paired, ForgetPairedLinksAsync, ConfirmForgetAsync, () => bluetooth.HangUp(QuietAfterForget));
             window.Show();
             await window.Closed;
         }
