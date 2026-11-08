@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="keyboard_title">Keyboard</string>
+  <string name="keyboard_type_text">Type text</string>
+  <string name="keyboard_type_send">Type</string>
   <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
   <string name="back_to_surface">Surface</string>
   <string name="macros_title">Macros</string>
