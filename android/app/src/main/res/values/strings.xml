@@ -399,6 +399,11 @@
   <string name="surface_app_time">%1$s · %2$s of %3$s</string>
   <string name="surface_time">%1$s of %2$s</string>
   <string name="surface_play_pause">Play or pause</string>
+  <string name="surface_volume_up">Volume up</string>
+  <string name="surface_volume_down">Volume down</string>
+  <string name="surface_brightness_up">Brightness up</string>
+  <string name="surface_brightness_down">Brightness down</string>
+  <string name="surface_mute_toggle">Mute or unmute</string>
   <string name="surface_next">Next track</string>
   <string name="surface_previous">Previous track</string>
   <string name="surface_open_settings">Open settings</string>
@@ -440,7 +445,7 @@
   <string name="capture_not_found">No new capture turned up on the laptop, so nothing was sent.</string>
   <string name="capture_send_failed">The laptop could not send the capture. It is still on the laptop.</string>
   <string name="controls_annotate">Annotate</string>
-  <string name="annotate_description">Pen pad: a touch draws at the same place on the laptop screen</string>
+  <string name="annotate_description">Pen pad: a touch draws at the same place on the laptop screen. It works by touch only.</string>
   <string name="annotate_hint">Draw here. Ink appears on the laptop in the same place.</string>
   <string name="annotate_hint_named">Draw here. Ink appears on %1$s in the same place.</string>
   <string name="annotate_menu">Drawing tools</string>

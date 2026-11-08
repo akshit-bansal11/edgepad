@@ -8,6 +8,11 @@
   <item name="action_open_settings" type="id" />
   <item name="action_controls" type="id" />
   <item name="action_pad_lock" type="id" />
+  <item name="action_volume_up" type="id" />
+  <item name="action_volume_down" type="id" />
+  <item name="action_brightness_up" type="id" />
+  <item name="action_brightness_down" type="id" />
+  <item name="action_mute" type="id" />
   <!-- The macro deck in edit mode: a tile moves one place earlier or later, for those who cannot drag. -->
   <item name="action_move_earlier" type="id" />
   <item name="action_move_later" type="id" />

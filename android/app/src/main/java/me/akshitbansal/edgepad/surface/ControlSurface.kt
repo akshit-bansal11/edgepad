@@ -202,6 +202,16 @@ class ControlSurface(
                 action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
                 action(R.id.action_controls, R.string.surface_controls) to onOpenControls,
                 action(R.id.action_pad_lock, R.string.surface_lock) to { tapLock() },
+                // AND-A-8: the two levels a dial sets are reachable without sliding one.
+                action(R.id.action_volume_up, R.string.surface_volume_up) to { nudge(ControlId.VOLUME, LEVEL_STEP) },
+                action(R.id.action_volume_down, R.string.surface_volume_down) to { nudge(ControlId.VOLUME, -LEVEL_STEP) },
+                action(R.id.action_brightness_up, R.string.surface_brightness_up) to {
+                    nudge(ControlId.BRIGHTNESS, LEVEL_STEP)
+                },
+                action(R.id.action_brightness_down, R.string.surface_brightness_down) to {
+                    nudge(ControlId.BRIGHTNESS, -LEVEL_STEP)
+                },
+                action(R.id.action_mute, R.string.surface_mute_toggle) to { send(ActionId.MUTE_TOGGLE.frame()) },
             )
         }
 
@@ -1236,6 +1246,15 @@ class ControlSurface(
         return true
     }
 
+    /** Moves [control] by [step] percent from what the laptop last said, and does nothing while it has said nothing. */
+    private fun nudge(
+        control: ControlId,
+        step: Int,
+    ) {
+        val level = state.level(control) ?: return
+        send(control.set((level + step).coerceIn(0, Dial.MAX_LEVEL.toInt())))
+    }
+
     private fun action(
         id: Int,
         labelRes: Int,
@@ -1353,6 +1372,9 @@ class ControlSurface(
         private const val TRAIL_ALPHA = 200f
         private const val ALPHA_SHIFT = 24
         private const val TOP_DP = 40f
+
+        /** AND-A-8: how far one accessibility volume or brightness action moves the level, in percent. */
+        private const val LEVEL_STEP = 10
 
         /**
          * The step between neighbouring top buttons, and not only spacing: [onSizeChanged] multiplies the

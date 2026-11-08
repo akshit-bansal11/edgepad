@@ -1,16 +1,23 @@
 package me.akshitbansal.edgepad.screens
 
+import android.annotation.TargetApi
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
+import android.os.Build
+import android.os.Bundle
 import android.text.TextPaint
 import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityNodeProvider
+import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.Palette
@@ -200,6 +207,7 @@ object KeyboardScreen {
         private val secondaryOnGrey = paintLike(labelOn, palette.ink)
 
         private val pointerKeys = mutableMapOf<Int, Press>()
+        private var nodes: AccessibilityNodeProvider? = null
 
         // Fn goes through the latch like Shift, so it is sticky the same way; it stops here and never reaches
         // the laptop. The latch also carries the action codes, which go out as actions on down only.
@@ -397,6 +405,75 @@ object KeyboardScreen {
         override fun performClick(): Boolean {
             super.performClick()
             return true
+        }
+
+        override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider? {
+            // The node constructors a provider needs came in Android 13; before that the board stays one element.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return super.getAccessibilityNodeProvider()
+            return nodes ?: KeyNodes().also { nodes = it }
+        }
+
+        /** AND-A-8: presses a key for a screen reader's double tap, the way a touch down and up would. */
+        private fun activate(index: Int) {
+            val cap = caps[index]
+            val wire = wireOf(cap, resolve(cap, modifiers.isActive(FN_CODE), mode)) ?: return
+            if (cap.role != KeyRole.NORMAL) {
+                modifiers.modifierDown(wire)
+                modifiers.modifierUp(wire)
+            } else {
+                modifiers.keyDown(wire)
+                modifiers.keyUp(wire)
+            }
+            invalidate()
+        }
+
+        /** AND-A-8: each key is its own node, named by its legend, so TalkBack can find, read and press it. */
+        @TargetApi(Build.VERSION_CODES.TIRAMISU)
+        private inner class KeyNodes : AccessibilityNodeProvider() {
+            private val origin = IntArray(2)
+
+            override fun createAccessibilityNodeInfo(virtualViewId: Int): AccessibilityNodeInfo? {
+                if (virtualViewId == AccessibilityNodeProvider.HOST_VIEW_ID) {
+                    val host = AccessibilityNodeInfo(this@KeyboardView)
+                    onInitializeAccessibilityNodeInfo(host)
+                    for (i in caps.indices) host.addChild(this@KeyboardView, i)
+                    return host
+                }
+                if (virtualViewId !in caps.indices) return null
+                val key = AccessibilityNodeInfo(this@KeyboardView, virtualViewId)
+                key.setParent(this@KeyboardView)
+                key.className = Button::class.java.name
+                key.contentDescription = legends[virtualViewId]
+                key.isClickable = true
+                key.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK)
+                if (pressCount[virtualViewId] > 0 || modifiers.isActive(modifierCodes[virtualViewId])) {
+                    key.stateDescription = context.getString(R.string.keyboard_key_on)
+                }
+                getLocationOnScreen(origin)
+                val rect = rects[virtualViewId]
+                key.setBoundsInScreen(
+                    Rect(
+                        origin[0] + rect.left.toInt(),
+                        origin[1] + rect.top.toInt(),
+                        origin[0] + rect.right.toInt(),
+                        origin[1] + rect.bottom.toInt(),
+                    ),
+                )
+                return key
+            }
+
+            override fun performAction(
+                virtualViewId: Int,
+                action: Int,
+                arguments: Bundle?,
+            ): Boolean {
+                if (virtualViewId == AccessibilityNodeProvider.HOST_VIEW_ID) {
+                    return this@KeyboardView.performAccessibilityAction(action, arguments)
+                }
+                if (virtualViewId !in caps.indices || action != AccessibilityNodeInfo.ACTION_CLICK) return false
+                activate(virtualViewId)
+                return true
+            }
         }
 
         // Lets go of every key still down; also run on detach, when the up events will never arrive.
