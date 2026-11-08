@@ -58,8 +58,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var permissionTimer: Timer?
     private var badged = false
     private var questionOpen = false
-    /// The phone in use when the Security window opened, which that window's hold then hung up.
-    private var liveAtSecurityOpen: String?
     /// Set once the owner has opened the menu, which the first-run question waits for at the latest.
     private var menuSeen = false
 
@@ -509,7 +507,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     /// Forgets one phone after asking. The Security window already holds phones off, so nothing can answer. The
-    /// phone that was connected when the window opened gets the quiet period of Forget all; any other is left alone.
+    /// forgotten phone, and only it, is then refused for the quiet period of Forget all.
     private func confirmForgetOne(_ address: String, _ name: String) -> Bool {
         guard !forgetting else { return false }
         forgetting = true
@@ -529,9 +527,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if address.lowercased().hasPrefix("link:") {
             failed = !paired.forgetOne(String(address.dropFirst(5))) || failed
         }
-        if liveAtSecurityOpen?.caseInsensitiveCompare(address) == .orderedSame {
-            host?.stayQuiet()
-        }
+        host?.stayQuiet(for: address)
         if failed {
             tell(
                 "Could not forget \(name)",
@@ -545,7 +541,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func showSecurity() {
         guard !securing else { return }
         securing = true
-        liveAtSecurityOpen = host?.connectedAddress
         host?.holdOff()
         defer {
             host?.resume()

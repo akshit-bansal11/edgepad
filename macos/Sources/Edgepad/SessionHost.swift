@@ -89,8 +89,11 @@ final class SessionHost {
         }
     }
 
-    /// The address of the phone in use, if any.
-    var connectedAddress: String? { current?.address }
+    /// Refuses just `address` for the quiet period of Forget all, so a phone forgotten alone cannot reconnect at once
+    /// and raise the trust question under the owner's cursor. Other phones are not touched.
+    func stayQuiet(for address: String) {
+        handedOff[address.lowercased()] = ProcessInfo.processInfo.systemUptime + Self.quietAfterForget
+    }
 
     /// What the owner reads for `address`: a network phone's name and the way it came, a Bluetooth address as it is.
     func shown(_ address: String) -> String {
