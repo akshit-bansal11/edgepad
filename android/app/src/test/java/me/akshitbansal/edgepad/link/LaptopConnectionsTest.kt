@@ -162,11 +162,13 @@ class LaptopConnectionsTest {
         log.lines.clear()
         old.events.onConnected()
         old.events.onFrame(Frame.Text(TextKind.NOW_PLAYING.id, "stale"))
+        old.events.onFrame(Frame.Text(LaptopState.INPUT_STATE_KIND, "blocked"))
         old.events.onRoundTrip(1.0)
         old.events.onClosed(LaptopLink.Closure(LaptopLink.Cause.LOST))
         assertTrue(log.lines.isEmpty())
         assertSame(next, laptop(1).link)
         assertEquals("", laptop(1).state.nowPlaying)
+        assertFalse(laptop(1).state.inputBlocked)
         assertTrue(laptop(1).rtt.median().isNaN())
     }
 
