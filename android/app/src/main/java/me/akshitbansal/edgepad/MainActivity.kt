@@ -945,6 +945,7 @@ class MainActivity :
                         selected?.name.orEmpty(),
                         state.apps,
                         windows = state.os == DeviceOs.WINDOWS,
+                        macroNames = { state.macros },
                         // Only the token goes: the laptop looks up what it stands for in the list it made.
                         onAdd = { app -> send(TextKind.APP_ADD.frame(app.token)) },
                         onRefresh = ::refreshApps,
@@ -1296,6 +1297,7 @@ class MainActivity :
                 AppAddStatus.STALE -> R.string.apps_stale
                 else -> R.string.apps_failed
             }
+        if (status == AppAddStatus.ADDED) appList?.markAdded()
         Toast.makeText(this, text, Toast.LENGTH_LONG).show()
     }
 

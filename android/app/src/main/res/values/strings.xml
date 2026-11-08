@@ -510,6 +510,8 @@
   <string name="apps_confirm_title">Add %1$s to %2$s?</string>
   <string name="apps_confirm_body">It becomes a macro that opens this app on the laptop.</string>
   <string name="apps_confirm_action">Add</string>
+  <string name="apps_row_added">Added</string>
+  <string name="apps_row_added_description">%1$s, already added</string>
   <string name="apps_added">Added. It is in the macros now.</string>
   <string name="apps_full">The laptop cannot hold more macros. Remove one first.</string>
   <string name="apps_duplicate">That app is already a macro.</string>

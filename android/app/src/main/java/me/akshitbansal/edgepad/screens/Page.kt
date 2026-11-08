@@ -364,6 +364,7 @@ class Ui(
         title: CharSequence,
         message: CharSequence,
         action: CharSequence,
+        danger: Boolean = true,
         onConfirm: () -> Unit,
     ) {
         AlertDialog
@@ -372,7 +373,11 @@ class Ui(
             .setMessage(message)
             .setPositiveButton(action) { _, _ -> onConfirm() }
             .setNegativeButton(android.R.string.cancel, null)
-            .showOver(owner)
+            .openOver(owner)
+            // AND-B-37: what this asks about cannot be undone, so its button wears the danger colour.
+            .getButton(AlertDialog.BUTTON_POSITIVE)
+            .takeIf { danger }
+            ?.setTextColor(palette.danger)
     }
 
     /** A filled rounded rectangle: the one shape behind cards, buttons, chips, tiles and keys. */

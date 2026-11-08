@@ -9,5 +9,17 @@
     <!-- Android 12 to 14 draw the system bars in these; from 15 the bars are see-through and show the page. -->
     <item name="android:statusBarColor">@color/panel</item>
     <item name="android:navigationBarColor">@color/panel</item>
+    <!-- AND-B-37: every AlertDialog built from this theme's context picks the dialog theme below. -->
+    <item name="android:alertDialogTheme">@style/Theme.Edgepad.Dialog</item>
+  </style>
+
+  <!-- AND-B-37: Edgepad's palette and Lato on the platform's alert dialog, light here and dark in values-night. -->
+  <style name="Theme.Edgepad.Dialog" parent="@android:style/Theme.DeviceDefault.Light.Dialog.Alert">
+    <item name="android:windowBackground">@drawable/dialog_background</item>
+    <item name="android:colorBackground">@color/card</item>
+    <item name="android:textColorPrimary">@color/ink</item>
+    <item name="android:textColorSecondary">@color/dim</item>
+    <item name="android:colorAccent">@color/accent</item>
+    <item name="android:fontFamily">@font/lato_regular</item>
   </style>
 </resources>
