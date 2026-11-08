@@ -1,13 +1,11 @@
 package me.akshitbansal.edgepad.screens
 
-import android.annotation.TargetApi
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
-import android.os.Build
 import android.os.Bundle
 import android.text.TextPaint
 import android.util.TypedValue
@@ -407,11 +405,7 @@ object KeyboardScreen {
             return true
         }
 
-        override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider? {
-            // The node constructors a provider needs came in Android 13; before that the board stays one element.
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return super.getAccessibilityNodeProvider()
-            return nodes ?: KeyNodes().also { nodes = it }
-        }
+        override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider? = nodes ?: KeyNodes().also { nodes = it }
 
         /** AND-A-8: presses a key for a screen reader's double tap, the way a touch down and up would. */
         private fun activate(index: Int) {
@@ -428,7 +422,6 @@ object KeyboardScreen {
         }
 
         /** AND-A-8: each key is its own node, named by its legend, so TalkBack can find, read and press it. */
-        @TargetApi(Build.VERSION_CODES.TIRAMISU)
         private inner class KeyNodes : AccessibilityNodeProvider() {
             private val origin = IntArray(2)
 
