@@ -170,7 +170,8 @@
   <string name="media_layout_hint">Drag a piece to move it. It snaps to the grid and the centre lines.</string>
   <string name="piece_now_playing">Now playing</string>
   <string name="piece_transport">Prev · play · next</string>
-  <string name="media_layout_reset">Reset</string>
+  <string name="media_layout_reset">Reset positions</string>
+  <string name="media_layout_reset_confirm">Reset positions? Tap again</string>
   <string name="editor_options">Options</string>
   <string name="editor_done">Done</string>
   <string name="media_scale">Size</string>

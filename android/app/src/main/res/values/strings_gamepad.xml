@@ -9,6 +9,10 @@
 
   <!-- The two buttons in the editor's options popup; short, because they sit side by side in it. -->
   <string name="gamepad_add">Add</string>
+  <string name="gamepad_restore">Restore %1$s</string>
+  <string name="gamepad_restore_confirm">Restore %1$s? Tap again</string>
+  <string name="gamepad_switch_to">Switch to %1$s</string>
+  <string name="gamepad_switch_to_confirm">Switch to %1$s? Yours stays saved. Tap again</string>
   <string name="gamepad_layouts">Layouts</string>
 
   <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->

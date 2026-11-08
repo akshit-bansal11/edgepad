@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.PopupWindow
+import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -244,9 +245,14 @@ object EditorFrame {
         marginEnd = ui.dp(EDGE_DP) - slack(ui)
     }
 
-    /** Reset and Done, side by side at the foot of a popup: Reset in [resetStyle], Done the filled one. */
+    /**
+     * A reset and Done, side by side at the foot of a popup: the reset in [resetStyle], Done the filled one.
+     * The reset names what it does ([label]) and asks again ([confirmLabel]) before it acts, since it cannot be undone.
+     */
     fun resetAndDone(
         ui: Ui,
+        label: String,
+        confirmLabel: String,
         onReset: () -> Unit,
         onDone: () -> Unit,
         resetStyle: Ui.Style = Ui.Style.QUIET,
@@ -254,7 +260,7 @@ object EditorFrame {
         LinearLayout(ui.context).apply {
             setPadding(0, ui.dp(Space.S), 0, 0)
             addView(
-                ui.button(ui.string(R.string.media_layout_reset), resetStyle, onReset),
+                resetButton(ui, label, confirmLabel, resetStyle, onReset),
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
             )
             addView(
@@ -265,4 +271,24 @@ object EditorFrame {
                 },
             )
         }
+
+    private fun resetButton(
+        ui: Ui,
+        label: String,
+        confirmLabel: String,
+        style: Ui.Style,
+        onReset: () -> Unit,
+    ): View {
+        val guard = ConfirmTap()
+        var button: TextView? = null
+        button =
+            ui.button(label, style) {
+                if (guard.tap()) {
+                    onReset()
+                } else {
+                    button?.text = confirmLabel
+                }
+            }
+        return button
+    }
 }

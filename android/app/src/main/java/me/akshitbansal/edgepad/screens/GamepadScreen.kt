@@ -9,6 +9,7 @@ import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
+import android.widget.LinearLayout
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
@@ -18,6 +19,7 @@ import me.akshitbansal.edgepad.gamepad.ControlGeometry
 import me.akshitbansal.edgepad.gamepad.ControlKind
 import me.akshitbansal.edgepad.gamepad.GamepadLayout
 import me.akshitbansal.edgepad.gamepad.PadAxis
+import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadButton
 import me.akshitbansal.edgepad.protocol.PadStatus
@@ -38,20 +40,40 @@ class GamepadScreen(
     ui: Ui,
     layout: GamepadLayout,
     status: PadStatus?,
+    os: DeviceOs?,
+    names: List<String>,
+    onPick: (String) -> Unit,
+    onEdit: () -> Unit,
     onKey: (code: Int, down: Boolean) -> Unit,
     onPad: (state: Frame.PadState) -> Unit,
     onBack: () -> Unit,
     onSettings: () -> Unit,
 ) {
-    private val pad = Surface(ui.context, layout, onKey, onPad)
+    private val pad = Surface(ui.context, layout, os, onKey, onPad)
 
-    // The options sheet holds the one way into the gamepad's settings page, where the layouts are chosen and edited.
-    val view: View =
+    // The options sheet: the layouts to switch between in place, the editor, and the gamepad's settings page.
         EditorFrame
             .build(ui, layout.name, pad, onBack) { close ->
-                ui.button(ui.string(R.string.gamepad_settings_title), Ui.Style.QUIET) {
-                    close()
-                    onSettings()
+                LinearLayout(ui.context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    addView(
+                        GamepadLayoutScreen.layouts(ui, names, layout.name) { name ->
+                            close()
+                            onPick(name)
+                        },
+                    )
+                    addView(
+                        ui.button(ui.string(R.string.gamepad_edit), Ui.Style.QUIET) {
+                            close()
+                            onEdit()
+                        },
+                    )
+                    addView(
+                        ui.button(ui.string(R.string.gamepad_settings_title), Ui.Style.QUIET) {
+                            close()
+                            onSettings()
+                        },
+                    )
                 }
             }.apply {
                 keepScreenOn = true
@@ -92,11 +114,12 @@ class GamepadScreen(
     private class Surface(
         context: Context,
         private val layout: GamepadLayout,
+        private val os: DeviceOs?,
         private val onKey: (code: Int, down: Boolean) -> Unit,
         private val onPad: (state: Frame.PadState) -> Unit,
     ) : View(context) {
         /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
-        constructor(context: Context) : this(context, GamepadLayout("", emptyList()), { _, _ -> }, { })
+        constructor(context: Context) : this(context, GamepadLayout("", emptyList()), null, { _, _ -> }, { })
 
         private val density = resources.displayMetrics.density
         private val palette = Palette.of(context)
@@ -159,7 +182,7 @@ class GamepadScreen(
             mode =
                 when (status) {
                     PadStatus.READY -> null
-                    PadStatus.NO_DRIVER -> context.getString(R.string.gamepad_mode_no_driver)
+                    PadStatus.NO_DRIVER -> context.getString(noDriverLine())
                     PadStatus.ATTACH_FAILED -> context.getString(R.string.gamepad_mode_attach_failed)
                     null -> context.getString(R.string.gamepad_mode_waiting)
                 }
@@ -168,6 +191,17 @@ class GamepadScreen(
             stateDescription = mode
             invalidate()
         }
+
+        /** AND-A-1: the pill names the fix for this laptop: ViGEmBus on Windows, nothing to install on a Mac. */
+        private fun noDriverLine(): Int =
+            when (os) {
+                DeviceOs.WINDOWS -> R.string.gamepad_mode_no_driver_windows
+                DeviceOs.MACOS -> R.string.gamepad_mode_no_driver_mac
+                else -> R.string.gamepad_mode_no_driver
+            }
+
+        /** A press that sends nothing (a controller button while the laptop has no controller) gets no tick either. */
+        private fun sends(i: Int): Boolean = padMode || controls[i].binding is Binding.Keys
 
         override fun onSizeChanged(
             w: Int,
@@ -354,7 +388,7 @@ class GamepadScreen(
                     pressed[i] = true
                     pull[i] = PadAxis.trigger(y - centerY[i], halfH[i])
                     keys(i)?.let { onKey(it[0], true) }
-                    performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                    if (sends(i)) performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                 }
 
                 ControlKind.DPAD -> {
@@ -561,7 +595,7 @@ class GamepadScreen(
                 }
             }
             dirBits[i] = newBits
-            performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            if (sends(i)) performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
         }
 
         private companion object {

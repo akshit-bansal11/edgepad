@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.gamepad
 
 import me.akshitbansal.edgepad.protocol.PadButton
+import me.akshitbansal.edgepad.protocol.PadStatus
 
 /** What shape a control draws as and how its keys are pressed. */
 enum class ControlKind {
@@ -311,13 +312,27 @@ data class GamepadLayout(
         val presets: List<GamepadLayout> = listOf(xbox(), xboxKeys(), platformer(), racing(), shooter())
 
         /**
+         * AND-A-1: what to play when the laptop cannot offer a controller. A layout with no key bound to anything
+         * sends nothing in keyboard mode, so it gives way to the first key preset for that session; one that has
+         * keys, or a laptop that has not answered yet, is left alone. Nothing is stored.
+         */
+        fun forStatus(
+            layout: GamepadLayout,
+            status: PadStatus?,
+        ): GamepadLayout {
+            val keyboard = status == PadStatus.NO_DRIVER || status == PadStatus.ATTACH_FAILED
+            if (!keyboard || layout.controls.any { it.binding is Binding.Keys }) return layout
+            return presets.first { preset -> preset.controls.any { it.binding is Binding.Keys } }
+        }
+
+        /**
          * XInput's whole standard set, laid out the way the controller it copies is: sticks and d-pad on
          * the left, the four face buttons on the right, bumpers and triggers along the top edge, Start and
          * Back in the middle, and the two stick clicks in the bottom corners where a thumb can reach them
          * without leaving the stick it belongs to.
          *
          * Every binding here is a controller input, so this layout does nothing in keyboard mode. The pad
-         * says so on screen when that happens, and the keyboard presets are one tap away in the same popup.
+         * says so on screen when that happens; [forStatus] moves to a keyboard preset when nothing would send.
          */
         private fun xbox(): GamepadLayout =
             GamepadLayout(
@@ -330,10 +345,10 @@ data class GamepadLayout(
                     face("b", "B", 0.92f, 0.46f, PadButton.B),
                     face("x", "X", 0.76f, 0.46f, PadButton.X),
                     face("y", "Y", 0.84f, 0.34f, PadButton.Y),
-                    Control("lt", ControlKind.SHOULDER, "LT", 0.10f, 0.12f, Control.SHOULDER_SIZE_DP, leftTrigger),
-                    Control("lb", ControlKind.SHOULDER, "LB", 0.24f, 0.12f, Control.SHOULDER_SIZE_DP, leftBumper),
-                    Control("rb", ControlKind.SHOULDER, "RB", 0.76f, 0.12f, Control.SHOULDER_SIZE_DP, rightBumper),
-                    Control("rt", ControlKind.SHOULDER, "RT", 0.90f, 0.12f, Control.SHOULDER_SIZE_DP, rightTrigger),
+                    Control("lt", ControlKind.SHOULDER, "LT", 0.16f, 0.12f, Control.SHOULDER_SIZE_DP, leftTrigger),
+                    Control("lb", ControlKind.SHOULDER, "LB", 0.32f, 0.12f, Control.SHOULDER_SIZE_DP, leftBumper),
+                    Control("rb", ControlKind.SHOULDER, "RB", 0.68f, 0.12f, Control.SHOULDER_SIZE_DP, rightBumper),
+                    Control("rt", ControlKind.SHOULDER, "RT", 0.84f, 0.12f, Control.SHOULDER_SIZE_DP, rightTrigger),
                     face("start", "Start", 0.56f, 0.92f, PadButton.START, START_SIZE_DP),
                     face("back", "Back", 0.44f, 0.92f, PadButton.BACK, START_SIZE_DP),
                     face("l3", "L3", 0.05f, 0.88f, PadButton.LEFT_THUMB, START_SIZE_DP),
@@ -368,10 +383,10 @@ data class GamepadLayout(
                     Control("b", ControlKind.BUTTON, "B", 0.90f, 0.55f, Control.BUTTON_SIZE_DP, keys(0x45)),
                     Control("x", ControlKind.BUTTON, "X", 0.74f, 0.55f, Control.BUTTON_SIZE_DP, keys(0x51)),
                     Control("y", ControlKind.BUTTON, "Y", 0.82f, 0.45f, Control.BUTTON_SIZE_DP, keys(0x52)),
-                    Control("lb", ControlKind.SHOULDER, "LB", 0.12f, 0.12f, Control.SHOULDER_SIZE_DP, keys(0x10)),
-                    Control("rb", ControlKind.SHOULDER, "RB", 0.88f, 0.12f, Control.SHOULDER_SIZE_DP, keys(0x46)),
-                    Control("lt", ControlKind.SHOULDER, "LT", 0.24f, 0.12f, Control.SHOULDER_SIZE_DP, keys(0x09)),
-                    Control("rt", ControlKind.SHOULDER, "RT", 0.76f, 0.12f, Control.SHOULDER_SIZE_DP, keys(0x0D)),
+                    Control("lb", ControlKind.SHOULDER, "LB", 0.20f, 0.12f, Control.SHOULDER_SIZE_DP, keys(0x10)),
+                    Control("rb", ControlKind.SHOULDER, "RB", 0.80f, 0.12f, Control.SHOULDER_SIZE_DP, keys(0x46)),
+                    Control("lt", ControlKind.SHOULDER, "LT", 0.34f, 0.12f, Control.SHOULDER_SIZE_DP, keys(0x09)),
+                    Control("rt", ControlKind.SHOULDER, "RT", 0.66f, 0.12f, Control.SHOULDER_SIZE_DP, keys(0x0D)),
                     Control("start", ControlKind.BUTTON, "Start", 0.58f, 0.9f, START_SIZE_DP, keys(0x1B)),
                     Control("select", ControlKind.BUTTON, "Select", 0.42f, 0.9f, START_SIZE_DP, keys(0x08)),
                 ),

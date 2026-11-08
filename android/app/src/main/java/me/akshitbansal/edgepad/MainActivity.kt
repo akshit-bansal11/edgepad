@@ -34,6 +34,7 @@ import android.widget.TextView
 import android.widget.Toast
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
+import me.akshitbansal.edgepad.gamepad.GamepadLayout
 import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.link.AppLinks
 import me.akshitbansal.edgepad.link.BlobRoutes
@@ -241,6 +242,9 @@ class MainActivity :
 
     /** The gamepad while it is the screen, so the laptop's answer about its controller can reach it. */
     private var gamepad: GamepadScreen? = null
+
+    /** The layout the gamepad on screen is playing, which differs from the chosen one in keyboard mode. */
+    private var playedLayout = ""
 
     /** The annotate screen while it is the screen, so a changed laptop display can redraw its pad. */
     private var annotate: AnnotateScreen? = null
@@ -877,10 +881,19 @@ class MainActivity :
                 }
 
                 Screen.GAMEPAD -> {
+                    val played = GamepadLayout.forStatus(gamepads.current, state.padStatus)
+                    playedLayout = played.name
                     GamepadScreen(
                         ui,
-                        gamepads.current,
+                        played,
                         state.padStatus,
+                        state.os,
+                        gamepads.all.map { it.name },
+                        onPick = { name ->
+                            gamepads.choose(name)
+                            goTo(Screen.GAMEPAD)
+                        },
+                        onEdit = { goTo(Screen.GAMEPAD_LAYOUT) },
                         onKey = sendKey,
                         onPad = send,
                         onBack = { navigateBack() },
@@ -2055,7 +2068,12 @@ class MainActivity :
         // The pad decides which of its two modes it is in from this answer, which usually lands a few
         // milliseconds after PAD_ATTACH went out — by then the screen is already up, so it is handed
         // over rather than rebuilt: rebuilding would drop whatever fingers are on the glass.
-        if (frame is Frame.Text && frame.kind == TextKind.PAD_STATUS.id) gamepad?.setStatus(state.padStatus)
+        if (frame is Frame.Text && frame.kind == TextKind.PAD_STATUS.id) {
+            gamepad?.setStatus(state.padStatus)
+            // A laptop with no controller driver gets the keyboard preset; the screen is rebuilt once, not each time.
+            val wanted = GamepadLayout.forStatus(gamepads.current, state.padStatus).name
+            if (screen == Screen.GAMEPAD && wanted != playedLayout) goTo(Screen.GAMEPAD)
+        }
         // The macro grid is handed what changed rather than built again, which would throw away where
         // TalkBack was and decode every picture over again for each one that arrived.
         val grid = macros

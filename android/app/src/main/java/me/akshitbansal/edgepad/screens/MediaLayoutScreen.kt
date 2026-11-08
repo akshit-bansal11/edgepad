@@ -59,12 +59,19 @@ object MediaLayoutScreen {
                         },
                 )
                 addView(
-                    EditorFrame.resetAndDone(ui, {
-                        canvas.reset()
-                        settings.mediaScale = Settings.DEFAULT_MEDIA_SCALE
-                        canvas.rescale()
-                        close()
-                    }, close, Ui.Style.OUTLINED),
+                    EditorFrame.resetAndDone(
+                        ui,
+                        ui.string(R.string.media_layout_reset),
+                        ui.string(R.string.media_layout_reset_confirm),
+                        {
+                            canvas.reset()
+                            settings.mediaScale = Settings.DEFAULT_MEDIA_SCALE
+                            canvas.rescale()
+                            close()
+                        },
+                        close,
+                        Ui.Style.OUTLINED,
+                    ),
                 )
             }
         }

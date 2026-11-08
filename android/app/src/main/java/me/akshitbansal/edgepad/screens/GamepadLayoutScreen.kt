@@ -122,10 +122,16 @@ object GamepadLayoutScreen {
                     ),
                 )
                 addView(
-                    EditorFrame.resetAndDone(ui, {
-                        canvas.reset()
-                        close()
-                    }, close),
+                    EditorFrame.resetAndDone(
+                        ui,
+                        resetLabel(ui, store),
+                        resetConfirm(ui, store),
+                        {
+                            canvas.reset()
+                            close()
+                        },
+                        close,
+                    ),
                 )
             }
         }
@@ -161,6 +167,27 @@ object GamepadLayoutScreen {
                 list,
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(minOf(wanted, MAX_LIST_DP))),
             )
+        }
+
+    /** AND-A-7: a built-in layout is restored; a layout of the user's own is left saved and the first built-in one is played. */
+    private fun resetLabel(
+        ui: Ui,
+        store: GamepadStore,
+    ): String =
+        if (store.isBuiltIn(store.current.name)) {
+            ui.string(R.string.gamepad_restore, store.current.name)
+        } else {
+            ui.string(R.string.gamepad_switch_to, GamepadLayout.presets.first().name)
+        }
+
+    private fun resetConfirm(
+        ui: Ui,
+        store: GamepadStore,
+    ): String =
+        if (store.isBuiltIn(store.current.name)) {
+            ui.string(R.string.gamepad_restore_confirm, store.current.name)
+        } else {
+            ui.string(R.string.gamepad_switch_to_confirm, GamepadLayout.presets.first().name)
         }
 
     /** Two buttons side by side, the way [EditorFrame.resetAndDone] lays its own out. */
