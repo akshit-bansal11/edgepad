@@ -1,5 +1,7 @@
 package me.akshitbansal.edgepad.surface
 
+import android.os.Handler
+import android.os.Looper
 import me.akshitbansal.edgepad.link.LaptopConnections
 
 /**
@@ -54,7 +56,13 @@ interface DeviceSwitch {
         }
 
         /** [name] cut to [MAX_NAME] characters with an ellipsis at the end when it is longer. */
-        fun fit(name: String): String = if (name.length <= MAX_NAME) name else name.take(MAX_NAME - 1).trimEnd() + "…"
+        fun fit(name: String): String {
+            if (name.length <= MAX_NAME) return name
+            var end = MAX_NAME - 1
+            // Never between the halves of a surrogate pair: an emoji cut in two shows as a box.
+            if (Character.isLowSurrogate(name[end]) && Character.isHighSurrogate(name[end - 1])) end--
+            return name.substring(0, end).trimEnd() + "…"
+        }
     }
 }
 
@@ -63,16 +71,21 @@ class ConnectedLaptops(
     private val manager: LaptopConnections,
     private val onOpen: () -> Unit,
 ) : DeviceSwitch {
+    private val main = Handler(Looper.getMainLooper())
     private val connected get() = manager.laptops.filter { it.connected }
 
     override val names: List<String> get() = connected.map { it.name }
 
     override val activeIndex: Int get() = connected.indexOfFirst { it === manager.selected }
 
+    // Posted: the dial calls this from inside its own touch dispatch, and a selection change rebuilds the surface that
+    // is dispatching. Read inside the post, so two quick steps chain from where the first left the selection.
     override fun step(direction: Int) {
-        val live = connected
-        val target = DeviceSwitch.neighbour(live.size, live.indexOfFirst { it === manager.selected }, direction)
-        target?.let { manager.select(live[it].id) }
+        main.post {
+            val live = connected
+            val target = DeviceSwitch.neighbour(live.size, live.indexOfFirst { it === manager.selected }, direction)
+            target?.let { manager.select(live[it].id) }
+        }
     }
 
     override fun open() = onOpen()
