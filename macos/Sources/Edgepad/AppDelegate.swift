@@ -210,17 +210,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             "macOS will now ask for what Edgepad needs. Bluetooth, to hear your phone. Device Control, to move the "
             + "pointer and press keys. Notifications, to tell you when a phone asks to connect. Your Desktop, "
             + "Documents or Downloads folder, only when the phone asks for a screenshot or recording."
-        let login = NSButton(checkboxWithTitle: "Start at login", target: nil, action: nil)
-        login.state = .on
-        alert.accessoryView = login
         alert.addButton(withTitle: "Continue")
         NSApp.activate(ignoringOtherApps: true)
         alert.runModal()
         alert.window.orderOut(nil)
         UserDefaults.standard.set(true, forKey: Self.welcomedKey)
-        if login.state == .on {
-            setLogin(true)
-        }
     }
 
     /// The first run of a new version with the permission gone: the ad hoc signature changes with every build.
@@ -650,12 +644,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if let share = answer.clipboard {
             ClipboardSetting.enabled = share
         }
+        // Off until ticked; a failure is told by setLogin and leaves it off.
+        if answer.login == true {
+            setLogin(true)
+        }
         saveNetwork(answer.allowed)
     }
 
     /// Says what turning Wi-Fi on will do. `allowed` is true only for `yes`; `clipboard` is the checkbox, asked on
     /// the first run only, off until ticked.
-    private func confirmNetwork(yes: String, no: String, clipboard: Bool) -> (allowed: Bool, clipboard: Bool?) {
+    private func confirmNetwork(
+        yes: String, no: String, clipboard: Bool
+    ) -> (allowed: Bool, clipboard: Bool?, login: Bool?) {
         let alert = NSAlert()
         alert.messageText = "Let phones find this laptop?"
         alert.informativeText =
@@ -664,19 +664,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             + "macOS may ask whether Edgepad may find devices on your local network, and the firewall whether it "
             + "may accept incoming connections: allow both."
         var box: NSButton?
+        var loginBox: NSButton?
         if clipboard {
             let share = NSButton(checkboxWithTitle: "Share clipboard", target: nil, action: nil)
             share.state = .off
             let note = NSTextField(wrappingLabelWithString: "Copy on one, paste on the other: text and images.")
             note.textColor = .secondaryLabelColor
             note.preferredMaxLayoutWidth = 280
-            let stack = NSStackView(views: [share, note])
+            let login = NSButton(checkboxWithTitle: "Start at login", target: nil, action: nil)
+            login.state = .off
+            let stack = NSStackView(views: [share, note, login])
             stack.orientation = .vertical
             stack.alignment = .leading
             stack.spacing = 4
             stack.setFrameSize(NSSize(width: 280, height: stack.fittingSize.height))
             alert.accessoryView = stack
             box = share
+            loginBox = login
         }
         // The no is first, so it is the default: a stray Return turns nothing on.
         alert.addButton(withTitle: no)
@@ -688,7 +692,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         questionOpen = false
         refreshButton()
-        return (answer == .alertSecondButtonReturn, box.map { $0.state == .on })
+        return (answer == .alertSecondButtonReturn, box.map { $0.state == .on }, loginBox.map { $0.state == .on })
     }
 
     /// Saves the owner's answer and acts on it. A setting that cannot be saved leaves things as they were.
