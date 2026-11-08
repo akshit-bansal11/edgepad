@@ -104,7 +104,7 @@ export function SiteHeader({ variant = "landing" }: { variant?: "landing" | "doc
 
           <ThemeToggle />
 
-          <Button asChild size="sm" className="hidden lg:inline-flex">
+          <Button asChild size="sm" className="px-3 sm:px-4">
             <Link href="/#get">Download</Link>
           </Button>
 

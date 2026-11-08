@@ -313,7 +313,9 @@ export function ProductSections() {
                   Allow through Windows Firewall…
                 </strong>
                 ), then{" "}
-                <strong className="text-foreground">Wi-Fi and USB connections</strong>,{" "}
+                <strong className="text-foreground">
+                  Wi-Fi and USB connections
+                </strong>,{" "}
                 <strong className="text-foreground">Share clipboard</strong>,{" "}
                 <strong className="text-foreground">Start with Windows</strong>,{" "}
                 <strong className="text-foreground">Macros…</strong>,{" "}

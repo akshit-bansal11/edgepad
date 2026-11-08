@@ -47,77 +47,77 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
   {
     title: "Corner dials",
     Icon: Gauge,
-    body: "Each corner holds a dial drawn as a ruler that wraps the bend. Slide along it, clockwise to raise. Volume, brightness, media scrub, zoom, app switcher, refresh rate, scroll, desktops, browser tabs or the Devices dial — Surface settings pick what each corner does, and Split corners gives each corner two dials.",
+    body: "Slide along a ruler in any corner to change volume, brightness, zoom and more. Clockwise raises.",
   },
   {
     title: "Trackpad",
     Icon: MousePointer2,
-    body: "Everything between the corners moves the laptop's pointer. One finger moves and clicks, two scroll and pinch and right-click, three and four fingers do whatever you assign them.",
+    body: "Everything between the corners moves the pointer. One finger clicks, two scroll and right-click, three and four do what you assign.",
   },
   {
     title: "Media",
     Icon: Music,
-    body: "The track, the app playing it and where it is, with previous, play/pause and next. Drag the three pieces anywhere on the surface.",
+    body: "See what is playing and where it is. Previous, play/pause and next sit where you put them.",
   },
   {
     title: "Keyboard",
     Icon: Keyboard,
-    body: "A full on-screen keyboard whose modifiers work held or tapped. It opens sideways, and its text size is a setting.",
+    body: "A full on-screen keyboard. Hold or tap the modifier keys. It opens sideways.",
   },
   {
     title: "Gamepad",
     Icon: Gamepad2,
-    body: "On Windows, install ViGEmBus and the phone drives a real virtual Xbox controller, sticks and triggers analog, so games that only accept a controller can be played from across the room; a Linux laptop plugs in a virtual Xbox 360 controller by itself. Without a controller, and on a Mac, the same pad sends keyboard keys, and says which of the two it is in.",
+    body: "Play games from across the room. With ViGEmBus on Windows it is a real Xbox controller; without it, it sends keyboard keys and says so.",
   },
   {
     title: "Your pad, your bindings",
     Icon: SlidersHorizontal,
-    body: "Add a control, bind it to any controller input or key that fits it, size it, label it, move it. Layouts are a library kept one per game, and the ones Edgepad ships with can never be renamed away.",
+    body: "Place, size, label and bind every control. Layouts are kept one per game.",
   },
   {
     title: "Shapes",
     Icon: Spline,
-    body: "Press and hold on the trackpad until it ticks, then draw. The stroke runs the action or macro you bound to it. A stroke that matches nothing does nothing.",
+    body: "Press and hold, then draw a shape to run an action or a macro. A stroke that matches nothing does nothing.",
   },
   {
-    title: "Macro buttons",
+    title: "Macros",
     Icon: LayoutGrid,
-    body: "Fifteen slots the laptop names with an app, a document, a folder or a URL each; the phone sends the slot number and never what it opens. The screen shows 2 to 10 at a time and the rest sit on pages you slide to. Press and hold a button to drag it into the order you want, or add one from the phone by picking from the laptop's apps. Macros live in Controls.",
+    body: "Buttons that open an app, a document, a folder or a web address. You choose them on the laptop; the phone only presses them.",
   },
   {
     title: "Annotate and sign",
     Icon: PenLine,
-    body: "Controls > Annotate turns the phone into an absolute pen for the laptop screen, with a pen, a highlighter, a line, an arrow, a rectangle and an ellipse in eight colours or any colour you pick, at the width and opacity you set. Sign is the same pad as a signature, saved as a transparent PNG.",
+    body: "Draw on the laptop screen with the phone as a pen, or sign and save a transparent PNG.",
   },
   {
     title: "Capture",
     Icon: Camera,
-    body: "Buttons for a region, the whole screen and a recording press the laptop's own screenshot shortcut, with a trackpad under them to drag out the region. Set Save to: Phone and the laptop sends what it just captured to the phone, unverified on real laptops.",
+    body: "Take a screenshot or start a recording with the laptop's own shortcut, and drag out the region from the phone.",
   },
   {
     title: "Share clipboard",
     Icon: ClipboardCopy,
-    body: "Text and images copied on the laptop arrive on the phone at once. Android lets Edgepad read the clipboard only while it is on screen, so to send a copy from the phone, go back to Edgepad after copying. A password manager's copy is never sent.",
+    body: "Copy on one, paste on the other: text and images. Off until you choose it on first run.",
   },
   {
     title: "Several laptops",
     Icon: Laptop,
-    body: "The phone stays connected to every laptop you connect, and you choose which one you control from System settings or the Devices dial.",
+    body: "Stay connected to more than one laptop and switch with the Switch laptop dial.",
   },
   {
     title: "Stay connected",
     Icon: Link2,
-    body: "A notification keeps the connection while Edgepad is minimized, with a Disconnect button. Turn it off in System settings.",
+    body: "A notification keeps the link while Edgepad is minimized. Off until you choose it on first run.",
   },
   {
     title: "Security levels and a PIN",
     Icon: ShieldCheck,
-    body: "Beyond saying yes to a phone once, the laptop can ask each phone for a six-digit PIN, the first time or on every connection, on the phone's own keypad. Five wrong answers lock a phone out for 30 seconds, then longer.",
+    body: "Trust a phone once, or also ask for a PIN: once per phone, or on every connection.",
   },
   {
     title: "Live state",
     Icon: Activity,
-    body: "The dials show the laptop's real volume, mute, brightness and playback position, and follow changes made on the laptop itself.",
+    body: "The dials show the laptop's real volume, mute and brightness, and follow changes made on the laptop.",
   },
 ];
 
@@ -125,17 +125,17 @@ const STEPS: { step: string; title: string; body: string }[] = [
   {
     step: "01",
     title: "Pair once, like a headset",
-    body: "The phone and the laptop pair in the laptop's own Bluetooth settings: Windows Settings > Bluetooth & devices, macOS System Settings > Bluetooth, or your Linux desktop's. Confirm the code on both sides when the OS shows it. For Bluetooth, Edgepad adds no pairing step of its own and there is no account to make; Wi-Fi and USB connections are optional, off until you turn them on in the laptop's tray menu, and use their own one-time code. Each paired phone is asked about once, and every phone you trust is remembered until you Forget it (or Forget all…) in the tray menu's Security… window.",
+    body: "Pair the phone in the laptop's own Bluetooth settings and confirm the code on both sides. There is no account. Wi-Fi and USB are optional, off until you turn them on in the laptop's menu, and use a one-time pairing code. The laptop asks Trust NAME? once; you can forget a phone later in Security….",
   },
   {
     step: "02",
-    title: "The phone recognises, the laptop executes",
-    body: "The phone turns a touch into a small semantic frame: move the pointer by so much, press a button, scroll, run action 3, set control 0 to 55, here is the whole state of a controller. The laptop owns the table of what each action does, so a phone can name an action but never invent one. It is not a containment boundary and is not offered as one: a paired phone is a trusted input device, and its keyboard screen sends raw key codes the way any keyboard does.",
+    title: "The phone sends touches, the laptop acts",
+    body: "The phone turns a touch into a small message such as move, click or scroll. The laptop decides what each message does, so a phone can ask for an action but never invent one. A paired phone is a trusted input device: only trust your own.",
   },
   {
     step: "03",
     title: "The laptop reports back",
-    body: "Volume, mute, brightness and what is playing come back the other way, so the dials show the laptop's real values and follow changes you make on the laptop itself rather than drifting out of step with it.",
+    body: "Volume, brightness and what is playing come back, so the dials stay in step with the laptop. The protocol details are in the docs.",
   },
 ];
 
