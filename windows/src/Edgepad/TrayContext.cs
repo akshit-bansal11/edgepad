@@ -734,8 +734,8 @@ internal sealed class TrayContext : ApplicationContext
         MessageBox.Show(
             owner,
             $"Try Forget again once nothing else is using Edgepad's files in {pin.Folder}. {phone.Name} could not be fully forgotten: "
-                + "a file could not be rewritten. No phone can connect while Edgepad stays running, but this one may be trusted again "
-                + "the next time it starts.",
+                + "a file could not be rewritten. It stays trusted on disk, but Edgepad refuses it until Edgepad is restarted, and it will "
+                + "be trusted again from then on unless you forget it again.",
             "Security",
             MessageBoxButtons.OK,
             MessageBoxIcon.Error);

@@ -407,6 +407,27 @@ public sealed class TrustStoreTests : IDisposable
     }
 
     [Fact]
+    public void AForgetOneThatCannotBeWrittenRefusesThatPhoneForTheRestOfTheRun()
+    {
+        var store = NewStore();
+        store.Admit("(AA:BB:CC:DD:EE:FF)", Yes);
+        store.Admit("(11:22:33:44:55:66)", Yes);
+
+        using (new Blocked(Path.Combine(dir, "trusted-phone.txt")))
+        {
+            Assert.False(store.ForgetOne("(AA:BB:CC:DD:EE:FF)"));
+        }
+
+        // The file is readable again and still names the phone, yet it is refused unasked; the other one is not.
+        Assert.False(store.Admit("(AA:BB:CC:DD:EE:FF)", Unasked));
+        Assert.True(store.Admit("(11:22:33:44:55:66)", Unasked));
+
+        // A Forget that works lets it be asked about again.
+        Assert.True(store.Forget());
+        Assert.True(store.Admit("(AA:BB:CC:DD:EE:FF)", Yes));
+    }
+
+    [Fact]
     public void AQuestionOpenAcrossForgettingOneSavesNothing()
     {
         var store = NewStore();

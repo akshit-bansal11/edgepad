@@ -34,6 +34,10 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
     // not asked again about a phone they already said yes to just because the disk refused the write.
     private readonly HashSet<string> unsaved = new(StringComparer.OrdinalIgnoreCase);
 
+    // Phones whose Forget did not reach the disk. They stay trusted on disk but are refused for the rest of this run,
+    // as Forget does with everyone; a later ForgetOne that works, or a Forget, lets them be asked about again.
+    private readonly HashSet<string> denied = new(StringComparer.OrdinalIgnoreCase);
+
     // The phone the owner last said no to, and until when it is not asked about again.
     private string? declined;
     private long declinedUntil;
@@ -215,6 +219,11 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
     /// </summary>
     private bool? Decided(string address)
     {
+        if (denied.Contains(address))
+        {
+            return false;
+        }
+
         if (!TryRead(out var trusted))
         {
             // Fail closed. The phone sees a refusal, the log says why, and Forget in the tray menu is the way
@@ -282,6 +291,7 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
             generation++;
             unsaved.Clear();
             declined = null;
+            denied.Clear();
             try
             {
                 File.Delete(path);
@@ -335,12 +345,14 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
 
             if (!TryRead(out var trusted))
             {
+                denied.Add(address);
                 return false;
             }
 
             var rest = trusted.Where(known => !string.Equals(known, address, StringComparison.OrdinalIgnoreCase)).ToList();
             if (rest.Count == trusted.Count)
             {
+                denied.Remove(address);
                 return true;
             }
 
@@ -355,11 +367,13 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
                     PrivateStorage.Replace(path, temp => File.WriteAllLines(temp, rest));
                 }
 
+                denied.Remove(address);
                 return true;
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
                 Log.Write($"A trusted phone could not be forgotten at {path}: {e.Message}");
+                denied.Add(address);
                 return false;
             }
         }

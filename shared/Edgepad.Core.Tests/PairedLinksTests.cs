@@ -45,6 +45,21 @@ public sealed class PairedLinksTests : IDisposable
     }
 
     [Fact]
+    public void AForgetOneThatCannotBeWrittenRefusesThatPairingForTheRestOfTheRun()
+    {
+        var links = NewLinks();
+        links.Add(Phone, Key, "Pixel");
+
+        using (new Blocked(FilePath))
+        {
+            Assert.False(links.ForgetOne(Phone));
+        }
+
+        Assert.False(links.TryGet(Phone, out _, out _));
+        Assert.True(links.Forget());
+    }
+
+    [Fact]
     public void PairingAgainReplacesTheOldKey()
     {
         var links = NewLinks();
