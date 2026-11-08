@@ -32,6 +32,11 @@ No wire-protocol change: the protocol stays at version 5. **Mac and Linux are st
 - **Phone: Forget on a laptop** says what it does: the laptop is removed from the list and its pairing code deleted; Android's Bluetooth pairing stays.
 - **Phone: Add by address** keeps its dialog while it looks, Wi-Fi is searched once per visit to Devices, and the Nearby notice can be dismissed.
 - **Phone: names.** "Haptic tick per notch" is now "Haptic feedback". **Background & pattern** is now **Look**; the control colour is its own row; Dial feel lists only the dials in a corner; guide headings are in sentence case.
+- **Phone: dialogs and rows.** Dialogs use the app's palette and font, and Forget buttons are red. Disconnect and Forget on a laptop row sit behind a **More** chip. A spent pairing code offers **Get a new code**.
+- **Phone: gamepad and macros.** On the gamepad, the keyboard-mode pill opens the layout list and "waiting" becomes a "did not answer" message after a few seconds; **Delete control** asks first. A macro tap ticks and shows "Opening" briefly, Macros shows "Loading macros…" until the list arrives, and apps already added are marked in Add from laptop.
+- **Phone: Controls and Back.** The Controls popup says a tile can be moved by press and hold, for the first few openings. Back on the surface asks twice before leaving.
+- **Phone: TalkBack.** The keyboard reads and presses each key (one element per key on Android 13 and later), and the surface offers volume, brightness and mute actions.
+- **Windows: access keys** (underlined letters) in the tray menu, the Security window and the macro editor.
 - **Windows: contrast and text.** A high-contrast palette, darker borders and off tracks, and the level overlay opens on the monitor the pointer is on.
 - The guide text and the website now describe 4.0: Bluetooth by default with Wi-Fi and USB optional, three buttons on the surface, the shared clipboard, several laptops, macro pages, and the demo film.
 
