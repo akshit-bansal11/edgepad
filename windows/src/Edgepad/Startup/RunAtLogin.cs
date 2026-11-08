@@ -33,7 +33,8 @@ internal static class RunAtLogin
         }
     }
 
-    public static void Set(bool enabled)
+    /// <summary>True when the setting was written (or already was); false, logged, when policy or the disk refused it.</summary>
+    public static bool Set(bool enabled)
     {
         try
         {
@@ -47,13 +48,15 @@ internal static class RunAtLogin
             {
                 key.DeleteValue(ValueName, throwOnMissingValue: false);
             }
+
+            return true;
         }
         catch (Exception e) when (e is System.Security.SecurityException or UnauthorizedAccessException
             or IOException or InvalidOperationException)
         {
-            // The tick in the menu will disagree with the registry until it is opened again, which reads
-            // the real state back. A wrong tick is a better outcome than a tray app that vanished.
+            // A tray app that vanished is the worse outcome; the caller puts the tick back and says so.
             Log.Write($"Start with Windows could not be set to {enabled}: {e.Message}");
+            return false;
         }
     }
 }

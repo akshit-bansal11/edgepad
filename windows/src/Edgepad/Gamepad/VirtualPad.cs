@@ -44,11 +44,24 @@ internal sealed class VirtualPad(Func<ViGEmClient>? openClient = null) : IDispos
     /// </summary>
     public string Probe() => Client() is null ? PadStatus.NoDriver : PadStatus.Ready;
 
+    /// <summary>
+    /// Raised when a phone asked for the pad and there is no driver to give it one, so the laptop's owner can be told:
+    /// the phone hides the pad, and without this nobody at the laptop would know why.
+    /// </summary>
+    public static event Action? DriverMissing;
+
     /// <summary>Plugs the pad in, and says how that went as one <see cref="PadStatus"/> token.</summary>
     public string Attach()
     {
+        // A driver installed since the last look is found when the phone next opens the gamepad.
+        if (client is null)
+        {
+            asked = false;
+        }
+
         if (Client() is not { } bus)
         {
+            DriverMissing?.Invoke();
             return PadStatus.NoDriver;
         }
 

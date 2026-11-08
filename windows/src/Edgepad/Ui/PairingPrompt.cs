@@ -60,9 +60,9 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
             window = new PairingWindow(phoneName, deadline, onTyped, onOwnerCancelled);
             window.FormClosed += (_, _) => window = null;
 
-            // Not modal: the question waits beside the tray, and closing it disposes it.
+            // Not modal, and not activated: a phone on the same Wi-Fi must not be able to take the keyboard from what the
+            // owner is typing. The notification says it is there, and the window waits, on top, until it is clicked.
             window.Show();
-            window.Activate();
         }
 
         public void Matched() => Post(() => window?.Tell(PairingText.Matched(phone), closeSoon: false));
@@ -100,7 +100,8 @@ internal sealed class PairingWindow : Form
     private readonly Action onOwnerCancelled;
 
     private readonly Label heading = new() { AutoSize = false };
-    private readonly Label ask = new() { AutoSize = false, Text = "Type the code shown on the phone:" };
+    private readonly Label ask = new() { AutoSize = false, Text = "Type the pairing code shown on the phone:" };
+    private readonly Label warn = new() { AutoSize = false, Text = PairingText.Warning };
     private readonly Label countdown = new() { AutoSize = false };
     private readonly TextBox code = new()
     {
@@ -108,13 +109,14 @@ internal sealed class PairingWindow : Form
 
         // One more than the code, so a pasted "482 913" arrives whole before it is cut down to its digits.
         MaxLength = LinkCrypto.CodeDigits + 1,
-        AccessibleName = "Code shown on the phone",
+        AccessibleName = "Pairing code shown on the phone",
     };
 
     private readonly Framed codeFrame;
     private readonly FlatButton cancel;
     private readonly FlatButton pair;
     private readonly System.Windows.Forms.Timer tick = new() { Interval = 250 };
+
 
     // How long "Paired with Pixel." stays before the window goes by itself.
     private const int LingerMs = 2000;
@@ -168,7 +170,7 @@ internal sealed class PairingWindow : Form
         // Enter only does anything once six digits are in, since Pair is disabled until then.
         AcceptButton = pair;
         CancelButton = cancel;
-        Controls.AddRange([heading, ask, codeFrame, countdown, cancel, pair]);
+        Controls.AddRange([heading, ask, codeFrame, countdown, warn, cancel, pair]);
         Count();
         tick.Start();
         Relayout();
@@ -179,6 +181,14 @@ internal sealed class PairingWindow : Form
     {
         if (told)
         {
+            return;
+        }
+
+        // Out of time, not called off: the owner who was reading the phone's code is told nothing was paired, rather
+        // than watching the window vanish and wondering.
+        if (!answered && PairingPrompt.SecondsLeft(deadline, Environment.TickCount64) == 0)
+        {
+            Tell(PairingText.TimedOut, closeSoon: false);
             return;
         }
 
@@ -217,6 +227,9 @@ internal sealed class PairingWindow : Form
         Theme.DarkTitleBar(Handle, palette.IsDark);
         Relayout();
     }
+
+    /// <summary>Shown without taking the foreground, so stray keystrokes meant for another window do not land in the code box.</summary>
+    protected override bool ShowWithoutActivation => true;
 
     protected override void OnShown(EventArgs e)
     {
@@ -265,7 +278,7 @@ internal sealed class PairingWindow : Form
         tick.Stop();
         code.Enabled = false;
         pair.Enabled = false;
-        countdown.Text = "Checking the code";
+        countdown.Text = "Checking the pairing code";
         onTyped(PairingPrompt.Digits(code.Text));
     }
 
@@ -309,7 +322,12 @@ internal sealed class PairingWindow : Form
         Put(ask, 14f, Weight.Regular, palette.Dim, S(10));
         codeFrame.Place(new Rectangle(left, y, width, S(Box)), DeviceDpi);
         y += S(Box + 10);
-        Put(countdown, 14f, Weight.Regular, palette.Dim, S(18));
+        Put(countdown, 14f, Weight.Regular, palette.Dim, S(10));
+        warn.Visible = !told;
+        if (!told)
+        {
+            Put(warn, 13f, Weight.Regular, palette.Dim, S(18));
+        }
 
         pair.SetBounds(left + width - pair.FitWidth(DeviceDpi), y, pair.FitWidth(DeviceDpi), S(Box));
         cancel.SetBounds(pair.Left - S(8) - cancel.FitWidth(DeviceDpi), y, cancel.FitWidth(DeviceDpi), S(Box));

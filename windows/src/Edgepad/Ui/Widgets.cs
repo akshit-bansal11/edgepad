@@ -78,7 +78,7 @@ internal sealed class FlatButton : Button
 
             if (kind == ButtonKind.Outline)
             {
-                using var line = new Pen(palette.Line);
+                using var line = new Pen(palette.Off, palette.HighContrast ? Theme.Scale(2f, dpi) : 1f);
                 graphics.DrawPath(line, path);
             }
 
@@ -201,7 +201,8 @@ internal sealed class Framed : Panel
             graphics.FillPath(card, shape);
         }
 
-        using var line = new Pen(focused ? palette.Accent : palette.Line);
+        // Off, not Line: the hairline is 1.2:1 against the card, and an empty field must show its edge (3:1).
+        using var line = new Pen(focused ? palette.Accent : palette.Off, palette.HighContrast ? Theme.Scale(2f, DeviceDpi) : 1f);
         graphics.DrawPath(line, shape);
     }
 

@@ -94,7 +94,22 @@ public sealed class WindowsClipboardTests : IDisposable
     }
 
     [Fact]
-    public void NoFileIsOn() => Assert.True(new ClipboardSetting(FilePath).Enabled);
+    public void NoFileIsOffAndUnanswered()
+    {
+        var setting = new ClipboardSetting(FilePath);
+
+        Assert.False(setting.Enabled);
+        Assert.False(setting.HasChoice);
+    }
+
+    [Fact]
+    public void ASavedAnswerIsAChoiceWhateverItSays()
+    {
+        var setting = ClipboardSetting.ForCurrentUser(dir);
+        setting.Set(false);
+
+        Assert.True(new ClipboardSetting(FilePath).HasChoice);
+    }
 
     [Fact]
     public void OffIsRememberedAndOnAgainToo()

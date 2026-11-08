@@ -38,11 +38,15 @@ internal interface IPairingQuestion : IDisposable
 /// <summary>What the pairing window says once the code is typed, the same on Windows and Linux.</summary>
 internal static class PairingText
 {
-    public const string Mismatched = "That code did not match. Nothing was paired.";
+    public const string Mismatched = "That pairing code did not match. Nothing was paired.";
+
+    public const string TimedOut = "Time ran out. Nothing was paired. Start again on the phone.";
+
+    public const string Warning = "Only pair a phone that is yours. If you did not just start pairing, choose Cancel.";
 
     public const string NotFinished = "Pairing did not finish.";
 
-    public static string Matched(string phoneName) => $"Code matched. Tap Yes on {phoneName} to finish.";
+    public static string Matched(string phoneName) => $"Pairing code matched. Tap Yes on {phoneName} to finish.";
 
     public static string Paired(string phoneName) => $"Paired with {phoneName}.";
 }

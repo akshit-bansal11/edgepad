@@ -31,19 +31,44 @@ internal sealed record Palette(
     Color Danger,
     bool IsDark)
 {
+    /// <summary>True for the set built from Windows' contrast theme: borders are thicker and nothing relies on a tint.</summary>
+    public bool HighContrast { get; init; }
+
     public static readonly Palette Dark = new(
         Hex(0x1B1C20), Hex(0x2B2D33), Hex(0x24262B), Hex(0xF2F3F5), Hex(0x9A9CA3), Hex(0x4DA3FF),
-        Hex(0x0B1A2E), Hex(0x1B2A3D), Hex(0x3A3C43), Hex(0xFF6961), IsDark: true);
+        Hex(0x0B1A2E), Hex(0x1B2A3D), Hex(0x666971), Hex(0xFF6961), IsDark: true);
 
     public static readonly Palette Light = new(
-        Hex(0xFFFFFF), Hex(0xE3E5EA), Hex(0xEBEDF2), Hex(0x16171A), Hex(0x6B6E76), Hex(0x0068D6),
-        Hex(0xFFFFFF), Hex(0xE6F0FC), Hex(0xE3E5EA), Hex(0xD70015), IsDark: false);
+        Hex(0xFFFFFF), Hex(0xE3E5EA), Hex(0xEBEDF2), Hex(0x16171A), Hex(0x62656D), Hex(0x0068D6),
+        Hex(0xFFFFFF), Hex(0xE6F0FC), Hex(0x8A8D96), Hex(0xD70015), IsDark: false);
 
     /// <summary>
     /// The set for Windows' app mode right now. Read fresh on every call, because the owner can flip the mode
     /// while the tray app runs and the next menu should follow without a restart.
     /// </summary>
-    public static Palette Current => PrefersDark("AppsUseLightTheme") ? Dark : Light;
+    public static Palette Current =>
+        SystemInformation.HighContrast ? FromSystemColours() : PrefersDark("AppsUseLightTheme") ? Dark : Light;
+
+    /// <summary>
+    /// A contrast theme is the owner's own colours, so none of the design's are used: the system's window, text and
+    /// selection colours stand in for the card, ink and accent, and the selected row is told apart by a bar and an
+    /// outline rather than a tint.
+    /// </summary>
+    private static Palette FromSystemColours() => new(
+        SystemColors.Window,
+        SystemColors.WindowText,
+        SystemColors.Window,
+        SystemColors.WindowText,
+        SystemColors.WindowText,
+        SystemColors.HotTrack,
+        SystemColors.Window,
+        SystemColors.Window,
+        SystemColors.WindowText,
+        SystemColors.WindowText,
+        IsDark: SystemColors.Window.GetBrightness() < 0.5f)
+    {
+        HighContrast = true,
+    };
 
     /// <summary>Whether the taskbar is dark: it follows Windows' System mode, which is not the app mode.</summary>
     public static bool TaskbarIsDark => PrefersDark("SystemUsesLightTheme");
@@ -119,6 +144,28 @@ internal static partial class Theme
 
     public static int Scale(int value, int dpi) => (int)Math.Round(value * dpi / BaselineDpi);
 
+    /// <summary>
+    /// Windows' Accessibility › Text size, 1.0 to 1.5: fonts follow it, and so do the menu's row heights. Read once and
+    /// again by <see cref="RefreshTextScale"/>, because asking Windows for it on every font would cost a WinRT call
+    /// per paint.
+    /// </summary>
+    public static double TextScale { get; private set; } = ReadTextScale();
+
+    public static void RefreshTextScale() => TextScale = ReadTextScale();
+
+    private static double ReadTextScale()
+    {
+        try
+        {
+            return Math.Clamp(new Windows.UI.ViewManagement.UISettings().TextScaleFactor, 1.0, 1.5);
+        }
+        catch (Exception e) when (e is COMException or InvalidOperationException or TypeLoadException)
+        {
+            // Without it the text stays the size the design draws.
+            return 1.0;
+        }
+    }
+
     public static float Scale(float value, int dpi) => (float)(value * dpi / BaselineDpi);
 
     /// <summary>
@@ -128,6 +175,7 @@ internal static partial class Theme
     /// </summary>
     public static Font Font(float pixels, Weight weight)
     {
+        pixels = (float)Math.Round(pixels * TextScale, 1);
         if (!Fonts.TryGetValue((pixels, weight), out var font))
         {
             font = weight switch
@@ -200,6 +248,9 @@ internal static partial class Theme
         _ = Native.DwmSetWindowAttribute(window, DwmUseImmersiveDarkMode, ref on, sizeof(int));
     }
 
+    /// <summary>Frees an icon handle made with GetHicon, which the Icon built from it does not own.</summary>
+    public static void DestroyIcon(nint handle) => _ = Native.DestroyIcon(handle);
+
     /// <summary>Dark scroll bars for a list in a dark dialog, from the theme Explorer uses for the same thing.</summary>
     public static void DarkScrollbars(nint window) => _ = Native.SetWindowTheme(window, "DarkMode_Explorer", null);
 
@@ -256,6 +307,10 @@ internal static partial class Theme
         [LibraryImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static partial bool SystemParametersInfoW(uint action, uint parameter, out int value, uint update);
+
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static partial bool DestroyIcon(nint icon);
 
         [LibraryImport("uxtheme.dll", StringMarshalling = StringMarshalling.Utf16)]
         public static partial int SetWindowTheme(nint window, string? application, string? idList);

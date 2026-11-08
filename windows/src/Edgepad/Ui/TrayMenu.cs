@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Drawing.Drawing2D;
+using Edgepad.Net;
 
 namespace Edgepad.Ui;
 
@@ -21,6 +22,9 @@ internal sealed class TrayMenu : ContextMenuStrip
     private const int RowHeight = 34;
     private const int HeaderHeight = 62;
     private const int SeparatorHeight = 9;
+
+    // One more line of the header's status text, at 96 dpi.
+    private const int StatusLineHeight = 17;
 
     private bool rounded;
 
@@ -46,6 +50,7 @@ internal sealed class TrayMenu : ContextMenuStrip
     /// <summary>Picks up the current theme and sizes every row for the monitor. Called as the menu opens.</summary>
     public void Restyle()
     {
+        Theme.RefreshTextScale();
         Palette = Palette.Current;
         if (rounded)
         {
@@ -57,14 +62,15 @@ internal sealed class TrayMenu : ContextMenuStrip
         {
             item.AutoSize = false;
             item.Margin = Padding.Empty;
-            item.Size = new Size(width, Theme.Scale(
-                item switch
-                {
-                    HeaderRow => HeaderHeight,
-                    ToolStripSeparator => SeparatorHeight,
-                    _ => RowHeight,
-                },
-                DeviceDpi));
+            var rows = item switch
+            {
+                HeaderRow header => HeaderHeight + (header.ExtraLines(DeviceDpi, width) * StatusLineHeight),
+                ToolStripSeparator => SeparatorHeight,
+                _ => RowHeight,
+            };
+
+            // Windows' Text size grows the rows with the words in them; a rule between rows stays a hairline.
+            item.Size = new Size(width, (int)Math.Round(Theme.Scale(rows, DeviceDpi) * (item is ToolStripSeparator ? 1.0 : Theme.TextScale)));
         }
 
         Padding = DefaultPadding;
@@ -174,8 +180,17 @@ internal sealed class MenuRow(string text, string glyph) : ToolStripMenuItem(tex
     /// <summary>How far a disabled row fades toward the card, as the design's 45% opacity does.</summary>
     private const float Disabled = 0.55f;
 
+    /// <summary>The dim words at the right. Narrator reads them as the row's description.</summary>
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public string? Hint { get; set; }
+    public string? Hint
+    {
+        get;
+        set
+        {
+            field = value;
+            AccessibleDescription = value;
+        }
+    }
 
     /// <summary>Drawn in the danger colour: the one row that throws something away.</summary>
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -204,10 +219,23 @@ internal sealed class MenuRow(string text, string glyph) : ToolStripMenuItem(tex
             using var faint = new SolidBrush(palette.Faint);
             using var highlight = Theme.Rounded(new RectangleF(0, 0, Width, Height), Theme.Scale(6f, dpi));
             graphics.FillPath(faint, highlight);
+
+            // The fill alone is about 1.1:1 against the card, too faint to be the keyboard's position. A bar in the
+            // accent says which row Enter will act on.
+            using var bar = new SolidBrush(palette.Accent);
+            using var mark = Theme.Rounded(
+                new RectangleF(Theme.Scale(1f, dpi), Height * 0.25f, Theme.Scale(3f, dpi), Height * 0.5f), Theme.Scale(1.5f, dpi));
+            graphics.FillPath(bar, mark);
+
+            if (palette.HighContrast)
+            {
+                using var outline = new Pen(palette.Line, Theme.Scale(2f, dpi));
+                graphics.DrawRectangle(outline, 1, 1, Width - 3, Height - 3);
+            }
         }
 
         var ink = Danger ? palette.Danger : palette.Ink;
-        var muted = Danger ? palette.Danger : palette.Dim;
+        var muted = Danger ? palette.Danger : Selected ? palette.Ink : palette.Dim;
         if (!Enabled)
         {
             ink = Theme.Mix(ink, palette.Card, Disabled);
@@ -260,7 +288,11 @@ internal sealed class MenuRow(string text, string glyph) : ToolStripMenuItem(tex
             graphics.FillEllipse(shadow, x, track.Top + inset + inset, knob, knob);
         }
 
-        graphics.FillEllipse(Brushes.White, x, track.Top + inset, knob, knob);
+        using (var thumb = new SolidBrush(palette.HighContrast ? palette.Card : Color.White))
+        {
+            graphics.FillEllipse(thumb, x, track.Top + inset, knob, knob);
+        }
+
         return (int)Math.Ceiling(width);
     }
 }
@@ -345,7 +377,7 @@ internal sealed class HeaderRow : ToolStripMenuItem
             DrawRipple(graphics, palette, dpi, tile);
         }
 
-        var waiting = Status.Waiting;
+        var waiting = !Status.Connected;
         using (var fill = new SolidBrush(waiting ? palette.AccentSoft : palette.Accent))
         using (var shape = Theme.Rounded(tile, Theme.Scale(10f, dpi)))
         {
@@ -390,16 +422,27 @@ internal sealed class HeaderRow : ToolStripMenuItem
             Status.Badge,
             badgeFont,
             Rectangle.Round(badge),
-            waiting ? palette.Dim : palette.Accent,
+            Status.Problem ? palette.Danger : waiting ? palette.Dim : palette.Accent,
             flags | TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
 
+        // Wrapped, not cut: a refusal or a long phone name is the thing the owner opened the menu to read.
         TextRenderer.DrawText(
             graphics,
             Status.Line,
             statusFont,
-            new Rectangle(left, top + headlineFont.Height + gap, right - left, statusFont.Height),
+            new Rectangle(left, top + headlineFont.Height + gap, right - left, Height - (top + headlineFont.Height + gap)),
             palette.Dim,
-            flags | TextFormatFlags.EndEllipsis);
+            TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding | TextFormatFlags.EndEllipsis);
+    }
+
+    /// <summary>How many lines past the first the status text needs in a row <paramref name="rowWidth"/> wide.</summary>
+    public int ExtraLines(int dpi, int rowWidth)
+    {
+        var font = Theme.Font(Theme.Scale(13f, dpi), Weight.Regular);
+        var available = rowWidth - Theme.Scale(8f + 40f + 12f + 8f, dpi);
+        var height = TextRenderer.MeasureText(
+            Status.Line, font, new Size(available, 0), TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding).Height;
+        return Math.Clamp((height / Math.Max(1, font.Height)) - 1, 0, 2);
     }
 
     /// <summary>
@@ -441,25 +484,40 @@ internal sealed class HeaderRow : ToolStripMenuItem
 }
 
 /// <summary>What the header says for a status line from the Bluetooth side.</summary>
-internal sealed record TrayStatus(string Headline, string Badge, string Line, bool Waiting)
+internal sealed record TrayStatus(string Headline, string Badge, string Line, bool Waiting, bool Problem = false)
 {
-    /// <summary>
-    /// The one status that means a phone is here, as Session words it. A connected phone has passed the trust
-    /// check to get that far, which is what lets the badge say Trusted rather than merely Connected.
-    /// </summary>
-    private const string ConnectedPrefix = "Connected to ";
-
-    // A phone the status already says the way of (a Wi-Fi or USB one: SessionHost.Shown) keeps it; a bare address is Bluetooth.
+    // A phone the status already says the way of keeps it ("Pixel · Wi-Fi"); a bare name is Bluetooth.
     private const string Way = " · ";
+
+    /// <summary>A live phone: neither waiting for one nor stuck.</summary>
+    public bool Connected => !Waiting && !Problem;
 
     public static TrayStatus Describe(string status)
     {
-        if (!status.StartsWith(ConnectedPrefix, StringComparison.Ordinal))
+        if (StatusText.IsConnected(status))
         {
-            return new TrayStatus("No phone yet", "Waiting", status, Waiting: true);
+            var phone = status[StatusText.ConnectedStart.Length..];
+            return new TrayStatus("Phone connected", "Connected", phone.Contains(Way, StringComparison.Ordinal) ? phone : $"{phone}{Way}Bluetooth", Waiting: false);
         }
 
-        var phone = status[ConnectedPrefix.Length..];
-        return new TrayStatus("Phone connected", "Trusted", phone.Contains(Way, StringComparison.Ordinal) ? phone : $"{phone}{Way}over Bluetooth", Waiting: false);
+        return StatusText.IsProblem(status)
+            ? new TrayStatus("No phone connected", "Problem", status, Waiting: false, Problem: true)
+            : new TrayStatus("No phone connected", "Waiting", status, Waiting: true);
+    }
+
+    /// <summary>
+    /// The tray icon's tooltip, cut at a word and ended with an ellipsis when the shell's limit would otherwise cut it
+    /// mid-word.
+    /// </summary>
+    public static string Tooltip(string status, int max)
+    {
+        var text = $"Edgepad: {status}";
+        if (text.Length <= max)
+        {
+            return text;
+        }
+
+        var cut = text.LastIndexOf(' ', max - 2);
+        return (cut > "Edgepad:".Length ? text[..cut] : text[..(max - 1)]).TrimEnd(',', ':', ';', '.') + "…";
     }
 }

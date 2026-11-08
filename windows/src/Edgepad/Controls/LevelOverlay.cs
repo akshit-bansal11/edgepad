@@ -11,6 +11,9 @@ internal enum LevelKind
     Volume,
     Microphone,
     Brightness,
+
+    /// <summary>Not a level: a short word about the phone ("Phone connected"), drawn without the bar.</summary>
+    Phone,
 }
 
 /// <summary>
@@ -88,6 +91,21 @@ internal sealed class LevelOverlay : IDisposable
         }
     }
 
+    /// <summary>Says <paramref name="text"/> in the same pill, for a phone that connected or dropped. Any thread.</summary>
+    public void ShowNotice(string text)
+    {
+        if (stopped)
+        {
+            return;
+        }
+
+        Volatile.Write(ref latest, new Reading(LevelKind.Phone, text, 0, false));
+        if (Interlocked.Exchange(ref posted, 1) == 0)
+        {
+            ui.Post(_ => Drain(), null);
+        }
+    }
+
     private void Present(LevelKind kind, string caption, int percent, bool muted)
     {
         if (stopped)
@@ -161,6 +179,7 @@ internal sealed class LevelOverlay : IDisposable
         {
             LevelKind.Microphone => "Microphone",
             LevelKind.Brightness => "Brightness",
+            LevelKind.Phone => "Phone",
             _ => "Volume",
         };
 
@@ -169,6 +188,23 @@ internal sealed class LevelOverlay : IDisposable
             muted ? "Muted" : Math.Clamp(percent, 0, 100).ToString(CultureInfo.InvariantCulture);
 
         public static int Scale(int value, int dpi) => Theme.Scale(value, dpi);
+
+        /// <summary>
+        /// The working area of the monitor the owner is looking at, which is where the cursor is: with a TV as the second
+        /// screen the primary one is often the laptop's own panel, and a readout there is feedback nobody sees.
+        /// </summary>
+        public static Rectangle Where()
+        {
+            try
+            {
+                return Screen.FromPoint(Cursor.Position).WorkingArea;
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                // No cursor to read, a locked desktop say: the primary screen is as good a guess as any.
+                return Screen.PrimaryScreen?.WorkingArea ?? SystemInformation.WorkingArea;
+            }
+        }
 
         /// <summary>
         /// Lato's capital and figure height as a share of its em (1433 of 2000 units): how far the value's digits
@@ -318,12 +354,14 @@ internal sealed class LevelOverlay : IDisposable
         private void Relayout()
         {
             var dpi = DeviceDpi;
-            var work = Screen.PrimaryScreen?.WorkingArea ?? SystemInformation.WorkingArea;
-            var height = Metrics.PanelHeight(
-                Metrics.Scale(Pad, dpi),
-                Metrics.Scale(ValueSize, dpi) * Metrics.CapShare,
-                Metrics.Scale(BaselineToBar, dpi),
-                Metrics.Scale(BarHeight, dpi));
+            var work = Metrics.Where();
+            var height = kind == LevelKind.Phone
+                ? (2 * Metrics.Scale(Pad, dpi)) + Metrics.Scale(IconSize, dpi)
+                : Metrics.PanelHeight(
+                    Metrics.Scale(Pad, dpi),
+                    Metrics.Scale(ValueSize, dpi) * Metrics.CapShare,
+                    Metrics.Scale(BaselineToBar, dpi),
+                    Metrics.Scale(BarHeight, dpi));
             var size = new Size(Metrics.Scale(PanelWidth, dpi), height);
             var where = new Rectangle(Metrics.Anchor(work, size, Metrics.Scale(BottomMargin, dpi)), size);
             laidOutAt = dpi;
@@ -362,7 +400,7 @@ internal sealed class LevelOverlay : IDisposable
                 return;
             }
 
-            if (left < FadeMs)
+            if (left < FadeMs && Theme.AnimationsEnabled)
             {
                 Opacity = Solid * left / FadeMs;
             }
@@ -387,6 +425,12 @@ internal sealed class LevelOverlay : IDisposable
 
             var pad = Metrics.Scale(Pad, dpi);
             var icon = Metrics.Scale(IconSize, dpi);
+            if (kind == LevelKind.Phone)
+            {
+                PaintNotice(graphics, pad, icon, dpi);
+                return;
+            }
+
             var glyph = kind switch
             {
                 LevelKind.Microphone => Icons.Microphone,
@@ -431,6 +475,16 @@ internal sealed class LevelOverlay : IDisposable
                 using var shape = Theme.Rounded(track with { Width = filled }, bar / 2f);
                 graphics.FillPath(accent, shape);
             }
+        }
+
+        /// <summary>The phone pill: its icon, then one line of words.</summary>
+        private void PaintNotice(Graphics graphics, int pad, int icon, int dpi)
+        {
+            Icons.Draw(graphics, Icons.Smartphone, new RectangleF(pad, (Height - icon) / 2f, icon, icon), Colours.Accent);
+            var font = Theme.Font(Metrics.Scale(ValueSize - 4, dpi), Weight.Bold);
+            var text = graphics.MeasureString(caption, font, PointF.Empty, typographic);
+            using var ink = new SolidBrush(Colours.Ink);
+            graphics.DrawString(caption, font, ink, pad + icon + Metrics.Scale(Gap, dpi), (Height - text.Height) / 2f, typographic);
         }
 
         /// <summary>A pixel font's ascent in pixels, which is where its baseline sits below the top it is drawn at.</summary>

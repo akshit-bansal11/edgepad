@@ -54,28 +54,25 @@ internal sealed class SessionHost(
     /// <summary>Whether a hold or a quiet period refuses new connections right now; no pairing may start then.</summary>
     public bool IsRefusing => admission.IsRefusing;
 
-    // How the owner reads each Wi-Fi or USB phone's address. Only phones a pairing or a resume let through get here,
-    // so it grows with this laptop's own phones, not with whoever opens a socket.
-    private readonly ConcurrentDictionary<string, string> shown = new(StringComparer.OrdinalIgnoreCase);
+    // How the owner reads each phone: its name, which can arrive after the connection (a Bluetooth phone's is looked up
+    // in Windows), and the way it came. Only phones that got as far as a session get here, so it grows with this
+    // laptop's own phones, not with whoever opens a socket.
+    private readonly ConcurrentDictionary<string, (Func<string> Name, string Way)> shown = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>
-    /// What the owner reads for <paramref name="address"/>: a Wi-Fi or USB phone's name and the way it came, since
-    /// its address is a string of hex; a Bluetooth phone's address as it is.
-    /// </summary>
-    public string Shown(string address) => shown.TryGetValue(address, out var name) ? name : address;
+    /// <summary>What the owner reads for <paramref name="address"/>: the phone's name, or its address while it has none.</summary>
+    public string Shown(string address) => shown.TryGetValue(address, out var phone) ? phone.Name() : address;
+
+    /// <summary>The connected status for <paramref name="address"/>, "Connected to Pixel · Bluetooth".</summary>
+    public string Connected(string address) =>
+        shown.TryGetValue(address, out var phone) ? StatusText.Connected(phone.Name(), phone.Way) : StatusText.Connected(address, "Bluetooth");
 
     /// <summary>The status line for <paramref name="link"/>'s session, naming the phone as <see cref="Shown"/> does.</summary>
     private Action<string> StatusFor(IPhoneLink link)
     {
-        if (link.Kind != LinkKind.Network)
-        {
-            return onStatus;
-        }
-
         var address = link.Address;
-        var name = $"{link.Label} · over Wi-Fi or USB";
-        shown[address] = name;
-        return status => onStatus(status.Replace(address, name, StringComparison.Ordinal));
+        shown[address] = (() => link.Label, link.Kind == LinkKind.Network ? "Wi-Fi or USB" : "Bluetooth");
+        return status => onStatus(
+            StatusText.IsConnected(status) ? Connected(address) : status.Replace(address, Shown(address), StringComparison.Ordinal));
     }
 
     /// <summary>

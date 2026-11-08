@@ -352,8 +352,8 @@ internal static class ClipboardFlags
 }
 
 /// <summary>
-/// <c>clipboard.txt</c>: the tray's Share clipboard switch, <c>enabled=0|1</c>. No file is on, the owner's chosen
-/// default. A file that cannot be read, or holds anything Edgepad would not have written, is off, because this switch
+/// <c>clipboard.txt</c>: the tray's Share clipboard switch, <c>enabled=0|1</c>. No file is off: nothing leaves the laptop
+/// until the owner has answered the first-run question (<see cref="HasChoice"/> is false until then). A file that cannot be read, or holds anything Edgepad would not have written, is off, because this switch
 /// lets clipboard content leave the laptop. Read once and kept: the sync asks for every frame of a transfer.
 /// </summary>
 internal sealed class ClipboardSetting(string path)
@@ -364,6 +364,9 @@ internal sealed class ClipboardSetting(string path)
     private volatile bool enabled = Load(path);
 
     public bool Enabled => enabled;
+
+    /// <summary>True once the owner has answered, or an install from before the question was asked wrote its value down.</summary>
+    public bool HasChoice => Path.Exists(path);
 
     public static ClipboardSetting ForCurrentUser(string directory) => new(Path.Combine(directory, "clipboard.txt"));
 
@@ -394,7 +397,7 @@ internal sealed class ClipboardSetting(string path)
         }
         catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
         {
-            return true;
+            return false;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {

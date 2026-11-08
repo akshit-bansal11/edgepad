@@ -4,21 +4,29 @@ using Palette = Edgepad.Ui.Palette;
 
 namespace Edgepad.Trust;
 
+/// <summary>What the Security window can do about the trusted phones; the tray owns the stores and the sessions.</summary>
+internal sealed record PhoneActions(
+    Func<IReadOnlyList<PhoneEntry>> List,
+    Func<IWin32Window, PhoneEntry, bool> ForgetOne,
+    Action<IWin32Window> ForgetAll);
+
 /// <summary>
-/// The owner's way into <see cref="PinStore"/>: choose the security level, set the PIN, or give up on a forgotten
-/// PIN. It is only ever opened by the tray, under <c>SessionHost.HoldOff</c>, because a connected phone is a
-/// keyboard and could otherwise answer it.
+/// The owner's way into <see cref="PinStore"/> and the trusted phones: choose the security level, set the PIN, forget
+/// one phone or all of them, or give up on a forgotten PIN. It is only ever opened by the tray, under
+/// <c>SessionHost.HoldOff</c>, because a connected phone is a keyboard and could otherwise answer it. The window says
+/// so, since opening it hangs up the phone that is connected.
 ///
-/// Level and PIN are a working copy until Save, so closing the window any other way changes nothing. Reset is the
-/// exception on purpose: it is its own confirmed action, not a setting waiting for Save.
+/// Level and PIN are a working copy until Save, so closing the window any other way changes nothing. Forgetting is the
+/// exception on purpose: each Forget and Reset is its own confirmed action, not a setting waiting for Save.
 /// </summary>
 internal sealed class SecurityWindow : Form
 {
     // Measurements at 96 dpi, turned into pixels by Relayout for the monitor the window is on.
-    private const int DialogWidth = 460;
+    private const int DialogWidth = 480;
     private const int Pad = 24;
     private const int Box = 36;
-    private const int RowHeight = 30;
+    private const int RowHeight = 28;
+    private const int NoteIndent = 26;
 
     private static readonly string[] LevelNames =
     [
@@ -27,19 +35,28 @@ internal sealed class SecurityWindow : Form
         "PIN on every connection",
     ];
 
+    private static readonly string[] LevelNotes =
+    [
+        "A new phone needs your yes here. Nothing else is asked.",
+        "The phone also types the PIN, once. It is remembered until the PIN or the level changes.",
+        "The phone types the PIN every time it connects.",
+    ];
+
     private readonly PinStore pin;
     private readonly TrustStore trust;
+    private readonly PhoneActions phones;
     private readonly Action hangUp;
 
-    // Forgets the Wi-Fi and USB pairings and tells the owner if it could not, as Forget trusted phones does.
-    private readonly Action forgetPairings;
+    // Forgets the Wi-Fi and USB pairings and tells the owner if it could not, as Forget all does.
+    private readonly Action<IWin32Window> forgetPairings;
     private readonly Palette palette = Palette.Current;
 
     private readonly Label heading = new() { AutoSize = false, Text = "Security" };
     private readonly Label description = new()
     {
         AutoSize = false,
-        Text = "Every phone is asked for your yes first. Levels 2 and 3 also ask for a six-digit PIN.",
+        Text = "Every phone needs your yes here first. Levels 2 and 3 also ask for a six-digit PIN, typed on the phone's "
+            + "screen. Phones are disconnected while this window is open.",
     };
 
     private readonly Label pinState = new() { AutoSize = false, TextAlign = ContentAlignment.MiddleLeft };
@@ -49,8 +66,18 @@ internal sealed class SecurityWindow : Form
         Text = "Saving a new PIN or level makes phones that entered the PIN once enter it again.",
     };
 
+    private readonly Label phonesHeading = new() { AutoSize = false, Text = "Trusted phones" };
+    private readonly Label noPhones = new()
+    {
+        AutoSize = false,
+        Text = "No phone is trusted yet. A phone is asked about the first time it connects.",
+    };
+
+    private readonly List<(Label Name, FlatButton Forget, PhoneEntry Phone)> phoneRows = [];
     private readonly RadioButton[] levels;
+    private readonly Label[] notes;
     private readonly FlatButton setPin;
+    private readonly FlatButton forgetAll;
     private readonly FlatButton reset;
     private readonly FlatButton cancel;
     private readonly FlatButton save;
@@ -62,10 +89,11 @@ internal sealed class SecurityWindow : Form
     private int level;
     private bool filling;
 
-    public SecurityWindow(PinStore pin, TrustStore trust, Action forgetPairings, Action hangUp)
+    public SecurityWindow(PinStore pin, TrustStore trust, PhoneActions phones, Action<IWin32Window> forgetPairings, Action hangUp)
     {
         this.pin = pin;
         this.trust = trust;
+        this.phones = phones;
         this.hangUp = hangUp;
         this.forgetPairings = forgetPairings;
         level = pin.Level;
@@ -81,34 +109,42 @@ internal sealed class SecurityWindow : Form
         BackColor = palette.Card;
 
         levels = new RadioButton[LevelNames.Length];
+        notes = new Label[LevelNames.Length];
         for (var i = 0; i < levels.Length; i++)
         {
             var chosen = i + 1;
             var radio = new RadioButton
             {
-                Text = $"{chosen}. {LevelNames[i]}",
+                Text = LevelNames[i],
                 AccessibleName = $"Level {chosen}, {LevelNames[i]}",
+                AccessibleDescription = LevelNotes[i],
                 Checked = chosen == level,
                 UseVisualStyleBackColor = false,
             };
             radio.CheckedChanged += (_, _) => Choose(radio, chosen);
             levels[i] = radio;
+            notes[i] = new Label { AutoSize = false, Text = LevelNotes[i] };
         }
 
         setPin = new FlatButton("Set PIN…", ButtonKind.Outline, palette);
-        reset = new FlatButton("Reset PIN and forget phones…", ButtonKind.Ghost, palette, Icons.Unlink) { Danger = true };
+        forgetAll = new FlatButton("Forget all…", ButtonKind.Ghost, palette, Icons.Unlink) { Danger = true };
+        reset = new FlatButton("Reset PIN and forget phones…", ButtonKind.Ghost, palette) { Danger = true };
         cancel = new FlatButton("Cancel", ButtonKind.Outline, palette) { DialogResult = DialogResult.Cancel };
         save = new FlatButton("Save", ButtonKind.Primary, palette) { DialogResult = DialogResult.OK };
         setPin.Click += (_, _) => SetPinFlow();
+        forgetAll.Click += (_, _) => ConfirmForgetAll();
         reset.Click += (_, _) => ConfirmReset();
         save.Click += (_, _) => Save();
         AcceptButton = save;
         CancelButton = cancel;
 
-        // In tab order: the levels, then the PIN, then the footer from left to right.
-        Controls.AddRange([heading, description, .. levels, pinState, setPin, warning, reset, cancel, save]);
-        Relayout();
+        // In tab order: the levels, then the PIN, then the phones, then the footer from left to right.
+        Controls.AddRange([heading, description, .. levels, .. notes, pinState, setPin, warning, phonesHeading, noPhones, forgetAll, reset, cancel, save]);
+        Refill();
     }
+
+    /// <summary>The name the menu and the radios use for <paramref name="level"/>, 1 to 3.</summary>
+    public static string LevelName(int level) => LevelNames[Math.Clamp(level, 1, LevelNames.Length) - 1];
 
     private bool HavePin => staged is not null || pin.HasPin;
 
@@ -129,36 +165,63 @@ internal sealed class SecurityWindow : Form
         Relayout();
     }
 
+    /// <summary>Lists the trusted phones again, after one was forgotten, and lays the window out for them.</summary>
+    private void Refill()
+    {
+        foreach (var (name, forget, _) in phoneRows)
+        {
+            Controls.Remove(name);
+            Controls.Remove(forget);
+            name.Dispose();
+            forget.Dispose();
+        }
+
+        phoneRows.Clear();
+        foreach (var phone in phones.List())
+        {
+            var name = new Label { AutoSize = false, Text = $"{phone.Name} · {phone.Way}", AutoEllipsis = true, TextAlign = ContentAlignment.MiddleLeft };
+            var forget = new FlatButton("Forget", ButtonKind.Outline, palette) { Danger = true, AccessibleName = $"Forget {phone.Name}" };
+            forget.Click += (_, _) => ConfirmForgetOne(phone);
+            phoneRows.Add((name, forget, phone));
+            Controls.Add(name);
+            Controls.Add(forget);
+        }
+
+        Relayout();
+    }
+
     private void Relayout()
     {
         var width = S(DialogWidth - (Pad * 2));
         var left = S(Pad);
         var y = S(Pad);
 
-        void Put(Label label, float pixels, Weight weight, Color ink, int gap)
+        void Put(Label label, float pixels, Weight weight, Color ink, int gap, int indent = 0)
         {
             label.Font = Theme.Font(Theme.Scale(pixels, DeviceDpi), weight);
             label.ForeColor = ink;
             label.BackColor = palette.Card;
             var height = TextRenderer.MeasureText(
-                label.Text, label.Font, new Size(width, 0), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height;
-            label.SetBounds(left, y, width, height);
+                label.Text, label.Font, new Size(width - indent, 0), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height;
+            label.SetBounds(left + indent, y, width - indent, height);
             y += height + gap;
         }
 
         Put(heading, 18f, Weight.Bold, palette.Ink, S(6));
         Put(description, 14f, Weight.Regular, palette.Dim, S(14));
 
-        foreach (var radio in levels)
+        for (var i = 0; i < levels.Length; i++)
         {
+            var radio = levels[i];
             radio.Font = Theme.Font(Theme.Scale(14f, DeviceDpi), Weight.Regular);
             radio.ForeColor = palette.Ink;
             radio.BackColor = palette.Card;
             radio.SetBounds(left, y, width, S(RowHeight));
             y += S(RowHeight);
+            Put(notes[i], 13f, Weight.Regular, palette.Dim, S(8), S(NoteIndent));
         }
 
-        y += S(14);
+        y += S(8);
         setPin.Text = HavePin ? "Change PIN…" : "Set PIN…";
         setPin.SetBounds(left, y, setPin.FitWidth(DeviceDpi), S(Box));
         pinState.Text = staged is not null ? "A new PIN will be saved." : pin.HasPin ? "A PIN is set." : "No PIN is set.";
@@ -170,9 +233,40 @@ internal sealed class SecurityWindow : Form
 
         Put(warning, 14f, Weight.Regular, palette.Dim, S(18));
 
-        reset.SetBounds(left, y, reset.FitWidth(DeviceDpi), S(Box));
-        save.SetBounds(left + width - save.FitWidth(DeviceDpi), y + S(Box + 10), save.FitWidth(DeviceDpi), S(Box));
+        Put(phonesHeading, 15f, Weight.Bold, palette.Ink, S(8));
+        noPhones.Visible = phoneRows.Count == 0;
+        if (phoneRows.Count == 0)
+        {
+            Put(noPhones, 14f, Weight.Regular, palette.Dim, S(12));
+        }
+
+        foreach (var (name, forget, _) in phoneRows)
+        {
+            name.Font = Theme.Font(Theme.Scale(14f, DeviceDpi), Weight.Regular);
+            name.ForeColor = palette.Ink;
+            name.BackColor = palette.Card;
+            forget.SetBounds(left + width - forget.FitWidth(DeviceDpi), y, forget.FitWidth(DeviceDpi), S(Box));
+            name.SetBounds(left, y, forget.Left - left - S(8), S(Box));
+            y += S(Box + 4);
+        }
+
+        y += S(8);
+        forgetAll.Enabled = phoneRows.Count > 0;
+        forgetAll.SetBounds(left, y, forgetAll.FitWidth(DeviceDpi), S(Box));
+        reset.SetBounds(forgetAll.Right + S(8), y, reset.FitWidth(DeviceDpi), S(Box));
+        y += S(Box + 18);
+
+        save.SetBounds(left + width - save.FitWidth(DeviceDpi), y, save.FitWidth(DeviceDpi), S(Box));
         cancel.SetBounds(save.Left - S(8) - cancel.FitWidth(DeviceDpi), save.Top, cancel.FitWidth(DeviceDpi), S(Box));
+
+        // The phones' Forget buttons come after the PIN and before the footer, wherever Refill added them.
+        var order = new List<Control>([.. levels, setPin]);
+        order.AddRange(phoneRows.Select(row => row.Forget));
+        order.AddRange([forgetAll, reset, cancel, save]);
+        for (var i = 0; i < order.Count; i++)
+        {
+            order[i].TabIndex = i;
+        }
 
         ClientSize = new Size(S(DialogWidth), save.Bottom + S(Pad));
         Invalidate();
@@ -248,17 +342,44 @@ internal sealed class SecurityWindow : Form
         DialogResult = DialogResult.OK;
     }
 
+    private void ConfirmForgetOne(PhoneEntry phone)
+    {
+        if (!Ask.Forget(
+            this,
+            $"Forget {phone.Name}?",
+            $"{phone.Name} ({phone.Way}) will have to be trusted here again before it can use this laptop. "
+                + "Phones stay disconnected while you decide."))
+        {
+            return;
+        }
+
+        phones.ForgetOne(this, phone);
+        Refill();
+    }
+
+    private void ConfirmForgetAll()
+    {
+        var names = string.Join(", ", phoneRows.Select(row => row.Phone.Name));
+        if (!Ask.Forget(
+            this,
+            "Forget all trusted phones?",
+            $"{(names.Length > 0 ? $"{names} will" : "Every phone will")} have to be trusted here again before it can use this laptop, "
+                + "the one connected included. Phones stay disconnected while you decide."))
+        {
+            return;
+        }
+
+        phones.ForgetAll(this);
+        Refill();
+    }
+
     private void ConfirmReset()
     {
-        var answer = MessageBox.Show(
+        if (!Ask.Forget(
             this,
-            "Delete the PIN, go back to level 1 and forget every trusted phone? Each phone, the one connected included, "
-                + "will have to be trusted here again. A forgotten PIN cannot be recovered, only reset.",
-            "Edgepad",
-            MessageBoxButtons.YesNo,
-            MessageBoxIcon.Warning,
-            MessageBoxDefaultButton.Button2);
-        if (answer != DialogResult.Yes)
+            "Reset the PIN and forget every phone?",
+            "The PIN is deleted, the level goes back to 1 and every trusted phone is forgotten. Each phone, the one connected "
+                + "included, will have to be trusted here again. A forgotten PIN cannot be recovered, only reset."))
         {
             return;
         }
@@ -270,32 +391,31 @@ internal sealed class SecurityWindow : Form
 
         // Every way of forgetting phones forgets the network pairings too, whatever became of the trust file: a
         // paired phone would otherwise resume its link and meet only the trust question.
-        forgetPairings();
+        forgetPairings(this);
 
         var pinGone = forgotten && pin.Reset();
         hangUp();
         if (!forgotten)
         {
             Fail(
-                "Nothing was reset: the trusted phones could not be forgotten, so the PIN and the level were left as "
+                $"Close whatever is holding the file, then choose Reset again, or delete it yourself:\n\n{trust.FilePath}\n\n"
+                    + "Nothing was reset: the trusted phones could not be forgotten, so the PIN and the level were left as "
                     + "they were. No phone can connect while Edgepad stays running, but those phones will be trusted "
-                    + "again, behind the same PIN, the next time it starts. Close whatever is holding the file and "
-                    + $"choose Reset again, or delete it yourself:\n\n{trust.FilePath}");
+                    + "again, behind the same PIN, the next time it starts.");
         }
         else if (!pinGone)
         {
             Fail(
-                "The trusted phones were forgotten, but the PIN could not be reset: a settings file could not be "
-                    + "removed, so the old PIN and level may still apply. Each phone has to be trusted here again. "
-                    + "Close whatever is holding the file and choose Reset again, or delete security.txt and "
-                    + $"pin-verified.txt yourself from:\n\n{pin.Folder}");
+                $"Close whatever is holding the file, then choose Reset again, or delete security.txt and pin-verified.txt yourself from:\n\n{pin.Folder}\n\n"
+                    + "The trusted phones were forgotten, but the PIN could not be reset: a settings file could not be "
+                    + "removed, so the old PIN and level may still apply. Each phone has to be trusted here again.");
         }
 
         DialogResult = DialogResult.Abort;
     }
 
     private void Fail(string message) =>
-        MessageBox.Show(this, message, "Edgepad", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        MessageBox.Show(this, message, "Security", MessageBoxButtons.OK, MessageBoxIcon.Error);
 }
 
 /// <summary>Two masked boxes that take six digits only; OK is refused until they match.</summary>
@@ -435,7 +555,7 @@ internal sealed class PinDialog : Form
 
     private void Refuse(string message, TextBox where)
     {
-        MessageBox.Show(this, message, "Edgepad", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        MessageBox.Show(this, message, "New PIN", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         where.Focus();
     }
 }
