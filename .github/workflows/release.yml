@@ -123,10 +123,11 @@ jobs:
       - name: Check the signing certificate is the pinned one
         run: |
           tools=$(dirname "$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)")
-          # Newer apksigner labels the signer "Signer (minSdkVersion=..., maxSdkVersion=...)" rather than
-          # "Signer #1", so match either and take the first. The digest is public; it is logged either way.
+          # apksigner's label for the signer differs by version ("Signer #1 certificate ...", "V3.0 Signer:
+          # certificate ..."), so match the digest text itself, skip a source stamp's, and take the first.
+          # The digest is public; it is logged either way.
           certs=$("$tools/apksigner" verify --print-certs Edgepad.apk | tr -d '\r')
-          got=$(printf '%s\n' "$certs" | sed -n 's/^Signer.* certificate SHA-256 digest: //p' | head -1 | tr A-F a-f)
+          got=$(printf '%s\n' "$certs" | grep -v -i 'stamp' | sed -n 's/^.*certificate SHA-256 digest: //p' | head -1 | tr A-F a-f)
           echo "APK signing certificate SHA-256: ${got:-none found}"
           if [ "$got" != "$EXPECTED_CERT_SHA256" ]; then
             printf '%s\n' "$certs" | grep -i 'digest\|signer' || true
