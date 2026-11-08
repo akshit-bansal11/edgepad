@@ -238,7 +238,7 @@ export default function Page() {
     },
     { term: "Protocol", value: `Version ${protocol.version}` },
     { term: "Phone", value: "Kotlin, Android 12+" },
-    { term: "Laptop", X,
+    { term: "Laptop", value: "Windows; Mac and Linux in testing" },
   ];
 
   return (

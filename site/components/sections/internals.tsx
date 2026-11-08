@@ -255,8 +255,8 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
         <P>
           Everything runs on the main thread, because IOBluetooth delivers on the main
           run loop. A session is therefore a state machine fed bytes rather than a
-          blocking read loop, and bytes that arrive while the Trust NAME? question
-          is open wait in a buffer until HELLO_ACK has gone out. The app polls volume,
+          blocking read loop, and bytes that arrive while the Trust NAME? question is
+          open wait in a buffer until HELLO_ACK has gone out. The app polls volume,
           microphone and brightness twice a second instead of subscribing, so a change
           made on the Mac reaches the phone within half a second. Brightness uses a
           private framework, DisplayServices, loaded at run time; where it is missing

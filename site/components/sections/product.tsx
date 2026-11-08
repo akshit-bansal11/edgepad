@@ -306,16 +306,13 @@ export function ProductSections() {
               </li>
               <li>
                 It lives in the system tray. The menu, top to bottom: whether a phone is
-                connected,{" "}
-                <strong className="text-foreground">Update available</strong> when there
-                is one, a row for anything that needs your attention (such as{" "}
+                connected, <strong className="text-foreground">Update available</strong>{" "}
+                when there is one, a row for anything that needs your attention (such as{" "}
                 <strong className="text-foreground">
                   Allow through Windows Firewall…
                 </strong>
                 ), then{" "}
-                <strong className="text-foreground">
-                  Wi-Fi and USB connections
-                </strong>,{" "}
+                <strong className="text-foreground">Wi-Fi and USB connections</strong>,{" "}
                 <strong className="text-foreground">Share clipboard</strong>,{" "}
                 <strong className="text-foreground">Start with Windows</strong>,{" "}
                 <strong className="text-foreground">Macros…</strong>,{" "}
@@ -441,8 +438,8 @@ sudo ./install.sh`}
                 nothing. It puts <C>edgepad</C> in <C>/usr/local/bin</C>, the launcher
                 entry and the icon under <C>/usr/local/share</C>, a udev rule in{" "}
                 <C>/etc/udev/rules.d</C> and <C>uinput</C> in <C>/etc/modules-load.d</C>
-                , then runs <C>modprobe uinput</C>. <C>--uninstall</C> removes it all and
-                leaves your settings in <C>~/.config/edgepad</C>.
+                , then runs <C>modprobe uinput</C>. <C>--uninstall</C> removes it all
+                and leaves your settings in <C>~/.config/edgepad</C>.
               </p>
               <p>
                 The app is a self-contained single file, so .NET need not be installed.
@@ -476,8 +473,8 @@ sudo ./install.sh`}
                 <ExternalLink href={DOWNLOADS.phone.href}>
                   {DOWNLOADS.phone.file}
                 </ExternalLink>{" "}
-                on the phone and open it. If the browser warns that this kind of file can
-                harm your device, tap{" "}
+                on the phone and open it. If the browser warns that this kind of file
+                can harm your device, tap{" "}
                 <strong className="text-foreground">Download anyway</strong>.
               </li>
               <li>
@@ -544,8 +541,8 @@ sudo ./install.sh`}
             link drops after a completed handshake, the phone retries up to ten times,
             two seconds apart, and says so; a{" "}
             <strong className="text-foreground">Stop trying</strong> button ends it
-            sooner. Disconnecting on purpose does not retry. The phone stays connected to
-            every laptop you connect and you choose which one you control; with Stay
+            sooner. Disconnecting on purpose does not retry. The phone stays connected
+            to every laptop you connect and you choose which one you control; with Stay
             connected on, a notification holds the link, and keeps retrying with
             &ldquo;Reconnecting to NAME…&rdquo;, while Edgepad is minimized. Share
             clipboard and Stay connected are asked about on first run and stay off until
@@ -570,17 +567,15 @@ sudo ./install.sh`}
           </li>
           <li>
             On Windows, allow the firewall prompt, or choose{" "}
-            <strong className="text-foreground">
-              Allow through Windows Firewall…
-            </strong>{" "}
+            <strong className="text-foreground">Allow through Windows Firewall…</strong>{" "}
             in the menu once. Edgepad listens on port 47321.
           </li>
           <li>
-            For Wi-Fi, put both on the same network. For USB, connect the cable and
-            turn on <strong className="text-foreground">USB tethering</strong> on the
-            phone. Then open Edgepad on the phone, pick the laptop under Devices, and
-            allow <strong className="text-foreground">Nearby devices</strong> if asked.
-            If the laptop is not listed, use{" "}
+            For Wi-Fi, put both on the same network. For USB, connect the cable and turn
+            on <strong className="text-foreground">USB tethering</strong> on the phone.
+            Then open Edgepad on the phone, pick the laptop under Devices, and allow{" "}
+            <strong className="text-foreground">Nearby devices</strong> if asked. If the
+            laptop is not listed, use{" "}
             <strong className="text-foreground">Add by address</strong> and type its
             address (<C>192.168.1.20</C>, or with a port if it is not 47321).
           </li>
@@ -759,8 +754,8 @@ sudo ./install.sh`}
         <P>
           Set from the laptop&apos;s tray or menu-bar menu under{" "}
           <strong>Security…</strong>, never from the phone. Level 1, the default, is the
-          Trust NAME? question and nothing else. Level 2 also asks each phone for
-          a six-digit PIN the first time it connects, and level 3 asks on every
+          Trust NAME? question and nothing else. Level 2 also asks each phone for a
+          six-digit PIN the first time it connects, and level 3 asks on every
           connection.
         </P>
         <P>
@@ -933,8 +928,9 @@ sudo ./install.sh`}
         <Sub>The gamepad says keyboard mode</Sub>
         <P>
           The laptop has no virtual controller, so the pad sends keyboard keys instead.
-          On Windows, install ViGEmBus (see Windows above); the gamepad screen says which
-          of three reasons it was. The Mac and Linux apps have no virtual controller.
+          On Windows, install ViGEmBus (see Windows above); the gamepad screen says
+          which of three reasons it was. The Mac and Linux apps have no virtual
+          controller.
         </P>
 
         <Sub>Input does nothing on a Mac</Sub>
@@ -950,7 +946,8 @@ sudo ./install.sh`}
             <strong className="text-foreground">Windows:</strong> turn off{" "}
             <strong className="text-foreground">Start with Windows</strong>, choose{" "}
             <strong className="text-foreground">Quit Edgepad</strong>, then delete the
-            .exe. Settings stay in <C>%APPDATA%\Edgepad</C> until you delete that folder.
+            .exe. Settings stay in <C>%APPDATA%\Edgepad</C> until you delete that
+            folder.
           </li>
           <li>
             <strong className="text-foreground">Mac:</strong> turn off{" "}
@@ -971,10 +968,10 @@ sudo ./install.sh`}
         <Sub>Forget one laptop, or phones</Sub>
         <P>
           On the phone, <strong>Forget</strong> on a laptop removes it from the list and
-          deletes its pairing code; Android&apos;s own Bluetooth pairing stays, so remove
-          that in Bluetooth settings too. On the laptop, <strong>Security…</strong>{" "}
-          lists the trusted phones, each with <strong>Forget</strong>, and has{" "}
-          <strong>Forget all…</strong>.
+          deletes its pairing code; Android&apos;s own Bluetooth pairing stays, so
+          remove that in Bluetooth settings too. On the laptop,{" "}
+          <strong>Security…</strong> lists the trusted phones, each with{" "}
+          <strong>Forget</strong>, and has <strong>Forget all…</strong>.
         </P>
       </Section>
     </>
