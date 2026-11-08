@@ -500,8 +500,8 @@
   <string name="macros_per_page_caption">How many macros one page shows. The rest continue on more pages, reached by sliding a finger sideways. Press and hold a macro, then drag it to move it within its page.</string>
   <string name="macros_page_of">Page %1$d of %2$d</string>
   <string name="macros_empty_title">No macros yet</string>
-  <string name="macros_empty_body">Add them from Edgepad\x27s Macros… menu in the tray on the laptop. They appear here as soon as it sends the list.</string>
-  <string name="macros_empty_body_mac">Add them from Edgepad\x27s Macros… menu in the menu bar on the Mac. They appear here as soon as it sends the list.</string>
+  <string name="macros_empty_body">Add them from Edgepad\'s Macros… menu in the tray on the laptop. They appear here as soon as it sends the list.</string>
+  <string name="macros_empty_body_mac">Add them from Edgepad\'s Macros… menu in the menu bar on the Mac. They appear here as soon as it sends the list.</string>
   <string name="macros_loading">Loading macros…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
