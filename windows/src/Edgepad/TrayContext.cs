@@ -453,7 +453,39 @@ internal sealed class TrayContext : ApplicationContext
             Balloon("Share clipboard changed for now, but could not be saved, so the next launch may not remember it.", ToolTipIcon.Warning);
         }
 
+        // A dialog holds one tick box, so this third choice is its own short question. Off unless chosen.
+        if (AskStartWithWindows() && !RunAtLogin.Set(true))
+        {
+            Balloon("Start with Windows could not be saved, so Edgepad will not start by itself. The log has the reason.", ToolTipIcon.Warning);
+        }
+
         SaveNetwork(chosen.On);
+    }
+
+    /// <summary>The first run's third question, with Not now the default. False when declined or when it cannot be put.</summary>
+    private static bool AskStartWithWindows()
+    {
+        var start = new TaskDialogButton("Start with Windows");
+        var notNow = new TaskDialogButton("Not now");
+        var page = new TaskDialogPage
+        {
+            Caption = "Edgepad",
+            Heading = "Start Edgepad when you sign in?",
+            Text = "Edgepad then waits in the taskbar corner for your phone, with no window. You can change this later in its menu.",
+            Icon = TaskDialogIcon.Information,
+            Buttons = { start, notNow },
+            DefaultButton = notNow,
+        };
+
+        try
+        {
+            return TaskDialog.ShowDialog(page, TaskDialogStartupLocation.CenterScreen) == start;
+        }
+        catch (Exception e) when (e is InvalidOperationException or Win32Exception)
+        {
+            Log.Write($"Could not ask about starting with Windows: {e.Message}");
+            return false;
+        }
     }
 
     /// <summary>
