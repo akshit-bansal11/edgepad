@@ -61,9 +61,9 @@ class DeckLayoutTest {
     }
 
     @Test
-    fun theCrossTakesHalfASmallTileAndNeverLessThanTheFloor() {
-        assertEquals(30, DeckLayout.crossHit(side = 60, touch = 48, floor = 24))
-        assertEquals(24, DeckLayout.crossHit(side = 48, touch = 48, floor = 24))
+    fun theCrossTakesThreeFifthsOfASmallTileAndNeverLessThanTheFloor() {
+        assertEquals(36, DeckLayout.crossHit(side = 60, touch = 48, floor = 24))
+        assertEquals(28, DeckLayout.crossHit(side = 48, touch = 48, floor = 24))
         assertEquals(24, DeckLayout.crossHit(side = 30, touch = 48, floor = 24))
     }
 
