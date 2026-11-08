@@ -108,7 +108,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         host.inputBlocked = { !AXIsProcessTrusted() }
         host.onVerified = { [weak self] in self?.lastConnected.record($0) }
         self.host = host
-        server =RfcommServer(host: host, onStatus: { [weak self] in self?.setStatus($0) })
+        server = RfcommServer(host: host, onStatus: { [weak self] in self?.setStatus($0) })
         startServer()
 
         // Off until the owner says yes (network.txt); only a phone that proves itself is handed to the host.

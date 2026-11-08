@@ -64,7 +64,9 @@ public final class AppPicker {
         store: MacroStore,
         sender: BlobSender,
         schedule: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) },
-        background: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.global(qos: .utility).async(execute: $0) },
+        background: @escaping (@escaping () -> Void) -> Void = {
+            DispatchQueue.global(qos: .utility).async(execute: $0)
+        },
         scheduleAfter: @escaping (TimeInterval, @escaping () -> Void) -> Void = { delay, work in
             DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
         }

@@ -68,7 +68,7 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
             window.Show();
 
             // Wanted but not forced on the owner: the taskbar button flashes until the window is clicked.
-            var flash = new FlashInfo(window.Handle);
+            var flash = new Injection.FlashInfo(window.Handle);
             _ = Injection.NativeMethods.FlashWindowEx(in flash);
         }
 

@@ -194,7 +194,7 @@ internal static class LinkResponder
                     return null;
                 }
 
-                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, ended, PairingText.SourceOf(remote));
+                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, PairingText.SourceOf(remote), ended);
 
             case ResumeRequest resume:
                 return Resume(raw, resume, self, paired, log, giveUp, wait);
@@ -216,8 +216,8 @@ internal static class LinkResponder
         Action giveUp,
         TimeSpan wait,
         TimeSpan ownerWait,
-        CancellationToken ended,
-        string? source)
+        string? source,
+        CancellationToken ended)
     {
         var address = AddressOf(request.PhoneId);
         if (!limiter.TryBegin())

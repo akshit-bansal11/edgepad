@@ -1671,8 +1671,13 @@ class MainActivity :
                             getString(R.string.input_blocked, name)
                         }
 
-                        permissionPending -> getString(permissionReason)
-                        else -> ""
+                        permissionPending -> {
+                            getString(permissionReason)
+                        }
+
+                        else -> {
+                            ""
+                        }
                     },
                 )
             }
