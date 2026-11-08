@@ -169,16 +169,13 @@ class AnnotateScreen(
                     canvas.refresh()
                 },
             )
+            // AND-A-6: a gap, so a slip off Undo does not land on the buttons that throw the drawing away.
+            addView(View(ui.context), LinearLayout.LayoutParams(ui.dp(Space.M), 1))
             addView(
-                glyph(R.drawable.ic_clear, ui.string(R.string.annotate_clear)) {
-                    strokes.clear()
-                    send(ActionId.ANNOTATE_CLEAR.frame())
-                    canvas.refresh()
-                },
+                glyph(R.drawable.ic_clear, ui.string(R.string.annotate_clear)) { clearInk() },
             )
-            signButton = glyph(R.drawable.ic_sign, ui.string(R.string.annotate_sign)) { sign(!strokes.signing) }
+            signButton = glyph(R.drawable.ic_sign, ui.string(R.string.annotate_sign)) { switchSign() }
             addView(signButton)
-            addView(glyph(R.drawable.ic_close, ui.string(R.string.annotate_exit), onBack))
         }
 
     /** The round opener: the current tool in the current colour, and a chevron that points the way it will go. */
@@ -251,7 +248,12 @@ class AnnotateScreen(
     /** The picker the Appearance settings use, in a dialog; each colour it gives takes effect as it is tapped. */
     private fun pickColour() {
         val picker =
-            ColorPicker.build(ui, ui.string(R.string.annotate_colour_custom), OPAQUE or strokes.rgb) { colour ->
+            ColorPicker.build(
+                ui,
+                ui.string(R.string.annotate_colour_custom),
+                OPAQUE or strokes.rgb,
+                editable = true,
+            ) { colour ->
                 if (strokes.selectRgb(colour and RGB_MASK)) colourChanged()
             }
         val body =
@@ -302,6 +304,41 @@ class AnnotateScreen(
 
     /** The pen's colour, width and opacity, which a laptop only keeps for as long as its session. */
     private fun sendStyle() = strokes.styleFrames().forEach(send)
+
+    /** Clear throws every stroke away on both screens, with no redo, so it asks first when there is ink. */
+    private fun clearInk() {
+        val wipe = {
+            strokes.clear()
+            send(ActionId.ANNOTATE_CLEAR.frame())
+            canvas.refresh()
+        }
+        if (strokes.strokes.isEmpty()) {
+            wipe()
+        } else {
+            ui.confirm(
+                view,
+                ui.string(R.string.annotate_clear_title),
+                ui.string(R.string.annotate_clear_body),
+                ui.string(R.string.annotate_clear),
+            ) { wipe() }
+        }
+    }
+
+    /** Sign and back each start a fresh session, which loses the ink; with ink on the pad that is asked first. */
+    private fun switchSign() {
+        val on = !strokes.signing
+        if (strokes.strokes.isEmpty()) {
+            sign(on)
+        } else {
+            val body = if (on) R.string.annotate_to_sign_body else R.string.annotate_from_sign_body
+            ui.confirm(
+                view,
+                ui.string(if (on) R.string.annotate_to_sign_title else R.string.annotate_from_sign_title),
+                ui.string(body),
+                ui.string(R.string.annotate_continue),
+            ) { sign(on) }
+        }
+    }
 
     /** Each switch begins a new session on the laptop, which keeps no strokes from the last one. */
     private fun sign(on: Boolean) {

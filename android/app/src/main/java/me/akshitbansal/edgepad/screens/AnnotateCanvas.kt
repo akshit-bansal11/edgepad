@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.graphics.RectF
 import android.view.MotionEvent
 import android.view.View
@@ -34,6 +35,8 @@ class AnnotateCanvas(
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val path = Path()
     private val oval = RectF()
+    private val exclusion = Rect()
+    private val exclusions = listOf(exclusion)
 
     // The last point sent, so a finger that moved less than one wire step sends nothing.
     private var lastSent: WirePoint? = null
@@ -114,6 +117,20 @@ class AnnotateCanvas(
     override fun performClick(): Boolean {
         super.performClick()
         return true
+    }
+
+    // AND-A-4: the pad is absolute, so a stroke near the screen edge must not become the system Back swipe,
+    // which would leave Annotate and end the laptop session. Android keeps at most 200 dp of each edge.
+    override fun onLayout(
+        changed: Boolean,
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+    ) {
+        super.onLayout(changed, left, top, right, bottom)
+        exclusion.set(0, 0, right - left, bottom - top)
+        systemGestureExclusionRects = exclusions
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

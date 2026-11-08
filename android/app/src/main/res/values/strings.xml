@@ -432,7 +432,6 @@
   <string name="capture_not_found">No new capture turned up on the laptop, so nothing was sent.</string>
   <string name="capture_send_failed">The laptop could not send the capture. It is still on the laptop.</string>
   <string name="controls_annotate">Annotate</string>
-  <string name="annotate_exit">Exit</string>
   <string name="annotate_description">Pen pad: a touch draws at the same place on the laptop screen</string>
   <string name="annotate_menu">Drawing tools</string>
   <string name="annotate_menu_expanded">Expanded</string>
@@ -459,9 +458,16 @@
   <string name="annotate_opacity">Opacity</string>
   <string name="annotate_undo">Undo</string>
   <string name="annotate_clear">Clear</string>
+  <string name="annotate_clear_title">Clear the drawing?</string>
+  <string name="annotate_clear_body">Every stroke disappears from the laptop screen. This cannot be undone.</string>
+  <string name="annotate_to_sign_title">Switch to Sign?</string>
+  <string name="annotate_to_sign_body">The drawing so far is discarded and the laptop starts a fresh page.</string>
+  <string name="annotate_from_sign_title">Leave Sign?</string>
+  <string name="annotate_from_sign_body">The signature has not been saved and is discarded.</string>
+  <string name="annotate_continue">Continue</string>
   <string name="annotate_sign">Sign</string>
   <string name="annotate_save_signature">Save signature</string>
-  <string name="sign_saved">Copied and saved to Pictures/Edgepad</string>
+  <string name="sign_saved">Signature copied to the clipboard on the laptop and saved to Pictures/Edgepad there</string>
   <string name="sign_empty">Nothing drawn yet</string>
   <string name="sign_failed">Could not save</string>
   <string name="capture_unavailable">This laptop has not said it can capture. Update Edgepad on it, then reconnect.</string>
