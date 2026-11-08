@@ -46,6 +46,9 @@ internal static partial class Libc
         // A socket the phone already dropped answers ENOTCONN, which leaves nothing to wake: not an error here.
         With(socket, fd => ShutdownSocket(fd, ShutReadWrite));
 
+    /// <summary>Asks process <paramref name="pid"/> to end (SIGTERM, 15, as a logout does). False when it could not be signalled.</summary>
+    public static bool Terminate(int pid) => Kill(pid, 15) == 0;
+
     /// <summary>Runs <paramref name="call"/> on the descriptor, holding the handle so it cannot be closed and reused meanwhile.</summary>
     private static int With(SafeHandle handle, Func<int, int> call)
     {
@@ -66,6 +69,9 @@ internal static partial class Libc
 
     [LibraryImport(Library, EntryPoint = "fcntl", SetLastError = true)]
     private static partial int Fcntl(int fd, int command, int argument);
+
+    [LibraryImport(Library, EntryPoint = "kill", SetLastError = true)]
+    private static partial int Kill(int pid, int signal);
 
     [LibraryImport(Library, EntryPoint = "shutdown", SetLastError = true)]
     private static partial int ShutdownSocket(int fd, int how);

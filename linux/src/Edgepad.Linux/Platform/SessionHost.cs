@@ -35,23 +35,32 @@ internal sealed class SessionHost(
     private readonly ConcurrentDictionary<string, string> shown = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// What the owner reads for <paramref name="address"/>: a Wi-Fi or USB phone's name and the way it came, since its
-    /// address is a string of hex; a Bluetooth phone's address as it is.
+    /// What the owner reads for <paramref name="address"/>: a phone's name and the way it came (a Wi-Fi or USB phone's address is a string of hex); an
+    /// address as it is until the phone has reported once.
     /// </summary>
     public string Shown(string address) => shown.TryGetValue(address, out var name) ? name : address;
 
     /// <summary>The status line for <paramref name="link"/>'s session, naming the phone as <see cref="Shown"/> does.</summary>
     private Action<string> StatusFor(IPhoneLink link)
     {
-        if (link.Kind != LinkKind.Network)
+        var address = link.Address;
+        if (link.Kind == LinkKind.Network)
         {
-            return onStatus;
+            // The link does not say Wi-Fi or USB, so neither is claimed.
+            var display = $"{link.Label} · Wi-Fi or USB";
+            PhoneName.Remember(address, link.Label);
+            shown[address] = display;
+            return status => onStatus(StatusText.Rewrite(status, address, link.Label, display));
         }
 
-        var address = link.Address;
-        var name = $"{link.Label} · over Wi-Fi or USB";
-        shown[address] = name;
-        return status => onStatus(status.Replace(address, name, StringComparison.Ordinal));
+        // The phone's own name, asked here on the session's thread: the D-Bus thread that accepts the link must not wait.
+        return status =>
+        {
+            var name = PhoneName.Of(address) ?? address;
+            var display = $"{name} · Bluetooth";
+            shown[address] = display;
+            onStatus(StatusText.Rewrite(status, address, name, display));
+        };
     }
 
     /// <summary>

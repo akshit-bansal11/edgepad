@@ -28,13 +28,15 @@ internal static class Program
 
         // One instance per user: a second copy would register a second profile for the same service id.
         PrivateStorage.CreateDirectory(Xdg.CacheFolder);
-        using var single = TakeLock(Path.Combine(Xdg.CacheFolder, "lock"));
+        var lockPath = Path.Combine(Xdg.CacheFolder, "lock");
+        var runningPath = Path.Combine(Xdg.CacheFolder, "running");
+        using var single = TakeLock(lockPath) ?? HandleSecondLaunch(lockPath, runningPath);
         if (single is null)
         {
-            Log.Write($"Edgepad {Version} not started: another copy is running");
-            Console.Error.WriteLine("Edgepad is already running.");
             return 1;
         }
+
+        NameSelf(runningPath);
 
         Log.Write($"Edgepad {Version} starting");
         var config = Xdg.ConfigFolder;
@@ -86,6 +88,76 @@ internal static class Program
             context.Cancel = true;
             quit.Set();
             shell.RequestQuit();
+        }
+    }
+
+    /// <summary>
+    /// Another copy holds the lock. The same version only says so (a launcher click that did nothing visible would
+    /// otherwise be a mystery) and leaves; a different version asks the old one to quit and takes its place, since a
+    /// second copy is how an update gets installed. Null means this copy must exit.
+    /// </summary>
+    private static FileStream? HandleSecondLaunch(string lockPath, string runningPath)
+    {
+        (string Version, int Pid)? running = null;
+        try
+        {
+            running = SingleInstance.Parse(File.ReadAllText(runningPath));
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Log.Write($"The running copy's file could not be read: {e.Message}");
+        }
+
+        string? exe = null;
+        if (running is { } named)
+        {
+            try
+            {
+                exe = File.ResolveLinkTarget($"/proc/{named.Pid}/exe", returnFinalTarget: false)?.FullName;
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                Log.Write($"Process {named.Pid} could not be inspected: {e.Message}");
+            }
+        }
+
+        var same = SingleInstance.SameProgram(exe, Environment.ProcessPath);
+        if (SingleInstance.Decide(running, Version, same) == SecondLaunch.TakeOver && running is { } old)
+        {
+            Log.Write($"Edgepad {Version} replaces {old.Version} (process {old.Pid})");
+            if (Native.Libc.Terminate(old.Pid))
+            {
+                for (var wait = 0; wait < 50; wait++)
+                {
+                    Thread.Sleep(200);
+                    if (TakeLock(lockPath) is { } taken)
+                    {
+                        return taken;
+                    }
+                }
+            }
+
+            Log.Write($"Edgepad {Version} not started: {old.Version} did not quit");
+            Notifier.SendNow("Edgepad could not start", $"Edgepad {old.Version} is still running. Quit it from the tray, then start this one.");
+            return null;
+        }
+
+        Log.Write($"Edgepad {Version} not started: another copy is running");
+        Console.Error.WriteLine("Edgepad is already running. Find it in the tray.");
+        Notifier.SendNow("Edgepad is already running", "Find it in the tray.");
+        return null;
+    }
+
+    /// <summary>Writes this copy's version and process id for a later second launch to read. Losing it only costs the take-over.</summary>
+    private static void NameSelf(string runningPath)
+    {
+        try
+        {
+            File.WriteAllText(runningPath, SingleInstance.Line(Version, Environment.ProcessId));
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Log.Write($"This copy's file {runningPath} could not be written: {e.Message}");
         }
     }
 

@@ -1,8 +1,9 @@
 namespace Edgepad.Platform;
 
 /// <summary>
-/// The tray's "Share clipboard" switch, kept in <c>clipboard.txt</c> beside the other settings. On unless the file says
-/// <c>off</c>: the owner asked for a shared clipboard, and it still moves nothing until a phone asks on its link.
+/// The tray's "Share clipboard" switch, kept in <c>clipboard.txt</c> beside the other settings. Off until the owner has
+/// answered the first-run question: only a file saying <c>on</c> turns it on, so a laptop that was never asked shares
+/// nothing, and an answer already stored is kept. Even on, it moves nothing until a phone asks on its link.
 /// Read on every session thread, so it is a volatile field loaded once.
 /// </summary>
 internal static class ClipboardSetting
@@ -12,6 +13,9 @@ internal static class ClipboardSetting
     private static volatile bool enabled = Load();
 
     public static bool Enabled => enabled;
+
+    /// <summary>True once the file exists, whatever it holds: the owner has chosen. False is the only reason to ask.</summary>
+    public static bool HasChoice => File.Exists(FilePath);
 
     /// <summary>
     /// Applies the choice at once, and saves it. False means only that it will not survive a restart: an owner turning
@@ -37,7 +41,7 @@ internal static class ClipboardSetting
     {
         try
         {
-            return !(File.Exists(FilePath) && File.ReadAllText(FilePath).Trim() == "off");
+            return File.Exists(FilePath) && File.ReadAllText(FilePath).Trim() == "on";
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
