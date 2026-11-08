@@ -17,6 +17,13 @@ public sealed class UxTests
     public void ANodeThatOpensIsNoProblem() => Assert.Null(UinputAccess.Problem("/dev/null"));
 
     [Fact]
+    public void TheInputStateWordsAreTheWireOnes()
+    {
+        Assert.Equal("blocked", UinputAccess.StateText(true));
+        Assert.Equal("ok", UinputAccess.StateText(false));
+    }
+
+    [Fact]
     public void TheAutostartEntryNamesTheRunningFile()
     {
         var entry = Autostart.Entry("/opt/edgepad/edgepad");

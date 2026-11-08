@@ -146,7 +146,7 @@ internal sealed class Shell : IDisposable
     /// <summary>Probes /dev/uinput and remembers the answer; says so once, in a notification, when it turns bad.</summary>
     private void CheckInput()
     {
-        var problem = UinputAccess.Problem();
+        var problem = UinputAccess.Check();
         var was = inputBlocked;
         inputBlocked = problem is not null;
         if (problem is not null && !was)

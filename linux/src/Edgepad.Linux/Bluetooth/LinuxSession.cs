@@ -33,6 +33,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Func<LinuxSession, bool> onAdmitted;
     private readonly Action<LinuxSession> onEnded;
     private int disposed;
+    private Action<bool>? inputState;
 
     // Which icon run may still send: each WANT_ICONS and Dispose move it on, and a run that sees it moved stops.
     private int iconRun;
@@ -113,6 +114,12 @@ internal sealed class LinuxSession : IDisposable
             // sent before the phone can ask, so it can hide the pad rather than offer a button that does nothing.
             // The same id the link's INFO reply gives, so a phone sees one laptop over Bluetooth and Wi-Fi.
             frames.Send(new Text((byte)TextKind.Device, identity.DeviceText(DeviceOs.Linux)));
+
+            // TEXT 18: whether this laptop may create input devices, now and on every change while connected.
+            // Check raises Changed only on a flip, on the probing thread; a send to a dead socket is ignored.
+            frames.Send(new Text((byte)TextKind.InputState, UinputAccess.StateText(UinputAccess.Check() is not null)));
+            inputState = SendInputState;
+            UinputAccess.Changed += inputState;
             dispatcher.PadStatusReply = status => frames.Send(new Text((byte)TextKind.PadStatus, status));
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
             dispatcher.MacroWatch = startReporting(frames.Send);
@@ -169,6 +176,11 @@ internal sealed class LinuxSession : IDisposable
         {
             // Releases anything still held down: Alt in the middle of an app switch, a button mid-drag. Unplugs the
             // pad too, so a phone that drops mid-game does not leave a stick pushed forward.
+            if (inputState is { } handler)
+            {
+                UinputAccess.Changed -= handler;
+            }
+
             releaseHeldInput();
             dispatcher.Capture?.Dispose();
             if (dispatcher.Cadence.Summary() is { } cadence)
@@ -183,6 +195,18 @@ internal sealed class LinuxSession : IDisposable
 
             Dispose();
             onEnded(this);
+        }
+    }
+
+    private void SendInputState(bool blocked)
+    {
+        try
+        {
+            frames.Send(new Text((byte)TextKind.InputState, UinputAccess.StateText(blocked)));
+        }
+        catch (Exception e) when (e is IOException or ObjectDisposedException)
+        {
+            // The socket is gone; the read loop ends the session.
         }
     }
 
