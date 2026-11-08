@@ -193,9 +193,10 @@ final class NetworkServer {
             return
         }
         let name = PhoneLabel.clean(result.phoneName)
-        let shownAs = "\(name.isEmpty ? "A phone" : name) · over Wi-Fi or USB"
+        let shownAs = name.isEmpty ? "A phone" : name
         let secure = SecureTransport(inner: link, prk: result.prk)
-        let session = host.accept(address: address, phone: shownAs, shownAs: shownAs, transport: secure)
+        let session = host.accept(
+            address: address, phone: shownAs, shownAs: shownAs, link: "Wi-Fi", transport: secure)
         link.onBytes = { [weak session, weak secure] bytes in
             guard let session, let secure else { return }
             guard let plain = secure.open(bytes) else {

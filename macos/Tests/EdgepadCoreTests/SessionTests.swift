@@ -210,7 +210,7 @@ final class SessionTests: XCTestCase {
     func testAnAcceptedPhoneIsReportedAsConnected() {
         _ = connectedSession()
 
-        XCTAssertEqual(statuses, ["Connected to \(phone)"])
+        XCTAssertEqual(statuses, ["Connected to \(phone) · Bluetooth"])
     }
 
     func testAPhoneOtherThanTheTrustedOneIsAsked() {

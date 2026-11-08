@@ -127,7 +127,8 @@ final class RfcommServer: NSObject {
         let transport = RfcommTransport(channel: channel)
         // Held by the host until it ends; the transport only points at it.
         let session = host.accept(
-            address: address, phone: PhoneLabel.describe(name: device.name, address: address), shownAs: nil,
+            address: address, phone: PhoneLabel.describe(name: device.name, address: address),
+            shownAs: PhoneLabel.clean(device.name).isEmpty ? nil : PhoneLabel.clean(device.name), link: "Bluetooth",
             transport: transport)
         transport.session = session
         channel.setDelegate(transport)

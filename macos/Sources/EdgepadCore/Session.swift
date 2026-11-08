@@ -48,6 +48,8 @@ public final class Session {
     private let display: DisplayRates
     private let identity: LinkIdentity
     private let onStatus: (String) -> Void
+    /// What the status line calls the way this phone came: "Bluetooth", "Wi-Fi" or "USB".
+    private let link: String
     /// Called once trust has said yes, just before HELLO_ACK: the server decides there whether this phone may take
     /// over the Mac from the one in use. False ends the session with nothing sent.
     private let onAdmitted: (Session) -> Bool
@@ -97,6 +99,7 @@ public final class Session {
 
     public init(
         address: String,
+        link: String = "Bluetooth",
         transport: Transport,
         trust: TrustStore,
         pin: PinStore,
@@ -118,6 +121,7 @@ public final class Session {
         }
     ) {
         self.address = address
+        self.link = link
         self.transport = transport
         self.trust = trust
         self.pin = pin
@@ -244,7 +248,8 @@ public final class Session {
             // Answered with this Mac's version, so the phone can say which side needs updating.
             send(.helloAck(version: ProtocolConstants.version))
             Log.write("Refused \(address): it speaks protocol \(version), this Mac \(ProtocolConstants.version)")
-            onStatus("Refused a phone on protocol \(version); this Mac is on \(ProtocolConstants.version)")
+            onStatus(
+                StatusText.mismatch(name: address, phoneVersion: version, laptopVersion: ProtocolConstants.version))
             end()
             return
         }
@@ -377,7 +382,7 @@ public final class Session {
         guard !isEnded else { return }
         stage = .live
         Log.write("Connected \(address)")
-        onStatus("Connected to \(address)")
+        onStatus(StatusText.connected(address, over: link))
         reportState()
     }
 
