@@ -92,6 +92,20 @@ class ClipboardSync(
         later(DEBOUNCE_MS) { guarded { flush(change) } }
     }
 
+    /**
+     * Sends [data] now, as a share from another app: the same gates and caps as a copy, but the owner tapped Send, so no
+     * debounce and no clipboard read. Blocks for the transfer, so never on the main thread. False when sharing is off,
+     * the link ended, or [data] is over the cap.
+     */
+    fun sendNow(
+        kind: BlobKind,
+        data: ByteArray,
+    ): Boolean {
+        val limit = cap(kind.id)
+        if (!active || data.isEmpty() || limit == null || data.size > limit) return false
+        return sender.send(kind, NO_LABEL, data) { !active }
+    }
+
     /** A blob frame from this link's laptop. False when it was refused. */
     fun take(frame: Frame): Boolean {
         if (active) return receiver.take(frame)

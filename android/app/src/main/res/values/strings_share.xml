@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Share > Edgepad (ShareActivity): nothing is sent until Send is tapped. -->
+  <string name="share_title">Send to %1$s?</string>
+  <string name="share_image">an image</string>
+  <string name="share_send">Send</string>
+  <string name="share_sent">Sent to %1$s</string>
+  <string name="share_send_failed">Couldn\'t send it to %1$s. Check the connection and try again.</string>
+  <string name="share_no_laptop">Edgepad isn\'t connected to a laptop. Connect one, then share again.</string>
+  <string name="share_clipboard_off">Turn on Share clipboard on %1$s</string>
+  <string name="share_nothing">There is nothing here Edgepad can send.</string>
+  <string name="share_text_too_long">That text is too long to send. The limit is 1 MB.</string>
+  <string name="share_image_failed">That image can\'t be read, or is too large to send.</string>
+</resources>

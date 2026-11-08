@@ -37,6 +37,23 @@
       </intent-filter>
     </activity>
 
+    <!-- Share > Edgepad: one text or image, sent to the laptop only after a tap on Send. Exported because a share target
+         must be; it handles ACTION_SEND of these two types and finishes on anything else. -->
+    <activity
+      android:name=".ShareActivity"
+      android:excludeFromRecents="true"
+      android:exported="true"
+      android:label="@string/app_name"
+      android:taskAffinity=""
+      android:theme="@style/Theme.Edgepad.Share">
+      <intent-filter>
+        <action android:name="android.intent.action.SEND" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="text/plain" />
+        <data android:mimeType="image/*" />
+      </intent-filter>
+    </activity>
+
     <!-- Android 14 lets a connectedDevice service start only if the app holds one of a list of permissions;
          CHANGE_WIFI_MULTICAST_STATE above, declared for finding laptops, is on it, and so is BLUETOOTH_CONNECT. -->
     <service

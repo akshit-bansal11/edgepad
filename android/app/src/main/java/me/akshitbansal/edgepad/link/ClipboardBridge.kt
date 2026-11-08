@@ -162,7 +162,7 @@ class AndroidClipboard(
 
     // Another app's content URI is read through its own provider; a file or any other scheme is not. A PNG within the
     // cap goes as it is, and anything else is decoded and sent as the largest PNG that fits.
-    private fun readImage(uri: Uri): ClipboardContent? {
+    fun readImage(uri: Uri): ClipboardContent? {
         if (uri.scheme != ContentResolver.SCHEME_CONTENT) return null
         return try {
             val original = resolver.openInputStream(uri)?.use { readCapped(it) }

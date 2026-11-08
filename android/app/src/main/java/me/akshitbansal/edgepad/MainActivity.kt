@@ -50,6 +50,7 @@ import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopRow
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.LinkHooks
+import me.akshitbansal.edgepad.link.ShareTarget
 import me.akshitbansal.edgepad.link.LinkNotice
 import me.akshitbansal.edgepad.link.LinkService
 import me.akshitbansal.edgepad.link.LinkTransport
@@ -414,6 +415,13 @@ class MainActivity :
             clipboard = clipboardShare(applicationContext, routes) { owner.clipboardSync }
             apps = AppLinks(routes)
         }
+        // As above, over the retained pieces alone: what another app shares goes to the selected, connected laptop.
+        val shares = clipboard.links
+        LinkHooks.shareTarget = {
+            links.selected?.takeIf { it.connected }?.let { laptop ->
+                ShareTarget(laptop.name, shares.activeSync(laptop)?.let { it::sendNow })
+            }
+        }
         apps.events =
             AppLinks.Events { laptop, token ->
                 if (laptop === selected) {
@@ -558,6 +566,7 @@ class MainActivity :
         apps.events = null
         if (!isChangingConfigurations) {
             LinkHooks.disconnectAll = null
+            LinkHooks.shareTarget = null
             manager.shutDown()
             LinkService.stop(applicationContext)
         }
