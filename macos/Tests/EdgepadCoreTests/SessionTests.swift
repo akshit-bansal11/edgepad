@@ -64,7 +64,8 @@ final class SessionTests: XCTestCase {
 
     private func makeSession(
         address: String? = nil,
-        ask: @escaping (String) -> Bool = { _ in true }
+        ask: @escaping (String) -> Bool = { _ in true },
+        inputBlocked: (() -> Bool)? = nil
     ) -> Session {
         Session(
             address: address ?? phone,
@@ -84,6 +85,7 @@ final class SessionTests: XCTestCase {
             display: display,
             identity: LinkIdentity(id: Array(UInt8(16)..<32), name: "Mac"),
             onStatus: { [weak self] status in self?.statuses.append(status) },
+            inputBlocked: inputBlocked,
             onAdmitted: { [weak self] _ in self?.admitted() ?? false },
             onEnded: { [weak self] session in self?.ended.append(session) },
             schedule: { [weak self] turn in
@@ -340,6 +342,21 @@ final class SessionTests: XCTestCase {
 
         XCTAssertTrue(session.isEnded)
         XCTAssertFalse(session.isLive)
+    }
+
+    func testInputStateIsSentAfterTheDeviceTextAndOnlyOnAChange() {
+        var blocked = true
+        let session = makeSession(inputBlocked: { blocked })
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+        let frames = transport.frames()
+        XCTAssertEqual(frames[2], .text(kind: TextKind.inputState.rawValue, value: "blocked"))
+
+        session.sendInputState()
+        XCTAssertEqual(transport.frames().count, frames.count)
+
+        blocked = false
+        session.sendInputState()
+        XCTAssertEqual(transport.frames().last, .text(kind: TextKind.inputState.rawValue, value: "ok"))
     }
 
     func testPollSendsNothingWhenNothingChanged() {

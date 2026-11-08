@@ -57,6 +57,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var bluetoothRetryPending = false
     private var permissionTimer: Timer?
     private var badged = false
+    /// The last AXIsProcessTrusted the poll saw, so the phone is told (TEXT 18) only on a change.
+    private var lastTrusted = AXIsProcessTrusted()
     private var questionOpen = false
     /// Set once the owner has opened the menu, which the first-run question waits for at the latest.
     private var menuSeen = false
@@ -99,8 +101,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             askTrust: { [weak self] in self?.askTrust($0, $1) ?? false },
             identity: identity,
             onStatus: { [weak self] in self?.setStatus($0) })
+        host.inputBlocked = { !AXIsProcessTrusted() }
         self.host = host
-        server = RfcommServer(host: host, onStatus: { [weak self] in self?.setStatus($0) })
+        server =RfcommServer(host: host, onStatus: { [weak self] in self?.setStatus($0) })
         startServer()
 
         // Off until the owner says yes (network.txt); only a phone that proves itself is handed to the host.
@@ -205,6 +208,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             [weak self] _ in
             guard let self else { return }
             self.refreshButton()
+            // The phone hears a grant (or a revoke) here too, from the poll that already runs.
+            let trusted = AXIsProcessTrusted()
+            if trusted != self.lastTrusted {
+                self.lastTrusted = trusted
+                self.host?.inputStateChanged()
+            }
             if self.inputReady {
                 if self.status.hasPrefix("Updated:") {
                     self.setStatus(StatusText.waiting)

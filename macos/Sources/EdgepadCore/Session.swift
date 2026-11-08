@@ -48,6 +48,10 @@ public final class Session {
     private let display: DisplayRates
     private let identity: LinkIdentity
     private let onStatus: (String) -> Void
+    /// Whether the OS discards this Mac's input right now; nil where the build does not report it.
+    private let inputBlocked: (() -> Bool)?
+    /// The TEXT 18 payload last sent, so the phone hears only a change.
+    private var lastInputState: String?
     /// What the status line calls the way this phone came: "Bluetooth", "Wi-Fi" or "USB".
     private let link: String
     /// Called once trust has said yes, just before HELLO_ACK: the server decides there whether this phone may take
@@ -113,6 +117,7 @@ public final class Session {
         display: DisplayRates,
         identity: LinkIdentity,
         onStatus: @escaping (String) -> Void,
+        inputBlocked: (() -> Bool)? = nil,
         onAdmitted: @escaping (Session) -> Bool,
         onEnded: @escaping (Session) -> Void,
         schedule: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) },
@@ -135,6 +140,7 @@ public final class Session {
         self.display = display
         self.identity = identity
         self.onStatus = onStatus
+        self.inputBlocked = inputBlocked
         self.onAdmitted = onAdmitted
         self.onEnded = onEnded
         self.schedule = schedule
@@ -398,9 +404,20 @@ public final class Session {
         }
     }
 
+    /// TEXT 18: tells a live phone when input is blocked or allowed again. Called after the device text and whenever
+    /// the app sees the permission change; sends nothing when the phone already has that state.
+    public func sendInputState() {
+        guard let inputBlocked, !isEnded, stage == .live else { return }
+        let state = inputBlocked() ? "blocked" : "ok"
+        guard state != lastInputState else { return }
+        lastInputState = state
+        send(.text(kind: TextKind.inputState.rawValue, value: state))
+    }
+
     /// What the phone's dials start from, in the order docs/PROTOCOL.md describes.
     private func reportState() {
         send(.text(kind: TextKind.device.rawValue, value: identity.deviceText))
+        sendInputState()
         if let level = speakers.read() {
             lastVolume = level
             sendLevel(.volume, level)

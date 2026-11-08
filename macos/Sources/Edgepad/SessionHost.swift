@@ -61,6 +61,14 @@ final class SessionHost {
     private var names: [String: String] = [:]
     /// The way each phone in `names` or in progress came, for the status line.
     private var links: [String: String] = [:]
+    /// Whether macOS is discarding this Mac's input (no Accessibility trust); set by the app, read for TEXT 18.
+    var inputBlocked: () -> Bool = { false }
+
+    /// The permission changed: tells the phone in use (TEXT 18).
+    func inputStateChanged() {
+        current?.sendInputState()
+    }
+
     /// Told whenever the owner holds phones off or forgets them, so whatever is still pairing ends with it.
     var onHold: (() -> Void)?
 
@@ -169,6 +177,7 @@ final class SessionHost {
             display: display,
             identity: identity,
             onStatus: { text in status(shownAs.map { text.replacingOccurrences(of: address, with: $0) } ?? text) },
+            inputBlocked: { [weak self] in self?.inputBlocked() ?? false },
             onAdmitted: { [weak self] admitted in self?.admit(admitted) ?? false },
             onEnded: { [weak self] ended in self?.sessionEnded(ended) })
         candidates.append((session: session, transport: transport))

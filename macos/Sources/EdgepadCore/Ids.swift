@@ -128,6 +128,9 @@ public enum TextKind: UInt8, CaseIterable {
     /// path or a command, because it is only a colour: `PenStyle.parseRgb` accepts those six bytes and nothing else,
     /// and what it returns is a number that can only be drawn with.
     case penRgb = 17
+    /// Computer to phone: `blocked` or `ok`. `blocked` means the OS discards this Mac's synthetic input (no
+    /// Accessibility trust). Sent after the device text and again on every change; never received reads as `ok`.
+    case inputState = 18
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is
