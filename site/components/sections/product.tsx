@@ -745,8 +745,8 @@ sudo ./install.sh`}
           the laptop without returning to Edgepad cannot work.
         </P>
         <P>
-          Since Android 10 only the app on screen can read the clipboard, so a copy made in
-          another app reaches the laptop when you switch back to Edgepad. A{" "}
+          Since Android 10 only the app on screen can read the clipboard, so a copy made
+          in another app reaches the laptop when you switch back to Edgepad. A{" "}
           <strong className="text-foreground">Share to Edgepad</strong> option in the
           share sheet sends text or an image straight to the active laptop.
         </P>

@@ -33,8 +33,8 @@ export default function DocsPage() {
       title="Everything Edgepad does, and how."
       intro={
         <>
-          Install, pair, use the control surface and fix what goes wrong. Looking for the
-          wire protocol, the architecture or the quality gate? That is the{" "}
+          Install, pair, use the control surface and fix what goes wrong. Looking for
+          the wire protocol, the architecture or the quality gate? That is the{" "}
           <a
             href="/docs/developers"
             className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"

@@ -20,15 +20,17 @@ export function CodeBlock({
         <span className="truncate text-[0.8125rem] font-bold">{title}</span>
         <CopyButton text={code} label={title} />
       </figcaption>
-      <pre
-        // Focusable so a keyboard can scroll it; biome.json allows this for this file only.
+      {/* A named section is a region; focusable so a keyboard can scroll it. biome.json
+          allows the tabIndex for this file only. */}
+      <section
         tabIndex={0}
-        role="region"
         aria-label={`${title}, scrolls sideways`}
-        className="overflow-x-auto p-4 font-mono text-[0.8125rem] leading-relaxed"
+        className="overflow-x-auto"
       >
-        <code>{code}</code>
-      </pre>
+        <pre className="p-4 font-mono text-[0.8125rem] leading-relaxed">
+          <code>{code}</code>
+        </pre>
+      </section>
       {caption ? (
         <p className="border-line text-dim border-t px-4 py-3 text-sm leading-relaxed">
           {caption}

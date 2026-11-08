@@ -15,9 +15,9 @@ export function Toc({ groups }: { groups: NavGroup[] }) {
   const [active, setActive] = useState<string>(ids[0] ?? "");
 
   useEffect(() => {
-    const sections = ids.map((id) => document.getElementById(id)).filter(
-      (element): element is HTMLElement => element !== null,
-    );
+    const sections = ids
+      .map((id) => document.getElementById(id))
+      .filter((element): element is HTMLElement => element !== null);
     if (sections.length === 0) return;
 
     const observer = new IntersectionObserver(
