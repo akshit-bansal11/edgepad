@@ -14,7 +14,15 @@ final class InputInjector: InputSink {
     private static let mediaUpState = 0xb << 8
     private static let mediaSubtype: Int16 = 8
 
+    /// How long without a move before the cursor is read again, so the owner's own mouse counts.
+    private static let resyncAfterSeconds = 0.25
+
     private let source = CGEventSource(stateID: .hidSystemState)
+    /// Where the last move put the pointer, and when; nil until the first move.
+    private var tracked: CGPoint?
+    private var lastMove: TimeInterval = 0
+    /// The union of the active displays, cached at each resync so a move allocates nothing.
+    private var displayBounds: CGRect?
     private var heldPhoneKeys: Set<MacKey> = []
     private var heldOwnKeys: Set<MacKey> = []
     private var chordKeys: Set<MacKey> = []
@@ -34,8 +42,18 @@ final class InputInjector: InputSink {
         } else {
             (type, button) = (.mouseMoved, .left)
         }
-        let here = location()
+        // Deltas are added to a position tracked here, not to the live cursor read back every frame: the read can
+        // lag the events just posted and a move would then be lost. The real cursor is read again only after a quiet
+        // moment, so the owner's own mouse still counts.
+        let now = ProcessInfo.processInfo.systemUptime
+        if tracked == nil || now - lastMove > Self.resyncAfterSeconds {
+            tracked = location()
+            displayBounds = Self.activeDisplayBounds()
+        }
+        lastMove = now
+        let here = tracked ?? .zero
         let target = clamped(CGPoint(x: here.x + Double(dx), y: here.y + Double(dy)))
+        tracked = target
         guard
             let event = CGEvent(
                 mouseEventSource: source, mouseType: type, mouseCursorPosition: target, mouseButton: button)
@@ -204,12 +222,17 @@ final class InputInjector: InputSink {
         CGEvent(source: nil)?.location ?? .zero
     }
 
-    /// Keeps the pointer inside the union of the active displays, one point short of the far edges.
-    private func clamped(_ point: CGPoint) -> CGPoint {
+    /// The union of the active displays, or nil when they cannot be listed. Read at each resync, not per frame.
+    private static func activeDisplayBounds() -> CGRect? {
         var ids = [CGDirectDisplayID](repeating: 0, count: 16)
         var count: UInt32 = 0
-        guard CGGetActiveDisplayList(UInt32(ids.count), &ids, &count) == .success, count > 0 else { return point }
-        let bounds = ids.prefix(Int(count)).map { CGDisplayBounds($0) }.reduce(CGRect.null) { $0.union($1) }
+        guard CGGetActiveDisplayList(UInt32(ids.count), &ids, &count) == .success, count > 0 else { return nil }
+        return ids.prefix(Int(count)).map { CGDisplayBounds($0) }.reduce(CGRect.null) { $0.union($1) }
+    }
+
+    /// Keeps the pointer inside the union of the active displays, one point short of the far edges.
+    private func clamped(_ point: CGPoint) -> CGPoint {
+        guard let bounds = displayBounds else { return point }
         return CGPoint(
             x: min(max(point.x, bounds.minX), bounds.maxX - 1),
             y: min(max(point.y, bounds.minY), bounds.maxY - 1))
