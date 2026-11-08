@@ -473,7 +473,7 @@ export default function Page() {
           </Heading>
 
           <div className="mt-10 grid gap-4 md:grid-cols-2">
-            {INSTALL.map(({ half, Icon, requirement, file, steps }, index) => (
+            {INSTALL.map(({ half, Icon, requirement, file, href, steps }, index) => (
               <BlurFade key={half} delay={index * 0.05} className="h-full">
                 <Card className="h-full">
                   <CardHeader className="flex items-center gap-4 px-6">
