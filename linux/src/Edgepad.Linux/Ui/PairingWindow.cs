@@ -21,7 +21,7 @@ internal static class PairingWindow
     private static readonly TimeSpan Linger = TimeSpan.FromSeconds(2);
 
     /// <summary>Opens the question, and returns it to be told how the code went. Call it, and the question, on the UI thread.</summary>
-    public static IPairingQuestion Open(string phoneName, long deadline, Action<string> onTyped, Action onOwnerCancelled)
+    public static IPairingQuestion Open(string phoneName, string? source, long deadline, Action<string> onTyped, Action onOwnerCancelled)
     {
         var look = Look.Current;
         var code = new TextBox
@@ -43,6 +43,12 @@ internal static class PairingWindow
         pair.IsDefault = true;
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 10 };
         body.Children.Add(look.Text($"Pair {phoneName}?", 18, FontWeight.Bold));
+        // Where the request came from, so an unexpected one is spotted before a code is typed.
+        if (source is not null)
+        {
+            body.Children.Add(look.Text($"Request {source}", 13, dim: true));
+        }
+
         var ask = look.Text("Type the pairing code shown on the phone:", 14, dim: true);
         body.Children.Add(ask);
         body.Children.Add(code);
@@ -50,6 +56,8 @@ internal static class PairingWindow
         body.Children.Add(look.Text(PairingText.Warning, 13, dim: true));
         body.Children.Add(Look.Footer(cancel, pair));
         var window = look.Dialog("Pair a phone", 400, body);
+        // Opens without taking focus: the owner may be typing elsewhere. The announcement (status and notification) is what draws the eye.
+        window.ShowActivated = false;
         window.Topmost = true;
 
         // Set by the first answer, or by withdrawing, so no second one follows.
@@ -163,7 +171,6 @@ internal static class PairingWindow
         tick.Tick += (_, _) => Count();
         window.Opened += (_, _) =>
         {
-            window.Activate();
             code.Focus();
             Count();
             tick.Start();
