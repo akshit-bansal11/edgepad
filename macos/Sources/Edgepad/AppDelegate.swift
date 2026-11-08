@@ -27,6 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let permissionPollSeconds: TimeInterval = 1
     private static let welcomedKey = "welcomed"
     private static let lastVersionKey = "lastRunVersion"
+    private static let dailyUpdatesKey = "checkUpdatesDaily"
 
     private let runningVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
     private let trust = TrustStore.forCurrentUser()
@@ -57,6 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var bluetoothRetryPending = false
     private var permissionTimer: Timer?
     private var bluetoothPower: BluetoothPower?
+    private var updateTimer: Timer?
     private var badged = false
     /// The last AXIsProcessTrusted the poll saw, so the phone is told (TEXT 18) only on a change.
     private var lastTrusted = AXIsProcessTrusted()
@@ -143,10 +145,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
         }
 
+        scheduleUpdateChecks()
+    }
+
+    /// The start-up check and the daily timer, both only while "Check for updates daily" is on (a missing setting
+    /// reads as on).
+    private func scheduleUpdateChecks() {
+        updateTimer?.invalidate()
+        updateTimer = nil
+        guard checksDaily else { return }
         checkForUpdate()
-        Timer.scheduledTimer(withTimeInterval: UpdateCheck.every, repeats: true) { [weak self] _ in
+        updateTimer = Timer.scheduledTimer(withTimeInterval: UpdateCheck.every, repeats: true) { [weak self] _ in
             self?.checkForUpdate()
         }
+    }
+
+    private var checksDaily: Bool {
+        UserDefaults.standard.object(forKey: Self.dailyUpdatesKey) as? Bool ?? true
+    }
+
+    @objc private func toggleDailyUpdates() {
+        UserDefaults.standard.set(!checksDaily, forKey: Self.dailyUpdatesKey)
+        scheduleUpdateChecks()
     }
 
     /// Opening Edgepad again while it runs shows where it is instead of replacing it.
@@ -312,6 +332,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let login = item("Start at login", #selector(toggleLogin))
         login.state = SMAppService.mainApp.status == .enabled ? .on : .off
         menu.addItem(login)
+        let updates = item("Check for updates daily", #selector(toggleDailyUpdates))
+        updates.state = checksDaily ? .on : .off
+        menu.addItem(updates)
         menu.addItem(.separator())
         menu.addItem(item("Macros…", #selector(showMacros)))
         let names = SecurityPanel.levelNames

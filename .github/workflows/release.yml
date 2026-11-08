@@ -123,7 +123,7 @@ jobs:
       - name: Check the signing certificate is the pinned one
         run: |
           tools=$(dirname "$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)")
-          got=$("$tools/apksigner" verify --print-certs Edgepad.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | tr -d '' | tr A-F a-f)
+          got=$("$tools/apksigner" verify --print-certs Edgepad.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | tr -d '\r' | tr A-F a-f)
           if [ "$got" != "$EXPECTED_CERT_SHA256" ]; then
             echo "::error::APK signed by '$got', expected '$EXPECTED_CERT_SHA256'."
             exit 1
