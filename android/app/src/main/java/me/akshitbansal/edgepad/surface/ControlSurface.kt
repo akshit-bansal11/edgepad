@@ -18,6 +18,7 @@ import android.view.RoundedCorner
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.accessibility.AccessibilityNodeInfo
+import android.widget.Toast
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
@@ -118,6 +119,9 @@ class ControlSurface(
         )
     private val hapticsOn = settings.haptics
     private val showHints = settings.hints && !trackpadOnly
+    private val hintFade = HintFade(settings.hintsSeen) { settings.hintsSeen = it }
+    private var peakFingers = 0
+    private var touchStart = 0L
     private val dials: List<Dial> =
         run {
             if (trackpadOnly) return@run emptyList()
@@ -179,8 +183,10 @@ class ControlSurface(
 
     private val muteText = context.getString(R.string.surface_mute)
     private val unknownText = context.getString(R.string.surface_unknown)
+    private val unavailableText = context.getString(R.string.surface_unavailable)
+    private val openedAt = SystemClock.elapsedRealtime()
     private val nothingPlaying = context.getString(R.string.surface_nothing_playing)
-    private val hintLines = context.getString(R.string.surface_hints).split('\n')
+    private var hintLines = hintsToShow()
     private val accessibilityActions: Map<AccessibilityNodeInfo.AccessibilityAction, () -> Unit> =
         if (trackpadOnly) {
             emptyMap()
@@ -316,6 +322,7 @@ class ControlSurface(
         accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
         stateDescription = modeLabel()
         applyState()
+        postDelayed({ invalidate() }, REPORT_WAIT_MS)
     }
 
     /** The laptop reported something new; [state] already holds it. */
@@ -633,6 +640,20 @@ class ControlSurface(
             (state.level(ControlId.MEDIA_POSITION) ?: 0) / Dial.MAX_LEVEL
         }
 
+    /** AND-A-17: one line per gesture not yet used; a three or four finger line goes when its swipes are remapped. */
+    private fun hintsToShow(): List<String> {
+        fun stock(a: Gesture, b: Gesture) = settings.gesture(a) == a.default && settings.gesture(b) == b.default
+        val slots =
+            listOf(
+                R.string.surface_hint_one,
+                R.string.surface_hint_two,
+                R.string.surface_hint_three.takeIf { stock(Gesture.THREE_LEFT, Gesture.THREE_RIGHT) },
+                R.string.surface_hint_four.takeIf { stock(Gesture.FOUR_LEFT, Gesture.FOUR_RIGHT) },
+                R.string.surface_hint_hold,
+            )
+        return slots.mapIndexedNotNull { slot, res -> res?.takeIf { hintFade.visible(slot) }?.let(context::getString) }
+    }
+
     private fun drawHints(canvas: Canvas) {
         val y = hintTop()
         hintLines.forEachIndexed { i, line -> canvas.drawText(line, width / 2f, y + i * dp(HINT_GAP_DP), hintPaint) }
@@ -670,6 +691,14 @@ class ControlSurface(
     }
 
     /** Where the first hint line sits; the caption is placed off it, so the two move together. */
+    /** The touch ended on the trackpad: the gestures it used no longer need their hint. */
+    private fun learnHints(event: MotionEvent) {
+        val held = peakFingers == 1 && event.eventTime - touchStart >= HOLD_HINT_MS
+        val changed = hintFade.used(peakFingers - 1) or (held && hintFade.used(HintFade.HOLD))
+        peakFingers = 0
+        if (changed) hintLines = hintsToShow()
+    }
+
     private fun hintTop(): Float = height / 2f - (hintLines.size - 1) * dp(HINT_GAP_DP) / 2
 
     /**
@@ -755,24 +784,35 @@ class ControlSurface(
         )
     }
 
+    /** AND-A-26: unreported after [REPORT_WAIT_MS] means never, so a dash replaces the loading ellipsis. */
+    private fun blank(): String =
+        if (SystemClock.elapsedRealtime() - openedAt > REPORT_WAIT_MS) unavailableText else unknownText
+
+    /** AND-A-3 / AND-A-26: a level dial with no report ignores the slide, so say why when it is touched. */
+    private fun hintIfUnreported(dial: Dial) {
+        if (dial.control == null || dial.known) return
+        val text = if (blank() === unavailableText) R.string.surface_not_reported else R.string.surface_waiting
+        Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+    }
+
     private fun valueText(dial: Dial): String =
         when (dial.kind) {
             DialKind.VOLUME -> {
                 when {
-                    !dial.known -> unknownText
+                    !dial.known -> blank()
                     dial.flag -> muteText
                     else -> dial.value.toString()
                 }
             }
 
             DialKind.BRIGHTNESS -> {
-                if (dial.known) dial.value.toString() else unknownText
+                if (dial.known) dial.value.toString() else blank()
             }
 
             DialKind.REFRESH -> {
                 // The level is an index; the rate it stands for is only knowable from the laptop's list.
                 val rate = if (dial.known) state.refreshRates.getOrNull(dial.value) else null
-                if (rate != null) context.getString(R.string.dial_refresh_value, rate) else unknownText
+                if (rate != null) context.getString(R.string.dial_refresh_value, rate) else blank()
             }
 
             DialKind.MEDIA -> {
@@ -792,7 +832,7 @@ class ControlSurface(
                     }
 
                     else -> {
-                        unknownText
+                        blank()
                     }
                 }
             }
@@ -873,6 +913,7 @@ class ControlSurface(
     }
 
     private fun down(event: MotionEvent) {
+        touchStart = event.eventTime
         val x = event.x
         val y = event.y
         val media = mediaShown()
@@ -899,6 +940,7 @@ class ControlSurface(
                 when {
                     activeDial >= 0 -> {
                         dials[activeDial].down()
+                        hintIfUnreported(dials[activeDial])
                         lastS = hit[0]
                     }
 
@@ -1017,6 +1059,7 @@ class ControlSurface(
             else -> {
                 feed(TrackpadRecognizer.Action.UP, event, exclude = event.actionIndex)
                 fingerCount = 0
+                if (showHints) learnHints(event)
                 trailLength = 0
                 drawingShape = false
             }
@@ -1096,6 +1139,7 @@ class ControlSurface(
             fingerYs[n] = event.getY(i)
             n++
         }
+        if (n > peakFingers) peakFingers = n
         fingerCount = n
         if (n != 1) {
             trailLength = 0
@@ -1223,6 +1267,12 @@ class ControlSurface(
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, resources.displayMetrics)
 
     companion object {
+        /** How long a dial may stay unreported before it reads as never reported. */
+        private const val REPORT_WAIT_MS = 4000L
+
+        /** A one-finger touch this long counts as having tried press and hold. */
+        private const val HOLD_HINT_MS = 500L
+
         /** The pieces' sizes in dp; the layout screen draws them at these too. */
         const val PLAY_DP = 52f
         const val SKIP_GAP_DP = 52f

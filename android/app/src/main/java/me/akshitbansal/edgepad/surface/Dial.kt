@@ -68,7 +68,7 @@ class Dial(
     var steps: Int = 0
         private set
 
-    /** True once the laptop has reported this level or the finger has set it; until then there is no number to show. */
+    /** True once the laptop has reported this level; until then there is no number to show and a slide sends nothing. */
     var known: Boolean = false
         private set
 
@@ -153,12 +153,14 @@ class Dial(
     }
 
     private fun turnLevel(units: Float) {
+        // AND-A-3: with no report there is no baseline to add the slide to, so nothing is set.
+        if (!known) return
         level = (level + units).coerceIn(0f, maxLevel)
-        known = true
         send()
     }
 
     private fun snap() {
+        if (!known) return
         level = ((level / snapTo).roundToInt() * snapTo).toFloat().coerceIn(0f, maxLevel)
         send()
     }

@@ -384,8 +384,15 @@
   <string name="surface_description">Laptop control surface</string>
   <string name="surface_mute">Muted</string>
   <string name="surface_unknown">…</string>
+  <string name="surface_unavailable">—</string>
+  <string name="surface_not_reported">Not reported by this laptop</string>
+  <string name="surface_waiting">Waiting for the laptop to report this level</string>
   <string name="surface_nothing_playing">Nothing playing</string>
-  <string name="surface_hints">One finger: move, tap to click\nTwo: scroll, pinch to zoom, tap to right-click\nThree: swipe desktops\nFour: swipe apps</string>
+  <string name="surface_hint_one">One finger: move, tap to click</string>
+  <string name="surface_hint_two">Two: scroll, pinch to zoom, tap to right-click</string>
+  <string name="surface_hint_three">Three: swipe desktops</string>
+  <string name="surface_hint_four">Four: swipe apps</string>
+  <string name="surface_hint_hold">Press and hold, then move to drag</string>
   <string name="surface_app_time">%1$s · %2$s of %3$s</string>
   <string name="surface_time">%1$s of %2$s</string>
   <string name="surface_play_pause">Play or pause</string>

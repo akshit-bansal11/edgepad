@@ -118,7 +118,10 @@ class Settings(
     /** Content follows the fingers, as on Windows' own touchpads; off scrolls the other way. */
     var naturalScroll by flag("naturalScroll", true)
 
-    var hints by flag("hints", false)
+    var hints by flag("hints", true)
+
+    /** Bit per trackpad hint already earned by using the gesture (see HintFade); switching hints on again clears it. */
+    var hintsSeen by pref({ prefs.getInt("hintsSeen", 0) }) { putInt("hintsSeen", it) }
 
     /**
      * Macro buttons carry their name under the picture. Off shows the picture alone, which is roomier and
