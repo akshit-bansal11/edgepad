@@ -409,17 +409,19 @@
   <string name="surface_open_settings">Open settings</string>
   <string name="surface_controls">Open the controls</string>
   <string name="surface_back_again">Back again to open Devices</string>
-  <string name="surface_lock">Hide the dials, or lock the trackpad</string>
+  <string name="surface_lock">Lock the trackpad</string>
   <string name="surface_mode_normal">Dials, media and trackpad all on</string>
   <string name="surface_mode_focus">Trackpad only · dials and media hidden</string>
   <string name="surface_mode_locked">Dials and media only · trackpad locked</string>
-  <string name="surface_focus_caption">Dials and media hidden · tap the lock to show</string>
+  <string name="surface_mode_both">Trackpad locked · dials and media hidden</string>
+  <string name="surface_focus_caption">Dials and media hidden · show them in Controls</string>
   <string name="surface_locked_caption">Trackpad locked · tap the lock to unlock</string>
 
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controls</string>
   <string name="controls_move_hint">Press and hold a tile to move it.</string>
+  <string name="controls_hide_dials">Hide dials and media</string>
   <string name="controls_open">Open %1$s</string>
   <string name="controls_needs_newer">This laptop needs a newer Edgepad for this. Update it, then reconnect.</string>
   <string name="controls_keyboard">Keyboard</string>

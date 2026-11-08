@@ -1379,7 +1379,7 @@ class MainActivity :
         val owner = surface ?: return
         controls?.dismiss()
         controls =
-            ControlsPopup(ui, settings) { target ->
+            ControlsPopup(ui, settings, { owner.isDialsHidden }, owner::setDialsHidden) { target ->
                 when (target) {
                     ControlsPopup.Target.KEYBOARD -> goTo(Screen.KEYBOARD)
                     ControlsPopup.Target.GAMEPAD -> goTo(Screen.GAMEPAD)

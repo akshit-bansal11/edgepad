@@ -40,6 +40,9 @@ private const val HINT_TIMES = 3
 class ControlsPopup(
     private val ui: Ui,
     private val settings: Settings,
+    /** AND-A-16: whether the surface hides its dials now, and the switch that changes it. */
+    private val dialsHidden: () -> Boolean,
+    private val onHideDials: (Boolean) -> Unit,
     private val onOpen: (Target) -> Unit,
 ) {
     /** The controls a tile can open. The order here is the order of a deck nobody has arranged. */
@@ -95,6 +98,11 @@ class ControlsPopup(
         // AND-A-29: the move gesture is told the first few times, under the tiles.
         val body = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
         body.addView(holder)
+        body.addView(
+            ui.toggle(ui.string(R.string.controls_hide_dials), dialsHidden(), onHideDials).apply {
+                setPadding(pad, 0, pad, 0)
+            },
+        )
         if (settings.controlsHintShown < HINT_TIMES) {
             settings.controlsHintShown += 1
             val note = ui.secondary(ui.string(R.string.controls_move_hint), Type.SMALL, ui.palette.dim)
