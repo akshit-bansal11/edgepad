@@ -20,6 +20,9 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     private let forgetOne: (String, String) -> Bool
     /// The phones the list shows, so a Forget button's tag says which one.
     private var listed: [(address: String, name: String)] = []
+    private let listStack = NSStackView()
+    private var body: NSStackView?
+    private var alert: NSAlert?
 
     /// The level the radios show.
     private var level: Int
@@ -51,6 +54,7 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
 
     func run() {
         let alert = NSAlert()
+        self.alert = alert
         alert.messageText = "Security"
         alert.informativeText =
             "Every phone is asked for your yes first. The two PIN levels also ask for a six-digit PIN."
@@ -86,25 +90,12 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
         warning.preferredMaxLayoutWidth = Self.width
         let pinRow = NSStackView(views: [setPinButton, pinState])
         pinRow.spacing = 12
-        listed = phones()
-        var rows: [NSView] = []
-        if !listed.isEmpty {
-            let heading = NSTextField(labelWithString: "Trusted phones")
-            heading.font = .boldSystemFont(ofSize: NSFont.systemFontSize)
-            rows.append(heading)
-            for (index, phone) in listed.enumerated() {
-                let name = NSTextField(labelWithString: phone.name)
-                name.lineBreakMode = .byTruncatingMiddle
-                name.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-                let forget = NSButton(title: "Forget", target: self, action: #selector(forgetOnePhone(_:)))
-                forget.tag = index
-                forget.setAccessibilityLabel("Forget \(phone.name)")
-                let row = NSStackView(views: [name, forget])
-                row.spacing = 12
-                rows.append(row)
-            }
-        }
-        let stack = NSStackView(views: radios + [pinRow, warning] + rows + [forgetEvery, reset])
+        listStack.orientation = .vertical
+        listStack.alignment = .leading
+        listStack.spacing = 6
+        fillList()
+        let stack = NSStackView(views: radios + [pinRow, warning, listStack, forgetEvery, reset])
+        body = stack
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 10
@@ -267,11 +258,39 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
         NSApp.stopModal(withCode: .abort)
     }
 
+    /// Writes the trusted phones into the list, none at all when there are none.
+    private func fillList() {
+        for view in listStack.arrangedSubviews {
+            listStack.removeArrangedSubview(view)
+            view.removeFromSuperview()
+        }
+        listed = phones()
+        guard !listed.isEmpty else { return }
+        let heading = NSTextField(labelWithString: "Trusted phones")
+        heading.font = .boldSystemFont(ofSize: NSFont.systemFontSize)
+        listStack.addArrangedSubview(heading)
+        for (index, phone) in listed.enumerated() {
+            let name = NSTextField(labelWithString: phone.name)
+            name.lineBreakMode = .byTruncatingMiddle
+            name.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            let forget = NSButton(title: "Forget", target: self, action: #selector(forgetOnePhone(_:)))
+            forget.tag = index
+            forget.setAccessibilityLabel("Forget \(phone.name)")
+            let row = NSStackView(views: [name, forget])
+            row.spacing = 12
+            listStack.addArrangedSubview(row)
+        }
+    }
+
     @objc private func forgetOnePhone(_ sender: NSButton) {
         guard listed.indices.contains(sender.tag) else { return }
         let phone = listed[sender.tag]
         if forgetOne(phone.address, phone.name) {
-            NSApp.stopModal(withCode: .abort)
+            fillList()
+            if let body {
+                body.setFrameSize(NSSize(width: Self.width, height: body.fittingSize.height))
+            }
+            alert?.layout()
         }
     }
 

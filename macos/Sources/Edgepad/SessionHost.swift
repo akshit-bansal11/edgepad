@@ -89,6 +89,9 @@ final class SessionHost {
         }
     }
 
+    /// The address of the phone in use, if any.
+    var connectedAddress: String? { current?.address }
+
     /// What the owner reads for `address`: a network phone's name and the way it came, a Bluetooth address as it is.
     func shown(_ address: String) -> String {
         names[address] ?? address

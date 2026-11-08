@@ -58,6 +58,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var permissionTimer: Timer?
     private var badged = false
     private var questionOpen = false
+    /// The phone in use when the Security window opened, which that window's hold then hung up.
+    private var liveAtSecurityOpen: String?
     /// Set once the owner has opened the menu, which the first-run question waits for at the latest.
     private var menuSeen = false
 
@@ -506,15 +508,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         return trust.trustedPhones.map { (address: $0, name: names[$0.lowercased()] ?? $0) }
     }
 
-    /// Forgets one phone after asking, held like Forget so a connected phone cannot answer. True when it did.
+    /// Forgets one phone after asking. The Security window already holds phones off, so nothing can answer. The
+    /// phone that was connected when the window opened gets the quiet period of Forget all; any other is left alone.
     private func confirmForgetOne(_ address: String, _ name: String) -> Bool {
         guard !forgetting else { return false }
         forgetting = true
-        host?.holdOff()
-        defer {
-            host?.resume()
-            forgetting = false
-        }
+        defer { forgetting = false }
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = "Forget \(name)?"
@@ -530,6 +529,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if address.lowercased().hasPrefix("link:") {
             failed = !paired.forgetOne(String(address.dropFirst(5))) || failed
         }
+        if liveAtSecurityOpen?.caseInsensitiveCompare(address) == .orderedSame {
+            host?.stayQuiet()
+        }
         if failed {
             tell(
                 "Could not forget \(name)",
@@ -543,6 +545,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func showSecurity() {
         guard !securing else { return }
         securing = true
+        liveAtSecurityOpen = host?.connectedAddress
         host?.holdOff()
         defer {
             host?.resume()
