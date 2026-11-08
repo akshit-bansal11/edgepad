@@ -50,7 +50,6 @@ import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopRow
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.LinkHooks
-import me.akshitbansal.edgepad.link.ShareTarget
 import me.akshitbansal.edgepad.link.LinkNotice
 import me.akshitbansal.edgepad.link.LinkService
 import me.akshitbansal.edgepad.link.LinkTransport
@@ -60,6 +59,7 @@ import me.akshitbansal.edgepad.link.NET_KEY
 import me.akshitbansal.edgepad.link.OlderHalf
 import me.akshitbansal.edgepad.link.PickerHint
 import me.akshitbansal.edgepad.link.SavedLaptop
+import me.akshitbansal.edgepad.link.ShareTarget
 import me.akshitbansal.edgepad.link.Sweep
 import me.akshitbansal.edgepad.link.Target
 import me.akshitbansal.edgepad.link.TcpTransport
