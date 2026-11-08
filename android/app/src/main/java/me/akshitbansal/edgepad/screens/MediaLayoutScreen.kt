@@ -52,7 +52,7 @@ object MediaLayoutScreen {
                     ui
                         .secondary(
                             ui.string(
-                                if (ui.context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                                if (isSideways(ui.context)) {
                                     R.string.media_layout_hint_sideways
                                 } else {
                                     R.string.media_layout_hint_upright
@@ -218,3 +218,7 @@ object MediaLayoutScreen {
         }
     }
 }
+
+/** Positions are kept per orientation, so the hint names the one being edited. */
+private fun isSideways(context: Context): Boolean =
+    context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE

@@ -183,10 +183,7 @@ class LaptopState {
                     TextKind.APP -> app = frame.text
                     TextKind.TIMELINE -> timeline(frame.text)
                     TextKind.REFRESH_RATES -> refreshRates = rates(frame.text)
-                    TextKind.MACROS -> {
-                        macros = macroNames(frame.text)
-                        macrosHeard = true
-                    }
+                    TextKind.MACROS -> heardMacros(frame.text)
                     TextKind.MACRO_OPEN -> macroOpen = frame.text.take(MACRO_SLOTS).map(OpenState::of)
                     TextKind.MACRO_ICON -> return iconChunk(frame.text)
                     TextKind.PAD_STATUS -> padStatus = PadStatus.of(frame.text)
@@ -292,6 +289,11 @@ class LaptopState {
         }
 
     /** "Chrome/Spotify/Notes": one name per macro slot, in the order MACRO_BASE indexes them. */
+    private fun heardMacros(text: String) {
+        macros = macroNames(text)
+        macrosHeard = true
+    }
+
     private fun macroNames(text: String): List<String> {
         // A blank name keeps its slot rather than being dropped: the phone sends an index, so removing the
         // empty name from "Chrome//Notes" would put Notes where the laptop expects the missing slot and

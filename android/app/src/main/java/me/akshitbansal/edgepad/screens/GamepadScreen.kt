@@ -192,15 +192,13 @@ class GamepadScreen(
             removeCallbacks(waited)
             // AND-A-11: a laptop that predates PAD_ATTACH never answers, so the waiting line gives way to saying so.
             if (status == null && !waitedOut) postDelayed(waited, WAIT_MS)
+            val waitingLine = if (waitedOut) R.string.gamepad_mode_unanswered else R.string.gamepad_mode_waiting
             mode =
                 when (status) {
                     PadStatus.READY -> null
                     PadStatus.NO_DRIVER -> context.getString(noDriverLine())
                     PadStatus.ATTACH_FAILED -> context.getString(R.string.gamepad_mode_attach_failed)
-                    null ->
-                        context.getString(
-                            if (waitedOut) R.string.gamepad_mode_unanswered else R.string.gamepad_mode_waiting,
-                        )
+                    null -> context.getString(waitingLine)
                 }
             // The state of the view, not its name: a screen reader announces it with the description
             // already set, which is how the player who cannot see the line still hears it.

@@ -165,6 +165,7 @@ class ControlSurface(
     // but a locked pad looks exactly like a working one, and a surface that silently swallows every touch
     // reads as a crash rather than as a mode. Both are tinted here because onDraw may not make a Drawable.
     private val lockIconOn = icon(R.drawable.ic_lock, accent)
+
     // AND-A-16: hiding the dials wears its own icon, so the one lock button no longer looks the same in both modes.
     private val focusIconOn = icon(R.drawable.ic_eye_off, accent)
     private val lockButton = TopButton(icon(R.drawable.ic_lock, dim), side = 0f, open = { tapLock() })
@@ -204,7 +205,9 @@ class ControlSurface(
                 action(R.id.action_pad_lock, R.string.surface_lock) to { tapLock() },
                 // AND-A-8: the two levels a dial sets are reachable without sliding one.
                 action(R.id.action_volume_up, R.string.surface_volume_up) to { nudge(ControlId.VOLUME, LEVEL_STEP) },
-                action(R.id.action_volume_down, R.string.surface_volume_down) to { nudge(ControlId.VOLUME, -LEVEL_STEP) },
+                action(R.id.action_volume_down, R.string.surface_volume_down) to {
+                    nudge(ControlId.VOLUME, -LEVEL_STEP)
+                },
                 action(R.id.action_brightness_up, R.string.surface_brightness_up) to {
                     nudge(ControlId.BRIGHTNESS, LEVEL_STEP)
                 },
@@ -658,7 +661,10 @@ class ControlSurface(
 
     /** AND-A-17: one line per gesture not yet used; a three or four finger line goes when its swipes are remapped. */
     private fun hintsToShow(): List<String> {
-        fun stock(a: Gesture, b: Gesture) = settings.gesture(a) == a.default && settings.gesture(b) == b.default
+        fun stock(
+            a: Gesture,
+            b: Gesture,
+        ) = settings.gesture(a) == a.default && settings.gesture(b) == b.default
         val slots =
             listOf(
                 R.string.surface_hint_one,
@@ -706,7 +712,6 @@ class ControlSurface(
         canvas.drawText(captionLine, centre, baseline, captionPaint)
     }
 
-    /** Where the first hint line sits; the caption is placed off it, so the two move together. */
     /** The touch ended on the trackpad: the gestures it used no longer need their hint. */
     private fun learnHints(event: MotionEvent) {
         val held = peakFingers == 1 && event.eventTime - touchStart >= HOLD_HINT_MS
@@ -715,6 +720,7 @@ class ControlSurface(
         if (changed) hintLines = hintsToShow()
     }
 
+    /** Where the first hint line sits; the caption is placed off it, so the two move together. */
     private fun hintTop(): Float = height / 2f - (hintLines.size - 1) * dp(HINT_GAP_DP) / 2
 
     /**

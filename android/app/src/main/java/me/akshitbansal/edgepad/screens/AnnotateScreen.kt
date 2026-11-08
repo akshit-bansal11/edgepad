@@ -48,6 +48,7 @@ class AnnotateScreen(
     private val onBack: () -> Unit,
 ) {
     private val strokes = Strokes(settings.penRgb, settings.penWidth, settings.penOpacity)
+
     // AND-A-20: one dim line over the empty pad until the first touch draws something.
     private var armed = false
     private val hint = ui.text(hintFor(state), Type.BODY, ui.palette.dim)
