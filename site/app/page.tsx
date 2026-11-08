@@ -37,6 +37,7 @@ import { GridPattern } from "@/components/ui/grid-pattern";
 import { MagicCard } from "@/components/ui/magic-card";
 import { LATEST_RELEASE, REPO } from "@/lib/nav";
 import { loadProtocol } from "@/lib/protocol";
+import { DOWNLOADS, RELEASE_VERSION } from "@/lib/release";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -124,7 +125,7 @@ const STEPS: { step: string; title: string; body: string }[] = [
   {
     step: "01",
     title: "Pair once, like a headset",
-    body: "The phone and the laptop pair in the laptop's own Bluetooth settings: Windows Settings > Bluetooth & devices, macOS System Settings > Bluetooth, or your Linux desktop's. Edgepad has no pairing step of its own and no account to make; Bluetooth is the default, and Wi-Fi and USB connections are optional and off until you turn them on in the laptop's tray menu. Each paired phone is asked about once, and every phone you trust is remembered until you Forget it (or Forget all…) in the tray menu's Security… window.",
+    body: "The phone and the laptop pair in the laptop's own Bluetooth settings: Windows Settings > Bluetooth & devices, macOS System Settings > Bluetooth, or your Linux desktop's. Confirm the code on both sides when the OS shows it. For Bluetooth, Edgepad adds no pairing step of its own and there is no account to make; Wi-Fi and USB connections are optional, off until you turn them on in the laptop's tray menu, and use their own one-time code. Each paired phone is asked about once, and every phone you trust is remembered until you Forget it (or Forget all…) in the tray menu's Security… window.",
   },
   {
     step: "02",
@@ -152,6 +153,7 @@ const INSTALL: {
   Icon: LucideIcon;
   requirement: string;
   file: string;
+  href: string;
   steps: string[];
 }[] = [
   {
@@ -160,11 +162,12 @@ const INSTALL: {
     // Badges do not wrap, so these stay short enough to fit a narrow card. The full
     // requirement is spelled out in the steps and in the limits above.
     requirement: "Windows 10 2004+",
-    file: "Edgepad-x.y.z.exe",
+    file: DOWNLOADS.windows.file,
+    href: DOWNLOADS.windows.href,
     steps: [
       "Download it. One self-contained 64-bit file; the laptop does not need .NET.",
       "Run it. SmartScreen asks first: More info, then Run anyway.",
-      "It lives in the system tray, with macros, the log and Start with Windows in its menu.",
+      "It lives in the system tray. Turn on Wi-Fi and USB connections there if you want them: Wi-Fi and USB steps are in the install guide.",
       "Optional: install ViGEmBus if you want the gamepad to drive a real controller. Everything else works without it.",
     ],
   },
@@ -172,10 +175,11 @@ const INSTALL: {
     half: "Phone",
     Icon: Smartphone,
     requirement: "Android 12+",
-    file: "Edgepad-x.y.z.apk",
+    file: DOWNLOADS.phone.file,
+    href: DOWNLOADS.phone.href,
     steps: [
-      "Download it and open it. Allow installing from this source if asked.",
-      "Allow Nearby devices on first run. It reads the laptops already paired with the phone and never scans for new ones.",
+      "Download it and open it. If the browser or Android warns, allow it: Download anyway, then Settings to allow installing, then Install anyway if Play Protect asks.",
+      "Allow Nearby devices on first run. It shows the laptops already paired over Bluetooth and, if you turn Wi-Fi and USB on, finds laptops on your network.",
       "Open it, tap the laptop, and the surface is there.",
     ],
   },
@@ -230,11 +234,11 @@ export default function Page() {
   const facts: { term: string; value: string }[] = [
     {
       term: "Transport",
-      value: "Bluetooth Classic RFCOMM, Wi-Fi and USB optional",
+      value: "Bluetooth; Wi-Fi and USB are new, not tried on real phones",
     },
     { term: "Protocol", value: `Version ${protocol.version}` },
     { term: "Phone", value: "Kotlin, Android 12+" },
-    { term: "Laptop", value: "Windows, Mac and Linux" },
+    { term: "Laptop", X,
   ];
 
   return (
@@ -256,7 +260,7 @@ export default function Page() {
             <div>
               <p className="bg-card shadow-card inline-flex rounded-full px-4 py-1.5 text-sm font-bold">
                 <AnimatedShinyText>
-                  Phone · Bluetooth, Wi-Fi, USB · Windows, Mac, Linux
+                  Phone · Bluetooth, Wi-Fi, USB · Windows; Mac and Linux in testing
                 </AnimatedShinyText>
               </p>
               <h1 className="mt-6 max-w-[13ch] text-[2.75rem] leading-[1.02] font-black tracking-[-0.025em] sm:text-6xl lg:text-7xl">
@@ -272,9 +276,7 @@ export default function Page() {
 
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Button asChild>
-                  <a href={LATEST_RELEASE} target="_blank" rel="noreferrer noopener">
-                    Download both halves
-                  </a>
+                  <a href="#get">Download</a>
                 </Button>
                 <Button asChild variant="outline">
                   <Link href="/docs">
@@ -461,7 +463,10 @@ export default function Page() {
 
         {/* Get it */}
         <section id="get" className={SECTION}>
-          <Heading eyebrow="Get it" title="Both halves, from the same release.">
+          <Heading
+            eyebrow="Get it"
+            title={`Both halves, from release ${RELEASE_VERSION}.`}
+          >
             Always install both from the same one: the two refuse each other at the
             handshake when their protocol versions differ, and say so. Protocol version{" "}
             {protocol.version} is what this release speaks.
@@ -479,7 +484,9 @@ export default function Page() {
                       <CardTitle className="text-xl font-black">{half}</CardTitle>
                       <div className="mt-1.5 flex flex-wrap gap-2">
                         <Badge variant="solid">{requirement}</Badge>
-                        <Badge variant="outline">{file}</Badge>
+                        <Badge variant="outline" asChild>
+                          <a href={href}>{file}</a>
+                        </Badge>
                       </div>
                     </div>
                   </CardHeader>
@@ -512,9 +519,22 @@ export default function Page() {
                   The Windows app is the one that has been run on a real laptop. The Mac
                   app has been compiled and unit-tested in CI, and the Linux app has not
                   been seen working on a Linux laptop yet. Expect rough edges, and
-                  report what you find. On a Mac the laptop half is
-                  Edgepad-x.y.z-mac.zip; on Linux it is Edgepad-x.y.z-linux-x64.tar.gz,
-                  installed with sudo ./install.sh.
+                  report what you find. On a Mac the laptop half is{" "}
+                  <a
+                    className="text-primary font-bold underline"
+                    href={DOWNLOADS.mac.href}
+                  >
+                    {DOWNLOADS.mac.file}
+                  </a>
+                  ; macOS refuses it at first, so choose Open Anyway under System
+                  Settings &gt; Privacy &amp; Security. On Linux it is{" "}
+                  <a
+                    className="text-primary font-bold underline"
+                    href={DOWNLOADS.linux.href}
+                  >
+                    {DOWNLOADS.linux.file}
+                  </a>
+                  , installed with sudo ./install.sh.
                 </p>
                 <p className="mt-2">
                   <MoreLink href="/docs#install">Mac and Linux install steps</MoreLink>
@@ -526,9 +546,13 @@ export default function Page() {
           <BlurFade>
             <div className="mt-10 flex flex-wrap items-center gap-3">
               <Button asChild>
-                <a href={LATEST_RELEASE} target="_blank" rel="noreferrer noopener">
-                  Download both halves
-                </a>
+                <a href={DOWNLOADS.windows.href}>Download for Windows</a>
+              </Button>
+              <Button asChild>
+                <a href={DOWNLOADS.phone.href}>Download for Android</a>
+              </Button>
+              <Button asChild variant="outline">
+                <a href={LATEST_RELEASE}>All downloads</a>
               </Button>
               <Button asChild variant="outline">
                 <Link href="/docs#install">

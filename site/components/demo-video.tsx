@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 /** Chapter starts in seconds, from the narration timings the demo was rendered with. */
 const CHAPTERS: { at: number; title: string }[] = [
@@ -25,6 +25,11 @@ const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2,
  */
 export function DemoVideo() {
   const video = useRef<HTMLVideoElement>(null);
+  const [current, setCurrent] = useState(0);
+
+  // The last chapter that has started: CHAPTERS is in ascending order of `at`.
+  const track = (time: number) =>
+    setCurrent(CHAPTERS.filter((chapter) => chapter.at <= time).length - 1);
 
   const seek = (at: number) => {
     const el = video.current;
@@ -46,12 +51,13 @@ export function DemoVideo() {
           controls
           preload="none"
           playsInline
+          onTimeUpdate={(event) => track(event.currentTarget.currentTime)}
         >
           <track
             kind="captions"
             src="/edgepad-demo.en.vtt"
             srcLang="en"
-            label="English"
+            label="English (same as the captions in the picture)"
           />
           <a href="/edgepad-demo.mp4">Download the demo video</a>
         </video>
@@ -65,12 +71,13 @@ export function DemoVideo() {
       >
         <p className="label px-4 pt-4 pb-2">Chapters</p>
         <ol className="divide-line overflow-y-auto divide-y px-2 pb-2">
-          {CHAPTERS.map((chapter) => (
+          {CHAPTERS.map((chapter, index) => (
             <li key={chapter.at}>
               <button
                 type="button"
                 onClick={() => seek(chapter.at)}
-                className="hover:bg-faint flex min-h-11 w-full items-center gap-3 rounded-xl px-2 text-left text-[0.9375rem] transition-colors"
+                aria-current={index === current ? "true" : undefined}
+                className="hover:bg-faint aria-[current=true]:bg-accent-soft flex min-h-11 w-full items-center gap-3 rounded-xl px-2 text-left text-[0.9375rem] transition-colors"
               >
                 <span className="text-primary w-9 shrink-0 text-sm font-bold">
                   {clock(chapter.at)}
@@ -80,6 +87,13 @@ export function DemoVideo() {
             </li>
           ))}
         </ol>
+        <a
+          href="/edgepad-demo.mp4"
+          download
+          className="text-primary px-4 pt-2 pb-4 text-[0.9375rem] font-bold underline underline-offset-4"
+        >
+          Download the demo (MP4, 13 MB)
+        </a>
       </nav>
     </div>
   );

@@ -636,7 +636,7 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
         title="Actions and controls"
         lede="The laptop owns both tables. The phone names an id; the laptop decides what the id does."
       >
-        <Sub>Actions</Sub>
+        <Sub>The actions</Sub>
         <IdTable
           rows={protocol.actions}
           idHeading="Id"

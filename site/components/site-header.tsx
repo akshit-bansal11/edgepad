@@ -3,13 +3,13 @@ import Link from "next/link";
 import { GithubMark } from "@/components/icons/github";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { LATEST_RELEASE, NAV, REPO } from "@/lib/nav";
+import { NAV, REPO } from "@/lib/nav";
 
 /** The landing page's own anchors. The docs page uses NAV instead. */
 const LANDING_LINKS: { href: string; label: string }[] = [
-  { href: "#features", label: "What it does" },
-  { href: "#how", label: "How it works" },
-  { href: "#get", label: "Get it" },
+  { href: "/#features", label: "What it does" },
+  { href: "/#how", label: "How it works" },
+  { href: "/#get", label: "Get it" },
 ];
 
 const MENU_LINK =
@@ -105,9 +105,7 @@ export function SiteHeader({ variant = "landing" }: { variant?: "landing" | "doc
           <ThemeToggle />
 
           <Button asChild size="sm" className="hidden lg:inline-flex">
-            <a href={LATEST_RELEASE} target="_blank" rel="noreferrer noopener">
-              Download
-            </a>
+            <Link href="/#get">Download</Link>
           </Button>
 
           <details className="relative lg:hidden">
@@ -157,9 +155,7 @@ export function SiteHeader({ variant = "landing" }: { variant?: "landing" | "doc
                   <MenuLink href={REPO} external>
                     GitHub
                   </MenuLink>
-                  <MenuLink href={LATEST_RELEASE} external>
-                    Download
-                  </MenuLink>
+                  <MenuLink href="/#get">Download</MenuLink>
                 </ul>
               </div>
             </div>

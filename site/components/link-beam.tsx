@@ -80,8 +80,8 @@ export function LinkBeam() {
         <Node
           ref={link}
           Icon={Bluetooth}
-          title="RFCOMM"
-          detail="Paired once, no network"
+          title="Link"
+          detail="Bluetooth, or Wi-Fi and USB when on"
         />
         <Node
           ref={laptop}
