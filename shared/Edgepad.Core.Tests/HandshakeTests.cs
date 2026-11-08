@@ -163,6 +163,19 @@ public sealed class HandshakeTests : IDisposable
     }
 
     [Fact]
+    public void AVerifiedConnectionStampsWhenThePhoneLastConnectedAndARefusedOneDoesNot()
+    {
+        ownerSaysYes = false;
+        Assert.False(Connect(PinAtLevel(1), CurrentHello));
+        Assert.Null(trust.Connections.Get(Phone));
+
+        ownerSaysYes = true;
+        var before = DateTimeOffset.UtcNow.AddSeconds(-1);
+        Assert.True(Connect(PinAtLevel(1), CurrentHello));
+        Assert.True(trust.Connections.Get(Phone) >= before);
+    }
+
+    [Fact]
     public void AnUnknownPhoneIsAskedAboutBeforeThePinAndAdmittedOnlyAfterIt()
     {
         Assert.True(Connect(PinAtLevel(3), CurrentHello, Right));

@@ -57,6 +57,9 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
     public static TrustStore ForCurrentUser() => new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "trusted-phone.txt"));
 
+    /// <summary>When each trusted phone last connected, in a file beside the trust file. Stamped by the handshake.</summary>
+    public LastConnected Connections { get; } = LastConnected.Beside(path);
+
     /// <summary>Where the trusted phones are kept, for a message that has to send the owner there.</summary>
     public string FilePath => path;
 
@@ -289,6 +292,7 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
         lock (gate)
         {
             generation++;
+            Connections.ForgetAll();
             unsaved.Clear();
             declined = null;
             denied.Clear();
@@ -337,6 +341,7 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
         lock (gate)
         {
             generation++;
+            Connections.Forget(address);
             unsaved.Remove(address);
             if (IsDeclined(address))
             {

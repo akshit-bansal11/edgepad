@@ -179,7 +179,7 @@ internal sealed class SecurityWindow : Form
         phoneRows.Clear();
         foreach (var phone in phones.List())
         {
-            var name = new Label { AutoSize = false, Text = $"{phone.Name} · {phone.Way}", AutoEllipsis = true, TextAlign = ContentAlignment.MiddleLeft };
+            var name = new Label { AutoSize = false, Text = LastConnected.RowText($"{phone.Name} · {phone.Way}", phone.Last, DateTimeOffset.Now), AutoEllipsis = true, TextAlign = ContentAlignment.MiddleLeft };
             var forget = new FlatButton("Forget", ButtonKind.Outline, palette) { Danger = true, AccessibleName = $"Forget {phone.Name}" };
             forget.Click += (_, _) => ConfirmForgetOne(phone);
             phoneRows.Add((name, forget, phone));

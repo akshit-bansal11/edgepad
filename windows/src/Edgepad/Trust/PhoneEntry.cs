@@ -1,7 +1,7 @@
 namespace Edgepad.Trust;
 
-/// <summary>A trusted phone as the Security window lists it: what to call it, and how it connects.</summary>
-internal sealed record PhoneEntry(string Address, string Name, string Way)
+/// <summary>A trusted phone as the Security window lists it: what to call it, how it connects, and when it last did.</summary>
+internal sealed record PhoneEntry(string Address, string Name, string Way, DateTimeOffset? Last = null)
 {
     private const string LinkPrefix = "link:";
 
