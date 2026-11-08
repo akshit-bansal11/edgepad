@@ -148,6 +148,10 @@ public sealed class WindowsClipboardTests : IDisposable
         Directory.CreateDirectory(dir);
         File.WriteAllText(Path.Combine(dir, "in-the-way"), "");
         var setting = new ClipboardSetting(Path.Combine(dir, "in-the-way", "clipboard.txt"));
+        Assert.False(setting.Enabled);
+
+        // No file is off now, so turn it on in memory first; the point is that off then holds despite the failed write.
+        Assert.False(setting.Set(true));
         Assert.True(setting.Enabled);
 
         Assert.False(setting.Set(false));

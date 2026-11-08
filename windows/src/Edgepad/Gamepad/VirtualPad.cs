@@ -53,12 +53,6 @@ internal sealed class VirtualPad(Func<ViGEmClient>? openClient = null) : IDispos
     /// <summary>Plugs the pad in, and says how that went as one <see cref="PadStatus"/> token.</summary>
     public string Attach()
     {
-        // A driver installed since the last look is found when the phone next opens the gamepad.
-        if (client is null)
-        {
-            asked = false;
-        }
-
         if (Client() is not { } bus)
         {
             DriverMissing?.Invoke();
