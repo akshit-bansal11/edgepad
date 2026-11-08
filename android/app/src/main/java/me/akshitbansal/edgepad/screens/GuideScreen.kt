@@ -16,9 +16,10 @@ import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
 /**
- * What Edgepad is and how to use it, in five pages. On the first run it opens the app and ends by
- * finding the laptop; from Settings it is the Guide and ends by going back. Steps shows one page at a
- * time with a drawing; Page shows them all on one scrolling page. The choice is remembered.
+ * What Edgepad is and how to use it, in six pages, the last of them how to connect the laptop. On the first run it
+ * opens the app, can be skipped, and ends by finding the laptop; from Settings it is the Guide and ends by going
+ * back. Steps shows one page at a time with a drawing; Page shows them all on one scrolling page. The choice is
+ * remembered, and is made from the Settings copy: a first run has no reason to touch it yet.
  */
 object GuideScreen {
     private class Page(
@@ -66,6 +67,14 @@ object GuideScreen {
                 R.array.guide_gamepad_values,
                 GuideArt.Kind.GAMEPAD,
             ),
+            // Drawn with the phone-and-laptop picture of the first page, which is the link this page is about.
+            Page(
+                R.string.guide_connect_kicker,
+                R.string.guide_connect_title,
+                R.array.guide_connect_keys,
+                R.array.guide_connect_values,
+                GuideArt.Kind.FEATURES,
+            ),
         )
 
     private const val ART_DP = 132f
@@ -112,7 +121,8 @@ object GuideScreen {
                 }
             val bar =
                 if (intro) {
-                    ui.bar(ui.string(R.string.app_name), null, modes, lead = MarkView(ui.context))
+                    val skip = ui.chip(ui.string(R.string.guide_skip), onFinish)
+                    ui.bar(ui.string(R.string.app_name), null, skip, lead = MarkView(ui.context))
                 } else {
                     ui.bar(
                         ui.string(R.string.guide_title),

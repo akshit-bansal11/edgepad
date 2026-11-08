@@ -33,6 +33,8 @@
   <string name="transport_wifi">Wi-Fi</string>
   <string name="transport_usb">USB</string>
   <string name="add_by_address">Add by address</string>
+  <string name="address_connect">Connect</string>
+  <string name="address_looking">Looking for a laptop at %1$s…</string>
   <string name="add_by_address_hint">192.168.1.20 or 192.168.1.20:47321</string>
   <string name="address_invalid">That is not an address. Type a host name or IP address, with a port if it is not 47321.</string>
   <string name="address_no_laptop">Nothing on that address answered as a laptop running Edgepad.</string>
@@ -157,6 +159,7 @@
   <string name="corner_bottom_left">Bottom left</string>
   <string name="corner_off">Off</string>
   <string name="corner_split">Split corners</string>
+  <string name="corner_split_caption">Gives each corner two dials, one on each edge. Up to eight in all.</string>
   <string name="corner_edge_left">left edge</string>
   <string name="corner_edge_top">top edge</string>
   <string name="corner_edge_right">right edge</string>
@@ -298,7 +301,7 @@
   <string name="shape_target_lock_pad">Lock the pad</string>
 
   <string name="settings_surface">Surface</string>
-  <string name="settings_controls">Controls</string>
+  <string name="settings_controls">Control colour</string>
   <string name="settings_surface_title">Surface settings</string>
   <string name="settings_system">System settings</string>
   <string name="settings_help">Help</string>
@@ -334,14 +337,15 @@
   <string name="corners_pick">Pick a corner</string>
   <string name="corner_assign">Assign to %1$s</string>
   <string name="chosen">Chosen</string>
+  <string name="color_hex">Hex colour</string>
   <string name="dial_feel_title">Dial feel</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">Preview. Clockwise raises.</string>
   <string name="gestures_footnote">Tap a gesture to change its action. One and two fingers are fixed: move, tap to click, tap and hold to drag; two fingers drag to scroll, pinch to zoom, tap to right-click.</string>
   <string name="dial_feel_each">Each dial</string>
   <string name="dial_feel_shared">Shared</string>
-  <string name="dial_feel_each_caption">Move a dial off Shared to give it a speed of its own. Shared follows slide sensitivity.</string>
-  <string name="appearance_title">Background &amp; pattern</string>
+  <string name="dial_feel_each_caption">Only the dials in a corner are listed. Move one off Shared to give it a speed of its own. Shared follows slide sensitivity.</string>
+  <string name="appearance_title">Look</string>
   <string name="appearance_preview">Preview</string>
   <string name="background_preview_description">Preview of the control surface background</string>
   <string name="guide_title">Guide</string>

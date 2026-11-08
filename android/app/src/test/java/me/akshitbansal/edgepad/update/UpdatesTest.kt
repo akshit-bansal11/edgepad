@@ -60,4 +60,16 @@ class UpdatesTest {
         assertFalse(Updates.isNewer("latest", "3.2.0"))
         assertFalse(Updates.isNewer("3.2.1", ""))
     }
+
+    @Test
+    fun onlyAChangeOfTheFirstNumberIsAMajorRelease() {
+        assertTrue(Updates.majorDiffers("5.0.0", "4.2.1"))
+        assertFalse(Updates.majorDiffers("4.3.0", "4.2.1-dev"))
+        assertFalse(Updates.majorDiffers("latest", "4.2.1"))
+    }
+
+    @Test
+    fun aReleasePageIsTheTagPage() {
+        assertEquals("https://github.com/akshit-bansal11/edgepad/releases/tag/v4.3.0", Updates.releaseUrl("4.3.0"))
+    }
 }

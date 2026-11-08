@@ -52,10 +52,10 @@ import me.akshitbansal.edgepad.link.LinkHooks
 import me.akshitbansal.edgepad.link.LinkNotice
 import me.akshitbansal.edgepad.link.LinkService
 import me.akshitbansal.edgepad.link.LinkTransport
-import me.akshitbansal.edgepad.link.NET_KEY
-import me.akshitbansal.edgepad.link.OlderHalf
 import me.akshitbansal.edgepad.link.LocalNetwork
 import me.akshitbansal.edgepad.link.MainScheduler
+import me.akshitbansal.edgepad.link.NET_KEY
+import me.akshitbansal.edgepad.link.OlderHalf
 import me.akshitbansal.edgepad.link.PickerHint
 import me.akshitbansal.edgepad.link.SavedLaptop
 import me.akshitbansal.edgepad.link.Sweep
@@ -112,11 +112,12 @@ import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.PinScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
-import me.akshitbansal.edgepad.screens.SharingScreen
 import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
+import me.akshitbansal.edgepad.screens.SharingScreen
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
 import me.akshitbansal.edgepad.screens.Ui
+import me.akshitbansal.edgepad.screens.openOver
 import me.akshitbansal.edgepad.screens.showOver
 import me.akshitbansal.edgepad.surface.BackgroundImage
 import me.akshitbansal.edgepad.surface.ConnectedLaptops
@@ -309,6 +310,9 @@ class MainActivity :
 
     /** What the last sweep saw and whether a USB cable is in; the Devices list says both under the list. */
     private var sweep: Sweep? = null
+
+    /** The Wi-Fi has been swept once since the Devices list opened or Refresh was pressed. */
+    private var swept = false
     private var usbCable = false
     private var discovery: Discovery? = null
 
@@ -357,6 +361,8 @@ class MainActivity :
                 onBluetoothSettings = ::openBluetoothSettings,
                 onSettings = ::openSettings,
                 onRefresh = {
+                    // The one thing that asks the Wi-Fi to be searched again; see [probeTether].
+                    swept = false
                     refreshPicker()
                     startScan()
                 },
@@ -639,6 +645,7 @@ class MainActivity :
         wifiFound = emptyList()
         usbFound = emptyList()
         sweep = null
+        swept = false
         usbCable = false
     }
 
@@ -650,14 +657,18 @@ class MainActivity :
         if (probe != null || !LocalNetwork.granted(this)) return
         val pass = TetherProbe()
         probe = pass
-        val mdnsFound = wifiFound.isNotEmpty()
+        // The Wi-Fi is swept address by address once a visit, not every ten seconds: on a shared network that is a
+        // knock on every neighbour. USB is always swept, as its subnet is only the laptop's. Refresh sweeps again.
+        val spared = wifiFound.isNotEmpty() || swept
+        val earlier = usbFound.filter { it.transport == Transport.WIFI }
         thread(name = "edgepad-probe") {
-            val result = pass.run(mdnsFound = mdnsFound)
+            val result = pass.run(mdnsFound = spared)
             handler.post {
                 if (probe === pass) {
                     probe = null
                     if (started && screen == Screen.PAIRING) {
-                        usbFound = result.found
+                        swept = true
+                        usbFound = mergeFound((if (spared) earlier else emptyList()) + result.found)
                         sweep = result
                         refreshPicker()
                     }
@@ -1521,7 +1532,8 @@ class MainActivity :
                 permissionPending = permissionPending,
                 bluetoothOn = adapter?.isEnabled ?: true,
                 bluetoothPermitted = permitted || adapter == null,
-                localNetworkGranted = LocalNetwork.granted(this),
+                // A Bluetooth-only user who said Not now is not nagged on every visit.
+                localNetworkGranted = LocalNetwork.granted(this) || settings.localNetworkHintDismissed,
                 usbCable = usbCable,
                 usbUp = sweep?.let { it.usb != null },
                 anyDevices = rows.isNotEmpty(),
@@ -1537,11 +1549,16 @@ class MainActivity :
         when (hint) {
             // First, because Wi-Fi and USB laptops cannot be found without it.
             PickerHint.LOCAL_NETWORK -> {
+                val dismiss = {
+                    settings.localNetworkHintDismissed = true
+                    refreshPicker()
+                }
                 if (shouldShowRequestPermissionRationale(LocalNetwork.PERMISSION)) {
                     val allow = getString(R.string.allow_local_network)
-                    picker.setMessage(getString(R.string.local_network_needed), allow) { askLocalNetwork() }
+                    picker.setMessage(getString(R.string.local_network_needed), allow, dismiss) { askLocalNetwork() }
                 } else {
-                    picker.setMessage(getString(R.string.local_network_needed), getString(R.string.open_app_settings)) {
+                    val settingsLabel = getString(R.string.open_app_settings)
+                    picker.setMessage(getString(R.string.local_network_needed), settingsLabel, dismiss) {
                         openAppSettings()
                     }
                 }
@@ -1805,23 +1822,32 @@ class MainActivity :
                 val pad = ui.dp(Space.L)
                 setPadding(pad, pad, pad, pad)
             }
-        AlertDialog
-            .Builder(this)
-            .setTitle(R.string.add_by_address)
-            .setView(field)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val address = parseHostPort(field.text.toString())
-                if (address == null) {
-                    picker.setMessage(getString(R.string.address_invalid))
-                } else {
-                    probeManual(address)
-                }
-            }.setNegativeButton(android.R.string.cancel, null)
-            .showOver(picker.view)
+        val dialog =
+            AlertDialog
+                .Builder(this)
+                .setTitle(R.string.add_by_address)
+                .setView(field)
+                .setPositiveButton(R.string.address_connect, null)
+                .setNegativeButton(android.R.string.cancel, null)
+                .openOver(picker.view)
+        // Set after the dialog is up, so that an address that is not one leaves it open with the text still in it.
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val typed = field.text.toString().trim()
+            val address = parseHostPort(typed)
+            if (address == null) {
+                field.error = getString(R.string.address_invalid)
+            } else {
+                dialog.dismiss()
+                probeManual(address, typed)
+            }
+        }
     }
 
-    private fun probeManual(address: HostPort) {
-        picker.setMessage("")
+    private fun probeManual(
+        address: HostPort,
+        typed: String,
+    ) {
+        picker.setMessage(getString(R.string.address_looking, typed))
         thread(name = "edgepad-probe-address") {
             val found = probeAddress(address)
             handler.post {
@@ -2085,8 +2111,14 @@ class MainActivity :
                 refreshPicker()
                 // Cancelled by the user; the row is the way back in, and the screen they left says so.
                 when (answering) {
-                    Screen.PAIR_CODE -> picker.setMessage(getString(R.string.pair_cancelled))
-                    Screen.PIN -> picker.setMessage(getString(R.string.pin_cancelled))
+                    Screen.PAIR_CODE -> {
+                        picker.setMessage(getString(R.string.pair_cancelled))
+                    }
+
+                    Screen.PIN -> {
+                        picker.setMessage(getString(R.string.pin_cancelled))
+                    }
+
                     else -> {}
                 }
             }

@@ -86,6 +86,9 @@ class Settings(
 
     var onboarded by flag("onboarded", false)
 
+    /** Not now was said to the Devices notice about Nearby devices, so a Bluetooth-only user is not shown it again. */
+    var localNetworkHintDismissed by flag("localNetworkHintDismissed", false)
+
     /** The one short screen after the first connection, about Share clipboard and Stay connected, was answered. */
     var sharingAsked by flag(KEY_SHARING_ASKED, false)
 

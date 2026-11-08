@@ -175,8 +175,8 @@ class PickerScreen(
     fun setMessage(
         text: CharSequence,
         actionLabel: CharSequence? = null,
-        onAction: (() -> Unit)? = null,
         onDismiss: (() -> Unit)? = null,
+        onAction: (() -> Unit)? = null,
     ) {
         message.text = text
         message.visibility = if (text.isEmpty()) View.GONE else View.VISIBLE
