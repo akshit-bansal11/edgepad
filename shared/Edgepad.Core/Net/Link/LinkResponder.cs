@@ -194,7 +194,7 @@ internal static class LinkResponder
                     return null;
                 }
 
-                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, PairingText.SourceOf(remote), ended);
+                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, () => PairingText.SourceOf(remote), ended);
 
             case ResumeRequest resume:
                 return Resume(raw, resume, self, paired, log, giveUp, wait);
@@ -216,7 +216,7 @@ internal static class LinkResponder
         Action giveUp,
         TimeSpan wait,
         TimeSpan ownerWait,
-        string? source,
+        Func<string?> source,
         CancellationToken ended)
     {
         var address = AddressOf(request.PhoneId);
@@ -280,7 +280,7 @@ internal static class LinkResponder
             }
 
             var asked = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
-            question = prompt.Show(name, source, digits => asked.TrySetResult(digits), () => asked.TrySetResult(null));
+            question = prompt.Show(name, source(), digits => asked.TrySetResult(digits), () => asked.TrySetResult(null));
             var (answer, typed) = AwaitOwner(asked, ownerWait, ended);
             switch (answer)
             {

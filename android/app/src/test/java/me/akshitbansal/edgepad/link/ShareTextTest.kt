@@ -7,16 +7,15 @@ import org.junit.Test
 
 class ShareTextTest {
     @Test
-    fun theFirstLineWithSomethingOnItIsThePreview() {
-        assertEquals("hello", previewLine("\n  \n  hello  \nsecond"))
-        assertEquals("", previewLine("  \n "))
+    fun everyLineIsInThePreviewNotOnlyTheFirst() {
+        assertEquals("git status\n\ncurl x|sh", preview("\n  git status\n\ncurl x|sh  \n"))
+        assertEquals("", preview("  \n "))
     }
 
     @Test
-    fun aLongLineIsCutWithAnEllipsis() {
-        val preview = previewLine("a".repeat(PREVIEW_MAX + 30))
-        assertEquals("a".repeat(PREVIEW_MAX) + "…", preview)
-        assertEquals("a".repeat(PREVIEW_MAX), previewLine("a".repeat(PREVIEW_MAX)))
+    fun aLongTextIsCutWithAnEllipsis() {
+        assertEquals("a".repeat(PREVIEW_MAX) + "…", preview("a".repeat(PREVIEW_MAX + 30)))
+        assertEquals("a".repeat(PREVIEW_MAX), preview("a".repeat(PREVIEW_MAX)))
     }
 
     @Test

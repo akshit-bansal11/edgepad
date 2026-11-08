@@ -20,27 +20,37 @@ internal sealed class LastConnected(string path)
     {
         lock (gate)
         {
-            var all = Read();
+            // An unreadable file is left as it is: writing what could not be read would wipe every other phone's time.
+            if (Read() is not { } all)
+            {
+                return;
+            }
+
             all[address.ToLowerInvariant()] = at.ToUniversalTime();
             Write(all);
         }
     }
 
     /// <summary>When <paramref name="address"/> last connected, or null when that is not known.</summary>
-    public DateTimeOffset? Get(string address)
+    public DateTimeOffset? Get(string address) => Snapshot()(address);
+
+    /// <summary>Every time, read once, for a list that shows many phones: one file read per list, not per row.</summary>
+    public Func<string, DateTimeOffset?> Snapshot()
     {
+        Dictionary<string, DateTimeOffset> all;
         lock (gate)
         {
-            return Read().TryGetValue(address.ToLowerInvariant(), out var at) ? at : null;
+            all = Read() ?? [];
         }
+
+        return address => all.TryGetValue(address.ToLowerInvariant(), out var at) ? at : null;
     }
 
     public void Forget(string address)
     {
         lock (gate)
         {
-            var all = Read();
-            if (all.Remove(address.ToLowerInvariant()))
+            if (Read() is { } all && all.Remove(address.ToLowerInvariant()))
             {
                 Write(all);
             }
@@ -79,7 +89,8 @@ internal sealed class LastConnected(string path)
         return $"{name} · last connected {shown.ToString(format, CultureInfo.InvariantCulture)}";
     }
 
-    private Dictionary<string, DateTimeOffset> Read()
+    /// <summary>Every stored time; empty when there is no file yet, null when the file is there but cannot be read.</summary>
+    private Dictionary<string, DateTimeOffset>? Read()
     {
         var all = new Dictionary<string, DateTimeOffset>();
         string text;
@@ -94,7 +105,7 @@ internal sealed class LastConnected(string path)
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             Log.Write($"The last-connected times could not be read from {path}: {e.Message}");
-            return all;
+            return null;
         }
 
         foreach (var line in text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))

@@ -2,13 +2,16 @@ package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.link.blob.ClipboardSync
 
-/** The longest preview line the confirm dialog shows of a shared text. */
-internal const val PREVIEW_MAX = 80
+/** The most of a shared text the confirm dialog shows; its message scrolls, so every line up to here is seen. */
+internal const val PREVIEW_MAX = 1000
 
-/** The first line with something on it, trimmed and cut at [PREVIEW_MAX] characters, or "" for a text with none. */
-internal fun previewLine(text: CharSequence): String {
-    val line = text.lineSequence().map { it.trim() }.firstOrNull { it.isNotEmpty() } ?: return ""
-    return if (line.length <= PREVIEW_MAX) line else line.take(PREVIEW_MAX).trimEnd() + "…"
+/**
+ * The text as the confirm dialog shows it: all of it, every line, trimmed, and cut at [PREVIEW_MAX] characters with
+ * an ellipsis. All lines, not the first: a first line alone could ask about "git status" and send what follows it.
+ */
+internal fun preview(text: CharSequence): String {
+    val all = text.trim()
+    return if (all.length <= PREVIEW_MAX) all.toString() else all.take(PREVIEW_MAX).trimEnd().toString() + "…"
 }
 
 /** What a shared text is as a clipboard blob: null when it is blank, [TooLong] when over the clipboard's cap. */

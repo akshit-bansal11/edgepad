@@ -12,7 +12,7 @@ import me.akshitbansal.edgepad.link.AndroidClipboard
 import me.akshitbansal.edgepad.link.LinkHooks
 import me.akshitbansal.edgepad.link.ShareTarget
 import me.akshitbansal.edgepad.link.SharedText
-import me.akshitbansal.edgepad.link.previewLine
+import me.akshitbansal.edgepad.link.preview
 import me.akshitbansal.edgepad.link.sharedText
 import me.akshitbansal.edgepad.protocol.BlobKind
 import java.io.IOException
@@ -34,8 +34,19 @@ class ShareActivity : Activity() {
             return
         }
         val type = intent.type.orEmpty()
-        val text: CharSequence? = if (type == TEXT_TYPE) intent.getCharSequenceExtra(Intent.EXTRA_TEXT) else null
-        val image: Uri? = if (type.startsWith(IMAGE_PREFIX)) streamOf(intent) else null
+        // Any app can start this. On API 31-32 the first extra read unparcels them all, so an extra of a class
+        // Edgepad does not have throws (BadParcelableException) before anything is shown. That ends the share,
+        // not the app.
+        val text: CharSequence?
+        val image: Uri?
+        try {
+            text = if (type == TEXT_TYPE) intent.getCharSequenceExtra(Intent.EXTRA_TEXT) else null
+            image = if (type.startsWith(IMAGE_PREFIX)) streamOf(intent) else null
+        } catch (e: RuntimeException) {
+            Log.w("Edgepad", "The share's extras could not be read", e)
+            finish()
+            return
+        }
         val target = LinkHooks.shareTarget?.invoke()
         when {
             text == null && image == null -> {
@@ -74,7 +85,7 @@ class ShareActivity : Activity() {
             }
 
             is SharedText.Ok -> {
-                confirm(previewLine(text), target) { deliver(target, BlobKind.CLIP_TEXT) { shared.bytes } }
+                confirm(preview(text), target) { deliver(target, BlobKind.CLIP_TEXT) { shared.bytes } }
             }
         }
     }
@@ -126,8 +137,10 @@ class ShareActivity : Activity() {
                 } catch (e: IOException) {
                     Log.w("Edgepad", "Could not read what was shared", e)
                     getString(R.string.share_image_failed)
-                } catch (e: SecurityException) {
-                    // The sharing app took back its grant.
+                } catch (e: RuntimeException) {
+                    // The sharing app's provider runs across binder: a revoked grant (SecurityException), a deleted
+                    // file or a bad image can come back as any runtime exception, and uncaught here it would end the
+                    // whole process, every laptop link with it.
                     Log.w("Edgepad", "Could not read what was shared", e)
                     getString(R.string.share_image_failed)
                 }

@@ -16,9 +16,10 @@ internal static class UinputAccess
         "Edgepad cannot open /dev/uinput, so the phone cannot move the pointer or type. Log out and back in once "
             + "after installing, so your session gets access. More: https://edgepad.akshitbansal.dev/docs";
 
-    private static volatile bool blocked;
+    // 1 when blocked. An int so a flip is one atomic exchange: two threads probing at once raise Changed once.
+    private static int blocked;
 
-    /// <summary>Raised, on the thread that probed, when <see cref="Check"/> finds the answer changed. Sessions send TEXT 18 from it.</summary>
+    /// <summary>Raised on a pool thread when <see cref="Check"/> finds the answer changed. Sessions send TEXT 18 from it.</summary>
     public static event Action<bool>? Changed;
 
     /// <summary>The TEXT 18 payload: <c>blocked</c> or <c>ok</c>.</summary>
@@ -28,11 +29,12 @@ internal static class UinputAccess
     public static string? Check()
     {
         var problem = Problem();
-        var now = problem is not null;
-        if (blocked != now)
+        var now = problem is not null ? 1 : 0;
+        if (Interlocked.Exchange(ref blocked, now) != now)
         {
-            blocked = now;
-            Changed?.Invoke(now);
+            // Off the probing thread, which can be Shell's UI thread, where a blocking socket write must never wait.
+            // The latest answer, not this one: two quick flips may run out of order, and then both send the same.
+            ThreadPool.QueueUserWorkItem(static _ => Changed?.Invoke(Volatile.Read(ref blocked) == 1));
         }
 
         return problem;

@@ -4,7 +4,8 @@ import Foundation
 /// A file of its own rather than a field on the trust file's lines: an older build reads those lines as addresses, and
 /// would stop recognising every phone. An older build never opens this one. Addresses are kept lowercased, since macOS
 /// and the phone may write them differently.
-public final class LastConnected {
+/// Sendable by hand: `path` never changes and every file access is under `gate`.
+public final class LastConnected: @unchecked Sendable {
     private let path: String
     private let gate = NSLock()
 
@@ -22,7 +23,8 @@ public final class LastConnected {
     /// Writes `now` for `address`. A failed write is logged and changes nothing else: it never blocks a connection.
     public func record(_ address: String, at now: Date = Date()) {
         locked {
-            var all = read()
+            // An unreadable file is left as it is: writing what could not be read would wipe every other phone's time.
+            guard var all = read() else { return }
             all[address.lowercased()] = now
             write(all)
         }
@@ -30,13 +32,18 @@ public final class LastConnected {
 
     /// When `address` last connected, or nil when that is not known (never recorded, or an unreadable file).
     public func date(for address: String) -> Date? {
-        locked { read()[address.lowercased()] }
+        snapshot()(address)
+    }
+
+    /// Every time, read once, for a list that shows many phones: one file read per list, not per row.
+    public func snapshot() -> (String) -> Date? {
+        let all = locked { read() ?? [:] }
+        return { all[$0.lowercased()] }
     }
 
     public func forget(_ address: String) {
         locked {
-            var all = read()
-            guard all.removeValue(forKey: address.lowercased()) != nil else { return }
+            guard var all = read(), all.removeValue(forKey: address.lowercased()) != nil else { return }
             write(all)
         }
     }
@@ -70,8 +77,18 @@ public final class LastConnected {
         return "\(name) · last connected \(formatter.string(from: last))"
     }
 
-    private func read() -> [String: Date] {
-        guard let text = try? String(contentsOfFile: path, encoding: .utf8) else { return [:] }
+    /// Every stored time; empty when there is no file yet, nil when the file is there but cannot be read.
+    private func read() -> [String: Date]? {
+        let text: String
+        do {
+            text = try String(contentsOfFile: path, encoding: .utf8)
+        } catch {
+            if isAbsent(error, at: path) {
+                return [:]
+            }
+            Log.write("The last-connected times could not be read from \(path): \(error.localizedDescription)")
+            return nil
+        }
         let parser = ISO8601DateFormatter()
         var all: [String: Date] = [:]
         for line in text.split(whereSeparator: \.isNewline) {

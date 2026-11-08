@@ -106,7 +106,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             identity: identity,
             onStatus: { [weak self] in self?.setStatus($0) })
         host.inputBlocked = { !AXIsProcessTrusted() }
-        host.onVerified = { [weak self] in self?.lastConnected.record($0) }
+        // Off the main queue: a file read and rewrite has no place on the path that admits a phone.
+        host.onVerified = { [lastConnected] address in
+            DispatchQueue.global(qos: .utility).async { lastConnected.record(address) }
+        }
         self.host = host
         server = RfcommServer(host: host, onStatus: { [weak self] in self?.setStatus($0) })
         startServer()
@@ -545,11 +548,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func trustedList() -> [(address: String, name: String, shown: String)] {
         let names = Dictionary(
             paired.list().map { ("link:" + $0.id.lowercased(), $0.name) }, uniquingKeysWith: { first, _ in first })
+        let last = lastConnected.snapshot()
         return trust.trustedPhones.map { address in
             let name = names[address.lowercased()] ?? address
             return (
                 address: address, name: name,
-                shown: LastConnected.rowText(name: name, last: lastConnected.date(for: address))
+                shown: LastConnected.rowText(name: name, last: last(address))
             )
         }
     }

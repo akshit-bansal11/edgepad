@@ -774,7 +774,8 @@ internal sealed class TrayContext : ApplicationContext
     private List<PhoneEntry> TrustedPhones()
     {
         var pairings = pairedLinks.List();
-        return [.. trust.TrustedPhones.Select(address => PhoneEntry.Describe(address, pairings, host.Shown) with { Last = trust.Connections.Get(address) })];
+        var last = trust.Connections.Snapshot();
+        return [.. trust.TrustedPhones.Select(address => PhoneEntry.Describe(address, pairings, host.Shown) with { Last = last(address) })];
     }
 
     /// <summary>
