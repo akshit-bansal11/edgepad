@@ -514,7 +514,7 @@ internal sealed class Shell : IDisposable
         if (!updateNotified)
         {
             updateNotified = true;
-            Notifier.Send("Edgepad update available", $"Edgepad {number} is available. Open the Edgepad menu to get it.");
+            Notifier.SendClickable("Edgepad update available", $"Edgepad {number} is available. Click to open the release page.", () => Tray.OpenWithDesktop(UpdateCheck.LatestUrl, "the release page"));
         }
     }
 

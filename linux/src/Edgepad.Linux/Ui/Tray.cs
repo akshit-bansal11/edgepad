@@ -180,7 +180,7 @@ internal sealed class Tray : IDisposable
     /// Hands a file or a link to whatever the desktop opens it with, as a double-click would (xdg-open). When it cannot,
     /// a notification says why, since the tray menu has closed and nothing else would show it.
     /// </summary>
-    private static void OpenWithDesktop(string target, string what)
+    internal static void OpenWithDesktop(string target, string what)
     {
         if (!target.StartsWith("https://", StringComparison.Ordinal) && !File.Exists(target))
         {
