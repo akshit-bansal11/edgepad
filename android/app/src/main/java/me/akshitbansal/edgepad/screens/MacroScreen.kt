@@ -12,6 +12,7 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.protocol.DeviceOs
 
 /** The largest picture accepted from the laptop, which sends at most the 512px this phone can ask for. */
 private const val MAX_ICON_PX = 512
@@ -54,6 +55,8 @@ class MacroScreen(
     private val ui: Ui,
     settings: Settings,
     names: List<String>,
+    heard: Boolean,
+    private val os: DeviceOs?,
     private val icon: (Int) -> ByteArray?,
     private val isOpen: (Int) -> Boolean,
     labels: Boolean,
@@ -65,6 +68,7 @@ class MacroScreen(
     onBack: () -> Unit,
 ) {
     private var slots: List<IndexedValue<String>> = emptyList()
+    private var heard = heard
 
     private val page =
         DeckPage(
@@ -88,11 +92,15 @@ class MacroScreen(
     val view: View = page.view
 
     init {
-        setMacros(names)
+        setMacros(names, heard)
     }
 
     /** A new list from the laptop. Its icons are gone with it, since a slot number now means another macro. */
-    fun setMacros(names: List<String>) {
+    fun setMacros(
+        names: List<String>,
+        heard: Boolean,
+    ) {
+        this.heard = heard
         // A slot with no name is a hole in the laptop's list, not the end of it: it keeps the index its
         // neighbours are counted from and simply is not drawn.
         slots = names.withIndex().filter { it.value.isNotEmpty() }
@@ -125,8 +133,12 @@ class MacroScreen(
     private fun emptyState(holder: LinearLayout) {
         Column(ui, holder).apply {
             add(emptyTile(), width = ui.dp(EMPTY_TILE_DP), height = ui.dp(EMPTY_TILE_DP))
-            headline(ui.string(R.string.macros_empty_title), Type.TITLE, Space.L).gravity = Gravity.CENTER
-            body(ui.string(R.string.macros_empty_body), Space.S).gravity = Gravity.CENTER
+            // AND-A-21: a list still on its way is not an empty one.
+            val title = if (heard) R.string.macros_empty_title else R.string.macros_loading
+            headline(ui.string(title), Type.TITLE, Space.L).gravity = Gravity.CENTER
+            if (!heard) return@apply
+            val words = if (os == DeviceOs.MACOS) R.string.macros_empty_body_mac else R.string.macros_empty_body
+            body(ui.string(words), Space.S).gravity = Gravity.CENTER
             // Only for a laptop that lists its apps; the one thing here that fills the grid from this side.
             onAddFromLaptop?.let { open ->
                 add(ui.button(ui.string(R.string.apps_add_from_laptop), Ui.Style.FILLED, open), Space.XL)

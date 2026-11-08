@@ -925,6 +925,8 @@ class MainActivity :
                         ui,
                         settings,
                         state.macros,
+                        state.macrosHeard,
+                        state.os,
                         icon = state::macroIcon,
                         isOpen = state::isOpen,
                         labels = settings.macroLabels,
@@ -2112,7 +2114,7 @@ class MainActivity :
             when (frame.kind) {
                 TextKind.MACROS.id -> {
                     // The link has already asked for this list's pictures; they arrive as MACRO_ICON frames.
-                    grid.setMacros(state.macros)
+                    grid.setMacros(state.macros, state.macrosHeard)
                 }
 
                 TextKind.MACRO_ICON.id -> {

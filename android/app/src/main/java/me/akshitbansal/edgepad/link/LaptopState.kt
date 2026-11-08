@@ -81,6 +81,10 @@ class LaptopState {
     var macros: List<String> = emptyList()
         private set
 
+    /** AND-A-21: whether the laptop has sent its macro list at all, which an empty [macros] cannot say. */
+    var macrosHeard = false
+        private set
+
     /**
      * What the laptop last said of each macro slot's app, in [macros] order. Empty until it says, which is also what
      * a laptop that cannot tell leaves it as, so no macro reads as open.
@@ -179,7 +183,10 @@ class LaptopState {
                     TextKind.APP -> app = frame.text
                     TextKind.TIMELINE -> timeline(frame.text)
                     TextKind.REFRESH_RATES -> refreshRates = rates(frame.text)
-                    TextKind.MACROS -> macros = macroNames(frame.text)
+                    TextKind.MACROS -> {
+                        macros = macroNames(frame.text)
+                        macrosHeard = true
+                    }
                     TextKind.MACRO_OPEN -> macroOpen = frame.text.take(MACRO_SLOTS).map(OpenState::of)
                     TextKind.MACRO_ICON -> return iconChunk(frame.text)
                     TextKind.PAD_STATUS -> padStatus = PadStatus.of(frame.text)

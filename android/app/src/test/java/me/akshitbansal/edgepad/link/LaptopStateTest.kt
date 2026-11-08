@@ -30,6 +30,13 @@ class LaptopStateTest {
     }
 
     @Test
+    fun tellsAnEmptyMacroListFromOneNotYetSent() {
+        assertFalse(state.macrosHeard)
+        state.take(Frame.Text(TextKind.MACROS.id, ""))
+        assertTrue(state.macrosHeard)
+    }
+
+    @Test
     fun keepsTheLaptopsLastWordOnItsController() {
         assertNull(state.padStatus)
         assertTrue(state.take(Frame.Text(TextKind.PAD_STATUS.id, PadStatus.READY.token)))
