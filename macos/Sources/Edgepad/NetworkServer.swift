@@ -138,15 +138,12 @@ final class NetworkServer {
         opened.start(queue: .main)
     }
 
-    /// "from 192.168.1.23, over Wi-Fi", or "over USB" for a loopback address (USB tethering reaches this Mac through
-    /// the phone's own forwarding, which arrives from loopback).
+    /// "from 192.168.1.23, on your network". USB tethering is not supported on a Mac, and the Mac does not look up
+    /// which adapter the address arrived on, so it names the network rather than guess Wi-Fi.
     static func sourceLine(_ endpoint: NWEndpoint) -> String {
         guard case .hostPort(let host, _) = endpoint else { return "" }
         let address = "\(host)".split(separator: "%").first.map(String.init) ?? ""
-        if address == "127.0.0.1" || address == "::1" || address == "::ffff:127.0.0.1" {
-            return "over USB"
-        }
-        return address.isEmpty ? "over Wi-Fi" : "from \(address), over Wi-Fi"
+        return address.isEmpty ? "on your network" : "from \(address), on your network"
     }
 
     private func accept(_ connection: NWConnection) {

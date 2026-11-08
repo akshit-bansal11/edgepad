@@ -1,4 +1,6 @@
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using Edgepad.Protocol;
 using Edgepad.Trust;
@@ -58,9 +60,61 @@ internal static class PairingText
 
     public static string Paired(string phoneName) => $"Paired with {phoneName}.";
 
-    /// <summary>"from 192.168.1.23, over Wi-Fi", or "over USB" when it came through the loopback (adb reverse); null when unknown.</summary>
-    public static string? SourceOf(IPAddress? address) =>
-        address is null ? null : $"from {(address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address)}, over {(IPAddress.IsLoopback(address) ? "USB" : "Wi-Fi")}";
+    /// <summary>
+    /// "from 192.168.1.23, over Wi-Fi", "over USB" or "on your network", by the local adapter whose subnet holds the
+    /// address; null when there is no address. A tethered phone connects from its own address on the tether subnet,
+    /// not the loopback, so the adapter is what tells USB apart. Looked up once per pairing request, never per frame.
+    /// </summary>
+    public static string? SourceOf(IPAddress? address)
+    {
+        if (address is null) return null;
+        var ip = address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address;
+        return Describe(ip, AdapterFor(ip) is { } nic ? WayOf(nic.Name, nic.Description, nic.NetworkInterfaceType) : null);
+    }
+
+    /// <summary>The source line for an address and how it arrived (<see cref="WayOf"/>); null way reads "on your network".</summary>
+    public static string Describe(IPAddress ip, string? way) => $"from {ip}, {way ?? "on your network"}";
+
+    /// <summary>
+    /// "over USB" for a USB tether adapter (RNDIS or NCM; Linux names them usb0 or rndis0), "over Wi-Fi" for a wireless
+    /// one, otherwise null.
+    /// </summary>
+    public static string? WayOf(string name, string description, NetworkInterfaceType type)
+    {
+        if (description.Contains("NDIS", StringComparison.OrdinalIgnoreCase)
+            || description.Contains("NCM", StringComparison.Ordinal)
+            || name.StartsWith("usb", StringComparison.OrdinalIgnoreCase)
+            || name.StartsWith("rndis", StringComparison.OrdinalIgnoreCase))
+        {
+            return "over USB";
+        }
+
+        return type == NetworkInterfaceType.Wireless80211 ? "over Wi-Fi" : null;
+    }
+
+    private static NetworkInterface? AdapterFor(IPAddress ip)
+    {
+        if (ip.AddressFamily != AddressFamily.InterNetwork) return null;
+        var target = BitConverter.ToUInt32(ip.GetAddressBytes());
+        try
+        {
+            foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                foreach (var unicast in nic.GetIPProperties().UnicastAddresses)
+                {
+                    if (unicast.Address.AddressFamily != AddressFamily.InterNetwork) continue;
+                    var mask = BitConverter.ToUInt32(unicast.IPv4Mask.GetAddressBytes());
+                    if (mask != 0 && (BitConverter.ToUInt32(unicast.Address.GetAddressBytes()) & mask) == (target & mask)) return nic;
+                }
+            }
+        }
+        catch (NetworkInformationException)
+        {
+            // No adapter list: the line falls back to "on your network".
+        }
+
+        return null;
+    }
 }
 
 /// <summary>
