@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Edgepad.Platform;
 
 namespace Edgepad.Ui;
 
@@ -33,7 +34,14 @@ internal static class TrustWindow
         dont.IsDefault = true;
 
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 14 };
-        body.Children.Add(look.Text($"Trust {address}?", 18, FontWeight.Bold));
+        // The name comes from the cache the session filled before asking; this runs on the UI thread, which must not wait on D-Bus.
+        var name = PhoneName.Cached(address);
+        body.Children.Add(look.Text($"Trust {name ?? address}?", 18, FontWeight.Bold));
+        if (name is not null)
+        {
+            body.Children.Add(look.Text(address, 14, dim: true));
+        }
+
         body.Children.Add(look.Text(
             "A paired phone is asking to control this laptop's pointer and keyboard. Trust it only if it is "
                 + $"yours. With no answer in {(int)TrustPrompt.DefaultTimeout.TotalSeconds} seconds, it is not trusted.",

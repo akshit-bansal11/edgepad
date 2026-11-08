@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Edgepad.Platform;
 using Edgepad.Trust;
 
 namespace Edgepad.Ui;
@@ -18,7 +19,7 @@ namespace Edgepad.Ui;
 /// </summary>
 internal sealed class SecurityWindow
 {
-    private static readonly string[] LevelNames =
+    internal static readonly string[] LevelNames =
     [
         "Trust only",
         "PIN once per phone",
@@ -28,6 +29,9 @@ internal sealed class SecurityWindow
     private readonly PinStore pin;
     private readonly TrustStore trust;
     private readonly Action hangUp;
+    private readonly Func<Task> forgetAll;
+    private readonly TextBlock phones;
+    private readonly Button forgetAllButton;
 
     // Forgets the Wi-Fi and USB pairings and tells the owner if it could not, as Forget trusted phones does.
     private readonly Func<Task> forgetPairings;
@@ -47,8 +51,9 @@ internal sealed class SecurityWindow
     private bool filling;
     private bool busy;
 
-    public SecurityWindow(PinStore pin, TrustStore trust, Func<Task> forgetPairings, Action hangUp)
+    public SecurityWindow(PinStore pin, TrustStore trust, Func<Task> forgetPairings, Func<Task> forgetAll, Action hangUp)
     {
+        this.forgetAll = forgetAll;
         this.pin = pin;
         this.trust = trust;
         this.hangUp = hangUp;
@@ -86,6 +91,14 @@ internal sealed class SecurityWindow
         pinRow.Children.Add(pinState);
         body.Children.Add(pinRow);
         body.Children.Add(look.Text("Saving a new PIN or level makes phones that entered the PIN once enter it again.", 14, dim: true));
+
+        body.Children.Add(look.Text("Trusted phones", 14, FontWeight.Bold));
+        phones = look.Text("", 14, dim: true);
+        body.Children.Add(phones);
+        forgetAllButton = look.Button("Forget all…", danger: true);
+        forgetAllButton.HorizontalAlignment = HorizontalAlignment.Left;
+        forgetAllButton.Click += (_, _) => _ = Guard(ForgetAllAsync);
+        body.Children.Add(forgetAllButton);
 
         var reset = look.Button("Reset PIN and forget phones…", danger: true);
         reset.Click += (_, _) => _ = Guard(ConfirmResetAsync);
@@ -129,6 +142,9 @@ internal sealed class SecurityWindow
     {
         setPin.Content = HavePin ? "Change PIN…" : "Set PIN…";
         pinState.Text = staged is not null ? "A new PIN will be saved." : pin.HasPin ? "A PIN is set." : "No PIN is set.";
+        var trusted = trust.TrustedPhones;
+        phones.Text = trusted.Count == 0 ? "No phone is trusted yet." : string.Join(Environment.NewLine, trusted.Select(address => PhoneName.Cached(address) is { } name ? $"{name} ({address})" : address));
+        forgetAllButton.IsEnabled = trust.CanForget;
     }
 
     /// <summary>Nothing may throw out of a handler: an exception on the UI thread ends the whole tray app.</summary>
@@ -165,6 +181,12 @@ internal sealed class SecurityWindow
         }
 
         level = chosen;
+    }
+
+    private async Task ForgetAllAsync()
+    {
+        await forgetAll();
+        Refresh();
     }
 
     /// <summary>Asks for a new PIN twice. True when one is staged; nothing is saved until Save.</summary>

@@ -9,7 +9,7 @@ using Edgepad.Net;
 namespace Edgepad.Ui;
 
 /// <summary>
-/// "Pair Pixel? Type the code shown on the phone:": a box for six digits, Pair and Cancel, and the seconds left.
+/// "Pair Pixel? Type the pairing code shown on the phone:": a box for six digits, Pair and Cancel, and the seconds left.
 /// Exactly one answer leaves it: the digits on Pair, a cancel on Cancel, Escape or the close box, or none at all when
 /// it is withdrawn or runs out, which the pairing's own timer then settles. After the digits it stays up to say how
 /// they went, until the owner closes it, or by itself a moment after a pairing that worked. Nothing here relies on the
@@ -33,7 +33,7 @@ internal static class PairingWindow
             Foreground = look.Ink,
             Padding = new Thickness(12, 8),
         };
-        AutomationProperties.SetName(code, "Code shown on the phone");
+        AutomationProperties.SetName(code, "Pairing code shown on the phone");
         var countdown = look.Text("", 14, dim: true);
         var cancel = look.Button("Cancel");
         var pair = look.Button("Pair", primary: true);
@@ -43,7 +43,7 @@ internal static class PairingWindow
         pair.IsDefault = true;
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 10 };
         body.Children.Add(look.Text($"Pair {phoneName}?", 18, FontWeight.Bold));
-        var ask = look.Text("Type the code shown on the phone:", 14, dim: true);
+        var ask = look.Text("Type the pairing code shown on the phone:", 14, dim: true);
         body.Children.Add(ask);
         body.Children.Add(code);
         body.Children.Add(countdown);
