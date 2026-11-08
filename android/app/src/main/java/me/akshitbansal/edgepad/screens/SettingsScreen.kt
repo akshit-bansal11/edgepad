@@ -9,45 +9,23 @@ import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
-import me.akshitbansal.edgepad.Type
-import me.akshitbansal.edgepad.link.DeviceState
-import me.akshitbansal.edgepad.link.Transport
 
 /**
- * The app's settings: only what holds everywhere — the laptops and how they stay connected, the theme and
- * orientation, help and updates. A laptop's row here connects it, makes it active or disconnects it; the rest,
- * several at once and forgetting included, is on the Devices screen. Every feature's own settings sit behind that
- * feature's gear instead: the surface's, the keyboard's, the gamepad's and the macros'. Opened from the Devices
- * list's gear and from the last row of the surface's settings. Every change is saved as it is made. Sideways, the
- * sections sit in two columns.
+ * The app's settings: only what holds everywhere. How the laptops stay connected, what is shared with them, the theme
+ * and orientation, help, and the version with its updates. The laptops themselves are on the Devices screen, which the
+ * first row opens: connecting, disconnecting and forgetting live there and nowhere else. Every feature's own settings
+ * sit behind that feature's gear instead: the surface's, the keyboard's, the gamepad's and the macros'. Opened from the
+ * Devices list's gear and from the last row of the surface's settings. Every change is saved as it is made. Sideways,
+ * the sections sit in two columns.
  */
 object SettingsScreen {
-    /**
-     * One laptop's row: its name, [state], the transport it is on or was last on, and the two things a row does.
-     * [onTap] makes it active or connects it, as [state] says; [onDisconnect] ends it.
-     */
-    class Device(
-        val name: String,
-        val state: DeviceState,
-        val via: Transport?,
-        val onTap: () -> Unit,
-        val onDisconnect: () -> Unit,
-    )
-
-    /** What the laptops card shows: every laptop the phone knows, and whether the active one offers the clipboard. */
-    class Connections(
-        val devices: List<Device>,
-        /** The active laptop named the clipboard, so the switch for sharing it is shown. */
-        val clipboard: Boolean = false,
-    )
-
-    /** Where the rows lead. [showAll] lifts the Devices list's filter to computers, as its own button does. */
+    /** Where the rows lead. */
     class Routes(
         val devices: () -> Unit,
-        val showAll: (Boolean) -> Unit,
         val guide: () -> Unit,
         val documentation: () -> Unit,
         val update: () -> Unit,
+        val licences: () -> Unit,
         val sideways: (Boolean) -> Unit,
         val clipboard: () -> Unit,
         val stayConnected: () -> Unit,
@@ -68,8 +46,6 @@ object SettingsScreen {
     fun build(
         ui: Ui,
         settings: Settings,
-        connections: Connections,
-        showingAll: Boolean,
         version: String,
         backLabel: String,
         update: Update,
@@ -81,17 +57,7 @@ object SettingsScreen {
             columns(
                 {
                     section(ui.string(R.string.paired_laptops))
-                    card {
-                        if (connections.devices.isEmpty()) {
-                            add(ui.laptop(ui.string(R.string.no_laptop), null, false, null))
-                        }
-                        for (device in connections.devices) {
-                            add(laptop(ui, device))
-                            hairline()
-                        }
-                        // Connecting, disconnecting and forgetting, and every laptop at once, live on that screen.
-                        add(ui.link(ui.string(R.string.pairing_title), null, routes.devices))
-                    }
+                    card { add(ui.link(ui.string(R.string.pairing_title), null, routes.devices)) }
 
                     card(Space.XL) {
                         add(
@@ -99,30 +65,28 @@ object SettingsScreen {
                                 settings.reconnect = it
                             },
                         )
-                        hairline()
+                    }
+                    footnote(ui.string(R.string.reconnect_caption))
+                    card(Space.XL) {
                         add(
                             ui.toggle(ui.string(R.string.stay_connected), settings.stayConnected) {
                                 settings.stayConnected = it
                                 routes.stayConnected()
                             },
                         )
-                        hairline()
-                        add(ui.toggle(ui.string(R.string.show_laptops_only), !showingAll) { routes.showAll(!it) })
                     }
                     footnote(ui.string(R.string.stay_connected_caption))
 
-                    if (connections.clipboard) {
-                        section(ui.string(R.string.settings_clipboard))
-                        card {
-                            add(
-                                ui.toggle(ui.string(R.string.clipboard_share), settings.clipboardSync) {
-                                    settings.clipboardSync = it
-                                    routes.clipboard()
-                                },
-                            )
-                        }
-                        footnote(ui.string(R.string.clipboard_share_caption))
+                    section(ui.string(R.string.settings_clipboard))
+                    card {
+                        add(
+                            ui.toggle(ui.string(R.string.clipboard_share), settings.clipboardSync) {
+                                settings.clipboardSync = it
+                                routes.clipboard()
+                            },
+                        )
                     }
+                    footnote(ui.string(R.string.clipboard_share_caption))
 
                     section(ui.string(R.string.settings_appearance))
                     card {
@@ -164,7 +128,10 @@ object SettingsScreen {
                                 routes.documentation,
                             ),
                         )
-                        hairline()
+                    }
+
+                    section(ui.string(R.string.settings_about))
+                    card {
                         add(
                             ui.link(
                                 ui.string(R.string.updates_title),
@@ -179,44 +146,14 @@ object SettingsScreen {
                                 settings.autoUpdateCheck = it
                             },
                         )
+                        hairline()
+                        add(ui.link(ui.string(R.string.licences_title), null, routes.licences))
                     }
-                    footnote(version).apply { setPadding(paddingLeft, ui.dp(Space.L), paddingRight, 0) }
+                    footnote(version)
+                    footnote(ui.string(R.string.about_sends))
                 },
             )
         }
-
-    /**
-     * One laptop: its name, its state and transport under it, and Disconnect while anything is going on with it.
-     * Forgetting is not here: it is on the Devices screen, which the row below the laptops opens.
-     */
-    private fun laptop(
-        ui: Ui,
-        device: Device,
-    ): View {
-        val on = device.state == DeviceState.ACTIVE || device.state == DeviceState.CONNECTED
-        val state =
-            ui.string(
-                when (device.state) {
-                    DeviceState.ACTIVE -> R.string.device_active
-                    DeviceState.CONNECTED -> R.string.device_state_connected
-                    DeviceState.CONNECTING -> R.string.device_connecting
-                    DeviceState.ASKING -> R.string.device_asking
-                    DeviceState.NOT_CONNECTED -> R.string.device_not_connected
-                },
-            )
-        // A prompt or an attempt under way says all there is to say; the transport is for a laptop at rest or up.
-        val settled = device.state != DeviceState.CONNECTING && device.state != DeviceState.ASKING
-        val via = device.via.takeIf { settled }
-        val line = if (via != null) ui.string(R.string.device_state_via, state, ui.string(via.label)) else state
-        val sub = ui.secondary(line, Type.SMALL, if (on) ui.palette.accent else ui.palette.dim)
-        val disconnect =
-            if (device.state == DeviceState.NOT_CONNECTED) {
-                null
-            } else {
-                ui.chip(ui.string(R.string.device_disconnect), device.onDisconnect)
-            }
-        return ui.laptop(device.name, sub, on, disconnect).apply { ui.tappable(this, device.onTap) }
-    }
 
     /**
      * The Theme choice as last made. Before 3.2 only Dark and Light existed and neither was written down, so

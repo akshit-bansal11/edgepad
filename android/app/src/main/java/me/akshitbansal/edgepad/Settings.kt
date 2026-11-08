@@ -51,6 +51,15 @@ class Settings(
             }
             edit.apply()
         }
+        // Stay connected and Share clipboard used to come on by themselves; they are asked for now and start off.
+        // An install that already used the app keeps what it had, which for a key never written was on.
+        if (!prefs.contains(KEY_SHARING_ASKED) && prefs.getBoolean("onboarded", false)) {
+            val edit = prefs.edit().putBoolean(KEY_SHARING_ASKED, true)
+            for (key in listOf("stayConnected", "clipboardSync")) {
+                if (!prefs.contains(key)) edit.putBoolean(key, true)
+            }
+            edit.apply()
+        }
         // One remembered laptop until the phone could hold several. One edit, so neither key changes without the other.
         prefs.getString(KEY_LAPTOP, null)?.let { old ->
             prefs
@@ -77,6 +86,9 @@ class Settings(
 
     var onboarded by flag("onboarded", false)
 
+    /** The one short screen after the first connection, about Share clipboard and Stay connected, was answered. */
+    var sharingAsked by flag(KEY_SHARING_ASKED, false)
+
     /**
      * Two dials a corner, one on each edge it joins, in place of one. It only chooses which keys are read:
      * the `corner.*` keys are never written by the toggle, so turning it off gives back the unsplit surface.
@@ -90,12 +102,12 @@ class Settings(
      * Keep the links up while the app is minimized, through a foreground service and its notification. Off, they close
      * after a short linger once the app leaves the screen, as before the service existed.
      */
-    var stayConnected by flag("stayConnected", true)
+    var stayConnected by flag("stayConnected", false)
 
     var haptics by flag("haptics", true)
 
     /** Share the clipboard with the selected laptop, when it offers to. Each laptop's own switch must be on too. */
-    var clipboardSync by flag("clipboardSync", true)
+    var clipboardSync by flag("clipboardSync", false)
 
     /** Round volume, brightness and mic to a multiple of 5 when the finger lifts. */
     var snap by flag("snap", false)
@@ -141,6 +153,12 @@ class Settings(
 
     /** When GitHub last answered, in milliseconds since the epoch; 0 before it ever has. */
     var lastUpdateCheck by pref({ prefs.getLong(KEY_LAST_UPDATE_CHECK, 0L) }) { putLong(KEY_LAST_UPDATE_CHECK, it) }
+
+    /**
+     * Why the last update did not go in, kept until the next try: 0 for nothing amiss, -1 for a download that failed,
+     * else the status the system's installer gave.
+     */
+    var updateFailure by pref({ prefs.getInt(KEY_UPDATE_FAILURE, 0) }) { putInt(KEY_UPDATE_FAILURE, it) }
 
     /** The newest release the last answer named, such as "3.2.1"; empty before any answer. */
     var latestVersion by pref({ prefs.getString(KEY_LATEST_VERSION, "").orEmpty() }) {
@@ -471,6 +489,8 @@ class Settings(
         private const val NONE = NO_DIAL
         private const val IMAGE_FILE = "background.img"
         private const val KEY_LAPTOP = "laptop"
+        private const val KEY_SHARING_ASKED = "sharingAsked"
+        private const val KEY_UPDATE_FAILURE = "updateFailure"
         private const val KEY_SAVED_LAPTOPS = "savedLaptops"
         private const val KEY_SHAPES = "shapes"
         private const val KEY_LAST_UPDATE_CHECK = "lastUpdateCheck"

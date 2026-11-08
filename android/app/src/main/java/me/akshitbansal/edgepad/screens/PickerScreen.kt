@@ -44,6 +44,7 @@ class PickerScreen(
     private val onAddAddress: () -> Unit,
     private val onUsbHelp: () -> Unit,
     private val onDisconnectAll: () -> Unit,
+    onUpdate: () -> Unit,
 ) {
     /** One row. [active] says it is the laptop the screens and every frame go to. */
     class Device(
@@ -67,6 +68,8 @@ class PickerScreen(
     private var statuses: Map<String, String> = emptyMap()
 
     private val refresh = ui.icon(Glyph.Shape.REFRESH, ui.string(R.string.refresh)) { spinAndRefresh() }
+    private lateinit var updateCard: LinearLayout
+    private lateinit var updateVersion: TextView
     private lateinit var list: LinearLayout
     private lateinit var legend: TextView
     private lateinit var multiHint: TextView
@@ -91,6 +94,11 @@ class PickerScreen(
             ),
         ) {
             add(title())
+            // A newer release is worth one line here, where every launch passes, and not only deep in Settings.
+            updateCard =
+                card {
+                    add(ui.link(ui.string(R.string.update_available), "", onUpdate) { updateVersion = it })
+                }.apply { visibility = View.GONE }
             columns(
                 {
                     section(ui.string(R.string.paired_laptops))
@@ -178,6 +186,12 @@ class PickerScreen(
         val offered = text.isNotEmpty() && actionLabel != null && onAction != null
         messageButton.visibility = if (offered) View.VISIBLE else View.GONE
         dismissButton.visibility = if (text.isNotEmpty() && onDismiss != null) View.VISIBLE else View.GONE
+    }
+
+    /** The newer release to offer, shown above the list; null hides the notice. */
+    fun setUpdate(version: String?) {
+        updateVersion.text = version.orEmpty()
+        updateCard.visibility = if (version.isNullOrEmpty()) View.GONE else View.VISIBLE
     }
 
     /** One line under the list about where the last network sweep looked and found nothing; empty hides it. */

@@ -22,16 +22,14 @@ object MacroSettingsScreen {
     fun build(
         ui: Ui,
         settings: Settings,
-        onSystem: () -> Unit,
         onAddFromLaptop: (() -> Unit)? = null,
         onBack: () -> Unit,
     ): View {
         val min = Settings.MIN_MACROS_PER_PAGE
         val layout = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
         fillLayout(ui, settings, layout)
-        return ui.page(
-            ui.bar(ui.string(R.string.macros_settings), onBack, backLabel = ui.string(R.string.macros_title)),
-        ) {
+        return ui.page(ui.bar("", onBack, backLabel = ui.string(R.string.macros_title))) {
+            largeTitle(ui.string(R.string.macros_settings))
             // Only for a laptop that lists its apps: a macro from its own list, with nothing typed on either side.
             onAddFromLaptop?.let { open ->
                 section(ui.string(R.string.apps_title))
@@ -72,7 +70,6 @@ object MacroSettingsScreen {
                 )
             }
             footnote(ui.string(R.string.macros_icon_size_caption))
-            systemSettings(onSystem)
         }
     }
 

@@ -186,7 +186,7 @@ class Ui(
                 LinearLayout(context).apply {
                     gravity = Gravity.CENTER_VERTICAL
                     if (onBack != null) {
-                        addView(back(backLabel ?: string(R.string.back), onBack))
+                        addView(back(backLabel ?: string(R.string.back), backLabel != null, onBack))
                     } else if (lead != null) {
                         addView(
                             lead,
@@ -236,6 +236,7 @@ class Ui(
     /** The nav bar's back link: an accent chevron and the name of the screen it returns to. */
     private fun back(
         label: CharSequence,
+        named: Boolean,
         onBack: () -> Unit,
     ): LinearLayout =
         LinearLayout(context).apply {
@@ -247,7 +248,8 @@ class Ui(
                 LinearLayout.LayoutParams(dp(BACK_ICON_DP), dp(BACK_ICON_DP)),
             )
             addView(text(label, Type.LABEL, palette.accent))
-            contentDescription = string(R.string.back)
+            // A name that holds the words on screen, and says where Back goes, which sighted users read.
+            contentDescription = if (named) string(R.string.back_to, label) else string(R.string.back)
             tappable(this, Space.S, onBack)
         }
 

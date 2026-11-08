@@ -40,7 +40,6 @@ import me.akshitbansal.edgepad.link.BlobRoutes
 import me.akshitbansal.edgepad.link.BluetoothTransport
 import me.akshitbansal.edgepad.link.CaptureInbox
 import me.akshitbansal.edgepad.link.ClipboardShare
-import me.akshitbansal.edgepad.link.DeviceTap
 import me.akshitbansal.edgepad.link.Discovery
 import me.akshitbansal.edgepad.link.Found
 import me.akshitbansal.edgepad.link.HostPort
@@ -66,7 +65,6 @@ import me.akshitbansal.edgepad.link.TetherProbe
 import me.akshitbansal.edgepad.link.Transport
 import me.akshitbansal.edgepad.link.clipboardShare
 import me.akshitbansal.edgepad.link.decodeSaved
-import me.akshitbansal.edgepad.link.deviceState
 import me.akshitbansal.edgepad.link.encodeSaved
 import me.akshitbansal.edgepad.link.forgotten
 import me.akshitbansal.edgepad.link.laptopLinks
@@ -84,7 +82,6 @@ import me.akshitbansal.edgepad.link.probeAddress
 import me.akshitbansal.edgepad.link.promoted
 import me.akshitbansal.edgepad.link.rememberLaptop
 import me.akshitbansal.edgepad.link.snapUp
-import me.akshitbansal.edgepad.link.tap
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.AppAddStatus
 import me.akshitbansal.edgepad.protocol.DeviceOs
@@ -115,6 +112,7 @@ import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.PinScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
+import me.akshitbansal.edgepad.screens.SharingScreen
 import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
@@ -177,6 +175,7 @@ class MainActivity :
         ONBOARDING,
         GUIDE,
         PAIRING,
+        SHARING,
         SETTINGS,
         SURFACE_SETTINGS,
         CORNERS,
@@ -295,6 +294,9 @@ class MainActivity :
     /** The system's permission prompt is up, so the Devices list offers no way round it underneath. */
     private var permissionPending = false
 
+    /** Why the prompt that is up was asked, said on the list behind it. */
+    private var permissionReason = R.string.permission_reason
+
     /** The local-network permission has been asked for once, so the list offers the way back and does not nag. */
     private var askedLocalNetwork = false
 
@@ -365,6 +367,7 @@ class MainActivity :
                 onAddAddress = ::askAddress,
                 onUsbHelp = ::openTetherSettings,
                 onDisconnectAll = ::disconnectAll,
+                onUpdate = ::openUpdate,
             )
         discovery =
             Discovery(this) { list ->
@@ -443,7 +446,9 @@ class MainActivity :
         refreshPicker()
         startScan()
         val sinceCheck = System.currentTimeMillis() - settings.lastUpdateCheck
-        if (settings.autoUpdateCheck && sinceCheck >= Updates.CHECK_EVERY_MS) checkForUpdate()
+        // Not over the guide: a first-time user has not been told yet that the app ever goes online.
+        val due = settings.autoUpdateCheck && sinceCheck >= Updates.CHECK_EVERY_MS
+        if (screen != Screen.ONBOARDING && due) checkForUpdate()
     }
 
     override fun onStop() {
@@ -713,6 +718,21 @@ class MainActivity :
                     picker.view.also { refreshPicker() }
                 }
 
+                Screen.SHARING -> {
+                    SharingScreen.build(
+                        ui,
+                        settings,
+                        onChanged = {
+                            shareClipboard()
+                            syncService()
+                        },
+                        onContinue = {
+                            settings.sharingAsked = true
+                            goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
+                        },
+                    )
+                }
+
                 Screen.SETTINGS -> {
                     val backLabel =
                         when (settingsBack()) {
@@ -726,8 +746,6 @@ class MainActivity :
                     SettingsScreen.build(
                         ui,
                         settings,
-                        connections(),
-                        showAllDevices,
                         versionLine(),
                         getString(backLabel),
                         SettingsScreen.Update(updateSummary()) { view ->
@@ -737,14 +755,14 @@ class MainActivity :
                         },
                         SettingsScreen.Routes(
                             devices = { goTo(Screen.PAIRING) },
-                            showAll = { all ->
-                                showAllDevices = all
-                                refreshPicker()
-                            },
                             guide = { goTo(Screen.GUIDE) },
                             documentation = { open(getString(R.string.documentation_url)) },
                             update = ::openUpdate,
-                            clipboard = ::shareClipboard,
+                            licences = ::showLicences,
+                            clipboard = {
+                                shareClipboard()
+                                syncService()
+                            },
                             stayConnected = ::syncService,
                             sideways = { on ->
                                 settings.landscape = on
@@ -844,7 +862,7 @@ class MainActivity :
                 }
 
                 Screen.KEYBOARD_SETTINGS -> {
-                    KeyboardSettingsScreen.build(ui, settings, onSystem = ::openSettings) { navigateBack() }
+                    KeyboardSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.GAMEPAD -> {
@@ -869,7 +887,6 @@ class MainActivity :
                             goTo(Screen.GAMEPAD_SETTINGS)
                         },
                         onEdit = { goTo(Screen.GAMEPAD_LAYOUT) },
-                        onSystem = ::openSettings,
                     ) { navigateBack() }
                 }
 
@@ -890,12 +907,7 @@ class MainActivity :
                 }
 
                 Screen.MACRO_SETTINGS -> {
-                    MacroSettingsScreen.build(
-                        ui,
-                        settings,
-                        onSystem = ::openSettings,
-                        onAddFromLaptop = addFromLaptop(),
-                    ) { navigateBack() }
+                    MacroSettingsScreen.build(ui, settings, onAddFromLaptop = addFromLaptop()) { navigateBack() }
                 }
 
                 Screen.APPS -> {
@@ -1089,6 +1101,11 @@ class MainActivity :
 
             // Opened from the surface, which is only there while the link holds.
             Screen.SURFACE_SETTINGS -> {
+                goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
+            }
+
+            // Left unanswered, so the question comes again at the next connection.
+            Screen.SHARING -> {
                 goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
             }
 
@@ -1326,7 +1343,7 @@ class MainActivity :
         if (checkingUpdate) return
         checkingUpdate = true
         updateCheckFailed = false
-        updateSummaryView?.text = updateSummary()
+        updateChanged()
         thread(name = "edgepad-update") {
             val latest = Updates.latest()
             if (latest != null) {
@@ -1336,9 +1353,15 @@ class MainActivity :
             runOnUiThread {
                 checkingUpdate = false
                 updateCheckFailed = latest == null
-                updateSummaryView?.text = updateSummary()
+                updateChanged()
             }
         }
+    }
+
+    /** The Updates row follows the state, and so does the notice on Devices: both say the same thing. */
+    private fun updateChanged() {
+        updateSummaryView?.text = updateSummary()
+        if (screen == Screen.PAIRING) refreshPicker()
     }
 
     private fun updateAvailable(): Boolean = Updates.isNewer(settings.latestVersion, getString(R.string.app_version))
@@ -1348,19 +1371,79 @@ class MainActivity :
         when {
             updateProgress != null -> getString(R.string.updates_downloading, updateProgress)
             checkingUpdate -> getString(R.string.updates_checking)
+            settings.updateFailure != 0 -> getString(R.string.updates_problem)
             updateCheckFailed -> getString(R.string.updates_failed)
             updateAvailable() -> getString(R.string.updates_available, settings.latestVersion)
             settings.lastUpdateCheck == 0L -> ""
             else -> getString(R.string.updates_current)
         }
 
-    /** The Updates row: fetches the newest release when there is one to get, and otherwise checks afresh. */
+    /**
+     * The Updates row, and the notice on Devices: a problem with the last update is explained, a newer release is
+     * confirmed before anything is downloaded, and otherwise GitHub is asked afresh.
+     */
     private fun openUpdate() {
         when {
             updateProgress != null -> Unit
-            updateAvailable() -> installUpdate(settings.latestVersion)
+            settings.updateFailure != 0 -> explainUpdateFailure()
+            updateAvailable() -> confirmUpdate(settings.latestVersion)
             else -> checkForUpdate()
         }
+    }
+
+    /** What an update does to the app before it does it: it restarts, which drops every link. */
+    private fun confirmUpdate(version: String) {
+        val major = Updates.majorDiffers(version, getString(R.string.app_version))
+        val body = getString(R.string.updates_confirm_body)
+        AlertDialog
+            .Builder(this)
+            .setTitle(getString(R.string.updates_confirm_title, version))
+            .setMessage(if (major) body + " " + getString(R.string.updates_confirm_major) else body)
+            .setPositiveButton(R.string.updates_confirm_action) { _, _ -> installUpdate(version) }
+            .setNeutralButton(R.string.updates_release_notes) { _, _ -> open(Updates.releaseUrl(version)) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .showOver(findViewById<View>(android.R.id.content))
+    }
+
+    /** Why the last update did not go through, and the step that fits: Android's own switch, or another try. */
+    private fun explainUpdateFailure() {
+        val code = settings.updateFailure
+        val page = Updates.releaseUrl(settings.latestVersion)
+        val dialog =
+            AlertDialog
+                .Builder(this)
+                .setMessage(Installer.failureText(code))
+                .setNegativeButton(R.string.updates_release_page) { _, _ -> open(page) }
+        if (Installer.isBlocked(code)) {
+            dialog.setPositiveButton(R.string.updates_open_settings) { _, _ -> openInstallSettings() }
+        } else {
+            dialog.setPositiveButton(R.string.updates_try_again) { _, _ ->
+                settings.updateFailure = 0
+                updateChanged()
+                openUpdate()
+            }
+        }
+        dialog.showOver(findViewById<View>(android.R.id.content))
+    }
+
+    /** Android's switch for installing from this app, where an update that was blocked can be allowed. */
+    private fun openInstallSettings() {
+        val page = Uri.fromParts("package", packageName, null)
+        try {
+            startActivity(Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, page))
+        } catch (e: ActivityNotFoundException) {
+            Log.w("Edgepad", "No activity for the install permission", e)
+            openAppSettings()
+        }
+    }
+
+    private fun showLicences() {
+        AlertDialog
+            .Builder(this)
+            .setTitle(R.string.licences_title)
+            .setMessage(R.string.licences_body)
+            .setPositiveButton(R.string.editor_done, null)
+            .showOver(findViewById<View>(android.R.id.content))
     }
 
     /**
@@ -1370,18 +1453,21 @@ class MainActivity :
      */
     private fun installUpdate(version: String) {
         updateProgress = 0
-        updateSummaryView?.text = updateSummary()
+        settings.updateFailure = 0
+        updateChanged()
         thread(name = "edgepad-update") {
             val handed =
                 Installer.install(applicationContext, version) { percent ->
                     runOnUiThread {
                         updateProgress = percent
-                        updateSummaryView?.text = updateSummary()
+                        updateChanged()
                     }
                 }
             runOnUiThread {
                 updateProgress = null
-                updateSummaryView?.text = updateSummary()
+                // Kept on the row after the Toast is gone: a refusal from the system is kept the same way.
+                if (!handed) settings.updateFailure = Installer.DOWNLOAD_FAILED
+                updateChanged()
                 if (!handed && !isDestroyed) {
                     Toast.makeText(this, R.string.updates_download_failed, Toast.LENGTH_LONG).show()
                 }
@@ -1404,6 +1490,8 @@ class MainActivity :
     }
 
     private fun refreshPicker() {
+        // The guide comes first; the permission prompts wait for the list they are asked for.
+        if (screen == Screen.ONBOARDING) return
         val adapter = getSystemService(BluetoothManager::class.java)?.adapter
         val permitted = checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
         // Asked for once by itself, where it used to be asked for on every refresh; after a refusal the
@@ -1495,10 +1583,12 @@ class MainActivity :
             }
 
             PickerHint.NONE -> {
-                picker.setMessage("")
+                // Nothing to fix; but while the system's question is up, the reason for it stays on the list.
+                picker.setMessage(if (permissionPending) getString(permissionReason) else "")
             }
         }
         picker.setStatus(if (rows.isEmpty()) sweepStatus() else "")
+        picker.setUpdate(if (updateAvailable()) settings.latestVersion else null)
     }
 
     /**
@@ -1525,6 +1615,9 @@ class MainActivity :
     private fun askPermission() {
         askedPermission = true
         permissionPending = true
+        // The reason stays on the list behind the system's question, and goes when the answer refreshes it.
+        permissionReason = R.string.permission_reason
+        picker.setMessage(getString(permissionReason))
         requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_BLUETOOTH)
     }
 
@@ -1696,6 +1789,8 @@ class MainActivity :
     private fun askLocalNetwork() {
         askedLocalNetwork = true
         permissionPending = true
+        permissionReason = R.string.local_network_reason
+        picker.setMessage(getString(permissionReason))
         requestPermissions(arrayOf(LocalNetwork.PERMISSION), REQUEST_LOCAL_NETWORK)
     }
 
@@ -1788,19 +1883,9 @@ class MainActivity :
         saved = rememberLaptop(saved, entry, first = laptop === selected)
     }
 
-    /** Devices and the laptops card in System settings follow every laptop's state, the selected one's or not. */
+    /** Devices follows every laptop's state, the selected one's or not. */
     private fun refreshDevices() {
-        when (screen) {
-            Screen.PAIRING -> {
-                refreshPicker()
-            }
-
-            Screen.SETTINGS -> {
-                goTo(Screen.SETTINGS)
-            }
-
-            else -> {}
-        }
+        if (screen == Screen.PAIRING) refreshPicker()
     }
 
     /**
@@ -1838,7 +1923,8 @@ class MainActivity :
         picker.setMessage("")
         when (screen) {
             Screen.PAIRING, Screen.RECONNECTING, Screen.PIN, Screen.PAIR_CODE -> {
-                goTo(Screen.SURFACE)
+                // The first time, one short question comes before the controls; see [SharingScreen].
+                goTo(if (settings.sharingAsked) Screen.SURFACE else Screen.SHARING)
             }
 
             // Opened from Devices, back now leads to the surface the connect would have gone to.
@@ -1983,7 +2069,7 @@ class MainActivity :
         if (screen == Screen.PIN || screen == Screen.PAIR_CODE) goTo(Screen.PAIRING)
         when {
             closure.cause == LaptopLink.Cause.ENDED -> {
-                if (screen == Screen.SURFACE || screen == Screen.RECONNECTING ||
+                if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.SHARING ||
                     screen == Screen.CAPTURE || screen == Screen.ANNOTATE || screen == Screen.KEYBOARD ||
                     screen == Screen.GAMEPAD || screen == Screen.MACROS || screen == Screen.APPS ||
                     screen in settingsOfControls
@@ -2170,48 +2256,6 @@ class MainActivity :
         dropPairingKeys(keys)
         syncService()
         refreshDevices()
-    }
-
-    /** Every laptop System settings lists, as Devices has them: the remembered ones and the ones with a link. */
-    private fun connections(): SettingsScreen.Connections {
-        val remembered = saved
-        val addresses = remembered.map { it.btAddress }.toSet()
-        val bonded = bonded().filter { it.address in addresses }.map { it.address to nameOf(it) }
-        val devices =
-            laptopRows(remembered, manager.laptops, bonded, emptyList()).map { row ->
-                SettingsScreen.Device(
-                    row.name,
-                    deviceState(row, selected),
-                    row.via,
-                    onTap = { tapSettingsRow(row) },
-                    onDisconnect = { disconnectRow(row) },
-                )
-            }
-        val offered = connected && Feature.CLIPBOARD in state.features
-        return SettingsScreen.Connections(devices, offered)
-    }
-
-    /** A tap on a laptop in System settings: make it active, answer its prompt, or connect it, as [deviceState] says. */
-    private fun tapSettingsRow(row: LaptopRow) {
-        val laptop = row.laptop
-        when (deviceState(row, selected).tap()) {
-            DeviceTap.NOTHING -> {}
-
-            DeviceTap.SELECT -> {
-                laptop?.let { manager.select(it.id) }
-            }
-
-            DeviceTap.ANSWER -> {
-                if (laptop != null) {
-                    manager.select(laptop.id)
-                    goTo(if (laptop.asking == Laptop.Ask.PIN) Screen.PIN else Screen.PAIR_CODE)
-                }
-            }
-
-            DeviceTap.CONNECT -> {
-                connectTo(row, row.via)
-            }
-        }
     }
 
     private companion object {
