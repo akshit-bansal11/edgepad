@@ -48,6 +48,8 @@ object EditorFrame {
         canvas: View,
         onBack: () -> Unit,
         backLabel: CharSequence? = null,
+        /** Handed a function that opens the options sheet, for a caller with another way to ask for it. */
+        onOpener: ((open: () -> Unit) -> Unit)? = null,
         options: (close: () -> Unit) -> View,
     ): View {
         val root = FrameLayout(ui.context).apply { setBackgroundColor(ui.palette.background) }
@@ -87,6 +89,7 @@ object EditorFrame {
                     window.showAsDropDown(open.view, 0, ui.dp(POPUP_GAP_DP) - slack(ui), Gravity.END)
                 }
             }
+        onOpener?.invoke { open.view.performClick() }
         // A rotation or a theme change rebuilds the activity under an open sheet. It goes with the page it
         // belongs to, rather than outliving it and leaking its window.
         root.addOnAttachStateChangeListener(
