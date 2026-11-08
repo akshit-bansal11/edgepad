@@ -13,7 +13,9 @@ import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.surface.ControlSurface
+import me.akshitbansal.edgepad.surface.CornerSlots
 import me.akshitbansal.edgepad.surface.MediaPiece
+import me.akshitbansal.edgepad.surface.Perimeter
 
 /**
  * Drag the media pieces on a full-size canvas with a snapping grid; where they land is where the surface
@@ -105,6 +107,66 @@ object MediaLayoutScreen {
             contentDescription = context.getString(R.string.media_layout_title)
         }
 
+        // AND-A-25: what the surface keeps for itself, drawn as faint ghosts and kept clear of by a dragged piece.
+        // Rebuilt when the size is known, so drawing and dragging allocate nothing.
+        private val ghosts = ArrayList<RectF>()
+        private val probe = RectF()
+        private val ghostFill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.faint }
+        private val corners = BooleanArray(Perimeter.CORNERS) { hasDial(it) }
+
+        private fun hasDial(corner: Int): Boolean =
+            if (settings.splitCorners) {
+                (0 until Perimeter.SLOTS).any { CornerSlots.corner(it) == corner && settings.slot(it) != null }
+            } else {
+                settings.corner(corner) != null
+            }
+
+        override fun onSizeChanged(
+            w: Int,
+            h: Int,
+            oldw: Int,
+            oldh: Int,
+        ) {
+            super.onSizeChanged(w, h, oldw, oldh)
+            ghosts.clear()
+            val touch = Space.TOUCH * density
+            val sideways = w > h
+            val step =
+                if (sideways) {
+                    ControlSurface.TOP_BUTTON_OFFSET_LANDSCAPE_DP * density
+                } else {
+                    ControlSurface.TOP_BUTTON_OFFSET_PORTRAIT_DP * density
+                }
+            val top = ControlSurface.TOP_DP * density
+            for (side in -1..1) {
+                val cx = w / 2f + side * step
+                ghosts.add(RectF(cx - touch / 2, top - touch / 2, cx + touch / 2, top + touch / 2))
+            }
+            val along = settings.dialLength * density
+            val depth = RULER_DEPTH_DP * density
+            for (at in 0 until Perimeter.CORNERS) {
+                if (!corners[at]) continue
+                val right = at == 1 || at == 2
+                val bottom = at >= 2
+                val x0 = if (right) w - along else 0f
+                val x1 = if (right) w.toFloat() else along
+                val y0 = if (bottom) h - along else 0f
+                val y1 = if (bottom) h.toFloat() else along
+                // The ruler bends round the corner: one strip along each of the two edges.
+                ghosts.add(RectF(x0, if (bottom) h - depth else 0f, x1, if (bottom) h.toFloat() else depth))
+                ghosts.add(RectF(if (right) w - depth else 0f, y0, if (right) w.toFloat() else depth, y1))
+            }
+        }
+
+        /** Whether a piece centred at [at] would sit on something the surface keeps for itself. */
+        private fun blocked(
+            piece: MediaPiece,
+            at: Pair<Float, Float>,
+        ): Boolean {
+            bounds(piece, probe, at)
+            return ghosts.any { RectF.intersects(it, probe) }
+        }
+
         private var scale = settings.mediaScale
 
         fun rescale() {
@@ -121,8 +183,9 @@ object MediaLayoutScreen {
         private fun bounds(
             piece: MediaPiece,
             out: RectF,
+            at: Pair<Float, Float> = positions.getValue(piece),
         ) {
-            val (fx, fy) = positions.getValue(piece)
+            val (fx, fy) = at
             val cx = fx * width
             val cy = fy * height
             val (w, h) =
@@ -142,6 +205,7 @@ object MediaLayoutScreen {
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
+            for (ghost in ghosts) canvas.drawRoundRect(ghost, corner, corner, ghostFill)
             for (piece in MediaPiece.entries) {
                 bounds(piece, box)
                 // A piece at rest is a card, with a soft line under it on the light ground; the one being
@@ -187,8 +251,11 @@ object MediaLayoutScreen {
                     val piece = dragging ?: return false
                     val x = snap(event.x, width)
                     val y = snap(event.y, height)
-                    positions[piece] = x to y
-                    setOnCentre(x, y)
+                    // A move onto a ghost is not taken: the piece waits where it was until the finger is clear.
+                    if (!blocked(piece, x to y)) {
+                        positions[piece] = x to y
+                        setOnCentre(x, y)
+                    }
                 }
 
                 MotionEvent.ACTION_UP -> {
@@ -215,6 +282,7 @@ object MediaLayoutScreen {
 
         private companion object {
             const val CORNER_DP = 12f
+            const val RULER_DEPTH_DP = 44f
         }
     }
 }

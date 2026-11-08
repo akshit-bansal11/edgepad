@@ -1429,7 +1429,7 @@ class ControlSurface(
         private const val TRAIL = 18
         private const val TRAIL_ALPHA = 200f
         private const val ALPHA_SHIFT = 24
-        private const val TOP_DP = 40f
+        const val TOP_DP = 40f
 
         /** AND-A-8: how far one accessibility volume or brightness action moves the level, in percent. */
         private const val LEVEL_STEP = 10
@@ -1448,8 +1448,8 @@ class ControlSurface(
          * step would have two rects claim the same pixels, and a tap in the overlap would open whichever
          * of the two [down] tests first rather than the one the finger is on.
          */
-        private const val TOP_BUTTON_OFFSET_PORTRAIT_DP = 48f
-        private const val TOP_BUTTON_OFFSET_LANDSCAPE_DP = 56f
+        const val TOP_BUTTON_OFFSET_PORTRAIT_DP = 48f
+        const val TOP_BUTTON_OFFSET_LANDSCAPE_DP = 56f
         private const val TOP_CENTRE = 0.5f
         private const val DIAL_GAP_DP = 16f
     }
