@@ -123,6 +123,9 @@ class Settings(
     /** Bit per trackpad hint already earned by using the gesture (see HintFade); switching hints on again clears it. */
     var hintsSeen by pref({ prefs.getInt("hintsSeen", 0) }) { putInt("hintsSeen", it) }
 
+    /** How many times the Controls popup has said that its tiles can be moved; it stops after a few. */
+    var controlsHintShown by pref({ prefs.getInt("controlsHintShown", 0) }) { putInt("controlsHintShown", it) }
+
     /**
      * Macro buttons carry their name under the picture. Off shows the picture alone, which is roomier and
      * reads faster once the grid is familiar; a slot the laptop sent no picture for keeps its name either

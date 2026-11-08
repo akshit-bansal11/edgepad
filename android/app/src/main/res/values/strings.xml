@@ -414,6 +414,7 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controls</string>
+  <string name="controls_move_hint">Press and hold a tile to move it.</string>
   <string name="controls_open">Open %1$s</string>
   <string name="controls_needs_newer">This laptop needs a newer Edgepad for this. Update it, then reconnect.</string>
   <string name="controls_keyboard">Keyboard</string>

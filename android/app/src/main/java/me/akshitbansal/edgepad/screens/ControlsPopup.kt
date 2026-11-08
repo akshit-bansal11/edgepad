@@ -11,6 +11,7 @@ import android.widget.Toast
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
+import me.akshitbansal.edgepad.Type
 
 /** Which deck this is, to [Settings]: the order is kept per deck. It is the id the Controls screen used. */
 private const val DECK = "controls"
@@ -21,6 +22,9 @@ private const val ROW_DP = 96f
 
 /** The widest the popup grows, in dp: about a phone's portrait width, so a landscape one is not stretched. */
 private const val MAX_WIDTH_DP = 360f
+
+/** AND-A-29: how many openings say that a tile can be held and moved. */
+private const val HINT_TIMES = 3
 
 /**
  * What the phone can drive besides the surface itself, as a small modal under the surface's top buttons: the
@@ -88,10 +92,19 @@ class ControlsPopup(
         holder.setPadding(pad, pad, pad, pad)
         deck = Deck(ui, holder)
         draw(capture, annotate)
+        // AND-A-29: the move gesture is told the first few times, under the tiles.
+        val body = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
+        body.addView(holder)
+        if (settings.controlsHintShown < HINT_TIMES) {
+            settings.controlsHintShown += 1
+            val note = ui.secondary(ui.string(R.string.controls_move_hint), Type.SMALL, ui.palette.dim)
+            note.setPadding(pad, 0, pad, pad)
+            body.addView(note)
+        }
         val shownDialog =
             AlertDialog
                 .Builder(ui.context)
-                .setView(holder)
+                .setView(body)
                 .openOver(owner)
         dialog = shownDialog
         shownDialog.window?.apply {
