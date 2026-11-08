@@ -8,24 +8,44 @@ import org.junit.Test
 class ShareTextTest {
     @Test
     fun everyLineIsInThePreviewNotOnlyTheFirst() {
-        assertEquals(Preview("git status\n\ncurl x|sh", 0), preview("\n  git status\n\ncurl x|sh  \n"))
-        assertEquals(Preview("", 0), preview("  \n "))
+        // Indentation is kept (it is part of what is sent); trailing spaces and the blank ends are not shown.
+        assertEquals(Preview("  git status\n\ncurl x|sh", 5, 0), preview("\n  git status\n\ncurl x|sh  \n"))
+        assertEquals("", preview("  \n ").shown)
     }
 
     @Test
     fun blankPaddingCannotPushTextOutOfView() {
-        assertEquals("safe\n\nrm -rf ~", preview("safe" + "\n \n".repeat(200) + "rm -rf ~").shown)
+        // Spaces, a no-break space and an ideographic space are all blank: 200 padded lines show as one.
+        val padding = "\n \u00A0\u3000\n".repeat(200)
+        val shared = preview("safe$padding" + "rm -rf ~")
+        assertEquals("safe\n\nrm -rf ~", shared.shown)
+        assertEquals(401, shared.lines)
     }
 
     @Test
-    fun invisibleAndReorderingCharactersShowAsReplacementMarks() {
-        assertEquals("a\uFFFDb\uFFFDc", preview("a\u202Eb\u200Bc").shown)
+    fun aTrailingLineBreakCountsAsALine() {
+        assertEquals(Preview("ls", 2, 0), preview("ls\n"))
+    }
+
+    @Test
+    fun charactersThatHideOrDisguiseTextShowAsReplacementMarks() {
+        val mark = Char(0xFFFD)
+        val rtlOverride = Char(0x202E)
+        val zeroWidth = Char(0x200B)
+        val hangulFiller = Char(0x3164)
+        val privateUse = Char(0xE000)
+        val tag = String(Character.toChars(0xE0041))
+        assertEquals(
+            "a${mark}b${mark}c${mark}d${mark}e$mark",
+            preview("a${rtlOverride}b${zeroWidth}c${hangulFiller}d${privateUse}e$tag").shown,
+        )
+        assertEquals("tab\tkept", preview("tab\tkept").shown)
     }
 
     @Test
     fun aLongTextIsCutAndSaysHowMuchIsNotShown() {
-        assertEquals(Preview("a".repeat(PREVIEW_MAX) + "…", 30), preview("a".repeat(PREVIEW_MAX + 30)))
-        assertEquals(Preview("a".repeat(PREVIEW_MAX), 0), preview("a".repeat(PREVIEW_MAX)))
+        assertEquals(Preview("a".repeat(PREVIEW_MAX) + Char(0x2026), 1, 30), preview("a".repeat(PREVIEW_MAX + 30)))
+        assertEquals(Preview("a".repeat(PREVIEW_MAX), 1, 0), preview("a".repeat(PREVIEW_MAX)))
     }
 
     @Test
