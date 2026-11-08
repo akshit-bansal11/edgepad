@@ -499,6 +499,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         return true
     }
 
+    /// Every trusted phone with the name the owner knows it by: a Wi-Fi phone's pairing name, else its address.
+    private func trustedList() -> [(address: String, name: String)] {
+        let names = Dictionary(
+            paired.list().map { ("link:" + $0.id.lowercased(), $0.name) }, uniquingKeysWith: { first, _ in first })
+        return trust.trustedPhones.map { (address: $0, name: names[$0.lowercased()] ?? $0) }
+    }
+
+    /// Forgets one phone after asking, held like Forget so a connected phone cannot answer. True when it did.
+    private func confirmForgetOne(_ address: String, _ name: String) -> Bool {
+        guard !forgetting else { return false }
+        forgetting = true
+        host?.holdOff()
+        defer {
+            host?.resume()
+            forgetting = false
+        }
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = "Forget \(name)?"
+        alert.informativeText = "It will have to be trusted here again before it can use this Mac."
+        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: "Forget").hasDestructiveAction = true
+        NSApp.activate(ignoringOtherApps: true)
+        let answer = alert.runModal()
+        alert.window.orderOut(nil)
+        guard answer == .alertSecondButtonReturn else { return false }
+        var failed = !trust.forgetOne(address)
+        failed = !pin.forgetVerified(address) || failed
+        if address.lowercased().hasPrefix("link:") {
+            failed = !paired.forgetOne(String(address.dropFirst(5))) || failed
+        }
+        if failed {
+            tell(
+                "Could not forget \(name)",
+                "A file could not be rewritten, so it may still be trusted. The log has the reason.",
+                style: .critical)
+        }
+        return true
+    }
+
     /// Held like Forget, for the same reason: a connected phone is a keyboard and could answer the panel.
     @objc private func showSecurity() {
         guard !securing else { return }
@@ -511,6 +551,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         SecurityPanel(
             pin: pin, trust: trust, forgetPairings: { [weak self] in self?.forgetPairedLinks() },
             forgetAll: { [weak self] in self?.confirmForget() ?? false },
+            phones: { [weak self] in self?.trustedList() ?? [] },
+            forgetOne: { [weak self] in self?.confirmForgetOne($0, $1) ?? false },
             hangUp: { [weak self] in self?.host?.stayQuiet() }
         ).run()
     }

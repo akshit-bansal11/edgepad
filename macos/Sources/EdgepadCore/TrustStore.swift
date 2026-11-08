@@ -217,6 +217,36 @@ public final class TrustStore {
         }
     }
 
+    /// Forgets one phone and keeps the others, for a Forget chosen from the list. True when `address` is no longer
+    /// trusted: removed, or never there. False when the file could not be read or rewritten; the phone is then still
+    /// trusted. Like `forget()` it moves the generation on, so a question open across it saves nothing.
+    public func forgetOne(_ address: String) -> Bool {
+        locked {
+            generation += 1
+            unsaved.removeAll { $0.caseInsensitiveCompare(address) == .orderedSame }
+            if let declined, declined.address.caseInsensitiveCompare(address) == .orderedSame {
+                self.declined = nil
+            }
+            let read = tryRead()
+            guard read.readable else { return false }
+            let rest = read.addresses.filter { $0.caseInsensitiveCompare(address) != .orderedSame }
+            if rest.count == read.addresses.count {
+                return true
+            }
+            do {
+                if rest.isEmpty {
+                    try FileManager.default.removeItem(atPath: path)
+                } else {
+                    try save(rest)
+                }
+                return true
+            } catch {
+                Log.write("A trusted phone could not be forgotten at \(path): \(error.localizedDescription)")
+                return false
+            }
+        }
+    }
+
     private func locked<T>(_ body: () -> T) -> T {
         gate.lock()
         defer { gate.unlock() }

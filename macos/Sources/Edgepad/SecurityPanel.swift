@@ -16,6 +16,10 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     private let hangUp: () -> Void
     private let forgetPairings: () -> Void
     private let forgetAll: () -> Bool
+    private let phones: () -> [(address: String, name: String)]
+    private let forgetOne: (String, String) -> Bool
+    /// The phones the list shows, so a Forget button's tag says which one.
+    private var listed: [(address: String, name: String)] = []
 
     /// The level the radios show.
     private var level: Int
@@ -29,8 +33,11 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     /// `forgetAll` asks and forgets every trusted phone, true when it did; the panel then closes.
     init(
         pin: PinStore, trust: TrustStore, forgetPairings: @escaping () -> Void, forgetAll: @escaping () -> Bool,
+        phones: @escaping () -> [(address: String, name: String)], forgetOne: @escaping (String, String) -> Bool,
         hangUp: @escaping () -> Void
     ) {
+        self.phones = phones
+        self.forgetOne = forgetOne
         self.pin = pin
         self.forgetAll = forgetAll
         self.trust = trust
@@ -45,7 +52,8 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     func run() {
         let alert = NSAlert()
         alert.messageText = "Security"
-        alert.informativeText = "Every phone is asked for your yes first. The two PIN levels also ask for a six-digit PIN."
+        alert.informativeText =
+            "Every phone is asked for your yes first. The two PIN levels also ask for a six-digit PIN."
         alert.accessoryView = makeBody()
         // Cancel is first, so it is the default: a stray Return changes nothing.
         alert.addButton(withTitle: "Cancel")
@@ -78,7 +86,25 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
         warning.preferredMaxLayoutWidth = Self.width
         let pinRow = NSStackView(views: [setPinButton, pinState])
         pinRow.spacing = 12
-        let stack = NSStackView(views: radios + [pinRow, warning, forgetEvery, reset])
+        listed = phones()
+        var rows: [NSView] = []
+        if !listed.isEmpty {
+            let heading = NSTextField(labelWithString: "Trusted phones")
+            heading.font = .boldSystemFont(ofSize: NSFont.systemFontSize)
+            rows.append(heading)
+            for (index, phone) in listed.enumerated() {
+                let name = NSTextField(labelWithString: phone.name)
+                name.lineBreakMode = .byTruncatingMiddle
+                name.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+                let forget = NSButton(title: "Forget", target: self, action: #selector(forgetOnePhone(_:)))
+                forget.tag = index
+                forget.setAccessibilityLabel("Forget \(phone.name)")
+                let row = NSStackView(views: [name, forget])
+                row.spacing = 12
+                rows.append(row)
+            }
+        }
+        let stack = NSStackView(views: radios + [pinRow, warning] + rows + [forgetEvery, reset])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 10
@@ -239,6 +265,14 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
                     + "pin-verified.txt yourself from:\n\n\(pin.folder)")
         }
         NSApp.stopModal(withCode: .abort)
+    }
+
+    @objc private func forgetOnePhone(_ sender: NSButton) {
+        guard listed.indices.contains(sender.tag) else { return }
+        let phone = listed[sender.tag]
+        if forgetOne(phone.address, phone.name) {
+            NSApp.stopModal(withCode: .abort)
+        }
     }
 
     @objc private func forgetEveryPhone() {

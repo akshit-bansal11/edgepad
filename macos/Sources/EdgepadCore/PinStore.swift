@@ -213,6 +213,16 @@ public final class PinStore {
         }
     }
 
+    /// Takes one phone off the verified list, for a Forget chosen from the list. False when the list could not be
+    /// rewritten; the phone may then skip the PIN at level 2 until a later clear works.
+    public func forgetVerified(_ address: String) -> Bool {
+        locked {
+            generation += 1
+            let rest = readVerified().filter { $0.caseInsensitiveCompare(address) != .orderedSame }
+            return rest.isEmpty ? clearVerified() : write(verifiedPath, rest.joined(separator: "\n") + "\n")
+        }
+    }
+
     /// Forgets the PIN and every verified phone and goes back to level 1, for an owner who forgot the PIN. The caller
     /// forgets the trusted phones first and calls this only once they are gone, so the way back in is the owner's own
     /// yes on this Mac. False when a file could not be deleted; the old settings then still apply.

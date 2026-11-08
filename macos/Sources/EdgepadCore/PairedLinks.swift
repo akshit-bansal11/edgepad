@@ -59,6 +59,38 @@ public final class PairedLinks {
         return true
     }
 
+    /// The id and name of every paired phone, for a list the owner can forget from; empty while the file cannot be
+    /// read.
+    public func list() -> [(id: String, name: String)] {
+        (tryRead() ?? []).map { (id: $0.id, name: $0.name) }
+    }
+
+    /// Forgets one phone's pairing and keeps the others. True when it is gone or was never there; false when the file
+    /// could not be read or rewritten. Moves `generation` on, as `forget()` does.
+    public func forgetOne(_ idHex: String) -> Bool {
+        generation += 1
+        guard let links = tryRead() else { return false }
+        let rest = links.filter { $0.id.caseInsensitiveCompare(idHex) != .orderedSame }
+        if rest.count == links.count {
+            return true
+        }
+        if rest.isEmpty {
+            do {
+                try FileManager.default.removeItem(atPath: path)
+                return true
+            } catch {
+                Log.write("A paired phone could not be forgotten at \(path): \(error.localizedDescription)")
+                return false
+            }
+        }
+        let text = rest.map { "\($0.id)\t\(Data($0.key).base64EncodedString())\t\($0.name)\n" }.joined()
+        if let failure = writePrivately(text, to: path) {
+            Log.write("A paired phone could not be forgotten at \(path): \(failure)")
+            return false
+        }
+        return true
+    }
+
     /// True when there is something for Forget to clear: a paired phone, or a file that cannot be read.
     public var canForget: Bool {
         tryRead().map { !$0.isEmpty } ?? true
