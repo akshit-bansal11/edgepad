@@ -246,6 +246,9 @@ class MainActivity :
     /** The layout the gamepad on screen is playing, which differs from the chosen one in keyboard mode. */
     private var playedLayout = ""
 
+    /** The control screen that was up when the link dropped, to return to on reconnect; null otherwise. */
+    private var resumeScreen: Screen? = null
+
     /** The annotate screen while it is the screen, so a changed laptop display can redraw its pad. */
     private var annotate: AnnotateScreen? = null
 
@@ -1972,7 +1975,9 @@ class MainActivity :
         when (screen) {
             Screen.PAIRING, Screen.RECONNECTING, Screen.PIN, Screen.PAIR_CODE -> {
                 // The first time, one short question comes before the controls; see [SharingScreen].
-                goTo(if (settings.sharingAsked) Screen.SURFACE else Screen.SHARING)
+                val back = resumeScreen.takeIf { screen == Screen.RECONNECTING } ?: Screen.SURFACE
+                resumeScreen = null
+                goTo(if (settings.sharingAsked) back else Screen.SHARING)
             }
 
             // Opened from Devices, back now leads to the surface the connect would have gone to.
@@ -2152,7 +2157,13 @@ class MainActivity :
 
             // It was working and dropped on its own, or a retry just failed: say so while the manager tries.
             laptop.reconnecting -> {
-                if (screen == Screen.RECONNECTING) updateReconnecting() else goTo(Screen.RECONNECTING)
+                if (screen == Screen.RECONNECTING) {
+                    updateReconnecting()
+                } else {
+                    // AND-A-2: remember where the user was, so coming back puts them there and not on the surface.
+                    resumeScreen = screen.takeIf { it in RESUMABLE }
+                    goTo(Screen.RECONNECTING)
+                }
             }
 
             // The first connect of a tap never reached the laptop: once more before saying anything.
@@ -2356,6 +2367,9 @@ class MainActivity :
 
         /** The pages that need the link: with it gone they go back to Devices, as the screens they belong to do. */
         val settingsOfControls = setOf(Screen.KEYBOARD_SETTINGS, Screen.GAMEPAD_SETTINGS, Screen.MACRO_SETTINGS)
+
+        /** The control screens a dropped link returns to; Annotate is not here because the laptop ends that session. */
+        val RESUMABLE = setOf(Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE)
 
         /** The screens built on one laptop's state and sending to it: a change of selection rebuilds them. */
         val laptopScreens =

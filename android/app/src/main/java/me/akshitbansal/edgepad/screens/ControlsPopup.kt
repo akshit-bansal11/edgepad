@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.LinearLayout
+import android.widget.Toast
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
@@ -29,9 +30,8 @@ private const val MAX_WIDTH_DP = 360f
  * The tiles are a [Deck], so they keep drag-to-reorder and the order stored under [DECK]. A tile carries a
  * [Target] in its tag and nothing about where it is drawn, so a reordered deck opens the same screens.
  *
- * Capture is left out, rather than shown and disabled, when it is false: a tile that opens a page of dead
- * buttons explains nothing that a missing tile does not. Annotate is left out the same way until the laptop
- * has named the feature and its screen size, since the pen pad is shaped to that screen.
+ * Capture and Annotate are always drawn. Until the laptop names the feature (and, for Annotate, its screen size,
+ * since the pen pad is shaped to that screen) the tile is dimmed and a tap says why instead of opening it.
  */
 class ControlsPopup(
     private val ui: Ui,
@@ -123,15 +123,7 @@ class ControlsPopup(
         capture: Boolean,
         annotate: Boolean,
     ) {
-        tiles =
-            Target.entries
-                .filter {
-                    when (it) {
-                        Target.CAPTURE -> capture
-                        Target.ANNOTATE -> annotate
-                        else -> true
-                    }
-                }.map(::tile)
+        tiles = Target.entries.map { tile(it, available(it, capture, annotate)) }
         keys = tiles.map { it.key }
         shown = DeckLayout.order(settings.deckOrder(DECK), keys)
         drawShown()
@@ -147,8 +139,13 @@ class ControlsPopup(
             labels = true,
             onMove = ::moved,
             onTap = { tile ->
-                dismiss()
-                onOpen(Target.entries[tile.tag])
+                if (tile.note != null) {
+                    // AND-A-15: the tile is there, dimmed, and says why it does nothing.
+                    Toast.makeText(ui.context, tile.note, Toast.LENGTH_SHORT).show()
+                } else {
+                    dismiss()
+                    onOpen(Target.entries[tile.tag])
+                }
             },
             rows = rows,
         )
@@ -164,12 +161,27 @@ class ControlsPopup(
         drawShown()
     }
 
-    private fun tile(target: Target) =
+    private fun available(
+        target: Target,
+        capture: Boolean,
+        annotate: Boolean,
+    ): Boolean =
+        when (target) {
+            Target.CAPTURE -> capture
+            Target.ANNOTATE -> annotate
+            else -> true
+        }
+
+    private fun tile(
+        target: Target,
+        available: Boolean,
+    ): DeckTile =
         DeckTile(
             key = target.name.lowercase(),
             label = ui.string(target.label),
             tag = target.ordinal,
             picture = StencilIcon(target.icon, ui.palette.ink, ui.palette.accent),
             spoken = R.string.controls_open,
+            note = if (available) null else ui.string(R.string.controls_needs_newer),
         )
 }

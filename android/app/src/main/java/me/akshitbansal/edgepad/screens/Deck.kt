@@ -57,6 +57,9 @@ private const val CROSS_MIN_HIT_DP = 24f
 private const val CLOSE_WAIT_MS = 3000L
 private const val CLOSING_ALPHA = 0.4f
 
+/** How dim a tile is that the laptop cannot use yet. */
+private const val DIMMED_ALPHA = 0.45f
+
 /**
  * One tile of a [Deck]. [key] names it across renames of its position, [tag] is what a tap hands back and
  * is the owner's to give meaning to, and [picture] is drawn over the label when there is one. [spoken] is the
@@ -70,6 +73,8 @@ data class DeckTile(
     val picture: Drawable?,
     val spoken: Int = R.string.macros_run,
     val closable: Boolean = false,
+    /** Why the tile cannot be used right now; a tile with a note is drawn dimmed and the note is its state. */
+    val note: String? = null,
 )
 
 /**
@@ -460,6 +465,8 @@ class Deck(
             ellipsize = TextUtils.TruncateAt.END
             // Spoken as the laptop spells it, and named the same way when the label is not drawn at all.
             contentDescription = ui.string(tile.spoken, tile.label)
+            alpha = if (tile.note == null) 1f else DIMMED_ALPHA
+            stateDescription = tile.note
             buttons[tile.tag] = this
             dress(this, tile, grid)
         }
