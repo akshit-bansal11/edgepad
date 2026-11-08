@@ -15,6 +15,7 @@ export const NAV: NavGroup[] = [
       { id: "install", label: "Download and install" },
       { id: "using", label: "Using it" },
       { id: "settings", label: "Settings" },
+      { id: "troubleshooting", label: "Troubleshooting" },
     ],
   },
   {

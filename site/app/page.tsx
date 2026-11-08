@@ -94,7 +94,7 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
     body: "Buttons for a region, the whole screen and a recording press the laptop's own screenshot shortcut, with a trackpad under them to drag out the region. Set Save to: Phone and the laptop sends what it just captured to the phone, unverified on real laptops.",
   },
   {
-    title: "Shared clipboard",
+    title: "Share clipboard",
     Icon: ClipboardCopy,
     body: "Text and images copied on the laptop arrive on the phone at once. Android lets Edgepad read the clipboard only while it is on screen, so to send a copy from the phone, go back to Edgepad after copying. A password manager's copy is never sent.",
   },
@@ -124,7 +124,7 @@ const STEPS: { step: string; title: string; body: string }[] = [
   {
     step: "01",
     title: "Pair once, like a headset",
-    body: "The phone and the laptop pair in the laptop's own Bluetooth settings: Windows Settings > Bluetooth & devices, macOS System Settings > Bluetooth, or your Linux desktop's. Edgepad has no pairing step of its own and no account to make; Bluetooth is the default, and Wi-Fi and USB connections are optional and off until you turn them on in the laptop's tray menu. Each paired phone is asked about once, and every phone you trust is remembered until you choose Forget trusted phones in the tray menu.",
+    body: "The phone and the laptop pair in the laptop's own Bluetooth settings: Windows Settings > Bluetooth & devices, macOS System Settings > Bluetooth, or your Linux desktop's. Edgepad has no pairing step of its own and no account to make; Bluetooth is the default, and Wi-Fi and USB connections are optional and off until you turn them on in the laptop's tray menu. Each paired phone is asked about once, and every phone you trust is remembered until you Forget it (or Forget all…) in the tray menu's Security… window.",
   },
   {
     step: "02",
