@@ -405,7 +405,8 @@ object KeyboardScreen {
             return true
         }
 
-        override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider? = nodes ?: KeyNodes().also { nodes = it }
+        override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider? =
+            nodes ?: KeyNodes().also { nodes = it }
 
         /** AND-A-8: presses a key for a screen reader's double tap, the way a touch down and up would. */
         private fun activate(index: Int) {
