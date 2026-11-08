@@ -528,6 +528,11 @@
   <string name="macro_opening">Opening</string>
   <string name="apps_row_added">Added</string>
   <string name="apps_row_added_description">%1$s, already added</string>
+  <string name="apps_row_full">Macros full</string>
+  <plurals name="apps_full_note">
+    <item quantity="one">This laptop holds up to %1$d macro and has that many. Delete one to add another.</item>
+    <item quantity="other">This laptop holds up to %1$d macros and has that many. Delete one to add another.</item>
+  </plurals>
   <string name="apps_added">Added. It is in the macros now.</string>
   <string name="apps_full">The laptop cannot hold more macros. Remove one first.</string>
   <string name="apps_duplicate">That app is already a macro.</string>

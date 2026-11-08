@@ -18,6 +18,7 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.AppCatalogState
+import me.akshitbansal.edgepad.link.LaptopState
 
 /**
  * The apps the laptop listed, to pick one as a macro: a search field over a row for each app, its icon beside its name.
@@ -60,6 +61,7 @@ class AppListScreen(
     private lateinit var list: LinearLayout
     private lateinit var message: TextView
     private lateinit var hint: TextView
+    private lateinit var fullNote: TextView
 
     val view: View =
         ui.page(
@@ -73,6 +75,8 @@ class AppListScreen(
             card { add(searchField()) }
             list = card(Space.M) {}
             message = body("", Space.L).apply { gravity = Gravity.CENTER }
+            val cap = LaptopState.MACRO_SLOTS
+            fullNote = footnote(ui.context.resources.getQuantityString(R.plurals.apps_full_note, cap, cap))
             hint = footnote(ui.string(R.string.apps_windows_hint))
         }
 
@@ -83,8 +87,12 @@ class AppListScreen(
     /** A new list, or none yet: the rows are built again from [catalog], and what the search matches is kept. */
     fun listChanged() {
         list.removeAllViews()
-        val have = macroNames().map { it.lowercase() }.toSet()
-        rows = catalog.apps.map { row(it, it.name.lowercase() in have || it.token in addedNow) }
+        val names = macroNames()
+        val have = names.map { it.lowercase() }.toSet()
+        // AND-B: the laptop keeps at most MACRO_SLOTS macros (IMacroRunner.MaxMacros), so a full list adds no more.
+        val full = names.count { it.isNotEmpty() } >= LaptopState.MACRO_SLOTS
+        fullNote.visibility = if (full && catalog.loaded) View.VISIBLE else View.GONE
+        rows = catalog.apps.map { row(it, it.name.lowercase() in have || it.token in addedNow, full) }
         rows.forEach { list.addView(it.view) }
         applyFilter()
     }
@@ -127,6 +135,7 @@ class AppListScreen(
     private fun row(
         app: AppCatalogState.App,
         added: Boolean,
+        full: Boolean,
     ): Row {
         val picture =
             ImageView(ui.context).apply {
@@ -158,6 +167,10 @@ class AppListScreen(
                 if (added) {
                     addView(ui.text(ui.string(R.string.apps_row_added), Type.SMALL, ui.palette.dim))
                     contentDescription = ui.string(R.string.apps_row_added_description, app.name)
+                } else if (full) {
+                    alpha = FULL_ALPHA
+                    contentDescription = app.name
+                    stateDescription = ui.string(R.string.apps_row_full)
                 } else {
                     ui.tappable(this) { confirm(app) }
                 }
@@ -224,5 +237,6 @@ class AppListScreen(
 
     private companion object {
         const val TILE_DP = 36f
+        const val FULL_ALPHA = 0.45f
     }
 }
