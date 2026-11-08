@@ -192,7 +192,7 @@ internal sealed class SecurityWindow
         {
             any = true;
             var name = PhoneName.Cached(address) is { } known ? $"{known} ({address})" : address;
-            AddPhone(name, () => ForgetOneAsync(name, () => trust.ForgetOne(address) & (!Paired(address) || paired.ForgetOne(address)), $"is blocked from connecting while Edgepad stays running, but is trusted again the next time it starts. Close whatever is holding {trust.FilePath} and choose Forget again"));
+            AddPhone(Row(name, address), () => ForgetOneAsync(name, () => trust.ForgetOne(address) & (!Paired(address) || paired.ForgetOne(address)), $"is blocked from connecting while Edgepad stays running, but is trusted again the next time it starts. Close whatever is holding {trust.FilePath} and choose Forget again"));
         }
 
         foreach (var (id, linkName) in paired.List())
@@ -204,7 +204,7 @@ internal sealed class SecurityWindow
             }
 
             any = true;
-            AddPhone($"{linkName} (Wi-Fi or USB)", () => ForgetOneAsync(linkName, () => paired.ForgetOne(id), $"is refused over Wi-Fi or USB while Edgepad stays running, but is paired again the next time it starts. Close whatever is holding the pairings file in {pin.Folder} and choose Forget again"));
+            AddPhone(Row($"{linkName} (Wi-Fi or USB)", id), () => ForgetOneAsync(linkName, () => paired.ForgetOne(id), $"is refused over Wi-Fi or USB while Edgepad stays running, but is paired again the next time it starts. Close whatever is holding the pairings file in {pin.Folder} and choose Forget again"));
         }
 
         if (!any)
@@ -212,6 +212,9 @@ internal sealed class SecurityWindow
             phoneRows.Children.Add(look.Text("No phone is trusted yet.", 14, dim: true));
         }
     }
+
+    // "NAME · last connected 8 Nov", or that it is not known since this update (shared wording).
+    private string Row(string name, string address) => LastConnected.RowText(name, trust.Connections.Get(address), DateTimeOffset.UtcNow);
 
     private bool Paired(string id) => paired.List().Any(link => string.Equals(link.Id, id, StringComparison.OrdinalIgnoreCase));
 
