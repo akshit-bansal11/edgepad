@@ -82,12 +82,12 @@ internal sealed class MacroEditorWindow
 
         var row = new Row(icon);
         row.Name.Text = name;
-        row.Name.Watermark = "Name";
+        row.Name.PlaceholderText = "Name";
         row.Name.MaxLength = MacroStore.MaxNameBytes;
         row.Target.Text = target;
-        row.Target.Watermark = "Program, file, folder or link";
+        row.Target.PlaceholderText = "Program, file, folder or link";
         row.Arguments.Text = arguments;
-        row.Arguments.Watermark = "Arguments (optional)";
+        row.Arguments.PlaceholderText = "Arguments (optional)";
         foreach (var box in new[] { row.Name, row.Target, row.Arguments })
         {
             box.FontFamily = Look.Lato;

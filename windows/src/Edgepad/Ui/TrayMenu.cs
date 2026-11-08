@@ -439,7 +439,7 @@ internal sealed class HeaderRow : ToolStripMenuItem
     public int ExtraLines(int dpi, int rowWidth)
     {
         var font = Theme.Font(Theme.Scale(13f, dpi), Weight.Regular);
-        var available = rowWidth - Theme.Scale(8f + 40f + 12f + 8f, dpi);
+        var available = rowWidth - Theme.Scale(8 + 40 + 12 + 8, dpi);
         var height = TextRenderer.MeasureText(
             Status.Line, font, new Size(available, 0), TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding).Height;
         return Math.Clamp((height / Math.Max(1, font.Height)) - 1, 0, 2);
