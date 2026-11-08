@@ -26,13 +26,13 @@ internal static class FirstRunWindow
             + $"sudo ufw allow {NetworkSettings.DefaultPort}/tcp && sudo ufw allow 5353/udp\n{DocumentationUrl}";
 
     /// <summary>
-    /// Asks what has not been answered. Network is true for Allow and false for Not now; Clipboard is the check box as it
-    /// stood when a button was pressed. Null is no answer. Call on the UI thread.
+    /// Asks what has not been answered. Network is true for Allow and false for Not now; Clipboard and Login are the check boxes as they
+    /// stood when a button was pressed (Login starts unticked). Null is no answer. Call on the UI thread.
     /// </summary>
-    public static Task<(bool? Network, bool? Clipboard)> Ask(bool askNetwork, bool askClipboard)
+    public static Task<(bool? Network, bool? Clipboard, bool? Login)> Ask(bool askNetwork, bool askClipboard)
     {
         var look = Look.Current;
-        var answer = new TaskCompletionSource<(bool? Network, bool? Clipboard)>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var answer = new TaskCompletionSource<(bool? Network, bool? Clipboard, bool? Login)>(TaskCreationOptions.RunContinuationsAsynchronously);
         var allow = look.Button("Allow", primary: true);
         var notNow = look.Button("Not now");
         notNow.IsDefault = true;
@@ -70,12 +70,15 @@ internal static class FirstRunWindow
             body.Children.Add(look.Text("Copy on one, paste on the other: text and images.", 14, dim: true));
         }
 
+        // Its own choice, unticked until the owner ticks it; the buttons do not answer it.
+        var login = new CheckBox { Content = "Start at login", FontFamily = Look.Lato, FontSize = 14, Foreground = look.Ink };
+        body.Children.Add(login);
         body.Children.Add(Look.Footer(notNow, allow));
         var window = look.Dialog("Edgepad", 460, body);
         window.Topmost = true;
-        allow.Click += (_, _) => Finish(window, answer, true, share, askNetwork);
-        notNow.Click += (_, _) => Finish(window, answer, false, share, askNetwork);
-        window.Closed += (_, _) => answer.TrySetResult((null, null));
+        allow.Click += (_, _) => Finish(window, answer, true, share, login, askNetwork);
+        notNow.Click += (_, _) => Finish(window, answer, false, share, login, askNetwork);
+        window.Closed += (_, _) => answer.TrySetResult((null, null, null));
         window.KeyDown += (_, e) =>
         {
             if (e.Key == Key.Escape)
@@ -91,16 +94,16 @@ internal static class FirstRunWindow
         catch (Exception e)
         {
             Log.Write($"Could not open the first-run window: {e.Message}");
-            answer.TrySetResult((null, null));
+            answer.TrySetResult((null, null, null));
         }
 
         return answer.Task;
     }
 
-    private static void Finish(Window window, TaskCompletionSource<(bool? Network, bool? Clipboard)> answer, bool yes, CheckBox? share, bool askNetwork)
+    private static void Finish(Window window, TaskCompletionSource<(bool? Network, bool? Clipboard, bool? Login)> answer, bool yes, CheckBox? share, CheckBox login, bool askNetwork)
     {
         // Beside the Wi-Fi question the buttons answer it and the check box answers the clipboard; alone, the buttons answer the clipboard.
-        answer.TrySetResult(askNetwork ? (yes, share?.IsChecked) : (null, yes));
+        answer.TrySetResult(askNetwork ? (yes, share?.IsChecked, login.IsChecked) : (null, yes, login.IsChecked));
         try
         {
             window.Close();

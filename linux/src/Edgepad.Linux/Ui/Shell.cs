@@ -399,9 +399,11 @@ internal sealed class Shell : IDisposable
     }
 
     /// <summary>Start at login: writes or removes the autostart entry, and says so when it could not.</summary>
-    private async Task ToggleAutostartAsync()
+    private Task ToggleAutostartAsync() => ApplyAutostartAsync(!autostart.Enabled);
+
+    private async Task ApplyAutostartAsync(bool on)
     {
-        if (!autostart.Set(!autostart.Enabled))
+        if (!autostart.Set(on))
         {
             await Dialogs.Inform(null, "Start at login could not be changed. The log has the reason.");
         }
@@ -460,7 +462,7 @@ internal sealed class Shell : IDisposable
     /// </summary>
     private async Task AskFirstRunAsync()
     {
-        var (wifi, clipboard) = await FirstRunWindow.Ask(!networkSettings.HasChoice, !ClipboardSetting.HasChoice);
+        var (wifi, clipboard, login) = await FirstRunWindow.Ask(!networkSettings.HasChoice, !ClipboardSetting.HasChoice);
         if (clipboard is bool share)
         {
             await ApplyClipboardAsync(share);
@@ -469,6 +471,12 @@ internal sealed class Shell : IDisposable
         if (wifi is bool on)
         {
             await SaveNetworkAsync(on);
+        }
+
+        // Only a tick does anything: unticked leaves whatever entry there is.
+        if (login is true)
+        {
+            await ApplyAutostartAsync(true);
         }
     }
 
