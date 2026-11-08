@@ -50,6 +50,8 @@ object EditorFrame {
         backLabel: CharSequence? = null,
         /** Handed a function that opens the options sheet, for a caller with another way to ask for it. */
         onOpener: ((open: () -> Unit) -> Unit)? = null,
+        /** Handed a function that changes the title drawn between the round buttons, for a title that follows what is edited. */
+        onRetitle: (((CharSequence) -> Unit) -> Unit)? = null,
         options: (close: () -> Unit) -> View,
     ): View {
         val root = FrameLayout(ui.context).apply { setBackgroundColor(ui.palette.background) }
@@ -119,6 +121,7 @@ object EditorFrame {
                 ui.text(title, Type.VALUE, ui.palette.dim, face = Type.bold).apply {
                     isAccessibilityHeading = true
                 }
+            onRetitle?.invoke { label.text = it }
             root.addView(
                 label,
                 FrameLayout

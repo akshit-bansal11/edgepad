@@ -90,7 +90,13 @@ object GamepadLayoutScreen {
         onBack: () -> Unit,
     ): View {
         val canvas = Editor(ui.context, store)
-        return EditorFrame.build(ui, ui.string(R.string.gamepad_layout_title), canvas, onBack) { close ->
+        return EditorFrame.build(
+            ui,
+            ui.string(R.string.gamepad_layout_editing, store.current.name),
+            canvas,
+            onBack,
+            onRetitle = { set -> canvas.named = { set(ui.string(R.string.gamepad_layout_editing, it)) } },
+        ) { close ->
             LinearLayout(ui.context).apply {
                 orientation = LinearLayout.VERTICAL
                 addView(
@@ -259,8 +265,12 @@ object GamepadLayoutScreen {
             contentDescription = context.getString(R.string.gamepad_layout_title)
         }
 
+        /** AND-A-23: told the name of the layout being edited whenever it is loaded again, for the title. */
+        var named: (String) -> Unit = {}
+
         fun reload() {
             layout = store.current
+            named(layout.name)
             invalidate()
         }
 
