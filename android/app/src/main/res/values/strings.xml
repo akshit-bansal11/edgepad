@@ -219,7 +219,7 @@
   <string name="dial_length_value">%1$d dp</string>
   <string name="dial_height">Dial height</string>
   <string name="multiplier_value">×%1$.1f</string>
-  <string name="haptic_ticks">Haptic tick per notch</string>
+  <string name="haptic_ticks">Haptic feedback</string>
   <string name="snap_round">Snap to round numbers</string>
   <string name="natural_scrolling">Natural scrolling</string>
   <string name="gesture_hints">Show gesture hints</string>
@@ -280,9 +280,9 @@
     <item quantity="other">%1$d drawn</item>
   </plurals>
   <string name="shapes_none">None yet</string>
-  <string name="shapes_footnote">Press and hold on the trackpad until it ticks, then draw without lifting.</string>
+  <string name="shapes_footnote">Press and hold on the trackpad until the line turns solid (you also feel a tick if haptic feedback is on), then draw without lifting.</string>
   <string name="shapes_empty_title">No shapes yet</string>
-  <string name="shapes_empty_body">Draw one here and give it something to run. On the trackpad, press and hold until it ticks, then draw it without lifting your finger.</string>
+  <string name="shapes_empty_body">Draw one here and give it something to run. On the trackpad, press and hold until the line turns solid, then draw it without lifting your finger.</string>
   <string name="shapes_add">Draw a shape</string>
   <string name="shapes_draw_title">Draw the shape</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -401,12 +401,12 @@
   <string name="surface_previous">Previous track</string>
   <string name="surface_open_settings">Open settings</string>
   <string name="surface_controls">Open the controls</string>
-  <string name="surface_lock">Hide the dials, or lock the pad</string>
-  <string name="surface_mode_normal">Dials, media and pad all on</string>
-  <string name="surface_mode_focus">Pad only · dials and media hidden</string>
-  <string name="surface_mode_locked">Dials and media only · pad locked</string>
+  <string name="surface_lock">Hide the dials, or lock the trackpad</string>
+  <string name="surface_mode_normal">Dials, media and trackpad all on</string>
+  <string name="surface_mode_focus">Trackpad only · dials and media hidden</string>
+  <string name="surface_mode_locked">Dials and media only · trackpad locked</string>
   <string name="surface_focus_caption">Dials and media hidden · tap the lock to show</string>
-  <string name="surface_locked_caption">Pad locked · tap the lock to unlock</string>
+  <string name="surface_locked_caption">Trackpad locked · tap the lock to unlock</string>
 
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
@@ -420,7 +420,10 @@
   <string name="capture_region">Region</string>
   <string name="capture_screen">Full screen</string>
   <string name="capture_record">Record</string>
-  <string name="capture_hint">For a region, tap Region, then tap, hold and move on the pad to drag out the area.</string>
+  <string name="capture_stop">Stop recording</string>
+  <string name="capture_recording">Recording on the laptop. Tap Stop recording to finish; with Save to Phone the file arrives then.</string>
+  <string name="capture_sent">Sent to the laptop: %1$s</string>
+  <string name="capture_hint">For a region, tap Region, then tap, hold and move on the trackpad to drag out the area.</string>
   <string name="capture_save_to">Save to</string>
   <string name="capture_save_laptop">Laptop</string>
   <string name="capture_save_phone">Phone</string>
@@ -493,7 +496,7 @@
   <string name="macros_per_page_caption">How many macros one page shows. The rest continue on more pages, reached by sliding a finger sideways. Press and hold a macro, then drag it to move it within its page.</string>
   <string name="macros_page_of">Page %1$d of %2$d</string>
   <string name="macros_empty_title">No macros yet</string>
-  <string name="macros_empty_body">Add them from Edgepad\'s tray menu on the laptop. They appear here as soon as it sends the list.</string>
+  <string name="macros_empty_body">Add them from Edgepad\'s Macros… menu on the laptop (menu bar on a Mac). They appear here as soon as it sends the list.</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
   <string name="apps_add_from_laptop">Add from laptop</string>
