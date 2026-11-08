@@ -117,6 +117,19 @@ class LaptopState {
         features = emptySet()
     }
 
+    /**
+     * TEXT 18: the laptop's OS discards synthetic input until its owner allows Edgepad (Mac without Accessibility,
+     * Linux without /dev/uinput). False until the laptop says `blocked`, which is also where a laptop that never
+     * sends it (Windows, an older build) stays.
+     */
+    var inputBlocked = false
+        private set
+
+    /** Forgets [inputBlocked] when a link ends or a new one starts: the laptop says it afresh after HELLO_ACK. */
+    fun forgetInputBlocked() {
+        inputBlocked = false
+    }
+
     /** Forgets [macroOpen] when a link ends or a new one starts: the laptop says it afresh when next watched. */
     fun forgetMacroOpen() {
         macroOpen = emptyList()
@@ -178,6 +191,7 @@ class LaptopState {
             }
 
             is Frame.Text -> {
+                if (frame.kind == INPUT_STATE_KIND) return inputState(frame.text)
                 when (TextKind.of(frame.kind)) {
                     TextKind.NOW_PLAYING -> nowPlaying = frame.text
                     TextKind.APP -> app = frame.text
@@ -200,6 +214,19 @@ class LaptopState {
                 return false
             }
         }
+        return true
+    }
+
+    /** `blocked` or `ok`; anything else is ignored and the last word stands. True when the state changed. */
+    private fun inputState(text: String): Boolean {
+        val blocked =
+            when (text) {
+                INPUT_BLOCKED -> true
+                INPUT_OK -> false
+                else -> return false
+            }
+        if (blocked == inputBlocked) return false
+        inputBlocked = blocked
         return true
     }
 
@@ -327,6 +354,11 @@ class LaptopState {
         const val MACRO_SLOTS = 15
 
         private const val FLAG_BIT = 1
+
+        /** TEXT 18, input state. Not in [TextKind] yet; the wire id is fixed by docs/PROTOCOL.md. */
+        const val INPUT_STATE_KIND = 18
+        private const val INPUT_BLOCKED = "blocked"
+        private const val INPUT_OK = "ok"
 
         /** "idhex/os/name". */
         private const val DEVICE_FIELDS = 3

@@ -295,6 +295,7 @@ class LaptopConnections(
         old?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
         laptop.state.forgetFeatures()
         laptop.state.forgetMacroOpen()
+        laptop.state.forgetInputBlocked()
         // A list belongs to the session that asked for it: its tokens mean nothing to the next one.
         laptop.state.apps.clear()
         laptop.target = resumable(target)
@@ -323,6 +324,7 @@ class LaptopConnections(
         stopPinger(laptop)
         laptop.link = null
         laptop.state.forgetMacroOpen()
+        laptop.state.forgetInputBlocked()
         clearAsking(laptop)
         laptop.failed = closure.cause != LaptopLink.Cause.ENDED
         laptop.lastCause = closure.cause.takeIf { laptop.failed }

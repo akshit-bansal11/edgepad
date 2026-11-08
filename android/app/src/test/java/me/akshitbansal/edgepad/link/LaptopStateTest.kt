@@ -201,6 +201,29 @@ class LaptopStateTest {
     }
 
     @Test
+    fun readsTheInputStateAndTreatsNothingAsOk() {
+        val kind = LaptopState.INPUT_STATE_KIND
+        assertEquals(18, kind)
+        assertFalse(state.inputBlocked)
+        assertTrue(state.take(Frame.Text(kind, "blocked")))
+        assertTrue(state.inputBlocked)
+        // Saying the same again changes nothing, so the banner is not announced twice.
+        assertFalse(state.take(Frame.Text(kind, "blocked")))
+        // Unknown words leave the last word standing.
+        assertFalse(state.take(Frame.Text(kind, "maybe")))
+        assertTrue(state.inputBlocked)
+        assertTrue(state.take(Frame.Text(kind, "ok")))
+        assertFalse(state.inputBlocked)
+    }
+
+    @Test
+    fun aNewLinkForgetsTheInputState() {
+        state.take(Frame.Text(LaptopState.INPUT_STATE_KIND, "blocked"))
+        state.forgetInputBlocked()
+        assertFalse(state.inputBlocked)
+    }
+
+    @Test
     fun framesThatAreNotStateAreNotKept() {
         assertFalse(state.take(Frame.Pong(1)))
         // A kind no build knows, and one this end never receives: WANT_ICONS only ever goes the other way.

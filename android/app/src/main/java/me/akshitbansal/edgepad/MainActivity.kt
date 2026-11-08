@@ -1649,7 +1649,18 @@ class MainActivity :
 
             PickerHint.NONE -> {
                 // Nothing to fix; but while the system's question is up, the reason for it stays on the list.
-                picker.setMessage(if (permissionPending) getString(permissionReason) else "")
+                val blocked = selected?.takeIf { it.connected && it.state.inputBlocked }
+                picker.setMessage(
+                    when {
+                        blocked != null -> {
+                            val name = blocked.state.laptopName?.takeIf { it.isNotEmpty() } ?: blocked.name
+                            getString(R.string.input_blocked, name)
+                        }
+
+                        permissionPending -> getString(permissionReason)
+                        else -> ""
+                    },
+                )
             }
         }
         picker.setStatus(if (rows.isEmpty()) sweepStatus() else "")
@@ -2072,6 +2083,8 @@ class MainActivity :
             // The notification only mentions the clipboard once the laptop has said it offers one.
             syncService()
         }
+        // TEXT 18, input state: the banner lives on the Devices list, which is the connection status.
+        if (frame is Frame.Text && frame.kind == LaptopState.INPUT_STATE_KIND) refreshDevices()
         if (frame is Frame.Text && frame.kind == TextKind.DEVICE.id) {
             remember(laptop)
             refreshDevices()

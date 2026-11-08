@@ -531,4 +531,5 @@
   <string name="apps_duplicate">That app is already a macro.</string>
   <string name="apps_stale">That list is out of date. Refresh it and pick again.</string>
   <string name="apps_failed">The laptop could not add it.</string>
+  <string name="input_blocked">%1$s can\'t take input yet. Allow Edgepad on the laptop; it works as soon as you do.</string>
 </resources>

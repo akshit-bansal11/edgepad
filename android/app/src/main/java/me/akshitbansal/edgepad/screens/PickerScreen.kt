@@ -178,7 +178,8 @@ class PickerScreen(
         onDismiss: (() -> Unit)? = null,
         onAction: (() -> Unit)? = null,
     ) {
-        message.text = text
+        // Only a change of words is written, so the live region speaks a message once when it appears and not on every refresh.
+        if (message.text.toString() != text.toString()) message.text = text
         message.visibility = if (text.isEmpty()) View.GONE else View.VISIBLE
         messageAction = onAction
         messageDismiss = onDismiss

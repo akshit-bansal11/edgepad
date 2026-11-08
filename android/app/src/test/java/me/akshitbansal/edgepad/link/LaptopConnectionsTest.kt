@@ -184,6 +184,19 @@ class LaptopConnectionsTest {
     }
 
     @Test
+    fun theInputStateDoesNotOutliveItsLink() {
+        val a = up(1)
+        a.events.onFrame(Frame.Text(LaptopState.INPUT_STATE_KIND, "blocked"))
+        assertTrue(laptop(1).state.inputBlocked)
+        a.drop()
+        assertFalse(laptop(1).state.inputBlocked)
+        val b = up(1)
+        b.events.onFrame(Frame.Text(LaptopState.INPUT_STATE_KIND, "blocked"))
+        connect(1)
+        assertFalse(laptop(1).state.inputBlocked)
+    }
+
+    @Test
     fun aFrameTheStateDoesNotKeepIsNoEvent() {
         val a = up(1)
         log.lines.clear()
