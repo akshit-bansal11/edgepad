@@ -192,11 +192,17 @@ internal sealed class SecurityWindow
         {
             any = true;
             var name = PhoneName.Cached(address) is { } known ? $"{known} ({address})" : address;
-            AddPhone(name, () => ForgetOneAsync(name, () => trust.ForgetOne(address), $"is blocked from connecting while Edgepad stays running, but is trusted again the next time it starts. Close whatever is holding {trust.FilePath} and choose Forget again"));
+            AddPhone(name, () => ForgetOneAsync(name, () => trust.ForgetOne(address) & (!Paired(address) || paired.ForgetOne(address)), $"is blocked from connecting while Edgepad stays running, but is trusted again the next time it starts. Close whatever is holding {trust.FilePath} and choose Forget again"));
         }
 
         foreach (var (id, linkName) in paired.List())
         {
+            // Already listed above: a network phone is trusted under its link id, and its Forget removes both.
+            if (trust.TrustedPhones.Contains(id, StringComparer.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             any = true;
             AddPhone($"{linkName} (Wi-Fi or USB)", () => ForgetOneAsync(linkName, () => paired.ForgetOne(id), $"is refused over Wi-Fi or USB while Edgepad stays running, but is paired again the next time it starts. Close whatever is holding the pairings file in {pin.Folder} and choose Forget again"));
         }
@@ -206,6 +212,8 @@ internal sealed class SecurityWindow
             phoneRows.Children.Add(look.Text("No phone is trusted yet.", 14, dim: true));
         }
     }
+
+    private bool Paired(string id) => paired.List().Any(link => string.Equals(link.Id, id, StringComparison.OrdinalIgnoreCase));
 
     private void AddPhone(string label, Func<Task> forget)
     {
@@ -229,10 +237,18 @@ internal sealed class SecurityWindow
         }
 
         var done = forget();
+
+        // A forgotten phone that had entered the PIN would otherwise skip it at level 2 once trusted again. Clears every
+        // phone's, which is the safe side.
+        var verified = pin.ForgetVerified();
         hangUp();
         if (!done)
         {
             await Dialogs.Inform(window, $"{name} could not be forgotten: its file could not be rewritten. It {ifFailed}.");
+        }
+        else if (!verified)
+        {
+            await Dialogs.Inform(window, $"{name} was forgotten, but the list of phones that entered the PIN could not be cleared, so it may skip the PIN at level 2 once trusted again. Delete pin-verified.txt yourself from:" + Environment.NewLine + Environment.NewLine + pin.Folder);
         }
 
         Refresh();
