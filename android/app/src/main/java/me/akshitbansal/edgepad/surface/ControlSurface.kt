@@ -165,6 +165,8 @@ class ControlSurface(
     // but a locked pad looks exactly like a working one, and a surface that silently swallows every touch
     // reads as a crash rather than as a mode. Both are tinted here because onDraw may not make a Drawable.
     private val lockIconOn = icon(R.drawable.ic_lock, accent)
+    // AND-A-16: hiding the dials wears its own icon, so the one lock button no longer looks the same in both modes.
+    private val focusIconOn = icon(R.drawable.ic_eye_off, accent)
     private val lockButton = TopButton(icon(R.drawable.ic_lock, dim), side = 0f, open = { tapLock() })
     private val topButtons =
         if (trackpadOnly) {
@@ -534,7 +536,11 @@ class ControlSurface(
             }
             drawIcon(
                 canvas,
-                if (lit) lockIconOn else button.icon,
+                when {
+                    lit && mode == PadMode.FOCUS -> focusIconOn
+                    lit -> lockIconOn
+                    else -> button.icon
+                },
                 button.hit.centerX(),
                 button.hit.centerY(),
                 dp(ICON_DP),
