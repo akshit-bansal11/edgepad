@@ -1,9 +1,11 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.ActionId
+import me.akshitbansal.edgepad.protocol.CaptureStatus
 import me.akshitbansal.edgepad.protocol.CaptureTarget
 import me.akshitbansal.edgepad.protocol.FileStatus
 import me.akshitbansal.edgepad.protocol.Frame
+import me.akshitbansal.edgepad.protocol.TextKind
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -123,6 +125,30 @@ class CaptureInboxTest {
         CaptureInbox.take(begin, ours, answers::add)
         assertEquals(2, opened.get())
         assertTrue(answers.isEmpty())
+    }
+
+    @Test
+    fun aClosedLinkCannotGetAnInboxBack() {
+        CaptureInbox.abort(ours)
+        CaptureInbox.permit(ActionId.CAPTURE_SCREEN)
+        CaptureInbox.take(begin, ours, answers::add)
+        assertEquals(listOf(FileStatus.REJECTED.frame()), answers)
+        assertEquals(0, opened.get())
+    }
+
+    @Test
+    fun aStatusFromALinkThatIsNotSelectedNeverReachesTheScreen() {
+        val seen = ArrayList<FileInbox.Progress>()
+        CaptureInbox.listener = { seen.add(it) }
+        val status = Frame.Text(TextKind.CAPTURE_STATUS.id, CaptureStatus.FAILED.token)
+        // Holds a permit, is not the owner.
+        CaptureInbox.owner = theirs
+        assertTrue(CaptureInbox.take(status, ours, answers::add))
+        assertTrue(seen.isEmpty())
+        // The owner's still lands.
+        assertTrue(CaptureInbox.take(status, theirs, answers::add))
+        assertEquals(1, seen.size)
+        CaptureInbox.listener = null
     }
 
     @Test

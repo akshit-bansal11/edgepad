@@ -9,6 +9,8 @@ import me.akshitbansal.edgepad.protocol.CaptureTarget
 import me.akshitbansal.edgepad.protocol.FileStatus
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.TextKind
+import java.util.Collections
+import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -33,6 +35,9 @@ object CaptureInbox {
     @Volatile internal var store: FileInbox.Store? = null
 
     private val inboxes = ConcurrentHashMap<Any, FileInbox>()
+
+    /** Links that have closed, held weakly, so a late [permit] for one cannot make an inbox nothing will ever remove. */
+    private val closed: MutableSet<Any> = Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap()))
 
     /** The [ManagedLink.id] the capture screen sends to, so the link a new permit is for. */
     @Volatile var owner: Any? = null
@@ -66,6 +71,7 @@ object CaptureInbox {
     fun permit(action: ActionId) {
         val link = owner ?: return
         val files = store ?: return
+        if (link in closed) return
         inboxes
             .getOrPut(link) {
                 FileInbox(files, report = { step -> post(step) }).apply {
@@ -105,7 +111,8 @@ object CaptureInbox {
                 if (frame.kind != TextKind.CAPTURE_STATUS.id) return false
                 val inbox = inboxes[link]
                 inbox?.settle()
-                if (inbox != null || link === owner) post(FileInbox.Progress.Kept(CaptureStatus.of(frame.text)))
+                // Only the selected laptop's word reaches the capture screen; another's settles its own inbox and no more.
+                if (link === owner) post(FileInbox.Progress.Kept(CaptureStatus.of(frame.text)))
             }
 
             else -> {
@@ -120,6 +127,7 @@ object CaptureInbox {
      * permits and per-connection counts go with it.
      */
     fun abort(link: Any) {
+        closed.add(link)
         inboxes.remove(link)?.reset()
     }
 
