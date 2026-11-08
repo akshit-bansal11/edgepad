@@ -61,22 +61,23 @@ internal sealed class TrayContext : ApplicationContext
     private const string ClipboardGlyph = "M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1H9a1 1 0 0 1 -1 -1V3a1 1 0 0 1 1 -1z"
         + "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2H6a2 2 0 0 1 -2 -2V6a2 2 0 0 1 2 -2h2";
 
-    private readonly MenuRow startWithWindows = new("Start with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
-    private readonly MenuRow macrosRow = new("Macros…", Icons.Macro);
-    private readonly MenuRow securityRow = new("Security…", Icons.Smartphone);
-    private readonly MenuRow networkRow = new("Wi-Fi and USB connections", Icons.Wifi) { CheckOnClick = true, Switch = true };
+    // An ampersand marks the row's access key (Windows menu convention); each letter is used once.
+    private readonly MenuRow startWithWindows = new("S&tart with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
+    private readonly MenuRow macrosRow = new("&Macros…", Icons.Macro);
+    private readonly MenuRow securityRow = new("S&ecurity…", Icons.Smartphone);
+    private readonly MenuRow networkRow = new("&Wi-Fi and USB connections", Icons.Wifi) { CheckOnClick = true, Switch = true };
     private readonly MenuRow networkProblem = new("Wi-Fi and USB", Icons.Wifi) { Danger = true, Available = false };
-    private readonly MenuRow firewallRow = new("Allow through Windows Firewall…", Icons.Shield) { Available = false };
-    private readonly MenuRow bluetoothRow = new("Open Bluetooth settings", Icons.Smartphone) { Available = false };
-    private readonly MenuRow clipboardRow = new("Share clipboard", ClipboardGlyph)
+    private readonly MenuRow firewallRow = new("Allow through Windows &Firewall…", Icons.Shield) { Available = false };
+    private readonly MenuRow bluetoothRow = new("Open &Bluetooth settings", Icons.Smartphone) { Available = false };
+    private readonly MenuRow clipboardRow = new("&Share clipboard", ClipboardGlyph)
     {
         CheckOnClick = true,
         Switch = true,
         ToolTipText = "Copy on one, paste on the other: text and images.",
     };
 
-    private readonly MenuRow openLog = new("Open log", Icons.FileText);
-    private readonly MenuRow update = new("Update available", Icons.Download) { Available = false };
+    private readonly MenuRow openLog = new("Open &log", Icons.FileText);
+    private readonly MenuRow update = new("&Update available", Icons.Download) { Available = false };
     private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
     private readonly TrayMenu menu = new();
     private readonly NotifyIcon icon;
@@ -175,10 +176,10 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(macrosRow);
         menu.Items.Add(securityRow);
         menu.Items.Add(new MenuSeparator());
-        menu.Items.Add(Row("Documentation", Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
+        menu.Items.Add(Row("&Documentation", Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
         menu.Items.Add(openLog);
         menu.Items.Add(new MenuSeparator());
-        menu.Items.Add(Row("Quit Edgepad", Icons.Close, ExitThread));
+        menu.Items.Add(Row("&Quit Edgepad", Icons.Close, ExitThread));
 
         // Read the settings each time the menu opens, so it never shows a stale state.
         menu.Opening += (_, _) =>
@@ -187,7 +188,7 @@ internal sealed class TrayContext : ApplicationContext
             securityRow.Hint = SecurityWindow.LevelName(pin.Level);
             networkRow.Checked = networkSettings.Load().Enabled;
             networkRow.Enabled = !allowingNetwork;
-            networkProblem.Text = networkTrouble ?? string.Empty;
+            networkProblem.Text = Mnemonic.Escape(networkTrouble ?? string.Empty);
             networkProblem.Available = networkRow.Checked && networkTrouble is not null;
             firewallRow.Available = networkRow.Checked && firewallRefused && !allowingNetwork;
             bluetoothRow.Available = trust.TrustedPhones.Count == 0;
@@ -339,7 +340,7 @@ internal sealed class TrayContext : ApplicationContext
                 _ =>
                 {
                     var version = latest.ToString();
-                    var label = $"Update available: {version}";
+                    var label = $"&Update available: {version}";
                     var announced = update.Available && update.Text == label;
                     update.Text = label;
                     update.Available = true;

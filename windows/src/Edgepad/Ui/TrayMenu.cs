@@ -261,8 +261,25 @@ internal sealed class MenuRow(string text, string glyph) : ToolStripMenuItem(tex
             right -= hintWidth + pad;
         }
 
+        // Drawn with the prefix, so the access key is underlined as in any Windows menu.
         TextRenderer.DrawText(
-            graphics, Text, Theme.Font(Theme.Scale(14f, dpi), Weight.Regular), new Rectangle(left, 0, right - left, Height), ink, Line);
+            graphics,
+            Text,
+            Theme.Font(Theme.Scale(14f, dpi), Weight.Regular),
+            new Rectangle(left, 0, right - left, Height),
+            ink,
+            Line & ~TextFormatFlags.NoPrefix);
+    }
+
+    /// <summary>Narrator reads the label without its access-key marker.</summary>
+    public override string? Text
+    {
+        get => base.Text;
+        set
+        {
+            base.Text = value;
+            AccessibleName = Mnemonic.Plain(value);
+        }
     }
 
     private const TextFormatFlags Line =

@@ -126,11 +126,11 @@ internal sealed class SecurityWindow : Form
             notes[i] = new Label { AutoSize = false, Text = LevelNotes[i] };
         }
 
-        setPin = new FlatButton("Set PIN…", ButtonKind.Outline, palette);
-        forgetAll = new FlatButton("Forget all…", ButtonKind.Ghost, palette, Icons.Unlink) { Danger = true };
-        reset = new FlatButton("Reset PIN and forget phones…", ButtonKind.Ghost, palette) { Danger = true };
+        setPin = new FlatButton("Set &PIN…", ButtonKind.Outline, palette);
+        forgetAll = new FlatButton("&Forget all…", ButtonKind.Ghost, palette, Icons.Unlink) { Danger = true };
+        reset = new FlatButton("&Reset PIN and forget phones…", ButtonKind.Ghost, palette) { Danger = true };
         cancel = new FlatButton("Cancel", ButtonKind.Outline, palette) { DialogResult = DialogResult.Cancel };
-        save = new FlatButton("Save", ButtonKind.Primary, palette) { DialogResult = DialogResult.OK };
+        save = new FlatButton("&Save", ButtonKind.Primary, palette) { DialogResult = DialogResult.OK };
         setPin.Click += (_, _) => SetPinFlow();
         forgetAll.Click += (_, _) => ConfirmForgetAll();
         reset.Click += (_, _) => ConfirmReset();
@@ -466,7 +466,7 @@ internal sealed class PinDialog : Form
         firstFrame = new Framed(first, palette, radius: 8, inset: 12);
         againFrame = new Framed(again, palette, radius: 8, inset: 12);
         cancel = new FlatButton("Cancel", ButtonKind.Outline, palette) { DialogResult = DialogResult.Cancel };
-        ok = new FlatButton("Use this PIN", ButtonKind.Primary, palette) { DialogResult = DialogResult.OK };
+        ok = new FlatButton("&Use this PIN", ButtonKind.Primary, palette) { DialogResult = DialogResult.OK };
         foreach (var box in new[] { first, again })
         {
             box.KeyPress += (_, e) => e.Handled = !char.IsControl(e.KeyChar) && !char.IsAsciiDigit(e.KeyChar);

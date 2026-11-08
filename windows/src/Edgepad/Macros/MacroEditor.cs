@@ -119,13 +119,13 @@ internal sealed class MacroWindow : Form
         targetFrame = new Framed(target, palette, radius: 8, inset: 12);
         argumentsFrame = new Framed(arguments, palette, radius: 8, inset: 12);
         preview = new Tile(palette) { AccessibleName = "Icon preview" };
-        add = new FlatButton("Add macro", ButtonKind.Outline, palette, Icons.Plus);
-        browse = new FlatButton("Browse…", ButtonKind.Outline, palette, Icons.FolderOpen) { AccessibleName = "Browse for what this opens" };
-        chooseIcon = new FlatButton("Choose icon…", ButtonKind.Outline, palette) { AccessibleName = "Choose icon" };
-        ownIcon = new FlatButton("Use the program's own", ButtonKind.Ghost, palette);
-        remove = new FlatButton("Remove", ButtonKind.Ghost, palette, Icons.Trash) { Danger = true };
+        add = new FlatButton("&Add macro", ButtonKind.Outline, palette, Icons.Plus);
+        browse = new FlatButton("&Browse…", ButtonKind.Outline, palette, Icons.FolderOpen) { AccessibleName = "Browse for what this opens" };
+        chooseIcon = new FlatButton("&Choose icon…", ButtonKind.Outline, palette) { AccessibleName = "Choose icon" };
+        ownIcon = new FlatButton("&Use the program's own", ButtonKind.Ghost, palette);
+        remove = new FlatButton("&Remove", ButtonKind.Ghost, palette, Icons.Trash) { Danger = true };
         cancel = new FlatButton("Cancel", ButtonKind.Outline, palette) { DialogResult = DialogResult.Cancel };
-        save = new FlatButton("Save", ButtonKind.Primary, palette) { DialogResult = DialogResult.OK };
+        save = new FlatButton("&Save", ButtonKind.Primary, palette) { DialogResult = DialogResult.OK };
         empty = new EmptyState(palette);
         full = [listFrame, add, nameFrame, targetFrame, browse, argumentsFrame, preview, chooseIcon, ownIcon, remove];
 
@@ -756,7 +756,7 @@ internal sealed class MacroWindow : Form
         public EmptyState(Palette palette)
         {
             this.palette = palette;
-            Add = new FlatButton("Add macro", ButtonKind.Primary, palette, Icons.Plus);
+            Add = new FlatButton("&Add macro", ButtonKind.Primary, palette, Icons.Plus);
             AccessibleName = Headline;
             AccessibleDescription = Detail;
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
