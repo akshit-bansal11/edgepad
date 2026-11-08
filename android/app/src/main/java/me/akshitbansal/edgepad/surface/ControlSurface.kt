@@ -548,7 +548,12 @@ class ControlSurface(
 
     /** TEXT 18: the laptop discards our input, so say so on the surface. Built here, where allocating is legal. */
     private fun rebuildBlocked() {
-        val name = if (state.inputBlocked && !trackpadOnly) (state.laptopName?.takeIf { it.isNotEmpty() } ?: context.getString(R.string.capture_save_laptop)) else ""
+        val name =
+            if (state.inputBlocked && !trackpadOnly) {
+                state.laptopName?.takeIf { it.isNotEmpty() } ?: context.getString(R.string.capture_save_laptop)
+            } else {
+                ""
+            }
         // Called on every frame the laptop sends; the layout is remade only when its name or the width changed.
         if (name == blockedName && width == blockedWidth) return
         blockedName = name
@@ -1155,7 +1160,7 @@ class ControlSurface(
     private fun onTrackpad(): Boolean =
         !locked && activeDial < 0 && buttonDown == null && pressedTop == null && !scrubbing
 
-    /** A tap on the lock button, from a finger or from the accessibility action: it locks the trackpad and nothing else. */
+    /** A tap on the lock button, by finger or accessibility action: it locks the trackpad and nothing else. */
     private fun tapLock() {
         locked = !locked
         enterMode()

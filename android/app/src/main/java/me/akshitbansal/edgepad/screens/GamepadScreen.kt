@@ -9,6 +9,7 @@ import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
+import android.view.accessibility.AccessibilityNodeProvider
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
@@ -181,6 +182,46 @@ class GamepadScreen(
 
         init {
             contentDescription = context.getString(R.string.gamepad_description)
+        }
+
+        // AND-A-8: every control is its own node for a screen reader; sticks and the d-pad are touch-only, just named.
+        private val nodes =
+            ControlNodes(
+                this,
+                controls.size,
+                label = ::spoken,
+                bounds = { i, out ->
+                    out.set(centerX[i] - halfW[i], centerY[i] - halfH[i], centerX[i] + halfW[i], centerY[i] + halfH[i])
+                },
+                clickable = ::tappable,
+                click = ::tap,
+                state = { i -> if (pressed[i]) context.getString(R.string.keyboard_key_on) else null },
+            )
+
+        override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider = nodes
+
+        private fun spoken(i: Int): String {
+            val control = controls[i]
+            if (control.label.isNotBlank()) return control.label
+            return context.getString(
+                when (control.kind) {
+                    ControlKind.DPAD -> R.string.gamepad_node_dpad
+                    ControlKind.STICK -> R.string.gamepad_node_stick
+                    else -> R.string.gamepad_node_button
+                },
+            )
+        }
+
+        private fun tappable(i: Int): Boolean =
+            controls[i].kind == ControlKind.BUTTON || controls[i].kind == ControlKind.SHOULDER
+
+        /** A screen reader's double tap: the control goes down and up, each sent as a touch would have sent it. */
+        private fun tap(i: Int) {
+            press(i, centerX[i], centerY[i])
+            if (padMode) sendPad()
+            release(i)
+            if (padMode) sendPad()
+            invalidate()
         }
 
         /** Takes the laptop's last word on its controller and settles which of the two modes this pad is in. */

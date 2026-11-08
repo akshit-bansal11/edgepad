@@ -244,8 +244,8 @@ class Deck(
 
     /**
      * The tiles tagged in [open] are running and can be closed from their held state. Nothing is drawn for it until a
-     * tile is held, so the grid is not built again; what the laptop said ends the wait of any Close that was tapped, and a
-     * Close shown for an app that has since quit goes.
+     * tile is held, so the grid is not built again; what the laptop said ends the wait of any Close that was
+     * tapped, and a Close shown for an app that has since quit goes.
      */
     fun setOpen(open: Set<Int>) {
         tiles = tiles.map { it.copy(closable = it.tag in open) }
@@ -522,7 +522,7 @@ class Deck(
             MotionEvent.ACTION_MOVE -> follow(held, event.x, event.y)
             MotionEvent.ACTION_UP -> {
                 val tile = tiles.getOrNull(held.home)
-                if (held.target == held.home && tile != null && tile.closable) arm(held, tile) else drop(held, held.target)
+                if (held.target == held.home && tile?.closable == true) arm(held, tile) else drop(held, held.target)
             }
             MotionEvent.ACTION_CANCEL -> drop(held, held.home)
         }
@@ -567,8 +567,9 @@ class Deck(
         tile: DeckTile,
     ) {
         lift = null
+        val name = ui.string(R.string.macros_close, tile.label)
         val bar =
-            ui.text(ui.string(R.string.macros_close, tile.label), Type.BODY, ui.palette.onAccent, face = Type.bold).apply {
+            ui.text(name, Type.BODY, ui.palette.onAccent, face = Type.bold).apply {
                 gravity = Gravity.CENTER
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
