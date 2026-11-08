@@ -19,7 +19,8 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
     private let target = NSTextField()
     private let arguments = NSTextField()
     private let icon = NSTextField()
-    private let count = NSTextField(labelWithString: "")
+    private let count = NSTextField(wrappingLabelWithString: "")
+    private let nameCaption = NSTextField(labelWithString: "Name")
     private let addButton = NSButton(title: "Add macro", target: nil, action: nil)
     private let removeButton = NSButton(title: "Remove", target: nil, action: nil)
     private let upButton = NSButton(title: "Move up", target: nil, action: nil)
@@ -45,14 +46,14 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
             "Buttons on your phone's macro screen, up to \(MacroStore.maxMacros). The phone sends a button's number, "
             + "never a program, so it can only run what you add here."
         alert.accessoryView = makeBody()
-        // Cancel is first, so it is the default: a stray Return changes nothing.
-        alert.addButton(withTitle: "Cancel")
+        // Save is first, so Return saves what the owner typed; the edits are all visible, and Escape is Cancel.
         alert.addButton(withTitle: "Save")
+        alert.addButton(withTitle: "Cancel")
         NSApp.activate(ignoringOtherApps: true)
         while true {
             let answer = alert.runModal()
             alert.window.orderOut(nil)
-            guard answer == .alertSecondButtonReturn else { return }
+            guard answer == .alertFirstButtonReturn else { return }
             if save() { return }
         }
     }
@@ -78,7 +79,7 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
     private func warn(_ text: String) {
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = "Edgepad"
+        alert.messageText = "Could not save the macros"
         alert.informativeText = text
         alert.addButton(withTitle: "OK")
         alert.runModal()
@@ -127,7 +128,9 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
 
         let targetRow = NSStackView(views: [target, browseButton])
         let iconRow = NSStackView(views: [icon, iconButton])
-        let nameCaption = caption("Name, up to \(MacroStore.maxNameBytes) bytes")
+        nameCaption.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        nameCaption.textColor = .secondaryLabelColor
+        count.preferredMaxLayoutWidth = 170
         let first: [NSView] = [nameCaption, name, caption("Opens"), targetRow]
         let second: [NSView] = [caption("Arguments"), arguments, caption("Icon"), iconRow, ownIconButton]
         let fieldColumn = NSStackView(views: first + second)
@@ -186,7 +189,19 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         upButton.isEnabled = (selected ?? 0) > 0
         downButton.isEnabled = selected.map { $0 < working.count - 1 } ?? false
         addButton.isEnabled = working.count < MacroStore.maxMacros
-        count.stringValue = "\(working.count) of \(MacroStore.maxMacros)"
+        count.stringValue =
+            working.isEmpty
+            ? "No macros yet. Add an app, a document, a folder or a web address. Each one becomes a button on the "
+                + "phone."
+            : "\(working.count) of \(MacroStore.maxMacros)"
+        updateNameCaption()
+    }
+
+    /// The name's room, said only when it is nearly gone: the limit is in bytes, so a name in another script runs
+    /// out after fewer characters.
+    private func updateNameCaption() {
+        let left = MacroStore.maxNameBytes - name.stringValue.utf8.count
+        nameCaption.stringValue = selected != nil && left <= 4 ? "Name · \(left) left" : "Name"
     }
 
     func numberOfRows(in tableView: NSTableView) -> Int {
@@ -210,6 +225,7 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         while name.stringValue.utf8.count > MacroStore.maxNameBytes {
             name.stringValue = String(name.stringValue.dropLast())
         }
+        updateNameCaption()
         let extra = arguments.stringValue.isEmpty ? nil : arguments.stringValue
         let own = icon.stringValue.isEmpty ? nil : icon.stringValue
         let edited = Macro(name: name.stringValue, target: target.stringValue, arguments: extra, icon: own)

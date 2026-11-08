@@ -36,7 +36,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         contentRect: NSRect(x: 0, y: 0, width: 400, height: 190), styleMask: [.titled, .closable], backing: .buffered,
         defer: false)
     private let phone: String
-    private let ask = NSTextField(wrappingLabelWithString: "Type the code shown on the phone:")
+    private let ask = NSTextField(wrappingLabelWithString: "Type the pairing code shown on the phone:")
     private let code = NSTextField(frame: NSRect(x: 0, y: 0, width: 160, height: 32))
     private let countdown = NSTextField(labelWithString: "")
     private let cancel = NSButton(title: "Cancel", target: nil, action: nil)
@@ -96,6 +96,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
         panel.makeFirstResponder(code)
+        Announce.say("Pair \(phone)? Closes in \(Int(LinkResponder.ownerTimeoutSeconds)) s.")
     }
 
     private static func timer(every seconds: TimeInterval, repeats: Bool, _ run: @escaping () -> Void) -> Timer {
@@ -132,6 +133,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         keepAlive = self
         stopTicking()
         ask.stringValue = message
+        Announce.say(message)
         countdown.stringValue = ""
         code.isEnabled = false
         pair.isHidden = true
@@ -168,6 +170,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         code.isEnabled = false
         pair.isEnabled = false
         countdown.stringValue = "Checking the code"
+        Announce.say("Checking the code")
         onTyped(digits)
     }
 
