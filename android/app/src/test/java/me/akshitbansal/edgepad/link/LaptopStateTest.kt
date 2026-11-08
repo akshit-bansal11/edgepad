@@ -202,7 +202,7 @@ class LaptopStateTest {
 
     @Test
     fun readsTheInputStateAndTreatsNothingAsOk() {
-        val kind = LaptopState.INPUT_STATE_KIND
+        val kind = TextKind.INPUT_STATE.id
         assertEquals(18, kind)
         assertFalse(state.inputBlocked)
         assertTrue(state.take(Frame.Text(kind, "blocked")))
@@ -218,7 +218,7 @@ class LaptopStateTest {
 
     @Test
     fun aNewLinkForgetsTheInputState() {
-        state.take(Frame.Text(LaptopState.INPUT_STATE_KIND, "blocked"))
+        state.take(Frame.Text(TextKind.INPUT_STATE.id, "blocked"))
         state.forgetInputBlocked()
         assertFalse(state.inputBlocked)
     }

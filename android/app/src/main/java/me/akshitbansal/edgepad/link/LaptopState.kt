@@ -191,7 +191,7 @@ class LaptopState {
             }
 
             is Frame.Text -> {
-                if (frame.kind == INPUT_STATE_KIND) return inputState(frame.text)
+                if (frame.kind == TextKind.INPUT_STATE.id) return inputState(frame.text)
                 when (TextKind.of(frame.kind)) {
                     TextKind.NOW_PLAYING -> nowPlaying = frame.text
                     TextKind.APP -> app = frame.text
@@ -355,8 +355,6 @@ class LaptopState {
 
         private const val FLAG_BIT = 1
 
-        /** TEXT 18, input state. Not in [TextKind] yet; the wire id is fixed by docs/PROTOCOL.md. */
-        const val INPUT_STATE_KIND = 18
         private const val INPUT_BLOCKED = "blocked"
         private const val INPUT_OK = "ok"
 

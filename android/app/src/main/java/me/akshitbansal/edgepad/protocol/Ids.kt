@@ -234,6 +234,13 @@ enum class TextKind(
      * the laptop takes those six characters and nothing else, and what it makes of them is a number it can only draw with.
      */
     PEN_RGB(17),
+
+    /**
+     * Laptop to phone: exactly "blocked" or "ok", sent after the handshake and on every change. "blocked" means the
+     * laptop's OS discards the input it is given (Mac without Accessibility, Linux without /dev/uinput). Windows never
+     * sends it, and a phone that never heard it reads "ok".
+     */
+    INPUT_STATE(18),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)

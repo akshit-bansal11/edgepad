@@ -162,7 +162,7 @@ class LaptopConnectionsTest {
         log.lines.clear()
         old.events.onConnected()
         old.events.onFrame(Frame.Text(TextKind.NOW_PLAYING.id, "stale"))
-        old.events.onFrame(Frame.Text(LaptopState.INPUT_STATE_KIND, "blocked"))
+        old.events.onFrame(Frame.Text(TextKind.INPUT_STATE.id, "blocked"))
         old.events.onRoundTrip(1.0)
         old.events.onClosed(LaptopLink.Closure(LaptopLink.Cause.LOST))
         assertTrue(log.lines.isEmpty())
@@ -188,12 +188,12 @@ class LaptopConnectionsTest {
     @Test
     fun theInputStateDoesNotOutliveItsLink() {
         val a = up(1)
-        a.events.onFrame(Frame.Text(LaptopState.INPUT_STATE_KIND, "blocked"))
+        a.events.onFrame(Frame.Text(TextKind.INPUT_STATE.id, "blocked"))
         assertTrue(laptop(1).state.inputBlocked)
         a.drop()
         assertFalse(laptop(1).state.inputBlocked)
         val b = up(1)
-        b.events.onFrame(Frame.Text(LaptopState.INPUT_STATE_KIND, "blocked"))
+        b.events.onFrame(Frame.Text(TextKind.INPUT_STATE.id, "blocked"))
         connect(1)
         assertFalse(laptop(1).state.inputBlocked)
     }

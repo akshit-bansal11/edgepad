@@ -2093,7 +2093,7 @@ class MainActivity :
             syncService()
         }
         // TEXT 18, input state: the banner lives on the Devices list, which is the connection status.
-        if (frame is Frame.Text && frame.kind == LaptopState.INPUT_STATE_KIND) refreshDevices()
+        if (frame is Frame.Text && frame.kind == TextKind.INPUT_STATE.id) refreshDevices()
         if (frame is Frame.Text && frame.kind == TextKind.DEVICE.id) {
             remember(laptop)
             refreshDevices()

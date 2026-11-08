@@ -51,7 +51,7 @@ class LatestTest {
                 Frame.Text(TextKind.MACROS.id, "a/b"),
                 Frame.Text(TextKind.MACRO_OPEN.id, "01"),
                 Frame.Text(TextKind.DEVICE.id, "x"),
-                Frame.Text(LaptopState.INPUT_STATE_KIND, "blocked"),
+                Frame.Text(TextKind.INPUT_STATE.id, "blocked"),
                 Frame.HelloAck(5),
                 Frame.Pong(1),
             )
