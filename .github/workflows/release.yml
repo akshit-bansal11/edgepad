@@ -91,7 +91,7 @@ jobs:
     environment: release
     env:
       # SHA-256 of the release signing certificate (public; read from the v4.0.0 APK). If the owner ever rotates
-      # the key on purpose, replace it with the new "Signer #1 certificate SHA-256 digest" that apksigner prints.
+      # the key on purpose, replace it with the new "certificate SHA-256 digest" that apksigner prints.
       EXPECTED_CERT_SHA256: 84106046e6b755e3baf9f6dffe2c367fab6d91ece42d7a5d383ce3dce7f8a73e
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -123,8 +123,13 @@ jobs:
       - name: Check the signing certificate is the pinned one
         run: |
           tools=$(dirname "$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)")
-          got=$("$tools/apksigner" verify --print-certs Edgepad.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | tr -d '\r' | tr A-F a-f)
+          # Newer apksigner labels the signer "Signer (minSdkVersion=..., maxSdkVersion=...)" rather than
+          # "Signer #1", so match either and take the first. The digest is public; it is logged either way.
+          certs=$("$tools/apksigner" verify --print-certs Edgepad.apk | tr -d '\r')
+          got=$(printf '%s\n' "$certs" | sed -n 's/^Signer.* certificate SHA-256 digest: //p' | head -1 | tr A-F a-f)
+          echo "APK signing certificate SHA-256: ${got:-none found}"
           if [ "$got" != "$EXPECTED_CERT_SHA256" ]; then
+            printf '%s\n' "$certs" | grep -i 'digest\|signer' || true
             echo "::error::APK signed by '$got', expected '$EXPECTED_CERT_SHA256'."
             exit 1
           fi
