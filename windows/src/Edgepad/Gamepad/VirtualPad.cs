@@ -26,6 +26,9 @@ internal sealed class VirtualPad(Func<ViGEmClient>? openClient = null) : IDispos
 {
     private const string VigemNamespace = "Nefarius.ViGEm.Client";
 
+    /// <summary>The one of the sixteen XInput button bits that is unused, and so never defined here.</summary>
+    private const ushort UnusedButtonBit = 0x0800;
+
     /// <summary>
     /// How the driver handle is opened. The real one by default; the parameter exists so a test can hand in
     /// one that throws what a missing ViGEmBus throws. That is the only way to pin the no-driver answer,
@@ -98,6 +101,12 @@ internal sealed class VirtualPad(Func<ViGEmClient>? openClient = null) : IDispos
     }
 
     /// <summary>
+    /// <paramref name="buttons"/> with the bits the protocol does not define cleared (only 0x0800 is unused of the
+    /// sixteen), as docs/PROTOCOL.md says an unknown button bit is dropped rather than passed on to the driver.
+    /// </summary>
+    internal static ushort DefinedButtons(ushort buttons) => (ushort)(buttons & ~UnusedButtonBit);
+
+    /// <summary>
     /// Copies one frame onto the pad's report. False when nothing is plugged in, which the dispatcher counts
     /// as a dropped frame: a phone sending pad frames it never asked for a pad for is doing nothing here.
     /// </summary>
@@ -112,7 +121,7 @@ internal sealed class VirtualPad(Func<ViGEmClient>? openClient = null) : IDispos
         {
             // Field for field, in the frame's own order. The buttons go across whole: the payload's mask is
             // XInput's own wButtons, so this is a copy and not a mapping.
-            plugged.SetButtonsFull(state.Buttons);
+            plugged.SetButtonsFull(DefinedButtons(state.Buttons));
             plugged.SetSliderValue(Xbox360Slider.LeftTrigger, state.Lt);
             plugged.SetSliderValue(Xbox360Slider.RightTrigger, state.Rt);
             plugged.SetAxisValue(Xbox360Axis.LeftThumbX, state.Lx);

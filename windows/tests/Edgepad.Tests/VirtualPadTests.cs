@@ -28,6 +28,15 @@ public sealed class VirtualPadTests
     }
 
     [Fact]
+    public void AButtonBitOutsideTheDefinedSetIsDroppedAndTheRestKept()
+    {
+        const ushort Everything = 0xFFFF;
+        Assert.Equal((ushort)0xF7FF, VirtualPad.DefinedButtons(Everything));
+        Assert.Equal((ushort)0, VirtualPad.DefinedButtons(0x0800));
+        Assert.Equal((ushort)((ushort)PadButton.A | (ushort)PadButton.Guide), VirtualPad.DefinedButtons((ushort)((ushort)PadButton.A | (ushort)PadButton.Guide | 0x0800)));
+    }
+
+    [Fact]
     public void TheDriverIsLookedForOnceAndNotOncePerPress()
     {
         // The phone can press attach as often as it likes; a laptop without the driver would otherwise
