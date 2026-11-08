@@ -460,8 +460,12 @@ class MainActivity :
         if (screen == Screen.RECONNECTING) handler.post(ticker)
         refreshPicker()
         startScan()
+        checkForUpdateIfDue()
+    }
+
+    /** Not over the guide: a first-time user has not been told yet that the app ever goes online. */
+    private fun checkForUpdateIfDue() {
         val sinceCheck = System.currentTimeMillis() - settings.lastUpdateCheck
-        // Not over the guide: a first-time user has not been told yet that the app ever goes online.
         val due = settings.autoUpdateCheck && sinceCheck >= Updates.CHECK_EVERY_MS
         if (screen != Screen.ONBOARDING && due) checkForUpdate()
     }
@@ -526,7 +530,8 @@ class MainActivity :
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         val granted = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         // One system prompt at a time: while another is up this waits for the next time the service is needed.
-        if (granted || askedNotifications || permissionPending) return
+        // Not over the guide; onFinish asks once it is over.
+        if (granted || askedNotifications || permissionPending || screen == Screen.ONBOARDING) return
         askedNotifications = true
         requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATIONS)
     }
@@ -727,6 +732,10 @@ class MainActivity :
                         settings.onboarded = true
                         goTo(Screen.PAIRING)
                         if (settings.reconnect) connectSaved()
+                        // Both waited for the guide to end: run now, not at the next start.
+                        syncService()
+                        if (serviceUp) askNotifications()
+                        checkForUpdateIfDue()
                     }) { navigateBack() }
                 }
 
