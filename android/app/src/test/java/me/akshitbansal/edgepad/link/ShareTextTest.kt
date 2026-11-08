@@ -23,6 +23,22 @@ class ShareTextTest {
     }
 
     @Test
+    fun everyKindOfLineBreakSplitsAndCounts() {
+        // A TextView breaks on all of these, so a "one line" text padded with them must not look like one line.
+        val padding = listOf(0x2028, 0x2029, 0x85, '\r'.code).joinToString("") { Char(it).toString() }.repeat(50)
+        val shared = preview("safe$padding" + "rm -rf ~")
+        assertEquals("safe\n\nrm -rf ~", shared.shown)
+        assertEquals(201, shared.lines)
+        assertEquals(Preview("a\nb", 2, 0), preview("a\r\nb"))
+    }
+
+    @Test
+    fun aLongRunOfSpaceInsideALineIsCutToEight() {
+        assertEquals("a" + " ".repeat(8) + "b", preview("a" + " ".repeat(500) + "b").shown)
+        assertEquals("    indented", preview("    indented").shown)
+    }
+
+    @Test
     fun aTrailingLineBreakCountsAsALine() {
         assertEquals(Preview("ls", 2, 0), preview("ls\n"))
     }

@@ -43,19 +43,30 @@ private fun disguises(cp: Int): Boolean =
 private fun blank(line: String): Boolean =
     line.codePoints().allMatch { Character.isWhitespace(it) || Character.isSpaceChar(it) }
 
+// Every line break a TextView draws: CRLF, a lone CR, NEL, and the Unicode line and paragraph separators. All of
+// them become '\n' before the preview splits and counts, so none can break a "line" in two out of sight.
+private val BREAKS = Regex("\r\n|[\r\u0085\u2028\u2029]")
+
+// A run of blank space inside a line, longer than any indent. It wraps in the dialog like blank lines would.
+private val SPACE_RUN = Regex("""[\p{javaWhitespace}\p{javaSpaceChar}]{9,}""")
+
+/** What a long run of blank space inside a line shows as: eight spaces, enough for any indent. */
+private const val SPACE_RUN_SHOWN = "        "
+
 /**
  * The text as the confirm dialog shows it: every line, not the first only (a first line alone could ask about
- * "git status" and send what follows it), each code point that could disguise text shown as U+FFFD, blank lines at
- * the ends dropped and every run of them shown as one, cut at [PREVIEW_MAX] characters. Only the preview changes:
- * what is sent is the text as shared.
+ * "git status" and send what follows it), each code point that could disguise text shown as U+FFFD, every kind of
+ * line break treated as one, blank lines at the ends dropped and every run of them shown as one, long runs of space
+ * inside a line cut to eight, cut at [PREVIEW_MAX] characters. Only the preview changes: what is sent is the text
+ * as shared.
  */
 internal fun preview(text: CharSequence): Preview {
-    val all = text.toString()
+    val all = text.toString().replace(BREAKS, "\n")
     val shownLines = mutableListOf<String>()
     for (line in all.split('\n')) {
         val visible = buildString { line.codePoints().forEach { appendCodePoint(if (disguises(it)) MARK else it) } }
         when {
-            !blank(visible) -> shownLines += visible.trimEnd()
+            !blank(visible) -> shownLines += visible.trimEnd().replace(SPACE_RUN, SPACE_RUN_SHOWN)
             shownLines.isNotEmpty() && shownLines.last().isNotEmpty() -> shownLines += ""
         }
     }
