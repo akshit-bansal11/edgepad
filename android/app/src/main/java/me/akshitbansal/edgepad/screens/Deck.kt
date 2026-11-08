@@ -519,12 +519,18 @@ class Deck(
         val held = lift ?: return false
         // A cancel from above (a call coming in, the window losing focus) sends everything back home.
         when (event.actionMasked) {
-            MotionEvent.ACTION_MOVE -> follow(held, event.x, event.y)
+            MotionEvent.ACTION_MOVE -> {
+                follow(held, event.x, event.y)
+            }
+
             MotionEvent.ACTION_UP -> {
                 val tile = tiles.getOrNull(held.home)
                 if (held.target == held.home && tile?.closable == true) arm(held, tile) else drop(held, held.target)
             }
-            MotionEvent.ACTION_CANCEL -> drop(held, held.home)
+
+            MotionEvent.ACTION_CANCEL -> {
+                drop(held, held.home)
+            }
         }
         return true
     }

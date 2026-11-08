@@ -200,11 +200,17 @@ class Backdrop(
     val isDark: Boolean
         get() =
             when (kind) {
-                Settings.Background.THEME -> luminance(themeColor) < HALF
+                Settings.Background.THEME -> {
+                    luminance(themeColor) < HALF
+                }
 
-                Settings.Background.COLOR -> luminance(color) < HALF
+                Settings.Background.COLOR -> {
+                    luminance(color) < HALF
+                }
 
-                Settings.Background.GRADIENT -> (luminance(color) + luminance(gradientEnd)) / 2 < HALF
+                Settings.Background.GRADIENT -> {
+                    (luminance(color) + luminance(gradientEnd)) / 2 < HALF
+                }
 
                 // Measured once, when the image was decoded, and stored so a cold start knows it without
                 // decoding on the UI thread. It was taken to be dark until 3.2, which drew light controls on a

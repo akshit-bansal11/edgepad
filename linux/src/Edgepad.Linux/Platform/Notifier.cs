@@ -60,31 +60,25 @@ internal static class Notifier
                         var reader = m.GetBodyReader();
                         return (Id: reader.ReadUInt32(), Key: reader.ReadString());
                     },
-                    static (Exception? ex, (uint Id, string Key) invoked, object? _, object? _) =>
+                    static (Notification<(uint Id, string Key)> invoked) =>
                     {
-                        if (ex is null && invoked.Key == DefaultAction && Clicks.TryRemove(invoked.Id, out var click))
+                        if (invoked.HasValue && invoked.Value.Key == DefaultAction && Clicks.TryRemove(invoked.Value.Id, out var click))
                         {
                             Run(click);
                         }
                     },
-                    null,
-                    null,
-                    false,
-                    ObserverFlags.None);
+                    emitOnCapturedContext: false);
                 _ = await bus.AddMatchAsync(
                     Rule("NotificationClosed"),
                     static (Message m, object? _) => m.GetBodyReader().ReadUInt32(),
-                    static (Exception? ex, uint id, object? _, object? _) =>
+                    static (Notification<uint> closed) =>
                     {
-                        if (ex is null)
+                        if (closed.HasValue)
                         {
-                            _ = Clicks.TryRemove(id, out _);
+                            _ = Clicks.TryRemove(closed.Value, out _);
                         }
                     },
-                    null,
-                    null,
-                    false,
-                    ObserverFlags.None);
+                    emitOnCapturedContext: false);
             }
             catch (Exception e)
             {

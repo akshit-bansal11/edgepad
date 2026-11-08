@@ -163,13 +163,17 @@ public sealed class HandshakeTests : IDisposable
     }
 
     [Fact]
-    public void AVerifiedConnectionStampsWhenThePhoneLastConnectedAndARefusedOneDoesNot()
+    public void ARefusedConnectionDoesNotStampWhenThePhoneLastConnected()
     {
         ownerSaysYes = false;
         Assert.False(Connect(PinAtLevel(1), CurrentHello));
         Assert.Null(trust.Connections.Get(Phone));
+    }
 
-        ownerSaysYes = true;
+    // Its own test: a decline starts a 30 s quiet period, so a yes straight after it would be refused unasked.
+    [Fact]
+    public void AVerifiedConnectionStampsWhenThePhoneLastConnected()
+    {
         var before = DateTimeOffset.UtcNow.AddSeconds(-1);
         Assert.True(Connect(PinAtLevel(1), CurrentHello));
         Assert.True(trust.Connections.Get(Phone) >= before);

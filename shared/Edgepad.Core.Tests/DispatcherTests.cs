@@ -527,13 +527,17 @@ public sealed class DispatcherTests : IDisposable
     private static AppPicker PickerOver(MacroStore store, List<Frame> wire)
     {
         var token = TestContext.Current.CancellationToken;
+        var epochs = 0;
+
+        // Its own epoch count: the shared one moves whenever another test lists apps, so "1.0" would be stale.
         return new AppPicker(
             new FakeCatalog { Apps = [new("Tool", "tool.lnk", null)] },
             store,
             new BlobSender(wire.Add, LinkKind.Bluetooth, () => 0, token),
             token,
             work => work(),
-            _ => true);
+            _ => true,
+            () => ++epochs);
     }
 
     private MacroStore TempStore()

@@ -101,24 +101,21 @@ internal sealed class LinuxServer : IDisposable
         using var woke = await bus.AddMatchAsync(
             new MatchRule { Type = MessageType.Signal, Sender = "org.freedesktop.login1", Interface = "org.freedesktop.login1.Manager", Member = "PrepareForSleep" },
             static (Message m, object? _) => m.GetBodyReader().ReadBool(),
-            (Exception? ex, bool sleeping, object? _, object? _) =>
+            (Notification<bool> sleeping) =>
             {
-                if (ex is null && !sleeping)
+                if (sleeping is { HasValue: true, Value: false })
                 {
                     Log.Write("The laptop woke from sleep; checking the Bluetooth profile");
                     nudge.Release();
                 }
             },
-            null,
-            null,
-            false,
-            ObserverFlags.None);
+            emitOnCapturedContext: false);
         using var powered = await bus.AddMatchAsync(
             new MatchRule { Type = MessageType.Signal, Sender = BluezProfile.ServiceName, Interface = "org.freedesktop.DBus.Properties", Member = "PropertiesChanged", PathNamespace = "/org/bluez", Arg0 = "org.bluez.Adapter1" },
             static (Message m, object? _) => PoweredIn(m.GetBodyReader()),
-            (Exception? ex, bool? on, object? _, object? _) =>
+            (Notification<bool?> on) =>
             {
-                if (ex is not null || on is not { } now)
+                if (!on.HasValue || on.Value is not { } now)
                 {
                     return;
                 }
@@ -135,10 +132,7 @@ internal sealed class LinuxServer : IDisposable
                     onStatus(StartFailing);
                 }
             },
-            null,
-            null,
-            false,
-            ObserverFlags.None);
+            emitOnCapturedContext: false);
         while (true)
         {
             if (owner.GetCurrentOwner() is null)
