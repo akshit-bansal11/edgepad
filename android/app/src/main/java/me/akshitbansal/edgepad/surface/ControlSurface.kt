@@ -50,7 +50,7 @@ import kotlin.math.roundToInt
  */
 class ControlSurface(
     context: Context,
-    settings: Settings,
+    private val settings: Settings,
     private val state: LaptopState,
     private val send: (Frame) -> Unit,
     private val onOpenSettings: () -> Unit,

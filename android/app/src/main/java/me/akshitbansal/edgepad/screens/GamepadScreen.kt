@@ -52,6 +52,7 @@ class GamepadScreen(
     private val pad = Surface(ui.context, layout, os, onKey, onPad)
 
     // The options sheet: the layouts to switch between in place, the editor, and the gamepad's settings page.
+    val view: View =
         EditorFrame
             .build(ui, layout.name, pad, onBack) { close ->
                 LinearLayout(ui.context).apply {
