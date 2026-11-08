@@ -55,6 +55,7 @@ final class SessionTests: XCTestCase {
     )
 
     override func setUpWithError() throws {
+        AppPicker.resetEpochs()
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }
 
@@ -576,6 +577,7 @@ final class SessionTests: XCTestCase {
             store: store,
             sender: BlobSender(link: .bluetooth, schedule: { _, work in work() }, lastInput: { -.infinity }),
             schedule: { $0() },
+            background: { $0() },
             scheduleAfter: { [weak self] _, tick in self?.appTicks.append(tick) }
         )
         dispatcher.apps = picker

@@ -20,7 +20,8 @@ final class DiskFolders: AppFolders {
 /// the picture. A pick's macro target is the bundle's own path, which `WorkspaceMacroLauncher` opens, so the toggle
 /// that follows a macro's app follows it too.
 ///
-/// Main thread only: the icons are drawn with AppKit, through the same cache the macro grid uses.
+/// `scan()` runs on a background queue (disk and Info.plist reads only). `icon(for:)` stays on the main thread: the
+/// icons are drawn with AppKit, through the same cache the macro grid uses.
 final class ApplicationsCatalog: AppCatalog {
     /// The side of an icon on the phone's list. The list is many small pictures, not a grid of big buttons.
     static let iconSize = 64
