@@ -61,9 +61,13 @@ class Backdrop(
 
     /**
      * Decodes the image on a worker when it is not decoded yet (a cold start), then posts it to [view] and
-     * redraws. Does nothing for any other background.
+     * redraws, and calls [onDarkChanged] when the image proved darker or lighter than the stored guess.
+     * Does nothing for any other background.
      */
-    fun load(view: View) {
+    fun load(
+        view: View,
+        onDarkChanged: () -> Unit = {},
+    ) {
         if (kind != Settings.Background.IMAGE || picture != null) return
         thread(name = "edgepad-backdrop") {
             val decoded = BackgroundImage.load(settings.backgroundImage) ?: return@thread
@@ -73,6 +77,9 @@ class Backdrop(
                 image = decoded.bitmap
                 resize(target.width().roundToInt(), target.height().roundToInt())
                 view.invalidate()
+                // The stored guess was wrong (an install from before it was stored): the controls were coloured
+                // for it, so have them made again, once, since the stored value is right from now on.
+                if (decoded.dark != imageDark) onDarkChanged()
             }
         }
     }
