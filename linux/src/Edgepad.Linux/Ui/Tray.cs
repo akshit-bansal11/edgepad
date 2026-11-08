@@ -143,7 +143,7 @@ internal sealed class Tray : IDisposable
         autostartRow.IsChecked = hooks.AutostartOn();
     }
 
-    private static NativeMenuItem Toggle(string header) => new(header) { ToggleType = NativeMenuItemToggleType.CheckBox };
+    private static NativeMenuItem Toggle(string header) => new(header) { ToggleType = MenuItemToggleType.CheckBox };
 
     private void CheckScheme()
     {

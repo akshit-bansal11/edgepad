@@ -6,12 +6,12 @@ namespace Edgepad.Tests;
 public sealed class SingleInstanceTests
 {
     [Theory]
-    [InlineData(true, false, LaunchChoice.Run)]
-    [InlineData(true, true, LaunchChoice.Run)]
-    [InlineData(false, true, LaunchChoice.Notify)]
-    [InlineData(false, false, LaunchChoice.TakeOver)]
-    public void OnlyADifferentVersionTakesOver(bool lockFree, bool sameVersion, LaunchChoice expected) =>
-        Assert.Equal(expected, SingleInstance.Decide(lockFree, sameVersion));
+    [InlineData(true, false, (int)LaunchChoice.Run)]
+    [InlineData(true, true, (int)LaunchChoice.Run)]
+    [InlineData(false, true, (int)LaunchChoice.Notify)]
+    [InlineData(false, false, (int)LaunchChoice.TakeOver)]
+    public void OnlyADifferentVersionTakesOver(bool lockFree, bool sameVersion, int expected) =>
+        Assert.Equal((LaunchChoice)expected, SingleInstance.Decide(lockFree, sameVersion));
 
     [Fact]
     public void EachVersionHasItsOwnName() =>

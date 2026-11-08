@@ -103,7 +103,7 @@ internal sealed class SessionHost(
                 platform.Dispose,
                 platform.ProbePad,
                 platform.StartReporting,
-                () => platform.Store,
+                () => LinuxPlatform.Shared,
                 identity,
                 StatusFor(link),
                 OnAdmitted,
