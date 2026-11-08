@@ -168,7 +168,8 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 dials, split</string>
   <string name="media_layout_title">Media layout</string>
-  <string name="media_layout_hint">Drag a piece to move it. It snaps to the grid and the centre lines.</string>
+  <string name="media_layout_hint_upright">This is the upright layout; turn the phone to arrange the sideways one. Drag a piece to move it. It snaps to the grid and the centre lines.</string>
+  <string name="media_layout_hint_sideways">This is the sideways layout; turn the phone to arrange the upright one. Drag a piece to move it. It snaps to the grid and the centre lines.</string>
   <string name="piece_now_playing">Now playing</string>
   <string name="piece_transport">Prev · play · next</string>
   <string name="media_layout_reset">Reset positions</string>

@@ -4,7 +4,10 @@ import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.RectF
+import android.text.Editable
 import android.text.InputFilter
+import android.text.TextWatcher
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -320,10 +323,16 @@ object GamepadLayoutScreen {
                             bounds(it, box)
                             box.contains(event.x, event.y)
                         } ?: return false
+                    postDelayed(holdTick, LONG_PRESS_MS)
                 }
 
                 MotionEvent.ACTION_MOVE -> {
                     val control = dragging ?: return false
+                    if (abs(event.x - downX) > LONG_PRESS_SLOP_DP * density ||
+                        abs(event.y - downY) > LONG_PRESS_SLOP_DP * density
+                    ) {
+                        removeCallbacks(holdTick)
+                    }
                     val moved = control.copy(x = snap(event.x, width), y = snap(event.y, height))
                     replace(control, moved)
                     dragging = moved
@@ -331,6 +340,7 @@ object GamepadLayoutScreen {
                 }
 
                 MotionEvent.ACTION_UP -> {
+                    removeCallbacks(holdTick)
                     val control = dragging
                     dragging = null
                     clearOnCentre()
@@ -348,6 +358,7 @@ object GamepadLayoutScreen {
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
+                    removeCallbacks(holdTick)
                     dragging = null
                     clearOnCentre()
                 }
@@ -400,9 +411,21 @@ object GamepadLayoutScreen {
                         R.string.gamepad_bind -> showBindPicker(control)
                         R.string.gamepad_size -> showSizePicker(control)
                         R.string.gamepad_label -> showLabelPicker(control)
-                        else -> commitLayout(layout.copy(controls = layout.controls - control))
+                        else -> confirmDelete(control)
                     }
                 }.showOver(this)
+        }
+
+        /** AND-A-24: a mis-tap in the menu must not remove a control; it asks first. */
+        private fun confirmDelete(control: Control) {
+            AlertDialog
+                .Builder(context)
+                .setTitle(context.getString(R.string.gamepad_delete_title, control.label))
+                .setMessage(R.string.gamepad_delete_body)
+                .setPositiveButton(R.string.gamepad_delete_control) { _, _ ->
+                    commitLayout(layout.copy(controls = layout.controls - control))
+                }.setNegativeButton(android.R.string.cancel, null)
+                .showOver(this)
         }
 
         private fun showSizePicker(control: Control) {
@@ -592,7 +615,7 @@ object GamepadLayoutScreen {
                     setSelection(length())
                     // A hint rather than a description: a screen reader reads a description instead of
                     // the field's own contents, which on a field the user is editing is the wrong half.
-                    hint = context.getString(titleRes)
+                    hint = context.getString(R.string.gamepad_name_required)
                     // A layout's name is neither a credential nor an address, so nothing an autofill
                     // service holds could ever fill it and offering it would only put a menu over a
                     // field ten characters wide.
@@ -600,17 +623,45 @@ object GamepadLayoutScreen {
                     val pad = (Space.L * density).toInt()
                     setPadding(pad, pad, pad, pad)
                 }
-            AlertDialog
-                .Builder(context)
-                .setTitle(titleRes)
-                .setView(field)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    // Nothing usable typed is nothing done: the name rules live in one place, and this is
-                    // the trust boundary they guard — a name carrying a separator would corrupt the store.
-                    GamepadLayout.clean(field.text.toString(), max)?.let(onName)
-                }.setNegativeButton(android.R.string.cancel, null)
-                .showOver(this)
+            val dialog =
+                AlertDialog
+                    .Builder(context)
+                    .setTitle(titleRes)
+                    .setView(field)
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        // Nothing usable typed is nothing done: the name rules live in one place, and this is
+                        // the trust boundary they guard — a name carrying a separator would corrupt the store.
+                        GamepadLayout.clean(field.text.toString(), max)?.let(onName)
+                    }.setNegativeButton(android.R.string.cancel, null)
+                    .openOver(this)
+            // AND-A-24: OK waits for a usable name, and the empty field says what is wanted.
+            val ok = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            ok.isEnabled = GamepadLayout.clean(field.text.toString(), max) != null
+            field.addTextChangedListener(
+                object : TextWatcher {
+                    override fun beforeTextChanged(
+                        text: CharSequence?,
+                        start: Int,
+                        count: Int,
+                        after: Int,
+                    ) = Unit
+
+                    override fun onTextChanged(
+                        text: CharSequence?,
+                        start: Int,
+                        before: Int,
+                        count: Int,
+                    ) = Unit
+
+                    override fun afterTextChanged(text: Editable?) {
+                        ok.isEnabled = GamepadLayout.clean(text.toString(), max) != null
+                    }
+                },
+            )
         }
+
+        /** AND-A-23: a tick when a hold reaches the long press, so it no longer looks like a tap until release. */
+        private val holdTick = Runnable { performHapticFeedback(HapticFeedbackConstants.LONG_PRESS) }
 
         private companion object {
             const val LONG_PRESS_MS = 500L

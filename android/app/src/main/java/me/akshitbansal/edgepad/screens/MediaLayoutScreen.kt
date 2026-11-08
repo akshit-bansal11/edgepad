@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.screens
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
@@ -50,7 +51,13 @@ object MediaLayoutScreen {
                 addView(
                     ui
                         .secondary(
-                            ui.string(R.string.media_layout_hint),
+                            ui.string(
+                                if (ui.context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                                    R.string.media_layout_hint_sideways
+                                } else {
+                                    R.string.media_layout_hint_upright
+                                },
+                            ),
                             Type.SMALL,
                             ui.palette.dim,
                         ).apply {

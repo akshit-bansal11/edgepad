@@ -20,6 +20,9 @@
   <string name="gamepad_bind">Binding</string>
   <string name="gamepad_label">Label</string>
   <string name="gamepad_delete_control">Delete control</string>
+  <string name="gamepad_delete_title">Delete %1$s?</string>
+  <string name="gamepad_delete_body">It is removed from this layout. Add puts a control back.</string>
+  <string name="gamepad_name_required">Give the layout a name</string>
 
   <!-- Adding a control: the kinds offered, in the order the menu lists them. -->
   <string name="gamepad_add_control">Add control</string>
