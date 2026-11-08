@@ -104,12 +104,14 @@
     <item>Bluetooth</item>
     <item>Wi-Fi or USB</item>
     <item>Trust</item>
+    <item>Clipboard</item>
   </string-array>
   <string-array name="guide_connect_values">
     <item>Install and open Edgepad. It sits in the taskbar corner, the menu bar or the system tray.</item>
     <item>Pair the laptop in this phone\'s Bluetooth settings, then tap it in Devices.</item>
     <item>Turn on Wi-Fi and USB connections in the laptop\'s Edgepad menu (on a Mac, Wi-Fi connections). For USB, also turn on USB tethering on the phone.</item>
     <item>The first time, the laptop asks whether to trust this phone: choose Trust there. If it asks for a PIN, type it here.</item>
+    <item>Since Android 10 only the app on screen can read the clipboard, so a copy made in another app reaches the laptop when you switch back to Edgepad. Or use Share, then Edgepad, to send text or an image straight away.</item>
   </string-array>
 
   <!-- Words inside the guide drawings. -->
