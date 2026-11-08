@@ -402,6 +402,7 @@
   <string name="surface_previous">Previous track</string>
   <string name="surface_open_settings">Open settings</string>
   <string name="surface_controls">Open the controls</string>
+  <string name="surface_back_again">Back again to open Devices</string>
   <string name="surface_lock">Hide the dials, or lock the trackpad</string>
   <string name="surface_mode_normal">Dials, media and trackpad all on</string>
   <string name="surface_mode_focus">Trackpad only · dials and media hidden</string>

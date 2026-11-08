@@ -265,6 +265,7 @@ class MainActivity :
 
     /** The laptop's app list while it is the screen, so a new list or a finished icon can be handed to it. */
     private var appList: AppListScreen? = null
+    private var lastSurfaceBack = 0L
 
     /** True from APPS_LIST until the one APPS_CANCEL that answers it, however the list is left. */
     private var listingApps = false
@@ -1080,8 +1081,16 @@ class MainActivity :
     /** One step back through the app. False at the first screen, where back leaves the app as usual. */
     private fun navigateBack(): Boolean {
         when (screen) {
+            // AND-A-18: a stray edge swipe while sliding a dial must not drop the user on Devices; the second back does.
             Screen.SURFACE -> {
-                goTo(Screen.PAIRING)
+                val now = SystemClock.uptimeMillis()
+                if (now - lastSurfaceBack <= BACK_AGAIN_MS) {
+                    lastSurfaceBack = 0L
+                    goTo(Screen.PAIRING)
+                } else {
+                    lastSurfaceBack = now
+                    Toast.makeText(this, R.string.surface_back_again, Toast.LENGTH_SHORT).show()
+                }
             }
 
             Screen.SETTINGS -> {
@@ -2413,6 +2422,10 @@ class MainActivity :
         const val TICK_MS = 1_000L
 
         const val MILLIS_PER_SECOND = 1_000L
+
+        /** AND-A-18: the window in which a second back on the surface leaves it for Devices. */
+        const val BACK_AGAIN_MS = 2_000L
+
         const val SECONDS_PER_MINUTE = 60
 
         /**
