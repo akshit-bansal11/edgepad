@@ -106,6 +106,7 @@
   <!-- A network pairing: the phone shows a code and the laptop's owner types it there. -->
   <string name="pair_title">Pairing code</string>
   <string name="pair_body">Type this code in Edgepad on %1$s. A window opens on the laptop; if not, open Edgepad\'s menu there.</string>
+  <string name="pair_new_code">Get a new code</string>
   <string name="pair_cancelled">Pairing cancelled. Tap the laptop to try again.</string>
   <string name="pair_code_spoken">Pairing code: %1$s</string>
   <string name="pair_expires">Expires in %1$s</string>

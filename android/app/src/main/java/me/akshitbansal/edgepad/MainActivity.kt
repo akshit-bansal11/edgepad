@@ -992,6 +992,12 @@ class MainActivity :
                         selected?.pairAsking == true,
                         onYes = { selected?.link?.answerPairing(true) },
                         onCancel = { navigateBack() },
+                        onNewCode = {
+                            selected?.let { laptop ->
+                                navigateBack()
+                                connect(laptop.target, tapped = true)
+                            }
+                        },
                     ).view
                 }
 
