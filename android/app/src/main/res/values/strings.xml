@@ -15,10 +15,8 @@
   <string name="device_make_active">Make active</string>
   <string name="device_disconnect">Disconnect</string>
   <string name="device_disconnect_all">Disconnect all</string>
-  <string name="device_disconnect_named">Disconnect %1$s</string>
   <string name="device_connect_named">Connect %1$s</string>
   <string name="device_make_active_named">Make active: %1$s</string>
-  <string name="forget_named">Forget %1$s</string>
   <string name="pair_again_named">Pair again: %1$s</string>
   <string name="more_ways">More ways to connect</string>
   <string name="not_now">Not now</string>
@@ -107,6 +105,8 @@
   <string name="pair_title">Pairing code</string>
   <string name="pair_body">Type this code in Edgepad on %1$s. A window opens on the laptop; if not, open Edgepad\'s menu there.</string>
   <string name="pair_new_code">Get a new code</string>
+  <string name="device_more">More</string>
+  <string name="device_more_named">More actions for %1$s</string>
   <string name="pair_cancelled">Pairing cancelled. Tap the laptop to try again.</string>
   <string name="pair_code_spoken">Pairing code: %1$s</string>
   <string name="pair_expires">Expires in %1$s</string>

@@ -386,12 +386,14 @@ class PickerScreen(
                 },
             )
         }
+        // AND-B-29: Disconnect and Forget sit behind one More chip, so the visible line holds the primary action.
+        val more = mutableListOf<Pair<String, () -> Unit>>()
         if (row.laptops.any { !it.idle }) {
-            add(chip(R.string.device_disconnect, R.string.device_disconnect_named) { onDisconnect(fresh(device)) })
+            more += ui.string(R.string.device_disconnect) to { onDisconnect(fresh(device)) }
         }
         if (row.laptops.isNotEmpty() || row.saved != null) {
-            add(
-                chip(R.string.forget, R.string.forget_named, danger = true) {
+            more +=
+                ui.string(R.string.forget) to {
                     // Over the list and not this chip: a rescan rebuilds the rows, and the question would go with it.
                     ui.confirm(
                         list,
@@ -399,6 +401,16 @@ class PickerScreen(
                         ui.string(R.string.forget_laptop_body),
                         ui.string(R.string.forget),
                     ) { onForget(fresh(device)) }
+                }
+        }
+        if (more.isNotEmpty()) {
+            add(
+                chip(R.string.device_more, R.string.device_more_named) {
+                    AlertDialog
+                        .Builder(ui.context)
+                        .setTitle(row.name)
+                        .setItems(more.map { it.first }.toTypedArray()) { _, which -> more[which].second() }
+                        .showOver(list)
                 },
             )
         }
