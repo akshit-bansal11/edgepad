@@ -56,6 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var firstRunQuestionDue = false
     private var bluetoothRetryPending = false
     private var permissionTimer: Timer?
+    private var bluetoothPower: BluetoothPower?
     private var badged = false
     /// The last AXIsProcessTrusted the poll saw, so the phone is told (TEXT 18) only on a change.
     private var lastTrusted = AXIsProcessTrusted()
@@ -129,6 +130,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
         ) { [weak self] _ in self?.listenAgain() }
+        // And Bluetooth switched off and on: the record does not necessarily survive it.
+        bluetoothPower = BluetoothPower { [weak self] on in
+            guard let self else { return }
+            if on {
+                self.listenAgain()
+            } else {
+                self.server?.stop()
+                if self.host?.hasPhone != true {
+                    self.setStatus(StatusText.bluetoothProblem(denied: false, off: true))
+                }
+            }
+        }
 
         checkForUpdate()
         Timer.scheduledTimer(withTimeInterval: UpdateCheck.every, repeats: true) { [weak self] _ in

@@ -64,6 +64,9 @@ final class SessionHost {
     /// Whether macOS is discarding this Mac's input (no Accessibility trust); set by the app, read for TEXT 18.
     var inputBlocked: () -> Bool = { false }
 
+    /// Whether a phone is connected and admitted.
+    var hasPhone: Bool { current != nil }
+
     /// The permission changed: tells the phone in use (TEXT 18).
     func inputStateChanged() {
         current?.sendInputState()
