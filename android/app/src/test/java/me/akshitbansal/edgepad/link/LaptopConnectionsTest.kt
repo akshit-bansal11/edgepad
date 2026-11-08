@@ -560,6 +560,47 @@ class LaptopConnectionsTest {
         assertEquals(2, made.size)
     }
 
+    @Test
+    fun aLaptopThatForgotThePhoneIsRememberedAsSuchUntilTheNextAttempt() {
+        connect(1).drop(LaptopLink.Cause.NOT_PAIRED)
+        assertEquals(LaptopLink.Cause.NOT_PAIRED, laptop(1).lastCause)
+        connect(1)
+        assertNull(laptop(1).lastCause)
+    }
+
+    @Test
+    fun disconnectAllEndsEveryLinkAndDropsTheRetriesWaiting() {
+        val a = up(1)
+        up(2).drop()
+        manager.disconnectAll()
+        assertEquals(LaptopLink.Cause.ENDED, a.closedWith)
+        scheduler.advance(LaptopConnections.RETRY_DELAY_MS * 2)
+        assertEquals(2, made.size)
+        assertFalse(laptop(2).reconnecting)
+    }
+
+    @Test
+    fun aKeptAliveProcessGoesOnRetryingInTheBackgroundUpToTheCap() {
+        up(1).drop()
+        manager.keepAlive = true
+        manager.foreground = false
+        repeat(LaptopConnections.MAX_ATTEMPTS * 2) {
+            scheduler.advance(LaptopConnections.RETRY_DELAY_MS)
+            made.last().drop(LaptopLink.Cause.UNREACHABLE)
+        }
+        assertEquals(LaptopConnections.MAX_ATTEMPTS, linksTo(1))
+    }
+
+    @Test
+    fun theBackgroundRetriesStopWhenTheProcessIsNoLongerHeld() {
+        up(1).drop()
+        manager.keepAlive = true
+        manager.foreground = false
+        manager.keepAlive = false
+        scheduler.advance(LaptopConnections.RETRY_DELAY_MS * 2)
+        assertEquals(1, made.size)
+    }
+
     private class FakeLink(
         val target: Target,
         val events: LinkEvents,

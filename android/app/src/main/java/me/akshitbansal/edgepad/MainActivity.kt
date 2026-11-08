@@ -53,6 +53,8 @@ import me.akshitbansal.edgepad.link.LinkHooks
 import me.akshitbansal.edgepad.link.LinkNotice
 import me.akshitbansal.edgepad.link.LinkService
 import me.akshitbansal.edgepad.link.LinkTransport
+import me.akshitbansal.edgepad.link.NET_KEY
+import me.akshitbansal.edgepad.link.OlderHalf
 import me.akshitbansal.edgepad.link.LocalNetwork
 import me.akshitbansal.edgepad.link.MainScheduler
 import me.akshitbansal.edgepad.link.PickerHint
@@ -71,8 +73,11 @@ import me.akshitbansal.edgepad.link.laptopLinks
 import me.akshitbansal.edgepad.link.laptopRows
 import me.akshitbansal.edgepad.link.linkNotice
 import me.akshitbansal.edgepad.link.mergeFound
+import me.akshitbansal.edgepad.link.mergedRows
 import me.akshitbansal.edgepad.link.net.LinkKeys
 import me.akshitbansal.edgepad.link.net.Sas
+import me.akshitbansal.edgepad.link.olderHalf
+import me.akshitbansal.edgepad.link.parseHex
 import me.akshitbansal.edgepad.link.parseHostPort
 import me.akshitbansal.edgepad.link.pickerHint
 import me.akshitbansal.edgepad.link.probeAddress
@@ -344,7 +349,8 @@ class MainActivity :
                 onVia = { device, transport -> connectTo(device.row, transport) },
                 onMakeActive = { device -> device.row.laptop?.let { manager.select(it.id) } },
                 onDisconnect = { device -> disconnectRow(device.row) },
-                onForget = { device -> forgetLaptop(device.row.laptop, device.row.keys) },
+                onForget = { device -> forgetLaptop(device.row.laptops, device.row.keys) },
+                onPairAgain = { device -> connectTo(device.row, device.row.via, pairAgain = true) },
                 onOpenControls = { goTo(Screen.SURFACE) },
                 onBluetoothSettings = ::openBluetoothSettings,
                 onSettings = ::openSettings,
@@ -358,6 +364,7 @@ class MainActivity :
                 },
                 onAddAddress = ::askAddress,
                 onUsbHelp = ::openTetherSettings,
+                onDisconnectAll = ::disconnectAll,
             )
         discovery =
             Discovery(this) { list ->
@@ -375,7 +382,11 @@ class MainActivity :
         // The service ends every link through this and holds nothing of the activity: only the manager, which survives
         // a rebuild, so the new activity sets the same thing again.
         val links = manager
-        LinkHooks.disconnectAll = { links.closeAll(LaptopLink.Cause.ENDED) }
+        LinkHooks.disconnectAll = {
+            links.disconnectAll()
+            // As Disconnect on a row: nothing reconnects by itself until the laptop is tapped.
+            owner.savedLaptops = encodeSaved(decodeSaved(owner.savedLaptops).map { it.copy(autoConnect = false) })
+        }
         if (retained != null) {
             clipboard = retained.clipboard
             apps = retained.apps
@@ -468,12 +479,14 @@ class MainActivity :
      * the links that remain get the usual wait.
      */
     private fun syncService() {
-        val notice = if (settings.stayConnected) linkNotice(manager.laptops, manager.selected) else null
+        val notice =
+            if (settings.stayConnected) linkNotice(manager.laptops, manager.selected, settings.clipboardSync) else null
         if (notice == null) {
             if (!serviceUp) return
             serviceUp = false
             shownNotice = null
             LinkService.stop(applicationContext)
+            manager.keepAlive = false
             if (!started) lingerLinks()
             return
         }
@@ -484,6 +497,8 @@ class MainActivity :
         LinkService.show(applicationContext, notice, serviceUp)
         serviceUp = true
         shownNotice = notice
+        // The process is held, so a laptop that drops in the background is still won back; see LaptopConnections.
+        manager.keepAlive = true
     }
 
     private fun askNotifications() {
@@ -1404,11 +1419,14 @@ class MainActivity :
             askLocalNetwork()
         }
         val rows =
-            laptopRows(
-                remembered,
-                manager.laptops,
-                shown.map { it.address to nameOf(it) },
-                mergeFound(wifiFound + usbFound),
+            mergedRows(
+                laptopRows(
+                    remembered,
+                    manager.laptops,
+                    shown.map { it.address to nameOf(it) },
+                    mergeFound(wifiFound + usbFound),
+                ),
+                selected,
             )
         val hint =
             pickerHint(
@@ -1421,11 +1439,12 @@ class MainActivity :
                 anyDevices = rows.isNotEmpty(),
             )
         picker.showDevices(
-            rows.map { PickerScreen.Device(it, it.laptop != null && it.laptop === selected) },
+            rows.map { row -> PickerScreen.Device(row, row.laptops.any { it === selected }) },
             connected,
             settings.reconnect,
             hidden = paired.size - laptops.size,
             showingAll = showAllDevices,
+            staysConnected = settings.stayConnected,
         )
         when (hint) {
             // First, because Wi-Fi and USB laptops cannot be found without it.
@@ -1479,20 +1498,19 @@ class MainActivity :
                 picker.setMessage("")
             }
         }
-        picker.setStatus(sweepStatus())
+        picker.setStatus(if (rows.isEmpty()) sweepStatus() else "")
     }
 
-    /** What the last sweep saw, in one line; it is also the diagnostic, as this machine has no adb. */
+    /**
+     * Where the last sweep looked and found nothing, in plain words. Shown only when no laptop is listed: a list with
+     * laptops in it needs no explanation of the network, and the address stays in the log for a bug report.
+     */
     private fun sweepStatus(): String {
         val last = sweep ?: return ""
-        val wifi = last.wifi?.let { getString(R.string.status_wifi, it) } ?: getString(R.string.status_no_wifi)
-        val usb =
-            when {
-                last.usb != null -> getString(R.string.status_usb_on, last.usb)
-                usbCable -> getString(R.string.status_usb_off)
-                else -> null
-            }
-        return listOfNotNull(wifi, usb).joinToString(" ")
+        Log.d("Edgepad", "Sweep: wifi=${last.wifi} usb=${last.usb}")
+        val wifi = if (last.wifi != null) R.string.status_searched_wifi else R.string.status_no_wifi
+        val usb = if (last.usb != null) R.string.status_searched_usb else null
+        return listOfNotNull(wifi, usb).joinToString(" ") { getString(it) }
     }
 
     /**
@@ -1586,6 +1604,20 @@ class MainActivity :
 
     private fun targetOf(found: Found) = Target.Network(found.laptopId, found.name, found.hosts, found.port)
 
+    /** Pairing keys are kept per laptop id, so a network laptop forgotten here is paired from scratch next time. */
+    private fun dropPairingKeys(keys: Set<String>) {
+        val ids = keys.filter { it.startsWith(NET_KEY) }.mapNotNull { parseHex(it.removePrefix(NET_KEY)) }
+        if (ids.isEmpty()) return
+        val store = LinkKeys.open(applicationContext)
+        thread(name = "edgepad-forget") {
+            try {
+                ids.forEach(store::forget)
+            } catch (e: IOException) {
+                Log.w("Edgepad", "Could not delete a pairing key", e)
+            }
+        }
+    }
+
     /** A tap on a row: the prompt it is waiting on, the controls of a connected laptop, or else a connect. */
     private fun tapDevice(device: PickerScreen.Device) {
         val row = device.row
@@ -1612,10 +1644,14 @@ class MainActivity :
         }
     }
 
-    /** The row's laptop over [via]. Connected already, its link there is replaced by this one. */
+    /**
+     * The row's laptop over [via]. Connected already, its link there is replaced by this one. [pairAgain] is the
+     * user's own "Pair again" for a network laptop that forgot this phone: this one attempt pairs with a new code.
+     */
     private fun connectTo(
         row: LaptopRow,
         via: Transport?,
+        pairAgain: Boolean = false,
     ) {
         // A tap starts a fresh set of attempts and earns the quick retry: the first connect after a long idle often
         // fails once and then works.
@@ -1637,14 +1673,22 @@ class MainActivity :
         if (chosen == null) {
             picker.setMessage(getString(R.string.not_paired))
         } else {
-            connect(chosen, via, tapped = true)
+            connect(if (pairAgain && chosen is Target.Network) chosen.again() else chosen, via, tapped = true)
         }
     }
 
     /** It stays listed and off the automatic connect, until the next time it is connected to. */
     private fun disconnectRow(row: LaptopRow) {
         saved = saved.map { if (it.isIn(row.keys)) it.copy(autoConnect = false) else it }
-        row.laptop?.let { manager.disconnect(it.id) }
+        row.laptops.forEach { manager.disconnect(it.id) }
+        syncService()
+        refreshDevices()
+    }
+
+    /** Every link ends and none reconnects by itself until it is tapped, as Disconnect on a row does. */
+    private fun disconnectAll() {
+        saved = saved.map { it.copy(autoConnect = false) }
+        manager.disconnectAll()
         syncService()
         refreshDevices()
     }
@@ -1807,9 +1851,9 @@ class MainActivity :
         }
     }
 
+    // The row says it is waiting; a second copy under the list would only repeat it.
     override fun onAwaitingLaptop(laptop: Laptop) {
         refreshDevices()
-        if (laptop === selected) picker.setMessage(getString(R.string.status_accept_on_laptop))
     }
 
     /**
@@ -1861,7 +1905,11 @@ class MainActivity :
         frame: Frame,
     ) {
         // Said once a connection, for any laptop: the one that offers the clipboard may be the one selected.
-        if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) refreshBlobLinks()
+        if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) {
+            refreshBlobLinks()
+            // The notification only mentions the clipboard once the laptop has said it offers one.
+            syncService()
+        }
         if (frame is Frame.Text && frame.kind == TextKind.DEVICE.id) {
             remember(laptop)
             refreshDevices()
@@ -1924,12 +1972,13 @@ class MainActivity :
             refreshDevices()
             // Unreachable is a laptop that is off, which is nothing to report at every launch; its row says so.
             if (laptop.failed && laptop.idle && closure.cause != LaptopLink.Cause.UNREACHABLE) {
-                picker.setMessage(getString(R.string.status_closed_named, laptop.name, describe(closure)))
+                picker.setMessage(getString(R.string.status_closed_named, laptop.name, describe(closure, laptop)))
             }
             return
         }
         watchingMacros = false
         listingApps = false
+        val answering = screen
         // Devices is where the reason is shown, so an attempt that ends at the PIN or a pairing code goes there first.
         if (screen == Screen.PIN || screen == Screen.PAIR_CODE) goTo(Screen.PAIRING)
         when {
@@ -1948,6 +1997,12 @@ class MainActivity :
                     goTo(Screen.SETTINGS)
                 }
                 refreshPicker()
+                // Cancelled by the user; the row is the way back in, and the screen they left says so.
+                when (answering) {
+                    Screen.PAIR_CODE -> picker.setMessage(getString(R.string.pair_cancelled))
+                    Screen.PIN -> picker.setMessage(getString(R.string.pin_cancelled))
+                    else -> {}
+                }
             }
 
             // It was working and dropped on its own, or a retry just failed: say so while the manager tries.
@@ -1962,7 +2017,7 @@ class MainActivity :
 
             else -> {
                 refreshPicker()
-                picker.setMessage(getString(R.string.status_closed, describe(closure)))
+                picker.setMessage(getString(R.string.status_closed, describe(closure, laptop)))
             }
         }
     }
@@ -2019,13 +2074,16 @@ class MainActivity :
     }
 
     /** Why an attempt ended, in the user's language. The link names the cause; the words are the app's. */
-    private fun describe(closure: LaptopLink.Closure): String =
+    private fun describe(
+        closure: LaptopLink.Closure,
+        laptop: Laptop,
+    ): String =
         when (closure.cause) {
             LaptopLink.Cause.ENDED, LaptopLink.Cause.LOST -> getString(R.string.link_lost)
-            LaptopLink.Cause.UNREACHABLE -> getString(R.string.link_unreachable)
+            LaptopLink.Cause.UNREACHABLE -> unreachable(laptop)
             LaptopLink.Cause.REFUSED -> getString(R.string.link_refused)
-            LaptopLink.Cause.MISMATCH -> getString(R.string.link_mismatch, closure.detail, ProtocolConstants.VERSION)
-            LaptopLink.Cause.UNEXPECTED -> getString(R.string.link_unexpected, closure.detail)
+            LaptopLink.Cause.MISMATCH -> mismatch(closure.detail, laptop)
+            LaptopLink.Cause.UNEXPECTED -> unexpected(closure.detail)
             LaptopLink.Cause.NO_PERMISSION -> getString(R.string.link_no_permission)
             LaptopLink.Cause.NO_ANSWER -> getString(R.string.link_no_answer)
             LaptopLink.Cause.PIN_LOCKED -> lockedFor(closure.detail.toIntOrNull() ?: 0)
@@ -2034,6 +2092,37 @@ class MainActivity :
             LaptopLink.Cause.PAIRING_FAILED -> getString(R.string.link_pairing_failed)
             LaptopLink.Cause.PAIRING_LOCKED -> getString(R.string.link_pairing_locked)
         }
+
+    /** Bluetooth and the network fail for different reasons, and so ask for different things. */
+    private fun unreachable(laptop: Laptop): String =
+        getString(
+            if (laptop.target is Target.Bluetooth) {
+                R.string.link_unreachable_bluetooth
+            } else {
+                R.string.link_unreachable_network
+            },
+        )
+
+    /** What came back is for the log; to the user it is only "not Edgepad". */
+    private fun unexpected(detail: String): String {
+        Log.w("Edgepad", "Unexpected handshake reply: $detail")
+        return getString(R.string.link_unexpected)
+    }
+
+    /** Names the older half when the two protocol numbers say which it is: the higher number is the newer release. */
+    private fun mismatch(
+        theirs: String,
+        laptop: Laptop,
+    ): String {
+        val name = laptop.state.laptopName?.takeIf { it.isNotEmpty() } ?: laptop.name
+        val text =
+            when (olderHalf(theirs, ProtocolConstants.VERSION)) {
+                OlderHalf.LAPTOP -> R.string.link_mismatch_laptop_older
+                OlderHalf.PHONE -> R.string.link_mismatch_phone_older
+                OlderHalf.UNKNOWN -> R.string.link_mismatch
+            }
+        return getString(text, name)
+    }
 
     /** The lock-out wait as a person reads it: an hour is 60 minutes, not 3600 s. Minutes round up, never down. */
     private fun lockedFor(seconds: Int): String {
@@ -2067,13 +2156,18 @@ class MainActivity :
         lost.update((laptop.attempts + 1).coerceAtMost(most), most, status, seconds)
     }
 
-    /** Off the remembered list and the manager's. If it was selected, the next connected laptop is, or none. */
+    /**
+     * Off the remembered list and the manager's, and a network laptop's pairing key with it: the next tap pairs afresh,
+     * which is also the way out for a laptop that no longer knows this phone. Android's own Bluetooth pairing is not
+     * ours to remove. If it was selected, the next connected laptop is, or none.
+     */
     private fun forgetLaptop(
-        laptop: Laptop?,
+        laptops: List<Laptop>,
         keys: Set<String>,
     ) {
         saved = forgotten(saved, keys)
-        laptop?.let { manager.forget(it.id) }
+        laptops.forEach { manager.forget(it.id) }
+        dropPairingKeys(keys)
         syncService()
         refreshDevices()
     }

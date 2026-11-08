@@ -24,6 +24,9 @@ import me.akshitbansal.edgepad.R
  * list of permissions; CHANGE_WIFI_MULTICAST_STATE, already declared for finding laptops, is on it, as is
  * BLUETOOTH_CONNECT.
  *
+ * It also runs while a link that dropped is being won back, with a notification that says so, so that the
+ * retries go on with the app minimized; they run out after a few attempts like any others, and the service with them.
+ *
  * The notification's Disconnect ends every link through [LinkHooks] and stops this service.
  */
 class LinkService : Service() {
@@ -40,7 +43,13 @@ class LinkService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
-        val notice = LinkNotice(intent.getStringExtra(EXTRA_NAME).orEmpty(), intent.getIntExtra(EXTRA_OTHERS, 0))
+        val notice =
+            LinkNotice(
+                intent.getStringExtra(EXTRA_NAME).orEmpty(),
+                intent.getIntExtra(EXTRA_OTHERS, 0),
+                intent.getBooleanExtra(EXTRA_RECONNECTING, false),
+                intent.getBooleanExtra(EXTRA_SHARING, false),
+            )
         startForeground(NOTICE_ID, build(this, notice), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
         return START_NOT_STICKY
     }
@@ -51,6 +60,8 @@ class LinkService : Service() {
         private const val ACTION_DISCONNECT = "me.akshitbansal.edgepad.DISCONNECT"
         private const val EXTRA_NAME = "name"
         private const val EXTRA_OTHERS = "others"
+        private const val EXTRA_RECONNECTING = "reconnecting"
+        private const val EXTRA_SHARING = "sharing"
 
         /**
          * Starts the service with [notice], or rewrites its notification when it is already running; [running] is the
@@ -68,7 +79,9 @@ class LinkService : Service() {
                 context.startForegroundService(
                     Intent(context, LinkService::class.java)
                         .putExtra(EXTRA_NAME, notice.name)
-                        .putExtra(EXTRA_OTHERS, notice.others),
+                        .putExtra(EXTRA_OTHERS, notice.others)
+                        .putExtra(EXTRA_RECONNECTING, notice.reconnecting)
+                        .putExtra(EXTRA_SHARING, notice.sharing),
                 )
             }
         }
@@ -87,11 +100,19 @@ class LinkService : Service() {
             channel.setShowBadge(false)
             context.getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
             val title =
-                if (notice.others > 0) {
-                    context.resources
-                        .getQuantityString(R.plurals.link_notice_more, notice.others, notice.name, notice.others)
-                } else {
-                    context.getString(R.string.link_notice, notice.name)
+                when {
+                    notice.reconnecting -> {
+                        context.getString(R.string.link_notice_reconnecting, notice.name)
+                    }
+
+                    notice.others > 0 -> {
+                        context.resources
+                            .getQuantityString(R.plurals.link_notice_more, notice.others, notice.name, notice.others)
+                    }
+
+                    else -> {
+                        context.getString(R.string.link_notice, notice.name)
+                    }
                 }
             val open =
                 PendingIntent.getActivity(
@@ -107,14 +128,28 @@ class LinkService : Service() {
                     Intent(context, LinkService::class.java).setAction(ACTION_DISCONNECT),
                     PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
                 )
+            // The one button ends every link, and a laptop being won back too, so it says all of that.
+            val label =
+                when {
+                    notice.reconnecting -> R.string.lost_stop
+                    notice.others > 0 -> R.string.device_disconnect_all
+                    else -> R.string.device_disconnect
+                }
             val action =
                 Notification.Action
                     .Builder(
                         Icon.createWithResource(context, R.drawable.ic_close),
-                        context.getString(R.string.device_disconnect),
+                        context.getString(label),
                         disconnect,
                     ).build()
-            val text = context.getString(R.string.link_notice_text)
+            val text =
+                context.getString(
+                    when {
+                        notice.reconnecting -> R.string.link_notice_reconnecting_text
+                        notice.sharing -> R.string.link_notice_text_clipboard
+                        else -> R.string.link_notice_text
+                    },
+                )
             return Notification
                 .Builder(context, CHANNEL)
                 .setSmallIcon(R.drawable.ic_laptop)

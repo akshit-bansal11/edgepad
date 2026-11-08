@@ -144,4 +144,25 @@ class SavedLaptopsTest {
         assertEquals(RowStatus.NONE, row.status)
         assertFalse(row.reach.isEmpty())
     }
+
+    @Test
+    fun aLaptopOnBluetoothAndWifiIsOneRowInTheListWithBothKeys() {
+        val rows = laptopRows(emptyList(), emptyList(), listOf(bluetooth to "Desk"), listOf(found(Transport.WIFI)))
+        val merged = mergedRows(rows, null).single()
+        assertEquals(listOf(Transport.BLUETOOTH, Transport.WIFI), merged.reach)
+        assertEquals(setOf(bluetooth, net), merged.keys)
+    }
+
+    @Test
+    fun twoLaptopsWithDifferentNamesStayTwoRows() {
+        val rows = laptopRows(emptyList(), emptyList(), listOf(bluetooth to "Travel"), listOf(found(Transport.WIFI)))
+        assertEquals(2, mergedRows(rows, null).size)
+    }
+
+    @Test
+    fun twoBluetoothLaptopsWithOneNameStayTwoRows() {
+        val other = "11:22:33:44:55:66"
+        val rows = laptopRows(emptyList(), emptyList(), listOf(bluetooth to "Desk", other to "Desk"), emptyList())
+        assertEquals(2, mergedRows(rows, null).size)
+    }
 }

@@ -52,6 +52,48 @@ class LinkNoticeTest {
         assertEquals(LinkNotice("Office PC", 0), linkNotice(listOf(desk), desk))
     }
 
+    private fun lost(name: String): Laptop {
+        val target = Target.Network(name.toByteArray().copyOf(16), name, emptyList(), 47321)
+        return Laptop(target.key, name, Transport.WIFI, target).apply {
+            reconnecting = true
+            retryTimer = {}
+        }
+    }
+
+    @Test
+    fun aLaptopBeingWonBackIsNamedWhenNothingIsConnected() {
+        val desk = lost("Desk")
+        assertEquals(LinkNotice("Desk", 0, reconnecting = true), linkNotice(listOf(desk), desk))
+    }
+
+    @Test
+    fun aLaptopWhoseAttemptsRanOutIsNotNamed() {
+        val desk = lost("Desk").apply { attempts = LaptopConnections.MAX_ATTEMPTS }
+        assertNull(linkNotice(listOf(desk), desk))
+    }
+
+    @Test
+    fun aLaptopWithNoRetryComingIsNotNamed() {
+        val desk = lost("Desk").apply { retryTimer = null }
+        assertNull(linkNotice(listOf(desk), desk))
+    }
+
+    @Test
+    fun aConnectedLaptopOutranksALostOne() {
+        val desk = lost("Desk")
+        val travel = laptop("Travel")
+        assertEquals(LinkNotice("Travel", 0), linkNotice(listOf(desk, travel), desk))
+    }
+
+    @Test
+    fun theClipboardIsMentionedOnlyWhenSharingIsOnAndTheLaptopOffersIt() {
+        val desk = laptop("Desk")
+        assertEquals(false, linkNotice(listOf(desk), desk, clipboard = true)?.sharing)
+        desk.state.take(Frame.Text(TextKind.FEATURES.id, "clipboard"))
+        assertEquals(true, linkNotice(listOf(desk), desk, clipboard = true)?.sharing)
+        assertEquals(false, linkNotice(listOf(desk), desk, clipboard = false)?.sharing)
+    }
+
     private class FakeLink(
         override val connected: Boolean,
     ) : ManagedLink {
