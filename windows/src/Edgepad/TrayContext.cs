@@ -76,6 +76,7 @@ internal sealed class TrayContext : ApplicationContext
         ToolTipText = "Copy on one, paste on the other: text and images.",
     };
 
+    private readonly MenuRow checkUpdates = new("&Check for updates daily", Icons.Download) { CheckOnClick = true, Switch = true };
     private readonly MenuRow openLog = new("Open &log", Icons.FileText);
     private readonly MenuRow update = new("&Update available", Icons.Download) { Available = false };
     private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
@@ -104,6 +105,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly FirewallMemory firewallMemory;
     private readonly NetworkServer network;
     private readonly ClipboardSetting clipboardSetting;
+    private readonly UpdateSetting updateSetting;
     private readonly WindowsClipboard clipboard;
 
     // What is wrong with the Wi-Fi and USB listener, if anything (NetworkStatus). Only the UI thread touches it.
@@ -140,6 +142,7 @@ internal sealed class TrayContext : ApplicationContext
         networkSettings = NetworkSettings.ForCurrentUser(pin.Folder);
         firewallMemory = FirewallMemory.ForCurrentUser(pin.Folder);
         clipboardSetting = ClipboardSetting.ForCurrentUser(pin.Folder);
+        updateSetting = UpdateSetting.ForCurrentUser(pin.Folder);
 
         // An install from before the first-run question asked about the clipboard had it on without a file. It keeps
         // what it had, written down so it is a stored value from now on; only an install that never answered asks.
@@ -156,6 +159,7 @@ internal sealed class TrayContext : ApplicationContext
         networkRow.Click += (_, _) => ToggleNetwork(networkRow.Checked);
         firewallRow.Click += (_, _) => AllowFirewall(ReportFirewall);
         clipboardRow.Click += (_, _) => SaveClipboard(clipboardRow.Checked);
+        checkUpdates.Click += (_, _) => SaveCheckUpdates(checkUpdates.Checked);
         update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
         bluetoothRow.Click += (_, _) => Open("ms-settings:bluetooth", "Bluetooth settings");
         networkProblem.Click += (_, _) => OpenLog();
@@ -172,6 +176,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(networkRow);
         menu.Items.Add(clipboardRow);
         menu.Items.Add(startWithWindows);
+        menu.Items.Add(checkUpdates);
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(macrosRow);
         menu.Items.Add(securityRow);
@@ -193,6 +198,7 @@ internal sealed class TrayContext : ApplicationContext
             firewallRow.Available = networkRow.Checked && firewallRefused && !allowingNetwork;
             bluetoothRow.Available = trust.TrustedPhones.Count == 0;
             clipboardRow.Checked = clipboardSetting.Enabled;
+            checkUpdates.Checked = updateSetting.Enabled;
             openLog.Enabled = File.Exists(Log.FilePath);
             macrosRow.Hint = $"{macros.Macros.Count} of {MacroStore.MaxMacros}";
             menu.Restyle();
@@ -283,10 +289,14 @@ internal sealed class TrayContext : ApplicationContext
 
         _ = StartMediaAsync();
 
-        // Once now and once a day after, for a tray app that is left running for weeks.
+        // Once now and once a day after, for a tray app that is left running for weeks; neither when the owner has
+        // turned "Check for updates daily" off.
         updateTimer.Tick += (_, _) => _ = CheckForUpdateAsync();
-        updateTimer.Start();
-        _ = CheckForUpdateAsync();
+        if (updateSetting.Enabled)
+        {
+            updateTimer.Start();
+            _ = CheckForUpdateAsync();
+        }
 
         // A newer Edgepad asks this one to quit through the event, so running an update takes over cleanly.
         new Thread(() => WaitForQuit(quit)) { IsBackground = true, Name = "edgepad-quit" }.Start();
@@ -565,6 +575,28 @@ internal sealed class TrayContext : ApplicationContext
         if (!clipboardSetting.Set(on))
         {
             Balloon("Share clipboard changed for now, but could not be saved, so the next launch may not remember it.", ToolTipIcon.Warning);
+        }
+    }
+
+    /// <summary>
+    /// The Check for updates daily switch. Off stops the daily timer; on starts it and checks once now. It holds from
+    /// this moment whether or not it could be saved.
+    /// </summary>
+    private void SaveCheckUpdates(bool on)
+    {
+        if (!updateSetting.Set(on))
+        {
+            Balloon("Check for updates daily changed for now, but could not be saved, so the next launch may not remember it.", ToolTipIcon.Warning);
+        }
+
+        if (on)
+        {
+            updateTimer.Start();
+            _ = CheckForUpdateAsync();
+        }
+        else
+        {
+            updateTimer.Stop();
         }
     }
 
@@ -1072,6 +1104,7 @@ internal sealed class TrayContext : ApplicationContext
             firewallRow.Dispose();
             bluetoothRow.Dispose();
             clipboardRow.Dispose();
+            checkUpdates.Dispose();
             openLog.Dispose();
             update.Dispose();
             updateTimer.Dispose();
