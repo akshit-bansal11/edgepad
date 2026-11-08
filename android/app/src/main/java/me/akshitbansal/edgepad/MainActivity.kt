@@ -1273,7 +1273,12 @@ class MainActivity :
                 Log.w("Edgepad", "Could not read the picked image", e)
                 R.string.image_unreadable
             }
-        if (refusal == 0) settings.background = Settings.Background.IMAGE else part.delete()
+        if (refusal == 0) {
+            settings.backgroundImageDark = BackgroundImage.peek()?.dark ?: false
+            settings.background = Settings.Background.IMAGE
+        } else {
+            part.delete()
+        }
         return refusal
     }
 

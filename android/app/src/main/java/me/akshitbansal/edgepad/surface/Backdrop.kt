@@ -10,9 +10,11 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
 import android.util.Log
+import android.view.View
 import me.akshitbansal.edgepad.Settings
 import java.io.File
 import java.io.IOException
+import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -29,11 +31,12 @@ private const val LUMA_SAMPLE = 16
 
 /**
  * What the control surface paints behind everything: the theme's background, a colour, a gradient, or an
- * imported image, then a repeating pattern over it. Everything expensive happens in [resize]; drawing
- * allocates nothing.
+ * imported image, then a repeating pattern over it. Everything expensive happens in [resize] or on a worker
+ * thread ([load]); drawing allocates nothing and never decodes. The UI thread only ever takes a picture that
+ * is already decoded; until it arrives the image is drawn as the theme's background.
  */
 class Backdrop(
-    settings: Settings,
+    private val settings: Settings,
     private val density: Float,
     private val themeColor: Int,
 ) {
@@ -50,11 +53,29 @@ class Backdrop(
             strokeWidth = density
         }
     private val fill = Paint()
-    private val picture =
-        if (kind == Settings.Background.IMAGE) BackgroundImage.load(settings.backgroundImage) else null
-    private val image: Bitmap? = picture?.bitmap
+    private val imageDark = settings.backgroundImageDark
+    private var picture = if (kind == Settings.Background.IMAGE) BackgroundImage.peek() else null
+    private var image: Bitmap? = picture?.bitmap
     private val source = Rect()
     private val target = RectF()
+
+    /**
+     * Decodes the image on a worker when it is not decoded yet (a cold start), then posts it to [view] and
+     * redraws. Does nothing for any other background.
+     */
+    fun load(view: View) {
+        if (kind != Settings.Background.IMAGE || picture != null) return
+        thread(name = "edgepad-backdrop") {
+            val decoded = BackgroundImage.load(settings.backgroundImage) ?: return@thread
+            settings.backgroundImageDark = decoded.dark
+            view.post {
+                picture = decoded
+                image = decoded.bitmap
+                resize(target.width().roundToInt(), target.height().roundToInt())
+                view.invalidate()
+            }
+        }
+    }
 
     fun resize(
         width: Int,
@@ -178,10 +199,12 @@ class Backdrop(
 
                 Settings.Background.GRADIENT -> (luminance(color) + luminance(gradientEnd)) / 2 < HALF
 
-                // Measured once, when the image was decoded. It was taken to be dark until 3.2, which drew
-                // light controls on a photo of a snowfield. An image that is missing or failed to decode is
-                // drawn as the theme's background, so it reads as that.
-                Settings.Background.IMAGE -> picture?.dark ?: (luminance(themeColor) < HALF)
+                // Measured once, when the image was decoded, and stored so a cold start knows it without
+                // decoding on the UI thread. It was taken to be dark until 3.2, which drew light controls on a
+                // photo of a snowfield. An image that is missing is drawn as the theme's background.
+                Settings.Background.IMAGE -> {
+                    if (settings.backgroundImage.isFile) imageDark else luminance(themeColor) < HALF
+                }
             }
 
     private companion object {
@@ -199,7 +222,8 @@ class Backdrop(
  * Now it is decoded down to about the screen's size, turned the way the photo's EXIF says (ImageDecoder does
  * that, where BitmapFactory ignored it and drew a portrait photo on its side), measured for brightness once,
  * and cached against the file's size and modification time, so a new import is noticed and nothing else is.
- * The activity loads it on the thread that copies an import in, so the UI thread finds it already decoded.
+ * The activity loads it on the thread that copies an import in, and a cold start loads it on a worker
+ * ([Backdrop.load]); the UI thread only [peek]s.
  */
 object BackgroundImage {
     class Decoded(
@@ -209,7 +233,12 @@ object BackgroundImage {
     )
 
     private var key = ""
+
+    @Volatile
     private var cached: Decoded? = null
+
+    /** What [load] last decoded, never decoding itself, so the UI thread never waits on a worker's decode. */
+    fun peek(): Decoded? = cached
 
     /** The image in [file], or null when there is none or it is not a picture this phone can decode. */
     @Synchronized

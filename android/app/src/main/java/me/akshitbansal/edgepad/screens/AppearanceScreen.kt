@@ -314,7 +314,7 @@ object AppearanceScreen {
 
         private val density = resources.displayMetrics.density
         private val palette = Palette.of(context)
-        private var backdrop = Backdrop(settings, density, palette.background)
+        private var backdrop = Backdrop(settings, density, palette.background).also { it.load(this) }
 
         init {
             contentDescription = context.getString(R.string.background_preview_description)
@@ -322,7 +322,7 @@ object AppearanceScreen {
 
         /** Re-reads the settings; the backdrop reads them once, when it is made. */
         fun update() {
-            backdrop = Backdrop(settings, density, palette.background)
+            backdrop = Backdrop(settings, density, palette.background).also { it.load(this) }
             // Before the first layout there is no size, and an image cannot be cropped to nothing.
             if (width > 0 && height > 0) backdrop.resize(width, height)
             invalidate()

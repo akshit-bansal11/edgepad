@@ -230,6 +230,9 @@ class Settings(
 
     var backgroundColor by color(KEY_BACKGROUND_COLOR, DEFAULT_BACKGROUND)
 
+    /** Whether the imported background image is mostly dark, measured when it was decoded. */
+    var backgroundImageDark by flag(KEY_BACKGROUND_IMAGE_DARK, false)
+
     /** The second colour of a gradient; the first is [backgroundColor]. */
     var gradientEnd by color(KEY_GRADIENT_END, DEFAULT_GRADIENT_END)
 
@@ -515,6 +518,7 @@ class Settings(
         private const val KEY_CONTROL_COLOR = "controlColor"
         private const val KEY_BACKGROUND = "background"
         private const val KEY_BACKGROUND_COLOR = "backgroundColor"
+        private const val KEY_BACKGROUND_IMAGE_DARK = "backgroundImageDark"
         private const val KEY_GRADIENT_END = "gradientEnd"
         private const val KEY_GRADIENT_ANGLE = "gradientAngle"
         private const val KEY_PATTERN = "pattern"

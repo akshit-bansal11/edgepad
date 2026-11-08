@@ -70,7 +70,7 @@ class ControlSurface(
 
     private val density = resources.displayMetrics.density
     private val palette = Palette.of(context)
-    private val backdrop = Backdrop(settings, density, palette.background)
+    private val backdrop = Backdrop(settings, density, palette.background).also { it.load(this) }
 
     // The colour the controls are drawn in, its dimmed forms, and the accent for what is live. On the theme's
     // own background they are the theme's; on a colour, gradient or image, whichever of white or black and of
