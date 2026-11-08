@@ -10,11 +10,14 @@ namespace Edgepad.Ui;
 /// </summary>
 internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> announce) : IPairingPrompt
 {
-    public IPairingQuestion Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled)
+    public IPairingQuestion Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled) =>
+        Show(phoneName, null, onTyped, onOwnerCancelled);
+
+    public IPairingQuestion Show(string phoneName, string? source, Action<string> onTyped, Action onOwnerCancelled)
     {
         var deadline = Environment.TickCount64 + (long)LinkResponder.OwnerTimeout.TotalMilliseconds;
         var shown = new Shown(ui);
-        ui.Post(_ => shown.Open(phoneName, deadline, onTyped, onOwnerCancelled), null);
+        ui.Post(_ => shown.Open(phoneName, source, deadline, onTyped, onOwnerCancelled), null);
         announce(phoneName);
         return shown;
     }
@@ -48,7 +51,7 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
         // Set at once by Dispose, on the pairing's thread, so an Open already posted ahead of the withdrawal sees it.
         private volatile bool withdrawn;
 
-        public void Open(string phoneName, long deadline, Action<string> onTyped, Action onOwnerCancelled)
+        public void Open(string phoneName, string? source, long deadline, Action<string> onTyped, Action onOwnerCancelled)
         {
             // Withdrawn or out of time before the post got here: a question nobody would read the answer to must not go up.
             if (withdrawn || Environment.TickCount64 >= deadline)
@@ -57,12 +60,16 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
             }
 
             phone = phoneName;
-            window = new PairingWindow(phoneName, deadline, onTyped, onOwnerCancelled);
+            window = new PairingWindow(phoneName, source, deadline, onTyped, onOwnerCancelled);
             window.FormClosed += (_, _) => window = null;
 
             // Not modal, and not activated: a phone on the same Wi-Fi must not be able to take the keyboard from what the
             // owner is typing. The notification says it is there, and the window waits, on top, until it is clicked.
             window.Show();
+
+            // Wanted but not forced on the owner: the taskbar button flashes until the window is clicked.
+            var flash = new FlashInfo(window.Handle);
+            _ = Injection.NativeMethods.FlashWindowEx(in flash);
         }
 
         public void Matched() => Post(() => window?.Tell(PairingText.Matched(phone), closeSoon: false));
@@ -100,6 +107,7 @@ internal sealed class PairingWindow : Form
     private readonly Action onOwnerCancelled;
 
     private readonly Label heading = new() { AutoSize = false };
+    private readonly Label origin = new() { AutoSize = false };
     private readonly Label ask = new() { AutoSize = false, Text = "Type the pairing code shown on the phone:" };
     private readonly Label warn = new() { AutoSize = false, Text = PairingText.Warning };
     private readonly Label countdown = new() { AutoSize = false };
@@ -127,7 +135,7 @@ internal sealed class PairingWindow : Form
     // Set once the window says how the code went: it no longer asks, and is no longer withdrawn.
     private bool told;
 
-    public PairingWindow(string phoneName, long deadline, Action<string> onTyped, Action onOwnerCancelled)
+    public PairingWindow(string phoneName, string? source, long deadline, Action<string> onTyped, Action onOwnerCancelled)
     {
         this.deadline = deadline;
         this.onTyped = onTyped;
@@ -135,6 +143,7 @@ internal sealed class PairingWindow : Form
 
         Text = "Pair a phone";
         heading.Text = $"Pair {phoneName}?";
+        origin.Text = source ?? "";
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -170,7 +179,7 @@ internal sealed class PairingWindow : Form
         // Enter only does anything once six digits are in, since Pair is disabled until then.
         AcceptButton = pair;
         CancelButton = cancel;
-        Controls.AddRange([heading, ask, codeFrame, countdown, warn, cancel, pair]);
+        Controls.AddRange([heading, origin, ask, codeFrame, countdown, warn, cancel, pair]);
         Count();
         tick.Start();
         Relayout();
@@ -319,6 +328,11 @@ internal sealed class PairingWindow : Form
         }
 
         Put(heading, 18f, Weight.Bold, palette.Ink, S(6));
+        if (origin.Text.Length > 0)
+        {
+            Put(origin, 14f, Weight.Regular, palette.Dim, S(6));
+        }
+
         Put(ask, 14f, Weight.Regular, palette.Dim, S(10));
         codeFrame.Place(new Rectangle(left, y, width, S(Box)), DeviceDpi);
         y += S(Box + 10);

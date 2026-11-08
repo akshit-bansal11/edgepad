@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Cryptography;
 using Edgepad.Protocol;
 using Edgepad.Trust;
@@ -15,6 +16,13 @@ internal sealed record LinkResult(Stream Secure, string Address, string PhoneNam
 internal interface IPairingPrompt
 {
     IPairingQuestion Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled);
+
+    /// <summary>
+    /// As above, with where the request came from (<see cref="PairingText.SourceOf"/>) for a prompt that shows it. A
+    /// prompt that does not just ignores it.
+    /// </summary>
+    IPairingQuestion Show(string phoneName, string? source, Action<string> onTyped, Action onOwnerCancelled) =>
+        Show(phoneName, onTyped, onOwnerCancelled);
 }
 
 /// <summary>
@@ -49,6 +57,10 @@ internal static class PairingText
     public static string Matched(string phoneName) => $"Pairing code matched. Tap Yes on {phoneName} to finish.";
 
     public static string Paired(string phoneName) => $"Paired with {phoneName}.";
+
+    /// <summary>"from 192.168.1.23, over Wi-Fi", or "over USB" when it came through the loopback (adb reverse); null when unknown.</summary>
+    public static string? SourceOf(IPAddress? address) =>
+        address is null ? null : $"from {(address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address)}, over {(IPAddress.IsLoopback(address) ? "USB" : "Wi-Fi")}";
 }
 
 /// <summary>
@@ -98,7 +110,8 @@ internal static class LinkResponder
         CancellationToken ended,
         TimeSpan? messageTimeout = null,
         TimeSpan? ownerTimeout = null,
-        Func<bool>? refusing = null)
+        Func<bool>? refusing = null,
+        IPAddress? remote = null)
     {
         var wait = messageTimeout ?? MessageTimeout;
         var body = ReadWithin(raw, wait, "request", log, giveUp);
@@ -127,7 +140,7 @@ internal static class LinkResponder
                     return null;
                 }
 
-                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, ended);
+                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, ended, PairingText.SourceOf(remote));
 
             case ResumeRequest resume:
                 return Resume(raw, resume, self, paired, log, giveUp, wait);
@@ -149,7 +162,8 @@ internal static class LinkResponder
         Action giveUp,
         TimeSpan wait,
         TimeSpan ownerWait,
-        CancellationToken ended)
+        CancellationToken ended,
+        string? source)
     {
         var address = AddressOf(request.PhoneId);
         if (!limiter.TryBegin())
@@ -212,7 +226,7 @@ internal static class LinkResponder
             }
 
             var asked = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
-            question = prompt.Show(name, digits => asked.TrySetResult(digits), () => asked.TrySetResult(null));
+            question = prompt.Show(name, source, digits => asked.TrySetResult(digits), () => asked.TrySetResult(null));
             var (answer, typed) = AwaitOwner(asked, ownerWait, ended);
             switch (answer)
             {

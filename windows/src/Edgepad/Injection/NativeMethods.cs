@@ -37,6 +37,11 @@ internal static partial class NativeMethods
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool LockWorkStation();
 
+    /// <summary>Flashes a window's taskbar button, for a window that must be noticed but must not take the keyboard.</summary>
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool FlashWindowEx(in FlashInfo info);
+
     /// <summary>A memory DC compatible with the screen, which is what a null DC asks for.</summary>
     [LibraryImport("gdi32.dll")]
     public static partial nint CreateCompatibleDC(nint dc);
@@ -227,4 +232,18 @@ internal struct KeyboardInput
     public uint Flags;
     public uint Time;
     public nint ExtraInfo;
+}
+
+/// <summary>FLASHWINFO: which window to flash and how.</summary>
+[StructLayout(LayoutKind.Sequential)]
+internal readonly struct FlashInfo(nint window)
+{
+    private const uint FlashTray = 0x2;
+    private const uint FlashUntilForeground = 0xC;
+
+    public readonly uint Size = (uint)Marshal.SizeOf<FlashInfo>();
+    public readonly nint Window = window;
+    public readonly uint Flags = FlashTray | FlashUntilForeground;
+    public readonly uint Count = uint.MaxValue;
+    public readonly uint Timeout = 0;
 }
