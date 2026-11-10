@@ -548,5 +548,4 @@
   <string name="battery_percent">%1$d%%</string>
   <string name="battery_more">+%1$d</string>
   <string name="battery_summary">Batteries: %1$s</string>
-  <string name="battery_strip_hint">Show batteries</string>
 </resources>

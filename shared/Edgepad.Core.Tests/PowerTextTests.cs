@@ -13,7 +13,9 @@ public sealed class PowerTextTests
     public void GoldenTextFramesCarryTheirPayloadBytes()
     {
         // frames.txt: "TEXT <kind> <payload> = hex"; the payload has no spaces there and may be absent.
-        var lines = Fixtures.Lines("frames.txt").Where(l => l.StartsWith("TEXT 19") || l.StartsWith("TEXT 20")).ToArray();
+        var lines = Fixtures.Lines("frames.txt")
+            .Where(l => l.StartsWith("TEXT 19", StringComparison.Ordinal) || l.StartsWith("TEXT 20", StringComparison.Ordinal))
+            .ToArray();
         Assert.NotEmpty(lines);
         foreach (var line in lines)
         {
@@ -106,6 +108,6 @@ public sealed class PowerTextTests
         using var both = new CountdownEvent(2);
         using var r = new PowerReporter(() => [], () => null, _ => both.Signal(), Never, Never);
         r.Start();
-        Assert.True(both.Wait(TimeSpan.FromSeconds(10)));
+        Assert.True(both.Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
     }
 }
