@@ -296,6 +296,7 @@ class LaptopConnections(
         laptop.state.forgetFeatures()
         laptop.state.forgetMacroOpen()
         laptop.state.forgetInputBlocked()
+        laptop.state.forgetPower()
         // A list belongs to the session that asked for it: its tokens mean nothing to the next one.
         laptop.state.apps.clear()
         laptop.target = resumable(target)
@@ -325,6 +326,7 @@ class LaptopConnections(
         laptop.link = null
         laptop.state.forgetMacroOpen()
         laptop.state.forgetInputBlocked()
+        laptop.state.forgetPower()
         clearAsking(laptop)
         laptop.failed = closure.cause != LaptopLink.Cause.ENDED
         laptop.lastCause = closure.cause.takeIf { laptop.failed }

@@ -130,6 +130,20 @@ class LaptopState {
         inputBlocked = false
     }
 
+    /** TEXT 19: the laptop's own battery and its peripherals' (whole snapshot). Empty until the laptop says. */
+    var batteries: List<BatteryEntry> = emptyList()
+        private set
+
+    /** TEXT 20: where the laptop's sound goes. Null until the laptop says, or when it knows no output. */
+    var output: Output? = null
+        private set
+
+    /** Forgets [batteries] and [output] when a link ends or a new one starts: the laptop says them afresh. */
+    fun forgetPower() {
+        batteries = emptyList()
+        output = null
+    }
+
     /** Forgets [macroOpen] when a link ends or a new one starts: the laptop says it afresh when next watched. */
     fun forgetMacroOpen() {
         macroOpen = emptyList()
@@ -206,6 +220,8 @@ class LaptopState {
                     TextKind.SIGN_STATUS -> signStatus = SignStatus.of(frame.text)
                     TextKind.DEVICE -> return device(frame.text)
                     TextKind.APP_ADD_STATUS -> apps.addStatus(frame.text)
+                    TextKind.BATTERIES -> batteries = Batteries.parse(frame.text)
+                    TextKind.OUTPUT -> output = Output.parse(frame.text)
                     else -> return false
                 }
             }

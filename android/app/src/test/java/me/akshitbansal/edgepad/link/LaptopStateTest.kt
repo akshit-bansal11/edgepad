@@ -224,6 +224,21 @@ class LaptopStateTest {
     }
 
     @Test
+    fun keepsAndForgetsBatteriesAndOutput() {
+        assertTrue(state.take(Frame.Text(TextKind.BATTERIES.id, "laptop:87:1:Desk")))
+        assertTrue(state.take(Frame.Text(TextKind.OUTPUT.id, "speaker/Speakers")))
+        assertEquals(87, state.batteries.single().level)
+        assertEquals("Speakers", state.output?.name)
+        // A snapshot: an empty one replaces the list.
+        assertTrue(state.take(Frame.Text(TextKind.BATTERIES.id, "")))
+        assertTrue(state.batteries.isEmpty())
+        state.take(Frame.Text(TextKind.BATTERIES.id, "laptop:87:1:Desk"))
+        state.forgetPower()
+        assertTrue(state.batteries.isEmpty())
+        assertNull(state.output)
+    }
+
+    @Test
     fun framesThatAreNotStateAreNotKept() {
         assertFalse(state.take(Frame.Pong(1)))
         // A kind no build knows, and one this end never receives: WANT_ICONS only ever goes the other way.
