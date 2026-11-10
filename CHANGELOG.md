@@ -4,7 +4,9 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
-No wire-protocol change: the protocol stays at version 5. **Mac and Linux are still in testing. Please use them at your own risk.** The phone is now told when a Mac lacks Accessibility or a Linux laptop cannot open `/dev/uinput` through a new TEXT kind (18); an older phone drops it. Not done: telling the phone about an elevated Windows window.
+## [4.1.0] - 2026-11-10
+
+No wire-protocol change: the protocol stays at version 5. **Mac and Linux are still in testing. Please use them at your own risk.** The phone is now told when a Mac lacks Accessibility or a Linux laptop cannot open `/dev/uinput` through a new TEXT kind (18), and about batteries and the sound output through TEXT kinds 19 and 20; an older phone drops all three. Not done: telling the phone about an elevated Windows window.
 
 ### Added
 
@@ -27,6 +29,8 @@ No wire-protocol change: the protocol stays at version 5. **Mac and Linux are st
 - **Pairing windows name where the request came from** (an address and Wi-Fi, or USB) and no longer take focus, so stray typing cannot land in the code box.
 - **Linux: clicking the update notification opens the release page.**
 - **The Security window lists every trusted phone,** each with its own **Forget**, next to **Forget all…**, on Windows, Mac and Linux. Forgetting one phone also clears its PIN-verified state and its Wi-Fi or USB pairing, and refuses that phone for 30 seconds without touching a phone that stays connected.
+- **Phone: batteries.** A strip above Settings, Lock and Controls shows the laptop in use, this phone and a **+N** chip for everything else, red when low and blue while charging. Tapping it opens **Batteries**, every level grouped by where the device is connected. Windows, Mac and Linux report their own battery and their Bluetooth devices' levels; a device that reports none is left out, and Bluetooth LE devices are not found on Windows yet.
+- **Phone: the volume dial names the output,** such as `AirPods` or `Speakers`, under the level.
 
 ### Changed
 
@@ -902,7 +906,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v4.0.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v4.1.0...HEAD
+[4.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v4.0.0...v4.1.0
 [4.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.5.0...v4.0.0
 [3.5.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.3.0...v3.4.0
