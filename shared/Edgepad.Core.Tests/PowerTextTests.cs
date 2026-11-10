@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using Edgepad.Power;
 using Edgepad.Protocol;
@@ -24,7 +25,7 @@ public sealed class PowerTextTests
             var payload = head.Length > 2 ? head[2] : string.Empty;
             var hex = halves[1].Split(' ').Select(h => Convert.ToByte(h, 16)).ToArray();
             Assert.Equal(0x41, hex[0]);
-            Assert.Equal(byte.Parse(head[1]), hex[1]);
+            Assert.Equal(byte.Parse(head[1], CultureInfo.InvariantCulture), hex[1]);
             Assert.Equal(hex.Length - 3, hex[2]);
             Assert.Equal(payload, Encoding.UTF8.GetString(hex, 3, hex[2]));
         }

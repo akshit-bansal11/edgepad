@@ -73,11 +73,8 @@ object BatteryModel {
 
     fun chips(g: BatteryGroups): BatteryChips {
         val laptop = g.inUse?.rows?.firstOrNull { it.kind == BatteryKind.LAPTOP }
-        val hidden =
-            (g.inUse
-                ?.rows
-                .orEmpty()
-                .filter { it !== laptop } + g.others.flatMap { it.rows })
+        val own = g.inUse?.rows.orEmpty().filter { it !== laptop }
+        val hidden = own + g.others.flatMap { it.rows }
         return BatteryChips(laptop, g.phone, hidden.size, hidden.any { it.low })
     }
 
