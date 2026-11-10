@@ -57,6 +57,7 @@ import me.akshitbansal.edgepad.link.LocalNetwork
 import me.akshitbansal.edgepad.link.MainScheduler
 import me.akshitbansal.edgepad.link.NET_KEY
 import me.akshitbansal.edgepad.link.OlderHalf
+import me.akshitbansal.edgepad.link.PhoneBattery
 import me.akshitbansal.edgepad.link.PickerHint
 import me.akshitbansal.edgepad.link.SavedLaptop
 import me.akshitbansal.edgepad.link.ShareTarget
@@ -95,8 +96,10 @@ import me.akshitbansal.edgepad.protocol.TextKind
 import me.akshitbansal.edgepad.screens.AnnotateScreen
 import me.akshitbansal.edgepad.screens.AppListScreen
 import me.akshitbansal.edgepad.screens.AppearanceScreen
+import me.akshitbansal.edgepad.screens.BatterySheet
 import me.akshitbansal.edgepad.screens.CaptureScreen
 import me.akshitbansal.edgepad.screens.ControlsPopup
+import me.akshitbansal.edgepad.screens.LiveBatteries
 import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DialFeelScreen
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
@@ -273,6 +276,10 @@ class MainActivity :
 
     /** The Controls popup over the surface, while it is open. */
     private var controls: ControlsPopup? = null
+    private val phoneBattery by lazy { PhoneBattery(this) }
+    private val liveBatteries by lazy { LiveBatteries(manager, phoneBattery, getString(R.string.battery_this_phone)) }
+    private var batterySheet: BatterySheet? = null
+    private var phoneWatch: AutoCloseable? = null
     private var screen = Screen.PAIRING
     private var settingsReturn = Screen.PAIRING
     private lateinit var gamepads: GamepadStore
@@ -453,6 +460,8 @@ class MainActivity :
         // This also starts a lost laptop's retries at once, which is what the reconnect screen wants.
         manager.foreground = true
         syncService()
+        phoneWatch?.close()
+        phoneWatch = phoneBattery.watch(::refreshBatteries)
         // Rising, so the tick waiting, which may be a slow one from the background, does not hold it up.
         manager.fastPing = screen in showsRtt
         // Back from a detour with the pad still on screen: the laptop has no session, so begin one.
@@ -489,6 +498,9 @@ class MainActivity :
         cancelApps()
         manager.foreground = false
         manager.fastPing = false
+        phoneWatch?.close()
+        phoneWatch = null
+        batterySheet?.dismiss()
         handler.removeCallbacks(ticker)
         stopScan()
         // The service keeps the links outright, a detour for a while and a rebuild too; see the class comment.
@@ -1031,6 +1043,8 @@ class MainActivity :
                         { goTo(Screen.SURFACE_SETTINGS) },
                         onOpenControls = ::openControls,
                         devices = deviceSwitch,
+                        batteries = liveBatteries,
+                        onOpenBatteries = ::openBatteries,
                     ).also { surface = it }
                 }
             }
@@ -1402,6 +1416,18 @@ class MainActivity :
                     ControlsPopup.Target.ANNOTATE -> goTo(Screen.ANNOTATE)
                 }
             }.also { it.show(owner, controlsCapture(), controlsAnnotate()) }
+    }
+
+    private fun openBatteries() {
+        val owner = surface ?: return
+        batterySheet?.dismiss()
+        batterySheet = BatterySheet(ui, liveBatteries).also { it.show(owner) }
+    }
+
+    /** A battery, the laptop in use or the set of connected laptops changed: the strip and an open sheet remake. */
+    private fun refreshBatteries() {
+        surface?.refreshBatteries()
+        batterySheet?.refresh()
     }
 
     /** Opens the macro grid. Its pictures are already cached: the link asks for them as each macro list arrives. */
@@ -2117,6 +2143,11 @@ class MainActivity :
             remember(laptop)
             refreshDevices()
         }
+        if (frame is Frame.Text &&
+            (frame.kind == TextKind.BATTERIES.id || frame.kind == TextKind.OUTPUT.id || frame.kind == TextKind.DEVICE.id)
+        ) {
+            refreshBatteries()
+        }
         if (laptop !== selected) return
         surface?.stateChanged()
         // Capture is drawn from the features the laptop named, which it sends once after the handshake: one that
@@ -2176,6 +2207,7 @@ class MainActivity :
     ) {
         refreshBlobLinks()
         syncService()
+        refreshBatteries()
         if (laptop !== selected) {
             refreshDevices()
             // Unreachable is a laptop that is off, which is nothing to report at every launch; its row says so.
@@ -2265,6 +2297,7 @@ class MainActivity :
         refreshBlobLinks()
         syncService()
         CaptureInbox.owner = laptop?.link?.id
+        refreshBatteries()
         picker.setRtt(laptop?.rtt?.median() ?: Double.NaN)
         laptop?.let { saved = promoted(saved, setOf(it.id)) }
         val needsLink = screen in laptopScreens || screen in settingsOfControls || screen == Screen.RECONNECTING
