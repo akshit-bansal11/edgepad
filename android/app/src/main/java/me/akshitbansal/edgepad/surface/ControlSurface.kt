@@ -59,6 +59,10 @@ class ControlSurface(
     private val onOpenControls: () -> Unit,
     /** The connected laptops, for a Devices dial; a surface with none has no such dial to serve. */
     private val devices: DeviceSwitch = DeviceSwitch.None,
+    /** What the battery strip shows; read again on every [refreshBatteries]. */
+    private val batteries: BatterySource = BatterySource.None,
+    /** A tap on the battery strip, or its accessibility action. */
+    private val onOpenBatteries: () -> Unit = {},
     /**
      * Only the trackpad: no dials, buttons, media, hints or caption. The Capture screen wants a pointer and
      * nothing else, and the recogniser, the trail and the unbuffered dispatch are the surface's own, so this
@@ -221,6 +225,7 @@ class ControlSurface(
                     nudge(ControlId.BRIGHTNESS, -LEVEL_STEP)
                 },
                 action(R.id.action_mute, R.string.surface_mute_toggle) to { send(ActionId.MUTE_TOGGLE.frame()) },
+                action(R.id.action_batteries, R.string.battery_title) to onOpenBatteries,
             )
         }
 
@@ -341,17 +346,35 @@ class ControlSurface(
     private val lockTint = withAlpha(accent, LOCK_TINT_ALPHA)
     private val captionTint = withAlpha(accent, CAPTION_TINT_ALPHA)
 
+    // Low is the theme's red even under a control colour the user chose, so it is never tinted through it.
+    private val strip = BatteryStrip(context, ink, accent, faint, palette.danger)
+
+    /** The finger went down on the battery strip, until it lifts or the touch is cancelled. */
+    private var pressedStrip = false
+
     init {
         keepScreenOn = true
         contentDescription = context.getString(R.string.surface_description)
         // The mode rides on the state description rather than on announceForAccessibility, which API 36
         // deprecated and which an app targeting 36 or later has ignored ever since. A polite live region
         // is the replacement Android points at: setting stateDescription raises a state-changed event and
-        // the screen reader reads it. Nothing else on this view ever changes it, so nothing else speaks.
+        // the screen reader reads it. The mode and the batteries' summary are the only things that change it.
         accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
-        stateDescription = modeLabel()
+        if (!trackpadOnly) strip.refresh(BatteryModel.chips(batteries.groups()))
+        stateDescription = describe()
         applyState()
         postDelayed({ invalidate() }, REPORT_WAIT_MS)
+    }
+
+    /**
+     * A battery changed somewhere: a laptop's list, the laptop in use, or this phone. The activity calls this;
+     * the strip remakes its labels and summary here, where allocating is legal.
+     */
+    fun refreshBatteries() {
+        if (trackpadOnly) return
+        strip.refresh(BatteryModel.chips(batteries.groups()))
+        stateDescription = describe()
+        invalidate()
     }
 
     /** The laptop reported something new; [state] already holds it. */
@@ -406,6 +429,7 @@ class ControlSurface(
         }
         backdrop.resize(w, h)
         layoutPieces(w.toFloat(), h.toFloat())
+        strip.layout(w)
         // No ruler runs under the buttons at the top, and neighbours stop short of each other — which is
         // what keeps two dials on the same edge clear of each other.
         // A dial the user puts in the top-middle slot is the one exception: it is centred inside the
@@ -419,7 +443,9 @@ class ControlSurface(
         // [TOP_BUTTON_OFFSET_PORTRAIT_DP].
         val topCentre = perimeter.lengthAt(TOP_CENTRE)
         val reach = (topButtons.maxOfOrNull { abs(it.side) } ?: 0f) * topButtonOffsetDp(w.toFloat(), h.toFloat())
-        val zone = dp(reach + Space.TOUCH / 2 + Space.M)
+        // The battery strip above the row is centred on the same edge and must stay inside the same zone: at
+        // 144dp it fits the upright row's 72dp either side exactly, and the zone widens only if it ever does not.
+        val zone = dp(maxOf(reach + Space.TOUCH / 2, BatteryStrip.WIDTH_DP / 2) + Space.M)
         keepOut[0] = topCentre - zone
         keepOut[1] = topCentre + zone
         // A split corner's text stays out of the same zone, which is centred on the top edge.
@@ -594,6 +620,7 @@ class ControlSurface(
                 dp(ICON_DP),
             )
         }
+        strip.draw(canvas)
         // AND-A-16: the eye-off mark sits under the lock button for as long as the dials are hidden.
         if (dialsHidden && !trackpadOnly) {
             drawIcon(canvas, focusIconOn, lockButton.hit.centerX(), lockButton.hit.bottom + dp(Space.M), dp(EYE_DP))
@@ -733,8 +760,8 @@ class ControlSurface(
      * only in that.
      *
      * The band just above the middle is the part of the surface nothing else claims. Higher up is taken: the
-     * button row ends 64dp down and a top corner dial's label and number sit around 60dp in from both the
-     * top and the side at the default height, which is exactly where a line under the buttons would cross
+     * battery strip and the button row under it end 84dp down, and a top corner dial's label and number sit
+     * around 60dp in from both the top and the side at the default height, which is exactly where a line under the buttons would cross
      * them in a locked pad, where the dials are still drawn. Lower down is the media's: both pieces default
      * to the bottom fifth of the screen, and a locked pad still draws those too. The finger trail
      * has no fixed place to avoid, so it is drawn after the caption and crosses over it, which is the right
@@ -952,7 +979,16 @@ class ControlSurface(
             MotionEvent.ACTION_UP -> {
                 val top = pressedTop
                 pressedTop = null
+                val onStrip = pressedStrip
+                pressedStrip = false
                 when {
+                    onStrip -> {
+                        if (strip.hit.contains(event.x, event.y)) {
+                            performClick()
+                            onOpenBatteries()
+                        }
+                    }
+
                     // performClick() is called from here rather than from up(): Android lint wants it
                     // lexically inside onTouchEvent. A finger that slid off a button opens nothing.
                     top != null -> {
@@ -990,6 +1026,11 @@ class ControlSurface(
         when {
             top != null -> {
                 pressedTop = top
+            }
+
+            // Empty when there are no chips, so a hidden strip takes no touch.
+            strip.hit.contains(x, y) -> {
+                pressedStrip = true
             }
 
             button != null -> {
@@ -1152,6 +1193,7 @@ class ControlSurface(
         activeDial = -1
         buttonDown = null
         pressedTop = null
+        pressedStrip = false
         scrubbing = false
         fingerCount = 0
         trailLength = 0
@@ -1160,7 +1202,7 @@ class ControlSurface(
     }
 
     private fun onTrackpad(): Boolean =
-        !locked && activeDial < 0 && buttonDown == null && pressedTop == null && !scrubbing
+        !locked && activeDial < 0 && buttonDown == null && pressedTop == null && !pressedStrip && !scrubbing
 
     /** A tap on the lock button, by finger or accessibility action: it locks the trackpad and nothing else. */
     private fun tapLock() {
@@ -1188,9 +1230,12 @@ class ControlSurface(
      * is exactly how a locked pad came to look identical to a working one.
      */
     private fun enterMode() {
-        stateDescription = modeLabel()
+        stateDescription = describe()
         rebuildCaption()
     }
+
+    /** The mode, then what the battery strip shows when it shows anything. */
+    private fun describe(): String = if (strip.isEmpty) modeLabel() else "${modeLabel()}. ${strip.summary}"
 
     private fun modeLabel(): String =
         context.getString(
@@ -1431,7 +1476,11 @@ class ControlSurface(
         private const val TRAIL = 18
         private const val TRAIL_ALPHA = 200f
         private const val ALPHA_SHIFT = 24
-        const val TOP_DP = 40f
+        /**
+         * The button row's centre. 60dp rather than 40 so the battery strip above it, whose tap rect ends at
+         * [BatteryStrip.HIT_BOTTOM_DP], stops where the row's own rects begin.
+         */
+        const val TOP_DP = 60f
 
         /** AND-A-8: how far one accessibility volume or brightness action moves the level, in percent. */
         private const val LEVEL_STEP = 10
