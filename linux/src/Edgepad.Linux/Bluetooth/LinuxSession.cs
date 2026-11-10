@@ -4,6 +4,7 @@ using Edgepad.Dispatch;
 using Edgepad.Macros;
 using Edgepad.Net;
 using Edgepad.Platform;
+using Edgepad.Power;
 using Edgepad.Protocol;
 using Edgepad.Trust;
 
@@ -34,6 +35,8 @@ internal sealed class LinuxSession : IDisposable
     private readonly Action<LinuxSession> onEnded;
     private int disposed;
     private Action<bool>? inputState;
+    private PowerSource? powerSource;
+    private PowerReporter? power;
 
     // Which icon run may still send: each WANT_ICONS and Dispose move it on, and a run that sees it moved stops.
     private int iconRun;
@@ -124,6 +127,12 @@ internal sealed class LinuxSession : IDisposable
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
             dispatcher.MacroWatch = startReporting(frames.Send);
 
+            // TEXT 19/20: the batteries every 60 s, the default output every 3 s, each sent only when it changed. The
+            // reporter reads on its own timers, so a slow UPower or sound tool never holds up this read loop.
+            powerSource = new PowerSource();
+            power = new PowerReporter(powerSource.ReadBatteries, powerSource.ReadOutput, frames.Send, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(3));
+            power.Start();
+
             // Captures go to the phone once it asks (SET CAPTURE_TARGET); until then, and after the session, they stay here.
             dispatcher.Capture = new CaptureToPhone(new LinuxCaptureFolders(), frames.Send, () => dispatcher.LastInputMs);
 
@@ -181,6 +190,9 @@ internal sealed class LinuxSession : IDisposable
                 UinputAccess.Changed -= handler;
             }
 
+            // The reporter first, so no timer reads through the source after it is closed.
+            power?.Dispose();
+            powerSource?.Dispose();
             releaseHeldInput();
             dispatcher.Capture?.Dispose();
             if (dispatcher.Cadence.Summary() is { } cadence)
