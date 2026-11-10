@@ -29,10 +29,10 @@ import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.Output
 import me.akshitbansal.edgepad.link.OutputName
-import me.akshitbansal.edgepad.protocol.OutputKind
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
+import me.akshitbansal.edgepad.protocol.OutputKind
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.roundToInt
@@ -1521,6 +1521,7 @@ class ControlSurface(
         private const val TRAIL = 18
         private const val TRAIL_ALPHA = 200f
         private const val ALPHA_SHIFT = 24
+
         /**
          * The button row's centre. 60dp rather than 40 so the battery strip above it, whose tap rect ends at
          * [BatteryStrip.HIT_BOTTOM_DP], stops where the row's own rects begin.

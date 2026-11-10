@@ -44,8 +44,7 @@ class LiveBatteries(
             phone.read()?.let { BatteryRow(phoneName, null, true, it.level, it.charging, phoneName) },
         )
 
-    private fun view(l: Laptop) =
-        LaptopView(l.state.laptopId ?: l.id, l.name, l.state.batteries)
+    private fun view(l: Laptop) = LaptopView(l.state.laptopId ?: l.id, l.name, l.state.batteries)
 }
 
 /**
@@ -145,7 +144,11 @@ class BatterySheet(
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             }
         return ui.row(left).apply {
-            addView(icon, 0, LinearLayout.LayoutParams(ui.dp(ICON_DP), ui.dp(ICON_DP)).apply { marginEnd = ui.dp(Space.M) })
+            addView(
+                icon,
+                0,
+                LinearLayout.LayoutParams(ui.dp(ICON_DP), ui.dp(ICON_DP)).apply { marginEnd = ui.dp(Space.M) },
+            )
             addView(bar, LinearLayout.LayoutParams(ui.dp(BAR_WIDTH_DP), ui.dp(BAR_HEIGHT_DP)))
             addView(percent, LinearLayout.LayoutParams(ui.dp(PERCENT_WIDTH_DP), ViewGroup.LayoutParams.WRAP_CONTENT))
         }

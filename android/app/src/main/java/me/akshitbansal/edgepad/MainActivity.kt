@@ -99,7 +99,6 @@ import me.akshitbansal.edgepad.screens.AppearanceScreen
 import me.akshitbansal.edgepad.screens.BatterySheet
 import me.akshitbansal.edgepad.screens.CaptureScreen
 import me.akshitbansal.edgepad.screens.ControlsPopup
-import me.akshitbansal.edgepad.screens.LiveBatteries
 import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DialFeelScreen
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
@@ -109,6 +108,7 @@ import me.akshitbansal.edgepad.screens.GestureScreen
 import me.akshitbansal.edgepad.screens.GuideScreen
 import me.akshitbansal.edgepad.screens.KeyboardScreen
 import me.akshitbansal.edgepad.screens.KeyboardSettingsScreen
+import me.akshitbansal.edgepad.screens.LiveBatteries
 import me.akshitbansal.edgepad.screens.MacroScreen
 import me.akshitbansal.edgepad.screens.MacroSettingsScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
@@ -2144,7 +2144,11 @@ class MainActivity :
             refreshDevices()
         }
         if (frame is Frame.Text &&
-            (frame.kind == TextKind.BATTERIES.id || frame.kind == TextKind.OUTPUT.id || frame.kind == TextKind.DEVICE.id)
+            (
+                frame.kind == TextKind.BATTERIES.id ||
+                    frame.kind == TextKind.OUTPUT.id ||
+                    frame.kind == TextKind.DEVICE.id
+            )
         ) {
             refreshBatteries()
         }

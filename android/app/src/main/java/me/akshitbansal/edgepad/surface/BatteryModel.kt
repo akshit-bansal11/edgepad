@@ -17,14 +17,30 @@ data class BatteryRow(
 }
 
 /** One laptop as the model sees it. [id] is the laptop's own id, so one seen over two transports counts once. */
-data class LaptopView(val id: String, val name: String, val entries: List<BatteryEntry>)
+data class LaptopView(
+    val id: String,
+    val name: String,
+    val entries: List<BatteryEntry>,
+)
 
-data class BatteryGroup(val name: String, val rows: List<BatteryRow>)
+data class BatteryGroup(
+    val name: String,
+    val rows: List<BatteryRow>,
+)
 
-data class BatteryGroups(val inUse: BatteryGroup?, val others: List<BatteryGroup>, val phone: BatteryRow?)
+data class BatteryGroups(
+    val inUse: BatteryGroup?,
+    val others: List<BatteryGroup>,
+    val phone: BatteryRow?,
+)
 
 /** What the strip draws: at most laptop, phone, +[plus]. [plus] 0 means no chip. */
-data class BatteryChips(val laptop: BatteryRow?, val phone: BatteryRow?, val plus: Int, val plusLow: Boolean) {
+data class BatteryChips(
+    val laptop: BatteryRow?,
+    val phone: BatteryRow?,
+    val plus: Int,
+    val plusLow: Boolean,
+) {
     val isEmpty: Boolean get() = laptop == null && phone == null && plus == 0
 }
 
@@ -39,9 +55,16 @@ fun interface BatterySource {
 object BatteryModel {
     const val LOW = 20
 
-    fun low(level: Int, charging: Boolean) = level < LOW && !charging
+    fun low(
+        level: Int,
+        charging: Boolean,
+    ) = level < LOW && !charging
 
-    fun build(selected: LaptopView?, others: List<LaptopView>, phone: BatteryRow?): BatteryGroups {
+    fun build(
+        selected: LaptopView?,
+        others: List<LaptopView>,
+        phone: BatteryRow?,
+    ): BatteryGroups {
         val seen = HashSet<String>()
         selected?.let { seen.add(it.id) }
         val rest = others.filter { seen.add(it.id) }
@@ -51,7 +74,10 @@ object BatteryModel {
     fun chips(g: BatteryGroups): BatteryChips {
         val laptop = g.inUse?.rows?.firstOrNull { it.kind == BatteryKind.LAPTOP }
         val hidden =
-            (g.inUse?.rows.orEmpty().filter { it !== laptop } + g.others.flatMap { it.rows })
+            (g.inUse
+                ?.rows
+                .orEmpty()
+                .filter { it !== laptop } + g.others.flatMap { it.rows })
         return BatteryChips(laptop, g.phone, hidden.size, hidden.any { it.low })
     }
 

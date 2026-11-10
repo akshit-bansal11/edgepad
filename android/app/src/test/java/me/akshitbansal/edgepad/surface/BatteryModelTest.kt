@@ -9,14 +9,23 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BatteryModelTest {
-    private fun e(kind: BatteryKind, level: Int = 50, charging: Boolean = false) = BatteryEntry(kind, level, charging, kind.token)
+    private fun e(
+        kind: BatteryKind,
+        level: Int = 50,
+        charging: Boolean = false,
+    ) = BatteryEntry(kind, level, charging, kind.token)
 
-    private fun view(id: String, vararg entries: BatteryEntry) = LaptopView(id, id, entries.toList())
+    private fun view(
+        id: String,
+        vararg entries: BatteryEntry,
+    ) = LaptopView(id, id, entries.toList())
 
     private val phone = BatteryRow("Phone", null, true, 80, false, "")
 
-    private fun chips(sel: LaptopView?, others: List<LaptopView> = emptyList()) =
-        BatteryModel.chips(BatteryModel.build(sel, others, phone))
+    private fun chips(
+        sel: LaptopView?,
+        others: List<LaptopView> = emptyList(),
+    ) = BatteryModel.chips(BatteryModel.build(sel, others, phone))
 
     @Test
     fun noLaptopBatteryGivesTwoChips() {
@@ -35,7 +44,19 @@ class BatteryModelTest {
 
     @Test
     fun otherLaptopsCountLaptopsAndPeripherals() {
-        val others = listOf(view("b", e(BatteryKind.LAPTOP), e(BatteryKind.MOUSE)), view("c", e(BatteryKind.LAPTOP), e(BatteryKind.KEYBOARD)))
+        val others =
+            listOf(
+                view(
+                    "b",
+                    e(BatteryKind.LAPTOP),
+                    e(BatteryKind.MOUSE),
+                ),
+                view(
+                    "c",
+                    e(BatteryKind.LAPTOP),
+                    e(BatteryKind.KEYBOARD),
+                ),
+            )
         assertEquals(4, chips(view("a", e(BatteryKind.LAPTOP)), others).plus)
     }
 

@@ -7,7 +7,9 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 
 /** This phone's own battery, read from the sticky battery broadcast. Not a wire kind: the surface models it apart. */
-class PhoneBattery(private val context: Context) {
+class PhoneBattery(
+    private val context: Context,
+) {
     private val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
 
     /** Level 0-100 and charging, or null when the system reports no level. */
@@ -25,7 +27,10 @@ class PhoneBattery(private val context: Context) {
     fun watch(onChange: () -> Unit): AutoCloseable {
         val receiver =
             object : BroadcastReceiver() {
-                override fun onReceive(c: Context?, intent: Intent?) = onChange()
+                override fun onReceive(
+                    c: Context?,
+                    intent: Intent?,
+                ) = onChange()
             }
         context.registerReceiver(receiver, filter)
         return AutoCloseable { context.unregisterReceiver(receiver) }
@@ -33,4 +38,7 @@ class PhoneBattery(private val context: Context) {
 }
 
 /** The phone's level and whether it is charging. */
-data class PhoneLevel(val level: Int, val charging: Boolean)
+data class PhoneLevel(
+    val level: Int,
+    val charging: Boolean,
+)
