@@ -3,6 +3,7 @@ package me.akshitbansal.edgepad.surface
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.text.TextPaint
@@ -51,6 +52,9 @@ class BatteryStrip(
     private val chips = Array(MAX_CHIPS) { Chip(icon(R.drawable.ic_battery_bolt, accent)) }
     private var count = 0
     private var centreX = 0f
+
+    /** How far below its own place a display cutout pushed the strip, in px; see [layout]. */
+    private var shift = 0f
     private var baseline = 0f
     private val laptopIcon = icon(R.drawable.ic_battery_laptop, ink)
     private val phoneIcon = icon(R.drawable.ic_battery_phone, ink)
@@ -70,16 +74,42 @@ class BatteryStrip(
     /** Where a tap opens the batteries; empty when there are no chips. */
     val hit = RectF()
 
-    /** What a screen reader is told, empty when there are no chips. */
+    /** The strip's accessibility action label, empty when there are no chips. Never announced on change. */
     var summary = ""
         private set
 
-    val isEmpty: Boolean get() = count == 0
-
-    /** The view's width changed; the strip stays centred on it. */
-    fun layout(width: Int) {
+    /**
+     * The view's size changed; the strip stays centred on it, [shift] px below its own place, which is how far a
+     * display cutout at the top edge pushes it ([cutoutShift]).
+     */
+    fun layout(
+        width: Int,
+        shift: Float,
+    ) {
         centreX = width / 2f
+        this.shift = shift
         place()
+    }
+
+    /**
+     * How far down the strip must move, in px, to clear the cutouts in [rects] (a punch-hole or notch over the
+     * top edge's middle): its top goes to the lowest one's bottom plus [gap]. Zero when none overlaps it, as in
+     * landscape, where the cutout sits on a side edge.
+     */
+    fun cutoutShift(
+        width: Int,
+        rects: List<Rect>,
+        gap: Float,
+    ): Float {
+        val half = dp(WIDTH_DP) / 2
+        val top = dp(CENTRE_DP - HEIGHT_DP / 2)
+        val bottom = dp(HIT_BOTTOM_DP)
+        var shift = 0f
+        for (rect in rects) {
+            val across = rect.left < width / 2f + half && rect.right > width / 2f - half
+            if (across && rect.top < bottom) shift = maxOf(shift, rect.bottom + gap - top)
+        }
+        return shift
     }
 
     fun refresh(model: BatteryChips) {
@@ -173,7 +203,7 @@ class BatteryStrip(
         val chipWidth = dp(CHIP_DP)
         val gap = dp(GAP_DP)
         val span = count * chipWidth + (count - 1) * gap
-        val cy = dp(CENTRE_DP)
+        val cy = dp(CENTRE_DP) + shift
         val half = dp(HEIGHT_DP) / 2
         baseline = cy + text.textSize * Type.CAP_CENTRE
         var left = centreX - span / 2
@@ -199,7 +229,7 @@ class BatteryStrip(
             if (chip.charging) bounds(chip.bolt, x + labelWidth + dp(GAP_IN_DP), cy, dp(BOLT_DP))
             left += chipWidth + gap
         }
-        hit.set(centreX - span / 2, dp(HIT_TOP_DP), centreX + span / 2, dp(HIT_BOTTOM_DP))
+        hit.set(centreX - span / 2, dp(HIT_TOP_DP) + shift, centreX + span / 2, dp(HIT_BOTTOM_DP) + shift)
     }
 
     private fun bounds(

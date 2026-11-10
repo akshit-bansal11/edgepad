@@ -225,7 +225,6 @@ class ControlSurface(
                     nudge(ControlId.BRIGHTNESS, -LEVEL_STEP)
                 },
                 action(R.id.action_mute, R.string.surface_mute_toggle) to { send(ActionId.MUTE_TOGGLE.frame()) },
-                action(R.id.action_batteries, R.string.battery_title) to onOpenBatteries,
             )
         }
 
@@ -349,6 +348,9 @@ class ControlSurface(
     // Low is the theme's red even under a control colour the user chose, so it is never tinted through it.
     private val strip = BatteryStrip(context, ink, accent, faint, palette.danger)
 
+    /** How far a display cutout pushed the battery strip and the button row down, in px; set in onSizeChanged. */
+    private var topShift = 0f
+
     /** The finger went down on the battery strip, until it lifts or the touch is cancelled. */
     private var pressedStrip = false
 
@@ -358,10 +360,10 @@ class ControlSurface(
         // The mode rides on the state description rather than on announceForAccessibility, which API 36
         // deprecated and which an app targeting 36 or later has ignored ever since. A polite live region
         // is the replacement Android points at: setting stateDescription raises a state-changed event and
-        // the screen reader reads it. The mode and the batteries' summary are the only things that change it.
+        // the screen reader reads it. Nothing else on this view ever changes it, so nothing else speaks.
         accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
         if (!trackpadOnly) strip.refresh(BatteryModel.chips(batteries.groups()))
-        stateDescription = describe()
+        stateDescription = modeLabel()
         applyState()
         postDelayed({ invalidate() }, REPORT_WAIT_MS)
     }
@@ -372,8 +374,9 @@ class ControlSurface(
      */
     fun refreshBatteries() {
         if (trackpadOnly) return
+        // Not on the state description: that is a polite live region, and a level ticking down is not news.
+        // The summary is the strip's action label instead, read when the user looks for it.
         strip.refresh(BatteryModel.chips(batteries.groups()))
-        stateDescription = describe()
         invalidate()
     }
 
@@ -428,8 +431,11 @@ class ControlSurface(
             depths[i] = dp(if (w > h || !roomy) CORNER_HIT_NEAR_DP else CORNER_HIT_DP)
         }
         backdrop.resize(w, h)
+        // A punch-hole or notch over the middle of the top edge pushes the strip below it, and the button row
+        // the same distance with it, so neither sits under the camera.
+        topShift = strip.cutoutShift(w, insets?.displayCutout?.boundingRects.orEmpty(), dp(Space.XS))
         layoutPieces(w.toFloat(), h.toFloat())
-        strip.layout(w)
+        strip.layout(w, topShift)
         // No ruler runs under the buttons at the top, and neighbours stop short of each other — which is
         // what keeps two dials on the same edge clear of each other.
         // A dial the user puts in the top-middle slot is the one exception: it is centred inside the
@@ -481,7 +487,7 @@ class ControlSurface(
         nextHit.set(tx * w + gap - touch, ty * h - touch, tx * w + gap + touch, ty * h + touch)
         layoutNowPlaying(w, h)
         val offset = dp(topButtonOffsetDp(w, h))
-        val top = dp(TOP_DP)
+        val top = dp(TOP_DP) + topShift
         for (button in topButtons) {
             val cx = w / 2 + button.side * offset
             button.hit.set(cx - touch, top - touch, cx + touch, top + touch)
@@ -760,9 +766,9 @@ class ControlSurface(
      * only in that.
      *
      * The band just above the middle is the part of the surface nothing else claims. Higher up is taken: the
-     * battery strip and the button row under it end 84dp down, and a top corner dial's label and number sit
-     * around 60dp in from both the top and the side at the default height, which is exactly where a line under the buttons would cross
-     * them in a locked pad, where the dials are still drawn. Lower down is the media's: both pieces default
+     * battery strip and the button row under it end 84dp down (more under a top cutout), and a top corner
+     * dial's label and number sit around 60dp in from both the top and the side at the default height, which
+     * is exactly where a line under the buttons would cross them in a locked pad, where the dials are still drawn. Lower down is the media's: both pieces default
      * to the bottom fifth of the screen, and a locked pad still draws those too. The finger trail
      * has no fixed place to avoid, so it is drawn after the caption and crosses over it, which is the right
      * way round — the caption is what the surface is, the trail is what the finger is doing to it.
@@ -1230,12 +1236,9 @@ class ControlSurface(
      * is exactly how a locked pad came to look identical to a working one.
      */
     private fun enterMode() {
-        stateDescription = describe()
+        stateDescription = modeLabel()
         rebuildCaption()
     }
-
-    /** The mode, then what the battery strip shows when it shows anything. */
-    private fun describe(): String = if (strip.isEmpty) modeLabel() else "${modeLabel()}. ${strip.summary}"
 
     private fun modeLabel(): String =
         context.getString(
@@ -1338,12 +1341,21 @@ class ControlSurface(
         // screen reader landing on a locked surface is told why the pad will not answer before it tries.
         super.onInitializeAccessibilityNodeInfo(info)
         for (action in accessibilityActions.keys) info.addAction(action)
+        // Labelled with what the strip shows, so the levels are read when the user looks, never announced.
+        if (!trackpadOnly) {
+            val label = strip.summary.ifEmpty { context.getString(R.string.battery_title) }
+            info.addAction(AccessibilityNodeInfo.AccessibilityAction(R.id.action_batteries, label))
+        }
     }
 
     override fun performAccessibilityAction(
         action: Int,
         arguments: Bundle?,
     ): Boolean {
+        if (action == R.id.action_batteries && !trackpadOnly) {
+            onOpenBatteries()
+            return true
+        }
         val run = accessibilityActions.entries.firstOrNull { it.key.id == action }?.value
         if (run == null) return super.performAccessibilityAction(action, arguments)
         run()
