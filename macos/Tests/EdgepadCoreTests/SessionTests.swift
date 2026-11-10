@@ -66,7 +66,8 @@ final class SessionTests: XCTestCase {
     private func makeSession(
         address: String? = nil,
         ask: @escaping (String) -> Bool = { _ in true },
-        inputBlocked: (() -> Bool)? = nil
+        inputBlocked: (() -> Bool)? = nil,
+        power: PowerSource? = nil
     ) -> Session {
         Session(
             address: address ?? phone,
@@ -87,6 +88,7 @@ final class SessionTests: XCTestCase {
             identity: LinkIdentity(id: Array(UInt8(16)..<32), name: "Mac"),
             onStatus: { [weak self] status in self?.statuses.append(status) },
             inputBlocked: inputBlocked,
+            power: power,
             onAdmitted: { [weak self] _ in self?.admitted() ?? false },
             onEnded: { [weak self] session in self?.ended.append(session) },
             schedule: { [weak self] turn in
@@ -358,6 +360,65 @@ final class SessionTests: XCTestCase {
         blocked = false
         session.sendInputState()
         XCTAssertEqual(transport.frames().last, .text(kind: TextKind.inputState.rawValue, value: "ok"))
+    }
+
+    private func powerTexts() -> [Frame] {
+        transport.frames().filter {
+            if case .text(let kind, _) = $0 {
+                return kind == TextKind.batteries.rawValue || kind == TextKind.output.rawValue
+            }
+            return false
+        }
+    }
+
+    func testPowerIsSentOnceAndOnlyOnAChange() {
+        let power = FakePower()
+        power.list = [BatteryEntry(kind: .laptop, level: 80, charging: false, name: "Mac")]
+        power.out = (.speaker, "Speakers")
+        let session = makeSession(power: power)
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+        XCTAssertEqual(
+            powerTexts(),
+            [
+                .text(kind: TextKind.batteries.rawValue, value: "laptop:80:0:Mac"),
+                .text(kind: TextKind.output.rawValue, value: "speaker/Speakers"),
+            ])
+
+        power.changed?()
+        XCTAssertEqual(powerTexts().count, 2)
+
+        power.list = [BatteryEntry(kind: .laptop, level: 79, charging: false, name: "Mac")]
+        power.changed?()
+        XCTAssertEqual(powerTexts().count, 3)
+        XCTAssertEqual(powerTexts().last, .text(kind: TextKind.batteries.rawValue, value: "laptop:79:0:Mac"))
+
+        for _ in 0..<120 { session.poll() }
+        XCTAssertEqual(powerTexts().count, 3)
+    }
+
+    func testPowerIsRereadEveryMinuteOfPolls() {
+        let power = FakePower()
+        let session = makeSession(power: power)
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+        power.list = [BatteryEntry(kind: .mouse, level: 10, charging: true, name: "Mouse")]
+
+        for _ in 0..<119 { session.poll() }
+        XCTAssertEqual(powerTexts().count, 2)
+        session.poll()
+        XCTAssertEqual(powerTexts().last, .text(kind: TextKind.batteries.rawValue, value: "mouse:10:1:Mouse"))
+    }
+
+    func testNoPowerSourceSendsNeitherTextAndEndLetsGo() {
+        let session = connectedSession()
+        XCTAssertTrue(powerTexts().isEmpty)
+
+        let power = FakePower()
+        let other = makeSession(power: power)
+        other.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+        XCTAssertNotNil(power.changed)
+        other.end()
+        XCTAssertNil(power.changed)
+        _ = session
     }
 
     func testPollSendsNothingWhenNothingChanged() {
