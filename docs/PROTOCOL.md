@@ -43,6 +43,14 @@ The handshake has deadlines on both sides, and none of them is a change to the p
 
 After HELLO_ACK the laptop sends a STATE for volume, microphone and brightness, then TEXT 0, 1 and 2 and a STATE for media position, then TEXT 4 and a STATE for the refresh rate, then TEXT 5 and TEXT 9, and thereafter every change as it happens. Media position is refreshed once a second while playing. Icons are not part of that sequence: the laptop sends TEXT 6 only in answer to TEXT 7.
 
+## Batteries and audio output
+
+Both are laptop to phone and need no version bump: an older phone drops and counts an unknown TEXT kind.
+
+**TEXT 19 BATTERIES** is a snapshot of the whole list, never a delta; empty means no devices. It is `entry|entry|...`, each entry `kind:level:charging:name`, split on `:` with a limit of 4 so a name may contain `:`. Kind is a BATTERY_KIND token (`laptop`, `headphones`, `keyboard`, `mouse`, `speaker`, `other`; an unknown one reads as `other`), level is 0 to 100 (clamped) and charging is `0` or `1`. A device with no level, and a laptop with no battery, are omitted. The sender turns control characters and `|` in a name into a space, trims it and cuts it to 24 code points, never inside a surrogate pair; an empty name becomes the kind token. The laptop comes first, then peripherals in discovery order. If the joined UTF-8 exceeds 255 bytes, whole entries are dropped from the end until it fits, so the laptop entry stays and no entry is cut. It is sent after the handshake and whenever the text differs from the last one sent (a power event, or a poll), polled at most every 60 seconds, and never re-sent when identical.
+
+**TEXT 20 OUTPUT** is `kind/name`, split on the first `/` only. Kind is an OUTPUT_KIND token (`speaker`, `headphones`, `monitor`, `other`). The name is the device's own for Bluetooth or monitor output ("AirPods Pro") and the endpoint's for built-in output ("Speakers"), sanitised as above and cut to 40 code points. Empty means no output is known. It is sent after the handshake and when the default device changes, and never re-sent when identical.
+
 ## The PIN
 
 Version 5 lets the laptop ask for a PIN before it admits a phone. The order is: HELLO, the version check, the lock-out check, the trust question, the PIN gate, then HELLO_ACK. Trust comes first and the PIN second, and the gate sits before the laptop lets a new phone take over from the connected one, so a phone that has not proved itself can never displace the one in use.

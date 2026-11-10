@@ -87,6 +87,26 @@ class IdsFixtureTest {
     }
 
     @Test
+    fun batteryKindTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("BATTERY_KIND").associate { it[2] to it[1] },
+            BatteryKind.entries.associate { it.name to it.token },
+        )
+        assertEquals(BatteryKind.OTHER, BatteryKind.of("toaster"))
+        assertEquals(BatteryKind.MOUSE, BatteryKind.of("mouse"))
+    }
+
+    @Test
+    fun outputKindTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("OUTPUT_KIND").associate { it[2] to it[1] },
+            OutputKind.entries.associate { it.name to it.token },
+        )
+        assertEquals(OutputKind.OTHER, OutputKind.of("toaster"))
+        assertEquals(OutputKind.MONITOR, OutputKind.of("monitor"))
+    }
+
+    @Test
     fun blobKindsMatchTheSharedTable() {
         assertEquals(expected("BLOB_KIND"), BlobKind.entries.associate { it.id to it.name })
     }

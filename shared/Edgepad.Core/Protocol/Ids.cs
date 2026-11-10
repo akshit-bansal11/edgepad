@@ -185,6 +185,15 @@ internal enum TextKind : byte
     /// uinput access); Windows never does.
     /// </summary>
     InputState = 18,
+
+    /// <summary>
+    /// Laptop to phone: a snapshot of the whole battery list, "kind:level:charging:name" entries joined by "|", the
+    /// laptop first. Empty means no devices. See docs/PROTOCOL.md for the size rule and cadence.
+    /// </summary>
+    Batteries = 19,
+
+    /// <summary>Laptop to phone: the audio output, "kind/name" split on the first "/", kind an <see cref="OutputKind"/> token. Empty means none known.</summary>
+    Output = 20,
 }
 
 /// <summary>
@@ -456,6 +465,38 @@ internal static class DeviceOs
     public const string Windows = "windows";
     public const string Linux = "linux";
     public const string Macos = "macos";
+}
+
+/// <summary>The kind token of a <see cref="TextKind.Batteries"/> entry. An unknown token reads as <see cref="Other"/>. Mirrors protocol/actions.txt.</summary>
+internal static class BatteryKind
+{
+    public const string Laptop = "laptop";
+    public const string Headphones = "headphones";
+    public const string Keyboard = "keyboard";
+    public const string Mouse = "mouse";
+    public const string Speaker = "speaker";
+    public const string Other = "other";
+
+    public static string Of(string token) => token switch
+    {
+        Laptop or Headphones or Keyboard or Mouse or Speaker => token,
+        _ => Other,
+    };
+}
+
+/// <summary>The kind token of <see cref="TextKind.Output"/>. An unknown token reads as <see cref="Other"/>. Mirrors protocol/actions.txt.</summary>
+internal static class OutputKind
+{
+    public const string Speaker = "speaker";
+    public const string Headphones = "headphones";
+    public const string Monitor = "monitor";
+    public const string Other = "other";
+
+    public static string Of(string token) => token switch
+    {
+        Speaker or Headphones or Monitor => token,
+        _ => Other,
+    };
 }
 
 /// <summary>

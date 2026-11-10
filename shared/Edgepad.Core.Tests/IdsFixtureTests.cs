@@ -147,6 +147,52 @@ public sealed partial class IdsFixtureTests
     }
 
     [Fact]
+    public void BatteryKindTokensMatchTheSharedTable()
+    {
+        var expected = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var parts in Rows("BATTERY_KIND"))
+        {
+            expected.Add(parts[2], parts[1]);
+        }
+
+        var actual = new SortedDictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["LAPTOP"] = BatteryKind.Laptop,
+            ["HEADPHONES"] = BatteryKind.Headphones,
+            ["KEYBOARD"] = BatteryKind.Keyboard,
+            ["MOUSE"] = BatteryKind.Mouse,
+            ["SPEAKER"] = BatteryKind.Speaker,
+            ["OTHER"] = BatteryKind.Other,
+        };
+
+        Assert.Equal(expected, actual);
+        Assert.Equal(BatteryKind.Other, BatteryKind.Of("toaster"));
+        Assert.Equal(BatteryKind.Mouse, BatteryKind.Of("mouse"));
+    }
+
+    [Fact]
+    public void OutputKindTokensMatchTheSharedTable()
+    {
+        var expected = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var parts in Rows("OUTPUT_KIND"))
+        {
+            expected.Add(parts[2], parts[1]);
+        }
+
+        var actual = new SortedDictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["SPEAKER"] = OutputKind.Speaker,
+            ["HEADPHONES"] = OutputKind.Headphones,
+            ["MONITOR"] = OutputKind.Monitor,
+            ["OTHER"] = OutputKind.Other,
+        };
+
+        Assert.Equal(expected, actual);
+        Assert.Equal(OutputKind.Other, OutputKind.Of("toaster"));
+        Assert.Equal(OutputKind.Monitor, OutputKind.Of("monitor"));
+    }
+
+    [Fact]
     public void BlobKindsMatchTheSharedTable() =>
         Assert.Equal(Expected("BLOB_KIND"), Actual<BlobKind>());
 
