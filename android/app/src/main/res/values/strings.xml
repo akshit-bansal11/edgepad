@@ -542,7 +542,6 @@
   <string name="battery_title">Batteries</string>
   <string name="battery_in_use">In use</string>
   <string name="battery_this_phone">This phone</string>
-  <string name="battery_other_laptops">Other laptops</string>
   <string name="battery_charging">charging</string>
   <string name="battery_low">low</string>
   <string name="battery_percent">%1$d%%</string>

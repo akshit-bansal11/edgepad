@@ -5,6 +5,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import me.akshitbansal.edgepad.R
@@ -13,6 +14,7 @@ import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.Laptop
 import me.akshitbansal.edgepad.link.LaptopConnections
 import me.akshitbansal.edgepad.link.PhoneBattery
+import me.akshitbansal.edgepad.protocol.BatteryKind
 import me.akshitbansal.edgepad.surface.BatteryGroup
 import me.akshitbansal.edgepad.surface.BatteryModel
 import me.akshitbansal.edgepad.surface.BatteryRow
@@ -24,6 +26,7 @@ private const val BAR_WIDTH_DP = 56f
 private const val BAR_HEIGHT_DP = 6f
 private const val PERCENT_WIDTH_DP = 44f
 private const val FULL = 100
+private const val ICON_DP = 24f
 
 /**
  * The batteries the phone can see now: the laptop in use first, each other connected laptop under its name,
@@ -135,7 +138,14 @@ class BatterySheet(
             ui.text(ui.string(R.string.battery_percent, r.level), Type.VALUE, color).apply {
                 gravity = Gravity.END
             }
+        val icon =
+            ImageView(ui.context).apply {
+                setImageResource(iconOf(r))
+                setColorFilter(p.ink)
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            }
         return ui.row(left).apply {
+            addView(icon, 0, LinearLayout.LayoutParams(ui.dp(ICON_DP), ui.dp(ICON_DP)).apply { marginEnd = ui.dp(Space.M) })
             addView(bar, LinearLayout.LayoutParams(ui.dp(BAR_WIDTH_DP), ui.dp(BAR_HEIGHT_DP)))
             addView(percent, LinearLayout.LayoutParams(ui.dp(PERCENT_WIDTH_DP), ViewGroup.LayoutParams.WRAP_CONTENT))
         }
@@ -143,3 +153,17 @@ class BatterySheet(
 
     private fun weight(w: Int) = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, w.toFloat())
 }
+
+private fun iconOf(r: BatteryRow): Int =
+    if (r.isPhone) {
+        R.drawable.ic_battery_phone
+    } else {
+        when (r.kind) {
+            BatteryKind.LAPTOP -> R.drawable.ic_battery_laptop
+            BatteryKind.HEADPHONES -> R.drawable.ic_battery_headphones
+            BatteryKind.KEYBOARD -> R.drawable.ic_battery_keyboard
+            BatteryKind.MOUSE -> R.drawable.ic_battery_mouse
+            BatteryKind.SPEAKER -> R.drawable.ic_battery_speaker
+            else -> R.drawable.ic_battery_other
+        }
+    }
