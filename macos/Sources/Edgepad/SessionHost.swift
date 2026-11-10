@@ -184,6 +184,9 @@ final class SessionHost {
             identity: identity,
             onStatus: { text in status(shownAs.map { text.replacingOccurrences(of: address, with: $0) } ?? text) },
             inputBlocked: { [weak self] in self?.inputBlocked() ?? false },
+            // Per connection: the session sets and clears its `changed`, and a candidate that ends must not clear the
+            // one the phone in use set.
+            power: MacPowerSource(speakers: speakers),
             onAdmitted: { [weak self] admitted in self?.admit(admitted) ?? false },
             onEnded: { [weak self] ended in self?.sessionEnded(ended) })
         candidates.append((session: session, transport: transport))
