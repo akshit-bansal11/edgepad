@@ -27,6 +27,9 @@ import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.LaptopState
+import me.akshitbansal.edgepad.link.Output
+import me.akshitbansal.edgepad.link.OutputName
+import me.akshitbansal.edgepad.protocol.OutputKind
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
@@ -186,6 +189,14 @@ class ControlSurface(
                 TopButton(icon(R.drawable.ic_controls, dim), side = 1f, open = onOpenControls),
             )
         }
+    private val speakerIcon = icon(R.drawable.ic_battery_speaker, accent)
+    private val headphonesIcon = icon(R.drawable.ic_battery_headphones, accent)
+    private val otherOutputIcon = icon(R.drawable.ic_battery_other, accent)
+
+    // The volume dial's output line, cut and chosen in rebuildText so onDraw only reads them.
+    private var shownOutput: Output? = null
+    private var outputName: String? = null
+    private var outputIcon: Drawable? = null
     private val skipBackIcon = icon(R.drawable.ic_skip_back, ink)
     private val skipForwardIcon = icon(R.drawable.ic_skip_forward, ink)
     private val playIcon = icon(R.drawable.ic_play, onAccent)
@@ -539,6 +550,26 @@ class ControlSurface(
     }
 
     private fun rebuildText() {
+        val output = state.output
+        if (output != shownOutput) {
+            shownOutput = output
+            outputName = output?.let { OutputName.short(it.name) }
+            outputIcon =
+                output?.let {
+                    when (it.kind) {
+                        OutputKind.SPEAKER -> speakerIcon
+                        OutputKind.HEADPHONES -> headphonesIcon
+                        else -> otherOutputIcon
+                    }
+                }
+            // The volume dial's output is read with the surface, since the dials are not views of their own.
+            contentDescription =
+                if (output == null) {
+                    context.getString(R.string.surface_description)
+                } else {
+                    context.getString(R.string.surface_description_output, output.name)
+                }
+        }
         val playing = state.nowPlaying
         titlePaint.color = if (playing.isEmpty()) dim else ink
         val room =
@@ -882,6 +913,8 @@ class ControlSurface(
             dial.label,
             valueText(dial),
             pt,
+            if (dial.kind == DialKind.VOLUME) outputName else null,
+            outputIcon,
         )
     }
 

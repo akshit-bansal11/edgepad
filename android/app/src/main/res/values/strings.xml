@@ -385,6 +385,7 @@
 
   <!-- Control surface -->
   <string name="surface_description">Laptop control surface</string>
+  <string name="surface_description_output">Laptop control surface. Sound output: %1$s</string>
   <string name="surface_mute">Muted</string>
   <string name="surface_unknown">…</string>
   <string name="surface_unavailable">—</string>
