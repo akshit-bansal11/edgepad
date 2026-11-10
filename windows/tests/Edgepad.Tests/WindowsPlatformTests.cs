@@ -240,6 +240,35 @@ public sealed class WindowsPlatformTests : IDisposable
     public void PlayerNamesReadLikeTheirTaskbarLabels(string appUserModelId, string expected) =>
         Assert.Equal(expected, MediaSessions.AppName(appUserModelId));
 
+    [Theory]
+    [InlineData(1, OutputKind.Speaker)]
+    [InlineData(3, OutputKind.Headphones)]
+    [InlineData(5, OutputKind.Headphones)]
+    [InlineData(9, OutputKind.Monitor)]
+    [InlineData(4, OutputKind.Other)] // a microphone
+    [InlineData(-1, OutputKind.Other)] // no form factor at all
+    public void TheOutputKindComesFromTheEndpointsFormFactor(int formFactor, string expected) =>
+        Assert.Equal(expected, PowerSource.OutputKindOf(formFactor));
+
+    [Theory]
+    [InlineData(true, "AirPods Pro", "Headphones", "AirPods Pro")]
+    [InlineData(false, "Realtek(R) Audio", "Speakers", "Speakers")]
+    [InlineData(false, "NVIDIA High Definition Audio", "DELL U2720Q", "DELL U2720Q")]
+    [InlineData(false, "USB Audio", "", "USB Audio")]
+    public void ABluetoothOutputGoesByItsOwnNameAndAnyOtherByItsEndpoint(
+        bool bluetooth, string deviceName, string endpointName, string expected) =>
+        Assert.Equal(expected, PowerSource.OutputName(bluetooth, deviceName, endpointName));
+
+    [Theory]
+    [InlineData(0x240418u, BatteryKind.Headphones)] // audio/video, headphones
+    [InlineData(0x200404u, BatteryKind.Headphones)] // audio/video, wearable headset
+    [InlineData(0x240414u, BatteryKind.Speaker)] // audio/video, loudspeaker
+    [InlineData(0x002540u, BatteryKind.Keyboard)] // peripheral, keyboard
+    [InlineData(0x002580u, BatteryKind.Mouse)] // peripheral, pointing device
+    [InlineData(0x5A020Cu, BatteryKind.Other)] // a phone
+    public void APeripheralsKindComesFromItsClassOfDevice(uint classOfDevice, string expected) =>
+        Assert.Equal(expected, PowerSource.PeripheralKind(classOfDevice));
+
     public void Dispose()
     {
         pad.Dispose();
