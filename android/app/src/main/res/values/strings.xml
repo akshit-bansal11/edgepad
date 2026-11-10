@@ -539,4 +539,14 @@
   <string name="apps_stale">That list is out of date. Refresh it and pick again.</string>
   <string name="apps_failed">The laptop could not add it.</string>
   <string name="input_blocked">%1$s can\'t take input yet. Allow Edgepad on the laptop; it works as soon as you do.</string>
+  <string name="battery_title">Batteries</string>
+  <string name="battery_in_use">In use</string>
+  <string name="battery_this_phone">This phone</string>
+  <string name="battery_other_laptops">Other laptops</string>
+  <string name="battery_charging">charging</string>
+  <string name="battery_low">low</string>
+  <string name="battery_percent">%1$d%%</string>
+  <string name="battery_more">+%1$d</string>
+  <string name="battery_summary">Batteries: %1$s</string>
+  <string name="battery_strip_hint">Show batteries</string>
 </resources>
