@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Added
+
+- **Phone: Black out when idle,** a switch in the Controls popup, off by default. Ten seconds after the last touch the control surface turns pure black and dims the screen, so the rulers and labels do not burn into an OLED panel. The next touch brings everything back and still counts, so a dial or gesture works without looking. The gamepad screen is unchanged. ([#56](https://github.com/akshit-bansal11/edgepad/issues/56))
+
 ## [4.1.0] - 2026-11-10
 
 No wire-protocol change: the protocol stays at version 5. **Mac and Linux are still in testing. Please use them at your own risk.** The phone is now told when a Mac lacks Accessibility or a Linux laptop cannot open `/dev/uinput` through a new TEXT kind (18), and about batteries and the sound output through TEXT kinds 19 and 20; an older phone drops all three. Not done: telling the phone about an elevated Windows window.

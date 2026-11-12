@@ -103,6 +103,12 @@ class ControlsPopup(
                 setPadding(pad, 0, pad, 0)
             },
         )
+        // Issue #56. The surface reads the setting again when the popup closes and hands the focus back.
+        body.addView(
+            ui.toggle(ui.string(R.string.controls_blackout), settings.blackout) { settings.blackout = it }.apply {
+                setPadding(pad, 0, pad, 0)
+            },
+        )
         if (settings.controlsHintShown < HINT_TIMES) {
             settings.controlsHintShown += 1
             val note = ui.secondary(ui.string(R.string.controls_move_hint), Type.SMALL, ui.palette.dim)
