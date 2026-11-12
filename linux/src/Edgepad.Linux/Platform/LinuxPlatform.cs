@@ -44,7 +44,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     private readonly Backlight backlight = new();
     private readonly Mpris mpris = new();
     private readonly Annotator annotator = new();
-    private readonly MacroStore macros = new(
+    private static readonly MacroStore macros = new(
         Path.Combine(Xdg.ConfigFolder, "macros.txt"), new LinuxLauncher(), windows: new LinuxMacroWindows());
     private readonly Worker worker;
     private readonly CaptureOverlay capture = new(() => Environment.TickCount64);
@@ -205,11 +205,8 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
 
     public bool Close(int index) => macros.Close(index);
 
-    /// <summary>The list the session answers WANT_ICONS from; the store replaces it whole on a change, so the reference is what the session compares.</summary>
-    public IReadOnlyList<Macro> Macros => macros.Macros;
-
-    /// <summary>The store itself, which the app picker adds to.</summary>
-    public MacroStore Store => macros;
+    /// <summary>The one list every session and the Macros… editor share, so a save reaches the connected phone at once.</summary>
+    public static MacroStore Shared => macros;
 
     /// <summary>
     /// Starts reporting the laptop's levels, media, macro names and features through <paramref name="send"/>, for the

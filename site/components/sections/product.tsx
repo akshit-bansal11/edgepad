@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LATEST_RELEASE } from "@/lib/nav";
+import { DOWNLOADS, RELEASE_VERSION } from "@/lib/release";
 
 const SURFACE: { where: string; touch: string; laptop: string }[] = [
   {
@@ -89,6 +90,50 @@ const CAPTURE: { os: string; region: string; screen: string; record: string }[] 
   },
 ];
 
+/** The phone's own failure messages (android strings.xml), each with its fix. */
+const TROUBLE: { says: string; fix: string }[] = [
+  {
+    says: "The laptop hung up before the handshake.",
+    fix: "Look at the laptop: answer Trust if it asks about this phone, and update Edgepad there if it is older than the phone's app. If another phone just took over the laptop, try again in 30 seconds.",
+  },
+  {
+    says: "The laptop did not take the connection.",
+    fix: "Check that Edgepad is running on the laptop and that its Bluetooth, or its Wi-Fi and USB connections, are on. If a Bluetooth laptop still fails, remove the pairing on both the phone and the laptop, then pair them again.",
+  },
+  {
+    says: "The laptop took the connection and never answered.",
+    fix: "Check that Edgepad is running there, then try again.",
+  },
+  {
+    says: "The laptop did not recognise this phone.",
+    fix: "Choose Pair again on the phone to pair with a new code.",
+  },
+  {
+    says: "A device answered as this laptop but could not prove it.",
+    fix: "Check that the phone is on the right network.",
+  },
+  {
+    says: "Pairing did not finish.",
+    fix: "The code was not typed on the laptop in time, or not correctly. Tap the laptop to try again with a new code.",
+  },
+  {
+    says: "The laptop is pairing another phone, or has paused pairing.",
+    fix: "It pauses after wrong codes. Try again in a few minutes.",
+  },
+  {
+    says: "Too many wrong PINs.",
+    fix: "Wait for the time shown; the lock-out starts at 30 seconds and grows. A forgotten PIN is reset on the laptop, in Security….",
+  },
+  {
+    says: "That laptop is no longer paired with this phone.",
+    fix: "Pair it again in the phone's Bluetooth settings.",
+  },
+  {
+    says: "No laptops found.",
+    fix: "Open Edgepad on the laptop, on the same Wi-Fi, or connect by USB and turn on USB tethering. Or turn Bluetooth on and pair it.",
+  },
+];
+
 export function ProductSections() {
   return (
     <>
@@ -159,7 +204,7 @@ export function ProductSections() {
               body: "One button on the surface opens a grid of the keyboard, the gamepad, macros, annotate and capture. A laptop shows only what it can do, and the grid can be rearranged like the macro deck.",
             },
             {
-              title: "Shared clipboard",
+              title: "Share clipboard",
               body: "Text and images copied on the laptop arrive on the phone at once. Android lets Edgepad read the clipboard only while it is on screen, so to send a copy from the phone, go back to Edgepad after copying.",
             },
             {
@@ -209,10 +254,12 @@ export function ProductSections() {
         title="Download and install"
         lede={
           <>
-            Both halves come from the same{" "}
-            <ExternalLink href={LATEST_RELEASE}>GitHub release</ExternalLink>. Always
-            install both from the same one: the two refuse each other at the handshake
-            when their protocol versions differ, and say so.
+            Both halves come from the same release, {RELEASE_VERSION}. The links below
+            go straight to each file;{" "}
+            <ExternalLink href={LATEST_RELEASE}>all downloads</ExternalLink> are on the
+            GitHub release page. Always install both from the same release: the two
+            refuse each other at the handshake when their versions differ, and each says
+            which one is older.
           </>
         }
       >
@@ -231,7 +278,9 @@ export function ProductSections() {
 
         <Tabs defaultValue="windows">
           <TabsList>
-            <TabsTrigger value="windows">Laptop</TabsTrigger>
+            <TabsTrigger value="windows">Windows</TabsTrigger>
+            <TabsTrigger value="mac">Mac</TabsTrigger>
+            <TabsTrigger value="linux">Linux</TabsTrigger>
             <TabsTrigger value="android">Phone</TabsTrigger>
           </TabsList>
 
@@ -239,12 +288,16 @@ export function ProductSections() {
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="solid">Windows 10 version 2004 or later</Badge>
               <Badge variant="outline">64-bit</Badge>
-              <Badge variant="outline">Edgepad-x.y.z.exe</Badge>
+              <Badge variant="outline">{DOWNLOADS.windows.file}</Badge>
             </div>
             <ol className="text-dim max-w-[68ch] list-decimal space-y-3 pl-5 text-[0.9375rem] leading-relaxed">
               <li>
-                Download <C>Edgepad-x.y.z.exe</C>. It is a single self-contained file;
-                nothing else needs installing, and the laptop does not need .NET.
+                Download{" "}
+                <ExternalLink href={DOWNLOADS.windows.href}>
+                  {DOWNLOADS.windows.file}
+                </ExternalLink>
+                . It is a single self-contained file; nothing else needs installing, and
+                the laptop does not need .NET.
               </li>
               <li>
                 Run it. It is not code-signed, so SmartScreen asks first: choose{" "}
@@ -252,21 +305,28 @@ export function ProductSections() {
                 <strong className="text-foreground">Run anyway</strong>.
               </li>
               <li>
-                It lives in the system tray. The menu shows whether a phone is
-                connected, then{" "}
+                It lives in the system tray. The menu, top to bottom: whether a phone is
+                connected, <strong className="text-foreground">Update available</strong>{" "}
+                when there is one, a row for anything that needs your attention (such as{" "}
+                <strong className="text-foreground">
+                  Allow through Windows Firewall…
+                </strong>
+                ), then{" "}
+                <strong className="text-foreground">Wi-Fi and USB connections</strong>,{" "}
+                <strong className="text-foreground">Share clipboard</strong>,{" "}
                 <strong className="text-foreground">Start with Windows</strong>,{" "}
                 <strong className="text-foreground">Macros…</strong>,{" "}
-                <strong className="text-foreground">Open log</strong>,{" "}
+                <strong className="text-foreground">Security…</strong>,{" "}
                 <strong className="text-foreground">Documentation</strong>,{" "}
-                <strong className="text-foreground">Forget trusted phones</strong> and{" "}
-                <strong className="text-foreground">Quit Edgepad</strong>, with the
-                version beside it.
+                <strong className="text-foreground">Open log</strong> and{" "}
+                <strong className="text-foreground">Quit Edgepad</strong>.
               </li>
             </ol>
             <P>
-              Running a newer <C>Edgepad-x.y.z.exe</C> asks the running copy to quit and
-              takes its place, so an update takes over cleanly rather than failing on
-              the single-instance lock.
+              Running a newer <C>{DOWNLOADS.windows.file}</C> asks the running copy to
+              quit and takes its place, so an update takes over cleanly. Starting the
+              same version twice shows &ldquo;Edgepad is already running&rdquo; and the
+              second copy exits.
             </P>
             <Note label="Optional: ViGEmBus, for the gamepad">
               <p className="mb-3">
@@ -293,47 +353,95 @@ export function ProductSections() {
                 while Edgepad is running is noticed on the next reconnect.
               </p>
             </Note>
-            <Note label="On a Mac">
-              <p className="mb-3">
-                macOS 13 or later, one download for Apple Silicon and Intel:{" "}
-                <C>Edgepad-x.y.z-mac.zip</C>, which holds <C>Edgepad.app</C>. Move it to
-                Applications and open it. It is not notarised, so macOS refuses it at
-                first: choose <strong className="text-foreground">Open Anyway</strong>{" "}
-                under System Settings &gt; Privacy &amp; Security.
-              </p>
-              <p className="mb-3">
-                It lives in the menu bar and asks for Bluetooth and for input control
-                (Accessibility, named Device Control and Data Access from macOS 27),
-                without which macOS silently discards every pointer move and key press
-                the app sends. If input still does nothing after you grant it, quit
-                Edgepad from the menu bar and open it again. The signature is ad hoc, so
-                macOS treats each new version as a different app and the permission has
-                to be granted again after an update.
-              </p>
-              <p>
-                The Mac app has been compiled and unit-tested in CI but not yet run on a
-                real Mac, and it has no now playing, level readout or virtual controller
-                yet. The README lists what differs.
-              </p>
+          </TabsContent>
+
+          <TabsContent value="mac" className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="solid">macOS 13 or later</Badge>
+              <Badge variant="outline">Apple Silicon and Intel</Badge>
+              <Badge variant="outline">{DOWNLOADS.mac.file}</Badge>
+            </div>
+            <ol className="text-dim max-w-[68ch] list-decimal space-y-3 pl-5 text-[0.9375rem] leading-relaxed">
+              <li>
+                Download{" "}
+                <ExternalLink href={DOWNLOADS.mac.href}>
+                  {DOWNLOADS.mac.file}
+                </ExternalLink>
+                , which holds <C>Edgepad.app</C>. Move it to Applications and open it.
+              </li>
+              <li>
+                It is not notarised, so macOS refuses it at first: choose{" "}
+                <strong className="text-foreground">Open Anyway</strong> under System
+                Settings &gt; Privacy &amp; Security.
+              </li>
+              <li>
+                It lives in the menu bar. Allow Bluetooth when asked, then choose{" "}
+                <strong className="text-foreground">
+                  Allow Edgepad to control this Mac…
+                </strong>{" "}
+                in its menu to open the input-control pane (Accessibility, named Device
+                Control and Data Access from macOS 27). Without it macOS silently
+                discards every pointer move and key press the app sends.
+              </li>
+              <li>
+                <strong className="text-foreground">Start at login</strong> in the same
+                menu keeps it running. If input still does nothing after you grant it,
+                quit Edgepad from the menu bar and open it again.
+              </li>
+            </ol>
+            <Note label="After an update">
+              The signature is ad hoc, so macOS treats each new version as a different
+              app and the input permission has to be granted again after an update.
             </Note>
-            <Note label="On Linux">
-              <p className="mb-3">
-                Download <C>Edgepad-x.y.z-linux-x64.tar.gz</C> (64-bit) and check it
-                against <C>SHA256SUMS.txt</C>, then extract it and run the installer as
-                root. Log out and back in once so your session gets access to{" "}
+            <Note label="In testing">
+              The Mac app has been compiled and unit-tested in CI but not yet run on a
+              real Mac, and it has no now playing, level readout or virtual controller
+              yet. It offers Wi-Fi connections; USB is not supported there. The README
+              lists what differs.
+            </Note>
+          </TabsContent>
+
+          <TabsContent value="linux" className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="solid">64-bit Linux with BlueZ</Badge>
+              <Badge variant="outline">{DOWNLOADS.linux.file}</Badge>
+            </div>
+            <ol className="text-dim max-w-[68ch] list-decimal space-y-3 pl-5 text-[0.9375rem] leading-relaxed">
+              <li>
+                Download{" "}
+                <ExternalLink href={DOWNLOADS.linux.href}>
+                  {DOWNLOADS.linux.file}
+                </ExternalLink>{" "}
+                and check it against{" "}
+                <ExternalLink href={DOWNLOADS.sums.href}>
+                  {DOWNLOADS.sums.file}
+                </ExternalLink>
+                .
+              </li>
+              <li>Extract it and run the installer as root (commands below).</li>
+              <li>
+                Log out and back in once so your session gets access to{" "}
                 <C>/dev/uinput</C>, then start Edgepad from the launcher or run{" "}
                 <C>edgepad</C>.
-              </p>
+              </li>
+            </ol>
+            <CodeBlock
+              title="Install on Linux"
+              code={`tar xzf ${DOWNLOADS.linux.file}
+cd edgepad-${RELEASE_VERSION}
+sudo ./install.sh`}
+              caption="Then log out and back in once. sudo ./install.sh /opt/edgepad installs under another prefix, and sudo ./install.sh --uninstall removes it."
+            />
+            <Note label="What the installer does">
               <p className="mb-3">
                 <C>install.sh</C> only copies files and loads a module; it downloads
                 nothing. It puts <C>edgepad</C> in <C>/usr/local/bin</C>, the launcher
                 entry and the icon under <C>/usr/local/share</C>, a udev rule in{" "}
                 <C>/etc/udev/rules.d</C> and <C>uinput</C> in <C>/etc/modules-load.d</C>
-                , then runs <C>modprobe uinput</C>. Another prefix goes after the
-                command, and <C>--uninstall</C> removes it all and leaves your settings
-                in <C>~/.config/edgepad</C>.
+                , then runs <C>modprobe uinput</C>. <C>--uninstall</C> removes it all
+                and leaves your settings in <C>~/.config/edgepad</C>.
               </p>
-              <p className="mb-3">
+              <p>
                 The app is a self-contained single file, so .NET need not be installed.
                 It needs BlueZ for Bluetooth, <C>wpctl</C> (PipeWire) or <C>pactl</C>{" "}
                 for the volume dial, systemd-logind for Lock and brightness, and{" "}
@@ -342,69 +450,72 @@ export function ProductSections() {
                 <C>xclip</C> on X11 is optional, for typing text that is not plain
                 ASCII. GNOME needs the AppIndicator extension to show the tray icon.
               </p>
-              <p>
-                On Wayland, annotate runs under XWayland and the compositor may ignore
-                its always-on-top request, so it is best effort: the phone shows an
-                Annotate tile only when it can work. The shortcuts for task view, show
-                desktop, search, notifications and switching desktops differ per
-                desktop; the GNOME and KDE tables were written from memory and are
-                unverified, and on any other desktop those actions do nothing. Macros
-                are a text file you edit by hand, <C>~/.config/edgepad/macros.txt</C>,
-                with no editor on Linux yet. <C>docs/LINUX.md</C> in the repository
-                lists everything that has not been seen working.
-              </p>
             </Note>
-            <CodeBlock
-              title="Install on Linux"
-              code={`tar xzf Edgepad-x.y.z-linux-x64.tar.gz
-cd edgepad-x.y.z
-sudo ./install.sh`}
-              caption="Then log out and back in once. sudo ./install.sh /opt/edgepad installs under another prefix, and sudo ./install.sh --uninstall removes it."
-            />
+            <Note label="In testing">
+              On Wayland, annotate runs under XWayland and the compositor may ignore its
+              always-on-top request, so it is best effort: the phone shows an Annotate
+              tile only when it can work. The shortcuts for task view, show desktop,
+              search, notifications and switching desktops differ per desktop; the GNOME
+              and KDE tables were written from memory and are unverified, and on any
+              other desktop those actions do nothing. <C>docs/LINUX.md</C> in the
+              repository lists everything that has not been seen working.
+            </Note>
           </TabsContent>
 
           <TabsContent value="android" className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="solid">Android 12 or later</Badge>
-              <Badge variant="outline">minSdk 31</Badge>
-              <Badge variant="outline">Edgepad-x.y.z.apk</Badge>
+              <Badge variant="outline">{DOWNLOADS.phone.file}</Badge>
             </div>
             <ol className="text-dim max-w-[68ch] list-decimal space-y-3 pl-5 text-[0.9375rem] leading-relaxed">
               <li>
-                Download <C>Edgepad-x.y.z.apk</C> and open it. Allow installing from
-                this source if asked.
+                Download{" "}
+                <ExternalLink href={DOWNLOADS.phone.href}>
+                  {DOWNLOADS.phone.file}
+                </ExternalLink>{" "}
+                on the phone and open it. If the browser warns that this kind of file
+                can harm your device, tap{" "}
+                <strong className="text-foreground">Download anyway</strong>.
+              </li>
+              <li>
+                If Android says the browser (or Files) may not install apps, tap{" "}
+                <strong className="text-foreground">Settings</strong> and allow it to
+                install unknown apps, then go back. If Play Protect asks, choose{" "}
+                <strong className="text-foreground">Install anyway</strong>. The exact
+                prompts differ by Android version and maker.
               </li>
               <li>
                 On first run, allow the{" "}
                 <strong className="text-foreground">Nearby devices</strong> permission.
-                Edgepad uses it to see the laptops already paired with the phone; it
-                never scans for new ones.
+                Edgepad uses it to see the laptops already paired over Bluetooth and, if
+                you turn Wi-Fi and USB connections on, to find laptops on your network.
               </li>
               <li>
-                Every later release installs over the previous one and settings are
-                kept, because <C>versionCode</C> comes from the workflow run number and
-                only ever increases.
+                Later releases install over this one and keep your settings.{" "}
+                <strong className="text-foreground">
+                  System settings &gt; Updates
+                </strong>{" "}
+                on the phone and the laptop&apos;s{" "}
+                <strong className="text-foreground">Update available</strong> row tell
+                you when one exists. Update both halves together.
               </li>
             </ol>
-            <Note label="Debug builds">
-              A build made locally is versioned <C>0.0.0-dev</C> and signed with the
-              debug key, so it will not install over a release build. Uninstall the
-              release first.
-            </Note>
           </TabsContent>
         </Tabs>
 
         <Sub>Pairing and first connection</Sub>
         <ol className="text-dim max-w-[68ch] list-decimal space-y-3 pl-5 text-[0.9375rem] leading-relaxed">
           <li>
-            Pair the phone with the laptop once, in Windows{" "}
+            For Bluetooth, pair the phone with the laptop once in the laptop&apos;s own
+            settings: Windows{" "}
             <strong className="text-foreground">
               Settings &gt; Bluetooth &amp; devices
             </strong>
-            or macOS{" "}
-            <strong className="text-foreground">System Settings &gt; Bluetooth</strong>.
-            Edgepad has no pairing step of its own; on Linux, use your desktop&apos;s
-            Bluetooth settings.
+            , macOS{" "}
+            <strong className="text-foreground">System Settings &gt; Bluetooth</strong>,
+            or your Linux desktop&apos;s Bluetooth settings. Confirm the code on both
+            sides when the OS shows it. Edgepad adds nothing to that step. Wi-Fi and USB
+            use their own one-time pairing code instead (see below).
           </li>
           <li>
             Keep Edgepad running in the laptop&apos;s tray, or on a Mac in the menu bar.
@@ -413,22 +524,67 @@ sudo ./install.sh`}
           </li>
           <li>
             Open Edgepad on the phone and tap the laptop. The first time, the laptop
-            asks <strong className="text-foreground">Trust this phone?</strong>; choose
-            Trust there. Every paired phone is asked about once, and each one you trust
-            is remembered; choose{" "}
-            <strong className="text-foreground">Forget trusted phones</strong> in the
-            tray or menu-bar menu to forget them all. One phone drives the laptop at a
-            time: a trusted phone that connects takes over from the connected one, and
-            the phone it replaced is refused for 30 seconds before it can reconnect with
-            Retry.
+            asks <strong className="text-foreground">Trust NAME?</strong> (NAME is the
+            phone); choose <strong className="text-foreground">Trust</strong> there.
+            Every paired phone is asked about once, and each one you trust is
+            remembered. To forget phones, open{" "}
+            <strong className="text-foreground">Security…</strong> in the tray or
+            menu-bar menu: it lists the trusted phones, each with{" "}
+            <strong className="text-foreground">Forget</strong>, and has{" "}
+            <strong className="text-foreground">Forget all…</strong>. One phone drives
+            the laptop at a time: a trusted phone that connects takes over from the
+            connected one, and the phone it replaced is refused for 30 seconds before it
+            can reconnect with Retry.
           </li>
           <li>
             The phone remembers the laptop and reconnects when the app opens. If the
-            link drops after a completed handshake, the phone retries ten times, two
-            seconds apart, and says so. Disconnecting on purpose does not retry. The
-            phone stays connected to every laptop you connect and you choose which one
-            you control; with Stay connected on, a notification holds the link while
-            Edgepad is minimized, with a Disconnect button.
+            link drops after a completed handshake, the phone retries up to ten times,
+            two seconds apart, and says so; a{" "}
+            <strong className="text-foreground">Stop trying</strong> button ends it
+            sooner. Disconnecting on purpose does not retry. The phone stays connected
+            to every laptop you connect and you choose which one you control; with Stay
+            connected on, a notification holds the link, and keeps retrying with
+            &ldquo;Reconnecting to NAME…&rdquo;, while Edgepad is minimized. Share
+            clipboard and Stay connected are asked about on first run and stay off until
+            you choose.
+          </li>
+        </ol>
+
+        <Sub>Wi-Fi and USB connections</Sub>
+        <P>
+          Optional, off until you turn them on. The phone&apos;s half of Wi-Fi and USB
+          has not been tried on real phones yet, so expect rough edges.
+        </P>
+        <ol className="text-dim max-w-[68ch] list-decimal space-y-3 pl-5 text-[0.9375rem] leading-relaxed">
+          <li>
+            On the laptop, turn on{" "}
+            <strong className="text-foreground">Wi-Fi and USB connections</strong> in
+            the tray menu (on a Mac,{" "}
+            <strong className="text-foreground">Wi-Fi connections</strong>; USB is not
+            supported there). On first run the laptop asks{" "}
+            <strong className="text-foreground">Let phones find this laptop?</strong>:
+            choose <strong className="text-foreground">Allow</strong>.
+          </li>
+          <li>
+            On Windows, allow the firewall prompt, or choose{" "}
+            <strong className="text-foreground">Allow through Windows Firewall…</strong>{" "}
+            in the menu once. Edgepad listens on port 47321.
+          </li>
+          <li>
+            For Wi-Fi, put both on the same network. For USB, connect the cable and turn
+            on <strong className="text-foreground">USB tethering</strong> on the phone.
+            Then open Edgepad on the phone, pick the laptop under Devices, and allow{" "}
+            <strong className="text-foreground">Nearby devices</strong> if asked. If the
+            laptop is not listed, use{" "}
+            <strong className="text-foreground">Add by address</strong> and type its
+            address (<C>192.168.1.20</C>, or with a port if it is not 47321).
+          </li>
+          <li>
+            The phone shows a six-digit pairing code. Type it into the laptop&apos;s
+            pairing window (&ldquo;Type the pairing code shown on the phone:&rdquo;)
+            before it expires, then tap{" "}
+            <strong className="text-foreground">Yes, paired</strong> on the phone if the
+            laptop said the code matched. After that the laptop is remembered.
           </li>
         </ol>
       </Section>
@@ -580,13 +736,19 @@ sudo ./install.sh`}
           Linux and the Mac, so a macro can be added from the phone.
         </P>
 
-        <Sub>Shared clipboard</Sub>
+        <Sub>Share clipboard</Sub>
         <P>
           Text and images copied on the laptop arrive on the phone at once. Android lets
           Edgepad read the clipboard only while it is on screen, so to send a copy from
           the phone, go back to Edgepad after copying and it goes then; tapping
           Edgepad&apos;s notification does the same. Copying on the phone and pasting on
           the laptop without returning to Edgepad cannot work.
+        </P>
+        <P>
+          Since Android 10 only the app on screen can read the clipboard, so a copy made
+          in another app reaches the laptop when you switch back to Edgepad. A{" "}
+          <strong className="text-foreground">Share to Edgepad</strong> option in the
+          share sheet sends text or an image straight to the active laptop.
         </P>
         <P>
           A large photo is sent smaller, and a password manager&apos;s copy is never
@@ -598,8 +760,8 @@ sudo ./install.sh`}
         <P>
           Set from the laptop&apos;s tray or menu-bar menu under{" "}
           <strong>Security…</strong>, never from the phone. Level 1, the default, is the
-          Trust this phone? question and nothing else. Level 2 also asks each phone for
-          a six-digit PIN the first time it connects, and level 3 asks on every
+          Trust NAME? question and nothing else. Level 2 also asks each phone for a
+          six-digit PIN the first time it connects, and level 3 asks on every
           connection.
         </P>
         <P>
@@ -613,7 +775,7 @@ sudo ./install.sh`}
         <P>
           A forgotten PIN can only be reset on the laptop, with Reset PIN and forget
           phones…, which removes the PIN, goes back to level 1 and forgets every trusted
-          phone, so each one is asked Trust this phone? again. A six-digit PIN is only a
+          phone, so each one is asked Trust NAME? again. A six-digit PIN is only a
           million values, so what stops guessing is the lock-out. It does not protect
           against someone who can copy the laptop&apos;s settings file, and the laptop
           stores only a salted hash of the PIN.
@@ -735,6 +897,88 @@ sudo ./install.sh`}
 ~/.local/share/Edgepad/edgepad.log                        the log, on Linux`}
           caption="The log is also in the tray menu, under Open log."
         />
+      </Section>
+
+      <Section
+        id="troubleshooting"
+        eyebrow="Start here"
+        title="Troubleshooting"
+        lede="The phone says why a connection failed. Find its message below; the cause and the fix are on the same row."
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>The phone says</TableHead>
+              <TableHead>What it means, and what to do</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {TROUBLE.map((row) => (
+              <TableRow key={row.says}>
+                <TableCell className="text-[0.875rem]">{row.says}</TableCell>
+                <TableCell className="text-dim text-[0.875rem]">{row.fix}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+
+        <Sub>Both halves from one release</Sub>
+        <P>
+          If the laptop is older, the phone says &ldquo;Edgepad on LAPTOP is older than
+          this app. Update Edgepad on the laptop.&rdquo; If the phone is older it says
+          &ldquo;This app is older than Edgepad on LAPTOP. Update this app in System
+          settings &gt; Updates.&rdquo; The laptop&apos;s menu names the older half the
+          same way. Both halves must come from the same release.
+        </P>
+
+        <Sub>The gamepad says keyboard mode</Sub>
+        <P>
+          The laptop has no virtual controller, so the pad sends keyboard keys instead.
+          On Windows, install ViGEmBus (see Windows above); the gamepad screen says
+          which of three reasons it was. The Mac and Linux apps have no virtual
+          controller.
+        </P>
+
+        <Sub>Input does nothing on a Mac</Sub>
+        <P>
+          Choose <strong>Allow Edgepad to control this Mac…</strong> in the menu-bar
+          menu and enable Edgepad in the pane that opens. After every update macOS
+          treats Edgepad as a new app, so grant it again, then quit and reopen Edgepad.
+        </P>
+
+        <Sub>Remove Edgepad</Sub>
+        <ul className="text-dim max-w-[68ch] list-disc space-y-2 pl-5 text-[0.9375rem] leading-relaxed">
+          <li>
+            <strong className="text-foreground">Windows:</strong> turn off{" "}
+            <strong className="text-foreground">Start with Windows</strong>, choose{" "}
+            <strong className="text-foreground">Quit Edgepad</strong>, then delete the
+            .exe. Settings stay in <C>%APPDATA%\Edgepad</C> until you delete that
+            folder.
+          </li>
+          <li>
+            <strong className="text-foreground">Mac:</strong> turn off{" "}
+            <strong className="text-foreground">Start at login</strong>, quit Edgepad
+            from the menu bar and delete <C>Edgepad.app</C>.
+          </li>
+          <li>
+            <strong className="text-foreground">Linux:</strong>{" "}
+            <C>sudo ./install.sh --uninstall</C>. Settings stay in{" "}
+            <C>~/.config/edgepad</C>.
+          </li>
+          <li>
+            <strong className="text-foreground">Phone:</strong> uninstall Edgepad like
+            any app.
+          </li>
+        </ul>
+
+        <Sub>Forget one laptop, or phones</Sub>
+        <P>
+          On the phone, <strong>Forget</strong> on a laptop removes it from the list and
+          deletes its pairing code; Android&apos;s own Bluetooth pairing stays, so
+          remove that in Bluetooth settings too. On the laptop,{" "}
+          <strong>Security…</strong> lists the trusted phones, each with{" "}
+          <strong>Forget</strong>, and has <strong>Forget all…</strong>.
+        </P>
       </Section>
     </>
   );

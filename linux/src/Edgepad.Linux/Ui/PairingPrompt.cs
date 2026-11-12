@@ -4,7 +4,7 @@ using Edgepad.Net;
 namespace Edgepad.Ui;
 
 /// <summary>Puts the pairing question up and returns the window, to be told how the code went. Called on the UI thread.</summary>
-internal delegate IPairingQuestion PairingOpener(string phoneName, long deadline, Action<string> onTyped, Action onOwnerCancelled);
+internal delegate IPairingQuestion PairingOpener(string phoneName, string? source, long deadline, Action<string> onTyped, Action onOwnerCancelled);
 
 /// <summary>
 /// The laptop's half of a Wi-Fi or USB pairing (<see cref="IPairingPrompt"/>): a window that names the phone and asks
@@ -20,11 +20,14 @@ internal sealed class PairingPrompt(Action<Action> ui, Action<string> announce, 
     public static PairingPrompt OnUiThread(Action<string> announce) =>
         new(work => Dispatcher.UIThread.Post(work), announce, PairingWindow.Open);
 
-    public IPairingQuestion Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled)
+    public IPairingQuestion Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled) =>
+        Show(phoneName, null, onTyped, onOwnerCancelled);
+
+    public IPairingQuestion Show(string phoneName, string? source, Action<string> onTyped, Action onOwnerCancelled)
     {
         var deadline = Environment.TickCount64 + (long)LinkResponder.OwnerTimeout.TotalMilliseconds;
         var shown = new Shown(ui);
-        ui(() => shown.Open(() => open(phoneName, deadline, onTyped, onOwnerCancelled), deadline));
+        ui(() => shown.Open(() => open(phoneName, source, deadline, onTyped, onOwnerCancelled), deadline));
         announce(phoneName);
         return shown;
     }

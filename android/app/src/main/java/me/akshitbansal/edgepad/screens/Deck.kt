@@ -1,6 +1,5 @@
 package me.akshitbansal.edgepad.screens
 
-import android.content.res.ColorStateList
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -16,7 +15,6 @@ import android.view.ViewGroup
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import me.akshitbansal.edgepad.R
@@ -46,22 +44,24 @@ private const val LIFT_MS = 150L
 private const val REFLOW_MS = 220L
 private const val SETTLE_MS = 180L
 
-/** The close cross as drawn, and the least that answers for it: the AA floor for a small target. */
-private const val CROSS_DP = 22f
-private const val CROSS_MIN_HIT_DP = 24f
-
 /**
- * How long a tapped cross waits for the laptop to answer before it can be tapped again, so a second tap sends no
- * second close, and how dim it is meanwhile.
+ * How long a tapped Close waits for the laptop to answer before it can be asked again, so a second tap sends no
+ * second close.
  */
 private const val CLOSE_WAIT_MS = 3000L
-private const val CLOSING_ALPHA = 0.4f
+
+/** AND-A-13: how dim a tile is, and for how long, after a tap while the laptop opens the app. */
+private const val LAUNCH_ALPHA = 0.6f
+private const val LAUNCH_WAIT_MS = 2_500L
+
+/** How dim a tile is that the laptop cannot use yet. */
+private const val DIMMED_ALPHA = 0.45f
 
 /**
  * One tile of a [Deck]. [key] names it across renames of its position, [tag] is what a tap hands back and
  * is the owner's to give meaning to, and [picture] is drawn over the label when there is one. [spoken] is the
  * string a screen reader says for a tap, given the label: "Run Chrome" for a macro, "Open Keyboard" for a control.
- * [closable] puts a close cross on the tile.
+ * [closable] lets a held tile offer "Close" (AND-A-22: there is no cross on the grid; a tap only launches).
  */
 data class DeckTile(
     val key: String,
@@ -70,6 +70,8 @@ data class DeckTile(
     val picture: Drawable?,
     val spoken: Int = R.string.macros_run,
     val closable: Boolean = false,
+    /** Why the tile cannot be used right now; a tile with a note is drawn dimmed and the note is its state. */
+    val note: String? = null,
 )
 
 /**
@@ -97,8 +99,6 @@ class Deck(
         val icon: Int,
         /** No label row anywhere: the labels are off and every tile has its picture. */
         val bare: Boolean,
-        /** A tile's shorter side. */
-        val side: Int,
     )
 
     private var tiles: List<DeckTile> = emptyList()
@@ -117,13 +117,11 @@ class Deck(
     private var grid: Grid? = null
     private val buttons = HashMap<Int, TextView>()
 
-    /** Every close cross drawn so far, by tile tag. One stays in its cell, hidden, once its tile is not closable. */
-    private val crosses = HashMap<Int, View>()
-
-    /** The tags of the tiles whose cross was tapped and is waiting on the laptop. */
+    /** The tags of the tiles whose Close was tapped and is waiting on the laptop. */
     private val closing = HashSet<Int>()
+    private val launching = HashSet<Int>()
 
-    /** Every tile's cell, by its display position: the views a drag slides about, cross and all. */
+    /** Every tile's cell, by its display position: the views a drag slides about. */
     private val cells = ArrayList<View>()
 
     /**
@@ -144,6 +142,18 @@ class Deck(
 
     private var lift: Lift? = null
 
+    /**
+     * AND-A-22: a tile let go where it was picked up stays lifted and wears [bar], "Close NAME", across its foot, until
+     * anything else is touched. Only a tile whose app is running is offered it.
+     */
+    private class Armed(
+        val lift: Lift,
+        val bar: View,
+        val tag: Int,
+    )
+
+    private var armed: Armed? = null
+
     /** The latest finger position over the holder, which is where a long press lifts its tile from. */
     private var lastX = 0f
     private var lastY = 0f
@@ -163,7 +173,7 @@ class Deck(
      * positions through [onMove]. [slots] is how many cells the grid is planned for when that is more than
      * the tiles it holds, so that a short last page of a pager keeps the tile size of the full ones. [rows] asks
      * for that many rows; null, a count the grid cannot be split into, or one that does not fit in [down], leaves
-     * the choice to [plan]. A tap on a [DeckTile.closable] tile's cross goes to [onClose], never to [onTap].
+     * the choice to [plan]. A tap on the Close of a held, closable tile goes to [onClose], never to [onTap].
      */
     fun render(
         across: Int,
@@ -207,11 +217,11 @@ class Deck(
     fun clear() {
         holder.removeAllViews()
         buttons.clear()
-        crosses.clear()
         cells.clear()
         // A rebuild under a held tile drops the hold: the view it held is gone, and the finger's next move
         // goes to the new grid as an ordinary touch.
         lift = null
+        armed = null
         grid = null
     }
 
@@ -233,17 +243,14 @@ class Deck(
     }
 
     /**
-     * The tiles tagged in [open] have a cross and the rest do not. Only the crosses change, so the grid is not built
-     * again, and what the laptop said ends the wait of any cross that was tapped.
+     * The tiles tagged in [open] are running and can be closed from their held state. Nothing is drawn for it until a
+     * tile is held, so the grid is not built again; what the laptop said ends the wait of any Close that was
+     * tapped, and a Close shown for an app that has since quit goes.
      */
     fun setOpen(open: Set<Int>) {
         tiles = tiles.map { it.copy(closable = it.tag in open) }
         closing.clear()
-        val current = grid ?: return
-        tiles.forEach { tile ->
-            val cross = crosses[tile.tag] ?: if (tile.closable) addCross(tile, current) else null
-            cross?.let { dressCross(it, tile) }
-        }
+        armed?.let { if (!isClosable(it.tag)) release(it) }
     }
 
     /**
@@ -300,7 +307,7 @@ class Deck(
         // empty rather than the thing keeping it honest.
         val box = minOf(width - pad, height - pad - line - ui.dp(Space.XS))
         val icon = DeckLayout.iconSide(box, iconZoom, ui.dp(ICON_MIN_DP))
-        return Grid(chosen, height, labelSp, line, icon, bare, minOf(width, height))
+        return Grid(chosen, height, labelSp, line, icon, bare)
     }
 
     /** How tall one line of label stands at [sp], measured in the face and size the button draws it in. */
@@ -357,9 +364,8 @@ class Deck(
         }
 
     /**
-     * What a drag moves: the tile's button, and over it, while the tile is closable, its cross. The cell rather than
-     * the button is what is lifted and slid, so the cross stays on its tile. The cross is the upper child and takes
-     * its own touches, which is why a press on it reaches neither the tap nor the long press under it.
+     * What a drag moves: the tile's button, in a cell of its own. The cell rather than the button is what is lifted
+     * and slid, so a Close shown on a held tile (see [arm]) goes with it.
      */
     private fun cell(
         tile: DeckTile,
@@ -370,73 +376,42 @@ class Deck(
         val cell = FrameLayout(ui.context)
         cell.addView(button(tile, grid, position), FrameLayout.LayoutParams(match, match))
         cells.add(cell)
-        if (tile.closable) addCross(tile, grid)?.let { dressCross(it, tile) }
         return cell
-    }
-
-    /**
-     * Adds the close cross to [tile]'s cell, at its top-end corner: a card-coloured circle in the corner of a larger
-     * area that answers for it, sized by [DeckLayout.crossHit]. Null when the tile is not drawn in this deck.
-     */
-    private fun addCross(
-        tile: DeckTile,
-        grid: Grid,
-    ): View? {
-        val cell = buttons[tile.tag]?.parent as? FrameLayout ?: return null
-        val hit = DeckLayout.crossHit(grid.side, ui.dp(Space.TOUCH), ui.dp(CROSS_MIN_HIT_DP))
-        val side = ui.dp(CROSS_DP)
-        val inset = ui.dp(Space.XS)
-        val cross =
-            FrameLayout(ui.context).apply {
-                contentDescription = ui.string(R.string.macros_close, tile.label)
-                ui.tappable(this, Space.TILE_RADIUS) { close(tile) }
-                addView(
-                    ImageView(ui.context).apply {
-                        setImageResource(R.drawable.ic_close)
-                        imageTintList = ColorStateList.valueOf(ui.palette.ink)
-                        background = ui.rounded(ui.palette.card, CROSS_DP / 2)
-                        setPadding(inset, inset, inset, inset)
-                    },
-                    FrameLayout.LayoutParams(side, side, Gravity.TOP or Gravity.END),
-                )
-            }
-        cell.addView(cross, FrameLayout.LayoutParams(hit, hit, Gravity.TOP or Gravity.END))
-        crosses[tile.tag] = cross
-        return cross
-    }
-
-    /** Shows [tile]'s cross only while the tile is closable, dimmed and deaf while it waits on the laptop. */
-    private fun dressCross(
-        cross: View,
-        tile: DeckTile,
-    ) {
-        val waiting = tile.tag in closing
-        cross.visibility = if (tile.closable) View.VISIBLE else View.GONE
-        cross.isEnabled = !waiting
-        cross.alpha = if (waiting) CLOSING_ALPHA else 1f
     }
 
     private fun isClosable(tag: Int): Boolean = tiles.any { it.tag == tag && it.closable }
 
-    /** [tile]'s cross was tapped, or its TalkBack action run: once, until the laptop answers or the wait runs out. */
+    /** [tile]'s Close was tapped, or its TalkBack action run: once, until the laptop answers or the wait runs out. */
     private fun close(tile: DeckTile) {
         val tag = tile.tag
         if (tag in closing || !isClosable(tag)) return
         closing.add(tag)
-        redressCross(tag)
-        holder.postDelayed(
-            {
-                closing.remove(tag)
-                redressCross(tag)
-            },
-            CLOSE_WAIT_MS,
-        )
+        holder.postDelayed({ closing.remove(tag) }, CLOSE_WAIT_MS)
         onClose(tile)
     }
 
-    private fun redressCross(tag: Int) {
-        val cross = crosses[tag] ?: return
-        dressCross(cross, tiles.firstOrNull { it.tag == tag } ?: return)
+    /**
+     * AND-A-13: a tap ticks, dims the tile and says "Opening" for a moment, and a second tap in that moment is
+     * ignored, so a laptop that is slow to open the app is not asked twice.
+     */
+    private fun launch(
+        tile: DeckTile,
+        view: View,
+    ) {
+        if (!launching.add(tile.tag)) return
+        view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        view.alpha = LAUNCH_ALPHA
+        view.stateDescription = ui.string(R.string.macro_opening)
+        onTap(tile)
+        holder.postDelayed(
+            {
+                launching.remove(tile.tag)
+                val now = tiles.firstOrNull { it.tag == tile.tag } ?: return@postDelayed
+                view.alpha = if (now.note == null) 1f else DIMMED_ALPHA
+                view.stateDescription = now.note
+            },
+            LAUNCH_WAIT_MS,
+        )
     }
 
     /**
@@ -453,13 +428,15 @@ class Deck(
         ui.text("", grid.labelSp, ui.palette.ink, face = Type.bold).apply {
             gravity = Gravity.CENTER
             minHeight = ui.dp(Space.BUTTON)
-            ui.tappable(this, Space.PANEL_RADIUS) { onTap(tile) }
+            ui.tappable(this, Space.PANEL_RADIUS) { launch(tile, this) }
             reorderable(this, tile, position)
             // A long name is cut rather than wrapped, so every button in the grid stays one row tall.
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
             // Spoken as the laptop spells it, and named the same way when the label is not drawn at all.
             contentDescription = ui.string(tile.spoken, tile.label)
+            alpha = if (tile.note == null) 1f else DIMMED_ALPHA
+            stateDescription = tile.note
             buttons[tile.tag] = this
             dress(this, tile, grid)
         }
@@ -469,7 +446,7 @@ class Deck(
      * way, the way a phone's home screen reflows; and the same move as two TalkBack actions, since a drag
      * cannot be made without sight. The long press is the system's own, so it comes with the system's
      * haptic and with its timeout, and a press that lifts a tile never runs it. A closable tile also offers
-     * its cross as a TalkBack action: the platform's dismiss, with the cross's own words on it.
+     * Close as a TalkBack action: the platform's dismiss, with the same words on it.
      */
     private fun reorderable(
         button: TextView,
@@ -533,12 +510,27 @@ class Deck(
     fun touch(event: MotionEvent): Boolean {
         lastX = event.x
         lastY = event.y
+        armed?.let {
+            if (event.actionMasked != MotionEvent.ACTION_DOWN) return false
+            if (onBar(it.bar, event)) return false
+            release(it)
+            return true
+        }
         val held = lift ?: return false
         // A cancel from above (a call coming in, the window losing focus) sends everything back home.
         when (event.actionMasked) {
-            MotionEvent.ACTION_MOVE -> follow(held, event.x, event.y)
-            MotionEvent.ACTION_UP -> drop(held, held.target)
-            MotionEvent.ACTION_CANCEL -> drop(held, held.home)
+            MotionEvent.ACTION_MOVE -> {
+                follow(held, event.x, event.y)
+            }
+
+            MotionEvent.ACTION_UP -> {
+                val tile = tiles.getOrNull(held.home)
+                if (held.target == held.home && tile?.closable == true) arm(held, tile) else drop(held, held.target)
+            }
+
+            MotionEvent.ACTION_CANCEL -> {
+                drop(held, held.home)
+            }
         }
         return true
     }
@@ -573,6 +565,64 @@ class Deck(
         // The page scrolls; a held tile dragged up or down must move the tile, not the page.
         holder.parent?.requestDisallowInterceptTouchEvent(true)
         return true
+    }
+
+    /** The held [tile] stays up, and offers to close its app. */
+    private fun arm(
+        held: Lift,
+        tile: DeckTile,
+    ) {
+        lift = null
+        val name = ui.string(R.string.macros_close, tile.label)
+        val bar =
+            ui.text(name, Type.BODY, ui.palette.onAccent, face = Type.bold).apply {
+                gravity = Gravity.CENTER
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+                background = ui.rounded(ui.palette.accent, Space.PANEL_RADIUS)
+                ui.tappable(this, Space.PANEL_RADIUS) {
+                    armed?.let { release(it) }
+                    close(tile)
+                }
+            }
+        val inset = ui.dp(Space.XS)
+        (held.view as FrameLayout).addView(
+            bar,
+            FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(Space.TOUCH), Gravity.BOTTOM).apply {
+                setMargins(inset, inset, inset, inset)
+            },
+        )
+        armed = Armed(held, bar, tile.tag)
+    }
+
+    /** Whether the touch landed on the Close bar, in the screen's coordinates since the cell is scaled and moved. */
+    private fun onBar(
+        bar: View,
+        event: MotionEvent,
+    ): Boolean {
+        val at = IntArray(2)
+        bar.getLocationOnScreen(at)
+        val scale = (bar.parent as View).scaleX
+        return event.rawX >= at[0] && event.rawX <= at[0] + bar.width * scale &&
+            event.rawY >= at[1] && event.rawY <= at[1] + bar.height * scale
+    }
+
+    /** Puts a lifted tile back down without moving it, and takes its Close away. */
+    private fun release(held: Armed) {
+        armed = null
+        val view = held.lift.view
+        (view as FrameLayout).removeView(held.bar)
+        view
+            .animate()
+            .scaleX(1f)
+            .scaleY(1f)
+            .translationZ(0f)
+            .setDuration(SETTLE_MS)
+            .setInterpolator(easeOut)
+            .withEndAction {
+                view.background = null
+                (view.parent as? View)?.translationZ = 0f
+            }
     }
 
     /**

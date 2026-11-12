@@ -51,6 +51,15 @@ class Settings(
             }
             edit.apply()
         }
+        // Stay connected and Share clipboard used to come on by themselves; they are asked for now and start off.
+        // An install that already used the app keeps what it had, which for a key never written was on.
+        if (!prefs.contains(KEY_SHARING_ASKED) && prefs.getBoolean("onboarded", false)) {
+            val edit = prefs.edit().putBoolean(KEY_SHARING_ASKED, true)
+            for (key in listOf("stayConnected", "clipboardSync")) {
+                if (!prefs.contains(key)) edit.putBoolean(key, true)
+            }
+            edit.apply()
+        }
         // One remembered laptop until the phone could hold several. One edit, so neither key changes without the other.
         prefs.getString(KEY_LAPTOP, null)?.let { old ->
             prefs
@@ -77,6 +86,12 @@ class Settings(
 
     var onboarded by flag("onboarded", false)
 
+    /** Not now was said to the Devices notice about Nearby devices, so a Bluetooth-only user is not shown it again. */
+    var localNetworkHintDismissed by flag("localNetworkHintDismissed", false)
+
+    /** The one short screen after the first connection, about Share clipboard and Stay connected, was answered. */
+    var sharingAsked by flag(KEY_SHARING_ASKED, false)
+
     /**
      * Two dials a corner, one on each edge it joins, in place of one. It only chooses which keys are read:
      * the `corner.*` keys are never written by the toggle, so turning it off gives back the unsplit surface.
@@ -90,12 +105,12 @@ class Settings(
      * Keep the links up while the app is minimized, through a foreground service and its notification. Off, they close
      * after a short linger once the app leaves the screen, as before the service existed.
      */
-    var stayConnected by flag("stayConnected", true)
+    var stayConnected by flag("stayConnected", false)
 
     var haptics by flag("haptics", true)
 
     /** Share the clipboard with the selected laptop, when it offers to. Each laptop's own switch must be on too. */
-    var clipboardSync by flag("clipboardSync", true)
+    var clipboardSync by flag("clipboardSync", false)
 
     /** Round volume, brightness and mic to a multiple of 5 when the finger lifts. */
     var snap by flag("snap", false)
@@ -103,7 +118,13 @@ class Settings(
     /** Content follows the fingers, as on Windows' own touchpads; off scrolls the other way. */
     var naturalScroll by flag("naturalScroll", true)
 
-    var hints by flag("hints", false)
+    var hints by flag("hints", true)
+
+    /** Bit per trackpad hint already earned by using the gesture (see HintFade); switching hints on again clears it. */
+    var hintsSeen by pref({ prefs.getInt("hintsSeen", 0) }) { putInt("hintsSeen", it) }
+
+    /** How many times the Controls popup has said that its tiles can be moved; it stops after a few. */
+    var controlsHintShown by pref({ prefs.getInt("controlsHintShown", 0) }) { putInt("controlsHintShown", it) }
 
     /**
      * Macro buttons carry their name under the picture. Off shows the picture alone, which is roomier and
@@ -141,6 +162,12 @@ class Settings(
 
     /** When GitHub last answered, in milliseconds since the epoch; 0 before it ever has. */
     var lastUpdateCheck by pref({ prefs.getLong(KEY_LAST_UPDATE_CHECK, 0L) }) { putLong(KEY_LAST_UPDATE_CHECK, it) }
+
+    /**
+     * Why the last update did not go in, kept until the next try: 0 for nothing amiss, -1 for a download that failed,
+     * else the status the system's installer gave.
+     */
+    var updateFailure by pref({ prefs.getInt(KEY_UPDATE_FAILURE, 0) }) { putInt(KEY_UPDATE_FAILURE, it) }
 
     /** The newest release the last answer named, such as "3.2.1"; empty before any answer. */
     var latestVersion by pref({ prefs.getString(KEY_LATEST_VERSION, "").orEmpty() }) {
@@ -202,6 +229,9 @@ class Settings(
         set(value) = prefs.edit().putString(KEY_BACKGROUND, value.name).apply()
 
     var backgroundColor by color(KEY_BACKGROUND_COLOR, DEFAULT_BACKGROUND)
+
+    /** Whether the imported background image is mostly dark, measured when it was decoded. */
+    var backgroundImageDark by flag(KEY_BACKGROUND_IMAGE_DARK, false)
 
     /** The second colour of a gradient; the first is [backgroundColor]. */
     var gradientEnd by color(KEY_GRADIENT_END, DEFAULT_GRADIENT_END)
@@ -471,6 +501,8 @@ class Settings(
         private const val NONE = NO_DIAL
         private const val IMAGE_FILE = "background.img"
         private const val KEY_LAPTOP = "laptop"
+        private const val KEY_SHARING_ASKED = "sharingAsked"
+        private const val KEY_UPDATE_FAILURE = "updateFailure"
         private const val KEY_SAVED_LAPTOPS = "savedLaptops"
         private const val KEY_SHAPES = "shapes"
         private const val KEY_LAST_UPDATE_CHECK = "lastUpdateCheck"
@@ -486,6 +518,7 @@ class Settings(
         private const val KEY_CONTROL_COLOR = "controlColor"
         private const val KEY_BACKGROUND = "background"
         private const val KEY_BACKGROUND_COLOR = "backgroundColor"
+        private const val KEY_BACKGROUND_IMAGE_DARK = "backgroundImageDark"
         private const val KEY_GRADIENT_END = "gradientEnd"
         private const val KEY_GRADIENT_ANGLE = "gradientAngle"
         private const val KEY_PATTERN = "pattern"

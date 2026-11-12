@@ -255,8 +255,8 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
         <P>
           Everything runs on the main thread, because IOBluetooth delivers on the main
           run loop. A session is therefore a state machine fed bytes rather than a
-          blocking read loop, and bytes that arrive while the Trust this phone? question
-          is open wait in a buffer until HELLO_ACK has gone out. The app polls volume,
+          blocking read loop, and bytes that arrive while the Trust NAME? question is
+          open wait in a buffer until HELLO_ACK has gone out. The app polls volume,
           microphone and brightness twice a second instead of subscribing, so a change
           made on the Mac reaches the phone within half a second. Brightness uses a
           private framework, DisplayServices, loaded at run time; where it is missing
@@ -636,7 +636,7 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
         title="Actions and controls"
         lede="The laptop owns both tables. The phone names an id; the laptop decides what the id does."
       >
-        <Sub>Actions</Sub>
+        <Sub>The actions</Sub>
         <IdTable
           rows={protocol.actions}
           idHeading="Id"
@@ -712,7 +712,7 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
             },
             {
               title: "Trust on first use",
-              body: "Enforced by TrustStore. Any paired phone that is not yet trusted makes the tray ask Trust this phone? once it completes the handshake, and HELLO_ACK waits for the answer. Trust adds its Bluetooth address to trusted-phone.txt (in %APPDATA%\\Edgepad on Windows), one address per line, so several phones can be trusted; Don't trust, or no answer within 60 s, closes the connection. A phone the owner said no to is not asked about again for 30 seconds. The tray menu's Forget trusted phones hangs up on the connected phone and takes no connection while it asks; a yes clears every trusted phone and keeps refusing for 30 seconds, and a Forget clicked while a question is open wins over a yes given after it. Every phone you trust has full keyboard-level control, so trust only your own.",
+              body: "Enforced by TrustStore. Any paired phone that is not yet trusted makes the tray ask Trust NAME? once it completes the handshake, and HELLO_ACK waits for the answer. Trust adds its Bluetooth address to trusted-phone.txt (in %APPDATA%\\Edgepad on Windows), one address per line, so several phones can be trusted; Don't trust, or no answer within 60 s, closes the connection. A phone the owner said no to is not asked about again for 30 seconds. The Security… window's Forget all… hangs up on the connected phone and takes no connection while it asks; a yes clears every trusted phone and keeps refusing for 30 seconds, and a Forget clicked while a question is open wins over a yes given after it. Every phone you trust has full keyboard-level control, so trust only your own.",
             },
             {
               title: "Security level and PIN",
@@ -789,7 +789,7 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
           the controller needs a third-party signed kernel driver, ViGEmBus, which you
           install and Edgepad only talks to — see{" "}
           <a
-            href="#limits"
+            href="/docs#limits"
             className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
           >
             Known limits

@@ -47,9 +47,14 @@ internal sealed class MacroWindow : Form
     /// would be false; see <see cref="MacroStore"/>.
     /// </summary>
     private const string Description = "Buttons on your phone's macro screen, up to 15. The phone sends a button's "
-        + "number, never a program, so it can only run what you add here.";
+        + "number, never a program, so it can only run what you add here. Alt+Up and Alt+Down reorder the buttons.";
 
     private readonly List<Macro> working;
+
+    // The macros as they were when the window opened: what "changed" is measured against, and what tells a macro the
+    // phone added meanwhile from one the owner already saw.
+    private readonly IReadOnlyList<Macro> opened;
+    private readonly MacroStore store;
     private readonly Palette palette = Palette.Current;
 
     /// <summary>
@@ -94,6 +99,8 @@ internal sealed class MacroWindow : Form
 
     public MacroWindow(MacroStore store)
     {
+        this.store = store;
+        opened = [.. store.Macros];
         working = [.. store.Macros];
 
         Text = "Macros";
@@ -111,17 +118,19 @@ internal sealed class MacroWindow : Form
         nameFrame = new Framed(name, palette, radius: 8, inset: 12);
         targetFrame = new Framed(target, palette, radius: 8, inset: 12);
         argumentsFrame = new Framed(arguments, palette, radius: 8, inset: 12);
-        preview = new Tile(palette);
-        add = new FlatButton("Add macro", ButtonKind.Outline, palette, Icons.Plus);
-        browse = new FlatButton("Browse", ButtonKind.Outline, palette, Icons.FolderOpen);
-        chooseIcon = new FlatButton("Choose…", ButtonKind.Outline, palette);
-        ownIcon = new FlatButton("Use the program's own", ButtonKind.Ghost, palette);
-        remove = new FlatButton("Remove", ButtonKind.Ghost, palette, Icons.Trash) { Danger = true };
+        preview = new Tile(palette) { AccessibleName = "Icon preview" };
+        add = new FlatButton("&Add macro", ButtonKind.Outline, palette, Icons.Plus);
+        browse = new FlatButton("&Browse…", ButtonKind.Outline, palette, Icons.FolderOpen) { AccessibleName = "Browse for what this opens" };
+        chooseIcon = new FlatButton("&Choose icon…", ButtonKind.Outline, palette) { AccessibleName = "Choose icon" };
+        ownIcon = new FlatButton("&Use the program's own", ButtonKind.Ghost, palette);
+        remove = new FlatButton("&Remove", ButtonKind.Ghost, palette, Icons.Trash) { Danger = true };
         cancel = new FlatButton("Cancel", ButtonKind.Outline, palette) { DialogResult = DialogResult.Cancel };
-        save = new FlatButton("Save", ButtonKind.Primary, palette) { DialogResult = DialogResult.OK };
+        save = new FlatButton("&Save", ButtonKind.Primary, palette) { DialogResult = DialogResult.OK };
         empty = new EmptyState(palette);
         full = [listFrame, add, nameFrame, targetFrame, browse, argumentsFrame, preview, chooseIcon, ownIcon, remove];
 
+        list.AccessibleName = "Macros";
+        list.AccessibleDescription = "Alt+Up and Alt+Down move the selected macro.";
         list.DrawItem += DrawRow;
         list.SelectedIndexChanged += (_, _) => Fill();
         list.MouseDown += (_, e) => dragging = e.Button == MouseButtons.Left ? list.IndexFromPoint(e.Location) : -1;
@@ -154,7 +163,7 @@ internal sealed class MacroWindow : Form
         browse.Click += (_, _) => Browse();
         chooseIcon.Click += (_, _) => BrowseIcon();
         ownIcon.Click += (_, _) => SetIcon(null);
-        save.Click += (_, _) => Save(store);
+        save.Click += (_, _) => Save();
         AcceptButton = save;
         CancelButton = cancel;
 
@@ -414,6 +423,9 @@ internal sealed class MacroWindow : Form
 
         empty.Visible = none;
         add.Enabled = working.Count < MacroStore.MaxMacros;
+
+        // A button gone grey says why, in its own words, since a disabled control shows no tooltip.
+        add.Text = add.Enabled ? "Add macro" : $"{MacroStore.MaxMacros} of {MacroStore.MaxMacros} macros";
         ownIcon.Enabled = macro?.Icon is not null;
         preview.Picture = macro is null ? null : pictures.GetValueOrDefault(Key(macro));
 
@@ -464,14 +476,29 @@ internal sealed class MacroWindow : Form
     /// Saves, unless a macro has nothing to open. The store would drop that row without a word, and every
     /// macro after it would move up a slot on the phone; so the dialog stays open on it and says why.
     /// </summary>
-    private void Save(MacroStore store)
+    private bool Save()
     {
+        // A macro the phone added while this window was open is not in the working copy, and saving the copy would
+        // drop it without a word. It is kept, after the owner's own.
+        var arrived = store.Macros.Where(macro => !opened.Contains(macro) && !working.Contains(macro)).ToList();
+        if (working.Count + arrived.Count > MacroStore.MaxMacros)
+        {
+            DialogResult = DialogResult.None;
+            MessageBox.Show(
+                this,
+                $"A macro was added from your phone while this window was open, and there is no room for it. Remove one here, then save.",
+                "Macros",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return false;
+        }
+
         var missing = MacroStore.WithoutTarget(working);
         if (missing < 0)
         {
-            if (store.Save(working) is not { } failure)
+            if (store.Save([.. working, .. arrived]) is not { } failure)
             {
-                return;
+                return true;
             }
 
             // The edits stay in the dialog, so the owner can fix the cause and press OK again, or cancel.
@@ -482,7 +509,7 @@ internal sealed class MacroWindow : Form
                 "Macros",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Warning);
-            return;
+            return false;
         }
 
         // Save is the dialog's OK button, which has already set the result that closes it.
@@ -495,6 +522,61 @@ internal sealed class MacroWindow : Form
             MessageBoxButtons.OK,
             MessageBoxIcon.Warning);
         target.Focus();
+        return false;
+    }
+
+    /// <summary>
+    /// Closing any other way than Save (Cancel, Esc, the close box) would throw the edits away, so a window with changes
+    /// asks first: Save, Don't save, or Cancel to go back.
+    /// </summary>
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        base.OnFormClosing(e);
+        if (e.Cancel || DialogResult == DialogResult.OK || working.SequenceEqual(opened))
+        {
+            return;
+        }
+
+        var saveIt = new TaskDialogButton("Save");
+        var discard = new TaskDialogButton("Don't save");
+        var back = new TaskDialogButton("Cancel");
+        var page = new TaskDialogPage
+        {
+            Caption = "Macros",
+            Heading = "Save changes to macros?",
+            Text = "Your changes will be lost if you do not save them.",
+            Icon = TaskDialogIcon.Warning,
+            AllowCancel = true,
+            Buttons = { saveIt, discard, back },
+            DefaultButton = saveIt,
+        };
+
+        TaskDialogButton answer;
+        try
+        {
+            answer = TaskDialog.ShowDialog(this, page);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            // Not asking would lose the edits; staying open keeps them.
+            Log.Write($"Could not ask about unsaved macros: {ex.Message}");
+            e.Cancel = true;
+            return;
+        }
+
+        if (answer == discard)
+        {
+            return;
+        }
+
+        if (answer == saveIt && Save())
+        {
+            DialogResult = DialogResult.OK;
+            return;
+        }
+
+        e.Cancel = true;
+        DialogResult = DialogResult.None;
     }
 
     /// <summary>Reads the picture for <paramref name="macro"/> if it has not been read already.</summary>
@@ -674,7 +756,7 @@ internal sealed class MacroWindow : Form
         public EmptyState(Palette palette)
         {
             this.palette = palette;
-            Add = new FlatButton("Add macro", ButtonKind.Primary, palette, Icons.Plus);
+            Add = new FlatButton("&Add macro", ButtonKind.Primary, palette, Icons.Plus);
             AccessibleName = Headline;
             AccessibleDescription = Detail;
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);

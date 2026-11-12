@@ -45,9 +45,29 @@ export function Section({
   );
 }
 
-/** A sub-heading inside a section. Not an anchor: the sidebar stops at sections. */
+/**
+ * A sub-heading inside a section. The sidebar stops at sections, but a text heading
+ * still gets an id from its words and links to itself, so it can be deep-linked.
+ */
 export function Sub({ children }: { children: ReactNode }) {
-  return <h3 className="pt-2 text-lg font-bold md:text-xl">{children}</h3>;
+  const id =
+    typeof children === "string"
+      ? children
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")
+      : undefined;
+  return (
+    <h3 id={id} className="scroll-mt-20 pt-2 text-lg font-bold md:text-xl">
+      {id ? (
+        <a href={`#${id}`} className="decoration-primary rounded-sm hover:underline">
+          {children}
+        </a>
+      ) : (
+        children
+      )}
+    </h3>
+  );
 }
 
 /** Body copy. Kept to ~68 characters so long documentation stays readable. */
@@ -95,6 +115,7 @@ export function ExternalLink({
       className="text-primary decoration-primary/40 hover:decoration-primary rounded-sm font-bold underline underline-offset-4"
     >
       {children}
+      <span className="sr-only"> (opens in a new tab)</span>
     </a>
   );
 }

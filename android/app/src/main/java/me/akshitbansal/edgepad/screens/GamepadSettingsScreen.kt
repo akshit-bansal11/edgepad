@@ -12,7 +12,6 @@ object GamepadSettingsScreen {
         current: String,
         onPick: (String) -> Unit,
         onEdit: () -> Unit,
-        onSystem: () -> Unit,
         onBack: () -> Unit,
     ): View =
         ui.page(ui.bar("", onBack, backLabel = ui.string(R.string.controls_gamepad))) {
@@ -24,6 +23,5 @@ object GamepadSettingsScreen {
             card(Space.M) {
                 add(ui.link(ui.string(R.string.gamepad_edit), null, onEdit))
             }
-            systemSettings(onSystem)
         }
 }

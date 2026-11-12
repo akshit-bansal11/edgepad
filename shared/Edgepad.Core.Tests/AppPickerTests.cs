@@ -160,7 +160,7 @@ public sealed class AppPickerTests : IDisposable
     public void ACancelDuringTheScanSendsNothing()
     {
         var work = new List<Action>();
-        var picker = new AppPicker(catalog, store, Sender(), TestContext.Current.CancellationToken, work.Add, _ => true);
+        var picker = new AppPicker(catalog, store, Sender(), TestContext.Current.CancellationToken, work.Add, _ => true, () => ++epochs);
         catalog.Apps = [App("One")];
 
         picker.List();
@@ -219,6 +219,25 @@ public sealed class AppPickerTests : IDisposable
     }
 
     [Fact]
+    public void ATokenFromAnEarlierSessionNeverMatchesALaterOne()
+    {
+        // No epoch override: the process-wide count, as in production.
+        AppPicker Session() => new(
+            catalog, store, Sender(), TestContext.Current.CancellationToken, work => work(), _ => true);
+        catalog.Apps = [App("One")];
+
+        var earlier = Session();
+        earlier.List();
+        var token = Lines()[0].Split('\t')[0];
+
+        var later = Session();
+        later.List();
+
+        Assert.Equal(AppAddStatus.Stale, later.Add(token));
+        Assert.False(File.Exists(MacrosFile));
+    }
+
+    [Fact]
     public void ATokenFromTheLastEpochIsStale()
     {
         var picker = Picker();
@@ -235,7 +254,7 @@ public sealed class AppPickerTests : IDisposable
     public void NoTokenWorksWhileTheNewListIsBeingScanned()
     {
         var work = new List<Action>();
-        var picker = new AppPicker(catalog, store, Sender(), TestContext.Current.CancellationToken, work.Add, _ => true);
+        var picker = new AppPicker(catalog, store, Sender(), TestContext.Current.CancellationToken, work.Add, _ => true, () => ++epochs);
         catalog.Apps = [App("One")];
 
         picker.List();
@@ -361,6 +380,9 @@ public sealed class AppPickerTests : IDisposable
 
     private BlobSender Sender() => new(wire.Add, LinkKind.Bluetooth, () => 0, TestContext.Current.CancellationToken, () => long.MaxValue, _ => true);
 
+    // Each test counts its own epochs from 1, so its tokens are known; production counts across the process.
+    private int epochs;
+
     private AppPicker Picker() => new(
         catalog,
         store,
@@ -371,7 +393,8 @@ public sealed class AppPickerTests : IDisposable
         {
             pauses.Add(ms);
             return true;
-        });
+        },
+        () => ++epochs);
 
     /// <summary>The rows of the first list on the wire.</summary>
     private string[] Lines()

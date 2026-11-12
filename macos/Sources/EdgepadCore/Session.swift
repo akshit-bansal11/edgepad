@@ -48,6 +48,20 @@ public final class Session {
     private let display: DisplayRates
     private let identity: LinkIdentity
     private let onStatus: (String) -> Void
+    /// Whether the OS discards this Mac's input right now; nil where the build does not report it.
+    private let inputBlocked: (() -> Bool)?
+    /// The TEXT 18 payload last sent, so the phone hears only a change.
+    private var lastInputState: String?
+    /// Where the batteries and the output come from; nil sends the phone neither.
+    private let power: PowerSource?
+    /// The TEXT 19 and TEXT 20 payloads last sent, so the phone hears only a change.
+    private var lastBatteries: String?
+    private var lastOutput: String?
+    /// Polls since the batteries were last read. `poll()` runs twice a second, so this many is a minute.
+    private var pollsSincePower = 0
+    private static let pollsPerBatteryRead = 120
+    /// What the status line calls the way this phone came: "Bluetooth", "Wi-Fi" or "USB".
+    private let link: String
     /// Called once trust has said yes, just before HELLO_ACK: the server decides there whether this phone may take
     /// over the Mac from the one in use. False ends the session with nothing sent.
     private let onAdmitted: (Session) -> Bool
@@ -97,6 +111,7 @@ public final class Session {
 
     public init(
         address: String,
+        link: String = "Bluetooth",
         transport: Transport,
         trust: TrustStore,
         pin: PinStore,
@@ -110,6 +125,8 @@ public final class Session {
         display: DisplayRates,
         identity: LinkIdentity,
         onStatus: @escaping (String) -> Void,
+        inputBlocked: (() -> Bool)? = nil,
+        power: PowerSource? = nil,
         onAdmitted: @escaping (Session) -> Bool,
         onEnded: @escaping (Session) -> Void,
         schedule: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) },
@@ -118,6 +135,7 @@ public final class Session {
         }
     ) {
         self.address = address
+        self.link = link
         self.transport = transport
         self.trust = trust
         self.pin = pin
@@ -131,6 +149,8 @@ public final class Session {
         self.display = display
         self.identity = identity
         self.onStatus = onStatus
+        self.inputBlocked = inputBlocked
+        self.power = power
         self.onAdmitted = onAdmitted
         self.onEnded = onEnded
         self.schedule = schedule
@@ -176,6 +196,25 @@ public final class Session {
             lastBrightness = percent
             sendBrightness(percent)
         }
+        pollsSincePower += 1
+        if pollsSincePower >= Session.pollsPerBatteryRead { sendPower() }
+    }
+
+    /// TEXT 19 and TEXT 20: rereads both and sends whichever differs from what the phone was last told.
+    private func sendPower() {
+        guard let power, !isEnded, stage == .live else { return }
+        pollsSincePower = 0
+        let batteries = PowerText.encodeBatteries(power.batteries())
+        if batteries != lastBatteries {
+            lastBatteries = batteries
+            send(.text(kind: TextKind.batteries.rawValue, value: batteries))
+        }
+        guard !isEnded else { return }
+        let output = PowerText.encodeOutput(power.output())
+        if output != lastOutput {
+            lastOutput = output
+            send(.text(kind: TextKind.output.rawValue, value: output))
+        }
     }
 
     /// Idempotent. Anything still held down is lifted first: a link dropped mid-gesture must never leave
@@ -189,6 +228,7 @@ public final class Session {
         dispatcher.macroWatch = nil
         macroWatch?.cancel()
         macroWatch = nil
+        power?.changed = nil
         // The overlay goes with the session: a phone that vanishes mid-drawing must leave no layer on the screen.
         dispatcher.annotation?.end()
         dispatcher.capture?.end()
@@ -244,7 +284,8 @@ public final class Session {
             // Answered with this Mac's version, so the phone can say which side needs updating.
             send(.helloAck(version: ProtocolConstants.version))
             Log.write("Refused \(address): it speaks protocol \(version), this Mac \(ProtocolConstants.version)")
-            onStatus("Refused a phone on protocol \(version); this Mac is on \(ProtocolConstants.version)")
+            onStatus(
+                StatusText.mismatch(name: address, phoneVersion: version, laptopVersion: ProtocolConstants.version))
             end()
             return
         }
@@ -377,7 +418,7 @@ public final class Session {
         guard !isEnded else { return }
         stage = .live
         Log.write("Connected \(address)")
-        onStatus("Connected to \(address)")
+        onStatus(StatusText.connected(address, over: link))
         reportState()
     }
 
@@ -393,9 +434,20 @@ public final class Session {
         }
     }
 
+    /// TEXT 18: tells a live phone when input is blocked or allowed again. Called after the device text and whenever
+    /// the app sees the permission change; sends nothing when the phone already has that state.
+    public func sendInputState() {
+        guard let inputBlocked, !isEnded, stage == .live else { return }
+        let state = inputBlocked() ? "blocked" : "ok"
+        guard state != lastInputState else { return }
+        lastInputState = state
+        send(.text(kind: TextKind.inputState.rawValue, value: state))
+    }
+
     /// What the phone's dials start from, in the order docs/PROTOCOL.md describes.
     private func reportState() {
         send(.text(kind: TextKind.device.rawValue, value: identity.deviceText))
+        sendInputState()
         if let level = speakers.read() {
             lastVolume = level
             sendLevel(.volume, level)
@@ -467,6 +519,8 @@ public final class Session {
         }
         send(.text(kind: TextKind.features.rawValue, value: features.joined(separator: "/")))
         sendScreenSize()
+        power?.changed = { [weak self] in self?.sendPower() }
+        sendPower()
 
         // Watched rather than sent once, so a macro the owner adds while the phone is connected reaches it. With
         // no store the list is empty, and the phone then says to add some on the Mac instead of drawing a broken

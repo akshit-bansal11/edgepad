@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.PopupWindow
+import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -47,6 +48,10 @@ object EditorFrame {
         canvas: View,
         onBack: () -> Unit,
         backLabel: CharSequence? = null,
+        /** Handed a function that opens the options sheet, for a caller with another way to ask for it. */
+        onOpener: ((open: () -> Unit) -> Unit)? = null,
+        /** Handed a function that changes the title drawn between the round buttons, for a title that follows what is edited. */
+        onRetitle: (((CharSequence) -> Unit) -> Unit)? = null,
         options: (close: () -> Unit) -> View,
     ): View {
         val root = FrameLayout(ui.context).apply { setBackgroundColor(ui.palette.background) }
@@ -86,6 +91,7 @@ object EditorFrame {
                     window.showAsDropDown(open.view, 0, ui.dp(POPUP_GAP_DP) - slack(ui), Gravity.END)
                 }
             }
+        onOpener?.invoke { open.view.performClick() }
         // A rotation or a theme change rebuilds the activity under an open sheet. It goes with the page it
         // belongs to, rather than outliving it and leaking its window.
         root.addOnAttachStateChangeListener(
@@ -115,6 +121,7 @@ object EditorFrame {
                 ui.text(title, Type.VALUE, ui.palette.dim, face = Type.bold).apply {
                     isAccessibilityHeading = true
                 }
+            onRetitle?.invoke { label.text = it }
             root.addView(
                 label,
                 FrameLayout
@@ -244,9 +251,14 @@ object EditorFrame {
         marginEnd = ui.dp(EDGE_DP) - slack(ui)
     }
 
-    /** Reset and Done, side by side at the foot of a popup: Reset in [resetStyle], Done the filled one. */
+    /**
+     * A reset and Done, side by side at the foot of a popup: the reset in [resetStyle], Done the filled one.
+     * The reset names what it does ([label]) and asks again ([confirmLabel]) before it acts, since it cannot be undone.
+     */
     fun resetAndDone(
         ui: Ui,
+        label: String,
+        confirmLabel: String,
         onReset: () -> Unit,
         onDone: () -> Unit,
         resetStyle: Ui.Style = Ui.Style.QUIET,
@@ -254,7 +266,7 @@ object EditorFrame {
         LinearLayout(ui.context).apply {
             setPadding(0, ui.dp(Space.S), 0, 0)
             addView(
-                ui.button(ui.string(R.string.media_layout_reset), resetStyle, onReset),
+                resetButton(ui, label, confirmLabel, resetStyle, onReset),
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
             )
             addView(
@@ -265,4 +277,24 @@ object EditorFrame {
                 },
             )
         }
+
+    private fun resetButton(
+        ui: Ui,
+        label: String,
+        confirmLabel: String,
+        style: Ui.Style,
+        onReset: () -> Unit,
+    ): View {
+        val guard = ConfirmTap()
+        var button: TextView? = null
+        button =
+            ui.button(label, style) {
+                if (guard.tap()) {
+                    onReset()
+                } else {
+                    button?.text = confirmLabel
+                }
+            }
+        return button
+    }
 }

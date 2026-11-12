@@ -33,6 +33,9 @@ internal sealed class FlatButton : Button
         this.kind = kind;
         this.glyph = glyph;
         Text = text;
+
+        // Narrator reads the label without its access-key marker; a caller may still set a fuller name.
+        AccessibleName = Mnemonic.Plain(text);
         BackColor = palette.Card;
         SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
     }
@@ -78,7 +81,7 @@ internal sealed class FlatButton : Button
 
             if (kind == ButtonKind.Outline)
             {
-                using var line = new Pen(palette.Line);
+                using var line = new Pen(palette.Off, palette.HighContrast ? Theme.Scale(2f, dpi) : 1f);
                 graphics.DrawPath(line, path);
             }
 
@@ -97,7 +100,8 @@ internal sealed class FlatButton : Button
         }
 
         var font = Theme.Font(Theme.Scale(14f, dpi), Weight.Bold);
-        const TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine;
+        // With the prefix, so the access key is underlined.
+        const TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.SingleLine;
         var text = TextRenderer.MeasureText(graphics, Text, font, Size.Empty, flags);
         var icon = glyph is null ? 0 : Theme.Scale(16, dpi);
         var gap = glyph is null ? 0 : Theme.Scale(6, dpi);
@@ -201,7 +205,8 @@ internal sealed class Framed : Panel
             graphics.FillPath(card, shape);
         }
 
-        using var line = new Pen(focused ? palette.Accent : palette.Line);
+        // Off, not Line: the hairline is 1.2:1 against the card, and an empty field must show its edge (3:1).
+        using var line = new Pen(focused ? palette.Accent : palette.Off, palette.HighContrast ? Theme.Scale(2f, DeviceDpi) : 1f);
         graphics.DrawPath(line, shape);
     }
 

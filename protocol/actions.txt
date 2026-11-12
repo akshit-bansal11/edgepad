@@ -160,6 +160,23 @@ TEXT 16 MACRO_OPEN
 # colour of new strokes until the next PEN_COLOR or PEN_RGB. Anything else, a "#", a short or long string or a non-hex
 # character included, is dropped and counted.
 TEXT 17 PEN_RGB
+# Laptop to phone: "blocked" while the OS discards synthetic input (Mac without Accessibility trust, Linux without
+# write access to /dev/uinput), "ok" otherwise. Sent after HELLO_ACK and on change; never sent by Windows. Never received
+# reads as ok.
+TEXT 18 INPUT_STATE
+# Laptop to phone: a snapshot of the whole battery list, never a delta, "entry|entry|...", entry "kind:level:charging:name"
+# split on ":" with limit 4 so the name may contain ":". kind is a BATTERY_KIND token (unknown reads as other), level 0..100
+# (clamped), charging 0 or 1. A device with no level, and a laptop with no battery, are omitted. The sender turns control
+# characters and "|" in a name into a space, trims, and cuts to 24 code points (never inside a surrogate pair); an empty name
+# becomes the kind token. Laptop first, then peripherals in discovery order. Empty means no devices. If the joined UTF-8
+# exceeds 255 bytes, whole entries are dropped from the END until it fits (the laptop entry stays). Sent after the
+# handshake and when the text differs from the last one sent, polled at most every 60 s.
+TEXT 19 BATTERIES
+# Laptop to phone: the audio output, "kind/name" split on the first "/" only, kind an OUTPUT_KIND token. The name is the
+# device's own for Bluetooth or monitor output ("AirPods Pro") and the endpoint's for built-in ("Speakers"), sanitised as for
+# BATTERIES and cut to 40 code points. Empty means no output known. Sent after the handshake and on a default-device change,
+# not re-sent when identical.
+TEXT 20 OUTPUT
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
@@ -207,6 +224,21 @@ FEATURE running RUNNING
 DEVICE_OS windows WINDOWS
 DEVICE_OS linux LINUX
 DEVICE_OS macos MACOS
+
+# The whole vocabulary of TEXT kind 19's entry kind, as "<token on the wire> <the name both apps call it>". An unknown token
+# reads as OTHER.
+BATTERY_KIND laptop LAPTOP
+BATTERY_KIND headphones HEADPHONES
+BATTERY_KIND keyboard KEYBOARD
+BATTERY_KIND mouse MOUSE
+BATTERY_KIND speaker SPEAKER
+BATTERY_KIND other OTHER
+
+# The whole vocabulary of TEXT kind 20's kind, same shape. An unknown token reads as OTHER.
+OUTPUT_KIND speaker SPEAKER
+OUTPUT_KIND headphones HEADPHONES
+OUTPUT_KIND monitor MONITOR
+OUTPUT_KIND other OTHER
 
 # The whole vocabulary of TEXT kind 15, as "<token on the wire> <the name both apps call it>". Only ADDED changed the
 # laptop's macro list. An unknown token reads as FAILED.

@@ -1,15 +1,22 @@
 package me.akshitbansal.edgepad.screens
 
+import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
+import android.os.Bundle
 import android.text.TextPaint
 import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityNodeProvider
+import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
@@ -53,13 +60,14 @@ object KeyboardScreen {
         onKey: (code: Int, down: Boolean) -> Unit,
         onAction: (ActionId) -> Unit,
         onSettings: () -> Unit,
+        onType: (String) -> Unit,
         onBack: () -> Unit,
     ): View {
         val header =
             ui.bar(
                 ui.string(R.string.keyboard_title),
                 onBack,
-                ui.icon(Glyph.Shape.GEAR, ui.string(R.string.settings_title), onSettings),
+                ui.icon(Glyph.Shape.GEAR, ui.string(R.string.keyboard_settings_title), onSettings),
                 backLabel = ui.string(R.string.back_to_surface),
             )
         val keyboard = KeyboardView(ui.context, textScale, layoutFor(size), mode, os, onKey, onAction)
@@ -68,8 +76,36 @@ object KeyboardScreen {
             setBackgroundColor(ui.palette.background)
             ui.padToBars(this)
             addView(header)
+            val wide = ViewGroup.LayoutParams.MATCH_PARENT
+            val typeRow = LinearLayout.LayoutParams(wide, ViewGroup.LayoutParams.WRAP_CONTENT)
+            typeRow.setMargins(ui.dp(Space.PAGE), ui.dp(Space.S), ui.dp(Space.PAGE), ui.dp(Space.S))
+            val typeText = ui.string(R.string.keyboard_type_text)
+            val typeButton = ui.button(typeText, Ui.Style.OUTLINED) { askText(ui, this, onType) }
+            addView(typeButton, typeRow)
             addView(keyboard, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         }
+    }
+
+    /** AND-A-9: the phone's own keyboard, dictation and paste, typed on the laptop as one TEXT frame per 255 bytes. */
+    private fun askText(
+        ui: Ui,
+        owner: View,
+        onType: (String) -> Unit,
+    ) {
+        val field =
+            EditText(ui.context).apply {
+                hint = ui.string(R.string.keyboard_type_text)
+                importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
+                val pad = ui.dp(Space.L)
+                setPadding(pad, pad, pad, pad)
+            }
+        AlertDialog
+            .Builder(ui.context)
+            .setTitle(R.string.keyboard_type_text)
+            .setView(field)
+            .setPositiveButton(R.string.keyboard_type_send) { _, _ -> onType(field.text.toString()) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .showOver(owner)
     }
 
     /**
@@ -165,7 +201,11 @@ object KeyboardScreen {
         private val secondaryOn = paintLike(labelOn, palette.onAccent)
         private val secondaryOff = paintLike(labelOn, palette.dim)
 
+        // AND-A-28: the small legend on a grey function key is ink, not dim: dim on that grey is under 4.5 to 1.
+        private val secondaryOnGrey = paintLike(labelOn, palette.ink)
+
         private val pointerKeys = mutableMapOf<Int, Press>()
+        private var nodes: AccessibilityNodeProvider? = null
 
         // Fn goes through the latch like Shift, so it is sticky the same way; it stops here and never reaches
         // the laptop. The latch also carries the action codes, which go out as actions on down only.
@@ -254,6 +294,7 @@ object KeyboardScreen {
             labelDim.textSize = labelOn.textSize
             secondaryOn.textSize = labelOn.textSize * SECONDARY_SHARE
             secondaryOff.textSize = secondaryOn.textSize
+            secondaryOnGrey.textSize = secondaryOn.textSize
         }
 
         override fun onDraw(canvas: Canvas) {
@@ -292,7 +333,12 @@ object KeyboardScreen {
                     }
                 canvas.drawText(primary, rect.centerX(), rect.centerY() + label.textSize * Type.CAP_CENTRE, label)
                 if (other != null) {
-                    val small = if (held) secondaryOn else secondaryOff
+                    val small =
+                        when {
+                            held -> secondaryOn
+                            functionKeys[i] -> secondaryOnGrey
+                            else -> secondaryOff
+                        }
                     canvas.drawText(other, rect.centerX(), rect.top + labelInset + small.textSize, small)
                 }
             }
@@ -357,6 +403,71 @@ object KeyboardScreen {
         override fun performClick(): Boolean {
             super.performClick()
             return true
+        }
+
+        override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider? =
+            nodes ?: KeyNodes().also { nodes = it }
+
+        /** AND-A-8: presses a key for a screen reader's double tap, the way a touch down and up would. */
+        private fun activate(index: Int) {
+            val cap = caps[index]
+            val wire = wireOf(cap, resolve(cap, modifiers.isActive(FN_CODE), mode)) ?: return
+            if (cap.role != KeyRole.NORMAL) {
+                modifiers.modifierDown(wire)
+                modifiers.modifierUp(wire)
+            } else {
+                modifiers.keyDown(wire)
+                modifiers.keyUp(wire)
+            }
+            invalidate()
+        }
+
+        /** AND-A-8: each key is its own node, named by its legend, so TalkBack can find, read and press it. */
+        private inner class KeyNodes : AccessibilityNodeProvider() {
+            private val origin = IntArray(2)
+
+            override fun createAccessibilityNodeInfo(virtualViewId: Int): AccessibilityNodeInfo? {
+                if (virtualViewId == AccessibilityNodeProvider.HOST_VIEW_ID) {
+                    val host = AccessibilityNodeInfo(this@KeyboardView)
+                    onInitializeAccessibilityNodeInfo(host)
+                    for (i in caps.indices) host.addChild(this@KeyboardView, i)
+                    return host
+                }
+                if (virtualViewId !in caps.indices) return null
+                val key = AccessibilityNodeInfo(this@KeyboardView, virtualViewId)
+                key.setParent(this@KeyboardView)
+                key.className = Button::class.java.name
+                key.contentDescription = legends[virtualViewId]
+                key.isClickable = true
+                key.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK)
+                if (pressCount[virtualViewId] > 0 || modifiers.isActive(modifierCodes[virtualViewId])) {
+                    key.stateDescription = context.getString(R.string.keyboard_key_on)
+                }
+                getLocationOnScreen(origin)
+                val rect = rects[virtualViewId]
+                key.setBoundsInScreen(
+                    Rect(
+                        origin[0] + rect.left.toInt(),
+                        origin[1] + rect.top.toInt(),
+                        origin[0] + rect.right.toInt(),
+                        origin[1] + rect.bottom.toInt(),
+                    ),
+                )
+                return key
+            }
+
+            override fun performAction(
+                virtualViewId: Int,
+                action: Int,
+                arguments: Bundle?,
+            ): Boolean {
+                if (virtualViewId == AccessibilityNodeProvider.HOST_VIEW_ID) {
+                    return this@KeyboardView.performAccessibilityAction(action, arguments)
+                }
+                if (virtualViewId !in caps.indices || action != AccessibilityNodeInfo.ACTION_CLICK) return false
+                activate(virtualViewId)
+                return true
+            }
         }
 
         // Lets go of every key still down; also run on detach, when the up events will never arrive.

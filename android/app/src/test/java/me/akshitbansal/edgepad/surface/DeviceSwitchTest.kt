@@ -37,4 +37,14 @@ class DeviceSwitchTest {
         assertEquals(DeviceSwitch.MAX_NAME, fitted.length)
         assertEquals('…', fitted.last())
     }
+
+    @Test
+    fun aNameIsNeverCutBetweenTheHalvesOfASurrogatePair() {
+        val grin = "😀"
+        // The cut would fall after the high half of the emoji at index 8.
+        val fitted = DeviceSwitch.fit("a".repeat(8) + grin + "tail")
+        assertEquals("a".repeat(8) + "…", fitted)
+        // An emoji that ends right before the cut is kept whole.
+        assertEquals("a".repeat(7) + grin + "…", DeviceSwitch.fit("a".repeat(7) + grin + "tail"))
+    }
 }

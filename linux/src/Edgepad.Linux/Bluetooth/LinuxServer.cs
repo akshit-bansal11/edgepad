@@ -20,7 +20,7 @@ internal sealed class LinuxServer : IDisposable
 
     private static readonly TimeSpan RetryStartEvery = TimeSpan.FromSeconds(30);
 
-    private const string Waiting = "Waiting for your phone";
+    private const string Waiting = LaptopStatus.Waiting;
     private const string StartFailing = "Bluetooth is off or unavailable; trying again";
 
     private readonly Action<string> onStatus;
@@ -30,6 +30,9 @@ internal sealed class LinuxServer : IDisposable
     // The unique bus name (":1.42") of the bluetoothd the profile is registered with; null while there is none.
     // Read on the D-Bus dispatch thread to check who is calling the profile.
     private volatile string? bluetoothd;
+
+    // An adapter reported Powered false and has not reported true since: not listening, whatever bluetoothd says.
+    private volatile bool unpowered;
     private Task? serving;
 
     public LinuxServer(TrustStore trust, PinStore pin, Func<string, CancellationToken, bool> askTrust, LinkIdentity identity, Action<string> onStatus)
@@ -91,6 +94,45 @@ internal sealed class LinuxServer : IDisposable
         bus.AddMethodHandler(new BluezProfile(() => bluetoothd, OnNewConnection, OnRequestDisconnection));
         var disconnected = bus.DisconnectedAsync();
         using var owner = await bus.WatchNameOwnerAsync(BluezProfile.ServiceName);
+
+        // Told when the profile may have been lost without bluetoothd restarting: the laptop woke from sleep, or an
+        // adapter was powered on again. Each release means "register again".
+        using var nudge = new SemaphoreSlim(0);
+        using var woke = await bus.AddMatchAsync(
+            new MatchRule { Type = MessageType.Signal, Sender = "org.freedesktop.login1", Interface = "org.freedesktop.login1.Manager", Member = "PrepareForSleep" },
+            static (Message m, object? _) => m.GetBodyReader().ReadBool(),
+            (Notification<bool> sleeping) =>
+            {
+                if (sleeping is { HasValue: true, Value: false })
+                {
+                    Log.Write("The laptop woke from sleep; checking the Bluetooth profile");
+                    nudge.Release();
+                }
+            },
+            emitOnCapturedContext: false);
+        using var powered = await bus.AddMatchAsync(
+            new MatchRule { Type = MessageType.Signal, Sender = BluezProfile.ServiceName, Interface = "org.freedesktop.DBus.Properties", Member = "PropertiesChanged", PathNamespace = "/org/bluez", Arg0 = "org.bluez.Adapter1" },
+            static (Message m, object? _) => PoweredIn(m.GetBodyReader()),
+            (Notification<bool?> on) =>
+            {
+                if (!on.HasValue || on.Value is not { } now)
+                {
+                    return;
+                }
+
+                unpowered = !now;
+                if (now)
+                {
+                    Log.Write("A Bluetooth adapter was powered on; checking the Bluetooth profile");
+                    nudge.Release();
+                }
+                else if (host.CurrentAddress is null)
+                {
+                    Log.Write("A Bluetooth adapter was powered off");
+                    onStatus(StartFailing);
+                }
+            },
+            emitOnCapturedContext: false);
         while (true)
         {
             if (owner.GetCurrentOwner() is null)
@@ -105,25 +147,61 @@ internal sealed class LinuxServer : IDisposable
             var id = await owner.WaitForOwnerAsync(stop);
             var changed = owner.GetOwnerChangedCancellationToken(id);
             bluetoothd = NameOwnerWatcher.GetOwnerBusName(id);
-            await bus.CallMethodAsync(BluezProfile.RegisterMessage(bus, id));
-            Log.Write($"RFCOMM profile registered with bluetoothd ({bluetoothd})");
-            onStatus(host.CurrentAddress is { } live ? $"Connected to {host.Shown(live)}" : Waiting);
+            await RegisterAsync(bus, id);
 
             using var until = CancellationTokenSource.CreateLinkedTokenSource(stop, changed);
-            await Task.WhenAny(Task.Delay(Timeout.Infinite, until.Token), disconnected);
-            if (stop.IsCancellationRequested)
+            while (true)
             {
-                return;
-            }
+                var again = nudge.WaitAsync(until.Token);
+                await Task.WhenAny(Task.Delay(Timeout.Infinite, until.Token), disconnected, again);
+                if (stop.IsCancellationRequested)
+                {
+                    return;
+                }
 
-            if (disconnected.IsCompleted)
-            {
-                throw new IOException("The system bus connection was lost", await disconnected);
+                if (disconnected.IsCompleted)
+                {
+                    throw new IOException("The system bus connection was lost", await disconnected);
+                }
+
+                if (!again.IsCompletedSuccessfully)
+                {
+                    break;
+                }
+
+                // An error other than "already registered" ends this connection; the caller waits and starts over.
+                await RegisterAsync(bus, id);
             }
 
             // Connections already handed over are the app's own sockets and live on; only new ones need this.
             Log.Write("bluetoothd restarted; registering the profile again");
         }
+    }
+
+    // Registers the profile; "already registered" is the answer when nothing was lost. The status says Waiting only now.
+    private async Task RegisterAsync(DBusConnection bus, string id)
+    {
+        try
+        {
+            await bus.CallMethodAsync(BluezProfile.RegisterMessage(bus, id));
+            Log.Write($"RFCOMM profile registered with bluetoothd ({bluetoothd})");
+        }
+        catch (DBusErrorReplyException e) when (e.ErrorName == "org.bluez.Error.AlreadyExists")
+        {
+            Log.Write("The RFCOMM profile is still registered with bluetoothd");
+        }
+
+        onStatus(host.CurrentAddress is { } live ? $"Connected to {host.Shown(live)}" : unpowered ? StartFailing : Waiting);
+    }
+
+    /// <summary>
+    /// Reads an <c>Adapter1</c> PropertiesChanged body: whether Powered changed, and to what; null when it did not.
+    /// </summary>
+    private static bool? PoweredIn(Reader reader)
+    {
+        _ = reader.ReadString();
+        var changed = reader.ReadDictionaryOfStringToVariantValue();
+        return changed.TryGetValue("Powered", out var value) && value.Type == VariantValueType.Bool ? value.GetBool() : null;
     }
 
     /// <summary>
@@ -159,7 +237,7 @@ internal sealed class LinuxServer : IDisposable
     {
         if (!stopping.IsCancellationRequested)
         {
-            onStatus(host.CurrentAddress is { } live ? $"Connected to {host.Shown(live)}" : bluetoothd is null ? StartFailing : Waiting);
+            onStatus(host.CurrentAddress is { } live ? $"Connected to {host.Shown(live)}" : bluetoothd is null || unpowered ? StartFailing : Waiting);
         }
     }
 

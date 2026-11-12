@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.gamepad
 
 import me.akshitbansal.edgepad.protocol.PadButton
+import me.akshitbansal.edgepad.protocol.PadStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -252,5 +253,28 @@ class GamepadLayoutTest {
                 leftStick,
                 leftTrigger,
             )
+    }
+
+    @Test
+    fun aControllerOnlyLayoutGivesWayToKeysOnlyWhenTheLaptopHasNoController() {
+        val xbox = GamepadLayout.presets.first()
+        assertEquals(xbox, GamepadLayout.forStatus(xbox, PadStatus.READY))
+        assertEquals(xbox, GamepadLayout.forStatus(xbox, null))
+        for (status in listOf(PadStatus.NO_DRIVER, PadStatus.ATTACH_FAILED)) {
+            assertEquals("Xbox keys", GamepadLayout.forStatus(xbox, status).name)
+        }
+        val platformer = GamepadLayout.presets.first { it.name == "Platformer" }
+        assertEquals(platformer, GamepadLayout.forStatus(platformer, PadStatus.NO_DRIVER))
+    }
+
+    @Test
+    fun noShoulderControlReachesTheCornerButtons() {
+        // The round Back and Options buttons cover about 52 dp of a 700 dp wide screen (7 percent) on each side.
+        for (preset in GamepadLayout.presets) {
+            for (c in preset.controls.filter { it.kind == ControlKind.SHOULDER && it.y < 0.2f }) {
+                val half = c.size / 2f / 700f
+                assertTrue("${preset.name}.${c.id}", c.x - half > 0.07f && c.x + half < 0.93f)
+            }
+        }
     }
 }

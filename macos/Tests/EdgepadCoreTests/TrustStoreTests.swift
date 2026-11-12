@@ -351,3 +351,55 @@ private func unasked() -> Bool {
     XCTFail("the owner was asked when nothing needed asking")
     return false
 }
+
+final class ForgetOneTests: XCTestCase {
+    private var directory: URL!
+
+    override func setUp() {
+        super.setUp()
+        directory = FileManager.default.temporaryDirectory.appendingPathComponent("edgepad-forget-\(UUID().uuidString)")
+    }
+
+    override func tearDown() {
+        try? FileManager.default.removeItem(at: directory)
+        super.tearDown()
+    }
+
+    private func path(_ name: String) -> String { directory.appendingPathComponent(name).path }
+
+    func testForgettingOnePhoneKeepsTheOthers() {
+        let store = TrustStore(path: path("trusted-phone.txt"))
+        _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: { true })
+        _ = store.admit("(11:22:33:44:55:66)", ask: { true })
+
+        XCTAssertTrue(store.forgetOne("(aa:bb:cc:dd:ee:ff)"))
+        XCTAssertEqual(TrustStore(path: path("trusted-phone.txt")).trustedPhones, ["(11:22:33:44:55:66)"])
+        XCTAssertTrue(store.forgetOne("(11:22:33:44:55:66)"))
+        XCTAssertEqual(TrustStore(path: path("trusted-phone.txt")).trustedPhones, [])
+        XCTAssertTrue(store.forgetOne("(11:22:33:44:55:66)"))
+    }
+
+    func testAQuestionOpenAcrossForgettingOneSavesNothing() {
+        let store = TrustStore(path: path("trusted-phone.txt"))
+
+        XCTAssertFalse(
+            store.admit("(AA:BB:CC:DD:EE:FF)") {
+                _ = store.forgetOne("(11:22:33:44:55:66)")
+                return true
+            })
+    }
+
+    func testForgettingOnePairingKeepsTheOthers() {
+        let links = PairedLinks(path: path("paired-links.txt"))
+        let first = String(repeating: "ab", count: 16)
+        let second = String(repeating: "cd", count: 16)
+        XCTAssertTrue(links.add(first, key: Hex.random(32), name: "Pixel", since: links.generation))
+        XCTAssertTrue(links.add(second, key: Hex.random(32), name: "Galaxy", since: links.generation))
+
+        XCTAssertTrue(links.forgetOne(first.uppercased()))
+        XCTAssertEqual(links.list().map(\.id), [second])
+        XCTAssertEqual(links.list().map(\.name), ["Galaxy"])
+        XCTAssertTrue(links.forgetOne(second))
+        XCTAssertFalse(links.canForget)
+    }
+}

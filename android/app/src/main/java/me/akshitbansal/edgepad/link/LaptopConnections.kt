@@ -109,6 +109,16 @@ class LaptopConnections(
             refreshRetries()
         }
 
+    /**
+     * The process is kept alive past the screen by the Stay connected service, so lost laptops go on retrying with the
+     * app minimized, up to [MAX_ATTEMPTS] like anywhere else. Off, leaving the foreground holds the retries.
+     */
+    var keepAlive = false
+        set(value) {
+            field = value
+            if (!retrying) all.forEach(::stopRetry)
+        }
+
     /** The "Reconnect" setting. */
     var reconnect = false
         set(value) {
@@ -191,7 +201,7 @@ class LaptopConnections(
         stopRetry(laptop)
         if (laptop.link != null) return
         if (laptop.attempts >= MAX_ATTEMPTS) laptop.attempts = 0
-        if (foreground) open(laptop, laptop.target)
+        if (retrying) open(laptop, laptop.target)
     }
 
     /** The reconnect screen left: no more attempts, and one in flight ends with no event. */
@@ -213,6 +223,15 @@ class LaptopConnections(
      */
     fun closeAll(cause: LaptopLink.Cause) {
         all.forEach { it.link?.close(LaptopLink.Closure(cause)) }
+    }
+
+    /**
+     * The user's Disconnect all: every link ends and every retry still waiting is dropped, so that nothing comes back
+     * by itself. [closeAll] alone leaves a lost laptop to its retries, which is what the linger wants.
+     */
+    fun disconnectAll() {
+        closeAll(LaptopLink.Cause.ENDED)
+        for (laptop in all.toList()) stopRetrying(laptop.id)
     }
 
     /** The app is going away: every link closes and no event follows, for an activity that is no longer there. */
@@ -268,6 +287,7 @@ class LaptopConnections(
         laptop.quickRetryLeft = false
         laptop.failed = false
         laptop.ending = false
+        laptop.lastCause = null
         clearAsking(laptop)
         val old = laptop.link
         // Cleared first, so the old link's own close is an event for a closed link.
@@ -275,6 +295,8 @@ class LaptopConnections(
         old?.close(LaptopLink.Closure(LaptopLink.Cause.ENDED))
         laptop.state.forgetFeatures()
         laptop.state.forgetMacroOpen()
+        laptop.state.forgetInputBlocked()
+        laptop.state.forgetPower()
         // A list belongs to the session that asked for it: its tokens mean nothing to the next one.
         laptop.state.apps.clear()
         laptop.target = resumable(target)
@@ -303,8 +325,11 @@ class LaptopConnections(
         stopPinger(laptop)
         laptop.link = null
         laptop.state.forgetMacroOpen()
+        laptop.state.forgetInputBlocked()
+        laptop.state.forgetPower()
         clearAsking(laptop)
         laptop.failed = closure.cause != LaptopLink.Cause.ENDED
+        laptop.lastCause = closure.cause.takeIf { laptop.failed }
         when {
             // A link ended on purpose starts the next one with a full set of attempts.
             closure.cause == LaptopLink.Cause.ENDED -> {
@@ -339,17 +364,20 @@ class LaptopConnections(
 
     private fun refreshRetries() {
         for (laptop in all) {
-            if (!foreground) stopRetry(laptop)
+            if (!retrying) stopRetry(laptop)
             if (laptop.reconnecting) scheduleRetry(laptop, 0L)
         }
     }
+
+    /** Retries run on screen, or in the background while [keepAlive] holds the process. */
+    private val retrying: Boolean get() = foreground || keepAlive
 
     private fun scheduleRetry(
         laptop: Laptop,
         delay: Long,
     ) {
         stopRetry(laptop)
-        if (foreground && reconnect && laptop.attempts < MAX_ATTEMPTS) attemptIn(laptop, delay)
+        if (retrying && reconnect && laptop.attempts < MAX_ATTEMPTS) attemptIn(laptop, delay)
     }
 
     private fun attemptIn(
@@ -360,7 +388,7 @@ class LaptopConnections(
     }
 
     private fun attempt(laptop: Laptop) {
-        if (foreground && laptop.link == null) open(laptop, laptop.target)
+        if (retrying && laptop.link == null) open(laptop, laptop.target)
     }
 
     private fun stopRetry(laptop: Laptop) {

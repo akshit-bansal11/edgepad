@@ -26,7 +26,7 @@ class ReconnectingScreen(
     laptop: String,
     private val address: String,
     onRetry: () -> Unit,
-    onPickAnother: () -> Unit,
+    onStop: () -> Unit,
 ) {
     enum class State { TRYING, STOPPED, OFF }
 
@@ -43,6 +43,7 @@ class ReconnectingScreen(
     private var trying = false
     private lateinit var attempt: TextView
     private lateinit var lastSeen: TextView
+    private lateinit var stop: TextView
 
     val view: View =
         ui.page(centred = true) {
@@ -73,13 +74,13 @@ class ReconnectingScreen(
                 }
             add(track, BODY_GAP_DP, height = ui.dp(TRACK_DP), width = ui.dp(TRACK_WIDTH_DP))
             val retry = ui.button(ui.string(R.string.retry_now), Ui.Style.FILLED, onRetry)
-            val pick = ui.button(ui.string(R.string.pick_another), Ui.Style.QUIET, onPickAnother)
+            stop = ui.button(ui.string(R.string.lost_stop), Ui.Style.QUIET, onStop)
             if (sideways) {
                 val pair =
                     LinearLayout(ui.context).apply {
                         addView(retry, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
                         addView(
-                            pick,
+                            stop,
                             LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
                                 marginStart = ui.dp(Space.S)
                             },
@@ -88,7 +89,7 @@ class ReconnectingScreen(
                 add(pair, BUTTON_TOP_SIDEWAYS_DP, width = ui.dp(BUTTONS_SIDEWAYS_DP))
             } else {
                 add(retry, BUTTON_TOP_DP)
-                add(pick, Space.S)
+                add(stop, Space.S)
             }
             grow()
             lastSeen = secondary("", Type.SMALL, topDp = gap)
@@ -122,6 +123,8 @@ class ReconnectingScreen(
         // This runs every second for the last-seen clock. Setting the same text again would still count as a
         // change to the live region, and a screen reader would read the attempt out once a second.
         if (this.attempt.text.toString() != line) this.attempt.text = line
+        // Trying, the way out is to stop; stopped or off there is nothing left to stop, only Devices to go to.
+        stop.text = ui.string(if (state == State.TRYING) R.string.lost_stop else R.string.lost_devices)
         progress.layoutParams.width = ui.dp(TRACK_WIDTH_DP) * attempt.coerceIn(0, max) / max
         progress.requestLayout()
         lastSeen.text = ui.string(R.string.lost_last_seen, Clock.format(secondsSinceSeen.toInt()), address)

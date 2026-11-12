@@ -55,19 +55,6 @@ class DeckLayoutTest {
     }
 
     @Test
-    fun theCrossTakesAFullTouchTargetOnABigTile() {
-        assertEquals(48, DeckLayout.crossHit(side = 200, touch = 48, floor = 24))
-        assertEquals(48, DeckLayout.crossHit(side = 96, touch = 48, floor = 24))
-    }
-
-    @Test
-    fun theCrossTakesHalfASmallTileAndNeverLessThanTheFloor() {
-        assertEquals(30, DeckLayout.crossHit(side = 60, touch = 48, floor = 24))
-        assertEquals(24, DeckLayout.crossHit(side = 48, touch = 48, floor = 24))
-        assertEquals(24, DeckLayout.crossHit(side = 30, touch = 48, floor = 24))
-    }
-
-    @Test
     fun iconSideIsTheZoomedBoxAndNeverUnderTheFloor() {
         assertEquals(400, DeckLayout.iconSide(box = 400, zoom = 1f, minPx = 32))
         assertEquals(160, DeckLayout.iconSide(box = 400, zoom = 0.4f, minPx = 32))

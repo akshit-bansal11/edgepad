@@ -34,6 +34,8 @@ final class IdsFixtureTests: XCTestCase {
             "FILE_STATUS",
             "DEVICE_OS",
             "APP_ADD_STATUS",
+            "BATTERY_KIND",
+            "OUTPUT_KIND",
             "BLOB_KIND",
             "HANDSHAKE",
         ]
@@ -116,6 +118,34 @@ final class IdsFixtureTests: XCTestCase {
             uniqueKeysWithValues: AppAddStatus.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
 
         XCTAssertEqual(table, enumTable)
+    }
+
+    func testBatteryKindTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("BATTERY_KIND") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: BatteryKind.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+        XCTAssertEqual(BatteryKind.of("toaster"), .other)
+        XCTAssertEqual(BatteryKind.of("mouse"), .mouse)
+    }
+
+    func testOutputKindTokensMatchTheSharedTable() throws {
+        var table: [String: String] = [:]
+        for parts in try rows("OUTPUT_KIND") {
+            table[parts[1]] = normalised(parts[2])
+        }
+
+        let enumTable = Dictionary(
+            uniqueKeysWithValues: OutputKind.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+
+        XCTAssertEqual(table, enumTable)
+        XCTAssertEqual(OutputKind.of("toaster"), .other)
+        XCTAssertEqual(OutputKind.of("monitor"), .monitor)
     }
 
     func testBlobKindsMatchTheSharedTable() throws {

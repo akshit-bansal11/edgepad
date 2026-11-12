@@ -8,7 +8,7 @@ namespace Edgepad.Macros;
 /// <summary>
 /// Lets the phone add a macro by picking from a list this laptop generated, and is the only path from phone text to the
 /// <see cref="MacroStore"/>. The phone never supplies a target: a token is <c>epoch.index</c>, the rows it indexes stay on
-/// this side of the link, and <see cref="Add"/> has nothing else to go on. Each APPS_LIST starts a new epoch and only the
+/// this side of the link, and <see cref="Add"/> has nothing else to go on. Each APPS_LIST starts a new epoch (counted across the whole process) and only the
 /// latest is valid, so a token that names no row of it is stale and changes nothing. One per session, so a list dies with it.
 /// <para>
 /// A list is scanned and sent off the read thread, since a scan is slow and a transfer is paced. Its blob is one
@@ -21,13 +21,15 @@ namespace Edgepad.Macros;
 /// <param name="ended">The session's end.</param>
 /// <param name="schedule">Runs work off the read thread, for tests.</param>
 /// <param name="pause">Waits this many milliseconds and answers whether the session is still up, for tests.</param>
+/// <param name="nextEpoch">The next epoch, for tests. By default one count shared by every picker in the process.</param>
 internal sealed class AppPicker(
     IAppCatalog catalog,
     MacroStore store,
     BlobSender sender,
     CancellationToken ended,
     Action<Action>? schedule = null,
-    Func<int, bool>? pause = null)
+    Func<int, bool>? pause = null,
+    Func<int>? nextEpoch = null)
 {
     public const int MaxApps = 400;
     public const int MaxNameChars = 40;
@@ -35,6 +37,12 @@ internal sealed class AppPicker(
 
     /// <summary>The list needs no name; its rows carry their own tokens.</summary>
     private const string NoLabel = "";
+
+    /// <summary>
+    /// The last epoch handed out, by any picker. Process-wide so a token from an earlier session can never match a
+    /// later session's list: every session's first epoch used to be 1.
+    /// </summary>
+    private static int lastEpoch;
 
     private readonly Lock gate = new();
     private readonly Action<Action> start = schedule ?? (work => ThreadPool.UnsafeQueueUserWorkItem(_ => work(), null));
@@ -54,7 +62,7 @@ internal sealed class AppPicker(
         int current;
         lock (gate)
         {
-            current = ++epoch;
+            current = epoch = nextEpoch is null ? Interlocked.Increment(ref lastEpoch) : nextEpoch();
             sending = current;
             apps = [];
         }

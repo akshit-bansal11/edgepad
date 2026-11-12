@@ -60,7 +60,7 @@ const DECISIONS: Decision[] = [
     id: "trust",
     question: "Why trust on first use rather than a pairing code?",
     answer:
-      "Bluetooth pairing already happened in the laptop's own Bluetooth settings, and re-asking for a code at every connection would be a second, weaker version of a step the OS did properly. Each phone is asked about once and remembered by address when the owner says yes; the tray menu has Forget trusted phones, which forgets them all. Since 4.0.0 the owner can choose level 2 or 3 to add a six-digit PIN on top. It is only a million values, so what stops guessing is the lock-out, and pairing stays the gate.",
+      "Bluetooth pairing already happened in the laptop's own Bluetooth settings, and re-asking for a code at every connection would be a second, weaker version of a step the OS did properly. Each phone is asked about once and remembered by address when the owner says yes; the Security… window lists them, each with Forget, and has Forget all…. Since 4.0.0 the owner can choose level 2 or 3 to add a six-digit PIN on top. It is only a million values, so what stops guessing is the lock-out, and pairing stays the gate.",
   },
   {
     id: "drop",

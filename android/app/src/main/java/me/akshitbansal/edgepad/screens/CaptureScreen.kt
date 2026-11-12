@@ -44,6 +44,8 @@ class CaptureScreen(
     /** How the last capture went, under the buttons. Empty until something has happened. */
     private val status: TextView = ui.secondary("")
 
+    private var recording = false
+
     private val onStep: (FileInbox.Progress) -> Unit = { show(it) }
 
     val view: View =
@@ -100,12 +102,15 @@ class CaptureScreen(
                 R.string.capture_screen to ActionId.CAPTURE_SCREEN,
                 R.string.capture_record to ActionId.CAPTURE_RECORD,
             ).forEachIndexed { at, (label, action) ->
+                var self: TextView? = null
                 val button =
                     ui.button(ui.string(label), Ui.Style.OUTLINED) {
                         // Before the send, so the file this action may bring back always finds its permit.
                         CaptureInbox.permit(action)
                         send(action.frame())
+                        acknowledge(action, label, self)
                     }
+                self = button
                 ui.enable(button, available)
                 row.addView(
                     button,
@@ -147,6 +152,24 @@ class CaptureScreen(
                     send(target().frame())
                 },
             )
+        }
+    }
+
+    /**
+     * AND-A-10, AND-A-14: say what the tap did. Record is a toggle on the laptop, so its button becomes Stop and a
+     * line says the laptop is recording; the others say what was pressed on the laptop.
+     */
+    private fun acknowledge(
+        action: ActionId,
+        label: Int,
+        button: TextView?,
+    ) {
+        if (action == ActionId.CAPTURE_RECORD) {
+            recording = !recording
+            button?.text = ui.string(if (recording) R.string.capture_stop else R.string.capture_record)
+            status.text = if (recording) ui.string(R.string.capture_recording) else ""
+        } else {
+            status.text = ui.string(R.string.capture_sent, ui.string(label))
         }
     }
 

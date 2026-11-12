@@ -4,9 +4,81 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [4.1.0] - 2026-11-10
+
+No wire-protocol change: the protocol stays at version 5. **Mac and Linux are still in testing. Please use them at your own risk.** The phone is now told when a Mac lacks Accessibility or a Linux laptop cannot open `/dev/uinput` through a new TEXT kind (18), and about batteries and the sound output through TEXT kinds 19 and 20; an older phone drops all three. Not done: telling the phone about an elevated Windows window.
+
+### Added
+
+- **Phone: connecting.** The guide gains a **Connect** page and a **Skip** button. A **Pair again** chip appears on a laptop that forgot the phone, so it can be paired with a new code. Devices gains **Disconnect all**, named buttons ("Disconnect NAME", "Make active: NAME"), a **More ways to connect** section and an **Update available** card. The colour picker takes a typed hex colour.
+- **Phone: reconnecting.** A **Stop trying** button and a **Go to Devices** button on the Reconnecting screen. With Stay connected on, the phone keeps retrying (still up to ten times) while Edgepad is minimized, with a "Reconnecting to NAME…" notification.
+- **Phone: one question about sharing.** One short screen after the first successful connection asks about **Share clipboard** and **Stay connected**.
+- **Phone: a dial says why it is empty.** A level the laptop has not reported shows a dash, and touching it says "Not reported by this laptop". Dials ignore slides until the laptop reports a value. Gesture hints are on by default and fade per gesture once it has been used.
+- **Phone: keyboard, gamepad and controls.** A **Type text** field on the keyboard sends whole text to the laptop (Windows, Mac and Linux all handle it). Without a controller driver the gamepad uses the "Xbox keys" layout and says what to install (ViGEmBus on Windows; the Mac has no controller mode). Layout Reset takes two taps, and Annotate Clear and switching to Sign ask first when there is ink. A Controls tile the laptop does not offer is dimmed with the reason. Back from a control screen reopens the Controls popup, and a dropped link returns to the screen you were on.
+- **Phone: reading screens turn with the phone.** Devices, the guide, Reconnecting, the PIN keypad and pairing follow the sensor; the Orientation setting still holds the control surface, settings and editors.
+- **Windows tray: new rows.** **Update available: VERSION**, **Open Bluetooth settings** (while no phone is trusted), a Wi-Fi or USB problem row and **Share clipboard**. **Allow through Windows Firewall…** shows only while Wi-Fi and USB connections are on and Windows refused. A refusal stays in the status line, and the trust window shows a countdown. The macro editor keeps a macro the phone added while it was open, and asks before discarding edits.
+- **Mac: a welcome alert** on the first launch that says what macOS is about to ask for, a permission badge and steps in the menu while input is not granted, and an **Update available: VERSION** row.
+- **Linux: Start at login,** an **Update available: VERSION** row, a **Macros…** editor, desktop notifications for a phone that wants to connect or pair, for blocked input and for an update, and a window with the tray's switches when the desktop has no tray (GNOME without the AppIndicator extension). A first-run window asks "Let phones find this laptop?" and, separately, whether to share the clipboard. `install.sh` ends by printing the next step.
+- **Phone: Share > Edgepad.** Share one text or one image from any app to the laptop you are controlling. Nothing is sent until you tap Send on a confirm screen that names the laptop.
+- **Phone: a banner when the laptop cannot take input.** Devices and the control surface say so when a Mac has no Accessibility permission or a Linux laptop cannot open `/dev/uinput`. The Guide explains the clipboard limit and Share > Edgepad.
+- **Phone: close a running app from its held tile.** Hold the tile and let go in place to get a Close bar. The cross on the grid is gone, and a tap only launches. Gamepad controls are separate TalkBack nodes, and the gamepad editor's title names the layout being edited.
+- **Phone: Hide dials and media is a switch in the Controls popup,** with a mark on the surface.
+- **All laptops: Check for updates daily,** a switch in the menu, on by default. Off stops the start-up check and the daily timer.
+- **First run offers Start with Windows (Start at login on Mac and Linux),** unticked, with a note if it cannot be saved.
+- **The Security window shows when each trusted phone last connected,** on Windows, Mac and Linux.
+- **Pairing windows name where the request came from** (an address and Wi-Fi, or USB) and no longer take focus, so stray typing cannot land in the code box.
+- **Linux: clicking the update notification opens the release page.**
+- **The Security window lists every trusted phone,** each with its own **Forget**, next to **Forget all…**, on Windows, Mac and Linux. Forgetting one phone also clears its PIN-verified state and its Wi-Fi or USB pairing, and refuses that phone for 30 seconds without touching a phone that stays connected.
+- **Phone: batteries.** A strip above Settings, Lock and Controls shows the laptop in use, this phone and a **+N** chip for everything else, red when low and blue while charging. Tapping it opens **Batteries**, every level grouped by where the device is connected. Windows, Mac and Linux report their own battery and their Bluetooth devices' levels; a device that reports none is left out, and Bluetooth LE devices are not found on Windows yet.
+- **Phone: the volume dial names the output,** such as `AirPods` or `Speakers`, under the level.
+
 ### Changed
 
+- **Owner decision: reconnecting.** The cap of ten tries stays (the 2026-09-11 decision is amended). The Reconnecting screen gains Stop trying, and a minimized phone with Stay connected on keeps trying.
+- **Owner decision: Share clipboard and Stay connected start off and are asked about.** The phone asks on one screen after the first connection; each laptop asks about the clipboard in its first-run window, with "Let phones find this laptop?" as a separate choice. An install that already ran keeps the value it had.
+- **Owner decision: a second launch of the same version shows a notice and exits.** "Edgepad is already running. Find it in the taskbar corner." (menu bar on a Mac, tray on Linux). A different version still takes over. This is the same on Windows, Mac and Linux.
+- **One set of words everywhere.** "Waiting for your phone" and "Connected to NAME · Bluetooth" (or Wi-Fi, USB) on every laptop. "Trust NAME?" with Trust and Don't trust. "Share clipboard" with "Copy on one, paste on the other: text and images." The pairing code for Wi-Fi and USB, the PIN for security, and the security level shown by name (Trust only, PIN once per phone, PIN on every connection). "Wi-Fi and USB connections" (on a Mac "Wi-Fi connections", since USB is not supported there). "Start with Windows" and "Start at login". "Quit Edgepad" no longer shows the version. The dial that switches laptop is called Switch laptop.
+- **One menu order on every laptop:** status, Update available, a problem row, then Wi-Fi and USB connections, Share clipboard, Start at login, Check for updates daily, then Macros… and Security…, then Documentation and Open log, then Quit Edgepad. Documentation opens the online docs from the laptops and the phone.
+- **A version mismatch names the older half.** The laptop and the phone each say which one to update; both halves must still come from the same release.
+- **Phone: failure messages are split by transport** (Bluetooth or network), start with a capital and no longer show a raw frame. The empty states name the switch to turn on at the laptop. The reason for Nearby devices is shown behind each permission prompt, and now says it also finds laptops on Wi-Fi and USB.
+- **Phone: updates.** Updating asks first, and says that the phone restarts and drops its laptops and that a major release needs the laptop updated too. A failed update stays on the Updates row with the step that fits. System settings has an **About and updates** section, a licences note and what Edgepad sends to the internet.
+- **Phone: Forget on a laptop** says what it does: the laptop is removed from the list and its pairing code deleted; Android's Bluetooth pairing stays.
+- **Phone: Add by address** keeps its dialog while it looks, Wi-Fi is searched once per visit to Devices, and the Nearby notice can be dismissed.
+- **Phone: names.** "Haptic tick per notch" is now "Haptic feedback". **Background & pattern** is now **Look**; the control colour is its own row; Dial feel lists only the dials in a corner; guide headings are in sentence case.
+- **Phone: dialogs and rows.** Dialogs use the app's palette and font, and Forget buttons are red. Disconnect and Forget on a laptop row sit behind a **More** chip. A spent pairing code offers **Get a new code**.
+- **Phone: gamepad and macros.** On the gamepad, the keyboard-mode pill opens the layout list and "waiting" becomes a "did not answer" message after a few seconds; **Delete control** asks first. A macro tap ticks and shows "Opening" briefly, Macros shows "Loading macros…" until the list arrives, and apps already added are marked in Add from laptop.
+- **Phone: Controls and Back.** The Controls popup says a tile can be moved by press and hold, for the first few openings. Back on the surface asks twice before leaving.
+- **Phone: TalkBack.** The keyboard reads and presses each key (one element per key on Android 13 and later), and the surface offers volume, brightness and mute actions.
+- **Windows: access keys** (underlined letters) in the tray menu, the Security window and the macro editor.
+- **Phone: lock only locks.** The lock button locks the trackpad; the double tap that hid the dials is gone.
+- **Phone: Add from laptop** dims its add rows once the laptop holds 15 macros, and says why.
+- **Phone: the media layout editor** keeps pieces off the top buttons and the dial rulers.
+- **Windows: annotate and sign** open on the monitor under the cursor.
+- **Site: the docs are split** into the user guide and `/docs/developers`. The Android build moves to Android Gradle Plugin 9.5.0.
+- **Windows: contrast and text.** A high-contrast palette, darker borders and off tracks, and the level overlay opens on the monitor the pointer is on.
 - The guide text and the website now describe 4.0: Bluetooth by default with Wi-Fi and USB optional, three buttons on the surface, the shared clipboard, several laptops, macro pages, and the demo film.
+
+### Fixed
+
+- **Linux and Mac:** the Bluetooth profile is registered again after the laptop wakes from sleep or the adapter is powered on, and **Waiting for your phone** shows only while it is registered.
+- **Windows, Linux:** a phone tethered over USB is named as USB, not Wi-Fi, in the pairing window.
+- **Windows:** the trust question waits briefly for the device name Windows is looking up. The undefined gamepad button bit no longer reaches the driver.
+- **Mac:** pointer moves no longer lose deltas; the app list scan runs off the main thread.
+- **Phone:** the background picture is decoded off the UI thread; controls are recoloured once when the picture proves darker or lighter than stored; the notification prompt and update check wait for the guide to end; the Devices dial selects after touch dispatch, and long names are cut on a whole character.
+- **Site:** table and code scroll regions can be reached by keyboard.
+- **Windows:** the driver for the virtual controller is probed once per connection instead of on every request.
+- **Shared core and Linux:** forgetting one phone fails closed when its record cannot be written, for trust and for Wi-Fi and USB pairings, and the message says the phone stays refused until restart.
+- **Mac:** forgetting one phone no longer affects other connected phones, and the list refreshes in place.
+- **Phone:** a laptop that forgot the phone can be paired again, and one laptop reached over Bluetooth and Wi-Fi shows as one row.
+
+### Security
+
+- **A release fails unless the APK is signed by the pinned certificate.**
+
+### Removed
+
+- **The top-level Forget trusted phones menu row** on every laptop. Forget and Forget all… are in the Security window.
+- **Phone: the laptop list and filter in System settings.** Devices is the one place for them.
 
 ## [4.0.0] - 2026-10-31
 
@@ -834,7 +906,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v4.0.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v4.1.0...HEAD
+[4.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v4.0.0...v4.1.0
 [4.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.5.0...v4.0.0
 [3.5.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.3.0...v3.4.0

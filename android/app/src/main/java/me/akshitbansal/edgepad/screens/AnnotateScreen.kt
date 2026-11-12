@@ -15,6 +15,7 @@ import android.widget.ScrollView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
+import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
@@ -47,7 +48,20 @@ class AnnotateScreen(
     private val onBack: () -> Unit,
 ) {
     private val strokes = Strokes(settings.penRgb, settings.penWidth, settings.penOpacity)
-    private val canvas = AnnotateCanvas(ui.context, strokes, { state.screenSize }, send)
+
+    // AND-A-20: one dim line over the empty pad until the first touch draws something.
+    private var armed = false
+    private val hint = ui.text(hintFor(state), Type.BODY, ui.palette.dim)
+    private val canvas =
+        AnnotateCanvas(
+            ui.context,
+            strokes,
+            { state.screenSize },
+            { frame ->
+                if (armed) hint.visibility = View.GONE
+                send(frame)
+            },
+        )
     private val tools = ArrayList<Pair<PenTool, ImageView>>()
     private val swatches = ArrayList<View>()
     private lateinit var customSwatch: View
@@ -67,6 +81,7 @@ class AnnotateScreen(
             setBackgroundColor(ui.palette.background)
             canvas.contentDescription = ui.string(R.string.annotate_description)
             addView(canvas, FrameLayout.LayoutParams(MATCH, MATCH))
+            addView(hint, FrameLayout.LayoutParams(WRAP, WRAP, Gravity.CENTER))
             EditorFrame.addBack(this, ui, onBack)
             addView(
                 LinearLayout(ui.context).apply {
@@ -83,11 +98,17 @@ class AnnotateScreen(
         }
 
     init {
+        hint.gravity = Gravity.CENTER
+        hint.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         // A new session starts on the laptop's own pen, so say which one the preview starts on.
         sendStyle()
         paint()
         open(false)
+        armed = true
     }
+
+    private fun hintFor(state: LaptopState): String =
+        state.laptopName?.let { ui.string(R.string.annotate_hint_named, it) } ?: ui.string(R.string.annotate_hint)
 
     /** Redraws the pad, for a laptop display that changed shape under it. */
     fun refresh() = canvas.refresh()
@@ -169,16 +190,13 @@ class AnnotateScreen(
                     canvas.refresh()
                 },
             )
+            // AND-A-6: a gap, so a slip off Undo does not land on the buttons that throw the drawing away.
+            addView(View(ui.context), LinearLayout.LayoutParams(ui.dp(Space.M), 1))
             addView(
-                glyph(R.drawable.ic_clear, ui.string(R.string.annotate_clear)) {
-                    strokes.clear()
-                    send(ActionId.ANNOTATE_CLEAR.frame())
-                    canvas.refresh()
-                },
+                glyph(R.drawable.ic_clear, ui.string(R.string.annotate_clear)) { clearInk() },
             )
-            signButton = glyph(R.drawable.ic_sign, ui.string(R.string.annotate_sign)) { sign(!strokes.signing) }
+            signButton = glyph(R.drawable.ic_sign, ui.string(R.string.annotate_sign)) { switchSign() }
             addView(signButton)
-            addView(glyph(R.drawable.ic_close, ui.string(R.string.annotate_exit), onBack))
         }
 
     /** The round opener: the current tool in the current colour, and a chevron that points the way it will go. */
@@ -251,7 +269,12 @@ class AnnotateScreen(
     /** The picker the Appearance settings use, in a dialog; each colour it gives takes effect as it is tapped. */
     private fun pickColour() {
         val picker =
-            ColorPicker.build(ui, ui.string(R.string.annotate_colour_custom), OPAQUE or strokes.rgb) { colour ->
+            ColorPicker.build(
+                ui,
+                ui.string(R.string.annotate_colour_custom),
+                OPAQUE or strokes.rgb,
+                editable = true,
+            ) { colour ->
                 if (strokes.selectRgb(colour and RGB_MASK)) colourChanged()
             }
         val body =
@@ -302,6 +325,41 @@ class AnnotateScreen(
 
     /** The pen's colour, width and opacity, which a laptop only keeps for as long as its session. */
     private fun sendStyle() = strokes.styleFrames().forEach(send)
+
+    /** Clear throws every stroke away on both screens, with no redo, so it asks first when there is ink. */
+    private fun clearInk() {
+        val wipe = {
+            strokes.clear()
+            send(ActionId.ANNOTATE_CLEAR.frame())
+            canvas.refresh()
+        }
+        if (strokes.strokes.isEmpty()) {
+            wipe()
+        } else {
+            ui.confirm(
+                view,
+                ui.string(R.string.annotate_clear_title),
+                ui.string(R.string.annotate_clear_body),
+                ui.string(R.string.annotate_clear),
+            ) { wipe() }
+        }
+    }
+
+    /** Sign and back each start a fresh session, which loses the ink; with ink on the pad that is asked first. */
+    private fun switchSign() {
+        val on = !strokes.signing
+        if (strokes.strokes.isEmpty()) {
+            sign(on)
+        } else {
+            val body = if (on) R.string.annotate_to_sign_body else R.string.annotate_from_sign_body
+            ui.confirm(
+                view,
+                ui.string(if (on) R.string.annotate_to_sign_title else R.string.annotate_from_sign_title),
+                ui.string(body),
+                ui.string(R.string.annotate_continue),
+            ) { sign(on) }
+        }
+    }
 
     /** Each switch begins a new session on the laptop, which keeps no strokes from the last one. */
     private fun sign(on: Boolean) {

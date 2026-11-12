@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Globalization;
 using Edgepad.Protocol;
 using Pen = Edgepad.Protocol.Pen; // System.Drawing.Pen is in scope too, through the WinForms implicit usings
@@ -26,6 +27,9 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
     /// <summary>Set once building the overlay has failed and is not worth retrying. Only touched on the UI thread.</summary>
     private bool stopped;
 
+    /// <summary>The monitor chosen when annotating or signing began, null when neither is open. Under <see cref="gate"/>.</summary>
+    private Rectangle? chosen;
+
     private int disposed;
     private int posted;
 
@@ -36,11 +40,51 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
     public Action<string>? SignStatusReply { get; set; }
 
     /// <summary>
-    /// The primary display in physical pixels (the app is PerMonitorV2), which is the only one drawn on: a
-    /// phone's 0..65535 span maps to one screen, and which one is not something it could choose.
+    /// Raised on the session thread when beginning or ending annotation changes the size of the display the
+    /// layer is on, so the session can send TEXT 10 again. Set by the session, which owns the socket.
     /// </summary>
+    public Action? ScreenChanged { get; set; }
+
+    /// <summary>The primary display in physical pixels (the app is PerMonitorV2).</summary>
     public static Rectangle PrimaryBounds() =>
         Screen.PrimaryScreen?.Bounds ?? new Rectangle(Point.Empty, SystemInformation.PrimaryMonitorSize);
+
+    /// <summary>
+    /// The display the layer draws on and signatures are sized to: the monitor under the cursor when annotating
+    /// or signing began, held until it ends, else the primary. A phone's 0..65535 span maps to this one screen.
+    /// </summary>
+    public Rectangle Bounds()
+    {
+        lock (gate)
+        {
+            return chosen ?? PrimaryBounds();
+        }
+    }
+
+    /// <summary>Follows a resolution change of the chosen monitor. Called when the display settings change.</summary>
+    public void Refresh()
+    {
+        lock (gate)
+        {
+            if (chosen is { } was)
+            {
+                chosen = Screen.FromRectangle(was).Bounds;
+            }
+        }
+    }
+
+    private static Rectangle UnderCursor()
+    {
+        try
+        {
+            return Screen.FromPoint(Cursor.Position).Bounds;
+        }
+        catch (Win32Exception)
+        {
+            // No cursor to read, a locked desktop say: the primary screen is as good a guess as any.
+            return PrimaryBounds();
+        }
+    }
 
     /// <summary>One PEN frame. False means dropped, by the board's rules.</summary>
     public bool Handle(Pen pen)
@@ -107,9 +151,17 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         }
 
         bool taken;
+        bool resized;
         lock (gate)
         {
+            var before = chosen ?? PrimaryBounds();
             taken = Apply(id);
+            resized = taken && (chosen ?? PrimaryBounds()).Size != before.Size;
+        }
+
+        if (resized)
+        {
+            ScreenChanged?.Invoke();
         }
 
         if (taken)
@@ -125,13 +177,16 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         switch (id)
         {
             case ActionId.AnnotateBegin:
+                chosen = UnderCursor();
                 board.Begin(BoardMode.Annotate);
                 return true;
             case ActionId.SignBegin:
+                chosen = UnderCursor();
                 board.Begin(BoardMode.Sign);
                 return true;
             case ActionId.AnnotateEnd:
                 // Ends a signature too: the phone has one way out of either surface.
+                chosen = null;
                 board.End();
                 return true;
             case ActionId.AnnotateUndo:
@@ -271,7 +326,7 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         try
         {
             window ??= new AnnotationOverlay();
-            window.Present(strokes);
+            window.Present(strokes, Bounds());
             failures = 0;
         }
         catch (Exception e)
@@ -334,9 +389,9 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         });
     }
 
-    private static string Save(Stroke[] strokes)
+    private string Save(Stroke[] strokes)
     {
-        var screen = PrimaryBounds();
+        var screen = Bounds();
         if (SignatureExport.Render(strokes, screen.Width, screen.Height) is not { } png)
         {
             return SignStatus.Empty;
@@ -405,6 +460,7 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
 
         lock (gate)
         {
+            chosen = null;
             board.End();
         }
 

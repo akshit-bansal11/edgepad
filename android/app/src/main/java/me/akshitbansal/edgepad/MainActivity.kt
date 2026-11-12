@@ -34,13 +34,13 @@ import android.widget.TextView
 import android.widget.Toast
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
+import me.akshitbansal.edgepad.gamepad.GamepadLayout
 import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.link.AppLinks
 import me.akshitbansal.edgepad.link.BlobRoutes
 import me.akshitbansal.edgepad.link.BluetoothTransport
 import me.akshitbansal.edgepad.link.CaptureInbox
 import me.akshitbansal.edgepad.link.ClipboardShare
-import me.akshitbansal.edgepad.link.DeviceTap
 import me.akshitbansal.edgepad.link.Discovery
 import me.akshitbansal.edgepad.link.Found
 import me.akshitbansal.edgepad.link.HostPort
@@ -55,8 +55,12 @@ import me.akshitbansal.edgepad.link.LinkService
 import me.akshitbansal.edgepad.link.LinkTransport
 import me.akshitbansal.edgepad.link.LocalNetwork
 import me.akshitbansal.edgepad.link.MainScheduler
+import me.akshitbansal.edgepad.link.NET_KEY
+import me.akshitbansal.edgepad.link.OlderHalf
+import me.akshitbansal.edgepad.link.PhoneBattery
 import me.akshitbansal.edgepad.link.PickerHint
 import me.akshitbansal.edgepad.link.SavedLaptop
+import me.akshitbansal.edgepad.link.ShareTarget
 import me.akshitbansal.edgepad.link.Sweep
 import me.akshitbansal.edgepad.link.Target
 import me.akshitbansal.edgepad.link.TcpTransport
@@ -64,22 +68,23 @@ import me.akshitbansal.edgepad.link.TetherProbe
 import me.akshitbansal.edgepad.link.Transport
 import me.akshitbansal.edgepad.link.clipboardShare
 import me.akshitbansal.edgepad.link.decodeSaved
-import me.akshitbansal.edgepad.link.deviceState
 import me.akshitbansal.edgepad.link.encodeSaved
 import me.akshitbansal.edgepad.link.forgotten
 import me.akshitbansal.edgepad.link.laptopLinks
 import me.akshitbansal.edgepad.link.laptopRows
 import me.akshitbansal.edgepad.link.linkNotice
 import me.akshitbansal.edgepad.link.mergeFound
+import me.akshitbansal.edgepad.link.mergedRows
 import me.akshitbansal.edgepad.link.net.LinkKeys
 import me.akshitbansal.edgepad.link.net.Sas
+import me.akshitbansal.edgepad.link.olderHalf
+import me.akshitbansal.edgepad.link.parseHex
 import me.akshitbansal.edgepad.link.parseHostPort
 import me.akshitbansal.edgepad.link.pickerHint
 import me.akshitbansal.edgepad.link.probeAddress
 import me.akshitbansal.edgepad.link.promoted
 import me.akshitbansal.edgepad.link.rememberLaptop
 import me.akshitbansal.edgepad.link.snapUp
-import me.akshitbansal.edgepad.link.tap
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.AppAddStatus
 import me.akshitbansal.edgepad.protocol.DeviceOs
@@ -91,6 +96,7 @@ import me.akshitbansal.edgepad.protocol.TextKind
 import me.akshitbansal.edgepad.screens.AnnotateScreen
 import me.akshitbansal.edgepad.screens.AppListScreen
 import me.akshitbansal.edgepad.screens.AppearanceScreen
+import me.akshitbansal.edgepad.screens.BatterySheet
 import me.akshitbansal.edgepad.screens.CaptureScreen
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.CornersScreen
@@ -102,6 +108,7 @@ import me.akshitbansal.edgepad.screens.GestureScreen
 import me.akshitbansal.edgepad.screens.GuideScreen
 import me.akshitbansal.edgepad.screens.KeyboardScreen
 import me.akshitbansal.edgepad.screens.KeyboardSettingsScreen
+import me.akshitbansal.edgepad.screens.LiveBatteries
 import me.akshitbansal.edgepad.screens.MacroScreen
 import me.akshitbansal.edgepad.screens.MacroSettingsScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
@@ -112,8 +119,11 @@ import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
 import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
+import me.akshitbansal.edgepad.screens.SharingScreen
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
+import me.akshitbansal.edgepad.screens.TextChunks
 import me.akshitbansal.edgepad.screens.Ui
+import me.akshitbansal.edgepad.screens.openOver
 import me.akshitbansal.edgepad.screens.showOver
 import me.akshitbansal.edgepad.surface.BackgroundImage
 import me.akshitbansal.edgepad.surface.ConnectedLaptops
@@ -172,6 +182,7 @@ class MainActivity :
         ONBOARDING,
         GUIDE,
         PAIRING,
+        SHARING,
         SETTINGS,
         SURFACE_SETTINGS,
         CORNERS,
@@ -237,6 +248,12 @@ class MainActivity :
     /** The gamepad while it is the screen, so the laptop's answer about its controller can reach it. */
     private var gamepad: GamepadScreen? = null
 
+    /** The layout the gamepad on screen is playing, which differs from the chosen one in keyboard mode. */
+    private var playedLayout = ""
+
+    /** The control screen that was up when the link dropped, to return to on reconnect; null otherwise. */
+    private var resumeScreen: Screen? = null
+
     /** The annotate screen while it is the screen, so a changed laptop display can redraw its pad. */
     private var annotate: AnnotateScreen? = null
 
@@ -252,12 +269,17 @@ class MainActivity :
 
     /** The laptop's app list while it is the screen, so a new list or a finished icon can be handed to it. */
     private var appList: AppListScreen? = null
+    private var lastSurfaceBack = 0L
 
     /** True from APPS_LIST until the one APPS_CANCEL that answers it, however the list is left. */
     private var listingApps = false
 
     /** The Controls popup over the surface, while it is open. */
     private var controls: ControlsPopup? = null
+    private val phoneBattery by lazy { PhoneBattery(this) }
+    private val liveBatteries by lazy { LiveBatteries(manager, phoneBattery, getString(R.string.battery_this_phone)) }
+    private var batterySheet: BatterySheet? = null
+    private var phoneWatch: AutoCloseable? = null
     private var screen = Screen.PAIRING
     private var settingsReturn = Screen.PAIRING
     private lateinit var gamepads: GamepadStore
@@ -290,6 +312,9 @@ class MainActivity :
     /** The system's permission prompt is up, so the Devices list offers no way round it underneath. */
     private var permissionPending = false
 
+    /** Why the prompt that is up was asked, said on the list behind it. */
+    private var permissionReason = R.string.permission_reason
+
     /** The local-network permission has been asked for once, so the list offers the way back and does not nag. */
     private var askedLocalNetwork = false
 
@@ -302,6 +327,9 @@ class MainActivity :
 
     /** What the last sweep saw and whether a USB cable is in; the Devices list says both under the list. */
     private var sweep: Sweep? = null
+
+    /** The Wi-Fi has been swept once since the Devices list opened or Refresh was pressed. */
+    private var swept = false
     private var usbCable = false
     private var discovery: Discovery? = null
 
@@ -344,11 +372,14 @@ class MainActivity :
                 onVia = { device, transport -> connectTo(device.row, transport) },
                 onMakeActive = { device -> device.row.laptop?.let { manager.select(it.id) } },
                 onDisconnect = { device -> disconnectRow(device.row) },
-                onForget = { device -> forgetLaptop(device.row.laptop, device.row.keys) },
+                onForget = { device -> forgetLaptop(device.row.laptops, device.row.keys) },
+                onPairAgain = { device -> connectTo(device.row, device.row.via, pairAgain = true) },
                 onOpenControls = { goTo(Screen.SURFACE) },
                 onBluetoothSettings = ::openBluetoothSettings,
                 onSettings = ::openSettings,
                 onRefresh = {
+                    // The one thing that asks the Wi-Fi to be searched again; see [probeTether].
+                    swept = false
                     refreshPicker()
                     startScan()
                 },
@@ -358,6 +389,8 @@ class MainActivity :
                 },
                 onAddAddress = ::askAddress,
                 onUsbHelp = ::openTetherSettings,
+                onDisconnectAll = ::disconnectAll,
+                onUpdate = ::openUpdate,
             )
         discovery =
             Discovery(this) { list ->
@@ -375,7 +408,11 @@ class MainActivity :
         // The service ends every link through this and holds nothing of the activity: only the manager, which survives
         // a rebuild, so the new activity sets the same thing again.
         val links = manager
-        LinkHooks.disconnectAll = { links.closeAll(LaptopLink.Cause.ENDED) }
+        LinkHooks.disconnectAll = {
+            links.disconnectAll()
+            // As Disconnect on a row: nothing reconnects by itself until the laptop is tapped.
+            owner.savedLaptops = encodeSaved(decodeSaved(owner.savedLaptops).map { it.copy(autoConnect = false) })
+        }
         if (retained != null) {
             clipboard = retained.clipboard
             apps = retained.apps
@@ -384,6 +421,13 @@ class MainActivity :
             val routes = BlobRoutes()
             clipboard = clipboardShare(applicationContext, routes) { owner.clipboardSync }
             apps = AppLinks(routes)
+        }
+        // As above, over the retained pieces alone: what another app shares goes to the selected, connected laptop.
+        val shares = clipboard.links
+        LinkHooks.shareTarget = {
+            links.selected?.takeIf { it.connected }?.let { laptop ->
+                ShareTarget(laptop.name, shares.activeSync(laptop)?.let { it::sendNow })
+            }
         }
         apps.events =
             AppLinks.Events { laptop, token ->
@@ -416,6 +460,8 @@ class MainActivity :
         // This also starts a lost laptop's retries at once, which is what the reconnect screen wants.
         manager.foreground = true
         syncService()
+        phoneWatch?.close()
+        phoneWatch = phoneBattery.watch(::refreshBatteries)
         // Rising, so the tick waiting, which may be a slow one from the background, does not hold it up.
         manager.fastPing = screen in showsRtt
         // Back from a detour with the pad still on screen: the laptop has no session, so begin one.
@@ -431,8 +477,14 @@ class MainActivity :
         if (screen == Screen.RECONNECTING) handler.post(ticker)
         refreshPicker()
         startScan()
+        checkForUpdateIfDue()
+    }
+
+    /** Not over the guide: a first-time user has not been told yet that the app ever goes online. */
+    private fun checkForUpdateIfDue() {
         val sinceCheck = System.currentTimeMillis() - settings.lastUpdateCheck
-        if (settings.autoUpdateCheck && sinceCheck >= Updates.CHECK_EVERY_MS) checkForUpdate()
+        val due = settings.autoUpdateCheck && sinceCheck >= Updates.CHECK_EVERY_MS
+        if (screen != Screen.ONBOARDING && due) checkForUpdate()
     }
 
     override fun onStop() {
@@ -446,6 +498,9 @@ class MainActivity :
         cancelApps()
         manager.foreground = false
         manager.fastPing = false
+        phoneWatch?.close()
+        phoneWatch = null
+        batterySheet?.dismiss()
         handler.removeCallbacks(ticker)
         stopScan()
         // The service keeps the links outright, a detour for a while and a rebuild too; see the class comment.
@@ -468,12 +523,14 @@ class MainActivity :
      * the links that remain get the usual wait.
      */
     private fun syncService() {
-        val notice = if (settings.stayConnected) linkNotice(manager.laptops, manager.selected) else null
+        val notice =
+            if (settings.stayConnected) linkNotice(manager.laptops, manager.selected, settings.clipboardSync) else null
         if (notice == null) {
             if (!serviceUp) return
             serviceUp = false
             shownNotice = null
             LinkService.stop(applicationContext)
+            manager.keepAlive = false
             if (!started) lingerLinks()
             return
         }
@@ -484,6 +541,8 @@ class MainActivity :
         LinkService.show(applicationContext, notice, serviceUp)
         serviceUp = true
         shownNotice = notice
+        // The process is held, so a laptop that drops in the background is still won back; see LaptopConnections.
+        manager.keepAlive = true
     }
 
     private fun askNotifications() {
@@ -491,7 +550,8 @@ class MainActivity :
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         val granted = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         // One system prompt at a time: while another is up this waits for the next time the service is needed.
-        if (granted || askedNotifications || permissionPending) return
+        // Not over the guide; onFinish asks once it is over.
+        if (granted || askedNotifications || permissionPending || screen == Screen.ONBOARDING) return
         askedNotifications = true
         requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATIONS)
     }
@@ -518,6 +578,7 @@ class MainActivity :
         apps.events = null
         if (!isChangingConfigurations) {
             LinkHooks.disconnectAll = null
+            LinkHooks.shareTarget = null
             manager.shutDown()
             LinkService.stop(applicationContext)
         }
@@ -619,6 +680,7 @@ class MainActivity :
         wifiFound = emptyList()
         usbFound = emptyList()
         sweep = null
+        swept = false
         usbCable = false
     }
 
@@ -630,14 +692,18 @@ class MainActivity :
         if (probe != null || !LocalNetwork.granted(this)) return
         val pass = TetherProbe()
         probe = pass
-        val mdnsFound = wifiFound.isNotEmpty()
+        // The Wi-Fi is swept address by address once a visit, not every ten seconds: on a shared network that is a
+        // knock on every neighbour. USB is always swept, as its subnet is only the laptop's. Refresh sweeps again.
+        val spared = wifiFound.isNotEmpty() || swept
+        val earlier = usbFound.filter { it.transport == Transport.WIFI }
         thread(name = "edgepad-probe") {
-            val result = pass.run(mdnsFound = mdnsFound)
+            val result = pass.run(mdnsFound = spared)
             handler.post {
                 if (probe === pass) {
                     probe = null
                     if (started && screen == Screen.PAIRING) {
-                        usbFound = result.found
+                        swept = true
+                        usbFound = mergeFound((if (spared) earlier else emptyList()) + result.found)
                         sweep = result
                         refreshPicker()
                     }
@@ -687,6 +753,10 @@ class MainActivity :
                         settings.onboarded = true
                         goTo(Screen.PAIRING)
                         if (settings.reconnect) connectSaved()
+                        // Both waited for the guide to end: run now, not at the next start.
+                        syncService()
+                        if (serviceUp) askNotifications()
+                        checkForUpdateIfDue()
                     }) { navigateBack() }
                 }
 
@@ -696,6 +766,21 @@ class MainActivity :
 
                 Screen.PAIRING -> {
                     picker.view.also { refreshPicker() }
+                }
+
+                Screen.SHARING -> {
+                    SharingScreen.build(
+                        ui,
+                        settings,
+                        onChanged = {
+                            shareClipboard()
+                            syncService()
+                        },
+                        onContinue = {
+                            settings.sharingAsked = true
+                            goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
+                        },
+                    )
                 }
 
                 Screen.SETTINGS -> {
@@ -711,8 +796,6 @@ class MainActivity :
                     SettingsScreen.build(
                         ui,
                         settings,
-                        connections(),
-                        showAllDevices,
                         versionLine(),
                         getString(backLabel),
                         SettingsScreen.Update(updateSummary()) { view ->
@@ -722,14 +805,14 @@ class MainActivity :
                         },
                         SettingsScreen.Routes(
                             devices = { goTo(Screen.PAIRING) },
-                            showAll = { all ->
-                                showAllDevices = all
-                                refreshPicker()
-                            },
                             guide = { goTo(Screen.GUIDE) },
                             documentation = { open(getString(R.string.documentation_url)) },
                             update = ::openUpdate,
-                            clipboard = ::shareClipboard,
+                            licences = ::showLicences,
+                            clipboard = {
+                                shareClipboard()
+                                syncService()
+                            },
                             stayConnected = ::syncService,
                             sideways = { on ->
                                 settings.landscape = on
@@ -825,18 +908,28 @@ class MainActivity :
                         onKey = sendKey,
                         onAction = { send(it.frame()) },
                         onSettings = { goTo(Screen.KEYBOARD_SETTINGS) },
+                        onType = { text -> TextChunks.split(text).forEach { send(Frame.Text(TextKind.TYPE.id, it)) } },
                     ) { navigateBack() }
                 }
 
                 Screen.KEYBOARD_SETTINGS -> {
-                    KeyboardSettingsScreen.build(ui, settings, onSystem = ::openSettings) { navigateBack() }
+                    KeyboardSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.GAMEPAD -> {
+                    val played = GamepadLayout.forStatus(gamepads.current, state.padStatus)
+                    playedLayout = played.name
                     GamepadScreen(
                         ui,
-                        gamepads.current,
+                        played,
                         state.padStatus,
+                        state.os,
+                        gamepads.all.map { it.name },
+                        onPick = { name ->
+                            gamepads.choose(name)
+                            goTo(Screen.GAMEPAD)
+                        },
+                        onEdit = { goTo(Screen.GAMEPAD_LAYOUT) },
                         onKey = sendKey,
                         onPad = send,
                         onBack = { navigateBack() },
@@ -854,7 +947,6 @@ class MainActivity :
                             goTo(Screen.GAMEPAD_SETTINGS)
                         },
                         onEdit = { goTo(Screen.GAMEPAD_LAYOUT) },
-                        onSystem = ::openSettings,
                     ) { navigateBack() }
                 }
 
@@ -863,6 +955,8 @@ class MainActivity :
                         ui,
                         settings,
                         state.macros,
+                        state.macrosHeard,
+                        state.os,
                         icon = state::macroIcon,
                         isOpen = state::isOpen,
                         labels = settings.macroLabels,
@@ -875,12 +969,7 @@ class MainActivity :
                 }
 
                 Screen.MACRO_SETTINGS -> {
-                    MacroSettingsScreen.build(
-                        ui,
-                        settings,
-                        onSystem = ::openSettings,
-                        onAddFromLaptop = addFromLaptop(),
-                    ) { navigateBack() }
+                    MacroSettingsScreen.build(ui, settings, onAddFromLaptop = addFromLaptop()) { navigateBack() }
                 }
 
                 Screen.APPS -> {
@@ -889,6 +978,7 @@ class MainActivity :
                         selected?.name.orEmpty(),
                         state.apps,
                         windows = state.os == DeviceOs.WINDOWS,
+                        macroNames = { state.macros },
                         // Only the token goes: the laptop looks up what it stands for in the list it made.
                         onAdd = { app -> send(TextKind.APP_ADD.frame(app.token)) },
                         onRefresh = ::refreshApps,
@@ -935,6 +1025,12 @@ class MainActivity :
                         selected?.pairAsking == true,
                         onYes = { selected?.link?.answerPairing(true) },
                         onCancel = { navigateBack() },
+                        onNewCode = {
+                            selected?.let { laptop ->
+                                navigateBack()
+                                connect(laptop.target, tapped = true)
+                            }
+                        },
                     ).view
                 }
 
@@ -947,6 +1043,8 @@ class MainActivity :
                         { goTo(Screen.SURFACE_SETTINGS) },
                         onOpenControls = ::openControls,
                         devices = deviceSwitch,
+                        batteries = liveBatteries,
+                        onOpenBatteries = ::openBatteries,
                     ).also { surface = it }
                 }
             }
@@ -988,8 +1086,17 @@ class MainActivity :
         val sideways = screen in alwaysSideways || (screen == Screen.SETTINGS && settingsReturn in alwaysSideways)
         requestedOrientation =
             when {
-                sideways || settings.landscape -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                else -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                sideways || (settings.landscape && screen !in followsPhone) -> {
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                }
+
+                screen in followsPhone -> {
+                    ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+                }
+
+                else -> {
+                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                }
             }
     }
 
@@ -1008,8 +1115,16 @@ class MainActivity :
     /** One step back through the app. False at the first screen, where back leaves the app as usual. */
     private fun navigateBack(): Boolean {
         when (screen) {
+            // AND-A-18: a stray edge swipe while sliding a dial must not drop the user on Devices; the second back does.
             Screen.SURFACE -> {
-                goTo(Screen.PAIRING)
+                val now = SystemClock.uptimeMillis()
+                if (now - lastSurfaceBack <= BACK_AGAIN_MS) {
+                    lastSurfaceBack = 0L
+                    goTo(Screen.PAIRING)
+                } else {
+                    lastSurfaceBack = now
+                    Toast.makeText(this, R.string.surface_back_again, Toast.LENGTH_SHORT).show()
+                }
             }
 
             Screen.SETTINGS -> {
@@ -1070,10 +1185,17 @@ class MainActivity :
             // These are opened from the Controls popup over the surface, so back returns to it.
             Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE -> {
                 goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
+                // AND-A-32: back lands where the user came from, so the popup opens again over the surface.
+                if (connected) surface?.post { openControls() }
             }
 
             // Opened from the surface, which is only there while the link holds.
             Screen.SURFACE_SETTINGS -> {
+                goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
+            }
+
+            // Left unanswered, so the question comes again at the next connection.
+            Screen.SHARING -> {
                 goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
             }
 
@@ -1174,7 +1296,12 @@ class MainActivity :
                 Log.w("Edgepad", "Could not read the picked image", e)
                 R.string.image_unreadable
             }
-        if (refusal == 0) settings.background = Settings.Background.IMAGE else part.delete()
+        if (refusal == 0) {
+            settings.backgroundImageDark = BackgroundImage.peek()?.dark ?: false
+            settings.background = Settings.Background.IMAGE
+        } else {
+            part.delete()
+        }
         return refusal
     }
 
@@ -1224,6 +1351,7 @@ class MainActivity :
                 AppAddStatus.STALE -> R.string.apps_stale
                 else -> R.string.apps_failed
             }
+        if (status == AppAddStatus.ADDED) appList?.markAdded()
         Toast.makeText(this, text, Toast.LENGTH_LONG).show()
     }
 
@@ -1279,7 +1407,7 @@ class MainActivity :
         val owner = surface ?: return
         controls?.dismiss()
         controls =
-            ControlsPopup(ui, settings) { target ->
+            ControlsPopup(ui, settings, { owner.isDialsHidden }, owner::setDialsHidden) { target ->
                 when (target) {
                     ControlsPopup.Target.KEYBOARD -> goTo(Screen.KEYBOARD)
                     ControlsPopup.Target.GAMEPAD -> goTo(Screen.GAMEPAD)
@@ -1288,6 +1416,18 @@ class MainActivity :
                     ControlsPopup.Target.ANNOTATE -> goTo(Screen.ANNOTATE)
                 }
             }.also { it.show(owner, controlsCapture(), controlsAnnotate()) }
+    }
+
+    private fun openBatteries() {
+        val owner = surface ?: return
+        batterySheet?.dismiss()
+        batterySheet = BatterySheet(ui, liveBatteries).also { it.show(owner) }
+    }
+
+    /** A battery, the laptop in use or the set of connected laptops changed: the strip and an open sheet remake. */
+    private fun refreshBatteries() {
+        surface?.refreshBatteries()
+        batterySheet?.refresh()
     }
 
     /** Opens the macro grid. Its pictures are already cached: the link asks for them as each macro list arrives. */
@@ -1311,7 +1451,7 @@ class MainActivity :
         if (checkingUpdate) return
         checkingUpdate = true
         updateCheckFailed = false
-        updateSummaryView?.text = updateSummary()
+        updateChanged()
         thread(name = "edgepad-update") {
             val latest = Updates.latest()
             if (latest != null) {
@@ -1321,9 +1461,15 @@ class MainActivity :
             runOnUiThread {
                 checkingUpdate = false
                 updateCheckFailed = latest == null
-                updateSummaryView?.text = updateSummary()
+                updateChanged()
             }
         }
+    }
+
+    /** The Updates row follows the state, and so does the notice on Devices: both say the same thing. */
+    private fun updateChanged() {
+        updateSummaryView?.text = updateSummary()
+        if (screen == Screen.PAIRING) refreshPicker()
     }
 
     private fun updateAvailable(): Boolean = Updates.isNewer(settings.latestVersion, getString(R.string.app_version))
@@ -1333,19 +1479,79 @@ class MainActivity :
         when {
             updateProgress != null -> getString(R.string.updates_downloading, updateProgress)
             checkingUpdate -> getString(R.string.updates_checking)
+            settings.updateFailure != 0 -> getString(R.string.updates_problem)
             updateCheckFailed -> getString(R.string.updates_failed)
             updateAvailable() -> getString(R.string.updates_available, settings.latestVersion)
             settings.lastUpdateCheck == 0L -> ""
             else -> getString(R.string.updates_current)
         }
 
-    /** The Updates row: fetches the newest release when there is one to get, and otherwise checks afresh. */
+    /**
+     * The Updates row, and the notice on Devices: a problem with the last update is explained, a newer release is
+     * confirmed before anything is downloaded, and otherwise GitHub is asked afresh.
+     */
     private fun openUpdate() {
         when {
             updateProgress != null -> Unit
-            updateAvailable() -> installUpdate(settings.latestVersion)
+            settings.updateFailure != 0 -> explainUpdateFailure()
+            updateAvailable() -> confirmUpdate(settings.latestVersion)
             else -> checkForUpdate()
         }
+    }
+
+    /** What an update does to the app before it does it: it restarts, which drops every link. */
+    private fun confirmUpdate(version: String) {
+        val major = Updates.majorDiffers(version, getString(R.string.app_version))
+        val body = getString(R.string.updates_confirm_body)
+        AlertDialog
+            .Builder(this)
+            .setTitle(getString(R.string.updates_confirm_title, version))
+            .setMessage(if (major) body + " " + getString(R.string.updates_confirm_major) else body)
+            .setPositiveButton(R.string.updates_confirm_action) { _, _ -> installUpdate(version) }
+            .setNeutralButton(R.string.updates_release_notes) { _, _ -> open(Updates.releaseUrl(version)) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .showOver(findViewById<View>(android.R.id.content))
+    }
+
+    /** Why the last update did not go through, and the step that fits: Android's own switch, or another try. */
+    private fun explainUpdateFailure() {
+        val code = settings.updateFailure
+        val page = Updates.releaseUrl(settings.latestVersion)
+        val dialog =
+            AlertDialog
+                .Builder(this)
+                .setMessage(Installer.failureText(code))
+                .setNegativeButton(R.string.updates_release_page) { _, _ -> open(page) }
+        if (Installer.isBlocked(code)) {
+            dialog.setPositiveButton(R.string.updates_open_settings) { _, _ -> openInstallSettings() }
+        } else {
+            dialog.setPositiveButton(R.string.updates_try_again) { _, _ ->
+                settings.updateFailure = 0
+                updateChanged()
+                openUpdate()
+            }
+        }
+        dialog.showOver(findViewById<View>(android.R.id.content))
+    }
+
+    /** Android's switch for installing from this app, where an update that was blocked can be allowed. */
+    private fun openInstallSettings() {
+        val page = Uri.fromParts("package", packageName, null)
+        try {
+            startActivity(Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, page))
+        } catch (e: ActivityNotFoundException) {
+            Log.w("Edgepad", "No activity for the install permission", e)
+            openAppSettings()
+        }
+    }
+
+    private fun showLicences() {
+        AlertDialog
+            .Builder(this)
+            .setTitle(R.string.licences_title)
+            .setMessage(R.string.licences_body)
+            .setPositiveButton(R.string.editor_done, null)
+            .showOver(findViewById<View>(android.R.id.content))
     }
 
     /**
@@ -1355,18 +1561,21 @@ class MainActivity :
      */
     private fun installUpdate(version: String) {
         updateProgress = 0
-        updateSummaryView?.text = updateSummary()
+        settings.updateFailure = 0
+        updateChanged()
         thread(name = "edgepad-update") {
             val handed =
                 Installer.install(applicationContext, version) { percent ->
                     runOnUiThread {
                         updateProgress = percent
-                        updateSummaryView?.text = updateSummary()
+                        updateChanged()
                     }
                 }
             runOnUiThread {
                 updateProgress = null
-                updateSummaryView?.text = updateSummary()
+                // Kept on the row after the Toast is gone: a refusal from the system is kept the same way.
+                if (!handed) settings.updateFailure = Installer.DOWNLOAD_FAILED
+                updateChanged()
                 if (!handed && !isDestroyed) {
                     Toast.makeText(this, R.string.updates_download_failed, Toast.LENGTH_LONG).show()
                 }
@@ -1389,6 +1598,8 @@ class MainActivity :
     }
 
     private fun refreshPicker() {
+        // The guide comes first; the permission prompts wait for the list they are asked for.
+        if (screen == Screen.ONBOARDING) return
         val adapter = getSystemService(BluetoothManager::class.java)?.adapter
         val permitted = checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
         // Asked for once by itself, where it used to be asked for on every refresh; after a refusal the
@@ -1404,37 +1615,47 @@ class MainActivity :
             askLocalNetwork()
         }
         val rows =
-            laptopRows(
-                remembered,
-                manager.laptops,
-                shown.map { it.address to nameOf(it) },
-                mergeFound(wifiFound + usbFound),
+            mergedRows(
+                laptopRows(
+                    remembered,
+                    manager.laptops,
+                    shown.map { it.address to nameOf(it) },
+                    mergeFound(wifiFound + usbFound),
+                ),
+                selected,
             )
         val hint =
             pickerHint(
                 permissionPending = permissionPending,
                 bluetoothOn = adapter?.isEnabled ?: true,
                 bluetoothPermitted = permitted || adapter == null,
-                localNetworkGranted = LocalNetwork.granted(this),
+                // A Bluetooth-only user who said Not now is not nagged on every visit.
+                localNetworkGranted = LocalNetwork.granted(this) || settings.localNetworkHintDismissed,
                 usbCable = usbCable,
                 usbUp = sweep?.let { it.usb != null },
                 anyDevices = rows.isNotEmpty(),
             )
         picker.showDevices(
-            rows.map { PickerScreen.Device(it, it.laptop != null && it.laptop === selected) },
+            rows.map { row -> PickerScreen.Device(row, row.laptops.any { it === selected }) },
             connected,
             settings.reconnect,
             hidden = paired.size - laptops.size,
             showingAll = showAllDevices,
+            staysConnected = settings.stayConnected,
         )
         when (hint) {
             // First, because Wi-Fi and USB laptops cannot be found without it.
             PickerHint.LOCAL_NETWORK -> {
+                val dismiss = {
+                    settings.localNetworkHintDismissed = true
+                    refreshPicker()
+                }
                 if (shouldShowRequestPermissionRationale(LocalNetwork.PERMISSION)) {
                     val allow = getString(R.string.allow_local_network)
-                    picker.setMessage(getString(R.string.local_network_needed), allow) { askLocalNetwork() }
+                    picker.setMessage(getString(R.string.local_network_needed), allow, dismiss) { askLocalNetwork() }
                 } else {
-                    picker.setMessage(getString(R.string.local_network_needed), getString(R.string.open_app_settings)) {
+                    val settingsLabel = getString(R.string.open_app_settings)
+                    picker.setMessage(getString(R.string.local_network_needed), settingsLabel, dismiss) {
                         openAppSettings()
                     }
                 }
@@ -1476,23 +1697,40 @@ class MainActivity :
             }
 
             PickerHint.NONE -> {
-                picker.setMessage("")
+                // Nothing to fix; but while the system's question is up, the reason for it stays on the list.
+                val blocked = selected?.takeIf { it.connected && it.state.inputBlocked }
+                picker.setMessage(
+                    when {
+                        blocked != null -> {
+                            val name = blocked.state.laptopName?.takeIf { it.isNotEmpty() } ?: blocked.name
+                            getString(R.string.input_blocked, name)
+                        }
+
+                        permissionPending -> {
+                            getString(permissionReason)
+                        }
+
+                        else -> {
+                            ""
+                        }
+                    },
+                )
             }
         }
-        picker.setStatus(sweepStatus())
+        picker.setStatus(if (rows.isEmpty()) sweepStatus() else "")
+        picker.setUpdate(if (updateAvailable()) settings.latestVersion else null)
     }
 
-    /** What the last sweep saw, in one line; it is also the diagnostic, as this machine has no adb. */
+    /**
+     * Where the last sweep looked and found nothing, in plain words. Shown only when no laptop is listed: a list with
+     * laptops in it needs no explanation of the network, and the address stays in the log for a bug report.
+     */
     private fun sweepStatus(): String {
         val last = sweep ?: return ""
-        val wifi = last.wifi?.let { getString(R.string.status_wifi, it) } ?: getString(R.string.status_no_wifi)
-        val usb =
-            when {
-                last.usb != null -> getString(R.string.status_usb_on, last.usb)
-                usbCable -> getString(R.string.status_usb_off)
-                else -> null
-            }
-        return listOfNotNull(wifi, usb).joinToString(" ")
+        Log.d("Edgepad", "Sweep: wifi=${last.wifi} usb=${last.usb}")
+        val wifi = if (last.wifi != null) R.string.status_searched_wifi else R.string.status_no_wifi
+        val usb = if (last.usb != null) R.string.status_searched_usb else null
+        return listOfNotNull(wifi, usb).joinToString(" ") { getString(it) }
     }
 
     /**
@@ -1507,6 +1745,9 @@ class MainActivity :
     private fun askPermission() {
         askedPermission = true
         permissionPending = true
+        // The reason stays on the list behind the system's question, and goes when the answer refreshes it.
+        permissionReason = R.string.permission_reason
+        picker.setMessage(getString(permissionReason))
         requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_BLUETOOTH)
     }
 
@@ -1586,6 +1827,20 @@ class MainActivity :
 
     private fun targetOf(found: Found) = Target.Network(found.laptopId, found.name, found.hosts, found.port)
 
+    /** Pairing keys are kept per laptop id, so a network laptop forgotten here is paired from scratch next time. */
+    private fun dropPairingKeys(keys: Set<String>) {
+        val ids = keys.filter { it.startsWith(NET_KEY) }.mapNotNull { parseHex(it.removePrefix(NET_KEY)) }
+        if (ids.isEmpty()) return
+        val store = LinkKeys.open(applicationContext)
+        thread(name = "edgepad-forget") {
+            try {
+                ids.forEach(store::forget)
+            } catch (e: IOException) {
+                Log.w("Edgepad", "Could not delete a pairing key", e)
+            }
+        }
+    }
+
     /** A tap on a row: the prompt it is waiting on, the controls of a connected laptop, or else a connect. */
     private fun tapDevice(device: PickerScreen.Device) {
         val row = device.row
@@ -1612,10 +1867,14 @@ class MainActivity :
         }
     }
 
-    /** The row's laptop over [via]. Connected already, its link there is replaced by this one. */
+    /**
+     * The row's laptop over [via]. Connected already, its link there is replaced by this one. [pairAgain] is the
+     * user's own "Pair again" for a network laptop that forgot this phone: this one attempt pairs with a new code.
+     */
     private fun connectTo(
         row: LaptopRow,
         via: Transport?,
+        pairAgain: Boolean = false,
     ) {
         // A tap starts a fresh set of attempts and earns the quick retry: the first connect after a long idle often
         // fails once and then works.
@@ -1637,14 +1896,22 @@ class MainActivity :
         if (chosen == null) {
             picker.setMessage(getString(R.string.not_paired))
         } else {
-            connect(chosen, via, tapped = true)
+            connect(if (pairAgain && chosen is Target.Network) chosen.again() else chosen, via, tapped = true)
         }
     }
 
     /** It stays listed and off the automatic connect, until the next time it is connected to. */
     private fun disconnectRow(row: LaptopRow) {
         saved = saved.map { if (it.isIn(row.keys)) it.copy(autoConnect = false) else it }
-        row.laptop?.let { manager.disconnect(it.id) }
+        row.laptops.forEach { manager.disconnect(it.id) }
+        syncService()
+        refreshDevices()
+    }
+
+    /** Every link ends and none reconnects by itself until it is tapped, as Disconnect on a row does. */
+    private fun disconnectAll() {
+        saved = saved.map { it.copy(autoConnect = false) }
+        manager.disconnectAll()
         syncService()
         refreshDevices()
     }
@@ -1652,6 +1919,8 @@ class MainActivity :
     private fun askLocalNetwork() {
         askedLocalNetwork = true
         permissionPending = true
+        permissionReason = R.string.local_network_reason
+        picker.setMessage(getString(permissionReason))
         requestPermissions(arrayOf(LocalNetwork.PERMISSION), REQUEST_LOCAL_NETWORK)
     }
 
@@ -1666,23 +1935,32 @@ class MainActivity :
                 val pad = ui.dp(Space.L)
                 setPadding(pad, pad, pad, pad)
             }
-        AlertDialog
-            .Builder(this)
-            .setTitle(R.string.add_by_address)
-            .setView(field)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val address = parseHostPort(field.text.toString())
-                if (address == null) {
-                    picker.setMessage(getString(R.string.address_invalid))
-                } else {
-                    probeManual(address)
-                }
-            }.setNegativeButton(android.R.string.cancel, null)
-            .showOver(picker.view)
+        val dialog =
+            AlertDialog
+                .Builder(this)
+                .setTitle(R.string.add_by_address)
+                .setView(field)
+                .setPositiveButton(R.string.address_connect, null)
+                .setNegativeButton(android.R.string.cancel, null)
+                .openOver(picker.view)
+        // Set after the dialog is up, so that an address that is not one leaves it open with the text still in it.
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val typed = field.text.toString().trim()
+            val address = parseHostPort(typed)
+            if (address == null) {
+                field.error = getString(R.string.address_invalid)
+            } else {
+                dialog.dismiss()
+                probeManual(address, typed)
+            }
+        }
     }
 
-    private fun probeManual(address: HostPort) {
-        picker.setMessage("")
+    private fun probeManual(
+        address: HostPort,
+        typed: String,
+    ) {
+        picker.setMessage(getString(R.string.address_looking, typed))
         thread(name = "edgepad-probe-address") {
             val found = probeAddress(address)
             handler.post {
@@ -1744,19 +2022,9 @@ class MainActivity :
         saved = rememberLaptop(saved, entry, first = laptop === selected)
     }
 
-    /** Devices and the laptops card in System settings follow every laptop's state, the selected one's or not. */
+    /** Devices follows every laptop's state, the selected one's or not. */
     private fun refreshDevices() {
-        when (screen) {
-            Screen.PAIRING -> {
-                refreshPicker()
-            }
-
-            Screen.SETTINGS -> {
-                goTo(Screen.SETTINGS)
-            }
-
-            else -> {}
-        }
+        if (screen == Screen.PAIRING) refreshPicker()
     }
 
     /**
@@ -1794,7 +2062,10 @@ class MainActivity :
         picker.setMessage("")
         when (screen) {
             Screen.PAIRING, Screen.RECONNECTING, Screen.PIN, Screen.PAIR_CODE -> {
-                goTo(Screen.SURFACE)
+                // The first time, one short question comes before the controls; see [SharingScreen].
+                val back = resumeScreen.takeIf { screen == Screen.RECONNECTING } ?: Screen.SURFACE
+                resumeScreen = null
+                goTo(if (settings.sharingAsked) back else Screen.SHARING)
             }
 
             // Opened from Devices, back now leads to the surface the connect would have gone to.
@@ -1807,9 +2078,9 @@ class MainActivity :
         }
     }
 
+    // The row says it is waiting; a second copy under the list would only repeat it.
     override fun onAwaitingLaptop(laptop: Laptop) {
         refreshDevices()
-        if (laptop === selected) picker.setMessage(getString(R.string.status_accept_on_laptop))
     }
 
     /**
@@ -1861,10 +2132,25 @@ class MainActivity :
         frame: Frame,
     ) {
         // Said once a connection, for any laptop: the one that offers the clipboard may be the one selected.
-        if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) refreshBlobLinks()
+        if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) {
+            refreshBlobLinks()
+            // The notification only mentions the clipboard once the laptop has said it offers one.
+            syncService()
+        }
+        // TEXT 18, input state: the banner lives on the Devices list, which is the connection status.
+        if (frame is Frame.Text && frame.kind == TextKind.INPUT_STATE.id) refreshDevices()
         if (frame is Frame.Text && frame.kind == TextKind.DEVICE.id) {
             remember(laptop)
             refreshDevices()
+        }
+        if (frame is Frame.Text &&
+            (
+                frame.kind == TextKind.BATTERIES.id ||
+                    frame.kind == TextKind.OUTPUT.id ||
+                    frame.kind == TextKind.DEVICE.id
+            )
+        ) {
+            refreshBatteries()
         }
         if (laptop !== selected) return
         surface?.stateChanged()
@@ -1886,7 +2172,12 @@ class MainActivity :
         // The pad decides which of its two modes it is in from this answer, which usually lands a few
         // milliseconds after PAD_ATTACH went out — by then the screen is already up, so it is handed
         // over rather than rebuilt: rebuilding would drop whatever fingers are on the glass.
-        if (frame is Frame.Text && frame.kind == TextKind.PAD_STATUS.id) gamepad?.setStatus(state.padStatus)
+        if (frame is Frame.Text && frame.kind == TextKind.PAD_STATUS.id) {
+            gamepad?.setStatus(state.padStatus)
+            // A laptop with no controller driver gets the keyboard preset; the screen is rebuilt once, not each time.
+            val wanted = GamepadLayout.forStatus(gamepads.current, state.padStatus).name
+            if (screen == Screen.GAMEPAD && wanted != playedLayout) goTo(Screen.GAMEPAD)
+        }
         // The macro grid is handed what changed rather than built again, which would throw away where
         // TalkBack was and decode every picture over again for each one that arrived.
         val grid = macros
@@ -1899,7 +2190,7 @@ class MainActivity :
             when (frame.kind) {
                 TextKind.MACROS.id -> {
                     // The link has already asked for this list's pictures; they arrive as MACRO_ICON frames.
-                    grid.setMacros(state.macros)
+                    grid.setMacros(state.macros, state.macrosHeard)
                 }
 
                 TextKind.MACRO_ICON.id -> {
@@ -1920,21 +2211,23 @@ class MainActivity :
     ) {
         refreshBlobLinks()
         syncService()
+        refreshBatteries()
         if (laptop !== selected) {
             refreshDevices()
             // Unreachable is a laptop that is off, which is nothing to report at every launch; its row says so.
             if (laptop.failed && laptop.idle && closure.cause != LaptopLink.Cause.UNREACHABLE) {
-                picker.setMessage(getString(R.string.status_closed_named, laptop.name, describe(closure)))
+                picker.setMessage(getString(R.string.status_closed_named, laptop.name, describe(closure, laptop)))
             }
             return
         }
         watchingMacros = false
         listingApps = false
+        val answering = screen
         // Devices is where the reason is shown, so an attempt that ends at the PIN or a pairing code goes there first.
         if (screen == Screen.PIN || screen == Screen.PAIR_CODE) goTo(Screen.PAIRING)
         when {
             closure.cause == LaptopLink.Cause.ENDED -> {
-                if (screen == Screen.SURFACE || screen == Screen.RECONNECTING ||
+                if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.SHARING ||
                     screen == Screen.CAPTURE || screen == Screen.ANNOTATE || screen == Screen.KEYBOARD ||
                     screen == Screen.GAMEPAD || screen == Screen.MACROS || screen == Screen.APPS ||
                     screen in settingsOfControls
@@ -1948,11 +2241,29 @@ class MainActivity :
                     goTo(Screen.SETTINGS)
                 }
                 refreshPicker()
+                // Cancelled by the user; the row is the way back in, and the screen they left says so.
+                when (answering) {
+                    Screen.PAIR_CODE -> {
+                        picker.setMessage(getString(R.string.pair_cancelled))
+                    }
+
+                    Screen.PIN -> {
+                        picker.setMessage(getString(R.string.pin_cancelled))
+                    }
+
+                    else -> {}
+                }
             }
 
             // It was working and dropped on its own, or a retry just failed: say so while the manager tries.
             laptop.reconnecting -> {
-                if (screen == Screen.RECONNECTING) updateReconnecting() else goTo(Screen.RECONNECTING)
+                if (screen == Screen.RECONNECTING) {
+                    updateReconnecting()
+                } else {
+                    // AND-A-2: remember where the user was, so coming back puts them there and not on the surface.
+                    resumeScreen = screen.takeIf { it in RESUMABLE }
+                    goTo(Screen.RECONNECTING)
+                }
             }
 
             // The first connect of a tap never reached the laptop: once more before saying anything.
@@ -1962,7 +2273,7 @@ class MainActivity :
 
             else -> {
                 refreshPicker()
-                picker.setMessage(getString(R.string.status_closed, describe(closure)))
+                picker.setMessage(getString(R.string.status_closed, describe(closure, laptop)))
             }
         }
     }
@@ -1990,6 +2301,7 @@ class MainActivity :
         refreshBlobLinks()
         syncService()
         CaptureInbox.owner = laptop?.link?.id
+        refreshBatteries()
         picker.setRtt(laptop?.rtt?.median() ?: Double.NaN)
         laptop?.let { saved = promoted(saved, setOf(it.id)) }
         val needsLink = screen in laptopScreens || screen in settingsOfControls || screen == Screen.RECONNECTING
@@ -2019,13 +2331,16 @@ class MainActivity :
     }
 
     /** Why an attempt ended, in the user's language. The link names the cause; the words are the app's. */
-    private fun describe(closure: LaptopLink.Closure): String =
+    private fun describe(
+        closure: LaptopLink.Closure,
+        laptop: Laptop,
+    ): String =
         when (closure.cause) {
             LaptopLink.Cause.ENDED, LaptopLink.Cause.LOST -> getString(R.string.link_lost)
-            LaptopLink.Cause.UNREACHABLE -> getString(R.string.link_unreachable)
+            LaptopLink.Cause.UNREACHABLE -> unreachable(laptop)
             LaptopLink.Cause.REFUSED -> getString(R.string.link_refused)
-            LaptopLink.Cause.MISMATCH -> getString(R.string.link_mismatch, closure.detail, ProtocolConstants.VERSION)
-            LaptopLink.Cause.UNEXPECTED -> getString(R.string.link_unexpected, closure.detail)
+            LaptopLink.Cause.MISMATCH -> mismatch(closure.detail, laptop)
+            LaptopLink.Cause.UNEXPECTED -> unexpected(closure.detail)
             LaptopLink.Cause.NO_PERMISSION -> getString(R.string.link_no_permission)
             LaptopLink.Cause.NO_ANSWER -> getString(R.string.link_no_answer)
             LaptopLink.Cause.PIN_LOCKED -> lockedFor(closure.detail.toIntOrNull() ?: 0)
@@ -2034,6 +2349,37 @@ class MainActivity :
             LaptopLink.Cause.PAIRING_FAILED -> getString(R.string.link_pairing_failed)
             LaptopLink.Cause.PAIRING_LOCKED -> getString(R.string.link_pairing_locked)
         }
+
+    /** Bluetooth and the network fail for different reasons, and so ask for different things. */
+    private fun unreachable(laptop: Laptop): String =
+        getString(
+            if (laptop.target is Target.Bluetooth) {
+                R.string.link_unreachable_bluetooth
+            } else {
+                R.string.link_unreachable_network
+            },
+        )
+
+    /** What came back is for the log; to the user it is only "not Edgepad". */
+    private fun unexpected(detail: String): String {
+        Log.w("Edgepad", "Unexpected handshake reply: $detail")
+        return getString(R.string.link_unexpected)
+    }
+
+    /** Names the older half when the two protocol numbers say which it is: the higher number is the newer release. */
+    private fun mismatch(
+        theirs: String,
+        laptop: Laptop,
+    ): String {
+        val name = laptop.state.laptopName?.takeIf { it.isNotEmpty() } ?: laptop.name
+        val text =
+            when (olderHalf(theirs, ProtocolConstants.VERSION)) {
+                OlderHalf.LAPTOP -> R.string.link_mismatch_laptop_older
+                OlderHalf.PHONE -> R.string.link_mismatch_phone_older
+                OlderHalf.UNKNOWN -> R.string.link_mismatch
+            }
+        return getString(text, name)
+    }
 
     /** The lock-out wait as a person reads it: an hour is 60 minutes, not 3600 s. Minutes round up, never down. */
     private fun lockedFor(seconds: Int): String {
@@ -2067,57 +2413,20 @@ class MainActivity :
         lost.update((laptop.attempts + 1).coerceAtMost(most), most, status, seconds)
     }
 
-    /** Off the remembered list and the manager's. If it was selected, the next connected laptop is, or none. */
+    /**
+     * Off the remembered list and the manager's, and a network laptop's pairing key with it: the next tap pairs afresh,
+     * which is also the way out for a laptop that no longer knows this phone. Android's own Bluetooth pairing is not
+     * ours to remove. If it was selected, the next connected laptop is, or none.
+     */
     private fun forgetLaptop(
-        laptop: Laptop?,
+        laptops: List<Laptop>,
         keys: Set<String>,
     ) {
         saved = forgotten(saved, keys)
-        laptop?.let { manager.forget(it.id) }
+        laptops.forEach { manager.forget(it.id) }
+        dropPairingKeys(keys)
         syncService()
         refreshDevices()
-    }
-
-    /** Every laptop System settings lists, as Devices has them: the remembered ones and the ones with a link. */
-    private fun connections(): SettingsScreen.Connections {
-        val remembered = saved
-        val addresses = remembered.map { it.btAddress }.toSet()
-        val bonded = bonded().filter { it.address in addresses }.map { it.address to nameOf(it) }
-        val devices =
-            laptopRows(remembered, manager.laptops, bonded, emptyList()).map { row ->
-                SettingsScreen.Device(
-                    row.name,
-                    deviceState(row, selected),
-                    row.via,
-                    onTap = { tapSettingsRow(row) },
-                    onDisconnect = { disconnectRow(row) },
-                )
-            }
-        val offered = connected && Feature.CLIPBOARD in state.features
-        return SettingsScreen.Connections(devices, offered)
-    }
-
-    /** A tap on a laptop in System settings: make it active, answer its prompt, or connect it, as [deviceState] says. */
-    private fun tapSettingsRow(row: LaptopRow) {
-        val laptop = row.laptop
-        when (deviceState(row, selected).tap()) {
-            DeviceTap.NOTHING -> {}
-
-            DeviceTap.SELECT -> {
-                laptop?.let { manager.select(it.id) }
-            }
-
-            DeviceTap.ANSWER -> {
-                if (laptop != null) {
-                    manager.select(laptop.id)
-                    goTo(if (laptop.asking == Laptop.Ask.PIN) Screen.PIN else Screen.PAIR_CODE)
-                }
-            }
-
-            DeviceTap.CONNECT -> {
-                connectTo(row, row.via)
-            }
-        }
     }
 
     private companion object {
@@ -2145,8 +2454,23 @@ class MainActivity :
                 Screen.GAMEPAD_SETTINGS,
             )
 
+        /** Pages that only read: they turn with the phone, whatever the Orientation setting says. */
+        val followsPhone =
+            setOf(
+                Screen.ONBOARDING,
+                Screen.GUIDE,
+                Screen.PAIRING,
+                Screen.SHARING,
+                Screen.RECONNECTING,
+                Screen.PIN,
+                Screen.PAIR_CODE,
+            )
+
         /** The pages that need the link: with it gone they go back to Devices, as the screens they belong to do. */
         val settingsOfControls = setOf(Screen.KEYBOARD_SETTINGS, Screen.GAMEPAD_SETTINGS, Screen.MACRO_SETTINGS)
+
+        /** The control screens a dropped link returns to; Annotate is not here because the laptop ends that session. */
+        val RESUMABLE = setOf(Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE)
 
         /** The screens built on one laptop's state and sending to it: a change of selection rebuilds them. */
         val laptopScreens =
@@ -2178,6 +2502,10 @@ class MainActivity :
         const val TICK_MS = 1_000L
 
         const val MILLIS_PER_SECOND = 1_000L
+
+        /** AND-A-18: the window in which a second back on the surface leaves it for Devices. */
+        const val BACK_AGAIN_MS = 2_000L
+
         const val SECONDS_PER_MINUTE = 60
 
         /**

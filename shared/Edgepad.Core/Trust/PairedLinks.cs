@@ -20,6 +20,10 @@ internal sealed class PairedLinks(string path)
     // Set when Forget could not delete or empty the file: every phone is refused until it can, as TrustStore does.
     private bool forgetFailed;
 
+    // Pairings whose Forget did not reach the disk: refused for the rest of this run, until a later ForgetOne works or a
+    // new pairing replaces them.
+    private readonly HashSet<string> denied = new(StringComparer.OrdinalIgnoreCase);
+
     // Moved on by every Forget. A pairing reads it when it starts and hands it to Add, so a Forget chosen while the
     // phone was pairing is the later word.
     private int generation;
@@ -46,7 +50,7 @@ internal sealed class PairedLinks(string path)
         {
             key = [];
             name = "";
-            if (!TryRead(out var links))
+            if (denied.Contains(idHex) || !TryRead(out var links))
             {
                 return false;
             }
@@ -103,6 +107,62 @@ internal sealed class PairedLinks(string path)
         }
     }
 
+    /// <summary>The id and name of every paired phone, for a list the owner can forget from; empty while the file cannot be read.</summary>
+    public IReadOnlyList<(string Id, string Name)> List()
+    {
+        lock (gate)
+        {
+            return TryRead(out var links) ? [.. links.Select(link => (link.Id, link.Name))] : [];
+        }
+    }
+
+    /// <summary>
+    /// Forgets one phone's pairing and keeps the others. True when it is gone or was never there; false when the file
+    /// could not be read or rewritten. Moves <see cref="Generation"/> on, as <see cref="Forget"/> does.
+    /// </summary>
+    public bool ForgetOne(string idHex)
+    {
+        lock (gate)
+        {
+            generation++;
+            if (!TryRead(out var links))
+            {
+                denied.Add(idHex);
+                return false;
+            }
+
+            var rest = links.Where(link => !string.Equals(link.Id, idHex, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (rest.Count == links.Count)
+            {
+                denied.Remove(idHex);
+                return true;
+            }
+
+            try
+            {
+                if (rest.Count == 0)
+                {
+                    File.Delete(path);
+                }
+                else
+                {
+                    PrivateStorage.Replace(path, temp => File.WriteAllLines(
+                        temp,
+                        rest.Select(link => $"{link.Id}\t{Convert.ToBase64String(link.Key)}\t{link.Name}")));
+                }
+
+                denied.Remove(idHex);
+                return true;
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                Log.Write($"A paired phone could not be forgotten at {path}: {e.Message}");
+                denied.Add(idHex);
+                return false;
+            }
+        }
+    }
+
     /// <summary>True when there is something for Forget to clear: a paired phone, or a file that cannot be read.</summary>
     public bool CanForget
     {
@@ -124,6 +184,7 @@ internal sealed class PairedLinks(string path)
         lock (gate)
         {
             generation++;
+            denied.Clear();
             try
             {
                 File.Delete(path);

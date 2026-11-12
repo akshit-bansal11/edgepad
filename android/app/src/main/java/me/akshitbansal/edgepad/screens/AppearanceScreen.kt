@@ -105,7 +105,9 @@ object AppearanceScreen {
                 if (chosen != null) {
                     details.addView(line(ui))
                     details.addView(
-                        ColorPicker.build(ui, ui.string(R.string.control_color), chosen) { settings.controlColor = it },
+                        ColorPicker.build(ui, ui.string(R.string.control_color), chosen, editable = true) {
+                            settings.controlColor = it
+                        },
                     )
                 }
             }
@@ -156,7 +158,7 @@ object AppearanceScreen {
             val colour = {
                 addView(line(ui))
                 addView(
-                    ColorPicker.build(ui, ui.string(R.string.background_color), settings.backgroundColor) {
+                    ColorPicker.build(ui, ui.string(R.string.background_color), settings.backgroundColor, true) {
                         settings.backgroundColor = it
                         preview.update()
                     },
@@ -175,7 +177,7 @@ object AppearanceScreen {
                     colour()
                     addView(line(ui))
                     addView(
-                        ColorPicker.build(ui, ui.string(R.string.gradient_end), settings.gradientEnd) {
+                        ColorPicker.build(ui, ui.string(R.string.gradient_end), settings.gradientEnd, true) {
                             settings.gradientEnd = it
                             preview.update()
                         },
@@ -268,7 +270,7 @@ object AppearanceScreen {
             )
             addView(line(ui))
             addView(
-                ColorPicker.build(ui, ui.string(R.string.pattern_color), settings.patternColor) {
+                ColorPicker.build(ui, ui.string(R.string.pattern_color), settings.patternColor, true) {
                     settings.patternColor = it
                     preview.update()
                 },
@@ -312,7 +314,7 @@ object AppearanceScreen {
 
         private val density = resources.displayMetrics.density
         private val palette = Palette.of(context)
-        private var backdrop = Backdrop(settings, density, palette.background)
+        private var backdrop = Backdrop(settings, density, palette.background).also { it.load(this) }
 
         init {
             contentDescription = context.getString(R.string.background_preview_description)
@@ -320,7 +322,7 @@ object AppearanceScreen {
 
         /** Re-reads the settings; the backdrop reads them once, when it is made. */
         fun update() {
-            backdrop = Backdrop(settings, density, palette.background)
+            backdrop = Backdrop(settings, density, palette.background).also { it.load(this) }
             // Before the first layout there is no size, and an image cannot be cropped to nothing.
             if (width > 0 && height > 0) backdrop.resize(width, height)
             invalidate()

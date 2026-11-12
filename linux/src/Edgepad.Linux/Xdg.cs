@@ -9,7 +9,10 @@ internal static class Xdg
 {
     private const string App = "edgepad";
 
-    public static string ConfigFolder => Path.Combine(Resolve(Environment.GetEnvironmentVariable("XDG_CONFIG_HOME"), Home, ".config"), App);
+    /// <summary>$XDG_CONFIG_HOME itself: the folder other programs' files (autostart entries) live in.</summary>
+    public static string ConfigHome => Resolve(Environment.GetEnvironmentVariable("XDG_CONFIG_HOME"), Home, ".config");
+
+    public static string ConfigFolder => Path.Combine(ConfigHome, App);
 
     public static string CacheFolder => Path.Combine(Resolve(Environment.GetEnvironmentVariable("XDG_CACHE_HOME"), Home, ".cache"), App);
 

@@ -30,6 +30,13 @@ class LaptopStateTest {
     }
 
     @Test
+    fun tellsAnEmptyMacroListFromOneNotYetSent() {
+        assertFalse(state.macrosHeard)
+        state.take(Frame.Text(TextKind.MACROS.id, ""))
+        assertTrue(state.macrosHeard)
+    }
+
+    @Test
     fun keepsTheLaptopsLastWordOnItsController() {
         assertNull(state.padStatus)
         assertTrue(state.take(Frame.Text(TextKind.PAD_STATUS.id, PadStatus.READY.token)))
@@ -191,6 +198,44 @@ class LaptopStateTest {
         state.take(Frame.Text(TextKind.MACRO_OPEN.id, "2"))
         state.forgetMacroOpen()
         assertFalse(state.isOpen(0))
+    }
+
+    @Test
+    fun readsTheInputStateAndTreatsNothingAsOk() {
+        val kind = TextKind.INPUT_STATE.id
+        assertEquals(18, kind)
+        assertFalse(state.inputBlocked)
+        assertTrue(state.take(Frame.Text(kind, "blocked")))
+        assertTrue(state.inputBlocked)
+        // Saying the same again changes nothing, so the banner is not announced twice.
+        assertFalse(state.take(Frame.Text(kind, "blocked")))
+        // Unknown words leave the last word standing.
+        assertFalse(state.take(Frame.Text(kind, "maybe")))
+        assertTrue(state.inputBlocked)
+        assertTrue(state.take(Frame.Text(kind, "ok")))
+        assertFalse(state.inputBlocked)
+    }
+
+    @Test
+    fun aNewLinkForgetsTheInputState() {
+        state.take(Frame.Text(TextKind.INPUT_STATE.id, "blocked"))
+        state.forgetInputBlocked()
+        assertFalse(state.inputBlocked)
+    }
+
+    @Test
+    fun keepsAndForgetsBatteriesAndOutput() {
+        assertTrue(state.take(Frame.Text(TextKind.BATTERIES.id, "laptop:87:1:Desk")))
+        assertTrue(state.take(Frame.Text(TextKind.OUTPUT.id, "speaker/Speakers")))
+        assertEquals(87, state.batteries.single().level)
+        assertEquals("Speakers", state.output?.name)
+        // A snapshot: an empty one replaces the list.
+        assertTrue(state.take(Frame.Text(TextKind.BATTERIES.id, "")))
+        assertTrue(state.batteries.isEmpty())
+        state.take(Frame.Text(TextKind.BATTERIES.id, "laptop:87:1:Desk"))
+        state.forgetPower()
+        assertTrue(state.batteries.isEmpty())
+        assertNull(state.output)
     }
 
     @Test

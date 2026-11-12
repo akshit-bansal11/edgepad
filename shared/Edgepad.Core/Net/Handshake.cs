@@ -132,6 +132,8 @@ internal static class Handshake
             return false;
         }
 
+        // Once per connection, and a failed write is logged inside and never stops it.
+        trust.Connections.Record(address, DateTimeOffset.UtcNow);
         frames.Send(new HelloAck(ProtocolConstants.Version));
         log($"Connected {address}");
         onStatus($"Connected to {address}");

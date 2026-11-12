@@ -92,6 +92,16 @@ class DialTest {
     }
 
     @Test
+    fun aSlideBeforeTheFirstReportSendsNothing() {
+        val volume = dial(DialKind.VOLUME)
+        volume.down()
+        volume.slideBy(-200f)
+        volume.up()
+        assertTrue(out.isEmpty())
+        assertFalse(volume.known)
+    }
+
+    @Test
     fun oneHapticTickPerNotchThatPasses() {
         val volume = dial(DialKind.VOLUME)
         volume.fromLaptop(0, flag = false)

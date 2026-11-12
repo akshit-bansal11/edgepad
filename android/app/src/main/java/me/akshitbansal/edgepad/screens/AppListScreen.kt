@@ -18,6 +18,7 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.AppCatalogState
+import me.akshitbansal.edgepad.link.LaptopState
 
 /**
  * The apps the laptop listed, to pick one as a macro: a search field over a row for each app, its icon beside its name.
@@ -39,6 +40,8 @@ class AppListScreen(
     private val laptopName: String,
     private val catalog: AppCatalogState,
     private val windows: Boolean,
+    /** AND-B-35: the macro names the laptop last sent, so the rows of apps already added can say so. */
+    private val macroNames: () -> List<String>,
     private val onAdd: (AppCatalogState.App) -> Unit,
     onRefresh: () -> Unit,
     onBack: () -> Unit,
@@ -53,9 +56,12 @@ class AppListScreen(
 
     private var rows: List<Row> = emptyList()
     private var query = ""
+    private var asked: String? = null
+    private val addedNow = mutableSetOf<String>()
     private lateinit var list: LinearLayout
     private lateinit var message: TextView
     private lateinit var hint: TextView
+    private lateinit var fullNote: TextView
 
     val view: View =
         ui.page(
@@ -69,6 +75,8 @@ class AppListScreen(
             card { add(searchField()) }
             list = card(Space.M) {}
             message = body("", Space.L).apply { gravity = Gravity.CENTER }
+            val cap = LaptopState.MACRO_SLOTS
+            fullNote = footnote(ui.context.resources.getQuantityString(R.plurals.apps_full_note, cap, cap))
             hint = footnote(ui.string(R.string.apps_windows_hint))
         }
 
@@ -79,9 +87,20 @@ class AppListScreen(
     /** A new list, or none yet: the rows are built again from [catalog], and what the search matches is kept. */
     fun listChanged() {
         list.removeAllViews()
-        rows = catalog.apps.map(::row)
+        val names = macroNames()
+        val have = names.map { it.lowercase() }.toSet()
+        // AND-B: the laptop keeps at most MACRO_SLOTS macros (IMacroRunner.MaxMacros), so a full list adds no more.
+        val full = names.count { it.isNotEmpty() } >= LaptopState.MACRO_SLOTS
+        fullNote.visibility = if (full && catalog.loaded) View.VISIBLE else View.GONE
+        rows = catalog.apps.map { row(it, it.name.lowercase() in have || it.token in addedNow, full) }
         rows.forEach { list.addView(it.view) }
         applyFilter()
+    }
+
+    /** The laptop took the app the last question was about: its row says Added from now on. */
+    fun markAdded() {
+        asked?.let { addedNow += it }
+        listChanged()
     }
 
     /** The picture for the app [token] names has arrived: that row is dressed in it and no other is touched. */
@@ -113,7 +132,11 @@ class AppListScreen(
         hint.visibility = if (windows && catalog.loaded) View.VISIBLE else View.GONE
     }
 
-    private fun row(app: AppCatalogState.App): Row {
+    private fun row(
+        app: AppCatalogState.App,
+        added: Boolean,
+        full: Boolean,
+    ): Row {
         val picture =
             ImageView(ui.context).apply {
                 scaleType = ImageView.ScaleType.FIT_CENTER
@@ -141,7 +164,16 @@ class AppListScreen(
                 val side = ui.dp(TILE_DP)
                 addView(tile, LinearLayout.LayoutParams(side, side).apply { marginEnd = ui.dp(Space.M) })
                 addView(name, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-                ui.tappable(this) { confirm(app) }
+                if (added) {
+                    addView(ui.text(ui.string(R.string.apps_row_added), Type.SMALL, ui.palette.dim))
+                    contentDescription = ui.string(R.string.apps_row_added_description, app.name)
+                } else if (full) {
+                    alpha = FULL_ALPHA
+                    contentDescription = app.name
+                    stateDescription = ui.string(R.string.apps_row_full)
+                } else {
+                    ui.tappable(this) { confirm(app) }
+                }
             }
         val line = ui.hairline()
         val holder =
@@ -155,11 +187,13 @@ class AppListScreen(
 
     /** Over the list and not the row: a list that arrives while the question is up rebuilds the rows, and it must stay. */
     private fun confirm(app: AppCatalogState.App) {
+        asked = app.token
         ui.confirm(
             list,
             ui.string(R.string.apps_confirm_title, app.name, laptopName),
             ui.string(R.string.apps_confirm_body),
             ui.string(R.string.apps_confirm_action),
+            danger = false,
         ) { onAdd(app) }
     }
 
@@ -203,5 +237,6 @@ class AppListScreen(
 
     private companion object {
         const val TILE_DP = 36f
+        const val FULL_ALPHA = 0.45f
     }
 }

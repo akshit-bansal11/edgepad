@@ -102,7 +102,12 @@ object GestureScreen {
                     rest.forEach { add(it) }
                     footnote(ui.string(R.string.gestures_footnote))
                     card(Space.XL) {
-                        add(ui.toggle(ui.string(R.string.gesture_hints), settings.hints) { settings.hints = it })
+                        add(
+                            ui.toggle(ui.string(R.string.gesture_hints), settings.hints) {
+                                settings.hints = it
+                                if (it) settings.hintsSeen = 0
+                            },
+                        )
                     }
                 },
             )

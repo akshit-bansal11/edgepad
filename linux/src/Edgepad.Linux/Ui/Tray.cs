@@ -4,18 +4,37 @@ using Avalonia.Controls;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using Edgepad.Platform;
+using Edgepad.Updates;
 
 namespace Edgepad.Ui;
 
+/// <summary>What the tray menu reads and does. Handlers run on the UI thread and none may throw.</summary>
+internal sealed record TrayHooks(
+    Func<string> SecurityHint,
+    Func<string> MacrosHint,
+    Func<bool> NetworkOn,
+    Func<string> NetworkHint,
+    Func<bool> ClipboardOn,
+    Func<bool> AutostartOn,
+    Func<bool> UpdatesOn,
+    Action Security,
+    Action Macros,
+    Action ToggleNetwork,
+    Action ToggleClipboard,
+    Action ToggleAutostart,
+    Action ToggleUpdates,
+    Action Quit);
+
 /// <summary>
-/// The tray icon and its menu, rows as on Windows: status, Security…, Wi-Fi and USB connections, Open log, Documentation, Forget trusted
-/// phones, Quit and the version. Every handler runs on the UI thread and none may throw: an exception there ends
-/// the whole app, and with it the Bluetooth service.
+/// The tray icon and its menu, in the order every laptop uses: status, Update available, a problem row, then Wi-Fi and
+/// USB connections, Share clipboard, Start at login, Check for updates daily, Macros…, Security…, Documentation, Open log and Quit Edgepad.
+/// Every handler runs on the UI thread and none may throw: an exception there ends the whole app, and with it the
+/// Bluetooth service.
 /// </summary>
 internal sealed class Tray : IDisposable
 {
-    // The documentation site, as in the Windows tray.
-    private const string DocumentationUrl = "https://edgepad.akshitbansal.dev";
+    // The documentation site, as on every laptop and the phone.
+    private const string DocumentationUrl = FirstRunWindow.DocumentationUrl;
 
     // The shell's tooltip is short on some desktops; stay under the oldest limit the Windows tray uses.
     private const int MaxTooltipLength = 63;
@@ -23,61 +42,55 @@ internal sealed class Tray : IDisposable
     // How often the desktop is asked whether it prefers dark.
     private static readonly TimeSpan SchemeEvery = TimeSpan.FromSeconds(2);
 
-    private readonly NativeMenuItem statusRow = new("Starting") { IsEnabled = false };
+    private readonly NativeMenuItem statusRow = new("Starting…") { IsEnabled = false };
+    private readonly NativeMenuItem updateRow = new("Update available") { IsVisible = false };
+    private readonly NativeMenuItem problemRow = new("") { IsEnabled = false, IsVisible = false };
+    private readonly NativeMenuItem networkRow = Toggle("Wi-Fi and USB connections");
+    private readonly NativeMenuItem clipboardRow = Toggle("Share clipboard");
+    private readonly NativeMenuItem autostartRow = Toggle("Start at login");
+    private readonly NativeMenuItem updatesRow = Toggle("Check for updates daily");
+    private readonly NativeMenuItem macrosRow = new("Macros…");
     private readonly NativeMenuItem securityRow = new("Security…");
-    private readonly NativeMenuItem networkRow = new("Wi-Fi and USB connections");
-    private readonly NativeMenuItem clipboardRow = new("Share clipboard");
-    private readonly NativeMenuItem forgetRow = new("Forget trusted phones");
     private readonly TrayIcon icon;
     private readonly Bus portal = Bus.OnSession();
     private readonly Timer scheme;
+    private readonly TrayHooks hooks;
     private bool dark;
-    private readonly Func<string> levelHint;
-    private readonly Func<bool> canForget;
-    private readonly Func<bool> networkOn;
-    private readonly Func<string> networkHint;
-    private readonly Func<bool> clipboardOn;
 
-    public Tray(
-        string version,
-        Func<string> levelHint,
-        Func<bool> canForget,
-        Func<bool> networkOn,
-        Func<string> networkHint,
-        Func<bool> clipboardOn,
-        Action security,
-        Action toggleNetwork,
-        Action toggleClipboard,
-        Action forget,
-        Action quit)
+    public Tray(TrayHooks hooks)
     {
-        this.levelHint = levelHint;
-        this.canForget = canForget;
-        this.networkOn = networkOn;
-        this.networkHint = networkHint;
-        this.clipboardOn = clipboardOn;
+        this.hooks = hooks;
 
-        securityRow.Click += (_, _) => Safe(security, "Security");
-        networkRow.Click += (_, _) => Safe(toggleNetwork, "Wi-Fi and USB connections");
-        clipboardRow.Click += (_, _) => Safe(toggleClipboard, "Share clipboard");
-        forgetRow.Click += (_, _) => Safe(forget, "Forget trusted phones");
+        updateRow.Click += (_, _) => Safe(() => OpenWithDesktop(UpdateCheck.LatestUrl, "the release page"), "Update available");
+        networkRow.Click += (_, _) => Safe(hooks.ToggleNetwork, "Wi-Fi and USB connections");
+        clipboardRow.Click += (_, _) => Safe(hooks.ToggleClipboard, "Share clipboard");
+        autostartRow.Click += (_, _) => Safe(hooks.ToggleAutostart, "Start at login");
+        updatesRow.Click += (_, _) => Safe(hooks.ToggleUpdates, "Check for updates daily");
+        macrosRow.Click += (_, _) => Safe(hooks.Macros, "Macros");
+        securityRow.Click += (_, _) => Safe(hooks.Security, "Security");
+        var docs = new NativeMenuItem("Documentation");
+        docs.Click += (_, _) => Safe(() => OpenWithDesktop(DocumentationUrl, "the documentation"), "Documentation");
         var log = new NativeMenuItem("Open log");
         log.Click += (_, _) => Safe(() => OpenWithDesktop(Log.FilePath, "the log"), "Open log");
-        var docs = new NativeMenuItem($"Documentation ({new Uri(DocumentationUrl).Host})");
-        docs.Click += (_, _) => Safe(() => OpenWithDesktop(DocumentationUrl, "the documentation"), "Documentation");
-        var exit = new NativeMenuItem($"Quit Edgepad {version}");
-        exit.Click += (_, _) => Safe(quit, "Quit");
+        var exit = new NativeMenuItem("Quit Edgepad");
+        exit.Click += (_, _) => Safe(hooks.Quit, "Quit");
 
         var menu = new NativeMenu();
         menu.Add(statusRow);
+        menu.Add(updateRow);
+        menu.Add(problemRow);
         menu.Add(new NativeMenuItemSeparator());
-        menu.Add(securityRow);
         menu.Add(networkRow);
         menu.Add(clipboardRow);
-        menu.Add(log);
-        menu.Add(docs);
+        menu.Add(autostartRow);
+        menu.Add(updatesRow);
         menu.Add(new NativeMenuItemSeparator());
-        menu.Add(forgetRow);
+        menu.Add(macrosRow);
+        menu.Add(securityRow);
+        menu.Add(new NativeMenuItemSeparator());
+        menu.Add(docs);
+        menu.Add(log);
+        menu.Add(new NativeMenuItemSeparator());
         menu.Add(exit);
 
         // Read the settings each time the menu opens, so it never shows a stale state. Whether the desktop raises
@@ -103,6 +116,20 @@ internal sealed class Tray : IDisposable
         Refresh();
     }
 
+    /// <summary>Shows "Update available: VERSION" under the status. Opens the release page when clicked.</summary>
+    public void SetUpdate(string version)
+    {
+        updateRow.Header = $"Update available: {version}";
+        updateRow.IsVisible = true;
+    }
+
+    /// <summary>A problem the owner can fix (input blocked, Wi-Fi not listening), or null for none.</summary>
+    public void SetProblem(string? text)
+    {
+        problemRow.Header = text ?? "";
+        problemRow.IsVisible = text is not null;
+    }
+
     public void Dispose()
     {
         scheme.Dispose();
@@ -110,6 +137,19 @@ internal sealed class Tray : IDisposable
         icon.IsVisible = false;
         icon.Dispose();
     }
+
+    public void Refresh()
+    {
+        securityRow.Header = $"Security… ({hooks.SecurityHint()})";
+        macrosRow.Header = $"Macros… ({hooks.MacrosHint()})";
+        networkRow.Header = $"Wi-Fi and USB connections ({hooks.NetworkHint()})";
+        networkRow.IsChecked = hooks.NetworkOn();
+        clipboardRow.IsChecked = hooks.ClipboardOn();
+        autostartRow.IsChecked = hooks.AutostartOn();
+        updatesRow.IsChecked = hooks.UpdatesOn();
+    }
+
+    private static NativeMenuItem Toggle(string header) => new(header) { ToggleType = MenuItemToggleType.CheckBox };
 
     private void CheckScheme()
     {
@@ -119,14 +159,6 @@ internal sealed class Tray : IDisposable
             dark = next;
             Dispatcher.UIThread.Post(() => Safe(() => icon.Icon = LoadMark(next), "Tray icon"));
         }
-    }
-
-    public void Refresh()
-    {
-        securityRow.Header = $"Security… ({levelHint()})";
-        networkRow.Header = $"{(networkOn() ? "✓ " : "")}Wi-Fi and USB connections ({networkHint()})";
-        clipboardRow.Header = $"{(clipboardOn() ? "✓ " : "")}Share clipboard";
-        forgetRow.IsEnabled = canForget();
     }
 
     /// <summary>The Edgepad mark as a 64 px PNG (Skia does not decode an .ico), the dark tile or the light. Null (no icon, logged) if it will not decode.</summary>
@@ -144,11 +176,15 @@ internal sealed class Tray : IDisposable
         }
     }
 
-    /// <summary>Hands a file or a link to whatever the desktop opens it with, as a double-click would (xdg-open).</summary>
-    private static void OpenWithDesktop(string target, string what)
+    /// <summary>
+    /// Hands a file or a link to whatever the desktop opens it with, as a double-click would (xdg-open). When it cannot,
+    /// a notification says why, since the tray menu has closed and nothing else would show it.
+    /// </summary>
+    internal static void OpenWithDesktop(string target, string what)
     {
         if (!target.StartsWith("https://", StringComparison.Ordinal) && !File.Exists(target))
         {
+            Notifier.Send("Edgepad", $"Could not open {what}: there is nothing at {target} yet.");
             return;
         }
 
@@ -163,6 +199,7 @@ internal sealed class Tray : IDisposable
         {
             // No xdg-utils installed, or no handler. A menu item must never take the tray app down with it.
             Log.Write($"Could not open {what}: {e.Message}");
+            Notifier.Send("Edgepad", $"Could not open {what}: install xdg-utils.");
         }
     }
 

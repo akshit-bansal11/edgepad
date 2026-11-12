@@ -6,8 +6,9 @@ import me.akshitbansal.edgepad.protocol.Frame
 import java.nio.ByteBuffer
 import java.nio.charset.CharacterCodingException
 import java.security.MessageDigest
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.concurrent.thread
 
 /** What a clipboard holds. [sensitive] is the platform's verdict; a flag it could not read counts as set. */
 class ClipboardContent(
@@ -30,8 +31,8 @@ interface ClipboardSurface {
  * does not go back. One per link, and each link is one laptop: only the selected laptop's is shared, so a blob from any
  * other is refused here and never reaches the clipboard.
  *
- * A change here waits [DEBOUNCE_MS] for the app that made it to finish, then goes on a thread of its own, since a
- * transfer is paced. A blob from the laptop is checked on the reading thread and written from another, so a clipboard
+ * A change here waits [DEBOUNCE_MS] for the app that made it to finish, then goes to the shared clipboard worker (a
+ * transfer is paced). A blob from the laptop is checked on the reading thread and written from another, so a clipboard
  * that stalls does not stop the link.
  *
  * @param surface This phone's clipboard.
@@ -89,6 +90,20 @@ class ClipboardSync(
         if (!active) return
         val change = changes.incrementAndGet()
         later(DEBOUNCE_MS) { guarded { flush(change) } }
+    }
+
+    /**
+     * Sends [data] now, as a share from another app: the same gates and caps as a copy, but the owner tapped Send, so no
+     * debounce and no clipboard read. Blocks for the transfer, so never on the main thread. False when sharing is off,
+     * the link ended, or [data] is over the cap.
+     */
+    fun sendNow(
+        kind: BlobKind,
+        data: ByteArray,
+    ): Boolean {
+        val limit = cap(kind.id)
+        if (!active || data.isEmpty() || limit == null || data.size > limit) return false
+        return sender.send(kind, NO_LABEL, data) { !active }
     }
 
     /** A blob frame from this link's laptop. False when it was refused. */
@@ -225,14 +240,23 @@ class ClipboardSync(
             return height > 0 && width in 1..MAX_IMAGE_PIXELS / height
         }
 
+        // One worker for all clipboard work, in place of a thread per change. A superseded change is dropped by
+        // flush when its turn comes, so a burst of copies costs a few queue entries and no threads. The thread exits
+        // when idle. ponytail: a long paced send holds the next change and an incoming write behind it.
+        private val worker by lazy {
+            ScheduledThreadPoolExecutor(1) { Thread(it, "edgepad-clipboard").apply { isDaemon = true } }.apply {
+                setKeepAliveTime(WORKER_IDLE_S, TimeUnit.SECONDS)
+                allowCoreThreadTimeOut(true)
+            }
+        }
+
+        private const val WORKER_IDLE_S = 30L
+
         private fun onThread(
             ms: Int,
             work: () -> Unit,
         ) {
-            thread(isDaemon = true, name = "edgepad-clipboard") {
-                Thread.sleep(ms.toLong())
-                work()
-            }
+            worker.schedule(work, ms.toLong(), TimeUnit.MILLISECONDS)
         }
     }
 }

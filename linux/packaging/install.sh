@@ -56,4 +56,9 @@ reload_udev
 
 echo "Installed: $bin $desktop $icon $doc"
 echo "Installed: $rule $modules"
-echo "Loaded the uinput module and reloaded udev. Log out and back in once so your session gets access to /dev/uinput."
+echo "Loaded the uinput module and reloaded udev."
+echo
+echo "Next: log out and back in once, so your session gets access to /dev/uinput. Then start Edgepad from"
+echo "your launcher, or run: edgepad. Turn on Start at login in its menu to have it ready after every boot."
+echo "On GNOME, install the AppIndicator extension to see the tray icon (without it Edgepad opens a window)."
+echo "Edgepad also needs BlueZ (bluetoothd) and, for volume, wpctl. Docs: https://edgepad.akshitbansal.dev/docs"

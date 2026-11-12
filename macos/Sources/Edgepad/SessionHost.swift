@@ -6,7 +6,7 @@ import Foundation
 /// still in their handshake, the hand-off quiet period and the owner's holds are kept here, once, for both. Everything
 /// runs on the main thread, as `Session` requires.
 final class SessionHost {
-    static let waiting = "Waiting for your phone"
+    static let waiting = StatusText.waiting
     private static let pollInterval: TimeInterval = 0.5
     /// Outlasts the phone's own twenty seconds of automatic retries, so after a Forget the trust question can only
     /// come back from someone deliberately tapping this Mac on the phone.
@@ -59,6 +59,22 @@ final class SessionHost {
     /// What the owner reads for a network phone's address, `link:` and 32 hex digits: its name and the way it came.
     /// Filled only by links that proved themselves, so it grows with this Mac's own phones, not with whoever connects.
     private var names: [String: String] = [:]
+    /// The way each phone in `names` or in progress came, for the status line.
+    private var links: [String: String] = [:]
+    /// Whether macOS is discarding this Mac's input (no Accessibility trust); set by the app, read for TEXT 18.
+    var inputBlocked: () -> Bool = { false }
+
+    /// Told the address of each phone as it is admitted, for the Security window's "last connected".
+    var onVerified: ((String) -> Void)?
+
+    /// Whether a phone is connected and admitted.
+    var hasPhone: Bool { current != nil }
+
+    /// The permission changed: tells the phone in use (TEXT 18).
+    func inputStateChanged() {
+        current?.sendInputState()
+    }
+
     /// Told whenever the owner holds phones off or forgets them, so whatever is still pairing ends with it.
     var onHold: (() -> Void)?
 
@@ -85,6 +101,12 @@ final class SessionHost {
                 }
             }
         }
+    }
+
+    /// Refuses just `address` for the quiet period of Forget all, so a phone forgotten alone cannot reconnect at once
+    /// and raise the trust question under the owner's cursor. Other phones are not touched.
+    func stayQuiet(for address: String) {
+        handedOff[address.lowercased()] = ProcessInfo.processInfo.systemUptime + Self.quietAfterForget
     }
 
     /// What the owner reads for `address`: a network phone's name and the way it came, a Bluetooth address as it is.
@@ -114,10 +136,11 @@ final class SessionHost {
     /// Starts the handshake for a phone on `transport`, which delivers its bytes to the session returned. `phone` is
     /// how the owner's trust question names it; `shownAs`, given for a network phone, replaces its address in the
     /// status line. The phone in use is left alone until trust has admitted this one.
-    func accept(address: String, phone: String, shownAs: String?, transport: Transport) -> Session {
+    func accept(address: String, phone: String, shownAs: String?, link: String, transport: Transport) -> Session {
         if let shownAs {
             names[address] = shownAs
         }
+        links[address] = link
         let injector = InputInjector()
         let dispatcher = Dispatcher(
             input: injector, speakers: speakers, microphone: microphone, brightness: brightness, display: display)
@@ -129,7 +152,7 @@ final class SessionHost {
             folders: MacCaptureFolders(), lastInput: { [weak dispatcher] in dispatcher?.lastInput ?? 0 })
         // Per connection as well. A network phone is the one the status line names (`shownAs`).
         let sender = BlobSender(
-            link: shownAs == nil ? .bluetooth : .network,
+            link: link == "Bluetooth" ? .bluetooth : .network,
             lastInput: { [weak dispatcher] in dispatcher?.lastInput ?? 0 })
         let clipboard = ClipboardSync(surface: pasteboard, sender: sender, allowed: { ClipboardSetting.enabled })
         dispatcher.clipboard = clipboard
@@ -140,6 +163,7 @@ final class SessionHost {
         let status = onStatus
         let session = Session(
             address: address,
+            link: link,
             transport: transport,
             trust: trust,
             pin: pin,
@@ -159,6 +183,10 @@ final class SessionHost {
             display: display,
             identity: identity,
             onStatus: { text in status(shownAs.map { text.replacingOccurrences(of: address, with: $0) } ?? text) },
+            inputBlocked: { [weak self] in self?.inputBlocked() ?? false },
+            // Per connection: the session sets and clears its `changed`, and a candidate that ends must not clear the
+            // one the phone in use set.
+            power: MacPowerSource(speakers: speakers),
             onAdmitted: { [weak self] admitted in self?.admit(admitted) ?? false },
             onEnded: { [weak self] ended in self?.sessionEnded(ended) })
         candidates.append((session: session, transport: transport))
@@ -264,6 +292,8 @@ final class SessionHost {
                 reason: "A phone is controlling this Mac")
         }
         previous?.end()
+        // Once per connection: the phone has proved itself and been admitted.
+        onVerified?(candidate.address)
         return true
     }
 
@@ -279,6 +309,8 @@ final class SessionHost {
         }
         guard let index = candidates.firstIndex(where: { $0.session === ended }) else { return }
         candidates.remove(at: index)
-        onStatus(current.map { "Connected to \(shown($0.address))" } ?? Self.waiting)
+        onStatus(
+            current.map { StatusText.connected(shown($0.address), over: links[$0.address] ?? "Bluetooth") }
+                ?? Self.waiting)
     }
 }

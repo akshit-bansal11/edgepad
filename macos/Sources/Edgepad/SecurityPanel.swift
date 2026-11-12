@@ -9,12 +9,20 @@ import EdgepadCore
 /// exception on purpose: it is its own confirmed action, not a setting waiting for Save. No digit is ever logged.
 final class SecurityPanel: NSObject, NSTextFieldDelegate {
     private static let width: CGFloat = 380
-    private static let levelNames = ["Trust only", "PIN once per phone", "PIN on every connection"]
+    static let levelNames = ["Trust only", "PIN once per phone", "PIN on every connection"]
 
     private let pin: PinStore
     private let trust: TrustStore
     private let hangUp: () -> Void
     private let forgetPairings: () -> Void
+    private let forgetAll: () -> Bool
+    private let phones: () -> [(address: String, name: String, shown: String)]
+    private let forgetOne: (String, String) -> Bool
+    /// The phones the list shows, so a Forget button's tag says which one.
+    private var listed: [(address: String, name: String, shown: String)] = []
+    private let listStack = NSStackView()
+    private var body: NSStackView?
+    private var alert: NSAlert?
 
     /// The level the radios show.
     private var level: Int
@@ -25,8 +33,17 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     private let setPinButton = NSButton(title: "", target: nil, action: nil)
 
     /// `forgetPairings` forgets the Wi-Fi and USB pairings and tells the owner if it could not, as Forget does.
-    init(pin: PinStore, trust: TrustStore, forgetPairings: @escaping () -> Void, hangUp: @escaping () -> Void) {
+    /// `forgetAll` asks and forgets every trusted phone, true when it did; the panel then closes.
+    init(
+        pin: PinStore, trust: TrustStore, forgetPairings: @escaping () -> Void, forgetAll: @escaping () -> Bool,
+        phones: @escaping () -> [(address: String, name: String, shown: String)],
+        forgetOne: @escaping (String, String) -> Bool,
+        hangUp: @escaping () -> Void
+    ) {
+        self.phones = phones
+        self.forgetOne = forgetOne
         self.pin = pin
+        self.forgetAll = forgetAll
         self.trust = trust
         self.hangUp = hangUp
         self.forgetPairings = forgetPairings
@@ -38,8 +55,10 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
 
     func run() {
         let alert = NSAlert()
+        self.alert = alert
         alert.messageText = "Security"
-        alert.informativeText = "Every phone is asked for your yes first. Levels 2 and 3 also ask for a six-digit PIN."
+        alert.informativeText =
+            "Every phone is asked for your yes first. The two PIN levels also ask for a six-digit PIN."
         alert.accessoryView = makeBody()
         // Cancel is first, so it is the default: a stray Return changes nothing.
         alert.addButton(withTitle: "Cancel")
@@ -58,19 +77,26 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     private func makeBody() -> NSView {
         radios = Self.levelNames.enumerated().map { index, name in
             let radio = NSButton(
-                radioButtonWithTitle: "\(index + 1). \(name)", target: self, action: #selector(choose(_:)))
+                radioButtonWithTitle: name, target: self, action: #selector(choose(_:)))
             radio.tag = index + 1
             return radio
         }
         setPinButton.target = self
         setPinButton.action = #selector(setPinPressed)
         let reset = NSButton(title: "Reset PIN and forget phones…", target: self, action: #selector(confirmReset))
+        let forgetEvery = NSButton(
+            title: "Forget all trusted phones…", target: self, action: #selector(forgetEveryPhone))
         let warning = NSTextField(
             wrappingLabelWithString: "Saving a new PIN or level makes phones that entered the PIN once enter it again.")
         warning.preferredMaxLayoutWidth = Self.width
         let pinRow = NSStackView(views: [setPinButton, pinState])
         pinRow.spacing = 12
-        let stack = NSStackView(views: radios + [pinRow, warning, reset])
+        listStack.orientation = .vertical
+        listStack.alignment = .leading
+        listStack.spacing = 6
+        fillList()
+        let stack = NSStackView(views: radios + [pinRow, warning, listStack, forgetEvery, reset])
+        body = stack
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 10
@@ -137,10 +163,12 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
             let typed = first.stringValue
             if typed != again.stringValue {
                 problem.stringValue = "The two PINs do not match."
+                Announce.say(problem.stringValue)
             } else if let chosen = Self.pin(from: typed) {
                 return chosen
             } else {
                 problem.stringValue = "Use exactly six digits."
+                Announce.say(problem.stringValue)
             }
             first.stringValue = ""
             again.stringValue = ""
@@ -196,13 +224,13 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     @objc private func confirmReset() {
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = "Edgepad"
+        alert.messageText = "Reset the PIN and forget all phones?"
         alert.informativeText =
-            "Delete the PIN, go back to level 1 and forget every trusted phone? Each phone will have to be trusted "
-            + "here again. A forgotten PIN cannot be recovered, only reset."
+            "The PIN is deleted, the level goes back to Trust only, and every trusted phone is forgotten. Each phone "
+            + "will have to be trusted here again. A forgotten PIN cannot be recovered, only reset."
         // Cancel is first, so it is the default: a stray Return resets nothing.
         alert.addButton(withTitle: "Cancel")
-        alert.addButton(withTitle: "Reset")
+        alert.addButton(withTitle: "Reset").hasDestructiveAction = true
         let answer = alert.runModal()
         alert.window.orderOut(nil)
         guard answer == .alertSecondButtonReturn else { return }
@@ -231,10 +259,52 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
         NSApp.stopModal(withCode: .abort)
     }
 
+    /// Writes the trusted phones into the list, none at all when there are none.
+    private func fillList() {
+        for view in listStack.arrangedSubviews {
+            listStack.removeArrangedSubview(view)
+            view.removeFromSuperview()
+        }
+        listed = phones()
+        guard !listed.isEmpty else { return }
+        let heading = NSTextField(labelWithString: "Trusted phones")
+        heading.font = .boldSystemFont(ofSize: NSFont.systemFontSize)
+        listStack.addArrangedSubview(heading)
+        for (index, phone) in listed.enumerated() {
+            let name = NSTextField(labelWithString: phone.shown)
+            name.lineBreakMode = .byTruncatingMiddle
+            name.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            let forget = NSButton(title: "Forget", target: self, action: #selector(forgetOnePhone(_:)))
+            forget.tag = index
+            forget.setAccessibilityLabel("Forget \(phone.name)")
+            let row = NSStackView(views: [name, forget])
+            row.spacing = 12
+            listStack.addArrangedSubview(row)
+        }
+    }
+
+    @objc private func forgetOnePhone(_ sender: NSButton) {
+        guard listed.indices.contains(sender.tag) else { return }
+        let phone = listed[sender.tag]
+        if forgetOne(phone.address, phone.name) {
+            fillList()
+            if let body {
+                body.setFrameSize(NSSize(width: Self.width, height: body.fittingSize.height))
+            }
+            alert?.layout()
+        }
+    }
+
+    @objc private func forgetEveryPhone() {
+        if forgetAll() {
+            NSApp.stopModal(withCode: .abort)
+        }
+    }
+
     private func fail(_ message: String) {
         let alert = NSAlert()
         alert.alertStyle = .critical
-        alert.messageText = "Edgepad"
+        alert.messageText = "Could not save the security settings"
         alert.informativeText = message
         alert.addButton(withTitle: "OK")
         _ = alert.runModal()

@@ -1,0 +1,50 @@
+using Edgepad.Input;
+
+namespace Edgepad.Platform;
+
+/// <summary>
+/// Whether this user may create input devices. Without it every pointer and key frame does nothing while the phone
+/// shows connected, so the app checks at start and on each connection, and says so where the owner is looking.
+/// </summary>
+internal static class UinputAccess
+{
+    /// <summary>What the status line says in place of "Connected to".</summary>
+    public const string Blocked = "Cannot create input devices: log out and back in once";
+
+    /// <summary>The notification's body, which can carry what the status line cannot.</summary>
+    public const string BlockedDetail =
+        "Edgepad cannot open /dev/uinput, so the phone cannot move the pointer or type. Log out and back in once "
+            + "after installing, so your session gets access. More: https://edgepad.akshitbansal.dev/docs";
+
+    // 1 when blocked. An int so a flip is one atomic exchange: two threads probing at once raise Changed once.
+    private static int blocked;
+
+    /// <summary>Raised on a pool thread when <see cref="Check"/> finds the answer changed. Sessions send TEXT 18 from it.</summary>
+    public static event Action<bool>? Changed;
+
+    /// <summary>The TEXT 18 payload: <c>blocked</c> or <c>ok</c>.</summary>
+    public static string StateText(bool isBlocked) => isBlocked ? "blocked" : "ok";
+
+    /// <summary>Probes, remembers the answer and raises <see cref="Changed"/> when it flipped. Returns the problem, or null.</summary>
+    public static string? Check()
+    {
+        var problem = Problem();
+        var now = problem is not null ? 1 : 0;
+        if (Interlocked.Exchange(ref blocked, now) != now)
+        {
+            // Off the probing thread, which can be Shell's UI thread, where a blocking socket write must never wait.
+            // The latest answer, not this one: two quick flips may run out of order, and then both send the same.
+            ThreadPool.QueueUserWorkItem(static _ => Changed?.Invoke(Volatile.Read(ref blocked) == 1));
+        }
+
+        return problem;
+    }
+
+    /// <summary>Null when <paramref name="path"/> (default /dev/uinput) opens for writing; else why not.</summary>
+    public static string? Problem(string? path = null)
+    {
+        string error;
+        using var device = path is null ? Uinput.Open(out error) : Uinput.Open(path, out error);
+        return device is null ? error : null;
+    }
+}

@@ -36,18 +36,43 @@ internal sealed record Look(IBrush Card, IBrush Line, IBrush Ink, IBrush Dim, IB
     };
 
     /// <summary>A button: the accent fill for the primary one, a hairline outline for the rest, red text if dangerous.</summary>
-    public Button Button(string text, bool primary = false, bool danger = false) => new()
+    public Button Button(string text, bool primary = false, bool danger = false)
     {
-        Content = text,
-        FontFamily = Lato,
-        FontWeight = FontWeight.Bold,
-        Padding = new Thickness(16, 8),
-        CornerRadius = new CornerRadius(8),
-        Foreground = primary ? OnAccent : danger ? Danger : Ink,
-        Background = primary ? Accent : Brushes.Transparent,
-        BorderBrush = primary ? Accent : Line,
-        BorderThickness = new Thickness(1),
-    };
+        var button = new Button
+        {
+            Content = text,
+            FontFamily = Lato,
+            FontWeight = FontWeight.Bold,
+            Padding = new Thickness(16, 8),
+            CornerRadius = new CornerRadius(8),
+            Foreground = primary ? OnAccent : danger ? Danger : Ink,
+            Background = primary ? Accent : Brushes.Transparent,
+            BorderBrush = primary ? Accent : Line,
+            BorderThickness = new Thickness(1),
+        };
+
+        // Fluent draws hover, pressed and focus through its template, which a local Background overrides. These keep the
+        // three states visible: a ring on keyboard focus (Tab and Enter drive the trust question), a dimmer fill otherwise.
+        var ring = primary ? Ink : Accent;
+        var edge = primary ? Accent : Line;
+        button.GotFocus += (_, _) =>
+        {
+            button.BorderBrush = ring;
+            button.BorderThickness = new Thickness(2);
+            button.Padding = new Thickness(15, 7);
+        };
+        button.LostFocus += (_, _) =>
+        {
+            button.BorderBrush = edge;
+            button.BorderThickness = new Thickness(1);
+            button.Padding = new Thickness(16, 8);
+        };
+        button.PointerEntered += (_, _) => button.Opacity = 0.85;
+        button.PointerExited += (_, _) => button.Opacity = 1;
+        button.PointerPressed += (_, _) => button.Opacity = 0.7;
+        button.PointerReleased += (_, _) => button.Opacity = button.IsPointerOver ? 0.85 : 1;
+        return button;
+    }
 
     /// <summary>A dialog window with this look: fixed size to its content, no resizing, centred on the screen.</summary>
     public Window Dialog(string title, double width, Control content) => new()

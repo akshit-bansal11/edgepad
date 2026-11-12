@@ -9,6 +9,7 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import me.akshitbansal.edgepad.R
+import me.akshitbansal.edgepad.Settings
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URI
@@ -25,6 +26,21 @@ object Installer {
     private const val TIMEOUT_MS = 15_000
     private const val BUFFER_BYTES = 64 * 1024
     private const val PERCENT = 100
+
+    /** Kept in [Settings.updateFailure] when the download itself failed; the system's own statuses are positive. */
+    const val DOWNLOAD_FAILED = -1
+
+    /** What to tell the user of a failed update, by the code kept in [Settings.updateFailure]. */
+    fun failureText(status: Int): Int =
+        when (status) {
+            DOWNLOAD_FAILED -> R.string.updates_download_failed
+            PackageInstaller.STATUS_FAILURE_BLOCKED -> R.string.updates_blocked
+            PackageInstaller.STATUS_FAILURE_STORAGE -> R.string.updates_storage
+            else -> R.string.updates_install_failed
+        }
+
+    /** Android refused because this app may not install packages yet; its own switch allows it. */
+    fun isBlocked(status: Int): Boolean = status == PackageInstaller.STATUS_FAILURE_BLOCKED
 
     /** Many times the size of any release so far. A response larger than this is not an Edgepad APK. */
     private const val MAX_BYTES = 64L * 1024 * 1024
@@ -151,7 +167,9 @@ object Installer {
                 else -> {
                     val message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
                     Log.w(TAG, "The update was not installed: status $status, $message")
-                    Toast.makeText(context, R.string.updates_install_failed, Toast.LENGTH_LONG).show()
+                    // Kept as well as said: the Updates row explains it for as long as it stands.
+                    Settings(context).updateFailure = status
+                    Toast.makeText(context, failureText(status), Toast.LENGTH_LONG).show()
                 }
             }
         }

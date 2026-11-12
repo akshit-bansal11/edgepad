@@ -12,7 +12,6 @@ object KeyboardSettingsScreen {
     fun build(
         ui: Ui,
         settings: Settings,
-        onSystem: () -> Unit,
         onBack: () -> Unit,
     ): View =
         ui.page(ui.bar("", onBack, backLabel = ui.string(R.string.keyboard_title))) {
@@ -52,6 +51,5 @@ object KeyboardSettingsScreen {
                     ) { step -> settings.keyTextScale = textRange.valueAt(step) },
                 )
             }
-            systemSettings(onSystem)
         }
 }

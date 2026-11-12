@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Edgepad.Platform;
 using Edgepad.Trust;
 
 namespace Edgepad.Ui;
@@ -18,7 +19,7 @@ namespace Edgepad.Ui;
 /// </summary>
 internal sealed class SecurityWindow
 {
-    private static readonly string[] LevelNames =
+    internal static readonly string[] LevelNames =
     [
         "Trust only",
         "PIN once per phone",
@@ -28,6 +29,10 @@ internal sealed class SecurityWindow
     private readonly PinStore pin;
     private readonly TrustStore trust;
     private readonly Action hangUp;
+    private readonly Func<Task> forgetAll;
+    private readonly PairedLinks paired;
+    private readonly StackPanel phoneRows = new() { Spacing = 6 };
+    private readonly Button forgetAllButton;
 
     // Forgets the Wi-Fi and USB pairings and tells the owner if it could not, as Forget trusted phones does.
     private readonly Func<Task> forgetPairings;
@@ -47,8 +52,10 @@ internal sealed class SecurityWindow
     private bool filling;
     private bool busy;
 
-    public SecurityWindow(PinStore pin, TrustStore trust, Func<Task> forgetPairings, Action hangUp)
+    public SecurityWindow(PinStore pin, TrustStore trust, PairedLinks paired, Func<Task> forgetPairings, Func<Task> forgetAll, Action hangUp)
     {
+        this.forgetAll = forgetAll;
+        this.paired = paired;
         this.pin = pin;
         this.trust = trust;
         this.hangUp = hangUp;
@@ -86,6 +93,13 @@ internal sealed class SecurityWindow
         pinRow.Children.Add(pinState);
         body.Children.Add(pinRow);
         body.Children.Add(look.Text("Saving a new PIN or level makes phones that entered the PIN once enter it again.", 14, dim: true));
+
+        body.Children.Add(look.Text("Trusted phones", 14, FontWeight.Bold));
+        body.Children.Add(phoneRows);
+        forgetAllButton = look.Button("Forget all…", danger: true);
+        forgetAllButton.HorizontalAlignment = HorizontalAlignment.Left;
+        forgetAllButton.Click += (_, _) => _ = Guard(ForgetAllAsync);
+        body.Children.Add(forgetAllButton);
 
         var reset = look.Button("Reset PIN and forget phones…", danger: true);
         reset.Click += (_, _) => _ = Guard(ConfirmResetAsync);
@@ -129,6 +143,8 @@ internal sealed class SecurityWindow
     {
         setPin.Content = HavePin ? "Change PIN…" : "Set PIN…";
         pinState.Text = staged is not null ? "A new PIN will be saved." : pin.HasPin ? "A PIN is set." : "No PIN is set.";
+        FillPhones();
+        forgetAllButton.IsEnabled = trust.CanForget || paired.CanForget;
     }
 
     /// <summary>Nothing may throw out of a handler: an exception on the UI thread ends the whole tray app.</summary>
@@ -165,6 +181,87 @@ internal sealed class SecurityWindow
         }
 
         level = chosen;
+    }
+
+    /// <summary>One row per trusted phone (Bluetooth) and per paired phone (Wi-Fi and USB), each with its own Forget.</summary>
+    private void FillPhones()
+    {
+        phoneRows.Children.Clear();
+        var any = false;
+        var last = trust.Connections.Snapshot();
+        foreach (var address in trust.TrustedPhones)
+        {
+            any = true;
+            var name = PhoneName.Cached(address) is { } known ? $"{known} ({address})" : address;
+            AddPhone(Row(name, last(address)), () => ForgetOneAsync(name, () => trust.ForgetOne(address) & (!Paired(address) || paired.ForgetOne(address)), $"is blocked from connecting while Edgepad stays running, but is trusted again the next time it starts. Close whatever is holding {trust.FilePath} and choose Forget again"));
+        }
+
+        foreach (var (id, linkName) in paired.List())
+        {
+            // Already listed above: a network phone is trusted under its link id, and its Forget removes both.
+            if (trust.TrustedPhones.Contains(id, StringComparer.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            any = true;
+            AddPhone(Row($"{linkName} (Wi-Fi or USB)", last(id)), () => ForgetOneAsync(linkName, () => paired.ForgetOne(id), $"is refused over Wi-Fi or USB while Edgepad stays running, but is paired again the next time it starts. Close whatever is holding the pairings file in {pin.Folder} and choose Forget again"));
+        }
+
+        if (!any)
+        {
+            phoneRows.Children.Add(look.Text("No phone is trusted yet.", 14, dim: true));
+        }
+    }
+
+    // "NAME · last connected 8 Nov", or that it is not known since this update (shared wording).
+    private static string Row(string name, DateTimeOffset? last) => LastConnected.RowText(name, last, DateTimeOffset.UtcNow);
+
+    private bool Paired(string id) => paired.List().Any(link => string.Equals(link.Id, id, StringComparison.OrdinalIgnoreCase));
+
+    private void AddPhone(string label, Func<Task> forget)
+    {
+        var forgetButton = look.Button("Forget", danger: true);
+        forgetButton.Click += (_, _) => _ = Guard(forget);
+        var text = look.Text(label, 14, dim: true);
+        text.VerticalAlignment = VerticalAlignment.Center;
+        var row = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+        row.Children.Add(text);
+        Grid.SetColumn(forgetButton, 1);
+        row.Children.Add(forgetButton);
+        phoneRows.Children.Add(row);
+    }
+
+    private async Task ForgetOneAsync(string name, Func<bool> forget, string ifFailed)
+    {
+        var yes = await Dialogs.Confirm(window, $"Forget {name}? It will have to be trusted here again before it can use this laptop.", "Forget", "Cancel", dangerous: true);
+        if (!yes)
+        {
+            return;
+        }
+
+        var done = forget();
+
+        // A forgotten phone that had entered the PIN would otherwise skip it at level 2 once trusted again. Clears every
+        // phone's, which is the safe side.
+        var verified = pin.ForgetVerified();
+        hangUp();
+        if (!done)
+        {
+            await Dialogs.Inform(window, $"{name} could not be forgotten: its file could not be rewritten. It {ifFailed}.");
+        }
+        else if (!verified)
+        {
+            await Dialogs.Inform(window, $"{name} was forgotten, but the list of phones that entered the PIN could not be cleared, so it may skip the PIN at level 2 once trusted again. Delete pin-verified.txt yourself from:" + Environment.NewLine + Environment.NewLine + pin.Folder);
+        }
+
+        Refresh();
+    }
+
+    private async Task ForgetAllAsync()
+    {
+        await forgetAll();
+        Refresh();
     }
 
     /// <summary>Asks for a new PIN twice. True when one is staged; nothing is saved until Save.</summary>

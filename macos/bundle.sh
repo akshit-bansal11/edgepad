@@ -92,8 +92,14 @@ cat > "$app/Contents/Info.plist" <<EOF
   <true/>
   <key>NSBluetoothAlwaysUsageDescription</key>
   <string>Edgepad uses Bluetooth to listen for the phone you have paired with this Mac.</string>
+  <key>NSDesktopFolderUsageDescription</key>
+  <string>Edgepad looks here for the screenshot or recording you asked the phone to receive.</string>
+  <key>NSDocumentsFolderUsageDescription</key>
+  <string>Edgepad looks here for the screenshot or recording you asked the phone to receive.</string>
+  <key>NSDownloadsFolderUsageDescription</key>
+  <string>Edgepad looks here for the screenshot or recording you asked the phone to receive.</string>
   <key>NSLocalNetworkUsageDescription</key>
-  <string>Edgepad lets your phone find this Mac and connect to it over Wi-Fi, when you turn Wi-Fi and USB connections on.</string>
+  <string>Edgepad lets your phone find this Mac and connect to it over Wi-Fi, when you turn Wi-Fi connections on.</string>
   <key>NSBonjourServices</key>
   <array>
     <string>_edgepad._tcp</string>

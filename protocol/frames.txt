@@ -160,3 +160,13 @@ BLOB_CHUNK 0 68656c6c6f = 55 00 05 68 65 6c 6c 6f
 BLOB_CHUNK 255 ff00 = 55 ff 02 ff 00
 # BLOB_END sha256, FILE_END's shape: the SHA-256 of the whole blob. This one is the hash of "hello".
 BLOB_END 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 = 56 2c f2 4d ba 5f b0 a3 0e 26 e8 3b 2a c5 b9 e2 9e 1b 16 1e 5c 1f a7 42 5e 73 04 33 62 93 8b 98 24
+# TEXT 19 BATTERIES, laptop to phone: "kind:level:charging:name" entries joined by "|". The first is 16 bytes, the "|" one, the
+# second 23, so the length is 40 = 0x28. (No name has a space here: this file splits a line on spaces.)
+TEXT 19 laptop:87:1:Desk|headphones:60:0:AirPods = 41 13 28 6c 61 70 74 6f 70 3a 38 37 3a 31 3a 44 65 73 6b 7c 68 65 61 64 70 68 6f 6e 65 73 3a 36 30 3a 30 3a 41 69 72 50 6f 64 73
+# Empty means no devices.
+TEXT 19 = 41 13 00
+# A multi-byte name: "laptop:50:0:" is 12 bytes, "Caf" 3 and the e-acute 2 (c3 a9), so the length is 17 = 0x11.
+TEXT 19 laptop:50:0:Café = 41 13 11 6c 61 70 74 6f 70 3a 35 30 3a 30 3a 43 61 66 c3 a9
+# TEXT 20 OUTPUT, laptop to phone: "kind/name". 18 bytes = 0x12 and 16 bytes = 0x10.
+TEXT 20 headphones/AirPods = 41 14 12 68 65 61 64 70 68 6f 6e 65 73 2f 41 69 72 50 6f 64 73
+TEXT 20 speaker/Speakers = 41 14 10 73 70 65 61 6b 65 72 2f 53 70 65 61 6b 65 72 73

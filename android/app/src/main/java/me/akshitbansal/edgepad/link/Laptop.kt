@@ -49,6 +49,9 @@ class Laptop(
     /** The last attempt ended and nobody ended it on purpose. */
     var failed = false
 
+    /** Why the last attempt ended, for the row to offer what fits it; cleared when the next attempt starts. */
+    var lastCause: LaptopLink.Cause? = null
+
     /** This phone ended the link and has not opened another: of what it still has queued, only the close counts. */
     var ending = false
 

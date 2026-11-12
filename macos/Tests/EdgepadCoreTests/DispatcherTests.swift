@@ -18,6 +18,11 @@ final class DispatcherTests: XCTestCase {
         display: display
     )
 
+    override func setUp() {
+        super.setUp()
+        AppPicker.resetEpochs()
+    }
+
     func testAnUnknownActionIsDroppedAndCounted() {
         dispatcher.handle(.runAction(id: 99))
 
@@ -51,7 +56,8 @@ final class DispatcherTests: XCTestCase {
             return true
         }
         let picker = AppPicker(
-            catalog: catalog, store: store, sender: sender, schedule: { $0() }, scheduleAfter: { _, work in work() })
+            catalog: catalog, store: store, sender: sender, schedule: { $0() }, background: { $0() },
+            scheduleAfter: { _, work in work() })
         dispatcher.apps = picker
         dispatcher.appAddReply = { [unowned self] status in self.appAnswers.append(status) }
         return (picker, store)

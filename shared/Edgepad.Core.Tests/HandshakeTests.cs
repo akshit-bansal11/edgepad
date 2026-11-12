@@ -136,6 +136,7 @@ public sealed class HandshakeTests : IDisposable
         Assert.Equal([Ack], Sent());
         Assert.Equal(0, asked);
         Assert.Equal(0, admitted);
+        Assert.Single(statuses, s => s.StartsWith("Refused a phone on protocol ", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -159,6 +160,23 @@ public sealed class HandshakeTests : IDisposable
         Assert.Equal(0, asked);
         Assert.Equal(1, admitted);
         Assert.Empty(sentBeforeAdmitted);
+    }
+
+    [Fact]
+    public void ARefusedConnectionDoesNotStampWhenThePhoneLastConnected()
+    {
+        ownerSaysYes = false;
+        Assert.False(Connect(PinAtLevel(1), CurrentHello));
+        Assert.Null(trust.Connections.Get(Phone));
+    }
+
+    // Its own test: a decline starts a 30 s quiet period, so a yes straight after it would be refused unasked.
+    [Fact]
+    public void AVerifiedConnectionStampsWhenThePhoneLastConnected()
+    {
+        var before = DateTimeOffset.UtcNow.AddSeconds(-1);
+        Assert.True(Connect(PinAtLevel(1), CurrentHello));
+        Assert.True(trust.Connections.Get(Phone) >= before);
     }
 
     [Fact]

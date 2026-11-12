@@ -10,38 +10,72 @@ namespace Edgepad.Tests;
 public sealed class UiTests
 {
     [Fact]
-    public void AConnectedPhoneReadsAsTrustedWithItsAddress()
+    public void AConnectedPhoneReadsAsConnectedWithItsWay()
     {
-        var status = TrayStatus.Describe("Connected to C0:35:32:26:23:F4");
+        var status = TrayStatus.Describe("Connected to Pixel · Bluetooth");
 
         Assert.Equal("Phone connected", status.Headline);
-        Assert.Equal("Trusted", status.Badge);
-        Assert.Equal("C0:35:32:26:23:F4 · over Bluetooth", status.Line);
+        Assert.Equal("Connected", status.Badge);
+        Assert.Equal("Pixel · Bluetooth", status.Line);
         Assert.False(status.Waiting);
+        Assert.True(status.Connected);
     }
+
+    [Fact]
+    public void AStatusWithoutAWayIsBluetooth() =>
+        Assert.Equal("C0:35:32:26:23:F4 · Bluetooth", TrayStatus.Describe("Connected to C0:35:32:26:23:F4").Line);
 
     [Fact]
     public void AWiFiOrUsbPhoneKeepsTheWayItCame()
     {
-        var status = TrayStatus.Describe("Connected to Pixel · over Wi-Fi or USB");
+        var status = TrayStatus.Describe("Connected to Pixel · Wi-Fi");
 
-        Assert.Equal("Trusted", status.Badge);
-        Assert.Equal("Pixel · over Wi-Fi or USB", status.Line);
+        Assert.Equal("Connected", status.Badge);
+        Assert.Equal("Pixel · Wi-Fi", status.Line);
     }
 
     [Theory]
     [InlineData("Waiting for your phone")]
-    [InlineData("Refused a phone it does not trust")]
-    [InlineData("Bluetooth is off or unavailable")]
+    [InlineData("Starting…")]
+    [InlineData("Asking whether to trust Pixel")]
     public void AnythingElseIsWaitingAndShowsTheStatusAsItIs(string line)
     {
         var status = TrayStatus.Describe(line);
 
-        Assert.Equal("No phone yet", status.Headline);
+        Assert.Equal("No phone connected", status.Headline);
         Assert.Equal("Waiting", status.Badge);
         Assert.Equal(line, status.Line);
         Assert.True(status.Waiting);
+        Assert.False(status.Problem);
     }
+
+    [Theory]
+    [InlineData("Refused a phone it does not trust")]
+    [InlineData("Bluetooth is off or unavailable; trying again")]
+    [InlineData("Pixel could not connect: its Edgepad app is older. Update Edgepad on the phone.")]
+    public void ARefusalOrABrokenRadioIsAProblemNotWaiting(string line)
+    {
+        var status = TrayStatus.Describe(line);
+
+        Assert.Equal("Problem", status.Badge);
+        Assert.Equal(line, status.Line);
+        Assert.True(status.Problem);
+        Assert.False(status.Waiting);
+        Assert.False(status.Connected);
+    }
+
+    [Fact]
+    public void ALongTooltipEndsOnAWordWithAnEllipsis()
+    {
+        var tip = TrayStatus.Tooltip("Pixel could not connect: its Edgepad app is older. Update Edgepad on the phone.", 63);
+
+        Assert.True(tip.Length <= 63);
+        Assert.EndsWith("…", tip);
+        Assert.DoesNotContain("Updat…", tip);
+    }
+
+    [Fact]
+    public void AShortTooltipIsLeftAlone() => Assert.Equal("Edgepad: Waiting for your phone", TrayStatus.Tooltip("Waiting for your phone", 63));
 
     /// <summary>A parser that got a sign, a relative offset or an arc's centre wrong puts the drawing off the grid.</summary>
     [Fact]

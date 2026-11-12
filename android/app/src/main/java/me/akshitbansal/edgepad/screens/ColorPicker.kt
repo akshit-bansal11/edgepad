@@ -3,10 +3,16 @@ package me.akshitbansal.edgepad.screens
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
+import android.text.InputFilter
+import android.text.InputType
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
+import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -16,6 +22,7 @@ import java.util.Locale
  * A colour picked from a strip of round swatches, under a row with the hex of what is chosen and a swatch of
  * it. The chosen swatch wears an accent ring a little way out from its edge. Each swatch is drawn small in the
  * middle of a full-size touch target, and is named for a screen reader by its colour rather than its hex.
+ * With `editable` the hex is a field too, so a colour that is not on the strip can be typed in.
  */
 object ColorPicker {
     private const val SWATCH_DP = 28f
@@ -25,7 +32,12 @@ object ColorPicker {
     /** The ring's gap plus its own width: how far it stands out from the swatch on every side. */
     private const val RING_OUT_DP = 4f
     private const val HEX_GAP_DP = 10f
+    private const val HEX_FIELD_DP = 84f
+    private const val HEX_LENGTH = 7
+    private const val HEX_DIGITS = 6
+    private const val HEX_BASE = 16
     private const val RGB = 0xFFFFFF
+    private const val OPAQUE = 0xFF shl 24
 
     /** Greys first, then round the wheel; a colour not in the strip stays chosen until one is tapped. */
     private val choices =
@@ -50,6 +62,7 @@ object ColorPicker {
         ui: Ui,
         label: CharSequence,
         initial: Int,
+        editable: Boolean = false,
         onChange: (Int) -> Unit,
     ): View {
         val swatch =
@@ -57,7 +70,9 @@ object ColorPicker {
                 background = circle(ui, initial)
                 contentDescription = label
             }
-        val hex = ui.secondary(hexOf(initial), Type.VALUE, ui.palette.dim)
+        var current = initial
+        val hex: TextView =
+            if (editable) hexField(ui, initial) else ui.secondary(hexOf(initial), Type.VALUE, ui.palette.dim)
         val rings = ArrayList<Triple<Int, GradientDrawable, View>>(choices.size)
 
         fun mark(chosen: Int) {
@@ -70,10 +85,29 @@ object ColorPicker {
         }
 
         fun choose(color: Int) {
+            current = color
             (swatch.background as GradientDrawable).setColor(color)
             hex.text = hexOf(color)
             mark(color)
             onChange(color)
+        }
+
+        // What was typed is taken when the keyboard is done with it or the field is left; anything that is not a
+        // colour puts back the one that is chosen, rather than leaving the field saying something else.
+        fun commit() {
+            val typed = colourOf(hex.text.toString())
+            if (typed == null) {
+                hex.text = hexOf(current)
+            } else if (typed != current) {
+                choose(typed)
+            }
+        }
+        if (editable) {
+            hex.setOnEditorActionListener { _, _, _ ->
+                commit()
+                true
+            }
+            hex.setOnFocusChangeListener { _, focused -> if (!focused) commit() }
         }
         val strip =
             LinearLayout(ui.context).apply {
@@ -151,4 +185,36 @@ object ColorPicker {
     }
 
     private fun hexOf(color: Int): String = "#%06X".format(Locale.ROOT, color and RGB)
+
+    /** The opaque colour [text] spells, as `#RRGGBB` or `RRGGBB`, or null when it spells none. */
+    internal fun colourOf(text: String): Int? {
+        val digits = text.trim().removePrefix("#")
+        if (digits.length != HEX_DIGITS || digits.any { Character.digit(it, HEX_BASE) < 0 }) return null
+        return OPAQUE or digits.toInt(HEX_BASE)
+    }
+
+    /** The hex as a field: capitals, no suggestions, and a touch target as tall as a row. */
+    private fun hexField(
+        ui: Ui,
+        initial: Int,
+    ): EditText =
+        EditText(ui.context).apply {
+            setText(hexOf(initial))
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, Type.VALUE)
+            setTextColor(ui.palette.dim)
+            typeface = Type.face
+            background = null
+            setSingleLine()
+            gravity = Gravity.CENTER_VERTICAL or Gravity.END
+            inputType =
+                InputType.TYPE_CLASS_TEXT or
+                InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or
+                InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+            imeOptions = EditorInfo.IME_ACTION_DONE
+            importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
+            filters = arrayOf(InputFilter.LengthFilter(HEX_LENGTH))
+            minWidth = ui.dp(HEX_FIELD_DP)
+            minHeight = ui.dp(Space.TOUCH)
+            contentDescription = ui.string(R.string.color_hex)
+        }
 }

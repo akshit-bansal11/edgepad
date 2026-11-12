@@ -239,6 +239,18 @@ final class PinStoreTests: XCTestCase {
         XCTAssertFalse(store.required(phone))
     }
 
+    func testForgettingOneVerifiedPhoneKeepsTheOthersVerified() throws {
+        let store = makeStore(level: 2)
+        _ = store.check(phone, pin("123456"))
+        _ = store.check(other, pin("123456"))
+
+        XCTAssertTrue(store.forgetVerified(phone.lowercased()))
+        XCTAssertTrue(store.required(phone))
+        XCTAssertFalse(store.required(other))
+        XCTAssertTrue(store.forgetVerified(other))
+        XCTAssertTrue(store.required(other))
+    }
+
     func testAVerifiedListThatCannotBeClearedAsksEveryTimeUntilItIs() throws {
         let store = makeStore(level: 2)
         _ = store.check(phone, pin("123456"))

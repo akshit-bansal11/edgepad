@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Sockets;
 using Edgepad.Net;
 using Edgepad.Trust;
@@ -182,7 +183,7 @@ internal sealed class NetworkServer(
         LinkResult? result = null;
         try
         {
-            result = LinkResponder.Accept(raw, identity, paired, limiter, prompt, trust, Log.Write, socket.Dispose, ended.Token, refusing: refusing);
+            result = LinkResponder.Accept(raw, identity, paired, limiter, prompt, trust, Log.Write, socket.Dispose, ended.Token, refusing: refusing, remote: (socket.RemoteEndPoint as IPEndPoint)?.Address);
         }
         finally
         {

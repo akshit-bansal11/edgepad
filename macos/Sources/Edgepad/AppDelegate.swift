@@ -1,7 +1,9 @@
 import AppKit
 import ApplicationServices
+import CoreBluetooth
 import EdgepadCore
 import Foundation
+import IOBluetooth
 import ServiceManagement
 
 /// The whole UI: a menu-bar item whose menu is rebuilt each time it opens, so it never shows a stale state.
@@ -10,6 +12,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let accessibilityPaneUrl =
         // Still resolves on macOS 27, where the pane is Device Control and Data Access.
         "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+    private static let permissionSteps =
+        "System Settings › Privacy & Security › Device Control and Data Access › + › Edgepad"
     /// No answer to the trust question within this is a no: a Mac left alone must not end up trusting whichever
     /// paired phone happened to try it.
     private static let trustPromptSeconds: TimeInterval = 60
@@ -19,21 +23,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let trustWithdrawPollSeconds: TimeInterval = 0.25
     /// How long before Bluetooth is tried again after it failed to start.
     private static let bluetoothRetrySeconds: TimeInterval = 30
+    /// How often the missing input permission is looked at again, so a grant shows without a relaunch.
+    private static let permissionPollSeconds: TimeInterval = 1
+    private static let welcomedKey = "welcomed"
+    private static let lastVersionKey = "lastRunVersion"
+    private static let dailyUpdatesKey = "checkUpdatesDaily"
 
     private let runningVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
     private let trust = TrustStore.forCurrentUser()
     /// One store for the server and the Security panel, so a level or PIN change is the one the server reads.
     private let pin = PinStore.forCurrentUser()
-    /// The Wi-Fi and USB pairings, forgotten with the trusted phones.
+    /// The Wi-Fi pairings, forgotten with the trusted phones.
     private let paired = PairedLinks.forCurrentUser()
+    private let lastConnected = LastConnected.forCurrentUser()
     private let networkSettings = NetworkSettings.forCurrentUser()
     private var statusItem: NSStatusItem?
     private var host: SessionHost?
     private var server: RfcommServer?
     private var network: NetworkServer?
-    /// The Wi-Fi and USB row's hint: off, the port listened on, or why not.
+    private var notifier: Notifier?
+    /// The Wi-Fi row's hint: off, the port listened on, or why not.
     private var networkHint = "Off"
-    private var status = "Starting"
+    private var status = StatusText.starting
     private var newerVersion: Version?
     /// The menu-bar item may stay clickable under the app-modal alert, and a second Forget would lift the hold while
     /// the first was still open.
@@ -42,15 +53,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var securing = false
     /// And for the macro editor, which is also held like Forget.
     private var editingMacros = false
+    /// The first-run question (Wi-Fi and clipboard) is put once input control is settled, a phone has connected or
+    /// the owner has opened the menu, so it does not land on top of the system prompts.
+    private var firstRunQuestionDue = false
+    private var bluetoothRetryPending = false
+    private var permissionTimer: Timer?
+    private var bluetoothPower: BluetoothPower?
+    private var updateTimer: Timer?
+    private var badged = false
+    /// The last AXIsProcessTrusted the poll saw, so the phone is told (TEXT 18) only on a change.
+    private var lastTrusted = AXIsProcessTrusted()
+    private var questionOpen = false
+    /// Set once the owner has opened the menu, which the first-run question waits for at the latest.
+    private var menuSeen = false
+
+    private var inputReady: Bool { AXIsProcessTrusted() && CGPreflightPostEventAccess() }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Newest wins, as on Windows where a newer exe asks the running one to quit.
-        if let bundleId = Bundle.main.bundleIdentifier {
-            for other in NSRunningApplication.runningApplications(withBundleIdentifier: bundleId)
-            where other != NSRunningApplication.current {
-                _ = other.terminate()
-            }
-        }
+        if exitIfAlreadyRunning() { return }
 
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.image = MenuBarMark.image()
@@ -58,6 +78,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.delegate = self
         item.menu = menu
         statusItem = item
+        refreshButton()
+
+        notifier = Notifier(onClick: { [weak self] id in
+            if id == "update" { self?.openRelease() }
+        })
+        let firstRun = !networkSettings.hasChoice && !UserDefaults.standard.bool(forKey: Self.welcomedKey)
+        if firstRun {
+            welcome()
+        } else if networkSettings.hasChoice {
+            ClipboardSetting.adoptEarlierDefault()
+        }
+        notifier?.requestPermission()
+        noteUpdatedVersion()
 
         // Without them macOS silently discards every event this app posts.
         Log.write(
@@ -72,6 +105,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             askTrust: { [weak self] in self?.askTrust($0, $1) ?? false },
             identity: identity,
             onStatus: { [weak self] in self?.setStatus($0) })
+        host.inputBlocked = { !AXIsProcessTrusted() }
+        // Off the main queue: a file read and rewrite has no place on the path that admits a phone.
+        host.onVerified = { [lastConnected] address in
+            DispatchQueue.global(qos: .utility).async { lastConnected.record(address) }
+        }
         self.host = host
         server = RfcommServer(host: host, onStatus: { [weak self] in self?.setStatus($0) })
         startServer()
@@ -82,31 +120,180 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             paired: paired,
             trust: trust,
             prompt: PairingPanel(announce: { [weak self] in
-                self?.setStatus("Pair \($0): type the code shown on the phone")
+                self?.setStatus("Pair \($0): type the pairing code shown on the phone")
+                self?.notifier?.post(
+                    id: "pair", title: "Pair \($0)?", body: "Type the pairing code shown on the phone.")
             }),
             host: host,
             onPaired: { [weak self] in self?.setStatus("Paired with \($0)") })
         if networkSettings.hasChoice {
             applyNetwork()
         } else {
-            // On the next turn, so launch finishes rather than waiting on the answer.
-            DispatchQueue.main.async { [weak self] in self?.askAboutNetwork() }
+            firstRunQuestionDue = true
+        }
+        watchInputPermission()
+
+        // A sleeping Mac may come back without its Bluetooth record or its listener.
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+        ) { [weak self] _ in self?.listenAgain() }
+        // And Bluetooth switched off and on: the record does not necessarily survive it.
+        bluetoothPower = BluetoothPower { [weak self] on in
+            guard let self else { return }
+            if on {
+                self.listenAgain()
+            } else {
+                self.server?.stop()
+                if self.host?.hasPhone != true {
+                    self.setStatus(StatusText.bluetoothProblem(denied: false, off: true))
+                }
+            }
         }
 
+        scheduleUpdateChecks()
+    }
+
+    /// The start-up check and the daily timer, both only while "Check for updates daily" is on (a missing setting
+    /// reads as on).
+    private func scheduleUpdateChecks() {
+        updateTimer?.invalidate()
+        updateTimer = nil
+        guard checksDaily else { return }
         checkForUpdate()
-        Timer.scheduledTimer(withTimeInterval: UpdateCheck.every, repeats: true) { [weak self] _ in
+        updateTimer = Timer.scheduledTimer(withTimeInterval: UpdateCheck.every, repeats: true) { [weak self] _ in
             self?.checkForUpdate()
         }
+    }
+
+    private var checksDaily: Bool {
+        UserDefaults.standard.object(forKey: Self.dailyUpdatesKey) as? Bool ?? true
+    }
+
+    @objc private func toggleDailyUpdates() {
+        UserDefaults.standard.set(!checksDaily, forKey: Self.dailyUpdatesKey)
+        scheduleUpdateChecks()
+    }
+
+    /// Opening Edgepad again while it runs shows where it is instead of replacing it.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        statusItem?.button?.performClick(nil)
+        return false
+    }
+
+    /// A second copy of the same version says so and exits; a different version takes over from the running one, as
+    /// a newer exe does on Windows. True when this copy is leaving.
+    private func exitIfAlreadyRunning() -> Bool {
+        guard let bundleId = Bundle.main.bundleIdentifier else { return false }
+        let others = NSRunningApplication.runningApplications(withBundleIdentifier: bundleId)
+            .filter { $0 != NSRunningApplication.current }
+        let versions = others.map { other in
+            other.bundleURL.flatMap { Bundle(url: $0)?.infoDictionary?["CFBundleShortVersionString"] as? String }
+        }
+        switch SingleInstance.decide(mine: runningVersion, others: versions) {
+        case .takeOver:
+            for other in others {
+                _ = other.terminate()
+            }
+            return false
+        case .exitWithNotice:
+            let alert = NSAlert()
+            alert.messageText = "Edgepad is already running."
+            alert.informativeText = "Find it in the menu bar, at the right. Hold Command and drag to reorder icons."
+            alert.addButton(withTitle: "OK")
+            NSApp.activate(ignoringOtherApps: true)
+            alert.runModal()
+            NSApp.terminate(nil)
+            return true
+        }
+    }
+
+    /// What macOS is about to ask, said before it asks.
+    private func welcome() {
+        let alert = NSAlert()
+        alert.messageText = "Edgepad lives in the menu bar"
+        alert.informativeText =
+            "macOS will now ask for what Edgepad needs. Bluetooth, to hear your phone. Device Control, to move the "
+            + "pointer and press keys. Notifications, to tell you when a phone asks to connect. Your Desktop, "
+            + "Documents or Downloads folder, only when the phone asks for a screenshot or recording."
+        alert.addButton(withTitle: "Continue")
+        NSApp.activate(ignoringOtherApps: true)
+        alert.runModal()
+        alert.window.orderOut(nil)
+        UserDefaults.standard.set(true, forKey: Self.welcomedKey)
+    }
+
+    /// The first run of a new version with the permission gone: the ad hoc signature changes with every build.
+    private func noteUpdatedVersion() {
+        let defaults = UserDefaults.standard
+        let last = defaults.string(forKey: Self.lastVersionKey)
+        defaults.set(runningVersion, forKey: Self.lastVersionKey)
+        if let last, last != runningVersion, !inputReady {
+            setStatus("Updated: allow Edgepad again in Device Control")
+        }
+    }
+
+    /// Looks at the input permission once a second while it is missing, or while the first-run question waits for
+    /// it, so the badge goes and the question comes the moment the owner has granted it.
+    private func watchInputPermission() {
+        guard permissionTimer == nil else { return }
+        permissionTimer = Timer.scheduledTimer(withTimeInterval: Self.permissionPollSeconds, repeats: true) {
+            [weak self] _ in
+            guard let self else { return }
+            self.refreshButton()
+            // The phone hears a grant (or a revoke) here too, from the poll that already runs.
+            let trusted = AXIsProcessTrusted()
+            if trusted != self.lastTrusted {
+                self.lastTrusted = trusted
+                self.host?.inputStateChanged()
+            }
+            if self.inputReady {
+                if self.status.hasPrefix("Updated:") {
+                    self.setStatus(StatusText.waiting)
+                }
+                self.askFirstRunIfDue()
+                if !self.firstRunQuestionDue {
+                    self.permissionTimer?.invalidate()
+                    self.permissionTimer = nil
+                }
+            }
+        }
+    }
+
+    /// The badge, the tooltip and the "!" that says a question waits.
+    private func refreshButton() {
+        guard let button = statusItem?.button else { return }
+        let missing = !inputReady
+        if missing != badged {
+            badged = missing
+            button.image = MenuBarMark.image(badged: missing)
+        }
+        button.title = questionOpen ? "!" : ""
+        button.toolTip = missing ? "Edgepad cannot control this Mac yet" : "Edgepad: \(status)"
     }
 
     /// With Start at login the app can launch before Bluetooth is ready or its permission prompt is answered, so a
     /// failed start is tried again rather than left for good.
     private func startServer() {
-        if server?.start() == false {
-            setStatus("Bluetooth is unavailable; see the log")
-            Timer.scheduledTimer(withTimeInterval: Self.bluetoothRetrySeconds, repeats: false) { [weak self] _ in
-                self?.startServer()
-            }
+        guard server?.start() == false else { return }
+        let authorization = CBManager.authorization
+        setStatus(
+            StatusText.bluetoothProblem(
+                denied: authorization == .denied || authorization == .restricted,
+                off: IOBluetoothHostController.default()?.powerState == kBluetoothHCIPowerStateOFF))
+        guard !bluetoothRetryPending else { return }
+        bluetoothRetryPending = true
+        Timer.scheduledTimer(withTimeInterval: Self.bluetoothRetrySeconds, repeats: false) { [weak self] _ in
+            self?.bluetoothRetryPending = false
+            self?.startServer()
+        }
+    }
+
+    /// After sleep: withdraw and publish the Bluetooth record again, and listen again on Wi-Fi.
+    private func listenAgain() {
+        server?.stop()
+        startServer()
+        if networkSettings.load().enabled {
+            applyNetwork()
         }
     }
 
@@ -119,41 +306,71 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
-        menu.addItem(disabled(status))
+        menuSeen = true
+        menu.addItem(statusRow())
         if let version = newerVersion {
             menu.addItem(item("Update available: \(version)", #selector(openRelease)))
         }
         // Newer macOS tracks event posting separately from the Accessibility trust, under the
         // same pane. Either one missing means input goes nowhere.
-        if !AXIsProcessTrusted() || !CGPreflightPostEventAccess() {
+        if !inputReady {
             menu.addItem(item("Allow Edgepad to control this Mac…", #selector(allowAccessibility)))
+            let steps = disabled(Self.permissionSteps)
+            steps.indentationLevel = 1
+            menu.addItem(steps)
         }
         menu.addItem(.separator())
+        let wifi = item(wifiTitle(), #selector(toggleNetwork))
+        wifi.state = networkSettings.load().enabled ? .on : .off
+        wifi.toolTip = "Wi-Fi only on a Mac: USB tethering needs a driver macOS does not include."
+        menu.addItem(wifi)
+        let clipboard = item("Share clipboard", #selector(toggleClipboard))
+        clipboard.state = ClipboardSetting.enabled ? .on : .off
+        clipboard.toolTip = "Copy on one, paste on the other: text and images."
+        menu.addItem(clipboard)
         let login = item("Start at login", #selector(toggleLogin))
         login.state = SMAppService.mainApp.status == .enabled ? .on : .off
         menu.addItem(login)
-        menu.addItem(item("Open log", #selector(openLog)))
-        menu.addItem(item("Documentation", #selector(openDocumentation)))
-        menu.addItem(item("Security… (level \(pin.level))", #selector(showSecurity)))
-        let macroCount = host?.macros.macros.count ?? 0
-        menu.addItem(item("Macros… (\(macroCount) of \(MacroStore.maxMacros))", #selector(showMacros)))
-        let wifi = item("Wi-Fi and USB connections", #selector(toggleNetwork))
-        wifi.state = networkSettings.load().enabled ? .on : .off
-        menu.addItem(wifi)
-        menu.addItem(disabled("    \(networkHint)"))
-        let clipboard = item("Share clipboard with the phone", #selector(toggleClipboard))
-        clipboard.state = ClipboardSetting.enabled ? .on : .off
-        menu.addItem(clipboard)
-        let forget = item("Forget trusted phones", #selector(confirmForget))
-        forget.isEnabled = trust.canForget || paired.canForget
-        menu.addItem(forget)
+        let updates = item("Check for updates daily", #selector(toggleDailyUpdates))
+        updates.state = checksDaily ? .on : .off
+        menu.addItem(updates)
         menu.addItem(.separator())
-        menu.addItem(item("Quit Edgepad", #selector(quit)))
-        menu.addItem(disabled("Edgepad \(runningVersion)"))
+        menu.addItem(item("Macros…", #selector(showMacros)))
+        let names = SecurityPanel.levelNames
+        let level = names.indices.contains(pin.level - 1) ? names[pin.level - 1] : ""
+        menu.addItem(item("Security… (\(level))", #selector(showSecurity)))
+        menu.addItem(.separator())
+        menu.addItem(item("Documentation", #selector(openDocumentation)))
+        menu.addItem(item("Open log", #selector(openLog)))
+        menu.addItem(item("About Edgepad", #selector(showAbout)))
+        menu.addItem(.separator())
+        let quit = item("Quit Edgepad", #selector(quit))
+        quit.keyEquivalent = "q"
+        menu.addItem(quit)
+        // On the next turn: the menu is open now, and the question is a modal alert.
+        DispatchQueue.main.async { [weak self] in self?.askFirstRunIfDue() }
+    }
+
+    /// The status in full-strength text: a disabled row is dimmed, and this is the line the owner came to read.
+    private func statusRow() -> NSMenuItem {
+        let row = disabled(status)
+        row.attributedTitle = NSAttributedString(
+            string: status, attributes: [.foregroundColor: NSColor.labelColor, .font: NSFont.menuFont(ofSize: 0)])
+        return row
+    }
+
+    /// The row says the Mac supports Wi-Fi only; a hint is added only when something needs the owner's eye.
+    private func wifiTitle() -> String {
+        let plain = networkHint == "Off" || networkHint == "Starting" || networkHint.hasPrefix("Listening on")
+        return plain || !networkSettings.load().enabled ? "Wi-Fi connections" : "Wi-Fi connections (\(networkHint))"
     }
 
     private func setStatus(_ text: String) {
         status = text
+        refreshButton()
+        if text.hasPrefix("Connected to") {
+            DispatchQueue.main.async { [weak self] in self?.askFirstRunIfDue() }
+        }
     }
 
     private func item(_ title: String, _ action: Selector) -> NSMenuItem {
@@ -184,6 +401,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 guard let self, let version, UpdateCheck.isNewer(version, than: self.runningVersion) else { return }
                 if self.newerVersion != version {
                     Log.write("Edgepad \(version) is available")
+                    self.notifier?.post(
+                        id: "update", title: "Edgepad \(version) is available",
+                        body: "Click to open the download page.")
                 }
                 self.newerVersion = version
             }
@@ -192,6 +412,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func openRelease() {
         open(UpdateCheck.latestUrl)
+    }
+
+    @objc private func showAbout() {
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.orderFrontStandardAboutPanel(options: [
+            .credits: NSAttributedString(string: "https://edgepad.akshitbansal.dev\nFonts and icons: Lato, Lucide.")
+        ])
     }
 
     @objc private func allowAccessibility() {
@@ -206,18 +433,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             _ = CGRequestPostEventAccess()
         }
         open(Self.accessibilityPaneUrl)
+        watchInputPermission()
     }
 
     @objc private func toggleLogin() {
+        setLogin(SMAppService.mainApp.status != .enabled)
+    }
+
+    /// Registers or unregisters the login item, and says so when macOS wants the owner's approval or refuses.
+    private func setLogin(_ on: Bool) {
         do {
-            if SMAppService.mainApp.status == .enabled {
-                try SMAppService.mainApp.unregister()
-            } else {
+            if on {
                 try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
             }
         } catch {
             Log.write("Could not change start at login: \(error.localizedDescription)")
+            tell("Could not change Start at login", error.localizedDescription)
+            return
         }
+        if on && SMAppService.mainApp.status == .requiresApproval {
+            tell("Allow Edgepad to start at login", "Allow Edgepad in System Settings › General › Login Items.")
+            SMAppService.openSystemSettingsLoginItems()
+        }
+    }
+
+    /// A one-button alert titled with what happened.
+    private func tell(_ title: String, _ text: String, style: NSAlert.Style = .warning) {
+        let alert = NSAlert()
+        alert.alertStyle = style
+        alert.messageText = title
+        alert.informativeText = text
+        alert.addButton(withTitle: "OK")
+        NSApp.activate(ignoringOtherApps: true)
+        _ = alert.runModal()
+        alert.window.orderOut(nil)
     }
 
     @objc private func toggleClipboard() {
@@ -233,12 +484,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         open(Self.documentationUrl)
     }
 
-    /// Asked first because the menu cannot undo it: every phone after it has to be trusted again. The connected
-    /// phone, and any still being asked about, is hung up on, and connections are refused, while the question is
-    /// open. If the trust file cannot be removed the owner is told, and the store refuses every phone until a later
-    /// Forget succeeds.
-    @objc private func confirmForget() {
-        guard !forgetting else { return }
+    /// Asked first because it cannot be undone: every phone after it has to be trusted again. The connected phone,
+    /// and any still being asked about, is hung up on, and connections are refused, while the question is open. If
+    /// the trust file cannot be removed the owner is told, and the store refuses every phone until a later Forget
+    /// succeeds. Reached from the Security window; true when the phones were forgotten (or the attempt was made).
+    private func confirmForget() -> Bool {
+        guard !forgetting else { return false }
         forgetting = true
         // A connected phone is a keyboard and could press Return or Escape on this dialog, so the owner could
         // never forget it. Hanging up is not enough, since the phone is still trusted and reconnects within
@@ -250,7 +501,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = "Edgepad"
+        alert.messageText = "Forget all trusted phones?"
         let phones = trust.trustedPhones
         let which = phones.isEmpty ? "the trusted phones" : "every trusted phone (\(phones.joined(separator: ", ")))"
         alert.informativeText =
@@ -258,46 +509,85 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             + "this Mac."
         // Cancel is first, so it is the default: a stray Return forgets nothing.
         alert.addButton(withTitle: "Cancel")
-        alert.addButton(withTitle: "Forget")
+        alert.addButton(withTitle: "Forget").hasDestructiveAction = true
         NSApp.activate(ignoringOtherApps: true)
         let answer = alert.runModal()
         alert.window.orderOut(nil)
-        if answer == .alertSecondButtonReturn {
-            let forgotten = trust.forget()
-            // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
-            let verifiedForgotten = pin.forgetVerified()
-            // Started before the hold ends (the defer above), so there is no instant in which a connection would
-            // be taken.
-            host?.stayQuiet()
-            if !forgotten {
-                let failure = NSAlert()
-                failure.alertStyle = .critical
-                failure.messageText = "Edgepad"
-                failure.informativeText =
-                    "The trusted phones could not be forgotten: their file could not be removed or emptied. No phone "
-                    + "can connect while Edgepad stays running, but those phones will be trusted again when Edgepad "
-                    + "starts. Choose Forget trusted phones again, or delete the file yourself:\n\n\(trust.filePath)"
-                failure.addButton(withTitle: "OK")
-                _ = failure.runModal()
-                failure.window.orderOut(nil)
-            }
-            // The Wi-Fi and USB pairings too, or a forgotten phone would resume its link and only meet the trust
-            // question, not a new pairing. Still under the hold and the quiet period, so none can pair meanwhile.
-            forgetPairedLinks()
-            if !verifiedForgotten {
-                let failure = NSAlert()
-                failure.alertStyle = .critical
-                failure.messageText = "Edgepad"
-                failure.informativeText =
-                    "The phones that entered the PIN could not be forgotten: their list could not be removed. While "
-                    + "Edgepad stays running every phone is asked for the PIN on every connection, but those phones "
-                    + "will skip it at level 2 again when Edgepad starts. Choose Forget trusted phones again, or "
-                    + "delete pin-verified.txt yourself from:\n\n\(pin.folder)"
-                failure.addButton(withTitle: "OK")
-                _ = failure.runModal()
-                failure.window.orderOut(nil)
-            }
+        guard answer == .alertSecondButtonReturn else { return false }
+        let forgotten = trust.forget()
+        lastConnected.forgetAll()
+        // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
+        let verifiedForgotten = pin.forgetVerified()
+        // Started before the hold ends (the defer above), so there is no instant in which a connection would
+        // be taken.
+        host?.stayQuiet()
+        if !forgotten {
+            tell(
+                "Could not forget the trusted phones",
+                "Their file could not be removed or emptied. No phone can connect while Edgepad stays running, but "
+                    + "those phones will be trusted again when Edgepad starts. Choose Forget all trusted phones "
+                    + "again, or delete the file yourself:\n\n\(trust.filePath)",
+                style: .critical)
         }
+        // The Wi-Fi pairings too, or a forgotten phone would resume its link and only meet the trust question, not
+        // a new pairing. Still under the hold and the quiet period, so none can pair meanwhile.
+        forgetPairedLinks()
+        if !verifiedForgotten {
+            tell(
+                "Could not forget the phones that entered the PIN",
+                "Their list could not be removed. While Edgepad stays running every phone is asked for the PIN on "
+                    + "every connection, but those phones will skip it at \"PIN once per phone\" again when Edgepad "
+                    + "starts. Choose Forget all trusted phones again, or delete pin-verified.txt yourself "
+                    + "from:\n\n\(pin.folder)",
+                style: .critical)
+        }
+        return true
+    }
+
+    /// Every trusted phone with the name the owner knows it by: a Wi-Fi phone's pairing name, else its address.
+    private func trustedList() -> [(address: String, name: String, shown: String)] {
+        let names = Dictionary(
+            paired.list().map { ("link:" + $0.id.lowercased(), $0.name) }, uniquingKeysWith: { first, _ in first })
+        let last = lastConnected.snapshot()
+        return trust.trustedPhones.map { address in
+            let name = names[address.lowercased()] ?? address
+            return (
+                address: address, name: name,
+                shown: LastConnected.rowText(name: name, last: last(address))
+            )
+        }
+    }
+
+    /// Forgets one phone after asking. The Security window already holds phones off, so nothing can answer. The
+    /// forgotten phone, and only it, is then refused for the quiet period of Forget all.
+    private func confirmForgetOne(_ address: String, _ name: String) -> Bool {
+        guard !forgetting else { return false }
+        forgetting = true
+        defer { forgetting = false }
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = "Forget \(name)?"
+        alert.informativeText = "It will have to be trusted here again before it can use this Mac."
+        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: "Forget").hasDestructiveAction = true
+        NSApp.activate(ignoringOtherApps: true)
+        let answer = alert.runModal()
+        alert.window.orderOut(nil)
+        guard answer == .alertSecondButtonReturn else { return false }
+        var failed = !trust.forgetOne(address)
+        lastConnected.forget(address)
+        failed = !pin.forgetVerified(address) || failed
+        if address.lowercased().hasPrefix("link:") {
+            failed = !paired.forgetOne(String(address.dropFirst(5))) || failed
+        }
+        host?.stayQuiet(for: address)
+        if failed {
+            tell(
+                "Could not forget \(name)",
+                "A file could not be rewritten, so it may still be trusted. The log has the reason.",
+                style: .critical)
+        }
+        return true
     }
 
     /// Held like Forget, for the same reason: a connected phone is a keyboard and could answer the panel.
@@ -311,25 +601,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         SecurityPanel(
             pin: pin, trust: trust, forgetPairings: { [weak self] in self?.forgetPairedLinks() },
+            forgetAll: { [weak self] in self?.confirmForget() ?? false },
+            phones: { [weak self] in self?.trustedList() ?? [] },
+            forgetOne: { [weak self] in self?.confirmForgetOne($0, $1) ?? false },
             hangUp: { [weak self] in self?.host?.stayQuiet() }
         ).run()
     }
 
-    /// Forgets the Wi-Fi and USB pairings, and tells the owner when they could not be. Every way of forgetting phones
-    /// (Forget trusted phones, Reset PIN in the Security panel) goes through here.
+    /// Forgets the Wi-Fi pairings, and tells the owner when they could not be. Every way of forgetting phones
+    /// (Forget all trusted phones, Reset PIN in the Security panel) goes through here.
     private func forgetPairedLinks() {
         guard !paired.forget() else { return }
-        let failure = NSAlert()
-        failure.alertStyle = .critical
-        failure.messageText = "Edgepad"
-        failure.informativeText =
-            "The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. Paired "
-            + "phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will be able to again "
-            + "the next time it starts. Choose Forget trusted phones again, or delete paired-links.txt yourself "
-            + "from:\n\n\(paired.folder)"
-        failure.addButton(withTitle: "OK")
-        _ = failure.runModal()
-        failure.window.orderOut(nil)
+        tell(
+            "Could not forget the Wi-Fi pairings",
+            "Their file could not be removed or emptied. Paired phones cannot reconnect over Wi-Fi while Edgepad "
+                + "stays running, but they will be able to again the next time it starts. Choose Forget all trusted "
+                + "phones again, or delete paired-links.txt yourself from:\n\n\(paired.folder)",
+            style: .critical)
     }
 
     /// Held like the Security panel, for the same reason, and guarded against a second click under the modal alert.
@@ -344,50 +632,88 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         MacroEditorWindow(store: host.macros).run()
     }
 
-    /// The Wi-Fi and USB switch. Turning it on says first what will happen, since macOS may ask about it; a no there
-    /// leaves it off.
+    /// The Wi-Fi switch. Turning it on says first what will happen, since macOS may ask about it; a no there leaves
+    /// it off.
     @objc private func toggleNetwork() {
         let on = !networkSettings.load().enabled
-        if on && !confirmNetwork(yes: "Turn on", no: "Cancel") {
+        if on && !confirmNetwork(yes: "Turn on", no: "Cancel", clipboard: false).allowed {
             return
         }
         saveNetwork(on)
     }
 
-    /// The first launch's one question. Nothing listens until it is answered, and either answer is saved, so it is
-    /// never asked again; the switch in the menu is the way back.
-    private func askAboutNetwork() {
-        saveNetwork(confirmNetwork(yes: "Allow", no: "Not Now"))
+    /// Puts the first-run question once input control is settled, a phone has connected or the menu was opened.
+    private func askFirstRunIfDue() {
+        guard firstRunQuestionDue, !questionOpen, inputReady || status.hasPrefix("Connected to") || menuSeen else {
+            return
+        }
+        firstRunQuestionDue = false
+        askAboutNetwork()
     }
 
-    /// Says what turning this on will do. True only for `yes`.
-    private func confirmNetwork(yes: String, no: String) -> Bool {
+    /// The first run's one question, in two separate choices: Wi-Fi, and sharing the clipboard. Nothing listens until
+    /// it is answered, and either answer is saved, so it is never asked again; the menu is the way back.
+    private func askAboutNetwork() {
+        let answer = confirmNetwork(yes: "Allow", no: "Not Now", clipboard: true)
+        if let share = answer.clipboard {
+            ClipboardSetting.enabled = share
+        }
+        // Off until ticked; a failure is told by setLogin and leaves it off.
+        if answer.login == true {
+            setLogin(true)
+        }
+        saveNetwork(answer.allowed)
+    }
+
+    /// Says what turning Wi-Fi on will do. `allowed` is true only for `yes`; `clipboard` is the checkbox, asked on
+    /// the first run only, off until ticked.
+    private func confirmNetwork(
+        yes: String, no: String, clipboard: Bool
+    ) -> (allowed: Bool, clipboard: Bool?, login: Bool?) {
         let alert = NSAlert()
-        alert.messageText = "Wi-Fi and USB connections"
+        alert.messageText = "Let phones find this laptop?"
         alert.informativeText =
-            "Phones on the same Wi-Fi will be able to find this Mac and ask to pair. Nothing connects without the "
-            + "code typed here. macOS may ask whether Edgepad may find devices on your local network, and the "
-            + "firewall whether it may accept incoming connections: allow both. USB tethering needs a driver macOS "
-            + "does not include, so it is not supported on a Mac."
+            "Wi-Fi only on a Mac: USB tethering needs a driver macOS does not include. Phones on the same Wi-Fi "
+            + "will be able to find this Mac and ask to pair. Nothing connects without the pairing code typed here. "
+            + "macOS may ask whether Edgepad may find devices on your local network, and the firewall whether it "
+            + "may accept incoming connections: allow both."
+        var box: NSButton?
+        var loginBox: NSButton?
+        if clipboard {
+            let share = NSButton(checkboxWithTitle: "Share clipboard", target: nil, action: nil)
+            share.state = .off
+            let note = NSTextField(wrappingLabelWithString: "Copy on one, paste on the other: text and images.")
+            note.textColor = .secondaryLabelColor
+            note.preferredMaxLayoutWidth = 280
+            let login = NSButton(checkboxWithTitle: "Start at login", target: nil, action: nil)
+            login.state = .off
+            let stack = NSStackView(views: [share, note, login])
+            stack.orientation = .vertical
+            stack.alignment = .leading
+            stack.spacing = 4
+            stack.setFrameSize(NSSize(width: 280, height: stack.fittingSize.height))
+            alert.accessoryView = stack
+            box = share
+            loginBox = login
+        }
         // The no is first, so it is the default: a stray Return turns nothing on.
         alert.addButton(withTitle: no)
         alert.addButton(withTitle: yes)
+        questionOpen = true
+        refreshButton()
         NSApp.activate(ignoringOtherApps: true)
         let answer = alert.runModal()
         alert.window.orderOut(nil)
-        return answer == .alertSecondButtonReturn
+        questionOpen = false
+        refreshButton()
+        return (answer == .alertSecondButtonReturn, box.map { $0.state == .on }, loginBox.map { $0.state == .on })
     }
 
     /// Saves the owner's answer and acts on it. A setting that cannot be saved leaves things as they were.
     private func saveNetwork(_ on: Bool) {
         guard networkSettings.setEnabled(on) else {
-            let failure = NSAlert()
-            failure.alertStyle = .critical
-            failure.messageText = "Edgepad"
-            failure.informativeText = "The setting could not be saved, so nothing was changed. The log has the reason."
-            failure.addButton(withTitle: "OK")
-            _ = failure.runModal()
-            failure.window.orderOut(nil)
+            tell(
+                "Could not save the setting", "Nothing was changed. The log has the reason.", style: .critical)
             return
         }
         applyNetwork()
@@ -415,9 +741,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func askTrust(_ phone: String, _ ended: Cancellation) -> Bool {
         guard !ended.isCancelled else { return false }
         setStatus("Asking whether to trust \(phone)")
+        // The alert may stay behind another app, so it is also said in a notification and by the "!" in the bar.
+        notifier?.post(
+            id: "trust", title: "Trust \(phone)?", body: "\(phone) wants to connect. Choose Trust or Don't Trust.")
+        questionOpen = true
+        refreshButton()
+        defer {
+            questionOpen = false
+            refreshButton()
+            notifier?.withdraw(id: "trust")
+        }
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = "Trust this phone?"
+        alert.messageText = "Trust \(phone)?"
         let whatIsTrusted =
             phone.contains("\"")
             ? "The name in quotes is only what the phone calls itself; the address is what will be trusted."

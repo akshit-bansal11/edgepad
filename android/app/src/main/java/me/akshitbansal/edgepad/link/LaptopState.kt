@@ -81,6 +81,10 @@ class LaptopState {
     var macros: List<String> = emptyList()
         private set
 
+    /** AND-A-21: whether the laptop has sent its macro list at all, which an empty [macros] cannot say. */
+    var macrosHeard = false
+        private set
+
     /**
      * What the laptop last said of each macro slot's app, in [macros] order. Empty until it says, which is also what
      * a laptop that cannot tell leaves it as, so no macro reads as open.
@@ -111,6 +115,33 @@ class LaptopState {
      */
     fun forgetFeatures() {
         features = emptySet()
+    }
+
+    /**
+     * TEXT 18: the laptop's OS discards synthetic input until its owner allows Edgepad (Mac without Accessibility,
+     * Linux without /dev/uinput). False until the laptop says `blocked`, which is also where a laptop that never
+     * sends it (Windows, an older build) stays.
+     */
+    var inputBlocked = false
+        private set
+
+    /** Forgets [inputBlocked] when a link ends or a new one starts: the laptop says it afresh after HELLO_ACK. */
+    fun forgetInputBlocked() {
+        inputBlocked = false
+    }
+
+    /** TEXT 19: the laptop's own battery and its peripherals' (whole snapshot). Empty until the laptop says. */
+    var batteries: List<BatteryEntry> = emptyList()
+        private set
+
+    /** TEXT 20: where the laptop's sound goes. Null until the laptop says, or when it knows no output. */
+    var output: Output? = null
+        private set
+
+    /** Forgets [batteries] and [output] when a link ends or a new one starts: the laptop says them afresh. */
+    fun forgetPower() {
+        batteries = emptyList()
+        output = null
     }
 
     /** Forgets [macroOpen] when a link ends or a new one starts: the laptop says it afresh when next watched. */
@@ -174,12 +205,13 @@ class LaptopState {
             }
 
             is Frame.Text -> {
+                if (frame.kind == TextKind.INPUT_STATE.id) return inputState(frame.text)
                 when (TextKind.of(frame.kind)) {
                     TextKind.NOW_PLAYING -> nowPlaying = frame.text
                     TextKind.APP -> app = frame.text
                     TextKind.TIMELINE -> timeline(frame.text)
                     TextKind.REFRESH_RATES -> refreshRates = rates(frame.text)
-                    TextKind.MACROS -> macros = macroNames(frame.text)
+                    TextKind.MACROS -> heardMacros(frame.text)
                     TextKind.MACRO_OPEN -> macroOpen = frame.text.take(MACRO_SLOTS).map(OpenState::of)
                     TextKind.MACRO_ICON -> return iconChunk(frame.text)
                     TextKind.PAD_STATUS -> padStatus = PadStatus.of(frame.text)
@@ -188,6 +220,8 @@ class LaptopState {
                     TextKind.SIGN_STATUS -> signStatus = SignStatus.of(frame.text)
                     TextKind.DEVICE -> return device(frame.text)
                     TextKind.APP_ADD_STATUS -> apps.addStatus(frame.text)
+                    TextKind.BATTERIES -> batteries = Batteries.parse(frame.text)
+                    TextKind.OUTPUT -> output = Output.parse(frame.text)
                     else -> return false
                 }
             }
@@ -196,6 +230,19 @@ class LaptopState {
                 return false
             }
         }
+        return true
+    }
+
+    /** `blocked` or `ok`; anything else is ignored and the last word stands. True when the state changed. */
+    private fun inputState(text: String): Boolean {
+        val blocked =
+            when (text) {
+                INPUT_BLOCKED -> true
+                INPUT_OK -> false
+                else -> return false
+            }
+        if (blocked == inputBlocked) return false
+        inputBlocked = blocked
         return true
     }
 
@@ -285,6 +332,11 @@ class LaptopState {
         }
 
     /** "Chrome/Spotify/Notes": one name per macro slot, in the order MACRO_BASE indexes them. */
+    private fun heardMacros(text: String) {
+        macros = macroNames(text)
+        macrosHeard = true
+    }
+
     private fun macroNames(text: String): List<String> {
         // A blank name keeps its slot rather than being dropped: the phone sends an index, so removing the
         // empty name from "Chrome//Notes" would put Notes where the laptop expects the missing slot and
@@ -318,6 +370,9 @@ class LaptopState {
         const val MACRO_SLOTS = 15
 
         private const val FLAG_BIT = 1
+
+        private const val INPUT_BLOCKED = "blocked"
+        private const val INPUT_OK = "ok"
 
         /** "idhex/os/name". */
         private const val DEVICE_FIELDS = 3

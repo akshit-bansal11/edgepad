@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using Edgepad.Dispatch;
+using Edgepad.Net;
 using Edgepad.Protocol;
 using Microsoft.Win32;
 using Windows.Devices.Bluetooth.Rfcomm;
@@ -19,7 +20,7 @@ internal sealed class RfcommServer(Action<string> onStatus, SessionHost host) : 
     /// <summary>How long a failed start waits before the next try, for as long as it takes.</summary>
     private static readonly TimeSpan RetryStartEvery = TimeSpan.FromSeconds(30);
 
-    private const string Waiting = "Waiting for your phone";
+    private const string Waiting = LaptopStatus.Waiting;
     private const string BluetoothOff = "Bluetooth is off";
     private const string StartFailing = "Bluetooth is off or unavailable; trying again";
 
@@ -415,7 +416,7 @@ internal sealed class RfcommServer(Action<string> onStatus, SessionHost host) : 
     {
         if (host.CurrentAddress is { } live)
         {
-            return $"Connected to {host.Shown(live)}";
+            return host.Connected(live);
         }
 
         return radioOff ? BluetoothOff : Waiting;

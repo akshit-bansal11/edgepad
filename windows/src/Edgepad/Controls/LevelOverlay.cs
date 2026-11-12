@@ -11,6 +11,9 @@ internal enum LevelKind
     Volume,
     Microphone,
     Brightness,
+
+    /// <summary>Not a level: a short word about the phone ("Phone connected"), drawn without the bar.</summary>
+    Phone,
 }
 
 /// <summary>
@@ -44,15 +47,15 @@ internal sealed class LevelOverlay : IDisposable
     /// <summary>
     /// The newest reading waiting to be drawn; only the last one before the UI catches up matters. A record
     /// class rather than a struct because Volatile's read and write are only defined over references, and
-    /// four fields could not be published atomically anyway.
+    /// three fields could not be published atomically anyway.
     /// </summary>
-    private sealed record Reading(LevelKind Kind, string Caption, int Level, bool Muted);
+    private sealed record Reading(LevelKind Kind, string Caption, int Level);
 
     private Reading? latest;
     private int posted;
 
-    /// <summary>Shows or refreshes the overlay. percent 0-100; muted draws the muted form.</summary>
-    public void Show(LevelKind kind, int percent, bool muted = false)
+    /// <summary>Shows or refreshes the overlay. percent 0-100.</summary>
+    public void Show(LevelKind kind, int percent)
     {
         if (stopped)
         {
@@ -60,14 +63,14 @@ internal sealed class LevelOverlay : IDisposable
         }
 
         // Shaped here, on the caller's thread, so the UI thread only ever paints.
-        var caption = Metrics.Caption(percent, muted);
+        var caption = Metrics.Caption(percent);
         var level = Math.Clamp(percent, 0, 100);
 
         // One post in flight at a time. A dial drag sends a frame per step from a thread running above
         // normal priority, and each Present relayouts and invalidates on a UI thread that cannot keep up:
         // the message queue would grow without bound while the panel only ever shows the newest value
         // anyway. Dropping the ones in between is what the overlay would have done visually regardless.
-        Volatile.Write(ref latest, new Reading(kind, caption, level, muted));
+        Volatile.Write(ref latest, new Reading(kind, caption, level));
         if (Interlocked.Exchange(ref posted, 1) == 0)
         {
             ui.Post(_ => Drain(), null);
@@ -84,11 +87,26 @@ internal sealed class LevelOverlay : IDisposable
         Volatile.Write(ref posted, 0);
         if (Volatile.Read(ref latest) is { } reading)
         {
-            Present(reading.Kind, reading.Caption, reading.Level, reading.Muted);
+            Present(reading.Kind, reading.Caption, reading.Level);
         }
     }
 
-    private void Present(LevelKind kind, string caption, int percent, bool muted)
+    /// <summary>Says <paramref name="text"/> in the same pill, for a phone that connected or dropped. Any thread.</summary>
+    public void ShowNotice(string text)
+    {
+        if (stopped)
+        {
+            return;
+        }
+
+        Volatile.Write(ref latest, new Reading(LevelKind.Phone, text, 0));
+        if (Interlocked.Exchange(ref posted, 1) == 0)
+        {
+            ui.Post(_ => Drain(), null);
+        }
+    }
+
+    private void Present(LevelKind kind, string caption, int percent)
     {
         if (stopped)
         {
@@ -98,7 +116,7 @@ internal sealed class LevelOverlay : IDisposable
         try
         {
             window ??= new OverlayWindow();
-            window.Present(kind, caption, percent, muted);
+            window.Present(kind, caption, percent);
             failures = 0;
         }
         catch (Exception e)
@@ -161,14 +179,32 @@ internal sealed class LevelOverlay : IDisposable
         {
             LevelKind.Microphone => "Microphone",
             LevelKind.Brightness => "Brightness",
+            LevelKind.Phone => "Phone",
             _ => "Volume",
         };
 
         /// <summary>The bare number: the bar under it already says it is a share of the whole.</summary>
-        public static string Caption(int percent, bool muted) =>
-            muted ? "Muted" : Math.Clamp(percent, 0, 100).ToString(CultureInfo.InvariantCulture);
+        public static string Caption(int percent) =>
+            Math.Clamp(percent, 0, 100).ToString(CultureInfo.InvariantCulture);
 
         public static int Scale(int value, int dpi) => Theme.Scale(value, dpi);
+
+        /// <summary>
+        /// The working area of the monitor the owner is looking at, which is where the cursor is: with a TV as the second
+        /// screen the primary one is often the laptop's own panel, and a readout there is feedback nobody sees.
+        /// </summary>
+        public static Rectangle Where()
+        {
+            try
+            {
+                return Screen.FromPoint(Cursor.Position).WorkingArea;
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                // No cursor to read, a locked desktop say: the primary screen is as good a guess as any.
+                return Screen.PrimaryScreen?.WorkingArea ?? SystemInformation.WorkingArea;
+            }
+        }
 
         /// <summary>
         /// Lato's capital and figure height as a share of its em (1433 of 2000 units): how far the value's digits
@@ -250,7 +286,6 @@ internal sealed class LevelOverlay : IDisposable
         private LevelKind kind;
         private string caption = string.Empty;
         private int percent;
-        private bool muted;
         private long hideAt;
 
         public OverlayWindow()
@@ -288,12 +323,11 @@ internal sealed class LevelOverlay : IDisposable
         /// <summary>The other half of not stealing focus: WinForms shows this with SW_SHOWNOACTIVATE.</summary>
         protected override bool ShowWithoutActivation => true;
 
-        public void Present(LevelKind level, string value, int fill, bool silenced)
+        public void Present(LevelKind level, string value, int fill)
         {
             kind = level;
             caption = value;
             percent = fill;
-            muted = silenced;
             hideAt = Environment.TickCount64 + VisibleMs;
 
             Relayout();
@@ -318,12 +352,14 @@ internal sealed class LevelOverlay : IDisposable
         private void Relayout()
         {
             var dpi = DeviceDpi;
-            var work = Screen.PrimaryScreen?.WorkingArea ?? SystemInformation.WorkingArea;
-            var height = Metrics.PanelHeight(
-                Metrics.Scale(Pad, dpi),
-                Metrics.Scale(ValueSize, dpi) * Metrics.CapShare,
-                Metrics.Scale(BaselineToBar, dpi),
-                Metrics.Scale(BarHeight, dpi));
+            var work = Metrics.Where();
+            var height = kind == LevelKind.Phone
+                ? (2 * Metrics.Scale(Pad, dpi)) + Metrics.Scale(IconSize, dpi)
+                : Metrics.PanelHeight(
+                    Metrics.Scale(Pad, dpi),
+                    Metrics.Scale(ValueSize, dpi) * Metrics.CapShare,
+                    Metrics.Scale(BaselineToBar, dpi),
+                    Metrics.Scale(BarHeight, dpi));
             var size = new Size(Metrics.Scale(PanelWidth, dpi), height);
             var where = new Rectangle(Metrics.Anchor(work, size, Metrics.Scale(BottomMargin, dpi)), size);
             laidOutAt = dpi;
@@ -362,7 +398,7 @@ internal sealed class LevelOverlay : IDisposable
                 return;
             }
 
-            if (left < FadeMs)
+            if (left < FadeMs && Theme.AnimationsEnabled)
             {
                 Opacity = Solid * left / FadeMs;
             }
@@ -387,14 +423,19 @@ internal sealed class LevelOverlay : IDisposable
 
             var pad = Metrics.Scale(Pad, dpi);
             var icon = Metrics.Scale(IconSize, dpi);
+            if (kind == LevelKind.Phone)
+            {
+                PaintNotice(graphics, pad, icon, dpi);
+                return;
+            }
+
             var glyph = kind switch
             {
                 LevelKind.Microphone => Icons.Microphone,
                 LevelKind.Brightness => Icons.Sun,
-                _ when muted => Icons.VolumeMuted,
                 _ => Icons.Volume,
             };
-            Icons.Draw(graphics, glyph, new RectangleF(pad, (Height - icon) / 2f, icon, icon), muted ? Colours.Dim : Colours.Accent);
+            Icons.Draw(graphics, glyph, new RectangleF(pad, (Height - icon) / 2f, icon, icon), Colours.Accent);
 
             var left = pad + icon + Metrics.Scale(Gap, dpi);
             var right = Width - pad;
@@ -424,13 +465,23 @@ internal sealed class LevelOverlay : IDisposable
                 graphics.FillPath(off, shape);
             }
 
-            var filled = muted ? 0 : Metrics.BarWidth((int)track.Width, percent);
+            var filled = Metrics.BarWidth((int)track.Width, percent);
             if (filled > 0)
             {
                 using var accent = new SolidBrush(Colours.Accent);
                 using var shape = Theme.Rounded(track with { Width = filled }, bar / 2f);
                 graphics.FillPath(accent, shape);
             }
+        }
+
+        /// <summary>The phone pill: its icon, then one line of words.</summary>
+        private void PaintNotice(Graphics graphics, int pad, int icon, int dpi)
+        {
+            Icons.Draw(graphics, Icons.Smartphone, new RectangleF(pad, (Height - icon) / 2f, icon, icon), Colours.Accent);
+            var font = Theme.Font(Metrics.Scale(ValueSize - 4, dpi), Weight.Bold);
+            var text = graphics.MeasureString(caption, font, PointF.Empty, typographic);
+            using var ink = new SolidBrush(Colours.Ink);
+            graphics.DrawString(caption, font, ink, pad + icon + Metrics.Scale(Gap, dpi), (Height - text.Height) / 2f, typographic);
         }
 
         /// <summary>A pixel font's ascent in pixels, which is where its baseline sits below the top it is drawn at.</summary>

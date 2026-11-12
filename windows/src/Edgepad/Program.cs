@@ -45,7 +45,21 @@ internal static class Program
         }
 
         using var owned = single;
-        if (!TakeOver(single))
+        var lockFree = Acquire(single);
+        var choice = SingleInstance.Decide(lockFree, !lockFree && SameVersionRunning());
+        if (choice == LaunchChoice.Notify)
+        {
+            // Double-clicking the exe again to "open" it must not quit the copy that is serving a phone.
+            Log.Write($"Edgepad {Version} not started: this version is already running");
+            MessageBox.Show(
+                "Edgepad is already running. Find it in the taskbar corner.",
+                "Edgepad",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            return;
+        }
+
+        if (choice == LaunchChoice.TakeOver && !TakeOver(single))
         {
             Log.Write($"Edgepad {Version} not started: another copy is running and did not hand over");
             MessageBox.Show(
@@ -59,6 +73,9 @@ internal static class Program
         try
         {
             using var quit = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, QuitEventName);
+
+            // Held for as long as this copy runs, so a second launch of this version can tell it is one.
+            using var versionMark = new Mutex(initiallyOwned: false, SingleInstance.VersionMutexName(Version));
             Log.Write($"Edgepad {Version} starting");
 
             // Each release is its own file, Edgepad-<version>.exe, so the Run key can still name whichever copy
@@ -93,16 +110,36 @@ internal static class Program
         }
     }
 
-    /// <summary>True once this copy holds the single-instance mutex, after asking a running copy to quit.</summary>
+    /// <summary>True when nothing else holds the single-instance lock, and this copy now does.</summary>
+    private static bool Acquire(Mutex single)
+    {
+        try
+        {
+            return single.WaitOne(TimeSpan.Zero);
+        }
+        catch (AbandonedMutexException)
+        {
+            // The previous owner exited without releasing it; the wait still acquired it.
+            return true;
+        }
+    }
+
+    private static bool SameVersionRunning()
+    {
+        if (!Mutex.TryOpenExisting(SingleInstance.VersionMutexName(Version), out var mark))
+        {
+            return false;
+        }
+
+        mark.Dispose();
+        return true;
+    }
+
+    /// <summary>True once this copy holds the single-instance mutex, after asking the running (different) copy to quit.</summary>
     private static bool TakeOver(Mutex single)
     {
         try
         {
-            if (single.WaitOne(TimeSpan.Zero))
-            {
-                return true;
-            }
-
             // Copies from before 0.3.0 do not listen for this; they keep the mutex and this copy gives up.
             if (EventWaitHandle.TryOpenExisting(QuitEventName, out var quit))
             {

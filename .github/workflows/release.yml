@@ -57,15 +57,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: '17'
-      - uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
-      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
+      - uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only android
       # No key exists on this runner, so the release build comes out unsigned.
@@ -76,7 +76,7 @@ jobs:
           -PversionName="${VERSION:-${GITHUB_REF_NAME#v}}" -PversionCode="${{ github.run_number }}"
       # Only the sign job reads it, once the owner approves. A week, not a day: run 40193265879 lost it when the
       # approval came three days after the build. An unsigned APK holds no secret, so keeping it longer costs nothing.
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: apk-unsigned
           path: android/app/build/outputs/apk/release/app-release-unsigned.apk
@@ -89,8 +89,12 @@ jobs:
     timeout-minutes: 10
     # Holds the two key secrets, and makes the job wait for the owner's approval before it can read them.
     environment: release
+    env:
+      # SHA-256 of the release signing certificate (public; read from the v4.0.0 APK). If the owner ever rotates
+      # the key on purpose, replace it with the new "certificate SHA-256 digest" that apksigner prints.
+      EXPECTED_CERT_SHA256: 84106046e6b755e3baf9f6dffe2c367fab6d91ece42d7a5d383ce3dce7f8a73e
     steps:
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: apk-unsigned
       # zipalign before apksigner: signing seals the archive, and aligning after would break the signature.
@@ -116,7 +120,21 @@ jobs:
           "$tools/apksigner" sign --ks "$keystore" --ks-type pkcs12 \
             --ks-pass env:EDGEPAD_KS_PASS --key-pass env:EDGEPAD_KS_PASS --out Edgepad.apk aligned.apk
           "$tools/apksigner" verify --print-certs Edgepad.apk
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+      - name: Check the signing certificate is the pinned one
+        run: |
+          tools=$(dirname "$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)")
+          # apksigner's label for the signer differs by version ("Signer #1 certificate ...", "V3.0 Signer:
+          # certificate ..."), so match the digest text itself, skip a source stamp's, and take the first.
+          # The digest is public; it is logged either way.
+          certs=$("$tools/apksigner" verify --print-certs Edgepad.apk | tr -d '\r')
+          got=$(printf '%s\n' "$certs" | grep -v -i 'stamp' | sed -n 's/^.*certificate SHA-256 digest: //p' | head -1 | tr A-F a-f)
+          echo "APK signing certificate SHA-256: ${got:-none found}"
+          if [ "$got" != "$EXPECTED_CERT_SHA256" ]; then
+            printf '%s\n' "$certs" | grep -i 'digest\|signer' || true
+            echo "::error::APK signed by '$got', expected '$EXPECTED_CERT_SHA256'."
+            exit 1
+          fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: apk
           path: Edgepad.apk
@@ -126,10 +144,10 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
       - name: Quality gate
@@ -145,7 +163,7 @@ jobs:
           dotnet publish windows/src/Edgepad/Edgepad.csproj -c Release -r win-x64 --self-contained
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
           -p:Version=$(if ($env:VERSION) { $env:VERSION } else { $env:GITHUB_REF_NAME.TrimStart('v') }) -o publish
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: exe
           path: publish/Edgepad.exe
@@ -155,7 +173,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Quality gate
@@ -164,7 +182,7 @@ jobs:
       # this job and there is nothing here for an approval gate to guard.
       - name: Build the app
         run: bash macos/bundle.sh "${VERSION:-${GITHUB_REF_NAME#v}}" publish
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mac
           path: publish/Edgepad-mac.zip
@@ -175,10 +193,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
       - name: Quality gate
@@ -194,7 +212,7 @@ jobs:
           desktop-file-validate linux/packaging/edgepad.desktop
       - name: Build the archive
         run: sh linux/packaging/pack.sh "${VERSION:-${GITHUB_REF_NAME#v}}" publish Edgepad-linux-x64.tar.gz
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: linux
           path: Edgepad-linux-x64.tar.gz
@@ -210,23 +228,23 @@ jobs:
       attestations: write
     steps:
       # Checkout first: it cleans the workspace, and would delete artifacts downloaded before it.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       # By name, not everything: the unsigned APK is an artifact of this run too, and must never be published.
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: apk
           path: dist
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: exe
           path: dist
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: mac
           path: dist
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: linux
           path: dist
@@ -247,7 +265,7 @@ jobs:
       # transparency log, which would announce a draft build that is meant to stay private.
       - name: Attest where the files were built
         if: github.event_name == 'push'
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: 'dist/Edgepad-*'
       # A tagged run takes that version's section of CHANGELOG.md. A hand-run draft takes the section of

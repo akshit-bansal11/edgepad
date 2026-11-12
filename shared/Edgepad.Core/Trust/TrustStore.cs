@@ -34,6 +34,10 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
     // not asked again about a phone they already said yes to just because the disk refused the write.
     private readonly HashSet<string> unsaved = new(StringComparer.OrdinalIgnoreCase);
 
+    // Phones whose Forget did not reach the disk. They stay trusted on disk but are refused for the rest of this run,
+    // as Forget does with everyone; a later ForgetOne that works, or a Forget, lets them be asked about again.
+    private readonly HashSet<string> denied = new(StringComparer.OrdinalIgnoreCase);
+
     // The phone the owner last said no to, and until when it is not asked about again.
     private string? declined;
     private long declinedUntil;
@@ -52,6 +56,9 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
 
     public static TrustStore ForCurrentUser() => new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "trusted-phone.txt"));
+
+    /// <summary>When each trusted phone last connected, in a file beside the trust file. Stamped by the handshake.</summary>
+    public LastConnected Connections { get; } = LastConnected.Beside(path);
 
     /// <summary>Where the trusted phones are kept, for a message that has to send the owner there.</summary>
     public string FilePath => path;
@@ -215,6 +222,11 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
     /// </summary>
     private bool? Decided(string address)
     {
+        if (denied.Contains(address))
+        {
+            return false;
+        }
+
         if (!TryRead(out var trusted))
         {
             // Fail closed. The phone sees a refusal, the log says why, and Forget in the tray menu is the way
@@ -280,8 +292,10 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
         lock (gate)
         {
             generation++;
+            Connections.ForgetAll();
             unsaved.Clear();
             declined = null;
+            denied.Clear();
             try
             {
                 File.Delete(path);
@@ -313,6 +327,60 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
 
             forgetFailed = false;
             return true;
+        }
+    }
+
+    /// <summary>
+    /// Forgets one phone and keeps the others, for a Forget chosen from the list. True when <paramref name="address"/>
+    /// is no longer trusted: it was removed, or was not there. False when the file could not be read or rewritten; the
+    /// phone is then still trusted. Like <see cref="Forget"/> it moves <see cref="Generation"/> on, so a question open
+    /// across it saves nothing.
+    /// </summary>
+    public bool ForgetOne(string address)
+    {
+        lock (gate)
+        {
+            generation++;
+            Connections.Forget(address);
+            unsaved.Remove(address);
+            if (IsDeclined(address))
+            {
+                declined = null;
+            }
+
+            if (!TryRead(out var trusted))
+            {
+                denied.Add(address);
+                return false;
+            }
+
+            var rest = trusted.Where(known => !string.Equals(known, address, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (rest.Count == trusted.Count)
+            {
+                denied.Remove(address);
+                return true;
+            }
+
+            try
+            {
+                if (rest.Count == 0)
+                {
+                    File.Delete(path);
+                }
+                else
+                {
+                    PrivateStorage.Replace(path, temp => File.WriteAllLines(temp, rest));
+                }
+
+                denied.Remove(address);
+                return true;
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                Log.Write($"A trusted phone could not be forgotten at {path}: {e.Message}");
+                denied.Add(address);
+                return false;
+            }
         }
     }
 

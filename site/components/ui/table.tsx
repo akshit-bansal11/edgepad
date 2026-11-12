@@ -7,13 +7,19 @@ import { cn } from "@/lib/utils";
  */
 export function Table({ className, ...props }: ComponentProps<"table">) {
   return (
-    <div className="bg-card shadow-card w-full overflow-x-auto rounded-[var(--radius-card)]">
+    // A named section is a region; focusable so a keyboard can scroll it. biome.json
+    // allows the tabIndex for this file only.
+    <section
+      tabIndex={0}
+      aria-label="Table, scrolls sideways"
+      className="bg-card shadow-card w-full overflow-x-auto rounded-[var(--radius-card)]"
+    >
       <table
         data-slot="table"
         className={cn("w-full caption-bottom text-sm", className)}
         {...props}
       />
-    </div>
+    </section>
   );
 }
 

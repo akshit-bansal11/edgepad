@@ -6,8 +6,8 @@ namespace Edgepad.Ui;
 
 /// <summary>
 /// The message boxes Avalonia does not have. Each completes when the window closes, however it closes, and the safe
-/// answer is the default one: a stray Enter chooses "No", and so do Escape and the close button except in
-/// <see cref="Ask"/>, where they choose nothing. Call on the UI thread.
+/// answer is the default one: a stray Enter chooses "No", and so do Escape and the close button. They sit on top of
+/// other windows, as the trust question does. Call on the UI thread.
 /// </summary>
 internal static class Dialogs
 {
@@ -20,28 +20,10 @@ internal static class Dialogs
         var noButton = look.Button(no, primary: dangerous);
         noButton.IsDefault = true;
         var window = look.Dialog("Edgepad", 440, Body(look, question, Look.Footer(noButton, yesButton)));
-        yesButton.Click += (_, _) => Finish(window, answer, true);
-        noButton.Click += (_, _) => Finish(window, answer, false);
-        Present(window, owner, answer, false, noButton);
-        return answer.Task;
-    }
-
-    /// <summary>
-    /// Asks a question whose answer is kept for good, so going away is not an answer: true for <paramref name="yes"/>,
-    /// false for <paramref name="no"/>, null when the window closed some other way.
-    /// </summary>
-    public static Task<bool?> Ask(string question, string yes, string no)
-    {
-        var look = Look.Current;
-        var answer = new TaskCompletionSource<bool?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var yesButton = look.Button(yes, primary: true);
-        var noButton = look.Button(no);
-        noButton.IsDefault = true;
-        var window = look.Dialog("Edgepad", 440, Body(look, question, Look.Footer(noButton, yesButton)));
         window.Topmost = true;
         yesButton.Click += (_, _) => Finish(window, answer, true);
         noButton.Click += (_, _) => Finish(window, answer, false);
-        Present(window, null, answer, null, noButton);
+        Present(window, owner, answer, false, noButton);
         return answer.Task;
     }
 
@@ -53,6 +35,7 @@ internal static class Dialogs
         var ok = look.Button("OK", primary: true);
         ok.IsDefault = true;
         var window = look.Dialog("Edgepad", 440, Body(look, message, Look.Footer(ok)));
+        window.Topmost = true;
         ok.Click += (_, _) => Finish(window, closed, true);
         Present(window, owner, closed, false, ok);
         return closed.Task;

@@ -9,6 +9,7 @@ using Edgepad.Gamepad;
 using Edgepad.Injection;
 using Edgepad.Macros;
 using Edgepad.Net;
+using Edgepad.Power;
 using Edgepad.Protocol;
 using Edgepad.Trust;
 using Microsoft.Win32;
@@ -216,6 +217,7 @@ internal sealed class Session(
 
         // Brightness changed on the laptop itself (keys, Windows' slider) reaches the phone as it does for audio.
         Keep(brightness.Watch(level => Guarded(() => SendBrightness(level))));
+        ReportPower();
     }
 
     /// <summary>
@@ -291,17 +293,42 @@ internal sealed class Session(
         // where the annotator guards it, because a dead socket is the read loop's to notice.
         annotator.SignStatusReply = status => Send(new Text((byte)TextKind.SignStatus, status));
         SendScreenSize();
+        annotator.ScreenChanged = SendScreenSize;
 
         // SystemEvents may raise this on the UI thread. The write is moved off it, because a write to a phone that
         // has stopped reading blocks, and the tray must not freeze with it.
-        EventHandler changed = (_, _) => _ = Task.Run(() => Guarded(SendScreenSize));
+        EventHandler changed = (_, _) =>
+        {
+            annotator.Refresh();
+            _ = Task.Run(() => Guarded(SendScreenSize));
+        };
         SystemEvents.DisplaySettingsChanged += changed;
         Keep(new Subscription(() => SystemEvents.DisplaySettingsChanged -= changed));
     }
 
+    /// <summary>
+    /// The battery list and the audio output, now and on change. Batteries are polled every minute and at once on a
+    /// power event (plugged in, unplugged, resumed); the output every 3 s, since nothing here watches the default
+    /// device. The reporter is kept before its source, so it stops polling before the source is released.
+    /// </summary>
+    private void ReportPower()
+    {
+        var source = new PowerSource();
+        var reporter = new PowerReporter(
+            source.ReadBatteries, source.ReadOutput, text => Send(text), TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(3));
+        Keep(reporter);
+        Keep(source);
+
+        // Raised on the UI thread, like DisplaySettingsChanged, and moved off it for the same reason.
+        PowerModeChangedEventHandler changed = (_, _) => _ = Task.Run(() => Guarded(reporter.Poke));
+        SystemEvents.PowerModeChanged += changed;
+        Keep(new Subscription(() => SystemEvents.PowerModeChanged -= changed));
+        reporter.Start();
+    }
+
     private void SendScreenSize()
     {
-        var screen = Annotator.PrimaryBounds();
+        var screen = annotator.Bounds();
         Send(new Text((byte)TextKind.ScreenSize, string.Create(CultureInfo.InvariantCulture, $"{screen.Width}/{screen.Height}")));
     }
 

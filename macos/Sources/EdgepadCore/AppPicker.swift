@@ -9,7 +9,7 @@ import Foundation
 /// A list is scanned on a turn of its own, not inline with the frame that asked, and sent through the session's paced
 /// sender. Its blob is one `token TAB name` line per app, sorted by name. An icon follows each app that has one,
 /// labelled with its token, one per tick so a full list is not one burst. Main thread only, like everything in the
-/// session.
+/// session. The scan alone runs on a background queue; everything else, and every result, is back on the main thread.
 public final class AppPicker {
     public static let maxApps = 400
     public static let maxNameChars = 40
@@ -21,11 +21,33 @@ public final class AppPicker {
     private let catalog: AppCatalog
     private let store: MacroStore
     private let schedule: (@escaping () -> Void) -> Void
+    private let background: (@escaping () -> Void) -> Void
     private let scheduleAfter: (TimeInterval, @escaping () -> Void) -> Void
+
+    /// The last epoch handed out, for the whole process: every picker draws from it, so a token from an earlier
+    /// session or picker can never match a later one's list. Guarded, since a picker may be made off the main thread.
+    private static let epochGate = NSLock()
+    private static var lastEpoch = 0
+
+    private static func nextEpoch() -> Int {
+        epochGate.lock()
+        defer { epochGate.unlock() }
+        lastEpoch += 1
+        return lastEpoch
+    }
+
+    /// Tests only: starts the process-wide count over so their tokens are predictable.
+    static func resetEpochs() {
+        epochGate.lock()
+        defer { epochGate.unlock() }
+        lastEpoch = 0
+    }
 
     /// The rows of `epoch`. Empty until its scan is done, so no token works meanwhile.
     private var apps: [AppEntry] = []
     private var epoch = 0
+    /// True while a scan runs off the main thread, so a second list never starts a second scan beside it.
+    private var scanning = false
     /// The epoch still being sent, or 0 after a cancel or the session's end. A cancel stops the sending and leaves the
     /// list usable.
     private var sending = 0
@@ -35,12 +57,16 @@ public final class AppPicker {
     ///   - store: Where a picked app goes.
     ///   - sender: The session's sender.
     ///   - schedule: Runs a scan on a later turn of the main queue; tests pass `{ $0() }`.
+    ///   - background: Runs the scan off the main thread; tests pass `{ $0() }`.
     ///   - scheduleAfter: Runs the next icon after a tick; tests hold the ticks, or pass one that runs at once.
     public init(
         catalog: AppCatalog,
         store: MacroStore,
         sender: BlobSender,
         schedule: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) },
+        background: @escaping (@escaping () -> Void) -> Void = {
+            DispatchQueue.global(qos: .utility).async(execute: $0)
+        },
         scheduleAfter: @escaping (TimeInterval, @escaping () -> Void) -> Void = { delay, work in
             DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
         }
@@ -49,16 +75,16 @@ public final class AppPicker {
         self.store = store
         self.sender = sender
         self.schedule = schedule
+        self.background = background
         self.scheduleAfter = scheduleAfter
     }
 
     /// APPS_LIST. Starts a new epoch, which also stops whatever the last one was still sending.
     public func list() -> Bool {
-        epoch += 1
+        epoch = AppPicker.nextEpoch()
         sending = epoch
         apps = []
-        let current = epoch
-        schedule { [weak self] in self?.scanAndSend(current) }
+        schedule { [weak self] in self?.beginScan() }
         return true
     }
 
@@ -147,10 +173,31 @@ public final class AppPicker {
         return Array(text.utf8)
     }
 
-    private func scanAndSend(_ current: Int) {
-        // A cancel or a newer list since this turn was queued: the scan is the dear part, so it is not started.
-        guard sending == current else { return }
-        let rows = AppPicker.rows(scan())
+    /// Starts the scan of the list now wanted, off the main thread, unless a cancel came or one is already running:
+    /// that one hands over to a newer list when it ends, so two scans never run at once.
+    private func beginScan() {
+        // A cancel since this turn was queued: the scan is the dear part, so it is not started.
+        guard sending != 0, !scanning else { return }
+        scanning = true
+        let current = sending
+        let catalog = catalog
+        let deliver = schedule
+        background { [weak self] in
+            let rows = AppPicker.rows(AppPicker.scan(catalog))
+            deliver { [weak self] in self?.scanned(current, rows) }
+        }
+    }
+
+    /// The scan is done, back on the main thread.
+    private func scanned(_ current: Int, _ rows: [AppEntry]) {
+        scanning = false
+        guard sending == current else {
+            // Asked again meanwhile: that list's scan was held back, and starts now.
+            if sending != 0 {
+                beginScan()
+            }
+            return
+        }
         apps = rows
 
         let abandoned: () -> Bool = { [weak self] in
@@ -188,7 +235,7 @@ public final class AppPicker {
     }
 
     /// The apps, or none when the scan failed: an empty list answers the phone, and silence would not.
-    private func scan() -> [AppEntry] {
+    private static func scan(_ catalog: AppCatalog) -> [AppEntry] {
         do {
             return try catalog.scan()
         } catch {

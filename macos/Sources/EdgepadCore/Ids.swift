@@ -128,6 +128,14 @@ public enum TextKind: UInt8, CaseIterable {
     /// path or a command, because it is only a colour: `PenStyle.parseRgb` accepts those six bytes and nothing else,
     /// and what it returns is a number that can only be drawn with.
     case penRgb = 17
+    /// Computer to phone: `blocked` or `ok`. `blocked` means the OS discards this Mac's synthetic input (no
+    /// Accessibility trust). Sent after the device text and again on every change; never received reads as `ok`.
+    case inputState = 18
+    /// Computer to phone: a snapshot of the whole battery list, "kind:level:charging:name" entries joined by "|", the
+    /// computer first. Empty means no devices. Never a delta; see docs/PROTOCOL.md for the size rule and cadence.
+    case batteries = 19
+    /// Computer to phone: the audio output, "kind/name" split on the first "/", kind an `OutputKind` token. Empty means none known.
+    case output = 20
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is
@@ -251,6 +259,30 @@ public enum DeviceOs: String, CaseIterable {
     case windows = "windows"
     case linux = "linux"
     case macos = "macos"
+}
+
+/// The kind token of a `TextKind.batteries` entry. The raw value is literally the bytes that cross the wire.
+public enum BatteryKind: String, CaseIterable {
+    case laptop = "laptop"
+    case headphones = "headphones"
+    case keyboard = "keyboard"
+    case mouse = "mouse"
+    case speaker = "speaker"
+    case other = "other"
+
+    /// A token this build does not know reads as `other`.
+    public static func of(_ token: String) -> BatteryKind { BatteryKind(rawValue: token) ?? .other }
+}
+
+/// The kind token of `TextKind.output`. The raw value is literally the bytes that cross the wire.
+public enum OutputKind: String, CaseIterable {
+    case speaker = "speaker"
+    case headphones = "headphones"
+    case monitor = "monitor"
+    case other = "other"
+
+    /// A token this build does not know reads as `other`.
+    public static func of(_ token: String) -> OutputKind { OutputKind(rawValue: token) ?? .other }
 }
 
 /// The whole vocabulary of `TextKind.appAddStatus`: a token the phone matches on, never prose. Only `added` changed

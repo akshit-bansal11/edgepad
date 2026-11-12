@@ -49,6 +49,19 @@ object Updates {
     fun versionIn(location: String?): String? =
         location?.takeIf { it.startsWith(TAG_URL) }?.removePrefix(TAG_URL)?.takeIf(version::matches)
 
+    /** A release's page, with its notes. [version] is one [versionIn] accepted, so it adds nothing to the path. */
+    fun releaseUrl(version: String): String = TAG_URL + version
+
+    /** Whether the first number differs: only a major release moves the wire protocol, and then both halves must. */
+    fun majorDiffers(
+        candidate: String,
+        running: String,
+    ): Boolean {
+        val theirs = parts(candidate)?.firstOrNull() ?: return false
+        val ours = parts(running)?.firstOrNull() ?: return false
+        return theirs != ours
+    }
+
     /** Where a release keeps its APK. [version] is one [versionIn] accepted, so it adds nothing to the path. */
     fun apkUrl(version: String): String = "$RELEASES/download/v$version/Edgepad-$version.apk"
 

@@ -234,6 +234,22 @@ enum class TextKind(
      * the laptop takes those six characters and nothing else, and what it makes of them is a number it can only draw with.
      */
     PEN_RGB(17),
+
+    /**
+     * Laptop to phone: exactly "blocked" or "ok", sent after the handshake and on every change. "blocked" means the
+     * laptop's OS discards the input it is given (Mac without Accessibility, Linux without /dev/uinput). Windows never
+     * sends it, and a phone that never heard it reads "ok".
+     */
+    INPUT_STATE(18),
+
+    /**
+     * Laptop to phone: a snapshot of the whole battery list, "kind:level:charging:name" entries joined by "|", the laptop
+     * first. Empty means no devices. Never a delta; see docs/PROTOCOL.md for the size rule and cadence.
+     */
+    BATTERIES(19),
+
+    /** Laptop to phone: the audio output, "kind/name" split on the first "/", kind an [OutputKind] token. Empty means none known. */
+    OUTPUT(20),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -474,6 +490,40 @@ enum class DeviceOs(
     companion object {
         /** Null for a token this build does not know: a hint that depends on the OS is simply not shown. */
         fun of(token: String): DeviceOs? = entries.firstOrNull { it.token == token }
+    }
+}
+
+/** The kind token of a [TextKind.BATTERIES] entry. Mirrors protocol/actions.txt. */
+enum class BatteryKind(
+    val token: String,
+) {
+    LAPTOP("laptop"),
+    HEADPHONES("headphones"),
+    KEYBOARD("keyboard"),
+    MOUSE("mouse"),
+    SPEAKER("speaker"),
+    OTHER("other"),
+    ;
+
+    companion object {
+        /** A token this build does not know reads as [OTHER]. */
+        fun of(token: String): BatteryKind = entries.firstOrNull { it.token == token } ?: OTHER
+    }
+}
+
+/** The kind token of [TextKind.OUTPUT]. Mirrors protocol/actions.txt. */
+enum class OutputKind(
+    val token: String,
+) {
+    SPEAKER("speaker"),
+    HEADPHONES("headphones"),
+    MONITOR("monitor"),
+    OTHER("other"),
+    ;
+
+    companion object {
+        /** A token this build does not know reads as [OTHER]. */
+        fun of(token: String): OutputKind = entries.firstOrNull { it.token == token } ?: OTHER
     }
 }
 

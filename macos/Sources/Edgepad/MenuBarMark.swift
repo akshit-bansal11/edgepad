@@ -12,7 +12,8 @@ enum MenuBarMark {
     /// About the weight of an SF Symbol at this size.
     private static let lineWidth: CGFloat = 1.6
 
-    static func image() -> NSImage {
+    /// `badged` adds a dot in the top corner: something needs the owner, and the menu says what.
+    static func image(badged: Bool = false) -> NSImage {
         let image = NSImage(size: NSSize(width: side, height: side), flipped: true) { _ in
             let path = NSBezierPath()
             path.lineWidth = lineWidth
@@ -31,10 +32,14 @@ enum MenuBarMark {
             path.curve(to: point(744, 504), controlPoint1: point(636.55, 744), controlPoint2: point(744, 636.55))
             NSColor.black.setStroke()
             path.stroke()
+            if badged {
+                NSColor.black.setFill()
+                NSBezierPath(ovalIn: NSRect(x: side - 7, y: 0, width: 7, height: 7)).fill()
+            }
             return true
         }
         image.isTemplate = true
-        image.accessibilityDescription = "Edgepad"
+        image.accessibilityDescription = badged ? "Edgepad, needs permission" : "Edgepad"
         return image
     }
 

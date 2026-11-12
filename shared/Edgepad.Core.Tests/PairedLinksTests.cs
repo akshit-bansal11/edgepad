@@ -29,6 +29,37 @@ public sealed class PairedLinksTests : IDisposable
     }
 
     [Fact]
+    public void ForgettingOnePairingKeepsTheOthersAndListsThem()
+    {
+        var links = NewLinks();
+        links.Add(Phone, Key, "Pixel");
+        links.Add(Other, Key, "Tablet");
+        Assert.Equal([(Phone, "Pixel"), (Other, "Tablet")], links.List());
+
+        Assert.True(links.ForgetOne(Phone.ToUpperInvariant()));
+
+        Assert.Equal([(Other, "Tablet")], NewLinks().List());
+        Assert.False(NewLinks().TryGet(Phone, out _, out _));
+        Assert.True(links.ForgetOne(Other));
+        Assert.Empty(NewLinks().List());
+    }
+
+    [Fact]
+    public void AForgetOneThatCannotBeWrittenRefusesThatPairingForTheRestOfTheRun()
+    {
+        var links = NewLinks();
+        links.Add(Phone, Key, "Pixel");
+
+        using (new Blocked(FilePath))
+        {
+            Assert.False(links.ForgetOne(Phone));
+        }
+
+        Assert.False(links.TryGet(Phone, out _, out _));
+        Assert.True(links.Forget());
+    }
+
+    [Fact]
     public void PairingAgainReplacesTheOldKey()
     {
         var links = NewLinks();

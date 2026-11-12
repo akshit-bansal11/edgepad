@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="gamepad_layout_title">Gamepad layout</string>
+  <string name="gamepad_layout_editing">Editing %1$s</string>
   <string name="gamepad_layout_hint">Drag to move. Long-press a control for its menu.</string>
   <string name="gamepad_layout_section">Layouts</string>
-  <string name="gamepad_description">Game controller for the laptop</string>
+  <string name="gamepad_description">Game controller for the laptop. It works by touch only.</string>
+  <string name="gamepad_node_dpad">D-pad</string>
+  <string name="gamepad_node_stick">Stick</string>
+  <string name="gamepad_node_button">Button</string>
   <string name="gamepad_size">Size</string>
   <string name="dp_value">%1$d dp</string>
 
   <!-- The two buttons in the editor's options popup; short, because they sit side by side in it. -->
   <string name="gamepad_add">Add</string>
+  <string name="gamepad_restore">Restore %1$s</string>
+  <string name="gamepad_restore_confirm">Restore %1$s? Tap again</string>
+  <string name="gamepad_switch_to">Switch to %1$s</string>
+  <string name="gamepad_switch_to_confirm">Switch to %1$s? Yours stays saved. Tap again</string>
   <string name="gamepad_layouts">Layouts</string>
 
   <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->
@@ -16,6 +24,9 @@
   <string name="gamepad_bind">Binding</string>
   <string name="gamepad_label">Label</string>
   <string name="gamepad_delete_control">Delete control</string>
+  <string name="gamepad_delete_title">Delete %1$s?</string>
+  <string name="gamepad_delete_body">It is removed from this layout. Add puts a control back.</string>
+  <string name="gamepad_name_required">Give the layout a name</string>
 
   <!-- Adding a control: the kinds offered, in the order the menu lists them. -->
   <string name="gamepad_add_control">Add control</string>

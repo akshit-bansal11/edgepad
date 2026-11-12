@@ -130,7 +130,8 @@ enum class RowStatus { NONE, REMEMBERED, CONNECTING, AWAITING, ASKING, RECONNECT
 /**
  * One laptop in Devices, however many ways it was seen: remembered, in [LaptopConnections], bonded, found on Wi-Fi or
  * over USB. [keys] names all of them. [network] holds one entry per transport. Bluetooth and the network are separate
- * rows, as only a pinned id joins two sightings and Bluetooth has none.
+ * rows, as only a pinned id joins two sightings and Bluetooth has none; [mergedRows] joins them for the list, and
+ * [others] then holds the second record, so that [laptops] is every link this one row stands for.
  */
 class LaptopRow(
     val keys: Set<String>,
@@ -139,14 +140,18 @@ class LaptopRow(
     val saved: SavedLaptop?,
     val bluetooth: String?,
     val network: List<Found>,
+    val others: List<Laptop> = emptyList(),
 ) {
+    /** Every record in [LaptopConnections] this row stands for. */
+    val laptops: List<Laptop> = listOfNotNull(laptop) + others
+
     /** Every transport this laptop can be connected over now, in [Transport] order. */
     val reach: List<Transport> =
         buildSet {
             if (bluetooth != null) add(Transport.BLUETOOTH)
             network.forEach { add(it.transport) }
             saved?.takeIf { it.hosts.isNotEmpty() }?.let { add(it.kind) }
-            laptop?.let { add(it.kind) }
+            laptops.forEach { add(it.kind) }
         }.sorted()
 
     /** The transport a tap uses: what it is on or was last on, while that is still there. */
@@ -234,3 +239,63 @@ internal fun laptopRows(
 private val LINE_BREAKERS = Regex("[\t\r\n]")
 private const val SAVED_FIELDS = 7
 private const val MAX_PORT = 65_535
+
+/**
+ * [rows] with one laptop's Bluetooth row and network row made one, for the list only: they are joined when one is
+ * reached over Bluetooth alone, the other over the network alone, the names match and, where both laptops have said,
+ * so does the OS. The keys stay separate underneath (see [LaptopRow]), so Forget and Disconnect reach both. The row
+ * of [selected], else the one furthest along, speaks for the pair.
+ */
+internal fun mergedRows(
+    rows: List<LaptopRow>,
+    selected: Laptop?,
+): List<LaptopRow> {
+    val out = ArrayList<LaptopRow>()
+    for (row in rows) {
+        val at = out.indexOfFirst { sameMachine(it, row) }
+        if (at < 0) out.add(row) else out[at] = joined(out[at], row, selected)
+    }
+    return out
+}
+
+private fun sameMachine(
+    a: LaptopRow,
+    b: LaptopRow,
+): Boolean {
+    val bluetoothAndNetwork =
+        (a.reach == listOf(Transport.BLUETOOTH) && Transport.BLUETOOTH !in b.reach && b.reach.isNotEmpty()) ||
+            (b.reach == listOf(Transport.BLUETOOTH) && Transport.BLUETOOTH !in a.reach && a.reach.isNotEmpty())
+    if (!bluetoothAndNetwork || !a.name.trim().equals(b.name.trim(), ignoreCase = true)) return false
+    val x = a.laptops.firstNotNullOfOrNull { it.state.os }
+    val y = b.laptops.firstNotNullOfOrNull { it.state.os }
+    return x == null || y == null || x == y
+}
+
+private fun joined(
+    a: LaptopRow,
+    b: LaptopRow,
+    selected: Laptop?,
+): LaptopRow {
+    val every = a.laptops + b.laptops
+    val first = every.firstOrNull { it === selected } ?: every.maxByOrNull(::progress)
+    val saved = listOfNotNull(a.saved, b.saved)
+    val kept = saved.firstOrNull { it.hosts.isNotEmpty() } ?: saved.firstOrNull()
+    return LaptopRow(
+        a.keys + b.keys,
+        a.name,
+        first,
+        kept,
+        a.bluetooth ?: b.bluetooth,
+        a.network + b.network,
+        every.filter { it !== first },
+    )
+}
+
+/** How far along a laptop's record is, so the row of two shows the one that is doing something. */
+private fun progress(laptop: Laptop): Int =
+    when {
+        laptop.connected -> 3
+        laptop.asking != null -> 2
+        laptop.link != null || laptop.retryTimer != null -> 1
+        else -> 0
+    }

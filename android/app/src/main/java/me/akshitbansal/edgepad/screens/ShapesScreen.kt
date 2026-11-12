@@ -138,7 +138,7 @@ object ShapesScreen {
                     ui.string(R.string.shapes_delete_title),
                     ui.string(R.string.shapes_delete_body, target),
                     ui.string(R.string.shapes_delete),
-                    onDelete,
+                    onConfirm = onDelete,
                 )
             }
         return ui.row(start, delete).apply { minimumHeight = ui.dp(ROW_DP) }

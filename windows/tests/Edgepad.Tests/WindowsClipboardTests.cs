@@ -94,7 +94,22 @@ public sealed class WindowsClipboardTests : IDisposable
     }
 
     [Fact]
-    public void NoFileIsOn() => Assert.True(new ClipboardSetting(FilePath).Enabled);
+    public void NoFileIsOffAndUnanswered()
+    {
+        var setting = new ClipboardSetting(FilePath);
+
+        Assert.False(setting.Enabled);
+        Assert.False(setting.HasChoice);
+    }
+
+    [Fact]
+    public void ASavedAnswerIsAChoiceWhateverItSays()
+    {
+        var setting = ClipboardSetting.ForCurrentUser(dir);
+        setting.Set(false);
+
+        Assert.True(new ClipboardSetting(FilePath).HasChoice);
+    }
 
     [Fact]
     public void OffIsRememberedAndOnAgainToo()
@@ -133,6 +148,10 @@ public sealed class WindowsClipboardTests : IDisposable
         Directory.CreateDirectory(dir);
         File.WriteAllText(Path.Combine(dir, "in-the-way"), "");
         var setting = new ClipboardSetting(Path.Combine(dir, "in-the-way", "clipboard.txt"));
+        Assert.False(setting.Enabled);
+
+        // No file is off now, so turn it on in memory first; the point is that off then holds despite the failed write.
+        Assert.False(setting.Set(true));
         Assert.True(setting.Enabled);
 
         Assert.False(setting.Set(false));

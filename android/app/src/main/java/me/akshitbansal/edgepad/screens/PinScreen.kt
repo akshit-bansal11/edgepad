@@ -2,10 +2,12 @@ package me.akshitbansal.edgepad.screens
 
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -32,6 +34,7 @@ class PinScreen(
     private val dots = List(Pin.LENGTH) { View(ui.context) }
     private var sent = answered
     private lateinit var row: LinearLayout
+    private lateinit var checking: TextView
 
     val view: View =
         ui.page(centred = true) {
@@ -54,7 +57,11 @@ class PinScreen(
             if (attemptsLeft < ATTEMPTS) {
                 val line =
                     ui.context.resources.getQuantityString(R.plurals.pin_attempts_left, attemptsLeft, attemptsLeft)
-                secondary(line, color = ui.palette.danger, topDp = Space.S).gravity = Gravity.CENTER
+                secondary(line, color = ui.palette.danger, topDp = Space.S).apply {
+                    gravity = Gravity.CENTER
+                    // The screen was rebuilt for this answer; the line is read out after the pane title.
+                    accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+                }
             }
             row =
                 LinearLayout(ui.context).apply {
@@ -72,6 +79,11 @@ class PinScreen(
                     }
                 }
             add(row, gap)
+            checking =
+                secondary(if (sent) ui.string(R.string.pin_checking) else "", topDp = Space.S).apply {
+                    gravity = Gravity.CENTER
+                    accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+                }
             add(keypad(), gap, width = ui.dp(KEYPAD_DP))
             val cancel = ui.button(ui.string(R.string.pin_cancel), Ui.Style.QUIET, onCancel)
             add(cancel, Space.S, width = ui.dp(KEYPAD_DP))
@@ -81,6 +93,20 @@ class PinScreen(
     init {
         view.accessibilityPaneTitle = ui.string(R.string.pin_title)
         showDots()
+        // A hardware keyboard types the PIN as well; the digits go nowhere but this entry, as with the keypad.
+        view.isFocusableInTouchMode = true
+        view.defaultFocusHighlightEnabled = false
+        view.setOnKeyListener { _, code, event -> event.action == KeyEvent.ACTION_DOWN && typed(code) }
+        view.post { view.requestFocus() }
+    }
+
+    private fun typed(code: Int): Boolean {
+        when (code) {
+            in KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9 -> press(code - KeyEvent.KEYCODE_0)
+            KeyEvent.KEYCODE_DEL -> delete()
+            else -> return false
+        }
+        return true
     }
 
     private fun keypad(): LinearLayout =
@@ -123,6 +149,7 @@ class PinScreen(
         showDots()
         if (!entry.isComplete) return
         sent = true
+        checking.text = ui.string(R.string.pin_checking)
         val pin = entry.pin()
         // The six dots stay filled while the laptop checks; the digits themselves go now.
         entry.clear()

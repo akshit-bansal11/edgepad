@@ -116,6 +116,17 @@ public protocol ClipboardSurface: AnyObject {
     func write(_ content: ClipboardContent) -> Bool
 }
 
+/// What this Mac reports for TEXT 19 and TEXT 20: the batteries of the laptop and its peripherals, and where the
+/// sound goes. A Mac without one (and a test) leaves it nil, and the phone is sent neither.
+public protocol PowerSource: AnyObject {
+    /// Laptop first, then peripherals; a device with no level is left out.
+    func batteries() -> [BatteryEntry]
+    /// The default audio output, or nil when none is known.
+    func output() -> (OutputKind, String)?
+    /// Called when a battery or the default output may have changed. Set by the session, cleared by `end()`.
+    var changed: (() -> Void)? { get set }
+}
+
 /// The annotation overlay and signature export, which draw on this Mac's screen. The dispatcher hands it the pen
 /// and the annotate actions; a Mac without one (and a test) leaves it nil, and those frames are dropped and counted.
 /// Every answer is false for a frame it did not take.

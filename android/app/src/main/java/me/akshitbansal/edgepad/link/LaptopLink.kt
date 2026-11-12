@@ -186,6 +186,9 @@ class LaptopLink(
 
     @Volatile private var handshakeDone = false
 
+    /** Snapshot frames: one main-thread post per kind at a time, newest value (see [Latest]). */
+    private val latest = Latest({ main.post(it) }, { if (!closed) listener.onFrame(it) })
+
     private val slowAnswer = Runnable { if (!handshakeDone && !closed) deliver { it.onAwaitingLaptop(this) } }
     private val noAnswer = Runnable { if (!handshakeDone) close(Closure(Cause.NO_ANSWER)) }
 
@@ -268,7 +271,7 @@ class LaptopLink(
                     // Asked for here, ahead of the main thread, so the pictures are on their way before any
                     // screen wants them and are cached by the time the macro screen opens.
                     if (wantsIcons(frame)) send(TextKind.WANT_ICONS.frame(iconPx.toString()))
-                    deliver { it.onFrame(frame) }
+                    if (!latest.offer(frame)) deliver { it.onFrame(frame) }
                 }
             }
         } catch (e: IOException) {

@@ -9,6 +9,8 @@ import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
+import android.view.accessibility.AccessibilityNodeProvider
+import android.widget.LinearLayout
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
@@ -18,6 +20,7 @@ import me.akshitbansal.edgepad.gamepad.ControlGeometry
 import me.akshitbansal.edgepad.gamepad.ControlKind
 import me.akshitbansal.edgepad.gamepad.GamepadLayout
 import me.akshitbansal.edgepad.gamepad.PadAxis
+import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadButton
 import me.akshitbansal.edgepad.protocol.PadStatus
@@ -38,20 +41,42 @@ class GamepadScreen(
     ui: Ui,
     layout: GamepadLayout,
     status: PadStatus?,
+    os: DeviceOs?,
+    names: List<String>,
+    onPick: (String) -> Unit,
+    onEdit: () -> Unit,
     onKey: (code: Int, down: Boolean) -> Unit,
     onPad: (state: Frame.PadState) -> Unit,
     onBack: () -> Unit,
     onSettings: () -> Unit,
 ) {
-    private val pad = Surface(ui.context, layout, onKey, onPad)
+    private var openOptions: () -> Unit = {}
+    private val pad = Surface(ui.context, layout, os, onKey, onPad) { openOptions() }
 
-    // The options sheet holds the one way into the gamepad's settings page, where the layouts are chosen and edited.
+    // The options sheet: the layouts to switch between in place, the editor, and the gamepad's settings page.
     val view: View =
         EditorFrame
-            .build(ui, layout.name, pad, onBack) { close ->
-                ui.button(ui.string(R.string.gamepad_settings_title), Ui.Style.QUIET) {
-                    close()
-                    onSettings()
+            .build(ui, layout.name, pad, onBack, onOpener = { openOptions = it }) { close ->
+                LinearLayout(ui.context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    addView(
+                        GamepadLayoutScreen.layouts(ui, names, layout.name) { name ->
+                            close()
+                            onPick(name)
+                        },
+                    )
+                    addView(
+                        ui.button(ui.string(R.string.gamepad_edit), Ui.Style.QUIET) {
+                            close()
+                            onEdit()
+                        },
+                    )
+                    addView(
+                        ui.button(ui.string(R.string.gamepad_settings_title), Ui.Style.QUIET) {
+                            close()
+                            onSettings()
+                        },
+                    )
                 }
             }.apply {
                 keepScreenOn = true
@@ -92,11 +117,14 @@ class GamepadScreen(
     private class Surface(
         context: Context,
         private val layout: GamepadLayout,
+        private val os: DeviceOs?,
         private val onKey: (code: Int, down: Boolean) -> Unit,
         private val onPad: (state: Frame.PadState) -> Unit,
+        /** AND-A-11: the keyboard-mode pill was tapped; the options sheet lists the layouts. */
+        private val onPill: () -> Unit,
     ) : View(context) {
         /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
-        constructor(context: Context) : this(context, GamepadLayout("", emptyList()), { _, _ -> }, { })
+        constructor(context: Context) : this(context, GamepadLayout("", emptyList()), null, { _, _ -> }, { }, { })
 
         private val density = resources.displayMetrics.density
         private val palette = Palette.of(context)
@@ -133,6 +161,9 @@ class GamepadScreen(
         private val pointerToControl = IntArray(MAX_POINTERS) { NONE }
 
         private val box = RectF()
+        private val pillBox = RectF()
+        private var pillDown = false
+        private val waited = Runnable { showMode(null, waitedOut = true) }
         private val painter = PadPainter(context)
 
         // The keyboard-mode line: bold dim text on a card pill, with the same soft line under it on the
@@ -153,21 +184,79 @@ class GamepadScreen(
             contentDescription = context.getString(R.string.gamepad_description)
         }
 
+        // AND-A-8: every control is its own node for a screen reader; sticks and the d-pad are touch-only, just named.
+        private val nodes =
+            ControlNodes(
+                this,
+                controls.size,
+                label = ::spoken,
+                bounds = { i, out ->
+                    out.set(centerX[i] - halfW[i], centerY[i] - halfH[i], centerX[i] + halfW[i], centerY[i] + halfH[i])
+                },
+                clickable = ::tappable,
+                click = ::tap,
+                state = { i -> if (pressed[i]) context.getString(R.string.keyboard_key_on) else null },
+            )
+
+        override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider = nodes
+
+        private fun spoken(i: Int): String {
+            val control = controls[i]
+            if (control.label.isNotBlank()) return control.label
+            return context.getString(
+                when (control.kind) {
+                    ControlKind.DPAD -> R.string.gamepad_node_dpad
+                    ControlKind.STICK -> R.string.gamepad_node_stick
+                    else -> R.string.gamepad_node_button
+                },
+            )
+        }
+
+        private fun tappable(i: Int): Boolean =
+            controls[i].kind == ControlKind.BUTTON || controls[i].kind == ControlKind.SHOULDER
+
+        /** A screen reader's double tap: the control goes down and up, each sent as a touch would have sent it. */
+        private fun tap(i: Int) {
+            press(i, centerX[i], centerY[i])
+            if (padMode) sendPad()
+            release(i)
+            if (padMode) sendPad()
+            invalidate()
+        }
+
         /** Takes the laptop's last word on its controller and settles which of the two modes this pad is in. */
-        fun showMode(status: PadStatus?) {
+        fun showMode(
+            status: PadStatus?,
+            waitedOut: Boolean = false,
+        ) {
             padMode = status == PadStatus.READY
+            removeCallbacks(waited)
+            // AND-A-11: a laptop that predates PAD_ATTACH never answers, so the waiting line gives way to saying so.
+            if (status == null && !waitedOut) postDelayed(waited, WAIT_MS)
+            val waitingLine = if (waitedOut) R.string.gamepad_mode_unanswered else R.string.gamepad_mode_waiting
             mode =
                 when (status) {
                     PadStatus.READY -> null
-                    PadStatus.NO_DRIVER -> context.getString(R.string.gamepad_mode_no_driver)
+                    PadStatus.NO_DRIVER -> context.getString(noDriverLine())
                     PadStatus.ATTACH_FAILED -> context.getString(R.string.gamepad_mode_attach_failed)
-                    null -> context.getString(R.string.gamepad_mode_waiting)
+                    null -> context.getString(waitingLine)
                 }
             // The state of the view, not its name: a screen reader announces it with the description
             // already set, which is how the player who cannot see the line still hears it.
             stateDescription = mode
             invalidate()
         }
+
+        /** AND-A-1: the pill names the fix for this laptop: ViGEmBus on Windows, nothing to install on a Mac. */
+        private fun noDriverLine(): Int =
+            when (os) {
+                DeviceOs.WINDOWS -> R.string.gamepad_mode_no_driver_windows
+                DeviceOs.MACOS -> R.string.gamepad_mode_no_driver_mac
+                else -> R.string.gamepad_mode_no_driver
+            }
+
+        /** A press that sends nothing (a controller button while the laptop has no controller) gets no tick either. */
+        private fun sends(i: Int): Boolean = padMode || controls[i].binding is Binding.Keys
 
         override fun onSizeChanged(
             w: Int,
@@ -240,14 +329,30 @@ class GamepadScreen(
             val cx = width / 2f
             val cy = height / 2f
             val drop = Space.HAIR * density
-            box.set(cx - halfWidth, cy - halfHeight, cx + halfWidth, cy + halfHeight)
+            pillBox.set(cx - halfWidth, cy - halfHeight, cx + halfWidth, cy + halfHeight)
             if (!palette.dark) {
-                box.offset(0f, drop)
-                canvas.drawRoundRect(box, halfHeight, halfHeight, pillShadow)
-                box.offset(0f, -drop)
+                pillBox.offset(0f, drop)
+                canvas.drawRoundRect(pillBox, halfHeight, halfHeight, pillShadow)
+                pillBox.offset(0f, -drop)
             }
-            canvas.drawRoundRect(box, halfHeight, halfHeight, pillFill)
+            canvas.drawRoundRect(pillBox, halfHeight, halfHeight, pillFill)
             canvas.drawText(line, cx, cy + pillText.textSize * Type.CAP_CENTRE, pillText)
+        }
+
+        /** Inside the drawn pill, with the room a thumb needs around a pill this thin. */
+        private fun pillContains(
+            x: Float,
+            y: Float,
+        ): Boolean {
+            if (pillBox.isEmpty) return false
+            val slop = PILL_SLOP_DP * density
+            return x in (pillBox.left - slop)..(pillBox.right + slop) &&
+                y in (pillBox.top - slop)..(pillBox.bottom + slop)
+        }
+
+        override fun onDetachedFromWindow() {
+            removeCallbacks(waited)
+            super.onDetachedFromWindow()
         }
 
         /** Whether a finger is on control [i] right now, which is what turns a stick's thumb accent. */
@@ -263,6 +368,11 @@ class GamepadScreen(
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                     val idx = event.actionIndex
                     val pointerId = event.getPointerId(idx)
+                    // The pill sits in the empty middle of every preset, so a touch on it is never a control's.
+                    if (mode != null && pillContains(event.getX(idx), event.getY(idx))) {
+                        pillDown = true
+                        return true
+                    }
                     if (pointerId < MAX_POINTERS) {
                         val controlIndex = hitTest(event.getX(idx), event.getY(idx))
                         if (controlIndex != NONE) {
@@ -285,6 +395,12 @@ class GamepadScreen(
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                     val idx = event.actionIndex
                     val pointerId = event.getPointerId(idx)
+                    if (pillDown) {
+                        pillDown = false
+                        performClick()
+                        onPill()
+                        return true
+                    }
                     if (pointerId < MAX_POINTERS) {
                         val controlIndex = pointerToControl[pointerId]
                         if (controlIndex != NONE) {
@@ -296,6 +412,7 @@ class GamepadScreen(
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
+                    pillDown = false
                     for (pointerId in 0 until MAX_POINTERS) {
                         val controlIndex = pointerToControl[pointerId]
                         if (controlIndex == NONE) continue
@@ -354,7 +471,7 @@ class GamepadScreen(
                     pressed[i] = true
                     pull[i] = PadAxis.trigger(y - centerY[i], halfH[i])
                     keys(i)?.let { onKey(it[0], true) }
-                    performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                    if (sends(i)) performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                 }
 
                 ControlKind.DPAD -> {
@@ -561,7 +678,7 @@ class GamepadScreen(
                 }
             }
             dirBits[i] = newBits
-            performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            if (sends(i)) performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
         }
 
         private companion object {
@@ -610,6 +727,8 @@ class GamepadScreen(
             const val PILL_SIDE_DP = 14f
             const val PILL_TOP_DP = 7f
             const val PILL_LEADING = 1.35f
+            const val PILL_SLOP_DP = 12f
+            const val WAIT_MS = 8_000L
         }
     }
 }

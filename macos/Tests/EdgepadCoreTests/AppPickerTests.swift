@@ -37,6 +37,11 @@ final class AppPickerTests: XCTestCase {
 
     private lazy var store = MacroStore(path: macrosPath, launcher: launcher, schedule: { $0() })
 
+    override func setUp() {
+        super.setUp()
+        AppPicker.resetEpochs()
+    }
+
     override func tearDown() {
         try? FileManager.default.removeItem(at: directory)
         super.tearDown()
@@ -66,6 +71,7 @@ final class AppPickerTests: XCTestCase {
             store: store,
             sender: sender(),
             schedule: { $0() },
+            background: { $0() },
             scheduleAfter: { [unowned self] delay, work in
                 self.ticks.append(delay)
                 work()
@@ -254,6 +260,7 @@ final class AppPickerTests: XCTestCase {
         var work: [() -> Void] = []
         let picker = AppPicker(
             catalog: catalog, store: store, sender: sender(), schedule: { work.append($0) },
+            background: { $0() },
             scheduleAfter: { _, run in run() })
         catalog.apps = [app("One")]
 
@@ -270,6 +277,7 @@ final class AppPickerTests: XCTestCase {
         var held: [() -> Void] = []
         let picker = AppPicker(
             catalog: catalog, store: store, sender: sender(), schedule: { $0() },
+            background: { $0() },
             scheduleAfter: { _, run in held.append(run) })
         catalog.apps = [app("One"), app("Two")]
         catalog.iconFor = { _ in [1] }
@@ -325,10 +333,47 @@ final class AppPickerTests: XCTestCase {
         XCTAssertEqual(picker.add("2.0"), .added)
     }
 
+    func testATokenFromAnotherPickersListIsStaleEvenAtTheSameIndex() {
+        let first = makePicker()
+        let second = makePicker()
+        catalog.apps = [app("One")]
+        _ = first.list()
+        _ = second.list()
+
+        XCTAssertEqual(first.add("1.0"), .added)
+        XCTAssertEqual(second.add("1.0"), .stale)
+        XCTAssertEqual(second.add("2.0"), .duplicate)
+    }
+
+    func testASecondListWhileAScanRunsWaitsForItInsteadOfScanningBesideIt() {
+        var held: [() -> Void] = []
+        var turns: [() -> Void] = []
+        let picker = AppPicker(
+            catalog: catalog, store: store, sender: sender(), schedule: { turns.append($0) },
+            background: { held.append($0) },
+            scheduleAfter: { _, run in run() })
+        catalog.apps = [app("One")]
+
+        _ = picker.list()
+        turns.removeFirst()()
+        _ = picker.list()
+        turns.removeFirst()()
+
+        XCTAssertEqual(held.count, 1)
+        held.removeFirst()()
+        turns.removeFirst()()
+        XCTAssertEqual(held.count, 1)
+        held.removeFirst()()
+        turns.removeFirst()()
+        XCTAssertEqual(catalog.scans, 2)
+        XCTAssertEqual(picker.add("2.0"), .added)
+    }
+
     func testNoTokenWorksWhileTheNewListIsBeingScanned() {
         var work: [() -> Void] = []
         let picker = AppPicker(
             catalog: catalog, store: store, sender: sender(), schedule: { work.append($0) },
+            background: { $0() },
             scheduleAfter: { _, run in run() })
         catalog.apps = [app("One")]
 

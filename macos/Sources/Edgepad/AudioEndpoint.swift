@@ -1,6 +1,7 @@
 import AudioToolbox
 import CoreAudio
 import EdgepadCore
+import Foundation
 
 /// The default speakers or the default microphone through Core Audio. The default device is looked up on
 /// every call because the user can switch devices at any time. Every answer may be "no".
@@ -51,6 +52,77 @@ final class AudioEndpoint: LevelControl {
         return set(device, mute, next)
     }
 
+    /// The default device's kind and name for TEXT 20, or nil when there is none. Built-in shows the data source
+    /// ("Internal Speakers", "Headphones") where it has one; Bluetooth and a monitor show the device's own name.
+    func outputDevice() -> (OutputKind, String)? {
+        guard let device = defaultDevice() else { return nil }
+        let name = string(device, address(kAudioObjectPropertyName, kAudioObjectPropertyScopeGlobal)) ?? ""
+        let transport: UInt32 =
+            get(device, address(kAudioDevicePropertyTransportType, kAudioObjectPropertyScopeGlobal)) ?? 0
+        switch transport {
+        case UInt32(kAudioDeviceTransportTypeBuiltIn):
+            let source = dataSource(device)
+            let shown = source?.name ?? name
+            let headphones = source?.id == Self.headphonesSource || shown.localizedCaseInsensitiveContains("headphone")
+            return (headphones ? .headphones : .speaker, shown)
+        case UInt32(kAudioDeviceTransportTypeBluetooth), UInt32(kAudioDeviceTransportTypeBluetoothLE):
+            return (.headphones, name)
+        case UInt32(kAudioDeviceTransportTypeHDMI), UInt32(kAudioDeviceTransportTypeDisplayPort):
+            return (.monitor, name)
+        default:
+            return (.other, name)
+        }
+    }
+
+    /// `kIOAudioOutputPortSubTypeHeadphones`, the data source id of a built-in headphone jack.
+    private static let headphonesSource: UInt32 = 0x6864_706E  // 'hdpn'
+
+    /// Calls `onChange` on the main queue whenever the default device changes. Nil when Core Audio refused; otherwise
+    /// hand the result to `stopWatching` on teardown.
+    func watchDefault(_ onChange: @escaping () -> Void) -> AudioObjectPropertyListenerBlock? {
+        var address = defaultAddress()
+        let block: AudioObjectPropertyListenerBlock = { _, _ in onChange() }
+        let status = AudioObjectAddPropertyListenerBlock(
+            AudioObjectID(kAudioObjectSystemObject), &address, DispatchQueue.main, block)
+        return status == noErr ? block : nil
+    }
+
+    func stopWatching(_ block: @escaping AudioObjectPropertyListenerBlock) {
+        var address = defaultAddress()
+        _ = AudioObjectRemovePropertyListenerBlock(
+            AudioObjectID(kAudioObjectSystemObject), &address, DispatchQueue.main, block)
+    }
+
+    /// The current data source's id and name, or nil for a device without one.
+    private func dataSource(_ device: AudioObjectID) -> (id: UInt32, name: String)? {
+        guard var id: UInt32 = get(device, address(kAudioDevicePropertyDataSource, scope)) else { return nil }
+        var translate = address(kAudioDevicePropertyDataSourceNameForIDCFString, scope)
+        var name: Unmanaged<CFString>?
+        var size = UInt32(MemoryLayout<AudioValueTranslation>.size)
+        let status = withUnsafeMutablePointer(to: &id) { input in
+            withUnsafeMutablePointer(to: &name) { output in
+                var translation = AudioValueTranslation(
+                    mInputData: input, mInputDataSize: UInt32(MemoryLayout<UInt32>.size),
+                    mOutputData: output, mOutputDataSize: UInt32(MemoryLayout<Unmanaged<CFString>?>.size))
+                return AudioObjectGetPropertyData(device, &translate, 0, nil, &size, &translation)
+            }
+        }
+        guard status == noErr, let name else { return nil }
+        return (id, name.takeRetainedValue() as String)
+    }
+
+    /// A property Core Audio answers with a retained CFString, such as a device's name.
+    private func string(_ object: AudioObjectID, _ address: AudioObjectPropertyAddress) -> String? {
+        var address = address
+        var value: Unmanaged<CFString>?
+        var size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+        let status = withUnsafeMutablePointer(to: &value) {
+            AudioObjectGetPropertyData(object, &address, 0, nil, &size, $0)
+        }
+        guard status == noErr, let value else { return nil }
+        return value.takeRetainedValue() as String
+    }
+
     /// The C calls take the address by pointer, so each wrapper copies it into a `var`.
     private func has(_ object: AudioObjectID, _ address: AudioObjectPropertyAddress) -> Bool {
         var address = address
@@ -85,11 +157,15 @@ final class AudioEndpoint: LevelControl {
         address(kAudioDevicePropertyMute, scope)
     }
 
-    private func defaultDevice() -> AudioObjectID? {
+    private func defaultAddress() -> AudioObjectPropertyAddress {
         let selector =
             direction == .output ? kAudioHardwarePropertyDefaultOutputDevice : kAudioHardwarePropertyDefaultInputDevice
+        return address(selector, kAudioObjectPropertyScopeGlobal)
+    }
+
+    private func defaultDevice() -> AudioObjectID? {
         let system = AudioObjectID(kAudioObjectSystemObject)
-        guard let device: AudioObjectID = get(system, address(selector, kAudioObjectPropertyScopeGlobal)),
+        guard let device: AudioObjectID = get(system, defaultAddress()),
             device != kAudioObjectUnknown
         else { return nil }
         return device

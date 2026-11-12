@@ -45,13 +45,30 @@ public sealed class PairingPromptTests
     }
 
     [Fact]
+    public void TheSourceReachesTheWindow()
+    {
+        var queue = new Queue<Action>();
+        string? seen = "unset";
+        var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, source, _, _, _) =>
+        {
+            seen = source;
+            return new Window();
+        });
+
+        using var handle = prompt.Show("Pixel", "from 192.168.1.23, over Wi-Fi", _ => { }, () => { });
+        queue.Dequeue()();
+
+        Assert.Equal("from 192.168.1.23, over Wi-Fi", seen);
+    }
+
+    [Fact]
     public void TheQuestionNamesThePhoneAndOpensOnTheUiThreadWithinTheOwnersTime()
     {
         var queue = new Queue<Action>();
         var announced = new List<string>();
         string? opened = null;
         long deadline = 0;
-        var prompt = new PairingPrompt(queue.Enqueue, announced.Add, (phone, until, _, _) =>
+        var prompt = new PairingPrompt(queue.Enqueue, announced.Add, (phone, _, until, _, _) =>
         {
             opened = phone;
             deadline = until;
@@ -74,7 +91,7 @@ public sealed class PairingPromptTests
     {
         var queue = new Queue<Action>();
         using var window = new Window();
-        var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, _, _, _) => window);
+        var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, _, _, _, _) => window);
 
         var handle = prompt.Show("Pixel", _ => { }, () => { });
 
@@ -99,7 +116,7 @@ public sealed class PairingPromptTests
     {
         var queue = new Queue<Action>();
         using var window = new Window();
-        var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, _, _, _) => window);
+        var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, _, _, _, _) => window);
 
         using (var handle = prompt.Show("Pixel", _ => { }, () => { }))
         {
@@ -120,7 +137,7 @@ public sealed class PairingPromptTests
     {
         var queue = new Queue<Action>();
         var opened = false;
-        var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, _, _, _) =>
+        var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, _, _, _, _) =>
         {
             opened = true;
             return new Window();

@@ -26,6 +26,10 @@ final class RfcommServer: NSObject {
 
     /// False when the service could not be published or the channel could not be listened on; the log says which.
     func start() -> Bool {
+        // Already published: a second start (a retry that raced a wake) must not publish a second record.
+        if serviceRecord != nil, notification != nil {
+            return true
+        }
         guard let uuid = UUID(uuidString: ProtocolConstants.serviceId) else {
             return startFailed("the service id is not a UUID")
         }
@@ -67,7 +71,10 @@ final class RfcommServer: NSObject {
 
         lastStartFailure = nil
         Log.write("RFCOMM service advertising")
-        onStatus(SessionHost.waiting)
+        // Only after the record and the channel are up, and never over a phone that is connected.
+        if !host.hasPhone {
+            onStatus(SessionHost.waiting)
+        }
         return true
     }
 
@@ -127,7 +134,8 @@ final class RfcommServer: NSObject {
         let transport = RfcommTransport(channel: channel)
         // Held by the host until it ends; the transport only points at it.
         let session = host.accept(
-            address: address, phone: PhoneLabel.describe(name: device.name, address: address), shownAs: nil,
+            address: address, phone: PhoneLabel.describe(name: device.name, address: address),
+            shownAs: PhoneLabel.clean(device.name).isEmpty ? nil : PhoneLabel.clean(device.name), link: "Bluetooth",
             transport: transport)
         transport.session = session
         channel.setDelegate(transport)

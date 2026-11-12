@@ -162,11 +162,13 @@ class LaptopConnectionsTest {
         log.lines.clear()
         old.events.onConnected()
         old.events.onFrame(Frame.Text(TextKind.NOW_PLAYING.id, "stale"))
+        old.events.onFrame(Frame.Text(TextKind.INPUT_STATE.id, "blocked"))
         old.events.onRoundTrip(1.0)
         old.events.onClosed(LaptopLink.Closure(LaptopLink.Cause.LOST))
         assertTrue(log.lines.isEmpty())
         assertSame(next, laptop(1).link)
         assertEquals("", laptop(1).state.nowPlaying)
+        assertFalse(laptop(1).state.inputBlocked)
         assertTrue(laptop(1).rtt.median().isNaN())
     }
 
@@ -181,6 +183,19 @@ class LaptopConnectionsTest {
         assertEquals("", laptop(1).state.nowPlaying)
         assertEquals(4.0, laptop(2).rtt.median(), 0.0)
         assertEquals(listOf("frame ${id(2)}", "rtt ${id(2)}"), log.lines)
+    }
+
+    @Test
+    fun theInputStateDoesNotOutliveItsLink() {
+        val a = up(1)
+        a.events.onFrame(Frame.Text(TextKind.INPUT_STATE.id, "blocked"))
+        assertTrue(laptop(1).state.inputBlocked)
+        a.drop()
+        assertFalse(laptop(1).state.inputBlocked)
+        val b = up(1)
+        b.events.onFrame(Frame.Text(TextKind.INPUT_STATE.id, "blocked"))
+        connect(1)
+        assertFalse(laptop(1).state.inputBlocked)
     }
 
     @Test
@@ -558,6 +573,47 @@ class LaptopConnectionsTest {
         attempt.drop(LaptopLink.Cause.REFUSED)
         scheduler.advance(LaptopConnections.RETRY_DELAY_MS)
         assertEquals(2, made.size)
+    }
+
+    @Test
+    fun aLaptopThatForgotThePhoneIsRememberedAsSuchUntilTheNextAttempt() {
+        connect(1).drop(LaptopLink.Cause.NOT_PAIRED)
+        assertEquals(LaptopLink.Cause.NOT_PAIRED, laptop(1).lastCause)
+        connect(1)
+        assertNull(laptop(1).lastCause)
+    }
+
+    @Test
+    fun disconnectAllEndsEveryLinkAndDropsTheRetriesWaiting() {
+        val a = up(1)
+        up(2).drop()
+        manager.disconnectAll()
+        assertEquals(LaptopLink.Cause.ENDED, a.closedWith)
+        scheduler.advance(LaptopConnections.RETRY_DELAY_MS * 2)
+        assertEquals(2, made.size)
+        assertFalse(laptop(2).reconnecting)
+    }
+
+    @Test
+    fun aKeptAliveProcessGoesOnRetryingInTheBackgroundUpToTheCap() {
+        up(1).drop()
+        manager.keepAlive = true
+        manager.foreground = false
+        repeat(LaptopConnections.MAX_ATTEMPTS * 2) {
+            scheduler.advance(LaptopConnections.RETRY_DELAY_MS)
+            made.last().drop(LaptopLink.Cause.UNREACHABLE)
+        }
+        assertEquals(LaptopConnections.MAX_ATTEMPTS, linksTo(1))
+    }
+
+    @Test
+    fun theBackgroundRetriesStopWhenTheProcessIsNoLongerHeld() {
+        up(1).drop()
+        manager.keepAlive = true
+        manager.foreground = false
+        manager.keepAlive = false
+        scheduler.advance(LaptopConnections.RETRY_DELAY_MS * 2)
+        assertEquals(1, made.size)
     }
 
     private class FakeLink(

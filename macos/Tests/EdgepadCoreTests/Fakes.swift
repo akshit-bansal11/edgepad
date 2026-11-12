@@ -153,6 +153,15 @@ final class FakeTransport: Transport {
     }
 }
 
+final class FakePower: PowerSource {
+    var list: [BatteryEntry] = []
+    var out: (OutputKind, String)?
+    var changed: (() -> Void)?
+
+    func batteries() -> [BatteryEntry] { list }
+    func output() -> (OutputKind, String)? { out }
+}
+
 final class FakeAnnotation: AnnotationSink {
     var screenSize: (width: Int, height: Int)? = (1920, 1080)
     var signStatusReply: ((String) -> Void)?

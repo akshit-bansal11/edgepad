@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.surface
 
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.drawable.Drawable
 import android.text.TextPaint
 import android.util.DisplayMetrics
 import android.util.TypedValue
@@ -36,6 +37,11 @@ class RulerPainter(
             textAlign = Paint.Align.CENTER
             letterSpacing = LABEL_TRACKING
         }
+    private val subPaint =
+        TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = Type.bold
+            textAlign = Paint.Align.LEFT
+        }
     private val split = FloatArray(3)
     private val keepOut = FloatArray(2)
     private val valuePaint =
@@ -66,6 +72,8 @@ class RulerPainter(
         label: String,
         number: String,
         pt: FloatArray,
+        sub: String? = null,
+        subIcon: Drawable? = null,
     ) {
         val notch = dp(Dial.NOTCH_DP)
         val ruler = dp(rulerDp)
@@ -129,7 +137,10 @@ class RulerPainter(
         // height allows, so they do not move when the dial arms and its marks grow.
         val labelSize = sp(LABEL_SP)
         val valueSize = sp(if (armed) ARMED_VALUE_SP else VALUE_SP)
-        val block = if (number.isEmpty()) labelSize else labelSize + dp(GAP_DP) + valueSize
+        val subSize = sp(SUB_SP)
+        val hasSub = !sub.isNullOrEmpty()
+        val base = if (number.isEmpty()) labelSize else labelSize + dp(GAP_DP) + valueSize
+        val block = if (hasSub) base + dp(SUB_GAP_DP) + subSize else base
         val depth = dp(RulerGeometry.reach(height) + LABEL_GAP_DP)
         val ax = pt[0] + pt[2] * depth
         val ay = pt[1] + pt[3] * depth
@@ -143,6 +154,22 @@ class RulerPainter(
             valuePaint.textSize = valueSize
             valuePaint.color = if (armed) accent else ink
             canvas.drawText(number, ax, top + labelSize + dp(GAP_DP) + valueSize * BASELINE, valuePaint)
+        }
+        if (sub != null && hasSub) {
+            // The output's short name under the number or "Mute", dim, behind a small accent icon of its kind.
+            val y = top + base + dp(SUB_GAP_DP)
+            subPaint.textSize = subSize
+            subPaint.color = dim
+            val icon = if (subIcon != null) subSize + dp(SUB_ICON_GAP_DP) else 0f
+            val left = ax - (icon + subPaint.measureText(sub)) / 2
+            if (subIcon != null) {
+                val l = left.roundToInt()
+                val t = y.roundToInt()
+                val side = subSize.roundToInt()
+                subIcon.setBounds(l, t, l + side, t + side)
+                subIcon.draw(canvas)
+            }
+            canvas.drawText(sub, left + icon, y + subSize * BASELINE, subPaint)
         }
     }
 
@@ -287,6 +314,11 @@ class RulerPainter(
         const val ARMED_VALUE_SP = 32f
         const val GAP_DP = 4f
         const val BASELINE = 0.8f
+
+        /** The output name under a volume dial's number, and the gaps around it. */
+        const val SUB_SP = 10f
+        const val SUB_GAP_DP = 2f
+        const val SUB_ICON_GAP_DP = 3f
         const val ALPHA_SHIFT = 24
 
         /** Smoothstep, clamped: 0 below 0, 1 above 1, an S between. */

@@ -26,8 +26,10 @@ class PairCodeScreen(
     asking: Boolean,
     onYes: () -> Unit,
     onCancel: () -> Unit,
+    onNewCode: () -> Unit,
 ) {
     private lateinit var countdown: TextView
+    private var newCode: View? = null
 
     private val tick =
         object : Runnable {
@@ -35,7 +37,8 @@ class PairCodeScreen(
                 val left = ((deadline - SystemClock.elapsedRealtime() + MS_PER_S - 1) / MS_PER_S).coerceAtLeast(0L)
                 countdown.text = ui.string(R.string.pair_expires, Clock.format(left.toInt()))
                 // A view no longer on screen holds the post and never runs it, so the loop ends with the screen.
-                if (left > 0L) countdown.postDelayed(this, MS_PER_S)
+                // AND-B-15: a code that ran out offers another here instead of leaving the screen.
+                if (left > 0L) countdown.postDelayed(this, MS_PER_S) else newCode?.visibility = View.VISIBLE
             }
         }
 
@@ -70,6 +73,11 @@ class PairCodeScreen(
             } else {
                 val cancel = ui.button(ui.string(R.string.pin_cancel), Ui.Style.QUIET, onCancel)
                 add(cancel, Space.XL, width = ui.dp(BUTTON_DP))
+                newCode =
+                    ui.button(ui.string(R.string.pair_new_code), Ui.Style.FILLED, onNewCode).also {
+                        it.visibility = View.GONE
+                        add(it, Space.S, width = ui.dp(BUTTON_DP))
+                    }
             }
             grow()
         }

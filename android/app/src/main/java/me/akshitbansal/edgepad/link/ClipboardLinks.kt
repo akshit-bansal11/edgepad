@@ -74,6 +74,10 @@ class ClipboardLinks(
         for (share in shares.toList()) share.sync.localChanged()
     }
 
+    /** The sync that is sharing with [laptop] right now, or null when it is not the one being shared with. */
+    fun activeSync(laptop: Laptop): ClipboardSync? =
+        shares.firstOrNull { it.link === laptop.link && it.on == true }?.sync
+
     private fun shareOf(laptop: Laptop): Share? {
         val link = laptop.link ?: return null
         shares.firstOrNull { it.link === link }?.let { return it }

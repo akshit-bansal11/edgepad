@@ -1,3 +1,6 @@
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using Edgepad.Protocol;
 using Edgepad.Trust;
@@ -15,6 +18,13 @@ internal sealed record LinkResult(Stream Secure, string Address, string PhoneNam
 internal interface IPairingPrompt
 {
     IPairingQuestion Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled);
+
+    /// <summary>
+    /// As above, with where the request came from (<see cref="PairingText.SourceOf"/>) for a prompt that shows it. A
+    /// prompt that does not just ignores it.
+    /// </summary>
+    IPairingQuestion Show(string phoneName, string? source, Action<string> onTyped, Action onOwnerCancelled) =>
+        Show(phoneName, onTyped, onOwnerCancelled);
 }
 
 /// <summary>
@@ -38,13 +48,73 @@ internal interface IPairingQuestion : IDisposable
 /// <summary>What the pairing window says once the code is typed, the same on Windows and Linux.</summary>
 internal static class PairingText
 {
-    public const string Mismatched = "That code did not match. Nothing was paired.";
+    public const string Mismatched = "That pairing code did not match. Nothing was paired.";
+
+    public const string TimedOut = "Time ran out. Nothing was paired. Start again on the phone.";
+
+    public const string Warning = "Only pair a phone that is yours. If you did not just start pairing, choose Cancel.";
 
     public const string NotFinished = "Pairing did not finish.";
 
-    public static string Matched(string phoneName) => $"Code matched. Tap Yes on {phoneName} to finish.";
+    public static string Matched(string phoneName) => $"Pairing code matched. Tap Yes on {phoneName} to finish.";
 
     public static string Paired(string phoneName) => $"Paired with {phoneName}.";
+
+    /// <summary>
+    /// "from 192.168.1.23, over Wi-Fi", "over USB" or "on your network", by the local adapter whose subnet holds the
+    /// address; null when there is no address. A tethered phone connects from its own address on the tether subnet,
+    /// not the loopback, so the adapter is what tells USB apart. Looked up once per pairing request, never per frame.
+    /// </summary>
+    public static string? SourceOf(IPAddress? address)
+    {
+        if (address is null) return null;
+        var ip = address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address;
+        return Describe(ip, AdapterFor(ip) is { } nic ? WayOf(nic.Name, nic.Description, nic.NetworkInterfaceType) : null);
+    }
+
+    /// <summary>The source line for an address and how it arrived (<see cref="WayOf"/>); null way reads "on your network".</summary>
+    public static string Describe(IPAddress ip, string? way) => $"from {ip}, {way ?? "on your network"}";
+
+    /// <summary>
+    /// "over USB" for a USB tether adapter (RNDIS or NCM; Linux names them usb0 or rndis0), "over Wi-Fi" for a wireless
+    /// one, otherwise null.
+    /// </summary>
+    public static string? WayOf(string name, string description, NetworkInterfaceType type)
+    {
+        if (description.Contains("NDIS", StringComparison.OrdinalIgnoreCase)
+            || description.Contains("NCM", StringComparison.Ordinal)
+            || name.StartsWith("usb", StringComparison.OrdinalIgnoreCase)
+            || name.StartsWith("rndis", StringComparison.OrdinalIgnoreCase))
+        {
+            return "over USB";
+        }
+
+        return type == NetworkInterfaceType.Wireless80211 ? "over Wi-Fi" : null;
+    }
+
+    private static NetworkInterface? AdapterFor(IPAddress ip)
+    {
+        if (ip.AddressFamily != AddressFamily.InterNetwork) return null;
+        var target = BitConverter.ToUInt32(ip.GetAddressBytes());
+        try
+        {
+            foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                foreach (var unicast in nic.GetIPProperties().UnicastAddresses)
+                {
+                    if (unicast.Address.AddressFamily != AddressFamily.InterNetwork) continue;
+                    var mask = BitConverter.ToUInt32(unicast.IPv4Mask.GetAddressBytes());
+                    if (mask != 0 && (BitConverter.ToUInt32(unicast.Address.GetAddressBytes()) & mask) == (target & mask)) return nic;
+                }
+            }
+        }
+        catch (NetworkInformationException)
+        {
+            // No adapter list: the line falls back to "on your network".
+        }
+
+        return null;
+    }
 }
 
 /// <summary>
@@ -94,7 +164,8 @@ internal static class LinkResponder
         CancellationToken ended,
         TimeSpan? messageTimeout = null,
         TimeSpan? ownerTimeout = null,
-        Func<bool>? refusing = null)
+        Func<bool>? refusing = null,
+        IPAddress? remote = null)
     {
         var wait = messageTimeout ?? MessageTimeout;
         var body = ReadWithin(raw, wait, "request", log, giveUp);
@@ -123,7 +194,7 @@ internal static class LinkResponder
                     return null;
                 }
 
-                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, ended);
+                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, () => PairingText.SourceOf(remote), ended);
 
             case ResumeRequest resume:
                 return Resume(raw, resume, self, paired, log, giveUp, wait);
@@ -145,6 +216,7 @@ internal static class LinkResponder
         Action giveUp,
         TimeSpan wait,
         TimeSpan ownerWait,
+        Func<string?> source,
         CancellationToken ended)
     {
         var address = AddressOf(request.PhoneId);
@@ -208,7 +280,7 @@ internal static class LinkResponder
             }
 
             var asked = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
-            question = prompt.Show(name, digits => asked.TrySetResult(digits), () => asked.TrySetResult(null));
+            question = prompt.Show(name, source(), digits => asked.TrySetResult(digits), () => asked.TrySetResult(null));
             var (answer, typed) = AwaitOwner(asked, ownerWait, ended);
             switch (answer)
             {

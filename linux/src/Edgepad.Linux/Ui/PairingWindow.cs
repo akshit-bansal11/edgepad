@@ -9,7 +9,7 @@ using Edgepad.Net;
 namespace Edgepad.Ui;
 
 /// <summary>
-/// "Pair Pixel? Type the code shown on the phone:": a box for six digits, Pair and Cancel, and the seconds left.
+/// "Pair Pixel? Type the pairing code shown on the phone:": a box for six digits, Pair and Cancel, and the seconds left.
 /// Exactly one answer leaves it: the digits on Pair, a cancel on Cancel, Escape or the close box, or none at all when
 /// it is withdrawn or runs out, which the pairing's own timer then settles. After the digits it stays up to say how
 /// they went, until the owner closes it, or by itself a moment after a pairing that worked. Nothing here relies on the
@@ -21,7 +21,7 @@ internal static class PairingWindow
     private static readonly TimeSpan Linger = TimeSpan.FromSeconds(2);
 
     /// <summary>Opens the question, and returns it to be told how the code went. Call it, and the question, on the UI thread.</summary>
-    public static IPairingQuestion Open(string phoneName, long deadline, Action<string> onTyped, Action onOwnerCancelled)
+    public static IPairingQuestion Open(string phoneName, string? source, long deadline, Action<string> onTyped, Action onOwnerCancelled)
     {
         var look = Look.Current;
         var code = new TextBox
@@ -33,7 +33,7 @@ internal static class PairingWindow
             Foreground = look.Ink,
             Padding = new Thickness(12, 8),
         };
-        AutomationProperties.SetName(code, "Code shown on the phone");
+        AutomationProperties.SetName(code, "Pairing code shown on the phone");
         var countdown = look.Text("", 14, dim: true);
         var cancel = look.Button("Cancel");
         var pair = look.Button("Pair", primary: true);
@@ -43,12 +43,21 @@ internal static class PairingWindow
         pair.IsDefault = true;
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 10 };
         body.Children.Add(look.Text($"Pair {phoneName}?", 18, FontWeight.Bold));
-        var ask = look.Text("Type the code shown on the phone:", 14, dim: true);
+        // Where the request came from, so an unexpected one is spotted before a code is typed.
+        if (source is not null)
+        {
+            body.Children.Add(look.Text($"Request {source}", 13, dim: true));
+        }
+
+        var ask = look.Text("Type the pairing code shown on the phone:", 14, dim: true);
         body.Children.Add(ask);
         body.Children.Add(code);
         body.Children.Add(countdown);
+        body.Children.Add(look.Text(PairingText.Warning, 13, dim: true));
         body.Children.Add(Look.Footer(cancel, pair));
         var window = look.Dialog("Pair a phone", 400, body);
+        // Opens without taking focus: the owner may be typing elsewhere. The announcement (status and notification) is what draws the eye.
+        window.ShowActivated = false;
         window.Topmost = true;
 
         // Set by the first answer, or by withdrawing, so no second one follows.
@@ -63,6 +72,13 @@ internal static class PairingWindow
         {
             if (told || closed)
             {
+                return;
+            }
+
+            // Out of time, not called off: say nothing was paired rather than let the window vanish.
+            if (!answered && PairingPrompt.SecondsLeft(deadline, Environment.TickCount64) == 0)
+            {
+                Tell(PairingText.TimedOut, closeSoon: false);
                 return;
             }
 
@@ -155,7 +171,6 @@ internal static class PairingWindow
         tick.Tick += (_, _) => Count();
         window.Opened += (_, _) =>
         {
-            window.Activate();
             code.Focus();
             Count();
             tick.Start();

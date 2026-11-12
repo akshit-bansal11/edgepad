@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ALL_NAV_IDS, NAV } from "@/lib/nav";
+import type { NavGroup } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
 /**
@@ -10,13 +10,14 @@ import { cn } from "@/lib/utils";
  * viewport, so the highlight moves with reading rather than with the section's top
  * edge crossing zero.
  */
-export function Toc() {
-  const [active, setActive] = useState<string>(ALL_NAV_IDS[0] ?? "");
+export function Toc({ groups }: { groups: NavGroup[] }) {
+  const ids = groups.flatMap((group) => group.items.map((item) => item.id));
+  const [active, setActive] = useState<string>(ids[0] ?? "");
 
   useEffect(() => {
-    const sections = ALL_NAV_IDS.map((id) => document.getElementById(id)).filter(
-      (element): element is HTMLElement => element !== null,
-    );
+    const sections = ids
+      .map((id) => document.getElementById(id))
+      .filter((element): element is HTMLElement => element !== null);
     if (sections.length === 0) return;
 
     const observer = new IntersectionObserver(
@@ -36,7 +37,7 @@ export function Toc() {
 
   return (
     <nav aria-label="On this page" className="space-y-6">
-      {NAV.map((group) => (
+      {groups.map((group) => (
         <div key={group.label}>
           <p className="label mb-1.5 px-3">{group.label}</p>
           <ul className="space-y-0.5">

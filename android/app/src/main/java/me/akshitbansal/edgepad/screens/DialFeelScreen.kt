@@ -6,6 +6,7 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.surface.DialKind
+import me.akshitbansal.edgepad.surface.Perimeter
 import kotlin.math.roundToInt
 
 /**
@@ -32,6 +33,7 @@ object DialFeelScreen {
         settings: Settings,
         onBack: () -> Unit,
     ): View {
+        val placed = placedDials(settings)
         val preview = DialPreview(ui.context, settings)
         // The preview sits on a card of its own, clipped to the card's corners like every other surface here.
         val frame =
@@ -89,17 +91,30 @@ object DialFeelScreen {
                 {
                     add(frame, Space.L, ui.dp(PREVIEW_DP))
                     footnote(ui.string(R.string.dial_preview_caption))
-                    section(ui.string(R.string.dial_feel_each))
-                    card {
-                        DialKind.entries.forEachIndexed { i, kind ->
-                            if (i > 0) hairline()
-                            add(perDial(ui, settings, kind))
+                    // Only the dials that are in a corner: a slider for a dial that is nowhere changes nothing.
+                    if (placed.isNotEmpty()) {
+                        section(ui.string(R.string.dial_feel_each))
+                        card {
+                            placed.forEachIndexed { i, kind ->
+                                if (i > 0) hairline()
+                                add(perDial(ui, settings, kind))
+                            }
                         }
+                        footnote(ui.string(R.string.dial_feel_each_caption))
                     }
-                    footnote(ui.string(R.string.dial_feel_each_caption))
                 },
             )
         }
+    }
+
+    /** The dials in the corners now, in the order the list of dials has them, each once. */
+    private fun placedDials(settings: Settings): List<DialKind> {
+        val split = settings.splitCorners
+        val here =
+            (0 until if (split) Perimeter.SLOTS else Perimeter.CORNERS)
+                .mapNotNull { if (split) settings.slot(it) else settings.corner(it) }
+                .toSet()
+        return DialKind.entries.filter { it in here }
     }
 
     /** One dial kind's own sensitivity, with Shared as the step below the range's bottom. */

@@ -69,5 +69,8 @@ sealed interface Target {
         val pairAgain: Boolean = false,
     ) : Target {
         override val key: String = NET_KEY + laptopId.joinToString("") { "%02x".format(it) }
+
+        /** This laptop again, for the user's "Pair again": the next attempt pairs with a new code. */
+        fun again(): Network = Network(laptopId, name, hosts, port, pairAgain = true)
     }
 }
