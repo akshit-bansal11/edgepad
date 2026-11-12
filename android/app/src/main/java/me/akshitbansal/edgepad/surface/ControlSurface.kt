@@ -19,6 +19,7 @@ import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.RoundedCorner
 import android.view.View
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Toast
 import me.akshitbansal.edgepad.Palette
@@ -130,6 +131,10 @@ class ControlSurface(
     private val hapticsOn = settings.haptics
     private val showHints = settings.hints && !trackpadOnly
     private val hintFade = HintFade(settings.hintsSeen) { settings.hintsSeen = it }
+
+    /** Issue #56: drawn all black, with the window dimmed, until the next finger comes down. */
+    private var dark = false
+    private val goDark = Runnable { blackOut() }
     private var peakFingers = 0
     private var touchStart = 0L
     private val dials: List<Dial> =
@@ -637,6 +642,11 @@ class ControlSurface(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        if (dark) {
+            // Issue #56: every pixel off on an OLED panel, so nothing static is left lit to burn in.
+            canvas.drawColor(Color.BLACK)
+            return
+        }
         backdrop.draw(canvas)
         if (mediaShown()) {
             drawNowPlaying(canvas)
@@ -993,6 +1003,8 @@ class ControlSurface(
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                // A blacked-out surface wakes on this touch and still acts on it, so a dial or gesture works blind.
+                wake()
                 requestUnbufferedDispatch(event)
                 down(event)
             }
@@ -1016,6 +1028,7 @@ class ControlSurface(
             }
 
             MotionEvent.ACTION_UP -> {
+                idleLater()
                 val top = pressedTop
                 pressedTop = null
                 val onStrip = pressedStrip
@@ -1044,6 +1057,7 @@ class ControlSurface(
             }
 
             MotionEvent.ACTION_CANCEL -> {
+                idleLater()
                 cancelTouches(event.eventTime)
             }
 
@@ -1263,6 +1277,50 @@ class ControlSurface(
         invalidate()
     }
 
+    /** Issue #56: with Black out when idle on, the surface goes dark [IDLE_MS] after the last finger lifts. */
+    private fun idleLater() {
+        removeCallbacks(goDark)
+        if (settings.blackout && !trackpadOnly) postDelayed(goDark, IDLE_MS)
+    }
+
+    private fun blackOut() {
+        // The Controls popup holds the focus while it is open; going dark under it would dim what is being read.
+        if (!hasWindowFocus()) return
+        dark = true
+        brightness(WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
+        invalidate()
+    }
+
+    private fun wake() {
+        removeCallbacks(goDark)
+        if (!dark) return
+        dark = false
+        brightness(WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
+        invalidate()
+    }
+
+    /** The override is the activity window's, so it outlives this view unless [wake] puts it back. */
+    private fun brightness(level: Float) {
+        val window = (context as? Activity)?.window ?: return
+        window.attributes = window.attributes.apply { screenBrightness = level }
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        idleLater()
+    }
+
+    override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
+        super.onWindowFocusChanged(hasWindowFocus)
+        // Back from the Controls popup, whose switch may have just changed, the idle count starts over.
+        if (hasWindowFocus) idleLater() else removeCallbacks(goDark)
+    }
+
+    override fun onDetachedFromWindow() {
+        wake()
+        super.onDetachedFromWindow()
+    }
+
     /**
      * The one place the mode is written. Three things follow it — what the surface draws, what a screen
      * reader is told, and the caption saying so — and a writer that moved the mode and forgot one of them
@@ -1443,6 +1501,9 @@ class ControlSurface(
     companion object {
         /** How long a dial may stay unreported before it reads as never reported. */
         private const val REPORT_WAIT_MS = 4000L
+
+        /** Issue #56: how long the surface waits with no finger down before it blacks out. */
+        private const val IDLE_MS = 10_000L
 
         /** A one-finger touch this long counts as having tried press and hold. */
         private const val HOLD_HINT_MS = 500L

@@ -120,6 +120,9 @@ class Settings(
 
     var hints by flag("hints", true)
 
+    /** Issue #56: the surface goes black and dims the window when left idle, so nothing static burns into an OLED. */
+    var blackout by flag("blackout", false)
+
     /** Bit per trackpad hint already earned by using the gesture (see HintFade); switching hints on again clears it. */
     var hintsSeen by pref({ prefs.getInt("hintsSeen", 0) }) { putInt("hintsSeen", it) }
 
