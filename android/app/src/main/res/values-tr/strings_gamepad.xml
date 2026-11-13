@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_layout_title">Oyun kumandası düzeni</string>
+  <string name="gamepad_layout_editing">Düzenleniyor: %1$s</string>
+  <string name="gamepad_preset_xbox_keys">Xbox (tuşlar)</string>
+  <string name="gamepad_preset_platformer">Platform</string>
+  <string name="gamepad_preset_racing">Yarış</string>
+  <string name="gamepad_preset_shooter">Nişancı</string>
+  <string name="gamepad_layout_hint">Taşımak için sürükleyin. Menüsü için bir kontrolü basılı tutun.</string>
+  <string name="gamepad_layout_section">Düzenler</string>
+  <string name="gamepad_description">Bilgisayar için oyun kumandası. Yalnızca dokunmatikle çalışır.</string>
+  <string name="gamepad_node_dpad">Yön tuşları</string>
+  <string name="gamepad_node_stick">Çubuk</string>
+  <string name="gamepad_node_button">Düğme</string>
+  <string name="gamepad_size">Boyut</string>
+  <string name="dp_value">%1$d dp</string>
+
+  <string name="gamepad_add">Ekle</string>
+  <string name="gamepad_restore">Geri yükle: %1$s</string>
+  <string name="gamepad_restore_confirm">%1$s geri yüklensin mi? Tekrar dokunun</string>
+  <string name="gamepad_switch_to">Geç: %1$s</string>
+  <string name="gamepad_switch_to_confirm">%1$s düzenine geçilsin mi? Sizin düzeniniz kayıtlı kalır. Tekrar dokunun</string>
+  <string name="gamepad_layouts">Düzenler</string>
+
+  <string name="gamepad_control_title">%1$s · %2$s</string>
+  <string name="gamepad_bind">Atama</string>
+  <string name="gamepad_label">Etiket</string>
+  <string name="gamepad_delete_control">Kontrolü sil</string>
+  <string name="gamepad_delete_title">%1$s silinsin mi?</string>
+  <string name="gamepad_delete_body">Bu düzenden kaldırılır. Ekle, bir kontrolü geri koyar.</string>
+  <string name="gamepad_name_required">Düzene bir ad verin</string>
+
+  <string name="gamepad_add_control">Kontrol ekle</string>
+  <string name="gamepad_kind_button">Düğme</string>
+  <string name="gamepad_kind_dpad">Yön tuşları</string>
+  <string name="gamepad_kind_stick">Çubuk</string>
+  <string name="gamepad_kind_shoulder">Omuz tuşu</string>
+  <string name="gamepad_kind_trigger">Tetik</string>
+
+  <string name="gamepad_bind_stick_left">Sol çubuk</string>
+  <string name="gamepad_bind_stick_right">Sağ çubuk</string>
+  <string name="gamepad_bind_trigger_left">Sol tetik</string>
+  <string name="gamepad_bind_trigger_right">Sağ tetik</string>
+  <string name="gamepad_bind_keys">Klavye tuşu</string>
+  <string name="gamepad_bind_key_up">Yukarı için tuş</string>
+  <string name="gamepad_bind_key_down">Aşağı için tuş</string>
+  <string name="gamepad_bind_key_left">Sol için tuş</string>
+  <string name="gamepad_bind_key_right">Sağ için tuş</string>
+
+  <string name="gamepad_save_as">Farklı kaydet</string>
+  <string name="gamepad_rename">Yeniden adlandır</string>
+  <string name="gamepad_delete_layout">Düzeni sil</string>
+  <string name="gamepad_delete_layout_body">%1$s silinecek. Edgepad ile gelen düzenler kalır.</string>
+  <string name="gamepad_delete">Sil</string>
+</resources>

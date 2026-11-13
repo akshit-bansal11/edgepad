@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Status_Starting" xml:space="preserve">
+    <value>正在启动…</value>
+  </data>
+  <data name="Status_Waiting" xml:space="preserve">
+    <value>等待手机</value>
+  </data>
+  <data name="Status_Connected" xml:space="preserve">
+    <value>已连接到 {0}</value>
+  </data>
+  <data name="Status_RefusedProtocol" xml:space="preserve">
+    <value>已拒绝协议版本为 {0} 的手机；这台电脑的协议版本为 {1}</value>
+  </data>
+  <data name="Status_MismatchPhoneOlder" xml:space="preserve">
+    <value>{0} 无法连接：它的 Edgepad 应用版本较旧。请更新手机上的 Edgepad。</value>
+  </data>
+  <data name="Status_MismatchLaptopOlder" xml:space="preserve">
+    <value>{0} 无法连接：这台电脑上的 Edgepad 版本较旧。请在此更新 Edgepad。</value>
+  </data>
+  <data name="Status_RefusedLockedOut" xml:space="preserve">
+    <value>已拒绝一部因 PIN 输错而被锁定的手机</value>
+  </data>
+  <data name="Status_RefusedUntrusted" xml:space="preserve">
+    <value>已拒绝一部不受信任的手机</value>
+  </data>
+  <data name="Status_RefusedPin" xml:space="preserve">
+    <value>已拒绝一部没有给出正确 PIN 的手机</value>
+  </data>
+  <data name="Status_BluetoothOff" xml:space="preserve">
+    <value>蓝牙已关闭</value>
+  </data>
+  <data name="Status_BluetoothRetrying" xml:space="preserve">
+    <value>蓝牙已关闭或不可用；正在重试</value>
+  </data>
+  <data name="Status_BluetoothUnavailable" xml:space="preserve">
+    <value>蓝牙已关闭或不可用</value>
+  </data>
+  <data name="Status_Pairing" xml:space="preserve">
+    <value>配对 {0}：请输入手机上显示的配对码</value>
+  </data>
+  <data name="Status_Paired" xml:space="preserve">
+    <value>已与 {0} 配对</value>
+  </data>
+  <data name="Status_Asking" xml:space="preserve">
+    <value>正在询问是否信任 {0}</value>
+  </data>
+  <data name="Status_QuietUntil" xml:space="preserve">
+    <value>手机可在 {0} 重新连接</value>
+  </data>
+  <data name="Way_Bluetooth" xml:space="preserve">
+    <value>蓝牙</value>
+  </data>
+  <data name="Way_WifiOrUsb" xml:space="preserve">
+    <value>Wi-Fi 或 USB</value>
+  </data>
+  <data name="Pairing_Mismatched" xml:space="preserve">
+    <value>配对码不一致。没有进行任何配对。</value>
+  </data>
+  <data name="Pairing_TimedOut" xml:space="preserve">
+    <value>已超时。没有进行任何配对。请在手机上重新开始。</value>
+  </data>
+  <data name="Pairing_Warning" xml:space="preserve">
+    <value>只与属于你自己的手机配对。如果你刚才没有主动开始配对，请选择“取消”。</value>
+  </data>
+  <data name="Pairing_NotFinished" xml:space="preserve">
+    <value>配对未完成。</value>
+  </data>
+  <data name="Pairing_Matched" xml:space="preserve">
+    <value>配对码一致。请在 {0} 上点“是，已配对”完成配对。</value>
+  </data>
+  <data name="Pairing_Paired" xml:space="preserve">
+    <value>已与 {0} 配对。</value>
+  </data>
+  <data name="Source_From" xml:space="preserve">
+    <value>来自 {0}，{1}</value>
+  </data>
+  <data name="Source_OnNetwork" xml:space="preserve">
+    <value>在你的网络上</value>
+  </data>
+  <data name="Source_OverUsb" xml:space="preserve">
+    <value>通过 USB</value>
+  </data>
+  <data name="Source_OverWifi" xml:space="preserve">
+    <value>通过 Wi-Fi</value>
+  </data>
+  <data name="LastConnected_Row" xml:space="preserve">
+    <value>{0} · 上次连接 {1}</value>
+  </data>
+  <data name="LastConnected_Unknown" xml:space="preserve">
+    <value>{0} · 自本次更新后尚未连接</value>
+  </data>
+</root>

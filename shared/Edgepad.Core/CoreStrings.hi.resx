@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Status_Starting" xml:space="preserve">
+    <value>शुरू हो रहा है…</value>
+  </data>
+  <data name="Status_Waiting" xml:space="preserve">
+    <value>आपके फ़ोन का इंतज़ार है</value>
+  </data>
+  <data name="Status_Connected" xml:space="preserve">
+    <value>{0} से कनेक्टेड</value>
+  </data>
+  <data name="Status_RefusedProtocol" xml:space="preserve">
+    <value>प्रोटोकॉल {0} वाले फ़ोन को मना किया; यह लैपटॉप प्रोटोकॉल {1} पर है</value>
+  </data>
+  <data name="Status_MismatchPhoneOlder" xml:space="preserve">
+    <value>{0} कनेक्ट नहीं हो सका: उसका Edgepad ऐप पुराना है। फ़ोन पर Edgepad अपडेट करें।</value>
+  </data>
+  <data name="Status_MismatchLaptopOlder" xml:space="preserve">
+    <value>{0} कनेक्ट नहीं हो सका: इस लैपटॉप पर Edgepad पुराना है। यहां Edgepad अपडेट करें।</value>
+  </data>
+  <data name="Status_RefusedLockedOut" xml:space="preserve">
+    <value>गलत पिन के बाद लॉक हुए फ़ोन को मना किया</value>
+  </data>
+  <data name="Status_RefusedUntrusted" xml:space="preserve">
+    <value>जिस फ़ोन पर भरोसा नहीं है, उसे मना किया</value>
+  </data>
+  <data name="Status_RefusedPin" xml:space="preserve">
+    <value>सही पिन न देने वाले फ़ोन को मना किया</value>
+  </data>
+  <data name="Status_BluetoothOff" xml:space="preserve">
+    <value>ब्लूटूथ बंद है</value>
+  </data>
+  <data name="Status_BluetoothRetrying" xml:space="preserve">
+    <value>ब्लूटूथ बंद है या उपलब्ध नहीं है; फिर कोशिश हो रही है</value>
+  </data>
+  <data name="Status_BluetoothUnavailable" xml:space="preserve">
+    <value>ब्लूटूथ बंद है या उपलब्ध नहीं है</value>
+  </data>
+  <data name="Status_Pairing" xml:space="preserve">
+    <value>{0} को पेयर करें: फ़ोन पर दिख रहा पेयरिंग कोड डालें</value>
+  </data>
+  <data name="Status_Paired" xml:space="preserve">
+    <value>{0} से पेयर हो गया</value>
+  </data>
+  <data name="Status_Asking" xml:space="preserve">
+    <value>पूछ रहा है कि {0} पर भरोसा करना है या नहीं</value>
+  </data>
+  <data name="Status_QuietUntil" xml:space="preserve">
+    <value>फ़ोन {0} बजे दोबारा कनेक्ट कर सकते हैं</value>
+  </data>
+  <data name="Way_Bluetooth" xml:space="preserve">
+    <value>ब्लूटूथ</value>
+  </data>
+  <data name="Way_WifiOrUsb" xml:space="preserve">
+    <value>वाई-फ़ाई या USB</value>
+  </data>
+  <data name="Pairing_Mismatched" xml:space="preserve">
+    <value>वह पेयरिंग कोड मेल नहीं खाया। कुछ भी पेयर नहीं हुआ।</value>
+  </data>
+  <data name="Pairing_TimedOut" xml:space="preserve">
+    <value>समय खत्म हो गया। कुछ भी पेयर नहीं हुआ। फ़ोन पर फिर से शुरू करें।</value>
+  </data>
+  <data name="Pairing_Warning" xml:space="preserve">
+    <value>सिर्फ़ अपना फ़ोन पेयर करें। अगर आपने अभी पेयरिंग शुरू नहीं की थी, तो "रद्द करें" चुनें।</value>
+  </data>
+  <data name="Pairing_NotFinished" xml:space="preserve">
+    <value>पेयरिंग पूरी नहीं हुई।</value>
+  </data>
+  <data name="Pairing_Matched" xml:space="preserve">
+    <value>पेयरिंग कोड मेल खा गया। पूरा करने के लिए {0} पर "हां, पेयर हो गया" पर टैप करें।</value>
+  </data>
+  <data name="Pairing_Paired" xml:space="preserve">
+    <value>{0} से पेयर हो गया।</value>
+  </data>
+  <data name="Source_From" xml:space="preserve">
+    <value>{0} से, {1}</value>
+  </data>
+  <data name="Source_OnNetwork" xml:space="preserve">
+    <value>आपके नेटवर्क पर</value>
+  </data>
+  <data name="Source_OverUsb" xml:space="preserve">
+    <value>USB से</value>
+  </data>
+  <data name="Source_OverWifi" xml:space="preserve">
+    <value>वाई-फ़ाई से</value>
+  </data>
+  <data name="LastConnected_Row" xml:space="preserve">
+    <value>{0} · आखिरी बार कनेक्ट हुआ {1}</value>
+  </data>
+  <data name="LastConnected_Unknown" xml:space="preserve">
+    <value>{0} · इस अपडेट के बाद कनेक्ट नहीं हुआ</value>
+  </data>
+</root>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">Klavye</string>
+  <string name="keyboard_type_text">Metin yaz</string>
+  <string name="keyboard_type_send">Yaz</string>
+  <string name="back_to_surface">Kontroller</string>
+  <string name="macros_title">Makrolar</string>
+  <string name="keyboard_key_on">Basılı</string>
+  <string name="keyboard_description">Bilgisayar için ekran klavyesi</string>
+  <string name="keyboard_size">Boyut</string>
+  <string name="keyboard_size_caption">Büyük boyutlar daha çok tuş sığdırır, bu yüzden her tuş küçülür. Daha geniş bir ekran gerekir.</string>
+  <string name="keyboard_function_keys">İşlev tuşları</string>
+  <string name="keyboard_with_fn">Fn ile</string>
+  <string name="keyboard_direct">Doğrudan</string>
+  <string name="keyboard_function_keys_caption">Fn ile: üst sıra üzerinde yazanı yapar (parlaklık, medya, ses), Fn artı bir tuş F1–F12 gönderir. F sırası olmayan %%65 ve %%60 düzenlerinde sayı sırası sayı yazar, Fn artı bir sayı F1–F12 gönderir. Doğrudan: üst sıra F1–F12 gönderir, Fn artı bir tuş üzerinde yazan işlemi yapar; %%65 ve %%60 düzenlerinde sayı sırası F1–F12 gönderir, Fn artı bir sayı o sayıyı yazar.</string>
+</resources>

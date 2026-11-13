@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The guide: first run, and Settings › Help › Guide. Every claim here must be true of the app. -->
+  <string name="guide_steps">Pasos</string>
+  <string name="guide_page">Página</string>
+  <string name="guide_back">Atrás</string>
+  <string name="guide_next">Siguiente</string>
+  <string name="guide_done">Listo</string>
+  <string name="guide_skip">Omitir</string>
+  <string name="guide_find_laptop">Buscar mi laptop</string>
+  <string name="guide_step_description">Página %1$d de %2$d</string>
+
+  <string name="guide_features_kicker">1 · Por qué Edgepad</string>
+  <string name="guide_features_title">Tu laptop, desde el otro lado de la sala.</string>
+  <string-array name="guide_features_keys">
+    <item>Tiempo real</item>
+    <item>Tiempo de respuesta</item>
+    <item>Sin internet</item>
+    <item>Bluetooth</item>
+    <item>Y más</item>
+  </string-array>
+  <string-array name="guide_features_values">
+    <item>Cada movimiento se envía en cuanto lo haces. Si la conexión va lenta, los movimientos en espera se combinan en lugar de hacer cola.</item>
+    <item>Se mide en vivo, de ida y vuelta entre el teléfono y la laptop, y se muestra junto a la laptop en la pantalla Dispositivos.</item>
+    <item>Sin cuenta y sin internet. El teléfono se conecta directamente con la laptop.</item>
+    <item>Bluetooth por defecto: vincula una vez en la configuración de Bluetooth de la laptop y Edgepad podrá conectarse al abrirse. Las conexiones Wi-Fi y USB son opcionales.</item>
+    <item>Respuesta háptica, modo claro y oscuro, vertical u horizontal (el teclado y el gamepad siempre van en horizontal) y tus propios diseños de multimedia y gamepad.</item>
+  </string-array>
+
+  <string name="guide_anatomy_kicker">2 · Las partes</string>
+  <string name="guide_anatomy_title">Ocho partes, una pantalla.</string>
+  <string-array name="guide_anatomy_keys">
+    <item>Panel táctil</item>
+    <item>Reglas de esquina</item>
+    <item>Multimedia</item>
+    <item>Teclado</item>
+    <item>Gamepad</item>
+    <item>Anotar</item>
+    <item>Captura</item>
+    <item>Macros</item>
+  </string-array>
+  <string-array name="guide_anatomy_values">
+    <item>Todo el centro de la pantalla. Aquí empieza cada gesto con los dedos.</item>
+    <item>Reglas plegadas en las esquinas, o divididas de dos en dos por esquina: volumen, brillo, zoom, avance de reproducción, cambiar de app, frecuencia de actualización, desplazamiento, escritorios, pestañas del navegador o la regla Cambiar de laptop.</item>
+    <item>Lo que suena, y luego anterior, reproducir y siguiente, mientras haya un reproductor abierto. Muévelo y cambia su tamaño en la configuración de la superficie.</item>
+    <item>Un teclado completo cuyas teclas modificadoras funcionan mantenidas o con un toque, detrás del botón Controles.</item>
+    <item>Sticks, una cruceta y botones en cuatro preajustes, o con tu propia disposición.</item>
+    <item>Controles › Anotar convierte el teléfono en un lápiz para la pantalla de la laptop, con seis herramientas y ocho colores. Aparece cuando la laptop lo admite.</item>
+    <item>Controles › Captura pide a la laptop una captura de una región, de toda la pantalla o una grabación. Para una región, márcala arrastrando en el panel bajo los botones. Aparece cuando la laptop lo admite.</item>
+    <item>Una cuadrícula de botones que abren un programa, un archivo o una dirección web en la laptop, detrás de Controles. Mantén pulsado uno para arrastrarlo al lugar que quieras; si hay más de diez, siguen en páginas a las que llegas deslizando.</item>
+  </string-array>
+
+  <string name="guide_surface_kicker">3 · La superficie</string>
+  <string name="guide_surface_title">Los dedos hablan por ti.</string>
+  <string-array name="guide_surface_keys">
+    <item>Un dedo</item>
+    <item>Dos dedos</item>
+    <item>Tres y cuatro</item>
+    <item>Reglas de esquina</item>
+    <item>Ajústalo</item>
+  </string-array>
+  <string-array name="guide_surface_values">
+    <item>Mueve el puntero. Toca para hacer clic. Toca, mantén y mueve para arrastrar.</item>
+    <item>Toca para hacer clic derecho. Desliza para desplazarte. Pellizca para hacer zoom.</item>
+    <item>Tres dedos hacia los lados para cambiar de escritorio, hacia arriba para la vista de tareas y hacia abajo para mostrar el escritorio. Cuatro dedos hacia los lados para recorrer las apps abiertas. Los toques abren la búsqueda o las notificaciones.</item>
+    <item>Desliza por una regla; en sentido horario sube. Tócala para silenciar, reproducir, restablecer el zoom o abrir la vista de tareas.</item>
+    <item>Configuración de la superficie › Esquinas elige cada regla y puede dividir cada esquina en dos, una por borde. Tacto de las reglas ajusta la sensibilidad, el tamaño y la respuesta háptica. Panel táctil reasigna el resto.</item>
+  </string-array>
+
+  <string name="guide_keyboard_kicker">4 · Teclado</string>
+  <string name="guide_keyboard_title">Escribe desde el sofá.</string>
+  <string-array name="guide_keyboard_keys">
+    <item>Abrir</item>
+    <item>Escribir</item>
+    <item>Modificadoras</item>
+    <item>Cerrar</item>
+  </string-array>
+  <string-array name="guide_keyboard_values">
+    <item>El icono de Controles, arriba en la superficie, y luego Teclado. Se abre en horizontal.</item>
+    <item>Cada tecla va directa a la laptop. La fila superior hace lo que lleva impreso; mantén Fn para F1 a F12 (puedes cambiarlo en la configuración del teclado).</item>
+    <item>Mantén Ctrl, Alt, Mayús o Fn mientras pulsas una tecla, o tócala una vez para aplicarla a la tecla siguiente. Tócala de nuevo para cancelar.</item>
+    <item>La flecha de retroceso, arriba, o el gesto de retroceso del sistema.</item>
+  </string-array>
+
+  <string name="guide_gamepad_kicker">5 · Gamepad</string>
+  <string name="guide_gamepad_title">Un gamepad en tu bolsillo.</string>
+  <string-array name="guide_gamepad_keys">
+    <item>Abrir</item>
+    <item>Preajustes</item>
+    <item>Jugar</item>
+    <item>Hazlo tuyo</item>
+  </string-array>
+  <string-array name="guide_gamepad_values">
+    <item>El icono de Controles, arriba en la superficie, y luego Gamepad. Se abre en horizontal.</item>
+    <item>Xbox, Plataformas, Carreras y Disparos. Se eligen en la configuración del gamepad, que se abre con el engranaje.</item>
+    <item>Mantén y desliza un stick, toca los botones. Puedes usar varios dedos a la vez.</item>
+    <item>Configuración del gamepad › Editar diseño. Arrastra los controles adonde lleguen tus pulgares; mantén pulsado uno para cambiar su tamaño.</item>
+  </string-array>
+
+  <string name="guide_connect_kicker">6 · Conectar</string>
+  <string name="guide_connect_title">Conecta tu laptop.</string>
+  <string-array name="guide_connect_keys">
+    <item>En la laptop</item>
+    <item>Bluetooth</item>
+    <item>Wi-Fi o USB</item>
+    <item>Confianza</item>
+    <item>Portapapeles</item>
+  </string-array>
+  <string-array name="guide_connect_values">
+    <item>Instala y abre Edgepad. Se queda en la esquina de la barra de tareas, en la barra de menús o en el área de notificaciones.</item>
+    <item>Vincula la laptop en la configuración de Bluetooth de este teléfono y luego tócala en Dispositivos.</item>
+    <item>Activa «Conexiones Wi-Fi y USB» en el menú de Edgepad de la laptop (en un Mac, «Conexiones Wi-Fi»). Para USB, activa también «Compartir conexión por USB» en el teléfono.</item>
+    <item>La primera vez, la laptop pregunta si confía en este teléfono: elige Confiar allí. Si pide un PIN, escríbelo aquí.</item>
+    <item>Desde Android 10, solo la app que está en pantalla puede leer el portapapeles, así que lo que copias en otra app llega a la laptop cuando vuelves a Edgepad. O usa Compartir y luego Edgepad para enviar texto o una imagen al instante.</item>
+  </string-array>
+
+  <!-- Words inside the guide drawings. -->
+  <string name="guide_art_phone">Teléfono</string>
+  <string name="guide_art_laptop">Laptop</string>
+  <string name="guide_art_link">Primero Bluetooth · sin cuenta</string>
+  <string name="guide_art_dials">Reglas</string>
+  <string name="guide_art_trackpad">Panel táctil</string>
+  <string name="guide_art_media">Multimedia</string>
+  <string name="guide_art_keys">Teclas · panel</string>
+  <string name="guide_art_gestures">Gestos</string>
+  <string name="guide_art_move">1 · Mover</string>
+  <string name="guide_art_scroll">2 · Desplazar</string>
+  <string name="guide_art_swipe">3 · Deslizar</string>
+  <string name="guide_art_latch">Ctrl, Alt y Mayús quedan activas para la tecla siguiente</string>
+  <string name="guide_art_presets">Xbox · Plataformas · Carreras · Disparos</string>
+</resources>

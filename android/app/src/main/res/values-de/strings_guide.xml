@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The guide: first run, and Settings › Help › Guide. Every claim here must be true of the app. -->
+  <string name="guide_steps">Schritte</string>
+  <string name="guide_page">Seite</string>
+  <string name="guide_back">Zurück</string>
+  <string name="guide_next">Weiter</string>
+  <string name="guide_done">Fertig</string>
+  <string name="guide_skip">Überspringen</string>
+  <string name="guide_find_laptop">Laptop suchen</string>
+  <string name="guide_step_description">Seite %1$d von %2$d</string>
+
+  <string name="guide_features_kicker">1 · Warum Edgepad</string>
+  <string name="guide_features_title">Dein Laptop, quer durch den Raum.</string>
+  <string-array name="guide_features_keys">
+    <item>Echtzeit</item>
+    <item>Laufzeit</item>
+    <item>Offline</item>
+    <item>Bluetooth</item>
+    <item>Und mehr</item>
+  </string-array>
+  <string-array name="guide_features_values">
+    <item>Jede Bewegung geht sofort raus. Bei einer langsamen Verbindung werden wartende Bewegungen zusammengefasst statt aufgereiht.</item>
+    <item>Live gemessen vom Handy zum Laptop und zurück und in der Geräteliste neben dem Laptop angezeigt.</item>
+    <item>Kein Konto, kein Internet nötig. Das Handy erreicht den Laptop direkt.</item>
+    <item>Standardmäßig Bluetooth: einmal in den Bluetooth-Einstellungen des Laptops koppeln, dann kann Edgepad beim Start verbinden. WLAN- und USB-Verbindungen sind optional.</item>
+    <item>Haptisches Ticken, hell und dunkel, Hoch- oder Querformat (Tastatur und Gamepad bleiben im Querformat), eigene Layouts für Medien und Gamepad.</item>
+  </string-array>
+
+  <string name="guide_anatomy_kicker">2 · Aufbau</string>
+  <string name="guide_anatomy_title">Acht Teile, ein Bildschirm.</string>
+  <string-array name="guide_anatomy_keys">
+    <item>Touchpad</item>
+    <item>Eckregler</item>
+    <item>Medien</item>
+    <item>Tastatur</item>
+    <item>Gamepad</item>
+    <item>Zeichnen</item>
+    <item>Aufnahme</item>
+    <item>Makros</item>
+  </string-array>
+  <string-array name="guide_anatomy_values">
+    <item>Die ganze Mitte des Bildschirms. Jede Fingergeste beginnt hier.</item>
+    <item>Skalen, die um die Ecken laufen, oder zwei pro Ecke: Lautstärke, Helligkeit, Zoom, Spulen, App-Wechsler, Bildwiederholrate, Scrollen, Desktops, Browser-Tabs oder der Regler „Laptop wechseln“.</item>
+    <item>Was gerade läuft, dazu Zurück, Wiedergabe und Weiter, solange ein Player offen ist. Verschieben und Größe ändern in den Einstellungen der Steuerfläche.</item>
+    <item>Eine vollständige Tastatur, deren Sondertasten gehalten oder getippt funktionieren, hinter der Schaltfläche „Steuerung“.</item>
+    <item>Sticks, Steuerkreuz und Tasten in vier Vorlagen oder in deiner eigenen Anordnung.</item>
+    <item>Steuerung › Zeichnen macht das Handy zum Stift für den Laptop-Bildschirm, mit sechs Werkzeugen und acht Farben. Erscheint, wenn der Laptop es unterstützt.</item>
+    <item>Steuerung › Aufnahme fordert vom Laptop einen Screenshot eines Bereichs, des ganzen Bildschirms oder eine Aufzeichnung an. Einen Bereich ziehst du auf der Fläche unter den Tasten auf. Erscheint, wenn der Laptop es unterstützt.</item>
+    <item>Ein Raster aus Tasten, die ein Programm, eine Datei oder eine Webadresse auf dem Laptop öffnen, hinter der Steuerung. Halte eine gedrückt und zieh sie in deine Reihenfolge; ab mehr als zehn gibt es weitere Seiten, zu denen du wischst.</item>
+  </string-array>
+
+  <string name="guide_surface_kicker">3 · Die Steuerfläche</string>
+  <string name="guide_surface_title">Die Finger machen das.</string>
+  <string-array name="guide_surface_keys">
+    <item>Ein Finger</item>
+    <item>Zwei Finger</item>
+    <item>Drei und vier</item>
+    <item>Eckregler</item>
+    <item>Anpassen</item>
+  </string-array>
+  <string-array name="guide_surface_values">
+    <item>Den Mauszeiger bewegen. Tippen zum Klicken. Tippen, dann halten und bewegen zum Ziehen.</item>
+    <item>Tippen für Rechtsklick. Wischen zum Scrollen. Spreizen zum Zoomen.</item>
+    <item>Drei Finger seitwärts für Desktops, nach oben für die Aufgabenansicht, nach unten für den Desktop. Vier Finger seitwärts durch die offenen Apps. Tippen öffnet Suche oder Benachrichtigungen.</item>
+    <item>An einer Skala entlangwischen, im Uhrzeigersinn erhöht. Tippen schaltet stumm, startet die Wiedergabe, setzt den Zoom zurück oder öffnet die Aufgabenansicht.</item>
+    <item>Einstellungen der Steuerfläche › Ecken wählt jeden Regler aus und kann jede Ecke in zwei Regler teilen, einen an jeder Kante. Reglergefühl stellt Empfindlichkeit, Größe und Haptik ein. Touchpad belegt den Rest neu.</item>
+  </string-array>
+
+  <string name="guide_keyboard_kicker">4 · Tastatur</string>
+  <string name="guide_keyboard_title">Tippen vom Sofa aus.</string>
+  <string-array name="guide_keyboard_keys">
+    <item>Öffnen</item>
+    <item>Tippen</item>
+    <item>Sondertasten</item>
+    <item>Schließen</item>
+  </string-array>
+  <string-array name="guide_keyboard_values">
+    <item>Das Steuerungssymbol oben auf der Steuerfläche, dann Tastatur. Sie öffnet sich im Querformat.</item>
+    <item>Jede Taste geht direkt an den Laptop. Die obere Reihe tut, was darauf steht; halte Fn für F1 bis F12 (in den Tastatureinstellungen änderbar).</item>
+    <item>Halte Strg, Alt, Umschalt oder Fn, während du eine Taste drückst, oder tippe eine an, damit sie für die nächste Taste gilt. Nochmal tippen hebt sie auf.</item>
+    <item>Der Zurück-Pfeil oben oder die Zurück-Geste des Systems.</item>
+  </string-array>
+
+  <string name="guide_gamepad_kicker">5 · Gamepad</string>
+  <string name="guide_gamepad_title">Ein Controller in der Tasche.</string>
+  <string-array name="guide_gamepad_keys">
+    <item>Öffnen</item>
+    <item>Vorlagen</item>
+    <item>Spielen</item>
+    <item>Anpassen</item>
+  </string-array>
+  <string-array name="guide_gamepad_values">
+    <item>Das Steuerungssymbol oben auf der Steuerfläche, dann Gamepad. Es öffnet sich im Querformat.</item>
+    <item>Xbox, Jump\'n\'Run, Rennspiel und Shooter, ausgewählt in den Gamepad-Einstellungen hinter dem Zahnrad auf dem Gamepad.</item>
+    <item>Halte einen Stick und wische, tippe die Tasten. Mehrere Finger gleichzeitig funktionieren.</item>
+    <item>Gamepad-Einstellungen › Layout bearbeiten. Zieh die Elemente dorthin, wo deine Daumen landen; drücke eines lange, um seine Größe zu ändern.</item>
+  </string-array>
+
+  <string name="guide_connect_kicker">6 · Verbinden</string>
+  <string name="guide_connect_title">Verbinde deinen Laptop.</string>
+  <string-array name="guide_connect_keys">
+    <item>Am Laptop</item>
+    <item>Bluetooth</item>
+    <item>WLAN oder USB</item>
+    <item>Vertrauen</item>
+    <item>Zwischenablage</item>
+  </string-array>
+  <string-array name="guide_connect_values">
+    <item>Installiere und öffne Edgepad. Es sitzt im Infobereich der Taskleiste, in der Menüleiste oder im System-Tray.</item>
+    <item>Koppel den Laptop in den Bluetooth-Einstellungen dieses Handys und tippe ihn dann unter Geräte an.</item>
+    <item>Schalte im Edgepad-Menü des Laptops „WLAN- und USB-Verbindungen“ ein (auf einem Mac „WLAN-Verbindungen“). Für USB schalte am Handy außerdem USB-Tethering ein.</item>
+    <item>Beim ersten Mal fragt der Laptop, ob er diesem Handy vertrauen soll: Wähle dort „Vertrauen“. Wird eine PIN verlangt, gib sie hier ein.</item>
+    <item>Seit Android 10 darf nur die App im Vordergrund die Zwischenablage lesen. Eine Kopie aus einer anderen App kommt deshalb erst auf dem Laptop an, wenn du zu Edgepad zurückwechselst. Oder nutze Teilen und dann Edgepad, um Text oder ein Bild sofort zu senden.</item>
+  </string-array>
+
+  <!-- Words inside the guide drawings. -->
+  <string name="guide_art_phone">Handy</string>
+  <string name="guide_art_laptop">Laptop</string>
+  <string name="guide_art_link">Erst Bluetooth · kein Konto</string>
+  <string name="guide_art_dials">Regler</string>
+  <string name="guide_art_trackpad">Touchpad</string>
+  <string name="guide_art_media">Medien</string>
+  <string name="guide_art_keys">Tasten · Pad</string>
+  <string name="guide_art_gestures">Gesten</string>
+  <string name="guide_art_move">1 · Bewegen</string>
+  <string name="guide_art_scroll">2 · Scrollen</string>
+  <string name="guide_art_swipe">3 · Wischen</string>
+  <string name="guide_art_latch">Strg, Alt und Umschalt rasten für die nächste Taste ein</string>
+  <string name="guide_art_presets">Xbox · Jump\'n\'Run · Rennspiel · Shooter</string>
+</resources>

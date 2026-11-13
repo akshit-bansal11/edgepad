@@ -23,7 +23,7 @@ public sealed class HandshakeTests : IDisposable
     private readonly string dir = Path.Combine(Path.GetTempPath(), "edgepad-tests-" + Guid.NewGuid().ToString("N"));
     private readonly MemoryStream output = new();
     private readonly List<string> logs = [];
-    private readonly List<string> statuses = [];
+    private readonly List<LaptopStatus> statuses = [];
     private readonly TrustStore trust;
 
     // Milliseconds on the PIN store's clock, moved by hand.
@@ -136,7 +136,7 @@ public sealed class HandshakeTests : IDisposable
         Assert.Equal([Ack], Sent());
         Assert.Equal(0, asked);
         Assert.Equal(0, admitted);
-        Assert.Single(statuses, s => s.StartsWith("Refused a phone on protocol ", StringComparison.Ordinal));
+        Assert.Single(statuses, LaptopStatus.RefusedProtocol(ProtocolConstants.Version - 1, ProtocolConstants.Version));
     }
 
     [Fact]
@@ -227,7 +227,7 @@ public sealed class HandshakeTests : IDisposable
             [new PinRequest(5, 0), new PinRequest(4, 0), new PinRequest(3, 0), new PinRequest(2, 0), new PinRequest(1, 0), new PinRequest(0, 30)],
             Sent());
         Assert.Equal(0, admitted);
-        Assert.Contains("Refused a phone that did not give the right PIN", statuses);
+        Assert.Contains(LaptopStatus.RefusedPin, statuses);
     }
 
     [Fact]
@@ -245,7 +245,7 @@ public sealed class HandshakeTests : IDisposable
         Assert.Equal([new PinRequest(0, 20)], Sent());
         Assert.Equal(0, asked);
         Assert.Equal(0, admitted);
-        Assert.Contains("Refused a phone locked out after wrong PINs", statuses);
+        Assert.Contains(LaptopStatus.RefusedLockedOut, statuses);
     }
 
     [Fact]
@@ -337,7 +337,7 @@ public sealed class HandshakeTests : IDisposable
         Assert.NotEmpty(logs);
         Assert.NotEmpty(statuses);
         Assert.DoesNotContain(
-            logs.Concat(statuses),
+            logs.Concat(statuses.Select(status => status.Text)),
             line => line.Contains("123456", StringComparison.Ordinal) || line.Contains("654321", StringComparison.Ordinal));
     }
 

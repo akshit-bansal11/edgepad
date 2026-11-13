@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The guide: first run, and Settings › Help › Guide. Every claim here must be true of the app. -->
+  <string name="guide_steps">Etapas</string>
+  <string name="guide_page">Página</string>
+  <string name="guide_back">Voltar</string>
+  <string name="guide_next">Avançar</string>
+  <string name="guide_done">Concluir</string>
+  <string name="guide_skip">Pular</string>
+  <string name="guide_find_laptop">Encontrar meu notebook</string>
+  <string name="guide_step_description">Página %1$d de %2$d</string>
+
+  <string name="guide_features_kicker">1 · Por que o Edgepad</string>
+  <string name="guide_features_title">Seu notebook, do outro lado da sala.</string>
+  <string-array name="guide_features_keys">
+    <item>Tempo real</item>
+    <item>Tempo de resposta</item>
+    <item>Offline</item>
+    <item>Bluetooth</item>
+    <item>E mais</item>
+  </string-array>
+  <string-array name="guide_features_values">
+    <item>Cada movimento é enviado na hora. Se a conexão está lenta, os movimentos que esperam são combinados em vez de entrar na fila.</item>
+    <item>Medido ao vivo do celular até o notebook e de volta, e mostrado ao lado do notebook na tela Dispositivos.</item>
+    <item>Sem conta e sem precisar de internet. O celular alcança o notebook diretamente.</item>
+    <item>Bluetooth por padrão: pareie uma vez nas configurações de Bluetooth do notebook, e o Edgepad passa a conectar ao abrir. As conexões Wi-Fi e USB são opcionais.</item>
+    <item>Resposta tátil, tema claro e escuro, retrato ou paisagem (o teclado e o gamepad ficam em paisagem), layouts de mídia e de gamepad só seus.</item>
+  </string-array>
+
+  <string name="guide_anatomy_kicker">2 · Anatomia</string>
+  <string name="guide_anatomy_title">Oito partes, uma tela.</string>
+  <string-array name="guide_anatomy_keys">
+    <item>Touchpad</item>
+    <item>Réguas de canto</item>
+    <item>Mídia</item>
+    <item>Teclado</item>
+    <item>Gamepad</item>
+    <item>Anotar</item>
+    <item>Capturar</item>
+    <item>Macros</item>
+  </string-array>
+  <string-array name="guide_anatomy_values">
+    <item>Todo o meio da tela. Todo gesto com os dedos começa aqui.</item>
+    <item>Réguas dobradas nos cantos, ou divididas duas por canto: volume, brilho, zoom, avanço da mídia, alternar apps, taxa de atualização, rolagem, áreas de trabalho virtuais, abas do navegador ou a régua Trocar de notebook.</item>
+    <item>O que está tocando, com anterior, tocar e próxima, enquanto um player está aberto. Mova e redimensione em Configurações da superfície.</item>
+    <item>Um teclado completo cujas teclas modificadoras funcionam seguradas ou tocadas, atrás do botão Controles.</item>
+    <item>Analógicos, um D-pad e botões em quatro predefinições, ou o seu próprio arranjo.</item>
+    <item>Controles › Anotar transforma o celular em uma caneta para a tela do notebook, com seis ferramentas e oito cores. Aparece quando o notebook é compatível.</item>
+    <item>Controles › Capturar pede ao notebook uma captura de região, de tela inteira ou uma gravação. Para uma região, arraste a área no touchpad abaixo dos botões. Aparece quando o notebook é compatível.</item>
+    <item>Uma grade de botões que abrem um programa, arquivo ou endereço da web no notebook, atrás de Controles. Mantenha um pressionado para arrastá-lo para a sua ordem; mais de dez continuam em páginas que você acessa deslizando.</item>
+  </string-array>
+
+  <string name="guide_surface_kicker">3 · A superfície</string>
+  <string name="guide_surface_title">Os dedos falam por você.</string>
+  <string-array name="guide_surface_keys">
+    <item>Um dedo</item>
+    <item>Dois dedos</item>
+    <item>Três e quatro</item>
+    <item>Réguas de canto</item>
+    <item>Ajustes</item>
+  </string-array>
+  <string-array name="guide_surface_values">
+    <item>Mova o ponteiro. Toque para clicar. Toque, segure e mova para arrastar.</item>
+    <item>Toque para clicar com o botão direito. Deslize para rolar. Faça pinça para dar zoom.</item>
+    <item>Três dedos para o lado alternam as áreas de trabalho, para cima abrem a Visão de Tarefas e para baixo mostram a área de trabalho. Quatro dedos para o lado percorrem os apps abertos. Toques abrem a pesquisa ou as notificações.</item>
+    <item>Deslize ao longo de uma régua; o sentido horário aumenta. Toque nela para silenciar, tocar, redefinir o zoom ou abrir a Visão de Tarefas.</item>
+    <item>Configurações da superfície › Cantos escolhe cada régua e pode dividir cada canto em duas, uma em cada borda. Ajuste das réguas define sensibilidade, tamanho e resposta tátil. Touchpad reatribui o restante.</item>
+  </string-array>
+
+  <string name="guide_keyboard_kicker">4 · Teclado</string>
+  <string name="guide_keyboard_title">Digite do sofá.</string>
+  <string-array name="guide_keyboard_keys">
+    <item>Abrir</item>
+    <item>Digitar</item>
+    <item>Modificadoras</item>
+    <item>Fechar</item>
+  </string-array>
+  <string-array name="guide_keyboard_values">
+    <item>O ícone Controles no alto da superfície e depois Teclado. Ele abre em paisagem.</item>
+    <item>Cada tecla vai direto para o notebook. A linha de cima faz o que está impresso nela; segure Fn para F1 a F12 (as Configurações do teclado mudam isso).</item>
+    <item>Segure Ctrl, Alt, Shift ou Fn enquanto pressiona uma tecla, ou toque em uma para aplicá-la à próxima tecla. Toque nela de novo para cancelar.</item>
+    <item>A seta de voltar no alto, ou o gesto de voltar do sistema.</item>
+  </string-array>
+
+  <string name="guide_gamepad_kicker">5 · Gamepad</string>
+  <string name="guide_gamepad_title">Um gamepad no seu bolso.</string>
+  <string-array name="guide_gamepad_keys">
+    <item>Abrir</item>
+    <item>Predefinições</item>
+    <item>Jogar</item>
+    <item>Deixe do seu jeito</item>
+  </string-array>
+  <string-array name="guide_gamepad_values">
+    <item>O ícone Controles no alto da superfície e depois Gamepad. Ele abre em paisagem.</item>
+    <item>Xbox, Plataforma, Corrida e Tiro. Você escolhe nas Configurações do gamepad, que abrem pela engrenagem.</item>
+    <item>Segure e deslize um analógico, toque nos botões. Vários dedos ao mesmo tempo funcionam.</item>
+    <item>Configurações do gamepad › Editar layout. Arraste os controles para onde seus polegares alcançam; mantenha um pressionado para redimensioná-lo.</item>
+  </string-array>
+
+  <string name="guide_connect_kicker">6 · Conectar</string>
+  <string name="guide_connect_title">Conecte seu notebook.</string>
+  <string-array name="guide_connect_keys">
+    <item>No notebook</item>
+    <item>Bluetooth</item>
+    <item>Wi-Fi ou USB</item>
+    <item>Confiar</item>
+    <item>Área de transferência</item>
+  </string-array>
+  <string-array name="guide_connect_values">
+    <item>Instale e abra o Edgepad. Ele fica no canto da barra de tarefas, na barra de menus ou na bandeja do sistema.</item>
+    <item>Pareie o notebook nas configurações de Bluetooth deste celular e depois toque nele em Dispositivos.</item>
+    <item>Ative “Conexões Wi-Fi e USB” no menu do Edgepad no notebook (no Mac, “Conexões Wi-Fi”). Para USB, ative também “Tethering USB” no celular.</item>
+    <item>Na primeira vez, o notebook pergunta se deve confiar neste celular: escolha Confiar lá. Se pedir um PIN, digite-o aqui.</item>
+    <item>Desde o Android 10, só o app na tela pode ler a área de transferência; por isso, o que você copia em outro app chega ao notebook quando você volta ao Edgepad. Ou use Compartilhar e depois Edgepad para enviar um texto ou uma imagem na hora.</item>
+  </string-array>
+
+  <!-- Words inside the guide drawings. -->
+  <string name="guide_art_phone">Celular</string>
+  <string name="guide_art_laptop">Notebook</string>
+  <string name="guide_art_link">Bluetooth primeiro · sem conta</string>
+  <string name="guide_art_dials">Réguas</string>
+  <string name="guide_art_trackpad">Touchpad</string>
+  <string name="guide_art_media">Mídia</string>
+  <string name="guide_art_keys">Teclas · pad</string>
+  <string name="guide_art_gestures">Gestos</string>
+  <string name="guide_art_move">1 · Mover</string>
+  <string name="guide_art_scroll">2 · Rolar</string>
+  <string name="guide_art_swipe">3 · Deslizar</string>
+  <string name="guide_art_latch">Ctrl, Alt e Shift ficam ativas para a próxima tecla</string>
+  <string name="guide_art_presets">Xbox · Plataforma · Corrida · Tiro</string>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">キーボード</string>
+  <string name="keyboard_type_text">テキストを入力</string>
+  <string name="keyboard_type_send">入力</string>
+  <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
+  <string name="back_to_surface">コントロール</string>
+  <string name="macros_title">マクロ</string>
+  <string name="keyboard_key_on">押下中</string>
+  <string name="keyboard_description">ノートPC用のオンスクリーンキーボード</string>
+  <string name="keyboard_size">サイズ</string>
+  <string name="keyboard_size_caption">サイズを大きくするとキーの数が増え、1つ1つのキーは小さくなります。広い画面に向いています。</string>
+  <string name="keyboard_function_keys">ファンクションキー</string>
+  <string name="keyboard_with_fn">Fnと併用</string>
+  <string name="keyboard_direct">直接</string>
+  <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
+  <string name="keyboard_function_keys_caption">Fnと併用：最上段は印字どおりの機能（明るさ、メディア、音量）になり、Fn＋キーでF1～F12を送ります。F行のない65%%と60%%では、数字の行は数字を入力し、Fn＋数字でF1～F12を送ります。直接：最上段がF1～F12を送り、Fn＋キーで印字どおりの機能になります。65%%と60%%では、数字の行がF1～F12を送り、Fn＋数字でその数字を入力します。</string>
+</resources>

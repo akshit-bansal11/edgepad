@@ -124,9 +124,15 @@ class BatteryStrip(
             chip.level = -1
             chip.charging = false
             chip.low = model.plusLow
-            spoken.add(if (chip.low) "${chip.label} ${context.getString(R.string.battery_low)}" else chip.label)
+            spoken.add(if (chip.low) context.getString(R.string.battery_more_low, chip.label) else chip.label)
         }
-        summary = if (count == 0) "" else context.getString(R.string.battery_summary, spoken.joinToString(", "))
+        summary =
+            if (count == 0) {
+                ""
+            } else {
+                val list = spoken.joinToString(context.getString(R.string.list_separator))
+                context.getString(R.string.battery_summary, list)
+            }
         fitText()
         place()
     }
@@ -167,13 +173,14 @@ class BatteryStrip(
         chip.level = row.level.coerceIn(0, FULL.toInt())
         chip.charging = row.charging
         chip.low = row.low
-        val state =
+        // One string per state, so a language can order the name, the level and the state its own way.
+        val spoken =
             when {
-                row.charging -> " " + context.getString(R.string.battery_charging)
-                row.low -> " " + context.getString(R.string.battery_low)
-                else -> ""
+                row.charging -> R.string.battery_spoken_charging
+                row.low -> R.string.battery_spoken_low
+                else -> R.string.battery_spoken
             }
-        return "${row.name} ${chip.label}$state"
+        return context.getString(spoken, row.name, chip.label)
     }
 
     /** The text room a chip leaves once its padding, icon and bolt are taken. */

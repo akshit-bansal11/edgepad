@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Network_Notice" xml:space="preserve">
+    <value>Celulares na mesma rede Wi-Fi, ou conectados por tethering USB, poderão encontrar este notebook e pedir o pareamento. Nada se conecta sem o código de pareamento digitado aqui. O Windows vai pedir uma vez para executar o Prompt de Comando; isso adiciona a regra do Edgepad no firewall.</value>
+  </data>
+  <data name="Network_ClipboardNotice" xml:space="preserve">
+    <value>Compartilhar área de transferência: copie em um e cole no outro, texto e imagens. Fica desativado até você marcar.</value>
+  </data>
+  <data name="Network_WhereItLives" xml:space="preserve">
+    <value>O Edgepad fica no canto da barra de tarefas. Se você não vê o ícone dele, clique em ^ e arraste-o para fora. Para usar o Bluetooth, pareie primeiro o celular nas configurações de Bluetooth do Windows e depois abra o Edgepad no celular.</value>
+  </data>
+  <data name="Menu_StartWithWindows" xml:space="preserve">
+    <value>&amp;Iniciar com o Windows</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>&amp;Macros…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>&amp;Segurança…</value>
+  </data>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Conexões &amp;Wi-Fi e USB</value>
+  </data>
+  <data name="Network_Title" xml:space="preserve">
+    <value>Wi-Fi e USB</value>
+  </data>
+  <data name="Menu_Firewall" xml:space="preserve">
+    <value>Permitir pelo &amp;Firewall do Windows…</value>
+  </data>
+  <data name="Menu_BluetoothSettings" xml:space="preserve">
+    <value>Abrir configurações do &amp;Bluetooth</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>Compartilhar área de &amp;transferência</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Copie em um e cole no outro: texto e imagens.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Verificar atuali&amp;zações diariamente</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Abrir &amp;registro</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>&amp;Atualização disponível</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>&amp;Documentação</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Sair do &amp;Edgepad</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} de {1}</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>&amp;Atualização disponível: {0}</value>
+  </data>
+  <data name="Balloon_UpdateAvailable" xml:space="preserve">
+    <value>O Edgepad {0} está disponível. Clique para abrir a página da versão; baixe-o e execute-o para substituir esta cópia.</value>
+  </data>
+  <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
+    <value>Não foi possível salvar Iniciar com o Windows, então o Edgepad não vai iniciar sozinho. O registro tem o motivo.</value>
+  </data>
+  <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
+    <value>Compartilhar área de transferência mudou por enquanto, mas não foi possível salvar, então a próxima abertura pode não lembrar disso.</value>
+  </data>
+  <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
+    <value>Verificar atualizações diariamente mudou por enquanto, mas não foi possível salvar, então a próxima abertura pode não lembrar disso.</value>
+  </data>
+  <data name="Balloon_NewFile" xml:space="preserve">
+    <value>Esta versão do Edgepad é um arquivo novo, então o Windows vai perguntar uma vez se os celulares podem acessá-lo.</value>
+  </data>
+  <data name="Balloon_FirewallNotChanged" xml:space="preserve">
+    <value>O Firewall do Windows não foi alterado, então os celulares podem não alcançar este notebook. Permitir pelo Firewall do Windows neste menu tenta de novo.</value>
+  </data>
+  <data name="Balloon_MacroAdded" xml:space="preserve">
+    <value>{0} adicionado do seu celular</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} quer parear. Digite o código de pareamento que ele mostra.</value>
+  </data>
+  <data name="Balloon_DriverMissing" xml:space="preserve">
+    <value>O gamepad precisa do driver ViGEmBus. Clique para abrir a página de download.</value>
+  </data>
+  <data name="Balloon_WantsToConnect" xml:space="preserve">
+    <value>{0} quer se conectar. Escolha Confiar ou Não confiar.</value>
+  </data>
+  <data name="Phone_Connected" xml:space="preserve">
+    <value>Celular conectado</value>
+  </data>
+  <data name="Phone_Disconnected" xml:space="preserve">
+    <value>Celular desconectado</value>
+  </data>
+  <data name="Balloon_ForgotOne" xml:space="preserve">
+    <value>{0} foi esquecido. Conecte de novo pelo celular em cerca de {1} segundos.</value>
+  </data>
+  <data name="Balloon_ForgotAll" xml:space="preserve">
+    <value>Todos os celulares confiáveis foram esquecidos. Conecte de novo pelo celular em cerca de {0} segundos.</value>
+  </data>
+  <data name="Dialog_StartWithWindows" xml:space="preserve">
+    <value>Iniciar com o Windows</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Agora não</value>
+  </data>
+  <data name="Dialog_StartHeading" xml:space="preserve">
+    <value>Iniciar o Edgepad quando você entrar?</value>
+  </data>
+  <data name="Dialog_StartText" xml:space="preserve">
+    <value>O Edgepad então espera seu celular no canto da barra de tarefas, sem janela. Você pode mudar isso depois no menu dele.</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>Permitir</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Ativar</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Dialog_ShareClipboard" xml:space="preserve">
+    <value>Compartilhar área de transferência</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Deixar os celulares encontrarem este notebook?</value>
+  </data>
+  <data name="Dialog_NetworkHeading" xml:space="preserve">
+    <value>Ativar as conexões Wi-Fi e USB?</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>Não foi possível salvar a configuração, então nada foi alterado. O registro tem o motivo.</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Segurança</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Tente Esquecer de novo quando nada mais estiver usando os arquivos do Edgepad em {0}. {1} não pôde ser totalmente esquecido: um arquivo não pôde ser reescrito. Ele continua confiável no disco, mas o Edgepad o recusa até ser reiniciado, e ele voltará a ser confiável a partir daí, a menos que você o esqueça de novo.</value>
+  </data>
+  <data name="Error_ForgetAllTrust" xml:space="preserve">
+    <value>Feche o que estiver usando o arquivo dos celulares confiáveis e escolha Esquecer tudo de novo, ou exclua-o você mesmo:
+
+{0}
+
+Não foi possível esquecer os celulares confiáveis: o arquivo deles não pôde ser removido nem esvaziado. Nenhum celular pode se conectar enquanto o Edgepad continuar em execução, mas esses celulares voltarão a ser confiáveis na próxima vez que o Edgepad iniciar.</value>
+  </data>
+  <data name="Error_ForgetAllPin" xml:space="preserve">
+    <value>Escolha Esquecer tudo de novo, ou exclua pin-verified.txt você mesmo em:
+
+{0}
+
+Não foi possível esquecer os celulares que digitaram o PIN: a lista deles não pôde ser removida. Enquanto o Edgepad continuar em execução, todo celular terá que digitar o PIN a cada conexão, mas esses celulares voltarão a dispensá-lo no nível 2 na próxima vez que o Edgepad iniciar.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>Escolha Esquecer tudo de novo, ou exclua paired-links.txt você mesmo em:
+
+{0}
+
+Não foi possível esquecer os pareamentos por Wi-Fi e USB: o arquivo deles não pôde ser removido nem esvaziado. Os celulares pareados não podem se reconectar por Wi-Fi ou USB enquanto o Edgepad continuar em execução, mas poderão fazer isso de novo na próxima vez que ele iniciar.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Confiar</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Não confiar</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>Um celular pareado está pedindo para controlar o ponteiro e o teclado deste notebook. Confie nele só se for seu. Se você não responder em {0} s, ele não será considerado confiável.</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>Confiar em {0}?</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Só confiança</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>PIN uma vez por celular</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>PIN a cada conexão</value>
+  </data>
+  <data name="Security_Level1Note" xml:space="preserve">
+    <value>Um celular novo precisa do seu sim aqui. Nada mais é pedido.</value>
+  </data>
+  <data name="Security_Level2Note" xml:space="preserve">
+    <value>O celular também digita o PIN, uma vez. Ele é lembrado até o PIN ou o nível mudar.</value>
+  </data>
+  <data name="Security_Level3Note" xml:space="preserve">
+    <value>O celular digita o PIN toda vez que se conecta.</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Todo celular precisa primeiro do seu sim aqui. Os níveis 2 e 3 também pedem um PIN de seis dígitos, digitado na tela do celular. Os celulares ficam desconectados enquanto esta janela está aberta.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Salvar um novo PIN ou nível faz os celulares que digitaram o PIN uma vez digitarem de novo.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Celulares confiáveis</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>Nenhum celular é confiável ainda. Cada celular é consultado na primeira vez que se conecta.</value>
+  </data>
+  <data name="Security_LevelName" xml:space="preserve">
+    <value>Nível {0}, {1}</value>
+  </data>
+  <data name="Security_SetPinButton" xml:space="preserve">
+    <value>Definir &amp;PIN…</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>&amp;Esquecer tudo…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>&amp;Redefinir PIN e esquecer celulares…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>&amp;Salvar</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Esquecer</value>
+  </data>
+  <data name="Security_ForgetPhoneName" xml:space="preserve">
+    <value>Esquecer {0}</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>Alterar PIN…</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>Definir PIN…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>Um novo PIN será salvo.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>Há um PIN definido.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>Nenhum PIN definido.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>Não foi possível salvar o PIN, então nada foi alterado. O registro tem o motivo.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>Não foi possível salvar o nível, então o nível anterior continua valendo. O registro tem o motivo.</value>
+  </data>
+  <data name="Security_ForgetOneHeading" xml:space="preserve">
+    <value>Esquecer {0}?</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>Será preciso confiar de novo em {0} ({1}) aqui antes que ele possa usar este notebook. Os celulares ficam desconectados enquanto você decide.</value>
+  </data>
+  <data name="Security_ForgetAllHeading" xml:space="preserve">
+    <value>Esquecer todos os celulares confiáveis?</value>
+  </data>
+  <data name="Security_ForgetAllNamed" xml:space="preserve">
+    <value>Será preciso confiar de novo em {0} aqui antes de usar este notebook, inclusive no celular conectado. Os celulares ficam desconectados enquanto você decide.</value>
+  </data>
+  <data name="Security_ForgetAllEvery" xml:space="preserve">
+    <value>Será preciso confiar de novo em todos os celulares aqui antes de usarem este notebook, inclusive no celular conectado. Os celulares ficam desconectados enquanto você decide.</value>
+  </data>
+  <data name="Security_ResetHeading" xml:space="preserve">
+    <value>Redefinir o PIN e esquecer todos os celulares?</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>O PIN é excluído, o nível volta para 1 e todos os celulares confiáveis são esquecidos. Será preciso confiar de novo em cada celular aqui, inclusive no conectado. Um PIN esquecido não pode ser recuperado, só redefinido.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Feche o que estiver usando o arquivo e escolha Redefinir de novo, ou exclua-o você mesmo:
+
+{0}
+
+Nada foi redefinido: não foi possível esquecer os celulares confiáveis, então o PIN e o nível ficaram como estavam. Nenhum celular pode se conectar enquanto o Edgepad continuar em execução, mas esses celulares voltarão a ser confiáveis, com o mesmo PIN, na próxima vez que ele iniciar.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Feche o que estiver usando o arquivo e escolha Redefinir de novo, ou exclua security.txt e pin-verified.txt você mesmo em:
+
+{0}
+
+Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PIN: um arquivo de configurações não pôde ser removido, então o PIN e o nível antigos ainda podem valer. Será preciso confiar de novo em cada celular aqui.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>Novo PIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>Novo PIN de novo</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Seis dígitos</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Repita</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>&amp;Usar este PIN</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>Um PIN tem exatamente seis dígitos.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>Os dois PINs não são iguais.</value>
+  </data>
+  <data name="Macro_Description" xml:space="preserve">
+    <value>Botões na tela de macros do seu celular, até 15. O celular envia o número de um botão, nunca um programa, então só pode executar o que você adicionar aqui. Alt+↑ e Alt+↓ reordenam os botões.</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>Nenhuma macro ainda</value>
+  </data>
+  <data name="Macro_EmptyDetail" xml:space="preserve">
+    <value>Adicione um app, um documento, uma pasta ou um endereço da web. Cada um vira um botão no celular.</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>Abre</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Argumentos</value>
+  </data>
+  <data name="Macro_ArgumentsNone" xml:space="preserve">
+    <value>Nenhum</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>opcional</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>Ícone</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Macros</value>
+  </data>
+  <data name="Macro_IconPreview" xml:space="preserve">
+    <value>Prévia do ícone</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>&amp;Adicionar macro</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>&amp;Procurar…</value>
+  </data>
+  <data name="Macro_BrowseName" xml:space="preserve">
+    <value>Procurar o que isto abre</value>
+  </data>
+  <data name="Macro_ChooseIcon" xml:space="preserve">
+    <value>&amp;Escolher ícone…</value>
+  </data>
+  <data name="Macro_ChooseIconName" xml:space="preserve">
+    <value>Escolher ícone</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>&amp;Usar o ícone do programa</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>&amp;Remover</value>
+  </data>
+  <data name="Macro_ReorderHint" xml:space="preserve">
+    <value>Alt+↑ e Alt+↓ movem a macro selecionada.</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Nova macro</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Adicionar macro</value>
+  </data>
+  <data name="Macro_Full" xml:space="preserve">
+    <value>Macros: {0} de {0}</value>
+  </data>
+  <data name="Macro_NoRoom" xml:space="preserve">
+    <value>Uma macro foi adicionada do seu celular enquanto esta janela estava aberta, e não há espaço para ela. Remova uma aqui e depois salve.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Não foi possível salvar as macros em {0}: {1}</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}” não tem nada para abrir. Escolha o que ela abre ou remova-a.</value>
+  </data>
+  <data name="Dialog_Save" xml:space="preserve">
+    <value>Salvar</value>
+  </data>
+  <data name="Macro_DontSave" xml:space="preserve">
+    <value>Não salvar</value>
+  </data>
+  <data name="Macro_SaveHeading" xml:space="preserve">
+    <value>Salvar alterações nas macros?</value>
+  </data>
+  <data name="Macro_SaveText" xml:space="preserve">
+    <value>Suas alterações serão perdidas se você não as salvar.</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Escolha o que este botão abre</value>
+  </data>
+  <data name="Macro_FilterPrograms" xml:space="preserve">
+    <value>Programas e documentos (*.*)</value>
+  </data>
+  <data name="Macro_FilterIcons" xml:space="preserve">
+    <value>Ícones, programas e imagens (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
+  </data>
+  <data name="Macro_FilterAll" xml:space="preserve">
+    <value>Todos os arquivos (*.*)</value>
+  </data>
+  <data name="Macro_ChoosePicture" xml:space="preserve">
+    <value>Escolha a imagem deste botão</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Digite o código de pareamento mostrado no celular:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Código de pareamento mostrado no celular</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Parear um celular</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>Parear {0}?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Parear</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Fechar</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Verificando o código de pareamento</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Fecha em {0} s</value>
+  </data>
+  <data name="App_RunningAsAdmin" xml:space="preserve">
+    <value>O Edgepad já está em execução como administrador. Saia dele pelo ícone na bandeja ou execute este também como administrador.</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>O Edgepad já está em execução. Procure-o no canto da barra de tarefas.</value>
+  </data>
+  <data name="App_DidNotHandOver" xml:space="preserve">
+    <value>Outro Edgepad já está em execução e não passou o controle. Saia dele pelo ícone na bandeja e execute este de novo.</value>
+  </data>
+  <data name="Phone_NoneConnected" xml:space="preserve">
+    <value>Nenhum celular conectado</value>
+  </data>
+  <data name="Badge_Connected" xml:space="preserve">
+    <value>Conectado</value>
+  </data>
+  <data name="Badge_Problem" xml:space="preserve">
+    <value>Problema</value>
+  </data>
+  <data name="Badge_Waiting" xml:space="preserve">
+    <value>Aguardando</value>
+  </data>
+  <data name="Level_Microphone" xml:space="preserve">
+    <value>Microfone</value>
+  </data>
+  <data name="Level_Brightness" xml:space="preserve">
+    <value>Brilho</value>
+  </data>
+  <data name="Phone_Name" xml:space="preserve">
+    <value>Celular</value>
+  </data>
+  <data name="Level_Volume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi e USB: não foi possível escutar. Veja o registro.</value>
+  </data>
+  <data name="Network_PhonesMayNotFind" xml:space="preserve">
+    <value>Wi-Fi e USB: os celulares podem não encontrar este notebook.</value>
+  </data>
+</root>

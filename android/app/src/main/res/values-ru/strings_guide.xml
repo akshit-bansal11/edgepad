@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The guide: first run, and Settings › Help › Guide. Every claim here must be true of the app. -->
+  <string name="guide_steps">Шаги</string>
+  <string name="guide_page">Страница</string>
+  <string name="guide_back">Назад</string>
+  <string name="guide_next">Далее</string>
+  <string name="guide_done">Готово</string>
+  <string name="guide_skip">Пропустить</string>
+  <string name="guide_find_laptop">Найти мой ноутбук</string>
+  <string name="guide_step_description">Страница %1$d из %2$d</string>
+
+  <string name="guide_features_kicker">1 · Зачем нужен Edgepad</string>
+  <string name="guide_features_title">Ваш ноутбук — через всю комнату.</string>
+  <string-array name="guide_features_keys">
+    <item>В реальном времени</item>
+    <item>Отклик</item>
+    <item>Без интернета</item>
+    <item>Bluetooth</item>
+    <item>И не только</item>
+  </string-array>
+  <string-array name="guide_features_values">
+    <item>Каждое движение уходит сразу, как вы его сделали. При медленной связи ожидающие движения объединяются, а не копятся в очереди.</item>
+    <item>Измеряется вживую от телефона до ноутбука и обратно и показывается рядом с ноутбуком на экране «Устройства».</item>
+    <item>Без аккаунта и без интернета. Телефон связывается с ноутбуком напрямую.</item>
+    <item>По умолчанию Bluetooth: один раз сопрягите ноутбук в его настройках Bluetooth, и дальше Edgepad сможет подключаться при запуске. Подключения по Wi-Fi и USB необязательны.</item>
+    <item>Виброотклик на делениях, светлая и тёмная темы, портретная или альбомная ориентация (клавиатура и геймпад всегда альбомные), собственные раскладки медиа и геймпада.</item>
+  </string-array>
+
+  <string name="guide_anatomy_kicker">2 · Устройство</string>
+  <string name="guide_anatomy_title">Восемь частей, один экран.</string>
+  <string-array name="guide_anatomy_keys">
+    <item>Тачпад</item>
+    <item>Угловые шкалы</item>
+    <item>Медиа</item>
+    <item>Клавиатура</item>
+    <item>Геймпад</item>
+    <item>Пометки</item>
+    <item>Захват</item>
+    <item>Макросы</item>
+  </string-array>
+  <string-array name="guide_anatomy_values">
+    <item>Вся середина экрана. Здесь начинаются все жесты.</item>
+    <item>Шкалы, свёрнутые в углах, или по две в каждом углу: громкость, яркость, масштаб, перемотка, переключение приложений, частота обновления, прокрутка, виртуальные рабочие столы, вкладки браузера или шкала «Смена ноутбука».</item>
+    <item>Что сейчас играет, а также кнопки «назад», «воспроизвести» и «вперёд», пока открыт плеер. Перемещайте и меняйте размер в настройках пульта.</item>
+    <item>Полная клавиатура, где модификаторы работают при удержании или одним касанием; открывается кнопкой «Управление».</item>
+    <item>Стики, крестовина и кнопки в четырёх готовых раскладках или в вашей собственной.</item>
+    <item>«Управление» › «Пометки» превращает телефон в перо для экрана ноутбука: шесть инструментов и восемь цветов. Появляется, если ноутбук это поддерживает.</item>
+    <item>«Управление» › «Захват» просит ноутбук сделать снимок области, всего экрана или запись. Для области выделите её на тачпаде под кнопками. Появляется, если ноутбук это поддерживает.</item>
+    <item>Сетка кнопок, которые открывают программу, файл или веб-адрес на ноутбуке; находится в разделе «Управление». Нажмите на кнопку и удерживайте, чтобы перетащить её на нужное место; если макросов больше десяти, остальные идут на следующих страницах: проведите пальцем в сторону.</item>
+  </string-array>
+
+  <string name="guide_surface_kicker">3 · Пульт</string>
+  <string name="guide_surface_title">Говорите пальцами.</string>
+  <string-array name="guide_surface_keys">
+    <item>Один палец</item>
+    <item>Два пальца</item>
+    <item>Три и четыре</item>
+    <item>Угловые шкалы</item>
+    <item>Настройка</item>
+  </string-array>
+  <string-array name="guide_surface_values">
+    <item>Перемещайте указатель. Коснитесь, чтобы щёлкнуть. Коснитесь, затем задержите палец и двигайте — это перетаскивание.</item>
+    <item>Коснитесь, чтобы щёлкнуть правой кнопкой. Проведите, чтобы прокрутить. Сведите пальцы, чтобы изменить масштаб.</item>
+    <item>Три пальца в стороны — рабочие столы, вверх — представление задач, вниз — рабочий стол. Четыре пальца в стороны — открытые приложения. Касание тремя или четырьмя пальцами открывает поиск или уведомления.</item>
+    <item>Ведите по шкале: по часовой стрелке — больше. Коснитесь её, чтобы выключить звук, запустить воспроизведение, сбросить масштаб или открыть представление задач.</item>
+    <item>В разделе «Настройки пульта» › «Углы» выбирается шкала для каждого угла, а угол можно разделить на две шкалы, по одной на каждой стороне. «Поведение шкал» задаёт чувствительность, размер и виброотклик. «Тачпад» меняет остальные жесты.</item>
+  </string-array>
+
+  <string name="guide_keyboard_kicker">4 · Клавиатура</string>
+  <string name="guide_keyboard_title">Печатайте с дивана.</string>
+  <string-array name="guide_keyboard_keys">
+    <item>Открытие</item>
+    <item>Ввод</item>
+    <item>Модификаторы</item>
+    <item>Закрытие</item>
+  </string-array>
+  <string-array name="guide_keyboard_values">
+    <item>Значок «Управление» вверху пульта, затем «Клавиатура». Она открывается в альбомной ориентации.</item>
+    <item>Каждая клавиша сразу уходит на ноутбук. Верхний ряд выполняет то, что на нём нарисовано; удерживайте Fn для F1–F12 (это меняется в настройках клавиатуры).</item>
+    <item>Удерживайте Ctrl, Alt, Shift или Fn при нажатии клавиши либо коснитесь одной из них, чтобы применить её к следующей клавише. Коснитесь ещё раз, чтобы отменить.</item>
+    <item>Стрелка «назад» вверху или системный жест «назад».</item>
+  </string-array>
+
+  <string name="guide_gamepad_kicker">5 · Геймпад</string>
+  <string name="guide_gamepad_title">Контроллер в кармане.</string>
+  <string-array name="guide_gamepad_keys">
+    <item>Открытие</item>
+    <item>Готовые раскладки</item>
+    <item>Игра</item>
+    <item>Под себя</item>
+  </string-array>
+  <string-array name="guide_gamepad_values">
+    <item>Значок «Управление» вверху пульта, затем «Геймпад». Он открывается в альбомной ориентации.</item>
+    <item>Xbox, Платформер, Гонки и Шутер; выбираются в настройках геймпада, за шестерёнкой на геймпаде.</item>
+    <item>Удерживайте и двигайте стик, нажимайте кнопки. Можно несколькими пальцами сразу.</item>
+    <item>«Настройки геймпада» › «Изменить раскладку». Перетащите элементы туда, где лежат большие пальцы; нажмите на элемент и удерживайте, чтобы изменить его размер.</item>
+  </string-array>
+
+  <string name="guide_connect_kicker">6 · Подключение</string>
+  <string name="guide_connect_title">Подключите ноутбук.</string>
+  <string-array name="guide_connect_keys">
+    <item>На ноутбуке</item>
+    <item>Bluetooth</item>
+    <item>Wi-Fi или USB</item>
+    <item>Доверие</item>
+    <item>Буфер обмена</item>
+  </string-array>
+  <string-array name="guide_connect_values">
+    <item>Установите и откройте Edgepad. Он работает в области уведомлений на панели задач или в строке меню на Mac.</item>
+    <item>Сопрягите ноутбук в настройках Bluetooth этого телефона, затем нажмите на него в разделе «Устройства».</item>
+    <item>Включите «Подключения по Wi-Fi и USB» в меню Edgepad на ноутбуке (на Mac — подключения по Wi-Fi). Для USB также включите на телефоне USB-модем.</item>
+    <item>При первом подключении ноутбук спросит, доверять ли этому телефону: выберите там «Доверять». Если он попросит PIN-код, введите его здесь.</item>
+    <item>Начиная с Android 10 читать буфер обмена может только приложение на экране, поэтому скопированное в другом приложении попадает на ноутбук, когда вы возвращаетесь в Edgepad. Или нажмите «Поделиться», затем Edgepad, чтобы сразу отправить текст или изображение.</item>
+  </string-array>
+
+  <!-- Words inside the guide drawings. -->
+  <string name="guide_art_phone">Телефон</string>
+  <string name="guide_art_laptop">Ноутбук</string>
+  <string name="guide_art_link">Сначала Bluetooth · без аккаунта</string>
+  <string name="guide_art_dials">Шкалы</string>
+  <string name="guide_art_trackpad">Тачпад</string>
+  <string name="guide_art_media">Медиа</string>
+  <string name="guide_art_keys">Клавиши · тачпад</string>
+  <string name="guide_art_gestures">Жесты</string>
+  <string name="guide_art_move">1 · Движение</string>
+  <string name="guide_art_scroll">2 · Прокрутка</string>
+  <string name="guide_art_swipe">3 · Свайп</string>
+  <string name="guide_art_latch">Ctrl, Alt и Shift залипают до следующей клавиши</string>
+  <string name="guide_art_presets">Xbox · Платформер · Гонки · Шутер</string>
+</resources>

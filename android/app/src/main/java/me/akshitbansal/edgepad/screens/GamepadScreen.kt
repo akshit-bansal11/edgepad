@@ -20,6 +20,7 @@ import me.akshitbansal.edgepad.gamepad.ControlGeometry
 import me.akshitbansal.edgepad.gamepad.ControlKind
 import me.akshitbansal.edgepad.gamepad.GamepadLayout
 import me.akshitbansal.edgepad.gamepad.PadAxis
+import me.akshitbansal.edgepad.gamepad.layoutLabel
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadButton
@@ -56,7 +57,7 @@ class GamepadScreen(
     // The options sheet: the layouts to switch between in place, the editor, and the gamepad's settings page.
     val view: View =
         EditorFrame
-            .build(ui, layout.name, pad, onBack, onOpener = { openOptions = it }) { close ->
+            .build(ui, layoutLabel(ui.context, layout.name), pad, onBack, onOpener = { openOptions = it }) { close ->
                 LinearLayout(ui.context).apply {
                     orientation = LinearLayout.VERTICAL
                     addView(

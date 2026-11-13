@@ -13,30 +13,30 @@ internal sealed class StatusMemory
     public static readonly TimeSpan Sticky = TimeSpan.FromMinutes(10);
     public static readonly TimeSpan AnnounceEvery = TimeSpan.FromHours(1);
 
-    private readonly Dictionary<string, long> announced = [];
-    private string? problem;
+    private readonly Dictionary<LaptopStatus, long> announced = [];
+    private LaptopStatus? problem;
     private long problemUntil;
-    private string? quiet;
+    private LaptopStatus? quiet;
     private long quietUntil;
 
     /// <summary>The text to show for <paramref name="status"/> at <paramref name="now"/> (milliseconds on a forward clock).</summary>
-    public string Resolve(string status, long now)
+    public LaptopStatus Resolve(LaptopStatus status, long now)
     {
-        if (LaptopStatus.IsProblem(status))
+        if (status.IsProblem)
         {
             problem = status;
             problemUntil = now + (long)Sticky.TotalMilliseconds;
             return status;
         }
 
-        if (LaptopStatus.IsConnected(status))
+        if (status.IsConnected)
         {
             problem = null;
             quiet = null;
             return status;
         }
 
-        if (status != LaptopStatus.Waiting)
+        if (status.Kind != StatusKind.Waiting)
         {
             return status;
         }
@@ -50,9 +50,9 @@ internal sealed class StatusMemory
     }
 
     /// <summary>True once per cause per hour for a protocol mismatch: the one refusal the owner cannot see coming.</summary>
-    public bool ShouldAnnounce(string status, long now)
+    public bool ShouldAnnounce(LaptopStatus status, long now)
     {
-        if (!LaptopStatus.IsProblem(status) || status.StartsWith("Refused ", StringComparison.Ordinal) || status.StartsWith("Bluetooth", StringComparison.Ordinal))
+        if (!status.IsMismatch)
         {
             return false;
         }
@@ -67,7 +67,7 @@ internal sealed class StatusMemory
     }
 
     /// <summary>Says <paramref name="text"/> in place of "waiting" until <paramref name="until"/>: connections are being refused on purpose.</summary>
-    public void Quiet(string text, long until)
+    public void Quiet(LaptopStatus text, long until)
     {
         quiet = text;
         quietUntil = until;
@@ -86,6 +86,6 @@ internal static class NetworkStatus
 {
     public static string? Problem(bool listening, bool announced) =>
         !listening
-            ? "Wi-Fi and USB: could not listen. See the log."
-            : !announced ? "Wi-Fi and USB: phones may not find this laptop." : null;
+            ? Strings.Network_CouldNotListen
+            : !announced ? Strings.Network_PhonesMayNotFind : null;
 }

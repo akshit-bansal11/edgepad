@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">Klawiatura</string>
+  <string name="keyboard_type_text">Wpisz tekst</string>
+  <string name="keyboard_type_send">Wpisz</string>
+  <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
+  <string name="back_to_surface">Sterowanie</string>
+  <string name="macros_title">Makra</string>
+  <string name="keyboard_key_on">Wciśnięty</string>
+  <string name="keyboard_description">Klawiatura ekranowa dla laptopa</string>
+  <string name="keyboard_size">Rozmiar</string>
+  <string name="keyboard_size_caption">Większe rozmiary mieszczą więcej klawiszy, więc każdy klawisz jest mniejszy. Wymagają szerszego ekranu.</string>
+  <string name="keyboard_function_keys">Klawisze funkcyjne</string>
+  <string name="keyboard_with_fn">Z Fn</string>
+  <string name="keyboard_direct">Bezpośrednio</string>
+  <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
+  <string name="keyboard_function_keys_caption">Z Fn: górny rząd robi to, co pokazują jego symbole (jasność, multimedia, głośność), a Fn z klawiszem wysyła F1 do F12. Na układach 65%% i 60%%, które nie mają rzędu F, rząd cyfr wpisuje cyfry, a Fn z cyfrą wysyła F1 do F12. Bezpośrednio: górny rząd wysyła F1 do F12, a Fn z klawiszem wykonuje czynność pokazaną na klawiszu; na układach 65%% i 60%% rząd cyfr wysyła F1 do F12, a Fn z cyfrą wpisuje tę cyfrę.</string>
+</resources>

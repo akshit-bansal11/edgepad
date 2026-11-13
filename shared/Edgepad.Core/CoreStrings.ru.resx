@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Status_Starting" xml:space="preserve">
+    <value>Запуск…</value>
+  </data>
+  <data name="Status_Waiting" xml:space="preserve">
+    <value>Ожидание телефона</value>
+  </data>
+  <data name="Status_Connected" xml:space="preserve">
+    <value>Подключён: {0}</value>
+  </data>
+  <data name="Status_RefusedProtocol" xml:space="preserve">
+    <value>Телефон с протоколом {0} отклонён; на этом ноутбуке протокол {1}</value>
+  </data>
+  <data name="Status_MismatchPhoneOlder" xml:space="preserve">
+    <value>{0}: не удалось подключиться, на телефоне устаревшая версия Edgepad. Обновите Edgepad на телефоне.</value>
+  </data>
+  <data name="Status_MismatchLaptopOlder" xml:space="preserve">
+    <value>{0}: не удалось подключиться, Edgepad на этом ноутбуке устарел. Обновите Edgepad здесь.</value>
+  </data>
+  <data name="Status_RefusedLockedOut" xml:space="preserve">
+    <value>Отклонён телефон, заблокированный после неверных PIN-кодов</value>
+  </data>
+  <data name="Status_RefusedUntrusted" xml:space="preserve">
+    <value>Отклонён телефон, которому нет доверия</value>
+  </data>
+  <data name="Status_RefusedPin" xml:space="preserve">
+    <value>Отклонён телефон, не введший верный PIN-код</value>
+  </data>
+  <data name="Status_BluetoothOff" xml:space="preserve">
+    <value>Bluetooth выключен</value>
+  </data>
+  <data name="Status_BluetoothRetrying" xml:space="preserve">
+    <value>Bluetooth выключен или недоступен; повторная попытка</value>
+  </data>
+  <data name="Status_BluetoothUnavailable" xml:space="preserve">
+    <value>Bluetooth выключен или недоступен</value>
+  </data>
+  <data name="Status_Pairing" xml:space="preserve">
+    <value>Сопряжение с «{0}»: введите код сопряжения, показанный на телефоне</value>
+  </data>
+  <data name="Status_Paired" xml:space="preserve">
+    <value>Сопряжено: {0}</value>
+  </data>
+  <data name="Status_Asking" xml:space="preserve">
+    <value>Вопрос о доверии: {0}</value>
+  </data>
+  <data name="Status_QuietUntil" xml:space="preserve">
+    <value>Телефоны смогут подключаться снова в {0}</value>
+  </data>
+  <data name="Way_Bluetooth" xml:space="preserve">
+    <value>Bluetooth</value>
+  </data>
+  <data name="Way_WifiOrUsb" xml:space="preserve">
+    <value>Wi-Fi или USB</value>
+  </data>
+  <data name="Pairing_Mismatched" xml:space="preserve">
+    <value>Код сопряжения не совпал. Сопряжение не выполнено.</value>
+  </data>
+  <data name="Pairing_TimedOut" xml:space="preserve">
+    <value>Время вышло. Сопряжение не выполнено. Начните заново на телефоне.</value>
+  </data>
+  <data name="Pairing_Warning" xml:space="preserve">
+    <value>Сопрягайте только свой телефон. Если вы сами не начинали сопряжение, нажмите «Отмена».</value>
+  </data>
+  <data name="Pairing_NotFinished" xml:space="preserve">
+    <value>Сопряжение не завершено.</value>
+  </data>
+  <data name="Pairing_Matched" xml:space="preserve">
+    <value>Код сопряжения совпал. Нажмите «Да, сопряжено» на устройстве «{0}», чтобы завершить.</value>
+  </data>
+  <data name="Pairing_Paired" xml:space="preserve">
+    <value>Сопряжено: {0}.</value>
+  </data>
+  <data name="Source_From" xml:space="preserve">
+    <value>от {0}, {1}</value>
+  </data>
+  <data name="Source_OnNetwork" xml:space="preserve">
+    <value>из вашей сети</value>
+  </data>
+  <data name="Source_OverUsb" xml:space="preserve">
+    <value>по USB</value>
+  </data>
+  <data name="Source_OverWifi" xml:space="preserve">
+    <value>по Wi-Fi</value>
+  </data>
+  <data name="LastConnected_Row" xml:space="preserve">
+    <value>{0} · последнее подключение: {1}</value>
+  </data>
+  <data name="LastConnected_Unknown" xml:space="preserve">
+    <value>{0} · нет подключений с момента обновления</value>
+  </data>
+</root>

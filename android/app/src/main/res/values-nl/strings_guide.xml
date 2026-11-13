@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The guide: first run, and Settings › Help › Guide. Every claim here must be true of the app. -->
+  <string name="guide_steps">Stappen</string>
+  <string name="guide_page">Pagina</string>
+  <string name="guide_back">Terug</string>
+  <string name="guide_next">Volgende</string>
+  <string name="guide_done">Klaar</string>
+  <string name="guide_skip">Overslaan</string>
+  <string name="guide_find_laptop">Mijn laptop zoeken</string>
+  <string name="guide_step_description">Pagina %1$d van %2$d</string>
+
+  <string name="guide_features_kicker">1 · Waarom Edgepad</string>
+  <string name="guide_features_title">Je laptop, vanaf de andere kant van de kamer.</string>
+  <string-array name="guide_features_keys">
+    <item>Realtime</item>
+    <item>Heen en terug</item>
+    <item>Offline</item>
+    <item>Bluetooth</item>
+    <item>En meer</item>
+  </string-array>
+  <string-array name="guide_features_values">
+    <item>Elke beweging gaat meteen de deur uit. Bij een trage verbinding worden wachtende bewegingen samengevoegd in plaats van in de rij gezet.</item>
+    <item>Live gemeten van de telefoon naar de laptop en terug, en getoond naast de laptop op het scherm Apparaten.</item>
+    <item>Geen account en geen internet nodig. De telefoon bereikt de laptop rechtstreeks.</item>
+    <item>Standaard Bluetooth: koppel één keer in de Bluetooth-instellingen van de laptop, daarna kan Edgepad bij het openen verbinden. Wi-Fi- en USB-verbindingen zijn optioneel.</item>
+    <item>Haptische tikjes, licht en donker, staand of liggend (toetsenbord en gamepad blijven liggend), je eigen media- en gamepad-indelingen.</item>
+  </string-array>
+
+  <string name="guide_anatomy_kicker">2 · Onderdelen</string>
+  <string name="guide_anatomy_title">Acht onderdelen, één scherm.</string>
+  <string-array name="guide_anatomy_keys">
+    <item>Touchpad</item>
+    <item>Hoekregelaars</item>
+    <item>Media</item>
+    <item>Toetsenbord</item>
+    <item>Gamepad</item>
+    <item>Annoteren</item>
+    <item>Vastleggen</item>
+    <item>Macro\'s</item>
+  </string-array>
+  <string-array name="guide_anatomy_values">
+    <item>Het hele midden van het scherm. Elk vingergebaar begint hier.</item>
+    <item>Schalen die in de hoeken zijn gevouwen, of gesplitst met twee per hoek: Volume, Helderheid, Zoom, Spoelen, App-wisselaar, Vernieuwingsfrequentie, scrollen, Virtuele bureaubladen, Browsertabbladen of de regelaar Laptop wisselen.</item>
+    <item>Wat er speelt, met vorige, afspelen en volgende, zolang een speler open is. Verplaats en vergroot of verklein het in de instellingen voor het bedieningsvlak.</item>
+    <item>Een volledig toetsenbord waarvan de modificatietoetsen ingedrukt of getikt werken, achter de knop Bediening.</item>
+    <item>Sticks, een D-pad en knoppen in vier voorinstellingen, of je eigen indeling.</item>
+    <item>Bediening › Annoteren maakt van de telefoon een pen voor het laptopscherm, met zes gereedschappen en acht kleuren. Het verschijnt als de laptop het ondersteunt.</item>
+    <item>Bediening › Vastleggen vraagt de laptop om een screenshot van een gebied, van het hele scherm of om een opname. Sleep voor een gebied het kader uit op het pad onder de knoppen. Het verschijnt als de laptop het ondersteunt.</item>
+    <item>Een raster met knoppen die een programma, bestand of webadres op de laptop openen, achter Bediening. Houd er een ingedrukt en sleep hem naar jouw volgorde; bij meer dan tien ga je door naar pagina\'s waar je naartoe veegt.</item>
+  </string-array>
+
+  <string name="guide_surface_kicker">3 · Het bedieningsvlak</string>
+  <string name="guide_surface_title">Je vingers doen het werk.</string>
+  <string-array name="guide_surface_keys">
+    <item>Eén vinger</item>
+    <item>Twee vingers</item>
+    <item>Drie en vier</item>
+    <item>Hoekregelaars</item>
+    <item>Afstellen</item>
+  </string-array>
+  <string-array name="guide_surface_values">
+    <item>Beweeg de aanwijzer. Tik om te klikken. Tik, houd vast en beweeg om te slepen.</item>
+    <item>Tik voor rechtsklik. Schuif om te scrollen. Knijp om te zoomen.</item>
+    <item>Drie vingers zijwaarts voor bureaubladen, omhoog voor taakweergave, omlaag voor het bureaublad. Vier vingers zijwaarts door open apps. Tikken opent zoeken of meldingen.</item>
+    <item>Schuif langs een schaal; met de klok mee gaat het omhoog. Tik erop om te dempen, af te spelen, de zoom te herstellen of de taakweergave te openen.</item>
+    <item>Instellingen voor bedieningsvlak › Hoeken kiest elke regelaar en kan elke hoek in tweeën splitsen, één op elke rand. Gevoel van regelaars stelt gevoeligheid, grootte en haptiek in. Touchpad wijst de rest opnieuw toe.</item>
+  </string-array>
+
+  <string name="guide_keyboard_kicker">4 · Toetsenbord</string>
+  <string name="guide_keyboard_title">Typ vanaf de bank.</string>
+  <string-array name="guide_keyboard_keys">
+    <item>Openen</item>
+    <item>Typen</item>
+    <item>Modificatietoetsen</item>
+    <item>Sluiten</item>
+  </string-array>
+  <string-array name="guide_keyboard_values">
+    <item>Het pictogram Bediening boven aan het bedieningsvlak, dan Toetsenbord. Het opent liggend.</item>
+    <item>Elke toets gaat rechtstreeks naar de laptop. De bovenste rij doet wat erop staat; houd Fn ingedrukt voor F1 tot F12 (te wijzigen in de toetsenbordinstellingen).</item>
+    <item>Houd Ctrl, Alt, Shift of Fn ingedrukt terwijl je een toets indrukt, of tik er een aan voor de volgende toets. Tik nogmaals om te annuleren.</item>
+    <item>De terugpijl bovenaan, of het systeemgebaar voor terug.</item>
+  </string-array>
+
+  <string name="guide_gamepad_kicker">5 · Gamepad</string>
+  <string name="guide_gamepad_title">Een controller in je zak.</string>
+  <string-array name="guide_gamepad_keys">
+    <item>Openen</item>
+    <item>Voorinstellingen</item>
+    <item>Spelen</item>
+    <item>Maak hem van jou</item>
+  </string-array>
+  <string-array name="guide_gamepad_values">
+    <item>Het pictogram Bediening boven aan het bedieningsvlak, dan Gamepad. Het opent liggend.</item>
+    <item>Xbox, Platformer, Racen en Shooter, te kiezen in de Gamepad-instellingen, achter het tandwiel op de gamepad.</item>
+    <item>Houd een stick vast en schuif, tik op de knoppen. Meerdere vingers tegelijk werken.</item>
+    <item>Gamepad-instellingen › Indeling bewerken. Sleep elementen naar waar je duimen landen; houd er een ingedrukt om de grootte te wijzigen.</item>
+  </string-array>
+
+  <string name="guide_connect_kicker">6 · Verbinden</string>
+  <string name="guide_connect_title">Verbind je laptop.</string>
+  <string-array name="guide_connect_keys">
+    <item>Op de laptop</item>
+    <item>Bluetooth</item>
+    <item>Wi-Fi of USB</item>
+    <item>Vertrouwen</item>
+    <item>Klembord</item>
+  </string-array>
+  <string-array name="guide_connect_values">
+    <item>Installeer en open Edgepad. Het staat in de hoek van de taakbalk, de menubalk of het systeemvak.</item>
+    <item>Koppel de laptop in de Bluetooth-instellingen van deze telefoon en tik hem dan aan bij Apparaten.</item>
+    <item>Zet Wi-Fi- en USB-verbindingen aan in het Edgepad-menu van de laptop (op een Mac: Wi-Fi-verbindingen). Zet voor USB ook USB-tethering aan op de telefoon.</item>
+    <item>De eerste keer vraagt de laptop of hij deze telefoon moet vertrouwen: kies daar Vertrouwen. Vraagt hij om een pincode, typ die dan hier.</item>
+    <item>Sinds Android 10 kan alleen de app op het scherm het klembord lezen, dus wat je in een andere app kopieert, bereikt de laptop zodra je terugschakelt naar Edgepad. Of gebruik Delen en dan Edgepad om tekst of een afbeelding meteen te sturen.</item>
+  </string-array>
+
+  <!-- Words inside the guide drawings. -->
+  <string name="guide_art_phone">Telefoon</string>
+  <string name="guide_art_laptop">Laptop</string>
+  <string name="guide_art_link">Eerst Bluetooth · geen account</string>
+  <string name="guide_art_dials">Regelaars</string>
+  <string name="guide_art_trackpad">Touchpad</string>
+  <string name="guide_art_media">Media</string>
+  <string name="guide_art_keys">Toetsen · pad</string>
+  <string name="guide_art_gestures">Gebaren</string>
+  <string name="guide_art_move">1 · Bewegen</string>
+  <string name="guide_art_scroll">2 · Scrollen</string>
+  <string name="guide_art_swipe">3 · Vegen</string>
+  <string name="guide_art_latch">Ctrl, Alt en Shift blijven actief voor de volgende toets</string>
+  <string name="guide_art_presets">Xbox · Platformer · Racen · Shooter</string>
+</resources>

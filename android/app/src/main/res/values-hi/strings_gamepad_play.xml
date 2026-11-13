@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_edit">लेआउट बदलें</string>
+  <string name="gamepad_mode_waiting">कीबोर्ड मोड · लैपटॉप से कंट्रोलर मिलने का इंतज़ार है</string>
+  <string name="gamepad_mode_unanswered">कीबोर्ड मोड · इस लैपटॉप ने जवाब नहीं दिया; शायद Edgepad अपडेट करना पड़े</string>
+  <string name="gamepad_mode_no_driver">कीबोर्ड मोड · लैपटॉप पर कंट्रोलर ड्राइवर नहीं है</string>
+  <string name="gamepad_mode_no_driver_windows">कीबोर्ड मोड · कंट्रोलर के लिए लैपटॉप पर ViGEmBus इंस्टॉल करें</string>
+  <string name="gamepad_mode_no_driver_mac">कीबोर्ड मोड · Mac में कंट्रोलर मोड नहीं है</string>
+  <string name="gamepad_mode_attach_failed">कीबोर्ड मोड · लैपटॉप कंट्रोलर को जोड़ नहीं सका</string>
+</resources>

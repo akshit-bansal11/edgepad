@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The guide: first run, and Settings › Help › Guide. Every claim here must be true of the app. -->
+  <string name="guide_steps">Kroki</string>
+  <string name="guide_page">Strona</string>
+  <string name="guide_back">Wstecz</string>
+  <string name="guide_next">Dalej</string>
+  <string name="guide_done">Gotowe</string>
+  <string name="guide_skip">Pomiń</string>
+  <string name="guide_find_laptop">Znajdź mój laptop</string>
+  <string name="guide_step_description">Strona %1$d z %2$d</string>
+
+  <string name="guide_features_kicker">1 · Dlaczego Edgepad</string>
+  <string name="guide_features_title">Twój laptop z drugiego końca pokoju.</string>
+  <string-array name="guide_features_keys">
+    <item>W czasie rzeczywistym</item>
+    <item>Czas odpowiedzi</item>
+    <item>Offline</item>
+    <item>Bluetooth</item>
+    <item>I więcej</item>
+  </string-array>
+  <string-array name="guide_features_values">
+    <item>Każdy ruch trafia na laptop od razu, gdy go wykonasz. Wolne połączenie łączy oczekujące ruchy zamiast ustawiać je w kolejce.</item>
+    <item>Mierzony na żywo od telefonu do laptopa i z powrotem; widać go przy laptopie na ekranie Urządzenia.</item>
+    <item>Bez konta i bez internetu. Telefon łączy się z laptopem bezpośrednio.</item>
+    <item>Domyślnie Bluetooth: sparuj raz w ustawieniach Bluetooth laptopa, a Edgepad połączy się po uruchomieniu. Połączenia Wi-Fi i USB są opcjonalne.</item>
+    <item>Haptyczne podziałki, jasny i ciemny motyw, układ pionowy lub poziomy (klawiatura i gamepad zostają poziomo), własne układy multimediów i gamepada.</item>
+  </string-array>
+
+  <string name="guide_anatomy_kicker">2 · Budowa</string>
+  <string name="guide_anatomy_title">Osiem elementów, jeden ekran.</string>
+  <string-array name="guide_anatomy_keys">
+    <item>Touchpad</item>
+    <item>Suwaki w rogach</item>
+    <item>Multimedia</item>
+    <item>Klawiatura</item>
+    <item>Gamepad</item>
+    <item>Adnotacje</item>
+    <item>Przechwytywanie</item>
+    <item>Makra</item>
+  </string-array>
+  <string-array name="guide_anatomy_values">
+    <item>Cała środkowa część ekranu. Tu zaczyna się każdy gest palcami.</item>
+    <item>Suwaki wpasowane w rogi albo podzielone po dwie na róg: głośność, jasność, powiększenie, przewijanie utworu, przełącznik aplikacji, częstotliwość odświeżania, przewijanie, pulpity wirtualne, karty przeglądarki lub suwak Zmiana laptopa.</item>
+    <item>To, co jest odtwarzane, a pod spodem przyciski poprzedni, odtwarzanie i następny, gdy otwarty jest odtwarzacz. Przesuń je i zmień ich rozmiar w ustawieniach powierzchni sterowania.</item>
+    <item>Pełna klawiatura, której klawisze modyfikujące działają przytrzymane lub stuknięte, za przyciskiem Sterowanie.</item>
+    <item>Gałki, krzyżak i przyciski w czterech gotowych układach albo we własnym.</item>
+    <item>Sterowanie › Adnotacje zamienia telefon w pióro do ekranu laptopa, z sześcioma narzędziami i ośmioma kolorami. Pojawia się, gdy laptop to obsługuje.</item>
+    <item>Sterowanie › Przechwytywanie prosi laptop o zrzut obszaru, zrzut całego ekranu albo nagranie. Obszar zaznacz przeciągnięciem po touchpadzie pod przyciskami. Pojawia się, gdy laptop to obsługuje.</item>
+    <item>Siatka przycisków otwierających program, plik lub adres internetowy na laptopie, za przyciskiem Sterowanie. Przytrzymaj jeden i przeciągnij, aby ułożyć po swojemu; gdy jest ich ponad dziesięć, reszta czeka na kolejnych stronach, do których przesuwasz palcem.</item>
+  </string-array>
+
+  <string name="guide_surface_kicker">3 · Powierzchnia</string>
+  <string name="guide_surface_title">Palce mówią same za siebie.</string>
+  <string-array name="guide_surface_keys">
+    <item>Jeden palec</item>
+    <item>Dwa palce</item>
+    <item>Trzy i cztery</item>
+    <item>Suwaki w rogach</item>
+    <item>Dostosuj</item>
+  </string-array>
+  <string-array name="guide_surface_values">
+    <item>Przesuwa wskaźnik. Stuknięcie klika. Stuknij, przytrzymaj i przesuń, aby przeciągać.</item>
+    <item>Stuknięcie to kliknięcie prawym przyciskiem. Przesuwanie przewija. Szczypnięcie powiększa.</item>
+    <item>Trzy palce w bok zmieniają pulpity, w górę otwierają widok zadań, w dół pokazują pulpit. Cztery palce w bok przełączają otwarte aplikacje. Stuknięcia otwierają wyszukiwanie lub powiadomienia.</item>
+    <item>Przesuwaj palcem wzdłuż suwaka; ruch zgodny ze wskazówkami zegara zwiększa wartość. Stuknięcie wycisza, odtwarza, zeruje powiększenie albo otwiera widok zadań.</item>
+    <item>Ustawienia powierzchni sterowania › Rogi: wybierz suwak dla każdego rogu albo podziel róg na dwa, po jednym na krawędź. „Działanie suwaków” ustawia czułość, rozmiar i reakcję haptyczną. „Touchpad” przypisuje resztę.</item>
+  </string-array>
+
+  <string name="guide_keyboard_kicker">4 · Klawiatura</string>
+  <string name="guide_keyboard_title">Pisz z kanapy.</string>
+  <string-array name="guide_keyboard_keys">
+    <item>Otwórz</item>
+    <item>Pisanie</item>
+    <item>Klawisze modyfikujące</item>
+    <item>Zamknij</item>
+  </string-array>
+  <string-array name="guide_keyboard_values">
+    <item>Ikona Sterowania u góry powierzchni, potem Klawiatura. Otwiera się poziomo.</item>
+    <item>Każdy klawisz trafia prosto na laptop. Górny rząd robi to, co pokazują jego symbole; przytrzymaj Fn, aby uzyskać F1 do F12 (zmienisz to w ustawieniach klawiatury).</item>
+    <item>Przytrzymaj Ctrl, Alt, Shift lub Fn, naciskając klawisz, albo stuknij jeden z nich, aby zastosować go do następnego klawisza. Stuknij ponownie, aby anulować.</item>
+    <item>Strzałka wstecz u góry albo systemowy gest cofania.</item>
+  </string-array>
+
+  <string name="guide_gamepad_kicker">5 · Gamepad</string>
+  <string name="guide_gamepad_title">Gamepad w kieszeni.</string>
+  <string-array name="guide_gamepad_keys">
+    <item>Otwórz</item>
+    <item>Gotowe układy</item>
+    <item>Gra</item>
+    <item>Zrób po swojemu</item>
+  </string-array>
+  <string-array name="guide_gamepad_values">
+    <item>Ikona Sterowania u góry powierzchni, potem Gamepad. Otwiera się poziomo.</item>
+    <item>Xbox, Xbox (klawisze), Platformówka, Wyścigi i Strzelanka, wybierane w ustawieniach gamepada, za kołem zębatym na gamepadzie.</item>
+    <item>Przytrzymaj i przesuń gałkę, stukaj przyciski. Działa kilka palców naraz.</item>
+    <item>Ustawienia gamepada › Edytuj układ. Przeciągaj elementy tam, gdzie lądują kciuki; przytrzymaj jeden, aby zmienić jego rozmiar.</item>
+  </string-array>
+
+  <string name="guide_connect_kicker">6 · Połączenie</string>
+  <string name="guide_connect_title">Połącz swój laptop.</string>
+  <string-array name="guide_connect_keys">
+    <item>Na laptopie</item>
+    <item>Bluetooth</item>
+    <item>Wi-Fi lub USB</item>
+    <item>Zaufanie</item>
+    <item>Schowek</item>
+  </string-array>
+  <string-array name="guide_connect_values">
+    <item>Zainstaluj i otwórz Edgepad. Działa w obszarze powiadomień, na pasku menu lub w zasobniku systemowym.</item>
+    <item>Sparuj laptop w ustawieniach Bluetooth tego telefonu, a potem stuknij go w Urządzeniach.</item>
+    <item>Włącz „Połączenia Wi-Fi i USB” w menu Edgepad na laptopie (na komputerze Mac: połączenia Wi-Fi). Dla USB włącz też tethering USB w telefonie.</item>
+    <item>Za pierwszym razem laptop zapyta, czy ufać temu telefonowi: wybierz tam „Zaufaj”. Jeśli poprosi o PIN, wpisz go tutaj.</item>
+    <item>Od Androida 10 schowek może odczytać tylko aplikacja widoczna na ekranie, więc coś skopiowanego w innej aplikacji trafia na laptop po powrocie do Edgepad. Możesz też użyć opcji Udostępnij, a potem Edgepad, aby od razu wysłać tekst lub obraz.</item>
+  </string-array>
+
+  <!-- Words inside the guide drawings. -->
+  <string name="guide_art_phone">Telefon</string>
+  <string name="guide_art_laptop">Laptop</string>
+  <string name="guide_art_link">Najpierw Bluetooth · bez konta</string>
+  <string name="guide_art_dials">Suwaki</string>
+  <string name="guide_art_trackpad">Touchpad</string>
+  <string name="guide_art_media">Multimedia</string>
+  <string name="guide_art_keys">Klawisze · gamepad</string>
+  <string name="guide_art_gestures">Gesty</string>
+  <string name="guide_art_move">1 · Ruch</string>
+  <string name="guide_art_scroll">2 · Przewijanie</string>
+  <string name="guide_art_swipe">3 · Przesunięcie</string>
+  <string name="guide_art_latch">Ctrl, Alt i Shift działają na następny klawisz</string>
+  <string name="guide_art_presets">Xbox · Xbox (klawisze) · Platformówka · Wyścigi · Strzelanka</string>
+</resources>

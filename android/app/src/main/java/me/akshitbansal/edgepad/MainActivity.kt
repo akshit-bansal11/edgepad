@@ -1054,6 +1054,9 @@ class MainActivity :
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
+        // These are physical: edge rulers, trackpad, swipes, key rows and layout editors say left and right of the
+        // phone, so Arabic mirrors the settings pages around them but never them.
+        if (next in immersive) view.layoutDirection = View.LAYOUT_DIRECTION_LTR
         setContentView(view)
         applyOrientation()
         // The bars are see-through over the page, whose own background is the ground, so they take its colour.
@@ -1501,12 +1504,17 @@ class MainActivity :
 
     /** What an update does to the app before it does it: it restarts, which drops every link. */
     private fun confirmUpdate(version: String) {
-        val major = Updates.majorDiffers(version, getString(R.string.app_version))
         val body = getString(R.string.updates_confirm_body)
+        val message =
+            if (Updates.majorDiffers(version, getString(R.string.app_version))) {
+                getString(R.string.sentences_joined, body, getString(R.string.updates_confirm_major))
+            } else {
+                body
+            }
         AlertDialog
             .Builder(this)
             .setTitle(getString(R.string.updates_confirm_title, version))
-            .setMessage(if (major) body + " " + getString(R.string.updates_confirm_major) else body)
+            .setMessage(message)
             .setPositiveButton(R.string.updates_confirm_action) { _, _ -> installUpdate(version) }
             .setNeutralButton(R.string.updates_release_notes) { _, _ -> open(Updates.releaseUrl(version)) }
             .setNegativeButton(android.R.string.cancel, null)
@@ -1730,7 +1738,8 @@ class MainActivity :
         Log.d("Edgepad", "Sweep: wifi=${last.wifi} usb=${last.usb}")
         val wifi = if (last.wifi != null) R.string.status_searched_wifi else R.string.status_no_wifi
         val usb = if (last.usb != null) R.string.status_searched_usb else null
-        return listOfNotNull(wifi, usb).joinToString(" ") { getString(it) }
+        val said = getString(wifi)
+        return if (usb == null) said else getString(R.string.sentences_joined, said, getString(usb))
     }
 
     /**

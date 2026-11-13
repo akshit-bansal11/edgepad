@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_edit">Düzeni düzenle</string>
+  <string name="gamepad_mode_waiting">Klavye modu · bilgisayarın bir kumanda sunması bekleniyor</string>
+  <string name="gamepad_mode_unanswered">Klavye modu · bu bilgisayar yanıt vermedi; Edgepad\'in güncellenmesi gerekebilir</string>
+  <string name="gamepad_mode_no_driver">Klavye modu · bilgisayarda kumanda sürücüsü yok</string>
+  <string name="gamepad_mode_no_driver_windows">Klavye modu · kumanda için bilgisayara ViGEmBus yükleyin</string>
+  <string name="gamepad_mode_no_driver_mac">Klavye modu · Mac\'te kumanda modu yok</string>
+  <string name="gamepad_mode_attach_failed">Klavye modu · bilgisayar kumandayı takamadı</string>
+</resources>

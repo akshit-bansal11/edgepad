@@ -24,6 +24,8 @@ import me.akshitbansal.edgepad.gamepad.ControlKind
 import me.akshitbansal.edgepad.gamepad.GamepadLayout
 import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.gamepad.InputNames
+import me.akshitbansal.edgepad.gamepad.layoutLabel
+import me.akshitbansal.edgepad.gamepad.layoutLabels
 import me.akshitbansal.edgepad.protocol.PadButton
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -82,7 +84,12 @@ object GamepadLayoutScreen {
 
     /** The four directions of a d-pad or a stick, in the order [Binding.Keys] stores their codes. */
     private val DIRECTIONS =
-        listOf(R.string.gamepad_up, R.string.gamepad_down, R.string.gamepad_left, R.string.gamepad_right)
+        listOf(
+            R.string.gamepad_bind_key_up,
+            R.string.gamepad_bind_key_down,
+            R.string.gamepad_bind_key_left,
+            R.string.gamepad_bind_key_right,
+        )
 
     fun build(
         ui: Ui,
@@ -92,10 +99,12 @@ object GamepadLayoutScreen {
         val canvas = Editor(ui.context, store)
         return EditorFrame.build(
             ui,
-            ui.string(R.string.gamepad_layout_editing, store.current.name),
+            ui.string(R.string.gamepad_layout_editing, layoutLabel(ui.context, store.current.name)),
             canvas,
             onBack,
-            onRetitle = { set -> canvas.named = { set(ui.string(R.string.gamepad_layout_editing, it)) } },
+            onRetitle = { set ->
+                canvas.named = { set(ui.string(R.string.gamepad_layout_editing, layoutLabel(ui.context, it))) }
+            },
         ) { close ->
             LinearLayout(ui.context).apply {
                 orientation = LinearLayout.VERTICAL
@@ -169,7 +178,9 @@ object GamepadLayoutScreen {
             // rows tall inside a popup, and it is the only thing that says the list goes on past it.
             val list =
                 ScrollView(ui.context).apply {
-                    addView(ui.choices(names, names.indexOf(current)) { i -> onPick(names[i]) })
+                    addView(
+                        ui.choices(layoutLabels(ui.context, names), names.indexOf(current)) { i -> onPick(names[i]) },
+                    )
                 }
             val wanted = names.size * (Space.TOUCH + Space.HAIR)
             addView(
@@ -184,9 +195,9 @@ object GamepadLayoutScreen {
         store: GamepadStore,
     ): String =
         if (store.isBuiltIn(store.current.name)) {
-            ui.string(R.string.gamepad_restore, store.current.name)
+            ui.string(R.string.gamepad_restore, layoutLabel(ui.context, store.current.name))
         } else {
-            ui.string(R.string.gamepad_switch_to, GamepadLayout.presets.first().name)
+            ui.string(R.string.gamepad_switch_to, layoutLabel(ui.context, GamepadLayout.presets.first().name))
         }
 
     private fun resetConfirm(
@@ -194,9 +205,9 @@ object GamepadLayoutScreen {
         store: GamepadStore,
     ): String =
         if (store.isBuiltIn(store.current.name)) {
-            ui.string(R.string.gamepad_restore_confirm, store.current.name)
+            ui.string(R.string.gamepad_restore_confirm, layoutLabel(ui.context, store.current.name))
         } else {
-            ui.string(R.string.gamepad_switch_to_confirm, GamepadLayout.presets.first().name)
+            ui.string(R.string.gamepad_switch_to_confirm, layoutLabel(ui.context, GamepadLayout.presets.first().name))
         }
 
     /** Two buttons side by side, the way [EditorFrame.resetAndDone] lays its own out. */
@@ -487,7 +498,7 @@ object GamepadLayoutScreen {
                 if (codes.size == 1) {
                     context.getString(R.string.gamepad_bind_keys)
                 } else {
-                    context.getString(R.string.gamepad_bind_key_for, context.getString(DIRECTIONS[at]))
+                    context.getString(DIRECTIONS[at])
                 }
             val was = (control.binding as? Binding.Keys)?.codes?.getOrNull(at)
             AlertDialog

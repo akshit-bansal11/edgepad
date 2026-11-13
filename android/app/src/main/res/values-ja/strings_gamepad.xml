@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_layout_title">ゲームパッドのレイアウト</string>
+  <string name="gamepad_layout_editing">%1$sを編集中</string>
+  <string name="gamepad_preset_xbox_keys">Xbox（キー）</string>
+  <string name="gamepad_preset_platformer">横スクロール</string>
+  <string name="gamepad_preset_racing">レース</string>
+  <string name="gamepad_preset_shooter">シューティング</string>
+  <string name="gamepad_layout_hint">ドラッグで移動します。コントロールを長押しすると、メニューが開きます。</string>
+  <string name="gamepad_layout_section">レイアウト</string>
+  <string name="gamepad_description">ノートPC用のゲームコントローラーです。タッチ操作のみ対応です。</string>
+  <string name="gamepad_node_dpad">十字キー</string>
+  <string name="gamepad_node_stick">スティック</string>
+  <string name="gamepad_node_button">ボタン</string>
+  <string name="gamepad_size">サイズ</string>
+  <string name="dp_value">%1$ddp</string>
+
+  <!-- The two buttons in the editor's options popup; short, because they sit side by side in it. -->
+  <string name="gamepad_add">追加</string>
+  <string name="gamepad_restore">%1$sを復元</string>
+  <string name="gamepad_restore_confirm">%1$sを復元？ もう一度タップ</string>
+  <string name="gamepad_switch_to">%1$sに切り替え</string>
+  <string name="gamepad_switch_to_confirm">%1$sに切り替え？ 自分のレイアウトは保存されたままです。もう一度タップ</string>
+  <string name="gamepad_layouts">レイアウト</string>
+
+  <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->
+  <string name="gamepad_control_title">%1$s · %2$s</string>
+  <string name="gamepad_bind">割り当て</string>
+  <string name="gamepad_label">ラベル</string>
+  <string name="gamepad_delete_control">コントロールを削除</string>
+  <string name="gamepad_delete_title">%1$sを削除しますか？</string>
+  <string name="gamepad_delete_body">このレイアウトから削除されます。「追加」で元に戻せます。</string>
+  <string name="gamepad_name_required">レイアウトに名前を付けてください</string>
+
+  <!-- Adding a control: the kinds offered, in the order the menu lists them. -->
+  <string name="gamepad_add_control">コントロールを追加</string>
+  <string name="gamepad_kind_button">ボタン</string>
+  <string name="gamepad_kind_dpad">十字キー</string>
+  <string name="gamepad_kind_stick">スティック</string>
+  <string name="gamepad_kind_shoulder">ショルダー</string>
+  <string name="gamepad_kind_trigger">トリガー</string>
+
+  <!--
+    What a control can drive. The controller's own inputs, then a key on the laptop's keyboard.
+    The d-pad binding has no name of its own: gamepad_kind_dpad above is already the same word.
+  -->
+  <string name="gamepad_bind_stick_left">左スティック</string>
+  <string name="gamepad_bind_stick_right">右スティック</string>
+  <string name="gamepad_bind_trigger_left">左トリガー</string>
+  <string name="gamepad_bind_trigger_right">右トリガー</string>
+  <string name="gamepad_bind_keys">キーボードのキー</string>
+  <string name="gamepad_bind_key_up">上のキー</string>
+  <string name="gamepad_bind_key_down">下のキー</string>
+  <string name="gamepad_bind_key_left">左のキー</string>
+  <string name="gamepad_bind_key_right">右のキー</string>
+
+  <!-- Keeping the named layouts themselves. -->
+  <string name="gamepad_save_as">名前を付けて保存</string>
+  <string name="gamepad_rename">名前を変更</string>
+  <string name="gamepad_delete_layout">レイアウトを削除</string>
+  <string name="gamepad_delete_layout_body">%1$sを削除します。Edgepadに最初から入っているレイアウトは残ります。</string>
+  <string name="gamepad_delete">削除</string>
+</resources>

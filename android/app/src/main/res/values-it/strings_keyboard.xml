@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">Tastiera</string>
+  <string name="keyboard_type_text">Digita testo</string>
+  <string name="keyboard_type_send">Digita</string>
+  <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
+  <string name="back_to_surface">Controlli</string>
+  <string name="macros_title">Macro</string>
+  <string name="keyboard_key_on">Attivo</string>
+  <string name="keyboard_description">Tastiera su schermo per il portatile</string>
+  <string name="keyboard_size">Dimensione</string>
+  <string name="keyboard_size_caption">Le dimensioni maggiori contengono più tasti, quindi ogni tasto è più piccolo. Richiedono uno schermo più largo.</string>
+  <string name="keyboard_function_keys">Tasti funzione</string>
+  <string name="keyboard_with_fn">Con Fn</string>
+  <string name="keyboard_direct">Diretti</string>
+  <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
+  <string name="keyboard_function_keys_caption">Con Fn: la riga in alto fa ciò che c\'è stampato sui tasti (luminosità, media, volume) e Fn più un tasto invia da F1 a F12. Sulle tastiere 65%% e 60%%, che non hanno la riga F, la riga dei numeri digita numeri e Fn più un numero invia da F1 a F12. Diretti: la riga in alto invia da F1 a F12 e Fn più un tasto esegue l\'azione stampata; sulle 65%% e 60%% la riga dei numeri invia da F1 a F12 e Fn più un numero digita il numero.</string>
+</resources>

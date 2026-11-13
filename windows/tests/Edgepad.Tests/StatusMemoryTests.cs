@@ -1,3 +1,4 @@
+using Edgepad.Net;
 using Edgepad.Trust;
 using Edgepad.Ui;
 using Xunit;
@@ -6,7 +7,7 @@ namespace Edgepad.Tests;
 
 public sealed class StatusMemoryTests
 {
-    private const string Mismatch = "Pixel could not connect: its Edgepad app is older. Update Edgepad on the phone.";
+    private static readonly LaptopStatus Mismatch = LaptopStatus.RefusedProtocol(4, 5).For("Pixel", PhoneWay.Bluetooth);
 
     [Fact]
     public void ARefusalOutlivesTheWaitingThatFollowsIt()
@@ -14,7 +15,7 @@ public sealed class StatusMemoryTests
         var memory = new StatusMemory();
         memory.Resolve(Mismatch, 0);
 
-        Assert.Equal(Mismatch, memory.Resolve("Waiting for your phone", 1_000));
+        Assert.Equal(Mismatch, memory.Resolve(LaptopStatus.Waiting, 1_000));
     }
 
     [Fact]
@@ -22,11 +23,11 @@ public sealed class StatusMemoryTests
     {
         var memory = new StatusMemory();
         memory.Resolve(Mismatch, 0);
-        Assert.Equal("Waiting for your phone", memory.Resolve("Waiting for your phone", (long)StatusMemory.Sticky.TotalMilliseconds + 1));
+        Assert.Equal(LaptopStatus.Waiting, memory.Resolve(LaptopStatus.Waiting, (long)StatusMemory.Sticky.TotalMilliseconds + 1));
 
         memory.Resolve(Mismatch, 0);
-        memory.Resolve("Connected to Pixel · Bluetooth", 10);
-        Assert.Equal("Waiting for your phone", memory.Resolve("Waiting for your phone", 20));
+        memory.Resolve(LaptopStatus.Connected("Pixel", PhoneWay.Bluetooth), 10);
+        Assert.Equal(LaptopStatus.Waiting, memory.Resolve(LaptopStatus.Waiting, 20));
     }
 
     [Fact]
@@ -36,19 +37,20 @@ public sealed class StatusMemoryTests
 
         Assert.True(memory.ShouldAnnounce(Mismatch, 0));
         Assert.False(memory.ShouldAnnounce(Mismatch, 1_000));
-        Assert.True(memory.ShouldAnnounce(Mismatch.Replace("Pixel", "Tablet", StringComparison.Ordinal), 1_000));
+        Assert.True(memory.ShouldAnnounce(LaptopStatus.RefusedProtocol(4, 5).For("Tablet", PhoneWay.Bluetooth), 1_000));
         Assert.True(memory.ShouldAnnounce(Mismatch, (long)StatusMemory.AnnounceEvery.TotalMilliseconds + 1));
-        Assert.False(memory.ShouldAnnounce("Refused a phone it does not trust", 0));
+        Assert.False(memory.ShouldAnnounce(LaptopStatus.RefusedUntrusted, 0));
     }
 
     [Fact]
     public void TheQuietPeriodIsSaidInPlaceOfWaiting()
     {
         var memory = new StatusMemory();
-        memory.Quiet("Phones can connect again at 12:41", 5_000);
+        var quiet = LaptopStatus.QuietUntil("12:41");
+        memory.Quiet(quiet, 5_000);
 
-        Assert.Equal("Phones can connect again at 12:41", memory.Resolve("Waiting for your phone", 1_000));
-        Assert.Equal("Waiting for your phone", memory.Resolve("Waiting for your phone", 6_000));
+        Assert.Equal(quiet, memory.Resolve(LaptopStatus.Waiting, 1_000));
+        Assert.Equal(LaptopStatus.Waiting, memory.Resolve(LaptopStatus.Waiting, 6_000));
     }
 
     [Theory]

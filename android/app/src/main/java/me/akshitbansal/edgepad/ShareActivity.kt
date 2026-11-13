@@ -88,13 +88,17 @@ class ShareActivity : Activity() {
                 val (shown, lines, notShown) = preview(text)
                 // The line count always: whatever the preview cannot show, it says how much is really sent.
                 val size = resources.getQuantityString(R.plurals.share_lines, lines, lines)
-                val cut =
+                val counted =
                     if (notShown == 0) {
-                        ""
+                        size
                     } else {
-                        " " + resources.getQuantityString(R.plurals.share_not_shown, notShown, notShown)
+                        getString(
+                            R.string.sentences_joined,
+                            size,
+                            resources.getQuantityString(R.plurals.share_not_shown, notShown, notShown),
+                        )
                     }
-                confirm(shown + "\n\n" + size + cut, target) { deliver(target, BlobKind.CLIP_TEXT) { shared.bytes } }
+                confirm(shown + "\n\n" + counted, target) { deliver(target, BlobKind.CLIP_TEXT) { shared.bytes } }
             }
         }
     }

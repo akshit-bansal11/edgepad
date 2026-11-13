@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">Clavier</string>
+  <string name="keyboard_type_text">Saisir du texte</string>
+  <string name="keyboard_type_send">Saisir</string>
+  <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
+  <string name="back_to_surface">Commandes</string>
+  <string name="macros_title">Macros</string>
+  <string name="keyboard_key_on">Enfoncée</string>
+  <string name="keyboard_description">Clavier à l\'écran pour l\'ordinateur</string>
+  <string name="keyboard_size">Taille</string>
+  <string name="keyboard_size_caption">Les grandes tailles contiennent plus de touches, qui sont donc plus petites. Elles demandent un écran plus large.</string>
+  <string name="keyboard_function_keys">Touches de fonction</string>
+  <string name="keyboard_with_fn">Avec Fn</string>
+  <string name="keyboard_direct">Direct</string>
+  <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
+  <string name="keyboard_function_keys_caption">Avec Fn : la rangée du haut fait ce qui est imprimé dessus (luminosité, média, volume) et Fn plus une touche envoie F1 à F12. Sur les claviers 65 %% et 60 %%, qui n\'ont pas de rangée F, la rangée des chiffres tape des chiffres et Fn plus un chiffre envoie F1 à F12. Direct : la rangée du haut envoie F1 à F12 et Fn plus une touche fait l\'action imprimée ; sur les claviers 65 %% et 60 %%, la rangée des chiffres envoie F1 à F12 et Fn plus un chiffre tape le chiffre.</string>
+</resources>

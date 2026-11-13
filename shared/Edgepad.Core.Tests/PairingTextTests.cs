@@ -33,4 +33,15 @@ public sealed class PairingTextTests
 
     [Fact]
     public void NoAddressIsNoSource() => Assert.Null(PairingText.SourceOf(null));
+
+    [Fact]
+    public void ThePairingWindowSaysWhatItAlwaysHas()
+    {
+        Assert.Equal("That pairing code did not match. Nothing was paired.", PairingText.Mismatched);
+        Assert.Equal("Time ran out. Nothing was paired. Start again on the phone.", PairingText.TimedOut);
+        Assert.Equal("Only pair a phone that is yours. If you did not just start pairing, choose Cancel.", PairingText.Warning);
+        Assert.Equal("Pairing did not finish.", PairingText.NotFinished);
+        Assert.Equal("Pairing code matched. Tap Yes on Pixel to finish.", PairingText.Matched("Pixel"));
+        Assert.Equal("Paired with Pixel.", PairingText.Paired("Pixel"));
+    }
 }

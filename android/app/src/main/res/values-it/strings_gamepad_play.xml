@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_edit">Modifica layout</string>
+  <string name="gamepad_mode_waiting">Modalità tastiera · in attesa che il portatile proponga un controller</string>
+  <string name="gamepad_mode_unanswered">Modalità tastiera · questo portatile non ha risposto; forse Edgepad va aggiornato</string>
+  <string name="gamepad_mode_no_driver">Modalità tastiera · nessun driver per il controller sul portatile</string>
+  <string name="gamepad_mode_no_driver_windows">Modalità tastiera · installa ViGEmBus sul portatile per avere un controller</string>
+  <string name="gamepad_mode_no_driver_mac">Modalità tastiera · un Mac non ha la modalità controller</string>
+  <string name="gamepad_mode_attach_failed">Modalità tastiera · il portatile non è riuscito a collegare il controller</string>
+</resources>

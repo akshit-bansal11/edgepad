@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">Клавиатура</string>
+  <string name="keyboard_type_text">Ввести текст</string>
+  <string name="keyboard_type_send">Напечатать</string>
+  <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
+  <string name="back_to_surface">Управление</string>
+  <string name="macros_title">Макросы</string>
+  <string name="keyboard_key_on">Нажата</string>
+  <string name="keyboard_description">Экранная клавиатура для ноутбука</string>
+  <string name="keyboard_size">Размер</string>
+  <string name="keyboard_size_caption">Крупные размеры вмещают больше клавиш, поэтому сами клавиши мельче. Для них нужен более широкий экран.</string>
+  <string name="keyboard_function_keys">Функциональные клавиши</string>
+  <string name="keyboard_with_fn">С Fn</string>
+  <string name="keyboard_direct">Напрямую</string>
+  <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
+  <string name="keyboard_function_keys_caption">С Fn: верхний ряд выполняет то, что на нём нарисовано (яркость, медиа, громкость), а Fn плюс клавиша отправляет F1–F12. На раскладках 65%% и 60%%, где нет ряда F, цифровой ряд печатает цифры, а Fn плюс цифра отправляет F1–F12. Напрямую: верхний ряд отправляет F1–F12, а Fn плюс клавиша выполняет нарисованное действие; на 65%% и 60%% цифровой ряд отправляет F1–F12, а Fn плюс цифра печатает цифру.</string>
+</resources>

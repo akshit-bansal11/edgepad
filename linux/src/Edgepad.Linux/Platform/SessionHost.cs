@@ -16,7 +16,7 @@ internal sealed class SessionHost(
     PinStore pin,
     Func<string, CancellationToken, bool> askTrust,
     LinkIdentity identity,
-    Action<string> onStatus,
+    Action<LaptopStatus> onStatus,
     Action onEnded) : IDisposable
 {
     // Joined at exit so each session's own cleanup, which releases held keys and buttons, gets to run.
@@ -30,36 +30,36 @@ internal sealed class SessionHost(
     /// <summary>Whether a hold or a quiet period refuses new connections right now; no pairing may start then.</summary>
     public bool IsRefusing => admission.IsRefusing;
 
-    // How the owner reads each Wi-Fi or USB phone's address. Only phones a pairing or a resume let through get here,
-    // so it grows with this laptop's own phones, not with whoever opens a socket.
-    private readonly ConcurrentDictionary<string, string> shown = new(StringComparer.OrdinalIgnoreCase);
+    // How the owner reads each phone: its name and the way it came (a Wi-Fi or USB phone's address is a string of hex),
+    // as the connected status that names it. Only phones a pairing or a resume let through get here, so it grows with
+    // this laptop's own phones, not with whoever opens a socket.
+    private readonly ConcurrentDictionary<string, LaptopStatus> shown = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>
-    /// What the owner reads for <paramref name="address"/>: a phone's name and the way it came (a Wi-Fi or USB phone's address is a string of hex); an
-    /// address as it is until the phone has reported once.
-    /// </summary>
-    public string Shown(string address) => shown.TryGetValue(address, out var name) ? name : address;
+    /// <summary>What the owner reads for <paramref name="address"/>: the phone's name and the way it came; an address as it is until the phone has reported once.</summary>
+    public string Shown(string address) => shown.TryGetValue(address, out var phone) ? phone.PhoneLine : address;
+
+    /// <summary>The connected status for <paramref name="address"/>, "Connected to Pixel · Bluetooth".</summary>
+    public LaptopStatus Connected(string address) =>
+        shown.TryGetValue(address, out var phone) ? phone : LaptopStatus.Connected(address, PhoneWay.Bluetooth);
 
     /// <summary>The status line for <paramref name="link"/>'s session, naming the phone as <see cref="Shown"/> does.</summary>
-    private Action<string> StatusFor(IPhoneLink link)
+    private Action<LaptopStatus> StatusFor(IPhoneLink link)
     {
         var address = link.Address;
         if (link.Kind == LinkKind.Network)
         {
             // The link does not say Wi-Fi or USB, so neither is claimed.
-            var display = $"{link.Label} · Wi-Fi or USB";
             PhoneName.Remember(address, link.Label);
-            shown[address] = display;
-            return status => onStatus(StatusText.Rewrite(status, address, link.Label, display));
+            shown[address] = LaptopStatus.Connected(link.Label, PhoneWay.WifiOrUsb);
+            return status => onStatus(status.For(link.Label, PhoneWay.WifiOrUsb));
         }
 
         // The phone's own name, asked here on the session's thread: the D-Bus thread that accepts the link must not wait.
         return status =>
         {
             var name = PhoneName.Of(address) ?? address;
-            var display = $"{name} · Bluetooth";
-            shown[address] = display;
-            onStatus(StatusText.Rewrite(status, address, name, display));
+            shown[address] = LaptopStatus.Connected(name, PhoneWay.Bluetooth);
+            onStatus(status.For(name, PhoneWay.Bluetooth));
         };
     }
 

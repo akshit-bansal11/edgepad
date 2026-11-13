@@ -242,7 +242,7 @@ class Ui(
         LinearLayout(context).apply {
             gravity = Gravity.CENTER_VERTICAL
             minimumHeight = dp(Space.TOUCH)
-            setPadding(0, 0, dp(Space.S), 0)
+            setPaddingRelative(0, 0, dp(Space.S), 0)
             addView(
                 Glyph(context, Glyph.Shape.CHEVRON_LEFT, palette.accent),
                 LinearLayout.LayoutParams(dp(BACK_ICON_DP), dp(BACK_ICON_DP)),
@@ -502,8 +502,11 @@ class Ui(
                         if (!palette.dark) setStroke(dp(Space.HAIR), palette.line)
                     }
                 layoutParams =
-                    FrameLayout.LayoutParams(width, height, Gravity.CENTER_VERTICAL).apply { leftMargin = inset }
+                    FrameLayout
+                        .LayoutParams(width, height, Gravity.CENTER_VERTICAL or Gravity.START)
+                        .apply { marginStart = inset }
             }
+        val rtl = context.resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
         var current = selected
         var shown = false
 
@@ -515,7 +518,8 @@ class Ui(
                 option.isSelected = on
                 option.stateDescription = if (on) string(R.string.chosen) else null
             }
-            val x = (current * width).toFloat()
+            // The thumb starts at the start edge, so it slides towards the left in Arabic.
+            val x = (current * width).toFloat() * if (rtl) -1 else 1
             // Slid only once the control has been seen somewhere. The first placement is the control
             // appearing, and a thumb sliding in from the left on every page open would read as the choice
             // having just changed when nothing has. Animations off in system settings means it never slides.
@@ -668,7 +672,7 @@ class Ui(
                     gravity = Gravity.END
                     maxLines = 1
                     ellipsize = TextUtils.TruncateAt.END
-                    setPadding(dp(Space.M), 0, 0, 0)
+                    setPaddingRelative(dp(Space.M), 0, 0, 0)
                     onSummary(this)
                 },
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
@@ -952,7 +956,7 @@ class Column(
         add(
             ui.text(value, Type.LARGE_TITLE, ui.palette.ink, Type.TRACKING_TIGHT, Type.black).apply {
                 isAccessibilityHeading = true
-                setPadding(ui.dp(Space.XS), 0, 0, ui.dp(Space.S))
+                setPaddingRelative(ui.dp(Space.XS), 0, 0, ui.dp(Space.S))
             },
         )
 

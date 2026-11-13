@@ -15,14 +15,10 @@ namespace Edgepad.Bluetooth;
 /// and when the Bluetooth radio comes back on, any of which used to leave it deaf while the tray still said it was
 /// waiting.
 /// </summary>
-internal sealed class RfcommServer(Action<string> onStatus, SessionHost host) : IDisposable
+internal sealed class RfcommServer(Action<LaptopStatus> onStatus, SessionHost host) : IDisposable
 {
     /// <summary>How long a failed start waits before the next try, for as long as it takes.</summary>
     private static readonly TimeSpan RetryStartEvery = TimeSpan.FromSeconds(30);
-
-    private const string Waiting = LaptopStatus.Waiting;
-    private const string BluetoothOff = "Bluetooth is off";
-    private const string StartFailing = "Bluetooth is off or unavailable; trying again";
 
     private readonly Lock gate = new();
 
@@ -134,7 +130,7 @@ internal sealed class RfcommServer(Action<string> onStatus, SessionHost host) : 
                     {
                         if (!disposed && host.CurrentAddress is null)
                         {
-                            onStatus(StartFailing);
+                            onStatus(LaptopStatus.BluetoothRetrying);
                         }
                     }
 
@@ -375,7 +371,7 @@ internal sealed class RfcommServer(Action<string> onStatus, SessionHost host) : 
                     radioOff = off;
                     if (off)
                     {
-                        onStatus(BluetoothOff);
+                        onStatus(LaptopStatus.BluetoothOff);
                     }
                 }
             }
@@ -410,16 +406,16 @@ internal sealed class RfcommServer(Action<string> onStatus, SessionHost host) : 
 
     /// <summary>
     /// What the tray says when nothing more particular is going on: the connected phone, a radio that is off, or
-    /// waiting. The "Connected to " prefix is what the tray's badge reads. Called under the lock.
+    /// waiting. Called under the lock.
     /// </summary>
-    private string StatusNow()
+    private LaptopStatus StatusNow()
     {
         if (host.CurrentAddress is { } live)
         {
             return host.Connected(live);
         }
 
-        return radioOff ? BluetoothOff : Waiting;
+        return radioOff ? LaptopStatus.BluetoothOff : LaptopStatus.Waiting;
     }
 
     private void OnConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_edit">레이아웃 편집</string>
+  <string name="gamepad_mode_waiting">키보드 모드 · 노트북이 컨트롤러를 제공하기를 기다리는 중</string>
+  <string name="gamepad_mode_unanswered">키보드 모드 · 이 노트북이 응답하지 않았어요. Edgepad 업데이트가 필요할 수 있어요</string>
+  <string name="gamepad_mode_no_driver">키보드 모드 · 노트북에 컨트롤러 드라이버가 없어요</string>
+  <string name="gamepad_mode_no_driver_windows">키보드 모드 · 컨트롤러를 쓰려면 노트북에 ViGEmBus를 설치하세요</string>
+  <string name="gamepad_mode_no_driver_mac">키보드 모드 · Mac은 컨트롤러 모드를 지원하지 않아요</string>
+  <string name="gamepad_mode_attach_failed">키보드 모드 · 노트북에서 컨트롤러를 연결하지 못했어요</string>
+</resources>

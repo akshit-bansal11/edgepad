@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_layout_title">Раскладка геймпада</string>
+  <string name="gamepad_layout_editing">Изменение: %1$s</string>
+  <string name="gamepad_preset_xbox_keys">Xbox (клавиши)</string>
+  <string name="gamepad_preset_platformer">Платформер</string>
+  <string name="gamepad_preset_racing">Гонки</string>
+  <string name="gamepad_preset_shooter">Шутер</string>
+  <string name="gamepad_layout_hint">Перетащите, чтобы переместить. Нажмите на элемент и удерживайте, чтобы открыть его меню.</string>
+  <string name="gamepad_layout_section">Раскладки</string>
+  <string name="gamepad_description">Игровой контроллер для ноутбука. Работает только от касания.</string>
+  <string name="gamepad_node_dpad">Крестовина</string>
+  <string name="gamepad_node_stick">Стик</string>
+  <string name="gamepad_node_button">Кнопка</string>
+  <string name="gamepad_size">Размер</string>
+  <string name="dp_value">%1$d&#160;dp</string>
+
+  <!-- The two buttons in the editor's options popup; short, because they sit side by side in it. -->
+  <string name="gamepad_add">Добавить</string>
+  <string name="gamepad_restore">Вернуть: %1$s</string>
+  <string name="gamepad_restore_confirm">Вернуть: %1$s? Нажмите ещё раз</string>
+  <string name="gamepad_switch_to">Выбрать: %1$s</string>
+  <string name="gamepad_switch_to_confirm">Выбрать: %1$s? Ваша раскладка сохранится. Нажмите ещё раз</string>
+  <string name="gamepad_layouts">Раскладки</string>
+
+  <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->
+  <string name="gamepad_control_title">%1$s · %2$s</string>
+  <string name="gamepad_bind">Назначение</string>
+  <string name="gamepad_label">Название</string>
+  <string name="gamepad_delete_control">Удалить элемент</string>
+  <string name="gamepad_delete_title">Удалить: %1$s?</string>
+  <string name="gamepad_delete_body">Элемент будет удалён из этой раскладки. «Добавить» вернёт его.</string>
+  <string name="gamepad_name_required">Дайте раскладке название</string>
+
+  <!-- Adding a control: the kinds offered, in the order the menu lists them. -->
+  <string name="gamepad_add_control">Добавить элемент</string>
+  <string name="gamepad_kind_button">Кнопка</string>
+  <string name="gamepad_kind_dpad">Крестовина</string>
+  <string name="gamepad_kind_stick">Стик</string>
+  <string name="gamepad_kind_shoulder">Бампер</string>
+  <string name="gamepad_kind_trigger">Триггер</string>
+
+  <string name="gamepad_bind_stick_left">Левый стик</string>
+  <string name="gamepad_bind_stick_right">Правый стик</string>
+  <string name="gamepad_bind_trigger_left">Левый триггер</string>
+  <string name="gamepad_bind_trigger_right">Правый триггер</string>
+  <string name="gamepad_bind_keys">Клавиша клавиатуры</string>
+  <string name="gamepad_bind_key_up">Клавиша: вверх</string>
+  <string name="gamepad_bind_key_down">Клавиша: вниз</string>
+  <string name="gamepad_bind_key_left">Клавиша: влево</string>
+  <string name="gamepad_bind_key_right">Клавиша: вправо</string>
+
+  <!-- Keeping the named layouts themselves. -->
+  <string name="gamepad_save_as">Сохранить как</string>
+  <string name="gamepad_rename">Переименовать</string>
+  <string name="gamepad_delete_layout">Удалить раскладку</string>
+  <string name="gamepad_delete_layout_body">Раскладка «%1$s» будет удалена. Раскладки, которые входят в Edgepad, останутся.</string>
+  <string name="gamepad_delete">Удалить</string>
+</resources>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The guide: first run, and Settings › Help › Guide. Every claim here must be true of the app. -->
+  <string name="guide_steps">ステップ</string>
+  <string name="guide_page">ページ</string>
+  <string name="guide_back">戻る</string>
+  <string name="guide_next">次へ</string>
+  <string name="guide_done">完了</string>
+  <string name="guide_skip">スキップ</string>
+  <string name="guide_find_laptop">ノートPCを探す</string>
+  <string name="guide_step_description">%2$dページ中%1$dページ目</string>
+
+  <string name="guide_features_kicker">1 · Edgepadの特長</string>
+  <string name="guide_features_title">離れた場所から、ノートPCを操作。</string>
+  <string-array name="guide_features_keys">
+    <item>リアルタイム</item>
+    <item>往復時間</item>
+    <item>オフライン</item>
+    <item>Bluetooth</item>
+    <item>ほかにも</item>
+  </string-array>
+  <string-array name="guide_features_values">
+    <item>操作はその場で送信されます。回線が遅いときは、待機中の操作を順番に待たせず、まとめて送ります。</item>
+    <item>スマホからノートPCまでの往復時間を常に測定し、デバイス画面のノートPCの横に表示します。</item>
+    <item>アカウントもインターネットも不要です。スマホがノートPCと直接つながります。</item>
+    <item>基本はBluetoothです。ノートPCのBluetooth設定で一度ペアリングすれば、Edgepadの起動時に接続できます。Wi-FiやUSBでの接続は任意です。</item>
+    <item>触覚フィードバックのクリック感、ライトとダーク、縦向きと横向き（キーボードとゲームパッドは横向き固定）、自分で作れるメディアとゲームパッドのレイアウト。</item>
+  </string-array>
+
+  <string name="guide_anatomy_kicker">2 · 画面の構成</string>
+  <string name="guide_anatomy_title">1つの画面に、8つのパーツ。</string>
+  <string-array name="guide_anatomy_keys">
+    <item>トラックパッド</item>
+    <item>コーナーのダイヤル</item>
+    <item>メディア</item>
+    <item>キーボード</item>
+    <item>ゲームパッド</item>
+    <item>書き込み</item>
+    <item>キャプチャ</item>
+    <item>マクロ</item>
+  </string-array>
+  <string-array name="guide_anatomy_values">
+    <item>画面の中央全体です。指のジェスチャーはすべてここから始まります。</item>
+    <item>コーナーに沿って曲がった目盛りです。1つのコーナーに2つずつ分けて置くこともできます。音量、明るさ、ズーム、メディアシーク、アプリ切り替え、リフレッシュレート、スクロール、仮想デスクトップ、ブラウザのタブ、ノートPCの切り替えから選べます。</item>
+    <item>プレーヤーが開いている間、再生中の内容と、前へ、再生、次へを表示します。位置とサイズは「操作画面の設定」で変えられます。</item>
+    <item>修飾キーを押したままでも、タップして次のキーに適用する方法でも使えるフルキーボードです。「コントロール」から開きます。</item>
+    <item>スティック、十字キー、ボタンを4つのプリセットから選ぶか、自分で並べて使います。</item>
+    <item>「コントロール」›「書き込み」で、スマホがノートPCの画面に書き込むペンになります。ツールは6種類、色は8色です。ノートPCが対応している場合に表示されます。</item>
+    <item>「コントロール」›「キャプチャ」で、ノートPCに範囲のスクリーンショット、全画面のスクリーンショット、録画を依頼できます。範囲は、ボタンの下のパッドでドラッグして指定します。ノートPCが対応している場合に表示されます。</item>
+    <item>ノートPCでプログラム、ファイル、Webアドレスを開くボタンのグリッドです。「コントロール」から開きます。ボタンを長押ししてドラッグすると並べ替えられ、10個を超えるとページが分かれ、横にスライドして移動します。</item>
+  </string-array>
+
+  <string name="guide_surface_kicker">3 · 操作画面</string>
+  <string name="guide_surface_title">指だけで、思いのまま。</string>
+  <string-array name="guide_surface_keys">
+    <item>1本指</item>
+    <item>2本指</item>
+    <item>3本指と4本指</item>
+    <item>コーナーのダイヤル</item>
+    <item>調整する</item>
+  </string-array>
+  <string-array name="guide_surface_values">
+    <item>ポインターを動かします。タップでクリック。タップしてそのまま長押しして動かすと、ドラッグです。</item>
+    <item>タップで右クリック。スライドでスクロール。ピンチでズームします。</item>
+    <item>3本指で横にスワイプするとデスクトップを切り替え、上にスワイプするとタスクビュー、下にスワイプするとデスクトップを表示します。4本指で横にスワイプすると、開いているアプリを順に切り替えます。タップで検索または通知を開きます。</item>
+    <item>ダイヤルに沿ってスライドします。時計回りで上がります。タップすると、ミュート、再生、ズームのリセット、タスクビューを開く操作ができます。</item>
+    <item>「操作画面の設定」›「コーナー」で各ダイヤルを選べます。コーナーごとに2つに分けて、それぞれの辺に1つずつ置くこともできます。「ダイヤルの操作感」では感度、サイズ、触覚フィードバックを設定します。そのほかの操作は「トラックパッド」で変更します。</item>
+  </string-array>
+
+  <string name="guide_keyboard_kicker">4 · キーボード</string>
+  <string name="guide_keyboard_title">ソファに座ったまま入力。</string>
+  <string-array name="guide_keyboard_keys">
+    <item>開く</item>
+    <item>入力</item>
+    <item>修飾キー</item>
+    <item>閉じる</item>
+  </string-array>
+  <string-array name="guide_keyboard_values">
+    <item>操作画面の上部にある「コントロール」のアイコンをタップして、「キーボード」を選びます。横向きで開きます。</item>
+    <item>押したキーはそのままノートPCに送られます。最上段は印字どおりの機能です。Fnを押したままにするとF1～F12になります（「キーボードの設定」で入れ替えられます）。</item>
+    <item>Ctrl、Alt、Shift、Fnは、キーを押している間押さえ続けるか、タップして次のキーに適用します。もう一度タップすると解除されます。</item>
+    <item>上部の戻る矢印か、システムの戻るジェスチャーを使います。</item>
+  </string-array>
+
+  <string name="guide_gamepad_kicker">5 · ゲームパッド</string>
+  <string name="guide_gamepad_title">ポケットの中のコントローラー。</string>
+  <string-array name="guide_gamepad_keys">
+    <item>開く</item>
+    <item>プリセット</item>
+    <item>プレイ</item>
+    <item>自分好みに</item>
+  </string-array>
+  <string-array name="guide_gamepad_values">
+    <item>操作画面の上部にある「コントロール」のアイコンをタップして、「ゲームパッド」を選びます。横向きで開きます。</item>
+    <item>Xbox、横スクロール、レース、シューティングの4つです。ゲームパッド画面の歯車から開く「ゲームパッドの設定」で選びます。</item>
+    <item>スティックは押さえたままスライドし、ボタンはタップします。複数の指を同時に使えます。</item>
+    <item>「ゲームパッドの設定」›「レイアウトを編集」で、親指が届く位置にコントロールをドラッグします。長押しするとサイズを変えられます。</item>
+  </string-array>
+
+  <string name="guide_connect_kicker">6 · 接続</string>
+  <string name="guide_connect_title">ノートPCに接続しましょう。</string>
+  <string-array name="guide_connect_keys">
+    <item>ノートPCで</item>
+    <item>Bluetooth</item>
+    <item>Wi-FiまたはUSB</item>
+    <item>信頼</item>
+    <item>クリップボード</item>
+  </string-array>
+  <string-array name="guide_connect_values">
+    <item>Edgepadをインストールして開きます。タスクバーの通知領域、メニューバー、またはシステムトレイに常駐します。</item>
+    <item>このスマホのBluetooth設定でノートPCをペアリングし、「デバイス」でノートPCをタップします。</item>
+    <item>ノートPCのEdgepadメニューで「Wi-FiおよびUSB接続」をオンにします（Macでは「Wi-Fi接続」）。USBの場合は、スマホでUSBテザリングもオンにします。</item>
+    <item>初回は、このスマホを信頼するかどうかをノートPCが尋ねます。ノートPCで「信頼する」を選んでください。PINを求められたら、ここで入力します。</item>
+    <item>Android 10以降では、画面に表示されているアプリだけがクリップボードを読み取れます。そのため、ほかのアプリでコピーした内容は、Edgepadに戻ったときにノートPCへ届きます。または「共有」から「Edgepad」を選ぶと、テキストや画像をすぐに送れます。</item>
+  </string-array>
+
+  <!-- Words inside the guide drawings. -->
+  <string name="guide_art_phone">スマホ</string>
+  <string name="guide_art_laptop">ノートPC</string>
+  <string name="guide_art_link">まずBluetooth · アカウント不要</string>
+  <string name="guide_art_dials">ダイヤル</string>
+  <string name="guide_art_trackpad">トラックパッド</string>
+  <string name="guide_art_media">メディア</string>
+  <string name="guide_art_keys">キー · パッド</string>
+  <string name="guide_art_gestures">ジェスチャー</string>
+  <string name="guide_art_move">1 · 移動</string>
+  <string name="guide_art_scroll">2 · スクロール</string>
+  <string name="guide_art_swipe">3 · スワイプ</string>
+  <string name="guide_art_latch">Ctrl、Alt、Shiftは次のキーまで保持</string>
+  <string name="guide_art_presets">Xbox · 横スクロール · レース · シューティング</string>
+</resources>

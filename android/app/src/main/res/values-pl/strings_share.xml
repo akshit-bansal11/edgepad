@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Share > Edgepad (ShareActivity): nothing is sent until Send is tapped. -->
+  <string name="share_title">Wysłać na laptop: %1$s?</string>
+  <string name="share_image">Obraz</string>
+  <string name="share_send">Wyślij</string>
+  <string name="share_sent">Wysłano na laptop: %1$s</string>
+  <string name="share_send_failed">Nie udało się wysłać na laptop: %1$s. Sprawdź połączenie i spróbuj ponownie.</string>
+  <string name="share_no_laptop">Edgepad nie jest połączony z żadnym laptopem. Połącz laptop i udostępnij ponownie.</string>
+  <string name="share_clipboard_off">Włącz „Udostępnij schowek” na laptopie: %1$s</string>
+  <string name="share_nothing">Nie ma tu nic, co Edgepad mógłby wysłać.</string>
+  <string name="share_text_too_long">Ten tekst jest za długi, aby go wysłać. Limit to 1 MB.</string>
+  <string name="share_image_failed">Nie można odczytać tego obrazu albo jest za duży do wysłania.</string>
+  <!-- Under every shared text in the confirm, counted on the text as sent (a trailing line break makes one more). -->
+  <plurals name="share_lines">
+    <item quantity="one">%1$d wiersz.</item>
+    <item quantity="few">%1$d wiersze.</item>
+    <item quantity="many">%1$d wierszy.</item>
+    <item quantity="other">%1$d wiersza.</item>
+  </plurals>
+  <!-- After share_lines when the text is cut for the confirm: everything is still sent. -->
+  <plurals name="share_not_shown">
+    <item quantity="one">Jeszcze %1$d znak nie jest tu widoczny. „Wyślij” wysyła całość.</item>
+    <item quantity="few">Jeszcze %1$d znaki nie są tu widoczne. „Wyślij” wysyła całość.</item>
+    <item quantity="many">Jeszcze %1$d znaków nie jest tu widocznych. „Wyślij” wysyła całość.</item>
+    <item quantity="other">Jeszcze %1$d znaku nie jest tu widoczne. „Wyślij” wysyła całość.</item>
+  </plurals>
+</resources>

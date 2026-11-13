@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The guide: first run, and Settings › Help › Guide. Every claim here must be true of the app. -->
+  <string name="guide_steps">الخطوات</string>
+  <string name="guide_page">الصفحة</string>
+  <string name="guide_back">رجوع</string>
+  <string name="guide_next">التالي</string>
+  <string name="guide_done">تم</string>
+  <string name="guide_skip">تخطي</string>
+  <string name="guide_find_laptop">العثور على لابتوبي</string>
+  <string name="guide_step_description">الصفحة %1$d من %2$d</string>
+
+  <string name="guide_features_kicker">1 · لماذا Edgepad</string>
+  <string name="guide_features_title">لابتوبك، وأنت في الطرف الآخر من الغرفة.</string>
+  <string-array name="guide_features_keys">
+    <item>لحظي</item>
+    <item>زمن الاستجابة</item>
+    <item>بلا إنترنت</item>
+    <item>بلوتوث</item>
+    <item>وغير ذلك</item>
+  </string-array>
+  <string-array name="guide_features_values">
+    <item>تُرسل كل حركة لحظة تنفيذها. وإذا كان الاتصال بطيئًا تُدمج الحركات المنتظرة بدل أن تتراكم في طابور.</item>
+    <item>يُقاس مباشرة من الهاتف إلى اللابتوب والعودة، ويظهر بجانب اللابتوب في شاشة الأجهزة.</item>
+    <item>بلا حساب ولا حاجة إلى الإنترنت. يصل الهاتف إلى اللابتوب مباشرة.</item>
+    <item>بلوتوث افتراضيًا: اقرن مرة واحدة من إعدادات بلوتوث على اللابتوب، ثم يستطيع Edgepad الاتصال عند التشغيل. اتصالات Wi-Fi وUSB اختيارية.</item>
+    <item>نقرات لمسية عند كل درجة، ووضع فاتح وداكن، وعمودي أو أفقي (تبقى لوحة المفاتيح وذراع الألعاب أفقيتين)، وتخطيطات وسائط وذراع ألعاب خاصة بك.</item>
+  </string-array>
+
+  <string name="guide_anatomy_kicker">2 · الأجزاء</string>
+  <string name="guide_anatomy_title">ثمانية أجزاء، شاشة واحدة.</string>
+  <string-array name="guide_anatomy_keys">
+    <item>لوحة اللمس</item>
+    <item>مقاييس الزوايا</item>
+    <item>الوسائط</item>
+    <item>لوحة المفاتيح</item>
+    <item>ذراع الألعاب</item>
+    <item>الرسم</item>
+    <item>الالتقاط</item>
+    <item>الماكرو</item>
+  </string-array>
+  <string-array name="guide_anatomy_values">
+    <item>منتصف الشاشة بأكمله. تبدأ هنا كل إيماءات الأصابع.</item>
+    <item>مقاييس مطوية في الزوايا، أو مقسّمة بواقع اثنين لكل زاوية: مستوى الصوت، السطوع، التكبير، التنقل في الوسائط، مبدّل التطبيقات، معدل التحديث، التمرير، أسطح المكتب الافتراضية، علامات تبويب المتصفح، أو مقياس تبديل اللابتوب.</item>
+    <item>ما يعمل الآن، ثم السابق والتشغيل والتالي، ما دام مشغّل مفتوحًا. انقله وغيّر حجمه من إعدادات سطح التحكم.</item>
+    <item>لوحة مفاتيح كاملة تعمل مفاتيح التعديل فيها بالضغط المستمر أو بنقرة، خلف زر عناصر التحكم.</item>
+    <item>عصي وأسهم اتجاه وأزرار في أربعة قوالب، أو بترتيبك الخاص.</item>
+    <item>عناصر التحكم › الرسم يحوّل الهاتف إلى قلم لشاشة اللابتوب، بست أدوات وثمانية ألوان. يظهر عندما يدعمه اللابتوب.</item>
+    <item>عناصر التحكم › الالتقاط يطلب من اللابتوب لقطة لمنطقة، أو للشاشة كاملة، أو تسجيلًا. لتحديد منطقة، اسحبها على اللوحة تحت الأزرار. يظهر عندما يدعمه اللابتوب.</item>
+    <item>شبكة أزرار تفتح برنامجًا أو ملفًا أو عنوان ويب على اللابتوب، خلف عناصر التحكم. اضغط مع الاستمرار على زر واسحبه إلى مكانه في ترتيبك؛ وما زاد عن عشرة يستمر في صفحات تنتقل إليها بالتمرير جانبيًا.</item>
+  </string-array>
+
+  <string name="guide_surface_kicker">3 · سطح التحكم</string>
+  <string name="guide_surface_title">الأصابع تتحدث.</string>
+  <string-array name="guide_surface_keys">
+    <item>إصبع واحد</item>
+    <item>إصبعان</item>
+    <item>ثلاثة وأربعة</item>
+    <item>مقاييس الزوايا</item>
+    <item>الضبط</item>
+  </string-array>
+  <string-array name="guide_surface_values">
+    <item>حرّك المؤشر. انقر للنقر. انقر ثم اضغط وحرّك للسحب.</item>
+    <item>انقر للنقر الأيمن. حرّك للتمرير. اقرص للتكبير.</item>
+    <item>ثلاثة أصابع جانبيًا للتنقل بين أسطح المكتب، وللأعلى لعرض المهام، وللأسفل لسطح المكتب. أربعة أصابع جانبيًا للتنقل بين التطبيقات المفتوحة. والنقرات تفتح البحث أو الإشعارات.</item>
+    <item>حرّك إصبعك على المقياس، واتجاه عقارب الساعة يرفع. انقر عليه لكتم الصوت أو التشغيل أو إعادة ضبط التكبير أو فتح عرض المهام.</item>
+    <item>من إعدادات سطح التحكم › الزوايا تختار كل مقياس، ويمكنك تقسيم كل زاوية إلى مقياسين، واحد على كل حافة. «إحساس المقياس» يضبط الحساسية والحجم والاستجابة اللمسية. و«لوحة اللمس» تعيد تعيين الباقي.</item>
+  </string-array>
+
+  <string name="guide_keyboard_kicker">4 · لوحة المفاتيح</string>
+  <string name="guide_keyboard_title">اكتب وأنت على الأريكة.</string>
+  <string-array name="guide_keyboard_keys">
+    <item>الفتح</item>
+    <item>الكتابة</item>
+    <item>مفاتيح التعديل</item>
+    <item>الإغلاق</item>
+  </string-array>
+  <string-array name="guide_keyboard_values">
+    <item>أيقونة عناصر التحكم أعلى سطح التحكم، ثم لوحة المفاتيح. تُفتح بشكل أفقي.</item>
+    <item>يذهب كل مفتاح مباشرة إلى اللابتوب. يؤدي الصف العلوي ما هو مطبوع عليه؛ واضغط Fn مع الاستمرار للحصول على F1 إلى F12 (تغيّر ذلك إعدادات لوحة المفاتيح).</item>
+    <item>اضغط Ctrl أو Alt أو Shift أو Fn مع الاستمرار أثناء الضغط على مفتاح، أو انقر أحدها لتطبيقه على المفتاح التالي. وانقر عليه مجددًا للإلغاء.</item>
+    <item>سهم الرجوع في الأعلى، أو إيماءة الرجوع في النظام.</item>
+  </string-array>
+
+  <string name="guide_gamepad_kicker">5 · ذراع الألعاب</string>
+  <string name="guide_gamepad_title">ذراع ألعاب في جيبك.</string>
+  <string-array name="guide_gamepad_keys">
+    <item>الفتح</item>
+    <item>القوالب</item>
+    <item>اللعب</item>
+    <item>اجعله لك</item>
+  </string-array>
+  <string-array name="guide_gamepad_values">
+    <item>أيقونة عناصر التحكم أعلى سطح التحكم، ثم ذراع الألعاب. يُفتح بشكل أفقي.</item>
+    <item>منصات وسباق وتصويب وXbox، تُختار من إعدادات ذراع الألعاب خلف أيقونة الترس على الذراع.</item>
+    <item>اضغط مع الاستمرار وحرّك عصا، وانقر الأزرار. يمكن استخدام عدة أصابع في وقت واحد.</item>
+    <item>إعدادات ذراع الألعاب › تعديل التخطيط. اسحب عناصر التحكم إلى حيث يصل إبهاماك؛ واضغط مع الاستمرار على أحدها لتغيير حجمه.</item>
+  </string-array>
+
+  <string name="guide_connect_kicker">6 · الاتصال</string>
+  <string name="guide_connect_title">صِل لابتوبك.</string>
+  <string-array name="guide_connect_keys">
+    <item>على اللابتوب</item>
+    <item>بلوتوث</item>
+    <item>عبر Wi-Fi أو USB</item>
+    <item>الوثوق</item>
+    <item>الحافظة</item>
+  </string-array>
+  <string-array name="guide_connect_values">
+    <item>ثبّت Edgepad وافتحه. يستقر في زاوية شريط المهام، أو شريط القوائم، أو منطقة الإعلام.</item>
+    <item>اقرن اللابتوب من إعدادات بلوتوث في هذا الهاتف، ثم انقر عليه في «الأجهزة».</item>
+    <item>فعّل «اتصالات Wi-Fi وUSB» من قائمة Edgepad في اللابتوب (وعلى جهاز Mac «اتصالات Wi-Fi»). وللاتصال عبر USB فعّل أيضًا «التوصيل عبر USB» على الهاتف.</item>
+    <item>في المرة الأولى يسأل اللابتوب إن كان سيثق بهذا الهاتف: اختر «الوثوق» هناك. وإذا طلب رقم PIN فاكتبه هنا.</item>
+    <item>منذ Android 10 لا يستطيع قراءة الحافظة إلا التطبيق المعروض على الشاشة، لذا ما تنسخه في تطبيق آخر يصل إلى اللابتوب عند عودتك إلى Edgepad. أو استخدم «مشاركة» ثم Edgepad لإرسال نص أو صورة فورًا.</item>
+  </string-array>
+
+  <!-- Words inside the guide drawings. -->
+  <string name="guide_art_phone">الهاتف</string>
+  <string name="guide_art_laptop">اللابتوب</string>
+  <string name="guide_art_link">بلوتوث أولًا · بلا حساب</string>
+  <string name="guide_art_dials">المقاييس</string>
+  <string name="guide_art_trackpad">لوحة اللمس</string>
+  <string name="guide_art_media">الوسائط</string>
+  <string name="guide_art_keys">المفاتيح · اللوحة</string>
+  <string name="guide_art_gestures">الإيماءات</string>
+  <string name="guide_art_move">1 · تحريك</string>
+  <string name="guide_art_scroll">2 · تمرير</string>
+  <string name="guide_art_swipe">3 · سحب</string>
+  <string name="guide_art_latch">تثبّت Ctrl وAlt وShift للمفتاح التالي</string>
+  <string name="guide_art_presets">منصات · سباق · تصويب · Xbox</string>
+</resources>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="app_name">Edgepad</string>
+  <string name="app_name" translatable="false">Edgepad</string>
 
   <!-- Finding the laptop -->
   <string name="pairing_title">Devices</string>
@@ -27,13 +27,13 @@
   <string name="devices_stay_note">Still connected when you leave. Disconnect from the notification.</string>
   <string name="devices_legend_off">Tap a laptop to connect.</string>
   <string name="devices_multi_hint">Connect several laptops at once. The active one is the laptop the controls are driving; tap Make active to switch.</string>
-  <string name="transport_bluetooth">Bluetooth</string>
-  <string name="transport_wifi">Wi-Fi</string>
-  <string name="transport_usb">USB</string>
+  <string name="transport_bluetooth" translatable="false">Bluetooth</string>
+  <string name="transport_wifi" translatable="false">Wi-Fi</string>
+  <string name="transport_usb" translatable="false">USB</string>
   <string name="add_by_address">Add by address</string>
   <string name="address_connect">Connect</string>
   <string name="address_looking">Looking for a laptop at %1$s…</string>
-  <string name="add_by_address_hint">192.168.1.20 or 192.168.1.20:47321</string>
+  <string name="add_by_address_hint" translatable="false">192.168.1.20 or 192.168.1.20:47321</string>
   <string name="address_invalid">That is not an address. Type a host name or IP address, with a port if it is not 47321.</string>
   <string name="address_no_laptop">Nothing on that address answered as a laptop running Edgepad.</string>
   <string name="usb_tethering">USB tethering</string>
@@ -121,7 +121,7 @@
   <string name="lost_attempt">Reconnecting · attempt %1$d of %2$d</string>
   <string name="lost_stopped">Stopped retrying. Is the laptop awake, with Edgepad running?</string>
   <string name="lost_off">Automatic reconnect is off</string>
-  <string name="lost_last_seen">Last seen %1$s ago · %2$s</string>
+  <string name="lost_last_seen">Last seen %1$s · %2$s</string>
   <string name="retry_now">Retry now</string>
   <string name="lost_stop">Stop trying</string>
   <string name="lost_devices">Go to Devices</string>
@@ -338,7 +338,7 @@
   <string name="settings_version">Edgepad %1$s · protocol %2$d</string>
   <string name="corners_title">Corners</string>
   <string name="corners_pick">Pick a corner</string>
-  <string name="corner_assign">Assign to %1$s</string>
+  <string name="corner_assign">Assign to: %1$s</string>
   <string name="chosen">Chosen</string>
   <string name="color_hex">Hex colour</string>
   <string name="dial_feel_title">Dial feel</string>
@@ -387,8 +387,8 @@
   <string name="surface_description">Laptop control surface</string>
   <string name="surface_description_output">Laptop control surface. Sound output: %1$s</string>
   <string name="surface_mute">Muted</string>
-  <string name="surface_unknown">…</string>
-  <string name="surface_unavailable">—</string>
+  <string name="surface_unknown" translatable="false">…</string>
+  <string name="surface_unavailable" translatable="false">—</string>
   <string name="surface_not_reported">Not reported by this laptop</string>
   <string name="surface_waiting">Waiting for the laptop to report this level</string>
   <string name="surface_nothing_playing">Nothing playing</string>
@@ -473,7 +473,7 @@
   <string name="annotate_colour_purple">Purple</string>
   <string name="annotate_colour_custom">Custom colour</string>
   <string name="annotate_width">Width</string>
-  <string name="annotate_width_value">%1$d</string>
+  <string name="annotate_width_value" translatable="false">%1$d</string>
   <string name="annotate_opacity">Opacity</string>
   <string name="annotate_undo">Undo</string>
   <string name="annotate_clear">Clear</string>
@@ -546,6 +546,13 @@
   <string name="battery_this_phone">This phone</string>
   <string name="battery_charging">charging</string>
   <string name="battery_low">low</string>
+  <string name="battery_spoken">%1$s %2$s</string>
+  <string name="battery_spoken_charging">%1$s %2$s, charging</string>
+  <string name="battery_spoken_low">%1$s %2$s, low</string>
+  <string name="battery_more_low">%1$s, low</string>
+  <string name="list_separator">", "</string>
+  <string name="appearance_summary">%1$s, %2$s</string>
+  <string name="sentences_joined">%1$s %2$s</string>
   <string name="battery_percent">%1$d%%</string>
   <string name="battery_more">+%1$d</string>
   <string name="battery_summary">Batteries: %1$s</string>

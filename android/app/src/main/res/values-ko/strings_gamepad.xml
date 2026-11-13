@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_layout_title">게임패드 레이아웃</string>
+  <string name="gamepad_layout_editing">%1$s 편집 중</string>
+  <string name="gamepad_preset_xbox_keys">Xbox (키)</string>
+  <string name="gamepad_preset_platformer">플랫포머</string>
+  <string name="gamepad_preset_racing">레이싱</string>
+  <string name="gamepad_preset_shooter">슈팅</string>
+  <string name="gamepad_layout_hint">드래그해서 옮기세요. 컨트롤을 길게 누르면 메뉴가 열려요.</string>
+  <string name="gamepad_layout_section">레이아웃</string>
+  <string name="gamepad_description">노트북용 게임 컨트롤러예요. 터치로만 쓸 수 있어요.</string>
+  <string name="gamepad_node_dpad">십자키</string>
+  <string name="gamepad_node_stick">스틱</string>
+  <string name="gamepad_node_button">버튼</string>
+  <string name="gamepad_size">크기</string>
+  <string name="dp_value">%1$d dp</string>
+
+  <string name="gamepad_add">추가</string>
+  <string name="gamepad_restore">%1$s 복원</string>
+  <string name="gamepad_restore_confirm">%1$s 복원할까요? 한 번 더 탭하세요</string>
+  <string name="gamepad_switch_to">전환: %1$s</string>
+  <string name="gamepad_switch_to_confirm">%1$s 레이아웃으로 전환할까요? 내 레이아웃은 그대로 저장돼요. 한 번 더 탭하세요</string>
+  <string name="gamepad_layouts">레이아웃</string>
+
+  <string name="gamepad_control_title">%1$s · %2$s</string>
+  <string name="gamepad_bind">할당</string>
+  <string name="gamepad_label">이름</string>
+  <string name="gamepad_delete_control">컨트롤 삭제</string>
+  <string name="gamepad_delete_title">%1$s 삭제할까요?</string>
+  <string name="gamepad_delete_body">이 레이아웃에서 삭제돼요. 추가를 탭하면 컨트롤을 다시 넣을 수 있어요.</string>
+  <string name="gamepad_name_required">레이아웃 이름을 입력하세요</string>
+
+  <string name="gamepad_add_control">컨트롤 추가</string>
+  <string name="gamepad_kind_button">버튼</string>
+  <string name="gamepad_kind_dpad">십자키</string>
+  <string name="gamepad_kind_stick">스틱</string>
+  <string name="gamepad_kind_shoulder">숄더</string>
+  <string name="gamepad_kind_trigger">트리거</string>
+
+  <string name="gamepad_bind_stick_left">왼쪽 스틱</string>
+  <string name="gamepad_bind_stick_right">오른쪽 스틱</string>
+  <string name="gamepad_bind_trigger_left">왼쪽 트리거</string>
+  <string name="gamepad_bind_trigger_right">오른쪽 트리거</string>
+  <string name="gamepad_bind_keys">키보드 키</string>
+  <string name="gamepad_bind_key_up">위쪽 키</string>
+  <string name="gamepad_bind_key_down">아래쪽 키</string>
+  <string name="gamepad_bind_key_left">왼쪽 키</string>
+  <string name="gamepad_bind_key_right">오른쪽 키</string>
+
+  <string name="gamepad_save_as">다른 이름으로 저장</string>
+  <string name="gamepad_rename">이름 바꾸기</string>
+  <string name="gamepad_delete_layout">레이아웃 삭제</string>
+  <string name="gamepad_delete_layout_body">%1$s 레이아웃이 삭제돼요. Edgepad 기본 레이아웃은 그대로 남아요.</string>
+  <string name="gamepad_delete">삭제</string>
+</resources>

@@ -81,7 +81,7 @@ object SurfaceSettingsScreen {
         if (settings.splitCorners) {
             ui.string(R.string.corners_summary_split)
         } else {
-            (0 until Perimeter.CORNERS).joinToString(", ") { corner ->
+            (0 until Perimeter.CORNERS).joinToString(ui.string(R.string.list_separator)) { corner ->
                 settings.corner(corner)?.let { ui.string(it.nameRes) } ?: NO_DIAL
             }
         }

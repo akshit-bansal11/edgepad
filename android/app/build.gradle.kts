@@ -33,6 +33,11 @@ android {
         }
     }
 
+    androidResources {
+        // Android 13 and later list Edgepad under Settings > Apps > Language, from the values-* folders.
+        generateLocaleConfig = true
+    }
+
     buildFeatures {
         // The version string Settings shows comes from resValue, which AGP 9 leaves off by default.
         resValues = true

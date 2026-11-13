@@ -108,7 +108,7 @@ internal sealed class PairingWindow : Form
 
     private readonly Label heading = new() { AutoSize = false };
     private readonly Label origin = new() { AutoSize = false };
-    private readonly Label ask = new() { AutoSize = false, Text = "Type the pairing code shown on the phone:" };
+    private readonly Label ask = new() { AutoSize = false, Text = Strings.Pair_Ask };
     private readonly Label warn = new() { AutoSize = false, Text = PairingText.Warning };
     private readonly Label countdown = new() { AutoSize = false };
     private readonly TextBox code = new()
@@ -117,7 +117,7 @@ internal sealed class PairingWindow : Form
 
         // One more than the code, so a pasted "482 913" arrives whole before it is cut down to its digits.
         MaxLength = LinkCrypto.CodeDigits + 1,
-        AccessibleName = "Pairing code shown on the phone",
+        AccessibleName = Strings.Pair_CodeName,
     };
 
     private readonly Framed codeFrame;
@@ -141,8 +141,9 @@ internal sealed class PairingWindow : Form
         this.onTyped = onTyped;
         this.onOwnerCancelled = onOwnerCancelled;
 
-        Text = "Pair a phone";
-        heading.Text = $"Pair {phoneName}?";
+        Text = Strings.Pair_Title;
+        RightToLeft = Theme.Direction;
+        heading.Text = Strings.Pair_Heading.Fill(phoneName);
         origin.Text = source ?? "";
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
@@ -155,8 +156,8 @@ internal sealed class PairingWindow : Form
         BackColor = palette.Card;
 
         codeFrame = new Framed(code, palette, radius: 8, inset: 12);
-        cancel = new FlatButton("Cancel", ButtonKind.Outline, palette);
-        pair = new FlatButton("Pair", ButtonKind.Primary, palette) { Enabled = false };
+        cancel = new FlatButton(Strings.Common_Cancel, ButtonKind.Outline, palette);
+        pair = new FlatButton(Strings.Pair_Button, ButtonKind.Primary, palette) { Enabled = false };
         code.KeyPress += (_, e) => e.Handled = !char.IsControl(e.KeyChar) && !char.IsAsciiDigit(e.KeyChar);
 
         // A paste skips KeyPress.
@@ -219,7 +220,7 @@ internal sealed class PairingWindow : Form
         countdown.Text = "";
         code.Enabled = false;
         pair.Enabled = false;
-        cancel.Text = "Close";
+        cancel.Text = Strings.Common_Close;
         Relayout();
         if (closeSoon)
         {
@@ -287,7 +288,7 @@ internal sealed class PairingWindow : Form
         tick.Stop();
         code.Enabled = false;
         pair.Enabled = false;
-        countdown.Text = "Checking the pairing code";
+        countdown.Text = Strings.Pair_Checking;
         onTyped(PairingPrompt.Digits(code.Text));
     }
 
@@ -301,7 +302,7 @@ internal sealed class PairingWindow : Form
         }
 
         var left = PairingPrompt.SecondsLeft(deadline, Environment.TickCount64);
-        countdown.Text = $"Closes in {left} s";
+        countdown.Text = Strings.Pair_ClosesIn.Fill(left);
 
         // The pairing's own timer refuses the phone at the same moment; this only takes the window down.
         if (left == 0)
@@ -346,5 +347,6 @@ internal sealed class PairingWindow : Form
         pair.SetBounds(left + width - pair.FitWidth(DeviceDpi), y, pair.FitWidth(DeviceDpi), S(Box));
         cancel.SetBounds(pair.Left - S(8) - cancel.FitWidth(DeviceDpi), y, cancel.FitWidth(DeviceDpi), S(Box));
         ClientSize = new Size(S(DialogWidth), y + S(Box + Pad));
+        Theme.Mirror(this);
     }
 }

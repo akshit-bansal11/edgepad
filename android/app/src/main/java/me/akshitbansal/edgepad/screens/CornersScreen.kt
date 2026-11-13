@@ -100,7 +100,7 @@ object CornersScreen {
         fun fillAssign() {
             assign.removeAllViews()
             Column(ui, assign).apply {
-                section(ui.string(R.string.corner_assign, titleOf(ui, split, picked).lowercase()))
+                section(ui.string(R.string.corner_assign, titleOf(ui, split, picked)))
                 card {
                     add(
                         ui.choices(kinds.map { kindName(ui, it) }, kinds.indexOf(held(settings, split, picked))) { i ->

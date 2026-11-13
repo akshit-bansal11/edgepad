@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Share > Edgepad (ShareActivity): nothing is sent until Send is tapped. -->
+  <string name="share_title">Naar %1$s sturen?</string>
+  <string name="share_image">Een afbeelding</string>
+  <string name="share_send">Sturen</string>
+  <string name="share_sent">Gestuurd naar %1$s</string>
+  <string name="share_send_failed">Kon het niet naar %1$s sturen. Controleer de verbinding en probeer het opnieuw.</string>
+  <string name="share_no_laptop">Edgepad is niet met een laptop verbonden. Maak verbinding met een laptop en deel daarna opnieuw.</string>
+  <string name="share_clipboard_off">Zet Klembord delen aan op %1$s</string>
+  <string name="share_nothing">Hier is niets wat Edgepad kan sturen.</string>
+  <string name="share_text_too_long">Die tekst is te lang om te sturen. De limiet is 1 MB.</string>
+  <string name="share_image_failed">Die afbeelding kan niet worden gelezen of is te groot om te sturen.</string>
+  <!-- Under every shared text in the confirm, counted on the text as sent (a trailing line break makes one more). -->
+  <plurals name="share_lines">
+    <item quantity="one">%1$d regel.</item>
+    <item quantity="other">%1$d regels.</item>
+  </plurals>
+  <!-- After share_lines when the text is cut for the confirm: everything is still sent. -->
+  <plurals name="share_not_shown">
+    <item quantity="one">Nog %1$d teken wordt hier niet getoond. Met Sturen wordt alles verstuurd.</item>
+    <item quantity="other">Nog %1$d tekens worden hier niet getoond. Met Sturen wordt alles verstuurd.</item>
+  </plurals>
+</resources>

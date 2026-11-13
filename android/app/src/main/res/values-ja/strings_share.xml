@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Share > Edgepad (ShareActivity): nothing is sent until Send is tapped. -->
+  <string name="share_title">%1$sに送信しますか？</string>
+  <string name="share_image">画像</string>
+  <string name="share_send">送信</string>
+  <string name="share_sent">%1$sに送信しました</string>
+  <string name="share_send_failed">%1$sに送信できませんでした。接続を確認して、もう一度お試しください。</string>
+  <string name="share_no_laptop">EdgepadがノートPCに接続されていません。接続してから、もう一度共有してください。</string>
+  <string name="share_clipboard_off">%1$sで「クリップボードを共有」をオンにしてください</string>
+  <string name="share_nothing">Edgepadが送信できる内容がありません。</string>
+  <string name="share_text_too_long">テキストが長すぎて送信できません。上限は1MBです。</string>
+  <string name="share_image_failed">画像を読み込めないか、大きすぎて送信できません。</string>
+  <!-- Under every shared text in the confirm, counted on the text as sent (a trailing line break makes one more). -->
+  <plurals name="share_lines">
+    <item quantity="other">%1$d行。</item>
+  </plurals>
+  <!-- After share_lines when the text is cut for the confirm: everything is still sent. -->
+  <plurals name="share_not_shown">
+    <item quantity="other">残り%1$d文字はここに表示されていません。「送信」を押すと、すべて送信されます。</item>
+  </plurals>
+</resources>

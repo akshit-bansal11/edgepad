@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Network_Notice" xml:space="preserve">
+    <value>同じWi-Fiにあるスマホや、USBテザリングで接続したスマホが、このノートPCを見つけてペアリングを要求できるようになります。ここで入力したペアリングコードがなければ、何も接続されません。Windowsがコマンドプロンプトの実行を一度確認します。これは、Edgepadのファイアウォール規則を追加するためです。</value>
+  </data>
+  <data name="Network_ClipboardNotice" xml:space="preserve">
+    <value>クリップボードを共有：一方でコピーして、もう一方で貼り付けます。テキストと画像に対応しています。チェックを入れるまでオフです。</value>
+  </data>
+  <data name="Network_WhereItLives" xml:space="preserve">
+    <value>Edgepadはタスクバーの通知領域で動作します。アイコンが見当たらない場合は、^をクリックして外へドラッグしてください。Bluetoothを使うには、先にWindowsのBluetooth設定でスマホをペアリングしてから、スマホでEdgepadを開きます。</value>
+  </data>
+  <data name="Menu_StartWithWindows" xml:space="preserve">
+    <value>Windowsの起動時に開始(&amp;T)</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>マクロ(&amp;M)…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>セキュリティ(&amp;E)…</value>
+  </data>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Wi-FiおよびUSB接続(&amp;W)</value>
+  </data>
+  <data name="Network_Title" xml:space="preserve">
+    <value>Wi-FiとUSB</value>
+  </data>
+  <data name="Menu_Firewall" xml:space="preserve">
+    <value>Windowsファイアウォールで許可(&amp;F)…</value>
+  </data>
+  <data name="Menu_BluetoothSettings" xml:space="preserve">
+    <value>Bluetooth設定を開く(&amp;B)</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>クリップボードを共有(&amp;S)</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>一方でコピーして、もう一方で貼り付けます。テキストと画像に対応しています。</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>アップデートを毎日確認(&amp;C)</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>ログを開く(&amp;L)</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>アップデートあり(&amp;U)</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>ドキュメント(&amp;D)</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepadを終了(&amp;Q)</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>アップデートあり：{0}(&amp;U)</value>
+  </data>
+  <data name="Balloon_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0}を利用できます。クリックするとリリースページが開きます。ダウンロードして実行すると、このバージョンが置き換わります。</value>
+  </data>
+  <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
+    <value>「Windowsの起動時に開始」を保存できなかったため、Edgepadは自動では起動しません。理由はログに記録されています。</value>
+  </data>
+  <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
+    <value>「クリップボードを共有」を一時的に変更しましたが、保存できなかったため、次回の起動時には反映されない可能性があります。</value>
+  </data>
+  <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
+    <value>「アップデートを毎日確認」を一時的に変更しましたが、保存できなかったため、次回の起動時には反映されない可能性があります。</value>
+  </data>
+  <data name="Balloon_NewFile" xml:space="preserve">
+    <value>このバージョンのEdgepadは新しいファイルのため、Windowsがスマホからのアクセスを許可するかどうかを一度確認します。</value>
+  </data>
+  <data name="Balloon_FirewallNotChanged" xml:space="preserve">
+    <value>Windowsファイアウォールは変更されなかったため、スマホがこのノートPCに接続できない可能性があります。このメニューの「Windowsファイアウォールで許可」で、もう一度試せます。</value>
+  </data>
+  <data name="Balloon_MacroAdded" xml:space="preserve">
+    <value>スマホから{0}を追加しました</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0}がペアリングを求めています。表示されているペアリングコードを入力してください。</value>
+  </data>
+  <data name="Balloon_DriverMissing" xml:space="preserve">
+    <value>コントローラーにはViGEmBusドライバーが必要です。クリックするとダウンロードページが開きます。</value>
+  </data>
+  <data name="Balloon_WantsToConnect" xml:space="preserve">
+    <value>{0}が接続を求めています。「信頼する」または「信頼しない」を選んでください。</value>
+  </data>
+  <data name="Phone_Connected" xml:space="preserve">
+    <value>スマホが接続されました</value>
+  </data>
+  <data name="Phone_Disconnected" xml:space="preserve">
+    <value>スマホが切断されました</value>
+  </data>
+  <data name="Balloon_ForgotOne" xml:space="preserve">
+    <value>{0}の登録を解除しました。約{1}秒後に、スマホからもう一度接続してください。</value>
+  </data>
+  <data name="Balloon_ForgotAll" xml:space="preserve">
+    <value>信頼済みのスマホをすべて登録解除しました。約{0}秒後に、スマホからもう一度接続してください。</value>
+  </data>
+  <data name="Dialog_StartWithWindows" xml:space="preserve">
+    <value>Windowsの起動時に開始</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>あとで</value>
+  </data>
+  <data name="Dialog_StartHeading" xml:space="preserve">
+    <value>サインイン時にEdgepadを開始しますか？</value>
+  </data>
+  <data name="Dialog_StartText" xml:space="preserve">
+    <value>Edgepadはウィンドウを表示せず、タスクバーの通知領域でスマホを待ちます。あとからメニューで変更できます。</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>許可</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>オンにする</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Dialog_ShareClipboard" xml:space="preserve">
+    <value>クリップボードを共有</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>スマホがこのノートPCを見つけられるようにしますか？</value>
+  </data>
+  <data name="Dialog_NetworkHeading" xml:space="preserve">
+    <value>Wi-FiおよびUSB接続をオンにしますか？</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>設定を保存できなかったため、何も変更されていません。理由はログに記録されています。</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>セキュリティ</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>{0}にあるEdgepadのファイルを使用しているアプリを閉じてから、もう一度「登録解除」をお試しください。{1}の登録を完全には解除できませんでした。ファイルを書き換えられなかったためです。ディスク上では信頼されたままですが、Edgepadを再起動するまでは、Edgepadがこのスマホの接続を拒否します。再起動後は、もう一度登録解除しない限り、再び信頼されます。</value>
+  </data>
+  <data name="Error_ForgetAllTrust" xml:space="preserve">
+    <value>信頼済みのスマホのファイルを使用しているアプリを閉じてから、もう一度「すべて登録解除」を選ぶか、次のファイルを自分で削除してください。
+
+{0}
+
+信頼済みのスマホの登録を解除できませんでした。ファイルを削除または空にできなかったためです。Edgepadが動作している間は、どのスマホも接続できませんが、Edgepadを次に起動すると、それらのスマホは再び信頼されます。</value>
+  </data>
+  <data name="Error_ForgetAllPin" xml:space="preserve">
+    <value>もう一度「すべて登録解除」を選ぶか、pin-verified.txtを次の場所から自分で削除してください。
+
+{0}
+
+PINを入力したスマホの登録を解除できませんでした。リストを削除できなかったためです。Edgepadが動作している間は、すべてのスマホが接続のたびにPINを求められますが、Edgepadを次に起動すると、それらのスマホはレベル2で再びPINなしで接続できます。</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>もう一度「すべて登録解除」を選ぶか、paired-links.txtを次の場所から自分で削除してください。
+
+{0}
+
+Wi-FiとUSBのペアリングの登録を解除できませんでした。ファイルを削除または空にできなかったためです。ペアリング済みのスマホは、Edgepadが動作している間はWi-FiやUSBで再接続できませんが、次に起動すると再び接続できます。</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>信頼する</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>信頼しない</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>ペアリング済みのスマホが、このノートPCのポインターとキーボードの操作を求めています。自分のスマホである場合のみ信頼してください。{0}秒以内に応答しない場合は、信頼されません。</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>{0}を信頼しますか？</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>信頼のみ</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>スマホごとに1回PIN</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>接続のたびにPIN</value>
+  </data>
+  <data name="Security_Level1Note" xml:space="preserve">
+    <value>新しいスマホは、ここで許可する必要があります。ほかには何も求められません。</value>
+  </data>
+  <data name="Security_Level2Note" xml:space="preserve">
+    <value>スマホでPINも一度入力します。PINまたはレベルが変わるまで記憶されます。</value>
+  </data>
+  <data name="Security_Level3Note" xml:space="preserve">
+    <value>スマホは、接続のたびにPINを入力します。</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>どのスマホも、まずここで許可する必要があります。レベル2と3では、スマホの画面で6桁のPINも入力します。このウィンドウを開いている間、スマホは切断されます。</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>新しいPINやレベルを保存すると、PINを一度入力したスマホも、もう一度入力する必要があります。</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>信頼済みのスマホ</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>信頼済みのスマホはまだありません。スマホは、初めて接続したときに確認されます。</value>
+  </data>
+  <data name="Security_LevelName" xml:space="preserve">
+    <value>レベル{0}：{1}</value>
+  </data>
+  <data name="Security_SetPinButton" xml:space="preserve">
+    <value>PINを設定(&amp;P)…</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>すべて登録解除(&amp;F)…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>PINをリセットしてスマホを登録解除(&amp;R)…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>保存(&amp;S)</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>登録解除</value>
+  </data>
+  <data name="Security_ForgetPhoneName" xml:space="preserve">
+    <value>{0}を登録解除</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>PINを変更…</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>PINを設定…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>新しいPINが保存されます。</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>PINは設定済みです。</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>PINは設定されていません。</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>PINを保存できなかったため、何も変更されていません。理由はログに記録されています。</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>レベルを保存できなかったため、以前のレベルがそのまま適用されます。理由はログに記録されています。</value>
+  </data>
+  <data name="Security_ForgetOneHeading" xml:space="preserve">
+    <value>{0}を登録解除しますか？</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>{0}（{1}）は、このノートPCを使う前に、ここでもう一度信頼する必要があります。確認の間、スマホは切断されたままです。</value>
+  </data>
+  <data name="Security_ForgetAllHeading" xml:space="preserve">
+    <value>信頼済みのスマホをすべて登録解除しますか？</value>
+  </data>
+  <data name="Security_ForgetAllNamed" xml:space="preserve">
+    <value>{0}は、接続中であっても、このノートPCを使う前に、ここでもう一度信頼する必要があります。確認の間、スマホは切断されたままです。</value>
+  </data>
+  <data name="Security_ForgetAllEvery" xml:space="preserve">
+    <value>すべてのスマホは、接続中のものも含め、このノートPCを使う前に、ここでもう一度信頼する必要があります。確認の間、スマホは切断されたままです。</value>
+  </data>
+  <data name="Security_ResetHeading" xml:space="preserve">
+    <value>PINをリセットして、すべてのスマホを登録解除しますか？</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>PINは削除され、レベルは1に戻り、信頼済みのスマホはすべて登録解除されます。接続中のスマホも含め、すべてのスマホをここでもう一度信頼する必要があります。忘れたPINは復元できず、リセットのみ可能です。</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>ファイルを使用しているアプリを閉じてから、もう一度「リセット」を選ぶか、次のファイルを自分で削除してください。
+
+{0}
+
+何もリセットされていません。信頼済みのスマホの登録を解除できなかったため、PINとレベルはそのままです。Edgepadが動作している間は、どのスマホも接続できませんが、次に起動すると、それらのスマホは同じPINのもとで再び信頼されます。</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>ファイルを使用しているアプリを閉じてから、もう一度「リセット」を選ぶか、security.txtとpin-verified.txtを次の場所から自分で削除してください。
+
+{0}
+
+信頼済みのスマホの登録は解除されましたが、PINをリセットできませんでした。設定ファイルを削除できなかったため、以前のPINとレベルが残っている可能性があります。すべてのスマホを、ここでもう一度信頼する必要があります。</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>新しいPIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>新しいPIN（再入力）</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>6桁</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>再入力</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>このPINを使う(&amp;U)</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>PINは6桁の数字にしてください。</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>2つのPINが一致しません。</value>
+  </data>
+  <data name="Macro_Description" xml:space="preserve">
+    <value>スマホのマクロ画面に表示されるボタンです。最大15個まで登録できます。スマホが送るのはボタンの番号だけでプログラムではないため、ここで追加したものしか実行できません。Alt+↑とAlt+↓でボタンを並べ替えられます。</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>まだマクロがありません</value>
+  </data>
+  <data name="Macro_EmptyDetail" xml:space="preserve">
+    <value>アプリ、ドキュメント、フォルダー、またはWebアドレスを追加します。それぞれがスマホのボタンになります。</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>開く対象</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>引数</value>
+  </data>
+  <data name="Macro_ArgumentsNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>省略可</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>アイコン</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>マクロ</value>
+  </data>
+  <data name="Macro_IconPreview" xml:space="preserve">
+    <value>アイコンのプレビュー</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>マクロを追加(&amp;A)</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>参照(&amp;B)…</value>
+  </data>
+  <data name="Macro_BrowseName" xml:space="preserve">
+    <value>開く対象を参照</value>
+  </data>
+  <data name="Macro_ChooseIcon" xml:space="preserve">
+    <value>アイコンを選択(&amp;C)…</value>
+  </data>
+  <data name="Macro_ChooseIconName" xml:space="preserve">
+    <value>アイコンを選択</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>プログラムのアイコンを使う(&amp;U)</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>削除(&amp;R)</value>
+  </data>
+  <data name="Macro_ReorderHint" xml:space="preserve">
+    <value>Alt+↑とAlt+↓で、選択したマクロを移動します。</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>新しいマクロ</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>マクロを追加</value>
+  </data>
+  <data name="Macro_Full" xml:space="preserve">
+    <value>マクロ：{0} / {0}</value>
+  </data>
+  <data name="Macro_NoRoom" xml:space="preserve">
+    <value>このウィンドウを開いている間にスマホからマクロが追加されましたが、空きがありません。ここでどれか1つ削除してから、保存してください。</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>マクロを{0}に保存できませんでした：{1}</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>「{0}」には開く対象がありません。開く対象を選ぶか、削除してください。</value>
+  </data>
+  <data name="Dialog_Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Macro_DontSave" xml:space="preserve">
+    <value>保存しない</value>
+  </data>
+  <data name="Macro_SaveHeading" xml:space="preserve">
+    <value>マクロの変更を保存しますか？</value>
+  </data>
+  <data name="Macro_SaveText" xml:space="preserve">
+    <value>保存しないと、変更は失われます。</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>このボタンで開く対象を選択</value>
+  </data>
+  <data name="Macro_FilterPrograms" xml:space="preserve">
+    <value>プログラムとドキュメント (*.*)</value>
+  </data>
+  <data name="Macro_FilterIcons" xml:space="preserve">
+    <value>アイコン、プログラム、画像 (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
+  </data>
+  <data name="Macro_FilterAll" xml:space="preserve">
+    <value>すべてのファイル (*.*)</value>
+  </data>
+  <data name="Macro_ChoosePicture" xml:space="preserve">
+    <value>このボタンの画像を選択</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>スマホに表示されているペアリングコードを入力してください：</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>スマホに表示されているペアリングコード</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>スマホをペアリング</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>{0}をペアリングしますか？</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>ペアリング</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>ペアリングコードを確認中</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>{0}秒後に閉じます</value>
+  </data>
+  <data name="App_RunningAsAdmin" xml:space="preserve">
+    <value>Edgepadはすでに管理者として実行されています。タスクトレイのアイコンから終了するか、こちらも管理者として実行してください。</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepadはすでに実行中です。タスクバーの通知領域にあります。</value>
+  </data>
+  <data name="App_DidNotHandOver" xml:space="preserve">
+    <value>別のEdgepadがまだ実行中で、終了しませんでした。タスクトレイのアイコンから終了して、もう一度実行してください。</value>
+  </data>
+  <data name="Phone_NoneConnected" xml:space="preserve">
+    <value>接続中のスマホはありません</value>
+  </data>
+  <data name="Badge_Connected" xml:space="preserve">
+    <value>接続済み</value>
+  </data>
+  <data name="Badge_Problem" xml:space="preserve">
+    <value>問題あり</value>
+  </data>
+  <data name="Badge_Waiting" xml:space="preserve">
+    <value>待機中</value>
+  </data>
+  <data name="Level_Microphone" xml:space="preserve">
+    <value>マイク</value>
+  </data>
+  <data name="Level_Brightness" xml:space="preserve">
+    <value>明るさ</value>
+  </data>
+  <data name="Phone_Name" xml:space="preserve">
+    <value>スマホ</value>
+  </data>
+  <data name="Level_Volume" xml:space="preserve">
+    <value>音量</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-FiとUSB：待ち受けを開始できません。ログを確認してください。</value>
+  </data>
+  <data name="Network_PhonesMayNotFind" xml:space="preserve">
+    <value>Wi-FiとUSB：スマホがこのノートPCを見つけられない可能性があります。</value>
+  </data>
+</root>

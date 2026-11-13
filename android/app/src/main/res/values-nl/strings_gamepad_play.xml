@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_edit">Indeling bewerken</string>
+  <string name="gamepad_mode_waiting">Toetsenbordmodus · wachten tot de laptop een controller aanbiedt</string>
+  <string name="gamepad_mode_unanswered">Toetsenbordmodus · deze laptop reageerde niet; Edgepad moet mogelijk worden bijgewerkt</string>
+  <string name="gamepad_mode_no_driver">Toetsenbordmodus · geen controllerstuurprogramma op de laptop</string>
+  <string name="gamepad_mode_no_driver_windows">Toetsenbordmodus · installeer ViGEmBus op de laptop voor een controller</string>
+  <string name="gamepad_mode_no_driver_mac">Toetsenbordmodus · een Mac heeft geen controllermodus</string>
+  <string name="gamepad_mode_attach_failed">Toetsenbordmodus · de laptop kon de controller niet aansluiten</string>
+</resources>

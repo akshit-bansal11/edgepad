@@ -46,39 +46,28 @@ internal sealed class TrayContext : ApplicationContext
     /// </summary>
     private static readonly TimeSpan QuietAfterForget = TimeSpan.FromSeconds(30);
 
-    private const string NetworkNotice =
-        "Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. "
-            + "Nothing connects without the pairing code typed here. Windows will ask to run Command Prompt once; "
-            + "that adds the Edgepad firewall rule.";
-
-    private const string ClipboardNotice = "Share clipboard: copy on one, paste on the other, text and images. It stays off until you tick it.";
-
-    private const string WhereItLives =
-        "Edgepad runs in the taskbar corner. If you do not see its icon, click ^ and drag it out. To use Bluetooth, "
-            + "pair the phone in Windows Bluetooth settings first, then open Edgepad on the phone.";
-
     // Lucide's clipboard, on the same grid as the paths in Ui/Icons.
     private const string ClipboardGlyph = "M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1H9a1 1 0 0 1 -1 -1V3a1 1 0 0 1 1 -1z"
         + "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2H6a2 2 0 0 1 -2 -2V6a2 2 0 0 1 2 -2h2";
 
     // An ampersand marks the row's access key (Windows menu convention); each letter is used once.
-    private readonly MenuRow startWithWindows = new("S&tart with Windows", Icons.Power) { CheckOnClick = true, Switch = true };
-    private readonly MenuRow macrosRow = new("&Macros…", Icons.Macro);
-    private readonly MenuRow securityRow = new("S&ecurity…", Icons.Smartphone);
-    private readonly MenuRow networkRow = new("&Wi-Fi and USB connections", Icons.Wifi) { CheckOnClick = true, Switch = true };
-    private readonly MenuRow networkProblem = new("Wi-Fi and USB", Icons.Wifi) { Danger = true, Available = false };
-    private readonly MenuRow firewallRow = new("Allow through Windows &Firewall…", Icons.Shield) { Available = false };
-    private readonly MenuRow bluetoothRow = new("Open &Bluetooth settings", Icons.Smartphone) { Available = false };
-    private readonly MenuRow clipboardRow = new("&Share clipboard", ClipboardGlyph)
+    private readonly MenuRow startWithWindows = new(Strings.Menu_StartWithWindows, Icons.Power) { CheckOnClick = true, Switch = true };
+    private readonly MenuRow macrosRow = new(Strings.Menu_Macros, Icons.Macro);
+    private readonly MenuRow securityRow = new(Strings.Menu_Security, Icons.Smartphone);
+    private readonly MenuRow networkRow = new(Strings.Menu_Network, Icons.Wifi) { CheckOnClick = true, Switch = true };
+    private readonly MenuRow networkProblem = new(Strings.Network_Title, Icons.Wifi) { Danger = true, Available = false };
+    private readonly MenuRow firewallRow = new(Strings.Menu_Firewall, Icons.Shield) { Available = false };
+    private readonly MenuRow bluetoothRow = new(Strings.Menu_BluetoothSettings, Icons.Smartphone) { Available = false };
+    private readonly MenuRow clipboardRow = new(Strings.Menu_ShareClipboard, ClipboardGlyph)
     {
         CheckOnClick = true,
         Switch = true,
-        ToolTipText = "Copy on one, paste on the other: text and images.",
+        ToolTipText = Strings.Menu_ShareClipboardTip,
     };
 
-    private readonly MenuRow checkUpdates = new("&Check for updates daily", Icons.Download) { CheckOnClick = true, Switch = true };
-    private readonly MenuRow openLog = new("Open &log", Icons.FileText);
-    private readonly MenuRow update = new("&Update available", Icons.Download) { Available = false };
+    private readonly MenuRow checkUpdates = new(Strings.Menu_CheckUpdates, Icons.Download) { CheckOnClick = true, Switch = true };
+    private readonly MenuRow openLog = new(Strings.Menu_OpenLog, Icons.FileText);
+    private readonly MenuRow update = new(Strings.Menu_Update, Icons.Download) { Available = false };
     private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
     private readonly TrayMenu menu = new();
     private readonly NotifyIcon icon;
@@ -124,7 +113,7 @@ internal sealed class TrayContext : ApplicationContext
     private bool announcedDriver;
 
     // What the header says now, so the quiet period's line can be taken down when it ends.
-    private string? shownNow;
+    private LaptopStatus? shownNow;
 
     // Until when a phone dropping is the owner's own doing (a Forget, the Security window), so it is not announced.
     private long ownHangUpUntil;
@@ -181,10 +170,10 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(macrosRow);
         menu.Items.Add(securityRow);
         menu.Items.Add(new MenuSeparator());
-        menu.Items.Add(Row("&Documentation", Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
+        menu.Items.Add(Row(Strings.Menu_Documentation, Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
         menu.Items.Add(openLog);
         menu.Items.Add(new MenuSeparator());
-        menu.Items.Add(Row("&Quit Edgepad", Icons.Close, ExitThread));
+        menu.Items.Add(Row(Strings.Menu_Quit, Icons.Close, ExitThread));
 
         // Read the settings each time the menu opens, so it never shows a stale state.
         menu.Opening += (_, _) =>
@@ -200,7 +189,7 @@ internal sealed class TrayContext : ApplicationContext
             clipboardRow.Checked = clipboardSetting.Enabled;
             checkUpdates.Checked = updateSetting.Enabled;
             openLog.Enabled = File.Exists(Log.FilePath);
-            macrosRow.Hint = $"{macros.Macros.Count} of {MacroStore.MaxMacros}";
+            macrosRow.Hint = Strings.Menu_MacrosCount.Fill(macros.Macros.Count, MacroStore.MaxMacros);
             menu.Restyle();
         };
 
@@ -267,7 +256,7 @@ internal sealed class TrayContext : ApplicationContext
             trust,
             new PairingPrompt(ui, AnnouncePairing),
             host.Accept,
-            name => SetStatus($"Paired with {name}"),
+            name => SetStatus(LaptopStatus.Paired(name)),
             () => host.IsRefusing);
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
 
@@ -350,7 +339,7 @@ internal sealed class TrayContext : ApplicationContext
                 _ =>
                 {
                     var version = latest.ToString();
-                    var label = $"&Update available: {version}";
+                    var label = Strings.Menu_UpdateVersion.Fill(version);
                     var announced = update.Available && update.Text == label;
                     update.Text = label;
                     update.Available = true;
@@ -358,7 +347,7 @@ internal sealed class TrayContext : ApplicationContext
                     {
                         Log.Write($"Edgepad {version} is available");
                         Balloon(
-                            $"Edgepad {version} is available. Click to open the release page; download it and run it to replace this copy.",
+                            Strings.Balloon_UpdateAvailable.Fill(version),
                             ToolTipIcon.Info,
                             () => Open(UpdateCheck.LatestUrl, "the release page"));
                     }
@@ -382,7 +371,7 @@ internal sealed class TrayContext : ApplicationContext
         {
             // Top-level boundary of a fire-and-forget task: an escaped exception here would be lost silently.
             Log.Write($"Bluetooth service failed to start: {e}");
-            SetStatus("Bluetooth is off or unavailable");
+            SetStatus(LaptopStatus.BluetoothUnavailable);
         }
     }
 
@@ -407,7 +396,7 @@ internal sealed class TrayContext : ApplicationContext
         // The tick must not claim what the registry refused: policy can block the Run key, and the owner would find
         // out at the next sign-in, when Edgepad is not there.
         startWithWindows.Checked = !on;
-        Balloon("Start with Windows could not be saved, so Edgepad will not start by itself. The log has the reason.", ToolTipIcon.Warning);
+        Balloon(Strings.Balloon_StartWithWindowsNotSaved, ToolTipIcon.Warning);
     }
 
     /// <summary>
@@ -450,13 +439,13 @@ internal sealed class TrayContext : ApplicationContext
 
         if (!clipboardSetting.Set(chosen.Share))
         {
-            Balloon("Share clipboard changed for now, but could not be saved, so the next launch may not remember it.", ToolTipIcon.Warning);
+            Balloon(Strings.Balloon_ShareClipboardNotSaved, ToolTipIcon.Warning);
         }
 
         // A dialog holds one tick box, so this third choice is its own short question. Off unless chosen.
         if (AskStartWithWindows() && !RunAtLogin.Set(true))
         {
-            Balloon("Start with Windows could not be saved, so Edgepad will not start by itself. The log has the reason.", ToolTipIcon.Warning);
+            Balloon(Strings.Balloon_StartWithWindowsNotSaved, ToolTipIcon.Warning);
         }
 
         SaveNetwork(chosen.On);
@@ -465,14 +454,15 @@ internal sealed class TrayContext : ApplicationContext
     /// <summary>The first run's third question, with Not now the default. False when declined or when it cannot be put.</summary>
     private static bool AskStartWithWindows()
     {
-        var start = new TaskDialogButton("Start with Windows");
-        var notNow = new TaskDialogButton("Not now");
+        var start = new TaskDialogButton(Strings.Dialog_StartWithWindows);
+        var notNow = new TaskDialogButton(Strings.Common_NotNow);
         var page = new TaskDialogPage
         {
             Caption = "Edgepad",
-            Heading = "Start Edgepad when you sign in?",
-            Text = "Edgepad then waits in the taskbar corner for your phone, with no window. You can change this later in its menu.",
+            Heading = Strings.Dialog_StartHeading,
+            Text = Strings.Dialog_StartText,
             Icon = TaskDialogIcon.Information,
+            RightToLeftLayout = Theme.IsRtl,
             Buttons = { start, notNow },
             DefaultButton = notNow,
         };
@@ -494,15 +484,16 @@ internal sealed class TrayContext : ApplicationContext
     /// </summary>
     private static (bool On, bool Share)? AskNetwork(bool firstRun)
     {
-        var allow = new TaskDialogButton(firstRun ? "Allow" : "Turn on");
-        var notNow = new TaskDialogButton(firstRun ? "Not now" : "Cancel");
-        var share = firstRun ? new TaskDialogVerificationCheckBox("Share clipboard") : null;
+        var allow = new TaskDialogButton(firstRun ? Strings.Dialog_Allow : Strings.Dialog_TurnOn);
+        var notNow = new TaskDialogButton(firstRun ? Strings.Common_NotNow : Strings.Common_Cancel);
+        var share = firstRun ? new TaskDialogVerificationCheckBox(Strings.Dialog_ShareClipboard) : null;
         var page = new TaskDialogPage
         {
-            Caption = firstRun ? "Edgepad" : "Wi-Fi and USB",
-            Heading = firstRun ? "Let phones find this laptop?" : "Turn on Wi-Fi and USB connections?",
-            Text = firstRun ? $"{NetworkNotice}\n\n{ClipboardNotice}\n\n{WhereItLives}" : NetworkNotice,
+            Caption = firstRun ? "Edgepad" : Strings.Network_Title,
+            Heading = firstRun ? Strings.Dialog_NetworkFirstHeading : Strings.Dialog_NetworkHeading,
+            Text = firstRun ? $"{Strings.Network_Notice}\n\n{Strings.Network_ClipboardNotice}\n\n{Strings.Network_WhereItLives}" : Strings.Network_Notice,
             Icon = TaskDialogIcon.Shield,
+            RightToLeftLayout = Theme.IsRtl,
             Buttons = { allow, notNow },
             DefaultButton = notNow,
             Verification = share,
@@ -529,10 +520,10 @@ internal sealed class TrayContext : ApplicationContext
         if (!networkSettings.SetEnabled(on))
         {
             networkRow.Checked = !on;
-            MessageBox.Show(
-                "The setting could not be saved, so nothing was changed. The log has the reason.",
-                "Wi-Fi and USB",
-                MessageBoxButtons.OK,
+            Ask.Message(
+                null,
+                Strings.Error_SettingNotSaved,
+                Strings.Network_Title,
                 MessageBoxIcon.Error);
             return;
         }
@@ -549,7 +540,7 @@ internal sealed class TrayContext : ApplicationContext
     /// <summary>The first launch of a new exe with the network on: says why Windows is about to ask, then asks.</summary>
     private void FollowExe()
     {
-        Balloon("This version of Edgepad is a new file, so Windows will ask once to let phones reach it.", ToolTipIcon.Info);
+        Balloon(Strings.Balloon_NewFile, ToolTipIcon.Info);
         AllowThenListen();
     }
 
@@ -584,7 +575,7 @@ internal sealed class TrayContext : ApplicationContext
 
     /// <summary>Says a macro was added from the phone. Called from a session's thread, so the balloon is posted to the UI thread.</summary>
     private void AnnounceMacro(string name) =>
-        ui.Post(_ => Balloon($"Added {name} from your phone", ToolTipIcon.Info), null);
+        ui.Post(_ => Balloon(Strings.Balloon_MacroAdded.Fill(name), ToolTipIcon.Info), null);
 
     /// <summary>One notice when the rule did not go in, a declined prompt among the reasons. Asks nothing again.</summary>
     private void ReportFirewall(bool allowed)
@@ -593,7 +584,7 @@ internal sealed class TrayContext : ApplicationContext
         if (!allowed)
         {
             Balloon(
-                "Windows Firewall was not changed, so phones may not reach this laptop. Allow through Windows Firewall in this menu tries again.",
+                Strings.Balloon_FirewallNotChanged,
                 ToolTipIcon.Warning);
         }
     }
@@ -606,7 +597,7 @@ internal sealed class TrayContext : ApplicationContext
     {
         if (!clipboardSetting.Set(on))
         {
-            Balloon("Share clipboard changed for now, but could not be saved, so the next launch may not remember it.", ToolTipIcon.Warning);
+            Balloon(Strings.Balloon_ShareClipboardNotSaved, ToolTipIcon.Warning);
         }
     }
 
@@ -618,7 +609,7 @@ internal sealed class TrayContext : ApplicationContext
     {
         if (!updateSetting.Set(on))
         {
-            Balloon("Check for updates daily changed for now, but could not be saved, so the next launch may not remember it.", ToolTipIcon.Warning);
+            Balloon(Strings.Balloon_CheckUpdatesNotSaved, ToolTipIcon.Warning);
         }
 
         if (on)
@@ -663,7 +654,7 @@ internal sealed class TrayContext : ApplicationContext
 
     /// <summary>The pairing window may open behind whatever has focus; the notification is what the owner notices.</summary>
     private void AnnouncePairing(string phoneName) => ui.Post(
-        _ => Balloon($"{phoneName} wants to pair. Type the pairing code it shows.", ToolTipIcon.Info),
+        _ => Balloon(Strings.Balloon_WantsToPair.Fill(phoneName), ToolTipIcon.Info),
         null);
 
     /// <summary>A phone asked for the controller and there is no driver. Once per run; clicking it opens the download.</summary>
@@ -676,27 +667,27 @@ internal sealed class TrayContext : ApplicationContext
             }
 
             announcedDriver = true;
-            Balloon("The controller needs the ViGEmBus driver. Click to open the download page.", ToolTipIcon.Info, () => Open(DriverUrl, "the driver page"));
+            Balloon(Strings.Balloon_DriverMissing, ToolTipIcon.Info, () => Open(DriverUrl, "the driver page"));
         },
         null);
 
-    private void SetStatus(string text) => ui.Post(_ => ApplyStatus(text), null);
+    private void SetStatus(LaptopStatus status) => ui.Post(_ => ApplyStatus(status), null);
 
     /// <summary>The header, the tooltip, the icon's dot and the connect/drop notice, for one status. On the UI thread only.</summary>
-    private void ApplyStatus(string text)
+    private void ApplyStatus(LaptopStatus status)
     {
         var now = Environment.TickCount64;
-        if (statusMemory.ShouldAnnounce(text, now))
+        if (statusMemory.ShouldAnnounce(status, now))
         {
-            Balloon(text, ToolTipIcon.Warning);
+            Balloon(status.Text, ToolTipIcon.Warning);
         }
 
-        var shown = statusMemory.Resolve(text, now);
+        var shown = statusMemory.Resolve(status, now);
         shownNow = shown;
         menu.Header.SetStatus(shown);
-        icon.Text = TrayStatus.Tooltip(shown, MaxTooltipLength);
+        icon.Text = TrayStatus.Tooltip(shown.Text, MaxTooltipLength);
 
-        var connected = LaptopStatus.IsConnected(shown);
+        var connected = shown.IsConnected;
         if (connected == wasConnected)
         {
             return;
@@ -712,11 +703,11 @@ internal sealed class TrayContext : ApplicationContext
         // A drop the owner caused (Forget, the Security window) needs no pill; any other is the one they want to see.
         if (connected)
         {
-            overlay.ShowNotice("Phone connected");
+            overlay.ShowNotice(Strings.Phone_Connected);
         }
         else if (!securing && now >= ownHangUpUntil)
         {
-            overlay.ShowNotice("Phone disconnected");
+            overlay.ShowNotice(Strings.Phone_Disconnected);
         }
     }
 
@@ -793,17 +784,14 @@ internal sealed class TrayContext : ApplicationContext
         HangUpForgotten();
         if (forgotten && unpaired && verifiedForgotten)
         {
-            Balloon($"Forgot {phone.Name}. Connect again from the phone in about {(int)QuietAfterForget.TotalSeconds} seconds.", ToolTipIcon.Info);
+            Balloon(Strings.Balloon_ForgotOne.Fill(phone.Name, (int)QuietAfterForget.TotalSeconds), ToolTipIcon.Info);
             return true;
         }
 
-        MessageBox.Show(
+        Ask.Message(
             owner,
-            $"Try Forget again once nothing else is using Edgepad's files in {pin.Folder}. {phone.Name} could not be fully forgotten: "
-                + "a file could not be rewritten. It stays trusted on disk, but Edgepad refuses it until Edgepad is restarted, and it will "
-                + "be trusted again from then on unless you forget it again.",
-            "Security",
-            MessageBoxButtons.OK,
+            Strings.Error_ForgetOne.Fill(pin.Folder, phone.Name),
+            Strings.Security_Title,
             MessageBoxIcon.Error);
         return false;
     }
@@ -815,7 +803,6 @@ internal sealed class TrayContext : ApplicationContext
     /// </summary>
     private void ForgetAllPhones(IWin32Window owner)
     {
-        var count = trust.TrustedPhones.Count;
         var forgotten = trust.Forget();
 
         // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
@@ -825,13 +812,10 @@ internal sealed class TrayContext : ApplicationContext
         HangUpForgotten();
         if (!forgotten)
         {
-            MessageBox.Show(
+            Ask.Message(
                 owner,
-                $"Close whatever is holding the trusted phones' file, then choose Forget all again, or delete it yourself:\n\n{trust.FilePath}\n\n"
-                    + "The trusted phones could not be forgotten: their file could not be removed or emptied. No phone can "
-                    + "connect while Edgepad stays running, but those phones will be trusted again the next time Edgepad starts.",
-                "Security",
-                MessageBoxButtons.OK,
+                Strings.Error_ForgetAllTrust.Fill(trust.FilePath),
+                Strings.Security_Title,
                 MessageBoxIcon.Error);
         }
 
@@ -841,21 +825,16 @@ internal sealed class TrayContext : ApplicationContext
 
         if (!verifiedForgotten)
         {
-            MessageBox.Show(
+            Ask.Message(
                 owner,
-                $"Choose Forget all again, or delete pin-verified.txt yourself from:\n\n{pin.Folder}\n\n"
-                    + "The phones that entered the PIN could not be forgotten: their list could not be removed. While "
-                    + "Edgepad stays running every phone is asked for the PIN on every connection, but those phones "
-                    + "will skip it at level 2 again the next time Edgepad starts.",
-                "Security",
-                MessageBoxButtons.OK,
+                Strings.Error_ForgetAllPin.Fill(pin.Folder),
+                Strings.Security_Title,
                 MessageBoxIcon.Error);
         }
 
         if (forgotten)
         {
-            var plural = count == 1 ? "phone" : "phones";
-            Balloon($"Forgot {count} {plural}. Connect again from the phone in about {(int)QuietAfterForget.TotalSeconds} seconds.", ToolTipIcon.Info);
+            Balloon(Strings.Balloon_ForgotAll.Fill((int)QuietAfterForget.TotalSeconds), ToolTipIcon.Info);
         }
     }
 
@@ -866,14 +845,14 @@ internal sealed class TrayContext : ApplicationContext
         var until = Environment.TickCount64 + (long)QuietAfterForget.TotalMilliseconds;
         ownHangUpUntil = until + 2000;
         statusMemory.Clear();
-        statusMemory.Quiet($"Phones can connect again at {DateTime.Now.Add(QuietAfterForget):t}", until);
+        statusMemory.Quiet(LaptopStatus.QuietUntil($"{DateTime.Now.Add(QuietAfterForget):t}"), until);
 
         // Nothing posts a status when the quiet period ends, so a line that names a time would outlive it.
         _ = Task.Delay(QuietAfterForget + TimeSpan.FromSeconds(1)).ContinueWith(
             t => ui.Post(
                 _ =>
                 {
-                    if (shownNow?.StartsWith("Phones can connect again", StringComparison.Ordinal) == true)
+                    if (shownNow?.Kind == StatusKind.QuietUntil)
                     {
                         ApplyStatus(LaptopStatus.Waiting);
                     }
@@ -893,14 +872,10 @@ internal sealed class TrayContext : ApplicationContext
             return;
         }
 
-        MessageBox.Show(
+        Ask.Message(
             owner,
-            $"Choose Forget all again, or delete paired-links.txt yourself from:\n\n{pin.Folder}\n\n"
-                + "The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. "
-                + "Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will "
-                + "be able to again the next time it starts.",
-            "Security",
-            MessageBoxButtons.OK,
+            Strings.Error_ForgetLinks.Fill(pin.Folder),
+            Strings.Security_Title,
             MessageBoxIcon.Error);
     }
 
@@ -952,7 +927,7 @@ internal sealed class TrayContext : ApplicationContext
             phone = host.Shown(address);
         }
 
-        SetStatus($"Asking whether to trust {phone}");
+        SetStatus(LaptopStatus.Asking(phone));
         var deadline = Environment.TickCount64 + (long)TrustPromptTimeout.TotalMilliseconds;
         var answer = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         ui.Post(
@@ -964,7 +939,7 @@ internal sealed class TrayContext : ApplicationContext
                 {
                     // The dialog is kept above other windows, but a game or full-screen video may still hide it,
                     // so the notification is there too.
-                    Balloon($"{phone} wants to connect. Choose Trust or Don't trust.", ToolTipIcon.Info);
+                    Balloon(Strings.Balloon_WantsToConnect.Fill(phone), ToolTipIcon.Info);
                     answer.TrySetResult(ShowTrustPrompt(phone, address, deadline, ended));
                 }
             },
@@ -993,18 +968,18 @@ internal sealed class TrayContext : ApplicationContext
     /// </summary>
     private static bool ShowTrustPrompt(string phone, string address, long deadline, CancellationToken ended)
     {
-        var yes = new TaskDialogButton("Trust");
-        var no = new TaskDialogButton("Don't trust");
+        var yes = new TaskDialogButton(Strings.Dialog_Trust);
+        var no = new TaskDialogButton(Strings.Dialog_DontTrust);
         string Words() =>
             (phone == address ? string.Empty : $"{address}\n\n")
-            + "A paired phone is asking to control this laptop's pointer and keyboard. Trust it only if it is yours. "
-            + $"With no answer in {PairingPrompt.SecondsLeft(deadline, Environment.TickCount64)} seconds, it is not trusted.";
+            + Strings.Dialog_TrustText.Fill(PairingPrompt.SecondsLeft(deadline, Environment.TickCount64));
         var page = new TaskDialogPage
         {
             Caption = "Edgepad",
-            Heading = $"Trust {phone}?",
+            Heading = Strings.Dialog_TrustHeading.Fill(phone),
             Text = Words(),
             Icon = TaskDialogIcon.Shield,
+            RightToLeftLayout = Theme.IsRtl,
             AllowCancel = true,
             Buttons = { yes, no },
             DefaultButton = no,

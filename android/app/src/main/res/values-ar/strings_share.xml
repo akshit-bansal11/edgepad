@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Share > Edgepad (ShareActivity): nothing is sent until Send is tapped. -->
+  <string name="share_title">إرسال إلى %1$s؟</string>
+  <string name="share_image">صورة</string>
+  <string name="share_send">إرسال</string>
+  <string name="share_sent">تم الإرسال إلى %1$s</string>
+  <string name="share_send_failed">تعذّر الإرسال إلى %1$s. تحقق من الاتصال وأعد المحاولة.</string>
+  <string name="share_no_laptop">لا يتصل Edgepad بأي لابتوب حاليًا. اتصل بلابتوب ثم شارك مجددًا.</string>
+  <string name="share_clipboard_off">فعّل «مشاركة الحافظة» على %1$s</string>
+  <string name="share_nothing">لا يوجد هنا ما يمكن لـ Edgepad إرساله.</string>
+  <string name="share_text_too_long">هذا النص أطول من أن يُرسل. الحد الأقصى 1 MB.</string>
+  <string name="share_image_failed">تعذّرت قراءة هذه الصورة، أو أنها أكبر من أن تُرسل.</string>
+  <!-- Under every shared text in the confirm, counted on the text as sent (a trailing line break makes one more). -->
+  <plurals name="share_lines">
+    <item quantity="zero">%1$d سطر.</item>
+    <item quantity="one">سطر واحد.</item>
+    <item quantity="two">سطران.</item>
+    <item quantity="few">%1$d أسطر.</item>
+    <item quantity="many">%1$d سطرًا.</item>
+    <item quantity="other">%1$d سطر.</item>
+  </plurals>
+  <!-- After share_lines when the text is cut for the confirm: everything is still sent. -->
+  <plurals name="share_not_shown">
+    <item quantity="zero">لا توجد أحرف مخفية. يرسل «إرسال» النص كاملًا.</item>
+    <item quantity="one">حرف واحد آخر غير ظاهر هنا. يرسل «إرسال» النص كاملًا.</item>
+    <item quantity="two">حرفان آخران غير ظاهرين هنا. يرسل «إرسال» النص كاملًا.</item>
+    <item quantity="few">%1$d أحرف أخرى غير ظاهرة هنا. يرسل «إرسال» النص كاملًا.</item>
+    <item quantity="many">%1$d حرفًا آخر غير ظاهر هنا. يرسل «إرسال» النص كاملًا.</item>
+    <item quantity="other">%1$d حرف آخر غير ظاهر هنا. يرسل «إرسال» النص كاملًا.</item>
+  </plurals>
+</resources>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_layout_title">Gamepad-Layout</string>
+  <string name="gamepad_layout_editing">Bearbeite: %1$s</string>
+  <string name="gamepad_preset_xbox_keys">Xbox-Tasten</string>
+  <string name="gamepad_preset_platformer">Jump\'n\'Run</string>
+  <string name="gamepad_preset_racing">Rennspiel</string>
+  <string name="gamepad_preset_shooter">Shooter</string>
+  <string name="gamepad_layout_hint">Zum Verschieben ziehen. Ein Element lange drücken für sein Menü.</string>
+  <string name="gamepad_layout_section">Layouts</string>
+  <string name="gamepad_description">Gamecontroller für den Laptop. Funktioniert nur per Touch.</string>
+  <string name="gamepad_node_dpad">Steuerkreuz</string>
+  <string name="gamepad_node_stick">Stick</string>
+  <string name="gamepad_node_button">Taste</string>
+  <string name="gamepad_size">Größe</string>
+  <string name="dp_value">%1$d dp</string>
+
+  <!-- The two buttons in the editor's options popup; short, because they sit side by side in it. -->
+  <string name="gamepad_add">Neu</string>
+  <string name="gamepad_restore">%1$s wiederherstellen</string>
+  <string name="gamepad_restore_confirm">%1$s wiederherstellen? Nochmal tippen</string>
+  <string name="gamepad_switch_to">Zu %1$s wechseln</string>
+  <string name="gamepad_switch_to_confirm">Zu %1$s wechseln? Dein Layout bleibt gespeichert. Nochmal tippen</string>
+  <string name="gamepad_layouts">Layouts</string>
+
+  <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->
+  <string name="gamepad_control_title">%1$s · %2$s</string>
+  <string name="gamepad_bind">Belegung</string>
+  <string name="gamepad_label">Beschriftung</string>
+  <string name="gamepad_delete_control">Element löschen</string>
+  <string name="gamepad_delete_title">%1$s löschen?</string>
+  <string name="gamepad_delete_body">Es wird aus diesem Layout entfernt. Mit „Neu“ holst du ein Element zurück.</string>
+  <string name="gamepad_name_required">Gib dem Layout einen Namen</string>
+
+  <!-- Adding a control: the kinds offered, in the order the menu lists them. -->
+  <string name="gamepad_add_control">Element hinzufügen</string>
+  <string name="gamepad_kind_button">Taste</string>
+  <string name="gamepad_kind_dpad">Steuerkreuz</string>
+  <string name="gamepad_kind_stick">Stick</string>
+  <string name="gamepad_kind_shoulder">Schultertaste</string>
+  <string name="gamepad_kind_trigger">Trigger</string>
+
+  <string name="gamepad_bind_stick_left">Linker Stick</string>
+  <string name="gamepad_bind_stick_right">Rechter Stick</string>
+  <string name="gamepad_bind_trigger_left">Linker Trigger</string>
+  <string name="gamepad_bind_trigger_right">Rechter Trigger</string>
+  <string name="gamepad_bind_keys">Tastaturtaste</string>
+  <string name="gamepad_bind_key_up">Taste für oben</string>
+  <string name="gamepad_bind_key_down">Taste für unten</string>
+  <string name="gamepad_bind_key_left">Taste für links</string>
+  <string name="gamepad_bind_key_right">Taste für rechts</string>
+
+  <!-- Keeping the named layouts themselves. -->
+  <string name="gamepad_save_as">Speichern unter</string>
+  <string name="gamepad_rename">Umbenennen</string>
+  <string name="gamepad_delete_layout">Layout löschen</string>
+  <string name="gamepad_delete_layout_body">%1$s wird entfernt. Die mitgelieferten Layouts von Edgepad bleiben.</string>
+  <string name="gamepad_delete">Löschen</string>
+</resources>

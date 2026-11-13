@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The guide: first run, and Settings › Help › Guide. Every claim here must be true of the app. -->
+  <string name="guide_steps">Étapes</string>
+  <string name="guide_page">Page</string>
+  <string name="guide_back">Retour</string>
+  <string name="guide_next">Suivant</string>
+  <string name="guide_done">Terminé</string>
+  <string name="guide_skip">Passer</string>
+  <string name="guide_find_laptop">Trouver mon ordinateur</string>
+  <string name="guide_step_description">Page %1$d sur %2$d</string>
+
+  <string name="guide_features_kicker">1 · Pourquoi Edgepad</string>
+  <string name="guide_features_title">Votre ordinateur, depuis l\'autre bout de la pièce.</string>
+  <string-array name="guide_features_keys">
+    <item>Temps réel</item>
+    <item>Temps de réponse</item>
+    <item>Hors ligne</item>
+    <item>Bluetooth</item>
+    <item>Et plus encore</item>
+  </string-array>
+  <string-array name="guide_features_values">
+    <item>Chaque geste part au moment où vous le faites. Si la connexion est lente, les gestes en attente sont fusionnés au lieu de s\'empiler.</item>
+    <item>Mesuré en direct du téléphone à l\'ordinateur et retour, et affiché à côté de l\'ordinateur dans l\'écran Appareils.</item>
+    <item>Pas de compte, pas besoin d\'Internet. Le téléphone joint directement l\'ordinateur.</item>
+    <item>Bluetooth par défaut : associez l\'ordinateur une fois dans ses paramètres Bluetooth, puis Edgepad peut se connecter au lancement. Les connexions Wi-Fi et USB sont facultatives.</item>
+    <item>Retour haptique, thème clair et sombre, portrait ou paysage (le clavier et la manette restent en paysage), vos propres dispositions pour le média et la manette.</item>
+  </string-array>
+
+  <string name="guide_anatomy_kicker">2 · Anatomie</string>
+  <string name="guide_anatomy_title">Huit éléments, un seul écran.</string>
+  <string-array name="guide_anatomy_keys">
+    <item>Pavé tactile</item>
+    <item>Règles d\'angle</item>
+    <item>Média</item>
+    <item>Clavier</item>
+    <item>Manette</item>
+    <item>Annoter</item>
+    <item>Capture</item>
+    <item>Macros</item>
+  </string-array>
+  <string-array name="guide_anatomy_values">
+    <item>Tout le milieu de l\'écran. Chaque geste des doigts commence ici.</item>
+    <item>Des règles repliées dans les coins, ou deux par coin : volume, luminosité, zoom, position de lecture, changer d\'appli, fréquence d\'actualisation, défilement, bureaux virtuels, onglets du navigateur ou la règle Changer d\'ordinateur.</item>
+    <item>Ce qui est en cours de lecture, puis précédent, lecture et suivant, tant qu\'un lecteur est ouvert. Déplacez-le et redimensionnez-le dans les paramètres de l\'écran principal.</item>
+    <item>Un clavier complet dont les modificateurs fonctionnent maintenus ou appuyés, derrière le bouton Commandes.</item>
+    <item>Des joysticks, une croix directionnelle et des boutons en quatre modèles, ou votre propre disposition.</item>
+    <item>Commandes › Annoter transforme le téléphone en stylet pour l\'écran de l\'ordinateur, avec six outils et huit couleurs. Disponible si l\'ordinateur le permet.</item>
+    <item>Commandes › Capture demande à l\'ordinateur une capture d\'une zone, une capture plein écran ou un enregistrement. Pour une zone, tracez-la sur le pavé sous les boutons. Disponible si l\'ordinateur le permet.</item>
+    <item>Une grille de boutons qui ouvrent un programme, un fichier ou une adresse web sur l\'ordinateur, derrière Commandes. Maintenez-en un pour le glisser à sa place ; au-delà de dix, les suivants sont sur des pages que l\'on fait défiler.</item>
+  </string-array>
+
+  <string name="guide_surface_kicker">3 · L\'écran principal</string>
+  <string name="guide_surface_title">Les doigts font le travail.</string>
+  <string-array name="guide_surface_keys">
+    <item>Un doigt</item>
+    <item>Deux doigts</item>
+    <item>Trois et quatre</item>
+    <item>Règles d\'angle</item>
+    <item>Ajuster</item>
+  </string-array>
+  <string-array name="guide_surface_values">
+    <item>Déplacez le pointeur. Appuyez pour cliquer. Appuyez, puis maintenez et déplacez, pour faire glisser.</item>
+    <item>Appuyez pour un clic droit. Glissez pour faire défiler. Pincez pour zoomer.</item>
+    <item>Trois doigts sur le côté pour les bureaux, vers le haut pour la vue des tâches, vers le bas pour le bureau. Quatre doigts sur le côté pour parcourir les applis ouvertes. Un appui à trois ou quatre doigts lance la recherche ou ouvre les notifications.</item>
+    <item>Glissez le long d\'une règle, le sens horaire augmente. Appuyez dessus pour couper le son, lancer la lecture, réinitialiser le zoom ou ouvrir la vue des tâches.</item>
+    <item>Paramètres de l\'écran principal › Coins permet de choisir chaque règle et de séparer chaque coin en deux, une sur chaque bord. Comportement des règles règle la sensibilité, la taille et le retour haptique. Pavé tactile réaffecte le reste.</item>
+  </string-array>
+
+  <string name="guide_keyboard_kicker">4 · Clavier</string>
+  <string name="guide_keyboard_title">Écrivez depuis le canapé.</string>
+  <string-array name="guide_keyboard_keys">
+    <item>Ouvrir</item>
+    <item>Saisir</item>
+    <item>Modificateurs</item>
+    <item>Fermer</item>
+  </string-array>
+  <string-array name="guide_keyboard_values">
+    <item>L\'icône Commandes en haut de l\'écran principal, puis Clavier. Il s\'ouvre en paysage.</item>
+    <item>Chaque touche va directement à l\'ordinateur. La rangée du haut fait ce qui est imprimé dessus ; maintenez Fn pour F1 à F12 (les paramètres du clavier permettent de l\'inverser).</item>
+    <item>Maintenez Ctrl, Alt, Maj ou Fn en appuyant sur une touche, ou appuyez sur l\'une d\'elles pour l\'appliquer à la touche suivante. Appuyez à nouveau dessus pour annuler.</item>
+    <item>La flèche de retour en haut, ou le geste Retour du système.</item>
+  </string-array>
+
+  <string name="guide_gamepad_kicker">5 · Manette</string>
+  <string name="guide_gamepad_title">Une manette dans la poche.</string>
+  <string-array name="guide_gamepad_keys">
+    <item>Ouvrir</item>
+    <item>Modèles</item>
+    <item>Jouer</item>
+    <item>Personnaliser</item>
+  </string-array>
+  <string-array name="guide_gamepad_values">
+    <item>L\'icône Commandes en haut de l\'écran principal, puis Manette. Elle s\'ouvre en paysage.</item>
+    <item>Xbox, Plateforme, Course et Tir, à choisir dans les paramètres de la manette, derrière l\'engrenage.</item>
+    <item>Maintenez et faites glisser un joystick, appuyez sur les boutons. Plusieurs doigts à la fois fonctionnent.</item>
+    <item>Paramètres de la manette › Modifier la disposition. Placez les commandes là où tombent vos pouces ; appuyez longuement sur l\'une d\'elles pour la redimensionner.</item>
+  </string-array>
+
+  <string name="guide_connect_kicker">6 · Connexion</string>
+  <string name="guide_connect_title">Connectez votre ordinateur.</string>
+  <string-array name="guide_connect_keys">
+    <item>Sur l\'ordinateur</item>
+    <item>Bluetooth</item>
+    <item>Wi-Fi ou USB</item>
+    <item>Approuver</item>
+    <item>Presse-papiers</item>
+  </string-array>
+  <string-array name="guide_connect_values">
+    <item>Installez et ouvrez Edgepad. Il se place dans la zone de notification de Windows ou dans la barre des menus du Mac.</item>
+    <item>Associez l\'ordinateur dans les paramètres Bluetooth de ce téléphone, puis appuyez dessus dans Appareils.</item>
+    <item>Activez « Connexions Wi-Fi et USB » dans le menu Edgepad de l\'ordinateur (sur un Mac, les connexions Wi-Fi). Pour l\'USB, activez aussi le partage de connexion par USB sur le téléphone.</item>
+    <item>La première fois, l\'ordinateur demande s\'il doit faire confiance à ce téléphone : choisissez Approuver sur l\'ordinateur. S\'il demande un code PIN, saisissez-le ici.</item>
+    <item>Depuis Android 10, seule l\'appli affichée à l\'écran peut lire le presse-papiers : une copie faite dans une autre appli arrive donc sur l\'ordinateur quand vous revenez dans Edgepad. Ou utilisez Partager, puis Edgepad, pour envoyer tout de suite un texte ou une image.</item>
+  </string-array>
+
+  <!-- Words inside the guide drawings. -->
+  <string name="guide_art_phone">Téléphone</string>
+  <string name="guide_art_laptop">Ordinateur</string>
+  <string name="guide_art_link">Bluetooth d\'abord · sans compte</string>
+  <string name="guide_art_dials">Règles</string>
+  <string name="guide_art_trackpad">Pavé tactile</string>
+  <string name="guide_art_media">Média</string>
+  <string name="guide_art_keys">Touches · pavé</string>
+  <string name="guide_art_gestures">Gestes</string>
+  <string name="guide_art_move">1 · Déplacer</string>
+  <string name="guide_art_scroll">2 · Défiler</string>
+  <string name="guide_art_swipe">3 · Balayer</string>
+  <string name="guide_art_latch">Ctrl, Alt et Maj restent actives pour la touche suivante</string>
+  <string name="guide_art_presets">Xbox · Plateforme · Course · Tir</string>
+</resources>

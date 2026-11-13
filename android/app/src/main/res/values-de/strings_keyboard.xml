@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">Tastatur</string>
+  <string name="keyboard_type_text">Text eingeben</string>
+  <string name="keyboard_type_send">Tippen</string>
+  <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
+  <string name="back_to_surface">Steuerung</string>
+  <string name="macros_title">Makros</string>
+  <string name="keyboard_key_on">Aktiv</string>
+  <string name="keyboard_description">Bildschirmtastatur für den Laptop</string>
+  <string name="keyboard_size">Größe</string>
+  <string name="keyboard_size_caption">Größere Stufen zeigen mehr Tasten, dadurch wird jede Taste kleiner. Sie brauchen einen breiteren Bildschirm.</string>
+  <string name="keyboard_function_keys">Funktionstasten</string>
+  <string name="keyboard_with_fn">Mit Fn</string>
+  <string name="keyboard_direct">Direkt</string>
+  <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
+  <string name="keyboard_function_keys_caption">Mit Fn: Die obere Reihe tut, was darauf steht (Helligkeit, Medien, Lautstärke), und Fn plus Taste sendet F1 bis F12. Bei 65 %% und 60 %%, die keine F-Reihe haben, tippt die Zahlenreihe Zahlen, und Fn plus Zahl sendet F1 bis F12. Direkt: Die obere Reihe sendet F1 bis F12, und Fn plus Taste löst die aufgedruckte Aktion aus; bei 65 %% und 60 %% sendet die Zahlenreihe F1 bis F12, und Fn plus Zahl tippt die Zahl.</string>
+</resources>

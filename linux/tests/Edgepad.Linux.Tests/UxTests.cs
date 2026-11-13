@@ -1,3 +1,4 @@
+using Edgepad.Net;
 using Edgepad.Platform;
 using Xunit;
 
@@ -98,19 +99,19 @@ public sealed class UxTests
     public void AnOlderPhoneIsToldToUpdateThePhone() =>
         Assert.Equal(
             "Pixel could not connect: its Edgepad app is older. Update Edgepad on the phone.",
-            StatusText.Rewrite("Refused a phone on protocol 4; this laptop is on 5", "AA:BB", "Pixel", "Pixel · Bluetooth"));
+            LaptopStatus.RefusedProtocol(4, 5).For("Pixel", PhoneWay.Bluetooth).Text);
 
     [Fact]
     public void AnOlderLaptopIsToldToUpdateHere() =>
         Assert.Equal(
             "Pixel could not connect: Edgepad on this laptop is older. Update Edgepad here.",
-            StatusText.Rewrite("Refused a phone on protocol 6; this laptop is on 5", "AA:BB", "Pixel", "Pixel · Bluetooth"));
+            LaptopStatus.RefusedProtocol(6, 5).For("Pixel", PhoneWay.Bluetooth).Text);
 
     [Fact]
     public void ConnectedNamesThePhoneAndTheWayIn() =>
         Assert.Equal(
             "Connected to Pixel · Bluetooth",
-            StatusText.Rewrite("Connected to AA:BB:CC:DD:EE:FF", "AA:BB:CC:DD:EE:FF", "Pixel", "Pixel · Bluetooth"));
+            LaptopStatus.Connected("AA:BB:CC:DD:EE:FF", PhoneWay.Bluetooth).For("Pixel", PhoneWay.Bluetooth).Text);
 
     [Theory]
     [InlineData("AA-BB-CC-DD-EE-FF", true)]

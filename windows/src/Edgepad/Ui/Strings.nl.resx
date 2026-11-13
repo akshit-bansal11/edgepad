@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Nederlands (nl). Zie Strings.resx voor de Engelse bron. -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Network_Notice" xml:space="preserve">
+    <value>Telefoons op hetzelfde Wi-Fi-netwerk, of verbonden via USB-tethering, kunnen deze laptop vinden en vragen om te koppelen. Er verbindt niets zonder de koppelcode die je hier typt. Windows vraagt eenmalig om de opdrachtprompt uit te voeren; daarmee wordt de Edgepad-firewallregel toegevoegd.</value>
+  </data>
+  <data name="Network_ClipboardNotice" xml:space="preserve">
+    <value>Klembord delen: kopieer op het ene apparaat, plak op het andere, tekst en afbeeldingen. Het blijft uit tot je het aanvinkt.</value>
+  </data>
+  <data name="Network_WhereItLives" xml:space="preserve">
+    <value>Edgepad draait in de hoek van de taakbalk. Zie je het pictogram niet, klik dan op ^ en sleep het naar buiten. Om Bluetooth te gebruiken koppel je de telefoon eerst in de Bluetooth-instellingen van Windows en open je daarna Edgepad op de telefoon.</value>
+  </data>
+  <data name="Menu_StartWithWindows" xml:space="preserve">
+    <value>Sta&amp;rten met Windows</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>&amp;Macro's…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Beveili&amp;ging…</value>
+  </data>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>&amp;Wi-Fi- en USB-verbindingen</value>
+  </data>
+  <data name="Network_Title" xml:space="preserve">
+    <value>Wi-Fi en USB</value>
+  </data>
+  <data name="Menu_Firewall" xml:space="preserve">
+    <value>Toestaan via Windows-&amp;firewall…</value>
+  </data>
+  <data name="Menu_BluetoothSettings" xml:space="preserve">
+    <value>&amp;Bluetooth-instellingen openen</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>&amp;Klembord delen</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Kopieer op het ene apparaat, plak op het andere: tekst en afbeeldingen.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Dagelijks op &amp;updates controleren</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>&amp;Logboek openen</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>Update b&amp;eschikbaar</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>&amp;Documentatie</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepad &amp;afsluiten</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} van {1}</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>Update b&amp;eschikbaar: {0}</value>
+  </data>
+  <data name="Balloon_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} is beschikbaar. Klik om de releasepagina te openen; download en start de nieuwe versie om deze te vervangen.</value>
+  </data>
+  <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
+    <value>Starten met Windows kon niet worden opgeslagen, dus Edgepad start niet vanzelf. In het logboek staat de reden.</value>
+  </data>
+  <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
+    <value>Klembord delen is voor nu gewijzigd, maar kon niet worden opgeslagen, dus bij de volgende start wordt dit mogelijk vergeten.</value>
+  </data>
+  <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
+    <value>Dagelijks op updates controleren is voor nu gewijzigd, maar kon niet worden opgeslagen, dus bij de volgende start wordt dit mogelijk vergeten.</value>
+  </data>
+  <data name="Balloon_NewFile" xml:space="preserve">
+    <value>Deze versie van Edgepad is een nieuw bestand, dus Windows vraagt eenmalig om telefoons toegang te geven.</value>
+  </data>
+  <data name="Balloon_FirewallNotChanged" xml:space="preserve">
+    <value>De Windows-firewall is niet gewijzigd, dus telefoons kunnen deze laptop mogelijk niet bereiken. Met Toestaan via Windows-firewall in dit menu probeer je het opnieuw.</value>
+  </data>
+  <data name="Balloon_MacroAdded" xml:space="preserve">
+    <value>{0} toegevoegd vanaf je telefoon</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} wil koppelen. Typ de koppelcode die op de telefoon staat.</value>
+  </data>
+  <data name="Balloon_DriverMissing" xml:space="preserve">
+    <value>De controller heeft het ViGEmBus-stuurprogramma nodig. Klik om de downloadpagina te openen.</value>
+  </data>
+  <data name="Balloon_WantsToConnect" xml:space="preserve">
+    <value>{0} wil verbinden. Kies Vertrouwen of Niet vertrouwen.</value>
+  </data>
+  <data name="Phone_Connected" xml:space="preserve">
+    <value>Telefoon verbonden</value>
+  </data>
+  <data name="Phone_Disconnected" xml:space="preserve">
+    <value>Verbinding met telefoon verbroken</value>
+  </data>
+  <data name="Balloon_ForgotOne" xml:space="preserve">
+    <value>{0} vergeten. Verbind over ongeveer {1} seconden opnieuw vanaf de telefoon.</value>
+  </data>
+  <data name="Balloon_ForgotAll" xml:space="preserve">
+    <value>Alle vertrouwde telefoons vergeten. Verbind over ongeveer {0} seconden opnieuw vanaf de telefoon.</value>
+  </data>
+  <data name="Dialog_StartWithWindows" xml:space="preserve">
+    <value>Starten met Windows</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Niet nu</value>
+  </data>
+  <data name="Dialog_StartHeading" xml:space="preserve">
+    <value>Edgepad starten als je je aanmeldt?</value>
+  </data>
+  <data name="Dialog_StartText" xml:space="preserve">
+    <value>Edgepad wacht dan zonder venster in de hoek van de taakbalk op je telefoon. Je kunt dit later wijzigen in het menu.</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>Toestaan</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Aanzetten</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Annuleren</value>
+  </data>
+  <data name="Dialog_ShareClipboard" xml:space="preserve">
+    <value>Klembord delen</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Telefoons deze laptop laten vinden?</value>
+  </data>
+  <data name="Dialog_NetworkHeading" xml:space="preserve">
+    <value>Wi-Fi- en USB-verbindingen aanzetten?</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>De instelling kon niet worden opgeslagen, dus er is niets gewijzigd. In het logboek staat de reden.</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Beveiliging</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Probeer Vergeten opnieuw zodra niets anders de bestanden van Edgepad in {0} gebruikt. {1} kon niet volledig worden vergeten: een bestand kon niet worden herschreven. De telefoon blijft op schijf vertrouwd, maar Edgepad weigert hem tot Edgepad opnieuw is gestart, en daarna wordt hij weer vertrouwd tenzij je hem opnieuw vergeet.</value>
+  </data>
+  <data name="Error_ForgetAllTrust" xml:space="preserve">
+    <value>Sluit wat het bestand met de vertrouwde telefoons vasthoudt en kies dan opnieuw Alles vergeten, of verwijder het zelf:  {0}  De vertrouwde telefoons konden niet worden vergeten: hun bestand kon niet worden verwijderd of leeggemaakt. Zolang Edgepad draait, kan geen enkele telefoon verbinden, maar die telefoons worden bij de volgende start van Edgepad weer vertrouwd.</value>
+  </data>
+  <data name="Error_ForgetAllPin" xml:space="preserve">
+    <value>Kies opnieuw Alles vergeten, of verwijder pin-verified.txt zelf uit:  {0}  De telefoons die de pincode hebben ingevoerd konden niet worden vergeten: hun lijst kon niet worden verwijderd. Zolang Edgepad draait, wordt aan elke telefoon bij elke verbinding om de pincode gevraagd, maar bij de volgende start van Edgepad slaan die telefoons dit op niveau 2 weer over.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>Kies opnieuw Alles vergeten, of verwijder paired-links.txt zelf uit:  {0}  De Wi-Fi- en USB-koppelingen konden niet worden vergeten: hun bestand kon niet worden verwijderd of leeggemaakt. Gekoppelde telefoons kunnen niet opnieuw verbinden via Wi-Fi of USB zolang Edgepad draait, maar bij de volgende start van Edgepad weer wel.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Vertrouwen</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Niet vertrouwen</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>Een gekoppelde telefoon vraagt om de aanwijzer en het toetsenbord van deze laptop te bedienen. Vertrouw hem alleen als het jouw telefoon is. Als je niet binnen {0} s antwoordt, wordt hij niet vertrouwd.</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>{0} vertrouwen?</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Alleen vertrouwen</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>Pincode eenmalig per telefoon</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>Pincode bij elke verbinding</value>
+  </data>
+  <data name="Security_Level1Note" xml:space="preserve">
+    <value>Een nieuwe telefoon heeft hier jouw goedkeuring nodig. Er wordt niets anders gevraagd.</value>
+  </data>
+  <data name="Security_Level2Note" xml:space="preserve">
+    <value>De telefoon typt ook de pincode, eenmalig. Die wordt onthouden tot de pincode of het niveau verandert.</value>
+  </data>
+  <data name="Security_Level3Note" xml:space="preserve">
+    <value>De telefoon typt de pincode bij elke verbinding.</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Elke telefoon heeft eerst hier jouw goedkeuring nodig. Niveau 2 en 3 vragen ook om een pincode van zes cijfers, die je op het scherm van de telefoon typt. De verbinding met telefoons wordt verbroken zolang dit venster openstaat.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Als je een nieuwe pincode of een nieuw niveau opslaat, moeten telefoons die de pincode al eens hebben ingevoerd, die opnieuw invoeren.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Vertrouwde telefoons</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>Nog geen telefoon is vertrouwd. Een telefoon krijgt de vraag wanneer hij voor het eerst verbindt.</value>
+  </data>
+  <data name="Security_LevelName" xml:space="preserve">
+    <value>Niveau {0}, {1}</value>
+  </data>
+  <data name="Security_SetPinButton" xml:space="preserve">
+    <value>&amp;Pincode instellen…</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>&amp;Alles vergeten…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>Pincode &amp;resetten en telefoons vergeten…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>&amp;Opslaan</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Vergeten</value>
+  </data>
+  <data name="Security_ForgetPhoneName" xml:space="preserve">
+    <value>{0} vergeten</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>Pincode wijzigen…</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>Pincode instellen…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>Er wordt een nieuwe pincode opgeslagen.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>Er is een pincode ingesteld.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>Er is geen pincode ingesteld.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>De pincode kon niet worden opgeslagen, dus er is niets gewijzigd. In het logboek staat de reden.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>Het niveau kon niet worden opgeslagen, dus het vorige niveau blijft gelden. In het logboek staat de reden.</value>
+  </data>
+  <data name="Security_ForgetOneHeading" xml:space="preserve">
+    <value>{0} vergeten?</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>{0} ({1}) moet hier opnieuw worden vertrouwd voordat deze laptop kan worden gebruikt. Telefoons blijven zonder verbinding terwijl je beslist.</value>
+  </data>
+  <data name="Security_ForgetAllHeading" xml:space="preserve">
+    <value>Alle vertrouwde telefoons vergeten?</value>
+  </data>
+  <data name="Security_ForgetAllNamed" xml:space="preserve">
+    <value>{0} moet hier opnieuw worden vertrouwd voordat deze laptop kan worden gebruikt, ook de telefoon die nu verbonden is. Telefoons blijven zonder verbinding terwijl je beslist.</value>
+  </data>
+  <data name="Security_ForgetAllEvery" xml:space="preserve">
+    <value>Elke telefoon moet hier opnieuw worden vertrouwd voordat deze laptop kan worden gebruikt, ook de telefoon die nu verbonden is. Telefoons blijven zonder verbinding terwijl je beslist.</value>
+  </data>
+  <data name="Security_ResetHeading" xml:space="preserve">
+    <value>De pincode resetten en elke telefoon vergeten?</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>De pincode wordt verwijderd, het niveau gaat terug naar 1 en elke vertrouwde telefoon wordt vergeten. Elke telefoon, ook de telefoon die nu verbonden is, moet hier opnieuw worden vertrouwd. Een vergeten pincode kan niet worden hersteld, alleen gereset.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Sluit wat het bestand vasthoudt en kies dan opnieuw Pincode resetten en telefoons vergeten, of verwijder het zelf:  {0}  Er is niets gereset: de vertrouwde telefoons konden niet worden vergeten, dus de pincode en het niveau zijn ongewijzigd gebleven. Zolang Edgepad draait, kan geen enkele telefoon verbinden, maar die telefoons worden bij de volgende start weer vertrouwd, met dezelfde pincode.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Sluit wat het bestand vasthoudt en kies dan opnieuw Pincode resetten en telefoons vergeten, of verwijder security.txt en pin-verified.txt zelf uit:  {0}  De vertrouwde telefoons zijn vergeten, maar de pincode kon niet worden gereset: een instellingenbestand kon niet worden verwijderd, dus de oude pincode en het oude niveau gelden mogelijk nog. Elke telefoon moet hier opnieuw worden vertrouwd.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>Nieuwe pincode</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>Nieuwe pincode nogmaals</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Zes cijfers</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Nogmaals</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>Deze pincode &amp;gebruiken</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>Een pincode bestaat uit precies zes cijfers.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>De twee pincodes zijn niet gelijk.</value>
+  </data>
+  <data name="Macro_Description" xml:space="preserve">
+    <value>Knoppen op het macroscherm van je telefoon, maximaal 15. De telefoon stuurt het nummer van een knop, nooit een programma, dus hij kan alleen uitvoeren wat je hier toevoegt. Met Alt+Pijl-omhoog en Alt+Pijl-omlaag wijzig je de volgorde van de knoppen.</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>Nog geen macro's</value>
+  </data>
+  <data name="Macro_EmptyDetail" xml:space="preserve">
+    <value>Voeg een app, document, map of webadres toe. Elk daarvan wordt een knop op de telefoon.</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Naam</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>Opent</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Argumenten</value>
+  </data>
+  <data name="Macro_ArgumentsNone" xml:space="preserve">
+    <value>Geen</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>optioneel</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>Pictogram</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Macro's</value>
+  </data>
+  <data name="Macro_IconPreview" xml:space="preserve">
+    <value>Voorbeeld van pictogram</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>Macro &amp;toevoegen</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>&amp;Bladeren…</value>
+  </data>
+  <data name="Macro_BrowseName" xml:space="preserve">
+    <value>Bladeren naar wat dit opent</value>
+  </data>
+  <data name="Macro_ChooseIcon" xml:space="preserve">
+    <value>Pictogram &amp;kiezen…</value>
+  </data>
+  <data name="Macro_ChooseIconName" xml:space="preserve">
+    <value>Pictogram kiezen</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>Pictogram van het &amp;programma gebruiken</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>&amp;Verwijderen</value>
+  </data>
+  <data name="Macro_ReorderHint" xml:space="preserve">
+    <value>Met Alt+Pijl-omhoog en Alt+Pijl-omlaag verplaats je de geselecteerde macro.</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Nieuwe macro</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Macro toevoegen</value>
+  </data>
+  <data name="Macro_Full" xml:space="preserve">
+    <value>Macro's: {0} van {0}</value>
+  </data>
+  <data name="Macro_NoRoom" xml:space="preserve">
+    <value>Terwijl dit venster openstond, is er een macro vanaf je telefoon toegevoegd, maar er is geen ruimte voor. Verwijder er hier een en sla dan op.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>De macro's konden niet worden opgeslagen in {0}: {1}</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}” heeft niets om te openen. Kies wat het opent, of verwijder het.</value>
+  </data>
+  <data name="Dialog_Save" xml:space="preserve">
+    <value>Opslaan</value>
+  </data>
+  <data name="Macro_DontSave" xml:space="preserve">
+    <value>Niet opslaan</value>
+  </data>
+  <data name="Macro_SaveHeading" xml:space="preserve">
+    <value>Wijzigingen in macro's opslaan?</value>
+  </data>
+  <data name="Macro_SaveText" xml:space="preserve">
+    <value>Je wijzigingen gaan verloren als je ze niet opslaat.</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Kies wat deze knop opent</value>
+  </data>
+  <data name="Macro_FilterPrograms" xml:space="preserve">
+    <value>Programma's en documenten (*.*)</value>
+  </data>
+  <data name="Macro_FilterIcons" xml:space="preserve">
+    <value>Pictogrammen, programma's en afbeeldingen (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
+  </data>
+  <data name="Macro_FilterAll" xml:space="preserve">
+    <value>Alle bestanden (*.*)</value>
+  </data>
+  <data name="Macro_ChoosePicture" xml:space="preserve">
+    <value>Kies de afbeelding voor deze knop</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Typ de koppelcode die op de telefoon staat:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Koppelcode op de telefoon</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Telefoon koppelen</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>{0} koppelen?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Koppelen</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Sluiten</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>De koppelcode controleren</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Sluit over {0} s</value>
+  </data>
+  <data name="App_RunningAsAdmin" xml:space="preserve">
+    <value>Edgepad draait al als beheerder. Sluit het af via het pictogram in het meldingsgebied, of start deze ook als beheerder.</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad draait al. Je vindt het in de hoek van de taakbalk.</value>
+  </data>
+  <data name="App_DidNotHandOver" xml:space="preserve">
+    <value>Er draait al een andere Edgepad die niet is overgedragen. Sluit die af via het pictogram in het meldingsgebied en start deze daarna opnieuw.</value>
+  </data>
+  <data name="Phone_NoneConnected" xml:space="preserve">
+    <value>Geen telefoon verbonden</value>
+  </data>
+  <data name="Badge_Connected" xml:space="preserve">
+    <value>Verbonden</value>
+  </data>
+  <data name="Badge_Problem" xml:space="preserve">
+    <value>Probleem</value>
+  </data>
+  <data name="Badge_Waiting" xml:space="preserve">
+    <value>Wachten</value>
+  </data>
+  <data name="Level_Microphone" xml:space="preserve">
+    <value>Microfoon</value>
+  </data>
+  <data name="Level_Brightness" xml:space="preserve">
+    <value>Helderheid</value>
+  </data>
+  <data name="Phone_Name" xml:space="preserve">
+    <value>Telefoon</value>
+  </data>
+  <data name="Level_Volume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi en USB: kan geen verbindingen accepteren. Zie het logboek.</value>
+  </data>
+  <data name="Network_PhonesMayNotFind" xml:space="preserve">
+    <value>Wi-Fi en USB: telefoons vinden deze laptop mogelijk niet.</value>
+  </data>
+</root>

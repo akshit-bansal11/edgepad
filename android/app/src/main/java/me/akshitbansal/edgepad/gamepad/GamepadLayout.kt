@@ -198,6 +198,13 @@ data class GamepadLayout(
     companion object {
         /** The longest a layout's name may be, and the longest a label drawn inside a control may be. */
         const val MAX_NAME = 24
+
+        /** The built-in layouts' names are their ids, stored and selected by; [layoutLabel] is what is shown. */
+        const val XBOX = "Xbox"
+        const val XBOX_KEYS = "Xbox keys"
+        const val PLATFORMER = "Platformer"
+        const val RACING = "Racing"
+        const val SHOOTER = "Shooter"
         const val MAX_LABEL = 10
 
         /**
@@ -336,7 +343,7 @@ data class GamepadLayout(
          */
         private fun xbox(): GamepadLayout =
             GamepadLayout(
-                "Xbox",
+                XBOX,
                 listOf(
                     Control("lstick", ControlKind.STICK, "L", 0.13f, 0.46f, Control.STICK_SIZE_DP, leftStick),
                     Control("rstick", ControlKind.STICK, "R", 0.70f, 0.78f, Control.STICK_SIZE_DP, rightStick),
@@ -359,7 +366,7 @@ data class GamepadLayout(
         /** The same shape as [xbox], bound to keys: what the pad was before the laptop could offer a controller. */
         private fun xboxKeys(): GamepadLayout =
             GamepadLayout(
-                "Xbox keys",
+                XBOX_KEYS,
                 listOf(
                     Control(
                         "stick",
@@ -394,7 +401,7 @@ data class GamepadLayout(
 
         private fun platformer(): GamepadLayout =
             GamepadLayout(
-                "Platformer",
+                PLATFORMER,
                 listOf(
                     Control(
                         "dpad",
@@ -413,7 +420,7 @@ data class GamepadLayout(
 
         private fun racing(): GamepadLayout =
             GamepadLayout(
-                "Racing",
+                RACING,
                 listOf(
                     Control(
                         "accelerate",
@@ -433,7 +440,7 @@ data class GamepadLayout(
 
         private fun shooter(): GamepadLayout =
             GamepadLayout(
-                "Shooter",
+                SHOOTER,
                 listOf(
                     Control(
                         "stick",

@@ -42,7 +42,7 @@ internal sealed class Session(
     WindowsClipboard clipboard,
     Func<bool> shareClipboard,
     Action<string> onMacroAdded,
-    Action<string> onStatus,
+    Action<LaptopStatus> onStatus,
     Func<Session, bool> onAdmitted,
     Action<Session> onEnded) : IDisposable
 {

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_layout_title">Disposition de la manette</string>
+  <string name="gamepad_layout_editing">Modification de %1$s</string>
+  <string name="gamepad_preset_xbox_keys">Xbox (touches)</string>
+  <string name="gamepad_preset_platformer">Plateforme</string>
+  <string name="gamepad_preset_racing">Course</string>
+  <string name="gamepad_preset_shooter">Tir</string>
+  <string name="gamepad_layout_hint">Faites glisser pour déplacer. Appuyez longuement sur une commande pour ouvrir son menu.</string>
+  <string name="gamepad_layout_section">Dispositions</string>
+  <string name="gamepad_description">Manette de jeu pour l\'ordinateur. Fonctionne uniquement au toucher.</string>
+  <string name="gamepad_node_dpad">Croix directionnelle</string>
+  <string name="gamepad_node_stick">Joystick</string>
+  <string name="gamepad_node_button">Bouton</string>
+  <string name="gamepad_size">Taille</string>
+  <string name="dp_value">%1$d dp</string>
+
+  <!-- The two buttons in the editor's options popup; short, because they sit side by side in it. -->
+  <string name="gamepad_add">Ajouter</string>
+  <string name="gamepad_restore">Rétablir %1$s</string>
+  <string name="gamepad_restore_confirm">Rétablir %1$s ? Appuyez à nouveau</string>
+  <string name="gamepad_switch_to">Passer à %1$s</string>
+  <string name="gamepad_switch_to_confirm">Passer à %1$s ? La vôtre est conservée. Appuyez à nouveau</string>
+  <string name="gamepad_layouts">Dispositions</string>
+
+  <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->
+  <string name="gamepad_control_title">%1$s · %2$s</string>
+  <string name="gamepad_bind">Assignation</string>
+  <string name="gamepad_label">Nom</string>
+  <string name="gamepad_delete_control">Supprimer la commande</string>
+  <string name="gamepad_delete_title">Supprimer %1$s ?</string>
+  <string name="gamepad_delete_body">Elle est retirée de cette disposition. Ajouter la remet en place.</string>
+  <string name="gamepad_name_required">Donnez un nom à la disposition</string>
+
+  <!-- Adding a control: the kinds offered, in the order the menu lists them. -->
+  <string name="gamepad_add_control">Ajouter une commande</string>
+  <string name="gamepad_kind_button">Bouton</string>
+  <string name="gamepad_kind_dpad">Croix directionnelle</string>
+  <string name="gamepad_kind_stick">Joystick</string>
+  <string name="gamepad_kind_shoulder">Bouton d\'épaule</string>
+  <string name="gamepad_kind_trigger">Gâchette</string>
+
+  <!--
+    What a control can drive. The controller's own inputs, then a key on the laptop's keyboard.
+    The d-pad binding has no name of its own: gamepad_kind_dpad above is already the same word.
+  -->
+  <string name="gamepad_bind_stick_left">Joystick gauche</string>
+  <string name="gamepad_bind_stick_right">Joystick droit</string>
+  <string name="gamepad_bind_trigger_left">Gâchette gauche</string>
+  <string name="gamepad_bind_trigger_right">Gâchette droite</string>
+  <string name="gamepad_bind_keys">Touche du clavier</string>
+  <string name="gamepad_bind_key_up">Touche pour le haut</string>
+  <string name="gamepad_bind_key_down">Touche pour le bas</string>
+  <string name="gamepad_bind_key_left">Touche pour la gauche</string>
+  <string name="gamepad_bind_key_right">Touche pour la droite</string>
+
+  <!-- Keeping the named layouts themselves. -->
+  <string name="gamepad_save_as">Enregistrer sous</string>
+  <string name="gamepad_rename">Renommer</string>
+  <string name="gamepad_delete_layout">Supprimer la disposition</string>
+  <string name="gamepad_delete_layout_body">%1$s sera supprimée. Les dispositions fournies avec Edgepad restent.</string>
+  <string name="gamepad_delete">Supprimer</string>
+</resources>

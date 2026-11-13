@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">لوحة المفاتيح</string>
+  <string name="keyboard_type_text">كتابة نص</string>
+  <string name="keyboard_type_send">كتابة</string>
+  <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
+  <string name="back_to_surface">عناصر التحكم</string>
+  <string name="macros_title">الماكرو</string>
+  <string name="keyboard_key_on">مضغوط</string>
+  <string name="keyboard_description">لوحة مفاتيح على الشاشة للابتوب</string>
+  <string name="keyboard_size">الحجم</string>
+  <string name="keyboard_size_caption">الأحجام الأكبر تتسع لمفاتيح أكثر، فيصغر كل مفتاح. وتحتاج إلى شاشة أعرض.</string>
+  <string name="keyboard_function_keys">مفاتيح الوظائف</string>
+  <string name="keyboard_with_fn">مع Fn</string>
+  <string name="keyboard_direct">مباشر</string>
+  <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
+  <string name="keyboard_function_keys_caption">«مع Fn»: يؤدي الصف العلوي ما هو مطبوع عليه (السطوع والوسائط والصوت)، ويرسل Fn مع مفتاح F1 إلى F12. وفي تخطيطي 65%% و60%% اللذين لا يضمّان صف F، يكتب صف الأرقام أرقامًا، ويرسل Fn مع رقم F1 إلى F12. «مباشر»: يرسل الصف العلوي F1 إلى F12 ويؤدي Fn مع مفتاح الإجراء المطبوع عليه؛ وفي تخطيطي 65%% و60%% يرسل صف الأرقام F1 إلى F12 ويكتب Fn مع أي رقم هذا الرقم نفسه.</string>
+</resources>

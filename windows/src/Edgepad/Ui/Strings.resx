@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Edgepad's visible text, in English. Strings.<culture>.resx next to this file holds the translations; every key here
+    needs one in each of them, with the same {0} placeholders (the Windows tests enforce both). In a value, & marks the
+    letter Windows uses as the access key, so keep exactly one where English has one. Protocol, log and file names
+    stay English and are not here.
+  -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Network_Notice" xml:space="preserve">
+    <value>Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. Nothing connects without the pairing code typed here. Windows will ask to run Command Prompt once; that adds the Edgepad firewall rule.</value>
+  </data>
+  <data name="Network_ClipboardNotice" xml:space="preserve">
+    <value>Share clipboard: copy on one, paste on the other, text and images. It stays off until you tick it.</value>
+  </data>
+  <data name="Network_WhereItLives" xml:space="preserve">
+    <value>Edgepad runs in the taskbar corner. If you do not see its icon, click ^ and drag it out. To use Bluetooth, pair the phone in Windows Bluetooth settings first, then open Edgepad on the phone.</value>
+  </data>
+  <data name="Menu_StartWithWindows" xml:space="preserve">
+    <value>S&amp;tart with Windows</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>&amp;Macros…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>S&amp;ecurity…</value>
+  </data>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>&amp;Wi-Fi and USB connections</value>
+  </data>
+  <data name="Network_Title" xml:space="preserve">
+    <value>Wi-Fi and USB</value>
+  </data>
+  <data name="Menu_Firewall" xml:space="preserve">
+    <value>Allow through Windows &amp;Firewall…</value>
+  </data>
+  <data name="Menu_BluetoothSettings" xml:space="preserve">
+    <value>Open &amp;Bluetooth settings</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>&amp;Share clipboard</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Copy on one, paste on the other: text and images.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>&amp;Check for updates daily</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Open &amp;log</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>&amp;Update available</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>&amp;Documentation</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>&amp;Quit Edgepad</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} of {1}</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>&amp;Update available: {0}</value>
+  </data>
+  <data name="Balloon_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} is available. Click to open the release page; download it and run it to replace this copy.</value>
+  </data>
+  <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
+    <value>Start with Windows could not be saved, so Edgepad will not start by itself. The log has the reason.</value>
+  </data>
+  <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
+    <value>Share clipboard changed for now, but could not be saved, so the next launch may not remember it.</value>
+  </data>
+  <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
+    <value>Check for updates daily changed for now, but could not be saved, so the next launch may not remember it.</value>
+  </data>
+  <data name="Balloon_NewFile" xml:space="preserve">
+    <value>This version of Edgepad is a new file, so Windows will ask once to let phones reach it.</value>
+  </data>
+  <data name="Balloon_FirewallNotChanged" xml:space="preserve">
+    <value>Windows Firewall was not changed, so phones may not reach this laptop. Allow through Windows Firewall in this menu tries again.</value>
+  </data>
+  <data name="Balloon_MacroAdded" xml:space="preserve">
+    <value>Added {0} from your phone</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} wants to pair. Type the pairing code it shows.</value>
+  </data>
+  <data name="Balloon_DriverMissing" xml:space="preserve">
+    <value>The controller needs the ViGEmBus driver. Click to open the download page.</value>
+  </data>
+  <data name="Balloon_WantsToConnect" xml:space="preserve">
+    <value>{0} wants to connect. Choose Trust or Don't trust.</value>
+  </data>
+  <data name="Phone_Connected" xml:space="preserve">
+    <value>Phone connected</value>
+  </data>
+  <data name="Phone_Disconnected" xml:space="preserve">
+    <value>Phone disconnected</value>
+  </data>
+  <data name="Balloon_ForgotOne" xml:space="preserve">
+    <value>Forgot {0}. Connect again from the phone in about {1} seconds.</value>
+  </data>
+  <data name="Balloon_ForgotAll" xml:space="preserve">
+    <value>Forgot all trusted phones. Connect again from the phone in about {0} seconds.</value>
+  </data>
+  <data name="Dialog_StartWithWindows" xml:space="preserve">
+    <value>Start with Windows</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Not now</value>
+  </data>
+  <data name="Dialog_StartHeading" xml:space="preserve">
+    <value>Start Edgepad when you sign in?</value>
+  </data>
+  <data name="Dialog_StartText" xml:space="preserve">
+    <value>Edgepad then waits in the taskbar corner for your phone, with no window. You can change this later in its menu.</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>Allow</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Turn on</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Dialog_ShareClipboard" xml:space="preserve">
+    <value>Share clipboard</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Let phones find this laptop?</value>
+  </data>
+  <data name="Dialog_NetworkHeading" xml:space="preserve">
+    <value>Turn on Wi-Fi and USB connections?</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>The setting could not be saved, so nothing was changed. The log has the reason.</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Try Forget again once nothing else is using Edgepad's files in {0}. {1} could not be fully forgotten: a file could not be rewritten. It stays trusted on disk, but Edgepad refuses it until Edgepad is restarted, and it will be trusted again from then on unless you forget it again.</value>
+  </data>
+  <data name="Error_ForgetAllTrust" xml:space="preserve">
+    <value>Close whatever is holding the trusted phones' file, then choose Forget all again, or delete it yourself:
+
+{0}
+
+The trusted phones could not be forgotten: their file could not be removed or emptied. No phone can connect while Edgepad stays running, but those phones will be trusted again the next time Edgepad starts.</value>
+  </data>
+  <data name="Error_ForgetAllPin" xml:space="preserve">
+    <value>Choose Forget all again, or delete pin-verified.txt yourself from:
+
+{0}
+
+The phones that entered the PIN could not be forgotten: their list could not be removed. While Edgepad stays running every phone is asked for the PIN on every connection, but those phones will skip it at level 2 again the next time Edgepad starts.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>Choose Forget all again, or delete paired-links.txt yourself from:
+
+{0}
+
+The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will be able to again the next time it starts.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Trust</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Don't trust</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>A paired phone is asking to control this laptop's pointer and keyboard. Trust it only if it is yours. If you do not answer in {0} s, it is not trusted.</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>Trust {0}?</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Trust only</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>PIN once per phone</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>PIN on every connection</value>
+  </data>
+  <data name="Security_Level1Note" xml:space="preserve">
+    <value>A new phone needs your yes here. Nothing else is asked.</value>
+  </data>
+  <data name="Security_Level2Note" xml:space="preserve">
+    <value>The phone also types the PIN, once. It is remembered until the PIN or the level changes.</value>
+  </data>
+  <data name="Security_Level3Note" xml:space="preserve">
+    <value>The phone types the PIN every time it connects.</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Every phone needs your yes here first. Levels 2 and 3 also ask for a six-digit PIN, typed on the phone's screen. Phones are disconnected while this window is open.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Saving a new PIN or level makes phones that entered the PIN once enter it again.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Trusted phones</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>No phone is trusted yet. A phone is asked about the first time it connects.</value>
+  </data>
+  <data name="Security_LevelName" xml:space="preserve">
+    <value>Level {0}, {1}</value>
+  </data>
+  <data name="Security_SetPinButton" xml:space="preserve">
+    <value>Set &amp;PIN…</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>&amp;Forget all…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>&amp;Reset PIN and forget phones…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>&amp;Save</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Forget</value>
+  </data>
+  <data name="Security_ForgetPhoneName" xml:space="preserve">
+    <value>Forget {0}</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>Change PIN…</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>Set PIN…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>A new PIN will be saved.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>A PIN is set.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>No PIN is set.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>The PIN could not be saved, so nothing was changed. The log has the reason.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>The level could not be saved, so the previous level still applies. The log has the reason.</value>
+  </data>
+  <data name="Security_ForgetOneHeading" xml:space="preserve">
+    <value>Forget {0}?</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>{0} ({1}) will have to be trusted here again before it can use this laptop. Phones stay disconnected while you decide.</value>
+  </data>
+  <data name="Security_ForgetAllHeading" xml:space="preserve">
+    <value>Forget all trusted phones?</value>
+  </data>
+  <data name="Security_ForgetAllNamed" xml:space="preserve">
+    <value>{0} will have to be trusted here again before it can use this laptop, the one connected included. Phones stay disconnected while you decide.</value>
+  </data>
+  <data name="Security_ForgetAllEvery" xml:space="preserve">
+    <value>Every phone will have to be trusted here again before it can use this laptop, the one connected included. Phones stay disconnected while you decide.</value>
+  </data>
+  <data name="Security_ResetHeading" xml:space="preserve">
+    <value>Reset the PIN and forget every phone?</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>The PIN is deleted, the level goes back to 1 and every trusted phone is forgotten. Each phone, the one connected included, will have to be trusted here again. A forgotten PIN cannot be recovered, only reset.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Close whatever is holding the file, then choose Reset again, or delete it yourself:
+
+{0}
+
+Nothing was reset: the trusted phones could not be forgotten, so the PIN and the level were left as they were. No phone can connect while Edgepad stays running, but those phones will be trusted again, behind the same PIN, the next time it starts.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Close whatever is holding the file, then choose Reset again, or delete security.txt and pin-verified.txt yourself from:
+
+{0}
+
+The trusted phones were forgotten, but the PIN could not be reset: a settings file could not be removed, so the old PIN and level may still apply. Each phone has to be trusted here again.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>New PIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>New PIN again</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Six digits</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Again</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>&amp;Use this PIN</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>A PIN is exactly six digits.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>The two PINs are not the same.</value>
+  </data>
+  <data name="Macro_Description" xml:space="preserve">
+    <value>Buttons on your phone's macro screen, up to 15. The phone sends a button's number, never a program, so it can only run what you add here. Alt+Up and Alt+Down reorder the buttons.</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>No macros yet</value>
+  </data>
+  <data name="Macro_EmptyDetail" xml:space="preserve">
+    <value>Add an app, a document, a folder or a web address. Each one becomes a button on the phone.</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>Opens</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Arguments</value>
+  </data>
+  <data name="Macro_ArgumentsNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>optional</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>Icon</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Macros</value>
+  </data>
+  <data name="Macro_IconPreview" xml:space="preserve">
+    <value>Icon preview</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>&amp;Add macro</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>&amp;Browse…</value>
+  </data>
+  <data name="Macro_BrowseName" xml:space="preserve">
+    <value>Browse for what this opens</value>
+  </data>
+  <data name="Macro_ChooseIcon" xml:space="preserve">
+    <value>&amp;Choose icon…</value>
+  </data>
+  <data name="Macro_ChooseIconName" xml:space="preserve">
+    <value>Choose icon</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>&amp;Use the program's own</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>&amp;Remove</value>
+  </data>
+  <data name="Macro_ReorderHint" xml:space="preserve">
+    <value>Alt+Up and Alt+Down move the selected macro.</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>New macro</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Add macro</value>
+  </data>
+  <data name="Macro_Full" xml:space="preserve">
+    <value>Macros: {0} of {0}</value>
+  </data>
+  <data name="Macro_NoRoom" xml:space="preserve">
+    <value>A macro was added from your phone while this window was open, and there is no room for it. Remove one here, then save.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>The macros could not be saved to {0}: {1}</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}” has nothing to open. Choose what it opens, or remove it.</value>
+  </data>
+  <data name="Dialog_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Macro_DontSave" xml:space="preserve">
+    <value>Don't save</value>
+  </data>
+  <data name="Macro_SaveHeading" xml:space="preserve">
+    <value>Save changes to macros?</value>
+  </data>
+  <data name="Macro_SaveText" xml:space="preserve">
+    <value>Your changes will be lost if you do not save them.</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Choose what this button opens</value>
+  </data>
+  <data name="Macro_FilterPrograms" xml:space="preserve">
+    <value>Programs and documents (*.*)</value>
+  </data>
+  <data name="Macro_FilterIcons" xml:space="preserve">
+    <value>Icons, programs and pictures (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
+  </data>
+  <data name="Macro_FilterAll" xml:space="preserve">
+    <value>All files (*.*)</value>
+  </data>
+  <data name="Macro_ChoosePicture" xml:space="preserve">
+    <value>Choose the picture for this button</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Type the pairing code shown on the phone:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Pairing code shown on the phone</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Pair a phone</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>Pair {0}?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Pair</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Checking the pairing code</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Closes in {0} s</value>
+  </data>
+  <data name="App_RunningAsAdmin" xml:space="preserve">
+    <value>Edgepad is already running as administrator. Quit it from its tray icon, or run this one as administrator too.</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad is already running. Find it in the taskbar corner.</value>
+  </data>
+  <data name="App_DidNotHandOver" xml:space="preserve">
+    <value>Another Edgepad is already running and did not hand over. Quit it from its tray icon, then run this one again.</value>
+  </data>
+  <data name="Phone_NoneConnected" xml:space="preserve">
+    <value>No phone connected</value>
+  </data>
+  <data name="Badge_Connected" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="Badge_Problem" xml:space="preserve">
+    <value>Problem</value>
+  </data>
+  <data name="Badge_Waiting" xml:space="preserve">
+    <value>Waiting</value>
+  </data>
+  <data name="Level_Microphone" xml:space="preserve">
+    <value>Microphone</value>
+  </data>
+  <data name="Level_Brightness" xml:space="preserve">
+    <value>Brightness</value>
+  </data>
+  <data name="Phone_Name" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Level_Volume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi and USB: could not listen. See the log.</value>
+  </data>
+  <data name="Network_PhonesMayNotFind" xml:space="preserve">
+    <value>Wi-Fi and USB: phones may not find this laptop.</value>
+  </data>
+</root>

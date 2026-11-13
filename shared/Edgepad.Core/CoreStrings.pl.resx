@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Status_Starting" xml:space="preserve">
+    <value>Uruchamianie…</value>
+  </data>
+  <data name="Status_Waiting" xml:space="preserve">
+    <value>Oczekiwanie na telefon</value>
+  </data>
+  <data name="Status_Connected" xml:space="preserve">
+    <value>Połączono z: {0}</value>
+  </data>
+  <data name="Status_RefusedProtocol" xml:space="preserve">
+    <value>Odrzucono telefon z protokołem {0}; ten laptop używa protokołu {1}</value>
+  </data>
+  <data name="Status_MismatchPhoneOlder" xml:space="preserve">
+    <value>{0}: nie udało się połączyć, bo jego aplikacja Edgepad jest starsza. Zaktualizuj Edgepad na telefonie.</value>
+  </data>
+  <data name="Status_MismatchLaptopOlder" xml:space="preserve">
+    <value>{0}: nie udało się połączyć, bo Edgepad na tym laptopie jest starszy. Zaktualizuj tu Edgepad.</value>
+  </data>
+  <data name="Status_RefusedLockedOut" xml:space="preserve">
+    <value>Odrzucono telefon zablokowany po błędnych kodach PIN</value>
+  </data>
+  <data name="Status_RefusedUntrusted" xml:space="preserve">
+    <value>Odrzucono telefon, któremu laptop nie ufa</value>
+  </data>
+  <data name="Status_RefusedPin" xml:space="preserve">
+    <value>Odrzucono telefon, który nie podał właściwego PIN</value>
+  </data>
+  <data name="Status_BluetoothOff" xml:space="preserve">
+    <value>Bluetooth jest wyłączony</value>
+  </data>
+  <data name="Status_BluetoothRetrying" xml:space="preserve">
+    <value>Bluetooth jest wyłączony lub niedostępny; ponawianie próby</value>
+  </data>
+  <data name="Status_BluetoothUnavailable" xml:space="preserve">
+    <value>Bluetooth jest wyłączony lub niedostępny</value>
+  </data>
+  <data name="Status_Pairing" xml:space="preserve">
+    <value>Parowanie: {0}. Wpisz kod parowania pokazany na telefonie</value>
+  </data>
+  <data name="Status_Paired" xml:space="preserve">
+    <value>Sparowano z: {0}</value>
+  </data>
+  <data name="Status_Asking" xml:space="preserve">
+    <value>Pytanie, czy zaufać: {0}</value>
+  </data>
+  <data name="Status_QuietUntil" xml:space="preserve">
+    <value>Telefony mogą połączyć się ponownie o {0}</value>
+  </data>
+  <data name="Way_Bluetooth" xml:space="preserve">
+    <value>Bluetooth</value>
+  </data>
+  <data name="Way_WifiOrUsb" xml:space="preserve">
+    <value>Wi-Fi lub USB</value>
+  </data>
+  <data name="Pairing_Mismatched" xml:space="preserve">
+    <value>Ten kod parowania nie pasował. Nic nie zostało sparowane.</value>
+  </data>
+  <data name="Pairing_TimedOut" xml:space="preserve">
+    <value>Czas minął. Nic nie zostało sparowane. Zacznij od nowa na telefonie.</value>
+  </data>
+  <data name="Pairing_Warning" xml:space="preserve">
+    <value>Paruj tylko telefon, który należy do Ciebie. Jeśli nie rozpoczynasz właśnie parowania, wybierz „Anuluj”.</value>
+  </data>
+  <data name="Pairing_NotFinished" xml:space="preserve">
+    <value>Parowanie nie zostało zakończone.</value>
+  </data>
+  <data name="Pairing_Matched" xml:space="preserve">
+    <value>Kod parowania się zgadza. Aby zakończyć, stuknij „Tak, sparowano” na urządzeniu: {0}.</value>
+  </data>
+  <data name="Pairing_Paired" xml:space="preserve">
+    <value>Sparowano z: {0}.</value>
+  </data>
+  <data name="Source_From" xml:space="preserve">
+    <value>z {0}, {1}</value>
+  </data>
+  <data name="Source_OnNetwork" xml:space="preserve">
+    <value>w Twojej sieci</value>
+  </data>
+  <data name="Source_OverUsb" xml:space="preserve">
+    <value>przez USB</value>
+  </data>
+  <data name="Source_OverWifi" xml:space="preserve">
+    <value>przez Wi-Fi</value>
+  </data>
+  <data name="LastConnected_Row" xml:space="preserve">
+    <value>{0} · ostatnio połączony: {1}</value>
+  </data>
+  <data name="LastConnected_Unknown" xml:space="preserve">
+    <value>{0} · brak połączeń od tej aktualizacji</value>
+  </data>
+</root>

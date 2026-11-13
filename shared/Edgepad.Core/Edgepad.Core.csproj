@@ -6,6 +6,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Edgepad</RootNamespace>
     <AssemblyName>Edgepad.Core</AssemblyName>
+    <NeutralLanguage>en</NeutralLanguage>
     <IsPackable>false</IsPackable>
     <!-- A laptop app's `dotnet publish -r <rid> -p:PublishSingleFile=true` hands both to this project too, so
          its locked-mode restore needs those runtimes and the single-file analyzer's ILLink package in this lock
@@ -13,6 +14,18 @@
     <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
     <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The words the laptop apps share, in English; CoreStrings.<culture>.resx beside it holds the translations. MSBuild
+         writes the typed accessor (Edgepad.CoreStrings) into obj/ at build, as the Windows project does for its own. -->
+    <EmbeddedResource Update="CoreStrings.resx">
+      <Generator>MSBuild:Compile</Generator>
+      <StronglyTypedFileName>$(IntermediateOutputPath)CoreStrings.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedNamespace>Edgepad</StronglyTypedNamespace>
+      <StronglyTypedClassName>CoreStrings</StronglyTypedClassName>
+    </EmbeddedResource>
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Every type moved here stays internal, as it was in the Windows project. -->

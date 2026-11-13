@@ -59,7 +59,7 @@ object GestureScreen {
                                         open = null
                                         render()
                                     }
-                                list.setPadding(ui.dp(Space.L), 0, 0, 0)
+                                list.setPaddingRelative(ui.dp(Space.L), 0, 0, 0)
                                 add(list)
                             }
                         }

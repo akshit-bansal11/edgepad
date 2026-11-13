@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_edit">Layout bearbeiten</string>
+  <string name="gamepad_mode_waiting">Tastaturmodus · warte darauf, dass der Laptop einen Controller anbietet</string>
+  <string name="gamepad_mode_unanswered">Tastaturmodus · der Laptop hat nicht geantwortet; Edgepad muss evtl. aktualisiert werden</string>
+  <string name="gamepad_mode_no_driver">Tastaturmodus · kein Controllertreiber auf dem Laptop</string>
+  <string name="gamepad_mode_no_driver_windows">Tastaturmodus · installiere ViGEmBus auf dem Laptop, um einen Controller zu nutzen</string>
+  <string name="gamepad_mode_no_driver_mac">Tastaturmodus · auf einem Mac gibt es keinen Controllermodus</string>
+  <string name="gamepad_mode_attach_failed">Tastaturmodus · der Laptop konnte den Controller nicht einbinden</string>
+</resources>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Share > Edgepad (ShareActivity): nothing is sent until Send is tapped. -->
+  <string name="share_title">¿Enviar a %1$s?</string>
+  <string name="share_image">Una imagen</string>
+  <string name="share_send">Enviar</string>
+  <string name="share_sent">Enviado a %1$s</string>
+  <string name="share_send_failed">No se pudo enviar a %1$s. Comprueba la conexión e inténtalo de nuevo.</string>
+  <string name="share_no_laptop">Edgepad no está conectado a ninguna laptop. Conecta una y vuelve a compartir.</string>
+  <string name="share_clipboard_off">Activa Compartir portapapeles en %1$s</string>
+  <string name="share_nothing">No hay nada aquí que Edgepad pueda enviar.</string>
+  <string name="share_text_too_long">El texto es demasiado largo para enviarlo. El límite es 1 MB.</string>
+  <string name="share_image_failed">No se puede leer esa imagen o es demasiado grande para enviarla.</string>
+  <!-- Under every shared text in the confirm, counted on the text as sent (a trailing line break makes one more). -->
+  <plurals name="share_lines">
+    <item quantity="one">%1$d línea.</item>
+    <item quantity="many">%1$d de líneas.</item>
+    <item quantity="other">%1$d líneas.</item>
+  </plurals>
+  <!-- After share_lines when the text is cut for the confirm: everything is still sent. -->
+  <plurals name="share_not_shown">
+    <item quantity="one">%1$d carácter más no se muestra aquí. Enviar lo envía todo.</item>
+    <item quantity="many">%1$d de caracteres más no se muestran aquí. Enviar lo envía todo.</item>
+    <item quantity="other">%1$d caracteres más no se muestran aquí. Enviar lo envía todo.</item>
+  </plurals>
+</resources>
