@@ -382,7 +382,18 @@ class Deck(
         val tag = tile.tag
         if (tag in closing || !isClosable(tag)) return
         closing.add(tag)
-        holder.postDelayed({ closing.remove(tag) }, CLOSE_WAIT_MS)
+        val view = buttons[tag]
+        view?.alpha = LAUNCH_ALPHA
+        view?.stateDescription = ui.string(R.string.macro_closing)
+        holder.postDelayed(
+            {
+                closing.remove(tag)
+                val now = tiles.firstOrNull { it.tag == tag } ?: return@postDelayed
+                view?.alpha = if (now.note == null) 1f else DIMMED_ALPHA
+                view?.stateDescription = now.note
+            },
+            CLOSE_WAIT_MS,
+        )
         onClose(tile)
     }
 
