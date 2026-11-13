@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Network_Notice" xml:space="preserve">
+    <value>Телефоны в той же сети Wi-Fi или подключённые через USB-модем смогут найти этот ноутбук и запросить сопряжение. Без кода сопряжения, введённого здесь, ничего не подключится. Windows один раз попросит запустить командную строку; это добавит правило брандмауэра для Edgepad.</value>
+  </data>
+  <data name="Network_ClipboardNotice" xml:space="preserve">
+    <value>Общий буфер обмена: копируйте на одном устройстве, вставляйте на другом, текст и изображения. Он выключен, пока вы не поставите галочку.</value>
+  </data>
+  <data name="Network_WhereItLives" xml:space="preserve">
+    <value>Edgepad работает в области уведомлений. Если значка не видно, нажмите ^ и перетащите его на панель. Чтобы использовать Bluetooth, сначала сопрягите телефон в настройках Bluetooth в Windows, затем откройте Edgepad на телефоне.</value>
+  </data>
+  <data name="Menu_StartWithWindows" xml:space="preserve">
+    <value>&amp;Автозапуск с Windows</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>&amp;Макросы…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Бе&amp;зопасность…</value>
+  </data>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>&amp;Подключения по Wi-Fi и USB</value>
+  </data>
+  <data name="Network_Title" xml:space="preserve">
+    <value>Wi-Fi и USB</value>
+  </data>
+  <data name="Menu_Firewall" xml:space="preserve">
+    <value>Разрешить в &amp;брандмауэре Windows…</value>
+  </data>
+  <data name="Menu_BluetoothSettings" xml:space="preserve">
+    <value>Открыть &amp;настройки Bluetooth</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>Общий б&amp;уфер обмена</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Копируйте на одном устройстве, вставляйте на другом: текст и изображения.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Проверять &amp;обновления ежедневно</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Открыть &amp;журнал</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>Дос&amp;тупно обновление</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>&amp;Документация</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>&amp;Выйти из Edgepad</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} из {1}</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>Дос&amp;тупно обновление: {0}</value>
+  </data>
+  <data name="Balloon_UpdateAvailable" xml:space="preserve">
+    <value>Доступен Edgepad {0}. Нажмите, чтобы открыть страницу выпуска; скачайте и запустите его, чтобы заменить эту копию.</value>
+  </data>
+  <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
+    <value>Не удалось сохранить параметр «Автозапуск с Windows», поэтому Edgepad не будет запускаться сам. Причина указана в журнале.</value>
+  </data>
+  <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
+    <value>Параметр «Общий буфер обмена» изменён временно, но не сохранён, поэтому при следующем запуске он может не сохраниться.</value>
+  </data>
+  <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
+    <value>Параметр «Проверять обновления ежедневно» изменён временно, но не сохранён, поэтому при следующем запуске он может не сохраниться.</value>
+  </data>
+  <data name="Balloon_NewFile" xml:space="preserve">
+    <value>Эта версия Edgepad — новый файл, поэтому Windows один раз спросит, разрешить ли телефонам доступ к нему.</value>
+  </data>
+  <data name="Balloon_FirewallNotChanged" xml:space="preserve">
+    <value>Брандмауэр Windows не изменён, поэтому телефоны могут не найти этот ноутбук. Пункт «Разрешить в брандмауэре Windows…» в этом меню повторит попытку.</value>
+  </data>
+  <data name="Balloon_MacroAdded" xml:space="preserve">
+    <value>Макрос с телефона добавлен: {0}</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} хочет сопрячься. Введите код сопряжения, который он показывает.</value>
+  </data>
+  <data name="Balloon_DriverMissing" xml:space="preserve">
+    <value>Для контроллера нужен драйвер ViGEmBus. Нажмите, чтобы открыть страницу загрузки.</value>
+  </data>
+  <data name="Balloon_WantsToConnect" xml:space="preserve">
+    <value>{0} хочет подключиться. Выберите «Доверять» или «Не доверять».</value>
+  </data>
+  <data name="Phone_Connected" xml:space="preserve">
+    <value>Телефон подключён</value>
+  </data>
+  <data name="Phone_Disconnected" xml:space="preserve">
+    <value>Телефон отключён</value>
+  </data>
+  <data name="Balloon_ForgotOne" xml:space="preserve">
+    <value>Телефон «{0}» забыт. Подключиться снова с телефона можно через {1} s.</value>
+  </data>
+  <data name="Balloon_ForgotAll" xml:space="preserve">
+    <value>Все доверенные телефоны забыты. Подключиться снова с телефона можно через {0} s.</value>
+  </data>
+  <data name="Dialog_StartWithWindows" xml:space="preserve">
+    <value>Автозапуск с Windows</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Не сейчас</value>
+  </data>
+  <data name="Dialog_StartHeading" xml:space="preserve">
+    <value>Запускать Edgepad при входе в систему?</value>
+  </data>
+  <data name="Dialog_StartText" xml:space="preserve">
+    <value>Тогда Edgepad будет ждать телефон в области уведомлений, без окна. Это можно изменить позже в его меню.</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>Разрешить</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Включить</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Dialog_ShareClipboard" xml:space="preserve">
+    <value>Общий буфер обмена</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Разрешить телефонам находить этот ноутбук?</value>
+  </data>
+  <data name="Dialog_NetworkHeading" xml:space="preserve">
+    <value>Включить подключения по Wi-Fi и USB?</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>Не удалось сохранить параметр, ничего не изменено. Причина указана в журнале.</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Безопасность</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Нажмите «Забыть» ещё раз, когда ничто другое не будет использовать файлы Edgepad в {0}. Телефон «{1}» не удалось забыть полностью: не получилось перезаписать файл. На диске он по-прежнему доверенный, но Edgepad отклоняет его до перезапуска, а после перезапуска снова будет ему доверять, если вы не забудете его ещё раз.</value>
+  </data>
+  <data name="Error_ForgetAllTrust" xml:space="preserve">
+    <value>Закройте всё, что держит файл доверенных телефонов, затем снова выберите «Забыть все» или удалите его сами:
+
+{0}
+
+Доверенные телефоны не удалось забыть: их файл не удалось удалить или очистить. Пока Edgepad запущен, ни один телефон не сможет подключиться, но при следующем запуске Edgepad эти телефоны снова станут доверенными.</value>
+  </data>
+  <data name="Error_ForgetAllPin" xml:space="preserve">
+    <value>Снова выберите «Забыть все» или удалите pin-verified.txt сами из папки:
+
+{0}
+
+Телефоны, которые вводили PIN-код, не удалось забыть: их список не удалось удалить. Пока Edgepad запущен, PIN-код запрашивается у каждого телефона при каждом подключении, но при следующем запуске Edgepad эти телефоны снова будут пропускать его на уровне 2.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>Снова выберите «Забыть все» или удалите paired-links.txt сами из папки:
+
+{0}
+
+Сопряжения по Wi-Fi и USB не удалось забыть: их файл не удалось удалить или очистить. Пока Edgepad запущен, сопряжённые телефоны не смогут подключаться по Wi-Fi или USB, но при следующем запуске смогут снова.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Доверять</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Не доверять</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>Сопряжённый телефон просит разрешения управлять указателем и клавиатурой этого ноутбука. Доверяйте ему, только если он ваш. Если вы не ответите в течение {0} s, телефон останется недоверенным.</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>Доверять телефону «{0}»?</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Только доверие</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>PIN-код один раз для телефона</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>PIN-код при каждом подключении</value>
+  </data>
+  <data name="Security_Level1Note" xml:space="preserve">
+    <value>Новому телефону нужно ваше «да» здесь. Больше ничего не спрашивается.</value>
+  </data>
+  <data name="Security_Level2Note" xml:space="preserve">
+    <value>Телефон также вводит PIN-код, один раз. Он запоминается, пока не изменятся PIN-код или уровень.</value>
+  </data>
+  <data name="Security_Level3Note" xml:space="preserve">
+    <value>Телефон вводит PIN-код при каждом подключении.</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Сначала каждому телефону нужно ваше «да» здесь. На уровнях 2 и 3 дополнительно запрашивается шестизначный PIN-код, который вводится на экране телефона. Пока это окно открыто, телефоны отключены.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>После сохранения нового PIN-кода или уровня телефоны, которые уже вводили PIN-код, должны будут ввести его снова.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Доверенные телефоны</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>Доверенных телефонов пока нет. Телефон спрашивается при первом подключении.</value>
+  </data>
+  <data name="Security_LevelName" xml:space="preserve">
+    <value>Уровень {0}: {1}</value>
+  </data>
+  <data name="Security_SetPinButton" xml:space="preserve">
+    <value>&amp;Задать PIN-код…</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>За&amp;быть все…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>Сб&amp;росить PIN-код и забыть телефоны…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>&amp;Сохранить</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Забыть</value>
+  </data>
+  <data name="Security_ForgetPhoneName" xml:space="preserve">
+    <value>Забыть: {0}</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>Изменить PIN-код…</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>Задать PIN-код…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>Новый PIN-код будет сохранён.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>PIN-код задан.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>PIN-код не задан.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>Не удалось сохранить PIN-код, ничего не изменено. Причина указана в журнале.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>Не удалось сохранить уровень, поэтому действует прежний. Причина указана в журнале.</value>
+  </data>
+  <data name="Security_ForgetOneHeading" xml:space="preserve">
+    <value>Забыть телефон «{0}»?</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>Чтобы телефон «{0}» ({1}) мог пользоваться этим ноутбуком, ему нужно будет снова получить доверие здесь. Пока вы решаете, телефоны остаются отключёнными.</value>
+  </data>
+  <data name="Security_ForgetAllHeading" xml:space="preserve">
+    <value>Забыть все доверенные телефоны?</value>
+  </data>
+  <data name="Security_ForgetAllNamed" xml:space="preserve">
+    <value>Чтобы пользоваться этим ноутбуком, нужно будет снова получить доверие здесь: {0}. Это касается и подключённого телефона. Пока вы решаете, телефоны остаются отключёнными.</value>
+  </data>
+  <data name="Security_ForgetAllEvery" xml:space="preserve">
+    <value>Чтобы пользоваться этим ноутбуком, каждому телефону нужно будет снова получить доверие здесь, включая подключённый. Пока вы решаете, телефоны остаются отключёнными.</value>
+  </data>
+  <data name="Security_ResetHeading" xml:space="preserve">
+    <value>Сбросить PIN-код и забыть все телефоны?</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>PIN-код будет удалён, уровень вернётся к 1, а все доверенные телефоны будут забыты. Каждому телефону, включая подключённый, нужно будет снова получить доверие здесь. Забытый PIN-код восстановить нельзя, его можно только сбросить.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Закройте всё, что держит файл, затем повторите сброс или удалите файл сами:
+
+{0}
+
+Ничего не сброшено: доверенные телефоны не удалось забыть, поэтому PIN-код и уровень остались прежними. Пока Edgepad запущен, ни один телефон не сможет подключиться, но при следующем запуске эти телефоны снова станут доверенными, с тем же PIN-кодом.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Закройте всё, что держит файл, затем повторите сброс или удалите security.txt и pin-verified.txt сами из папки:
+
+{0}
+
+Доверенные телефоны забыты, но PIN-код сбросить не удалось: файл настроек не удалось удалить, поэтому прежний PIN-код и уровень могут продолжать действовать. Каждому телефону нужно снова получить доверие здесь.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>Новый PIN-код</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>Новый PIN-код ещё раз</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Шесть цифр</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Ещё раз</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>&amp;Использовать этот PIN-код</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>PIN-код состоит ровно из шести цифр.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>PIN-коды не совпадают.</value>
+  </data>
+  <data name="Macro_Description" xml:space="preserve">
+    <value>Кнопки на экране макросов вашего телефона, до 15. Телефон отправляет номер кнопки, а не программу, поэтому может запустить только то, что вы добавили здесь. Alt+↑ и Alt+↓ меняют порядок кнопок.</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>Макросов пока нет</value>
+  </data>
+  <data name="Macro_EmptyDetail" xml:space="preserve">
+    <value>Добавьте приложение, документ, папку или веб-адрес. Каждый станет кнопкой на телефоне.</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>Открывает</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Аргументы</value>
+  </data>
+  <data name="Macro_ArgumentsNone" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>необязательно</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>Значок</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Макросы</value>
+  </data>
+  <data name="Macro_IconPreview" xml:space="preserve">
+    <value>Предпросмотр значка</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>&amp;Добавить макрос</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>&amp;Обзор…</value>
+  </data>
+  <data name="Macro_BrowseName" xml:space="preserve">
+    <value>Выбрать, что это открывает</value>
+  </data>
+  <data name="Macro_ChooseIcon" xml:space="preserve">
+    <value>Выбрать &amp;значок…</value>
+  </data>
+  <data name="Macro_ChooseIconName" xml:space="preserve">
+    <value>Выбрать значок</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>Значок про&amp;граммы</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>&amp;Удалить</value>
+  </data>
+  <data name="Macro_ReorderHint" xml:space="preserve">
+    <value>Alt+↑ и Alt+↓ перемещают выбранный макрос.</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Новый макрос</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Добавить макрос</value>
+  </data>
+  <data name="Macro_Full" xml:space="preserve">
+    <value>Макросы: {0} из {0}</value>
+  </data>
+  <data name="Macro_NoRoom" xml:space="preserve">
+    <value>Пока это окно было открыто, с телефона добавили макрос, но для него нет места. Удалите один здесь и сохраните.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Не удалось сохранить макросы в {0}: {1}</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>Макрос «{0}»: нечего открывать. Укажите, что он открывает, или удалите его.</value>
+  </data>
+  <data name="Dialog_Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="Macro_DontSave" xml:space="preserve">
+    <value>Не сохранять</value>
+  </data>
+  <data name="Macro_SaveHeading" xml:space="preserve">
+    <value>Сохранить изменения в макросах?</value>
+  </data>
+  <data name="Macro_SaveText" xml:space="preserve">
+    <value>Если не сохранить, изменения будут потеряны.</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Выберите, что открывает эта кнопка</value>
+  </data>
+  <data name="Macro_FilterPrograms" xml:space="preserve">
+    <value>Программы и документы (*.*)</value>
+  </data>
+  <data name="Macro_FilterIcons" xml:space="preserve">
+    <value>Значки, программы и картинки (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
+  </data>
+  <data name="Macro_FilterAll" xml:space="preserve">
+    <value>Все файлы (*.*)</value>
+  </data>
+  <data name="Macro_ChoosePicture" xml:space="preserve">
+    <value>Выберите картинку для этой кнопки</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Введите код сопряжения, показанный на телефоне:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Код сопряжения, показанный на телефоне</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Сопряжение телефона</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>Сопрячь «{0}»?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Сопрячь</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Проверка кода сопряжения</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Закроется через {0} s</value>
+  </data>
+  <data name="App_RunningAsAdmin" xml:space="preserve">
+    <value>Edgepad уже запущен от имени администратора. Выйдите из него через значок в области уведомлений или запустите и эту копию от имени администратора.</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad уже запущен. Он находится в области уведомлений.</value>
+  </data>
+  <data name="App_DidNotHandOver" xml:space="preserve">
+    <value>Другой экземпляр Edgepad уже запущен и не передал управление. Выйдите из него через значок в области уведомлений и запустите этот снова.</value>
+  </data>
+  <data name="Phone_NoneConnected" xml:space="preserve">
+    <value>Нет подключённого телефона</value>
+  </data>
+  <data name="Badge_Connected" xml:space="preserve">
+    <value>Подключён</value>
+  </data>
+  <data name="Badge_Problem" xml:space="preserve">
+    <value>Проблема</value>
+  </data>
+  <data name="Badge_Waiting" xml:space="preserve">
+    <value>Ожидание</value>
+  </data>
+  <data name="Level_Microphone" xml:space="preserve">
+    <value>Микрофон</value>
+  </data>
+  <data name="Level_Brightness" xml:space="preserve">
+    <value>Яркость</value>
+  </data>
+  <data name="Phone_Name" xml:space="preserve">
+    <value>Телефон</value>
+  </data>
+  <data name="Level_Volume" xml:space="preserve">
+    <value>Громкость</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi и USB: не удалось начать приём подключений. См. журнал.</value>
+  </data>
+  <data name="Network_PhonesMayNotFind" xml:space="preserve">
+    <value>Wi-Fi и USB: телефоны могут не найти этот ноутбук.</value>
+  </data>
+</root>
