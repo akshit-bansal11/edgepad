@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Share > Edgepad (ShareActivity): nothing is sent until Send is tapped. -->
+  <string name="share_title">发送到%1$s？</string>
+  <string name="share_image">一张图片</string>
+  <string name="share_send">发送</string>
+  <string name="share_sent">已发送到%1$s</string>
+  <string name="share_send_failed">无法发送到%1$s。请检查连接后重试。</string>
+  <string name="share_no_laptop">Edgepad 没有连接电脑。请先连接一台，然后再次分享。</string>
+  <string name="share_clipboard_off">请在%1$s上开启“共享剪贴板”</string>
+  <string name="share_nothing">这里没有 Edgepad 可以发送的内容。</string>
+  <string name="share_text_too_long">文字太长，无法发送。上限为 1 MB。</string>
+  <string name="share_image_failed">无法读取这张图片，或图片太大，无法发送。</string>
+  <!-- Under every shared text in the confirm, counted on the text as sent (a trailing line break makes one more). -->
+  <plurals name="share_lines">
+    <item quantity="other">共 %1$d 行。</item>
+  </plurals>
+  <!-- After share_lines when the text is cut for the confirm: everything is still sent. -->
+  <plurals name="share_not_shown">
+    <item quantity="other">还有 %1$d 个字符未在此显示。点“发送”会全部发送。</item>
+  </plurals>
+</resources>

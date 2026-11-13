@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The guide: first run, and Settings › Help › Guide. Every claim here must be true of the app. -->
+  <string name="guide_steps">步骤</string>
+  <string name="guide_page">页面</string>
+  <string name="guide_back">上一步</string>
+  <string name="guide_next">下一步</string>
+  <string name="guide_done">完成</string>
+  <string name="guide_skip">跳过</string>
+  <string name="guide_find_laptop">查找我的电脑</string>
+  <string name="guide_step_description">第 %1$d 页，共 %2$d 页</string>
+
+  <string name="guide_features_kicker">1 · 为什么选 Edgepad</string>
+  <string name="guide_features_title">隔着房间，也能控制你的电脑。</string>
+  <string-array name="guide_features_keys">
+    <item>实时</item>
+    <item>往返时延</item>
+    <item>离线</item>
+    <item>蓝牙</item>
+    <item>更多</item>
+  </string-array>
+  <string-array name="guide_features_values">
+    <item>你的每个动作都即时发出。连接较慢时，等待中的动作会合并，而不是排队。</item>
+    <item>实时测量手机到电脑再返回的时间，并显示在“设备”界面的电脑旁边。</item>
+    <item>无需账号，也不需要联网。手机直接连接电脑。</item>
+    <item>默认使用蓝牙：在电脑的蓝牙设置中配对一次，之后 Edgepad 即可在启动时自动连接。Wi-Fi 和 USB 连接为可选。</item>
+    <item>触感刻度反馈、浅色和深色、竖屏或横屏（键盘和手柄始终为横屏），以及你自己的媒体和手柄布局。</item>
+  </string-array>
+
+  <string name="guide_anatomy_kicker">2 · 组成</string>
+  <string name="guide_anatomy_title">一块屏幕，八个部分。</string>
+  <string-array name="guide_anatomy_keys">
+    <item>触控板</item>
+    <item>边角标尺</item>
+    <item>媒体</item>
+    <item>键盘</item>
+    <item>手柄</item>
+    <item>标注</item>
+    <item>截取</item>
+    <item>宏</item>
+  </string-array>
+  <string-array name="guide_anatomy_values">
+    <item>屏幕的整个中间区域。所有手指手势都从这里开始。</item>
+    <item>嵌在边角里的标尺，也可以拆成每个边角两个：音量、亮度、缩放、进度调节、应用切换、刷新率、滚动、虚拟桌面、浏览器标签页，或“切换电脑”标尺。</item>
+    <item>播放器打开时，显示正在播放的内容，以及上一首、播放和下一首。可在“操控区设置”中移动并调整大小。</item>
+    <item>一块完整的键盘，修饰键可按住使用，也可轻点生效，位于“控制”按钮之后。</item>
+    <item>摇杆、方向键和按钮，有四种预设，也可以自己排布。</item>
+    <item>“控制 › 标注”把手机变成在电脑屏幕上书写的笔，提供六种工具和八种颜色。电脑支持时才会出现。</item>
+    <item>“控制 › 截取”请电脑截取区域截图、全屏截图或录制屏幕。截取区域时，在按钮下方的触控板上拖出范围。电脑支持时才会出现。</item>
+    <item>一组按钮，用来在电脑上打开程序、文件或网址，位于“控制”之后。长按某个按钮并拖动，即可调整顺序；超过十个时，会分到多个页面，左右滑动翻页。</item>
+  </string-array>
+
+  <string name="guide_surface_kicker">3 · 操控区</string>
+  <string name="guide_surface_title">手指一动，电脑照办。</string>
+  <string-array name="guide_surface_keys">
+    <item>单指</item>
+    <item>双指</item>
+    <item>三指和四指</item>
+    <item>边角标尺</item>
+    <item>调整</item>
+  </string-array>
+  <string-array name="guide_surface_values">
+    <item>移动指针。轻点为单击。轻点后按住并移动，即可拖动。</item>
+    <item>轻点为右键单击。滑动为滚动。捏合为缩放。</item>
+    <item>三指左右滑动切换桌面，上滑进入任务视图，下滑显示桌面。四指左右滑动在打开的应用间切换。三指或四指轻点可打开搜索或通知。</item>
+    <item>沿标尺滑动，顺时针调高。轻点标尺可静音、播放、重置缩放或打开任务视图。</item>
+    <item>“操控区设置 › 边角”可为每个标尺选择功能，还能把每个边角拆成两个，分别位于两条边上。“标尺手感”设置灵敏度、大小和触感反馈。“触控板”可重新分配其余手势。</item>
+  </string-array>
+
+  <string name="guide_keyboard_kicker">4 · 键盘</string>
+  <string name="guide_keyboard_title">窝在沙发上也能打字。</string>
+  <string-array name="guide_keyboard_keys">
+    <item>打开</item>
+    <item>输入</item>
+    <item>修饰键</item>
+    <item>关闭</item>
+  </string-array>
+  <string-array name="guide_keyboard_values">
+    <item>点操控区顶部的“控制”图标，再点“键盘”。它以横屏打开。</item>
+    <item>每个按键都直接发送到电脑。顶行执行键帽上印的功能；按住 Fn 发送 F1 到 F12（可在“键盘设置”中更改）。</item>
+    <item>按键时按住 Ctrl、Alt、Shift 或 Fn，也可以轻点其中一个，让它作用于下一个按键。再点一次取消。</item>
+    <item>顶部的返回箭头，或系统的返回手势。</item>
+  </string-array>
+
+  <string name="guide_gamepad_kicker">5 · 手柄</string>
+  <string name="guide_gamepad_title">口袋里的游戏手柄。</string>
+  <string-array name="guide_gamepad_keys">
+    <item>打开</item>
+    <item>预设</item>
+    <item>游玩</item>
+    <item>按你的习惯</item>
+  </string-array>
+  <string-array name="guide_gamepad_values">
+    <item>点操控区顶部的“控制”图标，再点“手柄”。它以横屏打开。</item>
+    <item>Xbox、平台跳跃、竞速和射击，在“手柄设置”中选择，该设置位于手柄界面的齿轮之后。</item>
+    <item>按住并滑动摇杆，轻点按钮。支持多指同时操作。</item>
+    <item>“手柄设置 › 编辑布局”。把控件拖到拇指够得着的地方；长按某个控件可调整其大小。</item>
+  </string-array>
+
+  <string name="guide_connect_kicker">6 · 连接</string>
+  <string name="guide_connect_title">连接你的电脑。</string>
+  <string-array name="guide_connect_keys">
+    <item>在电脑上</item>
+    <item>蓝牙</item>
+    <item>Wi-Fi 或 USB</item>
+    <item>信任</item>
+    <item>剪贴板</item>
+  </string-array>
+  <string-array name="guide_connect_values">
+    <item>安装并打开 Edgepad。它位于任务栏角落、菜单栏或系统托盘中。</item>
+    <item>在这部手机的蓝牙设置中与电脑配对，然后在“设备”中点按它。</item>
+    <item>在电脑的 Edgepad 菜单中开启“Wi-Fi 和 USB 连接”（Mac 上是“Wi-Fi 连接”）。用 USB 时，还要在手机上开启 USB 网络共享。</item>
+    <item>首次连接时，电脑会询问是否信任这部手机：请在电脑上选择“信任”。如果它要求输入 PIN，请在这里输入。</item>
+    <item>自 Android 10 起，只有位于屏幕前台的应用才能读取剪贴板，所以在其他应用中复制的内容，会在你切回 Edgepad 时传到电脑。你也可以用“分享”，再选 Edgepad，立即发送文字或图片。</item>
+  </string-array>
+
+  <!-- Words inside the guide drawings. -->
+  <string name="guide_art_phone">手机</string>
+  <string name="guide_art_laptop">电脑</string>
+  <string name="guide_art_link">蓝牙优先 · 无需账号</string>
+  <string name="guide_art_dials">标尺</string>
+  <string name="guide_art_trackpad">触控板</string>
+  <string name="guide_art_media">媒体</string>
+  <string name="guide_art_keys">按键 · 触控板</string>
+  <string name="guide_art_gestures">手势</string>
+  <string name="guide_art_move">1 · 移动</string>
+  <string name="guide_art_scroll">2 · 滚动</string>
+  <string name="guide_art_swipe">3 · 滑动</string>
+  <string name="guide_art_latch">Ctrl、Alt 和 Shift 可锁定到下一个按键</string>
+  <string name="guide_art_presets">Xbox · 平台跳跃 · 竞速 · 射击</string>
+</resources>

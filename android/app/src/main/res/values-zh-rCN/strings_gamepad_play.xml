@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_edit">编辑布局</string>
+  <string name="gamepad_mode_waiting">键盘模式 · 正在等待电脑提供手柄</string>
+  <string name="gamepad_mode_unanswered">键盘模式 · 这台电脑没有应答，可能需要更新 Edgepad</string>
+  <string name="gamepad_mode_no_driver">键盘模式 · 电脑上没有手柄驱动</string>
+  <string name="gamepad_mode_no_driver_windows">键盘模式 · 请在电脑上安装 ViGEmBus 以使用手柄</string>
+  <string name="gamepad_mode_no_driver_mac">键盘模式 · Mac 没有手柄模式</string>
+  <string name="gamepad_mode_attach_failed">键盘模式 · 电脑无法接入手柄</string>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">键盘</string>
+  <string name="keyboard_type_text">输入文字</string>
+  <string name="keyboard_type_send">输入</string>
+  <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
+  <string name="back_to_surface">控制</string>
+  <string name="macros_title">宏</string>
+  <string name="keyboard_key_on">按下</string>
+  <string name="keyboard_description">电脑用的屏幕键盘</string>
+  <string name="keyboard_size">大小</string>
+  <string name="keyboard_size_caption">尺寸越大，容纳的按键越多，每个键就越小，需要更宽的屏幕。</string>
+  <string name="keyboard_function_keys">功能键</string>
+  <string name="keyboard_with_fn">配合 Fn</string>
+  <string name="keyboard_direct">直接</string>
+  <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
+  <string name="keyboard_function_keys_caption">配合 Fn：顶行执行键帽上印的功能（亮度、媒体、音量），Fn 加某个键发送 F1 到 F12。65%% 和 60%% 布局没有 F 键行，数字行输入数字，Fn 加数字键发送 F1 到 F12。直接：顶行发送 F1 到 F12，Fn 加某个键执行键帽上印的功能；65%% 和 60%% 布局中数字行发送 F1 到 F12，Fn 加数字键输入数字。</string>
+</resources>
