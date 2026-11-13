@@ -19,7 +19,7 @@
     <value>Partager le presse-papiers : copiez sur l'un, collez sur l'autre, texte et images. Cette option reste désactivée tant que vous ne la cochez pas.</value>
   </data>
   <data name="Network_WhereItLives" xml:space="preserve">
-    <value>Edgepad s'exécute dans la zone de notification. Si vous ne voyez pas son icône, cliquez sur ^ et faites-la glisser dehors. Pour utiliser le Bluetooth, associez d'abord le téléphone dans les paramètres Bluetooth de Windows, puis ouvrez Edgepad sur le téléphone.</value>
+    <value>Edgepad s'exécute dans la zone de notification. Si vous ne voyez pas son icône, cliquez sur ^ et faites-la glisser vers la barre des tâches. Pour utiliser le Bluetooth, associez d'abord le téléphone dans les paramètres Bluetooth de Windows, puis ouvrez Edgepad sur le téléphone.</value>
   </data>
   <data name="Menu_StartWithWindows" xml:space="preserve">
     <value>Démar&amp;rer avec Windows</value>
@@ -73,22 +73,22 @@
     <value>Edgepad {0} est disponible. Cliquez pour ouvrir la page de la version ; téléchargez-la et exécutez-la pour remplacer cette copie.</value>
   </data>
   <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
-    <value>Démarrer avec Windows n'a pas pu être enregistré, donc Edgepad ne démarrera pas tout seul. Le journal en donne la raison.</value>
+    <value>L'option « Démarrer avec Windows » n'a pas pu être enregistrée, donc Edgepad ne démarrera pas tout seul. Le journal en donne la raison.</value>
   </data>
   <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
-    <value>Partager le presse-papiers a changé pour l'instant, mais n'a pas pu être enregistré, donc le prochain lancement ne s'en souviendra peut-être pas.</value>
+    <value>L'option « Partager le presse-papiers » a changé pour l'instant, mais n'a pas pu être enregistrée, donc le prochain lancement ne s'en souviendra peut-être pas.</value>
   </data>
   <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
-    <value>Rechercher les mises à jour chaque jour a changé pour l'instant, mais n'a pas pu être enregistré, donc le prochain lancement ne s'en souviendra peut-être pas.</value>
+    <value>L'option « Rechercher les mises à jour chaque jour » a changé pour l'instant, mais n'a pas pu être enregistrée, donc le prochain lancement ne s'en souviendra peut-être pas.</value>
   </data>
   <data name="Balloon_NewFile" xml:space="preserve">
     <value>Cette version d'Edgepad est un nouveau fichier, donc Windows demandera une fois d'autoriser l'accès des téléphones.</value>
   </data>
   <data name="Balloon_FirewallNotChanged" xml:space="preserve">
-    <value>Le pare-feu Windows n'a pas été modifié, donc les téléphones risquent de ne pas joindre cet ordinateur. Autoriser dans le pare-feu Windows, dans ce menu, réessaie.</value>
+    <value>Le pare-feu Windows n'a pas été modifié, donc les téléphones risquent de ne pas joindre cet ordinateur. Pour réessayer, choisissez « Autoriser dans le pare-feu Windows » dans ce menu.</value>
   </data>
   <data name="Balloon_MacroAdded" xml:space="preserve">
-    <value>{0} ajouté depuis votre téléphone</value>
+    <value>Ajouté depuis votre téléphone : {0}</value>
   </data>
   <data name="Balloon_WantsToPair" xml:space="preserve">
     <value>{0} veut s'associer. Saisissez le code d'association qu'il affiche.</value>
@@ -106,7 +106,7 @@
     <value>Téléphone déconnecté</value>
   </data>
   <data name="Balloon_ForgotOne" xml:space="preserve">
-    <value>{0} oublié. Reconnectez-vous depuis le téléphone dans environ {1} secondes.</value>
+    <value>Téléphone oublié : {0}. Reconnectez-vous depuis le téléphone dans environ {1} secondes.</value>
   </data>
   <data name="Balloon_ForgotAll" xml:space="preserve">
     <value>Tous les téléphones approuvés ont été oubliés. Reconnectez-vous depuis le téléphone dans environ {0} secondes.</value>
@@ -148,7 +148,7 @@
     <value>Sécurité</value>
   </data>
   <data name="Error_ForgetOne" xml:space="preserve">
-    <value>Réessayez Oublier quand plus rien n'utilise les fichiers d'Edgepad dans {0}. {1} n'a pas pu être entièrement oublié : un fichier n'a pas pu être réécrit. Il reste approuvé sur le disque, mais Edgepad le refuse jusqu'à son redémarrage, après quoi il sera de nouveau approuvé, sauf si vous l'oubliez à nouveau.</value>
+    <value>Réessayez avec Oublier quand plus rien n'utilise les fichiers d'Edgepad dans {0}. Impossible d'oublier complètement {1} : un fichier n'a pas pu être réécrit. Ce téléphone reste approuvé sur le disque, mais Edgepad le refuse jusqu'à son redémarrage, après quoi il sera de nouveau approuvé, sauf si vous l'oubliez à nouveau.</value>
   </data>
   <data name="Error_ForgetAllTrust" xml:space="preserve">
     <value>Fermez ce qui retient le fichier des téléphones approuvés, puis choisissez à nouveau Oublier tout, ou supprimez-le vous-même :

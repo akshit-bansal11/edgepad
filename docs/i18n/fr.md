@@ -21,7 +21,7 @@ Android `values-fr`, Windows culture `fr`. One French for France and Canada: no 
 | Edgepad, Bluetooth, Wi-Fi, USB, Windows, Android, Mac | unchanged |
 | laptop | ordinateur (never "portable": in France that means a mobile phone) |
 | phone | téléphone |
-| surface / control surface | écran principal ("Écran de commande de l'ordinateur" in accessibility descriptions); "Surface settings" = Réglages de l'écran principal |
+| surface / control surface | écran principal ("Écran de commande de l'ordinateur" in accessibility descriptions); "Surface settings" = Paramètres de l'écran principal |
 | dial / edge ruler / ruler | règle (one word for both); "Corner dials" = Règles d'angle |
 | corner, split corners | coin, Coins doubles |
 | edge | bord (bord gauche / supérieur / droit / inférieur) |
@@ -45,7 +45,7 @@ Android `values-fr`, Windows culture `fr`. One French for France and Canada: no 
 | keyboard | Clavier |
 | function keys, With Fn, Direct | Touches de fonction, Avec Fn, Direct |
 | gamepad | Manette |
-| gamepad presets | Xbox / Plateforme / Course / Tir | `gamepad_preset_*`; the guide uses the same words | Xbox keys preset (separate from Xbox): Xbox (touches).
+| gamepad presets | Xbox / Plateforme / Course / Tir; the Xbox keys preset (separate from Xbox) is Xbox (touches). Keys `gamepad_preset_*`; the guide uses the same words. |
 | layout | disposition; preset = modèle |
 | binding | Assignation |
 | D-pad, stick, button, shoulder, trigger | croix directionnelle, joystick, bouton, bouton d'épaule, gâchette |
@@ -72,7 +72,7 @@ Android `values-fr`, Windows culture `fr`. One French for France and Canada: no 
 | stay connected | Rester connecté en arrière-plan |
 | handshake | échange initial |
 | link / connection | connexion |
-| Nearby devices (permission) | Appareils à proximité (Android's label) |
+| Nearby devices (permission) | Appareils à proximité (Android's label), quoted in running text: l'autorisation « Appareils à proximité » |
 | USB tethering | Partage de connexion par USB (Android's label) |
 | haptic feedback | Retour haptique |
 | appearance / Look | Apparence / Aspect |
@@ -86,10 +86,12 @@ Android `values-fr`, Windows culture `fr`. One French for France and Canada: no 
 | update / release notes / release page | mise à jour / Notes de version / Page de la version |
 | protocol | protocole |
 | round trip | Temps de réponse |
+| settings | Paramètres (Android and Windows both say so) |
+| dial feel | Comportement des règles |
 
 ## Windows and shared core
 
-- Windows' own words: "paramètres" (Windows Settings: "paramètres Bluetooth"), "zone de notification", "pare-feu Windows", "journal" (log). Android keeps its own "réglages".
+- Windows' own words: "paramètres" (Windows Settings: "paramètres Bluetooth"), "zone de notification", "pare-feu Windows", "journal" (log). Android says the same: "Paramètres", not "Réglages".
 - Dialog_Trust / Dialog_DontTrust: Approuver / Refuser. The Android guide and error text quote "Approuver".
 - Tray menu: Macros…, Sécurité…, Connexions Wi-Fi et USB (quoted verbatim by the Android guide), Partager le presse-papiers, Documentation.
 - Access keys (unique per menu): tray D(Démar**r**er)=R, M, S, W, P, F, B, J, N, O, D, Q; Security S/P/O/R; Macros A/P/C/U/S/E.

@@ -6,7 +6,7 @@
   <string name="gamepad_preset_platformer">Plateforme</string>
   <string name="gamepad_preset_racing">Course</string>
   <string name="gamepad_preset_shooter">Tir</string>
-  <string name="gamepad_layout_hint">Faites glisser pour déplacer. Appuyez longuement sur une commande pour son menu.</string>
+  <string name="gamepad_layout_hint">Faites glisser pour déplacer. Appuyez longuement sur une commande pour ouvrir son menu.</string>
   <string name="gamepad_layout_section">Dispositions</string>
   <string name="gamepad_description">Manette de jeu pour l\'ordinateur. Fonctionne uniquement au toucher.</string>
   <string name="gamepad_node_dpad">Croix directionnelle</string>

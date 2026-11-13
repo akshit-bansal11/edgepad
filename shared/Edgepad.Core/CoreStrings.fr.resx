@@ -22,7 +22,7 @@
     <value>Connecté à {0}</value>
   </data>
   <data name="Status_RefusedProtocol" xml:space="preserve">
-    <value>Téléphone refusé : protocole {0}, alors que cet ordinateur est en {1}</value>
+    <value>Téléphone refusé : protocole {0}, alors que cet ordinateur utilise le protocole {1}</value>
   </data>
   <data name="Status_MismatchPhoneOlder" xml:space="preserve">
     <value>{0} n'a pas pu se connecter : son appli Edgepad est plus ancienne. Mettez Edgepad à jour sur le téléphone.</value>
