@@ -11,11 +11,13 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.accessibility.AccessibilityNodeProvider
 import android.widget.LinearLayout
+import me.akshitbansal.edgepad.FIT_FLOOR
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.drawFitted
+import me.akshitbansal.edgepad.fitText
 import me.akshitbansal.edgepad.gamepad.Binding
 import me.akshitbansal.edgepad.gamepad.ControlGeometry
 import me.akshitbansal.edgepad.gamepad.ControlKind
@@ -326,7 +328,15 @@ class GamepadScreen(
             canvas: Canvas,
             line: String,
         ) {
-            val halfWidth = pillText.measureText(line) / 2f + PILL_SIDE_DP * density
+            val normal = pillText.textSize
+            val room = width - 2 * (Space.L + PILL_SIDE_DP) * density
+            val fitted =
+                fitText(line, room, normal, FIT_FLOOR) { s, size ->
+                    pillText.textSize = size
+                    pillText.measureText(s)
+                }
+            pillText.textSize = fitted.size
+            val halfWidth = pillText.measureText(fitted.text) / 2f + PILL_SIDE_DP * density
             val halfHeight = pillText.textSize * PILL_LEADING / 2f + PILL_TOP_DP * density
             val cx = width / 2f
             val cy = height / 2f
@@ -338,7 +348,8 @@ class GamepadScreen(
                 pillBox.offset(0f, -drop)
             }
             canvas.drawRoundRect(pillBox, halfHeight, halfHeight, pillFill)
-            canvas.drawText(line, cx, cy + pillText.textSize * Type.CAP_CENTRE, pillText)
+            canvas.drawText(fitted.text, cx, cy + pillText.textSize * Type.CAP_CENTRE, pillText)
+            pillText.textSize = normal
         }
 
         /** Inside the drawn pill, with the room a thumb needs around a pill this thin. */

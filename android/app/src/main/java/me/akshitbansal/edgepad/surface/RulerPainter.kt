@@ -6,9 +6,11 @@ import android.graphics.drawable.Drawable
 import android.text.TextPaint
 import android.util.DisplayMetrics
 import android.util.TypedValue
+import me.akshitbansal.edgepad.FIT_FLOOR
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.drawFitted
+import me.akshitbansal.edgepad.fitText
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -150,7 +152,7 @@ class RulerPainter(
         val top = ay - block / 2
         labelPaint.textSize = labelSize
         labelPaint.color = dim
-        labelPaint.drawFitted(canvas, label, ax, top + labelSize * BASELINE, dp(LABEL_ROOM_DP))
+        labelPaint.drawFitted(canvas, label, ax, top + labelSize * BASELINE, 2 * minOf(ax, perimeter.width - ax))
         if (number.isNotEmpty()) {
             valuePaint.textSize = valueSize
             valuePaint.color = if (armed) accent else ink
@@ -162,7 +164,14 @@ class RulerPainter(
             subPaint.textSize = subSize
             subPaint.color = dim
             val icon = if (subIcon != null) subSize + dp(SUB_ICON_GAP_DP) else 0f
-            val left = ax - (icon + subPaint.measureText(sub)) / 2
+            val room = 2 * minOf(ax, perimeter.width - ax) - icon
+            val fitted =
+                fitText(sub, room, subSize, FIT_FLOOR) { s, size ->
+                    subPaint.textSize = size
+                    subPaint.measureText(s)
+                }
+            subPaint.textSize = fitted.size
+            val left = ax - (icon + subPaint.measureText(fitted.text)) / 2
             if (subIcon != null) {
                 val l = left.roundToInt()
                 val t = y.roundToInt()
@@ -170,7 +179,7 @@ class RulerPainter(
                 subIcon.setBounds(l, t, l + side, t + side)
                 subIcon.draw(canvas)
             }
-            canvas.drawText(sub, left + icon, y + subSize * BASELINE, subPaint)
+            canvas.drawText(fitted.text, left + icon, y + subSize * BASELINE, subPaint)
         }
     }
 
@@ -308,9 +317,6 @@ class RulerPainter(
         const val SPLIT_WIDE_EMS = 3.2f
         const val SPLIT_MATCH_PX = 0.5f
         const val LABEL_SP = 11f
-
-        /** The room a corner dial's short name has, so a long translation shrinks to fit rather than run over. */
-        const val LABEL_ROOM_DP = 72f
 
         /** The one place 2.0 spaces letters: a three-letter abbreviation in capitals reads better opened up. */
         const val LABEL_TRACKING = 0.06f

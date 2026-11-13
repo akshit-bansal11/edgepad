@@ -27,6 +27,7 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.drawFitted
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.Output
 import me.akshitbansal.edgepad.link.OutputName
@@ -806,7 +807,10 @@ class ControlSurface(
 
     private fun drawHints(canvas: Canvas) {
         val y = hintTop()
-        hintLines.forEachIndexed { i, line -> canvas.drawText(line, width / 2f, y + i * dp(HINT_GAP_DP), hintPaint) }
+        val room = width - 2 * dp(Space.L)
+        hintLines.forEachIndexed { i, line ->
+            hintPaint.drawFitted(canvas, line, width / 2f, y + i * dp(HINT_GAP_DP), room)
+        }
     }
 
     /**
