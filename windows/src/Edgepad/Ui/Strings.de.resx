@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Network_Notice" xml:space="preserve">
+    <value>Handys im selben WLAN oder per USB-Tethering können diesen Laptop finden und die Kopplung anfragen. Ohne den hier eingegebenen Kopplungscode verbindet sich nichts. Windows fragt einmal, ob die Eingabeaufforderung ausgeführt werden darf; dabei wird die Firewall-Regel für Edgepad angelegt.</value>
+  </data>
+  <data name="Network_ClipboardNotice" xml:space="preserve">
+    <value>Zwischenablage teilen: Auf dem einen Gerät kopieren, auf dem anderen einfügen, Text und Bilder. Bleibt aus, bis du es ankreuzt.</value>
+  </data>
+  <data name="Network_WhereItLives" xml:space="preserve">
+    <value>Edgepad läuft im Infobereich der Taskleiste. Siehst du das Symbol nicht, klicke auf ^ und ziehe es heraus. Für Bluetooth koppelst du das Handy zuerst in den Bluetooth-Einstellungen von Windows und öffnest dann Edgepad auf dem Handy.</value>
+  </data>
+  <data name="Menu_StartWithWindows" xml:space="preserve">
+    <value>Mit &amp;Windows starten</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>&amp;Makros…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Si&amp;cherheit…</value>
+  </data>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>WLAN- und USB-&amp;Verbindungen</value>
+  </data>
+  <data name="Network_Title" xml:space="preserve">
+    <value>WLAN und USB</value>
+  </data>
+  <data name="Menu_Firewall" xml:space="preserve">
+    <value>In der Windows-&amp;Firewall zulassen…</value>
+  </data>
+  <data name="Menu_BluetoothSettings" xml:space="preserve">
+    <value>Bluetooth-&amp;Einstellungen öffnen</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>&amp;Zwischenablage teilen</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Auf dem einen Gerät kopieren, auf dem anderen einfügen: Text und Bilder.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Täglich nach Updates &amp;suchen</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>&amp;Logdatei öffnen</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>&amp;Update verfügbar</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>&amp;Dokumentation</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepad &amp;beenden</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} von {1}</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>&amp;Update verfügbar: {0}</value>
+  </data>
+  <data name="Balloon_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} ist verfügbar. Klicke, um die Release-Seite zu öffnen; lade es herunter und starte es, um diese Kopie zu ersetzen.</value>
+  </data>
+  <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
+    <value>„Mit Windows starten“ konnte nicht gespeichert werden, Edgepad startet also nicht von selbst. Den Grund nennt das Protokoll.</value>
+  </data>
+  <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
+    <value>„Zwischenablage teilen“ wurde vorerst geändert, konnte aber nicht gespeichert werden; beim nächsten Start gilt es evtl. nicht mehr.</value>
+  </data>
+  <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
+    <value>„Täglich nach Updates suchen“ wurde vorerst geändert, konnte aber nicht gespeichert werden; beim nächsten Start gilt es evtl. nicht mehr.</value>
+  </data>
+  <data name="Balloon_NewFile" xml:space="preserve">
+    <value>Diese Version von Edgepad ist eine neue Datei, deshalb fragt Windows einmal, ob Handys sie erreichen dürfen.</value>
+  </data>
+  <data name="Balloon_FirewallNotChanged" xml:space="preserve">
+    <value>Die Windows-Firewall wurde nicht geändert, deshalb erreichen Handys diesen Laptop evtl. nicht. „In der Windows-Firewall zulassen“ in diesem Menü versucht es erneut.</value>
+  </data>
+  <data name="Balloon_MacroAdded" xml:space="preserve">
+    <value>{0} von deinem Handy hinzugefügt</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} möchte koppeln. Gib den Kopplungscode ein, der angezeigt wird.</value>
+  </data>
+  <data name="Balloon_DriverMissing" xml:space="preserve">
+    <value>Für den Controller wird der ViGEmBus-Treiber benötigt. Klicke, um die Downloadseite zu öffnen.</value>
+  </data>
+  <data name="Balloon_WantsToConnect" xml:space="preserve">
+    <value>{0} möchte sich verbinden. Wähle „Vertrauen“ oder „Nicht vertrauen“.</value>
+  </data>
+  <data name="Phone_Connected" xml:space="preserve">
+    <value>Handy verbunden</value>
+  </data>
+  <data name="Phone_Disconnected" xml:space="preserve">
+    <value>Handy getrennt</value>
+  </data>
+  <data name="Balloon_ForgotOne" xml:space="preserve">
+    <value>{0} vergessen. Verbinde dich in etwa {1} Sekunden erneut vom Handy aus.</value>
+  </data>
+  <data name="Balloon_ForgotAll" xml:space="preserve">
+    <value>Alle vertrauten Handys vergessen. Verbinde dich in etwa {0} Sekunden erneut vom Handy aus.</value>
+  </data>
+  <data name="Dialog_StartWithWindows" xml:space="preserve">
+    <value>Mit Windows starten</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Nicht jetzt</value>
+  </data>
+  <data name="Dialog_StartHeading" xml:space="preserve">
+    <value>Edgepad bei der Anmeldung starten?</value>
+  </data>
+  <data name="Dialog_StartText" xml:space="preserve">
+    <value>Edgepad wartet dann ohne Fenster im Infobereich der Taskleiste auf dein Handy. Du kannst das später in seinem Menü ändern.</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>Zulassen</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Einschalten</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Dialog_ShareClipboard" xml:space="preserve">
+    <value>Zwischenablage teilen</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Handys diesen Laptop finden lassen?</value>
+  </data>
+  <data name="Dialog_NetworkHeading" xml:space="preserve">
+    <value>WLAN- und USB-Verbindungen einschalten?</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>Die Einstellung konnte nicht gespeichert werden, deshalb wurde nichts geändert. Den Grund nennt das Protokoll.</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Sicherheit</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Versuche „Vergessen“ erneut, sobald nichts anderes mehr die Dateien von Edgepad in {0} verwendet. {1} konnte nicht vollständig vergessen werden: Eine Datei konnte nicht neu geschrieben werden. Das Handy bleibt auf dem Datenträger vertraut, aber Edgepad lehnt es ab, bis Edgepad neu gestartet wird; danach wird ihm wieder vertraut, sofern du es nicht erneut vergisst.</value>
+  </data>
+  <data name="Error_ForgetAllTrust" xml:space="preserve">
+    <value>Schließe alles, was die Datei der vertrauten Handys festhält, und wähle dann erneut „Alle vergessen“, oder lösche sie selbst:
+
+{0}
+
+Die vertrauten Handys konnten nicht vergessen werden: Ihre Datei konnte nicht entfernt oder geleert werden. Solange Edgepad läuft, kann sich kein Handy verbinden, aber beim nächsten Start von Edgepad wird diesen Handys wieder vertraut.</value>
+  </data>
+  <data name="Error_ForgetAllPin" xml:space="preserve">
+    <value>Wähle erneut „Alle vergessen“, oder lösche pin-verified.txt selbst aus:
+
+{0}
+
+Die Handys, die die PIN eingegeben haben, konnten nicht vergessen werden: Ihre Liste konnte nicht entfernt werden. Solange Edgepad läuft, wird jedes Handy bei jeder Verbindung nach der PIN gefragt, aber beim nächsten Start von Edgepad überspringen diese Handys sie bei Stufe 2 wieder.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>Wähle erneut „Alle vergessen“, oder lösche paired-links.txt selbst aus:
+
+{0}
+
+Die WLAN- und USB-Kopplungen konnten nicht vergessen werden: Ihre Datei konnte nicht entfernt oder geleert werden. Gekoppelte Handys können sich solange nicht per WLAN oder USB neu verbinden, wie Edgepad läuft, beim nächsten Start aber wieder.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Vertrauen</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Nicht vertrauen</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>Ein gekoppeltes Handy möchte Mauszeiger und Tastatur dieses Laptops steuern. Vertraue ihm nur, wenn es dir gehört. Antwortest du nicht innerhalb von {0} s, wird ihm nicht vertraut.</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>{0} vertrauen?</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Nur Vertrauen</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>PIN einmal pro Handy</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>PIN bei jeder Verbindung</value>
+  </data>
+  <data name="Security_Level1Note" xml:space="preserve">
+    <value>Ein neues Handy braucht dein Ja hier. Mehr wird nicht abgefragt.</value>
+  </data>
+  <data name="Security_Level2Note" xml:space="preserve">
+    <value>Das Handy gibt zusätzlich einmal die PIN ein. Sie wird gemerkt, bis sich PIN oder Stufe ändern.</value>
+  </data>
+  <data name="Security_Level3Note" xml:space="preserve">
+    <value>Das Handy gibt bei jeder Verbindung die PIN ein.</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Jedes Handy braucht zuerst dein Ja hier. Stufe 2 und 3 verlangen zusätzlich eine sechsstellige PIN, die auf dem Handy eingegeben wird. Solange dieses Fenster offen ist, sind Handys getrennt.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Wenn du eine neue PIN oder Stufe speicherst, müssen Handys, die die PIN schon einmal eingegeben haben, sie erneut eingeben.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Vertraute Handys</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>Noch kein Handy ist vertraut. Ein Handy wird bei der ersten Verbindung gefragt.</value>
+  </data>
+  <data name="Security_LevelName" xml:space="preserve">
+    <value>Stufe {0}, {1}</value>
+  </data>
+  <data name="Security_SetPinButton" xml:space="preserve">
+    <value>&amp;PIN festlegen…</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>Alle &amp;vergessen…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>PIN zurück&amp;setzen und Handys vergessen…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Spei&amp;chern</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Vergessen</value>
+  </data>
+  <data name="Security_ForgetPhoneName" xml:space="preserve">
+    <value>{0} vergessen</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>PIN ändern…</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>PIN festlegen…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>Eine neue PIN wird gespeichert.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>Eine PIN ist festgelegt.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>Keine PIN festgelegt.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>Die PIN konnte nicht gespeichert werden, deshalb wurde nichts geändert. Den Grund nennt das Protokoll.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>Die Stufe konnte nicht gespeichert werden, deshalb gilt weiter die bisherige. Den Grund nennt das Protokoll.</value>
+  </data>
+  <data name="Security_ForgetOneHeading" xml:space="preserve">
+    <value>{0} vergessen?</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>Dem Handy {0} ({1}) muss hier erneut vertraut werden, bevor es diesen Laptop nutzen kann. Handys bleiben getrennt, während du entscheidest.</value>
+  </data>
+  <data name="Security_ForgetAllHeading" xml:space="preserve">
+    <value>Alle vertrauten Handys vergessen?</value>
+  </data>
+  <data name="Security_ForgetAllNamed" xml:space="preserve">
+    <value>Dem Handy {0} muss hier erneut vertraut werden, bevor es diesen Laptop nutzen kann, auch wenn es gerade verbunden ist. Handys bleiben getrennt, während du entscheidest.</value>
+  </data>
+  <data name="Security_ForgetAllEvery" xml:space="preserve">
+    <value>Jedem Handy muss hier erneut vertraut werden, bevor es diesen Laptop nutzen kann, auch dem gerade verbundenen. Handys bleiben getrennt, während du entscheidest.</value>
+  </data>
+  <data name="Security_ResetHeading" xml:space="preserve">
+    <value>PIN zurücksetzen und jedes Handy vergessen?</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>Die PIN wird gelöscht, die Stufe geht zurück auf 1, und alle vertrauten Handys werden vergessen. Jedem Handy, auch dem gerade verbundenen, muss hier erneut vertraut werden. Eine vergessene PIN lässt sich nicht wiederherstellen, nur zurücksetzen.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Schließe alles, was die Datei festhält, und wähle dann erneut „PIN zurücksetzen und Handys vergessen“, oder lösche sie selbst:
+
+{0}
+
+Es wurde nichts zurückgesetzt: Die vertrauten Handys konnten nicht vergessen werden, deshalb blieben PIN und Stufe unverändert. Solange Edgepad läuft, kann sich kein Handy verbinden, aber beim nächsten Start wird diesen Handys wieder vertraut, hinter derselben PIN.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Schließe alles, was die Datei festhält, und wähle dann erneut „PIN zurücksetzen und Handys vergessen“, oder lösche security.txt und pin-verified.txt selbst aus:
+
+{0}
+
+Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt werden: Eine Einstellungsdatei konnte nicht entfernt werden, deshalb gelten die alte PIN und Stufe evtl. weiter. Jedem Handy muss hier erneut vertraut werden.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>Neue PIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>Neue PIN wiederholen</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Sechs Ziffern</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Wiederholen</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>PIN &amp;verwenden</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>Eine PIN besteht aus genau sechs Ziffern.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>Die beiden PINs sind nicht gleich.</value>
+  </data>
+  <data name="Macro_Description" xml:space="preserve">
+    <value>Tasten auf dem Makrobildschirm deines Handys, bis zu 15. Das Handy sendet die Nummer einer Taste, nie ein Programm, und kann so nur ausführen, was du hier hinzufügst. Mit Alt+Auf und Alt+Ab ordnest du die Tasten neu.</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>Noch keine Makros</value>
+  </data>
+  <data name="Macro_EmptyDetail" xml:space="preserve">
+    <value>Füge eine App, ein Dokument, einen Ordner oder eine Webadresse hinzu. Jedes wird zu einer Taste auf dem Handy.</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>Öffnet</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Argumente</value>
+  </data>
+  <data name="Macro_ArgumentsNone" xml:space="preserve">
+    <value>Keine</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>optional</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>Symbol</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Makros</value>
+  </data>
+  <data name="Macro_IconPreview" xml:space="preserve">
+    <value>Symbolvorschau</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>&amp;Makro hinzufügen</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>&amp;Durchsuchen…</value>
+  </data>
+  <data name="Macro_BrowseName" xml:space="preserve">
+    <value>Durchsuchen, was geöffnet wird</value>
+  </data>
+  <data name="Macro_ChooseIcon" xml:space="preserve">
+    <value>&amp;Symbol wählen…</value>
+  </data>
+  <data name="Macro_ChooseIconName" xml:space="preserve">
+    <value>Symbol wählen</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>Symbol des &amp;Programms verwenden</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>&amp;Entfernen</value>
+  </data>
+  <data name="Macro_ReorderHint" xml:space="preserve">
+    <value>Mit Alt+Auf und Alt+Ab verschiebst du das ausgewählte Makro.</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Neues Makro</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Makro hinzufügen</value>
+  </data>
+  <data name="Macro_Full" xml:space="preserve">
+    <value>Makros: {0} von {0}</value>
+  </data>
+  <data name="Macro_NoRoom" xml:space="preserve">
+    <value>Von deinem Handy wurde ein Makro hinzugefügt, während dieses Fenster offen war, und es ist kein Platz dafür. Entferne hier eines und speichere dann.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Die Makros konnten nicht in {0} gespeichert werden: {1}</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>„{0}“ hat nichts zu öffnen. Wähle, was es öffnet, oder entferne es.</value>
+  </data>
+  <data name="Dialog_Save" xml:space="preserve">
+    <value>Speichern</value>
+  </data>
+  <data name="Macro_DontSave" xml:space="preserve">
+    <value>Nicht speichern</value>
+  </data>
+  <data name="Macro_SaveHeading" xml:space="preserve">
+    <value>Änderungen an den Makros speichern?</value>
+  </data>
+  <data name="Macro_SaveText" xml:space="preserve">
+    <value>Deine Änderungen gehen verloren, wenn du sie nicht speicherst.</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Wähle, was diese Taste öffnet</value>
+  </data>
+  <data name="Macro_FilterPrograms" xml:space="preserve">
+    <value>Programme und Dokumente (*.*)</value>
+  </data>
+  <data name="Macro_FilterIcons" xml:space="preserve">
+    <value>Symbole, Programme und Bilder (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
+  </data>
+  <data name="Macro_FilterAll" xml:space="preserve">
+    <value>Alle Dateien (*.*)</value>
+  </data>
+  <data name="Macro_ChoosePicture" xml:space="preserve">
+    <value>Wähle das Bild für diese Taste</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Gib den Kopplungscode ein, der auf dem Handy steht:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Kopplungscode auf dem Handy</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Handy koppeln</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>{0} koppeln?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Koppeln</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Prüfe den Kopplungscode</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Schließt in {0} s</value>
+  </data>
+  <data name="App_RunningAsAdmin" xml:space="preserve">
+    <value>Edgepad läuft bereits als Administrator. Beende es über sein Symbol im Infobereich oder starte dieses ebenfalls als Administrator.</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad läuft bereits. Du findest es im Infobereich der Taskleiste.</value>
+  </data>
+  <data name="App_DidNotHandOver" xml:space="preserve">
+    <value>Ein anderes Edgepad läuft bereits und hat nicht übergeben. Beende es über sein Symbol im Infobereich und starte dieses dann erneut.</value>
+  </data>
+  <data name="Phone_NoneConnected" xml:space="preserve">
+    <value>Kein Handy verbunden</value>
+  </data>
+  <data name="Badge_Connected" xml:space="preserve">
+    <value>Verbunden</value>
+  </data>
+  <data name="Badge_Problem" xml:space="preserve">
+    <value>Problem</value>
+  </data>
+  <data name="Badge_Waiting" xml:space="preserve">
+    <value>Wartet</value>
+  </data>
+  <data name="Level_Microphone" xml:space="preserve">
+    <value>Mikrofon</value>
+  </data>
+  <data name="Level_Brightness" xml:space="preserve">
+    <value>Helligkeit</value>
+  </data>
+  <data name="Phone_Name" xml:space="preserve">
+    <value>Handy</value>
+  </data>
+  <data name="Level_Volume" xml:space="preserve">
+    <value>Lautstärke</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>WLAN und USB: Lauschen nicht möglich. Siehe Protokoll.</value>
+  </data>
+  <data name="Network_PhonesMayNotFind" xml:space="preserve">
+    <value>WLAN und USB: Handys finden diesen Laptop evtl. nicht.</value>
+  </data>
+</root>

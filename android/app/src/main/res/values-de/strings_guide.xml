@@ -23,7 +23,7 @@
     <item>Jede Bewegung geht sofort raus. Bei einer langsamen Verbindung werden wartende Bewegungen zusammengefasst statt aufgereiht.</item>
     <item>Live gemessen vom Handy zum Laptop und zurück und in der Geräteliste neben dem Laptop angezeigt.</item>
     <item>Kein Konto, kein Internet nötig. Das Handy erreicht den Laptop direkt.</item>
-    <item>Standardmäßig Bluetooth: einmal in den Bluetooth-Einstellungen des Laptops koppeln, dann kann Edgepad beim Start verbinden. Wi-Fi- und USB-Verbindungen sind optional.</item>
+    <item>Standardmäßig Bluetooth: einmal in den Bluetooth-Einstellungen des Laptops koppeln, dann kann Edgepad beim Start verbinden. WLAN- und USB-Verbindungen sind optional.</item>
     <item>Haptisches Ticken, hell und dunkel, Hoch- oder Querformat (Tastatur und Gamepad bleiben im Querformat), eigene Layouts für Medien und Gamepad.</item>
   </string-array>
 
@@ -102,14 +102,14 @@
   <string-array name="guide_connect_keys">
     <item>Am Laptop</item>
     <item>Bluetooth</item>
-    <item>Wi-Fi oder USB</item>
+    <item>WLAN oder USB</item>
     <item>Vertrauen</item>
     <item>Zwischenablage</item>
   </string-array>
   <string-array name="guide_connect_values">
     <item>Installiere und öffne Edgepad. Es sitzt im Infobereich der Taskleiste, in der Menüleiste oder im System-Tray.</item>
     <item>Koppel den Laptop in den Bluetooth-Einstellungen dieses Handys und tippe ihn dann unter Geräte an.</item>
-    <item>Schalte im Edgepad-Menü des Laptops „Wi-Fi- und USB-Verbindungen“ ein (auf einem Mac „Wi-Fi-Verbindungen“). Für USB schalte am Handy außerdem USB-Tethering ein.</item>
+    <item>Schalte im Edgepad-Menü des Laptops „WLAN- und USB-Verbindungen“ ein (auf einem Mac „WLAN-Verbindungen“). Für USB schalte am Handy außerdem USB-Tethering ein.</item>
     <item>Beim ersten Mal fragt der Laptop, ob er diesem Handy vertrauen soll: Wähle dort „Vertrauen“. Wird eine PIN verlangt, gib sie hier ein.</item>
     <item>Seit Android 10 darf nur die App im Vordergrund die Zwischenablage lesen. Eine Kopie aus einer anderen App kommt deshalb erst auf dem Laptop an, wenn du zu Edgepad zurückwechselst. Oder nutze Teilen und dann Edgepad, um Text oder ein Bild sofort zu senden.</item>
   </string-array>

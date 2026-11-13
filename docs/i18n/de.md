@@ -11,7 +11,7 @@ Informal "du", in both apps, the same way Android does for settings and hints. I
 - Quotes: „…“ (German low-high). Used for names of buttons, menu items and settings quoted in running text.
 - Percent and units: a no-break-style space is written as a plain space in Android strings: `%1$d %%`, `%1$d dp`, `%1$d Hz`, `%1$d ms`. Decimal comma is the locale's job, not ours.
 - Titles and labels: nouns capitalised, otherwise sentence case ("Einstellungen der Steuerfläche", "Per Adresse hinzufügen").
-- "Wi-Fi" stays as written in English (brief). Compounds use hyphens: "Wi-Fi- und USB-Verbindungen", "USB-Tethering", "Bluetooth-Einstellungen".
+- Wi-Fi is "WLAN", as German Android and Windows write it; Bluetooth and USB stay as they are. Compounds use hyphens: "WLAN- und USB-Verbindungen", "USB-Tethering", "Bluetooth-Einstellungen".
 - Key caps (keyboard): Strg, Alt, Umschalt, Fn, Entf, Einfg, Pos1, Ende, Bild↑, Bild↓, Esc, Eingabe, Rücktaste, Tab, Feststelltaste. Windows logo key keeps Windows' own name.
 - Joiners: `list_separator` ", "; `sentences_joined` "%1$s %2$s"; `battery_spoken` "%1$s %2$s"; `corner_slot` "%1$s · %2$s" (parts are standalone labels: "Oben links · obere Kante").
 - Dial short labels: LAUT, HELL, ZOOM, SPUL, APPS, HZ, SCROLL, SEITE, DESK, TABS, LAPTOP.
@@ -85,7 +85,7 @@ Informal "du", in both apps, the same way Android does for settings and hints. I
 | the tray app | Edgepad im Infobereich der Taskleiste (tray: Infobereich; Mac: Menüleiste) |
 | tray menu | Edgepad-Menü |
 | Macros… menu item (Windows) | Makros… |
-| Wi-Fi and USB connections (Windows menu) | Wi-Fi- und USB-Verbindungen |
+| WLAN and USB connections (Windows menu) | WLAN- und USB-Verbindungen |
 | firewall | Firewall |
 | start with Windows | Mit Windows starten |
 | update, release notes, release page, major release | Update/Aktualisieren, Versionshinweise, Release-Seite, Hauptrelease |
@@ -96,5 +96,22 @@ Informal "du", in both apps, the same way Android does for settings and hints. I
 
 - `Dialog_Trust` = "Vertrauen", `Dialog_DontTrust` = "Nicht vertrauen" (the Android guide and `status_accept_on_laptop` quote "Vertrauen").
 - `Menu_Macros` = "Makros…" (quoted in `macros_empty_body`).
-- `Menu_Network` = "Wi-Fi- und USB-Verbindungen" (quoted in several Android strings).
+- `Menu_Network` = "WLAN- und USB-Verbindungen" (quoted in several Android strings).
 - `Common_Forget` = "Vergessen" (matches Android `forget`).
+
+## Windows and shared core
+
+| English | Deutsch |
+|---|---|
+| tray / taskbar corner | Infobereich der Taskleiste |
+| Security (window) | Sicherheit |
+| Level N, name | Stufe N, Name (Nur Vertrauen / PIN einmal pro Handy / PIN bei jeder Verbindung) |
+| Forget all | Alle vergessen |
+| Reset PIN and forget phones | PIN zurücksetzen und Handys vergessen |
+| firewall rule / menu | Windows-Firewall: "In der Windows-Firewall zulassen…" |
+| log | Protokoll in Fließtext, "Logdatei öffnen" im Menü |
+| program / document / icon | Programm / Dokument / Symbol |
+| Pair a phone | Handy koppeln |
+| Yes, paired (Android button, quoted in CoreStrings) | Ja, gekoppelt |
+
+Menu access keys (tray menu): Mit &Windows starten, &Makros…, Si&cherheit…, WLAN- und USB-&Verbindungen, In der Windows-&Firewall zulassen…, Bluetooth-&Einstellungen öffnen, &Zwischenablage teilen, Täglich nach Updates &suchen, &Logdatei öffnen, &Update verfügbar, &Dokumentation, Edgepad &beenden. Security window: &PIN festlegen…, Alle &vergessen…, PIN zurück&setzen…, Spei&chern. Macros window: &Makro hinzufügen, &Durchsuchen…, &Symbol wählen…, Symbol des &Programms verwenden, &Entfernen.
