@@ -63,7 +63,7 @@
   <string name="status_closed_named">لا يوجد اتصال بـ %1$s. %2$s</string>
   <string name="status_accept_on_laptop">في انتظار اللابتوب. اختر «الوثوق» هناك؛ وقد يطلب رقم PIN.</string>
   <string name="link_lost">انقطع الاتصال.</string>
-  <string name="link_refused">أنهى اللابتوب الاتصال قبل أن يبدأ. انظر إلى اللابتوب واختر «الوثوق» إن سأل عن هذا الهاتف. إذا كان هاتف آخر قد استولى على اللابتوب، فأعد المحاولة بعد 30 ثانية. وإن استمر الفشل، فحدّث Edgepad على اللابتوب.</string>
+  <string name="link_refused">أنهى اللابتوب الاتصال قبل أن يبدأ. انظر إلى اللابتوب واختر «الوثوق» إن سأل عن هذا الهاتف. إذا كان هاتف آخر قد تولّى التحكم في اللابتوب، فأعد المحاولة بعد 30 ثانية. وإن استمر الفشل، فحدّث Edgepad على اللابتوب.</string>
   <string name="link_unreachable_bluetooth">لم يقبل اللابتوب الاتصال. تأكد من تشغيل Edgepad عليه ومن تشغيل بلوتوث فيه. وإن استمر الفشل، فأزل الاقتران من هذا الهاتف ومن اللابتوب، ثم أعد الإقران.</string>
   <string name="link_unreachable_network">لم يردّ اللابتوب. تأكد من تشغيل Edgepad عليه ومن تفعيل اتصالات Wi-Fi وUSB في قائمة Edgepad.</string>
   <string name="link_mismatch">إصدار Edgepad على %1$s يختلف عن إصدار هذا التطبيق. ثبّت الاثنين من الإصدار نفسه.</string>
@@ -73,7 +73,7 @@
   <string name="link_no_permission">تم إيقاف إذن «الأجهزة المجاورة».</string>
   <string name="link_no_answer">قبل اللابتوب الاتصال ولم يردّ. تأكد من تشغيل Edgepad هناك، ثم أعد المحاولة.</string>
   <string name="link_not_paired">لم يتعرّف اللابتوب على هذا الهاتف. انقر «إعادة الإقران» في صفّه للإقران برمز جديد.</string>
-  <string name="link_not_this_laptop">ردّ جهاز على أنه هذا اللابتوب لكنه لم يتمكن من إثبات ذلك. تأكد من أن هذا الهاتف على الشبكة الصحيحة.</string>
+  <string name="link_not_this_laptop">ادّعى جهاز أنه هذا اللابتوب لكنه لم يتمكن من إثبات ذلك. تأكد من أن هذا الهاتف على الشبكة الصحيحة.</string>
   <string name="link_pairing_failed">لم يكتمل الإقران: لم يُكتب الرمز على اللابتوب في الوقت المحدد، أو كُتب بشكل غير صحيح. انقر على اللابتوب للمحاولة مجددًا برمز جديد.</string>
   <string name="link_pairing_locked">يقترن اللابتوب بهاتف آخر حاليًا، أو أوقف الإقران مؤقتًا بعد إدخال رموز خاطئة. أعد المحاولة بعد بضع دقائق.</string>
   <!-- The laptop's lock-out runs from 30 s to an hour: under a minute in seconds, else whole minutes rounded up. -->
@@ -304,9 +304,9 @@
     <item quantity="other">%1$d شكل مرسوم</item>
   </plurals>
   <string name="shapes_none">لا شيء بعد</string>
-  <string name="shapes_footnote">اضغط مع الاستمرار على لوحة اللمس إلى أن يصبح الخط مصمتًا (وستشعر أيضًا بنقرة اهتزازية إذا كانت الاستجابة اللمسية مفعّلة)، ثم ارسم دون رفع إصبعك.</string>
+  <string name="shapes_footnote">اضغط مع الاستمرار على لوحة اللمس إلى أن يصبح الخط متصلًا (وستشعر أيضًا بنقرة اهتزازية إذا كانت الاستجابة اللمسية مفعّلة)، ثم ارسم دون رفع إصبعك.</string>
   <string name="shapes_empty_title">لا أشكال بعد</string>
-  <string name="shapes_empty_body">ارسم شكلًا هنا وحدّد ما يشغّله. على لوحة اللمس، اضغط مع الاستمرار إلى أن يصبح الخط مصمتًا، ثم ارسمه دون رفع إصبعك.</string>
+  <string name="shapes_empty_body">ارسم شكلًا هنا وحدّد ما يشغّله. على لوحة اللمس، اضغط مع الاستمرار إلى أن يصبح الخط متصلًا، ثم ارسمه دون رفع إصبعك.</string>
   <string name="shapes_add">رسم شكل</string>
   <string name="shapes_draw_title">ارسم الشكل</string>
   <!-- The target list's back link, which returns to the canvas. -->

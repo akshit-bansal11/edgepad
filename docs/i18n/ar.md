@@ -11,8 +11,8 @@ Modern Standard Arabic as Arabic Android and Windows write it, readable from the
 - Punctuation: Arabic comma "،", semicolon "؛", question mark "؟". Full stop and colon stay "." and ":". Ellipsis "…".
 - Quotes: « » around names of buttons, menu items and settings quoted in running text.
 - Digits: Western (0-9), as the placeholders produce them. Number and unit separated by a plain space ("%1$d dp", "%1$d Hz", "%1$d MB"); percent attached ("%1$d%%"). Units stay Latin (dp, Hz, MB, ms, s).
-- Latin stays: Edgepad, USB, Windows, Android, Mac, GitHub, ViGEmBus, Xbox, preset names (منصات / سباق / تصويب; gamepad_preset_*), Wi-Fi (as Arabic Android and Windows write it), PIN (written "رقم PIN"), Ctrl, Alt, Shift, Fn, Esc, Tab, F1 to F12 (Arabic keyboards print Latin key caps). Bluetooth is "بلوتوث".
-- Bidi: every string starts with an Arabic word (or a digit), never with Latin text, so the paragraph is right to left. Sentences that began with a placeholder or a product name were restructured ("إصدار Edgepad على %1$s…", "لا يستطيع %1$s…", "التطبيق Edgepad…"). `surface_app_time` is reordered to "%2$s من %3$s · %1$s" (times first, app name last). Only `LastConnected_Row` and `LastConnected_Unknown` (CoreStrings) must start with a phone name, so `{0}` is wrapped in U+2068…U+2069 (FSI…PDI) there. No other control characters.
+- Latin stays: Edgepad, USB, Windows, Android, Mac, GitHub, ViGEmBus, Xbox, preset names translated (مفاتيح Xbox / منصات / سباق / تصويب; `gamepad_preset_*`), with "Xbox" last in the phrase because it is Latin, Wi-Fi (as Arabic Android and Windows write it), PIN (written "رقم PIN"), Ctrl, Alt, Shift, Fn, Esc, Tab, F1 to F12 (Arabic keyboards print Latin key caps). Bluetooth is "بلوتوث".
+- Bidi: every string starts with an Arabic word (or a digit), never with Latin text, so the paragraph is right to left. Sentences that began with a placeholder or a product name were restructured ("إصدار Edgepad على %1$s…", "لا يستطيع %1$s…", "التطبيق Edgepad…"). `surface_app_time` is reordered to "%2$s من %3$s · %1$s" (times first, app name last). Only `LastConnected_Row` and `LastConnected_Unknown` (CoreStrings) must start with a phone name, so `{0}` is wrapped in U+2068…U+2069 (FSI…PDI) there. No other control characters. Latin brand names inside a preset or list sit at the end, never first: `gamepad_preset_xbox_keys` is "مفاتيح Xbox" (not "Xbox (مفاتيح)", whose parentheses can mirror), the guide lists "منصات وسباق وتصويب وXbox" and `guide_art_presets` is "منصات · سباق · تصويب · Xbox". Android decides the paragraph direction from the first strong letter, so a leading Latin word would flip the whole line.
 - Path arrows "›" are kept; they are mirrored by the bidi algorithm, so they point left in the Arabic text.
 - Physical sides: يسار / يمين / أعلى / أسفل, never mirrored ("سحب لليسار", "أعلى اليسار", "الحافة اليمنى").
 - Windows access keys: the `&` sits on a Latin letter appended in parentheses at the end ("حفظ (&S)", "الماكرو… (&M)"), the same letter as the English item. The quoted menu name in running text omits the suffix: «الماكرو…», «اتصالات Wi-Fi وUSB».
@@ -51,7 +51,7 @@ Modern Standard Arabic as Arabic Android and Windows write it, readable from the
 | keyboard | لوحة المفاتيح |
 | function keys: With Fn, Direct | مفاتيح الوظائف: مع Fn، مباشر |
 | gamepad | ذراع الألعاب |
-| layout, preset | تخطيط، قالب |
+| layout, preset | تخطيط، قالب (presets: مفاتيح Xbox، منصات، سباق، تصويب) |
 | binding | الربط |
 | D-pad, stick, button, shoulder, trigger | أسهم الاتجاه، عصا، زر، زر الكتف، الزناد |
 | keyboard mode (gamepad) | وضع لوحة المفاتيح |
@@ -64,7 +64,7 @@ Modern Standard Arabic as Arabic Android and Windows write it, readable from the
 | focus (hide dials and media) | إخفاء المقاييس والوسائط |
 | share | مشاركة |
 | share clipboard | مشاركة الحافظة |
-| laptop | لابتوب (the everyday loanword, understood in every region and short); "computer" in `show_laptops_only` is كمبيوتر |
+| laptop | لابتوب. Kept over "الكمبيوتر المحمول" (what Windows settings write): the loanword is understood from the Gulf to Egypt, the Levant and the Maghreb, is a third the length, and takes the dual and plural cleanly ("بلابتوبين آخرين", "أجهزة لابتوب") and fits the 6-letter dial label. One word in both apps. "computer" in `show_laptops_only` is كمبيوتر |
 | phone | الهاتف |
 | pairing | الإقران |
 | pairing code | رمز الإقران |
