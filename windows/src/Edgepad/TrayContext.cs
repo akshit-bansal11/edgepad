@@ -920,14 +920,20 @@ internal sealed class TrayContext : ApplicationContext
 
         // Windows' name for a Bluetooth phone is looked up as it connects and may not be back yet. This is the session's
         // own thread, which is about to block on the owner anyway, so a short wait costs nothing; no name by then, the
-        // address stands in as before.
+        // address stands in as before. The wait is kept (the balloon and the dialog are built from the name, and a
+        // question that renames itself under the owner's eyes is worse), but the header says "asking" at once.
+        SetStatus(LaptopStatus.Asking(phone));
         for (var tries = 0; tries < 10 && phone == address && !ended.IsCancellationRequested; tries++)
         {
             Thread.Sleep(200);
             phone = host.Shown(address);
         }
 
-        SetStatus(LaptopStatus.Asking(phone));
+        if (phone != address)
+        {
+            SetStatus(LaptopStatus.Asking(phone));
+        }
+
         var deadline = Environment.TickCount64 + (long)TrustPromptTimeout.TotalMilliseconds;
         var answer = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         ui.Post(
