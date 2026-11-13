@@ -66,7 +66,7 @@
   <string name="link_unreachable_network">Laptop nie odpowiedział. Sprawdź, czy działa na nim Edgepad i czy w jego menu Edgepad włączone są „Połączenia Wi-Fi i USB”.</string>
   <string name="link_mismatch">Laptop: %1$s. Jego Edgepad i ta aplikacja pochodzą z różnych wydań. Zainstaluj obie części z tego samego wydania.</string>
   <string name="link_mismatch_laptop_older">Laptop: %1$s. Jego Edgepad jest starszy niż ta aplikacja. Zaktualizuj Edgepad na laptopie. Obie części muszą pochodzić z tego samego wydania.</string>
-  <string name="link_mismatch_phone_older">Laptop: %1$s. Ta aplikacja jest starsza niż jego Edgepad. Zaktualizuj ją w ustawieniach systemu › Aktualizacje. Obie części muszą pochodzić z tego samego wydania.</string>
+  <string name="link_mismatch_phone_older">Laptop: %1$s. Ta aplikacja jest starsza niż jego Edgepad. Zaktualizuj ją w „Ustawienia systemu” › „Aktualizacje”. Obie części muszą pochodzić z tego samego wydania.</string>
   <string name="link_unexpected">Laptop odpowiedział czymś innym niż uzgodnienie połączenia Edgepad.</string>
   <string name="link_no_permission">Uprawnienie „Urządzenia w pobliżu” zostało wyłączone.</string>
   <string name="link_no_answer">Laptop przyjął połączenie, ale nigdy nie odpowiedział. Sprawdź, czy działa tam Edgepad, i spróbuj ponownie.</string>

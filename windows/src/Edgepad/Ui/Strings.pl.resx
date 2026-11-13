@@ -151,13 +151,19 @@
     <value>Spróbuj ponownie użyć „Zapomnij”, gdy nic innego nie będzie używać plików Edgepad w {0}. Nie udało się całkowicie zapomnieć telefonu: {1}, bo nie można było przepisać pliku. Nadal jest zaufany na dysku, ale Edgepad go odrzuca do ponownego uruchomienia, a potem znów będzie zaufany, jeśli nie zapomnisz go ponownie.</value>
   </data>
   <data name="Error_ForgetAllTrust" xml:space="preserve">
-    <value>Zamknij to, co blokuje plik zaufanych telefonów, a potem ponownie wybierz „Zapomnij wszystkie” albo usuń go samodzielnie:</value>
+    <value>Zamknij to, co blokuje plik zaufanych telefonów, a potem ponownie wybierz „Zapomnij wszystkie” albo usuń go samodzielnie:
+
+{0}</value>
   </data>
   <data name="Error_ForgetAllPin" xml:space="preserve">
-    <value>Ponownie wybierz „Zapomnij wszystkie” albo samodzielnie usuń plik pin-verified.txt z:</value>
+    <value>Ponownie wybierz „Zapomnij wszystkie” albo samodzielnie usuń plik pin-verified.txt z:
+
+{0}</value>
   </data>
   <data name="Error_ForgetLinks" xml:space="preserve">
-    <value>Ponownie wybierz „Zapomnij wszystkie” albo samodzielnie usuń plik paired-links.txt z:</value>
+    <value>Ponownie wybierz „Zapomnij wszystkie” albo samodzielnie usuń plik paired-links.txt z:
+
+{0}</value>
   </data>
   <data name="Dialog_Trust" xml:space="preserve">
     <value>Zaufaj</value>
@@ -265,10 +271,14 @@
     <value>PIN zostanie usunięty, poziom wróci do 1, a każdy zaufany telefon zostanie zapomniany. Każdemu telefonowi, także połączonemu, trzeba będzie tutaj ponownie zaufać. Zapomnianego PIN nie da się odzyskać, można go tylko zresetować.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>Zamknij to, co blokuje plik, a potem ponownie wybierz „Resetuj PIN i zapomnij telefony” albo usuń go samodzielnie:</value>
+    <value>Zamknij to, co blokuje plik, a potem ponownie wybierz „Resetuj PIN i zapomnij telefony” albo usuń go samodzielnie:
+
+{0}</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>Zamknij to, co blokuje plik, a potem ponownie wybierz „Resetuj PIN i zapomnij telefony” albo samodzielnie usuń security.txt i pin-verified.txt z:</value>
+    <value>Zamknij to, co blokuje plik, a potem ponownie wybierz „Resetuj PIN i zapomnij telefony” albo samodzielnie usuń security.txt i pin-verified.txt z:
+
+{0}</value>
   </data>
   <data name="Pin_Title" xml:space="preserve">
     <value>Nowy PIN</value>

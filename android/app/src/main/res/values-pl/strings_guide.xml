@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>Ikona Sterowania u góry powierzchni, potem Gamepad. Otwiera się poziomo.</item>
-    <item>Xbox, Platformówka, Wyścigi i Strzelanka, wybierane w ustawieniach gamepada, za kołem zębatym na gamepadzie.</item>
+    <item>Xbox, Xbox (klawisze), Platformówka, Wyścigi i Strzelanka, wybierane w ustawieniach gamepada, za kołem zębatym na gamepadzie.</item>
     <item>Przytrzymaj i przesuń gałkę, stukaj przyciski. Działa kilka palców naraz.</item>
     <item>Ustawienia gamepada › Edytuj układ. Przeciągaj elementy tam, gdzie lądują kciuki; przytrzymaj jeden, aby zmienić jego rozmiar.</item>
   </string-array>
@@ -127,5 +127,5 @@
   <string name="guide_art_scroll">2 · Przewijanie</string>
   <string name="guide_art_swipe">3 · Przesunięcie</string>
   <string name="guide_art_latch">Ctrl, Alt i Shift działają na następny klawisz</string>
-  <string name="guide_art_presets">Xbox · Platformówka · Wyścigi · Strzelanka</string>
+  <string name="guide_art_presets">Xbox · Xbox (klawisze) · Platformówka · Wyścigi · Strzelanka</string>
 </resources>

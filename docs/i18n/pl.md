@@ -19,7 +19,7 @@ Where a laptop, phone or app name would need declension, the string is reworded 
 - Dial short labels: GŁOŚ, JASN, ZOOM, UTWÓR, APPS, HZ, PION, POZIOM, PULPIT, KARTY, LAPTOP.
 - Physical edges: lewa, prawa, górna, dolna krawędź; lewo, prawo, góra, dół (never mirrored).
 - Bluetooth, Wi-Fi, USB stay Latin. Android's permission "Nearby devices" is „Urządzenia w pobliżu”; "USB tethering" is "Tethering USB".
-- Gamepad preset names are strings (`gamepad_preset_*`): Xbox, Platformówka, Wyścigi, Strzelanka; the guide uses the same words.
+- Gamepad preset names are strings (`gamepad_preset_*`): Xbox (klawisze; sends keys without a controller driver), Platformówka, Wyścigi, Strzelanka; the guide uses the same words.
 - Windows access keys are Polish letters, unique per menu or window: tray menu U (Uruchamiaj z systemem Windows), M (Makra), Z (Zabezpieczenia), W (Wi-Fi i USB), P (zaporze), B (Bluetooth), S (schowek), A (aktualizacje codziennie), D (dziennik), T (Dostępna aktualizacja), O (Dokumentacja), C (Zakończ). Security window: P (Ustaw PIN), Z (Zapomnij wszystkie), R (Resetuj), S (Zapisz). Macros window: D (Dodaj makro), P (Przeglądaj), I (ikonę), W (własnej ikony), U (Usuń), S (Zapisz).
 - Fonts: Lato covers Polish, so there is no `fonts.xml` in `values-pl`.
 
