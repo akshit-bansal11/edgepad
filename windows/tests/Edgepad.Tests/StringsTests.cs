@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Globalization;
+using System.Resources;
 using System.Text.RegularExpressions;
 using Edgepad.Ui;
 using Xunit;
@@ -7,12 +8,15 @@ using Xunit;
 namespace Edgepad.Tests;
 
 /// <summary>
-/// Every language the app ships has a full set of Strings: the keys the English file has, no more and no fewer, each
-/// with the same {0} placeholders and the same number of access-key ampersands. A string changed in English ships
-/// with all 14 translations in the same change, and this is what holds the translations to it.
+/// Every language the app ships has a full set of Strings, and of the CoreStrings the laptop apps share: the keys the
+/// English file has, no more and no fewer, each with the same {0} placeholders and the same number of access-key
+/// ampersands. A string changed in English ships with all 14 translations in the same change, and this is what holds
+/// the translations to it.
 /// </summary>
 public sealed partial class StringsTests
 {
+    private static readonly ResourceManager[] Files = [Strings.ResourceManager, CoreStrings.ResourceManager];
+
     public static TheoryData<string> Cultures
     {
         get
@@ -28,38 +32,44 @@ public sealed partial class StringsTests
     }
 
     [Fact]
-    public void TheEnglishSetIsNotEmpty() => Assert.NotEmpty(Read(CultureInfo.InvariantCulture));
+    public void TheEnglishSetsAreNotEmpty() => Assert.All(Files, file => Assert.NotEmpty(Read(file, CultureInfo.InvariantCulture)));
 
     [Theory]
     [MemberData(nameof(Cultures))]
     public void EveryCultureHasExactlyTheEnglishKeys(string name)
     {
-        var english = Read(CultureInfo.InvariantCulture);
-        var translated = Read(CultureInfo.GetCultureInfo(name));
+        foreach (var file in Files)
+        {
+            var english = Read(file, CultureInfo.InvariantCulture);
+            var translated = Read(file, CultureInfo.GetCultureInfo(name));
 
-        Assert.Empty(english.Keys.Except(translated.Keys));
-        Assert.Empty(translated.Keys.Except(english.Keys));
+            Assert.Empty(english.Keys.Except(translated.Keys));
+            Assert.Empty(translated.Keys.Except(english.Keys));
+        }
     }
 
     [Theory]
     [MemberData(nameof(Cultures))]
     public void EveryTranslationKeepsThePlaceholdersAndTheAccessKey(string name)
     {
-        var english = Read(CultureInfo.InvariantCulture);
-        var translated = Read(CultureInfo.GetCultureInfo(name));
-
-        foreach (var (key, source) in english)
+        foreach (var file in Files)
         {
-            var value = translated[key];
-            Assert.True(Placeholders(source).SequenceEqual(Placeholders(value)), $"{name}: {key} has different placeholders");
-            Assert.True(source.Count(c => c == '&') == value.Count(c => c == '&'), $"{name}: {key} has a different number of &");
+            var english = Read(file, CultureInfo.InvariantCulture);
+            var translated = Read(file, CultureInfo.GetCultureInfo(name));
+
+            foreach (var (key, source) in english)
+            {
+                var value = translated[key];
+                Assert.True(Placeholders(source).SequenceEqual(Placeholders(value)), $"{name}: {key} has different placeholders");
+                Assert.True(source.Count(c => c == '&') == value.Count(c => c == '&'), $"{name}: {key} has a different number of &");
+            }
         }
     }
 
     /// <summary>The set the culture itself carries, with no fall back to its parent, so a missing file is a failure.</summary>
-    private static Dictionary<string, string> Read(CultureInfo culture)
+    private static Dictionary<string, string> Read(ResourceManager file, CultureInfo culture)
     {
-        var set = Strings.ResourceManager.GetResourceSet(culture, createIfNotExists: true, tryParents: false);
+        var set = file.GetResourceSet(culture, createIfNotExists: true, tryParents: false);
         Assert.NotNull(set);
 
         var all = new Dictionary<string, string>();

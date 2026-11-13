@@ -1,3 +1,4 @@
+using Edgepad.Net;
 using Edgepad.Ui;
 using Xunit;
 
@@ -12,7 +13,7 @@ public sealed class UiTests
     [Fact]
     public void AConnectedPhoneReadsAsConnectedWithItsWay()
     {
-        var status = TrayStatus.Describe("Connected to Pixel · Bluetooth");
+        var status = TrayStatus.Describe(LaptopStatus.Connected("Pixel", PhoneWay.Bluetooth));
 
         Assert.Equal("Phone connected", status.Headline);
         Assert.Equal("Connected", status.Badge);
@@ -22,46 +23,46 @@ public sealed class UiTests
     }
 
     [Fact]
-    public void AStatusWithoutAWayIsBluetooth() =>
-        Assert.Equal("C0:35:32:26:23:F4 · Bluetooth", TrayStatus.Describe("Connected to C0:35:32:26:23:F4").Line);
-
-    [Fact]
     public void AWiFiOrUsbPhoneKeepsTheWayItCame()
     {
-        var status = TrayStatus.Describe("Connected to Pixel · Wi-Fi");
+        var status = TrayStatus.Describe(LaptopStatus.Connected("Pixel", PhoneWay.WifiOrUsb));
 
         Assert.Equal("Connected", status.Badge);
-        Assert.Equal("Pixel · Wi-Fi", status.Line);
+        Assert.Equal("Pixel · Wi-Fi or USB", status.Line);
     }
 
-    [Theory]
-    [InlineData("Waiting for your phone")]
-    [InlineData("Starting…")]
-    [InlineData("Asking whether to trust Pixel")]
-    public void AnythingElseIsWaitingAndShowsTheStatusAsItIs(string line)
+    [Fact]
+    public void AnythingElseIsWaitingAndShowsTheStatusAsItIs()
     {
-        var status = TrayStatus.Describe(line);
+        LaptopStatus[] statuses = [LaptopStatus.Waiting, LaptopStatus.Starting, LaptopStatus.Asking("Pixel")];
 
-        Assert.Equal("No phone connected", status.Headline);
-        Assert.Equal("Waiting", status.Badge);
-        Assert.Equal(line, status.Line);
-        Assert.True(status.Waiting);
-        Assert.False(status.Problem);
+        foreach (var line in statuses)
+        {
+            var status = TrayStatus.Describe(line);
+
+            Assert.Equal("No phone connected", status.Headline);
+            Assert.Equal("Waiting", status.Badge);
+            Assert.Equal(line.Text, status.Line);
+            Assert.True(status.Waiting);
+            Assert.False(status.Problem);
+        }
     }
 
-    [Theory]
-    [InlineData("Refused a phone it does not trust")]
-    [InlineData("Bluetooth is off or unavailable; trying again")]
-    [InlineData("Pixel could not connect: its Edgepad app is older. Update Edgepad on the phone.")]
-    public void ARefusalOrABrokenRadioIsAProblemNotWaiting(string line)
+    [Fact]
+    public void ARefusalOrABrokenRadioIsAProblemNotWaiting()
     {
-        var status = TrayStatus.Describe(line);
+        LaptopStatus[] statuses = [LaptopStatus.RefusedUntrusted, LaptopStatus.BluetoothRetrying, LaptopStatus.RefusedProtocol(4, 5).For("Pixel", PhoneWay.Bluetooth)];
 
-        Assert.Equal("Problem", status.Badge);
-        Assert.Equal(line, status.Line);
-        Assert.True(status.Problem);
-        Assert.False(status.Waiting);
-        Assert.False(status.Connected);
+        foreach (var line in statuses)
+        {
+            var status = TrayStatus.Describe(line);
+
+            Assert.Equal("Problem", status.Badge);
+            Assert.Equal(line.Text, status.Line);
+            Assert.True(status.Problem);
+            Assert.False(status.Waiting);
+            Assert.False(status.Connected);
+        }
     }
 
     [Fact]
