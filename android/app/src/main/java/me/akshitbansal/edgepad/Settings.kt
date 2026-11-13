@@ -172,6 +172,9 @@ class Settings(
      */
     var updateFailure by pref({ prefs.getInt(KEY_UPDATE_FAILURE, 0) }) { putInt(KEY_UPDATE_FAILURE, it) }
 
+    /** The version this phone last showed the "Updated to" note for; empty on a first install. */
+    var seenVersion by pref({ prefs.getString(KEY_SEEN_VERSION, "").orEmpty() }) { putString(KEY_SEEN_VERSION, it) }
+
     /** The newest release the last answer named, such as "3.2.1"; empty before any answer. */
     var latestVersion by pref({ prefs.getString(KEY_LATEST_VERSION, "").orEmpty() }) {
         putString(KEY_LATEST_VERSION, it)
@@ -510,6 +513,7 @@ class Settings(
         private const val KEY_SHAPES = "shapes"
         private const val KEY_LAST_UPDATE_CHECK = "lastUpdateCheck"
         private const val KEY_LATEST_VERSION = "latestVersion"
+        private const val KEY_SEEN_VERSION = "seenVersion"
         private const val KEY_SENSITIVITY = "sensitivity"
         private const val KEY_POINTER_SPEED = "pointerSpeed"
         private const val KEY_SCROLL_SPEED = "scrollSpeed"

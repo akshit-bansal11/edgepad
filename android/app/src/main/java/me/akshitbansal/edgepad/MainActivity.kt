@@ -22,6 +22,7 @@ import android.provider.DocumentsContract
 import android.provider.Settings.Global
 import android.text.InputType
 import android.util.Log
+import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -362,6 +363,7 @@ class MainActivity :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         settings = Settings(this)
+        if (settings.seenVersion.isEmpty()) settings.seenVersion = getString(R.string.app_version)
         gamepads = GamepadStore(this)
         Type.load(this)
         ui = Ui(this)
@@ -731,6 +733,9 @@ class MainActivity :
         }
         // Onto a screen that shows the round trip, the pings speed up now rather than at the next slow tick.
         manager.fastPing = started && next in showsRtt
+        if (screen == Screen.SETTINGS && next != Screen.SETTINGS && justUpdated()) {
+            settings.seenVersion = getString(R.string.app_version)
+        }
         // Settings writes the setting with nothing listening, and every way out of it comes through here. Only on a
         // change, because setting it starts a lost laptop's retry over.
         if (manager.reconnect != settings.reconnect) manager.reconnect = settings.reconnect
@@ -1477,6 +1482,9 @@ class MainActivity :
 
     private fun updateAvailable(): Boolean = Updates.isNewer(settings.latestVersion, getString(R.string.app_version))
 
+    /** The app is a different version from the one last noted; cleared on leaving Settings, see [goTo]. */
+    private fun justUpdated(): Boolean = settings.seenVersion != getString(R.string.app_version)
+
     /** What the Updates row says. Empty until GitHub has answered once, because nothing is known before that. */
     private fun updateSummary(): String =
         when {
@@ -1485,6 +1493,7 @@ class MainActivity :
             settings.updateFailure != 0 -> getString(R.string.updates_problem)
             updateCheckFailed -> getString(R.string.updates_failed)
             updateAvailable() -> getString(R.string.updates_available, settings.latestVersion)
+            justUpdated() -> getString(R.string.updates_updated, getString(R.string.app_version))
             settings.lastUpdateCheck == 0L -> ""
             else -> getString(R.string.updates_current)
         }
@@ -2061,6 +2070,7 @@ class MainActivity :
     }
 
     override fun onConnected(laptop: Laptop) {
+        val first = saved.none { it.id == laptop.target.key }
         remember(laptop)
         syncService()
         if (laptop !== selected) {
@@ -2069,6 +2079,10 @@ class MainActivity :
         }
         // The trust hint, if it was showing, has been answered.
         picker.setMessage("")
+        if (first) {
+            window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            Toast.makeText(this, getString(R.string.connected_to, laptop.name), Toast.LENGTH_SHORT).show()
+        }
         when (screen) {
             Screen.PAIRING, Screen.RECONNECTING, Screen.PIN, Screen.PAIR_CODE -> {
                 // The first time, one short question comes before the controls; see [SharingScreen].
@@ -2221,6 +2235,9 @@ class MainActivity :
         refreshBlobLinks()
         syncService()
         refreshBatteries()
+        if (laptop === selected && closure.cause == LaptopLink.Cause.REFUSED) {
+            window.decorView.performHapticFeedback(HapticFeedbackConstants.REJECT)
+        }
         if (laptop !== selected) {
             refreshDevices()
             // Unreachable is a laptop that is off, which is nothing to report at every launch; its row says so.

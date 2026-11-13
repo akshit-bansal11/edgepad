@@ -321,6 +321,8 @@
   <string name="updates_try_again">Try again</string>
   <string name="updates_available">Update to %1$s</string>
   <string name="updates_current">Up to date</string>
+  <string name="updates_updated">Updated to %1$s</string>
+  <string name="connected_to">Connected to %1$s</string>
   <string name="updates_downloading">Downloading %1$d%%</string>
   <string name="updates_download_failed">The update could not be downloaded. Check the connection and try again.</string>
   <string name="updates_blocked">Android blocked the update. Allow Edgepad to install updates in Android settings, then try again.</string>
