@@ -15,6 +15,7 @@ import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.drawFitted
 import me.akshitbansal.edgepad.gamepad.Binding
 import me.akshitbansal.edgepad.gamepad.ControlGeometry
 import me.akshitbansal.edgepad.gamepad.ControlKind
@@ -904,7 +905,8 @@ internal class PadPainter(
                 kind == ControlKind.DPAD || kind == ControlKind.STICK -> palette.dim
                 else -> palette.ink
             }
-        canvas.drawText(value, box.centerX(), box.centerY() + text.textSize * Type.CAP_CENTRE, text)
+        val y = box.centerY() + text.textSize * Type.CAP_CENTRE
+        text.drawFitted(canvas, value, box.centerX(), y, box.width() - Space.S * density)
     }
 
     /** The accent ring round the control the editor has lifted, just outside its edge. */

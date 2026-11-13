@@ -12,6 +12,7 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.drawFitted
 import me.akshitbansal.edgepad.surface.ControlSurface
 import me.akshitbansal.edgepad.surface.CornerSlots
 import me.akshitbansal.edgepad.surface.MediaPiece
@@ -221,12 +222,9 @@ object MediaLayoutScreen {
                 fill.color = if (lifted) palette.accent else palette.card
                 canvas.drawRoundRect(box, corner, corner, fill)
                 text.color = if (lifted) palette.onAccent else palette.dim
-                canvas.drawText(
-                    names.getValue(piece),
-                    box.centerX(),
-                    box.centerY() + text.textSize * Type.CAP_CENTRE,
-                    text,
-                )
+                val room = box.width() - 2 * Space.S * density
+                val y = box.centerY() + text.textSize * Type.CAP_CENTRE
+                text.drawFitted(canvas, names.getValue(piece), box.centerX(), y, room)
             }
         }
 

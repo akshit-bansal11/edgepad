@@ -8,6 +8,7 @@ import android.util.DisplayMetrics
 import android.util.TypedValue
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.drawFitted
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -149,7 +150,7 @@ class RulerPainter(
         val top = ay - block / 2
         labelPaint.textSize = labelSize
         labelPaint.color = dim
-        canvas.drawText(label, ax, top + labelSize * BASELINE, labelPaint)
+        labelPaint.drawFitted(canvas, label, ax, top + labelSize * BASELINE, dp(LABEL_ROOM_DP))
         if (number.isNotEmpty()) {
             valuePaint.textSize = valueSize
             valuePaint.color = if (armed) accent else ink
@@ -224,7 +225,7 @@ class RulerPainter(
         labelPaint.textAlign = align
         labelPaint.textSize = labelSize
         labelPaint.color = dim
-        canvas.drawText(label, split[0], top + labelSize * BASELINE, labelPaint)
+        labelPaint.drawFitted(canvas, label, split[0], top + labelSize * BASELINE, held * SPLIT_WIDE_EMS)
         if (number.isNotEmpty()) {
             val valueSize = if (armed) held else sp(SPLIT_VALUE_SP)
             valuePaint.textAlign = align
@@ -307,6 +308,9 @@ class RulerPainter(
         const val SPLIT_WIDE_EMS = 3.2f
         const val SPLIT_MATCH_PX = 0.5f
         const val LABEL_SP = 11f
+
+        /** The room a corner dial's short name has, so a long translation shrinks to fit rather than run over. */
+        const val LABEL_ROOM_DP = 72f
 
         /** The one place 2.0 spaces letters: a three-letter abbreviation in capitals reads better opened up. */
         const val LABEL_TRACKING = 0.06f

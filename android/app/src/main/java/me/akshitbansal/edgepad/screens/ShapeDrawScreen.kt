@@ -12,6 +12,7 @@ import android.widget.LinearLayout
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
+import me.akshitbansal.edgepad.drawFitted
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.surface.GestureAction
 import me.akshitbansal.edgepad.surface.PadMode
@@ -225,7 +226,8 @@ object ShapeDrawScreen {
             super.onDraw(canvas)
             canvas.drawPath(path, ink)
             text.color = palette.dim
-            canvas.drawText(message, width / 2f, height - MESSAGE_BOTTOM_DP * density, text)
+            val y = height - MESSAGE_BOTTOM_DP * density
+            text.drawFitted(canvas, message, width / 2f, y, width - 2 * Space.L * density)
         }
 
         // Lint's ClickableViewAccessibility wants this on the same class that overrides onTouchEvent;
