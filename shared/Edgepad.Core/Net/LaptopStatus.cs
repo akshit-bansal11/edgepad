@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Edgepad.Net;
 
 /// <summary>
@@ -38,7 +40,10 @@ internal static class LaptopStatus
         if (status.StartsWith(Refused, StringComparison.Ordinal))
         {
             var numbers = status[Refused.Length..].Split(Separator);
-            if (numbers.Length == 2 && int.TryParse(numbers[0], out var phone) && int.TryParse(numbers[1], out var laptop) && phone != laptop)
+            if (numbers.Length == 2
+                && int.TryParse(numbers[0], NumberStyles.None, CultureInfo.InvariantCulture, out var phone)
+                && int.TryParse(numbers[1], NumberStyles.None, CultureInfo.InvariantCulture, out var laptop)
+                && phone != laptop)
             {
                 return Mismatch(name, phone, laptop);
             }
