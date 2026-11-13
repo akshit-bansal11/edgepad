@@ -52,7 +52,7 @@
     <item quantity="many">Mostrar todos los dispositivos vinculados (%1$d más)</item>
     <item quantity="other">Mostrar todos los dispositivos vinculados (%1$d más)</item>
   </plurals>
-  <string name="show_laptops_only">Mostrar solo laptops</string>
+  <string name="show_laptops_only">Mostrar solo equipos</string>
   <string name="allow_permission">Permitir Dispositivos cercanos</string>
   <string name="open_app_settings">Abrir permisos de Android</string>
   <string name="not_paired">Esa laptop ya no está vinculada a este teléfono. Vuelve a vincularla en la configuración de Bluetooth.</string>
@@ -166,7 +166,7 @@
   <string name="corner_edge_bottom">borde inferior</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 reglas, divididas</string>
-  <string name="media_layout_title">Diseño de multimedia</string>
+  <string name="media_layout_title">Diseño multimedia</string>
   <string name="media_layout_hint_upright">Este es el diseño en vertical; gira el teléfono para organizar el horizontal. Arrastra una pieza para moverla. Se ajusta a la cuadrícula y a las líneas centrales.</string>
   <string name="media_layout_hint_sideways">Este es el diseño en horizontal; gira el teléfono para organizar el vertical. Arrastra una pieza para moverla. Se ajusta a la cuadrícula y a las líneas centrales.</string>
   <string name="piece_now_playing">En reproducción</string>
@@ -255,7 +255,7 @@
   <string name="pattern_none">Ninguno</string>
   <string name="pattern_squares">Cuadrícula</string>
   <string name="pattern_dots">Puntos</string>
-  <string name="pattern_checker">Ajedrezado</string>
+  <string name="pattern_checker">Tablero</string>
   <string name="pattern_size">Tamaño del patrón</string>
   <string name="pattern_color">Color del patrón</string>
   <string name="pattern_opacity">Opacidad del patrón</string>
@@ -283,7 +283,7 @@
     <item quantity="other">%1$d dibujadas</item>
   </plurals>
   <string name="shapes_none">Aún no hay ninguna</string>
-  <string name="shapes_footnote">Mantén pulsado el panel táctil hasta que la línea se vuelva continua (también sentirás un toque si la respuesta háptica está activada) y dibuja sin levantar el dedo.</string>
+  <string name="shapes_footnote">Mantén pulsado el panel táctil hasta que la línea se vuelva continua (también sentirás una vibración leve si la respuesta háptica está activada) y dibuja sin levantar el dedo.</string>
   <string name="shapes_empty_title">Aún no hay formas</string>
   <string name="shapes_empty_body">Dibuja una aquí y dale algo que ejecutar. En el panel táctil, mantén pulsado hasta que la línea se vuelva continua y dibújala sin levantar el dedo.</string>
   <string name="shapes_add">Dibujar una forma</string>
@@ -503,7 +503,7 @@
   <string name="macros_layout_auto">Automática</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">Filas: %1$d, columnas: %2$d</string>
-  <string name="macros_layout_caption">El primer número son las filas y el segundo, las columnas. Automática elige lo que haga los botones más grandes.</string>
+  <string name="macros_layout_caption">El primer número son las filas y el segundo, las columnas. Automática elige la distribución que da los botones más grandes.</string>
   <string name="macros_per_page">Macros en pantalla</string>
   <string name="macros_per_page_caption">Cuántas macros muestra cada página. El resto continúa en más páginas, a las que llegas deslizando el dedo hacia un lado. Mantén pulsada una macro y arrástrala para moverla dentro de su página.</string>
   <string name="macros_page_of">Página %1$d de %2$d</string>
@@ -538,7 +538,7 @@
   <string name="apps_duplicate">Esa app ya es una macro.</string>
   <string name="apps_stale">La lista está desactualizada. Actualízala y elige de nuevo.</string>
   <string name="apps_failed">La laptop no pudo añadirla.</string>
-  <string name="input_blocked">%1$s aún no puede recibir entradas. Permite Edgepad en la laptop; funcionará en cuanto lo hagas.</string>
+  <string name="input_blocked">%1$s todavía no acepta órdenes de Edgepad. Permite Edgepad en la laptop; funcionará en cuanto lo hagas.</string>
   <string name="battery_title">Baterías</string>
   <string name="battery_in_use">En uso</string>
   <string name="battery_this_phone">Este teléfono</string>

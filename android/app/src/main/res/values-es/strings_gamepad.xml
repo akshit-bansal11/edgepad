@@ -4,7 +4,7 @@
   <string name="gamepad_layout_editing">Editando %1$s</string>
   <string name="gamepad_layout_hint">Arrastra para mover. Mantén pulsado un control para ver su menú.</string>
   <string name="gamepad_layout_section">Diseños</string>
-  <string name="gamepad_description">Mando de juegos para la laptop. Solo funciona con el tacto.</string>
+  <string name="gamepad_description">Gamepad para la laptop. Solo funciona con el tacto.</string>
   <string name="gamepad_node_dpad">Cruceta</string>
   <string name="gamepad_node_stick">Stick</string>
   <string name="gamepad_node_button">Botón</string>

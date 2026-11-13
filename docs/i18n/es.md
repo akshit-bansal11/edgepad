@@ -82,13 +82,13 @@ Android `values-es`, Windows culture `es`. Neutral international Spanish that re
 | start with Windows | Iniciar con Windows |
 | update, release notes, release page, major release | actualizar, notas de la versión, página de la versión, versión principal |
 | protocol | protocolo |
-| round trip | ida y vuelta |
+| round trip | tiempo de respuesta |
 | Macros… menu item | Macros… (same text on phone and laptop) |
 
 ## Decisions
 
-- "Laptop" over "portátil" (Spain) or "computadora" (Latin America): the most widely understood single word in both. For Bluetooth devices that identify as a computer, "equipo" is used.
-- "Gamepad" over "mando" (Spain) or "control" (Latin America), for the same reason.
+- "Laptop" over "portátil" (Spain) or "computadora" (Latin America): the most widely understood single word in both, kept feminine (la laptop, as in Latin American usage). Confirmed in the second review pass. For Bluetooth devices that identify as a computer, "equipo" is used, also in "Mostrar solo equipos".
+- "Gamepad" over "mando" (Spain) or "control" (Latin America), for the same reason. It is the only word used, in sentences too ("un gamepad", never "un mando").
 - "Teléfono" over "móvil" (Spain) or "celular" (Latin America).
 - "Añadir" over "agregar": both are neutral; "añadir" is used throughout.
 - The dial is called "regla" in every place, to keep the ruler-with-ticks picture.

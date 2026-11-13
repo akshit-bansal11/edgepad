@@ -94,7 +94,7 @@
     <value>{0} quiere vincularse. Escribe el código de vinculación que muestra.</value>
   </data>
   <data name="Balloon_DriverMissing" xml:space="preserve">
-    <value>El mando necesita el controlador ViGEmBus. Haz clic para abrir la página de descarga.</value>
+    <value>El gamepad necesita el controlador ViGEmBus. Haz clic para abrir la página de descarga.</value>
   </data>
   <data name="Balloon_WantsToConnect" xml:space="preserve">
     <value>{0} quiere conectarse. Elige Confiar o No confiar.</value>
@@ -142,7 +142,7 @@
     <value>¿Activar las conexiones Wi-Fi y USB?</value>
   </data>
   <data name="Error_SettingNotSaved" xml:space="preserve">
-    <value>No se pudo guardar el ajuste, así que no se cambió nada. El registro indica el motivo.</value>
+    <value>No se pudo guardar la configuración, así que no se cambió nada. El registro indica el motivo.</value>
   </data>
   <data name="Security_Title" xml:space="preserve">
     <value>Seguridad</value>
@@ -288,7 +288,7 @@ No se restableció nada: no se pudieron olvidar los teléfonos de confianza, as�
 
 {0}
 
-Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no se pudo eliminar un archivo de ajustes, así que puede que sigan aplicándose el PIN y el nivel anteriores. Habrá que volver a confiar aquí en cada teléfono.</value>
+Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no se pudo eliminar un archivo de configuración, así que puede que sigan aplicándose el PIN y el nivel anteriores. Habrá que volver a confiar aquí en cada teléfono.</value>
   </data>
   <data name="Pin_Title" xml:space="preserve">
     <value>PIN nuevo</value>

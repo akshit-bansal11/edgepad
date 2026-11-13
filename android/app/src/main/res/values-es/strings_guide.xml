@@ -14,14 +14,14 @@
   <string name="guide_features_title">Tu laptop, desde el otro lado de la sala.</string>
   <string-array name="guide_features_keys">
     <item>Tiempo real</item>
-    <item>Ida y vuelta</item>
-    <item>Sin conexión</item>
+    <item>Tiempo de respuesta</item>
+    <item>Sin internet</item>
     <item>Bluetooth</item>
     <item>Y más</item>
   </string-array>
   <string-array name="guide_features_values">
-    <item>Cada movimiento sale en el momento en que lo haces. Si la conexión va lenta, los movimientos en espera se combinan en lugar de hacer cola.</item>
-    <item>Se mide en vivo del teléfono a la laptop y de vuelta, y se muestra junto a la laptop en la pantalla Dispositivos.</item>
+    <item>Cada movimiento se envía en cuanto lo haces. Si la conexión va lenta, los movimientos en espera se combinan en lugar de hacer cola.</item>
+    <item>Se mide en vivo, de ida y vuelta entre el teléfono y la laptop, y se muestra junto a la laptop en la pantalla Dispositivos.</item>
     <item>Sin cuenta y sin internet. El teléfono se conecta directamente con la laptop.</item>
     <item>Bluetooth por defecto: vincula una vez en la configuración de Bluetooth de la laptop y Edgepad podrá conectarse al abrirse. Las conexiones Wi-Fi y USB son opcionales.</item>
     <item>Respuesta háptica, modo claro y oscuro, vertical u horizontal (el teclado y el gamepad siempre van en horizontal) y tus propios diseños de multimedia y gamepad.</item>
@@ -79,11 +79,11 @@
     <item>El icono de Controles, arriba en la superficie, y luego Teclado. Se abre en horizontal.</item>
     <item>Cada tecla va directa a la laptop. La fila superior hace lo que lleva impreso; mantén Fn para F1 a F12 (puedes cambiarlo en la configuración del teclado).</item>
     <item>Mantén Ctrl, Alt, Mayús o Fn mientras pulsas una tecla, o tócala una vez para aplicarla a la tecla siguiente. Tócala de nuevo para cancelar.</item>
-    <item>La flecha atrás de arriba o el gesto de retroceso del sistema.</item>
+    <item>La flecha de retroceso, arriba, o el gesto de retroceso del sistema.</item>
   </string-array>
 
   <string name="guide_gamepad_kicker">5 · Gamepad</string>
-  <string name="guide_gamepad_title">Un mando en tu bolsillo.</string>
+  <string name="guide_gamepad_title">Un gamepad en tu bolsillo.</string>
   <string-array name="guide_gamepad_keys">
     <item>Abrir</item>
     <item>Preajustes</item>
@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>El icono de Controles, arriba en la superficie, y luego Gamepad. Se abre en horizontal.</item>
-    <item>Xbox, Platformer, Racing y Shooter, que se eligen en la configuración del gamepad, tras el engranaje del gamepad.</item>
+    <item>Xbox, Platformer, Racing y Shooter. Se eligen en la configuración del gamepad, que se abre con el engranaje.</item>
     <item>Mantén y desliza un stick, toca los botones. Puedes usar varios dedos a la vez.</item>
     <item>Configuración del gamepad › Editar diseño. Arrastra los controles adonde lleguen tus pulgares; mantén pulsado uno para cambiar su tamaño.</item>
   </string-array>
