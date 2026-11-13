@@ -92,3 +92,11 @@ Android `values-es`, Windows culture `es`. Neutral international Spanish that re
 - "Teléfono" over "móvil" (Spain) or "celular" (Latin America).
 - "Añadir" over "agregar": both are neutral; "añadir" is used throughout.
 - The dial is called "regla" in every place, to keep the ruler-with-ticks picture.
+
+## Laptop app (Windows resx)
+
+- Menu and button names quoted by the Android text match exactly: «Macros…», «Conexiones Wi-Fi y USB», «Compartir portapapeles», Confiar / No confiar, Olvidar, Restablecer.
+- Other laptop terms: Seguridad, Definir PIN, Olvidar todos, Restablecer PIN y olvidar teléfonos, Nivel {0}, Solo confianza, Teléfonos de confianza, Iniciar con Windows, Buscar actualizaciones a diario, Abrir registro (log), Permitir en el Firewall de Windows, área de notificaciones (tray).
+- Access keys, unique per menu: tray menu n M S W F B P D R A U L; Security window P O R G U; Macros window A E I U Q G.
+- Arrow keys in shortcuts are written out: Alt+Arriba, Alt+Abajo.
+- Pairing warning keeps "Vincula solo un teléfono que sea tuyo" plus Cancelar.

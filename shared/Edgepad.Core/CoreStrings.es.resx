@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Status_Starting" xml:space="preserve">
+    <value>Iniciando…</value>
+  </data>
+  <data name="Status_Waiting" xml:space="preserve">
+    <value>Esperando al teléfono</value>
+  </data>
+  <data name="Status_Connected" xml:space="preserve">
+    <value>Conectado a {0}</value>
+  </data>
+  <data name="Status_RefusedProtocol" xml:space="preserve">
+    <value>Se rechazó un teléfono con el protocolo {0}; esta laptop usa el {1}</value>
+  </data>
+  <data name="Status_MismatchPhoneOlder" xml:space="preserve">
+    <value>{0} no pudo conectarse: su app de Edgepad es más antigua. Actualiza Edgepad en el teléfono.</value>
+  </data>
+  <data name="Status_MismatchLaptopOlder" xml:space="preserve">
+    <value>{0} no pudo conectarse: Edgepad en esta laptop es más antiguo. Actualiza Edgepad aquí.</value>
+  </data>
+  <data name="Status_RefusedLockedOut" xml:space="preserve">
+    <value>Se rechazó un teléfono bloqueado por PIN incorrectos</value>
+  </data>
+  <data name="Status_RefusedUntrusted" xml:space="preserve">
+    <value>Se rechazó un teléfono en el que no confía</value>
+  </data>
+  <data name="Status_RefusedPin" xml:space="preserve">
+    <value>Se rechazó un teléfono que no dio el PIN correcto</value>
+  </data>
+  <data name="Status_BluetoothOff" xml:space="preserve">
+    <value>El Bluetooth está desactivado</value>
+  </data>
+  <data name="Status_BluetoothRetrying" xml:space="preserve">
+    <value>El Bluetooth está desactivado o no disponible; reintentando</value>
+  </data>
+  <data name="Status_BluetoothUnavailable" xml:space="preserve">
+    <value>El Bluetooth está desactivado o no disponible</value>
+  </data>
+  <data name="Status_Pairing" xml:space="preserve">
+    <value>Vincular {0}: escribe el código de vinculación que muestra el teléfono</value>
+  </data>
+  <data name="Status_Paired" xml:space="preserve">
+    <value>Vinculado con {0}</value>
+  </data>
+  <data name="Status_Asking" xml:space="preserve">
+    <value>Preguntando si se confía en {0}</value>
+  </data>
+  <data name="Status_QuietUntil" xml:space="preserve">
+    <value>Los teléfonos podrán volver a conectarse a las {0}</value>
+  </data>
+  <data name="Way_Bluetooth" xml:space="preserve">
+    <value>Bluetooth</value>
+  </data>
+  <data name="Way_WifiOrUsb" xml:space="preserve">
+    <value>Wi-Fi o USB</value>
+  </data>
+  <data name="Pairing_Mismatched" xml:space="preserve">
+    <value>El código de vinculación no coincidía. No se vinculó nada.</value>
+  </data>
+  <data name="Pairing_TimedOut" xml:space="preserve">
+    <value>Se acabó el tiempo. No se vinculó nada. Empieza de nuevo en el teléfono.</value>
+  </data>
+  <data name="Pairing_Warning" xml:space="preserve">
+    <value>Vincula solo un teléfono que sea tuyo. Si no acabas de iniciar la vinculación, elige Cancelar.</value>
+  </data>
+  <data name="Pairing_NotFinished" xml:space="preserve">
+    <value>La vinculación no se completó.</value>
+  </data>
+  <data name="Pairing_Matched" xml:space="preserve">
+    <value>El código de vinculación coincide. Toca Sí en {0} para terminar.</value>
+  </data>
+  <data name="Pairing_Paired" xml:space="preserve">
+    <value>Vinculado con {0}.</value>
+  </data>
+  <data name="Source_From" xml:space="preserve">
+    <value>desde {0}, {1}</value>
+  </data>
+  <data name="Source_OnNetwork" xml:space="preserve">
+    <value>en tu red</value>
+  </data>
+  <data name="Source_OverUsb" xml:space="preserve">
+    <value>por USB</value>
+  </data>
+  <data name="Source_OverWifi" xml:space="preserve">
+    <value>por Wi-Fi</value>
+  </data>
+  <data name="LastConnected_Row" xml:space="preserve">
+    <value>{0} · última conexión: {1}</value>
+  </data>
+  <data name="LastConnected_Unknown" xml:space="preserve">
+    <value>{0} · sin conexión desde esta actualización</value>
+  </data>
+</root>
