@@ -1,5 +1,6 @@
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
@@ -131,7 +132,9 @@ internal static partial class Theme
 
     static Theme()
     {
-        if (Load())
+        // Lato has no glyphs for these scripts, so their language gets the Windows face that does.
+        var system = SystemFace(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
+        if (system is null && Load())
         {
             Family = Collection.Families.First(family => family.Name == "Lato");
             BlackFamily = BlackCollection.Families.FirstOrDefault();
@@ -139,7 +142,37 @@ internal static partial class Theme
         }
 
         // Segoe UI is on every Windows this runs on, and is what the menu would have been drawn in anyway.
-        Family = new FontFamily("Segoe UI");
+        Family = Installed(system ?? "Segoe UI");
+    }
+
+    /// <summary>True when the UI language reads right to left (Arabic).</summary>
+    public static bool IsRtl => CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft;
+
+    /// <summary>What a form sets as its RightToLeft: its labels and boxes then read and align from the right.</summary>
+    public static RightToLeft Direction => IsRtl ? RightToLeft.Yes : RightToLeft.No;
+
+    /// <summary>The Windows UI face for a language Lato has no glyphs for, or null where Lato covers it.</summary>
+    private static string? SystemFace(string language) => language switch
+    {
+        "zh" => "Microsoft YaHei UI",
+        "ja" => "Yu Gothic UI",
+        "ko" => "Malgun Gothic",
+        "hi" => "Nirmala UI",
+        "ar" or "ru" or "tr" => "Segoe UI",
+        _ => null,
+    };
+
+    /// <summary>The face <paramref name="name"/>, or Segoe UI on an edition of Windows that does not ship it.</summary>
+    private static FontFamily Installed(string name)
+    {
+        try
+        {
+            return new FontFamily(name);
+        }
+        catch (ArgumentException)
+        {
+            return new FontFamily("Segoe UI");
+        }
     }
 
     public static int Scale(int value, int dpi) => (int)Math.Round(value * dpi / BaselineDpi);
