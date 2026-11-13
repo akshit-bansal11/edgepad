@@ -2,7 +2,7 @@
 <resources>
   <string name="gamepad_layout_title">Gamepad-indeling</string>
   <string name="gamepad_layout_editing">%1$s bewerken</string>
-  <string name="gamepad_layout_hint">Sleep om te verplaatsen. Houd een knop ingedrukt voor het menu.</string>
+  <string name="gamepad_layout_hint">Sleep om te verplaatsen. Houd een element ingedrukt voor het menu.</string>
   <string name="gamepad_layout_section">Indelingen</string>
   <string name="gamepad_description">Gamecontroller voor de laptop. Werkt alleen met aanraking.</string>
   <string name="gamepad_node_dpad">D-pad</string>

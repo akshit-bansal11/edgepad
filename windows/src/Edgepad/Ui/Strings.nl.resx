@@ -86,7 +86,7 @@
     <value>Deze versie van Edgepad is een nieuw bestand, dus Windows vraagt eenmalig om telefoons toegang te geven.</value>
   </data>
   <data name="Balloon_FirewallNotChanged" xml:space="preserve">
-    <value>Windows Firewall is niet gewijzigd, dus telefoons kunnen deze laptop mogelijk niet bereiken. Met Toestaan via Windows-firewall in dit menu probeer je het opnieuw.</value>
+    <value>De Windows-firewall is niet gewijzigd, dus telefoons kunnen deze laptop mogelijk niet bereiken. Met Toestaan via Windows-firewall in dit menu probeer je het opnieuw.</value>
   </data>
   <data name="Balloon_MacroAdded" xml:space="preserve">
     <value>{0} toegevoegd vanaf je telefoon</value>
@@ -293,7 +293,7 @@
     <value>De twee pincodes zijn niet gelijk.</value>
   </data>
   <data name="Macro_Description" xml:space="preserve">
-    <value>Knoppen op het macroscherm van je telefoon, maximaal 15. De telefoon stuurt het nummer van een knop, nooit een programma, dus hij kan alleen uitvoeren wat je hier toevoegt. Met Alt+Omhoog en Alt+Omlaag wijzig je de volgorde van de knoppen.</value>
+    <value>Knoppen op het macroscherm van je telefoon, maximaal 15. De telefoon stuurt het nummer van een knop, nooit een programma, dus hij kan alleen uitvoeren wat je hier toevoegt. Met Alt+Pijl-omhoog en Alt+Pijl-omlaag wijzig je de volgorde van de knoppen.</value>
   </data>
   <data name="Macro_EmptyHeadline" xml:space="preserve">
     <value>Nog geen macro's</value>
@@ -347,7 +347,7 @@
     <value>&amp;Verwijderen</value>
   </data>
   <data name="Macro_ReorderHint" xml:space="preserve">
-    <value>Met Alt+Omhoog en Alt+Omlaag verplaats je de geselecteerde macro.</value>
+    <value>Met Alt+Pijl-omhoog en Alt+Pijl-omlaag verplaats je de geselecteerde macro.</value>
   </data>
   <data name="Macro_New" xml:space="preserve">
     <value>Nieuwe macro</value>
@@ -452,7 +452,7 @@
     <value>Volume</value>
   </data>
   <data name="Network_CouldNotListen" xml:space="preserve">
-    <value>Wi-Fi en USB: kon niet luisteren. Zie het logboek.</value>
+    <value>Wi-Fi en USB: kan geen verbindingen accepteren. Zie het logboek.</value>
   </data>
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi en USB: telefoons vinden deze laptop mogelijk niet.</value>

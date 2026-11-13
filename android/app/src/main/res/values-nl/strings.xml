@@ -216,7 +216,7 @@
   <string name="dial_height">Hoogte van regelaar</string>
   <string name="multiplier_value">×%1$.1f</string>
   <string name="haptic_ticks">Haptische feedback</string>
-  <string name="snap_round">Afronden op ronde getallen</string>
+  <string name="snap_round">Vastklikken op ronde getallen</string>
   <string name="natural_scrolling">Natuurlijk scrollen</string>
   <string name="gesture_hints">Gebaartips tonen</string>
   <string name="settings_appearance">Weergave</string>
@@ -276,9 +276,9 @@
     <item quantity="other">%1$d getekend</item>
   </plurals>
   <string name="shapes_none">Nog geen</string>
-  <string name="shapes_footnote">Houd het touchpad ingedrukt tot de lijn massief wordt (je voelt ook een tik als haptische feedback aanstaat) en teken dan zonder los te laten.</string>
+  <string name="shapes_footnote">Houd het touchpad ingedrukt tot de lijn doorgetrokken wordt (je voelt ook een tik als haptische feedback aanstaat) en teken dan zonder los te laten.</string>
   <string name="shapes_empty_title">Nog geen vormen</string>
-  <string name="shapes_empty_body">Teken er hier een en geef hem iets om uit te voeren. Houd op het touchpad ingedrukt tot de lijn massief wordt en teken de vorm dan zonder je vinger op te tillen.</string>
+  <string name="shapes_empty_body">Teken er hier een en geef hem iets om uit te voeren. Houd op het touchpad ingedrukt tot de lijn doorgetrokken wordt en teken de vorm dan zonder je vinger op te tillen.</string>
   <string name="shapes_add">Vorm tekenen</string>
   <string name="shapes_draw_title">Teken de vorm</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -337,11 +337,11 @@
   <string name="color_hex">Hex-kleur</string>
   <string name="dial_feel_title">Gevoel van regelaars</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
-  <string name="dial_preview_caption">Voorbeeld. Met de klok mee verhoogt.</string>
+  <string name="dial_preview_caption">Voorbeeld. Met de klok mee gaat het omhoog.</string>
   <string name="gestures_footnote">Tik op een gebaar om de actie te wijzigen. Gebaren met één en twee vingers liggen vast: bewegen, tikken om te klikken, tikken en vasthouden om te slepen; met twee vingers slepen om te scrollen, knijpen om te zoomen, tikken voor rechtsklik.</string>
   <string name="dial_feel_each">Elke regelaar</string>
   <string name="dial_feel_shared">Gedeeld</string>
-  <string name="dial_feel_each_caption">Alleen de regelaars in een hoek staan in de lijst. Haal er een weg bij Gedeeld om hem een eigen snelheid te geven. Gedeeld volgt de gevoeligheid van schuiven.</string>
+  <string name="dial_feel_each_caption">Alleen de regelaars in een hoek staan in de lijst. Haal een regelaar uit Gedeeld om hem een eigen snelheid te geven. Gedeeld volgt de gevoeligheid van schuiven.</string>
   <string name="appearance_title">Uiterlijk</string>
   <string name="appearance_preview">Voorbeeld</string>
   <string name="background_preview_description">Voorbeeld van de achtergrond van het bedieningsvlak</string>
@@ -411,7 +411,7 @@
   <string name="controls_title">Bediening</string>
   <string name="controls_move_hint">Houd een tegel ingedrukt om hem te verplaatsen.</string>
   <string name="controls_hide_dials">Regelaars en media verbergen</string>
-  <string name="controls_blackout">Scherm zwart als niet gebruikt</string>
+  <string name="controls_blackout">Scherm zwart bij inactiviteit</string>
   <string name="controls_open">%1$s openen</string>
   <string name="controls_needs_newer">Hiervoor heeft deze laptop een nieuwere versie van Edgepad nodig. Werk hem bij en verbind opnieuw.</string>
   <string name="controls_keyboard">Toetsenbord</string>
@@ -508,7 +508,7 @@
   <string name="apps_title">Macro toevoegen</string>
   <string name="apps_search_hint">Apps zoeken</string>
   <string name="apps_loading">Zoeken naar apps op %1$s…</string>
-  <string name="apps_none">%1$s toonde geen apps.</string>
+  <string name="apps_none">%1$s gaf geen apps door.</string>
   <string name="apps_no_match">Geen app past bij die zoekopdracht.</string>
   <string name="apps_windows_hint">Staat de app er niet bij? Voeg hem toe aan het startmenu op de laptop en vernieuw de lijst.</string>
   <string name="apps_confirm_title">%1$s toevoegen aan %2$s?</string>

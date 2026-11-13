@@ -15,7 +15,7 @@ Informal "je" in both apps, as Dutch Android and Windows address the user. Short
 - Wi-Fi: written "Wi-Fi", as Windows does and as the untranslatable `transport_wifi` label shown beside it. Dutch Android itself writes "wifi"; kept hyphenated for one spelling across both apps and the Windows menu item it quotes. Compounds use hyphens: "Wi-Fi- en USB-verbindingen", "USB-tethering", "Bluetooth-instellingen", "Windows-firewall".
 - PIN is "pincode" everywhere; pairing code is "koppelcode"; "koppelen" is pairing, "verbinden" is connecting.
 - Nearby devices permission: "Apparaten in de buurt", as Dutch Android labels it.
-- Key caps: Ctrl, Alt, Shift, Fn (as printed on Dutch keyboards); Alt+Omhoog / Alt+Omlaag for the arrow keys in the Windows macro window. Windows logo key keeps Windows' own name.
+- Key caps: Ctrl, Alt, Shift, Fn (as printed on Dutch keyboards); Alt+Pijl-omhoog / Alt+Pijl-omlaag for the arrow keys in the Windows macro window. Windows logo key keeps Windows' own name.
 - Joiners: `list_separator` ", "; `sentences_joined` "%1$s %2$s"; `battery_spoken` "%1$s %2$s"; `corner_slot` "%1$s · %2$s" (parts are standalone labels: "Linksboven · linkerrand").
 - Dial short labels: VOL, HELD, ZOOM, SPOEL, APPS, HZ, SCROLL, ZIJ, DESK, TABS, LAPTOP.
 - Plurals: `one` and `other`.
