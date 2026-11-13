@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Status_Starting" xml:space="preserve">
+    <value>起動中…</value>
+  </data>
+  <data name="Status_Waiting" xml:space="preserve">
+    <value>スマホを待っています</value>
+  </data>
+  <data name="Status_Connected" xml:space="preserve">
+    <value>{0}に接続中</value>
+  </data>
+  <data name="Status_RefusedProtocol" xml:space="preserve">
+    <value>プロトコル{0}のスマホを拒否しました。このノートPCはプロトコル{1}です</value>
+  </data>
+  <data name="Status_MismatchPhoneOlder" xml:space="preserve">
+    <value>{0}は接続できませんでした。スマホのEdgepadアプリが古いバージョンです。スマホのEdgepadをアップデートしてください。</value>
+  </data>
+  <data name="Status_MismatchLaptopOlder" xml:space="preserve">
+    <value>{0}は接続できませんでした。このノートPCのEdgepadが古いバージョンです。ここでEdgepadをアップデートしてください。</value>
+  </data>
+  <data name="Status_RefusedLockedOut" xml:space="preserve">
+    <value>PINの入力ミスでロックされたスマホを拒否しました</value>
+  </data>
+  <data name="Status_RefusedUntrusted" xml:space="preserve">
+    <value>信頼していないスマホを拒否しました</value>
+  </data>
+  <data name="Status_RefusedPin" xml:space="preserve">
+    <value>正しいPINを入力しなかったスマホを拒否しました</value>
+  </data>
+  <data name="Status_BluetoothOff" xml:space="preserve">
+    <value>Bluetoothがオフです</value>
+  </data>
+  <data name="Status_BluetoothRetrying" xml:space="preserve">
+    <value>Bluetoothがオフか、利用できません。再試行しています</value>
+  </data>
+  <data name="Status_BluetoothUnavailable" xml:space="preserve">
+    <value>Bluetoothがオフか、利用できません</value>
+  </data>
+  <data name="Status_Pairing" xml:space="preserve">
+    <value>{0}をペアリング：スマホに表示されているペアリングコードを入力してください</value>
+  </data>
+  <data name="Status_Paired" xml:space="preserve">
+    <value>{0}とペアリングしました</value>
+  </data>
+  <data name="Status_Asking" xml:space="preserve">
+    <value>{0}を信頼するか確認しています</value>
+  </data>
+  <data name="Status_QuietUntil" xml:space="preserve">
+    <value>{0}からスマホを接続できます</value>
+  </data>
+  <data name="Way_Bluetooth" xml:space="preserve">
+    <value>Bluetooth</value>
+  </data>
+  <data name="Way_WifiOrUsb" xml:space="preserve">
+    <value>Wi-FiまたはUSB</value>
+  </data>
+  <data name="Pairing_Mismatched" xml:space="preserve">
+    <value>ペアリングコードが一致しませんでした。ペアリングは行われていません。</value>
+  </data>
+  <data name="Pairing_TimedOut" xml:space="preserve">
+    <value>時間切れです。ペアリングは行われていません。スマホからやり直してください。</value>
+  </data>
+  <data name="Pairing_Warning" xml:space="preserve">
+    <value>自分のスマホだけをペアリングしてください。ペアリングを開始した覚えがない場合は、「キャンセル」を選んでください。</value>
+  </data>
+  <data name="Pairing_NotFinished" xml:space="preserve">
+    <value>ペアリングが完了しませんでした。</value>
+  </data>
+  <data name="Pairing_Matched" xml:space="preserve">
+    <value>ペアリングコードが一致しました。{0}で「はい、ペアリング済み」をタップして完了してください。</value>
+  </data>
+  <data name="Pairing_Paired" xml:space="preserve">
+    <value>{0}とペアリングしました。</value>
+  </data>
+  <data name="Source_From" xml:space="preserve">
+    <value>{0}から（{1}）</value>
+  </data>
+  <data name="Source_OnNetwork" xml:space="preserve">
+    <value>ネットワーク経由</value>
+  </data>
+  <data name="Source_OverUsb" xml:space="preserve">
+    <value>USB経由</value>
+  </data>
+  <data name="Source_OverWifi" xml:space="preserve">
+    <value>Wi-Fi経由</value>
+  </data>
+  <data name="LastConnected_Row" xml:space="preserve">
+    <value>{0} · 最終接続：{1}</value>
+  </data>
+  <data name="LastConnected_Unknown" xml:space="preserve">
+    <value>{0} · このアップデート以降は未接続</value>
+  </data>
+</root>
