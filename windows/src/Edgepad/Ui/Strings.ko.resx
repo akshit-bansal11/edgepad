@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Network_Notice" xml:space="preserve">
+    <value>같은 Wi-Fi에 있거나 USB 테더링으로 연결된 휴대전화가 이 노트북을 찾아 페어링을 요청할 수 있게 돼요. 여기에 페어링 코드를 입력하기 전에는 아무것도 연결되지 않아요. Windows가 명령 프롬프트 실행을 한 번 물어볼 거예요. Edgepad 방화벽 규칙을 추가하기 위한 거예요.</value>
+  </data>
+  <data name="Network_ClipboardNotice" xml:space="preserve">
+    <value>클립보드 공유: 한쪽에서 복사해 다른 쪽에 붙여넣어요. 텍스트와 이미지를 지원해요. 체크하기 전까지는 꺼져 있어요.</value>
+  </data>
+  <data name="Network_WhereItLives" xml:space="preserve">
+    <value>Edgepad는 알림 영역에서 실행돼요. 아이콘이 보이지 않으면 ^를 클릭하고 밖으로 끌어내세요. 블루투스를 쓰려면 먼저 Windows 블루투스 설정에서 휴대전화를 페어링한 뒤, 휴대전화에서 Edgepad를 여세요.</value>
+  </data>
+  <data name="Menu_StartWithWindows" xml:space="preserve">
+    <value>Windows 시작 시 실행(&amp;T)</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>매크로(&amp;M)…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>보안(&amp;E)…</value>
+  </data>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Wi-Fi 및 USB 연결(&amp;W)</value>
+  </data>
+  <data name="Network_Title" xml:space="preserve">
+    <value>Wi-Fi 및 USB</value>
+  </data>
+  <data name="Menu_Firewall" xml:space="preserve">
+    <value>Windows 방화벽 허용(&amp;F)…</value>
+  </data>
+  <data name="Menu_BluetoothSettings" xml:space="preserve">
+    <value>블루투스 설정 열기(&amp;B)</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>클립보드 공유(&amp;S)</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>한쪽에서 복사해 다른 쪽에 붙여넣어요. 텍스트와 이미지를 지원해요.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>매일 업데이트 확인(&amp;C)</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>로그 열기(&amp;L)</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>업데이트 가능(&amp;U)</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>문서(&amp;D)</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepad 종료(&amp;Q)</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{1}개 중 {0}개</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>업데이트 가능: {0}(&amp;U)</value>
+  </data>
+  <data name="Balloon_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0}을(를) 사용할 수 있어요. 클릭해서 릴리스 페이지를 열고, 다운로드해 실행하면 현재 버전이 교체돼요.</value>
+  </data>
+  <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
+    <value>Windows 시작 시 실행 설정을 저장하지 못해서 Edgepad가 자동으로 시작되지 않아요. 자세한 이유는 로그에 있어요.</value>
+  </data>
+  <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
+    <value>클립보드 공유 설정이 지금은 바뀌었지만 저장하지 못해서, 다음에 실행할 때 기억하지 못할 수 있어요.</value>
+  </data>
+  <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
+    <value>매일 업데이트 확인 설정이 지금은 바뀌었지만 저장하지 못해서, 다음에 실행할 때 기억하지 못할 수 있어요.</value>
+  </data>
+  <data name="Balloon_NewFile" xml:space="preserve">
+    <value>이 버전의 Edgepad는 새 파일이라서, Windows가 휴대전화의 접근을 허용할지 한 번 물어볼 거예요.</value>
+  </data>
+  <data name="Balloon_FirewallNotChanged" xml:space="preserve">
+    <value>Windows 방화벽을 변경하지 못해서 휴대전화가 이 노트북에 연결하지 못할 수 있어요. 이 메뉴의 Windows 방화벽 허용을 선택하면 다시 시도해요.</value>
+  </data>
+  <data name="Balloon_MacroAdded" xml:space="preserve">
+    <value>휴대전화에서 {0} 추가됨</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0}에서 페어링을 요청했어요. 휴대전화에 표시된 페어링 코드를 입력하세요.</value>
+  </data>
+  <data name="Balloon_DriverMissing" xml:space="preserve">
+    <value>컨트롤러를 쓰려면 ViGEmBus 드라이버가 필요해요. 클릭해서 다운로드 페이지를 여세요.</value>
+  </data>
+  <data name="Balloon_WantsToConnect" xml:space="preserve">
+    <value>{0}에서 연결을 요청했어요. 신뢰 또는 신뢰 안 함을 선택하세요.</value>
+  </data>
+  <data name="Phone_Connected" xml:space="preserve">
+    <value>휴대전화 연결됨</value>
+  </data>
+  <data name="Phone_Disconnected" xml:space="preserve">
+    <value>휴대전화 연결 해제됨</value>
+  </data>
+  <data name="Balloon_ForgotOne" xml:space="preserve">
+    <value>{0}의 등록을 해제했어요. 약 {1}초 뒤에 휴대전화에서 다시 연결하세요.</value>
+  </data>
+  <data name="Balloon_ForgotAll" xml:space="preserve">
+    <value>신뢰한 휴대전화를 모두 등록 해제했어요. 약 {0}초 뒤에 휴대전화에서 다시 연결하세요.</value>
+  </data>
+  <data name="Dialog_StartWithWindows" xml:space="preserve">
+    <value>Windows 시작 시 실행</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>나중에</value>
+  </data>
+  <data name="Dialog_StartHeading" xml:space="preserve">
+    <value>로그인할 때 Edgepad를 시작할까요?</value>
+  </data>
+  <data name="Dialog_StartText" xml:space="preserve">
+    <value>그러면 Edgepad가 창 없이 알림 영역에서 휴대전화를 기다려요. 나중에 Edgepad 메뉴에서 바꿀 수 있어요.</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>허용</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>켜기</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>취소</value>
+  </data>
+  <data name="Dialog_ShareClipboard" xml:space="preserve">
+    <value>클립보드 공유</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>휴대전화가 이 노트북을 찾도록 할까요?</value>
+  </data>
+  <data name="Dialog_NetworkHeading" xml:space="preserve">
+    <value>Wi-Fi 및 USB 연결을 켤까요?</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>설정을 저장하지 못해서 아무것도 바뀌지 않았어요. 자세한 이유는 로그에 있어요.</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>보안</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>{0}에 있는 Edgepad 파일을 다른 곳에서 쓰지 않게 된 뒤에 등록 해제를 다시 시도하세요. {1}: 파일을 다시 쓰지 못해서 등록을 완전히 해제하지 못했어요. 디스크에는 계속 신뢰된 상태로 남아 있고, Edgepad를 다시 시작하기 전까지는 연결이 거부되지만, 다시 등록 해제하지 않으면 그 뒤에는 다시 신뢰돼요.</value>
+  </data>
+  <data name="Error_ForgetAllTrust" xml:space="preserve">
+    <value>신뢰한 휴대전화 파일을 쓰고 있는 프로그램을 닫은 뒤 모두 등록 해제를 다시 선택하거나, 직접 삭제하세요.
+
+{0}
+
+신뢰한 휴대전화를 등록 해제하지 못했어요. 파일을 삭제하거나 비울 수 없었어요. Edgepad가 실행 중인 동안에는 어떤 휴대전화도 연결할 수 없지만, Edgepad를 다시 시작하면 그 휴대전화들은 다시 신뢰돼요.</value>
+  </data>
+  <data name="Error_ForgetAllPin" xml:space="preserve">
+    <value>모두 등록 해제를 다시 선택하거나, 다음 위치에서 pin-verified.txt를 직접 삭제하세요.
+
+{0}
+
+PIN을 입력했던 휴대전화를 등록 해제하지 못했어요. 목록을 삭제할 수 없었어요. Edgepad가 실행 중인 동안에는 모든 휴대전화가 연결할 때마다 PIN을 물어보지만, Edgepad를 다시 시작하면 그 휴대전화들은 수준 2에서 PIN 입력을 다시 건너뛰어요.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>모두 등록 해제를 다시 선택하거나, 다음 위치에서 paired-links.txt를 직접 삭제하세요.
+
+{0}
+
+Wi-Fi 및 USB 페어링을 등록 해제하지 못했어요. 파일을 삭제하거나 비울 수 없었어요. Edgepad가 실행 중인 동안에는 페어링된 휴대전화가 Wi-Fi나 USB로 다시 연결할 수 없지만, Edgepad를 다시 시작하면 연결할 수 있어요.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>신뢰</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>신뢰 안 함</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>페어링된 휴대전화가 이 노트북의 포인터와 키보드를 제어하려고 해요. 본인의 휴대전화일 때만 신뢰하세요. {0}초 안에 답하지 않으면 신뢰하지 않은 것으로 처리돼요.</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>{0}: 신뢰할까요?</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>신뢰만</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>휴대전화마다 PIN 한 번</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>연결할 때마다 PIN</value>
+  </data>
+  <data name="Security_Level1Note" xml:space="preserve">
+    <value>새 휴대전화는 여기에서 허락을 받아야 해요. 그 밖에 묻는 것은 없어요.</value>
+  </data>
+  <data name="Security_Level2Note" xml:space="preserve">
+    <value>휴대전화에서 PIN도 한 번 입력해요. PIN이나 수준이 바뀌기 전까지 기억돼요.</value>
+  </data>
+  <data name="Security_Level3Note" xml:space="preserve">
+    <value>휴대전화가 연결할 때마다 PIN을 입력해요.</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>모든 휴대전화는 먼저 여기에서 허락을 받아야 해요. 수준 2와 3에서는 휴대전화 화면에 입력하는 6자리 PIN도 요구해요. 이 창이 열려 있는 동안에는 휴대전화 연결이 해제돼요.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>새 PIN이나 수준을 저장하면, PIN을 한 번 입력했던 휴대전화도 PIN을 다시 입력해야 해요.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>신뢰한 휴대전화</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>아직 신뢰한 휴대전화가 없어요. 휴대전화가 처음 연결될 때 신뢰 여부를 물어요.</value>
+  </data>
+  <data name="Security_LevelName" xml:space="preserve">
+    <value>수준 {0}, {1}</value>
+  </data>
+  <data name="Security_SetPinButton" xml:space="preserve">
+    <value>PIN 설정(&amp;P)…</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>모두 등록 해제(&amp;F)…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>PIN 초기화 및 휴대전화 등록 해제(&amp;R)…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>저장(&amp;S)</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>등록 해제</value>
+  </data>
+  <data name="Security_ForgetPhoneName" xml:space="preserve">
+    <value>등록 해제: {0}</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>PIN 변경…</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>PIN 설정…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>새 PIN이 저장돼요.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>PIN이 설정되어 있어요.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>PIN이 설정되어 있지 않아요.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>PIN을 저장하지 못해서 아무것도 바뀌지 않았어요. 자세한 이유는 로그에 있어요.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>수준을 저장하지 못해서 이전 수준이 그대로 적용돼요. 자세한 이유는 로그에 있어요.</value>
+  </data>
+  <data name="Security_ForgetOneHeading" xml:space="preserve">
+    <value>{0}의 등록을 해제할까요?</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>휴대전화 {0}({1}): 이 노트북을 쓰려면 여기에서 다시 신뢰해야 해요. 결정하는 동안 휴대전화 연결은 해제된 상태로 유지돼요.</value>
+  </data>
+  <data name="Security_ForgetAllHeading" xml:space="preserve">
+    <value>신뢰한 휴대전화를 모두 등록 해제할까요?</value>
+  </data>
+  <data name="Security_ForgetAllNamed" xml:space="preserve">
+    <value>이 노트북을 쓰려면 모든 휴대전화를 여기에서 다시 신뢰해야 해요. 연결 중인 휴대전화({0})도 마찬가지예요. 결정하는 동안 휴대전화 연결은 해제된 상태로 유지돼요.</value>
+  </data>
+  <data name="Security_ForgetAllEvery" xml:space="preserve">
+    <value>이 노트북을 쓰려면 모든 휴대전화를 여기에서 다시 신뢰해야 해요. 연결 중인 휴대전화도 마찬가지예요. 결정하는 동안 휴대전화 연결은 해제된 상태로 유지돼요.</value>
+  </data>
+  <data name="Security_ResetHeading" xml:space="preserve">
+    <value>PIN을 초기화하고 모든 휴대전화를 등록 해제할까요?</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>PIN이 삭제되고, 수준이 1로 돌아가고, 신뢰한 휴대전화가 모두 등록 해제돼요. 연결 중인 휴대전화를 포함해 모든 휴대전화를 여기에서 다시 신뢰해야 해요. 잊어버린 PIN은 복구할 수 없고 초기화만 할 수 있어요.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>파일을 쓰고 있는 프로그램을 닫은 뒤 초기화를 다시 선택하거나, 직접 삭제하세요.
+
+{0}
+
+아무것도 초기화되지 않았어요. 신뢰한 휴대전화를 등록 해제하지 못해서 PIN과 수준은 그대로예요. Edgepad가 실행 중인 동안에는 어떤 휴대전화도 연결할 수 없지만, Edgepad를 다시 시작하면 그 휴대전화들은 같은 PIN으로 다시 신뢰돼요.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>파일을 쓰고 있는 프로그램을 닫은 뒤 초기화를 다시 선택하거나, 다음 위치에서 security.txt와 pin-verified.txt를 직접 삭제하세요.
+
+{0}
+
+신뢰한 휴대전화는 등록 해제되었지만 PIN을 초기화하지 못했어요. 설정 파일을 삭제할 수 없어서 이전 PIN과 수준이 계속 적용될 수 있어요. 모든 휴대전화를 여기에서 다시 신뢰해야 해요.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>새 PIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>새 PIN 다시 입력</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>6자리</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>다시 입력</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>이 PIN 사용(&amp;U)</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>PIN은 정확히 6자리여야 해요.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>두 PIN이 같지 않아요.</value>
+  </data>
+  <data name="Macro_Description" xml:space="preserve">
+    <value>휴대전화의 매크로 화면에 표시되는 버튼이에요. 최대 15개까지 만들 수 있어요. 휴대전화는 버튼 번호만 보내고 프로그램은 보내지 않으므로, 여기에 추가한 것만 실행할 수 있어요. Alt+↑와 Alt+↓로 버튼 순서를 바꿔요.</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>아직 매크로가 없어요</value>
+  </data>
+  <data name="Macro_EmptyDetail" xml:space="preserve">
+    <value>앱, 문서, 폴더, 웹 주소를 추가하세요. 하나하나가 휴대전화의 버튼이 돼요.</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>이름</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>여는 대상</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>인수</value>
+  </data>
+  <data name="Macro_ArgumentsNone" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>선택 사항</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>아이콘</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>매크로</value>
+  </data>
+  <data name="Macro_IconPreview" xml:space="preserve">
+    <value>아이콘 미리보기</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>매크로 추가(&amp;A)</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>찾아보기(&amp;B)…</value>
+  </data>
+  <data name="Macro_BrowseName" xml:space="preserve">
+    <value>열 대상 찾아보기</value>
+  </data>
+  <data name="Macro_ChooseIcon" xml:space="preserve">
+    <value>아이콘 선택(&amp;C)…</value>
+  </data>
+  <data name="Macro_ChooseIconName" xml:space="preserve">
+    <value>아이콘 선택</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>프로그램 기본 아이콘 사용(&amp;U)</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>삭제(&amp;R)</value>
+  </data>
+  <data name="Macro_ReorderHint" xml:space="preserve">
+    <value>Alt+↑와 Alt+↓로 선택한 매크로를 옮겨요.</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>새 매크로</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>매크로 추가</value>
+  </data>
+  <data name="Macro_Full" xml:space="preserve">
+    <value>매크로: {0}개 중 {0}개</value>
+  </data>
+  <data name="Macro_NoRoom" xml:space="preserve">
+    <value>이 창이 열려 있는 동안 휴대전화에서 매크로가 추가되었는데 둘 자리가 없어요. 여기에서 하나를 삭제한 뒤 저장하세요.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>{0}에 매크로를 저장하지 못했어요: {1}</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}”에는 열 대상이 없어요. 열 대상을 선택하거나 삭제하세요.</value>
+  </data>
+  <data name="Dialog_Save" xml:space="preserve">
+    <value>저장</value>
+  </data>
+  <data name="Macro_DontSave" xml:space="preserve">
+    <value>저장 안 함</value>
+  </data>
+  <data name="Macro_SaveHeading" xml:space="preserve">
+    <value>매크로 변경 내용을 저장할까요?</value>
+  </data>
+  <data name="Macro_SaveText" xml:space="preserve">
+    <value>저장하지 않으면 변경 내용이 사라져요.</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>이 버튼으로 열 대상 선택</value>
+  </data>
+  <data name="Macro_FilterPrograms" xml:space="preserve">
+    <value>프로그램 및 문서 (*.*)</value>
+  </data>
+  <data name="Macro_FilterIcons" xml:space="preserve">
+    <value>아이콘, 프로그램, 그림 (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
+  </data>
+  <data name="Macro_FilterAll" xml:space="preserve">
+    <value>모든 파일 (*.*)</value>
+  </data>
+  <data name="Macro_ChoosePicture" xml:space="preserve">
+    <value>이 버튼에 쓸 그림 선택</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>휴대전화에 표시된 페어링 코드를 입력하세요:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>휴대전화에 표시된 페어링 코드</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>휴대전화 페어링</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>{0}: 페어링할까요?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>페어링</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>닫기</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>페어링 코드 확인 중</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>{0}초 후 닫힘</value>
+  </data>
+  <data name="App_RunningAsAdmin" xml:space="preserve">
+    <value>Edgepad가 이미 관리자 권한으로 실행 중이에요. 알림 영역 아이콘에서 종료하거나, 이것도 관리자 권한으로 실행하세요.</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad가 이미 실행 중이에요. 알림 영역에서 찾아보세요.</value>
+  </data>
+  <data name="App_DidNotHandOver" xml:space="preserve">
+    <value>다른 Edgepad가 이미 실행 중인데 넘겨받지 못했어요. 알림 영역 아이콘에서 종료한 뒤 이것을 다시 실행하세요.</value>
+  </data>
+  <data name="Phone_NoneConnected" xml:space="preserve">
+    <value>연결된 휴대전화 없음</value>
+  </data>
+  <data name="Badge_Connected" xml:space="preserve">
+    <value>연결됨</value>
+  </data>
+  <data name="Badge_Problem" xml:space="preserve">
+    <value>문제</value>
+  </data>
+  <data name="Badge_Waiting" xml:space="preserve">
+    <value>대기 중</value>
+  </data>
+  <data name="Level_Microphone" xml:space="preserve">
+    <value>마이크</value>
+  </data>
+  <data name="Level_Brightness" xml:space="preserve">
+    <value>밝기</value>
+  </data>
+  <data name="Phone_Name" xml:space="preserve">
+    <value>휴대전화</value>
+  </data>
+  <data name="Level_Volume" xml:space="preserve">
+    <value>볼륨</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi 및 USB: 연결 대기를 시작하지 못했어요. 로그를 확인하세요.</value>
+  </data>
+  <data name="Network_PhonesMayNotFind" xml:space="preserve">
+    <value>Wi-Fi 및 USB: 휴대전화가 이 노트북을 찾지 못할 수 있어요.</value>
+  </data>
+</root>
