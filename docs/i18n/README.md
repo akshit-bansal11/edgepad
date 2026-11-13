@@ -83,7 +83,7 @@ Edgepad, USB, Windows, Android, Mac, macOS, GitHub, ViGEmBus, Xbox, Lato, Lucide
 | keyboard | On-screen keyboard that types on the laptop. Modifiers (Ctrl, Alt, Shift, Fn) can be held or tapped to apply to the next key. | Key caps follow local keyboard print. |
 | function keys: With Fn, Direct | Keyboard setting: top row acts as media keys (With Fn) or as F1 to F12 (Direct). | |
 | gamepad | Game-controller screen: sticks, D-pad, buttons, shoulders, triggers. The laptop sees a virtual controller. | Common word for game controller. |
-| layout, preset | An arrangement of gamepad controls. Presets ship with Edgepad: Xbox, Platformer, Racing, Shooter (translated strings `gamepad_preset_*`); you save your own. | Xbox stays; the other three are genre words. |
+| layout, preset | An arrangement of gamepad controls. Presets ship with Edgepad: Xbox, Xbox keys (keyboard keys, no driver; the word "keys" is translated, never plain "Xbox"), Platformer, Racing, Shooter (translated strings `gamepad_preset_*`); you save your own. | Xbox stays; the other three are genre words. |
 | binding | What a gamepad control sends: a stick, a trigger or a keyboard key. | |
 | D-pad, stick, button, shoulder, trigger | Gamepad parts. Shoulder = the top bumper buttons. Trigger = the analog trigger. | Use the gaming industry's term in that language. |
 | keyboard mode (gamepad) | Fallback when the laptop has no virtual-controller driver: controls only send keys. | |
