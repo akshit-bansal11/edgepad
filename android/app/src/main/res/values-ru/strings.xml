@@ -175,7 +175,7 @@
   <string name="media_layout_hint_upright">Это портретное расположение; чтобы настроить альбомное, поверните телефон. Перетащите элемент, чтобы переместить его. Он привязывается к сетке и осевым линиям.</string>
   <string name="media_layout_hint_sideways">Это альбомное расположение; чтобы настроить портретное, поверните телефон. Перетащите элемент, чтобы переместить его. Он привязывается к сетке и осевым линиям.</string>
   <string name="piece_now_playing">Сейчас играет</string>
-  <string name="piece_transport">Назад · воспроизвести · вперёд</string>
+  <string name="piece_transport">Назад · пауза · вперёд</string>
   <string name="media_layout_reset">Сбросить положение</string>
   <string name="media_layout_reset_confirm">Сбросить положение? Нажмите ещё раз</string>
   <string name="editor_options">Параметры</string>
