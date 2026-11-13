@@ -58,7 +58,7 @@ Render each term by meaning, in the word the phone's and Windows' own UI use for
 
 ### Never translated
 
-Edgepad, Bluetooth, Wi-Fi, USB, Windows, Android, Mac, macOS, GitHub, ViGEmBus, Xbox, Lato, Lucide, AndroidSVG, Spotify and any other app or player name, file names and extensions (`pin-verified.txt`, `paired-links.txt`, `security.txt`, `*.exe`), units (`dp`, `Hz`, `MB`, `ms`, `s`), `F1` to `F12`. Key names follow the brief's keyboard rule.
+Edgepad, USB, Windows, Android, Mac, macOS, GitHub, ViGEmBus, Xbox, Lato, Lucide, AndroidSVG, Spotify and any other app or player name, file names and extensions (`pin-verified.txt`, `paired-links.txt`, `security.txt`, `*.exe`), units (`dp`, `Hz`, `MB`, `ms`, `s`), `F1` to `F12`. Key names follow the brief's keyboard rule. Bluetooth and Wi-Fi are written as the phone's own system writes them in that language: 蓝牙 (zh), 블루투스 (ko), بلوتوث (ar), ब्लूटूथ (hi), WLAN (de), Latin elsewhere.
 
 ### Terms
 
