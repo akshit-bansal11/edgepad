@@ -1,6 +1,5 @@
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
-using Edgepad.Protocol;
 using Edgepad.Ui;
 
 namespace Edgepad.Macros;
@@ -159,7 +158,7 @@ internal sealed class MacroWindow : Form
         // names the limit), and a name the owner watched themselves type is never cut afterwards.
         name.TextChanged += (_, _) =>
         {
-            var kept = FrameCodec.Truncate(name.Text, MacroStore.MaxNameBytes);
+            var kept = Protocol.FrameCodec.Truncate(name.Text, MacroStore.MaxNameBytes);
             var cut = kept != name.Text;
             if (cut)
             {

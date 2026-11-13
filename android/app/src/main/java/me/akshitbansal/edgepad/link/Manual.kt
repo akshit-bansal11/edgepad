@@ -51,10 +51,13 @@ internal fun parseHostPort(text: String): HostPort? {
     }
 }
 
-/** [text] without whitespace, a leading `scheme://`, a trailing `/`, and with any script's digits as ASCII. */
+/**
+ * [text] trimmed, without a leading `scheme://` or a trailing `/`, and with any script's digits as ASCII.
+ * Whitespace inside stays, so "two words" is still refused rather than read as a host.
+ */
 private fun cleaned(text: String): String =
     text
-        .filterNot(Char::isWhitespace)
+        .trim()
         .substringAfter("//")
         .trimEnd('/')
         .map { if (it.isDigit()) '0' + Character.digit(it, 10) else it }

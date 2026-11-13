@@ -44,6 +44,12 @@ class ManualTest {
         assertNull(parsed("[::1]x"))
         assertNull(parsed("[host]"))
         assertNull(parsed("two words"))
-        assertNull(parsed("http://desk"))
+    }
+
+    @Test
+    fun aPastedLinkOrForeignDigitsAreCleanedUp() {
+        assertEquals("desk|47321", parsed("http://desk"))
+        assertEquals("192.168.1.20|5000", parsed(" http://192.168.1.20:5000/ "))
+        assertEquals("192.168.1.20|47321", parsed("１９２.１６８.１.２０"))
     }
 }
