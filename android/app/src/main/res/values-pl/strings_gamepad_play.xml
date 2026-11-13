@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_edit">Edytuj układ</string>
+  <string name="gamepad_mode_waiting">Tryb klawiatury · czekanie, aż laptop zaoferuje kontroler</string>
+  <string name="gamepad_mode_unanswered">Tryb klawiatury · laptop nie odpowiedział; może trzeba zaktualizować Edgepad</string>
+  <string name="gamepad_mode_no_driver">Tryb klawiatury · brak sterownika kontrolera na laptopie</string>
+  <string name="gamepad_mode_no_driver_windows">Tryb klawiatury · zainstaluj ViGEmBus na laptopie, aby używać kontrolera</string>
+  <string name="gamepad_mode_no_driver_mac">Tryb klawiatury · komputer Mac nie ma trybu kontrolera</string>
+  <string name="gamepad_mode_attach_failed">Tryb klawiatury · laptop nie mógł podłączyć kontrolera</string>
+</resources>
