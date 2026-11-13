@@ -78,3 +78,12 @@ Android folder `values-zh-rCN`, Windows culture `zh-Hans`. Written for mainland 
 | update / release notes / release page / major release | 更新 / 版本说明 / 发布页面 / 重大版本 | |
 | protocol | 协议 | |
 | round trip | 往返时延 | |
+
+## Windows and shared core
+
+- Culture file names: `Strings.zh-Hans.resx`, `CoreStrings.zh-Hans.resx`.
+- Access keys are appended in parentheses, Windows style, before any ellipsis: `宏(&M)…`. Quoted by Android as “宏…”. Tray menu keys: T start, M macros, E security, W Wi-Fi and USB, F firewall, B Bluetooth, S share clipboard, C check updates, L log, U update, D documentation, Q quit.
+- Security dialog keys: P set PIN, F forget all, R reset, S save. Macro dialog: A add, B browse, C choose icon, U own icon, R remove.
+- Quoted names match their source strings: “信任” / “不信任”, “忘记”, “全部忘记”, “重置”, “取消”, “允许通过 Windows 防火墙”, “是，已配对” (Android `pair_confirm_yes`).
+- Units: seconds are `{0} 秒`; levels `级别 {0}，{1}`; counts `{0} / {1}`.
+- Terms: trusted phone 受信任的手机; security levels 仅信任 / 每部手机输入一次 PIN / 每次连接都输入 PIN; Macros columns 名称 / 打开内容 / 参数; badges 已连接 / 出现问题 / 等待中; start with Windows 开机时启动; Windows Firewall Windows 防火墙; administrator 管理员.

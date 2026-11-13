@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Network_Notice" xml:space="preserve">
+    <value>与这台电脑处于同一 Wi-Fi 网络，或通过 USB 网络共享连接的手机，将能够找到这台电脑并请求配对。不在这里输入配对码，就不会建立任何连接。Windows 会请求运行一次命令提示符，用来添加 Edgepad 的防火墙规则。</value>
+  </data>
+  <data name="Network_ClipboardNotice" xml:space="preserve">
+    <value>共享剪贴板：在一台设备上复制，在另一台上粘贴，支持文字和图片。勾选之前它保持关闭。</value>
+  </data>
+  <data name="Network_WhereItLives" xml:space="preserve">
+    <value>Edgepad 运行在任务栏角落。如果没有看到它的图标，请点击 ^ 并把图标拖出来。要使用蓝牙，请先在 Windows 蓝牙设置中与手机配对，再在手机上打开 Edgepad。</value>
+  </data>
+  <data name="Menu_StartWithWindows" xml:space="preserve">
+    <value>开机时启动(&amp;T)</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>宏(&amp;M)…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>安全(&amp;E)…</value>
+  </data>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Wi-Fi 和 USB 连接(&amp;W)</value>
+  </data>
+  <data name="Network_Title" xml:space="preserve">
+    <value>Wi-Fi 和 USB</value>
+  </data>
+  <data name="Menu_Firewall" xml:space="preserve">
+    <value>允许通过 Windows 防火墙(&amp;F)…</value>
+  </data>
+  <data name="Menu_BluetoothSettings" xml:space="preserve">
+    <value>打开蓝牙设置(&amp;B)</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>共享剪贴板(&amp;S)</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>在一台设备上复制，在另一台上粘贴：文字和图片。</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>每天检查更新(&amp;C)</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>打开日志(&amp;L)</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>有可用更新(&amp;U)</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>文档(&amp;D)</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>退出 Edgepad(&amp;Q)</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>有可用更新：{0}(&amp;U)</value>
+  </data>
+  <data name="Balloon_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} 已发布。点击打开发布页面；下载并运行即可替换当前版本。</value>
+  </data>
+  <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
+    <value>无法保存“开机时启动”，所以 Edgepad 不会自动启动。原因见日志。</value>
+  </data>
+  <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
+    <value>“共享剪贴板”暂时已更改，但无法保存，所以下次启动时可能不会记住。</value>
+  </data>
+  <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
+    <value>“每天检查更新”暂时已更改，但无法保存，所以下次启动时可能不会记住。</value>
+  </data>
+  <data name="Balloon_NewFile" xml:space="preserve">
+    <value>这个版本的 Edgepad 是新文件，所以 Windows 会询问一次是否允许手机访问它。</value>
+  </data>
+  <data name="Balloon_FirewallNotChanged" xml:space="preserve">
+    <value>Windows 防火墙没有更改，手机可能无法访问这台电脑。在此菜单中选择“允许通过 Windows 防火墙”可再试一次。</value>
+  </data>
+  <data name="Balloon_MacroAdded" xml:space="preserve">
+    <value>已从手机添加 {0}</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} 想要配对。请输入它显示的配对码。</value>
+  </data>
+  <data name="Balloon_DriverMissing" xml:space="preserve">
+    <value>手柄需要 ViGEmBus 驱动。点击打开下载页面。</value>
+  </data>
+  <data name="Balloon_WantsToConnect" xml:space="preserve">
+    <value>{0} 想要连接。请选择“信任”或“不信任”。</value>
+  </data>
+  <data name="Phone_Connected" xml:space="preserve">
+    <value>手机已连接</value>
+  </data>
+  <data name="Phone_Disconnected" xml:space="preserve">
+    <value>手机已断开连接</value>
+  </data>
+  <data name="Balloon_ForgotOne" xml:space="preserve">
+    <value>已忘记 {0}。约 {1} 秒后可在手机上重新连接。</value>
+  </data>
+  <data name="Balloon_ForgotAll" xml:space="preserve">
+    <value>已忘记所有受信任的手机。约 {0} 秒后可在手机上重新连接。</value>
+  </data>
+  <data name="Dialog_StartWithWindows" xml:space="preserve">
+    <value>开机时启动</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>暂不</value>
+  </data>
+  <data name="Dialog_StartHeading" xml:space="preserve">
+    <value>登录时启动 Edgepad？</value>
+  </data>
+  <data name="Dialog_StartText" xml:space="preserve">
+    <value>之后 Edgepad 会在任务栏角落等待你的手机，不显示窗口。你可以稍后在它的菜单中更改。</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>允许</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>开启</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Dialog_ShareClipboard" xml:space="preserve">
+    <value>共享剪贴板</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>允许手机找到这台电脑？</value>
+  </data>
+  <data name="Dialog_NetworkHeading" xml:space="preserve">
+    <value>开启“Wi-Fi 和 USB 连接”？</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>无法保存该设置，所以没有做任何更改。原因见日志。</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>安全</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>请等 {0} 中 Edgepad 的文件不再被其他程序占用后，再试一次“忘记”。{1} 未能完全忘记：有文件无法重写。它在磁盘上仍是受信任的，Edgepad 会拒绝它，直到 Edgepad 重新启动；此后除非你再次忘记它，否则它又会被信任。</value>
+  </data>
+  <data name="Error_ForgetAllTrust" xml:space="preserve">
+    <value>请关闭占用受信任手机文件的程序，然后再次选择“全部忘记”，或自行删除该文件：
+
+{0}
+
+受信任的手机未能忘记：它们的文件无法删除或清空。Edgepad 保持运行期间，没有手机能够连接，但下次 Edgepad 启动时，这些手机又会被信任。</value>
+  </data>
+  <data name="Error_ForgetAllPin" xml:space="preserve">
+    <value>请再次选择“全部忘记”，或自行从下列位置删除 pin-verified.txt：
+
+{0}
+
+输入过 PIN 的手机未能忘记：它们的列表无法删除。Edgepad 保持运行期间，每部手机每次连接都会被要求输入 PIN，但下次 Edgepad 启动时，这些手机在级别 2 下又会免于输入。</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>请再次选择“全部忘记”，或自行从下列位置删除 paired-links.txt：
+
+{0}
+
+Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepad 保持运行期间，已配对的手机无法通过 Wi-Fi 或 USB 重新连接，但下次它启动时又可以了。</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>信任</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>不信任</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>一部已配对的手机请求控制这台电脑的指针和键盘。只有它是你自己的手机时才选择信任。如果 {0} 秒内没有回应，将视为不信任。</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>信任 {0}？</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>仅信任</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>每部手机输入一次 PIN</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>每次连接都输入 PIN</value>
+  </data>
+  <data name="Security_Level1Note" xml:space="preserve">
+    <value>新手机需要你在这里点头同意，不会再询问其他内容。</value>
+  </data>
+  <data name="Security_Level2Note" xml:space="preserve">
+    <value>手机还需输入一次 PIN。在 PIN 或级别更改之前，它会一直被记住。</value>
+  </data>
+  <data name="Security_Level3Note" xml:space="preserve">
+    <value>手机每次连接都要输入 PIN。</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>每部手机都要先得到你在这里的同意。级别 2 和 3 还会要求在手机屏幕上输入六位 PIN。此窗口打开期间，手机会断开连接。</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>保存新的 PIN 或级别后，已输入过一次 PIN 的手机需要重新输入。</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>受信任的手机</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>还没有受信任的手机。手机首次连接时会询问你。</value>
+  </data>
+  <data name="Security_LevelName" xml:space="preserve">
+    <value>级别 {0}，{1}</value>
+  </data>
+  <data name="Security_SetPinButton" xml:space="preserve">
+    <value>设置 PIN(&amp;P)…</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>全部忘记(&amp;F)…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>重置 PIN 并忘记手机(&amp;R)…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>保存(&amp;S)</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>忘记</value>
+  </data>
+  <data name="Security_ForgetPhoneName" xml:space="preserve">
+    <value>忘记 {0}</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>更改 PIN…</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>设置 PIN…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>将保存新的 PIN。</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>已设置 PIN。</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>未设置 PIN。</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>无法保存 PIN，所以没有做任何更改。原因见日志。</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>无法保存级别，所以仍沿用之前的级别。原因见日志。</value>
+  </data>
+  <data name="Security_ForgetOneHeading" xml:space="preserve">
+    <value>忘记 {0}？</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>{0}（{1}）必须在这里再次被信任，才能使用这台电脑。你做决定期间，手机保持断开。</value>
+  </data>
+  <data name="Security_ForgetAllHeading" xml:space="preserve">
+    <value>忘记所有受信任的手机？</value>
+  </data>
+  <data name="Security_ForgetAllNamed" xml:space="preserve">
+    <value>{0} 必须在这里再次被信任，才能使用这台电脑，当前已连接的手机也不例外。你做决定期间，手机保持断开。</value>
+  </data>
+  <data name="Security_ForgetAllEvery" xml:space="preserve">
+    <value>每部手机都必须在这里再次被信任，才能使用这台电脑，当前已连接的手机也不例外。你做决定期间，手机保持断开。</value>
+  </data>
+  <data name="Security_ResetHeading" xml:space="preserve">
+    <value>重置 PIN 并忘记所有手机？</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>PIN 会被删除，级别恢复为 1，所有受信任的手机都会被忘记。每部手机，包括当前已连接的，都必须在这里再次被信任。忘记的 PIN 无法找回，只能重置。</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>请关闭占用该文件的程序，然后再次选择“重置”，或自行删除它：
+
+{0}
+
+未执行重置：受信任的手机未能忘记，所以 PIN 和级别保持原样。Edgepad 保持运行期间，没有手机能够连接，但下次它启动时，这些手机仍会在原 PIN 之下被信任。</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>请关闭占用该文件的程序，然后再次选择“重置”，或自行从下列位置删除 security.txt 和 pin-verified.txt：
+
+{0}
+
+受信任的手机已忘记，但 PIN 未能重置：有一个设置文件无法删除，所以旧的 PIN 和级别可能仍然生效。每部手机都必须在这里再次被信任。</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>新 PIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>再次输入新 PIN</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>六位数字</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>再次输入</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>使用此 PIN(&amp;U)</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>PIN 必须正好是六位数字。</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>两次输入的 PIN 不一致。</value>
+  </data>
+  <data name="Macro_Description" xml:space="preserve">
+    <value>手机宏界面上的按钮，最多 15 个。手机发送的只是按钮的编号，而不是程序，所以它只能运行你在这里添加的内容。按 Alt+上箭头 和 Alt+下箭头可调整按钮顺序。</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>还没有宏</value>
+  </data>
+  <data name="Macro_EmptyDetail" xml:space="preserve">
+    <value>添加一个应用、文档、文件夹或网址。每一项都会成为手机上的一个按钮。</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>打开内容</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>参数</value>
+  </data>
+  <data name="Macro_ArgumentsNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>可选</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>图标</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>宏</value>
+  </data>
+  <data name="Macro_IconPreview" xml:space="preserve">
+    <value>图标预览</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>添加宏(&amp;A)</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>浏览(&amp;B)…</value>
+  </data>
+  <data name="Macro_BrowseName" xml:space="preserve">
+    <value>浏览要打开的内容</value>
+  </data>
+  <data name="Macro_ChooseIcon" xml:space="preserve">
+    <value>选择图标(&amp;C)…</value>
+  </data>
+  <data name="Macro_ChooseIconName" xml:space="preserve">
+    <value>选择图标</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>使用程序自带的图标(&amp;U)</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>移除(&amp;R)</value>
+  </data>
+  <data name="Macro_ReorderHint" xml:space="preserve">
+    <value>按 Alt+上箭头 和 Alt+下箭头可移动所选的宏。</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>新宏</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>添加宏</value>
+  </data>
+  <data name="Macro_Full" xml:space="preserve">
+    <value>宏：{0} / {0}</value>
+  </data>
+  <data name="Macro_NoRoom" xml:space="preserve">
+    <value>此窗口打开期间，手机添加了一个宏，但已经没有空位。请先在这里移除一个，然后保存。</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>无法把宏保存到 {0}：{1}</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}”没有可打开的内容。请选择它要打开什么，或将其移除。</value>
+  </data>
+  <data name="Dialog_Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Macro_DontSave" xml:space="preserve">
+    <value>不保存</value>
+  </data>
+  <data name="Macro_SaveHeading" xml:space="preserve">
+    <value>保存对宏的更改？</value>
+  </data>
+  <data name="Macro_SaveText" xml:space="preserve">
+    <value>如果不保存，你的更改将会丢失。</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>选择此按钮要打开的内容</value>
+  </data>
+  <data name="Macro_FilterPrograms" xml:space="preserve">
+    <value>程序和文档 (*.*)</value>
+  </data>
+  <data name="Macro_FilterIcons" xml:space="preserve">
+    <value>图标、程序和图片 (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
+  </data>
+  <data name="Macro_FilterAll" xml:space="preserve">
+    <value>所有文件 (*.*)</value>
+  </data>
+  <data name="Macro_ChoosePicture" xml:space="preserve">
+    <value>选择此按钮的图片</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>请输入手机上显示的配对码：</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>手机上显示的配对码</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>配对手机</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>配对 {0}？</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>配对</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>正在核对配对码</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>{0} 秒后关闭</value>
+  </data>
+  <data name="App_RunningAsAdmin" xml:space="preserve">
+    <value>Edgepad 已在以管理员身份运行。请从它的托盘图标退出它，或者也以管理员身份运行这一个。</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad 已在运行。请在任务栏角落找到它。</value>
+  </data>
+  <data name="App_DidNotHandOver" xml:space="preserve">
+    <value>另一个 Edgepad 已在运行，且没有交接。请从它的托盘图标退出它，然后再运行这一个。</value>
+  </data>
+  <data name="Phone_NoneConnected" xml:space="preserve">
+    <value>没有已连接的手机</value>
+  </data>
+  <data name="Badge_Connected" xml:space="preserve">
+    <value>已连接</value>
+  </data>
+  <data name="Badge_Problem" xml:space="preserve">
+    <value>出现问题</value>
+  </data>
+  <data name="Badge_Waiting" xml:space="preserve">
+    <value>等待中</value>
+  </data>
+  <data name="Level_Microphone" xml:space="preserve">
+    <value>麦克风</value>
+  </data>
+  <data name="Level_Brightness" xml:space="preserve">
+    <value>亮度</value>
+  </data>
+  <data name="Phone_Name" xml:space="preserve">
+    <value>手机</value>
+  </data>
+  <data name="Level_Volume" xml:space="preserve">
+    <value>音量</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi 和 USB：无法监听。请查看日志。</value>
+  </data>
+  <data name="Network_PhonesMayNotFind" xml:space="preserve">
+    <value>Wi-Fi 和 USB：手机可能找不到这台电脑。</value>
+  </data>
+</root>
