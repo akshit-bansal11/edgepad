@@ -133,7 +133,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
     }
 
     func matched() {
-        tell("Code matched. Tap Yes on \(phone) to finish.", closeSoon: false)
+        tell("Code matched. Tap “Yes, paired” on \(phone) to finish.", closeSoon: false)
     }
 
     func mismatched() {
