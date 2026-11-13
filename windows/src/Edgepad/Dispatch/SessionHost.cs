@@ -19,7 +19,7 @@ namespace Edgepad.Dispatch;
 /// the old socket has noticed it is dead, and refusing would lock the phone out until it did.
 /// </summary>
 internal sealed class SessionHost(
-    Action<string> onStatus,
+    Action<LaptopStatus> onStatus,
     TrustStore trust,
     PinStore pin,
     Func<string, CancellationToken, bool> askTrust,
@@ -57,24 +57,21 @@ internal sealed class SessionHost(
     // How the owner reads each phone: its name, which can arrive after the connection (a Bluetooth phone's is looked up
     // in Windows), and the way it came. Only phones that got as far as a session get here, so it grows with this
     // laptop's own phones, not with whoever opens a socket.
-    private readonly ConcurrentDictionary<string, (Func<string> Name, string Way)> shown = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, (Func<string> Name, PhoneWay Way)> shown = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>What the owner reads for <paramref name="address"/>: the phone's name, or its address while it has none.</summary>
     public string Shown(string address) => shown.TryGetValue(address, out var phone) ? phone.Name() : address;
 
     /// <summary>The connected status for <paramref name="address"/>, "Connected to Pixel · Bluetooth".</summary>
-    public string Connected(string address) =>
-        shown.TryGetValue(address, out var phone) ? LaptopStatus.Connected(phone.Name(), phone.Way) : LaptopStatus.Connected(address, "Bluetooth");
+    public LaptopStatus Connected(string address) =>
+        shown.TryGetValue(address, out var phone) ? LaptopStatus.Connected(phone.Name(), phone.Way) : LaptopStatus.Connected(address, PhoneWay.Bluetooth);
 
     /// <summary>The status line for <paramref name="link"/>'s session, naming the phone as <see cref="Shown"/> does.</summary>
-    private Action<string> StatusFor(IPhoneLink link)
+    private Action<LaptopStatus> StatusFor(IPhoneLink link)
     {
         var address = link.Address;
-        shown[address] = (() => link.Label, link.Kind == LinkKind.Network ? "Wi-Fi or USB" : "Bluetooth");
-        return status => onStatus(
-            LaptopStatus.IsConnected(status)
-                ? Connected(address)
-                : LaptopStatus.Rewrite(status, Shown(address)).Replace(address, Shown(address), StringComparison.Ordinal));
+        shown[address] = (() => link.Label, link.Kind == LinkKind.Network ? PhoneWay.WifiOrUsb : PhoneWay.Bluetooth);
+        return status => onStatus(status.IsConnected ? Connected(address) : status.For(Shown(address), PhoneWay.Bluetooth));
     }
 
     /// <summary>

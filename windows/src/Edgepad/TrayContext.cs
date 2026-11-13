@@ -113,7 +113,7 @@ internal sealed class TrayContext : ApplicationContext
     private bool announcedDriver;
 
     // What the header says now, so the quiet period's line can be taken down when it ends.
-    private string? shownNow;
+    private LaptopStatus? shownNow;
 
     // Until when a phone dropping is the owner's own doing (a Forget, the Security window), so it is not announced.
     private long ownHangUpUntil;
@@ -256,7 +256,7 @@ internal sealed class TrayContext : ApplicationContext
             trust,
             new PairingPrompt(ui, AnnouncePairing),
             host.Accept,
-            name => SetStatus($"Paired with {name}"),
+            name => SetStatus(LaptopStatus.Paired(name)),
             () => host.IsRefusing);
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
 
@@ -371,7 +371,7 @@ internal sealed class TrayContext : ApplicationContext
         {
             // Top-level boundary of a fire-and-forget task: an escaped exception here would be lost silently.
             Log.Write($"Bluetooth service failed to start: {e}");
-            SetStatus("Bluetooth is off or unavailable");
+            SetStatus(LaptopStatus.BluetoothUnavailable);
         }
     }
 
@@ -670,23 +670,23 @@ internal sealed class TrayContext : ApplicationContext
         },
         null);
 
-    private void SetStatus(string text) => ui.Post(_ => ApplyStatus(text), null);
+    private void SetStatus(LaptopStatus status) => ui.Post(_ => ApplyStatus(status), null);
 
     /// <summary>The header, the tooltip, the icon's dot and the connect/drop notice, for one status. On the UI thread only.</summary>
-    private void ApplyStatus(string text)
+    private void ApplyStatus(LaptopStatus status)
     {
         var now = Environment.TickCount64;
-        if (statusMemory.ShouldAnnounce(text, now))
+        if (statusMemory.ShouldAnnounce(status, now))
         {
-            Balloon(text, ToolTipIcon.Warning);
+            Balloon(status.Text, ToolTipIcon.Warning);
         }
 
-        var shown = statusMemory.Resolve(text, now);
+        var shown = statusMemory.Resolve(status, now);
         shownNow = shown;
         menu.Header.SetStatus(shown);
-        icon.Text = TrayStatus.Tooltip(shown, MaxTooltipLength);
+        icon.Text = TrayStatus.Tooltip(shown.Text, MaxTooltipLength);
 
-        var connected = LaptopStatus.IsConnected(shown);
+        var connected = shown.IsConnected;
         if (connected == wasConnected)
         {
             return;
@@ -844,14 +844,14 @@ internal sealed class TrayContext : ApplicationContext
         var until = Environment.TickCount64 + (long)QuietAfterForget.TotalMilliseconds;
         ownHangUpUntil = until + 2000;
         statusMemory.Clear();
-        statusMemory.Quiet($"Phones can connect again at {DateTime.Now.Add(QuietAfterForget):t}", until);
+        statusMemory.Quiet(LaptopStatus.QuietUntil($"{DateTime.Now.Add(QuietAfterForget):t}"), until);
 
         // Nothing posts a status when the quiet period ends, so a line that names a time would outlive it.
         _ = Task.Delay(QuietAfterForget + TimeSpan.FromSeconds(1)).ContinueWith(
             t => ui.Post(
                 _ =>
                 {
-                    if (shownNow?.StartsWith("Phones can connect again", StringComparison.Ordinal) == true)
+                    if (shownNow?.Kind == StatusKind.QuietUntil)
                     {
                         ApplyStatus(LaptopStatus.Waiting);
                     }
@@ -926,7 +926,7 @@ internal sealed class TrayContext : ApplicationContext
             phone = host.Shown(address);
         }
 
-        SetStatus($"Asking whether to trust {phone}");
+        SetStatus(LaptopStatus.Asking(phone));
         var deadline = Environment.TickCount64 + (long)TrustPromptTimeout.TotalMilliseconds;
         var answer = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         ui.Post(

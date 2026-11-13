@@ -334,13 +334,13 @@ internal sealed class HeaderRow : ToolStripMenuItem
         // Not a command, so the keyboard passes over it; a screen reader still reads its name and description.
         Enabled = false;
         ripple.Tick += (_, _) => Invalidate();
-        SetStatus("Starting…");
+        SetStatus(LaptopStatus.Starting);
     }
 
-    public TrayStatus Status { get; private set; } = TrayStatus.Describe(string.Empty);
+    public TrayStatus Status { get; private set; } = TrayStatus.Describe(LaptopStatus.Starting);
 
     /// <summary>Takes a status line from the Bluetooth side, already marshalled onto the UI thread.</summary>
-    public void SetStatus(string status)
+    public void SetStatus(LaptopStatus status)
     {
         Status = TrayStatus.Describe(status);
         Text = Status.Headline;
@@ -503,23 +503,19 @@ internal sealed class HeaderRow : ToolStripMenuItem
 /// <summary>What the header says for a status line from the Bluetooth side.</summary>
 internal sealed record TrayStatus(string Headline, string Badge, string Line, bool Waiting, bool Problem = false)
 {
-    // A phone the status already says the way of keeps it ("Pixel · Wi-Fi"); a bare name is Bluetooth.
-    private const string Way = " · ";
-
     /// <summary>A live phone: neither waiting for one nor stuck.</summary>
     public bool Connected => !Waiting && !Problem;
 
-    public static TrayStatus Describe(string status)
+    public static TrayStatus Describe(LaptopStatus status)
     {
-        if (LaptopStatus.IsConnected(status))
+        if (status.IsConnected)
         {
-            var phone = status[LaptopStatus.ConnectedStart.Length..];
-            return new TrayStatus(Strings.Phone_Connected, Strings.Badge_Connected, phone.Contains(Way, StringComparison.Ordinal) ? phone : $"{phone}{Way}Bluetooth", Waiting: false);
+            return new TrayStatus(Strings.Phone_Connected, Strings.Badge_Connected, status.PhoneLine, Waiting: false);
         }
 
-        return LaptopStatus.IsProblem(status)
-            ? new TrayStatus(Strings.Phone_NoneConnected, Strings.Badge_Problem, status, Waiting: false, Problem: true)
-            : new TrayStatus(Strings.Phone_NoneConnected, Strings.Badge_Waiting, status, Waiting: true);
+        return status.IsProblem
+            ? new TrayStatus(Strings.Phone_NoneConnected, Strings.Badge_Problem, status.Text, Waiting: false, Problem: true)
+            : new TrayStatus(Strings.Phone_NoneConnected, Strings.Badge_Waiting, status.Text, Waiting: true);
     }
 
     /// <summary>
