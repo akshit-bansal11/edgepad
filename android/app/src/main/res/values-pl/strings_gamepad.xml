@@ -2,6 +2,10 @@
 <resources>
   <string name="gamepad_layout_title">Układ gamepada</string>
   <string name="gamepad_layout_editing">Edycja: %1$s</string>
+  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_platformer">Platformówka</string>
+  <string name="gamepad_preset_racing">Wyścigi</string>
+  <string name="gamepad_preset_shooter">Strzelanka</string>
   <string name="gamepad_layout_hint">Przeciągnij, aby przenieść. Przytrzymaj element, aby otworzyć jego menu.</string>
   <string name="gamepad_layout_section">Układy</string>
   <string name="gamepad_description">Kontroler do gier dla laptopa. Działa tylko dotykiem.</string>
