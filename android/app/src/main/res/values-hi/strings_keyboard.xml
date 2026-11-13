@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">कीबोर्ड</string>
+  <string name="keyboard_type_text">टेक्स्ट लिखें</string>
+  <string name="keyboard_type_send">भेजें</string>
+  <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
+  <string name="back_to_surface">कंट्रोल</string>
+  <string name="macros_title">मैक्रो</string>
+  <string name="keyboard_key_on">दबी है</string>
+  <string name="keyboard_description">लैपटॉप के लिए ऑन-स्क्रीन कीबोर्ड</string>
+  <string name="keyboard_size">साइज़</string>
+  <string name="keyboard_size_caption">बड़े साइज़ में ज़्यादा कीज़ आती हैं, इसलिए हर की छोटी हो जाती है। इनके लिए चौड़ी स्क्रीन चाहिए।</string>
+  <string name="keyboard_function_keys">फ़ंक्शन कीज़</string>
+  <string name="keyboard_with_fn">Fn के साथ</string>
+  <string name="keyboard_direct">सीधे</string>
+  <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
+  <string name="keyboard_function_keys_caption">\"Fn के साथ\": ऊपर की पंक्ति वही करती है जो उन पर छपा है (ब्राइटनेस, मीडिया, वॉल्यूम), और Fn के साथ कोई की दबाने पर F1 से F12 जाती हैं। 65%% और 60%% कीबोर्ड में F पंक्ति नहीं होती, इसलिए नंबर वाली पंक्ति अंक लिखती है और Fn के साथ कोई नंबर दबाने पर F1 से F12 जाती हैं। \"सीधे\": ऊपर की पंक्ति F1 से F12 भेजती है और Fn के साथ कोई की दबाने पर छपा हुआ काम होता है; 65%% और 60%% में नंबर वाली पंक्ति F1 से F12 भेजती है और Fn के साथ कोई नंबर दबाने पर वह अंक लिखा जाता है।</string>
+</resources>

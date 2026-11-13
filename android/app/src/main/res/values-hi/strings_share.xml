@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Share > Edgepad (ShareActivity): nothing is sent until Send is tapped. -->
+  <string name="share_title">%1$s को भेजें?</string>
+  <string name="share_image">एक इमेज</string>
+  <string name="share_send">भेजें</string>
+  <string name="share_sent">%1$s को भेज दिया</string>
+  <string name="share_send_failed">%1$s को नहीं भेज सके। कनेक्शन जांचें और फिर कोशिश करें।</string>
+  <string name="share_no_laptop">Edgepad किसी लैपटॉप से कनेक्ट नहीं है। कोई लैपटॉप कनेक्ट करें, फिर दोबारा शेयर करें।</string>
+  <string name="share_clipboard_off">%1$s पर \"क्लिपबोर्ड शेयर करें\" चालू करें</string>
+  <string name="share_nothing">यहां ऐसा कुछ नहीं है जिसे Edgepad भेज सके।</string>
+  <string name="share_text_too_long">यह टेक्स्ट भेजने के लिए बहुत लंबा है। सीमा 1 MB है।</string>
+  <string name="share_image_failed">यह इमेज पढ़ी नहीं जा सकी, या भेजने के लिए बहुत बड़ी है।</string>
+  <!-- Under every shared text in the confirm, counted on the text as sent (a trailing line break makes one more). -->
+  <plurals name="share_lines">
+    <item quantity="one">%1$d लाइन।</item>
+    <item quantity="other">%1$d लाइनें।</item>
+  </plurals>
+  <!-- After share_lines when the text is cut for the confirm: everything is still sent. -->
+  <plurals name="share_not_shown">
+    <item quantity="one">%1$d और अक्षर यहां नहीं दिख रहा। \"भेजें\" दबाने पर सब कुछ भेजा जाएगा।</item>
+    <item quantity="other">%1$d और अक्षर यहां नहीं दिख रहे। \"भेजें\" दबाने पर सब कुछ भेजा जाएगा।</item>
+  </plurals>
+</resources>

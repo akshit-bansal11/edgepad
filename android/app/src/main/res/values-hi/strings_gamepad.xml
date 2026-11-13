@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_layout_title">गेमपैड लेआउट</string>
+  <string name="gamepad_layout_editing">%1$s बदल रहे हैं</string>
+  <string name="gamepad_layout_hint">खिसकाने के लिए खींचें। किसी कंट्रोल का मेन्यू खोलने के लिए उसे दबाए रखें।</string>
+  <string name="gamepad_layout_section">लेआउट</string>
+  <string name="gamepad_description">लैपटॉप के लिए गेम कंट्रोलर। यह सिर्फ़ टच से काम करता है।</string>
+  <string name="gamepad_node_dpad">D-पैड</string>
+  <string name="gamepad_node_stick">स्टिक</string>
+  <string name="gamepad_node_button">बटन</string>
+  <string name="gamepad_size">साइज़</string>
+  <string name="dp_value">%1$d dp</string>
+
+  <!-- The two buttons in the editor's options popup; short, because they sit side by side in it. -->
+  <string name="gamepad_add">जोड़ें</string>
+  <string name="gamepad_restore">%1$s वापस लाएं</string>
+  <string name="gamepad_restore_confirm">%1$s वापस लाएं? फिर टैप करें</string>
+  <string name="gamepad_switch_to">%1$s पर जाएं</string>
+  <string name="gamepad_switch_to_confirm">%1$s पर जाएं? आपका अपना सेव रहेगा। फिर टैप करें</string>
+  <string name="gamepad_layouts">लेआउट</string>
+
+  <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->
+  <string name="gamepad_control_title">%1$s · %2$s</string>
+  <string name="gamepad_bind">बाइंडिंग</string>
+  <string name="gamepad_label">नाम</string>
+  <string name="gamepad_delete_control">कंट्रोल हटाएं</string>
+  <string name="gamepad_delete_title">%1$s हटाएं?</string>
+  <string name="gamepad_delete_body">यह इस लेआउट से हट जाएगा। \"जोड़ें\" से कंट्रोल वापस आ जाता है।</string>
+  <string name="gamepad_name_required">लेआउट को एक नाम दें</string>
+
+  <!-- Adding a control: the kinds offered, in the order the menu lists them. -->
+  <string name="gamepad_add_control">कंट्रोल जोड़ें</string>
+  <string name="gamepad_kind_button">बटन</string>
+  <string name="gamepad_kind_dpad">D-पैड</string>
+  <string name="gamepad_kind_stick">स्टिक</string>
+  <string name="gamepad_kind_shoulder">शोल्डर</string>
+  <string name="gamepad_kind_trigger">ट्रिगर</string>
+
+  <string name="gamepad_bind_stick_left">लेफ़्ट स्टिक</string>
+  <string name="gamepad_bind_stick_right">राइट स्टिक</string>
+  <string name="gamepad_bind_trigger_left">लेफ़्ट ट्रिगर</string>
+  <string name="gamepad_bind_trigger_right">राइट ट्रिगर</string>
+  <string name="gamepad_bind_keys">कीबोर्ड की</string>
+  <string name="gamepad_bind_key_up">ऊपर के लिए की</string>
+  <string name="gamepad_bind_key_down">नीचे के लिए की</string>
+  <string name="gamepad_bind_key_left">बाएं के लिए की</string>
+  <string name="gamepad_bind_key_right">दाएं के लिए की</string>
+
+  <!-- Keeping the named layouts themselves. -->
+  <string name="gamepad_save_as">इस नाम से सेव करें</string>
+  <string name="gamepad_rename">नाम बदलें</string>
+  <string name="gamepad_delete_layout">लेआउट हटाएं</string>
+  <string name="gamepad_delete_layout_body">%1$s हट जाएगा। Edgepad के साथ आने वाले लेआउट बने रहेंगे।</string>
+  <string name="gamepad_delete">हटाएं</string>
+</resources>
