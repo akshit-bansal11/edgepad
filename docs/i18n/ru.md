@@ -44,6 +44,7 @@ Android `values-ru`, Windows culture `ru`. Glossary, register and conventions fo
 | gesture | жест |
 | natural scrolling | Естественная прокрутка |
 | media, now playing | Медиа, Сейчас играет |
+| play (button / action) | Воспроизвести; Воспроизведение for the state or feature. Never "Пуск": reserved for the Windows Start menu |
 | Controls | Управление |
 | keyboard | Клавиатура |
 | function keys: With Fn, Direct | С Fn, Напрямую |

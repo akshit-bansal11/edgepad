@@ -175,7 +175,7 @@
   <string name="media_layout_hint_upright">Это портретное расположение; чтобы настроить альбомное, поверните телефон. Перетащите элемент, чтобы переместить его. Он привязывается к сетке и осевым линиям.</string>
   <string name="media_layout_hint_sideways">Это альбомное расположение; чтобы настроить портретное, поверните телефон. Перетащите элемент, чтобы переместить его. Он привязывается к сетке и осевым линиям.</string>
   <string name="piece_now_playing">Сейчас играет</string>
-  <string name="piece_transport">Назад · пуск · вперёд</string>
+  <string name="piece_transport">Назад · воспроизвести · вперёд</string>
   <string name="media_layout_reset">Сбросить положение</string>
   <string name="media_layout_reset_confirm">Сбросить положение? Нажмите ещё раз</string>
   <string name="editor_options">Параметры</string>
@@ -205,7 +205,7 @@
   <string name="action_left_click">Левая кнопка мыши</string>
   <string name="action_right_click">Правая кнопка мыши</string>
   <string name="action_middle_click">Средняя кнопка мыши</string>
-  <string name="action_play_pause">Пуск / пауза</string>
+  <string name="action_play_pause">Воспроизвести / пауза</string>
   <string name="action_next_track">Следующий трек</string>
   <string name="action_previous_track">Предыдущий трек</string>
   <string name="action_mute">Без звука</string>
@@ -402,7 +402,7 @@
   <string name="surface_hint_hold">Нажмите, удерживайте и двигайте, чтобы перетащить</string>
   <string name="surface_app_time">%1$s · %2$s из %3$s</string>
   <string name="surface_time">%1$s из %2$s</string>
-  <string name="surface_play_pause">Пуск или пауза</string>
+  <string name="surface_play_pause">Воспроизведение или пауза</string>
   <string name="surface_volume_up">Громче</string>
   <string name="surface_volume_down">Тише</string>
   <string name="surface_brightness_up">Ярче</string>
