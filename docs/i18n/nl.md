@@ -51,7 +51,7 @@ Informal "je" in both apps, as Dutch Android and Windows address the user. Short
 | keyboard | Toetsenbord |
 | function keys: With Fn, Direct | Functietoetsen: Met Fn, Direct |
 | gamepad | Gamepad |
-| gamepad presets | Xbox / Platformer / Racen / Shooter | `gamepad_preset_*`; the guide uses the same words |
+| gamepad presets | Xbox / Platformer / Racen / Shooter | `gamepad_preset_*`; the guide uses the same words | Xbox keys preset (separate from Xbox): Xbox-toetsen.
 | layout, preset | Indeling, voorinstelling |
 | binding | Toewijzing |
 | D-pad, stick, button, shoulder, trigger | D-pad, stick, knop, schouderknop, trigger |

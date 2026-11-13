@@ -2,7 +2,7 @@
 <resources>
   <string name="gamepad_layout_title">Diseño del gamepad</string>
   <string name="gamepad_layout_editing">Editando %1$s</string>
-  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_xbox_keys">Xbox (teclas)</string>
   <string name="gamepad_preset_platformer">Plataformas</string>
   <string name="gamepad_preset_racing">Carreras</string>
   <string name="gamepad_preset_shooter">Disparos</string>

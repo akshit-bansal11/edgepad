@@ -48,7 +48,7 @@ Android `values-ru`, Windows culture `ru`. Glossary, register and conventions fo
 | keyboard | Клавиатура |
 | function keys: With Fn, Direct | С Fn, Напрямую |
 | gamepad | Геймпад |
-| gamepad presets | Xbox / Платформер / Гонки / Шутер | `gamepad_preset_*`; the guide uses the same words |
+| gamepad presets | Xbox / Платформер / Гонки / Шутер | `gamepad_preset_*`; the guide uses the same words | Xbox keys preset (separate from Xbox): Xbox (клавиши).
 | layout, preset | раскладка, готовая раскладка |
 | D-pad, stick, shoulder, trigger | крестовина, стик, бампер, триггер |
 | binding | Назначение |

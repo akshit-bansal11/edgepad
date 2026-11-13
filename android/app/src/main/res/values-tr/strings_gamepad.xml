@@ -2,7 +2,7 @@
 <resources>
   <string name="gamepad_layout_title">Oyun kumandası düzeni</string>
   <string name="gamepad_layout_editing">Düzenleniyor: %1$s</string>
-  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_xbox_keys">Xbox (tuşlar)</string>
   <string name="gamepad_preset_platformer">Platform</string>
   <string name="gamepad_preset_racing">Yarış</string>
   <string name="gamepad_preset_shooter">Nişancı</string>

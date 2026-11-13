@@ -45,7 +45,7 @@ Android `values-fr`, Windows culture `fr`. One French for France and Canada: no 
 | keyboard | Clavier |
 | function keys, With Fn, Direct | Touches de fonction, Avec Fn, Direct |
 | gamepad | Manette |
-| gamepad presets | Xbox / Plateforme / Course / Tir | `gamepad_preset_*`; the guide uses the same words |
+| gamepad presets | Xbox / Plateforme / Course / Tir | `gamepad_preset_*`; the guide uses the same words | Xbox keys preset (separate from Xbox): Xbox (touches).
 | layout | disposition; preset = modèle |
 | binding | Assignation |
 | D-pad, stick, button, shoulder, trigger | croix directionnelle, joystick, bouton, bouton d'épaule, gâchette |

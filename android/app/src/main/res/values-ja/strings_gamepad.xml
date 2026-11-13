@@ -2,7 +2,7 @@
 <resources>
   <string name="gamepad_layout_title">ゲームパッドのレイアウト</string>
   <string name="gamepad_layout_editing">%1$sを編集中</string>
-  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_xbox_keys">Xbox（キー）</string>
   <string name="gamepad_preset_platformer">横スクロール</string>
   <string name="gamepad_preset_racing">レース</string>
   <string name="gamepad_preset_shooter">シューティング</string>

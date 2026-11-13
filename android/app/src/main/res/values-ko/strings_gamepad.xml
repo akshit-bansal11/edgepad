@@ -2,7 +2,7 @@
 <resources>
   <string name="gamepad_layout_title">게임패드 레이아웃</string>
   <string name="gamepad_layout_editing">%1$s 편집 중</string>
-  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_xbox_keys">Xbox (키)</string>
   <string name="gamepad_preset_platformer">플랫포머</string>
   <string name="gamepad_preset_racing">레이싱</string>
   <string name="gamepad_preset_shooter">슈팅</string>

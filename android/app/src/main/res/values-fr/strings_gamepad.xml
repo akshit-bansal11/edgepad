@@ -2,7 +2,7 @@
 <resources>
   <string name="gamepad_layout_title">Disposition de la manette</string>
   <string name="gamepad_layout_editing">Modification de %1$s</string>
-  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_xbox_keys">Xbox (touches)</string>
   <string name="gamepad_preset_platformer">Plateforme</string>
   <string name="gamepad_preset_racing">Course</string>
   <string name="gamepad_preset_shooter">Tir</string>

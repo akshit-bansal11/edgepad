@@ -48,7 +48,7 @@ Polite imperative with the plural/polite ending (-in/-ın/-un/-ün: "Dokunun", "
 | keyboard | Klavye |
 | function keys: With Fn, Direct | İşlev tuşları: Fn ile, Doğrudan |
 | gamepad | Oyun kumandası |
-| gamepad presets | Xbox / Platform / Yarış / Nişancı | `gamepad_preset_*`; the guide uses the same words |
+| gamepad presets | Xbox / Platform / Yarış / Nişancı | `gamepad_preset_*`; the guide uses the same words | Xbox keys preset (separate from Xbox): Xbox (tuşlar).
 | layout, preset | Düzen, hazır ayar |
 | binding | Atama |
 | D-pad, stick, button, shoulder, trigger | Yön tuşları, çubuk, düğme, omuz tuşu, tetik |

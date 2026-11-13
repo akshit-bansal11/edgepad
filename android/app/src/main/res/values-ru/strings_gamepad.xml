@@ -2,7 +2,7 @@
 <resources>
   <string name="gamepad_layout_title">Раскладка геймпада</string>
   <string name="gamepad_layout_editing">Изменение: %1$s</string>
-  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_xbox_keys">Xbox (клавиши)</string>
   <string name="gamepad_preset_platformer">Платформер</string>
   <string name="gamepad_preset_racing">Гонки</string>
   <string name="gamepad_preset_shooter">Шутер</string>

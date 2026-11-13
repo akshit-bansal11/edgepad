@@ -45,7 +45,7 @@ Android folder `values-ja`, Windows culture `ja`. Written to match the wording o
 | keyboard | キーボード | |
 | With Fn / Direct | Fnと併用 / 直接 | |
 | gamepad | ゲームパッド | |
-| gamepad presets | Xbox / 横スクロール / レース / シューティング | `gamepad_preset_*`; the guide uses the same words |
+| gamepad presets | Xbox / 横スクロール / レース / シューティング | `gamepad_preset_*`; the guide uses the same words | Xbox keys preset (separate from Xbox): Xbox（キー）.
 | layout / preset | レイアウト / プリセット | |
 | binding | 割り当て | |
 | D-pad / stick / button / shoulder / trigger | 十字キー / スティック / ボタン / ショルダー / トリガー | |

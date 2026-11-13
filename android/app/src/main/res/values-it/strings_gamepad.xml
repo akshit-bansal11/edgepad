@@ -2,7 +2,7 @@
 <resources>
   <string name="gamepad_layout_title">Layout del gamepad</string>
   <string name="gamepad_layout_editing">Modifica di %1$s</string>
-  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_xbox_keys">Xbox (tasti)</string>
   <string name="gamepad_preset_platformer">Platform</string>
   <string name="gamepad_preset_racing">Corse</string>
   <string name="gamepad_preset_shooter">Sparatutto</string>

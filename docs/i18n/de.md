@@ -48,7 +48,7 @@ Informal "du", in both apps, the same way Android does for settings and hints. I
 | keyboard | Tastatur |
 | function keys: With Fn, Direct | Funktionstasten: Mit Fn, Direkt |
 | gamepad | Gamepad |
-| gamepad presets | Xbox / Jump'n'Run / Rennspiel / Shooter | `gamepad_preset_*`; the guide uses the same words |
+| gamepad presets | Xbox / Jump'n'Run / Rennspiel / Shooter | `gamepad_preset_*`; the guide uses the same words | Xbox keys preset (separate from Xbox): Xbox-Tasten.
 | layout, preset | Layout, Vorlage |
 | binding | Belegung |
 | D-pad, stick, button, shoulder, trigger | Steuerkreuz, Stick, Taste, Schultertaste, Trigger |
