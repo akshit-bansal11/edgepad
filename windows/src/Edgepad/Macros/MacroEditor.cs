@@ -64,6 +64,9 @@ internal sealed class MacroWindow : Form
     /// </summary>
     private readonly Dictionary<string, Image?> pictures = [];
 
+    /// <summary>The keys of the pictures being read on a worker, so one is never started twice.</summary>
+    private readonly HashSet<string> reading = [];
+
     private readonly ListBox list = new() { DrawMode = DrawMode.OwnerDrawFixed, BorderStyle = BorderStyle.None, IntegralHeight = false };
     private readonly TextBox name = new() { BorderStyle = BorderStyle.None, AccessibleName = Strings.Macro_Name };
     private readonly TextBox target = new() { BorderStyle = BorderStyle.None, AccessibleName = Strings.Macro_Opens };
@@ -600,17 +603,31 @@ internal sealed class MacroWindow : Form
         DialogResult = DialogResult.None;
     }
 
-    /// <summary>Reads the picture for <paramref name="macro"/> if it has not been read already.</summary>
+    /// <summary>
+    /// Starts reading the picture for <paramref name="macro"/> unless it is read or being read. The read can stall on a
+    /// shell or network path, so it runs on a worker; the row shows its placeholder tile until the picture lands.
+    /// </summary>
     private void ReadPicture(Macro macro)
     {
         var key = Key(macro);
-        if (pictures.ContainsKey(key))
+        if (!pictures.ContainsKey(key) && reading.Add(key))
+        {
+            _ = LoadPicture(macro, key);
+        }
+    }
+
+    private async Task LoadPicture(Macro macro, string key)
+    {
+        var png = await Task.Run(() => MacroIcons.Png(macro));
+
+        // Closed while it was reading: nothing is left to show it, and the images are already disposed.
+        if (IsDisposed)
         {
             return;
         }
 
         Image? image = null;
-        if (MacroIcons.Png(macro) is { } png)
+        if (png is not null)
         {
             // Copied out of the stream: a GDI+ image made from a stream reads it lazily and needs it kept open.
             using var stream = new MemoryStream(png);
@@ -618,7 +635,13 @@ internal sealed class MacroWindow : Form
             image = new Bitmap(decoded);
         }
 
+        reading.Remove(key);
         pictures[key] = image;
+        list.Invalidate();
+        if (list.SelectedIndex >= 0 && Key(working[list.SelectedIndex]) == key)
+        {
+            preview.Picture = image;
+        }
     }
 
     private void Add()
