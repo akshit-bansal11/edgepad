@@ -18,9 +18,9 @@
   <!-- The two buttons in the editor's options popup; short, because they sit side by side in it. -->
   <string name="gamepad_add">Ajouter</string>
   <string name="gamepad_restore">Rétablir %1$s</string>
-  <string name="gamepad_restore_confirm">Rétablir %1$s ? Touchez à nouveau</string>
+  <string name="gamepad_restore_confirm">Rétablir %1$s ? Appuyez à nouveau</string>
   <string name="gamepad_switch_to">Passer à %1$s</string>
-  <string name="gamepad_switch_to_confirm">Passer à %1$s ? La vôtre est conservée. Touchez à nouveau</string>
+  <string name="gamepad_switch_to_confirm">Passer à %1$s ? La vôtre est conservée. Appuyez à nouveau</string>
   <string name="gamepad_layouts">Dispositions</string>
 
   <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->

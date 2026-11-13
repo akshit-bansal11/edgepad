@@ -8,7 +8,7 @@
   <string name="device_connecting">Connexion…</string>
   <string name="device_reconnecting">Reconnexion…</string>
   <string name="device_failed">Connexion impossible</string>
-  <string name="device_asking">En attente de votre réponse. Touchez pour répondre.</string>
+  <string name="device_asking">En attente de votre réponse. Appuyez pour répondre.</string>
   <string name="device_active">Actif</string>
   <string name="device_make_active">Activer</string>
   <string name="device_disconnect">Déconnecter</string>
@@ -21,10 +21,10 @@
   <string name="device_connect">Connecter</string>
   <string name="connect_via">Connecter %2$s par %1$s</string>
   <string name="device_rtt">%1$.0f ms</string>
-  <string name="devices_legend">Les ordinateurs enregistrés se connectent à l\'ouverture d\'Edgepad. Si vous en déconnectez un, il ne se reconnecte que lorsque vous le touchez à nouveau.</string>
+  <string name="devices_legend">Les ordinateurs enregistrés se connectent à l\'ouverture d\'Edgepad. Si vous en déconnectez un, il ne se reconnecte que lorsque vous le appuyez sur à nouveau.</string>
   <string name="devices_stay_note">Toujours connecté quand vous quittez l\'appli. Déconnectez-vous depuis la notification.</string>
-  <string name="devices_legend_off">Touchez un ordinateur pour vous y connecter.</string>
-  <string name="devices_multi_hint">Connectez plusieurs ordinateurs à la fois. L\'ordinateur actif est celui que les commandes pilotent ; touchez Activer pour en changer.</string>
+  <string name="devices_legend_off">Appuyez sur un ordinateur pour vous y connecter.</string>
+  <string name="devices_multi_hint">Connectez plusieurs ordinateurs à la fois. L\'ordinateur actif est celui que les commandes pilotent ; appuyez sur Activer pour en changer.</string>
   <string name="add_by_address">Ajouter par adresse</string>
   <string name="address_connect">Connecter</string>
   <string name="address_looking">Recherche d\'un ordinateur à l\'adresse %1$s…</string>
@@ -69,9 +69,9 @@
   <string name="link_unexpected">La réponse de l\'ordinateur ne correspond pas à l\'échange initial d\'Edgepad.</string>
   <string name="link_no_permission">L\'autorisation « Appareils à proximité » a été désactivée.</string>
   <string name="link_no_answer">L\'ordinateur a accepté la connexion sans jamais répondre. Vérifiez qu\'Edgepad y est ouvert, puis réessayez.</string>
-  <string name="link_not_paired">L\'ordinateur n\'a pas reconnu ce téléphone. Touchez Associer à nouveau sur sa ligne pour l\'associer avec un nouveau code.</string>
+  <string name="link_not_paired">L\'ordinateur n\'a pas reconnu ce téléphone. Appuyez sur Associer à nouveau sur sa ligne pour l\'associer avec un nouveau code.</string>
   <string name="link_not_this_laptop">Un appareil a répondu comme s\'il était cet ordinateur, sans pouvoir le prouver. Vérifiez que ce téléphone est sur le bon réseau.</string>
-  <string name="link_pairing_failed">L\'association n\'a pas abouti : le code n\'a pas été saisi sur l\'ordinateur à temps, ou il était incorrect. Touchez l\'ordinateur pour réessayer avec un nouveau code.</string>
+  <string name="link_pairing_failed">L\'association n\'a pas abouti : le code n\'a pas été saisi sur l\'ordinateur à temps, ou il était incorrect. Appuyez sur l\'ordinateur pour réessayer avec un nouveau code.</string>
   <string name="link_pairing_locked">L\'ordinateur est en train d\'associer un autre téléphone, ou a suspendu les associations après des codes erronés. Réessayez dans quelques minutes.</string>
   <!-- The laptop's lock-out runs from 30 s to an hour: under a minute in seconds, else whole minutes rounded up. -->
   <plurals name="link_pin_locked_seconds">
@@ -97,7 +97,7 @@
   <string name="pin_delete">Effacer</string>
   <string name="pin_cancel">Annuler</string>
   <string name="pin_checking">Vérification…</string>
-  <string name="pin_cancelled">Saisie du code PIN annulée. Touchez l\'ordinateur pour réessayer.</string>
+  <string name="pin_cancelled">Saisie du code PIN annulée. Appuyez sur l\'ordinateur pour réessayer.</string>
 
   <!-- A network pairing: the phone shows a code and the laptop's owner types it there. -->
   <string name="pair_title">Code d\'association</string>
@@ -105,17 +105,17 @@
   <string name="pair_new_code">Nouveau code</string>
   <string name="device_more">Plus</string>
   <string name="device_more_named">Autres actions pour %1$s</string>
-  <string name="pair_cancelled">Association annulée. Touchez l\'ordinateur pour réessayer.</string>
+  <string name="pair_cancelled">Association annulée. Appuyez sur l\'ordinateur pour réessayer.</string>
   <string name="pair_code_spoken">Code d\'association : %1$s</string>
   <string name="pair_expires">Expire dans %1$s</string>
   <string name="pair_confirm_title">%1$s a-t-il indiqué que le code correspondait ?</string>
-  <string name="pair_confirm_body">S\'il a indiqué que le code était erroné, touchez Non : un autre appareil répond peut-être à sa place.</string>
+  <string name="pair_confirm_body">S\'il a indiqué que le code était erroné, appuyez sur Non : un autre appareil répond peut-être à sa place.</string>
   <string name="pair_confirm_yes">Oui, associé</string>
   <string name="pair_confirm_no">Non</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Ordinateur hors de portée</string>
-  <string name="lost_body">%1$s ne répond plus. Toutes les commandes sont en pause, et rien de ce que vous touchez n\'est mis en attente.</string>
+  <string name="lost_body">%1$s ne répond plus. Toutes les commandes sont en pause, et rien de ce que vous faites n\'est mis en attente.</string>
   <string name="lost_attempt">Reconnexion · essai %1$d sur %2$d</string>
   <string name="lost_stopped">Fin des tentatives. L\'ordinateur est-il allumé, avec Edgepad ouvert ?</string>
   <string name="lost_off">La reconnexion automatique est désactivée</string>
@@ -144,9 +144,9 @@
     <item quantity="other">Connecté à %1$s et à %2$d autres ordinateurs</item>
   </plurals>
   <string name="link_notice_reconnecting">Reconnexion à %1$s…</string>
-  <string name="link_notice_reconnecting_text">Edgepad essaie de rétablir la connexion. Touchez pour l\'ouvrir.</string>
-  <string name="link_notice_text">Touchez pour ouvrir Edgepad.</string>
-  <string name="link_notice_text_clipboard">Touchez pour ouvrir Edgepad. Si le partage du presse-papiers est activé, ce que vous avez copié est aussi envoyé.</string>
+  <string name="link_notice_reconnecting_text">Edgepad essaie de rétablir la connexion. Appuyez pour l\'ouvrir.</string>
+  <string name="link_notice_text">Appuyez pour ouvrir Edgepad.</string>
+  <string name="link_notice_text_clipboard">Appuyez pour ouvrir Edgepad. Si le partage du presse-papiers est activé, ce que vous avez copié est aussi envoyé.</string>
   <string name="settings_clipboard">Presse-papiers</string>
   <string name="clipboard_share">Partager le presse-papiers</string>
   <string name="clipboard_share_caption">Copiez sur l\'un, collez sur l\'autre : texte et images. Pour envoyer depuis ce téléphone, copiez, puis revenez dans Edgepad.</string>
@@ -172,7 +172,7 @@
   <string name="piece_now_playing">Lecture en cours</string>
   <string name="piece_transport">Précédent · lecture · suivant</string>
   <string name="media_layout_reset">Réinitialiser les positions</string>
-  <string name="media_layout_reset_confirm">Réinitialiser ? Touchez à nouveau</string>
+  <string name="media_layout_reset_confirm">Réinitialiser ? Appuyez à nouveau</string>
   <string name="editor_options">Options</string>
   <string name="editor_done">OK</string>
   <string name="media_scale">Taille</string>
@@ -345,7 +345,7 @@
   <string name="dial_feel_title">Comportement des règles</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">Aperçu. Le sens horaire augmente.</string>
-  <string name="gestures_footnote">Touchez un geste pour changer son action. Un et deux doigts sont fixes : déplacer, toucher pour cliquer, toucher et maintenir pour faire glisser ; à deux doigts, glisser pour faire défiler, pincer pour zoomer, toucher pour faire un clic droit.</string>
+  <string name="gestures_footnote">Appuyez sur un geste pour changer son action. Un et deux doigts sont fixes : déplacer, appuyer pour cliquer, appuyer et maintenir pour faire glisser ; à deux doigts, glisser pour faire défiler, pincer pour zoomer, appuyer pour faire un clic droit.</string>
   <string name="dial_feel_each">Chaque règle</string>
   <string name="dial_feel_shared">Commun</string>
   <string name="dial_feel_each_caption">Seules les règles placées dans un coin sont listées. Sortez-en une de Commun pour lui donner sa propre vitesse. Commun suit la sensibilité du glissement.</string>
@@ -388,8 +388,8 @@
   <string name="surface_not_reported">Non communiqué par cet ordinateur</string>
   <string name="surface_waiting">En attente du niveau communiqué par l\'ordinateur</string>
   <string name="surface_nothing_playing">Aucune lecture</string>
-  <string name="surface_hint_one">Un doigt : déplacer, toucher pour cliquer</string>
-  <string name="surface_hint_two">Deux : défiler, pincer pour zoomer, toucher pour un clic droit</string>
+  <string name="surface_hint_one">Un doigt : déplacer, appuyer pour cliquer</string>
+  <string name="surface_hint_two">Deux : défiler, pincer pour zoomer, appuyer pour un clic droit</string>
   <string name="surface_hint_three">Trois : balayer les bureaux</string>
   <string name="surface_hint_four">Quatre : balayer les applis</string>
   <string name="surface_hint_hold">Maintenez, puis déplacez pour faire glisser</string>
@@ -412,7 +412,7 @@
   <string name="surface_mode_locked">Règles et média seuls · pavé tactile verrouillé</string>
   <string name="surface_mode_both">Pavé tactile verrouillé · règles et média masqués</string>
   <string name="surface_focus_caption">Règles et média masqués · à afficher dans Commandes</string>
-  <string name="surface_locked_caption">Pavé tactile verrouillé · touchez le cadenas pour déverrouiller</string>
+  <string name="surface_locked_caption">Pavé tactile verrouillé · appuyez sur le cadenas pour déverrouiller</string>
 
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
@@ -430,9 +430,9 @@
   <string name="capture_screen">Plein écran</string>
   <string name="capture_record">Enregistrer</string>
   <string name="capture_stop">Arrêter l\'enregistrement</string>
-  <string name="capture_recording">Enregistrement en cours sur l\'ordinateur. Touchez Arrêter l\'enregistrement pour terminer ; si « Enregistrer sur » est réglé sur Téléphone, le fichier arrive alors.</string>
+  <string name="capture_recording">Enregistrement en cours sur l\'ordinateur. Appuyez sur Arrêter l\'enregistrement pour terminer ; si « Enregistrer sur » est réglé sur Téléphone, le fichier arrive alors.</string>
   <string name="capture_sent">Envoyé à l\'ordinateur : %1$s</string>
-  <string name="capture_hint">Pour une zone, touchez Zone, puis touchez, maintenez et déplacez le doigt sur le pavé tactile pour la tracer.</string>
+  <string name="capture_hint">Pour une zone, appuyez sur Zone, puis appuyez, maintenez et déplacez le doigt sur le pavé tactile pour la tracer.</string>
   <string name="capture_save_to">Enregistrer sur</string>
   <string name="capture_save_laptop">Ordinateur</string>
   <string name="capture_save_phone">Téléphone</string>
@@ -445,7 +445,7 @@
   <string name="capture_not_found">Aucune nouvelle capture n\'a été trouvée sur l\'ordinateur, donc rien n\'a été envoyé.</string>
   <string name="capture_send_failed">L\'ordinateur n\'a pas pu envoyer la capture. Elle est toujours sur l\'ordinateur.</string>
   <string name="controls_annotate">Annoter</string>
-  <string name="annotate_description">Tablette à stylet : un toucher dessine au même endroit sur l\'écran de l\'ordinateur. Fonctionne uniquement au toucher.</string>
+  <string name="annotate_description">Tablette à stylet : un appui dessine au même endroit sur l\'écran de l\'ordinateur. Fonctionne uniquement au toucher.</string>
   <string name="annotate_hint">Dessinez ici. L\'encre apparaît au même endroit sur l\'ordinateur.</string>
   <string name="annotate_hint_named">Dessinez ici. L\'encre apparaît au même endroit sur %1$s.</string>
   <string name="annotate_menu">Outils de dessin</string>

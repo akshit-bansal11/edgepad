@@ -5,6 +5,7 @@ Android `values-fr`, Windows culture `fr`. One French for France and Canada: no 
 ## Conventions
 
 - Register: "vous", imperative for buttons (infinitive for short action labels such as "Oublier", "Activer"). Never "tu".
+- Tap: "Appuyez sur ..." / "Appuyez pour ..." as current French Android says; never "Touchez". Quoted button names stay exact.
 - Quotes: « » with a narrow no-break space (U+202F) inside. Narrow no-break space also before `?`, `!`, `;` and `%`. No-break space (U+00A0) before `:` and between a number and its unit (`5 dp`, `12 ms`, `60 Hz`).
 - Units stay as in English (`dp`, `Hz`, `ms`, `s`, `MB`), per the term list.
 - Titles and labels: sentence case, only the first word capitalised (a screen name such as "Commandes" counts as a name).

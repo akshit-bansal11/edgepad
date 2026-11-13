@@ -79,7 +79,7 @@
     <value>L'association n'a pas abouti.</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>Le code d'association correspond. Touchez Oui sur {0} pour terminer.</value>
+    <value>Le code d'association correspond. Appuyez sur Oui sur {0} pour terminer.</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>Associé à {0}.</value>
