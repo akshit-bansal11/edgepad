@@ -26,7 +26,7 @@
   <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->
   <string name="gamepad_control_title">%1$s · %2$s</string>
   <string name="gamepad_bind">Назначение</string>
-  <string name="gamepad_label">Подпись</string>
+  <string name="gamepad_label">Название</string>
   <string name="gamepad_delete_control">Удалить элемент</string>
   <string name="gamepad_delete_title">Удалить: %1$s?</string>
   <string name="gamepad_delete_body">Элемент будет удалён из этой раскладки. «Добавить» вернёт его.</string>

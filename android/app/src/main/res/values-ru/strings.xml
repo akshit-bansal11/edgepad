@@ -65,8 +65,8 @@
   <string name="link_unreachable_bluetooth">Ноутбук не принял подключение. Проверьте, что на нём запущен Edgepad и включён Bluetooth. Если не помогает, удалите сопряжение и на этом телефоне, и на ноутбуке, а затем сопрягите их заново.</string>
   <string name="link_unreachable_network">Ноутбук не ответил. Проверьте, что на нём запущен Edgepad и в его меню включены «Подключения по Wi-Fi и USB».</string>
   <string name="link_mismatch">Edgepad на ноутбуке «%1$s» и это приложение из разных выпусков. Установите оба из одного выпуска.</string>
-  <string name="link_mismatch_laptop_older">Edgepad на ноутбуке «%1$s» старее этого приложения. Обновите Edgepad на ноутбуке. Обе части должны быть из одного выпуска.</string>
-  <string name="link_mismatch_phone_older">Это приложение старее, чем Edgepad на ноутбуке «%1$s». Обновите его: Системные настройки › Обновления. Обе части должны быть из одного выпуска.</string>
+  <string name="link_mismatch_laptop_older">На ноутбуке «%1$s» установлена более старая версия Edgepad, чем это приложение. Обновите Edgepad на ноутбуке. Обе части должны быть из одного выпуска.</string>
+  <string name="link_mismatch_phone_older">Это приложение устарело по сравнению с Edgepad на ноутбуке «%1$s». Обновите его: Системные настройки › Обновления. Обе части должны быть из одного выпуска.</string>
   <string name="link_unexpected">Ноутбук ответил не так, как Edgepad отвечает при подтверждении.</string>
   <string name="link_no_permission">Разрешение «Устройства поблизости» отключено.</string>
   <string name="link_no_answer">Ноутбук принял подключение, но так и не ответил. Проверьте, что на нём запущен Edgepad, и повторите попытку.</string>
@@ -228,7 +228,7 @@
   <string name="dial_height">Высота шкалы</string>
   <string name="multiplier_value">×%1$.1f</string>
   <string name="haptic_ticks">Виброотклик</string>
-  <string name="snap_round">Округлять до круглых чисел</string>
+  <string name="snap_round">Округлять значения</string>
   <string name="natural_scrolling">Естественная прокрутка</string>
   <string name="gesture_hints">Показывать подсказки жестов</string>
   <string name="settings_appearance">Внешний вид</string>
@@ -290,7 +290,7 @@
     <item quantity="other">Нарисовано: %1$d</item>
   </plurals>
   <string name="shapes_none">Пока нет</string>
-  <string name="shapes_footnote">Нажмите на тачпад и удерживайте, пока линия не станет сплошной (при включённом виброотклике вы почувствуете щелчок), затем рисуйте, не отрывая палец.</string>
+  <string name="shapes_footnote">Нажмите на тачпад и удерживайте, пока линия не станет сплошной (при включённом виброотклике вы почувствуете лёгкую вибрацию), затем рисуйте, не отрывая палец.</string>
   <string name="shapes_empty_title">Фигур пока нет</string>
   <string name="shapes_empty_body">Нарисуйте фигуру здесь и выберите, что она будет запускать. На тачпаде нажмите и удерживайте, пока линия не станет сплошной, затем рисуйте, не отрывая палец.</string>
   <string name="shapes_add">Нарисовать фигуру</string>
@@ -349,13 +349,13 @@
   <string name="corner_assign">Назначить: %1$s</string>
   <string name="chosen">Выбрано</string>
   <string name="color_hex">Цвет в HEX</string>
-  <string name="dial_feel_title">Работа шкал</string>
+  <string name="dial_feel_title">Поведение шкал</string>
   <string name="feel_summary">×%1$.1f · %2$d&#160;dp</string>
   <string name="dial_preview_caption">Предпросмотр. По часовой стрелке — больше.</string>
   <string name="gestures_footnote">Нажмите на жест, чтобы изменить его действие. Жесты одним и двумя пальцами менять нельзя: один палец — перемещение, касание — щелчок, касание с удержанием — перетаскивание; два пальца — прокрутка, щипок — масштаб, касание — щелчок правой кнопкой.</string>
   <string name="dial_feel_each">Для каждой шкалы</string>
   <string name="dial_feel_shared">Общая</string>
-  <string name="dial_feel_each_caption">Показаны только шкалы в углах. Выберите для шкалы не «Общая», чтобы задать ей собственную скорость. «Общая» следует чувствительности скольжения.</string>
+  <string name="dial_feel_each_caption">Показаны только шкалы в углах. Чтобы задать шкале собственную скорость, переключите её с режима «Общая». «Общая» следует чувствительности скольжения.</string>
   <string name="appearance_title">Оформление</string>
   <string name="appearance_preview">Предпросмотр</string>
   <string name="background_preview_description">Предпросмотр фона пульта</string>
@@ -481,10 +481,10 @@
   <string name="annotate_clear">Очистить</string>
   <string name="annotate_clear_title">Очистить рисунок?</string>
   <string name="annotate_clear_body">Все штрихи исчезнут с экрана ноутбука. Это нельзя отменить.</string>
-  <string name="annotate_to_sign_title">Перейти к подписи?</string>
-  <string name="annotate_to_sign_body">Текущий рисунок будет сброшен, а на ноутбуке начнётся чистая страница.</string>
-  <string name="annotate_from_sign_title">Выйти из подписи?</string>
-  <string name="annotate_from_sign_body">Подпись не сохранена и будет отброшена.</string>
+  <string name="annotate_to_sign_title">Перейти в режим подписи?</string>
+  <string name="annotate_to_sign_body">Текущий рисунок будет удалён, а на ноутбуке начнётся чистая страница.</string>
+  <string name="annotate_from_sign_title">Выйти из режима подписи?</string>
+  <string name="annotate_from_sign_body">Подпись не сохранена и будет удалена.</string>
   <string name="annotate_continue">Продолжить</string>
   <string name="annotate_sign">Подпись</string>
   <string name="annotate_save_signature">Сохранить подпись</string>
@@ -495,7 +495,7 @@
   <string name="macros_run">Запустить: %1$s</string>
   <string name="macros_close">Закрыть: %1$s</string>
   <string name="macros_settings">Настройки макросов</string>
-  <string name="macros_labels">Подписи макросов</string>
+  <string name="macros_labels">Названия макросов</string>
   <string name="macros_labels_caption">Названия под значками. У макроса без значка название показывается всегда.</string>
   <string name="macros_icons_title">Значки</string>
   <string name="macros_icon_size">Размер значка</string>
@@ -532,7 +532,7 @@
   <string name="macro_opening">Открывается</string>
   <string name="apps_row_added">Добавлено</string>
   <string name="apps_row_added_description">%1$s: уже добавлено</string>
-  <string name="apps_row_full">Макросов максимум</string>
+  <string name="apps_row_full">Лимит достигнут</string>
   <plurals name="apps_full_note">
     <item quantity="one">На этом ноутбуке помещается до %1$d макроса, и все места заняты. Удалите один, чтобы добавить другой.</item>
     <item quantity="few">На этом ноутбуке помещается до %1$d макросов, и все места заняты. Удалите один, чтобы добавить другой.</item>

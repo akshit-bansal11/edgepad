@@ -79,7 +79,7 @@
     <value>Сопряжение не завершено.</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>Код сопряжения совпал. Нажмите «Да» на устройстве «{0}», чтобы завершить.</value>
+    <value>Код сопряжения совпал. Нажмите «Да, сопряжено» на устройстве «{0}», чтобы завершить.</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>Сопряжено: {0}.</value>
@@ -97,9 +97,9 @@
     <value>по Wi-Fi</value>
   </data>
   <data name="LastConnected_Row" xml:space="preserve">
-    <value>{0} · подключался: {1}</value>
+    <value>{0} · последнее подключение: {1}</value>
   </data>
   <data name="LastConnected_Unknown" xml:space="preserve">
-    <value>{0} · не подключался с момента обновления</value>
+    <value>{0} · нет подключений с момента обновления</value>
   </data>
 </root>

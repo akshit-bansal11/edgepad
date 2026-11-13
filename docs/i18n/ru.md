@@ -25,7 +25,7 @@ Android `values-ru`, Windows culture `ru`. Glossary, register and conventions fo
 | English | Русский |
 |---|---|
 | surface, control surface | пульт (Настройки пульта) |
-| dial, edge ruler | шкала (угловые шкалы) |
+| dial, edge ruler | шкала (угловые шкалы); dial feel = Поведение шкал |
 | corner | угол |
 | split corners | Разделить углы |
 | volume | Громкость (ГРОМК) |
@@ -48,7 +48,7 @@ Android `values-ru`, Windows culture `ru`. Glossary, register and conventions fo
 | keyboard | Клавиатура |
 | function keys: With Fn, Direct | С Fn, Напрямую |
 | gamepad | Геймпад |
-| gamepad presets | Xbox / Платформер / Гонки / Шутер | `gamepad_preset_*`; the guide uses the same words | Xbox keys preset (separate from Xbox): Xbox (клавиши).
+| gamepad presets | Xbox / Платформер / Гонки / Шутер; the Xbox keys preset (separate from Xbox) is Xbox (клавиши). Keys `gamepad_preset_*`; the guide uses the same words. |
 | layout, preset | раскладка, готовая раскладка |
 | D-pad, stick, shoulder, trigger | крестовина, стик, бампер, триггер |
 | binding | Назначение |
