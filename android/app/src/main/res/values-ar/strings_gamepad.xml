@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_layout_title">تخطيط ذراع الألعاب</string>
+  <string name="gamepad_layout_editing">تعديل %1$s</string>
+  <string name="gamepad_layout_hint">اسحب للنقل. اضغط مع الاستمرار على عنصر تحكم لفتح قائمته.</string>
+  <string name="gamepad_layout_section">التخطيطات</string>
+  <string name="gamepad_description">ذراع ألعاب للابتوب. يعمل باللمس فقط.</string>
+  <string name="gamepad_node_dpad">أسهم الاتجاه</string>
+  <string name="gamepad_node_stick">عصا</string>
+  <string name="gamepad_node_button">زر</string>
+  <string name="gamepad_size">الحجم</string>
+  <string name="dp_value">%1$d dp</string>
+
+  <!-- The two buttons in the editor's options popup; short, because they sit side by side in it. -->
+  <string name="gamepad_add">إضافة</string>
+  <string name="gamepad_restore">استعادة %1$s</string>
+  <string name="gamepad_restore_confirm">استعادة %1$s؟ انقر مجددًا</string>
+  <string name="gamepad_switch_to">التبديل إلى %1$s</string>
+  <string name="gamepad_switch_to_confirm">التبديل إلى %1$s؟ يبقى تخطيطك محفوظًا. انقر مجددًا</string>
+  <string name="gamepad_layouts">التخطيطات</string>
+
+  <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->
+  <string name="gamepad_control_title">%1$s · %2$s</string>
+  <string name="gamepad_bind">الربط</string>
+  <string name="gamepad_label">التسمية</string>
+  <string name="gamepad_delete_control">حذف عنصر التحكم</string>
+  <string name="gamepad_delete_title">حذف %1$s؟</string>
+  <string name="gamepad_delete_body">يُزال من هذا التخطيط. يعيده زر «إضافة».</string>
+  <string name="gamepad_name_required">اكتب اسمًا للتخطيط</string>
+
+  <!-- Adding a control: the kinds offered, in the order the menu lists them. -->
+  <string name="gamepad_add_control">إضافة عنصر تحكم</string>
+  <string name="gamepad_kind_button">زر</string>
+  <string name="gamepad_kind_dpad">أسهم الاتجاه</string>
+  <string name="gamepad_kind_stick">عصا</string>
+  <string name="gamepad_kind_shoulder">زر الكتف</string>
+  <string name="gamepad_kind_trigger">الزناد</string>
+
+  <!--
+    What a control can drive. The controller's own inputs, then a key on the laptop's keyboard.
+    The d-pad binding has no name of its own: gamepad_kind_dpad above is already the same word.
+  -->
+  <string name="gamepad_bind_stick_left">العصا اليسرى</string>
+  <string name="gamepad_bind_stick_right">العصا اليمنى</string>
+  <string name="gamepad_bind_trigger_left">الزناد الأيسر</string>
+  <string name="gamepad_bind_trigger_right">الزناد الأيمن</string>
+  <string name="gamepad_bind_keys">مفتاح لوحة المفاتيح</string>
+  <string name="gamepad_bind_key_up">مفتاح الأعلى</string>
+  <string name="gamepad_bind_key_down">مفتاح الأسفل</string>
+  <string name="gamepad_bind_key_left">مفتاح اليسار</string>
+  <string name="gamepad_bind_key_right">مفتاح اليمين</string>
+
+  <!-- Keeping the named layouts themselves. -->
+  <string name="gamepad_save_as">حفظ باسم</string>
+  <string name="gamepad_rename">إعادة تسمية</string>
+  <string name="gamepad_delete_layout">حذف التخطيط</string>
+  <string name="gamepad_delete_layout_body">سيتم حذف %1$s. أما التخطيطات المرفقة مع Edgepad فتبقى.</string>
+  <string name="gamepad_delete">حذف</string>
+</resources>

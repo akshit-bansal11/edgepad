@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_edit">تعديل التخطيط</string>
+  <string name="gamepad_mode_waiting">وضع لوحة المفاتيح · في انتظار أن يعرض اللابتوب ذراع ألعاب</string>
+  <string name="gamepad_mode_unanswered">وضع لوحة المفاتيح · لم يردّ هذا اللابتوب؛ قد يحتاج Edgepad إلى تحديث</string>
+  <string name="gamepad_mode_no_driver">وضع لوحة المفاتيح · لا يوجد برنامج تشغيل لذراع الألعاب على اللابتوب</string>
+  <string name="gamepad_mode_no_driver_windows">وضع لوحة المفاتيح · ثبّت ViGEmBus على اللابتوب للحصول على ذراع ألعاب</string>
+  <string name="gamepad_mode_no_driver_mac">وضع لوحة المفاتيح · لا يدعم جهاز Mac وضع ذراع الألعاب</string>
+  <string name="gamepad_mode_attach_failed">وضع لوحة المفاتيح · تعذّر على اللابتوب توصيل ذراع الألعاب</string>
+</resources>
