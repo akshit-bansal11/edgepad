@@ -74,19 +74,20 @@ internal sealed class LastConnected(string path)
 
     /// <summary>
     /// "NAME · last connected 8 Nov", with the year when it is not this year's; "NAME · not connected since this
-    /// update" when the time is not known. The local date (or <paramref name="zone"/>), in English like the rest of the menu.
+    /// update" when the time is not known. The local date (or <paramref name="zone"/>), written in
+    /// <paramref name="culture"/> (the owner's own when null).
     /// </summary>
-    public static string RowText(string name, DateTimeOffset? last, DateTimeOffset now, TimeZoneInfo? zone = null)
+    public static string RowText(string name, DateTimeOffset? last, DateTimeOffset now, TimeZoneInfo? zone = null, CultureInfo? culture = null)
     {
         if (last is not { } at)
         {
-            return $"{name} · not connected since this update";
+            return CoreStrings.LastConnected_Unknown.Fill(name);
         }
 
         zone ??= TimeZoneInfo.Local;
         var shown = TimeZoneInfo.ConvertTime(at, zone);
         var format = shown.Year == TimeZoneInfo.ConvertTime(now, zone).Year ? "d MMM" : "d MMM yyyy";
-        return $"{name} · last connected {shown.ToString(format, CultureInfo.InvariantCulture)}";
+        return CoreStrings.LastConnected_Row.Fill(name, shown.ToString(format, culture ?? CultureInfo.CurrentCulture));
     }
 
     /// <summary>Every stored time; empty when there is no file yet, null when the file is there but cannot be read.</summary>

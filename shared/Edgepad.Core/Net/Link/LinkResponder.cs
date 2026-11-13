@@ -48,17 +48,17 @@ internal interface IPairingQuestion : IDisposable
 /// <summary>What the pairing window says once the code is typed, the same on Windows and Linux.</summary>
 internal static class PairingText
 {
-    public const string Mismatched = "That pairing code did not match. Nothing was paired.";
+    public static string Mismatched => CoreStrings.Pairing_Mismatched;
 
-    public const string TimedOut = "Time ran out. Nothing was paired. Start again on the phone.";
+    public static string TimedOut => CoreStrings.Pairing_TimedOut;
 
-    public const string Warning = "Only pair a phone that is yours. If you did not just start pairing, choose Cancel.";
+    public static string Warning => CoreStrings.Pairing_Warning;
 
-    public const string NotFinished = "Pairing did not finish.";
+    public static string NotFinished => CoreStrings.Pairing_NotFinished;
 
-    public static string Matched(string phoneName) => $"Pairing code matched. Tap Yes on {phoneName} to finish.";
+    public static string Matched(string phoneName) => CoreStrings.Pairing_Matched.Fill(phoneName);
 
-    public static string Paired(string phoneName) => $"Paired with {phoneName}.";
+    public static string Paired(string phoneName) => CoreStrings.Pairing_Paired.Fill(phoneName);
 
     /// <summary>
     /// "from 192.168.1.23, over Wi-Fi", "over USB" or "on your network", by the local adapter whose subnet holds the
@@ -73,7 +73,7 @@ internal static class PairingText
     }
 
     /// <summary>The source line for an address and how it arrived (<see cref="WayOf"/>); null way reads "on your network".</summary>
-    public static string Describe(IPAddress ip, string? way) => $"from {ip}, {way ?? "on your network"}";
+    public static string Describe(IPAddress ip, string? way) => CoreStrings.Source_From.Fill(ip, way ?? CoreStrings.Source_OnNetwork);
 
     /// <summary>
     /// "over USB" for a USB tether adapter (RNDIS or NCM; Linux names them usb0 or rndis0), "over Wi-Fi" for a wireless
@@ -86,10 +86,10 @@ internal static class PairingText
             || name.StartsWith("usb", StringComparison.OrdinalIgnoreCase)
             || name.StartsWith("rndis", StringComparison.OrdinalIgnoreCase))
         {
-            return "over USB";
+            return CoreStrings.Source_OverUsb;
         }
 
-        return type == NetworkInterfaceType.Wireless80211 ? "over Wi-Fi" : null;
+        return type == NetworkInterfaceType.Wireless80211 ? CoreStrings.Source_OverWifi : null;
     }
 
     private static NetworkInterface? AdapterFor(IPAddress ip)

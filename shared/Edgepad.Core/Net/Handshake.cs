@@ -29,7 +29,7 @@ internal static class Handshake
         PinStore pin,
         Func<string, CancellationToken, bool> askTrust,
         Func<bool> onAdmitted,
-        Action<string> onStatus,
+        Action<LaptopStatus> onStatus,
         Action<string> log,
         Action giveUp,
         CancellationToken ended,
@@ -80,7 +80,7 @@ internal static class Handshake
             // Answered with this laptop's version, so the phone can say which side needs updating.
             frames.Send(new HelloAck(ProtocolConstants.Version));
             log($"Refused {address}: it speaks protocol {hello.Version}, this laptop {ProtocolConstants.Version}");
-            onStatus($"Refused a phone on protocol {hello.Version}; this laptop is on {ProtocolConstants.Version}");
+            onStatus(LaptopStatus.RefusedProtocol(hello.Version, ProtocolConstants.Version));
             return false;
         }
 
@@ -88,7 +88,7 @@ internal static class Handshake
         // guessing cannot also be a way to keep the trust question on the owner's screen.
         if (PinGate.LockedOut(address, pin, frames.Send, log))
         {
-            onStatus("Refused a phone locked out after wrong PINs");
+            onStatus(LaptopStatus.RefusedLockedOut);
             return false;
         }
 
@@ -112,7 +112,7 @@ internal static class Handshake
         {
             var trusted = string.Join(", ", trust.TrustedPhones);
             log($"Refused {address}: this laptop trusts {(trusted.Length > 0 ? trusted : "no phone yet")}");
-            onStatus("Refused a phone it does not trust");
+            onStatus(LaptopStatus.RefusedUntrusted);
             return false;
         }
 
@@ -120,7 +120,7 @@ internal static class Handshake
         // able to end the connected phone's session. Level 1 sends nothing here, as before there was a PIN.
         if (!PinGate.Run(address, pin, frames.ReadFrame, frames.Send, log, giveUp, pinTimeout))
         {
-            onStatus("Refused a phone that did not give the right PIN");
+            onStatus(LaptopStatus.RefusedPin);
             return false;
         }
 
@@ -136,7 +136,7 @@ internal static class Handshake
         trust.Connections.Record(address, DateTimeOffset.UtcNow);
         frames.Send(new HelloAck(ProtocolConstants.Version));
         log($"Connected {address}");
-        onStatus($"Connected to {address}");
+        onStatus(LaptopStatus.Connected(address, PhoneWay.Bluetooth));
         return true;
     }
 }

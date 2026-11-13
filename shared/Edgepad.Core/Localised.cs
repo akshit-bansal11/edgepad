@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Edgepad.Ui;
+namespace Edgepad;
 
 internal static class Localised
 {

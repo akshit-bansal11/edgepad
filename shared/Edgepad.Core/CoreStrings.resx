@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    The words the laptop apps share, in English: the connection status, the pairing window's text and the Security
+    list's last-connected line. CoreStrings.<culture>.resx next to this file holds the translations; every key here needs
+    one in each of them, with the same {0} placeholders (the Windows tests enforce both). Log text and protocol names
+    stay English and are not here.
+  -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Status_Starting" xml:space="preserve">
+    <value>Starting…</value>
+  </data>
+  <data name="Status_Waiting" xml:space="preserve">
+    <value>Waiting for your phone</value>
+  </data>
+  <data name="Status_Connected" xml:space="preserve">
+    <value>Connected to {0}</value>
+  </data>
+  <data name="Status_RefusedProtocol" xml:space="preserve">
+    <value>Refused a phone on protocol {0}; this laptop is on {1}</value>
+  </data>
+  <data name="Status_MismatchPhoneOlder" xml:space="preserve">
+    <value>{0} could not connect: its Edgepad app is older. Update Edgepad on the phone.</value>
+  </data>
+  <data name="Status_MismatchLaptopOlder" xml:space="preserve">
+    <value>{0} could not connect: Edgepad on this laptop is older. Update Edgepad here.</value>
+  </data>
+  <data name="Status_RefusedLockedOut" xml:space="preserve">
+    <value>Refused a phone locked out after wrong PINs</value>
+  </data>
+  <data name="Status_RefusedUntrusted" xml:space="preserve">
+    <value>Refused a phone it does not trust</value>
+  </data>
+  <data name="Status_RefusedPin" xml:space="preserve">
+    <value>Refused a phone that did not give the right PIN</value>
+  </data>
+  <data name="Status_BluetoothOff" xml:space="preserve">
+    <value>Bluetooth is off</value>
+  </data>
+  <data name="Status_BluetoothRetrying" xml:space="preserve">
+    <value>Bluetooth is off or unavailable; trying again</value>
+  </data>
+  <data name="Status_BluetoothUnavailable" xml:space="preserve">
+    <value>Bluetooth is off or unavailable</value>
+  </data>
+  <data name="Status_Pairing" xml:space="preserve">
+    <value>Pair {0}: type the pairing code shown on the phone</value>
+  </data>
+  <data name="Status_Paired" xml:space="preserve">
+    <value>Paired with {0}</value>
+  </data>
+  <data name="Status_Asking" xml:space="preserve">
+    <value>Asking whether to trust {0}</value>
+  </data>
+  <data name="Status_QuietUntil" xml:space="preserve">
+    <value>Phones can connect again at {0}</value>
+  </data>
+  <data name="Way_Bluetooth" xml:space="preserve">
+    <value>Bluetooth</value>
+  </data>
+  <data name="Way_WifiOrUsb" xml:space="preserve">
+    <value>Wi-Fi or USB</value>
+  </data>
+  <data name="Pairing_Mismatched" xml:space="preserve">
+    <value>That pairing code did not match. Nothing was paired.</value>
+  </data>
+  <data name="Pairing_TimedOut" xml:space="preserve">
+    <value>Time ran out. Nothing was paired. Start again on the phone.</value>
+  </data>
+  <data name="Pairing_Warning" xml:space="preserve">
+    <value>Only pair a phone that is yours. If you did not just start pairing, choose Cancel.</value>
+  </data>
+  <data name="Pairing_NotFinished" xml:space="preserve">
+    <value>Pairing did not finish.</value>
+  </data>
+  <data name="Pairing_Matched" xml:space="preserve">
+    <value>Pairing code matched. Tap Yes on {0} to finish.</value>
+  </data>
+  <data name="Pairing_Paired" xml:space="preserve">
+    <value>Paired with {0}.</value>
+  </data>
+  <data name="Source_From" xml:space="preserve">
+    <value>from {0}, {1}</value>
+  </data>
+  <data name="Source_OnNetwork" xml:space="preserve">
+    <value>on your network</value>
+  </data>
+  <data name="Source_OverUsb" xml:space="preserve">
+    <value>over USB</value>
+  </data>
+  <data name="Source_OverWifi" xml:space="preserve">
+    <value>over Wi-Fi</value>
+  </data>
+  <data name="LastConnected_Row" xml:space="preserve">
+    <value>{0} · last connected {1}</value>
+  </data>
+  <data name="LastConnected_Unknown" xml:space="preserve">
+    <value>{0} · not connected since this update</value>
+  </data>
+</root>
