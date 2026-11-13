@@ -292,6 +292,9 @@ internal static partial class Theme
     public static class Motion
     {
         /// <summary>A panel appearing or going away.</summary>
+        /// <summary>A nudge: the failure shake.</summary>
+        public static int Fast => AnimationsEnabled ? 120 : 0;
+
         public static int Base => AnimationsEnabled ? 220 : 0;
     }
 

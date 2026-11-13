@@ -92,6 +92,9 @@ internal sealed class MacroWindow : Form
     /// <summary>Where the painted captions go, set by <see cref="Relayout"/>: the field name, then any dim note after it.</summary>
     private readonly List<(Rectangle Slot, string Text, string? Note)> captions = [];
 
+    // "Shortened to fit", after the Name caption, only once an input or paste was cut; the next edit that fits clears it.
+    private string? nameNote;
+
     private Rectangle title;
     private Rectangle description;
 
@@ -157,10 +160,19 @@ internal sealed class MacroWindow : Form
         name.TextChanged += (_, _) =>
         {
             var kept = FrameCodec.Truncate(name.Text, MacroStore.MaxNameBytes);
-            if (kept != name.Text)
+            var cut = kept != name.Text;
+            if (cut)
             {
                 name.Text = kept;
                 name.SelectionStart = kept.Length;
+            }
+
+            // After the rewrite, which comes back through here as an edit that fits.
+            nameNote = cut ? Strings.Macro_Shortened : null;
+            if (captions.Count > 0)
+            {
+                captions[0] = captions[0] with { Note = nameNote };
+                Invalidate();
             }
 
             Edited();
@@ -257,7 +269,7 @@ internal sealed class MacroWindow : Form
         var step = caption + S(6 + Box + 14);
         captions.Clear();
 
-        captions.Add((new Rectangle(x, top, column, caption), Strings.Macro_Name, Strings.Macro_NameLimit.Fill(MacroStore.MaxNameBytes)));
+        captions.Add((new Rectangle(x, top, column, caption), Strings.Macro_Name, nameNote));
         nameFrame.Place(new Rectangle(x, top + caption + S(6), column, S(Box)), DeviceDpi);
 
         captions.Add((new Rectangle(x, top + step, column, caption), Strings.Macro_Opens, null));

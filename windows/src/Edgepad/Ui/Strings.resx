@@ -332,8 +332,8 @@ The trusted phones were forgotten, but the PIN could not be reset: a settings fi
   <data name="Macro_Name" xml:space="preserve">
     <value>Name</value>
   </data>
-  <data name="Macro_NameLimit" xml:space="preserve">
-    <value>{0} bytes max</value>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>Shortened to fit</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>Opens</value>

@@ -132,6 +132,11 @@ internal sealed class PairingWindow : Form
     private bool told;
 
     private Outcome outcome;
+    private readonly System.Windows.Forms.Timer shake = new() { Interval = 20 };
+    private long shakeStart;
+    private int shakeMs;
+    private int shakeAskLeft;
+    private int shakeGlyphLeft;
     private readonly OutcomeGlyph glyph = new() { Visible = false };
 
     public PairingWindow(string phoneName, string? source, long deadline, Action<string> onTyped, Action onOwnerCancelled)
@@ -166,6 +171,7 @@ internal sealed class PairingWindow : Form
         pair.Click += (_, _) => Answer();
         cancel.Click += (_, _) => Close();
         tick.Tick += (_, _) => Count();
+        shake.Tick += (_, _) => Shaking();
 
         // Enter only does anything once six digits are in, since Pair is disabled until then.
         AcceptButton = pair;
@@ -214,10 +220,43 @@ internal sealed class PairingWindow : Form
         pair.Enabled = false;
         cancel.Text = Strings.Common_Close;
         Relayout();
+        if (outcome == Outcome.Bad)
+        {
+            Shake();
+        }
+
         if (outcome == Outcome.Good)
         {
             tick.Interval = LingerMs;
             tick.Start();
+        }
+    }
+
+    /// <summary>One small horizontal shake of the result, once, and none at all while Windows has animations off.</summary>
+    private void Shake()
+    {
+        shakeMs = Theme.Motion.Fast;
+        if (shakeMs == 0)
+        {
+            return;
+        }
+
+        shakeAskLeft = ask.Left;
+        shakeGlyphLeft = glyph.Left;
+        shakeStart = Environment.TickCount64;
+        shake.Start();
+    }
+
+    private void Shaking()
+    {
+        var t = (Environment.TickCount64 - shakeStart) / (double)shakeMs;
+        var done = t >= 1;
+        var dx = done ? 0 : (int)Math.Round(S(3) * Math.Sin(t * 4 * Math.PI) * (1 - t));
+        ask.Left = shakeAskLeft + dx;
+        glyph.Left = shakeGlyphLeft + dx;
+        if (done)
+        {
+            shake.Stop();
         }
     }
 
@@ -248,6 +287,7 @@ internal sealed class PairingWindow : Form
     // Cancel, the close box, Alt+F4: all the owner saying no, unless an answer was already given.
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
+        shake.Stop();
         tick.Stop();
         if (!answered)
         {
@@ -263,6 +303,7 @@ internal sealed class PairingWindow : Form
         if (disposing)
         {
             tick.Dispose();
+            shake.Dispose();
         }
 
         base.Dispose(disposing);
