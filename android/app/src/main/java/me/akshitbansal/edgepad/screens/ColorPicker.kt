@@ -3,7 +3,6 @@ package me.akshitbansal.edgepad.screens
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
-import android.text.InputFilter
 import android.text.InputType
 import android.util.TypedValue
 import android.view.Gravity
@@ -33,8 +32,8 @@ object ColorPicker {
     private const val RING_OUT_DP = 4f
     private const val HEX_GAP_DP = 10f
     private const val HEX_FIELD_DP = 84f
-    private const val HEX_LENGTH = 7
     private const val HEX_DIGITS = 6
+    private const val SHORT_HEX_DIGITS = 3
     private const val HEX_BASE = 16
     private const val RGB = 0xFFFFFF
     private const val OPAQUE = 0xFF shl 24
@@ -186,9 +185,10 @@ object ColorPicker {
 
     private fun hexOf(color: Int): String = "#%06X".format(Locale.ROOT, color and RGB)
 
-    /** The opaque colour [text] spells, as `#RRGGBB` or `RRGGBB`, or null when it spells none. */
+    /** The opaque colour [text] spells, as `#RRGGBB`, `RRGGBB` or the short `#RGB`, or null when it spells none. */
     internal fun colourOf(text: String): Int? {
-        val digits = text.trim().removePrefix("#")
+        val typed = text.trim().removePrefix("#")
+        val digits = if (typed.length == SHORT_HEX_DIGITS) typed.flatMap { listOf(it, it) }.joinToString("") else typed
         if (digits.length != HEX_DIGITS || digits.any { Character.digit(it, HEX_BASE) < 0 }) return null
         return OPAQUE or digits.toInt(HEX_BASE)
     }
@@ -212,7 +212,6 @@ object ColorPicker {
                 InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
             imeOptions = EditorInfo.IME_ACTION_DONE
             importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
-            filters = arrayOf(InputFilter.LengthFilter(HEX_LENGTH))
             minWidth = ui.dp(HEX_FIELD_DP)
             minHeight = ui.dp(Space.TOUCH)
             contentDescription = ui.string(R.string.color_hex)

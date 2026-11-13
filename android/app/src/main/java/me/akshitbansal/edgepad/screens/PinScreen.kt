@@ -103,6 +103,7 @@ class PinScreen(
     private fun typed(code: Int): Boolean {
         when (code) {
             in KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9 -> press(code - KeyEvent.KEYCODE_0)
+            in KeyEvent.KEYCODE_NUMPAD_0..KeyEvent.KEYCODE_NUMPAD_9 -> press(code - KeyEvent.KEYCODE_NUMPAD_0)
             KeyEvent.KEYCODE_DEL -> delete()
             else -> return false
         }
