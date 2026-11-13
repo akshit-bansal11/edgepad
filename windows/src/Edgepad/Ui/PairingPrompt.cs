@@ -170,7 +170,7 @@ internal sealed class PairingWindow : Form
         // Enter only does anything once six digits are in, since Pair is disabled until then.
         AcceptButton = pair;
         CancelButton = cancel;
-        Controls.AddRange([heading, origin, ask, glyph, codeFrame, countdown, warn, cancel, pair]);
+        Controls.AddRange([heading, origin, ask, glyph, codeFrame, countdown, warn, pair, cancel]);
         Count();
         tick.Start();
         Relayout();
@@ -342,8 +342,8 @@ internal sealed class PairingWindow : Form
             Put(warn, 13f, Weight.Regular, palette.Dim, S(18));
         }
 
-        pair.SetBounds(left + width - pair.FitWidth(DeviceDpi), y, pair.FitWidth(DeviceDpi), S(Box));
-        cancel.SetBounds(pair.Left - S(8) - cancel.FitWidth(DeviceDpi), y, cancel.FitWidth(DeviceDpi), S(Box));
+        cancel.SetBounds(left + width - cancel.FitWidth(DeviceDpi), y, cancel.FitWidth(DeviceDpi), S(Box));
+        pair.SetBounds(cancel.Left - S(8) - pair.FitWidth(DeviceDpi), y, pair.FitWidth(DeviceDpi), S(Box));
         ClientSize = new Size(S(DialogWidth), y + S(Box + Pad));
     }
 }

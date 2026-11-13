@@ -140,7 +140,7 @@ internal sealed class SecurityWindow : Form
         CancelButton = cancel;
 
         // In tab order: the levels, then the PIN, then the phones, then the footer from left to right.
-        Controls.AddRange([heading, description, .. levels, .. notes, pinState, setPin, warning, phonesHeading, noPhones, forgetAll, reset, cancel, save]);
+        Controls.AddRange([heading, description, .. levels, .. notes, pinState, setPin, warning, phonesHeading, noPhones, forgetAll, reset, save, cancel]);
         Refill();
     }
 
@@ -257,13 +257,13 @@ internal sealed class SecurityWindow : Form
         reset.SetBounds(forgetAll.Right + S(8), y, reset.FitWidth(DeviceDpi), S(Box));
         y += S(Box + 18);
 
-        save.SetBounds(left + width - save.FitWidth(DeviceDpi), y, save.FitWidth(DeviceDpi), S(Box));
-        cancel.SetBounds(save.Left - S(8) - cancel.FitWidth(DeviceDpi), save.Top, cancel.FitWidth(DeviceDpi), S(Box));
+        cancel.SetBounds(left + width - cancel.FitWidth(DeviceDpi), y, cancel.FitWidth(DeviceDpi), S(Box));
+        save.SetBounds(cancel.Left - S(8) - save.FitWidth(DeviceDpi), cancel.Top, save.FitWidth(DeviceDpi), S(Box));
 
         // The phones' Forget buttons come after the PIN and before the footer, wherever Refill added them.
         var order = new List<Control>([.. levels, setPin]);
         order.AddRange(phoneRows.Select(row => row.Forget));
-        order.AddRange([forgetAll, reset, cancel, save]);
+        order.AddRange([forgetAll, reset, save, cancel]);
         for (var i = 0; i < order.Count; i++)
         {
             order[i].TabIndex = i;
@@ -480,7 +480,7 @@ internal sealed class PinDialog : Form
         ok.Click += (_, _) => Check();
         AcceptButton = ok;
         CancelButton = cancel;
-        Controls.AddRange([heading, firstLabel, firstFrame, againLabel, againFrame, problem, cancel, ok]);
+        Controls.AddRange([heading, firstLabel, firstFrame, againLabel, againFrame, problem, ok, cancel]);
         Relayout();
     }
 
@@ -534,8 +534,8 @@ internal sealed class PinDialog : Form
         problem.SetBounds(left, y, width, room);
         y += room + S(12);
 
-        ok.SetBounds(left + width - ok.FitWidth(DeviceDpi), y, ok.FitWidth(DeviceDpi), S(Box));
-        cancel.SetBounds(ok.Left - S(8) - cancel.FitWidth(DeviceDpi), y, cancel.FitWidth(DeviceDpi), S(Box));
+        cancel.SetBounds(left + width - cancel.FitWidth(DeviceDpi), y, cancel.FitWidth(DeviceDpi), S(Box));
+        ok.SetBounds(cancel.Left - S(8) - ok.FitWidth(DeviceDpi), y, ok.FitWidth(DeviceDpi), S(Box));
         ClientSize = new Size(S(DialogWidth), y + S(Box + Pad));
     }
 

@@ -174,7 +174,7 @@ internal sealed class MacroWindow : Form
         CancelButton = cancel;
 
         // Added in tab order: the list, then down the form, then the footer from left to right.
-        Controls.AddRange([listFrame, add, nameFrame, targetFrame, browse, argumentsFrame, chooseIcon, ownIcon, preview, empty, remove, cancel, save, backdrop]);
+        Controls.AddRange([listFrame, add, nameFrame, targetFrame, browse, argumentsFrame, chooseIcon, ownIcon, preview, empty, remove, save, cancel, backdrop]);
 
         foreach (var macro in working)
         {
@@ -271,8 +271,8 @@ internal sealed class MacroWindow : Form
         // The footer: Remove on the left, Cancel and Save on the right.
         var footer = top + S(BodyHeight + 18);
         remove.SetBounds(left, footer, remove.FitWidth(DeviceDpi), S(Box));
-        save.SetBounds(left + width - save.FitWidth(DeviceDpi), footer, save.FitWidth(DeviceDpi), S(Box));
-        cancel.SetBounds(save.Left - S(8) - cancel.FitWidth(DeviceDpi), footer, cancel.FitWidth(DeviceDpi), S(Box));
+        cancel.SetBounds(left + width - cancel.FitWidth(DeviceDpi), footer, cancel.FitWidth(DeviceDpi), S(Box));
+        save.SetBounds(cancel.Left - S(8) - save.FitWidth(DeviceDpi), footer, save.FitWidth(DeviceDpi), S(Box));
 
         ClientSize = new Size(S(DialogWidth), footer + S(Box + Pad));
         backdrop.SetBounds(0, 0, ClientSize.Width, ClientSize.Height);
