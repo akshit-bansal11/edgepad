@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_edit">レイアウトを編集</string>
+  <string name="gamepad_mode_waiting">キーボードモード · ノートPCがコントローラーを提供するのを待っています</string>
+  <string name="gamepad_mode_unanswered">キーボードモード · このノートPCが応答しませんでした。Edgepadのアップデートが必要かもしれません</string>
+  <string name="gamepad_mode_no_driver">キーボードモード · ノートPCにコントローラーのドライバーがありません</string>
+  <string name="gamepad_mode_no_driver_windows">キーボードモード · コントローラーを使うには、ノートPCにViGEmBusをインストールしてください</string>
+  <string name="gamepad_mode_no_driver_mac">キーボードモード · Macにはコントローラーモードがありません</string>
+  <string name="gamepad_mode_attach_failed">キーボードモード · ノートPCがコントローラーを接続できませんでした</string>
+</resources>
