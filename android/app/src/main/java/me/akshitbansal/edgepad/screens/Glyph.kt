@@ -45,6 +45,12 @@ class Glyph(
         icon?.setBounds(w / 2 - half, h / 2 - half, w / 2 + half, h / 2 + half)
     }
 
+    // A drawable the view only draws is never told its direction, so an auto-mirrored chevron needs it passed on.
+    override fun onRtlPropertiesChanged(layoutDirection: Int) {
+        super.onRtlPropertiesChanged(layoutDirection)
+        icon?.layoutDirection = layoutDirection
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         icon?.draw(canvas)

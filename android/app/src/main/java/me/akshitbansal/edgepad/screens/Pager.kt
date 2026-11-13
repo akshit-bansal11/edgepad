@@ -31,6 +31,8 @@ class Pager(
     private var flung = false
 
     init {
+        // Pages are found by scroll offset from the left, so they keep their left-to-right order in Arabic too.
+        layoutDirection = LAYOUT_DIRECTION_LTR
         isHorizontalScrollBarEnabled = false
         overScrollMode = OVER_SCROLL_NEVER
         addView(row, FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT))

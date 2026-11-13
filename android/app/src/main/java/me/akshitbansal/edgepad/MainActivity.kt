@@ -1054,6 +1054,9 @@ class MainActivity :
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
+        // These are physical: edge rulers, trackpad, swipes, key rows and layout editors say left and right of the
+        // phone, so Arabic mirrors the settings pages around them but never them.
+        if (next in immersive) view.layoutDirection = View.LAYOUT_DIRECTION_LTR
         setContentView(view)
         applyOrientation()
         // The bars are see-through over the page, whose own background is the ground, so they take its colour.

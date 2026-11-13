@@ -545,6 +545,8 @@ class Ui(
             option.foreground = InsetDrawable(option.foreground, 0, slack + inset, 0, slack + inset)
         }
         return FrameLayout(context).apply {
+            // The thumb is placed by absolute offsets, so the options keep their left-to-right order in Arabic too.
+            layoutDirection = View.LAYOUT_DIRECTION_LTR
             background = InsetDrawable(rounded(palette.faint, SEGMENT_TRACK_RADIUS_DP), 0, slack, 0, slack)
             // After the background: a drawable with insets resets the view's padding to those insets.
             setPadding(0, 0, 0, 0)
