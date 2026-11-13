@@ -85,7 +85,7 @@
     <value>Bu Edgepad sürümü yeni bir dosya, bu yüzden Windows telefonların ona ulaşmasına izin vermek için bir kez soracak.</value>
   </data>
   <data name="Balloon_FirewallNotChanged" xml:space="preserve">
-    <value>Windows Güvenlik Duvarı değiştirilmedi, bu yüzden telefonlar bu bilgisayara ulaşamayabilir. Bu menüdeki Windows Güvenlik Duvarı üzerinden izin ver seçeneği yeniden dener.</value>
+    <value>Windows Güvenlik Duvarı değiştirilmedi, bu yüzden telefonlar bu bilgisayara ulaşamayabilir. Bu menüdeki “Windows Güvenlik Duvarı üzerinden izin ver” seçeneği yeniden dener.</value>
   </data>
   <data name="Balloon_MacroAdded" xml:space="preserve">
     <value>Telefonunuzdan eklendi: {0}</value>
@@ -172,7 +172,7 @@ Wi-Fi ve USB eşleşmeleri unutulamadı: dosyaları kaldırılamadı veya boşal
     <value>Güvenme</value>
   </data>
   <data name="Dialog_TrustText" xml:space="preserve">
-    <value>Eşleşmiş bir telefon bu bilgisayarın işaretçisini ve klavyesini denetlemek istiyor. Yalnızca sizinse güvenin. {0} sn içinde yanıt vermezseniz güvenilmez.</value>
+    <value>Eşleşmiş bir telefon bu bilgisayarın işaretçisini ve klavyesini denetlemek istiyor. Yalnızca size aitse güvenin. {0} sn içinde yanıt vermezseniz güvenilmez.</value>
   </data>
   <data name="Dialog_TrustHeading" xml:space="preserve">
     <value>{0} cihazına güvenilsin mi?</value>
@@ -205,7 +205,7 @@ Wi-Fi ve USB eşleşmeleri unutulamadı: dosyaları kaldırılamadı veya boşal
     <value>Güvenilen telefonlar</value>
   </data>
   <data name="Security_NoPhones" xml:space="preserve">
-    <value>Henüz güvenilen telefon yok. Bir telefona ilk bağlandığında sorulur.</value>
+    <value>Henüz güvenilen telefon yok. Bir telefon ilk kez bağlandığında size sorulur.</value>
   </data>
   <data name="Security_LevelName" xml:space="preserve">
     <value>Düzey {0}, {1}</value>
@@ -253,22 +253,22 @@ Wi-Fi ve USB eşleşmeleri unutulamadı: dosyaları kaldırılamadı veya boşal
     <value>{0} unutulsun mu?</value>
   </data>
   <data name="Security_ForgetOneText" xml:space="preserve">
-    <value>{0} ({1}) bu bilgisayarı kullanabilmeden önce burada yeniden güvenilir olarak işaretlenmelidir. Siz karar verirken telefonların bağlantısı kesik kalır.</value>
+    <value>Bu bilgisayarı kullanabilmesi için {0} ({1}) cihazına burada yeniden güvenmeniz gerekir. Siz karar verirken telefonların bağlantısı kesik kalır.</value>
   </data>
   <data name="Security_ForgetAllHeading" xml:space="preserve">
     <value>Güvenilen tüm telefonlar unutulsun mu?</value>
   </data>
   <data name="Security_ForgetAllNamed" xml:space="preserve">
-    <value>{0} bu bilgisayarı kullanabilmeden önce burada yeniden güvenilir olarak işaretlenmelidir; bağlı olan telefon da dahil. Siz karar verirken telefonların bağlantısı kesik kalır.</value>
+    <value>Bu bilgisayarı kullanabilmeleri için şu telefonlara burada yeniden güvenmeniz gerekir: {0}. Bağlı olan telefon da dahil. Siz karar verirken telefonların bağlantısı kesik kalır.</value>
   </data>
   <data name="Security_ForgetAllEvery" xml:space="preserve">
-    <value>Her telefon, bu bilgisayarı kullanabilmeden önce burada yeniden güvenilir olarak işaretlenmelidir; bağlı olan telefon da dahil. Siz karar verirken telefonların bağlantısı kesik kalır.</value>
+    <value>Bu bilgisayarı kullanabilmeleri için her telefona burada yeniden güvenmeniz gerekir; bağlı olan telefon da dahil. Siz karar verirken telefonların bağlantısı kesik kalır.</value>
   </data>
   <data name="Security_ResetHeading" xml:space="preserve">
     <value>PIN sıfırlansın ve her telefon unutulsun mu?</value>
   </data>
   <data name="Security_ResetText" xml:space="preserve">
-    <value>PIN silinir, düzey 1'e döner ve güvenilen her telefon unutulur. Bağlı olan telefon dahil her telefon burada yeniden güvenilir olarak işaretlenmelidir. Unutulan bir PIN geri alınamaz, yalnızca sıfırlanabilir.</value>
+    <value>PIN silinir, düzey 1'e döner ve güvenilen her telefon unutulur. Bağlı olan telefon dahil her telefona burada yeniden güvenmeniz gerekir. Unutulan bir PIN geri alınamaz, yalnızca sıfırlanabilir.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
     <value>Dosyayı tutan şeyi kapatın, sonra PIN sıfırlama seçeneğini yeniden seçin ya da dosyayı kendiniz silin:
@@ -371,7 +371,7 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
     <value>Bu pencere açıkken telefonunuzdan bir makro eklendi ve ona yer yok. Burada birini kaldırın, sonra kaydedin.</value>
   </data>
   <data name="Macro_SaveFailed" xml:space="preserve">
-    <value>Makrolar şuraya kaydedilemedi: {0}: {1}</value>
+    <value>Makrolar {0} konumuna kaydedilemedi: {1}</value>
   </data>
   <data name="Macro_NothingToOpen" xml:space="preserve">
     <value>“{0}” için açılacak bir şey yok. Neyi açacağını seçin ya da kaldırın.</value>

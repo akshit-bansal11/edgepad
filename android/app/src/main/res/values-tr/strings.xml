@@ -151,7 +151,7 @@
   <string name="corner_bottom_left">Sol alt</string>
   <string name="corner_off">Kapalı</string>
   <string name="corner_split">Köşeleri böl</string>
-  <string name="corner_split_caption">Her köşeye, birer kenara olmak üzere iki kadran verir. Toplamda sekize kadar.</string>
+  <string name="corner_split_caption">Her köşeye iki kadran verir, her kenara bir tane. Toplamda sekize kadar.</string>
   <string name="corner_edge_left">sol kenar</string>
   <string name="corner_edge_top">üst kenar</string>
   <string name="corner_edge_right">sağ kenar</string>
@@ -273,7 +273,7 @@
     <item quantity="other">%1$d çizildi</item>
   </plurals>
   <string name="shapes_none">Henüz yok</string>
-  <string name="shapes_footnote">Dokunmatik yüzeye, çizgi kesintisiz hale gelene kadar basılı tutun (dokunsal geri bildirim açıksa bir tık da hissedersiniz), sonra parmağınızı kaldırmadan çizin.</string>
+  <string name="shapes_footnote">Dokunmatik yüzeyi, çizgi kesintisiz hale gelene kadar basılı tutun (dokunsal geri bildirim açıksa bir tık da hissedersiniz), sonra parmağınızı kaldırmadan çizin.</string>
   <string name="shapes_empty_title">Henüz şekil yok</string>
   <string name="shapes_empty_body">Buraya bir şekil çizin ve ona çalıştıracak bir şey verin. Dokunmatik yüzeyde çizgi kesintisiz hale gelene kadar basılı tutun, sonra parmağınızı kaldırmadan çizin.</string>
   <string name="shapes_add">Şekil çiz</string>
@@ -404,7 +404,7 @@
 
   <!-- Macros -->
   <string name="controls_title">Kontroller</string>
-  <string name="controls_move_hint">Taşımak için bir kutucuğa basılı tutun.</string>
+  <string name="controls_move_hint">Taşımak için bir kutucuğu basılı tutun.</string>
   <string name="controls_hide_dials">Kadranları ve medyayı gizle</string>
   <string name="controls_blackout">Boştayken ekranı karart</string>
   <string name="controls_open">Aç: %1$s</string>
@@ -490,7 +490,7 @@
   <string name="macros_layout_grid_description">Satır: %1$d, sütun: %2$d</string>
   <string name="macros_layout_caption">İlk sayı satır, ikincisi sütun sayısıdır. Otomatik, düğmeleri en büyük yapan düzeni seçer.</string>
   <string name="macros_per_page">Ekrandaki makrolar</string>
-  <string name="macros_per_page_caption">Bir sayfada kaç makro görüneceği. Kalanlar, parmağınızı yana kaydırarak ulaşılan sayfalarda devam eder. Bir makroya basılı tutup sürükleyerek sayfası içinde taşıyabilirsiniz.</string>
+  <string name="macros_per_page_caption">Bir sayfada kaç makro görüneceği. Kalanlar, parmağınızı yana kaydırarak ulaşılan sayfalarda devam eder. Bir makroyu basılı tutup sürükleyerek sayfası içinde taşıyabilirsiniz.</string>
   <string name="macros_page_of">Sayfa %1$d / %2$d</string>
   <string name="macros_empty_title">Henüz makro yok</string>
   <string name="macros_empty_body">Bilgisayarın bildirim alanındaki Edgepad\'in “Makrolar…” menüsünden ekleyin. Liste gönderilir gönderilmez burada görünürler.</string>

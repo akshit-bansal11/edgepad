@@ -6,7 +6,7 @@
   <string name="gamepad_preset_platformer">Platform</string>
   <string name="gamepad_preset_racing">Yarış</string>
   <string name="gamepad_preset_shooter">Nişancı</string>
-  <string name="gamepad_layout_hint">Taşımak için sürükleyin. Menüsü için bir kontrole basılı tutun.</string>
+  <string name="gamepad_layout_hint">Taşımak için sürükleyin. Menüsü için bir kontrolü basılı tutun.</string>
   <string name="gamepad_layout_section">Düzenler</string>
   <string name="gamepad_description">Bilgisayar için oyun kumandası. Yalnızca dokunmatikle çalışır.</string>
   <string name="gamepad_node_dpad">Yön tuşları</string>
@@ -18,8 +18,8 @@
   <string name="gamepad_add">Ekle</string>
   <string name="gamepad_restore">Geri yükle: %1$s</string>
   <string name="gamepad_restore_confirm">%1$s geri yüklensin mi? Tekrar dokunun</string>
-  <string name="gamepad_switch_to">Şuna geç: %1$s</string>
-  <string name="gamepad_switch_to_confirm">Şuna geçilsin mi: %1$s? Sizin düzeniniz kayıtlı kalır. Tekrar dokunun</string>
+  <string name="gamepad_switch_to">Geç: %1$s</string>
+  <string name="gamepad_switch_to_confirm">%1$s düzenine geçilsin mi? Sizin düzeniniz kayıtlı kalır. Tekrar dokunun</string>
   <string name="gamepad_layouts">Düzenler</string>
 
   <string name="gamepad_control_title">%1$s · %2$s</string>

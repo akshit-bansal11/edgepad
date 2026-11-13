@@ -82,7 +82,7 @@
   </string-array>
 
   <string name="guide_gamepad_kicker">5 · Oyun kumandası</string>
-  <string name="guide_gamepad_title">Cebinizde bir kumanda.</string>
+  <string name="guide_gamepad_title">Cebinizde bir oyun kumandası.</string>
   <string-array name="guide_gamepad_keys">
     <item>Aç</item>
     <item>Hazır ayarlar</item>
@@ -119,7 +119,7 @@
   <string name="guide_art_dials">Kadranlar</string>
   <string name="guide_art_trackpad">Dokunmatik yüzey</string>
   <string name="guide_art_media">Medya</string>
-  <string name="guide_art_keys">Tuşlar · pad</string>
+  <string name="guide_art_keys">Tuşlar · kumanda</string>
   <string name="guide_art_gestures">Hareketler</string>
   <string name="guide_art_move">1 · Taşı</string>
   <string name="guide_art_scroll">2 · Kaydır</string>
