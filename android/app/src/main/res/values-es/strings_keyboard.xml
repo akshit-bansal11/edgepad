@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">Teclado</string>
+  <string name="keyboard_type_text">Escribir texto</string>
+  <string name="keyboard_type_send">Escribir</string>
+  <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
+  <string name="back_to_surface">Controles</string>
+  <string name="macros_title">Macros</string>
+  <string name="keyboard_key_on">Pulsada</string>
+  <string name="keyboard_description">Teclado en pantalla para la laptop</string>
+  <string name="keyboard_size">Tamaño</string>
+  <string name="keyboard_size_caption">Los tamaños grandes incluyen más teclas, por lo que cada tecla es más pequeña. Requieren una pantalla más ancha.</string>
+  <string name="keyboard_function_keys">Teclas de función</string>
+  <string name="keyboard_with_fn">Con Fn</string>
+  <string name="keyboard_direct">Directo</string>
+  <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
+  <string name="keyboard_function_keys_caption">Con Fn: la fila superior hace lo que lleva impreso (brillo, multimedia, volumen) y Fn más una tecla envía F1 a F12. En los teclados de 65%% y 60%%, que no tienen fila F, la fila de números escribe números y Fn más un número envía F1 a F12. Directo: la fila superior envía F1 a F12 y Fn más una tecla hace la acción impresa; en los de 65%% y 60%%, la fila de números envía F1 a F12 y Fn más un número escribe el número.</string>
+</resources>
