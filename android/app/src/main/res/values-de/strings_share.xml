@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Share > Edgepad (ShareActivity): nothing is sent until Send is tapped. -->
+  <string name="share_title">An %1$s senden?</string>
+  <string name="share_image">Ein Bild</string>
+  <string name="share_send">Senden</string>
+  <string name="share_sent">An %1$s gesendet</string>
+  <string name="share_send_failed">Senden an %1$s nicht möglich. Prüfe die Verbindung und versuch es erneut.</string>
+  <string name="share_no_laptop">Edgepad ist mit keinem Laptop verbunden. Verbinde einen und teile dann erneut.</string>
+  <string name="share_clipboard_off">Schalte „Zwischenablage teilen“ auf %1$s ein</string>
+  <string name="share_nothing">Hier gibt es nichts, was Edgepad senden kann.</string>
+  <string name="share_text_too_long">Der Text ist zu lang zum Senden. Das Limit liegt bei 1 MB.</string>
+  <string name="share_image_failed">Das Bild lässt sich nicht lesen oder ist zu groß zum Senden.</string>
+  <!-- Under every shared text in the confirm, counted on the text as sent (a trailing line break makes one more). -->
+  <plurals name="share_lines">
+    <item quantity="one">%1$d Zeile.</item>
+    <item quantity="other">%1$d Zeilen.</item>
+  </plurals>
+  <!-- After share_lines when the text is cut for the confirm: everything is still sent. -->
+  <plurals name="share_not_shown">
+    <item quantity="one">%1$d weiteres Zeichen wird hier nicht angezeigt. „Senden“ sendet alles.</item>
+    <item quantity="other">%1$d weitere Zeichen werden hier nicht angezeigt. „Senden“ sendet alles.</item>
+  </plurals>
+</resources>
