@@ -31,16 +31,43 @@ class Pager(
     private var flung = false
 
     init {
-        // Pages are found by scroll offset from the left, so they keep their left-to-right order in Arabic too.
-        layoutDirection = LAYOUT_DIRECTION_LTR
         isHorizontalScrollBarEnabled = false
         overScrollMode = OVER_SCROLL_NEVER
         addView(row, FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT))
     }
 
+    private val rtl get() = layoutDirection == LAYOUT_DIRECTION_RTL
+
+    /** Where [index] sits as a scroll offset: the first page is at the right edge under right-to-left. */
+    private fun offsetOf(index: Int) = (if (rtl) row.childCount - 1 - index else index) * width
+
+    /** The page position (fractional) a scroll offset shows, counted in reading order. */
+    private fun positionAt(scroll: Int): Float {
+        val at = scroll.toFloat() / width
+        return if (rtl) row.childCount - 1 - at else at
+    }
+
+    private var placed = false
+
+    // Whether a scroll view starts at the right edge under right-to-left is the platform's business; the first
+    // page is put there explicitly once, so this does not depend on it.
+    override fun onLayout(
+        changed: Boolean,
+        l: Int,
+        t: Int,
+        r: Int,
+        b: Int,
+    ) {
+        super.onLayout(changed, l, t, r, b)
+        if (!placed && width > 0 && rtl) {
+            placed = true
+            scrollTo(offsetOf(page), 0)
+        }
+    }
+
     /** Shows [index] without a slide, once the pager has been laid out. */
     fun jumpTo(index: Int) {
-        post { scrollTo(index * width, 0) }
+        post { scrollTo(offsetOf(index), 0) }
     }
 
     override fun onScrollChanged(
@@ -50,7 +77,7 @@ class Pager(
         oldt: Int,
     ) {
         super.onScrollChanged(l, t, oldl, oldt)
-        val now = if (width > 0) (l + width / 2) / width else 0
+        val now = if (width > 0 && row.childCount > 0) positionAt(l).roundToInt() else 0
         if (now != page) {
             page = now
             onPage(now)
@@ -59,22 +86,24 @@ class Pager(
 
     override fun fling(velocityX: Int) {
         flung = true
-        val at = scrollX.toFloat() / width
-        settle(if (velocityX > 0) ceil(at).toInt() else floor(at).toInt())
+        val at = positionAt(scrollX)
+        // The fling is in scroll terms; the next page is the other way under right-to-left.
+        val forward = if (rtl) velocityX < 0 else velocityX > 0
+        settle(if (forward) ceil(at).toInt() else floor(at).toInt())
     }
 
     // The scroll view handles the release inside this call, and starts a fling from it when the finger was quick.
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         val handled = super.dispatchTouchEvent(event)
         if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
-            if (!flung && width > 0) settle((scrollX.toFloat() / width).roundToInt())
+            if (!flung && width > 0) settle(positionAt(scrollX).roundToInt())
             flung = false
         }
         return handled
     }
 
     private fun settle(index: Int) {
-        smoothScrollTo(index.coerceIn(0, row.childCount - 1) * width, 0)
+        smoothScrollTo(offsetOf(index.coerceIn(0, row.childCount - 1)), 0)
     }
 }
 

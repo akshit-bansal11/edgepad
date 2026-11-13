@@ -211,7 +211,7 @@ class PickerScreen(
     private fun title(): View =
         LinearLayout(ui.context).apply {
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(ui.dp(Space.XS), 0, 0, ui.dp(Space.S))
+            setPaddingRelative(ui.dp(Space.XS), 0, 0, ui.dp(Space.S))
             addView(
                 MarkView(ui.context),
                 LinearLayout.LayoutParams(ui.dp(MARK_DP), ui.dp(MARK_DP)).apply { marginEnd = ui.dp(Space.M) },

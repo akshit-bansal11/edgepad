@@ -380,7 +380,9 @@ object GuideScreen {
         direction: Int,
     ) {
         content.alpha = 0f
-        content.translationX = direction * ui.dp(ENTER_DP).toFloat()
+        // "Next" comes from the end side: the right in English, the left in Arabic.
+        val side = if (content.layoutDirection == View.LAYOUT_DIRECTION_RTL) -1 else 1
+        content.translationX = side * direction * ui.dp(ENTER_DP).toFloat()
         content
             .animate()
             .alpha(1f)
