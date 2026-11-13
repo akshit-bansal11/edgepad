@@ -9,7 +9,7 @@
   <string name="device_connecting">接続中…</string>
   <string name="device_reconnecting">再接続中…</string>
   <string name="device_failed">接続できませんでした</string>
-  <string name="device_asking">応答を待っています。タップして答えてください。</string>
+  <string name="device_asking">確認を待っています。タップして応答してください。</string>
   <string name="device_active">操作中</string>
   <string name="device_make_active">操作先にする</string>
   <string name="device_disconnect">切断</string>
@@ -61,7 +61,7 @@
   <string name="link_lost">接続が切れました。</string>
   <string name="link_refused">ノートPCがハンドシェイクの前に接続を切りました。ノートPCを確認し、このスマホについて尋ねられたら「信頼する」を選んでください。別のスマホがノートPCを操作していた場合は、30秒後にもう一度お試しください。それでも失敗する場合は、ノートPCのEdgepadをアップデートしてください。</string>
   <string name="link_unreachable_bluetooth">ノートPCが接続を受け付けませんでした。ノートPCでEdgepadが動作していて、Bluetoothがオンになっていることを確認してください。それでも失敗する場合は、このスマホとノートPCの両方でペアリングを削除してから、もう一度ペアリングしてください。</string>
-  <string name="link_unreachable_network">ノートPCが応答しませんでした。ノートPCでEdgepadが動作していて、EdgepadメニューのWi-FiおよびUSB接続がオンになっていることを確認してください。</string>
+  <string name="link_unreachable_network">ノートPCが応答しませんでした。ノートPCでEdgepadが動作していて、Edgepadメニューの「Wi-FiおよびUSB接続」がオンになっていることを確認してください。</string>
   <string name="link_mismatch">%1$sのEdgepadとこのアプリは、リリースが異なります。どちらも同じリリースのものをインストールしてください。</string>
   <string name="link_mismatch_laptop_older">%1$sのEdgepadは、このアプリより古いバージョンです。ノートPCのEdgepadをアップデートしてください。両方を同じリリースにする必要があります。</string>
   <string name="link_mismatch_phone_older">このアプリは、%1$sのEdgepadより古いバージョンです。システム設定 › アップデートで、このアプリをアップデートしてください。両方を同じリリースにする必要があります。</string>
@@ -107,7 +107,7 @@
   <string name="pair_confirm_no">いいえ</string>
 
   <!-- Connection lost -->
-  <string name="lost_title">ノートPCに届きません</string>
+  <string name="lost_title">ノートPCと通信できません</string>
   <string name="lost_body">%1$sからの応答がなくなりました。すべてのコントロールは一時停止中で、押した操作は保留されません。</string>
   <string name="lost_attempt">再接続中 · %2$d回中%1$d回目</string>
   <string name="lost_stopped">再試行を停止しました。ノートPCはスリープしておらず、Edgepadは動作していますか？</string>
@@ -348,7 +348,7 @@
   <string name="dial_volume">音量</string>
   <string name="dial_volume_short">音量</string>
   <string name="dial_brightness">明るさ</string>
-  <string name="dial_brightness_short">明</string>
+  <string name="dial_brightness_short">明るさ</string>
   <string name="dial_zoom">ズーム</string>
   <string name="dial_zoom_short">拡大</string>
   <string name="dial_media">メディアシーク</string>
@@ -364,7 +364,7 @@
   <string name="dial_scroll_h_short">横</string>
   <string name="dial_scroll_short">縦</string>
   <string name="dial_desktops">仮想デスクトップ</string>
-  <string name="dial_desktops_short">仮想</string>
+  <string name="dial_desktops_short">デスク</string>
   <string name="dial_tabs">ブラウザのタブ</string>
   <string name="dial_tabs_short">タブ</string>
   <string name="dial_devices">ノートPCの切り替え</string>
@@ -473,7 +473,7 @@
   <string name="sign_saved">署名をノートPCのクリップボードにコピーし、ノートPCのPictures/Edgepadに保存しました</string>
   <string name="sign_empty">まだ何も描かれていません</string>
   <string name="sign_failed">保存できませんでした</string>
-  <string name="capture_unavailable">このノートPCからキャプチャに対応しているという応答がありません。ノートPCのEdgepadをアップデートしてから、もう一度接続してください。</string>
+  <string name="capture_unavailable">このノートPCがキャプチャに対応しているか確認できません。ノートPCのEdgepadをアップデートしてから、もう一度接続してください。</string>
   <string name="macros_run">%1$sを実行</string>
   <string name="macros_close">%1$sを閉じる</string>
   <string name="macros_settings">マクロの設定</string>

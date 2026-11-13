@@ -26,13 +26,13 @@ Android folder `values-ja`, Windows culture `ja`. Written to match the wording o
 | corner(s) / split corners | コーナー / コーナーを分割 | |
 | edge | 端 (左端, 上端, 右端, 下端) | Physical edges |
 | volume | 音量 (short 音量) | |
-| brightness | 明るさ (short 明) | |
+| brightness | 明るさ (short 明るさ) | |
 | zoom | ズーム (short 拡大) | |
 | media scrub | メディアシーク (short シーク) | |
 | app switcher | アプリ切り替え (short アプリ) | |
 | refresh rate | リフレッシュレート (short Hz) | |
 | vertical / horizontal scroll | 縦スクロール / 横スクロール (short 縦 / 横) | |
-| virtual desktops | 仮想デスクトップ (short 仮想) | |
+| virtual desktops | 仮想デスクトップ (short デスク) | |
 | browser tabs | ブラウザのタブ (short タブ) | |
 | switch laptop | ノートPCの切り替え (short PC) | |
 | trackpad | トラックパッド | |
@@ -49,7 +49,7 @@ Android folder `values-ja`, Windows culture `ja`. Written to match the wording o
 | binding | 割り当て | |
 | D-pad / stick / button / shoulder / trigger | 十字キー / スティック / ボタン / ショルダー / トリガー | |
 | keyboard mode | キーボードモード | |
-| macro | マクロ | Windows menu item `マクロ…(&M)`, quoted on the phone as 「マクロ…」 |
+| macro | マクロ | Windows menu item `マクロ(&M)…`, quoted on the phone as 「マクロ…」 |
 | annotate | 書き込み | Tools: ペン, 蛍光ペン, 直線, 矢印, 四角形, 楕円 |
 | sign | 署名 | |
 | capture | キャプチャ | Region 範囲, Full screen 全画面, Record 録画 |
@@ -74,7 +74,7 @@ Android folder `values-ja`, Windows culture `ja`. Written to match the wording o
 | theme System / Dark / Light | システム / ダーク / ライト | |
 | upright / sideways | 縦向き / 横向き | |
 | tray app / notification area | Edgepad / タスクバーの通知領域 | System tray icon: タスクトレイ |
-| tray menu | マクロ…, セキュリティ…, Wi-FiおよびUSB接続, クリップボードを共有, アップデートを毎日確認, ログを開く, Edgepadを終了 | Access key written `(&X)` after the label, with the English letter |
+| tray menu | マクロ…, セキュリティ…, Wi-FiおよびUSB接続, クリップボードを共有, アップデートを毎日確認, ログを開く, Edgepadを終了 | Access key written `(&X)` after the label and before any ellipsis (`マクロ(&M)…`), with the English letter |
 | firewall | ファイアウォール | |
 | start with Windows | Windowsの起動時に開始 | |
 | update / release notes / release page / major release | アップデート / リリースノート / リリースページ / メジャーリリース | |

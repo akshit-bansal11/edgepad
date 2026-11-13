@@ -20,7 +20,7 @@
     <item>ほかにも</item>
   </string-array>
   <string-array name="guide_features_values">
-    <item>操作はその場で送信されます。回線が遅いときは、待機中の操作を順番に溜めずにまとめて送ります。</item>
+    <item>操作はその場で送信されます。回線が遅いときは、待機中の操作を順番に待たせず、まとめて送ります。</item>
     <item>スマホからノートPCまでの往復時間を常に測定し、デバイス画面のノートPCの横に表示します。</item>
     <item>アカウントもインターネットも不要です。スマホがノートPCと直接つながります。</item>
     <item>基本はBluetoothです。ノートPCのBluetooth設定で一度ペアリングすれば、Edgepadの起動時に接続できます。Wi-FiやUSBでの接続は任意です。</item>

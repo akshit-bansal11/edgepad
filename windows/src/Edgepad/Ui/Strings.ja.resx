@@ -13,7 +13,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Network_Notice" xml:space="preserve">
-    <value>同じWi-Fiにあるスマホや、USBテザリングで接続したスマホが、このノートPCを見つけてペアリングを求められるようになります。ここで入力したペアリングコードがなければ、何も接続されません。Windowsがコマンドプロンプトの実行を一度確認します。これは、Edgepadのファイアウォール規則を追加するためです。</value>
+    <value>同じWi-Fiにあるスマホや、USBテザリングで接続したスマホが、このノートPCを見つけてペアリングを要求できるようになります。ここで入力したペアリングコードがなければ、何も接続されません。Windowsがコマンドプロンプトの実行を一度確認します。これは、Edgepadのファイアウォール規則を追加するためです。</value>
   </data>
   <data name="Network_ClipboardNotice" xml:space="preserve">
     <value>クリップボードを共有：一方でコピーして、もう一方で貼り付けます。テキストと画像に対応しています。チェックを入れるまでオフです。</value>
@@ -25,10 +25,10 @@
     <value>Windowsの起動時に開始(&amp;T)</value>
   </data>
   <data name="Menu_Macros" xml:space="preserve">
-    <value>マクロ…(&amp;M)</value>
+    <value>マクロ(&amp;M)…</value>
   </data>
   <data name="Menu_Security" xml:space="preserve">
-    <value>セキュリティ…(&amp;E)</value>
+    <value>セキュリティ(&amp;E)…</value>
   </data>
   <data name="Menu_Network" xml:space="preserve">
     <value>Wi-FiおよびUSB接続(&amp;W)</value>
@@ -37,7 +37,7 @@
     <value>Wi-FiとUSB</value>
   </data>
   <data name="Menu_Firewall" xml:space="preserve">
-    <value>Windowsファイアウォールで許可…(&amp;F)</value>
+    <value>Windowsファイアウォールで許可(&amp;F)…</value>
   </data>
   <data name="Menu_BluetoothSettings" xml:space="preserve">
     <value>Bluetooth設定を開く(&amp;B)</value>
@@ -121,7 +121,7 @@
     <value>サインイン時にEdgepadを開始しますか？</value>
   </data>
   <data name="Dialog_StartText" xml:space="preserve">
-    <value>開始後は、ウィンドウを表示せずにタスクバーの通知領域でスマホを待ちます。あとからメニューで変更できます。</value>
+    <value>Edgepadはウィンドウを表示せず、タスクバーの通知領域でスマホを待ちます。あとからメニューで変更できます。</value>
   </data>
   <data name="Dialog_Allow" xml:space="preserve">
     <value>許可</value>
@@ -148,10 +148,10 @@
     <value>セキュリティ</value>
   </data>
   <data name="Error_ForgetOne" xml:space="preserve">
-    <value>{0}にあるEdgepadのファイルをほかのものが使っていない状態で、もう一度「登録解除」をお試しください。{1}の登録を完全には解除できませんでした。ファイルを書き換えられなかったためです。ディスク上では信頼されたままですが、Edgepadを再起動するまでは接続を拒否されます。再起動後は、もう一度登録解除しない限り、再び信頼されます。</value>
+    <value>{0}にあるEdgepadのファイルを使用しているアプリを閉じてから、もう一度「登録解除」をお試しください。{1}の登録を完全には解除できませんでした。ファイルを書き換えられなかったためです。ディスク上では信頼されたままですが、Edgepadを再起動するまでは、Edgepadがこのスマホの接続を拒否します。再起動後は、もう一度登録解除しない限り、再び信頼されます。</value>
   </data>
   <data name="Error_ForgetAllTrust" xml:space="preserve">
-    <value>信頼済みのスマホのファイルを使用しているものを閉じてから、もう一度「すべて登録解除」を選ぶか、次のファイルを自分で削除してください。
+    <value>信頼済みのスマホのファイルを使用しているアプリを閉じてから、もう一度「すべて登録解除」を選ぶか、次のファイルを自分で削除してください。
 
 {0}
 
@@ -217,13 +217,13 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
     <value>レベル{0}：{1}</value>
   </data>
   <data name="Security_SetPinButton" xml:space="preserve">
-    <value>PINを設定…(&amp;P)</value>
+    <value>PINを設定(&amp;P)…</value>
   </data>
   <data name="Security_ForgetAll" xml:space="preserve">
-    <value>すべて登録解除…(&amp;F)</value>
+    <value>すべて登録解除(&amp;F)…</value>
   </data>
   <data name="Security_Reset" xml:space="preserve">
-    <value>PINをリセットしてスマホを登録解除…(&amp;R)</value>
+    <value>PINをリセットしてスマホを登録解除(&amp;R)…</value>
   </data>
   <data name="Common_Save" xml:space="preserve">
     <value>保存(&amp;S)</value>
@@ -277,14 +277,14 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
     <value>PINは削除され、レベルは1に戻り、信頼済みのスマホはすべて登録解除されます。接続中のスマホも含め、すべてのスマホをここでもう一度信頼する必要があります。忘れたPINは復元できず、リセットのみ可能です。</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>ファイルを使用しているものを閉じてから、もう一度「リセット」を選ぶか、次のファイルを自分で削除してください。
+    <value>ファイルを使用しているアプリを閉じてから、もう一度「リセット」を選ぶか、次のファイルを自分で削除してください。
 
 {0}
 
 何もリセットされていません。信頼済みのスマホの登録を解除できなかったため、PINとレベルはそのままです。Edgepadが動作している間は、どのスマホも接続できませんが、次に起動すると、それらのスマホは同じPINのもとで再び信頼されます。</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>ファイルを使用しているものを閉じてから、もう一度「リセット」を選ぶか、security.txtとpin-verified.txtを次の場所から自分で削除してください。
+    <value>ファイルを使用しているアプリを閉じてから、もう一度「リセット」を選ぶか、security.txtとpin-verified.txtを次の場所から自分で削除してください。
 
 {0}
 
@@ -348,13 +348,13 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
     <value>マクロを追加(&amp;A)</value>
   </data>
   <data name="Macro_Browse" xml:space="preserve">
-    <value>参照…(&amp;B)</value>
+    <value>参照(&amp;B)…</value>
   </data>
   <data name="Macro_BrowseName" xml:space="preserve">
     <value>開く対象を参照</value>
   </data>
   <data name="Macro_ChooseIcon" xml:space="preserve">
-    <value>アイコンを選択…(&amp;C)</value>
+    <value>アイコンを選択(&amp;C)…</value>
   </data>
   <data name="Macro_ChooseIconName" xml:space="preserve">
     <value>アイコンを選択</value>
@@ -444,7 +444,7 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
     <value>Edgepadはすでに実行中です。タスクバーの通知領域にあります。</value>
   </data>
   <data name="App_DidNotHandOver" xml:space="preserve">
-    <value>別のEdgepadがすでに実行中で、引き継ぎができませんでした。タスクトレイのアイコンから終了して、もう一度実行してください。</value>
+    <value>別のEdgepadがまだ実行中で、終了しませんでした。タスクトレイのアイコンから終了して、もう一度実行してください。</value>
   </data>
   <data name="Phone_NoneConnected" xml:space="preserve">
     <value>接続中のスマホはありません</value>
