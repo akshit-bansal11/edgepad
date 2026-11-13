@@ -8,7 +8,7 @@ Everyday Hindi as Indian phone users read it: "आप" with polite imperatives (
 
 ## Conventions
 
-- Latin stays: Edgepad, Wi-Fi, USB, Windows, Android, Mac, GitHub, ViGEmBus, Xbox, Platformer/Racing/Shooter (preset names), units (`dp`, `Hz`, `MB`, `ms`), `F1`-`F12`, Ctrl, Alt, Shift, Fn, Start (menu). Bluetooth is written ब्लूटूथ, as the user asked for Devanagari loanwords.
+- Latin stays: Edgepad, USB, Windows, Android, Mac, GitHub, ViGEmBus, Xbox, Platformer/Racing/Shooter (preset names), units (`dp`, `Hz`, `MB`, `ms`), `F1`-`F12`, Ctrl, Alt, Shift, Fn, Start (menu). Bluetooth is written ब्लूटूथ, as the user asked for Devanagari loanwords.
 - Quote marks: straight `"..."` (Hindi UI uses them). Ellipsis `…`. Danda: sentences end with a full stop `.` (modern Hindi UI usage), never `।`.
 - Digits are Latin (0-9), as on Indian phones. Number and unit separated by a space ("30 सेकंड", "%1$d MB"). Percent attached ("50%").
 - Titles and buttons are not capitalised (no case in Devanagari); keep them short, nouns for labels, polite imperative for buttons.
@@ -80,7 +80,7 @@ Everyday Hindi as Indian phone users read it: "आप" with polite imperatives (
 | upright, sideways | पोर्ट्रेट, लैंडस्केप |
 | control colour | कंट्रोल का रंग |
 | the tray app | ट्रे ऐप (Windows में "टास्कबार का कोना" / सिस्टम ट्रे) |
-| Wi-Fi and USB connections | Wi-Fi और USB कनेक्शन |
+| Wi-Fi and USB connections | वाई-फ़ाई और USB कनेक्शन |
 | firewall | फ़ायरवॉल |
 | update, release notes, release page, major release | अपडेट, रिलीज़ नोट्स, रिलीज़ पेज, बड़ी रिलीज़ |
 | protocol | प्रोटोकॉल |
@@ -89,12 +89,22 @@ Everyday Hindi as Indian phone users read it: "आप" with polite imperatives (
 ## Cross-references to keep verbatim (Windows round)
 
 - Windows tray menu item for macros: "मैक्रो…" (quoted in the Android `macros_empty_body*`).
-- Windows menu item: "Wi-Fi और USB कनेक्शन" (quoted in several Android strings and in `guide_connect_values`).
+- Windows menu item: "वाई-फ़ाई और USB कनेक्शन" (quoted in several Android strings and in `guide_connect_values`).
 - Windows trust button: "भरोसा करें" (quoted in `status_accept_on_laptop`, `link_refused`, `guide_connect_values`); the other button "भरोसा न करें".
 - `Common_Forget` = "भूल जाएं" (as Android `forget`).
 - Windows menu access keys: Hindi has no Latin letters in the words, so append a Latin key in parentheses ("सेटिंग्स (&S)") as the brief says; keep it unique per menu.
 
 ## Sources found ambiguous
 
-- `device_more` ("More"): rendered "और"; works as a label but reads as "and/more".
-- `capture_save_to` ("Save to") rendered "सेव करें"; the sentences that refer to it quote it by that name.
+- `device_more` ("More"): rendered "ज़्यादा" (Android overflow wording), not "और" which also means "and".
+- `capture_save_to` ("Save to"): rendered "यहां सेव करें" so the heading keeps "to"; `capture_recording` quotes it by that name.
+
+## Windows and shared core (round 2)
+
+- Wi-Fi is written वाई-फ़ाई (as Hindi Android and Windows write it) everywhere; Bluetooth ब्लूटूथ; USB stays Latin.
+- Access keys: Devanagari has no Latin letters, so each `&` key is appended in parentheses at the end ("मैक्रो… (&M)"); unique per menu. Tray menu: T M E W F B S C L U D Q. Security window: P F R S. PIN dialog: U. Macros window: A B C U R.
+- "{0} s" seconds is written "{0} सेकंड"; "{0} of {1}" is "{1} में से {0}" (placeholders reordered).
+- Menu/dialog names match Android: Trust = भरोसा करें / भरोसा न करें, Forget = भूल जाएं, Forget all = सब भूल जाएं…, Share clipboard = क्लिपबोर्ड शेयर करें, Check for updates daily = रोज़ अपडेट जांचें, Security = सुरक्षा, Level = स्तर, trusted phones = भरोसेमंद फ़ोन.
+- `Pairing_Matched` quotes the Android button "हां, पेयर हो गया"; `Pairing_Warning` quotes "रद्द करें" (Common_Cancel).
+- Arguments (command-line) = आर्गुमेंट; Browse = ब्राउज़ करें; Opens = क्या खोलता है.
+- Hindi plurals in Android: every `<plurals>` has exactly `one` and `other` (checked).

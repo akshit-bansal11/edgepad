@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Network_Notice" xml:space="preserve">
+    <value>उसी वाई-फ़ाई पर मौजूद या USB टेदरिंग से जुड़े फ़ोन इस लैपटॉप को ढूंढ सकेंगे और पेयर करने का अनुरोध कर सकेंगे। यहां पेयरिंग कोड डाले बिना कुछ भी कनेक्ट नहीं होता। Windows एक बार कमांड प्रॉम्प्ट चलाने की अनुमति मांगेगा; इससे Edgepad का फ़ायरवॉल नियम जुड़ जाता है।</value>
+  </data>
+  <data name="Network_ClipboardNotice" xml:space="preserve">
+    <value>क्लिपबोर्ड शेयर करें: एक पर कॉपी करें, दूसरे पर पेस्ट करें, टेक्स्ट और इमेज। जब तक आप टिक नहीं करते, यह बंद रहता है।</value>
+  </data>
+  <data name="Network_WhereItLives" xml:space="preserve">
+    <value>Edgepad टास्कबार के कोने में चलता है। उसका आइकन न दिखे, तो ^ पर क्लिक करके उसे बाहर खींच लें। ब्लूटूथ इस्तेमाल करने के लिए पहले फ़ोन को Windows की ब्लूटूथ सेटिंग्स में पेयर करें, फिर फ़ोन पर Edgepad खोलें।</value>
+  </data>
+  <data name="Menu_StartWithWindows" xml:space="preserve">
+    <value>Windows के साथ शुरू करें (&amp;T)</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>मैक्रो… (&amp;M)</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>सुरक्षा… (&amp;E)</value>
+  </data>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>वाई-फ़ाई और USB कनेक्शन (&amp;W)</value>
+  </data>
+  <data name="Network_Title" xml:space="preserve">
+    <value>वाई-फ़ाई और USB</value>
+  </data>
+  <data name="Menu_Firewall" xml:space="preserve">
+    <value>Windows फ़ायरवॉल से अनुमति दें… (&amp;F)</value>
+  </data>
+  <data name="Menu_BluetoothSettings" xml:space="preserve">
+    <value>ब्लूटूथ सेटिंग्स खोलें (&amp;B)</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>क्लिपबोर्ड शेयर करें (&amp;S)</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>एक पर कॉपी करें, दूसरे पर पेस्ट करें: टेक्स्ट और इमेज।</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>रोज़ अपडेट जांचें (&amp;C)</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>लॉग खोलें (&amp;L)</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>अपडेट उपलब्ध है (&amp;U)</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>दस्तावेज़ (&amp;D)</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepad बंद करें (&amp;Q)</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{1} में से {0}</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>अपडेट उपलब्ध है: {0} (&amp;U)</value>
+  </data>
+  <data name="Balloon_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} उपलब्ध है। रिलीज़ पेज खोलने के लिए क्लिक करें; उसे डाउनलोड करके चलाएं, इससे यह कॉपी बदल जाएगी।</value>
+  </data>
+  <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
+    <value>"Windows के साथ शुरू करें" सेव नहीं हो सका, इसलिए Edgepad अपने-आप शुरू नहीं होगा। वजह लॉग में है।</value>
+  </data>
+  <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
+    <value>"क्लिपबोर्ड शेयर करें" अभी के लिए बदल गया, पर सेव नहीं हो सका, इसलिए अगली बार शुरू होने पर याद न रहे।</value>
+  </data>
+  <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
+    <value>"रोज़ अपडेट जांचें" अभी के लिए बदल गया, पर सेव नहीं हो सका, इसलिए अगली बार शुरू होने पर याद न रहे।</value>
+  </data>
+  <data name="Balloon_NewFile" xml:space="preserve">
+    <value>Edgepad का यह वर्शन नई फ़ाइल है, इसलिए Windows एक बार पूछेगा कि फ़ोन को इस तक पहुंचने दें।</value>
+  </data>
+  <data name="Balloon_FirewallNotChanged" xml:space="preserve">
+    <value>Windows फ़ायरवॉल नहीं बदला, इसलिए फ़ोन इस लैपटॉप तक न पहुंच पाएं। इस मेन्यू में "Windows फ़ायरवॉल से अनुमति दें" फिर कोशिश करता है।</value>
+  </data>
+  <data name="Balloon_MacroAdded" xml:space="preserve">
+    <value>आपके फ़ोन से {0} जोड़ा गया</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} पेयर करना चाहता है। उस पर दिख रहा पेयरिंग कोड डालें।</value>
+  </data>
+  <data name="Balloon_DriverMissing" xml:space="preserve">
+    <value>कंट्रोलर के लिए ViGEmBus ड्राइवर चाहिए। डाउनलोड पेज खोलने के लिए क्लिक करें।</value>
+  </data>
+  <data name="Balloon_WantsToConnect" xml:space="preserve">
+    <value>{0} कनेक्ट करना चाहता है। "भरोसा करें" या "भरोसा न करें" चुनें।</value>
+  </data>
+  <data name="Phone_Connected" xml:space="preserve">
+    <value>फ़ोन कनेक्टेड</value>
+  </data>
+  <data name="Phone_Disconnected" xml:space="preserve">
+    <value>फ़ोन डिस्कनेक्ट हुआ</value>
+  </data>
+  <data name="Balloon_ForgotOne" xml:space="preserve">
+    <value>{0} को भूल गया। लगभग {1} सेकंड बाद फ़ोन से दोबारा कनेक्ट करें।</value>
+  </data>
+  <data name="Balloon_ForgotAll" xml:space="preserve">
+    <value>सभी भरोसेमंद फ़ोन भूल गया। लगभग {0} सेकंड बाद फ़ोन से दोबारा कनेक्ट करें।</value>
+  </data>
+  <data name="Dialog_StartWithWindows" xml:space="preserve">
+    <value>Windows के साथ शुरू करें</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>अभी नहीं</value>
+  </data>
+  <data name="Dialog_StartHeading" xml:space="preserve">
+    <value>साइन इन करने पर Edgepad शुरू करें?</value>
+  </data>
+  <data name="Dialog_StartText" xml:space="preserve">
+    <value>तब Edgepad बिना किसी विंडो के टास्कबार के कोने में आपके फ़ोन का इंतज़ार करता है। इसे बाद में उसके मेन्यू में बदल सकते हैं।</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>अनुमति दें</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>चालू करें</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>रद्द करें</value>
+  </data>
+  <data name="Dialog_ShareClipboard" xml:space="preserve">
+    <value>क्लिपबोर्ड शेयर करें</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>फ़ोन को यह लैपटॉप ढूंढने दें?</value>
+  </data>
+  <data name="Dialog_NetworkHeading" xml:space="preserve">
+    <value>वाई-फ़ाई और USB कनेक्शन चालू करें?</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>सेटिंग सेव नहीं हो सकी, इसलिए कुछ नहीं बदला। वजह लॉग में है।</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>सुरक्षा</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>{0} में Edgepad की फ़ाइलें कोई और इस्तेमाल न कर रहा हो, तब "भूल जाएं" फिर आज़माएं। {1} को पूरी तरह भुलाया नहीं जा सका: एक फ़ाइल दोबारा लिखी नहीं जा सकी। वह डिस्क पर भरोसेमंद बना रहता है, पर Edgepad दोबारा शुरू होने तक उसे मना करता है, और उसके बाद वह फिर भरोसेमंद हो जाएगा, जब तक आप उसे दोबारा न भूलें।</value>
+  </data>
+  <data name="Error_ForgetAllTrust" xml:space="preserve">
+    <value>भरोसेमंद फ़ोन की फ़ाइल को जो भी रोके हुए है उसे बंद करें, फिर "सब भूल जाएं" दोबारा चुनें, या उसे खुद हटा दें:
+
+{0}
+
+भरोसेमंद फ़ोन भूले नहीं जा सके: उनकी फ़ाइल हटाई या खाली नहीं की जा सकी। Edgepad के चलते रहने तक कोई फ़ोन कनेक्ट नहीं हो सकता, पर Edgepad अगली बार शुरू होने पर वे फ़ोन फिर भरोसेमंद हो जाएंगे।</value>
+  </data>
+  <data name="Error_ForgetAllPin" xml:space="preserve">
+    <value>"सब भूल जाएं" दोबारा चुनें, या pin-verified.txt को यहां से खुद हटा दें:
+
+{0}
+
+जिन फ़ोन ने पिन डाला था, वे भूले नहीं जा सके: उनकी सूची हटाई नहीं जा सकी। Edgepad के चलते रहने तक हर फ़ोन से हर कनेक्शन पर पिन मांगा जाएगा, पर Edgepad अगली बार शुरू होने पर वे फ़ोन स्तर 2 पर फिर पिन के बिना कनेक्ट होंगे।</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>"सब भूल जाएं" दोबारा चुनें, या paired-links.txt को यहां से खुद हटा दें:
+
+{0}
+
+वाई-फ़ाई और USB की पेयरिंग भूली नहीं जा सकी: उनकी फ़ाइल हटाई या खाली नहीं की जा सकी। Edgepad के चलते रहने तक पेयर किए फ़ोन वाई-फ़ाई या USB से दोबारा कनेक्ट नहीं हो सकते, पर अगली बार शुरू होने पर हो सकेंगे।</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>भरोसा करें</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>भरोसा न करें</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>एक पेयर किया हुआ फ़ोन इस लैपटॉप का पॉइंटर और कीबोर्ड चलाने की अनुमति मांग रहा है। उस पर तभी भरोसा करें जब वह आपका हो। {0} सेकंड में जवाब न दिया, तो उस पर भरोसा नहीं किया जाएगा।</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>{0} पर भरोसा करें?</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>सिर्फ़ भरोसा</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>हर फ़ोन पर एक बार पिन</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>हर कनेक्शन पर पिन</value>
+  </data>
+  <data name="Security_Level1Note" xml:space="preserve">
+    <value>नए फ़ोन के लिए यहां आपकी हां चाहिए। और कुछ नहीं पूछा जाता।</value>
+  </data>
+  <data name="Security_Level2Note" xml:space="preserve">
+    <value>फ़ोन एक बार पिन भी डालता है। पिन या स्तर बदलने तक यह याद रखा जाता है।</value>
+  </data>
+  <data name="Security_Level3Note" xml:space="preserve">
+    <value>फ़ोन हर बार कनेक्ट होने पर पिन डालता है।</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>हर फ़ोन को पहले यहां आपकी हां चाहिए। स्तर 2 और 3 में छह अंकों का पिन भी मांगा जाता है, जो फ़ोन की स्क्रीन पर डाला जाता है। यह विंडो खुली होने पर फ़ोन डिस्कनेक्ट रहते हैं।</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>नया पिन या स्तर सेव करने पर, जिन फ़ोन ने एक बार पिन डाला था, उन्हें उसे फिर डालना होगा।</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>भरोसेमंद फ़ोन</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>अभी किसी फ़ोन पर भरोसा नहीं है। फ़ोन के पहली बार कनेक्ट होने पर उसके बारे में पूछा जाता है।</value>
+  </data>
+  <data name="Security_LevelName" xml:space="preserve">
+    <value>स्तर {0}, {1}</value>
+  </data>
+  <data name="Security_SetPinButton" xml:space="preserve">
+    <value>पिन सेट करें… (&amp;P)</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>सब भूल जाएं… (&amp;F)</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>पिन रीसेट करें और फ़ोन भूल जाएं… (&amp;R)</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>सेव करें (&amp;S)</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>भूल जाएं</value>
+  </data>
+  <data name="Security_ForgetPhoneName" xml:space="preserve">
+    <value>{0} को भूल जाएं</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>पिन बदलें…</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>पिन सेट करें…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>नया पिन सेव किया जाएगा।</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>पिन सेट है।</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>कोई पिन सेट नहीं है।</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>पिन सेव नहीं हो सका, इसलिए कुछ नहीं बदला। वजह लॉग में है।</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>स्तर सेव नहीं हो सका, इसलिए पिछला स्तर ही लागू है। वजह लॉग में है।</value>
+  </data>
+  <data name="Security_ForgetOneHeading" xml:space="preserve">
+    <value>{0} को भूल जाएं?</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>इस लैपटॉप का इस्तेमाल करने से पहले {0} ({1}) पर यहां फिर भरोसा करना होगा। आपके फ़ैसला करने तक फ़ोन डिस्कनेक्ट रहते हैं।</value>
+  </data>
+  <data name="Security_ForgetAllHeading" xml:space="preserve">
+    <value>सभी भरोसेमंद फ़ोन भूल जाएं?</value>
+  </data>
+  <data name="Security_ForgetAllNamed" xml:space="preserve">
+    <value>इस लैपटॉप का इस्तेमाल करने से पहले {0} पर यहां फिर भरोसा करना होगा, कनेक्टेड फ़ोन पर भी। आपके फ़ैसला करने तक फ़ोन डिस्कनेक्ट रहते हैं।</value>
+  </data>
+  <data name="Security_ForgetAllEvery" xml:space="preserve">
+    <value>इस लैपटॉप का इस्तेमाल करने से पहले हर फ़ोन पर यहां फिर भरोसा करना होगा, कनेक्टेड फ़ोन पर भी। आपके फ़ैसला करने तक फ़ोन डिस्कनेक्ट रहते हैं।</value>
+  </data>
+  <data name="Security_ResetHeading" xml:space="preserve">
+    <value>पिन रीसेट करें और हर फ़ोन भूल जाएं?</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>पिन मिट जाएगा, स्तर वापस 1 हो जाएगा और हर भरोसेमंद फ़ोन भुला दिया जाएगा। हर फ़ोन पर, कनेक्टेड फ़ोन पर भी, यहां फिर भरोसा करना होगा। भूला हुआ पिन वापस नहीं मिल सकता, सिर्फ़ रीसेट हो सकता है।</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>फ़ाइल को जो भी रोके हुए है उसे बंद करें, फिर "रीसेट" दोबारा चुनें, या उसे खुद हटा दें:
+
+{0}
+
+कुछ रीसेट नहीं हुआ: भरोसेमंद फ़ोन भूले नहीं जा सके, इसलिए पिन और स्तर जैसे थे वैसे रहे। Edgepad के चलते रहने तक कोई फ़ोन कनेक्ट नहीं हो सकता, पर अगली बार शुरू होने पर वे फ़ोन उसी पिन के साथ फिर भरोसेमंद हो जाएंगे।</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>फ़ाइल को जो भी रोके हुए है उसे बंद करें, फिर "रीसेट" दोबारा चुनें, या security.txt और pin-verified.txt को यहां से खुद हटा दें:
+
+{0}
+
+भरोसेमंद फ़ोन भुला दिए गए, पर पिन रीसेट नहीं हो सका: एक सेटिंग फ़ाइल हटाई नहीं जा सकी, इसलिए पुराना पिन और स्तर अब भी लागू हो सकते हैं। हर फ़ोन पर यहां फिर भरोसा करना होगा।</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>नया पिन</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>नया पिन दोबारा</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>छह अंक</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>दोबारा</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>यह पिन रखें (&amp;U)</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>पिन ठीक छह अंकों का होता है।</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>दोनों पिन एक जैसे नहीं हैं।</value>
+  </data>
+  <data name="Macro_Description" xml:space="preserve">
+    <value>आपके फ़ोन की मैक्रो स्क्रीन के बटन, 15 तक। फ़ोन सिर्फ़ बटन का नंबर भेजता है, कोई प्रोग्राम नहीं, इसलिए वह सिर्फ़ वही चला सकता है जो आपने यहां जोड़ा है। Alt+ऊपर और Alt+नीचे से बटनों का क्रम बदलता है।</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>अभी कोई मैक्रो नहीं</value>
+  </data>
+  <data name="Macro_EmptyDetail" xml:space="preserve">
+    <value>कोई ऐप, दस्तावेज़, फ़ोल्डर या वेब पता जोड़ें। हर एक फ़ोन पर एक बटन बन जाता है।</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>नाम</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>क्या खोलता है</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>आर्गुमेंट</value>
+  </data>
+  <data name="Macro_ArgumentsNone" xml:space="preserve">
+    <value>कोई नहीं</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>वैकल्पिक</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>आइकन</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>मैक्रो</value>
+  </data>
+  <data name="Macro_IconPreview" xml:space="preserve">
+    <value>आइकन का प्रीव्यू</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>मैक्रो जोड़ें (&amp;A)</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>ब्राउज़ करें… (&amp;B)</value>
+  </data>
+  <data name="Macro_BrowseName" xml:space="preserve">
+    <value>जो खुलेगा उसे ब्राउज़ करके चुनें</value>
+  </data>
+  <data name="Macro_ChooseIcon" xml:space="preserve">
+    <value>आइकन चुनें… (&amp;C)</value>
+  </data>
+  <data name="Macro_ChooseIconName" xml:space="preserve">
+    <value>आइकन चुनें</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>प्रोग्राम का अपना आइकन रखें (&amp;U)</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>हटाएं (&amp;R)</value>
+  </data>
+  <data name="Macro_ReorderHint" xml:space="preserve">
+    <value>Alt+ऊपर और Alt+नीचे से चुना हुआ मैक्रो खिसकता है।</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>नया मैक्रो</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>मैक्रो जोड़ें</value>
+  </data>
+  <data name="Macro_Full" xml:space="preserve">
+    <value>मैक्रो: {0} में से {0}</value>
+  </data>
+  <data name="Macro_NoRoom" xml:space="preserve">
+    <value>यह विंडो खुली थी तब आपके फ़ोन से एक मैक्रो जोड़ा गया, और उसके लिए जगह नहीं है। यहां एक हटाएं, फिर सेव करें।</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>मैक्रो {0} में सेव नहीं हो सके: {1}</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}” में खोलने के लिए कुछ नहीं है। चुनें कि वह क्या खोले, या उसे हटा दें।</value>
+  </data>
+  <data name="Dialog_Save" xml:space="preserve">
+    <value>सेव करें</value>
+  </data>
+  <data name="Macro_DontSave" xml:space="preserve">
+    <value>सेव न करें</value>
+  </data>
+  <data name="Macro_SaveHeading" xml:space="preserve">
+    <value>मैक्रो में किए बदलाव सेव करें?</value>
+  </data>
+  <data name="Macro_SaveText" xml:space="preserve">
+    <value>सेव न करने पर आपके बदलाव खो जाएंगे।</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>चुनें कि यह बटन क्या खोले</value>
+  </data>
+  <data name="Macro_FilterPrograms" xml:space="preserve">
+    <value>प्रोग्राम और दस्तावेज़ (*.*)</value>
+  </data>
+  <data name="Macro_FilterIcons" xml:space="preserve">
+    <value>आइकन, प्रोग्राम और तस्वीरें (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
+  </data>
+  <data name="Macro_FilterAll" xml:space="preserve">
+    <value>सभी फ़ाइलें (*.*)</value>
+  </data>
+  <data name="Macro_ChoosePicture" xml:space="preserve">
+    <value>इस बटन के लिए तस्वीर चुनें</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>फ़ोन पर दिख रहा पेयरिंग कोड डालें:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>फ़ोन पर दिख रहा पेयरिंग कोड</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>फ़ोन पेयर करें</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>{0} को पेयर करें?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>पेयर करें</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>बंद करें</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>पेयरिंग कोड जांचा जा रहा है</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>{0} सेकंड में बंद होगा</value>
+  </data>
+  <data name="App_RunningAsAdmin" xml:space="preserve">
+    <value>Edgepad पहले से एडमिनिस्ट्रेटर के तौर पर चल रहा है। उसे ट्रे आइकन से बंद करें, या इसे भी एडमिनिस्ट्रेटर के तौर पर चलाएं।</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad पहले से चल रहा है। उसे टास्कबार के कोने में देखें।</value>
+  </data>
+  <data name="App_DidNotHandOver" xml:space="preserve">
+    <value>कोई दूसरा Edgepad पहले से चल रहा है और उसने जगह नहीं दी। उसे ट्रे आइकन से बंद करें, फिर इसे दोबारा चलाएं।</value>
+  </data>
+  <data name="Phone_NoneConnected" xml:space="preserve">
+    <value>कोई फ़ोन कनेक्टेड नहीं है</value>
+  </data>
+  <data name="Badge_Connected" xml:space="preserve">
+    <value>कनेक्टेड</value>
+  </data>
+  <data name="Badge_Problem" xml:space="preserve">
+    <value>समस्या</value>
+  </data>
+  <data name="Badge_Waiting" xml:space="preserve">
+    <value>इंतज़ार</value>
+  </data>
+  <data name="Level_Microphone" xml:space="preserve">
+    <value>माइक्रोफ़ोन</value>
+  </data>
+  <data name="Level_Brightness" xml:space="preserve">
+    <value>ब्राइटनेस</value>
+  </data>
+  <data name="Phone_Name" xml:space="preserve">
+    <value>फ़ोन</value>
+  </data>
+  <data name="Level_Volume" xml:space="preserve">
+    <value>वॉल्यूम</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>वाई-फ़ाई और USB: सुन नहीं सका। लॉग देखें।</value>
+  </data>
+  <data name="Network_PhonesMayNotFind" xml:space="preserve">
+    <value>वाई-फ़ाई और USB: हो सकता है फ़ोन इस लैपटॉप को न ढूंढ पाएं।</value>
+  </data>
+</root>
