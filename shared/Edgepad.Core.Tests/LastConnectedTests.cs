@@ -1,3 +1,4 @@
+using System.Globalization;
 using Edgepad.Trust;
 using Xunit;
 
@@ -77,19 +78,19 @@ public sealed class LastConnectedTests : IDisposable
     public void RowTextHasTheDayAndMonthThisYear() =>
         Assert.Equal(
             "Pixel · last connected 8 Nov",
-            LastConnected.RowText("Pixel", Moment, Moment.AddDays(10), TimeZoneInfo.Utc));
+            LastConnected.RowText("Pixel", Moment, Moment.AddDays(10), TimeZoneInfo.Utc, CultureInfo.InvariantCulture));
 
     [Fact]
     public void RowTextAddsTheYearWhenItIsNotThisYear() =>
         Assert.Equal(
             "Pixel · last connected 8 Nov 2026",
-            LastConnected.RowText("Pixel", Moment, new DateTimeOffset(2027, 1, 2, 0, 0, 0, TimeSpan.Zero), TimeZoneInfo.Utc));
+            LastConnected.RowText("Pixel", Moment, new DateTimeOffset(2027, 1, 2, 0, 0, 0, TimeSpan.Zero), TimeZoneInfo.Utc, CultureInfo.InvariantCulture));
 
     [Fact]
     public void RowTextForAnUnknownTimeSaysSo() =>
         Assert.Equal(
             "Pixel · not connected since this update",
-            LastConnected.RowText("Pixel", null, Moment, TimeZoneInfo.Utc));
+            LastConnected.RowText("Pixel", null, Moment, TimeZoneInfo.Utc, CultureInfo.InvariantCulture));
 
     public void Dispose()
     {
