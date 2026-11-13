@@ -496,9 +496,9 @@ class ControlSurface(
     ) {
         val touch = dp(Space.TOUCH) / 2
         val (tx, ty) = pieces.getValue(MediaPiece.TRANSPORT)
-        val play = media(PLAY_DP) / 2
+        val play = maxOf(media(PLAY_DP) / 2, touch)
         playHit.set(tx * w - play, ty * h - play, tx * w + play, ty * h + play)
-        val gap = media(SKIP_GAP_DP)
+        val gap = maxOf(media(SKIP_GAP_DP), play + touch)
         prevHit.set(tx * w - gap - touch, ty * h - touch, tx * w - gap + touch, ty * h + touch)
         nextHit.set(tx * w + gap - touch, ty * h - touch, tx * w + gap + touch, ty * h + touch)
         layoutNowPlaying(w, h)
@@ -655,6 +655,9 @@ class ControlSurface(
         for (button in topButtons) {
             // Both tints were made in the constructor; picking between them here allocates nothing.
             val lit = button === lockButton && locked
+            val cx = button.hit.centerX()
+            val cy = button.hit.centerY()
+            if (button === pressedTop) pressDisc(canvas, cx, cy, dp(LOCK_TINT_DP) / 2)
             if (lit) {
                 fill.color = lockTint
                 canvas.drawCircle(button.hit.centerX(), button.hit.centerY(), dp(LOCK_TINT_DP) / 2, fill)
@@ -668,6 +671,11 @@ class ControlSurface(
             )
         }
         strip.draw(canvas)
+        if (pressedStrip) {
+            val radius = strip.hit.height() / 2
+            fill.color = faint
+            canvas.drawRoundRect(strip.hit, radius, radius, fill)
+        }
         // AND-A-16: the eye-off mark sits under the lock button for as long as the dials are hidden.
         if (dialsHidden && !trackpadOnly) {
             drawIcon(canvas, focusIconOn, lockButton.hit.centerX(), lockButton.hit.bottom + dp(Space.M), dp(EYE_DP))
@@ -876,14 +884,29 @@ class ControlSurface(
     }
 
     private fun drawTransport(canvas: Canvas) {
+        val skipRadius = dp(Space.TOUCH) / 2
+        if (buttonDown == ActionId.PREVIOUS_TRACK) pressDisc(canvas, prevHit.centerX(), prevHit.centerY(), skipRadius)
+        if (buttonDown == ActionId.NEXT_TRACK) pressDisc(canvas, nextHit.centerX(), nextHit.centerY(), skipRadius)
         drawIcon(canvas, skipBackIcon, prevHit.centerX(), prevHit.centerY(), media(SKIP_DP))
         drawIcon(canvas, skipForwardIcon, nextHit.centerX(), nextHit.centerY(), media(SKIP_DP))
         val cx = playHit.centerX()
         val cy = playHit.centerY()
         canvas.drawCircle(cx, cy, media(PLAY_DP) / 2, playPaint)
+        if (buttonDown == ActionId.PLAY_PAUSE) pressDisc(canvas, cx, cy, media(PLAY_DP) / 2)
         // On the accent disc in its own on-accent colour: a pause while playing, else a play.
         val glyph = if (state.flag(ControlId.MEDIA_POSITION)) pauseIcon else playIcon
         drawIcon(canvas, glyph, cx, cy, media(PLAY_ICON_DP))
+    }
+
+    /** The pressed state of a button: a fill step drawn while the finger is down, no animation (UX-28). */
+    private fun pressDisc(
+        canvas: Canvas,
+        cx: Float,
+        cy: Float,
+        radius: Float,
+    ) {
+        fill.color = faint
+        canvas.drawCircle(cx, cy, radius, fill)
     }
 
     private fun drawIcon(
