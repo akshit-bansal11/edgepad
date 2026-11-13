@@ -116,7 +116,7 @@
   <string name="lost_off">Automatisches Wiederverbinden ist aus</string>
   <string name="lost_last_seen">Zuletzt gesehen %1$s · %2$s</string>
   <string name="retry_now">Jetzt versuchen</string>
-  <string name="lost_stop">Aufhören</string>
+  <string name="lost_stop">Stoppen</string>
   <string name="lost_devices">Zu den Geräten</string>
 
   <!-- Settings -->
@@ -313,7 +313,7 @@
   <string name="updates_open_settings">Android-Einstellungen öffnen</string>
   <string name="updates_try_again">Erneut versuchen</string>
   <string name="updates_available">Auf %1$s aktualisieren</string>
-  <string name="updates_current">Aktuell</string>
+  <string name="updates_current">Auf dem neuesten Stand</string>
   <string name="updates_downloading">Lade herunter: %1$d %%</string>
   <string name="updates_download_failed">Das Update konnte nicht heruntergeladen werden. Prüfe die Verbindung und versuch es erneut.</string>
   <string name="updates_blocked">Android hat das Update blockiert. Erlaube Edgepad in den Android-Einstellungen, Updates zu installieren, und versuch es dann erneut.</string>
@@ -337,7 +337,7 @@
   <string name="dial_feel_title">Reglergefühl</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">Vorschau. Im Uhrzeigersinn erhöht.</string>
-  <string name="gestures_footnote">Tippe auf eine Geste, um ihre Aktion zu ändern. Ein und zwei Finger sind fest: bewegen, tippen zum Klicken, tippen und halten zum Ziehen; mit zwei Fingern ziehen zum Scrollen, spreizen zum Zoomen, tippen für Rechtsklick.</string>
+  <string name="gestures_footnote">Tippe auf eine Geste, um ihre Aktion zu ändern. Die Aktionen für einen und zwei Finger sind fest: bewegen, tippen zum Klicken, tippen und halten zum Ziehen; mit zwei Fingern wischen zum Scrollen, spreizen zum Zoomen, tippen für Rechtsklick.</string>
   <string name="dial_feel_each">Einzeln</string>
   <string name="dial_feel_shared">Gemeinsam</string>
   <string name="dial_feel_each_caption">Es werden nur Regler in einer Ecke angezeigt. Stelle einen von „Gemeinsam“ um, damit er eine eigene Geschwindigkeit bekommt. „Gemeinsam“ folgt der Wischempfindlichkeit.</string>

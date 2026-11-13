@@ -312,7 +312,7 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
     <value>Die beiden PINs sind nicht gleich.</value>
   </data>
   <data name="Macro_Description" xml:space="preserve">
-    <value>Tasten auf dem Makrobildschirm deines Handys, bis zu 15. Das Handy sendet die Nummer einer Taste, nie ein Programm, und kann so nur ausführen, was du hier hinzufügst. Mit Alt+Auf und Alt+Ab ordnest du die Tasten neu.</value>
+    <value>Tasten auf dem Makrobildschirm deines Handys, bis zu 15. Das Handy sendet die Nummer einer Taste, nie ein Programm, und kann so nur ausführen, was du hier hinzufügst. Mit Alt+Pfeil nach oben und Alt+Pfeil nach unten ordnest du die Tasten neu.</value>
   </data>
   <data name="Macro_EmptyHeadline" xml:space="preserve">
     <value>Noch keine Makros</value>
@@ -366,7 +366,7 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
     <value>&amp;Entfernen</value>
   </data>
   <data name="Macro_ReorderHint" xml:space="preserve">
-    <value>Mit Alt+Auf und Alt+Ab verschiebst du das ausgewählte Makro.</value>
+    <value>Mit Alt+Pfeil nach oben und Alt+Pfeil nach unten verschiebst du das ausgewählte Makro.</value>
   </data>
   <data name="Macro_New" xml:space="preserve">
     <value>Neues Makro</value>
@@ -471,7 +471,7 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
     <value>Lautstärke</value>
   </data>
   <data name="Network_CouldNotListen" xml:space="preserve">
-    <value>WLAN und USB: Lauschen nicht möglich. Siehe Protokoll.</value>
+    <value>WLAN und USB: Verbindungen können nicht angenommen werden. Siehe Protokoll.</value>
   </data>
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>WLAN und USB: Handys finden diesen Laptop evtl. nicht.</value>
