@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Buscar actualizaciones a &amp;diario</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>&amp;Configuración</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>Abrir &amp;registro</value>
   </data>
@@ -322,6 +325,9 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Nombre</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>Acortado para que quepa</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>Abre</value>

@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>रोज़ अपडेट जांचें (&amp;C)</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>सेटिंग्स (&amp;N)</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>लॉग खोलें (&amp;L)</value>
   </data>
@@ -322,6 +325,9 @@
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>नाम</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>फ़िट होने के लिए छोटा किया गया</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>क्या खोलता है</value>

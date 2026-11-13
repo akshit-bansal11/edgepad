@@ -308,6 +308,8 @@
   <string name="updates_try_again">重试</string>
   <string name="updates_available">更新到 %1$s</string>
   <string name="updates_current">已是最新版本</string>
+  <string name="updates_updated">已更新到 %1$s</string>
+  <string name="connected_to">已连接到%1$s</string>
   <string name="updates_downloading">正在下载 %1$d%%</string>
   <string name="updates_download_failed">无法下载更新。请检查网络连接后重试。</string>
   <string name="updates_blocked">Android 拦截了此次更新。请在 Android 设置中允许 Edgepad 安装更新，然后重试。</string>
@@ -509,6 +511,8 @@
   <string name="apps_confirm_body">它会成为一个在电脑上打开此应用的宏。</string>
   <string name="apps_confirm_action">添加</string>
   <string name="macro_opening">正在打开</string>
+  <string name="macro_closing">正在关闭</string>
+  <string name="pair_confirming">正在配对…</string>
   <string name="apps_row_added">已添加</string>
   <string name="apps_row_added_description">%1$s，已添加</string>
   <string name="apps_row_full">宏已满</string>

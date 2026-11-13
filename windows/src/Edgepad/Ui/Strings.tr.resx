@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Güncellemeleri günlük &amp;denetle</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>A&amp;yarlar</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>Günlüğü &amp;aç</value>
   </data>
@@ -312,6 +315,9 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Ad</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>Sığması için kısaltıldı</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>Açtığı</value>

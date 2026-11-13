@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Проверять &amp;обновления ежедневно</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>На&amp;стройки</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>Открыть &amp;журнал</value>
   </data>
@@ -322,6 +325,9 @@
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Название</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>Сокращено, чтобы поместилось</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>Открывает</value>

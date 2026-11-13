@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Verificar atuali&amp;zações diariamente</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>&amp;Configurações</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>Abrir &amp;registro</value>
   </data>
@@ -322,6 +325,9 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Nome</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>Encurtado para caber</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>Abre</value>

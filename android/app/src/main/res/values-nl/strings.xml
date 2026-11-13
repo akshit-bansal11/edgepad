@@ -315,6 +315,8 @@
   <string name="updates_try_again">Opnieuw proberen</string>
   <string name="updates_available">Bijwerken naar %1$s</string>
   <string name="updates_current">Up-to-date</string>
+  <string name="updates_updated">Bijgewerkt naar %1$s</string>
+  <string name="connected_to">Verbonden met %1$s</string>
   <string name="updates_downloading">Downloaden %1$d%%</string>
   <string name="updates_download_failed">De update kon niet worden gedownload. Controleer de verbinding en probeer het opnieuw.</string>
   <string name="updates_blocked">Android heeft de update geblokkeerd. Sta Edgepad toe om updates te installeren in de Android-instellingen en probeer het opnieuw.</string>
@@ -515,6 +517,8 @@
   <string name="apps_confirm_body">Het wordt een macro die deze app op de laptop opent.</string>
   <string name="apps_confirm_action">Toevoegen</string>
   <string name="macro_opening">Openen</string>
+  <string name="macro_closing">Sluiten</string>
+  <string name="pair_confirming">Koppelen…</string>
   <string name="apps_row_added">Toegevoegd</string>
   <string name="apps_row_added_description">%1$s, al toegevoegd</string>
   <string name="apps_row_full">Macro\'s vol</string>

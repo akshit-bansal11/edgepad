@@ -343,6 +343,8 @@
   <string name="updates_try_again">إعادة المحاولة</string>
   <string name="updates_available">التحديث إلى %1$s</string>
   <string name="updates_current">محدّث</string>
+  <string name="updates_updated">تم التحديث إلى الإصدار %1$s</string>
+  <string name="connected_to">تم الاتصال بـ %1$s</string>
   <string name="updates_downloading">جارٍ التنزيل %1$d%%</string>
   <string name="updates_download_failed">تعذّر تنزيل التحديث. تحقق من الاتصال وأعد المحاولة.</string>
   <string name="updates_blocked">حظر Android التحديث. اسمح لـ Edgepad بتثبيت التحديثات من إعدادات Android، ثم أعد المحاولة.</string>
@@ -545,6 +547,8 @@
   <string name="apps_confirm_body">يصبح ماكرو يفتح هذا التطبيق على اللابتوب.</string>
   <string name="apps_confirm_action">إضافة</string>
   <string name="macro_opening">جارٍ الفتح</string>
+  <string name="macro_closing">جارٍ الإغلاق</string>
+  <string name="pair_confirming">جارٍ الإقران…</string>
   <string name="apps_row_added">مضاف</string>
   <string name="apps_row_added_description">%1$s، مضاف بالفعل</string>
   <string name="apps_row_full">اكتمل العدد</string>

@@ -309,6 +309,8 @@
   <string name="updates_try_again">もう一度試す</string>
   <string name="updates_available">%1$sにアップデート</string>
   <string name="updates_current">最新の状態です</string>
+  <string name="updates_updated">%1$sに更新しました</string>
+  <string name="connected_to">%1$sに接続しました</string>
   <string name="updates_downloading">ダウンロード中 %1$d%%</string>
   <string name="updates_download_failed">アップデートをダウンロードできませんでした。接続を確認して、もう一度お試しください。</string>
   <string name="updates_blocked">Androidがアップデートをブロックしました。Androidの設定でEdgepadにアップデートのインストールを許可してから、もう一度お試しください。</string>
@@ -512,6 +514,8 @@
   <string name="apps_confirm_body">ノートPCでこのアプリを開くマクロになります。</string>
   <string name="apps_confirm_action">追加</string>
   <string name="macro_opening">起動中</string>
+  <string name="macro_closing">終了中</string>
+  <string name="pair_confirming">ペアリング中…</string>
   <string name="apps_row_added">追加済み</string>
   <string name="apps_row_added_description">%1$s、追加済み</string>
   <string name="apps_row_full">マクロがいっぱい</string>

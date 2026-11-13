@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Controlla gli aggiornamenti ogni &amp;giorno</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>Im&amp;postazioni</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>Apri il &amp;log</value>
   </data>
@@ -322,6 +325,9 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Nome</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>Accorciato per adattarsi</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>Apre</value>

@@ -329,6 +329,8 @@
   <string name="updates_try_again">Повторить</string>
   <string name="updates_available">Обновить до версии %1$s</string>
   <string name="updates_current">Установлена последняя версия</string>
+  <string name="updates_updated">Обновлено до %1$s</string>
+  <string name="connected_to">Подключено: %1$s</string>
   <string name="updates_downloading">Загрузка: %1$d&#160;%%</string>
   <string name="updates_download_failed">Не удалось скачать обновление. Проверьте подключение и повторите попытку.</string>
   <string name="updates_blocked">Android заблокировал обновление. Разрешите Edgepad устанавливать обновления в настройках Android и повторите попытку.</string>
@@ -530,6 +532,8 @@
   <string name="apps_confirm_body">Это станет макросом, который открывает приложение на ноутбуке.</string>
   <string name="apps_confirm_action">Добавить</string>
   <string name="macro_opening">Открывается</string>
+  <string name="macro_closing">Закрывается</string>
+  <string name="pair_confirming">Сопряжение…</string>
   <string name="apps_row_added">Добавлено</string>
   <string name="apps_row_added_description">%1$s: уже добавлено</string>
   <string name="apps_row_full">Лимит достигнут</string>

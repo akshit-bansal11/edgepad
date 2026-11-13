@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>매일 업데이트 확인(&amp;C)</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>설정(&amp;N)</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>로그 열기(&amp;L)</value>
   </data>
@@ -322,6 +325,9 @@ Wi-Fi 및 USB 페어링을 등록 해제하지 못했어요. 파일을 삭제하
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>이름</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>길이에 맞게 줄였어요</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>여는 대상</value>

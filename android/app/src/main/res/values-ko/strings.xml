@@ -299,6 +299,8 @@
   <string name="updates_try_again">다시 시도</string>
   <string name="updates_available">%1$s 버전으로 업데이트</string>
   <string name="updates_current">최신 버전</string>
+  <string name="updates_updated">%1$s 버전으로 업데이트됨</string>
+  <string name="connected_to">%1$s에 연결되었어요</string>
   <string name="updates_downloading">다운로드 중 %1$d%%</string>
   <string name="updates_download_failed">업데이트를 다운로드하지 못했어요. 연결을 확인하고 다시 시도하세요.</string>
   <string name="updates_blocked">Android에서 업데이트를 차단했어요. Android 설정에서 Edgepad의 업데이트 설치를 허용한 뒤 다시 시도하세요.</string>
@@ -495,6 +497,8 @@
   <string name="apps_confirm_body">노트북에서 이 앱을 여는 매크로가 만들어져요.</string>
   <string name="apps_confirm_action">추가</string>
   <string name="macro_opening">여는 중</string>
+  <string name="macro_closing">닫는 중</string>
+  <string name="pair_confirming">페어링 중…</string>
   <string name="apps_row_added">추가됨</string>
   <string name="apps_row_added_description">%1$s, 이미 추가됨</string>
   <string name="apps_row_full">매크로 가득 참</string>
