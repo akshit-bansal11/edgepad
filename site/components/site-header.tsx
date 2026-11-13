@@ -1,5 +1,5 @@
-import { Menu } from "lucide-react";
 import Link from "next/link";
+import { HeaderMenu } from "@/components/header-menu";
 import { GithubMark } from "@/components/icons/github";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ const LANDING_LINKS: { href: string; label: string }[] = [
 ];
 
 const MENU_LINK =
-  "text-foreground hover:bg-faint flex min-h-11 items-center rounded-xl px-3 text-[0.9375rem]";
+  "press text-foreground hover:bg-faint flex min-h-11 items-center rounded-xl px-3 text-[0.9375rem]";
 
 function MenuLink({
   href,
@@ -42,8 +42,8 @@ function MenuLink({
 /**
  * Sticky header, shared by both routes.
  *
- * The narrow-screen menu stays a plain <details>: no state, no portal, no JavaScript,
- * and it closes itself when a link inside it is followed. It carries the table of
+ * The narrow-screen menu is a plain <details> (HeaderMenu): no portal, and it opens
+ * without JavaScript; it closes on Escape, outside press and a followed link. It carries the table of
  * contents on the documentation page and the landing page's own anchors on the
  * landing page, plus whichever buttons the width has dropped. Below `sm` its summary
  * is an icon alone, so the header fits a 360px screen with the theme toggle in it.
@@ -89,7 +89,7 @@ export function SiteHeader({
                 <a
                   key={link.href}
                   href={link.href}
-                  className="text-dim hover:text-foreground flex min-h-11 items-center rounded-full px-3 text-[0.9375rem] font-bold transition-colors"
+                  className="press text-dim hover:text-foreground flex min-h-11 items-center rounded-full px-3 text-[0.9375rem] font-bold transition-colors"
                 >
                   {link.label}
                 </a>
@@ -114,58 +114,48 @@ export function SiteHeader({
             <Link href="/#get">Download</Link>
           </Button>
 
-          <details className="relative lg:hidden">
-            <summary className="bg-faint text-foreground grid h-11 min-w-11 cursor-pointer list-none place-items-center rounded-full px-3 text-[0.9375rem] font-bold sm:px-4 [&::-webkit-details-marker]:hidden">
-              <span className="flex items-center gap-1.5">
-                <Menu aria-hidden className="size-4" />
-                <span className="sr-only sm:not-sr-only">
-                  {docs ? "Contents" : "Menu"}
-                </span>
-              </span>
-            </summary>
-            <div className="bg-card shadow-lift absolute right-0 mt-2 max-h-[75vh] w-[min(20rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl p-2">
-              {docs ? (
-                groups.map((group) => (
-                  <div key={group.label} className="mb-2">
-                    <p className="label px-3 pt-2 pb-1">{group.label}</p>
-                    <ul>
-                      {group.items.map((item) => (
-                        <MenuLink key={item.id} href={`#${item.id}`}>
-                          {item.label}
-                        </MenuLink>
-                      ))}
-                    </ul>
-                  </div>
-                ))
-              ) : (
-                <div className="mb-2">
-                  <p className="label px-3 pt-2 pb-1">This page</p>
+          <HeaderMenu label={docs ? "Contents" : "Menu"}>
+            {docs ? (
+              groups.map((group) => (
+                <div key={group.label} className="mb-2">
+                  <p className="label px-3 pt-2 pb-1">{group.label}</p>
                   <ul>
-                    {LANDING_LINKS.map((link) => (
-                      <MenuLink key={link.href} href={link.href}>
-                        {link.label}
+                    {group.items.map((item) => (
+                      <MenuLink key={item.id} href={`#${item.id}`}>
+                        {item.label}
                       </MenuLink>
                     ))}
                   </ul>
                 </div>
-              )}
-
-              <div>
-                <p className="label px-3 pt-2 pb-1">Elsewhere</p>
+              ))
+            ) : (
+              <div className="mb-2">
+                <p className="label px-3 pt-2 pb-1">This page</p>
                 <ul>
-                  <li>
-                    <Link href={docs ? "/" : "/docs"} className={MENU_LINK}>
-                      {docs ? "Home" : "Documentation"}
-                    </Link>
-                  </li>
-                  <MenuLink href={REPO} external>
-                    GitHub
-                  </MenuLink>
-                  <MenuLink href="/#get">Download</MenuLink>
+                  {LANDING_LINKS.map((link) => (
+                    <MenuLink key={link.href} href={link.href}>
+                      {link.label}
+                    </MenuLink>
+                  ))}
                 </ul>
               </div>
+            )}
+
+            <div>
+              <p className="label px-3 pt-2 pb-1">Elsewhere</p>
+              <ul>
+                <li>
+                  <Link href={docs ? "/" : "/docs"} className={MENU_LINK}>
+                    {docs ? "Home" : "Documentation"}
+                  </Link>
+                </li>
+                <MenuLink href={REPO} external>
+                  GitHub
+                </MenuLink>
+                <MenuLink href="/#get">Download</MenuLink>
+              </ul>
             </div>
-          </details>
+          </HeaderMenu>
         </div>
       </header>
     </>
