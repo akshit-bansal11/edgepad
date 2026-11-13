@@ -523,7 +523,7 @@
     <item quantity="other">Deze laptop heeft ruimte voor maximaal %1$d macro\'s en die is bereikt. Verwijder er een om een andere toe te voegen.</item>
   </plurals>
   <string name="apps_added">Toegevoegd. Hij staat nu bij de macro\'s.</string>
-  <string name="apps_full">De laptop kan geen macro\'s meer bevatten. Verwijder er eerst een.</string>
+  <string name="apps_full">De laptop heeft geen ruimte voor meer macro\'s. Verwijder er eerst een.</string>
   <string name="apps_duplicate">Die app is al een macro.</string>
   <string name="apps_stale">Die lijst is verouderd. Vernieuw hem en kies opnieuw.</string>
   <string name="apps_failed">De laptop kon hem niet toevoegen.</string>
