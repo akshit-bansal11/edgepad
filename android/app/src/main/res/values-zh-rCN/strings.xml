@@ -68,7 +68,7 @@
   <string name="link_no_permission">“附近的设备”权限已被关闭。</string>
   <string name="link_no_answer">电脑接受了连接，却一直没有应答。请确认电脑上的 Edgepad 正在运行，然后重试。</string>
   <string name="link_not_paired">电脑不认识这部手机。请点该电脑所在行的“重新配对”，用新的配对码配对。</string>
-  <string name="link_not_this_laptop">有设备自称是这台电脑，但无法证明。请确认这部手机连接的是正确的网络。</string>
+  <string name="link_not_this_laptop">有设备自称是这台电脑，却无法证明身份。请确认这部手机连接的是正确的网络。</string>
   <string name="link_pairing_failed">配对未完成：配对码没有及时在电脑上输入，或输入有误。点按该电脑，用新的配对码重试。</string>
   <string name="link_pairing_locked">电脑正在与另一部手机配对，或因多次输错配对码而暂停配对。请几分钟后重试。</string>
   <!-- The laptop's lock-out runs from 30 s to an hour: under a minute in seconds, else whole minutes rounded up. -->
@@ -283,7 +283,7 @@
   <string name="shapes_delete">删除</string>
   <string name="shapes_delete_title">删除此图形？</string>
   <string name="shapes_delete_body">绘制它将不再执行“%1$s”。</string>
-  <string name="shapes_too_close">这与你已有的图形太接近了。请画一个更有区别的。</string>
+  <string name="shapes_too_close">这与你已有的图形太接近了。请画一个差别更明显的。</string>
   <string name="shapes_too_short">图形太小，无法区分。请画大一些。</string>
   <string name="shape_runs">执行“%1$s”</string>
   <string name="shape_target_macro">宏 · %1$s</string>

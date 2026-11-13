@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Status_Starting" xml:space="preserve">
+    <value>Başlatılıyor…</value>
+  </data>
+  <data name="Status_Waiting" xml:space="preserve">
+    <value>Telefonunuz bekleniyor</value>
+  </data>
+  <data name="Status_Connected" xml:space="preserve">
+    <value>Bağlı: {0}</value>
+  </data>
+  <data name="Status_RefusedProtocol" xml:space="preserve">
+    <value>Protokol {0} kullanan bir telefon reddedildi; bu bilgisayarda protokol {1}</value>
+  </data>
+  <data name="Status_MismatchPhoneOlder" xml:space="preserve">
+    <value>{0} bağlanamadı: Edgepad uygulaması daha eski. Telefondaki Edgepad'i güncelleyin.</value>
+  </data>
+  <data name="Status_MismatchLaptopOlder" xml:space="preserve">
+    <value>{0} bağlanamadı: bu bilgisayardaki Edgepad daha eski. Burada Edgepad'i güncelleyin.</value>
+  </data>
+  <data name="Status_RefusedLockedOut" xml:space="preserve">
+    <value>Yanlış PIN'ler yüzünden kilitlenen bir telefon reddedildi</value>
+  </data>
+  <data name="Status_RefusedUntrusted" xml:space="preserve">
+    <value>Güvenmediği bir telefon reddedildi</value>
+  </data>
+  <data name="Status_RefusedPin" xml:space="preserve">
+    <value>Doğru PIN'i vermeyen bir telefon reddedildi</value>
+  </data>
+  <data name="Status_BluetoothOff" xml:space="preserve">
+    <value>Bluetooth kapalı</value>
+  </data>
+  <data name="Status_BluetoothRetrying" xml:space="preserve">
+    <value>Bluetooth kapalı veya kullanılamıyor; yeniden deneniyor</value>
+  </data>
+  <data name="Status_BluetoothUnavailable" xml:space="preserve">
+    <value>Bluetooth kapalı veya kullanılamıyor</value>
+  </data>
+  <data name="Status_Pairing" xml:space="preserve">
+    <value>{0} eşleştiriliyor: telefonda gösterilen eşleştirme kodunu yazın</value>
+  </data>
+  <data name="Status_Paired" xml:space="preserve">
+    <value>Eşleşti: {0}</value>
+  </data>
+  <data name="Status_Asking" xml:space="preserve">
+    <value>Güvenilip güvenilmeyeceği soruluyor: {0}</value>
+  </data>
+  <data name="Status_QuietUntil" xml:space="preserve">
+    <value>Telefonlar {0} saatinde yeniden bağlanabilir</value>
+  </data>
+  <data name="Way_Bluetooth" xml:space="preserve">
+    <value>Bluetooth</value>
+  </data>
+  <data name="Way_WifiOrUsb" xml:space="preserve">
+    <value>Wi-Fi veya USB</value>
+  </data>
+  <data name="Pairing_Mismatched" xml:space="preserve">
+    <value>Eşleştirme kodu uyuşmadı. Hiçbir şey eşleştirilmedi.</value>
+  </data>
+  <data name="Pairing_TimedOut" xml:space="preserve">
+    <value>Süre doldu. Hiçbir şey eşleştirilmedi. Telefonda yeniden başlayın.</value>
+  </data>
+  <data name="Pairing_Warning" xml:space="preserve">
+    <value>Yalnızca kendi telefonunuzu eşleştirin. Eşleştirmeyi az önce siz başlatmadıysanız “İptal” düğmesini seçin.</value>
+  </data>
+  <data name="Pairing_NotFinished" xml:space="preserve">
+    <value>Eşleştirme tamamlanmadı.</value>
+  </data>
+  <data name="Pairing_Matched" xml:space="preserve">
+    <value>Eşleştirme kodu eşleşti. Bitirmek için {0} üzerinde “Evet, eşleşti” seçeneğine dokunun.</value>
+  </data>
+  <data name="Pairing_Paired" xml:space="preserve">
+    <value>Eşleşti: {0}.</value>
+  </data>
+  <data name="Source_From" xml:space="preserve">
+    <value>{0} cihazından, {1}</value>
+  </data>
+  <data name="Source_OnNetwork" xml:space="preserve">
+    <value>ağınızda</value>
+  </data>
+  <data name="Source_OverUsb" xml:space="preserve">
+    <value>USB üzerinden</value>
+  </data>
+  <data name="Source_OverWifi" xml:space="preserve">
+    <value>Wi-Fi üzerinden</value>
+  </data>
+  <data name="LastConnected_Row" xml:space="preserve">
+    <value>{0} · son bağlantı {1}</value>
+  </data>
+  <data name="LastConnected_Unknown" xml:space="preserve">
+    <value>{0} · bu güncellemeden beri bağlanmadı</value>
+  </data>
+</root>

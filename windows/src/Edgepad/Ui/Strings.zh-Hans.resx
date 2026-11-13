@@ -193,7 +193,7 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
     <value>每次连接都输入 PIN</value>
   </data>
   <data name="Security_Level1Note" xml:space="preserve">
-    <value>新手机需要你在这里点头同意，不会再询问其他内容。</value>
+    <value>新手机只需你在这里确认，不会再要求其他验证。</value>
   </data>
   <data name="Security_Level2Note" xml:space="preserve">
     <value>手机还需输入一次 PIN。在 PIN 或级别更改之前，它会一直被记住。</value>
@@ -444,7 +444,7 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
     <value>Edgepad 已在运行。请在任务栏角落找到它。</value>
   </data>
   <data name="App_DidNotHandOver" xml:space="preserve">
-    <value>另一个 Edgepad 已在运行，且没有交接。请从它的托盘图标退出它，然后再运行这一个。</value>
+    <value>另一个 Edgepad 仍在运行，没有退出。请从它的托盘图标退出它，然后再运行这一个。</value>
   </data>
   <data name="Phone_NoneConnected" xml:space="preserve">
     <value>没有已连接的手机</value>
