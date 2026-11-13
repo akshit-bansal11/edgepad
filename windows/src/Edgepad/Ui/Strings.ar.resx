@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Network_Notice" xml:space="preserve">
+    <value>ستتمكن الهواتف الموجودة على شبكة Wi-Fi نفسها، أو المتصلة عبر خاصية التوصيل عبر USB، من العثور على هذا اللابتوب وطلب الإقران. لن يتصل أي هاتف دون رمز الإقران المكتوب هنا. سيطلب Windows تشغيل «موجه الأوامر» مرة واحدة؛ فهذا يضيف قاعدة جدار الحماية الخاصة بـ Edgepad.</value>
+  </data>
+  <data name="Network_ClipboardNotice" xml:space="preserve">
+    <value>مشاركة الحافظة: انسخ على أحد الجهازين والصق على الآخر، نصوصًا وصورًا. تبقى متوقفة إلى أن تحدد مربعها.</value>
+  </data>
+  <data name="Network_WhereItLives" xml:space="preserve">
+    <value>يعمل Edgepad في زاوية شريط المهام. إذا لم تجد أيقونته، فانقر ^ واسحبها إلى الخارج. لاستخدام بلوتوث، اقرن الهاتف أولًا من إعدادات بلوتوث في Windows، ثم افتح Edgepad على الهاتف.</value>
+  </data>
+  <data name="Menu_StartWithWindows" xml:space="preserve">
+    <value>التشغيل مع Windows (&amp;T)</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>الماكرو… (&amp;M)</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>الأمان… (&amp;E)</value>
+  </data>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>اتصالات Wi-Fi وUSB (&amp;W)</value>
+  </data>
+  <data name="Network_Title" xml:space="preserve">
+    <value>عبر Wi-Fi وUSB</value>
+  </data>
+  <data name="Menu_Firewall" xml:space="preserve">
+    <value>السماح عبر جدار حماية Windows… (&amp;F)</value>
+  </data>
+  <data name="Menu_BluetoothSettings" xml:space="preserve">
+    <value>فتح إعدادات بلوتوث (&amp;B)</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>مشاركة الحافظة (&amp;S)</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>انسخ على أحد الجهازين والصق على الآخر: نصوصًا وصورًا.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>التحقق من التحديثات يوميًا (&amp;C)</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>فتح السجل (&amp;L)</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>يتوفر تحديث (&amp;U)</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>الوثائق (&amp;D)</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>إنهاء Edgepad (&amp;Q)</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} من {1}</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>يتوفر تحديث: {0} (&amp;U)</value>
+  </data>
+  <data name="Balloon_UpdateAvailable" xml:space="preserve">
+    <value>الإصدار {0} من Edgepad متاح. انقر لفتح صفحة الإصدار؛ نزّله وشغّله لاستبدال هذه النسخة.</value>
+  </data>
+  <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
+    <value>تعذّر حفظ «التشغيل مع Windows»، لذا لن يبدأ Edgepad من تلقاء نفسه. السبب في السجل.</value>
+  </data>
+  <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
+    <value>تغيّرت «مشاركة الحافظة» حاليًا لكن تعذّر حفظها، لذا قد لا يتذكرها التشغيل التالي.</value>
+  </data>
+  <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
+    <value>تغيّر «التحقق من التحديثات يوميًا» حاليًا لكن تعذّر حفظه، لذا قد لا يتذكره التشغيل التالي.</value>
+  </data>
+  <data name="Balloon_NewFile" xml:space="preserve">
+    <value>هذا الإصدار من Edgepad ملف جديد، لذا سيسأل Windows مرة واحدة عن السماح للهواتف بالوصول إليه.</value>
+  </data>
+  <data name="Balloon_FirewallNotChanged" xml:space="preserve">
+    <value>لم يتغير جدار حماية Windows، لذا قد لا تصل الهواتف إلى هذا اللابتوب. يعيد «السماح عبر جدار حماية Windows» في هذه القائمة المحاولة.</value>
+  </data>
+  <data name="Balloon_MacroAdded" xml:space="preserve">
+    <value>تمت إضافة {0} من هاتفك</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>يريد {0} الإقران. اكتب رمز الإقران الذي يعرضه.</value>
+  </data>
+  <data name="Balloon_DriverMissing" xml:space="preserve">
+    <value>يحتاج ذراع الألعاب إلى برنامج تشغيل ViGEmBus. انقر لفتح صفحة التنزيل.</value>
+  </data>
+  <data name="Balloon_WantsToConnect" xml:space="preserve">
+    <value>يريد {0} الاتصال. اختر «الوثوق» أو «عدم الوثوق».</value>
+  </data>
+  <data name="Phone_Connected" xml:space="preserve">
+    <value>الهاتف متصل</value>
+  </data>
+  <data name="Phone_Disconnected" xml:space="preserve">
+    <value>انقطع اتصال الهاتف</value>
+  </data>
+  <data name="Balloon_ForgotOne" xml:space="preserve">
+    <value>تم نسيان {0}. أعد الاتصال من الهاتف بعد نحو {1} ثانية.</value>
+  </data>
+  <data name="Balloon_ForgotAll" xml:space="preserve">
+    <value>تم نسيان كل الهواتف الموثوقة. أعد الاتصال من الهاتف بعد نحو {0} ثانية.</value>
+  </data>
+  <data name="Dialog_StartWithWindows" xml:space="preserve">
+    <value>التشغيل مع Windows</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>ليس الآن</value>
+  </data>
+  <data name="Dialog_StartHeading" xml:space="preserve">
+    <value>تشغيل Edgepad عند تسجيل الدخول؟</value>
+  </data>
+  <data name="Dialog_StartText" xml:space="preserve">
+    <value>ينتظر Edgepad حينها هاتفك في زاوية شريط المهام، دون نافذة. يمكنك تغيير ذلك لاحقًا من قائمته.</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>السماح</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>تشغيل</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="Dialog_ShareClipboard" xml:space="preserve">
+    <value>مشاركة الحافظة</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>السماح للهواتف بالعثور على هذا اللابتوب؟</value>
+  </data>
+  <data name="Dialog_NetworkHeading" xml:space="preserve">
+    <value>تفعيل اتصالات Wi-Fi وUSB؟</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>تعذّر حفظ الإعداد، لذا لم يتغير شيء. السبب في السجل.</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>الأمان</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>جرّب «نسيان» مرة أخرى بعد أن لا يستخدم أي شيء آخر ملفات Edgepad في {0}. تعذّر نسيان {1} بالكامل: لم يمكن إعادة كتابة ملف. يبقى موثوقًا على القرص، لكن Edgepad يرفضه إلى أن يُعاد تشغيل Edgepad، وسيصبح موثوقًا من جديد بعد ذلك ما لم تنسَه مرة أخرى.</value>
+  </data>
+  <data name="Error_ForgetAllTrust" xml:space="preserve">
+    <value>أغلق كل ما يستخدم ملف الهواتف الموثوقة، ثم اختر «نسيان الكل» مرة أخرى، أو احذفه بنفسك:
+
+{0}
+
+تعذّر نسيان الهواتف الموثوقة: لم يمكن حذف ملفها أو تفريغه. لا يستطيع أي هاتف الاتصال ما دام Edgepad قيد التشغيل، لكن هذه الهواتف ستصبح موثوقة من جديد عند بدء Edgepad في المرة القادمة.</value>
+  </data>
+  <data name="Error_ForgetAllPin" xml:space="preserve">
+    <value>اختر «نسيان الكل» مرة أخرى، أو احذف pin-verified.txt بنفسك من:
+
+{0}
+
+تعذّر نسيان الهواتف التي أدخلت رقم PIN: لم يمكن حذف قائمتها. ما دام Edgepad قيد التشغيل يُطلب رقم PIN من كل هاتف عند كل اتصال، لكن هذه الهواتف ستتخطاه من جديد في المستوى 2 عند بدء Edgepad في المرة القادمة.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>اختر «نسيان الكل» مرة أخرى، أو احذف paired-links.txt بنفسك من:
+
+{0}
+
+تعذّر نسيان عمليات الإقران عبر Wi-Fi وUSB: لم يمكن حذف ملفها أو تفريغه. لا تستطيع الهواتف المقترنة إعادة الاتصال عبر Wi-Fi أو USB ما دام Edgepad قيد التشغيل، لكنها ستستطيع ذلك من جديد عند بدئه في المرة القادمة.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>الوثوق</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>عدم الوثوق</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>يطلب هاتف مقترن التحكم في مؤشر هذا اللابتوب ولوحة مفاتيحه. لا تثق به إلا إذا كان هاتفك. إذا لم ترد خلال {0} s، فلن يكون موثوقًا.</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>الوثوق بـ {0}؟</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>الوثوق فقط</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>رقم PIN مرة لكل هاتف</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>رقم PIN عند كل اتصال</value>
+  </data>
+  <data name="Security_Level1Note" xml:space="preserve">
+    <value>يحتاج الهاتف الجديد إلى موافقتك هنا. ولا يُطلب شيء آخر.</value>
+  </data>
+  <data name="Security_Level2Note" xml:space="preserve">
+    <value>يكتب الهاتف رقم PIN أيضًا، مرة واحدة. يُحفظ ذلك إلى أن يتغير رقم PIN أو المستوى.</value>
+  </data>
+  <data name="Security_Level3Note" xml:space="preserve">
+    <value>يكتب الهاتف رقم PIN في كل مرة يتصل فيها.</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>يحتاج كل هاتف إلى موافقتك هنا أولًا. ويطلب المستويان 2 و3 أيضًا رقم PIN من ستة أرقام، يُكتب على شاشة الهاتف. تنقطع الهواتف عن الاتصال ما دامت هذه النافذة مفتوحة.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>حفظ رقم PIN جديد أو مستوى جديد يجعل الهواتف التي أدخلت رقم PIN مرة واحدة تُدخله من جديد.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>الهواتف الموثوقة</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>لا يوجد هاتف موثوق بعد. يُسأل عن الهاتف في أول مرة يتصل فيها.</value>
+  </data>
+  <data name="Security_LevelName" xml:space="preserve">
+    <value>المستوى {0}، {1}</value>
+  </data>
+  <data name="Security_SetPinButton" xml:space="preserve">
+    <value>تعيين رقم PIN… (&amp;P)</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>نسيان الكل… (&amp;F)</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>إعادة تعيين PIN ونسيان الهواتف… (&amp;R)</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>حفظ (&amp;S)</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>نسيان</value>
+  </data>
+  <data name="Security_ForgetPhoneName" xml:space="preserve">
+    <value>نسيان {0}</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>تغيير رقم PIN…</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>تعيين رقم PIN…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>سيتم حفظ رقم PIN جديد.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>تم تعيين رقم PIN.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>لم يتم تعيين رقم PIN.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>تعذّر حفظ رقم PIN، لذا لم يتغير شيء. السبب في السجل.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>تعذّر حفظ المستوى، لذا يبقى المستوى السابق ساريًا. السبب في السجل.</value>
+  </data>
+  <data name="Security_ForgetOneHeading" xml:space="preserve">
+    <value>نسيان {0}؟</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>سيلزم الوثوق بـ {0} ({1}) هنا من جديد قبل أن يتمكن من استخدام هذا اللابتوب. تبقى الهواتف غير متصلة أثناء اتخاذك القرار.</value>
+  </data>
+  <data name="Security_ForgetAllHeading" xml:space="preserve">
+    <value>نسيان كل الهواتف الموثوقة؟</value>
+  </data>
+  <data name="Security_ForgetAllNamed" xml:space="preserve">
+    <value>سيلزم الوثوق بـ {0} هنا من جديد قبل أن يتمكن من استخدام هذا اللابتوب، بما في ذلك الهاتف المتصل. تبقى الهواتف غير متصلة أثناء اتخاذك القرار.</value>
+  </data>
+  <data name="Security_ForgetAllEvery" xml:space="preserve">
+    <value>سيلزم الوثوق بكل هاتف هنا من جديد قبل أن يتمكن من استخدام هذا اللابتوب، بما في ذلك الهاتف المتصل. تبقى الهواتف غير متصلة أثناء اتخاذك القرار.</value>
+  </data>
+  <data name="Security_ResetHeading" xml:space="preserve">
+    <value>إعادة تعيين رقم PIN ونسيان كل هاتف؟</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>يُحذف رقم PIN، ويعود المستوى إلى 1، وتُنسى كل الهواتف الموثوقة. سيلزم الوثوق بكل هاتف هنا من جديد، بما في ذلك الهاتف المتصل. لا يمكن استرجاع رقم PIN المنسي، بل إعادة تعيينه فقط.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>أغلق كل ما يستخدم الملف، ثم أعد محاولة إعادة التعيين، أو احذفه بنفسك:
+
+{0}
+
+لم يُعاد تعيين أي شيء: تعذّر نسيان الهواتف الموثوقة، فتُرك رقم PIN والمستوى كما كانا. لا يستطيع أي هاتف الاتصال ما دام Edgepad قيد التشغيل، لكن هذه الهواتف ستصبح موثوقة من جديد، خلف رقم PIN نفسه، عند بدئه في المرة القادمة.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>أغلق كل ما يستخدم الملف، ثم أعد محاولة إعادة التعيين، أو احذف security.txt وpin-verified.txt بنفسك من:
+
+{0}
+
+تم نسيان الهواتف الموثوقة، لكن تعذّرت إعادة تعيين رقم PIN: لم يمكن حذف ملف إعدادات، فقد يظل رقم PIN والمستوى القديمان ساريين. يلزم الوثوق بكل هاتف هنا من جديد.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>رقم PIN جديد</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>رقم PIN جديد مرة أخرى</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>ستة أرقام</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>مرة أخرى</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>استخدام رقم PIN هذا (&amp;U)</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>رقم PIN مكوّن من ستة أرقام بالضبط.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>رقما PIN غير متطابقين.</value>
+  </data>
+  <data name="Macro_Description" xml:space="preserve">
+    <value>أزرار على شاشة الماكرو في هاتفك، حتى 15 زرًا. يرسل الهاتف رقم الزر ولا يرسل برنامجًا أبدًا، لذا لا يستطيع تشغيل سوى ما تضيفه هنا. يعيد Alt+↑ وAlt+↓ ترتيب الأزرار.</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>لا ماكرو بعد</value>
+  </data>
+  <data name="Macro_EmptyDetail" xml:space="preserve">
+    <value>أضف تطبيقًا أو مستندًا أو مجلدًا أو عنوان ويب. يصبح كل منها زرًا على الهاتف.</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>يفتح</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>المعاملات</value>
+  </data>
+  <data name="Macro_ArgumentsNone" xml:space="preserve">
+    <value>لا شيء</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>اختياري</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>الأيقونة</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>الماكرو</value>
+  </data>
+  <data name="Macro_IconPreview" xml:space="preserve">
+    <value>معاينة الأيقونة</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>إضافة ماكرو (&amp;A)</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>استعراض… (&amp;B)</value>
+  </data>
+  <data name="Macro_BrowseName" xml:space="preserve">
+    <value>استعراض لاختيار ما يفتحه</value>
+  </data>
+  <data name="Macro_ChooseIcon" xml:space="preserve">
+    <value>اختيار أيقونة… (&amp;C)</value>
+  </data>
+  <data name="Macro_ChooseIconName" xml:space="preserve">
+    <value>اختيار أيقونة</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>استخدام أيقونة البرنامج نفسه (&amp;U)</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>إزالة (&amp;R)</value>
+  </data>
+  <data name="Macro_ReorderHint" xml:space="preserve">
+    <value>يحرّك Alt+↑ وAlt+↓ الماكرو المحدد.</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>ماكرو جديد</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>إضافة ماكرو</value>
+  </data>
+  <data name="Macro_Full" xml:space="preserve">
+    <value>الماكرو: {0} من {0}</value>
+  </data>
+  <data name="Macro_NoRoom" xml:space="preserve">
+    <value>أُضيف ماكرو من هاتفك أثناء فتح هذه النافذة، ولا يوجد مكان له. أزل واحدًا هنا ثم احفظ.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>تعذّر حفظ الماكرو في {0}: {1}</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>لا يوجد ما يفتحه «{0}». اختر ما يفتحه، أو أزله.</value>
+  </data>
+  <data name="Dialog_Save" xml:space="preserve">
+    <value>حفظ</value>
+  </data>
+  <data name="Macro_DontSave" xml:space="preserve">
+    <value>عدم الحفظ</value>
+  </data>
+  <data name="Macro_SaveHeading" xml:space="preserve">
+    <value>حفظ التغييرات على الماكرو؟</value>
+  </data>
+  <data name="Macro_SaveText" xml:space="preserve">
+    <value>ستضيع تغييراتك إذا لم تحفظها.</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>اختر ما يفتحه هذا الزر</value>
+  </data>
+  <data name="Macro_FilterPrograms" xml:space="preserve">
+    <value>البرامج والمستندات (*.*)</value>
+  </data>
+  <data name="Macro_FilterIcons" xml:space="preserve">
+    <value>الأيقونات والبرامج والصور (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
+  </data>
+  <data name="Macro_FilterAll" xml:space="preserve">
+    <value>كل الملفات (*.*)</value>
+  </data>
+  <data name="Macro_ChoosePicture" xml:space="preserve">
+    <value>اختر الصورة لهذا الزر</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>اكتب رمز الإقران الظاهر على الهاتف:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>رمز الإقران الظاهر على الهاتف</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>إقران هاتف</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>إقران {0}؟</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>إقران</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>إغلاق</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>جارٍ التحقق من رمز الإقران</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>الإغلاق خلال {0} s</value>
+  </data>
+  <data name="App_RunningAsAdmin" xml:space="preserve">
+    <value>يعمل Edgepad بالفعل بصلاحيات المسؤول. أغلقه من أيقونته في منطقة الإعلام، أو شغّل هذه النسخة بصلاحيات المسؤول أيضًا.</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>التطبيق Edgepad قيد التشغيل بالفعل. ستجده في زاوية شريط المهام.</value>
+  </data>
+  <data name="App_DidNotHandOver" xml:space="preserve">
+    <value>يعمل Edgepad آخر بالفعل ولم يسلّم التحكم. أغلقه من أيقونته في منطقة الإعلام، ثم شغّل هذه النسخة مرة أخرى.</value>
+  </data>
+  <data name="Phone_NoneConnected" xml:space="preserve">
+    <value>لا يوجد هاتف متصل</value>
+  </data>
+  <data name="Badge_Connected" xml:space="preserve">
+    <value>متصل</value>
+  </data>
+  <data name="Badge_Problem" xml:space="preserve">
+    <value>مشكلة</value>
+  </data>
+  <data name="Badge_Waiting" xml:space="preserve">
+    <value>في الانتظار</value>
+  </data>
+  <data name="Level_Microphone" xml:space="preserve">
+    <value>الميكروفون</value>
+  </data>
+  <data name="Level_Brightness" xml:space="preserve">
+    <value>السطوع</value>
+  </data>
+  <data name="Phone_Name" xml:space="preserve">
+    <value>الهاتف</value>
+  </data>
+  <data name="Level_Volume" xml:space="preserve">
+    <value>مستوى الصوت</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>عبر Wi-Fi وUSB: تعذّر الاستماع. راجع السجل.</value>
+  </data>
+  <data name="Network_PhonesMayNotFind" xml:space="preserve">
+    <value>عبر Wi-Fi وUSB: قد لا تعثر الهواتف على هذا اللابتوب.</value>
+  </data>
+</root>
