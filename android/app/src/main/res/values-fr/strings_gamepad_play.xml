@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_edit">Modifier la disposition</string>
+  <string name="gamepad_mode_waiting">Mode clavier · en attente d\'une manette proposée par l\'ordinateur</string>
+  <string name="gamepad_mode_unanswered">Mode clavier · cet ordinateur n\'a pas répondu ; Edgepad doit peut-être être mis à jour</string>
+  <string name="gamepad_mode_no_driver">Mode clavier · aucun pilote de manette sur l\'ordinateur</string>
+  <string name="gamepad_mode_no_driver_windows">Mode clavier · installez ViGEmBus sur l\'ordinateur pour avoir une manette</string>
+  <string name="gamepad_mode_no_driver_mac">Mode clavier · un Mac n\'a pas de mode manette</string>
+  <string name="gamepad_mode_attach_failed">Mode clavier · l\'ordinateur n\'a pas pu brancher la manette</string>
+</resources>
