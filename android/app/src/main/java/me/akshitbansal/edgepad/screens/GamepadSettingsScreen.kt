@@ -3,6 +3,7 @@ package me.akshitbansal.edgepad.screens
 import android.view.View
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
+import me.akshitbansal.edgepad.gamepad.layoutLabels
 
 /** What is set for the gamepad and nowhere else: which layout it wears, and the way into the layout editor. */
 object GamepadSettingsScreen {
@@ -18,7 +19,7 @@ object GamepadSettingsScreen {
             largeTitle(ui.string(R.string.gamepad_settings_title))
             section(ui.string(R.string.gamepad_layout_section))
             card {
-                add(ui.choices(names, names.indexOf(current)) { i -> onPick(names[i]) })
+                add(ui.choices(layoutLabels(ui.context, names), names.indexOf(current)) { i -> onPick(names[i]) })
             }
             card(Space.M) {
                 add(ui.link(ui.string(R.string.gamepad_edit), null, onEdit))
