@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { BlurFade } from "@/components/ui/blur-fade";
+import { Reveal } from "@/components/ui/reveal";
 
 /**
  * One documented section. The `id` is the anchor the sidebar and the scroll-spy use,
@@ -20,7 +20,7 @@ export function Section({
 }) {
   return (
     <section id={id} className="scroll-mt-20 py-12 first:pt-2 md:py-16">
-      <BlurFade>
+      <Reveal>
         <header className="mb-6">
           {eyebrow ? (
             <p className="text-primary mb-2 text-sm font-bold">{eyebrow}</p>
@@ -39,7 +39,7 @@ export function Section({
             </div>
           ) : null}
         </header>
-      </BlurFade>
+      </Reveal>
       <div className="space-y-6">{children}</div>
     </section>
   );

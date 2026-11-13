@@ -1,6 +1,7 @@
 "use client";
 
 import { Bluetooth, Laptop, type LucideIcon, Smartphone } from "lucide-react";
+import { useInView } from "motion/react";
 import { type RefObject, useRef } from "react";
 import { AnimatedBeam } from "@/components/ui/animated-beam";
 
@@ -53,6 +54,8 @@ export function LinkBeam() {
   const phone = useRef<HTMLDivElement>(null);
   const link = useRef<HTMLDivElement>(null);
   const laptop = useRef<HTMLDivElement>(null);
+  // The beams run only while the figure is on screen.
+  const onScreen = useInView(container);
 
   const beam = {
     containerRef: container,
@@ -91,16 +94,20 @@ export function LinkBeam() {
           large
         />
 
-        <AnimatedBeam {...beam} fromRef={phone} toRef={link} />
-        <AnimatedBeam {...beam} fromRef={link} toRef={laptop} delay={0.6} />
-        <AnimatedBeam
-          {...beam}
-          fromRef={laptop}
-          toRef={phone}
-          curvature={100}
-          reverse
-          delay={1.4}
-        />
+        {onScreen ? (
+          <>
+            <AnimatedBeam {...beam} fromRef={phone} toRef={link} />
+            <AnimatedBeam {...beam} fromRef={link} toRef={laptop} delay={0.6} />
+            <AnimatedBeam
+              {...beam}
+              fromRef={laptop}
+              toRef={phone}
+              curvature={100}
+              reverse
+              delay={1.4}
+            />
+          </>
+        ) : null}
       </div>
       <figcaption className="text-dim px-2 text-center text-sm leading-relaxed">
         Frames go to the laptop. Volume, mute, brightness and what is playing come back.

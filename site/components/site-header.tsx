@@ -67,7 +67,7 @@ export function SiteHeader({
       >
         Skip to content
       </a>
-      <header className="border-line bg-background/80 sticky top-0 z-40 border-b backdrop-blur-xl">
+      <header className="border-line bg-background sticky top-0 z-40 border-b">
         <div className="mx-auto flex h-16 max-w-[90rem] items-center gap-2 px-4 md:gap-3 md:px-6">
           <Link
             href="/"

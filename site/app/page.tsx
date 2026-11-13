@@ -2,6 +2,7 @@ import {
   Activity,
   ArrowRight,
   Camera,
+  ChevronDown,
   ClipboardCopy,
   Gamepad2,
   Gauge,
@@ -27,17 +28,16 @@ import { LinkBeam } from "@/components/link-beam";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SurfaceFigure } from "@/components/surface-figure";
-import { AnimatedShinyText } from "@/components/ui/animated-shiny-text";
 import { Badge } from "@/components/ui/badge";
-import { BlurFade } from "@/components/ui/blur-fade";
 import { BorderBeam } from "@/components/ui/border-beam";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GridPattern } from "@/components/ui/grid-pattern";
-import { MagicCard } from "@/components/ui/magic-card";
+import { Reveal } from "@/components/ui/reveal";
 import { LATEST_RELEASE, REPO } from "@/lib/nav";
 import { loadProtocol } from "@/lib/protocol";
 import { DOWNLOADS, RELEASE_VERSION } from "@/lib/release";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -121,6 +121,35 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
   },
 ];
 
+const CORE_TITLES = new Set([
+  "Corner dials",
+  "Trackpad",
+  "Media",
+  "Keyboard",
+  "Gamepad",
+  "Macros",
+]);
+const CORE_FEATURES = FEATURES.filter((feature) => CORE_TITLES.has(feature.title));
+const MORE_FEATURES = FEATURES.filter((feature) => !CORE_TITLES.has(feature.title));
+
+function FeatureGrid({ features }: { features: typeof FEATURES }) {
+  return (
+    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {features.map(({ title, Icon, body }) => (
+        <li key={title}>
+          <Card className="h-full gap-0 p-6">
+            <span className="bg-accent-soft text-primary grid size-11 place-items-center rounded-xl">
+              <Icon aria-hidden className="size-5" />
+            </span>
+            <h3 className="mt-4 text-lg font-bold">{title}</h3>
+            <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">{body}</p>
+          </Card>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 const STEPS: { step: string; title: string; body: string }[] = [
   {
     step: "01",
@@ -196,7 +225,7 @@ function Heading({
   children?: React.ReactNode;
 }) {
   return (
-    <BlurFade>
+    <Reveal>
       <p className="text-primary text-[0.9375rem] font-bold">{eyebrow}</p>
       <h2 className="mt-2 max-w-[20ch] text-[2rem] leading-[1.08] font-black tracking-[-0.02em] md:text-5xl">
         {title}
@@ -206,7 +235,7 @@ function Heading({
           {children}
         </p>
       ) : null}
-    </BlurFade>
+    </Reveal>
   );
 }
 
@@ -259,9 +288,7 @@ export default function Page() {
                 fade would leave it invisible until the JavaScript arrives. */}
             <div>
               <p className="bg-card shadow-card inline-flex rounded-full px-4 py-1.5 text-sm font-bold">
-                <AnimatedShinyText>
-                  Phone · Bluetooth, Wi-Fi, USB · Windows; Mac and Linux in testing
-                </AnimatedShinyText>
+                Phone · Bluetooth, Wi-Fi, USB · Windows; Mac and Linux in testing
               </p>
               <h1 className="mt-6 max-w-[13ch] text-[2.75rem] leading-[1.02] font-black tracking-[-0.025em] sm:text-6xl lg:text-7xl">
                 Your laptop, from across the room.
@@ -306,7 +333,7 @@ export default function Page() {
               </ul>
             </div>
 
-            <BlurFade delay={0.1}>
+            <Reveal>
               {/* The radius is the figure's own 44/411 of its width, so the beam runs
                   exactly along the phone's edge at both sizes. */}
               <div className="shadow-lift relative mx-auto w-64 rounded-[27.4px] lg:w-[21rem] lg:rounded-[36px]">
@@ -319,13 +346,13 @@ export default function Page() {
                   colorTo="var(--blue-soft)"
                 />
               </div>
-            </BlurFade>
+            </Reveal>
           </div>
         </section>
 
         {/* The facts, stated rather than claimed */}
         <div className="mx-auto max-w-[80rem] px-4 md:px-6">
-          <BlurFade>
+          <Reveal>
             <dl className="bg-line shadow-card grid gap-px overflow-hidden rounded-[var(--radius-panel)] sm:grid-cols-2 lg:grid-cols-4">
               {facts.map((fact) => (
                 <div key={fact.term} className="bg-card px-5 py-4">
@@ -334,7 +361,7 @@ export default function Page() {
                 </div>
               ))}
             </dl>
-          </BlurFade>
+          </Reveal>
         </div>
 
         {/* The demo */}
@@ -343,9 +370,9 @@ export default function Page() {
             eyebrow="Demo, 2:40"
             title="Every feature, in under three minutes."
           />
-          <BlurFade delay={0.05} className="mt-10">
+          <Reveal className="mt-10">
             <DemoVideo />
-          </BlurFade>
+          </Reveal>
         </section>
 
         {/* What it does */}
@@ -359,25 +386,28 @@ export default function Page() {
             is a button press, anywhere else it is the trackpad.
           </Heading>
 
-          <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map(({ title, Icon, body }, index) => (
-              <li key={title}>
-                <BlurFade delay={(index % 3) * 0.05} className="h-full">
-                  <MagicCard className="shadow-card h-full rounded-[var(--radius-panel)]">
-                    <div className="p-6">
-                      <span className="bg-accent-soft text-primary grid size-11 place-items-center rounded-xl">
-                        <Icon aria-hidden className="size-5" />
-                      </span>
-                      <h3 className="mt-4 text-lg font-bold">{title}</h3>
-                      <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
-                        {body}
-                      </p>
-                    </div>
-                  </MagicCard>
-                </BlurFade>
-              </li>
-            ))}
-          </ul>
+          <Reveal className="mt-10">
+            <FeatureGrid features={CORE_FEATURES} />
+
+            {/* A native disclosure: keyboard and screen-reader operable with no script. */}
+            <details className="group mt-4">
+              <summary
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "cursor-pointer list-none [&::-webkit-details-marker]:hidden",
+                )}
+              >
+                More features
+                <ChevronDown
+                  aria-hidden
+                  className="size-4 transition-transform group-open:rotate-180"
+                />
+              </summary>
+              <div className="mt-4">
+                <FeatureGrid features={MORE_FEATURES} />
+              </div>
+            </details>
+          </Reveal>
         </section>
 
         {/* How it works */}
@@ -391,31 +421,29 @@ export default function Page() {
             network round trip to change the volume. Edgepad is neither.
           </Heading>
 
-          <BlurFade className="mt-10">
+          <Reveal className="mt-10">
             <LinkBeam />
-          </BlurFade>
+          </Reveal>
 
           <ol className="mt-4 grid gap-4 md:grid-cols-3">
             {STEPS.map((item, index) => (
               <li key={item.step}>
-                <BlurFade delay={index * 0.05} className="h-full">
-                  <Card className="h-full px-6 py-6">
-                    <span className="bg-primary text-primary-foreground grid size-9 place-items-center rounded-full text-[0.9375rem] font-black">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <h3 className="text-lg leading-snug font-bold">{item.title}</h3>
-                      <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
-                        {item.body}
-                      </p>
-                    </div>
-                  </Card>
-                </BlurFade>
+                <Card className="h-full px-6 py-6">
+                  <span className="bg-primary text-primary-foreground grid size-9 place-items-center rounded-full text-[0.9375rem] font-black">
+                    {index + 1}
+                  </span>
+                  <div>
+                    <h3 className="text-lg leading-snug font-bold">{item.title}</h3>
+                    <p className="text-dim mt-2 text-[0.9375rem] leading-relaxed">
+                      {item.body}
+                    </p>
+                  </div>
+                </Card>
               </li>
             ))}
           </ol>
 
-          <BlurFade>
+          <Reveal>
             <Card className="bg-accent-soft mt-4 px-6 py-6 shadow-none">
               <div>
                 <h3 className="text-lg font-bold">The transport</h3>
@@ -435,7 +463,7 @@ export default function Page() {
                 </p>
               </div>
             </Card>
-          </BlurFade>
+          </Reveal>
         </section>
 
         {/* What it will not do */}
@@ -446,7 +474,7 @@ export default function Page() {
               server in the middle. Nothing here is hidden because it is inconvenient.
             </Heading>
 
-            <BlurFade delay={0.05}>
+            <Reveal>
               <ul className="bg-card shadow-card divide-line divide-y rounded-[var(--radius-panel)] px-5">
                 {LIMITS.map((limit) => (
                   <li key={limit} className="py-4 text-[0.9375rem] leading-relaxed">
@@ -457,7 +485,7 @@ export default function Page() {
               <p className="mt-3 px-1">
                 <MoreLink href="/docs#limits">Every known limit, labelled</MoreLink>
               </p>
-            </BlurFade>
+            </Reveal>
           </div>
         </section>
 
@@ -473,45 +501,43 @@ export default function Page() {
           </Heading>
 
           <div className="mt-10 grid gap-4 md:grid-cols-2">
-            {INSTALL.map(({ half, Icon, requirement, file, href, steps }, index) => (
-              <BlurFade key={half} delay={index * 0.05} className="h-full">
-                <Card className="h-full">
-                  <CardHeader className="flex items-center gap-4 px-6">
-                    <span className="bg-accent-soft text-primary grid size-12 shrink-0 place-items-center rounded-2xl">
-                      <Icon aria-hidden className="size-6" />
-                    </span>
-                    <div className="min-w-0">
-                      <CardTitle className="text-xl font-black">{half}</CardTitle>
-                      <div className="mt-1.5 flex flex-wrap gap-2">
-                        <Badge variant="solid">{requirement}</Badge>
-                        <Badge variant="outline" asChild>
-                          <a href={href} className="relative after:absolute after:inset-x-0 after:-inset-y-1.5">
-                            {file}
-                          </a>
-                        </Badge>
-                      </div>
+            {INSTALL.map(({ half, Icon, requirement, file, href, steps }) => (
+              <Card key={half} className="h-full">
+                <CardHeader className="flex items-center gap-4 px-6">
+                  <span className="bg-accent-soft text-primary grid size-12 shrink-0 place-items-center rounded-2xl">
+                    <Icon aria-hidden className="size-6" />
+                  </span>
+                  <div className="min-w-0">
+                    <CardTitle className="text-xl font-black">{half}</CardTitle>
+                    <div className="mt-1.5 flex flex-wrap gap-2">
+                      <Badge variant="solid">{requirement}</Badge>
+                      <Badge variant="outline" asChild>
+                        <a href={href} className="relative after:absolute after:inset-x-0 after:-inset-y-1.5">
+                          {file}
+                        </a>
+                      </Badge>
                     </div>
-                  </CardHeader>
-                  <CardContent className="px-6">
-                    <ol className="divide-line divide-y">
-                      {steps.map((step, stepIndex) => (
-                        <li key={step} className="flex gap-3 py-3 first:pt-0 last:pb-0">
-                          <span className="text-primary w-4 shrink-0 text-[0.9375rem] font-black">
-                            {stepIndex + 1}
-                          </span>
-                          <span className="text-dim text-[0.9375rem] leading-relaxed">
-                            {step}
-                          </span>
-                        </li>
-                      ))}
-                    </ol>
-                  </CardContent>
-                </Card>
-              </BlurFade>
+                  </div>
+                </CardHeader>
+                <CardContent className="px-6">
+                  <ol className="divide-line divide-y">
+                    {steps.map((step, stepIndex) => (
+                      <li key={step} className="flex gap-3 py-3 first:pt-0 last:pb-0">
+                        <span className="text-primary w-4 shrink-0 text-[0.9375rem] font-black">
+                          {stepIndex + 1}
+                        </span>
+                        <span className="text-dim text-[0.9375rem] leading-relaxed">
+                          {step}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                </CardContent>
+              </Card>
             ))}
           </div>
 
-          <BlurFade>
+          <Reveal>
             <Card className="bg-accent-soft mt-4 px-6 py-6 shadow-none">
               <div>
                 <h3 className="text-lg font-bold">
@@ -543,9 +569,9 @@ export default function Page() {
                 </p>
               </div>
             </Card>
-          </BlurFade>
+          </Reveal>
 
-          <BlurFade>
+          <Reveal>
             <div className="mt-10 flex flex-wrap items-center gap-3">
               <Button asChild>
                 <a href={DOWNLOADS.windows.href}>Download for Windows</a>
@@ -568,7 +594,7 @@ export default function Page() {
               nothing reported back: both halves are in the repository, and the release
               is built from it by GitHub Actions.
             </p>
-          </BlurFade>
+          </Reveal>
         </section>
       </main>
 

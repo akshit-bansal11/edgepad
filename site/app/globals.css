@@ -134,19 +134,6 @@
 
   /* Every bare `transition-*` utility takes the fast duration. */
   --default-transition-duration: var(--duration-fast);
-
-  --animate-shiny-text: shiny-text 8s infinite;
-  @keyframes shiny-text {
-    0%,
-    90%,
-    100% {
-      background-position: calc(-100% - var(--shiny-width)) 0;
-    }
-    30%,
-    60% {
-      background-position: calc(100% + var(--shiny-width)) 0;
-    }
-  }
 }
 
 @layer base {
@@ -155,17 +142,10 @@
   }
 
   html {
-    scroll-behavior: smooth;
     /* Anchors land below the sticky header rather than under it.
        4rem header + 1rem of air. Section scroll-margin matches this exactly; two
        different offsets fighting each other is what makes a heading land crooked. */
     scroll-padding-top: 5rem;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
   }
 
   body {

@@ -67,6 +67,8 @@ internal sealed class TrayContext : ApplicationContext
 
     private readonly MenuRow checkUpdates = new(Strings.Menu_CheckUpdates, Icons.Download) { CheckOnClick = true, Switch = true };
     private readonly MenuRow openLog = new(Strings.Menu_OpenLog, Icons.FileText);
+    private readonly TrayMenu settingsMenu = new(withHeader: false);
+    private readonly MenuRow settingsRow = new(Strings.Menu_Settings, Icons.Sliders);
     private readonly MenuRow update = new(Strings.Menu_Update, Icons.Download) { Available = false };
     private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
     private readonly TrayMenu menu = new();
@@ -155,6 +157,13 @@ internal sealed class TrayContext : ApplicationContext
         openLog.Click += (_, _) => OpenLog();
         VirtualPad.DriverMissing += OnDriverMissing;
 
+        // The rows set once and left alone live one level down, so the menu itself is the things used every day.
+        settingsMenu.Items.Add(startWithWindows);
+        settingsMenu.Items.Add(checkUpdates);
+        settingsMenu.Items.Add(openLog);
+        settingsRow.DropDown = settingsMenu;
+        settingsMenu.Opening += (_, _) => settingsMenu.Restyle();
+
         // The header is the menu's own. Under it, in the order the plan fixes: the update, then whatever is wrong or
         // needs doing (rows that stay hidden while all is well), then the switches, the windows, the help, and Quit.
         menu.Items.Add(update);
@@ -164,14 +173,12 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(networkRow);
         menu.Items.Add(clipboardRow);
-        menu.Items.Add(startWithWindows);
-        menu.Items.Add(checkUpdates);
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(macrosRow);
         menu.Items.Add(securityRow);
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(Row(Strings.Menu_Documentation, Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
-        menu.Items.Add(openLog);
+        menu.Items.Add(settingsRow);
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(Row(Strings.Menu_Quit, Icons.Close, ExitThread));
 

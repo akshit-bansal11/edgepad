@@ -110,7 +110,7 @@ The site follows the Edgepad 2.0 design system: calm, rounded, one blue.
 
 **Type.** Lato in 400, 700 and 900, sentence case everywhere, no letter-spaced capitals. JetBrains Mono only for what really is code: commands, byte tables, protocol ids.
 
-**Motion.** Magic UI's BlurFade for section entrances (a short lift and unblur, once), a BorderBeam around the hero phone, an AnimatedBeam on the "How it works" figure and a shine on the hero pill. Under `prefers-reduced-motion` all of them stop, **in CSS** (`motion-reduce:` utilities), never with `useReducedMotion`: the server cannot know the preference, so a hook renders different markup on the client, and React does not repair a mismatched `style` on hydration, which left every docs heading invisible. The hero headline and the docs title have no entrance at all, so the first paint never waits for JavaScript.
+**Motion.** One reveal (`Reveal`: opacity and a short lift, once, over the `--duration-base` token) on whole sections, never on each card; a BorderBeam around the hero phone and an AnimatedBeam on the "How it works" figure, each running only while on screen. Durations are the `--duration-*` tokens in `app/globals.css`, read by `lib/motion.ts`; all are 0 under `prefers-reduced-motion`. Reveal hides content only after hydration and only below the fold, so nothing is invisible without JavaScript. Reduced motion is also handled **in CSS** (`motion-reduce:` utilities), never by rendering different markup from `useReducedMotion`: the server cannot know the preference, and React does not repair a mismatched `style` on hydration. The hero headline and the docs title have no entrance at all.
 
 **Theme toggle.** `next-themes` with `attribute="class"`, three states (light / dark / system). The dark variant follows the class rather than the media query, so the toggle wins over the OS in both directions.
 
@@ -120,10 +120,10 @@ The site follows the Edgepad 2.0 design system: calm, rounded, one blue.
 
 ```bash
 npx shadcn@latest add card                       # shadcn
-npx shadcn@latest add @magicui/blur-fade @magicui/grid-pattern @magicui/animated-shiny-text   @magicui/animated-beam @magicui/border-beam @magicui/magic-card   # Magic UI
+npx shadcn@latest add @magicui/grid-pattern @magicui/animated-beam @magicui/border-beam   # Magic UI
 ```
 
-`components.json` registers the `@magicui` namespace, so `npx shadcn@latest add @magicui/<name>` works from here. Installed components are then owned code: each was trimmed or fixed after install, and the reason is in its comments (MagicCard lost its orb mode and its theme sniffing; the beams and BlurFade handle reduced motion in CSS; `card.tsx` came out of the CLI importing `cn` from an npm package called `cn`, which was removed and the import pointed at `@/lib/utils`).
+`components.json` registers the `@magicui` namespace, so `npx shadcn@latest add @magicui/<name>` works from here. Installed components are then owned code: each was trimmed or fixed after install, and the reason is in its comments (the beams handle reduced motion in CSS; `card.tsx` came out of the CLI importing `cn` from an npm package called `cn`, which was removed and the import pointed at `@/lib/utils`).
 
 **Versions in `package.json` are pinned exactly**, read from the npm registry rather than from memory. Two pins are deliberately behind `latest`, and both are load-bearing:
 

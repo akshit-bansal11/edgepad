@@ -57,6 +57,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>&amp;Check for updates daily</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>Setti&amp;ngs</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>Open &amp;log</value>
   </data>
