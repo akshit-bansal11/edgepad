@@ -169,7 +169,7 @@ Key: intended meaning, found in the code.
 | `capture_region` ("Region") | Capture mode: a screenshot of an area. |
 | `capture_save_laptop`, `capture_save_phone` | Choices under "Save to". |
 | `pair_confirm_*` | A yes/no question to the phone user about what the laptop reported. |
-| `pair_expires` ("Expires in %1$s") | Placeholder is a ready duration such as "2:30". |
+| `pair_expires` ("Expires in %1$s") | %1 is a duration already localised by Android ("5 minutes"); never add a unit word. |
 | `pin_title`, `pin_body` | "Enter the PIN"; body says where the PIN was set (on the laptop). |
 | `pin_entered` | Screen reader: "Digits entered: 3 of 6". Digits are never spoken. |
 | `device_asking` ("Waiting for you. Tap to answer.") | The laptop is waiting for a trust or pairing answer; tapping opens the answer. |
@@ -180,7 +180,7 @@ Key: intended meaning, found in the code.
 | `device_connected_via` | %1 is a connection type. |
 | `link_notice*` | Android notification title and text. |
 | `lost_title` ("Laptop out of reach") | Title shown when the link drops. |
-| `lost_last_seen` | %1 is a duration such as "12 s". |
+| `lost_last_seen` ("Last seen %1$s · %2$s") | %1 is a relative time already localised by Android ("5 minutes ago"); %2 is a connection type. |
 | `battery_summary` ("Batteries: %1$s") | Screen-reader summary; the placeholder is a list. |
 | `list_separator` (", ") | Separator between list items; use the language's own (Arabic "، ", Chinese "、"). Keep it a separator with any trailing space. |
 | `sentences_joined` ("%1$s %2$s") | Joins two sentences with a space; CJK may join without one. |
@@ -190,7 +190,7 @@ Key: intended meaning, found in the code.
 | `macros_per_page` ("Macros on screen") | How many macros one page shows. |
 | `macros_layout_grid` ("%1$d × %2$d") | Rows by columns. |
 | `share_title` ("Send to %1$s?") | %1 is a laptop name; the shared item is shown under it. |
-| `share_image` ("an image") | A noun phrase put into a sentence. |
+| `share_image` ("An image") | The whole message under the send prompt when the shared item is an image. |
 | `share_clipboard_off` | "Turn on Share clipboard on %1$s": setting name, then a laptop name. |
 | `guide_*_keys` / `guide_*_values` | Parallel arrays: item N of keys labels item N of values. Same count, same order. |
 | `guide_*_kicker` ("1 · Why Edgepad") | Numbered chapter label; keep the number and the middle dot. |
@@ -212,19 +212,14 @@ Key: intended meaning, found in the code.
 
 ## 5. Hard to translate as written (for the owner)
 
-No English was changed. Each of these makes translation clumsy or lossy.
+Each of these makes translation clumsy or lossy. Glued fragments that made a correct translation impossible (gamepad directions, durations built in code) were fixed in the source; what remains is listed here with how to handle it in the translator notes.
 
 | Key | Why |
 |---|---|
-| `battery_low`, `battery_charging`, `battery_more_low` | Lowercase one-word states attached to a number or name. Gender, case and word order differ by language. |
-| `gamepad_up`, `gamepad_down`, `gamepad_left`, `gamepad_right` | Lowercase words inserted into `gamepad_bind_key_for` ("Key for %1$s"). Inflected languages need case or gender agreement. |
-| `share_image` ("an image") | A noun phrase with a fixed article, inserted into a sentence. |
 | `corner_slot` ("%1$s · %2$s") with `corner_edge_*` ("left edge") | Two translated parts joined by a dot; gender and case of the edge noun are fixed. |
 | `status_closed`, `status_closed_named` | Another sentence is appended after "Not connected."; it may need to agree. |
 | `sentences_joined` | Two whole sentences concatenated; spacing and punctuation rules differ (CJK, Arabic). |
 | `list_separator` | One delimiter for several lists; "and" cannot be added before the last item. |
-| `lost_last_seen` ("Last seen %1$s ago · %2$s") | A duration fills a slot after "ago"; some languages put the time first. |
-| `pair_expires` ("Expires in %1$s") | The duration unit text inside the placeholder is built in code and is not translatable. |
 | `show_all_paired` | Plural forms are identical in English; other languages must still write each category. |
 | `device_asking` ("Waiting for you. Tap to answer.") | "Waiting for you" is vague: the user must act on the laptop. |
 | `piece_transport` ("Prev · play · next") | Three button names squeezed into one label. |
