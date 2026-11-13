@@ -127,7 +127,7 @@ class ReconnectingScreen(
         stop.text = ui.string(if (state == State.TRYING) R.string.lost_stop else R.string.lost_devices)
         progress.layoutParams.width = ui.dp(TRACK_WIDTH_DP) * attempt.coerceIn(0, max) / max
         progress.requestLayout()
-        lastSeen.text = ui.string(R.string.lost_last_seen, Clock.format(secondsSinceSeen.toInt()), address)
+        lastSeen.text = ui.string(R.string.lost_last_seen, Clock.ago(ui.context, secondsSinceSeen.toInt()), address)
         trying = state == State.TRYING
         updateBlink()
     }

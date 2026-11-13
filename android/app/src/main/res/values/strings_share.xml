@@ -2,7 +2,7 @@
 <resources>
   <!-- Share > Edgepad (ShareActivity): nothing is sent until Send is tapped. -->
   <string name="share_title">Send to %1$s?</string>
-  <string name="share_image">an image</string>
+  <string name="share_image">An image</string>
   <string name="share_send">Send</string>
   <string name="share_sent">Sent to %1$s</string>
   <string name="share_send_failed">Couldn\'t send it to %1$s. Check the connection and try again.</string>

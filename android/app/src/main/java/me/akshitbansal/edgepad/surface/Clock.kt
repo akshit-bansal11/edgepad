@@ -1,5 +1,10 @@
 package me.akshitbansal.edgepad.surface
 
+import android.content.Context
+import android.icu.text.MeasureFormat
+import android.icu.text.RelativeDateTimeFormatter
+import android.icu.util.Measure
+import android.icu.util.MeasureUnit
 import java.util.Locale
 
 /** A track position as a player shows it: 1:24, or 1:02:05 past an hour. */
@@ -15,6 +20,40 @@ object Clock {
         } else {
             "%d:%02d".format(Locale.ROOT, s / MINUTE, s % MINUTE)
         }
+    }
+
+    /** "1 minute, 24 seconds" in the person's language: the unit words come from the platform, not from us. */
+    fun remaining(
+        context: Context,
+        seconds: Int,
+    ): String {
+        val s = seconds.coerceAtLeast(0)
+        val parts =
+            listOf(
+                Measure(s / HOUR, MeasureUnit.HOUR),
+                Measure(s % HOUR / MINUTE, MeasureUnit.MINUTE),
+                Measure(s % MINUTE, MeasureUnit.SECOND),
+            ).filter { it.number.toInt() != 0 }.ifEmpty { listOf(Measure(0, MeasureUnit.SECOND)) }
+        return MeasureFormat
+            .getInstance(context.resources.configuration.locales[0], MeasureFormat.FormatWidth.WIDE)
+            .formatMeasures(*parts.toTypedArray())
+    }
+
+    /** "5 minutes ago" in the person's language, in the largest whole unit. */
+    fun ago(
+        context: Context,
+        seconds: Int,
+    ): String {
+        val s = seconds.coerceAtLeast(0)
+        val (count, unit) =
+            when {
+                s >= HOUR -> s / HOUR to RelativeDateTimeFormatter.RelativeUnit.HOURS
+                s >= MINUTE -> s / MINUTE to RelativeDateTimeFormatter.RelativeUnit.MINUTES
+                else -> s to RelativeDateTimeFormatter.RelativeUnit.SECONDS
+            }
+        return RelativeDateTimeFormatter
+            .getInstance(context.resources.configuration.locales[0])
+            .format(count.toDouble(), RelativeDateTimeFormatter.Direction.LAST, unit)
     }
 }
 

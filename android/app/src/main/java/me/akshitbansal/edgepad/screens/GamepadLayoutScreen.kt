@@ -82,7 +82,12 @@ object GamepadLayoutScreen {
 
     /** The four directions of a d-pad or a stick, in the order [Binding.Keys] stores their codes. */
     private val DIRECTIONS =
-        listOf(R.string.gamepad_up, R.string.gamepad_down, R.string.gamepad_left, R.string.gamepad_right)
+        listOf(
+            R.string.gamepad_bind_key_up,
+            R.string.gamepad_bind_key_down,
+            R.string.gamepad_bind_key_left,
+            R.string.gamepad_bind_key_right,
+        )
 
     fun build(
         ui: Ui,
@@ -487,7 +492,7 @@ object GamepadLayoutScreen {
                 if (codes.size == 1) {
                     context.getString(R.string.gamepad_bind_keys)
                 } else {
-                    context.getString(R.string.gamepad_bind_key_for, context.getString(DIRECTIONS[at]))
+                    context.getString(DIRECTIONS[at])
                 }
             val was = (control.binding as? Binding.Keys)?.codes?.getOrNull(at)
             AlertDialog

@@ -45,11 +45,10 @@
   <string name="gamepad_bind_trigger_left">Left trigger</string>
   <string name="gamepad_bind_trigger_right">Right trigger</string>
   <string name="gamepad_bind_keys">Keyboard key</string>
-  <string name="gamepad_bind_key_for">Key for %1$s</string>
-  <string name="gamepad_up">up</string>
-  <string name="gamepad_down">down</string>
-  <string name="gamepad_left">left</string>
-  <string name="gamepad_right">right</string>
+  <string name="gamepad_bind_key_up">Key for up</string>
+  <string name="gamepad_bind_key_down">Key for down</string>
+  <string name="gamepad_bind_key_left">Key for left</string>
+  <string name="gamepad_bind_key_right">Key for right</string>
 
   <!-- Keeping the named layouts themselves. -->
   <string name="gamepad_save_as">Save as</string>

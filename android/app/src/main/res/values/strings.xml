@@ -121,7 +121,7 @@
   <string name="lost_attempt">Reconnecting · attempt %1$d of %2$d</string>
   <string name="lost_stopped">Stopped retrying. Is the laptop awake, with Edgepad running?</string>
   <string name="lost_off">Automatic reconnect is off</string>
-  <string name="lost_last_seen">Last seen %1$s ago · %2$s</string>
+  <string name="lost_last_seen">Last seen %1$s · %2$s</string>
   <string name="retry_now">Retry now</string>
   <string name="lost_stop">Stop trying</string>
   <string name="lost_devices">Go to Devices</string>
