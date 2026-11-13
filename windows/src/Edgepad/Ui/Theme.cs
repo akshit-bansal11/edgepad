@@ -132,9 +132,13 @@ internal static partial class Theme
 
     static Theme()
     {
+        // Loaded whatever the language, so whether Lato is there never depends on which language picked the face.
+        var loaded = Load();
+        LatoLoaded = loaded && BlackCollection.Families.Length > 0;
+
         // Lato has no glyphs for these scripts, so their language gets the Windows face that does.
         var system = SystemFace(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
-        if (system is null && Load())
+        if (system is null && loaded)
         {
             Family = Collection.Families.First(family => family.Name == "Lato");
             BlackFamily = BlackCollection.Families.FirstOrDefault();
@@ -259,7 +263,7 @@ internal static partial class Theme
     }
 
     /// <summary>True once all three weights of Lato loaded. Exposed for the test that the resources are really there.</summary>
-    internal static bool LatoLoaded => Family.Name == "Lato" && BlackFamily is not null;
+    internal static bool LatoLoaded { get; }
 
     /// <summary><paramref name="from"/> moved <paramref name="amount"/> of the way to <paramref name="to"/>, opaque.</summary>
     public static Color Mix(Color from, Color to, float amount) => Color.FromArgb(
