@@ -143,6 +143,7 @@ internal sealed class PairingWindow : Form
 
         Text = Strings.Pair_Title;
         RightToLeft = Theme.Direction;
+        RightToLeftLayout = Theme.IsRtl;
         heading.Text = Strings.Pair_Heading.Fill(phoneName);
         origin.Text = source ?? "";
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -347,6 +348,5 @@ internal sealed class PairingWindow : Form
         pair.SetBounds(left + width - pair.FitWidth(DeviceDpi), y, pair.FitWidth(DeviceDpi), S(Box));
         cancel.SetBounds(pair.Left - S(8) - cancel.FitWidth(DeviceDpi), y, cancel.FitWidth(DeviceDpi), S(Box));
         ClientSize = new Size(S(DialogWidth), y + S(Box + Pad));
-        Theme.Mirror(this);
     }
 }

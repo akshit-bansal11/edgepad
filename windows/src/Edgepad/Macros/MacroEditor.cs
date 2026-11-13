@@ -55,6 +55,7 @@ internal sealed class MacroWindow : Form
     private readonly IReadOnlyList<Macro> opened;
     private readonly MacroStore store;
     private readonly Palette palette = Palette.Current;
+    private readonly Backdrop backdrop;
 
     /// <summary>
     /// Each macro's picture, keyed by where it comes from. Filled when a target or icon is settled — on leaving
@@ -99,11 +100,13 @@ internal sealed class MacroWindow : Form
     public MacroWindow(MacroStore store)
     {
         this.store = store;
+        backdrop = new Backdrop(PaintPage, palette);
         opened = [.. store.Macros];
         working = [.. store.Macros];
 
         Text = Strings.Macro_Title;
         RightToLeft = Theme.Direction;
+        RightToLeftLayout = Theme.IsRtl;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -168,7 +171,7 @@ internal sealed class MacroWindow : Form
         CancelButton = cancel;
 
         // Added in tab order: the list, then down the form, then the footer from left to right.
-        Controls.AddRange([listFrame, add, nameFrame, targetFrame, browse, argumentsFrame, chooseIcon, ownIcon, preview, empty, remove, cancel, save]);
+        Controls.AddRange([listFrame, add, nameFrame, targetFrame, browse, argumentsFrame, chooseIcon, ownIcon, preview, empty, remove, cancel, save, backdrop]);
 
         foreach (var macro in working)
         {
@@ -269,16 +272,21 @@ internal sealed class MacroWindow : Form
         cancel.SetBounds(save.Left - S(8) - cancel.FitWidth(DeviceDpi), footer, cancel.FitWidth(DeviceDpi), S(Box));
 
         ClientSize = new Size(S(DialogWidth), footer + S(Box + Pad));
-        Theme.Mirror(this);
+        backdrop.SetBounds(0, 0, ClientSize.Width, ClientSize.Height);
         Invalidate();
     }
 
-    protected override void OnPaint(PaintEventArgs e)
+    /// <summary>The page repaints whenever the form is invalidated, which is how the captions follow the columns.</summary>
+    protected override void OnInvalidated(InvalidateEventArgs e)
     {
-        base.OnPaint(e);
-        var graphics = e.Graphics;
+        base.OnInvalidated(e);
+        backdrop.Invalidate();
+    }
+
+    /// <summary>Title, description and captions, drawn into <see cref="Backdrop"/>.</summary>
+    private void PaintPage(Graphics graphics, Rectangle page)
+    {
         const TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix;
-        var page = ClientRectangle;
 
         // GDI+ rather than TextRenderer for the one Black line; Theme says why. GDI+ ignores mirroring, so in
         // Arabic the box is flipped here and the line drawn right to left, from the box's right edge.
@@ -752,6 +760,32 @@ internal sealed class MacroWindow : Form
         }
 
         base.Dispose(disposing);
+    }
+
+    /// <summary>
+    /// A child that fills the form behind its controls and paints the form's own words. The form is mirrored by
+    /// Windows in Arabic, and a mirrored client area is drawn by GDI mirrored and by GDI+ not; a child is left to
+    /// right whatever its form is, so everything painted here follows the one rule in <see cref="Theme.Flip(Rectangle, Rectangle)"/>.
+    /// </summary>
+    private sealed class Backdrop : System.Windows.Forms.Control
+    {
+        private readonly Action<Graphics, Rectangle> paint;
+        private readonly Palette palette;
+
+        public Backdrop(Action<Graphics, Rectangle> paint, Palette palette)
+        {
+            this.paint = paint;
+            this.palette = palette;
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+            SetStyle(ControlStyles.Selectable, false);
+            TabStop = false;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            e.Graphics.Clear(palette.Card);
+            paint(e.Graphics, ClientRectangle);
+        }
     }
 
     /// <summary>

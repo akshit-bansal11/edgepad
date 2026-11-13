@@ -99,6 +99,7 @@ internal sealed class SecurityWindow : Form
 
         Text = Strings.Security_Title;
         RightToLeft = Theme.Direction;
+        RightToLeftLayout = Theme.IsRtl;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -269,7 +270,6 @@ internal sealed class SecurityWindow : Form
         }
 
         ClientSize = new Size(S(DialogWidth), save.Bottom + S(Pad));
-        Theme.Mirror(this);
         Invalidate();
     }
 
@@ -448,6 +448,7 @@ internal sealed class PinDialog : Form
         this.palette = palette;
         Text = Strings.Pin_Title;
         RightToLeft = Theme.Direction;
+        RightToLeftLayout = Theme.IsRtl;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -527,7 +528,6 @@ internal sealed class PinDialog : Form
         ok.SetBounds(left + width - ok.FitWidth(DeviceDpi), y, ok.FitWidth(DeviceDpi), S(Box));
         cancel.SetBounds(ok.Left - S(8) - cancel.FitWidth(DeviceDpi), y, cancel.FitWidth(DeviceDpi), S(Box));
         ClientSize = new Size(S(DialogWidth), y + S(Box + Pad));
-        Theme.Mirror(this);
     }
 
     private void Check()

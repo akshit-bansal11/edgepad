@@ -156,30 +156,16 @@ internal static partial class Theme
     public static RightToLeft Direction => IsRtl ? RightToLeft.Yes : RightToLeft.No;
 
     /// <summary>
-    /// Everything custom-drawn or hand-placed is worked out left to right, as the design draws it, and mirrored on its
-    /// way out: <see cref="Flip(Rectangle, Rectangle)"/> for a painted box, <see cref="Mirror"/> for a form's controls
-    /// and the flags below for text. One rule, applied at the edge, so no layout carries a second set of numbers.
+    /// Everything custom-drawn is worked out left to right, as the design draws it, and mirrored on its way out:
+    /// <see cref="Flip(Rectangle, Rectangle)"/> for a painted box and the flags below for text. A form with a
+    /// caption is mirrored by Windows instead (RightToLeftLayout: title bar, and the place of every control in it);
+    /// its controls are not mirrored inside, so what they paint is flipped here and never twice.
     /// </summary>
     public static Rectangle Flip(Rectangle box, Rectangle within) =>
         IsRtl ? box with { X = within.Left + within.Right - box.Right } : box;
 
     public static RectangleF Flip(RectangleF box, RectangleF within) =>
         IsRtl ? box with { X = within.Left + within.Right - box.Right } : box;
-
-    /// <summary>Mirrors <paramref name="parent"/>'s controls across its middle. Called last by a form that placed them left to right.</summary>
-    public static void Mirror(Control parent)
-    {
-        if (!IsRtl)
-        {
-            return;
-        }
-
-        var width = parent.ClientSize.Width;
-        foreach (Control child in parent.Controls)
-        {
-            child.Left = width - child.Right;
-        }
-    }
 
     /// <summary>Right-to-left reading order for drawn text; nothing left to right.</summary>
     public static TextFormatFlags Reading => IsRtl ? TextFormatFlags.RightToLeft : TextFormatFlags.Default;
