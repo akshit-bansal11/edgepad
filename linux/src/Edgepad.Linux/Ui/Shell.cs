@@ -50,7 +50,7 @@ internal sealed class Shell : IDisposable
     // Set once the tray exists. Read on Bluetooth threads, so volatile; the trust question is refused until then.
     private volatile bool ready;
     private volatile bool quitRequested;
-    private volatile string status = LaptopStatus.Starting;
+    private volatile string status = LaptopStatus.Starting.Text;
 
     // /dev/uinput cannot be opened: input would do nothing while the phone shows connected. Set from any thread.
     private volatile bool inputBlocked;
@@ -75,7 +75,7 @@ internal sealed class Shell : IDisposable
         this.version = version;
         pairing = PairingPrompt.OnUiThread(phone =>
         {
-            SetStatus($"Pair {phone}: type the pairing code shown on the phone");
+            SetStatus(LaptopStatus.Pairing(phone));
             Notifier.Send($"{phone} wants to pair", "Type the pairing code it shows.");
         });
         prompt = new TrustPrompt(
@@ -91,7 +91,7 @@ internal sealed class Shell : IDisposable
         server = bluetooth;
 
         // Off until the owner says yes (network.txt); only a phone that proves itself is handed to the server.
-        network = new NetworkServer(identity, paired, trust, pairing, link => _ = bluetooth.Accept(link), name => SetStatus($"Paired with {name}"), () => bluetooth.IsRefusing);
+        network = new NetworkServer(identity, paired, trust, pairing, link => _ = bluetooth.Accept(link), name => SetStatus(LaptopStatus.Paired(name)), () => bluetooth.IsRefusing);
     }
 
     /// <summary>Stops listening for Wi-Fi and USB phones and closes theirs. Before the server is disposed; harmless twice.</summary>
@@ -119,10 +119,12 @@ internal sealed class Shell : IDisposable
     }
 
     /// <summary>The status line, from any thread. Before the tray exists it is only remembered.</summary>
-    public void SetStatus(string text)
+    public void SetStatus(LaptopStatus update)
     {
+        var text = update.Text;
+
         // "Connected to" is only true if the phone's input can do anything: check each time, as the log said only at the end.
-        if (LaptopStatus.IsConnected(text))
+        if (update.IsConnected)
         {
             CheckInput();
             if (inputBlocked)
@@ -187,7 +189,7 @@ internal sealed class Shell : IDisposable
         }
 
         var name = PhoneName.Of(address) ?? Server.Shown(address);
-        SetStatus($"Asking whether to trust {name}");
+        SetStatus(LaptopStatus.Asking(name));
 
         // The question is a window that may open behind the one in use (Wayland), and the tray menu may not exist.
         Notifier.Send($"{name} wants to connect", "A window is asking whether to trust it. Look for it on your screen.");

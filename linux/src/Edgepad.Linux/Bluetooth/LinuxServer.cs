@@ -20,10 +20,7 @@ internal sealed class LinuxServer : IDisposable
 
     private static readonly TimeSpan RetryStartEvery = TimeSpan.FromSeconds(30);
 
-    private const string Waiting = LaptopStatus.Waiting;
-    private const string StartFailing = "Bluetooth is off or unavailable; trying again";
-
-    private readonly Action<string> onStatus;
+    private readonly Action<LaptopStatus> onStatus;
     private readonly SessionHost host;
     private readonly CancellationTokenSource stopping = new();
 
@@ -35,7 +32,7 @@ internal sealed class LinuxServer : IDisposable
     private volatile bool unpowered;
     private Task? serving;
 
-    public LinuxServer(TrustStore trust, PinStore pin, Func<string, CancellationToken, bool> askTrust, LinkIdentity identity, Action<string> onStatus)
+    public LinuxServer(TrustStore trust, PinStore pin, Func<string, CancellationToken, bool> askTrust, LinkIdentity identity, Action<LaptopStatus> onStatus)
     {
         this.onStatus = onStatus;
         host = new SessionHost(trust, pin, askTrust, identity, onStatus, OnSessionEnded);
@@ -63,7 +60,7 @@ internal sealed class LinuxServer : IDisposable
                     Log.Write($"The Bluetooth service failed to start; trying again every {(int)RetryStartEvery.TotalSeconds} s: {e}");
                 }
 
-                onStatus(StartFailing);
+                onStatus(LaptopStatus.BluetoothRetrying);
                 try
                 {
                     await Task.Delay(RetryStartEvery, stop);
@@ -129,7 +126,7 @@ internal sealed class LinuxServer : IDisposable
                 else if (host.CurrentAddress is null)
                 {
                     Log.Write("A Bluetooth adapter was powered off");
-                    onStatus(StartFailing);
+                    onStatus(LaptopStatus.BluetoothRetrying);
                 }
             },
             emitOnCapturedContext: false);
@@ -139,7 +136,7 @@ internal sealed class LinuxServer : IDisposable
             {
                 bluetoothd = null;
                 Log.Write("Waiting for bluetoothd to start");
-                onStatus(StartFailing);
+                onStatus(LaptopStatus.BluetoothRetrying);
             }
 
             // An owner identifier, not the plain name: a call addressed to it fails rather than reaching a
@@ -191,7 +188,7 @@ internal sealed class LinuxServer : IDisposable
             Log.Write("The RFCOMM profile is still registered with bluetoothd");
         }
 
-        onStatus(host.CurrentAddress is { } live ? $"Connected to {host.Shown(live)}" : unpowered ? StartFailing : Waiting);
+        onStatus(host.CurrentAddress is { } live ? host.Connected(live) : unpowered ? LaptopStatus.BluetoothRetrying : LaptopStatus.Waiting);
     }
 
     /// <summary>
@@ -237,7 +234,7 @@ internal sealed class LinuxServer : IDisposable
     {
         if (!stopping.IsCancellationRequested)
         {
-            onStatus(host.CurrentAddress is { } live ? $"Connected to {host.Shown(live)}" : bluetoothd is null || unpowered ? StartFailing : Waiting);
+            onStatus(host.CurrentAddress is { } live ? host.Connected(live) : bluetoothd is null || unpowered ? LaptopStatus.BluetoothRetrying : LaptopStatus.Waiting);
         }
     }
 

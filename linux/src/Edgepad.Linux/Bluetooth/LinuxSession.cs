@@ -30,7 +30,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Func<Action<Frame>, Action<bool>?> startReporting;
     private readonly Func<MacroStore> macros;
     private readonly LinkIdentity identity;
-    private readonly Action<string> onStatus;
+    private readonly Action<LaptopStatus> onStatus;
     private readonly Func<LinuxSession, bool> onAdmitted;
     private readonly Action<LinuxSession> onEnded;
     private int disposed;
@@ -63,7 +63,7 @@ internal sealed class LinuxSession : IDisposable
         Func<Action<Frame>, Action<bool>?> startReporting,
         Func<MacroStore> macros,
         LinkIdentity identity,
-        Action<string> onStatus,
+        Action<LaptopStatus> onStatus,
         Func<LinuxSession, bool> onAdmitted,
         Action<LinuxSession> onEnded)
     {
