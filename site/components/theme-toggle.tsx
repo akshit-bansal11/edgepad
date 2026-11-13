@@ -3,72 +3,50 @@
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
-import { cn } from "@/lib/utils";
 
-const OPTIONS = [
+/** The cycle order: follow the device, then light, then dark, then round again. */
+const CYCLE = [
+  { value: "system", label: "System", Icon: Monitor },
   { value: "light", label: "Light", Icon: Sun },
   { value: "dark", label: "Dark", Icon: Moon },
-  { value: "system", label: "System", Icon: Monitor },
 ] as const;
 
 /** Never notifies: the value flips once, when hydration swaps the snapshot. */
 const subscribe = () => () => {};
 
 /**
- * Real radio inputs inside a fieldset, rather than buttons wearing `role="radio"`.
- * Three states where exactly one is chosen is what a radio group is, and doing it
- * natively brings arrow-key navigation and the correct announcement for free.
- *
- * Each input is a transparent overlay filling its label, NOT `sr-only`. `sr-only`
- * positions the element absolutely and clips it to a 1px box; clicking the label then
- * focuses that stray box and the browser scrolls it into view, which with
- * `scroll-behavior: smooth` reads as the whole page sliding away when you change
- * theme. Sized in place, focus cannot move the page.
+ * One button that steps through the three themes. Its name states the current theme
+ * and what a press does, so a screen reader hears both without a group to explore.
  */
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
-  // The server cannot know the chosen theme, so the active state is only painted
-  // after hydration. useSyncExternalStore is the hydration-safe way to ask "am I on
-  // the client yet": it returns the server snapshot during SSR and the client one
-  // after, with no effect and no extra render scheduled by setState.
+  // The server cannot know the chosen theme, so the real one is only shown after
+  // hydration. useSyncExternalStore is the hydration-safe way to ask "am I on the
+  // client yet": the server snapshot during SSR, the client one after.
   const mounted = useSyncExternalStore(
     subscribe,
     () => true,
     () => false,
   );
 
+  const index = Math.max(
+    0,
+    CYCLE.findIndex((option) => mounted && option.value === theme),
+  );
+  const current = CYCLE[index] ?? CYCLE[0];
+  const next = CYCLE[(index + 1) % CYCLE.length] ?? CYCLE[0];
+  const Icon = current.Icon;
+
   return (
-    <fieldset className="bg-faint flex rounded-full">
-      <legend className="sr-only">Colour theme</legend>
-      {OPTIONS.map(({ value, label, Icon }) => {
-        const active = mounted && theme === value;
-        return (
-          <label
-            key={value}
-            title={label}
-            className={cn(
-              // A segmented control: the chosen one is a card-coloured thumb with the
-              // icon in the accent. Icons are non-text, so dim on faint clears 3:1.
-              "press text-dim relative grid size-11 cursor-pointer place-items-center rounded-full transition-colors",
-              "hover:text-foreground",
-              "has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-2 has-[:focus-visible]:-outline-offset-2",
-              active && "bg-card text-primary shadow-card hover:text-primary",
-            )}
-          >
-            <input
-              type="radio"
-              name="theme"
-              value={value}
-              checked={active}
-              onChange={() => setTheme(value)}
-              aria-label={label}
-              className="absolute inset-0 cursor-pointer appearance-none opacity-0"
-            />
-            <Icon aria-hidden className="size-4" />
-          </label>
-        );
-      })}
-    </fieldset>
+    <button
+      type="button"
+      onClick={() => setTheme(next.value)}
+      aria-label={`Colour theme: ${current.label}. Switch to ${next.label}.`}
+      title={`Colour theme: ${current.label}`}
+      className="press bg-faint text-foreground hover:text-primary grid size-11 place-items-center rounded-full transition-colors"
+    >
+      <Icon aria-hidden className="size-4" />
+    </button>
   );
 }
