@@ -70,7 +70,7 @@
     <value>업데이트 가능: {0}(&amp;U)</value>
   </data>
   <data name="Balloon_UpdateAvailable" xml:space="preserve">
-    <value>Edgepad {0}을(를) 사용할 수 있어요. 클릭해서 릴리스 페이지를 열고, 다운로드해 실행하면 현재 버전이 교체돼요.</value>
+    <value>Edgepad {0} 버전을 사용할 수 있어요. 클릭해서 릴리스 페이지를 열고, 다운로드해 실행하면 현재 버전이 교체돼요.</value>
   </data>
   <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
     <value>Windows 시작 시 실행 설정을 저장하지 못해서 Edgepad가 자동으로 시작되지 않아요. 자세한 이유는 로그에 있어요.</value>

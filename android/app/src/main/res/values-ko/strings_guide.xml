@@ -91,7 +91,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>조작 화면 위쪽의 컨트롤 아이콘을 탭한 뒤 게임패드를 탭하세요. 가로 화면으로 열려요.</item>
-    <item>Xbox, 플랫포머, 레이싱, 슈팅 중에서 게임패드의 톱니바퀴를 눌러 여는 게임패드 설정에서 고르세요.</item>
+    <item>게임패드의 톱니바퀴를 눌러 게임패드 설정을 열고, Xbox, 플랫포머, 레이싱, 슈팅 중에서 고르세요.</item>
     <item>스틱은 누른 채 밀고, 버튼은 탭하세요. 여러 손가락을 동시에 쓸 수 있어요.</item>
     <item>게임패드 설정 › 레이아웃 편집에서 엄지가 닿는 곳으로 컨트롤을 드래그하세요. 길게 누르면 크기를 조절할 수 있어요.</item>
   </string-array>
@@ -107,10 +107,10 @@
   </string-array>
   <string-array name="guide_connect_values">
     <item>Edgepad를 설치하고 여세요. 알림 영역이나 메뉴 막대에 표시돼요.</item>
-    <item>이 휴대전화의 블루투스 설정에서 노트북을 페어링한 뒤, 기기에서 노트북을 탭하세요.</item>
+    <item>이 휴대전화의 블루투스 설정에서 노트북을 페어링한 뒤, 기기 화면에서 노트북을 탭하세요.</item>
     <item>노트북의 Edgepad 메뉴에서 Wi-Fi 및 USB 연결을 켜세요(Mac에서는 Wi-Fi 연결). USB는 휴대전화에서 USB 테더링도 켜야 해요.</item>
     <item>처음에는 노트북이 이 휴대전화를 신뢰할지 물어요. 노트북에서 신뢰를 선택하세요. PIN을 물으면 여기에 입력하세요.</item>
-    <item>Android 10부터는 화면에 있는 앱만 클립보드를 읽을 수 있어서, 다른 앱에서 복사한 내용은 Edgepad로 돌아올 때 노트북에 전달돼요. 또는 공유 › Edgepad로 텍스트나 이미지를 바로 보낼 수 있어요.</item>
+    <item>Android 10부터는 화면에 있는 앱만 클립보드를 읽을 수 있어서, 다른 앱에서 복사한 내용은 Edgepad로 돌아올 때 노트북에 전달돼요. 또는 공유 › Edgepad를 선택해 텍스트나 이미지를 바로 보낼 수 있어요.</item>
   </string-array>
 
   <string name="guide_art_phone">휴대전화</string>

@@ -23,7 +23,7 @@
   <string name="devices_legend">저장된 노트북은 Edgepad를 열 때 연결돼요. 연결을 해제하면 노트북을 다시 탭하기 전까지 자동 연결되지 않아요.</string>
   <string name="devices_stay_note">앱을 나가도 연결이 유지돼요. 알림에서 연결을 해제할 수 있어요.</string>
   <string name="devices_legend_off">노트북을 탭해서 연결하세요.</string>
-  <string name="devices_multi_hint">노트북을 여러 대 동시에 연결할 수 있어요. 컨트롤로 조작 중인 노트북이 제어 중인 노트북이며, 제어하기를 탭하면 바꿀 수 있어요.</string>
+  <string name="devices_multi_hint">노트북을 여러 대 동시에 연결할 수 있어요. 컨트롤로 조작하는 노트북에는 제어 중이라고 표시돼요. 바꾸려면 제어하기를 탭하세요.</string>
   <string name="add_by_address">주소로 추가</string>
   <string name="address_connect">연결</string>
   <string name="address_looking">노트북 찾는 중 (%1$s)…</string>
@@ -258,7 +258,7 @@
   <string name="color_pink">분홍색</string>
   <string name="shapes_title">도형</string>
   <plurals name="shapes_summary">
-    <item quantity="other">%1$d개 그림</item>
+    <item quantity="other">도형 %1$d개</item>
   </plurals>
   <string name="shapes_none">아직 없음</string>
   <string name="shapes_footnote">트랙패드를 길게 눌러 선이 실선으로 바뀔 때까지 기다린 뒤(햅틱 피드백이 켜져 있으면 진동도 느껴져요), 손가락을 떼지 않고 그리세요.</string>
@@ -273,7 +273,7 @@
   <string name="shapes_save">저장</string>
   <string name="shapes_delete">삭제</string>
   <string name="shapes_delete_title">이 도형을 삭제할까요?</string>
-  <string name="shapes_delete_body">이 도형을 그려도 더 이상 다음이 실행되지 않아요: %1$s</string>
+  <string name="shapes_delete_body">이 도형을 그려도 더 이상 실행되지 않아요: %1$s</string>
   <string name="shapes_too_close">이미 있는 도형과 너무 비슷해요. 더 뚜렷하게 다른 도형을 그리세요.</string>
   <string name="shapes_too_short">너무 작아서 구분할 수 없어요. 더 크게 그리세요.</string>
   <string name="shape_runs">실행: %1$s</string>
