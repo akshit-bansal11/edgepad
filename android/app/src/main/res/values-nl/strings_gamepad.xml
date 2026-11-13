@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_layout_title">Gamepad-indeling</string>
+  <string name="gamepad_layout_editing">%1$s bewerken</string>
+  <string name="gamepad_layout_hint">Sleep om te verplaatsen. Houd een knop ingedrukt voor het menu.</string>
+  <string name="gamepad_layout_section">Indelingen</string>
+  <string name="gamepad_description">Gamecontroller voor de laptop. Werkt alleen met aanraking.</string>
+  <string name="gamepad_node_dpad">D-pad</string>
+  <string name="gamepad_node_stick">Stick</string>
+  <string name="gamepad_node_button">Knop</string>
+  <string name="gamepad_size">Grootte</string>
+  <string name="dp_value">%1$d dp</string>
+
+  <!-- The two buttons in the editor's options popup; short, because they sit side by side in it. -->
+  <string name="gamepad_add">Toevoegen</string>
+  <string name="gamepad_restore">%1$s herstellen</string>
+  <string name="gamepad_restore_confirm">%1$s herstellen? Tik nogmaals</string>
+  <string name="gamepad_switch_to">Overschakelen naar %1$s</string>
+  <string name="gamepad_switch_to_confirm">Overschakelen naar %1$s? Die van jou blijft bewaard. Tik nogmaals</string>
+  <string name="gamepad_layouts">Indelingen</string>
+
+  <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->
+  <string name="gamepad_control_title">%1$s · %2$s</string>
+  <string name="gamepad_bind">Toewijzing</string>
+  <string name="gamepad_label">Label</string>
+  <string name="gamepad_delete_control">Bedieningselement verwijderen</string>
+  <string name="gamepad_delete_title">%1$s verwijderen?</string>
+  <string name="gamepad_delete_body">Het verdwijnt uit deze indeling. Met Toevoegen zet je een element terug.</string>
+  <string name="gamepad_name_required">Geef de indeling een naam</string>
+
+  <!-- Adding a control: the kinds offered, in the order the menu lists them. -->
+  <string name="gamepad_add_control">Bedieningselement toevoegen</string>
+  <string name="gamepad_kind_button">Knop</string>
+  <string name="gamepad_kind_dpad">D-pad</string>
+  <string name="gamepad_kind_stick">Stick</string>
+  <string name="gamepad_kind_shoulder">Schouderknop</string>
+  <string name="gamepad_kind_trigger">Trigger</string>
+
+  <string name="gamepad_bind_stick_left">Linkerstick</string>
+  <string name="gamepad_bind_stick_right">Rechterstick</string>
+  <string name="gamepad_bind_trigger_left">Linkertrigger</string>
+  <string name="gamepad_bind_trigger_right">Rechtertrigger</string>
+  <string name="gamepad_bind_keys">Toets op het toetsenbord</string>
+  <string name="gamepad_bind_key_up">Toets voor omhoog</string>
+  <string name="gamepad_bind_key_down">Toets voor omlaag</string>
+  <string name="gamepad_bind_key_left">Toets voor links</string>
+  <string name="gamepad_bind_key_right">Toets voor rechts</string>
+
+  <!-- Keeping the named layouts themselves. -->
+  <string name="gamepad_save_as">Opslaan als</string>
+  <string name="gamepad_rename">Hernoemen</string>
+  <string name="gamepad_delete_layout">Indeling verwijderen</string>
+  <string name="gamepad_delete_layout_body">%1$s wordt verwijderd. De indelingen die bij Edgepad horen, blijven.</string>
+  <string name="gamepad_delete">Verwijderen</string>
+</resources>

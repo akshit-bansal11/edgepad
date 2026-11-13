@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">Toetsenbord</string>
+  <string name="keyboard_type_text">Tekst typen</string>
+  <string name="keyboard_type_send">Typen</string>
+  <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
+  <string name="back_to_surface">Bediening</string>
+  <string name="macros_title">Macro\'s</string>
+  <string name="keyboard_key_on">Aan</string>
+  <string name="keyboard_description">Schermtoetsenbord voor de laptop</string>
+  <string name="keyboard_size">Grootte</string>
+  <string name="keyboard_size_caption">Bij grotere formaten passen meer toetsen, dus elke toets wordt kleiner. Ze hebben een breder scherm nodig.</string>
+  <string name="keyboard_function_keys">Functietoetsen</string>
+  <string name="keyboard_with_fn">Met Fn</string>
+  <string name="keyboard_direct">Direct</string>
+  <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
+  <string name="keyboard_function_keys_caption">Met Fn: de bovenste rij doet wat erop staat (helderheid, media, volume) en Fn plus een toets stuurt F1 tot F12. Op 65%% en 60%%, die geen F-rij hebben, typt de cijferrij cijfers en stuurt Fn plus een cijfer F1 tot F12. Direct: de bovenste rij stuurt F1 tot F12 en Fn plus een toets doet de opgedrukte actie; op 65%% en 60%% stuurt de cijferrij F1 tot F12 en typt Fn plus een cijfer het cijfer.</string>
+</resources>
