@@ -25,6 +25,7 @@ import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
+import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
@@ -49,8 +50,6 @@ private const val SEGMENT_PAD_DP = 14f
 private const val SEGMENT_TRACK_RADIUS_DP = 9f
 private const val SEGMENT_THUMB_RADIUS_DP = 7f
 
-/** How long the segmented control's thumb takes to slide to the option just tapped. */
-private const val SEGMENT_SLIDE_MS = 200L
 private const val CHIP_DP = 32f
 private const val BACK_ICON_DP = 26f
 private const val CHECK_DP = 20f
@@ -527,7 +526,7 @@ class Ui(
                 fill
                     .animate()
                     .translationX(x)
-                    .setDuration(SEGMENT_SLIDE_MS)
+                    .setDuration(Motion.BASE)
                     .start()
             } else {
                 fill.animate().cancel()
