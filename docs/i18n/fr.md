@@ -85,3 +85,13 @@ Android `values-fr`, Windows culture `fr`. One French for France and Canada: no 
 | update / release notes / release page | mise à jour / Notes de version / Page de la version |
 | protocol | protocole |
 | round trip | Temps de réponse |
+
+## Windows and shared core
+
+- Windows' own words: "paramètres" (Windows Settings: "paramètres Bluetooth"), "zone de notification", "pare-feu Windows", "journal" (log). Android keeps its own "réglages".
+- Dialog_Trust / Dialog_DontTrust: Approuver / Refuser. The Android guide and error text quote "Approuver".
+- Tray menu: Macros…, Sécurité…, Connexions Wi-Fi et USB (quoted verbatim by the Android guide), Partager le presse-papiers, Documentation.
+- Access keys (unique per menu): tray D(Démar**r**er)=R, M, S, W, P, F, B, J, N, O, D, Q; Security S/P/O/R; Macros A/P/C/U/S/E.
+- Security levels: "Approbation seule", "Code PIN une fois par téléphone", "Code PIN à chaque connexion". "PIN" alone only in short buttons; sentences say "code PIN".
+- Forget all = "Oublier tout…"; Reset = "Réinitialiser"; both quoted verbatim in the Error_* texts.
+- Status text avoids agreement with the phone's name ("Téléphone refusé : …").
