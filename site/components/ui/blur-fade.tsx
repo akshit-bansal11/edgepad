@@ -8,7 +8,8 @@ import {
   useInView,
   type Variants,
 } from "motion/react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { seconds } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 type MarginType = UseInViewOptions["margin"];
@@ -20,7 +21,6 @@ interface BlurFadeProps extends MotionProps {
     hidden: { y: number };
     visible: { y: number };
   };
-  duration?: number;
   delay?: number;
   offset?: number;
   direction?: "up" | "down" | "left" | "right";
@@ -36,7 +36,6 @@ export function BlurFade({
   children,
   className,
   variant,
-  duration = 0.4,
   delay = 0,
   // Edgepad's defaults: a short lift into place, once, when the block scrolls into
   // view. This replaced the site's own Reveal, which did the same without the blur.
@@ -47,9 +46,24 @@ export function BlurFade({
   blur = "6px",
   ...props
 }: BlurFadeProps) {
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
   const inViewResult = useInView(ref, { once: true, margin: inViewMargin });
   const isInView = !inView || inViewResult;
+
+  // Progressive enhancement: the server HTML, and the first client render, show the
+  // content. Only once the page has hydrated is a block that sits below the fold hidden,
+  // ready to be revealed when it scrolls in. Without JS nothing is ever invisible, and
+  // a block already on screen never flashes. The measuring waits a frame so it is not a
+  // synchronous state update inside the effect.
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const top = ref.current?.getBoundingClientRect().top ?? 0;
+      setArmed(top >= window.innerHeight);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   const defaultVariants: Variants = {
     hidden: {
       [direction === "left" || direction === "right" ? "x" : "y"]:
@@ -71,16 +85,22 @@ export function BlurFade({
   const shouldTransitionFilter =
     hiddenFilter != null && visibleFilter != null && hiddenFilter !== visibleFilter;
 
+  // The reveal, delay included, never runs past the slow token (300 ms): a stagger
+  // can use at most a third of it.
+  const total = seconds("slow");
+  const wait = Math.min(delay, total / 3);
+  const duration = total - wait;
+
   return (
     <AnimatePresence>
       <motion.div
         ref={ref}
-        initial="hidden"
-        animate={isInView ? "visible" : "hidden"}
+        initial={false}
+        animate={armed && !isInView ? "hidden" : "visible"}
         exit="hidden"
         variants={combinedVariants}
         transition={{
-          delay: 0.04 + delay,
+          delay: wait,
           duration,
           ease: "easeOut",
           ...(shouldTransitionFilter ? { filter: { duration } } : {}),

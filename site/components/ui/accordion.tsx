@@ -43,7 +43,7 @@ export function AccordionTrigger({
         {children}
         <Plus
           aria-hidden
-          className="text-primary mt-0.5 size-5 shrink-0 transition-transform duration-200 motion-reduce:transition-none"
+          className="text-primary mt-0.5 size-5 shrink-0 transition-transform duration-(--duration-base) motion-reduce:transition-none"
         />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>

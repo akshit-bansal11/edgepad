@@ -14,8 +14,8 @@ import { cn } from "@/lib/utils";
  * window-level listeners that existed only to reset the orb. Leaving the card is
  * enough to reset the gradient.
  *
- * It is pointer-driven, not animated: nothing moves unless the pointer does, so it is
- * unaffected by prefers-reduced-motion. On touch there is no hover and it is a plain
+ * The gradient is pointer-driven, not animated: nothing moves unless the pointer does.
+ * Only its fade in and out is a transition, and that is off under reduced motion. On touch there is no hover and it is a plain
  * card.
  */
 export function MagicCard({
@@ -67,7 +67,7 @@ export function MagicCard({
     >
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute inset-px z-0 rounded-[inherit] opacity-0 transition-opacity duration-300 group-hover:opacity-60"
+        className="pointer-events-none absolute inset-px z-0 rounded-[inherit] opacity-0 transition-opacity duration-(--duration-slow) group-hover:opacity-60 motion-reduce:transition-none"
         style={{ background: spotlight }}
       />
       <div className="relative z-10 h-full">{children}</div>
