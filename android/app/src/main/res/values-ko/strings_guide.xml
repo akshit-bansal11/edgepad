@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="guide_steps">단계</string>
+  <string name="guide_page">페이지</string>
+  <string name="guide_back">이전</string>
+  <string name="guide_next">다음</string>
+  <string name="guide_done">완료</string>
+  <string name="guide_skip">건너뛰기</string>
+  <string name="guide_find_laptop">내 노트북 찾기</string>
+  <string name="guide_step_description">%2$d페이지 중 %1$d페이지</string>
+
+  <string name="guide_features_kicker">1 · Edgepad란</string>
+  <string name="guide_features_title">멀리서도 내 노트북을 손끝으로.</string>
+  <string-array name="guide_features_keys">
+    <item>실시간</item>
+    <item>응답 시간</item>
+    <item>오프라인</item>
+    <item>블루투스</item>
+    <item>그 밖의 기능</item>
+  </string-array>
+  <string-array name="guide_features_values">
+    <item>움직임이 하는 즉시 전송돼요. 연결이 느리면 밀린 움직임을 쌓아 두지 않고 하나로 합쳐요.</item>
+    <item>휴대전화에서 노트북까지 왕복하는 시간을 실시간으로 재서, 기기 화면의 노트북 옆에 표시해요.</item>
+    <item>계정도, 인터넷도 필요 없어요. 휴대전화가 노트북에 바로 연결돼요.</item>
+    <item>기본은 블루투스예요. 노트북의 블루투스 설정에서 한 번 페어링하면 Edgepad를 열 때 연결할 수 있어요. Wi-Fi와 USB 연결은 선택 사항이에요.</item>
+    <item>햅틱 눈금, 라이트와 다크, 세로와 가로 화면(키보드와 게임패드는 가로 고정), 나만의 미디어와 게임패드 레이아웃.</item>
+  </string-array>
+
+  <string name="guide_anatomy_kicker">2 · 구성</string>
+  <string name="guide_anatomy_title">한 화면에 여덟 가지.</string>
+  <string-array name="guide_anatomy_keys">
+    <item>트랙패드</item>
+    <item>모서리 다이얼</item>
+    <item>미디어</item>
+    <item>키보드</item>
+    <item>게임패드</item>
+    <item>필기</item>
+    <item>캡처</item>
+    <item>매크로</item>
+  </string-array>
+  <string-array name="guide_anatomy_values">
+    <item>화면 가운데 전체예요. 모든 손가락 제스처는 여기서 시작해요.</item>
+    <item>모서리에 접어 넣은 눈금자예요. 모서리마다 두 개씩 나눌 수도 있어요. 볼륨, 밝기, 확대/축소, 미디어 탐색, 앱 전환, 주사율, 스크롤, 데스크톱, 브라우저 탭, 노트북 전환 다이얼을 쓸 수 있어요.</item>
+    <item>플레이어가 열려 있으면 재생 중인 항목과 이전, 재생, 다음 버튼이 표시돼요. 조작 화면 설정에서 위치와 크기를 바꿀 수 있어요.</item>
+    <item>컨트롤 버튼 안에 있는 풀 키보드예요. 보조 키는 누른 채로도, 한 번 탭해서도 쓸 수 있어요.</item>
+    <item>스틱, 십자키, 버튼이 프리셋 네 가지로 준비되어 있고, 직접 배치할 수도 있어요.</item>
+    <item>컨트롤 › 필기는 휴대전화를 노트북 화면용 펜으로 바꿔 줘요. 도구 6가지와 색상 8가지가 있어요. 노트북이 지원할 때 표시돼요.</item>
+    <item>컨트롤 › 캡처는 노트북에 영역 캡처, 전체 화면 캡처, 녹화를 요청해요. 영역은 버튼 아래의 패드에서 드래그해 지정하세요. 노트북이 지원할 때 표시돼요.</item>
+    <item>컨트롤 안에 있는, 노트북에서 프로그램, 파일, 웹 주소를 여는 버튼 모음이에요. 버튼을 길게 눌러 드래그하면 순서를 바꿀 수 있고, 열 개가 넘으면 옆으로 밀어 넘기는 페이지로 이어져요.</item>
+  </string-array>
+
+  <string name="guide_surface_kicker">3 · 조작 화면</string>
+  <string name="guide_surface_title">손가락이 말을 대신해요.</string>
+  <string-array name="guide_surface_keys">
+    <item>손가락 한 개</item>
+    <item>손가락 두 개</item>
+    <item>손가락 세 개와 네 개</item>
+    <item>모서리 다이얼</item>
+    <item>맞춤 설정</item>
+  </string-array>
+  <string-array name="guide_surface_values">
+    <item>밀면 포인터가 움직여요. 탭하면 클릭이에요. 탭한 뒤 길게 누른 채 움직이면 드래그예요.</item>
+    <item>탭하면 오른쪽 클릭이에요. 밀면 스크롤이고, 핀치하면 확대/축소예요.</item>
+    <item>손가락 세 개를 옆으로 밀면 데스크톱 전환, 위로 밀면 작업 보기, 아래로 밀면 바탕 화면이에요. 손가락 네 개를 옆으로 밀면 열려 있는 앱을 차례로 전환해요. 탭하면 검색이나 알림을 열어요.</item>
+    <item>눈금자를 따라 밀어요. 시계 방향이면 올라가요. 탭하면 음소거, 재생, 확대/축소 초기화, 작업 보기 중 해당하는 동작을 해요.</item>
+    <item>조작 화면 설정 › 모서리에서 다이얼을 고르고, 모서리마다 가장자리별로 두 개씩 나눌 수 있어요. 다이얼 조작감에서는 감도, 크기, 햅틱을 설정해요. 나머지 동작은 트랙패드에서 바꿔요.</item>
+  </string-array>
+
+  <string name="guide_keyboard_kicker">4 · 키보드</string>
+  <string name="guide_keyboard_title">소파에서 편하게 입력하세요.</string>
+  <string-array name="guide_keyboard_keys">
+    <item>열기</item>
+    <item>입력</item>
+    <item>보조 키</item>
+    <item>닫기</item>
+  </string-array>
+  <string-array name="guide_keyboard_values">
+    <item>조작 화면 위쪽의 컨트롤 아이콘을 탭한 뒤 키보드를 탭하세요. 가로 화면으로 열려요.</item>
+    <item>모든 키가 노트북에 바로 전달돼요. 맨 윗줄은 인쇄된 기능을 실행하고, Fn을 누르고 있으면 F1~F12가 입력돼요(키보드 설정에서 바꿀 수 있어요).</item>
+    <item>키를 누르는 동안 Ctrl, Alt, Shift, Fn을 누르고 있거나, 한 번 탭해서 다음 키에 적용하세요. 다시 탭하면 취소돼요.</item>
+    <item>위쪽의 뒤로 화살표나 시스템 뒤로 가기 제스처를 쓰세요.</item>
+  </string-array>
+
+  <string name="guide_gamepad_kicker">5 · 게임패드</string>
+  <string name="guide_gamepad_title">주머니 속 컨트롤러.</string>
+  <string-array name="guide_gamepad_keys">
+    <item>열기</item>
+    <item>프리셋</item>
+    <item>플레이</item>
+    <item>내 스타일로</item>
+  </string-array>
+  <string-array name="guide_gamepad_values">
+    <item>조작 화면 위쪽의 컨트롤 아이콘을 탭한 뒤 게임패드를 탭하세요. 가로 화면으로 열려요.</item>
+    <item>Xbox, Platformer, Racing, Shooter 중에서 게임패드의 톱니바퀴를 눌러 여는 게임패드 설정에서 고르세요.</item>
+    <item>스틱은 누른 채 밀고, 버튼은 탭하세요. 여러 손가락을 동시에 쓸 수 있어요.</item>
+    <item>게임패드 설정 › 레이아웃 편집에서 엄지가 닿는 곳으로 컨트롤을 드래그하세요. 길게 누르면 크기를 조절할 수 있어요.</item>
+  </string-array>
+
+  <string name="guide_connect_kicker">6 · 연결</string>
+  <string name="guide_connect_title">노트북을 연결하세요.</string>
+  <string-array name="guide_connect_keys">
+    <item>노트북에서</item>
+    <item>블루투스</item>
+    <item>Wi-Fi 또는 USB</item>
+    <item>신뢰</item>
+    <item>클립보드</item>
+  </string-array>
+  <string-array name="guide_connect_values">
+    <item>Edgepad를 설치하고 여세요. 알림 영역이나 메뉴 막대에 표시돼요.</item>
+    <item>이 휴대전화의 블루투스 설정에서 노트북을 페어링한 뒤, 기기에서 노트북을 탭하세요.</item>
+    <item>노트북의 Edgepad 메뉴에서 Wi-Fi 및 USB 연결을 켜세요(Mac에서는 Wi-Fi 연결). USB는 휴대전화에서 USB 테더링도 켜야 해요.</item>
+    <item>처음에는 노트북이 이 휴대전화를 신뢰할지 물어요. 노트북에서 신뢰를 선택하세요. PIN을 물으면 여기에 입력하세요.</item>
+    <item>Android 10부터는 화면에 있는 앱만 클립보드를 읽을 수 있어서, 다른 앱에서 복사한 내용은 Edgepad로 돌아올 때 노트북에 전달돼요. 또는 공유 › Edgepad로 텍스트나 이미지를 바로 보낼 수 있어요.</item>
+  </string-array>
+
+  <string name="guide_art_phone">휴대전화</string>
+  <string name="guide_art_laptop">노트북</string>
+  <string name="guide_art_link">블루투스 우선 · 계정 불필요</string>
+  <string name="guide_art_dials">다이얼</string>
+  <string name="guide_art_trackpad">트랙패드</string>
+  <string name="guide_art_media">미디어</string>
+  <string name="guide_art_keys">키 · 패드</string>
+  <string name="guide_art_gestures">제스처</string>
+  <string name="guide_art_move">1 · 이동</string>
+  <string name="guide_art_scroll">2 · 스크롤</string>
+  <string name="guide_art_swipe">3 · 스와이프</string>
+  <string name="guide_art_latch">Ctrl, Alt, Shift는 다음 키에 적용돼요</string>
+  <string name="guide_art_presets">Xbox · Platformer · Racing · Shooter</string>
+</resources>

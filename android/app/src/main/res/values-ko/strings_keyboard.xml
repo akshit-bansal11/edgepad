@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">키보드</string>
+  <string name="keyboard_type_text">텍스트 입력</string>
+  <string name="keyboard_type_send">입력</string>
+  <string name="back_to_surface">컨트롤</string>
+  <string name="macros_title">매크로</string>
+  <string name="keyboard_key_on">눌림</string>
+  <string name="keyboard_description">노트북용 화상 키보드</string>
+  <string name="keyboard_size">크기</string>
+  <string name="keyboard_size_caption">크기가 클수록 키가 많이 들어가서 키 하나는 작아져요. 화면이 넓어야 해요.</string>
+  <string name="keyboard_function_keys">기능 키</string>
+  <string name="keyboard_with_fn">Fn과 함께</string>
+  <string name="keyboard_direct">바로 입력</string>
+  <string name="keyboard_function_keys_caption">Fn과 함께: 맨 윗줄은 인쇄된 기능(밝기, 미디어, 볼륨)을 실행하고, Fn과 키를 함께 누르면 F1~F12가 입력돼요. F열이 없는 65%%와 60%%에서는 숫자 줄이 숫자를 입력하고, Fn과 숫자를 함께 누르면 F1~F12가 입력돼요. 바로 입력: 맨 윗줄이 F1~F12를 입력하고, Fn과 키를 함께 누르면 인쇄된 기능을 실행해요. 65%%와 60%%에서는 숫자 줄이 F1~F12를 입력하고, Fn과 숫자를 함께 누르면 숫자가 입력돼요.</string>
+</resources>

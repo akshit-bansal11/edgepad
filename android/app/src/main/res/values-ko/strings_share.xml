@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="share_title">%1$s에 보낼까요?</string>
+  <string name="share_image">이미지</string>
+  <string name="share_send">보내기</string>
+  <string name="share_sent">%1$s에 보냈어요</string>
+  <string name="share_send_failed">%1$s에 보내지 못했어요. 연결을 확인하고 다시 시도하세요.</string>
+  <string name="share_no_laptop">Edgepad가 노트북에 연결되어 있지 않아요. 노트북을 연결한 뒤 다시 공유하세요.</string>
+  <string name="share_clipboard_off">%1$s에서 클립보드 공유를 켜세요</string>
+  <string name="share_nothing">Edgepad가 보낼 수 있는 내용이 없어요.</string>
+  <string name="share_text_too_long">텍스트가 너무 길어서 보낼 수 없어요. 최대 1 MB까지 보낼 수 있어요.</string>
+  <string name="share_image_failed">이미지를 읽을 수 없거나 너무 커서 보낼 수 없어요.</string>
+  <plurals name="share_lines">
+    <item quantity="other">%1$d줄</item>
+  </plurals>
+  <plurals name="share_not_shown">
+    <item quantity="other">%1$d자는 여기에 표시되지 않아요. 보내기를 탭하면 전부 전송돼요.</item>
+  </plurals>
+</resources>
