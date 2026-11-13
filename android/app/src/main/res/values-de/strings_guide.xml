@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>Das Steuerungssymbol oben auf der Steuerfläche, dann Gamepad. Es öffnet sich im Querformat.</item>
-    <item>Xbox, Platformer, Racing und Shooter, ausgewählt in den Gamepad-Einstellungen hinter dem Zahnrad auf dem Gamepad.</item>
+    <item>Xbox, Jump\'n\'Run, Rennspiel und Shooter, ausgewählt in den Gamepad-Einstellungen hinter dem Zahnrad auf dem Gamepad.</item>
     <item>Halte einen Stick und wische, tippe die Tasten. Mehrere Finger gleichzeitig funktionieren.</item>
     <item>Gamepad-Einstellungen › Layout bearbeiten. Zieh die Elemente dorthin, wo deine Daumen landen; drücke eines lange, um seine Größe zu ändern.</item>
   </string-array>
@@ -127,5 +127,5 @@
   <string name="guide_art_scroll">2 · Scrollen</string>
   <string name="guide_art_swipe">3 · Wischen</string>
   <string name="guide_art_latch">Strg, Alt und Umschalt rasten für die nächste Taste ein</string>
-  <string name="guide_art_presets">Xbox · Platformer · Racing · Shooter</string>
+  <string name="guide_art_presets">Xbox · Jump\'n\'Run · Rennspiel · Shooter</string>
 </resources>

@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>L\'icône Commandes en haut de l\'écran principal, puis Manette. Elle s\'ouvre en paysage.</item>
-    <item>Xbox, Platformer, Racing et Shooter, à choisir dans les réglages de la manette, derrière l\'engrenage de la manette.</item>
+    <item>Xbox, Plateforme, Course et Tir, à choisir dans les réglages de la manette, derrière l\'engrenage de la manette.</item>
     <item>Maintenez et faites glisser un joystick, touchez les boutons. Plusieurs doigts à la fois fonctionnent.</item>
     <item>Réglages de la manette › Modifier la disposition. Placez les commandes là où tombent vos pouces ; appuyez longuement sur l\'une d\'elles pour la redimensionner.</item>
   </string-array>
@@ -127,5 +127,5 @@
   <string name="guide_art_scroll">2 · Défiler</string>
   <string name="guide_art_swipe">3 · Balayer</string>
   <string name="guide_art_latch">Ctrl, Alt et Maj restent actives pour la touche suivante</string>
-  <string name="guide_art_presets">Xbox · Platformer · Racing · Shooter</string>
+  <string name="guide_art_presets">Xbox · Plateforme · Course · Tir</string>
 </resources>

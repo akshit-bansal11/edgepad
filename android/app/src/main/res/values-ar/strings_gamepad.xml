@@ -2,6 +2,10 @@
 <resources>
   <string name="gamepad_layout_title">تخطيط ذراع الألعاب</string>
   <string name="gamepad_layout_editing">تعديل %1$s</string>
+  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_platformer">منصات</string>
+  <string name="gamepad_preset_racing">سباق</string>
+  <string name="gamepad_preset_shooter">تصويب</string>
   <string name="gamepad_layout_hint">اسحب للنقل. اضغط مع الاستمرار على عنصر تحكم لفتح قائمته.</string>
   <string name="gamepad_layout_section">التخطيطات</string>
   <string name="gamepad_description">ذراع ألعاب للابتوب. يعمل باللمس فقط.</string>

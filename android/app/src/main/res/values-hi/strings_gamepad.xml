@@ -2,6 +2,10 @@
 <resources>
   <string name="gamepad_layout_title">गेमपैड लेआउट</string>
   <string name="gamepad_layout_editing">%1$s बदल रहे हैं</string>
+  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_platformer">प्लेटफ़ॉर्मर</string>
+  <string name="gamepad_preset_racing">रेसिंग</string>
+  <string name="gamepad_preset_shooter">शूटर</string>
   <string name="gamepad_layout_hint">खिसकाने के लिए खींचें। किसी कंट्रोल का मेन्यू खोलने के लिए उसे दबाए रखें।</string>
   <string name="gamepad_layout_section">लेआउट</string>
   <string name="gamepad_description">लैपटॉप के लिए गेम कंट्रोलर। यह सिर्फ़ टच से काम करता है।</string>

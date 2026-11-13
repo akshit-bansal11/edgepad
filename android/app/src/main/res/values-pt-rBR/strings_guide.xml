@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>O ícone Controles no alto da superfície e depois Gamepad. Ele abre em paisagem.</item>
-    <item>Xbox, Platformer, Racing e Shooter. Você escolhe nas Configurações do gamepad, que abrem pela engrenagem.</item>
+    <item>Xbox, Plataforma, Corrida e Tiro. Você escolhe nas Configurações do gamepad, que abrem pela engrenagem.</item>
     <item>Segure e deslize um analógico, toque nos botões. Vários dedos ao mesmo tempo funcionam.</item>
     <item>Configurações do gamepad › Editar layout. Arraste os controles para onde seus polegares alcançam; mantenha um pressionado para redimensioná-lo.</item>
   </string-array>
@@ -127,5 +127,5 @@
   <string name="guide_art_scroll">2 · Rolar</string>
   <string name="guide_art_swipe">3 · Deslizar</string>
   <string name="guide_art_latch">Ctrl, Alt e Shift ficam ativas para a próxima tecla</string>
-  <string name="guide_art_presets">Xbox · Platformer · Racing · Shooter</string>
+  <string name="guide_art_presets">Xbox · Plataforma · Corrida · Tiro</string>
 </resources>

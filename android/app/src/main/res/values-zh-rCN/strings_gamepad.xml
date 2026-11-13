@@ -2,6 +2,10 @@
 <resources>
   <string name="gamepad_layout_title">手柄布局</string>
   <string name="gamepad_layout_editing">正在编辑%1$s</string>
+  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_platformer">平台跳跃</string>
+  <string name="gamepad_preset_racing">竞速</string>
+  <string name="gamepad_preset_shooter">射击</string>
   <string name="gamepad_layout_hint">拖动即可移动。长按某个控件打开其菜单。</string>
   <string name="gamepad_layout_section">布局</string>
   <string name="gamepad_description">电脑用的游戏手柄。仅支持触摸操作。</string>

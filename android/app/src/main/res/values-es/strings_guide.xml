@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>El icono de Controles, arriba en la superficie, y luego Gamepad. Se abre en horizontal.</item>
-    <item>Xbox, Platformer, Racing y Shooter. Se eligen en la configuración del gamepad, que se abre con el engranaje.</item>
+    <item>Xbox, Plataformas, Carreras y Disparos. Se eligen en la configuración del gamepad, que se abre con el engranaje.</item>
     <item>Mantén y desliza un stick, toca los botones. Puedes usar varios dedos a la vez.</item>
     <item>Configuración del gamepad › Editar diseño. Arrastra los controles adonde lleguen tus pulgares; mantén pulsado uno para cambiar su tamaño.</item>
   </string-array>
@@ -127,5 +127,5 @@
   <string name="guide_art_scroll">2 · Desplazar</string>
   <string name="guide_art_swipe">3 · Deslizar</string>
   <string name="guide_art_latch">Ctrl, Alt y Mayús quedan activas para la tecla siguiente</string>
-  <string name="guide_art_presets">Xbox · Platformer · Racing · Shooter</string>
+  <string name="guide_art_presets">Xbox · Plataformas · Carreras · Disparos</string>
 </resources>

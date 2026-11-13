@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>Het pictogram Bediening boven aan het bedieningsvlak, dan Gamepad. Het opent liggend.</item>
-    <item>Xbox, Platformer, Racing en Shooter, te kiezen in de Gamepad-instellingen, achter het tandwiel op de gamepad.</item>
+    <item>Xbox, Platformer, Racen en Shooter, te kiezen in de Gamepad-instellingen, achter het tandwiel op de gamepad.</item>
     <item>Houd een stick vast en schuif, tik op de knoppen. Meerdere vingers tegelijk werken.</item>
     <item>Gamepad-instellingen › Indeling bewerken. Sleep elementen naar waar je duimen landen; houd er een ingedrukt om de grootte te wijzigen.</item>
   </string-array>
@@ -127,5 +127,5 @@
   <string name="guide_art_scroll">2 · Scrollen</string>
   <string name="guide_art_swipe">3 · Vegen</string>
   <string name="guide_art_latch">Ctrl, Alt en Shift blijven actief voor de volgende toets</string>
-  <string name="guide_art_presets">Xbox · Platformer · Racing · Shooter</string>
+  <string name="guide_art_presets">Xbox · Platformer · Racen · Shooter</string>
 </resources>

@@ -41,6 +41,7 @@ Android `values-es`, Windows culture `es`. Neutral international Spanish that re
 | keyboard | teclado |
 | function keys: With Fn, Direct | teclas de función: Con Fn, Directo |
 | gamepad | gamepad |
+| gamepad presets | Xbox / Plataformas / Carreras / Disparos | `gamepad_preset_*`; the guide uses the same words |
 | layout / preset | diseño / preajuste |
 | binding | asignación |
 | D-pad / stick / button | cruceta / stick / botón |

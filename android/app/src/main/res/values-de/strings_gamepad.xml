@@ -2,6 +2,10 @@
 <resources>
   <string name="gamepad_layout_title">Gamepad-Layout</string>
   <string name="gamepad_layout_editing">Bearbeite: %1$s</string>
+  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_platformer">Jump\'n\'Run</string>
+  <string name="gamepad_preset_racing">Rennspiel</string>
+  <string name="gamepad_preset_shooter">Shooter</string>
   <string name="gamepad_layout_hint">Zum Verschieben ziehen. Ein Element lange drücken für sein Menü.</string>
   <string name="gamepad_layout_section">Layouts</string>
   <string name="gamepad_description">Gamecontroller für den Laptop. Funktioniert nur per Touch.</string>

@@ -8,7 +8,7 @@ Polite 해요체 (-어요/-아요) for every sentence, in both apps, as Samsung 
 
 ## Conventions
 
-- Latin stays: Edgepad, Wi-Fi, USB, Windows, Android, Mac, GitHub, ViGEmBus, Xbox, Platformer/Racing/Shooter (preset names), PIN, units (`dp`, `Hz`, `MB`, `ms`), `F1`-`F12`, Ctrl, Alt, Shift, Fn (Korean keyboards print these in Latin). Bluetooth is written 블루투스 in running text; the untranslatable `transport_bluetooth` and the connection-type placeholder stay `Bluetooth`.
+- Latin stays: Edgepad, Wi-Fi, USB, Windows, Android, Mac, GitHub, ViGEmBus, Xbox, (preset names are translated: 플랫포머 / 레이싱 / 슈팅; `gamepad_preset_*`), PIN, units (`dp`, `Hz`, `MB`, `ms`), `F1`-`F12`, Ctrl, Alt, Shift, Fn (Korean keyboards print these in Latin). Bluetooth is written 블루투스 in running text; the untranslatable `transport_bluetooth` and the connection-type placeholder stay `Bluetooth`.
 - Particles after placeholders: a name, number or connection type is never followed by a particle that depends on its last sound. Used instead: 에 / 에서 / 의 / 부터 / 도 (no vowel/consonant alternation), a colon ("제어하기: %1$s"), parentheses ("노트북(%1$s)의"), or the placeholder is put last. `로` after the connection type is safe for Bluetooth, Wi-Fi and USB (all end in a vowel when read).
 - Quote marks: curly ‘…’ for a quoted menu item; no apostrophes. Ellipsis `…`.
 - Number and unit: space for `dp`, `MB`, `Hz`, `ms` ("30 dp"); counters attached ("3개", "5초", "2분"); percent attached ("50%").

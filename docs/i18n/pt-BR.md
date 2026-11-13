@@ -51,7 +51,7 @@ Android `values-pt-rBR`, Windows culture `pt-BR`. Everyday Brazilian usage, as t
 | annotate / sign / capture | Anotar / Assinar / Capturar |
 | shapes | Formas |
 | dial feel | Ajuste das réguas |
-| gamepad presets | Xbox, Platformer, Racing, Shooter (the app shows these English names, so the guide keeps them) |
+| gamepad presets | Xbox, Plataforma, Corrida, Tiro (strings `gamepad_preset_*`; the guide uses the same words) |
 | lock the trackpad | Bloquear o touchpad |
 | share clipboard | Compartilhar área de transferência |
 | laptop / phone | notebook / celular |

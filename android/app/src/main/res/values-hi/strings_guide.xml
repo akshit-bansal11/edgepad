@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>कंट्रोल स्क्रीन के ऊपर \"कंट्रोल\" आइकन, फिर गेमपैड। यह लैंडस्केप में खुलता है।</item>
-    <item>Xbox, Platformer, Racing और Shooter, जो गेमपैड सेटिंग्स में चुने जाते हैं; वे गेमपैड पर गियर के पीछे हैं।</item>
+    <item>Xbox, प्लेटफ़ॉर्मर, रेसिंग और शूटर, जो गेमपैड सेटिंग्स में चुने जाते हैं; वे गेमपैड पर गियर के पीछे हैं।</item>
     <item>स्टिक पर उंगली रखकर सरकाएं, बटन टैप करें। एक साथ कई उंगलियां काम करती हैं।</item>
     <item>गेमपैड सेटिंग्स › लेआउट बदलें। कंट्रोल को वहां खींचें जहां आपके अंगूठे पहुंचते हैं; साइज़ बदलने के लिए किसी को दबाए रखें।</item>
   </string-array>
@@ -127,5 +127,5 @@
   <string name="guide_art_scroll">2 · स्क्रॉल</string>
   <string name="guide_art_swipe">3 · स्वाइप</string>
   <string name="guide_art_latch">Ctrl, Alt और Shift अगली की तक टिके रहते हैं</string>
-  <string name="guide_art_presets">Xbox · Platformer · Racing · Shooter</string>
+  <string name="guide_art_presets">Xbox · प्लेटफ़ॉर्मर · रेसिंग · शूटर</string>
 </resources>

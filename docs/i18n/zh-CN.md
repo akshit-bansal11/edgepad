@@ -42,7 +42,7 @@ Android folder `values-zh-rCN`, Windows culture `zh-Hans`. Written for mainland 
 | keyboard | 键盘 | |
 | With Fn / Direct | 配合 Fn / 直接 | |
 | gamepad | 手柄 | |
-| layout / preset | 布局 / 预设 | Preset names stay English (Xbox, Platformer, Racing, Shooter): the app draws them from code, so the guide must show the same words |
+| layout / preset | 布局 / 预设 | Preset names: Xbox / 平台跳跃 / 竞速 / 射击 (strings `gamepad_preset_*`; the guide uses the same words) |
 | binding | 绑定 | |
 | D-pad / stick / button / shoulder / trigger | 方向键 / 摇杆 / 按钮 / 肩键 / 扳机 | |
 | keyboard mode | 键盘模式 | |

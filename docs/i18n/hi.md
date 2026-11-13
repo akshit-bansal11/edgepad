@@ -8,7 +8,7 @@ Everyday Hindi as Indian phone users read it: "आप" with polite imperatives (
 
 ## Conventions
 
-- Latin stays: Edgepad, USB, Windows, Android, Mac, GitHub, ViGEmBus, Xbox, Platformer/Racing/Shooter (preset names), units (`dp`, `Hz`, `MB`, `ms`), `F1`-`F12`, Ctrl, Alt, Shift, Fn, Start (menu). Bluetooth is written ब्लूटूथ, as the user asked for Devanagari loanwords.
+- Latin stays: Edgepad, USB, Windows, Android, Mac, GitHub, ViGEmBus, Xbox, (preset names are translated: प्लेटफ़ॉर्मर / रेसिंग / शूटर; `gamepad_preset_*`), units (`dp`, `Hz`, `MB`, `ms`), `F1`-`F12`, Ctrl, Alt, Shift, Fn, Start (menu). Bluetooth is written ब्लूटूथ, as the user asked for Devanagari loanwords.
 - Quote marks: straight `"..."` (Hindi UI uses them). Ellipsis `…`. Danda: sentences end with a full stop `.` (modern Hindi UI usage), never `।`.
 - Digits are Latin (0-9), as on Indian phones. Number and unit separated by a space ("30 सेकंड", "%1$d MB"). Percent attached ("50%").
 - Titles and buttons are not capitalised (no case in Devanagari); keep them short, nouns for labels, polite imperative for buttons.

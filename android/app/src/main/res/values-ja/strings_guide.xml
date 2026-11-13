@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>操作画面の上部にある「コントロール」のアイコンをタップして、「ゲームパッド」を選びます。横向きで開きます。</item>
-    <item>Xbox、Platformer、Racing、Shooterの4つです。ゲームパッド画面の歯車から開く「ゲームパッドの設定」で選びます。</item>
+    <item>Xbox、横スクロール、レース、シューティングの4つです。ゲームパッド画面の歯車から開く「ゲームパッドの設定」で選びます。</item>
     <item>スティックは押さえたままスライドし、ボタンはタップします。複数の指を同時に使えます。</item>
     <item>「ゲームパッドの設定」›「レイアウトを編集」で、親指が届く位置にコントロールをドラッグします。長押しするとサイズを変えられます。</item>
   </string-array>
@@ -127,5 +127,5 @@
   <string name="guide_art_scroll">2 · スクロール</string>
   <string name="guide_art_swipe">3 · スワイプ</string>
   <string name="guide_art_latch">Ctrl、Alt、Shiftは次のキーまで保持</string>
-  <string name="guide_art_presets">Xbox · Platformer · Racing · Shooter</string>
+  <string name="guide_art_presets">Xbox · 横スクロール · レース · シューティング</string>
 </resources>

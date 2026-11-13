@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>点操控区顶部的“控制”图标，再点“手柄”。它以横屏打开。</item>
-    <item>Xbox、Platformer、Racing 和 Shooter，在“手柄设置”中选择，该设置在手柄界面的齿轮图标里。</item>
+    <item>Xbox、平台跳跃、竞速 和 射击，在“手柄设置”中选择，该设置在手柄界面的齿轮图标里。</item>
     <item>按住并滑动摇杆，轻点按钮。支持多指同时操作。</item>
     <item>“手柄设置 › 编辑布局”。把控件拖到拇指够得着的地方；长按某个控件可调整其大小。</item>
   </string-array>
@@ -127,5 +127,5 @@
   <string name="guide_art_scroll">2 · 滚动</string>
   <string name="guide_art_swipe">3 · 滑动</string>
   <string name="guide_art_latch">点按 Ctrl、Alt、Shift，可让它作用于下一个按键</string>
-  <string name="guide_art_presets">Xbox · Platformer · Racing · Shooter</string>
+  <string name="guide_art_presets">Xbox · 平台跳跃 · 竞速 · 射击</string>
 </resources>

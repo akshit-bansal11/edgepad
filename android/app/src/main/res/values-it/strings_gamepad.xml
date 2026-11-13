@@ -2,6 +2,10 @@
 <resources>
   <string name="gamepad_layout_title">Layout del gamepad</string>
   <string name="gamepad_layout_editing">Modifica di %1$s</string>
+  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_platformer">Platform</string>
+  <string name="gamepad_preset_racing">Corse</string>
+  <string name="gamepad_preset_shooter">Sparatutto</string>
   <string name="gamepad_layout_hint">Trascina per spostare. Tieni premuto un controllo per aprire il suo menu.</string>
   <string name="gamepad_layout_section">Layout</string>
   <string name="gamepad_description">Controller di gioco per il portatile. Funziona solo al tocco.</string>

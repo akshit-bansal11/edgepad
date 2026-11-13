@@ -2,6 +2,10 @@
 <resources>
   <string name="gamepad_layout_title">Oyun kumandası düzeni</string>
   <string name="gamepad_layout_editing">Düzenleniyor: %1$s</string>
+  <string name="gamepad_preset_xbox_keys">Xbox</string>
+  <string name="gamepad_preset_platformer">Platform</string>
+  <string name="gamepad_preset_racing">Yarış</string>
+  <string name="gamepad_preset_shooter">Nişancı</string>
   <string name="gamepad_layout_hint">Taşımak için sürükleyin. Menüsü için bir kontrole basılı tutun.</string>
   <string name="gamepad_layout_section">Düzenler</string>
   <string name="gamepad_description">Bilgisayar için oyun kumandası. Yalnızca dokunmatikle çalışır.</string>
