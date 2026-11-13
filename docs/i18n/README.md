@@ -147,7 +147,7 @@ Key: intended meaning, found in the code.
 | `gamepad_label` ("Label") | The control's text label. Noun. |
 | `gamepad_add`, `gamepad_restore` | Two buttons side by side in a small popup; very short verbs. |
 | `gamepad_kind_shoulder`, `gamepad_kind_trigger` | The bumper and the analog trigger. |
-| `gamepad_up/down/left/right` | Lowercase direction words slotted into "Key for %1$s" for the D-pad. Physical directions. |
+| `gamepad_bind_key_up/down/left/right` | "Key for up" and so on: the key bound to each D-pad direction. Physical directions. |
 | `dial_refresh` ("Refresh rate") vs `refresh` ("Refresh the list") | Screen refresh rate in Hz, versus reloading a list. |
 | `dial_devices` ("Switch laptop") | Name of the dial that changes the active laptop. |
 | `dial_scroll_h_short` ("SIDE") | Abbreviation for horizontal scroll. |
