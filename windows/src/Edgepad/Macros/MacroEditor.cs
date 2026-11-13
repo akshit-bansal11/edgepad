@@ -1,5 +1,6 @@
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+using Edgepad.Protocol;
 using Edgepad.Ui;
 
 namespace Edgepad.Macros;
@@ -150,12 +151,20 @@ internal sealed class MacroWindow : Form
             }
         };
 
-        // Only so much of a name survives the trip to the phone, so the box stops there rather than letting
-        // the store quietly cut a name the owner watched themselves type.
-        // A byte budget cannot be spelled as a character count, and MaxLength is the only thing a TextBox
-        // understands. This keeps typing roughly inside the limit; MacroStore does the real cut on save.
-        name.MaxLength = MacroStore.MaxNameBytes;
-        name.TextChanged += (_, _) => Edited();
+        // Only so much of a name survives the trip to the phone, and the store limits bytes, not characters. A MaxLength
+        // cannot count bytes, so the box cuts to the store's own rule as the text changes (the note after the caption
+        // names the limit), and a name the owner watched themselves type is never cut afterwards.
+        name.TextChanged += (_, _) =>
+        {
+            var kept = FrameCodec.Truncate(name.Text, MacroStore.MaxNameBytes);
+            if (kept != name.Text)
+            {
+                name.Text = kept;
+                name.SelectionStart = kept.Length;
+            }
+
+            Edited();
+        };
         target.TextChanged += (_, _) => Edited();
         arguments.TextChanged += (_, _) => Edited();
 
@@ -248,7 +257,7 @@ internal sealed class MacroWindow : Form
         var step = caption + S(6 + Box + 14);
         captions.Clear();
 
-        captions.Add((new Rectangle(x, top, column, caption), Strings.Macro_Name, null));
+        captions.Add((new Rectangle(x, top, column, caption), Strings.Macro_Name, Strings.Macro_NameLimit.Fill(MacroStore.MaxNameBytes)));
         nameFrame.Place(new Rectangle(x, top + caption + S(6), column, S(Box)), DeviceDpi);
 
         captions.Add((new Rectangle(x, top + step, column, caption), Strings.Macro_Opens, null));
