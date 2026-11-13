@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="guide_steps">Adımlar</string>
+  <string name="guide_page">Sayfa</string>
+  <string name="guide_back">Geri</string>
+  <string name="guide_next">İleri</string>
+  <string name="guide_done">Bitti</string>
+  <string name="guide_skip">Atla</string>
+  <string name="guide_find_laptop">Bilgisayarımı bul</string>
+  <string name="guide_step_description">Sayfa %1$d / %2$d</string>
+
+  <string name="guide_features_kicker">1 · Neden Edgepad</string>
+  <string name="guide_features_title">Bilgisayarınız, odanın öbür ucundan.</string>
+  <string-array name="guide_features_keys">
+    <item>Gerçek zamanlı</item>
+    <item>Gidiş dönüş</item>
+    <item>Çevrimdışı</item>
+    <item>Bluetooth</item>
+    <item>Ve daha fazlası</item>
+  </string-array>
+  <string-array name="guide_features_values">
+    <item>Her hareket yaptığınız anda gider. Yavaş bir bağlantı, bekleyen hareketleri sıraya koymak yerine birleştirir.</item>
+    <item>Telefondan bilgisayara ve geri canlı ölçülür; Cihazlar ekranında bilgisayarın yanında gösterilir.</item>
+    <item>Hesap yok, internet gerekmez. Telefon bilgisayara doğrudan ulaşır.</item>
+    <item>Varsayılan olarak Bluetooth: bilgisayarın Bluetooth ayarlarında bir kez eşleştirin, sonra Edgepad açılışta bağlanabilir. Wi-Fi ve USB bağlantıları isteğe bağlıdır.</item>
+    <item>Dokunsal çentikler, açık ve koyu tema, dikey veya yatay (klavye ve oyun kumandası yatay kalır), kendi medya ve oyun kumandası düzenleriniz.</item>
+  </string-array>
+
+  <string name="guide_anatomy_kicker">2 · Yapı</string>
+  <string name="guide_anatomy_title">Sekiz parça, tek ekran.</string>
+  <string-array name="guide_anatomy_keys">
+    <item>Dokunmatik yüzey</item>
+    <item>Köşe kadranları</item>
+    <item>Medya</item>
+    <item>Klavye</item>
+    <item>Oyun kumandası</item>
+    <item>Çizim</item>
+    <item>Ekran yakalama</item>
+    <item>Makrolar</item>
+  </string-array>
+  <string-array name="guide_anatomy_values">
+    <item>Ekranın tüm orta kısmı. Her parmak hareketi buradan başlar.</item>
+    <item>Köşelere kıvrılan kadranlar, ya da köşe başına ikişer kadran: ses, parlaklık, yakınlaştırma, medya sarma, uygulama değiştirici, yenileme hızı, kaydırma, sanal masaüstleri, tarayıcı sekmeleri veya Bilgisayar değiştir kadranı.</item>
+    <item>Bir oynatıcı açıkken çalan parça, ardından önceki, oynat ve sonraki. Kumanda alanı ayarlarından taşıyın ve yeniden boyutlandırın.</item>
+    <item>Değiştirici tuşları basılı tutarak ya da dokunarak çalışan tam bir klavye; Kontroller düğmesinin arkasında.</item>
+    <item>Dört hazır ayarda çubuklar, yön tuşları ve düğmeler ya da kendi düzeniniz.</item>
+    <item>Kontroller › Çizim, telefonu bilgisayar ekranı için bir kaleme çevirir; altı araç ve sekiz renk var. Bilgisayar destekliyorsa görünür.</item>
+    <item>Kontroller › Ekran yakalama, bilgisayardan bölge ekran görüntüsü, tam ekran görüntüsü ya da kayıt ister. Bölge için düğmelerin altındaki yüzeyde alanı sürükleyin. Bilgisayar destekliyorsa görünür.</item>
+    <item>Bilgisayarda bir program, dosya veya web adresi açan düğmelerden oluşan ızgara; Kontroller ekranının arkasında. Kendi sıranıza sürüklemek için basılı tutun; ondan fazlası, kaydırarak ulaşılan sayfalarda devam eder.</item>
+  </string-array>
+
+  <string name="guide_surface_kicker">3 · Kumanda alanı</string>
+  <string name="guide_surface_title">Parmaklarınız konuşur.</string>
+  <string-array name="guide_surface_keys">
+    <item>Tek parmak</item>
+    <item>İki parmak</item>
+    <item>Üç ve dört parmak</item>
+    <item>Köşe kadranları</item>
+    <item>Ayarlayın</item>
+  </string-array>
+  <string-array name="guide_surface_values">
+    <item>İşaretçiyi taşıyın. Tıklamak için dokunun. Sürüklemek için dokunun, sonra basılı tutup hareket ettirin.</item>
+    <item>Sağ tık için dokunun. Kaydırmak için sürükleyin. Yakınlaştırmak için sıkıştırın.</item>
+    <item>Üç parmakla yana kaydırarak masaüstleri arasında geçin, yukarı kaydırarak görev görünümünü, aşağı kaydırarak masaüstünü açın. Dört parmakla yana kaydırarak açık uygulamalar arasında gezin. Dokunuşlar aramayı veya bildirimleri açar.</item>
+    <item>Bir kadran boyunca kaydırın; saat yönü artırır. Sesi kapatmak, oynatmak, yakınlaştırmayı sıfırlamak veya görev görünümünü açmak için kadrana dokunun.</item>
+    <item>Kumanda alanı ayarları › Köşeler her kadranı seçer ve her köşeyi, her kenara bir tane olmak üzere ikiye bölebilir. Kadran hissi duyarlılığı, boyutu ve dokunsal geri bildirimi ayarlar. Dokunmatik yüzey ise kalanları yeniden atar.</item>
+  </string-array>
+
+  <string name="guide_keyboard_kicker">4 · Klavye</string>
+  <string name="guide_keyboard_title">Koltuktan yazın.</string>
+  <string-array name="guide_keyboard_keys">
+    <item>Aç</item>
+    <item>Yaz</item>
+    <item>Değiştirici tuşlar</item>
+    <item>Kapat</item>
+  </string-array>
+  <string-array name="guide_keyboard_values">
+    <item>Kumanda alanının üstündeki Kontroller simgesi, sonra Klavye. Yatay açılır.</item>
+    <item>Her tuş doğrudan bilgisayara gider. Üst sıra üzerinde yazanı yapar; F1–F12 için Fn tuşunu basılı tutun (Klavye ayarları bunu değiştirir).</item>
+    <item>Bir tuşa basarken Ctrl, Alt, Shift veya Fn tuşunu basılı tutun ya da birine dokunup sonraki tuşa uygulayın. İptal etmek için tekrar dokunun.</item>
+    <item>Üstteki geri oku veya sistemin geri hareketi.</item>
+  </string-array>
+
+  <string name="guide_gamepad_kicker">5 · Oyun kumandası</string>
+  <string name="guide_gamepad_title">Cebinizde bir kumanda.</string>
+  <string-array name="guide_gamepad_keys">
+    <item>Aç</item>
+    <item>Hazır ayarlar</item>
+    <item>Oyna</item>
+    <item>Size göre ayarlayın</item>
+  </string-array>
+  <string-array name="guide_gamepad_values">
+    <item>Kumanda alanının üstündeki Kontroller simgesi, sonra Oyun kumandası. Yatay açılır.</item>
+    <item>Xbox, Platform, Yarış ve Nişancı; oyun kumandasındaki dişlinin arkasında, Oyun kumandası ayarlarından seçilir.</item>
+    <item>Bir çubuğu basılı tutup kaydırın, düğmelere dokunun. Aynı anda birkaç parmak çalışır.</item>
+    <item>Oyun kumandası ayarları › Düzeni düzenle. Kontrolleri başparmaklarınızın geldiği yere sürükleyin; yeniden boyutlandırmak için birine uzun basın.</item>
+  </string-array>
+
+  <string name="guide_connect_kicker">6 · Bağlan</string>
+  <string name="guide_connect_title">Bilgisayarınıza bağlanın.</string>
+  <string-array name="guide_connect_keys">
+    <item>Bilgisayarda</item>
+    <item>Bluetooth</item>
+    <item>Wi-Fi veya USB</item>
+    <item>Güven</item>
+    <item>Pano</item>
+  </string-array>
+  <string-array name="guide_connect_values">
+    <item>Edgepad\'i kurup açın. Görev çubuğunun bildirim alanında, menü çubuğunda veya sistem tepsisinde durur.</item>
+    <item>Bilgisayarı bu telefonun Bluetooth ayarlarında eşleştirin, sonra Cihazlar ekranında ona dokunun.</item>
+    <item>Bilgisayardaki Edgepad menüsünde “Wi-Fi ve USB bağlantıları” seçeneğini açın (Mac\'te yalnızca Wi-Fi bağlantıları). USB için telefonda ayrıca USB ile internet paylaşımını açın.</item>
+    <item>İlk seferde bilgisayar bu telefona güvenip güvenmeyeceğinizi sorar: orada “Güven” düğmesini seçin. PIN isterse buraya yazın.</item>
+    <item>Android 10\'dan beri panoyu yalnızca ekrandaki uygulama okuyabilir; bu yüzden başka bir uygulamada yaptığınız kopyalama, Edgepad\'e döndüğünüzde bilgisayara ulaşır. Ya da bir metni veya resmi hemen göndermek için Paylaş, sonra Edgepad seçeneğini kullanın.</item>
+  </string-array>
+
+  <string name="guide_art_phone">Telefon</string>
+  <string name="guide_art_laptop">Bilgisayar</string>
+  <string name="guide_art_link">Önce Bluetooth · hesap yok</string>
+  <string name="guide_art_dials">Kadranlar</string>
+  <string name="guide_art_trackpad">Dokunmatik yüzey</string>
+  <string name="guide_art_media">Medya</string>
+  <string name="guide_art_keys">Tuşlar · pad</string>
+  <string name="guide_art_gestures">Hareketler</string>
+  <string name="guide_art_move">1 · Taşı</string>
+  <string name="guide_art_scroll">2 · Kaydır</string>
+  <string name="guide_art_swipe">3 · Çek</string>
+  <string name="guide_art_latch">Ctrl, Alt ve Shift sonraki tuş için basılı kalır</string>
+  <string name="guide_art_presets">Xbox · Platform · Yarış · Nişancı</string>
+</resources>
