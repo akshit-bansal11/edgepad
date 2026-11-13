@@ -41,7 +41,10 @@ export function Reveal({ children, className, ...props }: RevealProps) {
       // Under prefers-reduced-motion nothing moves: these override the inline styles
       // motion writes, so the content is simply there. Done in CSS, not with a hook,
       // because the server cannot know the preference.
-      className={cn(className, "motion-reduce:opacity-100! motion-reduce:transform-none!")}
+      className={cn(
+        className,
+        "motion-reduce:opacity-100! motion-reduce:transform-none!",
+      )}
       {...props}
     >
       {children}

@@ -9,7 +9,13 @@ import { type ReactNode, useEffect, useRef } from "react";
  * button), a press outside, and following any link inside it. A full page load closes
  * it by itself; an in-page anchor or a soft navigation does not, hence the click.
  */
-export function HeaderMenu({ label, children }: { label: string; children: ReactNode }) {
+export function HeaderMenu({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
   const menu = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
