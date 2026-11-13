@@ -47,8 +47,11 @@ object AppearanceScreen {
         ui: Ui,
         settings: Settings,
     ): String =
-        ui.string(backgroundNames.getValue(settings.background)) + ", " +
-            ui.string(patternNames.getValue(settings.pattern)).lowercase()
+        ui.string(
+            R.string.appearance_summary,
+            ui.string(backgroundNames.getValue(settings.background)),
+            ui.string(patternNames.getValue(settings.pattern)),
+        )
 
     fun build(
         ui: Ui,

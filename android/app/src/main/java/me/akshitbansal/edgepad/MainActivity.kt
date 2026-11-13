@@ -1506,7 +1506,13 @@ class MainActivity :
         AlertDialog
             .Builder(this)
             .setTitle(getString(R.string.updates_confirm_title, version))
-            .setMessage(if (major) body + " " + getString(R.string.updates_confirm_major) else body)
+            .setMessage(
+                if (major) {
+                    getString(R.string.sentences_joined, body, getString(R.string.updates_confirm_major))
+                } else {
+                    body
+                },
+            )
             .setPositiveButton(R.string.updates_confirm_action) { _, _ -> installUpdate(version) }
             .setNeutralButton(R.string.updates_release_notes) { _, _ -> open(Updates.releaseUrl(version)) }
             .setNegativeButton(android.R.string.cancel, null)
@@ -1730,7 +1736,8 @@ class MainActivity :
         Log.d("Edgepad", "Sweep: wifi=${last.wifi} usb=${last.usb}")
         val wifi = if (last.wifi != null) R.string.status_searched_wifi else R.string.status_no_wifi
         val usb = if (last.usb != null) R.string.status_searched_usb else null
-        return listOfNotNull(wifi, usb).joinToString(" ") { getString(it) }
+        val said = getString(wifi)
+        return if (usb == null) said else getString(R.string.sentences_joined, said, getString(usb))
     }
 
     /**
