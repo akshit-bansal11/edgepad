@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_edit">Изменить раскладку</string>
+  <string name="gamepad_mode_waiting">Режим клавиатуры · ждём, когда ноутбук предложит контроллер</string>
+  <string name="gamepad_mode_unanswered">Режим клавиатуры · ноутбук не ответил; возможно, нужно обновить Edgepad</string>
+  <string name="gamepad_mode_no_driver">Режим клавиатуры · на ноутбуке нет драйвера контроллера</string>
+  <string name="gamepad_mode_no_driver_windows">Режим клавиатуры · чтобы получить контроллер, установите ViGEmBus на ноутбуке</string>
+  <string name="gamepad_mode_no_driver_mac">Режим клавиатуры · на Mac нет режима контроллера</string>
+  <string name="gamepad_mode_attach_failed">Режим клавиатуры · ноутбуку не удалось подключить контроллер</string>
+</resources>

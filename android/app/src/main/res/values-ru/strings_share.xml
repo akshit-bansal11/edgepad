@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Share > Edgepad (ShareActivity): nothing is sent until Send is tapped. -->
+  <string name="share_title">Отправить на ноутбук «%1$s»?</string>
+  <string name="share_image">Изображение</string>
+  <string name="share_send">Отправить</string>
+  <string name="share_sent">Отправлено на ноутбук «%1$s»</string>
+  <string name="share_send_failed">Не удалось отправить на ноутбук «%1$s». Проверьте подключение и повторите попытку.</string>
+  <string name="share_no_laptop">Edgepad не подключён к ноутбуку. Подключите ноутбук и поделитесь ещё раз.</string>
+  <string name="share_clipboard_off">Включите «Общий буфер обмена» на ноутбуке «%1$s»</string>
+  <string name="share_nothing">Здесь нет ничего, что Edgepad мог бы отправить.</string>
+  <string name="share_text_too_long">Текст слишком длинный для отправки. Предел — 1&#160;MB.</string>
+  <string name="share_image_failed">Не удаётся прочитать это изображение, либо оно слишком велико для отправки.</string>
+  <!-- Under every shared text in the confirm, counted on the text as sent (a trailing line break makes one more). -->
+  <plurals name="share_lines">
+    <item quantity="one">%1$d строка.</item>
+    <item quantity="few">%1$d строки.</item>
+    <item quantity="many">%1$d строк.</item>
+    <item quantity="other">%1$d строки.</item>
+  </plurals>
+  <!-- After share_lines when the text is cut for the confirm: everything is still sent. -->
+  <plurals name="share_not_shown">
+    <item quantity="one">Ещё %1$d символ не показан. «Отправить» отправит всё.</item>
+    <item quantity="few">Ещё %1$d символа не показаны. «Отправить» отправит всё.</item>
+    <item quantity="many">Ещё %1$d символов не показано. «Отправить» отправит всё.</item>
+    <item quantity="other">Ещё %1$d символа не показано. «Отправить» отправит всё.</item>
+  </plurals>
+</resources>
