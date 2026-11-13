@@ -20,7 +20,7 @@ internal sealed record PhoneEntry(string Address, string Name, string Way, DateT
 
         var id = address[LinkPrefix.Length..];
         var paired = pairings.FirstOrDefault(link => string.Equals(link.Id, id, StringComparison.OrdinalIgnoreCase));
-        return new PhoneEntry(address, paired.Name is { Length: > 0 } name ? name : Strings.Phone_Name, "Wi-Fi or USB");
+        return new PhoneEntry(address, paired.Name is { Length: > 0 } name ? name : Strings.Phone_Name, CoreStrings.Way_WifiOrUsb);
     }
 
     /// <summary>The pairing id of a Wi-Fi or USB phone, or null for any other.</summary>
