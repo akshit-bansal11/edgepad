@@ -104,7 +104,7 @@
     <value>Telefoon verbonden</value>
   </data>
   <data name="Phone_Disconnected" xml:space="preserve">
-    <value>Telefoon losgekoppeld</value>
+    <value>Verbinding met telefoon verbroken</value>
   </data>
   <data name="Balloon_ForgotOne" xml:space="preserve">
     <value>{0} vergeten. Verbind over ongeveer {1} seconden opnieuw vanaf de telefoon.</value>
@@ -191,7 +191,7 @@
     <value>De telefoon typt de pincode bij elke verbinding.</value>
   </data>
   <data name="Security_Intro" xml:space="preserve">
-    <value>Elke telefoon heeft eerst hier jouw goedkeuring nodig. Niveau 2 en 3 vragen ook om een pincode van zes cijfers, die je op het scherm van de telefoon typt. Telefoons worden losgekoppeld zolang dit venster openstaat.</value>
+    <value>Elke telefoon heeft eerst hier jouw goedkeuring nodig. Niveau 2 en 3 vragen ook om een pincode van zes cijfers, die je op het scherm van de telefoon typt. De verbinding met telefoons wordt verbroken zolang dit venster openstaat.</value>
   </data>
   <data name="Security_PinNote" xml:space="preserve">
     <value>Als je een nieuwe pincode of een nieuw niveau opslaat, moeten telefoons die de pincode al eens hebben ingevoerd, die opnieuw invoeren.</value>
@@ -248,16 +248,16 @@
     <value>{0} vergeten?</value>
   </data>
   <data name="Security_ForgetOneText" xml:space="preserve">
-    <value>{0} ({1}) moet hier opnieuw worden vertrouwd voordat deze laptop kan worden gebruikt. Telefoons blijven losgekoppeld terwijl je beslist.</value>
+    <value>{0} ({1}) moet hier opnieuw worden vertrouwd voordat deze laptop kan worden gebruikt. Telefoons blijven zonder verbinding terwijl je beslist.</value>
   </data>
   <data name="Security_ForgetAllHeading" xml:space="preserve">
     <value>Alle vertrouwde telefoons vergeten?</value>
   </data>
   <data name="Security_ForgetAllNamed" xml:space="preserve">
-    <value>{0} moet hier opnieuw worden vertrouwd voordat deze laptop kan worden gebruikt, ook de telefoon die nu verbonden is. Telefoons blijven losgekoppeld terwijl je beslist.</value>
+    <value>{0} moet hier opnieuw worden vertrouwd voordat deze laptop kan worden gebruikt, ook de telefoon die nu verbonden is. Telefoons blijven zonder verbinding terwijl je beslist.</value>
   </data>
   <data name="Security_ForgetAllEvery" xml:space="preserve">
-    <value>Elke telefoon moet hier opnieuw worden vertrouwd voordat deze laptop kan worden gebruikt, ook de telefoon die nu verbonden is. Telefoons blijven losgekoppeld terwijl je beslist.</value>
+    <value>Elke telefoon moet hier opnieuw worden vertrouwd voordat deze laptop kan worden gebruikt, ook de telefoon die nu verbonden is. Telefoons blijven zonder verbinding terwijl je beslist.</value>
   </data>
   <data name="Security_ResetHeading" xml:space="preserve">
     <value>De pincode resetten en elke telefoon vergeten?</value>

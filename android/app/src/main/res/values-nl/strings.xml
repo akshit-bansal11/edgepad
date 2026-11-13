@@ -320,7 +320,7 @@
   <string name="updates_blocked">Android heeft de update geblokkeerd. Sta Edgepad toe om updates te installeren in de Android-instellingen en probeer het opnieuw.</string>
   <string name="updates_storage">Er is niet genoeg opslagruimte om de update te installeren. Maak ruimte vrij en probeer het opnieuw.</string>
   <string name="updates_confirm_title">Bijwerken naar %1$s?</string>
-  <string name="updates_confirm_body">Edgepad downloadt de update en start opnieuw op, waardoor je laptops worden losgekoppeld. Android vraagt mogelijk om bevestiging.</string>
+  <string name="updates_confirm_body">Edgepad downloadt de update en start opnieuw op, waardoor de verbinding met je laptops wordt verbroken. Android vraagt mogelijk om bevestiging.</string>
   <string name="updates_confirm_major">Dit is een grote release: werk Edgepad op je laptop ook bij naar dezelfde release.</string>
   <string name="updates_confirm_action">Bijwerken</string>
   <string name="updates_release_notes">Releaseopmerkingen</string>
