@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Lato lacks this language's glyphs: see values/fonts.xml. -->
+  <bool name="lato_covers">false</bool>
+
+  <!-- No font item, so the dialog keeps the platform's font. -->
+  <style name="Theme.Edgepad.Dialog" parent="Theme.Edgepad.DialogBase" />
+</resources>

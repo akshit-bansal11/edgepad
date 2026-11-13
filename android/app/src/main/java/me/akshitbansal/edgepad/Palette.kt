@@ -49,9 +49,12 @@ class Palette(
     }
 }
 
-/** The type scale, in sp. One family everywhere, Lato (OFL, bundled in res/font), in three weights. */
+/**
+ * The type scale, in sp. One family everywhere, in three weights: Lato (OFL, bundled in res/font) where it has the
+ * language's glyphs ([R.bool.lato_covers]), the system sans-serif where it does not.
+ */
 object Type {
-    /** Set once by the activity before any view is built; a resource font needs a Context to load. */
+    /** Set by the activity before any view is built; a resource font needs a Context to load. */
     lateinit var face: Typeface
         private set
 
@@ -64,11 +67,20 @@ object Type {
         private set
 
     fun load(context: Context) {
-        if (::face.isInitialized) return
-        face = context.resources.getFont(R.font.lato_regular)
-        bold = context.resources.getFont(R.font.lato_bold)
-        black = context.resources.getFont(R.font.lato_black)
+        // Loaded on every start rather than once: a language change recreates the activity but keeps the process.
+        if (context.resources.getBoolean(R.bool.lato_covers)) {
+            face = context.resources.getFont(R.font.lato_regular)
+            bold = context.resources.getFont(R.font.lato_bold)
+            black = context.resources.getFont(R.font.lato_black)
+        } else {
+            face = Typeface.DEFAULT
+            bold = Typeface.DEFAULT_BOLD
+            black = Typeface.create(Typeface.DEFAULT, BLACK_WEIGHT, false)
+        }
     }
+
+    /** Lato Black's weight, asked of the system font when Lato is not used. */
+    private const val BLACK_WEIGHT = 900
 
     /** A tag or badge, and the small abbreviation over a dial's value. */
     const val MICRO = 12f

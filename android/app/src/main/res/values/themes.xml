@@ -13,13 +13,12 @@
     <item name="android:alertDialogTheme">@style/Theme.Edgepad.Dialog</item>
   </style>
 
-  <!-- AND-B-37: Edgepad's palette and Lato on the platform's alert dialog, light here and dark in values-night. -->
-  <style name="Theme.Edgepad.Dialog" parent="@android:style/Theme.DeviceDefault.Light.Dialog.Alert">
+  <!-- AND-B-37: Edgepad's palette on the platform's alert dialog, light here and dark in values-night. The font is a layer of its own, in fonts.xml. -->
+  <style name="Theme.Edgepad.DialogBase" parent="@android:style/Theme.DeviceDefault.Light.Dialog.Alert">
     <item name="android:windowBackground">@drawable/dialog_background</item>
     <item name="android:colorBackground">@color/card</item>
     <item name="android:textColorPrimary">@color/ink</item>
     <item name="android:textColorSecondary">@color/dim</item>
     <item name="android:colorAccent">@color/accent</item>
-    <item name="android:fontFamily">@font/lato_regular</item>
   </style>
 </resources>

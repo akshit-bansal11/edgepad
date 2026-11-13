@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Lato has the glyphs for this language. The folders for the ones it lacks (values-tr, ru, hi, ar, zh-rCN, ja, ko) say false and use the system font. -->
+  <bool name="lato_covers">true</bool>
+
+  <!-- The dialog's font, apart from Theme.Edgepad.DialogBase so the languages Lato lacks override only this. -->
+  <style name="Theme.Edgepad.Dialog" parent="Theme.Edgepad.DialogBase">
+    <item name="android:fontFamily">@font/lato_regular</item>
+  </style>
+</resources>
