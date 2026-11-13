@@ -23,6 +23,11 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 - **Website.** Six core features up front and the rest under "More features"; one theme button that cycles system, light and dark; a solid header; content is visible before scripts load; the narrow-screen menu closes on Escape, an outside tap or a followed link; a failed copy says so.
 - **Windows and Linux: the connection status is a value, not text.** Both decide what the status means from its kind rather than by reading its English wording, so the wording can be translated. The Windows app no longer runs with invariant globalization.
 
+### Fixed
+
+- **Windows: messages name the real buttons.** The pairing step says to tap "Yes, paired" (the phone's actual button, not "Yes"), and the two reset errors name "Reset PIN and forget phones" instead of a "Reset" that does not exist. In every language.
+- **Windows: a pasted pairing code no longer loses a digit.** The box cut a paste to its length before removing spaces, so " 482 913" arrived short.
+
 ## [4.1.0] - 2026-11-10
 
 No wire-protocol change: the protocol stays at version 5. **Mac and Linux are still in testing. Please use them at your own risk.** The phone is now told when a Mac lacks Accessibility or a Linux laptop cannot open `/dev/uinput` through a new TEXT kind (18), and about batteries and the sound output through TEXT kinds 19 and 20; an older phone drops all three. Not done: telling the phone about an elevated Windows window.
