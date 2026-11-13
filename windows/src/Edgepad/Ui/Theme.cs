@@ -282,6 +282,9 @@ internal static partial class Theme
     public static bool AnimationsEnabled =>
         SystemInformation.UIEffectsEnabled && (!Native.SystemParametersInfoW(SpiGetClientAreaAnimation, 0, out var on, 0) || on != 0);
 
+    /// <summary>The green of a live phone: the tray icon's dot, and the check in the connected notice.</summary>
+    public static Color Connected => Color.FromArgb(0x22, 0xA5, 0x59);
+
     /// <summary>
     /// The durations of every transition, in milliseconds. All at most 300, and all zero while Windows has animations
     /// off, so a caller that steps by them simply jumps. Read live, never cached: the setting can change while the app runs.

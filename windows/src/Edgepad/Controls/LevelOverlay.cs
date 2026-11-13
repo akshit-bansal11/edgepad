@@ -14,6 +14,9 @@ internal enum LevelKind
 
     /// <summary>Not a level: a short word about the phone ("Phone connected"), drawn without the bar.</summary>
     Phone,
+
+    /// <summary>The same pill for a phone that dropped, which must not read as a confirmation: a different icon and ink.</summary>
+    PhoneDropped,
 }
 
 /// <summary>
@@ -91,15 +94,15 @@ internal sealed class LevelOverlay : IDisposable
         }
     }
 
-    /// <summary>Says <paramref name="text"/> in the same pill, for a phone that connected or dropped. Any thread.</summary>
-    public void ShowNotice(string text)
+    /// <summary>Says <paramref name="text"/> in the same pill, for a phone that connected or, with <paramref name="dropped"/>, dropped. Any thread.</summary>
+    public void ShowNotice(string text, bool dropped = false)
     {
         if (stopped)
         {
             return;
         }
 
-        Volatile.Write(ref latest, new Reading(LevelKind.Phone, text, 0));
+        Volatile.Write(ref latest, new Reading(dropped ? LevelKind.PhoneDropped : LevelKind.Phone, text, 0));
         if (Interlocked.Exchange(ref posted, 1) == 0)
         {
             ui.Post(_ => Drain(), null);
@@ -179,7 +182,7 @@ internal sealed class LevelOverlay : IDisposable
         {
             LevelKind.Microphone => Strings.Level_Microphone,
             LevelKind.Brightness => Strings.Level_Brightness,
-            LevelKind.Phone => Strings.Phone_Name,
+            LevelKind.Phone or LevelKind.PhoneDropped => Strings.Phone_Name,
             _ => Strings.Level_Volume,
         };
 
@@ -354,7 +357,7 @@ internal sealed class LevelOverlay : IDisposable
         {
             var dpi = DeviceDpi;
             var work = Metrics.Where();
-            var height = kind == LevelKind.Phone
+            var height = kind is LevelKind.Phone or LevelKind.PhoneDropped
                 ? (2 * Metrics.Scale(Pad, dpi)) + Metrics.Scale(IconSize, dpi)
                 : Metrics.PanelHeight(
                     Metrics.Scale(Pad, dpi),
@@ -425,7 +428,7 @@ internal sealed class LevelOverlay : IDisposable
 
             var pad = Metrics.Scale(Pad, dpi);
             var icon = Metrics.Scale(IconSize, dpi);
-            if (kind == LevelKind.Phone)
+            if (kind is LevelKind.Phone or LevelKind.PhoneDropped)
             {
                 PaintNotice(graphics, pad, icon, dpi);
                 return;
@@ -492,7 +495,8 @@ internal sealed class LevelOverlay : IDisposable
         /// <summary>The phone pill: its icon, then one line of words.</summary>
         private void PaintNotice(Graphics graphics, int pad, int icon, int dpi)
         {
-            Icons.Draw(graphics, Icons.Smartphone, Theme.Flip(new RectangleF(pad, (Height - icon) / 2f, icon, icon), new RectangleF(0, 0, Width, Height)), Colours.Accent);
+            var dropped = kind == LevelKind.PhoneDropped;
+            Icons.Draw(graphics, dropped ? Icons.Unlink : Icons.Check, Theme.Flip(new RectangleF(pad, (Height - icon) / 2f, icon, icon), new RectangleF(0, 0, Width, Height)), dropped ? Colours.Danger : Theme.Connected);
             var font = Theme.Font(Metrics.Scale(ValueSize - 4, dpi), Weight.Bold);
             var text = graphics.MeasureString(caption, font, PointF.Empty, typographic);
             using var ink = new SolidBrush(Colours.Ink);

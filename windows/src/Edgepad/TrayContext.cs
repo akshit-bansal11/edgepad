@@ -714,7 +714,7 @@ internal sealed class TrayContext : ApplicationContext
         }
         else if (!securing && now >= ownHangUpUntil)
         {
-            overlay.ShowNotice(Strings.Phone_Disconnected);
+            overlay.ShowNotice(Strings.Phone_Disconnected, dropped: true);
         }
     }
 
@@ -1077,7 +1077,7 @@ internal sealed class TrayContext : ApplicationContext
                     var size = Math.Max(4, bitmap.Width * 0.42f);
                     var dot = new RectangleF(bitmap.Width - size, bitmap.Height - size, size - 1, size - 1);
                     using var ring = new SolidBrush(Palette.TaskbarIsDark ? Color.Black : Color.White);
-                    using var fill = new SolidBrush(Color.FromArgb(0x22, 0xA5, 0x59));
+                    using var fill = new SolidBrush(Theme.Connected);
                     graphics.FillEllipse(ring, RectangleF.Inflate(dot, 1.2f, 1.2f));
                     graphics.FillEllipse(fill, dot);
                 }
