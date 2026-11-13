@@ -283,14 +283,14 @@ The Wi-Fi and USB pairings could not be forgotten: their file could not be remov
     <value>The PIN is deleted, the level goes back to 1 and every trusted phone is forgotten. Each phone, the one connected included, will have to be trusted here again. A forgotten PIN cannot be recovered, only reset.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>Close whatever is holding the file, then choose Reset again, or delete it yourself:
+    <value>Close whatever is holding the file, then choose “Reset PIN and forget phones” again, or delete it yourself:
 
 {0}
 
 Nothing was reset: the trusted phones could not be forgotten, so the PIN and the level were left as they were. No phone can connect while Edgepad stays running, but those phones will be trusted again, behind the same PIN, the next time it starts.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>Close whatever is holding the file, then choose Reset again, or delete security.txt and pin-verified.txt yourself from:
+    <value>Close whatever is holding the file, then choose “Reset PIN and forget phones” again, or delete security.txt and pin-verified.txt yourself from:
 
 {0}
 

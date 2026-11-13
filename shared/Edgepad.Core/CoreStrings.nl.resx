@@ -80,7 +80,7 @@
     <value>Koppelen is niet voltooid.</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>De koppelcode klopt. Tik op Ja op {0} om af te ronden.</value>
+    <value>De koppelcode klopt. Tik op “Ja, gekoppeld” op {0} om af te ronden.</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>Gekoppeld met {0}.</value>

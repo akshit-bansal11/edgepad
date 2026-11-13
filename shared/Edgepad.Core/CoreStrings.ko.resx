@@ -79,7 +79,7 @@
     <value>페어링이 끝나지 않았어요.</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>페어링 코드가 일치해요. 마무리하려면 {0}에서 예를 탭하세요.</value>
+    <value>페어링 코드가 일치해요. 마무리하려면 {0}에서 ‘예, 페어링됨’을 탭하세요.</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>페어링됨: {0}</value>

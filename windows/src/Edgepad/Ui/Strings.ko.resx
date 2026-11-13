@@ -277,14 +277,14 @@ Wi-Fi 및 USB 페어링을 등록 해제하지 못했어요. 파일을 삭제하
     <value>PIN이 삭제되고, 수준이 1로 돌아가고, 신뢰한 휴대전화가 모두 등록 해제돼요. 연결 중인 휴대전화를 포함해 모든 휴대전화를 여기에서 다시 신뢰해야 해요. 잊어버린 PIN은 복구할 수 없고 초기화만 할 수 있어요.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>파일을 쓰고 있는 프로그램을 닫은 뒤 초기화를 다시 선택하거나, 직접 삭제하세요.
+    <value>파일을 쓰고 있는 프로그램을 닫은 뒤 ‘PIN 초기화 및 휴대전화 등록 해제’를 다시 선택하거나, 직접 삭제하세요.
 
 {0}
 
 아무것도 초기화되지 않았어요. 신뢰한 휴대전화를 등록 해제하지 못해서 PIN과 수준은 그대로예요. Edgepad가 실행 중인 동안에는 어떤 휴대전화도 연결할 수 없지만, Edgepad를 다시 시작하면 그 휴대전화들은 같은 PIN으로 다시 신뢰돼요.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>파일을 쓰고 있는 프로그램을 닫은 뒤 초기화를 다시 선택하거나, 다음 위치에서 security.txt와 pin-verified.txt를 직접 삭제하세요.
+    <value>파일을 쓰고 있는 프로그램을 닫은 뒤 ‘PIN 초기화 및 휴대전화 등록 해제’를 다시 선택하거나, 다음 위치에서 security.txt와 pin-verified.txt를 직접 삭제하세요.
 
 {0}
 

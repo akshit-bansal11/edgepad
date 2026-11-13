@@ -277,14 +277,14 @@ Non è stato possibile dimenticare le associazioni Wi-Fi e USB: il loro file non
     <value>Il PIN viene eliminato, il livello torna a 1 e ogni telefono autorizzato viene dimenticato. Ogni telefono, anche quello connesso, dovrà essere autorizzato di nuovo qui. Un PIN dimenticato non si può recuperare, solo reimpostare.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>Chiudi ciò che sta usando il file, poi scegli di nuovo Reimposta, oppure eliminalo tu stesso:
+    <value>Chiudi ciò che sta usando il file, poi scegli di nuovo «Reimposta PIN e dimentica i telefoni», oppure eliminalo tu stesso:
 
 {0}
 
 Non è stato reimpostato nulla: non è stato possibile dimenticare i telefoni autorizzati, quindi PIN e livello sono rimasti come prima. Nessun telefono può connettersi finché Edgepad resta in esecuzione, ma quei telefoni saranno di nuovo autorizzati, con lo stesso PIN, al prossimo avvio.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>Chiudi ciò che sta usando il file, poi scegli di nuovo Reimposta, oppure elimina tu stesso security.txt e pin-verified.txt da:
+    <value>Chiudi ciò che sta usando il file, poi scegli di nuovo «Reimposta PIN e dimentica i telefoni», oppure elimina tu stesso security.txt e pin-verified.txt da:
 
 {0}
 

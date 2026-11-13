@@ -79,7 +79,7 @@
     <value>La vinculación no se completó.</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>El código de vinculación coincide. Toca Sí en {0} para terminar.</value>
+    <value>El código de vinculación coincide. Toca «Sí, vinculada» en {0} para terminar.</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>Vinculado con {0}.</value>

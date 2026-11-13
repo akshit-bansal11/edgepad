@@ -266,10 +266,10 @@
     <value>De pincode wordt verwijderd, het niveau gaat terug naar 1 en elke vertrouwde telefoon wordt vergeten. Elke telefoon, ook de telefoon die nu verbonden is, moet hier opnieuw worden vertrouwd. Een vergeten pincode kan niet worden hersteld, alleen gereset.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>Sluit wat het bestand vasthoudt en kies dan opnieuw Pincode resetten en telefoons vergeten, of verwijder het zelf:  {0}  Er is niets gereset: de vertrouwde telefoons konden niet worden vergeten, dus de pincode en het niveau zijn ongewijzigd gebleven. Zolang Edgepad draait, kan geen enkele telefoon verbinden, maar die telefoons worden bij de volgende start weer vertrouwd, met dezelfde pincode.</value>
+    <value>Sluit wat het bestand vasthoudt en kies dan opnieuw “Pincode resetten en telefoons vergeten”, of verwijder het zelf:  {0}  Er is niets gereset: de vertrouwde telefoons konden niet worden vergeten, dus de pincode en het niveau zijn ongewijzigd gebleven. Zolang Edgepad draait, kan geen enkele telefoon verbinden, maar die telefoons worden bij de volgende start weer vertrouwd, met dezelfde pincode.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>Sluit wat het bestand vasthoudt en kies dan opnieuw Pincode resetten en telefoons vergeten, of verwijder security.txt en pin-verified.txt zelf uit:  {0}  De vertrouwde telefoons zijn vergeten, maar de pincode kon niet worden gereset: een instellingenbestand kon niet worden verwijderd, dus de oude pincode en het oude niveau gelden mogelijk nog. Elke telefoon moet hier opnieuw worden vertrouwd.</value>
+    <value>Sluit wat het bestand vasthoudt en kies dan opnieuw “Pincode resetten en telefoons vergeten”, of verwijder security.txt en pin-verified.txt zelf uit:  {0}  De vertrouwde telefoons zijn vergeten, maar de pincode kon niet worden gereset: een instellingenbestand kon niet worden verwijderd, dus de oude pincode en het oude niveau gelden mogelijk nog. Elke telefoon moet hier opnieuw worden vertrouwd.</value>
   </data>
   <data name="Pin_Title" xml:space="preserve">
     <value>Nieuwe pincode</value>

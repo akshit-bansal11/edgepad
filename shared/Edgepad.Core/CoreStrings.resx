@@ -85,7 +85,7 @@
     <value>Pairing did not finish.</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>Pairing code matched. Tap Yes on {0} to finish.</value>
+    <value>Pairing code matched. Tap “Yes, paired” on {0} to finish.</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>Paired with {0}.</value>
