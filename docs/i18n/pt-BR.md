@@ -6,7 +6,7 @@ Android `values-pt-rBR`, Windows culture `pt-BR`. Everyday Brazilian usage, as t
 
 - **Register:** "você", in the imperative for actions ("Toque", "Escolha", "Digite"). No "tu", no European forms ("telemóvel", "ecrã", "ficheiro").
 - **Titles and labels:** sentence case ("Configurações da superfície"). Buttons are imperative verbs or short nouns ("Conectar", "Esquecer").
-- **Quotes:** curly quotes “ ” for menu items and file-dialog names quoted inside a sentence (“Macros…”).
+- **Quotes:** curly quotes “ ” for menu items, settings and file-dialog names quoted inside a sentence (“Macros…”, “Conexões Wi-Fi e USB”, “Tethering USB”).
 - **Numbers and units:** a regular space before units (`5 ms`, `60 Hz`, `1 MB`, `120 dp`); `%` attached to the number (`50%`). Decimal separator handled by the system.
 - **Plurals:** one / many / other. `one` covers 0 and 1; `many` is for millions and takes "de" after the number ("1 000 000 de segundos").
 - **Gender:** "notebook" is masculine (conectado, lembrado, ativo). "celular" is masculine. "Mac" masculine.
@@ -42,7 +42,7 @@ Android `values-pt-rBR`, Windows culture `pt-BR`. Everyday Brazilian usage, as t
 | Controls | Controles |
 | keyboard | Teclado |
 | function keys: With Fn, Direct | Teclas de função: Com Fn, Direto |
-| gamepad | gamepad |
+| gamepad | gamepad (also in sentences: never "controle" for the device) |
 | layout, preset | layout, predefinição |
 | binding | Atribuição |
 | D-pad, stick, button, shoulder, trigger | D-pad, analógico, botão, botão superior, gatilho |
@@ -50,6 +50,8 @@ Android `values-pt-rBR`, Windows culture `pt-BR`. Everyday Brazilian usage, as t
 | macro, macro deck | macro |
 | annotate / sign / capture | Anotar / Assinar / Capturar |
 | shapes | Formas |
+| dial feel | Ajuste das réguas |
+| gamepad presets | Xbox, Platformer, Racing, Shooter (the app shows these English names, so the guide keeps them) |
 | lock the trackpad | Bloquear o touchpad |
 | share clipboard | Compartilhar área de transferência |
 | laptop / phone | notebook / celular |

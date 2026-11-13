@@ -37,15 +37,15 @@
   <string name="open_controls_hint">Conecte-se a um notebook para abrir os controles.</string>
   <string name="open_bluetooth_settings">Configurações de Bluetooth</string>
   <string name="refresh">Atualizar a lista</string>
-  <string name="bluetooth_off">Nenhum notebook encontrado. Ative o Bluetooth e pareie seu notebook. Para Wi-Fi ou USB, abra o Edgepad no notebook e ative Conexões Wi-Fi e USB no menu dele; para USB, ative também o Tethering USB aqui.</string>
-  <string name="usb_cable_tether_off">Cabo conectado. Ative o Tethering USB aqui e as Conexões Wi-Fi e USB no menu do Edgepad no notebook.</string>
+  <string name="bluetooth_off">Nenhum notebook encontrado. Ative o Bluetooth e pareie seu notebook. Para Wi-Fi ou USB, abra o Edgepad no notebook e ative “Conexões Wi-Fi e USB” no menu dele; para USB, ative também “Tethering USB” aqui.</string>
+  <string name="usb_cable_tether_off">Cabo conectado. Ative “Tethering USB” aqui e “Conexões Wi-Fi e USB” no menu do Edgepad no notebook.</string>
   <string name="status_no_wifi">Sem conexão com o Wi-Fi.</string>
   <string name="status_searched_wifi">Busca feita na sua rede Wi-Fi; nenhum notebook respondeu.</string>
-  <string name="status_searched_usb">Busca feita no Tethering USB; nenhum notebook respondeu.</string>
+  <string name="status_searched_usb">Busca feita via “Tethering USB”; nenhum notebook respondeu.</string>
   <string name="permission_needed">O Edgepad precisa da permissão Dispositivos por perto para alcançar seu notebook.</string>
   <string name="permission_reason">Para encontrar seu notebook, o Edgepad pede a permissão Dispositivos por perto.</string>
   <string name="local_network_reason">Para encontrar notebooks no seu Wi-Fi e por USB, o Edgepad pede Dispositivos por perto e verifica os endereços da sua rede. Adicionar por endereço evita essa busca.</string>
-  <string name="no_paired">Nenhum notebook encontrado. Abra o Edgepad no notebook e pareie-o nas configurações de Bluetooth. Para Wi-Fi ou USB, ative Conexões Wi-Fi e USB no menu do Edgepad no notebook; para USB, ative também o Tethering USB aqui.</string>
+  <string name="no_paired">Nenhum notebook encontrado. Abra o Edgepad no notebook e pareie-o nas configurações de Bluetooth. Para Wi-Fi ou USB, ative “Conexões Wi-Fi e USB” no menu do Edgepad no notebook; para USB, ative também “Tethering USB” aqui.</string>
   <string name="no_laptop_paired">Nenhum dos dispositivos pareados com este celular se identifica como computador. Se o seu notebook está pareado, mostre todos.</string>
   <plurals name="show_all_paired">
     <item quantity="one">Mostrar todos os dispositivos pareados (mais %1$d)</item>
@@ -58,11 +58,11 @@
   <string name="not_paired">Esse notebook não está mais pareado com este celular. Pareie-o de novo nas configurações de Bluetooth.</string>
   <string name="status_closed">Não conectado. %1$s</string>
   <string name="status_closed_named">%1$s não está conectado. %2$s</string>
-  <string name="status_accept_on_laptop">Aguardando o notebook. Escolha Confiar nele; ele pode pedir um PIN.</string>
+  <string name="status_accept_on_laptop">Aguardando o notebook. Escolha Confiar lá; ele pode pedir um PIN.</string>
   <string name="link_lost">A conexão foi perdida.</string>
   <string name="link_refused">O notebook encerrou a conexão antes da verificação inicial. Olhe o notebook e escolha Confiar se ele perguntar sobre este celular. Se outro celular assumiu o notebook, tente de novo em 30 segundos. Se continuar falhando, atualize o Edgepad no notebook.</string>
   <string name="link_unreachable_bluetooth">O notebook não aceitou a conexão. Confira se o Edgepad está em execução nele e se o Bluetooth dele está ativado. Se ainda falhar, remova o pareamento neste celular e no notebook e pareie os dois de novo.</string>
-  <string name="link_unreachable_network">O notebook não respondeu. Confira se o Edgepad está em execução nele e se as Conexões Wi-Fi e USB estão ativadas no menu do Edgepad.</string>
+  <string name="link_unreachable_network">O notebook não respondeu. Confira se o Edgepad está em execução nele e se “Conexões Wi-Fi e USB” está ativada no menu do Edgepad.</string>
   <string name="link_mismatch">O Edgepad em %1$s e este app são de versões diferentes. Instale os dois da mesma versão.</string>
   <string name="link_mismatch_laptop_older">O Edgepad em %1$s é mais antigo que este app. Atualize o Edgepad no notebook. Os dois lados precisam ser da mesma versão.</string>
   <string name="link_mismatch_phone_older">Este app é mais antigo que o Edgepad em %1$s. Atualize este app em Configurações do sistema › Atualizações. Os dois lados precisam ser da mesma versão.</string>
@@ -75,14 +75,14 @@
   <string name="link_pairing_locked">O notebook está pareando outro celular ou pausou o pareamento após códigos errados. Tente de novo em alguns minutos.</string>
   <!-- The laptop's lock-out runs from 30 s to an hour: under a minute in seconds, else whole minutes rounded up. -->
   <plurals name="link_pin_locked_seconds">
-    <item quantity="one">PINs errados demais. Tente de novo em %1$d segundo.</item>
-    <item quantity="many">PINs errados demais. Tente de novo em %1$d de segundos.</item>
-    <item quantity="other">PINs errados demais. Tente de novo em %1$d segundos.</item>
+    <item quantity="one">Muitos PINs errados. Tente de novo em %1$d segundo.</item>
+    <item quantity="many">Muitos PINs errados. Tente de novo em %1$d de segundos.</item>
+    <item quantity="other">Muitos PINs errados. Tente de novo em %1$d segundos.</item>
   </plurals>
   <plurals name="link_pin_locked_minutes">
-    <item quantity="one">PINs errados demais. Tente de novo em %1$d minuto.</item>
-    <item quantity="many">PINs errados demais. Tente de novo em %1$d de minutos.</item>
-    <item quantity="other">PINs errados demais. Tente de novo em %1$d minutos.</item>
+    <item quantity="one">Muitos PINs errados. Tente de novo em %1$d minuto.</item>
+    <item quantity="many">Muitos PINs errados. Tente de novo em %1$d de minutos.</item>
+    <item quantity="other">Muitos PINs errados. Tente de novo em %1$d minutos.</item>
   </plurals>
 
   <!-- The laptop's PIN. The digits are never shown or read out, only how many are in. -->
@@ -117,7 +117,7 @@
   <string name="lost_title">Notebook fora de alcance</string>
   <string name="lost_body">%1$s parou de responder. Todos os controles estão em pausa e nada do que você tocar fica na fila.</string>
   <string name="lost_attempt">Reconectando · tentativa %1$d de %2$d</string>
-  <string name="lost_stopped">Parou de tentar. O notebook está ligado, com o Edgepad em execução?</string>
+  <string name="lost_stopped">Tentativas interrompidas. O notebook está ligado, com o Edgepad em execução?</string>
   <string name="lost_off">A reconexão automática está desativada</string>
   <string name="lost_last_seen">Visto por último %1$s · %2$s</string>
   <string name="retry_now">Tentar agora</string>
@@ -283,7 +283,7 @@
     <item quantity="other">%1$d formas</item>
   </plurals>
   <string name="shapes_none">Nenhuma ainda</string>
-  <string name="shapes_footnote">Mantenha o dedo pressionado no touchpad até a linha ficar sólida (você também sente um toque se a resposta tátil estiver ativada) e então desenhe sem levantar o dedo.</string>
+  <string name="shapes_footnote">Mantenha o dedo pressionado no touchpad até a linha ficar sólida (você também sente uma leve vibração se a resposta tátil estiver ativada) e então desenhe sem levantar o dedo.</string>
   <string name="shapes_empty_title">Nenhuma forma ainda</string>
   <string name="shapes_empty_body">Desenhe uma aqui e defina o que ela executa. No touchpad, mantenha o dedo pressionado até a linha ficar sólida e então desenhe sem levantá-lo.</string>
   <string name="shapes_add">Desenhar uma forma</string>
@@ -342,10 +342,10 @@
   <string name="corner_assign">Atribuir a: %1$s</string>
   <string name="chosen">Escolhido</string>
   <string name="color_hex">Cor hexadecimal</string>
-  <string name="dial_feel_title">Sensação da régua</string>
+  <string name="dial_feel_title">Ajuste das réguas</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
-  <string name="dial_preview_caption">Prévia. Sentido horário aumenta.</string>
-  <string name="gestures_footnote">Toque em um gesto para mudar a ação dele. Um e dois dedos são fixos: mover, tocar para clicar, tocar e segurar para arrastar; dois dedos arrastam para rolar, pinça para dar zoom, toque para clicar com o botão direito.</string>
+  <string name="dial_preview_caption">Prévia. No sentido horário, aumenta.</string>
+  <string name="gestures_footnote">Toque em um gesto para mudar a ação dele. Um e dois dedos são fixos: mover, tocar para clicar, tocar e segurar para arrastar; com dois dedos, arrastar para rolar, pinçar para dar zoom e tocar para clicar com o botão direito.</string>
   <string name="dial_feel_each">Cada régua</string>
   <string name="dial_feel_shared">Compartilhada</string>
   <string name="dial_feel_each_caption">Só as réguas em um canto aparecem na lista. Tire uma de Compartilhada para dar a ela uma velocidade própria. Compartilhada segue a sensibilidade do deslize.</string>
@@ -389,7 +389,7 @@
   <string name="surface_waiting">Aguardando o notebook informar este nível</string>
   <string name="surface_nothing_playing">Nada tocando</string>
   <string name="surface_hint_one">Um dedo: mover, tocar para clicar</string>
-  <string name="surface_hint_two">Dois: rolar, pinça para dar zoom, toque para clicar com o botão direito</string>
+  <string name="surface_hint_two">Dois: rolar, pinçar para dar zoom, tocar para clicar com o botão direito</string>
   <string name="surface_hint_three">Três: deslizar entre áreas de trabalho</string>
   <string name="surface_hint_four">Quatro: deslizar entre apps</string>
   <string name="surface_hint_hold">Mantenha pressionado e mova para arrastar</string>
@@ -445,7 +445,7 @@
   <string name="capture_not_found">Nenhuma captura nova apareceu no notebook, então nada foi enviado.</string>
   <string name="capture_send_failed">O notebook não conseguiu enviar a captura. Ela continua no notebook.</string>
   <string name="controls_annotate">Anotar</string>
-  <string name="annotate_description">Mesa de caneta: um toque desenha no mesmo lugar da tela do notebook. Funciona só por toque.</string>
+  <string name="annotate_description">Mesa digitalizadora: um toque desenha no mesmo lugar da tela do notebook. Funciona só por toque.</string>
   <string name="annotate_hint">Desenhe aqui. A tinta aparece no notebook no mesmo lugar.</string>
   <string name="annotate_hint_named">Desenhe aqui. A tinta aparece em %1$s no mesmo lugar.</string>
   <string name="annotate_menu">Ferramentas de desenho</string>
@@ -481,7 +481,7 @@
   <string name="annotate_continue">Continuar</string>
   <string name="annotate_sign">Assinar</string>
   <string name="annotate_save_signature">Salvar assinatura</string>
-  <string name="sign_saved">Assinatura copiada para a área de transferência do notebook e salva em Imagens/Edgepad nele</string>
+  <string name="sign_saved">Assinatura copiada para a área de transferência do notebook e salva lá em Imagens/Edgepad</string>
   <string name="sign_empty">Nada desenhado ainda</string>
   <string name="sign_failed">Não foi possível salvar</string>
   <string name="capture_unavailable">Este notebook não informou que pode capturar. Atualize o Edgepad nele e reconecte.</string>

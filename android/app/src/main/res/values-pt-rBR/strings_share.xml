@@ -7,7 +7,7 @@
   <string name="share_sent">Enviado para %1$s</string>
   <string name="share_send_failed">Não foi possível enviar para %1$s. Confira a conexão e tente de novo.</string>
   <string name="share_no_laptop">O Edgepad não está conectado a um notebook. Conecte um e compartilhe de novo.</string>
-  <string name="share_clipboard_off">Ative Compartilhar área de transferência em %1$s</string>
+  <string name="share_clipboard_off">Ative “Compartilhar área de transferência” em %1$s</string>
   <string name="share_nothing">Não há nada aqui que o Edgepad possa enviar.</string>
   <string name="share_text_too_long">Esse texto é longo demais para enviar. O limite é 1 MB.</string>
   <string name="share_image_failed">Não foi possível ler essa imagem, ou ela é grande demais para enviar.</string>

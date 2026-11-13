@@ -9,7 +9,7 @@
   <string name="keyboard_key_on">Ativa</string>
   <string name="keyboard_description">Teclado na tela para o notebook</string>
   <string name="keyboard_size">Tamanho</string>
-  <string name="keyboard_size_caption">Tamanhos maiores comportam mais teclas, então cada tecla fica menor. Eles pedem uma tela mais larga.</string>
+  <string name="keyboard_size_caption">Tamanhos maiores comportam mais teclas, então cada tecla fica menor. Precisam de uma tela mais larga.</string>
   <string name="keyboard_function_keys">Teclas de função</string>
   <string name="keyboard_with_fn">Com Fn</string>
   <string name="keyboard_direct">Direto</string>

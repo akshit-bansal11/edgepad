@@ -94,7 +94,7 @@
     <value>{0} quer parear. Digite o código de pareamento que ele mostra.</value>
   </data>
   <data name="Balloon_DriverMissing" xml:space="preserve">
-    <value>O controle precisa do driver ViGEmBus. Clique para abrir a página de download.</value>
+    <value>O gamepad precisa do driver ViGEmBus. Clique para abrir a página de download.</value>
   </data>
   <data name="Balloon_WantsToConnect" xml:space="preserve">
     <value>{0} quer se conectar. Escolha Confiar ou Não confiar.</value>

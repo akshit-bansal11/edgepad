@@ -20,7 +20,7 @@
     <item>E mais</item>
   </string-array>
   <string-array name="guide_features_values">
-    <item>Cada movimento sai na hora em que você o faz. Se a conexão está lenta, os movimentos que esperam são combinados em vez de entrar na fila.</item>
+    <item>Cada movimento é enviado na hora. Se a conexão está lenta, os movimentos que esperam são combinados em vez de entrar na fila.</item>
     <item>Medido ao vivo do celular até o notebook e de volta, e mostrado ao lado do notebook na tela Dispositivos.</item>
     <item>Sem conta e sem precisar de internet. O celular alcança o notebook diretamente.</item>
     <item>Bluetooth por padrão: pareie uma vez nas configurações de Bluetooth do notebook, e o Edgepad passa a conectar ao abrir. As conexões Wi-Fi e USB são opcionais.</item>
@@ -41,7 +41,7 @@
   </string-array>
   <string-array name="guide_anatomy_values">
     <item>Todo o meio da tela. Todo gesto com os dedos começa aqui.</item>
-    <item>Réguas dobradas nos cantos, ou divididas duas por canto: Volume, Brilho, Zoom, Avanço da mídia, Alternar apps, Taxa de atualização, rolagem, Áreas de trabalho virtuais, Abas do navegador ou a régua Trocar de notebook.</item>
+    <item>Réguas dobradas nos cantos, ou divididas duas por canto: volume, brilho, zoom, avanço da mídia, alternar apps, taxa de atualização, rolagem, áreas de trabalho virtuais, abas do navegador ou a régua Trocar de notebook.</item>
     <item>O que está tocando, com anterior, tocar e próxima, enquanto um player está aberto. Mova e redimensione em Configurações da superfície.</item>
     <item>Um teclado completo cujas teclas modificadoras funcionam seguradas ou tocadas, atrás do botão Controles.</item>
     <item>Analógicos, um D-pad e botões em quatro predefinições, ou o seu próprio arranjo.</item>
@@ -60,11 +60,11 @@
     <item>Ajustes</item>
   </string-array>
   <string-array name="guide_surface_values">
-    <item>Mova o ponteiro. Toque para clicar. Toque e depois segure e mova para arrastar.</item>
+    <item>Mova o ponteiro. Toque para clicar. Toque, segure e mova para arrastar.</item>
     <item>Toque para clicar com o botão direito. Deslize para rolar. Faça pinça para dar zoom.</item>
     <item>Três dedos para o lado alternam as áreas de trabalho, para cima abrem a Visão de Tarefas e para baixo mostram a área de trabalho. Quatro dedos para o lado percorrem os apps abertos. Toques abrem a pesquisa ou as notificações.</item>
-    <item>Deslize ao longo de uma régua; sentido horário aumenta. Toque nela para silenciar, tocar, redefinir o zoom ou abrir a Visão de Tarefas.</item>
-    <item>Configurações da superfície › Cantos escolhe cada régua e pode dividir cada canto em duas, uma em cada borda. Sensação da régua define sensibilidade, tamanho e resposta tátil. Touchpad reatribui o restante.</item>
+    <item>Deslize ao longo de uma régua; o sentido horário aumenta. Toque nela para silenciar, tocar, redefinir o zoom ou abrir a Visão de Tarefas.</item>
+    <item>Configurações da superfície › Cantos escolhe cada régua e pode dividir cada canto em duas, uma em cada borda. Ajuste das réguas define sensibilidade, tamanho e resposta tátil. Touchpad reatribui o restante.</item>
   </string-array>
 
   <string name="guide_keyboard_kicker">4 · Teclado</string>
@@ -83,7 +83,7 @@
   </string-array>
 
   <string name="guide_gamepad_kicker">5 · Gamepad</string>
-  <string name="guide_gamepad_title">Um controle no seu bolso.</string>
+  <string name="guide_gamepad_title">Um gamepad no seu bolso.</string>
   <string-array name="guide_gamepad_keys">
     <item>Abrir</item>
     <item>Predefinições</item>
@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>O ícone Controles no alto da superfície e depois Gamepad. Ele abre em paisagem.</item>
-    <item>Xbox, Plataforma, Corrida e Tiro, escolhidos nas Configurações do gamepad, atrás da engrenagem no gamepad.</item>
+    <item>Xbox, Platformer, Racing e Shooter. Você escolhe nas Configurações do gamepad, que abrem pela engrenagem.</item>
     <item>Segure e deslize um analógico, toque nos botões. Vários dedos ao mesmo tempo funcionam.</item>
     <item>Configurações do gamepad › Editar layout. Arraste os controles para onde seus polegares alcançam; mantenha um pressionado para redimensioná-lo.</item>
   </string-array>
@@ -109,8 +109,8 @@
   <string-array name="guide_connect_values">
     <item>Instale e abra o Edgepad. Ele fica no canto da barra de tarefas, na barra de menus ou na bandeja do sistema.</item>
     <item>Pareie o notebook nas configurações de Bluetooth deste celular e depois toque nele em Dispositivos.</item>
-    <item>Ative Conexões Wi-Fi e USB no menu do Edgepad no notebook (no Mac, Conexões Wi-Fi). Para USB, ative também o Tethering USB no celular.</item>
-    <item>Na primeira vez, o notebook pergunta se deve confiar neste celular: escolha Confiar nele. Se pedir um PIN, digite-o aqui.</item>
+    <item>Ative “Conexões Wi-Fi e USB” no menu do Edgepad no notebook (no Mac, “Conexões Wi-Fi”). Para USB, ative também “Tethering USB” no celular.</item>
+    <item>Na primeira vez, o notebook pergunta se deve confiar neste celular: escolha Confiar lá. Se pedir um PIN, digite-o aqui.</item>
     <item>Desde o Android 10, só o app na tela pode ler a área de transferência; por isso, o que você copia em outro app chega ao notebook quando você volta ao Edgepad. Ou use Compartilhar e depois Edgepad para enviar um texto ou uma imagem na hora.</item>
   </string-array>
 
@@ -126,6 +126,6 @@
   <string name="guide_art_move">1 · Mover</string>
   <string name="guide_art_scroll">2 · Rolar</string>
   <string name="guide_art_swipe">3 · Deslizar</string>
-  <string name="guide_art_latch">Ctrl, Alt e Shift valem para a próxima tecla</string>
-  <string name="guide_art_presets">Xbox · Plataforma · Corrida · Tiro</string>
+  <string name="guide_art_latch">Ctrl, Alt e Shift ficam ativas para a próxima tecla</string>
+  <string name="guide_art_presets">Xbox · Platformer · Racing · Shooter</string>
 </resources>

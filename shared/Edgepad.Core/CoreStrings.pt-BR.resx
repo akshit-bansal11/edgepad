@@ -34,7 +34,7 @@
     <value>Um celular bloqueado após PINs errados foi recusado</value>
   </data>
   <data name="Status_RefusedUntrusted" xml:space="preserve">
-    <value>Um celular em que não se confia foi recusado</value>
+    <value>Um celular não confiável foi recusado</value>
   </data>
   <data name="Status_RefusedPin" xml:space="preserve">
     <value>Um celular que não informou o PIN correto foi recusado</value>

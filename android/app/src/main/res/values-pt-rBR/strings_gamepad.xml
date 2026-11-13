@@ -4,7 +4,7 @@
   <string name="gamepad_layout_editing">Editando %1$s</string>
   <string name="gamepad_layout_hint">Arraste para mover. Mantenha um controle pressionado para abrir o menu dele.</string>
   <string name="gamepad_layout_section">Layouts</string>
-  <string name="gamepad_description">Controle de jogo para o notebook. Funciona só por toque.</string>
+  <string name="gamepad_description">Gamepad para o notebook. Funciona só por toque.</string>
   <string name="gamepad_node_dpad">D-pad</string>
   <string name="gamepad_node_stick">Analógico</string>
   <string name="gamepad_node_button">Botão</string>
