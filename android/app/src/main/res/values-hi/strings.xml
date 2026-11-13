@@ -161,8 +161,8 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 डायल, बंटे हुए</string>
   <string name="media_layout_title">मीडिया लेआउट</string>
-  <string name="media_layout_hint_upright">यह पोर्ट्रेट लेआउट है; लैंडस्केप वाला सजाने के लिए फ़ोन घुमाएं। किसी हिस्से को खींचकर खिसकाएं। वह ग्रिड और बीच की रेखाओं से चिपकता है।</string>
-  <string name="media_layout_hint_sideways">यह लैंडस्केप लेआउट है; पोर्ट्रेट वाला सजाने के लिए फ़ोन घुमाएं। किसी हिस्से को खींचकर खिसकाएं। वह ग्रिड और बीच की रेखाओं से चिपकता है।</string>
+  <string name="media_layout_hint_upright">यह पोर्ट्रेट लेआउट है; लैंडस्केप वाला सेट करने के लिए फ़ोन घुमाएं। किसी हिस्से को खींचकर खिसकाएं। वह ग्रिड और बीच की रेखाओं से चिपकता है।</string>
+  <string name="media_layout_hint_sideways">यह लैंडस्केप लेआउट है; पोर्ट्रेट वाला सेट करने के लिए फ़ोन घुमाएं। किसी हिस्से को खींचकर खिसकाएं। वह ग्रिड और बीच की रेखाओं से चिपकता है।</string>
   <string name="piece_now_playing">अभी चल रहा है</string>
   <string name="piece_transport">पिछला · प्ले · अगला</string>
   <string name="media_layout_reset">जगह रीसेट करें</string>
@@ -411,7 +411,7 @@
   <string name="controls_title">कंट्रोल</string>
   <string name="controls_move_hint">किसी टाइल को खिसकाने के लिए उसे दबाए रखें।</string>
   <string name="controls_hide_dials">डायल और मीडिया छिपाएं</string>
-  <string name="controls_blackout">खाली रहने पर स्क्रीन काली करें</string>
+  <string name="controls_blackout">इस्तेमाल न होने पर स्क्रीन काली करें</string>
   <string name="controls_open">%1$s खोलें</string>
   <string name="controls_needs_newer">इसके लिए इस लैपटॉप पर Edgepad का नया वर्शन चाहिए। उसे अपडेट करें, फिर दोबारा कनेक्ट करें।</string>
   <string name="controls_keyboard">कीबोर्ड</string>
@@ -424,7 +424,7 @@
   <string name="capture_stop">रिकॉर्डिंग रोकें</string>
   <string name="capture_recording">लैपटॉप पर रिकॉर्डिंग चल रही है। खत्म करने के लिए \"रिकॉर्डिंग रोकें\" पर टैप करें; \"यहां सेव करें\" में फ़ोन चुना हो तो फ़ाइल तभी आएगी।</string>
   <string name="capture_sent">लैपटॉप पर भेजा गया: %1$s</string>
-  <string name="capture_hint">किसी हिस्से के लिए \"हिस्सा\" पर टैप करें, फिर टचपैड पर टैप करके दबाए रखें और उंगली हिलाकर इलाका चुनें।</string>
+  <string name="capture_hint">किसी हिस्से के लिए \"हिस्सा\" पर टैप करें, फिर टचपैड पर टैप करके दबाए रखें और उंगली हिलाकर हिस्सा चुनें।</string>
   <string name="capture_save_to">यहां सेव करें</string>
   <string name="capture_save_laptop">लैपटॉप</string>
   <string name="capture_save_phone">फ़ोन</string>
@@ -498,7 +498,7 @@
   <string name="macros_per_page_caption">एक पेज पर कितने मैक्रो दिखें। बाकी अगले पेजों पर जारी रहते हैं, जहां उंगली को बगल में सरकाकर पहुंचा जा सकता है। किसी मैक्रो को उसके पेज में खिसकाने के लिए उसे दबाए रखें, फिर खींचें।</string>
   <string name="macros_page_of">%2$d में से पेज %1$d</string>
   <string name="macros_empty_title">अभी कोई मैक्रो नहीं</string>
-  <string name="macros_empty_body">इन्हें लैपटॉप के ट्रे में Edgepad के \"मैक्रो…\" मेन्यू से जोड़ें। लैपटॉप सूची भेजते ही ये यहां दिखने लगते हैं।</string>
+  <string name="macros_empty_body">इन्हें लैपटॉप पर टास्कबार के कोने में Edgepad के \"मैक्रो…\" मेन्यू से जोड़ें। लैपटॉप सूची भेजते ही ये यहां दिखने लगते हैं।</string>
   <string name="macros_empty_body_mac">इन्हें Mac के मेन्यू बार में Edgepad के \"मैक्रो…\" मेन्यू से जोड़ें। Mac सूची भेजते ही ये यहां दिखने लगते हैं।</string>
   <string name="macros_loading">मैक्रो लोड हो रहे हैं…</string>
 

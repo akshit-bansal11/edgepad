@@ -47,7 +47,7 @@ Everyday Hindi as Indian phone users read it: "आप" with polite imperatives (
 | keyboard | कीबोर्ड |
 | function keys, With Fn, Direct | फ़ंक्शन कीज़, Fn के साथ, सीधे |
 | gamepad | गेमपैड |
-| layout, preset | लेआउट, प्रीसेट |
+| layout, preset | लेआउट, प्रीसेट (Xbox कीज़, प्लेटफ़ॉर्मर, रेसिंग, शूटर) |
 | binding | बाइंडिंग |
 | D-pad, stick, button, shoulder, trigger | D-पैड, स्टिक, बटन, शोल्डर, ट्रिगर |
 | keyboard mode | कीबोर्ड मोड |
@@ -79,7 +79,7 @@ Everyday Hindi as Indian phone users read it: "आप" with polite imperatives (
 | theme: System, Dark, Light | थीम: सिस्टम, डार्क, लाइट |
 | upright, sideways | पोर्ट्रेट, लैंडस्केप |
 | control colour | कंट्रोल का रंग |
-| the tray app | ट्रे ऐप (Windows में "टास्कबार का कोना" / सिस्टम ट्रे) |
+| the tray app | टास्कबार का कोना (Android macros hint and Windows alike); "ट्रे आइकन" for the icon |
 | Wi-Fi and USB connections | वाई-फ़ाई और USB कनेक्शन |
 | firewall | फ़ायरवॉल |
 | update, release notes, release page, major release | अपडेट, रिलीज़ नोट्स, रिलीज़ पेज, बड़ी रिलीज़ |

@@ -76,16 +76,16 @@
     <value>"Windows के साथ शुरू करें" सेव नहीं हो सका, इसलिए Edgepad अपने-आप शुरू नहीं होगा। वजह लॉग में है।</value>
   </data>
   <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
-    <value>"क्लिपबोर्ड शेयर करें" अभी के लिए बदल गया, पर सेव नहीं हो सका, इसलिए अगली बार शुरू होने पर याद न रहे।</value>
+    <value>"क्लिपबोर्ड शेयर करें" अभी के लिए बदल गया, पर सेव नहीं हो सका, इसलिए हो सकता है कि अगली बार शुरू होने पर यह याद न रहे।</value>
   </data>
   <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
-    <value>"रोज़ अपडेट जांचें" अभी के लिए बदल गया, पर सेव नहीं हो सका, इसलिए अगली बार शुरू होने पर याद न रहे।</value>
+    <value>"रोज़ अपडेट जांचें" अभी के लिए बदल गया, पर सेव नहीं हो सका, इसलिए हो सकता है कि अगली बार शुरू होने पर यह याद न रहे।</value>
   </data>
   <data name="Balloon_NewFile" xml:space="preserve">
     <value>Edgepad का यह वर्शन नई फ़ाइल है, इसलिए Windows एक बार पूछेगा कि फ़ोन को इस तक पहुंचने दें।</value>
   </data>
   <data name="Balloon_FirewallNotChanged" xml:space="preserve">
-    <value>Windows फ़ायरवॉल नहीं बदला, इसलिए फ़ोन इस लैपटॉप तक न पहुंच पाएं। इस मेन्यू में "Windows फ़ायरवॉल से अनुमति दें" फिर कोशिश करता है।</value>
+    <value>Windows फ़ायरवॉल नहीं बदला, इसलिए हो सकता है कि फ़ोन इस लैपटॉप तक न पहुंच पाएं। इस मेन्यू में "Windows फ़ायरवॉल से अनुमति दें" फिर कोशिश करता है।</value>
   </data>
   <data name="Balloon_MacroAdded" xml:space="preserve">
     <value>आपके फ़ोन से {0} जोड़ा गया</value>
@@ -178,7 +178,7 @@
     <value>भरोसा न करें</value>
   </data>
   <data name="Dialog_TrustText" xml:space="preserve">
-    <value>एक पेयर किया हुआ फ़ोन इस लैपटॉप का पॉइंटर और कीबोर्ड चलाने की अनुमति मांग रहा है। उस पर तभी भरोसा करें जब वह आपका हो। {0} सेकंड में जवाब न दिया, तो उस पर भरोसा नहीं किया जाएगा।</value>
+    <value>एक पेयर किया हुआ फ़ोन इस लैपटॉप का पॉइंटर और कीबोर्ड चलाने की अनुमति मांग रहा है। उस पर तभी भरोसा करें जब वह आपका हो। अगर आपने {0} सेकंड में जवाब नहीं दिया, तो उस पर भरोसा नहीं किया जाएगा।</value>
   </data>
   <data name="Dialog_TrustHeading" xml:space="preserve">
     <value>{0} पर भरोसा करें?</value>
@@ -393,7 +393,7 @@
     <value>सेव न करें</value>
   </data>
   <data name="Macro_SaveHeading" xml:space="preserve">
-    <value>मैक्रो में किए बदलाव सेव करें?</value>
+    <value>मैक्रो में किए गए बदलाव सेव करें?</value>
   </data>
   <data name="Macro_SaveText" xml:space="preserve">
     <value>सेव न करने पर आपके बदलाव खो जाएंगे।</value>
