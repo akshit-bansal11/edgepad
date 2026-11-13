@@ -438,6 +438,9 @@ internal sealed class PinDialog : Form
     private readonly Label heading = new() { AutoSize = false, Text = Strings.Pin_Title };
     private readonly Label firstLabel = new() { AutoSize = false, Text = Strings.Pin_Digits };
     private readonly Label againLabel = new() { AutoSize = false, Text = Strings.Pin_Again };
+
+    // Where a refused PIN says why, in the danger ink, under the fields; empty until then. Its slot is always reserved.
+    private readonly Label problem = new() { AutoSize = false, AccessibleRole = AccessibleRole.Alert };
     private readonly Framed firstFrame;
     private readonly Framed againFrame;
     private readonly FlatButton cancel;
@@ -467,13 +470,17 @@ internal sealed class PinDialog : Form
             box.KeyPress += (_, e) => e.Handled = !char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar);
 
             // A paste skips KeyPress.
-            box.TextChanged += (_, _) => DigitInput.Apply(box, Pin.Length);
+            box.TextChanged += (_, _) =>
+            {
+                DigitInput.Apply(box, Pin.Length);
+                problem.Text = "";
+            };
         }
 
         ok.Click += (_, _) => Check();
         AcceptButton = ok;
         CancelButton = cancel;
-        Controls.AddRange([heading, firstLabel, firstFrame, againLabel, againFrame, cancel, ok]);
+        Controls.AddRange([heading, firstLabel, firstFrame, againLabel, againFrame, problem, cancel, ok]);
         Relayout();
     }
 
@@ -510,13 +517,22 @@ internal sealed class PinDialog : Form
             y += label.Height + gap;
         }
 
+        int Measure(string words) =>
+            TextRenderer.MeasureText(words, problem.Font, new Size(width, 0), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height;
+
         Put(heading, 18f, Weight.Bold, S(14));
         Put(firstLabel, 14f, Weight.Bold, S(6));
         firstFrame.Place(new Rectangle(left, y, width, S(Box)), DeviceDpi);
         y += S(Box + 14);
         Put(againLabel, 14f, Weight.Bold, S(6));
         againFrame.Place(new Rectangle(left, y, width, S(Box)), DeviceDpi);
-        y += S(Box + 18);
+        y += S(Box + 6);
+        problem.Font = Theme.Font(Theme.Scale(13f, DeviceDpi), Weight.Regular);
+        problem.ForeColor = palette.Danger;
+        problem.BackColor = palette.Card;
+        var room = Math.Max(Measure(Strings.Pin_NotSix), Measure(Strings.Pin_Mismatch));
+        problem.SetBounds(left, y, width, room);
+        y += room + S(12);
 
         ok.SetBounds(left + width - ok.FitWidth(DeviceDpi), y, ok.FitWidth(DeviceDpi), S(Box));
         cancel.SetBounds(ok.Left - S(8) - cancel.FitWidth(DeviceDpi), y, cancel.FitWidth(DeviceDpi), S(Box));
@@ -543,7 +559,7 @@ internal sealed class PinDialog : Form
 
     private void Refuse(string message, TextBox where)
     {
-        Ask.Message(this, message, Strings.Pin_Title, MessageBoxIcon.Warning);
+        problem.Text = message;
         where.Focus();
     }
 }
