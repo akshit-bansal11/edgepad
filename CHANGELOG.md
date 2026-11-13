@@ -7,6 +7,11 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 ### Added
 
 - **Phone: Black out when idle,** a switch in the Controls popup, off by default. Ten seconds after the last touch the control surface turns pure black and dims the screen, so the rulers and labels do not burn into an OLED panel. The next touch brings everything back and still counts, so a dial or gesture works without looking. The gamepad screen is unchanged. ([#56](https://github.com/akshit-bansal11/edgepad/issues/56))
+- **Phone and Windows: 14 more languages.** Simplified Chinese, Spanish, Hindi, German, French, Portuguese (Brazil), Japanese, Arabic, Russian, Korean, Italian, Dutch, Turkish and Polish, alongside English. The phone follows the system language, and on Android 13 and later Edgepad can have its own under Settings › Apps › Edgepad › Language. The Windows app follows the Windows display language. A missing string falls back to English. Durations ("5 minutes ago") use the system's own wording. Chinese, Japanese, Korean, Hindi, Arabic, Russian and Turkish use the system font, because Lato has no letters for them. In Arabic the settings, guide and laptop windows read right to left, while the control surface keeps its physical sides. Logs, error codes and the wire protocol stay English. How to change or add a string: `docs/i18n/README.md`. ([#63](https://github.com/akshit-bansal11/edgepad/issues/63))
+
+### Changed
+
+- **Windows and Linux: the connection status is a value, not text.** Both decide what the status means from its kind rather than by reading its English wording, so the wording can be translated. The Windows app no longer runs with invariant globalization.
 
 ## [4.1.0] - 2026-11-10
 
