@@ -26,11 +26,7 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
     /// What the box keeps of what was typed or pasted: its digits, at most six. "482 913", as a phone groups the
     /// code, reads as 482913.
     /// </summary>
-    public static string Digits(string typed)
-    {
-        var digits = new string([.. typed.Where(char.IsAsciiDigit)]);
-        return digits.Length > LinkCrypto.CodeDigits ? digits[..LinkCrypto.CodeDigits] : digits;
-    }
+    public static string Digits(string typed) => DigitInput.Normalize(typed, LinkCrypto.CodeDigits);
 
     /// <summary>Whether <paramref name="typed"/> is a whole code, so Pair may be pressed.</summary>
     public static bool Complete(string typed) => Digits(typed).Length == LinkCrypto.CodeDigits;
@@ -115,8 +111,8 @@ internal sealed class PairingWindow : Form
     {
         BorderStyle = BorderStyle.None,
 
-        // One more than the code, so a pasted "482 913" arrives whole before it is cut down to its digits.
-        MaxLength = LinkCrypto.CodeDigits + 1,
+        // Wide, so a paste arrives whole before DigitInput cuts it down to its digits.
+        MaxLength = DigitInput.PasteLimit,
         AccessibleName = Strings.Pair_CodeName,
     };
 
@@ -159,20 +155,10 @@ internal sealed class PairingWindow : Form
         codeFrame = new Framed(code, palette, radius: 8, inset: 12);
         cancel = new FlatButton(Strings.Common_Cancel, ButtonKind.Outline, palette);
         pair = new FlatButton(Strings.Pair_Button, ButtonKind.Primary, palette) { Enabled = false };
-        code.KeyPress += (_, e) => e.Handled = !char.IsControl(e.KeyChar) && !char.IsAsciiDigit(e.KeyChar);
+        code.KeyPress += (_, e) => e.Handled = !char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar);
 
         // A paste skips KeyPress.
-        code.TextChanged += (_, _) =>
-        {
-            var digits = PairingPrompt.Digits(code.Text);
-            if (digits != code.Text)
-            {
-                code.Text = digits;
-                code.SelectionStart = digits.Length;
-            }
-
-            pair.Enabled = PairingPrompt.Complete(digits);
-        };
+        code.TextChanged += (_, _) => pair.Enabled = PairingPrompt.Complete(DigitInput.Apply(code, LinkCrypto.CodeDigits));
 
         pair.Click += (_, _) => Answer();
         cancel.Click += (_, _) => Close();

@@ -423,7 +423,7 @@ internal sealed class PinDialog : Form
     {
         BorderStyle = BorderStyle.None,
         UseSystemPasswordChar = true,
-        MaxLength = Pin.Length,
+        MaxLength = DigitInput.PasteLimit,
         AccessibleName = Strings.Pin_Title,
     };
 
@@ -431,7 +431,7 @@ internal sealed class PinDialog : Form
     {
         BorderStyle = BorderStyle.None,
         UseSystemPasswordChar = true,
-        MaxLength = Pin.Length,
+        MaxLength = DigitInput.PasteLimit,
         AccessibleName = Strings.Pin_AgainName,
     };
 
@@ -464,17 +464,10 @@ internal sealed class PinDialog : Form
         ok = new FlatButton(Strings.Pin_Use, ButtonKind.Primary, palette) { DialogResult = DialogResult.OK };
         foreach (var box in new[] { first, again })
         {
-            box.KeyPress += (_, e) => e.Handled = !char.IsControl(e.KeyChar) && !char.IsAsciiDigit(e.KeyChar);
+            box.KeyPress += (_, e) => e.Handled = !char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar);
 
             // A paste skips KeyPress.
-            box.TextChanged += (_, _) =>
-            {
-                var digits = new string([.. box.Text.Where(char.IsAsciiDigit)]);
-                if (digits != box.Text)
-                {
-                    box.Text = digits;
-                }
-            };
+            box.TextChanged += (_, _) => DigitInput.Apply(box, Pin.Length);
         }
 
         ok.Click += (_, _) => Check();

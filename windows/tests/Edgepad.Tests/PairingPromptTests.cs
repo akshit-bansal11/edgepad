@@ -14,6 +14,11 @@ public sealed class PairingPromptTests
     [InlineData("482 913", "482913")]
     [InlineData("482-913", "482913")]
     [InlineData("1234567", "123456")]
+    [InlineData(" 482 913", "482913")]
+    [InlineData("Code: 482 - 913", "482913")]
+    [InlineData("４８２９１３", "482913")]
+    [InlineData("٤٨٢٩١٣", "482913")]
+    [InlineData("1234567890123", "123456")]
     [InlineData("12a", "12")]
     [InlineData("", "")]
     public void OnlyTheFirstSixDigitsAreKept(string typed, string kept)
