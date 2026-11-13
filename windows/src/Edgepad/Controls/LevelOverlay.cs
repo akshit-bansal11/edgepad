@@ -267,9 +267,8 @@ internal sealed class LevelOverlay : IDisposable
         /// </summary>
         private const double Solid = 0.88;
 
-        /// <summary>How long the panel stays up after the last frame, and how much of that tail it spends fading.</summary>
+        /// <summary>How long the panel stays up after the last frame; the tail of it is spent fading, for <see cref="Theme.Motion.Base"/>.</summary>
         private const long VisibleMs = 1200;
-        private const long FadeMs = 220;
 
         /// <summary>
         /// The overlay lies over whatever is already on screen, so it is always the dark form — there is no
@@ -277,6 +276,8 @@ internal sealed class LevelOverlay : IDisposable
         /// </summary>
         private static readonly Palette Colours = Palette.Dark;
 
+        // Known limit (UX-D25): WinForms has no interpolator, so the fade is stepped by hand. AnimateWindow is not used: it
+        // does not mix with the click-through layered form and its Region.
         private readonly System.Windows.Forms.Timer clock = new() { Interval = 25 };
         private readonly StringFormat typographic = new(Typographic | (Theme.IsRtl ? StringFormatFlags.DirectionRightToLeft : 0));
 
@@ -398,9 +399,10 @@ internal sealed class LevelOverlay : IDisposable
                 return;
             }
 
-            if (left < FadeMs && Theme.AnimationsEnabled)
+            var fade = Theme.Motion.Base;
+            if (left < fade)
             {
-                Opacity = Solid * left / FadeMs;
+                Opacity = Solid * left / fade;
             }
         }
 

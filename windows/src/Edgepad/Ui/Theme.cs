@@ -283,6 +283,22 @@ internal static partial class Theme
         SystemInformation.UIEffectsEnabled && (!Native.SystemParametersInfoW(SpiGetClientAreaAnimation, 0, out var on, 0) || on != 0);
 
     /// <summary>
+    /// The durations of every transition, in milliseconds. All at most 300, and all zero while Windows has animations
+    /// off, so a caller that steps by them simply jumps. Read live, never cached: the setting can change while the app runs.
+    /// </summary>
+    public static class Motion
+    {
+        /// <summary>Small, local changes.</summary>
+        public static int Fast => AnimationsEnabled ? 120 : 0;
+
+        /// <summary>A panel appearing or going away.</summary>
+        public static int Base => AnimationsEnabled ? 220 : 0;
+
+        /// <summary>The longest a transition may take.</summary>
+        public static int Slow => AnimationsEnabled ? 300 : 0;
+    }
+
+    /// <summary>
     /// Asks Windows 11 for rounded corners and a border in <paramref name="border"/>. False on Windows 10, which
     /// has neither attribute, and the window keeps its square corners there.
     /// </summary>
