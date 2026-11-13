@@ -175,7 +175,7 @@
   <string name="media_layout_hint_upright">To układ pionowy; obróć telefon, aby ułożyć poziomy. Przeciągnij element, aby go przesunąć. Przyciąga się do siatki i linii środkowych.</string>
   <string name="media_layout_hint_sideways">To układ poziomy; obróć telefon, aby ułożyć pionowy. Przeciągnij element, aby go przesunąć. Przyciąga się do siatki i linii środkowych.</string>
   <string name="piece_now_playing">Teraz odtwarzane</string>
-  <string name="piece_transport">Poprzedni · odtwarzanie · następny</string>
+  <string name="piece_transport">Poprzedni · odtwórz · następny</string>
   <string name="media_layout_reset">Zresetuj położenie</string>
   <string name="media_layout_reset_confirm">Zresetować położenie? Stuknij ponownie</string>
   <string name="editor_options">Opcje</string>
@@ -292,7 +292,7 @@
   <string name="shapes_none">Jeszcze nic</string>
   <string name="shapes_footnote">Naciśnij i przytrzymaj touchpad, aż linia stanie się ciągła (przy włączonej reakcji haptycznej poczujesz też stuknięcie), a potem rysuj bez odrywania palca.</string>
   <string name="shapes_empty_title">Brak kształtów</string>
-  <string name="shapes_empty_body">Narysuj tu kształt i przypisz mu coś do uruchamiania. Na touchpadzie naciśnij i przytrzymaj, aż linia stanie się ciągła, a potem narysuj kształt bez odrywania palca.</string>
+  <string name="shapes_empty_body">Narysuj tu kształt i wybierz, co ma uruchamiać. Na touchpadzie naciśnij i przytrzymaj, aż linia stanie się ciągła, a potem narysuj kształt bez odrywania palca.</string>
   <string name="shapes_add">Narysuj kształt</string>
   <string name="shapes_draw_title">Narysuj kształt</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -303,7 +303,7 @@
   <string name="shapes_save">Zapisz</string>
   <string name="shapes_delete">Usuń</string>
   <string name="shapes_delete_title">Usunąć ten kształt?</string>
-  <string name="shapes_delete_body">Jego narysowanie nie będzie już uruchamiać: %1$s.</string>
+  <string name="shapes_delete_body">Narysowanie go nie uruchomi już: %1$s.</string>
   <string name="shapes_too_close">Jest zbyt podobny do kształtu, który już masz. Narysuj bardziej wyrazisty.</string>
   <string name="shapes_too_short">Jest zbyt mały, by go rozpoznać. Narysuj go większy.</string>
   <string name="shape_runs">Uruchamia: %1$s</string>

@@ -29,7 +29,7 @@ Where a laptop, phone or app name would need declension, the string is reworded 
 |---|---|
 | surface, control surface | powierzchnia sterowania |
 | dial | suwak (corner dial: suwak w rogu) |
-| edge ruler, ruler | skala |
+| edge ruler, ruler | suwak (the same word; "skala" only for the drawn tick scale, never in running text) |
 | corner | róg |
 | split corners | Podziel rogi |
 | volume | Głośność (GŁOŚ) |

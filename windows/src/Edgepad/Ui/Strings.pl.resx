@@ -19,7 +19,7 @@
     <value>Udostępnij schowek: kopiuj na jednym urządzeniu, wklejaj na drugim, tekst i obrazy. Opcja jest wyłączona, dopóki jej nie zaznaczysz.</value>
   </data>
   <data name="Network_WhereItLives" xml:space="preserve">
-    <value>Edgepad działa w obszarze powiadomień. Jeśli nie widzisz jego ikony, kliknij ^ i przeciągnij ją na pasek. Aby użyć Bluetooth, najpierw sparuj telefon w ustawieniach Bluetooth systemu Windows, a potem otwórz Edgepad na telefonie.</value>
+    <value>Edgepad działa w obszarze powiadomień. Jeśli nie widzisz jego ikony, kliknij ^ i przeciągnij ją na pasek zadań. Aby użyć Bluetooth, najpierw sparuj telefon w ustawieniach Bluetooth systemu Windows, a potem otwórz Edgepad na telefonie.</value>
   </data>
   <data name="Menu_StartWithWindows" xml:space="preserve">
     <value>&amp;Uruchamiaj z systemem Windows</value>
@@ -148,22 +148,28 @@
     <value>Zabezpieczenia</value>
   </data>
   <data name="Error_ForgetOne" xml:space="preserve">
-    <value>Spróbuj ponownie użyć „Zapomnij”, gdy nic innego nie będzie używać plików Edgepad w {0}. Nie udało się całkowicie zapomnieć telefonu: {1}, bo nie można było przepisać pliku. Nadal jest zaufany na dysku, ale Edgepad go odrzuca do ponownego uruchomienia, a potem znów będzie zaufany, jeśli nie zapomnisz go ponownie.</value>
+    <value>Wybierz „Zapomnij” ponownie, gdy nic innego nie będzie używać plików Edgepad w {0}. Nie udało się całkowicie zapomnieć telefonu: {1}, bo nie można było zapisać pliku na nowo. Na dysku nadal jest zaufany; Edgepad odrzuca go do ponownego uruchomienia, ale potem znów będzie zaufany, jeśli nie zapomnisz go ponownie.</value>
   </data>
   <data name="Error_ForgetAllTrust" xml:space="preserve">
     <value>Zamknij to, co blokuje plik zaufanych telefonów, a potem ponownie wybierz „Zapomnij wszystkie” albo usuń go samodzielnie:
 
-{0}</value>
+{0}
+
+Nie udało się zapomnieć zaufanych telefonów: nie można było usunąć ani opróżnić ich pliku. Dopóki Edgepad działa, żaden telefon nie może się połączyć, ale przy następnym uruchomieniu Edgepad te telefony znów będą zaufane.</value>
   </data>
   <data name="Error_ForgetAllPin" xml:space="preserve">
     <value>Ponownie wybierz „Zapomnij wszystkie” albo samodzielnie usuń plik pin-verified.txt z:
 
-{0}</value>
+{0}
+
+Nie udało się zapomnieć telefonów, które wpisały PIN: nie można było usunąć ich listy. Dopóki Edgepad działa, każdy telefon jest pytany o PIN przy każdym połączeniu, ale przy następnym uruchomieniu Edgepad te telefony znów pominą go na poziomie 2.</value>
   </data>
   <data name="Error_ForgetLinks" xml:space="preserve">
     <value>Ponownie wybierz „Zapomnij wszystkie” albo samodzielnie usuń plik paired-links.txt z:
 
-{0}</value>
+{0}
+
+Nie udało się zapomnieć sparowań Wi-Fi i USB: nie można było usunąć ani opróżnić ich pliku. Dopóki Edgepad działa, sparowane telefony nie mogą łączyć się ponownie przez Wi-Fi ani USB, ale po następnym uruchomieniu Edgepad będą mogły.</value>
   </data>
   <data name="Dialog_Trust" xml:space="preserve">
     <value>Zaufaj</value>
@@ -172,7 +178,7 @@
     <value>Nie ufaj</value>
   </data>
   <data name="Dialog_TrustText" xml:space="preserve">
-    <value>Sparowany telefon prosi o sterowanie wskaźnikiem i klawiaturą tego laptopa. Zaufaj mu tylko wtedy, gdy jest Twój. Jeśli nie odpowiesz w ciągu {0} s, nie otrzyma zaufania.</value>
+    <value>Sparowany telefon prosi o sterowanie wskaźnikiem i klawiaturą tego laptopa. Zaufaj mu tylko wtedy, gdy jest Twój. Jeśli nie odpowiesz w ciągu {0} s, nie zostanie uznany za zaufany.</value>
   </data>
   <data name="Dialog_TrustHeading" xml:space="preserve">
     <value>Zaufać: {0}?</value>
@@ -190,7 +196,7 @@
     <value>Nowy telefon potrzebuje Twojej zgody tutaj. Nic więcej nie jest wymagane.</value>
   </data>
   <data name="Security_Level2Note" xml:space="preserve">
-    <value>Telefon dodatkowo raz wpisuje PIN. Jest zapamiętany do zmiany PIN lub poziomu.</value>
+    <value>Telefon dodatkowo raz wpisuje PIN, który zostaje zapamiętany do zmiany PIN lub poziomu.</value>
   </data>
   <data name="Security_Level3Note" xml:space="preserve">
     <value>Telefon wpisuje PIN przy każdym połączeniu.</value>
@@ -273,12 +279,16 @@
   <data name="Error_ResetTrust" xml:space="preserve">
     <value>Zamknij to, co blokuje plik, a potem ponownie wybierz „Resetuj PIN i zapomnij telefony” albo usuń go samodzielnie:
 
-{0}</value>
+{0}
+
+Nic nie zresetowano: nie udało się zapomnieć zaufanych telefonów, więc PIN i poziom pozostały bez zmian. Dopóki Edgepad działa, żaden telefon nie może się połączyć, ale przy następnym uruchomieniu Edgepad te telefony znów będą zaufane, z tym samym PIN.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
     <value>Zamknij to, co blokuje plik, a potem ponownie wybierz „Resetuj PIN i zapomnij telefony” albo samodzielnie usuń security.txt i pin-verified.txt z:
 
-{0}</value>
+{0}
+
+Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można było usunąć pliku ustawień, więc stary PIN i poziom mogą nadal obowiązywać. Każdemu telefonowi trzeba tutaj ponownie zaufać.</value>
   </data>
   <data name="Pin_Title" xml:space="preserve">
     <value>Nowy PIN</value>

@@ -14,5 +14,5 @@
   <string name="keyboard_with_fn">Z Fn</string>
   <string name="keyboard_direct">Bezpośrednio</string>
   <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
-  <string name="keyboard_function_keys_caption">Z Fn: górny rząd robi to, co na nim narysowano (jasność, multimedia, głośność), a Fn z klawiszem wysyła F1 do F12. Na układach 65%% i 60%%, które nie mają rzędu F, rząd cyfr wpisuje cyfry, a Fn z cyfrą wysyła F1 do F12. Bezpośrednio: górny rząd wysyła F1 do F12, a Fn z klawiszem wykonuje narysowaną na nim czynność; na układach 65%% i 60%% rząd cyfr wysyła F1 do F12, a Fn z cyfrą wpisuje tę cyfrę.</string>
+  <string name="keyboard_function_keys_caption">Z Fn: górny rząd robi to, co pokazują jego symbole (jasność, multimedia, głośność), a Fn z klawiszem wysyła F1 do F12. Na układach 65%% i 60%%, które nie mają rzędu F, rząd cyfr wpisuje cyfry, a Fn z cyfrą wysyła F1 do F12. Bezpośrednio: górny rząd wysyła F1 do F12, a Fn z klawiszem wykonuje czynność pokazaną na klawiszu; na układach 65%% i 60%% rząd cyfr wysyła F1 do F12, a Fn z cyfrą wpisuje tę cyfrę.</string>
 </resources>

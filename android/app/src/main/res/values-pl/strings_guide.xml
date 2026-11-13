@@ -41,7 +41,7 @@
   </string-array>
   <string-array name="guide_anatomy_values">
     <item>Cała środkowa część ekranu. Tu zaczyna się każdy gest palcami.</item>
-    <item>Skale wpasowane w rogi albo podzielone po dwie na róg: głośność, jasność, powiększenie, przewijanie utworu, przełącznik aplikacji, częstotliwość odświeżania, przewijanie, pulpity wirtualne, karty przeglądarki lub suwak Zmiana laptopa.</item>
+    <item>Suwaki wpasowane w rogi albo podzielone po dwie na róg: głośność, jasność, powiększenie, przewijanie utworu, przełącznik aplikacji, częstotliwość odświeżania, przewijanie, pulpity wirtualne, karty przeglądarki lub suwak Zmiana laptopa.</item>
     <item>To, co jest odtwarzane, a pod spodem przyciski poprzedni, odtwarzanie i następny, gdy otwarty jest odtwarzacz. Przesuń je i zmień ich rozmiar w ustawieniach powierzchni sterowania.</item>
     <item>Pełna klawiatura, której klawisze modyfikujące działają przytrzymane lub stuknięte, za przyciskiem Sterowanie.</item>
     <item>Gałki, krzyżak i przyciski w czterech gotowych układach albo we własnym.</item>
@@ -63,8 +63,8 @@
     <item>Przesuwa wskaźnik. Stuknięcie klika. Stuknij, przytrzymaj i przesuń, aby przeciągać.</item>
     <item>Stuknięcie to kliknięcie prawym przyciskiem. Przesuwanie przewija. Szczypnięcie powiększa.</item>
     <item>Trzy palce w bok zmieniają pulpity, w górę otwierają widok zadań, w dół pokazują pulpit. Cztery palce w bok przełączają otwarte aplikacje. Stuknięcia otwierają wyszukiwanie lub powiadomienia.</item>
-    <item>Przesuwaj palcem po skali; ruch zgodny ze wskazówkami zegara zwiększa wartość. Stuknięcie wycisza, odtwarza, zeruje powiększenie albo otwiera widok zadań.</item>
-    <item>W Ustawieniach powierzchni sterowania „Rogi” wybierają suwak dla każdego rogu i mogą podzielić każdy róg na dwa, po jednym na krawędź. „Działanie suwaków” ustawia czułość, rozmiar i reakcję haptyczną. „Touchpad” przypisuje resztę.</item>
+    <item>Przesuwaj palcem wzdłuż suwaka; ruch zgodny ze wskazówkami zegara zwiększa wartość. Stuknięcie wycisza, odtwarza, zeruje powiększenie albo otwiera widok zadań.</item>
+    <item>Ustawienia powierzchni sterowania › Rogi: wybierz suwak dla każdego rogu albo podziel róg na dwa, po jednym na krawędź. „Działanie suwaków” ustawia czułość, rozmiar i reakcję haptyczną. „Touchpad” przypisuje resztę.</item>
   </string-array>
 
   <string name="guide_keyboard_kicker">4 · Klawiatura</string>
@@ -77,13 +77,13 @@
   </string-array>
   <string-array name="guide_keyboard_values">
     <item>Ikona Sterowania u góry powierzchni, potem Klawiatura. Otwiera się poziomo.</item>
-    <item>Każdy klawisz trafia prosto na laptop. Górny rząd robi to, co na nim narysowano; przytrzymaj Fn, aby uzyskać F1 do F12 (zmienisz to w ustawieniach klawiatury).</item>
+    <item>Każdy klawisz trafia prosto na laptop. Górny rząd robi to, co pokazują jego symbole; przytrzymaj Fn, aby uzyskać F1 do F12 (zmienisz to w ustawieniach klawiatury).</item>
     <item>Przytrzymaj Ctrl, Alt, Shift lub Fn, naciskając klawisz, albo stuknij jeden z nich, aby zastosować go do następnego klawisza. Stuknij ponownie, aby anulować.</item>
     <item>Strzałka wstecz u góry albo systemowy gest cofania.</item>
   </string-array>
 
   <string name="guide_gamepad_kicker">5 · Gamepad</string>
-  <string name="guide_gamepad_title">Kontroler w kieszeni.</string>
+  <string name="guide_gamepad_title">Gamepad w kieszeni.</string>
   <string-array name="guide_gamepad_keys">
     <item>Otwórz</item>
     <item>Gotowe układy</item>
@@ -121,7 +121,7 @@
   <string name="guide_art_dials">Suwaki</string>
   <string name="guide_art_trackpad">Touchpad</string>
   <string name="guide_art_media">Multimedia</string>
-  <string name="guide_art_keys">Klawisze · pad</string>
+  <string name="guide_art_keys">Klawisze · gamepad</string>
   <string name="guide_art_gestures">Gesty</string>
   <string name="guide_art_move">1 · Ruch</string>
   <string name="guide_art_scroll">2 · Przewijanie</string>
