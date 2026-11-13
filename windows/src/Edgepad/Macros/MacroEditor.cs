@@ -46,8 +46,7 @@ internal sealed class MacroWindow : Form
     /// also type and press keys through the keyboard screen, so a claim that it can never run anything else
     /// would be false; see <see cref="MacroStore"/>.
     /// </summary>
-    private const string Description = "Buttons on your phone's macro screen, up to 15. The phone sends a button's "
-        + "number, never a program, so it can only run what you add here. Alt+Up and Alt+Down reorder the buttons.";
+    private static readonly string Description = Strings.Macro_Description;
 
     private readonly List<Macro> working;
 
@@ -65,9 +64,9 @@ internal sealed class MacroWindow : Form
     private readonly Dictionary<string, Image?> pictures = [];
 
     private readonly ListBox list = new() { DrawMode = DrawMode.OwnerDrawFixed, BorderStyle = BorderStyle.None, IntegralHeight = false };
-    private readonly TextBox name = new() { BorderStyle = BorderStyle.None, AccessibleName = "Name" };
-    private readonly TextBox target = new() { BorderStyle = BorderStyle.None, AccessibleName = "Opens" };
-    private readonly TextBox arguments = new() { BorderStyle = BorderStyle.None, AccessibleName = "Arguments", PlaceholderText = "None" };
+    private readonly TextBox name = new() { BorderStyle = BorderStyle.None, AccessibleName = Strings.Macro_Name };
+    private readonly TextBox target = new() { BorderStyle = BorderStyle.None, AccessibleName = Strings.Macro_Opens };
+    private readonly TextBox arguments = new() { BorderStyle = BorderStyle.None, AccessibleName = Strings.Macro_Arguments, PlaceholderText = Strings.Macro_ArgumentsNone };
     private readonly Framed listFrame;
     private readonly Framed nameFrame;
     private readonly Framed targetFrame;
@@ -103,7 +102,8 @@ internal sealed class MacroWindow : Form
         opened = [.. store.Macros];
         working = [.. store.Macros];
 
-        Text = "Macros";
+        Text = Strings.Macro_Title;
+        RightToLeft = Theme.Direction;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -118,19 +118,19 @@ internal sealed class MacroWindow : Form
         nameFrame = new Framed(name, palette, radius: 8, inset: 12);
         targetFrame = new Framed(target, palette, radius: 8, inset: 12);
         argumentsFrame = new Framed(arguments, palette, radius: 8, inset: 12);
-        preview = new Tile(palette) { AccessibleName = "Icon preview" };
-        add = new FlatButton("&Add macro", ButtonKind.Outline, palette, Icons.Plus);
-        browse = new FlatButton("&Browse…", ButtonKind.Outline, palette, Icons.FolderOpen) { AccessibleName = "Browse for what this opens" };
-        chooseIcon = new FlatButton("&Choose icon…", ButtonKind.Outline, palette) { AccessibleName = "Choose icon" };
-        ownIcon = new FlatButton("&Use the program's own", ButtonKind.Ghost, palette);
-        remove = new FlatButton("&Remove", ButtonKind.Ghost, palette, Icons.Trash) { Danger = true };
-        cancel = new FlatButton("Cancel", ButtonKind.Outline, palette) { DialogResult = DialogResult.Cancel };
-        save = new FlatButton("&Save", ButtonKind.Primary, palette) { DialogResult = DialogResult.OK };
+        preview = new Tile(palette) { AccessibleName = Strings.Macro_IconPreview };
+        add = new FlatButton(Strings.Macro_Add, ButtonKind.Outline, palette, Icons.Plus);
+        browse = new FlatButton(Strings.Macro_Browse, ButtonKind.Outline, palette, Icons.FolderOpen) { AccessibleName = Strings.Macro_BrowseName };
+        chooseIcon = new FlatButton(Strings.Macro_ChooseIcon, ButtonKind.Outline, palette) { AccessibleName = Strings.Macro_ChooseIconName };
+        ownIcon = new FlatButton(Strings.Macro_OwnIcon, ButtonKind.Ghost, palette);
+        remove = new FlatButton(Strings.Macro_Remove, ButtonKind.Ghost, palette, Icons.Trash) { Danger = true };
+        cancel = new FlatButton(Strings.Common_Cancel, ButtonKind.Outline, palette) { DialogResult = DialogResult.Cancel };
+        save = new FlatButton(Strings.Common_Save, ButtonKind.Primary, palette) { DialogResult = DialogResult.OK };
         empty = new EmptyState(palette);
         full = [listFrame, add, nameFrame, targetFrame, browse, argumentsFrame, preview, chooseIcon, ownIcon, remove];
 
-        list.AccessibleName = "Macros";
-        list.AccessibleDescription = "Alt+Up and Alt+Down move the selected macro.";
+        list.AccessibleName = Strings.Macro_Title;
+        list.AccessibleDescription = Strings.Macro_ReorderHint;
         list.DrawItem += DrawRow;
         list.SelectedIndexChanged += (_, _) => Fill();
         list.MouseDown += (_, e) => dragging = e.Button == MouseButtons.Left ? list.IndexFromPoint(e.Location) : -1;
@@ -181,7 +181,7 @@ internal sealed class MacroWindow : Form
 
     /// <summary>What a row reads as. A macro being filled in has neither yet, and a blank row looks broken.</summary>
     private static string Label(Macro macro) =>
-        macro.Name.Length > 0 ? macro.Name : macro.Target.Length > 0 ? macro.Target : "New macro";
+        macro.Name.Length > 0 ? macro.Name : macro.Target.Length > 0 ? macro.Target : Strings.Macro_New;
 
     private static string Key(Macro macro) => $"{macro.Icon}|{macro.Target}";
 
@@ -242,19 +242,19 @@ internal sealed class MacroWindow : Form
         var step = caption + S(6 + Box + 14);
         captions.Clear();
 
-        captions.Add((new Point(x, top), "Name", null));
+        captions.Add((new Point(x, top), Strings.Macro_Name, null));
         nameFrame.Place(new Rectangle(x, top + caption + S(6), column, S(Box)), DeviceDpi);
 
-        captions.Add((new Point(x, top + step), "Opens", null));
+        captions.Add((new Point(x, top + step), Strings.Macro_Opens, null));
         browse.Width = browse.FitWidth(DeviceDpi);
         var opens = top + step + caption + S(6);
         targetFrame.Place(new Rectangle(x, opens, column - browse.Width - S(8), S(Box)), DeviceDpi);
         browse.SetBounds(x + column - browse.Width, opens, browse.Width, S(Box));
 
-        captions.Add((new Point(x, top + (step * 2)), "Arguments", "optional"));
+        captions.Add((new Point(x, top + (step * 2)), Strings.Macro_Arguments, Strings.Macro_ArgumentsOptional));
         argumentsFrame.Place(new Rectangle(x, top + (step * 2) + caption + S(6), column, S(Box)), DeviceDpi);
 
-        captions.Add((new Point(x, top + (step * 3)), "Icon", null));
+        captions.Add((new Point(x, top + (step * 3)), Strings.Macro_Icon, null));
         var icons = top + (step * 3) + caption + S(6);
         preview.SetBounds(x, icons, S(Box), S(Box));
         chooseIcon.SetBounds(preview.Right + S(10), icons, chooseIcon.FitWidth(DeviceDpi), S(Box));
@@ -425,7 +425,7 @@ internal sealed class MacroWindow : Form
         add.Enabled = working.Count < MacroStore.MaxMacros;
 
         // A button gone grey says why, in its own words, since a disabled control shows no tooltip.
-        add.Text = add.Enabled ? "Add macro" : $"{MacroStore.MaxMacros} of {MacroStore.MaxMacros} macros";
+        add.Text = add.Enabled ? Strings.Macro_AddButton : Strings.Macro_Full.Fill(MacroStore.MaxMacros);
         ownIcon.Enabled = macro?.Icon is not null;
         preview.Picture = macro is null ? null : pictures.GetValueOrDefault(Key(macro));
 
@@ -484,11 +484,10 @@ internal sealed class MacroWindow : Form
         if (working.Count + arrived.Count > MacroStore.MaxMacros)
         {
             DialogResult = DialogResult.None;
-            MessageBox.Show(
+            Ask.Message(
                 this,
-                $"A macro was added from your phone while this window was open, and there is no room for it. Remove one here, then save.",
-                "Macros",
-                MessageBoxButtons.OK,
+                Strings.Macro_NoRoom,
+                Strings.Macro_Title,
                 MessageBoxIcon.Warning);
             return false;
         }
@@ -503,11 +502,10 @@ internal sealed class MacroWindow : Form
 
             // The edits stay in the dialog, so the owner can fix the cause and press OK again, or cancel.
             DialogResult = DialogResult.None;
-            MessageBox.Show(
+            Ask.Message(
                 this,
-                $"The macros could not be saved to {store.FilePath}: {failure}",
-                "Macros",
-                MessageBoxButtons.OK,
+                Strings.Macro_SaveFailed.Fill(store.FilePath, failure),
+                Strings.Macro_Title,
                 MessageBoxIcon.Warning);
             return false;
         }
@@ -515,11 +513,10 @@ internal sealed class MacroWindow : Form
         // Save is the dialog's OK button, which has already set the result that closes it.
         DialogResult = DialogResult.None;
         list.SelectedIndex = missing;
-        MessageBox.Show(
+        Ask.Message(
             this,
-            $"\u201c{Label(working[missing])}\u201d has nothing to open. Choose what it opens, or remove it.",
-            "Macros",
-            MessageBoxButtons.OK,
+            Strings.Macro_NothingToOpen.Fill(Label(working[missing])),
+            Strings.Macro_Title,
             MessageBoxIcon.Warning);
         target.Focus();
         return false;
@@ -537,15 +534,16 @@ internal sealed class MacroWindow : Form
             return;
         }
 
-        var saveIt = new TaskDialogButton("Save");
-        var discard = new TaskDialogButton("Don't save");
-        var back = new TaskDialogButton("Cancel");
+        var saveIt = new TaskDialogButton(Strings.Dialog_Save);
+        var discard = new TaskDialogButton(Strings.Macro_DontSave);
+        var back = new TaskDialogButton(Strings.Common_Cancel);
         var page = new TaskDialogPage
         {
-            Caption = "Macros",
-            Heading = "Save changes to macros?",
-            Text = "Your changes will be lost if you do not save them.",
+            Caption = Strings.Macro_Title,
+            Heading = Strings.Macro_SaveHeading,
+            Text = Strings.Macro_SaveText,
             Icon = TaskDialogIcon.Warning,
+            RightToLeftLayout = Theme.IsRtl,
             AllowCancel = true,
             Buttons = { saveIt, discard, back },
             DefaultButton = saveIt,
@@ -668,7 +666,7 @@ internal sealed class MacroWindow : Form
 
     private void Browse()
     {
-        if (Pick("Choose what this button opens", "Programs and documents (*.*)|*.*") is not { } chosen)
+        if (Pick(Strings.Macro_ChooseTarget, Strings.Macro_FilterPrograms + "|*.*") is not { } chosen)
         {
             return;
         }
@@ -690,9 +688,8 @@ internal sealed class MacroWindow : Form
     /// </summary>
     private void BrowseIcon()
     {
-        const string filter = "Icons, programs and pictures (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)"
-            + "|*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg;*.jpeg;*.gif|All files (*.*)|*.*";
-        if (Pick("Choose the picture for this button", filter) is { } chosen)
+        var filter = $"{Strings.Macro_FilterIcons}|*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg;*.jpeg;*.gif|{Strings.Macro_FilterAll}|*.*";
+        if (Pick(Strings.Macro_ChoosePicture, filter) is { } chosen)
         {
             SetIcon(chosen);
         }
@@ -748,15 +745,15 @@ internal sealed class MacroWindow : Form
     /// </summary>
     private sealed class EmptyState : System.Windows.Forms.Control
     {
-        private const string Headline = "No macros yet";
-        private const string Detail = "Add an app, a document, a folder or a web address. Each one becomes a button on the phone.";
+        private static readonly string Headline = Strings.Macro_EmptyHeadline;
+        private static readonly string Detail = Strings.Macro_EmptyDetail;
 
         private readonly Palette palette;
 
         public EmptyState(Palette palette)
         {
             this.palette = palette;
-            Add = new FlatButton("&Add macro", ButtonKind.Primary, palette, Icons.Plus);
+            Add = new FlatButton(Strings.Macro_Add, ButtonKind.Primary, palette, Icons.Plus);
             AccessibleName = Headline;
             AccessibleDescription = Detail;
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);

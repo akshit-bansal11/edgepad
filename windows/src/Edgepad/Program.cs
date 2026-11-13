@@ -1,4 +1,5 @@
 using Edgepad.Startup;
+using Edgepad.Ui;
 
 // Every native library this app imports is a Windows system DLL. Searching System32 only means a look-alike
 // dropped beside the exe, in Downloads say, is never loaded in its place.
@@ -36,10 +37,10 @@ internal static class Program
             // A copy running as administrator owns the mutex, and an ordinary copy is not allowed to open it,
             // let alone ask that copy to quit.
             Log.Write($"Edgepad {Version} not started: a copy running as administrator holds the lock");
-            MessageBox.Show(
-                "Edgepad is already running as administrator. Quit it from its tray icon, or run this one as administrator too.",
+            Ask.Message(
+                null,
+                Strings.App_RunningAsAdmin,
                 "Edgepad",
-                MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
             return;
         }
@@ -51,10 +52,10 @@ internal static class Program
         {
             // Double-clicking the exe again to "open" it must not quit the copy that is serving a phone.
             Log.Write($"Edgepad {Version} not started: this version is already running");
-            MessageBox.Show(
-                "Edgepad is already running. Find it in the taskbar corner.",
+            Ask.Message(
+                null,
+                Strings.App_AlreadyRunning,
                 "Edgepad",
-                MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
             return;
         }
@@ -62,10 +63,10 @@ internal static class Program
         if (choice == LaunchChoice.TakeOver && !TakeOver(single))
         {
             Log.Write($"Edgepad {Version} not started: another copy is running and did not hand over");
-            MessageBox.Show(
-                "Another Edgepad is already running and did not hand over. Quit it from its tray icon, then run this one again.",
+            Ask.Message(
+                null,
+                Strings.App_DidNotHandOver,
                 "Edgepad",
-                MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
             return;
         }

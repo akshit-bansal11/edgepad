@@ -177,10 +177,10 @@ internal sealed class LevelOverlay : IDisposable
         /// <summary>Sentence case, as every label in the 2.0 design is.</summary>
         public static string Label(LevelKind kind) => kind switch
         {
-            LevelKind.Microphone => "Microphone",
-            LevelKind.Brightness => "Brightness",
-            LevelKind.Phone => "Phone",
-            _ => "Volume",
+            LevelKind.Microphone => Strings.Level_Microphone,
+            LevelKind.Brightness => Strings.Level_Brightness,
+            LevelKind.Phone => Strings.Phone_Name,
+            _ => Strings.Level_Volume,
         };
 
         /// <summary>The bare number: the bar under it already says it is a share of the whole.</summary>

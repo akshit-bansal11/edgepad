@@ -2,20 +2,32 @@ using System.ComponentModel;
 
 namespace Edgepad.Ui;
 
-/// <summary>The one confirmation the app asks before it throws trust away, worded the same wherever it is asked.</summary>
+/// <summary>The questions and notices the app puts in dialogs, laid out right to left when the UI language reads that way.</summary>
 internal static class Ask
 {
+    /// <summary>An OK-only message box.</summary>
+    public static void Message(IWin32Window? owner, string text, string caption, MessageBoxIcon icon) =>
+        _ = MessageBox.Show(
+            owner,
+            text,
+            caption,
+            MessageBoxButtons.OK,
+            icon,
+            MessageBoxDefaultButton.Button1,
+            Theme.IsRtl ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : default);
+
     /// <summary>"Cancel" / "Forget", with Cancel the default so a stray Enter forgets nothing. False when it cannot be put.</summary>
     public static bool Forget(IWin32Window owner, string heading, string text)
     {
-        var forget = new TaskDialogButton("Forget");
-        var cancel = new TaskDialogButton("Cancel");
+        var forget = new TaskDialogButton(Strings.Common_Forget);
+        var cancel = new TaskDialogButton(Strings.Common_Cancel);
         var page = new TaskDialogPage
         {
-            Caption = "Security",
+            Caption = Strings.Security_Title,
             Heading = heading,
             Text = text,
             Icon = TaskDialogIcon.Warning,
+            RightToLeftLayout = Theme.IsRtl,
             AllowCancel = true,
             Buttons = { cancel, forget },
             DefaultButton = cancel,

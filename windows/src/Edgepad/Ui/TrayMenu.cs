@@ -514,12 +514,12 @@ internal sealed record TrayStatus(string Headline, string Badge, string Line, bo
         if (LaptopStatus.IsConnected(status))
         {
             var phone = status[LaptopStatus.ConnectedStart.Length..];
-            return new TrayStatus("Phone connected", "Connected", phone.Contains(Way, StringComparison.Ordinal) ? phone : $"{phone}{Way}Bluetooth", Waiting: false);
+            return new TrayStatus(Strings.Phone_Connected, Strings.Badge_Connected, phone.Contains(Way, StringComparison.Ordinal) ? phone : $"{phone}{Way}Bluetooth", Waiting: false);
         }
 
         return LaptopStatus.IsProblem(status)
-            ? new TrayStatus("No phone connected", "Problem", status, Waiting: false, Problem: true)
-            : new TrayStatus("No phone connected", "Waiting", status, Waiting: true);
+            ? new TrayStatus(Strings.Phone_NoneConnected, Strings.Badge_Problem, status, Waiting: false, Problem: true)
+            : new TrayStatus(Strings.Phone_NoneConnected, Strings.Badge_Waiting, status, Waiting: true);
     }
 
     /// <summary>

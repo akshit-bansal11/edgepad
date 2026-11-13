@@ -9,7 +9,12 @@
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <RootNamespace>Edgepad</RootNamespace>
     <AssemblyName>Edgepad</AssemblyName>
-    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Not invariant: the culture follows Windows' display language, which picks the Strings.<culture>.resx and the face
+         Ui/Theme draws in. Invariant globalization pins every thread to the invariant culture, so English always won. -->
+    <NeutralLanguage>en</NeutralLanguage>
+    <!-- English plus the 14 translations, so a release carries exactly those satellite assemblies and not the dozen
+         the .NET libraries ship. The single-file publish bundles them into the exe; nothing else is needed. -->
+    <SatelliteResourceLanguages>en;zh-Hans;es;hi;de;fr;pt-BR;ja;ar;ru;ko;it;nl;tr;pl</SatelliteResourceLanguages>
     <!-- The Edgepad mark, the same drawing as the Android launcher icon; the tray reads it back from the exe. -->
     <ApplicationIcon>edgepad.ico</ApplicationIcon>
     <!-- LibraryImport generates unsafe marshalling code for the SendInput P/Invoke. -->
@@ -25,6 +30,18 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Edgepad.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Every visible string, in English; Strings.<culture>.resx beside it holds the translations. MSBuild writes the typed
+         accessor (Edgepad.Ui.Strings) into obj/ at build, so a key used in code that the file lacks does not compile. -->
+    <EmbeddedResource Update="Ui\Strings.resx">
+      <Generator>MSBuild:Compile</Generator>
+      <StronglyTypedFileName>$(IntermediateOutputPath)Strings.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedNamespace>Edgepad.Ui</StronglyTypedNamespace>
+      <StronglyTypedClassName>Strings</StronglyTypedClassName>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
