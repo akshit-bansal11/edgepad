@@ -288,14 +288,8 @@ internal static partial class Theme
     /// </summary>
     public static class Motion
     {
-        /// <summary>Small, local changes.</summary>
-        public static int Fast => AnimationsEnabled ? 120 : 0;
-
         /// <summary>A panel appearing or going away.</summary>
         public static int Base => AnimationsEnabled ? 220 : 0;
-
-        /// <summary>The longest a transition may take.</summary>
-        public static int Slow => AnimationsEnabled ? 300 : 0;
     }
 
     /// <summary>
