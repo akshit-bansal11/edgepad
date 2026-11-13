@@ -521,6 +521,7 @@ internal sealed class TrayContext : ApplicationContext
         {
             networkRow.Checked = !on;
             Ask.Message(
+                null,
                 Strings.Error_SettingNotSaved,
                 Strings.Network_Title,
                 MessageBoxIcon.Error);

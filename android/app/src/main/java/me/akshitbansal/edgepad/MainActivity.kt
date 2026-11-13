@@ -1504,18 +1504,17 @@ class MainActivity :
 
     /** What an update does to the app before it does it: it restarts, which drops every link. */
     private fun confirmUpdate(version: String) {
-        val major = Updates.majorDiffers(version, getString(R.string.app_version))
         val body = getString(R.string.updates_confirm_body)
+        val message =
+            if (Updates.majorDiffers(version, getString(R.string.app_version))) {
+                getString(R.string.sentences_joined, body, getString(R.string.updates_confirm_major))
+            } else {
+                body
+            }
         AlertDialog
             .Builder(this)
             .setTitle(getString(R.string.updates_confirm_title, version))
-            .setMessage(
-                if (major) {
-                    getString(R.string.sentences_joined, body, getString(R.string.updates_confirm_major))
-                } else {
-                    body
-                },
-            )
+            .setMessage(message)
             .setPositiveButton(R.string.updates_confirm_action) { _, _ -> installUpdate(version) }
             .setNeutralButton(R.string.updates_release_notes) { _, _ -> open(Updates.releaseUrl(version)) }
             .setNegativeButton(android.R.string.cancel, null)
