@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_layout_title">Layout do gamepad</string>
+  <string name="gamepad_layout_editing">Editando %1$s</string>
+  <string name="gamepad_layout_hint">Arraste para mover. Mantenha um controle pressionado para abrir o menu dele.</string>
+  <string name="gamepad_layout_section">Layouts</string>
+  <string name="gamepad_description">Controle de jogo para o notebook. Funciona só por toque.</string>
+  <string name="gamepad_node_dpad">D-pad</string>
+  <string name="gamepad_node_stick">Analógico</string>
+  <string name="gamepad_node_button">Botão</string>
+  <string name="gamepad_size">Tamanho</string>
+  <string name="dp_value">%1$d dp</string>
+
+  <!-- The two buttons in the editor's options popup; short, because they sit side by side in it. -->
+  <string name="gamepad_add">Adicionar</string>
+  <string name="gamepad_restore">Restaurar %1$s</string>
+  <string name="gamepad_restore_confirm">Restaurar %1$s? Toque de novo</string>
+  <string name="gamepad_switch_to">Mudar para %1$s</string>
+  <string name="gamepad_switch_to_confirm">Mudar para %1$s? O seu continua salvo. Toque de novo</string>
+  <string name="gamepad_layouts">Layouts</string>
+
+  <!-- One control's menu, opened by a long press. The title is its label and what it drives. -->
+  <string name="gamepad_control_title">%1$s · %2$s</string>
+  <string name="gamepad_bind">Atribuição</string>
+  <string name="gamepad_label">Rótulo</string>
+  <string name="gamepad_delete_control">Excluir controle</string>
+  <string name="gamepad_delete_title">Excluir %1$s?</string>
+  <string name="gamepad_delete_body">Ele sai deste layout. Adicionar traz um controle de volta.</string>
+  <string name="gamepad_name_required">Dê um nome ao layout</string>
+
+  <!-- Adding a control: the kinds offered, in the order the menu lists them. -->
+  <string name="gamepad_add_control">Adicionar controle</string>
+  <string name="gamepad_kind_button">Botão</string>
+  <string name="gamepad_kind_dpad">D-pad</string>
+  <string name="gamepad_kind_stick">Analógico</string>
+  <string name="gamepad_kind_shoulder">Botão superior</string>
+  <string name="gamepad_kind_trigger">Gatilho</string>
+
+  <!--
+    What a control can drive. The controller's own inputs, then a key on the laptop's keyboard.
+    The d-pad binding has no name of its own: gamepad_kind_dpad above is already the same word.
+  -->
+  <string name="gamepad_bind_stick_left">Analógico esquerdo</string>
+  <string name="gamepad_bind_stick_right">Analógico direito</string>
+  <string name="gamepad_bind_trigger_left">Gatilho esquerdo</string>
+  <string name="gamepad_bind_trigger_right">Gatilho direito</string>
+  <string name="gamepad_bind_keys">Tecla do teclado</string>
+  <string name="gamepad_bind_key_up">Tecla para cima</string>
+  <string name="gamepad_bind_key_down">Tecla para baixo</string>
+  <string name="gamepad_bind_key_left">Tecla para a esquerda</string>
+  <string name="gamepad_bind_key_right">Tecla para a direita</string>
+
+  <!-- Keeping the named layouts themselves. -->
+  <string name="gamepad_save_as">Salvar como</string>
+  <string name="gamepad_rename">Renomear</string>
+  <string name="gamepad_delete_layout">Excluir layout</string>
+  <string name="gamepad_delete_layout_body">%1$s será removido. Os layouts que acompanham o Edgepad continuam.</string>
+  <string name="gamepad_delete">Excluir</string>
+</resources>

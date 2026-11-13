@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="keyboard_title">Teclado</string>
+  <string name="keyboard_type_text">Digitar texto</string>
+  <string name="keyboard_type_send">Digitar</string>
+  <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
+  <string name="back_to_surface">Controles</string>
+  <string name="macros_title">Macros</string>
+  <string name="keyboard_key_on">Ativa</string>
+  <string name="keyboard_description">Teclado na tela para o notebook</string>
+  <string name="keyboard_size">Tamanho</string>
+  <string name="keyboard_size_caption">Tamanhos maiores comportam mais teclas, então cada tecla fica menor. Eles pedem uma tela mais larga.</string>
+  <string name="keyboard_function_keys">Teclas de função</string>
+  <string name="keyboard_with_fn">Com Fn</string>
+  <string name="keyboard_direct">Direto</string>
+  <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
+  <string name="keyboard_function_keys_caption">Com Fn: a linha de cima faz o que está impresso nela (brilho, mídia, volume) e Fn mais uma tecla envia F1 a F12. Em teclados de 65%% e 60%%, que não têm linha F, a linha de números digita números e Fn mais um número envia F1 a F12. Direto: a linha de cima envia F1 a F12 e Fn mais uma tecla faz a ação impressa; em teclados de 65%% e 60%% a linha de números envia F1 a F12 e Fn mais um número digita o número.</string>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="gamepad_edit">Editar layout</string>
+  <string name="gamepad_mode_waiting">Modo teclado · aguardando o notebook oferecer um controle</string>
+  <string name="gamepad_mode_unanswered">Modo teclado · este notebook não respondeu; o Edgepad pode precisar de atualização</string>
+  <string name="gamepad_mode_no_driver">Modo teclado · o notebook não tem driver de controle</string>
+  <string name="gamepad_mode_no_driver_windows">Modo teclado · instale o ViGEmBus no notebook para usar um controle</string>
+  <string name="gamepad_mode_no_driver_mac">Modo teclado · o Mac não tem modo de controle</string>
+  <string name="gamepad_mode_attach_failed">Modo teclado · o notebook não conseguiu conectar o controle</string>
+</resources>
