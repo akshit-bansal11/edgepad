@@ -108,10 +108,12 @@ internal sealed class FlatButton : Button
         var x = (Width - icon - gap - text.Width) / 2;
         if (glyph is not null)
         {
-            Icons.Draw(graphics, glyph, new RectangleF(x, (Height - icon) / 2f, icon, icon), ink);
+            Icons.Draw(graphics, glyph, Theme.Flip(new RectangleF(x, (Height - icon) / 2f, icon, icon), ClientRectangle), ink);
         }
 
-        TextRenderer.DrawText(graphics, Text, font, new Point(x + icon + gap, (Height - text.Height) / 2), ink, flags);
+        // The icon comes first in reading order, so in Arabic it is on the right of its words.
+        TextRenderer.DrawText(
+            graphics, Text, font, Theme.Flip(new Rectangle(new Point(x + icon + gap, (Height - text.Height) / 2), text), ClientRectangle), ink, flags | Theme.Start);
     }
 
     protected override void OnMouseEnter(EventArgs e)

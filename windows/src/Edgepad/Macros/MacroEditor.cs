@@ -85,7 +85,7 @@ internal sealed class MacroWindow : Form
     private readonly System.Windows.Forms.Control[] full;
 
     /// <summary>Where the painted captions go, set by <see cref="Relayout"/>: the field name, then any dim note after it.</summary>
-    private readonly List<(Point At, string Text, string? Note)> captions = [];
+    private readonly List<(Rectangle Slot, string Text, string? Note)> captions = [];
 
     private Rectangle title;
     private Rectangle description;
@@ -242,19 +242,19 @@ internal sealed class MacroWindow : Form
         var step = caption + S(6 + Box + 14);
         captions.Clear();
 
-        captions.Add((new Point(x, top), Strings.Macro_Name, null));
+        captions.Add((new Rectangle(x, top, column, caption), Strings.Macro_Name, null));
         nameFrame.Place(new Rectangle(x, top + caption + S(6), column, S(Box)), DeviceDpi);
 
-        captions.Add((new Point(x, top + step), Strings.Macro_Opens, null));
+        captions.Add((new Rectangle(x, top + step, column, caption), Strings.Macro_Opens, null));
         browse.Width = browse.FitWidth(DeviceDpi);
         var opens = top + step + caption + S(6);
         targetFrame.Place(new Rectangle(x, opens, column - browse.Width - S(8), S(Box)), DeviceDpi);
         browse.SetBounds(x + column - browse.Width, opens, browse.Width, S(Box));
 
-        captions.Add((new Point(x, top + (step * 2)), Strings.Macro_Arguments, Strings.Macro_ArgumentsOptional));
+        captions.Add((new Rectangle(x, top + (step * 2), column, caption), Strings.Macro_Arguments, Strings.Macro_ArgumentsOptional));
         argumentsFrame.Place(new Rectangle(x, top + (step * 2) + caption + S(6), column, S(Box)), DeviceDpi);
 
-        captions.Add((new Point(x, top + (step * 3)), Strings.Macro_Icon, null));
+        captions.Add((new Rectangle(x, top + (step * 3), column, caption), Strings.Macro_Icon, null));
         var icons = top + (step * 3) + caption + S(6);
         preview.SetBounds(x, icons, S(Box), S(Box));
         chooseIcon.SetBounds(preview.Right + S(10), icons, chooseIcon.FitWidth(DeviceDpi), S(Box));
@@ -269,6 +269,7 @@ internal sealed class MacroWindow : Form
         cancel.SetBounds(save.Left - S(8) - cancel.FitWidth(DeviceDpi), footer, cancel.FitWidth(DeviceDpi), S(Box));
 
         ClientSize = new Size(S(DialogWidth), footer + S(Box + Pad));
+        Theme.Mirror(this);
         Invalidate();
     }
 
@@ -277,17 +278,24 @@ internal sealed class MacroWindow : Form
         base.OnPaint(e);
         var graphics = e.Graphics;
         const TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix;
+        var page = ClientRectangle;
 
-        // GDI+ rather than TextRenderer for the one Black line; Theme says why.
+        // GDI+ rather than TextRenderer for the one Black line; Theme says why. GDI+ ignores mirroring, so in
+        // Arabic the box is flipped here and the line drawn right to left, from the box's right edge.
         graphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
         using (var ink = new SolidBrush(palette.Ink))
         using (var typographic = StringFormat.GenericTypographic)
         {
-            graphics.DrawString(Text, Theme.Font(Theme.Scale(18f, DeviceDpi), Weight.Black), ink, title.Location, typographic);
+            if (Theme.IsRtl)
+            {
+                typographic.FormatFlags |= StringFormatFlags.DirectionRightToLeft;
+            }
+
+            graphics.DrawString(Text, Theme.Font(Theme.Scale(18f, DeviceDpi), Weight.Black), ink, Theme.Flip(title with { Height = title.Height * 2 }, page), typographic);
         }
 
         TextRenderer.DrawText(
-            graphics, Description, Theme.Font(Theme.Scale(14f, DeviceDpi), Weight.Regular), description, palette.Dim, flags | TextFormatFlags.WordBreak);
+            graphics, Description, Theme.Font(Theme.Scale(14f, DeviceDpi), Weight.Regular), Theme.Flip(description, page), palette.Dim, flags | TextFormatFlags.WordBreak | Theme.Start);
 
         if (working.Count == 0)
         {
@@ -296,13 +304,16 @@ internal sealed class MacroWindow : Form
 
         var bold = Theme.Font(Theme.Scale(14f, DeviceDpi), Weight.Bold);
         var regular = Theme.Font(Theme.Scale(14f, DeviceDpi), Weight.Regular);
-        foreach (var (at, text, note) in captions)
+        foreach (var (slot, text, note) in captions)
         {
-            TextRenderer.DrawText(graphics, text, bold, at, palette.Ink, flags);
+            var box = Theme.Flip(slot, page);
+            TextRenderer.DrawText(graphics, text, bold, box, palette.Ink, flags | TextFormatFlags.SingleLine | Theme.Start);
             if (note is not null)
             {
+                // The note follows its caption: to its right, or in Arabic to its left.
                 var after = TextRenderer.MeasureText(graphics, text + " ", bold, Size.Empty, flags).Width;
-                TextRenderer.DrawText(graphics, note, regular, at with { X = at.X + after }, palette.Dim, flags);
+                var beside = Theme.IsRtl ? box with { Width = box.Width - after } : box with { X = box.X + after, Width = box.Width - after };
+                TextRenderer.DrawText(graphics, note, regular, beside, palette.Dim, flags | TextFormatFlags.SingleLine | Theme.Start);
             }
         }
     }
@@ -325,6 +336,9 @@ internal sealed class MacroWindow : Form
         var macro = working[e.Index];
         var selected = (e.State & DrawItemState.Selected) != 0;
         var row = Rectangle.Inflate(e.Bounds, 0, -Theme.Scale(1, dpi));
+
+        // Laid out left to right below; Theme.Flip mirrors each box across the row for Arabic.
+        var span = row;
         graphics.SmoothingMode = SmoothingMode.AntiAlias;
         graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
         if (selected)
@@ -336,11 +350,11 @@ internal sealed class MacroWindow : Form
 
         var x = row.X + Theme.Scale(8, dpi);
         var grip = Theme.Scale(14, dpi);
-        Icons.Draw(graphics, Icons.Grip, new RectangleF(x, row.Y + ((row.Height - grip) / 2f), grip, grip), palette.Dim, 3.2f);
+        Icons.Draw(graphics, Icons.Grip, Theme.Flip(new RectangleF(x, row.Y + ((row.Height - grip) / 2f), grip, grip), span), palette.Dim, 3.2f);
         x += grip + Theme.Scale(10, dpi);
 
         var size = Theme.Scale(22, dpi);
-        var picture = new Rectangle(x, row.Y + ((row.Height - size) / 2), size, size);
+        var picture = Theme.Flip(new Rectangle(x, row.Y + ((row.Height - size) / 2), size, size), span);
         if (pictures.GetValueOrDefault(Key(macro)) is { } image)
         {
             graphics.DrawImage(image, picture);
@@ -359,7 +373,8 @@ internal sealed class MacroWindow : Form
         var slot = (e.Index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
         var badgeFont = Theme.Font(Theme.Scale(12f, dpi), Weight.Bold);
         var badgeWidth = Math.Max(Theme.Scale(20, dpi), TextRenderer.MeasureText(graphics, slot, badgeFont, Size.Empty, flags).Width + Theme.Scale(8, dpi));
-        var badge = new Rectangle(row.Right - Theme.Scale(8, dpi) - badgeWidth, row.Y + ((row.Height - Theme.Scale(20, dpi)) / 2), badgeWidth, Theme.Scale(20, dpi));
+        var ahead = new Rectangle(row.Right - Theme.Scale(8, dpi) - badgeWidth, row.Y + ((row.Height - Theme.Scale(20, dpi)) / 2), badgeWidth, Theme.Scale(20, dpi));
+        var badge = Theme.Flip(ahead, span);
         using (var faint = new SolidBrush(selected ? palette.Card : palette.Faint))
         using (var shape = Theme.Rounded(badge, Theme.Scale(5f, dpi)))
         {
@@ -373,9 +388,9 @@ internal sealed class MacroWindow : Form
             graphics,
             Label(macro),
             font,
-            new Rectangle(x, row.Y, badge.Left - Theme.Scale(8, dpi) - x, row.Height),
+            Theme.Flip(new Rectangle(x, row.Y, ahead.Left - Theme.Scale(8, dpi) - x, row.Height), span),
             palette.Ink,
-            flags | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+            flags | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | Theme.Start);
     }
 
     /// <summary>Rebuilds the list and selects <paramref name="select"/>, clamped to what is left of it.</summary>
@@ -816,7 +831,7 @@ internal sealed class MacroWindow : Form
             var icon = S(22);
             Icons.Draw(graphics, Icons.Macro, new RectangleF(tile.X + ((tile.Width - icon) / 2f), tile.Y + ((tile.Height - icon) / 2f), icon, icon), palette.Ink);
 
-            const TextFormatFlags centred = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.HorizontalCenter;
+            var centred = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.HorizontalCenter | Theme.Reading;
             TextRenderer.DrawText(graphics, Headline, Theme.Font(Theme.Scale(16f, DeviceDpi), Weight.Bold), headline, palette.Ink, centred);
             TextRenderer.DrawText(
                 graphics, Detail, Theme.Font(Theme.Scale(14f, DeviceDpi), Weight.Regular), detail, palette.Dim, centred | TextFormatFlags.WordBreak);

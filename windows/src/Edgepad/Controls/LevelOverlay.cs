@@ -278,7 +278,7 @@ internal sealed class LevelOverlay : IDisposable
         private static readonly Palette Colours = Palette.Dark;
 
         private readonly System.Windows.Forms.Timer clock = new() { Interval = 25 };
-        private readonly StringFormat typographic = new(Typographic);
+        private readonly StringFormat typographic = new(Typographic | (Theme.IsRtl ? StringFormatFlags.DirectionRightToLeft : 0));
 
         /// <summary>The dpi the shape was last built for; rebuilding it per frame would not be cheap.</summary>
         private int laidOutAt = 96;
@@ -435,7 +435,8 @@ internal sealed class LevelOverlay : IDisposable
                 LevelKind.Brightness => Icons.Sun,
                 _ => Icons.Volume,
             };
-            Icons.Draw(graphics, glyph, new RectangleF(pad, (Height - icon) / 2f, icon, icon), Colours.Accent);
+            var panel = new RectangleF(0, 0, Width, Height);
+            Icons.Draw(graphics, glyph, Theme.Flip(new RectangleF(pad, (Height - icon) / 2f, icon, icon), panel), Colours.Accent);
 
             var left = pad + icon + Metrics.Scale(Gap, dpi);
             var right = Width - pad;
@@ -449,39 +450,51 @@ internal sealed class LevelOverlay : IDisposable
             var top = baseline - Ascent(valueFont);
             using (var dim = new SolidBrush(Colours.Dim))
             {
-                graphics.DrawString(Metrics.Label(kind), labelFont, dim, left, baseline - Ascent(labelFont), typographic);
+                DrawText(graphics, Metrics.Label(kind), labelFont, dim, left, baseline - Ascent(labelFont));
             }
 
             var width = graphics.MeasureString(caption, valueFont, PointF.Empty, typographic).Width;
             using (var ink = new SolidBrush(Colours.Ink))
             {
-                graphics.DrawString(caption, valueFont, ink, right - width, top, typographic);
+                DrawText(graphics, caption, valueFont, ink, right - width, top);
             }
 
             var track = new RectangleF(left, baseline + Metrics.Scale(BaselineToBar, dpi), right - left, bar);
             using (var off = new SolidBrush(Colours.Off))
-            using (var shape = Theme.Rounded(track, bar / 2f))
+            using (var shape = Theme.Rounded(Theme.Flip(track, panel), bar / 2f))
             {
                 graphics.FillPath(off, shape);
             }
 
+            // The bar fills from the leading edge, so in Arabic from the right, as Windows' own flyouts do.
             var filled = Metrics.BarWidth((int)track.Width, percent);
             if (filled > 0)
             {
                 using var accent = new SolidBrush(Colours.Accent);
-                using var shape = Theme.Rounded(track with { Width = filled }, bar / 2f);
+                using var shape = Theme.Rounded(Theme.Flip(track with { Width = filled }, panel), bar / 2f);
                 graphics.FillPath(accent, shape);
             }
+        }
+
+        /// <summary>
+        /// Draws a line whose left edge is at <paramref name="x"/>, worked out left to right. GDI+ ignores window
+        /// mirroring, so in Arabic the box is flipped here and the string drawn right to left inside it.
+        /// </summary>
+        private void DrawText(Graphics graphics, string text, Font font, Brush brush, float x, float y)
+        {
+            var size = graphics.MeasureString(text, font, PointF.Empty, typographic);
+            var box = Theme.Flip(new RectangleF(x, y, size.Width + 2, size.Height + 2), new RectangleF(0, 0, Width, Height));
+            graphics.DrawString(text, font, brush, box, typographic);
         }
 
         /// <summary>The phone pill: its icon, then one line of words.</summary>
         private void PaintNotice(Graphics graphics, int pad, int icon, int dpi)
         {
-            Icons.Draw(graphics, Icons.Smartphone, new RectangleF(pad, (Height - icon) / 2f, icon, icon), Colours.Accent);
+            Icons.Draw(graphics, Icons.Smartphone, Theme.Flip(new RectangleF(pad, (Height - icon) / 2f, icon, icon), new RectangleF(0, 0, Width, Height)), Colours.Accent);
             var font = Theme.Font(Metrics.Scale(ValueSize - 4, dpi), Weight.Bold);
             var text = graphics.MeasureString(caption, font, PointF.Empty, typographic);
             using var ink = new SolidBrush(Colours.Ink);
-            graphics.DrawString(caption, font, ink, pad + icon + Metrics.Scale(Gap, dpi), (Height - text.Height) / 2f, typographic);
+            DrawText(graphics, caption, font, ink, pad + icon + Metrics.Scale(Gap, dpi), (Height - text.Height) / 2f);
         }
 
         /// <summary>A pixel font's ascent in pixels, which is where its baseline sits below the top it is drawn at.</summary>

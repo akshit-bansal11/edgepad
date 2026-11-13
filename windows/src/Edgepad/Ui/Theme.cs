@@ -151,6 +151,41 @@ internal static partial class Theme
     /// <summary>What a form sets as its RightToLeft: its labels and boxes then read and align from the right.</summary>
     public static RightToLeft Direction => IsRtl ? RightToLeft.Yes : RightToLeft.No;
 
+    /// <summary>
+    /// Everything custom-drawn or hand-placed is worked out left to right, as the design draws it, and mirrored on its
+    /// way out: <see cref="Flip(Rectangle, Rectangle)"/> for a painted box, <see cref="Mirror"/> for a form's controls
+    /// and the flags below for text. One rule, applied at the edge, so no layout carries a second set of numbers.
+    /// </summary>
+    public static Rectangle Flip(Rectangle box, Rectangle within) =>
+        IsRtl ? box with { X = within.Left + within.Right - box.Right } : box;
+
+    public static RectangleF Flip(RectangleF box, RectangleF within) =>
+        IsRtl ? box with { X = within.Left + within.Right - box.Right } : box;
+
+    /// <summary>Mirrors <paramref name="parent"/>'s controls across its middle. Called last by a form that placed them left to right.</summary>
+    public static void Mirror(Control parent)
+    {
+        if (!IsRtl)
+        {
+            return;
+        }
+
+        var width = parent.ClientSize.Width;
+        foreach (Control child in parent.Controls)
+        {
+            child.Left = width - child.Right;
+        }
+    }
+
+    /// <summary>Right-to-left reading order for drawn text; nothing left to right.</summary>
+    public static TextFormatFlags Reading => IsRtl ? TextFormatFlags.RightToLeft : TextFormatFlags.Default;
+
+    /// <summary>Text that starts at the leading edge: the left, or the right in Arabic.</summary>
+    public static TextFormatFlags Start => IsRtl ? Reading | TextFormatFlags.Right : TextFormatFlags.Left;
+
+    /// <summary>Text that ends at the trailing edge: the right, or the left in Arabic.</summary>
+    public static TextFormatFlags End => IsRtl ? Reading | TextFormatFlags.Left : TextFormatFlags.Right;
+
     /// <summary>The Windows UI face for a language Lato has no glyphs for, or null where Lato covers it.</summary>
     private static string? SystemFace(string language) => language switch
     {

@@ -213,6 +213,9 @@ internal sealed class MenuRow(string text, string glyph) : ToolStripMenuItem(tex
         var graphics = e.Graphics;
         graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
+        // Laid out left to right below; Theme.Flip mirrors each box for Arabic as it is drawn.
+        var row = new Rectangle(0, 0, Width, Height);
+
         // Selected is both the hover and the keyboard's position, so the one highlight serves as the focus cue.
         if (Selected && Enabled)
         {
@@ -224,7 +227,7 @@ internal sealed class MenuRow(string text, string glyph) : ToolStripMenuItem(tex
             // accent says which row Enter will act on.
             using var bar = new SolidBrush(palette.Accent);
             using var mark = Theme.Rounded(
-                new RectangleF(Theme.Scale(1f, dpi), Height * 0.25f, Theme.Scale(3f, dpi), Height * 0.5f), Theme.Scale(1.5f, dpi));
+                Theme.Flip(new RectangleF(Theme.Scale(1f, dpi), Height * 0.25f, Theme.Scale(3f, dpi), Height * 0.5f), row), Theme.Scale(1.5f, dpi));
             graphics.FillPath(bar, mark);
 
             if (palette.HighContrast)
@@ -244,20 +247,20 @@ internal sealed class MenuRow(string text, string glyph) : ToolStripMenuItem(tex
 
         var pad = Theme.Scale(8, dpi);
         var icon = Theme.Scale(16, dpi);
-        Icons.Draw(graphics, glyph, new RectangleF(pad, (Height - icon) / 2f, icon, icon), muted);
+        Icons.Draw(graphics, glyph, Theme.Flip(new RectangleF(pad, (Height - icon) / 2f, icon, icon), row), muted);
 
         var left = pad + icon + Theme.Scale(10, dpi);
         var right = Width - pad;
         if (Switch)
         {
-            right -= DrawSwitch(graphics, palette, dpi, right) + pad;
+            right -= DrawSwitch(graphics, palette, dpi, right, row) + pad;
         }
         else if (!string.IsNullOrEmpty(Hint))
         {
             var hintFont = Theme.Font(Theme.Scale(12f, dpi), Weight.Regular);
             var hintWidth = TextRenderer.MeasureText(graphics, Hint, hintFont, Size.Empty, TextFormatFlags.NoPadding).Width;
             TextRenderer.DrawText(
-                graphics, Hint, hintFont, new Rectangle(right - hintWidth, 0, hintWidth, Height), muted, Line | TextFormatFlags.Right);
+                graphics, Hint, hintFont, Theme.Flip(new Rectangle(right - hintWidth, 0, hintWidth, Height), row), muted, Line | Theme.End);
             right -= hintWidth + pad;
         }
 
@@ -266,9 +269,9 @@ internal sealed class MenuRow(string text, string glyph) : ToolStripMenuItem(tex
             graphics,
             Text,
             Theme.Font(Theme.Scale(14f, dpi), Weight.Regular),
-            new Rectangle(left, 0, right - left, Height),
+            Theme.Flip(new Rectangle(left, 0, right - left, Height), row),
             ink,
-            Line & ~TextFormatFlags.NoPrefix);
+            (Line & ~TextFormatFlags.NoPrefix) | Theme.Start);
     }
 
     /// <summary>Narrator reads the label without its access-key marker.</summary>
@@ -285,12 +288,12 @@ internal sealed class MenuRow(string text, string glyph) : ToolStripMenuItem(tex
     private const TextFormatFlags Line =
         TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding;
 
-    /// <summary>The design's 32 by 18 switch, right-aligned at <paramref name="right"/>. Returns its width.</summary>
-    private int DrawSwitch(Graphics graphics, Palette palette, int dpi, int right)
+    /// <summary>The design's 32 by 18 switch, ending at <paramref name="right"/> (before mirroring). Returns its width.</summary>
+    private int DrawSwitch(Graphics graphics, Palette palette, int dpi, int right, Rectangle row)
     {
         var width = Theme.Scale(32f, dpi);
         var height = Theme.Scale(18f, dpi);
-        var track = new RectangleF(right - width, (Height - height) / 2f, width, height);
+        var track = Theme.Flip(new RectangleF(right - width, (Height - height) / 2f, width, height), row);
         using (var fill = new SolidBrush(Checked ? palette.Accent : palette.Off))
         using (var shape = Theme.Rounded(track, height / 2))
         {
@@ -299,7 +302,8 @@ internal sealed class MenuRow(string text, string glyph) : ToolStripMenuItem(tex
 
         var knob = Theme.Scale(16f, dpi);
         var inset = Theme.Scale(1f, dpi);
-        var x = Checked ? track.Right - inset - knob : track.Left + inset;
+        // On is the trailing end: the right, or the left once the switch is mirrored.
+        var x = Checked != Theme.IsRtl ? track.Right - inset - knob : track.Left + inset;
         using (var shadow = new SolidBrush(Color.FromArgb(64, 0, 0, 0)))
         {
             graphics.FillEllipse(shadow, x, track.Top + inset + inset, knob, knob);
@@ -388,7 +392,8 @@ internal sealed class HeaderRow : ToolStripMenuItem
         graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
         var size = Theme.Scale(40f, dpi);
-        var tile = new RectangleF(Theme.Scale(8f, dpi), Theme.Scale(10f, dpi), size, size);
+        var row = new Rectangle(0, 0, Width, Height);
+        var tile = Theme.Flip(new RectangleF(Theme.Scale(8f, dpi), Theme.Scale(10f, dpi), size, size), row);
         if (ripple.Enabled)
         {
             DrawRipple(graphics, palette, dpi, tile);
@@ -408,26 +413,30 @@ internal sealed class HeaderRow : ToolStripMenuItem
             new RectangleF(tile.X + ((size - icon) / 2), tile.Y + ((size - icon) / 2), icon, icon),
             waiting ? palette.Accent : palette.OnAccent);
 
-        var left = (int)(tile.Right + Theme.Scale(12f, dpi));
+        // Worked out left to right from the tile's unmirrored place, and flipped where each piece is drawn.
+        var left = (int)(Theme.Scale(8f, dpi) + size + Theme.Scale(12f, dpi));
         var right = Width - Theme.Scale(8, dpi);
         var headlineFont = Theme.Font(Theme.Scale(15f, dpi), Weight.Bold);
         var statusFont = Theme.Font(Theme.Scale(13f, dpi), Weight.Regular);
         var gap = Theme.Scale(3, dpi);
         var top = (int)(tile.Top + ((size - headlineFont.Height - gap - statusFont.Height) / 2));
 
-        const TextFormatFlags flags = TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding;
+        var flags = TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding;
         var headline = TextRenderer.MeasureText(graphics, Status.Headline, headlineFont, Size.Empty, flags);
-        TextRenderer.DrawText(graphics, Status.Headline, headlineFont, new Point(left, top), palette.Ink, flags);
+        TextRenderer.DrawText(
+            graphics, Status.Headline, headlineFont, Theme.Flip(new Rectangle(left, top, headline.Width, headline.Height), row), palette.Ink, flags | Theme.Start);
 
         // The badge: 20 px tall, 7 px either side of its word, 8 px after the headline.
         var badgeFont = Theme.Font(Theme.Scale(12f, dpi), Weight.Bold);
         var word = TextRenderer.MeasureText(graphics, Status.Badge, badgeFont, Size.Empty, flags);
         var badgeHeight = Theme.Scale(20f, dpi);
-        var badge = new RectangleF(
-            left + headline.Width + Theme.Scale(8f, dpi),
-            top + ((headline.Height - badgeHeight) / 2),
-            word.Width + Theme.Scale(14f, dpi),
-            badgeHeight);
+        var badge = Theme.Flip(
+            new RectangleF(
+                left + headline.Width + Theme.Scale(8f, dpi),
+                top + ((headline.Height - badgeHeight) / 2),
+                word.Width + Theme.Scale(14f, dpi),
+                badgeHeight),
+            row);
         using (var fill = new SolidBrush(waiting ? palette.Faint : palette.AccentSoft))
         using (var shape = Theme.Rounded(badge, Theme.Scale(6f, dpi)))
         {
@@ -440,16 +449,16 @@ internal sealed class HeaderRow : ToolStripMenuItem
             badgeFont,
             Rectangle.Round(badge),
             Status.Problem ? palette.Danger : waiting ? palette.Dim : palette.Accent,
-            flags | TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            flags | TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | Theme.Reading);
 
         // Wrapped, not cut: a refusal or a long phone name is the thing the owner opened the menu to read.
         TextRenderer.DrawText(
             graphics,
             Status.Line,
             statusFont,
-            new Rectangle(left, top + headlineFont.Height + gap, right - left, Height - (top + headlineFont.Height + gap)),
+            Theme.Flip(new Rectangle(left, top + headlineFont.Height + gap, right - left, Height - (top + headlineFont.Height + gap)), row),
             palette.Dim,
-            TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding | TextFormatFlags.EndEllipsis);
+            TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding | TextFormatFlags.EndEllipsis | Theme.Start);
     }
 
     /// <summary>How many lines past the first the status text needs in a row <paramref name="rowWidth"/> wide.</summary>
