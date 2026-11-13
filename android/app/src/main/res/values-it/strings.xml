@@ -24,7 +24,7 @@
   <string name="devices_legend">I portatili memorizzati si connettono all\'apertura di Edgepad. Dopo Disconnetti, non lo fanno più finché non tocchi di nuovo il portatile.</string>
   <string name="devices_stay_note">Resta connesso anche quando esci. Per disconnetterti, usa la notifica.</string>
   <string name="devices_legend_off">Tocca un portatile per connetterti.</string>
-  <string name="devices_multi_hint">Puoi connettere più portatili insieme. Quello attivo è il portatile che i controlli stanno pilotando; tocca Rendi attivo per cambiare.</string>
+  <string name="devices_multi_hint">Puoi connettere più portatili insieme. Quello attivo è il portatile che stai comandando con i controlli; tocca Rendi attivo per cambiare.</string>
   <string name="add_by_address">Aggiungi tramite indirizzo</string>
   <string name="address_connect">Connetti</string>
   <string name="address_looking">Ricerca di un portatile all\'indirizzo %1$s…</string>
@@ -58,7 +58,7 @@
   <string name="not_paired">Quel portatile non è più associato a questo telefono. Associalo di nuovo nelle impostazioni Bluetooth.</string>
   <string name="status_closed">Non connesso. %1$s</string>
   <string name="status_closed_named">%1$s non è connesso. %2$s</string>
-  <string name="status_accept_on_laptop">In attesa del portatile. Scegli Autorizza lì; potrebbe chiedere un PIN.</string>
+  <string name="status_accept_on_laptop">In attesa del portatile. Scegli Autorizza sul portatile; potrebbe chiedere un PIN.</string>
   <string name="link_lost">La connessione è stata persa.</string>
   <string name="link_refused">Il portatile ha chiuso la comunicazione prima dello scambio iniziale. Guarda il portatile e scegli Autorizza se chiede di questo telefono. Se un altro telefono ha preso il controllo del portatile, riprova tra 30 secondi. Se continua a non funzionare, aggiorna Edgepad sul portatile.</string>
   <string name="link_unreachable_bluetooth">Il portatile non ha accettato la connessione. Controlla che Edgepad sia in esecuzione e che il suo Bluetooth sia attivo. Se non funziona ancora, rimuovi l\'associazione sia da questo telefono sia dal portatile, poi associali di nuovo.</string>
@@ -170,7 +170,7 @@
   <string name="media_layout_hint_upright">Questo è il layout verticale; ruota il telefono per sistemare quello orizzontale. Trascina un elemento per spostarlo. Si aggancia alla griglia e alle linee centrali.</string>
   <string name="media_layout_hint_sideways">Questo è il layout orizzontale; ruota il telefono per sistemare quello verticale. Trascina un elemento per spostarlo. Si aggancia alla griglia e alle linee centrali.</string>
   <string name="piece_now_playing">In riproduzione</string>
-  <string name="piece_transport">Indietro · play · avanti</string>
+  <string name="piece_transport">Indietro · riproduci · avanti</string>
   <string name="media_layout_reset">Reimposta posizioni</string>
   <string name="media_layout_reset_confirm">Reimpostare le posizioni? Tocca di nuovo</string>
   <string name="editor_options">Opzioni</string>
@@ -322,7 +322,7 @@
   <string name="updates_try_again">Riprova</string>
   <string name="updates_available">Aggiorna a %1$s</string>
   <string name="updates_current">Aggiornato</string>
-  <string name="updates_downloading">Download in corso %1$d%%</string>
+  <string name="updates_downloading">Download in corso: %1$d%%</string>
   <string name="updates_download_failed">Impossibile scaricare l\'aggiornamento. Controlla la connessione e riprova.</string>
   <string name="updates_blocked">Android ha bloccato l\'aggiornamento. Consenti a Edgepad di installare aggiornamenti nelle impostazioni di Android, poi riprova.</string>
   <string name="updates_storage">Non c\'è abbastanza spazio per installare l\'aggiornamento. Libera dello spazio e riprova.</string>

@@ -211,7 +211,7 @@ Non è stato possibile dimenticare le associazioni Wi-Fi e USB: il loro file non
     <value>Telefoni autorizzati</value>
   </data>
   <data name="Security_NoPhones" xml:space="preserve">
-    <value>Nessun telefono è ancora autorizzato. A un telefono viene chiesto la prima volta che si connette.</value>
+    <value>Nessun telefono è ancora autorizzato. L'autorizzazione viene chiesta la prima volta che un telefono si connette.</value>
   </data>
   <data name="Security_LevelName" xml:space="preserve">
     <value>Livello {0}, {1}</value>
@@ -312,7 +312,7 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
     <value>I due PIN non coincidono.</value>
   </data>
   <data name="Macro_Description" xml:space="preserve">
-    <value>Pulsanti nella schermata delle macro del tuo telefono, fino a 15. Il telefono invia il numero di un pulsante, mai un programma, quindi può eseguire solo ciò che aggiungi qui. Alt+Su e Alt+Giù riordinano i pulsanti.</value>
+    <value>Pulsanti nella schermata delle macro del tuo telefono, fino a 15. Il telefono invia il numero di un pulsante, mai un programma, quindi può eseguire solo ciò che aggiungi qui. Alt+Freccia su e Alt+Freccia giù riordinano i pulsanti.</value>
   </data>
   <data name="Macro_EmptyHeadline" xml:space="preserve">
     <value>Ancora nessuna macro</value>
@@ -366,7 +366,7 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
     <value>&amp;Rimuovi</value>
   </data>
   <data name="Macro_ReorderHint" xml:space="preserve">
-    <value>Alt+Su e Alt+Giù spostano la macro selezionata.</value>
+    <value>Alt+Freccia su e Alt+Freccia giù spostano la macro selezionata.</value>
   </data>
   <data name="Macro_New" xml:space="preserve">
     <value>Nuova macro</value>

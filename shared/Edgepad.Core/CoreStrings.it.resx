@@ -58,7 +58,7 @@
     <value>Richiesta di autorizzazione per {0}</value>
   </data>
   <data name="Status_QuietUntil" xml:space="preserve">
-    <value>I telefoni potranno connettersi di nuovo alle {0}</value>
+    <value>I telefoni potranno connettersi di nuovo alle ore {0}</value>
   </data>
   <data name="Way_Bluetooth" xml:space="preserve">
     <value>Bluetooth</value>

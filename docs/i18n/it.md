@@ -39,7 +39,7 @@ Android `values-it`, Windows culture `it`. Natural Italian as Italian Android an
 | keyboard | tastiera |
 | function keys: With Fn, Direct | tasti funzione: Con Fn, Diretti |
 | gamepad | gamepad |
-| gamepad presets | Xbox / Platform / Corse / Sparatutto | `gamepad_preset_*`; the guide uses the same words | Xbox keys preset (separate from Xbox): Xbox (tasti).
+| gamepad presets (`gamepad_preset_*`, same words in the guide) | Xbox / Platform / Corse / Sparatutto; the Xbox keys preset is separate from Xbox: Xbox (tasti) |
 | layout, preset | layout, preset |
 | binding | assegnazione |
 | D-pad, stick, button, shoulder, trigger | D-pad, stick, pulsante, dorsale, grilletto |

@@ -42,7 +42,7 @@
   <string-array name="guide_anatomy_values">
     <item>Tutta la parte centrale dello schermo. Ogni gesto con le dita parte da qui.</item>
     <item>Righelli ripiegati negli angoli, o divisi due per angolo: volume, luminosità, zoom, avanzamento brano, cambio app, frequenza di aggiornamento, scorrimento, desktop virtuali, schede del browser o il righello Cambia portatile.</item>
-    <item>Cosa è in riproduzione, poi indietro, play e avanti, mentre un lettore è aperto. Spostalo e ridimensionalo nelle impostazioni dell\'area di controllo.</item>
+    <item>Cosa è in riproduzione, poi indietro, riproduci e avanti, mentre un lettore è aperto. Spostalo e ridimensionalo nelle impostazioni dell\'area di controllo.</item>
     <item>Una tastiera completa i cui tasti modificatori funzionano tenuti premuti o toccati, dietro il pulsante Controlli.</item>
     <item>Stick, un D-pad e pulsanti in quattro preset, oppure una disposizione tutta tua.</item>
     <item>Controlli › Annota trasforma il telefono in una penna per lo schermo del portatile, con sei strumenti e otto colori. Compare se il portatile lo supporta.</item>
@@ -61,7 +61,7 @@
   </string-array>
   <string-array name="guide_surface_values">
     <item>Muovi il puntatore. Tocca per fare clic. Tocca, poi tieni premuto e muovi, per trascinare.</item>
-    <item>Tocca per il clic destro. Scorri per far scorrere la pagina. Pizzica per ingrandire.</item>
+    <item>Tocca per il clic destro. Trascina per scorrere. Pizzica per ingrandire.</item>
     <item>Tre dita di lato per i desktop, in su per la Visualizzazione attività, in giù per il desktop. Quattro dita di lato tra le app aperte. I tocchi aprono la ricerca o le notifiche.</item>
     <item>Scorri lungo un righello: in senso orario aumenta. Toccalo per disattivare l\'audio, riprodurre, reimpostare lo zoom o aprire la Visualizzazione attività.</item>
     <item>Impostazioni dell\'area di controllo › Angoli sceglie ogni righello e può dividere ogni angolo in due, uno per lato. Comportamento dei righelli regola sensibilità, dimensione e feedback aptico. Touchpad riassegna il resto.</item>
@@ -110,7 +110,7 @@
     <item>Installa e apri Edgepad. Resta nell\'area di notifica di Windows o nella barra dei menu del Mac.</item>
     <item>Associa il portatile nelle impostazioni Bluetooth di questo telefono, poi toccalo in Dispositivi.</item>
     <item>Attiva Connessioni Wi-Fi e USB nel menu di Edgepad sul portatile (su Mac, Connessioni Wi-Fi). Per l\'USB, attiva anche il tethering USB sul telefono.</item>
-    <item>La prima volta il portatile chiede se autorizzare questo telefono: scegli Autorizza lì. Se chiede un PIN, digitalo qui.</item>
+    <item>La prima volta il portatile chiede se autorizzare questo telefono: scegli Autorizza sul portatile. Se chiede un PIN, digitalo qui.</item>
     <item>Da Android 10 solo l\'app in primo piano può leggere gli appunti, quindi ciò che copi in un\'altra app arriva al portatile quando torni su Edgepad. Oppure usa Condividi, poi Edgepad, per inviare subito un testo o un\'immagine.</item>
   </string-array>
 
@@ -125,7 +125,7 @@
   <string name="guide_art_gestures">Gesti</string>
   <string name="guide_art_move">1 · Muovi</string>
   <string name="guide_art_scroll">2 · Scorrimento</string>
-  <string name="guide_art_swipe">3 · Strisciata</string>
+  <string name="guide_art_swipe">3 · Swipe</string>
   <string name="guide_art_latch">Ctrl, Alt e Maiusc restano attivi per il tasto successivo</string>
   <string name="guide_art_presets">Xbox · Platform · Corse · Sparatutto</string>
 </resources>
