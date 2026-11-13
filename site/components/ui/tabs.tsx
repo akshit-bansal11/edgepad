@@ -39,7 +39,7 @@ export function TabsTrigger({
       data-slot="tabs-trigger"
       className={cn(
         // A segmented control. Both states are ink: dim on faint does not pass 4.5:1.
-        "text-foreground min-h-11 rounded-full px-5 text-[0.9375rem] transition-colors",
+        "press text-foreground min-h-11 rounded-full px-5 text-[0.9375rem] transition-colors",
         "data-[state=active]:bg-card data-[state=active]:shadow-card data-[state=active]:font-bold",
         className,
       )}

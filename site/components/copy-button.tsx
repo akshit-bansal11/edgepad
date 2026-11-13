@@ -31,7 +31,7 @@ export function CopyButton({ text, label }: { text: string; label: string }) {
         type="button"
         onClick={copy}
         aria-label={`Copy ${label}`}
-        className="text-dim hover:text-foreground hover:bg-faint grid size-11 place-items-center rounded-xl transition-colors"
+        className="press text-dim hover:text-foreground hover:bg-faint grid size-11 place-items-center rounded-xl transition-colors"
       >
         <AnimatePresence mode="wait" initial={false}>
           <motion.span

@@ -50,7 +50,7 @@ export function ThemeToggle() {
             className={cn(
               // A segmented control: the chosen one is a card-coloured thumb with the
               // icon in the accent. Icons are non-text, so dim on faint clears 3:1.
-              "text-dim relative grid size-11 cursor-pointer place-items-center rounded-full transition-colors",
+              "press text-dim relative grid size-11 cursor-pointer place-items-center rounded-full transition-colors",
               "hover:text-foreground",
               "has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-2 has-[:focus-visible]:-outline-offset-2",
               active && "bg-card text-primary shadow-card hover:text-primary",

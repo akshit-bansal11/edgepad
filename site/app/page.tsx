@@ -485,7 +485,9 @@ export default function Page() {
                       <div className="mt-1.5 flex flex-wrap gap-2">
                         <Badge variant="solid">{requirement}</Badge>
                         <Badge variant="outline" asChild>
-                          <a href={href}>{file}</a>
+                          <a href={href} className="relative after:absolute after:inset-x-0 after:-inset-y-1.5">
+                            {file}
+                          </a>
                         </Badge>
                       </div>
                     </div>

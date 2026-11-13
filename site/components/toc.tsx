@@ -48,9 +48,10 @@ export function Toc({ groups }: { groups: NavGroup[] }) {
                   {/* Current is accent on the accent tint (4.6:1 light, 5.5:1 dark). */}
                   <a
                     href={`#${item.id}`}
+                    onClick={() => setActive(item.id)}
                     aria-current={current ? "location" : undefined}
                     className={cn(
-                      "flex min-h-11 items-center rounded-xl px-3 text-[0.9375rem] transition-colors",
+                      "press flex min-h-11 items-center rounded-xl px-3 text-[0.9375rem] transition-colors",
                       current
                         ? "bg-accent-soft text-primary font-bold"
                         : "text-foreground hover:bg-faint",
