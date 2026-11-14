@@ -30,6 +30,12 @@ It is for the times the laptop is across the room rather than under your hands: 
 - **Guide.** Six pages on the first run, ending with how to connect a laptop, and again from System settings, one at a time or on one page. Skip leaves it.
 - Black on white or white on black, and upright or sideways: both are toggles in System settings. The orientation applies to every screen but the keyboard and the gamepad, which are always sideways.
 
+## What people say
+
+> For years I looked for a way to sync the clipboard between my phone and my laptop over Bluetooth, and never found one I was happy with — until Edgepad. It treats the Bluetooth link as a first-class part of the product, and the features built on top of it are inventive, genuinely useful, and put together in a way that feels coherent and looks good. It went far beyond what I expected.
+>
+> ★★★★★ 5/5 — [@HaujetZhao](https://github.com/HaujetZhao), a daily user ([source](https://github.com/akshit-bansal11/edgepad/issues/63))
+
 ## Install
 
 Both apps come from the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest), under **Assets**. Each file is named for its release, so `Edgepad-4.0.0.exe` and `Edgepad-4.0.0.apk` are the two halves of 4.0.0; on a Mac the laptop half is `Edgepad-<version>-mac.zip`, from 3.4.0, and on Linux `Edgepad-<version>-linux-x64.tar.gz`, from 4.0.0. Always install both from the same release: the two refuse each other at the handshake when their protocol versions differ, and say so. 3.0.0 moved the protocol from version 3 to version 4, so a 2.x app on either side will not talk to a 3.x one — update both halves together or neither connects. 4.0.0 moves it to version 5, so a 3.x app will not talk to a 4.x one either. Releases after 3.1.1 also carry `SHA256SUMS.txt`, and `gh attestation verify Edgepad-<version>.apk --repo akshit-bansal11/edgepad` checks that a file was built by this repository's release workflow.
