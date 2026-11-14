@@ -1,5 +1,4 @@
 using Edgepad.Net;
-using Edgepad.Ui;
 using Xunit;
 
 namespace Edgepad.Tests;
@@ -12,9 +11,9 @@ public sealed class StatusMemoryTests
     public void ARefusalOutlivesTheWaitingThatFollowsIt()
     {
         var memory = new StatusMemory();
-        memory.Resolve(LaptopStatus.RefusedUntrusted, 0);
+        memory.Resolve(Mismatch, 0);
 
-        Assert.Equal(LaptopStatus.RefusedUntrusted, memory.Resolve(LaptopStatus.Waiting, 1_000));
+        Assert.Equal(Mismatch, memory.Resolve(LaptopStatus.Waiting, 1_000));
     }
 
     [Fact]
@@ -37,6 +36,25 @@ public sealed class StatusMemoryTests
         memory.Clear();
 
         Assert.Equal(LaptopStatus.Waiting, memory.Resolve(LaptopStatus.Waiting, 1_000));
+    }
+
+    [Fact]
+    public void ARadioConditionEndsAtOnceWhenTheRadioRecovers()
+    {
+        var memory = new StatusMemory();
+
+        Assert.Equal(LaptopStatus.BluetoothOff, memory.Resolve(LaptopStatus.BluetoothOff, 0));
+        Assert.Equal(LaptopStatus.Waiting, memory.Resolve(LaptopStatus.Waiting, 1_000));
+    }
+
+    [Fact]
+    public void ARadioConditionDoesNotEraseARefusalStillHeld()
+    {
+        var memory = new StatusMemory();
+        memory.Resolve(Mismatch, 0);
+        memory.Resolve(LaptopStatus.BluetoothOff, 500);
+
+        Assert.Equal(Mismatch, memory.Resolve(LaptopStatus.Waiting, 1_000));
     }
 
     [Fact]

@@ -1,12 +1,10 @@
-using Edgepad.Net;
-
-namespace Edgepad.Ui;
+namespace Edgepad.Net;
 
 /// <summary>
-/// What the tray should say, given the statuses that arrive. A refusal is posted and then overwritten with "Waiting
-/// for your phone" the moment the refused session ends, so on its own it would be on screen for an instant; this
-/// keeps it until a phone connects or ten minutes pass. It also decides when a refusal earns a notification: once
-/// per distinct cause per hour. This duplicates the Windows app's StatusMemory and belongs in the shared core.
+/// What a laptop app should say, given the statuses that arrive. A refusal is posted and then overwritten with
+/// "Waiting for your phone" the moment the refused session ends, so on its own it would be on screen for an instant;
+/// this keeps it until a phone connects or ten minutes pass. A radio condition is shown while it is true and never
+/// kept. It also decides when a refusal earns a notice: once per distinct cause per hour.
 /// </summary>
 internal sealed class StatusMemory
 {
@@ -20,6 +18,12 @@ internal sealed class StatusMemory
     /// <summary>The status to show for <paramref name="status"/> at <paramref name="now"/> (milliseconds on a forward clock).</summary>
     public LaptopStatus Resolve(LaptopStatus status, long now)
     {
+        // A radio condition is shown while it is true and not remembered: the "waiting" that follows means it recovered.
+        if (status.IsRadioCondition)
+        {
+            return status;
+        }
+
         if (status.IsProblem)
         {
             problem = status;
@@ -53,6 +57,6 @@ internal sealed class StatusMemory
         return true;
     }
 
-    /// <summary>Forgets what was held, after the owner has dealt with it (a forget).</summary>
+    /// <summary>Forgets what was held, after the owner has dealt with it (a forget, a reset).</summary>
     public void Clear() => problem = null;
 }
