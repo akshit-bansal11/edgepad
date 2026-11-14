@@ -109,7 +109,7 @@ internal sealed class TrayContext : ApplicationContext
     // Windows' own alert appears as well. Only the UI thread touches it.
     private bool allowingNetwork;
 
-    private readonly TrayStatus statusMemory = new();
+    private readonly TrayStatusMemory statusMemory = new();
     private readonly long startedAt = Environment.TickCount64;
     private bool wasConnected;
     private bool announcedDriver;

@@ -6,7 +6,7 @@ namespace Edgepad.Ui;
 /// The shared <see cref="StatusMemory"/> plus the one thing only Windows does: while connections are refused on
 /// purpose after a forget, the quiet text is said in place of "waiting" (a held problem still wins over it).
 /// </summary>
-internal sealed class TrayStatus
+internal sealed class TrayStatusMemory
 {
     private readonly StatusMemory memory = new();
     private LaptopStatus? quiet;

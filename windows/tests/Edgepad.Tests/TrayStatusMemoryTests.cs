@@ -5,12 +5,12 @@ using Xunit;
 
 namespace Edgepad.Tests;
 
-public sealed class TrayStatusTests
+public sealed class TrayStatusMemoryTests
 {
     [Fact]
     public void TheQuietPeriodIsSaidInPlaceOfWaiting()
     {
-        var memory = new TrayStatus();
+        var memory = new TrayStatusMemory();
         var quiet = LaptopStatus.QuietUntil("12:41");
         memory.Quiet(quiet, 5_000);
 
