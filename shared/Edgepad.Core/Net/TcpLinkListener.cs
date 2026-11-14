@@ -25,8 +25,10 @@ internal sealed class TcpLinkListener(int requestedPort, Action<Socket, Action> 
 
     // A phone that vanishes (Wi-Fi dropped, cable pulled) sends no FIN, and the protocol has no read timeout once the
     // link is proved, so only keep-alive tells the laptop. The OS default waits two hours before the first probe,
-    // while the phone's held keys, the virtual pad and the ink stay down; these end the session in about 45 seconds.
-    public const int KeepAliveIdleSeconds = 30;
+    // while the phone's held keys, the virtual pad and the ink stay down; these end the session in about 25 seconds.
+    // The phone (TcpTransport) and the Mac (NetworkServer) use the same 10 s, 5 s and 3 probes, so both ends of a link
+    // give up on a vanished peer at the same time.
+    public const int KeepAliveIdleSeconds = 10;
 
     public const int KeepAliveProbeSeconds = 5;
 

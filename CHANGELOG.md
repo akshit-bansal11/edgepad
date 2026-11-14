@@ -30,7 +30,11 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 - **Windows: messages name the real buttons.** The pairing step says to tap "Yes, paired" (the phone's actual button, not "Yes"), and the two reset errors name "Reset PIN and forget phones" instead of a "Reset" that does not exist. In every language.
 - **Windows: a pasted pairing code no longer loses a digit.** The box cut a paste to its length before removing spaces, so " 482 913" arrived short.
 - **Windows: the tray stops saying "Bluetooth is off" as soon as Bluetooth is back.** It had kept the message for up to ten minutes. Refusals and version mismatches still stay up that long.
-- **Windows and Linux: a phone that vanishes over Wi-Fi or USB lets go of held keys, the pad and the ink within about a minute.** Before, the laptop kept the session for hours after the Wi-Fi dropped or the cable was pulled.
+- **Every platform: a link that vanishes over Wi-Fi or USB is noticed in about 25 seconds.** The laptop (Windows, Mac and Linux) lets go of held keys, the pad and the ink, and the phone stops showing the laptop as connected. Before, the laptop kept the session for hours after the Wi-Fi dropped or the cable was pulled, and the phone showed it connected for about 15 minutes. Both ends use the same timing. No change to the wire protocol.
+- **Phone: holding a key on the on-screen keyboard until it repeats no longer leaves it stuck.** The laptop saw the key held down for good and the key stopped working until Edgepad restarted. In every release since 4.0.0.
+- **Mac: the phone is told when input is blocked because event posting is denied,** not only when Accessibility is, and taking a permission away later is noticed.
+- **Linux: a refused phone's reason stays in the tray** (untrusted, wrong PIN, locked out, version mismatch) instead of being replaced by "Waiting" at once.
+- **Linux: if the tray cannot start, Edgepad says so and exits** instead of running with no way to quit.
 
 ## [4.1.0] - 2026-11-10
 
