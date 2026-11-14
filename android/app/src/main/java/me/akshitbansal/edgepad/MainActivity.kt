@@ -122,7 +122,6 @@ import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.SharingScreen
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
-import me.akshitbansal.edgepad.screens.TextChunks
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.screens.openOver
 import me.akshitbansal.edgepad.screens.showOver
@@ -913,7 +912,7 @@ class MainActivity :
                         onKey = sendKey,
                         onAction = { send(it.frame()) },
                         onSettings = { goTo(Screen.KEYBOARD_SETTINGS) },
-                        onType = { text -> TextChunks.split(text).forEach { send(Frame.Text(TextKind.TYPE.id, it)) } },
+                        send = send,
                     ) { navigateBack() }
                 }
 

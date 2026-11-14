@@ -35,6 +35,7 @@ import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.OutputKind
+import me.akshitbansal.edgepad.screens.askText
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.roundToInt
@@ -184,15 +185,16 @@ class ControlSurface(
 
     // AND-A-16: hiding the dials wears its own icon, so the one lock button no longer looks the same in both modes.
     private val focusIconOn = icon(R.drawable.ic_eye_off, accent)
-    private val lockButton = TopButton(icon(R.drawable.ic_lock, dim), side = 0f, open = { tapLock() })
+    private val lockButton = TopButton(icon(R.drawable.ic_lock, dim), side = 0.5f, open = { tapLock() })
     private val topButtons =
         if (trackpadOnly) {
             emptyList()
         } else {
             listOf(
-                TopButton(icon(R.drawable.ic_settings, dim), side = -1f, open = onOpenSettings),
+                TopButton(icon(R.drawable.ic_settings, dim), side = -1.5f, open = onOpenSettings),
+                TopButton(icon(R.drawable.ic_battery_keyboard, dim), side = -0.5f, open = ::typeText),
                 lockButton,
-                TopButton(icon(R.drawable.ic_controls, dim), side = 1f, open = onOpenControls),
+                TopButton(icon(R.drawable.ic_controls, dim), side = 1.5f, open = onOpenControls),
             )
         }
     private val speakerIcon = icon(R.drawable.ic_battery_speaker, accent)
@@ -228,6 +230,7 @@ class ControlSurface(
                     send(ActionId.PREVIOUS_TRACK.frame())
                 },
                 action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
+                action(R.id.action_type_text, R.string.keyboard_type_text) to ::typeText,
                 action(R.id.action_controls, R.string.surface_controls) to onOpenControls,
                 action(R.id.action_pad_lock, R.string.surface_lock) to { tapLock() },
                 // AND-A-8: the two levels a dial sets are reachable without sliding one.
@@ -1497,7 +1500,7 @@ class ControlSurface(
     /**
      * One of the buttons floating at the top of the surface. [side] places it across the centre of the top
      * edge in steps of [topButtonOffsetDp]: -1 one step left of it, 0 on it, 1 one step right. The
-     * row of three is centred on the lock: settings to its left, Controls to its right.
+     * row of four is centred on the top edge: settings and Type text left of centre, the lock and Controls right.
      */
     private class TopButton(
         val icon: Drawable,
@@ -1506,6 +1509,9 @@ class ControlSurface(
     ) {
         val hit = RectF()
     }
+
+    /** #65: the Type text dialog of the keyboard screen, reachable without leaving the surface. */
+    private fun typeText() = askText(context, this, send)
 
     private fun haptic() {
         if (hapticsOn) performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
