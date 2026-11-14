@@ -23,6 +23,15 @@ internal sealed class TcpLinkListener(int requestedPort, Action<Socket, Action> 
 
     public const int MaxUnauthenticatedPerHost = 2;
 
+    // A phone that vanishes (Wi-Fi dropped, cable pulled) sends no FIN, and the protocol has no read timeout once the
+    // link is proved, so only keep-alive tells the laptop. The OS default waits two hours before the first probe,
+    // while the phone's held keys, the virtual pad and the ink stay down; these end the session in about 45 seconds.
+    public const int KeepAliveIdleSeconds = 30;
+
+    public const int KeepAliveProbeSeconds = 5;
+
+    public const int KeepAliveProbes = 3;
+
     private readonly Lock gate = new();
     private readonly int deadlineMs = (int)(deadline ?? TimeSpan.FromSeconds(10)).TotalMilliseconds;
 
@@ -216,6 +225,9 @@ internal sealed class TcpLinkListener(int requestedPort, Action<Socket, Action> 
         {
             client.NoDelay = true;
             client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+            client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, KeepAliveIdleSeconds);
+            client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, KeepAliveProbeSeconds);
+            client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, KeepAliveProbes);
             client.ReceiveTimeout = deadlineMs;
             client.SendTimeout = deadlineMs;
             new Thread(() => Run(client, Done)) { IsBackground = true, Name = "edgepad-tcp-link" }.Start();
