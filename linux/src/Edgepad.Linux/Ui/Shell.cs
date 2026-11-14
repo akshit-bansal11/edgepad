@@ -43,7 +43,7 @@ internal sealed class Shell : IDisposable
     private Tray? tray;
     private FallbackWindow? fallback;
     private Timer? updateTimer;
-    private IClassicDesktopStyleApplicationLifetime? lifetime;
+    private volatile IClassicDesktopStyleApplicationLifetime? lifetime;
     private readonly Autostart autostart = Autostart.ForCurrentUser();
     private readonly UpdateSetting updateSetting = UpdateSetting.ForCurrentUser();
 
@@ -109,15 +109,36 @@ internal sealed class Shell : IDisposable
 
     /// <summary>Runs the UI on the calling thread until Quit; returns Avalonia's exit code. Throws if no display can be opened.</summary>
     public int Run() =>
-        AppBuilder.Configure(() => new App(Start)).UsePlatformDetect().StartWithClassicDesktopLifetime([], ShutdownMode.OnExplicitShutdown);
+        AppBuilder.Configure(() => new App(StartOrFail)).UsePlatformDetect().StartWithClassicDesktopLifetime([], ShutdownMode.OnExplicitShutdown);
+
+    /// <summary>
+    /// A tray that could not be set up leaves an app with no way to quit it, so it ends instead: logged, told to the
+    /// owner in a notification (the one place that needs no tray), and the loop exits with code 1.
+    /// </summary>
+    private void StartOrFail(App app)
+    {
+        try
+        {
+            Start(app);
+        }
+        catch (Exception e)
+        {
+            Log.Write($"The tray could not be set up, so Edgepad is quitting: {e}");
+            var failing = app.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+            Dispatcher.UIThread.Post(() => failing?.Shutdown(1));
+            Notifier.SendNow("Edgepad could not start", "Its tray could not be set up. The log has the reason.");
+        }
+    }
 
     /// <summary>Ends the UI loop from any thread (a signal, the Quit row). Harmless before it started or after it ended.</summary>
     public void RequestQuit()
     {
         quitRequested = true;
-        if (ready)
+
+        // Posted even before the tray is ready: Start also checks the flag at its end, but a Start that threw never gets there.
+        if (lifetime is { } running)
         {
-            Dispatcher.UIThread.Post(() => lifetime?.Shutdown());
+            Dispatcher.UIThread.Post(() => running.Shutdown());
         }
     }
 

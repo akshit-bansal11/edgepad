@@ -21,16 +21,7 @@ internal sealed class App(Action<App> ready) : Application
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
         }
 
-        try
-        {
-            ready(this);
-        }
-        catch (Exception e)
-        {
-            // The Bluetooth service does not depend on this: without a tray the app still serves, and trust fails closed.
-            Log.Write($"The tray could not be set up: {e}");
-        }
-
+        ready(this);
         base.OnFrameworkInitializationCompleted();
     }
 }
