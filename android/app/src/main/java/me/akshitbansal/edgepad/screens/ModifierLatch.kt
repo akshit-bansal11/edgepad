@@ -56,6 +56,13 @@ class ModifierLatch(
 
     fun keyDown(code: Int) {
         if (!fingerDown(code)) return
+        sendKey(code)
+    }
+
+    /** A held key's auto-repeat: the key goes out again, wrapped like the first press, without counting as another finger. */
+    fun keyRepeat(code: Int) = sendKey(code)
+
+    private fun sendKey(code: Int) {
         usedWhileHeld.addAll(held)
         for (modifier in armed) if (pressed.add(modifier)) send(modifier, true)
         send(code, true)

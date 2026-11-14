@@ -197,7 +197,7 @@ object KeyboardScreen {
             KeyRepeat(
                 post = { task, delay -> postDelayed(task, delay) },
                 cancel = { task -> removeCallbacks(task) },
-                fire = { code -> modifiers.keyDown(code) },
+                fire = { code -> modifiers.keyRepeat(code) },
             )
 
         init {

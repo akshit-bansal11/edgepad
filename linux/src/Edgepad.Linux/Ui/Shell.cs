@@ -52,6 +52,9 @@ internal sealed class Shell : IDisposable
     private volatile bool quitRequested;
     private volatile string status = LaptopStatus.Starting.Text;
 
+    // Statuses arrive on session threads; the lock in SetStatus guards it.
+    private readonly StatusMemory memory = new();
+
     // /dev/uinput cannot be opened: input would do nothing while the phone shows connected. Set from any thread.
     private volatile bool inputBlocked;
     private bool updateNotified;
@@ -121,10 +124,25 @@ internal sealed class Shell : IDisposable
     /// <summary>The status line, from any thread. Before the tray exists it is only remembered.</summary>
     public void SetStatus(LaptopStatus update)
     {
-        var text = update.Text;
+        // A refusal is followed within microseconds by "waiting" when its session ends; the memory keeps the refusal on screen.
+        LaptopStatus shown;
+        bool announce;
+        lock (memory)
+        {
+            var now = Environment.TickCount64;
+            announce = memory.ShouldAnnounce(update, now);
+            shown = memory.Resolve(update, now);
+        }
+
+        if (announce)
+        {
+            Notifier.Send("Edgepad", update.Text);
+        }
+
+        var text = shown.Text;
 
         // "Connected to" is only true if the phone's input can do anything: check each time, as the log said only at the end.
-        if (update.IsConnected)
+        if (shown.IsConnected)
         {
             CheckInput();
             if (inputBlocked)
@@ -134,7 +152,7 @@ internal sealed class Shell : IDisposable
         }
 
         status = text;
-        Log.Write($"Status: {text}");
+        Log.Write($"Status: {update.Text}");
         if (ready)
         {
             Dispatcher.UIThread.Post(() =>
@@ -334,6 +352,11 @@ internal sealed class Shell : IDisposable
 
             // Started before the hold ends, so there is no instant in which a connection would be taken.
             bluetooth.HangUp(QuietAfterForget);
+            lock (memory)
+            {
+                memory.Clear();
+            }
+
             if (!forgotten)
             {
                 await Dialogs.Inform(
