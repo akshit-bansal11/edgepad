@@ -52,7 +52,7 @@ It is for the times the laptop is across the room rather than under your hands: 
 
 **Controls**
 
-- **Keyboard and Type text.** A full on-screen keyboard, and a field that sends whole text to the laptop.
+- **Keyboard and Type text.** A full on-screen keyboard, and a Type text box (from the keyboard, or straight from a button on the surface) that sends typed, dictated or pasted text to the laptop.
 - **Gamepad.** A virtual Xbox controller with analog sticks and triggers where a driver exists, key presses where it does not; layouts you build and keep per game.
 - **Macros.** Buttons that open a program, file, folder or web address on the laptop.
 - **Annotate and sign.** The phone as an absolute pen on the laptop's screen, or as a signature pad.
