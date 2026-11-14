@@ -19,7 +19,7 @@ class HostPort(
  * colons being its own); [LINK_PORT] when no port is given. Null for anything else. Pure, so a test covers it.
  */
 internal fun parseHostPort(text: String): HostPort? {
-    val t = text.trim()
+    val t = cleaned(text)
     if (t.isEmpty() || t.any { !it.isLetterOrDigit() && it !in ADDRESS_CHARS }) return null
     if (t.startsWith("[")) {
         val end = t.indexOf(']')
@@ -50,6 +50,18 @@ internal fun parseHostPort(text: String): HostPort? {
         }
     }
 }
+
+/**
+ * [text] trimmed, without a leading `scheme://` or a trailing `/`, and with any script's digits as ASCII.
+ * Whitespace inside stays, so "two words" is still refused rather than read as a host.
+ */
+private fun cleaned(text: String): String =
+    text
+        .trim()
+        .substringAfter("//")
+        .trimEnd('/')
+        .map { if (it.isDigit()) '0' + Character.digit(it, 10) else it }
+        .joinToString("")
 
 private const val ADDRESS_CHARS = ":.-_[]%"
 

@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>アップデートを毎日確認(&amp;C)</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>設定(&amp;N)</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>ログを開く(&amp;L)</value>
   </data>
@@ -277,14 +280,14 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
     <value>PINは削除され、レベルは1に戻り、信頼済みのスマホはすべて登録解除されます。接続中のスマホも含め、すべてのスマホをここでもう一度信頼する必要があります。忘れたPINは復元できず、リセットのみ可能です。</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>ファイルを使用しているアプリを閉じてから、もう一度「リセット」を選ぶか、次のファイルを自分で削除してください。
+    <value>ファイルを使用しているアプリを閉じてから、もう一度「PINをリセットしてスマホを登録解除」を選ぶか、次のファイルを自分で削除してください。
 
 {0}
 
 何もリセットされていません。信頼済みのスマホの登録を解除できなかったため、PINとレベルはそのままです。Edgepadが動作している間は、どのスマホも接続できませんが、次に起動すると、それらのスマホは同じPINのもとで再び信頼されます。</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>ファイルを使用しているアプリを閉じてから、もう一度「リセット」を選ぶか、security.txtとpin-verified.txtを次の場所から自分で削除してください。
+    <value>ファイルを使用しているアプリを閉じてから、もう一度「PINをリセットしてスマホを登録解除」を選ぶか、security.txtとpin-verified.txtを次の場所から自分で削除してください。
 
 {0}
 
@@ -322,6 +325,9 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>名前</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>収まるよう短縮しました</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>開く対象</value>

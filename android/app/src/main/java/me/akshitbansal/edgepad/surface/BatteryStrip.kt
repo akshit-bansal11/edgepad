@@ -10,6 +10,7 @@ import android.text.TextPaint
 import android.util.TypedValue
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.drawFitted
 import kotlin.math.roundToInt
 
 /**
@@ -158,7 +159,7 @@ class BatteryStrip(
             chip.icon?.draw(canvas)
             if (chip.charging) chip.bolt.draw(canvas)
             text.color = if (chip.low) danger else ink
-            canvas.drawText(chip.label, chip.textX, baseline, text)
+            text.drawFitted(canvas, chip.label, chip.textX, baseline, room(chip))
         }
     }
 

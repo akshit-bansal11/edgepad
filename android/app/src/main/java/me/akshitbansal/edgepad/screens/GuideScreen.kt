@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.view.animation.PathInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
@@ -89,7 +90,6 @@ object GuideScreen {
     private const val DOT_DP = 8f
     private const val DOT_CURRENT_DP = 22f
     private const val ENTER_DP = 18f
-    private const val ENTER_MS = 450L
     private const val EASE_X1 = 0.2f
     private const val EASE_Y1 = 0.7f
     private const val EASE_X2 = 0.2f
@@ -387,7 +387,7 @@ object GuideScreen {
             .animate()
             .alpha(1f)
             .translationX(0f)
-            .setDuration(ENTER_MS)
+            .setDuration(Motion.SLOW)
             .setInterpolator(PathInterpolator(EASE_X1, EASE_Y1, EASE_X2, EASE_Y2))
             .start()
     }

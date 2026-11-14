@@ -54,6 +54,7 @@ internal static class Program
         using var quit = new ManualResetEventSlim();
         using var terminate = PosixSignalRegistration.Create(PosixSignal.SIGTERM, Stop);
         using var interrupt = PosixSignalRegistration.Create(PosixSignal.SIGINT, Stop);
+        var exitCode = 0;
         using (var server = new LinuxServer(trust, pin, shell.AskTrust, identity, shell.SetStatus))
         {
             shell.Attach(server);
@@ -64,8 +65,8 @@ internal static class Program
             try
             {
                 // The tray and the dialogs: Avalonia owns this thread until Quit. The Bluetooth service runs on
-                // its own threads and keeps serving whatever happens here.
-                shell.Run();
+                // its own threads and keeps serving whatever happens here. Non-zero when the tray could not be set up.
+                exitCode = shell.Run();
             }
             catch (Exception e)
             {
@@ -81,7 +82,7 @@ internal static class Program
         }
 
         Log.Write($"Edgepad {Version} quitting");
-        return 0;
+        return exitCode;
 
         void Stop(PosixSignalContext context)
         {

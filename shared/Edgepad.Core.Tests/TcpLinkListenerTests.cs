@@ -68,6 +68,19 @@ public sealed class TcpLinkListenerTests : IDisposable
     }
 
     [Fact]
+    public async Task AConnectionGetsShortKeepAliveTimersSoAVanishedPhoneEndsItsSession()
+    {
+        using var listener = Listen();
+        using var client = await ConnectAsync(listener);
+
+        await WaitForAsync(1);
+
+        Assert.True(accepted.TryPeek(out var first));
+        Assert.Equal(TcpLinkListener.KeepAliveIdleSeconds, first.Socket.GetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime));
+        Assert.Equal(TcpLinkListener.KeepAliveProbeSeconds, first.Socket.GetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval));
+    }
+
+    [Fact]
     public async Task AConnectionIsHandedOnWithItsSocket()
     {
         using var listener = Listen();

@@ -111,6 +111,31 @@ class ModifierLatchTest {
     }
 
     @Test
+    fun aRepeatingKeySendsAgainAndStillReleasesOnce() {
+        latch.keyDown(A)
+        latch.keyRepeat(A)
+        latch.keyRepeat(A)
+        latch.keyUp(A)
+        assertEquals(listOf("65v", "65v", "65v", "65^"), sent)
+
+        sent.clear()
+        latch.keyDown(A)
+        latch.keyUp(A)
+        assertEquals(listOf("65v", "65^"), sent)
+    }
+
+    @Test
+    fun aRepeatIsWrappedByAnArmedModifierWithoutPressingItAgain() {
+        latch.modifierDown(CTRL)
+        latch.modifierUp(CTRL)
+        sent.clear()
+        latch.keyDown(C)
+        latch.keyRepeat(C)
+        latch.keyUp(C)
+        assertEquals(listOf("17v", "67v", "67v", "67^", "17^"), sent)
+    }
+
+    @Test
     fun aModifierUsedWhileHeldIsNotArmedByAnotherModifiersTap() {
         latch.modifierDown(SHIFT)
         latch.keyDown(A)

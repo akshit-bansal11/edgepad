@@ -13,6 +13,18 @@ final class NetworkServer {
     /// Connections still proving themselves, at most, as on Windows and Linux: past this a new one is closed at once.
     private static let maxUnproved = 4
 
+    /// TCP keep-alive on every accepted connection: a phone that left the network without a FIN (Wi-Fi dropped, USB
+    /// tether pulled) otherwise keeps its session and any held key or button for ever. Idle 10 s, then 3 probes 5 s
+    /// apart: a vanished phone fails the connection in about 25 s, which ends the session through the usual path.
+    private static func listenerParameters() -> NWParameters {
+        let tcp = NWProtocolTCP.Options()
+        tcp.enableKeepalive = true
+        tcp.keepaliveIdle = 10
+        tcp.keepaliveInterval = 5
+        tcp.keepaliveCount = 3
+        return NWParameters(tls: nil, tcp: tcp)
+    }
+
     private let identity: LinkIdentity
     private let paired: PairedLinks
     private let trust: TrustStore
@@ -84,9 +96,9 @@ final class NetworkServer {
         let opened: NWListener
         do {
             if let port {
-                opened = try NWListener(using: .tcp, on: port)
+                opened = try NWListener(using: Self.listenerParameters(), on: port)
             } else {
-                opened = try NWListener(using: .tcp)
+                opened = try NWListener(using: Self.listenerParameters())
             }
         } catch {
             Log.write("Could not listen for Wi-Fi and USB phones: \(error)")

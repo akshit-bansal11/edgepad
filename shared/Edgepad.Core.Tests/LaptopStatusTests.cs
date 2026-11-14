@@ -73,6 +73,16 @@ public sealed class LaptopStatusTests
     }
 
     [Fact]
+    public void OnlyTheBrokenRadiosAreLiveConditions()
+    {
+        LaptopStatus[] radios = [LaptopStatus.BluetoothOff, LaptopStatus.BluetoothRetrying, LaptopStatus.BluetoothUnavailable];
+
+        Assert.All(radios, status => Assert.True(status.IsRadioCondition));
+        Assert.False(LaptopStatus.RefusedUntrusted.IsRadioCondition);
+        Assert.False(LaptopStatus.Waiting.IsRadioCondition);
+    }
+
+    [Fact]
     public void OnlyAMismatchIsAnnounced()
     {
         Assert.True(LaptopStatus.RefusedProtocol(4, 5).For("Pixel", PhoneWay.Bluetooth).IsMismatch);

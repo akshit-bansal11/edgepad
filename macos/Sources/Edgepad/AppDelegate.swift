@@ -61,8 +61,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var bluetoothPower: BluetoothPower?
     private var updateTimer: Timer?
     private var badged = false
-    /// The last AXIsProcessTrusted the poll saw, so the phone is told (TEXT 18) only on a change.
-    private var lastTrusted = AXIsProcessTrusted()
+    /// The last inputReady the poll saw, so the phone is told (TEXT 18) only on a change.
+    private var lastReady = AXIsProcessTrusted() && CGPreflightPostEventAccess()
     private var questionOpen = false
     /// Set once the owner has opened the menu, which the first-run question waits for at the latest.
     private var menuSeen = false
@@ -105,7 +105,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             askTrust: { [weak self] in self?.askTrust($0, $1) ?? false },
             identity: identity,
             onStatus: { [weak self] in self?.setStatus($0) })
-        host.inputBlocked = { !AXIsProcessTrusted() }
+        // inputReady, not Accessibility alone: with event posting denied every tap is dropped, so the phone must hear it.
+        host.inputBlocked = { [weak self] in !(self?.inputReady ?? true) }
         // Off the main queue: a file read and rewrite has no place on the path that admits a phone.
         host.onVerified = { [lastConnected] address in
             DispatchQueue.global(qos: .utility).async { lastConnected.record(address) }
@@ -232,8 +233,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    /// Looks at the input permission once a second while it is missing, or while the first-run question waits for
-    /// it, so the badge goes and the question comes the moment the owner has granted it.
+    /// Looks at the input permission once a second for the life of the app, so the badge and the phone follow a grant
+    /// and a later revoke alike, and the first-run question comes the moment the owner has granted it.
     private func watchInputPermission() {
         guard permissionTimer == nil else { return }
         permissionTimer = Timer.scheduledTimer(withTimeInterval: Self.permissionPollSeconds, repeats: true) {
@@ -241,9 +242,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             guard let self else { return }
             self.refreshButton()
             // The phone hears a grant (or a revoke) here too, from the poll that already runs.
-            let trusted = AXIsProcessTrusted()
-            if trusted != self.lastTrusted {
-                self.lastTrusted = trusted
+            let ready = self.inputReady
+            if ready != self.lastReady {
+                self.lastReady = ready
                 self.host?.inputStateChanged()
             }
             if self.inputReady {
@@ -251,10 +252,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     self.setStatus(StatusText.waiting)
                 }
                 self.askFirstRunIfDue()
-                if !self.firstRunQuestionDue {
-                    self.permissionTimer?.invalidate()
-                    self.permissionTimer = nil
-                }
             }
         }
     }

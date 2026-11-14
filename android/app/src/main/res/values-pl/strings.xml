@@ -329,6 +329,8 @@
   <string name="updates_try_again">Spróbuj ponownie</string>
   <string name="updates_available">Aktualizuj do wersji %1$s</string>
   <string name="updates_current">Aktualna wersja</string>
+  <string name="updates_updated">Zaktualizowano do %1$s</string>
+  <string name="connected_to">Połączono z %1$s</string>
   <string name="updates_downloading">Pobieranie %1$d%%</string>
   <string name="updates_download_failed">Nie udało się pobrać aktualizacji. Sprawdź połączenie i spróbuj ponownie.</string>
   <string name="updates_blocked">Android zablokował aktualizację. Zezwól Edgepad na instalowanie aktualizacji w ustawieniach Androida i spróbuj ponownie.</string>
@@ -531,6 +533,8 @@
   <string name="apps_confirm_body">Powstanie makro, które otwiera tę aplikację na laptopie.</string>
   <string name="apps_confirm_action">Dodaj</string>
   <string name="macro_opening">Otwieranie</string>
+  <string name="macro_closing">Zamykanie</string>
+  <string name="pair_confirming">Parowanie…</string>
   <string name="apps_row_added">Dodano</string>
   <string name="apps_row_added_description">%1$s, już dodano</string>
   <string name="apps_row_full">Brak miejsca</string>

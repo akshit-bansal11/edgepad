@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Buscar actualizaciones a &amp;diario</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>&amp;Configuración</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>Abrir &amp;registro</value>
   </data>
@@ -277,14 +280,14 @@ No se pudieron olvidar las vinculaciones por Wi-Fi y USB: no se pudo eliminar ni
     <value>Se elimina el PIN, el nivel vuelve a 1 y se olvidan todos los teléfonos de confianza. Habrá que volver a confiar aquí en cada teléfono, también en el que está conectado. Un PIN olvidado no se puede recuperar, solo restablecer.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>Cierra lo que esté usando el archivo y elige Restablecer de nuevo, o elimínalo tú mismo:
+    <value>Cierra lo que esté usando el archivo y elige «Restablecer PIN y olvidar teléfonos» de nuevo, o elimínalo tú mismo:
 
 {0}
 
 No se restableció nada: no se pudieron olvidar los teléfonos de confianza, así que el PIN y el nivel quedaron como estaban. Ningún teléfono puede conectarse mientras Edgepad siga abierto, pero esos teléfonos volverán a ser de confianza, con el mismo PIN, la próxima vez que se inicie.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>Cierra lo que esté usando el archivo y elige Restablecer de nuevo, o elimina tú mismo security.txt y pin-verified.txt de:
+    <value>Cierra lo que esté usando el archivo y elige «Restablecer PIN y olvidar teléfonos» de nuevo, o elimina tú mismo security.txt y pin-verified.txt de:
 
 {0}
 
@@ -322,6 +325,9 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Nombre</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>Acortado para que quepa</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>Abre</value>

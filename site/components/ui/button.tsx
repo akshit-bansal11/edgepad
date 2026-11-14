@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-[var(--radius-card)] font-bold whitespace-nowrap transition-[background-color,color,opacity,filter] disabled:pointer-events-none disabled:opacity-35 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "press inline-flex shrink-0 items-center justify-center gap-2 rounded-[var(--radius-card)] font-bold whitespace-nowrap transition-[background-color,color,opacity,filter] disabled:pointer-events-none disabled:opacity-35 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       // The design system's three buttons: filled for the one main action, tinted for

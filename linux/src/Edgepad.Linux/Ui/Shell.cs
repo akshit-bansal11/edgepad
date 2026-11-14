@@ -43,7 +43,7 @@ internal sealed class Shell : IDisposable
     private Tray? tray;
     private FallbackWindow? fallback;
     private Timer? updateTimer;
-    private IClassicDesktopStyleApplicationLifetime? lifetime;
+    private volatile IClassicDesktopStyleApplicationLifetime? lifetime;
     private readonly Autostart autostart = Autostart.ForCurrentUser();
     private readonly UpdateSetting updateSetting = UpdateSetting.ForCurrentUser();
 
@@ -51,6 +51,9 @@ internal sealed class Shell : IDisposable
     private volatile bool ready;
     private volatile bool quitRequested;
     private volatile string status = LaptopStatus.Starting.Text;
+
+    // Statuses arrive on session threads; the lock in SetStatus guards it.
+    private readonly StatusMemory memory = new();
 
     // /dev/uinput cannot be opened: input would do nothing while the phone shows connected. Set from any thread.
     private volatile bool inputBlocked;
@@ -106,25 +109,61 @@ internal sealed class Shell : IDisposable
 
     /// <summary>Runs the UI on the calling thread until Quit; returns Avalonia's exit code. Throws if no display can be opened.</summary>
     public int Run() =>
-        AppBuilder.Configure(() => new App(Start)).UsePlatformDetect().StartWithClassicDesktopLifetime([], ShutdownMode.OnExplicitShutdown);
+        AppBuilder.Configure(() => new App(StartOrFail)).UsePlatformDetect().StartWithClassicDesktopLifetime([], ShutdownMode.OnExplicitShutdown);
+
+    /// <summary>
+    /// A tray that could not be set up leaves an app with no way to quit it, so it ends instead: logged, told to the
+    /// owner in a notification (the one place that needs no tray), and the loop exits with code 1.
+    /// </summary>
+    private void StartOrFail(App app)
+    {
+        try
+        {
+            Start(app);
+        }
+        catch (Exception e)
+        {
+            Log.Write($"The tray could not be set up, so Edgepad is quitting: {e}");
+            var failing = app.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+            Dispatcher.UIThread.Post(() => failing?.Shutdown(1));
+            Notifier.SendNow("Edgepad could not start", "Its tray could not be set up. The log has the reason.");
+        }
+    }
 
     /// <summary>Ends the UI loop from any thread (a signal, the Quit row). Harmless before it started or after it ended.</summary>
     public void RequestQuit()
     {
         quitRequested = true;
-        if (ready)
+
+        // Posted even before the tray is ready: Start also checks the flag at its end, but a Start that threw never gets there.
+        if (lifetime is { } running)
         {
-            Dispatcher.UIThread.Post(() => lifetime?.Shutdown());
+            Dispatcher.UIThread.Post(() => running.Shutdown());
         }
     }
 
     /// <summary>The status line, from any thread. Before the tray exists it is only remembered.</summary>
     public void SetStatus(LaptopStatus update)
     {
-        var text = update.Text;
+        // A refusal is followed within microseconds by "waiting" when its session ends; the memory keeps the refusal on screen.
+        LaptopStatus shown;
+        bool announce;
+        lock (memory)
+        {
+            var now = Environment.TickCount64;
+            announce = memory.ShouldAnnounce(update, now);
+            shown = memory.Resolve(update, now);
+        }
+
+        if (announce)
+        {
+            Notifier.Send("Edgepad", update.Text);
+        }
+
+        var text = shown.Text;
 
         // "Connected to" is only true if the phone's input can do anything: check each time, as the log said only at the end.
-        if (update.IsConnected)
+        if (shown.IsConnected)
         {
             CheckInput();
             if (inputBlocked)
@@ -134,7 +173,7 @@ internal sealed class Shell : IDisposable
         }
 
         status = text;
-        Log.Write($"Status: {text}");
+        Log.Write($"Status: {update.Text}");
         if (ready)
         {
             Dispatcher.UIThread.Post(() =>
@@ -334,6 +373,11 @@ internal sealed class Shell : IDisposable
 
             // Started before the hold ends, so there is no instant in which a connection would be taken.
             bluetooth.HangUp(QuietAfterForget);
+            lock (memory)
+            {
+                memory.Clear();
+            }
+
             if (!forgotten)
             {
                 await Dialogs.Inform(

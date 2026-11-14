@@ -13,7 +13,9 @@ import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.drawFitted
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.roundToInt
 
@@ -140,7 +142,7 @@ class GuideArt(
         for (i in labels.indices) {
             val label = labels[i]
             text.textAlign = label.align
-            canvas.drawText(label.text, label.x, label.y, text)
+            text.drawFitted(canvas, label.text, label.x, label.y, label.room)
         }
         canvas.restoreToCount(saved)
     }
@@ -246,6 +248,8 @@ class GuideArt(
         val x: Float,
         val y: Float,
         val align: Paint.Align,
+        /** The width the label may take: to the frame edge, and short of the next label on its row. */
+        val room: Float = 0f,
     )
 
     private companion object {
@@ -254,6 +258,8 @@ class GuideArt(
         const val GROUND_DP = 16f
         const val STROKE = 1.4f
         const val LABEL_SIZE = 9f
+        const val ROW_DY = 6f
+        const val LABEL_PAD = 4f
         const val OPAQUE = 255
         const val RUN_MS = 5000f
 
@@ -279,6 +285,24 @@ class GuideArt(
         val WOBBLE_Y = floatArrayOf(0f, -3f, 3f, -2f)
 
         fun labelsOf(
+            context: Context,
+            kind: Kind,
+        ): List<Label> = withRooms(rawLabels(context, kind))
+
+        private fun withRooms(all: List<Label>): List<Label> =
+            all.map { l ->
+                val edge =
+                    when (l.align) {
+                        Paint.Align.CENTER -> 2 * minOf(l.x, FRAME_W - l.x)
+                        Paint.Align.RIGHT -> l.x
+                        else -> FRAME_W - l.x
+                    }
+                val beside = all.filter { it !== l && abs(it.y - l.y) < ROW_DY && it.x > l.x }
+                val gap = beside.minOfOrNull { it.x - l.x } ?: edge
+                Label(l.text, l.x, l.y, l.align, minOf(edge, gap - LABEL_PAD))
+            }
+
+        private fun rawLabels(
             context: Context,
             kind: Kind,
         ): List<Label> {

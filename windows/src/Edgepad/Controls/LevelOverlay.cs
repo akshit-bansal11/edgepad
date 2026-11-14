@@ -14,6 +14,9 @@ internal enum LevelKind
 
     /// <summary>Not a level: a short word about the phone ("Phone connected"), drawn without the bar.</summary>
     Phone,
+
+    /// <summary>The same pill for a phone that dropped, which must not read as a confirmation: a different icon and ink.</summary>
+    PhoneDropped,
 }
 
 /// <summary>
@@ -91,15 +94,15 @@ internal sealed class LevelOverlay : IDisposable
         }
     }
 
-    /// <summary>Says <paramref name="text"/> in the same pill, for a phone that connected or dropped. Any thread.</summary>
-    public void ShowNotice(string text)
+    /// <summary>Says <paramref name="text"/> in the same pill, for a phone that connected or, with <paramref name="dropped"/>, dropped. Any thread.</summary>
+    public void ShowNotice(string text, bool dropped = false)
     {
         if (stopped)
         {
             return;
         }
 
-        Volatile.Write(ref latest, new Reading(LevelKind.Phone, text, 0));
+        Volatile.Write(ref latest, new Reading(dropped ? LevelKind.PhoneDropped : LevelKind.Phone, text, 0));
         if (Interlocked.Exchange(ref posted, 1) == 0)
         {
             ui.Post(_ => Drain(), null);
@@ -179,7 +182,7 @@ internal sealed class LevelOverlay : IDisposable
         {
             LevelKind.Microphone => Strings.Level_Microphone,
             LevelKind.Brightness => Strings.Level_Brightness,
-            LevelKind.Phone => Strings.Phone_Name,
+            LevelKind.Phone or LevelKind.PhoneDropped => Strings.Phone_Name,
             _ => Strings.Level_Volume,
         };
 
@@ -267,9 +270,8 @@ internal sealed class LevelOverlay : IDisposable
         /// </summary>
         private const double Solid = 0.88;
 
-        /// <summary>How long the panel stays up after the last frame, and how much of that tail it spends fading.</summary>
+        /// <summary>How long the panel stays up after the last frame; the tail of it is spent fading, for <see cref="Theme.Motion.Base"/>.</summary>
         private const long VisibleMs = 1200;
-        private const long FadeMs = 220;
 
         /// <summary>
         /// The overlay lies over whatever is already on screen, so it is always the dark form — there is no
@@ -277,6 +279,8 @@ internal sealed class LevelOverlay : IDisposable
         /// </summary>
         private static readonly Palette Colours = Palette.Dark;
 
+        // Known limit (UX-D25): WinForms has no interpolator, so the fade is stepped by hand. AnimateWindow is not used: it
+        // does not mix with the click-through layered form and its Region.
         private readonly System.Windows.Forms.Timer clock = new() { Interval = 25 };
         private readonly StringFormat typographic = new(Typographic | (Theme.IsRtl ? StringFormatFlags.DirectionRightToLeft : 0));
 
@@ -353,7 +357,7 @@ internal sealed class LevelOverlay : IDisposable
         {
             var dpi = DeviceDpi;
             var work = Metrics.Where();
-            var height = kind == LevelKind.Phone
+            var height = kind is LevelKind.Phone or LevelKind.PhoneDropped
                 ? (2 * Metrics.Scale(Pad, dpi)) + Metrics.Scale(IconSize, dpi)
                 : Metrics.PanelHeight(
                     Metrics.Scale(Pad, dpi),
@@ -398,9 +402,10 @@ internal sealed class LevelOverlay : IDisposable
                 return;
             }
 
-            if (left < FadeMs && Theme.AnimationsEnabled)
+            var fade = Theme.Motion.Base;
+            if (left < fade)
             {
-                Opacity = Solid * left / FadeMs;
+                Opacity = Solid * left / fade;
             }
         }
 
@@ -423,7 +428,7 @@ internal sealed class LevelOverlay : IDisposable
 
             var pad = Metrics.Scale(Pad, dpi);
             var icon = Metrics.Scale(IconSize, dpi);
-            if (kind == LevelKind.Phone)
+            if (kind is LevelKind.Phone or LevelKind.PhoneDropped)
             {
                 PaintNotice(graphics, pad, icon, dpi);
                 return;
@@ -490,7 +495,8 @@ internal sealed class LevelOverlay : IDisposable
         /// <summary>The phone pill: its icon, then one line of words.</summary>
         private void PaintNotice(Graphics graphics, int pad, int icon, int dpi)
         {
-            Icons.Draw(graphics, Icons.Smartphone, Theme.Flip(new RectangleF(pad, (Height - icon) / 2f, icon, icon), new RectangleF(0, 0, Width, Height)), Colours.Accent);
+            var dropped = kind == LevelKind.PhoneDropped;
+            Icons.Draw(graphics, dropped ? Icons.Unlink : Icons.Check, Theme.Flip(new RectangleF(pad, (Height - icon) / 2f, icon, icon), new RectangleF(0, 0, Width, Height)), dropped ? Colours.Danger : Theme.Connected);
             var font = Theme.Font(Metrics.Scale(ValueSize - 4, dpi), Weight.Bold);
             var text = graphics.MeasureString(caption, font, PointF.Empty, typographic);
             using var ink = new SolidBrush(Colours.Ink);

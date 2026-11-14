@@ -2,7 +2,7 @@ import Link from "next/link";
 import { REPO } from "@/lib/nav";
 
 const LINK =
-  "text-dim hover:text-foreground flex min-h-11 items-center rounded-lg transition-colors";
+  "press text-dim hover:text-foreground flex min-h-11 items-center rounded-lg transition-colors";
 
 /** Shared by the landing page and the documentation page. */
 export function SiteFooter() {

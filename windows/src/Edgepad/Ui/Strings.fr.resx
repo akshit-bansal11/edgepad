@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Rechercher les mises à jour chaque &amp;jour</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>P&amp;aramètres</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>Ouvrir le jour&amp;nal</value>
   </data>
@@ -277,14 +280,14 @@ Les associations Wi-Fi et USB n'ont pas pu être oubliées : leur fichier n'a p
     <value>Le code PIN est supprimé, le niveau revient à 1 et tous les téléphones approuvés sont oubliés. Chaque téléphone, y compris celui qui est connecté, devra être approuvé à nouveau ici. Un code PIN oublié ne peut pas être récupéré, seulement réinitialisé.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>Fermez ce qui retient le fichier, puis choisissez à nouveau Réinitialiser, ou supprimez-le vous-même :
+    <value>Fermez ce qui retient le fichier, puis choisissez à nouveau « Réinitialiser le PIN et oublier les téléphones », ou supprimez-le vous-même :
 
 {0}
 
 Rien n'a été réinitialisé : les téléphones approuvés n'ont pas pu être oubliés, donc le code PIN et le niveau sont restés tels quels. Aucun téléphone ne peut se connecter tant qu'Edgepad reste ouvert, mais ces téléphones seront de nouveau approuvés, avec le même code PIN, à son prochain démarrage.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>Fermez ce qui retient le fichier, puis choisissez à nouveau Réinitialiser, ou supprimez vous-même security.txt et pin-verified.txt dans :
+    <value>Fermez ce qui retient le fichier, puis choisissez à nouveau « Réinitialiser le PIN et oublier les téléphones », ou supprimez vous-même security.txt et pin-verified.txt dans :
 
 {0}
 
@@ -322,6 +325,9 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n'a pas pu êtr
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Nom</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>Raccourci pour tenir</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>Ouvre</value>

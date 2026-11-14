@@ -28,12 +28,41 @@ internal sealed class TrayMenu : ContextMenuStrip
 
     private bool rounded;
 
-    public TrayMenu()
+    /// <param name="withHeader">The status header on top: the tray menu has it, a submenu does not.</param>
+    public TrayMenu(bool withHeader = true)
     {
         ShowImageMargin = false;
         ShowCheckMargin = false;
         Renderer = new MenuRenderer();
-        Items.Add(Header);
+        if (withHeader)
+        {
+            Items.Add(Header);
+        }
+    }
+
+    private bool keepOpen;
+
+    /// <summary>
+    /// Whether the click being handled leaves the menu open: a switch row is flipped where it can be seen, every other row
+    /// closes the menu as in any Windows menu. Told to the menu above too, since a click in a submenu dismisses both.
+    /// </summary>
+    public void KeepOpen(bool on)
+    {
+        keepOpen = on;
+        if (OwnerItem?.Owner is TrayMenu parent)
+        {
+            parent.KeepOpen(on);
+        }
+    }
+
+    protected override void OnClosing(ToolStripDropDownClosingEventArgs e)
+    {
+        if (e.CloseReason == ToolStripDropDownCloseReason.ItemClicked && keepOpen)
+        {
+            e.Cancel = true;
+        }
+
+        base.OnClosing(e);
     }
 
     public HeaderRow Header { get; } = new();
@@ -200,6 +229,12 @@ internal sealed class MenuRow(string text, string glyph) : ToolStripMenuItem(tex
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public bool Switch { get; init; }
 
+    protected override void OnClick(EventArgs e)
+    {
+        (Owner as TrayMenu)?.KeepOpen(Switch);
+        base.OnClick(e);
+    }
+
     protected override void OnPaint(PaintEventArgs e)
     {
         if (Owner is not TrayMenu menu)
@@ -254,6 +289,12 @@ internal sealed class MenuRow(string text, string glyph) : ToolStripMenuItem(tex
         if (Switch)
         {
             right -= DrawSwitch(graphics, palette, dpi, right, row) + pad;
+        }
+        else if (HasDropDownItems)
+        {
+            // Points the way the submenu opens: toward the trailing edge.
+            Icons.Draw(graphics, Theme.IsRtl ? Icons.ChevronLeft : Icons.ChevronRight, Theme.Flip(new RectangleF(right - icon, (Height - icon) / 2f, icon, icon), row), muted);
+            right -= icon + pad;
         }
         else if (!string.IsNullOrEmpty(Hint))
         {

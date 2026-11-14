@@ -321,6 +321,8 @@
   <string name="updates_try_again">Try again</string>
   <string name="updates_available">Update to %1$s</string>
   <string name="updates_current">Up to date</string>
+  <string name="updates_updated">Updated to %1$s</string>
+  <string name="connected_to">Connected to %1$s</string>
   <string name="updates_downloading">Downloading %1$d%%</string>
   <string name="updates_download_failed">The update could not be downloaded. Check the connection and try again.</string>
   <string name="updates_blocked">Android blocked the update. Allow Edgepad to install updates in Android settings, then try again.</string>
@@ -528,6 +530,8 @@
   <string name="apps_confirm_body">It becomes a macro that opens this app on the laptop.</string>
   <string name="apps_confirm_action">Add</string>
   <string name="macro_opening">Opening</string>
+  <string name="macro_closing">Closing</string>
+  <string name="pair_confirming">Pairing…</string>
   <string name="apps_row_added">Added</string>
   <string name="apps_row_added_description">%1$s, already added</string>
   <string name="apps_row_full">Macros full</string>

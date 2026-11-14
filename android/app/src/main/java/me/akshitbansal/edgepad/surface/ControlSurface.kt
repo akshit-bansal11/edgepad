@@ -27,6 +27,7 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.drawFitted
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.Output
 import me.akshitbansal.edgepad.link.OutputName
@@ -34,6 +35,7 @@ import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.OutputKind
+import me.akshitbansal.edgepad.screens.askText
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.roundToInt
@@ -183,15 +185,16 @@ class ControlSurface(
 
     // AND-A-16: hiding the dials wears its own icon, so the one lock button no longer looks the same in both modes.
     private val focusIconOn = icon(R.drawable.ic_eye_off, accent)
-    private val lockButton = TopButton(icon(R.drawable.ic_lock, dim), side = 0f, open = { tapLock() })
+    private val lockButton = TopButton(icon(R.drawable.ic_lock, dim), side = 0.5f, open = { tapLock() })
     private val topButtons =
         if (trackpadOnly) {
             emptyList()
         } else {
             listOf(
-                TopButton(icon(R.drawable.ic_settings, dim), side = -1f, open = onOpenSettings),
+                TopButton(icon(R.drawable.ic_settings, dim), side = -1.5f, open = onOpenSettings),
+                TopButton(icon(R.drawable.ic_battery_keyboard, dim), side = -0.5f, open = ::typeText),
                 lockButton,
-                TopButton(icon(R.drawable.ic_controls, dim), side = 1f, open = onOpenControls),
+                TopButton(icon(R.drawable.ic_controls, dim), side = 1.5f, open = onOpenControls),
             )
         }
     private val speakerIcon = icon(R.drawable.ic_battery_speaker, accent)
@@ -227,6 +230,7 @@ class ControlSurface(
                     send(ActionId.PREVIOUS_TRACK.frame())
                 },
                 action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
+                action(R.id.action_type_text, R.string.keyboard_type_text) to ::typeText,
                 action(R.id.action_controls, R.string.surface_controls) to onOpenControls,
                 action(R.id.action_pad_lock, R.string.surface_lock) to { tapLock() },
                 // AND-A-8: the two levels a dial sets are reachable without sliding one.
@@ -496,9 +500,9 @@ class ControlSurface(
     ) {
         val touch = dp(Space.TOUCH) / 2
         val (tx, ty) = pieces.getValue(MediaPiece.TRANSPORT)
-        val play = media(PLAY_DP) / 2
+        val play = maxOf(media(PLAY_DP) / 2, touch)
         playHit.set(tx * w - play, ty * h - play, tx * w + play, ty * h + play)
-        val gap = media(SKIP_GAP_DP)
+        val gap = maxOf(media(SKIP_GAP_DP), play + touch)
         prevHit.set(tx * w - gap - touch, ty * h - touch, tx * w - gap + touch, ty * h + touch)
         nextHit.set(tx * w + gap - touch, ty * h - touch, tx * w + gap + touch, ty * h + touch)
         layoutNowPlaying(w, h)
@@ -655,6 +659,9 @@ class ControlSurface(
         for (button in topButtons) {
             // Both tints were made in the constructor; picking between them here allocates nothing.
             val lit = button === lockButton && locked
+            val cx = button.hit.centerX()
+            val cy = button.hit.centerY()
+            if (button === pressedTop) pressDisc(canvas, cx, cy, dp(LOCK_TINT_DP) / 2)
             if (lit) {
                 fill.color = lockTint
                 canvas.drawCircle(button.hit.centerX(), button.hit.centerY(), dp(LOCK_TINT_DP) / 2, fill)
@@ -668,6 +675,11 @@ class ControlSurface(
             )
         }
         strip.draw(canvas)
+        if (pressedStrip) {
+            val radius = strip.hit.height() / 2
+            fill.color = faint
+            canvas.drawRoundRect(strip.hit, radius, radius, fill)
+        }
         // AND-A-16: the eye-off mark sits under the lock button for as long as the dials are hidden.
         if (dialsHidden && !trackpadOnly) {
             drawIcon(canvas, focusIconOn, lockButton.hit.centerX(), lockButton.hit.bottom + dp(Space.M), dp(EYE_DP))
@@ -798,7 +810,10 @@ class ControlSurface(
 
     private fun drawHints(canvas: Canvas) {
         val y = hintTop()
-        hintLines.forEachIndexed { i, line -> canvas.drawText(line, width / 2f, y + i * dp(HINT_GAP_DP), hintPaint) }
+        val room = width - 2 * dp(Space.L)
+        hintLines.forEachIndexed { i, line ->
+            hintPaint.drawFitted(canvas, line, width / 2f, y + i * dp(HINT_GAP_DP), room)
+        }
     }
 
     /**
@@ -876,14 +891,29 @@ class ControlSurface(
     }
 
     private fun drawTransport(canvas: Canvas) {
+        val skipRadius = dp(Space.TOUCH) / 2
+        if (buttonDown == ActionId.PREVIOUS_TRACK) pressDisc(canvas, prevHit.centerX(), prevHit.centerY(), skipRadius)
+        if (buttonDown == ActionId.NEXT_TRACK) pressDisc(canvas, nextHit.centerX(), nextHit.centerY(), skipRadius)
         drawIcon(canvas, skipBackIcon, prevHit.centerX(), prevHit.centerY(), media(SKIP_DP))
         drawIcon(canvas, skipForwardIcon, nextHit.centerX(), nextHit.centerY(), media(SKIP_DP))
         val cx = playHit.centerX()
         val cy = playHit.centerY()
         canvas.drawCircle(cx, cy, media(PLAY_DP) / 2, playPaint)
+        if (buttonDown == ActionId.PLAY_PAUSE) pressDisc(canvas, cx, cy, media(PLAY_DP) / 2)
         // On the accent disc in its own on-accent colour: a pause while playing, else a play.
         val glyph = if (state.flag(ControlId.MEDIA_POSITION)) pauseIcon else playIcon
         drawIcon(canvas, glyph, cx, cy, media(PLAY_ICON_DP))
+    }
+
+    /** The pressed state of a button: a fill step drawn while the finger is down, no animation (UX-28). */
+    private fun pressDisc(
+        canvas: Canvas,
+        cx: Float,
+        cy: Float,
+        radius: Float,
+    ) {
+        fill.color = faint
+        canvas.drawCircle(cx, cy, radius, fill)
     }
 
     private fun drawIcon(
@@ -1470,7 +1500,7 @@ class ControlSurface(
     /**
      * One of the buttons floating at the top of the surface. [side] places it across the centre of the top
      * edge in steps of [topButtonOffsetDp]: -1 one step left of it, 0 on it, 1 one step right. The
-     * row of three is centred on the lock: settings to its left, Controls to its right.
+     * row of four is centred on the top edge: settings and Type text left of centre, the lock and Controls right.
      */
     private class TopButton(
         val icon: Drawable,
@@ -1479,6 +1509,9 @@ class ControlSurface(
     ) {
         val hit = RectF()
     }
+
+    /** #65: the Type text dialog of the keyboard screen, reachable without leaving the surface. */
+    private fun typeText() = askText(context, this, send)
 
     private fun haptic() {
         if (hapticsOn) performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)

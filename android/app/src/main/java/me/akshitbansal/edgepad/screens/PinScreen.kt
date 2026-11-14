@@ -1,13 +1,17 @@
 package me.akshitbansal.edgepad.screens
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -98,11 +102,24 @@ class PinScreen(
         view.defaultFocusHighlightEnabled = false
         view.setOnKeyListener { _, code, event -> event.action == KeyEvent.ACTION_DOWN && typed(code) }
         view.post { view.requestFocus() }
+        if (attemptsLeft < ATTEMPTS) view.post { reject() }
+    }
+
+    /** A wrong answer: the system's reject buzz, and the dots shake sideways once (not at all with animations off). */
+    private fun reject() {
+        view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+        if (!ValueAnimator.areAnimatorsEnabled()) return
+        val reach = ui.dp(SHAKE_DP).toFloat()
+        ObjectAnimator
+            .ofFloat(row, View.TRANSLATION_X, 0f, -reach, reach, -reach, reach, 0f)
+            .setDuration(Motion.BASE)
+            .start()
     }
 
     private fun typed(code: Int): Boolean {
         when (code) {
             in KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9 -> press(code - KeyEvent.KEYCODE_0)
+            in KeyEvent.KEYCODE_NUMPAD_0..KeyEvent.KEYCODE_NUMPAD_9 -> press(code - KeyEvent.KEYCODE_NUMPAD_0)
             KeyEvent.KEYCODE_DEL -> delete()
             else -> return false
         }
@@ -185,6 +202,7 @@ class PinScreen(
         const val DOT_DP = 14f
         const val DOT_GAP_DP = 14f
         const val KEY_DP = 56f
+        const val SHAKE_DP = 8f
 
         /** The keypad is held to this width rather than stretched across a wide screen. */
         const val KEYPAD_DP = 300f

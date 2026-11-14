@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>每天检查更新(&amp;C)</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>设置(&amp;N)</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>打开日志(&amp;L)</value>
   </data>
@@ -277,14 +280,14 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
     <value>PIN 会被删除，级别恢复为 1，所有受信任的手机都会被忘记。每部手机，包括当前已连接的，都必须在这里再次被信任。忘记的 PIN 无法找回，只能重置。</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>请关闭占用该文件的程序，然后再次选择“重置”，或自行删除它：
+    <value>请关闭占用该文件的程序，然后再次选择“重置 PIN 并忘记手机”，或自行删除它：
 
 {0}
 
 未执行重置：受信任的手机未能忘记，所以 PIN 和级别保持原样。Edgepad 保持运行期间，没有手机能够连接，但下次它启动时，这些手机仍会在原 PIN 之下被信任。</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>请关闭占用该文件的程序，然后再次选择“重置”，或自行从下列位置删除 security.txt 和 pin-verified.txt：
+    <value>请关闭占用该文件的程序，然后再次选择“重置 PIN 并忘记手机”，或自行从下列位置删除 security.txt 和 pin-verified.txt：
 
 {0}
 
@@ -322,6 +325,9 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>名称</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>已缩短以适应长度</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>打开内容</value>

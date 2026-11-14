@@ -21,6 +21,10 @@ internal static class Icons
         + "a1 1 0 0 1 -1 1h-6a3 3 0 0 0 -3 3 3 3 0 0 0 -3 -3z";
     public const string Unlink = "m18.84 12.25 1.72 -1.71h-.02a5.004 5.004 0 0 0 -.12 -7.07 5.006 5.006 0 0 0 -6.95 0l-1.72 1.71"
         + "M5.17 11.75l-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71 -1.71M8 2v3M2 8h3M16 19v3M19 16h3";
+    public const string Check = "M20 6L9 17l-5 -5";
+    public const string ChevronRight = "M9 18l6 -6 -6 -6";
+    public const string ChevronLeft = "M15 18l-6 -6 6 -6";
+    public const string Sliders = "M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4";
     public const string Close = "M18 6L6 18M6 6l12 12";
     public const string Wifi = "M12 20h.01M2 8.82a15 15 0 0 1 20 0M5 12.859a10 10 0 0 1 14 0M8.5 16.429a5 5 0 0 1 7 0";
     public const string Shield = "M20 13c0 5 -3.5 7.5 -7.66 8.95a1 1 0 0 1 -.67 -.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1 -1"

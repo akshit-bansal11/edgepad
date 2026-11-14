@@ -120,6 +120,16 @@ object Type {
         }
 }
 
+/**
+ * The motion durations, in ms, none over 300. Every animator that is not an ambient loop takes one of these;
+ * the platform animator duration scale already zeroes them when the user turns animations off.
+ */
+object Motion {
+    const val FAST = 150L
+    const val BASE = 200L
+    const val SLOW = 300L
+}
+
 /** The spacing scale, in dp. */
 object Space {
     const val HAIR = 1f

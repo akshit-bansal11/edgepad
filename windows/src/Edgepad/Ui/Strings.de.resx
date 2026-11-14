@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Täglich nach Updates &amp;suchen</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>Ei&amp;nstellungen</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>&amp;Logdatei öffnen</value>
   </data>
@@ -322,6 +325,9 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Name</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>Gekürzt, damit es passt</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>Öffnet</value>

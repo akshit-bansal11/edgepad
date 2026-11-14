@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
+import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -445,12 +446,12 @@ class PickerScreen(
 
     private fun rttText(): String = if (rtt.isNaN()) "" else ui.string(R.string.device_rtt, rtt)
 
-    /** A quarter-second turn of the arrow, so a list that did not change still shows it was read again. */
+    /** A short turn of the arrow, so a list that did not change still shows it was read again. */
     private fun spinAndRefresh() {
         refresh
             .animate()
             .rotationBy(FULL_TURN)
-            .setDuration(SPIN_MS)
+            .setDuration(Motion.BASE)
             .withEndAction { refresh.rotation = 0f }
             .start()
         onRefresh()
@@ -463,7 +464,6 @@ class PickerScreen(
         /** The dot is drawn 6 dp across; the rest of its box is room for the ring it sends out while connecting. */
         const val PULSE_DP = 14f
         const val FULL_TURN = 360f
-        const val SPIN_MS = 600L
     }
 }
 

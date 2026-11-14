@@ -314,6 +314,8 @@
   <string name="updates_try_again">फिर कोशिश करें</string>
   <string name="updates_available">%1$s पर अपडेट करें</string>
   <string name="updates_current">अप-टू-डेट</string>
+  <string name="updates_updated">%1$s पर अपडेट हो गया</string>
+  <string name="connected_to">%1$s से कनेक्ट हो गया</string>
   <string name="updates_downloading">डाउनलोड हो रहा है %1$d%%</string>
   <string name="updates_download_failed">अपडेट डाउनलोड नहीं हो सका। कनेक्शन जांचें और फिर कोशिश करें।</string>
   <string name="updates_blocked">Android ने अपडेट रोक दिया। Android सेटिंग्स में Edgepad को अपडेट इंस्टॉल करने की अनुमति दें, फिर कोशिश करें।</string>
@@ -515,6 +517,8 @@
   <string name="apps_confirm_body">यह एक मैक्रो बन जाएगा जो लैपटॉप पर यह ऐप खोलता है।</string>
   <string name="apps_confirm_action">जोड़ें</string>
   <string name="macro_opening">खुल रहा है</string>
+  <string name="macro_closing">बंद हो रहा है</string>
+  <string name="pair_confirming">पेयर हो रहा है…</string>
   <string name="apps_row_added">जुड़ गया</string>
   <string name="apps_row_added_description">%1$s, पहले से जुड़ा है</string>
   <string name="apps_row_full">मैक्रो भरे हैं</string>

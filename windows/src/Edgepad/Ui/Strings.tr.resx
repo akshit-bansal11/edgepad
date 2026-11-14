@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Güncellemeleri günlük &amp;denetle</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>A&amp;yarlar</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>Günlüğü &amp;aç</value>
   </data>
@@ -271,12 +274,12 @@ Wi-Fi ve USB eşleşmeleri unutulamadı: dosyaları kaldırılamadı veya boşal
     <value>PIN silinir, düzey 1'e döner ve güvenilen her telefon unutulur. Bağlı olan telefon dahil her telefona burada yeniden güvenmeniz gerekir. Unutulan bir PIN geri alınamaz, yalnızca sıfırlanabilir.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>Dosyayı tutan şeyi kapatın, sonra PIN sıfırlama seçeneğini yeniden seçin ya da dosyayı kendiniz silin:
+    <value>Dosyayı tutan şeyi kapatın, sonra “PIN’i sıfırla ve telefonları unut” seçeneğini yeniden seçin ya da dosyayı kendiniz silin:
 {0}
 Hiçbir şey sıfırlanmadı: güvenilen telefonlar unutulamadı, bu yüzden PIN ve düzey olduğu gibi bırakıldı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak bu telefonlar Edgepad'in bir sonraki başlayışında aynı PIN'le yine güvenilir olur.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>Dosyayı tutan şeyi kapatın, sonra PIN sıfırlama seçeneğini yeniden seçin ya da security.txt ve pin-verified.txt dosyalarını şu klasörden kendiniz silin:
+    <value>Dosyayı tutan şeyi kapatın, sonra “PIN’i sıfırla ve telefonları unut” seçeneğini yeniden seçin ya da security.txt ve pin-verified.txt dosyalarını şu klasörden kendiniz silin:
 {0}
 Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kaldırılamadı, bu yüzden eski PIN ve düzey hâlâ geçerli olabilir. Her telefonun burada yeniden güvenilir olarak işaretlenmesi gerekir.</value>
   </data>
@@ -312,6 +315,9 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Ad</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>Sığması için kısaltıldı</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>Açtığı</value>

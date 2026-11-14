@@ -1,6 +1,13 @@
 "use client";
 
-import { type MotionStyle, motion, type Transition } from "motion/react";
+import {
+  type MotionStyle,
+  motion,
+  type Transition,
+  useInView,
+  useReducedMotion,
+} from "motion/react";
+import { useRef } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -64,8 +71,16 @@ export const BorderBeam = ({
   initialOffset = 0,
   borderWidth = 1,
 }: BorderBeamProps) => {
+  // One loop at a time, and only while it can be seen: off screen, or under reduced
+  // motion, the animation is not running at all.
+  const ref = useRef<HTMLDivElement>(null);
+  const onScreen = useInView(ref);
+  const reduced = useReducedMotion();
+  const play = onScreen && !reduced;
+
   return (
     <div
+      ref={ref}
       // A beam that never stops is exactly what prefers-reduced-motion asks to be
       // spared. Hidden in CSS rather than with a hook, so server and client markup match.
       className="pointer-events-none absolute inset-0 rounded-[inherit] motion-reduce:hidden border-(length:--border-beam-width) border-transparent mask-[linear-gradient(transparent,transparent),linear-gradient(#000,#000)] mask-intersect [mask-clip:padding-box,border-box]"
@@ -75,35 +90,37 @@ export const BorderBeam = ({
         } as React.CSSProperties
       }
     >
-      <motion.div
-        className={cn(
-          "absolute aspect-square",
-          "bg-linear-to-l from-(--color-from) via-(--color-to) to-transparent",
-          className,
-        )}
-        style={
-          {
-            width: size,
-            offsetPath: `rect(0 auto auto 0 round ${size}px)`,
-            "--color-from": colorFrom,
-            "--color-to": colorTo,
-            ...style,
-          } as MotionStyle
-        }
-        initial={{ offsetDistance: `${initialOffset}%` }}
-        animate={{
-          offsetDistance: reverse
-            ? [`${100 - initialOffset}%`, `${-initialOffset}%`]
-            : [`${initialOffset}%`, `${100 + initialOffset}%`],
-        }}
-        transition={{
-          repeat: Infinity,
-          ease: "linear",
-          duration,
-          delay: -delay,
-          ...transition,
-        }}
-      />
+      {play ? (
+        <motion.div
+          className={cn(
+            "absolute aspect-square",
+            "bg-linear-to-l from-(--color-from) via-(--color-to) to-transparent",
+            className,
+          )}
+          style={
+            {
+              width: size,
+              offsetPath: `rect(0 auto auto 0 round ${size}px)`,
+              "--color-from": colorFrom,
+              "--color-to": colorTo,
+              ...style,
+            } as MotionStyle
+          }
+          initial={{ offsetDistance: `${initialOffset}%` }}
+          animate={{
+            offsetDistance: reverse
+              ? [`${100 - initialOffset}%`, `${-initialOffset}%`]
+              : [`${initialOffset}%`, `${100 + initialOffset}%`],
+          }}
+          transition={{
+            repeat: Infinity,
+            ease: "linear",
+            duration,
+            delay: -delay,
+            ...transition,
+          }}
+        />
+      ) : null}
     </div>
   );
 };

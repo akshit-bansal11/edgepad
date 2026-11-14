@@ -55,6 +55,7 @@ internal sealed class MacroWindow : Form
     private readonly IReadOnlyList<Macro> opened;
     private readonly MacroStore store;
     private readonly Palette palette = Palette.Current;
+    private readonly Backdrop backdrop;
 
     /// <summary>
     /// Each macro's picture, keyed by where it comes from. Filled when a target or icon is settled — on leaving
@@ -62,6 +63,9 @@ internal sealed class MacroWindow : Form
     /// block the dialog for as long as Windows takes to give up on the server.
     /// </summary>
     private readonly Dictionary<string, Image?> pictures = [];
+
+    /// <summary>The keys of the pictures being read on a worker, so one is never started twice.</summary>
+    private readonly HashSet<string> reading = [];
 
     private readonly ListBox list = new() { DrawMode = DrawMode.OwnerDrawFixed, BorderStyle = BorderStyle.None, IntegralHeight = false };
     private readonly TextBox name = new() { BorderStyle = BorderStyle.None, AccessibleName = Strings.Macro_Name };
@@ -87,6 +91,9 @@ internal sealed class MacroWindow : Form
     /// <summary>Where the painted captions go, set by <see cref="Relayout"/>: the field name, then any dim note after it.</summary>
     private readonly List<(Rectangle Slot, string Text, string? Note)> captions = [];
 
+    // "Shortened to fit", after the Name caption, only once an input or paste was cut; the next edit that fits clears it.
+    private string? nameNote;
+
     private Rectangle title;
     private Rectangle description;
 
@@ -99,11 +106,13 @@ internal sealed class MacroWindow : Form
     public MacroWindow(MacroStore store)
     {
         this.store = store;
+        backdrop = new Backdrop(PaintPage, palette);
         opened = [.. store.Macros];
         working = [.. store.Macros];
 
         Text = Strings.Macro_Title;
         RightToLeft = Theme.Direction;
+        RightToLeftLayout = Theme.IsRtl;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -144,12 +153,29 @@ internal sealed class MacroWindow : Form
             }
         };
 
-        // Only so much of a name survives the trip to the phone, so the box stops there rather than letting
-        // the store quietly cut a name the owner watched themselves type.
-        // A byte budget cannot be spelled as a character count, and MaxLength is the only thing a TextBox
-        // understands. This keeps typing roughly inside the limit; MacroStore does the real cut on save.
-        name.MaxLength = MacroStore.MaxNameBytes;
-        name.TextChanged += (_, _) => Edited();
+        // Only so much of a name survives the trip to the phone, and the store limits bytes, not characters. A MaxLength
+        // cannot count bytes, so the box cuts to the store's own rule as the text changes (the note after the caption
+        // names the limit), and a name the owner watched themselves type is never cut afterwards.
+        name.TextChanged += (_, _) =>
+        {
+            var kept = Protocol.FrameCodec.Truncate(name.Text, MacroStore.MaxNameBytes);
+            var cut = kept != name.Text;
+            if (cut)
+            {
+                name.Text = kept;
+                name.SelectionStart = kept.Length;
+            }
+
+            // After the rewrite, which comes back through here as an edit that fits.
+            nameNote = cut ? Strings.Macro_Shortened : null;
+            if (captions.Count > 0)
+            {
+                captions[0] = captions[0] with { Note = nameNote };
+                Invalidate();
+            }
+
+            Edited();
+        };
         target.TextChanged += (_, _) => Edited();
         arguments.TextChanged += (_, _) => Edited();
 
@@ -168,7 +194,7 @@ internal sealed class MacroWindow : Form
         CancelButton = cancel;
 
         // Added in tab order: the list, then down the form, then the footer from left to right.
-        Controls.AddRange([listFrame, add, nameFrame, targetFrame, browse, argumentsFrame, chooseIcon, ownIcon, preview, empty, remove, cancel, save]);
+        Controls.AddRange([listFrame, add, nameFrame, targetFrame, browse, argumentsFrame, chooseIcon, ownIcon, preview, empty, remove, save, cancel, backdrop]);
 
         foreach (var macro in working)
         {
@@ -242,7 +268,7 @@ internal sealed class MacroWindow : Form
         var step = caption + S(6 + Box + 14);
         captions.Clear();
 
-        captions.Add((new Rectangle(x, top, column, caption), Strings.Macro_Name, null));
+        captions.Add((new Rectangle(x, top, column, caption), Strings.Macro_Name, nameNote));
         nameFrame.Place(new Rectangle(x, top + caption + S(6), column, S(Box)), DeviceDpi);
 
         captions.Add((new Rectangle(x, top + step, column, caption), Strings.Macro_Opens, null));
@@ -265,20 +291,25 @@ internal sealed class MacroWindow : Form
         // The footer: Remove on the left, Cancel and Save on the right.
         var footer = top + S(BodyHeight + 18);
         remove.SetBounds(left, footer, remove.FitWidth(DeviceDpi), S(Box));
-        save.SetBounds(left + width - save.FitWidth(DeviceDpi), footer, save.FitWidth(DeviceDpi), S(Box));
-        cancel.SetBounds(save.Left - S(8) - cancel.FitWidth(DeviceDpi), footer, cancel.FitWidth(DeviceDpi), S(Box));
+        cancel.SetBounds(left + width - cancel.FitWidth(DeviceDpi), footer, cancel.FitWidth(DeviceDpi), S(Box));
+        save.SetBounds(cancel.Left - S(8) - save.FitWidth(DeviceDpi), footer, save.FitWidth(DeviceDpi), S(Box));
 
         ClientSize = new Size(S(DialogWidth), footer + S(Box + Pad));
-        Theme.Mirror(this);
+        backdrop.SetBounds(0, 0, ClientSize.Width, ClientSize.Height);
         Invalidate();
     }
 
-    protected override void OnPaint(PaintEventArgs e)
+    /// <summary>The page repaints whenever the form is invalidated, which is how the captions follow the columns.</summary>
+    protected override void OnInvalidated(InvalidateEventArgs e)
     {
-        base.OnPaint(e);
-        var graphics = e.Graphics;
+        base.OnInvalidated(e);
+        backdrop.Invalidate();
+    }
+
+    /// <summary>Title, description and captions, drawn into <see cref="Backdrop"/>.</summary>
+    private void PaintPage(Graphics graphics, Rectangle page)
+    {
         const TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix;
-        var page = ClientRectangle;
 
         // GDI+ rather than TextRenderer for the one Black line; Theme says why. GDI+ ignores mirroring, so in
         // Arabic the box is flipped here and the line drawn right to left, from the box's right edge.
@@ -592,17 +623,31 @@ internal sealed class MacroWindow : Form
         DialogResult = DialogResult.None;
     }
 
-    /// <summary>Reads the picture for <paramref name="macro"/> if it has not been read already.</summary>
+    /// <summary>
+    /// Starts reading the picture for <paramref name="macro"/> unless it is read or being read. The read can stall on a
+    /// shell or network path, so it runs on a worker; the row shows its placeholder tile until the picture lands.
+    /// </summary>
     private void ReadPicture(Macro macro)
     {
         var key = Key(macro);
-        if (pictures.ContainsKey(key))
+        if (!pictures.ContainsKey(key) && reading.Add(key))
+        {
+            _ = LoadPicture(macro, key);
+        }
+    }
+
+    private async Task LoadPicture(Macro macro, string key)
+    {
+        var png = await Task.Run(() => MacroIcons.Png(macro));
+
+        // Closed while it was reading: nothing is left to show it, and the images are already disposed.
+        if (IsDisposed)
         {
             return;
         }
 
         Image? image = null;
-        if (MacroIcons.Png(macro) is { } png)
+        if (png is not null)
         {
             // Copied out of the stream: a GDI+ image made from a stream reads it lazily and needs it kept open.
             using var stream = new MemoryStream(png);
@@ -610,7 +655,13 @@ internal sealed class MacroWindow : Form
             image = new Bitmap(decoded);
         }
 
+        reading.Remove(key);
         pictures[key] = image;
+        list.Invalidate();
+        if (list.SelectedIndex >= 0 && Key(working[list.SelectedIndex]) == key)
+        {
+            preview.Picture = image;
+        }
     }
 
     private void Add()
@@ -752,6 +803,32 @@ internal sealed class MacroWindow : Form
         }
 
         base.Dispose(disposing);
+    }
+
+    /// <summary>
+    /// A child that fills the form behind its controls and paints the form's own words. The form is mirrored by
+    /// Windows in Arabic, and a mirrored client area is drawn by GDI mirrored and by GDI+ not; a child is left to
+    /// right whatever its form is, so everything painted here follows the one rule in <see cref="Theme.Flip(Rectangle, Rectangle)"/>.
+    /// </summary>
+    private sealed class Backdrop : System.Windows.Forms.Control
+    {
+        private readonly Action<Graphics, Rectangle> paint;
+        private readonly Palette palette;
+
+        public Backdrop(Action<Graphics, Rectangle> paint, Palette palette)
+        {
+            this.paint = paint;
+            this.palette = palette;
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+            SetStyle(ControlStyles.Selectable, false);
+            TabStop = false;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            e.Graphics.Clear(palette.Card);
+            paint(e.Graphics, ClientRectangle);
+        }
     }
 
     /// <summary>

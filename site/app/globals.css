@@ -39,6 +39,26 @@
   color-scheme: light;
 }
 
+/*
+  The one set of motion durations (UX-27: nothing over 300 ms). CSS reads them as
+  var(--duration-*) or through Tailwind's duration-(--duration-*); JS reads the same
+  values from lib/motion.ts, so there is no second copy. Under reduced motion all three
+  are 0, which switches every transition and every Motion tween off in one place.
+*/
+:root {
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+}
+
 .dark {
   --ground: #0e0f12;
   --card: #1b1c20;
@@ -112,18 +132,8 @@
   --shadow-card: var(--elev-card);
   --shadow-lift: var(--elev-lift);
 
-  --animate-shiny-text: shiny-text 8s infinite;
-  @keyframes shiny-text {
-    0%,
-    90%,
-    100% {
-      background-position: calc(-100% - var(--shiny-width)) 0;
-    }
-    30%,
-    60% {
-      background-position: calc(100% + var(--shiny-width)) 0;
-    }
-  }
+  /* Every bare `transition-*` utility takes the fast duration. */
+  --default-transition-duration: var(--duration-fast);
 }
 
 @layer base {
@@ -132,17 +142,10 @@
   }
 
   html {
-    scroll-behavior: smooth;
     /* Anchors land below the sticky header rather than under it.
        4rem header + 1rem of air. Section scroll-margin matches this exactly; two
        different offsets fighting each other is what makes a heading land crooked. */
     scroll-padding-top: 5rem;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
   }
 
   body {
@@ -163,6 +166,14 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+}
+
+@utility press {
+  /* The one pressed state, on every control: a touch has no hover, so this is the
+     only immediate answer to a tap. Not transitioned, so it lands on the press. */
+  &:active {
+    scale: 0.98;
   }
 }
 

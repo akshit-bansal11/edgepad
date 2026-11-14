@@ -26,11 +26,7 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
     /// What the box keeps of what was typed or pasted: its digits, at most six. "482 913", as a phone groups the
     /// code, reads as 482913.
     /// </summary>
-    public static string Digits(string typed)
-    {
-        var digits = new string([.. typed.Where(char.IsAsciiDigit)]);
-        return digits.Length > LinkCrypto.CodeDigits ? digits[..LinkCrypto.CodeDigits] : digits;
-    }
+    public static string Digits(string typed) => DigitInput.Normalize(typed, LinkCrypto.CodeDigits);
 
     /// <summary>Whether <paramref name="typed"/> is a whole code, so Pair may be pressed.</summary>
     public static bool Complete(string typed) => Digits(typed).Length == LinkCrypto.CodeDigits;
@@ -72,12 +68,12 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
             _ = Injection.NativeMethods.FlashWindowEx(in flash);
         }
 
-        public void Matched() => Post(() => window?.Tell(PairingText.Matched(phone), closeSoon: false));
+        public void Matched() => Post(() => window?.Tell(PairingText.Matched(phone), Outcome.Neutral));
 
-        public void Mismatched() => Post(() => window?.Tell(PairingText.Mismatched, closeSoon: false));
+        public void Mismatched() => Post(() => window?.Tell(PairingText.Mismatched, Outcome.Bad));
 
         public void Finished(bool paired) =>
-            Post(() => window?.Tell(paired ? PairingText.Paired(phone) : PairingText.NotFinished, closeSoon: paired));
+            Post(() => window?.Tell(paired ? PairingText.Paired(phone) : PairingText.NotFinished, paired ? Outcome.Good : Outcome.Bad));
 
         public void Dispose()
         {
@@ -115,8 +111,8 @@ internal sealed class PairingWindow : Form
     {
         BorderStyle = BorderStyle.None,
 
-        // One more than the code, so a pasted "482 913" arrives whole before it is cut down to its digits.
-        MaxLength = LinkCrypto.CodeDigits + 1,
+        // Wide, so a paste arrives whole before DigitInput cuts it down to its digits.
+        MaxLength = DigitInput.PasteLimit,
         AccessibleName = Strings.Pair_CodeName,
     };
 
@@ -135,6 +131,14 @@ internal sealed class PairingWindow : Form
     // Set once the window says how the code went: it no longer asks, and is no longer withdrawn.
     private bool told;
 
+    private Outcome outcome;
+    private readonly System.Windows.Forms.Timer shake = new() { Interval = 20 };
+    private long shakeStart;
+    private int shakeMs;
+    private int shakeAskLeft;
+    private int shakeGlyphLeft;
+    private readonly OutcomeGlyph glyph = new() { Visible = false };
+
     public PairingWindow(string phoneName, string? source, long deadline, Action<string> onTyped, Action onOwnerCancelled)
     {
         this.deadline = deadline;
@@ -143,6 +147,7 @@ internal sealed class PairingWindow : Form
 
         Text = Strings.Pair_Title;
         RightToLeft = Theme.Direction;
+        RightToLeftLayout = Theme.IsRtl;
         heading.Text = Strings.Pair_Heading.Fill(phoneName);
         origin.Text = source ?? "";
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -158,29 +163,20 @@ internal sealed class PairingWindow : Form
         codeFrame = new Framed(code, palette, radius: 8, inset: 12);
         cancel = new FlatButton(Strings.Common_Cancel, ButtonKind.Outline, palette);
         pair = new FlatButton(Strings.Pair_Button, ButtonKind.Primary, palette) { Enabled = false };
-        code.KeyPress += (_, e) => e.Handled = !char.IsControl(e.KeyChar) && !char.IsAsciiDigit(e.KeyChar);
+        code.KeyPress += (_, e) => e.Handled = !char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar);
 
         // A paste skips KeyPress.
-        code.TextChanged += (_, _) =>
-        {
-            var digits = PairingPrompt.Digits(code.Text);
-            if (digits != code.Text)
-            {
-                code.Text = digits;
-                code.SelectionStart = digits.Length;
-            }
-
-            pair.Enabled = PairingPrompt.Complete(digits);
-        };
+        code.TextChanged += (_, _) => pair.Enabled = PairingPrompt.Complete(DigitInput.Apply(code, LinkCrypto.CodeDigits));
 
         pair.Click += (_, _) => Answer();
         cancel.Click += (_, _) => Close();
         tick.Tick += (_, _) => Count();
+        shake.Tick += (_, _) => Shaking();
 
         // Enter only does anything once six digits are in, since Pair is disabled until then.
         AcceptButton = pair;
         CancelButton = cancel;
-        Controls.AddRange([heading, origin, ask, codeFrame, countdown, warn, cancel, pair]);
+        Controls.AddRange([heading, origin, ask, glyph, codeFrame, countdown, warn, pair, cancel]);
         Count();
         tick.Start();
         Relayout();
@@ -198,7 +194,7 @@ internal sealed class PairingWindow : Form
         // than watching the window vanish and wondering.
         if (!answered && PairingPrompt.SecondsLeft(deadline, Environment.TickCount64) == 0)
         {
-            Tell(PairingText.TimedOut, closeSoon: false);
+            Tell(PairingText.TimedOut, Outcome.Bad);
             return;
         }
 
@@ -207,11 +203,13 @@ internal sealed class PairingWindow : Form
     }
 
     /// <summary>
-    /// Says how the code went in place of the question, with Close in place of Cancel and Pair; with
-    /// <paramref name="closeSoon"/> the window then goes by itself a moment later.
+    /// Says how the code went in place of the question, with Close in place of Cancel and Pair. A good outcome gets a
+    /// check and the accent ink and the window then goes by itself a moment later; a bad one a cross and the danger ink.
+    /// The words stay as the cue that does not rely on colour.
     /// </summary>
-    public void Tell(string message, bool closeSoon)
+    public void Tell(string message, Outcome outcome)
     {
+        this.outcome = outcome;
         answered = true;
         told = true;
         tick.Stop();
@@ -222,10 +220,43 @@ internal sealed class PairingWindow : Form
         pair.Enabled = false;
         cancel.Text = Strings.Common_Close;
         Relayout();
-        if (closeSoon)
+        if (outcome == Outcome.Bad)
+        {
+            Shake();
+        }
+
+        if (outcome == Outcome.Good)
         {
             tick.Interval = LingerMs;
             tick.Start();
+        }
+    }
+
+    /// <summary>One small horizontal shake of the result, once, and none at all while Windows has animations off.</summary>
+    private void Shake()
+    {
+        shakeMs = Theme.Motion.Fast;
+        if (shakeMs == 0)
+        {
+            return;
+        }
+
+        shakeAskLeft = ask.Left;
+        shakeGlyphLeft = glyph.Left;
+        shakeStart = Environment.TickCount64;
+        shake.Start();
+    }
+
+    private void Shaking()
+    {
+        var t = (Environment.TickCount64 - shakeStart) / (double)shakeMs;
+        var done = t >= 1;
+        var dx = done ? 0 : (int)Math.Round(S(3) * Math.Sin(t * 4 * Math.PI) * (1 - t));
+        ask.Left = shakeAskLeft + dx;
+        glyph.Left = shakeGlyphLeft + dx;
+        if (done)
+        {
+            shake.Stop();
         }
     }
 
@@ -256,6 +287,7 @@ internal sealed class PairingWindow : Form
     // Cancel, the close box, Alt+F4: all the owner saying no, unless an answer was already given.
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
+        shake.Stop();
         tick.Stop();
         if (!answered)
         {
@@ -271,6 +303,7 @@ internal sealed class PairingWindow : Form
         if (disposing)
         {
             tick.Dispose();
+            shake.Dispose();
         }
 
         base.Dispose(disposing);
@@ -317,14 +350,14 @@ internal sealed class PairingWindow : Form
         var left = S(Pad);
         var y = S(Pad);
 
-        void Put(Label label, float pixels, Weight weight, Color ink, int gap)
+        void Put(Label label, float pixels, Weight weight, Color ink, int gap, int indent = 0)
         {
             label.Font = Theme.Font(Theme.Scale(pixels, DeviceDpi), weight);
             label.ForeColor = ink;
             label.BackColor = palette.Card;
             var height = TextRenderer.MeasureText(
-                label.Text, label.Font, new Size(width, 0), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height;
-            label.SetBounds(left, y, width, height);
+                label.Text, label.Font, new Size(width - indent, 0), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height;
+            label.SetBounds(left + indent, y, width - indent, height);
             y += height + gap;
         }
 
@@ -334,7 +367,13 @@ internal sealed class PairingWindow : Form
             Put(origin, 14f, Weight.Regular, palette.Dim, S(6));
         }
 
-        Put(ask, 14f, Weight.Regular, palette.Dim, S(10));
+        var askTop = y;
+        var indent = outcome == Outcome.Neutral ? 0 : S(24);
+        var askInk = outcome switch { Outcome.Good => palette.Accent, Outcome.Bad => palette.Danger, _ => palette.Dim };
+        Put(ask, 14f, Weight.Regular, askInk, S(10), indent);
+        glyph.Visible = outcome is Outcome.Good or Outcome.Bad;
+        glyph.Set(outcome == Outcome.Good ? Icons.Check : Icons.Close, askInk, palette.Card);
+        glyph.SetBounds(left, askTop, S(18), S(18));
         codeFrame.Place(new Rectangle(left, y, width, S(Box)), DeviceDpi);
         y += S(Box + 10);
         Put(countdown, 14f, Weight.Regular, palette.Dim, S(10));
@@ -344,9 +383,44 @@ internal sealed class PairingWindow : Form
             Put(warn, 13f, Weight.Regular, palette.Dim, S(18));
         }
 
-        pair.SetBounds(left + width - pair.FitWidth(DeviceDpi), y, pair.FitWidth(DeviceDpi), S(Box));
-        cancel.SetBounds(pair.Left - S(8) - cancel.FitWidth(DeviceDpi), y, cancel.FitWidth(DeviceDpi), S(Box));
+        cancel.SetBounds(left + width - cancel.FitWidth(DeviceDpi), y, cancel.FitWidth(DeviceDpi), S(Box));
+        pair.SetBounds(cancel.Left - S(8) - pair.FitWidth(DeviceDpi), y, pair.FitWidth(DeviceDpi), S(Box));
         ClientSize = new Size(S(DialogWidth), y + S(Box + Pad));
-        Theme.Mirror(this);
+    }
+}
+
+/// <summary>How the pairing went, for the window to say it: nothing yet, well, or not.</summary>
+internal enum Outcome
+{
+    Neutral,
+    Good,
+    Bad,
+}
+
+/// <summary>A small line icon in one colour on the card, for the pairing result.</summary>
+internal sealed class OutcomeGlyph : Control
+{
+    private string icon = Icons.Check;
+    private Color ink;
+
+    public OutcomeGlyph()
+    {
+        SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
+        TabStop = false;
+    }
+
+    public void Set(string path, Color colour, Color back)
+    {
+        icon = path;
+        ink = colour;
+        BackColor = back;
+        Invalidate();
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        e.Graphics.Clear(BackColor);
+        e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        Icons.Draw(e.Graphics, icon, new RectangleF(0, 0, Width, Height), ink);
     }
 }

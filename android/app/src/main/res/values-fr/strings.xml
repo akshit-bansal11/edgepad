@@ -322,6 +322,8 @@
   <string name="updates_try_again">Réessayer</string>
   <string name="updates_available">Passer à %1$s</string>
   <string name="updates_current">À jour</string>
+  <string name="updates_updated">Mis à jour vers %1$s</string>
+  <string name="connected_to">Connecté à %1$s</string>
   <string name="updates_downloading">Téléchargement %1$d %%</string>
   <string name="updates_download_failed">La mise à jour n\'a pas pu être téléchargée. Vérifiez la connexion et réessayez.</string>
   <string name="updates_blocked">Android a bloqué la mise à jour. Autorisez Edgepad à installer des mises à jour dans les paramètres Android, puis réessayez.</string>
@@ -523,6 +525,8 @@
   <string name="apps_confirm_body">Elle devient une macro qui ouvre cette appli sur l\'ordinateur.</string>
   <string name="apps_confirm_action">Ajouter</string>
   <string name="macro_opening">Ouverture</string>
+  <string name="macro_closing">Fermeture</string>
+  <string name="pair_confirming">Association…</string>
   <string name="apps_row_added">Ajoutée</string>
   <string name="apps_row_added_description">%1$s, déjà ajoutée</string>
   <string name="apps_row_full">Limite atteinte</string>

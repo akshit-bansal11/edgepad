@@ -311,6 +311,8 @@
   <string name="updates_try_again">Tekrar dene</string>
   <string name="updates_available">%1$s sürümüne güncelle</string>
   <string name="updates_current">Güncel</string>
+  <string name="updates_updated">%1$s sürümüne güncellendi</string>
+  <string name="connected_to">%1$s ile bağlantı kuruldu</string>
   <string name="updates_downloading">İndiriliyor %%%1$d</string>
   <string name="updates_download_failed">Güncelleme indirilemedi. Bağlantıyı kontrol edip tekrar deneyin.</string>
   <string name="updates_blocked">Android güncellemeyi engelledi. Android ayarlarında Edgepad\'in güncelleme yüklemesine izin verin, sonra tekrar deneyin.</string>
@@ -510,6 +512,8 @@
   <string name="apps_confirm_body">Bilgisayarda bu uygulamayı açan bir makro olur.</string>
   <string name="apps_confirm_action">Ekle</string>
   <string name="macro_opening">Açılıyor</string>
+  <string name="macro_closing">Kapanıyor</string>
+  <string name="pair_confirming">Eşleştiriliyor…</string>
   <string name="apps_row_added">Eklendi</string>
   <string name="apps_row_added_description">%1$s, zaten eklendi</string>
   <string name="apps_row_full">Makrolar dolu</string>

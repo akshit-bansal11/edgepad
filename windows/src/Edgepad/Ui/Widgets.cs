@@ -27,6 +27,10 @@ internal sealed class FlatButton : Button
     private readonly ButtonKind kind;
     private readonly string? glyph;
 
+    // The left mouse button, or Space or Enter, is held on the button.
+    private bool mouseDown;
+    private bool keyDown;
+
     public FlatButton(string text, ButtonKind kind, Palette palette, string? glyph = null)
     {
         this.palette = palette;
@@ -64,9 +68,14 @@ internal sealed class FlatButton : Button
         var shape = new RectangleF(0.5f, 0.5f, Width - 1, Height - 1);
 
         var ink = kind == ButtonKind.Primary ? palette.OnAccent : Danger ? palette.Danger : palette.Ink;
+        // Held by the mouse while it is still over the button, or by Space or Enter: one treatment for every kind, a
+        // step further along the hover's way, toward the ink.
+        var pressed = Enabled && (keyDown || (mouseDown && hovered));
         Color? fill = kind switch
         {
+            ButtonKind.Primary when pressed => Theme.Mix(palette.Accent, palette.Ink, 0.2f),
             ButtonKind.Primary => hovered ? Theme.Mix(palette.Accent, palette.Card, 0.12f) : palette.Accent,
+            _ when pressed => Theme.Mix(palette.Faint, palette.Ink, 0.12f),
             _ when hovered => palette.Faint,
             _ => null,
         };
@@ -125,6 +134,49 @@ internal sealed class FlatButton : Button
     protected override void OnMouseLeave(EventArgs e)
     {
         base.OnMouseLeave(e);
+        Invalidate();
+    }
+
+    protected override void OnMouseDown(MouseEventArgs mevent)
+    {
+        base.OnMouseDown(mevent);
+        Hold(mouseDown: mevent.Button == MouseButtons.Left);
+    }
+
+    protected override void OnMouseUp(MouseEventArgs mevent)
+    {
+        base.OnMouseUp(mevent);
+        Hold(mouseDown: false);
+    }
+
+    protected override void OnMouseCaptureChanged(EventArgs e)
+    {
+        base.OnMouseCaptureChanged(e);
+        Hold(mouseDown: false);
+    }
+
+    protected override void OnKeyDown(KeyEventArgs kevent)
+    {
+        base.OnKeyDown(kevent);
+        Hold(keyDown: kevent.KeyCode is Keys.Space or Keys.Enter);
+    }
+
+    protected override void OnKeyUp(KeyEventArgs kevent)
+    {
+        base.OnKeyUp(kevent);
+        Hold(keyDown: false);
+    }
+
+    protected override void OnLostFocus(EventArgs e)
+    {
+        base.OnLostFocus(e);
+        Hold(keyDown: false);
+    }
+
+    private void Hold(bool? mouseDown = null, bool? keyDown = null)
+    {
+        this.mouseDown = mouseDown ?? this.mouseDown;
+        this.keyDown = keyDown ?? this.keyDown;
         Invalidate();
     }
 }

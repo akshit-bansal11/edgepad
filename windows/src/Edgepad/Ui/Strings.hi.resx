@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>रोज़ अपडेट जांचें (&amp;C)</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>सेटिंग्स (&amp;N)</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>लॉग खोलें (&amp;L)</value>
   </data>
@@ -277,14 +280,14 @@
     <value>पिन मिट जाएगा, स्तर वापस 1 हो जाएगा और हर भरोसेमंद फ़ोन भुला दिया जाएगा। हर फ़ोन पर, कनेक्टेड फ़ोन पर भी, यहां फिर भरोसा करना होगा। भूला हुआ पिन वापस नहीं मिल सकता, सिर्फ़ रीसेट हो सकता है।</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>फ़ाइल को जो भी रोके हुए है उसे बंद करें, फिर "रीसेट" दोबारा चुनें, या उसे खुद हटा दें:
+    <value>फ़ाइल को जो भी रोके हुए है उसे बंद करें, फिर "पिन रीसेट करें और फ़ोन भूल जाएं" दोबारा चुनें, या उसे खुद हटा दें:
 
 {0}
 
 कुछ रीसेट नहीं हुआ: भरोसेमंद फ़ोन भूले नहीं जा सके, इसलिए पिन और स्तर जैसे थे वैसे रहे। Edgepad के चलते रहने तक कोई फ़ोन कनेक्ट नहीं हो सकता, पर अगली बार शुरू होने पर वे फ़ोन उसी पिन के साथ फिर भरोसेमंद हो जाएंगे।</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>फ़ाइल को जो भी रोके हुए है उसे बंद करें, फिर "रीसेट" दोबारा चुनें, या security.txt और pin-verified.txt को यहां से खुद हटा दें:
+    <value>फ़ाइल को जो भी रोके हुए है उसे बंद करें, फिर "पिन रीसेट करें और फ़ोन भूल जाएं" दोबारा चुनें, या security.txt और pin-verified.txt को यहां से खुद हटा दें:
 
 {0}
 
@@ -322,6 +325,9 @@
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>नाम</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>फ़िट होने के लिए छोटा किया गया</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>क्या खोलता है</value>

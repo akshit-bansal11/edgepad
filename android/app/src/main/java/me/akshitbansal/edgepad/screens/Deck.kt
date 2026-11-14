@@ -17,6 +17,7 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -38,11 +39,6 @@ private const val LABEL_MAX_SP = 18f
  * under it, so it reads as picked up off the page rather than as pressed into it.
  */
 private const val LIFT_SCALE = 1.1f
-private const val LIFT_MS = 150L
-
-/** How long the other tiles take to slide out of the held one's way, and the held one to settle on a drop. */
-private const val REFLOW_MS = 220L
-private const val SETTLE_MS = 180L
 
 /**
  * How long a tapped Close waits for the laptop to answer before it can be asked again, so a second tap sends no
@@ -386,7 +382,18 @@ class Deck(
         val tag = tile.tag
         if (tag in closing || !isClosable(tag)) return
         closing.add(tag)
-        holder.postDelayed({ closing.remove(tag) }, CLOSE_WAIT_MS)
+        val view = buttons[tag]
+        view?.alpha = LAUNCH_ALPHA
+        view?.stateDescription = ui.string(R.string.macro_closing)
+        holder.postDelayed(
+            {
+                closing.remove(tag)
+                val now = tiles.firstOrNull { it.tag == tag } ?: return@postDelayed
+                view?.alpha = if (now.note == null) 1f else DIMMED_ALPHA
+                view?.stateDescription = now.note
+            },
+            CLOSE_WAIT_MS,
+        )
         onClose(tile)
     }
 
@@ -560,7 +567,7 @@ class Deck(
             .scaleX(LIFT_SCALE)
             .scaleY(LIFT_SCALE)
             .translationZ(raised)
-            .setDuration(LIFT_MS)
+            .setDuration(Motion.FAST)
             .setInterpolator(easeOut)
         // The page scrolls; a held tile dragged up or down must move the tile, not the page.
         holder.parent?.requestDisallowInterceptTouchEvent(true)
@@ -617,7 +624,7 @@ class Deck(
             .scaleX(1f)
             .scaleY(1f)
             .translationZ(0f)
-            .setDuration(SETTLE_MS)
+            .setDuration(Motion.BASE)
             .setInterpolator(easeOut)
             .withEndAction {
                 view.background = null
@@ -660,7 +667,7 @@ class Deck(
                 .animate()
                 .translationX((held.lefts[places[at]] - held.lefts[at]).toFloat())
                 .translationY((held.tops[places[at]] - held.tops[at]).toFloat())
-                .setDuration(REFLOW_MS)
+                .setDuration(Motion.BASE)
                 .setInterpolator(easeOut)
         }
     }
@@ -685,7 +692,7 @@ class Deck(
             .scaleX(1f)
             .scaleY(1f)
             .translationZ(0f)
-            .setDuration(SETTLE_MS)
+            .setDuration(Motion.BASE)
             .setInterpolator(easeOut)
             .withEndAction {
                 view.background = null

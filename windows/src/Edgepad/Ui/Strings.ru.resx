@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Проверять &amp;обновления ежедневно</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>На&amp;стройки</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>Открыть &amp;журнал</value>
   </data>
@@ -277,14 +280,14 @@
     <value>PIN-код будет удалён, уровень вернётся к 1, а все доверенные телефоны будут забыты. Каждому телефону, включая подключённый, нужно будет снова получить доверие здесь. Забытый PIN-код восстановить нельзя, его можно только сбросить.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>Закройте всё, что держит файл, затем повторите сброс или удалите файл сами:
+    <value>Закройте всё, что держит файл, затем выберите ещё раз «Сбросить PIN-код и забыть телефоны» или удалите файл сами:
 
 {0}
 
 Ничего не сброшено: доверенные телефоны не удалось забыть, поэтому PIN-код и уровень остались прежними. Пока Edgepad запущен, ни один телефон не сможет подключиться, но при следующем запуске эти телефоны снова станут доверенными, с тем же PIN-кодом.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>Закройте всё, что держит файл, затем повторите сброс или удалите security.txt и pin-verified.txt сами из папки:
+    <value>Закройте всё, что держит файл, затем выберите ещё раз «Сбросить PIN-код и забыть телефоны» или удалите security.txt и pin-verified.txt сами из папки:
 
 {0}
 
@@ -322,6 +325,9 @@
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Название</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>Сокращено, чтобы поместилось</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>Открывает</value>

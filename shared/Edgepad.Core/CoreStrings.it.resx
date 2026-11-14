@@ -79,7 +79,7 @@
     <value>Associazione non completata.</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>Il codice di associazione corrisponde. Tocca Sì su {0} per terminare.</value>
+    <value>Il codice di associazione corrisponde. Tocca «Sì, associato» su {0} per terminare.</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>Associato a {0}.</value>

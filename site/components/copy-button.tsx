@@ -1,52 +1,73 @@
 "use client";
 
-import { Check, Copy } from "lucide-react";
+import { Check, CircleAlert, Copy } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
+import { seconds } from "@/lib/motion";
+
+type CopyState = "idle" | "copied" | "failed";
+
+const MESSAGE: Record<CopyState, string> = {
+  idle: "",
+  copied: "Copied",
+  failed: "Copy failed. Select the text instead.",
+};
 
 export function CopyButton({ text, label }: { text: string; label: string }) {
-  const [copied, setCopied] = useState(false);
+  const [state, setState] = useState<CopyState>("idle");
 
   useEffect(() => {
-    if (!copied) return;
-    const timer = window.setTimeout(() => setCopied(false), 1500);
+    if (state === "idle") return;
+    const timer = window.setTimeout(
+      () => setState("idle"),
+      state === "failed" ? 4000 : 1500,
+    );
     return () => window.clearTimeout(timer);
-  }, [copied]);
+  }, [state]);
 
   async function copy() {
     // Clipboard access throws on an insecure origin and where the user has denied it.
-    // A copy button that silently does nothing is better than one that breaks the page.
+    // That is shown, not swallowed: an error icon and a spoken message.
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
+      setState("copied");
     } catch {
-      setCopied(false);
+      setState("failed");
     }
   }
 
   return (
-    <button
-      type="button"
-      onClick={copy}
-      aria-label={copied ? "Copied" : `Copy ${label}`}
-      className="text-dim hover:text-foreground hover:bg-faint grid size-11 place-items-center rounded-xl transition-colors"
-    >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.span
-          key={copied ? "done" : "idle"}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
-          transition={{ duration: 0.12 }}
-          className="grid place-items-center"
-        >
-          {copied ? (
-            <Check aria-hidden className="text-primary size-4" />
-          ) : (
-            <Copy aria-hidden className="size-4" />
-          )}
-        </motion.span>
-      </AnimatePresence>
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={copy}
+        aria-label={`Copy ${label}`}
+        title={state === "failed" ? MESSAGE.failed : undefined}
+        className="press text-dim hover:text-foreground hover:bg-faint grid size-11 place-items-center rounded-xl transition-colors"
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={state}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: seconds("fast") }}
+            className="grid place-items-center"
+          >
+            {state === "copied" ? (
+              <Check aria-hidden className="text-primary size-4" />
+            ) : state === "failed" ? (
+              <CircleAlert aria-hidden className="text-destructive size-4" />
+            ) : (
+              <Copy aria-hidden className="size-4" />
+            )}
+          </motion.span>
+        </AnimatePresence>
+      </button>
+      {/* The result for assistive tech: the icon swap alone says nothing. */}
+      <span role="status" className="sr-only">
+        {MESSAGE[state]}
+      </span>
+    </>
   );
 }

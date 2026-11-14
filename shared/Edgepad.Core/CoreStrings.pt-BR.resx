@@ -79,7 +79,7 @@
     <value>O pareamento não terminou.</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>O código de pareamento conferiu. Toque em Sim em {0} para concluir.</value>
+    <value>O código de pareamento conferiu. Toque em “Sim, pareado” em {0} para concluir.</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>Pareado com {0}.</value>

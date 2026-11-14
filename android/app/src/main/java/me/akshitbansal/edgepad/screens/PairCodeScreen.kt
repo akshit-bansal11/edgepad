@@ -66,7 +66,14 @@ class PairCodeScreen(
             countdown = secondary("", topDp = Space.M).apply { gravity = Gravity.CENTER }
             if (asking) {
                 countdown.visibility = View.GONE
-                val yes = ui.button(ui.string(R.string.pair_confirm_yes), Ui.Style.FILLED, onYes)
+                lateinit var yes: TextView
+                yes =
+                    ui.button(ui.string(R.string.pair_confirm_yes), Ui.Style.FILLED) {
+                        // Until the laptop answers, Yes takes no second tap; No stays, to give up.
+                        yes.text = ui.string(R.string.pair_confirming)
+                        ui.enable(yes, false)
+                        onYes()
+                    }
                 add(yes, Space.XL, width = ui.dp(BUTTON_DP))
                 val no = ui.button(ui.string(R.string.pair_confirm_no), Ui.Style.QUIET, onCancel)
                 add(no, Space.S, width = ui.dp(BUTTON_DP))

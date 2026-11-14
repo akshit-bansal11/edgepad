@@ -321,7 +321,7 @@ class TcpTransportTest {
         expected: ByteArray = laptopId,
         forcePair: Boolean = false,
         hosts: List<InetAddress> = listOf(loopback),
-    ) = TcpTransport(hosts, port, expected, keys, "Phone", forcePair, initiator) { emptyList() }
+    ) = TcpTransport(hosts, port, expected, keys, "Phone", forcePair, initiator, tuneSocket = {}) { emptyList() }
 
     private fun laptopChannel(
         input: DataInputStream,

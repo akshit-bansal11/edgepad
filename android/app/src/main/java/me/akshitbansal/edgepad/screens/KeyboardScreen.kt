@@ -1,6 +1,5 @@
 package me.akshitbansal.edgepad.screens
 
-import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -16,7 +15,6 @@ import android.view.ViewGroup
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeProvider
 import android.widget.Button
-import android.widget.EditText
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
@@ -25,6 +23,7 @@ import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.DeviceOs
+import me.akshitbansal.edgepad.protocol.Frame
 
 private const val CODE_SPACE = 0x20
 private const val CODE_LEFT = 0x25
@@ -60,7 +59,7 @@ object KeyboardScreen {
         onKey: (code: Int, down: Boolean) -> Unit,
         onAction: (ActionId) -> Unit,
         onSettings: () -> Unit,
-        onType: (String) -> Unit,
+        send: (Frame) -> Unit,
         onBack: () -> Unit,
     ): View {
         val header =
@@ -80,32 +79,10 @@ object KeyboardScreen {
             val typeRow = LinearLayout.LayoutParams(wide, ViewGroup.LayoutParams.WRAP_CONTENT)
             typeRow.setMargins(ui.dp(Space.PAGE), ui.dp(Space.S), ui.dp(Space.PAGE), ui.dp(Space.S))
             val typeText = ui.string(R.string.keyboard_type_text)
-            val typeButton = ui.button(typeText, Ui.Style.OUTLINED) { askText(ui, this, onType) }
+            val typeButton = ui.button(typeText, Ui.Style.OUTLINED) { askText(ui.context, this, send) }
             addView(typeButton, typeRow)
             addView(keyboard, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         }
-    }
-
-    /** AND-A-9: the phone's own keyboard, dictation and paste, typed on the laptop as one TEXT frame per 255 bytes. */
-    private fun askText(
-        ui: Ui,
-        owner: View,
-        onType: (String) -> Unit,
-    ) {
-        val field =
-            EditText(ui.context).apply {
-                hint = ui.string(R.string.keyboard_type_text)
-                importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
-                val pad = ui.dp(Space.L)
-                setPadding(pad, pad, pad, pad)
-            }
-        AlertDialog
-            .Builder(ui.context)
-            .setTitle(R.string.keyboard_type_text)
-            .setView(field)
-            .setPositiveButton(R.string.keyboard_type_send) { _, _ -> onType(field.text.toString()) }
-            .setNegativeButton(android.R.string.cancel, null)
-            .showOver(owner)
     }
 
     /**
@@ -170,6 +147,9 @@ object KeyboardScreen {
         private val pressCount = IntArray(caps.size)
         private val padding = PADDING_DP * density
         private val maxGap = GAP_DP * density
+
+        // Half the gap actually drawn: a touch between two keys lands on the nearer one, not on nothing.
+        private var halfGap = 0f
         private val corner = CORNER_DP * density
         private val shadow = SHADOW_DP * density
         private val labelInset = Space.XS * density
@@ -217,7 +197,7 @@ object KeyboardScreen {
             KeyRepeat(
                 post = { task, delay -> postDelayed(task, delay) },
                 cancel = { task -> removeCallbacks(task) },
-                fire = { code -> modifiers.keyDown(code) },
+                fire = { code -> modifiers.keyRepeat(code) },
             )
 
         init {
@@ -245,6 +225,7 @@ object KeyboardScreen {
             val unit = (w - 2 * padding) / board.width
             val rowHeight = (h - 2 * padding) / board.rows.size
             val gap = minOf(maxGap, GAP_SHARE * minOf(unit, rowHeight))
+            halfGap = gap / 2
             var keyIndex = 0
             board.rows.forEachIndexed { rowIndex, row ->
                 val top = padding + rowIndex * rowHeight + gap / 2
@@ -349,7 +330,10 @@ object KeyboardScreen {
             y: Float,
         ): Int? {
             for (i in caps.indices) {
-                if (rects[i].contains(x, y)) return i
+                val r = rects[i]
+                val inX = x >= r.left - halfGap && x < r.right + halfGap
+                val inY = y >= r.top - halfGap && y < r.bottom + halfGap
+                if (inX && inY) return i
             }
             return null
         }

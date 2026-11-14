@@ -31,11 +31,17 @@ export function DemoVideo() {
   const track = (time: number) =>
     setCurrent(CHAPTERS.filter((chapter) => chapter.at <= time).length - 1);
 
-  const seek = (at: number) => {
+  const seek = (index: number) => {
     const el = video.current;
     if (!el) return;
-    el.currentTime = at;
+    // The chapter lights up on the tap, not on the first timeupdate: the file is
+    // fetched on demand and that update can be seconds away on a slow link.
+    setCurrent(index);
+    el.currentTime = CHAPTERS[index]?.at ?? 0;
     void el.play().catch(() => {});
+    // Only move the page when the video is not fully on screen already.
+    const box = el.getBoundingClientRect();
+    if (box.top >= 0 && box.bottom <= window.innerHeight) return;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "center" });
   };
@@ -75,9 +81,9 @@ export function DemoVideo() {
             <li key={chapter.at}>
               <button
                 type="button"
-                onClick={() => seek(chapter.at)}
+                onClick={() => seek(index)}
                 aria-current={index === current ? "true" : undefined}
-                className="hover:bg-faint aria-[current=true]:bg-accent-soft flex min-h-11 w-full items-center gap-3 rounded-xl px-2 text-left text-[0.9375rem] transition-colors"
+                className="press hover:bg-faint aria-[current=true]:bg-accent-soft flex min-h-11 w-full items-center gap-3 rounded-xl px-2 text-left text-[0.9375rem] transition-colors"
               >
                 <span className="text-primary w-9 shrink-0 text-sm font-bold">
                   {clock(chapter.at)}

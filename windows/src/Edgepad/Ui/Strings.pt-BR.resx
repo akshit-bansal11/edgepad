@@ -51,6 +51,9 @@
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Verificar atuali&amp;zações diariamente</value>
   </data>
+  <data name="Menu_Settings" xml:space="preserve">
+    <value>&amp;Configurações</value>
+  </data>
   <data name="Menu_OpenLog" xml:space="preserve">
     <value>Abrir &amp;registro</value>
   </data>
@@ -277,14 +280,14 @@ Não foi possível esquecer os pareamentos por Wi-Fi e USB: o arquivo deles não
     <value>O PIN é excluído, o nível volta para 1 e todos os celulares confiáveis são esquecidos. Será preciso confiar de novo em cada celular aqui, inclusive no conectado. Um PIN esquecido não pode ser recuperado, só redefinido.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>Feche o que estiver usando o arquivo e escolha Redefinir de novo, ou exclua-o você mesmo:
+    <value>Feche o que estiver usando o arquivo e escolha “Redefinir PIN e esquecer celulares” de novo, ou exclua-o você mesmo:
 
 {0}
 
 Nada foi redefinido: não foi possível esquecer os celulares confiáveis, então o PIN e o nível ficaram como estavam. Nenhum celular pode se conectar enquanto o Edgepad continuar em execução, mas esses celulares voltarão a ser confiáveis, com o mesmo PIN, na próxima vez que ele iniciar.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>Feche o que estiver usando o arquivo e escolha Redefinir de novo, ou exclua security.txt e pin-verified.txt você mesmo em:
+    <value>Feche o que estiver usando o arquivo e escolha “Redefinir PIN e esquecer celulares” de novo, ou exclua security.txt e pin-verified.txt você mesmo em:
 
 {0}
 
@@ -322,6 +325,9 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Nome</value>
+  </data>
+  <data name="Macro_Shortened" xml:space="preserve">
+    <value>Encurtado para caber</value>
   </data>
   <data name="Macro_Opens" xml:space="preserve">
     <value>Abre</value>

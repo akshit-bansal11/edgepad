@@ -7,6 +7,7 @@
   <item name="action_previous_track" type="id" />
   <item name="action_open_settings" type="id" />
   <item name="action_controls" type="id" />
+  <item name="action_type_text" type="id" />
   <item name="action_pad_lock" type="id" />
   <item name="action_volume_up" type="id" />
   <item name="action_volume_down" type="id" />
