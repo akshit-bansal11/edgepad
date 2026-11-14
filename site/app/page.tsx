@@ -18,6 +18,7 @@ import {
   SlidersHorizontal,
   Smartphone,
   Spline,
+  Star,
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -25,6 +26,7 @@ import { DemoVideo } from "@/components/demo-video";
 import { GithubMark } from "@/components/icons/github";
 import { LegacyHashRedirect } from "@/components/legacy-hash-redirect";
 import { LinkBeam } from "@/components/link-beam";
+import { ExternalLink } from "@/components/section";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SurfaceFigure } from "@/components/surface-figure";
@@ -487,6 +489,43 @@ export default function Page() {
               </p>
             </Reveal>
           </div>
+        </section>
+
+        {/* One real review, quoted verbatim, given with permission (issue 63) */}
+        <section aria-label="From a user" className={SECTION}>
+          <Reveal>
+            <Card className="mx-auto max-w-[48rem] gap-0 p-6 md:p-8">
+              <figure className="m-0">
+                <p className="flex items-center gap-2">
+                  <span aria-hidden className="text-primary flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className="size-5 fill-current" />
+                    ))}
+                  </span>
+                  <span className="sr-only">5 out of 5</span>
+                </p>
+                <blockquote className="mt-4 text-lg leading-relaxed md:text-xl">
+                  <p>
+                    For years I looked for a way to sync the clipboard between my phone
+                    and my laptop over Bluetooth, and never found one I was happy with —
+                    until Edgepad. It treats the Bluetooth link as a first-class part of
+                    the product, and the features built on top of it are inventive,
+                    genuinely useful, and put together in a way that feels coherent and
+                    looks good. It went far beyond what I expected.
+                  </p>
+                </blockquote>
+                <figcaption className="text-dim mt-4 text-[0.9375rem]">
+                  <ExternalLink href="https://github.com/HaujetZhao">
+                    @HaujetZhao
+                  </ExternalLink>
+                  , on GitHub, shared with permission.{" "}
+                  <ExternalLink href="https://github.com/akshit-bansal11/edgepad/issues/63">
+                    Source
+                  </ExternalLink>
+                </figcaption>
+              </figure>
+            </Card>
+          </Reveal>
         </section>
 
         {/* Get it */}
