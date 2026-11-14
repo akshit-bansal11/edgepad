@@ -1,5 +1,10 @@
 package me.akshitbansal.edgepad.link
 
+import android.os.ParcelFileDescriptor
+import android.system.ErrnoException
+import android.system.Os
+import android.system.OsConstants
+import android.util.Log
 import me.akshitbansal.edgepad.link.net.LinkInitiator
 import me.akshitbansal.edgepad.link.net.LinkWire
 import me.akshitbansal.edgepad.link.net.PairingKeys
@@ -33,6 +38,8 @@ class TcpTransport(
     private val phoneName: String,
     private val forcePair: Boolean = false,
     private val initiator: LinkInitiator = LinkInitiator(),
+    // Injected so the JVM tests, which have no android.os, can skip the keep-alive timers.
+    private val tuneSocket: (Socket) -> Unit = ::shortenKeepAlive,
     private val ownAddresses: () -> List<InetAddress> = ::localAddresses,
 ) : LinkTransport {
     @Volatile private var socket: Socket? = null
@@ -101,6 +108,7 @@ class TcpTransport(
             s.connect(InetSocketAddress(host, port), CONNECT_TIMEOUT_MS)
             s.tcpNoDelay = true
             s.keepAlive = true
+            tuneSocket(s)
             s.soTimeout = MESSAGE_TIMEOUT_MS
             return s
         } catch (e: IOException) {
@@ -149,7 +157,41 @@ class TcpTransport(
         return Streams(channel.input, channel.output)
     }
 
+    /**
+     * The link sends nothing while idle and its read has no timeout, so a laptop that vanished (lid shut, Wi-Fi
+     * gone) would look connected until the kernel's default keep-alive gave up, about fifteen minutes. These
+     * timers make the dead peer fail the read in KEEPALIVE_IDLE_S + KEEPALIVE_COUNT * KEEPALIVE_INTERVAL_S, the
+     * existing read-failure path then reports the drop. The wire protocol is untouched. A device that refuses
+     * the timers keeps the system's slower plain keep-alive.
+     */
     private companion object {
+        fun shortenKeepAlive(s: Socket) {
+            try {
+                // The Socket has no public descriptor; a dup of it shares the socket and its options.
+                ParcelFileDescriptor.fromSocket(s).use { pfd ->
+                    Os.setsockoptInt(pfd.fileDescriptor, OsConstants.IPPROTO_TCP, TCP_KEEPIDLE, KEEPALIVE_IDLE_S)
+                    Os.setsockoptInt(pfd.fileDescriptor, OsConstants.IPPROTO_TCP, TCP_KEEPINTVL, KEEPALIVE_INTERVAL_S)
+                    Os.setsockoptInt(pfd.fileDescriptor, OsConstants.IPPROTO_TCP, TCP_KEEPCNT, KEEPALIVE_COUNT)
+                }
+            } catch (e: ErrnoException) {
+                Log.w(TAG, "Short keep-alive timers refused; using the system default", e)
+            } catch (e: IOException) {
+                Log.w(TAG, "Short keep-alive timers unavailable; using the system default", e)
+            }
+        }
+
+        const val TAG = "TcpTransport"
+
+        // Linux's TCP option numbers (linux/tcp.h); android.system.OsConstants does not expose them.
+        const val TCP_KEEPIDLE = 4
+        const val TCP_KEEPINTVL = 5
+        const val TCP_KEEPCNT = 6
+
+        /** Idle 10 s, then 3 probes 5 s apart: a dead peer is seen after about 25 s. */
+        const val KEEPALIVE_IDLE_S = 10
+        const val KEEPALIVE_INTERVAL_S = 5
+        const val KEEPALIVE_COUNT = 3
+
         const val CONNECT_TIMEOUT_MS = 3_000
 
         /** The longest wait for one handshake message, as the laptop allows. */
