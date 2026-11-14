@@ -283,9 +283,9 @@
     <item quantity="other">%1$d dibujadas</item>
   </plurals>
   <string name="shapes_none">Aún no hay ninguna</string>
-  <string name="shapes_footnote">Mantén pulsado el panel táctil hasta que la línea se vuelva continua (también sentirás una vibración leve si la respuesta háptica está activada) y dibuja sin levantar el dedo.</string>
+  <string name="shapes_footnote">Mantén dos dedos quietos en el panel táctil hasta que la línea se vuelva continua (también sentirás una vibración leve si la respuesta háptica está activada) y dibuja con ambos sin levantarlos.</string>
   <string name="shapes_empty_title">Aún no hay formas</string>
-  <string name="shapes_empty_body">Dibuja una aquí y dale algo que ejecutar. En el panel táctil, mantén pulsado hasta que la línea se vuelva continua y dibújala sin levantar el dedo.</string>
+  <string name="shapes_empty_body">Dibuja una aquí y dale algo que ejecutar. En el panel táctil, mantén dos dedos quietos hasta que la línea se vuelva continua y dibújala con ambos sin levantarlos.</string>
   <string name="shapes_add">Dibujar una forma</string>
   <string name="shapes_draw_title">Dibuja la forma</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -347,7 +347,7 @@
   <string name="dial_feel_title">Tacto de las reglas</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">Vista previa. En sentido horario sube.</string>
-  <string name="gestures_footnote">Toca un gesto para cambiar su acción. Los de uno y dos dedos son fijos: mover, tocar para hacer clic y tocar y mantener para arrastrar; con dos dedos, arrastrar para desplazarse, pellizcar para hacer zoom y tocar para hacer clic derecho.</string>
+  <string name="gestures_footnote">Toca un gesto para cambiar su acción. Los de uno y dos dedos son fijos: mover, tocar para hacer clic y mantener quieto un momento y mover para arrastrar; con dos dedos, arrastrar para desplazarse, pellizcar para hacer zoom y tocar para hacer clic derecho.</string>
   <string name="dial_feel_each">Cada regla</string>
   <string name="dial_feel_shared">Compartido</string>
   <string name="dial_feel_each_caption">Solo aparecen las reglas que están en una esquina. Quita una de Compartido para darle su propia velocidad. Compartido sigue la sensibilidad al deslizar.</string>
@@ -436,7 +436,7 @@
   <string name="capture_stop">Detener grabación</string>
   <string name="capture_recording">Grabando en la laptop. Toca «Detener grabación» para terminar; con «Guardar en» Teléfono, el archivo llega entonces.</string>
   <string name="capture_sent">Enviada a la laptop: %1$s</string>
-  <string name="capture_hint">Para una región, toca Región y luego toca, mantén y mueve el dedo en el panel táctil para marcar el área.</string>
+  <string name="capture_hint">Para una región, toca Región y luego mantén un dedo quieto un momento en el panel táctil y muévelo para marcar el área.</string>
   <string name="capture_save_to">Guardar en</string>
   <string name="capture_save_laptop">Laptop</string>
   <string name="capture_save_phone">Teléfono</string>

@@ -6,14 +6,18 @@ import kotlin.math.abs
 import kotlin.math.hypot
 
 /**
- * Turns raw touches on the trackpad into frames. One and two fingers are fixed, the way every trackpad
- * behaves: one finger moves, taps to click, taps then holds to drag; two fingers drag to scroll, pinch to
- * zoom and tap to right-click. Three and four fingers tapping or swiping run whatever [map] assigns them.
+ * Turns raw touches on the trackpad into frames. One and two fingers are fixed: one finger moves, taps to
+ * click, and held still for [HOLD_MS] grips the left button, so moving then drags and lifting lets go; two
+ * fingers drag to scroll, pinch to zoom and tap to right-click. Three and four fingers tapping or swiping
+ * run whatever [map] assigns them.
  *
- * One finger has a second life: held still for [SHAPE_HOLD_MS] it stops moving the pointer and starts
- * drawing, and the whole stroke goes to [onShape] when it lifts. That seam was free — a bare press and hold
- * with no tap in front of it did nothing at all before — but it is a narrow one, so [armShape] says in full
- * what it refuses to claim.
+ * Issue #68 settled the hold. It used to be tap, lift, press: the tap's click had already reached the
+ * laptop, so the press arrived as the second half of a double-click, which maximises a window by its title
+ * bar and ends a Snipping Tool selection before it starts. Holding still sends nothing until it means a
+ * drag, so a tap still clicks the moment the finger lifts, with no wait to see whether a drag follows.
+ *
+ * Two fingers held still for [HOLD_MS] draw instead: the stroke of their midpoint goes to [onShape] when
+ * they lift. One finger used to own that, and gave it up to the drag above, which everyone needs.
  *
  * Pure: no Android types, so the gesture table is tested on the JVM. Positions are in pixels; [density]
  * (pixels per dp) scales every threshold so the feel is the same on any screen. A gesture is classified by
@@ -29,12 +33,12 @@ class TrackpadRecognizer(
     private val scrollSpeed: Float = 1f,
     private val map: (Gesture) -> GestureAction = { it.default },
     /**
-     * Handed the whole stroke when a finger that became a shape lifts: the first `count` entries of the two
-     * arrays, in pixels, starting at the press rather than at the moment the hold expired.
+     * Handed the whole stroke when two fingers that became a shape lift: the first `count` entries of the
+     * two arrays, in pixels, starting at the second finger's press rather than at the moment the hold
+     * expired.
      *
      * Null turns shape mode off outright, which is what the surface passes when nothing is bound to a
-     * shape. Then a press and hold stays what it has always been on this pad, which is nothing at all —
-     * rather than swallowing a third of a second of pointer movement on every phone that never drew one.
+     * shape. Then a two-finger hold stays nothing, and the scroll that usually follows it is never delayed.
      */
     private val onShape: ((xs: FloatArray, ys: FloatArray, count: Int) -> Unit)? = null,
     private val sink: (Frame) -> Unit,
@@ -44,23 +48,31 @@ class TrackpadRecognizer(
     private enum class TwoFingerMode { UNDECIDED, SCROLL, PINCH }
 
     /**
-     * True from the moment a held single finger becomes a stroke until it lifts. Read by the surface, which
-     * ticks once on the change and draws the trail solid while it is set; the decision itself is made here
-     * and nowhere else, so there is one answer to "is this a shape" rather than two that can disagree.
+     * True from the moment two held fingers become a stroke until they lift. Read by the surface, which
+     * draws the trail solid while it is set; the decision itself is made here and nowhere else, so there is
+     * one answer to "is this a shape" rather than two that can disagree.
      */
     var shaping = false
         private set
 
+    /** True while a held finger has the left button down: from the end of the hold until it lifts. */
+    var dragging = false
+        private set
+
+    /** A hold has turned into something, a drag or a shape: the surface ticks once when this changes. */
+    val held: Boolean get() = dragging || shaping
+
     private var fingers = 0
     private var maxFingers = 0
     private var startTime = 0L
+
+    /** When the latest finger came down. A hold is timed from here, so a second finger starts it again. */
+    private var holdStart = 0L
     private var startX = 0f
     private var startY = 0f
     private var lastX = 0f
     private var lastY = 0f
     private var moved = false
-    private var dragging = false
-    private var lastTapUp = Long.MIN_VALUE
     private var swipeFired = false
     private var running: GestureAction? = null
     private var runningAlongX = false
@@ -114,14 +126,8 @@ class TrackpadRecognizer(
         if (fingers == 0) {
             reset()
             startTime = time
-            startX = centroid(xs, count)
-            startY = centroid(ys, count)
-            // Added, not subtracted: the never-tapped sentinel is Long.MIN_VALUE and must not overflow.
-            if (time <= lastTapUp + DRAG_TAP_GAP_MS) {
-                dragging = true
-                sink(Frame.PointerButton(LEFT, true))
-            }
         }
+        holdStart = time
         fingers = count
         maxFingers = maxOf(maxFingers, fingers)
         lastX = centroid(xs, count)
@@ -130,9 +136,11 @@ class TrackpadRecognizer(
         // here, or every two-finger touch would count as moved and never as a tap.
         startX = lastX
         startY = lastY
-        // A second finger is not part of a one-finger stroke: whatever was being drawn is abandoned here,
-        // and the gesture carries on as the two-finger one it has become.
-        if (maxFingers == 1) record(lastX, lastY) else shaping = false
+        // The stroke starts with the second finger, at the pair's midpoint. A third finger is not part of
+        // a two-finger stroke: whatever was being drawn is abandoned, and the gesture carries on as the
+        // swipe it has become.
+        pathCount = 0
+        if (strokeFingers()) record(lastX, lastY) else shaping = false
         if (fingers == 2) {
             startSpan = span(xs, ys)
             lastSpan = startSpan
@@ -154,38 +162,43 @@ class TrackpadRecognizer(
         lastY = cy
         val fromStartX = cx - startX
         val fromStartY = cy - startY
-        // Every single-finger sample is kept from the press onward, not from the moment the hold expires.
-        // Same trap the scroll-or-pinch decision below documents: the travel spent before the decision is
-        // travel the user drew, and a stroke missing its first few millimetres is a different stroke.
-        // [armShape] runs before `moved` is updated, so "still for the whole hold" means exactly that.
-        // Once it has armed, the finger stops driving the pointer: the laptop must not sit there watching
-        // the shape being drawn on it.
-        if (maxFingers == 1) {
-            record(cx, cy)
-            armShape(time)
-        }
+        // Every sample of a two-finger touch is kept from the second press onward, not from the moment the
+        // hold expires. Same trap the scroll-or-pinch decision below documents: the travel spent before the
+        // decision is travel the user drew, and a stroke missing its first few millimetres is a different
+        // stroke. [tick] runs before `moved` is updated, so "still for the whole hold" means exactly that.
+        // Once a shape has armed, the fingers stop scrolling: the laptop must not sit there watching the
+        // shape being drawn on it.
+        if (strokeFingers()) record(cx, cy)
+        tick(time)
         if (!moved && hypot(fromStartX, fromStartY) > dp(SLOP_DP)) moved = true
 
         when (maxFingers) {
-            1 -> if (moved && !shaping) pointer(dx, dy)
-            2 -> twoFingers(xs, ys, dx, dy, fromStartX, fromStartY)
+            1 -> if (moved) pointer(dx, dy)
+            2 -> if (!shaping) twoFingers(xs, ys, dx, dy, fromStartX, fromStartY)
             else -> swipe(cx, cy, fromStartX, fromStartY)
         }
     }
 
     /**
-     * Turns a single finger that has stayed put into a stroke. [SHAPE_HOLD_MS] is added to the press time
-     * and never subtracted from now, for the same reason [down] adds to [lastTapUp].
+     * Ends a hold that has lasted [HOLD_MS] without moving: one finger grips the left button, two fingers
+     * start a stroke when a shape is bound. Called on every sample and also by the surface's own timer at
+     * the moment the hold is due, because a finger held truly still may send no samples at all, and the
+     * tick that says "you are dragging now" must not wait for the finger to move.
      *
-     * A drag is excluded outright. A drag on this pad is tap, lift, press, move, so its second press is a
-     * hold — the very thing this claims — and arming on it would turn every unhurried drag into a scrawl.
-     * That exclusion is also what made a bare press and hold free to take: with no tap in front of it, it
-     * reached [finish] past the [TAP_MS] window and did nothing at all.
+     * A stale timer is harmless: it is checked against the latest press, never trusted for its own timing.
      */
-    private fun armShape(time: Long) {
-        if (shaping || moved || dragging || onShape == null) return
-        if (time >= startTime + SHAPE_HOLD_MS) shaping = true
+    fun tick(time: Long) {
+        if (fingers == 0 || held || moved || time < holdStart + HOLD_MS) return
+        if (maxFingers == 1) {
+            dragging = true
+            sink(Frame.PointerButton(LEFT, true))
+        } else if (strokeFingers() && twoFinger == TwoFingerMode.UNDECIDED && onShape != null) {
+            shaping = true
+        }
     }
+
+    /** Exactly two fingers, and never more: the only touch a stroke is drawn with. */
+    private fun strokeFingers(): Boolean = maxFingers == 2 && fingers == 2
 
     /**
      * Keeps one more sample of the stroke. A full buffer stops taking them rather than growing or dropping
@@ -422,15 +435,14 @@ class TrackpadRecognizer(
             }
 
             tapAllowed && untouched && time - startTime <= TAP_MS -> {
-                tap(time)
+                tap()
             }
         }
     }
 
-    private fun tap(time: Long) {
+    private fun tap() {
         if (maxFingers == 1) {
             click(LEFT)
-            lastTapUp = time
             return
         }
         if (maxFingers == 2) {
@@ -445,11 +457,7 @@ class TrackpadRecognizer(
         sink(Frame.PointerButton(button, false))
     }
 
-    /**
-     * Deliberately does not clear [lastTapUp]. It is the one piece of state that has to survive the end of
-     * a gesture: tap-then-hold-to-drag works by the second touch seeing how recently the previous one
-     * lifted. Clearing it here makes every drag a plain move, and no test of a single gesture catches it.
-     */
+    /** Every gesture starts from nothing: no state survives the lift, so no gesture depends on the last one. */
     private fun reset() {
         maxFingers = 0
         moved = false
@@ -499,15 +507,14 @@ class TrackpadRecognizer(
         const val SWIPE_DP = 48f
         const val SWITCH_STEP_DP = 72f
         const val TAP_MS = 250L
-        const val DRAG_TAP_GAP_MS = 300L
 
         /**
-         * How long one finger must stay inside [SLOP_DP] before the press becomes a stroke. Comfortably
-         * past [TAP_MS], so a tap can never grow into a shape, and past the gap a drag's second press
-         * lands in, so the two never race. Shorter and a thinking pause starts drawing; longer and the
-         * tick feels like the pad noticed late.
+         * How long a press must stay inside [SLOP_DP] before it becomes a drag (one finger) or a stroke
+         * (two). Android's own long-press timeout, so it feels like every other hold on the phone, and well
+         * past [TAP_MS], so a tap can never grow into one. Shorter and a pause before moving the pointer
+         * starts a drag; longer and the tick feels like the pad noticed late.
          */
-        const val SHAPE_HOLD_MS = 350L
+        const val HOLD_MS = 400L
 
         /**
          * The most samples one stroke keeps. At any digitiser's rate this is several seconds of drawing,

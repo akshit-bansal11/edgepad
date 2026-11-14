@@ -48,7 +48,7 @@ import kotlin.math.roundToInt
  * dials, which is the only thing that can take a piece of it away — and which a drawn shape can walk too, since a
  * locked pad is one of the things a shape may be bound to.
  *
- * A single finger held still on the trackpad becomes a stroke; [TrackpadRecognizer] decides that, [Shapes]
+ * Two fingers held still on the trackpad become a stroke; [TrackpadRecognizer] decides that, [Shapes]
  * reads it, and [runShape] runs whatever it matched. A locked pad refuses shapes the way it refuses
  * everything else, because the touch never reaches the recogniser at all.
  *
@@ -298,8 +298,17 @@ class ControlSurface(
     private var scrubbing = false
     private var scrubFraction = 0f
 
-    /** What the surface last saw of [TrackpadRecognizer.shaping]; the tick fires on the change, not on the state. */
+    /** What the surface last saw of [TrackpadRecognizer.shaping]: the trail is drawn solid while it is set. */
     private var drawingShape = false
+
+    /** What the surface last saw of [TrackpadRecognizer.held]; the tick fires on the change, not on the state. */
+    private var holdTicked = false
+    private val holdDue =
+        Runnable {
+            trackpad.tick(SystemClock.uptimeMillis())
+            holdFeedback()
+            invalidate()
+        }
 
     // The fingers on the trackpad, drawn as dots, with a tail behind a single finger and a ring between two.
     private var fingerCount = 0
@@ -708,7 +717,7 @@ class ControlSurface(
      * dots, the line between them and a ring on their span, so a pinch reads as one. More: the dots.
      */
     private fun drawFingers(canvas: Canvas) {
-        if (fingerCount == 1 && trailLength > 1) {
+        if ((fingerCount == 1 || drawingShape) && trailLength > 1) {
             stroke.strokeCap = Paint.Cap.ROUND
             var i = 1
             while (i < trailLength) {
@@ -1043,6 +1052,7 @@ class ControlSurface(
                 if (onTrackpad()) {
                     feed(TrackpadRecognizer.Action.DOWN, event, exclude = -1)
                     fingers(event, exclude = -1)
+                    timeHold()
                 }
             }
 
@@ -1143,6 +1153,7 @@ class ControlSurface(
                         feed(TrackpadRecognizer.Action.DOWN, event, exclude = -1)
                         trailLength = 0
                         fingers(event, exclude = -1)
+                        timeHold()
                     }
                 }
             }
@@ -1164,20 +1175,27 @@ class ControlSurface(
                 for (h in 0 until event.historySize) feedHistorical(event, h)
                 feed(TrackpadRecognizer.Action.MOVE, event, exclude = -1)
                 fingers(event, exclude = -1)
-                shapeFeedback()
+                holdFeedback()
             }
         }
     }
 
     /**
-     * The tick that tells the finger its press has become a stroke, and the flag [drawFingers] draws the
-     * trail solid on. The recogniser owns the decision; this only notices the moment it changes, so one
-     * hold ticks once rather than once per touch sample.
+     * The tick that tells the finger its hold has become a drag or a stroke, and the flag [drawFingers]
+     * draws the trail solid on. The recogniser owns the decision; this only notices the moment it changes,
+     * so one hold ticks once rather than once per touch sample.
      */
-    private fun shapeFeedback() {
-        if (trackpad.shaping == drawingShape) return
+    private fun holdFeedback() {
         drawingShape = trackpad.shaping
-        if (drawingShape) haptic()
+        if (trackpad.held == holdTicked) return
+        holdTicked = trackpad.held
+        if (holdTicked) haptic()
+    }
+
+    /** Asks the recogniser to settle a hold when it falls due, even if the finger sends nothing meanwhile. */
+    private fun timeHold() {
+        removeCallbacks(holdDue)
+        postDelayed(holdDue, TrackpadRecognizer.HOLD_MS)
     }
 
     /**
@@ -1259,6 +1277,8 @@ class ControlSurface(
                 if (showHints) learnHints(event)
                 trailLength = 0
                 drawingShape = false
+                holdTicked = false
+                removeCallbacks(holdDue)
             }
         }
         return false
@@ -1281,6 +1301,8 @@ class ControlSurface(
         fingerCount = 0
         trailLength = 0
         drawingShape = false
+        holdTicked = false
+        removeCallbacks(holdDue)
         trackpad.handle(TrackpadRecognizer.Action.CANCEL, touchXs, touchYs, time, count = 0)
     }
 
@@ -1385,13 +1407,15 @@ class ControlSurface(
         }
         if (n > peakFingers) peakFingers = n
         fingerCount = n
-        if (n != 1) {
+        // A stroke is drawn with two fingers, so its tail follows their midpoint.
+        val midpoint = n == 2 && drawingShape
+        if (n != 1 && !midpoint) {
             trailLength = 0
             return
         }
         trailHead = (trailHead + 1) % TRAIL
-        trail[trailHead * 2] = fingerXs[0]
-        trail[trailHead * 2 + 1] = fingerYs[0]
+        trail[trailHead * 2] = if (midpoint) (fingerXs[0] + fingerXs[1]) / 2 else fingerXs[0]
+        trail[trailHead * 2 + 1] = if (midpoint) (fingerYs[0] + fingerYs[1]) / 2 else fingerYs[0]
         trailLength = minOf(trailLength + 1, TRAIL)
     }
 
@@ -1539,7 +1563,7 @@ class ControlSurface(
         private const val IDLE_MS = 10_000L
 
         /** A one-finger touch this long counts as having tried press and hold. */
-        private const val HOLD_HINT_MS = 500L
+        private const val HOLD_HINT_MS = TrackpadRecognizer.HOLD_MS
 
         /** The pieces' sizes in dp; the layout screen draws them at these too. */
         const val PLAY_DP = 52f

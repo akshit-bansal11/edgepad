@@ -60,7 +60,7 @@
     <item>Personalizza</item>
   </string-array>
   <string-array name="guide_surface_values">
-    <item>Muovi il puntatore. Tocca per fare clic. Tocca, poi tieni premuto e muovi, per trascinare.</item>
+    <item>Muovi il puntatore. Tocca per fare clic. Tieni fermo un attimo, poi muovi, per trascinare.</item>
     <item>Tocca per il clic destro. Trascina per scorrere. Pizzica per ingrandire.</item>
     <item>Tre dita di lato per i desktop, in su per la Visualizzazione attività, in giù per il desktop. Quattro dita di lato tra le app aperte. I tocchi aprono la ricerca o le notifiche.</item>
     <item>Scorri lungo un righello: in senso orario aumenta. Toccalo per disattivare l\'audio, riprodurre, reimpostare lo zoom o aprire la Visualizzazione attività.</item>

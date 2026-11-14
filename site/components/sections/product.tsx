@@ -26,7 +26,7 @@ const SURFACE: { where: string; touch: string; laptop: string }[] = [
   },
   {
     where: "Anywhere else, one finger",
-    touch: "move / tap / tap then hold-and-move",
+    touch: "move / tap / hold still, then move",
     laptop: "Pointer / left click / drag.",
   },
   { where: "Two fingers", touch: "drag", laptop: "Scroll, both axes." },
@@ -38,16 +38,16 @@ const SURFACE: { where: string; touch: string; laptop: string }[] = [
     laptop: "Whatever Settings assigns. Ten slots in all.",
   },
   {
-    where: "Anywhere else, one finger",
-    touch: "press and hold until it ticks, then draw",
+    where: "Anywhere else, two fingers",
+    touch: "hold still until it ticks, then draw",
     laptop:
       "The action or macro bound to the shape drawn. An unrecognised stroke does nothing.",
   },
   {
     where: "Top centre",
-    touch: "tap one of the three buttons",
+    touch: "tap one of the four buttons",
     laptop:
-      "Settings, the lock, Controls (keyboard, gamepad, macros, annotate, capture), left to right. The lock stays on the phone.",
+      "Settings, Type text, the lock, Controls (keyboard, gamepad, macros, annotate, capture), left to right. The lock stays on the phone.",
   },
   { where: "Back", touch: "", laptop: "Leaves the surface. The link stays up." },
 ];

@@ -304,9 +304,9 @@
     <item quantity="other">%1$d شكل مرسوم</item>
   </plurals>
   <string name="shapes_none">لا شيء بعد</string>
-  <string name="shapes_footnote">اضغط مع الاستمرار على لوحة اللمس إلى أن يصبح الخط متصلًا (وستشعر أيضًا بنقرة اهتزازية إذا كانت الاستجابة اللمسية مفعّلة)، ثم ارسم دون رفع إصبعك.</string>
+  <string name="shapes_footnote">ثبّت إصبعين على لوحة اللمس إلى أن يصبح الخط متصلًا (وستشعر أيضًا بنقرة اهتزازية إذا كانت الاستجابة اللمسية مفعّلة)، ثم ارسم بهما دون رفعهما.</string>
   <string name="shapes_empty_title">لا أشكال بعد</string>
-  <string name="shapes_empty_body">ارسم شكلًا هنا وحدّد ما يشغّله. على لوحة اللمس، اضغط مع الاستمرار إلى أن يصبح الخط متصلًا، ثم ارسمه دون رفع إصبعك.</string>
+  <string name="shapes_empty_body">ارسم شكلًا هنا وحدّد ما يشغّله. على لوحة اللمس، ثبّت إصبعين إلى أن يصبح الخط متصلًا، ثم ارسمه بهما دون رفعهما.</string>
   <string name="shapes_add">رسم شكل</string>
   <string name="shapes_draw_title">ارسم الشكل</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -368,7 +368,7 @@
   <string name="dial_feel_title">إحساس المقياس</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">معاينة. اتجاه عقارب الساعة يرفع.</string>
-  <string name="gestures_footnote">انقر إيماءة لتغيير إجرائها. إيماءات الإصبع والإصبعين ثابتة: بإصبع واحد تحرّك المؤشر، وتنقر للنقر، وتنقر مع الاستمرار للسحب؛ وبإصبعين تسحب للتمرير، وتقرص للتكبير، وتنقر للنقر الأيمن.</string>
+  <string name="gestures_footnote">انقر إيماءة لتغيير إجرائها. إيماءات الإصبع والإصبعين ثابتة: بإصبع واحد تحرّك المؤشر، وتنقر للنقر، وتثبّته لحظة ثم تحرّكه للسحب؛ وبإصبعين تسحب للتمرير، وتقرص للتكبير، وتنقر للنقر الأيمن.</string>
   <string name="dial_feel_each">كل مقياس</string>
   <string name="dial_feel_shared">مشترك</string>
   <string name="dial_feel_each_caption">تُعرض المقاييس الموجودة في الزوايا فقط. انقل أحدها خارج «مشترك» لتمنحه سرعة خاصة به. «مشترك» يتبع «حساسية الانزلاق».</string>
@@ -456,7 +456,7 @@
   <string name="capture_stop">إيقاف التسجيل</string>
   <string name="capture_recording">يجري التسجيل على اللابتوب. انقر «إيقاف التسجيل» للإنهاء؛ ومع «الحفظ في» «الهاتف» يصل الملف حينها.</string>
   <string name="capture_sent">تم الإرسال إلى اللابتوب: %1$s</string>
-  <string name="capture_hint">لالتقاط منطقة، انقر «منطقة»، ثم انقر مع الاستمرار وحرّك على لوحة اللمس لتحديد المساحة.</string>
+  <string name="capture_hint">لالتقاط منطقة، انقر «منطقة»، ثم ثبّت إصبعك على لوحة اللمس لحظة وحرّكه لتحديد المساحة.</string>
   <string name="capture_save_to">الحفظ في</string>
   <string name="capture_save_laptop">اللابتوب</string>
   <string name="capture_save_phone">الهاتف</string>

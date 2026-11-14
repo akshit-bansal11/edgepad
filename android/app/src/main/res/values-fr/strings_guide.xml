@@ -60,7 +60,7 @@
     <item>Ajuster</item>
   </string-array>
   <string-array name="guide_surface_values">
-    <item>Déplacez le pointeur. Appuyez pour cliquer. Appuyez, puis maintenez et déplacez, pour faire glisser.</item>
+    <item>Déplacez le pointeur. Appuyez pour cliquer. Maintenez immobile un instant, puis déplacez, pour faire glisser.</item>
     <item>Appuyez pour un clic droit. Glissez pour faire défiler. Pincez pour zoomer.</item>
     <item>Trois doigts sur le côté pour les bureaux, vers le haut pour la vue des tâches, vers le bas pour le bureau. Quatre doigts sur le côté pour parcourir les applis ouvertes. Un appui à trois ou quatre doigts lance la recherche ou ouvre les notifications.</item>
     <item>Glissez le long d\'une règle, le sens horaire augmente. Appuyez dessus pour couper le son, lancer la lecture, réinitialiser le zoom ou ouvrir la vue des tâches.</item>

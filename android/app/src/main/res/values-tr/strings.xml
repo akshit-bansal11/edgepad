@@ -273,9 +273,9 @@
     <item quantity="other">%1$d çizildi</item>
   </plurals>
   <string name="shapes_none">Henüz yok</string>
-  <string name="shapes_footnote">Dokunmatik yüzeyi, çizgi kesintisiz hale gelene kadar basılı tutun (dokunsal geri bildirim açıksa bir tık da hissedersiniz), sonra parmağınızı kaldırmadan çizin.</string>
+  <string name="shapes_footnote">Dokunmatik yüzeyde iki parmağınızı çizgi kesintisiz hale gelene kadar sabit tutun (dokunsal geri bildirim açıksa bir tık da hissedersiniz), sonra parmaklarınızı kaldırmadan ikisiyle çizin.</string>
   <string name="shapes_empty_title">Henüz şekil yok</string>
-  <string name="shapes_empty_body">Buraya bir şekil çizin ve ona çalıştıracak bir şey verin. Dokunmatik yüzeyde çizgi kesintisiz hale gelene kadar basılı tutun, sonra parmağınızı kaldırmadan çizin.</string>
+  <string name="shapes_empty_body">Buraya bir şekil çizin ve ona çalıştıracak bir şey verin. Dokunmatik yüzeyde çizgi kesintisiz hale gelene kadar iki parmağınızı sabit tutun, sonra parmaklarınızı kaldırmadan çizin.</string>
   <string name="shapes_add">Şekil çiz</string>
   <string name="shapes_draw_title">Şekli çizin</string>
   <string name="shapes_draw_back">Çiz</string>
@@ -336,7 +336,7 @@
   <string name="dial_feel_title">Kadran hissi</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">Önizleme. Saat yönü artırır.</string>
-  <string name="gestures_footnote">Eylemini değiştirmek için bir harekete dokunun. Bir ve iki parmakla yapılanlar sabittir: işaretçiyi taşıma, tıklamak için dokunma, sürüklemek için dokunup basılı tutma; iki parmakla kaydırmak için sürükleme, yakınlaştırmak için sıkıştırma, sağ tık için dokunma.</string>
+  <string name="gestures_footnote">Eylemini değiştirmek için bir harekete dokunun. Bir ve iki parmakla yapılanlar sabittir: işaretçiyi taşıma, tıklamak için dokunma, sürüklemek için bir an sabit tutup hareket ettirme; iki parmakla kaydırmak için sürükleme, yakınlaştırmak için sıkıştırma, sağ tık için dokunma.</string>
   <string name="dial_feel_each">Her kadran</string>
   <string name="dial_feel_shared">Ortak</string>
   <string name="dial_feel_each_caption">Yalnızca bir köşedeki kadranlar listelenir. Bir kadrana kendi hızını vermek için Ortak\'tan çıkarın. Ortak, sürükleme duyarlılığını izler.</string>
@@ -421,7 +421,7 @@
   <string name="capture_stop">Kaydı durdur</string>
   <string name="capture_recording">Bilgisayarda kayıt sürüyor. Bitirmek için “Kaydı durdur” düğmesine dokunun; “Kaydedilecek yer” olarak Telefon seçiliyse dosya o zaman gelir.</string>
   <string name="capture_sent">Bilgisayara gönderildi: %1$s</string>
-  <string name="capture_hint">Bölge için “Bölge” düğmesine dokunun, sonra alanı belirlemek için dokunmatik yüzeyde dokunup basılı tutarak sürükleyin.</string>
+  <string name="capture_hint">Bölge için “Bölge” düğmesine dokunun, sonra dokunmatik yüzeyde bir parmağınızı bir an sabit tutun ve alanı belirlemek için sürükleyin.</string>
   <string name="capture_save_to">Kaydedilecek yer</string>
   <string name="capture_save_laptop">Bilgisayar</string>
   <string name="capture_save_phone">Telefon</string>

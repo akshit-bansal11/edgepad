@@ -59,7 +59,7 @@
     <item>Ayarlayın</item>
   </string-array>
   <string-array name="guide_surface_values">
-    <item>İşaretçiyi taşıyın. Tıklamak için dokunun. Sürüklemek için dokunun, sonra basılı tutup hareket ettirin.</item>
+    <item>İşaretçiyi taşıyın. Tıklamak için dokunun. Sürüklemek için bir an sabit tutun, sonra hareket ettirin.</item>
     <item>Sağ tık için dokunun. Kaydırmak için sürükleyin. Yakınlaştırmak için sıkıştırın.</item>
     <item>Üç parmakla yana kaydırarak masaüstleri arasında geçin, yukarı kaydırarak görev görünümünü, aşağı kaydırarak masaüstünü açın. Dört parmakla yana kaydırarak açık uygulamalar arasında gezin. Dokunuşlar aramayı veya bildirimleri açar.</item>
     <item>Bir kadran boyunca kaydırın; saat yönü artırır. Sesi kapatmak, oynatmak, yakınlaştırmayı sıfırlamak veya görev görünümünü açmak için kadrana dokunun.</item>

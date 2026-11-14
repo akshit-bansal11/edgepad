@@ -290,9 +290,9 @@
     <item quantity="other">Narysowano: %1$d</item>
   </plurals>
   <string name="shapes_none">Jeszcze nic</string>
-  <string name="shapes_footnote">Naciśnij i przytrzymaj touchpad, aż linia stanie się ciągła (przy włączonej reakcji haptycznej poczujesz też stuknięcie), a potem rysuj bez odrywania palca.</string>
+  <string name="shapes_footnote">Przytrzymaj dwa palce na touchpadzie bez ruchu, aż linia stanie się ciągła (przy włączonej reakcji haptycznej poczujesz też stuknięcie), a potem rysuj obydwoma bez odrywania ich.</string>
   <string name="shapes_empty_title">Brak kształtów</string>
-  <string name="shapes_empty_body">Narysuj tu kształt i wybierz, co ma uruchamiać. Na touchpadzie naciśnij i przytrzymaj, aż linia stanie się ciągła, a potem narysuj kształt bez odrywania palca.</string>
+  <string name="shapes_empty_body">Narysuj tu kształt i wybierz, co ma uruchamiać. Na touchpadzie przytrzymaj dwa palce bez ruchu, aż linia stanie się ciągła, a potem narysuj kształt obydwoma bez odrywania ich.</string>
   <string name="shapes_add">Narysuj kształt</string>
   <string name="shapes_draw_title">Narysuj kształt</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -354,7 +354,7 @@
   <string name="dial_feel_title">Działanie suwaków</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">Podgląd. Ruch zgodny ze wskazówkami zegara zwiększa wartość.</string>
-  <string name="gestures_footnote">Stuknij gest, aby zmienić jego działanie. Gesty jednym i dwoma palcami są stałe: jeden palec przesuwa wskaźnik, stuknięcie klika, stuknięcie z przytrzymaniem przeciąga; dwa palce: przesuwanie przewija, szczypnięcie powiększa, stuknięcie to kliknięcie prawym przyciskiem.</string>
+  <string name="gestures_footnote">Stuknij gest, aby zmienić jego działanie. Gesty jednym i dwoma palcami są stałe: jeden palec przesuwa wskaźnik, stuknięcie klika, przytrzymanie palca bez ruchu, a potem przesunięcie przeciąga; dwa palce: przesuwanie przewija, szczypnięcie powiększa, stuknięcie to kliknięcie prawym przyciskiem.</string>
   <string name="dial_feel_each">Każdy suwak</string>
   <string name="dial_feel_shared">Wspólne</string>
   <string name="dial_feel_each_caption">Na liście są tylko suwaki w rogach. Przełącz suwak z „Wspólne” na własne ustawienie, aby miał własną szybkość. „Wspólne” zależy od czułości przesuwania.</string>
@@ -442,7 +442,7 @@
   <string name="capture_stop">Zatrzymaj nagrywanie</string>
   <string name="capture_recording">Trwa nagrywanie na laptopie. Stuknij „Zatrzymaj nagrywanie”, aby zakończyć; przy zapisie na telefonie plik dotrze wtedy.</string>
   <string name="capture_sent">Wysłano na laptop: %1$s</string>
-  <string name="capture_hint">Aby przechwycić obszar, stuknij „Obszar”, a potem stuknij, przytrzymaj i przesuń palec po touchpadzie, by zaznaczyć fragment.</string>
+  <string name="capture_hint">Aby przechwycić obszar, stuknij „Obszar”, a potem przytrzymaj palec na touchpadzie chwilę bez ruchu i przesuń go, by zaznaczyć fragment.</string>
   <string name="capture_save_to">Miejsce zapisu</string>
   <string name="capture_save_laptop">Laptop</string>
   <string name="capture_save_phone">Telefon</string>

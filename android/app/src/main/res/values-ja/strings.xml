@@ -270,9 +270,9 @@
     <item quantity="other">%1$d件</item>
   </plurals>
   <string name="shapes_none">まだありません</string>
-  <string name="shapes_footnote">トラックパッドを長押しして線が実線に変わるまで待ち（触覚フィードバックがオンなら振動も伝わります）、指を離さずに描きます。</string>
+  <string name="shapes_footnote">トラックパッドに2本指を置いて止め、線が実線に変わるまで待ち（触覚フィードバックがオンなら振動も伝わります）、2本指を離さずに描きます。</string>
   <string name="shapes_empty_title">まだ図形がありません</string>
-  <string name="shapes_empty_body">ここで図形を描いて、実行する操作を割り当てます。トラックパッドでは、線が実線に変わるまで長押ししてから、指を離さずに描いてください。</string>
+  <string name="shapes_empty_body">ここで図形を描いて、実行する操作を割り当てます。トラックパッドでは、線が実線に変わるまで2本指を止めて置いてから、指を離さずに描いてください。</string>
   <string name="shapes_add">図形を描く</string>
   <string name="shapes_draw_title">図形を描く</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -334,7 +334,7 @@
   <string name="dial_feel_title">ダイヤルの操作感</string>
   <string name="feel_summary">×%1$.1f · %2$ddp</string>
   <string name="dial_preview_caption">プレビュー。時計回りで上がります。</string>
-  <string name="gestures_footnote">ジェスチャーをタップすると、操作を変更できます。1本指と2本指は固定です。1本指は移動、タップでクリック、タップして長押しでドラッグ。2本指はドラッグでスクロール、ピンチでズーム、タップで右クリックです。</string>
+  <string name="gestures_footnote">ジェスチャーをタップすると、操作を変更できます。1本指と2本指は固定です。1本指は移動、タップでクリック、少し止めてから動かすとドラッグ。2本指はドラッグでスクロール、ピンチでズーム、タップで右クリックです。</string>
   <string name="dial_feel_each">個別</string>
   <string name="dial_feel_shared">共通</string>
   <string name="dial_feel_each_caption">コーナーに割り当てたダイヤルだけが表示されます。「共通」以外にすると、そのダイヤルだけ別の速さにできます。「共通」はスライド感度に従います。</string>
@@ -423,7 +423,7 @@
   <string name="capture_stop">録画を停止</string>
   <string name="capture_recording">ノートPCで録画中です。「録画を停止」をタップして終了します。保存先が「スマホ」の場合は、そのときファイルが届きます。</string>
   <string name="capture_sent">ノートPCに送信しました：%1$s</string>
-  <string name="capture_hint">範囲を選ぶには、「範囲」をタップしてから、トラックパッドでタップ、長押し、移動して領域をドラッグします。</string>
+  <string name="capture_hint">範囲を選ぶには、「範囲」をタップしてから、トラックパッドに置いた指を少し止め、そのまま動かして領域をドラッグします。</string>
   <string name="capture_save_to">保存先</string>
   <string name="capture_save_laptop">ノートPC</string>
   <string name="capture_save_phone">スマホ</string>

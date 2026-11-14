@@ -60,7 +60,7 @@
     <item>Afstellen</item>
   </string-array>
   <string-array name="guide_surface_values">
-    <item>Beweeg de aanwijzer. Tik om te klikken. Tik, houd vast en beweeg om te slepen.</item>
+    <item>Beweeg de aanwijzer. Tik om te klikken. Houd even stil en beweeg dan om te slepen.</item>
     <item>Tik voor rechtsklik. Schuif om te scrollen. Knijp om te zoomen.</item>
     <item>Drie vingers zijwaarts voor bureaubladen, omhoog voor taakweergave, omlaag voor het bureaublad. Vier vingers zijwaarts door open apps. Tikken opent zoeken of meldingen.</item>
     <item>Schuif langs een schaal; met de klok mee gaat het omhoog. Tik erop om te dempen, af te spelen, de zoom te herstellen of de taakweergave te openen.</item>

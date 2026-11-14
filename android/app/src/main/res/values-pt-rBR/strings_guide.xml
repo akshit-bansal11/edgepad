@@ -60,7 +60,7 @@
     <item>Ajustes</item>
   </string-array>
   <string-array name="guide_surface_values">
-    <item>Mova o ponteiro. Toque para clicar. Toque, segure e mova para arrastar.</item>
+    <item>Mova o ponteiro. Toque para clicar. Segure parado por um instante e mova para arrastar.</item>
     <item>Toque para clicar com o botão direito. Deslize para rolar. Faça pinça para dar zoom.</item>
     <item>Três dedos para o lado alternam as áreas de trabalho, para cima abrem a Visão de Tarefas e para baixo mostram a área de trabalho. Quatro dedos para o lado percorrem os apps abertos. Toques abrem a pesquisa ou as notificações.</item>
     <item>Deslize ao longo de uma régua; o sentido horário aumenta. Toque nela para silenciar, tocar, redefinir o zoom ou abrir a Visão de Tarefas.</item>

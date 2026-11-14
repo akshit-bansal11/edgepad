@@ -3,6 +3,8 @@ package me.akshitbansal.edgepad.screens
 import android.app.AlertDialog
 import android.content.Context
 import android.view.View
+import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
@@ -32,5 +34,11 @@ fun askText(
         .setPositiveButton(R.string.keyboard_type_send) { _, _ ->
             TextChunks.split(field.text.toString()).forEach { send(Frame.Text(TextKind.TYPE.id, it)) }
         }.setNegativeButton(android.R.string.cancel, null)
-        .showOver(owner)
+        .openOver(owner)
+        .window
+        ?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+    // The box is only there to be typed in, so it opens with the keyboard up (#65). The window flag covers most
+    // builds; asking once the field has focus covers the ones that ignore it when the dialog opens in landscape.
+    field.requestFocus()
+    field.post { context.getSystemService(InputMethodManager::class.java)?.showSoftInput(field, 0) }
 }
