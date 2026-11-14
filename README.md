@@ -306,6 +306,7 @@ A star, a bug report or telling someone about it helps as much.
 
 ## Credits
 
+- Thanks to [@HaujetZhao](https://github.com/HaujetZhao) for asking for the translations ([#63](https://github.com/akshit-bansal11/edgepad/issues/63)) and for Type text on the control surface ([#65](https://github.com/akshit-bansal11/edgepad/issues/65)), both laid out so clearly they were straightforward to build, and for the review above.
 - The phone app's icons are Edgepad's own, drawn for it (24 px grid, 1.5 stroke, round caps). The desktop apps' icons are [Lucide](https://lucide.dev), ISC licence; the few that came from Feather are MIT. The desktop apps draw Lucide's own paths, and the licence text ships inside the exe beside the icons. The APK also carries it as `assets/licenses/Lucide-LICENSE.txt`, because the app logo's music note is still Lucide's.
 - The typeface is [Lato](https://www.latofonts.com), by Łukasz Dziedzic, SIL Open Font License 1.1. Both apps bundle it, and its licence ships inside the APK as `assets/licenses/Lato-OFL.txt` and inside the exe beside the fonts. The website also sets code in [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono), under the same licence.
 - The media players' logos (Spotify, Netflix, YouTube and the rest, in `android/app/src/main/res/raw`) are trademarks of their owners. The phone shows one only to say which app is playing on the laptop; that implies no endorsement by, or affiliation with, any of them. The SVG files were supplied by the maintainer and are drawn as supplied.
