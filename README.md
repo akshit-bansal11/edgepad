@@ -46,7 +46,7 @@ It is for the times the laptop is across the room rather than under your hands: 
 **The control surface**
 
 - **Corner rulers.** Each corner holds a dial drawn as a ruler that wraps the bend: volume, brightness, media scrub, zoom, app switcher, refresh rate, scroll, desktops, browser tabs or the Devices dial. Split corners give each corner two dials.
-- **Trackpad and gestures.** One finger moves and clicks, two scroll and pinch, three and four fingers run actions you assign. Hold still, then draw a shape to run an action or a macro.
+- **Trackpad and gestures.** One finger moves and clicks, two scroll and pinch, three and four fingers run actions you assign. Hold one finger still to drag; hold two still, then draw a shape to run an action or a macro.
 - **Media.** The track, the app playing it and where it is, with previous, play/pause and next.
 - **Live state.** The dials show the laptop's real volume, mute, brightness and playback position.
 

@@ -282,9 +282,9 @@
     <item quantity="other">%1$d drawn</item>
   </plurals>
   <string name="shapes_none">None yet</string>
-  <string name="shapes_footnote">Press and hold on the trackpad until the line turns solid (you also feel a tick if haptic feedback is on), then draw without lifting.</string>
+  <string name="shapes_footnote">Hold two fingers still on the trackpad until the line turns solid (you also feel a tick if haptic feedback is on), then draw with both without lifting.</string>
   <string name="shapes_empty_title">No shapes yet</string>
-  <string name="shapes_empty_body">Draw one here and give it something to run. On the trackpad, press and hold until the line turns solid, then draw it without lifting your finger.</string>
+  <string name="shapes_empty_body">Draw one here and give it something to run. On the trackpad, hold two fingers still until the line turns solid, then draw it with both without lifting them.</string>
   <string name="shapes_add">Draw a shape</string>
   <string name="shapes_draw_title">Draw the shape</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -346,7 +346,7 @@
   <string name="dial_feel_title">Dial feel</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">Preview. Clockwise raises.</string>
-  <string name="gestures_footnote">Tap a gesture to change its action. One and two fingers are fixed: move, tap to click, tap and hold to drag; two fingers drag to scroll, pinch to zoom, tap to right-click.</string>
+  <string name="gestures_footnote">Tap a gesture to change its action. One and two fingers are fixed: move, tap to click, hold still then move to drag; two fingers drag to scroll, pinch to zoom, tap to right-click.</string>
   <string name="dial_feel_each">Each dial</string>
   <string name="dial_feel_shared">Shared</string>
   <string name="dial_feel_each_caption">Only the dials in a corner are listed. Move one off Shared to give it a speed of its own. Shared follows slide sensitivity.</string>
@@ -438,7 +438,7 @@
   <string name="capture_stop">Stop recording</string>
   <string name="capture_recording">Recording on the laptop. Tap Stop recording to finish; with Save to Phone the file arrives then.</string>
   <string name="capture_sent">Sent to the laptop: %1$s</string>
-  <string name="capture_hint">For a region, tap Region, then tap, hold and move on the trackpad to drag out the area.</string>
+  <string name="capture_hint">For a region, tap Region, then on the trackpad hold a finger still for a moment and move it to drag out the area.</string>
   <string name="capture_save_to">Save to</string>
   <string name="capture_save_laptop">Laptop</string>
   <string name="capture_save_phone">Phone</string>

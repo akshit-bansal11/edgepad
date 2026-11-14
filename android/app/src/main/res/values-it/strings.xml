@@ -283,9 +283,9 @@
     <item quantity="other">%1$d disegnate</item>
   </plurals>
   <string name="shapes_none">Ancora nessuna</string>
-  <string name="shapes_footnote">Tieni premuto sul touchpad finché la linea non diventa continua (se il feedback aptico è attivo senti anche un tic), poi disegna senza sollevare il dito.</string>
+  <string name="shapes_footnote">Tieni ferme due dita sul touchpad finché la linea non diventa continua (se il feedback aptico è attivo senti anche un tic), poi disegna con entrambe senza sollevarle.</string>
   <string name="shapes_empty_title">Ancora nessuna forma</string>
-  <string name="shapes_empty_body">Disegnane una qui e assegnale qualcosa da eseguire. Sul touchpad, tieni premuto finché la linea non diventa continua, poi disegnala senza sollevare il dito.</string>
+  <string name="shapes_empty_body">Disegnane una qui e assegnale qualcosa da eseguire. Sul touchpad, tieni ferme due dita finché la linea non diventa continua, poi disegnala con entrambe senza sollevarle.</string>
   <string name="shapes_add">Disegna una forma</string>
   <string name="shapes_draw_title">Disegna la forma</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -347,7 +347,7 @@
   <string name="dial_feel_title">Comportamento dei righelli</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">Anteprima. In senso orario aumenta.</string>
-  <string name="gestures_footnote">Tocca un gesto per cambiarne l\'azione. Con uno e due dita i gesti sono fissi: muovi per spostare il puntatore, tocca per fare clic, tocca e tieni premuto per trascinare; con due dita trascina per scorrere, pizzica per ingrandire, tocca per il clic destro.</string>
+  <string name="gestures_footnote">Tocca un gesto per cambiarne l\'azione. Con uno e due dita i gesti sono fissi: muovi per spostare il puntatore, tocca per fare clic, tieni fermo un attimo e poi muovi per trascinare; con due dita trascina per scorrere, pizzica per ingrandire, tocca per il clic destro.</string>
   <string name="dial_feel_each">Ogni righello</string>
   <string name="dial_feel_shared">Condiviso</string>
   <string name="dial_feel_each_caption">Sono elencati solo i righelli presenti in un angolo. Togline uno da Condiviso per dargli una velocità tutta sua. Condiviso segue la sensibilità di scorrimento.</string>
@@ -435,7 +435,7 @@
   <string name="capture_stop">Interrompi registrazione</string>
   <string name="capture_recording">Registrazione in corso sul portatile. Tocca Interrompi registrazione per terminare; con Salva in Telefono il file arriva a quel punto.</string>
   <string name="capture_sent">Inviato al portatile: %1$s</string>
-  <string name="capture_hint">Per un\'area, tocca Area, poi tocca, tieni premuto e muovi sul touchpad per selezionarla.</string>
+  <string name="capture_hint">Per un\'area, tocca Area, poi tieni fermo un dito sul touchpad per un attimo e muovilo per selezionarla.</string>
   <string name="capture_save_to">Salva in</string>
   <string name="capture_save_laptop">Portatile</string>
   <string name="capture_save_phone">Telefono</string>

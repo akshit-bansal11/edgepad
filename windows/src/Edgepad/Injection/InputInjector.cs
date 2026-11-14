@@ -52,11 +52,31 @@ internal sealed class InputInjector : IDisposable
 
     public void Chord(params ReadOnlySpan<Keys> keys) => Send(InputBuilder.Chord(keys));
 
-    /// <summary>Types text as the phone's keyboard produced it; backspace and newline become their keys.</summary>
+    /// <summary>
+    /// Types text as the phone's keyboard produced it; backspace and newline become their keys. A Qt window
+    /// is posted the characters instead, which a Chinese IME cannot reorder (<see cref="QtTyping"/>).
+    /// </summary>
     public void Type(string text)
     {
+        var qt = QtTyping.Target();
         foreach (var c in text)
         {
+            if (qt != 0)
+            {
+                var posted = c switch
+                {
+                    '\b' => QtTyping.Key(qt, (ushort)Keys.Back, '\b'),
+                    '\n' => QtTyping.Key(qt, (ushort)Keys.Return, '\r'),
+                    _ => QtTyping.Char(qt, c),
+                };
+                if (!posted)
+                {
+                    RefusedBatches++;
+                }
+
+                continue;
+            }
+
             switch (c)
             {
                 case '\b':

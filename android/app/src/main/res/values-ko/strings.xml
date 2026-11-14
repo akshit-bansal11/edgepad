@@ -261,9 +261,9 @@
     <item quantity="other">도형 %1$d개</item>
   </plurals>
   <string name="shapes_none">아직 없음</string>
-  <string name="shapes_footnote">트랙패드를 길게 눌러 선이 실선으로 바뀔 때까지 기다린 뒤(햅틱 피드백이 켜져 있으면 진동도 느껴져요), 손가락을 떼지 않고 그리세요.</string>
+  <string name="shapes_footnote">트랙패드에 두 손가락을 대고 선이 실선으로 바뀔 때까지 멈춰 있다가(햅틱 피드백이 켜져 있으면 진동도 느껴져요), 손가락을 떼지 않고 두 손가락으로 그리세요.</string>
   <string name="shapes_empty_title">아직 도형이 없어요</string>
-  <string name="shapes_empty_body">여기에서 도형을 그리고 실행할 동작을 지정하세요. 트랙패드에서는 선이 실선으로 바뀔 때까지 길게 누른 뒤, 손가락을 떼지 않고 그리세요.</string>
+  <string name="shapes_empty_body">여기에서 도형을 그리고 실행할 동작을 지정하세요. 트랙패드에서는 선이 실선으로 바뀔 때까지 두 손가락을 멈춰 둔 뒤, 떼지 않고 그리세요.</string>
   <string name="shapes_add">도형 그리기</string>
   <string name="shapes_draw_title">도형 그리기</string>
   <string name="shapes_draw_back">그리기</string>
@@ -324,7 +324,7 @@
   <string name="dial_feel_title">다이얼 조작감</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">미리보기. 시계 방향으로 올라가요.</string>
-  <string name="gestures_footnote">제스처를 탭해서 동작을 바꾸세요. 손가락 한두 개 동작은 고정이에요. 한 개는 이동, 탭하면 클릭, 탭한 채 이동하면 드래그이고, 두 개는 드래그하면 스크롤, 핀치하면 확대/축소, 탭하면 오른쪽 클릭이에요.</string>
+  <string name="gestures_footnote">제스처를 탭해서 동작을 바꾸세요. 손가락 한두 개 동작은 고정이에요. 한 개는 이동, 탭하면 클릭, 잠시 멈췄다가 움직이면 드래그이고, 두 개는 드래그하면 스크롤, 핀치하면 확대/축소, 탭하면 오른쪽 클릭이에요.</string>
   <string name="dial_feel_each">다이얼별</string>
   <string name="dial_feel_shared">공통</string>
   <string name="dial_feel_each_caption">모서리에 놓은 다이얼만 표시돼요. 공통을 벗어나게 설정하면 그 다이얼만의 속도를 줄 수 있어요. 공통은 슬라이드 감도를 따라가요.</string>
@@ -407,7 +407,7 @@
   <string name="capture_stop">녹화 중지</string>
   <string name="capture_recording">노트북에서 녹화 중이에요. 끝내려면 녹화 중지를 탭하세요. 저장 위치가 휴대전화이면 그때 파일이 도착해요.</string>
   <string name="capture_sent">노트북으로 보냄: %1$s</string>
-  <string name="capture_hint">영역을 캡처하려면 영역을 탭한 뒤, 트랙패드에서 탭하고 길게 누른 채 움직여 범위를 지정하세요.</string>
+  <string name="capture_hint">영역을 캡처하려면 영역을 탭한 뒤, 트랙패드에 손가락을 잠시 멈춰 두었다가 움직여 범위를 지정하세요.</string>
   <string name="capture_save_to">저장 위치</string>
   <string name="capture_save_laptop">노트북</string>
   <string name="capture_save_phone">휴대전화</string>

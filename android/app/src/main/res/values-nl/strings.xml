@@ -276,9 +276,9 @@
     <item quantity="other">%1$d getekend</item>
   </plurals>
   <string name="shapes_none">Nog geen</string>
-  <string name="shapes_footnote">Houd het touchpad ingedrukt tot de lijn doorgetrokken wordt (je voelt ook een tik als haptische feedback aanstaat) en teken dan zonder los te laten.</string>
+  <string name="shapes_footnote">Houd twee vingers stil op het touchpad tot de lijn doorgetrokken wordt (je voelt ook een tik als haptische feedback aanstaat) en teken dan met beide zonder los te laten.</string>
   <string name="shapes_empty_title">Nog geen vormen</string>
-  <string name="shapes_empty_body">Teken er hier een en geef hem iets om uit te voeren. Houd op het touchpad ingedrukt tot de lijn doorgetrokken wordt en teken de vorm dan zonder je vinger op te tillen.</string>
+  <string name="shapes_empty_body">Teken er hier een en geef hem iets om uit te voeren. Houd op het touchpad twee vingers stil tot de lijn doorgetrokken wordt en teken de vorm dan met beide zonder ze op te tillen.</string>
   <string name="shapes_add">Vorm tekenen</string>
   <string name="shapes_draw_title">Teken de vorm</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -340,7 +340,7 @@
   <string name="dial_feel_title">Gevoel van regelaars</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">Voorbeeld. Met de klok mee gaat het omhoog.</string>
-  <string name="gestures_footnote">Tik op een gebaar om de actie te wijzigen. Gebaren met één en twee vingers liggen vast: bewegen, tikken om te klikken, tikken en vasthouden om te slepen; met twee vingers slepen om te scrollen, knijpen om te zoomen, tikken voor rechtsklik.</string>
+  <string name="gestures_footnote">Tik op een gebaar om de actie te wijzigen. Gebaren met één en twee vingers liggen vast: bewegen, tikken om te klikken, even stilhouden en dan bewegen om te slepen; met twee vingers slepen om te scrollen, knijpen om te zoomen, tikken voor rechtsklik.</string>
   <string name="dial_feel_each">Elke regelaar</string>
   <string name="dial_feel_shared">Gedeeld</string>
   <string name="dial_feel_each_caption">Alleen de regelaars in een hoek staan in de lijst. Haal een regelaar uit Gedeeld om hem een eigen snelheid te geven. Gedeeld volgt de gevoeligheid van schuiven.</string>
@@ -426,7 +426,7 @@
   <string name="capture_stop">Opname stoppen</string>
   <string name="capture_recording">Opname loopt op de laptop. Tik op Opname stoppen om af te ronden; met Opslaan op Telefoon komt het bestand dan binnen.</string>
   <string name="capture_sent">Naar de laptop gestuurd: %1$s</string>
-  <string name="capture_hint">Tik voor een gebied op Gebied en tik, houd vast en beweeg dan op het touchpad om het gebied te slepen.</string>
+  <string name="capture_hint">Tik voor een gebied op Gebied, houd dan een vinger even stil op het touchpad en beweeg hem om het gebied te slepen.</string>
   <string name="capture_save_to">Opslaan op</string>
   <string name="capture_save_laptop">Laptop</string>
   <string name="capture_save_phone">Telefoon</string>

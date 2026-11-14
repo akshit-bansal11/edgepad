@@ -275,9 +275,9 @@
     <item quantity="other">%1$d बनीं</item>
   </plurals>
   <string name="shapes_none">अभी कोई नहीं</string>
-  <string name="shapes_footnote">टचपैड पर तब तक दबाए रखें जब तक रेखा ठोस न हो जाए (हैप्टिक फ़ीडबैक चालू हो तो हल्का झटका भी लगेगा), फिर उंगली उठाए बिना बनाएं।</string>
+  <string name="shapes_footnote">टचपैड पर दो उंगलियां तब तक स्थिर रखें जब तक रेखा ठोस न हो जाए (हैप्टिक फ़ीडबैक चालू हो तो हल्का झटका भी लगेगा), फिर उंगलियां उठाए बिना दोनों से बनाएं।</string>
   <string name="shapes_empty_title">अभी कोई आकृति नहीं</string>
-  <string name="shapes_empty_body">यहां एक आकृति बनाएं और उसे कोई काम सौंपें। टचपैड पर तब तक दबाए रखें जब तक रेखा ठोस न हो जाए, फिर उंगली उठाए बिना उसे बनाएं।</string>
+  <string name="shapes_empty_body">यहां एक आकृति बनाएं और उसे कोई काम सौंपें। टचपैड पर दो उंगलियां तब तक स्थिर रखें जब तक रेखा ठोस न हो जाए, फिर उंगलियां उठाए बिना उसे बनाएं।</string>
   <string name="shapes_add">आकृति बनाएं</string>
   <string name="shapes_draw_title">आकृति बनाएं</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -339,7 +339,7 @@
   <string name="dial_feel_title">डायल का एहसास</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">प्रीव्यू। घड़ी की दिशा में घुमाने से बढ़ता है।</string>
-  <string name="gestures_footnote">किसी जेस्चर का काम बदलने के लिए उस पर टैप करें। एक और दो उंगलियों वाले जेस्चर तय हैं: एक उंगली से पॉइंटर हिलाएं, क्लिक के लिए टैप करें, ड्रैग के लिए टैप करके दबाए रखें; दो उंगलियों से स्क्रॉल के लिए खींचें, ज़ूम के लिए पिंच करें, राइट क्लिक के लिए टैप करें।</string>
+  <string name="gestures_footnote">किसी जेस्चर का काम बदलने के लिए उस पर टैप करें। एक और दो उंगलियों वाले जेस्चर तय हैं: एक उंगली से पॉइंटर हिलाएं, क्लिक के लिए टैप करें, ड्रैग के लिए उंगली को एक पल स्थिर रखकर हिलाएं; दो उंगलियों से स्क्रॉल के लिए खींचें, ज़ूम के लिए पिंच करें, राइट क्लिक के लिए टैप करें।</string>
   <string name="dial_feel_each">हर डायल</string>
   <string name="dial_feel_shared">साझा</string>
   <string name="dial_feel_each_caption">सिर्फ़ कोनों में लगे डायल दिखते हैं। किसी की अपनी स्पीड रखने के लिए उसे \"साझा\" से हटाएं। \"साझा\" स्लाइड की संवेदनशीलता के हिसाब से चलता है।</string>
@@ -426,7 +426,7 @@
   <string name="capture_stop">रिकॉर्डिंग रोकें</string>
   <string name="capture_recording">लैपटॉप पर रिकॉर्डिंग चल रही है। खत्म करने के लिए \"रिकॉर्डिंग रोकें\" पर टैप करें; \"यहां सेव करें\" में फ़ोन चुना हो तो फ़ाइल तभी आएगी।</string>
   <string name="capture_sent">लैपटॉप पर भेजा गया: %1$s</string>
-  <string name="capture_hint">किसी हिस्से के लिए \"हिस्सा\" पर टैप करें, फिर टचपैड पर टैप करके दबाए रखें और उंगली हिलाकर हिस्सा चुनें।</string>
+  <string name="capture_hint">किसी हिस्से के लिए \"हिस्सा\" पर टैप करें, फिर टचपैड पर उंगली को एक पल स्थिर रखें और हिलाकर हिस्सा चुनें।</string>
   <string name="capture_save_to">यहां सेव करें</string>
   <string name="capture_save_laptop">लैपटॉप</string>
   <string name="capture_save_phone">फ़ोन</string>

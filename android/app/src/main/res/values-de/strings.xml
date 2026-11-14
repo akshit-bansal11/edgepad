@@ -275,9 +275,9 @@
     <item quantity="other">%1$d gezeichnet</item>
   </plurals>
   <string name="shapes_none">Noch keine</string>
-  <string name="shapes_footnote">Halte den Finger auf dem Touchpad gedrückt, bis die Linie durchgezogen ist (bei eingeschaltetem haptischem Feedback spürst du ein Ticken), und zeichne dann, ohne abzusetzen.</string>
+  <string name="shapes_footnote">Halte zwei Finger still auf dem Touchpad, bis die Linie durchgezogen ist (bei eingeschaltetem haptischem Feedback spürst du ein Ticken), und zeichne dann mit beiden, ohne abzusetzen.</string>
   <string name="shapes_empty_title">Noch keine Formen</string>
-  <string name="shapes_empty_body">Zeichne hier eine Form und lege fest, was sie auslöst. Halte auf dem Touchpad den Finger gedrückt, bis die Linie durchgezogen ist, und zeichne dann, ohne den Finger abzusetzen.</string>
+  <string name="shapes_empty_body">Zeichne hier eine Form und lege fest, was sie auslöst. Halte auf dem Touchpad zwei Finger still, bis die Linie durchgezogen ist, und zeichne dann mit beiden, ohne sie abzusetzen.</string>
   <string name="shapes_add">Form zeichnen</string>
   <string name="shapes_draw_title">Form zeichnen</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -339,7 +339,7 @@
   <string name="dial_feel_title">Reglergefühl</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">Vorschau. Im Uhrzeigersinn erhöht.</string>
-  <string name="gestures_footnote">Tippe auf eine Geste, um ihre Aktion zu ändern. Die Aktionen für einen und zwei Finger sind fest: bewegen, tippen zum Klicken, tippen und halten zum Ziehen; mit zwei Fingern wischen zum Scrollen, spreizen zum Zoomen, tippen für Rechtsklick.</string>
+  <string name="gestures_footnote">Tippe auf eine Geste, um ihre Aktion zu ändern. Die Aktionen für einen und zwei Finger sind fest: bewegen, tippen zum Klicken, kurz still halten und dann bewegen zum Ziehen; mit zwei Fingern wischen zum Scrollen, spreizen zum Zoomen, tippen für Rechtsklick.</string>
   <string name="dial_feel_each">Einzeln</string>
   <string name="dial_feel_shared">Gemeinsam</string>
   <string name="dial_feel_each_caption">Es werden nur Regler in einer Ecke angezeigt. Stelle einen von „Gemeinsam“ um, damit er eine eigene Geschwindigkeit bekommt. „Gemeinsam“ folgt der Wischempfindlichkeit.</string>
@@ -425,7 +425,7 @@
   <string name="capture_stop">Aufzeichnung beenden</string>
   <string name="capture_recording">Aufzeichnung läuft auf dem Laptop. Tippe auf „Aufzeichnung beenden“; bei „Speichern auf: Handy“ kommt die Datei dann an.</string>
   <string name="capture_sent">An den Laptop gesendet: %1$s</string>
-  <string name="capture_hint">Für einen Bereich tippe auf „Bereich“, dann tippe, halte und bewege den Finger auf dem Touchpad, um den Bereich aufzuziehen.</string>
+  <string name="capture_hint">Für einen Bereich tippe auf „Bereich“, halte dann einen Finger kurz still auf dem Touchpad und bewege ihn, um den Bereich aufzuziehen.</string>
   <string name="capture_save_to">Speichern auf</string>
   <string name="capture_save_laptop">Laptop</string>
   <string name="capture_save_phone">Handy</string>

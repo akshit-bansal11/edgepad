@@ -60,7 +60,7 @@
     <item>Anpassen</item>
   </string-array>
   <string-array name="guide_surface_values">
-    <item>Den Mauszeiger bewegen. Tippen zum Klicken. Tippen, dann halten und bewegen zum Ziehen.</item>
+    <item>Den Mauszeiger bewegen. Tippen zum Klicken. Kurz still halten, dann bewegen zum Ziehen.</item>
     <item>Tippen für Rechtsklick. Wischen zum Scrollen. Spreizen zum Zoomen.</item>
     <item>Drei Finger seitwärts für Desktops, nach oben für die Aufgabenansicht, nach unten für den Desktop. Vier Finger seitwärts durch die offenen Apps. Tippen öffnet Suche oder Benachrichtigungen.</item>
     <item>An einer Skala entlangwischen, im Uhrzeigersinn erhöht. Tippen schaltet stumm, startet die Wiedergabe, setzt den Zoom zurück oder öffnet die Aufgabenansicht.</item>

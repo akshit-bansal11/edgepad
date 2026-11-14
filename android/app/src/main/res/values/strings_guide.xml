@@ -60,7 +60,7 @@
     <item>Tune it</item>
   </string-array>
   <string-array name="guide_surface_values">
-    <item>Move the pointer. Tap to click. Tap, then hold and move, to drag.</item>
+    <item>Move the pointer. Tap to click. Hold still for a moment, then move, to drag.</item>
     <item>Tap to right-click. Slide to scroll. Pinch to zoom.</item>
     <item>Three sideways for desktops, up for task view, down for the desktop. Four sideways through open apps. Taps search or open notifications.</item>
     <item>Slide along a ruler, clockwise raises. Tap it to mute, play, reset zoom or open task view.</item>

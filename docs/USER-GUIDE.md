@@ -80,12 +80,12 @@ Bluetooth stays the default. On Windows and Linux the tray **Wi-Fi and USB conne
 | --- | --- | --- |
 | A corner ruler | slide | turns that dial: clockwise raises |
 | A corner ruler | tap | the dial's action: mute, play/pause, task view, reset zoom |
-| Anywhere else, one finger | move / tap / tap then hold-and-move | pointer / left click / drag |
-| Anywhere else, one finger | press, hold still until it ticks, then draw | what that shape is bound to: an action, a macro, or the pad's own focus or lock |
+| Anywhere else, one finger | move / tap / hold still until it ticks, then move | pointer / left click / drag |
+| Anywhere else, two fingers | hold still until the line turns solid, then draw | what that shape is bound to: an action, a macro, or the pad's own focus or lock |
 | Two fingers | drag | scroll both axes |
 | Two fingers | pinch / tap | zoom / right click, or what Settings assigns |
 | Three or four fingers | tap, swipe up, down, left, right | what Settings assigns |
-| Top centre | tap one of the three buttons | Settings, the lock, Controls (keyboard, gamepad, macros, annotate, capture) |
+| Top centre | tap one of the four buttons | Settings, Type text, the lock, Controls (keyboard, gamepad, macros, annotate, capture) |
 | Back | | leaves the surface; the link stays up |
 
 Out of the box, three fingers left and right switch desktops, three up opens task view, three down shows the desktop, four fingers left and right walk the app switcher (Alt stays held while the fingers are down), and tapping searches or opens notifications. Every one of those is changed under **Surface settings › Trackpad**.

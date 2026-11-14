@@ -60,7 +60,7 @@
     <item>Ajústalo</item>
   </string-array>
   <string-array name="guide_surface_values">
-    <item>Mueve el puntero. Toca para hacer clic. Toca, mantén y mueve para arrastrar.</item>
+    <item>Mueve el puntero. Toca para hacer clic. Mantén quieto un momento y mueve para arrastrar.</item>
     <item>Toca para hacer clic derecho. Desliza para desplazarte. Pellizca para hacer zoom.</item>
     <item>Tres dedos hacia los lados para cambiar de escritorio, hacia arriba para la vista de tareas y hacia abajo para mostrar el escritorio. Cuatro dedos hacia los lados para recorrer las apps abiertas. Los toques abren la búsqueda o las notificaciones.</item>
     <item>Desliza por una regla; en sentido horario sube. Tócala para silenciar, reproducir, restablecer el zoom o abrir la vista de tareas.</item>

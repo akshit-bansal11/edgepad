@@ -41,15 +41,86 @@ class TrackpadRecognizerTest {
     }
 
     @Test
-    fun tapThenHoldAndMoveDrags() {
+    fun holdingStillThenMovingDrags() {
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.MOVE, TrackpadRecognizer.HOLD_MS, 101f to 100f)
+        assertEquals("the hold grips the button", listOf(Frame.PointerButton(0, true)), out)
+        assertTrue(pad.held)
+        touch(Action.MOVE, TrackpadRecognizer.HOLD_MS + 50, 160f to 100f)
+        touch(Action.UP, 900)
+        assertTrue(out[1] is Frame.Move)
+        assertEquals(Frame.PointerButton(0, false), out.last())
+    }
+
+    @Test
+    fun theTimerGripsAFingerThatSendsNoSamples() {
+        touch(Action.DOWN, 0, 100f to 100f)
+        pad.tick(TrackpadRecognizer.HOLD_MS - 1)
+        assertTrue("not due yet", out.isEmpty())
+        pad.tick(TrackpadRecognizer.HOLD_MS)
+        assertEquals(listOf(Frame.PointerButton(0, true)), out)
+        pad.tick(TrackpadRecognizer.HOLD_MS + 100)
+        assertEquals("one grip per hold", 1, out.size)
+    }
+
+    @Test
+    fun aStaleTimerNeverGripsALaterPress() {
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.UP, 80)
+        touch(Action.DOWN, 300, 100f to 100f)
+        pad.tick(TrackpadRecognizer.HOLD_MS)
+        assertEquals("only the tap's click", 2, out.size)
+    }
+
+    @Test
+    fun aMovingFingerNeverGrips() {
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.MOVE, 100, 160f to 100f)
+        touch(Action.MOVE, TrackpadRecognizer.HOLD_MS + 100, 161f to 100f)
+        touch(Action.UP, 900)
+        assertTrue("moves only", out.all { it is Frame.Move })
+    }
+
+    @Test
+    fun tapThenPressIsAClickAndAPlainPressNotADoubleClick() {
         touch(Action.DOWN, 0, 100f to 100f)
         touch(Action.UP, 80)
         touch(Action.DOWN, 200, 100f to 100f)
         touch(Action.MOVE, 300, 160f to 100f)
         touch(Action.UP, 900)
-        assertEquals(Frame.PointerButton(0, true), out[2])
-        assertTrue(out[3] is Frame.Move)
-        assertEquals(Frame.PointerButton(0, false), out.last())
+        assertEquals(listOf(Frame.PointerButton(0, true), Frame.PointerButton(0, false)), out.take(2))
+        assertTrue("then only moves", out.drop(2).all { it is Frame.Move })
+    }
+
+    @Test
+    fun twoFingersHeldStillDrawAShapeAndDoNotScroll() {
+        var stroke = 0
+        val shaped = TrackpadRecognizer(density = 1f, onShape = { _, _, count -> stroke = count }) { out.add(it) }
+
+        fun two(
+            action: Action,
+            time: Long,
+            dy: Float,
+        ) = shaped.handle(action, floatArrayOf(100f, 160f), floatArrayOf(100f + dy, 100f + dy), time)
+
+        shaped.handle(Action.DOWN, floatArrayOf(100f), floatArrayOf(100f), 0)
+        two(Action.DOWN, 10, 0f)
+        shaped.tick(10 + TrackpadRecognizer.HOLD_MS)
+        assertTrue(shaped.shaping)
+        two(Action.MOVE, 500, 40f)
+        two(Action.MOVE, 520, 80f)
+        shaped.handle(Action.UP, floatArrayOf(), floatArrayOf(), 600)
+        assertTrue("no scroll, no click: ${out.toList()}", out.isEmpty())
+        assertTrue("the stroke went to the shape sink", stroke >= 3)
+    }
+
+    @Test
+    fun withNoShapeBoundTwoFingersHeldStillStillScroll() {
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.DOWN, 10, 100f to 100f, 160f to 100f)
+        pad.tick(10 + TrackpadRecognizer.HOLD_MS)
+        touch(Action.MOVE, 500, 100f to 140f, 160f to 140f)
+        assertTrue(out.single() is Frame.Scroll)
     }
 
     @Test
@@ -164,10 +235,9 @@ class TrackpadRecognizerTest {
     @Test
     fun aCancelledDragStillReleasesTheButton() {
         touch(Action.DOWN, 0, 100f to 100f)
-        touch(Action.UP, 80)
-        touch(Action.DOWN, 200, 100f to 100f)
-        touch(Action.CANCEL, 300)
-        assertEquals(Frame.PointerButton(0, false), out.last())
+        pad.tick(TrackpadRecognizer.HOLD_MS)
+        touch(Action.CANCEL, 500)
+        assertEquals(listOf(Frame.PointerButton(0, true), Frame.PointerButton(0, false)), out)
     }
 
     @Test
