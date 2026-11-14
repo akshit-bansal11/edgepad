@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [4.2.0] - 2026-11-14
+
+No wire-protocol change: the protocol stays at version 5, so a 4.2 phone and a 4.1 laptop still connect, though installing both halves from the same release is still the advice. **Mac and Linux are still in testing. Please use them at your own risk.** This release adds 14 languages to the phone and the Windows app, applies one set of UX and motion rules to the phone, the Windows tray and the website, puts Type text on the control surface, and fixes the bugs a state-machine review found worst, among them a stuck key on the on-screen keyboard that every release since 4.0.0 had.
+
 ### Added
 
 - **Phone: Black out when idle,** a switch in the Controls popup, off by default. Ten seconds after the last touch the control surface turns pure black and dims the screen, so the rulers and labels do not burn into an OLED panel. The next touch brings everything back and still counts, so a dial or gesture works without looking. The gamepad screen is unchanged. ([#56](https://github.com/akshit-bansal11/edgepad/issues/56))
@@ -938,7 +942,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v4.1.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v4.2.0...HEAD
+[4.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v4.1.0...v4.2.0
 [4.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v4.0.0...v4.1.0
 [4.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.5.0...v4.0.0
 [3.5.0]: https://github.com/akshit-bansal11/edgepad/compare/v3.4.0...v3.5.0
