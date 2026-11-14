@@ -22,6 +22,12 @@ internal sealed class StatusMemory
     /// <summary>The text to show for <paramref name="status"/> at <paramref name="now"/> (milliseconds on a forward clock).</summary>
     public LaptopStatus Resolve(LaptopStatus status, long now)
     {
+        // A radio condition is shown while it is true and not remembered: the "waiting" that follows means it recovered.
+        if (status.IsRadioCondition)
+        {
+            return status;
+        }
+
         if (status.IsProblem)
         {
             problem = status;

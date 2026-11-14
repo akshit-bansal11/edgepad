@@ -31,6 +31,25 @@ public sealed class StatusMemoryTests
     }
 
     [Fact]
+    public void ARadioConditionEndsAtOnceWhenTheRadioRecovers()
+    {
+        var memory = new StatusMemory();
+
+        Assert.Equal(LaptopStatus.BluetoothOff, memory.Resolve(LaptopStatus.BluetoothOff, 0));
+        Assert.Equal(LaptopStatus.Waiting, memory.Resolve(LaptopStatus.Waiting, 1_000));
+    }
+
+    [Fact]
+    public void ARadioConditionDoesNotEraseARefusalStillHeld()
+    {
+        var memory = new StatusMemory();
+        memory.Resolve(Mismatch, 0);
+        memory.Resolve(LaptopStatus.BluetoothOff, 500);
+
+        Assert.Equal(Mismatch, memory.Resolve(LaptopStatus.Waiting, 1_000));
+    }
+
+    [Fact]
     public void AMismatchIsAnnouncedOncePerCausePerHour()
     {
         var memory = new StatusMemory();

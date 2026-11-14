@@ -109,6 +109,12 @@ internal sealed record LaptopStatus(StatusKind Kind, string Detail = "", PhoneWa
         or StatusKind.RefusedUntrusted or StatusKind.RefusedPin or StatusKind.BluetoothOff or StatusKind.BluetoothRetrying
         or StatusKind.BluetoothUnavailable;
 
+    /// <summary>
+    /// True for a radio that is off or failing. Unlike a refusal this is a live condition, not a past event: the server
+    /// posts "waiting" the moment the radio recovers, so a tray must not hold it past that.
+    /// </summary>
+    public bool IsRadioCondition => Kind is StatusKind.BluetoothOff or StatusKind.BluetoothRetrying or StatusKind.BluetoothUnavailable;
+
     /// <summary>True for the status of a live phone.</summary>
     public bool IsConnected => Kind == StatusKind.Connected;
 
