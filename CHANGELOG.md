@@ -29,6 +29,8 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 - **Windows: messages name the real buttons.** The pairing step says to tap "Yes, paired" (the phone's actual button, not "Yes"), and the two reset errors name "Reset PIN and forget phones" instead of a "Reset" that does not exist. In every language.
 - **Windows: a pasted pairing code no longer loses a digit.** The box cut a paste to its length before removing spaces, so " 482 913" arrived short.
+- **Windows: the tray stops saying "Bluetooth is off" as soon as Bluetooth is back.** It had kept the message for up to ten minutes. Refusals and version mismatches still stay up that long.
+- **Windows and Linux: a phone that vanishes over Wi-Fi or USB lets go of held keys, the pad and the ink within about a minute.** Before, the laptop kept the session for hours after the Wi-Fi dropped or the cable was pulled.
 
 ## [4.1.0] - 2026-11-10
 
