@@ -61,7 +61,14 @@ internal sealed class Shell : IDisposable
     // 1 while /dev/uinput cannot be opened: input would do nothing while the phone shows connected. Set from any
     // thread, by Interlocked.
     private int inputBlocked;
-    private bool updateNotified;
+    private readonly UpdateChoice updateChoice = new(Path.Combine(Xdg.ConfigFolder, "update-choice.txt"));
+
+    // The release on offer, and whether it can be installed (a key is embedded); null when none. Written on the timer
+    // thread, read on the UI thread.
+    private volatile Version? offered;
+    private volatile bool offeredInstallable;
+    private volatile bool offeredNeedsConfirm;
+    private bool installing;
 
     // The tray menu stays clickable under a dialog, and a second one would lift the hold while the first was still
     // open. All of this runs on the UI thread, so plain bools are enough.
@@ -298,6 +305,9 @@ internal sealed class Shell : IDisposable
             () => _ = Guard(ToggleClipboardAsync),
             () => _ = Guard(ToggleAutostartAsync),
             () => _ = Guard(ToggleUpdatesAsync),
+            () => _ = Guard(InstallUpdateAsync),
+            LaterUpdate,
+            SkipUpdate,
             RequestQuit);
         var menu = new Tray(hooks);
         tray = menu;
@@ -602,21 +612,106 @@ internal sealed class Shell : IDisposable
     private async Task CheckForUpdateAsync()
     {
         var latest = await UpdateCheck.LatestAsync();
-        if (latest is null || !UpdateCheck.IsNewer(latest, version))
+        if (latest is null)
+        {
+            return;
+        }
+
+        // Skipped, or Later said within a day: no rows and no notice. With no embedded key the rows are only
+        // Later and Skip and the notice opens the release page (fail closed).
+        var decision = UpdatePolicy.Decide(latest, version, null, UpdateKey.IsSet);
+        if (decision is UpdateDecision.NotNewer || !updateChoice.ShouldShow(latest, DateTimeOffset.UtcNow))
         {
             return;
         }
 
         var number = latest.ToString(3);
+        var installable = decision is UpdateDecision.Install or UpdateDecision.InstallNeedsMajorConfirm;
+        offered = latest;
+        offeredInstallable = installable;
+        offeredNeedsConfirm = decision is UpdateDecision.InstallNeedsMajorConfirm;
         Dispatcher.UIThread.Post(() =>
         {
-            tray?.SetUpdate(number);
-            fallback?.SetUpdate(number);
+            tray?.SetUpdate(number, installable);
+            fallback?.SetUpdate(number, installable);
         });
-        if (!updateNotified)
+        if (!updateChoice.WasNotified(latest))
         {
-            updateNotified = true;
+            updateChoice.MarkNotified(latest);
             Notifier.SendClickable("Edgepad update available", $"Edgepad {number} is available. Click to open the release page.", () => Tray.OpenWithDesktop(UpdateCheck.LatestUrl, "the release page"));
+        }
+    }
+
+    private void HideUpdate()
+    {
+        offered = null;
+        tray?.ClearUpdate();
+        fallback?.ClearUpdate();
+    }
+
+    /// <summary>Later: the update stays out of sight until the next daily check after a day has passed.</summary>
+    private void LaterUpdate()
+    {
+        if (!updateChoice.Later(DateTimeOffset.UtcNow))
+        {
+            Log.Write("Later could not be saved, so the update will show again after a restart.");
+        }
+
+        HideUpdate();
+    }
+
+    /// <summary>Skip: this version is never offered again; a newer one is.</summary>
+    private void SkipUpdate()
+    {
+        if (offered is { } skipped && !updateChoice.Skip(skipped))
+        {
+            Log.Write("Skip could not be saved, so the update will show again after a restart.");
+        }
+
+        HideUpdate();
+    }
+
+    /// <summary>
+    /// Install: verify, download and replace (see <see cref="LinuxUpdater"/>). A different first number asks first, because
+    /// the phone must be updated too. Failure installs nothing and says so.
+    /// </summary>
+    private async Task InstallUpdateAsync()
+    {
+        if (installing || offered is not { } target || !offeredInstallable)
+        {
+            return;
+        }
+
+        // plain English until 4.5.0 localisation
+        if (offeredNeedsConfirm
+            && !await Dialogs.Confirm(null, $"Edgepad {target.ToString(3)} changes how the laptop and the phone talk. Install the matching phone app too, or they will not connect. Install the laptop update now?", "Install", "Not now"))
+        {
+            return;
+        }
+
+        installing = true;
+        try
+        {
+            var outcome = await LinuxUpdater.InstallAsync(target, Path.Combine(Xdg.CacheFolder, "update"), Environment.ProcessPath, null, CancellationToken.None);
+            switch (outcome)
+            {
+                case UpdateOutcome.Started:
+                    HideUpdate();
+                    break;
+                case UpdateOutcome.NeedsRoot:
+                    HideUpdate();
+                    await Dialogs.Inform(null, $"Edgepad {target.ToString(3)} is downloaded and checked, but this copy is installed where only an administrator can change it. Open a terminal and run:\n\n{LinuxUpdater.RootCommand(Path.Combine(Xdg.CacheFolder, "update", UpdateCheck.LinuxName(target)), target)}");
+                    break;
+                case UpdateOutcome.Failed:
+                    await Dialogs.Inform(null, "The update could not be installed and nothing was changed. The log has the reason.");
+                    break;
+                default:
+                    break;
+            }
+        }
+        finally
+        {
+            installing = false;
         }
     }
 

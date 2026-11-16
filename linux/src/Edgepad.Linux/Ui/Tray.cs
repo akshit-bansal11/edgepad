@@ -23,6 +23,9 @@ internal sealed record TrayHooks(
     Action ToggleClipboard,
     Action ToggleAutostart,
     Action ToggleUpdates,
+    Action InstallUpdate,
+    Action LaterUpdate,
+    Action SkipUpdate,
     Action Quit);
 
 /// <summary>
@@ -44,6 +47,10 @@ internal sealed class Tray : IDisposable
 
     private readonly NativeMenuItem statusRow = new("Starting…") { IsEnabled = false };
     private readonly NativeMenuItem updateRow = new("Update available") { IsVisible = false };
+    // plain English until 4.5.0 localisation
+    private readonly NativeMenuItem installRow = new("Install update") { IsVisible = false };
+    private readonly NativeMenuItem laterRow = new("Later") { IsVisible = false };
+    private readonly NativeMenuItem skipRow = new("Skip this version") { IsVisible = false };
     private readonly NativeMenuItem problemRow = new("") { IsEnabled = false, IsVisible = false };
     private readonly NativeMenuItem networkRow = Toggle("Wi-Fi and USB connections");
     private readonly NativeMenuItem clipboardRow = Toggle("Share clipboard");
@@ -62,6 +69,9 @@ internal sealed class Tray : IDisposable
         this.hooks = hooks;
 
         updateRow.Click += (_, _) => Safe(() => OpenWithDesktop(UpdateCheck.LatestUrl, "the release page"), "Update available");
+        installRow.Click += (_, _) => Safe(hooks.InstallUpdate, "Install update");
+        laterRow.Click += (_, _) => Safe(hooks.LaterUpdate, "Later");
+        skipRow.Click += (_, _) => Safe(hooks.SkipUpdate, "Skip this version");
         networkRow.Click += (_, _) => Safe(hooks.ToggleNetwork, "Wi-Fi and USB connections");
         clipboardRow.Click += (_, _) => Safe(hooks.ToggleClipboard, "Share clipboard");
         autostartRow.Click += (_, _) => Safe(hooks.ToggleAutostart, "Start at login");
@@ -78,6 +88,9 @@ internal sealed class Tray : IDisposable
         var menu = new NativeMenu();
         menu.Add(statusRow);
         menu.Add(updateRow);
+        menu.Add(installRow);
+        menu.Add(laterRow);
+        menu.Add(skipRow);
         menu.Add(problemRow);
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(networkRow);
@@ -117,10 +130,22 @@ internal sealed class Tray : IDisposable
     }
 
     /// <summary>Shows "Update available: VERSION" under the status. Opens the release page when clicked.</summary>
-    public void SetUpdate(string version)
+    public void SetUpdate(string version, bool canInstall)
     {
         updateRow.Header = $"Update available: {version}";
         updateRow.IsVisible = true;
+        installRow.IsVisible = canInstall;
+        laterRow.IsVisible = true;
+        skipRow.IsVisible = true;
+    }
+
+    /// <summary>Hides the update rows: the owner chose Later or Skip, or the install began.</summary>
+    public void ClearUpdate()
+    {
+        updateRow.IsVisible = false;
+        installRow.IsVisible = false;
+        laterRow.IsVisible = false;
+        skipRow.IsVisible = false;
     }
 
     /// <summary>A problem the owner can fix (input blocked, Wi-Fi not listening), or null for none.</summary>

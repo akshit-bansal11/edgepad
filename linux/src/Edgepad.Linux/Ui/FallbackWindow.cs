@@ -19,6 +19,8 @@ internal sealed class FallbackWindow
     private readonly Window window;
     private readonly TextBlock status;
     private readonly TextBlock update;
+    private readonly StackPanel updateButtons;
+    private readonly Button install;
     private readonly TextBlock problem;
     private readonly CheckBox network;
     private readonly CheckBox clipboard;
@@ -35,6 +37,18 @@ internal sealed class FallbackWindow
         status = look.Text(initialStatus, 14);
         update = look.Text("", 14);
         update.IsVisible = false;
+
+        // plain English until 4.5.0 localisation
+        install = look.Button("Install update", primary: true);
+        install.Click += (_, _) => hooks.InstallUpdate();
+        var later = look.Button("Later");
+        later.Click += (_, _) => hooks.LaterUpdate();
+        var skip = look.Button("Skip this version");
+        skip.Click += (_, _) => hooks.SkipUpdate();
+        updateButtons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, IsVisible = false };
+        updateButtons.Children.Add(install);
+        updateButtons.Children.Add(later);
+        updateButtons.Children.Add(skip);
         problem = look.Text("", 14);
         problem.Foreground = look.Danger;
         problem.IsVisible = false;
@@ -53,6 +67,7 @@ internal sealed class FallbackWindow
         body.Children.Add(look.Text("Edgepad is running", 18, FontWeight.Bold));
         body.Children.Add(status);
         body.Children.Add(update);
+        body.Children.Add(updateButtons);
         body.Children.Add(problem);
         body.Children.Add(network);
         body.Children.Add(clipboard);
@@ -114,10 +129,18 @@ internal sealed class FallbackWindow
 
     public void SetStatus(string text) => status.Text = text;
 
-    public void SetUpdate(string version)
+    public void SetUpdate(string version, bool canInstall)
     {
         update.Text = $"Update available: {version}";
         update.IsVisible = true;
+        install.IsVisible = canInstall;
+        updateButtons.IsVisible = true;
+    }
+
+    public void ClearUpdate()
+    {
+        update.IsVisible = false;
+        updateButtons.IsVisible = false;
     }
 
     public void SetProblem(string? text)
