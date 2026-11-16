@@ -12,7 +12,205 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Wi-Fi 和 USB 连接</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>共享剪贴板</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>在一台设备上复制，在另一台上粘贴：文字和图片。</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>每天检查更新</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>宏…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>安全…</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>文档</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>打开日志</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>退出 Edgepad</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>有可用更新</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>有可用更新：{0}</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>安装 Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>稍后</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>跳过此版本</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>向手机发送文件…</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>在手机上显示通知</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>允许手机找到这台电脑？</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>允许</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>开启</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>暂不</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>忘记</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>无法保存该设置，所以没有做任何更改。原因见日志。</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} 想要配对。请输入它显示的配对码。</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>正在关机</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>媒体已结束。这台笔记本将在 {0} 秒后关机。</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi 和 USB：无法监听。请查看日志。</value>
+  </data>
   <data name="App_Name" xml:space="preserve">
     <value>Edgepad</value>
+  </data>
+  <data name="Common_Ok" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>安装</value>
+  </data>
+  <data name="Menu_StartAtLogin" xml:space="preserve">
+    <value>登录时启动</value>
+  </data>
+  <data name="Hint_Off" xml:space="preserve">
+    <value>已关闭</value>
+  </data>
+  <data name="Hint_Listening" xml:space="preserve">
+    <value>正在监听端口 {0}</value>
+  </data>
+  <data name="Hint_PortInUse" xml:space="preserve">
+    <value>端口已被占用，改用 {0}</value>
+  </data>
+  <data name="Hint_CouldNotListen" xml:space="preserve">
+    <value>无法监听；请查看日志</value>
+  </data>
+  <data name="Open_Nothing" xml:space="preserve">
+    <value>无法打开{0}：{1} 处还没有任何内容。</value>
+  </data>
+  <data name="Open_InstallXdg" xml:space="preserve">
+    <value>无法打开{0}：请安装 xdg-utils。</value>
+  </data>
+  <data name="What_ReleasePage" xml:space="preserve">
+    <value>发布页面</value>
+  </data>
+  <data name="What_Documentation" xml:space="preserve">
+    <value>文档</value>
+  </data>
+  <data name="What_Log" xml:space="preserve">
+    <value>日志</value>
+  </data>
+  <data name="Fallback_Running" xml:space="preserve">
+    <value>Edgepad 正在运行</value>
+  </data>
+  <data name="Fallback_NoTray" xml:space="preserve">
+    <value>你的桌面不显示托盘图标。在 GNOME 上，请安装“AppIndicator and KStatusNotifierItem Support”扩展来显示托盘图标。</value>
+  </data>
+  <data name="FirstRun_NetworkBody" xml:space="preserve">
+    <value>与这台电脑处于同一 Wi-Fi 网络，或通过 USB 网络共享连接的手机，将能够找到这台电脑并请求配对。不在这里输入配对码，就不会建立任何连接。</value>
+  </data>
+  <data name="FirstRun_Firewall" xml:space="preserve">
+    <value>防火墙可能会拦截。例如请放行 {0}/tcp 和 5353/udp：</value>
+  </data>
+  <data name="FirstRun_ShareHeading" xml:space="preserve">
+    <value>共享剪贴板？</value>
+  </data>
+  <data name="Notice_WantsToConnect" xml:space="preserve">
+    <value>{0} 想要连接。有一个窗口正在询问是否信任它。请在屏幕上找一找。</value>
+  </data>
+  <data name="Notice_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} 已可用。点击打开发布页面。</value>
+  </data>
+  <data name="Notice_CannotControl" xml:space="preserve">
+    <value>Edgepad 无法控制这台电脑</value>
+  </data>
+  <data name="Notice_TrayFailedTitle" xml:space="preserve">
+    <value>Edgepad 无法启动</value>
+  </data>
+  <data name="Notice_TrayFailed" xml:space="preserve">
+    <value>无法设置它的托盘图标。原因见日志。</value>
+  </data>
+  <data name="Update_MajorConfirm" xml:space="preserve">
+    <value>Edgepad {0} 改变了电脑与手机之间的通信方式。请同时安装匹配的手机应用，否则两者无法连接。现在安装电脑端更新吗？</value>
+  </data>
+  <data name="Update_NeedsRoot" xml:space="preserve">
+    <value>Edgepad {0} 已下载并校验，但此副本安装在只有管理员才能修改的位置。请打开终端并运行：</value>
+  </data>
+  <data name="Update_InstallFailed" xml:space="preserve">
+    <value>无法安装更新，也没有做任何更改。原因见日志。</value>
+  </data>
+  <data name="Error_NotSavedAfterRestart" xml:space="preserve">
+    <value>此设置现已生效，但无法保存，所以重启后会恢复原样。原因见日志。</value>
+  </data>
+  <data name="Error_AutostartFailed" xml:space="preserve">
+    <value>无法更改“登录时启动”。原因见日志。</value>
+  </data>
+  <data name="Forget_AllNamed" xml:space="preserve">
+    <value>要忘记所有受信任的手机（{0}）吗？包括这部手机在内，每部手机都必须先在这里重新受信任，才能使用这台电脑。</value>
+  </data>
+  <data name="Forget_All" xml:space="preserve">
+    <value>要忘记受信任的手机吗？包括这部手机在内，每部手机都必须先在这里重新受信任，才能使用这台电脑。</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>无法忘记 Wi-Fi 和 USB 配对：无法删除或清空它们的文件。Edgepad 运行期间，已配对的手机无法通过 Wi-Fi 或 USB 重新连接，但下次启动后即可。请再次在“安全…”中选择“全部忘记…”，或自行从以下位置删除 paired-links.txt：</value>
+  </data>
+  <data name="Error_ForgetTrust" xml:space="preserve">
+    <value>无法忘记受信任的手机：无法删除或清空它们的文件。Edgepad 运行期间任何手机都无法连接，但下次启动 Edgepad 时这些手机会再次受信任。请关闭占用该文件的程序，再次在“安全…”中选择“全部忘记…”，或自行删除该文件：</value>
+  </data>
+  <data name="Error_ForgetPin" xml:space="preserve">
+    <value>无法忘记输入过 PIN 的手机：无法删除它们的列表。Edgepad 运行期间，每部手机每次连接都会被要求输入 PIN，但下次启动 Edgepad 时，这些手机在级别 2 会再次跳过 PIN。请再次在“安全…”中选择“全部忘记…”，或自行从以下位置删除 pin-verified.txt：</value>
+  </data>
+  <data name="Send_PickerTitle" xml:space="preserve">
+    <value>向手机发送文件</value>
+  </data>
+  <data name="Send_NoPhone" xml:space="preserve">
+    <value>没有已连接的手机。请先连接，然后再次发送文件。</value>
+  </data>
+  <data name="Send_Sent" xml:space="preserve">
+    <value>已将 {0} 发送到手机。</value>
+  </data>
+  <data name="Send_Cancelled" xml:space="preserve">
+    <value>已取消发送 {0}。</value>
+  </data>
+  <data name="Send_NotSent" xml:space="preserve">
+    <value>{0} 未发送（{1}）。</value>
+  </data>
+  <data name="Send_Failed" xml:space="preserve">
+    <value>无法发送 {0}。原因见日志。</value>
   </data>
 </root>

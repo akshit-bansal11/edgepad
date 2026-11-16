@@ -12,7 +12,205 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Подключения по Wi-Fi и USB</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>Общий буфер обмена</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Копируйте на одном устройстве, вставляйте на другом: текст и изображения.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Проверять обновления ежедневно</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Макросы…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Безопасность…</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Документация</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Открыть журнал</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Выйти из Edgepad</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>Доступно обновление</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>Доступно обновление: {0}</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Установить Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Позже</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Пропустить эту версию</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Отправить файл на телефон…</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Показывать уведомления на телефоне</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Разрешить телефонам находить этот ноутбук?</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>Разрешить</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Включить</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Не сейчас</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Забыть</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>Не удалось сохранить параметр, ничего не изменено. Причина указана в журнале.</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} хочет сопрячься. Введите код сопряжения, который он показывает.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Завершение работы</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>Воспроизведение закончилось. Ноутбук выключится через {0} с.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi и USB: не удалось начать приём подключений. См. журнал.</value>
+  </data>
   <data name="App_Name" xml:space="preserve">
     <value>Edgepad</value>
+  </data>
+  <data name="Common_Ok" xml:space="preserve">
+    <value>ОК</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Установить</value>
+  </data>
+  <data name="Menu_StartAtLogin" xml:space="preserve">
+    <value>Запускать при входе</value>
+  </data>
+  <data name="Hint_Off" xml:space="preserve">
+    <value>Выключено</value>
+  </data>
+  <data name="Hint_Listening" xml:space="preserve">
+    <value>Прослушивает порт {0}</value>
+  </data>
+  <data name="Hint_PortInUse" xml:space="preserve">
+    <value>Порт занят, используется {0}</value>
+  </data>
+  <data name="Hint_CouldNotListen" xml:space="preserve">
+    <value>Не удалось начать прослушивание; см. журнал</value>
+  </data>
+  <data name="Open_Nothing" xml:space="preserve">
+    <value>Не удалось открыть: {0}. Пока по адресу {1} ничего нет.</value>
+  </data>
+  <data name="Open_InstallXdg" xml:space="preserve">
+    <value>Не удалось открыть: {0}. Установите xdg-utils.</value>
+  </data>
+  <data name="What_ReleasePage" xml:space="preserve">
+    <value>страница релиза</value>
+  </data>
+  <data name="What_Documentation" xml:space="preserve">
+    <value>документация</value>
+  </data>
+  <data name="What_Log" xml:space="preserve">
+    <value>журнал</value>
+  </data>
+  <data name="Fallback_Running" xml:space="preserve">
+    <value>Edgepad работает</value>
+  </data>
+  <data name="Fallback_NoTray" xml:space="preserve">
+    <value>На вашем рабочем столе нет значков в области уведомлений. В GNOME установите расширение 'AppIndicator and KStatusNotifierItem Support', чтобы он появился.</value>
+  </data>
+  <data name="FirstRun_NetworkBody" xml:space="preserve">
+    <value>Телефоны в той же сети Wi-Fi или подключённые через USB-модем смогут найти этот ноутбук и запросить сопряжение. Без кода сопряжения, введённого здесь, ничего не подключится.</value>
+  </data>
+  <data name="FirstRun_Firewall" xml:space="preserve">
+    <value>Брандмауэр может их блокировать. Разрешите, например, {0}/tcp и 5353/udp:</value>
+  </data>
+  <data name="FirstRun_ShareHeading" xml:space="preserve">
+    <value>Включить общий буфер обмена?</value>
+  </data>
+  <data name="Notice_WantsToConnect" xml:space="preserve">
+    <value>{0} хочет подключиться. Окно спрашивает, доверять ли ему. Найдите его на экране.</value>
+  </data>
+  <data name="Notice_UpdateAvailable" xml:space="preserve">
+    <value>Доступен Edgepad {0}. Нажмите, чтобы открыть страницу релиза.</value>
+  </data>
+  <data name="Notice_CannotControl" xml:space="preserve">
+    <value>Edgepad не может управлять этим ноутбуком</value>
+  </data>
+  <data name="Notice_TrayFailedTitle" xml:space="preserve">
+    <value>Не удалось запустить Edgepad</value>
+  </data>
+  <data name="Notice_TrayFailed" xml:space="preserve">
+    <value>Не удалось настроить его значок в области уведомлений. Причина указана в журнале.</value>
+  </data>
+  <data name="Update_MajorConfirm" xml:space="preserve">
+    <value>Edgepad {0} меняет способ связи ноутбука и телефона. Установите и подходящее приложение на телефон, иначе они не подключатся. Установить обновление для ноутбука сейчас?</value>
+  </data>
+  <data name="Update_NeedsRoot" xml:space="preserve">
+    <value>Edgepad {0} скачан и проверен, но эта копия установлена там, где её может изменить только администратор. Откройте терминал и выполните:</value>
+  </data>
+  <data name="Update_InstallFailed" xml:space="preserve">
+    <value>Не удалось установить обновление, ничего не изменено. Причина указана в журнале.</value>
+  </data>
+  <data name="Error_NotSavedAfterRestart" xml:space="preserve">
+    <value>Это действует сейчас, но сохранить не удалось, поэтому после перезапуска всё вернётся. Причина указана в журнале.</value>
+  </data>
+  <data name="Error_AutostartFailed" xml:space="preserve">
+    <value>Не удалось изменить запуск при входе. Причина указана в журнале.</value>
+  </data>
+  <data name="Forget_AllNamed" xml:space="preserve">
+    <value>Забыть все доверенные телефоны ({0})? Каждый телефон, включая этот, придётся снова признать доверенным здесь, прежде чем он сможет использовать этот ноутбук.</value>
+  </data>
+  <data name="Forget_All" xml:space="preserve">
+    <value>Забыть доверенные телефоны? Каждый телефон, включая этот, придётся снова признать доверенным здесь, прежде чем он сможет использовать этот ноутбук.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>Не удалось забыть сопряжения по Wi-Fi и USB: их файл не удалось удалить или очистить. Пока Edgepad работает, сопряжённые телефоны не смогут подключиться по Wi-Fi или USB, но смогут при следующем запуске. Снова выберите «Забыть все…» в разделе «Безопасность…» или удалите paired-links.txt сами из:</value>
+  </data>
+  <data name="Error_ForgetTrust" xml:space="preserve">
+    <value>Не удалось забыть доверенные телефоны: их файл не удалось удалить или очистить. Пока Edgepad работает, ни один телефон не подключится, но при следующем запуске Edgepad эти телефоны снова станут доверенными. Закройте то, что удерживает файл, и снова выберите «Забыть все…» в разделе «Безопасность…» или удалите его сами:</value>
+  </data>
+  <data name="Error_ForgetPin" xml:space="preserve">
+    <value>Не удалось забыть телефоны, которые вводили PIN-код: их список не удалось удалить. Пока Edgepad работает, PIN-код запрашивается у каждого телефона при каждом подключении, но при следующем запуске Edgepad эти телефоны снова будут пропускать его на уровне 2. Снова выберите «Забыть все…» в разделе «Безопасность…» или удалите pin-verified.txt сами из:</value>
+  </data>
+  <data name="Send_PickerTitle" xml:space="preserve">
+    <value>Отправить файл на телефон</value>
+  </data>
+  <data name="Send_NoPhone" xml:space="preserve">
+    <value>Телефон не подключён. Подключите его и отправьте файл снова.</value>
+  </data>
+  <data name="Send_Sent" xml:space="preserve">
+    <value>{0} отправлен на телефон.</value>
+  </data>
+  <data name="Send_Cancelled" xml:space="preserve">
+    <value>Отправка {0} отменена.</value>
+  </data>
+  <data name="Send_NotSent" xml:space="preserve">
+    <value>{0} не отправлен ({1}).</value>
+  </data>
+  <data name="Send_Failed" xml:space="preserve">
+    <value>Не удалось отправить {0}. Причина указана в журнале.</value>
   </data>
 </root>

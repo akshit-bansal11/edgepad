@@ -16,13 +16,11 @@ internal static class FirstRunWindow
 {
     public const string DocumentationUrl = "https://edgepad.akshitbansal.dev/docs";
 
-    public const string NetworkBody =
-        "Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. "
-            + "Nothing connects without the pairing code typed here.";
+    public static string NetworkBody => LinuxStrings.FirstRun_NetworkBody;
 
     /// <summary>The firewall line, for the second text block, which can be selected and copied.</summary>
-    public static readonly string Firewall =
-        $"A firewall may block them. Allow {NetworkSettings.DefaultPort}/tcp and 5353/udp, for example:\n"
+    public static string Firewall =>
+        string.Format(LinuxStrings.FirstRun_Firewall, NetworkSettings.DefaultPort) + "\n"
             + $"sudo ufw allow {NetworkSettings.DefaultPort}/tcp && sudo ufw allow 5353/udp\n{DocumentationUrl}";
 
     /// <summary>
@@ -33,15 +31,15 @@ internal static class FirstRunWindow
     {
         var look = Look.Current;
         var answer = new TaskCompletionSource<(bool? Network, bool? Clipboard, bool? Login)>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var allow = look.Button("Allow", primary: true);
-        var notNow = look.Button("Not now");
+        var allow = look.Button(LinuxStrings.Dialog_Allow, primary: true);
+        var notNow = look.Button(LinuxStrings.Common_NotNow);
         notNow.IsDefault = true;
 
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 12 };
         CheckBox? share = null;
         if (askNetwork)
         {
-            body.Children.Add(look.Text("Let phones find this laptop?", 18, FontWeight.Bold));
+            body.Children.Add(look.Text(LinuxStrings.Dialog_NetworkFirstHeading, 18, FontWeight.Bold));
             body.Children.Add(look.Text(NetworkBody, 14));
             body.Children.Add(new SelectableTextBlock
             {
@@ -57,24 +55,24 @@ internal static class FirstRunWindow
         {
             if (!askNetwork)
             {
-                body.Children.Add(look.Text("Share clipboard?", 18, FontWeight.Bold));
+                body.Children.Add(look.Text(LinuxStrings.FirstRun_ShareHeading, 18, FontWeight.Bold));
             }
 
             // Its own choice when it sits beside the Wi-Fi question; the buttons answer the clipboard alone otherwise.
             if (askNetwork)
             {
-                share = new CheckBox { Content = "Share clipboard", FontFamily = Look.Lato, FontSize = 14, Foreground = look.Ink };
+                share = new CheckBox { Content = LinuxStrings.Menu_ShareClipboard, FontFamily = Look.Lato, FontSize = 14, Foreground = look.Ink };
                 body.Children.Add(share);
             }
 
-            body.Children.Add(look.Text("Copy on one, paste on the other: text and images.", 14, dim: true));
+            body.Children.Add(look.Text(LinuxStrings.Menu_ShareClipboardTip, 14, dim: true));
         }
 
         // Its own choice, unticked until the owner ticks it; the buttons do not answer it.
-        var login = new CheckBox { Content = "Start at login", FontFamily = Look.Lato, FontSize = 14, Foreground = look.Ink };
+        var login = new CheckBox { Content = LinuxStrings.Menu_StartAtLogin, FontFamily = Look.Lato, FontSize = 14, Foreground = look.Ink };
         body.Children.Add(login);
         body.Children.Add(Look.Footer(notNow, allow));
-        var window = look.Dialog("Edgepad", 460, body);
+        var window = look.Dialog(LinuxStrings.App_Name, 460, body);
         window.Topmost = true;
         allow.Click += (_, _) => Finish(window, answer, true, share, login, askNetwork);
         notNow.Click += (_, _) => Finish(window, answer, false, share, login, askNetwork);

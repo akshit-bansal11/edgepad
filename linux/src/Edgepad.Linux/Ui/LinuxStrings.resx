@@ -19,7 +19,205 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Wi-Fi and USB connections</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>Share clipboard</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Copy on one, paste on the other: text and images.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Check for updates daily</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Macros…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Security…</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Documentation</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Open log</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Quit Edgepad</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>Update available</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>Update available: {0}</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Install Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Skip this version</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Send a file to the phone…</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Show notifications on the phone</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Let phones find this laptop?</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>Allow</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Turn on</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Not now</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Forget</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>The setting could not be saved, so nothing was changed. The log has the reason.</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} wants to pair. Type the pairing code it shows.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Shutting down</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>The media ended. This laptop shuts down in {0} seconds.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi and USB: could not listen. See the log.</value>
+  </data>
   <data name="App_Name" xml:space="preserve">
     <value>Edgepad</value>
+  </data>
+  <data name="Common_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Install</value>
+  </data>
+  <data name="Menu_StartAtLogin" xml:space="preserve">
+    <value>Start at login</value>
+  </data>
+  <data name="Hint_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Hint_Listening" xml:space="preserve">
+    <value>Listening on {0}</value>
+  </data>
+  <data name="Hint_PortInUse" xml:space="preserve">
+    <value>Port in use, using {0}</value>
+  </data>
+  <data name="Hint_CouldNotListen" xml:space="preserve">
+    <value>Could not listen; see the log</value>
+  </data>
+  <data name="Open_Nothing" xml:space="preserve">
+    <value>Could not open {0}: there is nothing at {1} yet.</value>
+  </data>
+  <data name="Open_InstallXdg" xml:space="preserve">
+    <value>Could not open {0}: install xdg-utils.</value>
+  </data>
+  <data name="What_ReleasePage" xml:space="preserve">
+    <value>the release page</value>
+  </data>
+  <data name="What_Documentation" xml:space="preserve">
+    <value>the documentation</value>
+  </data>
+  <data name="What_Log" xml:space="preserve">
+    <value>the log</value>
+  </data>
+  <data name="Fallback_Running" xml:space="preserve">
+    <value>Edgepad is running</value>
+  </data>
+  <data name="Fallback_NoTray" xml:space="preserve">
+    <value>Your desktop shows no tray icons. On GNOME, install the 'AppIndicator and KStatusNotifierItem Support' extension to get one.</value>
+  </data>
+  <data name="FirstRun_NetworkBody" xml:space="preserve">
+    <value>Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. Nothing connects without the pairing code typed here.</value>
+  </data>
+  <data name="FirstRun_Firewall" xml:space="preserve">
+    <value>A firewall may block them. Allow {0}/tcp and 5353/udp, for example:</value>
+  </data>
+  <data name="FirstRun_ShareHeading" xml:space="preserve">
+    <value>Share clipboard?</value>
+  </data>
+  <data name="Notice_WantsToConnect" xml:space="preserve">
+    <value>{0} wants to connect. A window is asking whether to trust it. Look for it on your screen.</value>
+  </data>
+  <data name="Notice_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} is available. Click to open the release page.</value>
+  </data>
+  <data name="Notice_CannotControl" xml:space="preserve">
+    <value>Edgepad cannot control this laptop</value>
+  </data>
+  <data name="Notice_TrayFailedTitle" xml:space="preserve">
+    <value>Edgepad could not start</value>
+  </data>
+  <data name="Notice_TrayFailed" xml:space="preserve">
+    <value>Its tray could not be set up. The log has the reason.</value>
+  </data>
+  <data name="Update_MajorConfirm" xml:space="preserve">
+    <value>Edgepad {0} changes how the laptop and the phone talk. Install the matching phone app too, or they will not connect. Install the laptop update now?</value>
+  </data>
+  <data name="Update_NeedsRoot" xml:space="preserve">
+    <value>Edgepad {0} is downloaded and checked, but this copy is installed where only an administrator can change it. Open a terminal and run:</value>
+  </data>
+  <data name="Update_InstallFailed" xml:space="preserve">
+    <value>The update could not be installed and nothing was changed. The log has the reason.</value>
+  </data>
+  <data name="Error_NotSavedAfterRestart" xml:space="preserve">
+    <value>This applies now, but it could not be saved, so it will go back after a restart. The log has the reason.</value>
+  </data>
+  <data name="Error_AutostartFailed" xml:space="preserve">
+    <value>Start at login could not be changed. The log has the reason.</value>
+  </data>
+  <data name="Forget_AllNamed" xml:space="preserve">
+    <value>Forget every trusted phone ({0})? Each phone, this one included, will have to be trusted here again before it can use this laptop.</value>
+  </data>
+  <data name="Forget_All" xml:space="preserve">
+    <value>Forget the trusted phones? Each phone, this one included, will have to be trusted here again before it can use this laptop.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will be able to again the next time it starts. Choose Forget all… in Security… again, or delete paired-links.txt yourself from:</value>
+  </data>
+  <data name="Error_ForgetTrust" xml:space="preserve">
+    <value>The trusted phones could not be forgotten: their file could not be removed or emptied. No phone can connect while Edgepad stays running, but those phones will be trusted again the next time Edgepad starts. Close whatever is holding the file and choose Forget all… in Security… again, or delete it yourself:</value>
+  </data>
+  <data name="Error_ForgetPin" xml:space="preserve">
+    <value>The phones that entered the PIN could not be forgotten: their list could not be removed. While Edgepad stays running every phone is asked for the PIN on every connection, but those phones will skip it at level 2 again the next time Edgepad starts. Choose Forget all… in Security… again, or delete pin-verified.txt yourself from:</value>
+  </data>
+  <data name="Send_PickerTitle" xml:space="preserve">
+    <value>Send a file to the phone</value>
+  </data>
+  <data name="Send_NoPhone" xml:space="preserve">
+    <value>No phone is connected. Connect it, then send the file again.</value>
+  </data>
+  <data name="Send_Sent" xml:space="preserve">
+    <value>Sent {0} to the phone.</value>
+  </data>
+  <data name="Send_Cancelled" xml:space="preserve">
+    <value>Sending {0} was cancelled.</value>
+  </data>
+  <data name="Send_NotSent" xml:space="preserve">
+    <value>{0} was not sent ({1}).</value>
+  </data>
+  <data name="Send_Failed" xml:space="preserve">
+    <value>{0} could not be sent. The log has the reason.</value>
   </data>
 </root>

@@ -32,7 +32,7 @@ internal sealed class Shell : IDisposable
     /// <summary>How long a desktop with no tray host at start gets for one to appear before the window is shown.</summary>
     private static readonly TimeSpan TrayHostGrace = TimeSpan.FromSeconds(10);
 
-    private static readonly string NetworkNotice = $"{FirstRunWindow.NetworkBody} {FirstRunWindow.Firewall}";
+    private static string NetworkNotice => $"{FirstRunWindow.NetworkBody} {FirstRunWindow.Firewall}";
 
     private readonly TrustStore trust;
     private readonly PinStore pin;
@@ -79,7 +79,10 @@ internal sealed class Shell : IDisposable
     private bool editingMacros;
 
     // The Wi-Fi and USB row's hint: off, the port listened on, or why not. Only the UI thread touches it.
-    private string networkHint = "Off";
+    private string networkHint = LinuxStrings.Hint_Off;
+
+    // Whether the listener could not start; the hint is words, so the problem row reads this instead of the text.
+    private bool networkFailed;
 
     public Shell(TrustStore trust, PinStore pin, NetworkSettings networkSettings, PairedLinks paired, LinkIdentity identity, string version)
     {
@@ -95,7 +98,7 @@ internal sealed class Shell : IDisposable
             phone =>
             {
                 SetStatus(LaptopStatus.Pairing(phone));
-                Notifier.Send($"{phone} wants to pair", "Type the pairing code it shows.");
+                Notifier.Send(LinuxStrings.App_Name, string.Format(LinuxStrings.Balloon_WantsToPair, phone));
             },
             () => server?.PostStatus());
         prompt = new TrustPrompt(
@@ -168,7 +171,7 @@ internal sealed class Shell : IDisposable
             Log.Write($"The tray could not be set up, so Edgepad is quitting: {e}");
             var failing = app.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
             Dispatcher.UIThread.Post(() => failing?.Shutdown(1));
-            Notifier.SendNow("Edgepad could not start", "Its tray could not be set up. The log has the reason.");
+            Notifier.SendNow(LinuxStrings.Notice_TrayFailedTitle, LinuxStrings.Notice_TrayFailed);
         }
     }
 
@@ -199,7 +202,7 @@ internal sealed class Shell : IDisposable
 
         if (announce)
         {
-            Notifier.Send("Edgepad", update.Text);
+            Notifier.Send(LinuxStrings.App_Name, update.Text);
         }
 
         var text = shown.Text;
@@ -242,14 +245,14 @@ internal sealed class Shell : IDisposable
         if (problem is not null && !was)
         {
             Log.Write($"Input is blocked: {problem}");
-            Notifier.Send("Edgepad cannot control this laptop", UinputAccess.BlockedDetail);
+            Notifier.Send(LinuxStrings.Notice_CannotControl, UinputAccess.BlockedDetail);
         }
     }
 
     /// <summary>The problem row, on the UI thread: input blocked first, then a Wi-Fi listener that would not start.</summary>
     private void ShowProblem()
     {
-        var text = InputBlocked ? UinputAccess.Blocked : networkHint.StartsWith("Could not", StringComparison.Ordinal) ? "Wi-Fi and USB connections could not start; see the log" : null;
+        var text = InputBlocked ? UinputAccess.Blocked : networkFailed ? LinuxStrings.Network_CouldNotListen : null;
         tray?.SetProblem(text);
         fallback?.SetProblem(text);
     }
@@ -279,7 +282,7 @@ internal sealed class Shell : IDisposable
         SetStatus(LaptopStatus.Asking(name));
 
         // The question is a window that may open behind the one in use (Wayland), and the tray menu may not exist.
-        Notifier.Send($"{name} wants to connect", "A window is asking whether to trust it. Look for it on your screen.");
+        Notifier.Send(LinuxStrings.App_Name, string.Format(LinuxStrings.Notice_WantsToConnect, name));
         var trusted = prompt.Ask(address, ended);
         Log.Write(trusted ? $"The owner trusted {address}" : $"The owner did not trust {address}");
         return trusted;
@@ -390,12 +393,7 @@ internal sealed class Shell : IDisposable
             return;
         }
 
-        await Dialogs.Inform(
-            owner,
-            "The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. "
-                + "Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will "
-                + "be able to again the next time it starts. Choose Forget all… in Security… again, or delete "
-                + $"paired-links.txt yourself from:\n\n{pin.Folder}");
+        await Dialogs.Inform(owner, $"{LinuxStrings.Error_ForgetLinks}\n\n{pin.Folder}");
     }
 
     /// <summary>
@@ -419,10 +417,9 @@ internal sealed class Shell : IDisposable
             var phones = string.Join(", ", trust.TrustedPhones);
             var yes = await Dialogs.Confirm(
                 owner,
-                (phones.Length > 0 ? $"Forget every trusted phone ({phones})?" : "Forget the trusted phones?")
-                    + " Each phone, this one included, will have to be trusted here again before it can use this laptop.",
-                "Forget",
-                "Cancel",
+                phones.Length > 0 ? string.Format(LinuxStrings.Forget_AllNamed, phones) : LinuxStrings.Forget_All,
+                LinuxStrings.Common_Forget,
+                LinuxStrings.Common_Cancel,
                 dangerous: true);
             if (!yes)
             {
@@ -443,12 +440,7 @@ internal sealed class Shell : IDisposable
 
             if (!forgotten)
             {
-                await Dialogs.Inform(
-                    owner,
-                    "The trusted phones could not be forgotten: their file could not be removed or emptied. No phone can "
-                        + "connect while Edgepad stays running, but those phones will be trusted again the next time "
-                        + "Edgepad starts. Close whatever is holding the file and choose Forget all… in Security… again, "
-                        + $"or delete it yourself:\n\n{trust.FilePath}");
+                await Dialogs.Inform(owner, $"{LinuxStrings.Error_ForgetTrust}\n\n{trust.FilePath}");
             }
 
             // The Wi-Fi and USB pairings too, or a forgotten phone would resume its link and only meet the trust
@@ -457,12 +449,7 @@ internal sealed class Shell : IDisposable
 
             if (!verifiedForgotten)
             {
-                await Dialogs.Inform(
-                    owner,
-                    "The phones that entered the PIN could not be forgotten: their list could not be removed. While "
-                        + "Edgepad stays running every phone is asked for the PIN on every connection, but those phones "
-                        + "will skip it at level 2 again the next time Edgepad starts. Choose Forget all… in Security… "
-                        + $"again, or delete pin-verified.txt yourself from:\n\n{pin.Folder}");
+                await Dialogs.Inform(owner, $"{LinuxStrings.Error_ForgetPin}\n\n{pin.Folder}");
             }
         }
         finally
@@ -479,7 +466,7 @@ internal sealed class Shell : IDisposable
     private async Task ToggleNetworkAsync()
     {
         var on = !networkSettings.Load().Enabled;
-        if (on && !await Dialogs.Confirm(null, NetworkNotice, "Turn on", "Cancel"))
+        if (on && !await Dialogs.Confirm(null, NetworkNotice, LinuxStrings.Dialog_TurnOn, LinuxStrings.Common_Cancel))
         {
             // The check box changed on the click; put it back.
             RefreshViews();
@@ -501,7 +488,7 @@ internal sealed class Shell : IDisposable
         Annotator.FeaturesChanged();
         if (!saved)
         {
-            await Dialogs.Inform(null, "This applies now, but it could not be saved, so it will go back after a restart. The log has the reason.");
+            await Dialogs.Inform(null, LinuxStrings.Error_NotSavedAfterRestart);
         }
 
         RefreshViews();
@@ -514,7 +501,7 @@ internal sealed class Shell : IDisposable
         Annotator.FeaturesChanged();
         if (!saved)
         {
-            await Dialogs.Inform(null, "This applies now, but it could not be saved, so it will go back after a restart. The log has the reason.");
+            await Dialogs.Inform(null, LinuxStrings.Error_NotSavedAfterRestart);
         }
 
         RefreshViews();
@@ -527,7 +514,7 @@ internal sealed class Shell : IDisposable
     {
         if (!autostart.Set(on))
         {
-            await Dialogs.Inform(null, "Start at login could not be changed. The log has the reason.");
+            await Dialogs.Inform(null, LinuxStrings.Error_AutostartFailed);
         }
 
         RefreshViews();
@@ -541,7 +528,7 @@ internal sealed class Shell : IDisposable
     {
         if (!updateSetting.Set(!updateSetting.Enabled))
         {
-            await Dialogs.Inform(null, "This applies now, but it could not be saved, so it will go back after a restart. The log has the reason.");
+            await Dialogs.Inform(null, LinuxStrings.Error_NotSavedAfterRestart);
         }
 
         ApplyUpdateTimer();
@@ -658,7 +645,7 @@ internal sealed class Shell : IDisposable
         if (!updateChoice.WasNotified(latest))
         {
             updateChoice.MarkNotified(latest);
-            Notifier.SendClickable("Edgepad update available", $"Edgepad {number} is available. Click to open the release page.", () => Tray.OpenWithDesktop(UpdateCheck.LatestUrl, "the release page"));
+            Notifier.SendClickable(LinuxStrings.Menu_Update, string.Format(LinuxStrings.Notice_UpdateAvailable, number), () => Tray.OpenWithDesktop(UpdateCheck.LatestUrl, LinuxStrings.What_ReleasePage));
         }
     }
 
@@ -702,9 +689,8 @@ internal sealed class Shell : IDisposable
             return;
         }
 
-        // plain English until 4.5.0 localisation
         if (offeredNeedsConfirm
-            && !await Dialogs.Confirm(null, $"Edgepad {target.ToString(3)} changes how the laptop and the phone talk. Install the matching phone app too, or they will not connect. Install the laptop update now?", "Install", "Not now"))
+            && !await Dialogs.Confirm(null, string.Format(LinuxStrings.Update_MajorConfirm, target.ToString(3)), LinuxStrings.Common_Install, LinuxStrings.Common_NotNow))
         {
             return;
         }
@@ -720,10 +706,10 @@ internal sealed class Shell : IDisposable
                     break;
                 case UpdateOutcome.NeedsRoot:
                     HideUpdate();
-                    await Dialogs.Inform(null, $"Edgepad {target.ToString(3)} is downloaded and checked, but this copy is installed where only an administrator can change it. Open a terminal and run:\n\n{LinuxUpdater.RootCommand(Path.Combine(Xdg.CacheFolder, "update", UpdateCheck.LinuxName(target)), target)}");
+                    await Dialogs.Inform(null, $"{string.Format(LinuxStrings.Update_NeedsRoot, target.ToString(3))}\n\n{LinuxUpdater.RootCommand(Path.Combine(Xdg.CacheFolder, "update", UpdateCheck.LinuxName(target)), target)}");
                     break;
                 case UpdateOutcome.Failed:
-                    await Dialogs.Inform(null, "The update could not be installed and nothing was changed. The log has the reason.");
+                    await Dialogs.Inform(null, LinuxStrings.Update_InstallFailed);
                     break;
                 default:
                     break;
@@ -740,7 +726,7 @@ internal sealed class Shell : IDisposable
     {
         if (!networkSettings.SetEnabled(on))
         {
-            await Dialogs.Inform(null, "The setting could not be saved, so nothing was changed. The log has the reason.");
+            await Dialogs.Inform(null, LinuxStrings.Error_SettingNotSaved);
             return;
         }
 
@@ -755,13 +741,14 @@ internal sealed class Shell : IDisposable
         if (!config.Enabled)
         {
             net.Stop();
-            networkHint = "Off";
+            networkHint = LinuxStrings.Hint_Off;
+            networkFailed = false;
         }
         else
         {
-            networkHint = !net.Start(config.Port) ? "Could not listen; see the log"
-                : net.Port == config.Port ? $"Listening on {config.Port}"
-                : $"Port in use, using {net.Port}";
+            networkFailed = !net.Start(config.Port);
+            networkHint = networkFailed ? LinuxStrings.Hint_CouldNotListen
+                : string.Format(net.Port == config.Port ? LinuxStrings.Hint_Listening : LinuxStrings.Hint_PortInUse, net.Port);
         }
 
         RefreshViews();
@@ -785,12 +772,11 @@ internal sealed class Shell : IDisposable
     /// <summary>The tray's "Send a file…": the desktop's file picker, on a window of no size, then the file goes to the phone.</summary>
     private async Task PickAndSendAsync()
     {
-        // plain English until 4.5.0 localisation
         var owner = new Window { Width = 1, Height = 1, ShowInTaskbar = false, WindowDecorations = WindowDecorations.None, Opacity = 0 };
         try
         {
             owner.Show();
-            var picked = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = "Send a file to the phone", AllowMultiple = false });
+            var picked = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = LinuxStrings.Send_PickerTitle, AllowMultiple = false });
             if (picked.Count == 1 && picked[0].TryGetLocalPath() is { } path)
             {
                 _ = SendFileAsync(path);
@@ -808,23 +794,22 @@ internal sealed class Shell : IDisposable
     /// </summary>
     public async Task SendFileAsync(string path)
     {
-        // plain English until 4.5.0 localisation
         var name = Path.GetFileName(path);
         try
         {
             var code = await Server.SendFile(path);
-            Notifier.Send("Edgepad", code switch
+            Notifier.Send(LinuxStrings.App_Name, code switch
             {
-                null => "No phone is connected. Connect it, then send the file again.",
-                XferCode.Saved => $"Sent {name} to the phone.",
-                XferCode.Cancelled => $"Sending {name} was cancelled.",
-                _ => $"{name} was not sent ({code}).",
+                null => LinuxStrings.Send_NoPhone,
+                XferCode.Saved => string.Format(LinuxStrings.Send_Sent, name),
+                XferCode.Cancelled => string.Format(LinuxStrings.Send_Cancelled, name),
+                _ => string.Format(LinuxStrings.Send_NotSent, name, code),
             });
         }
         catch (Exception e)
         {
             Log.Write($"A file could not be sent: {e.Message}");
-            Notifier.Send("Edgepad", $"{name} could not be sent. The log has the reason.");
+            Notifier.Send(LinuxStrings.App_Name, string.Format(LinuxStrings.Send_Failed, name));
         }
     }
 

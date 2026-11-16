@@ -12,7 +12,205 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>वाई-फ़ाई और USB कनेक्शन</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>क्लिपबोर्ड शेयर करें</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>एक पर कॉपी करें, दूसरे पर पेस्ट करें: टेक्स्ट और इमेज।</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>रोज़ अपडेट जांचें</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>मैक्रो…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>सुरक्षा…</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>दस्तावेज़</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>लॉग खोलें</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepad बंद करें</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>अपडेट उपलब्ध है</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>अपडेट उपलब्ध है: {0}</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} इंस्टॉल करें</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>बाद में</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>यह संस्करण छोड़ें</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>फ़ोन पर फ़ाइल भेजें…</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>फ़ोन पर सूचनाएँ दिखाएँ</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>फ़ोन को यह लैपटॉप ढूंढने दें?</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>अनुमति दें</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>चालू करें</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>अभी नहीं</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>रद्द करें</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>भूल जाएं</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>सेटिंग सेव नहीं हो सकी, इसलिए कुछ नहीं बदला। वजह लॉग में है।</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} पेयर करना चाहता है। उस पर दिख रहा पेयरिंग कोड डालें।</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>बंद हो रहा है</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>मीडिया खत्म हो गया। यह लैपटॉप {0} सेकंड में बंद हो जाएगा।</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>रद्द करें</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>वाई-फ़ाई और USB: सुन नहीं सका। लॉग देखें।</value>
+  </data>
   <data name="App_Name" xml:space="preserve">
     <value>Edgepad</value>
+  </data>
+  <data name="Common_Ok" xml:space="preserve">
+    <value>ठीक है</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>इंस्टॉल करें</value>
+  </data>
+  <data name="Menu_StartAtLogin" xml:space="preserve">
+    <value>लॉगिन पर शुरू करें</value>
+  </data>
+  <data name="Hint_Off" xml:space="preserve">
+    <value>बंद</value>
+  </data>
+  <data name="Hint_Listening" xml:space="preserve">
+    <value>पोर्ट {0} पर सुन रहा है</value>
+  </data>
+  <data name="Hint_PortInUse" xml:space="preserve">
+    <value>पोर्ट व्यस्त है, {0} इस्तेमाल हो रहा है</value>
+  </data>
+  <data name="Hint_CouldNotListen" xml:space="preserve">
+    <value>सुन नहीं सका; लॉग देखें</value>
+  </data>
+  <data name="Open_Nothing" xml:space="preserve">
+    <value>{0} नहीं खुल सका: {1} पर अभी कुछ नहीं है।</value>
+  </data>
+  <data name="Open_InstallXdg" xml:space="preserve">
+    <value>{0} नहीं खुल सका: xdg-utils इंस्टॉल करें।</value>
+  </data>
+  <data name="What_ReleasePage" xml:space="preserve">
+    <value>रिलीज़ पेज</value>
+  </data>
+  <data name="What_Documentation" xml:space="preserve">
+    <value>दस्तावेज़</value>
+  </data>
+  <data name="What_Log" xml:space="preserve">
+    <value>लॉग</value>
+  </data>
+  <data name="Fallback_Running" xml:space="preserve">
+    <value>Edgepad चल रहा है</value>
+  </data>
+  <data name="Fallback_NoTray" xml:space="preserve">
+    <value>आपके डेस्कटॉप पर कोई ट्रे आइकन नहीं दिखता। GNOME पर ट्रे आइकन पाने के लिए 'AppIndicator and KStatusNotifierItem Support' एक्सटेंशन इंस्टॉल करें।</value>
+  </data>
+  <data name="FirstRun_NetworkBody" xml:space="preserve">
+    <value>उसी वाई-फ़ाई पर मौजूद या USB टेदरिंग से जुड़े फ़ोन इस लैपटॉप को ढूंढ सकेंगे और पेयर करने का अनुरोध कर सकेंगे। यहां पेयरिंग कोड डाले बिना कुछ भी कनेक्ट नहीं होता।</value>
+  </data>
+  <data name="FirstRun_Firewall" xml:space="preserve">
+    <value>फ़ायरवॉल इन्हें रोक सकता है। उदाहरण के लिए {0}/tcp और 5353/udp की अनुमति दें:</value>
+  </data>
+  <data name="FirstRun_ShareHeading" xml:space="preserve">
+    <value>क्लिपबोर्ड शेयर करें?</value>
+  </data>
+  <data name="Notice_WantsToConnect" xml:space="preserve">
+    <value>{0} कनेक्ट होना चाहता है। एक विंडो पूछ रही है कि उस पर भरोसा करना है या नहीं। उसे अपनी स्क्रीन पर देखें।</value>
+  </data>
+  <data name="Notice_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} उपलब्ध है। रिलीज़ पेज खोलने के लिए क्लिक करें।</value>
+  </data>
+  <data name="Notice_CannotControl" xml:space="preserve">
+    <value>Edgepad इस लैपटॉप को नियंत्रित नहीं कर सकता</value>
+  </data>
+  <data name="Notice_TrayFailedTitle" xml:space="preserve">
+    <value>Edgepad शुरू नहीं हो सका</value>
+  </data>
+  <data name="Notice_TrayFailed" xml:space="preserve">
+    <value>इसका ट्रे आइकन सेट नहीं हो सका। वजह लॉग में है।</value>
+  </data>
+  <data name="Update_MajorConfirm" xml:space="preserve">
+    <value>Edgepad {0} लैपटॉप और फ़ोन के आपस में बात करने का तरीका बदलता है। फ़ोन का मेल खाता ऐप भी इंस्टॉल करें, वरना वे कनेक्ट नहीं होंगे। क्या लैपटॉप का अपडेट अभी इंस्टॉल करें?</value>
+  </data>
+  <data name="Update_NeedsRoot" xml:space="preserve">
+    <value>Edgepad {0} डाउनलोड और जांचा जा चुका है, लेकिन यह कॉपी ऐसी जगह इंस्टॉल है जिसे सिर्फ़ एडमिनिस्ट्रेटर बदल सकता है। टर्मिनल खोलें और यह चलाएं:</value>
+  </data>
+  <data name="Update_InstallFailed" xml:space="preserve">
+    <value>अपडेट इंस्टॉल नहीं हो सका और कुछ नहीं बदला। वजह लॉग में है।</value>
+  </data>
+  <data name="Error_NotSavedAfterRestart" xml:space="preserve">
+    <value>यह अभी लागू है, लेकिन सेव नहीं हो सका, इसलिए रीस्टार्ट के बाद पहले जैसा हो जाएगा। वजह लॉग में है।</value>
+  </data>
+  <data name="Error_AutostartFailed" xml:space="preserve">
+    <value>लॉगिन पर शुरू करने की सेटिंग नहीं बदली जा सकी। वजह लॉग में है।</value>
+  </data>
+  <data name="Forget_AllNamed" xml:space="preserve">
+    <value>क्या सभी भरोसेमंद फ़ोन ({0}) भूल जाएं? हर फ़ोन, यह भी, इस लैपटॉप का इस्तेमाल करने से पहले यहां फिर से भरोसेमंद बनाना होगा।</value>
+  </data>
+  <data name="Forget_All" xml:space="preserve">
+    <value>क्या भरोसेमंद फ़ोन भूल जाएं? हर फ़ोन, यह भी, इस लैपटॉप का इस्तेमाल करने से पहले यहां फिर से भरोसेमंद बनाना होगा।</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>वाई-फ़ाई और USB पेयरिंग भूली नहीं जा सकीं: उनकी फ़ाइल हटाई या खाली नहीं की जा सकी। जब तक Edgepad चल रहा है, पेयर किए फ़ोन वाई-फ़ाई या USB से दोबारा कनेक्ट नहीं हो सकते, लेकिन अगली बार शुरू होने पर हो सकेंगे। «सुरक्षा…» में «सब भूल जाएं…» फिर चुनें, या paired-links.txt खुद यहां से हटाएं:</value>
+  </data>
+  <data name="Error_ForgetTrust" xml:space="preserve">
+    <value>भरोसेमंद फ़ोन भूले नहीं जा सके: उनकी फ़ाइल हटाई या खाली नहीं की जा सकी। जब तक Edgepad चल रहा है कोई फ़ोन कनेक्ट नहीं हो सकता, लेकिन Edgepad के अगली बार शुरू होने पर वे फ़ोन फिर भरोसेमंद होंगे। फ़ाइल को रोकने वाली चीज़ बंद करें और «सुरक्षा…» में «सब भूल जाएं…» फिर चुनें, या उसे खुद हटाएं:</value>
+  </data>
+  <data name="Error_ForgetPin" xml:space="preserve">
+    <value>PIN डालने वाले फ़ोन भूले नहीं जा सके: उनकी सूची हटाई नहीं जा सकी। जब तक Edgepad चल रहा है, हर फ़ोन से हर कनेक्शन पर PIN मांगा जाता है, लेकिन Edgepad के अगली बार शुरू होने पर वे फ़ोन लेवल 2 पर फिर इसे छोड़ देंगे। «सुरक्षा…» में «सब भूल जाएं…» फिर चुनें, या pin-verified.txt खुद यहां से हटाएं:</value>
+  </data>
+  <data name="Send_PickerTitle" xml:space="preserve">
+    <value>फ़ोन पर फ़ाइल भेजें</value>
+  </data>
+  <data name="Send_NoPhone" xml:space="preserve">
+    <value>कोई फ़ोन कनेक्ट नहीं है। उसे कनेक्ट करें, फिर फ़ाइल दोबारा भेजें।</value>
+  </data>
+  <data name="Send_Sent" xml:space="preserve">
+    <value>{0} फ़ोन पर भेज दी गई।</value>
+  </data>
+  <data name="Send_Cancelled" xml:space="preserve">
+    <value>{0} भेजना रद्द किया गया।</value>
+  </data>
+  <data name="Send_NotSent" xml:space="preserve">
+    <value>{0} नहीं भेजी गई ({1})।</value>
+  </data>
+  <data name="Send_Failed" xml:space="preserve">
+    <value>{0} नहीं भेजी जा सकी। वजह लॉग में है।</value>
   </data>
 </root>

@@ -12,7 +12,205 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Wi-Fi ve USB bağlantıları</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>Panoyu paylaş</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Birinde kopyalayın, ötekine yapıştırın: metin ve resimler.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Güncellemeleri günlük denetle</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Makrolar…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Güvenlik…</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Belgeler</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Günlüğü aç</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepad'den çık</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>Güncelleme var</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>Güncelleme var: {0}</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} sürümünü yükle</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Sonra</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Bu sürümü atla</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Telefona dosya gönder…</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Bildirimleri telefonda göster</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Telefonlar bu bilgisayarı bulabilsin mi?</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>İzin ver</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Aç</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Şimdi değil</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>İptal</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Unut</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>Ayar kaydedilemedi, bu yüzden hiçbir şey değişmedi. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} eşleşmek istiyor. Gösterdiği eşleştirme kodunu yazın.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Kapatılıyor</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>Medya bitti. Bu dizüstü bilgisayar {0} saniye içinde kapanacak.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>İptal</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi ve USB: dinlenemedi. Günlüğe bakın.</value>
+  </data>
   <data name="App_Name" xml:space="preserve">
     <value>Edgepad</value>
+  </data>
+  <data name="Common_Ok" xml:space="preserve">
+    <value>Tamam</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Yükle</value>
+  </data>
+  <data name="Menu_StartAtLogin" xml:space="preserve">
+    <value>Oturum açılınca başlat</value>
+  </data>
+  <data name="Hint_Off" xml:space="preserve">
+    <value>Kapalı</value>
+  </data>
+  <data name="Hint_Listening" xml:space="preserve">
+    <value>{0} bağlantı noktasını dinliyor</value>
+  </data>
+  <data name="Hint_PortInUse" xml:space="preserve">
+    <value>Bağlantı noktası kullanımda, {0} kullanılıyor</value>
+  </data>
+  <data name="Hint_CouldNotListen" xml:space="preserve">
+    <value>Dinlenemedi; günlüğe bakın</value>
+  </data>
+  <data name="Open_Nothing" xml:space="preserve">
+    <value>{0} açılamadı: {1} konumunda henüz bir şey yok.</value>
+  </data>
+  <data name="Open_InstallXdg" xml:space="preserve">
+    <value>{0} açılamadı: xdg-utils'i yükleyin.</value>
+  </data>
+  <data name="What_ReleasePage" xml:space="preserve">
+    <value>Sürüm sayfası</value>
+  </data>
+  <data name="What_Documentation" xml:space="preserve">
+    <value>Belgeler</value>
+  </data>
+  <data name="What_Log" xml:space="preserve">
+    <value>Günlük</value>
+  </data>
+  <data name="Fallback_Running" xml:space="preserve">
+    <value>Edgepad çalışıyor</value>
+  </data>
+  <data name="Fallback_NoTray" xml:space="preserve">
+    <value>Masaüstünüzde sistem tepsisi simgesi görünmüyor. GNOME'da bir tane görmek için 'AppIndicator and KStatusNotifierItem Support' uzantısını yükleyin.</value>
+  </data>
+  <data name="FirstRun_NetworkBody" xml:space="preserve">
+    <value>Aynı Wi-Fi ağındaki veya USB ile internet paylaşımıyla bağlı telefonlar bu bilgisayarı bulup eşleştirme isteyebilecek. Burada yazılan eşleştirme kodu olmadan hiçbir şey bağlanmaz.</value>
+  </data>
+  <data name="FirstRun_Firewall" xml:space="preserve">
+    <value>Bir güvenlik duvarı bunları engelleyebilir. Örneğin {0}/tcp ve 5353/udp'ye izin verin:</value>
+  </data>
+  <data name="FirstRun_ShareHeading" xml:space="preserve">
+    <value>Pano paylaşılsın mı?</value>
+  </data>
+  <data name="Notice_WantsToConnect" xml:space="preserve">
+    <value>{0} bağlanmak istiyor. Bir pencere ona güvenip güvenmediğinizi soruyor. Ekranınızda arayın.</value>
+  </data>
+  <data name="Notice_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} kullanılabilir. Sürüm sayfasını açmak için tıklayın.</value>
+  </data>
+  <data name="Notice_CannotControl" xml:space="preserve">
+    <value>Edgepad bu bilgisayarı denetleyemiyor</value>
+  </data>
+  <data name="Notice_TrayFailedTitle" xml:space="preserve">
+    <value>Edgepad başlatılamadı</value>
+  </data>
+  <data name="Notice_TrayFailed" xml:space="preserve">
+    <value>Sistem tepsisi simgesi kurulamadı. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Update_MajorConfirm" xml:space="preserve">
+    <value>Edgepad {0}, bilgisayarla telefonun birbiriyle konuşma biçimini değiştiriyor. Eşleşen telefon uygulamasını da yükleyin, yoksa bağlanmazlar. Bilgisayar güncellemesi şimdi yüklensin mi?</value>
+  </data>
+  <data name="Update_NeedsRoot" xml:space="preserve">
+    <value>Edgepad {0} indirildi ve denetlendi, ancak bu kopya yalnızca bir yöneticinin değiştirebileceği bir yere yüklü. Bir terminal açıp şunu çalıştırın:</value>
+  </data>
+  <data name="Update_InstallFailed" xml:space="preserve">
+    <value>Güncelleme yüklenemedi ve hiçbir şey değişmedi. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Error_NotSavedAfterRestart" xml:space="preserve">
+    <value>Bu şimdi geçerli, ancak kaydedilemedi; bu yüzden yeniden başlatınca eski haline dönecek. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Error_AutostartFailed" xml:space="preserve">
+    <value>Oturum açılınca başlatma ayarı değiştirilemedi. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Forget_AllNamed" xml:space="preserve">
+    <value>Güvenilen tüm telefonlar ({0}) unutulsun mu? Her telefonun, bu da dahil, bu bilgisayarı kullanabilmesi için burada yeniden güvenilir yapılması gerekir.</value>
+  </data>
+  <data name="Forget_All" xml:space="preserve">
+    <value>Güvenilen telefonlar unutulsun mu? Her telefonun, bu da dahil, bu bilgisayarı kullanabilmesi için burada yeniden güvenilir yapılması gerekir.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>Wi-Fi ve USB eşleştirmeleri unutulamadı: dosyaları silinemedi veya boşaltılamadı. Edgepad çalıştığı sürece eşleştirilmiş telefonlar Wi-Fi veya USB ile yeniden bağlanamaz, ancak bir sonraki başlatmada bağlanabilir. «Güvenlik…» içinde «Tümünü unut…» seçeneğini yeniden seçin veya paired-links.txt dosyasını şu konumdan kendiniz silin:</value>
+  </data>
+  <data name="Error_ForgetTrust" xml:space="preserve">
+    <value>Güvenilen telefonlar unutulamadı: dosyaları silinemedi veya boşaltılamadı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak Edgepad bir sonraki başlatıldığında bu telefonlar yeniden güvenilir olacak. Dosyayı tutan şeyi kapatın ve «Güvenlik…» içinde «Tümünü unut…» seçeneğini yeniden seçin veya dosyayı kendiniz silin:</value>
+  </data>
+  <data name="Error_ForgetPin" xml:space="preserve">
+    <value>PIN giren telefonlar unutulamadı: listeleri silinemedi. Edgepad çalıştığı sürece her telefondan her bağlantıda PIN istenir, ancak Edgepad bir sonraki başlatıldığında bu telefonlar 2. düzeyde PIN'i yine atlayacak. «Güvenlik…» içinde «Tümünü unut…» seçeneğini yeniden seçin veya pin-verified.txt dosyasını şu konumdan kendiniz silin:</value>
+  </data>
+  <data name="Send_PickerTitle" xml:space="preserve">
+    <value>Telefona dosya gönder</value>
+  </data>
+  <data name="Send_NoPhone" xml:space="preserve">
+    <value>Bağlı telefon yok. Telefonu bağlayın, sonra dosyayı yeniden gönderin.</value>
+  </data>
+  <data name="Send_Sent" xml:space="preserve">
+    <value>{0} telefona gönderildi.</value>
+  </data>
+  <data name="Send_Cancelled" xml:space="preserve">
+    <value>{0} gönderimi iptal edildi.</value>
+  </data>
+  <data name="Send_NotSent" xml:space="preserve">
+    <value>{0} gönderilemedi ({1}).</value>
+  </data>
+  <data name="Send_Failed" xml:space="preserve">
+    <value>{0} gönderilemedi. Nedeni günlükte yazıyor.</value>
   </data>
 </root>

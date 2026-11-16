@@ -48,23 +48,20 @@ internal sealed class Tray : IDisposable
     // How often the desktop is asked whether it prefers dark.
     private static readonly TimeSpan SchemeEvery = TimeSpan.FromSeconds(2);
 
-    private readonly NativeMenuItem statusRow = new("Starting…") { IsEnabled = false };
-    private readonly NativeMenuItem updateRow = new("Update available") { IsVisible = false };
-    // plain English until 4.5.0 localisation
-    private readonly NativeMenuItem installRow = new("Install update") { IsVisible = false };
-    private readonly NativeMenuItem laterRow = new("Later") { IsVisible = false };
-    private readonly NativeMenuItem skipRow = new("Skip this version") { IsVisible = false };
+    private readonly NativeMenuItem statusRow = new(CoreStrings.Status_Starting) { IsEnabled = false };
+    private readonly NativeMenuItem updateRow = new(LinuxStrings.Menu_Update) { IsVisible = false };
+    private readonly NativeMenuItem installRow = new(LinuxStrings.Common_Install) { IsVisible = false };
+    private readonly NativeMenuItem laterRow = new(LinuxStrings.Menu_UpdateLater) { IsVisible = false };
+    private readonly NativeMenuItem skipRow = new(LinuxStrings.Menu_UpdateSkip) { IsVisible = false };
     private readonly NativeMenuItem problemRow = new("") { IsEnabled = false, IsVisible = false };
-    private readonly NativeMenuItem networkRow = Toggle("Wi-Fi and USB connections");
-    private readonly NativeMenuItem clipboardRow = Toggle("Share clipboard");
-    // plain English until 4.5.0 localisation
-    private readonly NativeMenuItem notifyRow = Toggle("Forward notifications to phone");
-    private readonly NativeMenuItem autostartRow = Toggle("Start at login");
-    private readonly NativeMenuItem updatesRow = Toggle("Check for updates daily");
-    // plain English until 4.5.0 localisation
-    private readonly NativeMenuItem sendRow = new("Send a file…");
-    private readonly NativeMenuItem macrosRow = new("Macros…");
-    private readonly NativeMenuItem securityRow = new("Security…");
+    private readonly NativeMenuItem networkRow = Toggle(LinuxStrings.Menu_Network);
+    private readonly NativeMenuItem clipboardRow = Toggle(LinuxStrings.Menu_ShareClipboard);
+    private readonly NativeMenuItem notifyRow = Toggle(LinuxStrings.Menu_Notifications);
+    private readonly NativeMenuItem autostartRow = Toggle(LinuxStrings.Menu_StartAtLogin);
+    private readonly NativeMenuItem updatesRow = Toggle(LinuxStrings.Menu_CheckUpdates);
+    private readonly NativeMenuItem sendRow = new(LinuxStrings.Menu_SendFile);
+    private readonly NativeMenuItem macrosRow = new(LinuxStrings.Menu_Macros);
+    private readonly NativeMenuItem securityRow = new(LinuxStrings.Menu_Security);
     private readonly TrayIcon icon;
     private readonly Bus portal = Bus.OnSession();
     private readonly Timer scheme;
@@ -75,7 +72,7 @@ internal sealed class Tray : IDisposable
     {
         this.hooks = hooks;
 
-        updateRow.Click += (_, _) => Safe(() => OpenWithDesktop(UpdateCheck.LatestUrl, "the release page"), "Update available");
+        updateRow.Click += (_, _) => Safe(() => OpenWithDesktop(UpdateCheck.LatestUrl, LinuxStrings.What_ReleasePage), "Update available");
         installRow.Click += (_, _) => Safe(hooks.InstallUpdate, "Install update");
         laterRow.Click += (_, _) => Safe(hooks.LaterUpdate, "Later");
         skipRow.Click += (_, _) => Safe(hooks.SkipUpdate, "Skip this version");
@@ -87,11 +84,11 @@ internal sealed class Tray : IDisposable
         sendRow.Click += (_, _) => Safe(hooks.SendFile, "Send a file");
         macrosRow.Click += (_, _) => Safe(hooks.Macros, "Macros");
         securityRow.Click += (_, _) => Safe(hooks.Security, "Security");
-        var docs = new NativeMenuItem("Documentation");
-        docs.Click += (_, _) => Safe(() => OpenWithDesktop(DocumentationUrl, "the documentation"), "Documentation");
-        var log = new NativeMenuItem("Open log");
-        log.Click += (_, _) => Safe(() => OpenWithDesktop(Log.FilePath, "the log"), "Open log");
-        var exit = new NativeMenuItem("Quit Edgepad");
+        var docs = new NativeMenuItem(LinuxStrings.Menu_Documentation);
+        docs.Click += (_, _) => Safe(() => OpenWithDesktop(DocumentationUrl, LinuxStrings.What_Documentation), "Documentation");
+        var log = new NativeMenuItem(LinuxStrings.Menu_OpenLog);
+        log.Click += (_, _) => Safe(() => OpenWithDesktop(Log.FilePath, LinuxStrings.What_Log), "Open log");
+        var exit = new NativeMenuItem(LinuxStrings.Menu_Quit);
         exit.Click += (_, _) => Safe(hooks.Quit, "Quit");
 
         var menu = new NativeMenu();
@@ -121,7 +118,7 @@ internal sealed class Tray : IDisposable
         // this for a StatusNotifierItem menu is UNKNOWN (docs/LINUX.md); the rows are also refreshed on status changes.
         menu.Opening += (_, _) => Safe(Refresh, "Menu opening");
 
-        icon = new TrayIcon { Icon = LoadMark(dark: false), ToolTipText = "Edgepad", Menu = menu, IsVisible = true };
+        icon = new TrayIcon { Icon = LoadMark(dark: false), ToolTipText = LinuxStrings.App_Name, Menu = menu, IsVisible = true };
         Refresh();
 
         // The desktop's light or dark preference, polled (see ColorScheme) on the thread pool: a portal call may
@@ -135,7 +132,7 @@ internal sealed class Tray : IDisposable
     public void SetStatus(string text)
     {
         statusRow.Header = text;
-        var tooltip = $"Edgepad: {text}";
+        var tooltip = $"{LinuxStrings.App_Name}: {text}";
         icon.ToolTipText = tooltip.Length > MaxTooltipLength ? tooltip[..MaxTooltipLength] : tooltip;
         Refresh();
     }
@@ -143,7 +140,8 @@ internal sealed class Tray : IDisposable
     /// <summary>Shows "Update available: VERSION" under the status. Opens the release page when clicked.</summary>
     public void SetUpdate(string version, bool canInstall)
     {
-        updateRow.Header = $"Update available: {version}";
+        updateRow.Header = string.Format(LinuxStrings.Menu_UpdateVersion, version);
+        installRow.Header = string.Format(LinuxStrings.Menu_UpdateInstall, version);
         updateRow.IsVisible = true;
         installRow.IsVisible = canInstall;
         laterRow.IsVisible = true;
@@ -176,9 +174,9 @@ internal sealed class Tray : IDisposable
 
     public void Refresh()
     {
-        securityRow.Header = $"Security… ({hooks.SecurityHint()})";
-        macrosRow.Header = $"Macros… ({hooks.MacrosHint()})";
-        networkRow.Header = $"Wi-Fi and USB connections ({hooks.NetworkHint()})";
+        securityRow.Header = $"{LinuxStrings.Menu_Security} ({hooks.SecurityHint()})";
+        macrosRow.Header = $"{LinuxStrings.Menu_Macros} ({hooks.MacrosHint()})";
+        networkRow.Header = $"{LinuxStrings.Menu_Network} ({hooks.NetworkHint()})";
         networkRow.IsChecked = hooks.NetworkOn();
         clipboardRow.IsChecked = hooks.ClipboardOn();
         notifyRow.IsChecked = hooks.NotifyOn();
@@ -221,7 +219,7 @@ internal sealed class Tray : IDisposable
     {
         if (!target.StartsWith("https://", StringComparison.Ordinal) && !File.Exists(target))
         {
-            Notifier.Send("Edgepad", $"Could not open {what}: there is nothing at {target} yet.");
+            Notifier.Send(LinuxStrings.App_Name, string.Format(LinuxStrings.Open_Nothing, what, target));
             return;
         }
 
@@ -235,8 +233,8 @@ internal sealed class Tray : IDisposable
         catch (Exception e) when (e is System.ComponentModel.Win32Exception or InvalidOperationException)
         {
             // No xdg-utils installed, or no handler. A menu item must never take the tray app down with it.
-            Log.Write($"Could not open {what}: {e.Message}");
-            Notifier.Send("Edgepad", $"Could not open {what}: install xdg-utils.");
+            Log.Write($"Could not open {target}: {e.Message}");
+            Notifier.Send(LinuxStrings.App_Name, string.Format(LinuxStrings.Open_InstallXdg, what));
         }
     }
 

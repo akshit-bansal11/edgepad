@@ -7,7 +7,7 @@ namespace Edgepad.Ui;
 /// <summary>
 /// The 60 s the owner has to cancel a shutdown the phone armed for the end of the media. Topmost, with Cancel as the
 /// default button, so Enter or Space cancels; closing the window any other way cancels too. Nothing runs outside the
-/// minute: a 250 ms timer lives only while the window is open. The text is plain English until 4.5.0 localisation.
+/// minute: a 250 ms timer lives only while the window is open.
 /// </summary>
 internal static class ShutdownCountdown
 {
@@ -24,8 +24,7 @@ internal static class ShutdownCountdown
     /// <summary>Whole seconds left, rounded up, never below zero.</summary>
     internal static int SecondsLeft(long deadlineMs, long nowMs) => (int)Math.Max(0, (deadlineMs - nowMs + 999) / 1000);
 
-    // plain English until 4.5.0 localisation
-    internal static string Message(int seconds) => $"The media ended. This laptop shuts down in {seconds} seconds.";
+    internal static string Message(int seconds) => string.Format(LinuxStrings.EndAction_ShutdownText, seconds);
 
     private static void Open(Action shutDown)
     {
@@ -37,9 +36,9 @@ internal static class ShutdownCountdown
         var look = Look.Current;
         var deadline = Environment.TickCount64 + (Seconds * 1000L);
         var text = look.Text(Message(Seconds), 14);
-        var cancel = look.Button("Cancel", primary: true); // plain English until 4.5.0 localisation
+        var cancel = look.Button(LinuxStrings.EndAction_Cancel, primary: true);
         cancel.IsDefault = true;
-        var window = look.Dialog("Shutting down", 400, new StackPanel // plain English until 4.5.0 localisation
+        var window = look.Dialog(LinuxStrings.EndAction_ShutdownTitle, 400, new StackPanel
         {
             Margin = new Thickness(24),
             Spacing = 18,

@@ -12,7 +12,205 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Wi-FiおよびUSB接続</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>クリップボードを共有</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>一方でコピーして、もう一方で貼り付けます。テキストと画像に対応しています。</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>アップデートを毎日確認</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>マクロ…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>セキュリティ…</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>ドキュメント</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>ログを開く</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepadを終了</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>アップデートあり</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>アップデートあり：{0}</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} をインストール</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>後で</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>このバージョンをスキップ</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>スマートフォンにファイルを送信…</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>通知をスマートフォンに表示</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>スマホがこのノートPCを見つけられるようにしますか？</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>許可</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>オンにする</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>あとで</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>登録解除</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>設定を保存できなかったため、何も変更されていません。理由はログに記録されています。</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0}がペアリングを求めています。表示されているペアリングコードを入力してください。</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>シャットダウン中</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>メディアが終了しました。このノート PC は {0} 秒後にシャットダウンします。</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-FiとUSB：待ち受けを開始できません。ログを確認してください。</value>
+  </data>
   <data name="App_Name" xml:space="preserve">
     <value>Edgepad</value>
+  </data>
+  <data name="Common_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>インストール</value>
+  </data>
+  <data name="Menu_StartAtLogin" xml:space="preserve">
+    <value>ログイン時に起動</value>
+  </data>
+  <data name="Hint_Off" xml:space="preserve">
+    <value>オフ</value>
+  </data>
+  <data name="Hint_Listening" xml:space="preserve">
+    <value>ポート {0} で待ち受け中</value>
+  </data>
+  <data name="Hint_PortInUse" xml:space="preserve">
+    <value>ポートが使用中のため {0} を使用</value>
+  </data>
+  <data name="Hint_CouldNotListen" xml:space="preserve">
+    <value>待ち受けできません。ログを確認してください</value>
+  </data>
+  <data name="Open_Nothing" xml:space="preserve">
+    <value>{0}を開けませんでした。{1} にはまだ何もありません。</value>
+  </data>
+  <data name="Open_InstallXdg" xml:space="preserve">
+    <value>{0}を開けませんでした。xdg-utils をインストールしてください。</value>
+  </data>
+  <data name="What_ReleasePage" xml:space="preserve">
+    <value>リリースページ</value>
+  </data>
+  <data name="What_Documentation" xml:space="preserve">
+    <value>ドキュメント</value>
+  </data>
+  <data name="What_Log" xml:space="preserve">
+    <value>ログ</value>
+  </data>
+  <data name="Fallback_Running" xml:space="preserve">
+    <value>Edgepadは実行中です</value>
+  </data>
+  <data name="Fallback_NoTray" xml:space="preserve">
+    <value>お使いのデスクトップにはトレイアイコンが表示されません。GNOMEでは「AppIndicator and KStatusNotifierItem Support」拡張機能をインストールすると表示されます。</value>
+  </data>
+  <data name="FirstRun_NetworkBody" xml:space="preserve">
+    <value>同じWi-Fiにあるスマホや、USBテザリングで接続したスマホが、このノートPCを見つけてペアリングを要求できるようになります。ここで入力したペアリングコードがなければ、何も接続されません。</value>
+  </data>
+  <data name="FirstRun_Firewall" xml:space="preserve">
+    <value>ファイアウォールがブロックする場合があります。たとえば {0}/tcp と 5353/udp を許可してください。</value>
+  </data>
+  <data name="FirstRun_ShareHeading" xml:space="preserve">
+    <value>クリップボードを共有しますか?</value>
+  </data>
+  <data name="Notice_WantsToConnect" xml:space="preserve">
+    <value>{0} が接続を求めています。信頼するかどうかを尋ねるウィンドウが開いています。画面で探してください。</value>
+  </data>
+  <data name="Notice_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} が利用できます。クリックするとリリースページが開きます。</value>
+  </data>
+  <data name="Notice_CannotControl" xml:space="preserve">
+    <value>Edgepadはこのノートパソコンを操作できません</value>
+  </data>
+  <data name="Notice_TrayFailedTitle" xml:space="preserve">
+    <value>Edgepadを起動できませんでした</value>
+  </data>
+  <data name="Notice_TrayFailed" xml:space="preserve">
+    <value>トレイアイコンを設定できませんでした。理由はログに記録されています。</value>
+  </data>
+  <data name="Update_MajorConfirm" xml:space="preserve">
+    <value>Edgepad {0} は、ノートPCとスマホの通信方法を変更します。対応するスマホアプリもインストールしてください。そうしないと接続できません。ノートPCのアップデートを今すぐインストールしますか?</value>
+  </data>
+  <data name="Update_NeedsRoot" xml:space="preserve">
+    <value>Edgepad {0} をダウンロードして確認しましたが、このコピーは管理者しか変更できない場所にインストールされています。ターミナルを開いて次を実行してください:</value>
+  </data>
+  <data name="Update_InstallFailed" xml:space="preserve">
+    <value>アップデートをインストールできず、何も変更されていません。理由はログに記録されています。</value>
+  </data>
+  <data name="Error_NotSavedAfterRestart" xml:space="preserve">
+    <value>今は反映されていますが、保存できなかったため、再起動すると元に戻ります。理由はログに記録されています。</value>
+  </data>
+  <data name="Error_AutostartFailed" xml:space="preserve">
+    <value>ログイン時の起動設定を変更できませんでした。理由はログに記録されています。</value>
+  </data>
+  <data name="Forget_AllNamed" xml:space="preserve">
+    <value>信頼済みのスマホ({0})をすべて登録解除しますか?このスマホを含め、どのスマホもこのノートPCを使う前に、ここで再度信頼する必要があります。</value>
+  </data>
+  <data name="Forget_All" xml:space="preserve">
+    <value>信頼済みのスマホを登録解除しますか?このスマホを含め、どのスマホもこのノートPCを使う前に、ここで再度信頼する必要があります。</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>Wi-FiとUSBのペアリングを登録解除できませんでした。ファイルを削除または空にできませんでした。Edgepadが動作している間、ペアリング済みのスマホはWi-FiやUSBで再接続できませんが、次回の起動後は可能になります。「セキュリティ…」で「すべて登録解除…」をもう一度選ぶか、paired-links.txt を次の場所から自分で削除してください:</value>
+  </data>
+  <data name="Error_ForgetTrust" xml:space="preserve">
+    <value>信頼済みのスマホを登録解除できませんでした。ファイルを削除または空にできませんでした。Edgepadが動作している間はどのスマホも接続できませんが、次回Edgepadを起動すると、それらのスマホは再び信頼されます。ファイルを使用中のものを閉じて、「セキュリティ…」で「すべて登録解除…」をもう一度選ぶか、自分でファイルを削除してください:</value>
+  </data>
+  <data name="Error_ForgetPin" xml:space="preserve">
+    <value>PINを入力したスマホを登録解除できませんでした。その一覧を削除できませんでした。Edgepadが動作している間は、どのスマホも接続のたびにPINを求められますが、次回Edgepadを起動すると、それらのスマホはレベル2で再びPINを省略します。「セキュリティ…」で「すべて登録解除…」をもう一度選ぶか、pin-verified.txt を次の場所から自分で削除してください:</value>
+  </data>
+  <data name="Send_PickerTitle" xml:space="preserve">
+    <value>スマートフォンにファイルを送信</value>
+  </data>
+  <data name="Send_NoPhone" xml:space="preserve">
+    <value>スマホが接続されていません。接続してから、もう一度ファイルを送信してください。</value>
+  </data>
+  <data name="Send_Sent" xml:space="preserve">
+    <value>{0} をスマホに送信しました。</value>
+  </data>
+  <data name="Send_Cancelled" xml:space="preserve">
+    <value>{0} の送信をキャンセルしました。</value>
+  </data>
+  <data name="Send_NotSent" xml:space="preserve">
+    <value>{0} を送信できませんでした({1})。</value>
+  </data>
+  <data name="Send_Failed" xml:space="preserve">
+    <value>{0} を送信できませんでした。理由はログに記録されています。</value>
   </data>
 </root>

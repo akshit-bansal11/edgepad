@@ -12,7 +12,205 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>WLAN- und USB-Verbindungen</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>Zwischenablage teilen</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Auf dem einen Gerät kopieren, auf dem anderen einfügen: Text und Bilder.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Täglich nach Updates suchen</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Makros…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Sicherheit…</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Dokumentation</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Logdatei öffnen</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepad beenden</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>Update verfügbar</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>Update verfügbar: {0}</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} installieren</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Später</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Diese Version überspringen</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Datei an das Handy senden…</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Benachrichtigungen auf dem Handy anzeigen</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Handys diesen Laptop finden lassen?</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>Zulassen</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Einschalten</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Nicht jetzt</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Vergessen</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>Die Einstellung konnte nicht gespeichert werden, deshalb wurde nichts geändert. Den Grund nennt das Protokoll.</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} möchte koppeln. Gib den Kopplungscode ein, der angezeigt wird.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Herunterfahren</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>Die Wiedergabe ist zu Ende. Dieser Laptop fährt in {0} Sekunden herunter.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>WLAN und USB: Verbindungen können nicht angenommen werden. Siehe Protokoll.</value>
+  </data>
   <data name="App_Name" xml:space="preserve">
     <value>Edgepad</value>
+  </data>
+  <data name="Common_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Installieren</value>
+  </data>
+  <data name="Menu_StartAtLogin" xml:space="preserve">
+    <value>Bei der Anmeldung starten</value>
+  </data>
+  <data name="Hint_Off" xml:space="preserve">
+    <value>Aus</value>
+  </data>
+  <data name="Hint_Listening" xml:space="preserve">
+    <value>Lauscht auf Port {0}</value>
+  </data>
+  <data name="Hint_PortInUse" xml:space="preserve">
+    <value>Port belegt, verwende {0}</value>
+  </data>
+  <data name="Hint_CouldNotListen" xml:space="preserve">
+    <value>Lauschen nicht möglich; siehe Protokoll</value>
+  </data>
+  <data name="Open_Nothing" xml:space="preserve">
+    <value>{0} konnte nicht geöffnet werden: Unter {1} gibt es noch nichts.</value>
+  </data>
+  <data name="Open_InstallXdg" xml:space="preserve">
+    <value>{0} konnte nicht geöffnet werden: Installiere xdg-utils.</value>
+  </data>
+  <data name="What_ReleasePage" xml:space="preserve">
+    <value>Die Release-Seite</value>
+  </data>
+  <data name="What_Documentation" xml:space="preserve">
+    <value>Die Dokumentation</value>
+  </data>
+  <data name="What_Log" xml:space="preserve">
+    <value>Das Protokoll</value>
+  </data>
+  <data name="Fallback_Running" xml:space="preserve">
+    <value>Edgepad läuft</value>
+  </data>
+  <data name="Fallback_NoTray" xml:space="preserve">
+    <value>Dein Desktop zeigt keine Tray-Symbole. Installiere unter GNOME die Erweiterung 'AppIndicator and KStatusNotifierItem Support', um eines zu erhalten.</value>
+  </data>
+  <data name="FirstRun_NetworkBody" xml:space="preserve">
+    <value>Handys im selben WLAN oder per USB-Tethering können diesen Laptop finden und die Kopplung anfragen. Ohne den hier eingegebenen Kopplungscode verbindet sich nichts.</value>
+  </data>
+  <data name="FirstRun_Firewall" xml:space="preserve">
+    <value>Eine Firewall kann sie blockieren. Erlaube zum Beispiel {0}/tcp und 5353/udp:</value>
+  </data>
+  <data name="FirstRun_ShareHeading" xml:space="preserve">
+    <value>Zwischenablage teilen?</value>
+  </data>
+  <data name="Notice_WantsToConnect" xml:space="preserve">
+    <value>{0} möchte sich verbinden. Ein Fenster fragt, ob du dem Gerät vertraust. Such es auf deinem Bildschirm.</value>
+  </data>
+  <data name="Notice_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} ist verfügbar. Klicke, um die Release-Seite zu öffnen.</value>
+  </data>
+  <data name="Notice_CannotControl" xml:space="preserve">
+    <value>Edgepad kann diesen Laptop nicht steuern</value>
+  </data>
+  <data name="Notice_TrayFailedTitle" xml:space="preserve">
+    <value>Edgepad konnte nicht starten</value>
+  </data>
+  <data name="Notice_TrayFailed" xml:space="preserve">
+    <value>Das Tray-Symbol konnte nicht eingerichtet werden. Den Grund nennt das Protokoll.</value>
+  </data>
+  <data name="Update_MajorConfirm" xml:space="preserve">
+    <value>Edgepad {0} ändert, wie Laptop und Handy miteinander sprechen. Installiere auch die passende Handy-App, sonst verbinden sie sich nicht. Das Laptop-Update jetzt installieren?</value>
+  </data>
+  <data name="Update_NeedsRoot" xml:space="preserve">
+    <value>Edgepad {0} ist heruntergeladen und geprüft, aber diese Kopie liegt dort, wo nur ein Administrator sie ändern kann. Öffne ein Terminal und führe aus:</value>
+  </data>
+  <data name="Update_InstallFailed" xml:space="preserve">
+    <value>Das Update konnte nicht installiert werden, und nichts wurde geändert. Den Grund nennt das Protokoll.</value>
+  </data>
+  <data name="Error_NotSavedAfterRestart" xml:space="preserve">
+    <value>Das gilt jetzt, konnte aber nicht gespeichert werden und ist nach einem Neustart wieder weg. Den Grund nennt das Protokoll.</value>
+  </data>
+  <data name="Error_AutostartFailed" xml:space="preserve">
+    <value>Der Start bei der Anmeldung konnte nicht geändert werden. Den Grund nennt das Protokoll.</value>
+  </data>
+  <data name="Forget_AllNamed" xml:space="preserve">
+    <value>Alle vertrauten Handys vergessen ({0})? Jedes Handy, auch dieses, muss hier erneut als vertraut bestätigt werden, bevor es diesen Laptop nutzen kann.</value>
+  </data>
+  <data name="Forget_All" xml:space="preserve">
+    <value>Die vertrauten Handys vergessen? Jedes Handy, auch dieses, muss hier erneut als vertraut bestätigt werden, bevor es diesen Laptop nutzen kann.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>Die WLAN- und USB-Kopplungen konnten nicht vergessen werden: ihre Datei konnte nicht entfernt oder geleert werden. Gekoppelte Handys können sich über WLAN oder USB nicht neu verbinden, solange Edgepad läuft, beim nächsten Start aber wieder. Wähle unter „Sicherheit…“ erneut „Alle vergessen…“ oder lösche paired-links.txt selbst aus:</value>
+  </data>
+  <data name="Error_ForgetTrust" xml:space="preserve">
+    <value>Die vertrauten Handys konnten nicht vergessen werden: ihre Datei konnte nicht entfernt oder geleert werden. Solange Edgepad läuft, kann sich kein Handy verbinden, aber diese Handys sind beim nächsten Start von Edgepad wieder vertraut. Schließe, was die Datei festhält, und wähle unter „Sicherheit…“ erneut „Alle vergessen…“ oder lösche sie selbst:</value>
+  </data>
+  <data name="Error_ForgetPin" xml:space="preserve">
+    <value>Die Handys, die die PIN eingegeben haben, konnten nicht vergessen werden: ihre Liste konnte nicht entfernt werden. Solange Edgepad läuft, wird jedes Handy bei jeder Verbindung nach der PIN gefragt, aber diese Handys überspringen sie beim nächsten Start von Edgepad auf Stufe 2 wieder. Wähle unter „Sicherheit…“ erneut „Alle vergessen…“ oder lösche pin-verified.txt selbst aus:</value>
+  </data>
+  <data name="Send_PickerTitle" xml:space="preserve">
+    <value>Datei an das Handy senden</value>
+  </data>
+  <data name="Send_NoPhone" xml:space="preserve">
+    <value>Kein Handy verbunden. Verbinde es und sende die Datei dann erneut.</value>
+  </data>
+  <data name="Send_Sent" xml:space="preserve">
+    <value>{0} wurde an das Handy gesendet.</value>
+  </data>
+  <data name="Send_Cancelled" xml:space="preserve">
+    <value>Das Senden von {0} wurde abgebrochen.</value>
+  </data>
+  <data name="Send_NotSent" xml:space="preserve">
+    <value>{0} wurde nicht gesendet ({1}).</value>
+  </data>
+  <data name="Send_Failed" xml:space="preserve">
+    <value>{0} konnte nicht gesendet werden. Den Grund nennt das Protokoll.</value>
   </data>
 </root>

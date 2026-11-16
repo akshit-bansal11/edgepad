@@ -12,7 +12,205 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Wi-Fi- en USB-verbindingen</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>Klembord delen</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Kopieer op het ene apparaat, plak op het andere: tekst en afbeeldingen.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Dagelijks op updates controleren</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Macro's…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Beveiliging…</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Documentatie</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Logboek openen</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepad afsluiten</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>Update beschikbaar</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>Update beschikbaar: {0}</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} installeren</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Deze versie overslaan</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Een bestand naar de telefoon sturen…</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Meldingen op de telefoon tonen</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Telefoons deze laptop laten vinden?</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>Toestaan</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Aanzetten</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Niet nu</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Annuleren</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Vergeten</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>De instelling kon niet worden opgeslagen, dus er is niets gewijzigd. In het logboek staat de reden.</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} wil koppelen. Typ de koppelcode die op de telefoon staat.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Afsluiten</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>De media is afgelopen. Deze laptop sluit af over {0} seconden.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Annuleren</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi en USB: kan geen verbindingen accepteren. Zie het logboek.</value>
+  </data>
   <data name="App_Name" xml:space="preserve">
     <value>Edgepad</value>
+  </data>
+  <data name="Common_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Installeren</value>
+  </data>
+  <data name="Menu_StartAtLogin" xml:space="preserve">
+    <value>Starten bij inloggen</value>
+  </data>
+  <data name="Hint_Off" xml:space="preserve">
+    <value>Uit</value>
+  </data>
+  <data name="Hint_Listening" xml:space="preserve">
+    <value>Luistert op poort {0}</value>
+  </data>
+  <data name="Hint_PortInUse" xml:space="preserve">
+    <value>Poort in gebruik, {0} wordt gebruikt</value>
+  </data>
+  <data name="Hint_CouldNotListen" xml:space="preserve">
+    <value>Kan niet luisteren; zie het logboek</value>
+  </data>
+  <data name="Open_Nothing" xml:space="preserve">
+    <value>{0} kon niet worden geopend: op {1} staat nog niets.</value>
+  </data>
+  <data name="Open_InstallXdg" xml:space="preserve">
+    <value>{0} kon niet worden geopend: installeer xdg-utils.</value>
+  </data>
+  <data name="What_ReleasePage" xml:space="preserve">
+    <value>De releasepagina</value>
+  </data>
+  <data name="What_Documentation" xml:space="preserve">
+    <value>De documentatie</value>
+  </data>
+  <data name="What_Log" xml:space="preserve">
+    <value>Het logboek</value>
+  </data>
+  <data name="Fallback_Running" xml:space="preserve">
+    <value>Edgepad is actief</value>
+  </data>
+  <data name="Fallback_NoTray" xml:space="preserve">
+    <value>Je bureaublad toont geen systeemvakpictogrammen. Installeer onder GNOME de extensie 'AppIndicator and KStatusNotifierItem Support' om er een te krijgen.</value>
+  </data>
+  <data name="FirstRun_NetworkBody" xml:space="preserve">
+    <value>Telefoons op hetzelfde Wi-Fi-netwerk, of verbonden via USB-tethering, kunnen deze laptop vinden en vragen om te koppelen. Er verbindt niets zonder de koppelcode die je hier typt.</value>
+  </data>
+  <data name="FirstRun_Firewall" xml:space="preserve">
+    <value>Een firewall kan ze blokkeren. Sta bijvoorbeeld {0}/tcp en 5353/udp toe:</value>
+  </data>
+  <data name="FirstRun_ShareHeading" xml:space="preserve">
+    <value>Klembord delen?</value>
+  </data>
+  <data name="Notice_WantsToConnect" xml:space="preserve">
+    <value>{0} wil verbinden. Een venster vraagt of je het vertrouwt. Zoek het op je scherm.</value>
+  </data>
+  <data name="Notice_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} is beschikbaar. Klik om de releasepagina te openen.</value>
+  </data>
+  <data name="Notice_CannotControl" xml:space="preserve">
+    <value>Edgepad kan deze laptop niet bedienen</value>
+  </data>
+  <data name="Notice_TrayFailedTitle" xml:space="preserve">
+    <value>Edgepad kon niet starten</value>
+  </data>
+  <data name="Notice_TrayFailed" xml:space="preserve">
+    <value>Het systeemvakpictogram kon niet worden ingesteld. In het logboek staat de reden.</value>
+  </data>
+  <data name="Update_MajorConfirm" xml:space="preserve">
+    <value>Edgepad {0} verandert hoe de laptop en de telefoon met elkaar praten. Installeer ook de bijbehorende telefoon-app, anders verbinden ze niet. De laptopupdate nu installeren?</value>
+  </data>
+  <data name="Update_NeedsRoot" xml:space="preserve">
+    <value>Edgepad {0} is gedownload en gecontroleerd, maar deze kopie staat op een plek die alleen een beheerder kan wijzigen. Open een terminal en voer uit:</value>
+  </data>
+  <data name="Update_InstallFailed" xml:space="preserve">
+    <value>De update kon niet worden geïnstalleerd en er is niets gewijzigd. In het logboek staat de reden.</value>
+  </data>
+  <data name="Error_NotSavedAfterRestart" xml:space="preserve">
+    <value>Dit geldt nu, maar kon niet worden opgeslagen en is na een herstart weer weg. In het logboek staat de reden.</value>
+  </data>
+  <data name="Error_AutostartFailed" xml:space="preserve">
+    <value>Starten bij inloggen kon niet worden gewijzigd. In het logboek staat de reden.</value>
+  </data>
+  <data name="Forget_AllNamed" xml:space="preserve">
+    <value>Alle vertrouwde telefoons vergeten ({0})? Elke telefoon, ook deze, moet hier opnieuw worden vertrouwd voordat hij deze laptop kan gebruiken.</value>
+  </data>
+  <data name="Forget_All" xml:space="preserve">
+    <value>De vertrouwde telefoons vergeten? Elke telefoon, ook deze, moet hier opnieuw worden vertrouwd voordat hij deze laptop kan gebruiken.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>De Wi-Fi- en USB-koppelingen konden niet worden vergeten: hun bestand kon niet worden verwijderd of leeggemaakt. Gekoppelde telefoons kunnen niet opnieuw verbinden via Wi-Fi of USB zolang Edgepad draait, maar bij de volgende start wel weer. Kies opnieuw 'Alles vergeten…' in 'Beveiliging…', of verwijder paired-links.txt zelf uit:</value>
+  </data>
+  <data name="Error_ForgetTrust" xml:space="preserve">
+    <value>De vertrouwde telefoons konden niet worden vergeten: hun bestand kon niet worden verwijderd of leeggemaakt. Zolang Edgepad draait kan geen enkele telefoon verbinden, maar die telefoons worden bij de volgende start van Edgepad weer vertrouwd. Sluit wat het bestand vasthoudt en kies opnieuw 'Alles vergeten…' in 'Beveiliging…', of verwijder het zelf:</value>
+  </data>
+  <data name="Error_ForgetPin" xml:space="preserve">
+    <value>De telefoons die de pincode hebben ingevoerd konden niet worden vergeten: hun lijst kon niet worden verwijderd. Zolang Edgepad draait wordt elke telefoon bij elke verbinding om de pincode gevraagd, maar die telefoons slaan hem bij de volgende start van Edgepad op niveau 2 weer over. Kies opnieuw 'Alles vergeten…' in 'Beveiliging…', of verwijder pin-verified.txt zelf uit:</value>
+  </data>
+  <data name="Send_PickerTitle" xml:space="preserve">
+    <value>Een bestand naar de telefoon sturen</value>
+  </data>
+  <data name="Send_NoPhone" xml:space="preserve">
+    <value>Er is geen telefoon verbonden. Verbind hem en stuur het bestand opnieuw.</value>
+  </data>
+  <data name="Send_Sent" xml:space="preserve">
+    <value>{0} is naar de telefoon gestuurd.</value>
+  </data>
+  <data name="Send_Cancelled" xml:space="preserve">
+    <value>Het versturen van {0} is geannuleerd.</value>
+  </data>
+  <data name="Send_NotSent" xml:space="preserve">
+    <value>{0} is niet verstuurd ({1}).</value>
+  </data>
+  <data name="Send_Failed" xml:space="preserve">
+    <value>{0} kon niet worden verstuurd. In het logboek staat de reden.</value>
   </data>
 </root>
