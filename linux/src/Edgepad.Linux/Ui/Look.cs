@@ -86,18 +86,23 @@ internal sealed record Look(IBrush Card, IBrush Line, IBrush Ink, IBrush Dim, IB
         culture.TextInfo.IsRightToLeft || culture.TwoLetterISOLanguageName == "ar" ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
 
     /// <summary>A dialog window with this look: fixed size to its content, no resizing, centred on the screen.</summary>
-    public Window Dialog(string title, double width, Control content) => new()
+    public Window Dialog(string title, double width, Control content)
     {
-        FlowDirection = Direction,
-        Title = title,
-        Width = width,
-        SizeToContent = SizeToContent.Height,
-        CanResize = false,
-        Background = Card,
-        FontFamily = Lato,
-        WindowStartupLocation = WindowStartupLocation.CenterScreen,
-        Content = content,
-    };
+        var window = new Window
+        {
+            FlowDirection = Direction,
+            Title = title,
+            Width = width,
+            SizeToContent = SizeToContent.Height,
+            CanResize = false,
+            Background = Card,
+            FontFamily = Lato,
+            WindowStartupLocation = WindowStartupLocation.CenterScreen,
+            Content = content,
+        };
+        Motion.RevealWindow(window);
+        return window;
+    }
 
     /// <summary>A row of buttons along the bottom edge.</summary>
     public static StackPanel Footer(params Control[] buttons)
