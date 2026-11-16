@@ -603,8 +603,15 @@ export default function Page() {
                     href={DOWNLOADS.linux.href}
                   >
                     {DOWNLOADS.linux.file}
-                  </a>
-                  , installed with sudo ./install.sh.
+                  </a>{" "}
+                  (or{" "}
+                  <a
+                    className="text-primary font-bold underline"
+                    href={DOWNLOADS.linuxArm.href}
+                  >
+                    {DOWNLOADS.linuxArm.file}
+                  </a>{" "}
+                  on an ARM machine), installed with sudo ./install.sh.
                 </p>
                 <p className="mt-2">
                   <MoreLink href="/docs#install">Mac and Linux install steps</MoreLink>

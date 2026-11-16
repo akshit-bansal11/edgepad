@@ -405,6 +405,7 @@ export function ProductSections() {
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="solid">64-bit Linux with BlueZ</Badge>
               <Badge variant="outline">{DOWNLOADS.linux.file}</Badge>
+              <Badge variant="outline">{DOWNLOADS.linuxArm.file}</Badge>
             </div>
             <ol className="text-dim max-w-[68ch] list-decimal space-y-3 pl-5 text-[0.9375rem] leading-relaxed">
               <li>
@@ -412,7 +413,11 @@ export function ProductSections() {
                 <ExternalLink href={DOWNLOADS.linux.href}>
                   {DOWNLOADS.linux.file}
                 </ExternalLink>{" "}
-                and check it against{" "}
+                (or, on an ARM machine,{" "}
+                <ExternalLink href={DOWNLOADS.linuxArm.href}>
+                  {DOWNLOADS.linuxArm.file}
+                </ExternalLink>
+                ) and check it against{" "}
                 <ExternalLink href={DOWNLOADS.sums.href}>
                   {DOWNLOADS.sums.file}
                 </ExternalLink>
