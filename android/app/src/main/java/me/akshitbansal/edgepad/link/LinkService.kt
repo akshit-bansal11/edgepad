@@ -13,6 +13,10 @@ import android.os.IBinder
 import android.util.Log
 import me.akshitbansal.edgepad.MainActivity
 import me.akshitbansal.edgepad.R
+import me.akshitbansal.edgepad.protocol.ActionId
+import me.akshitbansal.edgepad.protocol.Frame
+
+private const val DISCONNECT_ACTION = "me.akshitbansal.edgepad.DISCONNECT"
 
 /**
  * Keeps the process, and so the links, alive while Edgepad is minimized: a foreground service that does nothing
@@ -38,10 +42,16 @@ class LinkService : Service() {
         flags: Int,
         startId: Int,
     ): Int {
-        if (intent == null || intent.action == ACTION_DISCONNECT) {
+        if (intent == null || intent.action == DISCONNECT_ACTION) {
             // Whether or not an activity is there to answer, the service has no reason left to run.
             if (intent != null) LinkHooks.disconnectAll?.invoke()
             stopSelf()
+            return START_NOT_STICKY
+        }
+        // A media button is a tap and nothing else: it must not rebuild the notification from extras it lacks.
+        val media = NoticeAction.entries.firstOrNull { it.intentAction == intent.action }
+        if (media != null) {
+            media.frame?.let { LinkHooks.sendToSelected?.invoke(it) }
             return START_NOT_STICKY
         }
         val notice =
@@ -58,7 +68,6 @@ class LinkService : Service() {
     companion object {
         private const val CHANNEL = "link"
         private const val NOTICE_ID = 1
-        private const val ACTION_DISCONNECT = "me.akshitbansal.edgepad.DISCONNECT"
         private const val EXTRA_NAME = "name"
         private const val EXTRA_OTHERS = "others"
         private const val EXTRA_RECONNECTING = "reconnecting"
@@ -129,27 +138,27 @@ class LinkService : Service() {
                     Intent(context, MainActivity::class.java),
                     PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
                 )
-            val disconnect =
-                PendingIntent.getService(
-                    context,
-                    0,
-                    Intent(context, LinkService::class.java).setAction(ACTION_DISCONNECT),
-                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-                )
-            // The one button ends every link, and a laptop being won back too, so it says all of that.
-            val label =
+            // The Disconnect button ends every link, and a laptop being won back too, so it says all of that.
+            val disconnectLabel =
                 when {
                     notice.reconnecting -> R.string.lost_stop
                     notice.others > 0 -> R.string.device_disconnect_all
                     else -> R.string.device_disconnect
                 }
-            val action =
-                Notification.Action
-                    .Builder(
-                        Icon.createWithResource(context, R.drawable.ic_close),
-                        context.getString(label),
-                        disconnect,
-                    ).build()
+            val actions =
+                noticeActions(notice).map {
+                    val label = if (it == NoticeAction.DISCONNECT) disconnectLabel else it.label
+                    val tap =
+                        PendingIntent.getService(
+                            context,
+                            0,
+                            Intent(context, LinkService::class.java).setAction(it.intentAction),
+                            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                        )
+                    Notification.Action
+                        .Builder(Icon.createWithResource(context, it.icon), context.getString(label), tap)
+                        .build()
+                }
             val text =
                 context.getString(
                     when {
@@ -158,18 +167,56 @@ class LinkService : Service() {
                         else -> R.string.link_notice_text
                     },
                 )
-            return Notification
-                .Builder(context, CHANNEL)
-                .setSmallIcon(R.drawable.ic_laptop)
-                .setContentTitle(title)
-                .setContentText(text)
-                .setStyle(Notification.BigTextStyle().bigText(text))
-                .setContentIntent(open)
-                .addAction(action)
-                .setOngoing(true)
-                .setOnlyAlertOnce(true)
-                .setCategory(Notification.CATEGORY_SERVICE)
-                .build()
+            val builder =
+                Notification
+                    .Builder(context, CHANNEL)
+                    .setSmallIcon(R.drawable.ic_laptop)
+                    .setContentTitle(title)
+                    .setContentText(text)
+                    .setContentIntent(open)
+                    .setOngoing(true)
+                    .setOnlyAlertOnce(true)
+                    .setCategory(Notification.CATEGORY_SERVICE)
+            actions.forEach { builder.addAction(it) }
+            // Three media buttons show collapsed; while reconnecting the one Stop button is all there is.
+            if (actions.size > 1) {
+                builder.setStyle(Notification.MediaStyle().setShowActionsInCompactView(0, 1, 2))
+            } else {
+                builder.setStyle(Notification.BigTextStyle().bigText(text))
+            }
+            return builder.build()
         }
     }
 }
+
+/** The buttons of the notification, in the order they appear. */
+internal enum class NoticeAction(
+    val intentAction: String,
+    val icon: Int,
+    val label: Int,
+    val frame: Frame?,
+) {
+    VOLUME_DOWN(
+        "me.akshitbansal.edgepad.VOLUME_DOWN",
+        R.drawable.ic_volume_down,
+        R.string.notice_volume_down,
+        ActionId.VOLUME_DOWN.frame(),
+    ),
+    PLAY_PAUSE(
+        "me.akshitbansal.edgepad.PLAY_PAUSE",
+        R.drawable.ic_play,
+        R.string.notice_play_pause,
+        ActionId.PLAY_PAUSE.frame(),
+    ),
+    VOLUME_UP(
+        "me.akshitbansal.edgepad.VOLUME_UP",
+        R.drawable.ic_volume_up,
+        R.string.notice_volume_up,
+        ActionId.VOLUME_UP.frame(),
+    ),
+    DISCONNECT(DISCONNECT_ACTION, R.drawable.ic_close, R.string.device_disconnect, null),
+}
+
+/** Only Disconnect (as Stop) while a laptop is being won back; all four while connected. */
+internal fun noticeActions(notice: LinkNotice): List<NoticeAction> =
+    if (notice.reconnecting) listOf(NoticeAction.DISCONNECT) else NoticeAction.entries

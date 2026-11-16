@@ -61,6 +61,18 @@
       android:exported="false"
       android:foregroundServiceType="connectedDevice" />
 
+    <!-- The Quick Settings tile (link/EdgepadTile.kt): play or pause on the laptop, or open the app. -->
+    <service
+      android:name=".link.EdgepadTile"
+      android:exported="true"
+      android:icon="@drawable/ic_laptop"
+      android:label="@string/tile_label"
+      android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+      <intent-filter>
+        <action android:name="android.service.quicksettings.action.QS_TILE" />
+      </intent-filter>
+    </service>
+
     <receiver
       android:name=".update.Installer$StatusReceiver"
       android:exported="false" />
