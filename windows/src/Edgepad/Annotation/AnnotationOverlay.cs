@@ -92,6 +92,11 @@ internal sealed class AnnotationOverlay : Form
         private const byte AcSrcAlpha = 1;
         private const uint UlwAlpha = 2;
 
+        /// <summary>The laser dot's radius as a share of the screen's height.</summary>
+        private const float LaserRadiusShare = 0.012f;
+
+        private static readonly Color LaserColour = Color.FromArgb(0xFF, 0xFF, 0x3B, 0x30);
+
         private readonly nint dc;
         private readonly nint dib;
         private readonly nint previous;
@@ -130,8 +135,27 @@ internal sealed class AnnotationOverlay : Form
             g.Clear(Color.Transparent);
             foreach (var stroke in strokes)
             {
+                if (stroke.Tool == StrokeTool.Laser)
+                {
+                    DrawLaser(g, stroke);
+                    continue;
+                }
+
                 SignatureExport.Draw(g, stroke, Size.Width, Size.Height);
             }
+        }
+
+        /// <summary>The laser is a dot and nothing else: always red, whatever colour and width the pen has.</summary>
+        private void DrawLaser(Graphics g, Stroke stroke)
+        {
+            if (stroke.Path(Size.Width, Size.Height) is not [var point, ..])
+            {
+                return;
+            }
+
+            var radius = Size.Height * LaserRadiusShare;
+            using var brush = new SolidBrush(LaserColour);
+            g.FillEllipse(brush, point.X - radius, point.Y - radius, radius * 2f, radius * 2f);
         }
 
         public void Push(nint window, Point at)
