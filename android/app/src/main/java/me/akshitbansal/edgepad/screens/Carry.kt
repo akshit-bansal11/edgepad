@@ -123,7 +123,7 @@ object Carry {
     private var toOrigin = false
     private var alphaSpan = Motion.REVEAL
 
-    private val animator =
+    private val animator: ValueAnimator =
         ValueAnimator.ofFloat(0f, 1f).apply {
             addUpdateListener { frame() }
             addListener(
@@ -186,7 +186,14 @@ object Carry {
             incoming.sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
             return
         }
-        val box = if (crossFadeOnly) null else if (forward) freshMark() else origins.pop()
+        val box =
+            if (crossFadeOnly) {
+                null
+            } else if (forward) {
+                freshMark()
+            } else {
+                origins.pop()
+            }
         if (box != null && forward) origins.push(origins.size, box)
         this.host = host
         this.incoming = incoming
@@ -254,7 +261,7 @@ object Carry {
         return at[axis] + (if (axis == 0) view.width else view.height) / 2f
     }
 
-    private fun frame() = frameAt(animator.animatedValue as Float, animator.currentPlayTime)
+    private fun frame(): Unit = frameAt(animator.animatedValue as Float, animator.currentPlayTime)
 
     /** [progress] is the interpolated 0 to 1; [playMs] is the raw time, which drives the fade on its own span. */
     private fun frameAt(

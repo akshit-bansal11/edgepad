@@ -225,7 +225,9 @@ class LaptopLink(
      */
     fun send(frame: Frame) {
         if (!connected) return
-        if (frame !is Frame.Ping && !isBlob(frame) && !isXfer(frame)) lastInputMs = System.nanoTime() / NANOS_PER_MS_LONG
+        if (frame !is Frame.Ping && !isBlob(frame) && !isXfer(frame)) {
+            lastInputMs = System.nanoTime() / NANOS_PER_MS_LONG
+        }
         if (!outbox.offer(frame)) close(Closure(Cause.LOST))
     }
 

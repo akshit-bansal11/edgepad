@@ -298,6 +298,7 @@ class MainActivity :
     private var screen = Screen.PAIRING
     private var settingsReturn = Screen.PAIRING
     private lateinit var gamepads: GamepadStore
+
     // Volatile: the update check's worker reads it to tell a stopped app from a shown one.
     @Volatile private var started = false
 
