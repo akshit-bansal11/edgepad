@@ -43,13 +43,9 @@ object SafeName {
         return "$stem ($n)$extension"
     }
 
-    // Format characters that reorder or hide text: invoice<U+202E>fdp.exe would show as invoiceexe.pdf.
-    private fun isBidiOrFormat(c: Char): Boolean =
-        c == '؜' ||
-            c in '​'..'‏' ||
-            c in '‪'..'‮' ||
-            c in '⁠'..'⁩' ||
-            c == '﻿'
+    // Invisible format characters (Unicode Cf) that reorder or hide text: invoice<U+202E>fdp.exe would show as
+    // invoiceexe.pdf. The whole category, as the C# and Swift sanitisers drop it.
+    private fun isBidiOrFormat(c: Char): Boolean = Character.getType(c) == Character.FORMAT.toInt()
 
     private fun utf8(text: String): Int = text.toByteArray(Charsets.UTF_8).size
 
