@@ -614,7 +614,7 @@ public final class Session {
         if dispatcher.clipboard?.isAllowed == true {
             features.append(Feature.clipboard.rawValue)
         }
-        if let media = dispatcher.media, let perform = dispatcher.endPerform {
+        if dispatcher.media != nil, let perform = dispatcher.endPerform {
             features.append(Feature.endAction.rawValue)
             dispatcher.endAction = EndAction(
                 perform: perform,
