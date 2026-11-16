@@ -119,8 +119,14 @@ internal sealed record MutterLogical(int X, int Y, double Scale, uint Transform,
 internal sealed record MutterConfig(uint Serial, IReadOnlyList<MutterMonitor> Monitors, IReadOnlyList<MutterLogical> Logicals)
 {
     /// <summary>The primary logical monitor's first connector (else the first logical monitor's).</summary>
-    public string? PrimaryConnector =>
-        (Logicals.FirstOrDefault(l => l.Primary) ?? Logicals.FirstOrDefault())?.Connectors.FirstOrDefault();
+    public string? PrimaryConnector
+    {
+        get
+        {
+            var logical = Logicals.FirstOrDefault(l => l.Primary) ?? (Logicals.Count > 0 ? Logicals[0] : null);
+            return logical is { Connectors.Count: > 0 } ? logical.Connectors[0] : null;
+        }
+    }
 
     public DisplayState Describe()
     {

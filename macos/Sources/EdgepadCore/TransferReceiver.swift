@@ -211,8 +211,8 @@ public final class TransferReceiver {
                 do {
                     try manager.moveItem(atPath: a.partPath, toPath: candidate)
                     finalPath = candidate
-                } catch where manager.fileExists(atPath: candidate) {
-                    continue
+                } catch {
+                    guard manager.fileExists(atPath: candidate) else { throw error }
                 }
             }
         } catch {
