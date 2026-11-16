@@ -200,6 +200,8 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
                 Save(trusted, address);
             }
 
+            // A new pairing is the owner's later word over a ForgetOne that did not reach the disk.
+            denied.Remove(address);
             return true;
         }
     }

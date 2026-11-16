@@ -454,6 +454,22 @@ public sealed class TrustStoreTests : IDisposable
         Assert.True(store.Grant("link:ffeeddccbbaa99887766554433221100"));
     }
 
+    [Fact]
+    public void AGrantLiftsTheRefusalAFailedForgetOneLeft()
+    {
+        var store = NewStore();
+        Assert.True(store.Grant("link:00112233445566778899aabbccddeeff"));
+
+        using (new Blocked(Path.Combine(dir, "trusted-phone.txt")))
+        {
+            Assert.False(store.ForgetOne("link:00112233445566778899aabbccddeeff"));
+        }
+
+        Assert.False(store.Admit("link:00112233445566778899aabbccddeeff", Unasked));
+        Assert.True(store.Grant("link:00112233445566778899aabbccddeeff"));
+        Assert.True(store.Admit("link:00112233445566778899aabbccddeeff", Unasked));
+    }
+
     private static bool Yes() => true;
 
     private static bool No() => false;
