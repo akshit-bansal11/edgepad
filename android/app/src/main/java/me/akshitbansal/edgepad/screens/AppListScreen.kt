@@ -42,6 +42,8 @@ class AppListScreen(
     private val windows: Boolean,
     /** AND-B-35: the macro names the laptop last sent, so the rows of apps already added can say so. */
     private val macroNames: () -> List<String>,
+    /** TEXT 22: how many macros the laptop keeps; [LaptopState.MACRO_SLOTS] until it says. */
+    private val macroCap: () -> Int = { LaptopState.MACRO_SLOTS },
     private val onAdd: (AppCatalogState.App) -> Unit,
     onRefresh: () -> Unit,
     onBack: () -> Unit,
@@ -75,8 +77,7 @@ class AppListScreen(
             card { add(searchField()) }
             list = card(Space.M) {}
             message = body("", Space.L).apply { gravity = Gravity.CENTER }
-            val cap = LaptopState.MACRO_SLOTS
-            fullNote = footnote(ui.context.resources.getQuantityString(R.plurals.apps_full_note, cap, cap))
+            fullNote = footnote("")
             hint = footnote(ui.string(R.string.apps_windows_hint))
         }
 
@@ -90,7 +91,9 @@ class AppListScreen(
         val names = macroNames()
         val have = names.map { it.lowercase() }.toSet()
         // AND-B: the laptop keeps at most MACRO_SLOTS macros (IMacroRunner.MaxMacros), so a full list adds no more.
-        val full = names.count { it.isNotEmpty() } >= LaptopState.MACRO_SLOTS
+        val cap = macroCap()
+        val full = names.count { it.isNotEmpty() } >= cap
+        fullNote.text = ui.context.resources.getQuantityString(R.plurals.apps_full_note, cap, cap)
         fullNote.visibility = if (full && catalog.loaded) View.VISIBLE else View.GONE
         rows = catalog.apps.map { row(it, it.name.lowercase() in have || it.token in addedNow, full) }
         rows.forEach { list.addView(it.view) }

@@ -11,6 +11,7 @@ import me.akshitbansal.edgepad.link.CaptureInbox
 import me.akshitbansal.edgepad.link.FileInbox
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.protocol.ActionId
+import me.akshitbansal.edgepad.protocol.CaptureStateToken
 import me.akshitbansal.edgepad.protocol.CaptureStatus
 import me.akshitbansal.edgepad.protocol.CaptureTarget
 import me.akshitbansal.edgepad.protocol.Feature
@@ -34,7 +35,7 @@ import me.akshitbansal.edgepad.surface.ControlSurface
 class CaptureScreen(
     private val ui: Ui,
     private val settings: Settings,
-    state: LaptopState,
+    private val state: LaptopState,
     private val send: (Frame) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -126,7 +127,11 @@ class CaptureScreen(
             column.add(destination(), topDp = Space.M)
             column.add(status, topDp = Space.S)
             CaptureInbox.last?.let(::show)
-            if (running) status.text = ui.string(R.string.capture_recording)
+            if (laptopRecording) {
+                status.text = ui.string(R.string.capture_recording_laptop)
+            } else if (running) {
+                status.text = ui.string(R.string.capture_recording)
+            }
         }
 
     /**
@@ -169,7 +174,11 @@ class CaptureScreen(
 
     /** Whether the laptop this screen sends to is recording, which the inbox remembers across rebuilds. */
     private val running: Boolean
-        get() = CaptureInbox.isRecording(CaptureInbox.owner)
+        get() = laptopRecording || CaptureInbox.isRecording(CaptureInbox.owner)
+
+    /** TEXT 23: the laptop says it is recording, which wins over what this app last started. */
+    private val laptopRecording: Boolean
+        get() = state.captureState == CaptureStateToken.RECORDING
 
     /** Record reads Stop while a recording runs. */
     private fun shown(

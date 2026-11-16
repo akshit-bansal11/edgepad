@@ -12,6 +12,8 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.protocol.Feature
+import me.akshitbansal.edgepad.protocol.UnavailableReason
 
 /** Which deck this is, to [Settings]: the order is kept per deck. It is the id the Controls screen used. */
 private const val DECK = "controls"
@@ -25,6 +27,23 @@ private const val MAX_WIDTH_DP = 360f
 
 /** AND-A-29: how many openings say that a tile can be held and moved. */
 private const val HINT_TIMES = 3
+
+/**
+ * The string that says why a dimmed tile does nothing: the laptop's own reason when it gave one (TEXT 24), and the
+ * older "needs a newer Edgepad" line when it said nothing, which is what a laptop that predates TEXT 24 does.
+ */
+internal fun reasonText(reason: UnavailableReason?): Int =
+    when (reason) {
+        UnavailableReason.UNSUPPORTED -> R.string.unavailable_unsupported
+
+        UnavailableReason.OFF -> R.string.unavailable_off
+
+        UnavailableReason.NO_TOOL -> R.string.unavailable_no_tool
+
+        UnavailableReason.NO_PERMISSION -> R.string.unavailable_no_permission
+
+        null -> R.string.controls_needs_newer
+    }
 
 /**
  * What the phone can drive besides the surface itself, as a small modal under the surface's top buttons: the
@@ -43,6 +62,8 @@ class ControlsPopup(
     /** AND-A-16: whether the surface hides its dials now, and the switch that changes it. */
     private val dialsHidden: () -> Boolean,
     private val onHideDials: (Boolean) -> Unit,
+    /** TEXT 24: why the laptop cannot offer a feature right now, by [Feature.token]. Empty from an older laptop. */
+    private val reasons: () -> Map<String, UnavailableReason> = { emptyMap() },
     private val onOpen: (Target) -> Unit,
 ) {
     /** The controls a tile can open. The order here is the order of a deck nobody has arranged. */
@@ -209,6 +230,13 @@ class ControlsPopup(
             tag = target.ordinal,
             picture = StencilIcon(target.icon, ui.palette.ink, ui.palette.accent),
             spoken = R.string.controls_open,
-            note = if (available) null else ui.string(R.string.controls_needs_newer),
+            note = if (available) null else ui.string(reasonText(reasons()[featureOf(target)?.token])),
         )
+
+    private fun featureOf(target: Target): Feature? =
+        when (target) {
+            Target.CAPTURE -> Feature.CAPTURE
+            Target.ANNOTATE -> Feature.ANNOTATE
+            else -> null
+        }
 }
