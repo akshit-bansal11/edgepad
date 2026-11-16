@@ -133,6 +133,7 @@ import me.akshitbansal.edgepad.screens.PairCodeScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.PinScreen
 import me.akshitbansal.edgepad.screens.PresenterScreen
+import me.akshitbansal.edgepad.screens.ProfilesScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
 import me.akshitbansal.edgepad.screens.ShapeDrawScreen
@@ -145,6 +146,9 @@ import me.akshitbansal.edgepad.screens.showOver
 import me.akshitbansal.edgepad.surface.BackgroundImage
 import me.akshitbansal.edgepad.surface.ConnectedLaptops
 import me.akshitbansal.edgepad.surface.ControlSurface
+import me.akshitbansal.edgepad.surface.Perimeter
+import me.akshitbansal.edgepad.surface.Profile
+import me.akshitbansal.edgepad.surface.Profiles
 import me.akshitbansal.edgepad.update.Installer
 import me.akshitbansal.edgepad.update.UpdateChoice
 import me.akshitbansal.edgepad.update.UpdateJob
@@ -211,6 +215,7 @@ class MainActivity :
         SHAPE_DRAW,
         DIAL_FEEL,
         APPEARANCE,
+        PROFILES,
         MEDIA_LAYOUT,
         GAMEPAD_LAYOUT,
         KEYBOARD_SETTINGS,
@@ -291,6 +296,9 @@ class MainActivity :
 
     /** True from MACROS_WATCH until the one MACROS_UNWATCH that answers it, however the grid is left. */
     private var watchingMacros = false
+
+    /** True from FOREGROUND_WATCH 1 until the 0 that answers it; the laptop forgets it when the session ends. */
+    private var watchingForeground = false
 
     /** The laptop's app list while it is the screen, so a new list or a finished icon can be handed to it. */
     private var appList: AppListScreen? = null
@@ -727,6 +735,31 @@ class MainActivity :
         manager.send(ActionId.MACROS_WATCH.frame())
     }
 
+    /**
+     * Brings the laptop's watch of the app in front in line with the wish: on only while profiles are on, the laptop
+     * offers it and there is a profile to switch to. Sent when that changes, never on a timer.
+     */
+    private fun syncForegroundWatch() {
+        val want =
+            connected && settings.profilesOn && Feature.FOREGROUND in state.features &&
+                Profiles(settings.profiles).all.isNotEmpty()
+        if (want == watchingForeground) return
+        watchingForeground = want
+        manager.send(ControlId.FOREGROUND_WATCH.set(if (want) 1 else 0))
+    }
+
+    /** The profile of the app in front, or null when profiles are off or that app has none. */
+    private fun frontProfile(): Profile? =
+        if (settings.profilesOn) state.foreground?.let { Profiles(settings.profiles).forApp(it.token) } else null
+
+    /** The app in front changed: the surface is rebuilt only when that gives another profile than the one drawn. */
+    private fun followForeground() {
+        val next = frontProfile()
+        if (next == settings.activeProfile) return
+        settings.activeProfile = next
+        if (screen == Screen.SURFACE) goTo(Screen.SURFACE)
+    }
+
     /** Tells the laptop to stop looking, once per watch, and not at all when there is no link to tell. */
     private fun unwatchMacros() {
         if (!watchingMacros) return
@@ -884,6 +917,8 @@ class MainActivity :
         if (manager.reconnect != settings.reconnect) manager.reconnect = settings.reconnect
         val previous = screen
         screen = next
+        // Only the surface follows the app in front: every settings page edits the defaults.
+        settings.activeProfile = if (next == Screen.SURFACE) frontProfile() else null
         surface = null
         gamepad = null
         annotate = null
@@ -986,9 +1021,30 @@ class MainActivity :
                             dialFeel = { goTo(Screen.DIAL_FEEL) },
                             mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
                             appearance = { goTo(Screen.APPEARANCE) },
+                            profiles = { goTo(Screen.PROFILES) },
                             system = ::openSettings,
                             back = { navigateBack() },
                         ),
+                    )
+                }
+
+                Screen.PROFILES -> {
+                    ProfilesScreen.build(
+                        ui,
+                        on = settings.profilesOn,
+                        setOn = { on ->
+                            settings.profilesOn = on
+                            syncForegroundWatch()
+                        },
+                        raw = settings.profiles,
+                        setRaw = { text ->
+                            settings.profiles = text
+                            syncForegroundWatch()
+                        },
+                        current = state.foreground,
+                        supported = Feature.FOREGROUND in state.features,
+                        defaults = (0 until Perimeter.CORNERS).map { settings.corner(it) },
+                        onBack = { navigateBack() },
                     )
                 }
 
@@ -1347,7 +1403,7 @@ class MainActivity :
 
             // The surface's own pages go back to the surface's settings, which they are reached from.
             Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.MEDIA_LAYOUT,
-            Screen.SHAPES,
+            Screen.SHAPES, Screen.PROFILES,
             -> {
                 goTo(Screen.SURFACE_SETTINGS)
             }
@@ -2409,6 +2465,7 @@ class MainActivity :
         if (laptop === selected) {
             CaptureInbox.owner = laptop.link?.id
             watchingMacros = false
+            watchingForeground = false
             listingApps = false
             picker.setRtt(Double.NaN)
             picker.setMessage("")
@@ -2528,6 +2585,8 @@ class MainActivity :
             refreshBatteries()
         }
         if (laptop !== selected) return
+        if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) syncForegroundWatch()
+        if (frame is Frame.Text && frame.kind == TextKind.FOREGROUND_APP.id) followForeground()
         surface?.stateChanged()
         // Capture is drawn from the features the laptop named, which it sends once after the handshake: one that
         // lands while it is open rebuilds it rather than leaving it saying "none". The Controls popup is redrawn.
@@ -2611,6 +2670,7 @@ class MainActivity :
             return
         }
         watchingMacros = false
+        watchingForeground = false
         listingApps = false
         val answering = screen
         // Devices is where the reason is shown, so an attempt that ends at the PIN or a pairing code goes there first.
@@ -2690,6 +2750,9 @@ class MainActivity :
 
     /** Every screen draws [selected], so the one showing is built again on the new laptop, or left if it cannot be. */
     override fun onSelected(laptop: Laptop?) {
+        // The watch belonged to the laptop before; the new one is asked afresh once it has named its features.
+        watchingForeground = false
+        syncForegroundWatch()
         refreshBlobLinks()
         syncService()
         CaptureInbox.owner = laptop?.link?.id

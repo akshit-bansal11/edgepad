@@ -21,6 +21,7 @@ object SurfaceSettingsScreen {
         val dialFeel: () -> Unit,
         val mediaLayout: () -> Unit,
         val appearance: () -> Unit,
+        val profiles: () -> Unit,
         val system: () -> Unit,
         val back: () -> Unit,
     )
@@ -55,6 +56,8 @@ object SurfaceSettingsScreen {
                         routes.appearance,
                     ),
                 )
+                hairline()
+                add(ui.link(ui.string(R.string.settings_profiles), null, routes.profiles))
             }
             systemSettings(routes.system)
         }

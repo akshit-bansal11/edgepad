@@ -11,6 +11,7 @@ import me.akshitbansal.edgepad.surface.Gesture
 import me.akshitbansal.edgepad.surface.GestureAction
 import me.akshitbansal.edgepad.surface.MediaPiece
 import me.akshitbansal.edgepad.surface.NO_DIAL
+import me.akshitbansal.edgepad.surface.Profile
 import me.akshitbansal.edgepad.surface.Strokes
 import me.akshitbansal.edgepad.surface.resolveStoredDial
 import java.io.File
@@ -83,6 +84,20 @@ class Settings(
     var shapes: String
         get() = prefs.getString(KEY_SHAPES, "").orEmpty()
         set(value) = prefs.edit().putString(KEY_SHAPES, value).apply()
+
+    /** Whether the laptop is asked which app is in front, so the dials and gestures can follow it. */
+    var profilesOn by flag("profilesOn", false)
+
+    /** The per-app profiles in the text [me.akshitbansal.edgepad.surface.Profiles] encodes, as [shapes] is. */
+    var profiles: String
+        get() = prefs.getString(KEY_PROFILES, "").orEmpty()
+        set(value) = prefs.edit().putString(KEY_PROFILES, value).apply()
+
+    /**
+     * The profile of the app in front, while the surface is showing and [profilesOn]; never stored. Set, it wins over
+     * the stored corners and gestures below. Null everywhere else, so the settings pages always edit the defaults.
+     */
+    var activeProfile: Profile? = null
 
     var onboarded by flag("onboarded", false)
 
@@ -277,10 +292,15 @@ class Settings(
     var patternOpacity by bounded(KEY_PATTERN_OPACITY, DEFAULT_PATTERN_OPACITY, 0f, 1f)
 
     /** The dial in [corner] (0 top-left, clockwise), or null for none. */
-    fun corner(corner: Int): DialKind? =
-        resolveStoredDial(prefs.getString("corner.$corner", null)) {
-            DialKind.entries.firstOrNull { it.defaultCorner == corner }
-        }
+    fun corner(corner: Int): DialKind? {
+        val stored =
+            resolveStoredDial(prefs.getString("corner.$corner", null)) {
+                DialKind.entries.firstOrNull { it.defaultCorner == corner }
+            }
+        // A profile that sets no dial in this corner says so with null, so null must not fall through to the default.
+        val profile = activeProfile ?: return stored
+        return profile.corner(corner, stored)
+    }
 
     fun setCorner(
         corner: Int,
@@ -364,8 +384,9 @@ class Settings(
     private fun sensitivityKey(kind: DialKind): String = "sensitivity.${kind.name}"
 
     fun gesture(gesture: Gesture): GestureAction {
-        val name = prefs.getString("gesture.${gesture.name}", null) ?: return gesture.default
-        return GestureAction.entries.firstOrNull { it.name == name } ?: gesture.default
+        val name = prefs.getString("gesture.${gesture.name}", null)
+        val stored = GestureAction.entries.firstOrNull { it.name == name } ?: gesture.default
+        return activeProfile?.gesture(gesture, stored) ?: stored
     }
 
     fun setGesture(
@@ -514,6 +535,7 @@ class Settings(
         private const val KEY_UPDATE_FAILURE = "updateFailure"
         private const val KEY_SAVED_LAPTOPS = "savedLaptops"
         private const val KEY_SHAPES = "shapes"
+        private const val KEY_PROFILES = "profiles"
         private const val KEY_LAST_UPDATE_CHECK = "lastUpdateCheck"
         private const val KEY_LATEST_VERSION = "latestVersion"
         private const val KEY_SEEN_VERSION = "seenVersion"
