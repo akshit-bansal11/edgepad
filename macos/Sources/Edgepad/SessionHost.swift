@@ -70,6 +70,9 @@ final class SessionHost {
     /// Whether macOS is discarding this Mac's input (no Accessibility trust); set by the app, read for TEXT 18.
     var inputBlocked: () -> Bool = { false }
 
+    /// Told the final path of each file the phone sent, once it is saved and marked as downloaded.
+    var onFileArrived: ((String) -> Void)?
+
     /// Told the address of each phone as it is admitted, for the Security window's "last connected".
     var onVerified: ((String) -> Void)?
 
@@ -163,6 +166,16 @@ final class SessionHost {
         dispatcher.apps = AppPicker(catalog: appCatalog, store: macros, sender: sender)
         dispatcher.media = MacMediaSource(hub: nowPlaying)
         dispatcher.mediaBlobs = sender
+        // Per connection too: files come in and go out on whichever socket the phone has open.
+        dispatcher.transfers = TransferReceiver(
+            destination: MacTransfers.destination, partialFolder: MacTransfers.partialFolder,
+            arrived: { [weak self] path in
+                MacTransfers.markDownloaded(path)
+                self?.onFileArrived?(path)
+            })
+        dispatcher.sending = TransferSender(
+            link: link == "Bluetooth" ? .bluetooth : .network,
+            lastInput: { [weak dispatcher] in dispatcher?.lastInput ?? 0 })
         dispatcher.endPerform = MacEndPower.perform
         let ask = askTrust
         let status = onStatus
@@ -201,6 +214,21 @@ final class SessionHost {
         }
         RunLoop.main.add(helloTimeout, forMode: .common)
         return session
+    }
+
+    /// Hands the phone's transfer socket to the phone in use, which takes it only if it is that phone's, live, and has
+    /// none yet. Nil leaves the socket for the caller to close; nothing here creates, replaces or admits a session.
+    func attachBulk(address: String, version: UInt8, transport: Transport) -> BulkLink? {
+        current?.attachBulk(address: address, version: version, transport: transport)
+    }
+
+    /// Sends the file at `path` to the phone in use and says how it ended.
+    func sendFile(_ path: String, finished: @escaping (XferCode) -> Void) {
+        guard let current else {
+            finished(.sessionEnded)
+            return
+        }
+        current.sendFile(path, finished: finished)
     }
 
     /// Ends the phone in use and every connection still in its handshake, and stops polling. On quit.

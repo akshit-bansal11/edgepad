@@ -84,6 +84,21 @@ cat > "$app/Contents/Info.plist" <<EOF
   <string>$version</string>
   <key>CFBundleVersion</key>
   <string>${version%%-*}</string>
+  <key>CFBundleDocumentTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleTypeName</key>
+      <string>Any file</string>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+      <key>LSHandlerRank</key>
+      <string>None</string>
+      <key>LSItemContentTypes</key>
+      <array>
+        <string>public.data</string>
+      </array>
+    </dict>
+  </array>
   <key>LSMinimumSystemVersion</key>
   <string>13.0</string>
   <key>LSUIElement</key>

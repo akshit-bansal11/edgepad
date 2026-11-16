@@ -115,6 +115,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             onStatus: { [weak self] in self?.setStatus($0) })
         // inputReady, not Accessibility alone: with event posting denied every tap is dropped, so the phone must hear it.
         host.inputBlocked = { [weak self] in !(self?.inputReady ?? true) }
+        // plain English until 4.5.0 localisation
+        host.onFileArrived = { [weak self] path in
+            self?.setStatus("Received \((path as NSString).lastPathComponent) in Downloads/Edgepad")
+        }
         // Off the main queue: a file read and rewrite has no place on the path that admits a phone.
         // The generation is read here, at admit, so a Forget that lands before the write leaves the phone forgotten.
         host.onVerified = { [lastConnected] address in
@@ -369,6 +373,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         updates.state = checksDaily ? .on : .off
         menu.addItem(updates)
         menu.addItem(.separator())
+        // plain English until 4.5.0 localisation
+        menu.addItem(
+            host?.hasPhone == true
+                ? item("Send a file…", #selector(sendFile)) : disabled("Send a file… (no phone connected)"))
         menu.addItem(item("Macros…", #selector(showMacros)))
         let names = SecurityPanel.levelNames
         let level = names.indices.contains(pin.level - 1) ? names[pin.level - 1] : ""
@@ -693,6 +701,69 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     /// Held like the Security panel, for the same reason, and guarded against a second click under the modal alert.
+    /// Finder's Open With, and a file dropped on the icon: sent to the phone in use, as the menu's Send a file does.
+    func application(_ sender: NSApplication, openFiles filenames: [String]) {
+        guard host?.hasPhone == true else {
+            // plain English until 4.5.0 localisation
+            tell("No phone is connected", "Connect a phone to Edgepad, then send the file again.")
+            sender.reply(toOpenOrPrint: .failure)
+            return
+        }
+        send(filenames)
+        sender.reply(toOpenOrPrint: .success)
+    }
+
+    @objc private func sendFile() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = true
+        // plain English until 4.5.0 localisation
+        panel.message = "Choose files to send to the phone"
+        panel.prompt = "Send"
+        NSApp.activate(ignoringOtherApps: true)
+        guard panel.runModal() == .OK else { return }
+        send(panel.urls.map(\.path))
+    }
+
+    /// Queues each regular file for the phone in use; the sender takes them one at a time.
+    private func send(_ paths: [String]) {
+        for path in paths {
+            var isFolder: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: path, isDirectory: &isFolder), !isFolder.boolValue else {
+                // plain English until 4.5.0 localisation
+                setStatus("Only files can be sent, not folders")
+                continue
+            }
+            let name = (path as NSString).lastPathComponent
+            host?.sendFile(path) { [weak self] code in self?.setStatus(Self.sentLine(name, code)) }
+        }
+    }
+
+    // plain English until 4.5.0 localisation
+    private static func sentLine(_ name: String, _ code: XferCode) -> String {
+        switch code {
+        case .saved:
+            return "Sent \(name) to the phone"
+        case .ready, .progress:
+            return "Sending \(name)"
+        case .badHash:
+            return "\(name) arrived damaged on the phone; send it again"
+        case .rejected:
+            return "The phone would not take \(name)"
+        case .writeFailed:
+            return "\(name) could not be read or saved"
+        case .cancelled:
+            return "Cancelled sending \(name)"
+        case .busy:
+            return "The phone is already receiving a file; send \(name) again after it"
+        case .timedOut:
+            return "The phone did not answer while \(name) was sending"
+        case .sessionEnded:
+            return "The phone disconnected before \(name) was sent"
+        }
+    }
+
     @objc private func showMacros() {
         guard !editingMacros, let host else { return }
         editingMacros = true
