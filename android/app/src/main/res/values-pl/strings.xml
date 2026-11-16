@@ -290,9 +290,9 @@
     <item quantity="other">Narysowano: %1$d</item>
   </plurals>
   <string name="shapes_none">Jeszcze nic</string>
-  <string name="shapes_footnote">Przytrzymaj dwa palce na touchpadzie bez ruchu, aż linia stanie się ciągła (przy włączonej reakcji haptycznej poczujesz też stuknięcie), a potem rysuj obydwoma bez odrywania ich.</string>
+  <string name="shapes_footnote">Przytrzymaj dwa palce na touchpadzie bez ruchu, aż linia stanie się ciągła (przy włączonej reakcji haptycznej poczujesz też stuknięcie), a potem unieś jeden i rysuj drugim.</string>
   <string name="shapes_empty_title">Brak kształtów</string>
-  <string name="shapes_empty_body">Narysuj tu kształt i wybierz, co ma uruchamiać. Na touchpadzie przytrzymaj dwa palce bez ruchu, aż linia stanie się ciągła, a potem narysuj kształt obydwoma bez odrywania ich.</string>
+  <string name="shapes_empty_body">Narysuj tu kształt i wybierz, co ma uruchamiać. Na touchpadzie przytrzymaj dwa palce bez ruchu, aż linia stanie się ciągła, a potem unieś jeden i narysuj kształt drugim.</string>
   <string name="shapes_add">Narysuj kształt</string>
   <string name="shapes_draw_title">Narysuj kształt</string>
   <!-- The target list's back link, which returns to the canvas. -->

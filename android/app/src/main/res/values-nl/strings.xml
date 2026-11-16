@@ -276,9 +276,9 @@
     <item quantity="other">%1$d getekend</item>
   </plurals>
   <string name="shapes_none">Nog geen</string>
-  <string name="shapes_footnote">Houd twee vingers stil op het touchpad tot de lijn doorgetrokken wordt (je voelt ook een tik als haptische feedback aanstaat) en teken dan met beide zonder los te laten.</string>
+  <string name="shapes_footnote">Houd twee vingers stil op het touchpad tot de lijn doorgetrokken wordt (je voelt ook een tik als haptische feedback aanstaat) en til er dan één op en teken met de andere.</string>
   <string name="shapes_empty_title">Nog geen vormen</string>
-  <string name="shapes_empty_body">Teken er hier een en geef hem iets om uit te voeren. Houd op het touchpad twee vingers stil tot de lijn doorgetrokken wordt en teken de vorm dan met beide zonder ze op te tillen.</string>
+  <string name="shapes_empty_body">Teken er hier een en geef hem iets om uit te voeren. Houd op het touchpad twee vingers stil tot de lijn doorgetrokken wordt en til er dan één op en teken de vorm met de andere.</string>
   <string name="shapes_add">Vorm tekenen</string>
   <string name="shapes_draw_title">Teken de vorm</string>
   <!-- The target list's back link, which returns to the canvas. -->

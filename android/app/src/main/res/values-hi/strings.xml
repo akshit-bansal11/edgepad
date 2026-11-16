@@ -275,9 +275,9 @@
     <item quantity="other">%1$d बनीं</item>
   </plurals>
   <string name="shapes_none">अभी कोई नहीं</string>
-  <string name="shapes_footnote">टचपैड पर दो उंगलियां तब तक स्थिर रखें जब तक रेखा ठोस न हो जाए (हैप्टिक फ़ीडबैक चालू हो तो हल्का झटका भी लगेगा), फिर उंगलियां उठाए बिना दोनों से बनाएं।</string>
+  <string name="shapes_footnote">टचपैड पर दो उंगलियां तब तक स्थिर रखें जब तक रेखा ठोस न हो जाए (हैप्टिक फ़ीडबैक चालू हो तो हल्का झटका भी लगेगा), फिर एक उंगली उठाएं और दूसरी से बनाएं।</string>
   <string name="shapes_empty_title">अभी कोई आकृति नहीं</string>
-  <string name="shapes_empty_body">यहां एक आकृति बनाएं और उसे कोई काम सौंपें। टचपैड पर दो उंगलियां तब तक स्थिर रखें जब तक रेखा ठोस न हो जाए, फिर उंगलियां उठाए बिना उसे बनाएं।</string>
+  <string name="shapes_empty_body">यहां एक आकृति बनाएं और उसे कोई काम सौंपें। टचपैड पर दो उंगलियां तब तक स्थिर रखें जब तक रेखा ठोस न हो जाए, फिर एक उंगली उठाएं और दूसरी से उसे बनाएं।</string>
   <string name="shapes_add">आकृति बनाएं</string>
   <string name="shapes_draw_title">आकृति बनाएं</string>
   <!-- The target list's back link, which returns to the canvas. -->

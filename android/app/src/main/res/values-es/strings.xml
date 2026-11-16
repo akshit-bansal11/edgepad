@@ -283,9 +283,9 @@
     <item quantity="other">%1$d dibujadas</item>
   </plurals>
   <string name="shapes_none">Aún no hay ninguna</string>
-  <string name="shapes_footnote">Mantén dos dedos quietos en el panel táctil hasta que la línea se vuelva continua (también sentirás una vibración leve si la respuesta háptica está activada) y dibuja con ambos sin levantarlos.</string>
+  <string name="shapes_footnote">Mantén dos dedos quietos en el panel táctil hasta que la línea se vuelva continua (también sentirás una vibración leve si la respuesta háptica está activada) y luego levanta uno y dibuja con el otro.</string>
   <string name="shapes_empty_title">Aún no hay formas</string>
-  <string name="shapes_empty_body">Dibuja una aquí y dale algo que ejecutar. En el panel táctil, mantén dos dedos quietos hasta que la línea se vuelva continua y dibújala con ambos sin levantarlos.</string>
+  <string name="shapes_empty_body">Dibuja una aquí y dale algo que ejecutar. En el panel táctil, mantén dos dedos quietos hasta que la línea se vuelva continua y luego levanta uno y dibújala con el otro.</string>
   <string name="shapes_add">Dibujar una forma</string>
   <string name="shapes_draw_title">Dibuja la forma</string>
   <!-- The target list's back link, which returns to the canvas. -->

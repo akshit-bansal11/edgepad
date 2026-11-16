@@ -283,9 +283,9 @@
     <item quantity="other">%1$d formas</item>
   </plurals>
   <string name="shapes_none">Nenhuma ainda</string>
-  <string name="shapes_footnote">Mantenha dois dedos parados no touchpad até a linha ficar sólida (você também sente uma leve vibração se a resposta tátil estiver ativada) e então desenhe com os dois sem levantá-los.</string>
+  <string name="shapes_footnote">Mantenha dois dedos parados no touchpad até a linha ficar sólida (você também sente uma leve vibração se a resposta tátil estiver ativada) e então levante um e desenhe com o outro.</string>
   <string name="shapes_empty_title">Nenhuma forma ainda</string>
-  <string name="shapes_empty_body">Desenhe uma aqui e defina o que ela executa. No touchpad, mantenha dois dedos parados até a linha ficar sólida e então desenhe com os dois sem levantá-los.</string>
+  <string name="shapes_empty_body">Desenhe uma aqui e defina o que ela executa. No touchpad, mantenha dois dedos parados até a linha ficar sólida e então levante um e desenhe-a com o outro.</string>
   <string name="shapes_add">Desenhar uma forma</string>
   <string name="shapes_draw_title">Desenhe a forma</string>
   <!-- The target list's back link, which returns to the canvas. -->

@@ -269,9 +269,9 @@
     <item quantity="other">已绘制 %1$d 个</item>
   </plurals>
   <string name="shapes_none">暂无</string>
-  <string name="shapes_footnote">在触控板上用两指按住不动，直到线条变为实线（开启触感反馈时还会震动一下），然后两指不要抬起，直接绘制。</string>
+  <string name="shapes_footnote">在触控板上用两指按住不动，直到线条变为实线（开启触感反馈时还会震动一下），然后抬起一指，用另一指绘制。</string>
   <string name="shapes_empty_title">还没有图形</string>
-  <string name="shapes_empty_body">在这里绘制一个图形，并指定它要执行的操作。在触控板上用两指按住不动，直到线条变为实线，然后两指不要抬起，直接绘制。</string>
+  <string name="shapes_empty_body">在这里绘制一个图形，并指定它要执行的操作。在触控板上用两指按住不动，直到线条变为实线，然后抬起一指，用另一指画出图形。</string>
   <string name="shapes_add">绘制图形</string>
   <string name="shapes_draw_title">绘制图形</string>
   <!-- The target list's back link, which returns to the canvas. -->

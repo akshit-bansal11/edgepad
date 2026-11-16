@@ -304,9 +304,9 @@
     <item quantity="other">%1$d شكل مرسوم</item>
   </plurals>
   <string name="shapes_none">لا شيء بعد</string>
-  <string name="shapes_footnote">ثبّت إصبعين على لوحة اللمس إلى أن يصبح الخط متصلًا (وستشعر أيضًا بنقرة اهتزازية إذا كانت الاستجابة اللمسية مفعّلة)، ثم ارسم بهما دون رفعهما.</string>
+  <string name="shapes_footnote">ثبّت إصبعين على لوحة اللمس إلى أن يصبح الخط متصلًا (وستشعر أيضًا بنقرة اهتزازية إذا كانت الاستجابة اللمسية مفعّلة)، ثم ارفع أحدهما وارسم بالآخر.</string>
   <string name="shapes_empty_title">لا أشكال بعد</string>
-  <string name="shapes_empty_body">ارسم شكلًا هنا وحدّد ما يشغّله. على لوحة اللمس، ثبّت إصبعين إلى أن يصبح الخط متصلًا، ثم ارسمه بهما دون رفعهما.</string>
+  <string name="shapes_empty_body">ارسم شكلًا هنا وحدّد ما يشغّله. على لوحة اللمس، ثبّت إصبعين إلى أن يصبح الخط متصلًا، ثم ارفع أحدهما وارسمه بالآخر.</string>
   <string name="shapes_add">رسم شكل</string>
   <string name="shapes_draw_title">ارسم الشكل</string>
   <!-- The target list's back link, which returns to the canvas. -->

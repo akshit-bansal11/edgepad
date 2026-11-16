@@ -282,9 +282,9 @@
     <item quantity="other">%1$d drawn</item>
   </plurals>
   <string name="shapes_none">None yet</string>
-  <string name="shapes_footnote">Hold two fingers still on the trackpad until the line turns solid (you also feel a tick if haptic feedback is on), then draw with both without lifting.</string>
+  <string name="shapes_footnote">Hold two fingers still on the trackpad until the line turns solid (you also feel a tick if haptic feedback is on), then lift one and draw with the other.</string>
   <string name="shapes_empty_title">No shapes yet</string>
-  <string name="shapes_empty_body">Draw one here and give it something to run. On the trackpad, hold two fingers still until the line turns solid, then draw it with both without lifting them.</string>
+  <string name="shapes_empty_body">Draw one here and give it something to run. On the trackpad, hold two fingers still until the line turns solid, then lift one and draw it with the other.</string>
   <string name="shapes_add">Draw a shape</string>
   <string name="shapes_draw_title">Draw the shape</string>
   <!-- The target list's back link, which returns to the canvas. -->

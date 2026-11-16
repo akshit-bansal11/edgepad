@@ -275,9 +275,9 @@
     <item quantity="other">%1$d gezeichnet</item>
   </plurals>
   <string name="shapes_none">Noch keine</string>
-  <string name="shapes_footnote">Halte zwei Finger still auf dem Touchpad, bis die Linie durchgezogen ist (bei eingeschaltetem haptischem Feedback spürst du ein Ticken), und zeichne dann mit beiden, ohne abzusetzen.</string>
+  <string name="shapes_footnote">Halte zwei Finger still auf dem Touchpad, bis die Linie durchgezogen ist (bei eingeschaltetem haptischem Feedback spürst du ein Ticken), hebe dann einen an und zeichne mit dem anderen.</string>
   <string name="shapes_empty_title">Noch keine Formen</string>
-  <string name="shapes_empty_body">Zeichne hier eine Form und lege fest, was sie auslöst. Halte auf dem Touchpad zwei Finger still, bis die Linie durchgezogen ist, und zeichne dann mit beiden, ohne sie abzusetzen.</string>
+  <string name="shapes_empty_body">Zeichne hier eine Form und lege fest, was sie auslöst. Halte auf dem Touchpad zwei Finger still, bis die Linie durchgezogen ist, hebe dann einen an und zeichne sie mit dem anderen.</string>
   <string name="shapes_add">Form zeichnen</string>
   <string name="shapes_draw_title">Form zeichnen</string>
   <!-- The target list's back link, which returns to the canvas. -->

@@ -261,9 +261,9 @@
     <item quantity="other">도형 %1$d개</item>
   </plurals>
   <string name="shapes_none">아직 없음</string>
-  <string name="shapes_footnote">트랙패드에 두 손가락을 대고 선이 실선으로 바뀔 때까지 멈춰 있다가(햅틱 피드백이 켜져 있으면 진동도 느껴져요), 손가락을 떼지 않고 두 손가락으로 그리세요.</string>
+  <string name="shapes_footnote">트랙패드에 두 손가락을 대고 선이 실선으로 바뀔 때까지 멈춰 있다가(햅틱 피드백이 켜져 있으면 진동도 느껴져요), 한 손가락을 떼고 다른 손가락으로 그리세요.</string>
   <string name="shapes_empty_title">아직 도형이 없어요</string>
-  <string name="shapes_empty_body">여기에서 도형을 그리고 실행할 동작을 지정하세요. 트랙패드에서는 선이 실선으로 바뀔 때까지 두 손가락을 멈춰 둔 뒤, 떼지 않고 그리세요.</string>
+  <string name="shapes_empty_body">여기에서 도형을 그리고 실행할 동작을 지정하세요. 트랙패드에서는 선이 실선으로 바뀔 때까지 두 손가락을 멈춰 둔 뒤, 한 손가락을 떼고 다른 손가락으로 그리세요.</string>
   <string name="shapes_add">도형 그리기</string>
   <string name="shapes_draw_title">도형 그리기</string>
   <string name="shapes_draw_back">그리기</string>

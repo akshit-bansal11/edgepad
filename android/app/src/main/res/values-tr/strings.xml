@@ -273,9 +273,9 @@
     <item quantity="other">%1$d çizildi</item>
   </plurals>
   <string name="shapes_none">Henüz yok</string>
-  <string name="shapes_footnote">Dokunmatik yüzeyde iki parmağınızı çizgi kesintisiz hale gelene kadar sabit tutun (dokunsal geri bildirim açıksa bir tık da hissedersiniz), sonra parmaklarınızı kaldırmadan ikisiyle çizin.</string>
+  <string name="shapes_footnote">Dokunmatik yüzeyde iki parmağınızı çizgi kesintisiz hale gelene kadar sabit tutun (dokunsal geri bildirim açıksa bir tık da hissedersiniz), sonra birini kaldırıp diğeriyle çizin.</string>
   <string name="shapes_empty_title">Henüz şekil yok</string>
-  <string name="shapes_empty_body">Buraya bir şekil çizin ve ona çalıştıracak bir şey verin. Dokunmatik yüzeyde çizgi kesintisiz hale gelene kadar iki parmağınızı sabit tutun, sonra parmaklarınızı kaldırmadan çizin.</string>
+  <string name="shapes_empty_body">Buraya bir şekil çizin ve ona çalıştıracak bir şey verin. Dokunmatik yüzeyde çizgi kesintisiz hale gelene kadar iki parmağınızı sabit tutun, sonra birini kaldırıp diğeriyle çizin.</string>
   <string name="shapes_add">Şekil çiz</string>
   <string name="shapes_draw_title">Şekli çizin</string>
   <string name="shapes_draw_back">Çiz</string>

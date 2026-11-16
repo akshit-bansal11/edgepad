@@ -283,9 +283,9 @@
     <item quantity="other">%1$d dessinées</item>
   </plurals>
   <string name="shapes_none">Aucune pour l\'instant</string>
-  <string name="shapes_footnote">Maintenez deux doigts immobiles sur le pavé tactile jusqu\'à ce que le trait devienne plein (vous sentez aussi une vibration si le retour haptique est activé), puis dessinez avec les deux sans les lever.</string>
+  <string name="shapes_footnote">Maintenez deux doigts immobiles sur le pavé tactile jusqu\'à ce que le trait devienne plein (vous sentez aussi une vibration si le retour haptique est activé), puis levez-en un et dessinez avec l\'autre.</string>
   <string name="shapes_empty_title">Aucune forme</string>
-  <string name="shapes_empty_body">Dessinez-en une ici et donnez-lui une action à lancer. Sur le pavé tactile, maintenez deux doigts immobiles jusqu\'à ce que le trait devienne plein, puis dessinez avec les deux sans les lever.</string>
+  <string name="shapes_empty_body">Dessinez-en une ici et donnez-lui une action à lancer. Sur le pavé tactile, maintenez deux doigts immobiles jusqu\'à ce que le trait devienne plein, puis levez-en un et dessinez-la avec l\'autre.</string>
   <string name="shapes_add">Dessiner une forme</string>
   <string name="shapes_draw_title">Dessiner la forme</string>
   <!-- The target list's back link, which returns to the canvas. -->

@@ -283,9 +283,9 @@
     <item quantity="other">%1$d disegnate</item>
   </plurals>
   <string name="shapes_none">Ancora nessuna</string>
-  <string name="shapes_footnote">Tieni ferme due dita sul touchpad finché la linea non diventa continua (se il feedback aptico è attivo senti anche un tic), poi disegna con entrambe senza sollevarle.</string>
+  <string name="shapes_footnote">Tieni ferme due dita sul touchpad finché la linea non diventa continua (se il feedback aptico è attivo senti anche un tic), poi sollevane uno e disegna con l\'altro.</string>
   <string name="shapes_empty_title">Ancora nessuna forma</string>
-  <string name="shapes_empty_body">Disegnane una qui e assegnale qualcosa da eseguire. Sul touchpad, tieni ferme due dita finché la linea non diventa continua, poi disegnala con entrambe senza sollevarle.</string>
+  <string name="shapes_empty_body">Disegnane una qui e assegnale qualcosa da eseguire. Sul touchpad, tieni ferme due dita finché la linea non diventa continua, poi sollevane uno e disegnala con l\'altro.</string>
   <string name="shapes_add">Disegna una forma</string>
   <string name="shapes_draw_title">Disegna la forma</string>
   <!-- The target list's back link, which returns to the canvas. -->

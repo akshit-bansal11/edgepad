@@ -270,9 +270,9 @@
     <item quantity="other">%1$d件</item>
   </plurals>
   <string name="shapes_none">まだありません</string>
-  <string name="shapes_footnote">トラックパッドに2本指を置いて止め、線が実線に変わるまで待ち（触覚フィードバックがオンなら振動も伝わります）、2本指を離さずに描きます。</string>
+  <string name="shapes_footnote">トラックパッドに2本指を置いて止め、線が実線に変わるまで待ち（触覚フィードバックがオンなら振動も伝わります）、1本を離してもう1本で描きます。</string>
   <string name="shapes_empty_title">まだ図形がありません</string>
-  <string name="shapes_empty_body">ここで図形を描いて、実行する操作を割り当てます。トラックパッドでは、線が実線に変わるまで2本指を止めて置いてから、指を離さずに描いてください。</string>
+  <string name="shapes_empty_body">ここで図形を描いて、実行する操作を割り当てます。トラックパッドでは、線が実線に変わるまで2本指を止めて置いてから、1本を離してもう1本で描いてください。</string>
   <string name="shapes_add">図形を描く</string>
   <string name="shapes_draw_title">図形を描く</string>
   <!-- The target list's back link, which returns to the canvas. -->
