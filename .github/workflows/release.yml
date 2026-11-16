@@ -187,6 +187,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # The lproj folders are generated, not committed: the script checks the resx files, then writes them.
+      - name: Generate the Mac strings
+        run: pwsh scripts/resx-to-lproj.ps1
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only macos
       # Ad hoc signed, not notarised: there is no Apple Developer ID behind this project, so no key reaches
