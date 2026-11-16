@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Info_NSBluetoothAlwaysUsageDescription" xml:space="preserve">
+    <value>O Edgepad usa o Bluetooth para aguardar o celular pareado com este Mac.</value>
+  </data>
+  <data name="Info_NSDesktopFolderUsageDescription" xml:space="preserve">
+    <value>O Edgepad procura aqui a captura de tela ou a gravação que você pediu para receber no celular.</value>
+  </data>
+  <data name="Info_NSDocumentsFolderUsageDescription" xml:space="preserve">
+    <value>O Edgepad procura aqui a captura de tela ou a gravação que você pediu para receber no celular.</value>
+  </data>
+  <data name="Info_NSDownloadsFolderUsageDescription" xml:space="preserve">
+    <value>O Edgepad procura aqui a captura de tela ou a gravação que você pediu para receber no celular.</value>
+  </data>
+  <data name="Info_NSLocalNetworkUsageDescription" xml:space="preserve">
+    <value>O Edgepad deixa seu celular encontrar este Mac e se conectar por Wi-Fi, quando você ativa as conexões Wi-Fi.</value>
+  </data>
+  <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
+    <value>O Edgepad pergunta ao Música ou ao Spotify qual faixa está tocando e avança ou volta nela quando você desliza no celular; também suspende ou desliga este Mac no fim da mídia, se você pedir pelo celular.</value>
+  </data>
+</root>

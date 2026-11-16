@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Info_NSBluetoothAlwaysUsageDescription" xml:space="preserve">
+    <value>Edgepad nutzt Bluetooth, um auf das mit diesem Mac gekoppelte Telefon zu warten.</value>
+  </data>
+  <data name="Info_NSDesktopFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad sucht hier nach dem Screenshot oder der Aufnahme, die das Telefon empfangen soll.</value>
+  </data>
+  <data name="Info_NSDocumentsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad sucht hier nach dem Screenshot oder der Aufnahme, die das Telefon empfangen soll.</value>
+  </data>
+  <data name="Info_NSDownloadsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad sucht hier nach dem Screenshot oder der Aufnahme, die das Telefon empfangen soll.</value>
+  </data>
+  <data name="Info_NSLocalNetworkUsageDescription" xml:space="preserve">
+    <value>Edgepad lässt dein Telefon diesen Mac finden und sich per WLAN verbinden, wenn du WLAN-Verbindungen aktivierst.</value>
+  </data>
+  <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
+    <value>Edgepad fragt Musik oder Spotify, welcher Titel läuft, und springt darin, wenn du am Telefon spulst. Am Ende der Wiedergabe versetzt es diesen Mac in den Ruhezustand oder fährt ihn herunter, wenn du es am Telefon verlangst.</value>
+  </data>
+</root>

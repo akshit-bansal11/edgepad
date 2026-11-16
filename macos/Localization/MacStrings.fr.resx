@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Info_NSBluetoothAlwaysUsageDescription" xml:space="preserve">
+    <value>Edgepad utilise le Bluetooth pour attendre le téléphone associé à ce Mac.</value>
+  </data>
+  <data name="Info_NSDesktopFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad cherche ici la capture ou l’enregistrement que vous avez demandé de recevoir sur le téléphone.</value>
+  </data>
+  <data name="Info_NSDocumentsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad cherche ici la capture ou l’enregistrement que vous avez demandé de recevoir sur le téléphone.</value>
+  </data>
+  <data name="Info_NSDownloadsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad cherche ici la capture ou l’enregistrement que vous avez demandé de recevoir sur le téléphone.</value>
+  </data>
+  <data name="Info_NSLocalNetworkUsageDescription" xml:space="preserve">
+    <value>Edgepad permet à votre téléphone de trouver ce Mac et de s’y connecter en Wi-Fi, quand vous activez les connexions Wi-Fi.</value>
+  </data>
+  <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
+    <value>Edgepad demande à Musique ou Spotify quel morceau est en cours et s’y déplace quand vous avancez sur le téléphone ; il met ce Mac en veille ou l’éteint à la fin du média si vous le demandez depuis le téléphone.</value>
+  </data>
+</root>

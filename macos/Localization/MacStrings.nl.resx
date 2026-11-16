@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Info_NSBluetoothAlwaysUsageDescription" xml:space="preserve">
+    <value>Edgepad gebruikt Bluetooth om te luisteren naar de telefoon die je met deze Mac hebt gekoppeld.</value>
+  </data>
+  <data name="Info_NSDesktopFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad zoekt hier naar de schermafbeelding of opname die je op de telefoon wilde ontvangen.</value>
+  </data>
+  <data name="Info_NSDocumentsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad zoekt hier naar de schermafbeelding of opname die je op de telefoon wilde ontvangen.</value>
+  </data>
+  <data name="Info_NSDownloadsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad zoekt hier naar de schermafbeelding of opname die je op de telefoon wilde ontvangen.</value>
+  </data>
+  <data name="Info_NSLocalNetworkUsageDescription" xml:space="preserve">
+    <value>Edgepad laat je telefoon deze Mac vinden en verbinden via wifi, als je wifi-verbindingen inschakelt.</value>
+  </data>
+  <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
+    <value>Edgepad vraagt Muziek of Spotify welk nummer speelt en spoelt erin als je op de telefoon zoekt; aan het einde van de media zet het deze Mac in de sluimerstand of uit als je dat via de telefoon vraagt.</value>
+  </data>
+</root>

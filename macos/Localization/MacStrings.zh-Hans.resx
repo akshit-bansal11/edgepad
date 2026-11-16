@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Info_NSBluetoothAlwaysUsageDescription" xml:space="preserve">
+    <value>Edgepad 使用蓝牙监听与这台 Mac 配对的手机。</value>
+  </data>
+  <data name="Info_NSDesktopFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad 在此查找你要求手机接收的截图或录制内容。</value>
+  </data>
+  <data name="Info_NSDocumentsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad 在此查找你要求手机接收的截图或录制内容。</value>
+  </data>
+  <data name="Info_NSDownloadsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad 在此查找你要求手机接收的截图或录制内容。</value>
+  </data>
+  <data name="Info_NSLocalNetworkUsageDescription" xml:space="preserve">
+    <value>开启 Wi-Fi 连接后，Edgepad 会让手机找到这台 Mac 并通过 Wi-Fi 连接。</value>
+  </data>
+  <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
+    <value>Edgepad 会询问“音乐”或 Spotify 当前播放的歌曲，并在你于手机上拖动进度时跳转；媒体结束时，如果你在手机上要求，它会让这台 Mac 睡眠或关机。</value>
+  </data>
+</root>

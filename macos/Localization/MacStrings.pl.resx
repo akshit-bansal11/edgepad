@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Info_NSBluetoothAlwaysUsageDescription" xml:space="preserve">
+    <value>Edgepad używa Bluetooth, by nasłuchiwać telefonu sparowanego z tym Makiem.</value>
+  </data>
+  <data name="Info_NSDesktopFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad szuka tutaj zrzutu ekranu lub nagrania, które chcesz odebrać na telefonie.</value>
+  </data>
+  <data name="Info_NSDocumentsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad szuka tutaj zrzutu ekranu lub nagrania, które chcesz odebrać na telefonie.</value>
+  </data>
+  <data name="Info_NSDownloadsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad szuka tutaj zrzutu ekranu lub nagrania, które chcesz odebrać na telefonie.</value>
+  </data>
+  <data name="Info_NSLocalNetworkUsageDescription" xml:space="preserve">
+    <value>Edgepad pozwala telefonowi znaleźć tego Maka i połączyć się przez Wi-Fi, gdy włączysz połączenia Wi-Fi.</value>
+  </data>
+  <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
+    <value>Edgepad pyta Muzykę lub Spotify, jaki utwór gra, i przewija go, gdy przesuwasz na telefonie; na końcu odtwarzania usypia lub wyłącza tego Maka, gdy poprosisz o to z telefonu.</value>
+  </data>
+</root>

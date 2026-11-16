@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    The Mac app's words, in English. Info_<plist key> entries are the Info.plist permission texts (written to
+    InfoPlist.strings); every other key is read in Swift as tr("Key", "English"). MacStrings.<culture>.resx next to
+    this file holds the translations; every key here needs one in each of them, with the same {0} placeholders.
+    scripts/resx-to-lproj.ps1 -Check enforces both. Log text and protocol names stay English and are not here.
+  -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Info_NSBluetoothAlwaysUsageDescription" xml:space="preserve">
+    <value>Edgepad uses Bluetooth to listen for the phone you have paired with this Mac.</value>
+  </data>
+  <data name="Info_NSDesktopFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad looks here for the screenshot or recording you asked the phone to receive.</value>
+  </data>
+  <data name="Info_NSDocumentsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad looks here for the screenshot or recording you asked the phone to receive.</value>
+  </data>
+  <data name="Info_NSDownloadsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad looks here for the screenshot or recording you asked the phone to receive.</value>
+  </data>
+  <data name="Info_NSLocalNetworkUsageDescription" xml:space="preserve">
+    <value>Edgepad lets your phone find this Mac and connect to it over Wi-Fi, when you turn Wi-Fi connections on.</value>
+  </data>
+  <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
+    <value>Edgepad asks Music or Spotify where the song is and moves it when you seek on the phone, and sleeps or shuts down this Mac when you ask the phone to at the end of the media.</value>
+  </data>
+</root>

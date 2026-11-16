@@ -56,6 +56,21 @@ case "$appearances" in
 esac
 cp Resources/edgepad.icns "$app/Contents/Resources/edgepad.icns" || { echo "bundle.sh: macos/Resources/edgepad.icns is missing; run scripts/icons.sh (CI job icons) and commit it" >&2; exit 1; }
 
+# SwiftPM puts the app's and the core's translated words in <target>.bundle folders beside the executable;
+# Bundle.module finds them in Contents/Resources. They hold the <lang>.lproj folders that
+# scripts/resx-to-lproj.ps1 wrote. If ad hoc codesign rejects the nested bundles, copy only their .lproj folders.
+for b in "$bin"/*.bundle; do
+    if [ -d "$b" ]; then cp -R "$b" "$app/Contents/Resources/"; fi
+done
+# The permission prompts read InfoPlist.strings from the app bundle itself, not from a SwiftPM bundle.
+for s in Sources/Edgepad/Resources/*.lproj/InfoPlist.strings; do
+    if [ -f "$s" ]; then
+        lproj="$app/Contents/Resources/$(basename "$(dirname "$s")")"
+        mkdir -p "$lproj"
+        cp "$s" "$lproj/InfoPlist.strings"
+    fi
+done
+
 # CFBundleVersion takes numbers only, so a draft's "-draft.45" suffix stays on the display version alone.
 # NSLocalNetworkUsageDescription and NSBonjourServices are for the Wi-Fi link's Bonjour listener. Whether macOS asks
 # them of an app that only publishes a service is unverified; with them the Local Network prompt has a reason to show.
@@ -98,6 +113,24 @@ cat > "$app/Contents/Info.plist" <<EOF
         <string>public.data</string>
       </array>
     </dict>
+  </array>
+  <key>CFBundleLocalizations</key>
+  <array>
+    <string>en</string>
+    <string>ar</string>
+    <string>de</string>
+    <string>es</string>
+    <string>fr</string>
+    <string>hi</string>
+    <string>it</string>
+    <string>ja</string>
+    <string>ko</string>
+    <string>nl</string>
+    <string>pl</string>
+    <string>pt-BR</string>
+    <string>ru</string>
+    <string>tr</string>
+    <string>zh-Hans</string>
   </array>
   <key>LSMinimumSystemVersion</key>
   <string>13.0</string>
