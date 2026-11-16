@@ -287,7 +287,10 @@ final class SessionHost {
         // Uptime, not the wall clock: a clock stepped backwards must not stretch the quiet period. Never shortens
         // one already running.
         quietUntil = max(quietUntil ?? 0, ProcessInfo.processInfo.systemUptime + Self.quietAfterForget)
-        onStatus("Forgot the trusted phones; ready for a new one in \(Int(Self.quietAfterForget)) seconds")
+        onStatus(
+            tr(
+                "Status_Forgot", "Forgot the trusted phones; ready for a new one in %1$@ seconds",
+                "\(Int(Self.quietAfterForget))"))
         Timer.scheduledTimer(withTimeInterval: Self.quietAfterForget, repeats: false) { [weak self] _ in
             guard let self, self.current == nil else { return }
             self.onStatus(Self.waiting)

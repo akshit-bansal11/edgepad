@@ -35,6 +35,26 @@ public enum StatusText {
             ? tr("Core_BluetoothOffMenu", "Bluetooth is off. Turn it on in the menu bar.")
             : tr("Status_BluetoothRetrying", "Bluetooth is off or unavailable; trying again")
     }
+
+    /// The status line while the owner types the pairing code for `phone`.
+    public static func pairing(_ phone: String) -> String {
+        tr("Status_Pairing", "Pair %1$@: type the pairing code shown on the phone", phone)
+    }
+
+    public static func paired(_ phone: String) -> String {
+        tr("Status_Paired", "Paired with %1$@", phone)
+    }
+
+    /// The status line while the trust question about `phone` is open.
+    public static func asking(_ phone: String) -> String {
+        tr("Status_Asking", "Asking whether to trust %1$@", phone)
+    }
+
+    /// Where a Wi-Fi request came from, "from 192.168.1.23, on your network"; `address` may be empty.
+    public static func networkSource(_ address: String) -> String {
+        let network = tr("Source_OnNetwork", "on your network")
+        return address.isEmpty ? network : tr("Source_From", "from %1$@, %2$@", address, network)
+    }
 }
 
 /// What a second launch does, decided on the versions alone.

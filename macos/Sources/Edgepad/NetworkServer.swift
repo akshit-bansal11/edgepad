@@ -2,6 +2,30 @@ import EdgepadCore
 import Foundation
 import Network
 
+/// What the Wi-Fi row knows about the listener. Only the last three are worth the owner's eye.
+enum NetworkHint: Equatable {
+    case off
+    case starting
+    case listening
+    case portInUse(Int)
+    case waiting
+    case failed
+
+    /// The row's hint, or nil when there is nothing to say.
+    var problem: String? {
+        switch self {
+        case .off, .starting, .listening:
+            return nil
+        case .portInUse(let port):
+            return tr("Net_PortInUse", "Port in use, using %1$@", "\(port)")
+        case .waiting:
+            return tr("Net_WaitingForNetwork", "Waiting for a network")
+        case .failed:
+            return tr("Net_CouldNotListen", "Could not listen; see the log")
+        }
+    }
+}
+
 /// Takes Wi-Fi and USB phones, the twin of the Windows and Linux `NetworkServer`: an `NWListener` for their
 /// connections, announced over Bonjour as `_edgepad._tcp` so they can find this Mac. Every connection runs a
 /// `LinkResponder`, and only a link it lets through, a phone paired here or pairing now with the owner typing its code,
@@ -68,7 +92,7 @@ final class NetworkServer {
 
     /// Listens on `port`, or on a free one when that is taken, and announces this Mac; whatever ran before is stopped
     /// first. `report` is told, once listening is settled, what the menu's hint should say.
-    func start(port: Int, report: @escaping (String) -> Void) {
+    func start(port: Int, report: @escaping (NetworkHint) -> Void) {
         stop()
         listen(on: NWEndpoint.Port(rawValue: UInt16(clamping: port)), preferred: port, report: report)
     }
@@ -105,7 +129,7 @@ final class NetworkServer {
         }
     }
 
-    private func listen(on port: NWEndpoint.Port?, preferred: Int, report: @escaping (String) -> Void) {
+    private func listen(on port: NWEndpoint.Port?, preferred: Int, report: @escaping (NetworkHint) -> Void) {
         let opened: NWListener
         do {
             if let port {
@@ -115,7 +139,7 @@ final class NetworkServer {
             }
         } catch {
             Log.write("Could not listen for Wi-Fi and USB phones: \(error)")
-            report("Could not listen; see the log")
+            report(.failed)
             return
         }
         // A TXT record is length-prefixed strings; NetService's encoder is deprecated, and this is all it would do. The
@@ -141,15 +165,15 @@ final class NetworkServer {
                     Log.write(
                         "Listening for Wi-Fi and USB phones on port \(got), not \(preferred): a phone looking over "
                             + "USB tethering will not find this Mac")
-                    report("Port in use, using \(got)")
+                    report(.portInUse(got))
                 } else {
                     Log.write("Listening for Wi-Fi and USB phones on port \(got)")
-                    report("Listening on \(got)")
+                    report(.listening)
                 }
             case .waiting(let error):
                 // No network yet: said, rather than left at Starting. It moves to ready by itself when one comes.
                 Log.write("Waiting for a network to listen on: \(error)")
-                report("Waiting for a network")
+                report(.waiting)
             case .failed(let error):
                 self.listener = nil
                 opened.cancel()
@@ -157,7 +181,7 @@ final class NetworkServer {
                     self.listen(on: nil, preferred: preferred, report: report)
                 } else {
                     Log.write("Stopped listening for Wi-Fi and USB phones: \(error)")
-                    report("Could not listen; see the log")
+                    report(.failed)
                 }
             default:
                 break
@@ -172,7 +196,7 @@ final class NetworkServer {
     static func sourceLine(_ endpoint: NWEndpoint) -> String {
         guard case .hostPort = endpoint else { return "" }
         let address = Self.address(endpoint)
-        return address.isEmpty ? "on your network" : "from \(address), on your network"
+        return StatusText.networkSource(address)
     }
 
     /// The address a connection came from, without a `%scope` suffix or an IPv4-mapped `::ffff:` prefix, so one
@@ -261,7 +285,7 @@ final class NetworkServer {
             return
         }
         let name = PhoneLabel.clean(result.phoneName)
-        let shownAs = name.isEmpty ? "A phone" : name
+        let shownAs = name.isEmpty ? tr("Net_Phone", "A phone") : name
         let secure = SecureTransport(inner: link, prk: result.prk)
         live.removeAll { $0.isClosed }
         live.append(link)
