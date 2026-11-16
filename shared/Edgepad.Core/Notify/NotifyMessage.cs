@@ -25,7 +25,8 @@ public static class NotifyMessage
         var appText = Fold(app, MaxAppCodePoints);
         var titleText = Fold(title, MaxTitleCodePoints);
         var bodyText = Fold(body, MaxBodyCodePoints);
-        if (titleText.Length == 0 && bodyText.Length == 0)
+        // Blank counts as empty: a body of only a line break folds to a space and says nothing.
+        if (string.IsNullOrWhiteSpace(titleText) && string.IsNullOrWhiteSpace(bodyText))
         {
             return null;
         }

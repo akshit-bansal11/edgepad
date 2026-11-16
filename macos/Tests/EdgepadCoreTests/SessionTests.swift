@@ -1412,7 +1412,8 @@ final class SessionTests: XCTestCase {
     private func mediaTexts() -> [Frame] {
         transport.frames().filter {
             if case .text(let kind, _) = $0 {
-                return [TextKind.nowPlaying, .nowPlayingFull, .app, .timeline, .endAction].map(.rawValue).contains(kind)
+                let media: [TextKind] = [.nowPlaying, .nowPlayingFull, .app, .timeline, .endAction]
+                return media.map(\.rawValue).contains(kind)
             }
             return false
         }

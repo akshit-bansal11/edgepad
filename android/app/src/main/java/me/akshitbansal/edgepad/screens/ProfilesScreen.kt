@@ -159,9 +159,8 @@ object ProfilesScreen {
                             val opened = app.token == openProfile
                             val state = if (profile.isDefault) R.string.profile_default else R.string.profile_custom
                             val end = ui.secondary(ui.string(state), Type.VALUE)
-                            val name = ui.text(shown(app), Type.BODY, ui.palette.ink)
                             add(
-                                ui.field(name, end).apply {
+                                ui.field(shown(app), end).apply {
                                     minimumHeight = ui.dp(Space.TOUCH)
                                     ui.tappable(this) {
                                         openProfile = if (opened) null else app.token

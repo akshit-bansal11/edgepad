@@ -19,7 +19,8 @@ class ProfilesTest {
         assertEquals(custom, back.forApp("chrome.exe"))
         assertEquals(Profile(), back.forApp("vlc.exe"))
         assertEquals(listOf("chrome.exe", "vlc.exe"), back.all.map { it.first.token })
-        assertEquals("Chrome", back.all.first().first.name)
+        val (app, _) = back.all[0]
+        assertEquals("Chrome", app.name)
     }
 
     @Test
