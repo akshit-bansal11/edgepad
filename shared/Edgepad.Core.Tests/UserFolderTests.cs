@@ -32,7 +32,7 @@ public sealed class UserFolderTests : IDisposable
     }
 
     [Fact]
-    public void AFileAlreadyInTheNewFolderIsKeptAndTheLegacyOneLeft()
+    public void AFileAlreadyInTheNewFolderIsKeptAndTheStaleLegacyOneRemoved()
     {
         Directory.CreateDirectory(Legacy);
         Directory.CreateDirectory(Current);
@@ -42,7 +42,87 @@ public sealed class UserFolderTests : IDisposable
         Migrate();
 
         Assert.Equal("new", File.ReadAllText(Path.Combine(Current, "pin.txt")));
-        Assert.Equal("old", File.ReadAllText(Path.Combine(Legacy, "pin.txt")));
+        Assert.False(File.Exists(Path.Combine(Legacy, "pin.txt")));
+    }
+
+    [Fact]
+    public void AStaleRoamingCopyAfterAForgetDoesNotComeBack()
+    {
+        Directory.CreateDirectory(Legacy);
+        Assert.True(new TrustStore(Path.Combine(Legacy, "trusted-phone.txt")).Grant("link:00112233445566778899aabbccddeeff"));
+        Migrate();
+
+        // A roaming profile syncs the old list back, then the owner forgets the phones.
+        Directory.CreateDirectory(Legacy);
+        File.Copy(Path.Combine(Current, "trusted-phone.txt"), Path.Combine(Legacy, "trusted-phone.txt"));
+        Assert.True(new TrustStore(PathFor("trusted-phone.txt")).Forget());
+        Migrate();
+
+        Assert.Equal(Path.Combine(Current, "trusted-phone.txt"), PathFor("trusted-phone.txt"));
+        Assert.Empty(new TrustStore(PathFor("trusted-phone.txt")).TrustedPhones);
+        Assert.False(File.Exists(Path.Combine(Legacy, "trusted-phone.txt")));
+    }
+
+    [Fact]
+    public void ARoamingCopyThatCannotBeDeletedIsNeverReadAgain()
+    {
+        Directory.CreateDirectory(Legacy);
+        var legacyFile = Path.Combine(Legacy, "pin-verified.txt");
+        File.WriteAllText(legacyFile, "link:00112233445566778899aabbccddeeff\n");
+
+        // Deleting the source fails: on Windows an open handle that does not share delete, on Unix a folder
+        // that cannot be written. Reading it still works, so the copy goes through.
+        FileStream? held = null;
+        if (OperatingSystem.IsWindows())
+        {
+            held = new FileStream(legacyFile, FileMode.Open, FileAccess.Read, FileShare.Read);
+        }
+        else
+        {
+            File.SetUnixFileMode(Legacy, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+        }
+
+        try
+        {
+            Migrate();
+        }
+        finally
+        {
+            held?.Dispose();
+            if (!OperatingSystem.IsWindows())
+            {
+                File.SetUnixFileMode(Legacy, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+            }
+        }
+
+        Assert.True(File.Exists(legacyFile));
+        Assert.Contains(logs, line => line.Contains("Could not remove pin-verified.txt", StringComparison.Ordinal));
+
+        // The owner clears the verified list: the Roaming copy must not stand in for it.
+        File.Delete(Path.Combine(Current, "pin-verified.txt"));
+        Assert.Equal(Path.Combine(Current, "pin-verified.txt"), PathFor("pin-verified.txt"));
+        Migrate();
+        Assert.False(File.Exists(Path.Combine(Current, "pin-verified.txt")));
+    }
+
+    [Fact]
+    public void ACrashBetweenCopyAndRenameLeavesTheOldPinReadable()
+    {
+        Directory.CreateDirectory(Legacy);
+        Assert.True(new PinStore(Legacy, iterations: 1).SetPin("123456"));
+
+        // What a crash after the copy began leaves: a partial temporary file, no security.txt in Local yet.
+        Directory.CreateDirectory(Current);
+        File.WriteAllText(Path.Combine(Current, "security.txt.tmp"), "");
+
+        Assert.Equal(Path.Combine(Legacy, "security.txt"), PathFor("security.txt"));
+        Assert.True(Pin().HasPin);
+
+        Migrate();
+
+        Assert.Equal(Path.Combine(Current, "security.txt"), PathFor("security.txt"));
+        Assert.False(File.Exists(Path.Combine(Current, "security.txt.tmp")));
+        Assert.True(Pin().HasPin);
     }
 
     [Fact]
