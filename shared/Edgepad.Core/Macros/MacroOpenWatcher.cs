@@ -10,6 +10,9 @@ internal sealed class MacroOpenWatcher(
 {
     private readonly Lock gate = new();
     private readonly Lock polling = new();
+
+    // One tick at a time, send included; only Poll takes it, so a blocked send holds up nothing else.
+    private readonly Lock ticking = new();
     private System.Threading.Timer? timer;
     private volatile bool stopped;
     private bool disposed;
@@ -67,20 +70,29 @@ internal sealed class MacroOpenWatcher(
     /// <summary>One survey, and one send if it changed anything. A tick that finds the last one still running skips.</summary>
     public void Poll()
     {
-        if (stopped || !polling.TryEnter())
+        if (stopped || !ticking.TryEnter())
         {
             return;
         }
 
         try
         {
-            var text = Survey();
-            if (text != last)
+            string text;
+            lock (polling)
             {
+                text = Survey();
+                if (text == last)
+                {
+                    return;
+                }
+
                 // Noted before the send: a dead link would otherwise be retried, and logged, on every tick.
                 last = text;
-                send(text);
             }
+
+            // Outside the polling lock, which Start takes under gate: a send blocked on a dead peer must not hold
+            // up Start, Stop or teardown.
+            send(text);
         }
         catch (Exception e)
         {
@@ -88,7 +100,7 @@ internal sealed class MacroOpenWatcher(
         }
         finally
         {
-            polling.Exit();
+            ticking.Exit();
         }
     }
 
