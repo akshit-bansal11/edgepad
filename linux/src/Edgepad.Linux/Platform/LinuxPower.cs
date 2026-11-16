@@ -20,7 +20,7 @@ internal static class LinuxPower
 
     /// <summary>
     /// Asked, with the 60 s cancellable window, instead of powering off at once. The Shell sets it; it is given the
-    /// action that powers off. With none (no UI), the laptop powers off straight away.
+    /// action that powers off. With none (no UI), a shutdown is refused: it never happens without the countdown.
     /// </summary>
     internal static event Action<Action>? ShutdownRequested;
 
@@ -51,6 +51,12 @@ internal static class LinuxPower
         {
             countdown(() => Call("PowerOff"));
             return true;
+        }
+
+        if (kind == EndKind.Shutdown)
+        {
+            Log.Write("Shutdown refused: no countdown window to show");
+            return false;
         }
 
         return Call(MethodFor(kind));

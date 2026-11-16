@@ -24,6 +24,10 @@ public sealed class LinuxPowerTests
         Assert.Equal(allowed, LinuxPower.Allowed(answer));
 
     [Fact]
+    public void AShutdownWithNoCountdownWindowIsRefused() =>
+        Assert.False(LinuxPower.Perform(EndKind.Shutdown));
+
+    [Fact]
     public void TheEndActionTokenIsOfferedOnlyWhenAsked()
     {
         Assert.DoesNotContain("endaction", Annotator.Features(annotate: true));
