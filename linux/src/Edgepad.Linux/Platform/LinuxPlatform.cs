@@ -46,6 +46,8 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     private readonly Backlight backlight = new();
     private readonly Mpris mpris = new();
     private readonly Annotator annotator = new();
+    private readonly LinuxDisplayModes displayModes = new(
+        Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"), Environment.GetEnvironmentVariable("DISPLAY"));
     private static readonly MacroStore macros = new(
         Path.Combine(Xdg.ConfigFolder, "macros.txt"), new LinuxLauncher(), windows: new LinuxMacroWindows());
     private readonly Worker worker;
@@ -219,8 +221,16 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
 
                 NotifyRequested?.Invoke(percent == 1);
                 return true;
+            case ControlId.RefreshRate:
+                // An index into the list sent as TEXT 4; one past its end is refused, as on Windows.
+                if (percent >= displayModes.Rates.Count)
+                {
+                    return false;
+                }
+
+                worker.Set(control, percent);
+                return true;
             default:
-                // Refresh rate: Linux has no shared way to switch modes.
                 return false;
         }
     }
@@ -260,7 +270,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
         annotator.Start(send, open is not null);
         lock (reporting)
         {
-            reporter ??= new StateReporter(speakers, microphone, backlight, mpris, macros, send, lastInputMs);
+            reporter ??= new StateReporter(speakers, microphone, backlight, mpris, macros, displayModes, send, lastInputMs);
             openApps = open;
         }
 
@@ -308,6 +318,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
         }
 
         worker.Dispose();
+        displayModes.Dispose();
         backlight.Dispose();
         mpris.Dispose();
     }
@@ -328,6 +339,9 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
                 break;
             case ControlId.MediaPosition:
                 mpris.Seek(percent);
+                break;
+            case ControlId.RefreshRate:
+                displayModes.Apply(percent);
                 break;
             default:
                 break;

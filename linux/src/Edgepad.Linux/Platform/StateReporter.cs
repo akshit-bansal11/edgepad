@@ -32,6 +32,7 @@ internal sealed class StateReporter : IDisposable
     private readonly Backlight backlight;
     private readonly Mpris mpris;
     private readonly MacroStore macros;
+    private readonly LinuxDisplayModes displayModes;
     private readonly Action<Frame> send;
     private readonly Func<long> lastInputMs;
     private readonly CancellationTokenSource stopping = new();
@@ -46,6 +47,8 @@ internal sealed class StateReporter : IDisposable
     private MediaState? lastMedia;
     private string? lastTimeline;
     private string lastFull = "";
+    private string? lastRates;
+    private int lastRate = -1;
     private string? lastIconKey;
     private readonly BlobSender blobs;
 
@@ -56,8 +59,9 @@ internal sealed class StateReporter : IDisposable
     internal static event Action<MediaSnapshot>? MediaObserved;
 
     /// <param name="lastInputMs">When the phone last sent input, in <see cref="Environment.TickCount64"/> milliseconds.</param>
-    public StateReporter(Audio speakers, Audio microphone, Backlight backlight, Mpris mpris, MacroStore macros, Action<Frame> send, Func<long> lastInputMs)
+    public StateReporter(Audio speakers, Audio microphone, Backlight backlight, Mpris mpris, MacroStore macros, LinuxDisplayModes displayModes, Action<Frame> send, Func<long> lastInputMs)
     {
+        this.displayModes = displayModes;
         this.lastInputMs = lastInputMs;
         this.speakers = speakers;
         this.microphone = microphone;
@@ -94,9 +98,10 @@ internal sealed class StateReporter : IDisposable
         try
         {
             // The features (TEXT 9) are the annotator's to send, since annotate depends on the display. The
-            // refresh-rate list is empty because Linux has no shared way to switch modes; the phone's dial then has
-            // no travel.
-            send(new Text((byte)TextKind.RefreshRates, ""));
+            // refresh-rate list is read once here (one xrandr run or D-Bus call), empty where the display cannot be
+            // switched, which leaves the phone's dial with no travel.
+            displayModes.Refresh();
+            ReportRates();
             send(new Text((byte)TextKind.MacroCap, MacroStore.MaxMacros.ToString(CultureInfo.InvariantCulture)));
 
             // Reports the names now and again whenever the file is reloaded, and is released with this thread.
@@ -129,6 +134,29 @@ internal sealed class StateReporter : IDisposable
         }
 
         PollMedia();
+        ReportRates();
+    }
+
+    /// <summary>
+    /// TEXT 4 and then the index in force, each only when it changed. Reads fields the display modes already hold: the
+    /// display is read on connect and after a switch, never from here.
+    /// </summary>
+    private void ReportRates()
+    {
+        var rates = string.Join('/', displayModes.Rates);
+        if (rates != lastRates)
+        {
+            lastRates = rates;
+            lastRate = -1;
+            send(new Text((byte)TextKind.RefreshRates, rates));
+        }
+
+        var current = displayModes.Current;
+        if (current != lastRate && current >= 0)
+        {
+            lastRate = current;
+            send(new StateReport((byte)ControlId.RefreshRate, (byte)current, 0));
+        }
     }
 
     private void PollLevels()
