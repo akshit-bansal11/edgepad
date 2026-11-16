@@ -31,6 +31,7 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import android.window.OnBackInvokedCallback
@@ -110,6 +111,7 @@ import me.akshitbansal.edgepad.screens.AppListScreen
 import me.akshitbansal.edgepad.screens.AppearanceScreen
 import me.akshitbansal.edgepad.screens.BatterySheet
 import me.akshitbansal.edgepad.screens.CaptureScreen
+import me.akshitbansal.edgepad.screens.Carry
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DialFeelScreen
@@ -297,6 +299,12 @@ class MainActivity :
     private var phoneWatch: AutoCloseable? = null
     private var screen = Screen.PAIRING
     private var settingsReturn = Screen.PAIRING
+
+    /** Holds the screen on show and, for the length of a carry, the one leaving. */
+    private val stage by lazy { FrameLayout(this) }
+
+    /** True while [navigateBack] runs its synchronous [goTo], so the change plays in reverse. */
+    private var backing = false
     private lateinit var gamepads: GamepadStore
 
     // Volatile: the update check's worker reads it to tell a stopped app from a shown one.
@@ -826,6 +834,7 @@ class MainActivity :
         // Settings writes the setting with nothing listening, and every way out of it comes through here. Only on a
         // change, because setting it starts a lost laptop's retry over.
         if (manager.reconnect != settings.reconnect) manager.reconnect = settings.reconnect
+        val previous = screen
         screen = next
         surface = null
         gamepad = null
@@ -1156,7 +1165,7 @@ class MainActivity :
         // These are physical: edge rulers, trackpad, swipes, key rows and layout editors say left and right of the
         // phone, so Arabic mirrors the settings pages around them but never them.
         if (next in immersive) view.layoutDirection = View.LAYOUT_DIRECTION_LTR
-        setContentView(view)
+        showScreen(view, previous, next)
         applyOrientation()
         // The bars are see-through over the page, whose own background is the ground, so they take its colour.
         // Left to the default, three-button navigation would lay a translucent scrim over the ground instead.
@@ -1175,6 +1184,32 @@ class MainActivity :
             }
         }
         updateBack()
+    }
+
+    /**
+     * Puts [view] on the stage. A rebuild of the same screen is instant. A control screen on either side of the change
+     * only cross-fades, so its touch grid is exact from the first frame (UX-28); so does a change nothing tapped, and
+     * Back always has the origin its forward change stored.
+     */
+    private fun showScreen(
+        view: View,
+        previous: Screen,
+        next: Screen,
+    ) {
+        Carry.cancel()
+        if (stage.parent == null) setContentView(stage)
+        if (next == previous) {
+            stage.removeAllViews()
+            stage.addView(view)
+            return
+        }
+        Carry.swap(
+            stage,
+            view,
+            stage.getChildAt(stage.childCount - 1),
+            forward = !backing,
+            crossFadeOnly = next in immersive || previous in immersive || (!backing && !Carry.hasFreshMark()),
+        )
     }
 
     /**
@@ -1216,6 +1251,15 @@ class MainActivity :
 
     /** One step back through the app. False at the first screen, where back leaves the app as usual. */
     private fun navigateBack(): Boolean {
+        backing = true
+        try {
+            return stepBack()
+        } finally {
+            backing = false
+        }
+    }
+
+    private fun stepBack(): Boolean {
         when (screen) {
             // AND-A-18: a stray edge swipe while sliding a dial must not drop the user on Devices; the second back does.
             Screen.SURFACE -> {

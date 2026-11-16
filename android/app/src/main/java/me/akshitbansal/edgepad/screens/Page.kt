@@ -430,7 +430,10 @@ class Ui(
                     },
                 )
             }
-        view.setOnClickListener { onClick() }
+        view.setOnClickListener {
+            Carry.mark(view)
+            onClick()
+        }
     }
 
     /**
@@ -991,7 +994,11 @@ fun AlertDialog.Builder.showOver(owner: View) {
 
 /** As [showOver], for a caller that shapes the dialog's window once it is up. */
 fun AlertDialog.Builder.openOver(owner: View): AlertDialog {
-    val dialog = show()
+    val dialog = create()
+    // The platform's own entrance is swapped for the carry from the tapped control (UX-32).
+    dialog.window?.setWindowAnimations(0)
+    dialog.show()
+    dialog.window?.let { Carry.reveal(it, owner) }
     val closer =
         object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View) = Unit

@@ -36,6 +36,7 @@ import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.OutputKind
+import me.akshitbansal.edgepad.screens.Carry
 import me.akshitbansal.edgepad.screens.askText
 import kotlin.math.abs
 import kotlin.math.hypot
@@ -302,6 +303,8 @@ class ControlSurface(
 
     /** The top button the finger went down on, until it lifts or the touch is cancelled. */
     private var pressedTop: TopButton? = null
+    private val originRect = RectF()
+    private val originAt = IntArray(2)
     private var scrubbing = false
     private var scrubFraction = 0f
 
@@ -1100,6 +1103,7 @@ class ControlSurface(
                     onStrip -> {
                         if (strip.hit.contains(event.x, event.y)) {
                             performClick()
+                            markOrigin(strip.hit)
                             onOpenBatteries()
                         }
                     }
@@ -1109,6 +1113,7 @@ class ControlSurface(
                     top != null -> {
                         if (top.hit.contains(event.x, event.y)) {
                             performClick()
+                            markOrigin(top.hit)
                             top.open()
                         }
                     }
@@ -1558,6 +1563,14 @@ class ControlSurface(
         val open: () -> Unit,
     ) {
         val hit = RectF()
+    }
+
+    /** Tells [Carry] which drawn button is about to open something, so that it grows from there (UX-32). */
+    private fun markOrigin(hit: RectF) {
+        getLocationOnScreen(originAt)
+        originRect.set(hit)
+        originRect.offset(originAt[0].toFloat(), originAt[1].toFloat())
+        Carry.mark(originRect)
     }
 
     /** #65: the Type text dialog of the keyboard screen, reachable without leaving the surface. */
