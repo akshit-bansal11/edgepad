@@ -1,3 +1,4 @@
+using System.Text;
 using Edgepad.Blob;
 using Edgepad.Protocol;
 
@@ -16,7 +17,9 @@ internal static class PasteGuard
     /// <param name="surface">The clipboard to save and restore.</param>
     /// <param name="paste">Puts text on the clipboard and pastes it. Its exceptions propagate, after the restore.</param>
     /// <param name="settle">Waits for the target app to take the selection, since restoring at once would paste the old content.</param>
-    internal static void Around(IClipboardSurface surface, Action paste, Action settle)
+    /// <param name="pasted">The last text <paramref name="paste"/> puts on the clipboard. The restore happens only while the
+    /// clipboard still holds it, so something the user copied during the typing is kept.</param>
+    internal static void Around(IClipboardSurface surface, Action paste, Action settle, string pasted)
     {
         ClipboardContent? before;
         try
@@ -36,7 +39,7 @@ internal static class PasteGuard
         }
         finally
         {
-            if (Restorable(before))
+            if (Restorable(before) && StillHolds(surface, pasted))
             {
                 try
                 {
@@ -50,6 +53,21 @@ internal static class PasteGuard
                     }
                 }
             }
+        }
+    }
+
+    /// <summary>Whether the clipboard is still ours. A failed read is not: an unknown clipboard is left alone.</summary>
+    private static bool StillHolds(IClipboardSurface surface, string pasted)
+    {
+        try
+        {
+            return surface.Read() is { Kind: BlobKind.ClipText, Sensitive: false } now
+                && now.Data.AsSpan().SequenceEqual(Encoding.UTF8.GetBytes(pasted));
+        }
+        catch (Exception e)
+        {
+            Log.Write($"Clipboard could not be checked after a paste: {e.GetType().Name}: {e.Message}");
+            return false;
         }
     }
 

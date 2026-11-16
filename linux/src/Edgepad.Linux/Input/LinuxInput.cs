@@ -183,7 +183,7 @@ internal sealed class LinuxInput : IDisposable
 
         var last = Array.FindLastIndex(steps, s => s.Paste is not null);
         Steps(steps[..first]);
-        PasteGuard.Around(Saved, () => Steps(steps[first..(last + 1)]), () => Thread.Sleep(RestoreDelayMs));
+        PasteGuard.Around(Saved, () => Steps(steps[first..(last + 1)]), () => Thread.Sleep(RestoreDelayMs), steps[last].Paste ?? string.Empty);
         Steps(steps[(last + 1)..]);
     }
 
