@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using static System.FormattableString;
 
@@ -19,7 +20,7 @@ internal static class SafeFileName
     };
 
     /// <summary>
-    /// The last path segment, with control characters dropped and <c>&lt; &gt; : " / \ | ? *</c> replaced by an underscore,
+    /// The last path segment, with control and invisible format (Cf) characters dropped and <c>&lt; &gt; : " / \ | ? *</c> replaced by an underscore,
     /// trailing dots and spaces trimmed, cut to <see cref="TransferLimits.MaxNameBytes"/> UTF-8 bytes keeping the
     /// extension. Null when nothing usable is left, or when the name is a Windows device name with or without an extension.
     /// </summary>
@@ -35,7 +36,7 @@ internal static class SafeFileName
         var text = new StringBuilder(segment.Length);
         foreach (var ch in segment)
         {
-            if (!char.IsControl(ch))
+            if (!char.IsControl(ch) && char.GetUnicodeCategory(ch) != UnicodeCategory.Format)
             {
                 text.Append(Invalid.Contains(ch, StringComparison.Ordinal) ? '_' : ch);
             }

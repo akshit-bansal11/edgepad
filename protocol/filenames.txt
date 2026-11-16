@@ -1,6 +1,6 @@
 # The file-name sanitiser every app holds a received name to: one pair per line, "input | expected".
 # Split each line at its LAST " | ". Lines starting with # and blank lines are skipped. The expected text (rejected) means
-# the name is refused. Rules, in order: keep the last segment after / or \; drop control characters; replace < > : " / \ | ? *
+# the name is refused. Rules, in order: keep the last segment after / or \; drop control characters and invisible format characters (Unicode Cf: bidi marks and overrides, zero-width, BOM); replace < > : " / \ | ? *
 # with _; trim trailing dots and spaces; cut to 120 UTF-8 bytes keeping an extension of at most 20 bytes; refuse an empty
 # result and a Windows device name (CON PRN AUX NUL COM1-9 LPT1-9), with or without an extension. A clash is renamed
 # "name (1).ext" by the receiver, never overwritten. Pairs hold no control characters, which the tests cover separately.
@@ -36,3 +36,17 @@ CONSOLE.txt | CONSOLE.txt
 xCON.txt | xCON.txt
 Δοκιμή αρχείο.txt | Δοκιμή αρχείο.txt
 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.txt | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.txt
+invoice؜fdp.exe | invoicefdp.exe
+invoice​fdp.exe | invoicefdp.exe
+invoice‎fdp.exe | invoicefdp.exe
+invoice‏fdp.exe | invoicefdp.exe
+invoice‪fdp.exe | invoicefdp.exe
+invoice‫fdp.exe | invoicefdp.exe
+invoice‬fdp.exe | invoicefdp.exe
+invoice‭fdp.exe | invoicefdp.exe
+invoice‮fdp.exe | invoicefdp.exe
+invoice⁠fdp.exe | invoicefdp.exe
+invoice⁦fdp.exe | invoicefdp.exe
+invoice⁩fdp.exe | invoicefdp.exe
+invoice﻿fdp.exe | invoicefdp.exe
+‮‪ | (rejected)

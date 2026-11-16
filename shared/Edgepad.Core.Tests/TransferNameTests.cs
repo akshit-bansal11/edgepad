@@ -27,6 +27,14 @@ public sealed class TransferNameTests
     }
 
     [Fact]
+    public void BidiOverridesAndZeroWidthCharactersAreDropped()
+    {
+        Assert.Equal("invoicefdp.exe", SafeFileName.Clean("invoice\u202Efdp.exe"));
+        Assert.Equal("ab.txt", SafeFileName.Clean("a\u200Bb\uFEFF.txt"));
+        Assert.Null(SafeFileName.Clean("\u202E\u2066"));
+    }
+
+    [Fact]
     public void ACutNeverSplitsACodePointAndKeepsTheExtension()
     {
         var name = SafeFileName.Clean(new string('é', 100) + ".pdf");
