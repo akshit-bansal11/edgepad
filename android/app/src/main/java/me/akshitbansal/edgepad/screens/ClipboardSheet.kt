@@ -29,7 +29,8 @@ internal fun clipPreview(text: String): String {
 
 /**
  * The laptop's recent copies as a modal over the surface: same card and window as [BatterySheet], growing from
- * [show]'s owner. A tap on a row runs [onSend] with the full text and closes the sheet. The text is shown, never logged.
+ * [show]'s owner. A tap on a row runs [onSend] with the full text and closes the sheet.
+ * The text is shown, never logged.
  */
 class ClipboardSheet(
     private val ui: Ui,
