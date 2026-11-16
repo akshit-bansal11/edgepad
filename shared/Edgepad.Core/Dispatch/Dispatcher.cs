@@ -50,6 +50,12 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     public Action<bool>? MacroWatch { get; set; }
 
     /// <summary>
+    /// Told when the phone starts (true) and stops (false) hearing which app is in front. Set by the session on a laptop that can say,
+    /// like <see cref="MacroWatch"/>; without one, SET FOREGROUND_WATCH is dropped and counted.
+    /// </summary>
+    public Action<bool>? ForegroundWatch { get; set; }
+
+    /// <summary>
     /// Shares the clipboard when the phone asks for that. Set by the session, like <see cref="Capture"/>; without one,
     /// SET CLIPBOARD and the blob frames are dropped and counted.
     /// </summary>
@@ -288,6 +294,7 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     {
         ControlId.CaptureTarget => Capture?.SetTarget(percent) ?? false,
         ControlId.Clipboard => Clipboard?.SetShared(percent) ?? false,
+        ControlId.ForegroundWatch => ForegroundWatch is { } watch && percent <= 1 && Do(() => watch(percent == 1)),
         var id => Enum.IsDefined(id) && platform.Set(id, percent),
     };
 

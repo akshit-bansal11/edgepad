@@ -65,6 +65,7 @@ public sealed partial class IdsFixtureTests
             ["RUNNING"] = Feature.Running,
             ["END_ACTION"] = Feature.EndAction,
             ["NOTIFY"] = Feature.Notify,
+            ["FOREGROUND"] = Feature.Foreground,
         };
 
         Assert.Equal(expected, actual);

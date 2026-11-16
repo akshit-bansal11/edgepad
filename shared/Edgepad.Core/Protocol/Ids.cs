@@ -56,6 +56,12 @@ internal enum ActionId : byte
     SignSave = 51,
 
     /// <summary>
+    /// The laser tool: the next <see cref="Pen"/> stroke is a dot that follows the finger and leaves nothing behind. Like the
+    /// other tools, offered by the phone only for a laptop that sent <see cref="Feature.Annotate"/>.
+    /// </summary>
+    ToolLaser = 37,
+
+    /// <summary>
     /// Screen capture, which is this laptop's own tool: a region (a drag), the whole screen, and a recording.
     /// Actions because the phone only asks; what each one presses is decided here. A laptop too old to know
     /// them drops and counts the ids, and the phone shows the buttons only for one that sent
@@ -204,6 +210,13 @@ internal enum TextKind : byte
     /// <summary>Laptop to phone: the audio output, "kind/name" split on the first "/", kind an <see cref="OutputKind"/> token. Empty means none known.</summary>
     Output = 20,
 
+    /// <summary>
+    /// Laptop to phone: the app in front, "token/name" split on the first "/", token 1 to 64 of A-Z a-z 0-9 . _ - and name cut to
+    /// 40 code points. Empty means nothing known. Sent only after <see cref="ControlId.ForegroundWatch"/> is 1, on change, and
+    /// never logged.
+    /// </summary>
+    ForegroundApp = 21,
+
     /// <summary>Laptop to phone: how many macro slots this laptop keeps, in decimal such as "15". Empty or never sent means the phone's own default.</summary>
     MacroCap = 22,
 
@@ -308,6 +321,9 @@ internal static class Feature
 
     /// <summary>This laptop can forward its notifications once <see cref="ControlId.Notify"/> is 1.</summary>
     public const string Notify = "notify";
+
+    /// <summary>This laptop can say which app is in front, in <see cref="TextKind.ForegroundApp"/>, once <see cref="ControlId.ForegroundWatch"/> is 1.</summary>
+    public const string Foreground = "foreground";
 }
 
 /// <summary>What a SET_VALUE frame may set and a STATE frame reports. Mirrors protocol/actions.txt.</summary>
@@ -354,6 +370,9 @@ internal enum ControlId : byte
 
     /// <summary>Whether this link forwards the laptop's notifications, 1 or 0, phone to laptop. Forgotten when the session ends. Anything else is dropped and counted.</summary>
     Notify = 10,
+
+    /// <summary>Whether this link hears which app is in front, 1 or 0, phone to laptop. Forgotten when the session ends. Anything else is dropped and counted.</summary>
+    ForegroundWatch = 11,
 }
 
 /// <summary>

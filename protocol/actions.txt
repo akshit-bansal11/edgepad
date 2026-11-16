@@ -42,6 +42,9 @@ ACTION 34 BRIGHTNESS_DOWN
 # never receives. The laptop decides whether it can honour the request and answers with TEXT 8.
 ACTION 35 PAD_ATTACH
 ACTION 36 PAD_DETACH
+# The laser tool: the next PEN stroke is a dot that follows the finger and leaves nothing behind. The phone offers it only
+# for a laptop that sent FEATURES "annotate"; a laptop too old to know the id drops and counts it.
+ACTION 37 TOOL_LASER
 # Annotating the screen and signing, which the laptop draws and the phone only steers. BEGIN shows the laptop's
 # overlay and END removes it (and discards the strokes); UNDO and CLEAR edit the strokes; the six TOOL ids pick
 # what the next PEN stroke draws. SIGN_BEGIN opens a signing pad that shows nothing on the laptop and accepts
@@ -117,6 +120,9 @@ CONTROL 9 PEN_OPACITY
 # Whether this link forwards the laptop's notifications: 1 yes, 0 no, phone to laptop. Forgotten when the session ends.
 # Any other value is dropped and counted. The phone offers it only for a laptop that sent FEATURES "notify".
 CONTROL 10 NOTIFY
+# Whether this link hears which app is in front (TEXT 21): 1 yes, 0 no, phone to laptop. Forgotten when the session ends.
+# Any other value is dropped and counted. The phone offers it only for a laptop that sent FEATURES "foreground".
+CONTROL 11 FOREGROUND_WATCH
 
 TEXT 0 NOW_PLAYING
 TEXT 1 APP
@@ -186,8 +192,12 @@ TEXT 19 BATTERIES
 # BATTERIES and cut to 40 code points. Empty means no output known. Sent after the handshake and on a default-device change,
 # not re-sent when identical.
 TEXT 20 OUTPUT
+# Laptop to phone: the app in front, "<token>/<name>" split on the first "/". Token 1 to 64 of A-Z a-z 0-9 . _ -  (Windows: the
+# lower-cased exe file name; Linux X11: the lower-cased WM_CLASS class; Mac: the bundle id). Name: control characters and "|" turned
+# to a space, trimmed, cut to 40 code points. Empty means nothing known. Sent only after CONTROL 11 is 1, on change, never logged.
+TEXT 21 FOREGROUND_APP
 # Laptop to phone: how many macro slots the laptop keeps, decimal ASCII such as "15". Empty or never sent means the phone's
-# own default. (TEXT 21 is reserved.)
+# own default.
 TEXT 22 MACRO_CAP
 # Laptop to phone: a CAPTURE_STATE_TOKEN, "idle" or "recording". Best effort: a laptop that cannot tell sends nothing.
 TEXT 23 CAPTURE_STATE
@@ -243,6 +253,8 @@ FEATURE running RUNNING
 FEATURE endaction END_ACTION
 # The laptop can forward its notifications once CONTROL 10 is 1.
 FEATURE notify NOTIFY
+# The laptop can say which app is in front, in TEXT 21, once CONTROL 11 is 1.
+FEATURE foreground FOREGROUND
 
 # The whole vocabulary of TEXT kind 13's second field, as "<token on the wire> <the name both apps call it>". The phone
 # uses it only to word hints that differ by OS; an unknown token reads as no OS known.

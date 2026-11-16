@@ -629,4 +629,32 @@ public sealed class DispatcherTests : IDisposable
             return Answer;
         }
     }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void TheForegroundWatchReachesTheSession(int value)
+    {
+        List<bool> seen = [];
+        dispatcher.ForegroundWatch = seen.Add;
+
+        dispatcher.Handle(new SetValue((byte)ControlId.ForegroundWatch, (byte)value));
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal([value == 1], seen);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void AForegroundWatchAboveOneOrWithNoSourceIsDropped()
+    {
+        List<bool> seen = [];
+        dispatcher.Handle(new SetValue((byte)ControlId.ForegroundWatch, 1));
+        dispatcher.ForegroundWatch = seen.Add;
+        dispatcher.Handle(new SetValue((byte)ControlId.ForegroundWatch, 2));
+
+        Assert.Equal(2, dispatcher.Dropped);
+        Assert.Empty(seen);
+        Assert.Empty(platform.Calls);
+    }
 }

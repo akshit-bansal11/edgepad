@@ -142,6 +142,11 @@ SET 8 20 = 21 08 14
 SET 8 100 = 21 08 64
 SET 9 35 = 21 09 23
 SET 9 100 = 21 09 64
+# CONTROL 11 FOREGROUND_WATCH, phone to laptop: 1 the phone hears the app in front, 0 it does not.
+SET 11 1 = 21 0b 01
+SET 11 0 = 21 0b 00
+# TEXT 21 FOREGROUND_APP, laptop to phone: "chrome.exe/Chrome" is 17 bytes = 0x11.
+TEXT 21 chrome.exe/Chrome = 41 15 11 63 68 72 6f 6d 65 2e 65 78 65 2f 43 68 72 6f 6d 65
 TEXT 17 FF3B30 = 41 11 06 46 46 33 42 33 30
 # ACTION 56 APPS_LIST and ACTION 57 APPS_CANCEL, phone to laptop.
 ACTION 56 = 20 38
