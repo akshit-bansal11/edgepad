@@ -460,7 +460,7 @@ class PickerScreen(
         refresh
             .animate()
             .rotationBy(FULL_TURN)
-            .setDuration(Motion.BASE)
+            .setDuration(Motion.PRESS)
             .withEndAction { refresh.rotation = 0f }
             .start()
         onRefresh()

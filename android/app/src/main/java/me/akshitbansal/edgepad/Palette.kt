@@ -123,13 +123,14 @@ object Type {
 }
 
 /**
- * The motion durations, in ms, none over 300. Every animator that is not an ambient loop takes one of these;
- * the platform animator duration scale already zeroes them when the user turns animations off.
+ * The motion durations, in ms, none over 400: press, reveal, scene (UX-27, DES-D07). Every animator that is not an
+ * ambient loop takes one of these; the platform animator duration scale already zeroes them when the user turns
+ * animations off.
  */
 object Motion {
-    const val FAST = 150L
-    const val BASE = 200L
-    const val SLOW = 300L
+    const val PRESS = 160L
+    const val REVEAL = 300L
+    const val SCENE = 400L
 }
 
 /** The spacing scale, in dp. */

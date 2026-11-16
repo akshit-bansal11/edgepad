@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.LinearLayout
 import android.widget.Toast
+import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
@@ -29,9 +30,6 @@ private const val MAX_WIDTH_DP = 360f
 
 /** The tag of the "Send a file" tile, past every [ControlsPopup.Target] ordinal. */
 private const val SEND_TAG = 1000
-
-/** UX-27: a reveal that grows from its control takes at most 300 ms. */
-private const val REVEAL_MS = 200L
 
 /** AND-A-29: how many openings say that a tile can be held and moved. */
 private const val HINT_TIMES = 3
@@ -197,7 +195,7 @@ class ControlsPopup(
 
     /**
      * AU4: one row that opens two choices, or, while the laptop has one armed, the line saying so and Cancel. The
-     * choices are plain text buttons, so nothing here is told by colour alone. They fade in over [REVEAL_MS] from
+     * choices are plain text buttons, so nothing here is told by colour alone. They fade in over [Motion.REVEAL] from
      * the row; the tiles above stay instant.
      */
     private fun drawEnd() {
@@ -235,7 +233,7 @@ class ControlsPopup(
             choices
                 .animate()
                 .alpha(1f)
-                .setDuration(REVEAL_MS)
+                .setDuration(Motion.REVEAL)
                 .start()
         }
     }

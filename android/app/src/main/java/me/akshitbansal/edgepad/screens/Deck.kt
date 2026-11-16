@@ -567,7 +567,7 @@ class Deck(
             .scaleX(LIFT_SCALE)
             .scaleY(LIFT_SCALE)
             .translationZ(raised)
-            .setDuration(Motion.FAST)
+            .setDuration(Motion.PRESS)
             .setInterpolator(easeOut)
         // The page scrolls; a held tile dragged up or down must move the tile, not the page.
         holder.parent?.requestDisallowInterceptTouchEvent(true)
@@ -624,7 +624,7 @@ class Deck(
             .scaleX(1f)
             .scaleY(1f)
             .translationZ(0f)
-            .setDuration(Motion.BASE)
+            .setDuration(Motion.PRESS)
             .setInterpolator(easeOut)
             .withEndAction {
                 view.background = null
@@ -667,7 +667,7 @@ class Deck(
                 .animate()
                 .translationX((held.lefts[places[at]] - held.lefts[at]).toFloat())
                 .translationY((held.tops[places[at]] - held.tops[at]).toFloat())
-                .setDuration(Motion.BASE)
+                .setDuration(Motion.PRESS)
                 .setInterpolator(easeOut)
         }
     }
@@ -692,7 +692,7 @@ class Deck(
             .scaleX(1f)
             .scaleY(1f)
             .translationZ(0f)
-            .setDuration(Motion.BASE)
+            .setDuration(Motion.PRESS)
             .setInterpolator(easeOut)
             .withEndAction {
                 view.background = null

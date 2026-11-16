@@ -534,7 +534,7 @@ class Ui(
                 fill
                     .animate()
                     .translationX(x)
-                    .setDuration(Motion.BASE)
+                    .setDuration(Motion.PRESS)
                     .start()
             } else {
                 fill.animate().cancel()
