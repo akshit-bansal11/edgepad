@@ -332,6 +332,30 @@ public sealed class TransferTests : IDisposable
     }
 
     [Fact]
+    public void TheFileIsMarkedWhileStillAPartBeforeItEntersTheDestination()
+    {
+        receiver.Dispose();
+        var seen = new List<(string Path, bool InPartial, bool InDestination)>();
+        receiver = new TransferReceiver(
+            Destination,
+            Partial,
+            status =>
+            {
+                replies.Add(status);
+                sender.Take(status);
+            },
+            arrived.Add,
+            _ => Plenty,
+            () => clockAt,
+            part => seen.Add((part, File.Exists(part), File.Exists(Path.Combine(Destination, "mark.bin")))));
+
+        Assert.Equal(XferCode.Saved, Send(Source("mark.bin", [1, 2, 3])));
+
+        Assert.Equal([(Path.Combine(Partial, "mark.bin.3.part"), true, false)], seen);
+        Assert.True(File.Exists(Path.Combine(Destination, "mark.bin")));
+    }
+
+    [Fact]
     public void ALostChunkIsResentFromWhatTheReceiverHolds()
     {
         var data = RandomNumberGenerator.GetBytes(8 * FrameCodec.MaxXferChunkBytes);

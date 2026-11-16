@@ -307,12 +307,6 @@ internal sealed class Session(
         (bulk is { bulkLive: true } ? bulk.frames : frames).Send(frame);
     }
 
-    private void FileArrived(string path)
-    {
-        WindowsTransfers.MarkFromWeb(path);
-        onFileArrived(path);
-    }
-
     private void ReportState()
     {
         // The same id the link's INFO reply gives, so a phone sees one laptop over Bluetooth and Wi-Fi.
@@ -369,7 +363,7 @@ internal sealed class Session(
 
         // Files, both ways, one at a time each. A part is kept when the session ends, for the next BEGIN of the same file.
         var incoming = new TransferReceiver(
-            WindowsTransfers.Destination(), WindowsTransfers.PartialFolder(), status => Guarded(() => SendTransfer(status)), FileArrived);
+            WindowsTransfers.Destination(), WindowsTransfers.PartialFolder(), status => Guarded(() => SendTransfer(status)), onFileArrived, beforeSave: WindowsTransfers.MarkFromWeb);
         Keep(incoming);
         dispatcher.Transfers = incoming;
         receiver = incoming;

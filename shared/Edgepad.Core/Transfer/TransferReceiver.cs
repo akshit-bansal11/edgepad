@@ -12,7 +12,8 @@ namespace Edgepad.Transfer;
 /// and a begin for the same name and size resumes it; parts older than <see cref="TransferLimits.PartialKept"/> go when this
 /// is created. Called on the session's read thread; <see cref="Cancel"/> may come from any other.
 /// <para>
-/// Marking the file (Mark of the Web, the quarantine attribute) is the platform's, in <c>arrived</c>.
+/// Marking the file (Mark of the Web, the quarantine attribute) is the platform's, in <c>beforeSave</c>, which gets the part before
+/// it is moved into <c>destination</c>: a file there is never seen unmarked.
 /// </para>
 /// </summary>
 internal sealed class TransferReceiver : IDisposable
@@ -24,6 +25,7 @@ internal sealed class TransferReceiver : IDisposable
     private readonly Action<string>? arrived;
     private readonly Func<string, long> freeSpace;
     private readonly Func<DateTimeOffset> clock;
+    private readonly Action<string>? beforeSave;
     private Active? active;
 
     public TransferReceiver(
@@ -32,13 +34,15 @@ internal sealed class TransferReceiver : IDisposable
         Action<XferStatus> reply,
         Action<string>? arrived = null,
         Func<string, long>? freeSpace = null,
-        Func<DateTimeOffset>? now = null)
+        Func<DateTimeOffset>? now = null,
+        Action<string>? beforeSave = null)
     {
         this.destination = destination;
         this.partialFolder = partialFolder;
         this.reply = reply;
         this.arrived = arrived;
         this.freeSpace = freeSpace ?? FreeSpaceOf;
+        this.beforeSave = beforeSave;
         clock = now ?? (() => DateTimeOffset.UtcNow);
         Purge(clock());
     }
@@ -309,6 +313,7 @@ internal sealed class TransferReceiver : IDisposable
         {
             a.File.Flush(flushToDisk: true);
             a.File.Dispose();
+            beforeSave?.Invoke(a.PartPath);
             while (finalPath is null)
             {
                 var candidate = Path.Combine(destination, SafeFileName.Unique(a.Name, n => File.Exists(Path.Combine(destination, n))));
