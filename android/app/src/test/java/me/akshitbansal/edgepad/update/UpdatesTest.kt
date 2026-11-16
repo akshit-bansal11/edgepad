@@ -72,4 +72,12 @@ class UpdatesTest {
     fun aReleasePageIsTheTagPage() {
         assertEquals("https://github.com/akshit-bansal11/edgepad/releases/tag/v4.3.0", Updates.releaseUrl("4.3.0"))
     }
+
+    @Test
+    fun aFailureStandsOnlyWhileANewerReleaseIsThere() {
+        assertTrue(Updates.failureStands("4.3.0", "4.2.1", -1))
+        assertFalse(Updates.failureStands("4.3.0", "4.3.0", -1))
+        assertFalse(Updates.failureStands("4.2.0", "4.3.0", 3))
+        assertFalse(Updates.failureStands("4.3.0", "4.2.1", 0))
+    }
 }

@@ -1,5 +1,8 @@
 package me.akshitbansal.edgepad.update
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -155,7 +158,10 @@ object Installer {
         ) {
             when (val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)) {
                 PackageInstaller.STATUS_PENDING_USER_ACTION -> {
-                    confirmation(intent)?.let { context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                    confirmation(intent)?.let {
+                        context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        offer(context, it)
+                    }
                 }
 
                 // Success replaces the app before anything could be shown, and a cancelled question is the
@@ -174,6 +180,40 @@ object Installer {
             }
         }
 
+        /**
+         * The same question as a notification as well. A start from a receiver can be swallowed by the background
+         * start limits with nothing said; whether it is on a given Android cannot be told from here, so the tap is
+         * always offered too.
+         */
+        private fun offer(
+            context: Context,
+            confirm: Intent,
+        ) {
+            val notifications = context.getSystemService(NotificationManager::class.java) ?: return
+            if (!notifications.areNotificationsEnabled()) return
+            val name = context.getString(R.string.updates_title)
+            notifications.createNotificationChannel(
+                NotificationChannel(CHANNEL, name, NotificationManager.IMPORTANCE_DEFAULT),
+            )
+            val open =
+                PendingIntent.getActivity(
+                    context,
+                    0,
+                    confirm,
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                )
+            val notice =
+                Notification
+                    .Builder(context, CHANNEL)
+                    .setSmallIcon(R.drawable.ic_laptop)
+                    .setContentTitle(name)
+                    .setContentText(context.getString(R.string.updates_notice_text))
+                    .setContentIntent(open)
+                    .setAutoCancel(true)
+                    .build()
+            notifications.notify(NOTICE_ID, notice)
+        }
+
         /** The system's own "update this app?" screen, which it hands over when it wants the user asked. */
         private fun confirmation(intent: Intent): Intent? =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -183,5 +223,12 @@ object Installer {
                 @Suppress("DEPRECATION")
                 intent.getParcelableExtra(Intent.EXTRA_INTENT)
             }
+
+        private companion object {
+            const val CHANNEL = "update"
+
+            /** Apart from LinkService's notification, which is 1. */
+            const val NOTICE_ID = 2
+        }
     }
 }

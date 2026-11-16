@@ -130,6 +130,7 @@ import me.akshitbansal.edgepad.surface.BackgroundImage
 import me.akshitbansal.edgepad.surface.ConnectedLaptops
 import me.akshitbansal.edgepad.surface.ControlSurface
 import me.akshitbansal.edgepad.update.Installer
+import me.akshitbansal.edgepad.update.UpdateJob
 import me.akshitbansal.edgepad.update.Updates
 import java.io.File
 import java.io.IOException
@@ -304,9 +305,6 @@ class MainActivity :
     private var checkingUpdate = false
     private var updateCheckFailed = false
 
-    /** How much of an update has been downloaded, as a percentage; null when none is being downloaded. */
-    private var updateProgress: Int? = null
-
     /** The Updates row's summary while Settings is showing, rewritten in place as a check finishes. */
     private var updateSummaryView: TextView? = null
 
@@ -477,6 +475,9 @@ class MainActivity :
         }
         if (screen != Screen.ONBOARDING && settings.reconnect) connectSaved()
         if (screen == Screen.RECONNECTING) handler.post(ticker)
+        // A download begun by an activity a rotation replaced reports here now.
+        UpdateJob.onChange = ::updateChanged
+        settleUpdateFailure()
         refreshPicker()
         startScan()
         checkForUpdateIfDue()
@@ -492,6 +493,7 @@ class MainActivity :
     override fun onStop() {
         super.onStop()
         started = false
+        UpdateJob.onChange = null
         clipboard.bridge.stop()
         releaseHeldInput()
         // The laptop drops its overlay when told; a rotation rebuild begins a fresh session in onCreate.
@@ -1471,6 +1473,7 @@ class MainActivity :
             runOnUiThread {
                 checkingUpdate = false
                 updateCheckFailed = latest == null
+                settleUpdateFailure()
                 updateChanged()
             }
         }
@@ -1488,9 +1491,10 @@ class MainActivity :
     private fun justUpdated(): Boolean = settings.seenVersion != getString(R.string.app_version)
 
     /** What the Updates row says. Empty until GitHub has answered once, because nothing is known before that. */
-    private fun updateSummary(): String =
-        when {
-            updateProgress != null -> getString(R.string.updates_downloading, updateProgress)
+    private fun updateSummary(): String {
+        val progress = UpdateJob.progress
+        return when {
+            progress != null -> getString(R.string.updates_downloading, progress)
             checkingUpdate -> getString(R.string.updates_checking)
             settings.updateFailure != 0 -> getString(R.string.updates_problem)
             updateCheckFailed -> getString(R.string.updates_failed)
@@ -1499,6 +1503,15 @@ class MainActivity :
             settings.lastUpdateCheck == 0L -> ""
             else -> getString(R.string.updates_current)
         }
+    }
+
+    /** A kept failure with no newer release left to install, as after an update by hand, is cleared. */
+    private fun settleUpdateFailure() {
+        val failure = settings.updateFailure
+        if (failure != 0 && !Updates.failureStands(settings.latestVersion, getString(R.string.app_version), failure)) {
+            settings.updateFailure = 0
+        }
+    }
 
     /**
      * The Updates row, and the notice on Devices: a problem with the last update is explained, a newer release is
@@ -1506,7 +1519,7 @@ class MainActivity :
      */
     private fun openUpdate() {
         when {
-            updateProgress != null -> Unit
+            UpdateJob.progress != null -> Unit
             settings.updateFailure != 0 -> explainUpdateFailure()
             updateAvailable() -> confirmUpdate(settings.latestVersion)
             else -> checkForUpdate()
@@ -1579,25 +1592,25 @@ class MainActivity :
      * reported by [Installer.StatusReceiver], so there is nothing more for the row to wait on.
      */
     private fun installUpdate(version: String) {
-        updateProgress = 0
+        // One download per process: a second tap, or the same tap after a rotation, finds this one running.
+        if (!UpdateJob.begin()) return
         settings.updateFailure = 0
         updateChanged()
+        // Nothing below holds this activity: a rotation mid-download leaves it to whichever one is on screen.
+        val app = applicationContext
+        val main = Handler(Looper.getMainLooper())
         thread(name = "edgepad-update") {
             val handed =
-                Installer.install(applicationContext, version) { percent ->
-                    runOnUiThread {
-                        updateProgress = percent
-                        updateChanged()
-                    }
+                Installer.install(app, version) { percent ->
+                    UpdateJob.progress = percent
+                    main.post { UpdateJob.onChange?.invoke() }
                 }
-            runOnUiThread {
-                updateProgress = null
-                // Kept on the row after the Toast is gone: a refusal from the system is kept the same way.
-                if (!handed) settings.updateFailure = Installer.DOWNLOAD_FAILED
-                updateChanged()
-                if (!handed && !isDestroyed) {
-                    Toast.makeText(this, R.string.updates_download_failed, Toast.LENGTH_LONG).show()
-                }
+            // Kept on the row after the Toast is gone: a refusal from the system is kept the same way.
+            if (!handed) Settings(app).updateFailure = Installer.DOWNLOAD_FAILED
+            UpdateJob.finish()
+            main.post {
+                UpdateJob.onChange?.invoke()
+                if (!handed) Toast.makeText(app, R.string.updates_download_failed, Toast.LENGTH_LONG).show()
             }
         }
     }
