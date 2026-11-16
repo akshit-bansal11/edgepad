@@ -41,6 +41,20 @@ object FrameCodec {
     private const val BLOB_BEGIN = 0x54
     private const val BLOB_CHUNK = 0x55
     private const val BLOB_END = 0x56
+    private const val BULK_HELLO = 0x05
+    private const val XFER_BEGIN = 0x57
+    private const val XFER_CHUNK = 0x58
+    private const val XFER_END = 0x59
+    private const val XFER_STATUS = 0x5A
+
+    /** XFER_BEGIN's size and XFER_CHUNK's offset: a u64, ahead of the name or the data in the length-prefixed part. */
+    private const val XFER_NUMBER_BYTES = 8
+
+    /** The most of a name one XFER_BEGIN carries: what is left of the 255 bytes after the size. */
+    const val MAX_XFER_NAME_BYTES = MAX_TEXT_BYTES - XFER_NUMBER_BYTES
+
+    /** The most one XFER_CHUNK carries: what is left of the 255 bytes after the offset. */
+    const val MAX_XFER_CHUNK_BYTES = MAX_TEXT_BYTES - XFER_NUMBER_BYTES
 
     /** FILE_BEGIN's size field, ahead of the name in the length-prefixed part. */
     private const val FILE_SIZE_BYTES = 4
@@ -69,8 +83,10 @@ object FrameCodec {
      */
     fun payloadLength(type: Int): Int =
         when (type) {
-            HELLO -> 5
+            HELLO, BULK_HELLO -> 5
             HELLO_ACK, RUN_ACTION, FILE_RESULT -> 1
+            XFER_END -> 1 + SHA256_BYTES
+            XFER_STATUS -> 2 + XFER_NUMBER_BYTES
             PIN_REQUEST -> 3
             PEN -> 5
             PIN_ANSWER -> Pin.LENGTH
@@ -80,7 +96,7 @@ object FrameCodec {
             PING, PONG -> 8
             PAD_STATE -> 12
             FILE_END, BLOB_END -> SHA256_BYTES
-            TEXT, FILE_BEGIN, FILE_CHUNK, BLOB_BEGIN, BLOB_CHUNK -> LENGTH_PREFIXED
+            TEXT, FILE_BEGIN, FILE_CHUNK, BLOB_BEGIN, BLOB_CHUNK, XFER_BEGIN, XFER_CHUNK -> LENGTH_PREFIXED
             else -> -1
         }
 
@@ -241,6 +257,46 @@ object FrameCodec {
                 b.type(BLOB_END).put(frame.sha256)
             }
 
+            is Frame.BulkHello -> {
+                b.type(BULK_HELLO).put(magicBytes).u8(frame.version)
+            }
+
+            // TEXT's header again: the id, then one length byte counting the u64 and the name together.
+            is Frame.XferBegin -> {
+                val name = truncate(frame.name, MAX_XFER_NAME_BYTES).toByteArray(Charsets.UTF_8)
+                b
+                    .type(XFER_BEGIN)
+                    .xferId(frame.id)
+                    .u8(XFER_NUMBER_BYTES + name.size)
+                    .putLong(frame.size.toLong())
+                    .put(name)
+            }
+
+            is Frame.XferChunk -> {
+                require(frame.data.size in 1..MAX_XFER_CHUNK_BYTES) {
+                    "A transfer chunk is 1 to $MAX_XFER_CHUNK_BYTES bytes"
+                }
+                b
+                    .type(XFER_CHUNK)
+                    .xferId(frame.id)
+                    .u8(XFER_NUMBER_BYTES + frame.data.size)
+                    .putLong(frame.offset.toLong())
+                    .put(frame.data)
+            }
+
+            is Frame.XferEnd -> {
+                require(frame.sha256.size == SHA256_BYTES) { "A SHA-256 is $SHA256_BYTES bytes" }
+                b.type(XFER_END).xferId(frame.id).put(frame.sha256)
+            }
+
+            is Frame.XferStatus -> {
+                b
+                    .type(XFER_STATUS)
+                    .xferId(frame.id)
+                    .u8(frame.status)
+                    .putLong(frame.offset.toLong())
+            }
+
             // Each digit goes out as its value 0..9, not its ASCII code, so these bytes can never be read as text.
             is Frame.PinAnswer -> {
                 b.type(PIN_ANSWER)
@@ -265,7 +321,10 @@ object FrameCodec {
         }
         val b = ByteBuffer.wrap(payload).order(ByteOrder.LITTLE_ENDIAN)
         return when (type) {
-            HELLO -> decodeHello(b)
+            HELLO -> Frame.Hello(decodeMagicAndVersion(b))
+            BULK_HELLO -> Frame.BulkHello(decodeMagicAndVersion(b))
+            XFER_END -> Frame.XferEnd(xferId(b.u8()), payload.copyOfRange(1, payload.size))
+            XFER_STATUS -> Frame.XferStatus(xferId(b.u8()), b.u8(), b.long.toULong())
             HELLO_ACK -> Frame.HelloAck(b.u8())
             MOVE -> Frame.Move(b.short.toInt(), b.short.toInt())
             BUTTON -> Frame.PointerButton(b.u8(), flag(b.u8()))
@@ -341,6 +400,8 @@ object FrameCodec {
             FILE_CHUNK -> Frame.FileChunk(id, payload.copyOfRange(TEXT_HEADER_LENGTH, payload.size))
             BLOB_BEGIN -> decodeBlobBegin(id, payload)
             BLOB_CHUNK -> Frame.BlobChunk(id, payload.copyOfRange(TEXT_HEADER_LENGTH, payload.size))
+            XFER_BEGIN -> decodeXferBegin(xferId(id), payload)
+            XFER_CHUNK -> decodeXferChunk(xferId(id), payload)
             else -> Frame.Text(id, utf8(payload, TEXT_HEADER_LENGTH))
         }
     }
@@ -367,6 +428,37 @@ object FrameCodec {
         }
         val size = ByteBuffer.wrap(payload, TEXT_HEADER_LENGTH, FILE_SIZE_BYTES).order(ByteOrder.LITTLE_ENDIAN).int
         return Frame.BlobBegin(kind, size.toLong() and MAX_U32, utf8(payload, TEXT_HEADER_LENGTH + FILE_SIZE_BYTES))
+    }
+
+    /** The u64 size, then the name. Shorter than the size is malformed. */
+    private fun decodeXferBegin(
+        id: Int,
+        payload: ByteArray,
+    ): Frame.XferBegin {
+        if (payload.size < TEXT_HEADER_LENGTH + XFER_NUMBER_BYTES) {
+            throw StreamCorruptedException("XFER_BEGIN is too short to hold a size")
+        }
+        val size = ByteBuffer.wrap(payload, TEXT_HEADER_LENGTH, XFER_NUMBER_BYTES).order(ByteOrder.LITTLE_ENDIAN).long
+        return Frame.XferBegin(id, size.toULong(), utf8(payload, TEXT_HEADER_LENGTH + XFER_NUMBER_BYTES))
+    }
+
+    /** The u64 offset, then at least one byte of data. */
+    private fun decodeXferChunk(
+        id: Int,
+        payload: ByteArray,
+    ): Frame.XferChunk {
+        if (payload.size <= TEXT_HEADER_LENGTH + XFER_NUMBER_BYTES) {
+            throw StreamCorruptedException("XFER_CHUNK is too short to hold an offset and a byte")
+        }
+        val offset = ByteBuffer.wrap(payload, TEXT_HEADER_LENGTH, XFER_NUMBER_BYTES).order(ByteOrder.LITTLE_ENDIAN).long
+        val data = payload.copyOfRange(TEXT_HEADER_LENGTH + XFER_NUMBER_BYTES, payload.size)
+        return Frame.XferChunk(id, offset.toULong(), data)
+    }
+
+    /** Id 0 is a protocol error on every transfer frame: it closes the link, as a bad length does. */
+    private fun xferId(id: Int): Int {
+        if (id == 0) throw StreamCorruptedException("A transfer id is 1 to 255, never 0")
+        return id
     }
 
     private fun utf8(
@@ -400,12 +492,13 @@ object FrameCodec {
         return Frame.PinAnswer(Pin(digits.toString()))
     }
 
-    private fun decodeHello(b: ByteBuffer): Frame.Hello {
+    /** HELLO's and BULK_HELLO's shared body: the magic, then the version it carries. */
+    private fun decodeMagicAndVersion(b: ByteBuffer): Int {
         val magic = ByteArray(magicBytes.size).also { b.get(it) }
         if (!magic.contentEquals(magicBytes)) {
             throw StreamCorruptedException("HELLO without the Edgepad magic")
         }
-        return Frame.Hello(b.u8())
+        return b.u8()
     }
 
     private fun flag(value: Int): Boolean =
@@ -419,6 +512,11 @@ object FrameCodec {
 
     private fun ByteBuffer.u8(value: Int): ByteBuffer {
         require(value in 0..0xFF) { "u8 out of range: $value" }
+        return put(value.toByte())
+    }
+
+    private fun ByteBuffer.xferId(value: Int): ByteBuffer {
+        require(value in 1..0xFF) { "A transfer id is 1 to 255, got $value" }
         return put(value.toByte())
     }
 

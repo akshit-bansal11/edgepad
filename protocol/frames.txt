@@ -1,4 +1,4 @@
-# Golden frames for Edgepad protocol v5.
+# Golden frames for Edgepad protocol v6.
 #
 # Both test suites (android/ in Kotlin, windows/ in C#) read this file. For every
 # line they encode the fields and must get exactly these bytes, then decode the
@@ -15,6 +15,7 @@ HELLO 2 = 01 45 44 47 50 02
 HELLO 3 = 01 45 44 47 50 03
 HELLO 4 = 01 45 44 47 50 04
 HELLO 5 = 01 45 44 47 50 05
+HELLO 6 = 01 45 44 47 50 06
 TEXT 3 hi = 41 03 02 68 69
 HELLO_ACK 1 = 02 01
 MOVE 5 -3 = 10 05 00 fd ff
@@ -185,3 +186,21 @@ ACTION 60 = 20 3c
 ACTION 62 = 20 3e
 # SET_VALUE 10 NOTIFY on.
 SET 10 1 = 21 0a 01
+# Protocol 6: the second socket of a transfer, and its frames. All numbers little-endian.
+# BULK_HELLO version, HELLO's shape under type 0x05.
+BULK_HELLO 6 = 05 45 44 47 50 06
+BULK_HELLO 255 = 05 45 44 47 50 ff
+# XFER_BEGIN id size name: the id, a length counting the u64 size and the name, then both. 8 + 5 = 13 = 0x0d.
+XFER_BEGIN 1 1234 a.bin = 57 01 0d d2 04 00 00 00 00 00 00 61 2e 62 69 6e
+# The field maxima: size 2^64-1, and a name of 247 bytes, so the length is 255 = 0xff.
+XFER_BEGIN 255 18446744073709551615 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = 57 ff ff ff ff ff ff ff ff ff ff 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78
+# XFER_CHUNK id offset data: the id, a length counting the u64 offset and the data, then both. 8 + 5 = 13 = 0x0d.
+XFER_CHUNK 1 0 68656c6c6f = 58 01 0d 00 00 00 00 00 00 00 00 68 65 6c 6c 6f
+# The field maxima: offset 2^63, and 247 bytes of data, so the length is 255 = 0xff.
+XFER_CHUNK 255 9223372036854775808 a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5 = 58 ff ff 00 00 00 00 00 00 00 80 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5
+# XFER_END id sha256: the SHA-256 of "hello", then of nothing.
+XFER_END 1 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 = 59 01 2c f2 4d ba 5f b0 a3 0e 26 e8 3b 2a c5 b9 e2 9e 1b 16 1e 5c 1f a7 42 5e 73 04 33 62 93 8b 98 24
+XFER_END 255 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 = 59 ff e3 b0 c4 42 98 fc 1c 14 9a fb f4 c8 99 6f b9 24 27 ae 41 e4 64 9b 93 4c a4 95 99 1b 78 52 b8 55
+# XFER_STATUS id status offset: 1 PROGRESS at 4096 = 0x1000, then 7 BUSY at 2^64-1.
+XFER_STATUS 1 1 4096 = 5a 01 01 00 10 00 00 00 00 00 00
+XFER_STATUS 255 7 18446744073709551615 = 5a ff 07 ff ff ff ff ff ff ff ff

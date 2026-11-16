@@ -130,6 +130,14 @@ public sealed class HandshakeTests : IDisposable
     }
 
     [Fact]
+    public void ABulkHelloDecodesWithItsVersion()
+    {
+        var bytes = FrameCodec.Encode(new BulkHello(ProtocolConstants.Version));
+        Assert.Equal(new BulkHello(ProtocolConstants.Version), FrameCodec.Decode(bytes[0], bytes.AsSpan(1)));
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x05, [0, 0, 0, 0, 1]));
+    }
+
+    [Fact]
     public void AnotherVersionIsToldThisOneAndClosedBeforeTheOwnerIsAsked()
     {
         Assert.False(Connect(PinAtLevel(1), new Hello(ProtocolConstants.Version - 1)));

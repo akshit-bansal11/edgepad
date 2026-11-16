@@ -132,7 +132,7 @@ public final class Dispatcher {
         case .blobEnd(let sha256):
             return clipboard?.take(sha256: sha256) ?? false
         case .hello, .helloAck, .ping, .pong, .state, .padState, .pinRequest, .pinAnswer, .fileBegin, .fileChunk,
-            .fileEnd:
+            .fileEnd, .bulkHello, .xferBegin, .xferChunk, .xferEnd, .xferStatus:
             // A Mac has no virtual controller to give a pad frame to, and the rest are not the phone's to send
             // once the session is live.
             return false

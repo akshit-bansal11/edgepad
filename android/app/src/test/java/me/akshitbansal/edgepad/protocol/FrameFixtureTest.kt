@@ -215,6 +215,11 @@ class FrameFixtureTest {
                 "BLOB_BEGIN" -> Frame.BlobBegin(int(1), field(2), fields[3])
                 "BLOB_CHUNK" -> Frame.BlobChunk(int(1), hex(fields[2]))
                 "BLOB_END" -> Frame.BlobEnd(hex(fields[1]))
+                "BULK_HELLO" -> Frame.BulkHello(int(1))
+                "XFER_BEGIN" -> Frame.XferBegin(int(1), fields[2].toULong(), fields[3])
+                "XFER_CHUNK" -> Frame.XferChunk(int(1), fields[2].toULong(), hex(fields[3]))
+                "XFER_END" -> Frame.XferEnd(int(1), hex(fields[2]))
+                "XFER_STATUS" -> Frame.XferStatus(int(1), int(2), fields[3].toULong())
                 else -> error("Unknown fixture frame ${fields[0]}")
             }
         return frame to bytes
