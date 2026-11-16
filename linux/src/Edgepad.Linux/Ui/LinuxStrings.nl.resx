@@ -213,4 +213,196 @@
   <data name="Send_Failed" xml:space="preserve">
     <value>{0} kon niet worden verstuurd. In het logboek staat de reden.</value>
   </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Beveiliging</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Elke telefoon heeft eerst hier jouw goedkeuring nodig. Niveau 2 en 3 vragen ook om een pincode van zes cijfers, die je op het scherm van de telefoon typt. De verbinding met telefoons wordt verbroken zolang dit venster openstaat.</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Alleen vertrouwen</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>Pincode eenmalig per telefoon</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>Pincode bij elke verbinding</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>Pincode instellen…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>Pincode wijzigen…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>Er wordt een nieuwe pincode opgeslagen.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>Er is een pincode ingesteld.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>Er is geen pincode ingesteld.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Als je een nieuwe pincode of een nieuw niveau opslaat, moeten telefoons die de pincode al eens hebben ingevoerd, die opnieuw invoeren.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Vertrouwde telefoons</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>Alles vergeten…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>Pincode resetten en telefoons vergeten…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Opslaan</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>Nog geen telefoon is vertrouwd. Een telefoon krijgt de vraag wanneer hij voor het eerst verbindt.</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>{0} ({1}) moet hier opnieuw worden vertrouwd voordat deze laptop kan worden gebruikt. Telefoons blijven zonder verbinding terwijl je beslist.</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Probeer Vergeten opnieuw zodra niets anders de bestanden van Edgepad in {0} gebruikt. {1} kon niet volledig worden vergeten: een bestand kon niet worden herschreven. De telefoon blijft op schijf vertrouwd, maar Edgepad weigert hem tot Edgepad opnieuw is gestart, en daarna wordt hij weer vertrouwd tenzij je hem opnieuw vergeet.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>De pincode kon niet worden opgeslagen, dus er is niets gewijzigd. In het logboek staat de reden.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>Het niveau kon niet worden opgeslagen, dus het vorige niveau blijft gelden. In het logboek staat de reden.</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>De pincode wordt verwijderd, het niveau gaat terug naar 1 en elke vertrouwde telefoon wordt vergeten. Elke telefoon, ook de telefoon die nu verbonden is, moet hier opnieuw worden vertrouwd. Een vergeten pincode kan niet worden hersteld, alleen gereset.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Sluit wat het bestand vasthoudt en kies dan opnieuw “Pincode resetten en telefoons vergeten”, of verwijder het zelf:  {0}  Er is niets gereset: de vertrouwde telefoons konden niet worden vergeten, dus de pincode en het niveau zijn ongewijzigd gebleven. Zolang Edgepad draait, kan geen enkele telefoon verbinden, maar die telefoons worden bij de volgende start weer vertrouwd, met dezelfde pincode.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Sluit wat het bestand vasthoudt en kies dan opnieuw “Pincode resetten en telefoons vergeten”, of verwijder security.txt en pin-verified.txt zelf uit:  {0}  De vertrouwde telefoons zijn vergeten, maar de pincode kon niet worden gereset: een instellingenbestand kon niet worden verwijderd, dus de oude pincode en het oude niveau gelden mogelijk nog. Elke telefoon moet hier opnieuw worden vertrouwd.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Vertrouwen</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Niet vertrouwen</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>{0} vertrouwen?</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>Een gekoppelde telefoon vraagt om de aanwijzer en het toetsenbord van deze laptop te bedienen. Vertrouw hem alleen als het jouw telefoon is. Als je niet binnen {0} s antwoordt, wordt hij niet vertrouwd.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>Nieuwe pincode</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>Nieuwe pincode nogmaals</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Zes cijfers</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Nogmaals</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>Deze pincode gebruiken</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>Een pincode bestaat uit precies zes cijfers.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>De twee pincodes zijn niet gelijk.</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Macro&apos;s</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>Nog geen macro&apos;s</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Naam</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Argumenten</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>optioneel</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Verwijderen</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Bladeren…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Macro toevoegen</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Nieuwe macro</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}” heeft niets om te openen. Kies wat het opent, of verwijder het.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>De macro&apos;s konden niet worden opgeslagen in {0}: {1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Kies wat deze knop opent</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Typ de koppelcode die op de telefoon staat:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Koppelcode op de telefoon</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Telefoon koppelen</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>{0} koppelen?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Koppelen</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Sluiten</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>De koppelcode controleren</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Sluit over {0} s</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} is van de telefoon aangekomen.</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} van {1}</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>Verzoek {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>Elke macro is een knop op de telefoon. Maximaal {0}.</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>Programma, bestand, map of link</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>App toevoegen</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>Er zijn geen apps gevonden op deze laptop.</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Toevoegen</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>Edgepad-annotatie</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Resetten</value>
+  </data>
 </root>

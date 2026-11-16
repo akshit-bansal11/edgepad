@@ -213,4 +213,204 @@
   <data name="Send_Failed" xml:space="preserve">
     <value>Não foi possível enviar {0}. O registro tem o motivo.</value>
   </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Segurança</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Todo celular precisa primeiro do seu sim aqui. Os níveis 2 e 3 também pedem um PIN de seis dígitos, digitado na tela do celular. Os celulares ficam desconectados enquanto esta janela está aberta.</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Só confiança</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>PIN uma vez por celular</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>PIN a cada conexão</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>Definir PIN…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>Alterar PIN…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>Um novo PIN será salvo.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>Há um PIN definido.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>Nenhum PIN definido.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Salvar um novo PIN ou nível faz os celulares que digitaram o PIN uma vez digitarem de novo.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Celulares confiáveis</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>Esquecer tudo…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>Redefinir PIN e esquecer celulares…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Salvar</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>Nenhum celular é confiável ainda. Cada celular é consultado na primeira vez que se conecta.</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>Será preciso confiar de novo em {0} ({1}) aqui antes que ele possa usar este notebook. Os celulares ficam desconectados enquanto você decide.</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Tente Esquecer de novo quando nada mais estiver usando os arquivos do Edgepad em {0}. {1} não pôde ser totalmente esquecido: um arquivo não pôde ser reescrito. Ele continua confiável no disco, mas o Edgepad o recusa até ser reiniciado, e ele voltará a ser confiável a partir daí, a menos que você o esqueça de novo.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>Não foi possível salvar o PIN, então nada foi alterado. O registro tem o motivo.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>Não foi possível salvar o nível, então o nível anterior continua valendo. O registro tem o motivo.</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>O PIN é excluído, o nível volta para 1 e todos os celulares confiáveis são esquecidos. Será preciso confiar de novo em cada celular aqui, inclusive no conectado. Um PIN esquecido não pode ser recuperado, só redefinido.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Feche o que estiver usando o arquivo e escolha “Redefinir PIN e esquecer celulares” de novo, ou exclua-o você mesmo:
+
+{0}
+
+Nada foi redefinido: não foi possível esquecer os celulares confiáveis, então o PIN e o nível ficaram como estavam. Nenhum celular pode se conectar enquanto o Edgepad continuar em execução, mas esses celulares voltarão a ser confiáveis, com o mesmo PIN, na próxima vez que ele iniciar.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Feche o que estiver usando o arquivo e escolha “Redefinir PIN e esquecer celulares” de novo, ou exclua security.txt e pin-verified.txt você mesmo em:
+
+{0}
+
+Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PIN: um arquivo de configurações não pôde ser removido, então o PIN e o nível antigos ainda podem valer. Será preciso confiar de novo em cada celular aqui.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Confiar</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Não confiar</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>Confiar em {0}?</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>Um celular pareado está pedindo para controlar o ponteiro e o teclado deste notebook. Confie nele só se for seu. Se você não responder em {0} s, ele não será considerado confiável.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>Novo PIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>Novo PIN de novo</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Seis dígitos</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Repita</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>Usar este PIN</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>Um PIN tem exatamente seis dígitos.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>Os dois PINs não são iguais.</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Macros</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>Nenhuma macro ainda</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Argumentos</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>opcional</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Remover</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Procurar…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Adicionar macro</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Nova macro</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}” não tem nada para abrir. Escolha o que ela abre ou remova-a.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Não foi possível salvar as macros em {0}: {1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Escolha o que este botão abre</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Digite o código de pareamento mostrado no celular:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Código de pareamento mostrado no celular</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Parear um celular</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>Parear {0}?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Parear</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Fechar</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Verificando o código de pareamento</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Fecha em {0} s</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} chegou do celular.</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} de {1}</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>Solicitação {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>Cada macro é um botão no celular. Até {0}.</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>Programa, arquivo, pasta ou link</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>Adicionar um app</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>Nenhum app foi encontrado neste notebook.</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Adicionar</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>Anotação do Edgepad</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Redefinir</value>
+  </data>
 </root>

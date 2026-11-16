@@ -21,7 +21,7 @@ internal sealed class AnnotationOverlay : Window
 
     public AnnotationOverlay()
     {
-        Title = "Edgepad annotation";
+        Title = LinuxStrings.Annotate_OverlayTitle;
         WindowDecorations = WindowDecorations.None;
         WindowStartupLocation = WindowStartupLocation.Manual;
         Topmost = true;

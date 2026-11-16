@@ -29,28 +29,28 @@ internal sealed class MacroEditorWindow
     {
         this.store = store;
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 12 };
-        body.Children.Add(look.Text("Macros", 18, FontWeight.Bold));
-        body.Children.Add(look.Text($"Each macro is a button on the phone. Up to {MacroStore.MaxMacros}.", 14, dim: true));
-        empty = look.Text("No macros yet", 14, dim: true);
+        body.Children.Add(look.Text(LinuxStrings.Macro_Title, 18, FontWeight.Bold));
+        body.Children.Add(look.Text(string.Format(LinuxStrings.Macro_Intro, MacroStore.MaxMacros), 14, dim: true));
+        empty = look.Text(LinuxStrings.Macro_EmptyHeadline, 14, dim: true);
         body.Children.Add(empty);
         body.Children.Add(new ScrollViewer { MaxHeight = 380, Content = rowsPanel });
 
-        add = look.Button("Add macro");
+        add = look.Button(LinuxStrings.Macro_AddButton);
         add.Click += (_, _) => Guard(() => AddRow("", "", null, null));
-        var choose = look.Button("Choose…");
+        var choose = look.Button(LinuxStrings.Macro_AddApp);
         choose.Click += (_, _) => _ = GuardAsync(ChooseAsync);
         var tools = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         tools.Children.Add(add);
         tools.Children.Add(choose);
         body.Children.Add(tools);
 
-        var cancel = look.Button("Cancel");
-        var save = look.Button("Save", primary: true);
+        var cancel = look.Button(LinuxStrings.Common_Cancel);
+        var save = look.Button(LinuxStrings.Common_Save, primary: true);
         save.IsDefault = true;
         save.Click += (_, _) => _ = GuardAsync(SaveAsync);
         body.Children.Add(Look.Footer(cancel, save));
 
-        window = look.Dialog("Macros", 560, body);
+        window = look.Dialog(LinuxStrings.Macro_Title, 560, body);
         cancel.Click += (_, _) => window.Close();
         window.KeyDown += (_, e) =>
         {
@@ -82,21 +82,21 @@ internal sealed class MacroEditorWindow
 
         var row = new Row(icon);
         row.Name.Text = name;
-        row.Name.PlaceholderText = "Name";
+        row.Name.PlaceholderText = LinuxStrings.Macro_Name;
         row.Name.MaxLength = MacroStore.MaxNameBytes;
         row.Target.Text = target;
-        row.Target.PlaceholderText = "Program, file, folder or link";
+        row.Target.PlaceholderText = LinuxStrings.Macro_TargetHint;
         row.Arguments.Text = arguments;
-        row.Arguments.PlaceholderText = "Arguments (optional)";
+        row.Arguments.PlaceholderText = $"{LinuxStrings.Macro_Arguments} ({LinuxStrings.Macro_ArgumentsOptional})";
         foreach (var box in new[] { row.Name, row.Target, row.Arguments })
         {
             box.FontFamily = Look.Lato;
             box.FontSize = 14;
         }
 
-        var remove = look.Button("Remove", danger: true);
+        var remove = look.Button(LinuxStrings.Macro_Remove, danger: true);
         remove.Click += (_, _) => Guard(() => Remove(row));
-        var browse = look.Button("Browse…");
+        var browse = look.Button(LinuxStrings.Macro_Browse);
         browse.Click += (_, _) => _ = GuardAsync(() => BrowseAsync(row));
 
         var first = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), ColumnSpacing = 8 };
@@ -139,7 +139,7 @@ internal sealed class MacroEditorWindow
 
     private async Task BrowseAsync(Row row)
     {
-        var picked = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = "Choose a program or file", AllowMultiple = false });
+        var picked = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = LinuxStrings.Macro_ChooseTarget, AllowMultiple = false });
         if (picked.Count == 1 && picked[0].TryGetLocalPath() is { } path)
         {
             row.Target.Text = path;
@@ -156,14 +156,14 @@ internal sealed class MacroEditorWindow
     {
         var apps = await Task.Run(() => new DesktopEntryCatalog().Scan());
         var list = new ListBox { ItemsSource = apps.Select(app => app.Name).ToList(), MaxHeight = 320, FontFamily = Look.Lato };
-        var cancel = look.Button("Cancel");
-        var pick = look.Button("Add", primary: true);
+        var cancel = look.Button(LinuxStrings.Common_Cancel);
+        var pick = look.Button(LinuxStrings.Common_Add, primary: true);
         pick.IsDefault = true;
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 12 };
-        body.Children.Add(look.Text(apps.Count == 0 ? "No apps were found on this laptop." : "Add an app", 18, FontWeight.Bold));
+        body.Children.Add(look.Text(apps.Count == 0 ? LinuxStrings.Macro_NoApps : LinuxStrings.Macro_AddApp, 18, FontWeight.Bold));
         body.Children.Add(list);
         body.Children.Add(Look.Footer(cancel, pick));
-        var picker = look.Dialog("Add an app", 420, body);
+        var picker = look.Dialog(LinuxStrings.Macro_AddApp, 420, body);
         cancel.Click += (_, _) => picker.Close();
         pick.Click += (_, _) =>
         {
@@ -185,13 +185,13 @@ internal sealed class MacroEditorWindow
             .ToList();
         if (MacroStore.WithoutTarget(macros) is var missing and >= 0)
         {
-            await Dialogs.Inform(window, $"Macro {missing + 1} has nothing to open. Fill in its program, file, folder or link, or remove it.");
+            await Dialogs.Inform(window, string.Format(LinuxStrings.Macro_NothingToOpen, string.IsNullOrWhiteSpace(rows[missing].Name.Text) ? LinuxStrings.Macro_New : rows[missing].Name.Text));
             return;
         }
 
         if (store.Save(macros) is { } failure)
         {
-            await Dialogs.Inform(window, $"The macros could not be saved, so nothing was changed. {failure}");
+            await Dialogs.Inform(window, string.Format(LinuxStrings.Macro_SaveFailed, store.FilePath, failure));
             return;
         }
 

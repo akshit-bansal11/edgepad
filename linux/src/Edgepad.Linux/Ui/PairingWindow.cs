@@ -33,29 +33,29 @@ internal static class PairingWindow
             Foreground = look.Ink,
             Padding = new Thickness(12, 8),
         };
-        AutomationProperties.SetName(code, "Pairing code shown on the phone");
+        AutomationProperties.SetName(code, LinuxStrings.Pair_CodeName);
         var countdown = look.Text("", 14, dim: true);
-        var cancel = look.Button("Cancel");
-        var pair = look.Button("Pair", primary: true);
+        var cancel = look.Button(LinuxStrings.Common_Cancel);
+        var pair = look.Button(LinuxStrings.Pair_Button, primary: true);
         pair.IsEnabled = false;
 
         // Enter only does anything once six digits are in, since Pair is disabled until then.
         pair.IsDefault = true;
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 10 };
-        body.Children.Add(look.Text($"Pair {phoneName}?", 18, FontWeight.Bold));
+        body.Children.Add(look.Text(string.Format(LinuxStrings.Pair_Heading, phoneName), 18, FontWeight.Bold));
         // Where the request came from, so an unexpected one is spotted before a code is typed.
         if (source is not null)
         {
-            body.Children.Add(look.Text($"Request {source}", 13, dim: true));
+            body.Children.Add(look.Text(string.Format(LinuxStrings.Pair_Request, source), 13, dim: true));
         }
 
-        var ask = look.Text("Type the pairing code shown on the phone:", 14, dim: true);
+        var ask = look.Text(LinuxStrings.Pair_Ask, 14, dim: true);
         body.Children.Add(ask);
         body.Children.Add(code);
         body.Children.Add(countdown);
         body.Children.Add(look.Text(PairingText.Warning, 13, dim: true));
         body.Children.Add(Look.Footer(cancel, pair));
-        var window = look.Dialog("Pair a phone", 400, body);
+        var window = look.Dialog(LinuxStrings.Pair_Title, 400, body);
         // Opens without taking focus: the owner may be typing elsewhere. The announcement (status and notification) is what draws the eye.
         window.ShowActivated = false;
         window.Topmost = true;
@@ -101,7 +101,7 @@ internal static class PairingWindow
             countdown.Text = "";
             code.IsEnabled = false;
             pair.IsVisible = false;
-            cancel.Content = "Close";
+            cancel.Content = LinuxStrings.Common_Close;
             if (closeSoon)
             {
                 tick.Interval = Linger;
@@ -119,7 +119,7 @@ internal static class PairingWindow
             }
 
             var left = PairingPrompt.SecondsLeft(deadline, Environment.TickCount64);
-            countdown.Text = $"Closes in {left} s";
+            countdown.Text = string.Format(LinuxStrings.Pair_ClosesIn, left);
 
             // The pairing's own timer refuses the phone at the same moment; this only takes the window down.
             if (left == 0)
@@ -157,7 +157,7 @@ internal static class PairingWindow
             tick.Stop();
             code.IsEnabled = false;
             pair.IsEnabled = false;
-            countdown.Text = "Checking the code";
+            countdown.Text = LinuxStrings.Pair_Checking;
             Deliver(() => onTyped(PairingPrompt.Digits(code.Text)));
         };
         cancel.Click += (_, _) => Close(window);

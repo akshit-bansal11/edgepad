@@ -213,4 +213,204 @@
   <data name="Send_Failed" xml:space="preserve">
     <value>{0}을(를) 보내지 못했어요. 자세한 이유는 로그에 있어요.</value>
   </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>보안</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>모든 휴대전화는 먼저 여기에서 허락을 받아야 해요. 수준 2와 3에서는 휴대전화 화면에 입력하는 6자리 PIN도 요구해요. 이 창이 열려 있는 동안에는 휴대전화 연결이 해제돼요.</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>신뢰만</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>휴대전화마다 PIN 한 번</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>연결할 때마다 PIN</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>PIN 설정…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>PIN 변경…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>새 PIN이 저장돼요.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>PIN이 설정되어 있어요.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>PIN이 설정되어 있지 않아요.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>새 PIN이나 수준을 저장하면, PIN을 한 번 입력했던 휴대전화도 PIN을 다시 입력해야 해요.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>신뢰한 휴대전화</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>모두 등록 해제…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>PIN 초기화 및 휴대전화 등록 해제…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>저장</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>아직 신뢰한 휴대전화가 없어요. 휴대전화가 처음 연결될 때 신뢰 여부를 물어요.</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>휴대전화 {0}({1}): 이 노트북을 쓰려면 여기에서 다시 신뢰해야 해요. 결정하는 동안 휴대전화 연결은 해제된 상태로 유지돼요.</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>{0}에 있는 Edgepad 파일을 다른 곳에서 쓰지 않게 된 뒤에 등록 해제를 다시 시도하세요. {1}: 파일을 다시 쓰지 못해서 등록을 완전히 해제하지 못했어요. 디스크에는 계속 신뢰된 상태로 남아 있고, Edgepad를 다시 시작하기 전까지는 연결이 거부되지만, 다시 등록 해제하지 않으면 그 뒤에는 다시 신뢰돼요.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>PIN을 저장하지 못해서 아무것도 바뀌지 않았어요. 자세한 이유는 로그에 있어요.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>수준을 저장하지 못해서 이전 수준이 그대로 적용돼요. 자세한 이유는 로그에 있어요.</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>PIN이 삭제되고, 수준이 1로 돌아가고, 신뢰한 휴대전화가 모두 등록 해제돼요. 연결 중인 휴대전화를 포함해 모든 휴대전화를 여기에서 다시 신뢰해야 해요. 잊어버린 PIN은 복구할 수 없고 초기화만 할 수 있어요.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>파일을 쓰고 있는 프로그램을 닫은 뒤 ‘PIN 초기화 및 휴대전화 등록 해제’를 다시 선택하거나, 직접 삭제하세요.
+
+{0}
+
+아무것도 초기화되지 않았어요. 신뢰한 휴대전화를 등록 해제하지 못해서 PIN과 수준은 그대로예요. Edgepad가 실행 중인 동안에는 어떤 휴대전화도 연결할 수 없지만, Edgepad를 다시 시작하면 그 휴대전화들은 같은 PIN으로 다시 신뢰돼요.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>파일을 쓰고 있는 프로그램을 닫은 뒤 ‘PIN 초기화 및 휴대전화 등록 해제’를 다시 선택하거나, 다음 위치에서 security.txt와 pin-verified.txt를 직접 삭제하세요.
+
+{0}
+
+신뢰한 휴대전화는 등록 해제되었지만 PIN을 초기화하지 못했어요. 설정 파일을 삭제할 수 없어서 이전 PIN과 수준이 계속 적용될 수 있어요. 모든 휴대전화를 여기에서 다시 신뢰해야 해요.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>신뢰</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>신뢰 안 함</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>{0}: 신뢰할까요?</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>페어링된 휴대전화가 이 노트북의 포인터와 키보드를 제어하려고 해요. 본인의 휴대전화일 때만 신뢰하세요. {0}초 안에 답하지 않으면 신뢰하지 않은 것으로 처리돼요.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>새 PIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>새 PIN 다시 입력</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>6자리</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>다시 입력</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>이 PIN 사용</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>PIN은 정확히 6자리여야 해요.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>두 PIN이 같지 않아요.</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>매크로</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>아직 매크로가 없어요</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>이름</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>인수</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>선택 사항</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>삭제</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>찾아보기…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>매크로 추가</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>새 매크로</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}”에는 열 대상이 없어요. 열 대상을 선택하거나 삭제하세요.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>{0}에 매크로를 저장하지 못했어요: {1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>이 버튼으로 열 대상 선택</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>휴대전화에 표시된 페어링 코드를 입력하세요:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>휴대전화에 표시된 페어링 코드</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>휴대전화 페어링</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>{0}: 페어링할까요?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>페어링</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>닫기</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>페어링 코드 확인 중</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>{0}초 후 닫힘</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0}을(를) 휴대폰에서 받았습니다.</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{1}개 중 {0}개</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>요청 {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>각 매크로는 휴대폰의 버튼이 됩니다. 최대 {0}개.</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>프로그램, 파일, 폴더 또는 링크</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>앱 추가</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>이 노트북에서 앱을 찾지 못했습니다.</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>Edgepad 주석</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>초기화</value>
+  </data>
 </root>

@@ -53,7 +53,6 @@ internal static class LinuxTransfers
     {
         Restrict(file);
 
-        // plain English until 4.5.0 localisation
-        Notifier.Send("Edgepad", $"Received {Path.GetFileName(file)} from the phone.");
+        Notifier.Send(LinuxStrings.App_Name, string.Format(LinuxStrings.Balloon_FileReceived, Path.GetFileName(file)));
     }
 }

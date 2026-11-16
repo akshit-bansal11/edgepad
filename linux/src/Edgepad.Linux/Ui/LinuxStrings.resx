@@ -220,4 +220,204 @@
   <data name="Send_Failed" xml:space="preserve">
     <value>{0} could not be sent. The log has the reason.</value>
   </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Every phone needs your yes here first. Levels 2 and 3 also ask for a six-digit PIN, typed on the phone&apos;s screen. Phones are disconnected while this window is open.</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Trust only</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>PIN once per phone</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>PIN on every connection</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>Set PIN…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>Change PIN…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>A new PIN will be saved.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>A PIN is set.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>No PIN is set.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Saving a new PIN or level makes phones that entered the PIN once enter it again.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Trusted phones</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>Forget all…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>Reset PIN and forget phones…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>No phone is trusted yet. A phone is asked about the first time it connects.</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>{0} ({1}) will have to be trusted here again before it can use this laptop. Phones stay disconnected while you decide.</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Try Forget again once nothing else is using Edgepad&apos;s files in {0}. {1} could not be fully forgotten: a file could not be rewritten. It stays trusted on disk, but Edgepad refuses it until Edgepad is restarted, and it will be trusted again from then on unless you forget it again.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>The PIN could not be saved, so nothing was changed. The log has the reason.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>The level could not be saved, so the previous level still applies. The log has the reason.</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>The PIN is deleted, the level goes back to 1 and every trusted phone is forgotten. Each phone, the one connected included, will have to be trusted here again. A forgotten PIN cannot be recovered, only reset.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Close whatever is holding the file, then choose “Reset PIN and forget phones” again, or delete it yourself:
+
+{0}
+
+Nothing was reset: the trusted phones could not be forgotten, so the PIN and the level were left as they were. No phone can connect while Edgepad stays running, but those phones will be trusted again, behind the same PIN, the next time it starts.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Close whatever is holding the file, then choose “Reset PIN and forget phones” again, or delete security.txt and pin-verified.txt yourself from:
+
+{0}
+
+The trusted phones were forgotten, but the PIN could not be reset: a settings file could not be removed, so the old PIN and level may still apply. Each phone has to be trusted here again.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Trust</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Don&apos;t trust</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>Trust {0}?</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>A paired phone is asking to control this laptop&apos;s pointer and keyboard. Trust it only if it is yours. If you do not answer in {0} s, it is not trusted.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>New PIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>New PIN again</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Six digits</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Again</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>Use this PIN</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>A PIN is exactly six digits.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>The two PINs are not the same.</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Macros</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>No macros yet</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Arguments</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>optional</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Browse…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Add macro</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>New macro</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}” has nothing to open. Choose what it opens, or remove it.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>The macros could not be saved to {0}: {1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Choose what this button opens</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Type the pairing code shown on the phone:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Pairing code shown on the phone</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Pair a phone</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>Pair {0}?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Pair</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Checking the pairing code</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Closes in {0} s</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} arrived from the phone.</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} of {1}</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>Request {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>Each macro is a button on the phone. Up to {0}.</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>Program, file, folder or link</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>Add an app</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>No apps were found on this laptop.</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>Edgepad annotation</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Reset</value>
+  </data>
 </root>

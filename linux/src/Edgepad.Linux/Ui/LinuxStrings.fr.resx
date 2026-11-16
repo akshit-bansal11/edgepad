@@ -213,4 +213,204 @@
   <data name="Send_Failed" xml:space="preserve">
     <value>{0} n'a pas pu être envoyé. Le journal en donne la raison.</value>
   </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Sécurité</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Chaque téléphone a d&apos;abord besoin de votre accord ici. Les niveaux 2 et 3 demandent aussi un code PIN à six chiffres, saisi sur l&apos;écran du téléphone. Les téléphones sont déconnectés tant que cette fenêtre est ouverte.</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Approbation seule</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>Code PIN une fois par téléphone</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>Code PIN à chaque connexion</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>Définir le PIN…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>Changer le PIN…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>Un nouveau code PIN sera enregistré.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>Un code PIN est défini.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>Aucun code PIN n&apos;est défini.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Enregistrer un nouveau code PIN ou un nouveau niveau oblige les téléphones qui avaient saisi le code PIN à le saisir à nouveau.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Téléphones approuvés</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>Oublier tout…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>Réinitialiser le PIN et oublier les téléphones…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>Aucun téléphone n&apos;est encore approuvé. La question est posée à la première connexion d&apos;un téléphone.</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>{0} ({1}) devra être approuvé à nouveau ici avant de pouvoir utiliser cet ordinateur. Les téléphones restent déconnectés pendant que vous décidez.</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Réessayez avec Oublier quand plus rien n&apos;utilise les fichiers d&apos;Edgepad dans {0}. Impossible d&apos;oublier complètement {1} : un fichier n&apos;a pas pu être réécrit. Ce téléphone reste approuvé sur le disque, mais Edgepad le refuse jusqu&apos;à son redémarrage, après quoi il sera de nouveau approuvé, sauf si vous l&apos;oubliez à nouveau.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>Le code PIN n&apos;a pas pu être enregistré, donc rien n&apos;a été modifié. Le journal en donne la raison.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>Le niveau n&apos;a pas pu être enregistré, donc le niveau précédent s&apos;applique toujours. Le journal en donne la raison.</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>Le code PIN est supprimé, le niveau revient à 1 et tous les téléphones approuvés sont oubliés. Chaque téléphone, y compris celui qui est connecté, devra être approuvé à nouveau ici. Un code PIN oublié ne peut pas être récupéré, seulement réinitialisé.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Fermez ce qui retient le fichier, puis choisissez à nouveau « Réinitialiser le PIN et oublier les téléphones », ou supprimez-le vous-même :
+
+{0}
+
+Rien n&apos;a été réinitialisé : les téléphones approuvés n&apos;ont pas pu être oubliés, donc le code PIN et le niveau sont restés tels quels. Aucun téléphone ne peut se connecter tant qu&apos;Edgepad reste ouvert, mais ces téléphones seront de nouveau approuvés, avec le même code PIN, à son prochain démarrage.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Fermez ce qui retient le fichier, puis choisissez à nouveau « Réinitialiser le PIN et oublier les téléphones », ou supprimez vous-même security.txt et pin-verified.txt dans :
+
+{0}
+
+Les téléphones approuvés ont été oubliés, mais le code PIN n&apos;a pas pu être réinitialisé : un fichier de paramètres n&apos;a pas pu être supprimé, donc l&apos;ancien code PIN et l&apos;ancien niveau peuvent encore s&apos;appliquer. Chaque téléphone doit être approuvé à nouveau ici.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Approuver</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Refuser</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>Approuver {0} ?</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>Un téléphone associé demande à contrôler le pointeur et le clavier de cet ordinateur. Ne l&apos;approuvez que s&apos;il vous appartient. Sans réponse en {0} s, il n&apos;est pas approuvé.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>Nouveau PIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>Nouveau PIN, confirmation</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Six chiffres</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Confirmer</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>Utiliser ce PIN</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>Un code PIN comporte exactement six chiffres.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>Les deux codes PIN ne sont pas identiques.</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Macros</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>Aucune macro</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Arguments</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>facultatif</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Parcourir…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Ajouter une macro</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Nouvelle macro</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>« {0} » n&apos;ouvre rien. Choisissez ce qu&apos;elle ouvre, ou supprimez-la.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Les macros n&apos;ont pas pu être enregistrées dans {0} : {1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Choisir ce que ce bouton ouvre</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Saisissez le code d&apos;association affiché sur le téléphone :</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Code d&apos;association affiché sur le téléphone</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Associer un téléphone</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>Associer {0} ?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Associer</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Fermer</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Vérification du code d&apos;association</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Fermeture dans {0} s</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} est arrivé depuis le téléphone.</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} sur {1}</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>Demande {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>Chaque macro est un bouton sur le téléphone. Jusqu&apos;à {0}.</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>Programme, fichier, dossier ou lien</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>Ajouter une appli</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>Aucune appli trouvée sur cet ordinateur.</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>Annotation Edgepad</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Réinitialiser</value>
+  </data>
 </root>

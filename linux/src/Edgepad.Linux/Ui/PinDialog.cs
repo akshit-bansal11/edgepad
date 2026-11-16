@@ -19,23 +19,23 @@ internal static class PinDialog
     {
         var look = Look.Current;
         var result = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var first = Box("New PIN", look);
-        var again = Box("New PIN again", look);
+        var first = Box(LinuxStrings.Pin_Title, look);
+        var again = Box(LinuxStrings.Pin_AgainName, look);
         var problem = look.Text("", 14);
         problem.Foreground = look.Danger;
-        var cancel = look.Button("Cancel");
-        var ok = look.Button("Use this PIN", primary: true);
+        var cancel = look.Button(LinuxStrings.Common_Cancel);
+        var ok = look.Button(LinuxStrings.Pin_Use, primary: true);
         ok.IsDefault = true;
 
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 8 };
-        body.Children.Add(look.Text("New PIN", 18, FontWeight.Bold));
-        body.Children.Add(look.Text("Six digits", 14, FontWeight.Bold));
+        body.Children.Add(look.Text(LinuxStrings.Pin_Title, 18, FontWeight.Bold));
+        body.Children.Add(look.Text(LinuxStrings.Pin_Digits, 14, FontWeight.Bold));
         body.Children.Add(first);
-        body.Children.Add(look.Text("Again", 14, FontWeight.Bold));
+        body.Children.Add(look.Text(LinuxStrings.Pin_Again, 14, FontWeight.Bold));
         body.Children.Add(again);
         body.Children.Add(problem);
         body.Children.Add(Look.Footer(cancel, ok));
-        var window = look.Dialog("New PIN", 360, body);
+        var window = look.Dialog(LinuxStrings.Pin_Title, 360, body);
 
         ok.Click += (_, _) =>
         {

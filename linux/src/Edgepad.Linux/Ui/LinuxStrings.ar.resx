@@ -213,4 +213,204 @@
   <data name="Send_Failed" xml:space="preserve">
     <value>تعذّر إرسال {0}. السبب في السجل.</value>
   </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>الأمان</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>يحتاج كل هاتف إلى موافقتك هنا أولًا. ويطلب المستويان 2 و3 أيضًا رقم PIN من ستة أرقام، يُكتب على شاشة الهاتف. تنقطع الهواتف عن الاتصال ما دامت هذه النافذة مفتوحة.</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>الوثوق فقط</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>رقم PIN مرة لكل هاتف</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>رقم PIN عند كل اتصال</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>تعيين رقم PIN…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>تغيير رقم PIN…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>سيتم حفظ رقم PIN جديد.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>تم تعيين رقم PIN.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>لم يتم تعيين رقم PIN.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>حفظ رقم PIN جديد أو مستوى جديد يجعل الهواتف التي أدخلت رقم PIN مرة واحدة تُدخله من جديد.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>الهواتف الموثوقة</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>نسيان الكل…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>إعادة تعيين PIN ونسيان الهواتف…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>حفظ</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>لا يوجد هاتف موثوق بعد. يُسأل عن الهاتف في أول مرة يتصل فيها.</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>سيلزم الوثوق بـ {0} ({1}) هنا من جديد قبل أن يتمكن من استخدام هذا اللابتوب. تبقى الهواتف غير متصلة أثناء اتخاذك القرار.</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>جرّب «نسيان» مرة أخرى بعد أن يتوقف أي برنامج آخر عن استخدام ملفات Edgepad في {0}. تعذّر نسيان {1} بالكامل: تعذّرت إعادة كتابة ملف. يبقى موثوقًا على القرص، لكن Edgepad يرفضه إلى أن يُعاد تشغيل Edgepad، وسيصبح موثوقًا من جديد بعد ذلك ما لم تنسَه مرة أخرى.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>تعذّر حفظ رقم PIN، لذا لم يتغير شيء. السبب في السجل.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>تعذّر حفظ المستوى، لذا يبقى المستوى السابق ساريًا. السبب في السجل.</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>يُحذف رقم PIN، ويعود المستوى إلى 1، وتُنسى كل الهواتف الموثوقة. سيلزم الوثوق بكل هاتف هنا من جديد، بما في ذلك الهاتف المتصل. لا يمكن استرجاع رقم PIN المنسي، بل إعادة تعيينه فقط.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>أغلق كل ما يستخدم الملف، ثم اختر مجددًا «إعادة تعيين PIN ونسيان الهواتف»، أو احذفه بنفسك:
+
+{0}
+
+لم يُعاد تعيين أي شيء: تعذّر نسيان الهواتف الموثوقة، فتُرك رقم PIN والمستوى كما كانا. لا يستطيع أي هاتف الاتصال ما دام Edgepad قيد التشغيل، لكن هذه الهواتف ستصبح موثوقة من جديد، خلف رقم PIN نفسه، عند بدئه في المرة القادمة.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>أغلق كل ما يستخدم الملف، ثم اختر مجددًا «إعادة تعيين PIN ونسيان الهواتف»، أو احذف security.txt وpin-verified.txt بنفسك من:
+
+{0}
+
+تم نسيان الهواتف الموثوقة، لكن تعذّرت إعادة تعيين رقم PIN: لم يمكن حذف ملف إعدادات، فقد يظل رقم PIN والمستوى القديمان ساريين. يلزم الوثوق بكل هاتف هنا من جديد.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>الوثوق</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>عدم الوثوق</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>الوثوق بـ {0}؟</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>يطلب هاتف مقترن التحكم في مؤشر هذا اللابتوب ولوحة مفاتيحه. لا تثق به إلا إذا كان هاتفك. إذا لم ترد خلال {0} s، فلن يكون موثوقًا.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>رقم PIN جديد</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>رقم PIN جديد مرة أخرى</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>ستة أرقام</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>مرة أخرى</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>استخدام رقم PIN هذا</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>رقم PIN مكوّن من ستة أرقام بالضبط.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>رقما PIN غير متطابقين.</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>الماكرو</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>لا ماكرو بعد</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>المعاملات</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>اختياري</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>إزالة</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>استعراض…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>إضافة ماكرو</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>ماكرو جديد</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>لا يوجد ما يفتحه «{0}». اختر ما يفتحه، أو أزله.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>تعذّر حفظ الماكرو في {0}: {1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>اختر ما يفتحه هذا الزر</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>اكتب رمز الإقران الظاهر على الهاتف:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>رمز الإقران الظاهر على الهاتف</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>إقران هاتف</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>إقران {0}؟</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>إقران</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>إغلاق</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>جارٍ التحقق من رمز الإقران</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>الإغلاق خلال {0} s</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>وصل {0} من الهاتف.</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} من {1}</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>طلب {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>كل ماكرو هو زر على الهاتف. حتى {0}.</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>برنامج أو ملف أو مجلد أو رابط</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>إضافة تطبيق</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>لم يتم العثور على تطبيقات على هذا الحاسوب.</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>إضافة</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>تعليقات Edgepad التوضيحية</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>إعادة تعيين</value>
+  </data>
 </root>

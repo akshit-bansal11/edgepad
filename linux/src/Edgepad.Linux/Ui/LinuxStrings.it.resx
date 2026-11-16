@@ -213,4 +213,204 @@
   <data name="Send_Failed" xml:space="preserve">
     <value>Impossibile inviare {0}. Il motivo è nel log.</value>
   </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Sicurezza</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Ogni telefono ha prima bisogno del tuo sì qui. I livelli 2 e 3 chiedono anche un PIN di sei cifre, digitato sullo schermo del telefono. I telefoni vengono disconnessi finché questa finestra è aperta.</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Solo autorizzazione</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>PIN una volta per telefono</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>PIN a ogni connessione</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>Imposta PIN…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>Cambia PIN…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>Verrà salvato un nuovo PIN.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>Un PIN è impostato.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>Nessun PIN impostato.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Salvando un nuovo PIN o livello, i telefoni che avevano inserito il PIN una volta dovranno inserirlo di nuovo.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Telefoni autorizzati</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>Dimentica tutti…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>Reimposta PIN e dimentica i telefoni…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Salva</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>Nessun telefono è ancora autorizzato. L&apos;autorizzazione viene chiesta la prima volta che un telefono si connette.</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>{0} ({1}) dovrà essere autorizzato di nuovo qui prima di poter usare questo portatile. I telefoni restano disconnessi mentre decidi.</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Riprova con Dimentica quando nient&apos;altro usa i file di Edgepad in {0}. Non è stato possibile dimenticare del tutto {1}: un file non ha potuto essere riscritto. Resta autorizzato su disco, ma Edgepad lo rifiuta finché non viene riavviato, e da quel momento sarà di nuovo autorizzato, a meno che tu non lo dimentichi di nuovo.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>Impossibile salvare il PIN, quindi non è stato modificato nulla. Il motivo è nel log.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>Impossibile salvare il livello, quindi vale ancora il livello precedente. Il motivo è nel log.</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>Il PIN viene eliminato, il livello torna a 1 e ogni telefono autorizzato viene dimenticato. Ogni telefono, anche quello connesso, dovrà essere autorizzato di nuovo qui. Un PIN dimenticato non si può recuperare, solo reimpostare.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Chiudi ciò che sta usando il file, poi scegli di nuovo «Reimposta PIN e dimentica i telefoni», oppure eliminalo tu stesso:
+
+{0}
+
+Non è stato reimpostato nulla: non è stato possibile dimenticare i telefoni autorizzati, quindi PIN e livello sono rimasti come prima. Nessun telefono può connettersi finché Edgepad resta in esecuzione, ma quei telefoni saranno di nuovo autorizzati, con lo stesso PIN, al prossimo avvio.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Chiudi ciò che sta usando il file, poi scegli di nuovo «Reimposta PIN e dimentica i telefoni», oppure elimina tu stesso security.txt e pin-verified.txt da:
+
+{0}
+
+I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpostare il PIN: un file delle impostazioni non ha potuto essere rimosso, quindi il vecchio PIN e il vecchio livello potrebbero valere ancora. Ogni telefono deve essere autorizzato di nuovo qui.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Autorizza</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Non autorizzare</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>Autorizzare {0}?</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>Un telefono associato chiede di controllare il puntatore e la tastiera di questo portatile. Autorizzalo solo se è tuo. Se non rispondi entro {0} s, non viene autorizzato.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>Nuovo PIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>Ripeti il nuovo PIN</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Sei cifre</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Ripeti</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>Usa questo PIN</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>Un PIN è composto da esattamente sei cifre.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>I due PIN non coincidono.</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Macro</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>Ancora nessuna macro</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Argomenti</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>facoltativo</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Rimuovi</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Sfoglia…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Aggiungi macro</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Nuova macro</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>«{0}» non ha nulla da aprire. Scegli cosa apre, oppure rimuovila.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Impossibile salvare le macro in {0}: {1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Scegli cosa apre questo pulsante</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Digita il codice di associazione mostrato sul telefono:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Codice di associazione mostrato sul telefono</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Associa un telefono</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>Associare {0}?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Associa</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Chiudi</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Verifica del codice di associazione</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Si chiude tra {0} s</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} è arrivato dal telefono.</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} di {1}</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>Richiesta {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>Ogni macro è un pulsante sul telefono. Fino a {0}.</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>Programma, file, cartella o link</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>Aggiungi un&apos;app</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>Nessuna app trovata su questo portatile.</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Aggiungi</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>Annotazione di Edgepad</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Reimposta</value>
+  </data>
 </root>

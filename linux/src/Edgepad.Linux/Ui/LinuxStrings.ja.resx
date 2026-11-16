@@ -213,4 +213,204 @@
   <data name="Send_Failed" xml:space="preserve">
     <value>{0} を送信できませんでした。理由はログに記録されています。</value>
   </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>セキュリティ</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>どのスマホも、まずここで許可する必要があります。レベル2と3では、スマホの画面で6桁のPINも入力します。このウィンドウを開いている間、スマホは切断されます。</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>信頼のみ</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>スマホごとに1回PIN</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>接続のたびにPIN</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>PINを設定…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>PINを変更…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>新しいPINが保存されます。</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>PINは設定済みです。</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>PINは設定されていません。</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>新しいPINやレベルを保存すると、PINを一度入力したスマホも、もう一度入力する必要があります。</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>信頼済みのスマホ</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>すべて登録解除…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>PINをリセットしてスマホを登録解除…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>信頼済みのスマホはまだありません。スマホは、初めて接続したときに確認されます。</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>{0}（{1}）は、このノートPCを使う前に、ここでもう一度信頼する必要があります。確認の間、スマホは切断されたままです。</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>{0}にあるEdgepadのファイルを使用しているアプリを閉じてから、もう一度「登録解除」をお試しください。{1}の登録を完全には解除できませんでした。ファイルを書き換えられなかったためです。ディスク上では信頼されたままですが、Edgepadを再起動するまでは、Edgepadがこのスマホの接続を拒否します。再起動後は、もう一度登録解除しない限り、再び信頼されます。</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>PINを保存できなかったため、何も変更されていません。理由はログに記録されています。</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>レベルを保存できなかったため、以前のレベルがそのまま適用されます。理由はログに記録されています。</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>PINは削除され、レベルは1に戻り、信頼済みのスマホはすべて登録解除されます。接続中のスマホも含め、すべてのスマホをここでもう一度信頼する必要があります。忘れたPINは復元できず、リセットのみ可能です。</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>ファイルを使用しているアプリを閉じてから、もう一度「PINをリセットしてスマホを登録解除」を選ぶか、次のファイルを自分で削除してください。
+
+{0}
+
+何もリセットされていません。信頼済みのスマホの登録を解除できなかったため、PINとレベルはそのままです。Edgepadが動作している間は、どのスマホも接続できませんが、次に起動すると、それらのスマホは同じPINのもとで再び信頼されます。</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>ファイルを使用しているアプリを閉じてから、もう一度「PINをリセットしてスマホを登録解除」を選ぶか、security.txtとpin-verified.txtを次の場所から自分で削除してください。
+
+{0}
+
+信頼済みのスマホの登録は解除されましたが、PINをリセットできませんでした。設定ファイルを削除できなかったため、以前のPINとレベルが残っている可能性があります。すべてのスマホを、ここでもう一度信頼する必要があります。</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>信頼する</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>信頼しない</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>{0}を信頼しますか？</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>ペアリング済みのスマホが、このノートPCのポインターとキーボードの操作を求めています。自分のスマホである場合のみ信頼してください。{0}秒以内に応答しない場合は、信頼されません。</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>新しいPIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>新しいPIN（再入力）</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>6桁</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>再入力</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>このPINを使う</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>PINは6桁の数字にしてください。</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>2つのPINが一致しません。</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>マクロ</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>まだマクロがありません</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>引数</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>省略可</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>参照…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>マクロを追加</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>新しいマクロ</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>「{0}」には開く対象がありません。開く対象を選ぶか、削除してください。</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>マクロを{0}に保存できませんでした：{1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>このボタンで開く対象を選択</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>スマホに表示されているペアリングコードを入力してください：</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>スマホに表示されているペアリングコード</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>スマホをペアリング</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>{0}をペアリングしますか？</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>ペアリング</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>ペアリングコードを確認中</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>{0}秒後に閉じます</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} をスマートフォンから受信しました。</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>リクエスト {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>各マクロはスマートフォン上のボタンになります。最大 {0} 件。</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>プログラム、ファイル、フォルダー、またはリンク</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>アプリを追加</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>このノートパソコンにアプリが見つかりませんでした。</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>Edgepad 注釈</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>リセット</value>
+  </data>
 </root>

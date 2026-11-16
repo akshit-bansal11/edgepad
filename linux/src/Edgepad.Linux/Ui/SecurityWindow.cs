@@ -19,12 +19,15 @@ namespace Edgepad.Ui;
 /// </summary>
 internal sealed class SecurityWindow
 {
-    internal static readonly string[] LevelNames =
-    [
-        "Trust only",
-        "PIN once per phone",
-        "PIN on every connection",
-    ];
+    internal const int Levels = 3;
+
+    /// <summary>The name of level 1 to 3, in the desktop's language.</summary>
+    internal static string LevelName(int level) => level switch
+    {
+        <= 1 => LinuxStrings.Security_Level1,
+        2 => LinuxStrings.Security_Level2,
+        _ => LinuxStrings.Security_Level3,
+    };
 
     private readonly PinStore pin;
     private readonly TrustStore trust;
@@ -67,17 +70,17 @@ internal sealed class SecurityWindow
         level = pin.Level;
 
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 8 };
-        body.Children.Add(look.Text("Security", 18, FontWeight.Bold));
-        body.Children.Add(look.Text("Every phone is asked for your yes first. Levels 2 and 3 also ask for a six-digit PIN.", 14, dim: true));
+        body.Children.Add(look.Text(LinuxStrings.Security_Title, 18, FontWeight.Bold));
+        body.Children.Add(look.Text(LinuxStrings.Security_Intro, 14, dim: true));
 
-        levels = new RadioButton[LevelNames.Length];
+        levels = new RadioButton[Levels];
         for (var i = 0; i < levels.Length; i++)
         {
             var chosen = i + 1;
             var radio = new RadioButton
             {
                 GroupName = "level",
-                Content = $"{chosen}. {LevelNames[i]}",
+                Content = $"{chosen}. {LevelName(chosen)}",
                 IsChecked = chosen == level,
                 FontFamily = Look.Lato,
                 FontSize = 14,
@@ -88,7 +91,7 @@ internal sealed class SecurityWindow
             body.Children.Add(radio);
         }
 
-        setPin = look.Button("Set PIN…");
+        setPin = look.Button(LinuxStrings.Security_SetPin);
         setPin.Click += (_, _) => _ = Guard(() => SetPinFlowAsync());
         pinState = look.Text("", 14, dim: true);
         pinState.VerticalAlignment = VerticalAlignment.Center;
@@ -96,19 +99,19 @@ internal sealed class SecurityWindow
         pinRow.Children.Add(setPin);
         pinRow.Children.Add(pinState);
         body.Children.Add(pinRow);
-        body.Children.Add(look.Text("Saving a new PIN or level makes phones that entered the PIN once enter it again.", 14, dim: true));
+        body.Children.Add(look.Text(LinuxStrings.Security_PinNote, 14, dim: true));
 
-        body.Children.Add(look.Text("Trusted phones", 14, FontWeight.Bold));
+        body.Children.Add(look.Text(LinuxStrings.Security_TrustedPhones, 14, FontWeight.Bold));
         body.Children.Add(phoneRows);
-        forgetAllButton = look.Button("Forget all…", danger: true);
+        forgetAllButton = look.Button(LinuxStrings.Security_ForgetAll, danger: true);
         forgetAllButton.HorizontalAlignment = HorizontalAlignment.Left;
         forgetAllButton.Click += (_, _) => _ = Guard(ForgetAllAsync);
         body.Children.Add(forgetAllButton);
 
-        var reset = look.Button("Reset PIN and forget phones…", danger: true);
+        var reset = look.Button(LinuxStrings.Security_Reset, danger: true);
         reset.Click += (_, _) => _ = Guard(ConfirmResetAsync);
-        cancel = look.Button("Cancel");
-        save = look.Button("Save", primary: true);
+        cancel = look.Button(LinuxStrings.Common_Cancel);
+        save = look.Button(LinuxStrings.Common_Save, primary: true);
         save.IsDefault = true;
         save.Click += (_, _) => _ = Guard(SaveAsync);
         var footer = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 10, 0, 0) };
@@ -118,7 +121,7 @@ internal sealed class SecurityWindow
         footer.Children.Add(buttons);
         body.Children.Add(footer);
 
-        window = look.Dialog("Security", 480, body);
+        window = look.Dialog(LinuxStrings.Security_Title, 480, body);
         cancel.Click += (_, _) => window.Close();
         window.KeyDown += (_, e) =>
         {
@@ -152,8 +155,8 @@ internal sealed class SecurityWindow
 
     private void Refresh()
     {
-        setPin.Content = HavePin ? "Change PIN…" : "Set PIN…";
-        pinState.Text = staged is not null ? "A new PIN will be saved." : pin.HasPin ? "A PIN is set." : "No PIN is set.";
+        setPin.Content = HavePin ? LinuxStrings.Security_ChangePin : LinuxStrings.Security_SetPin;
+        pinState.Text = staged is not null ? LinuxStrings.Security_PinStaged : pin.HasPin ? LinuxStrings.Security_PinSet : LinuxStrings.Security_PinNone;
         FillPhones();
         forgetAllButton.IsEnabled = trust.CanForget || paired.CanForget;
     }
@@ -204,7 +207,7 @@ internal sealed class SecurityWindow
         {
             any = true;
             var name = PhoneName.Cached(address) is { } known ? $"{known} ({address})" : address;
-            AddPhone(Row(name, last(address)), () => ForgetOneAsync(name, () => trust.ForgetOne(address) & (!Paired(address) || paired.ForgetOne(address)), $"is blocked from connecting while Edgepad stays running, but is trusted again the next time it starts. Close whatever is holding {trust.FilePath} and choose Forget again"));
+            AddPhone(Row(name, last(address)), () => ForgetOneAsync(name, CoreStrings.Way_Bluetooth, () => trust.ForgetOne(address) & (!Paired(address) || paired.ForgetOne(address))));
         }
 
         foreach (var (id, linkName) in paired.List())
@@ -216,12 +219,12 @@ internal sealed class SecurityWindow
             }
 
             any = true;
-            AddPhone(Row($"{linkName} (Wi-Fi or USB)", last(id)), () => ForgetOneAsync(linkName, () => paired.ForgetOne(id), $"is refused over Wi-Fi or USB while Edgepad stays running, but is paired again the next time it starts. Close whatever is holding the pairings file in {pin.Folder} and choose Forget again"));
+            AddPhone(Row($"{linkName} ({CoreStrings.Way_WifiOrUsb})", last(id)), () => ForgetOneAsync(linkName, CoreStrings.Way_WifiOrUsb, () => paired.ForgetOne(id)));
         }
 
         if (!any)
         {
-            phoneRows.Children.Add(look.Text("No phone is trusted yet.", 14, dim: true));
+            phoneRows.Children.Add(look.Text(LinuxStrings.Security_NoPhones, 14, dim: true));
         }
     }
 
@@ -232,7 +235,7 @@ internal sealed class SecurityWindow
 
     private void AddPhone(string label, Func<Task> forget)
     {
-        var forgetButton = look.Button("Forget", danger: true);
+        var forgetButton = look.Button(LinuxStrings.Common_Forget, danger: true);
         forgetButton.Click += (_, _) => _ = Guard(forget);
         var text = look.Text(label, 14, dim: true);
         text.VerticalAlignment = VerticalAlignment.Center;
@@ -243,9 +246,9 @@ internal sealed class SecurityWindow
         phoneRows.Children.Add(row);
     }
 
-    private async Task ForgetOneAsync(string name, Func<bool> forget, string ifFailed)
+    private async Task ForgetOneAsync(string name, string way, Func<bool> forget)
     {
-        var yes = await Dialogs.Confirm(window, $"Forget {name}? It will have to be trusted here again before it can use this laptop.", "Forget", "Cancel", dangerous: true);
+        var yes = await Dialogs.Confirm(window, string.Format(LinuxStrings.Security_ForgetOneText, name, way), LinuxStrings.Common_Forget, LinuxStrings.Common_Cancel, dangerous: true);
         if (!yes)
         {
             return;
@@ -259,11 +262,13 @@ internal sealed class SecurityWindow
         hangUp();
         if (!done)
         {
-            await Dialogs.Inform(window, $"{name} could not be forgotten: its file could not be rewritten. It {ifFailed}.");
+            await Dialogs.Inform(window, string.Format(LinuxStrings.Error_ForgetOne, pin.Folder, name));
         }
         else if (!verified)
         {
-            await Dialogs.Inform(window, $"{name} was forgotten, but the list of phones that entered the PIN could not be cleared, so it may skip the PIN at level 2 once trusted again. Delete pin-verified.txt yourself from:" + Environment.NewLine + Environment.NewLine + pin.Folder);
+            await Dialogs.Inform(window, $"{LinuxStrings.Error_ForgetPin}
+
+{pin.Folder}");
         }
 
         Refresh();
@@ -325,7 +330,7 @@ internal sealed class SecurityWindow
 
                 if (!saved)
                 {
-                    await Dialogs.Inform(window, "The PIN could not be saved, so nothing was changed. The log has the reason.");
+                    await Dialogs.Inform(window, LinuxStrings.Error_PinNotSaved);
                     return;
                 }
 
@@ -335,7 +340,7 @@ internal sealed class SecurityWindow
             if (level != pin.Level && !pin.SetLevel(level))
             {
                 Refresh();
-                await Dialogs.Inform(window, "The level could not be saved, so the previous level still applies. The log has the reason.");
+                await Dialogs.Inform(window, LinuxStrings.Error_LevelNotSaved);
                 return;
             }
 
@@ -353,10 +358,9 @@ internal sealed class SecurityWindow
     {
         var yes = await Dialogs.Confirm(
             window,
-            "Delete the PIN, go back to level 1 and forget every trusted phone? Each phone, the one connected included, "
-                + "will have to be trusted here again. A forgotten PIN cannot be recovered, only reset.",
-            "Reset",
-            "Cancel",
+            LinuxStrings.Security_ResetText,
+            LinuxStrings.Common_Reset,
+            LinuxStrings.Common_Cancel,
             dangerous: true);
         if (!yes)
         {
@@ -376,21 +380,11 @@ internal sealed class SecurityWindow
         hangUp();
         if (!forgotten)
         {
-            await Dialogs.Inform(
-                window,
-                "Nothing was reset: the trusted phones could not be forgotten, so the PIN and the level were left as "
-                    + "they were. No phone can connect while Edgepad stays running, but those phones will be trusted "
-                    + "again, behind the same PIN, the next time it starts. Close whatever is holding the file and "
-                    + $"choose Reset again, or delete it yourself:\n\n{trust.FilePath}");
+            await Dialogs.Inform(window, string.Format(LinuxStrings.Error_ResetTrust, trust.FilePath));
         }
         else if (!pinGone)
         {
-            await Dialogs.Inform(
-                window,
-                "The trusted phones were forgotten, but the PIN could not be reset: a settings file could not be "
-                    + "removed, so the old PIN and level may still apply. Each phone has to be trusted here again. "
-                    + "Close whatever is holding the file and choose Reset again, or delete security.txt and "
-                    + $"pin-verified.txt yourself from:\n\n{pin.Folder}");
+            await Dialogs.Inform(window, string.Format(LinuxStrings.Error_ResetPin, pin.Folder));
         }
 
         window.Close();

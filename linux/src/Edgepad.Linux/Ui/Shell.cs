@@ -299,8 +299,8 @@ internal sealed class Shell : IDisposable
         };
         lifetime = app.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
         var hooks = new TrayHooks(
-            () => SecurityWindow.LevelNames[Math.Clamp(pin.Level, 1, SecurityWindow.LevelNames.Length) - 1],
-            () => $"{LinuxPlatform.Shared.Macros.Count} of {MacroStore.MaxMacros}",
+            () => SecurityWindow.LevelName(pin.Level),
+            () => string.Format(LinuxStrings.Menu_MacrosCount, LinuxPlatform.Shared.Macros.Count, MacroStore.MaxMacros),
             () => networkSettings.Load().Enabled,
             () => networkHint,
             () => ClipboardSetting.Enabled,

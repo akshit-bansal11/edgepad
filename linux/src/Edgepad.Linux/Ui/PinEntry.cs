@@ -14,9 +14,9 @@ internal static class PinEntry
     {
         if (first is null || first.Length != Pin.Length || !first.All(char.IsAsciiDigit))
         {
-            return "A PIN is exactly six digits.";
+            return LinuxStrings.Pin_NotSix;
         }
 
-        return first == again ? null : "The two PINs are not the same.";
+        return first == again ? null : LinuxStrings.Pin_Mismatch;
     }
 }

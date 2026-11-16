@@ -213,4 +213,200 @@
   <data name="Send_Failed" xml:space="preserve">
     <value>{0} gönderilemedi. Nedeni günlükte yazıyor.</value>
   </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Güvenlik</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Her telefonun önce burada sizin onayınızı alması gerekir. 2. ve 3. düzeyler ayrıca telefonun ekranında yazılan altı basamaklı bir PIN ister. Bu pencere açıkken telefonların bağlantısı kesilir.</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Yalnızca güven</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>Telefon başına bir kez PIN</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>Her bağlantıda PIN</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>PIN belirle…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>PIN&apos;i değiştir…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>Yeni bir PIN kaydedilecek.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>Bir PIN belirlendi.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>PIN belirlenmedi.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Yeni bir PIN veya düzeyi kaydetmek, PIN&apos;i bir kez girmiş telefonlardan onu yeniden girmelerini ister.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Güvenilen telefonlar</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>Tümünü unut…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>PIN&apos;i sıfırla ve telefonları unut…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Kaydet</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>Henüz güvenilen telefon yok. Bir telefon ilk kez bağlandığında size sorulur.</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>Bu bilgisayarı kullanabilmesi için {0} ({1}) cihazına burada yeniden güvenmeniz gerekir. Siz karar verirken telefonların bağlantısı kesik kalır.</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>{0} klasöründeki Edgepad dosyalarını başka hiçbir şey kullanmıyorken “Unut” seçeneğini yeniden deneyin. {1} tam olarak unutulamadı: bir dosya yeniden yazılamadı. Diskte güvenilir olarak kalır, ancak Edgepad yeniden başlatılana kadar Edgepad onu reddeder; yeniden unutmazsanız bundan sonra yine güvenilir olur.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>PIN kaydedilemedi, bu yüzden hiçbir şey değişmedi. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>Düzey kaydedilemedi, bu yüzden önceki düzey geçerli kalıyor. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>PIN silinir, düzey 1&apos;e döner ve güvenilen her telefon unutulur. Bağlı olan telefon dahil her telefona burada yeniden güvenmeniz gerekir. Unutulan bir PIN geri alınamaz, yalnızca sıfırlanabilir.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Dosyayı tutan şeyi kapatın, sonra “PIN’i sıfırla ve telefonları unut” seçeneğini yeniden seçin ya da dosyayı kendiniz silin:
+{0}
+Hiçbir şey sıfırlanmadı: güvenilen telefonlar unutulamadı, bu yüzden PIN ve düzey olduğu gibi bırakıldı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak bu telefonlar Edgepad&apos;in bir sonraki başlayışında aynı PIN&apos;le yine güvenilir olur.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Dosyayı tutan şeyi kapatın, sonra “PIN’i sıfırla ve telefonları unut” seçeneğini yeniden seçin ya da security.txt ve pin-verified.txt dosyalarını şu klasörden kendiniz silin:
+{0}
+Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kaldırılamadı, bu yüzden eski PIN ve düzey hâlâ geçerli olabilir. Her telefonun burada yeniden güvenilir olarak işaretlenmesi gerekir.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Güven</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Güvenme</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>{0} cihazına güvenilsin mi?</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>Eşleşmiş bir telefon bu bilgisayarın işaretçisini ve klavyesini denetlemek istiyor. Yalnızca size aitse güvenin. {0} sn içinde yanıt vermezseniz güvenilmez.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>Yeni PIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>Yeni PIN&apos;i yeniden girin</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Altı basamak</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Yeniden</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>Bu PIN&apos;i kullan</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>PIN tam olarak altı basamaklı olmalıdır.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>İki PIN aynı değil.</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Makrolar</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>Henüz makro yok</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Ad</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Bağımsız değişkenler</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>isteğe bağlı</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Kaldır</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Gözat…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Makro ekle</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Yeni makro</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}” için açılacak bir şey yok. Neyi açacağını seçin ya da kaldırın.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Makrolar {0} konumuna kaydedilemedi: {1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Bu düğmenin neyi açacağını seçin</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Telefonda gösterilen eşleştirme kodunu yazın:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Telefonda gösterilen eşleştirme kodu</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Telefon eşleştir</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>{0} eşleştirilsin mi?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Eşleştir</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Kapat</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Eşleştirme kodu denetleniyor</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>{0} sn içinde kapanır</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} telefondan geldi.</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>İstek {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>Her makro telefonda bir düğmedir. En fazla {0}.</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>Program, dosya, klasör veya bağlantı</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>Uygulama ekle</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>Bu dizüstü bilgisayarda uygulama bulunamadı.</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Ekle</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>Edgepad açıklaması</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Sıfırla</value>
+  </data>
 </root>
