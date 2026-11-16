@@ -8,6 +8,7 @@ using Edgepad.Dispatch;
 using Edgepad.Gamepad;
 using Edgepad.Injection;
 using Edgepad.Macros;
+using Edgepad.Media;
 using Edgepad.Net;
 using Edgepad.Power;
 using Edgepad.Protocol;
@@ -226,7 +227,10 @@ internal sealed class Session(
 
         // Only what this build can do: the phone hides a feature that is not named, so naming one that is
         // not there would be a button that quietly does nothing.
-        List<string> features = [Feature.Annotate, Feature.Capture, Feature.Apps];
+        // The phone arms it (ACTIONs 60 to 62); it holds no timer, SendMedia feeds it the report this session already gets.
+        dispatcher.EndAction = new EndAction(WindowsPower.Perform, token => Guarded(() => EndActionChanged(token)));
+
+        List<string> features = [Feature.Annotate, Feature.Capture, Feature.Apps, Feature.EndAction];
         if (open is not null)
         {
             features.Add(Feature.Running);
@@ -249,6 +253,12 @@ internal sealed class Session(
         // restart the app. Watching rather than asking once also covers the empty list, which is what tells
         // the phone to say "add some on the laptop" instead of drawing a grid that looks broken.
         Keep(macros.Watch(names => Guarded(() => Send(new Text((byte)TextKind.Macros, names)))));
+        Send(new Text((byte)TextKind.MacroCap, IMacroRunner.MaxMacros.ToString(CultureInfo.InvariantCulture)));
+
+        // Whether a capture is recording: idle first, then every toggle. Windows has nothing unavailable (a feature it
+        // cannot do is left out of FEATURES), so TEXT 24 is never sent from here.
+        dispatcher.CaptureStateReply = state => Guarded(() => Send(new Text((byte)TextKind.CaptureState, state)));
+        Send(new Text((byte)TextKind.CaptureState, CaptureStateToken.Idle));
 
         // Brightness changed on the laptop itself (keys, Windows' slider) reaches the phone as it does for audio.
         Keep(brightness.Watch(level => Guarded(() => SendBrightness(level))));
@@ -450,6 +460,16 @@ internal sealed class Session(
         }
     }
 
+    private void EndActionChanged(string token)
+    {
+        Send(new Text((byte)TextKind.EndAction, token));
+        if (token == EndActionToken.None)
+        {
+            // Disarmed by the phone (ACTION 62) or just fired; a countdown already up comes down with it.
+            WindowsPower.CancelShutdown();
+        }
+    }
+
     private void SendBrightness(int level) =>
         Send(new StateReport((byte)ControlId.Brightness, (byte)Math.Clamp(level, 0, 100), 0));
 
@@ -484,6 +504,11 @@ internal sealed class Session(
         }
 
         lastMedia = state;
+        dispatcher.EndAction?.Observe(new MediaSnapshot(
+            state.NowPlaying.Length == 0 ? "" : state.Aumid + "|" + state.NowPlayingFull,
+            state.Playing,
+            state.PositionSeconds,
+            state.DurationSeconds));
         SendMediaIcon(state);
         Send(new StateReport((byte)ControlId.MediaPosition, (byte)state.PositionPercent, state.Playing ? PlayingFlag : (byte)0));
     }
