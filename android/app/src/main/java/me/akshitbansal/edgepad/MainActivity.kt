@@ -1157,7 +1157,8 @@ class MainActivity :
                 }
             }
         // No screenshot, screen recording or recents thumbnail of the PIN or pairing code, and only of those screens.
-        if (next == Screen.PIN || next == Screen.PAIR_CODE) {
+        // Leaving one of them is an instant swap (showScreen), so the secret is off the stage before the flag clears.
+        if (next in secure) {
             window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -1198,7 +1199,8 @@ class MainActivity :
     ) {
         Carry.cancel()
         if (stage.parent == null) setContentView(stage)
-        if (next == previous) {
+        // A secret screen never animates in or out: a carry would keep the PIN or code drawn while FLAG_SECURE flips.
+        if (next == previous || previous in secure || next in secure) {
             stage.removeAllViews()
             stage.addView(view)
             return
@@ -2732,6 +2734,9 @@ class MainActivity :
     }
 
     private companion object {
+        /** Screens that show a secret (the PIN, a pairing code): FLAG_SECURE, and never carried. */
+        val secure = setOf(Screen.PIN, Screen.PAIR_CODE)
+
         val immersive =
             setOf(
                 Screen.SURFACE,
