@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -25,6 +26,12 @@ internal static class Program
     private static int Main()
     {
         AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Write($"Unhandled: {e.ExceptionObject}");
+
+        // Before any UI or thread starts, so every thread shows the shared strings in the desktop's language.
+        if (Language.FromEnvironment(Environment.GetEnvironmentVariable) is { } language)
+        {
+            CultureInfo.CurrentUICulture = CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(language);
+        }
 
         // One instance per user: a second copy would register a second profile for the same service id.
         PrivateStorage.CreateDirectory(Xdg.CacheFolder);
@@ -175,6 +182,14 @@ internal static class Program
         }
         catch (IOException)
         {
+            return null;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Not another copy: the file belongs to someone else (an earlier run under sudo). The log is not
+            // writable yet, so the reason goes to stderr.
+            Console.Error.WriteLine($"Edgepad could not start: {path} is owned by another user. Remove it, then start Edgepad again.");
+            Environment.Exit(1);
             return null;
         }
     }

@@ -10,6 +10,9 @@
     <AssemblyName>Edgepad.Linux</AssemblyName>
     <!-- A self-contained single file must start on a distribution with no libicu installed. -->
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Lets Platform/Language.cs create the culture the POSIX locale names, so the shared CoreStrings satellites
+         (bundled into the single file like any managed assembly) are found. Number formats stay invariant. -->
+    <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
     <!-- LibraryImport generates unsafe marshalling code for the libc P/Invokes. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- The release publishes for linux-x64. Naming it here puts that runtime's packages in packages.lock.json,
