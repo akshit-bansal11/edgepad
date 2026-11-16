@@ -194,7 +194,7 @@ internal static class LinkResponder
                     return null;
                 }
 
-                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, () => PairingText.SourceOf(remote), ended);
+                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, remote, ended);
 
             case ResumeRequest resume:
                 return Resume(raw, resume, self, paired, log, giveUp, wait);
@@ -216,14 +216,18 @@ internal static class LinkResponder
         Action giveUp,
         TimeSpan wait,
         TimeSpan ownerWait,
-        Func<string?> source,
+        IPAddress? remote,
         CancellationToken ended)
     {
         var address = AddressOf(request.PhoneId);
-        if (!limiter.TryBegin())
+
+        // Keyed by address, never by phone id or name: those are the phone's to choose. An IPv4 phone reaches a
+        // dual-stack socket as ::ffff:a.b.c.d, the same host as a.b.c.d.
+        var host = remote is null ? null : (remote.IsIPv4MappedToIPv6 ? remote.MapToIPv4() : remote).ToString();
+        if (!limiter.TryBegin(host))
         {
             LinkWire.Write(raw, LinkWire.Status(LinkWire.StatusBusy));
-            log($"Refused to pair {address}: another pairing is under way, or pairing is locked after failed attempts");
+            log($"Refused to pair {address}: another pairing is under way, or pairing is held off after failed or unanswered attempts");
             return null;
         }
 
@@ -231,8 +235,10 @@ internal static class LinkResponder
         var trustGeneration = trust.Generation;
         var pairedGeneration = paired.Generation;
 
-        // Anything that ends this short of a pairing counts against the lock, except the owner's own word.
-        var outcome = PairingOutcome.Failed;
+        // Only a wrong code, a commitment that does not open, a bad confirmation or an invalid key counts against the
+        // lock. A cancel or an unanswered wait holds this host off instead. Anything else, an exception too, is not
+        // counted.
+        var outcome = PairingOutcome.Abandoned;
         byte[]? prk = null;
         IPairingQuestion? question = null;
 
@@ -258,12 +264,14 @@ internal static class LinkResponder
             var revealed = ReadWithin(raw, wait, "key", log, giveUp);
             if (revealed is null)
             {
+                outcome = PairingOutcome.TimedOut;
                 return null;
             }
 
             var (phonePublic, phoneNonce) = LinkWire.DecodeReveal(revealed);
             if (!LinkCrypto.TagsEqual(LinkCrypto.Commit(phonePublic, phoneNonce), request.Commit))
             {
+                outcome = PairingOutcome.Failed;
                 log($"Refused to pair {address}: its key is not the one it committed to");
                 return null;
             }
@@ -280,12 +288,12 @@ internal static class LinkResponder
             }
 
             var asked = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
-            question = prompt.Show(name, source(), digits => asked.TrySetResult(digits), () => asked.TrySetResult(null));
+            question = prompt.Show(name, PairingText.SourceOf(remote),digits => asked.TrySetResult(digits), () => asked.TrySetResult(null));
             var (answer, typed) = AwaitOwner(asked, ownerWait, ended);
             switch (answer)
             {
                 case OwnerAnswer.Cancelled:
-                    outcome = PairingOutcome.Abandoned;
+                    outcome = PairingOutcome.Cancelled;
                     log($"The owner cancelled pairing {address}");
                     return null;
                 case OwnerAnswer.Ended:
@@ -293,6 +301,7 @@ internal static class LinkResponder
                     log($"Stopped pairing {address}: the network link was closed");
                     return null;
                 case OwnerAnswer.TimedOut:
+                    outcome = PairingOutcome.TimedOut;
                     log($"Refused to pair {address}: no code was typed within {(int)ownerWait.TotalSeconds} s");
                     return null;
                 default:
@@ -310,6 +319,7 @@ internal static class LinkResponder
             // The one check that needs the owner. Until it passes, nothing that depends on it is sent.
             if (!LinkCrypto.CodeMatches(typed, LinkCrypto.Sas(transcript)))
             {
+                outcome = PairingOutcome.Failed;
                 question.Mismatched();
                 log($"Refused to pair {address}: the code typed on this laptop is not the one that phone shows");
                 return null;
@@ -325,11 +335,13 @@ internal static class LinkResponder
             var confirmed = ReadOwnerLength(raw, ownerWait, log, giveUp);
             if (confirmed is null)
             {
+                outcome = PairingOutcome.TimedOut;
                 return null;
             }
 
             if (!LinkCrypto.TagsEqual(LinkWire.DecodeTag(confirmed), LinkCrypto.PhoneTag(prk, transcript, pairing: true)))
             {
+                outcome = PairingOutcome.Failed;
                 log($"Refused to pair {address}: it did not confirm the same keys");
                 return null;
             }
@@ -368,6 +380,7 @@ internal static class LinkResponder
         }
         catch (CryptographicException)
         {
+            outcome = PairingOutcome.Failed;
             log($"Refused to pair {address}: its key is not a valid P-256 point");
             return null;
         }
@@ -384,7 +397,7 @@ internal static class LinkResponder
             }
 
             question?.Dispose();
-            limiter.End(outcome);
+            limiter.End(outcome, host);
         }
     }
 

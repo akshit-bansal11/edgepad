@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Channels;
 using Edgepad.Net;
@@ -47,13 +48,13 @@ public sealed class LinkResponderTests : IDisposable
     }
 
     /// <summary>The laptop, accepting on <paramref name="end"/>; when it gives no link it closes the end, as the listener will.</summary>
-    private Task<LinkResult?> Laptop(Stream end, TimeSpan? ownerWait = null, bool refusing = false) => Task.Run(
+    private Task<LinkResult?> Laptop(Stream end, TimeSpan? ownerWait = null, bool refusing = false, IPAddress? remote = null) => Task.Run(
         () =>
         {
             LinkResult? result = null;
             try
             {
-                result = LinkResponder.Accept(end, laptop, paired, limiter, owner, trust, logs.Enqueue, end.Dispose, ended.Token, MessageWait, ownerWait ?? MessageWait, () => refusing);
+                result = LinkResponder.Accept(end, laptop, paired, limiter, owner, trust, logs.Enqueue, end.Dispose, ended.Token, MessageWait, ownerWait ?? MessageWait, () => refusing, remote);
                 return result;
             }
             finally
@@ -368,6 +369,91 @@ public sealed class LinkResponderTests : IDisposable
         AssertNotPaired();
         Assert.Equal(6, owner.Shown);
         Assert.Empty(owner.Told);
+    }
+
+    [Fact]
+    public async Task FiveUnansweredPromptsDoNotLockPairing()
+    {
+        owner.Types = null;
+        for (var i = 0; i < 5; i++)
+        {
+            var (phoneEnd, laptopEnd) = Duplex.Create();
+            var laptopSide = Laptop(laptopEnd, NoAnswerWait);
+            Assert.Null(LinkInitiator.Pair(phoneEnd, PhoneId, PhoneName, ShowOnPhone).Secure);
+            Assert.Null(await laptopSide);
+        }
+
+        owner.Types = code => code;
+        var (lastPhone, lastLaptop) = Duplex.Create();
+        var lastSide = Laptop(lastLaptop);
+        Assert.NotNull(LinkInitiator.Pair(lastPhone, PhoneId, PhoneName, ShowOnPhone).Secure);
+        Assert.NotNull(await lastSide);
+    }
+
+    [Fact]
+    public async Task ATimedOutPromptRefusesThatHostFor60Seconds()
+    {
+        owner.Types = null;
+        var host = IPAddress.Parse("192.168.1.20");
+        Assert.Equal(LinkWire.StatusOk, await PairFrom(host));
+        Assert.Equal(1, owner.Shown);
+
+        // The same host over a dual-stack socket is still the same host.
+        Assert.Equal(LinkWire.StatusBusy, await PairFrom(IPAddress.Parse("::ffff:192.168.1.20")));
+        Assert.Equal(1, owner.Shown);
+
+        Assert.Equal(LinkWire.StatusOk, await PairFrom(IPAddress.Parse("192.168.1.21")));
+        Assert.Equal(2, owner.Shown);
+
+        time += 60_000;
+        Assert.Equal(LinkWire.StatusOk, await PairFrom(host));
+        Assert.Equal(3, owner.Shown);
+    }
+
+    [Fact]
+    public async Task ACancelledPromptRefusesThatHost()
+    {
+        owner.Cancels = true;
+        var host = IPAddress.Parse("10.0.0.5");
+        Assert.Equal(LinkWire.StatusOk, await PairFrom(host));
+        Assert.Equal(LinkWire.StatusBusy, await PairFrom(host));
+        Assert.Equal(1, owner.Shown);
+        AssertNotPaired();
+    }
+
+    [Fact]
+    public async Task ABadCommitStillCounts()
+    {
+        for (var i = 0; i < 5; i++)
+        {
+            var (phoneEnd, laptopEnd) = Duplex.Create();
+            var laptopSide = Laptop(laptopEnd);
+            using var own = LinkCrypto.NewKeyPair();
+            var revealed = new byte[LinkWire.NonceLength];
+            revealed[0] = 1;
+            LinkWire.Write(phoneEnd, LinkWire.EncodePairRequest(PhoneId, PhoneName, LinkCrypto.Commit(own.PublicKey, new byte[LinkWire.NonceLength])));
+            LinkWire.Read(phoneEnd);
+            LinkWire.Write(phoneEnd, LinkWire.Reveal(own.PublicKey, revealed));
+            Assert.Null(await laptopSide);
+        }
+
+        owner.Types = code => code;
+        var (lastPhone, lastLaptop) = Duplex.Create();
+        var lastSide = Laptop(lastLaptop);
+        Assert.Equal(LinkWire.StatusBusy, LinkInitiator.Pair(lastPhone, PhoneId, PhoneName, ShowOnPhone).Status);
+        Assert.Null(await lastSide);
+        Assert.Equal(0, owner.Shown);
+    }
+
+    // One pairing attempt from remote, with the owner doing whatever the test set; the status the phone was given.
+    private async Task<byte> PairFrom(IPAddress remote)
+    {
+        var (phoneEnd, laptopEnd) = Duplex.Create();
+        var laptopSide = Laptop(laptopEnd, NoAnswerWait, remote: remote);
+        var phone = LinkInitiator.Pair(phoneEnd, PhoneId, PhoneName, ShowOnPhone);
+        Assert.Null(phone.Secure);
+        Assert.Null(await laptopSide);
+        return phone.Status;
     }
 
     [Fact]
