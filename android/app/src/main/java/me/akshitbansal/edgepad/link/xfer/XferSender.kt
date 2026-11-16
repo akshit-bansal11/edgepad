@@ -95,7 +95,9 @@ class XferSender(
             val code = XferCode.of(status.status)
             if (!sending || status.id != activeId || code == null) return false
             when (code) {
-                XferCode.READY -> readyAt = status.offset.toLong()
+                XferCode.READY -> {
+                    readyAt = status.offset.toLong()
+                }
 
                 XferCode.PROGRESS -> {
                     val offset = status.offset.toLong()
@@ -103,7 +105,9 @@ class XferSender(
                     lastProgress = offset
                 }
 
-                else -> final = code
+                else -> {
+                    final = code
+                }
             }
             changed.signalAll()
             true
@@ -218,7 +222,7 @@ class XferSender(
     private class Reader(
         private val open: () -> InputStream,
     ) : Closeable {
-        private var input =BufferedInputStream(open(), XferLimits.BUFFER_BYTES)
+        private var input = BufferedInputStream(open(), XferLimits.BUFFER_BYTES)
         private var sha = MessageDigest.getInstance("SHA-256")
         private var position = 0L
 

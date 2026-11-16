@@ -33,9 +33,10 @@ internal class PercentGate {
  * @param cancel What the Cancel action fires; the wiring supplies it. Without one the action is left off.
  */
 class XferNotification(
-    private val context: Context,
+    context: Context,
     private val cancel: PendingIntent? = null,
 ) {
+    private val context: Context = context.applicationContext
     private val gate = PercentGate()
 
     /** Shows [done] of [total] bytes of [name] if that is a new percent. Safe on any thread. */

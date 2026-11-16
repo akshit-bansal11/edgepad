@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 object Transfers {
     private val links = IdentityHashMap<ManagedLink, Link>()
-    private var notification: XferNotification? = null
 
     /** Brings the links in line with the laptops: a link that is gone is let go, a new connected one is taken. */
     fun attach(
@@ -81,17 +80,16 @@ object Transfers {
         return null
     }
 
-    private fun notice(app: Context): XferNotification =
-        notification ?: run {
-            val cancel =
-                PendingIntent.getBroadcast(
-                    app,
-                    0,
-                    Intent(app, XferCancelReceiver::class.java),
-                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-                )
-            XferNotification(app, cancel).also { notification = it }
-        }
+    private fun notice(app: Context): XferNotification {
+        val cancel =
+            PendingIntent.getBroadcast(
+                app,
+                0,
+                Intent(app, XferCancelReceiver::class.java),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            )
+        return XferNotification(app, cancel)
+    }
 
     /** One link's two directions. */
     class Link internal constructor(
