@@ -34,6 +34,9 @@ internal sealed class MediaSessions : IDisposable
     // Held across one whole swap of the watched session. Two CurrentSessionChanged events racing used to leave a
     // session subscribed that was no longer the current one, or the current one unsubscribed.
     private readonly Lock swap = new();
+
+    // Read only inside SnapshotAsync, which runs one at a time under publishing.
+    private readonly BrowserTitle.Cache browserService = new();
     private GlobalSystemMediaTransportControlsSessionManager? manager;
     private GlobalSystemMediaTransportControlsSession? session;
     private System.Threading.Timer? ticker;
@@ -222,7 +225,7 @@ internal sealed class MediaSessions : IDisposable
         var executable = Executable(aumid);
         // A browser is named after the service in its window title, when one can be seen there.
         var app = BrowserTitle.IsBrowser(executable)
-            ? BrowserTitle.Service(BrowserTitle.WindowTitles(executable)) ?? AppName(aumid)
+            ? browserService.Service(executable, aumid, nowPlaying) ?? AppName(aumid)
             : AppName(aumid);
         return new MediaState(nowPlaying.Trim(), app, playing, percent, seconds, (int)span.TotalSeconds);
     }

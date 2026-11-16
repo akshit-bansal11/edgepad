@@ -317,15 +317,17 @@ internal sealed class Session(
 
     /// <summary>
     /// The battery list and the audio output, now and on change. Batteries are polled every minute and at once on a
-    /// power event (plugged in, unplugged, resumed); the output every 3 s, since nothing here watches the default
-    /// device. The reporter is kept before its source, so it stops polling before the source is released.
+    /// power event (plugged in, unplugged, resumed); the output at once when the default device changes or a device
+    /// comes or goes, and every 30 s as the fallback. The reporter and the device watch are kept before their source,
+    /// so they stop before the source is released.
     /// </summary>
     private void ReportPower()
     {
         var source = new PowerSource();
         var reporter = new PowerReporter(
-            source.ReadBatteries, source.ReadOutput, text => Send(text), TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(3));
+            source.ReadBatteries, source.ReadOutput, text => Send(text), TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(30));
         Keep(reporter);
+        Keep(source.WatchOutput(() => Guarded(reporter.Poke)));
         Keep(source);
 
         // Raised on the UI thread, like DisplaySettingsChanged, and moved off it for the same reason.

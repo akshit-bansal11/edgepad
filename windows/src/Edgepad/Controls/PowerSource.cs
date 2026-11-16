@@ -110,6 +110,35 @@ internal sealed partial class PowerSource : IDisposable
         }
     }
 
+    /// <summary>
+    /// Calls <paramref name="onChange"/>, off Windows' audio thread, when the default playback device changes or a
+    /// device comes or goes (a Bluetooth headset connecting), until disposed. Null when Core Audio cannot be reached.
+    /// </summary>
+    public IDisposable? WatchOutput(Action onChange)
+    {
+        try
+        {
+            devices ??= new MMDeviceEnumerator();
+
+            // Raised on the audio worker thread, which holds a lock while it calls: nothing here may block it.
+            var client = devices.CreateNotificationClient(useSynchronizationContext: false);
+            client.DefaultDeviceChanged += (_, e) =>
+            {
+                if (e.Flow == DataFlow.Render && e.Role == Role.Multimedia)
+                {
+                    _ = Task.Run(onChange);
+                }
+            };
+            client.DeviceStateChanged += (_, _) => _ = Task.Run(onChange);
+            return client;
+        }
+        catch (COMException e)
+        {
+            LogOnce($"Audio device events unavailable, polling instead: {e.Message}");
+            return null;
+        }
+    }
+
     internal static string OutputKindOf(int formFactor) => formFactor switch
     {
         Speakers => OutputKind.Speaker,

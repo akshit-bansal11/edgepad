@@ -47,4 +47,38 @@ public sealed class BrowserTitleTests
     [Fact]
     public void AnUnknownTitleGivesNothing() =>
         Assert.Null(BrowserTitle.Service(["New Tab - Google Chrome", "Inbox - Gmail"]));
+
+    [Fact]
+    public void TheSameAppAndTrackDoNotListTheWindowsAgain()
+    {
+        var listed = 0;
+        var cache = new BrowserTitle.Cache(_ =>
+        {
+            listed++;
+            return ["Stranger Things | Netflix - Google Chrome"];
+        });
+
+        Assert.Equal("Netflix", cache.Service("chrome", "Chrome", "Stranger Things"));
+        Assert.Equal("Netflix", cache.Service("chrome", "Chrome", "Stranger Things"));
+        Assert.Equal(1, listed);
+    }
+
+    [Fact]
+    public void ANewAppOrTrackListsTheWindowsAgain()
+    {
+        var titles = "Stranger Things | Netflix - Google Chrome";
+        var listed = 0;
+        var cache = new BrowserTitle.Cache(_ =>
+        {
+            listed++;
+            return [titles];
+        });
+        _ = cache.Service("chrome", "Chrome", "Stranger Things");
+
+        titles = "Some Song - YouTube - Google Chrome";
+        Assert.Equal("YouTube", cache.Service("msedge", "MSEdge", "Stranger Things"));
+        titles = "Liked songs - YouTube Music - Google Chrome";
+        Assert.Equal("YouTube Music", cache.Service("msedge", "MSEdge", "Some Song"));
+        Assert.Equal(3, listed);
+    }
 }
