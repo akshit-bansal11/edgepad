@@ -1272,13 +1272,7 @@ class ControlSurface(
         x: Float,
         y: Float,
     ) {
-        perimeter.project(x, y, hit)
-        val moved = perimeter.delta(lastS, hit[0])
-        lastS = hit[0]
-        // Deep inside the screen the nearest edge can flip from one side of a corner to the other; that is a
-        // jump along the path, not a slide, so it moves nothing.
-        if (abs(moved) > dp(JUMP_DP)) return
-        dials[activeDial].slide(moved / density, TrackpadRecognizer.SLOP_DP)
+        lastS = DialSlide.slide(dials[activeDial], perimeter, x, y, hit, lastS, density, TrackpadRecognizer.SLOP_DP)
     }
 
     /** Ends the touch and says whether it tapped a dial; a top button is settled in [onTouchEvent]. */
@@ -1655,7 +1649,6 @@ class ControlSurface(
         private const val SKIP_DP = 24f
         private const val PLAY_ICON_DP = 24f
         private const val HIT_SLACK_DP = 12f
-        private const val JUMP_DP = 64f
         private const val SAMPLE_DP = 8f
         private const val TITLE_SP = 15f
 
