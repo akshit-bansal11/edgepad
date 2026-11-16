@@ -30,4 +30,527 @@
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
     <value>Edgepad pyta Muzykę lub Spotify, jaki utwór gra, i przewija go, gdy przesuwasz na telefonie; na końcu odtwarzania usypia lub wyłącza tego Maka, gdy poprosisz o to z telefonu.</value>
   </data>
+  <data name="Core_ConnectedOver" xml:space="preserve">
+    <value>Połączono z {0} · {1}</value>
+  </data>
+  <data name="Core_BluetoothNotAllowed" xml:space="preserve">
+    <value>Edgepad nie ma zgody na używanie Bluetooth. Zezwól w Ustawieniach systemowych › Prywatność i ochrona › Bluetooth.</value>
+  </data>
+  <data name="Core_BluetoothOffMenu" xml:space="preserve">
+    <value>Bluetooth jest wyłączony. Włącz go na pasku menu.</value>
+  </data>
+  <data name="Core_RefusedUnreadable" xml:space="preserve">
+    <value>Odrzucono telefon: nie można odczytać zaufanych telefonów</value>
+  </data>
+  <data name="Core_RefusedForgotten" xml:space="preserve">
+    <value>Odrzucono telefon, który został tu zapomniany</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Anuluj</value>
+  </data>
+  <data name="Common_Continue" xml:space="preserve">
+    <value>Dalej</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Zapisz</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Zamknij</value>
+  </data>
+  <data name="Common_Send" xml:space="preserve">
+    <value>Wyślij</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Zainstaluj</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Zapomnij</value>
+  </data>
+  <data name="Common_Trust" xml:space="preserve">
+    <value>Zaufaj</value>
+  </data>
+  <data name="Common_DontTrust" xml:space="preserve">
+    <value>Nie ufaj</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Zresetuj</value>
+  </data>
+  <data name="Common_Pair" xml:space="preserve">
+    <value>Sparuj</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad już działa.</value>
+  </data>
+  <data name="App_AlreadyRunningBody" xml:space="preserve">
+    <value>Znajdziesz go na pasku menu, po prawej. Przytrzymaj Command i przeciągnij, aby zmienić kolejność ikon.</value>
+  </data>
+  <data name="App_Welcome" xml:space="preserve">
+    <value>Edgepad działa na pasku menu</value>
+  </data>
+  <data name="App_WelcomeBody" xml:space="preserve">
+    <value>macOS zapyta teraz o to, czego potrzebuje Edgepad. Bluetooth, aby słyszeć telefon. Sterowanie urządzeniem, aby poruszać wskaźnikiem i naciskać klawisze. Powiadomienia, aby informować, gdy telefon prosi o połączenie. Folder Pulpit, Dokumenty lub Pobrane, tylko gdy telefon prosi o zrzut ekranu lub nagranie.</value>
+  </data>
+  <data name="App_UpdatedAllow" xml:space="preserve">
+    <value>Zaktualizowano: zezwól ponownie Edgepadowi w Sterowaniu urządzeniem</value>
+  </data>
+  <data name="App_TipBlocked" xml:space="preserve">
+    <value>Edgepad nie może jeszcze sterować tym Makiem</value>
+  </data>
+  <data name="App_TipStatus" xml:space="preserve">
+    <value>Edgepad: {0}</value>
+  </data>
+  <data name="App_PermissionSteps" xml:space="preserve">
+    <value>Ustawienia systemowe › Prywatność i ochrona › Sterowanie urządzeniem i dostęp do danych › + › Edgepad</value>
+  </data>
+  <data name="Menu_Installing" xml:space="preserve">
+    <value>Instalowanie Edgepad {0}…</value>
+  </data>
+  <data name="Menu_Install" xml:space="preserve">
+    <value>Zainstaluj Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateAvailable" xml:space="preserve">
+    <value>Dostępna aktualizacja: {0}</value>
+  </data>
+  <data name="Menu_Later" xml:space="preserve">
+    <value>Później</value>
+  </data>
+  <data name="Menu_Skip" xml:space="preserve">
+    <value>Pomiń tę wersję</value>
+  </data>
+  <data name="Menu_AllowControl" xml:space="preserve">
+    <value>Zezwól Edgepadowi na sterowanie tym Makiem…</value>
+  </data>
+  <data name="Menu_Wifi" xml:space="preserve">
+    <value>Połączenia Wi-Fi</value>
+  </data>
+  <data name="Menu_WifiHint" xml:space="preserve">
+    <value>Połączenia Wi-Fi ({0})</value>
+  </data>
+  <data name="Menu_WifiTip" xml:space="preserve">
+    <value>Na Macu tylko Wi-Fi: tethering USB wymaga sterownika, którego macOS nie zawiera.</value>
+  </data>
+  <data name="Menu_Clipboard" xml:space="preserve">
+    <value>Udostępnij schowek</value>
+  </data>
+  <data name="Menu_ClipboardTip" xml:space="preserve">
+    <value>Kopiuj na jednym urządzeniu, wklejaj na drugim: tekst i obrazy.</value>
+  </data>
+  <data name="Menu_Login" xml:space="preserve">
+    <value>Uruchamiaj przy logowaniu</value>
+  </data>
+  <data name="Menu_DailyUpdates" xml:space="preserve">
+    <value>Sprawdzaj aktualizacje codziennie</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Wyślij plik…</value>
+  </data>
+  <data name="Menu_SendFileNoPhone" xml:space="preserve">
+    <value>Wyślij plik… (brak połączonego telefonu)</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Makra…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Zabezpieczenia… ({0})</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Dokumentacja</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Otwórz dziennik</value>
+  </data>
+  <data name="Menu_About" xml:space="preserve">
+    <value>O programie Edgepad</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Zakończ Edgepad</value>
+  </data>
+  <data name="Net_PortInUse" xml:space="preserve">
+    <value>Port zajęty, używam {0}</value>
+  </data>
+  <data name="Net_WaitingForNetwork" xml:space="preserve">
+    <value>Oczekiwanie na sieć</value>
+  </data>
+  <data name="Net_CouldNotListen" xml:space="preserve">
+    <value>Nie można nasłuchiwać; zobacz dziennik</value>
+  </data>
+  <data name="Net_Phone" xml:space="preserve">
+    <value>Telefon</value>
+  </data>
+  <data name="Note_UpdateTitle" xml:space="preserve">
+    <value>Edgepad {0} jest dostępny</value>
+  </data>
+  <data name="Note_UpdateBody" xml:space="preserve">
+    <value>Kliknij, aby otworzyć stronę pobierania.</value>
+  </data>
+  <data name="Note_PairTitle" xml:space="preserve">
+    <value>Sparować: {0}?</value>
+  </data>
+  <data name="Note_PairBody" xml:space="preserve">
+    <value>Wpisz kod parowania pokazany na telefonie.</value>
+  </data>
+  <data name="Note_TrustTitle" xml:space="preserve">
+    <value>Zaufać: {0}?</value>
+  </data>
+  <data name="Note_TrustBody" xml:space="preserve">
+    <value>{0} chce się połączyć. Wybierz „Zaufaj” lub „Nie ufaj”.</value>
+  </data>
+  <data name="Note_NotUpdated" xml:space="preserve">
+    <value>Nie zaktualizowano Edgepada</value>
+  </data>
+  <data name="Status_Received" xml:space="preserve">
+    <value>Odebrano {0} w Downloads/Edgepad</value>
+  </data>
+  <data name="Status_OnlyFiles" xml:space="preserve">
+    <value>Można wysyłać tylko pliki, nie foldery</value>
+  </data>
+  <data name="Status_Forgot" xml:space="preserve">
+    <value>Zapomniano zaufane telefony; gotowe na nowy za {0} s</value>
+  </data>
+  <data name="Xfer_Sent" xml:space="preserve">
+    <value>Wysłano {0} na telefon</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Wysyłanie {0}</value>
+  </data>
+  <data name="Xfer_BadHash" xml:space="preserve">
+    <value>{0} dotarł na telefon uszkodzony; wyślij go ponownie</value>
+  </data>
+  <data name="Xfer_Rejected" xml:space="preserve">
+    <value>Telefon nie przyjął {0}</value>
+  </data>
+  <data name="Xfer_WriteFailed" xml:space="preserve">
+    <value>Nie udało się odczytać ani zapisać {0}</value>
+  </data>
+  <data name="Xfer_Cancelled" xml:space="preserve">
+    <value>Anulowano wysyłanie {0}</value>
+  </data>
+  <data name="Xfer_Busy" xml:space="preserve">
+    <value>Telefon już odbiera plik; wyślij {0} ponownie po jego zakończeniu</value>
+  </data>
+  <data name="Xfer_TimedOut" xml:space="preserve">
+    <value>Telefon nie odpowiedział podczas wysyłania {0}</value>
+  </data>
+  <data name="Xfer_SessionEnded" xml:space="preserve">
+    <value>Telefon rozłączył się, zanim wysłano {0}</value>
+  </data>
+  <data name="Alert_MajorTitle" xml:space="preserve">
+    <value>Edgepad {0} wymaga też aktualizacji aplikacji na telefonie.</value>
+  </data>
+  <data name="Alert_MajorBody" xml:space="preserve">
+    <value>Zainstaluj oba razem, inaczej telefon i ten Mac nie połączą się.</value>
+  </data>
+  <data name="Alert_LoginFailed" xml:space="preserve">
+    <value>Nie udało się zmienić ustawienia „Uruchamiaj przy logowaniu”</value>
+  </data>
+  <data name="Alert_LoginApproval" xml:space="preserve">
+    <value>Zezwól Edgepadowi na uruchamianie przy logowaniu</value>
+  </data>
+  <data name="Alert_LoginApprovalBody" xml:space="preserve">
+    <value>Zezwól Edgepadowi w Ustawieniach systemowych › Ogólne › Rzeczy logowania.</value>
+  </data>
+  <data name="Alert_ForgetAll" xml:space="preserve">
+    <value>Zapomnieć wszystkie zaufane telefony?</value>
+  </data>
+  <data name="Alert_ForgetAllBody" xml:space="preserve">
+    <value>Zapomnieć {0}? Każdy telefon, także ten, będzie musiał zostać tu ponownie zaufany, zanim zacznie korzystać z tego Maca.</value>
+  </data>
+  <data name="Alert_TheTrustedPhones" xml:space="preserve">
+    <value>zaufane telefony</value>
+  </data>
+  <data name="Alert_EveryTrustedPhone" xml:space="preserve">
+    <value>wszystkie zaufane telefony ({0})</value>
+  </data>
+  <data name="Alert_ForgetFailed" xml:space="preserve">
+    <value>Nie udało się zapomnieć zaufanych telefonów</value>
+  </data>
+  <data name="Alert_ForgetFailedBody" xml:space="preserve">
+    <value>Nie udało się usunąć ani opróżnić ich pliku. Dopóki Edgepad działa, żaden telefon się nie połączy, ale po następnym uruchomieniu Edgepada te telefony znów będą zaufane. Wybierz ponownie „Zapomnij wszystkie zaufane telefony” albo usuń plik samodzielnie:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetPinFailed" xml:space="preserve">
+    <value>Nie udało się zapomnieć telefonów, które wpisały PIN</value>
+  </data>
+  <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
+    <value>Nie udało się usunąć ich listy. Dopóki Edgepad działa, każdy telefon jest pytany o PIN przy każdym połączeniu, ale po uruchomieniu Edgepada te telefony znów go pominą w trybie "PIN raz na telefon". Wybierz ponownie „Zapomnij wszystkie zaufane telefony” albo usuń pin-verified.txt samodzielnie z:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetOne" xml:space="preserve">
+    <value>Zapomnieć: {0}?</value>
+  </data>
+  <data name="Alert_ForgetOneBody" xml:space="preserve">
+    <value>Będzie musiał zostać tu ponownie zaufany, zanim zacznie korzystać z tego Maca.</value>
+  </data>
+  <data name="Alert_ForgetOneFailed" xml:space="preserve">
+    <value>Nie udało się zapomnieć {0}</value>
+  </data>
+  <data name="Alert_ForgetOneFailedBody" xml:space="preserve">
+    <value>Nie udało się zapisać pliku ponownie, więc telefon może nadal być zaufany. Powód jest w dzienniku.</value>
+  </data>
+  <data name="Alert_PairingsFailed" xml:space="preserve">
+    <value>Nie udało się zapomnieć sparowań Wi-Fi</value>
+  </data>
+  <data name="Alert_PairingsFailedBody" xml:space="preserve">
+    <value>Nie udało się usunąć ani opróżnić ich pliku. Sparowane telefony nie mogą ponownie łączyć się przez Wi-Fi, dopóki Edgepad działa, ale będą mogły po jego następnym uruchomieniu. Wybierz ponownie „Zapomnij wszystkie zaufane telefony” albo usuń paired-links.txt samodzielnie z:
+
+{0}</value>
+  </data>
+  <data name="Alert_NoPhone" xml:space="preserve">
+    <value>Brak połączonego telefonu</value>
+  </data>
+  <data name="Alert_NoPhoneBody" xml:space="preserve">
+    <value>Połącz telefon z Edgepadem, a potem wyślij plik ponownie.</value>
+  </data>
+  <data name="Alert_ChooseFiles" xml:space="preserve">
+    <value>Wybierz pliki do wysłania na telefon</value>
+  </data>
+  <data name="Alert_TurnOn" xml:space="preserve">
+    <value>Włącz</value>
+  </data>
+  <data name="Alert_Allow" xml:space="preserve">
+    <value>Zezwól</value>
+  </data>
+  <data name="Alert_NotNow" xml:space="preserve">
+    <value>Nie teraz</value>
+  </data>
+  <data name="Alert_Network" xml:space="preserve">
+    <value>Pozwolić telefonom znajdować ten laptop?</value>
+  </data>
+  <data name="Alert_NetworkBody" xml:space="preserve">
+    <value>Na Macu tylko Wi-Fi: tethering USB wymaga sterownika, którego macOS nie zawiera. Telefony w tej samej sieci Wi-Fi będą mogły znaleźć tego Maca i poprosić o sparowanie. Nic się nie połączy bez kodu parowania wpisanego tutaj. macOS może zapytać, czy Edgepad może wyszukiwać urządzenia w sieci lokalnej, a zapora, czy może przyjmować połączenia przychodzące: zezwól na oba.</value>
+  </data>
+  <data name="Alert_SaveFailed" xml:space="preserve">
+    <value>Nie udało się zapisać ustawienia</value>
+  </data>
+  <data name="Alert_SaveFailedBody" xml:space="preserve">
+    <value>Nic nie zostało zmienione. Powód jest w dzienniku.</value>
+  </data>
+  <data name="Alert_Trust" xml:space="preserve">
+    <value>Zaufać: {0}?</value>
+  </data>
+  <data name="Alert_TrustQuoted" xml:space="preserve">
+    <value>Nazwa w cudzysłowie to tylko to, jak telefon sam siebie nazywa; zaufany będzie adres.</value>
+  </data>
+  <data name="Alert_TrustAddress" xml:space="preserve">
+    <value>Zaufany będzie adres.</value>
+  </data>
+  <data name="Alert_TrustBody" xml:space="preserve">
+    <value>{0} prosi o sterowanie wskaźnikiem i klawiaturą tego Maca. {1} Zaufaj mu tylko wtedy, gdy jest Twój. Bez odpowiedzi w ciągu {2} s nie zostanie zaufany.</value>
+  </data>
+  <data name="Alert_Credits" xml:space="preserve">
+    <value>Czcionki i ikony: Lato, Lucide.</value>
+  </data>
+  <data name="Alert_ShutdownTitle" xml:space="preserve">
+    <value>Ten Mac wyłączy się za 60 sekund.</value>
+  </data>
+  <data name="Alert_ShutdownBody" xml:space="preserve">
+    <value>Multimedia na telefonie się skończyły, a poprosiłeś o wyłączenie w tym momencie.</value>
+  </data>
+  <data name="Sec_Title" xml:space="preserve">
+    <value>Zabezpieczenia</value>
+  </data>
+  <data name="Sec_Intro" xml:space="preserve">
+    <value>Każdy telefon najpierw potrzebuje Twojej zgody. Dwa poziomy z PIN-em wymagają też sześciocyfrowego PIN-u.</value>
+  </data>
+  <data name="Sec_LevelTrust" xml:space="preserve">
+    <value>Tylko zaufanie</value>
+  </data>
+  <data name="Sec_LevelPinOnce" xml:space="preserve">
+    <value>PIN raz na telefon</value>
+  </data>
+  <data name="Sec_LevelPinEvery" xml:space="preserve">
+    <value>PIN przy każdym połączeniu</value>
+  </data>
+  <data name="Sec_ResetButton" xml:space="preserve">
+    <value>Resetuj PIN i zapomnij telefony…</value>
+  </data>
+  <data name="Sec_ForgetAllButton" xml:space="preserve">
+    <value>Zapomnij wszystkie zaufane telefony…</value>
+  </data>
+  <data name="Sec_Warning" xml:space="preserve">
+    <value>Zapisanie nowego PIN lub poziomu sprawia, że telefony, które raz wpisały PIN, muszą wpisać go ponownie.</value>
+  </data>
+  <data name="Sec_ChangePin" xml:space="preserve">
+    <value>Zmień PIN…</value>
+  </data>
+  <data name="Sec_SetPin" xml:space="preserve">
+    <value>Ustaw PIN…</value>
+  </data>
+  <data name="Sec_PinNew" xml:space="preserve">
+    <value>Zostanie zapisany nowy PIN.</value>
+  </data>
+  <data name="Sec_PinSet" xml:space="preserve">
+    <value>PIN jest ustawiony.</value>
+  </data>
+  <data name="Sec_PinNone" xml:space="preserve">
+    <value>PIN nie jest ustawiony.</value>
+  </data>
+  <data name="Sec_SixDigits" xml:space="preserve">
+    <value>Sześć cyfr</value>
+  </data>
+  <data name="Sec_Again" xml:space="preserve">
+    <value>Ponownie</value>
+  </data>
+  <data name="Sec_NewPin" xml:space="preserve">
+    <value>Nowy PIN</value>
+  </data>
+  <data name="Sec_NewPinAgain" xml:space="preserve">
+    <value>Nowy PIN ponownie</value>
+  </data>
+  <data name="Sec_NewPinBody" xml:space="preserve">
+    <value>Sześć cyfr, wpisanych dwa razy.</value>
+  </data>
+  <data name="Sec_UsePin" xml:space="preserve">
+    <value>Użyj tego PIN</value>
+  </data>
+  <data name="Sec_Mismatch" xml:space="preserve">
+    <value>Oba PIN-y nie są takie same.</value>
+  </data>
+  <data name="Sec_Exactly" xml:space="preserve">
+    <value>Użyj dokładnie sześciu cyfr.</value>
+  </data>
+  <data name="Sec_PinNotSaved" xml:space="preserve">
+    <value>Nie udało się zapisać PIN, więc nic nie zmieniono. Przyczyna jest w dzienniku.</value>
+  </data>
+  <data name="Sec_LevelNotSaved" xml:space="preserve">
+    <value>Nie udało się zapisać poziomu, więc nadal obowiązuje poprzedni. Przyczyna jest w dzienniku.</value>
+  </data>
+  <data name="Sec_ResetTitle" xml:space="preserve">
+    <value>Zresetować PIN i zapomnieć wszystkie telefony?</value>
+  </data>
+  <data name="Sec_ResetBody" xml:space="preserve">
+    <value>PIN zostanie usunięty, poziom wróci do „Tylko zaufanie”, a wszystkie zaufane telefony zostaną zapomniane. Każdy telefon będzie musiał zostać tu ponownie zaufany. Zapomnianego PIN-u nie można odzyskać, tylko zresetować.</value>
+  </data>
+  <data name="Sec_ResetFailedTrust" xml:space="preserve">
+    <value>Nic nie zostało zresetowane: nie udało się zapomnieć zaufanych telefonów, więc PIN i poziom pozostały bez zmian. Dopóki Edgepad działa, żaden telefon się nie połączy, ale po następnym uruchomieniu te telefony znów będą zaufane, z tym samym PIN-em. Zamknij to, co przytrzymuje plik, i wybierz ponownie „Zresetuj” albo usuń go samodzielnie:
+
+{0}</value>
+  </data>
+  <data name="Sec_ResetFailedPin" xml:space="preserve">
+    <value>Zaufane telefony zostały zapomniane, ale nie udało się zresetować PIN-u: nie udało się usunąć pliku ustawień, więc stary PIN i poziom mogą nadal obowiązywać. Każdy telefon musi zostać tu ponownie zaufany. Zamknij to, co przytrzymuje plik, i wybierz ponownie „Zresetuj” albo usuń security.txt i pin-verified.txt samodzielnie z:
+
+{0}</value>
+  </data>
+  <data name="Sec_TrustedPhones" xml:space="preserve">
+    <value>Zaufane telefony</value>
+  </data>
+  <data name="Sec_ForgetLabel" xml:space="preserve">
+    <value>Zapomnij: {0}</value>
+  </data>
+  <data name="Sec_FailTitle" xml:space="preserve">
+    <value>Nie udało się zapisać ustawień zabezpieczeń</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Sparować: {0}?</value>
+  </data>
+  <data name="Pair_ThisPhone" xml:space="preserve">
+    <value>Ten telefon</value>
+  </data>
+  <data name="Pair_Window" xml:space="preserve">
+    <value>Sparuj telefon</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Wpisz kod parowania pokazany na telefonie:</value>
+  </data>
+  <data name="Pair_CodeLabel" xml:space="preserve">
+    <value>Kod pokazany na telefonie</value>
+  </data>
+  <data name="Pair_Announce" xml:space="preserve">
+    <value>Sparować {0}? Zamknie się za {1} s.</value>
+  </data>
+  <data name="Pair_Matched" xml:space="preserve">
+    <value>Kod pasuje. Dotknij „Tak, sparowano” na {0}, aby zakończyć.</value>
+  </data>
+  <data name="Pair_Mismatched" xml:space="preserve">
+    <value>Kod nie pasował. Nic nie zostało sparowane.</value>
+  </data>
+  <data name="Pair_Paired" xml:space="preserve">
+    <value>Sparowano z: {0}.</value>
+  </data>
+  <data name="Pair_NotFinished" xml:space="preserve">
+    <value>Parowanie nie zostało zakończone.</value>
+  </data>
+  <data name="Pair_Warning" xml:space="preserve">
+    <value>Paruj tylko telefon, który należy do Ciebie. Jeśli nie rozpoczynasz właśnie parowania, wybierz „Anuluj”.</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Zamknięcie za {0} s</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Sprawdzanie kodu</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Makra</value>
+  </data>
+  <data name="Macro_Body" xml:space="preserve">
+    <value>Przyciski na ekranie makr telefonu, do {0}. Telefon wysyła numer przycisku, nigdy program, więc może uruchamiać tylko to, co tu dodasz.</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>{0} nie ma nic do otwarcia. Wskaż aplikację lub plik albo wpisz adres internetowy.</value>
+  </data>
+  <data name="Macro_AMacro" xml:space="preserve">
+    <value>Makro</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Nie udało się zapisać makr w {0}: {1}.</value>
+  </data>
+  <data name="Macro_SaveFailedTitle" xml:space="preserve">
+    <value>Nie udało się zapisać makr</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Nazwa</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>Otwiera</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Argumenty</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>Ikona</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>Dodaj makro</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Usuń</value>
+  </data>
+  <data name="Macro_MoveUp" xml:space="preserve">
+    <value>Przesuń w górę</value>
+  </data>
+  <data name="Macro_MoveDown" xml:space="preserve">
+    <value>Przesuń w dół</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Przeglądaj…</value>
+  </data>
+  <data name="Macro_Choose" xml:space="preserve">
+    <value>Wybierz…</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>Użyj własnej ikony programu</value>
+  </data>
+  <data name="Macro_ArgsHint" xml:space="preserve">
+    <value>Brak, rozdzielone spacjami (tylko aplikacje)</value>
+  </data>
+  <data name="Macro_IconHint" xml:space="preserve">
+    <value>Własna ikona programu</value>
+  </data>
+  <data name="Macro_OpensHint" xml:space="preserve">
+    <value>Aplikacja, plik, folder lub adres internetowy</value>
+  </data>
+  <data name="Macro_Empty" xml:space="preserve">
+    <value>Brak makr. Dodaj aplikację, dokument, folder lub adres internetowy. Każde z nich stanie się przyciskiem na telefonie.</value>
+  </data>
+  <data name="Macro_Count" xml:space="preserve">
+    <value>{0} z {1}</value>
+  </data>
+  <data name="Macro_NameLeft" xml:space="preserve">
+    <value>Nazwa · zostało {0}</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Nowe makro</value>
+  </data>
 </root>

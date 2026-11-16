@@ -30,4 +30,527 @@
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
     <value>Edgepad, Müzik veya Spotify’a hangi parçanın çaldığını sorar ve telefonda ileri geri sardığınızda parçada ilerler; medyanın sonunda telefondan isterseniz bu Mac’i uykuya alır veya kapatır.</value>
   </data>
+  <data name="Core_ConnectedOver" xml:space="preserve">
+    <value>{0} cihazına bağlandı · {1}</value>
+  </data>
+  <data name="Core_BluetoothNotAllowed" xml:space="preserve">
+    <value>Edgepad’in Bluetooth kullanmasına izin verilmiyor. Sistem Ayarları › Gizlilik ve Güvenlik › Bluetooth bölümünden izin verin.</value>
+  </data>
+  <data name="Core_BluetoothOffMenu" xml:space="preserve">
+    <value>Bluetooth kapalı. Menü çubuğundan açın.</value>
+  </data>
+  <data name="Core_RefusedUnreadable" xml:space="preserve">
+    <value>Bir telefon reddedildi: güvenilen telefonlar okunamıyor</value>
+  </data>
+  <data name="Core_RefusedForgotten" xml:space="preserve">
+    <value>Burada unutulmuş bir telefon reddedildi</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>İptal</value>
+  </data>
+  <data name="Common_Continue" xml:space="preserve">
+    <value>Devam</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Kaydet</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Kapat</value>
+  </data>
+  <data name="Common_Send" xml:space="preserve">
+    <value>Gönder</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Yükle</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Unut</value>
+  </data>
+  <data name="Common_Trust" xml:space="preserve">
+    <value>Güven</value>
+  </data>
+  <data name="Common_DontTrust" xml:space="preserve">
+    <value>Güvenme</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Sıfırla</value>
+  </data>
+  <data name="Common_Pair" xml:space="preserve">
+    <value>Eşleştir</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad zaten çalışıyor.</value>
+  </data>
+  <data name="App_AlreadyRunningBody" xml:space="preserve">
+    <value>Menü çubuğunun sağında bulabilirsiniz. Simgeleri yeniden sıralamak için Command tuşunu basılı tutup sürükleyin.</value>
+  </data>
+  <data name="App_Welcome" xml:space="preserve">
+    <value>Edgepad menü çubuğunda yaşar</value>
+  </data>
+  <data name="App_WelcomeBody" xml:space="preserve">
+    <value>macOS şimdi Edgepad’in ihtiyaç duyduğu izinleri soracak. Bluetooth, telefonunuzu duymak için. Aygıt Denetimi, işaretçiyi hareket ettirmek ve tuşlara basmak için. Bildirimler, bir telefon bağlanmak istediğinde sizi haberdar etmek için. Masaüstü, Belgeler veya İndirilenler klasörünüz, yalnızca telefon ekran görüntüsü ya da kayıt istediğinde.</value>
+  </data>
+  <data name="App_UpdatedAllow" xml:space="preserve">
+    <value>Güncellendi: Aygıt Denetimi’nde Edgepad’e yeniden izin verin</value>
+  </data>
+  <data name="App_TipBlocked" xml:space="preserve">
+    <value>Edgepad henüz bu Mac’i denetleyemiyor</value>
+  </data>
+  <data name="App_TipStatus" xml:space="preserve">
+    <value>Edgepad: {0}</value>
+  </data>
+  <data name="App_PermissionSteps" xml:space="preserve">
+    <value>Sistem Ayarları › Gizlilik ve Güvenlik › Aygıt Denetimi ve Veri Erişimi › + › Edgepad</value>
+  </data>
+  <data name="Menu_Installing" xml:space="preserve">
+    <value>Edgepad {0} yükleniyor…</value>
+  </data>
+  <data name="Menu_Install" xml:space="preserve">
+    <value>Edgepad {0} sürümünü yükle</value>
+  </data>
+  <data name="Menu_UpdateAvailable" xml:space="preserve">
+    <value>Güncelleme var: {0}</value>
+  </data>
+  <data name="Menu_Later" xml:space="preserve">
+    <value>Sonra</value>
+  </data>
+  <data name="Menu_Skip" xml:space="preserve">
+    <value>Bu sürümü atla</value>
+  </data>
+  <data name="Menu_AllowControl" xml:space="preserve">
+    <value>Edgepad’in bu Mac’i denetlemesine izin ver…</value>
+  </data>
+  <data name="Menu_Wifi" xml:space="preserve">
+    <value>Wi-Fi bağlantıları</value>
+  </data>
+  <data name="Menu_WifiHint" xml:space="preserve">
+    <value>Wi-Fi bağlantıları ({0})</value>
+  </data>
+  <data name="Menu_WifiTip" xml:space="preserve">
+    <value>Mac’te yalnızca Wi-Fi: USB bağlantı paylaşımı için macOS’te bulunmayan bir sürücü gerekir.</value>
+  </data>
+  <data name="Menu_Clipboard" xml:space="preserve">
+    <value>Panoyu paylaş</value>
+  </data>
+  <data name="Menu_ClipboardTip" xml:space="preserve">
+    <value>Birinde kopyalayın, ötekine yapıştırın: metin ve resimler.</value>
+  </data>
+  <data name="Menu_Login" xml:space="preserve">
+    <value>Oturum açıldığında başlat</value>
+  </data>
+  <data name="Menu_DailyUpdates" xml:space="preserve">
+    <value>Güncellemeleri günlük denetle</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Dosya gönder…</value>
+  </data>
+  <data name="Menu_SendFileNoPhone" xml:space="preserve">
+    <value>Dosya gönder… (bağlı telefon yok)</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Makrolar…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Güvenlik… ({0})</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Belgeler</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Günlüğü aç</value>
+  </data>
+  <data name="Menu_About" xml:space="preserve">
+    <value>Edgepad Hakkında</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepad'den çık</value>
+  </data>
+  <data name="Net_PortInUse" xml:space="preserve">
+    <value>Bağlantı noktası kullanımda, {0} kullanılıyor</value>
+  </data>
+  <data name="Net_WaitingForNetwork" xml:space="preserve">
+    <value>Ağ bekleniyor</value>
+  </data>
+  <data name="Net_CouldNotListen" xml:space="preserve">
+    <value>Dinlenemedi; günlüğe bakın</value>
+  </data>
+  <data name="Net_Phone" xml:space="preserve">
+    <value>Bir telefon</value>
+  </data>
+  <data name="Note_UpdateTitle" xml:space="preserve">
+    <value>Edgepad {0} kullanıma hazır</value>
+  </data>
+  <data name="Note_UpdateBody" xml:space="preserve">
+    <value>İndirme sayfasını açmak için tıklayın.</value>
+  </data>
+  <data name="Note_PairTitle" xml:space="preserve">
+    <value>{0} eşleştirilsin mi?</value>
+  </data>
+  <data name="Note_PairBody" xml:space="preserve">
+    <value>Telefonda görünen eşleştirme kodunu yazın.</value>
+  </data>
+  <data name="Note_TrustTitle" xml:space="preserve">
+    <value>{0} cihazına güvenilsin mi?</value>
+  </data>
+  <data name="Note_TrustBody" xml:space="preserve">
+    <value>{0} bağlanmak istiyor. Güven veya Güvenme seçeneğini belirleyin.</value>
+  </data>
+  <data name="Note_NotUpdated" xml:space="preserve">
+    <value>Edgepad güncellenmedi</value>
+  </data>
+  <data name="Status_Received" xml:space="preserve">
+    <value>{0}, Downloads/Edgepad içine alındı</value>
+  </data>
+  <data name="Status_OnlyFiles" xml:space="preserve">
+    <value>Yalnızca dosyalar gönderilebilir, klasörler gönderilemez</value>
+  </data>
+  <data name="Status_Forgot" xml:space="preserve">
+    <value>Güvenilen telefonlar unutuldu; {0} saniye sonra yenisi için hazır</value>
+  </data>
+  <data name="Xfer_Sent" xml:space="preserve">
+    <value>{0} telefona gönderildi</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>{0} gönderiliyor</value>
+  </data>
+  <data name="Xfer_BadHash" xml:space="preserve">
+    <value>{0} telefona bozuk ulaştı; yeniden gönderin</value>
+  </data>
+  <data name="Xfer_Rejected" xml:space="preserve">
+    <value>Telefon {0} dosyasını kabul etmedi</value>
+  </data>
+  <data name="Xfer_WriteFailed" xml:space="preserve">
+    <value>{0} okunamadı veya kaydedilemedi</value>
+  </data>
+  <data name="Xfer_Cancelled" xml:space="preserve">
+    <value>{0} gönderimi iptal edildi</value>
+  </data>
+  <data name="Xfer_Busy" xml:space="preserve">
+    <value>Telefon zaten bir dosya alıyor; bittikten sonra {0} dosyasını yeniden gönderin</value>
+  </data>
+  <data name="Xfer_TimedOut" xml:space="preserve">
+    <value>{0} gönderilirken telefon yanıt vermedi</value>
+  </data>
+  <data name="Xfer_SessionEnded" xml:space="preserve">
+    <value>{0} gönderilmeden önce telefonun bağlantısı kesildi</value>
+  </data>
+  <data name="Alert_MajorTitle" xml:space="preserve">
+    <value>Edgepad {0} için telefon uygulamasının da güncellenmesi gerekiyor.</value>
+  </data>
+  <data name="Alert_MajorBody" xml:space="preserve">
+    <value>İkisini birlikte yükleyin, aksi halde telefon ve bu Mac bağlanamaz.</value>
+  </data>
+  <data name="Alert_LoginFailed" xml:space="preserve">
+    <value>"Oturum açıldığında başlat" değiştirilemedi</value>
+  </data>
+  <data name="Alert_LoginApproval" xml:space="preserve">
+    <value>Edgepad’in oturum açıldığında başlamasına izin verin</value>
+  </data>
+  <data name="Alert_LoginApprovalBody" xml:space="preserve">
+    <value>Edgepad’e Sistem Ayarları › Genel › Giriş Öğeleri bölümünde izin verin.</value>
+  </data>
+  <data name="Alert_ForgetAll" xml:space="preserve">
+    <value>Güvenilen tüm telefonlar unutulsun mu?</value>
+  </data>
+  <data name="Alert_ForgetAllBody" xml:space="preserve">
+    <value>{0} unutulsun mu? Bu dahil her telefonun bu Mac’i kullanabilmesi için burada yeniden güvenilmesi gerekir.</value>
+  </data>
+  <data name="Alert_TheTrustedPhones" xml:space="preserve">
+    <value>güvenilen telefonlar</value>
+  </data>
+  <data name="Alert_EveryTrustedPhone" xml:space="preserve">
+    <value>güvenilen tüm telefonlar ({0})</value>
+  </data>
+  <data name="Alert_ForgetFailed" xml:space="preserve">
+    <value>Güvenilen telefonlar unutulamadı</value>
+  </data>
+  <data name="Alert_ForgetFailedBody" xml:space="preserve">
+    <value>Dosyaları kaldırılamadı veya boşaltılamadı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak Edgepad başladığında bu telefonlara yeniden güvenilecek. "Güvenilen tüm telefonları unut" seçeneğini yeniden seçin veya dosyayı kendiniz silin:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetPinFailed" xml:space="preserve">
+    <value>PIN girmiş telefonlar unutulamadı</value>
+  </data>
+  <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
+    <value>Listeleri kaldırılamadı. Edgepad çalıştığı sürece her telefondan her bağlantıda PIN istenir, ancak Edgepad başladığında bu telefonlar "Telefon başına bir kez PIN" düzeyinde yine PIN girmeyecek. "Güvenilen tüm telefonları unut" seçeneğini yeniden seçin veya pin-verified.txt dosyasını şuradan kendiniz silin:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetOne" xml:space="preserve">
+    <value>{0} unutulsun mu?</value>
+  </data>
+  <data name="Alert_ForgetOneBody" xml:space="preserve">
+    <value>Bu Mac’i kullanabilmesi için burada yeniden güvenilmesi gerekecek.</value>
+  </data>
+  <data name="Alert_ForgetOneFailed" xml:space="preserve">
+    <value>{0} unutulamadı</value>
+  </data>
+  <data name="Alert_ForgetOneFailedBody" xml:space="preserve">
+    <value>Bir dosya yeniden yazılamadı, bu nedenle hâlâ güvenilir olabilir. Nedeni günlükte.</value>
+  </data>
+  <data name="Alert_PairingsFailed" xml:space="preserve">
+    <value>Wi-Fi eşleştirmeleri unutulamadı</value>
+  </data>
+  <data name="Alert_PairingsFailedBody" xml:space="preserve">
+    <value>Dosyaları kaldırılamadı veya boşaltılamadı. Edgepad çalıştığı sürece eşleşmiş telefonlar Wi-Fi ile yeniden bağlanamaz, ancak sonraki başlatmada bağlanabilir. "Güvenilen tüm telefonları unut" seçeneğini yeniden seçin veya paired-links.txt dosyasını şuradan kendiniz silin:
+
+{0}</value>
+  </data>
+  <data name="Alert_NoPhone" xml:space="preserve">
+    <value>Bağlı telefon yok</value>
+  </data>
+  <data name="Alert_NoPhoneBody" xml:space="preserve">
+    <value>Edgepad’e bir telefon bağlayın, sonra dosyayı yeniden gönderin.</value>
+  </data>
+  <data name="Alert_ChooseFiles" xml:space="preserve">
+    <value>Telefona gönderilecek dosyaları seçin</value>
+  </data>
+  <data name="Alert_TurnOn" xml:space="preserve">
+    <value>Aç</value>
+  </data>
+  <data name="Alert_Allow" xml:space="preserve">
+    <value>İzin ver</value>
+  </data>
+  <data name="Alert_NotNow" xml:space="preserve">
+    <value>Şimdi değil</value>
+  </data>
+  <data name="Alert_Network" xml:space="preserve">
+    <value>Telefonlar bu bilgisayarı bulabilsin mi?</value>
+  </data>
+  <data name="Alert_NetworkBody" xml:space="preserve">
+    <value>Mac’te yalnızca Wi-Fi: USB bağlantı paylaşımı için macOS’te bulunmayan bir sürücü gerekir. Aynı Wi-Fi’deki telefonlar bu Mac’i bulup eşleştirme isteyebilecek. Burada yazılan eşleştirme kodu olmadan hiçbir şey bağlanmaz. macOS, Edgepad’in yerel ağınızdaki aygıtları bulup bulamayacağını, güvenlik duvarı da gelen bağlantıları kabul edip edemeyeceğini sorabilir: ikisine de izin verin.</value>
+  </data>
+  <data name="Alert_SaveFailed" xml:space="preserve">
+    <value>Ayar kaydedilemedi</value>
+  </data>
+  <data name="Alert_SaveFailedBody" xml:space="preserve">
+    <value>Hiçbir şey değiştirilmedi. Nedeni günlükte.</value>
+  </data>
+  <data name="Alert_Trust" xml:space="preserve">
+    <value>{0} cihazına güvenilsin mi?</value>
+  </data>
+  <data name="Alert_TrustQuoted" xml:space="preserve">
+    <value>Tırnak içindeki ad, telefonun kendine verdiği addan ibarettir; güvenilecek olan adrestir.</value>
+  </data>
+  <data name="Alert_TrustAddress" xml:space="preserve">
+    <value>Güvenilecek olan adrestir.</value>
+  </data>
+  <data name="Alert_TrustBody" xml:space="preserve">
+    <value>{0}, bu Mac’in işaretçisini ve klavyesini denetlemek istiyor. {1} Yalnızca size aitse güvenin. {2} saniye içinde yanıt vermezseniz güvenilmez.</value>
+  </data>
+  <data name="Alert_Credits" xml:space="preserve">
+    <value>Yazı tipleri ve simgeler: Lato, Lucide.</value>
+  </data>
+  <data name="Alert_ShutdownTitle" xml:space="preserve">
+    <value>Bu Mac 60 saniye içinde kapanacak.</value>
+  </data>
+  <data name="Alert_ShutdownBody" xml:space="preserve">
+    <value>Telefondaki medya bitti ve o zaman kapatılmasını istemiştiniz.</value>
+  </data>
+  <data name="Sec_Title" xml:space="preserve">
+    <value>Güvenlik</value>
+  </data>
+  <data name="Sec_Intro" xml:space="preserve">
+    <value>Her telefondan önce sizin onayınız istenir. İki PIN düzeyi ayrıca altı haneli bir PIN de ister.</value>
+  </data>
+  <data name="Sec_LevelTrust" xml:space="preserve">
+    <value>Yalnızca güven</value>
+  </data>
+  <data name="Sec_LevelPinOnce" xml:space="preserve">
+    <value>Telefon başına bir kez PIN</value>
+  </data>
+  <data name="Sec_LevelPinEvery" xml:space="preserve">
+    <value>Her bağlantıda PIN</value>
+  </data>
+  <data name="Sec_ResetButton" xml:space="preserve">
+    <value>PIN'i sıfırla ve telefonları unut…</value>
+  </data>
+  <data name="Sec_ForgetAllButton" xml:space="preserve">
+    <value>Güvenilen tüm telefonları unut…</value>
+  </data>
+  <data name="Sec_Warning" xml:space="preserve">
+    <value>Yeni bir PIN veya düzeyi kaydetmek, PIN'i bir kez girmiş telefonlardan onu yeniden girmelerini ister.</value>
+  </data>
+  <data name="Sec_ChangePin" xml:space="preserve">
+    <value>PIN'i değiştir…</value>
+  </data>
+  <data name="Sec_SetPin" xml:space="preserve">
+    <value>PIN belirle…</value>
+  </data>
+  <data name="Sec_PinNew" xml:space="preserve">
+    <value>Yeni bir PIN kaydedilecek.</value>
+  </data>
+  <data name="Sec_PinSet" xml:space="preserve">
+    <value>Bir PIN belirlendi.</value>
+  </data>
+  <data name="Sec_PinNone" xml:space="preserve">
+    <value>PIN belirlenmedi.</value>
+  </data>
+  <data name="Sec_SixDigits" xml:space="preserve">
+    <value>Altı basamak</value>
+  </data>
+  <data name="Sec_Again" xml:space="preserve">
+    <value>Yeniden</value>
+  </data>
+  <data name="Sec_NewPin" xml:space="preserve">
+    <value>Yeni PIN</value>
+  </data>
+  <data name="Sec_NewPinAgain" xml:space="preserve">
+    <value>Yeni PIN'i yeniden girin</value>
+  </data>
+  <data name="Sec_NewPinBody" xml:space="preserve">
+    <value>Altı rakam, iki kez yazılır.</value>
+  </data>
+  <data name="Sec_UsePin" xml:space="preserve">
+    <value>Bu PIN'i kullan</value>
+  </data>
+  <data name="Sec_Mismatch" xml:space="preserve">
+    <value>İki PIN eşleşmiyor.</value>
+  </data>
+  <data name="Sec_Exactly" xml:space="preserve">
+    <value>Tam olarak altı rakam kullanın.</value>
+  </data>
+  <data name="Sec_PinNotSaved" xml:space="preserve">
+    <value>PIN kaydedilemedi, bu yüzden hiçbir şey değişmedi. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Sec_LevelNotSaved" xml:space="preserve">
+    <value>Düzey kaydedilemedi, bu yüzden önceki düzey geçerli kalıyor. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Sec_ResetTitle" xml:space="preserve">
+    <value>PIN sıfırlansın ve tüm telefonlar unutulsun mu?</value>
+  </data>
+  <data name="Sec_ResetBody" xml:space="preserve">
+    <value>PIN silinir, düzey "Yalnızca güven"e döner ve güvenilen tüm telefonlar unutulur. Her telefona burada yeniden güvenilmesi gerekir. Unutulan PIN kurtarılamaz, yalnızca sıfırlanabilir.</value>
+  </data>
+  <data name="Sec_ResetFailedTrust" xml:space="preserve">
+    <value>Hiçbir şey sıfırlanmadı: güvenilen telefonlar unutulamadı, bu nedenle PIN ve düzey olduğu gibi kaldı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak sonraki başlatmada bu telefonlara aynı PIN ile yeniden güvenilecek. Dosyayı tutan şeyi kapatıp "Sıfırla"yı yeniden seçin veya dosyayı kendiniz silin:
+
+{0}</value>
+  </data>
+  <data name="Sec_ResetFailedPin" xml:space="preserve">
+    <value>Güvenilen telefonlar unutuldu ancak PIN sıfırlanamadı: bir ayar dosyası kaldırılamadı, bu nedenle eski PIN ve düzey hâlâ geçerli olabilir. Her telefona burada yeniden güvenilmesi gerekir. Dosyayı tutan şeyi kapatıp "Sıfırla"yı yeniden seçin veya security.txt ile pin-verified.txt dosyalarını şuradan kendiniz silin:
+
+{0}</value>
+  </data>
+  <data name="Sec_TrustedPhones" xml:space="preserve">
+    <value>Güvenilen telefonlar</value>
+  </data>
+  <data name="Sec_ForgetLabel" xml:space="preserve">
+    <value>Unut: {0}</value>
+  </data>
+  <data name="Sec_FailTitle" xml:space="preserve">
+    <value>Güvenlik ayarları kaydedilemedi</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>{0} eşleştirilsin mi?</value>
+  </data>
+  <data name="Pair_ThisPhone" xml:space="preserve">
+    <value>Bu telefon</value>
+  </data>
+  <data name="Pair_Window" xml:space="preserve">
+    <value>Telefon eşleştir</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Telefonda gösterilen eşleştirme kodunu yazın:</value>
+  </data>
+  <data name="Pair_CodeLabel" xml:space="preserve">
+    <value>Telefonda görünen kod</value>
+  </data>
+  <data name="Pair_Announce" xml:space="preserve">
+    <value>{0} eşleştirilsin mi? {1} sn içinde kapanır.</value>
+  </data>
+  <data name="Pair_Matched" xml:space="preserve">
+    <value>Kod eşleşti. Bitirmek için {0} üzerinde "Evet, eşleşti"ye dokunun.</value>
+  </data>
+  <data name="Pair_Mismatched" xml:space="preserve">
+    <value>Kod eşleşmedi. Hiçbir şey eşleştirilmedi.</value>
+  </data>
+  <data name="Pair_Paired" xml:space="preserve">
+    <value>Eşleşti: {0}.</value>
+  </data>
+  <data name="Pair_NotFinished" xml:space="preserve">
+    <value>Eşleştirme tamamlanmadı.</value>
+  </data>
+  <data name="Pair_Warning" xml:space="preserve">
+    <value>Yalnızca kendi telefonunuzu eşleştirin. Eşleştirmeyi az önce siz başlatmadıysanız “İptal” düğmesini seçin.</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>{0} sn içinde kapanır</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Kod denetleniyor</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Makrolar</value>
+  </data>
+  <data name="Macro_Body" xml:space="preserve">
+    <value>Telefonunuzun makro ekranındaki düğmeler, en fazla {0}. Telefon bir programı değil, düğmenin numarasını gönderir; bu yüzden yalnızca burada eklediklerinizi çalıştırabilir.</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>{0} için açılacak bir şey yok. Bir uygulama veya dosya seçin ya da bir web adresi yazın.</value>
+  </data>
+  <data name="Macro_AMacro" xml:space="preserve">
+    <value>Bir makro</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Makrolar {0} konumuna kaydedilemedi: {1}.</value>
+  </data>
+  <data name="Macro_SaveFailedTitle" xml:space="preserve">
+    <value>Makrolar kaydedilemedi</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Ad</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>Açtığı</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Bağımsız değişkenler</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>Simge</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>Makro ekle</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Kaldır</value>
+  </data>
+  <data name="Macro_MoveUp" xml:space="preserve">
+    <value>Yukarı taşı</value>
+  </data>
+  <data name="Macro_MoveDown" xml:space="preserve">
+    <value>Aşağı taşı</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Gözat…</value>
+  </data>
+  <data name="Macro_Choose" xml:space="preserve">
+    <value>Seç…</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>Programın kendi simgesini kullan</value>
+  </data>
+  <data name="Macro_ArgsHint" xml:space="preserve">
+    <value>Yok, boşlukla ayrılır (yalnızca uygulamalar)</value>
+  </data>
+  <data name="Macro_IconHint" xml:space="preserve">
+    <value>Programın kendi simgesi</value>
+  </data>
+  <data name="Macro_OpensHint" xml:space="preserve">
+    <value>Bir uygulama, dosya, klasör veya web adresi</value>
+  </data>
+  <data name="Macro_Empty" xml:space="preserve">
+    <value>Henüz makro yok. Bir uygulama, belge, klasör veya web adresi ekleyin. Her biri telefonda bir düğme olur.</value>
+  </data>
+  <data name="Macro_Count" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Macro_NameLeft" xml:space="preserve">
+    <value>Ad · {0} kaldı</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Yeni makro</value>
+  </data>
 </root>

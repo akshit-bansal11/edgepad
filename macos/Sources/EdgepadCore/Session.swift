@@ -364,7 +364,7 @@ public final class Session {
         // A phone locked out by wrong PINs is told so and closed before the owner is asked anything, so
         // guessing cannot also be a way to keep the trust question on the owner's screen.
         if lockedOut() {
-            onStatus("Refused a phone locked out after wrong PINs")
+            onStatus(tr("Status_RefusedLockedOut", "Refused a phone locked out after wrong PINs"))
             end()
             return
         }
@@ -407,7 +407,7 @@ public final class Session {
         // Checked again here, not only before the trust question: another connection from the same address may
         // have used up the tries while the owner was answering.
         if lockedOut() {
-            onStatus("Refused a phone that did not give the right PIN")
+            onStatus(tr("Status_RefusedPin", "Refused a phone that did not give the right PIN"))
             end()
             return
         }
@@ -422,15 +422,15 @@ public final class Session {
             // A count, not the list: the log is plain text anyone with the user's files can read, and the trusted
             // phones' identities are the one thing it must not hand out. The menu shows the list to the owner.
             Log.write("Refused \(address): not trusted; this Mac trusts \(trust.trustedPhones.count) phone(s)")
-            onStatus("Refused a phone it does not trust")
+            onStatus(tr("Status_RefusedUntrusted", "Refused a phone it does not trust"))
         case .otherQuestionOpen:
             Log.write("Refused \(address): the owner is being asked about another phone")
         case .unreadable:
             Log.write("Refused \(address): the trusted phones cannot be read")
-            onStatus("Refused a phone: the trusted phones cannot be read")
+            onStatus(tr("Core_RefusedUnreadable", "Refused a phone: the trusted phones cannot be read"))
         case .notForgotten:
             Log.write("Refused \(address): it was forgotten, but could not be removed from the trusted phones")
-            onStatus("Refused a phone that was forgotten here")
+            onStatus(tr("Core_RefusedForgotten", "Refused a phone that was forgotten here"))
         }
     }
 
@@ -454,14 +454,14 @@ public final class Session {
         case .locked(let seconds):
             send(.pinRequest(attemptsLeft: 0, lockedSeconds: UInt16(clamping: seconds)))
             Log.write("PIN rejected for \(address): locked out for \(seconds) s")
-            onStatus("Refused a phone that did not give the right PIN")
+            onStatus(tr("Status_RefusedPin", "Refused a phone that did not give the right PIN"))
             end()
         case .unavailable:
             // Unreadable settings, no PIN, or the PIN or level changed while this answer was being hashed. Not the
             // phone's fault, so not counted against it; but nothing proved it may come in either, and it is closed
             // without HELLO_ACK to connect again under whatever is now in force.
             Log.write("Refused \(address): its PIN could not be checked against the current security settings")
-            onStatus("Refused a phone that did not give the right PIN")
+            onStatus(tr("Status_RefusedPin", "Refused a phone that did not give the right PIN"))
             end()
         }
     }

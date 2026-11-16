@@ -2,31 +2,38 @@ import Foundation
 
 /// The words the menu shows for a link's state, one place so they can be held against the canonical copy.
 public enum StatusText {
-    public static let starting = "Starting…"
-    public static let waiting = "Waiting for your phone"
+    public static let starting = tr("Status_Starting", "Starting…")
+    public static let waiting = tr("Status_Waiting", "Waiting for your phone")
 
     /// `link` is "Bluetooth", "Wi-Fi" or "USB".
     public static func connected(_ name: String, over link: String) -> String {
-        "Connected to \(name) · \(link)"
+        tr("Core_ConnectedOver", "Connected to %1$@ · %2$@", name, link)
     }
 
     /// A refused handshake: the higher protocol number is the newer app, so the text names the older half. The
     /// numbers stay in the log.
     public static func mismatch(name: String, phoneVersion: UInt8, laptopVersion: UInt8) -> String {
         phoneVersion < laptopVersion
-            ? "\(name) could not connect: its Edgepad app is older. Update Edgepad on the phone."
-            : "\(name) could not connect: Edgepad on this laptop is older. Update Edgepad here."
+            ? tr(
+                "Status_MismatchPhoneOlder",
+                "%1$@ could not connect: its Edgepad app is older. Update Edgepad on the phone.", name)
+            : tr(
+                "Status_MismatchLaptopOlder",
+                "%1$@ could not connect: Edgepad on this laptop is older. Update Edgepad here.", name)
     }
 
     /// Why Bluetooth did not start, from what macOS says about permission and power. `denied` wins: a user who
     /// switched Bluetooth on still gets nothing until Edgepad is allowed.
     public static func bluetoothProblem(denied: Bool, off: Bool) -> String {
         if denied {
-            return "Edgepad is not allowed to use Bluetooth. Allow it in System Settings › Privacy & Security › "
-                + "Bluetooth."
+            return tr(
+                "Core_BluetoothNotAllowed",
+                "Edgepad is not allowed to use Bluetooth. Allow it in System Settings › Privacy & Security › "
+                    + "Bluetooth.")
         }
         return off
-            ? "Bluetooth is off. Turn it on in the menu bar." : "Bluetooth is off or unavailable; trying again"
+            ? tr("Core_BluetoothOffMenu", "Bluetooth is off. Turn it on in the menu bar.")
+            : tr("Status_BluetoothRetrying", "Bluetooth is off or unavailable; trying again")
     }
 }
 

@@ -53,6 +53,8 @@ $sets = @(
     @{ Stem = Join-Path $root 'shared/Edgepad.Core/CoreStrings'; Out = Join-Path $root 'macos/Sources/EdgepadCore/Resources'; Info = $false }
 )
 $english = @{}
+# MacStrings keys named Core_* are read by EdgepadCore (its own bundle), so they are written there, after CoreStrings.
+$coreExtra = @{}
 foreach ($set in $sets) {
     $en = Read-Resx $set.Stem 'en'
     foreach ($k in $en.Keys) { $english[$k] = $en[$k] }
@@ -65,7 +67,15 @@ foreach ($set in $sets) {
         $words = [ordered]@{}; $info = [ordered]@{}
         foreach ($k in $en.Keys) {
             if (-not $tr.Contains($k)) { continue }
-            if ($set.Info -and $k.StartsWith('Info_')) { $info[$k.Substring(5)] = $tr[$k] } else { $words[$k] = $tr[$k] }
+            if ($set.Info -and $k.StartsWith('Info_')) { $info[$k.Substring(5)] = $tr[$k] }
+            elseif ($set.Info -and $k.StartsWith('Core_')) {
+                if (-not $coreExtra.ContainsKey($lang)) { $coreExtra[$lang] = [ordered]@{} }
+                $coreExtra[$lang][$k] = $tr[$k]
+            }
+            else { $words[$k] = $tr[$k] }
+        }
+        if (-not $set.Info -and $coreExtra.ContainsKey($lang)) {
+            foreach ($k in $coreExtra[$lang].Keys) { $words[$k] = $coreExtra[$lang][$k] }
         }
         $dir = Join-Path $set.Out "$lang.lproj"
         if ($words.Count) { Write-Strings $dir 'Localizable.strings' $words }
@@ -74,11 +84,14 @@ foreach ($set in $sets) {
 }
 
 # Every tr("Key", "English") in Swift carries the English the resx holds, so a missing lookup shows the same words.
-$call = [regex]'\btr\(\s*"(?<k>(?:[^"\\]|\\.)*)"\s*,\s*"(?<e>(?:[^"\\]|\\.)*)"'
+# The English may be split over lines with +, to stay inside the line length.
+$lit = '"(?:[^"\\]|\\.)*"'
+$call = [regex]('\btr\(\s*"(?<k>(?:[^"\\]|\\.)*)"\s*,\s*"(?<e>(?:[^"\\]|\\.)*)"(?<more>(?:\s*\+\s*' + $lit + ')*)')
 foreach ($f in Get-ChildItem (Join-Path $root 'macos/Sources') -Recurse -Filter *.swift) {
     foreach ($m in $call.Matches((Get-Content -Raw -Encoding utf8 $f.FullName))) {
         $k = $m.Groups['k'].Value
-        $e = [regex]::Replace($m.Groups['e'].Value, '\\(.)', { param($x) if ($x.Groups[1].Value -eq 'n') { "`n" } else { $x.Groups[1].Value } })
+        $joined = $m.Groups['e'].Value + (([regex]::Matches($m.Groups['more'].Value, '"((?:[^"\\]|\\.)*)"') | ForEach-Object { $_.Groups[1].Value }) -join '')
+        $e = [regex]::Replace($joined, '\\(.)', { param($x) if ($x.Groups[1].Value -eq 'n') { "`n" } else { $x.Groups[1].Value } })
         if (-not $english.ContainsKey($k)) { $problems.Add("$($f.Name): tr key $k is in no resx"); continue }
         if ((ConvertTo-Format $english[$k]) -ne $e) { $problems.Add("$($f.Name): tr(`"$k`") English differs from the resx") }
     }

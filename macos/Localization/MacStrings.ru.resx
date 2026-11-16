@@ -30,4 +30,527 @@
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
     <value>Edgepad спрашивает у Музыки или Spotify, какой трек играет, и перематывает его, когда вы перематываете на телефоне; в конце воспроизведения переводит этот Mac в сон или выключает его, если вы попросили об этом с телефона.</value>
   </data>
+  <data name="Core_ConnectedOver" xml:space="preserve">
+    <value>Подключено к {0} · {1}</value>
+  </data>
+  <data name="Core_BluetoothNotAllowed" xml:space="preserve">
+    <value>Edgepad не разрешено использовать Bluetooth. Разрешите в Системных настройках › Конфиденциальность и безопасность › Bluetooth.</value>
+  </data>
+  <data name="Core_BluetoothOffMenu" xml:space="preserve">
+    <value>Bluetooth выключен. Включите его в строке меню.</value>
+  </data>
+  <data name="Core_RefusedUnreadable" xml:space="preserve">
+    <value>Телефон отклонён: список доверенных телефонов не читается</value>
+  </data>
+  <data name="Core_RefusedForgotten" xml:space="preserve">
+    <value>Отклонён телефон, который здесь был забыт</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Common_Continue" xml:space="preserve">
+    <value>Продолжить</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="Common_Send" xml:space="preserve">
+    <value>Отправить</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Установить</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Забыть</value>
+  </data>
+  <data name="Common_Trust" xml:space="preserve">
+    <value>Доверять</value>
+  </data>
+  <data name="Common_DontTrust" xml:space="preserve">
+    <value>Не доверять</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Сбросить</value>
+  </data>
+  <data name="Common_Pair" xml:space="preserve">
+    <value>Сопрячь</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad уже запущен.</value>
+  </data>
+  <data name="App_AlreadyRunningBody" xml:space="preserve">
+    <value>Он в строке меню справа. Удерживайте Command и перетаскивайте, чтобы изменить порядок значков.</value>
+  </data>
+  <data name="App_Welcome" xml:space="preserve">
+    <value>Edgepad работает в строке меню</value>
+  </data>
+  <data name="App_WelcomeBody" xml:space="preserve">
+    <value>Сейчас macOS запросит то, что нужно Edgepad. Bluetooth, чтобы слышать телефон. Управление устройством, чтобы двигать указатель и нажимать клавиши. Уведомления, чтобы сообщать, когда телефон просит подключиться. Папка «Рабочий стол», «Документы» или «Загрузки», только когда телефон запрашивает снимок экрана или запись.</value>
+  </data>
+  <data name="App_UpdatedAllow" xml:space="preserve">
+    <value>Обновлено: снова разрешите Edgepad в разделе «Управление устройством»</value>
+  </data>
+  <data name="App_TipBlocked" xml:space="preserve">
+    <value>Edgepad пока не может управлять этим Mac</value>
+  </data>
+  <data name="App_TipStatus" xml:space="preserve">
+    <value>Edgepad: {0}</value>
+  </data>
+  <data name="App_PermissionSteps" xml:space="preserve">
+    <value>Системные настройки › Конфиденциальность и безопасность › Управление устройством и доступ к данным › + › Edgepad</value>
+  </data>
+  <data name="Menu_Installing" xml:space="preserve">
+    <value>Установка Edgepad {0}…</value>
+  </data>
+  <data name="Menu_Install" xml:space="preserve">
+    <value>Установить Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateAvailable" xml:space="preserve">
+    <value>Доступно обновление: {0}</value>
+  </data>
+  <data name="Menu_Later" xml:space="preserve">
+    <value>Позже</value>
+  </data>
+  <data name="Menu_Skip" xml:space="preserve">
+    <value>Пропустить эту версию</value>
+  </data>
+  <data name="Menu_AllowControl" xml:space="preserve">
+    <value>Разрешить Edgepad управлять этим Mac…</value>
+  </data>
+  <data name="Menu_Wifi" xml:space="preserve">
+    <value>Подключения по Wi-Fi</value>
+  </data>
+  <data name="Menu_WifiHint" xml:space="preserve">
+    <value>Подключения по Wi-Fi ({0})</value>
+  </data>
+  <data name="Menu_WifiTip" xml:space="preserve">
+    <value>На Mac только Wi-Fi: для USB-модема нужен драйвер, которого нет в macOS.</value>
+  </data>
+  <data name="Menu_Clipboard" xml:space="preserve">
+    <value>Общий буфер обмена</value>
+  </data>
+  <data name="Menu_ClipboardTip" xml:space="preserve">
+    <value>Копируйте на одном устройстве, вставляйте на другом: текст и изображения.</value>
+  </data>
+  <data name="Menu_Login" xml:space="preserve">
+    <value>Запускать при входе</value>
+  </data>
+  <data name="Menu_DailyUpdates" xml:space="preserve">
+    <value>Проверять обновления ежедневно</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Отправить файл…</value>
+  </data>
+  <data name="Menu_SendFileNoPhone" xml:space="preserve">
+    <value>Отправить файл… (нет подключённого телефона)</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Макросы…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Безопасность… ({0})</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Документация</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Открыть журнал</value>
+  </data>
+  <data name="Menu_About" xml:space="preserve">
+    <value>Об Edgepad</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Выйти из Edgepad</value>
+  </data>
+  <data name="Net_PortInUse" xml:space="preserve">
+    <value>Порт занят, используется {0}</value>
+  </data>
+  <data name="Net_WaitingForNetwork" xml:space="preserve">
+    <value>Ожидание сети</value>
+  </data>
+  <data name="Net_CouldNotListen" xml:space="preserve">
+    <value>Не удалось начать приём; см. журнал</value>
+  </data>
+  <data name="Net_Phone" xml:space="preserve">
+    <value>Телефон</value>
+  </data>
+  <data name="Note_UpdateTitle" xml:space="preserve">
+    <value>Доступен Edgepad {0}</value>
+  </data>
+  <data name="Note_UpdateBody" xml:space="preserve">
+    <value>Нажмите, чтобы открыть страницу загрузки.</value>
+  </data>
+  <data name="Note_PairTitle" xml:space="preserve">
+    <value>Сопрячь «{0}»?</value>
+  </data>
+  <data name="Note_PairBody" xml:space="preserve">
+    <value>Введите код сопряжения, показанный на телефоне.</value>
+  </data>
+  <data name="Note_TrustTitle" xml:space="preserve">
+    <value>Доверять телефону «{0}»?</value>
+  </data>
+  <data name="Note_TrustBody" xml:space="preserve">
+    <value>{0} хочет подключиться. Выберите «Доверять» или «Не доверять».</value>
+  </data>
+  <data name="Note_NotUpdated" xml:space="preserve">
+    <value>Edgepad не обновлён</value>
+  </data>
+  <data name="Status_Received" xml:space="preserve">
+    <value>Получен {0} в Downloads/Edgepad</value>
+  </data>
+  <data name="Status_OnlyFiles" xml:space="preserve">
+    <value>Можно отправлять только файлы, не папки</value>
+  </data>
+  <data name="Status_Forgot" xml:space="preserve">
+    <value>Доверенные телефоны забыты; новый можно подключить через {0} с</value>
+  </data>
+  <data name="Xfer_Sent" xml:space="preserve">
+    <value>{0} отправлен на телефон</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Отправка {0}</value>
+  </data>
+  <data name="Xfer_BadHash" xml:space="preserve">
+    <value>{0} пришёл на телефон повреждённым; отправьте ещё раз</value>
+  </data>
+  <data name="Xfer_Rejected" xml:space="preserve">
+    <value>Телефон не принял {0}</value>
+  </data>
+  <data name="Xfer_WriteFailed" xml:space="preserve">
+    <value>{0} не удалось прочитать или сохранить</value>
+  </data>
+  <data name="Xfer_Cancelled" xml:space="preserve">
+    <value>Отправка {0} отменена</value>
+  </data>
+  <data name="Xfer_Busy" xml:space="preserve">
+    <value>Телефон уже принимает файл; отправьте {0} снова после него</value>
+  </data>
+  <data name="Xfer_TimedOut" xml:space="preserve">
+    <value>Телефон не ответил во время отправки {0}</value>
+  </data>
+  <data name="Xfer_SessionEnded" xml:space="preserve">
+    <value>Телефон отключился до отправки {0}</value>
+  </data>
+  <data name="Alert_MajorTitle" xml:space="preserve">
+    <value>Для Edgepad {0} нужно обновить и приложение на телефоне.</value>
+  </data>
+  <data name="Alert_MajorBody" xml:space="preserve">
+    <value>Установите оба вместе, иначе телефон и этот Mac не смогут подключиться.</value>
+  </data>
+  <data name="Alert_LoginFailed" xml:space="preserve">
+    <value>Не удалось изменить «Запускать при входе»</value>
+  </data>
+  <data name="Alert_LoginApproval" xml:space="preserve">
+    <value>Разрешите Edgepad запускаться при входе</value>
+  </data>
+  <data name="Alert_LoginApprovalBody" xml:space="preserve">
+    <value>Разрешите Edgepad в Системных настройках › Основные › Объекты входа.</value>
+  </data>
+  <data name="Alert_ForgetAll" xml:space="preserve">
+    <value>Забыть все доверенные телефоны?</value>
+  </data>
+  <data name="Alert_ForgetAllBody" xml:space="preserve">
+    <value>Забыть {0}? Каждый телефон, включая этот, придётся снова признать доверенным здесь, прежде чем он сможет использовать этот Mac.</value>
+  </data>
+  <data name="Alert_TheTrustedPhones" xml:space="preserve">
+    <value>доверенные телефоны</value>
+  </data>
+  <data name="Alert_EveryTrustedPhone" xml:space="preserve">
+    <value>все доверенные телефоны ({0})</value>
+  </data>
+  <data name="Alert_ForgetFailed" xml:space="preserve">
+    <value>Не удалось забыть доверенные телефоны</value>
+  </data>
+  <data name="Alert_ForgetFailedBody" xml:space="preserve">
+    <value>Файл не удалось удалить или очистить. Пока Edgepad запущен, ни один телефон не подключится, но при следующем запуске Edgepad эти телефоны снова станут доверенными. Снова выберите «Забыть все доверенные телефоны» или удалите файл сами:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetPinFailed" xml:space="preserve">
+    <value>Не удалось забыть телефоны, вводившие PIN-код</value>
+  </data>
+  <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
+    <value>Список не удалось удалить. Пока Edgepad запущен, PIN-код запрашивается у каждого телефона при каждом подключении, но при следующем запуске Edgepad эти телефоны снова будут его пропускать в режиме «PIN-код один раз для телефона». Снова выберите «Забыть все доверенные телефоны» или удалите pin-verified.txt сами из:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetOne" xml:space="preserve">
+    <value>Забыть телефон «{0}»?</value>
+  </data>
+  <data name="Alert_ForgetOneBody" xml:space="preserve">
+    <value>Его придётся снова признать доверенным здесь, прежде чем он сможет использовать этот Mac.</value>
+  </data>
+  <data name="Alert_ForgetOneFailed" xml:space="preserve">
+    <value>Не удалось забыть {0}</value>
+  </data>
+  <data name="Alert_ForgetOneFailedBody" xml:space="preserve">
+    <value>Не удалось перезаписать файл, поэтому телефон может оставаться доверенным. Причина указана в журнале.</value>
+  </data>
+  <data name="Alert_PairingsFailed" xml:space="preserve">
+    <value>Не удалось забыть сопряжения по Wi-Fi</value>
+  </data>
+  <data name="Alert_PairingsFailedBody" xml:space="preserve">
+    <value>Файл не удалось удалить или очистить. Пока Edgepad запущен, сопряжённые телефоны не смогут снова подключиться по Wi-Fi, но смогут при его следующем запуске. Снова выберите «Забыть все доверенные телефоны» или удалите paired-links.txt сами из:
+
+{0}</value>
+  </data>
+  <data name="Alert_NoPhone" xml:space="preserve">
+    <value>Нет подключённого телефона</value>
+  </data>
+  <data name="Alert_NoPhoneBody" xml:space="preserve">
+    <value>Подключите телефон к Edgepad и отправьте файл снова.</value>
+  </data>
+  <data name="Alert_ChooseFiles" xml:space="preserve">
+    <value>Выберите файлы для отправки на телефон</value>
+  </data>
+  <data name="Alert_TurnOn" xml:space="preserve">
+    <value>Включить</value>
+  </data>
+  <data name="Alert_Allow" xml:space="preserve">
+    <value>Разрешить</value>
+  </data>
+  <data name="Alert_NotNow" xml:space="preserve">
+    <value>Не сейчас</value>
+  </data>
+  <data name="Alert_Network" xml:space="preserve">
+    <value>Разрешить телефонам находить этот ноутбук?</value>
+  </data>
+  <data name="Alert_NetworkBody" xml:space="preserve">
+    <value>На Mac только Wi-Fi: для USB-модема нужен драйвер, которого нет в macOS. Телефоны в той же сети Wi-Fi смогут найти этот Mac и запросить сопряжение. Без кода сопряжения, введённого здесь, ничего не подключится. macOS может спросить, может ли Edgepad искать устройства в локальной сети, а брандмауэр — может ли он принимать входящие подключения: разрешите оба.</value>
+  </data>
+  <data name="Alert_SaveFailed" xml:space="preserve">
+    <value>Не удалось сохранить настройку</value>
+  </data>
+  <data name="Alert_SaveFailedBody" xml:space="preserve">
+    <value>Ничего не изменено. Причина указана в журнале.</value>
+  </data>
+  <data name="Alert_Trust" xml:space="preserve">
+    <value>Доверять телефону «{0}»?</value>
+  </data>
+  <data name="Alert_TrustQuoted" xml:space="preserve">
+    <value>Имя в кавычках — лишь то, как телефон называет себя сам; доверенным станет адрес.</value>
+  </data>
+  <data name="Alert_TrustAddress" xml:space="preserve">
+    <value>Доверенным станет адрес.</value>
+  </data>
+  <data name="Alert_TrustBody" xml:space="preserve">
+    <value>{0} просит управлять указателем и клавиатурой этого Mac. {1} Доверяйте только своему телефону. Если ответа не будет в течение {2} с, доверие не будет предоставлено.</value>
+  </data>
+  <data name="Alert_Credits" xml:space="preserve">
+    <value>Шрифты и значки: Lato, Lucide.</value>
+  </data>
+  <data name="Alert_ShutdownTitle" xml:space="preserve">
+    <value>Этот Mac выключится через 60 секунд.</value>
+  </data>
+  <data name="Alert_ShutdownBody" xml:space="preserve">
+    <value>Воспроизведение на телефоне закончилось, и вы просили выключить Mac в этот момент.</value>
+  </data>
+  <data name="Sec_Title" xml:space="preserve">
+    <value>Безопасность</value>
+  </data>
+  <data name="Sec_Intro" xml:space="preserve">
+    <value>У каждого телефона сначала запрашивается ваше согласие. Два уровня с PIN-кодом дополнительно требуют шестизначный PIN-код.</value>
+  </data>
+  <data name="Sec_LevelTrust" xml:space="preserve">
+    <value>Только доверие</value>
+  </data>
+  <data name="Sec_LevelPinOnce" xml:space="preserve">
+    <value>PIN-код один раз для телефона</value>
+  </data>
+  <data name="Sec_LevelPinEvery" xml:space="preserve">
+    <value>PIN-код при каждом подключении</value>
+  </data>
+  <data name="Sec_ResetButton" xml:space="preserve">
+    <value>Сбросить PIN-код и забыть телефоны…</value>
+  </data>
+  <data name="Sec_ForgetAllButton" xml:space="preserve">
+    <value>Забыть все доверенные телефоны…</value>
+  </data>
+  <data name="Sec_Warning" xml:space="preserve">
+    <value>После сохранения нового PIN-кода или уровня телефоны, которые уже вводили PIN-код, должны будут ввести его снова.</value>
+  </data>
+  <data name="Sec_ChangePin" xml:space="preserve">
+    <value>Изменить PIN-код…</value>
+  </data>
+  <data name="Sec_SetPin" xml:space="preserve">
+    <value>Задать PIN-код…</value>
+  </data>
+  <data name="Sec_PinNew" xml:space="preserve">
+    <value>Новый PIN-код будет сохранён.</value>
+  </data>
+  <data name="Sec_PinSet" xml:space="preserve">
+    <value>PIN-код задан.</value>
+  </data>
+  <data name="Sec_PinNone" xml:space="preserve">
+    <value>PIN-код не задан.</value>
+  </data>
+  <data name="Sec_SixDigits" xml:space="preserve">
+    <value>Шесть цифр</value>
+  </data>
+  <data name="Sec_Again" xml:space="preserve">
+    <value>Ещё раз</value>
+  </data>
+  <data name="Sec_NewPin" xml:space="preserve">
+    <value>Новый PIN-код</value>
+  </data>
+  <data name="Sec_NewPinAgain" xml:space="preserve">
+    <value>Новый PIN-код ещё раз</value>
+  </data>
+  <data name="Sec_NewPinBody" xml:space="preserve">
+    <value>Шесть цифр, вводятся дважды.</value>
+  </data>
+  <data name="Sec_UsePin" xml:space="preserve">
+    <value>Использовать этот PIN-код</value>
+  </data>
+  <data name="Sec_Mismatch" xml:space="preserve">
+    <value>Два PIN-кода не совпадают.</value>
+  </data>
+  <data name="Sec_Exactly" xml:space="preserve">
+    <value>Используйте ровно шесть цифр.</value>
+  </data>
+  <data name="Sec_PinNotSaved" xml:space="preserve">
+    <value>Не удалось сохранить PIN-код, ничего не изменено. Причина указана в журнале.</value>
+  </data>
+  <data name="Sec_LevelNotSaved" xml:space="preserve">
+    <value>Не удалось сохранить уровень, поэтому действует прежний. Причина указана в журнале.</value>
+  </data>
+  <data name="Sec_ResetTitle" xml:space="preserve">
+    <value>Сбросить PIN-код и забыть все телефоны?</value>
+  </data>
+  <data name="Sec_ResetBody" xml:space="preserve">
+    <value>PIN-код будет удалён, уровень вернётся к «Только доверие», а все доверенные телефоны будут забыты. Каждый телефон придётся снова признать доверенным здесь. Забытый PIN-код нельзя восстановить, только сбросить.</value>
+  </data>
+  <data name="Sec_ResetFailedTrust" xml:space="preserve">
+    <value>Ничего не сброшено: доверенные телефоны забыть не удалось, поэтому PIN-код и уровень остались прежними. Пока Edgepad запущен, ни один телефон не подключится, но при следующем запуске эти телефоны снова станут доверенными с тем же PIN-кодом. Закройте то, что удерживает файл, и снова выберите «Сбросить», либо удалите его сами:
+
+{0}</value>
+  </data>
+  <data name="Sec_ResetFailedPin" xml:space="preserve">
+    <value>Доверенные телефоны забыты, но PIN-код сбросить не удалось: файл настроек не удалось удалить, поэтому старые PIN-код и уровень могут продолжать действовать. Каждый телефон нужно снова признать доверенным здесь. Закройте то, что удерживает файл, и снова выберите «Сбросить», либо удалите security.txt и pin-verified.txt сами из:
+
+{0}</value>
+  </data>
+  <data name="Sec_TrustedPhones" xml:space="preserve">
+    <value>Доверенные телефоны</value>
+  </data>
+  <data name="Sec_ForgetLabel" xml:space="preserve">
+    <value>Забыть: {0}</value>
+  </data>
+  <data name="Sec_FailTitle" xml:space="preserve">
+    <value>Не удалось сохранить настройки безопасности</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Сопрячь «{0}»?</value>
+  </data>
+  <data name="Pair_ThisPhone" xml:space="preserve">
+    <value>Этот телефон</value>
+  </data>
+  <data name="Pair_Window" xml:space="preserve">
+    <value>Сопряжение телефона</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Введите код сопряжения, показанный на телефоне:</value>
+  </data>
+  <data name="Pair_CodeLabel" xml:space="preserve">
+    <value>Код, показанный на телефоне</value>
+  </data>
+  <data name="Pair_Announce" xml:space="preserve">
+    <value>Выполнить сопряжение с {0}? Закроется через {1} с.</value>
+  </data>
+  <data name="Pair_Matched" xml:space="preserve">
+    <value>Код совпал. Нажмите «Да, сопряжено» на {0}, чтобы завершить.</value>
+  </data>
+  <data name="Pair_Mismatched" xml:space="preserve">
+    <value>Код не совпал. Сопряжение не выполнено.</value>
+  </data>
+  <data name="Pair_Paired" xml:space="preserve">
+    <value>Сопряжено: {0}.</value>
+  </data>
+  <data name="Pair_NotFinished" xml:space="preserve">
+    <value>Сопряжение не завершено.</value>
+  </data>
+  <data name="Pair_Warning" xml:space="preserve">
+    <value>Сопрягайте только свой телефон. Если вы сами не начинали сопряжение, нажмите «Отмена».</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Закроется через {0} s</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Проверка кода</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Макросы</value>
+  </data>
+  <data name="Macro_Body" xml:space="preserve">
+    <value>Кнопки на экране макросов телефона, до {0}. Телефон отправляет номер кнопки, а не программу, поэтому он может запускать только то, что вы добавите здесь.</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>{0}: нечего открывать. Выберите приложение или файл либо введите веб-адрес.</value>
+  </data>
+  <data name="Macro_AMacro" xml:space="preserve">
+    <value>Макрос</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Не удалось сохранить макросы в {0}: {1}.</value>
+  </data>
+  <data name="Macro_SaveFailedTitle" xml:space="preserve">
+    <value>Не удалось сохранить макросы</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>Открывает</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Аргументы</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>Значок</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>Добавить макрос</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="Macro_MoveUp" xml:space="preserve">
+    <value>Сдвинуть вверх</value>
+  </data>
+  <data name="Macro_MoveDown" xml:space="preserve">
+    <value>Сдвинуть вниз</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Обзор…</value>
+  </data>
+  <data name="Macro_Choose" xml:space="preserve">
+    <value>Выбрать…</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>Значок программы</value>
+  </data>
+  <data name="Macro_ArgsHint" xml:space="preserve">
+    <value>Нет, через пробел (только для приложений)</value>
+  </data>
+  <data name="Macro_IconHint" xml:space="preserve">
+    <value>Собственный значок программы</value>
+  </data>
+  <data name="Macro_OpensHint" xml:space="preserve">
+    <value>Приложение, файл, папка или веб-адрес</value>
+  </data>
+  <data name="Macro_Empty" xml:space="preserve">
+    <value>Макросов пока нет. Добавьте приложение, документ, папку или веб-адрес. Каждый станет кнопкой на телефоне.</value>
+  </data>
+  <data name="Macro_Count" xml:space="preserve">
+    <value>{0} из {1}</value>
+  </data>
+  <data name="Macro_NameLeft" xml:space="preserve">
+    <value>Имя · осталось {0}</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Новый макрос</value>
+  </data>
 </root>
