@@ -292,6 +292,7 @@ class LaptopConnections(
         laptop.ending = false
         laptop.lastCause = null
         clearAsking(laptop)
+        laptop.pinSentOnLink = false
         val old = laptop.link
         // Cleared first, so the old link's own close is an event for a closed link.
         laptop.link = null

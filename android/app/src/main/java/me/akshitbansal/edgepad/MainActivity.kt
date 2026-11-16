@@ -1009,13 +1009,16 @@ class MainActivity :
                 }
 
                 Screen.PIN -> {
+                    val attemptsLeft = selected?.pinAttemptsLeft ?: 0
                     PinScreen(
                         ui,
-                        selected?.pinAttemptsLeft ?: 0,
+                        attemptsLeft,
+                        PinScreen.showsWrong(attemptsLeft, selected?.pinSentOnLink == true),
                         selected?.pinAnswered == true,
                         onAnswer = { pin ->
                             selected?.let {
                                 it.pinAnswered = true
+                                it.pinSentOnLink = true
                                 it.link?.answerPin(pin)
                             }
                         },

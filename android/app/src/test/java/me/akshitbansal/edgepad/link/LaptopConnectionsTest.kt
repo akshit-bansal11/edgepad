@@ -510,6 +510,19 @@ class LaptopConnectionsTest {
     }
 
     @Test
+    fun aNewLinkHasSentNoPinAnswerYet() {
+        val first = connect(1)
+        first.events.onPinRequest(3)
+        laptop(1).pinSentOnLink = true
+        first.drop(LaptopLink.Cause.LOST)
+
+        connect(1, tapped = true)
+
+        assertEquals(2, linksTo(1))
+        assertFalse(laptop(1).pinSentOnLink)
+    }
+
+    @Test
     fun aPairingCodeWaitsOnItsLaptopWithItsOwnDeadline() {
         up(1)
         val pairing = connect(2)
