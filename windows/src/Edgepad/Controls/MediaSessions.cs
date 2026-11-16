@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using Edgepad.Media;
 using Windows.Media.Control;
+using Windows.Storage.Streams;
 
 namespace Edgepad.Controls;
 
@@ -12,7 +13,9 @@ internal sealed record MediaState(
     int PositionPercent,
     int PositionSeconds,
     int DurationSeconds,
-    string NowPlayingFull = "");
+    string NowPlayingFull = "",
+    string Aumid = "",
+    IRandomAccessStreamReference? Thumbnail = null);
 
 /// <summary>
 /// What Windows itself knows about media: the system media transport controls that every player with a
@@ -229,7 +232,7 @@ internal sealed class MediaSessions : IDisposable
         var app = BrowserTitle.IsBrowser(executable)
             ? browserService.Service(executable, aumid, nowPlaying) ?? AppName(aumid)
             : AppName(aumid);
-        return new MediaState(cleaned, app, playing, percent, seconds, (int)span.TotalSeconds, nowPlaying);
+        return new MediaState(cleaned, app, playing, percent, seconds, (int)span.TotalSeconds, nowPlaying, aumid, properties.Thumbnail);
     }
 
     /// <summary>The title line as the phone shows it (cleaned) and as the player wrote it (full, which the service lookup and TalkBack use).</summary>

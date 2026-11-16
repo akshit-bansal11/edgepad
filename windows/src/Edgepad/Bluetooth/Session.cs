@@ -66,6 +66,10 @@ internal sealed class Session(
     private string lastTimeline = "";
     // What the phone holds as TEXT 26: the uncleaned title, or empty when the cleaned one is the whole line.
     private string lastFull = "";
+    // The media icon: the sender it goes through, the key of the last picture asked for, and which run may still send (latest wins).
+    private BlobSender? blobSender;
+    private string lastIconKey = "";
+    private int mediaIconRun;
 
     /// <summary>The phone's address, as the log and the status line name it.</summary>
     public string Address => address;
@@ -203,6 +207,7 @@ internal sealed class Session(
         // One sender for the session, as on Linux: it sends one blob at a time, and the phone holds one transfer, so a
         // second sender's BLOB_BEGIN (the app list's beside the clipboard's) would abort the first.
         var blobs = new BlobSender(Send, link.Kind, () => dispatcher.LastInputMs, ended.Token);
+        blobSender = blobs;
         var sharing = new ClipboardSync(clipboard, blobs, shareClipboard, ended.Token);
         dispatcher.Clipboard = sharing;
         Keep(clipboard.Watch(sharing.LocalChanged));
@@ -479,7 +484,33 @@ internal sealed class Session(
         }
 
         lastMedia = state;
+        SendMediaIcon(state);
         Send(new StateReport((byte)ControlId.MediaPosition, (byte)state.PositionPercent, state.Playing ? PlayingFlag : (byte)0));
+    }
+
+    /// <summary>Starts the media icon once per app or track change, off the caller's thread; a newer change supersedes an older one.</summary>
+    private void SendMediaIcon(MediaState state)
+    {
+        var key = MediaIcon.Key(state);
+        if (key.Length == 0 || key == lastIconKey || blobSender is not { } blobs)
+        {
+            return;
+        }
+
+        lastIconKey = key;
+        var run = Interlocked.Increment(ref mediaIconRun);
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await MediaIcon.SendAsync(state, blobs, () => Volatile.Read(ref mediaIconRun) != run || ended.IsCancellationRequested, ended.Token);
+            }
+            catch (Exception e)
+            {
+                // Top-level boundary of a fire-and-forget: a failed icon must not touch the session.
+                Log.Write($"Media icon failed: {e.Message}");
+            }
+        }, ended.Token);
     }
 
     private void Watch(AudioEndpoint endpoint, ControlId control)
