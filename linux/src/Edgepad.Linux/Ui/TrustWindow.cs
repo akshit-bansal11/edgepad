@@ -36,14 +36,14 @@ internal static class TrustWindow
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 14 };
         // The name comes from the cache the session filled before asking; this runs on the UI thread, which must not wait on D-Bus.
         var name = PhoneName.Cached(address);
-        body.Children.Add(look.Text(string.Format(LinuxStrings.Dialog_TrustHeading, name ?? address), 18, FontWeight.Bold));
+        body.Children.Add(look.Text(Say.Format(LinuxStrings.Dialog_TrustHeading, name ?? address), 18, FontWeight.Bold));
         if (name is not null)
         {
             body.Children.Add(look.Text(address, 14, dim: true));
         }
 
         body.Children.Add(look.Text(
-            string.Format(LinuxStrings.Dialog_TrustText, (int)TrustPrompt.DefaultTimeout.TotalSeconds),
+            Say.Format(LinuxStrings.Dialog_TrustText, (int)TrustPrompt.DefaultTimeout.TotalSeconds),
             14,
             dim: true));
         body.Children.Add(Look.Footer(dont, trust));

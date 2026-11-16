@@ -98,7 +98,7 @@ internal sealed class Shell : IDisposable
             phone =>
             {
                 SetStatus(LaptopStatus.Pairing(phone));
-                Notifier.Send(LinuxStrings.App_Name, string.Format(LinuxStrings.Balloon_WantsToPair, phone));
+                Notifier.Send(LinuxStrings.App_Name, Say.Format(LinuxStrings.Balloon_WantsToPair, phone));
             },
             () => server?.PostStatus());
         prompt = new TrustPrompt(
@@ -282,7 +282,7 @@ internal sealed class Shell : IDisposable
         SetStatus(LaptopStatus.Asking(name));
 
         // The question is a window that may open behind the one in use (Wayland), and the tray menu may not exist.
-        Notifier.Send(LinuxStrings.App_Name, string.Format(LinuxStrings.Notice_WantsToConnect, name));
+        Notifier.Send(LinuxStrings.App_Name, Say.Format(LinuxStrings.Notice_WantsToConnect, name));
         var trusted = prompt.Ask(address, ended);
         Log.Write(trusted ? $"The owner trusted {address}" : $"The owner did not trust {address}");
         return trusted;
@@ -300,7 +300,7 @@ internal sealed class Shell : IDisposable
         lifetime = app.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
         var hooks = new TrayHooks(
             () => SecurityWindow.LevelName(pin.Level),
-            () => string.Format(LinuxStrings.Menu_MacrosCount, LinuxPlatform.Shared.Macros.Count, MacroStore.MaxMacros),
+            () => Say.Format(LinuxStrings.Menu_MacrosCount, LinuxPlatform.Shared.Macros.Count, MacroStore.MaxMacros),
             () => networkSettings.Load().Enabled,
             () => networkHint,
             () => ClipboardSetting.Enabled,
@@ -417,7 +417,7 @@ internal sealed class Shell : IDisposable
             var phones = string.Join(", ", trust.TrustedPhones);
             var yes = await Dialogs.Confirm(
                 owner,
-                phones.Length > 0 ? string.Format(LinuxStrings.Forget_AllNamed, phones) : LinuxStrings.Forget_All,
+                phones.Length > 0 ? Say.Format(LinuxStrings.Forget_AllNamed, phones) : LinuxStrings.Forget_All,
                 LinuxStrings.Common_Forget,
                 LinuxStrings.Common_Cancel,
                 dangerous: true);
@@ -645,7 +645,7 @@ internal sealed class Shell : IDisposable
         if (!updateChoice.WasNotified(latest))
         {
             updateChoice.MarkNotified(latest);
-            Notifier.SendClickable(LinuxStrings.Menu_Update, string.Format(LinuxStrings.Notice_UpdateAvailable, number), () => Tray.OpenWithDesktop(UpdateCheck.LatestUrl, LinuxStrings.What_ReleasePage));
+            Notifier.SendClickable(LinuxStrings.Menu_Update, Say.Format(LinuxStrings.Notice_UpdateAvailable, number), () => Tray.OpenWithDesktop(UpdateCheck.LatestUrl, LinuxStrings.What_ReleasePage));
         }
     }
 
@@ -690,7 +690,7 @@ internal sealed class Shell : IDisposable
         }
 
         if (offeredNeedsConfirm
-            && !await Dialogs.Confirm(null, string.Format(LinuxStrings.Update_MajorConfirm, target.ToString(3)), LinuxStrings.Common_Install, LinuxStrings.Common_NotNow))
+            && !await Dialogs.Confirm(null, Say.Format(LinuxStrings.Update_MajorConfirm, target.ToString(3)), LinuxStrings.Common_Install, LinuxStrings.Common_NotNow))
         {
             return;
         }
@@ -706,7 +706,7 @@ internal sealed class Shell : IDisposable
                     break;
                 case UpdateOutcome.NeedsRoot:
                     HideUpdate();
-                    await Dialogs.Inform(null, $"{string.Format(LinuxStrings.Update_NeedsRoot, target.ToString(3))}\n\n{LinuxUpdater.RootCommand(Path.Combine(Xdg.CacheFolder, "update", UpdateCheck.LinuxName(target)), target)}");
+                    await Dialogs.Inform(null, $"{Say.Format(LinuxStrings.Update_NeedsRoot, target.ToString(3))}\n\n{LinuxUpdater.RootCommand(Path.Combine(Xdg.CacheFolder, "update", UpdateCheck.LinuxName(target)), target)}");
                     break;
                 case UpdateOutcome.Failed:
                     await Dialogs.Inform(null, LinuxStrings.Update_InstallFailed);
@@ -748,7 +748,7 @@ internal sealed class Shell : IDisposable
         {
             networkFailed = !net.Start(config.Port);
             networkHint = networkFailed ? LinuxStrings.Hint_CouldNotListen
-                : string.Format(net.Port == config.Port ? LinuxStrings.Hint_Listening : LinuxStrings.Hint_PortInUse, net.Port);
+                : Say.Format(net.Port == config.Port ? LinuxStrings.Hint_Listening : LinuxStrings.Hint_PortInUse, net.Port);
         }
 
         RefreshViews();
@@ -801,15 +801,15 @@ internal sealed class Shell : IDisposable
             Notifier.Send(LinuxStrings.App_Name, code switch
             {
                 null => LinuxStrings.Send_NoPhone,
-                XferCode.Saved => string.Format(LinuxStrings.Send_Sent, name),
-                XferCode.Cancelled => string.Format(LinuxStrings.Send_Cancelled, name),
-                _ => string.Format(LinuxStrings.Send_NotSent, name, code),
+                XferCode.Saved => Say.Format(LinuxStrings.Send_Sent, name),
+                XferCode.Cancelled => Say.Format(LinuxStrings.Send_Cancelled, name),
+                _ => Say.Format(LinuxStrings.Send_NotSent, name, code),
             });
         }
         catch (Exception e)
         {
             Log.Write($"A file could not be sent: {e.Message}");
-            Notifier.Send(LinuxStrings.App_Name, string.Format(LinuxStrings.Send_Failed, name));
+            Notifier.Send(LinuxStrings.App_Name, Say.Format(LinuxStrings.Send_Failed, name));
         }
     }
 

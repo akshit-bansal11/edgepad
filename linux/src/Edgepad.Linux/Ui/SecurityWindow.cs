@@ -248,7 +248,7 @@ internal sealed class SecurityWindow
 
     private async Task ForgetOneAsync(string name, string way, Func<bool> forget)
     {
-        var yes = await Dialogs.Confirm(window, string.Format(LinuxStrings.Security_ForgetOneText, name, way), LinuxStrings.Common_Forget, LinuxStrings.Common_Cancel, dangerous: true);
+        var yes = await Dialogs.Confirm(window, Say.Format(LinuxStrings.Security_ForgetOneText, name, way), LinuxStrings.Common_Forget, LinuxStrings.Common_Cancel, dangerous: true);
         if (!yes)
         {
             return;
@@ -262,7 +262,7 @@ internal sealed class SecurityWindow
         hangUp();
         if (!done)
         {
-            await Dialogs.Inform(window, string.Format(LinuxStrings.Error_ForgetOne, pin.Folder, name));
+            await Dialogs.Inform(window, Say.Format(LinuxStrings.Error_ForgetOne, pin.Folder, name));
         }
         else if (!verified)
         {
@@ -380,11 +380,11 @@ internal sealed class SecurityWindow
         hangUp();
         if (!forgotten)
         {
-            await Dialogs.Inform(window, string.Format(LinuxStrings.Error_ResetTrust, trust.FilePath));
+            await Dialogs.Inform(window, Say.Format(LinuxStrings.Error_ResetTrust, trust.FilePath));
         }
         else if (!pinGone)
         {
-            await Dialogs.Inform(window, string.Format(LinuxStrings.Error_ResetPin, pin.Folder));
+            await Dialogs.Inform(window, Say.Format(LinuxStrings.Error_ResetPin, pin.Folder));
         }
 
         window.Close();

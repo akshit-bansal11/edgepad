@@ -140,8 +140,8 @@ internal sealed class Tray : IDisposable
     /// <summary>Shows "Update available: VERSION" under the status. Opens the release page when clicked.</summary>
     public void SetUpdate(string version, bool canInstall)
     {
-        updateRow.Header = string.Format(LinuxStrings.Menu_UpdateVersion, version);
-        installRow.Header = string.Format(LinuxStrings.Menu_UpdateInstall, version);
+        updateRow.Header = Say.Format(LinuxStrings.Menu_UpdateVersion, version);
+        installRow.Header = Say.Format(LinuxStrings.Menu_UpdateInstall, version);
         updateRow.IsVisible = true;
         installRow.IsVisible = canInstall;
         laterRow.IsVisible = true;
@@ -219,7 +219,7 @@ internal sealed class Tray : IDisposable
     {
         if (!target.StartsWith("https://", StringComparison.Ordinal) && !File.Exists(target))
         {
-            Notifier.Send(LinuxStrings.App_Name, string.Format(LinuxStrings.Open_Nothing, what, target));
+            Notifier.Send(LinuxStrings.App_Name, Say.Format(LinuxStrings.Open_Nothing, what, target));
             return;
         }
 
@@ -234,7 +234,7 @@ internal sealed class Tray : IDisposable
         {
             // No xdg-utils installed, or no handler. A menu item must never take the tray app down with it.
             Log.Write($"Could not open {target}: {e.Message}");
-            Notifier.Send(LinuxStrings.App_Name, string.Format(LinuxStrings.Open_InstallXdg, what));
+            Notifier.Send(LinuxStrings.App_Name, Say.Format(LinuxStrings.Open_InstallXdg, what));
         }
     }
 

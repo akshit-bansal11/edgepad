@@ -24,7 +24,7 @@ internal static class ShutdownCountdown
     /// <summary>Whole seconds left, rounded up, never below zero.</summary>
     internal static int SecondsLeft(long deadlineMs, long nowMs) => (int)Math.Max(0, (deadlineMs - nowMs + 999) / 1000);
 
-    internal static string Message(int seconds) => string.Format(LinuxStrings.EndAction_ShutdownText, seconds);
+    internal static string Message(int seconds) => Say.Format(LinuxStrings.EndAction_ShutdownText, seconds);
 
     private static void Open(Action shutDown)
     {

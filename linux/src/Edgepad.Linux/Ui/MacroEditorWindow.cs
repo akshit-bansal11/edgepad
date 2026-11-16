@@ -30,7 +30,7 @@ internal sealed class MacroEditorWindow
         this.store = store;
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 12 };
         body.Children.Add(look.Text(LinuxStrings.Macro_Title, 18, FontWeight.Bold));
-        body.Children.Add(look.Text(string.Format(LinuxStrings.Macro_Intro, MacroStore.MaxMacros), 14, dim: true));
+        body.Children.Add(look.Text(Say.Format(LinuxStrings.Macro_Intro, MacroStore.MaxMacros), 14, dim: true));
         empty = look.Text(LinuxStrings.Macro_EmptyHeadline, 14, dim: true);
         body.Children.Add(empty);
         body.Children.Add(new ScrollViewer { MaxHeight = 380, Content = rowsPanel });
@@ -185,13 +185,13 @@ internal sealed class MacroEditorWindow
             .ToList();
         if (MacroStore.WithoutTarget(macros) is var missing and >= 0)
         {
-            await Dialogs.Inform(window, string.Format(LinuxStrings.Macro_NothingToOpen, string.IsNullOrWhiteSpace(rows[missing].Name.Text) ? LinuxStrings.Macro_New : rows[missing].Name.Text));
+            await Dialogs.Inform(window, Say.Format(LinuxStrings.Macro_NothingToOpen, string.IsNullOrWhiteSpace(rows[missing].Name.Text) ? LinuxStrings.Macro_New : rows[missing].Name.Text));
             return;
         }
 
         if (store.Save(macros) is { } failure)
         {
-            await Dialogs.Inform(window, string.Format(LinuxStrings.Macro_SaveFailed, store.FilePath, failure));
+            await Dialogs.Inform(window, Say.Format(LinuxStrings.Macro_SaveFailed, store.FilePath, failure));
             return;
         }
 

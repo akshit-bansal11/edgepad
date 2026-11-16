@@ -20,7 +20,7 @@ internal static class FirstRunWindow
 
     /// <summary>The firewall line, for the second text block, which can be selected and copied.</summary>
     public static string Firewall =>
-        string.Format(LinuxStrings.FirstRun_Firewall, NetworkSettings.DefaultPort) + "\n"
+        Say.Format(LinuxStrings.FirstRun_Firewall, NetworkSettings.DefaultPort) + "\n"
             + $"sudo ufw allow {NetworkSettings.DefaultPort}/tcp && sudo ufw allow 5353/udp\n{DocumentationUrl}";
 
     /// <summary>

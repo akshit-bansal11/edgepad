@@ -130,8 +130,8 @@ internal sealed class FallbackWindow
 
     public void SetUpdate(string version, bool canInstall)
     {
-        update.Text = string.Format(LinuxStrings.Menu_UpdateVersion, version);
-        install.Content = string.Format(LinuxStrings.Menu_UpdateInstall, version);
+        update.Text = Say.Format(LinuxStrings.Menu_UpdateVersion, version);
+        install.Content = Say.Format(LinuxStrings.Menu_UpdateInstall, version);
         update.IsVisible = true;
         install.IsVisible = canInstall;
         updateButtons.IsVisible = true;

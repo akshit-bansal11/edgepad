@@ -42,11 +42,11 @@ internal static class PairingWindow
         // Enter only does anything once six digits are in, since Pair is disabled until then.
         pair.IsDefault = true;
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 10 };
-        body.Children.Add(look.Text(string.Format(LinuxStrings.Pair_Heading, phoneName), 18, FontWeight.Bold));
+        body.Children.Add(look.Text(Say.Format(LinuxStrings.Pair_Heading, phoneName), 18, FontWeight.Bold));
         // Where the request came from, so an unexpected one is spotted before a code is typed.
         if (source is not null)
         {
-            body.Children.Add(look.Text(string.Format(LinuxStrings.Pair_Request, source), 13, dim: true));
+            body.Children.Add(look.Text(Say.Format(LinuxStrings.Pair_Request, source), 13, dim: true));
         }
 
         var ask = look.Text(LinuxStrings.Pair_Ask, 14, dim: true);
@@ -119,7 +119,7 @@ internal static class PairingWindow
             }
 
             var left = PairingPrompt.SecondsLeft(deadline, Environment.TickCount64);
-            countdown.Text = string.Format(LinuxStrings.Pair_ClosesIn, left);
+            countdown.Text = Say.Format(LinuxStrings.Pair_ClosesIn, left);
 
             // The pairing's own timer refuses the phone at the same moment; this only takes the window down.
             if (left == 0)
