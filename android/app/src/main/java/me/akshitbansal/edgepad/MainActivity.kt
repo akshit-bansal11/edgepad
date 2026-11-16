@@ -84,6 +84,7 @@ import me.akshitbansal.edgepad.link.mergeFound
 import me.akshitbansal.edgepad.link.mergedRows
 import me.akshitbansal.edgepad.link.net.LinkKeys
 import me.akshitbansal.edgepad.link.net.Sas
+import me.akshitbansal.edgepad.link.notify.PhoneNotifier
 import me.akshitbansal.edgepad.link.olderHalf
 import me.akshitbansal.edgepad.link.onlyAutoConnecting
 import me.akshitbansal.edgepad.link.parseHex
@@ -93,6 +94,8 @@ import me.akshitbansal.edgepad.link.probeAddress
 import me.akshitbansal.edgepad.link.promoted
 import me.akshitbansal.edgepad.link.rememberLaptop
 import me.akshitbansal.edgepad.link.snapUp
+import me.akshitbansal.edgepad.link.xfer.Transfers
+import me.akshitbansal.edgepad.link.xfer.XferCode
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.AppAddStatus
 import me.akshitbansal.edgepad.protocol.ControlId
@@ -137,7 +140,9 @@ import me.akshitbansal.edgepad.surface.BackgroundImage
 import me.akshitbansal.edgepad.surface.ConnectedLaptops
 import me.akshitbansal.edgepad.surface.ControlSurface
 import me.akshitbansal.edgepad.update.Installer
+import me.akshitbansal.edgepad.update.UpdateChoice
 import me.akshitbansal.edgepad.update.UpdateJob
+import me.akshitbansal.edgepad.update.UpdateNotice
 import me.akshitbansal.edgepad.update.Updates
 import java.io.File
 import java.io.IOException
@@ -293,7 +298,8 @@ class MainActivity :
     private var screen = Screen.PAIRING
     private var settingsReturn = Screen.PAIRING
     private lateinit var gamepads: GamepadStore
-    private var started = false
+    // Volatile: the update check's worker reads it to tell a stopped app from a shown one.
+    @Volatile private var started = false
 
     /** [LinkService] is running, as far as this activity knows; a rebuilt one starts again and finds out in onStart. */
     private var serviceUp = false
@@ -311,6 +317,9 @@ class MainActivity :
 
     /** A check with GitHub is in flight, or the last one got no answer. Neither outlives the activity. */
     private var checkingUpdate = false
+
+    /** Skip and Later for the update notice; also read by the daily check's worker. */
+    private val updateChoice by lazy { UpdateChoice(applicationContext) }
     private var updateCheckFailed = false
 
     /** The Updates row's summary while Settings is showing, rewritten in place as a check finishes. */
@@ -408,6 +417,14 @@ class MainActivity :
                 onUsbHelp = ::openTetherSettings,
                 onDisconnectAll = ::disconnectAll,
                 onUpdate = ::openUpdate,
+                onSkip = {
+                    updateChoice.skip(settings.latestVersion)
+                    updateChanged()
+                },
+                onLater = {
+                    updateChoice.later(System.currentTimeMillis())
+                    updateChanged()
+                },
             )
         discovery =
             Discovery(this) { list ->
@@ -442,13 +459,25 @@ class MainActivity :
             // One set of routes, so a link's blobs reach the clipboard or the app list by their kind.
             val routes = BlobRoutes()
             clipboard = clipboardShare(applicationContext, routes) { owner.clipboardSync }
-            apps = AppLinks(routes)
+            apps =
+                AppLinks(
+                    routes,
+                    notifier = PhoneNotifier(applicationContext),
+                    notifyEnabled = { owner.notifyForward },
+                )
         }
+        // A laptop's media icon arrived: the surface redraws its Now playing. Cleared in onDestroy with the events.
+        apps.onMediaIcon = { laptop -> if (laptop === selected) surface?.stateChanged() }
         // As above, over the retained pieces alone: what another app shares goes to the selected, connected laptop.
         val shares = clipboard.links
         LinkHooks.shareTarget = {
             links.selected?.takeIf { it.connected }?.let { laptop ->
-                ShareTarget(laptop.name, shares.activeSync(laptop)?.let { it::sendNow })
+                val file = Transfers.link(laptop)
+                ShareTarget(
+                    laptop.name,
+                    shares.activeSync(laptop)?.let { it::sendNow },
+                    file?.let { link -> { uri -> link.send(uri) == XferCode.SAVED } },
+                )
             }
         }
         apps.events =
@@ -575,13 +604,27 @@ class MainActivity :
         manager.keepAlive = true
     }
 
-    private fun askNotifications() {
+    /**
+     * Turning the laptop-notifications switch on or off: the laptop is told at once, and turning it on is what asks
+     * Android 13 and later for the permission. Nothing is ever posted without it, so a refusal only leaves it silent.
+     */
+    private fun notifyChanged(on: Boolean) {
+        for (laptop in manager.laptops) {
+            if (laptop.connected && Feature.NOTIFY in laptop.state.features) {
+                laptop.link?.send(ControlId.NOTIFY.set(if (on) 1 else 0))
+            }
+        }
+        if (on) askNotifications(forced = true)
+    }
+
+    // [forced] is the user's own tap, which asks again even when the service already did once.
+    private fun askNotifications(forced: Boolean = false) {
         // Below Android 13 notifications need no permission, and the constant does not exist there.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         val granted = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         // One system prompt at a time: while another is up this waits for the next time the service is needed.
         // Not over the guide; onFinish asks once it is over.
-        if (granted || askedNotifications || permissionPending || screen == Screen.ONBOARDING) return
+        if (granted || (askedNotifications && !forced) || permissionPending || screen == Screen.ONBOARDING) return
         askedNotifications = true
         requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATIONS)
     }
@@ -599,6 +642,7 @@ class MainActivity :
     private fun refreshBlobLinks() {
         shareClipboard()
         apps.refresh(manager.laptops)
+        Transfers.attach(applicationContext, manager.laptops)
     }
 
     override fun onDestroy() {
@@ -606,6 +650,7 @@ class MainActivity :
         // A rebuilt activity's waiting ticks go with it; the new one starts its own in onStart.
         handler.removeCallbacksAndMessages(null)
         apps.events = null
+        apps.onMediaIcon = null
         if (!isChangingConfigurations && !isFinishing && serviceUp) {
             // Android destroyed this activity by itself while Stay connected holds the process: the links stay, for
             // the next activity to adopt, and the hooks stay too, since they hold only the manager.
@@ -860,6 +905,7 @@ class MainActivity :
                                 syncService()
                             },
                             stayConnected = ::syncService,
+                            notify = ::notifyChanged,
                             sideways = { on ->
                                 settings.landscape = on
                                 applyOrientation()
@@ -1025,6 +1071,7 @@ class MainActivity :
                         state.apps,
                         windows = state.os == DeviceOs.WINDOWS,
                         macroNames = { state.macros },
+                        macroCap = { state.macroCap },
                         // Only the token goes: the laptop looks up what it stands for in the list it made.
                         onAdd = { app -> send(TextKind.APP_ADD.frame(app.token)) },
                         onRefresh = ::refreshApps,
@@ -1283,6 +1330,42 @@ class MainActivity :
         startActivityForResult(intent, REQUEST_IMAGE)
     }
 
+    /** Asks the system's picker for any file to send to the laptop. Nothing is read until the user has chosen one. */
+    private fun pickFile() {
+        val intent =
+            Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "*/*"
+            }
+        @Suppress("DEPRECATION")
+        startActivityForResult(intent, REQUEST_FILE)
+    }
+
+    /**
+     * Sends the document the user chose to the selected laptop, on a worker. The user's pick in the system picker is
+     * the confirmation. Counted as a share while it runs, so the app leaving does not end the link under it; the
+     * progress and the outcome are the transfer notification's.
+     */
+    private fun sendPicked(uri: Uri) {
+        val link = selected?.takeIf { it.connected }?.let(Transfers::link)
+        if (link == null) {
+            Toast.makeText(this, R.string.xfer_no_laptop, Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (link.sending) {
+            Toast.makeText(this, R.string.xfer_busy, Toast.LENGTH_SHORT).show()
+            return
+        }
+        LinkHooks.sharing.incrementAndGet()
+        thread(name = "edgepad-send-file") {
+            try {
+                link.send(uri)
+            } finally {
+                LinkHooks.sharing.decrementAndGet()
+            }
+        }
+    }
+
     @Deprecated("The platform result API; the app has no library that wraps it.")
     override fun onActivityResult(
         requestCode: Int,
@@ -1292,7 +1375,12 @@ class MainActivity :
         @Suppress("DEPRECATION")
         super.onActivityResult(requestCode, resultCode, data)
         // A cancelled picker is the user changing their mind, and needs no answer.
-        if (requestCode != REQUEST_IMAGE || resultCode != RESULT_OK) return
+        if (resultCode != RESULT_OK) return
+        if (requestCode == REQUEST_FILE) {
+            data?.data?.let(::sendPicked)
+            return
+        }
+        if (requestCode != REQUEST_IMAGE) return
         val uri = data?.data
         // Only a document the system picker vouches for: a file:// or this app's own provider would let whatever
         // answered the intent point the copy at Edgepad's private files.
@@ -1461,7 +1549,19 @@ class MainActivity :
         val owner = surface ?: return
         controls?.dismiss()
         controls =
-            ControlsPopup(ui, settings, { owner.isDialsHidden }, owner::setDialsHidden) { target ->
+            ControlsPopup(
+                ui,
+                settings,
+                { owner.isDialsHidden },
+                owner::setDialsHidden,
+                reasons = { state.unavailable },
+                endOffered = { Feature.END_ACTION in state.features },
+                endArmed = { state.endAction },
+                hasTimeline = { state.duration > 0 },
+                onEnd = { action -> manager.send(action.frame()) },
+                laptopConnected = { connected },
+                onSendFile = ::pickFile,
+            ) { target ->
                 when (target) {
                     ControlsPopup.Target.KEYBOARD -> goTo(Screen.KEYBOARD)
                     ControlsPopup.Target.GAMEPAD -> goTo(Screen.GAMEPAD)
@@ -1506,11 +1606,17 @@ class MainActivity :
         checkingUpdate = true
         updateCheckFailed = false
         updateChanged()
+        val app = applicationContext
         thread(name = "edgepad-update") {
             val latest = Updates.latest()
             if (latest != null) {
                 settings.latestVersion = latest
                 settings.lastUpdateCheck = System.currentTimeMillis()
+                // D-ANDNOTE: only when the check ended with the app out of sight; the notice posts once a version.
+                val newer = Updates.isNewer(latest, app.getString(R.string.app_version))
+                if (!started && newer && updateChoice.shouldShow(latest, System.currentTimeMillis())) {
+                    UpdateNotice.post(app, latest)
+                }
             }
             runOnUiThread {
                 checkingUpdate = false
@@ -1527,7 +1633,10 @@ class MainActivity :
         if (screen == Screen.PAIRING) refreshPicker()
     }
 
-    private fun updateAvailable(): Boolean = Updates.isNewer(settings.latestVersion, getString(R.string.app_version))
+    /** A newer release the user has not skipped or put off: what the Devices notice and the Updates row announce. */
+    private fun updateAvailable(): Boolean =
+        Updates.isNewer(settings.latestVersion, getString(R.string.app_version)) &&
+            updateChoice.shouldShow(settings.latestVersion, System.currentTimeMillis())
 
     /** The app is a different version from the one last noted; cleared on leaving Settings, see [goTo]. */
     private fun justUpdated(): Boolean = settings.seenVersion != getString(R.string.app_version)
@@ -2301,6 +2410,15 @@ class MainActivity :
         if (screen == Screen.APPS && frame is Frame.Text && frame.kind == TextKind.FEATURES.id) listApps()
         if (frame is Frame.Text && frame.kind == TextKind.APP_ADD_STATUS.id) added(state.apps.lastStatus)
         if (sized) controls?.refresh(controlsCapture(), controlsAnnotate())
+        if (frame is Frame.Text &&
+            (
+                frame.kind == TextKind.END_ACTION.id ||
+                    frame.kind == TextKind.UNAVAILABLE.id ||
+                    frame.kind == TextKind.FEATURES.id
+            )
+        ) {
+            controls?.refreshEnd()
+        }
         if (frame is Frame.Text && frame.kind == TextKind.SCREEN_SIZE.id) annotate?.refresh()
         if (frame is Frame.Text && frame.kind == TextKind.SIGN_STATUS.id) signed(state.signStatus)
         // The pad decides which of its two modes it is in from this answer, which usually lands a few
@@ -2626,6 +2744,7 @@ class MainActivity :
         const val REQUEST_IMAGE = 2
         const val REQUEST_LOCAL_NETWORK = 3
         const val REQUEST_NOTIFICATIONS = 4
+        const val REQUEST_FILE = 5
 
         /** How often the Devices list looks again for laptops on the network while it is showing. */
         const val SCAN_EVERY_MS = 10_000L
