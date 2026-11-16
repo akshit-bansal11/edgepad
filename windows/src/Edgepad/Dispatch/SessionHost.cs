@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Edgepad.Annotation;
 using Edgepad.Blob;
@@ -45,11 +46,29 @@ internal sealed class SessionHost(
     // Taken around an admission and around Close, so the connected phone's thread is never missed by Dispose.
     private readonly Lock gate = new();
 
-    // The thread the connected phone's session runs on, joined at exit.
-    private Thread? sessionThread;
+    // Every admitted session's thread, the connected one and any replaced one still unwinding, joined at exit; each
+    // leaves as its session ends.
+    private readonly ConcurrentDictionary<Session, Thread> sessionThreads = new();
 
     /// <summary>The connected phone's address, or null.</summary>
     public string? CurrentAddress => admission.CurrentAddress;
+
+    /// <summary>
+    /// The connected phone's address when it came over Bluetooth, the only link a restart of the RFCOMM service cuts;
+    /// null when no phone is connected or it came over Wi-Fi or USB.
+    /// </summary>
+    public string? CurrentBluetoothAddress =>
+        CurrentAddress is { } live && ShouldDefer(shown.TryGetValue(live, out var phone) ? phone.Way : null) ? live : null;
+
+    /// <summary>Whether a restart of the Bluetooth service waits for a phone connected this way.</summary>
+    internal static bool ShouldDefer(PhoneWay? way) => way == PhoneWay.Bluetooth;
+
+    /// <summary>
+    /// Whether a session's status reaches the tray. A connected status always does; any other only while no other phone
+    /// is the connected one, whose status it would otherwise cover.
+    /// </summary>
+    internal static bool ShowStatus(string? currentAddress, string address, LaptopStatus status) =>
+        status.IsConnected || currentAddress is null || string.Equals(currentAddress, address, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Whether a hold or a quiet period refuses new connections right now; no pairing may start then.</summary>
     public bool IsRefusing => admission.IsRefusing;
@@ -71,7 +90,24 @@ internal sealed class SessionHost(
     {
         var address = link.Address;
         shown[address] = (() => link.Label, link.Kind == LinkKind.Network ? PhoneWay.WifiOrUsb : PhoneWay.Bluetooth);
-        return status => onStatus(status.IsConnected ? Connected(address) : status.For(Shown(address), PhoneWay.Bluetooth));
+        return status =>
+        {
+            if (status.IsConnected)
+            {
+                onStatus(Connected(address));
+                return;
+            }
+
+            var named = status.For(Shown(address), PhoneWay.Bluetooth);
+            if (ShowStatus(admission.CurrentAddress, address, status))
+            {
+                onStatus(named);
+            }
+            else
+            {
+                Log.Write($"Not shown over the connected phone's status: {named.Text}");
+            }
+        };
     }
 
     /// <summary>
@@ -129,8 +165,8 @@ internal sealed class SessionHost(
             // and would have missed this one.
             if (!admission.AddCandidate(session, address))
             {
-                // HangUp ran between the check above and here; this connection is one it meant to refuse.
-                Log.Write(Forgetting(address));
+                // A hold, a quiet period or quitting started between the check above and here.
+                Log.Write(admission.Refusal(address) ?? $"Refused {address}: connections are being held off");
                 session.Dispose();
                 injector.Dispose();
                 pad.Dispose();
@@ -166,9 +202,6 @@ internal sealed class SessionHost(
         }
     }
 
-    private static string Forgetting(string address) =>
-        $"Refused {address}: this laptop is forgetting its phones, or just forgot them";
-
     /// <summary>
     /// Called by a session once trust has said yes, just before it answers HELLO_ACK: the moment a new phone
     /// may replace the connected one. False when connections stopped being taken while the owner was asked, or
@@ -185,7 +218,7 @@ internal sealed class SessionHost(
             if (admitted)
             {
                 // The handshake asks from the session's own thread, the one Dispose waits for.
-                sessionThread = Thread.CurrentThread;
+                sessionThreads[session] = Thread.CurrentThread;
             }
         }
 
@@ -210,7 +243,11 @@ internal sealed class SessionHost(
     /// Whatever the caller does for that phone's end (its status, a restart it put off for it) then changes
     /// together with the connected phone.
     /// </summary>
-    private void OnSessionEnded(Session session) => onEnded(() => admission.Ended(session));
+    private void OnSessionEnded(Session session)
+    {
+        sessionThreads.TryRemove(session, out _);
+        onEnded(() => admission.Ended(session));
+    }
 
     /// <summary>
     /// Hangs up on the connected phone and refuses every new connection for <paramref name="quiet"/>, never
@@ -246,20 +283,30 @@ internal sealed class SessionHost(
     public void Dispose()
     {
         List<Session> ending;
-        Thread? thread;
+        List<Thread> threads;
         lock (gate)
         {
             ending = admission.Close();
-            thread = sessionThread;
+            threads = [.. sessionThreads.Values];
         }
 
         // Outside the lock, because each session's exit calls OnSessionEnded. The injected keys and buttons are
-        // released in Session.Run's finally on that background thread, and the process can exit before it runs,
-        // leaving Alt or a mouse button held down in Windows.
+        // released in Session.Run's finally on those background threads, and the process can exit before it runs,
+        // leaving Alt or a mouse button held down in Windows. One budget for all of them, not one each.
         End(ending);
-        if (thread is { IsAlive: true })
+        var waited = Stopwatch.StartNew();
+        foreach (var thread in threads)
         {
-            thread.Join(ExitGrace);
+            var left = ExitGrace - waited.Elapsed;
+            if (left <= TimeSpan.Zero)
+            {
+                break;
+            }
+
+            if (thread.IsAlive)
+            {
+                thread.Join(left);
+            }
         }
     }
 }
