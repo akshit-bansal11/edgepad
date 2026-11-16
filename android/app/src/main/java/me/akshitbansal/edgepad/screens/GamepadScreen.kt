@@ -365,6 +365,10 @@ class GamepadScreen(
 
         override fun onDetachedFromWindow() {
             removeCallbacks(waited)
+            // A screen replaced mid-touch gets no ACTION_CANCEL once detached: let go of what is held here.
+            pillDown = false
+            releaseAll()
+            if (padMode) sendPad()
             super.onDetachedFromWindow()
         }
 
@@ -426,12 +430,7 @@ class GamepadScreen(
 
                 MotionEvent.ACTION_CANCEL -> {
                     pillDown = false
-                    for (pointerId in 0 until MAX_POINTERS) {
-                        val controlIndex = pointerToControl[pointerId]
-                        if (controlIndex == NONE) continue
-                        release(controlIndex)
-                        pointerToControl[pointerId] = NONE
-                    }
+                    releaseAll()
                 }
 
                 else -> {
@@ -521,6 +520,16 @@ class GamepadScreen(
                 ControlKind.BUTTON -> {
                     Unit
                 }
+            }
+        }
+
+        /** Lets go of every control a pointer still holds. */
+        private fun releaseAll() {
+            for (pointerId in 0 until MAX_POINTERS) {
+                val controlIndex = pointerToControl[pointerId]
+                if (controlIndex == NONE) continue
+                release(controlIndex)
+                pointerToControl[pointerId] = NONE
             }
         }
 
