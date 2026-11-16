@@ -488,6 +488,17 @@ class LaptopStateTest {
         assertEquals("", state.nowPlayingFull)
     }
 
+    @Test
+    fun theForegroundAppIsKeptAndForgotten() {
+        state.take(Frame.Text(TextKind.FOREGROUND_APP.id, "chrome.exe/Chrome"))
+        assertEquals(ForegroundApp("chrome.exe", "Chrome"), state.foreground)
+        state.take(Frame.Text(TextKind.FOREGROUND_APP.id, ""))
+        assertNull(state.foreground)
+        state.take(Frame.Text(TextKind.FOREGROUND_APP.id, "code.exe/Code"))
+        state.forgetFeatures()
+        assertNull(state.foreground)
+    }
+
     private companion object {
         /** MacroIconChunks.ChunkBytes on the laptop. Written out, because agreeing with it is the point. */
         const val CHUNK_BYTES = 240

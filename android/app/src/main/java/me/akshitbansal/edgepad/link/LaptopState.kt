@@ -125,6 +125,7 @@ class LaptopState {
         endAction = EndActionToken.NONE
         nowPlayingFull = ""
         mediaIcons.clear()
+        foreground = null
     }
 
     /**
@@ -133,6 +134,10 @@ class LaptopState {
      * sends it (Windows, an older build) stays.
      */
     var inputBlocked = false
+        private set
+
+    /** TEXT 21: the app in front, or null while the laptop has said nothing or sent an empty or malformed one. */
+    var foreground: ForegroundApp? = null
         private set
 
     /** TEXT 22: how many macro slots the laptop keeps, 1 to [MACRO_SLOTS_MAX]; [MACRO_SLOTS] until it says. */
@@ -264,6 +269,7 @@ class LaptopState {
                     TextKind.UNAVAILABLE -> unavailable = unavailable(frame.text)
                     TextKind.END_ACTION -> endAction = EndActionToken.of(frame.text)
                     TextKind.NOW_PLAYING_FULL -> nowPlayingFull = frame.text
+                    TextKind.FOREGROUND_APP -> foreground = ForegroundApp.parse(frame.text)
                     null -> return dropText()
                     else -> return false
                 }

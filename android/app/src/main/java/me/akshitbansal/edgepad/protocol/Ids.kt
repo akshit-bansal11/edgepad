@@ -53,6 +53,10 @@ enum class ActionId(
     TOOL_ARROW(47),
     TOOL_RECTANGLE(48),
     TOOL_ELLIPSE(49),
+
+    /** The laser: the next [Frame.Pen] stroke is a dot that follows the finger and leaves nothing behind. */
+    TOOL_LASER(37),
+
     SIGN_BEGIN(50),
     SIGN_SAVE(51),
 
@@ -158,6 +162,9 @@ enum class ControlId(
 
     /** Whether this link forwards the laptop's notifications, 1 or 0. The laptop forgets it when the session ends. */
     NOTIFY(10),
+
+    /** Whether this link hears the app in front ([TextKind.FOREGROUND_APP]), 1 or 0. Forgotten at session end. */
+    FOREGROUND_WATCH(11),
     ;
 
     fun set(value: Int): Frame = Frame.SetValue(id, value)
@@ -261,6 +268,12 @@ enum class TextKind(
 
     /** Laptop to phone: the audio output, "kind/name" split on the first "/", kind an [OutputKind] token. Empty means none known. */
     OUTPUT(20),
+
+    /**
+     * Laptop to phone: the app in front, "token/name" split on the first "/". Empty means nothing known. Sent only
+     * after [ControlId.FOREGROUND_WATCH] is 1, and never logged.
+     */
+    FOREGROUND_APP(21),
 
     /** Laptop to phone: how many macro slots the laptop keeps, in decimal such as "15". */
     MACRO_CAP(22),
@@ -368,6 +381,9 @@ enum class Feature(
 
     /** The laptop can forward its notifications once [ControlId.NOTIFY] is 1. */
     NOTIFY("notify"),
+
+    /** The laptop can say which app is in front, in [TextKind.FOREGROUND_APP], once watched. */
+    FOREGROUND("foreground"),
     ;
 
     companion object {
