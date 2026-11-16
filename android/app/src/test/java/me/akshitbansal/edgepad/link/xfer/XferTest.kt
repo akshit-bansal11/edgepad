@@ -153,7 +153,11 @@ class XferTest {
     @Test
     fun theSenderGivesUpWhenNoAnswerComes() {
         var now = 0L
-        val sender = XferSender({ wire += it }, Transport.WIFI, { 0L }, { false }, 1_000L, { now += 600; now })
+        val clock = {
+            now += 600
+            now
+        }
+        val sender = XferSender({ wire += it }, Transport.WIFI, { 0L }, { false }, 1_000L, clock)
         assertEquals(XferCode.TIMED_OUT, sender.send({ bytes(10).inputStream() }, "n.bin", 10, 1))
     }
 

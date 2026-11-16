@@ -786,7 +786,7 @@ internal sealed class Shell : IDisposable
     private async Task PickAndSendAsync()
     {
         // plain English until 4.5.0 localisation
-        var owner = new Window { Width = 1, Height = 1, ShowInTaskbar = false, SystemDecorations = SystemDecorations.None, Opacity = 0 };
+        var owner = new Window { Width = 1, Height = 1, ShowInTaskbar = false, WindowDecorations = WindowDecorations.None, Opacity = 0 };
         try
         {
             owner.Show();

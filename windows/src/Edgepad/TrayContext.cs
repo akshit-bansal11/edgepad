@@ -73,7 +73,7 @@ internal sealed class TrayContext : ApplicationContext
     };
 
     private readonly MenuRow sendFileRow = new(Strings.Menu_SendFile, Icons.Download);
-    private SendPipe? sendPipe;
+    private readonly SendPipe? sendPipe;
     private readonly MenuRow checkUpdates = new(Strings.Menu_CheckUpdates, Icons.Download) { CheckOnClick = true, Switch = true };
     private readonly MenuRow openLog = new(Strings.Menu_OpenLog, Icons.FileText);
     private readonly TrayMenu settingsMenu = new(withHeader: false);

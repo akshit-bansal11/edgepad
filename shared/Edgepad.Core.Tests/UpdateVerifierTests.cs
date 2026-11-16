@@ -92,7 +92,7 @@ public sealed class UpdateVerifierTests
 
     [Theory]
     [InlineData("", "Edgepad-5.0.0.exe")]
-    [InlineData("Edgepad-5.0.0.exe", "Edgepad-5.0.0.exe")]
+    [InlineData("Edgepad-5.0.1.exe", "Edgepad-5.0.0.exe")]
     [InlineData("edgepad-5.0.0.exe", "Edgepad-5.0.0.exe")]
     [InlineData("Edgepad-5.0.0.exe", "")]
     [InlineData("dist/Edgepad-5.0.0.exe", "dist/Edgepad-5.0.0.exe")]
