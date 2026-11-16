@@ -166,7 +166,7 @@ class GamepadScreen(
 
         private val box = RectF()
         private val pillBox = RectF()
-        private var pillDown = false
+        private var pillPointer = NONE
         private val waited = Runnable { showMode(null, waitedOut = true) }
         private val painter = PadPainter(context)
 
@@ -366,7 +366,7 @@ class GamepadScreen(
         override fun onDetachedFromWindow() {
             removeCallbacks(waited)
             // A screen replaced mid-touch gets no ACTION_CANCEL once detached: let go of what is held here.
-            pillDown = false
+            pillPointer = NONE
             releaseAll()
             if (padMode) sendPad()
             super.onDetachedFromWindow()
@@ -387,7 +387,7 @@ class GamepadScreen(
                     val pointerId = event.getPointerId(idx)
                     // The pill sits in the empty middle of every preset, so a touch on it is never a control's.
                     if (mode != null && pillContains(event.getX(idx), event.getY(idx))) {
-                        pillDown = true
+                        pillPointer = pointerId
                         return true
                     }
                     if (pointerId < MAX_POINTERS) {
@@ -412,8 +412,8 @@ class GamepadScreen(
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                     val idx = event.actionIndex
                     val pointerId = event.getPointerId(idx)
-                    if (pillDown) {
-                        pillDown = false
+                    if (pillPointer != NONE && pointerId == pillPointer) {
+                        pillPointer = NONE
                         performClick()
                         onPill()
                         return true
@@ -429,7 +429,7 @@ class GamepadScreen(
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
-                    pillDown = false
+                    pillPointer = NONE
                     releaseAll()
                 }
 
