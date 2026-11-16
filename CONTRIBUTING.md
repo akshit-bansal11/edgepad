@@ -74,7 +74,7 @@ With a .NET SDK, `dotnet restore <project>` rewrites a lock file; commit it with
 3. Copy the `packages.lock.json` files it holds to the same paths in your branch and commit them, in the same pull request as the package change.
 4. Push again. The other jobs now restore in locked mode against files that match.
 
-If the first run goes red on the restore before `lockfiles` finishes, that is expected; the job runs even when the others fail. A project that names `RuntimeIdentifiers` (the core lists `win-x64;linux-x64`, the Windows app `win-x64`, the Linux app `linux-x64`) gets those runtimes' packages in its lock file, because `dotnet publish -r <rid>` restores them: add a runtime to the property before regenerating, or the publish step fails in locked mode. Dependabot updates the lock files with each package bump.
+If the first run goes red on the restore before `lockfiles` finishes, that is expected; the job runs even when the others fail. A project that names `RuntimeIdentifiers` (the core lists `win-x64;linux-x64`, the Windows app `win-x64`, the Linux app `linux-x64;linux-arm64`) gets those runtimes' packages in its lock file, because `dotnet publish -r <rid>` restores them: add a runtime to the property before regenerating, or the publish step fails in locked mode. Dependabot updates the lock files with each package bump.
 
 ## Style
 

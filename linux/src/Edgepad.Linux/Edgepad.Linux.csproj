@@ -15,9 +15,9 @@
     <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
     <!-- LibraryImport generates unsafe marshalling code for the libc P/Invokes. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- The release publishes for linux-x64. Naming it here puts that runtime's packages in packages.lock.json,
-         which the locked-mode restore of `dotnet publish -r linux-x64` needs. -->
-    <RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
+    <!-- The release publishes for linux-x64 and linux-arm64. Naming them here puts those runtimes' packages in packages.lock.json,
+         which the locked-mode restore of `dotnet publish -r <rid>` needs. -->
+    <RuntimeIdentifiers>linux-x64;linux-arm64</RuntimeIdentifiers>
     <!-- As in the Windows project: the analyzer's ILLink package then sits in every restore, so one lock file
          serves build, test and publish, and single-file hazards show at build time. -->
     <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>

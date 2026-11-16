@@ -6,7 +6,7 @@ The app logs to `~/.local/share/Edgepad/edgepad.log`. Its settings live in `$XDG
 
 ## Install
 
-Download `Edgepad-<version>-linux-x64.tar.gz` from the release (check it against `SHA256SUMS.txt`), then:
+Download `Edgepad-<version>-linux-x64.tar.gz` from the release (check it against `SHA256SUMS.txt`). On a 64-bit ARM laptop download `Edgepad-<version>-linux-arm64.tar.gz` instead and use its name below; that build exists but has not been run on an arm64 device. Then:
 
 ```sh
 tar xzf Edgepad-<version>-linux-x64.tar.gz

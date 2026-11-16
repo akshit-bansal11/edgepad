@@ -101,11 +101,34 @@ jobs:
           desktop-file-validate linux/packaging/edgepad.desktop
       - name: Build the archive
         run: sh linux/packaging/pack.sh 0.0.0-dev publish Edgepad-linux-x64.tar.gz
+      - name: Publish the arm64 app
+        run: >
+          dotnet publish linux/src/Edgepad.Linux/Edgepad.Linux.csproj -c Release -r linux-arm64 --self-contained
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish-arm64
+      - name: Build the arm64 archive
+        run: sh linux/packaging/pack.sh 0.0.0-dev publish-arm64 Edgepad-linux-arm64.tar.gz linux-arm64
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: edgepad-linux
-          path: Edgepad-linux-x64.tar.gz
+          path: |
+            Edgepad-linux-x64.tar.gz
+            Edgepad-linux-arm64.tar.gz
           if-no-files-found: error
+
+  # The same quality gate on an arm64 machine. If the runner label is unavailable to this repo, delete this job: the
+  # arm64 archive is still published by the linux job above (OD18).
+  linux-arm64:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Quality gate
+        run: pwsh scripts/check.ps1 -Ci -Only linux
 
   windows:
     runs-on: windows-latest

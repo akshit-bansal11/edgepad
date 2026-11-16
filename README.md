@@ -86,7 +86,7 @@ Get both apps from the [latest release](https://github.com/akshit-bansal11/edgep
 | Phone | Android 12 or later | `Edgepad-<version>.apk` | Allow installing from this source. Later releases install over it, and the app can fetch them itself. |
 | Windows laptop | Windows 10 version 2004 or later, 64-bit | `Edgepad-<version>.exe` | One self-contained file. Not code-signed, so SmartScreen asks: **More info**, then **Run anyway**. |
 | Mac laptop | macOS 13 or later | `Edgepad-<version>-mac.zip` | Apple Silicon and Intel. Ad hoc signed, not notarised: **Open Anyway** in System Settings. In testing. |
-| Linux laptop | 64-bit, BlueZ, systemd-logind | `Edgepad-<version>-linux-x64.tar.gz` | Run `install.sh` as root, then log out and back in once. In testing. |
+| Linux laptop | 64-bit, BlueZ, systemd-logind | `Edgepad-<version>-linux-x64.tar.gz`, or `-linux-arm64.tar.gz` on an ARM laptop | Run `install.sh` as root, then log out and back in once. In testing; the arm64 build has not been run on a device. |
 
 Releases also carry `SHA256SUMS.txt`, and `gh attestation verify <file> --repo akshit-bansal11/edgepad` checks that a file was built by this repository's release workflow. Full steps for every platform, the optional ViGEmBus gamepad driver and the Linux requirements are in the [user guide](docs/USER-GUIDE.md#install).
 
