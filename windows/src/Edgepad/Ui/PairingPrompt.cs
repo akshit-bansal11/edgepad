@@ -243,7 +243,7 @@ internal sealed class PairingWindow : Form
     /// <summary>One small horizontal shake of the result, once, and none at all while Windows has animations off.</summary>
     private void Shake()
     {
-        shakeMs = Theme.Motion.Fast;
+        shakeMs = Theme.Motion.Press;
         if (shakeMs == 0)
         {
             return;
@@ -284,6 +284,7 @@ internal sealed class PairingWindow : Form
     {
         base.OnShown(e);
         code.Focus();
+        Reveal.Window(this);
     }
 
     protected override void OnDpiChanged(DpiChangedEventArgs e)

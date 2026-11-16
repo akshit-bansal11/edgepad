@@ -213,6 +213,12 @@ internal sealed class MacroWindow : Form
 
     private int S(int value) => Theme.Scale(value, DeviceDpi);
 
+    protected override void OnShown(EventArgs e)
+    {
+        base.OnShown(e);
+        Reveal.Window(this);
+    }
+
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);

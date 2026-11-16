@@ -28,12 +28,24 @@ internal sealed class TrayMenu : ContextMenuStrip
 
     private bool rounded;
 
+    // Known limit (UX-D25): WinForms has no interpolator, so the reveal is stepped by hand, on a timer that runs only while
+    // the menu opens. If a device shows corner artefacts from the clip, set this to false and the menu fades in instead.
+    private static bool RevealByClip => true;
+
+    private readonly System.Windows.Forms.Timer reveal = new() { Interval = 15 };
+    private readonly bool revealed;
+    private long revealStart;
+    private int revealMs;
+    private bool fromBottom;
+
     /// <param name="withHeader">The status header on top: the tray menu has it, a submenu does not.</param>
     public TrayMenu(bool withHeader = true)
     {
         ShowImageMargin = false;
         ShowCheckMargin = false;
         Renderer = new MenuRenderer();
+        revealed = withHeader;
+        reveal.Tick += (_, _) => StepReveal();
         if (withHeader)
         {
             Items.Add(Header);
@@ -130,12 +142,59 @@ internal sealed class TrayMenu : ContextMenuStrip
     {
         base.OnOpened(e);
         Header.Animate(true);
+        StartReveal();
+    }
+
+    /// <summary>
+    /// The menu clips open from the edge nearest the tray icon, which is the edge the pointer is on the far side of. The rows
+    /// are drawn at once underneath (UX-28); only the window around them grows. Nothing happens while animations are off.
+    /// </summary>
+    private void StartReveal()
+    {
+        revealMs = revealed ? Theme.Motion.Reveal : 0;
+        if (revealMs == 0)
+        {
+            return;
+        }
+
+        fromBottom = Cursor.Position.Y > Top + (Height / 2);
+        revealStart = Environment.TickCount64;
+        StepReveal();
+        reveal.Start();
+    }
+
+    private void StepReveal()
+    {
+        var progress = Progress.Of(Environment.TickCount64 - revealStart, revealMs);
+        if (progress >= 1)
+        {
+            EndReveal();
+            return;
+        }
+
+        if (RevealByClip)
+        {
+            var shown = Reveal.ClipHeight(progress, Height);
+            Region = new Region(new Rectangle(0, fromBottom ? Height - shown : 0, Width, shown));
+        }
+        else
+        {
+            Opacity = progress;
+        }
+    }
+
+    private void EndReveal()
+    {
+        reveal.Stop();
+        Region = null;
+        Opacity = 1;
     }
 
     protected override void OnClosed(ToolStripDropDownClosedEventArgs e)
     {
         // Nothing is on screen to animate, so the timer stops rather than ticking behind a closed menu.
         Header.Animate(false);
+        EndReveal();
         base.OnClosed(e);
     }
 
@@ -144,6 +203,7 @@ internal sealed class TrayMenu : ContextMenuStrip
         if (disposing)
         {
             Header.Dispose();
+            reveal.Dispose();
         }
 
         base.Dispose(disposing);

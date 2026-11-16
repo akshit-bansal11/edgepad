@@ -270,7 +270,7 @@ internal sealed class LevelOverlay : IDisposable
         /// </summary>
         private const double Solid = 0.88;
 
-        /// <summary>How long the panel stays up after the last frame; the tail of it is spent fading, for <see cref="Theme.Motion.Base"/>.</summary>
+        /// <summary>How long the panel stays up after the last frame; the tail of it is spent fading, for <see cref="Theme.Motion.Reveal"/>.</summary>
         private const long VisibleMs = 1200;
 
         /// <summary>
@@ -402,7 +402,7 @@ internal sealed class LevelOverlay : IDisposable
                 return;
             }
 
-            var fade = Theme.Motion.Base;
+            var fade = Theme.Motion.Reveal;
             if (left < fade)
             {
                 Opacity = Solid * left / fade;
