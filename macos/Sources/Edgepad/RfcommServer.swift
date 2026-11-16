@@ -3,12 +3,14 @@ import Foundation
 import IOBluetooth
 
 /// Advertises Edgepad's RFCOMM service and hands each phone that connects, once Bluetooth has authenticated it, to
-/// the `SessionHost`. Everything here runs on the main thread: IOBluetooth delivers its callbacks on the main run loop
-/// and `Session` is single-threaded.
+/// the `SessionHost`. Everything here runs on the main thread, apart from the one authentication call: IOBluetooth
+/// delivers its callbacks on the main run loop and `Session` is single-threaded.
 final class RfcommServer: NSObject {
     private static let l2capUuid16: UInt16 = 0x0100
     private static let rfcommUuid16: UInt16 = 0x0003
     private static let publicBrowseRootUuid16: UInt16 = 0x1002
+    /// A phone that has not authenticated by then is dropped rather than held open.
+    private static let authenticationSeconds: TimeInterval = 10
 
     private let host: SessionHost
     private let onStatus: (String) -> Void
@@ -125,25 +127,40 @@ final class RfcommServer: NSObject {
         let transport = RfcommTransport(channel: channel)
         channel.setDelegate(transport)
 
-        // Timed on uptime, as the quiet periods are: this is the slow step before a session starts.
-        let started = ProcessInfo.processInfo.systemUptime
-        let authentication = device.requestAuthentication()
-        let milliseconds = Int((ProcessInfo.processInfo.systemUptime - started) * 1000)
-        guard authentication == kIOReturnSuccess else {
-            Log.write("Refused \(address): Bluetooth authentication failed (\(authentication))")
+        // Authentication is a synchronous call that can take seconds, so it runs off the main thread, which also moves
+        // the pointer. Both the result and the time limit land on the main queue, and whichever comes first decides:
+        // the limit closes the transport, so a late result finds it closed and is ignored.
+        let timeout = DispatchWorkItem {
+            guard !transport.isClosed else { return }
+            Log.write(
+                "Refused \(address): Bluetooth authentication took more than \(Int(Self.authenticationSeconds)) s")
             transport.close()
-            return
         }
-        // The phone may have hung up, or sent too much, while it authenticated.
-        guard !transport.isClosed else { return }
-        Log.write("Authenticated RFCOMM connection from \(address) in \(milliseconds) ms")
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.authenticationSeconds, execute: timeout)
+        DispatchQueue.global(qos: .userInitiated).async { [host] in
+            // Timed on uptime, as the quiet periods are: this is the slow step before a session starts.
+            let started = ProcessInfo.processInfo.systemUptime
+            let authentication = device.requestAuthentication()
+            let milliseconds = Int((ProcessInfo.processInfo.systemUptime - started) * 1000)
+            DispatchQueue.main.async {
+                timeout.cancel()
+                // Timed out, or the phone hung up or sent too much while it authenticated.
+                guard !transport.isClosed else { return }
+                guard authentication == kIOReturnSuccess else {
+                    Log.write("Refused \(address): Bluetooth authentication failed (\(authentication))")
+                    transport.close()
+                    return
+                }
+                Log.write("Authenticated RFCOMM connection from \(address) in \(milliseconds) ms")
 
-        // Held by the host until it ends; the transport only points at it.
-        let session = host.accept(
-            address: address, phone: PhoneLabel.describe(name: device.name, address: address),
-            shownAs: PhoneLabel.clean(device.name).isEmpty ? nil : PhoneLabel.clean(device.name), link: "Bluetooth",
-            transport: transport)
-        transport.attach(session)
+                // Held by the host until it ends; the transport only points at it.
+                let session = host.accept(
+                    address: address, phone: PhoneLabel.describe(name: device.name, address: address),
+                    shownAs: PhoneLabel.clean(device.name).isEmpty ? nil : PhoneLabel.clean(device.name),
+                    link: "Bluetooth", transport: transport)
+                transport.attach(session)
+            }
+        }
     }
 }
 
