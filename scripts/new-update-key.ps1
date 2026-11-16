@@ -34,7 +34,11 @@ if ($LASTEXITCODE -ne 0) {
 
 New-Item -ItemType Directory -Force $KeyDir | Out-Null
 
-$ecdsa = [Security.Cryptography.ECDsa]::Create([Security.Cryptography.ECCurve]::NamedCurves.nistP256)
+# NamedCurves is a nested class, so PowerShell names it with '+'. Through '::NamedCurves' it reads as $null and
+# ECDsa.Create(string) quietly returns $null.
+$curve = [Security.Cryptography.ECCurve+NamedCurves]::nistP256
+$ecdsa = [Security.Cryptography.ECDsa]::Create($curve)
+if ($null -eq $ecdsa) { throw 'Could not create a P-256 key on this machine.' }
 $pem = $ecdsa.ExportPkcs8PrivateKeyPem()
 $publicKey = [Convert]::ToBase64String($ecdsa.ExportSubjectPublicKeyInfo())
 
