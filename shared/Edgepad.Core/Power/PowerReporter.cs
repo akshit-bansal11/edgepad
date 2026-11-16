@@ -15,6 +15,9 @@ internal sealed class PowerReporter : IDisposable
     private readonly TimeSpan batteryEvery;
     private readonly TimeSpan outputEvery;
     private readonly object gate = new();
+
+    // Serialises the sends. Dispose never takes it, so a send blocked on a dead peer cannot hold up teardown.
+    private readonly object sendGate = new();
     private Timer? batteryTimer;
     private Timer? outputTimer;
     private string? lastBatteries;
@@ -83,15 +86,24 @@ internal sealed class PowerReporter : IDisposable
                 {
                     return;
                 }
+            }
 
-                var text = read();
-                if (text == last)
+            var text = read();
+            lock (sendGate)
+            {
+                lock (gate)
                 {
-                    return;
+                    if (disposed || text == last)
+                    {
+                        return;
+                    }
                 }
 
                 send(new Text((byte)kind, text));
-                last = text;
+                lock (gate)
+                {
+                    last = text;
+                }
             }
         }
         catch (Exception)
