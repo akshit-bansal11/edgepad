@@ -21,7 +21,7 @@ public enum SafeFileName {
             scalars = Array(scalars[(cut + 1)...])
         }
         var kept: [Unicode.Scalar] = []
-        for scalar in scalars where scalar.properties.generalCategory != .control {
+        for scalar in scalars where !dropped(scalar) {
             kept.append(invalid.contains(scalar) ? "_" : scalar)
         }
         let name = trimEnd(cutToBytes(trimEnd(kept)))
@@ -48,6 +48,17 @@ public enum SafeFileName {
                 return candidate
             }
             n += 1
+        }
+    }
+
+    /// Control (Cc) and format (Cf) characters. The latter include the bidi overrides that make `fdp.exe` read as
+    /// `exe.pdf`.
+    private static func dropped(_ scalar: Unicode.Scalar) -> Bool {
+        switch scalar.properties.generalCategory {
+        case .control, .format:
+            return true
+        default:
+            return false
         }
     }
 

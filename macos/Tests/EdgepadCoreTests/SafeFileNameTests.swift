@@ -32,6 +32,12 @@ final class SafeFileNameTests: XCTestCase {
         XCTAssertNil(SafeFileName.clean(nil))
     }
 
+    func testBidiAndOtherFormatCharactersAreDropped() {
+        XCTAssertEqual(SafeFileName.clean("invoice\u{202E}fdp.exe"), "invoicefdp.exe")
+        XCTAssertEqual(SafeFileName.clean("a\u{061C}\u{200B}\u{200F}\u{2066}\u{2069}\u{FEFF}b.txt"), "ab.txt")
+        XCTAssertNil(SafeFileName.clean("\u{202E}\u{2060}"))
+    }
+
     func testALongNameKeepsItsExtensionAndStaysWithinTheByteLimit() throws {
         let cleaned = try XCTUnwrap(SafeFileName.clean(String(repeating: "é", count: 200) + ".pdf"))
         XCTAssertLessThanOrEqual(cleaned.utf8.count, TransferLimits.maxNameBytes)
