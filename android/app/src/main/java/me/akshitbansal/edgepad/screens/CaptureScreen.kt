@@ -1,6 +1,5 @@
 package me.akshitbansal.edgepad.screens
 
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -137,22 +136,17 @@ class CaptureScreen(
     private fun destination(): View {
         CaptureInbox.install(ui.context.contentResolver, target())
         if (available) send(target().frame())
-        return LinearLayout(ui.context).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            addView(
-                ui.secondary(ui.string(R.string.capture_save_to)),
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
-            )
-            val options: List<CharSequence> =
-                listOf(ui.string(R.string.capture_save_laptop), ui.string(R.string.capture_save_phone))
-            addView(
-                ui.segmented(options, if (settings.captureToPhone) 1 else 0) { chosen ->
-                    settings.captureToPhone = chosen == 1
-                    CaptureInbox.target = target()
-                    send(target().frame())
-                },
-            )
-        }
+        val options: List<CharSequence> =
+            listOf(ui.string(R.string.capture_save_laptop), ui.string(R.string.capture_save_phone))
+        return ui.segmentedField(
+            ui.secondary(ui.string(R.string.capture_save_to)),
+            ui.segmented(options, if (settings.captureToPhone) 1 else 0) { chosen ->
+                settings.captureToPhone = chosen == 1
+                CaptureInbox.target = target()
+                send(target().frame())
+            },
+            roomy = false,
+        )
     }
 
     /**

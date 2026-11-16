@@ -659,6 +659,24 @@ class Ui(
     ): LinearLayout = row(text(label, Type.BODY, palette.ink), end)
 
     /**
+     * A row of a [label] and a segmented [control]. At large text the two no longer fit side by side, so the
+     * label then takes the line above and the control sits under it. [roomy] gives it the height of a [row].
+     */
+    fun segmentedField(
+        label: View,
+        control: View,
+        roomy: Boolean = true,
+    ): LinearLayout =
+        StackingRow(context, label, control, dp(Space.M)).apply {
+            if (roomy) minimumHeight = dp(Space.ROW)
+        }
+
+    fun segmentedField(
+        label: CharSequence,
+        control: View,
+    ): LinearLayout = segmentedField(text(label, Type.BODY, palette.ink), control)
+
+    /**
      * A row that opens another screen: its name, a short summary of what is set there, and a chevron.
      * [onSummary] is handed the summary's view, for a row whose summary changes while the page is open.
      */
@@ -867,6 +885,57 @@ class Ui(
 
         /** How far a control that cannot be used right now fades back. */
         const val DISABLED_ALPHA = 0.4f
+    }
+}
+
+/**
+ * A label and a control side by side, or stacked (label above, control under it, both at the start) when
+ * together with [gap] they are wider than the row. The orientation is settled in [onMeasure], and only
+ * written when it changes.
+ */
+private class StackingRow(
+    context: Context,
+    private val label: View,
+    private val control: View,
+    private val gap: Int,
+) : LinearLayout(context) {
+    private var stacked = false
+
+    init {
+        gravity = Gravity.CENTER_VERTICAL
+        addView(label)
+        addView(control)
+        arrange()
+    }
+
+    private fun arrange() {
+        val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
+        if (stacked) {
+            orientation = VERTICAL
+            label.layoutParams = LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, wrap)
+            control.layoutParams = LayoutParams(wrap, wrap).apply { gravity = Gravity.START }
+        } else {
+            orientation = HORIZONTAL
+            label.layoutParams = LayoutParams(0, wrap, 1f)
+            control.layoutParams = LayoutParams(wrap, wrap)
+        }
+    }
+
+    override fun onMeasure(
+        widthMeasureSpec: Int,
+        heightMeasureSpec: Int,
+    ) {
+        val free = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+        label.measure(free, free)
+        control.measure(free, free)
+        val fits =
+            label.measuredWidth + control.measuredWidth + gap <=
+                MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight
+        if (stacked == fits) {
+            stacked = !fits
+            arrange()
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 }
 

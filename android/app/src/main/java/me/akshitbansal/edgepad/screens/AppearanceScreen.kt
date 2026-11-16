@@ -120,7 +120,7 @@ object AppearanceScreen {
                     settings.controlColor = if (i == 0) null else ui.palette.ink
                     fill()
                 }
-            addView(ui.field(ui.string(R.string.control_color), mode))
+            addView(ui.segmentedField(ui.string(R.string.control_color), mode))
             addView(details)
             fill()
         }
