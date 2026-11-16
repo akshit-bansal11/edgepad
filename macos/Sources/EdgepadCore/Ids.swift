@@ -56,6 +56,11 @@ public enum ActionId: UInt8, CaseIterable {
     /// which reports `TextKind.macroOpen` on change only, and `macrosUnwatch` stops it. Forgotten when the session ends.
     case macrosWatch = 58
     case macrosUnwatch = 59
+    /// Arm this computer to sleep or shut down when the current media ends (`endSleep`, `endShutdown`), or disarm it
+    /// (`endCancel`). It reports the armed state as `TextKind.endAction`. Offered only for a computer that sent `Feature.endAction`.
+    case endSleep = 60
+    case endShutdown = 61
+    case endCancel = 62
     /// The first of 32 macro slots, 64 to 95; slot n is `macroBase + n`. The phone sends the index and never
     /// what it launches: this computer's own list decides that, which is the whole security model.
     case macroBase = 64
@@ -87,6 +92,8 @@ public enum ControlId: UInt8, CaseIterable {
     case penWidth = 8
     /// The opacity of the next strokes in percent, 10...100, phone to computer. Anything else is dropped and counted.
     case penOpacity = 9
+    /// Whether this link forwards the computer's notifications, 1 or 0, phone to computer. Forgotten when the session ends.
+    case notify = 10
 }
 
 /// What a TEXT frame carries. Only `type` goes phone to computer; the rest go the other way.
@@ -136,6 +143,16 @@ public enum TextKind: UInt8, CaseIterable {
     case batteries = 19
     /// Computer to phone: the audio output, "kind/name" split on the first "/", kind an `OutputKind` token. Empty means none known.
     case output = 20
+    /// Computer to phone: how many macro slots it keeps, in decimal such as "15".
+    case macroCap = 22
+    /// Computer to phone: a `CaptureStateToken`, `idle` or `recording`. Best effort.
+    case captureState = 23
+    /// Computer to phone: "feature:reason" entries joined by "/", reason an `UnavailableReason` token. Empty means none.
+    case unavailable = 24
+    /// Computer to phone: what `endSleep` armed, as one `EndActionToken`. Sent on change.
+    case endAction = 25
+    /// Computer to phone: the title line before it is cleaned for `nowPlaying`, sent only when it differs from that text.
+    case nowPlayingFull = 26
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is
@@ -146,6 +163,8 @@ public enum Feature: String, CaseIterable {
     case clipboard = "clipboard"
     case apps = "apps"
     case running = "running"
+    case endAction = "endaction"
+    case notify = "notify"
 }
 
 /// The whole vocabulary of `TextKind.padStatus`: a token the phone matches on, never prose, so the wording
@@ -302,4 +321,28 @@ public enum BlobKind: UInt8, CaseIterable {
     case clipImage = 1
     case appList = 2
     case appIcon = 3
+    case mediaIcon = 4
+    case notification = 5
+}
+
+/// The reason token of `TextKind.unavailable`: a token the phone matches on, never prose. The raw value is literally
+/// the bytes that cross the wire.
+public enum UnavailableReason: String, CaseIterable {
+    case unsupported = "unsupported"
+    case off = "off"
+    case noTool = "no-tool"
+    case noPermission = "no-permission"
+}
+
+/// The whole vocabulary of `TextKind.endAction`. The raw value is literally the bytes that cross the wire.
+public enum EndActionToken: String, CaseIterable {
+    case none = "none"
+    case sleep = "sleep"
+    case shutdown = "shutdown"
+}
+
+/// The whole vocabulary of `TextKind.captureState`. The raw value is literally the bytes that cross the wire.
+public enum CaptureStateToken: String, CaseIterable {
+    case idle = "idle"
+    case recording = "recording"
 }

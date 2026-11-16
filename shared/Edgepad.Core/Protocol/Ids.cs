@@ -87,6 +87,15 @@ internal enum ActionId : byte
     MacrosUnwatch = 59,
 
     /// <summary>
+    /// Phone to laptop: arm this laptop to sleep or shut down when the current media ends (EndSleep, EndShutdown), or disarm it
+    /// (EndCancel). This laptop reports the armed state as <see cref="TextKind.EndAction"/>. The phone offers them only for a
+    /// laptop that sent <see cref="Feature.EndAction"/>, and a laptop too old to know the ids drops and counts them.
+    /// </summary>
+    EndSleep = 60,
+    EndShutdown = 61,
+    EndCancel = 62,
+
+    /// <summary>
     /// The first of 32 macro slots, 64..95; slot n is <c>MacroBase + n</c>. The phone sends the index and
     /// never what it launches — this laptop's own list decides that, which is the whole security model.
     /// A laptop too old to know the block drops the id and counts it, so this needed no protocol version.
@@ -194,6 +203,27 @@ internal enum TextKind : byte
 
     /// <summary>Laptop to phone: the audio output, "kind/name" split on the first "/", kind an <see cref="OutputKind"/> token. Empty means none known.</summary>
     Output = 20,
+
+    /// <summary>Laptop to phone: how many macro slots this laptop keeps, in decimal such as "15". Empty or never sent means the phone's own default.</summary>
+    MacroCap = 22,
+
+    /// <summary>Laptop to phone: a <see cref="CaptureStateToken"/>, "idle" or "recording". Best effort: a laptop that cannot tell sends nothing.</summary>
+    CaptureState = 23,
+
+    /// <summary>
+    /// Laptop to phone: the features this laptop cannot offer right now and why, "feature:reason" entries joined by "/", reason an
+    /// <see cref="UnavailableReason"/> token. Empty means none.
+    /// </summary>
+    Unavailable = 24,
+
+    /// <summary>Laptop to phone: what <see cref="ActionId.EndSleep"/> armed, as one <see cref="EndActionToken"/>. Sent on change.</summary>
+    EndAction = 25,
+
+    /// <summary>
+    /// Laptop to phone: the title line of what is playing before it is cleaned for <see cref="NowPlaying"/>. Sent only when it
+    /// differs from that text.
+    /// </summary>
+    NowPlayingFull = 26,
 }
 
 /// <summary>
@@ -272,6 +302,12 @@ internal static class Feature
 
     /// <summary>This laptop can tell which macro apps are running, in <see cref="TextKind.MacroOpen"/>.</summary>
     public const string Running = "running";
+
+    /// <summary>This laptop answers <see cref="ActionId.EndSleep"/>, <see cref="ActionId.EndShutdown"/> and <see cref="ActionId.EndCancel"/>.</summary>
+    public const string EndAction = "endaction";
+
+    /// <summary>This laptop can forward its notifications once <see cref="ControlId.Notify"/> is 1.</summary>
+    public const string Notify = "notify";
 }
 
 /// <summary>What a SET_VALUE frame may set and a STATE frame reports. Mirrors protocol/actions.txt.</summary>
@@ -315,6 +351,9 @@ internal enum ControlId : byte
 
     /// <summary>The opacity of the next strokes in percent, 10..100, phone to laptop. Anything else is dropped and counted.</summary>
     PenOpacity = 9,
+
+    /// <summary>Whether this link forwards the laptop's notifications, 1 or 0, phone to laptop. Forgotten when the session ends. Anything else is dropped and counted.</summary>
+    Notify = 10,
 }
 
 /// <summary>
@@ -522,4 +561,37 @@ internal enum BlobKind : byte
     ClipImage = 1,
     AppList = 2,
     AppIcon = 3,
+
+    /// <summary>Laptop to phone: a 64 px PNG. The label is the app's name, or "artwork" for a browser's media artwork.</summary>
+    MediaIcon = 4,
+
+    /// <summary>Laptop to phone: "app\ntitle\nbody" in UTF-8. The label is the notification's id.</summary>
+    Notification = 5,
+}
+
+/// <summary>
+/// The reason token of <see cref="TextKind.Unavailable"/>. Tokens the phone matches on, never prose, for the reason
+/// <see cref="PadStatus"/> is. Mirrors protocol/actions.txt.
+/// </summary>
+internal static class UnavailableReason
+{
+    public const string Unsupported = "unsupported";
+    public const string Off = "off";
+    public const string NoTool = "no-tool";
+    public const string NoPermission = "no-permission";
+}
+
+/// <summary>The whole vocabulary of <see cref="TextKind.EndAction"/>. Mirrors protocol/actions.txt.</summary>
+internal static class EndActionToken
+{
+    public const string None = "none";
+    public const string Sleep = "sleep";
+    public const string Shutdown = "shutdown";
+}
+
+/// <summary>The whole vocabulary of <see cref="TextKind.CaptureState"/>. Mirrors protocol/actions.txt.</summary>
+internal static class CaptureStateToken
+{
+    public const string Idle = "idle";
+    public const string Recording = "recording";
 }

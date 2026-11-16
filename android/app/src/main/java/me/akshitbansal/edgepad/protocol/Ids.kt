@@ -88,6 +88,14 @@ enum class ActionId(
     MACROS_UNWATCH(59),
 
     /**
+     * Arm the laptop to sleep or shut down when the current media ends (END_SLEEP, END_SHUTDOWN), or disarm it (END_CANCEL).
+     * The laptop reports the armed state as [TextKind.END_ACTION]. Offered only for a laptop that sent [Feature.END_ACTION].
+     */
+    END_SLEEP(60),
+    END_SHUTDOWN(61),
+    END_CANCEL(62),
+
+    /**
      * The first of 32 macro slots, 64..95; slot n is `MACRO_BASE + n`. The phone sends the index and never
      * what it launches — the laptop's own list decides that, which is the whole security model here.
      * A laptop too old to know the block drops the id and counts it, so this needed no protocol version.
@@ -147,6 +155,9 @@ enum class ControlId(
 
     /** The opacity of the strokes that start after this, 10 to 100 percent. The laptop drops anything else. */
     PEN_OPACITY(9),
+
+    /** Whether this link forwards the laptop's notifications, 1 or 0. The laptop forgets it when the session ends. */
+    NOTIFY(10),
     ;
 
     fun set(value: Int): Frame = Frame.SetValue(id, value)
@@ -250,6 +261,21 @@ enum class TextKind(
 
     /** Laptop to phone: the audio output, "kind/name" split on the first "/", kind an [OutputKind] token. Empty means none known. */
     OUTPUT(20),
+
+    /** Laptop to phone: how many macro slots the laptop keeps, in decimal such as "15". */
+    MACRO_CAP(22),
+
+    /** Laptop to phone: a [CaptureStateToken], "idle" or "recording". Best effort. */
+    CAPTURE_STATE(23),
+
+    /** Laptop to phone: "feature:reason" entries joined by "/", reason an [UnavailableReason] token. Empty means none. */
+    UNAVAILABLE(24),
+
+    /** Laptop to phone: what END_SLEEP armed, as one [EndActionToken]. Sent on change. */
+    END_ACTION(25),
+
+    /** Laptop to phone: the title line before it is cleaned for [NOW_PLAYING], sent only when it differs from that text. */
+    NOW_PLAYING_FULL(26),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -336,6 +362,12 @@ enum class Feature(
 
     /** The laptop can tell which macro apps are running, in [TextKind.MACRO_OPEN]. */
     RUNNING("running"),
+
+    /** The laptop answers [ActionId.END_SLEEP], [ActionId.END_SHUTDOWN] and [ActionId.END_CANCEL]. */
+    END_ACTION("endaction"),
+
+    /** The laptop can forward its notifications once [ControlId.NOTIFY] is 1. */
+    NOTIFY("notify"),
     ;
 
     companion object {
@@ -558,9 +590,59 @@ enum class BlobKind(
     CLIP_IMAGE(1),
     APP_LIST(2),
     APP_ICON(3),
+    MEDIA_ICON(4),
+    NOTIFICATION(5),
     ;
 
     companion object {
         fun of(id: Int): BlobKind? = entries.firstOrNull { it.id == id }
+    }
+}
+
+/**
+ * The reason token of [TextKind.UNAVAILABLE]. A token the phone matches on, never prose, for the reason [PadStatus] is.
+ * Mirrors protocol/actions.txt.
+ */
+enum class UnavailableReason(
+    val token: String,
+) {
+    UNSUPPORTED("unsupported"),
+    OFF("off"),
+    NO_TOOL("no-tool"),
+    NO_PERMISSION("no-permission"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [UNSUPPORTED]: the feature is off either way. */
+        fun of(token: String): UnavailableReason = entries.firstOrNull { it.token == token } ?: UNSUPPORTED
+    }
+}
+
+/** The whole vocabulary of [TextKind.END_ACTION]. Mirrors protocol/actions.txt. */
+enum class EndActionToken(
+    val token: String,
+) {
+    NONE("none"),
+    SLEEP("sleep"),
+    SHUTDOWN("shutdown"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [NONE]: nothing is shown as armed that the phone cannot name. */
+        fun of(token: String): EndActionToken = entries.firstOrNull { it.token == token } ?: NONE
+    }
+}
+
+/** The whole vocabulary of [TextKind.CAPTURE_STATE]. Mirrors protocol/actions.txt. */
+enum class CaptureStateToken(
+    val token: String,
+) {
+    IDLE("idle"),
+    RECORDING("recording"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [IDLE]. */
+        fun of(token: String): CaptureStateToken = entries.firstOrNull { it.token == token } ?: IDLE
     }
 }

@@ -213,9 +213,10 @@ public final class Dispatcher {
         case .search:
             // Spotlight.
             input.chord([.command, .space])
-        case .notifications, .macroBase, .macroCloseBase:
+        case .notifications, .macroBase, .macroCloseBase, .endSleep, .endShutdown, .endCancel:
             // Notifications: macOS has no default shortcut for it. The macro blocks are handled before this
-            // switch; their cases are here only so the switch stays exhaustive.
+            // switch; their cases are here only so the switch stays exhaustive. The end actions are not built on
+            // the Mac yet, so they are dropped and counted.
             return false
         case .appsList:
             return apps?.list() ?? false
@@ -337,6 +338,9 @@ public final class Dispatcher {
             return capture?.setTarget(value) ?? false
         case .clipboard:
             return clipboard?.setShared(value) ?? false
+        case .notify:
+            // Not built on the Mac yet, so it is dropped and counted.
+            return false
         }
     }
 }

@@ -170,3 +170,18 @@ TEXT 19 laptop:50:0:Café = 41 13 11 6c 61 70 74 6f 70 3a 35 30 3a 30 3a 43 61 6
 # TEXT 20 OUTPUT, laptop to phone: "kind/name". 18 bytes = 0x12 and 16 bytes = 0x10.
 TEXT 20 headphones/AirPods = 41 14 12 68 65 61 64 70 68 6f 6e 65 73 2f 41 69 72 50 6f 64 73
 TEXT 20 speaker/Speakers = 41 14 10 73 70 65 61 6b 65 72 2f 53 70 65 61 6b 65 72 73
+# TEXT 22 MACRO_CAP, laptop to phone: decimal ASCII, "15" is 2 bytes.
+TEXT 22 15 = 41 16 02 31 35
+# TEXT 23 CAPTURE_STATE: "recording" is 9 bytes.
+TEXT 23 recording = 41 17 09 72 65 63 6f 72 64 69 6e 67
+# TEXT 24 UNAVAILABLE: "annotate:unsupported" is 20 bytes, the "/" 1, "capture:no-tool" 15, so the length is 36 = 0x24.
+TEXT 24 annotate:unsupported/capture:no-tool = 41 18 24 61 6e 6e 6f 74 61 74 65 3a 75 6e 73 75 70 70 6f 72 74 65 64 2f 63 61 70 74 75 72 65 3a 6e 6f 2d 74 6f 6f 6c
+# TEXT 25 END_ACTION: "sleep" is 5 bytes.
+TEXT 25 sleep = 41 19 05 73 6c 65 65 70
+# TEXT 26 NOW_PLAYING_FULL, multi-byte: "Caf" 3, the e-acute 2 (c3 a9), and two 3-byte CJK characters, so the length is 11 = 0x0b.
+TEXT 26 Café日本 = 41 1a 0b 43 61 66 c3 a9 e6 97 a5 e6 9c ac
+# END_SLEEP and END_CANCEL, RUN_ACTION's shape.
+ACTION 60 = 20 3c
+ACTION 62 = 20 3e
+# SET_VALUE 10 NOTIFY on.
+SET 10 1 = 21 0a 01

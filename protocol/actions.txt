@@ -79,6 +79,12 @@ ACTION 64 MACRO_BASE
 # laptop's once-a-second survey (it reports TEXT 16 on change only); MACROS_UNWATCH stops it. Both are forgotten when the session ends.
 ACTION 58 MACROS_WATCH
 ACTION 59 MACROS_UNWATCH
+# Phone to laptop: arm the laptop to sleep (END_SLEEP) or shut down (END_SHUTDOWN) when the current media ends, or disarm it
+# (END_CANCEL). The laptop reports the armed state as TEXT 25. The phone shows the buttons only for a laptop that sent
+# FEATURES "endaction"; a laptop too old to know the ids drops and counts them.
+ACTION 60 END_SLEEP
+ACTION 61 END_SHUTDOWN
+ACTION 62 END_CANCEL
 # Reserved block of 32, like MACRO_BASE: close the app macro slot n opens, as its own close button would (never a kill).
 # The phone sends the slot and nothing else; the laptop decides what that slot is.
 ACTION 96 MACRO_CLOSE_BASE
@@ -108,6 +114,9 @@ CONTROL 8 PEN_WIDTH
 # The opacity of the next strokes in percent, phone to laptop, 10..100, 100 by default. The highlighter multiplies its
 # own 35% by it. Anything else is dropped and counted. New strokes only; forgotten when the session ends.
 CONTROL 9 PEN_OPACITY
+# Whether this link forwards the laptop's notifications: 1 yes, 0 no, phone to laptop. Forgotten when the session ends.
+# Any other value is dropped and counted. The phone offers it only for a laptop that sent FEATURES "notify".
+CONTROL 10 NOTIFY
 
 TEXT 0 NOW_PLAYING
 TEXT 1 APP
@@ -177,6 +186,18 @@ TEXT 19 BATTERIES
 # BATTERIES and cut to 40 code points. Empty means no output known. Sent after the handshake and on a default-device change,
 # not re-sent when identical.
 TEXT 20 OUTPUT
+# Laptop to phone: how many macro slots the laptop keeps, decimal ASCII such as "15". Empty or never sent means the phone's
+# own default. (TEXT 21 is reserved.)
+TEXT 22 MACRO_CAP
+# Laptop to phone: a CAPTURE_STATE_TOKEN, "idle" or "recording". Best effort: a laptop that cannot tell sends nothing.
+TEXT 23 CAPTURE_STATE
+# Laptop to phone: the features this laptop cannot offer right now and why, "feature:reason" entries joined by "/", feature a
+# FEATURE token and reason an UNAVAILABLE_REASON token. Empty means none. An unknown reason reads as UNSUPPORTED.
+TEXT 24 UNAVAILABLE
+# Laptop to phone: what END_SLEEP / END_SHUTDOWN armed, as one END_ACTION_TOKEN. Sent on change. An unknown token reads as NONE.
+TEXT 25 END_ACTION
+# Laptop to phone: the title line of what is playing before it is cleaned for TEXT 0, sent only when it differs from TEXT 0.
+TEXT 26 NOW_PLAYING_FULL
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
@@ -218,6 +239,10 @@ FEATURE clipboard CLIPBOARD
 # The laptop can list its apps for the phone to add as macros.
 FEATURE apps APPS
 FEATURE running RUNNING
+# The laptop answers ACTION 60 to 62.
+FEATURE endaction END_ACTION
+# The laptop can forward its notifications once CONTROL 10 is 1.
+FEATURE notify NOTIFY
 
 # The whole vocabulary of TEXT kind 13's second field, as "<token on the wire> <the name both apps call it>". The phone
 # uses it only to word hints that differ by OS; an unknown token reads as no OS known.
@@ -255,6 +280,26 @@ BLOB_KIND 0 CLIP_TEXT
 BLOB_KIND 1 CLIP_IMAGE
 BLOB_KIND 2 APP_LIST
 BLOB_KIND 3 APP_ICON
+# Laptop to phone. MEDIA_ICON is a PNG of 64 px, its label the app's name, or "artwork" for a browser's media artwork.
+# NOTIFICATION is UTF-8 "app\ntitle\nbody", its label the notification's id.
+BLOB_KIND 4 MEDIA_ICON
+BLOB_KIND 5 NOTIFICATION
+
+# The whole vocabulary of TEXT kind 24's reason, as "<token on the wire> <the name both apps call it>". Tokens for the reason
+# PAD_STATUS is. An unknown token reads as UNSUPPORTED.
+UNAVAILABLE_REASON unsupported UNSUPPORTED
+UNAVAILABLE_REASON off OFF
+UNAVAILABLE_REASON no-tool NO_TOOL
+UNAVAILABLE_REASON no-permission NO_PERMISSION
+
+# The whole vocabulary of TEXT kind 25, same shape. An unknown token reads as NONE.
+END_ACTION_TOKEN none NONE
+END_ACTION_TOKEN sleep SLEEP
+END_ACTION_TOKEN shutdown SHUTDOWN
+
+# The whole vocabulary of TEXT kind 23, same shape. An unknown token reads as IDLE.
+CAPTURE_STATE_TOKEN idle IDLE
+CAPTURE_STATE_TOKEN recording RECORDING
 
 # The whole vocabulary of TEXT kind 11, as "<token on the wire> <the name both apps call it>". Tokens for the
 # reason PAD_STATUS is: the phone branches on them, so prose would make the laptop's wording unchangeable.
