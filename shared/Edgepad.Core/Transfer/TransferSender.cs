@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Edgepad.Blob;
 using Edgepad.Net;
 using Edgepad.Protocol;
 
