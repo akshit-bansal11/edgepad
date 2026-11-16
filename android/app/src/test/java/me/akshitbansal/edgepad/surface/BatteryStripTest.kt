@@ -26,4 +26,9 @@ class BatteryStripTest {
         assertTrue(chipBottom <= BatteryStrip.HIT_BOTTOM_DP)
         assertTrue(BatteryStrip.CENTRE_DP - BatteryStrip.HEIGHT_DP / 2 >= BatteryStrip.HIT_TOP_DP)
     }
+
+    @Test
+    fun theLineFitsInsideTheStripsHeight() {
+        assertTrue(BatteryStrip.LINE_DP + BatteryStrip.ICON_DP <= BatteryStrip.HEIGHT_DP)
+    }
 }

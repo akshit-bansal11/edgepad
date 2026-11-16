@@ -377,7 +377,7 @@ class ControlSurface(
     private val captionTint = withAlpha(accent, CAPTION_TINT_ALPHA)
 
     // Low is the theme's red even under a control colour the user chose, so it is never tinted through it.
-    private val strip = BatteryStrip(context, ink, accent, faint, palette.danger)
+    private val strip = BatteryStrip(context, ink, accent, faint, dim, palette.danger)
 
     /** How far a display cutout pushed the battery strip and the button row down, in px; set in onSizeChanged. */
     private var topShift = 0f
@@ -466,7 +466,7 @@ class ControlSurface(
         // the same distance with it, so neither sits under the camera.
         topShift = strip.cutoutShift(w, insets?.displayCutout?.boundingRects.orEmpty(), dp(Space.XS))
         layoutPieces(w.toFloat(), h.toFloat())
-        strip.layout(w, topShift)
+        strip.layout(w, topShift, backdrop.isDark)
         // No ruler runs under the buttons at the top, and neighbours stop short of each other — which is
         // what keeps two dials on the same edge clear of each other.
         // A dial the user puts in the top-middle slot is the one exception: it is centred inside the
@@ -685,7 +685,7 @@ class ControlSurface(
                 dp(ICON_DP),
             )
         }
-        strip.draw(canvas)
+        strip.draw(canvas, backdrop.hasImage)
         if (pressedStrip) {
             val radius = strip.hit.height() / 2
             fill.color = faint

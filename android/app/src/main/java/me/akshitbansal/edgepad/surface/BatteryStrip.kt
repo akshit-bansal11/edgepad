@@ -2,21 +2,25 @@ package me.akshitbansal.edgepad.surface
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
+import android.graphics.Shader
 import android.graphics.drawable.Drawable
 import android.text.TextPaint
 import android.util.TypedValue
 import me.akshitbansal.edgepad.R
+import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.drawFitted
 import kotlin.math.roundToInt
 
 /**
  * The row of battery chips above the top buttons: the laptop in use, this phone, and +N for everything else,
- * each one left out when it has nothing to show. A chip is a pill whose track fills to the level; low is red,
- * charging fills in the accent and wears a bolt.
+ * each one left out when it has nothing to show. A chip is its icon and percent over a thin line that fills to
+ * the level; low is red, charging fills in the accent and wears a bolt.
  *
  * [refresh] is the only place that allocates: it remakes the labels, fits the text and writes [summary].
  * [layout] and [refresh] place every rect and every drawable's bounds, so [draw] only paints.
@@ -28,8 +32,9 @@ import kotlin.math.roundToInt
 class BatteryStrip(
     private val context: Context,
     private val ink: Int,
-    accent: Int,
+    private val accent: Int,
     faint: Int,
+    private val dim: Int,
     // The theme's red, never the user's control colour: low has to read as low on any backdrop.
     private val danger: Int,
 ) {
@@ -47,6 +52,8 @@ class BatteryStrip(
         var charging = false
         var low = false
         val box = RectF()
+        val line = RectF()
+        val lit = RectF()
         var textX = 0f
     }
 
@@ -62,9 +69,9 @@ class BatteryStrip(
 
     private val track = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = faint }
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val normalFill = withAlpha(ink, FILL_ALPHA)
-    private val chargeFill = withAlpha(accent, FILL_ALPHA)
-    private val lowFill = withAlpha(danger, FILL_ALPHA)
+    private val scrim = Paint()
+    private val scrimRect = RectF()
+    private var scrimColor = 0
     private val baseTextSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, TEXT_SP, metrics)
     private val text =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -86,9 +93,11 @@ class BatteryStrip(
     fun layout(
         width: Int,
         shift: Float,
+        dark: Boolean,
     ) {
         centreX = width / 2f
         this.shift = shift
+        scrimColor = withAlpha(if (dark) Color.BLACK else Color.WHITE, SCRIM_ALPHA)
         place()
     }
 
@@ -138,27 +147,35 @@ class BatteryStrip(
         place()
     }
 
-    fun draw(canvas: Canvas) {
+    /** [scrimmed] is whether a background image is set, which the chips then get a soft scrim over. */
+    fun draw(
+        canvas: Canvas,
+        scrimmed: Boolean,
+    ) {
+        if (count > 0 && scrimmed) canvas.drawRect(scrimRect, scrim)
         for (i in 0 until count) {
             val chip = chips[i]
-            val box = chip.box
-            val radius = box.height() / 2
-            canvas.drawRoundRect(box, radius, radius, track)
-            if (chip.level > 0) {
-                fill.color =
-                    when {
-                        chip.low -> lowFill
-                        chip.charging -> chargeFill
-                        else -> normalFill
-                    }
-                canvas.save()
-                canvas.clipRect(box.left, box.top, box.left + box.width() * chip.level / FULL, box.bottom)
-                canvas.drawRoundRect(box, radius, radius, fill)
-                canvas.restore()
+            if (chip.level >= 0) {
+                val radius = chip.line.height() / 2
+                canvas.drawRoundRect(chip.line, radius, radius, track)
+                if (chip.level > 0) {
+                    fill.color =
+                        when {
+                            chip.low -> danger
+                            chip.charging -> accent
+                            else -> ink
+                        }
+                    canvas.drawRoundRect(chip.lit, radius, radius, fill)
+                }
             }
             chip.icon?.draw(canvas)
             if (chip.charging) chip.bolt.draw(canvas)
-            text.color = if (chip.low) danger else ink
+            text.color =
+                when {
+                    chip.low -> danger
+                    chip.icon == null -> dim
+                    else -> ink
+                }
             text.drawFitted(canvas, chip.label, chip.textX, baseline, room(chip))
         }
     }
@@ -218,6 +235,9 @@ class BatteryStrip(
         for (i in 0 until count) {
             val chip = chips[i]
             chip.box.set(left, cy - half, left + chipWidth, cy + half)
+            val box = chip.box
+            chip.line.set(box.left, box.bottom - dp(LINE_DP), box.right, box.bottom)
+            chip.lit.set(box.left, chip.line.top, box.left + box.width() * chip.level / FULL, box.bottom)
             val labelWidth = text.measureText(chip.label)
             val icon = chip.icon
             var x =
@@ -238,6 +258,18 @@ class BatteryStrip(
             left += chipWidth + gap
         }
         hit.set(centreX - span / 2, dp(HIT_TOP_DP) + shift, centreX + span / 2, dp(HIT_BOTTOM_DP) + shift)
+        val pad = dp(Space.S)
+        scrimRect.set(hit.left - pad, hit.top - pad, hit.right + pad, hit.bottom + pad)
+        scrim.shader =
+            LinearGradient(
+                0f,
+                scrimRect.top,
+                0f,
+                scrimRect.bottom,
+                intArrayOf(scrimColor and RGB_MASK, scrimColor, scrimColor and RGB_MASK),
+                floatArrayOf(0f, SCRIM_MID, 1f),
+                Shader.TileMode.CLAMP,
+            )
     }
 
     private fun bounds(
@@ -280,12 +312,16 @@ class BatteryStrip(
         const val HEIGHT_DP = 24f
         const val HIT_TOP_DP = 6f
         const val HIT_BOTTOM_DP = 36f
+
+        /** The level line under a chip's content. */
+        const val LINE_DP = 2f
         private const val PAD_DP = 4f
-        private const val ICON_DP = 12f
+        const val ICON_DP = 12f
         private const val BOLT_DP = 9f
         private const val GAP_IN_DP = 2f
         private const val TEXT_SP = 10f
-        private const val FILL_ALPHA = 0.28f
+        private const val SCRIM_ALPHA = 0.5f
+        private const val SCRIM_MID = 0.5f
         private const val FULL = 100f
         private const val RGB_MASK = 0x00FFFFFF
         private const val MAX_ALPHA = 255
