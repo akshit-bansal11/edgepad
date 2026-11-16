@@ -25,7 +25,22 @@ internal sealed class SilenceWatch : IDisposable
         last = this.clock();
         if (every is { } period)
         {
-            timer = new Timer(_ => Check(), null, period, period);
+            // An exception on a timer thread ends the process; onSilent tears a session down, which can throw.
+            timer = new Timer(
+                _ =>
+                {
+                    try
+                    {
+                        Check();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Write($"Silence watch failed: {e}");
+                    }
+                },
+                null,
+                period,
+                period);
         }
     }
 

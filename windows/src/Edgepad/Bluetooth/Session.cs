@@ -79,10 +79,11 @@ internal sealed class Session(
                 return;
             }
 
-            ReportState();
-
             // A vanished peer holds the blocked read for minutes; Dispose from the timer's thread closes the link and wakes it.
+            // Started before the first sends, so a phone gone already cannot hold them up either.
             using var silence = new SilenceWatch(SilenceWatch.PhoneSilence, () => { Log.Write($"Session with {address} ended: no frame for 30 s"); Dispose(); }, every: TimeSpan.FromSeconds(5));
+
+            ReportState();
 
             while (true)
             {

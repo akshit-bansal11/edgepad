@@ -290,8 +290,8 @@ internal static class LinkResponder
             var asked = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
             question = prompt.Show(name, PairingText.SourceOf(remote),digits => asked.TrySetResult(digits), () => asked.TrySetResult(null));
 
-            // From here the prompt is up: any end not named below is an unanswered prompt and holds this host off, or a
-            // phone could raise the prompt, hang up or send junk, and raise it again at once.
+            // From here the prompt is up: any end not named below (a read that fails or times out after the code) is an
+            // unanswered prompt and holds this host off, or a phone could raise the prompt, drop out and raise it again.
             outcome = PairingOutcome.TimedOut;
             var (answer, typed) = AwaitOwner(asked, ownerWait, ended);
             switch (answer)
@@ -301,6 +301,9 @@ internal static class LinkResponder
                     log($"The owner cancelled pairing {address}");
                     return null;
                 case OwnerAnswer.Ended:
+                    // Only the owner ends this wait (DropPending: Forget, holding phones off) or the app stopping;
+                    // a phone hanging up does not, so this is not counted and holds no host off.
+                    outcome = PairingOutcome.Abandoned;
                     log($"Stopped pairing {address}: the network link was closed");
                     return null;
                 case OwnerAnswer.TimedOut:
