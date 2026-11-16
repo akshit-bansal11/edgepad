@@ -60,6 +60,10 @@ public final class Session {
     /// Polls since the batteries were last read. `poll()` runs twice a second, so this many is a minute.
     private var pollsSincePower = 0
     private static let pollsPerBatteryRead = 120
+    /// Polls since any bytes arrived from the phone. At the app's two polls a second, `pollsBeforeSilence` is 30 s, matching
+    /// `SilenceWatch.PhoneSilence` on Windows and Linux. No timer: `poll()` already runs on the app's clock.
+    private var pollsSinceFrame = 0
+    private static let pollsBeforeSilence = 60
     /// What the status line calls the way this phone came: "Bluetooth", "Wi-Fi" or "USB".
     private let link: String
     /// Called once trust has said yes, just before HELLO_ACK: the server decides there whether this phone may take
@@ -160,6 +164,7 @@ public final class Session {
     /// Bytes from the phone, in arrival order.
     public func receive(_ bytes: [UInt8]) {
         guard !isEnded else { return }
+        pollsSinceFrame = 0
         if isAsking {
             guard pending.count + bytes.count <= Session.maxPendingBytes else {
                 Log.write("Session with \(address) ended: it sent too much while the owner was being asked")
@@ -184,6 +189,12 @@ public final class Session {
     /// The app calls this twice a second. A change made on the Mac itself reaches the phone's dials here.
     public func poll() {
         guard isLive, !isEnded else { return }
+        pollsSinceFrame += 1
+        if pollsSinceFrame >= Session.pollsBeforeSilence {
+            Log.write("Session with (address) ended: no frame for 30 s")
+            end()
+            return
+        }
         if let level = speakers.read(), level != lastVolume {
             lastVolume = level
             sendLevel(.volume, level)

@@ -362,6 +362,30 @@ final class SessionTests: XCTestCase {
         XCTAssertEqual(transport.frames().last, .text(kind: TextKind.inputState.rawValue, value: "ok"))
     }
 
+    func testALiveSessionEndsOnTheSixtiethPollWithNoFrame() {
+        let session = connectedSession()
+        for _ in 0..<59 { session.poll() }
+        XCTAssertFalse(session.isEnded)
+        session.poll()
+        XCTAssertTrue(session.isEnded)
+    }
+
+    func testAFrameResetsTheSilenceCount() {
+        let session = connectedSession()
+        for _ in 0..<59 { session.poll() }
+        session.receive(FrameCodec.encode(.ping(time: 1)))
+        for _ in 0..<59 { session.poll() }
+        XCTAssertFalse(session.isEnded)
+    }
+
+    /// Polls `count` times with a ping now and then, so the silence limit never ends the session.
+    private func pollAlive(_ session: Session, _ count: Int) {
+        for i in 0..<count {
+            if i % 50 == 0 { session.receive(FrameCodec.encode(.ping(time: 1))) }
+            session.poll()
+        }
+    }
+
     private func powerTexts() -> [Frame] {
         transport.frames().filter {
             if case .text(let kind, _) = $0 {
@@ -392,7 +416,7 @@ final class SessionTests: XCTestCase {
         XCTAssertEqual(powerTexts().count, 3)
         XCTAssertEqual(powerTexts().last, .text(kind: TextKind.batteries.rawValue, value: "laptop:79:0:Mac"))
 
-        for _ in 0..<120 { session.poll() }
+        pollAlive(session, 120)
         XCTAssertEqual(powerTexts().count, 3)
     }
 
@@ -402,7 +426,7 @@ final class SessionTests: XCTestCase {
         session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
         power.list = [BatteryEntry(kind: .mouse, level: 10, charging: true, name: "Mouse")]
 
-        for _ in 0..<119 { session.poll() }
+        pollAlive(session, 119)
         XCTAssertEqual(powerTexts().count, 2)
         session.poll()
         XCTAssertEqual(powerTexts().last, .text(kind: TextKind.batteries.rawValue, value: "mouse:10:1:Mouse"))
