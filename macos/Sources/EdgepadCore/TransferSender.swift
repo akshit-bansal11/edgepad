@@ -35,6 +35,10 @@ public final class TransferSender {
         var start: UInt64 = 0
         var hashed: UInt64 = 0
         var at: UInt64 = 0
+        /// The last offset a PROGRESS named, to tell a receiver repeating itself (a gap) from one keeping up.
+        var lastProgress: UInt64?
+        /// Moves on at a rewind, so ticks scheduled before it do not run a second chain of chunks.
+        var epoch = 0
 
         init(id: UInt8, size: UInt64, file: FileHandle, finished: @escaping (XferCode) -> Void) {
             self.id = id
@@ -94,7 +98,14 @@ public final class TransferSender {
                 begin(run, at: offset)
             }
         case .progress:
-            break
+            // A PROGRESS trailing what was sent is normal, the chunks are still in flight. The same offset twice
+            // (the receiver answers every chunk it cannot place), or any short answer to END, means a chunk was
+            // lost: resend from where the receiver is.
+            let repeated = run.lastProgress == offset
+            run.lastProgress = offset
+            if run.phase != .awaitingReady, offset < run.at, repeated || run.phase == .awaitingFinal {
+                rewind(run, to: offset)
+            }
         case .saved, .badHash, .rejected, .writeFailed, .cancelled, .busy, .timedOut, .sessionEnded:
             finish(known)
         }
@@ -164,6 +175,30 @@ public final class TransferSender {
         step(run)
     }
 
+    /// Sends again from `offset`: the digest starts over and the bytes before it are hashed from disk, as at a resume.
+    private func rewind(_ run: Run, to offset: UInt64) {
+        generation += 1
+        run.epoch += 1
+        guard (try? run.file.seek(toOffset: 0)) != nil else {
+            finish(.writeFailed)
+            return
+        }
+        run.hash = SHA256()
+        run.hashed = 0
+        run.start = offset
+        run.at = offset
+        run.phase = .sending
+        step(run)
+    }
+
+    private func later(_ run: Run, _ delay: TimeInterval) {
+        let epoch = run.epoch
+        schedule(delay) { [weak self] in
+            guard run.epoch == epoch else { return }
+            self?.step(run)
+        }
+    }
+
     /// One turn: the rest of the bytes before the start are hashed a few MiB at a time, then one tick's worth of
     /// chunks, then the next turn; XFER_END at the end.
     private func step(_ run: Run) {
@@ -179,14 +214,14 @@ public final class TransferSender {
             run.hashed += UInt64(block.count)
             rehashed += block.count
             if rehashed >= TransferSender.rehashBytesPerTick, run.hashed < run.start {
-                schedule(0) { [weak self] in self?.step(run) }
+                later(run, 0)
                 return
             }
         }
         var sent = 0
         while run.at < run.size {
             if backlog() >= BlobSender.maxBacklog {
-                schedule(BlobSender.tick) { [weak self] in self?.step(run) }
+                later(run, BlobSender.tick)
                 return
             }
             let count = Int(min(UInt64(FrameCodec.maxXferChunkBytes), run.size - run.at))
@@ -201,7 +236,7 @@ public final class TransferSender {
             run.at += UInt64(block.count)
             sent += 1
             if sent >= budget(), run.at < run.size {
-                schedule(BlobSender.tick) { [weak self] in self?.step(run) }
+                later(run, BlobSender.tick)
                 return
             }
         }
@@ -228,6 +263,8 @@ public final class TransferSender {
         let armed = generation
         schedule(TransferLimits.answerTimeout) { [weak self] in
             guard let self, self.generation == armed, self.current === run else { return }
+            // Tell the phone, or it holds the file and answers BUSY until the link is made again.
+            _ = self.output?(.xferStatus(id: run.id, status: XferCode.cancelled.rawValue, offset: run.at))
             self.finish(.timedOut)
         }
     }

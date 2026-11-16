@@ -31,12 +31,16 @@ final class TransferTests: XCTestCase {
         .xferStatus(id: id, status: code.rawValue, offset: offset)
     }
 
+    private var receiverTimers: [(delay: TimeInterval, work: () -> Void)] = []
+    private var receiverClock: TimeInterval = 0
+
     private func receiver(
         freeSpace: ((String) -> Int64)? = nil, now: Date = Date()
     ) -> TransferReceiver {
         let made = TransferReceiver(
             destination: destination, partialFolder: partial, arrived: { [unowned self] in self.arrived.append($0) },
-            freeSpace: freeSpace, now: now)
+            freeSpace: freeSpace, clock: { [unowned self] in self.receiverClock },
+            schedule: { [unowned self] delay, work in self.receiverTimers.append((delay, work)) }, now: now)
         made.reply = { [unowned self] in self.replies.append($0) }
         return made
     }
@@ -163,6 +167,35 @@ final class TransferTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: old))
     }
 
+    func testAnUnreadableFreeSpaceRefusesTheFile() {
+        XCTAssertLessThan(TransferReceiver.freeSpaceOf(root.path + "/missing/nowhere"), 0)
+        XCTAssertGreaterThan(TransferReceiver.freeSpaceOf(root.path), 0)
+        let incoming = receiver(freeSpace: { _ in -1 })
+        _ = incoming.take(begin: 1, size: 1, name: "a.txt")
+        XCTAssertEqual(replies, [status(1, .rejected)])
+    }
+
+    func testATransferIdleForThirtySecondsIsDroppedAndItsPartKept() throws {
+        let incoming = receiver()
+        _ = incoming.take(begin: 1, size: 9, name: "a.txt")
+        _ = incoming.take(chunk: 1, offset: 0, data: [1, 2])
+        XCTAssertEqual(receiverTimers.map(.delay), [TransferLimits.idleTimeout])
+        receiverClock = 20
+        _ = incoming.take(chunk: 1, offset: 2, data: [3])
+        receiverClock = 30
+        receiverTimers.removeFirst().work()
+        // A chunk came 10 s ago: still going, and the timer is set again for the 20 s left.
+        XCTAssertTrue(incoming.busy)
+        XCTAssertEqual(receiverTimers.map(.delay), [20])
+        receiverClock = 50
+        receiverTimers.removeFirst().work()
+        XCTAssertFalse(incoming.busy)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: partial), ["a.txt.9.part"])
+        // The next file is not turned away as busy.
+        _ = incoming.take(begin: 2, size: 1, name: "b.txt")
+        XCTAssertEqual(replies.last, status(2, .ready))
+    }
+
     // MARK: Sending
 
     private var sent: [Frame] = []
@@ -243,6 +276,35 @@ final class TransferTests: XCTestCase {
         XCTAssertEqual(timers[0].delay, TransferLimits.answerTimeout)
         timers.removeFirst().work()
         XCTAssertEqual(results, [.timedOut])
+    }
+
+    func testATimeoutTellsThePhoneCancelled() throws {
+        let outgoing = sender()
+        outgoing.send(path: try file([1])) { [unowned self] in self.results.append($0) }
+        timers.removeFirst().work()
+        XCTAssertEqual(sent.last, status(1, .cancelled))
+        XCTAssertEqual(results, [.timedOut])
+    }
+
+    func testAShortAnswerToEndSendsAgainFromThereAndHashesTheWholeFile() throws {
+        let body = (0..<600).map { UInt8($0 % 251) }
+        let outgoing = sender()
+        outgoing.send(path: try file(body)) { [unowned self] in self.results.append($0) }
+        _ = outgoing.take(status: XferCode.ready.rawValue, id: 1, offset: 0)
+        runTicks()
+        let size = FrameCodec.maxXferChunkBytes
+        sent = []
+        XCTAssertTrue(outgoing.take(status: XferCode.progress.rawValue, id: 1, offset: UInt64(size)))
+        runTicks()
+        XCTAssertEqual(
+            sent,
+            [
+                .xferChunk(id: 1, offset: UInt64(size), data: Array(body[size..<(2 * size)])),
+                .xferChunk(id: 1, offset: UInt64(2 * size), data: Array(body[(2 * size)...])),
+                .xferEnd(id: 1, sha256: sha(body)),
+            ])
+        _ = outgoing.take(status: XferCode.saved.rawValue, id: 1, offset: 600)
+        XCTAssertEqual(results, [.saved])
     }
 
     func testATimeoutArmedForAnEarlierWaitDoesNotEndALaterOne() throws {

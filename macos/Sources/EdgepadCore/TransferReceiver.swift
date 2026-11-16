@@ -22,9 +22,14 @@ public final class TransferReceiver {
         var hash: SHA256
         var held: UInt64
         var reported: UInt64
+        var lastActive: TimeInterval
         var closed = false
 
-        init(id: UInt8, size: UInt64, name: String, partPath: String, file: FileHandle, hash: SHA256, held: UInt64) {
+        init(
+            id: UInt8, size: UInt64, name: String, partPath: String, file: FileHandle, hash: SHA256, held: UInt64,
+            lastActive: TimeInterval
+        ) {
+            self.lastActive = lastActive
             self.id = id
             self.size = size
             self.name = name
@@ -46,6 +51,8 @@ public final class TransferReceiver {
     private let partialFolder: String
     private let arrived: ((String) -> Void)?
     private let freeSpace: (String) -> Int64
+    private let clock: () -> TimeInterval
+    private let schedule: (TimeInterval, @escaping () -> Void) -> Void
     private var active: Active?
 
     /// - Parameters:
@@ -53,17 +60,25 @@ public final class TransferReceiver {
     ///   - partialFolder: Where a file still arriving, or cut short, is kept.
     ///   - arrived: Told the final path of each file saved.
     ///   - freeSpace: Free bytes on the volume holding a folder; nil reads the real one.
+    ///   - clock: Seconds, for the idle timeout.
+    ///   - schedule: Runs work after a delay, for the idle timeout.
     ///   - now: For tests, the time parts are aged against.
     public init(
         destination: String,
         partialFolder: String,
         arrived: ((String) -> Void)? = nil,
         freeSpace: ((String) -> Int64)? = nil,
+        clock: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
+        schedule: @escaping (TimeInterval, @escaping () -> Void) -> Void = { delay, work in
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+        },
         now: Date = Date()
     ) {
         self.destination = destination
         self.partialFolder = partialFolder
         self.arrived = arrived
+        self.clock = clock
+        self.schedule = schedule
         self.freeSpace = freeSpace ?? TransferReceiver.freeSpaceOf
         purge(now)
     }
@@ -117,6 +132,7 @@ public final class TransferReceiver {
         }
         a.hash.update(data: data)
         a.held += UInt64(data.count)
+        a.lastActive = clock()
         if a.held - a.reported >= TransferLimits.progressEveryBytes {
             a.reported = a.held
             status(id, .progress, a.held)
@@ -161,9 +177,25 @@ public final class TransferReceiver {
         finish(deletePart: false)
     }
 
-    private static func freeSpaceOf(_ folder: String) -> Int64 {
+    /// Free bytes on the volume holding `folder`; -1 when that cannot be read, which refuses the file.
+    static func freeSpaceOf(_ folder: String) -> Int64 {
         let attributes = try? FileManager.default.attributesOfFileSystem(forPath: folder)
-        return (attributes?[.systemFreeSize] as? NSNumber)?.int64Value ?? Int64.max
+        return (attributes?[.systemFreeSize] as? NSNumber)?.int64Value ?? -1
+    }
+
+    /// Drops the file when no chunk has come for `idleTimeout`, keeping its part. One timer per file: when it fires
+    /// early because chunks came, it sets itself again for what is left.
+    private func watchIdle(_ a: Active, after delay: TimeInterval = TransferLimits.idleTimeout) {
+        schedule(delay) { [weak self] in
+            guard let self, self.active === a else { return }
+            let idle = self.clock() - a.lastActive
+            if idle >= TransferLimits.idleTimeout {
+                Log.write("A file from the phone went quiet and was dropped; its part is kept.")
+                self.finish(deletePart: false)
+            } else {
+                self.watchIdle(a, after: TransferLimits.idleTimeout - idle)
+            }
+        }
     }
 
     private func open(id: UInt8, size: UInt64, name: String) throws {
@@ -188,7 +220,11 @@ public final class TransferReceiver {
                 hash.update(data: block)
             }
             try file.seek(toOffset: held)
-            active = Active(id: id, size: size, name: name, partPath: partPath, file: file, hash: hash, held: held)
+            let made = Active(
+                id: id, size: size, name: name, partPath: partPath, file: file, hash: hash, held: held,
+                lastActive: clock())
+            active = made
+            watchIdle(made)
             status(id, .ready, held)
         } catch {
             try? file.close()

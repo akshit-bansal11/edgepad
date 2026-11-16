@@ -31,6 +31,8 @@ public enum TransferLimits {
     public static let partialKept: TimeInterval = 7 * 24 * 60 * 60
     /// How long a sender waits for READY, and for the last answer after END.
     public static let answerTimeout: TimeInterval = 30
+    /// A receiver drops a transfer that has had no chunk for this long, keeping the part for a resume.
+    public static let idleTimeout: TimeInterval = 30
     /// The most of a file name kept, in UTF-8 bytes.
     public static let maxNameBytes = 120
     /// The longest extension kept when a name is cut, in UTF-8 bytes.
