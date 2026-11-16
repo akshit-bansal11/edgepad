@@ -809,7 +809,7 @@ class Ui(
     private fun track(): Drawable =
         StateListDrawable().apply {
             addState(intArrayOf(android.R.attr.state_checked), pill(palette.accent))
-            addState(intArrayOf(), pill(palette.off))
+            addState(intArrayOf(), pill(palette.track))
         }
 
     // The platform Switch is twice its thumb wide and slides the thumb by one thumb width, so the track is
@@ -832,12 +832,12 @@ class Ui(
         return InsetDrawable(dot, gap, gap, gap, gap)
     }
 
-    /** The track: a rounded line in the off colour, with the part up to the thumb in the accent. */
+    /** The track: a rounded line in the track colour, with the part up to the thumb in the accent. */
     private fun sliderTrack(): Drawable {
         fun bar(color: Int) = rounded(color, TRACK_DP / 2).apply { setSize(0, dp(TRACK_DP)) }
         val layers =
             LayerDrawable(
-                arrayOf(bar(palette.off), ClipDrawable(bar(palette.accent), Gravity.START, ClipDrawable.HORIZONTAL)),
+                arrayOf(bar(palette.track), ClipDrawable(bar(palette.accent), Gravity.START, ClipDrawable.HORIZONTAL)),
             )
         layers.setId(0, android.R.id.background)
         layers.setId(1, android.R.id.progress)
