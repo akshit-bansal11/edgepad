@@ -22,7 +22,7 @@ class StencilIcon(
     ink: Int,
     accent: Int,
 ) : Drawable() {
-    enum class Kind { KEYBOARD, GAMEPAD, MACROS, CAPTURE, ANNOTATE }
+    enum class Kind { KEYBOARD, GAMEPAD, MACROS, CAPTURE, ANNOTATE, CLIPBOARD, PRESENTER }
 
     /** One shape: filled, or stroked at [width] (filled and stroked when [style] says so). */
     private class Part(
@@ -153,6 +153,28 @@ class StencilIcon(
                         Paint.Cap.ROUND,
                     )
                 accentParts += Part(shape { addCircle(24f, 24f, 3.6f, Path.Direction.CW) })
+            }
+
+            Kind.CLIPBOARD -> {
+                inkParts += Part(shape { card(6f, 7f, 36f, 38f, 6f) })
+                holes += Part(shape { card(11f, 17f, 26f, 22f, 2f) })
+                accentParts += Part(shape { card(16f, 3f, 16f, 9f, 3f) })
+            }
+
+            Kind.PRESENTER -> {
+                inkParts += Part(shape { card(3f, 8f, 42f, 26f, 5f) })
+                holes += Part(shape { card(8f, 13f, 32f, 16f, 2f) })
+                holes +=
+                    Part(
+                        shape {
+                            moveTo(24f, 34f)
+                            lineTo(24f, 42f)
+                        },
+                        Paint.Style.STROKE,
+                        3f,
+                        Paint.Cap.ROUND,
+                    )
+                accentParts += Part(shape { addCircle(34f, 21f, 3.6f, Path.Direction.CW) })
             }
         }
     }

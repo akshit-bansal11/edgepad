@@ -90,6 +90,8 @@ class ControlsPopup(
         MACROS(R.string.controls_macros, StencilIcon.Kind.MACROS),
         CAPTURE(R.string.controls_capture, StencilIcon.Kind.CAPTURE),
         ANNOTATE(R.string.controls_annotate, StencilIcon.Kind.ANNOTATE),
+        CLIPBOARD(R.string.controls_clipboard, StencilIcon.Kind.CLIPBOARD),
+        PRESENTER(R.string.controls_presenter, StencilIcon.Kind.PRESENTER),
     }
 
     private var dialog: AlertDialog? = null

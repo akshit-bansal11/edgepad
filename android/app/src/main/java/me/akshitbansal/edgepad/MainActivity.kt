@@ -71,6 +71,7 @@ import me.akshitbansal.edgepad.link.Sweep
 import me.akshitbansal.edgepad.link.Target
 import me.akshitbansal.edgepad.link.TcpTransport
 import me.akshitbansal.edgepad.link.TetherProbe
+import me.akshitbansal.edgepad.link.TileStatus
 import me.akshitbansal.edgepad.link.Transport
 import me.akshitbansal.edgepad.link.bluetoothTapHint
 import me.akshitbansal.edgepad.link.clipboardShare
@@ -99,6 +100,7 @@ import me.akshitbansal.edgepad.link.xfer.Transfers
 import me.akshitbansal.edgepad.link.xfer.XferCode
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.AppAddStatus
+import me.akshitbansal.edgepad.protocol.BlobKind
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Feature
@@ -112,6 +114,7 @@ import me.akshitbansal.edgepad.screens.AppearanceScreen
 import me.akshitbansal.edgepad.screens.BatterySheet
 import me.akshitbansal.edgepad.screens.CaptureScreen
 import me.akshitbansal.edgepad.screens.Carry
+import me.akshitbansal.edgepad.screens.ClipboardSheet
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DialFeelScreen
@@ -296,6 +299,7 @@ class MainActivity :
     private val phoneBattery by lazy { PhoneBattery(this) }
     private val liveBatteries by lazy { LiveBatteries(manager, phoneBattery, getString(R.string.battery_this_phone)) }
     private var batterySheet: BatterySheet? = null
+    private var clipboardSheet: ClipboardSheet? = null
     private var phoneWatch: AutoCloseable? = null
     private var screen = Screen.PAIRING
     private var settingsReturn = Screen.PAIRING
@@ -489,6 +493,13 @@ class MainActivity :
                 )
             }
         }
+        // The tile and the notification's actions, over the manager alone: the selected laptop if it is connected.
+        LinkHooks.sendToSelected = { frame ->
+            val link = links.selected?.takeIf { it.connected }?.link
+            link?.send(frame)
+            link != null
+        }
+        LinkHooks.tileStatus = { links.selected?.takeIf { it.connected }?.let { TileStatus(it.name) } }
         apps.events =
             AppLinks.Events { laptop, token ->
                 if (laptop === selected) {
@@ -568,6 +579,7 @@ class MainActivity :
         phoneWatch?.close()
         phoneWatch = null
         batterySheet?.dismiss()
+        clipboardSheet?.dismiss()
         handler.removeCallbacks(ticker)
         stopScan()
         // The service keeps the links outright, a detour for a while and a rebuild too; see the class comment.
@@ -676,6 +688,8 @@ class MainActivity :
         } else if (!isChangingConfigurations) {
             LinkHooks.disconnectAll = null
             LinkHooks.shareTarget = null
+            LinkHooks.sendToSelected = null
+            LinkHooks.tileStatus = null
             manager.shutDown()
             LinkService.stop(applicationContext)
         }
@@ -1615,8 +1629,32 @@ class MainActivity :
                     ControlsPopup.Target.MACROS -> openMacros()
                     ControlsPopup.Target.CAPTURE -> goTo(Screen.CAPTURE)
                     ControlsPopup.Target.ANNOTATE -> goTo(Screen.ANNOTATE)
+                    ControlsPopup.Target.CLIPBOARD -> openClipboardHistory()
+                    ControlsPopup.Target.PRESENTER -> goTo(Screen.PRESENTER)
                 }
             }.also { it.show(owner, controlsCapture(), controlsAnnotate()) }
+    }
+
+    /** The laptop's recent copies over the surface; a tap on one sends it to the laptop again. */
+    private fun openClipboardHistory() {
+        val owner = surface ?: return
+        clipboardSheet?.dismiss()
+        clipboardSheet = ClipboardSheet(ui, clipboard.history, onSend = ::sendAgain).also { it.show(owner) }
+    }
+
+    /** Writes [text] to the selected laptop's clipboard. The transfer blocks, so it runs off the main thread. */
+    private fun sendAgain(text: String) {
+        val laptop = selected?.takeIf { it.connected }
+        val sync = laptop?.let { clipboard.links.activeSync(it) }
+        val name = laptop?.name.orEmpty()
+        thread(name = "edgepad-clip-resend") {
+            val sent = sync?.sendNow(BlobKind.CLIP_TEXT, text.toByteArray()) == true
+            handler.post {
+                val line =
+                    if (sent) getString(R.string.clip_history_sent, name) else getString(R.string.clip_history_failed)
+                Toast.makeText(this, line, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun openBatteries() {
