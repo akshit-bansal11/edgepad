@@ -181,8 +181,8 @@ internal enum TextKind : byte
     PenRgb = 17,
 
     /// <summary>
-    /// Laptop to phone: "blocked" while the OS discards synthetic input, "ok" otherwise. The Linux app sends it (no
-    /// uinput access); Windows never does.
+    /// Laptop to phone: "blocked" while the OS discards synthetic input, "ok" otherwise. Every laptop app sends it (Linux:
+    /// no uinput access; Windows: a refused input batch).
     /// </summary>
     InputState = 18,
 
