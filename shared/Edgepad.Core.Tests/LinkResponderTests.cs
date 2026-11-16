@@ -683,7 +683,9 @@ public sealed class LinkResponderTests : IDisposable
         owner.Types = null;
         var (phoneEnd, laptopEnd) = Duplex.Create();
         var laptopSide = Laptop(laptopEnd, TimeSpan.FromSeconds(30), remote: remote, peerGone: () => gone.IsSet);
-        var phone = Task.Run(() => LinkInitiator.Pair(phoneEnd, PhoneId, PhoneName, ShowOnPhone), ct);
+
+        // The code is not passed to the owner: nobody reads it, and a stale one would be typed into the next prompt.
+        var phone = Task.Run(() => LinkInitiator.Pair(phoneEnd, PhoneId, PhoneName, _ => { }), ct);
         while (owner.Shown == 0)
         {
             await Task.Delay(10, ct);

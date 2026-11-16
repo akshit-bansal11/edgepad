@@ -206,6 +206,23 @@ internal sealed class LinuxServer : IDisposable
         properties.TryGetValue("Powered", out var value) && value.Type == VariantValueType.Bool ? value.GetBool() : null;
 
     /// <summary>
+    /// The GetAll call for hci0's <c>Adapter1</c> properties. Built outside the async method: a MessageWriter cannot
+    /// live across an await (CS4007).
+    /// </summary>
+    private static MessageBuffer AdapterPropertiesMessage(DBusConnection bus, string id)
+    {
+        using var writer = bus.GetMessageWriter();
+        writer.WriteMethodCallHeader(
+            destination: id,
+            path: "/org/bluez/hci0",
+            @interface: "org.freedesktop.DBus.Properties",
+            member: "GetAll",
+            signature: "s");
+        writer.WriteString("org.bluez.Adapter1");
+        return writer.CreateMessage();
+    }
+
+    /// <summary>
     /// Reads whether the adapter is on, once, since PropertiesChanged only tells of a change: an adapter already off at
     /// launch would otherwise show Waiting. The first adapter, hci0, as nearly every laptop has one. A failed read
     /// leaves the last known answer.
@@ -214,15 +231,7 @@ internal sealed class LinuxServer : IDisposable
     {
         try
         {
-            using var writer = bus.GetMessageWriter();
-            writer.WriteMethodCallHeader(
-                destination: id,
-                path: "/org/bluez/hci0",
-                @interface: "org.freedesktop.DBus.Properties",
-                member: "GetAll",
-                signature: "s");
-            writer.WriteString("org.bluez.Adapter1");
-            var powered = await bus.CallMethodAsync(writer.CreateMessage(), static (Message m, object? _) => PoweredOf(m.GetBodyReader().ReadDictionaryOfStringToVariantValue()));
+            var powered = await bus.CallMethodAsync(AdapterPropertiesMessage(bus, id), static (Message m, object? _) => PoweredOf(m.GetBodyReader().ReadDictionaryOfStringToVariantValue()));
             if (powered is { } on)
             {
                 unpowered = !on;
