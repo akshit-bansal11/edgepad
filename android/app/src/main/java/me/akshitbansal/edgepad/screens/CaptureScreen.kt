@@ -41,9 +41,8 @@ class CaptureScreen(
     private val available = Feature.CAPTURE in state.features
 
     /** How the last capture went, under the buttons. Empty until something has happened. */
-    private val status: TextView = ui.secondary("")
-
-    private var recording = false
+    private val status: TextView =
+        ui.secondary("").apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
 
     private val onStep: (FileInbox.Progress) -> Unit = { show(it) }
 
@@ -103,7 +102,7 @@ class CaptureScreen(
             ).forEachIndexed { at, (label, action) ->
                 var self: TextView? = null
                 val button =
-                    ui.button(ui.string(label), Ui.Style.OUTLINED) {
+                    ui.button(ui.string(shown(action, label)), Ui.Style.OUTLINED) {
                         // Before the send, so the file this action may bring back always finds its permit.
                         CaptureInbox.permit(action)
                         send(action.frame())
@@ -127,6 +126,7 @@ class CaptureScreen(
             column.add(destination(), topDp = Space.M)
             column.add(status, topDp = Space.S)
             CaptureInbox.last?.let(::show)
+            if (running) status.text = ui.string(R.string.capture_recording)
         }
 
     /**
@@ -159,13 +159,23 @@ class CaptureScreen(
         button: TextView?,
     ) {
         if (action == ActionId.CAPTURE_RECORD) {
-            recording = !recording
+            val recording = CaptureInbox.toggleRecording(CaptureInbox.owner)
             button?.text = ui.string(if (recording) R.string.capture_stop else R.string.capture_record)
             status.text = if (recording) ui.string(R.string.capture_recording) else ""
         } else {
             status.text = ui.string(R.string.capture_sent, ui.string(label))
         }
     }
+
+    /** Whether the laptop this screen sends to is recording, which the inbox remembers across rebuilds. */
+    private val running: Boolean
+        get() = CaptureInbox.isRecording(CaptureInbox.owner)
+
+    /** Record reads Stop while a recording runs. */
+    private fun shown(
+        action: ActionId,
+        label: Int,
+    ): Int = if (action == ActionId.CAPTURE_RECORD && running) R.string.capture_stop else label
 
     private fun target(): CaptureTarget = if (settings.captureToPhone) CaptureTarget.PHONE else CaptureTarget.LAPTOP
 

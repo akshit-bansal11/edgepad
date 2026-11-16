@@ -42,6 +42,17 @@ object CaptureInbox {
     /** The [ManagedLink.id] the capture screen sends to, so the link a new permit is for. */
     @Volatile var owner: Any? = null
 
+    /** Links with a recording running, so a rebuilt capture screen can say so. At most one per live link. */
+    private val recording: MutableSet<Any> = Collections.newSetFromMap(ConcurrentHashMap())
+
+    fun isRecording(link: Any?): Boolean = link != null && link in recording
+
+    /** Flips whether [link] is recording and returns the new state; a null link never records. Main thread. */
+    fun toggleRecording(link: Any?): Boolean {
+        if (link == null) return false
+        return if (recording.remove(link)) false else recording.add(link)
+    }
+
     /**
      * What this phone last chose, sent again whenever a link opens; null until the capture screen has been built.
      * Laptop turns the inbox off: every permit goes and a file on its way in is thrown away.
@@ -128,6 +139,7 @@ object CaptureInbox {
      */
     fun abort(link: Any) {
         closed.add(link)
+        recording.remove(link)
         inboxes.remove(link)?.reset()
     }
 

@@ -155,4 +155,37 @@ class CaptureInboxTest {
     fun anotherFrameIsLeftForTheLink() {
         assertFalse(CaptureInbox.take(Frame.Ping(1), theirs, answers::add))
     }
+
+    @Test
+    fun recordingToggleReturnsTheNewState() {
+        assertFalse(CaptureInbox.isRecording(ours))
+        assertTrue(CaptureInbox.toggleRecording(ours))
+        assertTrue(CaptureInbox.isRecording(ours))
+        assertFalse(CaptureInbox.toggleRecording(ours))
+        assertFalse(CaptureInbox.isRecording(ours))
+    }
+
+    @Test
+    fun abortingALinkEndsItsRecording() {
+        CaptureInbox.toggleRecording(ours)
+        CaptureInbox.abort(ours)
+        assertFalse(CaptureInbox.isRecording(ours))
+    }
+
+    @Test
+    fun twoLinksRecordIndependently() {
+        CaptureInbox.toggleRecording(ours)
+        assertFalse(CaptureInbox.isRecording(theirs))
+        CaptureInbox.toggleRecording(theirs)
+        CaptureInbox.toggleRecording(ours)
+        assertTrue(CaptureInbox.isRecording(theirs))
+        assertFalse(CaptureInbox.isRecording(ours))
+        CaptureInbox.abort(theirs)
+    }
+
+    @Test
+    fun aNullOwnerNeverRecords() {
+        assertFalse(CaptureInbox.toggleRecording(null))
+        assertFalse(CaptureInbox.isRecording(null))
+    }
 }
