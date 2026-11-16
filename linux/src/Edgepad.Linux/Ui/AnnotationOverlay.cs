@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Edgepad.Annotation;
 using Edgepad.Native;
 
@@ -76,8 +77,23 @@ internal sealed class AnnotationOverlay : Window
     /// <summary>Draws the strokes in screen pixels, scaled back to the window's units.</summary>
     private sealed class Layer : Control
     {
+        private const double LaserRadiusShare = 0.012;
+        private static readonly ImmutableSolidColorBrush LaserBrush = new(Color.FromRgb(0xFF, 0x3B, 0x30));
+
         private IReadOnlyList<Stroke> strokes = [];
         private PixelSize screen;
+
+        /// <summary>The laser is a dot and nothing else: always red, whatever colour and width the pen has.</summary>
+        private void DrawLaser(DrawingContext context, Stroke stroke)
+        {
+            if (stroke.Path(screen.Width, screen.Height) is not [var point, ..])
+            {
+                return;
+            }
+
+            var radius = screen.Height * LaserRadiusShare;
+            context.DrawEllipse(LaserBrush, null, new Point(point.X, point.Y), radius, radius);
+        }
 
         public void Paint(IReadOnlyList<Stroke> next, PixelSize size)
         {
@@ -93,7 +109,14 @@ internal sealed class AnnotationOverlay : Window
             {
                 foreach (var stroke in strokes)
                 {
-                    SignatureExport.Draw(context, stroke, screen.Width, screen.Height);
+                    if (stroke.Tool == StrokeTool.Laser)
+                    {
+                        DrawLaser(context, stroke);
+                    }
+                    else
+                    {
+                        SignatureExport.Draw(context, stroke, screen.Width, screen.Height);
+                    }
                 }
             }
         }
