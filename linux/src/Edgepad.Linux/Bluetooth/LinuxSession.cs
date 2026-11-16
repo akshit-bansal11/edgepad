@@ -7,6 +7,7 @@ using Edgepad.Net;
 using Edgepad.Platform;
 using Edgepad.Power;
 using Edgepad.Protocol;
+using Edgepad.Transfer;
 using Edgepad.Trust;
 using Edgepad.Ui;
 
@@ -35,6 +36,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Action<LaptopStatus> onStatus;
     private readonly Func<LinuxSession, bool> onAdmitted;
     private readonly Action<LinuxSession> onEnded;
+    private readonly Func<LinuxSession, LinuxSession?> liveFor;
     private int disposed;
     private Action<bool>? inputState;
     private Action<MediaSnapshot>? mediaObserver;
@@ -44,6 +46,19 @@ internal sealed class LinuxSession : IDisposable
 
     // Which icon run may still send: each WANT_ICONS and Dispose move it on, and a run that sees it moved stops.
     private int iconRun;
+
+    // Files. The receiver and sender are the control session's; a transfer socket (a LinuxSession of its own, see RunBulk)
+    // only reads XFER frames into them and carries what they send while it is attached.
+    private volatile TransferReceiver? receiver;
+    private volatile TransferSender? fileSender;
+    private int transferId;
+
+    // The transfer socket this session holds, or is about to: set when it asks, cleared when it ends. Under bulkGate.
+    private readonly Lock bulkGate = new();
+    private LinuxSession? bulkOwner;
+
+    // On a transfer socket's own session: HELLO_ACK went out, so the live session may send on it.
+    private volatile bool bulkLive;
 
     // Cancelled by Dispose, so a trust question open for this session, or about to be put, is withdrawn.
     private readonly CancellationTokenSource ended = new();
@@ -69,8 +84,10 @@ internal sealed class LinuxSession : IDisposable
         LinkIdentity identity,
         Action<LaptopStatus> onStatus,
         Func<LinuxSession, bool> onAdmitted,
-        Action<LinuxSession> onEnded)
+        Action<LinuxSession> onEnded,
+        Func<LinuxSession, LinuxSession?> liveFor)
     {
+        this.liveFor = liveFor;
         this.identity = identity;
         this.link = link;
         Address = link.Address;
@@ -111,12 +128,32 @@ internal sealed class LinuxSession : IDisposable
 
     private void Run()
     {
+        LinuxSession? live = null;
         try
         {
             // A refusal comes back here and the finally below closes the socket; a phone gone silent mid-handshake
-            // is ended through Dispose, which wakes the blocked read.
-            if (!Handshake.Run(frames, Address, trust, pin, askTrust, () => onAdmitted(this), onStatus, Log.Write, Dispose, ended.Token))
+            // is ended through Dispose, which wakes the blocked read. A transfer socket (BULK_HELLO) is answered without
+            // trust, PIN or onAdmitted and attaches only to the connected phone's live session, which liveFor finds and reserves.
+            var outcome = Handshake.Open(
+                frames,
+                Address,
+                trust,
+                pin,
+                askTrust,
+                () => onAdmitted(this),
+                onStatus,
+                Log.Write,
+                Dispose,
+                ended.Token,
+                hasLiveSession: () => (live = liveFor(this)) is not null);
+            if (outcome == HandshakeOutcome.Refused)
             {
+                return;
+            }
+
+            if (outcome == HandshakeOutcome.Bulk)
+            {
+                RunBulk(live!);
                 return;
             }
 
@@ -158,6 +195,15 @@ internal sealed class LinuxSession : IDisposable
                 };
                 StateReporter.MediaObserved += mediaObserver;
             }
+
+            // Files, both ways, one at a time each. A part is kept when the session ends, for the next BEGIN of the same file.
+            var incoming = new TransferReceiver(
+                LinuxTransfers.Destination(), LinuxTransfers.PartialFolder(), status => Guarded(() => SendTransfer(status)), LinuxTransfers.Arrived);
+            dispatcher.Transfers = incoming;
+            receiver = incoming;
+            var outgoing = new TransferSender(SendTransfer, link.Kind, () => dispatcher.LastInputMs, ended.Token);
+            dispatcher.Sending = outgoing;
+            fileSender = outgoing;
 
             dispatcher.PadStatusReply = status => frames.Send(new Text((byte)TextKind.PadStatus, status));
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
@@ -226,6 +272,9 @@ internal sealed class LinuxSession : IDisposable
         }
         finally
         {
+            // A transfer socket gives its place back to the session it was attached to, ended or never attached.
+            live?.ReleaseBulk(this);
+
             // Releases anything still held down: Alt in the middle of an app switch, a button mid-drag. Unplugs the
             // pad too, so a phone that drops mid-game does not leave a stick pushed forward.
             // Each step nested, so one that throws still lets the rest run: held input is released and the server
@@ -262,6 +311,7 @@ internal sealed class LinuxSession : IDisposable
                     }
 
                     notifications?.Dispose();
+                    receiver?.Dispose();
                     dispatcher.Capture?.Dispose();
                     if (dispatcher.Cadence.Summary() is { } cadence)
                     {
@@ -285,6 +335,107 @@ internal sealed class LinuxSession : IDisposable
                     }
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// A transfer socket's whole life after HELLO_ACK: it reads only file-transfer frames, hands them to the session it is
+    /// attached to, and ends on anything else (a repeated BULK_HELLO included) or after 30 s without a frame.
+    /// </summary>
+    private void RunBulk(LinuxSession live)
+    {
+        bulkLive = true;
+        using var silence = new SilenceWatch(
+            Handshake.BulkSilenceLimit,
+            () =>
+            {
+                Log.Write($"Transfer socket of {Address} closed: no frame for 30 s");
+                Dispose();
+            },
+            every: TimeSpan.FromSeconds(5));
+        while (true)
+        {
+            var frame = frames.ReadFrame();
+            silence.Touch();
+            if (!Handshake.IsLegalOnBulk(frame))
+            {
+                Log.Write($"Transfer socket of {Address} closed: it sent a frame that is not part of a file transfer");
+                return;
+            }
+
+            live.TakeTransfer(frame);
+        }
+    }
+
+    /// <summary>Reserves this session's one transfer socket for <paramref name="bulk"/>; false when it already has one or has ended.</summary>
+    internal bool ReserveBulk(LinuxSession bulk)
+    {
+        lock (bulkGate)
+        {
+            if (Volatile.Read(ref disposed) != 0 || bulkOwner is not null)
+            {
+                return false;
+            }
+
+            bulkOwner = bulk;
+            return true;
+        }
+    }
+
+    internal void ReleaseBulk(LinuxSession bulk)
+    {
+        lock (bulkGate)
+        {
+            if (ReferenceEquals(bulkOwner, bulk))
+            {
+                bulkOwner = null;
+            }
+        }
+    }
+
+    /// <summary>A file-transfer frame from either socket. Only these four reach here, and the receiver and sender hold their own locks.</summary>
+    internal void TakeTransfer(Frame frame) => _ = frame switch
+    {
+        XferBegin f => receiver?.Take(f) ?? false,
+        XferChunk f => receiver?.Take(f) ?? false,
+        XferEnd f => receiver?.Take(f) ?? false,
+        XferStatus f => (fileSender?.Take(f) ?? false) | (receiver?.Take(f) ?? false),
+        _ => false,
+    };
+
+    /// <summary>Sends <paramref name="path"/> to the phone and blocks until it ends; never call it on the read thread.</summary>
+    internal XferCode SendFile(string path, CancellationToken cancel)
+    {
+        if (fileSender is not { } current)
+        {
+            return XferCode.SessionEnded;
+        }
+
+        var id = (byte)((uint)Interlocked.Increment(ref transferId) % 255 + 1);
+        return current.Send(path, id, cancel);
+    }
+
+    // Everything this laptop says about a file goes down the transfer socket while one is attached, else the control one.
+    private void SendTransfer(Frame frame)
+    {
+        LinuxSession? bulk;
+        lock (bulkGate)
+        {
+            bulk = bulkOwner;
+        }
+
+        (bulk is { bulkLive: true } ? bulk.frames : frames).Send(frame);
+    }
+
+    private static void Guarded(Action send)
+    {
+        try
+        {
+            send();
+        }
+        catch (Exception e) when (e is IOException or ObjectDisposedException or OperationCanceledException)
+        {
+            // The read loop notices the dead socket and ends the session; a lost status costs nothing.
         }
     }
 
@@ -376,8 +527,18 @@ internal sealed class LinuxSession : IDisposable
             return;
         }
 
+        LinuxSession? transferSocket;
+        lock (bulkGate)
+        {
+            transferSocket = bulkOwner;
+            bulkOwner = null;
+        }
+
         ended.Cancel();
         Interlocked.Increment(ref iconRun);
+
+        // The transfer socket goes with the session it belongs to.
+        transferSocket?.Dispose();
 
         // Closed first, and outside the send lock: a Send blocked in a write to a phone that has stopped
         // reading holds that lock for as long as the write blocks. Closing the link fails that write and
