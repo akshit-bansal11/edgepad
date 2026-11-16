@@ -71,7 +71,10 @@ final class InputInjector: InputSink {
         case 1: types = (.rightMouseDown, .rightMouseUp, .right)
         default: types = (.otherMouseDown, .otherMouseUp, .center)
         }
-        let point = location()
+        // Where the last move put the pointer, as move() reckons it: the live cursor can lag the moves just posted, and
+        // a click right after a move would land short. After a quiet moment the owner's own mouse counts again.
+        let recent = ProcessInfo.processInfo.systemUptime - lastMove <= Self.resyncAfterSeconds
+        let point = recent ? tracked ?? location() : location()
         if down {
             heldButtons.insert(id)
             _ = clicks.down(
@@ -104,13 +107,14 @@ final class InputInjector: InputSink {
     }
 
     func type(_ text: String) {
-        for character in text {
-            if character == "\u{8}" {
+        for stroke in TypedText.strokes(text) {
+            switch stroke {
+            case .delete:
                 chord([.delete])
-            } else if character == "\n" {
+            case .returnKey:
                 chord([.returnKey])
-            } else {
-                let units = Array(String(character).utf16)
+            case .text(let character):
+                let units = Array(character.utf16)
                 for down in [true, false] {
                     guard let event = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: down) else {
                         continue

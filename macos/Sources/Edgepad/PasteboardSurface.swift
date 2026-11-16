@@ -49,12 +49,21 @@ final class PasteboardSurface: ClipboardSurface {
         case .png:
             return board.data(forType: .png).map { ClipboardContent(kind: .clipImage, data: [UInt8]($0)) }
         case .tiff:
-            guard let tiff = board.data(forType: .tiff), let image = NSBitmapImageRep(data: tiff),
-                UInt64(max(image.pixelsWide, 0)) * UInt64(max(image.pixelsHigh, 0)) <= ClipboardSync.maxImagePixels,
-                let png = image.representation(using: .png, properties: [:])
-            else { return nil }
-            return ClipboardContent(kind: .clipImage, data: [UInt8](png))
+            // Only the bytes here; the PNG re-encode is `encode`'s, off the main thread.
+            return board.data(forType: .tiff).map {
+                ClipboardContent(kind: .clipImage, data: [UInt8]($0), unencoded: true)
+            }
         }
+    }
+
+    /// TIFF to PNG. Touches no pasteboard, so it may run off the main thread.
+    func encode(_ content: ClipboardContent) -> ClipboardContent? {
+        guard content.unencoded else { return content }
+        guard let image = NSBitmapImageRep(data: Data(content.data)),
+            UInt64(max(image.pixelsWide, 0)) * UInt64(max(image.pixelsHigh, 0)) <= ClipboardSync.maxImagePixels,
+            let png = image.representation(using: .png, properties: [:])
+        else { return nil }
+        return ClipboardContent(kind: .clipImage, data: [UInt8](png))
     }
 
     func write(_ content: ClipboardContent) -> Bool {

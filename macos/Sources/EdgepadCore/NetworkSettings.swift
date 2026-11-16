@@ -30,17 +30,38 @@ public final class NetworkSettings {
     }
 
     public func load() -> (enabled: Bool, port: Int) {
-        let off = (enabled: false, port: Self.defaultPort)
+        read() ?? (enabled: false, port: Self.defaultPort)
+    }
+
+    /// Turns the link on or off, keeping the port. False, logged, when the file cannot be written, and when it cannot
+    /// be read or holds something Edgepad did not write: rewriting it then would replace the owner's port with the
+    /// default and hide what was wrong.
+    public func setEnabled(_ enabled: Bool) -> Bool {
+        guard let current = read() else {
+            Log.write("The network settings in \(path) were left as they are: they could not be read")
+            return false
+        }
+        if let failure = writePrivately("enabled=\(enabled ? 1 : 0)\nport=\(current.port)\n", to: path) {
+            Log.write("The network settings could not be saved to \(path): \(failure)")
+            return false
+        }
+        return true
+    }
+
+    /// The settings; off on the default port when there is no file; nil, logged, when the file cannot be read or holds
+    /// something Edgepad did not write.
+    private func read() -> (enabled: Bool, port: Int)? {
         let text: String
         do {
             text = try String(contentsOfFile: path, encoding: .utf8)
         } catch {
-            if !isAbsent(error, at: path) {
-                Log.write(
-                    "The network settings could not be read from \(path), so Wi-Fi and USB phones are refused: "
-                        + error.localizedDescription)
+            if isAbsent(error, at: path) {
+                return (enabled: false, port: Self.defaultPort)
             }
-            return off
+            Log.write(
+                "The network settings could not be read from \(path), so Wi-Fi and USB phones are refused: "
+                    + error.localizedDescription)
+            return nil
         }
         var enabled = false
         var port = Self.defaultPort
@@ -63,18 +84,9 @@ public final class NetworkSettings {
                 Log.write(
                     "The network settings in \(path) hold something Edgepad did not write, so Wi-Fi and USB phones "
                         + "are refused")
-                return off
+                return nil
             }
         }
         return (enabled, port)
-    }
-
-    /// Turns the link on or off, keeping the port. False, logged, when the file cannot be written.
-    public func setEnabled(_ enabled: Bool) -> Bool {
-        if let failure = writePrivately("enabled=\(enabled ? 1 : 0)\nport=\(load().port)\n", to: path) {
-            Log.write("The network settings could not be saved to \(path): \(failure)")
-            return false
-        }
-        return true
     }
 }
