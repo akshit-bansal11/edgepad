@@ -53,6 +53,9 @@ public final class LinkResponder {
     public static let messageTimeoutSeconds: TimeInterval = 10
     /// How long the owner has to type the code.
     public static let ownerTimeoutSeconds: TimeInterval = 60
+    /// The phone's own wait for the confirmation starts before the owner types the code here, so this Mac's runs this
+    /// much longer: a yes at the end of the phone's minute must not land after the Mac gave up. The C# `ConfirmGrace`.
+    public static let confirmGraceSeconds: TimeInterval = 5
 
     private enum Stage {
         case request
@@ -323,7 +326,7 @@ public final class LinkResponder {
         question?.matched()
         // The phone's owner confirms on the phone that this Mac said the code matched, the one check that tells the
         // phone it reached this Mac; that takes a person, so the wait is the owner's, not a message's.
-        wait("confirmation", seconds: Self.ownerTimeoutSeconds)
+        wait("confirmation", seconds: Self.ownerTimeoutSeconds + Self.confirmGraceSeconds)
     }
 
     /// The owner forgot the trusted phones while this one was pairing: the later word wins, and it is the owner's, so
@@ -365,7 +368,12 @@ public final class LinkResponder {
                         + "again next time")
             }
             guard trust.grant(address, since: pairing.trustGeneration) else {
-                forgotten()
+                if trust.forgetGeneration != pairing.trustGeneration {
+                    forgotten()
+                } else {
+                    // An unreadable disk is not the phone's fault: not counted against it.
+                    finish(nil, outcome: .abandoned, "Did not pair \(address): the trusted phones cannot be read")
+                }
                 return
             }
             Log.write("Paired \(address)")

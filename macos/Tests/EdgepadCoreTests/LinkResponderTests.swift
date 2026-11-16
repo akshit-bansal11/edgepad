@@ -69,6 +69,7 @@ final class LinkResponderTests: XCTestCase {
     /// What the responder sent, one message each, and its timers, fired by hand.
     private var sent: [[UInt8]] = []
     private var timers: [() -> Void] = []
+    private var delays: [TimeInterval] = []
     private var results: [LinkResult?] = []
 
     override func tearDown() {
@@ -79,6 +80,7 @@ final class LinkResponderTests: XCTestCase {
     private func responder(host: String? = nil, refusing: Bool = false) -> LinkResponder {
         sent = []
         timers = []
+        delays = []
         results = []
         return LinkResponder(
             identity: identity, paired: paired, limiter: limiter, prompt: prompt, trust: trust, host: host,
@@ -87,7 +89,10 @@ final class LinkResponderTests: XCTestCase {
                 self?.sent.append(bytes)
                 return true
             },
-            schedule: { [weak self] _, run in self?.timers.append(run) },
+            schedule: { [weak self] delay, run in
+                self?.delays.append(delay)
+                self?.timers.append(run)
+            },
             onDone: { [weak self] result in self?.results.append(result) })
     }
 
@@ -168,6 +173,32 @@ final class LinkResponderTests: XCTestCase {
         XCTAssertEqual(paired.find(Hex.string(phoneId))?.key, LinkCrypto.pairingKey(phone.prk))
         XCTAssertGreaterThan(prompt.withdrawn, 0)
         XCTAssertEqual(prompt.told, ["matched", "finished:true"])
+    }
+
+    /// CORE-4, as C#: the phone's minute starts before the code is typed here, so the Mac waits 5 s longer.
+    func testTheConfirmationIsAwaitedTheOwnersMinuteAndAGrace() throws {
+        let link = responder()
+        let phone = try pairToCode(link)
+
+        prompt.type(phone.code)
+
+        XCTAssertEqual(delays.last, LinkResponder.ownerTimeoutSeconds + 5)
+    }
+
+    /// CORE-10, as C#: an unreadable trust file never grants, so the pairing ends untrusted and uncounted.
+    func testAPairingOverAnUnreadableTrustFileIsNotTrusted() throws {
+        let link = responder()
+        let phone = try pairToCode(link)
+        prompt.type(phone.code)
+        // A folder where the trust file should be: there, and not readable.
+        try FileManager.default.createDirectory(
+            atPath: directory.appendingPathComponent("trusted-phone.txt").path, withIntermediateDirectories: true)
+
+        link.receive(LinkWire.message(LinkCrypto.phoneTag(phone.prk, phone.transcript, pairing: true)))
+
+        XCTAssertEqual(results.count, 1)
+        XCTAssertNil(results[0])
+        XCTAssertFalse(trust.admit(address) { false })
     }
 
     func testAWrongCodeIsAFailureAndNothingIsTrusted() throws {

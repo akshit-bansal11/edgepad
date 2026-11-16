@@ -175,9 +175,8 @@ public final class TrustStore {
 
     /// Trusts `address` without asking: the owner already said yes another way, by typing a network phone's pairing
     /// code on this Mac. False, with nothing written, when the trusted phones were forgotten since `generation` was
-    /// read: the pairing then must not trust the phone again. A trust file that cannot be read is left as it is, so
-    /// the phone is refused at `admit` like every other until the owner forgets them; one that cannot be written keeps
-    /// the phone for this run, as `admit`.
+    /// read: the pairing then must not trust the phone again. False too, with the file left as it is, when the trust
+    /// file cannot be read (CORE-10, as C#); one that cannot be written keeps the phone for this run, as `admit`.
     @discardableResult
     public func grant(_ address: String, since generation: Int) -> Bool {
         locked {
@@ -188,7 +187,12 @@ public final class TrustStore {
             // A new pairing is the owner's new yes, typed on this Mac: a forget of it that failed earlier is overruled.
             denied.remove(address.lowercased())
             let read = tryRead()
-            guard read.readable, !TrustStore.names(withUnsaved(read.addresses), address) else { return true }
+            // An unreadable file never grants: the phone is refused, as at `admit`, until the owner forgets them.
+            guard read.readable else {
+                Log.write("Did not trust \(address): the trusted phones cannot be read")
+                return false
+            }
+            guard !TrustStore.names(withUnsaved(read.addresses), address) else { return true }
             do {
                 try save(read.addresses + [address])
             } catch {

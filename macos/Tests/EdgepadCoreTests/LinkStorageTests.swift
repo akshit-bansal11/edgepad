@@ -153,7 +153,7 @@ final class LinkStorageTests: XCTestCase {
         try FileManager.default.createDirectory(
             atPath: path("trusted-phone.txt"), withIntermediateDirectories: true)
         let trust = TrustStore(path: path("trusted-phone.txt"))
-        trust.grant("link:00", since: trust.forgetGeneration)
+        XCTAssertFalse(trust.grant("link:00", since: trust.forgetGeneration))
 
         XCTAssertFalse(trust.admit("link:00") { true })
     }
