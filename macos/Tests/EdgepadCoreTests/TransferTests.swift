@@ -179,8 +179,8 @@ final class TransferTests: XCTestCase {
         _ = incoming.take(begin: 1, size: 1, name: "a.txt")
         _ = incoming.take(chunk: 1, offset: 0, data: [7])
         _ = incoming.take(end: 1, sha256: sha([7]))
-        XCTAssertEqual(seen.map(.path), [partial + "/a.txt.1.part"])
-        XCTAssertEqual(seen.map(.inDownloads), [false])
+        XCTAssertEqual(seen.map(\.path), [partial + "/a.txt.1.part"])
+        XCTAssertEqual(seen.map(\.inDownloads), [false])
         XCTAssertTrue(FileManager.default.fileExists(atPath: destination + "/a.txt"))
     }
 
@@ -196,14 +196,14 @@ final class TransferTests: XCTestCase {
         let incoming = receiver()
         _ = incoming.take(begin: 1, size: 9, name: "a.txt")
         _ = incoming.take(chunk: 1, offset: 0, data: [1, 2])
-        XCTAssertEqual(receiverTimers.map(.delay), [TransferLimits.idleTimeout])
+        XCTAssertEqual(receiverTimers.map(\.delay), [TransferLimits.idleTimeout])
         receiverClock = 20
         _ = incoming.take(chunk: 1, offset: 2, data: [3])
         receiverClock = 30
         receiverTimers.removeFirst().work()
         // A chunk came 10 s ago: still going, and the timer is set again for the 20 s left.
         XCTAssertTrue(incoming.busy)
-        XCTAssertEqual(receiverTimers.map(.delay), [20])
+        XCTAssertEqual(receiverTimers.map(\.delay), [20])
         receiverClock = 50
         receiverTimers.removeFirst().work()
         XCTAssertFalse(incoming.busy)

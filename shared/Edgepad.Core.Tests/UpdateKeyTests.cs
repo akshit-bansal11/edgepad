@@ -8,7 +8,7 @@ public sealed class UpdateKeyTests
 {
     [Fact]
     public void TheEmbeddedKeyIsTheSharedOne() =>
-        Assert.Equal(Fixtures.Lines("update-key.txt").Single(), UpdateKey.PublicKeySpkiBase64);
+        Assert.Equal(UpdateKey.PublicKeySpkiBase64, Fixtures.Lines("update-key.txt").Single());
 
     [Fact]
     public void TheEmbeddedKeyIsAP256PublicKey()

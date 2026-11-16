@@ -266,9 +266,7 @@ internal sealed class SecurityWindow
         }
         else if (!verified)
         {
-            await Dialogs.Inform(window, $"{LinuxStrings.Error_ForgetPin}
-
-{pin.Folder}");
+            await Dialogs.Inform(window, $"{LinuxStrings.Error_ForgetPin}\n\n{pin.Folder}");
         }
 
         Refresh();
