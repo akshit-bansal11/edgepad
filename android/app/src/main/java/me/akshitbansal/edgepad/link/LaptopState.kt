@@ -244,12 +244,7 @@ class LaptopState {
             is Frame.Text -> {
                 if (frame.kind == TextKind.INPUT_STATE.id) return inputState(frame.text)
                 when (TextKind.of(frame.kind)) {
-                    TextKind.NOW_PLAYING -> {
-                        nowPlaying = frame.text
-                        // TEXT 26 follows TEXT 0 when it differs, so the old one belongs to the old title.
-                        nowPlayingFull = ""
-                    }
-
+                    TextKind.NOW_PLAYING -> heardTitle(frame.text)
                     TextKind.APP -> app = frame.text
                     TextKind.TIMELINE -> timeline(frame.text)
                     TextKind.REFRESH_RATES -> refreshRates = rates(frame.text)
@@ -329,6 +324,12 @@ class LaptopState {
 
     /** A token this build does not know is skipped, not an error: a newer laptop may name more. */
     private fun cap(text: String): Int? = text.trim().toIntOrNull()?.coerceIn(1, MACRO_SLOTS_MAX)
+
+    /** TEXT 26 follows TEXT 0 when it differs, so the old full title belongs to the old title. */
+    private fun heardTitle(text: String) {
+        nowPlaying = text
+        nowPlayingFull = ""
+    }
 
     private fun unavailable(text: String): Map<String, UnavailableReason> =
         text

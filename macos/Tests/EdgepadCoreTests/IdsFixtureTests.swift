@@ -37,6 +37,9 @@ final class IdsFixtureTests: XCTestCase {
             "BATTERY_KIND",
             "OUTPUT_KIND",
             "BLOB_KIND",
+            "UNAVAILABLE_REASON",
+            "END_ACTION_TOKEN",
+            "CAPTURE_STATE_TOKEN",
             "HANDSHAKE",
         ]
         let kinds = try Fixtures.lines("actions.txt")

@@ -9,7 +9,7 @@ namespace Edgepad.Transfer;
 /// </summary>
 internal static class SafeFileName
 {
-    private const string Invalid = "<>:\"/\|?*";
+    private const string Invalid = "<>:\"/\\|?*";
 
     private static readonly HashSet<string> Reserved = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -30,7 +30,7 @@ internal static class SafeFileName
             return null;
         }
 
-        var cut = raw.LastIndexOfAny(['/', '\']);
+        var cut = raw.LastIndexOfAny(['/', '\\']);
         var segment = cut >= 0 ? raw[(cut + 1)..] : raw;
         var text = new StringBuilder(segment.Length);
         foreach (var ch in segment)

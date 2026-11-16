@@ -17,6 +17,12 @@ class ReasonTextTest {
         assertEquals(R.string.unavailable_off, reasonText(UnavailableReason.OFF))
         assertEquals(R.string.unavailable_no_tool, reasonText(UnavailableReason.NO_TOOL))
         assertEquals(R.string.unavailable_no_permission, reasonText(UnavailableReason.NO_PERMISSION))
-        assertEquals(4, UnavailableReason.entries.map(::reasonText).toSet().size)
+        assertEquals(
+            4,
+            UnavailableReason.entries
+                .map(::reasonText)
+                .toSet()
+                .size,
+        )
     }
 }

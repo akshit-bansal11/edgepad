@@ -40,13 +40,9 @@ private const val HINT_TIMES = 3
 internal fun reasonText(reason: UnavailableReason?): Int =
     when (reason) {
         UnavailableReason.UNSUPPORTED -> R.string.unavailable_unsupported
-
         UnavailableReason.OFF -> R.string.unavailable_off
-
         UnavailableReason.NO_TOOL -> R.string.unavailable_no_tool
-
         UnavailableReason.NO_PERMISSION -> R.string.unavailable_no_permission
-
         null -> R.string.controls_needs_newer
     }
 
@@ -229,7 +225,11 @@ class ControlsPopup(
             )
             choices.alpha = 0f
             endBox.addView(choices)
-            choices.animate().alpha(1f).setDuration(REVEAL_MS).start()
+            choices
+                .animate()
+                .alpha(1f)
+                .setDuration(REVEAL_MS)
+                .start()
         }
     }
 

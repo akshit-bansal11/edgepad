@@ -874,7 +874,7 @@ class Ui(
         return layers
     }
 
-    private companion object {
+    internal companion object {
         /** Switch knobs and slider thumbs are white in both themes, as on iOS. */
         const val KNOB_COLOR = 0xFFFFFFFF.toInt()
 

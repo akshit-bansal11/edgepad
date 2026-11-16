@@ -70,14 +70,13 @@ public enum UpdateVerifier {
         }
         defer { try? handle.close() }
         var hasher = SHA256()
-        while true {
-            guard let chunk = try? handle.read(upToCount: 81920) else {
-                return nil
+        do {
+            // read(upToCount:) returns nil at the end of the file, not an empty Data.
+            while let chunk = try handle.read(upToCount: 81920), !chunk.isEmpty {
+                hasher.update(data: chunk)
             }
-            if chunk.isEmpty {
-                break
-            }
-            hasher.update(data: chunk)
+        } catch {
+            return nil
         }
         return Data(hasher.finalize())
     }
