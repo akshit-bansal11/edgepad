@@ -187,6 +187,15 @@ class LaptopLink(
 
     @Volatile private var handshakeDone = false
 
+    /**
+     * When the laptop last sent a frame, on [System.nanoTime]'s clock. That clock stops in deep sleep, as the handler
+     * that pings does, so sleep alone never makes a link look silent.
+     */
+    @Volatile private var heardAt = System.nanoTime()
+
+    /** How long the laptop has sent nothing, in milliseconds. */
+    val silentMs: Long get() = (System.nanoTime() - heardAt) / NANOS_PER_MS_LONG
+
     /** Snapshot frames: one main-thread post per kind at a time, newest value (see [Latest]). */
     private val latest = Latest({ main.post(it) }, { if (!closed) listener.onFrame(it) })
 
@@ -253,6 +262,7 @@ class LaptopLink(
                 close(Closure(Cause.UNEXPECTED, ack.toString()))
                 return
             }
+            heardAt = System.nanoTime()
             handshakeDone = true
             deliver { it.onConnected(this) }
             // The laptop forgets where captures go when a session ends, so every new one is told again.
@@ -263,6 +273,7 @@ class LaptopLink(
             if (closed) w.interrupt()
             while (!closed) {
                 val frame = readFrame(input)
+                heardAt = System.nanoTime()
                 if (frame is Frame.Pong) {
                     val ms = (System.nanoTime() - frame.time) / NANOS_PER_MS
                     deliver { it.onRoundTrip(ms) }

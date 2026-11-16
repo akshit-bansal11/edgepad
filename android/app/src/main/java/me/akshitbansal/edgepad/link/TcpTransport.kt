@@ -173,6 +173,8 @@ class TcpTransport(
                     Os.setsockoptInt(pfd.fileDescriptor, OsConstants.IPPROTO_TCP, TCP_KEEPIDLE, KEEPALIVE_IDLE_S)
                     Os.setsockoptInt(pfd.fileDescriptor, OsConstants.IPPROTO_TCP, TCP_KEEPINTVL, KEEPALIVE_INTERVAL_S)
                     Os.setsockoptInt(pfd.fileDescriptor, OsConstants.IPPROTO_TCP, TCP_KEEPCNT, KEEPALIVE_COUNT)
+                    // An unanswered ping keeps the kernel retransmitting, which holds keep-alive off: this bounds it.
+                    Os.setsockoptInt(pfd.fileDescriptor, OsConstants.IPPROTO_TCP, TCP_USER_TIMEOUT, USER_TIMEOUT_MS)
                 }
             } catch (e: ErrnoException) {
                 Log.w(TAG, "Short keep-alive timers refused; using the system default", e)
@@ -187,6 +189,10 @@ class TcpTransport(
         const val TCP_KEEPIDLE = 4
         const val TCP_KEEPINTVL = 5
         const val TCP_KEEPCNT = 6
+        const val TCP_USER_TIMEOUT = 18
+
+        /** Data sent and not acknowledged for this long fails the socket. */
+        const val USER_TIMEOUT_MS = 20_000
 
         /** Idle 10 s, then 3 probes 5 s apart: a dead peer is seen after about 25 s. */
         const val KEEPALIVE_IDLE_S = 10

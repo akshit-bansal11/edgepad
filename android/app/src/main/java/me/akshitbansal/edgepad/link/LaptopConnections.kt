@@ -420,6 +420,11 @@ class LaptopConnections(
     private fun ping(laptop: Laptop) {
         val link = laptop.link ?: return
         if (!link.connected) return
+        // A laptop that vanished never answers, and TCP would take its retransmit limit, minutes, to say so.
+        if (link.silentMs > SILENCE_MS) {
+            link.close(LaptopLink.Closure(LaptopLink.Cause.LOST))
+            return
+        }
         link.send(Frame.Ping(System.nanoTime()))
         val interval = if (fastPing && laptop === selected) PING_FAST_MS else PING_SLOW_MS
         laptop.pingTimer = scheduler.after(interval) { ping(laptop) }
@@ -525,6 +530,13 @@ class LaptopConnections(
         const val STABLE_LINK_MS = 5_000L
         const val PING_FAST_MS = 500L
         const val PING_SLOW_MS = 5_000L
+
+        /**
+         * A connected laptop that has sent nothing for this long is gone, and its link closes as lost. It must exceed
+         * three slow ping periods (PING_SLOW_MS * 3 = 15 s; the fast period is shorter), so one late pong never ends a
+         * working link.
+         */
+        const val SILENCE_MS = 15_000L
 
         /** The pairing code's countdown, the same 90 s the network transport waits for the laptop's answer. */
         const val PAIR_CODE_MS = 90_000L

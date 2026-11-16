@@ -575,6 +575,35 @@ class LaptopConnectionsTest {
         assertEquals(2, made.size)
     }
 
+    @Test
+    fun aConnectedLinkThatHasGoneSilentIsClosedAsLostAtTheNextPing() {
+        val link = up(1)
+        link.silent = LaptopConnections.SILENCE_MS + 1
+        scheduler.advance(LaptopConnections.PING_SLOW_MS)
+        assertEquals(LaptopLink.Cause.LOST, link.closedWith)
+        assertTrue(laptop(1).reconnecting)
+    }
+
+    @Test
+    fun aLinkHeardJustNowIsKept() {
+        val link = up(1)
+        link.silent = 14_000
+        scheduler.advance(LaptopConnections.PING_SLOW_MS)
+        assertNull(link.closedWith)
+        assertTrue(laptop(1).connected)
+    }
+
+    @Test
+    fun aSilentNonSelectedLaptopIsClosedToo() {
+        up(1)
+        val other = up(2)
+        assertSame(laptop(1), manager.selected)
+        other.silent = LaptopConnections.SILENCE_MS + 1
+        scheduler.advance(LaptopConnections.PING_SLOW_MS)
+        assertEquals(LaptopLink.Cause.LOST, other.closedWith)
+        assertTrue(laptop(2).reconnecting)
+    }
+
     private fun switchTo2(): FakeLink {
         manager.connect(net(2), "Laptop 2", Transport.WIFI, tapped = true, select = true, replacing = listOf(id(1)))
         return made.last()
@@ -724,6 +753,9 @@ class LaptopConnectionsTest {
         override var blobs: ((Frame) -> Unit)? = null
         override val queued = 0
         override val lastInputMs = 0L
+
+        var silent = 0L
+        override val silentMs: Long get() = silent
 
         fun accept() {
             connected = true
