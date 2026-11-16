@@ -99,7 +99,7 @@ internal sealed class MacroStore : IMacroRunner
     }
 
     public static MacroStore ForCurrentUser(IMacroLauncher launcher, IMacroWindows? windows = null) => new(
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "macros.txt"),
+        Path.Combine(UserFolder.Current, "macros.txt"),
         launcher,
         windows: windows);
 
