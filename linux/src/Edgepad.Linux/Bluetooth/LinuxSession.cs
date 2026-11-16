@@ -7,6 +7,7 @@ using Edgepad.Platform;
 using Edgepad.Power;
 using Edgepad.Protocol;
 using Edgepad.Trust;
+using Edgepad.Ui;
 
 namespace Edgepad.Bluetooth;
 
@@ -127,7 +128,14 @@ internal sealed class LinuxSession : IDisposable
             // before the first answer, so a flip between the two is not lost.
             inputState = SendInputState;
             UinputAccess.Changed += inputState;
-            frames.Send(new Text((byte)TextKind.InputState, UinputAccess.StateText(UinputAccess.Check() is not null)));
+            var inputBlocked = UinputAccess.Check() is not null;
+            frames.Send(new Text((byte)TextKind.InputState, UinputAccess.StateText(inputBlocked)));
+
+            // The same word feeds TEXT 24 (capture needs the device), which the annotator sends with TEXT 9.
+            Annotator.InputBlocked(inputBlocked);
+
+            // TEXT 23, best effort: only the recordings this phone started are seen.
+            dispatcher.CaptureStateReply = state => frames.Send(new Text((byte)TextKind.CaptureState, state));
             dispatcher.PadStatusReply = status => frames.Send(new Text((byte)TextKind.PadStatus, status));
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
             dispatcher.MacroWatch = startReporting(frames.Send, () => dispatcher.LastInputMs);
@@ -257,6 +265,7 @@ internal sealed class LinuxSession : IDisposable
         try
         {
             frames.Send(new Text((byte)TextKind.InputState, UinputAccess.StateText(blocked)));
+            Annotator.InputBlocked(blocked);
         }
         catch (Exception e) when (e is IOException or ObjectDisposedException)
         {

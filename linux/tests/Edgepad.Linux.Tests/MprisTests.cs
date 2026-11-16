@@ -132,6 +132,57 @@ public sealed class MprisTests
     public void ASeekPercentIsAPositionInMicroseconds(int percent, long length, long expected) =>
         Assert.Equal(expected, MprisMap.PositionFor(percent, length));
 
+    [Fact]
+    public void TheTitleIsCleanedWithAnArtistArrayAndTheFullLineIsKept()
+    {
+        var state = MprisMap.ToState(Player(Spotify, "Playing", 0, Track("Song (Remastered) feat. C", ["A", "B"], 1_000_000)));
+        Assert.Equal("Song - A, B", state.NowPlaying);
+        Assert.Equal("Song (Remastered) feat. C - A, B", state.Full);
+        Assert.Equal(Spotify, state.Bus);
+        Assert.Equal("Song (Remastered) feat. C - A, B", StateReporter.FullFor(state));
+    }
+
+    [Fact]
+    public void ACleanTitleSendsNoFullLine() =>
+        Assert.Equal("", StateReporter.FullFor(MprisMap.ToState(Player(Vlc, "Playing", 0, Track("Song", ["A"], 1_000_000)))));
+
+    [Theory]
+    [InlineData(false, false, "", "")]
+    [InlineData(false, true, "", "")]
+    [InlineData(true, false, "", "annotate:unsupported")]
+    [InlineData(true, true, "", "")]
+    [InlineData(true, true, "x", "capture:no-permission")]
+    [InlineData(true, false, "x", "annotate:unsupported/capture:no-permission")]
+    public void UnavailableNamesWhatCannotBeOffered(bool decided, bool annotate, string blocked, string expected) =>
+        Assert.Equal(expected, Edgepad.Ui.Annotator.Unavailable(decided, annotate, blocked.Length > 0));
+
+    [Theory]
+    [InlineData("file:///tmp/a.png", 1000L, "/tmp/a.png")]
+    [InlineData("file:///tmp/a.JPG", 1000L, "/tmp/a.JPG")]
+    [InlineData("file:///tmp/a.jpeg", 524_288L, "/tmp/a.jpeg")]
+    [InlineData("file:///tmp/a.jpeg", 524_289L, null)]
+    [InlineData("file:///tmp/a.gif", 1000L, null)]
+    [InlineData("file:///tmp/a.png", 0L, null)]
+    [InlineData("https://example.com/a.png", 1000L, null)]
+    [InlineData("data:image/png;base64,AAAA", 1000L, null)]
+    [InlineData("file://host/tmp/a.png", 1000L, null)]
+    [InlineData("", 1000L, null)]
+    [InlineData(null, 1000L, null)]
+    public void OnlyASmallLocalPngOrJpgIsArtwork(string? url, long size, string? expected) =>
+        Assert.Equal(expected, MprisMap.ArtworkPath(url, _ => size));
+
+    [Fact]
+    public void AMissingArtworkFileIsNoArtwork() =>
+        Assert.Null(MprisMap.ArtworkPath("file:///tmp/a.png", _ => null));
+
+    [Theory]
+    [InlineData("org.mpris.MediaPlayer2.firefox.instance_1_234", true)]
+    [InlineData("org.mpris.MediaPlayer2.chromium.instance99", true)]
+    [InlineData("org.mpris.MediaPlayer2.spotify", false)]
+    [InlineData("org.mpris.MediaPlayer2.vlc", false)]
+    public void BrowsersAreToldApart(string bus, bool browser) =>
+        Assert.Equal(browser, MprisMap.IsBrowser(bus));
+
     private static PlayerSnapshot Player(string busName, string status, long position, Dictionary<string, object?> metadata) =>
         new(busName, status, position, metadata);
 

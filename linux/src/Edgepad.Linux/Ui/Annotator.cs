@@ -113,7 +113,44 @@ internal sealed class Annotator : IDisposable
             Log.Write($"The annotation overlay could not be built, so annotate is not offered ({session} session): {e}");
         }
 
+        uiDecided = true;
         Changed?.Invoke();
+    }
+
+    /// <summary>Set once <see cref="StartUi"/> has decided whether annotate is offered, so TEXT 24 never blames it early.</summary>
+    private static volatile bool uiDecided;
+
+    /// <summary>Whether /dev/uinput cannot be opened; capture then presses nothing.</summary>
+    private static volatile bool inputBlocked;
+
+    /// <summary>The session's word on /dev/uinput. Tells every connected phone TEXT 24 again when it flipped.</summary>
+    internal static void InputBlocked(bool blocked)
+    {
+        if (inputBlocked != blocked)
+        {
+            inputBlocked = blocked;
+            Changed?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// The TEXT 24 payload: "feature:reason" entries joined by "/", empty for none. Annotate is unsupported when the
+    /// overlay was refused (no X11 window, as on Wayland); capture needs /dev/uinput for its shortcut keys.
+    /// </summary>
+    internal static string Unavailable(bool decided, bool annotate, bool blocked)
+    {
+        var entries = new List<string>(2);
+        if (decided && !annotate)
+        {
+            entries.Add($"{Feature.Annotate}:{UnavailableReason.Unsupported}");
+        }
+
+        if (blocked)
+        {
+            entries.Add($"{Feature.Capture}:{UnavailableReason.NoPermission}");
+        }
+
+        return string.Join('/', entries);
     }
 
     /// <summary>
@@ -295,6 +332,7 @@ internal sealed class Annotator : IDisposable
         }
 
         sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning, ClipboardSetting.Enabled, apps: true, notify: NotifySetting.Enabled && !NotificationMonitor.Refused)));
+        sink(new Text((byte)TextKind.Unavailable, Unavailable(uiDecided, annotating, inputBlocked)));
         if (primary is { } screen)
         {
             sink(new Text(
