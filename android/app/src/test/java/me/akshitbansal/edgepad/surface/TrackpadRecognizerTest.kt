@@ -408,4 +408,103 @@ class TrackpadRecognizerTest {
         pad.handle(Action.UP, FloatArray(0), FloatArray(0), 50)
         assertEquals(listOf(ActionId.PLAY_PAUSE.frame()), out)
     }
+
+    private val leftClick = listOf(Frame.PointerButton(0, true), Frame.PointerButton(0, false))
+
+    /** A recogniser with tap-and-drag on, after one tap that lifted at 80 ms. */
+    private fun tappedOnce(pointerSpeed: Float = 1f): TrackpadRecognizer {
+        val pad = TrackpadRecognizer(density = 1f, pointerSpeed = pointerSpeed, tapDrag = true) { out.add(it) }
+        pad.send(Action.DOWN, 0, 100f to 100f)
+        pad.send(Action.UP, 80)
+        assertEquals(leftClick, out)
+        return pad
+    }
+
+    @Test
+    fun doubleTapAndDragPressesOnlyAfterLeavingTheBox() {
+        val pad = tappedOnce()
+        pad.send(Action.DOWN, 200, 100f to 100f)
+        pad.send(Action.MOVE, 210, 103f to 100f)
+        assertEquals("inside the slop nothing is sent", 2, out.size)
+        pad.send(Action.MOVE, 220, 160f to 100f)
+        pad.send(Action.MOVE, 230, 200f to 100f)
+        pad.send(Action.UP, 400)
+        val move = out[2] as Frame.Move
+        assertTrue("left the box first: ${move.dx}", move.dx > TrackpadRecognizer.DOUBLE_CLICK_EXIT_PX)
+        assertEquals(Frame.PointerButton(0, true), out[3])
+        assertTrue("then moves", out.subList(4, out.size - 1).all { it is Frame.Move })
+        assertEquals(Frame.PointerButton(0, false), out.last())
+    }
+
+    @Test
+    fun theSecondTouchSendsNothingWhileInsideTheBox() {
+        val pad = tappedOnce(pointerSpeed = 0.3f)
+        pad.send(Action.DOWN, 200, 100f to 100f)
+        pad.send(Action.MOVE, 210, 109f to 100f)
+        pad.send(Action.UP, 300)
+        assertEquals(leftClick, out)
+    }
+
+    @Test
+    fun aSecondTapIsADoubleClick() {
+        val pad = tappedOnce()
+        pad.send(Action.DOWN, 200, 100f to 100f)
+        pad.send(Action.UP, 260)
+        assertEquals(leftClick + leftClick, out)
+    }
+
+    @Test
+    fun aSlowSecondTouchIsAPlainMove() {
+        val pad = tappedOnce()
+        pad.send(Action.DOWN, 80 + TrackpadRecognizer.TAP_DRAG_MS + 1, 100f to 100f)
+        pad.send(Action.MOVE, 400, 160f to 100f)
+        pad.send(Action.UP, 450)
+        assertTrue("only moves: ${out.toList()}", out.drop(2).all { it is Frame.Move })
+        assertTrue(out.size > 2)
+    }
+
+    @Test
+    fun withoutTapDragASecondTouchNeverPresses() {
+        val capture = TrackpadRecognizer(density = 1f, tapDrag = false) { out.add(it) }
+        capture.send(Action.DOWN, 0, 100f to 100f)
+        capture.send(Action.UP, 80)
+        capture.send(Action.DOWN, 200, 100f to 100f)
+        capture.send(Action.MOVE, 220, 160f to 100f)
+        capture.send(Action.MOVE, 230, 200f to 100f)
+        capture.send(Action.UP, 400)
+        assertEquals(leftClick, out.take(2))
+        assertTrue("only moves: ${out.toList()}", out.drop(2).all { it is Frame.Move })
+    }
+
+    @Test
+    fun aSecondFingerCancelsThePendingPress() {
+        val pad = tappedOnce()
+        pad.send(Action.DOWN, 200, 100f to 100f)
+        pad.send(Action.DOWN, 210, 100f to 100f, 160f to 100f)
+        pad.send(Action.MOVE, 230, 100f to 140f, 160f to 140f)
+        pad.send(Action.UP, 240, 160f to 140f)
+        pad.send(Action.MOVE, 250, 200f to 140f)
+        pad.send(Action.UP, 260)
+        assertTrue("no left press: ${out.toList()}", out.drop(2).none { it is Frame.PointerButton })
+        assertTrue(out.drop(2).any { it is Frame.Scroll })
+    }
+
+    @Test
+    fun aCancelWhilePendingSendsNothing() {
+        val pad = tappedOnce(pointerSpeed = 0.3f)
+        pad.send(Action.DOWN, 200, 100f to 100f)
+        pad.send(Action.MOVE, 210, 109f to 100f)
+        pad.send(Action.CANCEL, 220)
+        assertEquals(leftClick, out)
+    }
+
+    @Test
+    fun holdStillStillDragsAfterATap() {
+        val pad = tappedOnce()
+        pad.send(Action.DOWN, 200, 100f to 100f)
+        pad.tick(200 + TrackpadRecognizer.HOLD_MS)
+        assertEquals(leftClick + Frame.PointerButton(0, true), out)
+        pad.send(Action.UP, 700)
+        assertEquals(leftClick + leftClick, out)
+    }
 }

@@ -128,7 +128,9 @@ class ControlSurface(
             settings.scrollSpeed,
             settings::gesture,
             if (shapes.isEmpty()) null else ::runShape,
-            send,
+            // Capture keeps hold-still as its only drag.
+            tapDrag = !trackpadOnly,
+            sink = send,
         )
     private val hapticsOn = settings.haptics
     private val showHints = settings.hints && !trackpadOnly
