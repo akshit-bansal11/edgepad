@@ -88,6 +88,9 @@ class Backdrop(
         width: Int,
         height: Int,
     ) {
+        // Before the first layout the target is 0x0: a 0x0 image scale divides 0 by 0 (NaN) and throws. onSizeChanged
+        // calls this again with the real size.
+        if (width <= 0 || height <= 0) return
         target.set(0f, 0f, width.toFloat(), height.toFloat())
         fill.shader = null
         when (kind) {
