@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Formats.Tar;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Text;
 using Edgepad.Updates;
 
@@ -52,6 +53,12 @@ internal static class LinuxUpdater
         }
 
         var name = UpdateCheck.LinuxName(version);
+        if (name is null)
+        {
+            Log.Write($"There is no release archive for {RuntimeInformation.OSArchitecture}, so nothing was installed.");
+            return UpdateOutcome.Failed;
+        }
+
         if (!UpdateVerifier.TryHashFor(Encoding.UTF8.GetString(sums), name, out var listed))
         {
             Log.Write($"The signed list does not name {name} exactly once, so nothing was installed.");
@@ -143,6 +150,13 @@ internal static class LinuxUpdater
                 return false;
             }
 
+            if (!IsProgramFor(staged, RuntimeInformation.OSArchitecture))
+            {
+                Log.Write("The update's program is not built for this CPU, so the installed one was left alone.");
+                TryDelete(staged);
+                return false;
+            }
+
             if (!OperatingSystem.IsWindows())
             {
                 File.SetUnixFileMode(staged, Executable);
@@ -218,6 +232,38 @@ internal static class LinuxUpdater
         }
 
         return found;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="path"/> is a 64-bit little-endian ELF program for <paramref name="arch"/>, read from the
+    /// header's machine field. False for any other CPU, a short or unreadable file.
+    /// </summary>
+    internal static bool IsProgramFor(string path, Architecture arch)
+    {
+        var machine = arch switch
+        {
+            Architecture.X64 => 0x3E,
+            Architecture.Arm64 => 0xB7,
+            _ => -1,
+        };
+        if (machine < 0)
+        {
+            return false;
+        }
+
+        try
+        {
+            using var file = File.OpenRead(path);
+            Span<byte> head = stackalloc byte[20];
+            return file.ReadAtLeast(head, head.Length, throwOnEndOfStream: false) == head.Length
+                && head[0] == 0x7F && head[1] == (byte)'E' && head[2] == (byte)'L' && head[3] == (byte)'F'
+                && head[4] == 2 && head[5] == 1
+                && (head[18] | (head[19] << 8)) == machine;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
     }
 
     private static bool SafeName(string name) =>

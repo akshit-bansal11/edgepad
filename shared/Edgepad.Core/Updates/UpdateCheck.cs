@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace Edgepad.Updates;
 
 /// <summary>
@@ -73,7 +75,16 @@ internal static class UpdateCheck
 
     public static string ExeName(Version version) => $"Edgepad-{version}.exe";
 
-    public static string LinuxName(Version version) => $"Edgepad-{version}-linux-x64.tar.gz";
+    /// <summary>The Linux archive for this machine's CPU; null when it is neither x64 nor arm64, so nothing is installed.</summary>
+    public static string? LinuxName(Version version) => LinuxName(version, RuntimeInformation.OSArchitecture);
+
+    /// <summary>The Linux archive for <paramref name="arch"/>; null for any other CPU (fail closed: no self-update).</summary>
+    public static string? LinuxName(Version version, Architecture arch) => arch switch
+    {
+        Architecture.X64 => $"Edgepad-{version}-linux-x64.tar.gz",
+        Architecture.Arm64 => $"Edgepad-{version}-linux-arm64.tar.gz",
+        _ => null,
+    };
 
     public static string MacName(Version version) => $"Edgepad-{version}-mac.zip";
 }

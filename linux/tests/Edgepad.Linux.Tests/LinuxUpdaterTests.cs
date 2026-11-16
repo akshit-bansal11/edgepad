@@ -1,5 +1,6 @@
 using System.Formats.Tar;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using Edgepad.Platform;
 using Xunit;
 
@@ -37,6 +38,26 @@ public sealed class LinuxUpdaterTests : IDisposable
     }
 
     private string Dest => Path.Combine(folder, "out");
+
+    private string Elf(byte machine, byte[]? bytes = null)
+    {
+        var path = Path.Combine(folder, "prog");
+        var head = bytes ?? [0x7F, (byte)'E', (byte)'L', (byte)'F', 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, machine, 0, 1, 0, 0, 0];
+        File.WriteAllBytes(path, head);
+        return path;
+    }
+
+    [Fact]
+    public void AProgramForAnotherCpuIsRefused()
+    {
+        Assert.True(LinuxUpdater.IsProgramFor(Elf(0x3E), Architecture.X64));
+        Assert.True(LinuxUpdater.IsProgramFor(Elf(0xB7), Architecture.Arm64));
+        Assert.False(LinuxUpdater.IsProgramFor(Elf(0x3E), Architecture.Arm64));
+        Assert.False(LinuxUpdater.IsProgramFor(Elf(0xB7), Architecture.X64));
+        Assert.False(LinuxUpdater.IsProgramFor(Elf(0x3E), Architecture.Arm));
+        Assert.False(LinuxUpdater.IsProgramFor(Elf(0, [1, 2, 3]), Architecture.X64));
+        Assert.False(LinuxUpdater.IsProgramFor(Path.Combine(folder, "missing"), Architecture.X64));
+    }
 
     [Fact]
     public void ExtractsOnlyTheProgramEntry()

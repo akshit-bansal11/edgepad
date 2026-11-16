@@ -626,7 +626,7 @@ internal sealed class Shell : IDisposable
 
         // Skipped, or Later said within a day: no rows and no notice. With no embedded key the rows are only
         // Later and Skip and the notice opens the release page (fail closed).
-        var decision = UpdatePolicy.Decide(latest, version, null, UpdateKey.IsSet);
+        var decision = UpdatePolicy.Decide(latest, version, null, UpdateKey.IsSet && UpdateCheck.LinuxName(latest) is not null);
         if (decision is UpdateDecision.NotNewer || !updateChoice.ShouldShow(latest, DateTimeOffset.UtcNow))
         {
             return;
@@ -706,7 +706,7 @@ internal sealed class Shell : IDisposable
                     break;
                 case UpdateOutcome.NeedsRoot:
                     HideUpdate();
-                    await Dialogs.Inform(null, $"{Say.Format(LinuxStrings.Update_NeedsRoot, target.ToString(3))}\n\n{LinuxUpdater.RootCommand(Path.Combine(Xdg.CacheFolder, "update", UpdateCheck.LinuxName(target)), target)}");
+                    await Dialogs.Inform(null, $"{Say.Format(LinuxStrings.Update_NeedsRoot, target.ToString(3))}\n\n{LinuxUpdater.RootCommand(Path.Combine(Xdg.CacheFolder, "update", UpdateCheck.LinuxName(target) ?? string.Empty), target)}");
                     break;
                 case UpdateOutcome.Failed:
                     await Dialogs.Inform(null, LinuxStrings.Update_InstallFailed);

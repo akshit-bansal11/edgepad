@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Edgepad.Updates;
 using Xunit;
 
@@ -45,8 +46,17 @@ public sealed class UpdateCheckTests
         Assert.Equal(Base + "SHA256SUMS.txt", UpdateCheck.SumsUrl(version).AbsoluteUri);
         Assert.Equal(Base + "SHA256SUMS.txt.sig", UpdateCheck.SigUrl(version).AbsoluteUri);
         Assert.Equal(Base + "Edgepad-5.0.0.exe", UpdateCheck.AssetUrl(version, UpdateCheck.ExeName(version)).AbsoluteUri);
-        Assert.Equal("Edgepad-5.0.0-linux-x64.tar.gz", UpdateCheck.LinuxName(version));
+        Assert.Equal("Edgepad-5.0.0-linux-x64.tar.gz", UpdateCheck.LinuxName(version, Architecture.X64));
         Assert.Equal("Edgepad-5.0.0-mac.zip", UpdateCheck.MacName(version));
+    }
+
+    [Fact]
+    public void TheLinuxArchiveMatchesTheCpuAndAnUnknownCpuHasNone()
+    {
+        var version = new Version(5, 0, 0);
+        Assert.Equal("Edgepad-5.0.0-linux-arm64.tar.gz", UpdateCheck.LinuxName(version, Architecture.Arm64));
+        Assert.Null(UpdateCheck.LinuxName(version, Architecture.Arm));
+        Assert.Null(UpdateCheck.LinuxName(version, Architecture.X86));
     }
 
     [Theory]
