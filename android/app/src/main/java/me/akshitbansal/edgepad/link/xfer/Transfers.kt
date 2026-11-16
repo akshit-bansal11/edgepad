@@ -8,6 +8,8 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.provider.OpenableColumns
+import android.widget.Toast
+import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.link.Laptop
 import me.akshitbansal.edgepad.link.ManagedLink
 import me.akshitbansal.edgepad.link.Target
@@ -166,6 +168,11 @@ object Transfers {
             try {
                 val (picked, size) = query(app, uri) ?: return XferCode.REJECTED
                 name = picked
+                // The laptop would refuse it after the first chunk; say why here instead.
+                if (size > XferLimits.MAX_BYTES) {
+                    idle.post { Toast.makeText(app, R.string.xfer_too_big, Toast.LENGTH_LONG).show() }
+                    return XferCode.REJECTED
+                }
                 socket = openBulk()
                 val code = socket?.background { sendOn(uri, picked, size) } ?: sendOn(uri, picked, size)
                 notice.finish(picked, code == XferCode.SAVED)

@@ -66,6 +66,7 @@ object SurfaceSettingsScreen {
                 add(ui.link(ui.string(R.string.settings_profiles), null, routes.profiles))
             }
             if (settings.airMouse) {
+                section(ui.string(R.string.air_title))
                 card(Space.L) {
                     add(
                         ui.slider(

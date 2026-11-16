@@ -177,6 +177,9 @@ class ControlsPopup(
             body.addView(none)
         }
         body.addView(floatingToggle().apply { setPadding(pad, 0, pad, 0) })
+        val floatingNote = ui.secondary(ui.string(R.string.floating_caption), Type.SMALL, ui.palette.dim)
+        floatingNote.setPadding(pad, 0, pad, pad)
+        body.addView(floatingNote)
         if (settings.controlsHintShown < HINT_TIMES) {
             settings.controlsHintShown += 1
             val note = ui.secondary(ui.string(R.string.controls_move_hint), Type.SMALL, ui.palette.dim)
