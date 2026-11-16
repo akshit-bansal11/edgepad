@@ -379,8 +379,10 @@ public final class LinkResponder {
 
     /// Ends short of a link, logging why. In a pairing only a wrong code, a commitment that does not open, a bad
     /// confirmation or an invalid key is `.failed` and counts against the lock; anything else, an error too, is not.
-    private func refuse(_ reason: String, outcome: PairingOutcome = .abandoned) {
-        finish(nil, outcome: outcome, "Refused \(pairing == nil ? "" : "to pair ")\(address): \(reason)")
+    /// Once the question is up, any other refusal is an unanswered prompt, so the host is still held off: otherwise
+    /// a phone could raise the prompt, send junk, and raise it again at once.
+    private func refuse(_ reason: String, outcome: PairingOutcome? = nil) {
+        finish(nil, outcome: outcome ?? hungUp, "Refused \(pairing == nil ? "" : "to pair ")\(address): \(reason)")
     }
 
     private func finish(_ result: LinkResult?, outcome: PairingOutcome, _ message: String?) {
