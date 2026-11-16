@@ -3,8 +3,13 @@ package me.akshitbansal.edgepad.link
 import android.os.Handler
 import android.os.Looper
 import me.akshitbansal.edgepad.link.blob.AppBlobSink
+import me.akshitbansal.edgepad.link.blob.MediaIconSink
+import me.akshitbansal.edgepad.link.notify.NotificationSink
+import me.akshitbansal.edgepad.link.notify.NotifyLimiter
+import me.akshitbansal.edgepad.link.notify.PhoneNotifier
 import me.akshitbansal.edgepad.protocol.BlobKind
 import me.akshitbansal.edgepad.protocol.Feature
+import me.akshitbansal.edgepad.protocol.Frame
 
 /**
  * Every laptop's app list, kept in its own [LaptopState.apps]: one [AppBlobSink] a link, set on the link's blob route
@@ -18,12 +23,20 @@ import me.akshitbansal.edgepad.protocol.Feature
  * Main thread only, except the sinks, which the links call on their reading threads. It outlives the activity with the
  * links, so [events] is the activity's to set again each time it is built.
  *
+ * Media icons (every connected laptop) and notifications (a laptop that named [Feature.NOTIFY]) are taken the same way.
+ * Icons fill [LaptopState.mediaIcons] and [onMediaIcon] tells the screen to redraw. A notification is posted only when
+ * [notifyEnabled] says the phone's switch is on, and only with a [notifier].
+ *
  * @param routes Where a link's blobs are shared with the clipboard.
  * @param post Runs work on the main thread, for tests.
+ * @param notifier Posts the laptop's notifications, or null for none.
+ * @param notifyEnabled Whether the phone's notification setting is on, read for each notification.
  */
 class AppLinks(
     private val routes: BlobRoutes,
     private val post: (() -> Unit) -> Unit = ::postToMain,
+    private val notifier: PhoneNotifier? = null,
+    private val notifyEnabled: () -> Boolean = { false },
 ) {
     /** What the screen is told: [token] is null for a new list, else the row whose icon has just arrived. */
     fun interface Events {
@@ -39,6 +52,13 @@ class AppLinks(
     )
 
     var events: Events? = null
+
+    /** Told, on the main thread, that a laptop's [LaptopState.mediaIcons] got a new icon. */
+    var onMediaIcon: ((Laptop) -> Unit)? = null
+
+    private val mediaLinks = ArrayList<ManagedLink>()
+    private val notifyLinks = ArrayList<ManagedLink>()
+    private val limiter = NotifyLimiter()
 
     private val attached = ArrayList<Attached>()
 
@@ -61,6 +81,41 @@ class AppLinks(
             val sink = AppBlobSink { kind, label, data -> post { arrived(laptop, link, kind, label, data) } }
             routes.attach(link, BlobRoutes.Lane.APPS, sink::take)
             attached.add(Attached(laptop, link))
+        }
+        sync(BlobRoutes.Lane.MEDIA, mediaLinks, laptops.filter { it.connected }) { laptop, link ->
+            val sink =
+                MediaIconSink { label, data ->
+                    laptop.state.mediaIcons.put(label, data)
+                    post { if (mediaLinks.any { it === link }) onMediaIcon?.invoke(laptop) }
+                }
+            sink::take
+        }
+        val phone = notifier
+        if (phone != null) {
+            val wanted = laptops.filter { it.connected && Feature.NOTIFY in it.state.features }
+            sync(BlobRoutes.Lane.NOTIFY, notifyLinks, wanted) { _, _ ->
+                NotificationSink(notifyEnabled, limiter, phone::post)::take
+            }
+        }
+    }
+
+    // Lets go of the links no longer wanted and takes the new ones, for one lane.
+    private fun sync(
+        lane: BlobRoutes.Lane,
+        held: ArrayList<ManagedLink>,
+        wanted: List<Laptop>,
+        sink: (Laptop, ManagedLink) -> (Frame) -> Unit,
+    ) {
+        held.removeAll { link ->
+            val gone = wanted.none { it.link === link }
+            if (gone) routes.attach(link, lane, null)
+            gone
+        }
+        for (laptop in wanted) {
+            val link = laptop.link ?: continue
+            if (held.any { it === link }) continue
+            routes.attach(link, lane, sink(laptop, link))
+            held.add(link)
         }
     }
 

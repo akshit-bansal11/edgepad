@@ -481,6 +481,13 @@ class LaptopStateTest {
         assertEquals(EndActionToken.NONE, state.endAction)
     }
 
+    @Test
+    fun aNewTitleClearsTheFullTitle() {
+        state.take(Frame.Text(TextKind.NOW_PLAYING_FULL.id, "Song (Remastered)"))
+        state.take(Frame.Text(TextKind.NOW_PLAYING.id, "Next"))
+        assertEquals("", state.nowPlayingFull)
+    }
+
     private companion object {
         /** MacroIconChunks.ChunkBytes on the laptop. Written out, because agreeing with it is the point. */
         const val CHUNK_BYTES = 240

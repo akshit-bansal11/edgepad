@@ -244,7 +244,12 @@ class LaptopState {
             is Frame.Text -> {
                 if (frame.kind == TextKind.INPUT_STATE.id) return inputState(frame.text)
                 when (TextKind.of(frame.kind)) {
-                    TextKind.NOW_PLAYING -> nowPlaying = frame.text
+                    TextKind.NOW_PLAYING -> {
+                        nowPlaying = frame.text
+                        // TEXT 26 follows TEXT 0 when it differs, so the old one belongs to the old title.
+                        nowPlayingFull = ""
+                    }
+
                     TextKind.APP -> app = frame.text
                     TextKind.TIMELINE -> timeline(frame.text)
                     TextKind.REFRESH_RATES -> refreshRates = rates(frame.text)
