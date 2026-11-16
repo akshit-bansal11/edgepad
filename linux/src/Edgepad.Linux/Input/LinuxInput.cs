@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Edgepad.Platform;
 
 namespace Edgepad.Input;
 
@@ -53,8 +54,15 @@ internal sealed class LinuxInput : IDisposable
     /// <summary>Read the first time text is typed, then kept for the run.</summary>
     private static readonly Lazy<bool> UsLayout = new(Typing.DetectUsLayout);
 
+    /// <summary>How long the target app gets to ask for the pasted text before the user's clipboard is put back. HW tune.</summary>
+    private const int RestoreDelayMs = 250;
+
     private static readonly ClipboardTool? Clipboard =
         Typing.ClipboardFor(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"), Environment.GetEnvironmentVariable("DISPLAY"));
+
+    /// <summary>The user's clipboard, saved before a paste and put back after it (<see cref="PasteGuard"/>).</summary>
+    private static readonly LinuxClipboard Saved =
+        new(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"), Environment.GetEnvironmentVariable("DISPLAY"));
 
     private static int deviceFailureLogged;
     private static int pasteFailureLogged;
@@ -145,26 +153,26 @@ internal sealed class LinuxInput : IDisposable
         }
     }
 
-    /// <summary>Types text as the phone's keyboard produced it: keys where the layout allows, the clipboard elsewhere.</summary>
+    /// <summary>
+    /// Types text as the phone's keyboard produced it: keys where the layout allows, the clipboard elsewhere. The
+    /// user's clipboard is saved once before the first paste and put back once after the last.
+    /// </summary>
     public void Type(string text)
     {
         lock (gate)
         {
-            foreach (var step in Typing.Plan(text, UsLayout.Value))
+            var steps = Typing.Plan(text, UsLayout.Value).ToArray();
+            var first = Array.FindIndex(steps, s => s.Paste is not null);
+            if (first < 0)
             {
-                if (step.Paste is { } paste)
-                {
-                    Paste(paste);
-                }
-                else if (step.Shift)
-                {
-                    Chord(KeyMap.LeftShift, step.Key);
-                }
-                else
-                {
-                    Chord(step.Key);
-                }
+                Steps(steps);
+                return;
             }
+
+            var last = Array.FindLastIndex(steps, s => s.Paste is not null);
+            Steps(steps[..first]);
+            PasteGuard.Around(Saved, () => Steps(steps[first..(last + 1)]), () => Thread.Sleep(RestoreDelayMs));
+            Steps(steps[(last + 1)..]);
         }
     }
 
@@ -298,10 +306,29 @@ internal sealed class LinuxInput : IDisposable
         Send([Event(Uinput.EvKey, code, down ? 1 : 0), Sync]);
     }
 
+    private void Steps(TypingStep[] steps)
+    {
+        foreach (var step in steps)
+        {
+            if (step.Paste is { } paste)
+            {
+                Paste(paste);
+            }
+            else if (step.Shift)
+            {
+                Chord(KeyMap.LeftShift, step.Key);
+            }
+            else
+            {
+                Chord(step.Key);
+            }
+        }
+    }
+
     /// <summary>
     /// Puts the text on the clipboard and sends Ctrl+V. Ctrl+V, not Ctrl+Shift+V: it is paste in nearly every
     /// graphical app, where Ctrl+Shift+V means something else in several (paste without formatting, or nothing);
-    /// a terminal is the exception, and gets a literal ^V. The user's clipboard is replaced by the text.
+    /// a terminal is the exception, and gets a literal ^V. <see cref="Type"/> puts the user's clipboard back afterwards.
     /// </summary>
     private void Paste(string text)
     {
