@@ -82,6 +82,10 @@ public final class LinkResponder {
     private let limiter: PairingLimiter
     private let prompt: PairingPrompt
     private let trust: TrustStore
+    /// The remote address the limiter keys its per-host refusal by, never the phone's id or name, which are the
+    /// phone's to choose. An IPv4 phone on a dual-stack socket must be given as a.b.c.d, not ::ffff:a.b.c.d. Nil
+    /// skips the per-host rule.
+    private let host: String?
     private let send: ([UInt8]) -> Bool
     private let schedule: (TimeInterval, @escaping () -> Void) -> Void
     private let onDone: (LinkResult?) -> Void
@@ -105,6 +109,7 @@ public final class LinkResponder {
         limiter: PairingLimiter,
         prompt: PairingPrompt,
         trust: TrustStore,
+        host: String? = nil,
         send: @escaping ([UInt8]) -> Bool,
         schedule: @escaping (TimeInterval, @escaping () -> Void) -> Void,
         onDone: @escaping (LinkResult?) -> Void
@@ -114,6 +119,7 @@ public final class LinkResponder {
         self.limiter = limiter
         self.prompt = prompt
         self.trust = trust
+        self.host = host
         self.send = send
         self.schedule = schedule
         self.onDone = onDone
@@ -142,31 +148,37 @@ public final class LinkResponder {
                 try handle(body)
             }
         } catch LinkCryptoError.badKey {
-            refuse("its key is not a valid P-256 point")
+            refuse("its key is not a valid P-256 point", outcome: .failed)
         } catch {
             refuse("\(error)")
         }
     }
 
     /// The phone closed the connection (`byPeer`), or this Mac stopped it: the listener stopping, a Forget or another
-    /// owner dialog. A phone that hangs up mid-pairing counts against the lock, whatever the stage, or it could put
-    /// the pairing question on the owner's screen again and again for free; this Mac stopping it does not count.
+    /// owner dialog. A phone that hangs up under the pairing question holds its host off as an unanswered prompt
+    /// does, or it could put the question on the owner's screen again and again for free; it is not a guess, so it
+    /// does not count toward the lock. This Mac stopping it does not count.
     public func cancel(byPeer: Bool) {
         guard stage != .done else { return }
         let why =
             byPeer
             ? "Refused to pair \(address): it closed the network link"
             : "Stopped pairing \(address): this Mac stopped it"
-        finish(nil, outcome: byPeer ? .failed : .abandoned, pairing == nil ? nil : why)
+        finish(nil, outcome: byPeer ? hungUp : .abandoned, pairing == nil ? nil : why)
     }
 
-    /// A responder let go of mid-pairing still frees the one pairing slot, counted as a failure as a phone that hung
-    /// up would be. The app never does this; it ends each one through `cancel`.
+    /// A responder let go of mid-pairing still frees the one pairing slot, counted as a phone that hung up would be.
+    /// The app never does this; it ends each one through `cancel`.
     deinit {
         if stage != .done, pairing != nil {
             question?.withdraw()
-            limiter.end(.failed)
+            limiter.end(hungUp, host: host)
         }
+    }
+
+    /// A hang-up once the question is up is an unanswered prompt; before it, nothing was asked.
+    private var hungUp: PairingOutcome {
+        question == nil ? .abandoned : .timedOut
     }
 
     /// Whether a Forget came after this pairing started, so that it must not trust or keep the phone.
@@ -205,9 +217,9 @@ public final class LinkResponder {
         case .pair(let phoneId, let name, let nameField, let commit):
             address = Self.address(of: phoneId)
             phoneName = name
-            guard limiter.tryBegin() else {
+            guard limiter.tryBegin(host: host) else {
                 _ = send(LinkWire.message(LinkWire.status(LinkWire.statusBusy)))
-                refuse("another pairing is under way, or pairing is locked after failed attempts")
+                refuse("another pairing is under way, or pairing is held off after failed or unanswered attempts")
                 return
             }
             let started = Pairing(
@@ -255,7 +267,7 @@ public final class LinkResponder {
         guard let pairing else { return }
         let (phonePublic, phoneNonce) = try LinkWire.decodeReveal(body)
         guard LinkCrypto.fixedTimeEquals(LinkCrypto.commit(phonePublic, phoneNonce), pairing.commit) else {
-            refuse("its key is not the one it committed to")
+            refuse("its key is not the one it committed to", outcome: .failed)
             return
         }
         transcript = LinkCrypto.pairTranscript(
@@ -270,7 +282,7 @@ public final class LinkResponder {
         let asked = step
         schedule(Self.ownerTimeoutSeconds) { [weak self] in
             guard let self, self.stage == .owner, self.step == asked else { return }
-            self.refuse("no code was typed within \(Int(Self.ownerTimeoutSeconds)) s")
+            self.refuse("no code was typed within \(Int(Self.ownerTimeoutSeconds)) s", outcome: .timedOut)
         }
         question = prompt.show(
             phoneName: pairing.name,
@@ -288,7 +300,7 @@ public final class LinkResponder {
         }
         guard LinkCrypto.codeMatches(digits, LinkCrypto.sas(transcript)) else {
             question?.mismatched()
-            refuse("the code typed on this Mac is not the one that phone shows")
+            refuse("the code typed on this Mac is not the one that phone shows", outcome: .failed)
             return
         }
         guard send(LinkWire.message(LinkWire.tag(LinkCrypto.laptopTag(prk, transcript, pairing: true)))) else {
@@ -314,14 +326,16 @@ public final class LinkResponder {
 
     private func ownerCancelled(_ asked: Int) {
         guard stage == .owner, step == asked else { return }
-        finish(nil, outcome: .abandoned, "The owner cancelled pairing \(address)")
+        finish(nil, outcome: .cancelled, "The owner cancelled pairing \(address)")
     }
 
     /// The phone's own confirmation, the last cleartext message. Only now is a pairing trusted and kept.
     private func confirm(_ body: [UInt8], pairing isPairing: Bool) throws {
         let tag = try LinkWire.decodeTag(body)
         guard LinkCrypto.fixedTimeEquals(tag, LinkCrypto.phoneTag(prk, transcript, pairing: isPairing)) else {
-            refuse(isPairing ? "it did not confirm the same keys" : "it does not hold the key this Mac paired it with")
+            refuse(
+                isPairing ? "it did not confirm the same keys" : "it does not hold the key this Mac paired it with",
+                outcome: .failed)
             return
         }
         if isPairing, let pairing {
@@ -351,21 +365,22 @@ public final class LinkResponder {
         finish(result, outcome: .paired, nil)
     }
 
-    /// Arms the wait for the phone's next message.
+    /// Arms the wait for the phone's next message. In a pairing, one that does not come is an unanswered prompt.
     private func wait(_ what: String, seconds: TimeInterval = LinkResponder.messageTimeoutSeconds) {
         step += 1
         let waiting = step
         schedule(seconds) { [weak self] in
             guard let self, self.stage != .done, self.step == waiting else { return }
             self.finish(
-                nil, outcome: .failed,
+                nil, outcome: .timedOut,
                 "Gave up on \(self.address): no \(what) within \(Int(seconds)) s")
         }
     }
 
-    /// Ends short of a link, logging why. In a pairing this counts against the lock.
-    private func refuse(_ reason: String) {
-        finish(nil, outcome: .failed, "Refused \(pairing == nil ? "" : "to pair ")\(address): \(reason)")
+    /// Ends short of a link, logging why. In a pairing only a wrong code, a commitment that does not open, a bad
+    /// confirmation or an invalid key is `.failed` and counts against the lock; anything else, an error too, is not.
+    private func refuse(_ reason: String, outcome: PairingOutcome = .abandoned) {
+        finish(nil, outcome: outcome, "Refused \(pairing == nil ? "" : "to pair ")\(address): \(reason)")
     }
 
     private func finish(_ result: LinkResult?, outcome: PairingOutcome, _ message: String?) {
@@ -378,7 +393,7 @@ public final class LinkResponder {
         question?.withdraw()
         question = nil
         if pairing != nil {
-            limiter.end(outcome)
+            limiter.end(outcome, host: host)
         }
         if let message {
             Log.write(message)
