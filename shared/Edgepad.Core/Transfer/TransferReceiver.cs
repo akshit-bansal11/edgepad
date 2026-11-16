@@ -82,6 +82,11 @@ internal sealed class TransferReceiver : IDisposable
 
                 Open(begin, name);
             }
+            catch (ArgumentException)
+            {
+                // A destination the volume probe cannot name (a share): free space is unknown, so the file is refused.
+                Reply(begin.Id, XferCode.Rejected, 0);
+            }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
                 Reply(begin.Id, XferCode.WriteFailed, 0);
@@ -204,7 +209,44 @@ internal sealed class TransferReceiver : IDisposable
         }
     }
 
-    private static long FreeSpaceOf(string folder) => new DriveInfo(Path.GetPathRoot(Path.GetFullPath(folder))!).AvailableFreeSpace;
+    /// <summary>
+    /// The free bytes on the volume that holds <paramref name="folder"/>, or -1 when they cannot be read (a share, a drive that
+    /// is not ready, anything unknown), which the caller refuses on.
+    /// </summary>
+    private static long FreeSpaceOf(string folder)
+    {
+        try
+        {
+            var mounts = DriveInfo.GetDrives().Where(d => d.IsReady).Select(d => (d.RootDirectory.FullName, d.AvailableFreeSpace)).ToList();
+            return FreeSpaceFor(Path.GetFullPath(folder), mounts);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            return -1;
+        }
+    }
+
+    /// <summary>
+    /// The free bytes of the mount whose root is the longest prefix of <paramref name="folder"/> (a separate /home beats /),
+    /// or -1 when none holds it. The root counts only at a separator, so /home does not hold /homework.
+    /// </summary>
+    internal static long FreeSpaceFor(string folder, IReadOnlyList<(string Root, long Free)> mounts)
+    {
+        var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        var best = -1;
+        for (var i = 0; i < mounts.Count; i++)
+        {
+            var root = mounts[i].Root;
+            var holds = folder.StartsWith(root, comparison)
+                && (folder.Length == root.Length || root[^1] == Path.DirectorySeparatorChar || folder[root.Length] == Path.DirectorySeparatorChar);
+            if (holds && (best < 0 || root.Length > mounts[best].Root.Length))
+            {
+                best = i;
+            }
+        }
+
+        return best < 0 ? -1 : mounts[best].Free;
+    }
 
     private void Open(XferBegin begin, string name)
     {

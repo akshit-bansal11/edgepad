@@ -248,6 +248,35 @@ public sealed class TransferTests : IDisposable
         Assert.Equal([new XferStatus(1, (byte)XferCode.Ready, 0)], replies);
     }
 
+    [Fact]
+    public void FreeSpaceThatCannotBeReadRefusesTheFileAndTheSessionGoesOn()
+    {
+        receiver.Dispose();
+        receiver = NewReceiver(_ => throw new ArgumentException("UNC"));
+        Assert.True(receiver.Take(new XferBegin(1, 10, "share.bin")));
+        Assert.Equal([new XferStatus(1, (byte)XferCode.Rejected, 0)], replies);
+        Assert.False(receiver.Busy);
+
+        replies.Clear();
+        receiver = NewReceiver(_ => -1);
+        receiver.Take(new XferBegin(2, 0, "unknown.bin"));
+        Assert.Equal([new XferStatus(2, (byte)XferCode.Rejected, 0)], replies);
+    }
+
+    [Fact]
+    public void TheVolumeThatHoldsTheFolderIsTheOneMeasured()
+    {
+        var s = Path.DirectorySeparatorChar;
+        var root = Path.GetPathRoot(Path.GetFullPath(dir))!;
+        var home = root + "home";
+        var mounts = new List<(string Root, long Free)> { (root, 1), (home, 2) };
+        Assert.Equal(2, TransferReceiver.FreeSpaceFor(home + s + "u" + s + "Downloads", mounts));
+        Assert.Equal(2, TransferReceiver.FreeSpaceFor(home, mounts));
+        Assert.Equal(1, TransferReceiver.FreeSpaceFor(home + "work", mounts));
+        Assert.Equal(1, TransferReceiver.FreeSpaceFor(root + "srv", mounts));
+        Assert.Equal(-1, TransferReceiver.FreeSpaceFor(root + "srv", []));
+    }
+
     [Theory]
     [InlineData("CON.txt")]
     [InlineData("..")]
