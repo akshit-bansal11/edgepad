@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/search-index.mjs",
     "format": "biome format --write .",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

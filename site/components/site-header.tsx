@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DocsSearch } from "@/components/docs-search";
 import { HeaderMenu } from "@/components/header-menu";
 import { GithubMark } from "@/components/icons/github";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -96,6 +97,8 @@ export function SiteHeader({
               ))}
             </nav>
           )}
+
+          {docs ? <DocsSearch /> : null}
 
           <Button asChild size="sm" variant="ghost" className="hidden sm:inline-flex">
             <Link href={docs ? "/" : "/docs"}>{docs ? "Home" : "Docs"}</Link>

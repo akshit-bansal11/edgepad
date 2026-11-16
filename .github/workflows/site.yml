@@ -55,6 +55,10 @@ jobs:
         working-directory: site
         run: npm run build
 
+      - name: Search index exists
+        working-directory: site
+        run: test -s out/search-index.json
+
   # Dispatch-only: regenerates site/package-lock.json (no local npm here). Download the
   # artifact with `gh run download <id> -n site-lock` and commit it.
   lock:
