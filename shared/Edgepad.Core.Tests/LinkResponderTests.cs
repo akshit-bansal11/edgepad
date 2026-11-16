@@ -675,7 +675,7 @@ public sealed class LinkResponderTests : IDisposable
     }
 
     [Fact]
-    public async Task APhoneThatHangsUpUnderThePromptWithdrawsItAtOnceUncounted()
+    public async Task APhoneThatHangsUpUnderThePromptWithdrawsItAtOnceAndIsHeldOff()
     {
         var ct = TestContext.Current.CancellationToken;
         var remote = IPAddress.Parse("192.168.1.77");
@@ -695,10 +695,14 @@ public sealed class LinkResponderTests : IDisposable
         Assert.Contains(logs, line => line.Contains("the phone hung up", StringComparison.Ordinal));
         await phone.WaitAsync(MessageWait, ct);
 
-        // Not counted and no host held off: the same host pairs at once.
+        // The same host is held off, so it cannot raise the prompt again at once.
+        Assert.Equal(LinkWire.StatusBusy, await PairFrom(remote));
+        Assert.Equal(1, owner.Shown);
+
+        // Not counted toward the lock: another host pairs at once.
         owner.Types = code => code;
         (phoneEnd, laptopEnd) = Duplex.Create();
-        laptopSide = Laptop(laptopEnd, remote: remote);
+        laptopSide = Laptop(laptopEnd, remote: IPAddress.Parse("192.168.1.78"));
         Assert.NotNull(LinkInitiator.Pair(phoneEnd, PhoneId, PhoneName, ShowOnPhone).Secure);
         Assert.NotNull(await laptopSide);
     }

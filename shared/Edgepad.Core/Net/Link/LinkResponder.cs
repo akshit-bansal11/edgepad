@@ -331,8 +331,9 @@ internal static class LinkResponder
                     return null;
                 case OwnerAnswer.PeerGone:
                     // The phone cancelled or dropped out: the prompt is withdrawn at once (the finally below), not
-                    // left up for the owner's whole wait. Not counted and no host held off, as for any hang-up.
-                    outcome = PairingOutcome.Abandoned;
+                    // left up for the owner's whole wait. Not counted toward the lock, but the host is held off as for
+                    // an unanswered prompt: otherwise a phone could raise the prompt, hang up and raise it again at once.
+                    outcome = PairingOutcome.TimedOut;
                     log($"Stopped pairing {address}: the phone hung up");
                     return null;
                 case OwnerAnswer.Ended:
