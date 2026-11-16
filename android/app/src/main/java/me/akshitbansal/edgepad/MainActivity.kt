@@ -2783,6 +2783,9 @@ class MainActivity :
         watchingForeground = false
         syncForegroundWatch()
         refreshBlobLinks()
+        // The dials were built on the old laptop's state; dropped here, syncService builds them on the new one.
+        floating?.hide()
+        floating = null
         syncService()
         CaptureInbox.owner = laptop?.link?.id
         refreshBatteries()
