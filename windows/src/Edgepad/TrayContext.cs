@@ -287,6 +287,7 @@ internal sealed class TrayContext : ApplicationContext
             media,
             display,
             macros,
+            new WindowsForeground(ui),
             overlay,
             identity,
             clipboard,

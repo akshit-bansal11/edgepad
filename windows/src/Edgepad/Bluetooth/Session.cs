@@ -5,6 +5,7 @@ using Edgepad.Blob;
 using Edgepad.Capture;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
+using Edgepad.Foreground;
 using Edgepad.Gamepad;
 using Edgepad.Injection;
 using Edgepad.Macros;
@@ -40,6 +41,7 @@ internal sealed class Session(
     MediaSessions media,
     DisplayModes display,
     MacroStore macros,
+    IForegroundApp foreground,
     LinkIdentity identity,
     WindowsClipboard clipboard,
     Func<bool> shareClipboard,
@@ -337,6 +339,11 @@ internal sealed class Session(
             dispatcher.MacroWatch = on => WatchMacros(open, on);
         }
 
+        // Which app is in front, only once the phone sets CONTROL 11; until then no hook exists. The app is never logged.
+        var front = new ForegroundReporter(foreground, text => Guarded(() => Send(new Text((byte)TextKind.ForegroundApp, text))));
+        Keep(front);
+        dispatcher.ForegroundWatch = front.Watch;
+
         // The clipboard stays here until the phone asks (SET CLIPBOARD), and the owner's switch is read at every step, so
         // turning it off holds even for a phone that was told it was on. It only reaches FEATURES at the next connection.
         // One sender for the session, as on Linux: it sends one blob at a time, and the phone holds one transfer, so a
@@ -374,7 +381,7 @@ internal sealed class Session(
         // The phone arms it (ACTIONs 60 to 62); it holds no timer, SendMedia feeds it the report this session already gets.
         dispatcher.EndAction = new EndAction(WindowsPower.Perform, token => Guarded(() => EndActionChanged(token)));
 
-        List<string> features = [Feature.Annotate, Feature.Capture, Feature.Apps, Feature.EndAction];
+        List<string> features = [Feature.Annotate, Feature.Capture, Feature.Apps, Feature.EndAction, Feature.Foreground];
         if (open is not null)
         {
             features.Add(Feature.Running);

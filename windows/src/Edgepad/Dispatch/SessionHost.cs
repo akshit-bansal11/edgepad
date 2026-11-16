@@ -5,6 +5,7 @@ using Edgepad.Annotation;
 using Edgepad.Blob;
 using Edgepad.Bluetooth;
 using Edgepad.Controls;
+using Edgepad.Foreground;
 using Edgepad.Gamepad;
 using Edgepad.Injection;
 using Edgepad.Macros;
@@ -31,6 +32,7 @@ internal sealed class SessionHost(
     MediaSessions media,
     DisplayModes display,
     MacroStore macros,
+    IForegroundApp foreground,
     LevelOverlay overlay,
     LinkIdentity identity,
     WindowsClipboard clipboard,
@@ -170,7 +172,7 @@ internal sealed class SessionHost(
             var platform = new WindowsPlatform(injector, pad, speakers, microphone, brightness, media, display, overlay, annotator);
             var dispatcher = new Dispatcher(platform, macros);
             session = new Session(
-                link, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, identity, clipboard, shareClipboard, onMacroAdded, StatusFor(link), OnAdmitted, OnSessionEnded, LiveFor, path => onFileArrived?.Invoke(path));
+                link, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, foreground, identity, clipboard, shareClipboard, onMacroAdded, StatusFor(link), OnAdmitted, OnSessionEnded, LiveFor, path => onFileArrived?.Invoke(path));
 
             // A dedicated thread, not the thread pool: the read loop blocks for the life of the connection,
             // and input is injected from this thread directly, so nothing queues behind other work.
