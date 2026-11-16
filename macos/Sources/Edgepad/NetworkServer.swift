@@ -255,8 +255,10 @@ final class NetworkServer {
             },
             onDone: { [weak self, weak link] result in
                 guard let self, let link else { return }
+                // The IP it came from; `result.address` is the phone's link id, which the per-host caps cannot count.
+                let peer = self.unproved[key]?.host ?? ""
                 self.unproved[key] = nil
-                self.proved(link, result)
+                self.proved(link, result, peer: peer)
             })
         unproved[key] = (link: link, responder: responder, host: address)
         link.onBytes = { [weak responder] bytes in responder?.receive(bytes) }
@@ -266,7 +268,7 @@ final class NetworkServer {
 
     /// The responder is done with `link`: on a result the phone is handed to the session host over the encrypted
     /// link, with whatever it sent after its last cleartext message; on nil the link is closed.
-    private func proved(_ link: NetworkTransport, _ result: LinkResult?) {
+    private func proved(_ link: NetworkTransport, _ result: LinkResult?, peer: String) {
         guard let result else {
             link.close()
             return
@@ -289,17 +291,18 @@ final class NetworkServer {
         let secure = SecureTransport(inner: link, prk: result.prk)
         live.removeAll { $0.isClosed }
         live.append(link)
-        awaitFirstFrame(link, secure, address: address, shownAs: shownAs, leftover: result.leftover)
+        awaitFirstFrame(link, secure, address: address, peer: peer, shownAs: shownAs, leftover: result.leftover)
     }
 
     /// The link has proved itself, but what it is for is not known until its first frame: a HELLO makes a session, a
     /// BULK_HELLO attaches a transfer socket to the phone in use. Until then it counts among the connections still
     /// proving themselves (D-BULK), and one that says nothing is closed after the HELLO timeout.
     private func awaitFirstFrame(
-        _ link: NetworkTransport, _ secure: SecureTransport, address: String, shownAs: String, leftover: [UInt8]
+        _ link: NetworkTransport, _ secure: SecureTransport, address: String, peer: String, shownAs: String,
+        leftover: [UInt8]
     ) {
         let key = ObjectIdentifier(link)
-        awaiting[key] = (link: link, host: address)
+        awaiting[key] = (link: link, host: peer)
         let timeout = Timer(timeInterval: Session.helloTimeoutSeconds, repeats: false) { [weak self, weak link] _ in
             guard let self, let link, self.awaiting.removeValue(forKey: key) != nil else { return }
             Log.write("Refused \(address): nothing came within \(Int(Session.helloTimeoutSeconds)) s of its handshake")
