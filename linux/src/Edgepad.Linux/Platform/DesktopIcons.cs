@@ -97,6 +97,18 @@ internal static class DesktopIcons
     }
 
     /// <summary>
+    /// The icon of the application whose desktop id is <paramref name="desktopId"/> (an MPRIS <c>DesktopEntry</c>, with
+    /// or without <c>.desktop</c>), or null. The id comes from another process, so a path is refused.
+    /// </summary>
+    public static string? IconForDesktopId(string desktopId, IReadOnlyList<string> dataDirs)
+    {
+        var id = desktopId.EndsWith(".desktop", StringComparison.OrdinalIgnoreCase) ? desktopId[..^8] : desktopId;
+        return id.Length == 0 || id.Contains('/', StringComparison.Ordinal) || id.Contains('\\', StringComparison.Ordinal)
+            ? null
+            : ByProgram(id, dataDirs);
+    }
+
+    /// <summary>
     /// A program's icon: the <c>Icon=</c> of its <c>&lt;name&gt;.desktop</c> entry, else of whichever entry's
     /// <c>Exec=</c> starts the same program, else an icon named like the program itself. Entries are tried in data
     /// folder order, so the user's own entry overrides a system one.
