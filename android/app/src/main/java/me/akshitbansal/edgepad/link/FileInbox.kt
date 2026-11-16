@@ -18,7 +18,7 @@ import java.security.MessageDigest
  * Nor is a file taken unasked. A FILE_BEGIN is accepted only while [toPhone] is on and against a permit: one capture
  * action this phone itself sent ([permit]) allows one file, within [SCREENSHOT_WINDOW_MS] for a screenshot or
  * [RECORDING_WINDOW_MS] for a recording, which is sent only once it stops. A connection takes at most [MAX_FILES]
- * files and [MAX_BYTES] bytes. Turning [toPhone] off, or [abort], throws away a file half here.
+ * files and [MAX_BYTES] bytes in any [COUNT_WINDOW_MS]. Turning [toPhone] off, or [abort], throws away a file half here.
  *
  * Plain Kotlin: the bytes go to a [Store], which on a phone is the gallery, so a test can drive every path. Called on
  * the link's reading thread, and [abort] from whichever thread closes the link, hence the lock.
@@ -87,8 +87,9 @@ class FileInbox(
 
     /** When each unused permit runs out, oldest first. */
     private val permits = ArrayDeque<Long>()
-    private var files = 0
-    private var bytes = 0L
+
+    /** When each file of the last [COUNT_WINDOW_MS] began, and its size. Never more than [MAX_FILES] entries. */
+    private val taken = ArrayDeque<Pair<Long, Long>>()
 
     /** Whether this phone wants captures. Off revokes every permit and throws away a file on its way in. */
     @get:Synchronized
@@ -124,8 +125,7 @@ class FileInbox(
     @Synchronized
     fun reset() {
         permits.clear()
-        files = 0
-        bytes = 0
+        taken.clear()
         abort()
     }
 
@@ -153,13 +153,15 @@ class FileInbox(
         val now = clock()
         while (permits.isNotEmpty() && permits.first() < now) permits.removeFirst()
         if (permits.removeFirstOrNull() == null) return refuse(FileStatus.REJECTED)
-        if (files >= MAX_FILES || bytes + frame.size > MAX_BYTES) return refuse(FileStatus.REJECTED)
+        while (taken.isNotEmpty() && taken.first().first <= now - COUNT_WINDOW_MS) taken.removeFirst()
+        if (taken.size >= MAX_FILES || taken.sumOf { it.second } + frame.size > MAX_BYTES) {
+            return refuse(FileStatus.REJECTED)
+        }
         val type = FileType.of(frame.type) ?: return refuse(FileStatus.REJECTED)
         if (frame.size !in 1..type.limit) return refuse(FileStatus.REJECTED)
         val name = safeName(frame.name, type) ?: return refuse(FileStatus.REJECTED)
         val pending = store.open(name, type) ?: return refuse(FileStatus.WRITE_FAILED)
-        files++
-        bytes += frame.size
+        taken.addLast(now to frame.size)
         current = Transfer(name, frame.size, pending).also { progress(it) }
         return null
     }
@@ -220,6 +222,9 @@ class FileInbox(
 
         const val MAX_FILES = 20
         const val MAX_BYTES = 1024L * 1024 * 1024
+
+        /** [MAX_FILES] and [MAX_BYTES] are per hour, so a long session keeps taking captures. */
+        const val COUNT_WINDOW_MS = 60L * 60 * 1000
 
         private const val SEQ_MASK = 0xFF
         private const val PERCENT = 100L

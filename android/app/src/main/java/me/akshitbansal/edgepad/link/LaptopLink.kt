@@ -391,6 +391,10 @@ class LaptopLink(
         } catch (e: IOException) {
             Log.w(TAG, "The link's writer failed", e)
             close(Closure(Cause.LOST))
+        } catch (e: RuntimeException) {
+            // A bug on this side, as in the reader: end the one link, never the app.
+            Log.e(TAG, "The link's writer failed", e)
+            close(Closure(Cause.LOST))
         } catch (e: InterruptedException) {
             // close() interrupts the writer; nothing left to do.
         }

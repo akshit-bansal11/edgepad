@@ -161,6 +161,10 @@ class LaptopState {
     var signStatus: SignStatus? = null
         private set
 
+    /** TEXT frames of a kind this phone does not know, dropped since this state was made. For tests and logs. */
+    var droppedText = 0
+        private set
+
     /**
      * The apps this laptop offered to add as macros. The blobs that fill it come through [AppLinks], which is also what
      * forgets them when the link goes; only the status of an add arrives as a frame, in [take].
@@ -222,6 +226,7 @@ class LaptopState {
                     TextKind.APP_ADD_STATUS -> apps.addStatus(frame.text)
                     TextKind.BATTERIES -> batteries = Batteries.parse(frame.text)
                     TextKind.OUTPUT -> output = Output.parse(frame.text)
+                    null -> return dropText()
                     else -> return false
                 }
             }
@@ -231,6 +236,12 @@ class LaptopState {
             }
         }
         return true
+    }
+
+    /** A TEXT kind this phone does not know, from a newer laptop: counted, as the desktop apps count theirs. */
+    private fun dropText(): Boolean {
+        droppedText++
+        return false
     }
 
     /** `blocked` or `ok`; anything else is ignored and the last word stands. True when the state changed. */

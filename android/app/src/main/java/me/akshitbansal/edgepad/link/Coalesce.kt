@@ -4,7 +4,8 @@ import me.akshitbansal.edgepad.protocol.Frame
 
 /**
  * Collapses a backlog of queued frames before it is written. Consecutive MOVE, SCROLL and ZOOM frames are
- * summed, and only the last SET per control and the last PAD_STATE survive, so a link that falls behind the
+ * summed, a SET drops an earlier SET of its control across nothing but such frames, and only the last
+ * PAD_STATE survives, so a link that falls behind the
  * finger catches up in one write instead of replaying every sample it missed. Everything else keeps its
  * order, KEY frames above all: see [merge].
  */
@@ -52,8 +53,12 @@ object Coalesce {
                     out[out.lastIndex] = frame
                 }
 
+                // A SET is a level, but a stroke drawn under it reads it: SET colour, PEN down, SET colour2 must
+                // keep the first SET ahead of the down, or the stroke starts in the wrong colour. An earlier SET
+                // goes only when nothing but snapshots stands between it and this one.
                 frame is Frame.SetValue -> {
-                    out.removeAll { it is Frame.SetValue && it.control == frame.control }
+                    val earlier = out.indexOfLast { it is Frame.SetValue && it.control == frame.control }
+                    if (earlier >= 0 && (earlier + 1 until out.size).all { snapshot(out[it]) }) out.removeAt(earlier)
                     out.add(frame)
                 }
 
@@ -64,6 +69,9 @@ object Coalesce {
         }
         return out
     }
+
+    private fun snapshot(frame: Frame): Boolean =
+        frame is Frame.SetValue || frame is Frame.Move || frame is Frame.Scroll || frame is Frame.Zoom
 
     /**
      * MOVE, SCROLL and ZOOM carry i16 fields, so a merged run that would overflow one is clamped rather
