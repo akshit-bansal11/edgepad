@@ -239,8 +239,8 @@ public final class Session {
         guard let source = dispatcher.media, !isEnded, stage == .live else { return }
         let info = source.read()
         let nowPlaying = info.identity.isEmpty ? "" : TitleCleaner.nowPlaying(title: info.title, artist: info.artist)
-        let line = info.artist.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            ? info.title : info.title + " - " + info.artist
+        let artist = info.artist.trimmingCharacters(in: .whitespacesAndNewlines)
+        let line = artist.isEmpty ? info.title : info.title + " - " + info.artist
         let full = line != nowPlaying ? line : ""
         let timeline = info.durationSeconds > 0 ? "\(info.positionSeconds)/\(info.durationSeconds)" : ""
         let was = lastMedia
