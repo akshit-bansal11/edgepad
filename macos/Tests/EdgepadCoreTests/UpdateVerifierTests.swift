@@ -76,9 +76,10 @@ final class UpdateVerifierTests: XCTestCase {
         XCTAssertFalse(UpdateVerifier.verifySums(sums, derSignature: signature, spki: spki))
     }
 
-    func testTheUnsetKeyIsEmptyAndVerifiesNothing() {
-        XCTAssertFalse(UpdateKey.isSet)
-        XCTAssertTrue(UpdateKey.spki().isEmpty)
+    func testTheEmbeddedKeyIsTheSharedOneAndAP256Key() throws {
+        XCTAssertEqual(UpdateKey.publicKeySpkiBase64, try Fixtures.lines("update-key.txt").first)
+        XCTAssertTrue(UpdateKey.isSet)
+        XCTAssertNoThrow(try P256.Signing.PublicKey(derRepresentation: UpdateKey.spki()))
     }
 
     func testTheHashOfAListedFileIsFoundByItsExactName() throws {
