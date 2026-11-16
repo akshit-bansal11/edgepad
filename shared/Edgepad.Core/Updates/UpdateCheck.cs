@@ -61,4 +61,19 @@ internal static class UpdateCheck
     /// </summary>
     public static bool IsNewer(Version candidate, string running) =>
         Version.TryParse(running.Split('-')[0], out var ours) && candidate > ours;
+
+    /// <summary>The signed list of file hashes a release carries.</summary>
+    public static Uri SumsUrl(Version version) => AssetUrl(version, "SHA256SUMS.txt");
+
+    /// <summary>The DER ECDSA signature over the bytes of <see cref="SumsUrl"/>.</summary>
+    public static Uri SigUrl(Version version) => AssetUrl(version, "SHA256SUMS.txt.sig");
+
+    /// <summary>A file of release <paramref name="version"/>, by the exact name the release gives it.</summary>
+    public static Uri AssetUrl(Version version, string name) => new($"{Releases}/download/v{version}/{name}");
+
+    public static string ExeName(Version version) => $"Edgepad-{version}.exe";
+
+    public static string LinuxName(Version version) => $"Edgepad-{version}-linux-x64.tar.gz";
+
+    public static string MacName(Version version) => $"Edgepad-{version}-mac.zip";
 }
