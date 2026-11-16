@@ -528,7 +528,15 @@ internal sealed class Session(
         link.Close();
         foreach (var watch in ending)
         {
-            watch.Dispose();
+            // One watch that throws must not leave the others running or skip the release below.
+            try
+            {
+                watch.Dispose();
+            }
+            catch (Exception e)
+            {
+                Log.Write($"Session with {address}: a watch failed to stop: {e}");
+            }
         }
 
         lock (frames.SendGate)
