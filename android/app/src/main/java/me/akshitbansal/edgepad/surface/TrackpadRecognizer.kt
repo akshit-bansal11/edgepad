@@ -404,8 +404,15 @@ class TrackpadRecognizer(
             return
         }
         fingers = count
-        lastX = centroid(xs, count)
-        lastY = centroid(ys, count)
+        // A finger leaving moves the centroid without anything having slid, the mirror of down(). The start
+        // shifts by that jump rather than being copied, so travel a swipe has already covered is kept, and a
+        // tap whose fingers lift one at a time with a sample between the lifts stays a tap.
+        val cx = centroid(xs, count)
+        val cy = centroid(ys, count)
+        startX += cx - lastX
+        startY += cy - lastY
+        lastX = cx
+        lastY = cy
         if (fingers == 2) lastSpan = span(xs, ys)
     }
 

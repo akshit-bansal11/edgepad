@@ -189,6 +189,43 @@ class TrackpadRecognizerTest {
     }
 
     @Test
+    fun aTwoFingerTapSurvivesTheMoveBetweenTheLifts() {
+        // A real digitiser sends a MOVE between the two lifts, at the remaining finger's place.
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.DOWN, 1, 100f to 100f, 160f to 100f)
+        touch(Action.UP, 60, 160f to 100f)
+        touch(Action.MOVE, 65, 160f to 100f)
+        touch(Action.UP, 70)
+        assertEquals(listOf(Frame.PointerButton(1, true), Frame.PointerButton(1, false)), out)
+    }
+
+    @Test
+    fun aFourFingerTapSurvivesMovesBetweenEachLift() {
+        touch(Action.DOWN, 0, 100f to 300f, 150f to 300f, 200f to 300f, 250f to 300f)
+        touch(Action.UP, 50, 150f to 300f, 200f to 300f, 250f to 300f)
+        touch(Action.MOVE, 55, 150f to 300f, 200f to 300f, 250f to 300f)
+        touch(Action.UP, 60, 200f to 300f, 250f to 300f)
+        touch(Action.MOVE, 65, 200f to 300f, 250f to 300f)
+        touch(Action.UP, 70, 250f to 300f)
+        touch(Action.MOVE, 75, 250f to 300f)
+        touch(Action.UP, 80)
+        assertEquals(listOf(ActionId.NOTIFICATIONS.frame()), out)
+    }
+
+    @Test
+    fun aLiftDuringASwipeKeepsTheDistanceAlreadyTravelled() {
+        // 30 dp with three fingers, then 30 dp more with two: 60 dp in all, past SWIPE_DP only if the travel
+        // before the lift is kept.
+        touch(Action.DOWN, 0, 100f to 300f, 150f to 300f, 200f to 300f)
+        touch(Action.MOVE, 20, 100f to 270f, 150f to 270f, 200f to 270f)
+        touch(Action.UP, 30, 150f to 270f, 200f to 270f)
+        touch(Action.MOVE, 40, 150f to 240f, 200f to 240f)
+        touch(Action.UP, 50, 200f to 240f)
+        touch(Action.UP, 60)
+        assertEquals(listOf(ActionId.TASK_VIEW.frame()), out)
+    }
+
+    @Test
     fun threeFingersUpIsTaskViewOnce() {
         touch(Action.DOWN, 0, 100f to 300f)
         touch(Action.DOWN, 1, 100f to 300f, 150f to 300f)
