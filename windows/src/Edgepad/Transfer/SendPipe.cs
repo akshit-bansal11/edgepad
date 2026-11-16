@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO.Pipes;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -89,22 +90,23 @@ internal sealed class SendPipe : IDisposable
 
             var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.SendTo), ShortcutName);
             shell = Activator.CreateInstance(type);
-            link = type.InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shell, [file]);
+            link = type.InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shell, [file], CultureInfo.InvariantCulture);
             if (link is null)
             {
                 return;
             }
 
             var linkType = link.GetType();
-            if (File.Exists(file)
-                && string.Equals(linkType.InvokeMember("TargetPath", BindingFlags.GetProperty, null, link, null) as string, exe, StringComparison.OrdinalIgnoreCase))
+            var target = linkType.InvokeMember(
+                "TargetPath", BindingFlags.GetProperty, null, link, null, CultureInfo.InvariantCulture) as string;
+            if (File.Exists(file) && string.Equals(target, exe, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
 
-            _ = linkType.InvokeMember("TargetPath", BindingFlags.SetProperty, null, link, [exe]);
-            _ = linkType.InvokeMember("Arguments", BindingFlags.SetProperty, null, link, [SingleInstance.SendOption]);
-            _ = linkType.InvokeMember("Save", BindingFlags.InvokeMethod, null, link, null);
+            _ = linkType.InvokeMember("TargetPath", BindingFlags.SetProperty, null, link, [exe], CultureInfo.InvariantCulture);
+            _ = linkType.InvokeMember("Arguments", BindingFlags.SetProperty, null, link, [SingleInstance.SendOption], CultureInfo.InvariantCulture);
+            _ = linkType.InvokeMember("Save", BindingFlags.InvokeMethod, null, link, null, CultureInfo.InvariantCulture);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or TargetInvocationException or COMException)
         {

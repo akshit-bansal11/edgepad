@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using Edgepad.Ui;
 
 namespace Edgepad.Dispatch;
@@ -38,6 +40,7 @@ internal sealed class ShutdownCountdown : Form
     public const int Seconds = 60;
 
     private static readonly Lock Gate = new();
+    private static readonly CompositeFormat ShutdownText = CompositeFormat.Parse(Strings.EndAction_ShutdownText);
     private static ShutdownCountdown? open;
 
     private readonly CountdownClock clock = new(Seconds, () => Environment.TickCount64);
@@ -142,7 +145,7 @@ internal sealed class ShutdownCountdown : Form
     }
 
     private void ShowSeconds() =>
-        text.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.EndAction_ShutdownText, clock.SecondsLeft);
+        text.Text = string.Format(CultureInfo.CurrentCulture, ShutdownText, clock.SecondsLeft);
 
     private void Step()
     {

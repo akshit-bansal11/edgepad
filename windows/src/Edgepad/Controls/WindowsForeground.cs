@@ -91,7 +91,7 @@ internal sealed partial class WindowsForeground(SynchronizationContext ui) : IFo
         {
             if (window != 0 && active is { } owner)
             {
-                owner.Changed(Of(window));
+                owner.Changed(owner.Of(window));
             }
         }
         catch (Exception)
