@@ -27,6 +27,9 @@ class Laptop(
     var lostAt = 0L
     var connectedAt = 0L
 
+    /** The records this one takes over from once it connects: the same laptop over another transport. */
+    var replacing: List<String> = emptyList()
+
     /** What the laptop's last PIN question allowed, for the PIN screen; a count, never a digit. */
     var pinAttemptsLeft = 0
 

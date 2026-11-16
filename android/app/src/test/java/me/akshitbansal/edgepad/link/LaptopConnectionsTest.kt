@@ -575,6 +575,51 @@ class LaptopConnectionsTest {
         assertEquals(2, made.size)
     }
 
+    private fun switchTo2(): FakeLink {
+        manager.connect(net(2), "Laptop 2", Transport.WIFI, tapped = true, select = true, replacing = listOf(id(1)))
+        return made.last()
+    }
+
+    @Test
+    fun aSwitchOfTransportTakesTheSelectionAndEndsTheOldLinkOnceUp() {
+        val old = up(1)
+        switchTo2().accept()
+        assertSame(laptop(2), manager.selected)
+        assertEquals(LaptopLink.Cause.ENDED, old.closedWith)
+        assertFalse(laptop(1).reconnecting)
+        assertNull(laptop(1).retryTimer)
+        scheduler.advance(LaptopConnections.RETRY_DELAY_MS * 5)
+        assertEquals(1, linksTo(1))
+    }
+
+    @Test
+    fun aSwitchThatFailsLeavesTheOldLinkUp() {
+        val old = up(1)
+        val attempt = switchTo2()
+        val before = manager.selected
+        attempt.drop(LaptopLink.Cause.UNREACHABLE)
+        assertNull(old.closedWith)
+        assertTrue(laptop(1).connected)
+        assertSame(before, manager.selected)
+        // The quick retry that then works was not part of the switch.
+        scheduler.advance(LaptopConnections.QUICK_RETRY_MS)
+        made.last().accept()
+        assertTrue(laptop(2).connected)
+        assertNull(old.closedWith)
+    }
+
+    @Test
+    fun aLaterDropOfTheNewRecordDoesNotEndTheOldOne() {
+        up(1)
+        val second = switchTo2().also { it.accept() }
+        val again = up(1)
+        second.drop()
+        scheduler.advance(LaptopConnections.RETRY_DELAY_MS)
+        made.last().accept()
+        assertTrue(laptop(2).connected)
+        assertNull(again.closedWith)
+    }
+
     @Test
     fun aRetryThatHearsNoStopsRetrying() {
         val causes =

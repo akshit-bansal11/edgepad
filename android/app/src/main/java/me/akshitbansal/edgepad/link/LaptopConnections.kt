@@ -138,7 +138,8 @@ class LaptopConnections(
     /**
      * Connects to [target], ending any link that laptop already had; other laptops are left alone. Selects it when
      * nothing is selected or [select] says so. [tapped] is the owner's own tap, which starts a fresh set of attempts
-     * and earns the one quick retry; a retry or the automatic connect at start never does.
+     * and earns the one quick retry; a retry or the automatic connect at start never does. [replacing] names the same
+     * laptop's records over other transports: once this one connects, it takes their selection and they end.
      *
      * Only [Target.key] finds a record. TEXT DEVICE is a claim, and over Bluetooth nothing proves it, so what a laptop
      * says of itself never ends a link, removes a record or moves the selection: a laptop reached over Bluetooth and
@@ -150,6 +151,7 @@ class LaptopConnections(
         kind: Transport,
         tapped: Boolean = false,
         select: Boolean = false,
+        replacing: List<String> = emptyList(),
     ) {
         val laptop =
             all.firstOrNull { it.id == target.key }
@@ -157,6 +159,7 @@ class LaptopConnections(
         laptop.name = name
         laptop.kind = kind
         laptop.reconnecting = false
+        laptop.replacing = replacing
         if (tapped) laptop.attempts = 0
         if (selected == null || (select && laptop !== selected)) change(laptop)
         open(laptop, target)
@@ -324,6 +327,8 @@ class LaptopConnections(
     ) {
         stopPinger(laptop)
         laptop.link = null
+        // A switch that failed must not end the old record's link at some later connect.
+        laptop.replacing = emptyList()
         laptop.state.forgetMacroOpen()
         laptop.state.forgetInputBlocked()
         laptop.state.forgetPower()
@@ -443,6 +448,12 @@ class LaptopConnections(
             startPinger(laptop)
             // The selected one gave up or never answered: the first laptop to come up takes over.
             if (selected?.idle == true) change(laptop)
+            // A switch of transport: this record takes the selection from the one it replaces, which then ends.
+            val old = laptop.replacing
+            laptop.replacing = emptyList()
+            val chosen = selected
+            if (chosen != null && chosen.id in old) change(laptop)
+            for (id in old) if (id != laptop.id) disconnect(id)
             events.onConnected(laptop)
         }
 

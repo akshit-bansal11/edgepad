@@ -79,6 +79,7 @@ import me.akshitbansal.edgepad.link.mergedRows
 import me.akshitbansal.edgepad.link.net.LinkKeys
 import me.akshitbansal.edgepad.link.net.Sas
 import me.akshitbansal.edgepad.link.olderHalf
+import me.akshitbansal.edgepad.link.onlyAutoConnecting
 import me.akshitbansal.edgepad.link.parseHex
 import me.akshitbansal.edgepad.link.parseHostPort
 import me.akshitbansal.edgepad.link.pickerHint
@@ -1925,7 +1926,12 @@ class MainActivity :
             // With Bluetooth off or not allowed, the empty bonded list says nothing about the pairing.
             if (via != Transport.BLUETOOTH || bluetoothReady()) picker.setMessage(getString(R.string.not_paired))
         } else {
-            connect(if (pairAgain && chosen is Target.Network) chosen.again() else chosen, via, tapped = true)
+            // The row's other record, over the other transport, hands over to this one once it connects, and only
+            // this one connects by itself at the next launch.
+            val others = row.laptops.filter { it.id != chosen.key }
+            saved = onlyAutoConnecting(saved, row.keys, chosen.key)
+            val next = if (pairAgain && chosen is Target.Network) chosen.again() else chosen
+            connect(next, via, tapped = true, switching = others)
         }
     }
 
@@ -2022,15 +2028,18 @@ class MainActivity :
         target: Target,
         via: Transport? = null,
         tapped: Boolean = false,
+        switching: List<Laptop> = emptyList(),
     ) {
-        val select = tapped && !connected
+        // A switch away from the selected laptop's other transport takes the selection with it.
+        val select = tapped && (!connected || switching.any { it === selected })
+        val replacing = switching.map { it.id }
         when (target) {
             is Target.Bluetooth -> {
-                manager.connect(target, nameOf(target.device), Transport.BLUETOOTH, tapped, select)
+                manager.connect(target, nameOf(target.device), Transport.BLUETOOTH, tapped, select, replacing)
             }
 
             is Target.Network -> {
-                manager.connect(target, target.name, via ?: Transport.WIFI, tapped, select)
+                manager.connect(target, target.name, via ?: Transport.WIFI, tapped, select, replacing)
             }
         }
     }
