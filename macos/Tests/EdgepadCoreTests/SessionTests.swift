@@ -703,6 +703,62 @@ final class SessionTests: XCTestCase {
         FrameCodec.encode(.runAction(id: action.rawValue))
     }
 
+    private func foregroundTexts() -> [String] {
+        transport.frames().compactMap { frame -> String? in
+            guard case .text(let kind, let value) = frame, kind == TextKind.foregroundApp.rawValue else { return nil }
+            return value
+        }
+    }
+
+    private func setForeground(_ session: Session, _ value: UInt8) {
+        session.receive(FrameCodec.encode(.setValue(control: ControlId.foregroundWatch.rawValue, value: value)))
+    }
+
+    func testForegroundIsListedOnlyWithASourceAndNothingIsWatchedUntilAskedFor() {
+        let source = FakeForeground()
+        dispatcher.foreground = source
+        _ = connectedSession()
+
+        XCTAssertTrue(
+            transport.frames().contains(.text(kind: TextKind.features.rawValue, value: "capture/foreground")))
+        XCTAssertEqual(source.watches, 0)
+        XCTAssertEqual(foregroundTexts(), [])
+    }
+
+    func testForegroundIsNotListedWithNoSource() {
+        _ = connectedSession()
+
+        XCTAssertTrue(transport.frames().contains(.text(kind: TextKind.features.rawValue, value: "capture")))
+    }
+
+    func testAWatchSendsTheAppAtOnceAndEachChangeAndStopsOnOff() {
+        let source = FakeForeground()
+        dispatcher.foreground = source
+        let session = connectedSession()
+
+        setForeground(session, 1)
+        source.change(to: "other.app/Other")
+        XCTAssertEqual(foregroundTexts(), ["fake.app/Fake", "other.app/Other"])
+
+        setForeground(session, 0)
+        source.change(to: "late.app/Late")
+        XCTAssertEqual(foregroundTexts().count, 2)
+        XCTAssertEqual(source.cancels, 1)
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testTheSessionsEndCancelsTheForegroundWatch() {
+        let source = FakeForeground()
+        dispatcher.foreground = source
+        let session = connectedSession()
+        setForeground(session, 1)
+
+        session.end()
+
+        XCTAssertEqual(source.cancels, 1)
+        XCTAssertNil(dispatcher.foregroundWatch)
+    }
+
     func testRunningIsNamedOnlyWhereThisMacCanSeeApps() {
         _ = macroStore(windows: FakeWindows())
         _ = connectedSession()

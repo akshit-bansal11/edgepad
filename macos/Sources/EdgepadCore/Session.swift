@@ -110,6 +110,8 @@ public final class Session {
     private var lastBrightness: Int?
     /// The label list's subscription, kept so `end()` can let go of it and a dead session is not written to.
     private var macroWatch: MacroWatch?
+    /// The app-in-front subscription, alive only while the phone asks to hear it; `end()` lets go of it.
+    private var foregroundWatch: ForegroundWatch?
     /// The media texts and state last sent, so the phone hears only a change. The icon is sent once per app.
     private var lastMedia: (nowPlaying: String, full: String, app: String, timeline: String)?
     private var lastMediaState: [UInt8]?
@@ -287,6 +289,9 @@ public final class Session {
         input.releaseAll()
         dispatcher.padStatusReply = nil
         dispatcher.macroWatch = nil
+        dispatcher.foregroundWatch = nil
+        foregroundWatch?.cancel()
+        foregroundWatch = nil
         macroWatch?.cancel()
         macroWatch = nil
         power?.changed = nil
@@ -602,6 +607,10 @@ public final class Session {
             features.append(Feature.running.rawValue)
             dispatcher.macroWatch = { [weak self] open in self?.watchMacroApps(open) }
         }
+        if dispatcher.foreground?.available == true {
+            features.append(Feature.foreground.rawValue)
+            dispatcher.foregroundWatch = { [weak self] on in self?.watchForeground(on) }
+        }
         if dispatcher.clipboard?.isAllowed == true {
             features.append(Feature.clipboard.rawValue)
         }
@@ -632,6 +641,18 @@ public final class Session {
             }
         } else {
             send(.text(kind: TextKind.macros.rawValue, value: ""))
+        }
+    }
+
+    /// The phone started or stopped hearing the app in front. The source is asked only now, so a Mac nobody watches runs
+    /// no observer. A repeated start replaces the watch, which sends the current app afresh.
+    private func watchForeground(_ on: Bool) {
+        foregroundWatch?.cancel()
+        foregroundWatch = nil
+        guard on, !isEnded, let source = dispatcher.foreground else { return }
+        foregroundWatch = source.watch { [weak self] app in
+            guard let self, !self.isEnded else { return }
+            self.send(.text(kind: TextKind.foregroundApp.rawValue, value: app))
         }
     }
 

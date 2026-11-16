@@ -319,3 +319,26 @@ final class FakeMedia: MediaSource {
         return nil
     }
 }
+
+/// A source of the app in front that keeps the callback so a test can fire a change by hand.
+final class FakeForeground: ForegroundSource {
+    var available = true
+    private(set) var watches = 0
+    private(set) var cancels = 0
+    private var onChange: ((String) -> Void)?
+
+    func watch(_ onChange: @escaping (String) -> Void) -> ForegroundWatch {
+        watches += 1
+        self.onChange = onChange
+        onChange("fake.app/Fake")
+        return ForegroundWatch { [weak self] in
+            self?.cancels += 1
+            self?.onChange = nil
+        }
+    }
+
+    /// A change as the platform would report it; nothing happens once the watch is cancelled.
+    func change(to text: String) {
+        onChange?(text)
+    }
+}

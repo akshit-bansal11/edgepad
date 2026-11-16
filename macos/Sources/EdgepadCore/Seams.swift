@@ -1,3 +1,5 @@
+import Foundation
+
 /// The seams between the pure half of the Mac app and the half that touches macOS. Everything in this
 /// module decides; everything behind these protocols acts. That is what lets the dispatcher's drop paths
 /// and the handshake's refusals run as unit tests on a build machine with no Bluetooth radio, no
@@ -286,4 +288,56 @@ public protocol MediaSource: AnyObject {
     func seek(percent: Int) -> Bool
     /// The picture of the app named `app`, as PNG bytes about 64 px square, or nil for none.
     func icon(forApp app: String) -> [UInt8]?
+}
+
+/// Says which app is in front. Nothing runs until `watch`, and the app is never logged: the log says only that a watch
+/// started or stopped.
+public protocol ForegroundSource: AnyObject {
+    var available: Bool { get }
+
+    /// Calls `onChange` with the encoded TEXT 21 payload ("" when nothing is known) for the app in front now and then
+    /// on every change, never faster than every 200 ms. Cancelling the watch stops it and releases what it held.
+    func watch(_ onChange: @escaping (String) -> Void) -> ForegroundWatch
+}
+
+/// A subscription to the app in front. Cancelling is idempotent, and a session cancels in `end()`.
+public final class ForegroundWatch {
+    private var onCancel: (() -> Void)?
+
+    public init(_ onCancel: @escaping () -> Void) {
+        self.onCancel = onCancel
+    }
+
+    public func cancel() {
+        onCancel?()
+        onCancel = nil
+    }
+}
+
+/// The TEXT 21 payload, "token/name". The twin of the laptop core's `ForegroundApp`.
+public enum ForegroundApp {
+    public static let maxToken = 64
+    public static let maxNameCodePoints = 40
+
+    /// "" unless the token is 1 to 64 of A-Z a-z 0-9 . _ -. The name has control characters and "|" turned to a space,
+    /// is trimmed and cut to 40 code points, never inside a surrogate pair (a Swift scalar is a whole code point).
+    public static func encode(token: String, name: String?) -> String {
+        let bytes = Array(token.utf8)
+        let valid = bytes.allSatisfy { byte in
+            (UInt8(ascii: "0")...UInt8(ascii: "9")).contains(byte)
+                || (UInt8(ascii: "A")...UInt8(ascii: "Z")).contains(byte)
+                || (UInt8(ascii: "a")...UInt8(ascii: "z")).contains(byte)
+                || byte == UInt8(ascii: ".") || byte == UInt8(ascii: "_") || byte == UInt8(ascii: "-")
+        }
+        guard (1...maxToken).contains(bytes.count), valid else { return "" }
+
+        let trimmed = (name ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        var cleaned = String.UnicodeScalarView()
+        for scalar in trimmed.unicodeScalars.prefix(maxNameCodePoints) {
+            let blank = scalar.properties.generalCategory == .control || scalar == "|"
+            cleaned.append(blank ? " " : scalar)
+        }
+        let clean = String(cleaned).trimmingCharacters(in: .whitespaces)
+        return token + "/" + clean
+    }
 }

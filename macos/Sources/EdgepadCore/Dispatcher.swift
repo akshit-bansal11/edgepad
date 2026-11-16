@@ -40,6 +40,14 @@ public final class Dispatcher {
     /// apps, like `padStatusReply`; without one, MACROS_WATCH and MACROS_UNWATCH are dropped and counted.
     public var macroWatch: ((Bool) -> Void)?
 
+    /// Says which app is in front. Set by the app on a Mac that can tell, like `macros`; without one, FOREGROUND_WATCH is
+    /// dropped and counted and the feature is not listed.
+    public var foreground: ForegroundSource?
+
+    /// Told when the phone starts (true) or stops (false) hearing the app in front. Set by the session once it lists the
+    /// feature, like `macroWatch`.
+    public var foregroundWatch: ((Bool) -> Void)?
+
     /// Sends captures to the phone when it asks for that. Set by the app per connection; without one,
     /// CAPTURE_TARGET and FILE_RESULT are dropped and counted.
     public var capture: CaptureToPhone?
@@ -379,6 +387,11 @@ public final class Dispatcher {
         case .notify:
             // Not built on the Mac yet, so it is dropped and counted.
             return false
+        case .foregroundWatch:
+            // Only 0 or 1; anything else is dropped and counted, as is a watch with no source behind it.
+            guard let foregroundWatch, value <= 1 else { return false }
+            foregroundWatch(value == 1)
+            return true
         }
     }
 }

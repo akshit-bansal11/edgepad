@@ -152,6 +152,8 @@ final class SessionHost {
         // Per connection, like the injector: a phone that goes takes its overlay down with it (Session.end).
         dispatcher.annotation = Annotator()
         dispatcher.macros = macros
+        // Observes nothing until a phone sets FOREGROUND_WATCH to 1.
+        dispatcher.foreground = WorkspaceForeground()
         // Per connection too: the phone says where captures go each time it connects.
         dispatcher.capture = CaptureToPhone(
             folders: MacCaptureFolders(), lastInput: { [weak dispatcher] in dispatcher?.lastInput ?? 0 })

@@ -96,6 +96,9 @@ public enum ControlId: UInt8, CaseIterable {
     case penOpacity = 9
     /// Whether this link forwards the computer's notifications, 1 or 0, phone to computer. Forgotten when the session ends.
     case notify = 10
+    /// Whether this link hears the app in front (`TextKind.foregroundApp`), 1 or 0, phone to computer. Anything above 1 is
+    /// dropped and counted. Forgotten when the session ends.
+    case foregroundWatch = 11
 }
 
 /// What a TEXT frame carries. Only `type` goes phone to computer; the rest go the other way.
@@ -145,6 +148,9 @@ public enum TextKind: UInt8, CaseIterable {
     case batteries = 19
     /// Computer to phone: the audio output, "kind/name" split on the first "/", kind an `OutputKind` token. Empty means none known.
     case output = 20
+    /// Computer to phone: the app in front, "token/name" split on the first "/". Sent only after `ControlId.foregroundWatch` is 1,
+    /// on change, and never logged. Empty means nothing known.
+    case foregroundApp = 21
     /// Computer to phone: how many macro slots it keeps, in decimal such as "15".
     case macroCap = 22
     /// Computer to phone: a `CaptureStateToken`, `idle` or `recording`. Best effort.
@@ -167,6 +173,7 @@ public enum Feature: String, CaseIterable {
     case running = "running"
     case endAction = "endaction"
     case notify = "notify"
+    case foreground = "foreground"
 }
 
 /// The whole vocabulary of `TextKind.padStatus`: a token the phone matches on, never prose, so the wording

@@ -228,6 +228,24 @@ final class DispatcherTests: XCTestCase {
         XCTAssertEqual(dispatcher.dropped, 2)
     }
 
+    func testTheForegroundWatchIsToldAndAValueAboveOneIsDropped() {
+        var told: [Bool] = []
+        dispatcher.foregroundWatch = { told.append($0) }
+
+        dispatcher.handle(.setValue(control: ControlId.foregroundWatch.rawValue, value: 1))
+        dispatcher.handle(.setValue(control: ControlId.foregroundWatch.rawValue, value: 0))
+        dispatcher.handle(.setValue(control: ControlId.foregroundWatch.rawValue, value: 2))
+
+        XCTAssertEqual(told, [true, false])
+        XCTAssertEqual(dispatcher.dropped, 1)
+    }
+
+    func testTheForegroundWatchIsDroppedWithNoSource() {
+        dispatcher.handle(.setValue(control: ControlId.foregroundWatch.rawValue, value: 1))
+
+        XCTAssertEqual(dispatcher.dropped, 1)
+    }
+
     func testAnUnknownMouseButtonIsDropped() {
         dispatcher.handle(.pointerButton(id: 3, down: true))
 
