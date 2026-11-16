@@ -23,6 +23,7 @@ import me.akshitbansal.edgepad.protocol.Feature
  * @param allowed The owner's own toggle, read every time.
  * @param settle Called just before sharing turns on for a laptop, so what is on the clipboard now is not sent to it.
  * @param routes Where a link's blobs are shared with the other features that take them, so this takes the clipboard's.
+ * @param onNoLinks Called when a refresh leaves no link at all, so what was kept for those links can go.
  * @param syncFor Makes a link's [ClipboardSync], so a test can give it a clock and a scheduler of its own.
  */
 class ClipboardLinks(
@@ -30,6 +31,7 @@ class ClipboardLinks(
     private val allowed: () -> Boolean,
     private val settle: () -> Unit = {},
     private val routes: BlobRoutes = BlobRoutes(),
+    private val onNoLinks: () -> Unit = {},
     private val syncFor: (ClipboardSurface, BlobSender, () -> Boolean, () -> Boolean) -> ClipboardSync =
         { surface, sender, allowed, ended -> ClipboardSync(surface, sender, allowed, ended) },
 ) {
@@ -62,6 +64,7 @@ class ClipboardLinks(
                 iterator.remove()
             }
         }
+        if (shares.isEmpty()) onNoLinks()
         val chosen = live.firstOrNull { it === selected && allowed() }
         for (laptop in live) {
             if (laptop !== chosen) shareOf(laptop)?.let(::turnOff)
@@ -109,6 +112,7 @@ class ClipboardLinks(
 class ClipboardShare(
     val bridge: ClipboardBridge,
     val links: ClipboardLinks,
+    val history: ClipboardHistory,
 )
 
 /**
@@ -122,7 +126,8 @@ fun clipboardShare(
     allowed: () -> Boolean,
 ): ClipboardShare {
     val bridge = ClipboardBridge(AndroidClipboard(context))
-    val links = ClipboardLinks(bridge, allowed, bridge::settle, routes)
+    val history = ClipboardHistory()
+    val links = ClipboardLinks(RecordingSurface(bridge, history), allowed, bridge::settle, routes, history::clear)
     bridge.onChanged = links::localChanged
-    return ClipboardShare(bridge, links)
+    return ClipboardShare(bridge, links, history)
 }
