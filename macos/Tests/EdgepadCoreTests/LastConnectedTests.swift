@@ -47,6 +47,17 @@ final class LastConnectedTests: XCTestCase {
         XCTAssertNil(store.date(for: "BB"))
     }
 
+    func testAWriteQueuedBeforeAForgetWritesNothing() {
+        let store = LastConnected(path: path)
+        let admitted = store.generation
+        store.forgetAll()
+        store.record("AA", since: admitted)
+        XCTAssertNil(store.date(for: "AA"))
+
+        store.record("AA", since: store.generation)
+        XCTAssertNotNil(store.date(for: "AA"))
+    }
+
     func testTheRowNamesTheDayAndMonthAndAddsTheYearOnlyWhenNotThisYear() {
         let now = Date(timeIntervalSince1970: 1_762_560_000)  // 2025-11-08
         let thisYear = Date(timeIntervalSince1970: 1_762_560_000 - 86400 * 40)  // 2025-09-29
