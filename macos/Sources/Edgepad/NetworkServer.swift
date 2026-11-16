@@ -205,6 +205,7 @@ final class NetworkServer {
             limiter: limiter,
             prompt: SourcedPrompt(panel: prompt, source: Self.sourceLine(connection.endpoint)),
             trust: trust,
+            host: address.isEmpty ? nil : address,
             send: { [weak link] bytes in link?.send(bytes) ?? false },
             schedule: { delay, run in
                 _ = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { _ in run() }
