@@ -1,5 +1,6 @@
 using Edgepad.Blob;
 using Edgepad.Platform;
+using Edgepad.Protocol;
 using Xunit;
 
 namespace Edgepad.Tests;

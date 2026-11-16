@@ -5,6 +5,8 @@ namespace Edgepad.Tests;
 
 public sealed class LinuxTransfersTests
 {
+    private static readonly string[] AbsolutePaths = ["/tmp/a b.txt", "/tmp/c.txt"];
+
     [Fact]
     public void FilesLandInAnEdgepadFolder() =>
         Assert.Equal("Edgepad", Path.GetFileName(LinuxTransfers.Destination()));
@@ -40,5 +42,5 @@ public sealed class LinuxTransfersTests
 
     [Fact]
     public void OnlyAbsolutePathsAreTakenFromTheSendSocket() =>
-        Assert.Equal(new[] { "/tmp/a b.txt", "/tmp/c.txt" }, SendSocket.ParsePaths("/tmp/a b.txt\n\nrelative.txt\n /tmp/c.txt \n"));
+        Assert.Equal(AbsolutePaths, SendSocket.ParsePaths("/tmp/a b.txt\n\nrelative.txt\n /tmp/c.txt \n"));
 }
