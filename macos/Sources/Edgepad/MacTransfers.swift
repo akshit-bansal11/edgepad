@@ -21,7 +21,8 @@ enum MacTransfers {
     }
 
     /// Writes `com.apple.quarantine` on `path`, itself and not a link it might be. A volume that refuses it is logged
-    /// and the file stays, since the bytes are saved and checked either way.
+    /// and the file stays, since the bytes are saved and checked either way. It is called on the part, before the
+    /// file is moved into Downloads, so the file is never there unmarked.
     static func markDownloaded(_ path: String) {
         let value = Array(Quarantine.value(at: Date()).utf8)
         if setxattr(path, Quarantine.attribute, value, value.count, 0, XATTR_NOFOLLOW) != 0 {

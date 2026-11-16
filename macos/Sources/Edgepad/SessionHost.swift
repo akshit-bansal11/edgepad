@@ -171,10 +171,8 @@ final class SessionHost {
         // Per connection too: files come in and go out on whichever socket the phone has open.
         dispatcher.transfers = TransferReceiver(
             destination: MacTransfers.destination, partialFolder: MacTransfers.partialFolder,
-            arrived: { [weak self] path in
-                MacTransfers.markDownloaded(path)
-                self?.onFileArrived?(path)
-            })
+            arrived: { [weak self] path in self?.onFileArrived?(path) },
+            mark: MacTransfers.markDownloaded)
         dispatcher.sending = TransferSender(
             link: link == "Bluetooth" ? .bluetooth : .network,
             lastInput: { [weak dispatcher] in dispatcher?.lastInput ?? 0 })

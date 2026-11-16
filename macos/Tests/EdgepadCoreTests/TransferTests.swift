@@ -167,6 +167,23 @@ final class TransferTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: old))
     }
 
+    func testTheFileIsMarkedWhileStillAPartBeforeItIsMovedIntoDownloads() throws {
+        var seen: [(path: String, inDownloads: Bool)] = []
+        let incoming = TransferReceiver(
+            destination: destination, partialFolder: partial,
+            mark: { [unowned self] path in
+                let there = FileManager.default.fileExists(atPath: self.destination + "/a.txt")
+                seen.append((path, there))
+            })
+        incoming.reply = { _ in }
+        _ = incoming.take(begin: 1, size: 1, name: "a.txt")
+        _ = incoming.take(chunk: 1, offset: 0, data: [7])
+        _ = incoming.take(end: 1, sha256: sha([7]))
+        XCTAssertEqual(seen.map(.path), [partial + "/a.txt.1.part"])
+        XCTAssertEqual(seen.map(.inDownloads), [false])
+        XCTAssertTrue(FileManager.default.fileExists(atPath: destination + "/a.txt"))
+    }
+
     func testAnUnreadableFreeSpaceRefusesTheFile() {
         XCTAssertLessThan(TransferReceiver.freeSpaceOf(root.path + "/missing/nowhere"), 0)
         XCTAssertGreaterThan(TransferReceiver.freeSpaceOf(root.path), 0)

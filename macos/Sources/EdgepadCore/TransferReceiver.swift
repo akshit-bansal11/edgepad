@@ -50,6 +50,7 @@ public final class TransferReceiver {
     private let destination: String
     private let partialFolder: String
     private let arrived: ((String) -> Void)?
+    private let mark: ((String) -> Void)?
     private let freeSpace: (String) -> Int64
     private let clock: () -> TimeInterval
     private let schedule: (TimeInterval, @escaping () -> Void) -> Void
@@ -59,6 +60,8 @@ public final class TransferReceiver {
     ///   - destination: Where a saved file lands.
     ///   - partialFolder: Where a file still arriving, or cut short, is kept.
     ///   - arrived: Told the final path of each file saved.
+    ///   - mark: Told the path of the part of a file that checked out, before it is moved into `destination`, so the
+    ///     quarantine attribute is never missing from a file the owner can see.
     ///   - freeSpace: Free bytes on the volume holding a folder; nil reads the real one.
     ///   - clock: Seconds, for the idle timeout.
     ///   - schedule: Runs work after a delay, for the idle timeout.
@@ -67,6 +70,7 @@ public final class TransferReceiver {
         destination: String,
         partialFolder: String,
         arrived: ((String) -> Void)? = nil,
+        mark: ((String) -> Void)? = nil,
         freeSpace: ((String) -> Int64)? = nil,
         clock: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
         schedule: @escaping (TimeInterval, @escaping () -> Void) -> Void = { delay, work in
@@ -77,6 +81,7 @@ public final class TransferReceiver {
         self.destination = destination
         self.partialFolder = partialFolder
         self.arrived = arrived
+        self.mark = mark
         self.clock = clock
         self.schedule = schedule
         self.freeSpace = freeSpace ?? TransferReceiver.freeSpaceOf
@@ -239,6 +244,7 @@ public final class TransferReceiver {
         do {
             try a.file.synchronize()
             a.close()
+            mark?(a.partPath)
             while finalPath == nil {
                 let name = SafeFileName.unique(a.name) { manager.fileExists(atPath: "\(destination)/\($0)") }
                 let candidate = "\(destination)/\(name)"
