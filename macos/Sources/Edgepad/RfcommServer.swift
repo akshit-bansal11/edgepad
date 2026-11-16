@@ -152,6 +152,11 @@ final class RfcommServer: NSObject {
                     return
                 }
                 Log.write("Authenticated RFCOMM connection from \(address) in \(milliseconds) ms")
+                // A hold or a Forget may have begun while it authenticated.
+                if host.refuses(address) {
+                    transport.close()
+                    return
+                }
 
                 // Held by the host until it ends; the transport only points at it.
                 let session = host.accept(
@@ -262,9 +267,12 @@ final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelega
         }
         // Strong on purpose: the session and the server drop their references the moment the session ends, so
         // this timer is what keeps the transport alive until the channel is really closed.
-        drainTimer = Timer.scheduledTimer(withTimeInterval: Self.drainSeconds, repeats: false) { _ in
+        // .common, so the hang-up still comes while a menu is tracked or a modal is up.
+        let timer = Timer(timeInterval: Self.drainSeconds, repeats: false) { _ in
             self.hangUp()
         }
+        RunLoop.main.add(timer, forMode: .common)
+        drainTimer = timer
     }
 
     private func hangUp() {

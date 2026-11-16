@@ -137,6 +137,10 @@ final class NetworkServer {
                     Log.write("Listening for Wi-Fi and USB phones on port \(got)")
                     report("Listening on \(got)")
                 }
+            case .waiting(let error):
+                // No network yet: said, rather than left at Starting. It moves to ready by itself when one comes.
+                Log.write("Waiting for a network to listen on: \(error)")
+                report("Waiting for a network")
             case .failed(let error):
                 self.listener = nil
                 opened.cancel()
@@ -180,8 +184,8 @@ final class NetworkServer {
     }
 
     private func accept(_ connection: NWConnection) {
-        // While the owner is forgetting phones or has a dialog open, no pairing may even start.
-        guard !host.isRefusing else {
+        // A connection the listener handed over just before it was stopped.
+        guard listener != nil else {
             connection.cancel()
             return
         }
@@ -206,9 +210,13 @@ final class NetworkServer {
             prompt: SourcedPrompt(panel: prompt, source: Self.sourceLine(connection.endpoint)),
             trust: trust,
             host: address.isEmpty ? nil : address,
+            // While the owner is forgetting phones or has a dialog open, no pairing may even start; INFO is still
+            // answered and a resume is refused by the session host, as on Windows.
+            refusing: { [host] in host.isRefusing },
             send: { [weak link] bytes in link?.send(bytes) ?? false },
             schedule: { delay, run in
-                _ = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { _ in run() }
+                // .common, so the timeout still fires while a menu is tracked or a modal is up.
+                RunLoop.main.add(Timer(timeInterval: delay, repeats: false) { _ in run() }, forMode: .common)
             },
             onDone: { [weak self, weak link] result in
                 guard let self, let link else { return }
@@ -297,6 +305,10 @@ final class NetworkTransport: Transport {
             switch state {
             case .failed(let error):
                 Log.write("A network link failed: \(error)")
+                self?.hangUp()
+            case .waiting(let error):
+                // An accepted connection with no usable path left: nothing will come over it.
+                Log.write("A network link lost its path: \(error)")
                 self?.hangUp()
             case .cancelled:
                 self?.hangUp()

@@ -76,12 +76,13 @@ final class LinkResponderTests: XCTestCase {
         super.tearDown()
     }
 
-    private func responder(host: String? = nil) -> LinkResponder {
+    private func responder(host: String? = nil, refusing: Bool = false) -> LinkResponder {
         sent = []
         timers = []
         results = []
         return LinkResponder(
             identity: identity, paired: paired, limiter: limiter, prompt: prompt, trust: trust, host: host,
+            refusing: { refusing },
             send: { [weak self] bytes in
                 self?.sent.append(bytes)
                 return true
@@ -293,6 +294,21 @@ final class LinkResponderTests: XCTestCase {
 
         XCTAssertEqual(try reply(), [LinkWire.statusBusy])
         XCTAssertNil(try XCTUnwrap(results.first))
+    }
+
+    /// As on Windows: while the owner holds phones off only a pairing is turned away, as busy, and no prompt is spent.
+    func testAHoldRefusesAPairingButStillAnswersInfo() throws {
+        let pairing = responder(refusing: true)
+        pairing.receive(
+            LinkWire.message(LinkWire.pairRequest(phoneId: phoneId, name: "Pixel", commit: Hex.random(32))))
+        XCTAssertEqual(try reply(), [LinkWire.statusBusy])
+        XCTAssertNil(try XCTUnwrap(results.first))
+        XCTAssertTrue(prompt.shown.isEmpty)
+
+        let info = responder(refusing: true)
+        info.receive(LinkWire.message(LinkWire.infoRequest()))
+        var answer = LinkFieldReader(try reply())
+        XCTAssertEqual(try answer.byte(), LinkWire.statusOk)
     }
 
     /// Otherwise a peer could put the pairing question on the owner's screen again and again by hanging up under it.

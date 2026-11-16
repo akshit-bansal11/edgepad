@@ -50,7 +50,9 @@ final class SessionHost {
     private var currentTransport: Transport?
     /// Connections still in their handshake, held the same way. None is current until trust has admitted it, so a
     /// phone that merely connects never disturbs the one in use.
-    private var candidates: [(session: Session, transport: Transport)] = []
+    /// With the name and the way each came, which reach `names` and `links` only once trust admits it: a candidate
+    /// refused over another link must not relabel the phone in use.
+    private var candidates: [(session: Session, transport: Transport, shownAs: String?, link: String)] = []
     /// Every phone that lost this Mac to another one within the quiet period, by lowercased address, and the uptime
     /// at which it may connect again. One entry each, so three trusted phones cannot take turns displacing each other.
     private var handedOff: [String: TimeInterval] = [:]
@@ -59,7 +61,7 @@ final class SessionHost {
     /// What the owner reads for a network phone's address, `link:` and 32 hex digits: its name and the way it came.
     /// Filled only by links that proved themselves, so it grows with this Mac's own phones, not with whoever connects.
     private var names: [String: String] = [:]
-    /// The way each phone in `names` or in progress came, for the status line.
+    /// The way each admitted phone came, for the status line.
     private var links: [String: String] = [:]
     /// Whether macOS is discarding this Mac's input (no Accessibility trust); set by the app, read for TEXT 18.
     var inputBlocked: () -> Bool = { false }
@@ -137,10 +139,6 @@ final class SessionHost {
     /// how the owner's trust question names it; `shownAs`, given for a network phone, replaces its address in the
     /// status line. The phone in use is left alone until trust has admitted this one.
     func accept(address: String, phone: String, shownAs: String?, link: String, transport: Transport) -> Session {
-        if let shownAs {
-            names[address] = shownAs
-        }
-        links[address] = link
         let injector = InputInjector()
         let dispatcher = Dispatcher(
             input: injector, speakers: speakers, microphone: microphone, brightness: brightness, display: display)
@@ -170,10 +168,10 @@ final class SessionHost {
             askTrust: { _, ended in ask(phone, ended) },
             // Beside the hello timer below, and for each PIN_REQUEST: the session ignores one whose question was
             // already answered.
+            // .common, as every timeout here: a default-mode timer does not fire while a menu or a modal is up.
             schedulePinTimeout: { timedOut in
-                _ = Timer.scheduledTimer(withTimeInterval: Session.pinTimeoutSeconds, repeats: false) { _ in
-                    timedOut()
-                }
+                let timer = Timer(timeInterval: Session.pinTimeoutSeconds, repeats: false) { _ in timedOut() }
+                RunLoop.main.add(timer, forMode: .common)
             },
             dispatcher: dispatcher,
             input: injector,
@@ -189,11 +187,12 @@ final class SessionHost {
             power: MacPowerSource(speakers: speakers),
             onAdmitted: { [weak self] admitted in self?.admit(admitted) ?? false },
             onEnded: { [weak self] ended in self?.sessionEnded(ended) })
-        candidates.append((session: session, transport: transport))
+        candidates.append((session: session, transport: transport, shownAs: shownAs, link: link))
 
-        Timer.scheduledTimer(withTimeInterval: Session.helloTimeoutSeconds, repeats: false) { [weak session] _ in
+        let helloTimeout = Timer(timeInterval: Session.helloTimeoutSeconds, repeats: false) { [weak session] _ in
             session?.helloTimedOut()
         }
+        RunLoop.main.add(helloTimeout, forMode: .common)
         return session
     }
 
@@ -276,7 +275,12 @@ final class SessionHost {
     private func admit(_ candidate: Session) -> Bool {
         guard !refusing, !refusesHandedOff(candidate.address) else { return false }
         guard let index = candidates.firstIndex(where: { $0.session === candidate }) else { return false }
-        let transport = candidates.remove(at: index).transport
+        let admitted = candidates.remove(at: index)
+        let transport = admitted.transport
+        if let shownAs = admitted.shownAs {
+            names[candidate.address] = shownAs
+        }
+        links[candidate.address] = admitted.link
         let previous = current
         current = candidate
         currentTransport = transport

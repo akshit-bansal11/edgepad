@@ -86,6 +86,9 @@ public final class LinkResponder {
     /// phone's to choose. An IPv4 phone on a dual-stack socket must be given as a.b.c.d, not ::ffff:a.b.c.d. Nil
     /// skips the per-host rule.
     private let host: String?
+    /// True while the owner holds phones off (a Forget, the Security window). Only a pairing is turned away by it:
+    /// INFO is still answered, and a resume goes on to the session host, which refuses it there.
+    private let refusing: () -> Bool
     private let send: ([UInt8]) -> Bool
     private let schedule: (TimeInterval, @escaping () -> Void) -> Void
     private let onDone: (LinkResult?) -> Void
@@ -110,6 +113,7 @@ public final class LinkResponder {
         prompt: PairingPrompt,
         trust: TrustStore,
         host: String? = nil,
+        refusing: @escaping () -> Bool = { false },
         send: @escaping ([UInt8]) -> Bool,
         schedule: @escaping (TimeInterval, @escaping () -> Void) -> Void,
         onDone: @escaping (LinkResult?) -> Void
@@ -120,6 +124,7 @@ public final class LinkResponder {
         self.prompt = prompt
         self.trust = trust
         self.host = host
+        self.refusing = refusing
         self.send = send
         self.schedule = schedule
         self.onDone = onDone
@@ -217,6 +222,11 @@ public final class LinkResponder {
         case .pair(let phoneId, let name, let nameField, let commit):
             address = Self.address(of: phoneId)
             phoneName = name
+            guard !refusing() else {
+                _ = send(LinkWire.message(LinkWire.status(LinkWire.statusBusy)))
+                refuse("the owner is changing security settings, or this Mac is forgetting its phones")
+                return
+            }
             guard limiter.tryBegin(host: host) else {
                 _ = send(LinkWire.message(LinkWire.status(LinkWire.statusBusy)))
                 refuse("another pairing is under way, or pairing is held off after failed or unanswered attempts")
