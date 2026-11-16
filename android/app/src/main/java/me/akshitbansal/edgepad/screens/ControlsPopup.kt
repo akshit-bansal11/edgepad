@@ -27,6 +27,9 @@ private const val ROW_DP = 96f
 /** The widest the popup grows, in dp: about a phone's portrait width, so a landscape one is not stretched. */
 private const val MAX_WIDTH_DP = 360f
 
+/** The tag of the "Send a file" tile, past every [ControlsPopup.Target] ordinal. */
+private const val SEND_TAG = 1000
+
 /** UX-27: a reveal that grows from its control takes at most 300 ms. */
 private const val REVEAL_MS = 200L
 
@@ -73,6 +76,10 @@ class ControlsPopup(
     private val hasTimeline: () -> Boolean = { true },
     /** Sends [ActionId.END_SLEEP], [ActionId.END_SHUTDOWN] or [ActionId.END_CANCEL]. */
     private val onEnd: (ActionId) -> Unit = {},
+    /** AU6: whether a laptop is connected now; without one the "Send a file" tile says so instead of opening. */
+    private val laptopConnected: () -> Boolean = { true },
+    /** AU6: "Send a file" was tapped on a connected laptop; the callback's owner opens the system picker. */
+    private val onSendFile: () -> Unit = {},
     private val onOpen: (Target) -> Unit,
 ) {
     /** The controls a tile can open. The order here is the order of a deck nobody has arranged. */
@@ -242,7 +249,7 @@ class ControlsPopup(
         capture: Boolean,
         annotate: Boolean,
     ) {
-        tiles = Target.entries.map { tile(it, available(it, capture, annotate)) }
+        tiles = Target.entries.map { tile(it, available(it, capture, annotate)) } + sendTile()
         keys = tiles.map { it.key }
         shown = DeckLayout.order(settings.deckOrder(DECK), keys)
         drawShown()
@@ -261,6 +268,9 @@ class ControlsPopup(
                 if (tile.note != null) {
                     // AND-A-15: the tile is there, dimmed, and says why it does nothing.
                     Toast.makeText(ui.context, tile.note, Toast.LENGTH_SHORT).show()
+                } else if (tile.tag == SEND_TAG) {
+                    dismiss()
+                    onSendFile()
                 } else {
                     dismiss()
                     onOpen(Target.entries[tile.tag])
@@ -302,6 +312,17 @@ class ControlsPopup(
             picture = StencilIcon(target.icon, ui.palette.ink, ui.palette.accent),
             spoken = R.string.controls_open,
             note = if (available) null else ui.string(reasonText(reasons()[featureOf(target)?.token])),
+        )
+
+    // Not a [Target]: those open MainActivity's screens, and a send opens the system picker.
+    private fun sendTile(): DeckTile =
+        DeckTile(
+            key = "send",
+            label = ui.string(R.string.xfer_send),
+            tag = SEND_TAG,
+            picture = StencilIcon(StencilIcon.Kind.CAPTURE, ui.palette.ink, ui.palette.accent),
+            spoken = R.string.controls_open,
+            note = if (laptopConnected()) null else ui.string(R.string.xfer_no_laptop),
         )
 
     private fun featureOf(target: Target): Feature? =
