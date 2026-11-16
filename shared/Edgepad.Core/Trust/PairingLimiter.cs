@@ -115,6 +115,15 @@ internal sealed class PairingLimiter(Func<long>? clock = null)
                     }
 
                     break;
+                case PairingOutcome.Silent:
+                    // No prompt was shown, so none of the hour's is spent: else silent requests from many addresses
+                    // could refuse everyone without the owner ever seeing one.
+                    if (host is not null)
+                    {
+                        Refuse(host, t);
+                    }
+
+                    break;
                 default:
                     break;
             }
@@ -183,4 +192,9 @@ internal enum PairingOutcome
     /// <summary>The owner did not type the code in time, or the phone went silent: as <see cref="Cancelled"/>.
     /// </summary>
     TimedOut,
+
+    /// <summary>The phone went silent before any prompt was shown: refuses that host, spends none of the hour's
+    /// prompts.
+    /// </summary>
+    Silent,
 }

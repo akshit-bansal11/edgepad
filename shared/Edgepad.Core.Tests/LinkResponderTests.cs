@@ -48,13 +48,13 @@ public sealed class LinkResponderTests : IDisposable
     }
 
     /// <summary>The laptop, accepting on <paramref name="end"/>; when it gives no link it closes the end, as the listener will.</summary>
-    private Task<LinkResult?> Laptop(Stream end, TimeSpan? ownerWait = null, bool refusing = false, IPAddress? remote = null) => Task.Run(
+    private Task<LinkResult?> Laptop(Stream end, TimeSpan? ownerWait = null, bool refusing = false, IPAddress? remote = null, TimeSpan? messageWait = null) => Task.Run(
         () =>
         {
             LinkResult? result = null;
             try
             {
-                result = LinkResponder.Accept(end, laptop, paired, limiter, owner, trust, logs.Enqueue, end.Dispose, ended.Token, MessageWait, ownerWait ?? MessageWait, () => refusing, remote);
+                result = LinkResponder.Accept(end, laptop, paired, limiter, owner, trust, logs.Enqueue, end.Dispose, ended.Token, messageWait ?? MessageWait, ownerWait ?? MessageWait, () => refusing, remote);
                 return result;
             }
             finally
@@ -443,6 +443,85 @@ public sealed class LinkResponderTests : IDisposable
         Assert.Equal(LinkWire.StatusBusy, LinkInitiator.Pair(lastPhone, PhoneId, PhoneName, ShowOnPhone).Status);
         Assert.Null(await lastSide);
         Assert.Equal(0, owner.Shown);
+    }
+
+    [Fact]
+    public async Task SilentRequestsBeforeAnyPromptDoNotSpendTheHoursPrompts()
+    {
+        owner.Cancels = true;
+        for (var i = 0; i < 11; i++)
+        {
+            var (phoneEnd, laptopEnd) = Duplex.Create();
+            var laptopSide = Laptop(laptopEnd, remote: IPAddress.Parse($"192.168.1.{i + 30}"), messageWait: NoAnswerWait);
+            using var own = LinkCrypto.NewKeyPair();
+            LinkWire.Write(phoneEnd, LinkWire.EncodePairRequest(PhoneId, PhoneName, LinkCrypto.Commit(own.PublicKey, new byte[LinkWire.NonceLength])));
+            LinkWire.Read(phoneEnd);
+
+            // No key sent: the laptop gives up before asking the owner.
+            Assert.Null(await laptopSide);
+        }
+
+        Assert.Equal(0, owner.Shown);
+        Assert.Equal(LinkWire.StatusBusy, await PairFrom(IPAddress.Parse("192.168.1.30")));
+        Assert.Equal(LinkWire.StatusOk, await PairFrom(IPAddress.Parse("192.168.1.99")));
+        Assert.Equal(1, owner.Shown);
+    }
+
+    [Fact]
+    public async Task AScopedAndUnscopedAddressOfOneHostShareAStreak()
+    {
+        owner.Cancels = true;
+        Assert.Equal(LinkWire.StatusOk, await PairFrom(IPAddress.Parse("fe80::1%3")));
+        Assert.Equal(LinkWire.StatusBusy, await PairFrom(IPAddress.Parse("fe80::1")));
+        Assert.Equal(1, owner.Shown);
+    }
+
+    [Fact]
+    public async Task AReadThatFailsAfterTheCodeIsTypedRefusesThatHost()
+    {
+        owner.Types = code => code;
+        var host = IPAddress.Parse("10.0.0.7");
+        var (phoneEnd, laptopEnd) = Duplex.Create();
+        var laptopSide = Laptop(laptopEnd, remote: host);
+
+        using var own = LinkCrypto.NewKeyPair();
+        var nonce = RandomNumberGenerator.GetBytes(LinkWire.NonceLength);
+        LinkWire.Write(phoneEnd, LinkWire.EncodePairRequest(PhoneId, PhoneName, LinkCrypto.Commit(own.PublicKey, nonce)));
+        var offer = LinkWire.DecodeReply(LinkWire.ModePair, LinkWire.Read(phoneEnd));
+        LinkWire.Write(phoneEnd, LinkWire.Reveal(own.PublicKey, nonce));
+        ShowOnPhone(LinkCrypto.Sas(LinkCrypto.PairTranscript(
+            PhoneId, offer.LaptopId, LinkWire.NameField(PhoneName), offer.NameField, own.PublicKey, nonce, offer.PublicKey, offer.Nonce)));
+
+        // The laptop said the code matched; the phone hangs up instead of confirming.
+        LinkWire.Read(phoneEnd);
+        phoneEnd.Dispose();
+        try
+        {
+            Assert.Null(await laptopSide);
+        }
+        catch (IOException)
+        {
+            // The confirmation read ended on a closed link: still a pairing that ended under the prompt.
+        }
+
+        AssertNotPaired();
+        owner.Types = null;
+        Assert.Equal(LinkWire.StatusBusy, await PairFrom(host));
+    }
+
+    [Fact]
+    public async Task DroppingThePendingPromptNeitherRefusesTheHostNorSpendsAPrompt()
+    {
+        // The owner's DropPending (a Forget, holding phones off) ends the wait as the link ending does.
+        owner.Types = null;
+        await ended.CancelAsync();
+        var host = IPAddress.Parse("10.0.0.8");
+        for (var i = 0; i < 11; i++)
+        {
+            Assert.Equal(LinkWire.StatusOk, await PairFrom(host));
+        }
+
+        Assert.Equal(11, owner.Shown);
     }
 
     // One pairing attempt from remote, with the owner doing whatever the test set; the status the phone was given.

@@ -222,8 +222,11 @@ internal static class LinkResponder
         var address = AddressOf(request.PhoneId);
 
         // Keyed by address, never by phone id or name: those are the phone's to choose. An IPv4 phone reaches a
-        // dual-stack socket as ::ffff:a.b.c.d, the same host as a.b.c.d.
-        var host = remote is null ? null : (remote.IsIPv4MappedToIPv6 ? remote.MapToIPv4() : remote).ToString();
+        // dual-stack socket as ::ffff:a.b.c.d, the same host as a.b.c.d, and fe80::1%3 is the same host as fe80::1.
+        // Never keyed by /64: a LAN shares one, so a refusal earned by one device would hit the owner's phone.
+        var host = remote is null
+            ? null
+            : new IPAddress((remote.IsIPv4MappedToIPv6 ? remote.MapToIPv4() : remote).GetAddressBytes()).ToString();
         if (!limiter.TryBegin(host))
         {
             LinkWire.Write(raw, LinkWire.Status(LinkWire.StatusBusy));
@@ -236,8 +239,8 @@ internal static class LinkResponder
         var pairedGeneration = paired.Generation;
 
         // Only a wrong code, a commitment that does not open, a bad confirmation or an invalid key counts against the
-        // lock. A cancel or an unanswered wait holds this host off instead. Anything else, an exception too, is not
-        // counted.
+        // lock. A cancel or an unanswered wait holds this host off instead; only one after the prompt is shown spends
+        // the hour's prompts. Anything else before the prompt, an exception too, is not counted.
         var outcome = PairingOutcome.Abandoned;
         byte[]? prk = null;
         IPairingQuestion? question = null;
@@ -264,7 +267,7 @@ internal static class LinkResponder
             var revealed = ReadWithin(raw, wait, "key", log, giveUp);
             if (revealed is null)
             {
-                outcome = PairingOutcome.TimedOut;
+                outcome = PairingOutcome.Silent;
                 return null;
             }
 

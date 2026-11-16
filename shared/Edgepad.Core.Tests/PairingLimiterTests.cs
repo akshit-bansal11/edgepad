@@ -197,6 +197,20 @@ public sealed class PairingLimiterTests
     }
 
     [Fact]
+    public void ASilentRequestRefusesThatHostButSpendsNoPrompt()
+    {
+        var limiter = NewLimiter();
+        for (var i = 0; i < 12; i++)
+        {
+            Assert.True(limiter.TryBegin($"host{i}"));
+            limiter.End(PairingOutcome.Silent, $"host{i}");
+        }
+
+        Assert.False(limiter.TryBegin("host0"));
+        Assert.True(limiter.TryBegin("new"));
+    }
+
+    [Fact]
     public void TheHostTableStaysBounded()
     {
         // End without TryBegin: the hourly cap would otherwise stop this at ten, and only the table is under test.
