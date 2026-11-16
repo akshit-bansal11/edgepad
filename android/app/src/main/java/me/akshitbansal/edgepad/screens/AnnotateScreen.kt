@@ -137,6 +137,14 @@ class AnnotateScreen(
                         tools.add(tool to button)
                         addView(button)
                     }
+                    // The laser is the laptop's own tool and never a stroke the phone keeps, so it is not a PenTool.
+                    val laser = ui.string(R.string.annotate_tool_desc, ui.string(R.string.tool_laser))
+                    addView(
+                        glyph(R.drawable.ic_tool_ellipse, laser) {
+                            send(ActionId.TOOL_LASER.frame())
+                            open(false)
+                        },
+                    )
                 },
             )
             customSwatch = customSwatch()
