@@ -191,7 +191,7 @@ public final class Session {
         guard isLive, !isEnded else { return }
         pollsSinceFrame += 1
         if pollsSinceFrame >= Session.pollsBeforeSilence {
-            Log.write("Session with (address) ended: no frame for 30 s")
+            Log.write("Session with \(address) ended: no frame for 30 s")
             end()
             return
         }
