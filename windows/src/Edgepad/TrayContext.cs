@@ -465,9 +465,10 @@ internal sealed class TrayContext : ApplicationContext
                 return;
             }
 
-            if (decision == UpdateDecision.InstallNeedsMajorConfirm)
+            if (decision == UpdateDecision.InstallNeedsMajorConfirm
+                && !Ask.YesNo(null, Strings.Update_MajorWarning, "Edgepad", MessageBoxIcon.Question))
             {
-                Ask.Message(null, Strings.Update_MajorWarning, "Edgepad", MessageBoxIcon.Information);
+                return;
             }
 
             var outcome = await WindowsUpdater.InstallAsync(version, running, CancellationToken.None);

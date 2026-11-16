@@ -507,7 +507,7 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
     <value>Edgepad {0} をインストールできませんでした。クリックしてリリースページを開きます。</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>これはメジャーリリースです。スマートフォンの Edgepad も更新してください。そうしないと互いに接続を拒否します。</value>
+    <value>これはメジャーリリースです。スマートフォンの Edgepad も更新してください。そうしないと互いに接続を拒否します。 今すぐインストールしますか？</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>シャットダウン中</value>

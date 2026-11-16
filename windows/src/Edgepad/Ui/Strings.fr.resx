@@ -507,7 +507,7 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n'a pas pu êtr
     <value>Edgepad {0} n&apos;a pas pu être installé. Cliquez pour ouvrir la page de la version.</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>C&apos;est une version majeure. Mettez aussi Edgepad à jour sur le téléphone, sinon les deux se refuseront mutuellement.</value>
+    <value>C&apos;est une version majeure. Mettez aussi Edgepad à jour sur le téléphone, sinon les deux se refuseront mutuellement. Installer maintenant ?</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>Arrêt en cours</value>

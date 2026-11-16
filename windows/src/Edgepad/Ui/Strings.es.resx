@@ -507,7 +507,7 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
     <value>No se pudo instalar Edgepad {0}. Haz clic para abrir la página de la versión.</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>Es una versión mayor. Actualiza también Edgepad en el teléfono, o se rechazarán entre sí.</value>
+    <value>Es una versión mayor. Actualiza también Edgepad en el teléfono, o se rechazarán entre sí. ¿Instalar ahora?</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>Apagando</value>

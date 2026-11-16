@@ -497,7 +497,7 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
     <value>Edgepad {0} yüklenemedi. Sürüm sayfasını açmak için tıklayın.</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>Bu büyük bir sürüm. Edgepad&apos;i telefonda da güncelleyin, yoksa birbirlerini reddederler.</value>
+    <value>Bu büyük bir sürüm. Edgepad&apos;i telefonda da güncelleyin, yoksa birbirlerini reddederler. Şimdi yüklensin mi?</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>Kapatılıyor</value>

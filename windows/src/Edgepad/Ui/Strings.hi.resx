@@ -507,7 +507,7 @@
     <value>Edgepad {0} इंस्टॉल नहीं हो सका। रिलीज़ पेज खोलने के लिए क्लिक करें।</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>यह एक बड़ा रिलीज़ है। फ़ोन पर भी Edgepad अपडेट करें, वरना दोनों एक-दूसरे को अस्वीकार कर देंगे।</value>
+    <value>यह एक बड़ा रिलीज़ है। फ़ोन पर भी Edgepad अपडेट करें, वरना दोनों एक-दूसरे को अस्वीकार कर देंगे। क्या अभी इंस्टॉल करें?</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>बंद हो रहा है</value>

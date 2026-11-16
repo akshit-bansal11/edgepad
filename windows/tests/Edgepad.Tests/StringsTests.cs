@@ -36,6 +36,15 @@ public sealed partial class StringsTests
 
     [Theory]
     [MemberData(nameof(Cultures))]
+    public void TheMajorUpdateNoticeAsksAYesNoQuestionInEveryLanguage(string name)
+    {
+        var text = Strings.ResourceManager.GetString(nameof(Strings.Update_MajorWarning), CultureInfo.GetCultureInfo(name));
+        Assert.NotNull(text);
+        Assert.Contains(text.TrimEnd()[^1], "?？؟");
+    }
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
     public void EveryCultureHasExactlyTheEnglishKeys(string name)
     {
         foreach (var file in Files)

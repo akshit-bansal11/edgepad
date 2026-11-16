@@ -16,6 +16,17 @@ internal static class Ask
             MessageBoxDefaultButton.Button1,
             Theme.IsRtl ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : default);
 
+    /// <summary>A Yes/No question with No the default, so a stray Enter says no.</summary>
+    public static bool YesNo(IWin32Window? owner, string text, string caption, MessageBoxIcon icon) =>
+        MessageBox.Show(
+            owner,
+            text,
+            caption,
+            MessageBoxButtons.YesNo,
+            icon,
+            MessageBoxDefaultButton.Button2,
+            Theme.IsRtl ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : default) == DialogResult.Yes;
+
     /// <summary>"Cancel" / "Forget", with Cancel the default so a stray Enter forgets nothing. False when it cannot be put.</summary>
     public static bool Forget(IWin32Window owner, string heading, string text)
     {

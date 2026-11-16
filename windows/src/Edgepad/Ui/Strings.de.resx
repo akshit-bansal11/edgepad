@@ -507,7 +507,7 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
     <value>Edgepad {0} konnte nicht installiert werden. Klicken, um die Release-Seite zu öffnen.</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>Dies ist ein Hauptrelease. Aktualisiere Edgepad auch auf dem Handy, sonst lehnen sich beide gegenseitig ab.</value>
+    <value>Dies ist ein Hauptrelease. Aktualisiere Edgepad auch auf dem Handy, sonst lehnen sich beide gegenseitig ab. Jetzt installieren?</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>Herunterfahren</value>

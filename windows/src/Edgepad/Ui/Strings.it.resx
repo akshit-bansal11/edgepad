@@ -507,7 +507,7 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
     <value>Non è stato possibile installare Edgepad {0}. Fai clic per aprire la pagina della versione.</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>È una versione principale. Aggiorna Edgepad anche sul telefono, altrimenti si rifiuteranno a vicenda.</value>
+    <value>È una versione principale. Aggiorna Edgepad anche sul telefono, altrimenti si rifiuteranno a vicenda. Installare ora?</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>Arresto in corso</value>

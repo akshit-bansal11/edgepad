@@ -507,7 +507,7 @@
     <value>تعذر تثبيت الإصدار {0} من Edgepad. انقر لفتح صفحة الإصدار.</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>هذا إصدار رئيسي. حدّث Edgepad على الهاتف أيضًا، وإلا سيرفض كل منهما الآخر.</value>
+    <value>هذا إصدار رئيسي. حدّث Edgepad على الهاتف أيضًا، وإلا سيرفض كل منهما الآخر. هل تثبّت التحديث الآن؟</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>جارٍ إيقاف التشغيل</value>

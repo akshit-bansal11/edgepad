@@ -513,7 +513,7 @@ The trusted phones were forgotten, but the PIN could not be reset: a settings fi
     <value>Edgepad {0} could not be installed. Click to open the release page.</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>This is a major release. Update Edgepad on the phone too, or they will refuse each other.</value>
+    <value>This is a major release. Update Edgepad on the phone too, or they will refuse each other. Install now?</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>Shutting down</value>

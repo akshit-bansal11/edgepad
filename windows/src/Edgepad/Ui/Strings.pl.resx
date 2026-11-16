@@ -507,7 +507,7 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
     <value>Nie udało się zainstalować Edgepad {0}. Kliknij, aby otworzyć stronę wydania.</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>To duże wydanie. Zaktualizuj Edgepad także na telefonie, bo inaczej odrzucą się nawzajem.</value>
+    <value>To duże wydanie. Zaktualizuj Edgepad także na telefonie, bo inaczej odrzucą się nawzajem. Zainstalować teraz?</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>Zamykanie systemu</value>

@@ -488,7 +488,7 @@
     <value>Edgepad {0} kon niet worden geïnstalleerd. Klik om de releasepagina te openen.</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>Dit is een grote release. Werk Edgepad ook op de telefoon bij, anders weigeren ze elkaar.</value>
+    <value>Dit is een grote release. Werk Edgepad ook op de telefoon bij, anders weigeren ze elkaar. Nu installeren?</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>Afsluiten</value>

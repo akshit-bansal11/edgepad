@@ -507,7 +507,7 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
     <value>Não foi possível instalar o Edgepad {0}. Clique para abrir a página da versão.</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>Esta é uma versão principal. Atualize o Edgepad também no celular, ou um vai recusar o outro.</value>
+    <value>Esta é uma versão principal. Atualize o Edgepad também no celular, ou um vai recusar o outro. Instalar agora?</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>Desligando</value>
