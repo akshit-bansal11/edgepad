@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.view.MotionEvent
 import android.view.View
+import android.view.accessibility.AccessibilityNodeProvider
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
@@ -166,6 +167,37 @@ object MediaLayoutScreen {
         ): Boolean {
             bounds(piece, probe, at)
             return ghosts.any { RectF.intersects(it, probe) }
+        }
+
+        // ANDU-6: each piece is a node a screen reader can move a cell at a time; a piece has no menu to open.
+        private val nodes =
+            ControlNodes(
+                this,
+                MediaPiece.entries.size,
+                label = { i -> names.getValue(MediaPiece.entries[i]) },
+                bounds = { i, out -> bounds(MediaPiece.entries[i], out) },
+                clickable = { false },
+                click = {},
+                actions = { i -> moveActions(context) { dx, dy -> nudge(MediaPiece.entries[i], dx, dy) } },
+            )
+
+        override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider = nodes
+
+        /** One grid cell on x ([dx]) or y ([dy]), stored as a drag's end is; false at the edge or onto a ghost. */
+        private fun nudge(
+            piece: MediaPiece,
+            dx: Int,
+            dy: Int,
+        ): Boolean {
+            val (fx, fy) = positions.getValue(piece)
+            val x = if (dx == 0) fx else Nudge.step(fx, width, dx, density)
+            val y = if (dy == 0) fy else Nudge.step(fy, height, dy, density)
+            val at = x to y
+            if ((x == fx && y == fy) || blocked(piece, at)) return false
+            positions[piece] = at
+            settings.setPiece(piece, x, y)
+            invalidate()
+            return true
         }
 
         private var scale = settings.mediaScale

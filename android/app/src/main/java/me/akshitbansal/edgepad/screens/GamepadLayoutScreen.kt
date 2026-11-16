@@ -11,6 +11,7 @@ import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityNodeProvider
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -288,6 +289,53 @@ object GamepadLayoutScreen {
         fun reset() {
             store.reset()
             reload()
+        }
+
+        // ANDU-6: each control is a node a screen reader can open the menu of and move a cell at a time. Controls are
+        // added and deleted, so a provider is built for the count it was made with and replaced when that changes.
+        private var nodes: ControlNodes? = null
+        private var nodesFor = NO_NODES
+
+        override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider {
+            val count = layout.controls.size
+            val current = nodes
+            if (current != null && nodesFor == count) return current
+            nodesFor = count
+            return ControlNodes(
+                this,
+                count,
+                label = ::spoken,
+                bounds = { i, out -> bounds(layout.controls[i], out) },
+                clickable = { true },
+                click = { i -> showControlMenu(layout.controls[i]) },
+                actions = { i -> moveActions(context) { dx, dy -> nudge(i, dx, dy) } },
+            ).also { nodes = it }
+        }
+
+        private fun spoken(i: Int): String {
+            val control = layout.controls[i]
+            if (control.label.isNotBlank()) return control.label
+            return context.getString(
+                when (control.kind) {
+                    ControlKind.DPAD -> R.string.gamepad_node_dpad
+                    ControlKind.STICK -> R.string.gamepad_node_stick
+                    else -> R.string.gamepad_node_button
+                },
+            )
+        }
+
+        /** One grid cell on x ([dx]) or y ([dy]), stored as a drag's end is; false at the canvas edge. */
+        private fun nudge(
+            i: Int,
+            dx: Int,
+            dy: Int,
+        ): Boolean {
+            val control = layout.controls.getOrNull(i) ?: return false
+            val x = if (dx == 0) control.x else Nudge.step(control.x, width, dx, density)
+            val y = if (dy == 0) control.y else Nudge.step(control.y, height, dy, density)
+            if (x == control.x && y == control.y) return false
+            commit(control, control.copy(x = x, y = y))
+            return true
         }
 
         private fun bounds(
@@ -687,6 +735,7 @@ object GamepadLayoutScreen {
         private companion object {
             const val LONG_PRESS_MS = 500L
             const val LONG_PRESS_SLOP_DP = 12f
+            const val NO_NODES = -1
         }
     }
 }

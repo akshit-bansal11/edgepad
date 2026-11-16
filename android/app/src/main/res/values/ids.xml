@@ -18,6 +18,11 @@
   <!-- The macro deck in edit mode: a tile moves one place earlier or later, for those who cannot drag. -->
   <item name="action_move_earlier" type="id" />
   <item name="action_move_later" type="id" />
+  <!-- The two layout editors: a control or piece moves one grid cell, for those who cannot drag (ANDU-6). -->
+  <item name="action_move_left" type="id" />
+  <item name="action_move_right" type="id" />
+  <item name="action_move_up" type="id" />
+  <item name="action_move_down" type="id" />
   <!-- The Guide's frame: saved view state is keyed by id, and the Guide keeps its step there. -->
   <item name="guide" type="id" />
 </resources>
