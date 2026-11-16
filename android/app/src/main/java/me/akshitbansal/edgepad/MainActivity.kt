@@ -46,6 +46,7 @@ import me.akshitbansal.edgepad.link.ClipboardShare
 import me.akshitbansal.edgepad.link.Discovery
 import me.akshitbansal.edgepad.link.Found
 import me.akshitbansal.edgepad.link.HostPort
+import me.akshitbansal.edgepad.link.KeptEvents
 import me.akshitbansal.edgepad.link.Laptop
 import me.akshitbansal.edgepad.link.LaptopConnections
 import me.akshitbansal.edgepad.link.LaptopLink
@@ -607,8 +608,16 @@ class MainActivity :
         if (!isChangingConfigurations && !isFinishing && serviceUp) {
             // Android destroyed this activity by itself while Stay connected holds the process: the links stay, for
             // the next activity to adopt, and the hooks stay too, since they hold only the manager.
-            manager.events = LaptopConnections.Events.None
-            LinkSession.kept = LinkSession.Kept(manager, clipboard, apps)
+            // Locals only, so nothing kept holds this activity.
+            val app = applicationContext
+            val links = manager
+            links.events =
+                KeptEvents(links) {
+                    links.keepAlive = false
+                    LinkSession.kept = null
+                    LinkService.stop(app)
+                }
+            LinkSession.kept = LinkSession.Kept(links, clipboard, apps)
         } else if (!isChangingConfigurations) {
             LinkHooks.disconnectAll = null
             LinkHooks.shareTarget = null

@@ -25,7 +25,7 @@ object LinkHooks {
 /**
  * The links of an activity Android destroyed by itself (memory pressure, "Don't keep activities") while Stay connected
  * held the process: the next activity adopts them as it would after a rotation. Process memory only, and no activity in
- * it: the manager's events are [LaptopConnections.Events.None] while it waits here. Emptied by the next activity, or by
+ * it: the manager's events are [KeptEvents] while it waits here. Emptied by the next activity, or by
  * the notification's Disconnect, so nothing is held once the service has no reason to run.
  */
 object LinkSession {
@@ -37,6 +37,22 @@ object LinkSession {
 
     @Volatile
     var kept: Kept? = null
+}
+
+/**
+ * The events of a manager waiting in [LinkSession]: no screen to tell, but nothing calls the activity's syncService
+ * either, so when the last link closes this ends what that would have: [onEmpty] stops the service and its retries.
+ */
+class KeptEvents(
+    private val manager: LaptopConnections,
+    private val onEmpty: () -> Unit,
+) : LaptopConnections.Events by LaptopConnections.Events.None {
+    override fun onClosed(
+        laptop: Laptop,
+        closure: LaptopLink.Closure,
+    ) {
+        if (manager.laptops.none { it.link != null }) onEmpty()
+    }
 }
 
 /** What the linger does when it runs out: end the links, or wait for a share still going. */

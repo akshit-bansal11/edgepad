@@ -237,8 +237,7 @@ class Discovery(
                 ) = done()
 
                 override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-                    val current = synchronized(this@Discovery) { browse == begunIn }
-                    if (current) update(serviceInfo, listOfNotNull(serviceInfo.host))
+                    update(serviceInfo, listOfNotNull(serviceInfo.host), begunIn)
                     done()
                 }
             },
@@ -248,12 +247,13 @@ class Discovery(
     private fun update(
         info: NsdServiceInfo,
         hosts: List<InetAddress>,
+        begunIn: Int? = null,
     ) {
         val txt = parseTxt(info.attributes) ?: return
         if (hosts.isEmpty() || info.port !in 1..MAX_PORT) return
         val snapshot =
             synchronized(this) {
-                if (listener == null) return
+                if (listener == null || (begunIn != null && begunIn != browse)) return
                 services[info.serviceName] =
                     Found(txt.laptopId, txt.name ?: info.serviceName, hosts, info.port, Transport.WIFI, txt.version)
                 services.values.toList()

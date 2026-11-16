@@ -527,6 +527,20 @@ class LaptopConnectionsTest {
     }
 
     @Test
+    fun keptLinksStopTheServiceOnlyWhenTheLastOneCloses() {
+        val a = up(1)
+        val b = up(2)
+        var stops = 0
+        manager.events = KeptEvents(manager) { stops++ }
+
+        a.drop(LaptopLink.Cause.ENDED)
+        assertEquals(0, stops)
+        b.drop(LaptopLink.Cause.ENDED)
+
+        assertEquals(1, stops)
+    }
+
+    @Test
     fun aNewLinkHasSentNoPinAnswerYet() {
         val first = connect(1)
         first.events.onPinRequest(3)
