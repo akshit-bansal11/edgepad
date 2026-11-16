@@ -63,7 +63,7 @@ internal sealed class TrayContext : ApplicationContext
         ToolTipText = Strings.Menu_RestartAdminTip,
     };
 
-    private readonly MenuRow bluetoothRow =new(Strings.Menu_BluetoothSettings, Icons.Smartphone) { Available = false };
+    private readonly MenuRow bluetoothRow = new(Strings.Menu_BluetoothSettings, Icons.Smartphone) { Available = false };
     private readonly MenuRow clipboardRow = new(Strings.Menu_ShareClipboard, ClipboardGlyph)
     {
         CheckOnClick = true,

@@ -128,6 +128,6 @@ public sealed class UpdateVerifierTests
         Assert.Equal(SHA256.HashData([1, 2, 3]), hash);
         Assert.True(UpdateVerifier.HashesMatch(hash, SHA256.HashData([1, 2, 3])));
         Assert.False(UpdateVerifier.HashesMatch(hash, SHA256.HashData([1, 2, 4])));
-        Assert.False(UpdateVerifier.HashesMatch(hash, hash[..31]));
+        Assert.False(UpdateVerifier.HashesMatch(hash, hash.AsSpan(..31)));
     }
 }
