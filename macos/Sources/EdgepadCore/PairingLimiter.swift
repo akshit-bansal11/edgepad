@@ -69,8 +69,9 @@ public final class PairingLimiter {
         return true
     }
 
-    /// Frees the slot, counting the attempt from `host` as `outcome` says.
-    func end(_ outcome: PairingOutcome, host: String? = nil) {
+    /// Frees the slot, counting the attempt from `host` as `outcome` says. Only an attempt that `asked` the owner
+    /// spends one of the hour's prompts: silent requests from many addresses must not refuse everyone unseen.
+    func end(_ outcome: PairingOutcome, host: String? = nil, asked: Bool = true) {
         busy = false
         let t = now()
         expire(t)
@@ -89,7 +90,7 @@ public final class PairingLimiter {
                 lockedUntil = t + min(doubled, Self.maxLockSeconds)
             }
         case .cancelled, .timedOut:
-            prompts.append(t)
+            if asked { prompts.append(t) }
             if prompts.count > Self.maxPromptsPerHour {
                 prompts.removeFirst(prompts.count - Self.maxPromptsPerHour)
             }

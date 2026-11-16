@@ -334,6 +334,50 @@ final class LinkResponderTests: XCTestCase {
         XCTAssertTrue(limiter.tryBegin())
     }
 
+    /// Otherwise silent requests from many addresses could refuse everyone for an hour without the owner seeing one.
+    func testSilentRequestsFromManyHostsDoNotSpendTheHoursPrompts() throws {
+        for i in 0..<12 {
+            let link = responder(host: "192.0.2.\(i)")
+            link.receive(
+                LinkWire.message(LinkWire.pairRequest(phoneId: phoneId, name: "Pixel", commit: Hex.random(32))))
+            for timer in timers {
+                timer()
+            }
+            XCTAssertNil(try XCTUnwrap(results.first))
+        }
+
+        XCTAssertTrue(prompt.shown.isEmpty)
+        XCTAssertFalse(limiter.tryBegin(host: "192.0.2.0"))
+        XCTAssertTrue(limiter.tryBegin(host: "198.51.100.1"))
+    }
+
+    func testMoreBytesWhileTheOwnerIsAskedHoldTheHostOff() throws {
+        let link = responder(host: "192.0.2.1")
+        _ = try pairToCode(link)
+
+        link.receive([1, 2, 3])
+
+        XCTAssertNil(try XCTUnwrap(results.first))
+        XCTAssertFalse(limiter.tryBegin(host: "192.0.2.1"))
+        XCTAssertTrue(limiter.tryBegin(host: "192.0.2.2"))
+    }
+
+    func testAForgetOrThisMacStoppingUnderTheQuestionHoldsNoHostOffAndSpendsNoPrompt() throws {
+        for i in 0..<12 {
+            let link = responder(host: "192.0.2.1")
+            let phone = try pairToCode(link)
+            if i % 2 == 0 {
+                XCTAssertTrue(trust.forget())
+                prompt.type(phone.code)
+            } else {
+                link.cancel(byPeer: false)
+            }
+            XCTAssertNil(try XCTUnwrap(results.first))
+        }
+
+        XCTAssertTrue(limiter.tryBegin(host: "192.0.2.1"))
+    }
+
     func testAForgetWhileTheOwnerIsAskedKeepsAndTrustsNothing() throws {
         let link = responder()
         let phone = try pairToCode(link)

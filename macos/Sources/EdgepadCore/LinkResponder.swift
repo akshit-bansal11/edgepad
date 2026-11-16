@@ -172,7 +172,7 @@ public final class LinkResponder {
     deinit {
         if stage != .done, pairing != nil {
             question?.withdraw()
-            limiter.end(hungUp, host: host)
+            limiter.end(hungUp, host: host, asked: question != nil)
         }
     }
 
@@ -392,10 +392,11 @@ public final class LinkResponder {
         }
         stage = .done
         step += 1
+        let asked = question != nil
         question?.withdraw()
         question = nil
         if pairing != nil {
-            limiter.end(outcome, host: host)
+            limiter.end(outcome, host: host, asked: asked)
         }
         if let message {
             Log.write(message)
