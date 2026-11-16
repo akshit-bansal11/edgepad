@@ -75,17 +75,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     public void Type(string text) => Queue(() => input.Type(text));
 
     /// <summary>Direct, unless text or a key is still queued, which a KEY frame (an Enter after the text) must not overtake.</summary>
-    public void Key(ushort code, bool down)
-    {
-        if (Volatile.Read(ref queued) > 0)
-        {
-            Queue(() => input.Key(code, down));
-        }
-        else
-        {
-            input.Key(code, down);
-        }
-    }
+    public void Key(ushort code, bool down) => InOrder(() => input.Key(code, down));
 
     public bool Run(ActionId id)
     {
@@ -117,7 +107,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
             case ActionId.DesktopLeft:
             case ActionId.DesktopRight:
                 // A desktop with no known chord for it drops the action: the dispatcher counts a false.
-                return Desktop.Chord(desktop, id) is { } shortcut && Do(() => input.Chord(shortcut));
+                return Desktop.Chord(desktop, id) is { } shortcut && Keys(() => input.Chord(shortcut));
             case ActionId.CaptureRegion:
             case ActionId.CaptureScreen:
             case ActionId.CaptureRecord:
@@ -134,21 +124,22 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
             case ActionId.AppSwitchBegin:
                 // Alt stays down across frames, as a three-finger swipe keeps the switcher open; released by End or
                 // by the session ending.
-                input.Key(VkAlt, true);
                 switching = true;
-                input.Key(VkTab, true);
-                input.Key(VkTab, false);
-                return true;
+                return Keys(() =>
+                {
+                    input.Key(VkAlt, true);
+                    input.Key(VkTab, true);
+                    input.Key(VkTab, false);
+                });
             case ActionId.AppSwitchNext:
-                return switching && Do(() => Tap(VkTab));
+                return switching && Keys(() => Tap(VkTab));
             case ActionId.AppSwitchPrevious:
-                return switching && Do(() => Tap(VkShift, VkTab));
+                return switching && Keys(() => Tap(VkShift, VkTab));
             case ActionId.AppSwitchEnd:
-                input.Key(VkAlt, false);
                 switching = false;
-                return true;
+                return Keys(() => input.Key(VkAlt, false));
             case ActionId.ZoomReset:
-                return Do(() => Tap(VkControl, Vk0));
+                return Keys(() => Tap(VkControl, Vk0));
             case ActionId.BrightnessUp:
                 return backlight.Available && Do(() => worker.Post(() => backlight.Step(BrightnessStep)));
             case ActionId.BrightnessDown:
@@ -369,7 +360,26 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
         });
     }
 
-    private bool Press(ushort windowsKey) => Do(() => Tap(windowsKey));
+    /// <summary>Keyboard work from the reader: direct, unless typing or keys are still queued, which it must not overtake.</summary>
+    private void InOrder(Action job)
+    {
+        if (Volatile.Read(ref queued) > 0)
+        {
+            Queue(job);
+        }
+        else
+        {
+            job();
+        }
+    }
+
+    private bool Keys(Action job)
+    {
+        InOrder(job);
+        return true;
+    }
+
+    private bool Press(ushort windowsKey) => Keys(() => Tap(windowsKey));
 
     /// <summary>Presses Windows virtual keys together, in order, and releases them in reverse.</summary>
     private void Tap(params ReadOnlySpan<ushort> windowsKeys)
