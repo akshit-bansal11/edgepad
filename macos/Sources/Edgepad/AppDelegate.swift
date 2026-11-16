@@ -49,6 +49,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var networkHint = "Off"
     private var status = StatusText.starting
     private var newerVersion: Version?
+    private let updater = MacUpdater()
+    private let updateChoice = UpdateChoice(
+        path: (FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?.path
+            ?? NSHomeDirectory() + "/Library/Application Support") + "/Edgepad/update-choice.txt")
     /// The menu-bar item may stay clickable under the app-modal alert, and a second Forget would lift the hold while
     /// the first was still open.
     private var forgetting = false
@@ -327,8 +331,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.removeAllItems()
         menuSeen = true
         menu.addItem(statusRow())
-        if let version = newerVersion {
-            menu.addItem(item("Update available: \(version)", #selector(openRelease)))
+        if let version = newerVersion, updateChoice.shouldShow(version, now: Date()) {
+            // plain English until 4.5.0 localisation
+            if updater.installing {
+                menu.addItem(disabled("Installing Edgepad \(version)…"))
+            } else {
+                let canInstall = UpdateKey.isSet && MacUpdater.canReplaceSelf()
+                menu.addItem(
+                    canInstall
+                        ? item("Install Edgepad \(version)", #selector(installUpdate))
+                        : item("Update available: \(version)", #selector(openRelease)))
+                menu.addItem(item("Later", #selector(updateLater)))
+                menu.addItem(item("Skip this version", #selector(skipUpdate)))
+            }
         }
         // Newer macOS tracks event posting separately from the Accessibility trust, under the
         // same pane. Either one missing means input goes nowhere.
@@ -420,14 +435,52 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         UpdateCheck.latest { [weak self] version in
             DispatchQueue.main.async {
                 guard let self, let version, UpdateCheck.isNewer(version, than: self.runningVersion) else { return }
-                if self.newerVersion != version {
+                self.newerVersion = version
+                // One notification per version, and none for a skipped version or while "Later" holds.
+                if !self.updateChoice.wasNotified(version), self.updateChoice.shouldShow(version, now: Date()) {
                     Log.write("Edgepad \(version) is available")
+                    self.updateChoice.markNotified(version)
+                    // plain English until 4.5.0 localisation
                     self.notifier?.post(
                         id: "update", title: "Edgepad \(version) is available",
                         body: "Click to open the download page.")
                 }
-                self.newerVersion = version
             }
+        }
+    }
+
+    @objc private func updateLater() {
+        updateChoice.later(now: Date())
+    }
+
+    @objc private func skipUpdate() {
+        if let version = newerVersion { updateChoice.skip(version) }
+    }
+
+    @objc private func installUpdate() {
+        guard let version = newerVersion else { return }
+        let decision = UpdatePolicy.decide(
+            offered: version, running: runningVersion, skipped: nil, keySet: UpdateKey.isSet)
+        switch decision {
+        case .install:
+            break
+        case .installNeedsMajorConfirm:
+            let alert = NSAlert()
+            // plain English until 4.5.0 localisation
+            alert.messageText = "Edgepad \(version) needs the phone app updated too."
+            alert.informativeText = "Install both together, or the phone and this Mac will not connect."
+            alert.addButton(withTitle: "Install")
+            alert.addButton(withTitle: "Cancel")
+            NSApp.activate(ignoringOtherApps: true)
+            guard alert.runModal() == .alertFirstButtonReturn else { return }
+        case .noKey, .notNewer, .skipped:
+            openRelease()
+            return
+        }
+        updater.install(version) { [weak self] failure in
+            guard let failure else { return }
+            // plain English until 4.5.0 localisation
+            self?.notifier?.post(id: "update", title: "Edgepad was not updated", body: failure)
         }
     }
 
