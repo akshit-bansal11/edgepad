@@ -274,6 +274,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: release
+    outputs:
+      signed: ${{ steps.sign.outputs.signed }}
     steps:
       # For protocol/update-key.txt.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -284,12 +286,19 @@ jobs:
           name: dist
           path: dist
       - name: Sign SHA256SUMS.txt
+        id: sign
         env:
           UPDATE_KEY_PEM: ${{ secrets.EDGEPAD_UPDATE_KEY_PEM }}
         run: |
           if [ -z "$UPDATE_KEY_PEM" ]; then
-            echo "::error::EDGEPAD_UPDATE_KEY_PEM is missing from the release environment. Run scripts/new-update-key.ps1 once, then run this again."
-            exit 1
+            if [ "$GITHUB_EVENT_NAME" = push ]; then
+              echo "::error::EDGEPAD_UPDATE_KEY_PEM is missing from the release environment. Run scripts/new-update-key.ps1 once, then run this again."
+              exit 1
+            fi
+            # A hand-run draft before the key exists: ship it unsigned, so the apps fall back to the release page.
+            echo "::warning::EDGEPAD_UPDATE_KEY_PEM is missing; this draft carries no SHA256SUMS.txt.sig."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
           umask 077
           key="$RUNNER_TEMP/update-key.pem"
@@ -309,7 +318,9 @@ jobs:
             fi
             echo "::warning::protocol/update-key.txt is empty or differs from the update key; a tag run would fail here."
           fi
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+      - if: steps.sign.outputs.signed == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sums-sig
           path: dist/SHA256SUMS.txt.sig
@@ -333,7 +344,8 @@ jobs:
         with:
           name: dist
           path: dist
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - if: needs.sign-sums.outputs.signed == 'true'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: sums-sig
           path: dist
@@ -381,7 +393,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           NAME: ${{ inputs.label }}-${{ github.run_number }}
         run: |
-          gh release create "$NAME" dist/Edgepad-*.apk dist/Edgepad-*.exe dist/Edgepad-*-mac.zip dist/Edgepad-*-linux-x64.tar.gz dist/SHA256SUMS.txt dist/SHA256SUMS.txt.sig --repo "$GITHUB_REPOSITORY" --title "Edgepad $NAME" --notes-file notes.md --draft --target "$GITHUB_SHA"
+          sig=""
+          if [ -f dist/SHA256SUMS.txt.sig ]; then sig=dist/SHA256SUMS.txt.sig; fi
+          # $sig unquoted on purpose: empty means no argument.
+          gh release create "$NAME" dist/Edgepad-*.apk dist/Edgepad-*.exe dist/Edgepad-*-mac.zip dist/Edgepad-*-linux-x64.tar.gz dist/SHA256SUMS.txt $sig --repo "$GITHUB_REPOSITORY" --title "Edgepad $NAME" --notes-file notes.md --draft --target "$GITHUB_SHA"
           {
             echo "Draft build **$NAME**, visible only to accounts with push access to this repo."
             echo
