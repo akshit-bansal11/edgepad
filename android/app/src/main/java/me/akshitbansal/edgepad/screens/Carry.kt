@@ -9,9 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.Window
-import android.view.accessibility.AccessibilityEvent
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
+import android.widget.TextView
 import me.akshitbansal.edgepad.Motion
 import java.lang.ref.WeakReference
 
@@ -191,6 +191,8 @@ object Carry {
     ) {
         cancel()
         if (outgoing === incoming) return
+        // TalkBack announces a pane by its title when it appears: the screen's own heading, as setContentView did.
+        if (incoming.accessibilityPaneTitle == null) incoming.accessibilityPaneTitle = heading(incoming)
         (incoming.parent as? ViewGroup)?.removeView(incoming)
         val animate =
             outgoing != null &&
@@ -200,7 +202,6 @@ object Carry {
         if (!animate) {
             outgoing?.let(host::removeView)
             host.addView(incoming)
-            incoming.sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
             return
         }
         val box =
@@ -315,6 +316,16 @@ object Carry {
         }
         out?.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
         if (out != null) h?.removeView(out)
-        inc?.sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
+    }
+
+    /** The first visible heading in [view]'s tree, or null when it has none (an immersive surface). */
+    private fun heading(view: View): CharSequence? {
+        if (view.visibility != View.VISIBLE) return null
+        if (view is TextView && view.isAccessibilityHeading && !view.text.isNullOrEmpty()) return view.text
+        if (view !is ViewGroup) return null
+        for (i in 0 until view.childCount) {
+            heading(view.getChildAt(i))?.let { return it }
+        }
+        return null
     }
 }
