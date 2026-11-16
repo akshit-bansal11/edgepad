@@ -77,6 +77,41 @@ public sealed class UserFolderTests : IDisposable
         Assert.Equal(Secret, File.ReadAllBytes(Path.Combine(Current, "paired-links.txt")));
     }
 
+    [Fact]
+    public void AFailedMoveKeepsThePinAndTrustedPhonesReadable()
+    {
+        Directory.CreateDirectory(Legacy);
+        Assert.True(new PinStore(Legacy, iterations: 1).SetPin("123456"));
+        Assert.True(new TrustStore(Path.Combine(Legacy, "trusted-phone.txt")).Grant("link:00112233445566778899aabbccddeeff"));
+
+        // Folders where the files would go fail both moves the same way on every OS.
+        Directory.CreateDirectory(Path.Combine(Current, "security.txt"));
+        Directory.CreateDirectory(Path.Combine(Current, "trusted-phone.txt"));
+        Migrate();
+
+        var pinFolder = UserFolder.FolderFor(Legacy, Current, logs.Add, "security.txt", "pin-verified.txt");
+        var trustFolder = UserFolder.FolderFor(Legacy, Current, logs.Add, "trusted-phone.txt");
+        Assert.Equal(Legacy, pinFolder);
+        Assert.True(new PinStore(pinFolder, iterations: 1).HasPin);
+        Assert.Equal(
+            ["link:00112233445566778899aabbccddeeff"],
+            new TrustStore(Path.Combine(trustFolder, "trusted-phone.txt")).TrustedPhones);
+    }
+
+    [Fact]
+    public void AMovedFileIsReadFromTheNewFolderAndNoLegacyCopyIsLeft()
+    {
+        Directory.CreateDirectory(Legacy);
+        Assert.True(new PinStore(Legacy, iterations: 1).SetPin("123456"));
+
+        Migrate();
+
+        var folder = UserFolder.FolderFor(Legacy, Current, logs.Add, "security.txt", "pin-verified.txt");
+        Assert.Equal(Current, folder);
+        Assert.False(File.Exists(Path.Combine(Legacy, "security.txt")));
+        Assert.True(new PinStore(folder, iterations: 1).HasPin);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(dir))

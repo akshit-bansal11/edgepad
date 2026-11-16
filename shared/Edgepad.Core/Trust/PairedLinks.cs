@@ -40,7 +40,7 @@ internal sealed class PairedLinks(string path)
         }
     }
 
-    public static PairedLinks ForCurrentUser() => new(Path.Combine(UserFolder.Current, "paired-links.txt"));
+    public static PairedLinks ForCurrentUser() => new(Path.Combine(UserFolder.FolderFor("paired-links.txt"), "paired-links.txt"));
 
     /// <summary>The key and name a phone was paired with; false for a phone not paired, and for every phone while the file cannot be read.</summary>
     public bool TryGet(string idHex, out byte[] key, out string name)

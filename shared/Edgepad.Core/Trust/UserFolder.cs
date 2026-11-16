@@ -14,6 +14,29 @@ internal static class UserFolder
     public static string Legacy => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad");
 
+    /// <summary><see cref="FolderFor(string, string, Action{string}, string[])"/> on the real folders.</summary>
+    public static string FolderFor(params string[] names) => FolderFor(Legacy, Current, Log.Write, names);
+
+    /// <summary>
+    /// The folder a store reads <paramref name="names"/> from: <paramref name="current"/>, unless one of them is
+    /// only in <paramref name="legacy"/>, because <see cref="Migrate"/> could not move it; then the legacy folder,
+    /// logged. Fails closed: a PIN or trust list that could not move is read where it is, never replaced by the
+    /// defaults of a missing file.
+    /// </summary>
+    internal static string FolderFor(string legacy, string current, Action<string> log, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!File.Exists(Path.Combine(current, name)) && File.Exists(Path.Combine(legacy, name)))
+            {
+                log($"Reading {name} from {legacy}: it could not be moved to {current}");
+                return legacy;
+            }
+        }
+
+        return current;
+    }
+
     /// <summary>
     /// Moves every top-level file in <paramref name="legacy"/> that <paramref name="current"/> does not have yet,
     /// never overwriting one, then removes <paramref name="legacy"/> if that left it empty. Never throws: a file that

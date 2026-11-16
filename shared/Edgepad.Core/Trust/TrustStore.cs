@@ -54,7 +54,7 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
     // and the Forget is the later word, so its yes writes nothing down.
     private int generation;
 
-    public static TrustStore ForCurrentUser() => new(Path.Combine(UserFolder.Current, "trusted-phone.txt"));
+    public static TrustStore ForCurrentUser() => new(Path.Combine(UserFolder.FolderFor("trusted-phone.txt"), "trusted-phone.txt"));
 
     /// <summary>When each trusted phone last connected, in a file beside the trust file. Stamped by the handshake.</summary>
     public LastConnected Connections { get; } = LastConnected.Beside(path);

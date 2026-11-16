@@ -86,7 +86,7 @@ internal sealed class PinStore(string directory, Func<long>? clock = null, int i
     /// <summary>The folder holding both files, for a message that has to send the owner there.</summary>
     public string Folder { get; } = directory;
 
-    public static PinStore ForCurrentUser() => new(UserFolder.Current);
+    public static PinStore ForCurrentUser() => new(UserFolder.FolderFor("security.txt", "pin-verified.txt"));
 
     /// <summary>The security level, 1 to 3. 3 while the settings cannot be read, which is how they are enforced then.</summary>
     public int Level
