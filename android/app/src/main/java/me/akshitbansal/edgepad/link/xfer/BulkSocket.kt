@@ -30,7 +30,7 @@ import kotlin.concurrent.thread
  * failure or refusal. A write that fails later closes the socket and hands that frame and every later one to the
  * fallback of [writer]; chunks carry their offset, so the laptop takes them from either stream.
  *
- * @param onFrame Takes what the laptop sends on this socket (XFER_STATUS), on the reading thread.
+ * @param onFrame Takes what the laptop sends on this socket (any XFER frame), on the reading thread.
  */
 class BulkSocket(
     private val host: InetAddress,

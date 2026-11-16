@@ -21,7 +21,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * The file transfers of every connected link, process-wide so a transfer outlives the activity that began it. One
  * [Link] a connected laptop: the receiving half is built on the first XFER frame, on the link's reading thread, and
- * the sending half does its work on the thread of whoever calls [Link.send]. Nothing here runs while no transfer
+ * the sending half does its work on the thread of whoever calls [Link.send]. Frames from the second socket take the
+ * same road as the control link's. Nothing here runs while no transfer
  * does: no timer, no thread of its own. Main thread only for [attach] and [link].
  */
 object Transfers {
@@ -142,8 +143,7 @@ object Transfers {
 
         /** Takes an XFER frame on the link's reading thread: the laptop's answer to a file sent, else a file arriving. */
         internal fun take(frame: Frame) {
-            if (frame is Frame.XferStatus && sender.take(frame)) return
-            receiver.take(frame)
+            routeXfer(frame, sender) { receiver }
         }
 
         internal fun end() {
@@ -213,7 +213,7 @@ object Transfers {
                     transport = transport,
                     laptopId = target.laptopId,
                     keys = { keys },
-                    onFrame = { frame -> if (frame is Frame.XferStatus) sender.take(frame) },
+                    onFrame = ::take,
                 )
             if (!socket.open()) return null
             bulk = socket.writer(link::send)
@@ -222,6 +222,19 @@ object Transfers {
     }
 
     private const val MAX_ID = 255
+}
+
+/**
+ * Where an XFER frame goes: a status that answers the file being sent to [sender], anything else to the receiver, which
+ * is built only now. The control link and the bulk socket both come through here.
+ */
+internal fun routeXfer(
+    frame: Frame,
+    sender: XferSender,
+    receiver: () -> XferReceiver,
+) {
+    if (frame is Frame.XferStatus && sender.take(frame)) return
+    receiver().take(frame)
 }
 
 /** The Cancel action of the transfer notification. Not exported: only this app's own PendingIntent reaches it. */

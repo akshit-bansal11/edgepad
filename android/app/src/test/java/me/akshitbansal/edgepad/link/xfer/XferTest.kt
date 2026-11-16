@@ -266,6 +266,16 @@ class XferTest {
     }
 
     @Test
+    fun everyXferFrameIsRoutedNotOnlyStatuses() {
+        val receiver = receiver()
+        val sender = sender()
+        routeXfer(Frame.XferBegin(1, 4uL, "b.bin"), sender) { receiver }
+        routeXfer(Frame.XferChunk(1, 0uL, bytes(4)), sender) { receiver }
+        assertTrue(receiver.busy)
+        assertEquals(XferCode.READY.value, replies.first().status)
+    }
+
+    @Test
     fun theProgressGateLetsOnePercentThrough() {
         val gate = PercentGate()
         assertTrue(gate.pass(0, 1000))
