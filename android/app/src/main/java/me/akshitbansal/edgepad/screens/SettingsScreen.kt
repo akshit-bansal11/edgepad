@@ -30,6 +30,8 @@ object SettingsScreen {
         val clipboard: () -> Unit,
         val stayConnected: () -> Unit,
         val back: () -> Unit,
+        /** The notifications switch changed: on asks for the Android 13 permission, and NOTIFY is sent either way. */
+        val notify: (Boolean) -> Unit = {},
     )
 
     /**
@@ -87,6 +89,16 @@ object SettingsScreen {
                         )
                     }
                     footnote(ui.string(R.string.clipboard_share_caption))
+
+                    card(Space.XL) {
+                        add(
+                            ui.toggle(ui.string(R.string.notify_setting), settings.notifyForward) {
+                                settings.notifyForward = it
+                                routes.notify(it)
+                            },
+                        )
+                    }
+                    footnote(ui.string(R.string.notify_setting_hint))
 
                     section(ui.string(R.string.settings_appearance))
                     card {
