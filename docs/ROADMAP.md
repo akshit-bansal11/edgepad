@@ -2,6 +2,18 @@
 
 One list for every planned fix, feature and change after v4.2.0 (`07e83d1`). It replaces `edgepad-4.x.y-fixes.md`, `edgepad-4.x-features.md` and `edgepad-5-features.md`. Written 2026-11-16.
 
+## Status on `feat/5.0.0` (2026-11-16)
+
+The 4.2.x fixes shipped in 4.2.1. Every item from 4.3.0 to 5.0.0 below is built on the branch `feat/5.0.0` as one release, 5.0.0, on protocol 6. None of it has run on a phone with a laptop; CI is the only thing that has compiled or tested it. Nothing here carries a speed, latency or battery figure.
+
+What did not ship, and why:
+
+- **Windows laptop notifications (4.9.0).** The 4.9.0 spike, a probe of Windows' `UserNotificationListener` (`--probe-notifications`, W7), has to be run by the owner on a Windows machine. The Windows forwarder and its tray row (W8) wait for its result. Linux forwards notifications; macOS has no public API.
+- **Wayland macro windows via KWin (X1c, 4.6.0).** The spike stopped before anything was built. KDE's documentation does not confirm the scripting calls it needs, and it needs a Plasma 6 Wayland session. Macro running state, raise and close stay X11 only on Linux.
+- **Browser site icon (4.3.0).** Option C was built: the media's own artwork, not an Edgepad browser extension (option B).
+- **ANDU-10** (one macro page planned for 10 tiles) is dropped as designed: the page keeps a stable tile size on purpose.
+- **Update signing key (5.0.0).** The scheme is built; the owner creates the key with `scripts/new-update-key.ps1`. Until it is embedded, the laptop apps open the release page instead of replacing themselves.
+
 ## Version rule (owner, 2026-11-16)
 
 | Kind | Goes in | Example |
@@ -58,7 +70,7 @@ From the deep dive, these are fixed: AND-1, WIN-1, LIN-1, LIN-2, MAC-1 and MAC-2
 | Decision | Options | Affects |
 | --- | --- | --- |
 | Shapes (F2) | Fix: hold two, lift one, draw with the other (8 h, +2 tune). Remove: Shapes and its editor (3 h). | 4.2.1 |
-| Site icon for media in a browser | B: an Edgepad browser extension, exact for every site (18 h). C: show the media's artwork instead (3 h). | 4.3.0 |
+| Site icon for media in a browser | Decided: C, the media's artwork (built). B, an extension, was not built. | 4.3.0 |
 | Switch and slider contrast (ANDU-9) | A darker off colour for the tracks, a visual change. | 4.2.5 |
 | Order of the minors | 4.4.0 to 4.9.0 stand alone and can be reordered. | 4.4.0 to 4.9.0 |
 

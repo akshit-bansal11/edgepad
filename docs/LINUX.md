@@ -82,7 +82,7 @@ Each of these runs a small tool or asks a service, so they depend on what is ins
 
 The volume, microphone and brightness values on the phone are read twice a second, so a change made on the laptop reaches the dials within about half a second. When several players are open, the phone follows the one that is playing (else one that is paused, else the first); two playing at once keep whichever it followed first. The player's name on the phone is its D-Bus name, for example `Spotify`, not its display name.
 
-Volume up, volume down and mute press the keyboard's volume keys, so the desktop's own on-screen display appears. The refresh-rate dial is not offered (Linux has no shared way to switch display modes). Annotate and Sign are below.
+Volume up, volume down and mute press the keyboard's volume keys, so the desktop's own on-screen display appears. The refresh-rate dial is described below. Annotate and Sign are below.
 
 ### Macros
 
@@ -176,3 +176,25 @@ firewall-cmd --permanent --add-port=47321/tcp --add-port=5353/udp && firewall-cm
 ```
 
 47321 is the default; the tray row shows another number when that port was taken. 5353/udp is multicast DNS, which is how a phone finds the laptop. A USB-tethering network is often put in a stricter zone than your Wi-Fi, so allow it in that zone too. None of this has been tried on a real firewall.
+
+## New in 5.0.0 (built, not run on a Linux laptop)
+
+None of this has run on a Linux laptop with a phone. Each item names what decides it.
+
+**Refresh-rate dial.** On an X11 session Edgepad reads `xrandr --query` and lists the rates of the primary output at the resolution it is already using, so the dial cannot change the resolution. On a Wayland session it asks Mutter (`org.gnome.Mutter.DisplayConfig`), so it works on GNOME. Any other Wayland desktop gives the dial no list. Interlaced modes are left out. Check: turn the dial on the phone and watch the monitor settings.
+
+**Send a file to the phone.** Three ways, all hand the file to the running copy: the tray row **Send a file**, `edgepad --send FILE...` from a terminal, and a **Send to phone** desktop entry (`edgepad-send.desktop`, installed by `install.sh`) that a file manager may offer in its Open With menu. A phone on Wi-Fi or USB opens a second socket for the bytes; the control link carries them where it cannot. The phone can also send a file to the laptop. See `docs/PROTOCOL.md` for the transfer rules. Which file managers show the desktop entry is unverified.
+
+**Notifications to the phone.** Tray switch **Forward notifications to phone**, off until you turn it on. Edgepad also needs the phone's own switch in its Settings to be on. The app watches the session bus; what a notification says is never written to the log. Unverified: which notification daemons the monitor sees.
+
+**Which app is in front.** On an X11 session Edgepad can tell the phone which app is in front, for per-app profiles, only while the phone has that turned on. A Wayland session cannot see other windows' focus, so nothing is sent and the phone's profiles stay on their default.
+
+**Sleep or shut down when the media ends.** Through logind. Shutdown shows a 60 second countdown window you can cancel; it never shuts down without it.
+
+**Languages.** The tray, first-run window, Security, pairing, trust, PIN and macro dialogs, and the notices follow `LC_ALL`, `LC_MESSAGES` or `LANG` in the same 14 languages as the other apps, plus English. Arabic lays dialogs out right to left. A language Edgepad has no translation for shows English. Check: start with `LANG=de_DE.UTF-8 edgepad`.
+
+**arm64.** `Edgepad-<version>-linux-arm64.tar.gz` is built and unit-tested on CI only. The native values it calls (uinput, BlueZ, logind) are assumed to match x64 and are unverified on an arm64 device.
+
+**Windows open with a short fade.** Dialogs fade and scale in over 300 ms. Edgepad does not read a reduced-motion setting on Linux.
+
+**Not shipped: Wayland macro windows.** Running state, raise and close for macros still work on X11 only. A KWin script was investigated for KDE and stopped, because the scripting calls it needs are not confirmed in KDE's documentation and no Plasma 6 Wayland session was available to try them.

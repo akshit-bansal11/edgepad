@@ -4,6 +4,46 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+Wire protocol 6. A 5.0 phone and a 4.x laptop (or the reverse) refuse each other at the handshake and say which side needs updating, so install the phone and the laptop from the same release. Windows needs nothing new installed or allowed. All of this is built and has passed CI only; none of it has run on a phone with a laptop.
+
+### Added
+
+- **Phone and laptops: send a file.** A file moves either way, up to 2 GB: from the phone with Controls › Send a file or Share, from Windows with the tray row and Send to, from the Mac with the menu row, Open With or a drop on the icon, from Linux with the tray row, `edgepad --send` and a Send to phone desktop entry. Names are made safe, the SHA-256 is checked, an interrupted transfer resumes, and one file moves at a time per direction. Over Wi-Fi or USB the bytes use a second socket that can only attach to a phone that is already connected.
+- **Phone and laptops: update in place.** The phone offers Later and Skip this version and posts a notice. Windows, Mac and Linux verify a signed list of file hashes before replacing themselves; a build without the signing key opens the release page. See `docs/UPDATES.md`.
+- **Phone: Sleep when this ends.** Sleep or shut down the laptop when the current video or track ends, with a cancellable 60 second countdown on the laptop. Windows and Linux; the Mac gains it with its new now-playing support.
+- **Phone: Quick Settings tile** and play/pause and volume buttons in the stay-connected notification.
+- **Phone: clipboard history.** The last laptop copies, tap one to send it again.
+- **Phone: Presenter** with Next and Previous slide, the volume keys stepping slides while the screen is open, and a **Laser pointer** that draws a dot on the laptop and leaves nothing behind (Windows, Mac, Linux).
+- **Phone: app profiles.** Dials and gestures switch with the app in front on the laptop. Off by default; the laptop sends the app only while it is on. Windows, Mac and Linux on X11.
+- **Phone: Air mouse.** Tilt to move the pointer while a finger rests on the trackpad.
+- **Phone: Floating dials** over other apps, with Android's draw-over-apps permission and Stay connected.
+- **Phone: Show laptop notifications,** off by default on both sides. Linux only: Windows waits for a check of its notification listener, and macOS has no public API. Content is never logged.
+- **Phone: the laptop's own details.** The real icon of what is playing (a browser shows its media artwork), the full title when the laptop cleaned it, the laptop's macro limit, whether it is recording, and why a feature is missing.
+- **Windows: Restart as administrator** from the tray, so input reaches elevated windows.
+- **Mac: now playing and position** for Music and Spotify, hold-off while the Mac is locked or switched to another user, and a copied screenshot is sent when Capture saves to the phone.
+- **Mac and Linux: every language the phone has.** The menus and dialogs follow the system language in 14 languages; Arabic is right to left on Linux.
+- **Linux: refresh-rate dial** (xrandr on X11, Mutter on Wayland GNOME), **arm64 archive** `Edgepad-<version>-linux-arm64.tar.gz`, and the same cleaned titles, media icons and capture fallback as Windows.
+- **Site: docs search.**
+
+### Changed
+
+- **Protocol 6.** New frames BULK_HELLO and XFER_BEGIN, XFER_CHUNK, XFER_END, XFER_STATUS; ACTION 37 and 60 to 62, CONTROL 10 and 11, TEXT 21 to 26 and BLOB kinds 4 and 5. See `docs/PROTOCOL.md`.
+- **Phone: motion that carries.** Presses answer within 160 ms, popovers and windows open from where they were opened within 300 ms, and a screen change takes at most 400 ms and carries across instead of cutting. The same tiers apply on Windows, Linux and the website.
+- **Phone: the battery strip is an underline** instead of pills.
+- **Phone, laptops: media titles are cleaned** of brackets, "feat." and the artist's name, from one shared test list.
+- **Site: download links read the newest published release,** not the changelog, so they no longer 404 before the tag publishes.
+
+### Fixed
+
+- **Mac: media changes reach the phone** even where the end-of-media action is not offered.
+- **Release: a hand-run draft without the signing key ships unsigned** instead of failing.
+
+### Security
+
+- **Releases are signed.** `SHA256SUMS.txt` carries a signature made with a key that only the release job can read. It protects against a replaced release file after a GitHub account takeover; it does not protect against a stolen signing key. See `docs/UPDATES.md`.
+- **The transfer socket cannot admit a phone.** It asks no question and starts no session, and a second socket is closed on any frame but transfer frames.
+- **Notifications and the app in front are consent-gated:** each is off until both the phone and the laptop turn it on, sent only while connected, and never logged.
+
 ## [4.2.1] - 2026-11-16
 
 No wire-protocol change: the protocol stays at version 5.

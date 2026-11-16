@@ -128,6 +128,26 @@ Capture presses the laptop's own screenshot shortcut; the phone has a trackpad u
 | Mac | Cmd+Shift+4 | Cmd+Shift+3 | Cmd+Shift+5 |
 | Linux | Print | Print | Ctrl+Shift+Alt+R on GNOME, Meta+Alt+R on KDE (unverified) |
 
+### New in 5.0.0
+
+Everything here is built and has not yet run on a phone with a laptop. Phone and laptop must both be 5.0.0: a 5.0 phone and a 4.x laptop refuse each other at the handshake.
+
+- **Update in place.** The phone's **System settings › Updates** offers **Later** and **Skip this version**, and posts a notice when a newer release exists. Windows, Mac and Linux check the signed list of file hashes before replacing themselves; with no signing key in the build they open the release page instead. Details: [docs/UPDATES.md](UPDATES.md).
+- **Send a file.** On the phone, **Controls › Send a file**, or Share a file to Edgepad. On the laptop, the tray or menu-bar **Send a file** row, Windows' Send to menu, a file dropped on the Mac app, or on Linux `edgepad --send FILE`. Files up to 2 GB; an interrupted transfer resumes. Needs a connected laptop.
+- **Sleep when this ends.** In the Controls popup while something plays: **Sleep the laptop** or **Shut the laptop down** when it ends, **Cancel** to disarm. It needs a media end time. Shutdown shows a 60 second cancellable countdown on the laptop.
+- **Show laptop notifications.** Off until you turn it on, on both sides: **Settings › Show laptop notifications** on the phone, and the **Forward notifications to phone** row in the Linux tray. Linux only so far. Windows waits for a check of its notification listener, and macOS has no public way to do it.
+- **Clipboard history.** **Controls › Clipboard** lists the last laptop copies; tap one to send it again. It records copies only while **Share clipboard** is on.
+- **Quick Settings tile.** Add **Edgepad** from your phone's Quick Settings edit screen. The stay-connected notification gains play/pause and volume buttons.
+- **Presenter.** **Controls › Presenter**: Next slide and Previous slide, a **Laser pointer** that draws a dot on the laptop and leaves nothing behind, and the volume keys change slides only while this screen is open.
+- **App profiles.** **Settings › App profiles › Switch dials and gestures by app.** The laptop tells the phone which app is in front, only while this is on, and the name is not stored on the laptop. Not available on a Linux Wayland session.
+- **Air mouse.** **Controls › Air mouse**: tilt the phone to move the pointer while a finger rests on the trackpad. The gyroscope is read only then.
+- **Floating dials.** **Controls › Floating dials** shows the dials over other apps. It asks for Android's "draw over other apps" permission and needs a connected laptop and **Stay connected**.
+- **Mac and Linux in your language.** Both follow the system language in the same 14 languages as the phone.
+- **Mac and Linux catch up.** The Mac shows now playing for Music and Spotify, holds the phone off while the Mac is locked or switched to another user, and sends a copied screenshot when Capture is set to send to the phone. Linux gains the refresh-rate dial and an arm64 build.
+- **Motion.** Presses answer within 160 ms, popovers and windows open within 300 ms, and screen changes take at most 400 ms; screens carry across instead of cutting.
+- **Docs search** on the website.
+- **Windows** also gains a tray row, **Restart as administrator**, so input reaches elevated windows such as Task Manager.
+
 ### On a Mac
 
 Pointer, click, drag, scroll, typing, the on-screen keyboard, the corner dials for volume, brightness and refresh rate, play/pause, next, previous and lock all work as on Windows. What differs is by design:

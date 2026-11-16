@@ -185,6 +185,36 @@ const FRAME_DOCS: Record<
     meaning:
       "The phone's answer: 0 saved, 1 bad hash, 2 rejected, 3 write failed. Only 0 lets the laptop delete its copy.",
   },
+  BULK_HELLO: {
+    payload: "magic EDGP, version u8",
+    direction: "phone-to-laptop",
+    meaning:
+      "HELLO's shape under its own type, the first frame of the second socket a phone opens for file transfers. It can only attach to a phone session that is live right now over the same link; it never creates a session and asks no trust question or PIN.",
+  },
+  XFER_BEGIN: {
+    payload: "id u8, length u8, size u64, UTF-8 name",
+    direction: "both",
+    meaning:
+      "Starts a file transfer in either direction. The id is 1 to 255 and chosen by the sender; the length counts the size and the name.",
+  },
+  XFER_CHUNK: {
+    payload: "id u8, length u8, offset u64, 1 to 247 bytes",
+    direction: "both",
+    meaning:
+      "One piece of the file. The offset is the file offset of its first byte, so a restart after an interruption is exact.",
+  },
+  XFER_END: {
+    payload: "id u8, sha256, 32 bytes",
+    direction: "both",
+    meaning:
+      "The SHA-256 of the whole file. The receiver keeps the file only if it matches.",
+  },
+  XFER_STATUS: {
+    payload: "id u8, status u8, offset u64",
+    direction: "both",
+    meaning:
+      "How the transfer stands. The receiver sends READY, PROGRESS and the final verdict; the sender may send CANCELLED. READY's offset is where the sender starts.",
+  },
 };
 
 const ACTION_DOCS: Record<string, string> = {
@@ -241,6 +271,13 @@ const ACTION_DOCS: Record<string, string> = {
     "Opens a signing surface that shows nothing on the laptop and accepts only the pen tool.",
   SIGN_SAVE:
     "Exports the strokes as a transparent PNG cropped to the ink, to the clipboard and to an Edgepad folder in Pictures, never over an earlier file, then answers with TEXT 11.",
+  TOOL_LASER:
+    "The next stroke is a laser dot that follows the finger and leaves nothing behind. Never stored. The phone offers it only for a laptop that names annotate.",
+  END_SLEEP:
+    "Arms the laptop to sleep when the current media ends. The laptop reports what is armed as TEXT 25.",
+  END_SHUTDOWN:
+    "Arms the laptop to shut down when the current media ends. The laptop reports what is armed as TEXT 25.",
+  END_CANCEL: "Disarms the end-of-media action.",
   MACRO_BASE:
     "The first of 32 reserved macro slots (ids 64-95). Slot n runs as MACRO_BASE + n. The phone sends the index; the laptop's own list decides what it opens.",
 };
@@ -262,6 +299,10 @@ const CONTROL_DOCS: Record<string, string> = {
     "Where a capture ends up: 0 the laptop keeps it, 1 the laptop sends it to the phone and deletes its copy only once the phone says it saved it. Sent on connect and whenever the setting changes.",
   PEN_WIDTH:
     "SET sets the width of new pen-tool strokes, 1 to 100, as 0.02% of the screen's height per step: 5 is 0.1%, 20 is the default 0.4% and 100 is 2.0%. The highlighter is always 5 times the pen's width. 0 or more than 100 is dropped and counted. Forgotten when the session ends.",
+  NOTIFY:
+    "SET 1 forwards the laptop's notifications to this link, 0 stops it. Forgotten when the session ends; any other value is dropped and counted. The phone offers it only for a laptop that names notify.",
+  FOREGROUND_WATCH:
+    "SET 1 lets this link hear which app is in front (TEXT 21), 0 stops it. Forgotten when the session ends; any other value is dropped and counted. The phone offers it only for a laptop that names foreground.",
   PEN_OPACITY:
     "SET sets the opacity of new strokes in percent, 10 to 100. The highlighter multiplies its own 35% by it. Anything else is dropped and counted. Forgotten when the session ends.",
 };
@@ -289,6 +330,18 @@ const TEXT_DOCS: Record<string, string> = {
     "How a SIGN_SAVE ended, as one of saved, empty or failed. Laptop to phone.",
   CAPTURE_STATUS:
     "Why a capture the phone asked for stayed on the laptop, as one of too-large, not-found or failed. Laptop to phone.",
+  FOREGROUND_APP:
+    "The app in front as token/name, split on the first slash. Sent only after CONTROL 11 is 1, on change, and never logged. Empty means nothing is known. Laptop to phone.",
+  MACRO_CAP:
+    "How many macro slots the laptop keeps, in decimal. Empty or never sent means the phone's own default. Laptop to phone.",
+  CAPTURE_STATE:
+    "Whether the laptop is recording the screen, as idle or recording. Best effort: a laptop that cannot tell sends nothing. Laptop to phone.",
+  UNAVAILABLE:
+    "The features the laptop cannot offer right now and why, as feature:reason entries joined by a slash. A reason is one of unsupported, off, no-tool or no-permission; an unknown one reads as unsupported. Laptop to phone.",
+  END_ACTION:
+    "What the end-of-media action is armed to do, as none, sleep or shutdown. Sent on change. Laptop to phone.",
+  NOW_PLAYING_FULL:
+    "The title line of what is playing before it is cleaned for TEXT 0, sent only when it differs from TEXT 0. Laptop to phone.",
   PEN_RGB:
     "A stroke colour as exactly six hex digits, RRGGBB, either case. Anything else, a leading # included, is dropped and counted. It sets the colour until the next PEN_COLOR or PEN_RGB. Phone to laptop.",
 };
@@ -322,6 +375,11 @@ const PAD_STATUS_DOCS: Record<string, string> = {
 };
 
 const FEATURE_DOCS: Record<string, string> = {
+  END_ACTION:
+    "The laptop answers ACTION 60 to 62, sleep or shut down when the media ends.",
+  NOTIFY: "The laptop can forward its notifications once CONTROL 10 is 1.",
+  FOREGROUND:
+    "The laptop can say which app is in front, in TEXT 21, once CONTROL 11 is 1. A Linux Wayland session cannot.",
   ANNOTATE:
     "The laptop can show the annotation overlay and a signing surface. The phone shows an Annotate tile only for a laptop that names this.",
   CAPTURE:
