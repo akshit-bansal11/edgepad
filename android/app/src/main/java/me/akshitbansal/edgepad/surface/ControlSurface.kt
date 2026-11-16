@@ -1398,6 +1398,7 @@ class ControlSurface(
         event: MotionEvent,
         exclude: Int,
     ) {
+        val before = fingerCount
         var n = 0
         for (i in 0 until event.pointerCount) {
             if (i == exclude || n == MAX_POINTERS) continue
@@ -1407,6 +1408,8 @@ class ControlSurface(
         }
         if (n > peakFingers) peakFingers = n
         fingerCount = n
+        // The pen finger takes over from the pair's midpoint: no line from there to it.
+        if (n == 1 && trackpad.drawingAlone && before == 2) trailLength = 0
         // A stroke is drawn with two fingers, so its tail follows their midpoint.
         val midpoint = n == 2 && drawingShape
         if (n != 1 && !midpoint) {

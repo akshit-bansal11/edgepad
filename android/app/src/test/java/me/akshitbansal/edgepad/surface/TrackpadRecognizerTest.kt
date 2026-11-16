@@ -4,6 +4,8 @@ import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.surface.TrackpadRecognizer.Action
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -12,12 +14,33 @@ class TrackpadRecognizerTest {
     private val out = mutableListOf<Frame>()
     private val pad = TrackpadRecognizer(density = 1f) { out.add(it) }
 
+    /** The last stroke [shaped] handed over, copied out of the recogniser's reused buffers. */
+    private var path: Pair<FloatArray, FloatArray>? = null
+    private val shaped =
+        TrackpadRecognizer(density = 1f, onShape = { xs, ys, n -> path = xs.copyOf(n) to ys.copyOf(n) }) {
+            out.add(it)
+        }
+
     private fun touch(
         action: Action,
         time: Long,
         vararg points: Pair<Float, Float>,
+    ) = pad.send(action, time, *points)
+
+    private fun TrackpadRecognizer.send(
+        action: Action,
+        time: Long,
+        vararg points: Pair<Float, Float>,
     ) {
-        pad.handle(action, points.map { it.first }.toFloatArray(), points.map { it.second }.toFloatArray(), time)
+        handle(action, points.map { it.first }.toFloatArray(), points.map { it.second }.toFloatArray(), time)
+    }
+
+    /** One finger down, a second beside it at 10 ms, both held still until the stroke arms. */
+    private fun armAShape() {
+        shaped.send(Action.DOWN, 0, 100f to 100f)
+        shaped.send(Action.DOWN, 10, 100f to 100f, 160f to 100f)
+        shaped.tick(10 + TrackpadRecognizer.HOLD_MS)
+        assertTrue(shaped.shaping)
     }
 
     @Test
@@ -112,6 +135,83 @@ class TrackpadRecognizerTest {
         shaped.handle(Action.UP, floatArrayOf(), floatArrayOf(), 600)
         assertTrue("no scroll, no click: ${out.toList()}", out.isEmpty())
         assertTrue("the stroke went to the shape sink", stroke >= 3)
+    }
+
+    @Test
+    fun liftOneThenDrawWithTheOther() {
+        armAShape()
+        shaped.send(Action.UP, 500, 160f to 100f)
+        assertTrue(shaped.drawingAlone)
+        shaped.send(Action.MOVE, 550, 160f to 140f)
+        shaped.send(Action.MOVE, 600, 160f to 180f)
+        shaped.send(Action.UP, 700)
+        assertTrue("no frames: ${out.toList()}", out.isEmpty())
+        val (xs, ys) = path ?: error("no stroke handed over")
+        assertTrue("count ${xs.size}", xs.size >= 3)
+        assertEquals(160f, xs.first())
+        assertEquals(100f, ys.first())
+        assertEquals(160f, xs.last())
+        assertEquals(180f, ys.last())
+    }
+
+    @Test
+    fun liftOneBeforeTheHoldIsNotAShape() {
+        shaped.send(Action.DOWN, 0, 100f to 100f)
+        shaped.send(Action.DOWN, 10, 100f to 100f, 160f to 100f)
+        shaped.send(Action.UP, 100, 160f to 100f)
+        shaped.send(Action.MOVE, 200, 160f to 300f)
+        shaped.send(Action.MOVE, 600, 160f to 400f)
+        shaped.send(Action.UP, 700)
+        assertTrue("no scroll, move or click: ${out.toList()}", out.isEmpty())
+        assertNull(path)
+    }
+
+    @Test
+    fun twoFingerTapStillRightClicksWithAShapeBound() {
+        shaped.send(Action.DOWN, 0, 100f to 100f)
+        shaped.send(Action.DOWN, 1, 100f to 100f, 160f to 100f)
+        shaped.send(Action.UP, 60, 160f to 100f)
+        shaped.send(Action.MOVE, 65, 160f to 100f)
+        shaped.send(Action.UP, 70)
+        assertEquals(listOf(Frame.PointerButton(1, true), Frame.PointerButton(1, false)), out)
+        assertNull(path)
+    }
+
+    @Test
+    fun twoFingerScrollStillScrollsWithAShapeBound() {
+        shaped.send(Action.DOWN, 0, 100f to 100f)
+        shaped.send(Action.DOWN, 1, 100f to 100f, 160f to 100f)
+        shaped.send(Action.MOVE, 20, 100f to 140f, 160f to 140f)
+        assertFalse(shaped.shaping)
+        shaped.send(Action.UP, 30, 160f to 140f)
+        shaped.send(Action.UP, 40)
+        assertTrue(out.single() is Frame.Scroll)
+        assertNull(path)
+    }
+
+    @Test
+    fun aPairThatMovedAfterArmingKeepsTheMidpointStroke() {
+        armAShape()
+        shaped.send(Action.MOVE, 500, 100f to 140f, 160f to 140f)
+        shaped.send(Action.MOVE, 520, 100f to 180f, 160f to 180f)
+        shaped.send(Action.UP, 600, 160f to 180f)
+        assertFalse(shaped.drawingAlone)
+        shaped.send(Action.MOVE, 605, 160f to 200f)
+        shaped.send(Action.UP, 610)
+        assertTrue("no frames: ${out.toList()}", out.isEmpty())
+        val (xs, ys) = path ?: error("no stroke handed over")
+        assertEquals("the midpoint, never the finger left behind", listOf(130f, 130f, 130f), xs.toList())
+        assertEquals(listOf(100f, 140f, 180f), ys.toList())
+    }
+
+    @Test
+    fun aCancelledPenDropsTheStroke() {
+        armAShape()
+        shaped.send(Action.UP, 500, 160f to 100f)
+        shaped.send(Action.MOVE, 550, 160f to 140f)
+        shaped.send(Action.CANCEL, 600)
+        assertTrue(out.isEmpty())
+        assertNull(path)
     }
 
     @Test

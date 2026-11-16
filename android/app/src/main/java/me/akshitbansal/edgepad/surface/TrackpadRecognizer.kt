@@ -16,8 +16,10 @@ import kotlin.math.hypot
  * bar and ends a Snipping Tool selection before it starts. Holding still sends nothing until it means a
  * drag, so a tap still clicks the moment the finger lifts, with no wait to see whether a drag follows.
  *
- * Two fingers held still for [HOLD_MS] draw instead: the stroke of their midpoint goes to [onShape] when
- * they lift. One finger used to own that, and gave it up to the drag above, which everyone needs.
+ * Two fingers held still for [HOLD_MS] arm a stroke instead, which goes to [onShape] when they lift. Either
+ * both keep moving and their midpoint draws, or one lifts and the other draws alone, the easier of the two:
+ * the stroke then starts where the pen finger was when the other lifted. One finger used to own shapes,
+ * and gave them up to the drag above, which everyone needs.
  *
  * Pure: no Android types, so the gesture table is tested on the JVM. Positions are in pixels; [density]
  * (pixels per dp) scales every threshold so the feel is the same on any screen. A gesture is classified by
@@ -35,7 +37,7 @@ class TrackpadRecognizer(
     /**
      * Handed the whole stroke when two fingers that became a shape lift: the first `count` entries of the
      * two arrays, in pixels, starting at the second finger's press rather than at the moment the hold
-     * expired.
+     * expired, or, for a stroke drawn by one finger after the other lifted, at that lift.
      *
      * Null turns shape mode off outright, which is what the surface passes when nothing is bound to a
      * shape. Then a two-finger hold stays nothing, and the scroll that usually follows it is never delayed.
@@ -61,6 +63,13 @@ class TrackpadRecognizer(
 
     /** A hold has turned into something, a drag or a shape: the surface ticks once when this changes. */
     val held: Boolean get() = dragging || shaping
+
+    /**
+     * True once one of two fingers holding an armed stroke has lifted and the other draws it alone. Read by
+     * the surface, so its trail follows the pen finger instead of drawing a line from the old midpoint.
+     */
+    var drawingAlone = false
+        private set
 
     private var fingers = 0
     private var maxFingers = 0
@@ -138,7 +147,8 @@ class TrackpadRecognizer(
         startY = lastY
         // The stroke starts with the second finger, at the pair's midpoint. A third finger is not part of
         // a two-finger stroke: whatever was being drawn is abandoned, and the gesture carries on as the
-        // swipe it has become.
+        // swipe it has become. A finger landing again ends a pen: the stroke restarts from the pair.
+        drawingAlone = false
         pathCount = 0
         if (strokeFingers()) record(lastX, lastY) else shaping = false
         if (fingers == 2) {
@@ -197,8 +207,8 @@ class TrackpadRecognizer(
         }
     }
 
-    /** Exactly two fingers, and never more: the only touch a stroke is drawn with. */
-    private fun strokeFingers(): Boolean = maxFingers == 2 && fingers == 2
+    /** Exactly two fingers and never more, or the one left drawing alone: the only touches a stroke takes. */
+    private fun strokeFingers(): Boolean = maxFingers == 2 && (fingers == 2 || (drawingAlone && fingers == 1))
 
     /**
      * Keeps one more sample of the stroke. A full buffer stops taking them rather than growing or dropping
@@ -414,6 +424,14 @@ class TrackpadRecognizer(
         lastX = cx
         lastY = cy
         if (fingers == 2) lastSpan = span(xs, ys)
+        // One of a still, armed pair lifting hands the stroke to the other. The midpoint samples so far are
+        // the hold, when nothing moved, so dropping them loses no drawing. A pair that has already drawn
+        // together keeps its midpoint stroke, so a two-finger stroke's own lift never discards it.
+        if (shaping && count == 1 && !moved) {
+            drawingAlone = true
+            pathCount = 0
+            record(lastX, lastY)
+        }
     }
 
     private fun finish(
@@ -473,6 +491,7 @@ class TrackpadRecognizer(
         running = null
         twoFinger = TwoFingerMode.UNDECIDED
         shaping = false
+        drawingAlone = false
         pathCount = 0
         pinchRemainder = 0f
         moveRemX = 0f
