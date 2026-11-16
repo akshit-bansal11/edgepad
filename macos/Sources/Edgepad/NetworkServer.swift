@@ -12,6 +12,8 @@ final class NetworkServer {
     static let serviceType = "_edgepad._tcp"
     /// Connections still proving themselves, at most, as on Windows and Linux: past this a new one is closed at once.
     private static let maxUnproved = 4
+    /// Of those, at most this many from one address, so one machine cannot take every slot.
+    private static let maxUnprovedPerHost = 2
 
     /// TCP keep-alive on every accepted connection: a phone that left the network without a FIN (Wi-Fi dropped, USB
     /// tether pulled) otherwise keeps its session and any held key or button for ever. Idle 10 s, then 3 probes 5 s
@@ -36,7 +38,9 @@ final class NetworkServer {
 
     private var listener: NWListener?
     /// Connections still in EDGL1, each with the responder its bytes go to.
-    private var unproved: [ObjectIdentifier: (link: NetworkTransport, responder: LinkResponder)] = [:]
+    private var unproved: [ObjectIdentifier: (link: NetworkTransport, responder: LinkResponder, host: String)] = [:]
+    /// A flood of refused connections logs one line per address per minute, not one per connection.
+    private var refusals = RefusalThrottle()
     /// Links handed on, so stopping closes them too: the owner turning Wi-Fi and USB off means those phones as well.
     private var live: [NetworkTransport] = []
 
@@ -153,9 +157,26 @@ final class NetworkServer {
     /// "from 192.168.1.23, on your network". USB tethering is not supported on a Mac, and the Mac does not look up
     /// which adapter the address arrived on, so it names the network rather than guess Wi-Fi.
     static func sourceLine(_ endpoint: NWEndpoint) -> String {
+        guard case .hostPort = endpoint else { return "" }
+        let address = Self.address(endpoint)
+        return address.isEmpty ? "on your network" : "from \(address), on your network"
+    }
+
+    /// The address a connection came from, without a `%scope` suffix or an IPv4-mapped `::ffff:` prefix, so one
+    /// machine counts as one host however it reaches this Mac.
+    private static func address(_ endpoint: NWEndpoint) -> String {
         guard case .hostPort(let host, _) = endpoint else { return "" }
         let address = "\(host)".split(separator: "%").first.map(String.init) ?? ""
-        return address.isEmpty ? "on your network" : "from \(address), on your network"
+        return address.hasPrefix("::ffff:") ? String(address.dropFirst(7)) : address
+    }
+
+    /// Closes a connection refused for a cap; the log line goes out off the main thread, and only once per address per
+    /// minute, so a flood stalls neither the pointer nor the disk.
+    private func refuse(_ connection: NWConnection, from address: String, because reason: String) {
+        connection.cancel()
+        if refusals.shouldLog(host: address, now: ProcessInfo.processInfo.systemUptime) {
+            Log.writeAsync("Refused a network connection from \(address): \(reason)")
+        }
     }
 
     private func accept(_ connection: NWConnection) {
@@ -164,9 +185,16 @@ final class NetworkServer {
             connection.cancel()
             return
         }
+        let address = Self.address(connection.endpoint)
         guard unproved.count < Self.maxUnproved else {
-            Log.write("Refused a network connection: \(Self.maxUnproved) others are still proving themselves")
-            connection.cancel()
+            refuse(connection, from: address, because: "\(Self.maxUnproved) others are still proving themselves")
+            return
+        }
+        // Counted from the table itself, so nothing can drift when a connection ends.
+        guard unproved.values.filter({ $0.host == address }).count < Self.maxUnprovedPerHost else {
+            refuse(
+                connection, from: address,
+                because: "\(Self.maxUnprovedPerHost) others from it are still proving themselves")
             return
         }
         let link = NetworkTransport(connection: connection)
@@ -186,7 +214,7 @@ final class NetworkServer {
                 self.unproved[key] = nil
                 self.proved(link, result)
             })
-        unproved[key] = (link: link, responder: responder)
+        unproved[key] = (link: link, responder: responder, host: address)
         link.onBytes = { [weak responder] bytes in responder?.receive(bytes) }
         link.onClosed = { [weak responder] in responder?.cancel(byPeer: true) }
         link.start()
