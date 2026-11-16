@@ -40,22 +40,25 @@
 }
 
 /*
-  The one set of motion durations (UX-27: nothing over 300 ms). CSS reads them as
-  var(--duration-*) or through Tailwind's duration-(--duration-*); JS reads the same
-  values from lib/motion.ts, so there is no second copy. Under reduced motion all three
-  are 0, which switches every transition and every Motion tween off in one place.
+  The one set of motion durations (UX-27, DES-D07): press 160 ms, reveal 300 ms, scene
+  400 ms. CSS reads them as var(--duration-*) or through Tailwind's
+  duration-(--duration-*); JS reads the same values from lib/motion.ts, so there is no
+  second copy. Under reduced motion all three are 0, which switches every transition and
+  every Motion tween off in one place (DES-D08). The one exception is --duration-fade:
+  a plain cross-fade for the menu and the page change, which UX-31 allows under reduce.
 */
 :root {
-  --duration-fast: 120ms;
-  --duration-base: 200ms;
-  --duration-slow: 300ms;
+  --duration-press: 160ms;
+  --duration-reveal: 300ms;
+  --duration-scene: 400ms;
+  --duration-fade: 160ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --duration-fast: 0ms;
-    --duration-base: 0ms;
-    --duration-slow: 0ms;
+    --duration-press: 0ms;
+    --duration-reveal: 0ms;
+    --duration-scene: 0ms;
   }
 }
 
@@ -132,8 +135,8 @@
   --shadow-card: var(--elev-card);
   --shadow-lift: var(--elev-lift);
 
-  /* Every bare `transition-*` utility takes the fast duration. */
-  --default-transition-duration: var(--duration-fast);
+  /* Every bare `transition-*` utility takes the press duration. */
+  --default-transition-duration: var(--duration-press);
 }
 
 @layer base {
@@ -184,5 +187,65 @@
     font-weight: 700;
     line-height: 1.3;
     color: var(--dim);
+  }
+}
+
+/*
+  Header menu (components/header-menu.tsx): grows from the button's corner and shrinks
+  back into it (UX-32). The script sets data-closing and waits one reveal before it
+  closes the <details>. Under reduced motion it is an opacity-only fade (UX-31).
+*/
+.menu-panel {
+  transform-origin: top right;
+  animation: menu-in var(--duration-reveal) ease-out;
+}
+
+details[data-closing] > .menu-panel {
+  animation: menu-out var(--duration-reveal) ease-in forwards;
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+@keyframes menu-out {
+  to {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-panel {
+    animation: menu-fade var(--duration-fade) ease-out;
+  }
+
+  @keyframes menu-fade {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+/*
+  Route change: a cross-fade of the page at the scene duration. A progressive
+  enhancement (cross-document view transitions, Chromium and Safari; Firefox navigates
+  instantly). Soft navigations through next/link do not start one. Under reduced motion
+  it is the plain 160 ms fade, the one non-zero duration left (UX-31, OD3).
+*/
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-group(root) {
+  animation-duration: var(--duration-scene);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root) {
+    animation-duration: var(--duration-fade);
   }
 }

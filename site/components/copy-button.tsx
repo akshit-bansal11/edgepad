@@ -51,7 +51,7 @@ export function CopyButton({ text, label }: { text: string; label: string }) {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: seconds("fast") }}
+            transition={{ duration: seconds("press") }}
             className="grid place-items-center"
           >
             {state === "copied" ? (

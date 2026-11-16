@@ -3,6 +3,8 @@
 import { Menu } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
 
+import { seconds } from "@/lib/motion";
+
 /**
  * The narrow-screen menu: a native <details>, so it still opens with no JavaScript.
  * The script only adds the ways out a menu needs: Escape (focus returns to the
@@ -21,21 +23,37 @@ export function HeaderMenu({
   useEffect(() => {
     const el = menu.current;
     if (!el) return;
+    let timer: number | undefined;
+    // Shrinks back into the button, then closes; instant under reduced motion.
+    const close = () => {
+      if (!el.open || el.dataset.closing !== undefined) return;
+      const wait = seconds("reveal") * 1000;
+      if (wait === 0) {
+        el.open = false;
+        return;
+      }
+      el.dataset.closing = "";
+      timer = window.setTimeout(() => {
+        delete el.dataset.closing;
+        el.open = false;
+      }, wait);
+    };
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || !el.open) return;
-      el.open = false;
+      close();
       el.querySelector("summary")?.focus();
     };
     const onPointer = (event: PointerEvent) => {
-      if (event.target instanceof Node && !el.contains(event.target)) el.open = false;
+      if (event.target instanceof Node && !el.contains(event.target)) close();
     };
     const onClick = (event: MouseEvent) => {
-      if (event.target instanceof Element && event.target.closest("a")) el.open = false;
+      if (event.target instanceof Element && event.target.closest("a")) close();
     };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onPointer);
     el.addEventListener("click", onClick);
     return () => {
+      window.clearTimeout(timer);
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("pointerdown", onPointer);
       el.removeEventListener("click", onClick);
@@ -50,7 +68,7 @@ export function HeaderMenu({
           <span className="sr-only sm:not-sr-only">{label}</span>
         </span>
       </summary>
-      <div className="bg-card shadow-lift absolute right-0 mt-2 max-h-[75vh] w-[min(20rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl p-2">
+      <div className="menu-panel bg-card shadow-lift absolute right-0 mt-2 max-h-[75vh] w-[min(20rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl p-2">
         {children}
       </div>
     </details>
