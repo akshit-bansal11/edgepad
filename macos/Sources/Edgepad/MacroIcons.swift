@@ -62,7 +62,7 @@ final class WorkspaceMacroIcons: MacroIconSource {
 
     /// Exactly `side` pixels square whatever the display's scale, which a plain `lockFocus` image would not be on a
     /// Retina Mac.
-    private static func encode(_ image: NSImage, side: Int) -> [UInt8]? {
+    static func encode(_ image: NSImage, side: Int) -> [UInt8]? {
         guard
             let bitmap = NSBitmapImageRep(
                 bitmapDataPlanes: nil, pixelsWide: side, pixelsHigh: side, bitsPerSample: 8, samplesPerPixel: 4,

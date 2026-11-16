@@ -34,6 +34,10 @@ final class SessionHost {
     /// pictures, which would only push the grid's out of the one `macros` holds.
     private let appCatalog = ApplicationsCatalog(icons: WorkspaceMacroIcons())
 
+    /// What Music and Spotify are playing, for every connection: always listening, so a phone that connects mid-song is
+    /// told at once. Each connection holds its own view of it.
+    private let nowPlaying = NowPlayingHub()
+
     /// One pasteboard for every connection, polled on the timer below. The sessions' clipboards are held weakly: a
     /// session that ended has already stopped its own.
     private let pasteboard = PasteboardSurface()
@@ -157,6 +161,9 @@ final class SessionHost {
         clipboards.add(clipboard)
         // On the same sender, so a list and a clipboard copy queue behind one another: the phone holds one transfer.
         dispatcher.apps = AppPicker(catalog: appCatalog, store: macros, sender: sender)
+        dispatcher.media = MacMediaSource(hub: nowPlaying)
+        dispatcher.mediaBlobs = sender
+        dispatcher.endPerform = MacEndPower.perform
         let ask = askTrust
         let status = onStatus
         let session = Session(
