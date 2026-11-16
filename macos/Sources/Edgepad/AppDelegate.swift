@@ -45,6 +45,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let networkSettings = NetworkSettings.forCurrentUser()
     private var statusItem: NSStatusItem?
     private var host: SessionHost?
+    /// Holds the Mac off while another user is switched in or the screen is locked; started once at launch.
+    private var sessionWatch: SessionWatch?
     private var server: RfcommServer?
     private var network: NetworkServer?
     private var notifier: Notifier?
@@ -137,6 +139,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             DispatchQueue.global(qos: .utility).async { lastConnected.record(address, since: since) }
         }
         self.host = host
+        let watch = SessionWatch(
+            hold: { [weak self] in self?.host?.holdOff() }, resume: { [weak self] in self?.host?.resume() })
+        watch.start()
+        sessionWatch = watch
         server = RfcommServer(host: host, onStatus: { [weak self] in self?.setStatus($0) })
         startServer()
         // After the start, whose failure would otherwise overwrite the hint at once.
@@ -347,6 +353,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     /// Releases everything the phone was holding down before the app goes.
     func applicationWillTerminate(_ notification: Notification) {
+        // Before the host stops: stopping the watch ends any hold it started.
+        sessionWatch?.stop()
         network?.stop()
         server?.stop()
         host?.stop()
