@@ -12,7 +12,7 @@ What did not ship, and why:
 - **Wayland macro windows via KWin (X1c, 4.6.0).** The spike stopped before anything was built. KDE's documentation does not confirm the scripting calls it needs, and it needs a Plasma 6 Wayland session. Macro running state, raise and close stay X11 only on Linux.
 - **Browser site icon (4.3.0).** Option C was built: the media's own artwork, not an Edgepad browser extension (option B).
 - **ANDU-10** (one macro page planned for 10 tiles) is dropped as designed: the page keeps a stable tile size on purpose.
-- **Update signing key (5.0.0).** The scheme is built; the owner creates the key with `scripts/new-update-key.ps1`. Until it is embedded, the laptop apps open the release page instead of replacing themselves.
+- **Update signing key (5.0.0).** Created by the owner with `scripts/new-update-key.ps1` on 2026-11-16 and embedded (`protocol/update-key.txt`, `e9076b9`). The laptop apps install a verified release in place; the first end-to-end update is 5.0.0 to the next release.
 
 ## Version rule (owner, 2026-11-16)
 

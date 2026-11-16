@@ -9,7 +9,7 @@ Wire protocol 6. A 5.0 phone and a 4.x laptop (or the reverse) refuse each other
 ### Added
 
 - **Phone and laptops: send a file.** A file moves either way, up to 2 GB: from the phone with Controls › Send a file or Share, from Windows with the tray row and Send to, from the Mac with the menu row, Open With or a drop on the icon, from Linux with the tray row, `edgepad --send` and a Send to phone desktop entry. Names are made safe, the SHA-256 is checked, an interrupted transfer resumes, and one file moves at a time per direction. Over Wi-Fi or USB the bytes use a second socket that can only attach to a phone that is already connected.
-- **Phone and laptops: update in place.** The phone offers Later and Skip this version and posts a notice. Windows, Mac and Linux verify a signed list of file hashes before replacing themselves; a build without the signing key opens the release page. See `docs/UPDATES.md`.
+- **Phone and laptops: update in place.** The phone offers Later and Skip this version and posts a notice. Windows, Mac and Linux verify a signed list of file hashes before replacing themselves. The signing key is embedded; a build without one would open the release page instead. See `docs/UPDATES.md`.
 - **Phone: Sleep when this ends.** Sleep or shut down the laptop when the current video or track ends, with a cancellable 60 second countdown on the laptop. Windows and Linux; the Mac gains it with its new now-playing support.
 - **Phone: Quick Settings tile** and play/pause and volume buttons in the stay-connected notification.
 - **Phone: clipboard history.** The last laptop copies, tap one to send it again.
