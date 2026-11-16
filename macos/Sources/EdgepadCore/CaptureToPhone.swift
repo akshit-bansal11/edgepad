@@ -40,10 +40,17 @@ public enum CapturePick {
         Set(files.map { $0.path.lowercased() })
     }
 
-    /// The one new capture, or nil. `ambiguous` is true when there is more than one, which ends the watch.
-    public static func newFile(before: Set<String>, now: [FileStamp]) -> (file: FileStamp?, ambiguous: Bool) {
+    /// The one new capture, or nil. `ambiguous` is true when there is more than one, which ends the watch. `flagged`
+    /// is asked, only for a new file in a shared folder whose name does not say capture, whether Spotlight marks it
+    /// as a screen capture: a Mac in another language names its screenshots in that language.
+    public static func newFile(
+        before: Set<String>, now: [FileStamp], flagged: (String) -> Bool = { _ in false }
+    ) -> (file: FileStamp?, ambiguous: Bool) {
         var found: FileStamp?
-        for file in now where !before.contains(file.path.lowercased()) && candidate(file.path, shared: file.shared) {
+        for file in now where !before.contains(file.path.lowercased()) {
+            // Spotlight is asked last, only when nothing cheaper has decided.
+            guard candidate(file.path), !file.shared || candidate(file.path, shared: true) || flagged(file.path)
+            else { continue }
             if found != nil {
                 return (nil, true)
             }
@@ -57,17 +64,31 @@ public enum CapturePick {
         previous == current && current.length > 0
     }
 
-    public static func candidate(_ path: String, shared: Bool = false) -> Bool {
+    /// `flag` is Spotlight's screen-capture mark, which a shared folder accepts as well as an English capture name.
+    public static func candidate(_ path: String, shared: Bool = false, flag: Bool = false) -> Bool {
         let name = (path as NSString).lastPathComponent
         guard let first = name.first, first != ".", first != "~", FileType(path: name) != nil else { return false }
+        return !shared || isScreenCapture(name: name, flag: flag)
+    }
+
+    /// Spotlight's mark, or failing that a name the capture tools give in English, kept for a file not indexed yet.
+    public static func isScreenCapture(name: String, flag: Bool) -> Bool {
         let lowered = name.lowercased()
-        return !shared || captureNames.contains { lowered.hasPrefix($0) }
+        return flag || captureNames.contains { lowered.hasPrefix($0) }
     }
 }
 
 /// Where the system's capture tool saves. Behind a seam so the watch is testable without a Mac's defaults.
 public protocol CaptureFolders: AnyObject {
     func folders(for capture: ActionId) -> [CaptureFolder]
+    /// Whether the system marks the file at `path` as a screen capture. Asked only of a new file in a shared folder.
+    func isScreenCapture(_ path: String) -> Bool
+}
+
+extension CaptureFolders {
+    public func isScreenCapture(_ path: String) -> Bool {
+        false
+    }
 }
 
 /// Sends a capture to the phone when the phone asked for captures to be saved there (SET CAPTURE_TARGET 1), and deletes
@@ -94,6 +115,11 @@ public final class CaptureToPhone {
     static let screenshotSettledPolls = 2
     /// Ten seconds of a recording's file not changing at all: macOS writes it whole when the recording stops.
     static let recordingSettledPolls = 20
+    /// While no new file has appeared a poll only looks at the folders' own modification times, which change when a
+    /// file is added; the folders are listed again then, and at least this often in case a time did not move.
+    static let relistSeconds: TimeInterval = 5
+    /// What the file is read in to check its hash before it is deleted.
+    static let hashChunkBytes = 1024 * 1024
 
     /// Where frames go; false when the link is dead.
     public var send: ((Frame) -> Bool)?
@@ -104,6 +130,7 @@ public final class CaptureToPhone {
     private let clock: () -> TimeInterval
     private let schedule: (TimeInterval, @escaping () -> Void) -> Void
     private let lastInput: () -> TimeInterval
+    private let offMain: (@escaping () -> Bool, @escaping (Bool) -> Void) -> Void
 
     private var toPhone = false
     private var ended = false
@@ -138,12 +165,20 @@ public final class CaptureToPhone {
         schedule: @escaping (TimeInterval, @escaping () -> Void) -> Void = { delay, work in
             DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
         },
-        lastInput: @escaping () -> TimeInterval
+        lastInput: @escaping () -> TimeInterval,
+        // Runs the check before a delete off the main thread, then hands its answer back on the main queue.
+        offMain: @escaping (@escaping () -> Bool, @escaping (Bool) -> Void) -> Void = { work, done in
+            DispatchQueue.global(qos: .utility).async {
+                let result = work()
+                DispatchQueue.main.async { done(result) }
+            }
+        }
     ) {
         self.folders = folders
         self.clock = clock
         self.schedule = schedule
         self.lastInput = lastInput
+        self.offMain = offMain
     }
 
     /// SET CAPTURE_TARGET. False, dropped and counted, for a value that is neither Laptop nor Phone.
@@ -163,6 +198,7 @@ public final class CaptureToPhone {
     public func run(_ capture: ActionId, press: () -> Bool) -> Bool {
         guard toPhone, !ended else { return press() }
         let watched = folders.folders(for: capture)
+        let seen = Self.stamps(watched)
         let before = CapturePick.before(list(watched))
         guard press() else { return false }
         let recording = capture == .captureRecord
@@ -170,7 +206,7 @@ public final class CaptureToPhone {
         startedAt = clock()
         deadline = startedAt + (recording ? Self.recordingWindow : Self.screenshotWindow)
         let settled = recording ? Self.recordingSettledPolls : Self.screenshotSettledPolls
-        watch(generation, watched, before, last: nil, still: 0, settled: settled)
+        watch(generation, Watch(folders: watched, before: before, settled: settled, seen: seen, listedAt: startedAt))
         return true
     }
 
@@ -188,13 +224,22 @@ public final class CaptureToPhone {
         transfer = nil
         try? current.handle.close()
         // SAVED counts only after FILE_END, and only for the file as it was sent: one that changed since is kept.
-        if current.finished, FileStatus(rawValue: status) == .saved, unchangedSince(current) {
-            do {
-                try FileManager.default.removeItem(atPath: current.path)
-                Log.write("Capture: saved on the phone, and deleted here")
-            } catch {
-                Log.write("Capture: saved on the phone, and could not be deleted here: \(error.localizedDescription)")
-            }
+        if current.finished, FileStatus(rawValue: status) == .saved {
+            // Hashing up to 200 MB again has no place on the main thread, which also moves the pointer.
+            let sent = (path: current.path, length: current.length, written: current.written, digest: current.digest)
+            offMain(
+                { Self.unchanged(path: sent.path, length: sent.length, written: sent.written, digest: sent.digest) },
+                { same in
+                    guard same else { return }
+                    do {
+                        try FileManager.default.removeItem(atPath: sent.path)
+                        Log.write("Capture: saved on the phone, and deleted here")
+                    } catch {
+                        Log.write(
+                            "Capture: saved on the phone, and could not be deleted here: "
+                                + error.localizedDescription)
+                    }
+                })
         } else {
             Log.write("Capture: the phone answered \(status), so the file stays here")
         }
@@ -212,38 +257,73 @@ public final class CaptureToPhone {
         send = nil
     }
 
-    private func watch(
-        _ id: Int, _ watched: [CaptureFolder], _ before: Set<String>, last: FileStamp?, still: Int, settled: Int
-    ) {
+    /// One watch's state from poll to poll. `seen` and `listedAt` are the folders' modification times at the last
+    /// listing and when it was.
+    private struct Watch {
+        let folders: [CaptureFolder]
+        let before: Set<String>
+        let settled: Int
+        var last: FileStamp?
+        var still = 0
+        var seen: [Date?]
+        var listedAt: TimeInterval
+
+        init(folders: [CaptureFolder], before: Set<String>, settled: Int, seen: [Date?], listedAt: TimeInterval) {
+            self.folders = folders
+            self.before = before
+            self.settled = settled
+            self.seen = seen
+            self.listedAt = listedAt
+        }
+    }
+
+    private func watch(_ id: Int, _ state: Watch) {
         schedule(Self.poll) { [weak self] in
             guard let self, id == self.generation, !self.ended else { return }
             if self.clock() > self.deadline {
                 self.status(.notFound)
                 return
             }
-            let (found, ambiguous) = CapturePick.newFile(before: before, now: self.list(watched))
+            var state = state
+            // Nothing new yet: a stat of each folder, not a listing of everything on the Desktop twice a second.
+            let stamps = Self.stamps(state.folders)
+            if state.last == nil, stamps == state.seen, self.clock() - state.listedAt < Self.relistSeconds {
+                self.watch(id, state)
+                return
+            }
+            state.seen = stamps
+            state.listedAt = self.clock()
+            let (found, ambiguous) = CapturePick.newFile(
+                before: state.before, now: self.list(state.folders), flagged: { self.folders.isScreenCapture($0) })
             if ambiguous {
                 Log.write("Capture: more than one new file appeared, so none was sent")
                 self.status(.notFound)
                 return
             }
             guard let file = found else {
-                if last != nil {
+                if state.last != nil {
                     Log.write("Capture: the new file went away before it settled, so none was sent")
                     self.status(.notFound)
                 } else {
-                    self.watch(id, watched, before, last: nil, still: 0, settled: settled)
+                    self.watch(id, state)
                 }
                 return
             }
-            let count = CapturePick.unchanged(last, file) ? still + 1 : 0
-            if count >= settled {
+            let count = CapturePick.unchanged(state.last, file) ? state.still + 1 : 0
+            if count >= state.settled {
                 self.queue.append(file.path)
                 self.next()
             } else {
-                self.watch(id, watched, before, last: file, still: count, settled: settled)
+                state.last = file
+                state.still = count
+                self.watch(id, state)
             }
         }
+    }
+
+    /// Each folder's own modification time, nil for one that cannot be read.
+    private static func stamps(_ folders: [CaptureFolder]) -> [Date?] {
+        folders.map { (try? FileManager.default.attributesOfItem(atPath: $0.path))?[.modificationDate] as? Date }
     }
 
     /// Starts the next queued file when nothing is on its way.
@@ -305,20 +385,36 @@ public final class CaptureToPhone {
         schedule(Self.tick) { [weak self] in self?.pump(id) }
     }
 
-    private func unchangedSince(_ sent: Transfer) -> Bool {
-        guard let attributes = try? FileManager.default.attributesOfItem(atPath: sent.path),
-            attributes[.size] as? Int == sent.length,
-            attributes[.modificationDate] as? Date == sent.written,
-            let data = FileManager.default.contents(atPath: sent.path)
+    /// The file still has the length, write time and SHA-256 it was sent with. Reads the file, so it runs off the
+    /// main thread.
+    static func unchanged(path: String, length: Int, written: Date?, digest: [UInt8]) -> Bool {
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: path),
+            attributes[.size] as? Int == length,
+            attributes[.modificationDate] as? Date == written,
+            Self.digest(atPath: path) == digest
         else {
             Log.write("Capture: the file changed after it was sent, so it stays here")
             return false
         }
-        guard Array(SHA256.hash(data: data)) == sent.digest else {
-            Log.write("Capture: the file changed after it was sent, so it stays here")
-            return false
-        }
         return true
+    }
+
+    /// The file's SHA-256, read `hashChunkBytes` at a time rather than whole; nil when it cannot be read.
+    static func digest(atPath path: String) -> [UInt8]? {
+        guard let handle = FileHandle(forReadingAtPath: path) else { return nil }
+        defer { try? handle.close() }
+        var hasher = SHA256()
+        while true {
+            let data: Data?
+            do {
+                data = try handle.read(upToCount: hashChunkBytes)
+            } catch {
+                return nil
+            }
+            guard let data, !data.isEmpty else { break }
+            hasher.update(data: data)
+        }
+        return Array(hasher.finalize())
     }
 
     private func status(_ status: CaptureStatus) {

@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import XCTest
 
@@ -34,7 +35,9 @@ final class CaptureToPhoneTests: XCTestCase {
         let later: (TimeInterval, @escaping () -> Void) -> Void = { [unowned self] _, work in
             self.scheduled.append(work)
         }
-        let capture = CaptureToPhone(folders: Folder(directory), schedule: later, lastInput: { -.infinity })
+        let capture = CaptureToPhone(
+            folders: Folder(directory), schedule: later, lastInput: { -.infinity },
+            offMain: { work, done in done(work()) })
         capture.send = { [unowned self] frame in
             self.sent.append(frame)
             return true
@@ -160,5 +163,40 @@ final class CaptureToPhoneTests: XCTestCase {
         XCTAssertTrue(CapturePick.candidate("/Users/me/Desktop/Screenshot 2026-10-25 at 10.30.00.png", shared: true))
         XCTAssertTrue(CapturePick.candidate("/Users/me/Desktop/Screen Recording 2026-10-25.mov", shared: true))
         XCTAssertFalse(CapturePick.candidate("/Users/me/Desktop/holiday.png", shared: true))
+    }
+
+    /// A Mac in another language names its screenshots in it; Spotlight's mark is taken instead.
+    func testSpotlightsMarkOrAnEnglishNameMakesACapture() {
+        XCTAssertTrue(CapturePick.isScreenCapture(name: "Bildschirmfoto 2026-11-16 um 10.30.00.png", flag: true))
+        XCTAssertTrue(CapturePick.isScreenCapture(name: "Screenshot 2026-11-16 at 10.30.00.png", flag: false))
+        XCTAssertFalse(CapturePick.isScreenCapture(name: "Bildschirmfoto 2026-11-16 um 10.30.00.png", flag: false))
+    }
+
+    func testOnTheDesktopSpotlightIsAskedOnlyAboutANewFileWithoutACaptureName() {
+        let stamp = Date()
+        var asked: [String] = []
+        let files = [
+            FileStamp(path: "/d/Bildschirmfoto 1.png", length: 1, written: stamp, shared: true),
+            FileStamp(path: "/d/Screenshot 2.png", length: 1, written: stamp, shared: true),
+            FileStamp(path: "/d/notes.txt", length: 1, written: stamp, shared: true),
+            FileStamp(path: "/d/old.png", length: 1, written: stamp, shared: true),
+        ]
+
+        let (file, ambiguous) = CapturePick.newFile(before: ["/d/old.png"], now: files) { path in
+            asked.append(path)
+            return false
+        }
+
+        XCTAssertEqual(file?.path, "/d/Screenshot 2.png")
+        XCTAssertFalse(ambiguous)
+        XCTAssertEqual(asked, ["/d/Bildschirmfoto 1.png"])
+    }
+
+    func testTheHashReadInChunksIsTheHashOfTheWholeFile() throws {
+        let path = (directory as NSString).appendingPathComponent("big.mov")
+        let bytes = (0..<(3 * 1024 * 1024)).map { UInt8(truncatingIfNeeded: $0 &* 31) }
+        XCTAssertTrue(FileManager.default.createFile(atPath: path, contents: Data(bytes)))
+
+        XCTAssertEqual(CaptureToPhone.digest(atPath: path), Array(SHA256.hash(data: bytes)))
     }
 }
