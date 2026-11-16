@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.BlobKind
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * How [LinkService] and [me.akshitbansal.edgepad.ShareActivity], which outlive the activity's views, reach the two
@@ -16,7 +17,18 @@ object LinkHooks {
     /** The selected laptop if it is connected, or null. */
     @Volatile
     var shareTarget: (() -> ShareTarget?)? = null
+
+    /** Shares on their way to a laptop right now. While any is, the app leaving does not end the links. */
+    val sharing = AtomicInteger()
 }
+
+/** What the linger does when it runs out: end the links, or wait for a share still going. */
+enum class LingerAction {
+    CLOSE,
+    WAIT,
+}
+
+internal fun lingerAction(sharing: Int): LingerAction = if (sharing > 0) LingerAction.WAIT else LingerAction.CLOSE
 
 /**
  * The laptop a share would go to. [send] is null while the laptop will not take a clipboard (its Share clipboard or this

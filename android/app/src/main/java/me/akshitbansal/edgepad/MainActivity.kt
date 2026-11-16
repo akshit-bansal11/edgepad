@@ -51,6 +51,7 @@ import me.akshitbansal.edgepad.link.LaptopConnections
 import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopRow
 import me.akshitbansal.edgepad.link.LaptopState
+import me.akshitbansal.edgepad.link.LingerAction
 import me.akshitbansal.edgepad.link.LinkHooks
 import me.akshitbansal.edgepad.link.LinkNotice
 import me.akshitbansal.edgepad.link.LinkService
@@ -75,6 +76,7 @@ import me.akshitbansal.edgepad.link.encodeSaved
 import me.akshitbansal.edgepad.link.forgotten
 import me.akshitbansal.edgepad.link.laptopLinks
 import me.akshitbansal.edgepad.link.laptopRows
+import me.akshitbansal.edgepad.link.lingerAction
 import me.akshitbansal.edgepad.link.linkNotice
 import me.akshitbansal.edgepad.link.mergeFound
 import me.akshitbansal.edgepad.link.mergedRows
@@ -351,7 +353,16 @@ class MainActivity :
             }
         }
 
-    private val linger = Runnable { manager.closeAll(LaptopLink.Cause.ENDED) }
+    // A share still going over the link holds it until the transfer ends; the transfer is paced and has an end.
+    private val linger =
+        object : Runnable {
+            override fun run() {
+                when (lingerAction(LinkHooks.sharing.get())) {
+                    LingerAction.WAIT -> handler.postDelayed(this, SHARE_RECHECK_MS)
+                    LingerAction.CLOSE -> manager.closeAll(LaptopLink.Cause.ENDED)
+                }
+            }
+        }
 
     private val ticker =
         object : Runnable {
@@ -2602,6 +2613,9 @@ class MainActivity :
 
         /** How long a link outlives the app leaving the screen: a trip to the picker, a glance at the lock screen. */
         const val LINGER_MS = 30_000L
+
+        /** How often a linger that found a share still going looks again. */
+        const val SHARE_RECHECK_MS = 5_000L
         const val TICK_MS = 1_000L
 
         const val MILLIS_PER_SECOND = 1_000L

@@ -138,6 +138,8 @@ class ShareActivity : Activity() {
         read: () -> ByteArray?,
     ) {
         val send = target.send ?: return finish()
+        // Counted from before the thread starts, so a linger running out in between still sees it.
+        LinkHooks.sharing.incrementAndGet()
         thread(name = "edgepad-share") {
             val message =
                 try {
@@ -156,6 +158,8 @@ class ShareActivity : Activity() {
                     // whole process, every laptop link with it.
                     Log.w("Edgepad", "Could not read what was shared", e)
                     getString(R.string.share_image_failed)
+                } finally {
+                    LinkHooks.sharing.decrementAndGet()
                 }
             runOnUiThread {
                 Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
