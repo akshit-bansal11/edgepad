@@ -31,7 +31,8 @@ final class UpdatePolicyTests: XCTestCase {
         XCTAssertEqual(UpdateCheck.sumsUrl(version)?.absoluteString, base + "SHA256SUMS.txt")
         XCTAssertEqual(UpdateCheck.sigUrl(version)?.absoluteString, base + "SHA256SUMS.txt.sig")
         XCTAssertEqual(UpdateCheck.macName(version), "Edgepad-5.0.1-mac.zip")
-        XCTAssertEqual(UpdateCheck.assetUrl(version, UpdateCheck.macName(version))?.absoluteString, base + "Edgepad-5.0.1-mac.zip")
+        let asset = UpdateCheck.assetUrl(version, UpdateCheck.macName(version))
+        XCTAssertEqual(asset?.absoluteString, base + "Edgepad-5.0.1-mac.zip")
     }
 
     func testOnlyHttpsAddressesOnGitHubAreAllowed() throws {

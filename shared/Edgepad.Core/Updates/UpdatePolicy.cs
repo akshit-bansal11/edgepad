@@ -1,6 +1,6 @@
 namespace Edgepad.Updates;
 
-internal enum UpdateDecision
+public enum UpdateDecision
 {
     NotNewer,
     Skipped,

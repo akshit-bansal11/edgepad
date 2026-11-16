@@ -6,14 +6,14 @@ namespace Edgepad.Tests;
 public sealed class MediaIconTests
 {
     [Theory]
-    [InlineData(true, true, true, MediaIcon.Pick.Thumbnail)]
-    [InlineData(true, true, false, MediaIcon.Pick.Thumbnail)]
-    [InlineData(true, false, true, MediaIcon.Pick.AppIcon)]
-    [InlineData(false, true, true, MediaIcon.Pick.AppIcon)]
-    [InlineData(false, true, false, MediaIcon.Pick.None)]
-    [InlineData(false, false, false, MediaIcon.Pick.None)]
-    public void ChoosePrefersBrowserArtworkThenTheExe(bool browser, bool thumbnail, bool exe, MediaIcon.Pick expected) =>
-        Assert.Equal(expected, MediaIcon.Choose(browser, thumbnail, exe));
+    [InlineData(true, true, true, (int)MediaIcon.Pick.Thumbnail)]
+    [InlineData(true, true, false, (int)MediaIcon.Pick.Thumbnail)]
+    [InlineData(true, false, true, (int)MediaIcon.Pick.AppIcon)]
+    [InlineData(false, true, true, (int)MediaIcon.Pick.AppIcon)]
+    [InlineData(false, true, false, (int)MediaIcon.Pick.None)]
+    [InlineData(false, false, false, (int)MediaIcon.Pick.None)]
+    public void ChoosePrefersBrowserArtworkThenTheExe(bool browser, bool thumbnail, bool exe, int expected) =>
+        Assert.Equal((MediaIcon.Pick)expected, MediaIcon.Choose(browser, thumbnail, exe));
 
     [Fact]
     public void ArtworkIsLabelledArtworkAndAnAppByItsName()

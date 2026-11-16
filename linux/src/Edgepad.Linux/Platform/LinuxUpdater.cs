@@ -61,7 +61,11 @@ internal static class LinuxUpdater
         var archive = Path.Combine(cacheFolder, name);
         try
         {
-            Directory.CreateDirectory(cacheFolder, Private);
+            // The guard is for the platform analyzer, which the class-level attribute in Program.cs does not reach.
+            if (!OperatingSystem.IsWindows())
+            {
+                Directory.CreateDirectory(cacheFolder, Private);
+            }
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
@@ -139,7 +143,11 @@ internal static class LinuxUpdater
                 return false;
             }
 
-            File.SetUnixFileMode(staged, Executable);
+            if (!OperatingSystem.IsWindows())
+            {
+                File.SetUnixFileMode(staged, Executable);
+            }
+
             File.Move(staged, exePath, overwrite: true);
             Process.Start(new ProcessStartInfo(exePath) { UseShellExecute = false })?.Dispose();
             return true;
