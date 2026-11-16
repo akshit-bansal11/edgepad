@@ -31,6 +31,7 @@ import me.akshitbansal.edgepad.drawFitted
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.Output
 import me.akshitbansal.edgepad.link.OutputName
+import me.akshitbansal.edgepad.link.blob.MediaIconStore
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
@@ -259,6 +260,10 @@ class ControlSurface(
     private val keepOut = FloatArray(2)
     private val exclusions = List(dials.size) { Rect() }
     private val nowPlayingBox = RectF()
+
+    /** The surface's spoken description without the title, and the title last put after it (null: not yet). */
+    private var baseDescription = ""
+    private var describedTitle: String? = null
     private val progressHit = RectF()
     private val prevHit = RectF()
     private val playHit = RectF()
@@ -583,14 +588,21 @@ class ControlSurface(
                     }
                 }
             // The volume dial's output is read with the surface, since the dials are not views of their own.
-            contentDescription =
+            baseDescription =
                 if (output == null) {
                     context.getString(R.string.surface_description)
                 } else {
                     context.getString(R.string.surface_description_output, output.name)
                 }
+            describedTitle = null
         }
         val playing = state.nowPlaying
+        // TalkBack reads the title as the laptop first had it (TEXT 26), not the cleaned line drawn on screen.
+        val spoken = state.nowPlayingFull.ifEmpty { playing }
+        if (spoken != describedTitle) {
+            describedTitle = spoken
+            contentDescription = if (spoken.isEmpty()) baseDescription else "$baseDescription. $spoken"
+        }
         titlePaint.color = if (playing.isEmpty()) dim else ink
         val room =
             maxOf(
@@ -762,7 +774,16 @@ class ControlSurface(
             val corner = size * LOGO_ROUNDING
             canvas.drawRoundRect(cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2, corner, corner, stroke)
         } else {
-            logo.draw(canvas, state.app, cx, cy, size, ink)
+            logo.draw(
+                canvas,
+                state.app,
+                cx,
+                cy,
+                size,
+                ink,
+                state.mediaIcons.get(state.app),
+                state.mediaIcons.get(MediaIconStore.ARTWORK),
+            )
         }
         val textX = box.left + size + dp(Space.M)
         canvas.drawText(titleLine, textX, cy - dp(Space.XS), titlePaint)
