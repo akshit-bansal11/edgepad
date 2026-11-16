@@ -1,12 +1,14 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Edgepad.Bluetooth;
 using Edgepad.Macros;
 using Edgepad.Net;
 using Edgepad.Network;
 using Edgepad.Platform;
+using Edgepad.Transfer;
 using Edgepad.Trust;
 using Edgepad.Updates;
 
@@ -304,6 +306,7 @@ internal sealed class Shell : IDisposable
             () => updateSetting.Enabled,
             () => _ = Guard(ShowSecurityAsync),
             () => _ = Guard(ShowMacrosAsync),
+            () => _ = Guard(PickAndSendAsync),
             () => _ = Guard(ToggleNetworkAsync),
             () => _ = Guard(ToggleClipboardAsync),
             () => _ = Guard(ToggleNotifyAsync),
@@ -779,6 +782,52 @@ internal sealed class Shell : IDisposable
     }
 
     /// <summary>Nothing may throw out of a menu handler: an exception on the UI thread ends the whole app.</summary>
+    /// <summary>The tray's "Send a file…": the desktop's file picker, on a window of no size, then the file goes to the phone.</summary>
+    private async Task PickAndSendAsync()
+    {
+        // plain English until 4.5.0 localisation
+        var owner = new Window { Width = 1, Height = 1, ShowInTaskbar = false, SystemDecorations = SystemDecorations.None, Opacity = 0 };
+        try
+        {
+            owner.Show();
+            var picked = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = "Send a file to the phone", AllowMultiple = false });
+            if (picked.Count == 1 && picked[0].TryGetLocalPath() is { } path)
+            {
+                _ = SendFileAsync(path);
+            }
+        }
+        finally
+        {
+            owner.Close();
+        }
+    }
+
+    /// <summary>
+    /// Sends <paramref name="path"/> to the connected phone and tells the owner how it went. From the tray and from the send
+    /// socket; any thread. Never throws.
+    /// </summary>
+    public async Task SendFileAsync(string path)
+    {
+        // plain English until 4.5.0 localisation
+        var name = Path.GetFileName(path);
+        try
+        {
+            var code = await Server.SendFile(path);
+            Notifier.Send("Edgepad", code switch
+            {
+                null => "No phone is connected. Connect it, then send the file again.",
+                XferCode.Saved => $"Sent {name} to the phone.",
+                XferCode.Cancelled => $"Sending {name} was cancelled.",
+                _ => $"{name} was not sent ({code}).",
+            });
+        }
+        catch (Exception e)
+        {
+            Log.Write($"A file could not be sent: {e.Message}");
+            Notifier.Send("Edgepad", $"{name} could not be sent. The log has the reason.");
+        }
+    }
+
     private static async Task Guard(Func<Task> work)
     {
         try

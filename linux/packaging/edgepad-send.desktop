@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Send to phone with Edgepad
+Comment=Send files to the phone connected to Edgepad
+Exec=edgepad --send %F
+Icon=edgepad
+Terminal=false
+NoDisplay=true
+Categories=Utility;

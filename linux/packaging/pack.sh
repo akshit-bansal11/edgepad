@@ -18,7 +18,7 @@ mkdir "$dir"
 
 install -m 755 "$publish/Edgepad.Linux" "$dir/edgepad"
 install -m 755 "$here/install.sh" "$dir/install.sh"
-install -m 644 "$here/60-edgepad-uinput.rules" "$here/edgepad-modules.conf" "$here/edgepad.desktop" "$dir/"
+install -m 644 "$here/60-edgepad-uinput.rules" "$here/edgepad-modules.conf" "$here/edgepad.desktop" "$here/edgepad-send.desktop" "$dir/"
 install -m 644 "$root/assets/edgepad-light.svg" "$dir/edgepad.svg"
 
 # Licences travel with the binary: the packages it bundles (Avalonia, Tmds.DBus, Skia, HarfBuzz, ...), the .NET

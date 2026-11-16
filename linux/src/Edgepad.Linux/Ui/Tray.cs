@@ -20,6 +20,7 @@ internal sealed record TrayHooks(
     Func<bool> UpdatesOn,
     Action Security,
     Action Macros,
+    Action SendFile,
     Action ToggleNetwork,
     Action ToggleClipboard,
     Action ToggleNotify,
@@ -32,7 +33,7 @@ internal sealed record TrayHooks(
 
 /// <summary>
 /// The tray icon and its menu, in the order every laptop uses: status, Update available, a problem row, then Wi-Fi and
-/// USB connections, Share clipboard, Start at login, Check for updates daily, Macros…, Security…, Documentation, Open log and Quit Edgepad.
+/// USB connections, Share clipboard, Start at login, Check for updates daily, Send a file…, Macros…, Security…, Documentation, Open log and Quit Edgepad.
 /// Every handler runs on the UI thread and none may throw: an exception there ends the whole app, and with it the
 /// Bluetooth service.
 /// </summary>
@@ -60,6 +61,8 @@ internal sealed class Tray : IDisposable
     private readonly NativeMenuItem notifyRow = Toggle("Forward notifications to phone");
     private readonly NativeMenuItem autostartRow = Toggle("Start at login");
     private readonly NativeMenuItem updatesRow = Toggle("Check for updates daily");
+    // plain English until 4.5.0 localisation
+    private readonly NativeMenuItem sendRow = new("Send a file…");
     private readonly NativeMenuItem macrosRow = new("Macros…");
     private readonly NativeMenuItem securityRow = new("Security…");
     private readonly TrayIcon icon;
@@ -81,6 +84,7 @@ internal sealed class Tray : IDisposable
         notifyRow.Click += (_, _) => Safe(hooks.ToggleNotify, "Forward notifications to phone");
         autostartRow.Click += (_, _) => Safe(hooks.ToggleAutostart, "Start at login");
         updatesRow.Click += (_, _) => Safe(hooks.ToggleUpdates, "Check for updates daily");
+        sendRow.Click += (_, _) => Safe(hooks.SendFile, "Send a file");
         macrosRow.Click += (_, _) => Safe(hooks.Macros, "Macros");
         securityRow.Click += (_, _) => Safe(hooks.Security, "Security");
         var docs = new NativeMenuItem("Documentation");
@@ -104,6 +108,7 @@ internal sealed class Tray : IDisposable
         menu.Add(autostartRow);
         menu.Add(updatesRow);
         menu.Add(new NativeMenuItemSeparator());
+        menu.Add(sendRow);
         menu.Add(macrosRow);
         menu.Add(securityRow);
         menu.Add(new NativeMenuItemSeparator());

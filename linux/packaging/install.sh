@@ -4,7 +4,7 @@
 #   sudo ./install.sh [PREFIX]      install under PREFIX (default /usr/local)
 #   sudo ./install.sh --uninstall [PREFIX]
 #
-# Under PREFIX: bin/edgepad, share/applications/edgepad.desktop, share/icons/hicolor/scalable/apps/edgepad.svg,
+# Under PREFIX: bin/edgepad, share/applications/edgepad.desktop and edgepad-send.desktop, share/icons/hicolor/scalable/apps/edgepad.svg,
 # and the licence notices from licenses/ in share/doc/edgepad.
 # Always under /etc: udev/rules.d/60-edgepad-uinput.rules and modules-load.d/edgepad.conf, because udev and
 # systemd read only those folders.
@@ -25,6 +25,7 @@ fi
 
 bin="$prefix/bin/edgepad"
 desktop="$prefix/share/applications/edgepad.desktop"
+senddesktop="$prefix/share/applications/edgepad-send.desktop"
 icon="$prefix/share/icons/hicolor/scalable/apps/edgepad.svg"
 doc="$prefix/share/doc/edgepad"
 rule=/etc/udev/rules.d/60-edgepad-uinput.rules
@@ -37,16 +38,17 @@ reload_udev() {
 }
 
 if [ "$uninstall" -eq 1 ]; then
-    rm -f "$bin" "$desktop" "$icon" "$rule" "$modules"
+    rm -f "$bin" "$desktop" "$senddesktop" "$icon" "$rule" "$modules"
     rm -rf "$doc"
     reload_udev
-    echo "Removed: $bin $desktop $icon $doc $rule $modules"
+    echo "Removed: $bin $desktop $senddesktop $icon $doc $rule $modules"
     echo "Left alone: your settings in ~/.config/edgepad, and the uinput module until the next reboot."
     exit 0
 fi
 
 install -D -m 755 "$here/edgepad" "$bin"
 install -D -m 644 "$here/edgepad.desktop" "$desktop"
+install -D -m 644 "$here/edgepad-send.desktop" "$senddesktop"
 install -D -m 644 "$here/edgepad.svg" "$icon"
 install -d -m 755 "$doc"
 install -m 644 "$here"/licenses/* "$doc/"
@@ -55,7 +57,7 @@ install -D -m 644 "$here/edgepad-modules.conf" "$modules"
 modprobe uinput || echo "install.sh: modprobe uinput failed (no uinput module in this kernel?); Edgepad cannot type until it loads" >&2
 reload_udev
 
-echo "Installed: $bin $desktop $icon $doc"
+echo "Installed: $bin $desktop $senddesktop $icon $doc"
 echo "Installed: $rule $modules"
 echo "Loaded the uinput module and reloaded udev, unless a notice above says otherwise."
 echo

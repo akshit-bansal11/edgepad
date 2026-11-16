@@ -37,4 +37,8 @@ public sealed class LinuxTransfersTests
     [InlineData(2, 2, false)]
     public void SocketsWaitingToIdentifyThemselvesShareTheUnauthenticatedCaps(int total, int fromAddress, bool allowed) =>
         Assert.Equal(allowed, SessionHost.CanAwait(total, fromAddress));
+
+    [Fact]
+    public void OnlyAbsolutePathsAreTakenFromTheSendSocket() =>
+        Assert.Equal(new[] { "/tmp/a b.txt", "/tmp/c.txt" }, SendSocket.ParsePaths("/tmp/a b.txt\n\nrelative.txt\n /tmp/c.txt \n"));
 }

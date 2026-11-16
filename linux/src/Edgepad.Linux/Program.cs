@@ -23,8 +23,20 @@ internal static class Program
     private static string Version =>
         typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "0.0.0";
 
-    private static int Main()
+    private static int Main(string[] args)
     {
+        // "edgepad --send FILE...", from the Send to phone desktop entry: hand the files to the running copy and leave.
+        if (args is ["--send", .. { Length: > 0 } files])
+        {
+            if (SendSocket.Send(files))
+            {
+                return 0;
+            }
+
+            Console.Error.WriteLine("Edgepad is not running. Start it, then send the file again.");
+            return 1;
+        }
+
         AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Write($"Unhandled: {e.ExceptionObject}");
 
         // Before any UI or thread starts, so every thread shows the shared strings in the desktop's language.
@@ -66,6 +78,9 @@ internal static class Program
         {
             shell.Attach(server);
             server.Start();
+
+            // Files handed over by "edgepad --send"; the socket is private to this user (see SendSocket).
+            using var sendSocket = SendSocket.Listen(file => _ = shell.SendFileAsync(file));
 
             // Disposed before the server, whose HoldOff and Resume it calls.
             using var away = new SessionWatch(server.HoldOff, server.Resume);
