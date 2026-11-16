@@ -132,6 +132,7 @@ import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.PairCodeScreen
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.PinScreen
+import me.akshitbansal.edgepad.screens.PresenterScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
 import me.akshitbansal.edgepad.screens.ShapeDrawScreen
@@ -217,6 +218,7 @@ class MainActivity :
         MACRO_SETTINGS,
         CAPTURE,
         ANNOTATE,
+        PRESENTER,
         KEYBOARD,
         GAMEPAD,
         MACROS,
@@ -279,6 +281,9 @@ class MainActivity :
 
     /** True from ANNOTATE_BEGIN until the one ANNOTATE_END that answers it, however the screen is left. */
     private var annotating = false
+
+    /** The Presenter screen while it is the screen: the volume keys step its slides, and only while it is. */
+    private var presenter: PresenterScreen? = null
     private var reconnecting: ReconnectingScreen? = null
 
     /** The macro grid while it is the screen, so a new list or a finished icon can be handed to it. */
@@ -540,6 +545,8 @@ class MainActivity :
         manager.fastPing = screen in showsRtt
         // Back from a detour with the pad still on screen: the laptop has no session, so begin one.
         if (screen == Screen.ANNOTATE && !annotating) goTo(Screen.ANNOTATE)
+        // The Presenter's laser ended with it, so it comes back with the switch off.
+        if (screen == Screen.PRESENTER) goTo(Screen.PRESENTER)
         // The same for the macro grid: onStop told the laptop to stop looking.
         if (screen == Screen.MACROS) watchMacros()
         // And the app list: onStop told the laptop to stop sending, so it is asked afresh and the old rows go.
@@ -702,6 +709,17 @@ class MainActivity :
         manager.send(ActionId.ANNOTATE_END.frame())
     }
 
+    /** The Presenter's laser switch: the laser needs the laptop's overlay, so it is begun on the way on. */
+    private fun presenterLaser(on: Boolean) {
+        if (!on) return endAnnotate()
+        if (!annotating && connected) {
+            annotating = true
+            manager.send(ActionId.ANNOTATE_BEGIN.frame())
+        }
+        // The screen sent this before the overlay existed; sent again now that it does.
+        manager.send(ActionId.TOOL_LASER.frame())
+    }
+
     /** Asks the laptop to say which macro apps are open, if it can tell. One that never said so is never asked. */
     private fun watchMacros() {
         if (watchingMacros || Feature.RUNNING !in state.features || !connected) return
@@ -759,7 +777,21 @@ class MainActivity :
         event: KeyEvent?,
     ): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK && navigateBack()) return true
+        // The volume keys turn slides on the Presenter screen alone; everywhere else they keep the system's job.
+        val volume = keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+        if (screen == Screen.PRESENTER && volume) {
+            if (event?.repeatCount == 0) presenter?.step(if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) 1 else -1)
+            return true
+        }
         return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(
+        keyCode: Int,
+        event: KeyEvent?,
+    ): Boolean {
+        val volume = keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+        return (screen == Screen.PRESENTER && volume) || super.onKeyUp(keyCode, event)
     }
 
     override fun onRequestPermissionsResult(
@@ -831,6 +863,8 @@ class MainActivity :
         if (next == Screen.GAMEPAD && screen != Screen.GAMEPAD) manager.send(ActionId.PAD_ATTACH.frame())
         // Annotating is a session on the laptop: begun on the way in, ended on the way out by any route.
         if (screen == Screen.ANNOTATE && next != Screen.ANNOTATE) endAnnotate()
+        // The Presenter's laser is the same session, begun by its switch and ended here by any route out.
+        if (screen == Screen.PRESENTER && next != Screen.PRESENTER) endAnnotate()
         if (screen == Screen.MACROS && next != Screen.MACROS) unwatchMacros()
         if (next == Screen.MACROS) watchMacros()
         // The app list is a session on the laptop too: asked for on the way in, cancelled on the way out by any route.
@@ -853,6 +887,7 @@ class MainActivity :
         surface = null
         gamepad = null
         annotate = null
+        presenter = null
         reconnecting = null
         macros = null
         appList = null
@@ -1011,6 +1046,18 @@ class MainActivity :
                 Screen.ANNOTATE -> {
                     AnnotateScreen(ui, settings, state, send) { navigateBack() }
                         .also { annotate = it }
+                        .view
+                }
+
+                Screen.PRESENTER -> {
+                    PresenterScreen(
+                        ui,
+                        sendKey,
+                        send,
+                        onLaser = ::presenterLaser,
+                        screenSize = { state.screenSize },
+                    ) { navigateBack() }
+                        .also { presenter = it }
                         .view
                 }
 
@@ -1345,7 +1392,7 @@ class MainActivity :
             }
 
             // These are opened from the Controls popup over the surface, so back returns to it.
-            Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE -> {
+            Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE, Screen.PRESENTER -> {
                 goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
                 // AND-A-32: back lands where the user came from, so the popup opens again over the surface.
                 if (connected) surface?.post { openControls() }
@@ -2504,7 +2551,10 @@ class MainActivity :
         ) {
             controls?.refreshEnd()
         }
-        if (frame is Frame.Text && frame.kind == TextKind.SCREEN_SIZE.id) annotate?.refresh()
+        if (frame is Frame.Text && frame.kind == TextKind.SCREEN_SIZE.id) {
+            annotate?.refresh()
+            presenter?.refresh()
+        }
         if (frame is Frame.Text && frame.kind == TextKind.SIGN_STATUS.id) signed(state.signStatus)
         // The pad decides which of its two modes it is in from this answer, which usually lands a few
         // milliseconds after PAD_ATTACH went out — by then the screen is already up, so it is handed
@@ -2570,7 +2620,7 @@ class MainActivity :
                 if (screen == Screen.SURFACE || screen == Screen.RECONNECTING || screen == Screen.SHARING ||
                     screen == Screen.CAPTURE || screen == Screen.ANNOTATE || screen == Screen.KEYBOARD ||
                     screen == Screen.GAMEPAD || screen == Screen.MACROS || screen == Screen.APPS ||
-                    screen in settingsOfControls
+                    screen == Screen.PRESENTER || screen in settingsOfControls
                 ) {
                     goTo(Screen.PAIRING)
                 }
@@ -2782,6 +2832,7 @@ class MainActivity :
                 Screen.GAMEPAD,
                 Screen.CAPTURE,
                 Screen.ANNOTATE,
+                Screen.PRESENTER,
                 Screen.MEDIA_LAYOUT,
                 Screen.GAMEPAD_LAYOUT,
                 Screen.SHAPE_DRAW,
@@ -2826,6 +2877,7 @@ class MainActivity :
                 Screen.MACROS,
                 Screen.CAPTURE,
                 Screen.ANNOTATE,
+                Screen.PRESENTER,
             )
 
         const val REQUEST_BLUETOOTH = 1
