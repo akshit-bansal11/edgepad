@@ -621,8 +621,9 @@ public final class Session {
                 stateChanged: { [weak self] token in
                     self?.send(.text(kind: TextKind.endAction.rawValue, value: token))
                 })
-            media.changed = { [weak self] in self?.sendMedia() }
         }
+        // Every media source reports its changes, with or without the end action.
+        dispatcher.media?.changed = { [weak self] in self?.sendMedia() }
         send(.text(kind: TextKind.features.rawValue, value: features.joined(separator: "/")))
         send(.text(kind: TextKind.macroCap.rawValue, value: String(MacroStore.maxMacros)))
         // Best effort, and this Mac does not record on its own: it is idle until it does.
