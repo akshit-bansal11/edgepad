@@ -11,8 +11,28 @@ import Foundation
 /// next yes overwrite the phones it still names. So a failed read refuses every phone, and only a genuinely absent
 /// file starts the list empty.
 public final class TrustStore {
+    /// Why `admission` let a phone in or not, so the owner reads the real reason.
+    public enum Admission: Equatable {
+        case admitted
+        /// The owner said no, just declined it, or forgot the phones while being asked.
+        case declined
+        /// The owner is being asked about another phone.
+        case otherQuestionOpen
+        /// The trust file cannot be read, or a Forget of every phone failed.
+        case unreadable
+        /// The owner forgot this phone, but it could not be taken out of the file.
+        case notForgotten
+    }
+
     private let path: String
     private let gate = NSLock()
+    /// The last-connected times, forgotten with the phones they belong to on every forget path. The C#
+    /// `TrustStore.Connections`.
+    private let connections: LastConnected?
+
+    /// Phones whose `forgetOne` failed, lowercased: still named on disk, so refused for this run until a later forget
+    /// succeeds or the phone pairs again. The C# `TrustStore.denied`.
+    private var denied: Set<String> = []
 
     /// The phones admitted when their addresses could not be written down. Kept for this run so a disk that will
     /// not take an address costs the owner one question per run, not one at every reconnect.
@@ -41,16 +61,20 @@ public final class TrustStore {
     /// Uptime, not the wall clock, so a clock stepped backwards cannot stretch the quiet period.
     private let now: () -> TimeInterval
 
-    public init(path: String, now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }) {
+    public init(
+        path: String, connections: LastConnected? = nil,
+        now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }
+    ) {
         self.path = path
+        self.connections = connections
         self.now = now
     }
 
-    public static func forCurrentUser() -> TrustStore {
+    public static func forCurrentUser(connections: LastConnected? = nil) -> TrustStore {
         let support =
             FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?.path
             ?? NSHomeDirectory() + "/Library/Application Support"
-        return TrustStore(path: support + "/Edgepad/trusted-phone.txt")
+        return TrustStore(path: support + "/Edgepad/trusted-phone.txt", connections: connections)
     }
 
     /// Where the trusted phones are kept, for a message that has to send the owner there.
@@ -79,16 +103,21 @@ public final class TrustStore {
     /// otherwise wait on its own answer. An `ask` that throws (the session ended under the question) rethrows here
     /// with nothing recorded: the owner never answered, so the phone is not taken as declined.
     public func admit(_ address: String, ask: () throws -> Bool) rethrows -> Bool {
+        try admission(address, ask: ask) == .admitted
+    }
+
+    /// `admit`, with the reason for a refusal.
+    public func admission(_ address: String, ask: () throws -> Bool) rethrows -> Admission {
         var askedIn = 0
-        let early: Bool? = locked {
+        let early: Admission? = locked {
             if let known = decided(address) {
                 return known
             }
             if isDeclined(address) {
-                return false
+                return .declined
             }
             if asking {
-                return false
+                return .otherQuestionOpen
             }
             asking = true
             askedIn = generation
@@ -113,13 +142,13 @@ public final class TrustStore {
             }
         }
         if !yes {
-            return false
+            return .declined
         }
 
         return locked {
             if generation != askedIn {
                 Log.write("Did not trust \(address): the trusted phones were forgotten while the owner was asked")
-                return false
+                return .declined
             }
             // Settled again after the wait: a file edited by hand in that minute is still the one that counts, and
             // a phone it already names is not written twice.
@@ -134,7 +163,7 @@ public final class TrustStore {
                 unsaved.append(address)
                 Log.write("The trusted phone could not be saved to \(path): \(error.localizedDescription)")
             }
-            return true
+            return .admitted
         }
     }
 
@@ -156,6 +185,8 @@ public final class TrustStore {
                 Log.write("Did not trust \(address): the trusted phones were forgotten while it was pairing")
                 return false
             }
+            // A new pairing is the owner's new yes, typed on this Mac: a forget of it that failed earlier is overruled.
+            denied.remove(address.lowercased())
             let read = tryRead()
             guard read.readable, !TrustStore.names(withUnsaved(read.addresses), address) else { return true }
             do {
@@ -185,8 +216,10 @@ public final class TrustStore {
     public func forget() -> Bool {
         locked {
             generation += 1
+            connections?.forgetAll()
             unsaved = []
             declined = nil
+            denied = []
             do {
                 try FileManager.default.removeItem(atPath: path)
             } catch let deleteError {
@@ -219,31 +252,44 @@ public final class TrustStore {
 
     /// Forgets one phone and keeps the others, for a Forget chosen from the list. True when `address` is no longer
     /// trusted: removed, or never there. False when the file could not be read or rewritten; the phone is then still
-    /// trusted. Like `forget()` it moves the generation on, so a question open across it saves nothing.
+    /// trusted on disk, and refused for this run until a later forget of it succeeds. Like `forget()` it moves the
+    /// generation on, so a question open across it saves nothing.
     public func forgetOne(_ address: String) -> Bool {
         locked {
             generation += 1
+            connections?.forget(address)
             unsaved.removeAll { $0.caseInsensitiveCompare(address) == .orderedSame }
             if let declined, declined.address.caseInsensitiveCompare(address) == .orderedSame {
                 self.declined = nil
             }
-            let read = tryRead()
-            guard read.readable else { return false }
-            let rest = read.addresses.filter { $0.caseInsensitiveCompare(address) != .orderedSame }
-            if rest.count == read.addresses.count {
-                return true
+            let gone = removeOne(address)
+            if gone {
+                denied.remove(address.lowercased())
+            } else {
+                denied.insert(address.lowercased())
             }
-            do {
-                if rest.isEmpty {
-                    try FileManager.default.removeItem(atPath: path)
-                } else {
-                    try save(rest)
-                }
-                return true
-            } catch {
-                Log.write("A trusted phone could not be forgotten at \(path): \(error.localizedDescription)")
-                return false
+            return gone
+        }
+    }
+
+    /// Takes `address` out of the file. Called under the lock.
+    private func removeOne(_ address: String) -> Bool {
+        let read = tryRead()
+        guard read.readable else { return false }
+        let rest = read.addresses.filter { $0.caseInsensitiveCompare(address) != .orderedSame }
+        if rest.count == read.addresses.count {
+            return true
+        }
+        do {
+            if rest.isEmpty {
+                try FileManager.default.removeItem(atPath: path)
+            } else {
+                try save(rest)
             }
+            return true
+        } catch {
+            Log.write("A trusted phone could not be forgotten at \(path): \(error.localizedDescription)")
+            return false
         }
     }
 
@@ -259,17 +305,21 @@ public final class TrustStore {
         return declined.address.caseInsensitiveCompare(address) == .orderedSame
     }
 
-    /// Whether `address` is admitted without asking: true for a trusted phone, false for every phone while the
-    /// trust file cannot be read, nil for a phone the owner has not said yes to. Called under the lock.
-    private func decided(_ address: String) -> Bool? {
+    /// Whether `address` is admitted without asking: admitted for a trusted phone, refused for a phone whose forget
+    /// failed and for every phone while the trust file cannot be read, nil for a phone the owner has not said yes to.
+    /// Called under the lock.
+    private func decided(_ address: String) -> Admission? {
+        if denied.contains(address.lowercased()) {
+            return .notForgotten
+        }
         let read = tryRead()
         if !read.readable {
             // Fail closed. The phone sees a refusal, the log says why, and Forget is the way out; the
             // alternative is a Mac that quietly re-pairs itself whenever its own trust file is unreadable,
             // which is the single thing this class exists to prevent.
-            return false
+            return .unreadable
         }
-        return TrustStore.names(withUnsaved(read.addresses), address) ? true : nil
+        return TrustStore.names(withUnsaved(read.addresses), address) ? .admitted : nil
     }
 
     /// The addresses in the file, then those admitted this run that could not be saved. Called under the lock.

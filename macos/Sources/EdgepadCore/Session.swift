@@ -99,7 +99,7 @@ public final class Session {
 
     /// The owner's question is a modal one that can take a minute, during which more bytes can arrive and
     /// `receive` can be entered again. They wait here, so they are read after HELLO_ACK and not before it.
-    private var isAsking = false
+    public private(set) var isAsking = false
     private var pending: [UInt8] = []
     /// A healthy phone sends almost nothing before HELLO_ACK, so this is generous. Without it an untrusted
     /// paired device could stream megabytes during the question and have them all handled in one run.
@@ -316,9 +316,9 @@ public final class Session {
         // about, and one ended while it is open has its answer ignored, a yes included. Both throw rather than
         // answer no, so the owner is not recorded as having declined a phone they never answered about.
         isAsking = true
-        let admitted: Bool
+        let admission: TrustStore.Admission
         do {
-            admitted = try trust.admit(address) {
+            admission = try trust.admission(address) {
                 try ended.check()
                 let yes = askTrust(address, ended)
                 try ended.check()
@@ -332,11 +332,8 @@ public final class Session {
         }
         isAsking = false
         guard !isEnded else { return }
-        guard admitted else {
-            // A count, not the list: the log is plain text anyone with the user's files can read, and the trusted
-            // phones' identities are the one thing it must not hand out. The menu shows the list to the owner.
-            Log.write("Refused \(address): not trusted; this Mac trusts \(trust.trustedPhones.count) phone(s)")
-            onStatus("Refused a phone it does not trust")
+        guard admission == .admitted else {
+            refused(admission)
             end()
             return
         }
@@ -355,6 +352,26 @@ public final class Session {
             return
         }
         askForPin(attemptsLeft: pin.attemptsLeft(address))
+    }
+
+    /// Logs and says why trust turned the phone away. With another phone's question open the status line is left
+    /// alone: it is asking the owner something, and that line is the one that matters.
+    private func refused(_ admission: TrustStore.Admission) {
+        switch admission {
+        case .admitted, .declined:
+            // A count, not the list: the log is plain text anyone with the user's files can read, and the trusted
+            // phones' identities are the one thing it must not hand out. The menu shows the list to the owner.
+            Log.write("Refused \(address): not trusted; this Mac trusts \(trust.trustedPhones.count) phone(s)")
+            onStatus("Refused a phone it does not trust")
+        case .otherQuestionOpen:
+            Log.write("Refused \(address): the owner is being asked about another phone")
+        case .unreadable:
+            Log.write("Refused \(address): the trusted phones cannot be read")
+            onStatus("Refused a phone: the trusted phones cannot be read")
+        case .notForgotten:
+            Log.write("Refused \(address): it was forgotten, but could not be removed from the trusted phones")
+            onStatus("Refused a phone that was forgotten here")
+        }
     }
 
     /// The phone's answer to PIN_REQUEST. The check runs PBKDF2 on the main thread, hundreds of milliseconds at the

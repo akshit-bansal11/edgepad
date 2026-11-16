@@ -162,6 +162,60 @@ final class TrustStoreTests: XCTestCase {
         XCTAssertTrue(store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes))
     }
 
+    func testAFailedForgetOfOnePhoneRefusesItForTheRunUntilAForgetOfItWorks() throws {
+        let store = TrustStore(path: trustPath)
+        _ = store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes)
+        _ = store.admit("(11:22:33:44:55:66)", ask: yes)
+        // A file and a directory that cannot be written: the phone stays named on disk.
+        try FileManager.default.setAttributes([.posixPermissions: 0o400], ofItemAtPath: trustPath)
+        try FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: directory.path)
+        let forgotten = store.forgetOne("(AA:BB:CC:DD:EE:FF)")
+        // Restored before anything else can fail, or tearDown could not remove the directory.
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: trustPath)
+
+        XCTAssertFalse(forgotten)
+        XCTAssertEqual(store.admission("(aa:bb:cc:dd:ee:ff)", ask: unasked), .notForgotten)
+        XCTAssertTrue(store.admit("(11:22:33:44:55:66)", ask: unasked))
+
+        XCTAssertTrue(store.forgetOne("(AA:BB:CC:DD:EE:FF)"))
+        XCTAssertTrue(store.admit("(AA:BB:CC:DD:EE:FF)", ask: yes))
+    }
+
+    func testANewPairingOverrulesAFailedForget() throws {
+        let store = TrustStore(path: trustPath)
+        _ = store.admit("link:00", ask: yes)
+        _ = store.admit("(11:22:33:44:55:66)", ask: yes)
+        try FileManager.default.setAttributes([.posixPermissions: 0o400], ofItemAtPath: trustPath)
+        try FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: directory.path)
+        let forgotten = store.forgetOne("link:00")
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: trustPath)
+
+        XCTAssertFalse(forgotten)
+        XCTAssertTrue(store.grant("link:00", since: store.forgetGeneration))
+        XCTAssertTrue(store.admit("link:00", ask: unasked))
+    }
+
+    func testAdmissionSaysWhyAPhoneWasRefused() throws {
+        let store = TrustStore(path: trustPath)
+        XCTAssertEqual(store.admission("(AA:BB:CC:DD:EE:FF)", ask: no), .declined)
+        // Within the quiet period after the no.
+        XCTAssertEqual(store.admission("(AA:BB:CC:DD:EE:FF)", ask: unasked), .declined)
+
+        var second: TrustStore.Admission?
+        let first = store.admission("(11:22:33:44:55:66)") {
+            second = store.admission("(22:33:44:55:66:77)", ask: unasked)
+            return true
+        }
+        XCTAssertEqual(first, .admitted)
+        XCTAssertEqual(second, .otherQuestionOpen)
+
+        let folder = directory.appendingPathComponent("unreadable").path
+        try FileManager.default.createDirectory(atPath: folder, withIntermediateDirectories: true)
+        XCTAssertEqual(TrustStore(path: folder).admission("(AA:BB:CC:DD:EE:FF)", ask: unasked), .unreadable)
+    }
+
     func testAFileThatCannotBeDeletedIsEmptiedInstead() throws {
         // Only the directory is read-only, so the delete fails while the file itself can still be written.
         let store = TrustStore(path: trustPath)

@@ -47,6 +47,23 @@ final class LastConnectedTests: XCTestCase {
         XCTAssertNil(store.date(for: "BB"))
     }
 
+    /// Reset PIN and Forget go through the trust store's forget, so neither leaves a forgotten phone's date behind.
+    func testForgettingTrustedPhonesForgetsWhenTheyLastConnected() {
+        let store = LastConnected(path: path)
+        let trust = TrustStore(path: directory.appendingPathComponent("trusted-phone.txt").path, connections: store)
+        _ = trust.admit("AA", ask: { true })
+        _ = trust.admit("BB", ask: { true })
+        store.record("AA")
+        store.record("BB")
+
+        XCTAssertTrue(trust.forgetOne("aa"))
+        XCTAssertNil(store.date(for: "AA"))
+        XCTAssertNotNil(store.date(for: "BB"))
+
+        XCTAssertTrue(trust.forget())
+        XCTAssertNil(store.date(for: "BB"))
+    }
+
     func testAWriteQueuedBeforeAForgetWritesNothing() {
         let store = LastConnected(path: path)
         let admitted = store.generation

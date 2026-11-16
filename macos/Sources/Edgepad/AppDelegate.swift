@@ -32,7 +32,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let dailyUpdatesKey = "checkUpdatesDaily"
 
     private let runningVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
-    private let trust = TrustStore.forCurrentUser()
+    /// Given the last-connected times, so every way of forgetting phones (Reset PIN included) forgets those too.
+    private lazy var trust = TrustStore.forCurrentUser(connections: lastConnected)
     /// One store for the server and the Security panel, so a level or PIN change is the one the server reads.
     private let pin = PinStore.forCurrentUser()
     /// The Wi-Fi pairings, forgotten with the trusted phones.
@@ -535,7 +536,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         guard answer == .alertSecondButtonReturn else { return false }
         let forgotten = trust.forget()
-        lastConnected.forgetAll()
         // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
         let verifiedForgotten = pin.forgetVerified()
         // Started before the hold ends (the defer above), so there is no instant in which a connection would
@@ -595,7 +595,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         guard answer == .alertSecondButtonReturn else { return false }
         var failed = !trust.forgetOne(address)
-        lastConnected.forget(address)
         failed = !pin.forgetVerified(address) || failed
         if address.lowercased().hasPrefix("link:") {
             failed = !paired.forgetOne(String(address.dropFirst(5))) || failed

@@ -313,6 +313,8 @@ final class SessionHost {
         }
         guard let index = candidates.firstIndex(where: { $0.session === ended }) else { return }
         candidates.remove(at: index)
+        // Another phone's trust question is still open: its Asking line stays.
+        guard !candidates.contains(where: { $0.session.isAsking }) else { return }
         onStatus(
             current.map { StatusText.connected(shown($0.address), over: links[$0.address] ?? "Bluetooth") }
                 ?? Self.waiting)

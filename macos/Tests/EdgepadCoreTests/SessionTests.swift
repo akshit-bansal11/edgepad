@@ -175,6 +175,22 @@ final class SessionTests: XCTestCase {
         XCTAssertEqual(statuses, ["Refused a phone it does not trust"])
     }
 
+    func testAPhoneRefusedForAnotherPhonesQuestionLeavesTheStatusLineAlone() {
+        var second: Session?
+        let first = makeSession(ask: { [weak self] _ in
+            guard let self else { return false }
+            // Not trusted yet, so it would be asked; the first question is still open.
+            second = self.makeSession(address: "(11:22:33:44:55:66)", ask: { _ in true })
+            second?.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+            return false
+        })
+
+        first.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+
+        XCTAssertEqual(second?.isEnded, true)
+        XCTAssertEqual(statuses, ["Refused a phone it does not trust"])
+    }
+
     func testAnAcceptedPhoneIsGivenHelloAckThenTheStateReport() {
         let session = connectedSession()
 
