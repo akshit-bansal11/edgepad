@@ -36,7 +36,9 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     private const ushort VkPrevious = 0xB1;
     private const ushort VkPlayPause = 0xB3;
 
-    private readonly LinuxInput input = new();
+    // The virtual keyboard and pointer, made by Open once the phone is admitted, so a phone that is refused (an untrusted
+    // one reconnecting, a wrong PIN) never makes a keyboard appear and vanish. Kept after Dispose, which empties it.
+    private LinuxInput? input;
     private readonly LinuxPad pad = new();
     private readonly DesktopEnvironment desktop = Desktop.Detect(Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP"));
     private readonly Audio speakers = new(microphone: false);
@@ -63,20 +65,35 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
 
     public LinuxPlatform() => worker = new Worker(Apply);
 
-    public void Move(int dx, int dy) => input.Move(dx, dy);
+    // No input frame is read before the handshake admits the phone, which is when Open runs.
+    private LinuxInput Device => Volatile.Read(ref input) ?? throw new InvalidOperationException("Input arrived before the phone was admitted");
+
+    /// <summary>Makes the virtual input device, once, when the handshake admits the phone. Nothing after Dispose.</summary>
+    public void Open()
+    {
+        lock (reporting)
+        {
+            if (!ended && input is null)
+            {
+                Volatile.Write(ref input, new LinuxInput());
+            }
+        }
+    }
+
+    public void Move(int dx, int dy) => Device.Move(dx, dy);
 
     /// <summary>In order like a key: a click overtaking queued text would move the focus the text is meant for.</summary>
-    public void Button(byte id, bool down) => InOrder(() => input.Button(id, down));
+    public void Button(byte id, bool down) => InOrder(() => Device.Button(id, down));
 
-    public void Scroll(int dx, int dy) => input.Scroll(dx, dy);
+    public void Scroll(int dx, int dy) => Device.Scroll(dx, dy);
 
-    public void Zoom(int delta) => input.Zoom(delta);
+    public void Zoom(int delta) => Device.Zoom(delta);
 
     /// <summary>On the worker: typing can wait on localectl, a clipboard tool and the paste's restore.</summary>
-    public void Type(string text) => Queue(() => input.Type(text));
+    public void Type(string text) => Queue(() => Device.Type(text));
 
     /// <summary>Direct, unless text or a key is still queued, which a KEY frame (an Enter after the text) must not overtake.</summary>
-    public void Key(ushort code, bool down) => InOrder(() => input.Key(code, down));
+    public void Key(ushort code, bool down) => InOrder(() => Device.Key(code, down));
 
     public bool Run(ActionId id)
     {
@@ -108,7 +125,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
             case ActionId.DesktopLeft:
             case ActionId.DesktopRight:
                 // A desktop with no known chord for it drops the action: the dispatcher counts a false.
-                return Desktop.Chord(desktop, id) is { } shortcut && Keys(() => input.Chord(shortcut));
+                return Desktop.Chord(desktop, id) is { } shortcut && Keys(() => Device.Chord(shortcut));
             case ActionId.CaptureRegion:
             case ActionId.CaptureScreen:
             case ActionId.CaptureRecord:
@@ -128,9 +145,9 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
                 switching = true;
                 return Keys(() =>
                 {
-                    input.Key(VkAlt, true);
-                    input.Key(VkTab, true);
-                    input.Key(VkTab, false);
+                    Device.Key(VkAlt, true);
+                    Device.Key(VkTab, true);
+                    Device.Key(VkTab, false);
                 });
             case ActionId.AppSwitchNext:
                 return switching && Keys(() => Tap(VkTab));
@@ -138,7 +155,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
                 return switching && Keys(() => Tap(VkShift, VkTab));
             case ActionId.AppSwitchEnd:
                 switching = false;
-                return Keys(() => input.Key(VkAlt, false));
+                return Keys(() => Device.Key(VkAlt, false));
             case ActionId.ZoomReset:
                 return Keys(() => Tap(VkControl, Vk0));
             case ActionId.BrightnessUp:
@@ -261,8 +278,14 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
 
     public void Dispose()
     {
-        // Input first: letting go of keys and unplugging the pad is what matters if a join below runs long.
-        input.Dispose();
+        // Input first: letting go of keys and unplugging the pad is what matters if a join below runs long. Ended
+        // first of all, so an Open racing this makes nothing.
+        lock (reporting)
+        {
+            ended = true;
+        }
+
+        input?.Dispose();
         pad.Dispose();
         annotator.Dispose();
         lock (reporting)
@@ -336,7 +359,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
                 Thread.Sleep(CaptureOverlay.DismissWaitMs);
             }
 
-            input.Chord(shortcut);
+            Device.Chord(shortcut);
         });
         return true;
     }
@@ -391,7 +414,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
             keys[i] = KeyMap.ToEvdev(windowsKeys[i]);
         }
 
-        input.Chord(keys);
+        Device.Chord(keys);
     }
 
     private static bool Do(Action action)

@@ -148,17 +148,38 @@ internal sealed class Mpris : IDisposable
         return choice is null ? MediaState.Nothing : MprisMap.ToState(choice);
     }
 
-    /// <summary>Asks the followed player to PlayPause, Next or Previous. False when there is no player to ask.</summary>
+    /// <summary>
+    /// Asks the followed player to PlayPause, Next or Previous. False, so the media key goes instead, only when there
+    /// is no player to ask: none found, or the one asked is gone or has no such method. A slow player that missed the
+    /// deadline may still act, and a key on top of it would undo that.
+    /// </summary>
     public bool Command(string method)
     {
         var name = (Followed() ?? Choose())?.BusName;
-        return name is not null && bus.Call(c =>
+        if (name is null)
         {
-            using var writer = c.GetMessageWriter();
-            writer.WriteMethodCallHeader(destination: name, path: PlayerPath, @interface: PlayerInterface, member: method);
-            return writer.CreateMessage();
-        });
+            return false;
+        }
+
+        var answered = bus.Call(
+            c =>
+            {
+                using var writer = c.GetMessageWriter();
+                writer.WriteMethodCallHeader(destination: name, path: PlayerPath, @interface: PlayerInterface, member: method);
+                return writer.CreateMessage();
+            },
+            out var refusal);
+        return Handled(answered, refusal);
     }
+
+    /// <summary>
+    /// Whether a command's outcome leaves the media key out: anything but an error saying the player or the method
+    /// is not there. <paramref name="refusal"/> is null for an unanswered call.
+    /// </summary>
+    internal static bool Handled(bool answered, string? refusal) =>
+        answered || refusal is not ("org.freedesktop.DBus.Error.ServiceUnknown" or "org.freedesktop.DBus.Error.NameHasNoOwner"
+            or "org.freedesktop.DBus.Error.UnknownMethod" or "org.freedesktop.DBus.Error.UnknownObject"
+            or "org.freedesktop.DBus.Error.UnknownInterface");
 
     /// <summary>Jumps to <paramref name="percent"/> of the track. False when nothing is playing or the player cannot seek.</summary>
     public bool Seek(int percent)

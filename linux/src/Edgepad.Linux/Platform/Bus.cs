@@ -22,16 +22,25 @@ internal sealed class Bus(Func<string?> address, string name) : IDisposable
 
     /// <summary>Makes the call and ignores any return value. False when it failed.</summary>
     public bool Call(Func<DBusConnection, MessageBuffer> build) =>
-        Attempt(c => c.CallMethodAsync(build(c)));
+        Attempt(c => c.CallMethodAsync(build(c)), out _);
+
+    /// <summary>
+    /// The same, and when it failed because the service answered with an error, that error's name in
+    /// <paramref name="refusal"/>; null for any other failure, an unanswered call included.
+    /// </summary>
+    public bool Call(Func<DBusConnection, MessageBuffer> build, out string? refusal) =>
+        Attempt(c => c.CallMethodAsync(build(c)), out refusal);
 
     /// <summary>Makes the call and reads its reply with <paramref name="reader"/>. False when it failed.</summary>
     public bool Call<T>(Func<DBusConnection, MessageBuffer> build, MessageValueReader<T> reader, out T? value)
     {
         T? result = default;
-        var ok = Attempt(async c =>
-        {
-            result = await c.CallMethodAsync(build(c), reader);
-        });
+        var ok = Attempt(
+            async c =>
+            {
+                result = await c.CallMethodAsync(build(c), reader);
+            },
+            out _);
         value = ok ? result : default;
         return ok;
     }
@@ -44,8 +53,9 @@ internal sealed class Bus(Func<string?> address, string name) : IDisposable
         }
     }
 
-    private bool Attempt(Func<DBusConnection, Task> call)
+    private bool Attempt(Func<DBusConnection, Task> call, out string? refusal)
     {
+        refusal = null;
         lock (gate)
         {
             try
@@ -67,10 +77,11 @@ internal sealed class Bus(Func<string?> address, string name) : IDisposable
 
                 return true;
             }
-            catch (Exception e) when (Unwrap(e) is DBusErrorReplyException)
+            catch (Exception e) when (Unwrap(e) is DBusErrorReplyException reply)
             {
                 // The service answered with an error (a player that just quit, a method it does not have): the
-                // connection is fine, and the caller sees only that this call did not work.
+                // connection is fine, and the caller sees only that this call did not work, and why.
+                refusal = reply.ErrorName;
                 return false;
             }
             catch (Exception e)

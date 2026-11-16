@@ -9,6 +9,15 @@ public sealed class MprisTests
     private const string Firefox = "org.mpris.MediaPlayer2.firefox.instance_1_234";
     private const string Vlc = "org.mpris.MediaPlayer2.vlc";
 
+    [Theory]
+    [InlineData(true, null, true)]
+    [InlineData(false, null, true)]
+    [InlineData(false, "org.mpris.MediaPlayer2.Player.Error.NotSupported", true)]
+    [InlineData(false, "org.freedesktop.DBus.Error.ServiceUnknown", false)]
+    [InlineData(false, "org.freedesktop.DBus.Error.UnknownMethod", false)]
+    public void OnlyAMissingPlayerOrMethodFallsBackToTheKey(bool answered, string? refusal, bool handled) =>
+        Assert.Equal(handled, Mpris.Handled(answered, refusal));
+
     [Fact]
     public void TitleArtistPositionAndLengthBecomeTheMediaState()
     {
