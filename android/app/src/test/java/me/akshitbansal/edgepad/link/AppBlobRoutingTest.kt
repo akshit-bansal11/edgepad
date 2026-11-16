@@ -27,7 +27,7 @@ class AppBlobRoutingTest {
     private val posted = ArrayList<() -> Unit>()
     private var postNow = true
     private val apps =
-        AppLinks(routes) { work -> if (postNow) work() else posted.add(work) }
+        AppLinks(routes, post = { work -> if (postNow) work() else posted.add(work) })
     private val told = ArrayList<Pair<Laptop, String?>>()
 
     init {

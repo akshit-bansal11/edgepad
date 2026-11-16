@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.link
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
@@ -46,7 +47,8 @@ class EdgepadTile : TileService() {
                 PendingIntent.getActivity(this, 0, open, PendingIntent.FLAG_IMMUTABLE),
             )
         } else {
-            // NOTE: the PendingIntent overload exists only from API 34; minSdk is 31
+            // NOTE: the PendingIntent overload exists only from API 34; minSdk is 31, so lint flags this genuine split
+            @SuppressLint("StartActivityAndCollapseDeprecated")
             @Suppress("DEPRECATION")
             startActivityAndCollapse(open)
         }
