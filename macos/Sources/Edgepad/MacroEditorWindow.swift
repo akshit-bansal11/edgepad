@@ -20,14 +20,15 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
     private let arguments = NSTextField()
     private let icon = NSTextField()
     private let count = NSTextField(wrappingLabelWithString: "")
-    private let nameCaption = NSTextField(labelWithString: "Name")
-    private let addButton = NSButton(title: "Add macro", target: nil, action: nil)
-    private let removeButton = NSButton(title: "Remove", target: nil, action: nil)
-    private let upButton = NSButton(title: "Move up", target: nil, action: nil)
-    private let downButton = NSButton(title: "Move down", target: nil, action: nil)
-    private let browseButton = NSButton(title: "Browse…", target: nil, action: nil)
-    private let iconButton = NSButton(title: "Choose…", target: nil, action: nil)
-    private let ownIconButton = NSButton(title: "Use the program's own", target: nil, action: nil)
+    private let nameCaption = NSTextField(labelWithString: tr("Macro_Name", "Name"))
+    private let addButton = NSButton(title: tr("Macro_Add", "Add macro"), target: nil, action: nil)
+    private let removeButton = NSButton(title: tr("Macro_Remove", "Remove"), target: nil, action: nil)
+    private let upButton = NSButton(title: tr("Macro_MoveUp", "Move up"), target: nil, action: nil)
+    private let downButton = NSButton(title: tr("Macro_MoveDown", "Move down"), target: nil, action: nil)
+    private let browseButton = NSButton(title: tr("Macro_Browse", "Browse…"), target: nil, action: nil)
+    private let iconButton = NSButton(title: tr("Macro_Choose", "Choose…"), target: nil, action: nil)
+    private let ownIconButton = NSButton(
+        title: tr("Macro_OwnIcon", "Use the program's own"), target: nil, action: nil)
     private var fields: [NSTextField] { [name, target, arguments, icon] }
 
     /// Set while the fields are written from the list, so the write is not read back as an edit.
@@ -41,14 +42,16 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
 
     func run() {
         let alert = NSAlert()
-        alert.messageText = "Macros"
-        alert.informativeText =
-            "Buttons on your phone's macro screen, up to \(MacroStore.maxMacros). The phone sends a button's number, "
-            + "never a program, so it can only run what you add here."
+        alert.messageText = tr("Macro_Title", "Macros")
+        alert.informativeText = tr(
+            "Macro_Body",
+            "Buttons on your phone's macro screen, up to %1$@. The phone sends a button's number, never a program, "
+                + "so it can only run what you add here.",
+            "\(MacroStore.maxMacros)")
         alert.accessoryView = makeBody()
         // Save is first, so Return saves what the owner typed; the edits are all visible, and Escape is Cancel.
-        alert.addButton(withTitle: "Save")
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: tr("Common_Save", "Save"))
+        alert.addButton(withTitle: tr("Common_Cancel", "Cancel"))
         NSApp.activate(ignoringOtherApps: true)
         while true {
             let answer = alert.runModal()
@@ -64,13 +67,16 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         let missing = MacroStore.withoutTarget(working)
         if missing >= 0 {
             select(missing)
-            let label = working[missing].name.isEmpty ? "A macro" : "\"\(working[missing].name)\""
-            warn("\(label) has nothing to open. Browse to an app or file, or type a web address.")
+            let label = working[missing].name.isEmpty ? tr("Macro_AMacro", "A macro") : "\"\(working[missing].name)\""
+            warn(
+                tr(
+                    "Macro_NothingToOpen",
+                    "%1$@ has nothing to open. Browse to an app or file, or type a web address.", label))
             return false
         }
         if let failure = store.save(working) {
             // The edits stay in the window, so the owner can fix the cause and press Save again, or cancel.
-            warn("The macros could not be saved to \(store.filePath): \(failure).")
+            warn(tr("Macro_SaveFailed", "The macros could not be saved to %1$@: %2$@.", store.filePath, failure))
             return false
         }
         return true
@@ -79,9 +85,8 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
     private func warn(_ text: String) {
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = "Could not save the macros"
+        alert.messageText = tr("Macro_SaveFailedTitle", "Could not save the macros")
         alert.informativeText = text
-        alert.addButton(withTitle: "OK")
         alert.runModal()
         alert.window.orderOut(nil)
     }
@@ -93,7 +98,7 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         table.headerView = nil
         table.dataSource = self
         table.delegate = self
-        table.setAccessibilityLabel("Macros")
+        table.setAccessibilityLabel(tr("Macro_Title", "Macros"))
         let scroll = NSScrollView()
         scroll.documentView = table
         scroll.hasVerticalScroller = true
@@ -102,15 +107,19 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         scroll.widthAnchor.constraint(equalToConstant: 170).isActive = true
         scroll.heightAnchor.constraint(equalToConstant: 200).isActive = true
 
-        for (field, label) in [(name, "Name"), (target, "Opens"), (arguments, "Arguments"), (icon, "Icon")] {
+        let labels = [
+            (name, tr("Macro_Name", "Name")), (target, tr("Macro_Opens", "Opens")),
+            (arguments, tr("Macro_Arguments", "Arguments")), (icon, tr("Macro_Icon", "Icon")),
+        ]
+        for (field, label) in labels {
             field.delegate = self
             field.setAccessibilityLabel(label)
             field.translatesAutoresizingMaskIntoConstraints = false
             field.widthAnchor.constraint(equalToConstant: 220).isActive = true
         }
-        arguments.placeholderString = "None, split on spaces (apps only)"
-        icon.placeholderString = "The program's own"
-        target.placeholderString = "An app, file, folder or web address"
+        arguments.placeholderString = tr("Macro_ArgsHint", "None, split on spaces (apps only)")
+        icon.placeholderString = tr("Macro_IconHint", "The program's own")
+        target.placeholderString = tr("Macro_OpensHint", "An app, file, folder or web address")
 
         wire(addButton, #selector(add))
         wire(removeButton, #selector(remove))
@@ -131,8 +140,11 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         nameCaption.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
         nameCaption.textColor = .secondaryLabelColor
         count.preferredMaxLayoutWidth = 170
-        let first: [NSView] = [nameCaption, name, caption("Opens"), targetRow]
-        let second: [NSView] = [caption("Arguments"), arguments, caption("Icon"), iconRow, ownIconButton]
+        let first: [NSView] = [nameCaption, name, caption(tr("Macro_Opens", "Opens")), targetRow]
+        let second: [NSView] = [
+            caption(tr("Macro_Arguments", "Arguments")), arguments, caption(tr("Macro_Icon", "Icon")), iconRow,
+            ownIconButton,
+        ]
         let fieldColumn = NSStackView(views: first + second)
         fieldColumn.orientation = .vertical
         fieldColumn.alignment = .leading
@@ -191,9 +203,11 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         addButton.isEnabled = working.count < MacroStore.maxMacros
         count.stringValue =
             working.isEmpty
-            ? "No macros yet. Add an app, a document, a folder or a web address. Each one becomes a button on the "
-                + "phone."
-            : "\(working.count) of \(MacroStore.maxMacros)"
+            ? tr(
+                "Macro_Empty",
+                "No macros yet. Add an app, a document, a folder or a web address. Each one becomes a button on the "
+                    + "phone.")
+            : tr("Macro_Count", "%1$@ of %2$@", "\(working.count)", "\(MacroStore.maxMacros)")
         updateNameCaption()
     }
 
@@ -201,7 +215,9 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
     /// out after fewer characters.
     private func updateNameCaption() {
         let left = MacroStore.maxNameBytes - name.stringValue.utf8.count
-        nameCaption.stringValue = selected != nil && left <= 4 ? "Name · \(left) left" : "Name"
+        nameCaption.stringValue =
+            selected != nil && left <= 4
+            ? tr("Macro_NameLeft", "Name · %1$@ left", "\(left)") : tr("Macro_Name", "Name")
     }
 
     func numberOfRows(in tableView: NSTableView) -> Int {
@@ -211,7 +227,7 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
     func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
         let macro = working[row]
         if !macro.name.isEmpty { return macro.name }
-        return macro.target.isEmpty ? "New macro" : (macro.target as NSString).lastPathComponent
+        return macro.target.isEmpty ? tr("Macro_New", "New macro") : (macro.target as NSString).lastPathComponent
     }
 
     func tableViewSelectionDidChange(_ notification: Notification) {

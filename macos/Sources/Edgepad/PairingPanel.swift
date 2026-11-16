@@ -24,9 +24,9 @@ final class PairingPanel: PairingPrompt {
         onCancelled: @escaping () -> Void
     ) -> PairingQuestion {
         let name = PhoneLabel.clean(phoneName)
-        let shown = name.isEmpty ? "this phone" : name
+        let shown = name.isEmpty ? tr("Pair_ThisPhone", "this phone") : name
         let window = PairingWindow(phone: shown, source: source, onTyped: onTyped, onCancelled: onCancelled)
-        announce(name.isEmpty ? "A phone" : name)
+        announce(name.isEmpty ? tr("Net_Phone", "A phone") : name)
         // The question returned is what keeps the window's controller alive until the pairing is settled.
         return window
     }
@@ -45,11 +45,12 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         styleMask: [.titled, .closable, .nonactivatingPanel], backing: .buffered,
         defer: false)
     private let phone: String
-    private let ask = NSTextField(wrappingLabelWithString: "Type the pairing code shown on the phone:")
+    private let ask = NSTextField(
+        wrappingLabelWithString: tr("Pair_Ask", "Type the pairing code shown on the phone:"))
     private let code = NSTextField(frame: NSRect(x: 0, y: 0, width: 160, height: 32))
     private let countdown = NSTextField(labelWithString: "")
-    private let cancel = NSButton(title: "Cancel", target: nil, action: nil)
-    private let pair = NSButton(title: "Pair", target: nil, action: nil)
+    private let cancel = NSButton(title: tr("Common_Cancel", "Cancel"), target: nil, action: nil)
+    private let pair = NSButton(title: tr("Common_Pair", "Pair"), target: nil, action: nil)
     private let deadline = ProcessInfo.processInfo.systemUptime + LinkResponder.ownerTimeoutSeconds
     private let onTyped: (String) -> Void
     private let onCancelled: () -> Void
@@ -69,19 +70,19 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         self.onCancelled = onCancelled
         super.init()
 
-        let title = NSTextField(labelWithString: "Pair \(phone)?")
+        let title = NSTextField(labelWithString: tr("Pair_Title", "Pair %1$@?", phone))
         title.font = .boldSystemFont(ofSize: 15)
         let from = NSTextField(labelWithString: source)
         from.textColor = .secondaryLabelColor
         from.isHidden = source.isEmpty
         let warning = NSTextField(
-            wrappingLabelWithString:
-                "Only pair a phone that is yours. If you did not just start pairing, choose Cancel.")
+            wrappingLabelWithString: tr(
+                "Pair_Warning", "Only pair a phone that is yours. If you did not just start pairing, choose Cancel."))
         warning.preferredMaxLayoutWidth = 360
         ask.preferredMaxLayoutWidth = 360
         code.font = .monospacedDigitSystemFont(ofSize: 20, weight: .regular)
         code.placeholderString = "000000"
-        code.setAccessibilityLabel("Code shown on the phone")
+        code.setAccessibilityLabel(tr("Pair_CodeLabel", "Code shown on the phone"))
         code.delegate = self
         countdown.textColor = .secondaryLabelColor
         cancel.target = self
@@ -100,7 +101,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         stack.spacing = 10
         stack.edgeInsets = NSEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
 
-        panel.title = "Pair a phone"
+        panel.title = tr("Pair_Window", "Pair a phone")
         panel.contentView = stack
         panel.isReleasedWhenClosed = false
         // A panel hides when its app is not in front by default; this question must stay until it is answered.
@@ -115,7 +116,8 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         // the box, and the Dock icon bounces to say a question waits.
         panel.orderFrontRegardless()
         NSApp.requestUserAttention(.criticalRequest)
-        Announce.say("Pair \(phone)? Closes in \(Int(LinkResponder.ownerTimeoutSeconds)) s.")
+        Announce.say(
+            tr("Pair_Announce", "Pair %1$@? Closes in %2$@ s.", phone, "\(Int(LinkResponder.ownerTimeoutSeconds))"))
     }
 
     private static func timer(every seconds: TimeInterval, repeats: Bool, _ run: @escaping () -> Void) -> Timer {
@@ -133,15 +135,19 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
     }
 
     func matched() {
-        tell("Code matched. Tap “Yes, paired” on \(phone) to finish.", closeSoon: false)
+        tell(
+            tr("Pair_Matched", "Code matched. Tap “Yes, paired” on %1$@ to finish.", phone), closeSoon: false)
     }
 
     func mismatched() {
-        tell("That code did not match. Nothing was paired.", closeSoon: false)
+        tell(tr("Pair_Mismatched", "That code did not match. Nothing was paired."), closeSoon: false)
     }
 
     func finished(paired: Bool) {
-        tell(paired ? "Paired with \(phone)." : "Pairing did not finish.", closeSoon: paired)
+        tell(
+            paired
+                ? tr("Pair_Paired", "Paired with %1$@.", phone) : tr("Pair_NotFinished", "Pairing did not finish."),
+            closeSoon: paired)
     }
 
     /// Says how the code went in place of the question, with Close in place of Cancel and Pair.
@@ -156,7 +162,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         countdown.stringValue = ""
         code.isEnabled = false
         pair.isHidden = true
-        cancel.title = "Close"
+        cancel.title = tr("Common_Close", "Close")
         if closeSoon {
             tick = Self.timer(every: Self.lingerSeconds, repeats: false) { [weak self] in self?.close() }
         }
@@ -165,7 +171,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
     /// The countdown, rounded up; at zero the window goes, and the pairing's own timer refuses the phone.
     private func count() {
         let left = max(0, Int((deadline - ProcessInfo.processInfo.systemUptime).rounded(.up)))
-        countdown.stringValue = "Closes in \(left) s"
+        countdown.stringValue = tr("Pair_ClosesIn", "Closes in %1$@ s", "\(left)")
         if left == 0 {
             withdraw()
         }
@@ -188,8 +194,8 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         stopTicking()
         code.isEnabled = false
         pair.isEnabled = false
-        countdown.stringValue = "Checking the code"
-        Announce.say("Checking the code")
+        countdown.stringValue = tr("Pair_Checking", "Checking the code")
+        Announce.say(countdown.stringValue)
         onTyped(digits)
     }
 
