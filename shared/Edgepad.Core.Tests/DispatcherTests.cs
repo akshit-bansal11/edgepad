@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using Edgepad.Blob;
 using Edgepad.Dispatch;
 using Edgepad.Macros;
+using Edgepad.Media;
 using Edgepad.Net;
 using Edgepad.Protocol;
 using Xunit;
@@ -255,6 +256,62 @@ public sealed class DispatcherTests : IDisposable
 
         Assert.Equal(2, dispatcher.Dropped);
         Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void TheEndActionIdsReachTheEndActionAndNeverThePlatform()
+    {
+        List<EndKind> done = [];
+        List<string> states = [];
+        dispatcher.EndAction = new EndAction(
+            kind =>
+            {
+                done.Add(kind);
+                return true;
+            },
+            states.Add);
+        dispatcher.EndAction.Observe(new MediaSnapshot("a", true, 10, 200));
+
+        dispatcher.Handle(new RunAction((byte)ActionId.EndSleep));
+        dispatcher.Handle(new RunAction((byte)ActionId.EndShutdown));
+        dispatcher.Handle(new RunAction((byte)ActionId.EndCancel));
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal(["sleep", "shutdown", "none"], states);
+        Assert.Empty(done);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void WithNoEndActionTheEndIdsAreDropped()
+    {
+        dispatcher.Handle(new RunAction((byte)ActionId.EndSleep));
+        dispatcher.Handle(new RunAction((byte)ActionId.EndShutdown));
+        dispatcher.Handle(new RunAction((byte)ActionId.EndCancel));
+
+        Assert.Equal(3, dispatcher.Dropped);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void RecordingIsReportedWithNoCaptureAndCancelOnlyWithinEightSeconds()
+    {
+        List<string> states = [];
+        long now = 1_000;
+        dispatcher.CaptureStateReply = states.Add;
+        dispatcher.Clock = () => now;
+
+        dispatcher.Handle(new RunAction((byte)ActionId.CaptureRecord));
+        now += 9_000;
+        dispatcher.Handle(new RunAction((byte)ActionId.CaptureCancel));
+        Assert.Equal(["recording"], states);
+
+        dispatcher.Handle(new RunAction((byte)ActionId.CaptureRecord));
+        dispatcher.Handle(new RunAction((byte)ActionId.CaptureRecord));
+        now += 2_000;
+        dispatcher.Handle(new RunAction((byte)ActionId.CaptureCancel));
+        Assert.Equal(["recording", "idle", "recording", "idle"], states);
+        Assert.Equal(0, dispatcher.Dropped);
     }
 
     [Theory]

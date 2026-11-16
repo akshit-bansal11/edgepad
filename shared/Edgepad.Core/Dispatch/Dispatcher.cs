@@ -4,6 +4,7 @@ using Edgepad.Annotation;
 using Edgepad.Blob;
 using Edgepad.Capture;
 using Edgepad.Macros;
+using Edgepad.Media;
 using Edgepad.Protocol;
 
 namespace Edgepad.Dispatch;
@@ -61,6 +62,26 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
 
     /// <summary>Where the answer to APP_ADD goes, one <see cref="AppAddStatus"/> token. Set by the session, like <see cref="PadStatusReply"/>.</summary>
     public Action<string>? AppAddReply { get; set; }
+
+    /// <summary>
+    /// Sleeps or shuts the laptop down when the media ends. Set by the session, like <see cref="Capture"/>; without one,
+    /// EndSleep, EndShutdown and EndCancel are dropped and counted, as on a laptop too old to know them.
+    /// </summary>
+    public EndAction? EndAction { get; set; }
+
+    /// <summary>
+    /// Where "recording" and "idle" go when the phone starts or cancels a recording. Best effort and only that: a recording
+    /// the owner stops on the laptop itself is never seen, so the phone may show "recording" until it next toggles.
+    /// </summary>
+    public Action<string>? CaptureStateReply { get; set; }
+
+    /// <summary>The clock for the cancel window, in milliseconds; a test moves it by hand.</summary>
+    public Func<long> Clock { get; set; } = () => Environment.TickCount64;
+
+    private const long CancelRecordingWindowMs = 8_000;
+
+    private bool recording;
+    private long recordingSince;
 
     /// <summary>When the phone last sent input, by <see cref="Environment.TickCount64"/>: a capture on its way slows down for it.</summary>
     public long LastInputMs => Interlocked.Read(ref lastInput);
@@ -166,8 +187,21 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
             return false;
         }
 
-        return action switch
+        var handled = Perform(action);
+        if (handled)
         {
+            NoteCaptureState(action);
+        }
+
+        return handled;
+    }
+
+    private bool Perform(ActionId action) =>
+        action switch
+        {
+            ActionId.EndSleep => Arm(EndKind.Sleep),
+            ActionId.EndShutdown => Arm(EndKind.Shutdown),
+            ActionId.EndCancel => Disarm(),
             ActionId.PadAttach => Answer(platform.AttachPad()),
             ActionId.PadDetach => Answer(platform.DetachPad()),
             // The capture lists its folders before the shortcut is pressed, so the press can be told apart from them.
@@ -180,6 +214,34 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
             ActionId.AppsCancel => Apps?.Cancel() ?? false,
             _ => platform.Run(action),
         };
+
+    private bool Arm(EndKind kind) => EndAction?.Arm(kind) ?? false;
+
+    private bool Disarm()
+    {
+        if (EndAction is not { } end)
+        {
+            return false;
+        }
+
+        end.Cancel();
+        return true;
+    }
+
+    /// <summary>Runs after the action was handled, so a recording that never started is never reported.</summary>
+    private void NoteCaptureState(ActionId action)
+    {
+        if (action == ActionId.CaptureRecord)
+        {
+            recording = !recording;
+            recordingSince = Clock();
+            CaptureStateReply?.Invoke(recording ? CaptureStateToken.Recording : CaptureStateToken.Idle);
+        }
+        else if (action == ActionId.CaptureCancel && recording && Clock() - recordingSince < CancelRecordingWindowMs)
+        {
+            recording = false;
+            CaptureStateReply?.Invoke(CaptureStateToken.Idle);
+        }
     }
 
     private bool AddApp(string token)
