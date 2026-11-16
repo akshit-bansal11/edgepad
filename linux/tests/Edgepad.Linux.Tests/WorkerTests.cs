@@ -16,7 +16,7 @@ public sealed class WorkerTests
         worker.Post(() => throw new InvalidOperationException("job"));
         worker.Post(() => ran.Enqueue(2));
         worker.Post(done.Set);
-        Assert.True(done.Wait(TimeSpan.FromSeconds(5)));
+        Assert.True(done.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Equal([1, 2], ran);
     }
 }

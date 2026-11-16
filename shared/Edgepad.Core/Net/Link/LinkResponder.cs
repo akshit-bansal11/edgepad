@@ -291,7 +291,7 @@ internal static class LinkResponder
             }
 
             var asked = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
-            question = prompt.Show(name, PairingText.SourceOf(remote),digits => asked.TrySetResult(digits), () => asked.TrySetResult(null));
+            question = prompt.Show(name, PairingText.SourceOf(remote), digits => asked.TrySetResult(digits), () => asked.TrySetResult(null));
 
             // From here the prompt is up: any end not named below (a read that fails or times out after the code) is an
             // unanswered prompt and holds this host off, or a phone could raise the prompt, drop out and raise it again.

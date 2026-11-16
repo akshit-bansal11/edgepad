@@ -1789,11 +1789,6 @@ class MainActivity :
         }
     }
 
-    /**
-     * Every paired device, of every kind. The Devices list narrows it to computers for itself; everything
-     * that connects looks through all of them, so a laptop reached through "show all" once is still found
-     * by the reconnect that follows, however its Bluetooth class reads.
-     */
     /** Bluetooth is on and this app may use it: only then does an empty [bonded] list mean "not paired". */
     private fun bluetoothReady(): Boolean {
         val adapter = getSystemService(BluetoothManager::class.java)?.adapter ?: return false
@@ -1801,6 +1796,11 @@ class MainActivity :
             checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
     }
 
+    /**
+     * Every paired device, of every kind. The Devices list narrows it to computers for itself; everything
+     * that connects looks through all of them, so a laptop reached through "show all" once is still found
+     * by the reconnect that follows, however its Bluetooth class reads.
+     */
     private fun bonded(): List<BluetoothDevice> {
         val adapter = getSystemService(BluetoothManager::class.java)?.adapter ?: return emptyList()
         // Checked here and not through bluetoothReady(), so lint sees the permission check next to its use.

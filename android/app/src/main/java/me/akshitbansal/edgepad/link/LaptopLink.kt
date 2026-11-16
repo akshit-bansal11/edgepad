@@ -479,9 +479,11 @@ internal fun closureOf(
 ): LaptopLink.Closure =
     when {
         e is LinkFailure -> e.closure
+
         // The laptop took the connection, then went quiet past a timeout: a stalled link, never its owner's no. A
         // connect that timed out never reached it, so that one stays unreachable.
         connectReturned && e is SocketTimeoutException -> LaptopLink.Closure(LaptopLink.Cause.LOST)
+
         else -> LaptopLink.Closure(classifyFailure(connectReturned, handshakeDone))
     }
 
