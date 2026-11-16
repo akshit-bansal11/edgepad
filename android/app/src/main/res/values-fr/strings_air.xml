@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="controls_air_mouse">Souris aérienne</string>
+  <string name="air_title">Souris aérienne</string>
+  <string name="air_caption">Inclinez le téléphone pour déplacer le pointeur tant qu\'un doigt repose sur le pavé tactile. Le capteur de mouvement n\'est lu qu\'à ce moment.</string>
+  <string name="air_sensitivity">Sensibilité</string>
+  <string name="air_dead_zone">Zone morte</string>
+  <string name="air_no_sensor">Ce téléphone n\'a pas de gyroscope.</string>
+  <string name="controls_floating">Molettes flottantes</string>
+  <string name="floating_caption">Affiche les molettes par-dessus les autres apps. Nécessite l\'autorisation d\'afficher par-dessus les autres apps.</string>
+  <string name="floating_permission">Autoriser dans les réglages</string>
+  <string name="floating_needs_link">Connectez d\'abord un ordinateur.</string>
+  <string name="floating_needs_stay">Activez Rester connecté pour garder les molettes par-dessus les autres apps.</string>
+</resources>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">कनेक्ट नहीं है</string>
+  <string name="notice_play_pause">चलाएँ या रोकें</string>
+  <string name="notice_volume_down">आवाज़ कम</string>
+  <string name="notice_volume_up">आवाज़ ज़्यादा</string>
+  <string name="controls_clipboard">क्लिपबोर्ड</string>
+  <string name="controls_presenter">प्रेज़ेंटर</string>
+  <string name="clip_history_title">लैपटॉप की कॉपी</string>
+  <string name="clip_history_empty">लैपटॉप पर अभी कुछ कॉपी नहीं हुआ। क्लिपबोर्ड साझा करें चालू होने पर लैपटॉप की कॉपी यहाँ दिखती हैं।</string>
+  <string name="clip_history_sent">%1$s को भेजा गया</string>
+  <string name="clip_history_failed">भेजा नहीं जा सका। कनेक्शन जाँचें।</string>
+  <string name="clip_history_send_hint">फिर भेजें</string>
+  <string name="presenter_title">प्रेज़ेंटर</string>
+  <string name="presenter_next">अगली स्लाइड</string>
+  <string name="presenter_previous">पिछली स्लाइड</string>
+  <string name="presenter_keys_note">यह स्क्रीन खुली होने पर वॉल्यूम कुंजियाँ स्लाइड बदलती हैं।</string>
+  <string name="presenter_laser">लेज़र पॉइंटर</string>
+  <string name="tool_laser">लेज़र</string>
+</resources>

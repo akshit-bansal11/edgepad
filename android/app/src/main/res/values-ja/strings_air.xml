@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="controls_air_mouse">エアマウス</string>
+  <string name="air_title">エアマウス</string>
+  <string name="air_caption">トラックパッドに指を置いている間、スマホを傾けるとポインターが動きます。モーションセンサーはそのときだけ読み取ります。</string>
+  <string name="air_sensitivity">感度</string>
+  <string name="air_dead_zone">不感帯</string>
+  <string name="air_no_sensor">このスマホにはジャイロスコープがありません。</string>
+  <string name="controls_floating">フローティングダイヤル</string>
+  <string name="floating_caption">他のアプリの上にダイヤルを表示します。他のアプリの上に重ねて表示する許可が必要です。</string>
+  <string name="floating_permission">設定で許可</string>
+  <string name="floating_needs_link">先にノートPCに接続してください。</string>
+  <string name="floating_needs_stay">ダイヤルを他のアプリの上に残すには、接続を維持をオンにしてください。</string>
+</resources>

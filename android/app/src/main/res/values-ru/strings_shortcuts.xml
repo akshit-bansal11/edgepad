@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">Не подключено</string>
+  <string name="notice_play_pause">Воспроизвести или пауза</string>
+  <string name="notice_volume_down">Тише</string>
+  <string name="notice_volume_up">Громче</string>
+  <string name="controls_clipboard">Буфер обмена</string>
+  <string name="controls_presenter">Презентация</string>
+  <string name="clip_history_title">Копии с ноутбука</string>
+  <string name="clip_history_empty">На ноутбуке пока ничего не скопировано. Копии с ноутбука появятся здесь, пока включён общий буфер обмена.</string>
+  <string name="clip_history_sent">Отправлено на %1$s</string>
+  <string name="clip_history_failed">Не удалось отправить. Проверьте соединение.</string>
+  <string name="clip_history_send_hint">Отправить снова</string>
+  <string name="presenter_title">Презентация</string>
+  <string name="presenter_next">Следующий слайд</string>
+  <string name="presenter_previous">Предыдущий слайд</string>
+  <string name="presenter_keys_note">Клавиши громкости листают слайды, пока открыт этот экран.</string>
+  <string name="presenter_laser">Лазерная указка</string>
+  <string name="tool_laser">Лазер</string>
+</resources>

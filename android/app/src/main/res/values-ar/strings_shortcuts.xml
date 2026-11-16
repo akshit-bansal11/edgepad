@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">غير متصل</string>
+  <string name="notice_play_pause">تشغيل أو إيقاف مؤقت</string>
+  <string name="notice_volume_down">خفض الصوت</string>
+  <string name="notice_volume_up">رفع الصوت</string>
+  <string name="controls_clipboard">الحافظة</string>
+  <string name="controls_presenter">العرض التقديمي</string>
+  <string name="clip_history_title">نسخ الحاسوب</string>
+  <string name="clip_history_empty">لم يُنسخ شيء على الحاسوب بعد. تظهر هنا النسخات من الحاسوب عند تفعيل مشاركة الحافظة.</string>
+  <string name="clip_history_sent">أُرسل إلى %1$s</string>
+  <string name="clip_history_failed">تعذر الإرسال. تحقق من الاتصال.</string>
+  <string name="clip_history_send_hint">أرسل مرة أخرى</string>
+  <string name="presenter_title">العرض التقديمي</string>
+  <string name="presenter_next">الشريحة التالية</string>
+  <string name="presenter_previous">الشريحة السابقة</string>
+  <string name="presenter_keys_note">مفاتيح الصوت تغيّر الشرائح ما دامت هذه الشاشة مفتوحة.</string>
+  <string name="presenter_laser">مؤشر ليزر</string>
+  <string name="tool_laser">ليزر</string>
+</resources>

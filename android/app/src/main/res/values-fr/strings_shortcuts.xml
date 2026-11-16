@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">Non connecté</string>
+  <string name="notice_play_pause">Lecture ou pause</string>
+  <string name="notice_volume_down">Volume moins</string>
+  <string name="notice_volume_up">Volume plus</string>
+  <string name="controls_clipboard">Presse-papiers</string>
+  <string name="controls_presenter">Présentateur</string>
+  <string name="clip_history_title">Copies de l\'ordinateur</string>
+  <string name="clip_history_empty">Rien n\'a encore été copié sur l\'ordinateur. Les copies de l\'ordinateur apparaissent ici tant que Partager le presse-papiers est activé.</string>
+  <string name="clip_history_sent">Envoyé à %1$s</string>
+  <string name="clip_history_failed">Envoi impossible. Vérifiez la connexion.</string>
+  <string name="clip_history_send_hint">Renvoyer</string>
+  <string name="presenter_title">Présentateur</string>
+  <string name="presenter_next">Diapositive suivante</string>
+  <string name="presenter_previous">Diapositive précédente</string>
+  <string name="presenter_keys_note">Les touches de volume changent de diapositive tant que cet écran est ouvert.</string>
+  <string name="presenter_laser">Pointeur laser</string>
+  <string name="tool_laser">Laser</string>
+</resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="controls_air_mouse">Mouse aéreo</string>
+  <string name="air_title">Mouse aéreo</string>
+  <string name="air_caption">Incline o telefone para mover o ponteiro enquanto um dedo estiver no trackpad. O sensor de movimento só é lido nesse momento.</string>
+  <string name="air_sensitivity">Sensibilidade</string>
+  <string name="air_dead_zone">Zona morta</string>
+  <string name="air_no_sensor">Este telefone não tem giroscópio.</string>
+  <string name="controls_floating">Dials flutuantes</string>
+  <string name="floating_caption">Mostra os dials sobre outros apps. Precisa de permissão para aparecer sobre outros apps.</string>
+  <string name="floating_permission">Permitir nas Configurações</string>
+  <string name="floating_needs_link">Conecte um notebook primeiro.</string>
+  <string name="floating_needs_stay">Ative Manter conectado para deixar os dials sobre outros apps.</string>
+</resources>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">Não conectado</string>
+  <string name="notice_play_pause">Reproduzir ou pausar</string>
+  <string name="notice_volume_down">Diminuir volume</string>
+  <string name="notice_volume_up">Aumentar volume</string>
+  <string name="controls_clipboard">Área de transferência</string>
+  <string name="controls_presenter">Apresentador</string>
+  <string name="clip_history_title">Cópias do notebook</string>
+  <string name="clip_history_empty">Nada foi copiado no notebook ainda. As cópias do notebook aparecem aqui enquanto Compartilhar área de transferência estiver ativado.</string>
+  <string name="clip_history_sent">Enviado para %1$s</string>
+  <string name="clip_history_failed">Não foi possível enviar. Verifique a conexão.</string>
+  <string name="clip_history_send_hint">Enviar de novo</string>
+  <string name="presenter_title">Apresentador</string>
+  <string name="presenter_next">Próximo slide</string>
+  <string name="presenter_previous">Slide anterior</string>
+  <string name="presenter_keys_note">As teclas de volume trocam os slides enquanto esta tela estiver aberta.</string>
+  <string name="presenter_laser">Ponteiro laser</string>
+  <string name="tool_laser">Laser</string>
+</resources>

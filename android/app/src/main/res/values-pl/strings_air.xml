@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="controls_air_mouse">Mysz powietrzna</string>
+  <string name="air_title">Mysz powietrzna</string>
+  <string name="air_caption">Przechyl telefon, by ruszać wskaźnikiem, gdy palec spoczywa na gładziku. Czujnik ruchu jest wtedy odczytywany.</string>
+  <string name="air_sensitivity">Czułość</string>
+  <string name="air_dead_zone">Strefa martwa</string>
+  <string name="air_no_sensor">Ten telefon nie ma żyroskopu.</string>
+  <string name="controls_floating">Pływające pokrętła</string>
+  <string name="floating_caption">Pokazuje pokrętła nad innymi aplikacjami. Wymaga uprawnienia do wyświetlania nad innymi aplikacjami.</string>
+  <string name="floating_permission">Zezwól w Ustawieniach</string>
+  <string name="floating_needs_link">Najpierw połącz z laptopem.</string>
+  <string name="floating_needs_stay">Włącz Pozostań połączony, aby zachować pokrętła nad innymi aplikacjami.</string>
+</resources>

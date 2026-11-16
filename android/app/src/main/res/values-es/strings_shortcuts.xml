@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">No conectado</string>
+  <string name="notice_play_pause">Reproducir o pausar</string>
+  <string name="notice_volume_down">Bajar volumen</string>
+  <string name="notice_volume_up">Subir volumen</string>
+  <string name="controls_clipboard">Portapapeles</string>
+  <string name="controls_presenter">Presentador</string>
+  <string name="clip_history_title">Copias del portátil</string>
+  <string name="clip_history_empty">Aún no se ha copiado nada en el portátil. Las copias del portátil aparecen aquí mientras Compartir portapapeles esté activado.</string>
+  <string name="clip_history_sent">Enviado a %1$s</string>
+  <string name="clip_history_failed">No se pudo enviar. Revisa la conexión.</string>
+  <string name="clip_history_send_hint">Enviar de nuevo</string>
+  <string name="presenter_title">Presentador</string>
+  <string name="presenter_next">Diapositiva siguiente</string>
+  <string name="presenter_previous">Diapositiva anterior</string>
+  <string name="presenter_keys_note">Las teclas de volumen cambian de diapositiva mientras esta pantalla esté abierta.</string>
+  <string name="presenter_laser">Puntero láser</string>
+  <string name="tool_laser">Láser</string>
+</resources>

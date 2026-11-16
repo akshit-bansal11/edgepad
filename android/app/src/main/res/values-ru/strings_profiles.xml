@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_profiles">Профили приложений</string>
+  <string name="profiles_title">Профили приложений</string>
+  <string name="profiles_toggle">Переключать диски и жесты по приложению</string>
+  <string name="profiles_caption">Ноутбук сообщает этому телефону, какое приложение на переднем плане, только пока это включено. На ноутбуке ничего не хранится.</string>
+  <string name="profiles_empty">Профилей пока нет. Выведите приложение на передний план на ноутбуке и добавьте его здесь.</string>
+  <string name="profiles_add_current">Добавить приложение на переднем плане</string>
+  <string name="profiles_none_in_front">Пока нет приложения на переднем плане</string>
+  <string name="profiles_unsupported">Этот ноутбук не может сообщить, какое приложение на переднем плане.</string>
+  <string name="profiles_delete">Удалить профиль</string>
+  <string name="profiles_delete_confirm">Удалить профиль для %1$s?</string>
+  <string name="profile_default">Как по умолчанию</string>
+  <string name="profile_custom">Свой</string>
+</resources>

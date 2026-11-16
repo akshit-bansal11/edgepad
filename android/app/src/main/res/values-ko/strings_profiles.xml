@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_profiles">앱 프로필</string>
+  <string name="profiles_title">앱 프로필</string>
+  <string name="profiles_toggle">앱에 따라 다이얼과 제스처 전환</string>
+  <string name="profiles_caption">켜져 있는 동안에만 노트북이 맨 앞 앱을 이 휴대전화에 알려 줍니다. 노트북에는 아무것도 저장되지 않습니다.</string>
+  <string name="profiles_empty">아직 프로필이 없습니다. 노트북에서 앱을 맨 앞으로 가져온 뒤 여기에 추가하세요.</string>
+  <string name="profiles_add_current">맨 앞 앱 추가</string>
+  <string name="profiles_none_in_front">맨 앞 앱이 아직 없습니다</string>
+  <string name="profiles_unsupported">이 노트북은 맨 앞 앱을 알려 줄 수 없습니다.</string>
+  <string name="profiles_delete">프로필 삭제</string>
+  <string name="profiles_delete_confirm">%1$s 프로필을 삭제할까요?</string>
+  <string name="profile_default">기본값과 동일</string>
+  <string name="profile_custom">사용자 지정</string>
+</resources>

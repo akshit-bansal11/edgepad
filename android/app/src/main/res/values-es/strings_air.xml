@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="controls_air_mouse">Ratón aéreo</string>
+  <string name="air_title">Ratón aéreo</string>
+  <string name="air_caption">Inclina el teléfono para mover el puntero mientras un dedo toca el panel táctil. El sensor de movimiento solo se lee entonces.</string>
+  <string name="air_sensitivity">Sensibilidad</string>
+  <string name="air_dead_zone">Zona muerta</string>
+  <string name="air_no_sensor">Este teléfono no tiene giroscopio.</string>
+  <string name="controls_floating">Diales flotantes</string>
+  <string name="floating_caption">Muestra los diales sobre otras apps. Requiere permiso para mostrarse sobre otras apps.</string>
+  <string name="floating_permission">Permitir en Ajustes</string>
+  <string name="floating_needs_link">Conecta primero un portátil.</string>
+  <string name="floating_needs_stay">Activa Mantener conexión para dejar los diales sobre otras apps.</string>
+</resources>

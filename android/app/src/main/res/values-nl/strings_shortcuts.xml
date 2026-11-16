@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">Niet verbonden</string>
+  <string name="notice_play_pause">Afspelen of pauzeren</string>
+  <string name="notice_volume_down">Zachter</string>
+  <string name="notice_volume_up">Luider</string>
+  <string name="controls_clipboard">Klembord</string>
+  <string name="controls_presenter">Presentator</string>
+  <string name="clip_history_title">Laptopkopieën</string>
+  <string name="clip_history_empty">Er is op de laptop nog niets gekopieerd. Kopieën van de laptop verschijnen hier zolang Klembord delen aan staat.</string>
+  <string name="clip_history_sent">Verstuurd naar %1$s</string>
+  <string name="clip_history_failed">Versturen mislukt. Controleer de verbinding.</string>
+  <string name="clip_history_send_hint">Opnieuw versturen</string>
+  <string name="presenter_title">Presentator</string>
+  <string name="presenter_next">Volgende dia</string>
+  <string name="presenter_previous">Vorige dia</string>
+  <string name="presenter_keys_note">De volumetoetsen wisselen van dia zolang dit scherm open is.</string>
+  <string name="presenter_laser">Laserpointer</string>
+  <string name="tool_laser">Laser</string>
+</resources>

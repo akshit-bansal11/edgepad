@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="controls_air_mouse">एयर माउस</string>
+  <string name="air_title">एयर माउस</string>
+  <string name="air_caption">ट्रैकपैड पर उँगली रखे हुए फ़ोन को झुकाकर पॉइंटर चलाएँ। मोशन सेंसर तभी पढ़ा जाता है।</string>
+  <string name="air_sensitivity">संवेदनशीलता</string>
+  <string name="air_dead_zone">डेड ज़ोन</string>
+  <string name="air_no_sensor">इस फ़ोन में जाइरोस्कोप नहीं है।</string>
+  <string name="controls_floating">तैरते डायल</string>
+  <string name="floating_caption">डायल को दूसरे ऐप के ऊपर दिखाता है। दूसरे ऐप के ऊपर दिखाने की अनुमति चाहिए।</string>
+  <string name="floating_permission">सेटिंग में अनुमति दें</string>
+  <string name="floating_needs_link">पहले किसी लैपटॉप से कनेक्ट करें।</string>
+  <string name="floating_needs_stay">डायल को दूसरे ऐप के ऊपर रखने के लिए कनेक्ट रहें चालू करें।</string>
+</resources>

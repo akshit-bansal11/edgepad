@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="controls_air_mouse">Luchtmuis</string>
+  <string name="air_title">Luchtmuis</string>
+  <string name="air_caption">Kantel de telefoon om de aanwijzer te bewegen terwijl een vinger op het trackpad rust. De bewegingssensor wordt alleen dan gelezen.</string>
+  <string name="air_sensitivity">Gevoeligheid</string>
+  <string name="air_dead_zone">Dode zone</string>
+  <string name="air_no_sensor">Deze telefoon heeft geen gyroscoop.</string>
+  <string name="controls_floating">Zwevende draaiknoppen</string>
+  <string name="floating_caption">Toont de draaiknoppen boven andere apps. Vereist toestemming om over andere apps te tekenen.</string>
+  <string name="floating_permission">Toestaan in Instellingen</string>
+  <string name="floating_needs_link">Verbind eerst met een laptop.</string>
+  <string name="floating_needs_stay">Zet Verbonden blijven aan om de draaiknoppen boven andere apps te houden.</string>
+</resources>
