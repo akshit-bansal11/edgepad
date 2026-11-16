@@ -114,6 +114,8 @@ public final class Session {
     private var lastMedia: (nowPlaying: String, full: String, app: String, timeline: String)?
     private var lastMediaState: [UInt8]?
     private var lastIconApp = ""
+    /// The phone's transfer socket, while it has one. It is this session's and nobody else's: see `attachBulk`.
+    private var bulk: BulkLink?
     /// Cancelled by `end()`, so the owner's question about this phone is never put, or is withdrawn if it is open.
     private let ended = Cancellation()
 
@@ -193,6 +195,7 @@ public final class Session {
     /// The app calls this twice a second. A change made on the Mac itself reaches the phone's dials here.
     public func poll() {
         guard isLive, !isEnded else { return }
+        bulk?.tick()
         pollsSinceFrame += 1
         if pollsSinceFrame >= Session.pollsBeforeSilence {
             Log.write("Session with \(address) ended: no frame for 30 s")
@@ -293,6 +296,9 @@ public final class Session {
         dispatcher.annotation?.end()
         dispatcher.capture?.end()
         dispatcher.clipboard?.end()
+        dispatcher.transfers?.end()
+        dispatcher.sending?.end()
+        bulk?.close()
         dispatcher.apps?.end()
         dispatcher.appAddReply = nil
         if dispatcher.dropped > 0 {
@@ -566,6 +572,9 @@ public final class Session {
         dispatcher.apps?.sender.backlog = backlog
         dispatcher.mediaBlobs?.output = write
         dispatcher.mediaBlobs?.backlog = backlog
+        dispatcher.transfers?.reply = { [weak self] frame in _ = self?.sendTransfer(frame) }
+        dispatcher.sending?.output = { [weak self] frame in self?.sendTransfer(frame) ?? false }
+        dispatcher.sending?.backlog = { [weak self] in self?.bulk?.backlog ?? self?.transport.backlog ?? 0 }
         dispatcher.padStatusReply = { [weak self] status in
             self?.send(.text(kind: TextKind.padStatus.rawValue, value: status))
         }
@@ -712,6 +721,41 @@ public final class Session {
 
     private func percentByte(_ percent: Int) -> UInt8 {
         UInt8(clamping: Percent.clamp(percent))
+    }
+
+    /// Takes the phone's second socket for file transfers, answering HELLO_ACK on it. It attaches to nothing but this
+    /// live session, for exactly this address, while it holds no transfer socket yet, and never asks trust, takes a
+    /// PIN, admits, replaces or ends anything. Nil, with the socket left for the caller to close, in every other case.
+    public func attachBulk(address from: String, version: UInt8, transport socket: Transport) -> BulkLink? {
+        guard isLive, !isEnded, bulk == nil, version == ProtocolConstants.version,
+            from.caseInsensitiveCompare(address) == .orderedSame
+        else { return nil }
+        let link = BulkLink(
+            address: address, transport: socket,
+            onFrame: { [weak self] frame in self?.dispatcher.handle(frame) },
+            onClosed: { [weak self] in self?.bulk = nil })
+        bulk = link
+        guard link.start() else { return nil }
+        return link
+    }
+
+    /// Sends the file at `path` to the phone, one at a time, and says how it ended.
+    public func sendFile(_ path: String, finished: @escaping (XferCode) -> Void) {
+        guard isLive, !isEnded, let sending = dispatcher.sending else {
+            finished(.sessionEnded)
+            return
+        }
+        sending.send(path: path, finished: finished)
+    }
+
+    /// Everything this Mac says about a file goes down the transfer socket while one is attached, else the control one.
+    private func sendTransfer(_ frame: Frame) -> Bool {
+        if let bulk {
+            return bulk.send(frame)
+        }
+        guard !isEnded else { return false }
+        send(frame)
+        return !isEnded
     }
 
     /// A send that finds the link dead ends the session, so nothing after it writes to a closed link.

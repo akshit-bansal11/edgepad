@@ -70,6 +70,14 @@ public final class Dispatcher {
     /// state to, like `padStatusReply`.
     public var endAction: EndAction?
 
+    /// Receives the phone's files, on either socket. Set by the app per connection, like `capture`; without one,
+    /// XFER_BEGIN, XFER_CHUNK and XFER_END are dropped and counted.
+    public var transfers: TransferReceiver?
+
+    /// Sends files to the phone and takes its answers. Set by the app per connection; without one, the phone's
+    /// XFER_STATUS is dropped and counted.
+    public var sending: TransferSender?
+
     /// When the phone last sent input, by system uptime: a capture on its way slows down for it.
     public private(set) var lastInput: TimeInterval = 0
 
@@ -145,8 +153,19 @@ public final class Dispatcher {
             return clipboard?.take(seq: seq, data: data) ?? false
         case .blobEnd(let sha256):
             return clipboard?.take(sha256: sha256) ?? false
+        case .xferBegin(let id, let size, let name):
+            return transfers?.take(begin: id, size: size, name: name) ?? false
+        case .xferChunk(let id, let offset, let data):
+            return transfers?.take(chunk: id, offset: offset, data: data) ?? false
+        case .xferEnd(let id, let sha256):
+            return transfers?.take(end: id, sha256: sha256) ?? false
+        case .xferStatus(let id, let status, let offset):
+            // Both ends of the pair see it: the sender takes its answers, the receiver the sender's CANCELLED.
+            let answered = sending?.take(status: status, id: id, offset: offset) ?? false
+            let cancelled = transfers?.take(status: status, id: id) ?? false
+            return answered || cancelled
         case .hello, .helloAck, .ping, .pong, .state, .padState, .pinRequest, .pinAnswer, .fileBegin, .fileChunk,
-            .fileEnd, .bulkHello, .xferBegin, .xferChunk, .xferEnd, .xferStatus:
+            .fileEnd, .bulkHello:
             // A Mac has no virtual controller to give a pad frame to, and the rest are not the phone's to send
             // once the session is live.
             return false

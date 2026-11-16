@@ -396,6 +396,62 @@ final class SessionTests: XCTestCase {
         XCTAssertFalse(session.isEnded)
     }
 
+    func testATransferSocketAttachesOnlyToTheLiveSessionOfItsAddressAndOnlyOnce() {
+        let early = makeSession()
+        let socket = FakeTransport()
+        XCTAssertNil(early.attachBulk(address: phone, version: ProtocolConstants.version, transport: socket))
+        XCTAssertTrue(socket.sent.isEmpty)
+
+        let session = connectedSession()
+        let wrongPhone = FakeTransport()
+        let version = ProtocolConstants.version
+        XCTAssertNil(session.attachBulk(address: "11:22:33:44:55:66", version: version, transport: wrongPhone))
+        XCTAssertNil(session.attachBulk(address: phone, version: version &+ 1, transport: wrongPhone))
+        XCTAssertTrue(wrongPhone.sent.isEmpty)
+
+        let first = FakeTransport()
+        XCTAssertNotNil(session.attachBulk(address: phone, version: ProtocolConstants.version, transport: first))
+        XCTAssertEqual(first.sent, [FrameCodec.encode(.helloAck(version: ProtocolConstants.version))])
+        let second = FakeTransport()
+        XCTAssertNil(session.attachBulk(address: phone, version: ProtocolConstants.version, transport: second))
+        XCTAssertTrue(second.sent.isEmpty)
+        // Nothing here asked the owner, admitted anything or ended anyone.
+        XCTAssertEqual(admissions.count, 1)
+        XCTAssertFalse(session.isEnded)
+    }
+
+    func testATransferSocketThatSendsAnythingButTransferFramesClosesAloneAndLeavesTheSession() {
+        let session = connectedSession()
+        let socket = FakeTransport()
+        let link = session.attachBulk(address: phone, version: ProtocolConstants.version, transport: socket)
+        link?.receive(FrameCodec.encode(.ping(time: 1)))
+        XCTAssertTrue(socket.closed)
+        XCTAssertFalse(session.isEnded)
+        XCTAssertFalse(transport.closed)
+        // A closed socket leaves room for the next one.
+        XCTAssertNotNil(
+            session.attachBulk(address: phone, version: ProtocolConstants.version, transport: FakeTransport()))
+    }
+
+    func testTheSessionEndingClosesItsTransferSocket() {
+        let session = connectedSession()
+        let socket = FakeTransport()
+        _ = session.attachBulk(address: phone, version: ProtocolConstants.version, transport: socket)
+        session.end()
+        XCTAssertTrue(socket.closed)
+    }
+
+    func testATransferSocketGoesOnTheSixtiethPollWithNoFrameButNotTheSession() {
+        let session = connectedSession()
+        let socket = FakeTransport()
+        _ = session.attachBulk(address: phone, version: ProtocolConstants.version, transport: socket)
+        pollAlive(session, 59)
+        XCTAssertFalse(socket.closed)
+        pollAlive(session, 2)
+        XCTAssertTrue(socket.closed)
+        XCTAssertFalse(session.isEnded)
+    }
+
     /// Polls `count` times with a ping now and then, so the silence limit never ends the session.
     private func pollAlive(_ session: Session, _ count: Int) {
         for i in 0..<count {
