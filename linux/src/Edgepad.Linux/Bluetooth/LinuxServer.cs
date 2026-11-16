@@ -188,6 +188,7 @@ internal sealed class LinuxServer : IDisposable
             Log.Write("The RFCOMM profile is still registered with bluetoothd");
         }
 
+        await ReadPoweredAsync(bus, id);
         onStatus(host.CurrentAddress is { } live ? host.Connected(live) : unpowered ? LaptopStatus.BluetoothRetrying : LaptopStatus.Waiting);
     }
 
@@ -197,8 +198,40 @@ internal sealed class LinuxServer : IDisposable
     private static bool? PoweredIn(Reader reader)
     {
         _ = reader.ReadString();
-        var changed = reader.ReadDictionaryOfStringToVariantValue();
-        return changed.TryGetValue("Powered", out var value) && value.Type == VariantValueType.Bool ? value.GetBool() : null;
+        return PoweredOf(reader.ReadDictionaryOfStringToVariantValue());
+    }
+
+    /// <summary>Powered in an <c>Adapter1</c> property set; null when it is not there.</summary>
+    internal static bool? PoweredOf(Dictionary<string, VariantValue> properties) =>
+        properties.TryGetValue("Powered", out var value) && value.Type == VariantValueType.Bool ? value.GetBool() : null;
+
+    /// <summary>
+    /// Reads whether the adapter is on, once, since PropertiesChanged only tells of a change: an adapter already off at
+    /// launch would otherwise show Waiting. The first adapter, hci0, as nearly every laptop has one. A failed read
+    /// leaves the last known answer.
+    /// </summary>
+    private async Task ReadPoweredAsync(DBusConnection bus, string id)
+    {
+        try
+        {
+            using var writer = bus.GetMessageWriter();
+            writer.WriteMethodCallHeader(
+                destination: id,
+                path: "/org/bluez/hci0",
+                @interface: "org.freedesktop.DBus.Properties",
+                member: "GetAll",
+                signature: "s");
+            writer.WriteString("org.bluez.Adapter1");
+            var powered = await bus.CallMethodAsync(writer.CreateMessage(), static (Message m, object? _) => PoweredOf(m.GetBodyReader().ReadDictionaryOfStringToVariantValue()));
+            if (powered is { } on)
+            {
+                unpowered = !on;
+            }
+        }
+        catch (DBusErrorReplyException e)
+        {
+            Log.Write($"Whether the Bluetooth adapter is on could not be read: {e.ErrorName}");
+        }
     }
 
     /// <summary>

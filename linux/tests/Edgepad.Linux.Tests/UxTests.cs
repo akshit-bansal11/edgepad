@@ -3,6 +3,7 @@ using Edgepad.Bluetooth;
 using Edgepad.Net;
 using Edgepad.Platform;
 using Edgepad.Ui;
+using Tmds.DBus.Protocol;
 using Xunit;
 
 namespace Edgepad.Tests;
@@ -130,6 +131,15 @@ public sealed class UxTests
         Assert.Same(connected, LinuxServer.Idle(connected, retrying: true));
         Assert.Equal(LaptopStatus.BluetoothRetrying, LinuxServer.Idle(null, retrying: true));
         Assert.Equal(LaptopStatus.Waiting, LinuxServer.Idle(null, retrying: false));
+    }
+
+    [Fact]
+    public void AnAdapterOffAtLaunchIsRead()
+    {
+        Assert.False(LinuxServer.PoweredOf(new Dictionary<string, VariantValue> { ["Powered"] = VariantValue.Bool(false), ["Name"] = VariantValue.String("hci0") }));
+        Assert.True(LinuxServer.PoweredOf(new Dictionary<string, VariantValue> { ["Powered"] = VariantValue.Bool(true) }));
+        Assert.Null(LinuxServer.PoweredOf(new Dictionary<string, VariantValue> { ["Powered"] = VariantValue.String("yes") }));
+        Assert.Null(LinuxServer.PoweredOf([]));
     }
 
     [Theory]
