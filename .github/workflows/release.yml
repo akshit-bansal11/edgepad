@@ -48,6 +48,11 @@ on:
 permissions:
   contents: read
 
+# A release run must never be cancelled by a newer one.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   # Avalonia's build tasks report usage to its makers unless told not to. Nothing about this repo's builds
   # is theirs to collect.
