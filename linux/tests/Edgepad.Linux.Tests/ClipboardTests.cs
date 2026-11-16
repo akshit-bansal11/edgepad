@@ -122,6 +122,29 @@ public sealed class ClipboardTests
         Assert.Equal(0, reads);
     }
 
+    [Fact]
+    public void TheSyncReadsNothingWhileTypingBorrowsTheClipboard()
+    {
+        var typed = new ClipboardContent(BlobKind.ClipText, [1]);
+        IDisposable? quiet = null;
+        var startsTyping = new QuietClipboard(new ReadingSurface(() =>
+        {
+            quiet = ClipboardQuiet.Begin();
+            return typed;
+        }));
+        var plain = new QuietClipboard(new ReadingSurface(() => typed));
+
+        Assert.Same(typed, plain.Read());
+        using (ClipboardQuiet.Begin())
+        {
+            Assert.Null(plain.Read());
+        }
+
+        Assert.Null(startsTyping.Read());
+        quiet?.Dispose();
+        Assert.Same(typed, plain.Read());
+    }
+
     private static (ClipboardSync Sync, Func<int> Changes) Sync(bool shared)
     {
         var token = TestContext.Current.CancellationToken;
@@ -138,6 +161,15 @@ public sealed class ClipboardTests
         }
 
         return (sync, () => changes);
+    }
+
+    private sealed class ReadingSurface(Func<ClipboardContent?> read) : IClipboardSurface
+    {
+        public ClipboardContent? Read() => read();
+
+        public void Write(ClipboardContent content)
+        {
+        }
     }
 
     private sealed class NoSurface : IClipboardSurface

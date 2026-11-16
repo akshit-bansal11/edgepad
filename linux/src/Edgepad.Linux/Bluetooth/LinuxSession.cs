@@ -143,7 +143,7 @@ internal sealed class LinuxSession : IDisposable
                 Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"),
                 Environment.GetEnvironmentVariable("DISPLAY"));
             var sender = new BlobSender(frames.Send, link.Kind, () => dispatcher.LastInputMs, ended.Token);
-            var sync = new ClipboardSync(surface, sender, () => ClipboardSetting.Enabled, ended.Token);
+            var sync = new ClipboardSync(new QuietClipboard(surface), sender, () => ClipboardSetting.Enabled, ended.Token);
             dispatcher.Clipboard = sync;
             _ = Task.Run(() => LinuxClipboard.Poll(surface.Fingerprint, sync, () => ClipboardSetting.Enabled, ended.Token));
 
@@ -207,7 +207,8 @@ internal sealed class LinuxSession : IDisposable
             {
                 try
                 {
-                    // The reporter before its source, so no timer reads through the source after it is closed.
+                    // The reporter before its source, so no new timer read starts once the source is closed. A read
+                    // already under way runs outside the reporter's lock, so it can still finish against the closed source.
                     try
                     {
                         power?.Dispose();

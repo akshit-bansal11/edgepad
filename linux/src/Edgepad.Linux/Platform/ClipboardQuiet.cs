@@ -1,4 +1,26 @@
+using Edgepad.Blob;
+
 namespace Edgepad.Platform;
+
+/// <summary>
+/// The clipboard as the shared sync sees it: nothing while <see cref="ClipboardQuiet"/> is up, checked before and after
+/// the read, so a send queued by a copy just before typing starts never reads and sends the typed text.
+/// </summary>
+internal sealed class QuietClipboard(IClipboardSurface inner) : IClipboardSurface
+{
+    public ClipboardContent? Read()
+    {
+        if (ClipboardQuiet.Active)
+        {
+            return null;
+        }
+
+        var content = inner.Read();
+        return ClipboardQuiet.Active ? null : content;
+    }
+
+    public void Write(ClipboardContent content) => inner.Write(content);
+}
 
 /// <summary>
 /// Raised while typing borrows the clipboard (<see cref="Edgepad.Input.PasteGuard"/>), so the poll in
