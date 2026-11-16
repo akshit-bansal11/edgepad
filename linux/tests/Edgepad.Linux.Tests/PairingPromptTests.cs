@@ -154,6 +154,21 @@ public sealed class PairingPromptTests
         Assert.False(opened);
     }
 
+    [Fact]
+    public void LettingTheQuestionGoSaysSoOnce()
+    {
+        var queue = new Queue<Action>();
+        var closed = 0;
+        var prompt = new PairingPrompt(queue.Enqueue, _ => { }, (_, _, _, _, _) => new Window(), () => closed++);
+
+        var handle = prompt.Show("Pixel", _ => { }, () => { });
+        Assert.Equal(0, closed);
+        handle.Dispose();
+        handle.Dispose();
+
+        Assert.Equal(1, closed);
+    }
+
     /// <summary>The window, as far as the pairing can tell it anything.</summary>
     private sealed class Window : IPairingQuestion
     {

@@ -27,6 +27,9 @@ internal sealed class Shell : IDisposable
     /// </summary>
     private static readonly TimeSpan QuietAfterForget = TimeSpan.FromSeconds(30);
 
+    /// <summary>How long a desktop with no tray host at start gets for one to appear before the window is shown.</summary>
+    private static readonly TimeSpan TrayHostGrace = TimeSpan.FromSeconds(10);
+
     private static readonly string NetworkNotice = $"{FirstRunWindow.NetworkBody} {FirstRunWindow.Firewall}";
 
     private readonly TrustStore trust;
@@ -55,8 +58,9 @@ internal sealed class Shell : IDisposable
     // Statuses arrive on session threads; the lock in SetStatus guards it.
     private readonly StatusMemory memory = new();
 
-    // /dev/uinput cannot be opened: input would do nothing while the phone shows connected. Set from any thread.
-    private volatile bool inputBlocked;
+    // 1 while /dev/uinput cannot be opened: input would do nothing while the phone shows connected. Set from any
+    // thread, by Interlocked.
+    private int inputBlocked;
     private bool updateNotified;
 
     // The tray menu stays clickable under a dialog, and a second one would lift the hold while the first was still
@@ -76,11 +80,14 @@ internal sealed class Shell : IDisposable
         this.paired = paired;
         this.identity = identity;
         this.version = version;
-        pairing = PairingPrompt.OnUiThread(phone =>
-        {
-            SetStatus(LaptopStatus.Pairing(phone));
-            Notifier.Send($"{phone} wants to pair", "Type the pairing code it shows.");
-        });
+        // However the question ends, the status line stops asking for the code.
+        pairing = PairingPrompt.OnUiThread(
+            phone =>
+            {
+                SetStatus(LaptopStatus.Pairing(phone));
+                Notifier.Send($"{phone} wants to pair", "Type the pairing code it shows.");
+            },
+            () => server?.PostStatus());
         prompt = new TrustPrompt(
             (address, stillWaiting) => Dispatcher.UIThread.InvokeAsync<bool>(() => TrustWindow.Open(address, stillWaiting)),
             TrustPrompt.DefaultTimeout);
@@ -94,7 +101,21 @@ internal sealed class Shell : IDisposable
         server = bluetooth;
 
         // Off until the owner says yes (network.txt); only a phone that proves itself is handed to the server.
-        network = new NetworkServer(identity, paired, trust, pairing, link => _ = bluetooth.Accept(link), name => SetStatus(LaptopStatus.Paired(name)), () => bluetooth.IsRefusing);
+        // A refused link leaves no session to end, so "Paired with" is replaced here.
+        network = new NetworkServer(
+            identity,
+            paired,
+            trust,
+            pairing,
+            link =>
+            {
+                if (!bluetooth.Accept(link))
+                {
+                    bluetooth.PostStatus();
+                }
+            },
+            name => SetStatus(LaptopStatus.Paired(name)),
+            () => bluetooth.IsRefusing);
     }
 
     /// <summary>Stops listening for Wi-Fi and USB phones and closes theirs. Before the server is disposed; harmless twice.</summary>
@@ -108,8 +129,18 @@ internal sealed class Shell : IDisposable
     }
 
     /// <summary>Runs the UI on the calling thread until Quit; returns Avalonia's exit code. Throws if no display can be opened.</summary>
-    public int Run() =>
-        AppBuilder.Configure(() => new App(StartOrFail)).UsePlatformDetect().StartWithClassicDesktopLifetime([], ShutdownMode.OnExplicitShutdown);
+    public int Run()
+    {
+        try
+        {
+            return AppBuilder.Configure(() => new App(StartOrFail)).UsePlatformDetect().StartWithClassicDesktopLifetime([], ShutdownMode.OnExplicitShutdown);
+        }
+        finally
+        {
+            // No UI loop is left to ask the trust question on or to post the status to.
+            ready = false;
+        }
+    }
 
     /// <summary>
     /// A tray that could not be set up leaves an app with no way to quit it, so it ends instead: logged, told to the
@@ -166,7 +197,7 @@ internal sealed class Shell : IDisposable
         if (shown.IsConnected)
         {
             CheckInput();
-            if (inputBlocked)
+            if (InputBlocked)
             {
                 text = UinputAccess.Blocked;
             }
@@ -176,21 +207,27 @@ internal sealed class Shell : IDisposable
         Log.Write($"Status: {update.Text}");
         if (ready)
         {
+            // The status as it is when the post runs, not as this thread saw it: two threads' posts can run in
+            // either order, and the last one must not put an older line back.
             Dispatcher.UIThread.Post(() =>
             {
-                tray?.SetStatus(text);
-                fallback?.SetStatus(text);
+                var now = status;
+                tray?.SetStatus(now);
+                fallback?.SetStatus(now);
                 ShowProblem();
             });
         }
     }
 
+    private bool InputBlocked => Volatile.Read(ref inputBlocked) != 0;
+
     /// <summary>Probes /dev/uinput and remembers the answer; says so once, in a notification, when it turns bad.</summary>
     private void CheckInput()
     {
         var problem = UinputAccess.Check();
-        var was = inputBlocked;
-        inputBlocked = problem is not null;
+
+        // One exchange, so two threads that both see it turn bad notify once.
+        var was = Interlocked.Exchange(ref inputBlocked, problem is not null ? 1 : 0) != 0;
         if (problem is not null && !was)
         {
             Log.Write($"Input is blocked: {problem}");
@@ -201,7 +238,7 @@ internal sealed class Shell : IDisposable
     /// <summary>The problem row, on the UI thread: input blocked first, then a Wi-Fi listener that would not start.</summary>
     private void ShowProblem()
     {
-        var text = inputBlocked ? UinputAccess.Blocked : networkHint.StartsWith("Could not", StringComparison.Ordinal) ? "Wi-Fi and USB connections could not start; see the log" : null;
+        var text = InputBlocked ? UinputAccess.Blocked : networkHint.StartsWith("Could not", StringComparison.Ordinal) ? "Wi-Fi and USB connections could not start; see the log" : null;
         tray?.SetProblem(text);
         fallback?.SetProblem(text);
     }
@@ -239,6 +276,13 @@ internal sealed class Shell : IDisposable
 
     private void Start(App app)
     {
+        // An exception in a posted body or a timer's tick would otherwise end the UI loop, and with it the app and
+        // the Bluetooth service.
+        Dispatcher.UIThread.UnhandledException += (_, e) =>
+        {
+            Log.Write($"The UI thread hit an exception, which is ignored: {e.Exception}");
+            e.Handled = true;
+        };
         lifetime = app.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
         var hooks = new TrayHooks(
             () => SecurityWindow.LevelNames[Math.Clamp(pin.Level, 1, SecurityWindow.LevelNames.Length) - 1],
@@ -265,13 +309,15 @@ internal sealed class Shell : IDisposable
         }
 
         ready = true;
-        CheckInput();
-        ApplyNetwork();
-        ShowProblem();
+
+        // Each step on its own, so one that throws does not skip the rest (the update timer, first run, annotate).
+        Step(CheckInput, "Input check");
+        Step(ApplyNetwork, "Wi-Fi and USB");
+        Step(ShowProblem, "Problem row");
         _ = Guard(() => ShowFallbackIfNoTrayAsync(hooks));
 
         // Once now and then daily, as on Windows and the Mac, unless the owner turned it off.
-        ApplyUpdateTimer();
+        Step(ApplyUpdateTimer, "Update timer");
         if (!networkSettings.HasChoice || !ClipboardSetting.HasChoice)
         {
             // Posted, so the tray is up and running first.
@@ -279,7 +325,7 @@ internal sealed class Shell : IDisposable
         }
 
         // The hidden overlay, the screen size and whether annotate is offered: only knowable once the UI is up.
-        Annotator.StartUi();
+        Step(Annotator.StartUi, "Annotate");
 
         // A signal that arrived while Avalonia was still starting.
         if (quitRequested)
@@ -320,7 +366,7 @@ internal sealed class Shell : IDisposable
     /// Forgets the Wi-Fi and USB pairings, and tells the owner when they could not be. Every way of forgetting phones
     /// (Forget all… and Reset PIN, both in the Security window) goes through here.
     /// </summary>
-    private async Task ForgetPairedLinksAsync()
+    private async Task ForgetPairedLinksAsync(Window? owner)
     {
         if (paired.Forget())
         {
@@ -328,7 +374,7 @@ internal sealed class Shell : IDisposable
         }
 
         await Dialogs.Inform(
-            null,
+            owner,
             "The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. "
                 + "Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will "
                 + "be able to again the next time it starts. Choose Forget all… in Security… again, or delete "
@@ -340,7 +386,7 @@ internal sealed class Shell : IDisposable
     /// phone has to be trusted again, the one connected included. Connections are refused while the question is
     /// open; a yes forgets and keeps refusing for the quiet period, and anything else takes connections again.
     /// </summary>
-    private async Task ConfirmForgetAsync()
+    private async Task ConfirmForgetAsync(Window? owner)
     {
         if (forgetting)
         {
@@ -355,7 +401,7 @@ internal sealed class Shell : IDisposable
         {
             var phones = string.Join(", ", trust.TrustedPhones);
             var yes = await Dialogs.Confirm(
-                null,
+                owner,
                 (phones.Length > 0 ? $"Forget every trusted phone ({phones})?" : "Forget the trusted phones?")
                     + " Each phone, this one included, will have to be trusted here again before it can use this laptop.",
                 "Forget",
@@ -381,7 +427,7 @@ internal sealed class Shell : IDisposable
             if (!forgotten)
             {
                 await Dialogs.Inform(
-                    null,
+                    owner,
                     "The trusted phones could not be forgotten: their file could not be removed or emptied. No phone can "
                         + "connect while Edgepad stays running, but those phones will be trusted again the next time "
                         + "Edgepad starts. Close whatever is holding the file and choose Forget all… in Security… again, "
@@ -390,12 +436,12 @@ internal sealed class Shell : IDisposable
 
             // The Wi-Fi and USB pairings too, or a forgotten phone would resume its link and only meet the trust
             // question, not a new pairing.
-            await ForgetPairedLinksAsync();
+            await ForgetPairedLinksAsync(owner);
 
             if (!verifiedForgotten)
             {
                 await Dialogs.Inform(
-                    null,
+                    owner,
                     "The phones that entered the PIN could not be forgotten: their list could not be removed. While "
                         + "Edgepad stays running every phone is asked for the PIN on every connection, but those phones "
                         + "will skip it at level 2 again the next time Edgepad starts. Choose Forget all… in Security… "
@@ -526,11 +572,21 @@ internal sealed class Shell : IDisposable
         }
     }
 
-    /// <summary>Shows the fallback window when the desktop has no tray host. Asked off the UI thread, which a bus call may hold up.</summary>
+    /// <summary>
+    /// Shows the fallback window when the desktop has no tray host. Asked off the UI thread, which a bus call may hold
+    /// up. At login the tray host can start seconds after Edgepad, so a first "none" is asked once more 10 s later.
+    /// </summary>
     private async Task ShowFallbackIfNoTrayAsync(TrayHooks hooks)
     {
         if (!await Task.Run(FallbackWindow.NoTrayHost))
         {
+            return;
+        }
+
+        await Task.Delay(TrayHostGrace);
+        if (!await Task.Run(FallbackWindow.NoTrayHost))
+        {
+            Log.Write("The tray host started after Edgepad did, so no window is needed");
             return;
         }
 
@@ -595,6 +651,19 @@ internal sealed class Shell : IDisposable
 
         RefreshViews();
         ShowProblem();
+    }
+
+    /// <summary>One start-up step; its exception is logged and the next step still runs.</summary>
+    private static void Step(Action work, string what)
+    {
+        try
+        {
+            work();
+        }
+        catch (Exception e)
+        {
+            Log.Write($"{what} could not be set up: {e}");
+        }
     }
 
     /// <summary>Nothing may throw out of a menu handler: an exception on the UI thread ends the whole app.</summary>

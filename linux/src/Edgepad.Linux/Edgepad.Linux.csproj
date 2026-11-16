@@ -50,7 +50,7 @@
     <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\Lato-Bold.ttf" Link="Fonts\Lato-Bold.ttf" />
     <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\Lato-Black.ttf" Link="Fonts\Lato-Black.ttf" />
     <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\OFL.txt" Link="Fonts\OFL.txt" />
-    <AvaloniaResource Include="Assets\edgepad-64.png" />
+    <AvaloniaResource Include="Assets\*.png" />
   </ItemGroup>
 
   <ItemGroup>

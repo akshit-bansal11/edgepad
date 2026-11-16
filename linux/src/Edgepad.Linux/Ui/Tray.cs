@@ -157,11 +157,11 @@ internal sealed class Tray : IDisposable
         if (next != dark)
         {
             dark = next;
-            Dispatcher.UIThread.Post(() => Safe(() => icon.Icon = LoadMark(next), "Tray icon"));
+            Dispatcher.UIThread.Post(() => Safe(() => icon.Icon = LoadMark(next) ?? icon.Icon, "Tray icon"));
         }
     }
 
-    /// <summary>The Edgepad mark as a 64 px PNG (Skia does not decode an .ico), the dark tile or the light. Null (no icon, logged) if it will not decode.</summary>
+    /// <summary>The Edgepad mark as a 64 px PNG (Skia does not decode an .ico), the dark tile or the light. Null (logged) if it will not decode; a scheme change then keeps the icon it had.</summary>
     private static WindowIcon? LoadMark(bool dark)
     {
         try

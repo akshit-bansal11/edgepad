@@ -1,5 +1,8 @@
+using Avalonia.Controls;
+using Edgepad.Bluetooth;
 using Edgepad.Net;
 using Edgepad.Platform;
+using Edgepad.Ui;
 using Xunit;
 
 namespace Edgepad.Tests;
@@ -119,4 +122,21 @@ public sealed class UxTests
     [InlineData("Pixel 8", false)]
     public void AnAliasThatIsTheAddressIsNoName(string alias, bool isAddress) =>
         Assert.Equal(isAddress, PhoneName.IsAddress(alias, "AA:BB:CC:DD:EE:FF"));
+
+    [Fact]
+    public void AClosedPairingQuestionLeavesTheIdleStatus()
+    {
+        var connected = LaptopStatus.Connected("Pixel", PhoneWay.Bluetooth);
+        Assert.Same(connected, LinuxServer.Idle(connected, retrying: true));
+        Assert.Equal(LaptopStatus.BluetoothRetrying, LinuxServer.Idle(null, retrying: true));
+        Assert.Equal(LaptopStatus.Waiting, LinuxServer.Idle(null, retrying: false));
+    }
+
+    [Theory]
+    [InlineData(WindowCloseReason.WindowClosing, true)]
+    [InlineData(WindowCloseReason.Undefined, true)]
+    [InlineData(WindowCloseReason.ApplicationShutdown, false)]
+    [InlineData(WindowCloseReason.OSShutdown, false)]
+    public void TheFallbackWindowMinimisesOnlyForTheOwnersClose(WindowCloseReason reason, bool minimises) =>
+        Assert.Equal(minimises, FallbackWindow.MinimisesOnClose(reason));
 }

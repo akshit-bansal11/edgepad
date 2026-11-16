@@ -230,13 +230,23 @@ internal sealed class LinuxServer : IDisposable
     /// <summary>Hangs up on every phone and refuses new connections for <paramref name="quiet"/>.</summary>
     public void HangUp(TimeSpan quiet) => host.HangUp(quiet);
 
-    private void OnSessionEnded()
+    private void OnSessionEnded() => PostStatus();
+
+    /// <summary>
+    /// Says again what the laptop is doing now that nothing else is: after a session ends, a pairing question closes
+    /// (paired, cancelled, timed out, mismatched or its link dropped), or a paired link is refused. Any thread.
+    /// </summary>
+    public void PostStatus()
     {
         if (!stopping.IsCancellationRequested)
         {
-            onStatus(host.CurrentAddress is { } live ? host.Connected(live) : bluetoothd is null || unpowered ? LaptopStatus.BluetoothRetrying : LaptopStatus.Waiting);
+            onStatus(Idle(host.CurrentAddress is { } live ? host.Connected(live) : null, bluetoothd is null || unpowered));
         }
     }
+
+    /// <summary>The status when no question is open: the connected phone, else Bluetooth retrying, else Waiting.</summary>
+    internal static LaptopStatus Idle(LaptopStatus? connected, bool retrying) =>
+        connected ?? (retrying ? LaptopStatus.BluetoothRetrying : LaptopStatus.Waiting);
 
     public void Dispose()
     {
