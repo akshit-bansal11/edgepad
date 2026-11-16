@@ -12,6 +12,8 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.protocol.ActionId
+import me.akshitbansal.edgepad.protocol.EndActionToken
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.UnavailableReason
 
@@ -24,6 +26,9 @@ private const val ROW_DP = 96f
 
 /** The widest the popup grows, in dp: about a phone's portrait width, so a landscape one is not stretched. */
 private const val MAX_WIDTH_DP = 360f
+
+/** UX-27: a reveal that grows from its control takes at most 300 ms. */
+private const val REVEAL_MS = 200L
 
 /** AND-A-29: how many openings say that a tile can be held and moved. */
 private const val HINT_TIMES = 3
@@ -64,6 +69,14 @@ class ControlsPopup(
     private val onHideDials: (Boolean) -> Unit,
     /** TEXT 24: why the laptop cannot offer a feature right now, by [Feature.token]. Empty from an older laptop. */
     private val reasons: () -> Map<String, UnavailableReason> = { emptyMap() },
+    /** Whether TEXT 9 names [Feature.END_ACTION]: the "when this ends" row is hidden without it. */
+    private val endOffered: () -> Boolean = { false },
+    /** TEXT 25: what the laptop has armed. */
+    private val endArmed: () -> EndActionToken = { EndActionToken.NONE },
+    /** Whether the player reports an end time; without one there is nothing to wait for. */
+    private val hasTimeline: () -> Boolean = { true },
+    /** Sends [ActionId.END_SLEEP], [ActionId.END_SHUTDOWN] or [ActionId.END_CANCEL]. */
+    private val onEnd: (ActionId) -> Unit = {},
     private val onOpen: (Target) -> Unit,
 ) {
     /** The controls a tile can open. The order here is the order of a deck nobody has arranged. */
@@ -81,6 +94,10 @@ class ControlsPopup(
     private var dialog: AlertDialog? = null
     private var across = 0
     private lateinit var deck: Deck
+
+    /** The "Sleep when this ends" row and, under it, its choices or the armed line. Rebuilt by [drawEnd]. */
+    private val endBox = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
+    private var endChoices = false
 
     /** The tiles in the order they are drawn, as indexes into the tiles shown, and the stored-order key of each. */
     private var shown: List<Int> = emptyList()
@@ -119,6 +136,11 @@ class ControlsPopup(
         // AND-A-29: the move gesture is told the first few times, under the tiles.
         val body = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
         body.addView(holder)
+        (endBox.parent as? ViewGroup)?.removeView(endBox)
+        endBox.setPadding(pad, 0, pad, 0)
+        endChoices = false
+        drawEnd()
+        body.addView(endBox)
         body.addView(
             ui.toggle(ui.string(R.string.controls_hide_dials), dialsHidden(), onHideDials).apply {
                 setPadding(pad, 0, pad, 0)
@@ -159,7 +181,56 @@ class ControlsPopup(
         capture: Boolean,
         annotate: Boolean,
     ) {
-        if (isOpen) draw(capture, annotate)
+        if (isOpen) {
+            draw(capture, annotate)
+            drawEnd()
+        }
+    }
+
+    /** The laptop's armed state (TEXT 25) or its features changed: the end row follows. */
+    fun refreshEnd() {
+        if (isOpen) drawEnd()
+    }
+
+    /**
+     * AU4: one row that opens two choices, or, while the laptop has one armed, the line saying so and Cancel. The
+     * choices are plain text buttons, so nothing here is told by colour alone. They fade in over [REVEAL_MS] from
+     * the row; the tiles above stay instant.
+     */
+    private fun drawEnd() {
+        endBox.removeAllViews()
+        if (!endOffered()) {
+            endBox.visibility = View.GONE
+            return
+        }
+        endBox.visibility = View.VISIBLE
+        val armed = endArmed()
+        if (armed != EndActionToken.NONE) {
+            val line = if (armed == EndActionToken.SLEEP) R.string.end_armed_sleep else R.string.end_armed_shutdown
+            endBox.addView(ui.secondary(ui.string(line), Type.BODY, ui.palette.ink))
+            endBox.addView(ui.button(ui.string(R.string.end_cancel), Ui.Style.OUTLINED) { onEnd(ActionId.END_CANCEL) })
+            return
+        }
+        val timeline = hasTimeline()
+        val why = if (timeline) null else ui.string(R.string.end_no_timeline)
+        val row =
+            ui.link(ui.string(R.string.end_action_title), why, {
+                endChoices = !endChoices
+                drawEnd()
+            })
+        // Dimmed but still tappable: the summary under the title says why there is nothing to wait for.
+        if (!timeline) row.alpha = Ui.DISABLED_ALPHA
+        endBox.addView(row)
+        if (endChoices && timeline) {
+            val choices = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
+            choices.addView(ui.button(ui.string(R.string.end_sleep), Ui.Style.OUTLINED) { onEnd(ActionId.END_SLEEP) })
+            choices.addView(
+                ui.button(ui.string(R.string.end_shutdown), Ui.Style.OUTLINED) { onEnd(ActionId.END_SHUTDOWN) },
+            )
+            choices.alpha = 0f
+            endBox.addView(choices)
+            choices.animate().alpha(1f).setDuration(REVEAL_MS).start()
+        }
     }
 
     fun dismiss() {
