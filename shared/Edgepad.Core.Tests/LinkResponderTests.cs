@@ -379,7 +379,8 @@ public sealed class LinkResponderTests : IDisposable
         {
             var (phoneEnd, laptopEnd) = Duplex.Create();
             var laptopSide = Laptop(laptopEnd, NoAnswerWait);
-            Assert.Null(LinkInitiator.Pair(phoneEnd, PhoneId, PhoneName, ShowOnPhone).Secure);
+            // The code is not passed to the owner: nobody reads it, and a stale one would be typed into the next prompt.
+            Assert.Null(LinkInitiator.Pair(phoneEnd, PhoneId, PhoneName, _ => { }).Secure);
             Assert.Null(await laptopSide);
         }
 
