@@ -57,7 +57,13 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MenuRow networkRow = new(Strings.Menu_Network, Icons.Wifi) { CheckOnClick = true, Switch = true };
     private readonly MenuRow networkProblem = new(Strings.Network_Title, Icons.Wifi) { Danger = true, Available = false };
     private readonly MenuRow firewallRow = new(Strings.Menu_Firewall, Icons.Shield) { Available = false };
-    private readonly MenuRow bluetoothRow = new(Strings.Menu_BluetoothSettings, Icons.Smartphone) { Available = false };
+    private readonly MenuRow restartAdminRow = new(Strings.Menu_RestartAdmin, Icons.Shield)
+    {
+        Available = !Environment.IsPrivilegedProcess,
+        ToolTipText = Strings.Menu_RestartAdminTip,
+    };
+
+    private readonly MenuRow bluetoothRow =new(Strings.Menu_BluetoothSettings, Icons.Smartphone) { Available = false };
     private readonly MenuRow clipboardRow = new(Strings.Menu_ShareClipboard, ClipboardGlyph)
     {
         CheckOnClick = true,
@@ -149,6 +155,7 @@ internal sealed class TrayContext : ApplicationContext
         securityRow.Click += (_, _) => ShowSecurity();
         networkRow.Click += (_, _) => ToggleNetwork(networkRow.Checked);
         firewallRow.Click += (_, _) => AllowFirewall(ReportFirewall);
+        restartAdminRow.Click += (_, _) => RestartAsAdministrator();
         clipboardRow.Click += (_, _) => SaveClipboard(clipboardRow.Checked);
         checkUpdates.Click += (_, _) => SaveCheckUpdates(checkUpdates.Checked);
         update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
@@ -170,6 +177,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(bluetoothRow);
         menu.Items.Add(networkProblem);
         menu.Items.Add(firewallRow);
+        menu.Items.Add(restartAdminRow);
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(networkRow);
         menu.Items.Add(clipboardRow);
@@ -741,6 +749,41 @@ internal sealed class TrayContext : ApplicationContext
         }
     }
 
+    /// <summary>
+    /// Starts a copy with administrator rights and quits this one, so the lock is free for it. Declining the UAC prompt
+    /// (error 1223) leaves this copy running.
+    /// </summary>
+    private void RestartAsAdministrator()
+    {
+        var sid = SingleInstance.CurrentUserSid();
+        var path = Environment.ProcessPath;
+        if (sid is null || path is null)
+        {
+            Log.Write("Restart as administrator: the user or the exe path is unknown");
+            return;
+        }
+
+        try
+        {
+            using var started = Process.Start(new ProcessStartInfo(path, SingleInstance.RestartArguments(sid))
+            {
+                UseShellExecute = true,
+                Verb = "runas",
+            });
+        }
+        catch (Win32Exception e) when (e.NativeErrorCode == SingleInstance.UacDeclined)
+        {
+            return;
+        }
+        catch (Exception e) when (e is Win32Exception or InvalidOperationException)
+        {
+            Log.Write($"Restart as administrator: {e.Message}");
+            return;
+        }
+
+        ExitThread();
+    }
+
     private static MenuRow Row(string text, string glyph, Action run, string? hint = null)
     {
         var row = new MenuRow(text, glyph) { Hint = hint };
@@ -1156,6 +1199,7 @@ internal sealed class TrayContext : ApplicationContext
             networkRow.Dispose();
             networkProblem.Dispose();
             firewallRow.Dispose();
+            restartAdminRow.Dispose();
             bluetoothRow.Dispose();
             clipboardRow.Dispose();
             checkUpdates.Dispose();

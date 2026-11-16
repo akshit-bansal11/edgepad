@@ -1,3 +1,4 @@
+using Edgepad.Notifications;
 using Edgepad.Startup;
 using Edgepad.Trust;
 using Edgepad.Ui;
@@ -20,9 +21,25 @@ internal static class Program
     public static string Version => Application.ProductVersion.Split('+')[0];
 
     [STAThread]
-    private static void Main()
+    private static void Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Write($"Unhandled: {e.ExceptionObject}");
+
+        var launch = SingleInstance.Parse(args);
+        if (launch.ProbeNotifications)
+        {
+            // The 4.9.0 spike: writes the listener's access status to the log and exits, touching nothing else.
+            NotificationProbe.Run();
+            return;
+        }
+
+        // A copy that restarted itself as administrator names the user it was started for. Another account would
+        // change what HKCU means, so it refuses.
+        if (!SingleInstance.RestartAllowed(launch.RestartSid, SingleInstance.CurrentUserSid()))
+        {
+            Log.Write($"Edgepad {Version} not started: --restart named a different user");
+            return;
+        }
 
         // An exception out of a UI event handler goes to the log and the app keeps running, instead of WinForms'
         // Continue/Quit box, which a tray app's owner has no way to make sense of.
@@ -53,7 +70,7 @@ internal static class Program
 
         using var owned = single;
         var lockFree = Acquire(single);
-        var choice = SingleInstance.Decide(lockFree, !lockFree && SameVersionRunning());
+        var choice = SingleInstance.Decide(lockFree, !lockFree && SameVersionRunning(), restart: launch.RestartSid is not null);
         if (choice == LaunchChoice.Notify)
         {
             // Double-clicking the exe again to "open" it must not quit the copy that is serving a phone.
