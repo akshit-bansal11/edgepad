@@ -2,6 +2,14 @@ using Edgepad.Protocol;
 
 namespace Edgepad.Trust;
 
+/// <summary>How <see cref="PinGate.Run"/> ended.</summary>
+internal enum PinOutcome
+{
+    Passed,
+    Refused,
+    LockedOut,
+}
+
 /// <summary>
 /// The PIN question between the owner's trust and HELLO_ACK, at security levels 2 and 3. It knows nothing of
 /// sockets: it reads and sends whole frames through delegates and ends a silent wait through <c>giveUp</c>, which
@@ -36,11 +44,12 @@ internal static class PinGate
 
     /// <summary>
     /// Asks <paramref name="address"/> for the PIN when its level requires it, until it is right, the phone is locked
-    /// out, or the answer cannot be judged. True when the phone may go on to HELLO_ACK; false when the caller must
-    /// close the link without one. A frame other than PIN_ANSWER while waiting throws
+    /// out, or the answer cannot be judged. <see cref="PinOutcome.Passed"/> when the phone may go on to HELLO_ACK;
+    /// otherwise the caller closes the link without one, and tells a lock-out (reached here, by the fifth wrong PIN,
+    /// or before) from any other refusal. A frame other than PIN_ANSWER while waiting throws
     /// <see cref="InvalidDataException"/>, a protocol error like any other.
     /// </summary>
-    public static bool Run(
+    public static PinOutcome Run(
         string address,
         PinStore pin,
         Func<Frame> read,
@@ -51,14 +60,14 @@ internal static class PinGate
     {
         if (!pin.Required(address))
         {
-            return true;
+            return PinOutcome.Passed;
         }
 
         // Checked again here, not only before the trust question: another connection from the same address may
         // have used up the tries while the owner was answering.
         if (LockedOut(address, pin, send, log))
         {
-            return false;
+            return PinOutcome.LockedOut;
         }
 
         var wait = timeout ?? AnswerTimeout;
@@ -93,7 +102,7 @@ internal static class PinGate
             // An answer that came back after giveUp closed the link is not judged: the link it would admit is dead.
             if (Interlocked.Exchange(ref expired, 1) != 0)
             {
-                return false;
+                return PinOutcome.Refused;
             }
 
             if (frame is not PinAnswer answer)
@@ -105,7 +114,7 @@ internal static class PinGate
             {
                 case PinResult.Accepted:
                     log($"PIN accepted for {address}");
-                    return true;
+                    return PinOutcome.Passed;
                 case PinResult.Wrong wrong:
                     log($"PIN rejected for {address}");
                     send(new PinRequest((byte)wrong.AttemptsLeft, 0));
@@ -113,13 +122,13 @@ internal static class PinGate
                 case PinResult.Locked locked:
                     send(new PinRequest(0, (ushort)Math.Min(locked.Seconds, ushort.MaxValue)));
                     log($"PIN rejected for {address}: locked out for {locked.Seconds} s");
-                    return false;
+                    return PinOutcome.LockedOut;
                 default:
                     // Unreadable settings, no PIN, or the PIN or level changed while this answer was being hashed.
                     // Not the phone's fault, so not counted against it; but nothing proved it may come in either,
                     // and it is closed without HELLO_ACK to connect again under whatever is now in force.
                     log($"Refused {address}: its PIN could not be checked against the current security settings");
-                    return false;
+                    return PinOutcome.Refused;
             }
         }
     }

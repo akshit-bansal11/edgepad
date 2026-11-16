@@ -48,13 +48,13 @@ public sealed class LinkResponderTests : IDisposable
     }
 
     /// <summary>The laptop, accepting on <paramref name="end"/>; when it gives no link it closes the end, as the listener will.</summary>
-    private Task<LinkResult?> Laptop(Stream end, TimeSpan? ownerWait = null, bool refusing = false, IPAddress? remote = null, TimeSpan? messageWait = null) => Task.Run(
+    private Task<LinkResult?> Laptop(Stream end, TimeSpan? ownerWait = null, bool refusing = false, IPAddress? remote = null, TimeSpan? messageWait = null, Func<bool>? peerGone = null) => Task.Run(
         () =>
         {
             LinkResult? result = null;
             try
             {
-                result = LinkResponder.Accept(end, laptop, paired, limiter, owner, trust, logs.Enqueue, end.Dispose, ended.Token, messageWait ?? MessageWait, ownerWait ?? MessageWait, () => refusing, remote);
+                result = LinkResponder.Accept(end, laptop, paired, limiter, owner, trust, logs.Enqueue, end.Dispose, ended.Token, messageWait ?? MessageWait, ownerWait ?? MessageWait, () => refusing, remote, peerGone);
                 return result;
             }
             finally
@@ -672,6 +672,51 @@ public sealed class LinkResponderTests : IDisposable
         Assert.Contains(logs, line => line.Contains("the trusted phones cannot be read", StringComparison.Ordinal));
         Assert.DoesNotContain(logs, line => line.Contains("forgotten", StringComparison.Ordinal));
         Assert.Equal(["link:00112233445566778899aabbccddeeff"], trust.TrustedPhones);
+    }
+
+    [Fact]
+    public async Task APhoneThatHangsUpUnderThePromptWithdrawsItAtOnceUncounted()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var remote = IPAddress.Parse("192.168.1.77");
+        using var gone = new ManualResetEventSlim();
+        owner.Types = null;
+        var (phoneEnd, laptopEnd) = Duplex.Create();
+        var laptopSide = Laptop(laptopEnd, TimeSpan.FromSeconds(30), remote: remote, peerGone: () => gone.IsSet);
+        var phone = Task.Run(() => LinkInitiator.Pair(phoneEnd, PhoneId, PhoneName, ShowOnPhone), ct);
+        while (owner.Shown == 0)
+        {
+            await Task.Delay(10, ct);
+        }
+
+        gone.Set();
+        Assert.Null(await laptopSide.WaitAsync(TimeSpan.FromSeconds(1), ct));
+        Assert.Equal(1, owner.Withdrawn);
+        Assert.Contains(logs, line => line.Contains("the phone hung up", StringComparison.Ordinal));
+        await phone.WaitAsync(MessageWait, ct);
+
+        // Not counted and no host held off: the same host pairs at once.
+        owner.Types = code => code;
+        (phoneEnd, laptopEnd) = Duplex.Create();
+        laptopSide = Laptop(laptopEnd, remote: remote);
+        Assert.NotNull(LinkInitiator.Pair(phoneEnd, PhoneId, PhoneName, ShowOnPhone).Secure);
+        Assert.NotNull(await laptopSide);
+    }
+
+    [Fact]
+    public async Task AConfirmationAfterTheOwnersWaitIsStillTaken()
+    {
+        // The phone's minute starts before the code is typed here, so its yes can land after the laptop's own
+        // wait would have ended: a grace on top of it lets that through.
+        var ownerWait = TimeSpan.FromMilliseconds(500);
+        owner.Types = code => code;
+        var (phoneEnd, laptopEnd) = Duplex.Create();
+        var laptopSide = Laptop(laptopEnd, ownerWait);
+
+        var phone = LinkInitiator.Pair(phoneEnd, PhoneId, PhoneName, ShowOnPhone, confirmAfter: ownerWait + TimeSpan.FromSeconds(3));
+
+        Assert.NotNull(phone.Secure);
+        Assert.NotNull(await laptopSide);
     }
 
     public void Dispose()

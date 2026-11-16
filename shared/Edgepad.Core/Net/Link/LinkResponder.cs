@@ -147,10 +147,34 @@ internal static class LinkResponder
         Cancelled,
         TimedOut,
         Ended,
+        PeerGone,
     }
+
+    // How often a pairing prompt checks that the phone is still there.
+    private static readonly TimeSpan PeerPoll = TimeSpan.FromMilliseconds(250);
+
+    // The phone's own wait for the confirmation starts before the owner types the code here, so ours runs this much
+    // longer: a yes at the end of the phone's minute must not land after the laptop gave up.
+    private static readonly TimeSpan ConfirmGrace = TimeSpan.FromSeconds(5);
 
     /// <summary>The address a network phone goes by in the trust file, the PIN gate and the log.</summary>
     public static string AddressOf(byte[] phoneId) => "link:" + Convert.ToHexStringLower(phoneId);
+
+    /// <summary>
+    /// Whether the phone at the other end of <paramref name="socket"/> has hung up, for <c>peerGone</c>. Reads no
+    /// byte, so the confirmation that may follow is not stolen: readable with nothing to read is an orderly close.
+    /// </summary>
+    public static bool HungUp(Socket socket)
+    {
+        try
+        {
+            return socket.Poll(0, SelectMode.SelectRead) && socket.Available == 0;
+        }
+        catch (Exception e) when (e is SocketException or ObjectDisposedException)
+        {
+            return true;
+        }
+    }
 
     public static LinkResult? Accept(
         Stream raw,
@@ -165,7 +189,8 @@ internal static class LinkResponder
         TimeSpan? messageTimeout = null,
         TimeSpan? ownerTimeout = null,
         Func<bool>? refusing = null,
-        IPAddress? remote = null)
+        IPAddress? remote = null,
+        Func<bool>? peerGone = null)
     {
         var wait = messageTimeout ?? MessageTimeout;
         var body = ReadWithin(raw, wait, "request", log, giveUp);
@@ -194,7 +219,7 @@ internal static class LinkResponder
                     return null;
                 }
 
-                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, remote, ended);
+                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, remote, ended, peerGone ?? (() => false));
 
             case ResumeRequest resume:
                 return Resume(raw, resume, self, paired, log, giveUp, wait);
@@ -217,7 +242,8 @@ internal static class LinkResponder
         TimeSpan wait,
         TimeSpan ownerWait,
         IPAddress? remote,
-        CancellationToken ended)
+        CancellationToken ended,
+        Func<bool> peerGone)
     {
         var address = AddressOf(request.PhoneId);
 
@@ -296,12 +322,18 @@ internal static class LinkResponder
             // From here the prompt is up: any end not named below (a read that fails or times out after the code) is an
             // unanswered prompt and holds this host off, or a phone could raise the prompt, drop out and raise it again.
             outcome = PairingOutcome.TimedOut;
-            var (answer, typed) = AwaitOwner(asked, ownerWait, ended);
+            var (answer, typed) = AwaitOwner(asked, ownerWait, ended, peerGone);
             switch (answer)
             {
                 case OwnerAnswer.Cancelled:
                     outcome = PairingOutcome.Cancelled;
                     log($"The owner cancelled pairing {address}");
+                    return null;
+                case OwnerAnswer.PeerGone:
+                    // The phone cancelled or dropped out: the prompt is withdrawn at once (the finally below), not
+                    // left up for the owner's whole wait. Not counted and no host held off, as for any hang-up.
+                    outcome = PairingOutcome.Abandoned;
+                    log($"Stopped pairing {address}: the phone hung up");
                     return null;
                 case OwnerAnswer.Ended:
                     // Only the owner ends this wait (DropPending: Forget, holding phones off) or the app stopping;
@@ -341,7 +373,7 @@ internal static class LinkResponder
             // The phone's owner confirms too, on the phone, that this laptop said the code matched: the only check
             // that tells the phone it reached this laptop and not something in between. That takes a person, so the
             // wait is the owner's, not a message's, and the listener's per-message read deadline must not cut it short.
-            var confirmed = ReadOwnerLength(raw, ownerWait, log, giveUp);
+            var confirmed = ReadOwnerLength(raw, ownerWait + ConfirmGrace, log, giveUp);
             if (confirmed is null)
             {
                 outcome = PairingOutcome.TimedOut;
@@ -483,13 +515,29 @@ internal static class LinkResponder
 
     /// <summary>
     /// Waits for whichever answer to the code question comes first: the digits, a cancel, the timer, or the link
-    /// ending. The answer is claimed once, so a click landing with the timer is either taken or ignored, never both.
+    /// ending, or the phone hanging up (<paramref name="peerGone"/>, checked every <see cref="PeerPoll"/>). The answer
+    /// is claimed once, so a click landing with the timer is either taken or ignored, never both.
     /// </summary>
-    private static (OwnerAnswer Answer, string Typed) AwaitOwner(TaskCompletionSource<string?> answer, TimeSpan wait, CancellationToken ended)
+    private static (OwnerAnswer Answer, string Typed) AwaitOwner(
+        TaskCompletionSource<string?> answer, TimeSpan wait, CancellationToken ended, Func<bool> peerGone)
     {
+        var gone = false;
+        var deadline = Environment.TickCount64 + (long)wait.TotalMilliseconds;
         try
         {
-            _ = answer.Task.Wait(wait, ended);
+            while (!answer.Task.Wait(TimeSpan.FromMilliseconds(Math.Clamp(deadline - Environment.TickCount64, 0, (long)PeerPoll.TotalMilliseconds)), ended))
+            {
+                if (peerGone())
+                {
+                    gone = true;
+                    break;
+                }
+
+                if (Environment.TickCount64 >= deadline)
+                {
+                    break;
+                }
+            }
         }
         catch (OperationCanceledException)
         {
@@ -505,7 +553,7 @@ internal static class LinkResponder
 
         if (answer.Task.IsCanceled)
         {
-            return (OwnerAnswer.TimedOut, "");
+            return (gone ? OwnerAnswer.PeerGone : OwnerAnswer.TimedOut, "");
         }
 
         return answer.Task.Result is { } digits ? (OwnerAnswer.Typed, digits) : (OwnerAnswer.Cancelled, "");

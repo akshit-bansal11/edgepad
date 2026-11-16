@@ -22,7 +22,7 @@ internal static class LinkInitiator
         return LinkWire.DecodeReply(LinkWire.ModeInfo, LinkWire.Read(link));
     }
 
-    public static Initiated Pair(Stream link, byte[] phoneId, string name, Action<string> showCode)
+    public static Initiated Pair(Stream link, byte[] phoneId, string name, Action<string> showCode, TimeSpan confirmAfter = default)
     {
         using var own = LinkCrypto.NewKeyPair();
         var nonce = RandomNumberGenerator.GetBytes(LinkWire.NonceLength);
@@ -57,6 +57,8 @@ internal static class LinkInitiator
                 return new Initiated(LinkWire.StatusOk, null, []);
             }
 
+            // The phone owner taking a while to tap Yes.
+            Thread.Sleep(confirmAfter);
             LinkWire.Write(link, LinkWire.Tag(LinkCrypto.PhoneTag(prk, transcript, pairing: true)));
             return new Initiated(LinkWire.StatusOk, new SecureStream(link, prk, isPhone: true), LinkCrypto.PairingKey(prk));
         }

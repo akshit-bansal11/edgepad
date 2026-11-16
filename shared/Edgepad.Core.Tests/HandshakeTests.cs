@@ -227,7 +227,9 @@ public sealed class HandshakeTests : IDisposable
             [new PinRequest(5, 0), new PinRequest(4, 0), new PinRequest(3, 0), new PinRequest(2, 0), new PinRequest(1, 0), new PinRequest(0, 30)],
             Sent());
         Assert.Equal(0, admitted);
-        Assert.Contains(LaptopStatus.RefusedPin, statuses);
+        // The fifth wrong PIN reached the lock-out, and the phone is told that, not merely that the PIN was wrong.
+        Assert.Contains(LaptopStatus.RefusedLockedOut, statuses);
+        Assert.DoesNotContain(LaptopStatus.RefusedPin, statuses);
     }
 
     [Fact]
