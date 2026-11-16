@@ -1,3 +1,4 @@
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -74,9 +75,20 @@ internal sealed record Look(IBrush Card, IBrush Line, IBrush Ink, IBrush Dim, IB
         return button;
     }
 
+    /// <summary>The reading direction of the language the app is shown in: right to left for Arabic.</summary>
+    public static FlowDirection Direction => DirectionOf(CultureInfo.CurrentUICulture);
+
+    /// <summary>
+    /// Right to left for a right-to-left culture. The app runs with invariant globalization, whose culture data says no
+    /// culture reads right to left, so Arabic, the one right-to-left language shipped, is named as well.
+    /// </summary>
+    internal static FlowDirection DirectionOf(CultureInfo culture) =>
+        culture.TextInfo.IsRightToLeft || culture.TwoLetterISOLanguageName == "ar" ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+
     /// <summary>A dialog window with this look: fixed size to its content, no resizing, centred on the screen.</summary>
     public Window Dialog(string title, double width, Control content) => new()
     {
+        FlowDirection = Direction,
         Title = title,
         Width = width,
         SizeToContent = SizeToContent.Height,
