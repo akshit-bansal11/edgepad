@@ -1791,8 +1791,16 @@ class MainActivity :
      * that connects looks through all of them, so a laptop reached through "show all" once is still found
      * by the reconnect that follows, however its Bluetooth class reads.
      */
+    /** Bluetooth is on and this app may use it: only then does an empty [bonded] list mean "not paired". */
+    private fun bluetoothReady(): Boolean {
+        val adapter = getSystemService(BluetoothManager::class.java)?.adapter ?: return false
+        return adapter.isEnabled &&
+            checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+    }
+
     private fun bonded(): List<BluetoothDevice> {
         val adapter = getSystemService(BluetoothManager::class.java)?.adapter ?: return emptyList()
+        // Checked here and not through bluetoothReady(), so lint sees the permission check next to its use.
         if (!adapter.isEnabled) return emptyList()
         if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             return emptyList()
@@ -1912,7 +1920,8 @@ class MainActivity :
             }
         val chosen = target ?: row.laptop?.target
         if (chosen == null) {
-            picker.setMessage(getString(R.string.not_paired))
+            // With Bluetooth off or not allowed, the empty bonded list says nothing about the pairing.
+            if (via != Transport.BLUETOOTH || bluetoothReady()) picker.setMessage(getString(R.string.not_paired))
         } else {
             connect(if (pairAgain && chosen is Target.Network) chosen.again() else chosen, via, tapped = true)
         }
@@ -2051,7 +2060,8 @@ class MainActivity :
      */
     override fun onConnecting(laptop: Laptop) {
         val target = laptop.target
-        if (target is Target.Bluetooth && bonded().none { it.address == target.key }) {
+        // Bluetooth off is not "not paired": that attempt fails as unreachable and retries.
+        if (target is Target.Bluetooth && bluetoothReady() && bonded().none { it.address == target.key }) {
             val shown = laptop === selected
             manager.stopRetrying(laptop.id)
             if (shown && screen == Screen.RECONNECTING) goTo(Screen.PAIRING)
