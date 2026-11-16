@@ -13,6 +13,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import me.akshitbansal.edgepad.Motion
+import java.lang.ref.WeakReference
 
 /**
  * The pure arithmetic of [Carry], free of Android types so a JVM test can run it. Lengths are in pixels.
@@ -116,9 +117,25 @@ object Carry {
     private var mark: CarryMath.Box? = null
     private var markedAt = 0L
 
-    private var outgoing: View? = null
-    private var incoming: View? = null
-    private var host: FrameLayout? = null
+    // Weak, because this is a process-wide object: a strong View here would hold a finished activity alive.
+    private var outgoingRef = WeakReference<View>(null)
+    private var incomingRef = WeakReference<View>(null)
+    private var hostRef = WeakReference<FrameLayout>(null)
+    private var outgoing: View?
+        get() = outgoingRef.get()
+        set(value) {
+            outgoingRef = WeakReference(value)
+        }
+    private var incoming: View?
+        get() = incomingRef.get()
+        set(value) {
+            incomingRef = WeakReference(value)
+        }
+    private var host: FrameLayout?
+        get() = hostRef.get()
+        set(value) {
+            hostRef = WeakReference(value)
+        }
     private var start: CarryMath.Start? = null
     private var toOrigin = false
     private var alphaSpan = Motion.REVEAL
