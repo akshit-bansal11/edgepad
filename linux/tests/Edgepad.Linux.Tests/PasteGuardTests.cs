@@ -1,11 +1,13 @@
 using System.Text;
 using Edgepad.Blob;
 using Edgepad.Input;
+using Edgepad.Platform;
 using Edgepad.Protocol;
 using Xunit;
 
 namespace Edgepad.Tests;
 
+[Collection(nameof(ClipboardQuiet))]
 public sealed class PasteGuardTests
 {
     private const string Pasted = "pasted";
@@ -81,6 +83,25 @@ public sealed class PasteGuardTests
         Assert.Throws<InvalidOperationException>(() =>
             PasteGuard.Around(surface, () => throw new InvalidOperationException("paste"), () => surface.Calls.Add("settle"), Pasted));
         Assert.Equal(["read", "read", "write before"], surface.Calls);
+    }
+
+    [Fact]
+    public void TheClipboardPollIsQuietOnlyDuringThePaste()
+    {
+        var surface = new FakeSurface(Text("before"), Text(Pasted));
+        var seen = new List<bool>();
+        PasteGuard.Around(surface, () => seen.Add(ClipboardQuiet.Active), () => seen.Add(ClipboardQuiet.Active), Pasted);
+        Assert.Equal([true, true], seen);
+        Assert.False(ClipboardQuiet.Active);
+    }
+
+    [Fact]
+    public void AThrowingPasteEndsTheQuiet()
+    {
+        var surface = new FakeSurface(Text("before"), Text(Pasted));
+        Assert.Throws<InvalidOperationException>(() =>
+            PasteGuard.Around(surface, () => throw new InvalidOperationException("paste"), () => { }, Pasted));
+        Assert.False(ClipboardQuiet.Active);
     }
 
     private static ClipboardContent Text(string text) => new(BlobKind.ClipText, Encoding.UTF8.GetBytes(text));

@@ -26,6 +26,9 @@ internal sealed class LinuxClipboard : IClipboardSurface
 
     private const int MaxListingBytes = 64 * 1024;
 
+    /// <summary>How much of the clipboard <see cref="Fingerprint"/> fetches.</summary>
+    private const int HeadBytes = 16 * 1024;
+
     private static readonly string[] TextTypes = ["text/plain;charset=utf-8", "UTF8_STRING"];
     private static readonly TimeSpan ToolTimeout = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan PollEvery = TimeSpan.FromSeconds(1);
@@ -99,6 +102,32 @@ internal sealed class LinuxClipboard : IClipboardSurface
         return ListTypes()?.SequenceEqual(listing) == true ? new ClipboardContent(kind, data) : null;
     }
 
+    /// <summary>
+    /// What the poll compares to notice a copy: the SHA-256 of the type listing and at most the first 16 KiB of the
+    /// type <see cref="Read"/> would take, so a 4 MB image is not fetched every second only to be hashed. Null for
+    /// nothing that can be shared, including a password manager's copy, which is never fetched. ponytail: a change
+    /// beyond the first 16 KiB with an identical head and listing is noticed at the next different copy; raise the
+    /// head or hash the length if that shows up.
+    /// </summary>
+    public byte[]? Fingerprint()
+    {
+        if (!available || ListTypes() is not { } listing)
+        {
+            return null;
+        }
+
+        var pick = Pick(Encoding.UTF8.GetString(listing).Split('\n', StringSplitOptions.RemoveEmptyEntries));
+        if (pick is not { Sensitive: false, Target: { } target })
+        {
+            return null;
+        }
+
+        var head = wayland
+            ? Capture("wl-paste", ["--no-newline", "--type", target], HeadBytes)
+            : Capture("xclip", ["-selection", "clipboard", "-o", "-t", target], HeadBytes);
+        return head is { Length: > 0 } ? SHA256.HashData([.. listing, .. head]) : null;
+    }
+
     private byte[]? ListTypes() => wayland
         ? Capture("wl-paste", ["--list-types"], MaxListingBytes)
         : Capture("xclip", ["-selection", "clipboard", "-o", "-t", "TARGETS"], MaxListingBytes);
@@ -123,35 +152,20 @@ internal sealed class LinuxClipboard : IClipboardSurface
     /// <summary>
     /// Tells <paramref name="sync"/> when this clipboard changes, by polling (no change event exists to listen to).
     /// The first read after start, or after the owner's toggle came back on, only learns what is there, so nothing
-    /// old is sent. Nothing is read while the toggle is off. ponytail: one tool run a second, an inotify-like
-    /// watcher (wl-paste --watch) only if that shows up in a profile.
+    /// old is sent. Nothing is read while the toggle is off or until the phone asked on this link. ponytail: one tool
+    /// run a second, an inotify-like watcher (wl-paste --watch) only if that shows up in a profile.
     /// </summary>
-    public static async Task Poll(IClipboardSurface surface, ClipboardSync sync, Func<bool> allowed, CancellationToken ended)
+    public static async Task Poll(Func<byte[]?> fingerprint, ClipboardSync sync, Func<bool> allowed, CancellationToken ended)
     {
         using var timer = new PeriodicTimer(PollEvery);
-        byte[]? last = null;
-        var primed = false;
+        var state = new PollState();
         try
         {
             while (await timer.WaitForNextTickAsync(ended))
             {
-                if (!allowed())
-                {
-                    primed = false;
-                    continue;
-                }
-
                 try
                 {
-                    var content = surface.Read();
-                    var now = content is { Sensitive: false, Data.Length: > 0 } ? SHA256.HashData(content.Data) : null;
-                    if (primed && now is not null && (last is null || !now.AsSpan().SequenceEqual(last)))
-                    {
-                        sync.LocalChanged();
-                    }
-
-                    last = now;
-                    primed = true;
+                    Tick(fingerprint, sync, allowed, state);
                 }
                 catch (Exception e) when (e is not OperationCanceledException)
                 {
@@ -163,6 +177,43 @@ internal sealed class LinuxClipboard : IClipboardSurface
         {
             // The session ended.
         }
+    }
+
+    /// <summary>
+    /// One poll. Skipped, and the next read only learns, while the toggle is off, the phone has not asked, or typing
+    /// borrows the clipboard (<see cref="ClipboardQuiet"/>), checked before and after the read. So the typed text and
+    /// its restore are never sent; a copy the user makes inside that window of about 0.4 s is not sent either.
+    /// </summary>
+    internal static void Tick(Func<byte[]?> fingerprint, ClipboardSync sync, Func<bool> allowed, PollState state)
+    {
+        if (!allowed() || !sync.IsShared || ClipboardQuiet.Active)
+        {
+            state.Primed = false;
+            return;
+        }
+
+        var now = fingerprint();
+        if (ClipboardQuiet.Active)
+        {
+            state.Primed = false;
+            return;
+        }
+
+        if (state.Primed && now is not null && (state.Last is null || !now.AsSpan().SequenceEqual(state.Last)))
+        {
+            sync.LocalChanged();
+        }
+
+        state.Last = now;
+        state.Primed = true;
+    }
+
+    /// <summary>What <see cref="Tick"/> carries from one poll to the next.</summary>
+    internal sealed class PollState
+    {
+        public byte[]? Last { get; set; }
+
+        public bool Primed { get; set; }
     }
 
     /// <summary>

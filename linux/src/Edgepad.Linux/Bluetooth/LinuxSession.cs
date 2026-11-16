@@ -144,7 +144,7 @@ internal sealed class LinuxSession : IDisposable
             var sender = new BlobSender(frames.Send, link.Kind, () => dispatcher.LastInputMs, ended.Token);
             var sync = new ClipboardSync(surface, sender, () => ClipboardSetting.Enabled, ended.Token);
             dispatcher.Clipboard = sync;
-            _ = Task.Run(() => LinuxClipboard.Poll(surface, sync, () => ClipboardSetting.Enabled, ended.Token));
+            _ = Task.Run(() => LinuxClipboard.Poll(surface.Fingerprint, sync, () => ClipboardSetting.Enabled, ended.Token));
 
             // The apps the phone may pick from: a pick is a token into a list built here, never a path from the phone.
             dispatcher.Apps = new AppPicker(new DesktopEntryCatalog(), macros(), sender, ended.Token);

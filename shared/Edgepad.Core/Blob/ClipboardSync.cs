@@ -92,6 +92,9 @@ internal sealed class ClipboardSync
         receiver = new BlobReceiver(Cap, Received);
     }
 
+    /// <summary>Whether the phone asked for the clipboard on this link (SET CLIPBOARD 1), so a poll has anything to do.</summary>
+    public bool IsShared => shared;
+
     private bool Active => shared && !ended.IsCancellationRequested && allowed();
 
     /// <summary>

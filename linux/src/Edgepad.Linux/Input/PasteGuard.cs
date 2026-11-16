@@ -1,5 +1,6 @@
 using System.Text;
 using Edgepad.Blob;
+using Edgepad.Platform;
 using Edgepad.Protocol;
 
 namespace Edgepad.Input;
@@ -21,6 +22,9 @@ internal static class PasteGuard
     /// clipboard still holds it, so something the user copied during the typing is kept.</param>
     internal static void Around(IClipboardSurface surface, Action paste, Action settle, string pasted)
     {
+        // The clipboard poll stays quiet from the save through the restore, so neither the typed text nor the restore
+        // reaches the phone as a copy.
+        using var quiet = ClipboardQuiet.Begin();
         ClipboardContent? before;
         try
         {
