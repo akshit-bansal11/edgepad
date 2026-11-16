@@ -9,7 +9,7 @@ public sealed class BluetoothLinkTests
     [Fact]
     public void ANameWithANewlineIsCleaned()
     {
-        Assert.Equal("PixelEvil",BluetoothLink.LabelFor("AA:BB", "Pixel\nEvil"));
+        Assert.Equal("PixelEvil", BluetoothLink.LabelFor("AA:BB", "Pixel\nEvil"));
     }
 
     [Theory]

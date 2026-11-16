@@ -899,6 +899,9 @@ private class StackingRow(
     private val control: View,
     private val gap: Int,
 ) : LinearLayout(context) {
+    /** For layout tools only (lint ViewConstructor); the app always passes its label and control. */
+    constructor(context: Context) : this(context, View(context), View(context), 0)
+
     private var stacked = false
 
     init {

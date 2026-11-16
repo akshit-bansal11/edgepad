@@ -219,7 +219,7 @@ internal static class LinkResponder
                     return null;
                 }
 
-                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, remote, ended, peerGone ?? (() => false));
+                return Pair(raw, pair, self, paired, limiter, prompt, trust, log, giveUp, wait, ownerTimeout ?? OwnerTimeout, remote, peerGone ?? (() => false), ended);
 
             case ResumeRequest resume:
                 return Resume(raw, resume, self, paired, log, giveUp, wait);
@@ -242,8 +242,8 @@ internal static class LinkResponder
         TimeSpan wait,
         TimeSpan ownerWait,
         IPAddress? remote,
-        CancellationToken ended,
-        Func<bool> peerGone)
+        Func<bool> peerGone,
+        CancellationToken ended)
     {
         var address = AddressOf(request.PhoneId);
 
@@ -322,7 +322,7 @@ internal static class LinkResponder
             // From here the prompt is up: any end not named below (a read that fails or times out after the code) is an
             // unanswered prompt and holds this host off, or a phone could raise the prompt, drop out and raise it again.
             outcome = PairingOutcome.TimedOut;
-            var (answer, typed) = AwaitOwner(asked, ownerWait, ended, peerGone);
+            var (answer, typed) = AwaitOwner(asked, ownerWait, peerGone, ended);
             switch (answer)
             {
                 case OwnerAnswer.Cancelled:
@@ -520,7 +520,7 @@ internal static class LinkResponder
     /// is claimed once, so a click landing with the timer is either taken or ignored, never both.
     /// </summary>
     private static (OwnerAnswer Answer, string Typed) AwaitOwner(
-        TaskCompletionSource<string?> answer, TimeSpan wait, CancellationToken ended, Func<bool> peerGone)
+        TaskCompletionSource<string?> answer, TimeSpan wait, Func<bool> peerGone, CancellationToken ended)
     {
         var gone = false;
         var deadline = Environment.TickCount64 + (long)wait.TotalMilliseconds;

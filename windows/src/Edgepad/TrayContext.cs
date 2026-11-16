@@ -434,7 +434,7 @@ internal sealed class TrayContext : ApplicationContext
             return;
         }
 
-        if (on &&AskNetwork(firstRun: false) is not { On: true })
+        if (on && AskNetwork(firstRun: false) is not { On: true })
         {
             networkRow.Checked = false;
             return;
