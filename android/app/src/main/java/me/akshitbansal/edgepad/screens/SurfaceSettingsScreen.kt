@@ -3,6 +3,7 @@ package me.akshitbansal.edgepad.screens
 import android.view.View
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
+import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.surface.Perimeter
 import me.akshitbansal.edgepad.surface.Shapes
 import kotlin.math.roundToInt
@@ -27,6 +28,11 @@ object SurfaceSettingsScreen {
     )
 
     private const val NO_DIAL = "—"
+    private const val PERCENT = 100
+
+    private val sensitivityRange =
+        StepRange(Settings.MIN_AIR_SENSITIVITY, Settings.MAX_AIR_SENSITIVITY, 0.1f)
+    private val deadZoneRange = StepRange(Settings.MIN_AIR_DEAD_ZONE, Settings.MAX_AIR_DEAD_ZONE, 0.01f)
 
     fun build(
         ui: Ui,
@@ -58,6 +64,30 @@ object SurfaceSettingsScreen {
                 )
                 hairline()
                 add(ui.link(ui.string(R.string.settings_profiles), null, routes.profiles))
+            }
+            if (settings.airMouse) {
+                card(Space.L) {
+                    add(
+                        ui.slider(
+                            ui.string(R.string.air_sensitivity),
+                            sensitivityRange.steps,
+                            sensitivityRange.stepOf(settings.airSensitivity),
+                            { step -> ui.string(R.string.multiplier_value, sensitivityRange.valueAt(step)) },
+                        ) { step -> settings.airSensitivity = sensitivityRange.valueAt(step) },
+                    )
+                    hairline()
+                    add(
+                        ui.slider(
+                            ui.string(R.string.air_dead_zone),
+                            deadZoneRange.steps,
+                            deadZoneRange.stepOf(settings.airDeadZone),
+                            { step ->
+                                ui.string(R.string.percent_value, (deadZoneRange.valueAt(step) * PERCENT).roundToInt())
+                            },
+                        ) { step -> settings.airDeadZone = deadZoneRange.valueAt(step) },
+                    )
+                }
+                footnote(ui.string(R.string.air_caption))
             }
             systemSettings(routes.system)
         }

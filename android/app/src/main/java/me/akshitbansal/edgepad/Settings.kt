@@ -141,6 +141,23 @@ class Settings(
     /** Issue #56: the surface goes black and dims the window when left idle, so nothing static burns into an OLED. */
     var blackout by flag("blackout", false)
 
+    /** Tilting the phone moves the pointer while a finger rests on the trackpad. Read only then, and only if on. */
+    var airMouse by flag("airMouse", false)
+
+    /** Pointer travel per turn of the phone, as a multiple of the base rate. */
+    var airSensitivity by bounded(
+        KEY_AIR_SENSITIVITY,
+        DEFAULT_AIR_SENSITIVITY,
+        MIN_AIR_SENSITIVITY,
+        MAX_AIR_SENSITIVITY,
+    )
+
+    /** The turn rate, in radians a second, under which the phone counts as still. */
+    var airDeadZone by bounded(KEY_AIR_DEAD_ZONE, DEFAULT_AIR_DEAD_ZONE, MIN_AIR_DEAD_ZONE, MAX_AIR_DEAD_ZONE)
+
+    /** The corner dials drawn over other apps while this one is away. Needs the draw-over-apps permission. */
+    var floatingDials by flag("floatingDials", false)
+
     /** Bit per trackpad hint already earned by using the gesture (see HintFade); switching hints on again clears it. */
     var hintsSeen by pref({ prefs.getInt("hintsSeen", 0) }) { putInt("hintsSeen", it) }
 
@@ -491,6 +508,12 @@ class Settings(
         const val MIN_SPEED = 0.4f
         const val MAX_SPEED = 3f
         const val DEFAULT_SPEED = 1f
+        const val MIN_AIR_SENSITIVITY = 0.5f
+        const val MAX_AIR_SENSITIVITY = 3f
+        const val DEFAULT_AIR_SENSITIVITY = 1f
+        const val MIN_AIR_DEAD_ZONE = 0f
+        const val MAX_AIR_DEAD_ZONE = 0.2f
+        const val DEFAULT_AIR_DEAD_ZONE = 0.04f
         const val MIN_SENSITIVITY = 0.5f
         const val MAX_SENSITIVITY = 2.5f
         const val DEFAULT_SENSITIVITY = 1.4f
@@ -540,6 +563,8 @@ class Settings(
         private const val KEY_LATEST_VERSION = "latestVersion"
         private const val KEY_SEEN_VERSION = "seenVersion"
         private const val KEY_SENSITIVITY = "sensitivity"
+        private const val KEY_AIR_SENSITIVITY = "airSensitivity"
+        private const val KEY_AIR_DEAD_ZONE = "airDeadZone"
         private const val KEY_POINTER_SPEED = "pointerSpeed"
         private const val KEY_SCROLL_SPEED = "scrollSpeed"
         private const val KEY_MACROS_PER_PAGE = "macrosPerPage"

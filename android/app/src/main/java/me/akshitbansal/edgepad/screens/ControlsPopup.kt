@@ -1,12 +1,19 @@
 package me.akshitbansal.edgepad.screens
 
 import android.app.AlertDialog
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.hardware.Sensor
+import android.hardware.SensorManager
+import android.net.Uri
+import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.LinearLayout
+import android.widget.Switch
 import android.widget.Toast
 import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.R
@@ -17,6 +24,7 @@ import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.EndActionToken
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.UnavailableReason
+import android.provider.Settings as SystemSettings
 
 /** Which deck this is, to [Settings]: the order is kept per deck. It is the id the Controls screen used. */
 private const val DECK = "controls"
@@ -78,6 +86,8 @@ class ControlsPopup(
     private val laptopConnected: () -> Boolean = { true },
     /** AU6: "Send a file" was tapped on a connected laptop; the callback's owner opens the system picker. */
     private val onSendFile: () -> Unit = {},
+    /** The Floating dials switch changed: the owner shows or hides them. */
+    private val onFloatingChanged: () -> Unit = {},
     private val onOpen: (Target) -> Unit,
 ) {
     /** The controls a tile can open. The order here is the order of a deck nobody has arranged. */
@@ -155,6 +165,18 @@ class ControlsPopup(
                 setPadding(pad, 0, pad, 0)
             },
         )
+        if (hasGyroscope()) {
+            body.addView(
+                ui.toggle(ui.string(R.string.controls_air_mouse), settings.airMouse) { settings.airMouse = it }.apply {
+                    setPadding(pad, 0, pad, 0)
+                },
+            )
+        } else {
+            val none = ui.secondary(ui.string(R.string.air_no_sensor), Type.SMALL, ui.palette.dim)
+            none.setPadding(pad, 0, pad, pad)
+            body.addView(none)
+        }
+        body.addView(floatingToggle().apply { setPadding(pad, 0, pad, 0) })
         if (settings.controlsHintShown < HINT_TIMES) {
             settings.controlsHintShown += 1
             val note = ui.secondary(ui.string(R.string.controls_move_hint), Type.SMALL, ui.palette.dim)
@@ -237,6 +259,49 @@ class ControlsPopup(
                 .alpha(1f)
                 .setDuration(Motion.REVEAL)
                 .start()
+        }
+    }
+
+    private fun hasGyroscope(): Boolean =
+        ui.context.getSystemService(SensorManager::class.java)?.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null
+
+    /**
+     * The floating dials need a connected laptop, Stay connected (the service keeps the process) and the
+     * permission to draw over other apps. Missing one, the switch stays off and says which; the permission is
+     * asked for from this tap only.
+     */
+    private fun floatingToggle(): Switch {
+        lateinit var row: Switch
+        row =
+            ui.toggle(ui.string(R.string.controls_floating), settings.floatingDials) { on ->
+                val refusal =
+                    when {
+                        !on -> null
+                        !laptopConnected() -> R.string.floating_needs_link
+                        !settings.stayConnected -> R.string.floating_needs_stay
+                        !SystemSettings.canDrawOverlays(ui.context) -> R.string.floating_permission
+                        else -> null
+                    }
+                if (refusal == null) {
+                    settings.floatingDials = on
+                    onFloatingChanged()
+                } else {
+                    row.isChecked = false
+                    if (refusal == R.string.floating_permission) askOverlay()
+                    Toast.makeText(ui.context, refusal, Toast.LENGTH_LONG).show()
+                }
+            }
+        return row
+    }
+
+    private fun askOverlay() {
+        val context = ui.context
+        val intent =
+            Intent(SystemSettings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + context.packageName))
+        try {
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            Log.w("ControlsPopup", "no screen for the overlay permission", e)
         }
     }
 

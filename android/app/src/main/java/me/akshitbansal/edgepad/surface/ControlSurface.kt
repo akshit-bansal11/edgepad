@@ -135,6 +135,26 @@ class ControlSurface(
             sink = send,
         )
     private val hapticsOn = settings.haptics
+
+    /** Built on the first touch after the setting turns on, and let go when it turns off; never for [trackpadOnly]. */
+    private var airMouse: AirMouse? = null
+
+    private fun air(): AirMouse? {
+        if (trackpadOnly || !settings.airMouse) {
+            airMouse?.release()
+            airMouse = null
+            return null
+        }
+        return airMouse
+            ?: AirMouse(
+                context,
+                send,
+                sensitivity = { settings.airSensitivity },
+                deadZone = { settings.airDeadZone },
+                landscape = { settings.landscape },
+            ).also { airMouse = it }
+    }
+
     private val showHints = settings.hints && !trackpadOnly
     private val hintFade = HintFade(settings.hintsSeen) { settings.hintsSeen = it }
 
@@ -1072,6 +1092,7 @@ class ControlSurface(
                 wake()
                 requestUnbufferedDispatch(event)
                 down(event)
+                if (onTrackpad()) air()?.clutchDown()
             }
 
             MotionEvent.ACTION_POINTER_DOWN -> {
@@ -1095,6 +1116,7 @@ class ControlSurface(
 
             MotionEvent.ACTION_UP -> {
                 idleLater()
+                airMouse?.clutchUp()
                 val top = pressedTop
                 pressedTop = null
                 val onStrip = pressedStrip
@@ -1126,6 +1148,7 @@ class ControlSurface(
 
             MotionEvent.ACTION_CANCEL -> {
                 idleLater()
+                airMouse?.clutchUp()
                 cancelTouches(event.eventTime)
             }
 
@@ -1387,11 +1410,17 @@ class ControlSurface(
     override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
         super.onWindowFocusChanged(hasWindowFocus)
         // Back from the Controls popup, whose switch may have just changed, the idle count starts over.
-        if (hasWindowFocus) idleLater() else removeCallbacks(goDark)
+        if (hasWindowFocus) {
+            idleLater()
+        } else {
+            removeCallbacks(goDark)
+            airMouse?.release()
+        }
     }
 
     override fun onDetachedFromWindow() {
         wake()
+        airMouse?.release()
         super.onDetachedFromWindow()
     }
 

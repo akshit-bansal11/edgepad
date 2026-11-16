@@ -18,6 +18,8 @@
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <!-- Floating dials over other apps (overlay/FloatingDials.kt). Granted by the user in system settings, from a tap, never by default. -->
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
   <application
     android:allowBackup="false"

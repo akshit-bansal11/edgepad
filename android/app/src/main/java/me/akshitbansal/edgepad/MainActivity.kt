@@ -104,6 +104,7 @@ import me.akshitbansal.edgepad.protocol.BlobKind
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Feature
+import me.akshitbansal.edgepad.overlay.FloatingDials
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.ProtocolConstants
 import me.akshitbansal.edgepad.protocol.SignStatus
@@ -159,6 +160,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import kotlin.concurrent.thread
+import android.provider.Settings as SystemSettings
 
 /**
  * One activity for every screen: the guide on the first run and from Settings, the Devices list, the
@@ -265,6 +267,9 @@ class MainActivity :
     private val state: LaptopState get() = selected?.state ?: noLaptop
     private val connected: Boolean get() = selected?.connected == true
     private var surface: ControlSurface? = null
+
+    /** The dials over other apps; built on first use, and shown only while the app is away. */
+    private var floating: FloatingDials? = null
 
     /**
      * What the Devices dial moves through: a step selects another connected laptop, which runs [onDeselecting] and
@@ -599,6 +604,7 @@ class MainActivity :
         stopScan()
         // The service keeps the links outright, a detour for a while and a rebuild too; see the class comment.
         if (!serviceUp) lingerLinks()
+        syncFloating()
     }
 
     /** Gives the links [LINGER_MS] and then ends them, unless a rebuild or a start comes first. */
@@ -617,6 +623,26 @@ class MainActivity :
      * the links that remain get the usual wait.
      */
     private fun syncService() {
+        syncLinkService()
+        syncFloating()
+    }
+
+    /**
+     * The floating dials are up only while the app is away, the service holds the process, a laptop is connected
+     * and the permission is held; any other state takes them down. Nothing is built while the switch is off.
+     */
+    private fun syncFloating() {
+        val want = settings.floatingDials && !started && serviceUp && connected && SystemSettings.canDrawOverlays(this)
+        if (!want) {
+            floating?.hide()
+            return
+        }
+        val dials = floating ?: FloatingDials(this, settings, state, { frame -> selected?.link?.send(frame) })
+        floating = dials
+        dials.show()
+    }
+
+    private fun syncLinkService() {
         val notice =
             if (settings.stayConnected) linkNotice(manager.laptops, manager.selected, settings.clipboardSync) else null
         if (notice == null) {
@@ -687,6 +713,7 @@ class MainActivity :
         handler.removeCallbacksAndMessages(null)
         apps.events = null
         apps.onMediaIcon = null
+        floating?.hide()
         if (!isChangingConfigurations && !isFinishing && serviceUp) {
             // Android destroyed this activity by itself while Stay connected holds the process: the links stay, for
             // the next activity to adopt, and the hooks stay too, since they hold only the manager.
@@ -1725,6 +1752,7 @@ class MainActivity :
                 onEnd = { action -> manager.send(action.frame()) },
                 laptopConnected = { connected },
                 onSendFile = ::pickFile,
+                onFloatingChanged = ::syncFloating,
             ) { target ->
                 when (target) {
                     ControlsPopup.Target.KEYBOARD -> goTo(Screen.KEYBOARD)
@@ -2588,6 +2616,7 @@ class MainActivity :
         if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) syncForegroundWatch()
         if (frame is Frame.Text && frame.kind == TextKind.FOREGROUND_APP.id) followForeground()
         surface?.stateChanged()
+        floating?.takeIf { it.isShown }?.stateChanged()
         // Capture is drawn from the features the laptop named, which it sends once after the handshake: one that
         // lands while it is open rebuilds it rather than leaving it saying "none". The Controls popup is redrawn.
         val sized = frame is Frame.Text && (frame.kind == TextKind.FEATURES.id || frame.kind == TextKind.SCREEN_SIZE.id)
