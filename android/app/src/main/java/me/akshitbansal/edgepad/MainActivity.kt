@@ -1827,7 +1827,8 @@ class MainActivity :
         val paired = bonded()
         for (entry in saved.filter { it.autoConnect }) {
             val live = manager.laptops.firstOrNull { it.id in entry.keys }
-            if (live != null && !live.idle) continue
+            // A laptop that said no is not asked again at every return to the app; a tap still connects it.
+            if (live != null && (!live.idle || !LaptopConnections.retryable(live.lastCause))) continue
             val device = paired.firstOrNull { it.address == entry.btAddress }?.let { Target.Bluetooth(it) }
             val network = entry.networkTarget()
             val target = if (entry.kind == Transport.BLUETOOTH) device ?: network else network ?: device
@@ -2297,6 +2298,8 @@ class MainActivity :
             }
 
             else -> {
+                // A retry that stopped for good leaves the Reconnecting screen instead of counting on.
+                if (screen == Screen.RECONNECTING) goTo(Screen.PAIRING)
                 refreshPicker()
                 picker.setMessage(getString(R.string.status_closed, describe(closure, laptop)))
             }

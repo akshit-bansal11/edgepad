@@ -576,6 +576,53 @@ class LaptopConnectionsTest {
     }
 
     @Test
+    fun aRetryThatHearsNoStopsRetrying() {
+        val causes =
+            listOf(
+                LaptopLink.Cause.REFUSED,
+                LaptopLink.Cause.MISMATCH,
+                LaptopLink.Cause.PIN_LOCKED,
+                LaptopLink.Cause.NOT_PAIRED,
+                LaptopLink.Cause.NOT_THIS_LAPTOP,
+                LaptopLink.Cause.PAIRING_FAILED,
+                LaptopLink.Cause.PAIRING_LOCKED,
+                LaptopLink.Cause.NO_PERMISSION,
+                LaptopLink.Cause.UNEXPECTED,
+            )
+        causes.forEachIndexed { i, cause ->
+            val n = i + 1
+            up(n).drop()
+            assertTrue(laptop(n).reconnecting)
+            scheduler.advance(LaptopConnections.RETRY_DELAY_MS)
+            made.last().drop(cause)
+            scheduler.advance(LaptopConnections.RETRY_DELAY_MS * 5)
+            assertEquals(cause.name, 2, linksTo(n))
+            assertFalse(cause.name, laptop(n).reconnecting)
+            assertTrue(cause.name, laptop(n).idle)
+            assertEquals(cause, laptop(n).lastCause)
+        }
+    }
+
+    @Test
+    fun aWorkingLinkThatLosesPermissionIsNotRetried() {
+        up(1).drop(LaptopLink.Cause.NO_PERMISSION)
+        scheduler.advance(LaptopConnections.RETRY_DELAY_MS * 5)
+        assertEquals(1, linksTo(1))
+        assertFalse(laptop(1).reconnecting)
+        assertTrue(laptop(1).idle)
+    }
+
+    @Test
+    fun onlyADropOrAMissIsRetryable() {
+        val retryable = LaptopLink.Cause.entries.filter { LaptopConnections.retryable(it) }
+        assertEquals(
+            listOf(LaptopLink.Cause.LOST, LaptopLink.Cause.UNREACHABLE, LaptopLink.Cause.NO_ANSWER),
+            retryable,
+        )
+        assertTrue(LaptopConnections.retryable(null))
+    }
+
+    @Test
     fun aLaptopThatForgotThePhoneIsRememberedAsSuchUntilTheNextAttempt() {
         connect(1).drop(LaptopLink.Cause.NOT_PAIRED)
         assertEquals(LaptopLink.Cause.NOT_PAIRED, laptop(1).lastCause)

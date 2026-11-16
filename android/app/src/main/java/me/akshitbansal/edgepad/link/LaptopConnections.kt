@@ -337,6 +337,11 @@ class LaptopConnections(
                 laptop.reconnecting = false
             }
 
+            // The laptop said no, or cannot be asked: another attempt would only hear the same, so retrying ends.
+            !retryable(closure.cause) -> {
+                laptop.reconnecting = false
+            }
+
             // It was working and dropped on its own: try to get it back.
             link.wasConnected -> {
                 val now = scheduler.now()
@@ -492,6 +497,13 @@ class LaptopConnections(
     }
 
     companion object {
+        /** Only a link that dropped or never got through is worth another attempt; null is nothing failed yet. */
+        fun retryable(cause: LaptopLink.Cause?): Boolean =
+            cause == null ||
+                cause == LaptopLink.Cause.LOST ||
+                cause == LaptopLink.Cause.UNREACHABLE ||
+                cause == LaptopLink.Cause.NO_ANSWER
+
         const val MAX_ATTEMPTS = 10
         const val RETRY_DELAY_MS = 2_000L
 
