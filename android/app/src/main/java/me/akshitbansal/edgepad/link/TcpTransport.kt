@@ -73,7 +73,8 @@ class TcpTransport(
                 last = e
             } catch (e: IOException) {
                 close()
-                throw LinkFailure(LaptopLink.Closure(LaptopLink.Cause.REFUSED))
+                // A hang-up is the owner's no; a laptop that went quiet past the timeout is a lost link.
+                throw LinkFailure(closureOf(e, connectReturned = true, handshakeDone = false))
             } catch (e: GeneralSecurityException) {
                 // The laptop sent a key that is not a point on the curve: nothing it says can be trusted.
                 close()

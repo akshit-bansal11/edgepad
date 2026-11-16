@@ -1031,8 +1031,10 @@ class MainActivity :
                         onCancel = { navigateBack() },
                         onNewCode = {
                             selected?.let { laptop ->
+                                // A new code pairs again over the same transport: never a resume with the old key.
+                                val target = (laptop.target as? Target.Network)?.again() ?: laptop.target
                                 navigateBack()
-                                connect(laptop.target, tapped = true)
+                                connect(target, laptop.kind, tapped = true)
                             }
                         },
                     ).view

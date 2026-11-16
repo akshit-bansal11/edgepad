@@ -15,6 +15,7 @@ import java.io.EOFException
 import java.io.IOException
 import java.io.OutputStream
 import java.io.StreamCorruptedException
+import java.net.SocketTimeoutException
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
@@ -465,7 +466,13 @@ internal fun closureOf(
     connectReturned: Boolean,
     handshakeDone: Boolean,
 ): LaptopLink.Closure =
-    (e as? LinkFailure)?.closure ?: LaptopLink.Closure(classifyFailure(connectReturned, handshakeDone))
+    when {
+        e is LinkFailure -> e.closure
+        // The laptop took the connection, then went quiet past a timeout: a stalled link, never its owner's no. A
+        // connect that timed out never reached it, so that one stays unreachable.
+        connectReturned && e is SocketTimeoutException -> LaptopLink.Closure(LaptopLink.Cause.LOST)
+        else -> LaptopLink.Closure(classifyFailure(connectReturned, handshakeDone))
+    }
 
 /**
  * What a PIN_REQUEST ends the link with: a lock-out (no attempts left and a wait) closes it as

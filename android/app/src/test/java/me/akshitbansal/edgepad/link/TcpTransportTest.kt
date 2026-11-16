@@ -14,11 +14,13 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.fail
 import org.junit.Test
 import java.io.DataInputStream
+import java.io.EOFException
 import java.io.IOException
 import java.io.OutputStream
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
+import java.net.SocketTimeoutException
 import kotlin.concurrent.thread
 
 /**
@@ -182,6 +184,20 @@ class TcpTransportTest {
         assertEquals(LaptopLink.Cause.PAIRING_FAILED, reason.cause)
         val dropped = closureOf(IOException(), connectReturned = true, handshakeDone = true)
         assertEquals(LaptopLink.Cause.LOST, dropped.cause)
+    }
+
+    @Test
+    fun aLaptopThatGoesQuietDuringTheHandshakeIsLostNotRefused() {
+        val quiet = closureOf(SocketTimeoutException(), connectReturned = true, handshakeDone = false)
+        assertEquals(LaptopLink.Cause.LOST, quiet.cause)
+        val hungUp = closureOf(EOFException(), connectReturned = true, handshakeDone = false)
+        assertEquals(LaptopLink.Cause.REFUSED, hungUp.cause)
+    }
+
+    @Test
+    fun aConnectThatTimesOutStaysUnreachable() {
+        val missed = closureOf(SocketTimeoutException(), connectReturned = false, handshakeDone = false)
+        assertEquals(LaptopLink.Cause.UNREACHABLE, missed.cause)
     }
 
     @Test
