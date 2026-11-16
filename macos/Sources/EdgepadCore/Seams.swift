@@ -245,3 +245,45 @@ public protocol AppFolders: AnyObject {
     /// What is directly inside `path`, or nil when it is not there or cannot be read.
     func entries(in path: String) -> [AppFolderEntry]?
 }
+
+/// What is playing on this Mac, as the player last said it. `identity` is empty when nothing is playing or paused; a
+/// duration of 0 or less means the player has no timeline.
+public struct MediaInfo: Equatable {
+    public static let none = MediaInfo(
+        title: "", artist: "", app: "", identity: "", playing: false, positionSeconds: 0, durationSeconds: 0)
+
+    public let title: String
+    public let artist: String
+    public let app: String
+    public let identity: String
+    public let playing: Bool
+    public let positionSeconds: Int
+    public let durationSeconds: Int
+
+    public init(
+        title: String, artist: String, app: String, identity: String, playing: Bool, positionSeconds: Int,
+        durationSeconds: Int
+    ) {
+        self.title = title
+        self.artist = artist
+        self.app = app
+        self.identity = identity
+        self.playing = playing
+        self.positionSeconds = positionSeconds
+        self.durationSeconds = durationSeconds
+    }
+}
+
+/// Where the session learns what is playing, for TEXT 0, 1, 2, 26 and the position STATE, and where a seek goes. A
+/// Mac without one (and a test that does not need it) leaves it nil, and then MEDIA_POSITION and the end actions are
+/// dropped and counted. Main thread only, like the session; nothing here blocks it.
+public protocol MediaSource: AnyObject {
+    /// Fast and free of I/O: the position is extrapolated while playing, never asked for.
+    func read() -> MediaInfo
+    /// Called when the player may have changed. Set by the session, cleared by `end()`.
+    var changed: (() -> Void)? { get set }
+    /// Seeks the current track to `percent`, 0 to 100. False when it would not act.
+    func seek(percent: Int) -> Bool
+    /// The picture of the app named `app`, as PNG bytes about 64 px square, or nil for none.
+    func icon(forApp app: String) -> [UInt8]?
+}

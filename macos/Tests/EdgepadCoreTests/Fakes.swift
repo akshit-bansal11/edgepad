@@ -300,3 +300,22 @@ final class FakeFolders: AppFolders {
         return tree[path]
     }
 }
+
+final class FakeMedia: MediaSource {
+    var info = MediaInfo.none
+    var changed: (() -> Void)?
+    var seeks: [Int] = []
+    var iconApps: [String] = []
+
+    func read() -> MediaInfo { info }
+
+    func seek(percent: Int) -> Bool {
+        seeks.append(percent)
+        return true
+    }
+
+    func icon(forApp app: String) -> [UInt8]? {
+        iconApps.append(app)
+        return nil
+    }
+}

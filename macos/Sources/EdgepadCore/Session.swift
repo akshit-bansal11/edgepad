@@ -110,6 +110,10 @@ public final class Session {
     private var lastBrightness: Int?
     /// The label list's subscription, kept so `end()` can let go of it and a dead session is not written to.
     private var macroWatch: MacroWatch?
+    /// The media texts and state last sent, so the phone hears only a change. The icon is sent once per app.
+    private var lastMedia: (nowPlaying: String, full: String, app: String, timeline: String)?
+    private var lastMediaState: [UInt8]?
+    private var lastIconApp = ""
     /// Cancelled by `end()`, so the owner's question about this phone is never put, or is withdrawn if it is open.
     private let ended = Cancellation()
 
@@ -209,6 +213,7 @@ public final class Session {
         }
         pollsSincePower += 1
         if pollsSincePower >= Session.pollsPerBatteryRead { sendPower() }
+        sendMedia()
     }
 
     /// TEXT 19 and TEXT 20: rereads both and sends whichever differs from what the phone was last told.
@@ -228,6 +233,48 @@ public final class Session {
         }
     }
 
+    /// TEXT 0, 1, 2 and 26 and the position STATE, each only on a change, then the icon once per app. The player's
+    /// own notifications call this, and so does `poll()` for the extrapolated position: no timer of its own.
+    private func sendMedia() {
+        guard let source = dispatcher.media, !isEnded, stage == .live else { return }
+        let info = source.read()
+        let nowPlaying = info.identity.isEmpty ? "" : TitleCleaner.nowPlaying(title: info.title, artist: info.artist)
+        let line = info.artist.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? info.title : info.title + " - " + info.artist
+        let full = line != nowPlaying ? line : ""
+        let timeline = info.durationSeconds > 0 ? "\(info.positionSeconds)/\(info.durationSeconds)" : ""
+        let was = lastMedia
+        lastMedia = (nowPlaying, full, info.app, timeline)
+        if nowPlaying != was?.nowPlaying { send(.text(kind: TextKind.nowPlaying.rawValue, value: nowPlaying)) }
+        guard !isEnded else { return }
+        if full != was?.full && !(was == nil && full.isEmpty) {
+            send(.text(kind: TextKind.nowPlayingFull.rawValue, value: full))
+        }
+        guard !isEnded else { return }
+        if info.app != was?.app { send(.text(kind: TextKind.app.rawValue, value: info.app)) }
+        guard !isEnded else { return }
+        if timeline != was?.timeline { send(.text(kind: TextKind.timeline.rawValue, value: timeline)) }
+        guard !isEnded else { return }
+        let percent = info.durationSeconds > 0 ? Percent.clamp(info.positionSeconds * 100 / info.durationSeconds) : 0
+        let state = [UInt8(percent), info.playing ? 1 : 0]
+        if state != lastMediaState {
+            lastMediaState = state
+            send(.state(control: ControlId.mediaPosition.rawValue, value: state[0], flags: state[1]))
+        }
+        dispatcher.endAction?.observe(
+            MediaSnapshot(
+                identity: info.identity, playing: info.playing, positionSeconds: info.positionSeconds,
+                durationSeconds: info.durationSeconds))
+        sendMediaIcon(info, from: source)
+    }
+
+    private func sendMediaIcon(_ info: MediaInfo, from source: MediaSource) {
+        guard !info.identity.isEmpty, info.app != lastIconApp, let blobs = dispatcher.mediaBlobs else { return }
+        lastIconApp = info.app
+        guard let png = source.icon(forApp: info.app) else { return }
+        blobs.send(.mediaIcon, label: info.app, data: png)
+    }
+
     /// Idempotent. Anything still held down is lifted first: a link dropped mid-gesture must never leave
     /// Command or a mouse button stuck with nothing left alive to release it.
     public func end() {
@@ -240,6 +287,8 @@ public final class Session {
         macroWatch?.cancel()
         macroWatch = nil
         power?.changed = nil
+        dispatcher.media?.changed = nil
+        dispatcher.endAction = nil
         // The overlay goes with the session: a phone that vanishes mid-drawing must leave no layer on the screen.
         dispatcher.annotation?.end()
         dispatcher.capture?.end()
@@ -515,6 +564,8 @@ public final class Session {
         dispatcher.clipboard?.sender.backlog = backlog
         dispatcher.apps?.sender.output = write
         dispatcher.apps?.sender.backlog = backlog
+        dispatcher.mediaBlobs?.output = write
+        dispatcher.mediaBlobs?.backlog = backlog
         dispatcher.padStatusReply = { [weak self] status in
             self?.send(.text(kind: TextKind.padStatus.rawValue, value: status))
         }
@@ -545,10 +596,23 @@ public final class Session {
         if dispatcher.clipboard?.isAllowed == true {
             features.append(Feature.clipboard.rawValue)
         }
+        if let media = dispatcher.media, let perform = dispatcher.endPerform {
+            features.append(Feature.endAction.rawValue)
+            dispatcher.endAction = EndAction(
+                perform: perform,
+                stateChanged: { [weak self] token in
+                    self?.send(.text(kind: TextKind.endAction.rawValue, value: token))
+                })
+            media.changed = { [weak self] in self?.sendMedia() }
+        }
         send(.text(kind: TextKind.features.rawValue, value: features.joined(separator: "/")))
+        send(.text(kind: TextKind.macroCap.rawValue, value: String(MacroStore.maxMacros)))
+        // Best effort, and this Mac does not record on its own: it is idle until it does.
+        send(.text(kind: TextKind.captureState.rawValue, value: CaptureStateToken.idle.rawValue))
         sendScreenSize()
         power?.changed = { [weak self] in self?.sendPower() }
         sendPower()
+        sendMedia()
 
         // Watched rather than sent once, so a macro the owner adds while the phone is connected reaches it. With
         // no store the list is empty, and the phone then says to add some on the Mac instead of drawing a broken

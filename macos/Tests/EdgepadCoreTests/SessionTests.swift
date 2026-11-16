@@ -207,6 +207,8 @@ final class SessionTests: XCTestCase {
                 .state(control: ControlId.refreshRate.rawValue, value: 1, flags: 0),
                 .text(kind: TextKind.padStatus.rawValue, value: "no-driver"),
                 .text(kind: TextKind.features.rawValue, value: Feature.capture.rawValue),
+                .text(kind: TextKind.macroCap.rawValue, value: "15"),
+                .text(kind: TextKind.captureState.rawValue, value: "idle"),
                 .text(kind: TextKind.macros.rawValue, value: ""),
             ]
         )
@@ -1293,6 +1295,84 @@ final class SessionTests: XCTestCase {
         }
 
         XCTAssertEqual(transport.sent.count, sent)
+    }
+
+    private func mediaTexts() -> [Frame] {
+        transport.frames().filter {
+            if case .text(let kind, _) = $0 {
+                return [TextKind.nowPlaying, .nowPlayingFull, .app, .timeline, .endAction].map(.rawValue).contains(kind)
+            }
+            return false
+        }
+    }
+
+    func testWhatIsPlayingIsSentCleanedWithTheOriginalOnlyWhenItDiffersAndOnlyOnAChange() {
+        let media = FakeMedia()
+        dispatcher.media = media
+        dispatcher.mediaBlobs = BlobSender(link: .bluetooth, lastInput: { 0 })
+        media.info = MediaInfo(
+            title: "Song (Live)", artist: "Artist", app: "Music", identity: "Music|Song (Live) - Artist", playing: true,
+            positionSeconds: 30, durationSeconds: 120)
+        let session = connectedSession()
+
+        XCTAssertEqual(
+            mediaTexts(),
+            [
+                .text(kind: TextKind.nowPlaying.rawValue, value: "Song - Artist"),
+                .text(kind: TextKind.nowPlayingFull.rawValue, value: "Song (Live) - Artist"),
+                .text(kind: TextKind.app.rawValue, value: "Music"),
+                .text(kind: TextKind.timeline.rawValue, value: "30/120"),
+            ])
+        XCTAssertTrue(
+            transport.frames().contains(.state(control: ControlId.mediaPosition.rawValue, value: 25, flags: 1)))
+        XCTAssertEqual(media.iconApps, ["Music"])
+
+        session.poll()
+        XCTAssertEqual(mediaTexts().count, 4)
+
+        media.info = MediaInfo(
+            title: "Plain", artist: "", app: "Music", identity: "Music|Plain", playing: true, positionSeconds: 31,
+            durationSeconds: 120)
+        media.changed?()
+        XCTAssertEqual(
+            mediaTexts().suffix(3),
+            [
+                .text(kind: TextKind.nowPlaying.rawValue, value: "Plain"),
+                .text(kind: TextKind.nowPlayingFull.rawValue, value: ""),
+                .text(kind: TextKind.timeline.rawValue, value: "31/120"),
+            ])
+        XCTAssertEqual(media.iconApps, ["Music"])
+    }
+
+    func testTheEndActionIsOfferedArmedAndReportedWhenThereIsAMediaSourceAndAnEndPerformer() {
+        let media = FakeMedia()
+        media.info = MediaInfo(
+            title: "Song", artist: "", app: "Music", identity: "Music|Song", playing: true, positionSeconds: 10,
+            durationSeconds: 120)
+        dispatcher.media = media
+        dispatcher.endPerform = { _ in true }
+        let session = connectedSession()
+
+        XCTAssertTrue(
+            transport.frames().contains(
+                .text(kind: TextKind.features.rawValue, value: "capture/endaction")))
+        dispatcher.handle(.runAction(id: ActionId.endSleep.rawValue))
+        XCTAssertEqual(transport.frames().last, .text(kind: TextKind.endAction.rawValue, value: "sleep"))
+        dispatcher.handle(.runAction(id: ActionId.endCancel.rawValue))
+        XCTAssertEqual(transport.frames().last, .text(kind: TextKind.endAction.rawValue, value: "none"))
+        XCTAssertEqual(dispatcher.dropped, 0)
+
+        session.end()
+        XCTAssertNil(media.changed)
+    }
+
+    func testTheEndActionsAndSeekAreDroppedWithNoMediaSource() {
+        _ = connectedSession()
+
+        dispatcher.handle(.runAction(id: ActionId.endShutdown.rawValue))
+        dispatcher.handle(.setValue(control: ControlId.mediaPosition.rawValue, value: 50))
+
+        XCTAssertEqual(dispatcher.dropped, 2)
     }
 
     func testNoLogLineHoldsTheDigits() {

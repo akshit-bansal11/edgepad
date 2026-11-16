@@ -56,6 +56,20 @@ public final class Dispatcher {
     /// like `padStatusReply`.
     public var appAddReply: ((String) -> Void)?
 
+    /// What is playing, for MEDIA_POSITION. Set by the app per connection, like `capture`; without one, MEDIA_POSITION and
+    /// the end actions are dropped and counted.
+    public var media: MediaSource?
+
+    /// Where the media icon goes, on the same sender as the clipboard so the phone's one transfer is not interrupted.
+    public var mediaBlobs: BlobSender?
+
+    /// What a fired end action does to this Mac: sleep, or the shutdown countdown. Nil sends END_* to the drop path.
+    public var endPerform: ((EndKind) -> Bool)?
+
+    /// Armed by END_SLEEP and END_SHUTDOWN, disarmed by END_CANCEL. Set by the session once it has a link to write its
+    /// state to, like `padStatusReply`.
+    public var endAction: EndAction?
+
     /// When the phone last sent input, by system uptime: a capture on its way slows down for it.
     public private(set) var lastInput: TimeInterval = 0
 
@@ -213,11 +227,17 @@ public final class Dispatcher {
         case .search:
             // Spotlight.
             input.chord([.command, .space])
-        case .notifications, .macroBase, .macroCloseBase, .endSleep, .endShutdown, .endCancel:
+        case .notifications, .macroBase, .macroCloseBase:
             // Notifications: macOS has no default shortcut for it. The macro blocks are handled before this
-            // switch; their cases are here only so the switch stays exhaustive. The end actions are not built on
-            // the Mac yet, so they are dropped and counted.
+            // switch; their cases are here only so the switch stays exhaustive.
             return false
+        case .endSleep:
+            return endAction?.arm(.sleep) ?? false
+        case .endShutdown:
+            return endAction?.arm(.shutdown) ?? false
+        case .endCancel:
+            guard let endAction else { return false }
+            endAction.cancel()
         case .appsList:
             return apps?.list() ?? false
         case .appsCancel:
@@ -321,8 +341,7 @@ public final class Dispatcher {
         case .brightness:
             return brightness.set(value)
         case .mediaPosition:
-            // Now playing is not built on the Mac yet.
-            return false
+            return media?.seek(percent: Percent.clamp(value)) ?? false
         case .penColor:
             // The value is a palette index; the board rejects one it does not have.
             return annotation?.setColour(value) ?? false
