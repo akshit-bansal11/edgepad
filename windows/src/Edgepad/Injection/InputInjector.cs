@@ -23,11 +23,21 @@ internal sealed class InputInjector : IDisposable
     /// </summary>
     private readonly HashSet<ushort> heldCodes = [];
 
+    private readonly BlockedTracker blocked;
+
+    // Set by Dispose: releasing held keys as the session ends says nothing to a phone that is going away.
+    private bool releasing;
+
+    public InputInjector() => blocked = new(() => Environment.TickCount64, state => BlockedChanged?.Invoke(state));
+
     /// <summary>
     /// Batches Windows refused. SendInput is silently blocked when an elevated window has focus (UIPI),
     /// so this is the only trace of it; the session logs it once when it ends.
     /// </summary>
     public int RefusedBatches { get; private set; }
+
+    /// <summary>Told true when Windows starts refusing input and false once it takes it again (<see cref="BlockedTracker"/>).</summary>
+    public Action<bool>? BlockedChanged { get; set; }
 
     public void Move(int dx, int dy) => Send([InputBuilder.Mouse(NativeMethods.MouseMove, dx, dy)]);
 
@@ -69,10 +79,7 @@ internal sealed class InputInjector : IDisposable
                     '\n' => QtTyping.Key(qt, (ushort)Keys.Return, '\r'),
                     _ => QtTyping.Char(qt, c),
                 };
-                if (!posted)
-                {
-                    RefusedBatches++;
-                }
+                Counted(posted);
 
                 continue;
             }
@@ -132,6 +139,7 @@ internal sealed class InputInjector : IDisposable
 
     public void Dispose()
     {
+        releasing = true;
         foreach (var key in heldKeys)
         {
             Send([InputBuilder.Key(key, up: true)]);
@@ -154,9 +162,31 @@ internal sealed class InputInjector : IDisposable
 
     private void Send(NativeInput[] batch)
     {
-        if (batch.Length > 0 && NativeMethods.SendInput((uint)batch.Length, batch, InputSize) != batch.Length)
+        if (batch.Length > 0)
+        {
+            Counted(NativeMethods.SendInput((uint)batch.Length, batch, InputSize) == batch.Length);
+        }
+    }
+
+    private void Counted(bool taken)
+    {
+        if (!taken)
         {
             RefusedBatches++;
+        }
+
+        if (releasing)
+        {
+            return;
+        }
+
+        if (taken)
+        {
+            blocked.Accepted();
+        }
+        else
+        {
+            blocked.Refused();
         }
     }
 }

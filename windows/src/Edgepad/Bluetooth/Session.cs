@@ -83,6 +83,10 @@ internal sealed class Session(
             // Started before the first sends, so a phone gone already cannot hold them up either.
             using var silence = new SilenceWatch(SilenceWatch.PhoneSilence, () => { Log.Write($"Session with {address} ended: no frame for 30 s"); Dispose(); }, every: TimeSpan.FromSeconds(5));
 
+            // The injector runs on this read thread, the one that sends PONG, so the frames stay in order. No first
+            // message: a phone that never hears INPUT_STATE reads "ok".
+            injector.BlockedChanged = blocked => Guarded(() => Send(new Text((byte)TextKind.InputState, blocked ? "blocked" : "ok")));
+
             ReportState();
 
             while (true)
