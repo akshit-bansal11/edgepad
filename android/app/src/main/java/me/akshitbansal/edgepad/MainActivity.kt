@@ -55,6 +55,7 @@ import me.akshitbansal.edgepad.link.LingerAction
 import me.akshitbansal.edgepad.link.LinkHooks
 import me.akshitbansal.edgepad.link.LinkNotice
 import me.akshitbansal.edgepad.link.LinkService
+import me.akshitbansal.edgepad.link.LinkSession
 import me.akshitbansal.edgepad.link.LinkTransport
 import me.akshitbansal.edgepad.link.LocalNetwork
 import me.akshitbansal.edgepad.link.MainScheduler
@@ -414,8 +415,11 @@ class MainActivity :
                 }
             }
         val retained = lastNonConfigurationInstance as? Retained
+        // Or the links an activity Android destroyed by itself left behind, with Stay connected on; see onDestroy.
+        val kept = retained?.let { LinkSession.Kept(it.manager, it.clipboard, it.apps) } ?: LinkSession.kept
+        LinkSession.kept = null
         manager =
-            retained?.manager?.also { it.events = this }
+            kept?.manager?.also { it.events = this }
                 ?: LaptopConnections(laptopLinks(transports(applicationContext)), MainScheduler(), this)
         // The toggle is read through a Settings of its own, so the retained clipboard never holds this activity.
         val owner = Settings(applicationContext)
@@ -423,13 +427,15 @@ class MainActivity :
         // a rebuild, so the new activity sets the same thing again.
         val links = manager
         LinkHooks.disconnectAll = {
+            // The service is ending, so links kept for a later activity are not held either.
+            LinkSession.kept = null
             links.disconnectAll()
             // As Disconnect on a row: nothing reconnects by itself until the laptop is tapped.
             owner.savedLaptops = encodeSaved(decodeSaved(owner.savedLaptops).map { it.copy(autoConnect = false) })
         }
-        if (retained != null) {
-            clipboard = retained.clipboard
-            apps = retained.apps
+        if (kept != null) {
+            clipboard = kept.clipboard
+            apps = kept.apps
         } else {
             // One set of routes, so a link's blobs reach the clipboard or the app list by their kind.
             val routes = BlobRoutes()
@@ -598,7 +604,12 @@ class MainActivity :
         // A rebuilt activity's waiting ticks go with it; the new one starts its own in onStart.
         handler.removeCallbacksAndMessages(null)
         apps.events = null
-        if (!isChangingConfigurations) {
+        if (!isChangingConfigurations && !isFinishing && serviceUp) {
+            // Android destroyed this activity by itself while Stay connected holds the process: the links stay, for
+            // the next activity to adopt, and the hooks stay too, since they hold only the manager.
+            manager.events = LaptopConnections.Events.None
+            LinkSession.kept = LinkSession.Kept(manager, clipboard, apps)
+        } else if (!isChangingConfigurations) {
             LinkHooks.disconnectAll = null
             LinkHooks.shareTarget = null
             manager.shutDown()

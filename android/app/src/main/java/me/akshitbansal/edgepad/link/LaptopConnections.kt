@@ -93,6 +93,46 @@ class LaptopConnections(
 
         /** [selected] changed. Null when no laptop is left to select. */
         fun onSelected(laptop: Laptop?)
+
+        /**
+         * Nobody listening: the manager outlives an activity Android destroyed while Stay connected holds the
+         * process (see [LinkSession]). The records still update; only the screens are not told.
+         */
+        object None : Events {
+            override fun onConnecting(laptop: Laptop) = Unit
+
+            override fun onConnected(laptop: Laptop) = Unit
+
+            override fun onAwaitingLaptop(laptop: Laptop) = Unit
+
+            override fun onPinRequest(laptop: Laptop) = Unit
+
+            override fun onPairingCode(
+                laptop: Laptop,
+                code: Sas,
+            ) = Unit
+
+            override fun onPairingConfirm(laptop: Laptop) = Unit
+
+            override fun onFrame(
+                laptop: Laptop,
+                frame: Frame,
+            ) = Unit
+
+            override fun onRoundTrip(
+                laptop: Laptop,
+                ms: Double,
+            ) = Unit
+
+            override fun onClosed(
+                laptop: Laptop,
+                closure: LaptopLink.Closure,
+            ) = Unit
+
+            override fun onDeselecting(laptop: Laptop) = Unit
+
+            override fun onSelected(laptop: Laptop?) = Unit
+        }
     }
 
     private val all = ArrayList<Laptop>()

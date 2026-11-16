@@ -22,6 +22,23 @@ object LinkHooks {
     val sharing = AtomicInteger()
 }
 
+/**
+ * The links of an activity Android destroyed by itself (memory pressure, "Don't keep activities") while Stay connected
+ * held the process: the next activity adopts them as it would after a rotation. Process memory only, and no activity in
+ * it: the manager's events are [LaptopConnections.Events.None] while it waits here. Emptied by the next activity, or by
+ * the notification's Disconnect, so nothing is held once the service has no reason to run.
+ */
+object LinkSession {
+    class Kept(
+        val manager: LaptopConnections,
+        val clipboard: ClipboardShare,
+        val apps: AppLinks,
+    )
+
+    @Volatile
+    var kept: Kept? = null
+}
+
 /** What the linger does when it runs out: end the links, or wait for a share still going. */
 enum class LingerAction {
     CLOSE,

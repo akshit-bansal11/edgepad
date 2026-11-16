@@ -510,6 +510,23 @@ class LaptopConnectionsTest {
     }
 
     @Test
+    fun withNobodyListeningTheRecordsStillUpdate() {
+        val link = up(1)
+        val pin = connect(2)
+        log.lines.clear()
+        manager.events = LaptopConnections.Events.None
+
+        link.events.onFrame(Frame.Text(TextKind.NOW_PLAYING.id, "Song"))
+        pin.events.onPinRequest(3)
+        link.drop(LaptopLink.Cause.LOST)
+
+        assertEquals("Song", laptop(1).state.nowPlaying)
+        assertEquals(Laptop.Ask.PIN, laptop(2).asking)
+        assertNull(laptop(1).link?.takeIf { it === link })
+        assertTrue(log.lines.isEmpty())
+    }
+
+    @Test
     fun aNewLinkHasSentNoPinAnswerYet() {
         val first = connect(1)
         first.events.onPinRequest(3)
