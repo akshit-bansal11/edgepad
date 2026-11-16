@@ -112,7 +112,8 @@ internal sealed class Session(
                 Log.Write,
                 Dispose,
                 ended.Token,
-                hasLiveSession: () => (live = liveFor(this)) is not null);
+                hasLiveSession: () => (live = liveFor(this)) is not null,
+                linkKind: link.Kind);
             if (outcome == HandshakeOutcome.Refused)
             {
                 return;

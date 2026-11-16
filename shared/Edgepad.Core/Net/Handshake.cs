@@ -36,7 +36,8 @@ internal static class Handshake
         CancellationToken ended,
         TimeSpan? helloTimeout = null,
         TimeSpan? pinTimeout = null,
-        Func<bool>? hasLiveSession = null)
+        Func<bool>? hasLiveSession = null,
+        LinkKind linkKind = LinkKind.Bluetooth)
     {
         var helloWait = helloTimeout ?? HelloTimeout;
 
@@ -73,7 +74,7 @@ internal static class Handshake
 
         if (first is BulkHello bulk)
         {
-            return Attach(frames, address, bulk, hasLiveSession, log);
+            return Attach(frames, address, bulk, hasLiveSession, linkKind, log);
         }
 
         if (first is not Hello hello)
@@ -182,11 +183,17 @@ internal static class Handshake
     /// on this socket as on the first, and trust and the PIN were passed by the session it attaches to. It only answers
     /// HELLO_ACK, and only when that session is live right now, so a transfer socket can never be a way in.
     /// </summary>
-    private static HandshakeOutcome Attach(FrameStream frames, string address, BulkHello hello, Func<bool>? hasLiveSession, Action<string> log)
+    private static HandshakeOutcome Attach(FrameStream frames, string address, BulkHello hello, Func<bool>? hasLiveSession, LinkKind linkKind, Action<string> log)
     {
         if (hello.Version != ProtocolConstants.Version)
         {
             log($"Refused {address}: its transfer socket speaks protocol {hello.Version}, this laptop {ProtocolConstants.Version}");
+            return HandshakeOutcome.Refused;
+        }
+
+        if (linkKind != LinkKind.Network)
+        {
+            log($"Refused {address}: a transfer socket only attaches over the network");
             return HandshakeOutcome.Refused;
         }
 

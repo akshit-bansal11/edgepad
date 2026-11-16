@@ -138,7 +138,10 @@ public sealed class HandshakeTests : IDisposable
     }
 
     // The transfer socket's side of the handshake: the same call, with the host's word on whether a phone is connected.
-    private HandshakeOutcome Attach(PinStore pin, Func<bool> hasLiveSession, params Frame[] phone)
+    private HandshakeOutcome Attach(PinStore pin, Func<bool> hasLiveSession, params Frame[] phone) =>
+        Attach(pin, hasLiveSession, LinkKind.Network, phone);
+
+    private HandshakeOutcome Attach(PinStore pin, Func<bool> hasLiveSession, LinkKind kind, params Frame[] phone)
     {
         output.SetLength(0);
         using var said = new MemoryStream();
@@ -167,7 +170,8 @@ public sealed class HandshakeTests : IDisposable
             logs.Add,
             () => { },
             ended.Token,
-            hasLiveSession: hasLiveSession);
+            hasLiveSession: hasLiveSession,
+            linkKind: kind);
         Assert.Equal(said.Length, said.Position);
         return outcome;
     }
@@ -178,6 +182,20 @@ public sealed class HandshakeTests : IDisposable
         Assert.Equal(0, admitted);
         Assert.Empty(statuses);
         Assert.Empty(trust.TrustedPhones);
+    }
+
+    [Fact]
+    public void ABulkHelloOverBluetoothIsRefusedWithoutAskingTheHost()
+    {
+        var outcome = Attach(
+            PinAtLevel(1),
+            () => throw new InvalidOperationException("asked"),
+            LinkKind.Bluetooth,
+            new BulkHello(ProtocolConstants.Version));
+
+        Assert.Equal(HandshakeOutcome.Refused, outcome);
+        Assert.Empty(Sent());
+        AssertNothingWasDecidedAboutTheOwner();
     }
 
     [Fact]
