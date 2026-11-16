@@ -44,10 +44,10 @@
     <item>Réguas dobradas nos cantos, ou divididas duas por canto: volume, brilho, zoom, avanço da mídia, alternar apps, taxa de atualização, rolagem, áreas de trabalho virtuais, abas do navegador ou a régua Trocar de notebook.</item>
     <item>O que está tocando, com anterior, tocar e próxima, enquanto um player está aberto. Mova e redimensione em Configurações da superfície.</item>
     <item>Um teclado completo cujas teclas modificadoras funcionam seguradas ou tocadas, atrás do botão Controles.</item>
-    <item>Analógicos, um D-pad e botões em quatro predefinições, ou o seu próprio arranjo.</item>
+    <item>Analógicos, um D-pad e botões em cinco predefinições, ou o seu próprio arranjo.</item>
     <item>Controles › Anotar transforma o celular em uma caneta para a tela do notebook, com seis ferramentas e oito cores. Aparece quando o notebook é compatível.</item>
     <item>Controles › Capturar pede ao notebook uma captura de região, de tela inteira ou uma gravação. Para uma região, arraste a área no touchpad abaixo dos botões. Aparece quando o notebook é compatível.</item>
-    <item>Uma grade de botões que abrem um programa, arquivo ou endereço da web no notebook, atrás de Controles. Mantenha um pressionado para arrastá-lo para a sua ordem; mais de dez continuam em páginas que você acessa deslizando.</item>
+    <item>Uma grade de botões que abrem um programa, arquivo ou endereço da web no notebook, atrás de Controles. Mantenha um pressionado para arrastá-lo para a sua ordem ou para fechá-lo quando estiver aberto; mais de dez continuam em páginas que você acessa deslizando.</item>
   </string-array>
 
   <string name="guide_surface_kicker">3 · A superfície</string>
@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>O ícone Controles no alto da superfície e depois Gamepad. Ele abre em paisagem.</item>
-    <item>Xbox, Plataforma, Corrida e Tiro. Você escolhe nas Configurações do gamepad, que abrem pela engrenagem.</item>
+    <item>Xbox, Xbox (teclas), Plataforma, Corrida e Tiro. Você escolhe nas Configurações do gamepad, que abrem pela engrenagem.</item>
     <item>Segure e deslize um analógico, toque nos botões. Vários dedos ao mesmo tempo funcionam.</item>
     <item>Configurações do gamepad › Editar layout. Arraste os controles para onde seus polegares alcançam; mantenha um pressionado para redimensioná-lo.</item>
   </string-array>
@@ -127,5 +127,5 @@
   <string name="guide_art_scroll">2 · Rolar</string>
   <string name="guide_art_swipe">3 · Deslizar</string>
   <string name="guide_art_latch">Ctrl, Alt e Shift ficam ativas para a próxima tecla</string>
-  <string name="guide_art_presets">Xbox · Plataforma · Corrida · Tiro</string>
+  <string name="guide_art_presets">Xbox · Xbox (teclas) · Plataforma · Corrida · Tiro</string>
 </resources>

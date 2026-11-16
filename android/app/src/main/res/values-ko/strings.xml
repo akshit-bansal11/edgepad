@@ -35,6 +35,7 @@
   <string name="open_controls">컨트롤 열기</string>
   <string name="open_controls_hint">노트북에 연결하면 컨트롤을 열 수 있어요.</string>
   <string name="open_bluetooth_settings">블루투스 설정</string>
+  <string name="bluetooth_tap_off">블루투스가 꺼져 있어요. 켜서 이 노트북에 연결하세요.</string>
   <string name="refresh">목록 새로고침</string>
   <string name="bluetooth_off">노트북을 찾을 수 없어요. 블루투스를 켜고 노트북을 페어링하세요. Wi-Fi나 USB로 연결하려면 노트북에서 Edgepad를 열고 메뉴에서 Wi-Fi 및 USB 연결을 켜세요. USB는 이 휴대전화에서 USB 테더링도 켜야 해요.</string>
   <string name="usb_cable_tether_off">케이블이 연결되었어요. 이 휴대전화에서 USB 테더링을 켜고, 노트북의 Edgepad 메뉴에서 Wi-Fi 및 USB 연결을 켜세요.</string>
@@ -96,6 +97,7 @@
   <string name="pair_cancelled">페어링이 취소되었어요. 노트북을 탭해서 다시 시도하세요.</string>
   <string name="pair_code_spoken">페어링 코드: %1$s</string>
   <string name="pair_expires">%1$s 후 만료</string>
+  <string name="pair_expired">만료됨</string>
   <string name="pair_confirm_title">%1$s에 코드가 일치한다고 표시되었나요?</string>
   <string name="pair_confirm_body">코드가 틀렸다고 표시되었다면 아니요를 탭하세요. 다른 기기가 대신 응답하고 있을 수 있어요.</string>
   <string name="pair_confirm_yes">예, 페어링됨</string>
@@ -290,6 +292,7 @@
   <string name="keyboard_settings_title">키보드 설정</string>
   <string name="gamepad_settings_title">게임패드 설정</string>
   <string name="updates_title">업데이트</string>
+  <string name="updates_notice_text">탭해서 Edgepad 업데이트를 마무리하세요</string>
   <string name="updates_auto">매일 업데이트 확인</string>
   <string name="updates_checking">확인 중…</string>
   <string name="updates_failed">GitHub에 연결할 수 없음</string>
@@ -396,7 +399,11 @@
   <string name="controls_hide_dials">다이얼과 미디어 숨기기</string>
   <string name="controls_blackout">대기 중 화면 끄기</string>
   <string name="controls_open">%1$s 열기</string>
-  <string name="controls_needs_newer">이 기능을 쓰려면 노트북의 Edgepad가 더 최신이어야 해요. 업데이트한 뒤 다시 연결하세요.</string>
+  <string name="controls_needs_newer">이 노트북은 이 기능을 지원하지 않아요. 노트북의 Edgepad가 오래된 버전이면 업데이트한 뒤 다시 연결하세요.</string>
+  <string name="node_move_left">왼쪽으로 이동</string>
+  <string name="node_move_right">오른쪽으로 이동</string>
+  <string name="node_move_up">위로 이동</string>
+  <string name="node_move_down">아래로 이동</string>
   <string name="controls_keyboard">키보드</string>
   <string name="controls_gamepad">게임패드</string>
   <string name="controls_macros">매크로</string>
@@ -478,7 +485,7 @@
   <string name="macros_layout_grid_description">행: %1$d, 열: %2$d</string>
   <string name="macros_layout_caption">앞의 숫자는 행, 뒤의 숫자는 열이에요. 자동은 버튼이 가장 커지는 배치를 골라요.</string>
   <string name="macros_per_page">화면당 매크로 수</string>
-  <string name="macros_per_page_caption">한 페이지에 표시할 매크로 수예요. 나머지는 손가락을 옆으로 밀어 넘기는 다음 페이지에 이어져요. 매크로를 길게 누른 채 드래그하면 같은 페이지 안에서 옮길 수 있어요.</string>
+  <string name="macros_per_page_caption">한 페이지에 표시할 매크로 수예요. 나머지는 손가락을 옆으로 밀어 넘기는 다음 페이지에 이어져요. 매크로를 길게 누른 채 드래그하면 같은 페이지 안에서 옮길 수 있어요. 열려 있는 매크로를 길게 누르면 X 표시가 나타나요. X 표시를 탭하면 앱이 닫혀요.</string>
   <string name="macros_page_of">%2$d페이지 중 %1$d페이지</string>
   <string name="macros_empty_title">아직 매크로가 없어요</string>
   <string name="macros_empty_body">노트북 알림 영역에 있는 Edgepad 메뉴의 ‘매크로…’에서 추가하세요. 노트북이 목록을 보내면 바로 여기에 표시돼요.</string>

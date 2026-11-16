@@ -36,6 +36,7 @@
   <string name="open_controls">Otwórz sterowanie</string>
   <string name="open_controls_hint">Połącz się z laptopem, aby otworzyć sterowanie.</string>
   <string name="open_bluetooth_settings">Ustawienia Bluetooth</string>
+  <string name="bluetooth_tap_off">Bluetooth jest wyłączony. Włącz go, aby połączyć się z tym laptopem.</string>
   <string name="refresh">Odśwież listę</string>
   <string name="bluetooth_off">Nie znaleziono laptopów. Włącz Bluetooth i sparuj laptop. Aby użyć Wi-Fi lub USB, otwórz Edgepad na laptopie i włącz w jego menu „Połączenia Wi-Fi i USB”; dla USB włącz też tutaj tethering USB.</string>
   <string name="usb_cable_tether_off">Kabel jest podłączony. Włącz tutaj tethering USB, a w menu Edgepad na laptopie „Połączenia Wi-Fi i USB”.</string>
@@ -112,6 +113,7 @@
   <string name="pair_cancelled">Anulowano parowanie. Stuknij laptop, aby spróbować ponownie.</string>
   <string name="pair_code_spoken">Kod parowania: %1$s</string>
   <string name="pair_expires">Wygasa za %1$s</string>
+  <string name="pair_expired">Wygasło</string>
   <string name="pair_confirm_title">Czy %1$s potwierdził zgodność kodu?</string>
   <string name="pair_confirm_body">Jeśli pokazał, że kod jest błędny, stuknij „Nie”: zamiast niego może odpowiadać inne urządzenie.</string>
   <string name="pair_confirm_yes">Tak, sparowano</string>
@@ -241,7 +243,7 @@
   <string name="orientation_sideways">Pozioma</string>
   <string name="dial_preview_description">Podgląd suwaka w rogu w wybranym rozmiarze</string>
   <string name="keyboard_text_size">Rozmiar tekstu klawiatury</string>
-  <string name="control_color">Kolor elementów sterujących</string>
+  <string name="control_color">Kolor kontrolek</string>
   <string name="control_color_auto">Automatyczny</string>
   <string name="control_color_custom">Własny</string>
   <string name="background">Tło</string>
@@ -320,6 +322,7 @@
   <string name="keyboard_settings_title">Ustawienia klawiatury</string>
   <string name="gamepad_settings_title">Ustawienia gamepada</string>
   <string name="updates_title">Aktualizacje</string>
+  <string name="updates_notice_text">Dotknij, aby dokończyć aktualizację Edgepad</string>
   <string name="updates_auto">Sprawdzaj aktualizacje codziennie</string>
   <string name="updates_checking">Sprawdzanie…</string>
   <string name="updates_failed">Nie można połączyć się z GitHub</string>
@@ -431,7 +434,11 @@
   <string name="controls_hide_dials">Ukryj suwaki i multimedia</string>
   <string name="controls_blackout">Wygaszaj ekran w bezczynności</string>
   <string name="controls_open">Otwórz: %1$s</string>
-  <string name="controls_needs_newer">Ten laptop wymaga do tego nowszego Edgepad. Zaktualizuj go i połącz ponownie.</string>
+  <string name="controls_needs_newer">Ten laptop tego nie oferuje. Jeśli ma starszy Edgepad, zaktualizuj go i połącz ponownie.</string>
+  <string name="node_move_left">Przesuń w lewo</string>
+  <string name="node_move_right">Przesuń w prawo</string>
+  <string name="node_move_up">Przesuń w górę</string>
+  <string name="node_move_down">Przesuń w dół</string>
   <string name="controls_keyboard">Klawiatura</string>
   <string name="controls_gamepad">Gamepad</string>
   <string name="controls_macros">Makra</string>
@@ -513,7 +520,7 @@
   <string name="macros_layout_grid_description">Wiersze: %1$d, kolumny: %2$d</string>
   <string name="macros_layout_caption">Pierwsza liczba to wiersze, druga to kolumny. „Automatyczny” wybiera układ z największymi przyciskami.</string>
   <string name="macros_per_page">Makra na ekranie</string>
-  <string name="macros_per_page_caption">Ile makr pokazuje jedna strona. Reszta jest na kolejnych stronach, do których przechodzisz, przesuwając palec w bok. Naciśnij i przytrzymaj makro, a potem przeciągnij je, aby zmienić jego miejsce na stronie.</string>
+  <string name="macros_per_page_caption">Ile makr pokazuje jedna strona. Reszta jest na kolejnych stronach, do których przechodzisz, przesuwając palec w bok. Naciśnij i przytrzymaj makro, a potem przeciągnij je, aby zmienić jego miejsce na stronie. Przytrzymaj otwarte makro, aby pokazać krzyżyk, a potem dotknij krzyżyka, aby zamknąć aplikację.</string>
   <string name="macros_page_of">Strona %1$d z %2$d</string>
   <string name="macros_empty_title">Brak makr</string>
   <string name="macros_empty_body">Dodaj je z menu „Makra…” Edgepad w obszarze powiadomień na laptopie. Pojawią się tutaj, gdy tylko laptop wyśle listę.</string>

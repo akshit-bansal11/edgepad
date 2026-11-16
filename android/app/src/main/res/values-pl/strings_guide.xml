@@ -44,10 +44,10 @@
     <item>Suwaki wpasowane w rogi albo podzielone po dwie na róg: głośność, jasność, powiększenie, przewijanie utworu, przełącznik aplikacji, częstotliwość odświeżania, przewijanie, pulpity wirtualne, karty przeglądarki lub suwak Zmiana laptopa.</item>
     <item>To, co jest odtwarzane, a pod spodem przyciski poprzedni, odtwarzanie i następny, gdy otwarty jest odtwarzacz. Przesuń je i zmień ich rozmiar w ustawieniach powierzchni sterowania.</item>
     <item>Pełna klawiatura, której klawisze modyfikujące działają przytrzymane lub stuknięte, za przyciskiem Sterowanie.</item>
-    <item>Gałki, krzyżak i przyciski w czterech gotowych układach albo we własnym.</item>
+    <item>Gałki, krzyżak i przyciski w pięciu gotowych układach albo we własnym.</item>
     <item>Sterowanie › Adnotacje zamienia telefon w pióro do ekranu laptopa, z sześcioma narzędziami i ośmioma kolorami. Pojawia się, gdy laptop to obsługuje.</item>
     <item>Sterowanie › Przechwytywanie prosi laptop o zrzut obszaru, zrzut całego ekranu albo nagranie. Obszar zaznacz przeciągnięciem po touchpadzie pod przyciskami. Pojawia się, gdy laptop to obsługuje.</item>
-    <item>Siatka przycisków otwierających program, plik lub adres internetowy na laptopie, za przyciskiem Sterowanie. Przytrzymaj jeden i przeciągnij, aby ułożyć po swojemu; gdy jest ich ponad dziesięć, reszta czeka na kolejnych stronach, do których przesuwasz palcem.</item>
+    <item>Siatka przycisków otwierających program, plik lub adres internetowy na laptopie, za przyciskiem Sterowanie. Przytrzymaj jeden i przeciągnij, aby ułożyć po swojemu lub zamknąć go, gdy jest otwarty; gdy jest ich ponad dziesięć, reszta czeka na kolejnych stronach, do których przesuwasz palcem.</item>
   </string-array>
 
   <string name="guide_surface_kicker">3 · Powierzchnia</string>

@@ -36,6 +36,7 @@
   <string name="open_controls">Abrir controles</string>
   <string name="open_controls_hint">Conecte-se a um notebook para abrir os controles.</string>
   <string name="open_bluetooth_settings">Configurações de Bluetooth</string>
+  <string name="bluetooth_tap_off">O Bluetooth está desativado. Ative-o para se conectar a este notebook.</string>
   <string name="refresh">Atualizar a lista</string>
   <string name="bluetooth_off">Nenhum notebook encontrado. Ative o Bluetooth e pareie seu notebook. Para Wi-Fi ou USB, abra o Edgepad no notebook e ative “Conexões Wi-Fi e USB” no menu dele; para USB, ative também “Tethering USB” aqui.</string>
   <string name="usb_cable_tether_off">Cabo conectado. Ative “Tethering USB” aqui e “Conexões Wi-Fi e USB” no menu do Edgepad no notebook.</string>
@@ -108,6 +109,7 @@
   <string name="pair_cancelled">Pareamento cancelado. Toque no notebook para tentar de novo.</string>
   <string name="pair_code_spoken">Código de pareamento: %1$s</string>
   <string name="pair_expires">Expira em %1$s</string>
+  <string name="pair_expired">Expirado</string>
   <string name="pair_confirm_title">%1$s disse que o código conferiu?</string>
   <string name="pair_confirm_body">Se ele disse que o código estava errado, toque em Não: outro dispositivo pode estar respondendo no lugar dele.</string>
   <string name="pair_confirm_yes">Sim, pareado</string>
@@ -313,6 +315,7 @@
   <string name="keyboard_settings_title">Configurações do teclado</string>
   <string name="gamepad_settings_title">Configurações do gamepad</string>
   <string name="updates_title">Atualizações</string>
+  <string name="updates_notice_text">Toque para concluir a atualização do Edgepad</string>
   <string name="updates_auto">Verificar atualizações diariamente</string>
   <string name="updates_checking">Verificando…</string>
   <string name="updates_failed">Não foi possível acessar o GitHub</string>
@@ -423,7 +426,11 @@
   <string name="controls_hide_dials">Ocultar réguas e mídia</string>
   <string name="controls_blackout">Apagar a tela quando ociosa</string>
   <string name="controls_open">Abrir %1$s</string>
-  <string name="controls_needs_newer">Este notebook precisa de um Edgepad mais novo para isso. Atualize-o e reconecte.</string>
+  <string name="controls_needs_newer">Este notebook não oferece isso. Se ele tiver um Edgepad mais antigo, atualize-o e reconecte.</string>
+  <string name="node_move_left">Mover para a esquerda</string>
+  <string name="node_move_right">Mover para a direita</string>
+  <string name="node_move_up">Mover para cima</string>
+  <string name="node_move_down">Mover para baixo</string>
   <string name="controls_keyboard">Teclado</string>
   <string name="controls_gamepad">Gamepad</string>
   <string name="controls_macros">Macros</string>
@@ -505,7 +512,7 @@
   <string name="macros_layout_grid_description">Linhas: %1$d, colunas: %2$d</string>
   <string name="macros_layout_caption">O primeiro número é de linhas, o segundo, de colunas. Automático escolhe o que deixa os botões maiores.</string>
   <string name="macros_per_page">Macros na tela</string>
-  <string name="macros_per_page_caption">Quantas macros uma página mostra. As demais continuam em mais páginas, que você acessa deslizando o dedo para o lado. Mantenha uma macro pressionada e arraste-a para movê-la dentro da página.</string>
+  <string name="macros_per_page_caption">Quantas macros uma página mostra. As demais continuam em mais páginas, que você acessa deslizando o dedo para o lado. Mantenha uma macro pressionada e arraste-a para movê-la dentro da página. Mantenha pressionada uma macro aberta para mostrar um X e toque no X para fechar o app.</string>
   <string name="macros_page_of">Página %1$d de %2$d</string>
   <string name="macros_empty_title">Nenhuma macro ainda</string>
   <string name="macros_empty_body">Adicione-as pelo menu “Macros…” do Edgepad, na bandeja do notebook. Elas aparecem aqui assim que ele enviar a lista.</string>

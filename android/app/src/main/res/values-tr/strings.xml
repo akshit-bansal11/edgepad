@@ -36,6 +36,7 @@
   <string name="open_controls">Kontrolleri aç</string>
   <string name="open_controls_hint">Kontrolleri açmak için bir bilgisayara bağlanın.</string>
   <string name="open_bluetooth_settings">Bluetooth ayarları</string>
+  <string name="bluetooth_tap_off">Bluetooth kapalı. Bu bilgisayara bağlanmak için açın.</string>
   <string name="refresh">Listeyi yenile</string>
   <string name="bluetooth_off">Bilgisayar bulunamadı. Bluetooth\'u açıp bilgisayarınızı eşleştirin. Wi-Fi veya USB için bilgisayarda Edgepad\'i açın ve menüsünden Wi-Fi ve USB bağlantılarını etkinleştirin; USB için ayrıca buradan USB ile internet paylaşımını açın.</string>
   <string name="usb_cable_tether_off">Kablo bağlı. Burada USB ile internet paylaşımını, bilgisayarda da Edgepad menüsündeki Wi-Fi ve USB bağlantılarını açın.</string>
@@ -101,6 +102,7 @@
   <string name="pair_cancelled">Eşleştirme iptal edildi. Yeniden denemek için bilgisayara dokunun.</string>
   <string name="pair_code_spoken">Eşleştirme kodu: %1$s</string>
   <string name="pair_expires">Kalan süre: %1$s</string>
+  <string name="pair_expired">Süresi doldu</string>
   <string name="pair_confirm_title">%1$s kodun eşleştiğini bildirdi mi?</string>
   <string name="pair_confirm_body">Kodun yanlış olduğunu bildirdiyse “Hayır” seçeneğine dokunun: onun yerine başka bir cihaz yanıt veriyor olabilir.</string>
   <string name="pair_confirm_yes">Evet, eşleşti</string>
@@ -302,6 +304,7 @@
   <string name="keyboard_settings_title">Klavye ayarları</string>
   <string name="gamepad_settings_title">Oyun kumandası ayarları</string>
   <string name="updates_title">Güncellemeler</string>
+  <string name="updates_notice_text">Edgepad güncellemesini tamamlamak için dokunun</string>
   <string name="updates_auto">Güncellemeleri günlük denetle</string>
   <string name="updates_checking">Denetleniyor…</string>
   <string name="updates_failed">GitHub\'a ulaşılamadı</string>
@@ -410,7 +413,11 @@
   <string name="controls_hide_dials">Kadranları ve medyayı gizle</string>
   <string name="controls_blackout">Boştayken ekranı karart</string>
   <string name="controls_open">Aç: %1$s</string>
-  <string name="controls_needs_newer">Bu bilgisayarın bunun için daha yeni bir Edgepad sürümüne ihtiyacı var. Güncelleyin, sonra yeniden bağlanın.</string>
+  <string name="controls_needs_newer">Bu bilgisayar bunu sunmuyor. Eski bir Edgepad çalıştırıyorsa güncelleyin, sonra yeniden bağlanın.</string>
+  <string name="node_move_left">Sola taşı</string>
+  <string name="node_move_right">Sağa taşı</string>
+  <string name="node_move_up">Yukarı taşı</string>
+  <string name="node_move_down">Aşağı taşı</string>
   <string name="controls_keyboard">Klavye</string>
   <string name="controls_gamepad">Oyun kumandası</string>
   <string name="controls_macros">Makrolar</string>
@@ -492,7 +499,7 @@
   <string name="macros_layout_grid_description">Satır: %1$d, sütun: %2$d</string>
   <string name="macros_layout_caption">İlk sayı satır, ikincisi sütun sayısıdır. Otomatik, düğmeleri en büyük yapan düzeni seçer.</string>
   <string name="macros_per_page">Ekrandaki makrolar</string>
-  <string name="macros_per_page_caption">Bir sayfada kaç makro görüneceği. Kalanlar, parmağınızı yana kaydırarak ulaşılan sayfalarda devam eder. Bir makroyu basılı tutup sürükleyerek sayfası içinde taşıyabilirsiniz.</string>
+  <string name="macros_per_page_caption">Bir sayfada kaç makro görüneceği. Kalanlar, parmağınızı yana kaydırarak ulaşılan sayfalarda devam eder. Bir makroyu basılı tutup sürükleyerek sayfası içinde taşıyabilirsiniz. Açık bir makroyu basılı tutarak çarpıyı gösterin, sonra uygulamayı kapatmak için çarpıya dokunun.</string>
   <string name="macros_page_of">Sayfa %1$d / %2$d</string>
   <string name="macros_empty_title">Henüz makro yok</string>
   <string name="macros_empty_body">Bilgisayarın bildirim alanındaki Edgepad\'in “Makrolar…” menüsünden ekleyin. Liste gönderilir gönderilmez burada görünürler.</string>

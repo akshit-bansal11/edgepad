@@ -36,6 +36,7 @@
   <string name="open_controls">Apri i controlli</string>
   <string name="open_controls_hint">Connettiti a un portatile per aprire i controlli.</string>
   <string name="open_bluetooth_settings">Impostazioni Bluetooth</string>
+  <string name="bluetooth_tap_off">Il Bluetooth è spento. Accendilo per connetterti a questo portatile.</string>
   <string name="refresh">Aggiorna l\'elenco</string>
   <string name="bluetooth_off">Nessun portatile trovato. Attiva il Bluetooth e associa il portatile. Per il Wi-Fi o l\'USB, apri Edgepad sul portatile e attiva Connessioni Wi-Fi e USB nel suo menu; per l\'USB attiva anche qui il tethering USB.</string>
   <string name="usb_cable_tether_off">Cavo collegato. Attiva qui il tethering USB e, nel menu di Edgepad sul portatile, Connessioni Wi-Fi e USB.</string>
@@ -108,6 +109,7 @@
   <string name="pair_cancelled">Associazione annullata. Tocca il portatile per riprovare.</string>
   <string name="pair_code_spoken">Codice di associazione: %1$s</string>
   <string name="pair_expires">Scade tra %1$s</string>
+  <string name="pair_expired">Scaduto</string>
   <string name="pair_confirm_title">%1$s ha detto che il codice corrisponde?</string>
   <string name="pair_confirm_body">Se ha detto che il codice era sbagliato, tocca No: un altro dispositivo potrebbe rispondere al suo posto.</string>
   <string name="pair_confirm_yes">Sì, associato</string>
@@ -313,6 +315,7 @@
   <string name="keyboard_settings_title">Impostazioni della tastiera</string>
   <string name="gamepad_settings_title">Impostazioni del gamepad</string>
   <string name="updates_title">Aggiornamenti</string>
+  <string name="updates_notice_text">Tocca per terminare l\'aggiornamento di Edgepad</string>
   <string name="updates_auto">Controlla gli aggiornamenti ogni giorno</string>
   <string name="updates_checking">Controllo in corso…</string>
   <string name="updates_failed">Impossibile raggiungere GitHub</string>
@@ -424,7 +427,11 @@
   <string name="controls_hide_dials">Nascondi righelli e media</string>
   <string name="controls_blackout">Schermo nero se inattivo</string>
   <string name="controls_open">Apri %1$s</string>
-  <string name="controls_needs_newer">Questo portatile ha bisogno di una versione più recente di Edgepad. Aggiornalo, poi riconnetti.</string>
+  <string name="controls_needs_newer">Questo portatile non lo offre. Se usa un Edgepad più vecchio, aggiornalo, poi riconnetti.</string>
+  <string name="node_move_left">Sposta a sinistra</string>
+  <string name="node_move_right">Sposta a destra</string>
+  <string name="node_move_up">Sposta in alto</string>
+  <string name="node_move_down">Sposta in basso</string>
   <string name="controls_keyboard">Tastiera</string>
   <string name="controls_gamepad">Gamepad</string>
   <string name="controls_macros">Macro</string>
@@ -506,7 +513,7 @@
   <string name="macros_layout_grid_description">Righe: %1$d, colonne: %2$d</string>
   <string name="macros_layout_caption">Il primo numero indica le righe, il secondo le colonne. Auto sceglie la soluzione che rende i pulsanti più grandi.</string>
   <string name="macros_per_page">Macro sullo schermo</string>
-  <string name="macros_per_page_caption">Quante macro mostra una pagina. Le altre proseguono nelle pagine successive, a cui si arriva facendo scorrere un dito di lato. Tieni premuta una macro, poi trascinala per spostarla all\'interno della sua pagina.</string>
+  <string name="macros_per_page_caption">Quante macro mostra una pagina. Le altre proseguono nelle pagine successive, a cui si arriva facendo scorrere un dito di lato. Tieni premuta una macro, poi trascinala per spostarla all\'interno della sua pagina. Tieni premuta una macro aperta per mostrare una croce, poi tocca la croce per chiudere l\'app.</string>
   <string name="macros_page_of">Pagina %1$d di %2$d</string>
   <string name="macros_empty_title">Ancora nessuna macro</string>
   <string name="macros_empty_body">Aggiungile dal menu Macro… di Edgepad nell\'area di notifica sul portatile. Compaiono qui non appena invia l\'elenco.</string>

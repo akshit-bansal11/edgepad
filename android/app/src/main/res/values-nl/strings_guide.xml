@@ -44,10 +44,10 @@
     <item>Schalen die in de hoeken zijn gevouwen, of gesplitst met twee per hoek: Volume, Helderheid, Zoom, Spoelen, App-wisselaar, Vernieuwingsfrequentie, scrollen, Virtuele bureaubladen, Browsertabbladen of de regelaar Laptop wisselen.</item>
     <item>Wat er speelt, met vorige, afspelen en volgende, zolang een speler open is. Verplaats en vergroot of verklein het in de instellingen voor het bedieningsvlak.</item>
     <item>Een volledig toetsenbord waarvan de modificatietoetsen ingedrukt of getikt werken, achter de knop Bediening.</item>
-    <item>Sticks, een D-pad en knoppen in vier voorinstellingen, of je eigen indeling.</item>
+    <item>Sticks, een D-pad en knoppen in vijf voorinstellingen, of je eigen indeling.</item>
     <item>Bediening › Annoteren maakt van de telefoon een pen voor het laptopscherm, met zes gereedschappen en acht kleuren. Het verschijnt als de laptop het ondersteunt.</item>
     <item>Bediening › Vastleggen vraagt de laptop om een screenshot van een gebied, van het hele scherm of om een opname. Sleep voor een gebied het kader uit op het pad onder de knoppen. Het verschijnt als de laptop het ondersteunt.</item>
-    <item>Een raster met knoppen die een programma, bestand of webadres op de laptop openen, achter Bediening. Houd er een ingedrukt en sleep hem naar jouw volgorde; bij meer dan tien ga je door naar pagina\'s waar je naartoe veegt.</item>
+    <item>Een raster met knoppen die een programma, bestand of webadres op de laptop openen, achter Bediening. Houd er een ingedrukt en sleep hem naar jouw volgorde, of sluit hem als hij open is; bij meer dan tien ga je door naar pagina\'s waar je naartoe veegt.</item>
   </string-array>
 
   <string name="guide_surface_kicker">3 · Het bedieningsvlak</string>
@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>Het pictogram Bediening boven aan het bedieningsvlak, dan Gamepad. Het opent liggend.</item>
-    <item>Xbox, Platformer, Racen en Shooter, te kiezen in de Gamepad-instellingen, achter het tandwiel op de gamepad.</item>
+    <item>Xbox, Xbox-toetsen, Platformer, Racen en Shooter, te kiezen in de Gamepad-instellingen, achter het tandwiel op de gamepad.</item>
     <item>Houd een stick vast en schuif, tik op de knoppen. Meerdere vingers tegelijk werken.</item>
     <item>Gamepad-instellingen › Indeling bewerken. Sleep elementen naar waar je duimen landen; houd er een ingedrukt om de grootte te wijzigen.</item>
   </string-array>
@@ -127,5 +127,5 @@
   <string name="guide_art_scroll">2 · Scrollen</string>
   <string name="guide_art_swipe">3 · Vegen</string>
   <string name="guide_art_latch">Ctrl, Alt en Shift blijven actief voor de volgende toets</string>
-  <string name="guide_art_presets">Xbox · Platformer · Racen · Shooter</string>
+  <string name="guide_art_presets">Xbox · Xbox-toetsen · Platformer · Racen · Shooter</string>
 </resources>

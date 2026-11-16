@@ -36,6 +36,7 @@
   <string name="open_controls">打开控制</string>
   <string name="open_controls_hint">连接电脑后才能打开控制。</string>
   <string name="open_bluetooth_settings">蓝牙设置</string>
+  <string name="bluetooth_tap_off">蓝牙已关闭。请打开蓝牙以连接这台电脑。</string>
   <string name="refresh">刷新列表</string>
   <string name="bluetooth_off">未找到电脑。请打开蓝牙并与电脑配对。若使用 Wi-Fi 或 USB，请先在电脑上打开 Edgepad，并在其菜单中开启“Wi-Fi 和 USB 连接”；使用 USB 时还需在手机上开启 USB 网络共享。</string>
   <string name="usb_cable_tether_off">数据线已连接。请在手机上开启 USB 网络共享，并在电脑的 Edgepad 菜单中开启“Wi-Fi 和 USB 连接”。</string>
@@ -100,6 +101,7 @@
   <string name="pair_cancelled">已取消配对。点按该电脑重试。</string>
   <string name="pair_code_spoken">配对码：%1$s</string>
   <string name="pair_expires">%1$s后过期</string>
+  <string name="pair_expired">已过期</string>
   <string name="pair_confirm_title">%1$s是否显示配对码一致？</string>
   <string name="pair_confirm_body">如果它显示的配对码不一致，请点“否”：可能有其他设备在冒充它。</string>
   <string name="pair_confirm_yes">是，已配对</string>
@@ -299,6 +301,7 @@
   <string name="keyboard_settings_title">键盘设置</string>
   <string name="gamepad_settings_title">手柄设置</string>
   <string name="updates_title">更新</string>
+  <string name="updates_notice_text">点按以完成 Edgepad 更新</string>
   <string name="updates_auto">每天检查更新</string>
   <string name="updates_checking">正在检查…</string>
   <string name="updates_failed">无法连接 GitHub</string>
@@ -409,7 +412,11 @@
   <string name="controls_hide_dials">隐藏标尺和媒体</string>
   <string name="controls_blackout">闲置时熄屏</string>
   <string name="controls_open">打开%1$s</string>
-  <string name="controls_needs_newer">这台电脑上的 Edgepad 版本过旧，不支持此功能。请更新后重新连接。</string>
+  <string name="controls_needs_newer">这台电脑不支持此功能。如果它运行的是旧版 Edgepad，请更新后重新连接。</string>
+  <string name="node_move_left">向左移动</string>
+  <string name="node_move_right">向右移动</string>
+  <string name="node_move_up">向上移动</string>
+  <string name="node_move_down">向下移动</string>
   <string name="controls_keyboard">键盘</string>
   <string name="controls_gamepad">手柄</string>
   <string name="controls_macros">宏</string>
@@ -491,7 +498,7 @@
   <string name="macros_layout_grid_description">行数：%1$d，列数：%2$d</string>
   <string name="macros_layout_caption">第一个数字是行数，第二个是列数。“自动”会选择能让按钮最大的排法。</string>
   <string name="macros_per_page">每屏显示的宏</string>
-  <string name="macros_per_page_caption">每页显示多少个宏。其余宏排在后面的页中，左右滑动即可翻页。长按某个宏并拖动，可在本页内调整位置。</string>
+  <string name="macros_per_page_caption">每页显示多少个宏。其余宏排在后面的页中，左右滑动即可翻页。长按某个宏并拖动，可在本页内调整位置。长按已打开的宏会显示一个叉，再点按叉即可关闭该应用。</string>
   <string name="macros_page_of">第 %1$d 页，共 %2$d 页</string>
   <string name="macros_empty_title">还没有宏</string>
   <string name="macros_empty_body">请在电脑托盘中的 Edgepad“宏…”菜单里添加。电脑发来列表后，它们会立即显示在这里。</string>

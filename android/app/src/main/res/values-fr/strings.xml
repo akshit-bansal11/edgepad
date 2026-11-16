@@ -36,6 +36,7 @@
   <string name="open_controls">Ouvrir les commandes</string>
   <string name="open_controls_hint">Connectez-vous à un ordinateur pour ouvrir les commandes.</string>
   <string name="open_bluetooth_settings">Paramètres Bluetooth</string>
+  <string name="bluetooth_tap_off">Le Bluetooth est désactivé. Activez-le pour vous connecter à cet ordinateur.</string>
   <string name="refresh">Actualiser la liste</string>
   <string name="bluetooth_off">Aucun ordinateur trouvé. Activez le Bluetooth et associez votre ordinateur. Pour le Wi-Fi ou l\'USB, ouvrez Edgepad sur l\'ordinateur et activez les connexions Wi-Fi et USB dans son menu ; pour l\'USB, activez aussi le partage de connexion par USB ici.</string>
   <string name="usb_cable_tether_off">Câble branché. Activez ici le partage de connexion par USB, et les connexions Wi-Fi et USB dans le menu d\'Edgepad sur l\'ordinateur.</string>
@@ -108,6 +109,7 @@
   <string name="pair_cancelled">Association annulée. Appuyez sur l\'ordinateur pour réessayer.</string>
   <string name="pair_code_spoken">Code d\'association : %1$s</string>
   <string name="pair_expires">Expire dans %1$s</string>
+  <string name="pair_expired">Expiré</string>
   <string name="pair_confirm_title">%1$s a-t-il indiqué que le code correspondait ?</string>
   <string name="pair_confirm_body">S\'il a indiqué que le code était erroné, appuyez sur Non : un autre appareil répond peut-être à sa place.</string>
   <string name="pair_confirm_yes">Oui, associé</string>
@@ -313,6 +315,7 @@
   <string name="keyboard_settings_title">Paramètres du clavier</string>
   <string name="gamepad_settings_title">Paramètres de la manette</string>
   <string name="updates_title">Mises à jour</string>
+  <string name="updates_notice_text">Touchez pour terminer la mise à jour d\'Edgepad</string>
   <string name="updates_auto">Rechercher les mises à jour chaque jour</string>
   <string name="updates_checking">Vérification…</string>
   <string name="updates_failed">Impossible de joindre GitHub</string>
@@ -423,7 +426,11 @@
   <string name="controls_hide_dials">Masquer les règles et le média</string>
   <string name="controls_blackout">Éteindre l\'écran au repos</string>
   <string name="controls_open">Ouvrir %1$s</string>
-  <string name="controls_needs_newer">Cet ordinateur a besoin d\'une version plus récente d\'Edgepad pour cela. Mettez-le à jour, puis reconnectez-vous.</string>
+  <string name="controls_needs_newer">Cet ordinateur ne propose pas cela. S\'il utilise une ancienne version d\'Edgepad, mettez-la à jour, puis reconnectez-vous.</string>
+  <string name="node_move_left">Déplacer à gauche</string>
+  <string name="node_move_right">Déplacer à droite</string>
+  <string name="node_move_up">Déplacer vers le haut</string>
+  <string name="node_move_down">Déplacer vers le bas</string>
   <string name="controls_keyboard">Clavier</string>
   <string name="controls_gamepad">Manette</string>
   <string name="controls_macros">Macros</string>
@@ -505,7 +512,7 @@
   <string name="macros_layout_grid_description">Lignes : %1$d, colonnes : %2$d</string>
   <string name="macros_layout_caption">Le premier nombre est le nombre de lignes, le second celui de colonnes. Auto choisit ce qui donne les plus gros boutons.</string>
   <string name="macros_per_page">Macros à l\'écran</string>
-  <string name="macros_per_page_caption">Nombre de macros affichées par page. Les autres continuent sur d\'autres pages, auxquelles on accède en glissant le doigt sur le côté. Maintenez une macro, puis faites-la glisser pour la déplacer dans sa page.</string>
+  <string name="macros_per_page_caption">Nombre de macros affichées par page. Les autres continuent sur d\'autres pages, auxquelles on accède en glissant le doigt sur le côté. Maintenez une macro, puis faites-la glisser pour la déplacer dans sa page. Maintenez une macro ouverte pour afficher une croix, puis touchez la croix pour fermer l\'application.</string>
   <string name="macros_page_of">Page %1$d sur %2$d</string>
   <string name="macros_empty_title">Aucune macro</string>
   <string name="macros_empty_body">Ajoutez-en depuis le menu Macros… d\'Edgepad, dans la zone de notification de l\'ordinateur. Elles apparaissent ici dès qu\'il envoie la liste.</string>

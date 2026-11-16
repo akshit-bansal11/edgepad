@@ -44,10 +44,10 @@
     <item>Skalen, die um die Ecken laufen, oder zwei pro Ecke: Lautstärke, Helligkeit, Zoom, Spulen, App-Wechsler, Bildwiederholrate, Scrollen, Desktops, Browser-Tabs oder der Regler „Laptop wechseln“.</item>
     <item>Was gerade läuft, dazu Zurück, Wiedergabe und Weiter, solange ein Player offen ist. Verschieben und Größe ändern in den Einstellungen der Steuerfläche.</item>
     <item>Eine vollständige Tastatur, deren Sondertasten gehalten oder getippt funktionieren, hinter der Schaltfläche „Steuerung“.</item>
-    <item>Sticks, Steuerkreuz und Tasten in vier Vorlagen oder in deiner eigenen Anordnung.</item>
+    <item>Sticks, Steuerkreuz und Tasten in fünf Vorlagen oder in deiner eigenen Anordnung.</item>
     <item>Steuerung › Zeichnen macht das Handy zum Stift für den Laptop-Bildschirm, mit sechs Werkzeugen und acht Farben. Erscheint, wenn der Laptop es unterstützt.</item>
     <item>Steuerung › Aufnahme fordert vom Laptop einen Screenshot eines Bereichs, des ganzen Bildschirms oder eine Aufzeichnung an. Einen Bereich ziehst du auf der Fläche unter den Tasten auf. Erscheint, wenn der Laptop es unterstützt.</item>
-    <item>Ein Raster aus Tasten, die ein Programm, eine Datei oder eine Webadresse auf dem Laptop öffnen, hinter der Steuerung. Halte eine gedrückt und zieh sie in deine Reihenfolge; ab mehr als zehn gibt es weitere Seiten, zu denen du wischst.</item>
+    <item>Ein Raster aus Tasten, die ein Programm, eine Datei oder eine Webadresse auf dem Laptop öffnen, hinter der Steuerung. Halte eine gedrückt, um sie in deine Reihenfolge zu ziehen oder, wenn sie geöffnet ist, zu schließen; ab mehr als zehn gibt es weitere Seiten, zu denen du wischst.</item>
   </string-array>
 
   <string name="guide_surface_kicker">3 · Die Steuerfläche</string>
@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>Das Steuerungssymbol oben auf der Steuerfläche, dann Gamepad. Es öffnet sich im Querformat.</item>
-    <item>Xbox, Jump\'n\'Run, Rennspiel und Shooter, ausgewählt in den Gamepad-Einstellungen hinter dem Zahnrad auf dem Gamepad.</item>
+    <item>Xbox, Xbox-Tasten, Jump\'n\'Run, Rennspiel und Shooter, ausgewählt in den Gamepad-Einstellungen hinter dem Zahnrad auf dem Gamepad.</item>
     <item>Halte einen Stick und wische, tippe die Tasten. Mehrere Finger gleichzeitig funktionieren.</item>
     <item>Gamepad-Einstellungen › Layout bearbeiten. Zieh die Elemente dorthin, wo deine Daumen landen; drücke eines lange, um seine Größe zu ändern.</item>
   </string-array>
@@ -127,5 +127,5 @@
   <string name="guide_art_scroll">2 · Scrollen</string>
   <string name="guide_art_swipe">3 · Wischen</string>
   <string name="guide_art_latch">Strg, Alt und Umschalt rasten für die nächste Taste ein</string>
-  <string name="guide_art_presets">Xbox · Jump\'n\'Run · Rennspiel · Shooter</string>
+  <string name="guide_art_presets">Xbox · Xbox-Tasten · Jump\'n\'Run · Rennspiel · Shooter</string>
 </resources>

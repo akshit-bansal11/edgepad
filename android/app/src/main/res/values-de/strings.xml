@@ -36,6 +36,7 @@
   <string name="open_controls">Steuerung öffnen</string>
   <string name="open_controls_hint">Verbinde einen Laptop, um die Steuerung zu öffnen.</string>
   <string name="open_bluetooth_settings">Bluetooth-Einstellungen</string>
+  <string name="bluetooth_tap_off">Bluetooth ist aus. Schalte es ein, um dich mit diesem Laptop zu verbinden.</string>
   <string name="refresh">Liste aktualisieren</string>
   <string name="bluetooth_off">Keine Laptops gefunden. Schalte Bluetooth ein und koppel deinen Laptop. Für WLAN oder USB öffne Edgepad auf dem Laptop und schalte im Menü „WLAN- und USB-Verbindungen“ ein; für USB brauchst du hier außerdem USB-Tethering.</string>
   <string name="usb_cable_tether_off">Kabel verbunden. Schalte hier USB-Tethering ein und im Edgepad-Menü auf dem Laptop „WLAN- und USB-Verbindungen“.</string>
@@ -103,6 +104,7 @@
   <string name="pair_cancelled">Kopplung abgebrochen. Tippe auf den Laptop, um es erneut zu versuchen.</string>
   <string name="pair_code_spoken">Kopplungscode: %1$s</string>
   <string name="pair_expires">Läuft ab in %1$s</string>
+  <string name="pair_expired">Abgelaufen</string>
   <string name="pair_confirm_title">Hat %1$s gemeldet, dass der Code stimmt?</string>
   <string name="pair_confirm_body">Wenn der Code als falsch gemeldet wurde, tippe auf „Nein“: Möglicherweise antwortet ein anderes Gerät an seiner Stelle.</string>
   <string name="pair_confirm_yes">Ja, gekoppelt</string>
@@ -305,6 +307,7 @@
   <string name="keyboard_settings_title">Tastatureinstellungen</string>
   <string name="gamepad_settings_title">Gamepad-Einstellungen</string>
   <string name="updates_title">Updates</string>
+  <string name="updates_notice_text">Tippe, um die Aktualisierung von Edgepad abzuschließen</string>
   <string name="updates_auto">Täglich nach Updates suchen</string>
   <string name="updates_checking">Prüfe…</string>
   <string name="updates_failed">GitHub nicht erreichbar</string>
@@ -414,7 +417,11 @@
   <string name="controls_hide_dials">Regler und Medien ausblenden</string>
   <string name="controls_blackout">Bei Inaktivität abdunkeln</string>
   <string name="controls_open">%1$s öffnen</string>
-  <string name="controls_needs_newer">Dafür braucht dieser Laptop ein neueres Edgepad. Aktualisiere es und verbinde dich erneut.</string>
+  <string name="controls_needs_newer">Dieser Laptop bietet das nicht an. Läuft darauf ein älteres Edgepad, aktualisiere es und verbinde dich erneut.</string>
+  <string name="node_move_left">Nach links verschieben</string>
+  <string name="node_move_right">Nach rechts verschieben</string>
+  <string name="node_move_up">Nach oben verschieben</string>
+  <string name="node_move_down">Nach unten verschieben</string>
   <string name="controls_keyboard">Tastatur</string>
   <string name="controls_gamepad">Gamepad</string>
   <string name="controls_macros">Makros</string>
@@ -496,7 +503,7 @@
   <string name="macros_layout_grid_description">Zeilen: %1$d, Spalten: %2$d</string>
   <string name="macros_layout_caption">Die erste Zahl sind die Zeilen, die zweite die Spalten. Bei „Auto“ werden die Tasten möglichst groß.</string>
   <string name="macros_per_page">Makros pro Seite</string>
-  <string name="macros_per_page_caption">Wie viele Makros eine Seite zeigt. Die übrigen folgen auf weiteren Seiten, zu denen du seitlich wischst. Halte ein Makro gedrückt und zieh es, um es auf seiner Seite zu verschieben.</string>
+  <string name="macros_per_page_caption">Wie viele Makros eine Seite zeigt. Die übrigen folgen auf weiteren Seiten, zu denen du seitlich wischst. Halte ein Makro gedrückt und zieh es, um es auf seiner Seite zu verschieben. Halte ein geöffnetes Makro gedrückt, damit ein Kreuz erscheint, und tippe dann auf das Kreuz, um die App zu schließen.</string>
   <string name="macros_page_of">Seite %1$d von %2$d</string>
   <string name="macros_empty_title">Noch keine Makros</string>
   <string name="macros_empty_body">Füge sie im Edgepad-Menü „Makros…“ im Infobereich des Laptops hinzu. Sie erscheinen hier, sobald der Laptop die Liste sendet.</string>

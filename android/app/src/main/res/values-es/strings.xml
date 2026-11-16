@@ -36,6 +36,7 @@
   <string name="open_controls">Abrir los controles</string>
   <string name="open_controls_hint">Conéctate a una laptop para abrir los controles.</string>
   <string name="open_bluetooth_settings">Configuración de Bluetooth</string>
+  <string name="bluetooth_tap_off">El Bluetooth está desactivado. Actívalo para conectarte a esta laptop.</string>
   <string name="refresh">Actualizar la lista</string>
   <string name="bluetooth_off">No se encontró ninguna laptop. Activa el Bluetooth y vincula tu laptop. Para usar Wi-Fi o USB, abre Edgepad en la laptop y activa «Conexiones Wi-Fi y USB» en su menú; con USB, activa también «Compartir conexión por USB» aquí.</string>
   <string name="usb_cable_tether_off">Cable conectado. Activa «Compartir conexión por USB» aquí y «Conexiones Wi-Fi y USB» en el menú de Edgepad de la laptop.</string>
@@ -108,6 +109,7 @@
   <string name="pair_cancelled">Vinculación cancelada. Toca la laptop para intentarlo de nuevo.</string>
   <string name="pair_code_spoken">Código de vinculación: %1$s</string>
   <string name="pair_expires">Caduca en %1$s</string>
+  <string name="pair_expired">Caducado</string>
   <string name="pair_confirm_title">¿%1$s indicó que el código coincidía?</string>
   <string name="pair_confirm_body">Si indicó que el código era incorrecto, toca No: puede que otro dispositivo esté respondiendo en su lugar.</string>
   <string name="pair_confirm_yes">Sí, vinculada</string>
@@ -313,6 +315,7 @@
   <string name="keyboard_settings_title">Configuración del teclado</string>
   <string name="gamepad_settings_title">Configuración del gamepad</string>
   <string name="updates_title">Actualizaciones</string>
+  <string name="updates_notice_text">Toca para terminar de actualizar Edgepad</string>
   <string name="updates_auto">Buscar actualizaciones a diario</string>
   <string name="updates_checking">Comprobando…</string>
   <string name="updates_failed">No se pudo acceder a GitHub</string>
@@ -425,7 +428,11 @@
   <string name="controls_hide_dials">Ocultar reglas y multimedia</string>
   <string name="controls_blackout">Oscurecer la pantalla si no se usa</string>
   <string name="controls_open">Abrir %1$s</string>
-  <string name="controls_needs_newer">Esta laptop necesita un Edgepad más reciente para esto. Actualízalo y vuelve a conectar.</string>
+  <string name="controls_needs_newer">Esta laptop no ofrece esto. Si tiene un Edgepad más antiguo, actualízalo y vuelve a conectar.</string>
+  <string name="node_move_left">Mover a la izquierda</string>
+  <string name="node_move_right">Mover a la derecha</string>
+  <string name="node_move_up">Mover hacia arriba</string>
+  <string name="node_move_down">Mover hacia abajo</string>
   <string name="controls_keyboard">Teclado</string>
   <string name="controls_gamepad">Gamepad</string>
   <string name="controls_macros">Macros</string>
@@ -507,7 +514,7 @@
   <string name="macros_layout_grid_description">Filas: %1$d, columnas: %2$d</string>
   <string name="macros_layout_caption">El primer número son las filas y el segundo, las columnas. Automática elige la distribución que da los botones más grandes.</string>
   <string name="macros_per_page">Macros en pantalla</string>
-  <string name="macros_per_page_caption">Cuántas macros muestra cada página. El resto continúa en más páginas, a las que llegas deslizando el dedo hacia un lado. Mantén pulsada una macro y arrástrala para moverla dentro de su página.</string>
+  <string name="macros_per_page_caption">Cuántas macros muestra cada página. El resto continúa en más páginas, a las que llegas deslizando el dedo hacia un lado. Mantén pulsada una macro y arrástrala para moverla dentro de su página. Mantén pulsada una macro abierta para que aparezca una cruz y toca la cruz para cerrar la app.</string>
   <string name="macros_page_of">Página %1$d de %2$d</string>
   <string name="macros_empty_title">Aún no hay macros</string>
   <string name="macros_empty_body">Añádelas desde el menú «Macros…» de Edgepad, en el área de notificaciones de la laptop. Aparecen aquí en cuanto envía la lista.</string>
