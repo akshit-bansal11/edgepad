@@ -229,7 +229,7 @@ internal sealed class StateReporter : IDisposable
             path = DesktopIcons.IconForDesktopId(entry, dirs);
         }
 
-        if (path is not null && LinuxMacroIcons.Render(path, IconSize) is { } png)
+        if (path is not null && LinuxMacroIcons.Render(path, IconSize, IconSize) is { } png)
         {
             blobs.Send(BlobKind.MediaIcon, label, png);
         }
