@@ -9,6 +9,7 @@ using Edgepad.Macros;
 using Edgepad.Net;
 using Edgepad.Network;
 using Edgepad.Startup;
+using Edgepad.Transfer;
 using Edgepad.Trust;
 using Edgepad.Ui;
 using Edgepad.Updates;
@@ -71,6 +72,8 @@ internal sealed class TrayContext : ApplicationContext
         ToolTipText = Strings.Menu_ShareClipboardTip,
     };
 
+    private readonly MenuRow sendFileRow = new(Strings.Menu_SendFile, Icons.Download);
+    private SendPipe? sendPipe;
     private readonly MenuRow checkUpdates = new(Strings.Menu_CheckUpdates, Icons.Download) { CheckOnClick = true, Switch = true };
     private readonly MenuRow openLog = new(Strings.Menu_OpenLog, Icons.FileText);
     private readonly TrayMenu settingsMenu = new(withHeader: false);
@@ -161,6 +164,7 @@ internal sealed class TrayContext : ApplicationContext
         // Click, not CheckedChanged: the menu sets Checked from the registry each time it opens, and that must
         // read the key without writing it back — least of all deleting it after a failed read.
         startWithWindows.Click += (_, _) => SaveStartWithWindows(startWithWindows.Checked);
+        sendFileRow.Click += (_, _) => PickAndSendFile();
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
         securityRow.Click += (_, _) => ShowSecurity();
         networkRow.Click += (_, _) => ToggleNetwork(networkRow.Checked);
@@ -210,6 +214,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(networkRow);
         menu.Items.Add(clipboardRow);
         menu.Items.Add(new MenuSeparator());
+        menu.Items.Add(sendFileRow);
         menu.Items.Add(macrosRow);
         menu.Items.Add(securityRow);
         menu.Items.Add(new MenuSeparator());
@@ -288,7 +293,10 @@ internal sealed class TrayContext : ApplicationContext
             () => clipboardSetting.Enabled,
             AnnounceMacro,
             ui,
-            OnSessionEnded);
+            OnSessionEnded,
+            onFileArrived: path => ui.Post(_ => Balloon(Strings.Balloon_FileReceived.Fill(Path.GetFileName(path)), ToolTipIcon.Info), null));
+        SendPipe.EnsureShortcut();
+        sendPipe = new SendPipe(path => ui.Post(_ => _ = SendFileAsync(path), null));
         server = new RfcommServer(SetStatus, host);
         _ = StartServerAsync();
 
@@ -503,6 +511,28 @@ internal sealed class TrayContext : ApplicationContext
     {
         balloonAction = onClick;
         icon.ShowBalloonTip(0, "Edgepad", text, kind);
+    }
+
+    private void PickAndSendFile()
+    {
+        using var dialog = new OpenFileDialog { CheckFileExists = true, Multiselect = false };
+        if (dialog.ShowDialog() == DialogResult.OK)
+        {
+            _ = SendFileAsync(dialog.FileName);
+        }
+    }
+
+    private async Task SendFileAsync(string path)
+    {
+        try
+        {
+            var code = await host.SendFile(path);
+            Log.Write($"Send to phone: {(code is { } c ? c.ToString() : "no phone connected")}");
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Log.Write($"Send to phone: {e.Message}");
+        }
     }
 
     private void SaveStartWithWindows(bool on)
@@ -1307,6 +1337,8 @@ internal sealed class TrayContext : ApplicationContext
 
             menu.Dispose();
             startWithWindows.Dispose();
+            sendFileRow.Dispose();
+            sendPipe?.Dispose();
             macrosRow.Dispose();
             securityRow.Dispose();
             networkRow.Dispose();

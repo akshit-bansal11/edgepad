@@ -18,12 +18,16 @@ internal enum LaunchChoice
 /// <summary>The command line, read strictly: only the options below count, and anything else is ignored.</summary>
 /// <param name="RestartSid">The user SID after <c>--restart</c>, or null when the option is absent or has no value.</param>
 /// <param name="ProbeNotifications">True with <c>--probe-notifications</c>.</param>
-internal readonly record struct LaunchArgs(string? RestartSid, bool ProbeNotifications);
+/// <param name="SendPath">The path after <c>--send</c> (Explorer's Send to), or null.</param>
+internal readonly record struct LaunchArgs(string? RestartSid, bool ProbeNotifications, string? SendPath = null);
 
 internal static class SingleInstance
 {
     /// <summary>The Win32 error for a UAC prompt the owner declined.</summary>
     public const int UacDeclined = 1223;
+
+    /// <summary>The option the Send to shortcut passes; Explorer appends the chosen file after it.</summary>
+    public const string SendOption = "--send";
 
     /// <summary>
     /// The lock is not enough to decide on: a second launch of the version already running used to quit it, which
@@ -44,6 +48,7 @@ internal static class SingleInstance
     {
         string? sid = null;
         var probe = false;
+        string? send = null;
         for (var i = 0; i < args.Length; i++)
         {
             switch (args[i])
@@ -54,10 +59,13 @@ internal static class SingleInstance
                 case "--probe-notifications":
                     probe = true;
                     break;
+                case SendOption when i + 1 < args.Length && args[i + 1].Length > 0:
+                    send = args[++i];
+                    break;
             }
         }
 
-        return new LaunchArgs(sid, probe);
+        return new LaunchArgs(sid, probe, send);
     }
 
     public static string RestartArguments(string sid) => $"--restart {sid}";

@@ -1,5 +1,6 @@
 using Edgepad.Notifications;
 using Edgepad.Startup;
+using Edgepad.Transfer;
 using Edgepad.Trust;
 using Edgepad.Ui;
 using Edgepad.Updates;
@@ -31,6 +32,13 @@ internal static class Program
         {
             // The 4.9.0 spike: writes the listener's access status to the log and exits, touching nothing else.
             NotificationProbe.Run();
+            return;
+        }
+
+        if (launch.SendPath is { } sendPath)
+        {
+            // Explorer's Send to: pass the path to the running copy and leave without a word, whatever the answer.
+            _ = SendPipe.Send(sendPath);
             return;
         }
 
