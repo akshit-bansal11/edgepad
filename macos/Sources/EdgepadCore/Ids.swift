@@ -25,6 +25,8 @@ public enum ActionId: UInt8, CaseIterable {
     /// action costs no protocol version: a build too old to know them drops them and counts them.
     case padAttach = 35
     case padDetach = 36
+    /// The laser tool: the next `pen` stroke is a dot that follows the finger and leaves nothing behind.
+    case toolLaser = 37
     /// Annotating the screen and signing, which the laptop draws and the phone only steers: begin and end
     /// show and remove the overlay, undo and clear edit the strokes, and the tools pick what the next `pen`
     /// stroke draws. `signBegin` opens a surface that shows nothing and takes only the pen tool, and `signSave`
