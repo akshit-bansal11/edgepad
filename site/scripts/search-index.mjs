@@ -5,8 +5,9 @@ import { readFileSync, writeFileSync } from "node:fs";
 import process from "node:process";
 
 const PAGES = [
-  { file: "out/docs/index.html", path: "/docs" },
-  { file: "out/docs/developers/index.html", path: "/docs/developers" },
+  // `output: "export"` without trailingSlash writes each route as <route>.html.
+  { file: "out/docs.html", path: "/docs" },
+  { file: "out/docs/developers.html", path: "/docs/developers" },
 ];
 const MAX_TEXT = 1500;
 const ENTITIES = {
