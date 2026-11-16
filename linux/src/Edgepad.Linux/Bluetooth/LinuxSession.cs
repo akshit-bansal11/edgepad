@@ -27,7 +27,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Dispatcher dispatcher;
     private readonly Action releaseHeldInput;
     private readonly Func<string> probePad;
-    private readonly Func<Action<Frame>, Action<bool>?> startReporting;
+    private readonly Func<Action<Frame>, Func<long>, Action<bool>?> startReporting;
     private readonly Func<MacroStore> macros;
     private readonly LinkIdentity identity;
     private readonly Action<LaptopStatus> onStatus;
@@ -60,7 +60,7 @@ internal sealed class LinuxSession : IDisposable
         Dispatcher dispatcher,
         Action releaseHeldInput,
         Func<string> probePad,
-        Func<Action<Frame>, Action<bool>?> startReporting,
+        Func<Action<Frame>, Func<long>, Action<bool>?> startReporting,
         Func<MacroStore> macros,
         LinkIdentity identity,
         Action<LaptopStatus> onStatus,
@@ -125,7 +125,7 @@ internal sealed class LinuxSession : IDisposable
             UinputAccess.Changed += inputState;
             dispatcher.PadStatusReply = status => frames.Send(new Text((byte)TextKind.PadStatus, status));
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
-            dispatcher.MacroWatch = startReporting(frames.Send);
+            dispatcher.MacroWatch = startReporting(frames.Send, () => dispatcher.LastInputMs);
 
             // TEXT 19/20: the batteries every 60 s, the default output every 3 s, each sent only when it changed. The
             // reporter reads on its own timers, so a slow UPower or sound tool never holds up this read loop.

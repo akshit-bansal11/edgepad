@@ -239,7 +239,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     /// apps' watch on and off, or null where this desktop cannot be surveyed. The features name that watch before the
     /// caller has this, which is safe because the same reader must return here before it can read the phone's answer.
     /// </summary>
-    public Action<bool>? StartReporting(Action<Frame> send)
+    public Action<bool>? StartReporting(Action<Frame> send, Func<long> lastInputMs)
     {
         // A failed survey or send stays inside the watcher, so nothing here can cost a macro its launch.
         var open = macros.CreateWatcher(states => send(new Text((byte)TextKind.MacroOpen, states)));
@@ -248,7 +248,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
         annotator.Start(send, open is not null);
         lock (reporting)
         {
-            reporter ??= new StateReporter(speakers, microphone, backlight, mpris, macros, send);
+            reporter ??= new StateReporter(speakers, microphone, backlight, mpris, macros, send, lastInputMs);
             openApps = open;
         }
 
