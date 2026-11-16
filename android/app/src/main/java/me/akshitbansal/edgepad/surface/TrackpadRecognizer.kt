@@ -16,8 +16,15 @@ import kotlin.math.hypot
  * bar and ends a Snipping Tool selection before it starts. Holding still sends nothing until it means a
  * drag, so a tap still clicks the moment the finger lifts, with no wait to see whether a drag follows.
  *
- * Two fingers held still for [HOLD_MS] draw instead: the stroke of their midpoint goes to [onShape] when
- * they lift. One finger used to own that, and gave it up to the drag above, which everyone needs.
+ * With [tapDrag], tap then press and move drags as well, the way it did before #68, without the double-click:
+ * the second touch sends nothing until the pointer has travelled [DOUBLE_CLICK_EXIT_PX] laptop pixels, then
+ * sends that travel and only then the press, so the press lands outside the box the laptop counts as the
+ * same spot. A second touch that ends as a tap still clicks, which is the double-click the user meant.
+ *
+ * Two fingers held still for [HOLD_MS] arm a stroke instead, which goes to [onShape] when they lift. Either
+ * both keep moving and their midpoint draws, or one lifts and the other draws alone, the easier of the two:
+ * the stroke then starts where the pen finger was when the other lifted. One finger used to own shapes,
+ * and gave them up to the drag above, which everyone needs.
  *
  * Pure: no Android types, so the gesture table is tested on the JVM. Positions are in pixels; [density]
  * (pixels per dp) scales every threshold so the feel is the same on any screen. A gesture is classified by
@@ -35,12 +42,14 @@ class TrackpadRecognizer(
     /**
      * Handed the whole stroke when two fingers that became a shape lift: the first `count` entries of the
      * two arrays, in pixels, starting at the second finger's press rather than at the moment the hold
-     * expired.
+     * expired, or, for a stroke drawn by one finger after the other lifted, at that lift.
      *
      * Null turns shape mode off outright, which is what the surface passes when nothing is bound to a
      * shape. Then a two-finger hold stays nothing, and the scroll that usually follows it is never delayed.
      */
     private val onShape: ((xs: FloatArray, ys: FloatArray, count: Int) -> Unit)? = null,
+    /** A tap followed within [TAP_DRAG_MS] by a touch that moves drags. False keeps hold-still the only drag. */
+    private val tapDrag: Boolean = false,
     private val sink: (Frame) -> Unit,
 ) {
     enum class Action { DOWN, MOVE, UP, CANCEL }
@@ -61,6 +70,13 @@ class TrackpadRecognizer(
 
     /** A hold has turned into something, a drag or a shape: the surface ticks once when this changes. */
     val held: Boolean get() = dragging || shaping
+
+    /**
+     * True once one of two fingers holding an armed stroke has lifted and the other draws it alone. Read by
+     * the surface, so its trail follows the pen finger instead of drawing a line from the old midpoint.
+     */
+    var drawingAlone = false
+        private set
 
     private var fingers = 0
     private var maxFingers = 0
@@ -86,6 +102,14 @@ class TrackpadRecognizer(
     private var moveRemY = 0f
     private var scrollRemX = 0f
     private var scrollRemY = 0f
+
+    // Tap-and-drag. lastTapUp is when the last one-finger tap lifted and outlives reset() on purpose: it is
+    // the one fact a gesture needs from the one before. A pending press is the second touch, holding its
+    // press back, with the laptop pixels it has swallowed so far.
+    private var lastTapUp = NEVER
+    private var pendingPress = false
+    private var pendX = 0
+    private var pendY = 0
 
     // The stroke, in screen pixels, kept from the press onward whether or not it ever becomes one. Fixed
     // arrays because this is filled on the touch path, which the surface asks for unbuffered: a fresh
@@ -126,6 +150,11 @@ class TrackpadRecognizer(
         if (fingers == 0) {
             reset()
             startTime = time
+            // Compared as last + gap, never time - last: NEVER would overflow the subtraction.
+            pendingPress = tapDrag && time <= lastTapUp + TAP_DRAG_MS
+            pendX = 0
+            pendY = 0
+            lastTapUp = NEVER
         }
         holdStart = time
         fingers = count
@@ -138,13 +167,16 @@ class TrackpadRecognizer(
         startY = lastY
         // The stroke starts with the second finger, at the pair's midpoint. A third finger is not part of
         // a two-finger stroke: whatever was being drawn is abandoned, and the gesture carries on as the
-        // swipe it has become.
+        // swipe it has become. A finger landing again ends a pen: the stroke restarts from the pair.
+        drawingAlone = false
         pathCount = 0
         if (strokeFingers()) record(lastX, lastY) else shaping = false
         if (fingers == 2) {
             startSpan = span(xs, ys)
             lastSpan = startSpan
         }
+        // A second finger makes this a scroll, a right-click or a swipe, never the drag a tap promised.
+        if (count > 1) pendingPress = false
     }
 
     private fun move(
@@ -190,6 +222,9 @@ class TrackpadRecognizer(
     fun tick(time: Long) {
         if (fingers == 0 || held || moved || time < holdStart + HOLD_MS) return
         if (maxFingers == 1) {
+            // Hold-still wins over a pending tap-drag. The press is then at least HOLD_MS after the touch,
+            // so it can still land inside the laptop's double-click time only after a very quick tap; accepted.
+            pendingPress = false
             dragging = true
             sink(Frame.PointerButton(LEFT, true))
         } else if (strokeFingers() && twoFinger == TwoFingerMode.UNDECIDED && onShape != null) {
@@ -197,8 +232,8 @@ class TrackpadRecognizer(
         }
     }
 
-    /** Exactly two fingers, and never more: the only touch a stroke is drawn with. */
-    private fun strokeFingers(): Boolean = maxFingers == 2 && fingers == 2
+    /** Exactly two fingers and never more, or the one left drawing alone: the only touches a stroke takes. */
+    private fun strokeFingers(): Boolean = maxFingers == 2 && (fingers == 2 || (drawingAlone && fingers == 1))
 
     /**
      * Keeps one more sample of the stroke. A full buffer stops taking them rather than growing or dropping
@@ -225,6 +260,19 @@ class TrackpadRecognizer(
         val iy = moveRemY.toInt()
         moveRemX -= ix
         moveRemY -= iy
+        if (pendingPress) {
+            // The travel goes first and the press after it, so the press is outside the double-click box and
+            // nothing swallowed while deciding is lost.
+            pendX += ix
+            pendY += iy
+            if (maxOf(abs(pendX), abs(pendY)) > DOUBLE_CLICK_EXIT_PX) {
+                sink(Frame.Move(pendX, pendY))
+                sink(Frame.PointerButton(LEFT, true))
+                dragging = true
+                pendingPress = false
+            }
+            return
+        }
         if (ix != 0 || iy != 0) sink(Frame.Move(ix, iy))
     }
 
@@ -404,9 +452,24 @@ class TrackpadRecognizer(
             return
         }
         fingers = count
-        lastX = centroid(xs, count)
-        lastY = centroid(ys, count)
+        // A finger leaving moves the centroid without anything having slid, the mirror of down(). The start
+        // shifts by that jump rather than being copied, so travel a swipe has already covered is kept, and a
+        // tap whose fingers lift one at a time with a sample between the lifts stays a tap.
+        val cx = centroid(xs, count)
+        val cy = centroid(ys, count)
+        startX += cx - lastX
+        startY += cy - lastY
+        lastX = cx
+        lastY = cy
         if (fingers == 2) lastSpan = span(xs, ys)
+        // One of a still, armed pair lifting hands the stroke to the other. The midpoint samples so far are
+        // the hold, when nothing moved, so dropping them loses no drawing. A pair that has already drawn
+        // together keeps its midpoint stroke, so a two-finger stroke's own lift never discards it.
+        if (shaping && count == 1 && !moved) {
+            drawingAlone = true
+            pathCount = 0
+            record(lastX, lastY)
+        }
     }
 
     private fun finish(
@@ -414,6 +477,8 @@ class TrackpadRecognizer(
         tapAllowed: Boolean,
     ) {
         if (fingers == 0) return
+        // A press still held back was never sent, so there is no button to let go of, cancelled or not.
+        pendingPress = false
         if (running == GestureAction.APP_SWITCHER) sink(ActionId.APP_SWITCH_END.frame())
         running = null
         val drawn = shaping
@@ -435,13 +500,14 @@ class TrackpadRecognizer(
             }
 
             tapAllowed && untouched && time - startTime <= TAP_MS -> {
-                tap()
+                tap(time)
             }
         }
     }
 
-    private fun tap() {
+    private fun tap(time: Long) {
         if (maxFingers == 1) {
+            lastTapUp = time
             click(LEFT)
             return
         }
@@ -466,6 +532,7 @@ class TrackpadRecognizer(
         running = null
         twoFinger = TwoFingerMode.UNDECIDED
         shaping = false
+        drawingAlone = false
         pathCount = 0
         pinchRemainder = 0f
         moveRemX = 0f
@@ -515,6 +582,20 @@ class TrackpadRecognizer(
          * starts a drag; longer and the tick feels like the pad noticed late.
          */
         const val HOLD_MS = 400L
+
+        /** How soon after a tap lifts the next touch may land and still drag. */
+        const val TAP_DRAG_MS = 300L
+
+        /**
+         * Laptop pixels a tap-drag's second touch travels before it presses. Windows counts a second click
+         * within 2 px of the first as a double-click (SM_CXDOUBLECLK, 4 px wide by default); 8 also clears
+         * GTK's 5 px and leaves room for pointer-precision scaling. Both tap-drag constants are first guesses,
+         * to be tuned on a Windows laptop, then a Mac and a Linux one.
+         */
+        const val DOUBLE_CLICK_EXIT_PX = 8
+
+        /** A "never" that `last + gap` cannot overflow, unlike Long.MIN_VALUE. */
+        private const val NEVER = Long.MIN_VALUE / 2
 
         /**
          * The most samples one stroke keeps. At any digitiser's rate this is several seconds of drawing,

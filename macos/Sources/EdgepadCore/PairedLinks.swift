@@ -16,6 +16,10 @@ public final class PairedLinks {
     /// does.
     private var forgetFailed = false
 
+    /// Ids whose `forgetOne` failed, lowercased: still on disk, so refused for this run until a later forget of them
+    /// succeeds, `forget()` clears the file, or the phone pairs again. The C# `PairedLinks.denied`.
+    private var denied: Set<String> = []
+
     /// Moved on by every `forget()`. A pairing reads it when it starts and hands it to `add`, so a Forget chosen while
     /// the phone was pairing is the later word.
     public private(set) var generation = 0
@@ -37,7 +41,7 @@ public final class PairedLinks {
     /// The key and name a phone was paired with; nil for a phone not paired, and for every phone while the file
     /// cannot be read.
     func find(_ idHex: String) -> (key: [UInt8], name: String)? {
-        guard let links = tryRead() else { return nil }
+        guard !denied.contains(idHex.lowercased()), let links = tryRead() else { return nil }
         return links.first { $0.id.caseInsensitiveCompare(idHex) == .orderedSame }.map { (key: $0.key, name: $0.name) }
     }
 
@@ -56,6 +60,8 @@ public final class PairedLinks {
             Log.write("A paired phone could not be saved to \(path): \(failure)")
             return false
         }
+        // A new pairing is the owner's new yes, typed on this Mac.
+        denied.remove(idHex.lowercased())
         return true
     }
 
@@ -69,6 +75,16 @@ public final class PairedLinks {
     /// could not be read or rewritten. Moves `generation` on, as `forget()` does.
     public func forgetOne(_ idHex: String) -> Bool {
         generation += 1
+        let gone = removeOne(idHex)
+        if gone {
+            denied.remove(idHex.lowercased())
+        } else {
+            denied.insert(idHex.lowercased())
+        }
+        return gone
+    }
+
+    private func removeOne(_ idHex: String) -> Bool {
         guard let links = tryRead() else { return false }
         let rest = links.filter { $0.id.caseInsensitiveCompare(idHex) != .orderedSame }
         if rest.count == links.count {
@@ -101,6 +117,7 @@ public final class PairedLinks {
     @discardableResult
     public func forget() -> Bool {
         generation += 1
+        denied = []
         do {
             try FileManager.default.removeItem(atPath: path)
         } catch let deleteError {

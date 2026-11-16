@@ -31,14 +31,21 @@ internal static class Firewall
         $"advfirewall firewall delete rule name=all dir=in program=\"{Quotable(exe)}\"";
 
     /// <summary>
-    /// What follows <c>cmd /c</c>: the delete, then the add, which runs whether or not the delete matched and whose exit
-    /// code is <c>cmd</c>'s. <c>cmd</c> strips the outer quotes, leaving the ones around each path. <c>netsh</c> goes by
-    /// its full path, because <c>cmd</c> searches the current directory first.
+    /// The arguments for <c>netsh</c> to delete every inbound rule named <see cref="RuleName"/>, whatever exe it names:
+    /// an update that changed the exe's path (<c>Edgepad-4.2.1.exe</c>) would otherwise leave the old copy's rule.
+    /// </summary>
+    public static string DeleteByNameArguments() =>
+        $"advfirewall firewall delete rule name=\"{RuleName}\" dir=in";
+
+    /// <summary>
+    /// What follows <c>cmd /c</c>: the two deletes, then the add, which runs whether or not either delete matched and
+    /// whose exit code is <c>cmd</c>'s. <c>cmd</c> strips the outer quotes, leaving the ones around each path.
+    /// <c>netsh</c> goes by its full path, because <c>cmd</c> searches the current directory first.
     /// </summary>
     public static string CommandLine(string exe)
     {
         var netsh = Path.Combine(Environment.SystemDirectory, "netsh.exe");
-        return $"\"\"{netsh}\" {DeleteArguments(exe)} & \"{netsh}\" {Arguments(exe)}\"";
+        return $"\"\"{netsh}\" {DeleteArguments(exe)} & \"{netsh}\" {DeleteByNameArguments()} & \"{netsh}\" {Arguments(exe)}\"";
     }
 
     /// <summary>

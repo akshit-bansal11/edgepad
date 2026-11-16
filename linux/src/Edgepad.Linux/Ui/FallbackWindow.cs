@@ -10,7 +10,8 @@ namespace Edgepad.Ui;
 /// <summary>
 /// The tray's job in a window, for a desktop with no tray host (stock GNOME): the status, the same toggles and
 /// Macros… and Security…, Quit, and the one line that says why there is no icon. Closing it minimises it instead:
-/// the app keeps serving phones, and a window in the task list is the only handle the owner has.
+/// the app keeps serving phones, and a window in the task list is the only handle the owner has. A logout or the
+/// app's own shutdown closes it.
 /// </summary>
 internal sealed class FallbackWindow
 {
@@ -70,12 +71,19 @@ internal sealed class FallbackWindow
         window = look.Dialog("Edgepad", 480, body);
         window.Closing += (_, e) =>
         {
-            // Not an exit: the window is all the owner has to come back to.
-            e.Cancel = true;
-            window.WindowState = WindowState.Minimized;
+            // Not an exit: the window is all the owner has to come back to. A logout or Quit goes through.
+            if (MinimisesOnClose(e.CloseReason))
+            {
+                e.Cancel = true;
+                window.WindowState = WindowState.Minimized;
+            }
         };
         Refresh();
     }
+
+    /// <summary>Whether a close is the owner's click, kept as a minimise, rather than the app or the OS shutting down.</summary>
+    internal static bool MinimisesOnClose(WindowCloseReason reason) =>
+        reason is not (WindowCloseReason.ApplicationShutdown or WindowCloseReason.OSShutdown);
 
     /// <summary>
     /// Whether the session bus has no StatusNotifierWatcher, so a tray icon would go nowhere. A bus that cannot be asked

@@ -4,6 +4,63 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+No wire-protocol change: the protocol stays at version 5.
+
+### Fixed
+
+- **Phone: shapes can be drawn again.** Hold two fingers still on the trackpad until the line turns solid, then lift one and draw with the other. Drawing with both fingers still works.
+- **Phone: double-tap then drag is back,** next to hold-still drag. The press waits until the pointer has left the laptop's double-click box, so the laptop no longer reads it as a double-click. The Capture screen keeps hold-still only.
+- **Phone: a two-, three- or four-finger tap is no longer lost** when the fingers lift one after another.
+- **Phone: switching a laptop between Wi-Fi or USB and Bluetooth** selects the new link and ends the old one, instead of leaving the phone on Reconnecting. A laptop saved over two transports no longer auto-connects twice.
+- **Phone: reconnecting gives up when retrying cannot help.** A refusal, a version mismatch or a PIN lock-out is no longer retried ten times, nor again at every return to the app. Bluetooth being off no longer marks a laptop "not paired". New code after Pair again pairs afresh and keeps a USB laptop on USB. A laptop that stops answering mid-handshake is reported as lost, not as refused.
+- **Phone and laptops: a vanished link is noticed.** The phone closes a Wi-Fi or USB link after 15 s with nothing from the laptop and reconnects; a laptop ends a session after 30 s with nothing from the phone, which releases every key and button the phone held. Before, either side could take many minutes.
+- **Phone: a gamepad control bound to a key is released** when the gamepad screen closes while it is held.
+- **Phone: a cold start with an image background** can no longer crash before the first layout.
+- **Laptops: pairing prompts can no longer be raised in a loop.** A device whose prompt was cancelled or left unanswered is refused for a minute, doubling up to an hour, and at most 10 such prompts are shown per hour. Unanswered prompts no longer count as failed attempts, so they cannot lock out real pairing; a wrong code still does.
+- **Mac: a flood of connections from the network no longer stalls the pointer.** At most two unproved connections per device, and refusals are logged once a minute per device, off the main thread.
+- **Mac: the first message over Bluetooth is no longer dropped** while the phone is authenticated.
+- **Linux: Type text on a non-US layout no longer freezes the pointer,** and the clipboard holds what it held before the text was typed. Keys sent right after the text arrive after it.
+- **Phone: Capture remembers a running recording** when you come back to it, and announces its status for TalkBack.
+- **Phone: both layout editors work with TalkBack,** each control with its spoken name.
+- **Phone: the top bar's title is no longer squeezed** by a long Back label.
+- **Phone: a setting with a segmented control drops under its label** at large text sizes.
+- **Phone: Annotate redraws less work** while you draw, because finished strokes are kept.
+- **Phone: an expired pairing code says Expired.** An unsent Type text draft survives a rotation.
+- **Phone: the PIN screen's red line appears only after this laptop has answered.**
+- **Phone: a pointer other than the one that pressed is no longer able to release the pill.**
+- **Phone: an update download is not started twice** after a rotation, a failure clears once no newer release is left (for example after installing by hand), and the install confirmation is also posted as a notification.
+- **Phone: Reconnecting survives a rotation,** a refused start of the notification service no longer crashes, a missing settings screen falls back to the app's own, and tapping an unpaired Bluetooth row with Bluetooth off says so.
+- **Phone: Stay connected links survive** Android destroying the screen on its own.
+- **Phone: an image shared over Bluetooth is not cut off** when you leave the app.
+- **Phone: a long session keeps accepting captures,** and the link's writer survives a sealing error.
+- **Windows: a Bluetooth phone's name is cleaned,** and an update removes every earlier Edgepad firewall rule.
+- **Windows: UI-thread errors are logged,** not shown in a Continue/Quit box.
+- **Windows: the phone is told when Windows refuses input,** for example with an elevated window in front, and again when input is taken.
+- **Windows: the status line keeps the connected phone** when a second device is refused or Bluetooth turns off.
+- **Windows: a controller that stops taking reports is unplugged,** so the next attach does not add a second one.
+- **Windows: one sender for the clipboard and app icons,** and quitting waits for every session.
+- **Windows: the refresh-rate dial follows a resolution change.**
+- **Windows: the update check waits for the first-run dialog,** and the pairing balloon opens the prompt.
+- **Windows: browser titles are read only when the app or track changes,** and the output device is watched instead of polled.
+- **Linux: the pairing and idle status lines reset** when a prompt closes or a paired link is refused; the pairing text shows in the desktop's language.
+- **Linux: the dark tray icon is bundled,** and an icon that fails to load keeps the last one.
+- **Linux: Bluetooth being off at launch is not shown as Waiting.**
+- **Linux: the Security window closes safely** while a PIN is saved, and a failure to reach the notification service or the desktop bus no longer ends the app.
+- **Linux: Type text no longer echoes to the phone,** the clipboard is polled less often and only once shared, and the audio and session watches back off.
+- **Linux: the keyboard device is made only after the phone is admitted,** and a slow media player no longer also presses the media key.
+- **Mac: the Security window is not ended by the trust question's timer,** and turning Bluetooth back on keeps Wi-Fi phones connected.
+- **Mac: one copy listens after an update,** and a failed Forget stays refused until the phone pairs again.
+- **Mac: connecting over Bluetooth no longer waits on the main thread,** with a limit on the wait. Not tried on a Mac.
+- **Mac: screenshots copied on a non-English Mac reach the phone,** read off the main thread.
+- **Laptops: a failed Forget no longer blocks pairing again,** an unreadable trust file refuses a pairing, and a phone that hangs up under the pairing prompt has the prompt withdrawn at once. A wrong PIN that reaches the lock-out says so.
+- **Laptops: cancelling a screenshot wait no longer ends a recording,** and macro lists arrive in order.
+
+### Changed
+
+- **Phone: the off track of switches and sliders is darker** so it is easier to see. The PIN keypad reads 1 2 3 from left to right in Arabic too.
+- **Windows: your PIN, trusted phones, resume keys and macros moved from Roaming to Local AppData** (`%LOCALAPPDATA%\Edgepad`). The first start moves each file across once and never overwrites. Going back to an older release means it looks in Roaming, finds nothing and asks to pair and trust again, and has no PIN.
+- **Shorter labels:** the Polish colour setting and the Russian transport label, and the Italian macro reorder hint on Windows.
+
 ## [4.2.0] - 2026-11-14
 
 No wire-protocol change: the protocol stays at version 5, so a 4.2 phone and a 4.1 laptop still connect, though installing both halves from the same release is still the advice. **Mac and Linux are still in testing. Please use them at your own risk.** This release adds 14 languages to the phone and the Windows app, applies one set of UX and motion rules to the phone, the Windows tray and the website, puts Type text on the control surface, and fixes the bugs a state-machine review found worst, among them a stuck key on the on-screen keyboard that every release since 4.0.0 had.

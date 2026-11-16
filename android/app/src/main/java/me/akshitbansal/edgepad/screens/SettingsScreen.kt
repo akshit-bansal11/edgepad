@@ -97,7 +97,7 @@ object SettingsScreen {
                                 ui.string(R.string.theme_light),
                             )
                         add(
-                            ui.field(
+                            ui.segmentedField(
                                 ui.string(R.string.theme),
                                 ui.segmented(themes, theme(ui, settings).ordinal) { i ->
                                     setTheme(ui, settings, Settings.Theme.entries[i])
@@ -108,7 +108,7 @@ object SettingsScreen {
                         val held =
                             listOf(ui.string(R.string.orientation_upright), ui.string(R.string.orientation_sideways))
                         add(
-                            ui.field(
+                            ui.segmentedField(
                                 ui.string(R.string.orientation),
                                 ui.segmented(held, if (settings.landscape) 1 else 0) { i -> routes.sideways(i == 1) },
                             ),

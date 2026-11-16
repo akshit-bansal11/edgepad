@@ -8,7 +8,7 @@
   <string name="gamepad_preset_shooter">射击</string>
   <string name="gamepad_layout_hint">拖动即可移动。长按某个控件打开其菜单。</string>
   <string name="gamepad_layout_section">布局</string>
-  <string name="gamepad_description">电脑用的游戏手柄。仅支持触摸操作。</string>
+  <string name="gamepad_description">电脑用的游戏手柄。按钮和扳机可双击；摇杆和方向键需要触摸。</string>
   <string name="gamepad_node_dpad">方向键</string>
   <string name="gamepad_node_stick">摇杆</string>
   <string name="gamepad_node_button">按钮</string>

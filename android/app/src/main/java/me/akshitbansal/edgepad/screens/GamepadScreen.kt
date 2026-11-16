@@ -19,6 +19,7 @@ import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.drawFitted
 import me.akshitbansal.edgepad.fitText
 import me.akshitbansal.edgepad.gamepad.Binding
+import me.akshitbansal.edgepad.gamepad.Control
 import me.akshitbansal.edgepad.gamepad.ControlGeometry
 import me.akshitbansal.edgepad.gamepad.ControlKind
 import me.akshitbansal.edgepad.gamepad.GamepadLayout
@@ -166,7 +167,7 @@ class GamepadScreen(
 
         private val box = RectF()
         private val pillBox = RectF()
-        private var pillDown = false
+        private var pillPointer = NONE
         private val waited = Runnable { showMode(null, waitedOut = true) }
         private val painter = PadPainter(context)
 
@@ -204,17 +205,7 @@ class GamepadScreen(
 
         override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider = nodes
 
-        private fun spoken(i: Int): String {
-            val control = controls[i]
-            if (control.label.isNotBlank()) return control.label
-            return context.getString(
-                when (control.kind) {
-                    ControlKind.DPAD -> R.string.gamepad_node_dpad
-                    ControlKind.STICK -> R.string.gamepad_node_stick
-                    else -> R.string.gamepad_node_button
-                },
-            )
-        }
+        private fun spoken(i: Int): String = spokenName(context, controls[i])
 
         private fun tappable(i: Int): Boolean =
             controls[i].kind == ControlKind.BUTTON || controls[i].kind == ControlKind.SHOULDER
@@ -365,6 +356,10 @@ class GamepadScreen(
 
         override fun onDetachedFromWindow() {
             removeCallbacks(waited)
+            // A screen replaced mid-touch gets no ACTION_CANCEL once detached: let go of what is held here.
+            pillPointer = NONE
+            releaseAll()
+            if (padMode) sendPad()
             super.onDetachedFromWindow()
         }
 
@@ -383,7 +378,7 @@ class GamepadScreen(
                     val pointerId = event.getPointerId(idx)
                     // The pill sits in the empty middle of every preset, so a touch on it is never a control's.
                     if (mode != null && pillContains(event.getX(idx), event.getY(idx))) {
-                        pillDown = true
+                        pillPointer = pointerId
                         return true
                     }
                     if (pointerId < MAX_POINTERS) {
@@ -408,8 +403,8 @@ class GamepadScreen(
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                     val idx = event.actionIndex
                     val pointerId = event.getPointerId(idx)
-                    if (pillDown) {
-                        pillDown = false
+                    if (pillPointer != NONE && pointerId == pillPointer) {
+                        pillPointer = NONE
                         performClick()
                         onPill()
                         return true
@@ -425,13 +420,8 @@ class GamepadScreen(
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
-                    pillDown = false
-                    for (pointerId in 0 until MAX_POINTERS) {
-                        val controlIndex = pointerToControl[pointerId]
-                        if (controlIndex == NONE) continue
-                        release(controlIndex)
-                        pointerToControl[pointerId] = NONE
-                    }
+                    pillPointer = NONE
+                    releaseAll()
                 }
 
                 else -> {
@@ -521,6 +511,16 @@ class GamepadScreen(
                 ControlKind.BUTTON -> {
                     Unit
                 }
+            }
+        }
+
+        /** Lets go of every control a pointer still holds. */
+        private fun releaseAll() {
+            for (pointerId in 0 until MAX_POINTERS) {
+                val controlIndex = pointerToControl[pointerId]
+                if (controlIndex == NONE) continue
+                release(controlIndex)
+                pointerToControl[pointerId] = NONE
             }
         }
 
@@ -941,4 +941,19 @@ internal class PadPainter(
         const val NARROW_DP = 56f
         const val RING_DP = 2f
     }
+}
+
+/** What a screen reader calls [control]: its label, else what kind of control it is. Shared with the layout editor. */
+internal fun spokenName(
+    context: Context,
+    control: Control,
+): String {
+    if (control.label.isNotBlank()) return control.label
+    return context.getString(
+        when (control.kind) {
+            ControlKind.DPAD -> R.string.gamepad_node_dpad
+            ControlKind.STICK -> R.string.gamepad_node_stick
+            else -> R.string.gamepad_node_button
+        },
+    )
 }

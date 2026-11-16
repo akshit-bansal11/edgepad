@@ -40,7 +40,12 @@ internal abstract record PinResult
 /// Wrong answers are counted per phone in memory only: quitting the tray app clears them, and doing that already
 /// needs the owner's desktop, the very thing the PIN stands in for.
 /// </summary>
-internal sealed class PinStore(string directory, Func<long>? clock = null, int iterations = PinStore.Iterations)
+internal sealed class PinStore(
+    string directory,
+    Func<long>? clock = null,
+    int iterations = PinStore.Iterations,
+    string? securityFile = null,
+    string? verifiedFile = null)
 {
     /// <summary>
     /// PBKDF2-HMAC-SHA256 work factor, from OWASP's Password Storage Cheat Sheet
@@ -62,8 +67,8 @@ internal sealed class PinStore(string directory, Func<long>? clock = null, int i
 
     private static readonly char[] LineBreaks = ['\r', '\n'];
 
-    private readonly string securityPath = Path.Combine(directory, "security.txt");
-    private readonly string verifiedPath = Path.Combine(directory, "pin-verified.txt");
+    private readonly string securityPath = securityFile ?? Path.Combine(directory, "security.txt");
+    private readonly string verifiedPath = verifiedFile ?? Path.Combine(directory, "pin-verified.txt");
 
     private readonly Lock gate = new();
 
@@ -86,8 +91,11 @@ internal sealed class PinStore(string directory, Func<long>? clock = null, int i
     /// <summary>The folder holding both files, for a message that has to send the owner there.</summary>
     public string Folder { get; } = directory;
 
-    public static PinStore ForCurrentUser() => new(Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad"));
+    // Each file on its own: a partial move must not leave either one read as missing.
+    public static PinStore ForCurrentUser() => new(
+        UserFolder.Current,
+        securityFile: UserFolder.PathFor("security.txt"),
+        verifiedFile: UserFolder.PathFor("pin-verified.txt"));
 
     /// <summary>The security level, 1 to 3. 3 while the settings cannot be read, which is how they are enforced then.</summary>
     public int Level

@@ -24,8 +24,10 @@ internal sealed class TcpLinkListener(int requestedPort, Action<Socket, Action> 
     public const int MaxUnauthenticatedPerHost = 2;
 
     // A phone that vanishes (Wi-Fi dropped, cable pulled) sends no FIN, and the protocol has no read timeout once the
-    // link is proved, so only keep-alive tells the laptop. The OS default waits two hours before the first probe,
-    // while the phone's held keys, the virtual pad and the ink stay down; these end the session in about 25 seconds.
+    // link is proved. The OS default waits two hours before the first probe, while the phone's held keys, the virtual
+    // pad and the ink stay down; these end an idle session in about 25 seconds. Keep-alive alone does not end a session
+    // whose peer keeps the connection non-idle or leaves unacked data, so the session's silence watch (30 s with no
+    // frame) and SessionSendTimeoutMs (below) do.
     // The phone (TcpTransport) and the Mac (NetworkServer) use the same 10 s, 5 s and 3 probes, so both ends of a link
     // give up on a vanished peer at the same time.
     public const int KeepAliveIdleSeconds = 10;
@@ -33,6 +35,9 @@ internal sealed class TcpLinkListener(int requestedPort, Action<Socket, Action> 
     public const int KeepAliveProbeSeconds = 5;
 
     public const int KeepAliveProbes = 3;
+
+    // A session's writes may block this long on a phone that stopped reading, then fail and end it.
+    public const int SessionSendTimeoutMs = 30_000;
 
     private readonly Lock gate = new();
     private readonly int deadlineMs = (int)(deadline ?? TimeSpan.FromSeconds(10)).TotalMilliseconds;
@@ -206,7 +211,7 @@ internal sealed class TcpLinkListener(int requestedPort, Action<Socket, Action> 
             try
             {
                 client.ReceiveTimeout = 0;
-                client.SendTimeout = 0;
+                client.SendTimeout = SessionSendTimeoutMs;
             }
             catch (Exception e) when (e is SocketException or ObjectDisposedException)
             {

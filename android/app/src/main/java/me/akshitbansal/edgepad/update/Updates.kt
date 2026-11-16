@@ -82,6 +82,16 @@ object Updates {
         return false
     }
 
+    /**
+     * Whether a kept update [failure] still means anything: only while [latest] is still newer than [current].
+     * Once the app is that version, installed by hand or otherwise, "Update failed" would stand forever.
+     */
+    fun failureStands(
+        latest: String,
+        current: String,
+        failure: Int,
+    ): Boolean = failure != 0 && isNewer(latest, current)
+
     private fun parts(value: String): List<Int>? {
         val numbers = value.substringBefore('-').split('.').map { it.toIntOrNull() }
         return numbers.filterNotNull().takeIf { it.size == numbers.size }

@@ -36,6 +36,7 @@
   <string name="open_controls">فتح عناصر التحكم</string>
   <string name="open_controls_hint">اتصل بلابتوب لفتح عناصر التحكم.</string>
   <string name="open_bluetooth_settings">إعدادات بلوتوث</string>
+  <string name="bluetooth_tap_off">البلوتوث متوقف. شغّله للاتصال بهذا اللابتوب.</string>
   <string name="refresh">تحديث القائمة</string>
   <string name="bluetooth_off">لم يتم العثور على أي لابتوب. شغّل بلوتوث واقرن اللابتوب. للاتصال عبر Wi-Fi أو USB، افتح Edgepad على اللابتوب وفعّل اتصالات Wi-Fi وUSB من قائمته؛ وللاتصال عبر USB فعّل أيضًا التوصيل عبر USB هنا.</string>
   <string name="usb_cable_tether_off">الكابل متصل. فعّل التوصيل عبر USB هنا، وفعّل اتصالات Wi-Fi وUSB من قائمة Edgepad على اللابتوب.</string>
@@ -120,6 +121,7 @@
   <string name="pair_cancelled">تم إلغاء الإقران. انقر على اللابتوب للمحاولة مجددًا.</string>
   <string name="pair_code_spoken">رمز الإقران: %1$s</string>
   <string name="pair_expires">تنتهي الصلاحية خلال %1$s</string>
+  <string name="pair_expired">انتهت الصلاحية</string>
   <string name="pair_confirm_title">هل ظهر على %1$s أن الرمز مطابق؟</string>
   <string name="pair_confirm_body">إذا ظهر أن الرمز خاطئ، فانقر «لا»: فقد يكون جهاز آخر يردّ بدلًا منه.</string>
   <string name="pair_confirm_yes">نعم، تم الإقران</string>
@@ -304,9 +306,9 @@
     <item quantity="other">%1$d شكل مرسوم</item>
   </plurals>
   <string name="shapes_none">لا شيء بعد</string>
-  <string name="shapes_footnote">ثبّت إصبعين على لوحة اللمس إلى أن يصبح الخط متصلًا (وستشعر أيضًا بنقرة اهتزازية إذا كانت الاستجابة اللمسية مفعّلة)، ثم ارسم بهما دون رفعهما.</string>
+  <string name="shapes_footnote">ثبّت إصبعين على لوحة اللمس إلى أن يصبح الخط متصلًا (وستشعر أيضًا بنقرة اهتزازية إذا كانت الاستجابة اللمسية مفعّلة)، ثم ارفع أحدهما وارسم بالآخر.</string>
   <string name="shapes_empty_title">لا أشكال بعد</string>
-  <string name="shapes_empty_body">ارسم شكلًا هنا وحدّد ما يشغّله. على لوحة اللمس، ثبّت إصبعين إلى أن يصبح الخط متصلًا، ثم ارسمه بهما دون رفعهما.</string>
+  <string name="shapes_empty_body">ارسم شكلًا هنا وحدّد ما يشغّله. على لوحة اللمس، ثبّت إصبعين إلى أن يصبح الخط متصلًا، ثم ارفع أحدهما وارسمه بالآخر.</string>
   <string name="shapes_add">رسم شكل</string>
   <string name="shapes_draw_title">ارسم الشكل</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -334,6 +336,7 @@
   <string name="keyboard_settings_title">إعدادات لوحة المفاتيح</string>
   <string name="gamepad_settings_title">إعدادات ذراع الألعاب</string>
   <string name="updates_title">التحديثات</string>
+  <string name="updates_notice_text">المس لإنهاء تحديث Edgepad</string>
   <string name="updates_auto">التحقق من التحديثات يوميًا</string>
   <string name="updates_checking">جارٍ التحقق…</string>
   <string name="updates_failed">تعذّر الوصول إلى GitHub</string>
@@ -445,7 +448,11 @@
   <string name="controls_hide_dials">إخفاء المقاييس والوسائط</string>
   <string name="controls_blackout">إظلام الشاشة عند الخمول</string>
   <string name="controls_open">فتح %1$s</string>
-  <string name="controls_needs_newer">يحتاج هذا اللابتوب إلى إصدار أحدث من Edgepad لهذا. حدّثه ثم أعد الاتصال.</string>
+  <string name="controls_needs_newer">هذا اللابتوب لا يوفّر هذه الميزة. إذا كان يعمل بإصدار أقدم من Edgepad، فحدّثه ثم أعد الاتصال.</string>
+  <string name="node_move_left">تحريك لليسار</string>
+  <string name="node_move_right">تحريك لليمين</string>
+  <string name="node_move_up">تحريك للأعلى</string>
+  <string name="node_move_down">تحريك للأسفل</string>
   <string name="controls_keyboard">لوحة المفاتيح</string>
   <string name="controls_gamepad">ذراع الألعاب</string>
   <string name="controls_macros">الماكرو</string>
@@ -527,7 +534,7 @@
   <string name="macros_layout_grid_description">الصفوف: %1$d، الأعمدة: %2$d</string>
   <string name="macros_layout_caption">الرقم الأول للصفوف والثاني للأعمدة. يختار «تلقائي» ما يجعل الأزرار أكبر ما يمكن.</string>
   <string name="macros_per_page">الماكرو على الشاشة</string>
-  <string name="macros_per_page_caption">عدد الماكرو في الصفحة الواحدة. يستمر الباقي في صفحات أخرى تصل إليها بتحريك إصبعك جانبيًا. اضغط مع الاستمرار على ماكرو ثم اسحبه لنقله ضمن صفحته.</string>
+  <string name="macros_per_page_caption">عدد الماكرو في الصفحة الواحدة. يستمر الباقي في صفحات أخرى تصل إليها بتحريك إصبعك جانبيًا. اضغط مع الاستمرار على ماكرو ثم اسحبه لنقله ضمن صفحته. اضغط مع الاستمرار على ماكرو مفتوح لتظهر علامة إغلاق، ثم المس العلامة لإغلاق التطبيق.</string>
   <string name="macros_page_of">الصفحة %1$d من %2$d</string>
   <string name="macros_empty_title">لا ماكرو بعد</string>
   <string name="macros_empty_body">أضفها من قائمة «الماكرو…» في Edgepad بمنطقة الإعلام على اللابتوب. تظهر هنا فور أن يرسل القائمة.</string>

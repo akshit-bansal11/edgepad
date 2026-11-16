@@ -12,13 +12,15 @@ internal delegate IPairingQuestion PairingOpener(string phoneName, string? sourc
 /// UI thread, which owns every window the app has. <paramref name="announce"/> is told the phone's name as it goes up,
 /// for the status line, since a window may open behind the one in use (Wayland ignores always-on-top). Everything the
 /// pairing then tells the question is passed to the window on the UI thread, in order; disposing it takes down a window
-/// still asking. A question withdrawn, or out of time, before the UI got to it is never put.
+/// still asking. A question withdrawn, or out of time, before the UI got to it is never put. <paramref name="closed"/>
+/// runs once when the pairing lets the question go, whatever the outcome, on the pairing's thread, so the status line
+/// stops asking for a code.
 /// </summary>
-internal sealed class PairingPrompt(Action<Action> ui, Action<string> announce, PairingOpener open) : IPairingPrompt
+internal sealed class PairingPrompt(Action<Action> ui, Action<string> announce, PairingOpener open, Action? closed = null) : IPairingPrompt
 {
     /// <summary>The prompt in the app: on Avalonia's UI thread, as <see cref="PairingWindow"/>.</summary>
-    public static PairingPrompt OnUiThread(Action<string> announce) =>
-        new(work => Dispatcher.UIThread.Post(work), announce, PairingWindow.Open);
+    public static PairingPrompt OnUiThread(Action<string> announce, Action closed) =>
+        new(work => Dispatcher.UIThread.Post(work), announce, PairingWindow.Open, closed);
 
     public IPairingQuestion Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled) =>
         Show(phoneName, null, onTyped, onOwnerCancelled);
@@ -26,7 +28,7 @@ internal sealed class PairingPrompt(Action<Action> ui, Action<string> announce, 
     public IPairingQuestion Show(string phoneName, string? source, Action<string> onTyped, Action onOwnerCancelled)
     {
         var deadline = Environment.TickCount64 + (long)LinkResponder.OwnerTimeout.TotalMilliseconds;
-        var shown = new Shown(ui);
+        var shown = new Shown(ui, closed);
         ui(() => shown.Open(() => open(phoneName, source, deadline, onTyped, onOwnerCancelled), deadline));
         announce(phoneName);
         return shown;
@@ -45,13 +47,14 @@ internal sealed class PairingPrompt(Action<Action> ui, Action<string> announce, 
     /// <summary>The countdown: whole seconds left before <paramref name="deadline"/>, rounded up, never below zero.</summary>
     public static int SecondsLeft(long deadline, long now) => (int)Math.Max(0, (deadline - now + 999) / 1000);
 
-    private sealed class Shown(Action<Action> ui) : IPairingQuestion
+    private sealed class Shown(Action<Action> ui, Action? closed) : IPairingQuestion
     {
         // Touched on the UI thread only.
         private IPairingQuestion? window;
 
         // Set at once by Dispose, on the pairing's thread, so an Open already queued ahead of the withdrawal sees it.
         private volatile bool withdrawn;
+        private int disposed;
 
         public void Open(Func<IPairingQuestion> opener, long deadline)
         {
@@ -71,6 +74,10 @@ internal sealed class PairingPrompt(Action<Action> ui, Action<string> announce, 
         {
             withdrawn = true;
             ui(() => window?.Dispose());
+            if (Interlocked.Exchange(ref disposed, 1) == 0)
+            {
+                closed?.Invoke();
+            }
         }
     }
 }

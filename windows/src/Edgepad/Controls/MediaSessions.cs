@@ -30,6 +30,13 @@ internal sealed class MediaSessions : IDisposable
     /// passed; in turn, the reports now go out in the order their snapshots were taken.
     /// </summary>
     private readonly SemaphoreSlim publishing = new(1, 1);
+
+    // Held across one whole swap of the watched session. Two CurrentSessionChanged events racing used to leave a
+    // session subscribed that was no longer the current one, or the current one unsubscribed.
+    private readonly Lock swap = new();
+
+    // Read only inside SnapshotAsync, which runs one at a time under publishing.
+    private readonly BrowserTitle.Cache browserService = new();
     private GlobalSystemMediaTransportControlsSessionManager? manager;
     private GlobalSystemMediaTransportControlsSession? session;
     private System.Threading.Timer? ticker;
@@ -108,19 +115,23 @@ internal sealed class MediaSessions : IDisposable
 
     private void Attach(GlobalSystemMediaTransportControlsSession? next)
     {
-        var previous = Interlocked.Exchange(ref session, next);
-        if (previous is not null)
+        lock (swap)
         {
-            previous.MediaPropertiesChanged -= OnChanged;
-            previous.PlaybackInfoChanged -= OnChanged;
-            previous.TimelinePropertiesChanged -= OnChanged;
-        }
+            var previous = session;
+            session = next;
+            if (previous is not null)
+            {
+                previous.MediaPropertiesChanged -= OnChanged;
+                previous.PlaybackInfoChanged -= OnChanged;
+                previous.TimelinePropertiesChanged -= OnChanged;
+            }
 
-        if (next is not null)
-        {
-            next.MediaPropertiesChanged += OnChanged;
-            next.PlaybackInfoChanged += OnChanged;
-            next.TimelinePropertiesChanged += OnChanged;
+            if (next is not null)
+            {
+                next.MediaPropertiesChanged += OnChanged;
+                next.PlaybackInfoChanged += OnChanged;
+                next.TimelinePropertiesChanged += OnChanged;
+            }
         }
 
         _ = PublishAsync(onlyIfPlaying: false);
@@ -214,7 +225,7 @@ internal sealed class MediaSessions : IDisposable
         var executable = Executable(aumid);
         // A browser is named after the service in its window title, when one can be seen there.
         var app = BrowserTitle.IsBrowser(executable)
-            ? BrowserTitle.Service(BrowserTitle.WindowTitles(executable)) ?? AppName(aumid)
+            ? browserService.Service(executable, aumid, nowPlaying) ?? AppName(aumid)
             : AppName(aumid);
         return new MediaState(nowPlaying.Trim(), app, playing, percent, seconds, (int)span.TotalSeconds);
     }

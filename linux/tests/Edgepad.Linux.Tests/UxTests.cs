@@ -1,5 +1,9 @@
+using Avalonia.Controls;
+using Edgepad.Bluetooth;
 using Edgepad.Net;
 using Edgepad.Platform;
+using Edgepad.Ui;
+using Tmds.DBus.Protocol;
 using Xunit;
 
 namespace Edgepad.Tests;
@@ -37,7 +41,18 @@ public sealed class UxTests
     [InlineData("/usr/local/bin/edgepad", "/usr/local/bin/edgepad")]
     [InlineData("/home/a b/edgepad", "\"/home/a b/edgepad\"")]
     [InlineData("/home/$USER/edgepad", "edgepad")]
+    [InlineData("/opt/100%/edgepad", "/opt/100%%/edgepad")]
+    [InlineData("/home/a b/50%", "\"/home/a b/50%%\"")]
     public void TheExecValueIsQuotedOrFallsBack(string path, string expected) => Assert.Equal(expected, Autostart.ExecField(path));
+
+    [Fact]
+    public void OnlyAnEntryForThisFileCountsAsOn()
+    {
+        Assert.True(Autostart.Starts(Autostart.Entry("/opt/edgepad/edgepad"), "/opt/edgepad/edgepad"));
+        Assert.True(Autostart.Starts(Autostart.Entry("/home/a b/100%/edgepad"), "/home/a b/100%/edgepad"));
+        Assert.False(Autostart.Starts(Autostart.Entry("/old/edgepad"), "/opt/edgepad/edgepad"));
+        Assert.False(Autostart.Starts("[Desktop Entry]\nType=Application\n", "/opt/edgepad/edgepad"));
+    }
 
     [Fact]
     public void AutostartIsWrittenAndRemoved()
@@ -119,4 +134,30 @@ public sealed class UxTests
     [InlineData("Pixel 8", false)]
     public void AnAliasThatIsTheAddressIsNoName(string alias, bool isAddress) =>
         Assert.Equal(isAddress, PhoneName.IsAddress(alias, "AA:BB:CC:DD:EE:FF"));
+
+    [Fact]
+    public void AClosedPairingQuestionLeavesTheIdleStatus()
+    {
+        var connected = LaptopStatus.Connected("Pixel", PhoneWay.Bluetooth);
+        Assert.Same(connected, LinuxServer.Idle(connected, retrying: true));
+        Assert.Equal(LaptopStatus.BluetoothRetrying, LinuxServer.Idle(null, retrying: true));
+        Assert.Equal(LaptopStatus.Waiting, LinuxServer.Idle(null, retrying: false));
+    }
+
+    [Fact]
+    public void AnAdapterOffAtLaunchIsRead()
+    {
+        Assert.False(LinuxServer.PoweredOf(new Dictionary<string, VariantValue> { ["Powered"] = VariantValue.Bool(false), ["Name"] = VariantValue.String("hci0") }));
+        Assert.True(LinuxServer.PoweredOf(new Dictionary<string, VariantValue> { ["Powered"] = VariantValue.Bool(true) }));
+        Assert.Null(LinuxServer.PoweredOf(new Dictionary<string, VariantValue> { ["Powered"] = VariantValue.String("yes") }));
+        Assert.Null(LinuxServer.PoweredOf([]));
+    }
+
+    [Theory]
+    [InlineData(WindowCloseReason.WindowClosing, true)]
+    [InlineData(WindowCloseReason.Undefined, true)]
+    [InlineData(WindowCloseReason.ApplicationShutdown, false)]
+    [InlineData(WindowCloseReason.OSShutdown, false)]
+    public void TheFallbackWindowMinimisesOnlyForTheOwnersClose(WindowCloseReason reason, bool minimises) =>
+        Assert.Equal(minimises, FallbackWindow.MinimisesOnClose(reason));
 }

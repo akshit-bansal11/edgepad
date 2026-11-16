@@ -15,7 +15,7 @@ internal sealed class BluetoothLink(StreamSocket socket) : IPhoneLink
     // phone is called by its address, as before.
     private readonly Task<string?> name = LookUpName(socket.Information.RemoteHostName);
 
-    public string Label => name.IsCompletedSuccessfully && name.Result is { Length: > 0 } known ? known : Address;
+    public string Label => LabelFor(Address, name.IsCompletedSuccessfully ? name.Result : null);
 
     public LinkKind Kind => LinkKind.Bluetooth;
 
@@ -24,6 +24,13 @@ internal sealed class BluetoothLink(StreamSocket socket) : IPhoneLink
     public Stream Input { get; } = socket.InputStream.AsStreamForRead();
 
     public Stream Output { get; } = socket.OutputStream.AsStreamForWrite();
+
+    /// <summary>
+    /// The bonded device's name, cleaned the way a Wi-Fi phone's is (the owner named it on the phone, so it can hold
+    /// newlines or bidi overrides), or the address when nothing usable is left.
+    /// </summary>
+    internal static string LabelFor(string address, string? name) =>
+        PhoneLabel.Clean(name) is { Length: > 0 } clean ? clean : address;
 
     private static async Task<string?> LookUpName(HostName host)
     {

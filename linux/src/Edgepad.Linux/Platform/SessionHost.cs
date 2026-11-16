@@ -88,8 +88,9 @@ internal sealed class SessionHost(
         }
 
         // Input state belongs to one connection: its own virtual keyboard and pad, destroyed when the session ends.
+        // The keyboard is made only once the handshake admits the phone, so a refused one never shows a device.
         // Until the session starts, nothing else disposes the platform: a session that never runs never reaches
-        // the finally that releases its input, so its uinput keyboard and worker thread are this method's to end.
+        // the finally that releases its input, so its worker thread is this method's to end.
         var platform = new LinuxPlatform();
         LinuxSession session;
         try
@@ -106,7 +107,16 @@ internal sealed class SessionHost(
                 () => LinuxPlatform.Shared,
                 identity,
                 StatusFor(link),
-                OnAdmitted,
+                admitted =>
+                {
+                    if (!OnAdmitted(admitted))
+                    {
+                        return false;
+                    }
+
+                    platform.Open();
+                    return true;
+                },
                 OnSessionEnded);
         }
         catch

@@ -85,8 +85,8 @@ internal sealed class RfcommServer(Action<LaptopStatus> onStatus, SessionHost ho
                         return;
                     }
 
-                    // A phone admitted since the restart was asked for keeps its link; the restart waits for it.
-                    if (restart is not null && host.CurrentAddress is { } live)
+                    // A Bluetooth phone admitted since the restart was asked for keeps its link; the restart waits for it.
+                    if (restart is not null && host.CurrentBluetoothAddress is { } live)
                     {
                         deferredRestart = restart;
                         deferredFor = live;
@@ -268,7 +268,8 @@ internal sealed class RfcommServer(Action<LaptopStatus> onStatus, SessionHost ho
                 return;
             }
 
-            if (host.CurrentAddress is { } live)
+            // Only a Bluetooth phone's link goes down with the service; a Wi-Fi or USB phone's does not.
+            if (host.CurrentBluetoothAddress is { } live)
             {
                 deferredRestart = reason;
                 deferredFor = live;
@@ -369,7 +370,8 @@ internal sealed class RfcommServer(Action<LaptopStatus> onStatus, SessionHost ho
                 if (changed)
                 {
                     radioOff = off;
-                    if (off)
+                    // Not over a connected phone's status: a Wi-Fi or USB phone stays connected with the radio off.
+                    if (off && host.CurrentAddress is null)
                     {
                         onStatus(LaptopStatus.BluetoothOff);
                     }

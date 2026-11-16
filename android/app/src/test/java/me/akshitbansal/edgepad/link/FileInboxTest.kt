@@ -332,6 +332,30 @@ class FileInboxTest {
         assertNull(inbox.take(Frame.FileBegin(2, FileType.VIDEO_LIMIT, "a.mp4")))
     }
 
+    @Test
+    fun theFileCountComesBackAfterAnHour() {
+        val inbox = inbox(Memory(), permits = FileInbox.MAX_FILES + 1)
+        repeat(FileInbox.MAX_FILES) { assertNull(inbox.take(Frame.FileBegin(0, 1, "a.png"))) }
+        assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(0, 1, "a.png")))
+
+        now += 61L * 60 * 1000
+        inbox.permit(ActionId.CAPTURE_SCREEN)
+
+        assertNull(inbox.take(Frame.FileBegin(0, 1, "a.png")))
+    }
+
+    @Test
+    fun theByteCountComesBackAfterAnHour() {
+        val inbox = inbox(Memory(), permits = 6)
+        repeat(5) { assertNull(inbox.take(Frame.FileBegin(2, FileType.VIDEO_LIMIT, "a.mp4"))) }
+        assertEquals(FileStatus.REJECTED.frame(), inbox.take(Frame.FileBegin(2, FileType.VIDEO_LIMIT, "a.mp4")))
+
+        now += 61L * 60 * 1000
+        inbox.permit(ActionId.CAPTURE_SCREEN)
+
+        assertNull(inbox.take(Frame.FileBegin(2, FileType.VIDEO_LIMIT, "a.mp4")))
+    }
+
     private companion object {
         /** U+1F3B5, two UTF-16 units. */
         const val MUSICAL_NOTE = "🎵"

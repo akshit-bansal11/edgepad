@@ -170,7 +170,7 @@ internal sealed class NetworkServer(
         LinkResult? result = null;
         try
         {
-            result = LinkResponder.Accept(raw, identity, paired, limiter, prompt, trust, Log.Write, socket.Dispose, ended.Token, refusing: refusing, remote: remote);
+            result = LinkResponder.Accept(raw, identity, paired, limiter, prompt, trust, Log.Write, socket.Dispose, ended.Token, refusing: refusing, remote: remote, peerGone: () => LinkResponder.HungUp(socket));
         }
         finally
         {

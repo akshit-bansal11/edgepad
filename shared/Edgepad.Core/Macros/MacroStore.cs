@@ -63,13 +63,16 @@ internal sealed class MacroStore : IMacroRunner
     public const int MaxNamesBytes = 255;
 
     private readonly Lock gate = new();
-    private readonly List<Action<string>> watchers = [];
+    private readonly List<Watcher> watchers = [];
     private readonly string path;
     private readonly IMacroLauncher launcher;
     private readonly Action<Action> schedule;
     private readonly IMacroWindows? windows;
     private readonly Func<TimeSpan, Task> delay;
     private int surveyFailed;
+
+    // Numbers each list handed to the watchers, under the lock.
+    private long version;
 
     /// <summary>
     /// Replaced whole, never mutated in place, so a Bluetooth thread reading it while the UI thread saves
@@ -99,7 +102,7 @@ internal sealed class MacroStore : IMacroRunner
     }
 
     public static MacroStore ForCurrentUser(IMacroLauncher launcher, IMacroWindows? windows = null) => new(
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "macros.txt"),
+        UserFolder.PathFor("macros.txt"),
         launcher,
         windows: windows);
 
@@ -210,17 +213,22 @@ internal sealed class MacroStore : IMacroRunner
     /// </summary>
     public IDisposable Watch(Action<string> onChange)
     {
+        var watcher = new Watcher(onChange);
+        string names;
+        long at;
         lock (gate)
         {
-            watchers.Add(onChange);
+            watchers.Add(watcher);
+            names = Names();
+            at = ++version;
         }
 
-        onChange(Names());
+        watcher.Deliver(names, at);
         return new Subscription(() =>
         {
             lock (gate)
             {
-                watchers.Remove(onChange);
+                watchers.Remove(watcher);
             }
         });
     }
@@ -230,17 +238,20 @@ internal sealed class MacroStore : IMacroRunner
     /// Bluetooth socket, and that write blocks; the caller here is the UI thread inside the editor's OK
     /// click, so a phone that has stopped reading would freeze the tray app — menu, editor and all — until
     /// the socket gave up. Releasing the lock alone would not have helped, because it was never the lock
-    /// doing the blocking.
+    /// doing the blocking. Each list is numbered, so one pool item running late never lands an older list last.
     /// </summary>
     private void Published()
     {
-        Action<string>[] targets;
+        Watcher[] targets;
+        string names;
+        long at;
         lock (gate)
         {
             targets = [.. watchers];
+            names = Names();
+            at = ++version;
         }
 
-        var names = Names();
         foreach (var target in targets)
         {
             var watcher = target;
@@ -248,7 +259,7 @@ internal sealed class MacroStore : IMacroRunner
             {
                 try
                 {
-                    watcher(names);
+                    watcher.Deliver(names, at);
                 }
                 catch (Exception e)
                 {
@@ -532,6 +543,27 @@ internal sealed class MacroStore : IMacroRunner
         // Through Clean rather than straight out, so a hand-edited file is held to the same rules as the
         // editor's output — including the cap, so a file with a thousand lines cannot become a thousand macros.
         return Clean(read);
+    }
+
+    /// <summary>One subscriber. Its deliveries run one at a time, and one older than the last delivered is dropped.</summary>
+    private sealed class Watcher(Action<string> onChange)
+    {
+        private readonly Lock gate = new();
+        private long delivered = -1;
+
+        public void Deliver(string names, long at)
+        {
+            lock (gate)
+            {
+                if (at <= delivered)
+                {
+                    return;
+                }
+
+                delivered = at;
+                onChange(names);
+            }
+        }
     }
 }
 

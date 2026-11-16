@@ -93,6 +93,46 @@ class LaptopConnections(
 
         /** [selected] changed. Null when no laptop is left to select. */
         fun onSelected(laptop: Laptop?)
+
+        /**
+         * Nobody listening: the manager outlives an activity Android destroyed while Stay connected holds the
+         * process (see [LinkSession]). The records still update; only the screens are not told.
+         */
+        object None : Events {
+            override fun onConnecting(laptop: Laptop) = Unit
+
+            override fun onConnected(laptop: Laptop) = Unit
+
+            override fun onAwaitingLaptop(laptop: Laptop) = Unit
+
+            override fun onPinRequest(laptop: Laptop) = Unit
+
+            override fun onPairingCode(
+                laptop: Laptop,
+                code: Sas,
+            ) = Unit
+
+            override fun onPairingConfirm(laptop: Laptop) = Unit
+
+            override fun onFrame(
+                laptop: Laptop,
+                frame: Frame,
+            ) = Unit
+
+            override fun onRoundTrip(
+                laptop: Laptop,
+                ms: Double,
+            ) = Unit
+
+            override fun onClosed(
+                laptop: Laptop,
+                closure: LaptopLink.Closure,
+            ) = Unit
+
+            override fun onDeselecting(laptop: Laptop) = Unit
+
+            override fun onSelected(laptop: Laptop?) = Unit
+        }
     }
 
     private val all = ArrayList<Laptop>()
@@ -138,7 +178,8 @@ class LaptopConnections(
     /**
      * Connects to [target], ending any link that laptop already had; other laptops are left alone. Selects it when
      * nothing is selected or [select] says so. [tapped] is the owner's own tap, which starts a fresh set of attempts
-     * and earns the one quick retry; a retry or the automatic connect at start never does.
+     * and earns the one quick retry; a retry or the automatic connect at start never does. [replacing] names the same
+     * laptop's records over other transports: once this one connects, it takes their selection and they end.
      *
      * Only [Target.key] finds a record. TEXT DEVICE is a claim, and over Bluetooth nothing proves it, so what a laptop
      * says of itself never ends a link, removes a record or moves the selection: a laptop reached over Bluetooth and
@@ -150,6 +191,7 @@ class LaptopConnections(
         kind: Transport,
         tapped: Boolean = false,
         select: Boolean = false,
+        replacing: List<String> = emptyList(),
     ) {
         val laptop =
             all.firstOrNull { it.id == target.key }
@@ -157,6 +199,7 @@ class LaptopConnections(
         laptop.name = name
         laptop.kind = kind
         laptop.reconnecting = false
+        laptop.replacing = replacing
         if (tapped) laptop.attempts = 0
         if (selected == null || (select && laptop !== selected)) change(laptop)
         open(laptop, target)
@@ -289,6 +332,7 @@ class LaptopConnections(
         laptop.ending = false
         laptop.lastCause = null
         clearAsking(laptop)
+        laptop.pinSentOnLink = false
         val old = laptop.link
         // Cleared first, so the old link's own close is an event for a closed link.
         laptop.link = null
@@ -324,6 +368,8 @@ class LaptopConnections(
     ) {
         stopPinger(laptop)
         laptop.link = null
+        // A switch that failed must not end the old record's link at some later connect.
+        laptop.replacing = emptyList()
         laptop.state.forgetMacroOpen()
         laptop.state.forgetInputBlocked()
         laptop.state.forgetPower()
@@ -334,6 +380,11 @@ class LaptopConnections(
             // A link ended on purpose starts the next one with a full set of attempts.
             closure.cause == LaptopLink.Cause.ENDED -> {
                 laptop.attempts = 0
+                laptop.reconnecting = false
+            }
+
+            // The laptop said no, or cannot be asked: another attempt would only hear the same, so retrying ends.
+            !retryable(closure.cause) -> {
                 laptop.reconnecting = false
             }
 
@@ -410,6 +461,11 @@ class LaptopConnections(
     private fun ping(laptop: Laptop) {
         val link = laptop.link ?: return
         if (!link.connected) return
+        // A laptop that vanished never answers, and TCP would take its retransmit limit, minutes, to say so.
+        if (link.silentMs > SILENCE_MS) {
+            link.close(LaptopLink.Closure(LaptopLink.Cause.LOST))
+            return
+        }
         link.send(Frame.Ping(System.nanoTime()))
         val interval = if (fastPing && laptop === selected) PING_FAST_MS else PING_SLOW_MS
         laptop.pingTimer = scheduler.after(interval) { ping(laptop) }
@@ -438,6 +494,12 @@ class LaptopConnections(
             startPinger(laptop)
             // The selected one gave up or never answered: the first laptop to come up takes over.
             if (selected?.idle == true) change(laptop)
+            // A switch of transport: this record takes the selection from the one it replaces, which then ends.
+            val old = laptop.replacing
+            laptop.replacing = emptyList()
+            val chosen = selected
+            if (chosen != null && chosen.id in old) change(laptop)
+            for (id in old) if (id != laptop.id) disconnect(id)
             events.onConnected(laptop)
         }
 
@@ -492,6 +554,13 @@ class LaptopConnections(
     }
 
     companion object {
+        /** Only a link that dropped or never got through is worth another attempt; null is nothing failed yet. */
+        fun retryable(cause: LaptopLink.Cause?): Boolean =
+            cause == null ||
+                cause == LaptopLink.Cause.LOST ||
+                cause == LaptopLink.Cause.UNREACHABLE ||
+                cause == LaptopLink.Cause.NO_ANSWER
+
         const val MAX_ATTEMPTS = 10
         const val RETRY_DELAY_MS = 2_000L
 
@@ -502,6 +571,13 @@ class LaptopConnections(
         const val STABLE_LINK_MS = 5_000L
         const val PING_FAST_MS = 500L
         const val PING_SLOW_MS = 5_000L
+
+        /**
+         * A connected laptop that has sent nothing for this long is gone, and its link closes as lost. It must exceed
+         * three slow ping periods (PING_SLOW_MS * 3 = 15 s; the fast period is shorter), so one late pong never ends a
+         * working link.
+         */
+        const val SILENCE_MS = 15_000L
 
         /** The pairing code's countdown, the same 90 s the network transport waits for the laptop's answer. */
         const val PAIR_CODE_MS = 90_000L

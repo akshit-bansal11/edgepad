@@ -96,24 +96,37 @@ public enum LinkKind {
 }
 
 /// What a clipboard holds. `sensitive` is the platform's verdict; a flag it could not read counts as set.
+/// `unencoded` is raw bytes that still need the surface's `encode` (a screenshot's TIFF, sent as PNG).
 public struct ClipboardContent: Equatable {
     public let kind: BlobKind
     public let data: [UInt8]
     public let sensitive: Bool
+    public let unencoded: Bool
 
-    public init(kind: BlobKind, data: [UInt8], sensitive: Bool = false) {
+    public init(kind: BlobKind, data: [UInt8], sensitive: Bool = false, unencoded: Bool = false) {
         self.kind = kind
         self.data = data
         self.sensitive = sensitive
+        self.unencoded = unencoded
     }
 }
 
-/// This Mac's pasteboard. Main thread only, like the launcher; a denied read is nil, never an error.
+/// This Mac's pasteboard. Main thread only, like the launcher, apart from `encode`; a denied read is nil, never an
+/// error.
 public protocol ClipboardSurface: AnyObject {
-    /// The clipboard now, or nil for nothing that can be shared.
+    /// The clipboard now, or nil for nothing that can be shared. Fast: a slow re-encode is left to `encode`.
     func read() -> ClipboardContent?
+    /// Turns `unencoded` content from `read` into what is sent, or nil when it cannot be. Run off the main thread,
+    /// so it touches nothing but its argument.
+    func encode(_ content: ClipboardContent) -> ClipboardContent?
     /// False when it would not take the content.
     func write(_ content: ClipboardContent) -> Bool
+}
+
+extension ClipboardSurface {
+    public func encode(_ content: ClipboardContent) -> ClipboardContent? {
+        content
+    }
 }
 
 /// What this Mac reports for TEXT 19 and TEXT 20: the batteries of the laptop and its peripherals, and where the

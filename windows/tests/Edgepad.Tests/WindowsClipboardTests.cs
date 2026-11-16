@@ -1,6 +1,7 @@
 using System.Drawing;
 using System.Text;
 using Edgepad.Blob;
+using Edgepad.Protocol;
 using Xunit;
 
 namespace Edgepad.Tests;
@@ -156,6 +157,19 @@ public sealed class WindowsClipboardTests : IDisposable
 
         Assert.False(setting.Set(false));
         Assert.False(setting.Enabled);
+    }
+
+    [Fact]
+    public void EveryAttemptGetsItsOwnDataObject()
+    {
+        var content = new ClipboardContent(BlobKind.ClipText, Encoding.UTF8.GetBytes("hello"));
+        using var png = new MemoryStream();
+
+        var first = WindowsClipboard.DataFor(content, null, png);
+        var second = WindowsClipboard.DataFor(content, null, png);
+
+        Assert.NotSame(first, second);
+        Assert.Equal("hello", second.GetText(TextDataFormat.UnicodeText));
     }
 
     public void Dispose()

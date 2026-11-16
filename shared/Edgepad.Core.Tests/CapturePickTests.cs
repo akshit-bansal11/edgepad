@@ -117,6 +117,21 @@ public sealed class CapturePickTests
     }
 
     [Fact]
+    public void CancelCutsAScreenshotWatchShortButNeverARecording()
+    {
+        using var capture = new CaptureToPhone(new NoFolders(), _ => { }, () => 0);
+        Assert.True(capture.SetTarget(1));
+
+        Assert.True(capture.Run(ActionId.CaptureRecord, () => true));
+        capture.Cancel();
+        Assert.True(capture.Deadline() - Environment.TickCount64 > CaptureToPhone.ScreenshotWindowMs);
+
+        Assert.True(capture.Run(ActionId.CaptureRegion, () => true));
+        capture.Cancel();
+        Assert.True(capture.Deadline() - Environment.TickCount64 <= CaptureToPhone.CancelledWindowMs);
+    }
+
+    [Fact]
     public void ASavedBeforeTheEndKeepsTheFile()
     {
         var path = TempCapture();

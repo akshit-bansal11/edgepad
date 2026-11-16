@@ -188,6 +188,7 @@ internal sealed class LinuxServer : IDisposable
             Log.Write("The RFCOMM profile is still registered with bluetoothd");
         }
 
+        await ReadPoweredAsync(bus, id);
         onStatus(host.CurrentAddress is { } live ? host.Connected(live) : unpowered ? LaptopStatus.BluetoothRetrying : LaptopStatus.Waiting);
     }
 
@@ -197,8 +198,49 @@ internal sealed class LinuxServer : IDisposable
     private static bool? PoweredIn(Reader reader)
     {
         _ = reader.ReadString();
-        var changed = reader.ReadDictionaryOfStringToVariantValue();
-        return changed.TryGetValue("Powered", out var value) && value.Type == VariantValueType.Bool ? value.GetBool() : null;
+        return PoweredOf(reader.ReadDictionaryOfStringToVariantValue());
+    }
+
+    /// <summary>Powered in an <c>Adapter1</c> property set; null when it is not there.</summary>
+    internal static bool? PoweredOf(Dictionary<string, VariantValue> properties) =>
+        properties.TryGetValue("Powered", out var value) && value.Type == VariantValueType.Bool ? value.GetBool() : null;
+
+    /// <summary>
+    /// The GetAll call for hci0's <c>Adapter1</c> properties. Built outside the async method: a MessageWriter cannot
+    /// live across an await (CS4007).
+    /// </summary>
+    private static MessageBuffer AdapterPropertiesMessage(DBusConnection bus, string id)
+    {
+        using var writer = bus.GetMessageWriter();
+        writer.WriteMethodCallHeader(
+            destination: id,
+            path: "/org/bluez/hci0",
+            @interface: "org.freedesktop.DBus.Properties",
+            member: "GetAll",
+            signature: "s");
+        writer.WriteString("org.bluez.Adapter1");
+        return writer.CreateMessage();
+    }
+
+    /// <summary>
+    /// Reads whether the adapter is on, once, since PropertiesChanged only tells of a change: an adapter already off at
+    /// launch would otherwise show Waiting. The first adapter, hci0, as nearly every laptop has one. A failed read
+    /// leaves the last known answer.
+    /// </summary>
+    private async Task ReadPoweredAsync(DBusConnection bus, string id)
+    {
+        try
+        {
+            var powered = await bus.CallMethodAsync(AdapterPropertiesMessage(bus, id), static (Message m, object? _) => PoweredOf(m.GetBodyReader().ReadDictionaryOfStringToVariantValue()));
+            if (powered is { } on)
+            {
+                unpowered = !on;
+            }
+        }
+        catch (DBusErrorReplyException e)
+        {
+            Log.Write($"Whether the Bluetooth adapter is on could not be read: {e.ErrorName}");
+        }
     }
 
     /// <summary>
@@ -230,13 +272,23 @@ internal sealed class LinuxServer : IDisposable
     /// <summary>Hangs up on every phone and refuses new connections for <paramref name="quiet"/>.</summary>
     public void HangUp(TimeSpan quiet) => host.HangUp(quiet);
 
-    private void OnSessionEnded()
+    private void OnSessionEnded() => PostStatus();
+
+    /// <summary>
+    /// Says again what the laptop is doing now that nothing else is: after a session ends, a pairing question closes
+    /// (paired, cancelled, timed out, mismatched or its link dropped), or a paired link is refused. Any thread.
+    /// </summary>
+    public void PostStatus()
     {
         if (!stopping.IsCancellationRequested)
         {
-            onStatus(host.CurrentAddress is { } live ? host.Connected(live) : bluetoothd is null || unpowered ? LaptopStatus.BluetoothRetrying : LaptopStatus.Waiting);
+            onStatus(Idle(host.CurrentAddress is { } live ? host.Connected(live) : null, bluetoothd is null || unpowered));
         }
     }
+
+    /// <summary>The status when no question is open: the connected phone, else Bluetooth retrying, else Waiting.</summary>
+    internal static LaptopStatus Idle(LaptopStatus? connected, bool retrying) =>
+        connected ?? (retrying ? LaptopStatus.BluetoothRetrying : LaptopStatus.Waiting);
 
     public void Dispose()
     {

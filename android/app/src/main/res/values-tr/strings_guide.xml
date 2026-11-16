@@ -43,10 +43,10 @@
     <item>Köşelere kıvrılan kadranlar, ya da köşe başına ikişer kadran: ses, parlaklık, yakınlaştırma, medya sarma, uygulama değiştirici, yenileme hızı, kaydırma, sanal masaüstleri, tarayıcı sekmeleri veya Bilgisayar değiştir kadranı.</item>
     <item>Bir oynatıcı açıkken çalan parça, ardından önceki, oynat ve sonraki. Kumanda alanı ayarlarından taşıyın ve yeniden boyutlandırın.</item>
     <item>Değiştirici tuşları basılı tutarak ya da dokunarak çalışan tam bir klavye; Kontroller düğmesinin arkasında.</item>
-    <item>Dört hazır ayarda çubuklar, yön tuşları ve düğmeler ya da kendi düzeniniz.</item>
+    <item>Beş hazır ayarda çubuklar, yön tuşları ve düğmeler ya da kendi düzeniniz.</item>
     <item>Kontroller › Çizim, telefonu bilgisayar ekranı için bir kaleme çevirir; altı araç ve sekiz renk var. Bilgisayar destekliyorsa görünür.</item>
     <item>Kontroller › Ekran yakalama, bilgisayardan bölge ekran görüntüsü, tam ekran görüntüsü ya da kayıt ister. Bölge için düğmelerin altındaki yüzeyde alanı sürükleyin. Bilgisayar destekliyorsa görünür.</item>
-    <item>Bilgisayarda bir program, dosya veya web adresi açan düğmelerden oluşan ızgara; Kontroller ekranının arkasında. Kendi sıranıza sürüklemek için basılı tutun; ondan fazlası, kaydırarak ulaşılan sayfalarda devam eder.</item>
+    <item>Bilgisayarda bir program, dosya veya web adresi açan düğmelerden oluşan ızgara; Kontroller ekranının arkasında. Kendi sıranıza sürüklemek ya da açıksa kapatmak için basılı tutun; ondan fazlası, kaydırarak ulaşılan sayfalarda devam eder.</item>
   </string-array>
 
   <string name="guide_surface_kicker">3 · Kumanda alanı</string>
@@ -91,7 +91,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>Kumanda alanının üstündeki Kontroller simgesi, sonra Oyun kumandası. Yatay açılır.</item>
-    <item>Xbox, Platform, Yarış ve Nişancı; oyun kumandasındaki dişlinin arkasında, Oyun kumandası ayarlarından seçilir.</item>
+    <item>Xbox, Xbox (tuşlar), Platform, Yarış ve Nişancı; oyun kumandasındaki dişlinin arkasında, Oyun kumandası ayarlarından seçilir.</item>
     <item>Bir çubuğu basılı tutup kaydırın, düğmelere dokunun. Aynı anda birkaç parmak çalışır.</item>
     <item>Oyun kumandası ayarları › Düzeni düzenle. Kontrolleri başparmaklarınızın geldiği yere sürükleyin; yeniden boyutlandırmak için birine uzun basın.</item>
   </string-array>
@@ -125,5 +125,5 @@
   <string name="guide_art_scroll">2 · Kaydır</string>
   <string name="guide_art_swipe">3 · Çek</string>
   <string name="guide_art_latch">Ctrl, Alt ve Shift sonraki tuş için basılı kalır</string>
-  <string name="guide_art_presets">Xbox · Platform · Yarış · Nişancı</string>
+  <string name="guide_art_presets">Xbox · Xbox (tuşlar) · Platform · Yarış · Nişancı</string>
 </resources>

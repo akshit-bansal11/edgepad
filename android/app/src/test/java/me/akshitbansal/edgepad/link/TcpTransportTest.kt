@@ -14,11 +14,13 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.fail
 import org.junit.Test
 import java.io.DataInputStream
+import java.io.EOFException
 import java.io.IOException
 import java.io.OutputStream
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
+import java.net.SocketTimeoutException
 import kotlin.concurrent.thread
 
 /**
@@ -185,6 +187,20 @@ class TcpTransportTest {
     }
 
     @Test
+    fun aLaptopThatGoesQuietDuringTheHandshakeIsLostNotRefused() {
+        val quiet = closureOf(SocketTimeoutException(), connectReturned = true, handshakeDone = false)
+        assertEquals(LaptopLink.Cause.LOST, quiet.cause)
+        val hungUp = closureOf(EOFException(), connectReturned = true, handshakeDone = false)
+        assertEquals(LaptopLink.Cause.REFUSED, hungUp.cause)
+    }
+
+    @Test
+    fun aConnectThatTimesOutStaysUnreachable() {
+        val missed = closureOf(SocketTimeoutException(), connectReturned = false, handshakeDone = false)
+        assertEquals(LaptopLink.Cause.UNREACHABLE, missed.cause)
+    }
+
+    @Test
     fun eachStatusClosesWithItsCause() {
         assertNull(closureForStatus(0))
         assertEquals(LaptopLink.Cause.PAIRING_LOCKED, closureForStatus(1)?.cause)
@@ -321,7 +337,7 @@ class TcpTransportTest {
         expected: ByteArray = laptopId,
         forcePair: Boolean = false,
         hosts: List<InetAddress> = listOf(loopback),
-    ) = TcpTransport(hosts, port, expected, keys, "Phone", forcePair, initiator, tuneSocket = {}) { emptyList() }
+    ) = TcpTransport(hosts, port, expected, { keys }, { "Phone" }, forcePair, initiator, { }) { emptyList() }
 
     private fun laptopChannel(
         input: DataInputStream,

@@ -25,12 +25,13 @@ public sealed class FirewallTests
     [Theory]
     [InlineData(@"C:\Program Files\Edgepad\Edgepad.exe")]
     [InlineData(@"C:\Tools & Apps\Edgepad.exe")]
-    public void CmdRunsTheDeleteThenTheAddWithNetshByItsFullPath(string exe)
+    public void CmdRunsBothDeletesThenTheAddWithNetshByItsFullPath(string exe)
     {
         var netsh = Path.Combine(Environment.SystemDirectory, "netsh.exe");
 
         Assert.Equal(
             $"\"\"{netsh}\" advfirewall firewall delete rule name=all dir=in program=\"{exe}\" & "
+                + $"\"{netsh}\" advfirewall firewall delete rule name=\"Edgepad\" dir=in & "
                 + $"\"{netsh}\" advfirewall firewall add rule name=\"Edgepad\" dir=in action=allow program=\"{exe}\" enable=yes profile=any remoteip=localsubnet\"",
             Firewall.CommandLine(exe));
     }

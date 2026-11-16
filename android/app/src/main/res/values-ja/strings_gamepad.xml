@@ -8,7 +8,7 @@
   <string name="gamepad_preset_shooter">シューティング</string>
   <string name="gamepad_layout_hint">ドラッグで移動します。コントロールを長押しすると、メニューが開きます。</string>
   <string name="gamepad_layout_section">レイアウト</string>
-  <string name="gamepad_description">ノートPC用のゲームコントローラーです。タッチ操作のみ対応です。</string>
+  <string name="gamepad_description">ノートPC用のゲームコントローラーです。ボタンとトリガーはダブルタップできます。スティックと十字キーはタッチ操作が必要です。</string>
   <string name="gamepad_node_dpad">十字キー</string>
   <string name="gamepad_node_stick">スティック</string>
   <string name="gamepad_node_button">ボタン</string>

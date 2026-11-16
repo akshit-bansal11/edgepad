@@ -103,6 +103,16 @@ class SavedLaptopsTest {
     }
 
     @Test
+    fun onlyTheChosenTransportConnectsByItself() {
+        val overBluetooth = SavedLaptop(bluetooth, Transport.BLUETOOTH, "Desk", btAddress = bluetooth)
+        val unrelated = SavedLaptop("11:22:33:44:55:66", Transport.BLUETOOTH, "Other", btAddress = "11:22:33:44:55:66")
+        val result = onlyAutoConnecting(listOf(overBluetooth, wifi(), unrelated), setOf(bluetooth, net), net)
+        assertFalse(result[0].autoConnect)
+        assertEquals(wifi(), result[1])
+        assertTrue(result[2].autoConnect)
+    }
+
+    @Test
     fun aNetworkTargetNeedsAnIdAndAnAddress() {
         assertEquals(net, wifi().networkTarget()?.key)
         assertNull(wifi(hosts = emptyList()).networkTarget())

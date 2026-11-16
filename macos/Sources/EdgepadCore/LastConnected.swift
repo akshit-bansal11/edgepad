@@ -4,10 +4,11 @@ import Foundation
 /// A file of its own rather than a field on the trust file's lines: an older build reads those lines as addresses, and
 /// would stop recognising every phone. An older build never opens this one. Addresses are kept lowercased, since macOS
 /// and the phone may write them differently.
-/// Sendable by hand: `path` never changes and every file access is under `gate`.
+/// Sendable by hand: `path` never changes, and every file access and `forgets` are under `gate`.
 public final class LastConnected: @unchecked Sendable {
     private let path: String
     private let gate = NSLock()
+    private var forgets = 0
 
     public init(path: String) {
         self.path = path
@@ -20,9 +21,15 @@ public final class LastConnected: @unchecked Sendable {
         return LastConnected(path: support + "/Edgepad/last-connected.txt")
     }
 
+    /// Moves on with every forget, so a write queued before one can tell it came too late.
+    public var generation: Int { locked { forgets } }
+
     /// Writes `now` for `address`. A failed write is logged and changes nothing else: it never blocks a connection.
-    public func record(_ address: String, at now: Date = Date()) {
+    /// With `since`, nothing is written when a forget came after that `generation` was read: a write queued at admit
+    /// would otherwise bring back a phone that Forget removed meanwhile.
+    public func record(_ address: String, at now: Date = Date(), since: Int? = nil) {
         locked {
+            if let since, since != forgets { return }
             // An unreadable file is left as it is: writing what could not be read would wipe every other phone's time.
             guard var all = read() else { return }
             all[address.lowercased()] = now
@@ -43,6 +50,7 @@ public final class LastConnected: @unchecked Sendable {
 
     public func forget(_ address: String) {
         locked {
+            forgets += 1
             guard var all = read(), all.removeValue(forKey: address.lowercased()) != nil else { return }
             write(all)
         }
@@ -50,6 +58,7 @@ public final class LastConnected: @unchecked Sendable {
 
     public func forgetAll() {
         locked {
+            forgets += 1
             do {
                 try FileManager.default.removeItem(atPath: path)
             } catch {

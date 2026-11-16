@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.BlobKind
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * How [LinkService] and [me.akshitbansal.edgepad.ShareActivity], which outlive the activity's views, reach the two
@@ -16,7 +17,51 @@ object LinkHooks {
     /** The selected laptop if it is connected, or null. */
     @Volatile
     var shareTarget: (() -> ShareTarget?)? = null
+
+    /** Shares on their way to a laptop right now. While any is, the app leaving does not end the links. */
+    val sharing = AtomicInteger()
 }
+
+/**
+ * The links of an activity Android destroyed by itself (memory pressure, "Don't keep activities") while Stay connected
+ * held the process: the next activity adopts them as it would after a rotation. Process memory only, and no activity in
+ * it: the manager's events are [KeptEvents] while it waits here. Emptied by the next activity, or by
+ * the notification's Disconnect, so nothing is held once the service has no reason to run.
+ */
+object LinkSession {
+    class Kept(
+        val manager: LaptopConnections,
+        val clipboard: ClipboardShare,
+        val apps: AppLinks,
+    )
+
+    @Volatile
+    var kept: Kept? = null
+}
+
+/**
+ * The events of a manager waiting in [LinkSession]: no screen to tell, but nothing calls the activity's syncService
+ * either, so when the last link closes this ends what that would have: [onEmpty] stops the service and its retries.
+ */
+class KeptEvents(
+    private val manager: LaptopConnections,
+    private val onEmpty: () -> Unit,
+) : LaptopConnections.Events by LaptopConnections.Events.None {
+    override fun onClosed(
+        laptop: Laptop,
+        closure: LaptopLink.Closure,
+    ) {
+        if (manager.laptops.none { it.link != null }) onEmpty()
+    }
+}
+
+/** What the linger does when it runs out: end the links, or wait for a share still going. */
+enum class LingerAction {
+    CLOSE,
+    WAIT,
+}
+
+internal fun lingerAction(sharing: Int): LingerAction = if (sharing > 0) LingerAction.WAIT else LingerAction.CLOSE
 
 /**
  * The laptop a share would go to. [send] is null while the laptop will not take a clipboard (its Share clipboard or this

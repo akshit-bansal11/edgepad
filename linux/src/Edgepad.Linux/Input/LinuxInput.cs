@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Edgepad.Platform;
 
 namespace Edgepad.Input;
 
@@ -30,8 +31,9 @@ internal struct Wheel
 /// connection can never leave one stuck: <see cref="Dispose"/> releases everything and destroys the device. One per
 /// session, made when the session is. When /dev/uinput cannot be used (no udev rule, no module) every call is a
 /// no-op that is counted in <see cref="Refused"/> and never throws, since it runs inside the dispatcher on the
-/// session thread. Locked like the Windows injector is single-threaded: every call holds the one lock, so a session
-/// ending under a frame never writes to a destroyed device.
+/// session thread. Locked like the Windows injector is single-threaded: every write holds the one lock, so a session
+/// ending under a frame never writes to a destroyed device. <see cref="Type"/> alone runs on another thread and takes
+/// the lock per key, not for the whole text.
 /// </summary>
 internal sealed class LinuxInput : IDisposable
 {
@@ -53,8 +55,15 @@ internal sealed class LinuxInput : IDisposable
     /// <summary>Read the first time text is typed, then kept for the run.</summary>
     private static readonly Lazy<bool> UsLayout = new(Typing.DetectUsLayout);
 
+    /// <summary>How long the target app gets to ask for the pasted text before the user's clipboard is put back. HW tune.</summary>
+    private const int RestoreDelayMs = 250;
+
     private static readonly ClipboardTool? Clipboard =
         Typing.ClipboardFor(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"), Environment.GetEnvironmentVariable("DISPLAY"));
+
+    /// <summary>The user's clipboard, saved before a paste and put back after it (<see cref="PasteGuard"/>).</summary>
+    private static readonly LinuxClipboard Saved =
+        new(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"), Environment.GetEnvironmentVariable("DISPLAY"));
 
     private static int deviceFailureLogged;
     private static int pasteFailureLogged;
@@ -145,27 +154,37 @@ internal sealed class LinuxInput : IDisposable
         }
     }
 
-    /// <summary>Types text as the phone's keyboard produced it: keys where the layout allows, the clipboard elsewhere.</summary>
+    /// <summary>
+    /// Types text as the phone's keyboard produced it: keys where the layout allows, the clipboard elsewhere. The
+    /// user's clipboard is saved once before the first paste and put back once after the last.
+    /// </summary>
+    /// <remarks>
+    /// Slow (localectl once, a clipboard tool per paste, the restore wait), so it runs off the session's reader and
+    /// never holds the lock for the whole text: each key takes it itself, so the pointer moves in between.
+    /// </remarks>
     public void Type(string text)
     {
         lock (gate)
         {
-            foreach (var step in Typing.Plan(text, UsLayout.Value))
+            // The session ended while this waited its turn: nothing to type into, so leave the clipboard alone.
+            if (device is null)
             {
-                if (step.Paste is { } paste)
-                {
-                    Paste(paste);
-                }
-                else if (step.Shift)
-                {
-                    Chord(KeyMap.LeftShift, step.Key);
-                }
-                else
-                {
-                    Chord(step.Key);
-                }
+                return;
             }
         }
+
+        var steps = Typing.Plan(text, UsLayout.Value).ToArray();
+        var first = Array.FindIndex(steps, s => s.Paste is not null);
+        if (first < 0)
+        {
+            Steps(steps);
+            return;
+        }
+
+        var last = Array.FindLastIndex(steps, s => s.Paste is not null);
+        Steps(steps[..first]);
+        PasteGuard.Around(Saved, () => Steps(steps[first..(last + 1)]), () => Thread.Sleep(RestoreDelayMs), steps[last].Paste ?? string.Empty);
+        Steps(steps[(last + 1)..]);
     }
 
     /// <summary>Presses evdev keys in order and releases them in reverse, as one write so nothing interleaves.</summary>
@@ -298,23 +317,51 @@ internal sealed class LinuxInput : IDisposable
         Send([Event(Uinput.EvKey, code, down ? 1 : 0), Sync]);
     }
 
+    private void Steps(TypingStep[] steps)
+    {
+        foreach (var step in steps)
+        {
+            if (step.Paste is { } paste)
+            {
+                Paste(paste);
+            }
+            else if (step.Shift)
+            {
+                Chord(KeyMap.LeftShift, step.Key);
+            }
+            else
+            {
+                Chord(step.Key);
+            }
+        }
+    }
+
     /// <summary>
     /// Puts the text on the clipboard and sends Ctrl+V. Ctrl+V, not Ctrl+Shift+V: it is paste in nearly every
     /// graphical app, where Ctrl+Shift+V means something else in several (paste without formatting, or nothing);
-    /// a terminal is the exception, and gets a literal ^V. The user's clipboard is replaced by the text.
+    /// a terminal is the exception, and gets a literal ^V. <see cref="Type"/> puts the user's clipboard back afterwards.
     /// </summary>
     private void Paste(string text)
     {
+        // Outside the lock, so the pointer is not held for the clipboard tool; the count is shared, so it takes it.
         if (Clipboard is null)
         {
-            Refused++;
+            lock (gate)
+            {
+                Refused++;
+            }
+
             LogOnce(ref pasteFailureLogged, "Text that cannot be typed as keys is pasted, but neither WAYLAND_DISPLAY nor DISPLAY is set");
             return;
         }
 
         if (Typing.Copy(Clipboard, text) is { } failure)
         {
-            Refused++;
+            lock (gate)
+            {
+                Refused++;
+            }
+
             LogOnce(ref pasteFailureLogged, $"Text could not be pasted: {failure}. Install wl-clipboard (Wayland) or xclip (X11)");
             return;
         }

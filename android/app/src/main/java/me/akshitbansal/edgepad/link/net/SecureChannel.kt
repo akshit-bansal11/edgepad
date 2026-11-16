@@ -141,9 +141,15 @@ class SecureChannel(
                 val nonce = LinkCrypto.nonce(sendPrefix, sent)
                 // Spent before anything can fail: a nonce is sealed under once, whatever then happens to the record.
                 sent++
-                sealer.init(Cipher.ENCRYPT_MODE, sealKey, GCMParameterSpec(TAG_BITS, nonce))
-                sealer.updateAAD(outRecord, 0, 2)
-                sealer.doFinal(buffer, at, chunk, outRecord, 2)
+                try {
+                    sealer.init(Cipher.ENCRYPT_MODE, sealKey, GCMParameterSpec(TAG_BITS, nonce))
+                    sealer.updateAAD(outRecord, 0, 2)
+                    sealer.doFinal(buffer, at, chunk, outRecord, 2)
+                } catch (e: GeneralSecurityException) {
+                    // Not an IOException, so it would get past the writer's net and end its thread silently.
+                    fail()
+                    throw IOException("A link record could not be sealed", e)
+                }
                 try {
                     rawOutput.write(outRecord, 0, 2 + recordLength)
                 } catch (e: Exception) {

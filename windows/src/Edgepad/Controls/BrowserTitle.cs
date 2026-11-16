@@ -123,6 +123,35 @@ internal static partial class BrowserTitle
         return 1;
     }
 
+    /// <summary>
+    /// The service last read for one media app and track, so the second-by-second media tick does not list every
+    /// process and window each time: the titles are read again only when the app or the track changes. Holds one
+    /// entry. Used under MediaSessions' one-publish-at-a-time gate.
+    /// </summary>
+    internal sealed class Cache(Func<string, List<string>> titles)
+    {
+        private string? key;
+        private string? service;
+
+        public Cache()
+            : this(WindowTitles)
+        {
+        }
+
+        /// <summary>The service named in <paramref name="executable"/>'s window titles, or null.</summary>
+        public string? Service(string executable, string appUserModelId, string track)
+        {
+            var now = appUserModelId + "\n" + track;
+            if (now != key)
+            {
+                key = now;
+                service = BrowserTitle.Service(titles(executable));
+            }
+
+            return service;
+        }
+    }
+
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static unsafe partial bool EnumWindows(delegate* unmanaged<nint, nint, int> callback, nint lParam);

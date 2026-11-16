@@ -57,6 +57,9 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
     private CancellationTokenSource? watching;
     private long startedAt;
     private long deadline;
+
+    /// <summary>The watch is for a capture that may open an overlay (region, screen); never true for a recording.</summary>
+    private bool watchOpensOverlay;
     private volatile bool toPhone;
     private int answer = NoAnswer;
     private bool awaiting;
@@ -123,7 +126,7 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
             return false;
         }
 
-        var token = StartWatch(recording ? RecordingWindowMs : ScreenshotWindowMs);
+        var token = StartWatch(recording ? RecordingWindowMs : ScreenshotWindowMs, overlay: !recording);
         var settled = recording ? RecordingSettledPolls : ScreenshotSettledPolls;
         var toggled = recording && folders.RecordToggles;
         if (toggled)
@@ -140,14 +143,15 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
     }
 
     /// <summary>
-    /// The phone left its capture screen. A watch started while the overlay may still be open is cut short, so a
-    /// cancelled drag leaves nothing running; an older one, a recording under way, is left alone.
+    /// The phone left its capture screen. A screenshot watch started while its overlay may still be open is cut
+    /// short, so a cancelled drag leaves nothing running; an older one, and any recording, is left alone: a
+    /// recording opens no overlay, and Back on the phone does not stop it.
     /// </summary>
     public void Cancel()
     {
         lock (gate)
         {
-            if (Now - startedAt < CaptureOverlay.PendingMs)
+            if (watchOpensOverlay && Now - startedAt < CaptureOverlay.PendingMs)
             {
                 deadline = Math.Min(deadline, Now + CancelledWindowMs);
             }
@@ -190,7 +194,7 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
         sending.Dispose();
     }
 
-    private CancellationToken StartWatch(long window)
+    private CancellationToken StartWatch(long window, bool overlay)
     {
         lock (gate)
         {
@@ -201,6 +205,7 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
             watching = CancellationTokenSource.CreateLinkedTokenSource(ended.Token);
             startedAt = Now;
             deadline = Now + window;
+            watchOpensOverlay = overlay;
             return watching.Token;
         }
     }
@@ -213,7 +218,7 @@ internal sealed class CaptureToPhone(ICaptureFolders folders, Action<Frame> send
         }
     }
 
-    private long Deadline()
+    internal long Deadline()
     {
         lock (gate)
         {

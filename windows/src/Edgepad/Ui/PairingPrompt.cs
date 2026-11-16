@@ -6,9 +6,11 @@ namespace Edgepad.Ui;
 /// The laptop's half of a Wi-Fi or USB pairing (<see cref="IPairingPrompt"/>): a window that names the phone and asks
 /// the owner to type the six digits the phone shows. It is put up on the tray's thread, which owns every window the
 /// app has, so the link's thread that asks is never blocked; <paramref name="announce"/> is told the phone's name as it
-/// goes up, for the notification the owner actually notices, since a tray app cannot take the foreground.
+/// goes up, for the notification the owner actually notices, since a tray app cannot take the foreground. It is handed
+/// what clicking that notification does too: bring the window forward with the keyboard in it, the one path to the
+/// box for an owner on the keyboard or a screen reader.
 /// </summary>
-internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> announce) : IPairingPrompt
+internal sealed class PairingPrompt(SynchronizationContext ui, Action<string, Action> announce) : IPairingPrompt
 {
     public IPairingQuestion Show(string phoneName, Action<string> onTyped, Action onOwnerCancelled) =>
         Show(phoneName, null, onTyped, onOwnerCancelled);
@@ -18,7 +20,7 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
         var deadline = Environment.TickCount64 + (long)LinkResponder.OwnerTimeout.TotalMilliseconds;
         var shown = new Shown(ui);
         ui.Post(_ => shown.Open(phoneName, source, deadline, onTyped, onOwnerCancelled), null);
-        announce(phoneName);
+        announce(phoneName, shown.Front);
         return shown;
     }
 
@@ -67,6 +69,12 @@ internal sealed class PairingPrompt(SynchronizationContext ui, Action<string> an
             var flash = new Injection.FlashInfo(window.Handle);
             _ = Injection.NativeMethods.FlashWindowEx(in flash);
         }
+
+        /// <summary>
+        /// Activates the window, which <see cref="Open"/> deliberately does not: here the owner asked for it by clicking
+        /// the notification. Nothing once it is closed or was never put up.
+        /// </summary>
+        public void Front() => Post(() => window?.Activate());
 
         public void Matched() => Post(() => window?.Tell(PairingText.Matched(phone), Outcome.Neutral));
 

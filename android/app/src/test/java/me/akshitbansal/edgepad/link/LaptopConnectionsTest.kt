@@ -510,6 +510,50 @@ class LaptopConnectionsTest {
     }
 
     @Test
+    fun withNobodyListeningTheRecordsStillUpdate() {
+        val link = up(1)
+        val pin = connect(2)
+        log.lines.clear()
+        manager.events = LaptopConnections.Events.None
+
+        link.events.onFrame(Frame.Text(TextKind.NOW_PLAYING.id, "Song"))
+        pin.events.onPinRequest(3)
+        link.drop(LaptopLink.Cause.LOST)
+
+        assertEquals("Song", laptop(1).state.nowPlaying)
+        assertEquals(Laptop.Ask.PIN, laptop(2).asking)
+        assertNull(laptop(1).link?.takeIf { it === link })
+        assertTrue(log.lines.isEmpty())
+    }
+
+    @Test
+    fun keptLinksStopTheServiceOnlyWhenTheLastOneCloses() {
+        val a = up(1)
+        val b = up(2)
+        var stops = 0
+        manager.events = KeptEvents(manager) { stops++ }
+
+        a.drop(LaptopLink.Cause.ENDED)
+        assertEquals(0, stops)
+        b.drop(LaptopLink.Cause.ENDED)
+
+        assertEquals(1, stops)
+    }
+
+    @Test
+    fun aNewLinkHasSentNoPinAnswerYet() {
+        val first = connect(1)
+        first.events.onPinRequest(3)
+        laptop(1).pinSentOnLink = true
+        first.drop(LaptopLink.Cause.LOST)
+
+        connect(1, tapped = true)
+
+        assertEquals(2, linksTo(1))
+        assertFalse(laptop(1).pinSentOnLink)
+    }
+
+    @Test
     fun aPairingCodeWaitsOnItsLaptopWithItsOwnDeadline() {
         up(1)
         val pairing = connect(2)
@@ -576,6 +620,129 @@ class LaptopConnectionsTest {
     }
 
     @Test
+    fun aConnectedLinkThatHasGoneSilentIsClosedAsLostAtTheNextPing() {
+        val link = up(1)
+        link.silent = LaptopConnections.SILENCE_MS + 1
+        scheduler.advance(LaptopConnections.PING_SLOW_MS)
+        assertEquals(LaptopLink.Cause.LOST, link.closedWith)
+        assertTrue(laptop(1).reconnecting)
+    }
+
+    @Test
+    fun aLinkHeardJustNowIsKept() {
+        val link = up(1)
+        link.silent = 14_000
+        scheduler.advance(LaptopConnections.PING_SLOW_MS)
+        assertNull(link.closedWith)
+        assertTrue(laptop(1).connected)
+    }
+
+    @Test
+    fun aSilentNonSelectedLaptopIsClosedToo() {
+        up(1)
+        val other = up(2)
+        assertSame(laptop(1), manager.selected)
+        other.silent = LaptopConnections.SILENCE_MS + 1
+        scheduler.advance(LaptopConnections.PING_SLOW_MS)
+        assertEquals(LaptopLink.Cause.LOST, other.closedWith)
+        assertTrue(laptop(2).reconnecting)
+    }
+
+    private fun switchTo2(): FakeLink {
+        manager.connect(net(2), "Laptop 2", Transport.WIFI, tapped = true, replacing = listOf(id(1)))
+        return made.last()
+    }
+
+    @Test
+    fun aSwitchOfTransportTakesTheSelectionAndEndsTheOldLinkOnceUp() {
+        val old = up(1)
+        val attempt = switchTo2()
+        // Until the new link is up, input still goes to the working one.
+        assertSame(laptop(1), manager.selected)
+        attempt.accept()
+        assertSame(laptop(2), manager.selected)
+        assertEquals(LaptopLink.Cause.ENDED, old.closedWith)
+        assertFalse(laptop(1).reconnecting)
+        assertNull(laptop(1).retryTimer)
+        scheduler.advance(LaptopConnections.RETRY_DELAY_MS * 5)
+        assertEquals(1, linksTo(1))
+    }
+
+    @Test
+    fun aSwitchThatFailsLeavesTheOldLinkUp() {
+        val old = up(1)
+        val attempt = switchTo2()
+        attempt.drop(LaptopLink.Cause.UNREACHABLE)
+        assertNull(old.closedWith)
+        assertTrue(laptop(1).connected)
+        assertSame(laptop(1), manager.selected)
+        // The quick retry that then works was not part of the switch.
+        scheduler.advance(LaptopConnections.QUICK_RETRY_MS)
+        made.last().accept()
+        assertTrue(laptop(2).connected)
+        assertNull(old.closedWith)
+    }
+
+    @Test
+    fun aLaterDropOfTheNewRecordDoesNotEndTheOldOne() {
+        up(1)
+        val second = switchTo2().also { it.accept() }
+        val again = up(1)
+        second.drop()
+        scheduler.advance(LaptopConnections.RETRY_DELAY_MS)
+        made.last().accept()
+        assertTrue(laptop(2).connected)
+        assertNull(again.closedWith)
+    }
+
+    @Test
+    fun aRetryThatHearsNoStopsRetrying() {
+        val causes =
+            listOf(
+                LaptopLink.Cause.REFUSED,
+                LaptopLink.Cause.MISMATCH,
+                LaptopLink.Cause.PIN_LOCKED,
+                LaptopLink.Cause.NOT_PAIRED,
+                LaptopLink.Cause.NOT_THIS_LAPTOP,
+                LaptopLink.Cause.PAIRING_FAILED,
+                LaptopLink.Cause.PAIRING_LOCKED,
+                LaptopLink.Cause.NO_PERMISSION,
+                LaptopLink.Cause.UNEXPECTED,
+            )
+        causes.forEachIndexed { i, cause ->
+            val n = i + 1
+            up(n).drop()
+            assertTrue(laptop(n).reconnecting)
+            scheduler.advance(LaptopConnections.RETRY_DELAY_MS)
+            made.last().drop(cause)
+            scheduler.advance(LaptopConnections.RETRY_DELAY_MS * 5)
+            assertEquals(cause.name, 2, linksTo(n))
+            assertFalse(cause.name, laptop(n).reconnecting)
+            assertTrue(cause.name, laptop(n).idle)
+            assertEquals(cause, laptop(n).lastCause)
+        }
+    }
+
+    @Test
+    fun aWorkingLinkThatLosesPermissionIsNotRetried() {
+        up(1).drop(LaptopLink.Cause.NO_PERMISSION)
+        scheduler.advance(LaptopConnections.RETRY_DELAY_MS * 5)
+        assertEquals(1, linksTo(1))
+        assertFalse(laptop(1).reconnecting)
+        assertTrue(laptop(1).idle)
+    }
+
+    @Test
+    fun onlyADropOrAMissIsRetryable() {
+        val retryable = LaptopLink.Cause.entries.filter { LaptopConnections.retryable(it) }
+        assertEquals(
+            listOf(LaptopLink.Cause.LOST, LaptopLink.Cause.UNREACHABLE, LaptopLink.Cause.NO_ANSWER),
+            retryable,
+        )
+        assertTrue(LaptopConnections.retryable(null))
+    }
+
+    @Test
     fun aLaptopThatForgotThePhoneIsRememberedAsSuchUntilTheNextAttempt() {
         connect(1).drop(LaptopLink.Cause.NOT_PAIRED)
         assertEquals(LaptopLink.Cause.NOT_PAIRED, laptop(1).lastCause)
@@ -632,6 +799,9 @@ class LaptopConnectionsTest {
         override var blobs: ((Frame) -> Unit)? = null
         override val queued = 0
         override val lastInputMs = 0L
+
+        var silent = 0L
+        override val silentMs: Long get() = silent
 
         fun accept() {
             connected = true

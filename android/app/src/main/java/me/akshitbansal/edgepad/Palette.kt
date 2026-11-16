@@ -12,7 +12,7 @@ import android.util.TypedValue
  * The app's colours, read from resources so night mode picks the dark set (values-night) with no code.
  * Edgepad 2.0: grouped cards ([card]) on a soft ground ([background]), [ink] text with [dim] secondary text,
  * [line] separators inside a card, [faint] for a pressed row or a neutral fill, and one [accent] for what is
- * selected, on, live or the main action, with [onAccent] drawn on it. [off] is a switch or slider when off.
+ * selected, on, live or the main action, with [onAccent] drawn on it. [track] is a switch or slider when off; [off] stays the quiet neutral fill.
  */
 class Palette(
     val background: Int,
@@ -25,6 +25,7 @@ class Palette(
     val onAccent: Int,
     val accentSoft: Int,
     val off: Int,
+    val track: Int,
     val danger: Int,
     val dark: Boolean,
 ) {
@@ -41,6 +42,7 @@ class Palette(
                 context.getColor(R.color.on_accent),
                 context.getColor(R.color.accent_soft),
                 context.getColor(R.color.off),
+                context.getColor(R.color.track),
                 context.getColor(R.color.danger),
                 dark =
                     (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==

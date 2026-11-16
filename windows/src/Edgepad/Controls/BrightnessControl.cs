@@ -145,7 +145,16 @@ internal sealed class BrightnessControl : IDisposable
     {
         while (true)
         {
-            wake.WaitOne();
+            try
+            {
+                wake.WaitOne();
+            }
+            catch (ObjectDisposedException)
+            {
+                // Dispose gave up joining after 2 s (an Apply stuck in WMI) and closed the handle under this wait.
+                return;
+            }
+
             if (disposed)
             {
                 return;

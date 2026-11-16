@@ -60,6 +60,10 @@ public final class Session {
     /// Polls since the batteries were last read. `poll()` runs twice a second, so this many is a minute.
     private var pollsSincePower = 0
     private static let pollsPerBatteryRead = 120
+    /// Polls since any bytes arrived from the phone. At the app's two polls a second, `pollsBeforeSilence` is 30 s, matching
+    /// `SilenceWatch.PhoneSilence` on Windows and Linux. No timer: `poll()` already runs on the app's clock.
+    private var pollsSinceFrame = 0
+    private static let pollsBeforeSilence = 60
     /// What the status line calls the way this phone came: "Bluetooth", "Wi-Fi" or "USB".
     private let link: String
     /// Called once trust has said yes, just before HELLO_ACK: the server decides there whether this phone may take
@@ -95,7 +99,7 @@ public final class Session {
 
     /// The owner's question is a modal one that can take a minute, during which more bytes can arrive and
     /// `receive` can be entered again. They wait here, so they are read after HELLO_ACK and not before it.
-    private var isAsking = false
+    public private(set) var isAsking = false
     private var pending: [UInt8] = []
     /// A healthy phone sends almost nothing before HELLO_ACK, so this is generous. Without it an untrusted
     /// paired device could stream megabytes during the question and have them all handled in one run.
@@ -160,6 +164,7 @@ public final class Session {
     /// Bytes from the phone, in arrival order.
     public func receive(_ bytes: [UInt8]) {
         guard !isEnded else { return }
+        pollsSinceFrame = 0
         if isAsking {
             guard pending.count + bytes.count <= Session.maxPendingBytes else {
                 Log.write("Session with \(address) ended: it sent too much while the owner was being asked")
@@ -184,6 +189,12 @@ public final class Session {
     /// The app calls this twice a second. A change made on the Mac itself reaches the phone's dials here.
     public func poll() {
         guard isLive, !isEnded else { return }
+        pollsSinceFrame += 1
+        if pollsSinceFrame >= Session.pollsBeforeSilence {
+            Log.write("Session with \(address) ended: no frame for 30 s")
+            end()
+            return
+        }
         if let level = speakers.read(), level != lastVolume {
             lastVolume = level
             sendLevel(.volume, level)
@@ -305,9 +316,9 @@ public final class Session {
         // about, and one ended while it is open has its answer ignored, a yes included. Both throw rather than
         // answer no, so the owner is not recorded as having declined a phone they never answered about.
         isAsking = true
-        let admitted: Bool
+        let admission: TrustStore.Admission
         do {
-            admitted = try trust.admit(address) {
+            admission = try trust.admission(address) {
                 try ended.check()
                 let yes = askTrust(address, ended)
                 try ended.check()
@@ -321,11 +332,8 @@ public final class Session {
         }
         isAsking = false
         guard !isEnded else { return }
-        guard admitted else {
-            // A count, not the list: the log is plain text anyone with the user's files can read, and the trusted
-            // phones' identities are the one thing it must not hand out. The menu shows the list to the owner.
-            Log.write("Refused \(address): not trusted; this Mac trusts \(trust.trustedPhones.count) phone(s)")
-            onStatus("Refused a phone it does not trust")
+        guard admission == .admitted else {
+            refused(admission)
             end()
             return
         }
@@ -344,6 +352,26 @@ public final class Session {
             return
         }
         askForPin(attemptsLeft: pin.attemptsLeft(address))
+    }
+
+    /// Logs and says why trust turned the phone away. With another phone's question open the status line is left
+    /// alone: it is asking the owner something, and that line is the one that matters.
+    private func refused(_ admission: TrustStore.Admission) {
+        switch admission {
+        case .admitted, .declined:
+            // A count, not the list: the log is plain text anyone with the user's files can read, and the trusted
+            // phones' identities are the one thing it must not hand out. The menu shows the list to the owner.
+            Log.write("Refused \(address): not trusted; this Mac trusts \(trust.trustedPhones.count) phone(s)")
+            onStatus("Refused a phone it does not trust")
+        case .otherQuestionOpen:
+            Log.write("Refused \(address): the owner is being asked about another phone")
+        case .unreadable:
+            Log.write("Refused \(address): the trusted phones cannot be read")
+            onStatus("Refused a phone: the trusted phones cannot be read")
+        case .notForgotten:
+            Log.write("Refused \(address): it was forgotten, but could not be removed from the trusted phones")
+            onStatus("Refused a phone that was forgotten here")
+        }
     }
 
     /// The phone's answer to PIN_REQUEST. The check runs PBKDF2 on the main thread, hundreds of milliseconds at the

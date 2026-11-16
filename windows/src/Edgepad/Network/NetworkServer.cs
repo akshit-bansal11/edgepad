@@ -183,7 +183,7 @@ internal sealed class NetworkServer(
         LinkResult? result = null;
         try
         {
-            result = LinkResponder.Accept(raw, identity, paired, limiter, prompt, trust, Log.Write, socket.Dispose, ended.Token, refusing: refusing, remote: (socket.RemoteEndPoint as IPEndPoint)?.Address);
+            result = LinkResponder.Accept(raw, identity, paired, limiter, prompt, trust, Log.Write, socket.Dispose, ended.Token, refusing: refusing, remote: (socket.RemoteEndPoint as IPEndPoint)?.Address, peerGone: () => LinkResponder.HungUp(socket));
         }
         finally
         {

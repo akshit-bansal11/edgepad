@@ -5,7 +5,7 @@
        [panel] is the ground, [card] the grouped cell on it. One accent, used for what is selected, on,
        live or the main action. Every text pair was computed at 4.5:1 or better: ink on panel 16.2:1, dim
        on panel 4.6:1 and on card 5.1:1, accent on card 5.3:1 and on panel 4.8:1, white on accent 5.3:1,
-       danger on faint 4.6:1. -->
+       danger on faint 4.6:1. Off track #878A92 (L 0.254) on card 3.45:1, on panel about 3.1:1. -->
   <color name="panel">#F2F3F7</color>
   <color name="card">#FFFFFF</color>
   <color name="line">#E3E5EA</color>
@@ -16,5 +16,6 @@
   <color name="on_accent">#FFFFFF</color>
   <color name="accent_soft">#E6F0FC</color>
   <color name="off">#E3E5EA</color>
+  <color name="track">#878A92</color>
   <color name="danger">#D70015</color>
 </resources>

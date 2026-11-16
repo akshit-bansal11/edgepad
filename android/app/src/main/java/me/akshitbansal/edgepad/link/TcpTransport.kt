@@ -34,8 +34,8 @@ class TcpTransport(
     private val hosts: List<InetAddress>,
     private val port: Int,
     private val laptopId: ByteArray,
-    private val keys: PairingKeys,
-    private val phoneName: String,
+    private val keys: () -> PairingKeys,
+    private val phoneName: () -> String,
     private val forcePair: Boolean = false,
     private val initiator: LinkInitiator = LinkInitiator(),
     // Injected so the JVM tests, which have no android.os, can skip the keep-alive timers.
@@ -73,7 +73,8 @@ class TcpTransport(
                 last = e
             } catch (e: IOException) {
                 close()
-                throw LinkFailure(LaptopLink.Closure(LaptopLink.Cause.REFUSED))
+                // A hang-up is the owner's no; a laptop that went quiet past the timeout is a lost link.
+                throw LinkFailure(closureOf(e, connectReturned = true, handshakeDone = false))
             } catch (e: GeneralSecurityException) {
                 // The laptop sent a key that is not a point on the curve: nothing it says can be trusted.
                 close()
@@ -124,16 +125,18 @@ class TcpTransport(
     ): Streams {
         val input = s.getInputStream()
         val output = s.getOutputStream()
-        val key = if (forcePair) null else keys.pairingKey(laptopId)
+        // Opened here, on the link thread: the first open reads storage, and the name is a settings lookup.
+        val stored = keys()
+        val key = if (forcePair) null else stored.pairingKey(laptopId)
         val result =
             if (key != null) {
                 try {
-                    initiator.resume(input, output, keys.phoneId, laptopId, key)
+                    initiator.resume(input, output, stored.phoneId, laptopId, key)
                 } finally {
                     key.fill(0)
                 }
             } else {
-                initiator.pair(input, output, keys.phoneId, phoneName, laptopId, confirmed) { sas ->
+                initiator.pair(input, output, stored.phoneId, phoneName(), laptopId, confirmed) { sas ->
                     // The owner walks to the laptop and types; the phone's own limit on that is the screen's.
                     s.soTimeout = PAIRING_TIMEOUT_MS
                     showCode(sas)
@@ -150,7 +153,7 @@ class TcpTransport(
         }
         if (key == null) {
             // The owner said yes, and the laptop proved it is the one asked for: only now is a key kept or replaced.
-            keys.save(laptopId, result.pairingKey)
+            stored.save(laptopId, result.pairingKey)
             result.pairingKey.fill(0)
         }
         s.soTimeout = 0
@@ -172,6 +175,8 @@ class TcpTransport(
                     Os.setsockoptInt(pfd.fileDescriptor, OsConstants.IPPROTO_TCP, TCP_KEEPIDLE, KEEPALIVE_IDLE_S)
                     Os.setsockoptInt(pfd.fileDescriptor, OsConstants.IPPROTO_TCP, TCP_KEEPINTVL, KEEPALIVE_INTERVAL_S)
                     Os.setsockoptInt(pfd.fileDescriptor, OsConstants.IPPROTO_TCP, TCP_KEEPCNT, KEEPALIVE_COUNT)
+                    // An unanswered ping keeps the kernel retransmitting, which holds keep-alive off: this bounds it.
+                    Os.setsockoptInt(pfd.fileDescriptor, OsConstants.IPPROTO_TCP, TCP_USER_TIMEOUT, USER_TIMEOUT_MS)
                 }
             } catch (e: ErrnoException) {
                 Log.w(TAG, "Short keep-alive timers refused; using the system default", e)
@@ -186,6 +191,10 @@ class TcpTransport(
         const val TCP_KEEPIDLE = 4
         const val TCP_KEEPINTVL = 5
         const val TCP_KEEPCNT = 6
+        const val TCP_USER_TIMEOUT = 18
+
+        /** Data sent and not acknowledged for this long fails the socket. */
+        const val USER_TIMEOUT_MS = 20_000
 
         /** Idle 10 s, then 3 probes 5 s apart: a dead peer is seen after about 25 s. */
         const val KEEPALIVE_IDLE_S = 10

@@ -44,10 +44,10 @@
     <item>Reglas plegadas en las esquinas, o divididas de dos en dos por esquina: volumen, brillo, zoom, avance de reproducción, cambiar de app, frecuencia de actualización, desplazamiento, escritorios, pestañas del navegador o la regla Cambiar de laptop.</item>
     <item>Lo que suena, y luego anterior, reproducir y siguiente, mientras haya un reproductor abierto. Muévelo y cambia su tamaño en la configuración de la superficie.</item>
     <item>Un teclado completo cuyas teclas modificadoras funcionan mantenidas o con un toque, detrás del botón Controles.</item>
-    <item>Sticks, una cruceta y botones en cuatro preajustes, o con tu propia disposición.</item>
+    <item>Sticks, una cruceta y botones en cinco preajustes, o con tu propia disposición.</item>
     <item>Controles › Anotar convierte el teléfono en un lápiz para la pantalla de la laptop, con seis herramientas y ocho colores. Aparece cuando la laptop lo admite.</item>
     <item>Controles › Captura pide a la laptop una captura de una región, de toda la pantalla o una grabación. Para una región, márcala arrastrando en el panel bajo los botones. Aparece cuando la laptop lo admite.</item>
-    <item>Una cuadrícula de botones que abren un programa, un archivo o una dirección web en la laptop, detrás de Controles. Mantén pulsado uno para arrastrarlo al lugar que quieras; si hay más de diez, siguen en páginas a las que llegas deslizando.</item>
+    <item>Una cuadrícula de botones que abren un programa, un archivo o una dirección web en la laptop, detrás de Controles. Mantén pulsado uno para arrastrarlo al lugar que quieras o para cerrarlo si está abierto; si hay más de diez, siguen en páginas a las que llegas deslizando.</item>
   </string-array>
 
   <string name="guide_surface_kicker">3 · La superficie</string>
@@ -92,7 +92,7 @@
   </string-array>
   <string-array name="guide_gamepad_values">
     <item>El icono de Controles, arriba en la superficie, y luego Gamepad. Se abre en horizontal.</item>
-    <item>Xbox, Plataformas, Carreras y Disparos. Se eligen en la configuración del gamepad, que se abre con el engranaje.</item>
+    <item>Xbox, Xbox (teclas), Plataformas, Carreras y Disparos. Se eligen en la configuración del gamepad, que se abre con el engranaje.</item>
     <item>Mantén y desliza un stick, toca los botones. Puedes usar varios dedos a la vez.</item>
     <item>Configuración del gamepad › Editar diseño. Arrastra los controles adonde lleguen tus pulgares; mantén pulsado uno para cambiar su tamaño.</item>
   </string-array>
@@ -127,5 +127,5 @@
   <string name="guide_art_scroll">2 · Desplazar</string>
   <string name="guide_art_swipe">3 · Deslizar</string>
   <string name="guide_art_latch">Ctrl, Alt y Mayús quedan activas para la tecla siguiente</string>
-  <string name="guide_art_presets">Xbox · Plataformas · Carreras · Disparos</string>
+  <string name="guide_art_presets">Xbox · Xbox (teclas) · Plataformas · Carreras · Disparos</string>
 </resources>

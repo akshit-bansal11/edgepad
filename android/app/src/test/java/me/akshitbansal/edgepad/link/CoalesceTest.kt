@@ -31,10 +31,22 @@ class CoalesceTest {
 
     @Test
     fun aSetNeverJumpsAheadOfAnActionBetween() {
-        // Volume 10, mute, volume 12: the mute must still land between the two volumes' effect.
+        // Volume 10, mute, volume 12: the mute must still land between the two volumes, so both stay.
         val frames = listOf(Frame.SetValue(0, 10), Frame.RunAction(1), Frame.SetValue(0, 12))
         val merged = Coalesce.merge(frames)
-        assertEquals(listOf(Frame.RunAction(1), Frame.SetValue(0, 12)), merged)
+        assertEquals(frames, merged)
+    }
+
+    @Test
+    fun aStrokeKeepsTheColourSetBeforeIt() {
+        val frames = listOf(Frame.SetValue(3, 1), Frame.Pen(0, 0, 1), Frame.SetValue(3, 2))
+        assertEquals(frames, Coalesce.merge(frames))
+    }
+
+    @Test
+    fun aSetAcrossOnlyMovesReplacesTheEarlierOne() {
+        val merged = Coalesce.merge(listOf(Frame.SetValue(3, 1), Frame.Move(1, 1), Frame.SetValue(3, 2)))
+        assertEquals(listOf(Frame.Move(1, 1), Frame.SetValue(3, 2)), merged)
     }
 
     @Test

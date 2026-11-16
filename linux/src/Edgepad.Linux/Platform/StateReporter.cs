@@ -7,14 +7,18 @@ namespace Edgepad.Platform;
 /// <summary>
 /// Tells the phone what the laptop is doing, for the life of one session: the volume, microphone and brightness
 /// dials, what is playing and the macro names. Linux has no change events
-/// for these that every setup shares, so it polls twice a second like the Mac app and sends only what changed;
-/// a change the laptop makes itself (its own volume keys) reaches the phone's dials within half a second. The
-/// polling runs on a thread of its own because each read starts a process or makes a D-Bus call. A send that fails
-/// means the socket is gone, which the session's reader notices, so this just stops.
+/// for these that every setup shares, so it polls twice a second like the Mac app and sends only what changed.
+/// The volume, microphone and brightness reads start a process each, so they run twice a second only while the
+/// phone sent input in the last 10 s, and every 3 s once it has been idle longer: a change the laptop makes itself
+/// (its own volume keys) reaches an idle phone's dials within 3 s. Media is one cheap D-Bus call and stays at half a
+/// second. The polling runs on a thread of its own. A send that fails means the socket is gone, which the session's
+/// reader notices, so this just stops.
 /// </summary>
 internal sealed class StateReporter : IDisposable
 {
     private static readonly TimeSpan Every = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan IdleEvery = TimeSpan.FromSeconds(3);
+    private const long ActiveWindowMs = 10_000;
     private static readonly TimeSpan JoinTimeout = TimeSpan.FromSeconds(2);
 
     private const byte MutedFlag = 1;
@@ -26,8 +30,12 @@ internal sealed class StateReporter : IDisposable
     private readonly Mpris mpris;
     private readonly MacroStore macros;
     private readonly Action<Frame> send;
+    private readonly Func<long> lastInputMs;
     private readonly CancellationTokenSource stopping = new();
     private readonly Thread thread;
+
+    // When the volume, microphone and brightness were last read; null before the first read.
+    private long? lastLevelsRead;
 
     private Level? lastVolume;
     private Level? lastMic;
@@ -35,8 +43,10 @@ internal sealed class StateReporter : IDisposable
     private MediaState? lastMedia;
     private string? lastTimeline;
 
-    public StateReporter(Audio speakers, Audio microphone, Backlight backlight, Mpris mpris, MacroStore macros, Action<Frame> send)
+    /// <param name="lastInputMs">When the phone last sent input, in <see cref="Environment.TickCount64"/> milliseconds.</param>
+    public StateReporter(Audio speakers, Audio microphone, Backlight backlight, Mpris mpris, MacroStore macros, Action<Frame> send, Func<long> lastInputMs)
     {
+        this.lastInputMs = lastInputMs;
         this.speakers = speakers;
         this.microphone = microphone;
         this.backlight = backlight;
@@ -51,6 +61,9 @@ internal sealed class StateReporter : IDisposable
     public static string Timeline(MediaState state) => state.DurationSeconds > 0
         ? string.Create(CultureInfo.InvariantCulture, $"{state.PositionSeconds}/{state.DurationSeconds}")
         : "";
+
+    /// <summary>How often the levels are read, given how long the phone has sent no input.</summary>
+    public static TimeSpan IntervalFor(long idleMs) => idleMs < ActiveWindowMs ? Every : IdleEvery;
 
     public void Dispose()
     {
@@ -92,6 +105,18 @@ internal sealed class StateReporter : IDisposable
 
     private void Poll()
     {
+        var now = Environment.TickCount64;
+        if (lastLevelsRead is not { } read || now - read >= IntervalFor(now - lastInputMs()).TotalMilliseconds)
+        {
+            lastLevelsRead = now;
+            PollLevels();
+        }
+
+        PollMedia();
+    }
+
+    private void PollLevels()
+    {
         if (speakers.Read() is { } volume && volume != lastVolume)
         {
             lastVolume = volume;
@@ -109,7 +134,10 @@ internal sealed class StateReporter : IDisposable
             lastBrightness = level;
             send(new StateReport((byte)ControlId.Brightness, (byte)level, 0));
         }
+    }
 
+    private void PollMedia()
+    {
         var media = mpris.Poll();
         if (media.NowPlaying != lastMedia?.NowPlaying)
         {

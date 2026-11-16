@@ -11,7 +11,24 @@ internal sealed class Autostart(string folder, string exec)
 
     public string FilePath => Path.Combine(folder, "edgepad.desktop");
 
-    public bool Enabled => File.Exists(FilePath);
+    /// <summary>
+    /// An entry that starts this file. One left by a copy that moved or was replaced starts something else, or
+    /// nothing, so it reads as off, and turning the switch on writes this path.
+    /// </summary>
+    public bool Enabled
+    {
+        get
+        {
+            try
+            {
+                return File.Exists(FilePath) && Starts(File.ReadAllText(FilePath), exec);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                return false;
+            }
+        }
+    }
 
     public static Autostart ForCurrentUser() =>
         new(Path.Combine(Xdg.ConfigHome, "autostart"), Environment.ProcessPath ?? "edgepad");
@@ -43,8 +60,8 @@ internal sealed class Autostart(string folder, string exec)
             + $"Exec={ExecField(exec)}\nIcon=edgepad\nTerminal=false\nX-GNOME-Autostart-enabled=true\n";
 
     /// <summary>
-    /// The Exec value: quoted when the path has a space. A path with a quote, backtick, dollar or backslash falls back
-    /// to the installed command's name, which is on the PATH.
+    /// The Exec value: quoted when the path has a space, and a % doubled, since a lone % starts a field code. A path
+    /// with a quote, backtick, dollar or backslash falls back to the installed command's name, which is on the PATH.
     /// </summary>
     public static string ExecField(string path)
     {
@@ -53,6 +70,14 @@ internal sealed class Autostart(string folder, string exec)
             return "edgepad";
         }
 
-        return path.Contains(' ') ? $"\"{path}\"" : path;
+        var escaped = path.Replace("%", "%%", StringComparison.Ordinal);
+        return escaped.Contains(' ') ? $"\"{escaped}\"" : escaped;
+    }
+
+    /// <summary>Whether <paramref name="entry"/>'s Exec line is the one <see cref="Entry"/> writes for <paramref name="exec"/>.</summary>
+    public static bool Starts(string entry, string exec)
+    {
+        var wanted = $"Exec={ExecField(exec)}";
+        return entry.Split('\n').Any(line => line.TrimEnd('\r') == wanted);
     }
 }

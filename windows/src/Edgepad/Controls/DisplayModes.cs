@@ -29,10 +29,15 @@ internal sealed partial class DisplayModes : IDisposable
     /// <summary>DISP_CHANGE_SUCCESSFUL. Every other code — restart required, bad mode, bad flags — is a refusal.</summary>
     private const int ChangeSuccessful = 0;
 
-    /// <summary>The DEVMODEs behind <see cref="rates"/>, kept so a switch replays exactly what the driver offered.</summary>
-    private DisplayMode[] modes = [];
-    private int[] rates = [];
-    private int current = -1;
+    private readonly ModeQuery query;
+    private readonly Func<DisplayMode, int> apply;
+
+    /// <summary>
+    /// The list and the index in force, swapped whole by <see cref="Refresh"/>, so <see cref="Set"/> always compares an
+    /// index against the list it was taken from: the dial's switch runs on the worker while a resolution change
+    /// refreshes on another thread.
+    /// </summary>
+    private Snapshot state = Snapshot.Nothing;
 
     /// <summary>
     /// The last message written, so a repeat is dropped but a new one is not. A dial spun against a display
@@ -48,63 +53,71 @@ internal sealed partial class DisplayModes : IDisposable
     private volatile bool disposed;
 
     public DisplayModes()
+        : this(null, null)
     {
+    }
+
+    /// <summary>
+    /// <paramref name="query"/> and <paramref name="apply"/> stand in for EnumDisplaySettingsEx and
+    /// ChangeDisplaySettingsEx in a test; null is the real display.
+    /// </summary>
+    internal DisplayModes(ModeQuery? query, Func<DisplayMode, int>? apply)
+    {
+        this.query = query ?? Query;
+        this.apply = apply ?? Apply;
         Refresh();
         worker = new Thread(Run) { IsBackground = true, Name = "edgepad-display" };
         worker.Start();
     }
 
+    /// <summary>One mode from the driver's list, or the live one for <c>uint.MaxValue</c>. False past the end.</summary>
+    internal delegate bool ModeQuery(uint index, out DisplayMode mode);
+
     /// <summary>The primary display's distinct refresh rates in Hz, ascending. Empty when they cannot be read.</summary>
-    public IReadOnlyList<int> Rates => rates;
+    public IReadOnlyList<int> Rates => state.Rates;
 
     /// <summary>Index into Rates of the rate now in use, or -1.</summary>
-    public int Current => current;
+    public int Current => state.Current;
 
     /// <summary>Re-reads the display. Call after a mode change or a monitor being plugged in.</summary>
     public void Refresh()
     {
-        modes = [];
-        rates = [];
-        current = -1;
-
-        if (!Query(CurrentSettings, out var now))
+        if (!query(CurrentSettings, out var now))
         {
             LogOnce("Display refresh rates unavailable: the primary display's current mode could not be read.");
+            state = Snapshot.Nothing;
             return;
         }
 
         var all = new List<DisplayMode>();
-        for (var index = 0u; Query(index, out var mode); index++)
+        for (var index = 0u; query(index, out var mode); index++)
         {
             all.Add(mode);
         }
 
         var offerable = Offerable(all, now);
-        modes = [.. offerable];
-        rates = [.. offerable.Select(mode => (int)mode.DisplayFrequency)];
+        int[] rates = [.. offerable.Select(mode => (int)mode.DisplayFrequency)];
 
         // -1 when the live mode is one this list excludes: interlaced, or the 0/1 placeholder frequency.
-        current = Array.IndexOf(rates, (int)now.DisplayFrequency);
+        state = new Snapshot([.. offerable], rates, Array.IndexOf(rates, (int)now.DisplayFrequency));
     }
 
     /// <summary>Switches the primary display to Rates[index]. False when the index is out of range or Windows refused.</summary>
     public bool Set(int index)
     {
-        // One read, then work from the snapshot. Refresh() runs on the session thread and empties both
-        // arrays before refilling them, so reading the field twice could see the empty one between a guard
-        // that passed and the index that used it — a managed bounds check, but an unhandled one on a
-        // background thread, which ends the process rather than the dial.
-        var offered = modes;
-        if ((uint)index >= (uint)offered.Length)
+        // One read, then work from the snapshot: the list, its rates and the index in force all come from the
+        // same Refresh, so the guard, the mode and the already-there check below agree with each other.
+        var offered = state;
+        if ((uint)index >= (uint)offered.Modes.Length)
         {
             return false;
         }
 
-        var mode = offered[index];
+        var mode = offered.Modes[index];
 
         // Already there. Without this a phone alternating two indices would switch modes for ever, and each
         // switch blanks the panel for about a second: the desktop becomes unusable and the tray hard to reach.
-        if (index == current)
+        if (index == offered.Current)
         {
             return true;
         }
@@ -112,9 +125,7 @@ internal sealed partial class DisplayModes : IDisposable
         int result;
         try
         {
-            // Flags 0 changes the mode for this session only. CDS_UPDATEREGISTRY would outlive it, and a
-            // desktop that boots at whatever a dial was last flicked to is not what anyone asked for.
-            result = ChangeDisplaySettingsExW(null, ref mode, 0, 0, 0);
+            result = apply(mode);
         }
         catch (Exception e) when (e is DllNotFoundException or EntryPointNotFoundException)
         {
@@ -130,7 +141,8 @@ internal sealed partial class DisplayModes : IDisposable
             return false;
         }
 
-        current = index;
+        // Unless a Refresh replaced the list meanwhile: that one already says what is in force.
+        _ = Interlocked.CompareExchange(ref state, new Snapshot(offered.Modes, offered.Rates, index), offered);
         return true;
     }
 
@@ -212,6 +224,10 @@ internal sealed partial class DisplayModes : IDisposable
 
     private static DisplayMode Empty() => new() { Size = (ushort)Marshal.SizeOf<DisplayMode>() };
 
+    // Flags 0 changes the mode for this session only. CDS_UPDATEREGISTRY would outlive it, and a desktop that boots
+    // at whatever a dial was last flicked to is not what anyone asked for.
+    private static int Apply(DisplayMode mode) => ChangeDisplaySettingsExW(null, ref mode, 0, 0, 0);
+
     /// <summary>One mode from the driver's list, or the live one for <see cref="CurrentSettings"/>. False past the end.</summary>
     private bool Query(uint index, out DisplayMode mode)
     {
@@ -243,6 +259,18 @@ internal sealed partial class DisplayModes : IDisposable
 
     [LibraryImport("user32.dll", StringMarshalling = StringMarshalling.Utf16)]
     private static partial int ChangeDisplaySettingsExW(string? deviceName, ref DisplayMode mode, nint window, uint flags, nint param);
+
+    /// <summary>The DEVMODEs offered, so a switch replays exactly what the driver offered; their rates; the index in force.</summary>
+    private sealed class Snapshot(DisplayMode[] modes, int[] rates, int current)
+    {
+        public static readonly Snapshot Nothing = new([], [], -1);
+
+        public DisplayMode[] Modes { get; } = modes;
+
+        public int[] Rates { get; } = rates;
+
+        public int Current { get; } = current;
+    }
 }
 
 /// <summary>

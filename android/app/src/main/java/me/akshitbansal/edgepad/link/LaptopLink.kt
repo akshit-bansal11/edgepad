@@ -15,6 +15,7 @@ import java.io.EOFException
 import java.io.IOException
 import java.io.OutputStream
 import java.io.StreamCorruptedException
+import java.net.SocketTimeoutException
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
@@ -186,6 +187,15 @@ class LaptopLink(
 
     @Volatile private var handshakeDone = false
 
+    /**
+     * When the laptop last sent a frame, on [System.nanoTime]'s clock. That clock stops in deep sleep, as the handler
+     * that pings does, so sleep alone never makes a link look silent.
+     */
+    @Volatile private var heardAt = System.nanoTime()
+
+    /** How long the laptop has sent nothing, in milliseconds. */
+    val silentMs: Long get() = (System.nanoTime() - heardAt) / NANOS_PER_MS_LONG
+
     /** Snapshot frames: one main-thread post per kind at a time, newest value (see [Latest]). */
     private val latest = Latest({ main.post(it) }, { if (!closed) listener.onFrame(it) })
 
@@ -252,6 +262,7 @@ class LaptopLink(
                 close(Closure(Cause.UNEXPECTED, ack.toString()))
                 return
             }
+            heardAt = System.nanoTime()
             handshakeDone = true
             deliver { it.onConnected(this) }
             // The laptop forgets where captures go when a session ends, so every new one is told again.
@@ -262,6 +273,7 @@ class LaptopLink(
             if (closed) w.interrupt()
             while (!closed) {
                 val frame = readFrame(input)
+                heardAt = System.nanoTime()
                 if (frame is Frame.Pong) {
                     val ms = (System.nanoTime() - frame.time) / NANOS_PER_MS
                     deliver { it.onRoundTrip(ms) }
@@ -379,6 +391,10 @@ class LaptopLink(
         } catch (e: IOException) {
             Log.w(TAG, "The link's writer failed", e)
             close(Closure(Cause.LOST))
+        } catch (e: RuntimeException) {
+            // A bug on this side, as in the reader: end the one link, never the app.
+            Log.e(TAG, "The link's writer failed", e)
+            close(Closure(Cause.LOST))
         } catch (e: InterruptedException) {
             // close() interrupts the writer; nothing left to do.
         }
@@ -465,7 +481,15 @@ internal fun closureOf(
     connectReturned: Boolean,
     handshakeDone: Boolean,
 ): LaptopLink.Closure =
-    (e as? LinkFailure)?.closure ?: LaptopLink.Closure(classifyFailure(connectReturned, handshakeDone))
+    when {
+        e is LinkFailure -> e.closure
+
+        // The laptop took the connection, then went quiet past a timeout: a stalled link, never its owner's no. A
+        // connect that timed out never reached it, so that one stays unreachable.
+        connectReturned && e is SocketTimeoutException -> LaptopLink.Closure(LaptopLink.Cause.LOST)
+
+        else -> LaptopLink.Closure(classifyFailure(connectReturned, handshakeDone))
+    }
 
 /**
  * What a PIN_REQUEST ends the link with: a lock-out (no attempts left and a wait) closes it as

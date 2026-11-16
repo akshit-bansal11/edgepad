@@ -114,11 +114,15 @@ public sealed class MacroStoreTests : IDisposable
         // collects into a concurrent queue rather than a List that two threads would race.
         var store = NewStore();
         var seen = new System.Collections.Concurrent.ConcurrentQueue<string>();
-        using var arrived = new CountdownEvent(3);
+        // A list overtaken by a newer one before it is delivered is dropped, so "Chrome" may not arrive.
+        using var arrived = new ManualResetEventSlim();
         using var watch = store.Watch(names =>
         {
             seen.Enqueue(names);
-            arrived.Signal();
+            if (names == "Chrome/Notes")
+            {
+                arrived.Set();
+            }
         });
 
         store.Save([new Macro("Chrome", "chrome.exe", null)]);
@@ -127,7 +131,38 @@ public sealed class MacroStoreTests : IDisposable
         Assert.True(
             arrived.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken),
             "the watcher was never told");
-        Assert.Equal(["", "Chrome", "Chrome/Notes"], seen);
+        var got = string.Join("|", seen);
+        Assert.True(got is "|Chrome|Chrome/Notes" or "|Chrome/Notes", got);
+    }
+
+    [Fact]
+    public void TwoRapidSavesReachASlowWatcherInOrder()
+    {
+        // Each save hands the watcher its own pool item; a slow watcher must still end on the newest list.
+        var store = NewStore();
+        var seen = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        using var arrived = new ManualResetEventSlim();
+        using var watch = store.Watch(names =>
+        {
+            if (names == "Chrome")
+            {
+                Thread.Sleep(100);
+            }
+
+            seen.Enqueue(names);
+            if (names == "Chrome/Notes")
+            {
+                arrived.Set();
+            }
+        });
+
+        store.Save([new Macro("Chrome", "chrome.exe", null)]);
+        store.Save([new Macro("Chrome", "chrome.exe", null), new Macro("Notes", "notes.exe", null)]);
+
+        Assert.True(arrived.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+        Thread.Sleep(300);
+        Assert.Equal("Chrome/Notes", seen.Last());
+        Assert.Single(seen, names => names == "Chrome/Notes");
     }
 
     [Fact]

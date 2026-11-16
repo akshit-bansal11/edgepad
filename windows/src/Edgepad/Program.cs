@@ -1,4 +1,5 @@
 using Edgepad.Startup;
+using Edgepad.Trust;
 using Edgepad.Ui;
 
 // Every native library this app imports is a Windows system DLL. Searching System32 only means a look-alike
@@ -22,6 +23,11 @@ internal static class Program
     private static void Main()
     {
         AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Write($"Unhandled: {e.ExceptionObject}");
+
+        // An exception out of a UI event handler goes to the log and the app keeps running, instead of WinForms'
+        // Continue/Quit box, which a tray app's owner has no way to make sense of.
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+        Application.ThreadException += (_, e) => Log.Write($"UI thread: {e.Exception}");
         ApplicationConfiguration.Initialize();
 
         // One instance per user session: a second copy would advertise a second RFCOMM service. A new copy
@@ -78,6 +84,10 @@ internal static class Program
             // Held for as long as this copy runs, so a second launch of this version can tell it is one.
             using var versionMark = new Mutex(initiallyOwned: false, SingleInstance.VersionMutexName(Version));
             Log.Write($"Edgepad {Version} starting");
+
+            // Up to 4.2.0 the files lived in Roaming. Moved before TrayContext builds the stores that read them, and
+            // only once this copy holds the lock, so the copy that handed over is no longer writing them.
+            UserFolder.Migrate(UserFolder.Legacy, UserFolder.Current, Log.Write);
 
             // Each release is its own file, Edgepad-<version>.exe, so the Run key can still name whichever copy
             // was running when Start with Windows was ticked. Point it at this one: the version last run is the

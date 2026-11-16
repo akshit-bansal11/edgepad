@@ -54,8 +54,7 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
     // and the Forget is the later word, so its yes writes nothing down.
     private int generation;
 
-    public static TrustStore ForCurrentUser() => new(Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "trusted-phone.txt"));
+    public static TrustStore ForCurrentUser() => new(UserFolder.PathFor("trusted-phone.txt"));
 
     /// <summary>When each trusted phone last connected, in a file beside the trust file. Stamped by the handshake.</summary>
     public LastConnected Connections { get; } = LastConnected.Beside(path);
@@ -177,8 +176,8 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
     /// Trusts <paramref name="address"/> without a question, for a phone the owner has already said yes to some other
     /// way: a network pairing, where typing the phone's code on this laptop is the owner's yes. False, with nothing
     /// written, when the trusted phones were forgotten since <paramref name="since"/> was read from
-    /// <see cref="Generation"/>: the pairing must then not trust the phone again. A trust file that cannot be read is
-    /// left as it is, so the phone is refused at <see cref="Admit"/> like every other until the owner forgets them.
+    /// <see cref="Generation"/>: the pairing must then not trust the phone again. False too when the trust file
+    /// cannot be read: it is left as it is, and the pairing ends rather than claim a trust it did not write.
     /// </summary>
     public bool Grant(string address, int? since = null)
     {
@@ -190,11 +189,19 @@ internal sealed class TrustStore(string path, Func<long>? clock = null)
                 return false;
             }
 
-            if (TryRead(out var trusted) && !Holds(trusted, address))
+            if (!TryRead(out var trusted))
+            {
+                Log.Write($"Did not trust {address}: the trusted phones cannot be read");
+                return false;
+            }
+
+            if (!Holds(trusted, address))
             {
                 Save(trusted, address);
             }
 
+            // A new pairing is the owner's later word over a ForgetOne that did not reach the disk.
+            denied.Remove(address);
             return true;
         }
     }

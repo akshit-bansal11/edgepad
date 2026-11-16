@@ -40,8 +40,7 @@ internal sealed class PairedLinks(string path)
         }
     }
 
-    public static PairedLinks ForCurrentUser() => new(Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad", "paired-links.txt"));
+    public static PairedLinks ForCurrentUser() => new(UserFolder.PathFor("paired-links.txt"));
 
     /// <summary>The key and name a phone was paired with; false for a phone not paired, and for every phone while the file cannot be read.</summary>
     public bool TryGet(string idHex, out byte[] key, out string name)
@@ -97,6 +96,7 @@ internal sealed class PairedLinks(string path)
                 PrivateStorage.Replace(path, temp => File.WriteAllLines(
                     temp,
                     links.Select(link => $"{link.Id}\t{Convert.ToBase64String(link.Key)}\t{link.Name}")));
+                denied.Remove(idHex);
                 return true;
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)

@@ -1,0 +1,85 @@
+using System.Text;
+using Edgepad.Blob;
+using Edgepad.Platform;
+using Edgepad.Protocol;
+
+namespace Edgepad.Input;
+
+/// <summary>
+/// Keeps the user's clipboard across text typed by pasting it: what the clipboard held is read first and written back
+/// after the paste. A clipboard tool that fails never stops the typing; it only means nothing is restored. A sensitive
+/// clipboard (a password manager's hint) is never read, so it cannot be restored and the pasted text replaces it. Only
+/// what <see cref="IClipboardSurface.Read"/> can hand back survives: one text or PNG, not every format the app offered.
+/// </summary>
+internal static class PasteGuard
+{
+    private static int writeFailureLogged;
+
+    /// <param name="surface">The clipboard to save and restore.</param>
+    /// <param name="paste">Puts text on the clipboard and pastes it. Its exceptions propagate, after the restore.</param>
+    /// <param name="settle">Waits for the target app to take the selection, since restoring at once would paste the old content.</param>
+    /// <param name="pasted">The last text <paramref name="paste"/> puts on the clipboard. The restore happens only while the
+    /// clipboard still holds it, so something the user copied during the typing is kept.</param>
+    internal static void Around(IClipboardSurface surface, Action paste, Action settle, string pasted)
+    {
+        // The clipboard poll stays quiet from the save through the restore, so neither the typed text nor the restore
+        // reaches the phone as a copy.
+        using var quiet = ClipboardQuiet.Begin();
+        ClipboardContent? before;
+        try
+        {
+            before = surface.Read();
+        }
+        catch (Exception e)
+        {
+            Log.Write($"Clipboard could not be saved before a paste: {e.GetType().Name}: {e.Message}");
+            before = null;
+        }
+
+        try
+        {
+            paste();
+            settle();
+        }
+        finally
+        {
+            if (Restorable(before) && StillHolds(surface, pasted))
+            {
+                try
+                {
+                    surface.Write(before);
+                }
+                catch (Exception e)
+                {
+                    if (Interlocked.Exchange(ref writeFailureLogged, 1) == 0)
+                    {
+                        Log.Write($"Clipboard could not be restored after a paste: {e.GetType().Name}: {e.Message}");
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>Whether the clipboard is still ours. A failed read is not: an unknown clipboard is left alone.</summary>
+    private static bool StillHolds(IClipboardSurface surface, string pasted)
+    {
+        try
+        {
+            return surface.Read() is { Kind: BlobKind.ClipText, Sensitive: false } now
+                && now.Data.AsSpan().SequenceEqual(Encoding.UTF8.GetBytes(pasted));
+        }
+        catch (Exception e)
+        {
+            Log.Write($"Clipboard could not be checked after a paste: {e.GetType().Name}: {e.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Content worth writing back. Over the cap, a read hands back a cut-off copy, and writing that back would corrupt
+    /// it, so the pasted text stays instead.
+    /// </summary>
+    private static bool Restorable([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] ClipboardContent? content) =>
+        content is { Sensitive: false, Data.Length: > 0 }
+        && content.Data.Length <= (content.Kind == BlobKind.ClipImage ? ClipboardSync.MaxImageBytes : ClipboardSync.MaxTextBytes);
+}

@@ -49,6 +49,9 @@ interface ManagedLink {
     /** [LaptopLink.lastInputMs]. */
     val lastInputMs: Long
 
+    /** [LaptopLink.silentMs]. Never silent unless a link says so, so a test link need not. */
+    val silentMs: Long get() = 0L
+
     /** Opens the link on a thread of its own and returns at once. */
     fun start()
 
@@ -98,6 +101,7 @@ private class TransportLink(
         }
     override val queued: Int get() = laptopLink.queued
     override val lastInputMs: Long get() = laptopLink.lastInputMs
+    override val silentMs: Long get() = laptopLink.silentMs
 
     override fun start() {
         thread(name = "edgepad-link") { laptopLink.open() }

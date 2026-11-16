@@ -39,20 +39,24 @@ import me.akshitbansal.edgepad.gamepad.GamepadLayout
 import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.link.AppLinks
 import me.akshitbansal.edgepad.link.BlobRoutes
+import me.akshitbansal.edgepad.link.BluetoothTapHint
 import me.akshitbansal.edgepad.link.BluetoothTransport
 import me.akshitbansal.edgepad.link.CaptureInbox
 import me.akshitbansal.edgepad.link.ClipboardShare
 import me.akshitbansal.edgepad.link.Discovery
 import me.akshitbansal.edgepad.link.Found
 import me.akshitbansal.edgepad.link.HostPort
+import me.akshitbansal.edgepad.link.KeptEvents
 import me.akshitbansal.edgepad.link.Laptop
 import me.akshitbansal.edgepad.link.LaptopConnections
 import me.akshitbansal.edgepad.link.LaptopLink
 import me.akshitbansal.edgepad.link.LaptopRow
 import me.akshitbansal.edgepad.link.LaptopState
+import me.akshitbansal.edgepad.link.LingerAction
 import me.akshitbansal.edgepad.link.LinkHooks
 import me.akshitbansal.edgepad.link.LinkNotice
 import me.akshitbansal.edgepad.link.LinkService
+import me.akshitbansal.edgepad.link.LinkSession
 import me.akshitbansal.edgepad.link.LinkTransport
 import me.akshitbansal.edgepad.link.LocalNetwork
 import me.akshitbansal.edgepad.link.MainScheduler
@@ -67,18 +71,21 @@ import me.akshitbansal.edgepad.link.Target
 import me.akshitbansal.edgepad.link.TcpTransport
 import me.akshitbansal.edgepad.link.TetherProbe
 import me.akshitbansal.edgepad.link.Transport
+import me.akshitbansal.edgepad.link.bluetoothTapHint
 import me.akshitbansal.edgepad.link.clipboardShare
 import me.akshitbansal.edgepad.link.decodeSaved
 import me.akshitbansal.edgepad.link.encodeSaved
 import me.akshitbansal.edgepad.link.forgotten
 import me.akshitbansal.edgepad.link.laptopLinks
 import me.akshitbansal.edgepad.link.laptopRows
+import me.akshitbansal.edgepad.link.lingerAction
 import me.akshitbansal.edgepad.link.linkNotice
 import me.akshitbansal.edgepad.link.mergeFound
 import me.akshitbansal.edgepad.link.mergedRows
 import me.akshitbansal.edgepad.link.net.LinkKeys
 import me.akshitbansal.edgepad.link.net.Sas
 import me.akshitbansal.edgepad.link.olderHalf
+import me.akshitbansal.edgepad.link.onlyAutoConnecting
 import me.akshitbansal.edgepad.link.parseHex
 import me.akshitbansal.edgepad.link.parseHostPort
 import me.akshitbansal.edgepad.link.pickerHint
@@ -129,6 +136,7 @@ import me.akshitbansal.edgepad.surface.BackgroundImage
 import me.akshitbansal.edgepad.surface.ConnectedLaptops
 import me.akshitbansal.edgepad.surface.ControlSurface
 import me.akshitbansal.edgepad.update.Installer
+import me.akshitbansal.edgepad.update.UpdateJob
 import me.akshitbansal.edgepad.update.Updates
 import java.io.File
 import java.io.IOException
@@ -218,6 +226,7 @@ class MainActivity :
         val apps: AppLinks,
         val screen: Screen,
         val settingsReturn: Screen,
+        val resumeScreen: Screen?,
     )
 
     private val handler = Handler(Looper.getMainLooper())
@@ -303,9 +312,6 @@ class MainActivity :
     private var checkingUpdate = false
     private var updateCheckFailed = false
 
-    /** How much of an update has been downloaded, as a percentage; null when none is being downloaded. */
-    private var updateProgress: Int? = null
-
     /** The Updates row's summary while Settings is showing, rewritten in place as a check finishes. */
     private var updateSummaryView: TextView? = null
 
@@ -349,7 +355,16 @@ class MainActivity :
             }
         }
 
-    private val linger = Runnable { manager.closeAll(LaptopLink.Cause.ENDED) }
+    // A share still going over the link holds it until the transfer ends; the transfer is paced and has an end.
+    private val linger =
+        object : Runnable {
+            override fun run() {
+                when (lingerAction(LinkHooks.sharing.get())) {
+                    LingerAction.WAIT -> handler.postDelayed(this, SHARE_RECHECK_MS)
+                    LingerAction.CLOSE -> manager.closeAll(LaptopLink.Cause.ENDED)
+                }
+            }
+        }
 
     private val ticker =
         object : Runnable {
@@ -401,8 +416,11 @@ class MainActivity :
                 }
             }
         val retained = lastNonConfigurationInstance as? Retained
+        // Or the links an activity Android destroyed by itself left behind, with Stay connected on; see onDestroy.
+        val kept = retained?.let { LinkSession.Kept(it.manager, it.clipboard, it.apps) } ?: LinkSession.kept
+        LinkSession.kept = null
         manager =
-            retained?.manager?.also { it.events = this }
+            kept?.manager?.also { it.events = this }
                 ?: LaptopConnections(laptopLinks(transports(applicationContext)), MainScheduler(), this)
         // The toggle is read through a Settings of its own, so the retained clipboard never holds this activity.
         val owner = Settings(applicationContext)
@@ -410,13 +428,15 @@ class MainActivity :
         // a rebuild, so the new activity sets the same thing again.
         val links = manager
         LinkHooks.disconnectAll = {
+            // The service is ending, so links kept for a later activity are not held either.
+            LinkSession.kept = null
             links.disconnectAll()
             // As Disconnect on a row: nothing reconnects by itself until the laptop is tapped.
             owner.savedLaptops = encodeSaved(decodeSaved(owner.savedLaptops).map { it.copy(autoConnect = false) })
         }
-        if (retained != null) {
-            clipboard = retained.clipboard
-            apps = retained.apps
+        if (kept != null) {
+            clipboard = kept.clipboard
+            apps = kept.apps
         } else {
             // One set of routes, so a link's blobs reach the clipboard or the app list by their kind.
             val routes = BlobRoutes()
@@ -438,6 +458,8 @@ class MainActivity :
             }
         if (retained != null) {
             settingsReturn = retained.settingsReturn
+            // Or a rotation on Reconnecting forgets the screen to go back to, and returns to the surface instead.
+            resumeScreen = retained.resumeScreen
             // Carried over, or the readout would stand blank after a rotation and then restart from one sample.
             picker.setRtt(selected?.rtt?.median() ?: Double.NaN)
         }
@@ -450,7 +472,8 @@ class MainActivity :
         )
     }
 
-    override fun onRetainNonConfigurationInstance(): Any = Retained(manager, clipboard, apps, screen, settingsReturn)
+    override fun onRetainNonConfigurationInstance(): Any =
+        Retained(manager, clipboard, apps, screen, settingsReturn, resumeScreen)
 
     override fun onStart() {
         super.onStart()
@@ -476,6 +499,9 @@ class MainActivity :
         }
         if (screen != Screen.ONBOARDING && settings.reconnect) connectSaved()
         if (screen == Screen.RECONNECTING) handler.post(ticker)
+        // A download begun by an activity a rotation replaced reports here now.
+        UpdateJob.onChange = ::updateChanged
+        settleUpdateFailure()
         refreshPicker()
         startScan()
         checkForUpdateIfDue()
@@ -491,6 +517,7 @@ class MainActivity :
     override fun onStop() {
         super.onStop()
         started = false
+        UpdateJob.onChange = null
         clipboard.bridge.stop()
         releaseHeldInput()
         // The laptop drops its overlay when told; a rotation rebuild begins a fresh session in onCreate.
@@ -539,7 +566,8 @@ class MainActivity :
         if (serviceUp && notice == shownNotice) return
         // Asked for when the service is first needed. A denial costs only the notification: the service runs anyway.
         if (!serviceUp) askNotifications()
-        LinkService.show(applicationContext, notice, serviceUp)
+        // Refused, the links get the usual linger and the next onStart tries again.
+        if (!LinkService.show(applicationContext, notice, serviceUp)) return
         serviceUp = true
         shownNotice = notice
         // The process is held, so a laptop that drops in the background is still won back; see LaptopConnections.
@@ -577,7 +605,20 @@ class MainActivity :
         // A rebuilt activity's waiting ticks go with it; the new one starts its own in onStart.
         handler.removeCallbacksAndMessages(null)
         apps.events = null
-        if (!isChangingConfigurations) {
+        if (!isChangingConfigurations && !isFinishing && serviceUp) {
+            // Android destroyed this activity by itself while Stay connected holds the process: the links stay, for
+            // the next activity to adopt, and the hooks stay too, since they hold only the manager.
+            // Locals only, so nothing kept holds this activity.
+            val app = applicationContext
+            val links = manager
+            links.events =
+                KeptEvents(links) {
+                    links.keepAlive = false
+                    LinkSession.kept = null
+                    LinkService.stop(app)
+                }
+            LinkSession.kept = LinkSession.Kept(links, clipboard, apps)
+        } else if (!isChangingConfigurations) {
             LinkHooks.disconnectAll = null
             LinkHooks.shareTarget = null
             manager.shutDown()
@@ -1006,13 +1047,16 @@ class MainActivity :
                 }
 
                 Screen.PIN -> {
+                    val attemptsLeft = selected?.pinAttemptsLeft ?: 0
                     PinScreen(
                         ui,
-                        selected?.pinAttemptsLeft ?: 0,
+                        attemptsLeft,
+                        PinScreen.showsWrong(attemptsLeft, selected?.pinSentOnLink == true),
                         selected?.pinAnswered == true,
                         onAnswer = { pin ->
                             selected?.let {
                                 it.pinAnswered = true
+                                it.pinSentOnLink = true
                                 it.link?.answerPin(pin)
                             }
                         },
@@ -1031,8 +1075,10 @@ class MainActivity :
                         onCancel = { navigateBack() },
                         onNewCode = {
                             selected?.let { laptop ->
+                                // A new code pairs again over the same transport: never a resume with the old key.
+                                val target = (laptop.target as? Target.Network)?.again() ?: laptop.target
                                 navigateBack()
-                                connect(laptop.target, tapped = true)
+                                connect(target, laptop.kind, tapped = true)
                             }
                         },
                     ).view
@@ -1468,6 +1514,7 @@ class MainActivity :
             runOnUiThread {
                 checkingUpdate = false
                 updateCheckFailed = latest == null
+                settleUpdateFailure()
                 updateChanged()
             }
         }
@@ -1485,9 +1532,10 @@ class MainActivity :
     private fun justUpdated(): Boolean = settings.seenVersion != getString(R.string.app_version)
 
     /** What the Updates row says. Empty until GitHub has answered once, because nothing is known before that. */
-    private fun updateSummary(): String =
-        when {
-            updateProgress != null -> getString(R.string.updates_downloading, updateProgress)
+    private fun updateSummary(): String {
+        val progress = UpdateJob.progress
+        return when {
+            progress != null -> getString(R.string.updates_downloading, progress)
             checkingUpdate -> getString(R.string.updates_checking)
             settings.updateFailure != 0 -> getString(R.string.updates_problem)
             updateCheckFailed -> getString(R.string.updates_failed)
@@ -1496,6 +1544,15 @@ class MainActivity :
             settings.lastUpdateCheck == 0L -> ""
             else -> getString(R.string.updates_current)
         }
+    }
+
+    /** A kept failure with no newer release left to install, as after an update by hand, is cleared. */
+    private fun settleUpdateFailure() {
+        val failure = settings.updateFailure
+        if (failure != 0 && !Updates.failureStands(settings.latestVersion, getString(R.string.app_version), failure)) {
+            settings.updateFailure = 0
+        }
+    }
 
     /**
      * The Updates row, and the notice on Devices: a problem with the last update is explained, a newer release is
@@ -1503,7 +1560,7 @@ class MainActivity :
      */
     private fun openUpdate() {
         when {
-            updateProgress != null -> Unit
+            UpdateJob.progress != null -> Unit
             settings.updateFailure != 0 -> explainUpdateFailure()
             updateAvailable() -> confirmUpdate(settings.latestVersion)
             else -> checkForUpdate()
@@ -1576,25 +1633,25 @@ class MainActivity :
      * reported by [Installer.StatusReceiver], so there is nothing more for the row to wait on.
      */
     private fun installUpdate(version: String) {
-        updateProgress = 0
+        // One download per process: a second tap, or the same tap after a rotation, finds this one running.
+        if (!UpdateJob.begin()) return
         settings.updateFailure = 0
         updateChanged()
+        // Nothing below holds this activity: a rotation mid-download leaves it to whichever one is on screen.
+        val app = applicationContext
+        val main = Handler(Looper.getMainLooper())
         thread(name = "edgepad-update") {
             val handed =
-                Installer.install(applicationContext, version) { percent ->
-                    runOnUiThread {
-                        updateProgress = percent
-                        updateChanged()
-                    }
+                Installer.install(app, version) { percent ->
+                    UpdateJob.progress = percent
+                    main.post { UpdateJob.onChange?.invoke() }
                 }
-            runOnUiThread {
-                updateProgress = null
-                // Kept on the row after the Toast is gone: a refusal from the system is kept the same way.
-                if (!handed) settings.updateFailure = Installer.DOWNLOAD_FAILED
-                updateChanged()
-                if (!handed && !isDestroyed) {
-                    Toast.makeText(this, R.string.updates_download_failed, Toast.LENGTH_LONG).show()
-                }
+            // Kept on the row after the Toast is gone: a refusal from the system is kept the same way.
+            if (!handed) Settings(app).updateFailure = Installer.DOWNLOAD_FAILED
+            UpdateJob.finish()
+            main.post {
+                UpdateJob.onChange?.invoke()
+                if (!handed) Toast.makeText(app, R.string.updates_download_failed, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -1768,8 +1825,14 @@ class MainActivity :
         requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_BLUETOOTH)
     }
 
+    /** Some builds have no Bluetooth page to open; the app's own page is the nearest thing. */
     private fun openBluetoothSettings() {
-        startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
+        try {
+            startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
+        } catch (e: ActivityNotFoundException) {
+            Log.w("Edgepad", "No activity for the Bluetooth settings", e)
+            openAppSettings()
+        }
     }
 
     /** This app's page in the system settings, where a permission refused for good can still be granted. */
@@ -1786,6 +1849,13 @@ class MainActivity :
         }
     }
 
+    /** Bluetooth is on and this app may use it: only then does an empty [bonded] list mean "not paired". */
+    private fun bluetoothReady(): Boolean {
+        val adapter = getSystemService(BluetoothManager::class.java)?.adapter ?: return false
+        return adapter.isEnabled &&
+            checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+    }
+
     /**
      * Every paired device, of every kind. The Devices list narrows it to computers for itself; everything
      * that connects looks through all of them, so a laptop reached through "show all" once is still found
@@ -1793,6 +1863,7 @@ class MainActivity :
      */
     private fun bonded(): List<BluetoothDevice> {
         val adapter = getSystemService(BluetoothManager::class.java)?.adapter ?: return emptyList()
+        // Checked here and not through bluetoothReady(), so lint sees the permission check next to its use.
         if (!adapter.isEnabled) return emptyList()
         if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             return emptyList()
@@ -1827,7 +1898,8 @@ class MainActivity :
         val paired = bonded()
         for (entry in saved.filter { it.autoConnect }) {
             val live = manager.laptops.firstOrNull { it.id in entry.keys }
-            if (live != null && !live.idle) continue
+            // A laptop that said no is not asked again at every return to the app; a tap still connects it.
+            if (live != null && (!live.idle || !LaptopConnections.retryable(live.lastCause))) continue
             val device = paired.firstOrNull { it.address == entry.btAddress }?.let { Target.Bluetooth(it) }
             val network = entry.networkTarget()
             val target = if (entry.kind == Transport.BLUETOOTH) device ?: network else network ?: device
@@ -1911,9 +1983,40 @@ class MainActivity :
             }
         val chosen = target ?: row.laptop?.target
         if (chosen == null) {
-            picker.setMessage(getString(R.string.not_paired))
+            if (via == Transport.BLUETOOTH) {
+                tappedUnpairedBluetooth()
+            } else {
+                picker.setMessage(getString(R.string.not_paired))
+            }
         } else {
-            connect(if (pairAgain && chosen is Target.Network) chosen.again() else chosen, via, tapped = true)
+            // The row's other record, over the other transport, hands over to this one once it connects, and only
+            // this one connects by itself at the next launch.
+            val others = row.laptops.filter { it.id != chosen.key }
+            saved = onlyAutoConnecting(saved, row.keys, chosen.key)
+            val next = if (pairAgain && chosen is Target.Network) chosen.again() else chosen
+            connect(next, via, tapped = true, switching = others)
+        }
+    }
+
+    /** With Bluetooth off or not allowed, the empty bonded list says nothing about the pairing, so that is said. */
+    private fun tappedUnpairedBluetooth() {
+        val adapterOn = getSystemService(BluetoothManager::class.java)?.adapter?.isEnabled == true
+        val permitted =
+            checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+        when (bluetoothTapHint(adapterOn, permitted)) {
+            BluetoothTapHint.NOT_READY_OFF -> {
+                val settingsLabel = getString(R.string.open_bluetooth_settings)
+                picker.setMessage(getString(R.string.bluetooth_tap_off), settingsLabel) { openBluetoothSettings() }
+            }
+
+            // The usual question, which already offers the app's settings after a refusal for good.
+            BluetoothTapHint.NOT_READY_PERMISSION -> {
+                if (!permissionPending) askPermission()
+            }
+
+            BluetoothTapHint.READY -> {
+                picker.setMessage(getString(R.string.not_paired))
+            }
         }
     }
 
@@ -2010,15 +2113,18 @@ class MainActivity :
         target: Target,
         via: Transport? = null,
         tapped: Boolean = false,
+        switching: List<Laptop> = emptyList(),
     ) {
+        // A switch keeps the working link selected until the new one is up; the manager hands over then.
         val select = tapped && !connected
+        val replacing = switching.map { it.id }
         when (target) {
             is Target.Bluetooth -> {
-                manager.connect(target, nameOf(target.device), Transport.BLUETOOTH, tapped, select)
+                manager.connect(target, nameOf(target.device), Transport.BLUETOOTH, tapped, select, replacing)
             }
 
             is Target.Network -> {
-                manager.connect(target, target.name, via ?: Transport.WIFI, tapped, select)
+                manager.connect(target, target.name, via ?: Transport.WIFI, tapped, select, replacing)
             }
         }
     }
@@ -2050,7 +2156,8 @@ class MainActivity :
      */
     override fun onConnecting(laptop: Laptop) {
         val target = laptop.target
-        if (target is Target.Bluetooth && bonded().none { it.address == target.key }) {
+        // Bluetooth off is not "not paired": that attempt fails as unreachable and retries.
+        if (target is Target.Bluetooth && bluetoothReady() && bonded().none { it.address == target.key }) {
             val shown = laptop === selected
             manager.stopRetrying(laptop.id)
             if (shown && screen == Screen.RECONNECTING) goTo(Screen.PAIRING)
@@ -2297,6 +2404,8 @@ class MainActivity :
             }
 
             else -> {
+                // A retry that stopped for good leaves the Reconnecting screen instead of counting on.
+                if (screen == Screen.RECONNECTING) goTo(Screen.PAIRING)
                 refreshPicker()
                 picker.setMessage(getString(R.string.status_closed, describe(closure, laptop)))
             }
@@ -2524,6 +2633,9 @@ class MainActivity :
 
         /** How long a link outlives the app leaving the screen: a trip to the picker, a glance at the lock screen. */
         const val LINGER_MS = 30_000L
+
+        /** How often a linger that found a share still going looks again. */
+        const val SHARE_RECHECK_MS = 5_000L
         const val TICK_MS = 1_000L
 
         const val MILLIS_PER_SECOND = 1_000L
@@ -2558,7 +2670,15 @@ class MainActivity :
                     }
 
                     is Target.Network -> {
-                        TcpTransport(target.hosts, target.port, target.laptopId, keys, phoneName(app), target.pairAgain)
+                        // Both read on the link thread, not here on the main one: see TcpTransport.handshake.
+                        TcpTransport(
+                            target.hosts,
+                            target.port,
+                            target.laptopId,
+                            { keys },
+                            { phoneName(app) },
+                            target.pairAgain,
+                        )
                     }
                 }
             }

@@ -27,11 +27,20 @@ class Laptop(
     var lostAt = 0L
     var connectedAt = 0L
 
+    /** The records this one takes over from once it connects: the same laptop over another transport. */
+    var replacing: List<String> = emptyList()
+
     /** What the laptop's last PIN question allowed, for the PIN screen; a count, never a digit. */
     var pinAttemptsLeft = 0
 
     /** True once the PIN screen sent its answer to the current question, so a rebuild cannot send a second. */
     var pinAnswered = false
+
+    /**
+     * True once a PIN answer went out on the current link. The laptop counts wrong answers per address, so a new
+     * link's first question can already allow fewer than five; only after an answer of this link's is that a miss.
+     */
+    var pinSentOnLink = false
 
     /** The laptop has a PIN question open, answered or not. Over when the link is up or gone. */
     var pinAsked = false

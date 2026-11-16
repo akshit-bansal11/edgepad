@@ -38,7 +38,7 @@ public sealed class PinGateTests : IDisposable
     private bool Gate(PinStore store, params Frame[] answers)
     {
         var queue = new Queue<Frame>(answers);
-        var passed = PinGate.Run(Phone, store, queue.Dequeue, sent.Add, logs.Add, () => { });
+        var passed = PinGate.Run(Phone, store, queue.Dequeue, sent.Add, logs.Add, () => { }) == PinOutcome.Passed;
         Assert.Empty(queue);
         return passed;
     }
@@ -81,6 +81,16 @@ public sealed class PinGateTests : IDisposable
         Assert.True(Gate(store, Wrong, Wrong, Right));
         Assert.Equal([new PinRequest(5, 0), new PinRequest(4, 0), new PinRequest(3, 0)], sent);
         Assert.Equal(5, store.AttemptsLeft(Phone));
+    }
+
+    [Fact]
+    public void TheFifthWrongOneReportsALockOutNotAWrongPin()
+    {
+        var store = StoreAtLevel(3);
+        var queue = new Queue<Frame>([Wrong, Wrong, Wrong, Wrong, Wrong]);
+
+        Assert.Equal(PinOutcome.LockedOut, PinGate.Run(Phone, store, queue.Dequeue, sent.Add, logs.Add, () => { }));
+        Assert.Empty(queue);
     }
 
     [Fact]
@@ -165,7 +175,7 @@ public sealed class PinGateTests : IDisposable
         var store = StoreAtLevel(3);
         using var closed = new ManualResetEventSlim();
 
-        Assert.False(PinGate.Run(
+        Assert.Equal(PinOutcome.Refused, PinGate.Run(
             Phone,
             store,
             () =>

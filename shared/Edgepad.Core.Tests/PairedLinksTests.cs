@@ -134,6 +134,23 @@ public sealed class PairedLinksTests : IDisposable
         Assert.Equal(UnixFileMode.UserRead | UnixFileMode.UserWrite, File.GetUnixFileMode(FilePath));
     }
 
+    [Fact]
+    public void ANewPairingLiftsTheRefusalAFailedForgetOneLeft()
+    {
+        var links = NewLinks();
+        links.Add(Phone, Key, "Pixel");
+
+        using (new Blocked(FilePath))
+        {
+            Assert.False(links.ForgetOne(Phone));
+        }
+
+        Assert.False(links.TryGet(Phone, out _, out _));
+        Assert.True(links.Add(Phone, NewerKey, "Pixel"));
+        Assert.True(links.TryGet(Phone, out var key, out _));
+        Assert.Equal(NewerKey, key);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(dir))

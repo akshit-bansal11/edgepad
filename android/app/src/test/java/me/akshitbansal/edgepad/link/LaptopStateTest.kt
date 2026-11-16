@@ -444,6 +444,18 @@ class LaptopStateTest {
         assertEquals(DeviceOs.LINUX, state.os)
     }
 
+    @Test
+    fun anUnknownTextKindIsCountedAndAKnownOneIsNot() {
+        assertFalse(state.take(Frame.Text(250, "from a newer laptop")))
+        assertEquals(1, state.droppedText)
+
+        state.take(Frame.Text(TextKind.APP.id, "Editor"))
+        assertTrue(state.take(Frame.Text(TextKind.INPUT_STATE.id, "blocked")))
+
+        assertEquals(1, state.droppedText)
+        assertTrue(state.inputBlocked)
+    }
+
     private companion object {
         /** MacroIconChunks.ChunkBytes on the laptop. Written out, because agreeing with it is the point. */
         const val CHUNK_BYTES = 240

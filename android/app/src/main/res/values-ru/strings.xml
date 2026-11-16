@@ -36,6 +36,7 @@
   <string name="open_controls">Открыть управление</string>
   <string name="open_controls_hint">Подключитесь к ноутбуку, чтобы открыть управление.</string>
   <string name="open_bluetooth_settings">Настройки Bluetooth</string>
+  <string name="bluetooth_tap_off">Bluetooth выключен. Включите его, чтобы подключиться к этому ноутбуку.</string>
   <string name="refresh">Обновить список</string>
   <string name="bluetooth_off">Ноутбуки не найдены. Включите Bluetooth и сопрягите ноутбук. Для Wi-Fi или USB откройте Edgepad на ноутбуке и включите «Подключения по Wi-Fi и USB» в его меню; для USB также включите здесь USB-модем.</string>
   <string name="usb_cable_tether_off">Кабель подключён. Включите здесь USB-модем, а в меню Edgepad на ноутбуке — «Подключения по Wi-Fi и USB».</string>
@@ -112,6 +113,7 @@
   <string name="pair_cancelled">Сопряжение отменено. Нажмите на ноутбук, чтобы повторить.</string>
   <string name="pair_code_spoken">Код сопряжения: %1$s</string>
   <string name="pair_expires">Истекает через %1$s</string>
+  <string name="pair_expired">Истекло</string>
   <string name="pair_confirm_title">Ноутбук «%1$s» сообщил, что код совпал?</string>
   <string name="pair_confirm_body">Если он сообщил, что код неверный, нажмите «Нет»: вместо него может отвечать другое устройство.</string>
   <string name="pair_confirm_yes">Да, сопряжено</string>
@@ -175,7 +177,7 @@
   <string name="media_layout_hint_upright">Это портретное расположение; чтобы настроить альбомное, поверните телефон. Перетащите элемент, чтобы переместить его. Он привязывается к сетке и осевым линиям.</string>
   <string name="media_layout_hint_sideways">Это альбомное расположение; чтобы настроить портретное, поверните телефон. Перетащите элемент, чтобы переместить его. Он привязывается к сетке и осевым линиям.</string>
   <string name="piece_now_playing">Сейчас играет</string>
-  <string name="piece_transport">Назад · пауза · вперёд</string>
+  <string name="piece_transport">Пред. · пуск · след.</string>
   <string name="media_layout_reset">Сбросить положение</string>
   <string name="media_layout_reset_confirm">Сбросить положение? Нажмите ещё раз</string>
   <string name="editor_options">Параметры</string>
@@ -290,9 +292,9 @@
     <item quantity="other">Нарисовано: %1$d</item>
   </plurals>
   <string name="shapes_none">Пока нет</string>
-  <string name="shapes_footnote">Удерживайте два пальца неподвижно на тачпаде, пока линия не станет сплошной (при включённом виброотклике вы почувствуете лёгкую вибрацию), затем рисуйте обоими, не отрывая их.</string>
+  <string name="shapes_footnote">Удерживайте два пальца неподвижно на тачпаде, пока линия не станет сплошной (при включённом виброотклике вы почувствуете лёгкую вибрацию), затем поднимите один и рисуйте другим.</string>
   <string name="shapes_empty_title">Фигур пока нет</string>
-  <string name="shapes_empty_body">Нарисуйте фигуру здесь и выберите, что она будет запускать. На тачпаде удерживайте два пальца неподвижно, пока линия не станет сплошной, затем рисуйте обоими, не отрывая их.</string>
+  <string name="shapes_empty_body">Нарисуйте фигуру здесь и выберите, что она будет запускать. На тачпаде удерживайте два пальца неподвижно, пока линия не станет сплошной, затем поднимите один и нарисуйте фигуру другим.</string>
   <string name="shapes_add">Нарисовать фигуру</string>
   <string name="shapes_draw_title">Нарисуйте фигуру</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -320,6 +322,7 @@
   <string name="keyboard_settings_title">Настройки клавиатуры</string>
   <string name="gamepad_settings_title">Настройки геймпада</string>
   <string name="updates_title">Обновления</string>
+  <string name="updates_notice_text">Нажмите, чтобы завершить обновление Edgepad</string>
   <string name="updates_auto">Проверять обновления ежедневно</string>
   <string name="updates_checking">Проверка…</string>
   <string name="updates_failed">Не удалось связаться с GitHub</string>
@@ -430,7 +433,11 @@
   <string name="controls_hide_dials">Скрыть шкалы и медиа</string>
   <string name="controls_blackout">Гасить экран при простое</string>
   <string name="controls_open">Открыть: %1$s</string>
-  <string name="controls_needs_newer">Для этого нужна более новая версия Edgepad на ноутбуке. Обновите её и подключитесь снова.</string>
+  <string name="controls_needs_newer">Ноутбук этого не поддерживает. Если на нём старая версия Edgepad, обновите её и подключитесь снова.</string>
+  <string name="node_move_left">Сдвинуть влево</string>
+  <string name="node_move_right">Сдвинуть вправо</string>
+  <string name="node_move_up">Сдвинуть вверх</string>
+  <string name="node_move_down">Сдвинуть вниз</string>
   <string name="controls_keyboard">Клавиатура</string>
   <string name="controls_gamepad">Геймпад</string>
   <string name="controls_macros">Макросы</string>
@@ -512,7 +519,7 @@
   <string name="macros_layout_grid_description">Строк: %1$d, столбцов: %2$d</string>
   <string name="macros_layout_caption">Первое число — строки, второе — столбцы. «Авто» выбирает вариант с самыми крупными кнопками.</string>
   <string name="macros_per_page">Макросов на экране</string>
-  <string name="macros_per_page_caption">Сколько макросов показывает одна страница. Остальные продолжаются на следующих страницах: проведите пальцем в сторону. Нажмите на макрос и удерживайте, затем перетащите, чтобы переместить его внутри страницы.</string>
+  <string name="macros_per_page_caption">Сколько макросов показывает одна страница. Остальные продолжаются на следующих страницах: проведите пальцем в сторону. Нажмите на макрос и удерживайте, затем перетащите, чтобы переместить его внутри страницы. Нажмите и удерживайте открытый макрос, чтобы появился крестик, затем нажмите на крестик, чтобы закрыть приложение.</string>
   <string name="macros_page_of">Страница %1$d из %2$d</string>
   <string name="macros_empty_title">Макросов пока нет</string>
   <string name="macros_empty_body">Добавьте их через пункт «Макросы…» в меню Edgepad в области уведомлений на ноутбуке. Они появятся здесь, как только ноутбук пришлёт список.</string>

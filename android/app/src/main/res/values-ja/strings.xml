@@ -37,6 +37,7 @@
   <string name="open_controls">コントロールを開く</string>
   <string name="open_controls_hint">コントロールを開くには、ノートPCに接続してください。</string>
   <string name="open_bluetooth_settings">Bluetooth設定</string>
+  <string name="bluetooth_tap_off">Bluetoothがオフです。このノートPCに接続するには、オンにしてください。</string>
   <string name="refresh">リストを更新</string>
   <string name="bluetooth_off">ノートPCが見つかりません。Bluetoothをオンにして、ノートPCをペアリングしてください。Wi-FiやUSBで接続するには、ノートPCでEdgepadを開き、そのメニューで「Wi-FiおよびUSB接続」をオンにします。USBの場合は、このスマホでUSBテザリングもオンにしてください。</string>
   <string name="usb_cable_tether_off">ケーブルが接続されています。このスマホでUSBテザリングをオンにし、ノートPCのEdgepadメニューで「Wi-FiおよびUSB接続」をオンにしてください。</string>
@@ -101,6 +102,7 @@
   <string name="pair_cancelled">ペアリングをキャンセルしました。ノートPCをタップして、もう一度お試しください。</string>
   <string name="pair_code_spoken">ペアリングコード：%1$s</string>
   <string name="pair_expires">%1$s後に失効</string>
+  <string name="pair_expired">期限切れ</string>
   <string name="pair_confirm_title">%1$sに「コードが一致しました」と表示されましたか？</string>
   <string name="pair_confirm_body">コードが違うと表示された場合は、「いいえ」をタップしてください。別のデバイスが代わりに応答している可能性があります。</string>
   <string name="pair_confirm_yes">はい、ペアリング済み</string>
@@ -270,9 +272,9 @@
     <item quantity="other">%1$d件</item>
   </plurals>
   <string name="shapes_none">まだありません</string>
-  <string name="shapes_footnote">トラックパッドに2本指を置いて止め、線が実線に変わるまで待ち（触覚フィードバックがオンなら振動も伝わります）、2本指を離さずに描きます。</string>
+  <string name="shapes_footnote">トラックパッドに2本指を置いて止め、線が実線に変わるまで待ち（触覚フィードバックがオンなら振動も伝わります）、1本を離してもう1本で描きます。</string>
   <string name="shapes_empty_title">まだ図形がありません</string>
-  <string name="shapes_empty_body">ここで図形を描いて、実行する操作を割り当てます。トラックパッドでは、線が実線に変わるまで2本指を止めて置いてから、指を離さずに描いてください。</string>
+  <string name="shapes_empty_body">ここで図形を描いて、実行する操作を割り当てます。トラックパッドでは、線が実線に変わるまで2本指を止めて置いてから、1本を離してもう1本で描いてください。</string>
   <string name="shapes_add">図形を描く</string>
   <string name="shapes_draw_title">図形を描く</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -300,6 +302,7 @@
   <string name="keyboard_settings_title">キーボードの設定</string>
   <string name="gamepad_settings_title">ゲームパッドの設定</string>
   <string name="updates_title">アップデート</string>
+  <string name="updates_notice_text">タップするとEdgepadのアップデートを完了します</string>
   <string name="updates_auto">アップデートを毎日確認</string>
   <string name="updates_checking">確認中…</string>
   <string name="updates_failed">GitHubに接続できませんでした</string>
@@ -412,7 +415,11 @@
   <string name="controls_hide_dials">ダイヤルとメディアを隠す</string>
   <string name="controls_blackout">放置時に画面を暗くする</string>
   <string name="controls_open">%1$sを開く</string>
-  <string name="controls_needs_newer">この機能を使うには、ノートPCのEdgepadが新しいバージョンである必要があります。アップデートしてから、もう一度接続してください。</string>
+  <string name="controls_needs_newer">このノートPCでは使えません。古いEdgepadが動いている場合は、アップデートしてからもう一度接続してください。</string>
+  <string name="node_move_left">左へ移動</string>
+  <string name="node_move_right">右へ移動</string>
+  <string name="node_move_up">上へ移動</string>
+  <string name="node_move_down">下へ移動</string>
   <string name="controls_keyboard">キーボード</string>
   <string name="controls_gamepad">ゲームパッド</string>
   <string name="controls_macros">マクロ</string>
@@ -494,7 +501,7 @@
   <string name="macros_layout_grid_description">行：%1$d、列：%2$d</string>
   <string name="macros_layout_caption">最初の数字が行数、2番目が列数です。「自動」は、ボタンが最も大きくなる配置を選びます。</string>
   <string name="macros_per_page">画面に表示するマクロ数</string>
-  <string name="macros_per_page_caption">1ページに表示するマクロの数です。残りは次のページに続き、指を横にスライドして移動します。マクロを長押ししてドラッグすると、ページ内で並べ替えられます。</string>
+  <string name="macros_per_page_caption">1ページに表示するマクロの数です。残りは次のページに続き、指を横にスライドして移動します。マクロを長押ししてドラッグすると、ページ内で並べ替えられます。開いているマクロを長押しすると×が表示されます。×をタップするとアプリを閉じます。</string>
   <string name="macros_page_of">ページ %1$d / %2$d</string>
   <string name="macros_empty_title">まだマクロがありません</string>
   <string name="macros_empty_body">ノートPCのタスクトレイにあるEdgepadメニューの「マクロ…」から追加します。ノートPCが一覧を送信すると、すぐここに表示されます。</string>

@@ -36,6 +36,7 @@
   <string name="open_controls">कंट्रोल खोलें</string>
   <string name="open_controls_hint">कंट्रोल खोलने के लिए पहले लैपटॉप से कनेक्ट करें।</string>
   <string name="open_bluetooth_settings">ब्लूटूथ सेटिंग्स</string>
+  <string name="bluetooth_tap_off">ब्लूटूथ बंद है। इस लैपटॉप से जुड़ने के लिए इसे चालू करें।</string>
   <string name="refresh">सूची रीफ़्रेश करें</string>
   <string name="bluetooth_off">कोई लैपटॉप नहीं मिला। ब्लूटूथ चालू करें और अपना लैपटॉप पेयर करें। वाई-फ़ाई या USB के लिए लैपटॉप पर Edgepad खोलें और उसके मेन्यू में \"वाई-फ़ाई और USB कनेक्शन\" चालू करें; USB के लिए यहां USB टेदरिंग भी चालू करें।</string>
   <string name="usb_cable_tether_off">केबल जुड़ी है। यहां USB टेदरिंग चालू करें, और लैपटॉप पर Edgepad के मेन्यू में \"वाई-फ़ाई और USB कनेक्शन\" चालू करें।</string>
@@ -103,6 +104,7 @@
   <string name="pair_cancelled">पेयरिंग रद्द हुई। फिर कोशिश करने के लिए लैपटॉप पर टैप करें।</string>
   <string name="pair_code_spoken">पेयरिंग कोड: %1$s</string>
   <string name="pair_expires">%1$s में खत्म होगा</string>
+  <string name="pair_expired">समय खत्म</string>
   <string name="pair_confirm_title">क्या %1$s ने कहा कि कोड मेल खाता है?</string>
   <string name="pair_confirm_body">अगर उसने कोड गलत बताया, तो \"नहीं\" पर टैप करें: हो सकता है उसकी जगह कोई और डिवाइस जवाब दे रहा हो।</string>
   <string name="pair_confirm_yes">हां, पेयर हो गया</string>
@@ -275,9 +277,9 @@
     <item quantity="other">%1$d बनीं</item>
   </plurals>
   <string name="shapes_none">अभी कोई नहीं</string>
-  <string name="shapes_footnote">टचपैड पर दो उंगलियां तब तक स्थिर रखें जब तक रेखा ठोस न हो जाए (हैप्टिक फ़ीडबैक चालू हो तो हल्का झटका भी लगेगा), फिर उंगलियां उठाए बिना दोनों से बनाएं।</string>
+  <string name="shapes_footnote">टचपैड पर दो उंगलियां तब तक स्थिर रखें जब तक रेखा ठोस न हो जाए (हैप्टिक फ़ीडबैक चालू हो तो हल्का झटका भी लगेगा), फिर एक उंगली उठाएं और दूसरी से बनाएं।</string>
   <string name="shapes_empty_title">अभी कोई आकृति नहीं</string>
-  <string name="shapes_empty_body">यहां एक आकृति बनाएं और उसे कोई काम सौंपें। टचपैड पर दो उंगलियां तब तक स्थिर रखें जब तक रेखा ठोस न हो जाए, फिर उंगलियां उठाए बिना उसे बनाएं।</string>
+  <string name="shapes_empty_body">यहां एक आकृति बनाएं और उसे कोई काम सौंपें। टचपैड पर दो उंगलियां तब तक स्थिर रखें जब तक रेखा ठोस न हो जाए, फिर एक उंगली उठाएं और दूसरी से उसे बनाएं।</string>
   <string name="shapes_add">आकृति बनाएं</string>
   <string name="shapes_draw_title">आकृति बनाएं</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -305,6 +307,7 @@
   <string name="keyboard_settings_title">कीबोर्ड सेटिंग्स</string>
   <string name="gamepad_settings_title">गेमपैड सेटिंग्स</string>
   <string name="updates_title">अपडेट</string>
+  <string name="updates_notice_text">Edgepad का अपडेट पूरा करने के लिए टैप करें</string>
   <string name="updates_auto">रोज़ अपडेट जांचें</string>
   <string name="updates_checking">जांच हो रही है…</string>
   <string name="updates_failed">GitHub तक नहीं पहुंच सका</string>
@@ -415,7 +418,11 @@
   <string name="controls_hide_dials">डायल और मीडिया छिपाएं</string>
   <string name="controls_blackout">इस्तेमाल न होने पर स्क्रीन काली करें</string>
   <string name="controls_open">%1$s खोलें</string>
-  <string name="controls_needs_newer">इसके लिए इस लैपटॉप पर Edgepad का नया वर्शन चाहिए। उसे अपडेट करें, फिर दोबारा कनेक्ट करें।</string>
+  <string name="controls_needs_newer">यह लैपटॉप यह सुविधा नहीं देता। अगर उस पर Edgepad का पुराना वर्शन है, तो उसे अपडेट करें, फिर दोबारा कनेक्ट करें।</string>
+  <string name="node_move_left">बाएं ले जाएं</string>
+  <string name="node_move_right">दाएं ले जाएं</string>
+  <string name="node_move_up">ऊपर ले जाएं</string>
+  <string name="node_move_down">नीचे ले जाएं</string>
   <string name="controls_keyboard">कीबोर्ड</string>
   <string name="controls_gamepad">गेमपैड</string>
   <string name="controls_macros">मैक्रो</string>
@@ -497,7 +504,7 @@
   <string name="macros_layout_grid_description">पंक्तियां: %1$d, कॉलम: %2$d</string>
   <string name="macros_layout_caption">पहली संख्या पंक्तियों की है, दूसरी कॉलम की। \"ऑटो\" वह चुनता है जिसमें बटन सबसे बड़े हों।</string>
   <string name="macros_per_page">स्क्रीन पर मैक्रो</string>
-  <string name="macros_per_page_caption">एक पेज पर कितने मैक्रो दिखें। बाकी अगले पेजों पर जारी रहते हैं, जहां उंगली को बगल में सरकाकर पहुंचा जा सकता है। किसी मैक्रो को उसके पेज में खिसकाने के लिए उसे दबाए रखें, फिर खींचें।</string>
+  <string name="macros_per_page_caption">एक पेज पर कितने मैक्रो दिखें। बाकी अगले पेजों पर जारी रहते हैं, जहां उंगली को बगल में सरकाकर पहुंचा जा सकता है। किसी मैक्रो को उसके पेज में खिसकाने के लिए उसे दबाए रखें, फिर खींचें। खुले हुए मैक्रो को दबाए रखें तो क्रॉस दिखेगा, फिर ऐप बंद करने के लिए क्रॉस पर टैप करें।</string>
   <string name="macros_page_of">%2$d में से पेज %1$d</string>
   <string name="macros_empty_title">अभी कोई मैक्रो नहीं</string>
   <string name="macros_empty_body">इन्हें लैपटॉप पर टास्कबार के कोने में Edgepad के \"मैक्रो…\" मेन्यू से जोड़ें। लैपटॉप सूची भेजते ही ये यहां दिखने लगते हैं।</string>

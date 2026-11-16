@@ -32,6 +32,7 @@ public final class ClipboardSync {
     private let allowed: () -> Bool
     private let clock: () -> TimeInterval
     private let schedule: (TimeInterval, @escaping () -> Void) -> Void
+    private let encodeQueue = DispatchQueue(label: "Edgepad.ClipboardEncode", qos: .utility)
     private lazy var receiver = BlobReceiver(cap: ClipboardSync.cap) { [weak self] kind, data, sha256 in
         self?.received(kind, data, sha256) ?? false
     }
@@ -178,6 +179,20 @@ public final class ClipboardSync {
     private func flush(_ change: Int) {
         guard change == changes, active, clock() >= quietUntil else { return }
         guard let content = surface.read(), !content.sensitive, !content.data.isEmpty else { return }
+        guard content.unencoded else { return send(content) }
+        // A re-encode (a copied screenshot's TIFF to PNG) can take a while: off the main thread, then back to it,
+        // where it is dropped if the clipboard changed again meanwhile.
+        let surface = self.surface
+        encodeQueue.async { [weak self] in
+            let encoded = surface.encode(content)
+            DispatchQueue.main.async {
+                guard let self, let encoded, change == self.changes, self.active else { return }
+                self.send(encoded)
+            }
+        }
+    }
+
+    private func send(_ content: ClipboardContent) {
         guard let cap = ClipboardSync.cap(content.kind.rawValue), content.data.count <= cap else {
             Log.write("Clipboard: \(content.data.count) bytes of \(content.kind) is over the cap, so it stays here")
             return

@@ -27,7 +27,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Dispatcher dispatcher;
     private readonly Action releaseHeldInput;
     private readonly Func<string> probePad;
-    private readonly Func<Action<Frame>, Action<bool>?> startReporting;
+    private readonly Func<Action<Frame>, Func<long>, Action<bool>?> startReporting;
     private readonly Func<MacroStore> macros;
     private readonly LinkIdentity identity;
     private readonly Action<LaptopStatus> onStatus;
@@ -60,7 +60,7 @@ internal sealed class LinuxSession : IDisposable
         Dispatcher dispatcher,
         Action releaseHeldInput,
         Func<string> probePad,
-        Func<Action<Frame>, Action<bool>?> startReporting,
+        Func<Action<Frame>, Func<long>, Action<bool>?> startReporting,
         Func<MacroStore> macros,
         LinkIdentity identity,
         Action<LaptopStatus> onStatus,
@@ -119,13 +119,14 @@ internal sealed class LinuxSession : IDisposable
             frames.Send(new Text((byte)TextKind.Device, identity.DeviceText(DeviceOs.Linux)));
 
             // TEXT 18: whether this laptop may create input devices, now and on every change while connected.
-            // Check raises Changed only on a flip, on the probing thread; a send to a dead socket is ignored.
-            frames.Send(new Text((byte)TextKind.InputState, UinputAccess.StateText(UinputAccess.Check() is not null)));
+            // Check raises Changed only on a flip, on the probing thread; a send to a dead socket is ignored. Subscribed
+            // before the first answer, so a flip between the two is not lost.
             inputState = SendInputState;
             UinputAccess.Changed += inputState;
+            frames.Send(new Text((byte)TextKind.InputState, UinputAccess.StateText(UinputAccess.Check() is not null)));
             dispatcher.PadStatusReply = status => frames.Send(new Text((byte)TextKind.PadStatus, status));
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
-            dispatcher.MacroWatch = startReporting(frames.Send);
+            dispatcher.MacroWatch = startReporting(frames.Send, () => dispatcher.LastInputMs);
 
             // TEXT 19/20: the batteries every 60 s, the default output every 3 s, each sent only when it changed. The
             // reporter reads on its own timers, so a slow UPower or sound tool never holds up this read loop.
@@ -142,17 +143,21 @@ internal sealed class LinuxSession : IDisposable
                 Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"),
                 Environment.GetEnvironmentVariable("DISPLAY"));
             var sender = new BlobSender(frames.Send, link.Kind, () => dispatcher.LastInputMs, ended.Token);
-            var sync = new ClipboardSync(surface, sender, () => ClipboardSetting.Enabled, ended.Token);
+            var sync = new ClipboardSync(new QuietClipboard(surface), sender, () => ClipboardSetting.Enabled, ended.Token);
             dispatcher.Clipboard = sync;
-            _ = Task.Run(() => LinuxClipboard.Poll(surface, sync, () => ClipboardSetting.Enabled, ended.Token));
+            _ = Task.Run(() => LinuxClipboard.Poll(surface.Fingerprint, sync, () => ClipboardSetting.Enabled, ended.Token));
 
             // The apps the phone may pick from: a pick is a token into a list built here, never a path from the phone.
             dispatcher.Apps = new AppPicker(new DesktopEntryCatalog(), macros(), sender, ended.Token);
             dispatcher.AppAddReply = status => frames.Send(new Text((byte)TextKind.AppAddStatus, status));
 
+            // A vanished peer holds the blocked read for minutes; Dispose from the timer's thread closes the link and wakes it.
+            using var silence = new SilenceWatch(SilenceWatch.PhoneSilence, () => { Log.Write($"Session with {Address} ended: no frame for 30 s"); Dispose(); }, every: TimeSpan.FromSeconds(5));
+
             while (true)
             {
                 var frame = frames.ReadFrame();
+                silence.Touch();
                 if (frame is Ping ping)
                 {
                     frames.Send(new Pong(ping.Time));
@@ -185,28 +190,57 @@ internal sealed class LinuxSession : IDisposable
         {
             // Releases anything still held down: Alt in the middle of an app switch, a button mid-drag. Unplugs the
             // pad too, so a phone that drops mid-game does not leave a stick pushed forward.
-            if (inputState is { } handler)
+            // Each step nested, so one that throws still lets the rest run: held input is released and the server
+            // told the session ended whatever happens before it.
+            try
             {
-                UinputAccess.Changed -= handler;
-            }
+                if (inputState is { } handler)
+                {
+                    UinputAccess.Changed -= handler;
+                }
 
-            // The reporter first, so no timer reads through the source after it is closed.
-            power?.Dispose();
-            powerSource?.Dispose();
-            releaseHeldInput();
-            dispatcher.Capture?.Dispose();
-            if (dispatcher.Cadence.Summary() is { } cadence)
+                // Held input first: a reporter that is slow to stop must never leave keys down. The reporter no
+                // longer holds its lock across a blocked send, so stopping it after cannot hang.
+                releaseHeldInput();
+            }
+            finally
             {
-                Log.Write($"Pointer frames from {Address} over {link.Kind}: {cadence}");
-            }
+                try
+                {
+                    // The reporter before its source, so no new timer read starts once the source is closed. A read
+                    // already under way runs outside the reporter's lock, so it can still finish against the closed source.
+                    try
+                    {
+                        power?.Dispose();
+                    }
+                    finally
+                    {
+                        powerSource?.Dispose();
+                    }
 
-            if (dispatcher.Dropped > 0)
-            {
-                Log.Write($"Session with {Address}: {dispatcher.Dropped} frames dropped");
-            }
+                    dispatcher.Capture?.Dispose();
+                    if (dispatcher.Cadence.Summary() is { } cadence)
+                    {
+                        Log.Write($"Pointer frames from {Address} over {link.Kind}: {cadence}");
+                    }
 
-            Dispose();
-            onEnded(this);
+                    if (dispatcher.Dropped > 0)
+                    {
+                        Log.Write($"Session with {Address}: {dispatcher.Dropped} frames dropped");
+                    }
+                }
+                finally
+                {
+                    try
+                    {
+                        Dispose();
+                    }
+                    finally
+                    {
+                        onEnded(this);
+                    }
+                }
+            }
         }
     }
 

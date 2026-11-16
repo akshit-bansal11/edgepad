@@ -23,6 +23,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let trustWithdrawPollSeconds: TimeInterval = 0.25
     /// How long before Bluetooth is tried again after it failed to start.
     private static let bluetoothRetrySeconds: TimeInterval = 30
+    /// How long a newer copy waits for the one it replaces to exit before it starts listening anyway.
+    private static let takeOverWaitSeconds: TimeInterval = 5
     /// How often the missing input permission is looked at again, so a grant shows without a relaunch.
     private static let permissionPollSeconds: TimeInterval = 1
     private static let welcomedKey = "welcomed"
@@ -30,7 +32,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let dailyUpdatesKey = "checkUpdatesDaily"
 
     private let runningVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
-    private let trust = TrustStore.forCurrentUser()
+    /// Given the last-connected times, so every way of forgetting phones (Reset PIN included) forgets those too.
+    private lazy var trust = TrustStore.forCurrentUser(connections: lastConnected)
     /// One store for the server and the Security panel, so a level or PIN change is the one the server reads.
     private let pin = PinStore.forCurrentUser()
     /// The Wi-Fi pairings, forgotten with the trusted phones.
@@ -63,7 +66,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var badged = false
     /// The last inputReady the poll saw, so the phone is told (TEXT 18) only on a change.
     private var lastReady = AXIsProcessTrusted() && CGPreflightPostEventAccess()
-    private var questionOpen = false
+    /// A count, not a flag: the Wi-Fi question and the trust question can be open one over the other, and the first to
+    /// close must not clear the "!" while the other still waits.
+    private var openQuestions = 0
     /// Set once the owner has opened the menu, which the first-run question waits for at the latest.
     private var menuSeen = false
 
@@ -90,7 +95,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             ClipboardSetting.adoptEarlierDefault()
         }
         notifier?.requestPermission()
-        noteUpdatedVersion()
 
         // Without them macOS silently discards every event this app posts.
         Log.write(
@@ -108,12 +112,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // inputReady, not Accessibility alone: with event posting denied every tap is dropped, so the phone must hear it.
         host.inputBlocked = { [weak self] in !(self?.inputReady ?? true) }
         // Off the main queue: a file read and rewrite has no place on the path that admits a phone.
+        // The generation is read here, at admit, so a Forget that lands before the write leaves the phone forgotten.
         host.onVerified = { [lastConnected] address in
-            DispatchQueue.global(qos: .utility).async { lastConnected.record(address) }
+            let since = lastConnected.generation
+            DispatchQueue.global(qos: .utility).async { lastConnected.record(address, since: since) }
         }
         self.host = host
         server = RfcommServer(host: host, onStatus: { [weak self] in self?.setStatus($0) })
         startServer()
+        // After the start, whose failure would otherwise overwrite the hint at once.
+        noteUpdatedVersion()
 
         // Off until the owner says yes (network.txt); only a phone that proves itself is handed to the host.
         network = NetworkServer(
@@ -142,7 +150,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         bluetoothPower = BluetoothPower { [weak self] on in
             guard let self else { return }
             if on {
-                self.listenAgain()
+                // Bluetooth only: listenAgain() would also restart Wi-Fi, closing every live Wi-Fi link.
+                self.server?.stop()
+                self.startServer()
             } else {
                 self.server?.stop()
                 if self.host?.hasPhone != true {
@@ -194,6 +204,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case .takeOver:
             for other in others {
                 _ = other.terminate()
+            }
+            // terminate() only asks. Until the old copy is gone it holds the Wi-Fi port, and a listener started now
+            // would fall back to a random port for the whole run.
+            let deadline = Date().addingTimeInterval(Self.takeOverWaitSeconds)
+            while others.contains(where: { !$0.isTerminated }) && Date() < deadline {
+                RunLoop.current.run(until: Date().addingTimeInterval(0.1))
             }
             return false
         case .exitWithNotice:
@@ -264,7 +280,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             badged = missing
             button.image = MenuBarMark.image(badged: missing)
         }
-        button.title = questionOpen ? "!" : ""
+        button.title = openQuestions > 0 ? "!" : ""
         button.toolTip = missing ? "Edgepad cannot control this Mac yet" : "Edgepad: \(status)"
     }
 
@@ -273,16 +289,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func startServer() {
         guard server?.start() == false else { return }
         let authorization = CBManager.authorization
-        setStatus(
-            StatusText.bluetoothProblem(
-                denied: authorization == .denied || authorization == .restricted,
-                off: IOBluetoothHostController.default()?.powerState == kBluetoothHCIPowerStateOFF))
+        // The retry re-enters here every 30 s; a Wi-Fi phone in use keeps its line.
+        if host?.hasPhone != true {
+            setStatus(
+                StatusText.bluetoothProblem(
+                    denied: authorization == .denied || authorization == .restricted, off: bluetoothOff))
+        }
         guard !bluetoothRetryPending else { return }
         bluetoothRetryPending = true
         Timer.scheduledTimer(withTimeInterval: Self.bluetoothRetrySeconds, repeats: false) { [weak self] _ in
             self?.bluetoothRetryPending = false
             self?.startServer()
         }
+    }
+
+    private var bluetoothOff: Bool {
+        IOBluetoothHostController.default()?.powerState == kBluetoothHCIPowerStateOFF
     }
 
     /// After sleep: withdraw and publish the Bluetooth record again, and listen again on Wi-Fi.
@@ -363,7 +385,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func setStatus(_ text: String) {
-        status = text
+        // A session that ends resets the line to Waiting; with Bluetooth off, that would hide why nothing connects.
+        status =
+            text == StatusText.waiting && bluetoothOff ? StatusText.bluetoothProblem(denied: false, off: true) : text
         refreshButton()
         if text.hasPrefix("Connected to") {
             DispatchQueue.main.async { [weak self] in self?.askFirstRunIfDue() }
@@ -512,7 +536,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         guard answer == .alertSecondButtonReturn else { return false }
         let forgotten = trust.forget()
-        lastConnected.forgetAll()
         // A forgotten phone that had entered the PIN would otherwise skip it at level 2 after one mistaken yes.
         let verifiedForgotten = pin.forgetVerified()
         // Started before the hold ends (the defer above), so there is no instant in which a connection would
@@ -572,7 +595,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.orderOut(nil)
         guard answer == .alertSecondButtonReturn else { return false }
         var failed = !trust.forgetOne(address)
-        lastConnected.forget(address)
         failed = !pin.forgetVerified(address) || failed
         if address.lowercased().hasPrefix("link:") {
             failed = !paired.forgetOne(String(address.dropFirst(5))) || failed
@@ -641,7 +663,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     /// Puts the first-run question once input control is settled, a phone has connected or the menu was opened.
     private func askFirstRunIfDue() {
-        guard firstRunQuestionDue, !questionOpen, inputReady || status.hasPrefix("Connected to") || menuSeen else {
+        guard firstRunQuestionDue, openQuestions == 0, inputReady || status.hasPrefix("Connected to") || menuSeen else {
             return
         }
         firstRunQuestionDue = false
@@ -696,12 +718,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // The no is first, so it is the default: a stray Return turns nothing on.
         alert.addButton(withTitle: no)
         alert.addButton(withTitle: yes)
-        questionOpen = true
+        openQuestions += 1
         refreshButton()
         NSApp.activate(ignoringOtherApps: true)
         let answer = alert.runModal()
         alert.window.orderOut(nil)
-        questionOpen = false
+        openQuestions -= 1
         refreshButton()
         return (answer == .alertSecondButtonReturn, box.map { $0.state == .on }, loginBox.map { $0.state == .on })
     }
@@ -741,10 +763,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // The alert may stay behind another app, so it is also said in a notification and by the "!" in the bar.
         notifier?.post(
             id: "trust", title: "Trust \(phone)?", body: "\(phone) wants to connect. Choose Trust or Don't Trust.")
-        questionOpen = true
+        openQuestions += 1
         refreshButton()
         defer {
-            questionOpen = false
+            openQuestions -= 1
             refreshButton()
             notifier?.withdraw(id: "trust")
         }
@@ -763,8 +785,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.addButton(withTitle: "Don't Trust")
         let trustButton = alert.addButton(withTitle: "Trust")
         trustButton.isEnabled = false
-        // .common modes so the timers fire inside the modal loop.
-        let timeout = Timer(timeInterval: Self.trustPromptSeconds, repeats: false) { _ in NSApp.abortModal() }
+        // .common modes so the timers fire inside the modal loop. The time limit is checked by the poll below rather
+        // than aborted by a one-shot timer, which would end a Security panel opened over the question instead.
+        let deadline = Date().addingTimeInterval(Self.trustPromptSeconds)
         let enable = Timer(timeInterval: Self.trustButtonDelaySeconds, repeats: false) { _ in
             trustButton.isEnabled = true
         }
@@ -773,13 +796,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // window goes at once; the loop is aborted only while it is this alert's, so a panel opened over the
         // question keeps its own, and the alert's loop ends at the next tick after that panel closes.
         let withdraw = Timer(timeInterval: Self.trustWithdrawPollSeconds, repeats: true) { _ in
-            guard ended.isCancelled else { return }
+            guard ended.isCancelled || Date() >= deadline else { return }
             alert.window.orderOut(nil)
             if NSApp.modalWindow === alert.window {
                 NSApp.abortModal()
             }
         }
-        RunLoop.main.add(timeout, forMode: .common)
         RunLoop.main.add(enable, forMode: .common)
         RunLoop.main.add(withdraw, forMode: .common)
         // Raised by a Bluetooth event while another app is in front, which macOS may not let take the foreground.
@@ -788,7 +810,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let answer = alert.runModal()
         // abortModal() ends the loop but leaves the window up, still looking like a question nobody will hear.
         alert.window.orderOut(nil)
-        timeout.invalidate()
         enable.invalidate()
         withdraw.invalidate()
         if ended.isCancelled {

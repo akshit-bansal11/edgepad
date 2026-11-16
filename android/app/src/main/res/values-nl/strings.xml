@@ -36,6 +36,7 @@
   <string name="open_controls">Bediening openen</string>
   <string name="open_controls_hint">Maak verbinding met een laptop om de bediening te openen.</string>
   <string name="open_bluetooth_settings">Bluetooth-instellingen</string>
+  <string name="bluetooth_tap_off">Bluetooth staat uit. Zet het aan om verbinding te maken met deze laptop.</string>
   <string name="refresh">Lijst vernieuwen</string>
   <string name="bluetooth_off">Geen laptops gevonden. Zet Bluetooth aan en koppel je laptop. Voor Wi-Fi of USB open je Edgepad op de laptop en zet je Wi-Fi- en USB-verbindingen aan in het menu; zet voor USB ook USB-tethering hier aan.</string>
   <string name="usb_cable_tether_off">Kabel aangesloten. Zet hier USB-tethering aan, en Wi-Fi- en USB-verbindingen in het Edgepad-menu op de laptop.</string>
@@ -104,6 +105,7 @@
   <string name="pair_cancelled">Koppelen geannuleerd. Tik op de laptop om het opnieuw te proberen.</string>
   <string name="pair_code_spoken">Koppelcode: %1$s</string>
   <string name="pair_expires">Verloopt over %1$s</string>
+  <string name="pair_expired">Verlopen</string>
   <string name="pair_confirm_title">Zei %1$s dat de code klopte?</string>
   <string name="pair_confirm_body">Als er stond dat de code fout was, tik dan op Nee: mogelijk antwoordt een ander apparaat in zijn plaats.</string>
   <string name="pair_confirm_yes">Ja, gekoppeld</string>
@@ -276,9 +278,9 @@
     <item quantity="other">%1$d getekend</item>
   </plurals>
   <string name="shapes_none">Nog geen</string>
-  <string name="shapes_footnote">Houd twee vingers stil op het touchpad tot de lijn doorgetrokken wordt (je voelt ook een tik als haptische feedback aanstaat) en teken dan met beide zonder los te laten.</string>
+  <string name="shapes_footnote">Houd twee vingers stil op het touchpad tot de lijn doorgetrokken wordt (je voelt ook een tik als haptische feedback aanstaat) en til er dan één op en teken met de andere.</string>
   <string name="shapes_empty_title">Nog geen vormen</string>
-  <string name="shapes_empty_body">Teken er hier een en geef hem iets om uit te voeren. Houd op het touchpad twee vingers stil tot de lijn doorgetrokken wordt en teken de vorm dan met beide zonder ze op te tillen.</string>
+  <string name="shapes_empty_body">Teken er hier een en geef hem iets om uit te voeren. Houd op het touchpad twee vingers stil tot de lijn doorgetrokken wordt en til er dan één op en teken de vorm met de andere.</string>
   <string name="shapes_add">Vorm tekenen</string>
   <string name="shapes_draw_title">Teken de vorm</string>
   <!-- The target list's back link, which returns to the canvas. -->
@@ -306,6 +308,7 @@
   <string name="keyboard_settings_title">Toetsenbordinstellingen</string>
   <string name="gamepad_settings_title">Gamepad-instellingen</string>
   <string name="updates_title">Updates</string>
+  <string name="updates_notice_text">Tik om het bijwerken van Edgepad af te ronden</string>
   <string name="updates_auto">Dagelijks controleren op updates</string>
   <string name="updates_checking">Controleren…</string>
   <string name="updates_failed">GitHub is niet bereikbaar</string>
@@ -415,7 +418,11 @@
   <string name="controls_hide_dials">Regelaars en media verbergen</string>
   <string name="controls_blackout">Scherm zwart bij inactiviteit</string>
   <string name="controls_open">%1$s openen</string>
-  <string name="controls_needs_newer">Hiervoor heeft deze laptop een nieuwere versie van Edgepad nodig. Werk hem bij en verbind opnieuw.</string>
+  <string name="controls_needs_newer">Deze laptop biedt dit niet. Draait er een oudere Edgepad op, werk die dan bij en verbind opnieuw.</string>
+  <string name="node_move_left">Naar links verplaatsen</string>
+  <string name="node_move_right">Naar rechts verplaatsen</string>
+  <string name="node_move_up">Omhoog verplaatsen</string>
+  <string name="node_move_down">Omlaag verplaatsen</string>
   <string name="controls_keyboard">Toetsenbord</string>
   <string name="controls_gamepad">Gamepad</string>
   <string name="controls_macros">Macro\'s</string>
@@ -497,7 +504,7 @@
   <string name="macros_layout_grid_description">Rijen: %1$d, kolommen: %2$d</string>
   <string name="macros_layout_caption">Het eerste getal is het aantal rijen, het tweede het aantal kolommen. Automatisch kiest wat de knoppen het grootst maakt.</string>
   <string name="macros_per_page">Macro\'s op het scherm</string>
-  <string name="macros_per_page_caption">Hoeveel macro\'s één pagina toont. De rest staat op meer pagina\'s, die je bereikt door zijwaarts te vegen. Houd een macro ingedrukt en sleep hem om hem binnen zijn pagina te verplaatsen.</string>
+  <string name="macros_per_page_caption">Hoeveel macro\'s één pagina toont. De rest staat op meer pagina\'s, die je bereikt door zijwaarts te vegen. Houd een macro ingedrukt en sleep hem om hem binnen zijn pagina te verplaatsen. Houd een geopende macro ingedrukt om een kruisje te tonen en tik dan op het kruisje om de app te sluiten.</string>
   <string name="macros_page_of">Pagina %1$d van %2$d</string>
   <string name="macros_empty_title">Nog geen macro\'s</string>
   <string name="macros_empty_body">Voeg ze toe via het menu Macro\'s… van Edgepad in het meldingsgebied op de laptop. Ze verschijnen hier zodra de lijst is verstuurd.</string>

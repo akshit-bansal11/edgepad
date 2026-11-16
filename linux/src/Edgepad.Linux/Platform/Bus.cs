@@ -1,4 +1,3 @@
-using System.Net.Sockets;
 using Tmds.DBus.Protocol;
 
 namespace Edgepad.Platform;
@@ -23,16 +22,25 @@ internal sealed class Bus(Func<string?> address, string name) : IDisposable
 
     /// <summary>Makes the call and ignores any return value. False when it failed.</summary>
     public bool Call(Func<DBusConnection, MessageBuffer> build) =>
-        Attempt(c => c.CallMethodAsync(build(c)));
+        Attempt(c => c.CallMethodAsync(build(c)), out _);
+
+    /// <summary>
+    /// The same, and when it failed because the service answered with an error, that error's name in
+    /// <paramref name="refusal"/>; null for any other failure, an unanswered call included.
+    /// </summary>
+    public bool Call(Func<DBusConnection, MessageBuffer> build, out string? refusal) =>
+        Attempt(c => c.CallMethodAsync(build(c)), out refusal);
 
     /// <summary>Makes the call and reads its reply with <paramref name="reader"/>. False when it failed.</summary>
     public bool Call<T>(Func<DBusConnection, MessageBuffer> build, MessageValueReader<T> reader, out T? value)
     {
         T? result = default;
-        var ok = Attempt(async c =>
-        {
-            result = await c.CallMethodAsync(build(c), reader);
-        });
+        var ok = Attempt(
+            async c =>
+            {
+                result = await c.CallMethodAsync(build(c), reader);
+            },
+            out _);
         value = ok ? result : default;
         return ok;
     }
@@ -45,8 +53,9 @@ internal sealed class Bus(Func<string?> address, string name) : IDisposable
         }
     }
 
-    private bool Attempt(Func<DBusConnection, Task> call)
+    private bool Attempt(Func<DBusConnection, Task> call, out string? refusal)
     {
+        refusal = null;
         lock (gate)
         {
             try
@@ -68,16 +77,17 @@ internal sealed class Bus(Func<string?> address, string name) : IDisposable
 
                 return true;
             }
-            catch (Exception e) when (Unwrap(e) is DBusErrorReplyException)
+            catch (Exception e) when (Unwrap(e) is DBusErrorReplyException reply)
             {
                 // The service answered with an error (a player that just quit, a method it does not have): the
-                // connection is fine, and the caller sees only that this call did not work.
+                // connection is fine, and the caller sees only that this call did not work, and why.
+                refusal = reply.ErrorName;
                 return false;
             }
-            catch (Exception e) when (Unwrap(e) is DBusExceptionBase or IOException or SocketException or TimeoutException
-                or ObjectDisposedException or InvalidOperationException)
+            catch (Exception e)
             {
-                // The connection is dropped whatever went wrong, and opened again by the next call.
+                // Anything at all, a malformed bus address included: callers run on pool threads, where an exception
+                // would end the process. The connection is dropped whatever went wrong, and opened again by the next call.
                 Reset();
                 var reason = Unwrap(e).Message;
                 if (reason != lastFailure)

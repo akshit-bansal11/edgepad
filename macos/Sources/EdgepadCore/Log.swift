@@ -5,6 +5,7 @@ import Foundation
 public enum Log {
     private static let maxBytes: Int64 = 1024 * 1024
     private static let gate = NSLock()
+    private static let queue = DispatchQueue(label: "edgepad.log", qos: .utility)
 
     private static let directory: String = {
         let library =
@@ -27,6 +28,12 @@ public enum Log {
         } catch {
             return
         }
+    }
+
+    /// `write`, later, on a background queue: for callers on the main thread that a flood could reach, so the file I/O
+    /// never stalls the pointer. Lines from here and from `write` still never interleave.
+    public static func writeAsync(_ message: String) {
+        queue.async { write(message) }
     }
 
     private static func append(_ message: String) throws {

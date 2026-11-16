@@ -372,7 +372,7 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
     <value>&amp;Rimuovi</value>
   </data>
   <data name="Macro_ReorderHint" xml:space="preserve">
-    <value>Alt+Freccia su e Alt+Freccia giù spostano la macro selezionata.</value>
+    <value>Alt+Su e Alt+Giù spostano la macro scelta.</value>
   </data>
   <data name="Macro_New" xml:space="preserve">
     <value>Nuova macro</value>

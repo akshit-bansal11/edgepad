@@ -118,9 +118,10 @@ internal static class Handshake
 
         // The PIN at levels 2 and 3, and still before onAdmitted: a phone that has not given it must never be
         // able to end the connected phone's session. Level 1 sends nothing here, as before there was a PIN.
-        if (!PinGate.Run(address, pin, frames.ReadFrame, frames.Send, log, giveUp, pinTimeout))
+        var pinOutcome = PinGate.Run(address, pin, frames.ReadFrame, frames.Send, log, giveUp, pinTimeout);
+        if (pinOutcome != PinOutcome.Passed)
         {
-            onStatus(LaptopStatus.RefusedPin);
+            onStatus(pinOutcome == PinOutcome.LockedOut ? LaptopStatus.RefusedLockedOut : LaptopStatus.RefusedPin);
             return false;
         }
 

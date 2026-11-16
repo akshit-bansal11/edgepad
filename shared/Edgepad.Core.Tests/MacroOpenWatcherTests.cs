@@ -128,6 +128,34 @@ public sealed class MacroOpenWatcherTests
         Assert.False(told.Wait(TimeSpan.FromMilliseconds(300), TestContext.Current.CancellationToken));
     }
 
+    [Fact]
+    public async Task StartAndStopReturnWhileASendIsBlocked()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var entered = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        using var watcher = new MacroOpenWatcher(
+            () => macros, windows, _ =>
+            {
+                entered.Set();
+                release.Wait(ct);
+            },
+            TimeSpan.FromHours(1));
+        var poll = Task.Run(watcher.Poll, ct);
+        try
+        {
+            Assert.True(entered.Wait(TimeSpan.FromSeconds(10), ct));
+            await Task.Run(watcher.Start, ct).WaitAsync(TimeSpan.FromSeconds(1), ct);
+            await Task.Run(watcher.Stop, ct).WaitAsync(TimeSpan.FromSeconds(1), ct);
+        }
+        finally
+        {
+            release.Set();
+        }
+
+        await poll.WaitAsync(TimeSpan.FromSeconds(10), ct);
+    }
+
     /// <summary>A desktop that writes each action down and answers whatever the test set.</summary>
     internal sealed class FakeWindows : IMacroWindows
     {

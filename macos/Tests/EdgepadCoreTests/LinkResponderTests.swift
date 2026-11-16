@@ -69,6 +69,7 @@ final class LinkResponderTests: XCTestCase {
     /// What the responder sent, one message each, and its timers, fired by hand.
     private var sent: [[UInt8]] = []
     private var timers: [() -> Void] = []
+    private var delays: [TimeInterval] = []
     private var results: [LinkResult?] = []
 
     override func tearDown() {
@@ -76,17 +77,22 @@ final class LinkResponderTests: XCTestCase {
         super.tearDown()
     }
 
-    private func responder() -> LinkResponder {
+    private func responder(host: String? = nil, refusing: Bool = false) -> LinkResponder {
         sent = []
         timers = []
+        delays = []
         results = []
         return LinkResponder(
-            identity: identity, paired: paired, limiter: limiter, prompt: prompt, trust: trust,
+            identity: identity, paired: paired, limiter: limiter, prompt: prompt, trust: trust, host: host,
+            refusing: { refusing },
             send: { [weak self] bytes in
                 self?.sent.append(bytes)
                 return true
             },
-            schedule: { [weak self] _, run in self?.timers.append(run) },
+            schedule: { [weak self] delay, run in
+                self?.delays.append(delay)
+                self?.timers.append(run)
+            },
             onDone: { [weak self] result in self?.results.append(result) })
     }
 
@@ -167,6 +173,32 @@ final class LinkResponderTests: XCTestCase {
         XCTAssertEqual(paired.find(Hex.string(phoneId))?.key, LinkCrypto.pairingKey(phone.prk))
         XCTAssertGreaterThan(prompt.withdrawn, 0)
         XCTAssertEqual(prompt.told, ["matched", "finished:true"])
+    }
+
+    /// CORE-4, as C#: the phone's minute starts before the code is typed here, so the Mac waits 5 s longer.
+    func testTheConfirmationIsAwaitedTheOwnersMinuteAndAGrace() throws {
+        let link = responder()
+        let phone = try pairToCode(link)
+
+        prompt.type(phone.code)
+
+        XCTAssertEqual(delays.last, LinkResponder.ownerTimeoutSeconds + 5)
+    }
+
+    /// CORE-10, as C#: an unreadable trust file never grants, so the pairing ends untrusted and uncounted.
+    func testAPairingOverAnUnreadableTrustFileIsNotTrusted() throws {
+        let link = responder()
+        let phone = try pairToCode(link)
+        prompt.type(phone.code)
+        // A folder where the trust file should be: there, and not readable.
+        try FileManager.default.createDirectory(
+            atPath: directory.appendingPathComponent("trusted-phone.txt").path, withIntermediateDirectories: true)
+
+        link.receive(LinkWire.message(LinkCrypto.phoneTag(phone.prk, phone.transcript, pairing: true)))
+
+        XCTAssertEqual(results.count, 1)
+        XCTAssertNil(results[0])
+        XCTAssertFalse(trust.admit(address) { false })
     }
 
     func testAWrongCodeIsAFailureAndNothingIsTrusted() throws {
@@ -295,17 +327,102 @@ final class LinkResponderTests: XCTestCase {
         XCTAssertNil(try XCTUnwrap(results.first))
     }
 
+    /// As on Windows: while the owner holds phones off only a pairing is turned away, as busy, and no prompt is spent.
+    func testAHoldRefusesAPairingButStillAnswersInfo() throws {
+        let pairing = responder(refusing: true)
+        pairing.receive(
+            LinkWire.message(LinkWire.pairRequest(phoneId: phoneId, name: "Pixel", commit: Hex.random(32))))
+        XCTAssertEqual(try reply(), [LinkWire.statusBusy])
+        XCTAssertNil(try XCTUnwrap(results.first))
+        XCTAssertTrue(prompt.shown.isEmpty)
+
+        let info = responder(refusing: true)
+        info.receive(LinkWire.message(LinkWire.infoRequest()))
+        var answer = LinkFieldReader(try reply())
+        XCTAssertEqual(try answer.byte(), LinkWire.statusOk)
+    }
+
     /// Otherwise a peer could put the pairing question on the owner's screen again and again by hanging up under it.
-    func testAPhoneThatHangsUpWhileTheOwnerIsAskedCountsTowardTheLock() throws {
+    func testAPhoneThatHangsUpWhileTheOwnerIsAskedHoldsItsHostOffButDoesNotLock() throws {
+        let link = responder(host: "192.0.2.1")
+        _ = try pairToCode(link)
+        link.cancel(byPeer: true)
+        XCTAssertNil(try XCTUnwrap(results.first))
+        XCTAssertGreaterThan(prompt.withdrawn, 0)
+
+        XCTAssertFalse(limiter.tryBegin(host: "192.0.2.1"))
+        XCTAssertTrue(limiter.tryBegin(host: "192.0.2.2"))
+    }
+
+    func testACancelHoldsThatHostOffAndItIsToldBusy() throws {
+        let link = responder(host: "192.0.2.1")
+        _ = try pairToCode(link)
+        prompt.cancel()
+        XCTAssertNil(try XCTUnwrap(results.first))
+
+        let again = responder(host: "192.0.2.1")
+        again.receive(
+            LinkWire.message(LinkWire.pairRequest(phoneId: phoneId, name: "Pixel", commit: Hex.random(32))))
+        XCTAssertEqual(try reply(), [LinkWire.statusBusy])
+        XCTAssertEqual(prompt.shown, ["Pixel"])
+        XCTAssertTrue(limiter.tryBegin(host: "192.0.2.2"))
+    }
+
+    func testFiveUnansweredPromptsDoNotLockPairing() throws {
         for _ in 0..<5 {
             let link = responder()
             _ = try pairToCode(link)
-            link.cancel(byPeer: true)
+            for timer in timers {
+                timer()
+            }
             XCTAssertNil(try XCTUnwrap(results.first))
-            XCTAssertGreaterThan(prompt.withdrawn, 0)
         }
 
-        XCTAssertFalse(limiter.tryBegin())
+        XCTAssertTrue(limiter.tryBegin())
+    }
+
+    /// Otherwise silent requests from many addresses could refuse everyone for an hour without the owner seeing one.
+    func testSilentRequestsFromManyHostsDoNotSpendTheHoursPrompts() throws {
+        for i in 0..<12 {
+            let link = responder(host: "192.0.2.\(i)")
+            link.receive(
+                LinkWire.message(LinkWire.pairRequest(phoneId: phoneId, name: "Pixel", commit: Hex.random(32))))
+            for timer in timers {
+                timer()
+            }
+            XCTAssertNil(try XCTUnwrap(results.first))
+        }
+
+        XCTAssertTrue(prompt.shown.isEmpty)
+        XCTAssertFalse(limiter.tryBegin(host: "192.0.2.0"))
+        XCTAssertTrue(limiter.tryBegin(host: "198.51.100.1"))
+    }
+
+    func testMoreBytesWhileTheOwnerIsAskedHoldTheHostOff() throws {
+        let link = responder(host: "192.0.2.1")
+        _ = try pairToCode(link)
+
+        link.receive([1, 2, 3])
+
+        XCTAssertNil(try XCTUnwrap(results.first))
+        XCTAssertFalse(limiter.tryBegin(host: "192.0.2.1"))
+        XCTAssertTrue(limiter.tryBegin(host: "192.0.2.2"))
+    }
+
+    func testAForgetOrThisMacStoppingUnderTheQuestionHoldsNoHostOffAndSpendsNoPrompt() throws {
+        for i in 0..<12 {
+            let link = responder(host: "192.0.2.1")
+            let phone = try pairToCode(link)
+            if i % 2 == 0 {
+                XCTAssertTrue(trust.forget())
+                prompt.type(phone.code)
+            } else {
+                link.cancel(byPeer: false)
+            }
+            XCTAssertNil(try XCTUnwrap(results.first))
+        }
+
+        XCTAssertTrue(limiter.tryBegin(host: "192.0.2.1"))
     }
 
     func testAForgetWhileTheOwnerIsAskedKeepsAndTrustsNothing() throws {
@@ -476,5 +593,101 @@ final class PairingLimiterTests: XCTestCase {
             limiter.end(.failed)
         }
         XCTAssertTrue(limiter.tryBegin())
+    }
+
+    func testACancelRefusesThatHostForAMinuteAndNoOtherHost() {
+        var now: TimeInterval = 0
+        let limiter = PairingLimiter(now: { now })
+        XCTAssertTrue(limiter.tryBegin(host: "a"))
+        limiter.end(.cancelled, host: "a")
+
+        XCTAssertFalse(limiter.tryBegin(host: "a"))
+        XCTAssertTrue(limiter.tryBegin(host: "b"))
+        limiter.end(.abandoned, host: "b")
+        now = 59
+        XCTAssertFalse(limiter.tryBegin(host: "a"))
+        now = 60
+        XCTAssertTrue(limiter.tryBegin(host: "a"))
+    }
+
+    func testTheRefusalDoublesWithEachFurtherCancelAndStopsAtAnHour() {
+        var now: TimeInterval = 0
+        let limiter = PairingLimiter(now: { now })
+        var expected: TimeInterval = 60
+        for i in 0..<9 {
+            XCTAssertTrue(limiter.tryBegin(host: "a"), "attempt \(i)")
+            limiter.end(i % 2 == 0 ? .cancelled : .timedOut, host: "a")
+            now += expected - 1
+            XCTAssertFalse(limiter.tryBegin(host: "a"))
+            now += 1
+            expected = min(expected * 2, 3600)
+        }
+        XCTAssertEqual(expected, 3600)
+    }
+
+    func testAPairingClearsTheHostsStreak() {
+        var now: TimeInterval = 0
+        let limiter = PairingLimiter(now: { now })
+        XCTAssertTrue(limiter.tryBegin(host: "a"))
+        limiter.end(.cancelled, host: "a")
+        now = 60
+        XCTAssertTrue(limiter.tryBegin(host: "a"))
+        limiter.end(.paired, host: "a")
+        XCTAssertTrue(limiter.tryBegin(host: "a"))
+        limiter.end(.cancelled, host: "a")
+
+        // Back to a minute, not two.
+        now = 119
+        XCTAssertFalse(limiter.tryBegin(host: "a"))
+        now = 120
+        XCTAssertTrue(limiter.tryBegin(host: "a"))
+    }
+
+    func testCancelsAndTimeoutsNeverCountTowardTheFiveFailureLock() {
+        let limiter = PairingLimiter(now: { 0 })
+        for i in 0..<9 {
+            XCTAssertTrue(limiter.tryBegin())
+            limiter.end(i % 2 == 0 ? .cancelled : .timedOut)
+        }
+        XCTAssertTrue(limiter.tryBegin())
+    }
+
+    func testAWrongCodeStillCounts() {
+        let limiter = PairingLimiter(now: { 0 })
+        for _ in 0..<4 {
+            XCTAssertTrue(limiter.tryBegin(host: "a"))
+            limiter.end(.failed, host: "a")
+        }
+        XCTAssertTrue(limiter.tryBegin(host: "a"))
+        limiter.end(.cancelled, host: "a")
+        XCTAssertTrue(limiter.tryBegin(host: "b"))
+        limiter.end(.failed, host: "b")
+
+        XCTAssertFalse(limiter.tryBegin(host: "c"))
+    }
+
+    func testTheHourlyCapRefusesEveryoneUntilTheOldestFallsOut() {
+        var now: TimeInterval = 0
+        let limiter = PairingLimiter(now: { now })
+        for i in 0..<10 {
+            XCTAssertTrue(limiter.tryBegin(host: "host\(i)"))
+            limiter.end(.cancelled, host: "host\(i)")
+        }
+
+        XCTAssertFalse(limiter.tryBegin(host: "new"))
+        XCTAssertFalse(limiter.tryBegin())
+        now = 3599
+        XCTAssertFalse(limiter.tryBegin(host: "new"))
+        now = 3600
+        XCTAssertTrue(limiter.tryBegin(host: "new"))
+    }
+
+    func testTheHostTableStaysBounded() {
+        let limiter = PairingLimiter(now: { 0 })
+        // End without tryBegin: the hourly cap would otherwise stop this at ten, and only the table is under test.
+        for i in 0..<200 {
+            limiter.end(.cancelled, host: "host\(i)")
+        }
+        XCTAssertLessThanOrEqual(limiter.trackedHosts, 64)
     }
 }

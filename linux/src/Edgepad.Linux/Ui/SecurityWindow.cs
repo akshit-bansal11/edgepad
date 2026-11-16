@@ -29,13 +29,13 @@ internal sealed class SecurityWindow
     private readonly PinStore pin;
     private readonly TrustStore trust;
     private readonly Action hangUp;
-    private readonly Func<Task> forgetAll;
+    private readonly Func<Window, Task> forgetAll;
     private readonly PairedLinks paired;
     private readonly StackPanel phoneRows = new() { Spacing = 6 };
     private readonly Button forgetAllButton;
 
     // Forgets the Wi-Fi and USB pairings and tells the owner if it could not, as Forget trusted phones does.
-    private readonly Func<Task> forgetPairings;
+    private readonly Func<Window, Task> forgetPairings;
     private readonly Look look = Look.Current;
     private readonly Window window;
     private readonly RadioButton[] levels;
@@ -52,7 +52,11 @@ internal sealed class SecurityWindow
     private bool filling;
     private bool busy;
 
-    public SecurityWindow(PinStore pin, TrustStore trust, PairedLinks paired, Func<Task> forgetPairings, Func<Task> forgetAll, Action hangUp)
+    // The PIN is being hashed and written off the UI thread: closing now would lift the hold under that write.
+    private bool hashing;
+    private readonly Button cancel;
+
+    public SecurityWindow(PinStore pin, TrustStore trust, PairedLinks paired, Func<Window, Task> forgetPairings, Func<Window, Task> forgetAll, Action hangUp)
     {
         this.forgetAll = forgetAll;
         this.paired = paired;
@@ -103,7 +107,7 @@ internal sealed class SecurityWindow
 
         var reset = look.Button("Reset PIN and forget phones…", danger: true);
         reset.Click += (_, _) => _ = Guard(ConfirmResetAsync);
-        var cancel = look.Button("Cancel");
+        cancel = look.Button("Cancel");
         save = look.Button("Save", primary: true);
         save.IsDefault = true;
         save.Click += (_, _) => _ = Guard(SaveAsync);
@@ -121,6 +125,13 @@ internal sealed class SecurityWindow
             if (e.Key == Key.Escape)
             {
                 window.Close();
+            }
+        };
+        window.Closing += (_, e) =>
+        {
+            if (hashing)
+            {
+                e.Cancel = true;
             }
         };
         window.Closed += (_, _) =>
@@ -260,7 +271,7 @@ internal sealed class SecurityWindow
 
     private async Task ForgetAllAsync()
     {
-        await forgetAll();
+        await forgetAll(window);
         Refresh();
     }
 
@@ -293,14 +304,26 @@ internal sealed class SecurityWindow
 
         busy = true;
         save.IsEnabled = false;
+        cancel.IsEnabled = false;
         try
         {
             // The PIN first: SetLevel refuses level 2 or 3 without one. SetPin also empties the verified list, so
             // the level needs its own write only when it changed. Hashing takes hundreds of milliseconds, so it
-            // runs off the UI thread.
+            // runs off the UI thread, and the window cannot close meanwhile.
             if (staged is { } digits)
             {
-                if (!await Task.Run(() => pin.SetPin(digits)))
+                hashing = true;
+                bool saved;
+                try
+                {
+                    saved = await Task.Run(() => pin.SetPin(digits));
+                }
+                finally
+                {
+                    hashing = false;
+                }
+
+                if (!saved)
                 {
                     await Dialogs.Inform(window, "The PIN could not be saved, so nothing was changed. The log has the reason.");
                     return;
@@ -322,6 +345,7 @@ internal sealed class SecurityWindow
         {
             busy = false;
             save.IsEnabled = true;
+            cancel.IsEnabled = true;
         }
     }
 
@@ -346,7 +370,7 @@ internal sealed class SecurityWindow
 
         // Every way of forgetting phones forgets the network pairings too, whatever became of the trust file: a
         // paired phone would otherwise resume its link and meet only the trust question.
-        await forgetPairings();
+        await forgetPairings(window);
 
         var pinGone = forgotten && pin.Reset();
         hangUp();

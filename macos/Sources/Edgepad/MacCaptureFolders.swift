@@ -1,3 +1,4 @@
+import CoreServices
 import EdgepadCore
 import Foundation
 
@@ -11,5 +12,15 @@ final class MacCaptureFolders: CaptureFolders {
         let desktop = (NSHomeDirectory() as NSString).appendingPathComponent("Desktop")
         let folder = chosen.map { ($0 as NSString).expandingTildeInPath } ?? desktop
         return [CaptureFolder(path: folder, shared: true)]
+    }
+
+    /// Spotlight's kMDItemIsScreenCapture, which macOS sets on its screenshots and recordings whatever the language
+    /// names them in. False for a file Spotlight has not indexed yet, or when Spotlight is off: the English names
+    /// still count then.
+    func isScreenCapture(_ path: String) -> Bool {
+        guard let item = MDItemCreate(kCFAllocatorDefault, path as CFString),
+            let value = MDItemCopyAttribute(item, "kMDItemIsScreenCapture" as CFString)
+        else { return false }
+        return (value as? Bool) ?? false
     }
 }

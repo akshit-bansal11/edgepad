@@ -23,13 +23,14 @@ import me.akshitbansal.edgepad.protocol.Pin
  * live in a [PinEntry] for as long as this screen does and are shown only as filled dots.
  *
  * Six digits send the answer at once; the keypad then stays still until the laptop replies, because a new
- * question rebuilds this screen and an accepted one leaves it. [attemptsLeft] below the full five means the
- * last answer was wrong, which the danger line says. [answered] is true when this question was already answered
+ * question rebuilds this screen and an accepted one leaves it. [wrongAnswer] (see [showsWrong]) means the
+ * last answer was wrong, which the danger line says with [attemptsLeft]. [answered] is true when this question was already answered
  * before the activity was rebuilt: the screen then stays waiting, since a second answer would use up an attempt.
  */
 class PinScreen(
     private val ui: Ui,
     attemptsLeft: Int,
+    wrongAnswer: Boolean,
     answered: Boolean,
     private val onAnswer: (Pin) -> Unit,
     onCancel: () -> Unit,
@@ -58,7 +59,7 @@ class PinScreen(
                 isAccessibilityHeading = true
             }
             body(ui.string(R.string.pin_body), Space.XS).gravity = Gravity.CENTER
-            if (attemptsLeft < ATTEMPTS) {
+            if (wrongAnswer) {
                 val line =
                     ui.context.resources.getQuantityString(R.plurals.pin_attempts_left, attemptsLeft, attemptsLeft)
                 secondary(line, color = ui.palette.danger, topDp = Space.S).apply {
@@ -102,7 +103,7 @@ class PinScreen(
         view.defaultFocusHighlightEnabled = false
         view.setOnKeyListener { _, code, event -> event.action == KeyEvent.ACTION_DOWN && typed(code) }
         view.post { view.requestFocus() }
-        if (attemptsLeft < ATTEMPTS) view.post { reject() }
+        if (wrongAnswer) view.post { reject() }
     }
 
     /** A wrong answer: the system's reject buzz, and the dots shake sideways once (not at all with animations off). */
@@ -129,6 +130,8 @@ class PinScreen(
     private fun keypad(): LinearLayout =
         LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL
+            // A keypad reads 1 2 3 left to right in every language; a right-to-left locale would mirror the rows.
+            layoutDirection = View.LAYOUT_DIRECTION_LTR
             // 1 to 9 in three rows, then an empty cell, 0 and Delete, as on a phone's own PIN pad.
             val rows = listOf(listOf(1, 2, 3), listOf(4, 5, 6), listOf(7, 8, 9), listOf(EMPTY, 0, DELETE))
             rows.forEachIndexed { r, keys ->
@@ -193,18 +196,27 @@ class PinScreen(
         row.contentDescription = ui.string(R.string.pin_entered, filled, Pin.LENGTH)
     }
 
-    private companion object {
-        /** What the laptop allows before a lock-out; fewer left means the last answer was wrong. */
-        const val ATTEMPTS = 5
-        const val EMPTY = -1
-        const val DELETE = -2
-        const val LOCK_DP = 36f
-        const val DOT_DP = 14f
-        const val DOT_GAP_DP = 14f
-        const val KEY_DP = 56f
-        const val SHAKE_DP = 8f
+    companion object {
+        /** What the laptop allows before a lock-out. */
+        private const val ATTEMPTS = 5
+        private const val EMPTY = -1
+        private const val DELETE = -2
+        private const val LOCK_DP = 36f
+        private const val DOT_DP = 14f
+        private const val DOT_GAP_DP = 14f
+        private const val KEY_DP = 56f
+        private const val SHAKE_DP = 8f
 
         /** The keypad is held to this width rather than stretched across a wide screen. */
-        const val KEYPAD_DP = 300f
+        private const val KEYPAD_DP = 300f
+
+        /**
+         * Whether the question follows a wrong answer. The laptop counts misses per address, so fewer than five
+         * left on a link that has sent nothing yet is an older link's count, not this person's mistake.
+         */
+        internal fun showsWrong(
+            attemptsLeft: Int,
+            sentOnLink: Boolean,
+        ): Boolean = sentOnLink && attemptsLeft < ATTEMPTS
     }
 }

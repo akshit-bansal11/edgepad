@@ -124,6 +124,13 @@ internal fun forgotten(
     keys: Set<String>,
 ): List<SavedLaptop> = list.filterNot { it.isIn(keys) }
 
+/** One laptop connects by itself over one transport: the row's other entries, not [chosenKey], stop doing so. */
+internal fun onlyAutoConnecting(
+    list: List<SavedLaptop>,
+    rowKeys: Set<String>,
+    chosenKey: String,
+): List<SavedLaptop> = list.map { if (it.isIn(rowKeys) && chosenKey !in it.keys) it.copy(autoConnect = false) else it }
+
 /** What one row of Devices says about its laptop. */
 enum class RowStatus { NONE, REMEMBERED, CONNECTING, AWAITING, ASKING, RECONNECTING, CONNECTED, FAILED }
 

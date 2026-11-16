@@ -213,6 +213,7 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
     private bool SaveSignature()
     {
         Stroke[] strokes;
+        Rectangle screen;
         lock (gate)
         {
             if (board.Mode != BoardMode.Sign)
@@ -220,8 +221,10 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
                 return false;
             }
 
-            // Finished strokes never change again, so the copy can share them.
+            // Finished strokes never change again, so the copy can share them. The bounds are the ones SIGN_BEGIN
+            // chose, taken now: an ANNOTATE_END queued behind this clears them before the export runs.
             strokes = [.. board.Strokes];
+            screen = chosen ?? PrimaryBounds();
         }
 
         if (strokes.Length == 0)
@@ -233,7 +236,7 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         }
 
         // The clipboard is an OLE call and needs an STA thread, which the session thread is not.
-        Post(() => Export(strokes));
+        Post(() => Export(strokes, screen));
         return true;
     }
 
@@ -354,7 +357,7 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
     }
 
     /// <summary>The export, on the UI thread. Every outcome is answered, so the phone never waits on nothing.</summary>
-    private void Export(Stroke[] strokes)
+    private void Export(Stroke[] strokes, Rectangle screen)
     {
         // The session ended while this was queued: its strokes are discarded, and there is no one to answer.
         if (Volatile.Read(ref disposed) != 0)
@@ -365,7 +368,7 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         string status;
         try
         {
-            status = Save(strokes);
+            status = Save(strokes, screen);
         }
         catch (Exception e)
         {
@@ -389,9 +392,8 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         });
     }
 
-    private string Save(Stroke[] strokes)
+    private static string Save(Stroke[] strokes, Rectangle screen)
     {
-        var screen = Bounds();
         if (SignatureExport.Render(strokes, screen.Width, screen.Height) is not { } png)
         {
             return SignStatus.Empty;
@@ -401,15 +403,25 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         var stem = string.Create(CultureInfo.InvariantCulture, $"signature-{DateTime.Now:yyyyMMdd-HHmmss}");
         WriteNew(folder, stem, png);
 
-        // PNG keeps the transparency for the apps that read it; the bitmap is for the many that only take that.
-        // Copied, so the clipboard holds its own rendering once these are disposed.
-        using var stream = new MemoryStream(png);
-        using var image = new Bitmap(stream);
-        using var pngData = new MemoryStream(png);
-        var data = new DataObject();
-        data.SetData("PNG", false, pngData);
-        data.SetImage(image);
-        Clipboard.SetDataObject(data, true, 5, 100);
+        // The file is written, so the signature is saved whatever the clipboard does: another app holding it open
+        // must not make the phone say the save failed.
+        try
+        {
+            // PNG keeps the transparency for the apps that read it; the bitmap is for the many that only take that.
+            // Copied, so the clipboard holds its own rendering once these are disposed.
+            using var stream = new MemoryStream(png);
+            using var image = new Bitmap(stream);
+            using var pngData = new MemoryStream(png);
+            var data = new DataObject();
+            data.SetData("PNG", false, pngData);
+            data.SetImage(image);
+            Clipboard.SetDataObject(data, true, 5, 100);
+        }
+        catch (Exception e)
+        {
+            Log.Write($"A saved signature could not be put on the clipboard: {e.Message}");
+        }
+
         return SignStatus.Saved;
     }
 

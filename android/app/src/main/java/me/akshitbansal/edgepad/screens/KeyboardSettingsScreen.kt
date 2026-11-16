@@ -30,7 +30,7 @@ object KeyboardSettingsScreen {
             footnote(ui.string(R.string.keyboard_size_caption))
             card(Space.XL) {
                 add(
-                    ui.field(
+                    ui.segmentedField(
                         ui.string(R.string.keyboard_function_keys),
                         ui.segmented(
                             listOf(ui.string(R.string.keyboard_with_fn), ui.string(R.string.keyboard_direct)),

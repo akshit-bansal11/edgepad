@@ -208,6 +208,19 @@ public sealed class TcpLinkListenerTests : IDisposable
     }
 
     [Fact]
+    public async Task DoneGivesWritesThirtySeconds()
+    {
+        using var listener = Listen(TimeSpan.FromMilliseconds(100));
+        using var client = await ConnectAsync(listener);
+        await WaitForAsync(1);
+        Assert.True(accepted.TryPeek(out var server));
+
+        server.Done();
+
+        Assert.Equal(30_000, server.Socket.SendTimeout);
+    }
+
+    [Fact]
     public async Task ACallbackThatThrowsClosesItsConnectionAndTheListenerKeepsAccepting()
     {
         var calls = 0;
@@ -235,6 +248,30 @@ public sealed class TcpLinkListenerTests : IDisposable
 
         Assert.True(second.Start());
         Assert.NotEqual(listener.Port, second.Port);
+    }
+
+    [Fact]
+    public void HungUpSeesAnOrderlyCloseAndNeverReadsAByte()
+    {
+        using var server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        server.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        server.Listen(1);
+        using var phone = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        phone.Connect(server.LocalEndPoint!);
+        using var laptop = server.Accept();
+        Assert.False(LinkResponder.HungUp(laptop));
+
+        // A byte waiting is the confirmation, not a hang-up, and it is left for the read that follows.
+        byte[] confirmation = [7];
+        phone.Send(confirmation);
+        Assert.True(SpinWait.SpinUntil(() => laptop.Available > 0, Patience));
+        Assert.False(LinkResponder.HungUp(laptop));
+        Assert.Equal(1, laptop.Available);
+        laptop.Receive(new byte[1]);
+
+        phone.Shutdown(SocketShutdown.Both);
+        phone.Close();
+        Assert.True(SpinWait.SpinUntil(() => LinkResponder.HungUp(laptop), Patience));
     }
 
     public void Dispose()
