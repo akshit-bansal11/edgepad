@@ -277,22 +277,25 @@ internal sealed class TrayContext : ApplicationContext
             ui.Post(_ => FollowExe(), null);
         }
 
+        updateTimer.Tick += (_, _) => _ = CheckForUpdateAsync();
         if (!networkSettings.HasChoice)
         {
-            // Posted, so it waits for the tray to be up and running rather than holding up this constructor.
-            ui.Post(_ => AskFirstRun(), null);
+            // Posted, so it waits for the tray to be up and running rather than holding up this constructor. The update
+            // check waits for the answer: its balloon must not be the first thing a new owner sees.
+            ui.Post(
+                _ =>
+                {
+                    AskFirstRun();
+                    StartUpdateChecks();
+                },
+                null);
+        }
+        else
+        {
+            StartUpdateChecks();
         }
 
         _ = StartMediaAsync();
-
-        // Once now and once a day after, for a tray app that is left running for weeks; neither when the owner has
-        // turned "Check for updates daily" off.
-        updateTimer.Tick += (_, _) => _ = CheckForUpdateAsync();
-        if (updateSetting.Enabled)
-        {
-            updateTimer.Start();
-            _ = CheckForUpdateAsync();
-        }
 
         // A newer Edgepad asks this one to quit through the event, so running an update takes over cleanly.
         new Thread(() => WaitForQuit(quit)) { IsBackground = true, Name = "edgepad-quit" }.Start();
@@ -407,11 +410,31 @@ internal sealed class TrayContext : ApplicationContext
     }
 
     /// <summary>
+    /// Once now and once a day after, for a tray app that is left running for weeks; neither when the owner has turned
+    /// "Check for updates daily" off.
+    /// </summary>
+    private void StartUpdateChecks()
+    {
+        if (updateSetting.Enabled)
+        {
+            updateTimer.Start();
+            _ = CheckForUpdateAsync();
+        }
+    }
+
+    /// <summary>
     /// The Wi-Fi and USB switch. Turning it on says first what will happen; a no there leaves it off.
     /// </summary>
     private void ToggleNetwork(bool on)
     {
-        if (on && AskNetwork(firstRun: false) is not { On: true })
+        // The question or the elevation prompt is still open: a second toggle would start a second AllowThenListen.
+        if (allowingNetwork)
+        {
+            networkRow.Checked = !on;
+            return;
+        }
+
+        if (on &&AskNetwork(firstRun: false) is not { On: true })
         {
             networkRow.Checked = false;
             return;
@@ -660,8 +683,8 @@ internal sealed class TrayContext : ApplicationContext
     }
 
     /// <summary>The pairing window may open behind whatever has focus; the notification is what the owner notices.</summary>
-    private void AnnouncePairing(string phoneName) => ui.Post(
-        _ => Balloon(Strings.Balloon_WantsToPair.Fill(phoneName), ToolTipIcon.Info),
+    private void AnnouncePairing(string phoneName, Action front) => ui.Post(
+        _ => Balloon(Strings.Balloon_WantsToPair.Fill(phoneName), ToolTipIcon.Info, front),
         null);
 
     /// <summary>A phone asked for the controller and there is no driver. Once per run; clicking it opens the download.</summary>

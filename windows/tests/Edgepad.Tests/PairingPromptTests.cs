@@ -51,13 +51,29 @@ public sealed class PairingPromptTests
     {
         var ui = new Queued();
         var announced = new List<string>();
-        var prompt = new PairingPrompt(ui, announced.Add);
+        var prompt = new PairingPrompt(ui, (name, _) => announced.Add(name));
 
         prompt.Show("Pixel", _ => { }, () => { }).Dispose();
         ui.RunAll();
 
         // The name is announced at once; the window, which would be an open form, never went up.
         Assert.Equal("Pixel", Assert.Single(announced));
+        Assert.Empty(Application.OpenForms);
+    }
+
+    [Fact]
+    public void ClickingTheNotificationOfAWithdrawnQuestionOpensNothing()
+    {
+        var ui = new Queued();
+        Action? front = null;
+        var prompt = new PairingPrompt(ui, (_, bringForward) => front = bringForward);
+
+        prompt.Show("Pixel", _ => { }, () => { }).Dispose();
+        ui.RunAll();
+        Assert.NotNull(front);
+        front();
+        ui.RunAll();
+
         Assert.Empty(Application.OpenForms);
     }
 
