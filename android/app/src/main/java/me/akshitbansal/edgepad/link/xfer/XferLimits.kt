@@ -29,6 +29,7 @@ object XferLimits {
     const val PROGRESS_EVERY_BYTES = 256L * 1024
     const val PARTIAL_KEPT_MS = 7L * 24 * 60 * 60 * 1000
     const val ANSWER_TIMEOUT_MS = 30_000L
+    const val IDLE_MS = 30_000L
     const val MAX_NAME_BYTES = 120
     const val MAX_EXTENSION_BYTES = 20
     const val PARTIAL_EXTENSION = ".part"

@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.link.xfer
 
 import me.akshitbansal.edgepad.link.Transport
 import me.akshitbansal.edgepad.protocol.Frame
+import me.akshitbansal.edgepad.protocol.FrameCodec
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -134,6 +135,37 @@ class XferTest {
     }
 
     @Test
+    fun aFileIdleForThirtySecondsIsDroppedKeepingItsPartAndTheLaptopIsTold() {
+        var now = 1_000L
+        val timers = ArrayList<Pair<Long, () -> Unit>>()
+        val receiver =
+            XferReceiver(
+                store,
+                { replies += it },
+                runner = { it() },
+                now = { now },
+                after = { delay, work ->
+                    timers += delay to work
+                    {}
+                },
+            )
+        receiver.take(Frame.XferBegin(1, 10uL, "i.bin"))
+        now += 20_000
+        receiver.take(Frame.XferChunk(1, 0uL, bytes(4)))
+        now += 15_000
+        timers.last().second()
+        assertTrue(receiver.busy)
+        assertEquals(15_000L, timers.last().first)
+        now += 15_000
+        timers.last().second()
+        assertFalse(receiver.busy)
+        assertEquals(XferCode.CANCELLED.value, replies.last().status)
+        assertEquals(1, parts.listFiles()!!.size)
+        receiver.take(Frame.XferBegin(2, 10uL, "i.bin"))
+        assertEquals(4uL, replies.last().offset)
+    }
+
+    @Test
     fun oldPartsAreDeletedWhenTheReceiverIsMade() {
         val old = File(parts, "x.5.part").apply { writeBytes(byteArrayOf(1)) }
         old.setLastModified(1_000L)
@@ -159,6 +191,55 @@ class XferTest {
         }
         val sender = XferSender({ wire += it }, Transport.WIFI, { 0L }, { false }, 1_000L, clock)
         assertEquals(XferCode.TIMED_OUT, sender.send({ bytes(10).inputStream() }, "n.bin", 10, 1))
+    }
+
+    @Test
+    fun theSenderTellsTheLaptopWhenItGivesUp() {
+        var now = 0L
+        val clock = {
+            now += 600
+            now
+        }
+        val sender = XferSender({ wire += it }, Transport.WIFI, { 0L }, { false }, 1_000L, clock)
+        sender.send({ bytes(10).inputStream() }, "n.bin", 10, 1)
+        assertEquals(XferCode.CANCELLED.value, (wire.last() as Frame.XferStatus).status)
+    }
+
+    @Test
+    fun aLostChunkInTheMiddleIsSentAgainFromTheReportedOffset() = lostChunkIsResent(lostIndex = 1)
+
+    @Test
+    fun aLostLastChunkIsSentAgainWhenTheEndIsAnsweredShort() = lostChunkIsResent(lostIndex = 3)
+
+    private fun lostChunkIsResent(lostIndex: Int) {
+        val step = FrameCodec.MAX_XFER_CHUNK_BYTES
+        val data = bytes(step * 4)
+        lateinit var sender: XferSender
+        val receiver =
+            XferReceiver(
+                store,
+                { status ->
+                    replies += status
+                    sender.take(status)
+                },
+                { arrived += it },
+                runner = { it() },
+            )
+        var lost = false
+        sender =
+            XferSender(
+                { frame ->
+                    val dropped = !lost && frame is Frame.XferChunk && frame.offset == (lostIndex * step).toULong()
+                    if (dropped) lost = true else receiver.take(frame)
+                },
+                Transport.WIFI,
+                { 0L },
+                { false },
+                answerTimeoutMs = 200L,
+                pause = { true },
+            )
+        assertEquals(XferCode.SAVED, sender.send({ data.inputStream() }, "g.bin", data.size.toLong(), 1))
+        assertArrayEquals(data, File(dest, "g.bin").readBytes())
     }
 
     @Test

@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.provider.OpenableColumns
 import me.akshitbansal.edgepad.link.Laptop
 import me.akshitbansal.edgepad.link.ManagedLink
@@ -102,6 +104,9 @@ object Transfers {
 
         @Volatile private var cancelled = false
 
+        // The receiver's idle check: one delayed post while a file is arriving, none otherwise.
+        private val idle = Handler(Looper.getMainLooper())
+
         private val moving = AtomicBoolean()
         private var nextId = 0
 
@@ -122,6 +127,12 @@ object Transfers {
                     reply = { link.send(it) },
                     arrived = { notice.finish(it, true) },
                     progress = { name, held, size -> notice.progress(name, held, size, false) },
+                    after = { delayMs, work ->
+                        val task = Runnable(work)
+                        idle.postDelayed(task, delayMs)
+                        val stop: () -> Unit = { idle.removeCallbacks(task) }
+                        stop
+                    },
                 )
             }
         private val receiver by receiverOnce

@@ -19,6 +19,9 @@ import kotlin.concurrent.thread
  * @param arrived Takes the name a file was published under.
  * @param progress Takes the bytes held after each chunk, for the notification to gate.
  * @param runner Runs the publish; tests run it in place.
+ * @param after Runs the work once after the delay and answers how to cancel it. One is pending per file arriving: it
+ * drops a file that has been [XferLimits.IDLE_MS] without a chunk (the part stays, the laptop is told CANCELLED), so
+ * a sender that gave up does not leave the receiver answering BUSY.
  */
 class XferReceiver(
     private val store: XferStore,
@@ -26,7 +29,8 @@ class XferReceiver(
     private val arrived: (String) -> Unit = {},
     private val progress: (name: String, held: Long, size: Long) -> Unit = { _, _, _ -> },
     private val runner: (() -> Unit) -> Unit = { work -> thread(name = "edgepad-xfer-save", block = work) },
-    now: () -> Long = System::currentTimeMillis,
+    private val now: () -> Long = System::currentTimeMillis,
+    private val after: (Long, () -> Unit) -> (() -> Unit) = { _, _ -> {} },
 ) {
     private val lock = Any()
     private var active: Active? = null
@@ -108,7 +112,10 @@ class XferReceiver(
                 read = file.read(buffer)
             }
             val held = file.length()
-            active = Active(id, size, name, part, file, digest, held)
+            val a = Active(id, size, name, part, file, digest, held)
+            a.lastChunkAt = now()
+            active = a
+            arm(a, XferLimits.IDLE_MS)
             say(id, XferCode.READY, held)
         } catch (e: IOException) {
             file.close()
@@ -119,6 +126,7 @@ class XferReceiver(
     private fun chunk(frame: Frame.XferChunk): Boolean =
         synchronized(lock) {
             val a = active?.takeIf { it.id == frame.id && !it.saving } ?: return false
+            a.lastChunkAt = now()
             if (frame.offset != a.held.toULong()) {
                 say(a.id, XferCode.PROGRESS, a.held)
                 return true
@@ -182,14 +190,37 @@ class XferReceiver(
             }
         synchronized(lock) {
             if (active === a) active = null
+            a.stopTimer()
             if (published == null) say(a.id, XferCode.WRITE_FAILED, 0) else say(a.id, XferCode.SAVED, a.size)
         }
         if (published != null) arrived(published)
     }
 
+    private fun arm(
+        a: Active,
+        delayMs: Long,
+    ) {
+        a.stopTimer = after(delayMs) { idle(a) }
+    }
+
+    // The one pending check: fires after a quiet stretch, or sets itself again for what is left of one.
+    private fun idle(a: Active) {
+        synchronized(lock) {
+            if (active !== a || a.saving) return
+            val left = XferLimits.IDLE_MS - (now() - a.lastChunkAt)
+            if (left > 0) {
+                arm(a, left)
+                return
+            }
+            finish(deletePart = false)
+            say(a.id, XferCode.CANCELLED, 0)
+        }
+    }
+
     private fun finish(deletePart: Boolean) {
         val a = active ?: return
         active = null
+        a.stopTimer()
         try {
             a.file.close()
         } catch (e: IOException) {
@@ -215,5 +246,7 @@ class XferReceiver(
     ) {
         var reported = held
         var saving = false
+        var lastChunkAt = 0L
+        var stopTimer: () -> Unit = {}
     }
 }
