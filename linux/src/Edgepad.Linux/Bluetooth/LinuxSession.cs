@@ -2,6 +2,7 @@ using Edgepad.Blob;
 using Edgepad.Capture;
 using Edgepad.Dispatch;
 using Edgepad.Macros;
+using Edgepad.Media;
 using Edgepad.Net;
 using Edgepad.Platform;
 using Edgepad.Power;
@@ -36,6 +37,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Action<LinuxSession> onEnded;
     private int disposed;
     private Action<bool>? inputState;
+    private Action<MediaSnapshot>? mediaObserver;
     private PowerSource? powerSource;
     private PowerReporter? power;
     private volatile NotificationMonitor? notifications;
@@ -136,6 +138,27 @@ internal sealed class LinuxSession : IDisposable
 
             // TEXT 23, best effort: only the recordings this phone started are seen.
             dispatcher.CaptureStateReply = state => frames.Send(new Text((byte)TextKind.CaptureState, state));
+
+            // Sleep or shut down when the media ends, only where logind answers (the same test gates the feature token).
+            // Fed by the laptop's media poll; that poll is shared, so a dead socket here must not end its thread.
+            if (LinuxPower.Reachable)
+            {
+                var end = new EndAction(LinuxPower.Perform, token => frames.Send(new Text((byte)TextKind.EndAction, token)));
+                dispatcher.EndAction = end;
+                mediaObserver = snapshot =>
+                {
+                    try
+                    {
+                        end.Observe(snapshot);
+                    }
+                    catch (Exception e) when (e is IOException or ObjectDisposedException)
+                    {
+                        // This session's socket is gone; the read loop ends it.
+                    }
+                };
+                StateReporter.MediaObserved += mediaObserver;
+            }
+
             dispatcher.PadStatusReply = status => frames.Send(new Text((byte)TextKind.PadStatus, status));
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
             dispatcher.MacroWatch = startReporting(frames.Send, () => dispatcher.LastInputMs);
@@ -212,6 +235,11 @@ internal sealed class LinuxSession : IDisposable
                 if (inputState is { } handler)
                 {
                     UinputAccess.Changed -= handler;
+                }
+
+                if (mediaObserver is { } observer)
+                {
+                    StateReporter.MediaObserved -= observer;
                 }
 
                 // Held input first: a reporter that is slow to stop must never leave keys down. The reporter no
