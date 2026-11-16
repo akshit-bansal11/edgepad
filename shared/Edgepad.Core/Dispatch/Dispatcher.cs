@@ -6,6 +6,7 @@ using Edgepad.Capture;
 using Edgepad.Macros;
 using Edgepad.Media;
 using Edgepad.Protocol;
+using Edgepad.Transfer;
 
 namespace Edgepad.Dispatch;
 
@@ -53,6 +54,18 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     /// SET CLIPBOARD and the blob frames are dropped and counted.
     /// </summary>
     public ClipboardSync? Clipboard { get; set; }
+
+    /// <summary>
+    /// Receives files from the phone. Set by the session, which also supplies the folders and the reply; without one, XFER_BEGIN,
+    /// XFER_CHUNK and XFER_END are dropped and counted.
+    /// </summary>
+    public TransferReceiver? Transfers { get; set; }
+
+    /// <summary>
+    /// Sends files to the phone; it takes the phone's answers. Set by the session, like <see cref="Transfers"/>. A CANCELLED whose id
+    /// both a send and a receive hold ends both, which only ever fails safe.
+    /// </summary>
+    public TransferSender? Sending { get; set; }
 
     /// <summary>
     /// Offers this laptop's apps to the phone as macros. Set by the session, like <see cref="Capture"/>; without one,
@@ -158,6 +171,11 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         BlobBegin b => Clipboard?.Take(b) ?? false,
         BlobChunk c => Clipboard?.Take(c) ?? false,
         BlobEnd e => Clipboard?.Take(e) ?? false,
+        XferBegin x => Transfers?.Take(x) ?? false,
+        XferChunk x => Transfers?.Take(x) ?? false,
+        XferEnd x => Transfers?.Take(x) ?? false,
+        // A status answers what this laptop sends, or is the sender cancelling what it receives; each ignores the other's ids.
+        XferStatus x => (Sending?.Take(x) ?? false) | (Transfers?.Take(x) ?? false),
         _ => false,
     };
 
