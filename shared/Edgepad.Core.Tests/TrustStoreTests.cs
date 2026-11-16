@@ -439,6 +439,21 @@ public sealed class TrustStoreTests : IDisposable
         }));
     }
 
+    [Fact]
+    public void AGrantOnAnUnreadableTrustFileIsRefusedAndWritesNothing()
+    {
+        var store = NewStore();
+        Assert.True(store.Grant("link:00112233445566778899aabbccddeeff"));
+
+        using (new Blocked(Path.Combine(dir, "trusted-phone.txt")))
+        {
+            Assert.False(store.Grant("link:ffeeddccbbaa99887766554433221100"));
+        }
+
+        Assert.Equal(["link:00112233445566778899aabbccddeeff"], store.TrustedPhones);
+        Assert.True(store.Grant("link:ffeeddccbbaa99887766554433221100"));
+    }
+
     private static bool Yes() => true;
 
     private static bool No() => false;

@@ -642,6 +642,38 @@ public sealed class LinkResponderTests : IDisposable
         Assert.DoesNotContain(logs, line => secrets.Any(secret => line.Contains(secret, StringComparison.Ordinal)));
     }
 
+    [Fact]
+    public async Task AnUnreadableTrustFileEndsThePairingUncountedAndNotAsForgotten()
+    {
+        // Six in a row: five counted failures would lock pairing, so the last still being asked proves none counted.
+        var path = Path.Combine(dir, "trusted-phone.txt");
+        Assert.True(trust.Grant("link:00112233445566778899aabbccddeeff"));
+        for (var i = 0; i < 6; i++)
+        {
+            Blocked? held = null;
+            owner.Types = code =>
+            {
+                held = new Blocked(path);
+                return code;
+            };
+            var (phoneEnd, laptopEnd) = Duplex.Create();
+            var laptopSide = Laptop(laptopEnd);
+            try
+            {
+                Assert.Equal(LinkWire.StatusOk, LinkInitiator.Pair(phoneEnd, PhoneId, PhoneName, ShowOnPhone).Status);
+                Assert.Null(await laptopSide);
+            }
+            finally
+            {
+                held?.Dispose();
+            }
+        }
+
+        Assert.Contains(logs, line => line.Contains("the trusted phones cannot be read", StringComparison.Ordinal));
+        Assert.DoesNotContain(logs, line => line.Contains("forgotten", StringComparison.Ordinal));
+        Assert.Equal(["link:00112233445566778899aabbccddeeff"], trust.TrustedPhones);
+    }
+
     public void Dispose()
     {
         ended.Dispose();

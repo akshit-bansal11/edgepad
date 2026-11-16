@@ -97,6 +97,7 @@ internal sealed class PairedLinks(string path)
                 PrivateStorage.Replace(path, temp => File.WriteAllLines(
                     temp,
                     links.Select(link => $"{link.Id}\t{Convert.ToBase64String(link.Key)}\t{link.Name}")));
+                denied.Remove(idHex);
                 return true;
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)

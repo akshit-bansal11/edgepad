@@ -380,7 +380,15 @@ internal static class LinkResponder
 
             if (!trust.Grant(address, trustGeneration))
             {
-                return Forgotten();
+                if (trust.Generation != trustGeneration)
+                {
+                    return Forgotten();
+                }
+
+                // An unreadable disk is not the phone's fault: not counted against it.
+                outcome = PairingOutcome.Abandoned;
+                log($"Did not pair {address}: the trusted phones cannot be read");
+                return null;
             }
 
             outcome = PairingOutcome.Paired;
