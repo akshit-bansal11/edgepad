@@ -83,6 +83,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private var inputReady: Bool { AXIsProcessTrusted() && CGPreflightPostEventAccess() }
 
+    /// The menu bar item's rectangle on screen, which the pairing panel grows from; nil when it cannot be found.
+    private func statusItemRect() -> NSRect? {
+        guard let button = statusItem?.button, let window = button.window else { return nil }
+        return window.convertToScreen(button.convert(button.bounds, to: nil))
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         if exitIfAlreadyRunning() { return }
 
@@ -141,12 +147,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             identity: identity,
             paired: paired,
             trust: trust,
-            prompt: PairingPanel(announce: { [weak self] in
-                self?.setStatus(StatusText.pairing($0))
-                self?.notifier?.post(
-                    id: "pair", title: tr("Note_PairTitle", "Pair %1$@?", $0),
-                    body: tr("Note_PairBody", "Type the pairing code shown on the phone."))
-            }),
+            prompt: PairingPanel(
+                origin: { [weak self] in self?.statusItemRect() },
+                announce: { [weak self] in
+                    self?.setStatus(StatusText.pairing($0))
+                    self?.notifier?.post(
+                        id: "pair", title: tr("Note_PairTitle", "Pair %1$@?", $0),
+                        body: tr("Note_PairBody", "Type the pairing code shown on the phone."))
+                }),
             host: host,
             onPaired: { [weak self] in self?.setStatus(StatusText.paired($0)) })
         if networkSettings.hasChoice {

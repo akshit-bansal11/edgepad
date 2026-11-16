@@ -4,11 +4,14 @@ import EdgepadCore
 /// The Mac's half of a Wi-Fi or USB pairing (`PairingPrompt`), the twin of the Windows `PairingPrompt` and the Linux
 /// `PairingWindow`: "Pair Pixel? Type the code shown on the phone:", a box for six digits, Pair and Cancel, and the
 /// seconds left. It is a plain window, never a modal one: the link it asks for runs on this same main thread.
-/// `announce` is told the phone's name as it goes up, for the status line.
+/// `announce` is told the phone's name as it goes up, for the status line. `origin` is the screen rectangle of the
+/// menu bar item the panel grows from, when it can be found.
 final class PairingPanel: PairingPrompt {
+    private let origin: () -> NSRect?
     private let announce: (String) -> Void
 
-    init(announce: @escaping (String) -> Void) {
+    init(origin: @escaping () -> NSRect?, announce: @escaping (String) -> Void) {
+        self.origin = origin
         self.announce = announce
     }
 
@@ -25,7 +28,8 @@ final class PairingPanel: PairingPrompt {
     ) -> PairingQuestion {
         let name = PhoneLabel.clean(phoneName)
         let shown = name.isEmpty ? tr("Pair_ThisPhone", "this phone") : name
-        let window = PairingWindow(phone: shown, source: source, onTyped: onTyped, onCancelled: onCancelled)
+        let window = PairingWindow(
+            phone: shown, source: source, origin: origin(), onTyped: onTyped, onCancelled: onCancelled)
         announce(name.isEmpty ? tr("Net_Phone", "A phone") : name)
         // The question returned is what keeps the window's controller alive until the pairing is settled.
         return window
@@ -63,7 +67,8 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
     private var keepAlive: PairingWindow?
 
     init(
-        phone: String, source: String, onTyped: @escaping (String) -> Void, onCancelled: @escaping () -> Void
+        phone: String, source: String, origin: NSRect?, onTyped: @escaping (String) -> Void,
+        onCancelled: @escaping () -> Void
     ) {
         self.phone = phone
         self.onTyped = onTyped
@@ -114,10 +119,37 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         tick = Self.timer(every: Self.tickSeconds, repeats: true) { [weak self] in self?.count() }
         // Not activated and not key: typing meant for another app must not land in the code box. The owner clicks
         // the box, and the Dock icon bounces to say a question waits.
-        panel.orderFrontRegardless()
+        reveal(from: origin)
         NSApp.requestUserAttention(.criticalRequest)
         Announce.say(
             tr("Pair_Announce", "Pair %1$@? Closes in %2$@ s.", phone, "\(Int(LinkResponder.ownerTimeoutSeconds))"))
+    }
+
+    /// Puts the panel up: it fades in while growing from the menu bar item, or only fades, shorter, when the owner
+    /// asked for reduced motion. The panel takes input from its first frame; the animation never waits on it.
+    private func reveal(from origin: NSRect?) {
+        let final = panel.frame
+        let grows = !Motion.reduce && origin != nil
+        panel.alphaValue = 0
+        if grows, let origin {
+            panel.setFrame(Self.seed(at: origin), display: false)
+        }
+        panel.orderFrontRegardless()
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = Motion.reduce ? Motion.press : Motion.reveal
+            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            panel.animator().alphaValue = 1
+            if grows {
+                panel.animator().setFrame(final, display: true)
+            }
+        }
+    }
+
+    /// A small rectangle at the centre of the menu bar item, where the grow starts.
+    private static func seed(at item: NSRect) -> NSRect {
+        let size = NSSize(width: 40, height: 24)
+        let corner = NSPoint(x: item.midX - size.width / 2, y: item.midY - size.height / 2)
+        return NSRect(origin: corner, size: size)
     }
 
     private static func timer(every seconds: TimeInterval, repeats: Bool, _ run: @escaping () -> Void) -> Timer {
