@@ -150,9 +150,13 @@ internal sealed class LinuxSession : IDisposable
             dispatcher.Apps = new AppPicker(new DesktopEntryCatalog(), macros(), sender, ended.Token);
             dispatcher.AppAddReply = status => frames.Send(new Text((byte)TextKind.AppAddStatus, status));
 
+            // A vanished peer holds the blocked read for minutes; Dispose from the timer's thread closes the link and wakes it.
+            using var silence = new SilenceWatch(SilenceWatch.PhoneSilence, () => { Log.Write($"Session with {Address} ended: no frame for 30 s"); Dispose(); }, every: TimeSpan.FromSeconds(5));
+
             while (true)
             {
                 var frame = frames.ReadFrame();
+                silence.Touch();
                 if (frame is Ping ping)
                 {
                     frames.Send(new Pong(ping.Time));
