@@ -39,6 +39,7 @@ import me.akshitbansal.edgepad.gamepad.GamepadLayout
 import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.link.AppLinks
 import me.akshitbansal.edgepad.link.BlobRoutes
+import me.akshitbansal.edgepad.link.BluetoothTapHint
 import me.akshitbansal.edgepad.link.BluetoothTransport
 import me.akshitbansal.edgepad.link.CaptureInbox
 import me.akshitbansal.edgepad.link.ClipboardShare
@@ -67,6 +68,7 @@ import me.akshitbansal.edgepad.link.Target
 import me.akshitbansal.edgepad.link.TcpTransport
 import me.akshitbansal.edgepad.link.TetherProbe
 import me.akshitbansal.edgepad.link.Transport
+import me.akshitbansal.edgepad.link.bluetoothTapHint
 import me.akshitbansal.edgepad.link.clipboardShare
 import me.akshitbansal.edgepad.link.decodeSaved
 import me.akshitbansal.edgepad.link.encodeSaved
@@ -220,6 +222,7 @@ class MainActivity :
         val apps: AppLinks,
         val screen: Screen,
         val settingsReturn: Screen,
+        val resumeScreen: Screen?,
     )
 
     private val handler = Handler(Looper.getMainLooper())
@@ -437,6 +440,8 @@ class MainActivity :
             }
         if (retained != null) {
             settingsReturn = retained.settingsReturn
+            // Or a rotation on Reconnecting forgets the screen to go back to, and returns to the surface instead.
+            resumeScreen = retained.resumeScreen
             // Carried over, or the readout would stand blank after a rotation and then restart from one sample.
             picker.setRtt(selected?.rtt?.median() ?: Double.NaN)
         }
@@ -449,7 +454,8 @@ class MainActivity :
         )
     }
 
-    override fun onRetainNonConfigurationInstance(): Any = Retained(manager, clipboard, apps, screen, settingsReturn)
+    override fun onRetainNonConfigurationInstance(): Any =
+        Retained(manager, clipboard, apps, screen, settingsReturn, resumeScreen)
 
     override fun onStart() {
         super.onStart()
@@ -542,7 +548,8 @@ class MainActivity :
         if (serviceUp && notice == shownNotice) return
         // Asked for when the service is first needed. A denial costs only the notification: the service runs anyway.
         if (!serviceUp) askNotifications()
-        LinkService.show(applicationContext, notice, serviceUp)
+        // Refused, the links get the usual linger and the next onStart tries again.
+        if (!LinkService.show(applicationContext, notice, serviceUp)) return
         serviceUp = true
         shownNotice = notice
         // The process is held, so a laptop that drops in the background is still won back; see LaptopConnections.
@@ -1787,8 +1794,14 @@ class MainActivity :
         requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_BLUETOOTH)
     }
 
+    /** Some builds have no Bluetooth page to open; the app's own page is the nearest thing. */
     private fun openBluetoothSettings() {
-        startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
+        try {
+            startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
+        } catch (e: ActivityNotFoundException) {
+            Log.w("Edgepad", "No activity for the Bluetooth settings", e)
+            openAppSettings()
+        }
     }
 
     /** This app's page in the system settings, where a permission refused for good can still be granted. */
@@ -1939,8 +1952,11 @@ class MainActivity :
             }
         val chosen = target ?: row.laptop?.target
         if (chosen == null) {
-            // With Bluetooth off or not allowed, the empty bonded list says nothing about the pairing.
-            if (via != Transport.BLUETOOTH || bluetoothReady()) picker.setMessage(getString(R.string.not_paired))
+            if (via == Transport.BLUETOOTH) {
+                tappedUnpairedBluetooth()
+            } else {
+                picker.setMessage(getString(R.string.not_paired))
+            }
         } else {
             // The row's other record, over the other transport, hands over to this one once it connects, and only
             // this one connects by itself at the next launch.
@@ -1948,6 +1964,28 @@ class MainActivity :
             saved = onlyAutoConnecting(saved, row.keys, chosen.key)
             val next = if (pairAgain && chosen is Target.Network) chosen.again() else chosen
             connect(next, via, tapped = true, switching = others)
+        }
+    }
+
+    /** With Bluetooth off or not allowed, the empty bonded list says nothing about the pairing, so that is said. */
+    private fun tappedUnpairedBluetooth() {
+        val adapterOn = getSystemService(BluetoothManager::class.java)?.adapter?.isEnabled == true
+        val permitted =
+            checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+        when (bluetoothTapHint(adapterOn, permitted)) {
+            BluetoothTapHint.NOT_READY_OFF -> {
+                val settingsLabel = getString(R.string.open_bluetooth_settings)
+                picker.setMessage(getString(R.string.bluetooth_tap_off), settingsLabel) { openBluetoothSettings() }
+            }
+
+            // The usual question, which already offers the app's settings after a refusal for good.
+            BluetoothTapHint.NOT_READY_PERMISSION -> {
+                if (!permissionPending) askPermission()
+            }
+
+            BluetoothTapHint.READY -> {
+                picker.setMessage(getString(R.string.not_paired))
+            }
         }
     }
 

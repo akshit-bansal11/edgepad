@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.graphics.drawable.Icon
 import android.os.IBinder
+import android.util.Log
 import me.akshitbansal.edgepad.MainActivity
 import me.akshitbansal.edgepad.R
 
@@ -66,16 +67,19 @@ class LinkService : Service() {
         /**
          * Starts the service with [notice], or rewrites its notification when it is already running; [running] is the
          * caller's own knowledge of which. Only from the foreground: the caller checks, as the start is refused
-         * otherwise.
+         * otherwise. False when the start was refused all the same: Android 12 and later throw
+         * ForegroundServiceStartNotAllowedException, an IllegalStateException, in more cases than the caller can see.
          */
         fun show(
             context: Context,
             notice: LinkNotice,
             running: Boolean,
-        ) {
+        ): Boolean {
             if (running) {
                 context.getSystemService(NotificationManager::class.java)?.notify(NOTICE_ID, build(context, notice))
-            } else {
+                return true
+            }
+            return try {
                 context.startForegroundService(
                     Intent(context, LinkService::class.java)
                         .putExtra(EXTRA_NAME, notice.name)
@@ -83,6 +87,10 @@ class LinkService : Service() {
                         .putExtra(EXTRA_RECONNECTING, notice.reconnecting)
                         .putExtra(EXTRA_SHARING, notice.sharing),
                 )
+                true
+            } catch (e: RuntimeException) {
+                Log.w("Edgepad", "The link service was not allowed to start", e)
+                false
             }
         }
 
