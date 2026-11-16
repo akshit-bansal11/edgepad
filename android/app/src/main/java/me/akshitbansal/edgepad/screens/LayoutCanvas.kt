@@ -57,13 +57,7 @@ internal abstract class LayoutCanvas(
     protected fun snap(
         px: Float,
         extent: Int,
-    ): Float {
-        val centre = extent / 2f
-        if (abs(px - centre) < CENTRE_SNAP_DP * density) return HALF
-        val cell = GRID_DP * density
-        val snapped = (px / cell).roundToInt() * cell
-        return (snapped / extent).coerceIn(0f, 1f)
-    }
+    ): Float = snapFraction(px, extent, density)
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
@@ -103,5 +97,18 @@ internal abstract class LayoutCanvas(
         const val LIFT_BLUR_DP = 12f
         const val LIFT_DROP_DP = 6f
         const val SHADOW = 0x59000000
+
+        /** [snap] without a view, for [Nudge]: the grid point or centre nearest [px], as a fraction of [extent]. */
+        fun snapFraction(
+            px: Float,
+            extent: Int,
+            density: Float,
+        ): Float {
+            val centre = extent / 2f
+            if (abs(px - centre) < CENTRE_SNAP_DP * density) return HALF
+            val cell = GRID_DP * density
+            val snapped = (px / cell).roundToInt() * cell
+            return (snapped / extent).coerceIn(0f, 1f)
+        }
     }
 }

@@ -19,6 +19,7 @@ import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.drawFitted
 import me.akshitbansal.edgepad.fitText
 import me.akshitbansal.edgepad.gamepad.Binding
+import me.akshitbansal.edgepad.gamepad.Control
 import me.akshitbansal.edgepad.gamepad.ControlGeometry
 import me.akshitbansal.edgepad.gamepad.ControlKind
 import me.akshitbansal.edgepad.gamepad.GamepadLayout
@@ -204,17 +205,7 @@ class GamepadScreen(
 
         override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider = nodes
 
-        private fun spoken(i: Int): String {
-            val control = controls[i]
-            if (control.label.isNotBlank()) return control.label
-            return context.getString(
-                when (control.kind) {
-                    ControlKind.DPAD -> R.string.gamepad_node_dpad
-                    ControlKind.STICK -> R.string.gamepad_node_stick
-                    else -> R.string.gamepad_node_button
-                },
-            )
-        }
+        private fun spoken(i: Int): String = spokenName(context, controls[i])
 
         private fun tappable(i: Int): Boolean =
             controls[i].kind == ControlKind.BUTTON || controls[i].kind == ControlKind.SHOULDER
@@ -950,4 +941,19 @@ internal class PadPainter(
         const val NARROW_DP = 56f
         const val RING_DP = 2f
     }
+}
+
+/** What a screen reader calls [control]: its label, else what kind of control it is. Shared with the layout editor. */
+internal fun spokenName(
+    context: Context,
+    control: Control,
+): String {
+    if (control.label.isNotBlank()) return control.label
+    return context.getString(
+        when (control.kind) {
+            ControlKind.DPAD -> R.string.gamepad_node_dpad
+            ControlKind.STICK -> R.string.gamepad_node_stick
+            else -> R.string.gamepad_node_button
+        },
+    )
 }

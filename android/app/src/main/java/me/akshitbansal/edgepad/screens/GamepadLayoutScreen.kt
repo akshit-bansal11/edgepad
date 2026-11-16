@@ -304,24 +304,12 @@ object GamepadLayoutScreen {
             return ControlNodes(
                 this,
                 count,
-                label = ::spoken,
+                label = { i -> spokenName(context, layout.controls[i]) },
                 bounds = { i, out -> bounds(layout.controls[i], out) },
                 clickable = { true },
                 click = { i -> showControlMenu(layout.controls[i]) },
                 actions = { i -> moveActions(context) { dx, dy -> nudge(i, dx, dy) } },
             ).also { nodes = it }
-        }
-
-        private fun spoken(i: Int): String {
-            val control = layout.controls[i]
-            if (control.label.isNotBlank()) return control.label
-            return context.getString(
-                when (control.kind) {
-                    ControlKind.DPAD -> R.string.gamepad_node_dpad
-                    ControlKind.STICK -> R.string.gamepad_node_stick
-                    else -> R.string.gamepad_node_button
-                },
-            )
         }
 
         /** One grid cell on x ([dx]) or y ([dy]), stored as a drag's end is; false at the canvas edge. */
