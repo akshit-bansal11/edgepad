@@ -120,25 +120,30 @@ final class RfcommServer: NSObject {
             return
         }
 
+        // The delegate goes on before the slow step: bytes that arrive while the link authenticates, HELLO among
+        // them, are held by the transport rather than lost, and replayed once a session exists.
+        let transport = RfcommTransport(channel: channel)
+        channel.setDelegate(transport)
+
         // Timed on uptime, as the quiet periods are: this is the slow step before a session starts.
         let started = ProcessInfo.processInfo.systemUptime
         let authentication = device.requestAuthentication()
         let milliseconds = Int((ProcessInfo.processInfo.systemUptime - started) * 1000)
         guard authentication == kIOReturnSuccess else {
             Log.write("Refused \(address): Bluetooth authentication failed (\(authentication))")
-            _ = channel.close()
+            transport.close()
             return
         }
+        // The phone may have hung up, or sent too much, while it authenticated.
+        guard !transport.isClosed else { return }
         Log.write("Authenticated RFCOMM connection from \(address) in \(milliseconds) ms")
 
-        let transport = RfcommTransport(channel: channel)
         // Held by the host until it ends; the transport only points at it.
         let session = host.accept(
             address: address, phone: PhoneLabel.describe(name: device.name, address: address),
             shownAs: PhoneLabel.clean(device.name).isEmpty ? nil : PhoneLabel.clean(device.name), link: "Bluetooth",
             transport: transport)
-        transport.session = session
-        channel.setDelegate(transport)
+        transport.attach(session)
     }
 }
 
@@ -156,9 +161,16 @@ final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelega
     /// keep the channel open.
     private static let drainSeconds: TimeInterval = 2
 
-    weak var session: Session?
+    /// Bytes held before the session exists, at most: HELLO and a little more. A phone sending past this before it is
+    /// even authenticated is not a phone that speaks Edgepad.
+    private static let maxEarlyBytes = 1024
+
+    private weak var session: Session?
+    /// What the phone sent before `attach`, in arrival order.
+    private var early: [UInt8] = []
     private let channel: IOBluetoothRFCOMMChannel
-    private var isClosed = false
+    /// Set once nothing more may be sent, including once the channel is gone.
+    private(set) var isClosed = false
     /// Set once the channel itself is closed; `isClosed` alone means only that no more may be sent.
     private var hungUp = false
     private var drainTimer: Timer?
@@ -175,6 +187,16 @@ final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelega
     }
 
     var backlog: Int { queuedBytes }
+
+    /// From now on bytes go to `session`; whatever arrived before goes to it first, once.
+    func attach(_ session: Session) {
+        self.session = session
+        let held = early
+        early = []
+        if !held.isEmpty {
+            session.receive(held)
+        }
+    }
 
     /// Queues in chunks because an RFCOMM write may not exceed the channel's MTU. False means the link is dead.
     func send(_ bytes: [UInt8]) -> Bool {
@@ -231,6 +253,8 @@ final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelega
     private func hangUp() {
         guard !hungUp else { return }
         hungUp = true
+        isClosed = true
+        early = []
         drainTimer?.invalidate()
         drainTimer = nil
         channel.setDelegate(nil)
@@ -271,7 +295,17 @@ final class RfcommTransport: NSObject, Transport, IOBluetoothRFCOMMChannelDelega
     ) {
         guard let dataPointer, dataLength > 0 else { return }
         let bytes = [UInt8](UnsafeRawBufferPointer(start: dataPointer, count: dataLength))
-        session?.receive(bytes)
+        if let session {
+            session.receive(bytes)
+            return
+        }
+        guard !hungUp else { return }
+        guard early.count + bytes.count <= Self.maxEarlyBytes else {
+            Log.write("Closed a Bluetooth link: it sent more than \(Self.maxEarlyBytes) bytes before its session began")
+            hangUp()
+            return
+        }
+        early.append(contentsOf: bytes)
     }
 
     func rfcommChannelClosed(_ rfcommChannel: IOBluetoothRFCOMMChannel!) {
