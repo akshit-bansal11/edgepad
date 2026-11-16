@@ -57,6 +57,10 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     // the session's reader touches it.
     private bool switching;
 
+    // Typing and keys posted to the worker and not yet done. A key counts too, so a key-up that arrives once the text
+    // is done cannot overtake its own key-down still in the queue.
+    private int queued;
+
     public LinuxPlatform() => worker = new Worker(Apply);
 
     public void Move(int dx, int dy) => input.Move(dx, dy);
@@ -67,9 +71,21 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
 
     public void Zoom(int delta) => input.Zoom(delta);
 
-    public void Type(string text) => input.Type(text);
+    /// <summary>On the worker: typing can wait on localectl, a clipboard tool and the paste's restore.</summary>
+    public void Type(string text) => Queue(() => input.Type(text));
 
-    public void Key(ushort code, bool down) => input.Key(code, down);
+    /// <summary>Direct, unless text or a key is still queued, which a KEY frame (an Enter after the text) must not overtake.</summary>
+    public void Key(ushort code, bool down)
+    {
+        if (Volatile.Read(ref queued) > 0)
+        {
+            Queue(() => input.Key(code, down));
+        }
+        else
+        {
+            input.Key(code, down);
+        }
+    }
 
     public bool Run(ActionId id)
     {
@@ -331,6 +347,26 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
             input.Chord(shortcut);
         });
         return true;
+    }
+
+    /// <summary>
+    /// Posts keyboard work in order. Disposing destroys the device before the worker stops, which is safe: a job left
+    /// in the queue then finds no device and does nothing.
+    /// </summary>
+    private void Queue(Action job)
+    {
+        Interlocked.Increment(ref queued);
+        worker.Post(() =>
+        {
+            try
+            {
+                job();
+            }
+            finally
+            {
+                Interlocked.Decrement(ref queued);
+            }
+        });
     }
 
     private bool Press(ushort windowsKey) => Do(() => Tap(windowsKey));
