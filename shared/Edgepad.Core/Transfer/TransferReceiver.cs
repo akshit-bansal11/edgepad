@@ -23,6 +23,7 @@ internal sealed class TransferReceiver : IDisposable
     private readonly Action<XferStatus> reply;
     private readonly Action<string>? arrived;
     private readonly Func<string, long> freeSpace;
+    private readonly Func<DateTimeOffset> clock;
     private Active? active;
 
     public TransferReceiver(
@@ -38,7 +39,8 @@ internal sealed class TransferReceiver : IDisposable
         this.reply = reply;
         this.arrived = arrived;
         this.freeSpace = freeSpace ?? FreeSpaceOf;
-        Purge((now ?? (() => DateTimeOffset.UtcNow))());
+        clock = now ?? (() => DateTimeOffset.UtcNow);
+        Purge(clock());
     }
 
     /// <summary>Whether a file is arriving.</summary>
@@ -48,6 +50,7 @@ internal sealed class TransferReceiver : IDisposable
         {
             lock (gate)
             {
+                DropIfIdle();
                 return active is not null;
             }
         }
@@ -57,6 +60,7 @@ internal sealed class TransferReceiver : IDisposable
     {
         lock (gate)
         {
+            DropIfIdle();
             if (active is not null)
             {
                 Reply(begin.Id, XferCode.Busy, 0);
@@ -104,6 +108,8 @@ internal sealed class TransferReceiver : IDisposable
             {
                 return false;
             }
+
+            a.LastChunk = clock();
 
             if (chunk.Offset != a.Held)
             {
@@ -248,6 +254,18 @@ internal sealed class TransferReceiver : IDisposable
         return best < 0 ? -1 : mounts[best].Free;
     }
 
+    /// <summary>
+    /// A transfer that has had no chunk for <see cref="TransferLimits.IdleDrop"/> is let go (its part stays, for a resume), so a
+    /// sender that gave up never leaves the receiver answering BUSY. Called with the gate held.
+    /// </summary>
+    private void DropIfIdle()
+    {
+        if (active is { } a && clock() - a.LastChunk > TransferLimits.IdleDrop)
+        {
+            Finish(deletePart: false);
+        }
+    }
+
     private void Open(XferBegin begin, string name)
     {
         var partPath = Path.Combine(partialFolder, Invariant($"{name}.{begin.Size}{TransferLimits.PartialExtension}"));
@@ -270,7 +288,7 @@ internal sealed class TransferReceiver : IDisposable
             }
 
             var held = (ulong)file.Length;
-            active = new Active(begin.Id, begin.Size, name, partPath, file, hash) { Held = held, Reported = held };
+            active = new Active(begin.Id, begin.Size, name, partPath, file, hash) { Held = held, Reported = held, LastChunk = clock() };
             Reply(begin.Id, XferCode.Ready, held);
         }
         catch
@@ -381,5 +399,7 @@ internal sealed class TransferReceiver : IDisposable
         public ulong Held { get; set; }
 
         public ulong Reported { get; set; }
+
+        public DateTimeOffset LastChunk { get; set; }
     }
 }

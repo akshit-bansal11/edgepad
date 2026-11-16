@@ -36,6 +36,10 @@ internal sealed class TransferSender(
     private byte activeId;
     private ulong? readyAt;
     private XferCode? final;
+    private ulong sentTo;
+    private ulong? lastProgress;
+    private ulong? resendAt;
+    private bool endSent;
 
     /// <summary>
     /// Sends <paramref name="path"/> as transfer <paramref name="id"/> (1..255). Returns <see cref="XferCode.Saved"/> when the peer
@@ -54,6 +58,10 @@ internal sealed class TransferSender(
                 sending = true;
                 readyAt = null;
                 final = null;
+                sentTo = 0;
+                lastProgress = null;
+                resendAt = null;
+                endSent = false;
             }
 
             try
@@ -86,6 +94,14 @@ internal sealed class TransferSender(
                     readyAt = status.Offset;
                     break;
                 case XferCode.Progress:
+                    // A report below what was sent is a lost chunk when it is repeated (every later chunk draws the same
+                    // offset) or comes after END; a rising one is only the receiver's pace.
+                    if (status.Offset < sentTo && (endSent || status.Offset == lastProgress))
+                    {
+                        resendAt = status.Offset;
+                    }
+
+                    lastProgress = status.Offset;
                     break;
                 default:
                     final = (XferCode)status.Status;
@@ -120,24 +136,44 @@ internal sealed class TransferSender(
 
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         var buffer = new byte[FrameCodec.MaxXferChunkBytes];
-        for (var done = 0UL; done < offset;)
+        if (!HashHead(file, hash, buffer, offset))
         {
-            var read = file.Read(buffer, 0, (int)Math.Min((ulong)buffer.Length, offset - done));
-            if (read == 0)
-            {
-                return XferCode.WriteFailed;
-            }
-
-            hash.AppendData(buffer.AsSpan(0, read));
-            done += (ulong)read;
+            return XferCode.WriteFailed;
         }
 
         var sentInTick = 0;
-        for (var at = offset; at < size;)
+        var at = offset;
+        while (true)
         {
             if (Await(() => true, id, at, cancel) is { } stopped)
             {
                 return stopped;
+            }
+
+            // The receiver said, twice or after END, that it holds less than was sent: a chunk was lost. Go back to what it holds.
+            if (TakeResend() is { } from)
+            {
+                file.Position = 0;
+                hash.GetHashAndReset();
+                if (!HashHead(file, hash, buffer, from))
+                {
+                    return XferCode.WriteFailed;
+                }
+
+                at = from;
+            }
+
+            if (at >= size)
+            {
+                SetEndSent(true);
+                send(new XferEnd(id, hash.GetHashAndReset()));
+                if (Await(() => resendAt is not null, id, size, cancel) is { } done)
+                {
+                    return done;
+                }
+
+                SetEndSent(false);
+                continue;
             }
 
             var count = file.Read(buffer, 0, (int)Math.Min((ulong)buffer.Length, size - at));
@@ -148,6 +184,7 @@ internal sealed class TransferSender(
             }
 
             hash.AppendData(buffer.AsSpan(0, count));
+            SetSentTo(at + (ulong)count);
             send(new XferChunk(id, at, buffer[..count]));
             at += (ulong)count;
             if (++sentInTick >= Budget() && at < size)
@@ -159,9 +196,52 @@ internal sealed class TransferSender(
                 }
             }
         }
+    }
 
-        send(new XferEnd(id, hash.GetHashAndReset()));
-        return Await(() => false, id, size, cancel) ?? XferCode.TimedOut;
+    /// <summary>Hashes the first <paramref name="upTo"/> bytes from the file's start without sending them. False when the file is shorter.</summary>
+    private static bool HashHead(FileStream file, IncrementalHash hash, byte[] buffer, ulong upTo)
+    {
+        for (var done = 0UL; done < upTo;)
+        {
+            var read = file.Read(buffer, 0, (int)Math.Min((ulong)buffer.Length, upTo - done));
+            if (read == 0)
+            {
+                return false;
+            }
+
+            hash.AppendData(buffer.AsSpan(0, read));
+            done += (ulong)read;
+        }
+
+        return true;
+    }
+
+    private ulong? TakeResend()
+    {
+        lock (gate)
+        {
+            var from = resendAt;
+            resendAt = null;
+            sentTo = from ?? sentTo;
+            lastProgress = null;
+            return from;
+        }
+    }
+
+    private void SetSentTo(ulong value)
+    {
+        lock (gate)
+        {
+            sentTo = value;
+        }
+    }
+
+    private void SetEndSent(bool value)
+    {
+        lock (gate)
+        {
+            endSent = value;
+        }
     }
 
     /// <summary>
@@ -171,6 +251,7 @@ internal sealed class TransferSender(
     private XferCode? Await(Func<bool> ready, byte id, ulong at, CancellationToken cancel)
     {
         var deadline = now() + (long)timeout.TotalMilliseconds;
+        var timedOut = false;
         lock (gate)
         {
             while (!cancel.IsCancellationRequested)
@@ -192,16 +273,18 @@ internal sealed class TransferSender(
 
                 if (now() >= deadline)
                 {
-                    return XferCode.TimedOut;
+                    timedOut = true;
+                    break;
                 }
 
                 Monitor.Wait(gate, SliceMs);
             }
         }
 
-        // Outside the lock: a write to a slow socket must not keep the read thread from delivering statuses.
+        // Outside the lock: a write to a slow socket must not keep the read thread from delivering statuses. A
+        // timeout says CANCELLED too, so the receiver does not sit on the file answering BUSY.
         send(new XferStatus(id, (byte)XferCode.Cancelled, at));
-        return XferCode.Cancelled;
+        return timedOut ? XferCode.TimedOut : XferCode.Cancelled;
     }
 
     private int Budget()

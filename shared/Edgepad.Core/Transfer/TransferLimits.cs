@@ -43,6 +43,9 @@ internal static class TransferLimits
     /// <summary>How long a sender waits for READY, and for the last answer after END.</summary>
     public static readonly TimeSpan AnswerTimeout = TimeSpan.FromSeconds(30);
 
+    /// <summary>A receiver lets go of a transfer that has had no chunk for this long; the part stays for a resume.</summary>
+    public static readonly TimeSpan IdleDrop = TimeSpan.FromSeconds(30);
+
     /// <summary>The most of a file name kept, in UTF-8 bytes.</summary>
     public const int MaxNameBytes = 120;
 

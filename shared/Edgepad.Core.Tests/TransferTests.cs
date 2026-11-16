@@ -20,6 +20,7 @@ public sealed class TransferTests : IDisposable
     private readonly List<XferStatus> replies = [];
     private readonly List<string> arrived = [];
     private readonly TransferSender sender;
+    private DateTimeOffset clockAt = DateTimeOffset.UtcNow;
     private TransferReceiver receiver;
 
     // Sees each frame on its way to the receiver and says what is delivered: the same frame, another, or null for none.
@@ -331,6 +332,66 @@ public sealed class TransferTests : IDisposable
     }
 
     [Fact]
+    public void ALostChunkIsResentFromWhatTheReceiverHolds()
+    {
+        var data = RandomNumberGenerator.GetBytes(8 * FrameCodec.MaxXferChunkBytes);
+        var path = Source("lost.bin", data);
+        var chunks = 0;
+        wire = frame => frame is XferChunk && ++chunks == 3 ? null : frame;
+
+        Assert.Equal(XferCode.Saved, Send(path));
+
+        Assert.Equal(data, File.ReadAllBytes(Path.Combine(Destination, "lost.bin")));
+    }
+
+    [Fact]
+    public void ALostLastChunkIsResentAfterEnd()
+    {
+        var data = RandomNumberGenerator.GetBytes(3 * FrameCodec.MaxXferChunkBytes);
+        var path = Source("tail.bin", data);
+        var chunks = 0;
+        wire = frame => frame is XferChunk && ++chunks == 3 ? null : frame;
+
+        Assert.Equal(XferCode.Saved, Send(path));
+
+        Assert.Equal(data, File.ReadAllBytes(Path.Combine(Destination, "tail.bin")));
+    }
+
+    [Fact]
+    public void ATimeoutTellsTheReceiverCancelled()
+    {
+        var sent = new List<Frame>();
+        wire = frame =>
+        {
+            sent.Add(frame);
+            return null;
+        };
+
+        Assert.Equal(XferCode.TimedOut, Send(Source("quiet2.bin", new byte[10])));
+
+        Assert.Contains(sent, f => f is XferStatus { Status: (byte)XferCode.Cancelled });
+    }
+
+    [Fact]
+    public void ATransferWithNoChunkFor30SecondsIsDroppedAndItsPartKept()
+    {
+        receiver.Take(new XferBegin(1, 100, "idle.bin"));
+        receiver.Take(new XferChunk(1, 0, new byte[10]));
+        replies.Clear();
+
+        clockAt += TransferLimits.IdleDrop - TimeSpan.FromSeconds(1);
+        receiver.Take(new XferBegin(2, 100, "next.bin"));
+        Assert.Equal([new XferStatus(2, (byte)XferCode.Busy, 0)], replies);
+
+        replies.Clear();
+        clockAt += TimeSpan.FromSeconds(2);
+        Assert.False(receiver.Busy);
+        receiver.Take(new XferBegin(2, 100, "next.bin"));
+        Assert.Equal([new XferStatus(2, (byte)XferCode.Ready, 0)], replies);
+        Assert.True(File.Exists(Path.Combine(Partial, "idle.bin.100.part")));
+    }
+
+    [Fact]
     public void AStatusItDoesNotKnowOrAnotherIdIsNotTaken()
     {
         Assert.False(sender.Take(new XferStatus(1, (byte)XferCode.Ready, 0)));
@@ -349,7 +410,8 @@ public sealed class TransferTests : IDisposable
                 sender.Take(status);
             },
             arrived.Add,
-            freeSpace ?? (_ => Plenty));
+            freeSpace ?? (_ => Plenty),
+            () => clockAt);
 
     private XferCode Send(string path) => sender.Send(path, 1, TestContext.Current.CancellationToken);
 
