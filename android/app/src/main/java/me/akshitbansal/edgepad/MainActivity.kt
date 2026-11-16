@@ -95,6 +95,7 @@ import me.akshitbansal.edgepad.link.rememberLaptop
 import me.akshitbansal.edgepad.link.snapUp
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.AppAddStatus
+import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
@@ -2263,6 +2264,10 @@ class MainActivity :
         // Said once a connection, for any laptop: the one that offers the clipboard may be the one selected.
         if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) {
             refreshBlobLinks()
+            // The laptop forgets this at the end of a session, so each connection is told again.
+            if (Feature.NOTIFY in laptop.state.features) {
+                laptop.link?.send(ControlId.NOTIFY.set(if (settings.notifyForward) 1 else 0))
+            }
             // The notification only mentions the clipboard once the laptop has said it offers one.
             syncService()
         }

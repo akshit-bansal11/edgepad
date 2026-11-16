@@ -1,12 +1,15 @@
 package me.akshitbansal.edgepad.link
 
+import me.akshitbansal.edgepad.protocol.CaptureStateToken
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
+import me.akshitbansal.edgepad.protocol.EndActionToken
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadStatus
 import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
+import me.akshitbansal.edgepad.protocol.UnavailableReason
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -454,6 +457,27 @@ class LaptopStateTest {
 
         assertEquals(1, state.droppedText)
         assertTrue(state.inputBlocked)
+    }
+
+    @Test
+    fun takesTheFiveBatchATextKinds() {
+        assertEquals(LaptopState.MACRO_SLOTS, state.macroCap)
+        state.take(Frame.Text(TextKind.MACRO_CAP.id, "99"))
+        assertEquals(LaptopState.MACRO_SLOTS_MAX, state.macroCap)
+        state.take(Frame.Text(TextKind.MACRO_CAP.id, "0"))
+        assertEquals(1, state.macroCap)
+        assertFalse(state.take(Frame.Text(TextKind.MACRO_CAP.id, "x")))
+        state.take(Frame.Text(TextKind.CAPTURE_STATE.id, "recording"))
+        assertEquals(CaptureStateToken.RECORDING, state.captureState)
+        state.take(Frame.Text(TextKind.UNAVAILABLE.id, "notify:off/capture:no-tool"))
+        assertEquals(mapOf("notify" to UnavailableReason.OFF, "capture" to UnavailableReason.NO_TOOL), state.unavailable)
+        state.take(Frame.Text(TextKind.END_ACTION.id, "sleep"))
+        assertEquals(EndActionToken.SLEEP, state.endAction)
+        state.take(Frame.Text(TextKind.NOW_PLAYING_FULL.id, "Song (Remastered)"))
+        assertEquals("Song (Remastered)", state.nowPlayingFull)
+        state.forgetFeatures()
+        assertEquals(LaptopState.MACRO_SLOTS, state.macroCap)
+        assertEquals(EndActionToken.NONE, state.endAction)
     }
 
     private companion object {

@@ -1,12 +1,16 @@
 package me.akshitbansal.edgepad.link
 
+import me.akshitbansal.edgepad.link.blob.MediaIconStore
+import me.akshitbansal.edgepad.protocol.CaptureStateToken
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
+import me.akshitbansal.edgepad.protocol.EndActionToken
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadStatus
 import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
+import me.akshitbansal.edgepad.protocol.UnavailableReason
 import java.util.Base64
 
 /** One character of TEXT MACRO_OPEN: what the laptop knows of a macro's app. An unknown one reads as [UNTRACKED]. */
@@ -115,6 +119,12 @@ class LaptopState {
      */
     fun forgetFeatures() {
         features = emptySet()
+        macroCap = MACRO_SLOTS
+        captureState = CaptureStateToken.IDLE
+        unavailable = emptyMap()
+        endAction = EndActionToken.NONE
+        nowPlayingFull = ""
+        mediaIcons.clear()
     }
 
     /**
@@ -124,6 +134,29 @@ class LaptopState {
      */
     var inputBlocked = false
         private set
+
+    /** TEXT 22: how many macro slots the laptop keeps, 1 to [MACRO_SLOTS_MAX]; [MACRO_SLOTS] until it says. */
+    var macroCap = MACRO_SLOTS
+        private set
+
+    /** TEXT 23: whether the laptop is recording a capture. Best effort; [CaptureStateToken.IDLE] until it says. */
+    var captureState = CaptureStateToken.IDLE
+        private set
+
+    /** TEXT 24: the features the laptop cannot offer right now, and why. Empty until it says. */
+    var unavailable: Map<String, UnavailableReason> = emptyMap()
+        private set
+
+    /** TEXT 25: what the laptop has armed for the end of the media. */
+    var endAction = EndActionToken.NONE
+        private set
+
+    /** TEXT 26: the title line before it was cleaned for [nowPlaying]; empty when it did not differ. */
+    var nowPlayingFull = ""
+        private set
+
+    /** The media icons the laptop sent, decoded once on arrival. Filled from the link's reading thread. */
+    val mediaIcons = MediaIconStore(MediaIconStore.Companion::decodeBitmap)
 
     /** Forgets [inputBlocked] when a link ends or a new one starts: the laptop says it afresh after HELLO_ACK. */
     fun forgetInputBlocked() {
@@ -226,6 +259,11 @@ class LaptopState {
                     TextKind.APP_ADD_STATUS -> apps.addStatus(frame.text)
                     TextKind.BATTERIES -> batteries = Batteries.parse(frame.text)
                     TextKind.OUTPUT -> output = Output.parse(frame.text)
+                    TextKind.MACRO_CAP -> macroCap = cap(frame.text) ?: return false
+                    TextKind.CAPTURE_STATE -> captureState = CaptureStateToken.of(frame.text)
+                    TextKind.UNAVAILABLE -> unavailable = unavailable(frame.text)
+                    TextKind.END_ACTION -> endAction = EndActionToken.of(frame.text)
+                    TextKind.NOW_PLAYING_FULL -> nowPlayingFull = frame.text
                     null -> return dropText()
                     else -> return false
                 }
@@ -285,6 +323,14 @@ class LaptopState {
     }
 
     /** A token this build does not know is skipped, not an error: a newer laptop may name more. */
+    private fun cap(text: String): Int? = text.trim().toIntOrNull()?.coerceIn(1, MACRO_SLOTS_MAX)
+
+    private fun unavailable(text: String): Map<String, UnavailableReason> =
+        text.split('/').mapNotNull { entry ->
+            val colon = entry.indexOf(':')
+            if (colon <= 0) null else entry.substring(0, colon) to UnavailableReason.of(entry.substring(colon + 1))
+        }.toMap()
+
     private fun features(text: String): Set<Feature> = text.split('/').mapNotNull(Feature::of).toSet()
 
     /** "1920/1080". Null for anything else, so a malformed size leaves the last good one in place. */
@@ -379,6 +425,9 @@ class LaptopState {
          * number somewhere else would be a second thing to forget when the grid changes size.
          */
         const val MACRO_SLOTS = 15
+
+        /** The most TEXT 22 may raise [macroCap] to. */
+        const val MACRO_SLOTS_MAX = 32
 
         private const val FLAG_BIT = 1
 
