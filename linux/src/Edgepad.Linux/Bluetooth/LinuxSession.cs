@@ -1,6 +1,7 @@
 using Edgepad.Blob;
 using Edgepad.Capture;
 using Edgepad.Dispatch;
+using Edgepad.Foreground;
 using Edgepad.Macros;
 using Edgepad.Media;
 using Edgepad.Net;
@@ -42,6 +43,7 @@ internal sealed class LinuxSession : IDisposable
     private Action<MediaSnapshot>? mediaObserver;
     private PowerSource? powerSource;
     private PowerReporter? power;
+    private ForegroundReporter? foreground;
     private volatile NotificationMonitor? notifications;
 
     // Which icon run may still send: each WANT_ICONS and Dispose move it on, and a run that sees it moved stops.
@@ -209,6 +211,10 @@ internal sealed class LinuxSession : IDisposable
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
             dispatcher.MacroWatch = startReporting(frames.Send, () => dispatcher.LastInputMs);
 
+            // TEXT 21: the app in front, from CONTROL 11. Wayland cannot see it, so the control stays unset there and is dropped and counted.
+            foreground = new ForegroundReporter(new LinuxForeground(), text => frames.Send(new Text((byte)TextKind.ForegroundApp, text)));
+            dispatcher.ForegroundWatch = LinuxForeground.Offered ? foreground.Watch : null;
+
             // TEXT 19/20: the batteries every 60 s, the default output every 3 s, each sent only when it changed. The
             // reporter reads on its own timers, so a slow UPower or sound tool never holds up this read loop.
             powerSource = new PowerSource();
@@ -303,6 +309,7 @@ internal sealed class LinuxSession : IDisposable
                 {
                     // The reporter before its source, so no new timer read starts once the source is closed. A read
                     // already under way runs outside the reporter's lock, so it can still finish against the closed source.
+                    foreground?.Dispose();
                     try
                     {
                         power?.Dispose();

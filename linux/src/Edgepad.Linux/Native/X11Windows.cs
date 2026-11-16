@@ -99,6 +99,18 @@ internal static partial class X11Windows
         }
     }
 
+    /// <summary>A display connection that stays open until the caller closes it, or 0. For <see cref="X11ActiveWatch"/>.</summary>
+    internal static nint Connect() => Open();
+
+    /// <summary>The active window's WM_CLASS, "instance NUL Class NUL", or empty when there is none or it has gone.</summary>
+    internal static string ActiveClass(nint display)
+    {
+        var active = Longs(display, XDefaultRootWindow(display), XInternAtom(display, "_NET_ACTIVE_WINDOW", 0));
+        return active is [var window, ..] && window != 0
+            ? Encoding.Latin1.GetString(Property(display, window, XInternAtom(display, "WM_CLASS", 0), 8))
+            : "";
+    }
+
     /// <summary>Activates the window, which also brings a minimized one back. False when nothing could be sent.</summary>
     public static bool Raise(nuint window) => Send("_NET_ACTIVE_WINDOW", [window], RaiseMessage);
 
