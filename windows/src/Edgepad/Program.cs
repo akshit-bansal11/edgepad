@@ -2,6 +2,7 @@ using Edgepad.Notifications;
 using Edgepad.Startup;
 using Edgepad.Trust;
 using Edgepad.Ui;
+using Edgepad.Updates;
 
 // Every native library this app imports is a Windows system DLL. Searching System32 only means a look-alike
 // dropped beside the exe, in Downloads say, is never loaded in its place.
@@ -92,6 +93,14 @@ internal static class Program
                 "Edgepad",
                 MessageBoxIcon.Information);
             return;
+        }
+
+        // Started by an in-place update: the copy it replaced is removed once it has handed over, if the rules allow.
+        if (UpdatePaths.ReplacesArgument(args) is { } replaced
+            && Environment.ProcessPath is { } self
+            && System.Version.TryParse(Version.Split('-')[0], out var selfVersion))
+        {
+            _ = WindowsUpdater.DeleteReplacedAsync(replaced, self, selfVersion);
         }
 
         try

@@ -76,6 +76,9 @@ internal sealed class TrayContext : ApplicationContext
     private readonly TrayMenu settingsMenu = new(withHeader: false);
     private readonly MenuRow settingsRow = new(Strings.Menu_Settings, Icons.Sliders);
     private readonly MenuRow update = new(Strings.Menu_Update, Icons.Download) { Available = false };
+    private readonly MenuRow installRow = new(Strings.Menu_UpdateInstall, Icons.Download) { Available = false };
+    private readonly MenuRow laterRow = new(Strings.Menu_UpdateLater, Icons.Download) { Available = false };
+    private readonly MenuRow skipRow = new(Strings.Menu_UpdateSkip, Icons.Download) { Available = false };
     private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
     private readonly TrayMenu menu = new();
     private readonly NotifyIcon icon;
@@ -103,6 +106,12 @@ internal sealed class TrayContext : ApplicationContext
     private readonly NetworkServer network;
     private readonly ClipboardSetting clipboardSetting;
     private readonly UpdateSetting updateSetting;
+    private readonly UpdateChoice updateChoice;
+
+    // The release the update rows offer, whether the tray icon carries the update dot, and whether an install is under way. UI thread only.
+    private Version? offered;
+    private bool updateReady;
+    private bool installing;
     private readonly WindowsClipboard clipboard;
 
     // What is wrong with the Wi-Fi and USB listener, if anything (NetworkStatus). Only the UI thread touches it.
@@ -140,6 +149,7 @@ internal sealed class TrayContext : ApplicationContext
         firewallMemory = FirewallMemory.ForCurrentUser(pin.Folder);
         clipboardSetting = ClipboardSetting.ForCurrentUser(pin.Folder);
         updateSetting = UpdateSetting.ForCurrentUser(pin.Folder);
+        updateChoice = new UpdateChoice(Path.Combine(pin.Folder, "update-choice.txt"));
 
         // An install from before the first-run question asked about the clipboard had it on without a file. It keeps
         // what it had, written down so it is a stored value from now on; only an install that never answered asks.
@@ -159,6 +169,21 @@ internal sealed class TrayContext : ApplicationContext
         clipboardRow.Click += (_, _) => SaveClipboard(clipboardRow.Checked);
         checkUpdates.Click += (_, _) => SaveCheckUpdates(checkUpdates.Checked);
         update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
+        installRow.Click += (_, _) => _ = InstallUpdateAsync();
+        laterRow.Click += (_, _) =>
+        {
+            updateChoice.Later(DateTimeOffset.UtcNow);
+            HideUpdateRows();
+        };
+        skipRow.Click += (_, _) =>
+        {
+            if (offered is { } version)
+            {
+                updateChoice.Skip(version);
+            }
+
+            HideUpdateRows();
+        };
         bluetoothRow.Click += (_, _) => Open("ms-settings:bluetooth", "Bluetooth settings");
         networkProblem.Click += (_, _) => OpenLog();
         openLog.Click += (_, _) => OpenLog();
@@ -174,6 +199,9 @@ internal sealed class TrayContext : ApplicationContext
         // The header is the menu's own. Under it, in the order the plan fixes: the update, then whatever is wrong or
         // needs doing (rows that stay hidden while all is well), then the switches, the windows, the help, and Quit.
         menu.Items.Add(update);
+        menu.Items.Add(installRow);
+        menu.Items.Add(laterRow);
+        menu.Items.Add(skipRow);
         menu.Items.Add(bluetoothRow);
         menu.Items.Add(networkProblem);
         menu.Items.Add(firewallRow);
@@ -339,9 +367,8 @@ internal sealed class TrayContext : ApplicationContext
     }
 
     /// <summary>
-    /// Asks GitHub which release is newest and, when it is newer than this one, shows the menu row and says so
-    /// once. The row, and the balloon, open the release page: this copy may have been installed by winget, which keeps
-    /// its own record of the version, so the app does not replace itself.
+    /// Asks GitHub which release is newest and, when it is newer than this one and not skipped or put off, shows the
+    /// update rows and says so once per version. With no update key embedded the row opens the release page instead.
     /// </summary>
     private async Task CheckForUpdateAsync()
     {
@@ -353,29 +380,103 @@ internal sealed class TrayContext : ApplicationContext
                 return;
             }
 
-            ui.Post(
-                _ =>
-                {
-                    var version = latest.ToString();
-                    var label = Strings.Menu_UpdateVersion.Fill(version);
-                    var announced = update.Available && update.Text == label;
-                    update.Text = label;
-                    update.Available = true;
-                    if (!announced)
-                    {
-                        Log.Write($"Edgepad {version} is available");
-                        Balloon(
-                            Strings.Balloon_UpdateAvailable.Fill(version),
-                            ToolTipIcon.Info,
-                            () => Open(UpdateCheck.LatestUrl, "the release page"));
-                    }
-                },
-                null);
+            ui.Post(_ => ShowUpdate(latest), null);
         }
         catch (Exception e)
         {
             // Top-level boundary of a fire-and-forget task: an escaped exception here would be lost silently.
             Log.Write($"The update check failed: {e}");
+        }
+    }
+
+    /// <summary>Shows the rows for <paramref name="version"/> and the tray dot, and says so once per version. UI thread.</summary>
+    private void ShowUpdate(Version version)
+    {
+        var decision = UpdatePolicy.Decide(version, Program.Version, null, UpdateKey.IsSet);
+        if (decision == UpdateDecision.NotNewer || !updateChoice.ShouldShow(version, DateTimeOffset.UtcNow))
+        {
+            HideUpdateRows();
+            return;
+        }
+
+        offered = version;
+        var canInstall = decision != UpdateDecision.NoKey;
+        var text = version.ToString();
+        update.Text = Strings.Menu_UpdateVersion.Fill(text);
+        update.Available = !canInstall;
+        installRow.Text = Strings.Menu_UpdateInstall.Fill(text);
+        installRow.Available = canInstall;
+        laterRow.Available = true;
+        skipRow.Available = true;
+        if (!updateReady)
+        {
+            updateReady = true;
+            ApplyTrayIcon();
+        }
+
+        if (!updateChoice.WasNotified(version))
+        {
+            updateChoice.MarkNotified(version);
+            Log.Write($"Edgepad {text} is available");
+            Balloon(
+                canInstall ? Strings.Balloon_UpdateReady.Fill(text) : Strings.Balloon_UpdateAvailable.Fill(text),
+                ToolTipIcon.Info,
+                canInstall ? () => _ = InstallUpdateAsync() : () => Open(UpdateCheck.LatestUrl, "the release page"));
+        }
+    }
+
+    private void HideUpdateRows()
+    {
+        update.Available = false;
+        installRow.Available = false;
+        laterRow.Available = false;
+        skipRow.Available = false;
+        if (updateReady)
+        {
+            updateReady = false;
+            ApplyTrayIcon();
+        }
+    }
+
+    /// <summary>The Install row: confirm a major step, then verify, download and start the new copy. Any failure installs nothing and offers the release page.</summary>
+    private async Task InstallUpdateAsync()
+    {
+        if (installing || offered is not { } version || Environment.ProcessPath is not { } running)
+        {
+            return;
+        }
+
+        installing = true;
+        try
+        {
+            var decision = UpdatePolicy.Decide(version, Program.Version, null, UpdateKey.IsSet);
+            if (decision is not (UpdateDecision.Install or UpdateDecision.InstallNeedsMajorConfirm))
+            {
+                Open(UpdateCheck.LatestUrl, "the release page");
+                return;
+            }
+
+            if (decision == UpdateDecision.InstallNeedsMajorConfirm)
+            {
+                Ask.Message(null, Strings.Update_MajorWarning, "Edgepad", MessageBoxIcon.Information);
+            }
+
+            var outcome = await WindowsUpdater.InstallAsync(version, running, CancellationToken.None);
+            if (outcome == UpdateOutcome.Unverified)
+            {
+                Balloon(Strings.Balloon_UpdateUnverified.Fill(version.ToString()), ToolTipIcon.Warning);
+            }
+            else if (outcome == UpdateOutcome.Failed)
+            {
+                Balloon(
+                    Strings.Balloon_UpdateFailed.Fill(version.ToString()),
+                    ToolTipIcon.Warning,
+                    () => Open(UpdateCheck.LatestUrl, "the release page"));
+            }
+        }
+        finally
+        {
+            installing = false;
         }
     }
 
@@ -1134,18 +1235,30 @@ internal sealed class TrayContext : ApplicationContext
             var oldHandle = dottedHandle;
             dotted = null;
             dottedHandle = 0;
-            if (wasConnected)
+            if (wasConnected || updateReady)
             {
                 using var bitmap = next.ToBitmap();
                 using (var graphics = Graphics.FromImage(bitmap))
                 {
                     graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                     var size = Math.Max(4, bitmap.Width * 0.42f);
-                    var dot = new RectangleF(bitmap.Width - size, bitmap.Height - size, size - 1, size - 1);
                     using var ring = new SolidBrush(Palette.TaskbarIsDark ? Color.Black : Color.White);
-                    using var fill = new SolidBrush(Theme.Connected);
-                    graphics.FillEllipse(ring, RectangleF.Inflate(dot, 1.2f, 1.2f));
-                    graphics.FillEllipse(fill, dot);
+                    if (wasConnected)
+                    {
+                        var dot = new RectangleF(bitmap.Width - size, bitmap.Height - size, size - 1, size - 1);
+                        using var fill = new SolidBrush(Theme.Connected);
+                        graphics.FillEllipse(ring, RectangleF.Inflate(dot, 1.2f, 1.2f));
+                        graphics.FillEllipse(fill, dot);
+                    }
+
+                    if (updateReady)
+                    {
+                        // Top right, opposite the connected dot, so both can show at once.
+                        var dot = new RectangleF(bitmap.Width - size, 0, size - 1, size - 1);
+                        using var fill = new SolidBrush(Palette.Current.Accent);
+                        graphics.FillEllipse(ring, RectangleF.Inflate(dot, 1.2f, 1.2f));
+                        graphics.FillEllipse(fill, dot);
+                    }
                 }
 
                 dottedHandle = bitmap.GetHicon();
@@ -1205,6 +1318,9 @@ internal sealed class TrayContext : ApplicationContext
             checkUpdates.Dispose();
             openLog.Dispose();
             update.Dispose();
+            installRow.Dispose();
+            laterRow.Dispose();
+            skipRow.Dispose();
             updateTimer.Dispose();
             server.Dispose();
             network.Dispose();
