@@ -57,6 +57,42 @@ public sealed class DisplayModesTests
         Assert.False(display.Set(display.Rates.Count));
     }
 
+    /// <summary>
+    /// The resolution changed on the laptop, and the session refreshed on DisplaySettingsChanged: the dial's next switch
+    /// replays a mode at the new resolution, never the old one, which would have switched the desktop back.
+    /// </summary>
+    [Fact]
+    public void AfterARefreshTheSwitchUsesTheNewResolution()
+    {
+        DisplayMode now = Mode(60);
+        List<DisplayMode> all = [Mode(60), Mode(144)];
+        var applied = new List<DisplayMode>();
+        using var display = new DisplayModes(
+            (uint index, out DisplayMode mode) =>
+            {
+                var live = index == uint.MaxValue;
+                mode = live ? now : index < all.Count ? all[(int)index] : default;
+                return live || index < all.Count;
+            },
+            mode =>
+            {
+                applied.Add(mode);
+                return 0;
+            });
+
+        now = Mode(60, width: 1920, height: 1080);
+        all = [Mode(60, width: 1920, height: 1080), Mode(120, width: 1920, height: 1080)];
+        display.Refresh();
+
+        Assert.Equal<int[]>([60, 120], [.. display.Rates]);
+        Assert.True(display.Set(0));
+        Assert.Empty(applied);
+        Assert.True(display.Set(1));
+        var switched = Assert.Single(applied);
+        Assert.Equal(1920u, switched.PelsWidth);
+        Assert.Equal(120u, switched.DisplayFrequency);
+    }
+
     /// <summary>Whatever this machine's display turns out to be, these two hold; nothing else can be asserted.</summary>
     [Fact]
     public void TheLiveDisplayReportsAConsistentListAndIndex()

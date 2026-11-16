@@ -124,30 +124,48 @@ internal sealed class Session(
         }
         finally
         {
-            // Releases anything still held down: Alt in the middle of an app switch, a button mid-drag.
-            injector.Dispose();
-
-            // And unplugs the virtual controller, which is the same bug one layer along: a phone that drops
-            // mid-game would otherwise leave a pad plugged into Windows with a stick still pushed forward,
-            // and nothing left alive to centre it.
-            pad.Dispose();
-
-            // And takes the annotation layer down with its strokes: a phone that vanishes mid-drawing must not
-            // leave ink over the owner's screen with nothing left alive that could end it.
-            annotator.Dispose();
-            if (dispatcher.Cadence.Summary() is { } cadence)
+            // Nested, so a pad or an annotation layer that throws on the way down still leaves the keys released, the
+            // link closed and the host told: a session that never reported its end would hold its phone's place.
+            try
             {
-                Log.Write($"Pointer frames from {address} over {link.Kind}: {cadence}");
-            }
+                // Releases anything still held down: Alt in the middle of an app switch, a button mid-drag.
+                injector.Dispose();
+                try
+                {
+                    // And unplugs the virtual controller, which is the same bug one layer along: a phone that drops
+                    // mid-game would otherwise leave a pad plugged into Windows with a stick still pushed forward,
+                    // and nothing left alive to centre it.
+                    pad.Dispose();
+                }
+                finally
+                {
+                    // And takes the annotation layer down with its strokes: a phone that vanishes mid-drawing must not
+                    // leave ink over the owner's screen with nothing left alive that could end it.
+                    annotator.Dispose();
+                }
 
-            if (dispatcher.Dropped > 0 || injector.RefusedBatches > 0)
+                if (dispatcher.Cadence.Summary() is { } cadence)
+                {
+                    Log.Write($"Pointer frames from {address} over {link.Kind}: {cadence}");
+                }
+
+                if (dispatcher.Dropped > 0 || injector.RefusedBatches > 0)
+                {
+                    Log.Write($"Session with {address}: {dispatcher.Dropped} frames dropped, "
+                        + $"{injector.RefusedBatches} input batches refused by Windows (an elevated window had focus?)");
+                }
+            }
+            finally
             {
-                Log.Write($"Session with {address}: {dispatcher.Dropped} frames dropped, "
-                    + $"{injector.RefusedBatches} input batches refused by Windows (an elevated window had focus?)");
+                try
+                {
+                    Dispose();
+                }
+                finally
+                {
+                    onEnded(this);
+                }
             }
-
-            Dispose();
-            onEnded(this);
         }
     }
 
@@ -180,15 +198,16 @@ internal sealed class Session(
 
         // The clipboard stays here until the phone asks (SET CLIPBOARD), and the owner's switch is read at every step, so
         // turning it off holds even for a phone that was told it was on. It only reaches FEATURES at the next connection.
-        var sharing = new ClipboardSync(
-            clipboard, new BlobSender(Send, link.Kind, () => dispatcher.LastInputMs, ended.Token), shareClipboard, ended.Token);
+        // One sender for the session, as on Linux: it sends one blob at a time, and the phone holds one transfer, so a
+        // second sender's BLOB_BEGIN (the app list's beside the clipboard's) would abort the first.
+        var blobs = new BlobSender(Send, link.Kind, () => dispatcher.LastInputMs, ended.Token);
+        var sharing = new ClipboardSync(clipboard, blobs, shareClipboard, ended.Token);
         dispatcher.Clipboard = sharing;
         Keep(clipboard.Watch(sharing.LocalChanged));
 
         // The Start menu apps the phone may pick from. A pick is a token into the list built here, and the owner is told
         // when one lands, since it is the one macro that appears without anyone typing it on the laptop.
-        dispatcher.Apps = new AppPicker(
-            new StartMenuCatalog(), macros, new BlobSender(Send, link.Kind, () => dispatcher.LastInputMs, ended.Token), ended.Token);
+        dispatcher.Apps = new AppPicker(new StartMenuCatalog(), macros, blobs, ended.Token);
         dispatcher.AppAddReply = status =>
         {
             Send(new Text((byte)TextKind.AppAddStatus, status));
@@ -306,10 +325,16 @@ internal sealed class Session(
 
         // SystemEvents may raise this on the UI thread. The write is moved off it, because a write to a phone that
         // has stopped reading blocks, and the tray must not freeze with it.
+        // The refresh rates are read again too: a resolution change makes the list read at connect stale, and the
+        // dial's next switch would replay a mode at the old resolution, switching the desktop back.
         EventHandler changed = (_, _) =>
         {
             annotator.Refresh();
-            _ = Task.Run(() => Guarded(SendScreenSize));
+            _ = Task.Run(() =>
+            {
+                Guarded(SendScreenSize);
+                Guarded(ReportRefreshRates);
+            });
         };
         SystemEvents.DisplaySettingsChanged += changed;
         Keep(new Subscription(() => SystemEvents.DisplaySettingsChanged -= changed));
@@ -495,16 +520,17 @@ internal sealed class Session(
         ended.Cancel();
         Interlocked.Increment(ref iconRun);
 
+        // The link first, before the watches and outside the send lock. A Send blocked in a write to a phone that
+        // has stopped reading holds that lock for as long as the write blocks, and a watch blocked in such a send
+        // (the power reporter's) holds up its own Dispose with it; waiting for either here stalled the server's
+        // thread, and with it the new phone's session. Closing the link aborts the write, the Send throws and lets
+        // go, and only then are the watches stopped and the streams disposed, never under a writer's feet.
+        link.Close();
         foreach (var watch in ending)
         {
             watch.Dispose();
         }
 
-        // The link first, and outside the send lock. A Send blocked in a write to a phone that has stopped
-        // reading holds that lock for as long as the write blocks; waiting for it here stalled the server's
-        // thread, and with it the new phone's session. Closing the link aborts the write, the Send throws
-        // and lets go, and only then are the streams disposed, never under a writer's feet.
-        link.Close();
         lock (frames.SendGate)
         {
             link.Release();
