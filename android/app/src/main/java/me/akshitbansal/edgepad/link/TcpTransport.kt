@@ -34,8 +34,8 @@ class TcpTransport(
     private val hosts: List<InetAddress>,
     private val port: Int,
     private val laptopId: ByteArray,
-    private val keys: PairingKeys,
-    private val phoneName: String,
+    private val keys: () -> PairingKeys,
+    private val phoneName: () -> String,
     private val forcePair: Boolean = false,
     private val initiator: LinkInitiator = LinkInitiator(),
     // Injected so the JVM tests, which have no android.os, can skip the keep-alive timers.
@@ -125,16 +125,18 @@ class TcpTransport(
     ): Streams {
         val input = s.getInputStream()
         val output = s.getOutputStream()
-        val key = if (forcePair) null else keys.pairingKey(laptopId)
+        // Opened here, on the link thread: the first open reads storage, and the name is a settings lookup.
+        val stored = keys()
+        val key = if (forcePair) null else stored.pairingKey(laptopId)
         val result =
             if (key != null) {
                 try {
-                    initiator.resume(input, output, keys.phoneId, laptopId, key)
+                    initiator.resume(input, output, stored.phoneId, laptopId, key)
                 } finally {
                     key.fill(0)
                 }
             } else {
-                initiator.pair(input, output, keys.phoneId, phoneName, laptopId, confirmed) { sas ->
+                initiator.pair(input, output, stored.phoneId, phoneName(), laptopId, confirmed) { sas ->
                     // The owner walks to the laptop and types; the phone's own limit on that is the screen's.
                     s.soTimeout = PAIRING_TIMEOUT_MS
                     showCode(sas)
@@ -151,7 +153,7 @@ class TcpTransport(
         }
         if (key == null) {
             // The owner said yes, and the laptop proved it is the one asked for: only now is a key kept or replaced.
-            keys.save(laptopId, result.pairingKey)
+            stored.save(laptopId, result.pairingKey)
             result.pairingKey.fill(0)
         }
         s.soTimeout = 0

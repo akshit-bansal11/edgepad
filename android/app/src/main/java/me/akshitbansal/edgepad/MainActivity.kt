@@ -2636,7 +2636,15 @@ class MainActivity :
                     }
 
                     is Target.Network -> {
-                        TcpTransport(target.hosts, target.port, target.laptopId, keys, phoneName(app), target.pairAgain)
+                        // Both read on the link thread, not here on the main one: see TcpTransport.handshake.
+                        TcpTransport(
+                            target.hosts,
+                            target.port,
+                            target.laptopId,
+                            { keys },
+                            { phoneName(app) },
+                            target.pairAgain,
+                        )
                     }
                 }
             }
