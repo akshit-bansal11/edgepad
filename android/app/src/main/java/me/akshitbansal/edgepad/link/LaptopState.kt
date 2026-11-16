@@ -331,10 +331,12 @@ class LaptopState {
     private fun cap(text: String): Int? = text.trim().toIntOrNull()?.coerceIn(1, MACRO_SLOTS_MAX)
 
     private fun unavailable(text: String): Map<String, UnavailableReason> =
-        text.split('/').mapNotNull { entry ->
-            val colon = entry.indexOf(':')
-            if (colon <= 0) null else entry.substring(0, colon) to UnavailableReason.of(entry.substring(colon + 1))
-        }.toMap()
+        text
+            .split('/')
+            .mapNotNull { entry ->
+                val colon = entry.indexOf(':')
+                if (colon <= 0) null else entry.substring(0, colon) to UnavailableReason.of(entry.substring(colon + 1))
+            }.toMap()
 
     private fun features(text: String): Set<Feature> = text.split('/').mapNotNull(Feature::of).toSet()
 
