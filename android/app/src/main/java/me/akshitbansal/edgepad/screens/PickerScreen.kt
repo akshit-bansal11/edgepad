@@ -46,6 +46,8 @@ class PickerScreen(
     private val onUsbHelp: () -> Unit,
     private val onDisconnectAll: () -> Unit,
     onUpdate: () -> Unit,
+    onSkip: () -> Unit = {},
+    onLater: () -> Unit = {},
 ) {
     /** One row. [active] says it is the laptop the screens and every frame go to. */
     class Device(
@@ -99,6 +101,13 @@ class PickerScreen(
             updateCard =
                 card {
                     add(ui.link(ui.string(R.string.update_available), "", onUpdate) { updateVersion = it })
+                    add(
+                        LinearLayout(ui.context).apply {
+                            gravity = Gravity.END
+                            addView(ui.button(ui.string(R.string.updates_skip), Ui.Style.QUIET, onSkip))
+                            addView(ui.button(ui.string(R.string.updates_later), Ui.Style.QUIET, onLater))
+                        },
+                    )
                 }.apply { visibility = View.GONE }
             columns(
                 {
