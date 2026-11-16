@@ -4,36 +4,9 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { type Chunk, find, loadIndex } from "@/lib/search";
 
-/** One chunk of out/search-index.json (written by scripts/search-index.mjs). */
-type Chunk = { u: string; t: string; g: string; x: string };
 type Load = "idle" | "loading" | "ready" | "unavailable";
-
-const MAX_RESULTS = 8;
-
-async function loadIndex(): Promise<Chunk[]> {
-  const res = await fetch("/search-index.json", { cache: "force-cache" });
-  if (!res.ok) throw new Error(`search index: ${res.status}`);
-  const data: unknown = await res.json();
-  if (!Array.isArray(data)) throw new Error("search index: not a list");
-  return data as Chunk[];
-}
-
-/** Every term must appear in the title or the text; title matches come first. */
-function find(index: Chunk[], query: string): Chunk[] {
-  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
-  if (terms.length === 0) return [];
-  const inTitle: Chunk[] = [];
-  const inText: Chunk[] = [];
-  for (const chunk of index) {
-    const title = chunk.t.toLowerCase();
-    const text = chunk.x.toLowerCase();
-    if (terms.every((term) => title.includes(term))) inTitle.push(chunk);
-    else if (terms.every((term) => title.includes(term) || text.includes(term)))
-      inText.push(chunk);
-  }
-  return [...inTitle, ...inText].slice(0, MAX_RESULTS);
-}
 
 /**
  * Docs search. The button opens a native modal <dialog> (focus trap, Escape and the
@@ -103,9 +76,6 @@ export function DocsSearch() {
       <dialog
         ref={dialog}
         aria-label="Search the docs"
-        onClick={(event) => {
-          if (event.target === event.currentTarget) close();
-        }}
         onClose={() => opener.current?.focus()}
         className="bg-card text-foreground shadow-lift mx-auto mt-[10vh] max-h-[80vh] w-[min(36rem,calc(100vw-2rem))] scale-96 overflow-y-auto rounded-2xl p-4 opacity-0 transition-[opacity,scale,overlay,display] transition-discrete duration-(--duration-reveal) ease-out backdrop:bg-black/40 open:scale-100 open:opacity-100 starting:open:scale-96 starting:open:opacity-0 motion-reduce:scale-100 motion-reduce:duration-(--duration-fade) motion-reduce:open:scale-100 motion-reduce:starting:open:scale-100"
       >
