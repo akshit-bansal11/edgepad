@@ -4,6 +4,23 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+No wire-protocol change: the protocol stays at version 5.
+
+### Fixed
+
+- **Phone: shapes can be drawn again.** Hold two fingers still on the trackpad until the line turns solid, then lift one and draw with the other. Drawing with both fingers still works.
+- **Phone: double-tap then drag is back,** next to hold-still drag. The press waits until the pointer has left the laptop's double-click box, so the laptop no longer reads it as a double-click. The Capture screen keeps hold-still only.
+- **Phone: a two-, three- or four-finger tap is no longer lost** when the fingers lift one after another.
+- **Phone: switching a laptop between Wi-Fi or USB and Bluetooth** selects the new link and ends the old one, instead of leaving the phone on Reconnecting. A laptop saved over two transports no longer auto-connects twice.
+- **Phone: reconnecting gives up when retrying cannot help.** A refusal, a version mismatch or a PIN lock-out is no longer retried ten times, nor again at every return to the app. Bluetooth being off no longer marks a laptop "not paired". New code after Pair again pairs afresh and keeps a USB laptop on USB. A laptop that stops answering mid-handshake is reported as lost, not as refused.
+- **Phone and laptops: a vanished link is noticed.** The phone closes a Wi-Fi or USB link after 15 s with nothing from the laptop and reconnects; a laptop ends a session after 30 s with nothing from the phone, which releases every key and button the phone held. Before, either side could take many minutes.
+- **Phone: a gamepad control bound to a key is released** when the gamepad screen closes while it is held.
+- **Phone: a cold start with an image background** can no longer crash before the first layout.
+- **Laptops: pairing prompts can no longer be raised in a loop.** A device whose prompt was cancelled or left unanswered is refused for a minute, doubling up to an hour, and at most 10 such prompts are shown per hour. Unanswered prompts no longer count as failed attempts, so they cannot lock out real pairing; a wrong code still does.
+- **Mac: a flood of connections from the network no longer stalls the pointer.** At most two unproved connections per device, and refusals are logged once a minute per device, off the main thread.
+- **Mac: the first message over Bluetooth is no longer dropped** while the phone is authenticated.
+- **Linux: Type text on a non-US layout no longer freezes the pointer,** and the clipboard holds what it held before the text was typed. Keys sent right after the text arrive after it.
+
 ## [4.2.0] - 2026-11-14
 
 No wire-protocol change: the protocol stays at version 5, so a 4.2 phone and a 4.1 laptop still connect, though installing both halves from the same release is still the advice. **Mac and Linux are still in testing. Please use them at your own risk.** This release adds 14 languages to the phone and the Windows app, applies one set of UX and motion rules to the phone, the Windows tray and the website, puts Type text on the control surface, and fixes the bugs a state-machine review found worst, among them a stuck key on the on-screen keyboard that every release since 4.0.0 had.
