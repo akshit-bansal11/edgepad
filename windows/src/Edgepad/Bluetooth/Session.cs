@@ -81,9 +81,13 @@ internal sealed class Session(
 
             ReportState();
 
+            // A vanished peer holds the blocked read for minutes; Dispose from the timer's thread closes the link and wakes it.
+            using var silence = new SilenceWatch(SilenceWatch.PhoneSilence, () => { Log.Write($"Session with {address} ended: no frame for 30 s"); Dispose(); }, every: TimeSpan.FromSeconds(5));
+
             while (true)
             {
                 var frame = frames.ReadFrame();
+                silence.Touch();
                 if (frame is Ping ping)
                 {
                     Send(new Pong(ping.Time));
