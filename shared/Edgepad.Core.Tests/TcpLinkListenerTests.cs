@@ -208,6 +208,19 @@ public sealed class TcpLinkListenerTests : IDisposable
     }
 
     [Fact]
+    public async Task DoneGivesWritesThirtySeconds()
+    {
+        using var listener = Listen(TimeSpan.FromMilliseconds(100));
+        using var client = await ConnectAsync(listener);
+        await WaitForAsync(1);
+        Assert.True(accepted.TryPeek(out var server));
+
+        server.Done();
+
+        Assert.Equal(30_000, server.Socket.SendTimeout);
+    }
+
+    [Fact]
     public async Task ACallbackThatThrowsClosesItsConnectionAndTheListenerKeepsAccepting()
     {
         var calls = 0;
