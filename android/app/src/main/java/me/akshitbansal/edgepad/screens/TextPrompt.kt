@@ -2,6 +2,8 @@ package me.akshitbansal.edgepad.screens
 
 import android.app.AlertDialog
 import android.content.Context
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
@@ -26,14 +28,40 @@ fun askText(
             importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
             val pad = (Space.L * resources.displayMetrics.density).toInt()
             setPadding(pad, pad, pad, pad)
+            // ANDU-13: a half-typed text comes back after a rotation closed the box, which presses neither button.
+            setText(TextDraft.text)
+            setSelection(text.length)
+            addTextChangedListener(
+                object : TextWatcher {
+                    override fun beforeTextChanged(
+                        text: CharSequence?,
+                        start: Int,
+                        count: Int,
+                        after: Int,
+                    ) = Unit
+
+                    override fun onTextChanged(
+                        text: CharSequence?,
+                        start: Int,
+                        before: Int,
+                        count: Int,
+                    ) = Unit
+
+                    override fun afterTextChanged(text: Editable?) {
+                        TextDraft.text = text?.toString().orEmpty()
+                    }
+                },
+            )
         }
     AlertDialog
         .Builder(context)
         .setTitle(R.string.keyboard_type_text)
         .setView(field)
         .setPositiveButton(R.string.keyboard_type_send) { _, _ ->
+            TextDraft.text = ""
             TextChunks.split(field.text.toString()).forEach { send(Frame.Text(TextKind.TYPE.id, it)) }
-        }.setNegativeButton(android.R.string.cancel, null)
+        }.setNegativeButton(android.R.string.cancel) { _, _ -> TextDraft.text = "" }
+        .setOnCancelListener { TextDraft.text = "" }
         .openOver(owner)
         .window
         ?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
@@ -41,4 +69,9 @@ fun askText(
     // builds; asking once the field has focus covers the ones that ignore it when the dialog opens in landscape.
     field.requestFocus()
     field.post { context.getSystemService(InputMethodManager::class.java)?.showSoftInput(field, 0) }
+}
+
+/** What the Type text box held when it last closed unsent. Process memory only: never stored, never logged. */
+private object TextDraft {
+    @Volatile var text: String = ""
 }

@@ -35,7 +35,13 @@ class PairCodeScreen(
         object : Runnable {
             override fun run() {
                 val left = ((deadline - SystemClock.elapsedRealtime() + MS_PER_S - 1) / MS_PER_S).coerceAtLeast(0L)
-                countdown.text = ui.string(R.string.pair_expires, Clock.remaining(ui.context, left.toInt()))
+                // ANDU-12: a code at zero says it ran out rather than "Expires in 0 s".
+                countdown.text =
+                    if (left == 0L) {
+                        ui.string(R.string.pair_expired)
+                    } else {
+                        ui.string(R.string.pair_expires, Clock.remaining(ui.context, left.toInt()))
+                    }
                 // A view no longer on screen holds the post and never runs it, so the loop ends with the screen.
                 // AND-B-15: a code that ran out offers another here instead of leaving the screen.
                 if (left > 0L) countdown.postDelayed(this, MS_PER_S) else newCode?.visibility = View.VISIBLE
