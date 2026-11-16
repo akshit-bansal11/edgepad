@@ -113,6 +113,9 @@ class Discovery(
     private val watching = HashMap<String, () -> Unit>()
     private val queue = ArrayDeque<NsdServiceInfo>()
     private var resolving = false
+
+    /** Moves on at every [stop], so a resolve begun in an earlier browse keeps nothing it finds. */
+    private var browse = 0
     private var listener: NsdManager.DiscoveryListener? = null
 
     private val nsd: NsdManager? get() = appContext.getSystemService(NsdManager::class.java)
@@ -150,7 +153,9 @@ class Discovery(
         }
         watching.clear()
         queue.clear()
-        resolving = false
+        // Not [resolving]: a resolve already handed to NsdManager runs on past this, and below Android 14 a second
+        // one is refused while it does. Its own callback clears the flag; [browse] makes it drop its result.
+        browse++
         services.clear()
     }
 
@@ -216,6 +221,7 @@ class Discovery(
         val manager = nsd ?: return
         val info = queue.removeFirstOrNull() ?: return
         resolving = true
+        val begunIn = browse
         val done = {
             synchronized(this) {
                 resolving = false
@@ -231,7 +237,8 @@ class Discovery(
                 ) = done()
 
                 override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-                    update(serviceInfo, listOfNotNull(serviceInfo.host))
+                    val current = synchronized(this@Discovery) { browse == begunIn }
+                    if (current) update(serviceInfo, listOfNotNull(serviceInfo.host))
                     done()
                 }
             },
