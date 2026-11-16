@@ -89,13 +89,9 @@ public sealed class UserFolderTests : IDisposable
         Directory.CreateDirectory(Path.Combine(Current, "trusted-phone.txt"));
         Migrate();
 
-        var pinFolder = UserFolder.FolderFor(Legacy, Current, logs.Add, "security.txt", "pin-verified.txt");
-        var trustFolder = UserFolder.FolderFor(Legacy, Current, logs.Add, "trusted-phone.txt");
-        Assert.Equal(Legacy, pinFolder);
-        Assert.True(new PinStore(pinFolder, iterations: 1).HasPin);
-        Assert.Equal(
-            ["link:00112233445566778899aabbccddeeff"],
-            new TrustStore(Path.Combine(trustFolder, "trusted-phone.txt")).TrustedPhones);
+        Assert.Equal(Path.Combine(Legacy, "security.txt"), PathFor("security.txt"));
+        Assert.True(Pin().HasPin);
+        Assert.Equal(["link:00112233445566778899aabbccddeeff"], new TrustStore(PathFor("trusted-phone.txt")).TrustedPhones);
     }
 
     [Fact]
@@ -106,11 +102,45 @@ public sealed class UserFolderTests : IDisposable
 
         Migrate();
 
-        var folder = UserFolder.FolderFor(Legacy, Current, logs.Add, "security.txt", "pin-verified.txt");
-        Assert.Equal(Current, folder);
+        Assert.Equal(Path.Combine(Current, "security.txt"), PathFor("security.txt"));
         Assert.False(File.Exists(Path.Combine(Legacy, "security.txt")));
-        Assert.True(new PinStore(folder, iterations: 1).HasPin);
+        Assert.True(Pin().HasPin);
     }
+
+    [Fact]
+    public void APinMovedWithoutItsVerifiedListIsStillRequired()
+    {
+        // security.txt reached Local, pin-verified.txt stayed in Roaming: each is read where it is.
+        Directory.CreateDirectory(Legacy);
+        Assert.True(new PinStore(Legacy, iterations: 1).SetPin("123456"));
+        File.WriteAllText(Path.Combine(Legacy, "pin-verified.txt"), "");
+        Directory.CreateDirectory(Current);
+        File.Move(Path.Combine(Legacy, "security.txt"), Path.Combine(Current, "security.txt"));
+
+        Assert.Equal(Path.Combine(Current, "security.txt"), PathFor("security.txt"));
+        Assert.Equal(Path.Combine(Legacy, "pin-verified.txt"), PathFor("pin-verified.txt"));
+        Assert.True(Pin().HasPin);
+    }
+
+    [Fact]
+    public void AVerifiedListMovedWithoutItsPinLeavesThePinRequired()
+    {
+        // The reverse split: pin-verified.txt reached Local, security.txt stayed in Roaming.
+        Directory.CreateDirectory(Legacy);
+        Assert.True(new PinStore(Legacy, iterations: 1).SetPin("123456"));
+        Directory.CreateDirectory(Current);
+        File.WriteAllText(Path.Combine(Current, "pin-verified.txt"), "");
+
+        Assert.Equal(Path.Combine(Legacy, "security.txt"), PathFor("security.txt"));
+        Assert.Equal(Path.Combine(Current, "pin-verified.txt"), PathFor("pin-verified.txt"));
+        Assert.True(Pin().HasPin);
+    }
+
+    private string PathFor(string name) => UserFolder.PathFor(Legacy, Current, logs.Add, name);
+
+    /// <summary>A PinStore opened the way <see cref="PinStore.ForCurrentUser"/> opens it, on the test's folders.</summary>
+    private PinStore Pin() => new(
+        Current, iterations: 1, securityFile: PathFor("security.txt"), verifiedFile: PathFor("pin-verified.txt"));
 
     public void Dispose()
     {

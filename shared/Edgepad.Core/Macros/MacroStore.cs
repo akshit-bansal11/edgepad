@@ -102,7 +102,7 @@ internal sealed class MacroStore : IMacroRunner
     }
 
     public static MacroStore ForCurrentUser(IMacroLauncher launcher, IMacroWindows? windows = null) => new(
-        Path.Combine(UserFolder.FolderFor("macros.txt"), "macros.txt"),
+        UserFolder.PathFor("macros.txt"),
         launcher,
         windows: windows);
 

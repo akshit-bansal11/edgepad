@@ -19,7 +19,9 @@ internal sealed class LinkIdentity(byte[] id, string name)
     public string DeviceText(string os) => $"{IdHex}/{os}/{name}";
 
     public static LinkIdentity ForCurrentUser(string directory) =>
-        Load(Path.Combine(directory, "link-id.txt"), Environment.MachineName);
+        Load(
+            directory == UserFolder.Current ? UserFolder.PathFor("link-id.txt") : Path.Combine(directory, "link-id.txt"),
+            Environment.MachineName);
 
     /// <summary>
     /// The id kept at <paramref name="path"/>, or a new one written there when there is none or it is not one this

@@ -14,27 +14,27 @@ internal static class UserFolder
     public static string Legacy => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Edgepad");
 
-    /// <summary><see cref="FolderFor(string, string, Action{string}, string[])"/> on the real folders.</summary>
-    public static string FolderFor(params string[] names) => FolderFor(Legacy, Current, Log.Write, names);
+    /// <summary><see cref="PathFor(string, string, Action{string}, string)"/> on the real folders.</summary>
+    public static string PathFor(string name) => PathFor(Legacy, Current, Log.Write, name);
 
     /// <summary>
-    /// The folder a store reads <paramref name="names"/> from: <paramref name="current"/>, unless one of them is
-    /// only in <paramref name="legacy"/>, because <see cref="Migrate"/> could not move it; then the legacy folder,
-    /// logged. Fails closed: a PIN or trust list that could not move is read where it is, never replaced by the
-    /// defaults of a missing file.
+    /// Where a store opens the file <paramref name="name"/>, each file on its own: in <paramref name="current"/> when
+    /// it is there; else in <paramref name="legacy"/> when only that has it, because <see cref="Migrate"/> could not
+    /// move it, logged; else in <paramref name="current"/>, for a new file. Fails closed: a PIN or trust list that
+    /// could not move is read where it is, never replaced by the defaults of a missing file. Never a folder for a
+    /// group of files: a partial move would leave one of them missing from whichever folder was chosen.
     /// </summary>
-    internal static string FolderFor(string legacy, string current, Action<string> log, params string[] names)
+    internal static string PathFor(string legacy, string current, Action<string> log, string name)
     {
-        foreach (var name in names)
+        var moved = Path.Combine(current, name);
+        var left = Path.Combine(legacy, name);
+        if (!File.Exists(moved) && File.Exists(left))
         {
-            if (!File.Exists(Path.Combine(current, name)) && File.Exists(Path.Combine(legacy, name)))
-            {
-                log($"Reading {name} from {legacy}: it could not be moved to {current}");
-                return legacy;
-            }
+            log($"Reading {name} from {legacy}: it could not be moved to {current}");
+            return left;
         }
 
-        return current;
+        return moved;
     }
 
     /// <summary>
