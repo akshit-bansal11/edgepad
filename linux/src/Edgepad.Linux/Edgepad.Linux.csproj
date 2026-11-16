@@ -23,6 +23,7 @@
     <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
     <!-- English plus the 14 translations, so a release carries exactly those satellite assemblies (the shared CoreStrings
          ones included) and not the dozen the .NET libraries ship. The single-file publish bundles them into the binary. -->
+    <NeutralLanguage>en</NeutralLanguage>
     <SatelliteResourceLanguages>en;zh-Hans;es;hi;de;fr;pt-BR;ja;ar;ru;ko;it;nl;tr;pl</SatelliteResourceLanguages>
   </PropertyGroup>
 
