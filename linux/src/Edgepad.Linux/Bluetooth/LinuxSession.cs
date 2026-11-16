@@ -37,6 +37,7 @@ internal sealed class LinuxSession : IDisposable
     private Action<bool>? inputState;
     private PowerSource? powerSource;
     private PowerReporter? power;
+    private volatile NotificationMonitor? notifications;
 
     // Which icon run may still send: each WANT_ICONS and Dispose move it on, and a run that sees it moved stops.
     private int iconRun;
@@ -93,6 +94,9 @@ internal sealed class LinuxSession : IDisposable
 
     public void Start() => thread.Start();
 
+    /// <summary>The phone's SET NOTIFY. Nothing before the handshake: the monitor does not exist yet.</summary>
+    public void SetNotify(bool on) => notifications?.SetPhone(on);
+
     /// <summary>Waits up to <paramref name="timeout"/> for the read loop's own cleanup, which releases held input.</summary>
     public void Join(TimeSpan timeout)
     {
@@ -146,6 +150,9 @@ internal sealed class LinuxSession : IDisposable
             var sync = new ClipboardSync(new QuietClipboard(surface), sender, () => ClipboardSetting.Enabled, ended.Token);
             dispatcher.Clipboard = sync;
             _ = Task.Run(() => LinuxClipboard.Poll(surface.Fingerprint, sync, () => ClipboardSetting.Enabled, ended.Token));
+
+            // Notification forwarding: no bus connection until the tray switch is on and the phone sent SET NOTIFY 1.
+            notifications = new NotificationMonitor((label, data) => sender.Send(BlobKind.Notification, label, data));
 
             // The apps the phone may pick from: a pick is a token into a list built here, never a path from the phone.
             dispatcher.Apps = new AppPicker(new DesktopEntryCatalog(), macros(), sender, ended.Token);
@@ -218,6 +225,7 @@ internal sealed class LinuxSession : IDisposable
                         powerSource?.Dispose();
                     }
 
+                    notifications?.Dispose();
                     dispatcher.Capture?.Dispose();
                     if (dispatcher.Cadence.Summary() is { } cadence)
                     {

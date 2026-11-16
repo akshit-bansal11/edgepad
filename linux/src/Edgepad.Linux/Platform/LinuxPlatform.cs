@@ -182,6 +182,9 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
         }
     }
 
+    /// <summary>The phone's SET NOTIFY, true for 1. Set by the host before the session starts.</summary>
+    public Action<bool>? NotifyRequested { get; set; }
+
     public bool Set(ControlId control, byte percent)
     {
         switch (control)
@@ -207,6 +210,15 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
                 return annotator.SetWidth(percent);
             case ControlId.PenOpacity:
                 return annotator.SetOpacity(percent);
+            case ControlId.Notify:
+                // 1 or 0; the session that owns this platform decides what it means. Anything else is dropped.
+                if (percent > 1)
+                {
+                    return false;
+                }
+
+                NotifyRequested?.Invoke(percent == 1);
+                return true;
             default:
                 // Refresh rate: Linux has no shared way to switch modes.
                 return false;

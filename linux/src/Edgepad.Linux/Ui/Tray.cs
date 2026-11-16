@@ -15,12 +15,14 @@ internal sealed record TrayHooks(
     Func<bool> NetworkOn,
     Func<string> NetworkHint,
     Func<bool> ClipboardOn,
+    Func<bool> NotifyOn,
     Func<bool> AutostartOn,
     Func<bool> UpdatesOn,
     Action Security,
     Action Macros,
     Action ToggleNetwork,
     Action ToggleClipboard,
+    Action ToggleNotify,
     Action ToggleAutostart,
     Action ToggleUpdates,
     Action InstallUpdate,
@@ -54,6 +56,8 @@ internal sealed class Tray : IDisposable
     private readonly NativeMenuItem problemRow = new("") { IsEnabled = false, IsVisible = false };
     private readonly NativeMenuItem networkRow = Toggle("Wi-Fi and USB connections");
     private readonly NativeMenuItem clipboardRow = Toggle("Share clipboard");
+    // plain English until 4.5.0 localisation
+    private readonly NativeMenuItem notifyRow = Toggle("Forward notifications to phone");
     private readonly NativeMenuItem autostartRow = Toggle("Start at login");
     private readonly NativeMenuItem updatesRow = Toggle("Check for updates daily");
     private readonly NativeMenuItem macrosRow = new("Macros…");
@@ -74,6 +78,7 @@ internal sealed class Tray : IDisposable
         skipRow.Click += (_, _) => Safe(hooks.SkipUpdate, "Skip this version");
         networkRow.Click += (_, _) => Safe(hooks.ToggleNetwork, "Wi-Fi and USB connections");
         clipboardRow.Click += (_, _) => Safe(hooks.ToggleClipboard, "Share clipboard");
+        notifyRow.Click += (_, _) => Safe(hooks.ToggleNotify, "Forward notifications to phone");
         autostartRow.Click += (_, _) => Safe(hooks.ToggleAutostart, "Start at login");
         updatesRow.Click += (_, _) => Safe(hooks.ToggleUpdates, "Check for updates daily");
         macrosRow.Click += (_, _) => Safe(hooks.Macros, "Macros");
@@ -95,6 +100,7 @@ internal sealed class Tray : IDisposable
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(networkRow);
         menu.Add(clipboardRow);
+        menu.Add(notifyRow);
         menu.Add(autostartRow);
         menu.Add(updatesRow);
         menu.Add(new NativeMenuItemSeparator());
@@ -170,6 +176,7 @@ internal sealed class Tray : IDisposable
         networkRow.Header = $"Wi-Fi and USB connections ({hooks.NetworkHint()})";
         networkRow.IsChecked = hooks.NetworkOn();
         clipboardRow.IsChecked = hooks.ClipboardOn();
+        notifyRow.IsChecked = hooks.NotifyOn();
         autostartRow.IsChecked = hooks.AutostartOn();
         updatesRow.IsChecked = hooks.UpdatesOn();
     }

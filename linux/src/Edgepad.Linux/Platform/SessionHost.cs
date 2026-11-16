@@ -125,6 +125,7 @@ internal sealed class SessionHost(
             throw;
         }
 
+        platform.NotifyRequested = session.SetNotify;
         if (!admission.AddCandidate(session, address))
         {
             Log.Write($"Refused {address}: Edgepad is quitting, or the owner is changing security settings");

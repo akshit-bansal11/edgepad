@@ -57,12 +57,13 @@ internal sealed class Annotator : IDisposable
     /// The TEXT 9 tokens for a laptop that can, or cannot, show the overlay and see macro apps' windows. Capture is
     /// always offered.
     /// </summary>
-    internal static string Features(bool annotate, bool running = false, bool clipboard = false, bool apps = false)
+    internal static string Features(bool annotate, bool running = false, bool clipboard = false, bool apps = false, bool notify = false)
     {
         var features = annotate ? $"{Feature.Annotate}/{Feature.Capture}" : Feature.Capture;
         features = running ? $"{features}/{Feature.Running}" : features;
         features = clipboard ? $"{features}/{Feature.Clipboard}" : features;
-        return apps ? $"{features}/{Feature.Apps}" : features;
+        features = apps ? $"{features}/{Feature.Apps}" : features;
+        return notify ? $"{features}/{Feature.Notify}" : features;
     }
 
     /// <summary>Tells every connected phone the features again, after the clipboard switch moved.</summary>
@@ -293,7 +294,7 @@ internal sealed class Annotator : IDisposable
             return;
         }
 
-        sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning, ClipboardSetting.Enabled, apps: true)));
+        sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning, ClipboardSetting.Enabled, apps: true, notify: NotifySetting.Enabled && !NotificationMonitor.Refused)));
         if (primary is { } screen)
         {
             sink(new Text(

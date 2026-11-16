@@ -297,12 +297,14 @@ internal sealed class Shell : IDisposable
             () => networkSettings.Load().Enabled,
             () => networkHint,
             () => ClipboardSetting.Enabled,
+            () => NotifySetting.Enabled,
             () => autostart.Enabled,
             () => updateSetting.Enabled,
             () => _ = Guard(ShowSecurityAsync),
             () => _ = Guard(ShowMacrosAsync),
             () => _ = Guard(ToggleNetworkAsync),
             () => _ = Guard(ToggleClipboardAsync),
+            () => _ = Guard(ToggleNotifyAsync),
             () => _ = Guard(ToggleAutostartAsync),
             () => _ = Guard(ToggleUpdatesAsync),
             () => _ = Guard(InstallUpdateAsync),
@@ -491,6 +493,19 @@ internal sealed class Shell : IDisposable
     private async Task ApplyClipboardAsync(bool on)
     {
         var saved = ClipboardSetting.Set(on);
+        Annotator.FeaturesChanged();
+        if (!saved)
+        {
+            await Dialogs.Inform(null, "This applies now, but it could not be saved, so it will go back after a restart. The log has the reason.");
+        }
+
+        RefreshViews();
+    }
+
+    /// <summary>The Forward notifications switch. Default off; phones are told again, since the feature token follows it.</summary>
+    private async Task ToggleNotifyAsync()
+    {
+        var saved = NotifySetting.Set(!NotifySetting.Enabled);
         Annotator.FeaturesChanged();
         if (!saved)
         {
