@@ -65,7 +65,8 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
 
     public void Move(int dx, int dy) => input.Move(dx, dy);
 
-    public void Button(byte id, bool down) => input.Button(id, down);
+    /// <summary>In order like a key: a click overtaking queued text would move the focus the text is meant for.</summary>
+    public void Button(byte id, bool down) => InOrder(() => input.Button(id, down));
 
     public void Scroll(int dx, int dy) => input.Scroll(dx, dy);
 
