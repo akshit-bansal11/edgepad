@@ -15,6 +15,7 @@ import java.io.EOFException
 import java.io.IOException
 import java.io.OutputStream
 import java.io.StreamCorruptedException
+import java.net.InetAddress
 import java.net.SocketTimeoutException
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -174,6 +175,9 @@ class LaptopLink(
      */
     @Volatile var xfer: ((Frame) -> Unit)? = null
 
+    /** The laptop's address on a network link, for the transfer's second socket; null on Bluetooth. */
+    val peer: InetAddress? get() = transport.peer
+
     /** The frames [send] has queued and the writer has not taken yet. */
     val queued: Int get() = outbox.size
 
@@ -221,7 +225,7 @@ class LaptopLink(
      */
     fun send(frame: Frame) {
         if (!connected) return
-        if (frame !is Frame.Ping && !isBlob(frame)) lastInputMs = System.nanoTime() / NANOS_PER_MS_LONG
+        if (frame !is Frame.Ping && !isBlob(frame) && !isXfer(frame)) lastInputMs = System.nanoTime() / NANOS_PER_MS_LONG
         if (!outbox.offer(frame)) close(Closure(Cause.LOST))
     }
 

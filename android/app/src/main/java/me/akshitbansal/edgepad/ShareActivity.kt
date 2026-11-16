@@ -14,16 +14,17 @@ import me.akshitbansal.edgepad.link.ShareTarget
 import me.akshitbansal.edgepad.link.SharedText
 import me.akshitbansal.edgepad.link.preview
 import me.akshitbansal.edgepad.link.sharedText
+import me.akshitbansal.edgepad.link.xfer.Transfers
 import me.akshitbansal.edgepad.protocol.BlobKind
 import java.io.IOException
 import kotlin.concurrent.thread
 
 /**
  * Share > Edgepad: one text or one image another app hands over, sent to the connected laptop through the clipboard's
- * own path. Exported, so any app can start it, which is why it does nothing without a tap: it reads only
- * EXTRA_TEXT or EXTRA_STREAM of a single ACTION_SEND, shows what it would send and to whom, and sends only after Send.
- * The image is read on a worker, through the content resolver, under the clipboard's size cap; no URI permission is
- * kept past this screen. Anything else finishes at once.
+ * own path, or any other file, sent as a file transfer. Exported, so any app can start it, which is why it does nothing
+ * without a tap: it reads only EXTRA_TEXT or EXTRA_STREAM of a single ACTION_SEND, shows what it would send and to
+ * whom, and sends only after Send. The image is read on a worker, through the content resolver, under the clipboard's
+ * size cap; a file is streamed on a worker. No URI permission is kept past this screen. Anything else finishes at once.
  */
 class ShareActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,9 +40,12 @@ class ShareActivity : Activity() {
         // not the app.
         val text: CharSequence?
         val image: Uri?
+        val file: Uri?
         try {
             text = if (type == TEXT_TYPE) intent.getCharSequenceExtra(Intent.EXTRA_TEXT) else null
             image = if (type.startsWith(IMAGE_PREFIX)) streamOf(intent) else null
+            // Anything else with a stream: a document, a recording, a text file.
+            file = if (text == null && image == null) streamOf(intent) else null
         } catch (e: RuntimeException) {
             Log.w("Edgepad", "The share's extras could not be read", e)
             finish()
@@ -49,12 +53,16 @@ class ShareActivity : Activity() {
         }
         val target = LinkHooks.shareTarget?.invoke()
         when {
-            text == null && image == null -> {
+            text == null && image == null && file == null -> {
                 notice(getString(R.string.share_nothing))
             }
 
             target == null -> {
                 notice(getString(R.string.share_no_laptop))
+            }
+
+            file != null -> {
+                confirmFile(file, target)
             }
 
             target.send == null -> {
@@ -110,6 +118,60 @@ class ShareActivity : Activity() {
         if (uri == null) return notice(getString(R.string.share_nothing))
         confirm(getString(R.string.share_image), target) {
             deliver(target, BlobKind.CLIP_IMAGE) { AndroidClipboard(applicationContext).readImage(uri)?.data }
+        }
+    }
+
+    /** The name is asked of the sharing app's provider on a worker, then the same question as for text: Send to whom. */
+    private fun confirmFile(
+        uri: Uri,
+        target: ShareTarget,
+    ) {
+        val sendFile = target.sendFile ?: return notice(getString(R.string.share_no_laptop))
+        thread(name = "edgepad-share-name") {
+            val name =
+                try {
+                    Transfers.displayName(applicationContext, uri)
+                } catch (e: RuntimeException) {
+                    // A revoked grant or a dead provider comes back across binder as any runtime exception.
+                    Log.w("Edgepad", "Could not read the shared file's name", e)
+                    null
+                }
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                if (name == null) {
+                    notice(getString(R.string.share_nothing))
+                } else {
+                    confirm(name, target) { deliverFile(target, uri, sendFile) }
+                }
+            }
+        }
+    }
+
+    /** Sends on a worker, counted as a share so the app leaving does not end the link under it. */
+    private fun deliverFile(
+        target: ShareTarget,
+        uri: Uri,
+        sendFile: (Uri) -> Boolean,
+    ) {
+        LinkHooks.sharing.incrementAndGet()
+        thread(name = "edgepad-share") {
+            val message =
+                try {
+                    if (sendFile(uri)) {
+                        getString(R.string.share_sent, target.name)
+                    } else {
+                        getString(R.string.share_send_failed, target.name)
+                    }
+                } catch (e: RuntimeException) {
+                    Log.w("Edgepad", "Could not send what was shared", e)
+                    getString(R.string.share_send_failed, target.name)
+                } finally {
+                    LinkHooks.sharing.decrementAndGet()
+                }
+            runOnUiThread {
+                Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
+                finish()
+            }
         }
     }
 
