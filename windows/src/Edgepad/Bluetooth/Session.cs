@@ -64,6 +64,8 @@ internal sealed class Session(
     private int iconRun;
     private MediaState lastMedia = MediaSessions.Nothing;
     private string lastTimeline = "";
+    // What the phone holds as TEXT 26: the uncleaned title, or empty when the cleaned one is the whole line.
+    private string lastFull = "";
 
     /// <summary>The phone's address, as the log and the status line name it.</summary>
     public string Address => address;
@@ -452,6 +454,13 @@ internal sealed class Session(
         if (state.NowPlaying != lastMedia.NowPlaying)
         {
             Send(new Text((byte)TextKind.NowPlaying, state.NowPlaying));
+        }
+
+        var full = state.NowPlayingFull != state.NowPlaying ? state.NowPlayingFull : "";
+        if (full != lastFull)
+        {
+            Send(new Text((byte)TextKind.NowPlayingFull, full));
+            lastFull = full;
         }
 
         if (state.App != lastMedia.App)
