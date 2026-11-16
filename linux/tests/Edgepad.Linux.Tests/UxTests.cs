@@ -41,7 +41,18 @@ public sealed class UxTests
     [InlineData("/usr/local/bin/edgepad", "/usr/local/bin/edgepad")]
     [InlineData("/home/a b/edgepad", "\"/home/a b/edgepad\"")]
     [InlineData("/home/$USER/edgepad", "edgepad")]
+    [InlineData("/opt/100%/edgepad", "/opt/100%%/edgepad")]
+    [InlineData("/home/a b/50%", "\"/home/a b/50%%\"")]
     public void TheExecValueIsQuotedOrFallsBack(string path, string expected) => Assert.Equal(expected, Autostart.ExecField(path));
+
+    [Fact]
+    public void OnlyAnEntryForThisFileCountsAsOn()
+    {
+        Assert.True(Autostart.Starts(Autostart.Entry("/opt/edgepad/edgepad"), "/opt/edgepad/edgepad"));
+        Assert.True(Autostart.Starts(Autostart.Entry("/home/a b/100%/edgepad"), "/home/a b/100%/edgepad"));
+        Assert.False(Autostart.Starts(Autostart.Entry("/old/edgepad"), "/opt/edgepad/edgepad"));
+        Assert.False(Autostart.Starts("[Desktop Entry]\nType=Application\n", "/opt/edgepad/edgepad"));
+    }
 
     [Fact]
     public void AutostartIsWrittenAndRemoved()

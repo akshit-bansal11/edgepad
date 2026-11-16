@@ -39,7 +39,8 @@ internal static class Notifier
             }
         });
 
-    // One connection for the process, opened the first time a clickable notification goes out; a failure is tried again next time.
+    // One connection for the process, opened the first time a clickable notification goes out. A failure, or the
+    // session bus going away (a restart), closes it, and the next clickable notification opens a new one.
     private static void WatchClicks()
     {
         if (Interlocked.CompareExchange(ref watching, 1, 0) != 0)
@@ -49,9 +50,10 @@ internal static class Notifier
 
         _ = Task.Run(async () =>
         {
+            DBusConnection? bus = null;
             try
             {
-                var bus = new DBusConnection(DBusAddress.Session ?? throw new IOException("The session bus address is unknown"));
+                bus = new DBusConnection(DBusAddress.Session ?? throw new IOException("The session bus address is unknown"));
                 await bus.ConnectAsync();
                 _ = await bus.AddMatchAsync(
                     Rule("ActionInvoked"),
@@ -79,10 +81,16 @@ internal static class Notifier
                         }
                     },
                     emitOnCapturedContext: false);
+                var lost = await bus.DisconnectedAsync();
+                Log.Write($"Notification clicks are no longer heard: the session bus went away{(lost is null ? "" : $" ({lost.Message})")}");
             }
             catch (Exception e)
             {
                 Log.Write($"Notification clicks cannot be heard: {e.Message}");
+            }
+            finally
+            {
+                bus?.Dispose();
                 Volatile.Write(ref watching, 0);
             }
         });

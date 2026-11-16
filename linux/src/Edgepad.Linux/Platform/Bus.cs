@@ -1,4 +1,3 @@
-using System.Net.Sockets;
 using Tmds.DBus.Protocol;
 
 namespace Edgepad.Platform;
@@ -74,10 +73,10 @@ internal sealed class Bus(Func<string?> address, string name) : IDisposable
                 // connection is fine, and the caller sees only that this call did not work.
                 return false;
             }
-            catch (Exception e) when (Unwrap(e) is DBusExceptionBase or IOException or SocketException or TimeoutException
-                or ObjectDisposedException or InvalidOperationException)
+            catch (Exception e)
             {
-                // The connection is dropped whatever went wrong, and opened again by the next call.
+                // Anything at all, a malformed bus address included: callers run on pool threads, where an exception
+                // would end the process. The connection is dropped whatever went wrong, and opened again by the next call.
                 Reset();
                 var reason = Unwrap(e).Message;
                 if (reason != lastFailure)
