@@ -215,14 +215,16 @@ internal sealed class LinuxSession : IDisposable
             power = new PowerReporter(powerSource.ReadBatteries, powerSource.ReadOutput, frames.Send, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(3));
             power.Start();
 
-            // Captures go to the phone once it asks (SET CAPTURE_TARGET); until then, and after the session, they stay here.
-            dispatcher.Capture = new CaptureToPhone(new LinuxCaptureFolders(), frames.Send, () => dispatcher.LastInputMs);
-
             // The shared clipboard: moves nothing until the phone asks on this link, and stops at once when the tray
             // switch goes off. Polled, since there is no change event to listen to.
             var surface = new LinuxClipboard(
                 Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"),
                 Environment.GetEnvironmentVariable("DISPLAY"));
+
+            // Captures go to the phone once it asks (SET CAPTURE_TARGET); until then, and after the session, they stay here.
+            // A shot that only reached the clipboard is found through the same tool, while a capture is being waited for.
+            dispatcher.Capture = new CaptureToPhone(
+                new LinuxCaptureFolders(surface.Fingerprint, surface.Read, () => surface.Available), frames.Send, () => dispatcher.LastInputMs);
             var sender = new BlobSender(frames.Send, link.Kind, () => dispatcher.LastInputMs, ended.Token);
             var sync = new ClipboardSync(new QuietClipboard(surface), sender, () => ClipboardSetting.Enabled, ended.Token);
             dispatcher.Clipboard = sync;
