@@ -10,7 +10,7 @@ object SafeName {
             (1..9).map { "LPT$it" }
 
     /**
-     * The last path segment, control characters dropped, the characters Windows forbids in a name replaced by an
+     * The last path segment, control and bidi/format characters dropped, the characters Windows forbids in a name replaced by an
      * underscore, trailing dots and spaces trimmed, cut to [XferLimits.MAX_NAME_BYTES] UTF-8 bytes keeping the
      * extension. Null when nothing usable is left, or when the name is a Windows device name with or without an
      * extension.
@@ -20,7 +20,7 @@ object SafeName {
         val segment = raw.substring(raw.lastIndexOfAny(charArrayOf('/', '\\')) + 1)
         val text =
             segment
-                .filterNot { it.isISOControl() }
+                .filterNot { it.isISOControl() || isBidiOrFormat(it) }
                 .map { if (it in INVALID) '_' else it }
                 .joinToString("")
         val name = cutToBytes(text.trimEnd('.', ' ')).trimEnd('.', ' ')
@@ -42,6 +42,14 @@ object SafeName {
         while (exists("$stem ($n)$extension")) n++
         return "$stem ($n)$extension"
     }
+
+    // Format characters that reorder or hide text: invoice<U+202E>fdp.exe would show as invoiceexe.pdf.
+    private fun isBidiOrFormat(c: Char): Boolean =
+        c == '؜' ||
+            c in '​'..'‏' ||
+            c in '‪'..'‮' ||
+            c in '⁠'..'⁩' ||
+            c == '﻿'
 
     private fun utf8(text: String): Int = text.toByteArray(Charsets.UTF_8).size
 

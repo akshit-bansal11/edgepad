@@ -29,6 +29,13 @@ class SafeNameTest {
     }
 
     @Test
+    fun bidiAndFormatCharactersAreDropped() {
+        assertEquals("invoiceexe.pdf", SafeName.clean("invoice‮exe.pdf"))
+        assertEquals("ab.txt", SafeName.clean("a​b⁦.﻿txt؜"))
+        assertNull(SafeName.clean("‮‏"))
+    }
+
+    @Test
     fun aClashIsRenamedNeverOverwritten() {
         val taken = setOf("a.txt", "a (1).txt")
         assertEquals("a (2).txt", SafeName.unique("a.txt") { it in taken })
