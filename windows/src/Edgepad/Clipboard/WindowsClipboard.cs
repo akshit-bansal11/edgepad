@@ -80,7 +80,25 @@ internal sealed class WindowsClipboard : IClipboardSurface, IDisposable
         // Decoded here, so a large image costs this thread and not the tray.
         using var stream = new MemoryStream(content.Data);
         using var image = content.Kind == BlobKind.ClipImage ? new Bitmap(stream) : null;
-        using var png = new MemoryStream(content.Data);
+
+        OnUi(() =>
+        {
+            if (enabled())
+            {
+                // Built afresh on every attempt: a SetDataObject the clipboard refused may already have read the
+                // PNG stream to its end, and the retry would then put an empty image on the clipboard.
+                using var png = new MemoryStream(content.Data);
+
+                // No retries of its own: they would sleep on the UI thread.
+                Clipboard.SetDataObject(DataFor(content, image, png), true, 0, 0);
+                written = NativeMethods.GetClipboardSequenceNumber();
+            }
+        });
+    }
+
+    /// <summary>What goes on the clipboard for <paramref name="content"/>: its text, or the PNG and the bitmap of it.</summary>
+    internal static DataObject DataFor(ClipboardContent content, Bitmap? image, Stream png)
+    {
         var data = new DataObject();
         if (image is null)
         {
@@ -92,15 +110,7 @@ internal sealed class WindowsClipboard : IClipboardSurface, IDisposable
             data.SetImage(image);
         }
 
-        OnUi(() =>
-        {
-            if (enabled())
-            {
-                // No retries of its own: they would sleep on the UI thread.
-                Clipboard.SetDataObject(data, true, 0, 0);
-                written = NativeMethods.GetClipboardSequenceNumber();
-            }
-        });
+        return data;
     }
 
     /// <summary>On the UI thread, like everything else that touches the window.</summary>

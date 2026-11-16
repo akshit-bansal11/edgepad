@@ -166,7 +166,7 @@ internal sealed class Session(
         ReportPad();
 
         // Captures go to the phone once it asks (SET CAPTURE_TARGET); until then, and after the session, they stay here.
-        var capture = new CaptureToPhone(new WindowsCaptureFolders(), Send, () => dispatcher.LastInputMs);
+        var capture = new CaptureToPhone(new WindowsCaptureFolders(clipboard.Read), Send, () => dispatcher.LastInputMs);
         dispatcher.Capture = capture;
         Keep(capture);
 

@@ -137,8 +137,10 @@ internal sealed class VirtualPad(Func<ViGEmClient>? openClient = null) : IDispos
             // installer. Logged once and then given up on, not logged per frame — this runs on the input
             // path, where file I/O costs latency, and a pad that has stopped taking reports will not take
             // the next one either. Dropping it here is what makes every following frame a cheap false.
+            // Unplugged, not only forgotten: a pad dropped without Disconnect stays plugged into Windows, and the
+            // next PAD_ATTACH would plug a second controller beside it.
             Log.Write($"Virtual controller: the pad stopped taking reports: {e.Message}");
-            pad = null;
+            Unplug();
             return false;
         }
     }

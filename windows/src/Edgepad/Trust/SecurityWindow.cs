@@ -354,7 +354,9 @@ internal sealed class SecurityWindow : Form
         }
 
         phones.ForgetOne(this, phone);
-        Refill();
+
+        // After this Click returns: Refill disposes the Forget button that raised it.
+        BeginInvoke(Refill);
     }
 
     private void ConfirmForgetAll()
