@@ -605,14 +605,17 @@ class LaptopConnectionsTest {
     }
 
     private fun switchTo2(): FakeLink {
-        manager.connect(net(2), "Laptop 2", Transport.WIFI, tapped = true, select = true, replacing = listOf(id(1)))
+        manager.connect(net(2), "Laptop 2", Transport.WIFI, tapped = true, replacing = listOf(id(1)))
         return made.last()
     }
 
     @Test
     fun aSwitchOfTransportTakesTheSelectionAndEndsTheOldLinkOnceUp() {
         val old = up(1)
-        switchTo2().accept()
+        val attempt = switchTo2()
+        // Until the new link is up, input still goes to the working one.
+        assertSame(laptop(1), manager.selected)
+        attempt.accept()
         assertSame(laptop(2), manager.selected)
         assertEquals(LaptopLink.Cause.ENDED, old.closedWith)
         assertFalse(laptop(1).reconnecting)
@@ -625,11 +628,10 @@ class LaptopConnectionsTest {
     fun aSwitchThatFailsLeavesTheOldLinkUp() {
         val old = up(1)
         val attempt = switchTo2()
-        val before = manager.selected
         attempt.drop(LaptopLink.Cause.UNREACHABLE)
         assertNull(old.closedWith)
         assertTrue(laptop(1).connected)
-        assertSame(before, manager.selected)
+        assertSame(laptop(1), manager.selected)
         // The quick retry that then works was not part of the switch.
         scheduler.advance(LaptopConnections.QUICK_RETRY_MS)
         made.last().accept()

@@ -2030,8 +2030,8 @@ class MainActivity :
         tapped: Boolean = false,
         switching: List<Laptop> = emptyList(),
     ) {
-        // A switch away from the selected laptop's other transport takes the selection with it.
-        val select = tapped && (!connected || switching.any { it === selected })
+        // A switch keeps the working link selected until the new one is up; the manager hands over then.
+        val select = tapped && !connected
         val replacing = switching.map { it.id }
         when (target) {
             is Target.Bluetooth -> {
