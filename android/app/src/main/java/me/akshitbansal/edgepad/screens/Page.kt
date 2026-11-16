@@ -55,6 +55,9 @@ private const val BACK_ICON_DP = 26f
 private const val CHECK_DP = 20f
 private const val LEAD_DP = 24f
 
+/** The largest share of the nav bar either end may take. */
+private const val END_SHARE = 0.4f
+
 // A laptop's row: the Devices list's, and the larger one that heads the Settings hub.
 private const val LAPTOP_ROW_DP = 64f
 private const val LAPTOP_ROW_LARGE_DP = 72f
@@ -246,7 +249,12 @@ class Ui(
                 Glyph(context, Glyph.Shape.CHEVRON_LEFT, palette.accent),
                 LinearLayout.LayoutParams(dp(BACK_ICON_DP), dp(BACK_ICON_DP)),
             )
-            addView(text(label, Type.LABEL, palette.accent))
+            addView(
+                text(label, Type.LABEL, palette.accent).apply {
+                    maxLines = 1
+                    ellipsize = TextUtils.TruncateAt.END
+                },
+            )
             // A name that holds the words on screen, and says where Back goes, which sighted users read.
             contentDescription = if (named) string(R.string.back_to, label) else string(R.string.back)
             tappable(this, Space.S, onBack)
@@ -881,7 +889,14 @@ private class NavBar(
         heightMeasureSpec: Int,
     ) {
         centred?.let { title ->
-            ends.forEach { measureChild(it, widthMeasureSpec, heightMeasureSpec) }
+            // Neither end takes more than 40 % of the bar, so the title keeps at least 20 % and a long back
+            // label ellipsizes. The capped width is pinned so the measure below keeps it.
+            val cap = ((MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight) * END_SHARE).toInt()
+            ends.forEach {
+                it.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
+                it.measure(MeasureSpec.makeMeasureSpec(cap, MeasureSpec.AT_MOST), heightMeasureSpec)
+                it.layoutParams.width = it.measuredWidth
+            }
             // The same room on both sides, so the title stays centred on the bar and not between its ends.
             val clear = ends.maxOfOrNull { it.measuredWidth } ?: 0
             (title.layoutParams as ViewGroup.MarginLayoutParams).apply {
