@@ -482,4 +482,52 @@
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi и USB: телефоны могут не найти этот ноутбук.</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Перезапустить от имени администратора</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Позволяет Edgepad вводить текст в окна с повышенными правами, например в Диспетчер задач. Экран блокировки и запросы UAC остаются недоступными.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Установить Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Позже</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Пропустить эту версию</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Доступен Edgepad {0}. Нажмите, чтобы установить.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} не удалось проверить, поэтому он не установлен.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Не удалось установить Edgepad {0}. Нажмите, чтобы открыть страницу релиза.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>Это крупный релиз. Обновите Edgepad и на телефоне, иначе они откажутся работать друг с другом.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Завершение работы</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>Воспроизведение закончилось. Ноутбук выключится через {0} с.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Отправить файл на телефон…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>Файл {0} получен с телефона.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>Не удалось получить файл {0}.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Показывать уведомления на телефоне</value>
+  </data>
 </root>

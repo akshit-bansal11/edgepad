@@ -482,4 +482,52 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi 和 USB：手机可能找不到这台电脑。</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>以管理员身份重新启动</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>让 Edgepad 能在任务管理器等提升权限的窗口中输入。锁屏和 UAC 提示仍无法输入。</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>安装 Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>稍后</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>跳过此版本</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} 可用。点击即可安装。</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>无法验证 Edgepad {0}，因此未安装。</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>无法安装 Edgepad {0}。点击打开发布页面。</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>这是主要版本。请同时更新手机上的 Edgepad，否则两者会互相拒绝。</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>正在关机</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>媒体已结束。这台笔记本将在 {0} 秒后关机。</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>向手机发送文件…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>已从手机收到 {0}。</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>无法接收 {0}。</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>在手机上显示通知</value>
+  </data>
 </root>

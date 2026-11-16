@@ -482,4 +482,52 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>WLAN und USB: Handys finden diesen Laptop evtl. nicht.</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Als Administrator neu starten</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Erlaubt Edgepad, in Fenster mit erhöhten Rechten zu tippen, etwa den Task-Manager. Sperrbildschirm und UAC-Abfragen bleiben unerreichbar.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} installieren</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Später</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Diese Version überspringen</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} ist verfügbar. Zum Installieren klicken.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} konnte nicht geprüft werden und wurde deshalb nicht installiert.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Edgepad {0} konnte nicht installiert werden. Klicken, um die Release-Seite zu öffnen.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>Dies ist ein Hauptrelease. Aktualisiere Edgepad auch auf dem Handy, sonst lehnen sich beide gegenseitig ab.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Herunterfahren</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>Die Wiedergabe ist zu Ende. Dieser Laptop fährt in {0} Sekunden herunter.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Datei an das Handy senden…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} ist vom Handy angekommen.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>{0} konnte nicht empfangen werden.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Benachrichtigungen auf dem Handy anzeigen</value>
+  </data>
 </root>

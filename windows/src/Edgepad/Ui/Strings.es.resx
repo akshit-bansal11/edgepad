@@ -482,4 +482,52 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi y USB: puede que los teléfonos no encuentren esta laptop.</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Reiniciar como administrador</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Permite que Edgepad escriba en ventanas con permisos elevados, como el Administrador de tareas. La pantalla de bloqueo y los avisos de UAC siguen fuera de alcance.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Instalar Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Más tarde</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Omitir esta versión</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} está disponible. Haz clic para instalarlo.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>No se pudo comprobar Edgepad {0}, así que no se instaló.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>No se pudo instalar Edgepad {0}. Haz clic para abrir la página de la versión.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>Es una versión mayor. Actualiza también Edgepad en el teléfono, o se rechazarán entre sí.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Apagando</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>El contenido terminó. Este portátil se apaga en {0} segundos.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Enviar un archivo al teléfono…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} llegó desde el teléfono.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>No se pudo recibir {0}.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Mostrar notificaciones en el teléfono</value>
+  </data>
 </root>

@@ -482,4 +482,52 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-FiとUSB：スマホがこのノートPCを見つけられない可能性があります。</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>管理者として再起動</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>タスクマネージャーなど、昇格したウィンドウにも Edgepad で入力できるようにします。ロック画面と UAC の確認画面には入力できません。</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} をインストール</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>後で</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>このバージョンをスキップ</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} が利用可能です。クリックしてインストールします。</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} を確認できなかったため、インストールしませんでした。</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Edgepad {0} をインストールできませんでした。クリックしてリリースページを開きます。</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>これはメジャーリリースです。スマートフォンの Edgepad も更新してください。そうしないと互いに接続を拒否します。</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>シャットダウン中</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>メディアが終了しました。このノート PC は {0} 秒後にシャットダウンします。</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>スマートフォンにファイルを送信…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} をスマートフォンから受信しました。</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>{0} を受信できませんでした。</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>通知をスマートフォンに表示</value>
+  </data>
 </root>

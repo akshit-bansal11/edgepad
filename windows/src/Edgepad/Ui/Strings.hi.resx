@@ -482,4 +482,52 @@
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>वाई-फ़ाई और USB: हो सकता है फ़ोन इस लैपटॉप को न ढूंढ पाएं।</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>एडमिनिस्ट्रेटर के रूप में फिर से शुरू करें</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Edgepad को टास्क मैनेजर जैसी उच्च अधिकार वाली विंडो में टाइप करने देता है। लॉक स्क्रीन और UAC प्रॉम्प्ट पहुँच से बाहर रहते हैं।</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} इंस्टॉल करें</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>बाद में</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>यह संस्करण छोड़ें</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} उपलब्ध है। इंस्टॉल करने के लिए क्लिक करें।</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} की जाँच नहीं हो सकी, इसलिए इसे इंस्टॉल नहीं किया गया।</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Edgepad {0} इंस्टॉल नहीं हो सका। रिलीज़ पेज खोलने के लिए क्लिक करें।</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>यह एक बड़ा रिलीज़ है। फ़ोन पर भी Edgepad अपडेट करें, वरना दोनों एक-दूसरे को अस्वीकार कर देंगे।</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>बंद हो रहा है</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>मीडिया खत्म हो गया। यह लैपटॉप {0} सेकंड में बंद हो जाएगा।</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>रद्द करें</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>फ़ोन पर फ़ाइल भेजें…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} फ़ोन से आ गई।</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>{0} प्राप्त नहीं हो सकी।</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>फ़ोन पर सूचनाएँ दिखाएँ</value>
+  </data>
 </root>

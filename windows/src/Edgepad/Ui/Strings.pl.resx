@@ -482,4 +482,52 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi i USB: telefony mogą nie widzieć tego laptopa.</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Uruchom ponownie jako administrator</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Pozwala Edgepad pisać w oknach z podwyższonymi uprawnieniami, np. w Menedżerze zadań. Ekran blokady i monity UAC pozostają poza zasięgiem.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Zainstaluj Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Później</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Pomiń tę wersję</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} jest dostępny. Kliknij, aby zainstalować.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Nie udało się sprawdzić Edgepad {0}, więc go nie zainstalowano.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Nie udało się zainstalować Edgepad {0}. Kliknij, aby otworzyć stronę wydania.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>To duże wydanie. Zaktualizuj Edgepad także na telefonie, bo inaczej odrzucą się nawzajem.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Zamykanie systemu</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>Odtwarzanie się skończyło. Ten laptop wyłączy się za {0} s.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Anuluj</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Wyślij plik na telefon…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>Plik {0} dotarł z telefonu.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>Nie udało się odebrać pliku {0}.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Pokazuj powiadomienia na telefonie</value>
+  </data>
 </root>

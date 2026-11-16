@@ -463,4 +463,52 @@
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi en USB: telefoons vinden deze laptop mogelijk niet.</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Opnieuw starten als administrator</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Laat Edgepad typen in vensters met verhoogde rechten, zoals Taakbeheer. Het vergrendelscherm en UAC-meldingen blijven buiten bereik.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} installeren</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Deze versie overslaan</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} is beschikbaar. Klik om te installeren.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} kon niet worden gecontroleerd en is daarom niet geïnstalleerd.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Edgepad {0} kon niet worden geïnstalleerd. Klik om de releasepagina te openen.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>Dit is een grote release. Werk Edgepad ook op de telefoon bij, anders weigeren ze elkaar.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Afsluiten</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>De media is afgelopen. Deze laptop sluit af over {0} seconden.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Annuleren</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Een bestand naar de telefoon sturen…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} is van de telefoon aangekomen.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>{0} kon niet worden ontvangen.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Meldingen op de telefoon tonen</value>
+  </data>
 </root>

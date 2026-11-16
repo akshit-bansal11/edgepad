@@ -472,4 +472,52 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi ve USB: telefonlar bu bilgisayarı bulamayabilir.</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Yönetici olarak yeniden başlat</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Edgepad&apos;in Görev Yöneticisi gibi yükseltilmiş pencerelere yazmasını sağlar. Kilit ekranı ve UAC istemleri erişilemez kalır.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} sürümünü yükle</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Sonra</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Bu sürümü atla</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} kullanıma hazır. Yüklemek için tıklayın.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} doğrulanamadı, bu yüzden yüklenmedi.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Edgepad {0} yüklenemedi. Sürüm sayfasını açmak için tıklayın.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>Bu büyük bir sürüm. Edgepad&apos;i telefonda da güncelleyin, yoksa birbirlerini reddederler.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Kapatılıyor</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>Medya bitti. Bu dizüstü bilgisayar {0} saniye içinde kapanacak.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>İptal</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Telefona dosya gönder…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} telefondan geldi.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>{0} alınamadı.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Bildirimleri telefonda göster</value>
+  </data>
 </root>

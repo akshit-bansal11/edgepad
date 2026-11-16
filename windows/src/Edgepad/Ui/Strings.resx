@@ -488,4 +488,52 @@ The trusted phones were forgotten, but the PIN could not be reset: a settings fi
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi and USB: phones may not find this laptop.</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Restart as administrator</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Lets Edgepad type into elevated windows such as Task Manager. The lock screen and UAC prompts stay out of reach.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Install Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Skip this version</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} is available. Click to install.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} could not be checked, so it was not installed.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Edgepad {0} could not be installed. Click to open the release page.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>This is a major release. Update Edgepad on the phone too, or they will refuse each other.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Shutting down</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>The media ended. This laptop shuts down in {0} seconds.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Send a file to the phone…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} arrived from the phone.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>{0} could not be received.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Show notifications on the phone</value>
+  </data>
 </root>
