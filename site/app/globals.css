@@ -54,6 +54,17 @@
   --duration-fade: 160ms;
 }
 
+/*
+  DES-D30: every move eases in and out. An entering element decelerates (--ease-out), a
+  leaving one accelerates (--ease-in), a move within the screen does both (--ease-move).
+  Linear is for progress and loops only.
+*/
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.64, 0, 0.78, 0);
+  --ease-move: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --duration-press: 0ms;
@@ -180,6 +191,7 @@
 
   /* Every bare `transition-*` utility takes the press duration. */
   --default-transition-duration: var(--duration-press);
+  --default-transition-timing-function: var(--ease-move);
 }
 
 @layer base {
@@ -265,11 +277,11 @@
 */
 .menu-panel {
   transform-origin: top right;
-  animation: menu-in var(--duration-reveal) ease-out;
+  animation: menu-in var(--duration-reveal) var(--ease-out);
 }
 
 details[data-closing] > .menu-panel {
-  animation: menu-out var(--duration-reveal) ease-in forwards;
+  animation: menu-out var(--duration-reveal) var(--ease-in) forwards;
 }
 
 @keyframes menu-in {
@@ -288,7 +300,7 @@ details[data-closing] > .menu-panel {
 
 @media (prefers-reduced-motion: reduce) {
   .menu-panel {
-    animation: menu-fade var(--duration-fade) ease-out;
+    animation: menu-fade var(--duration-fade) var(--ease-out);
   }
 
   @keyframes menu-fade {
@@ -364,4 +376,8 @@ details[data-closing] > .menu-panel {
     --fade-l: 2rem;
     --fade-r: 0px;
   }
+}
+
+::view-transition-group(root) {
+  animation-timing-function: var(--ease-move);
 }
