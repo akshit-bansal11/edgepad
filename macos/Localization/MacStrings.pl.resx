@@ -48,8 +48,8 @@
   <data name="Common_Cancel" xml:space="preserve">
     <value>Anuluj</value>
   </data>
-  <data name="Common_Continue" xml:space="preserve">
-    <value>Dalej</value>
+  <data name="Welcome_SetUp" xml:space="preserve">
+    <value>Skonfiguruj</value>
   </data>
   <data name="Common_Save" xml:space="preserve">
     <value>Zapisz</value>

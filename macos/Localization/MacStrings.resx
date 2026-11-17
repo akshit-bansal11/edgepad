@@ -54,8 +54,8 @@
   <data name="Common_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <data name="Common_Continue" xml:space="preserve">
-    <value>Continue</value>
+  <data name="Welcome_SetUp" xml:space="preserve">
+    <value>Set up</value>
   </data>
   <data name="Common_Save" xml:space="preserve">
     <value>Save</value>

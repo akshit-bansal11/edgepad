@@ -331,6 +331,7 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
         alert.alertStyle = .critical
         alert.messageText = tr("Sec_FailTitle", "Could not save the security settings")
         alert.informativeText = message
+        alert.addButton(withTitle: tr("Common_Close", "Close"))
         _ = alert.runModal()
         alert.window.orderOut(nil)
     }

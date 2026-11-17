@@ -87,6 +87,7 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         alert.alertStyle = .warning
         alert.messageText = tr("Macro_SaveFailedTitle", "Could not save the macros")
         alert.informativeText = text
+        alert.addButton(withTitle: tr("Common_Close", "Close"))
         alert.runModal()
         alert.window.orderOut(nil)
     }

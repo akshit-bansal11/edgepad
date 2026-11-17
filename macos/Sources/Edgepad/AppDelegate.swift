@@ -247,6 +247,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 "App_AlreadyRunningBody",
                 "Find it in the menu bar, at the right. Hold Command and drag to reorder icons.")
             NSApp.activate(ignoringOtherApps: true)
+            alert.addButton(withTitle: tr("Common_Close", "Close"))
             alert.runModal()
             NSApp.terminate(nil)
             return true
@@ -262,7 +263,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             "macOS will now ask for what Edgepad needs. Bluetooth, to hear your phone. Device Control, to move the "
                 + "pointer and press keys. Notifications, to tell you when a phone asks to connect. Your Desktop, "
                 + "Documents or Downloads folder, only when the phone asks for a screenshot or recording.")
-        alert.addButton(withTitle: tr("Common_Continue", "Continue"))
+        alert.addButton(withTitle: tr("Welcome_SetUp", "Set up"))
         NSApp.activate(ignoringOtherApps: true)
         alert.runModal()
         alert.window.orderOut(nil)
@@ -584,7 +585,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.alertStyle = style
         alert.messageText = title
         alert.informativeText = text
-        // No button added: NSAlert supplies the system's own, translated "OK".
+        alert.addButton(withTitle: tr("Common_Close", "Close"))
         NSApp.activate(ignoringOtherApps: true)
         _ = alert.runModal()
         alert.window.orderOut(nil)

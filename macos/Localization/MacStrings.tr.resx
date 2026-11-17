@@ -48,8 +48,8 @@
   <data name="Common_Cancel" xml:space="preserve">
     <value>İptal</value>
   </data>
-  <data name="Common_Continue" xml:space="preserve">
-    <value>Devam</value>
+  <data name="Welcome_SetUp" xml:space="preserve">
+    <value>Kur</value>
   </data>
   <data name="Common_Save" xml:space="preserve">
     <value>Kaydet</value>

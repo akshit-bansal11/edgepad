@@ -48,8 +48,8 @@
   <data name="Common_Cancel" xml:space="preserve">
     <value>取消</value>
   </data>
-  <data name="Common_Continue" xml:space="preserve">
-    <value>继续</value>
+  <data name="Welcome_SetUp" xml:space="preserve">
+    <value>开始设置</value>
   </data>
   <data name="Common_Save" xml:space="preserve">
     <value>保存</value>
