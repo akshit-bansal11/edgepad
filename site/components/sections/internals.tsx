@@ -152,7 +152,7 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
             },
             {
               title: "Wi-Fi / LAN",
-              body: "Needs a shared network and a discovery step, so it was not the default. Bluetooth was also the requirement. Since 4.0.0 Wi-Fi and USB connections are an optional extra: off until you turn them on, a one-time six-digit code to pair, and the phone's half is not yet tried on real devices.",
+              body: "Needs a shared network and a discovery step, so it was not the default. Bluetooth was also the requirement. Since 4.0.0 Wi-Fi and USB connections are an optional extra: off until you turn them on, a one-time six-digit code to pair, and the phone’s half is not yet tried on real devices.",
             },
             {
               title: "Phone as a Bluetooth HID touchpad",
@@ -546,14 +546,14 @@ export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
         <CodeBlock
           title="After HELLO_ACK"
           code={`STATE  volume, microphone, brightness
-TEXT   4 the display's refresh rates
+TEXT   4 the display’s refresh rates
 STATE  the current refresh rate
 TEXT   8 whether a virtual controller can be offered
 TEXT   0 now playing, 1 the app, 2 the timeline
 STATE  media position
-TEXT   5 the laptop's macro names
+TEXT   5 the laptop’s macro names
 TEXT   9 which optional features it has
-TEXT  10 the primary display's size in pixels
+TEXT  10 the primary display’s size in pixels
 
 then every change as it happens.
 Media position is refreshed once a second while playing.
@@ -678,7 +678,7 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
         <IdTable
           rows={protocol.padButtons}
           idHeading="Mask"
-          caption="The bits of PAD_STATE's buttons field, read from protocol/actions.txt. XInput's own wButtons values, in decimal."
+          caption="The bits of PAD_STATE’s buttons field, read from protocol/actions.txt. XInput’s own wButtons values, in decimal."
         />
         <P>
           The laptop copies the field straight into an <C>XINPUT_GAMEPAD</C> rather than
@@ -708,15 +708,15 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
           {[
             {
               title: "Pairing",
-              body: "On Windows, enforced by the socket's protection level. The link is bound at BluetoothEncryptionWithAuthentication, so a device not already bonded with the laptop cannot connect at all, and the stream is encrypted by the link layer. The Mac app checks the pairing itself, as below.",
+              body: "On Windows, enforced by the socket’s protection level. The link is bound at BluetoothEncryptionWithAuthentication, so a device not already bonded with the laptop cannot connect at all, and the stream is encrypted by the link layer. The Mac app checks the pairing itself, as below.",
             },
             {
               title: "Trust on first use",
-              body: "Enforced by TrustStore. Any paired phone that is not yet trusted makes the tray ask Trust NAME? once it completes the handshake, and HELLO_ACK waits for the answer. Trust adds its Bluetooth address to trusted-phone.txt (in %APPDATA%\\Edgepad on Windows), one address per line, so several phones can be trusted; Don't trust, or no answer within 60 s, closes the connection. A phone the owner said no to is not asked about again for 30 seconds. The Security… window's Forget all… hangs up on the connected phone and takes no connection while it asks; a yes clears every trusted phone and keeps refusing for 30 seconds, and a Forget clicked while a question is open wins over a yes given after it. Every phone you trust has full keyboard-level control, so trust only your own.",
+              body: "Enforced by TrustStore. Any paired phone that is not yet trusted makes the tray ask Trust NAME? once it completes the handshake, and HELLO_ACK waits for the answer. Trust adds its Bluetooth address to trusted-phone.txt (in %APPDATA%\\Edgepad on Windows), one address per line, so several phones can be trusted; Don’t trust, or no answer within 60 s, closes the connection. A phone the owner said no to is not asked about again for 30 seconds. The Security… window’s Forget all… hangs up on the connected phone and takes no connection while it asks; a yes clears every trusted phone and keeps refusing for 30 seconds, and a Forget clicked while a question is open wins over a yes given after it. Every phone you trust has full keyboard-level control, so trust only your own.",
             },
             {
               title: "Security level and PIN",
-              body: "Chosen on the laptop under Security…, never from the phone. Level 1 is the trust question alone. Level 2 also asks each phone for a six-digit PIN the first time, level 3 on every connection. The phone asks on its own keypad, never stores the PIN, and its screen cannot be captured. After five wrong answers the laptop refuses that phone for 30 seconds, doubling with each further five, up to an hour; the counters are kept in memory, so quitting the laptop app resets them. A six-digit PIN is only a million values, so what stops guessing is that lock-out. It does not protect against someone who can copy the laptop's settings file, and the laptop keeps only a salted hash of the PIN. A forgotten PIN can only be reset on the laptop, which also forgets every trusted phone.",
+              body: "Chosen on the laptop under Security…, never from the phone. Level 1 is the trust question alone. Level 2 also asks each phone for a six-digit PIN the first time, level 3 on every connection. The phone asks on its own keypad, never stores the PIN, and its screen cannot be captured. After five wrong answers the laptop refuses that phone for 30 seconds, doubling with each further five, up to an hour; the counters are kept in memory, so quitting the laptop app resets them. A six-digit PIN is only a million values, so what stops guessing is that lock-out. It does not protect against someone who can copy the laptop’s settings file, and the laptop keeps only a salted hash of the PIN. A forgotten PIN can only be reset on the laptop, which also forgets every trusted phone.",
             },
           ].map((item) => (
             <div

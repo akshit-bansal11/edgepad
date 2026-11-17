@@ -101,7 +101,7 @@ const FRAME_DOCS: Record<
   ACTION: {
     payload: "id u8",
     direction: "phone-to-laptop",
-    meaning: "Run one action from the laptop's table.",
+    meaning: "Run one action from the laptop’s table.",
   },
   SET: {
     payload: "control u8, value u8",
@@ -112,12 +112,12 @@ const FRAME_DOCS: Record<
     payload: "code u16, down u8",
     direction: "phone-to-laptop",
     meaning:
-      "Press or release one key, by Windows virtual-key code. This is what the phone's keyboard screen sends.",
+      "Press or release one key, by Windows virtual-key code. This is what the phone’s keyboard screen sends.",
   },
   PING: {
     payload: "t i64",
     direction: "phone-to-laptop",
-    meaning: "The phone's clock, in nanoseconds.",
+    meaning: "The phone’s clock, in nanoseconds.",
   },
   PONG: {
     payload: "t i64",
@@ -129,7 +129,7 @@ const FRAME_DOCS: Record<
     payload: "control u8, value u8, flags u8",
     direction: "laptop-to-phone",
     meaning:
-      "A control's current value. Flags bit 0 is muted for audio controls, playing for media position.",
+      "A control’s current value. Flags bit 0 is muted for audio controls, playing for media position.",
   },
   TEXT: {
     payload: "kind u8, length u8, UTF-8 bytes",
@@ -159,19 +159,19 @@ const FRAME_DOCS: Record<
     payload: "x u16, y u16, state u8",
     direction: "phone-to-laptop",
     meaning:
-      "One point of a pen stroke: state 0 is up, 1 down, 2 move. x and y span the whole u16 range, 0 the left or top edge of the laptop's screen and 65535 the right or bottom. A state above 2 decodes and is dropped and counted.",
+      "One point of a pen stroke: state 0 is up, 1 down, 2 move. x and y span the whole u16 range, 0 the left or top edge of the laptop’s screen and 65535 the right or bottom. A state above 2 decodes and is dropped and counted.",
   },
   FILE_BEGIN: {
     payload: "fileType u8, length u8, size u32, UTF-8 name",
     direction: "laptop-to-phone",
     meaning:
-      "Starts sending a capture to the phone, when the phone asked for captures to be saved there. TEXT's header shape, so the length counts the size and the name. The type is an id from the FILE_TYPE table, never a MIME string.",
+      "Starts sending a capture to the phone, when the phone asked for captures to be saved there. TEXT’s header shape, so the length counts the size and the name. The type is an id from the FILE_TYPE table, never a MIME string.",
   },
   FILE_CHUNK: {
     payload: "seq u8, length u8, bytes",
     direction: "laptop-to-phone",
     meaning:
-      "Up to 255 bytes of the file. seq is the chunk's index mod 256, so a lost chunk shows. Paced, and slower while the phone is sending input, so the trackpad stays responsive.",
+      "Up to 255 bytes of the file. seq is the chunk’s index mod 256, so a lost chunk shows. Paced, and slower while the phone is sending input, so the trackpad stays responsive.",
   },
   FILE_END: {
     payload: "sha256, 32 bytes",
@@ -183,13 +183,13 @@ const FRAME_DOCS: Record<
     payload: "status u8",
     direction: "phone-to-laptop",
     meaning:
-      "The phone's answer: 0 saved, 1 bad hash, 2 rejected, 3 write failed. Only 0 lets the laptop delete its copy.",
+      "The phone’s answer: 0 saved, 1 bad hash, 2 rejected, 3 write failed. Only 0 lets the laptop delete its copy.",
   },
   BULK_HELLO: {
     payload: "magic EDGP, version u8",
     direction: "phone-to-laptop",
     meaning:
-      "HELLO's shape under its own type, the first frame of the second socket a phone opens for file transfers. It can only attach to a phone session that is live right now over the same link; it never creates a session and asks no trust question or PIN.",
+      "HELLO’s shape under its own type, the first frame of the second socket a phone opens for file transfers. It can only attach to a phone session that is live right now over the same link; it never creates a session and asks no trust question or PIN.",
   },
   XFER_BEGIN: {
     payload: "id u8, length u8, size u64, UTF-8 name",
@@ -213,7 +213,7 @@ const FRAME_DOCS: Record<
     payload: "id u8, status u8, offset u64",
     direction: "both",
     meaning:
-      "How the transfer stands. The receiver sends READY, PROGRESS and the final verdict; the sender may send CANCELLED. READY's offset is where the sender starts.",
+      "How the transfer stands. The receiver sends READY, PROGRESS and the final verdict; the sender may send CANCELLED. READY’s offset is where the sender starts.",
   },
 };
 
@@ -222,7 +222,7 @@ const ACTION_DOCS: Record<string, string> = {
   PLAY_PAUSE: "Media play/pause key.",
   NEXT_TRACK: "Media next key.",
   PREVIOUS_TRACK: "Media previous key.",
-  MIC_MUTE_TOGGLE: "Toggles the default microphone's mute.",
+  MIC_MUTE_TOGGLE: "Toggles the default microphone’s mute.",
   LOCK: "LockWorkStation. Win+L cannot be injected.",
   TASK_VIEW: "Win+Tab.",
   SHOW_DESKTOP: "Win+D.",
@@ -238,22 +238,22 @@ const ACTION_DOCS: Record<string, string> = {
   ZOOM_RESET: "Ctrl+0.",
   VOLUME_UP: "Volume-up key.",
   VOLUME_DOWN: "Volume-down key.",
-  BRIGHTNESS_UP: "The panel's brightness, plus 10.",
-  BRIGHTNESS_DOWN: "The panel's brightness, minus 10.",
+  BRIGHTNESS_UP: "The panel’s brightness, plus 10.",
+  BRIGHTNESS_DOWN: "The panel’s brightness, minus 10.",
   PAD_ATTACH:
     "Asks the laptop to plug in its virtual Xbox controller. The laptop answers with TEXT 8, so the phone learns whether it may send PAD_STATE or must fall back to the keyboard.",
   PAD_DETACH:
     "Asks the laptop to unplug the virtual controller. Sent when the gamepad screen closes; the laptop also unplugs it by itself when the session ends.",
   CAPTURE_REGION:
-    "Starts a region screenshot with the laptop's own tool: Win+Shift+S on Windows, Cmd+Shift+4 on a Mac, Print on Linux. The drag happens on the laptop's screen.",
+    "Starts a region screenshot with the laptop’s own tool: Win+Shift+S on Windows, Cmd+Shift+4 on a Mac, Print on Linux. The drag happens on the laptop’s screen.",
   CAPTURE_SCREEN:
     "Takes a screenshot of the whole screen: PrtScn on Windows, Cmd+Shift+3 on a Mac, Print on Linux.",
   CAPTURE_RECORD:
-    "Starts screen recording: Win+Shift+R on Windows, which needs a recent Snipping Tool and is unverified, Cmd+Shift+5 on a Mac, which opens the capture toolbar, and on Linux the desktop's own shortcut, unverified (Ctrl+Shift+Alt+R on GNOME, Meta+Alt+R on KDE).",
+    "Starts screen recording: Win+Shift+R on Windows, which needs a recent Snipping Tool and is unverified, Cmd+Shift+5 on a Mac, which opens the capture toolbar, and on Linux the desktop’s own shortcut, unverified (Ctrl+Shift+Alt+R on GNOME, Meta+Alt+R on KDE).",
   CAPTURE_CANCEL:
     "Sent when the phone leaves its capture screen. Presses Escape on the laptop, only while a region or recording overlay it opened may still be open (8 seconds).",
   ANNOTATE_BEGIN:
-    "Shows the annotation overlay on the laptop's primary display. PEN and the tool actions are dropped until it is shown or a signing surface is open.",
+    "Shows the annotation overlay on the laptop’s primary display. PEN and the tool actions are dropped until it is shown or a signing surface is open.",
   ANNOTATE_END:
     "Removes the overlay and discards its strokes. A session ending does the same.",
   ANNOTATE_UNDO: "Removes the last stroke.",
@@ -279,28 +279,28 @@ const ACTION_DOCS: Record<string, string> = {
     "Arms the laptop to shut down when the current media ends. The laptop reports what is armed as TEXT 25.",
   END_CANCEL: "Disarms the end-of-media action.",
   MACRO_BASE:
-    "The first of 32 reserved macro slots (ids 64-95). Slot n runs as MACRO_BASE + n. The phone sends the index; the laptop's own list decides what it opens.",
+    "The first of 32 reserved macro slots (ids 64-95). Slot n runs as MACRO_BASE + n. The phone sends the index; the laptop’s own list decides what it opens.",
 };
 
 const CONTROL_DOCS: Record<string, string> = {
   VOLUME:
     "SET sets the default speakers' level; STATE reports the level and a muted flag.",
   BRIGHTNESS:
-    "SET sets the built-in panel's brightness through WMI; STATE reports the level.",
+    "SET sets the built-in panel’s brightness through WMI; STATE reports the level.",
   MIC_LEVEL:
-    "SET sets the default microphone's level; STATE reports the level and a muted flag.",
+    "SET sets the default microphone’s level; STATE reports the level and a muted flag.",
   MEDIA_POSITION:
     "SET seeks the current track to that percent, where the player allows it; STATE reports the percent and a playing flag.",
   REFRESH_RATE:
-    "SET switches the display to the rate at that index of the TEXT 4 list; STATE reports the current rate's index. Never a rate in hertz.",
+    "SET switches the display to the rate at that index of the TEXT 4 list; STATE reports the current rate’s index. Never a rate in hertz.",
   PEN_COLOR:
     "SET picks the stroke colour by index into the eight-colour palette in protocol/actions.txt. An index of 8 or more is dropped and counted. A colour outside the palette is TEXT 17.",
   CAPTURE_TARGET:
     "Where a capture ends up: 0 the laptop keeps it, 1 the laptop sends it to the phone and deletes its copy only once the phone says it saved it. Sent on connect and whenever the setting changes.",
   PEN_WIDTH:
-    "SET sets the width of new pen-tool strokes, 1 to 100, as 0.02% of the screen's height per step: 5 is 0.1%, 20 is the default 0.4% and 100 is 2.0%. The highlighter is always 5 times the pen's width. 0 or more than 100 is dropped and counted. Forgotten when the session ends.",
+    "SET sets the width of new pen-tool strokes, 1 to 100, as 0.02% of the screen’s height per step: 5 is 0.1%, 20 is the default 0.4% and 100 is 2.0%. The highlighter is always 5 times the pen’s width. 0 or more than 100 is dropped and counted. Forgotten when the session ends.",
   NOTIFY:
-    "SET 1 forwards the laptop's notifications to this link, 0 stops it. Forgotten when the session ends; any other value is dropped and counted. The phone offers it only for a laptop that names notify.",
+    "SET 1 forwards the laptop’s notifications to this link, 0 stops it. Forgotten when the session ends; any other value is dropped and counted. The phone offers it only for a laptop that names notify.",
   FOREGROUND_WATCH:
     "SET 1 lets this link hear which app is in front (TEXT 21), 0 stops it. Forgotten when the session ends; any other value is dropped and counted. The phone offers it only for a laptop that names foreground.",
   PEN_OPACITY:
@@ -313,11 +313,11 @@ const TEXT_DOCS: Record<string, string> = {
   TIMELINE: "The timeline as seconds/length, such as 84/227. Laptop to phone.",
   TYPE: "Text to type, where \\b is backspace and \\n is enter. Phone to laptop.",
   REFRESH_RATES:
-    "The display's available refresh rates as 60/120/144, in the order CONTROL 4 indexes them. Laptop to phone.",
+    "The display’s available refresh rates as 60/120/144, in the order CONTROL 4 indexes them. Laptop to phone.",
   MACROS:
-    "The laptop's macro names as Chrome/Spotify/Notes, in the order MACRO_BASE indexes them. A blank name keeps its slot. Laptop to phone.",
+    "The laptop’s macro names as Chrome/Spotify/Notes, in the order MACRO_BASE indexes them. A blank name keeps its slot. Laptop to phone.",
   MACRO_ICON:
-    "One piece of one macro's icon as slot/chunk/chunks/base64, the base64 being part of a PNG. An icon does not fit the 255 bytes a payload holds, so it arrives in pieces. Laptop to phone.",
+    "One piece of one macro’s icon as slot/chunk/chunks/base64, the base64 being part of a PNG. An icon does not fit the 255 bytes a payload holds, so it arrives in pieces. Laptop to phone.",
   WANT_ICONS:
     "Asks for the macro icons, with an empty payload. Sent when the phone opens the macro grid; nothing is pushed unasked. Phone to laptop.",
   PAD_STATUS:
@@ -333,7 +333,7 @@ const TEXT_DOCS: Record<string, string> = {
   FOREGROUND_APP:
     "The app in front as token/name, split on the first slash. Sent only after CONTROL 11 is 1, on change, and never logged. Empty means nothing is known. Laptop to phone.",
   MACRO_CAP:
-    "How many macro slots the laptop keeps, in decimal. Empty or never sent means the phone's own default. Laptop to phone.",
+    "How many macro slots the laptop keeps, in decimal. Empty or never sent means the phone’s own default. Laptop to phone.",
   CAPTURE_STATE:
     "Whether the laptop is recording the screen, as idle or recording. Best effort: a laptop that cannot tell sends nothing. Laptop to phone.",
   UNAVAILABLE:

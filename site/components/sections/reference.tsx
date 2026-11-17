@@ -30,7 +30,7 @@ const DECISIONS: Decision[] = [
     id: "tray",
     question: "Why a tray app rather than a Windows service?",
     answer:
-      "Services run in session 0 and can neither inject input into the desktop nor reach the user's audio session. Edgepad is a per-user tray app that starts at login through the HKCU Run key.",
+      "Services run in session 0 and can neither inject input into the desktop nor reach the user’s audio session. Edgepad is a per-user tray app that starts at login through the HKCU Run key.",
   },
   {
     id: "binary",
@@ -54,13 +54,13 @@ const DECISIONS: Decision[] = [
     id: "views",
     question: "Why platform views on Android rather than Compose?",
     answer:
-      "AGP 9 compiles Kotlin itself and its migration guide says nothing about the Compose compiler plugin under it. The control surface has to be a custom View either way, for raw MotionEvents and unbuffered dispatch. The result is that JUnit is the app's only dependency.",
+      "AGP 9 compiles Kotlin itself and its migration guide says nothing about the Compose compiler plugin under it. The control surface has to be a custom View either way, for raw MotionEvents and unbuffered dispatch. The result is that JUnit is the app’s only dependency.",
   },
   {
     id: "trust",
     question: "Why trust on first use rather than a pairing code?",
     answer:
-      "Bluetooth pairing already happened in the laptop's own Bluetooth settings, and re-asking for a code at every connection would be a second, weaker version of a step the OS did properly. Each phone is asked about once and remembered by address when the owner says yes; the Security… window lists them, each with Forget, and has Forget all…. Since 4.0.0 the owner can choose level 2 or 3 to add a six-digit PIN on top. It is only a million values, so what stops guessing is the lock-out, and pairing stays the gate.",
+      "Bluetooth pairing already happened in the laptop’s own Bluetooth settings, and re-asking for a code at every connection would be a second, weaker version of a step the OS did properly. Each phone is asked about once and remembered by address when the owner says yes; the Security… window lists them, each with Forget, and has Forget all…. Since 4.0.0 the owner can choose level 2 or 3 to add a six-digit PIN on top. It is only a million values, so what stops guessing is the lock-out, and pairing stays the gate.",
   },
   {
     id: "drop",
@@ -89,7 +89,7 @@ const DECISIONS: Decision[] = [
     id: "placement",
     question: "Why are the dials fixed to corners?",
     answer:
-      "Dials were freely placeable along the edge for several releases. They are back in the four corners because eleven kinds competing for four named places is a choice a settings screen can present, where an arbitrary position along an edge is a fiddle. The corner arc follows the display's own rounding.",
+      "Dials were freely placeable along the edge for several releases. They are back in the four corners because eleven kinds competing for four named places is a choice a settings screen can present, where an arbitrary position along an edge is a fiddle. The corner arc follows the display’s own rounding.",
   },
   {
     id: "twofinger",
@@ -103,7 +103,7 @@ const DECISIONS: Decision[] = [
     answer:
       "Windows has no way for a user-mode program to present a controller. A game that reads XInput reads a device on the bus, so producing one means a kernel driver, and ViGEmBus is the signed one that already exists. Edgepad references its client library, talks to the driver if it is there, and falls back to sending keyboard keys if it is not — which is the state most laptops are in, and the laptop says which state it is in rather than letting the pad fail silently.",
     rejected:
-      "Shipping or installing the driver from Edgepad — a self-contained exe that quietly installs a kernel driver is not something to do to somebody's laptop, and the exe is not code-signed. Writing our own — an unsigned driver needs test-signing mode, which is the same reason a virtual Precision Touchpad was rejected. Staying with keys — a stick quantised to eight compass sectors cannot be analog, and a game that only reads controllers sees nothing at all.",
+      "Shipping or installing the driver from Edgepad — a self-contained exe that quietly installs a kernel driver is not something to do to somebody’s laptop, and the exe is not code-signed. Writing our own — an unsigned driver needs test-signing mode, which is the same reason a virtual Precision Touchpad was rejected. Staying with keys — a stick quantised to eight compass sectors cannot be analog, and a game that only reads controllers sees nothing at all.",
   },
   {
     id: "unistroke",
@@ -117,17 +117,17 @@ const DECISIONS: Decision[] = [
     id: "layoutnames",
     question: "Why does a colliding gamepad layout name cost a number?",
     answer:
-      "Saving a second layout as Elden Ring gives you Elden Ring 2. Overwriting would throw away an arrangement that cannot be got back, and refusing needs somewhere to print an error that a popup over a full-screen canvas does not have. Saving under a built-in name shadows that layout rather than adding a second row of the same name, so Edgepad's own Xbox can always be got back and can never be renamed away.",
+      "Saving a second layout as Elden Ring gives you Elden Ring 2. Overwriting would throw away an arrangement that cannot be got back, and refusing needs somewhere to print an error that a popup over a full-screen canvas does not have. Saving under a built-in name shadows that layout rather than adding a second row of the same name, so Edgepad’s own Xbox can always be got back and can never be renamed away.",
   },
   {
     id: "monogram",
     question: "Why is the playing app a monogram rather than its icon?",
     answer:
-      "The laptop sends the app's name as TEXT kind 1 and the phone draws its first letter in a ring. Sending the icon bitmap means much larger frames over RFCOMM, and Win32 and packaged apps keep their icons in different places. Player logos supplied as SVGs are drawn exactly as given.",
+      "The laptop sends the app’s name as TEXT kind 1 and the phone draws its first letter in a ring. Sending the icon bitmap means much larger frames over RFCOMM, and Win32 and packaged apps keep their icons in different places. Player logos supplied as SVGs are drawn exactly as given.",
   },
   {
     id: "theme",
-    question: "Why does the theme use the system's per-app night mode?",
+    question: "Why does the theme use the system’s per-app night mode?",
     answer:
       "UiModeManager.setApplicationNightMode is remembered by the system, so Edgepad stores no preference of its own for it. The surface is black on white or white on black; there is no accent colour in the product.",
   },
@@ -184,16 +184,16 @@ const LIMITS: Limit[] = [
   },
   {
     title: "Overlay mode is not built",
-    body: "A mode that draws only the dials over whatever is on screen, kept alive by a foreground service, is planned and does not exist. In overlay mode nothing can be claimed back from Android's own gestures, so corner drags may be stolen by the assistant gesture or the notification shade.",
+    body: "A mode that draws only the dials over whatever is on screen, kept alive by a foreground service, is planned and does not exist. In overlay mode nothing can be claimed back from Android’s own gestures, so corner drags may be stolen by the assistant gesture or the notification shade.",
     kind: "not built",
   },
   {
     title: "No keyboard-backlight dial",
-    body: "It was asked for. Windows has no general API for a laptop keyboard backlight: it goes through the maker's own driver and utility. Windows Dynamic Lighting covers only compliant RGB devices, and whether any given laptop's keyboard is one has not been checked. Left open rather than guessed at.",
+    body: "It was asked for. Windows has no general API for a laptop keyboard backlight: it goes through the maker’s own driver and utility. Windows Dynamic Lighting covers only compliant RGB devices, and whether any given laptop’s keyboard is one has not been checked. Left open rather than guessed at.",
     kind: "not built",
   },
   {
-    title: "Android's back gesture wins some of the edge",
+    title: "Android’s back gesture wins some of the edge",
     body: "Back-gesture exclusion is requested for every dial, but Android honours at most 200dp per vertical edge and the bottom cannot be claimed at all. With some layouts parts of a ruler will lose to the back gesture under gesture navigation. Immersive mode may soften it; untested.",
     kind: "accepted",
   },
@@ -203,7 +203,7 @@ const LIMITS: Limit[] = [
     kind: "accepted",
   },
   {
-    title: "A background browser tab keeps the browser's name",
+    title: "A background browser tab keeps the browser’s name",
     body: "Only the front tab titles the window, so a stream playing in a background tab is reported as the browser. A packaged app is matched by its own id instead.",
     kind: "accepted",
   },
@@ -229,7 +229,7 @@ const LIMITS: Limit[] = [
   },
   {
     title: "The Linux app has not been seen working on a Linux laptop",
-    body: "It is built and unit-tested in CI. Nothing that touches BlueZ, uinput, the sound server, the tray or the annotation overlay has been seen working on a Linux laptop. The shortcuts behind task view, show desktop, search, notifications and switching desktops are chosen per desktop for GNOME and KDE and were written from memory, a desktop that is neither drops them, and on Wayland annotate is best effort because the compositor may ignore the overlay's always-on-top request. docs/LINUX.md lists every unverified item.",
+    body: "It is built and unit-tested in CI. Nothing that touches BlueZ, uinput, the sound server, the tray or the annotation overlay has been seen working on a Linux laptop. The shortcuts behind task view, show desktop, search, notifications and switching desktops are chosen per desktop for GNOME and KDE and were written from memory, a desktop that is neither drops them, and on Wayland annotate is best effort because the compositor may ignore the overlay’s always-on-top request. docs/LINUX.md lists every unverified item.",
     kind: "unverified",
   },
   {
@@ -244,7 +244,7 @@ const HISTORY: { version: string; date: string; summary: string }[] = [
     version: "4.0.0",
     date: "2026-10-31",
     summary:
-      "A Linux app, a shared clipboard, several laptops at once, and a laptop that can ask for a PIN. The wire protocol moves to version 5. The Linux tray app joins Windows and the Mac, on a shared core. The clipboard carries text and images from the laptop to the phone at once; to send one from the phone, go back to Edgepad after copying. The phone stays connected to every laptop you connect and stays connected while minimized. Wi-Fi and USB connections are optional on Windows, Linux and the Mac, paired once with a six-digit code and unverified on real devices. Security levels 1 to 3 add a six-digit PIN asked on the phone's own keypad, with a lock-out after wrong answers. Controls opens the keyboard, the gamepad, macros, Annotate and Capture; Annotate makes the phone an absolute pen for the laptop screen, Sign saves a signature as a transparent PNG, and Capture asks the laptop for its own screenshot or recording tool and can save it to the phone. Split corners gives each corner two dials. The macro deck can be rearranged, has pages, and drops the card behind each button; macros can be added from the phone, and the Mac gets a macro list. Mac and Linux are still in testing.",
+      "A Linux app, a shared clipboard, several laptops at once, and a laptop that can ask for a PIN. The wire protocol moves to version 5. The Linux tray app joins Windows and the Mac, on a shared core. The clipboard carries text and images from the laptop to the phone at once; to send one from the phone, go back to Edgepad after copying. The phone stays connected to every laptop you connect and stays connected while minimized. Wi-Fi and USB connections are optional on Windows, Linux and the Mac, paired once with a six-digit code and unverified on real devices. Security levels 1 to 3 add a six-digit PIN asked on the phone’s own keypad, with a lock-out after wrong answers. Controls opens the keyboard, the gamepad, macros, Annotate and Capture; Annotate makes the phone an absolute pen for the laptop screen, Sign saves a signature as a transparent PNG, and Capture asks the laptop for its own screenshot or recording tool and can save it to the phone. Split corners gives each corner two dials. The macro deck can be rearranged, has pages, and drops the card behind each button; macros can be added from the phone, and the Mac gets a macro list. Mac and Linux are still in testing.",
   },
   {
     version: "3.0.0",
@@ -262,25 +262,25 @@ const HISTORY: { version: string; date: string; summary: string }[] = [
     version: "1.0.0",
     date: "2026-09-16",
     summary:
-      "The first stable release. Behaviour unchanged from 0.10.0; what changed is the promise around it. The wire protocol settles at version 3 and from here only moves in a major release, and the repository is arranged for someone other than its author to work in. Several duplicated pieces — both layout editors' canvas, the gamepad's shape rules, the surface's three buttons, Perimeter's four corners, the extended-key table — were reduced to one each.",
+      "The first stable release. Behaviour unchanged from 0.10.0; what changed is the promise around it. The wire protocol settles at version 3 and from here only moves in a major release, and the repository is arranged for someone other than its author to work in. Several duplicated pieces — both layout editors' canvas, the gamepad’s shape rules, the surface’s three buttons, Perimeter’s four corners, the extended-key table — were reduced to one each.",
   },
   {
     version: "0.10.0",
     date: "2026-09-15",
     summary:
-      "The phone app is redesigned. A five-page guide, shown one page at a time or all on one scrolling page. JetBrains Mono bundled and used for every piece of text. Settings pages of their own for Corners, Dial feel and Background & pattern. Layout editors that fill the screen so what is laid out has the surface's proportions.",
+      "The phone app is redesigned. A five-page guide, shown one page at a time or all on one scrolling page. JetBrains Mono bundled and used for every piece of text. Settings pages of their own for Corners, Dial feel and Background & pattern. Layout editors that fill the screen so what is laid out has the surface’s proportions.",
   },
   {
     version: "0.6.0",
     date: "earlier",
     summary:
-      "Protocol version 3: TEXT kind 3 carries text to type, which is what the phone's keyboard screen sends.",
+      "Protocol version 3: TEXT kind 3 carries text to type, which is what the phone’s keyboard screen sends.",
   },
   {
     version: "0.3.0",
     date: "earlier",
     summary:
-      "Protocol version 2: TEXT kind 2 carries the timeline, and a version mismatch is refused with the laptop's own version so the phone can name which side is old. The rulers become slide-along rather than turned round a corner point.",
+      "Protocol version 2: TEXT kind 2 carries the timeline, and a version mismatch is refused with the laptop’s own version so the phone can name which side is old. The rulers become slide-along rather than turned round a corner point.",
   },
   {
     version: "0.1.0",

@@ -22,7 +22,7 @@ const SURFACE: { where: string; touch: string; laptop: string }[] = [
   {
     where: "A corner ruler",
     touch: "tap",
-    laptop: "The dial's action: mute, play/pause, task view, reset zoom.",
+    laptop: "The dial’s action: mute, play/pause, task view, reset zoom.",
   },
   {
     where: "Anywhere else, one finger",
@@ -94,7 +94,7 @@ const CAPTURE: { os: string; region: string; screen: string; record: string }[] 
 const TROUBLE: { says: string; fix: string }[] = [
   {
     says: "The laptop hung up before the handshake.",
-    fix: "Look at the laptop: answer Trust if it asks about this phone, and update Edgepad there if it is older than the phone's app. If another phone just took over the laptop, try again in 30 seconds.",
+    fix: "Look at the laptop: answer Trust if it asks about this phone, and update Edgepad there if it is older than the phone’s app. If another phone just took over the laptop, try again in 30 seconds.",
   },
   {
     says: "The laptop did not take the connection.",
@@ -126,7 +126,7 @@ const TROUBLE: { says: string; fix: string }[] = [
   },
   {
     says: "That laptop is no longer paired with this phone.",
-    fix: "Pair it again in the phone's Bluetooth settings.",
+    fix: "Pair it again in the phone’s Bluetooth settings.",
   },
   {
     says: "No laptops found.",
@@ -177,7 +177,7 @@ export function ProductSections() {
             },
             {
               title: "Trackpad",
-              body: "Everything between the corners moves the laptop's pointer. One finger moves and clicks, two scroll and pinch, three and four fingers do whatever you assign them.",
+              body: "Everything between the corners moves the laptop’s pointer. One finger moves and clicks, two scroll and pinch, three and four fingers do whatever you assign them.",
             },
             {
               title: "Media",
@@ -193,11 +193,11 @@ export function ProductSections() {
             },
             {
               title: "Shapes",
-              body: "Press and hold on the trackpad until it ticks, then draw without lifting. The stroke is matched against the shapes drawn in Settings, and the one it matches runs a laptop action, a macro, or the pad's own focus or lock.",
+              body: "Press and hold on the trackpad until it ticks, then draw without lifting. The stroke is matched against the shapes drawn in Settings, and the one it matches runs a laptop action, a macro, or the pad’s own focus or lock.",
             },
             {
               title: "Macro buttons",
-              body: "Fifteen slots the laptop names with an app, a document, a folder or a URL each, in its tray or menu-bar menu (a text file on Linux); the phone sends the slot number and never what it opens. The screen shows 2 to 10 at a time and the rest sit on pages you slide to. Press and hold a button to drag it into the order you want, or add one from the phone by picking from the laptop's apps.",
+              body: "Fifteen slots the laptop names with an app, a document, a folder or a URL each, in its tray or menu-bar menu (a text file on Linux); the phone sends the slot number and never what it opens. The screen shows 2 to 10 at a time and the rest sit on pages you slide to. Press and hold a button to drag it into the order you want, or add one from the phone by picking from the laptop’s apps.",
             },
             {
               title: "Controls",
@@ -217,15 +217,15 @@ export function ProductSections() {
             },
             {
               title: "Capture",
-              body: "Buttons for a region, the whole screen and a recording press the laptop's own screenshot shortcut, with a trackpad under them to drag out the region.",
+              body: "Buttons for a region, the whole screen and a recording press the laptop’s own screenshot shortcut, with a trackpad under them to drag out the region.",
             },
             {
               title: "Security levels and a PIN",
-              body: "Level 2 also asks each phone for a six-digit PIN the first time, level 3 on every connection, on the phone's own keypad. It is set on the laptop, and five wrong answers lock a phone out for 30 seconds, then longer.",
+              body: "Level 2 also asks each phone for a six-digit PIN the first time, level 3 on every connection, on the phone’s own keypad. It is set on the laptop, and five wrong answers lock a phone out for 30 seconds, then longer.",
             },
             {
               title: "Live state",
-              body: "The dials show the laptop's real volume, mute, brightness and playback position, and follow changes made on the laptop itself.",
+              body: "The dials show the laptop’s real volume, mute, brightness and playback position, and follow changes made on the laptop itself.",
             },
           ].map((feature) => (
             <div
@@ -605,7 +605,7 @@ sudo ./install.sh`}
         id="using"
         eyebrow="Start here"
         title="Using it"
-        lede="The whole phone screen is the control surface. A touch is classified where it starts: inside a corner's zone it belongs to that dial for its whole life, on a media piece or a top-centre button it is a button press, anywhere else it is the trackpad."
+        lede="The whole phone screen is the control surface. A touch is classified where it starts: inside a corner’s zone it belongs to that dial for its whole life, on a media piece or a top-centre button it is a button press, anywhere else it is the trackpad."
       >
         <Sub>The control surface</Sub>
         <Table>
@@ -858,15 +858,15 @@ sudo ./install.sh`}
           {[
             {
               title: "Surface settings",
-              body: "From the surface's gear: Corners and Split corners, Gestures (pointer and scroll speed, natural scrolling, the three- and four-finger map and the on-screen hints), Shapes (draw one, bind it, delete it), Dial feel (slide sensitivity — shared or per dial kind — dial length and height, haptic ticks, snapping to round numbers, with a live preview), Media layout and Background (a control colour, a colour, gradient or image behind the surface, and a grid, dots or checker over it).",
+              body: "From the surface’s gear: Corners and Split corners, Gestures (pointer and scroll speed, natural scrolling, the three- and four-finger map and the on-screen hints), Shapes (draw one, bind it, delete it), Dial feel (slide sensitivity — shared or per dial kind — dial length and height, haptic ticks, snapping to round numbers, with a live preview), Media layout and Background (a control colour, a colour, gradient or image behind the surface, and a grid, dots or checker over it).",
             },
             {
               title: "Keyboard, gamepad and macros",
-              body: "Each has its own gear and holds everything about its own control: the keyboard's text size, the gamepad's canvas and layout library, how many macros show on a page, whether a macro button shows its icon alone or its icon and label, and adding a macro from the laptop's apps.",
+              body: "Each has its own gear and holds everything about its own control: the keyboard’s text size, the gamepad’s canvas and layout library, how many macros show on a page, whether a macro button shows its icon alone or its icon and label, and adding a macro from the laptop’s apps.",
             },
             {
               title: "System settings",
-              body: "From the Devices screen's gear or the last row of Surface settings, and only what applies everywhere: the laptop, theme, upright or sideways, Stay connected, the guide and updates. The guide opens on the first run and again from here.",
+              body: "From the Devices screen’s gear or the last row of Surface settings, and only what applies everywhere: the laptop, theme, upright or sideways, Stay connected, the guide and updates. The guide opens on the first run and again from here.",
             },
           ].map((item) => (
             <div

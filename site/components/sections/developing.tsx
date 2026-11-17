@@ -47,7 +47,7 @@ const LAYOUT: { path: string; what: string }[] = [
 const ANDROID_PACKAGES: { path: string; what: string; pure: boolean }[] = [
   {
     path: "surface/",
-    what: "Gesture recognition, the dials, the corner geometry, the ruler painter, the shape matcher, the pad's focus and lock table.",
+    what: "Gesture recognition, the dials, the corner geometry, the ruler painter, the shape matcher, the pad’s focus and lock table.",
     pure: true,
   },
   { path: "protocol/", what: "Frame and id coding.", pure: true },
@@ -436,9 +436,9 @@ bash macos/bundle.sh 0.0.0-dev out`}
           code={`cd site
 npm install
 npm run dev        # http://localhost:3000
-npm run check      # Biome -> ESLint -> tsc, the site's own gate
+npm run check      # Biome -> ESLint -> tsc, the site’s own gate
 npm run check:ci   # the same, non-mutating`}
-          caption="Biome owns formatting and import order, ESLint owns React hooks and the Next.js rules, tsc owns types. It reads ../protocol/*.txt at build time, so it must be built from inside the repository. It is not part of any app's quality gate; .github/workflows/site.yml runs npm run check:ci and npm run build on it."
+          caption="Biome owns formatting and import order, ESLint owns React hooks and the Next.js rules, tsc owns types. It reads ../protocol/*.txt at build time, so it must be built from inside the repository. It is not part of any app’s quality gate; .github/workflows/site.yml runs npm run check:ci and npm run build on it."
         />
       </Section>
 

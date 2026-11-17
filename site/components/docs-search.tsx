@@ -56,7 +56,7 @@ export function DocsSearch() {
   let status = "Type to search the docs";
   if (load === "loading") status = "Loading";
   else if (load === "unavailable") status = "Search is not available";
-  else if (typed && results.length === 0) status = `No results for "${typed}"`;
+  else if (typed && results.length === 0) status = `No results for “${typed}”`;
   else if (typed) status = `Results: ${results.length}`;
 
   return (

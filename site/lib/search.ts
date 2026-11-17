@@ -29,7 +29,7 @@ export async function loadIndex(): Promise<Chunk[]> {
 
 /** Every term must appear in the title or the text; title matches come first. */
 export function find(index: Chunk[], query: string): Chunk[] {
-  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const terms = query.toLowerCase().replaceAll("'", "’").split(/\s+/).filter(Boolean);
   if (terms.length === 0) return [];
   const inTitle: Chunk[] = [];
   const inText: Chunk[] = [];
