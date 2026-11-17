@@ -702,6 +702,7 @@ class ControlSurface(
         super.onDraw(canvas)
         if (dark) {
             // Issue #56: every pixel off on an OLED panel, so nothing static is left lit to burn in.
+            // Pure black on purpose: the one place DES-D21 does not apply, since off pixels are the point.
             canvas.drawColor(Color.BLACK)
             return
         }

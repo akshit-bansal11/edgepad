@@ -206,7 +206,7 @@ class ControlsPopup(
         shownDialog.window?.apply {
             // The window's own title is what a screen reader announces when it opens.
             setTitle(ui.string(R.string.controls_title))
-            setBackgroundDrawable(ui.rounded(ui.palette.card, Space.CARD_RADIUS))
+            setBackgroundDrawable(ui.rounded(ui.palette.popover, Space.CARD_RADIUS))
             setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL)
             setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
             // Just under the top buttons, which sit a touch target below the system bar.

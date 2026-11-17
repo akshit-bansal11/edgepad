@@ -17,6 +17,7 @@ import android.util.TypedValue
 class Palette(
     val background: Int,
     val card: Int,
+    val popover: Int,
     val line: Int,
     val faint: Int,
     val ink: Int,
@@ -34,6 +35,7 @@ class Palette(
             Palette(
                 context.getColor(R.color.panel),
                 context.getColor(R.color.card),
+                context.getColor(R.color.popover),
                 context.getColor(R.color.line),
                 context.getColor(R.color.faint),
                 context.getColor(R.color.ink),

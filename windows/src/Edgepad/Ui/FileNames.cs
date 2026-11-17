@@ -34,6 +34,6 @@ internal static class FileNames
             tail--;
         }
 
-        return string.Concat(name.AsSpan(0, head), "2026", name.AsSpan(stem - tail));
+        return string.Concat(name.AsSpan(0, head), "\u2026", name.AsSpan(stem - tail));
     }
 }
