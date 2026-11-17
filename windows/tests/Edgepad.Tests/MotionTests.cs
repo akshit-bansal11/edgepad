@@ -39,6 +39,15 @@ public sealed class MotionTests
         Assert.Equal(0.875, half, 6);
     }
 
+    [Fact]
+    public void LeavingEasesInSoHalfwayIsBeforeHalf()
+    {
+        Assert.Equal(0, Progress.Leaving(0, 300));
+        Assert.Equal(1, Progress.Leaving(900, 300));
+        Assert.Equal(1, Progress.Leaving(0, 0));
+        Assert.Equal(0.125, Progress.Leaving(150, 300), 6);
+    }
+
     [Theory]
     [InlineData(0, 0)]
     [InlineData(0.5, 100)]

@@ -405,7 +405,7 @@ internal sealed class LevelOverlay : IDisposable
             var fade = Theme.Motion.Reveal;
             if (left < fade)
             {
-                Opacity = Solid * left / fade;
+                Opacity = Solid * (1 - Progress.Leaving(fade - left, fade));
             }
         }
 

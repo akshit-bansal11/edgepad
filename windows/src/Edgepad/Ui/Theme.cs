@@ -434,6 +434,21 @@ internal static class Progress
         var left = 1 - Math.Clamp(elapsedMs / (double)durationMs, 0, 1);
         return 1 - (left * left * left);
     }
+
+    /// <summary>
+    /// The share of <paramref name="durationMs"/> that <paramref name="elapsedMs"/> has covered for something leaving, clamped to 0..1
+    /// and eased in (slow first, quickening last), the mirror of <see cref="Of"/> (DES-D30). A duration of zero or less is already done.
+    /// </summary>
+    public static double Leaving(long elapsedMs, int durationMs)
+    {
+        if (durationMs <= 0)
+        {
+            return 1;
+        }
+
+        var spent = Math.Clamp(elapsedMs / (double)durationMs, 0, 1);
+        return spent * spent * spent;
+    }
 }
 
 /// <summary>
