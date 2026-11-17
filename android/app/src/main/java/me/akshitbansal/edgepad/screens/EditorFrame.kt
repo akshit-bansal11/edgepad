@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.PopupWindow
+import android.widget.ScrollView
 import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
@@ -71,9 +72,16 @@ object EditorFrame {
                             setPadding(ui.dp(Space.L), ui.dp(POPUP_TOP_DP), ui.dp(Space.L), ui.dp(Space.M))
                             addView(content)
                         }
-                    window.contentView = panel
+                    window.contentView = ScrollView(ui.context).apply { addView(panel) }
                     window.width = ui.dp(POPUP_WIDTH_DP)
-                    window.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                    // Sideways the room under the button can be shorter than the options; the sheet then stops
+                    // at the screen's edge and scrolls, so Reset and Done are never cut off.
+                    val offset = ui.dp(POPUP_GAP_DP) - slack(ui)
+                    panel.measure(
+                        View.MeasureSpec.makeMeasureSpec(window.width, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                    )
+                    window.height = minOf(panel.measuredHeight, window.getMaxAvailableHeight(open.view, offset))
                     window.isFocusable = true
                     window.isOutsideTouchable = true
                     window.setBackgroundDrawable(ui.rounded(ui.palette.card, Space.PANEL_RADIUS))
@@ -88,7 +96,7 @@ object EditorFrame {
                     root.addView(scrim, root.indexOfChild(open.holder), fill())
                     open.paint(true)
                     // Measured from the drawn button, not from the taller target round it.
-                    window.showAsDropDown(open.view, 0, ui.dp(POPUP_GAP_DP) - slack(ui), Gravity.END)
+                    window.showAsDropDown(open.view, 0, offset, Gravity.END)
                 }
             }
         onOpener?.invoke { open.view.performClick() }
