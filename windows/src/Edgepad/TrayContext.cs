@@ -295,7 +295,7 @@ internal sealed class TrayContext : ApplicationContext
             AnnounceMacro,
             ui,
             OnSessionEnded,
-            onFileArrived: path => ui.Post(_ => Balloon(Strings.Balloon_FileReceived.Fill(Path.GetFileName(path)), ToolTipIcon.Info), null));
+            onFileArrived: path => ui.Post(_ => Balloon(Strings.Balloon_FileReceived.Fill(FileNames.Middle(Path.GetFileName(path), 32)), ToolTipIcon.Info), null));
         SendPipe.EnsureShortcut();
         sendPipe = new SendPipe(path => ui.Post(_ => _ = SendFileAsync(path), null));
         server = new RfcommServer(SetStatus, host);
