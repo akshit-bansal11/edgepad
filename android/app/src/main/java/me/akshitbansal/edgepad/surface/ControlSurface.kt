@@ -645,12 +645,18 @@ class ControlSurface(
         val sub =
             when (subLine(app, state.duration, scrubOnADial)) {
                 SubLine.APP_AND_TIME -> {
-                    context.getString(
-                        R.string.surface_app_time,
-                        app,
-                        Clock.format(state.position),
-                        Clock.format(state.duration),
-                    )
+                    // The changing time is always kept; only the app's name is cut, and only as far as it must.
+                    val position = Clock.format(state.position)
+                    val duration = Clock.format(state.duration)
+                    val bare = context.getString(R.string.surface_app_time, "", position, duration)
+                    val name =
+                        TextUtils.ellipsize(
+                            app,
+                            subPaint,
+                            appRoom(room, subPaint.measureText(bare)),
+                            TextUtils.TruncateAt.END,
+                        )
+                    context.getString(R.string.surface_app_time, name, position, duration)
                 }
 
                 SubLine.TIME -> {

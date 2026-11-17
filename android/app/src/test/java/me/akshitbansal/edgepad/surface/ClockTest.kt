@@ -16,4 +16,10 @@ class ClockTest {
     fun aNegativeTimeIsZero() {
         assertEquals("0:00", Clock.format(-3))
     }
+
+    @Test
+    fun theAppNameGetsWhatTheTimesLeave() {
+        assertEquals(40f, appRoom(120f, 80f), 0f)
+        assertEquals(0f, appRoom(120f, 135f), 0f)
+    }
 }
