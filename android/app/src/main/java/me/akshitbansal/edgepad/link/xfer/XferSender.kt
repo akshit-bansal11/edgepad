@@ -165,6 +165,13 @@ class XferSender(
                     if (!tick(cancelled)) return XferCode.SESSION_ENDED
                 }
             }
+            // A gap reported on the last chunk is resent now, not after an END the laptop would only answer with it.
+            val pending = takeRewind()
+            if (pending >= 0) {
+                if (!reader.seek(pending)) return XferCode.WRITE_FAILED
+                at = pending
+                continue
+            }
             guard.withLock { ending = true }
             write(Frame.XferEnd(id, reader.digest()))
             // Only the laptop's final answer, a gap it reports, or the timeout ends this wait.
