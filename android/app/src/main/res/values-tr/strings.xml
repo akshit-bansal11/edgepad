@@ -566,8 +566,8 @@
   <string name="unavailable_no_permission">Dizüstü buna henüz izin vermedi.</string>
   <string name="capture_recording_laptop">Dizüstünde kayıt yapılıyor</string>
   <string name="xfer_send">Dosya gönder</string>
-  <string name="xfer_sending">%1$s gönderiliyor</string>
-  <string name="xfer_receiving">%1$s alınıyor</string>
+  <string name="xfer_sending">%1$s gönderiliyor · %2$d%%</string>
+  <string name="xfer_receiving">%1$s alınıyor · %2$d%%</string>
   <string name="xfer_done">%1$s kaydedildi</string>
   <string name="xfer_failed">%1$s gönderilemedi</string>
   <string name="xfer_cancel">İptal</string>

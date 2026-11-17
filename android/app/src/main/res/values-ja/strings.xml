@@ -567,8 +567,8 @@
   <string name="unavailable_no_permission">ノートPCがまだ許可していません。</string>
   <string name="capture_recording_laptop">ノートPCで録画中</string>
   <string name="xfer_send">ファイルを送信</string>
-  <string name="xfer_sending">%1$s を送信中</string>
-  <string name="xfer_receiving">%1$s を受信中</string>
+  <string name="xfer_sending">%1$s を送信中 · %2$d%%</string>
+  <string name="xfer_receiving">%1$s を受信中 · %2$d%%</string>
   <string name="xfer_done">%1$s を保存しました</string>
   <string name="xfer_failed">%1$s を送信できませんでした</string>
   <string name="xfer_cancel">キャンセル</string>

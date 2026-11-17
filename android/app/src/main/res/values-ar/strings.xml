@@ -605,8 +605,8 @@
   <string name="unavailable_no_permission">لم يسمح اللابتوب بهذا بعد.</string>
   <string name="capture_recording_laptop">التسجيل على اللابتوب</string>
   <string name="xfer_send">إرسال ملف</string>
-  <string name="xfer_sending">جارٍ إرسال %1$s</string>
-  <string name="xfer_receiving">جارٍ استلام %1$s</string>
+  <string name="xfer_sending">جارٍ إرسال %1$s · %2$d%%</string>
+  <string name="xfer_receiving">جارٍ استلام %1$s · %2$d%%</string>
   <string name="xfer_done">تم حفظ %1$s</string>
   <string name="xfer_failed">تعذر إرسال %1$s</string>
   <string name="xfer_cancel">إلغاء</string>

@@ -581,8 +581,8 @@
   <string name="unavailable_no_permission">Il portatile non l\'ha ancora consentito.</string>
   <string name="capture_recording_laptop">Registrazione sul portatile</string>
   <string name="xfer_send">Invia un file</string>
-  <string name="xfer_sending">Invio di %1$s</string>
-  <string name="xfer_receiving">Ricezione di %1$s</string>
+  <string name="xfer_sending">Invio di %1$s · %2$d%%</string>
+  <string name="xfer_receiving">Ricezione di %1$s · %2$d%%</string>
   <string name="xfer_done">%1$s salvato</string>
   <string name="xfer_failed">Impossibile inviare %1$s</string>
   <string name="xfer_cancel">Annulla</string>

@@ -571,8 +571,8 @@
   <string name="unavailable_no_permission">लैपटॉप ने अभी इसकी अनुमति नहीं दी है।</string>
   <string name="capture_recording_laptop">लैपटॉप पर रिकॉर्डिंग</string>
   <string name="xfer_send">फ़ाइल भेजें</string>
-  <string name="xfer_sending">%1$s भेजी जा रही है</string>
-  <string name="xfer_receiving">%1$s मिल रही है</string>
+  <string name="xfer_sending">%1$s भेजी जा रही है · %2$d%%</string>
+  <string name="xfer_receiving">%1$s मिल रही है · %2$d%%</string>
   <string name="xfer_done">%1$s सहेजी गई</string>
   <string name="xfer_failed">%1$s भेजी नहीं जा सकी</string>
   <string name="xfer_cancel">रद्द करें</string>
