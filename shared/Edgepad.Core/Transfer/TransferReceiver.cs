@@ -261,13 +261,15 @@ internal sealed class TransferReceiver : IDisposable
 
     /// <summary>
     /// A transfer that has had no chunk for <see cref="TransferLimits.IdleDrop"/> is let go (its part stays, for a resume), so a
-    /// sender that gave up never leaves the receiver answering BUSY. Called with the gate held.
+    /// sender that gave up never leaves the receiver answering BUSY, and a sender still there is told with CANCELLED.
+    /// Called with the gate held.
     /// </summary>
     private void DropIfIdle()
     {
         if (active is { } a && clock() - a.LastChunk > TransferLimits.IdleDrop)
         {
             Finish(deletePart: false);
+            Reply(a.Id, XferCode.Cancelled, 0);
         }
     }
 

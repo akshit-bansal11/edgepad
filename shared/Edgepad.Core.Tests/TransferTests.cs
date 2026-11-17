@@ -424,6 +424,8 @@ public sealed class TransferTests : IDisposable
         replies.Clear();
         clockAt += TimeSpan.FromSeconds(2);
         Assert.False(receiver.Busy);
+        Assert.Equal([new XferStatus(1, (byte)XferCode.Cancelled, 0)], replies);
+        replies.Clear();
         receiver.Take(new XferBegin(2, 100, "next.bin"));
         Assert.Equal([new XferStatus(2, (byte)XferCode.Ready, 0)], replies);
         Assert.True(File.Exists(Path.Combine(Partial, "idle.bin.100.part")));
