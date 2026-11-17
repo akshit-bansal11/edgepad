@@ -168,7 +168,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
 
     func matched() {
         tell(
-            tr("Pair_Matched", "Code matched. Tap “Yes, paired” on %1$@ to finish.", phone), closeSoon: false)
+            tr("Pair_Matched", "Code matched. Tap “Codes match” on %1$@ to finish.", phone), closeSoon: false)
     }
 
     func mismatched() {

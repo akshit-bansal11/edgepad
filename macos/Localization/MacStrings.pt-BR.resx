@@ -461,7 +461,7 @@
     <value>Parear {0}? Fecha em {1} s.</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>O código coincide. Toque em “Sim, pareado” em {0} para concluir.</value>
+    <value>O código coincide. Toque em “Os códigos coincidem” em {0} para concluir.</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>O código não coincidiu. Nada foi pareado.</value>

@@ -461,7 +461,7 @@
     <value>Выполнить сопряжение с {0}? Закроется через {1} с.</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>Код совпал. Нажмите «Да, сопряжено» на {0}, чтобы завершить.</value>
+    <value>Код совпал. Нажмите «Коды совпадают» на {0}, чтобы завершить.</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>Код не совпал. Сопряжение не выполнено.</value>

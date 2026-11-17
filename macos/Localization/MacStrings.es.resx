@@ -461,7 +461,7 @@
     <value>¿Emparejar {0}? Se cierra en {1} s.</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>El código coincide. Toca «Sí, emparejado» en {0} para terminar.</value>
+    <value>El código coincide. Toca «Los códigos coinciden» en {0} para terminar.</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>El código no coincidió. No se emparejó nada.</value>

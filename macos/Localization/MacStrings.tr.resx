@@ -461,7 +461,7 @@
     <value>{0} eşleştirilsin mi? {1} sn içinde kapanır.</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>Kod eşleşti. Bitirmek için {0} üzerinde “Evet, eşleşti”ye dokunun.</value>
+    <value>Kod eşleşti. Bitirmek için {0} üzerinde “Kodlar eşleşiyor”ye dokunun.</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>Kod eşleşmedi. Hiçbir şey eşleştirilmedi.</value>

@@ -79,7 +79,7 @@
     <value>Сопряжение не завершено.</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>Код сопряжения совпал. Нажмите «Да, сопряжено» на устройстве «{0}», чтобы завершить.</value>
+    <value>Код сопряжения совпал. Нажмите «Коды совпадают» на устройстве «{0}», чтобы завершить.</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>Сопряжено: {0}.</value>

@@ -461,7 +461,7 @@
     <value>{0} koppeln? Schließt in {1} s.</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>Code stimmt überein. Tippe auf {0} auf „Ja, gekoppelt“, um abzuschließen.</value>
+    <value>Code stimmt überein. Tippe auf {0} auf „Codes stimmen überein“, um abzuschließen.</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>Der Code stimmt nicht überein. Nichts wurde gekoppelt.</value>

@@ -79,7 +79,7 @@
     <value>Parowanie nie zostało zakończone.</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>Kod parowania się zgadza. Aby zakończyć, stuknij „Tak, sparowano” na urządzeniu: {0}.</value>
+    <value>Kod parowania się zgadza. Aby zakończyć, stuknij „Kody się zgadzają” na urządzeniu: {0}.</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>Sparowano z: {0}.</value>

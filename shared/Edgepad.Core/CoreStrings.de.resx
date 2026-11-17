@@ -79,7 +79,7 @@
     <value>Die Kopplung wurde nicht abgeschlossen.</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>Der Kopplungscode stimmt. Wähle auf {0} „Ja, gekoppelt“, um abzuschließen.</value>
+    <value>Der Kopplungscode stimmt. Wähle auf {0} „Codes stimmen überein“, um abzuschließen.</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>Gekoppelt mit {0}.</value>

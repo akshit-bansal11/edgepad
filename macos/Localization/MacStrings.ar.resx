@@ -461,7 +461,7 @@
     <value>إقران {0}؟ يُغلق خلال {1} ث.</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>تطابق الرمز. اضغط «نعم، تم الاقتران» على {0} للإنهاء.</value>
+    <value>تطابق الرمز. اضغط «الرموز متطابقة» على {0} للإنهاء.</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>لم يتطابق الرمز. لم يتم الاقتران.</value>

@@ -461,7 +461,7 @@
     <value>Sparować {0}? Zamknie się za {1} s.</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>Kod pasuje. Dotknij „Tak, sparowano” na {0}, aby zakończyć.</value>
+    <value>Kod pasuje. Dotknij „Kody się zgadzają” na {0}, aby zakończyć.</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>Kod nie pasował. Nic nie zostało sparowane.</value>

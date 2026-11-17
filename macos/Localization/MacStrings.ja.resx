@@ -461,7 +461,7 @@
     <value>{0} をペアリングしますか？ {1} 秒後に閉じます。</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>コードが一致しました。{0} で「はい、ペアリングしました」をタップして完了してください。</value>
+    <value>コードが一致しました。{0} で「コードが一致」をタップして完了してください。</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>コードが一致しませんでした。ペアリングされていません。</value>

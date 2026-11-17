@@ -461,7 +461,7 @@
     <value>{0}을(를) 페어링할까요? {1}초 후에 닫힙니다.</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>코드가 일치합니다. {0}에서 ‘예, 페어링됨’을 눌러 마무리하세요.</value>
+    <value>코드가 일치합니다. {0}에서 ‘코드 일치’을 눌러 마무리하세요.</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>코드가 일치하지 않습니다. 페어링되지 않았습니다.</value>

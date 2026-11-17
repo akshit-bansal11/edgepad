@@ -467,7 +467,7 @@
     <value>Pair {0}? Closes in {1} s.</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>Code matched. Tap “Yes, paired” on {0} to finish.</value>
+    <value>Code matched. Tap “Codes match” on {0} to finish.</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>That code did not match. Nothing was paired.</value>

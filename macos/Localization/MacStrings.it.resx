@@ -461,7 +461,7 @@
     <value>Abbinare {0}? Si chiude tra {1} s.</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>Il codice corrisponde. Tocca «Sì, abbinato» su {0} per terminare.</value>
+    <value>Il codice corrisponde. Tocca «I codici corrispondono» su {0} per terminare.</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>Il codice non corrisponde. Non è stato abbinato nulla.</value>

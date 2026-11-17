@@ -461,7 +461,7 @@
     <value>要配对 {0} 吗？{1} 秒后关闭。</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>代码匹配。请在 {0} 上点按“是，已配对”以完成。</value>
+    <value>代码匹配。请在 {0} 上点按“配对码一致”以完成。</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>代码不匹配。未进行配对。</value>

@@ -461,7 +461,7 @@
     <value>{0} को पेयर करें? {1} सेकंड में बंद हो जाएगा।</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>कोड मेल खा गया। पूरा करने के लिए {0} पर “हाँ, पेयर हो गया” पर टैप करें।</value>
+    <value>कोड मेल खा गया। पूरा करने के लिए {0} पर “कोड मेल खाते हैं” पर टैप करें।</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>कोड मेल नहीं खाया। कुछ भी पेयर नहीं हुआ।</value>
