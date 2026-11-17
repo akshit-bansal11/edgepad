@@ -229,7 +229,7 @@ function Heading({
   return (
     <Reveal>
       <p className="text-primary text-[0.9375rem] font-bold">{eyebrow}</p>
-      <h2 className="mt-2 max-w-[20ch] text-[2rem] leading-[1.08] font-black tracking-[-0.02em] md:text-5xl">
+      <h2 className="mt-2 max-w-[20ch] text-[clamp(2rem,1.4rem+2.6vw,3rem)] leading-[1.08] font-black tracking-[-0.02em]">
         {title}
       </h2>
       {children ? (
@@ -292,7 +292,7 @@ export default function Page() {
               <p className="bg-card shadow-card inline-flex rounded-full px-4 py-1.5 text-sm font-bold">
                 Phone · Bluetooth, Wi-Fi, USB · Windows; Mac and Linux in testing
               </p>
-              <h1 className="mt-6 max-w-[13ch] text-[2.75rem] leading-[1.02] font-black tracking-[-0.025em] sm:text-6xl lg:text-7xl">
+              <h1 className="mt-6 max-w-[13ch] text-[clamp(2.75rem,2rem+4vw,4.5rem)] leading-[1.02] font-black tracking-[-0.025em]">
                 Your laptop, from across the room.
               </h1>
               <p className="text-dim mt-6 max-w-[56ch] text-lg leading-relaxed md:text-xl">

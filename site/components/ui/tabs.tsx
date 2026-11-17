@@ -44,7 +44,16 @@ export function TabsTrigger({
         className,
       )}
       {...props}
-    />
+    >
+      {/* DES-D29: a hidden bold copy in the same grid cell reserves the bold width, so
+          selecting a tab does not shift the row. */}
+      <span className="grid">
+        <span className="col-start-1 row-start-1">{props.children}</span>
+        <span aria-hidden className="invisible col-start-1 row-start-1 font-bold">
+          {props.children}
+        </span>
+      </span>
+    </TabsPrimitive.Trigger>
   );
 }
 

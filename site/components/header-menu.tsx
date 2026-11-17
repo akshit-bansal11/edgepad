@@ -68,7 +68,7 @@ export function HeaderMenu({
           <span className="sr-only sm:not-sr-only">{label}</span>
         </span>
       </summary>
-      <div className="menu-panel bg-card shadow-lift absolute right-0 mt-2 max-h-[75vh] w-[min(20rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl p-2">
+      <div className="menu-panel bg-card shadow-lift absolute right-0 mt-2 max-h-[75dvh] w-[min(20rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl p-2">
         {children}
       </div>
     </details>

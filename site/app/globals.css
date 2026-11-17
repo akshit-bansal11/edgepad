@@ -203,6 +203,31 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* DES-D29 micro-rules. Prose hyphenates in narrow columns (<html lang="en">); links
+     sit 0.2em off their underline; a superscript never opens a line gap; buttons and
+     tabs trim the text box so the label is optically centred (ignored where unsupported). */
+  p,
+  li,
+  dd {
+    hyphens: auto;
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+  }
+
+  sup {
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+    top: -0.5em;
+  }
+
+  button,
+  [role="tab"] {
+    text-box: trim-both cap alphabetic;
+  }
+
   ::selection {
     background: var(--blue);
     color: var(--on-blue);

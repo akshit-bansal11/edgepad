@@ -27,7 +27,7 @@ export function DocsShell({
             hide it until the JavaScript arrives. */}
         <div className="py-10 md:py-16">
           <p className="text-primary mb-2 text-[0.9375rem] font-bold">{eyebrow}</p>
-          <h1 className="max-w-[20ch] text-[2.5rem] leading-[1.04] font-black tracking-[-0.025em] md:text-6xl">
+          <h1 className="max-w-[20ch] text-[clamp(2.5rem,1.6rem+3.6vw,3.75rem)] leading-[1.04] font-black tracking-[-0.025em]">
             {title}
           </h1>
           <p className="text-dim mt-5 max-w-[64ch] text-base leading-relaxed md:text-lg">

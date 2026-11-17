@@ -9,7 +9,7 @@ export default function NotFound() {
       <SiteHeader />
       <main id="main" className="mx-auto max-w-[80rem] px-4 py-20 md:px-6">
         <p className="text-primary mb-2 text-[0.9375rem] font-bold">404</p>
-        <h1 className="max-w-[20ch] text-[2.5rem] leading-[1.04] font-black tracking-[-0.025em] md:text-6xl">
+        <h1 className="max-w-[20ch] text-[clamp(2.5rem,1.6rem+3.6vw,3.75rem)] leading-[1.04] font-black tracking-[-0.025em]">
           That page is not here.
         </h1>
         <p className="text-dim mt-5 max-w-[56ch] text-base leading-relaxed md:text-lg">

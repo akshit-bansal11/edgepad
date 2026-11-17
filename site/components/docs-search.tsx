@@ -77,7 +77,7 @@ export function DocsSearch() {
         ref={dialog}
         aria-label="Search the docs"
         onClose={() => opener.current?.focus()}
-        className="bg-card text-foreground shadow-lift mx-auto mt-[10vh] max-h-[80vh] w-[min(36rem,calc(100vw-2rem))] scale-96 overflow-y-auto rounded-2xl p-4 opacity-0 transition-[opacity,scale,overlay,display] transition-discrete duration-(--duration-reveal) ease-out backdrop:bg-black/40 open:scale-100 open:opacity-100 starting:open:scale-96 starting:open:opacity-0 motion-reduce:scale-100 motion-reduce:duration-(--duration-fade) motion-reduce:open:scale-100 motion-reduce:starting:open:scale-100"
+        className="bg-card text-foreground shadow-lift mx-auto mt-[10dvh] max-h-[80dvh] w-[min(36rem,calc(100vw-2rem))] scale-96 overflow-y-auto rounded-2xl p-4 opacity-0 transition-[opacity,scale,overlay,display] transition-discrete duration-(--duration-reveal) ease-out backdrop:bg-black/40 open:scale-100 open:opacity-100 starting:open:scale-96 starting:open:opacity-0 motion-reduce:scale-100 motion-reduce:duration-(--duration-fade) motion-reduce:open:scale-100 motion-reduce:starting:open:scale-100"
       >
         <label htmlFor="docs-search-input" className="label mb-2 block">
           Search the docs
