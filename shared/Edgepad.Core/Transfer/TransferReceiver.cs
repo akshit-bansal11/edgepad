@@ -227,7 +227,7 @@ internal sealed class TransferReceiver : IDisposable
     {
         try
         {
-            var mounts = DriveInfo.GetDrives().Where(d => d.IsReady).Select(d => (d.RootDirectory.FullName, d.AvailableFreeSpace)).ToList();
+            var mounts = DriveInfo.GetDrives().Select(d => (d.RootDirectory.FullName, (Func<long>)(() => d.IsReady ? d.AvailableFreeSpace : -1))).ToList();
             return FreeSpaceFor(Path.GetFullPath(folder), mounts);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
@@ -238,9 +238,10 @@ internal sealed class TransferReceiver : IDisposable
 
     /// <summary>
     /// The free bytes of the mount whose root is the longest prefix of <paramref name="folder"/> (a separate /home beats /),
-    /// or -1 when none holds it. The root counts only at a separator, so /home does not hold /homework.
+    /// or -1 when none holds it. The root counts only at a separator, so /home does not hold /homework. Only that mount's
+    /// free space is read, so a stale mount elsewhere (a dead FUSE share) that throws on being read cannot refuse the file.
     /// </summary>
-    internal static long FreeSpaceFor(string folder, IReadOnlyList<(string Root, long Free)> mounts)
+    internal static long FreeSpaceFor(string folder, IReadOnlyList<(string Root, Func<long> Free)> mounts)
     {
         var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
         var best = -1;
@@ -255,7 +256,7 @@ internal sealed class TransferReceiver : IDisposable
             }
         }
 
-        return best < 0 ? -1 : mounts[best].Free;
+        return best < 0 ? -1 : mounts[best].Free();
     }
 
     /// <summary>

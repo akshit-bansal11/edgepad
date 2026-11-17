@@ -270,12 +270,26 @@ public sealed class TransferTests : IDisposable
         var s = Path.DirectorySeparatorChar;
         var root = Path.GetPathRoot(Path.GetFullPath(dir))!;
         var home = root + "home";
-        var mounts = new List<(string Root, long Free)> { (root, 1), (home, 2) };
+        var mounts = new List<(string Root, Func<long> Free)> { (root, () => 1), (home, () => 2) };
         Assert.Equal(2, TransferReceiver.FreeSpaceFor(home + s + "u" + s + "Downloads", mounts));
         Assert.Equal(2, TransferReceiver.FreeSpaceFor(home, mounts));
         Assert.Equal(1, TransferReceiver.FreeSpaceFor(home + "work", mounts));
         Assert.Equal(1, TransferReceiver.FreeSpaceFor(root + "srv", mounts));
         Assert.Equal(-1, TransferReceiver.FreeSpaceFor(root + "srv", []));
+    }
+
+    [Fact]
+    public void AStaleMountThatThrowsWhenReadDoesNotRefuseAFolderOnAnother()
+    {
+        var root = Path.GetPathRoot(Path.GetFullPath(dir))!;
+        var stale = root + "stale";
+        var mounts = new List<(string Root, Func<long> Free)>
+        {
+            (stale, () => throw new IOException("stale FUSE mount")),
+            (root, () => 7),
+        };
+
+        Assert.Equal(7, TransferReceiver.FreeSpaceFor(root + "srv", mounts));
     }
 
     [Theory]
