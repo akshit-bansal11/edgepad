@@ -27,12 +27,12 @@ internal static class Dialogs
         return answer.Task;
     }
 
-    /// <summary>Shows a message with one OK button; completes when it is closed.</summary>
+    /// <summary>Shows a message with one Close button; completes when it is closed.</summary>
     public static Task Inform(Window? owner, string message)
     {
         var look = Look.Current;
         var closed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var ok = look.Button(LinuxStrings.Common_Ok, primary: true);
+        var ok = look.Button(LinuxStrings.Common_Close, primary: true);
         ok.IsDefault = true;
         var window = look.Dialog(LinuxStrings.App_Name, 440, Body(look, message, Look.Footer(ok)));
         window.Topmost = true;

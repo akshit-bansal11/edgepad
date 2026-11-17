@@ -99,9 +99,6 @@
   <data name="App_Name" xml:space="preserve">
     <value>Edgepad</value>
   </data>
-  <data name="Common_Ok" xml:space="preserve">
-    <value>OK</value>
-  </data>
   <data name="Common_Install" xml:space="preserve">
     <value>Zainstaluj</value>
   </data>
