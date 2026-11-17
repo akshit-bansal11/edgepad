@@ -37,7 +37,6 @@ private const val FOCUS_RING_DP = 2f
 /** How far a scrolling page fades out at its top and bottom edge. */
 const val FADE_EDGE_DP = 24f
 
-
 private const val KNOB_DP = 26f
 private const val KNOB_GAP_DP = 2f
 private const val TRACK_DP = 4f

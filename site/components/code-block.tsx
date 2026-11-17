@@ -25,7 +25,7 @@ export function CodeBlock({
       <section
         tabIndex={0}
         aria-label={`${title}, scrolls sideways`}
-        className="overflow-x-auto"
+        className="scroll-fade-x overflow-x-auto"
       >
         <pre className="p-4 font-mono text-[0.8125rem] leading-relaxed">
           <code>{code}</code>

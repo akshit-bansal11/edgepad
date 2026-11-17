@@ -317,3 +317,51 @@ details[data-closing] > .menu-panel {
     animation-duration: var(--duration-fade);
   }
 }
+
+/*
+  DES-D26: a horizontal scroller fades the edge where content continues, and only that
+  edge. A scroll-driven animation moves the two fade widths with the scroll position,
+  so the left edge is sharp at the start and the right edge is sharp at the end. Where
+  scroll timelines are not supported, or nothing overflows, there is no mask at all.
+*/
+@property --fade-l {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --fade-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll-fade-x {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--fade-l),
+      #000 calc(100% - var(--fade-r)),
+      transparent
+    );
+    animation: scroll-fade linear both;
+    animation-timeline: scroll(self inline);
+  }
+}
+
+@keyframes scroll-fade {
+  0% {
+    --fade-l: 0px;
+    --fade-r: 2rem;
+  }
+  2%,
+  98% {
+    --fade-l: 2rem;
+    --fade-r: 2rem;
+  }
+  100% {
+    --fade-l: 2rem;
+    --fade-r: 0px;
+  }
+}
