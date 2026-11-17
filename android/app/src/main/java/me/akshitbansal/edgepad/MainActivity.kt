@@ -2400,6 +2400,7 @@ class MainActivity :
                 addView(field)
                 addView(problem)
             }
+
         fun check(): Boolean {
             val typed = field.text.toString().trim()
             val found = if (typed.isEmpty()) AddressProblem.NOT_AN_ADDRESS else addressProblem(typed)

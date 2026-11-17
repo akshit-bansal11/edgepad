@@ -10,9 +10,7 @@ export function Table({ className, ...props }: ComponentProps<"table">) {
     // A named section is a region; focusable so a keyboard can scroll it. biome.json
     // allows the tabIndex for this file only. The card surface sits on the wrapper so
     // the edge fade (DES-D26) masks the scrolling content, not the card.
-    <div
-      className="bg-card shadow-card w-full overflow-hidden rounded-[var(--radius-card)]"
-    >
+    <div className="bg-card shadow-card w-full overflow-hidden rounded-[var(--radius-card)]">
       <section
         tabIndex={0}
         aria-label="Table, scrolls sideways"
