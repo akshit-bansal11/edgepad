@@ -42,6 +42,7 @@ class FloatingDials(
     private var shownSpecs: List<Spec> = emptyList()
     private var shownWidth = 0
     private var shownHeight = 0
+    private var shownScale = 1f
     private val rebuild = Runnable { show() }
     private val muteText = app.getString(R.string.surface_mute)
     private val unknownText = app.getString(R.string.surface_unknown)
@@ -62,12 +63,15 @@ class FloatingDials(
         val width = metrics.bounds.width()
         val height = metrics.bounds.height()
         val specs = specs()
-        if (isShown && specs == shownSpecs && width == shownWidth && height == shownHeight) return
+        val fontScale = app.resources.configuration.fontScale
+        val same = specs == shownSpecs && width == shownWidth && height == shownHeight && fontScale == shownScale
+        if (isShown && same) return
         hide()
         if (specs.isEmpty() || width <= 0 || height <= 0) return
         shownSpecs = specs
         shownWidth = width
         shownHeight = height
+        shownScale = fontScale
         val insets = metrics.windowInsets
         var corner = 0
         for (position in CORNER_POSITIONS) corner = maxOf(corner, insets.getRoundedCorner(position)?.radius ?: 0)
@@ -89,7 +93,7 @@ class FloatingDials(
         val before = FloatArray(dials.size)
         DialSpan.compute(centres, half, perimeter.length, FloatArray(0), DIAL_GAP_DP * density, after, before)
         applyState()
-        val depth = (RulerGeometry.reach(settings.dialHeight) + LABEL_ROOM_DP) * density
+        val depth = (RulerGeometry.reach(settings.dialHeight) + labelRoomDp(fontScale)) * density
         val colors = colors()
         for (i in dials.indices) {
             val bounds = DialBounds.of(perimeter, centres[i], before[i], after[i], depth)
@@ -238,8 +242,6 @@ class FloatingDials(
         const val DIAL_GAP_DP = 16f
         const val PERCENT = 100
 
-        /** Below the longest mark, the room the label and number need inside the corner. */
-        const val LABEL_ROOM_DP = 96f
         const val RGB_MASK = 0x00FFFFFF
         const val DIM_ALPHA = 0x8C000000.toInt()
         val CORNER_POSITIONS =
@@ -251,3 +253,12 @@ class FloatingDials(
             )
     }
 }
+
+/** Below the longest mark, the room the label and number need inside the corner, at the default font size. */
+private const val LABEL_ROOM_DP = 96f
+
+/** The largest font scale the label room follows; past it the label is cut rather than the window grown. */
+private const val MAX_FONT_SCALE = 2f
+
+/** The room under the longest mark for the label and number, grown with the font scale up to [MAX_FONT_SCALE]. */
+internal fun labelRoomDp(fontScale: Float): Float = LABEL_ROOM_DP * fontScale.coerceIn(1f, MAX_FONT_SCALE)
