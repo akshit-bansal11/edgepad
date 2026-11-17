@@ -2,10 +2,10 @@
 <resources>
   <string name="settings_profiles">Profili app</string>
   <string name="profiles_title">Profili app</string>
-  <string name="profiles_toggle">Cambia dial e gesti in base all\'app</string>
+  <string name="profiles_toggle">Cambia dial e gesti in base all’app</string>
   <string name="profiles_caption">Il portatile dice a questo telefono quale app è in primo piano, solo finché è attivo. Sul portatile non resta nulla.</string>
-  <string name="profiles_empty">Ancora nessun profilo. Porta un\'app in primo piano sul portatile, poi aggiungila qui.</string>
-  <string name="profiles_add_current">Aggiungi l\'app in primo piano</string>
+  <string name="profiles_empty">Ancora nessun profilo. Porta un’app in primo piano sul portatile, poi aggiungila qui.</string>
+  <string name="profiles_add_current">Aggiungi l’app in primo piano</string>
   <string name="profiles_none_in_front">Nessuna app in primo piano</string>
   <string name="profiles_unsupported">Questo portatile non può dire quale app è in primo piano.</string>
   <string name="profiles_delete">Elimina profilo</string>

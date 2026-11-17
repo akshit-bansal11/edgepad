@@ -46,14 +46,14 @@
   <string name="bluetooth_tap_off">Bluetooth is off. Turn it on to connect to this laptop.</string>
   <string name="refresh">Refresh the list</string>
   <string name="bluetooth_off">No laptops found. Turn Bluetooth on and pair your laptop. For Wi-Fi or USB, open Edgepad on the laptop and turn on Wi-Fi and USB connections in its menu; for USB also turn on USB tethering here.</string>
-  <string name="usb_cable_tether_off">Cable connected. Turn on USB tethering here, and Wi-Fi and USB connections in Edgepad\'s menu on the laptop.</string>
+  <string name="usb_cable_tether_off">Cable connected. Turn on USB tethering here, and Wi-Fi and USB connections in Edgepad’s menu on the laptop.</string>
   <string name="status_no_wifi">Not connected to Wi-Fi.</string>
   <string name="status_searched_wifi">Searched your Wi-Fi network; no laptop answered.</string>
   <string name="status_searched_usb">Searched USB tethering; no laptop answered.</string>
   <string name="permission_needed">Edgepad needs the Nearby devices permission to reach your laptop.</string>
   <string name="permission_reason">To find your laptop, Edgepad asks for the Nearby devices permission.</string>
   <string name="local_network_reason">To find laptops on your Wi-Fi and over USB, Edgepad asks for Nearby devices and checks the addresses on your network. Add by address avoids that search.</string>
-  <string name="no_paired">No laptops found. Open Edgepad on your laptop and pair it in Bluetooth settings. For Wi-Fi or USB, turn on Wi-Fi and USB connections in Edgepad\'s menu on the laptop; for USB also turn on USB tethering here.</string>
+  <string name="no_paired">No laptops found. Open Edgepad on your laptop and pair it in Bluetooth settings. For Wi-Fi or USB, turn on Wi-Fi and USB connections in Edgepad’s menu on the laptop; for USB also turn on USB tethering here.</string>
   <string name="no_laptop_paired">None of the devices paired with this phone says it is a computer. If your laptop is paired, show them all.</string>
   <plurals name="show_all_paired">
     <item quantity="one">Show all paired devices (%1$d more)</item>
@@ -73,7 +73,7 @@
   <string name="link_mismatch">Edgepad on %1$s and this app come from different releases. Install both from the same release.</string>
   <string name="link_mismatch_laptop_older">Edgepad on %1$s is older than this app. Update Edgepad on the laptop. Both halves must come from the same release.</string>
   <string name="link_mismatch_phone_older">This app is older than Edgepad on %1$s. Update this app in System settings › Updates. Both halves must come from the same release.</string>
-  <string name="link_unexpected">The laptop answered with something other than Edgepad\'s handshake.</string>
+  <string name="link_unexpected">The laptop answered with something other than Edgepad’s handshake.</string>
   <string name="link_no_permission">The Nearby devices permission was turned off.</string>
   <string name="link_no_answer">The laptop took the connection and never answered. Check that Edgepad is running there, then try again.</string>
   <string name="link_not_paired">The laptop did not recognise this phone. Tap Pair again on its row to pair with a new code.</string>
@@ -105,7 +105,7 @@
 
   <!-- A network pairing: the phone shows a code and the laptop's owner types it there. -->
   <string name="pair_title">Pairing code</string>
-  <string name="pair_body">Type this code in Edgepad on %1$s. A window opens on the laptop; if not, open Edgepad\'s menu there.</string>
+  <string name="pair_body">Type this code in Edgepad on %1$s. A window opens on the laptop; if not, open Edgepad’s menu there.</string>
   <string name="pair_new_code">Get a new code</string>
   <string name="device_more">More</string>
   <string name="device_more_named">More actions for %1$s</string>
@@ -136,7 +136,7 @@
   <string name="forget">Forget</string>
   <string name="pair_again">Pair again</string>
   <string name="forget_laptop_title">Forget %1$s?</string>
-  <string name="forget_laptop_body">It is removed from this list and its pairing code is deleted. Android\'s Bluetooth pairing stays; remove it in Bluetooth settings.</string>
+  <string name="forget_laptop_body">It is removed from this list and its pairing code is deleted. Android’s Bluetooth pairing stays; remove it in Bluetooth settings.</string>
   <string name="reconnect_automatically">Reconnect automatically</string>
   <string name="reconnect_caption">Connects remembered laptops when Edgepad opens, and tries again when a connection drops.</string>
   <string name="stay_connected">Stay connected in the background</string>
@@ -521,8 +521,8 @@
   <string name="macros_per_page_caption">How many macros one page shows. The rest continue on more pages, reached by sliding a finger sideways. Press and hold a macro, then drag it to move it within its page. Hold a macro that is open to show a cross, then tap the cross to close the app.</string>
   <string name="macros_page_of">Page %1$d of %2$d</string>
   <string name="macros_empty_title">No macros yet</string>
-  <string name="macros_empty_body">Add them from Edgepad\'s Macros… menu in the tray on the laptop. They appear here as soon as it sends the list.</string>
-  <string name="macros_empty_body_mac">Add them from Edgepad\'s Macros… menu in the menu bar on the Mac. They appear here as soon as it sends the list.</string>
+  <string name="macros_empty_body">Add them from Edgepad’s Macros… menu in the tray on the laptop. They appear here as soon as it sends the list.</string>
+  <string name="macros_empty_body_mac">Add them from Edgepad’s Macros… menu in the menu bar on the Mac. They appear here as soon as it sends the list.</string>
   <string name="macros_loading">Loading macros…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
@@ -552,7 +552,7 @@
   <string name="apps_duplicate">That app is already a macro.</string>
   <string name="apps_stale">That list is out of date. Refresh it and pick again.</string>
   <string name="apps_failed">The laptop could not add it.</string>
-  <string name="input_blocked">%1$s can\'t take input yet. Allow Edgepad on the laptop; it works as soon as you do.</string>
+  <string name="input_blocked">%1$s can’t take input yet. Allow Edgepad on the laptop; it works as soon as you do.</string>
   <string name="battery_title">Batteries</string>
   <string name="battery_in_use">In use</string>
   <string name="battery_this_phone">This phone</string>
@@ -595,5 +595,5 @@
   <string name="xfer_channel">File transfers</string>
   <string name="notify_channel">Laptop notifications</string>
   <string name="notify_setting">Show laptop notifications</string>
-  <string name="notify_setting_hint">Needs the same switch turned on in the laptop\'s Edgepad menu.</string>
+  <string name="notify_setting_hint">Needs the same switch turned on in the laptop’s Edgepad menu.</string>
 </resources>

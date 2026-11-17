@@ -37,7 +37,7 @@
     <item>Gamepad</item>
     <item>Annoteren</item>
     <item>Vastleggen</item>
-    <item>Macro\'s</item>
+    <item>Macro’s</item>
   </string-array>
   <string-array name="guide_anatomy_values">
     <item>Het hele midden van het scherm. Elk vingergebaar begint hier.</item>
@@ -47,7 +47,7 @@
     <item>Sticks, een D-pad en knoppen in vijf voorinstellingen, of je eigen indeling.</item>
     <item>Bediening › Annoteren maakt van de telefoon een pen voor het laptopscherm, met zes gereedschappen en acht kleuren. Het verschijnt als de laptop het ondersteunt.</item>
     <item>Bediening › Vastleggen vraagt de laptop om een screenshot van een gebied, van het hele scherm of om een opname. Sleep voor een gebied het kader uit op het pad onder de knoppen. Het verschijnt als de laptop het ondersteunt.</item>
-    <item>Een raster met knoppen die een programma, bestand of webadres op de laptop openen, achter Bediening. Houd er een ingedrukt en sleep hem naar jouw volgorde, of sluit hem als hij open is; bij meer dan tien ga je door naar pagina\'s waar je naartoe veegt.</item>
+    <item>Een raster met knoppen die een programma, bestand of webadres op de laptop openen, achter Bediening. Houd er een ingedrukt en sleep hem naar jouw volgorde, of sluit hem als hij open is; bij meer dan tien ga je door naar pagina’s waar je naartoe veegt.</item>
   </string-array>
 
   <string name="guide_surface_kicker">3 · Het bedieningsvlak</string>

@@ -32,22 +32,22 @@
   <string name="address_bad_port">Bağlantı noktası 1 ile 65535 arasında bir sayı olmalıdır.</string>
   <string name="address_no_laptop">Bu adres, Edgepad çalıştıran bir bilgisayar olarak yanıt vermedi.</string>
   <string name="usb_tethering">USB ile internet paylaşımı</string>
-  <string name="local_network_needed">Edgepad\'in Wi-Fi ağınızdaki ve USB üzerindeki bilgisayarları bulabilmesi için Yakındaki cihazlar iznine ihtiyacı var.</string>
+  <string name="local_network_needed">Edgepad’in Wi-Fi ağınızdaki ve USB üzerindeki bilgisayarları bulabilmesi için Yakındaki cihazlar iznine ihtiyacı var.</string>
   <string name="allow_local_network">Yakındaki cihazlara izin ver</string>
   <string name="open_controls">Kontrolleri aç</string>
   <string name="open_controls_hint">Kontrolleri açmak için bir bilgisayara bağlanın.</string>
   <string name="open_bluetooth_settings">Bluetooth ayarları</string>
   <string name="bluetooth_tap_off">Bluetooth kapalı. Bu bilgisayara bağlanmak için açın.</string>
   <string name="refresh">Listeyi yenile</string>
-  <string name="bluetooth_off">Bilgisayar bulunamadı. Bluetooth\'u açıp bilgisayarınızı eşleştirin. Wi-Fi veya USB için bilgisayarda Edgepad\'i açın ve menüsünden Wi-Fi ve USB bağlantılarını etkinleştirin; USB için ayrıca buradan USB ile internet paylaşımını açın.</string>
+  <string name="bluetooth_off">Bilgisayar bulunamadı. Bluetooth’u açıp bilgisayarınızı eşleştirin. Wi-Fi veya USB için bilgisayarda Edgepad’i açın ve menüsünden Wi-Fi ve USB bağlantılarını etkinleştirin; USB için ayrıca buradan USB ile internet paylaşımını açın.</string>
   <string name="usb_cable_tether_off">Kablo bağlı. Burada USB ile internet paylaşımını, bilgisayarda da Edgepad menüsündeki Wi-Fi ve USB bağlantılarını açın.</string>
-  <string name="status_no_wifi">Wi-Fi\'ye bağlı değil.</string>
+  <string name="status_no_wifi">Wi-Fi’ye bağlı değil.</string>
   <string name="status_searched_wifi">Wi-Fi ağınız tarandı; hiçbir bilgisayar yanıt vermedi.</string>
   <string name="status_searched_usb">USB ile internet paylaşımı tarandı; hiçbir bilgisayar yanıt vermedi.</string>
-  <string name="permission_needed">Edgepad\'in bilgisayarınıza ulaşabilmesi için Yakındaki cihazlar iznine ihtiyacı var.</string>
+  <string name="permission_needed">Edgepad’in bilgisayarınıza ulaşabilmesi için Yakındaki cihazlar iznine ihtiyacı var.</string>
   <string name="permission_reason">Bilgisayarınızı bulmak için Edgepad, Yakındaki cihazlar iznini ister.</string>
   <string name="local_network_reason">Wi-Fi ağınızdaki ve USB üzerindeki bilgisayarları bulmak için Edgepad, Yakındaki cihazlar iznini ister ve ağınızdaki adresleri tarar. Adresle ekleme bu taramayı gerektirmez.</string>
-  <string name="no_paired">Bilgisayar bulunamadı. Bilgisayarınızda Edgepad\'i açıp Bluetooth ayarlarından eşleştirin. Wi-Fi veya USB için bilgisayarda Edgepad menüsünden Wi-Fi ve USB bağlantılarını açın; USB için ayrıca buradan USB ile internet paylaşımını açın.</string>
+  <string name="no_paired">Bilgisayar bulunamadı. Bilgisayarınızda Edgepad’i açıp Bluetooth ayarlarından eşleştirin. Wi-Fi veya USB için bilgisayarda Edgepad menüsünden Wi-Fi ve USB bağlantılarını açın; USB için ayrıca buradan USB ile internet paylaşımını açın.</string>
   <string name="no_laptop_paired">Bu telefonla eşleşmiş hiçbir cihaz kendini bilgisayar olarak tanıtmıyor. Bilgisayarınız eşleşmişse tüm cihazları gösterin.</string>
   <plurals name="show_all_paired">
     <item quantity="one">Eşleşmiş tüm cihazları göster (+%1$d)</item>
@@ -61,15 +61,15 @@
   <string name="status_closed_named">%1$s bağlı değil. %2$s</string>
   <string name="status_accept_on_laptop">Bilgisayar bekleniyor. Orada “Güven” düğmesini seçin; PIN isteyebilir.</string>
   <string name="link_lost">Bağlantı kesildi.</string>
-  <string name="link_refused">Bilgisayar, el sıkışma tamamlanmadan bağlantıyı kapattı. Bilgisayara bakın; bu telefonu sorarsa “Güven” düğmesini seçin. Bilgisayarı başka bir telefon devraldıysa 30 saniye sonra tekrar deneyin. Hata sürerse bilgisayardaki Edgepad\'i güncelleyin.</string>
-  <string name="link_unreachable_bluetooth">Bilgisayar bağlantıyı kabul etmedi. Üzerinde Edgepad\'in çalıştığını ve Bluetooth\'un açık olduğunu kontrol edin. Yine olmuyorsa eşleşmeyi hem bu telefondan hem bilgisayardan kaldırıp yeniden eşleştirin.</string>
-  <string name="link_unreachable_network">Bilgisayar yanıt vermedi. Üzerinde Edgepad\'in çalıştığını ve Edgepad menüsünde Wi-Fi ve USB bağlantılarının açık olduğunu kontrol edin.</string>
+  <string name="link_refused">Bilgisayar, el sıkışma tamamlanmadan bağlantıyı kapattı. Bilgisayara bakın; bu telefonu sorarsa “Güven” düğmesini seçin. Bilgisayarı başka bir telefon devraldıysa 30 saniye sonra tekrar deneyin. Hata sürerse bilgisayardaki Edgepad’i güncelleyin.</string>
+  <string name="link_unreachable_bluetooth">Bilgisayar bağlantıyı kabul etmedi. Üzerinde Edgepad’in çalıştığını ve Bluetooth’un açık olduğunu kontrol edin. Yine olmuyorsa eşleşmeyi hem bu telefondan hem bilgisayardan kaldırıp yeniden eşleştirin.</string>
+  <string name="link_unreachable_network">Bilgisayar yanıt vermedi. Üzerinde Edgepad’in çalıştığını ve Edgepad menüsünde Wi-Fi ve USB bağlantılarının açık olduğunu kontrol edin.</string>
   <string name="link_mismatch">%1$s üzerindeki Edgepad ile bu uygulama farklı sürümlerden. İkisini de aynı sürümden yükleyin.</string>
-  <string name="link_mismatch_laptop_older">%1$s üzerindeki Edgepad bu uygulamadan daha eski. Bilgisayardaki Edgepad\'i güncelleyin. İki yarı da aynı sürümden olmalı.</string>
-  <string name="link_mismatch_phone_older">Bu uygulama, %1$s üzerindeki Edgepad\'den daha eski. Bu uygulamayı Sistem ayarları › Güncellemeler bölümünden güncelleyin. İki yarı da aynı sürümden olmalı.</string>
-  <string name="link_unexpected">Bilgisayar, Edgepad\'in el sıkışması yerine başka bir yanıt verdi.</string>
+  <string name="link_mismatch_laptop_older">%1$s üzerindeki Edgepad bu uygulamadan daha eski. Bilgisayardaki Edgepad’i güncelleyin. İki yarı da aynı sürümden olmalı.</string>
+  <string name="link_mismatch_phone_older">Bu uygulama, %1$s üzerindeki Edgepad’den daha eski. Bu uygulamayı Sistem ayarları › Güncellemeler bölümünden güncelleyin. İki yarı da aynı sürümden olmalı.</string>
+  <string name="link_unexpected">Bilgisayar, Edgepad’in el sıkışması yerine başka bir yanıt verdi.</string>
   <string name="link_no_permission">Yakındaki cihazlar izni kapatıldı.</string>
-  <string name="link_no_answer">Bilgisayar bağlantıyı kabul etti ama hiç yanıt vermedi. Orada Edgepad\'in çalıştığını kontrol edip tekrar deneyin.</string>
+  <string name="link_no_answer">Bilgisayar bağlantıyı kabul etti ama hiç yanıt vermedi. Orada Edgepad’in çalıştığını kontrol edip tekrar deneyin.</string>
   <string name="link_not_paired">Bilgisayar bu telefonu tanımadı. Yeni kodla eşleştirmek için satırındaki “Yeniden eşleştir” seçeneğine dokunun.</string>
   <string name="link_not_this_laptop">Bir cihaz bu bilgisayar olarak yanıt verdi ama bunu kanıtlayamadı. Telefonun doğru ağda olduğunu kontrol edin.</string>
   <string name="link_pairing_failed">Eşleştirme tamamlanmadı: kod bilgisayarda zamanında ya da doğru yazılmadı. Yeni bir kodla yeniden denemek için bilgisayara dokunun.</string>
@@ -83,8 +83,8 @@
     <item quantity="other">Çok fazla yanlış PIN. %1$d dakika sonra tekrar deneyin.</item>
   </plurals>
 
-  <string name="pin_title">PIN\'i girin</string>
-  <string name="pin_body">Bilgisayarınızdaki Edgepad\'de ayarlanır</string>
+  <string name="pin_title">PIN’i girin</string>
+  <string name="pin_body">Bilgisayarınızdaki Edgepad’de ayarlanır</string>
   <plurals name="pin_attempts_left">
     <item quantity="one">Yanlış PIN. %1$d deneme hakkı kaldı</item>
     <item quantity="other">Yanlış PIN. %1$d deneme hakkı kaldı</item>
@@ -96,7 +96,7 @@
   <string name="pin_cancelled">PIN girişi iptal edildi. Yeniden denemek için bilgisayara dokunun.</string>
 
   <string name="pair_title">Eşleştirme kodu</string>
-  <string name="pair_body">Bu kodu %1$s üzerindeki Edgepad\'e yazın. Bilgisayarda bir pencere açılır; açılmazsa oradaki Edgepad menüsünü açın.</string>
+  <string name="pair_body">Bu kodu %1$s üzerindeki Edgepad’e yazın. Bilgisayarda bir pencere açılır; açılmazsa oradaki Edgepad menüsünü açın.</string>
   <string name="pair_new_code">Yeni kod al</string>
   <string name="device_more">Diğer</string>
   <string name="device_more_named">%1$s için diğer işlemler</string>
@@ -127,7 +127,7 @@
   <string name="forget">Unut</string>
   <string name="pair_again">Yeniden eşleştir</string>
   <string name="forget_laptop_title">%1$s unutulsun mu?</string>
-  <string name="forget_laptop_body">Bilgisayar bu listeden kaldırılır ve eşleştirme kodu silinir. Android\'in Bluetooth eşleşmesi kalır; Bluetooth ayarlarından kaldırabilirsiniz.</string>
+  <string name="forget_laptop_body">Bilgisayar bu listeden kaldırılır ve eşleştirme kodu silinir. Android’in Bluetooth eşleşmesi kalır; Bluetooth ayarlarından kaldırabilirsiniz.</string>
   <string name="reconnect_automatically">Otomatik yeniden bağlan</string>
   <string name="reconnect_caption">Edgepad açılınca kayıtlı bilgisayarlara bağlanır, bağlantı koparsa yeniden dener.</string>
   <string name="stay_connected">Arka planda bağlı kal</string>
@@ -140,11 +140,11 @@
   </plurals>
   <string name="link_notice_reconnecting">Yeniden bağlanılıyor: %1$s…</string>
   <string name="link_notice_reconnecting_text">Edgepad bağlantıyı geri getirmeye çalışıyor. Açmak için dokunun.</string>
-  <string name="link_notice_text">Edgepad\'i açmak için dokunun.</string>
-  <string name="link_notice_text_clipboard">Edgepad\'i açmak için dokunun. Pano paylaşımı açıksa bu, kopyaladığınızı da gönderir.</string>
+  <string name="link_notice_text">Edgepad’i açmak için dokunun.</string>
+  <string name="link_notice_text_clipboard">Edgepad’i açmak için dokunun. Pano paylaşımı açıksa bu, kopyaladığınızı da gönderir.</string>
   <string name="settings_clipboard">Pano</string>
   <string name="clipboard_share">Panoyu paylaş</string>
-  <string name="clipboard_share_caption">Birinde kopyalayın, ötekine yapıştırın: metin ve resimler. Bu telefondan göndermek için kopyalayın, sonra Edgepad\'e dönün.</string>
+  <string name="clipboard_share_caption">Birinde kopyalayın, ötekine yapıştırın: metin ve resimler. Bu telefondan göndermek için kopyalayın, sonra Edgepad’e dönün.</string>
   <string name="sharing_title">Başlamadan önce</string>
   <string name="sharing_body">İkisi de siz seçene kadar kapalıdır. Daha sonra Sistem ayarlarından değiştirebilirsiniz.</string>
   <string name="sharing_continue">Devam</string>
@@ -308,7 +308,7 @@
   <string name="updates_notice_text">Edgepad güncellemesini tamamlamak için dokunun</string>
   <string name="updates_auto">Güncellemeleri günlük denetle</string>
   <string name="updates_checking">Denetleniyor…</string>
-  <string name="updates_failed">GitHub\'a ulaşılamadı</string>
+  <string name="updates_failed">GitHub’a ulaşılamadı</string>
   <string name="updates_problem">Güncelleme başarısız</string>
   <string name="updates_release_page">Sürüm sayfası</string>
   <string name="updates_open_settings">Android ayarlarını aç</string>
@@ -319,17 +319,17 @@
   <string name="connected_to">%1$s ile bağlantı kuruldu</string>
   <string name="updates_downloading">İndiriliyor %%%1$d</string>
   <string name="updates_download_failed">Güncelleme indirilemedi. Bağlantıyı kontrol edip tekrar deneyin.</string>
-  <string name="updates_blocked">Android güncellemeyi engelledi. Android ayarlarında Edgepad\'in güncelleme yüklemesine izin verin, sonra tekrar deneyin.</string>
+  <string name="updates_blocked">Android güncellemeyi engelledi. Android ayarlarında Edgepad’in güncelleme yüklemesine izin verin, sonra tekrar deneyin.</string>
   <string name="updates_storage">Güncellemeyi yüklemek için yeterli depolama alanı yok. Biraz yer açıp tekrar deneyin.</string>
   <string name="updates_confirm_title">%1$s sürümüne güncellensin mi?</string>
   <string name="updates_confirm_body">Edgepad güncellemeyi indirir ve yeniden başlar; bu, bilgisayarlarınızla bağlantıyı keser. Android onay isteyebilir.</string>
-  <string name="updates_confirm_major">Bu bir ana sürüm: bilgisayarınızdaki Edgepad\'i de aynı sürüme güncelleyin.</string>
+  <string name="updates_confirm_major">Bu bir ana sürüm: bilgisayarınızdaki Edgepad’i de aynı sürüme güncelleyin.</string>
   <string name="updates_confirm_action">Güncelle</string>
   <string name="updates_release_notes">Sürüm notları</string>
   <string name="update_available">Güncelleme var</string>
   <string name="licences_title">Lisanslar</string>
   <string name="licences_body">Lato, yazı tipi: SIL Open Font License 1.1.\nLucide, simgeler: ISC License.\nAndroidSVG, oynatıcı logolarını çizer: Apache License 2.0.</string>
-  <string name="about_sends">Edgepad\'in internete gönderdiği tek şeyler github.com\'a yapılan güncelleme denetimi ve indirmeyi seçtiğiniz bir güncellemedir. Geri kalan her şey yalnızca telefonunuzla bilgisayarınız arasında kalır.</string>
+  <string name="about_sends">Edgepad’in internete gönderdiği tek şeyler github.com’a yapılan güncelleme denetimi ve indirmeyi seçtiğiniz bir güncellemedir. Geri kalan her şey yalnızca telefonunuzla bilgisayarınız arasında kalır.</string>
   <string name="updates_install_failed">Güncelleme yüklenemedi. Sürüm sayfasından indirip elle yükleyin.</string>
   <string name="settings_version">Edgepad %1$s · protokol %2$d</string>
   <string name="corners_title">Köşeler</string>
@@ -343,7 +343,7 @@
   <string name="gestures_footnote">Eylemini değiştirmek için bir harekete dokunun. Bir ve iki parmakla yapılanlar sabittir: işaretçiyi taşıma, tıklamak için dokunma, sürüklemek için bir an sabit tutup hareket ettirme; iki parmakla kaydırmak için sürükleme, yakınlaştırmak için sıkıştırma, sağ tık için dokunma.</string>
   <string name="dial_feel_each">Her kadran</string>
   <string name="dial_feel_shared">Ortak</string>
-  <string name="dial_feel_each_caption">Yalnızca bir köşedeki kadranlar listelenir. Bir kadrana kendi hızını vermek için Ortak\'tan çıkarın. Ortak, sürükleme duyarlılığını izler.</string>
+  <string name="dial_feel_each_caption">Yalnızca bir köşedeki kadranlar listelenir. Bir kadrana kendi hızını vermek için Ortak’tan çıkarın. Ortak, sürükleme duyarlılığını izler.</string>
   <string name="appearance_title">Görünüm</string>
   <string name="appearance_preview">Önizleme</string>
   <string name="background_preview_description">Kumanda alanı arka planının önizlemesi</string>
@@ -481,7 +481,7 @@
   <string name="sign_saved">İmza bilgisayarın panosuna kopyalandı ve orada Resimler/Edgepad klasörüne kaydedildi</string>
   <string name="sign_empty">Henüz bir şey çizilmedi</string>
   <string name="sign_failed">Kaydedilemedi</string>
-  <string name="capture_unavailable">Bu bilgisayar ekran yakalayabildiğini bildirmedi. Üzerindeki Edgepad\'i güncelleyin, sonra yeniden bağlanın.</string>
+  <string name="capture_unavailable">Bu bilgisayar ekran yakalayabildiğini bildirmedi. Üzerindeki Edgepad’i güncelleyin, sonra yeniden bağlanın.</string>
   <string name="macros_run">Çalıştır: %1$s</string>
   <string name="macros_close">Kapat: %1$s</string>
   <string name="macros_settings">Makro ayarları</string>
@@ -503,8 +503,8 @@
   <string name="macros_per_page_caption">Bir sayfada kaç makro görüneceği. Kalanlar, parmağınızı yana kaydırarak ulaşılan sayfalarda devam eder. Bir makroyu basılı tutup sürükleyerek sayfası içinde taşıyabilirsiniz. Açık bir makroyu basılı tutarak çarpıyı gösterin, sonra uygulamayı kapatmak için çarpıya dokunun.</string>
   <string name="macros_page_of">Sayfa %1$d / %2$d</string>
   <string name="macros_empty_title">Henüz makro yok</string>
-  <string name="macros_empty_body">Bilgisayarın bildirim alanındaki Edgepad\'in “Makrolar…” menüsünden ekleyin. Liste gönderilir gönderilmez burada görünürler.</string>
-  <string name="macros_empty_body_mac">Mac\'in menü çubuğundaki Edgepad\'in “Makrolar…” menüsünden ekleyin. Liste gönderilir gönderilmez burada görünürler.</string>
+  <string name="macros_empty_body">Bilgisayarın bildirim alanındaki Edgepad’in “Makrolar…” menüsünden ekleyin. Liste gönderilir gönderilmez burada görünürler.</string>
+  <string name="macros_empty_body_mac">Mac’in menü çubuğundaki Edgepad’in “Makrolar…” menüsünden ekleyin. Liste gönderilir gönderilmez burada görünürler.</string>
   <string name="macros_loading">Makrolar yükleniyor…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists -->
@@ -534,7 +534,7 @@
   <string name="apps_duplicate">Bu uygulama zaten bir makro.</string>
   <string name="apps_stale">Liste güncel değil. Yenileyip tekrar seçin.</string>
   <string name="apps_failed">Bilgisayar ekleyemedi.</string>
-  <string name="input_blocked">%1$s henüz girişi kabul edemiyor. Bilgisayarda Edgepad\'e izin verin; izin verir vermez çalışır.</string>
+  <string name="input_blocked">%1$s henüz girişi kabul edemiyor. Bilgisayarda Edgepad’e izin verin; izin verir vermez çalışır.</string>
   <string name="battery_title">Piller</string>
   <string name="battery_in_use">Kullanımda</string>
   <string name="battery_this_phone">Bu telefon</string>

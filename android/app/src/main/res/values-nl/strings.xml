@@ -332,7 +332,7 @@
   <string name="updates_release_notes">Releaseopmerkingen</string>
   <string name="update_available">Update beschikbaar</string>
   <string name="licences_title">Licenties</string>
-  <string name="licences_body">Lato, het lettertype: SIL Open Font License 1.1.\nLucide, de pictogrammen: ISC License.\nAndroidSVG, dat de logo\'s van de spelers tekent: Apache License 2.0.</string>
+  <string name="licences_body">Lato, het lettertype: SIL Open Font License 1.1.\nLucide, de pictogrammen: ISC License.\nAndroidSVG, dat de logo’s van de spelers tekent: Apache License 2.0.</string>
   <string name="about_sends">Het enige wat Edgepad naar internet stuurt, is de updatecontrole naar github.com en een update die je zelf downloadt. Al het andere blijft tussen deze telefoon en je laptop.</string>
   <string name="updates_install_failed">De update kon niet worden geïnstalleerd. Download hem van de releasepagina en installeer hem handmatig.</string>
   <string name="settings_version">Edgepad %1$s · protocol %2$d</string>
@@ -426,7 +426,7 @@
   <string name="node_move_down">Omlaag verplaatsen</string>
   <string name="controls_keyboard">Toetsenbord</string>
   <string name="controls_gamepad">Gamepad</string>
-  <string name="controls_macros">Macro\'s</string>
+  <string name="controls_macros">Macro’s</string>
   <string name="controls_capture">Vastleggen</string>
   <string name="capture_region">Gebied</string>
   <string name="capture_screen">Volledig scherm</string>
@@ -498,19 +498,19 @@
   <string name="macros_move_earlier">Eerder zetten</string>
   <string name="macros_move_later">Later zetten</string>
   <string name="macros_moved">Verplaatst naar plek %1$d van %2$d</string>
-  <string name="macros_pages_title">Pagina\'s</string>
+  <string name="macros_pages_title">Pagina’s</string>
   <string name="macros_layout">Indeling</string>
   <string name="macros_layout_auto">Automatisch</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">Rijen: %1$d, kolommen: %2$d</string>
   <string name="macros_layout_caption">Het eerste getal is het aantal rijen, het tweede het aantal kolommen. Automatisch kiest wat de knoppen het grootst maakt.</string>
-  <string name="macros_per_page">Macro\'s op het scherm</string>
-  <string name="macros_per_page_caption">Hoeveel macro\'s één pagina toont. De rest staat op meer pagina\'s, die je bereikt door zijwaarts te vegen. Houd een macro ingedrukt en sleep hem om hem binnen zijn pagina te verplaatsen. Houd een geopende macro ingedrukt om een kruisje te tonen en tik dan op het kruisje om de app te sluiten.</string>
+  <string name="macros_per_page">Macro’s op het scherm</string>
+  <string name="macros_per_page_caption">Hoeveel macro’s één pagina toont. De rest staat op meer pagina’s, die je bereikt door zijwaarts te vegen. Houd een macro ingedrukt en sleep hem om hem binnen zijn pagina te verplaatsen. Houd een geopende macro ingedrukt om een kruisje te tonen en tik dan op het kruisje om de app te sluiten.</string>
   <string name="macros_page_of">Pagina %1$d van %2$d</string>
-  <string name="macros_empty_title">Nog geen macro\'s</string>
-  <string name="macros_empty_body">Voeg ze toe via het menu Macro\'s… van Edgepad in het meldingsgebied op de laptop. Ze verschijnen hier zodra de lijst is verstuurd.</string>
-  <string name="macros_empty_body_mac">Voeg ze toe via het menu Macro\'s… van Edgepad in de menubalk op de Mac. Ze verschijnen hier zodra de lijst is verstuurd.</string>
-  <string name="macros_loading">Macro\'s laden…</string>
+  <string name="macros_empty_title">Nog geen macro’s</string>
+  <string name="macros_empty_body">Voeg ze toe via het menu Macro’s… van Edgepad in het meldingsgebied op de laptop. Ze verschijnen hier zodra de lijst is verstuurd.</string>
+  <string name="macros_empty_body_mac">Voeg ze toe via het menu Macro’s… van Edgepad in de menubalk op de Mac. Ze verschijnen hier zodra de lijst is verstuurd.</string>
+  <string name="macros_loading">Macro’s laden…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
   <string name="apps_add_from_laptop">Toevoegen vanaf laptop</string>
@@ -529,18 +529,18 @@
   <string name="pair_confirming">Koppelen…</string>
   <string name="apps_row_added">Toegevoegd</string>
   <string name="apps_row_added_description">%1$s, al toegevoegd</string>
-  <string name="apps_row_full">Macro\'s vol</string>
+  <string name="apps_row_full">Macro’s vol</string>
   <plurals name="apps_full_note">
     <item quantity="one">Deze laptop heeft ruimte voor maximaal %1$d macro en die is bereikt. Verwijder er een om een andere toe te voegen.</item>
-    <item quantity="other">Deze laptop heeft ruimte voor maximaal %1$d macro\'s en die is bereikt. Verwijder er een om een andere toe te voegen.</item>
+    <item quantity="other">Deze laptop heeft ruimte voor maximaal %1$d macro’s en die is bereikt. Verwijder er een om een andere toe te voegen.</item>
   </plurals>
-  <string name="apps_added">Toegevoegd. Hij staat nu bij de macro\'s.</string>
-  <string name="apps_full">De laptop heeft geen ruimte voor meer macro\'s. Verwijder er eerst een.</string>
+  <string name="apps_added">Toegevoegd. Hij staat nu bij de macro’s.</string>
+  <string name="apps_full">De laptop heeft geen ruimte voor meer macro’s. Verwijder er eerst een.</string>
   <string name="apps_duplicate">Die app is al een macro.</string>
   <string name="apps_stale">Die lijst is verouderd. Vernieuw hem en kies opnieuw.</string>
   <string name="apps_failed">De laptop kon hem niet toevoegen.</string>
   <string name="input_blocked">%1$s kan nog geen invoer ontvangen. Sta Edgepad toe op de laptop; het werkt zodra je dat doet.</string>
-  <string name="battery_title">Accu\'s</string>
+  <string name="battery_title">Accu’s</string>
   <string name="battery_in_use">In gebruik</string>
   <string name="battery_this_phone">Deze telefoon</string>
   <string name="battery_charging">laadt op</string>
@@ -554,7 +554,7 @@
   <string name="sentences_joined">%1$s %2$s</string>
   <string name="battery_percent">%1$d%%</string>
   <string name="battery_more">+%1$d</string>
-  <string name="battery_summary">Accu\'s: %1$s</string>
+  <string name="battery_summary">Accu’s: %1$s</string>
   <string name="updates_later">Later</string>
   <string name="updates_skip">Deze versie overslaan</string>
   <string name="updates_notify_text">Edgepad %1$s is beschikbaar. Tik om bij te werken.</string>
