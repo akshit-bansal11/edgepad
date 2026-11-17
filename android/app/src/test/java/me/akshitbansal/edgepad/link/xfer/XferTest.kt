@@ -253,17 +253,24 @@ class XferTest {
             XferSender(
                 { frame ->
                     when (frame) {
-                        is Frame.XferBegin -> sender.take(Frame.XferStatus(1, XferCode.READY.value, 0uL))
+                        is Frame.XferBegin -> {
+                            sender.take(Frame.XferStatus(1, XferCode.READY.value, 0uL))
+                        }
 
-                        is Frame.XferChunk ->
+                        is Frame.XferChunk -> {
                             // The first pass loses the chunk at `step`; each later chunk is answered with that gap.
                             if (seen.add(frame.offset) && frame.offset > step.toULong()) {
                                 sender.take(Frame.XferStatus(1, XferCode.PROGRESS.value, step.toULong()))
                             }
+                        }
 
-                        is Frame.XferEnd -> sender.take(Frame.XferStatus(1, XferCode.SAVED.value, data.size.toULong()))
+                        is Frame.XferEnd -> {
+                            sender.take(Frame.XferStatus(1, XferCode.SAVED.value, data.size.toULong()))
+                        }
 
-                        else -> Unit
+                        else -> {
+                            Unit
+                        }
                     }
                 },
                 Transport.WIFI,
