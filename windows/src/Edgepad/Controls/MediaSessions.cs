@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Edgepad.Media;
 using Windows.Media.Control;
@@ -200,7 +202,7 @@ internal sealed class MediaSessions : IDisposable
         var current = session;
         if (current is null)
         {
-            return Nothing;
+            return Vlc();
         }
 
         var properties = await current.TryGetMediaPropertiesAsync();
@@ -208,7 +210,7 @@ internal sealed class MediaSessions : IDisposable
         var timeline = current.GetTimelineProperties();
         if (properties is null || playback is null || timeline is null)
         {
-            return Nothing;
+            return Vlc();
         }
 
         var playing = playback.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
@@ -233,6 +235,40 @@ internal sealed class MediaSessions : IDisposable
             ? browserService.Service(executable, aumid, nowPlaying) ?? AppName(aumid)
             : AppName(aumid);
         return new MediaState(cleaned, app, playing, percent, seconds, (int)span.TotalSeconds, nowPlaying, aumid, properties.Thumbnail);
+    }
+
+    /// <summary>
+    /// VLC 3 never reports to Windows, so with no system session its window title stands in: one process lookup,
+    /// reached only while a phone watches. The title cannot tell paused from playing, so it reads as playing; there
+    /// is no timeline, so seek and end-of-media stay unavailable. Titles are never logged.
+    /// </summary>
+    private static MediaState Vlc()
+    {
+        var processes = Process.GetProcessesByName("vlc");
+        try
+        {
+            foreach (var process in processes)
+            {
+                if (VlcTitle.Parse(process.MainWindowTitle) is { } media)
+                {
+                    var (cleaned, full) = Compose(media, "");
+                    return new MediaState(cleaned, "VLC media player", true, 0, 0, 0, full, "vlc.exe");
+                }
+            }
+
+            return Nothing;
+        }
+        catch (Exception e) when (e is InvalidOperationException or Win32Exception)
+        {
+            return Nothing;
+        }
+        finally
+        {
+            foreach (var process in processes)
+            {
+                process.Dispose();
+            }
+        }
     }
 
     /// <summary>The title line as the phone shows it (cleaned) and as the player wrote it (full, which the service lookup and TalkBack use).</summary>
