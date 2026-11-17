@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.Switch
 import android.widget.Toast
 import me.akshitbansal.edgepad.Motion
@@ -33,8 +34,11 @@ private const val DECK = "controls"
 private const val PER_ROW = 3
 private const val ROW_DP = 96f
 
-/** The widest the popup grows, in dp: about a phone's portrait width, so a landscape one is not stretched. */
+/** The widest the popup grows upright, in dp: about a phone's portrait width. */
 private const val MAX_WIDTH_DP = 360f
+
+/** Sideways the tiles go in one row, so the popup is short enough to show whole: this wide at most, in dp. */
+private const val MAX_WIDTH_ONE_ROW_DP = 760f
 
 /** The tag of the "Send a file" tile, past every [ControlsPopup.Target] ordinal. */
 private const val SEND_TAG = 1000
@@ -106,6 +110,9 @@ class ControlsPopup(
 
     private var dialog: AlertDialog? = null
     private var across = 0
+
+    /** Sideways: every tile in one row (set by [show]). */
+    private var oneRow = false
     private lateinit var deck: Deck
 
     /** The "Sleep when this ends" row and, under it, its choices or the armed line. Rebuilt by [drawEnd]. */
@@ -139,7 +146,9 @@ class ControlsPopup(
         val right = bars?.right ?: 0
         val top = bars?.top ?: 0
         val margin = ui.dp(Space.PAGE)
-        val width = minOf(owner.width - left - right - 2 * margin, ui.dp(MAX_WIDTH_DP))
+        oneRow = owner.width > owner.height
+        val widest = ui.dp(if (oneRow) MAX_WIDTH_ONE_ROW_DP else MAX_WIDTH_DP)
+        val width = minOf(owner.width - left - right - 2 * margin, widest)
         val pad = ui.dp(Space.L)
         across = width - 2 * pad
         holder.orientation = LinearLayout.VERTICAL
@@ -186,10 +195,12 @@ class ControlsPopup(
             note.setPadding(pad, 0, pad, pad)
             body.addView(note)
         }
+        // Whatever is below the tiles stays reachable on a short screen.
+        val scroll = ScrollView(ui.context).apply { addView(body) }
         val shownDialog =
             AlertDialog
                 .Builder(ui.context)
-                .setView(body)
+                .setView(scroll)
                 .openOver(owner)
         dialog = shownDialog
         shownDialog.window?.apply {
@@ -324,13 +335,14 @@ class ControlsPopup(
     }
 
     private fun drawShown() {
-        val rows = (tiles.size + PER_ROW - 1) / PER_ROW
+        val rows = if (oneRow) 1 else (tiles.size + PER_ROW - 1) / PER_ROW
         val down = rows * ui.dp(ROW_DP) + (rows - 1) * ui.dp(Space.S)
         deck.render(
             across,
             down,
             shown.map { tiles[it] },
             labels = true,
+            rows = rows,
             onMove = ::moved,
             onTap = { tile ->
                 if (tile.note != null) {

@@ -201,9 +201,24 @@ class BatteryStrip(
         return context.getString(spoken, row.name, chip.label)
     }
 
+    /**
+     * A chip's width. The +N chip is narrow; the device chips share the rest of [WIDTH_DP], so two devices get far
+     * more room than a third of the strip each and "100%" with its bolt keeps a readable size.
+     */
+    private fun widthOf(chip: Chip): Float {
+        if (chip.icon == null) return dp(PLUS_DP)
+        var devices = 0
+        var plus = 0f
+        for (i in 0 until count) {
+            if (chips[i].icon == null) plus += dp(PLUS_DP) else devices++
+        }
+        val free = dp(WIDTH_DP) - (count - 1) * dp(GAP_DP) - plus
+        return free / maxOf(devices, 1)
+    }
+
     /** The text room a chip leaves once its padding, icon and bolt are taken. */
     private fun room(chip: Chip): Float {
-        var room = dp(CHIP_DP - 2 * PAD_DP)
+        var room = widthOf(chip) - dp(2 * PAD_DP)
         if (chip.icon != null) room -= dp(ICON_DP + GAP_IN_DP)
         if (chip.charging) room -= dp(BOLT_DP + GAP_IN_DP)
         return room
@@ -225,15 +240,16 @@ class BatteryStrip(
             hit.setEmpty()
             return
         }
-        val chipWidth = dp(CHIP_DP)
         val gap = dp(GAP_DP)
-        val span = count * chipWidth + (count - 1) * gap
+        var span = (count - 1) * gap
+        for (i in 0 until count) span += widthOf(chips[i])
         val cy = dp(CENTRE_DP) + shift
         val half = dp(HEIGHT_DP) / 2
         baseline = cy + text.textSize * Type.CAP_CENTRE
         var left = centreX - span / 2
         for (i in 0 until count) {
             val chip = chips[i]
+            val chipWidth = widthOf(chip)
             chip.box.set(left, cy - half, left + chipWidth, cy + half)
             val box = chip.box
             chip.line.set(box.left, box.bottom - dp(LINE_DP), box.right, box.bottom)
@@ -301,6 +317,9 @@ class BatteryStrip(
         const val CHIP_DP = 44f
         const val GAP_DP = 6f
 
+        /** The +N chip: two digits and a plus at most. */
+        private const val PLUS_DP = 24f
+
         /** The strip's width whatever it holds: three chips and the two gaps between them. */
         const val WIDTH_DP = MAX_CHIPS * CHIP_DP + (MAX_CHIPS - 1) * GAP_DP
 
@@ -315,11 +334,11 @@ class BatteryStrip(
 
         /** The level line under a chip's content. */
         const val LINE_DP = 2f
-        private const val PAD_DP = 4f
+        private const val PAD_DP = 2f
         const val ICON_DP = 12f
         private const val BOLT_DP = 9f
         private const val GAP_IN_DP = 2f
-        private const val TEXT_SP = 10f
+        private const val TEXT_SP = 11f
         private const val SCRIM_ALPHA = 0.5f
         private const val SCRIM_MID = 0.5f
         private const val FULL = 100f
