@@ -175,4 +175,11 @@ class DeckLayoutTest {
             assertTrue(grids.all { (rows, columns) -> rows * columns >= perPage })
         }
     }
+
+    @Test
+    fun aLabelShrinksNoFurtherThanTheMicroSize() {
+        assertEquals(12f / 17f, DeckLayout.labelFloor(17f), 0.0001f)
+        assertEquals(1f, DeckLayout.labelFloor(12f), 0f)
+        assertEquals(1f, DeckLayout.labelFloor(10f), 0f)
+    }
 }

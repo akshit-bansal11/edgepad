@@ -21,6 +21,7 @@ import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.fitText
 
 /** The smallest side a picture is drawn at: under this a cell is too small to be showing a picture at all. */
 private const val ICON_MIN_DP = 16f
@@ -93,6 +94,9 @@ class Deck(
         val labelSp: Float,
         val line: Int,
         val icon: Int,
+
+        /** The width of one cell, which a label has to fit in. */
+        val cell: Int,
         /** No label row anywhere: the labels are off and every tile has its picture. */
         val bare: Boolean,
     )
@@ -303,7 +307,7 @@ class Deck(
         // empty rather than the thing keeping it honest.
         val box = minOf(width - pad, height - pad - line - ui.dp(Space.XS))
         val icon = DeckLayout.iconSide(box, iconZoom, ui.dp(ICON_MIN_DP))
-        return Grid(chosen, height, labelSp, line, icon, bare)
+        return Grid(chosen, height, labelSp, line, icon, width, bare)
     }
 
     /** How tall one line of label stands at [sp], measured in the face and size the button draws it in. */
@@ -719,6 +723,17 @@ class Deck(
         val gap = if (shown.isEmpty()) 0 else ui.dp(Space.XS)
         val reserved = if (shown.isEmpty()) 0 else grid.line
         button.text = shown
+        // A long name in a narrow cell shrinks toward a floor before the end of it is cut with an ellipsis.
+        val paint = TextPaint().apply { typeface = Type.bold }
+        val metrics = ui.context.resources.displayMetrics
+        val labelPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, grid.labelSp, metrics)
+        val floor = DeckLayout.labelFloor(grid.labelSp)
+        val fitted =
+            fitText(shown, (grid.cell - 2 * side).toFloat(), labelPx, floor) { s, size ->
+                paint.textSize = size
+                paint.measureText(s)
+            }
+        button.setTextSize(TypedValue.COMPLEX_UNIT_PX, fitted.size)
         // A vector is drawn at the cell's full size and stays sharp at any of them. A laptop's picture is a
         // bitmap of a fixed size, and stretched past a little over that it reads as a blur rather than as
         // an icon, so on a big tile it is never drawn larger than its own pixels, centred.
