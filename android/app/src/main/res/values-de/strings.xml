@@ -106,9 +106,9 @@
   <string name="pair_expires">Läuft ab in %1$s</string>
   <string name="pair_expired">Abgelaufen</string>
   <string name="pair_confirm_title">Hat %1$s gemeldet, dass der Code stimmt?</string>
-  <string name="pair_confirm_body">Wenn der Code als falsch gemeldet wurde, tippe auf „Nein“: Möglicherweise antwortet ein anderes Gerät an seiner Stelle.</string>
-  <string name="pair_confirm_yes">Ja, gekoppelt</string>
-  <string name="pair_confirm_no">Nein</string>
+  <string name="pair_confirm_body">Wenn der Code als falsch gemeldet wurde, tippe auf „Stimmen nicht überein“: Möglicherweise antwortet ein anderes Gerät an seiner Stelle.</string>
+  <string name="pair_confirm_yes">Codes stimmen überein</string>
+  <string name="pair_confirm_no">Stimmen nicht überein</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Laptop nicht erreichbar</string>

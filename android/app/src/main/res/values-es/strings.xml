@@ -111,9 +111,9 @@
   <string name="pair_expires">Caduca en %1$s</string>
   <string name="pair_expired">Caducado</string>
   <string name="pair_confirm_title">¿%1$s indicó que el código coincidía?</string>
-  <string name="pair_confirm_body">Si indicó que el código era incorrecto, toca No: puede que otro dispositivo esté respondiendo en su lugar.</string>
-  <string name="pair_confirm_yes">Sí, vinculada</string>
-  <string name="pair_confirm_no">No</string>
+  <string name="pair_confirm_body">Si indicó que el código era incorrecto, toca «No coinciden»: puede que otro dispositivo esté respondiendo en su lugar.</string>
+  <string name="pair_confirm_yes">Los códigos coinciden</string>
+  <string name="pair_confirm_no">No coinciden</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Laptop fuera de alcance</string>

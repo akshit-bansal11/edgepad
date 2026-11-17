@@ -294,7 +294,7 @@ class AnnotateScreen(
         AlertDialog
             .Builder(ui.context)
             .setView(body)
-            .setPositiveButton(android.R.string.ok, null)
+            .setPositiveButton(R.string.editor_done, null)
             .showOver(view)
     }
 

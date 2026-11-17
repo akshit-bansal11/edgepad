@@ -111,9 +111,9 @@
   <string name="pair_expires">Expira em %1$s</string>
   <string name="pair_expired">Expirado</string>
   <string name="pair_confirm_title">%1$s disse que o código conferiu?</string>
-  <string name="pair_confirm_body">Se ele disse que o código estava errado, toque em Não: outro dispositivo pode estar respondendo no lugar dele.</string>
-  <string name="pair_confirm_yes">Sim, pareado</string>
-  <string name="pair_confirm_no">Não</string>
+  <string name="pair_confirm_body">Se ele disse que o código estava errado, toque em “Não coincidem”: outro dispositivo pode estar respondendo no lugar dele.</string>
+  <string name="pair_confirm_yes">Os códigos coincidem</string>
+  <string name="pair_confirm_no">Não coincidem</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Notebook fora de alcance</string>

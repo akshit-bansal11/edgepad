@@ -123,9 +123,9 @@
   <string name="pair_expires">تنتهي الصلاحية خلال %1$s</string>
   <string name="pair_expired">انتهت الصلاحية</string>
   <string name="pair_confirm_title">هل ظهر على %1$s أن الرمز مطابق؟</string>
-  <string name="pair_confirm_body">إذا ظهر أن الرمز خاطئ، فانقر «لا»: فقد يكون جهاز آخر يردّ بدلًا منه.</string>
-  <string name="pair_confirm_yes">نعم، تم الإقران</string>
-  <string name="pair_confirm_no">لا</string>
+  <string name="pair_confirm_body">إذا ظهر أن الرمز خاطئ، فانقر «غير متطابقة»: فقد يكون جهاز آخر يردّ بدلًا منه.</string>
+  <string name="pair_confirm_yes">الرموز متطابقة</string>
+  <string name="pair_confirm_no">غير متطابقة</string>
 
   <!-- Connection lost -->
   <string name="lost_title">اللابتوب خارج النطاق</string>

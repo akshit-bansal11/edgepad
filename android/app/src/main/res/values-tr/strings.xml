@@ -104,9 +104,9 @@
   <string name="pair_expires">Kalan süre: %1$s</string>
   <string name="pair_expired">Süresi doldu</string>
   <string name="pair_confirm_title">%1$s kodun eşleştiğini bildirdi mi?</string>
-  <string name="pair_confirm_body">Kodun yanlış olduğunu bildirdiyse “Hayır” seçeneğine dokunun: onun yerine başka bir cihaz yanıt veriyor olabilir.</string>
-  <string name="pair_confirm_yes">Evet, eşleşti</string>
-  <string name="pair_confirm_no">Hayır</string>
+  <string name="pair_confirm_body">Kodun yanlış olduğunu bildirdiyse “Eşleşmiyor” seçeneğine dokunun: onun yerine başka bir cihaz yanıt veriyor olabilir.</string>
+  <string name="pair_confirm_yes">Kodlar eşleşiyor</string>
+  <string name="pair_confirm_no">Eşleşmiyor</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Bilgisayara ulaşılamıyor</string>

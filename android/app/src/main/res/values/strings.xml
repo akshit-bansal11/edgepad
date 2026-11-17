@@ -113,9 +113,9 @@
   <string name="pair_expires">Expires in %1$s</string>
   <string name="pair_expired">Expired</string>
   <string name="pair_confirm_title">Did %1$s say the code matched?</string>
-  <string name="pair_confirm_body">If it said the code was wrong, tap No: another device may be answering in its place.</string>
-  <string name="pair_confirm_yes">Yes, paired</string>
-  <string name="pair_confirm_no">No</string>
+  <string name="pair_confirm_body">If it said the code was wrong, tap “They don’t match”: another device may be answering in its place.</string>
+  <string name="pair_confirm_yes">Codes match</string>
+  <string name="pair_confirm_no">They don’t match</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Laptop out of reach</string>

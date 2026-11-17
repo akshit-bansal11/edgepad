@@ -104,9 +104,9 @@
   <string name="pair_expires">%1$s後に失効</string>
   <string name="pair_expired">期限切れ</string>
   <string name="pair_confirm_title">%1$sに「コードが一致しました」と表示されましたか？</string>
-  <string name="pair_confirm_body">コードが違うと表示された場合は、「いいえ」をタップしてください。別のデバイスが代わりに応答している可能性があります。</string>
-  <string name="pair_confirm_yes">はい、ペアリング済み</string>
-  <string name="pair_confirm_no">いいえ</string>
+  <string name="pair_confirm_body">コードが違うと表示された場合は、「一致しない」をタップしてください。別のデバイスが代わりに応答している可能性があります。</string>
+  <string name="pair_confirm_yes">コードが一致</string>
+  <string name="pair_confirm_no">一致しない</string>
 
   <!-- Connection lost -->
   <string name="lost_title">ノートPCと通信できません</string>

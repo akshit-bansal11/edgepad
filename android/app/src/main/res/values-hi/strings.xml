@@ -106,9 +106,9 @@
   <string name="pair_expires">%1$s में खत्म होगा</string>
   <string name="pair_expired">समय खत्म</string>
   <string name="pair_confirm_title">क्या %1$s ने कहा कि कोड मेल खाता है?</string>
-  <string name="pair_confirm_body">अगर उसने कोड गलत बताया, तो \"नहीं\" पर टैप करें: हो सकता है उसकी जगह कोई और डिवाइस जवाब दे रहा हो।</string>
-  <string name="pair_confirm_yes">हां, पेयर हो गया</string>
-  <string name="pair_confirm_no">नहीं</string>
+  <string name="pair_confirm_body">अगर उसने कोड गलत बताया, तो “मेल नहीं खाते” पर टैप करें: हो सकता है उसकी जगह कोई और डिवाइस जवाब दे रहा हो।</string>
+  <string name="pair_confirm_yes">कोड मेल खाते हैं</string>
+  <string name="pair_confirm_no">मेल नहीं खाते</string>
 
   <!-- Connection lost -->
   <string name="lost_title">लैपटॉप पहुंच से बाहर</string>

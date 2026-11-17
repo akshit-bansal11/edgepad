@@ -107,9 +107,9 @@
   <string name="pair_expires">Verloopt over %1$s</string>
   <string name="pair_expired">Verlopen</string>
   <string name="pair_confirm_title">Zei %1$s dat de code klopte?</string>
-  <string name="pair_confirm_body">Als er stond dat de code fout was, tik dan op Nee: mogelijk antwoordt een ander apparaat in zijn plaats.</string>
-  <string name="pair_confirm_yes">Ja, gekoppeld</string>
-  <string name="pair_confirm_no">Nee</string>
+  <string name="pair_confirm_body">Als er stond dat de code fout was, tik dan op “Komen niet overeen”: mogelijk antwoordt een ander apparaat in zijn plaats.</string>
+  <string name="pair_confirm_yes">Codes komen overeen</string>
+  <string name="pair_confirm_no">Komen niet overeen</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Laptop buiten bereik</string>

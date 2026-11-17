@@ -99,9 +99,9 @@
   <string name="pair_expires">%1$s 후 만료</string>
   <string name="pair_expired">만료됨</string>
   <string name="pair_confirm_title">%1$s에 코드가 일치한다고 표시되었나요?</string>
-  <string name="pair_confirm_body">코드가 틀렸다고 표시되었다면 아니요를 탭하세요. 다른 기기가 대신 응답하고 있을 수 있어요.</string>
-  <string name="pair_confirm_yes">예, 페어링됨</string>
-  <string name="pair_confirm_no">아니요</string>
+  <string name="pair_confirm_body">코드가 틀렸다고 표시되었다면 “일치하지 않음”을 탭하세요. 다른 기기가 대신 응답하고 있을 수 있어요.</string>
+  <string name="pair_confirm_yes">코드 일치</string>
+  <string name="pair_confirm_no">일치하지 않음</string>
 
   <string name="lost_title">노트북과 연결이 끊김</string>
   <string name="lost_body">%1$s에서 응답이 없어요. 모든 컨트롤이 일시 중지되었고, 누른 입력은 대기열에 쌓이지 않아요.</string>

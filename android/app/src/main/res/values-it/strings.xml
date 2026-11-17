@@ -111,9 +111,9 @@
   <string name="pair_expires">Scade tra %1$s</string>
   <string name="pair_expired">Scaduto</string>
   <string name="pair_confirm_title">%1$s ha detto che il codice corrisponde?</string>
-  <string name="pair_confirm_body">Se ha detto che il codice era sbagliato, tocca No: un altro dispositivo potrebbe rispondere al suo posto.</string>
-  <string name="pair_confirm_yes">Sì, associato</string>
-  <string name="pair_confirm_no">No</string>
+  <string name="pair_confirm_body">Se ha detto che il codice era sbagliato, tocca “Non corrispondono”: un altro dispositivo potrebbe rispondere al suo posto.</string>
+  <string name="pair_confirm_yes">I codici corrispondono</string>
+  <string name="pair_confirm_no">Non corrispondono</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Portatile fuori portata</string>

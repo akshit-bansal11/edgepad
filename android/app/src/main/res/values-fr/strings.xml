@@ -111,9 +111,9 @@
   <string name="pair_expires">Expire dans %1$s</string>
   <string name="pair_expired">Expiré</string>
   <string name="pair_confirm_title">%1$s a-t-il indiqué que le code correspondait ?</string>
-  <string name="pair_confirm_body">S\'il a indiqué que le code était erroné, appuyez sur Non : un autre appareil répond peut-être à sa place.</string>
-  <string name="pair_confirm_yes">Oui, associé</string>
-  <string name="pair_confirm_no">Non</string>
+  <string name="pair_confirm_body">S’il a indiqué que le code était erroné, appuyez sur « Ils ne correspondent pas » : un autre appareil répond peut-être à sa place.</string>
+  <string name="pair_confirm_yes">Les codes correspondent</string>
+  <string name="pair_confirm_no">Ils ne correspondent pas</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Ordinateur hors de portée</string>

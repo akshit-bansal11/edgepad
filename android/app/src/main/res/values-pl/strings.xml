@@ -115,9 +115,9 @@
   <string name="pair_expires">Wygasa za %1$s</string>
   <string name="pair_expired">Wygasło</string>
   <string name="pair_confirm_title">Czy %1$s potwierdził zgodność kodu?</string>
-  <string name="pair_confirm_body">Jeśli pokazał, że kod jest błędny, stuknij „Nie”: zamiast niego może odpowiadać inne urządzenie.</string>
-  <string name="pair_confirm_yes">Tak, sparowano</string>
-  <string name="pair_confirm_no">Nie</string>
+  <string name="pair_confirm_body">Jeśli pokazał, że kod jest błędny, stuknij „Nie zgadzają się”: zamiast niego może odpowiadać inne urządzenie.</string>
+  <string name="pair_confirm_yes">Kody się zgadzają</string>
+  <string name="pair_confirm_no">Nie zgadzają się</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Laptop poza zasięgiem</string>

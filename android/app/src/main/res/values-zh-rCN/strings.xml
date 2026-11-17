@@ -103,9 +103,9 @@
   <string name="pair_expires">%1$s后过期</string>
   <string name="pair_expired">已过期</string>
   <string name="pair_confirm_title">%1$s是否显示配对码一致？</string>
-  <string name="pair_confirm_body">如果它显示的配对码不一致，请点“否”：可能有其他设备在冒充它。</string>
-  <string name="pair_confirm_yes">是，已配对</string>
-  <string name="pair_confirm_no">否</string>
+  <string name="pair_confirm_body">如果它显示的配对码不一致，请点“不一致”：可能有其他设备在冒充它。</string>
+  <string name="pair_confirm_yes">配对码一致</string>
+  <string name="pair_confirm_no">不一致</string>
 
   <!-- Connection lost -->
   <string name="lost_title">电脑已失联</string>

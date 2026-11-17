@@ -234,7 +234,7 @@ class ShareActivity : Activity() {
         AlertDialog
             .Builder(this)
             .setMessage(message)
-            .setPositiveButton(android.R.string.ok, null)
+            .setPositiveButton(R.string.editor_done, null)
             .setOnDismissListener { finish() }
             .show()
     }

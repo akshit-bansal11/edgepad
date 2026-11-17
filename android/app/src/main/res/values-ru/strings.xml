@@ -115,9 +115,9 @@
   <string name="pair_expires">Истекает через %1$s</string>
   <string name="pair_expired">Истекло</string>
   <string name="pair_confirm_title">Ноутбук «%1$s» сообщил, что код совпал?</string>
-  <string name="pair_confirm_body">Если он сообщил, что код неверный, нажмите «Нет»: вместо него может отвечать другое устройство.</string>
-  <string name="pair_confirm_yes">Да, сопряжено</string>
-  <string name="pair_confirm_no">Нет</string>
+  <string name="pair_confirm_body">Если он сообщил, что код неверный, нажмите «Не совпадают»: вместо него может отвечать другое устройство.</string>
+  <string name="pair_confirm_yes">Коды совпадают</string>
+  <string name="pair_confirm_no">Не совпадают</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Ноутбук вне зоны связи</string>
