@@ -9,7 +9,7 @@ The 4.2.x fixes shipped in 4.2.1. Every item from 4.3.0 to 5.0.0 below is built 
 What did not ship, and why:
 
 - **Windows laptop notifications (4.9.0).** The 4.9.0 spike, a probe of Windows' `UserNotificationListener` (`--probe-notifications`, W7), has to be run by the owner on a Windows machine. The Windows forwarder and its tray row (W8) wait for its result. Linux forwards notifications; macOS has no public API.
-- **Wayland macro windows via KWin (X1c, 4.6.0).** The spike stopped before anything was built. KDE's documentation does not confirm the scripting calls it needs, and it needs a Plasma 6 Wayland session. Macro running state, raise and close stay X11 only on Linux.
+- **Wayland macro windows via KWin (X1c, 4.6.0).** The spike stopped before anything was built. KDE's documentation does not confirm the scripting calls it needs, and it needs a Plasma 6 Wayland session. Macro running state, raise and close stay X11 only on Linux. **Deferred (2026-11-17):** built only together with someone on Plasma 6 Wayland who can test it, so nothing untested ships; GNOME would need a Shell extension of its own. On Wayland the macro tiles still open their apps.
 - **Browser site icon (4.3.0).** Option C was built: the media's own artwork, not an Edgepad browser extension (option B).
 - **ANDU-10** (one macro page planned for 10 tiles) is dropped as designed: the page keeps a stable tile size on purpose.
 - **Update signing key (5.0.0).** Created by the owner with `scripts/new-update-key.ps1` on 2026-11-16 and embedded (`protocol/update-key.txt`, `e9076b9`). The laptop apps install a verified release in place; the first end-to-end update is 5.0.0 to the next release.
