@@ -207,10 +207,23 @@ final class TransferTests: XCTestCase {
         receiverClock = 50
         receiverTimers.removeFirst().work()
         XCTAssertFalse(incoming.busy)
+        XCTAssertEqual(replies.last, status(1, .cancelled))
         XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: partial), ["a.txt.9.part"])
         // The next file is not turned away as busy.
         _ = incoming.take(begin: 2, size: 1, name: "b.txt")
         XCTAssertEqual(replies.last, status(2, .ready))
+    }
+
+    func testAChunkThatCannotBePlacedStillCountsAsActivity() throws {
+        let incoming = receiver()
+        _ = incoming.take(begin: 1, size: 9, name: "a.txt")
+        receiverClock = 25
+        // Out of order: answered with the bytes held, but the sender is alive.
+        _ = incoming.take(chunk: 1, offset: 4, data: [1])
+        receiverClock = 40
+        receiverTimers.removeFirst().work()
+        XCTAssertTrue(incoming.busy)
+        XCTAssertEqual(receiverTimers.map(\.delay), [15])
     }
 
     // MARK: Sending
@@ -322,6 +335,32 @@ final class TransferTests: XCTestCase {
             ])
         _ = outgoing.take(status: XferCode.saved.rawValue, id: 1, offset: 600)
         XCTAssertEqual(results, [.saved])
+    }
+
+    func testAStaleProgressAfterARewindDoesNotRewindAgain() throws {
+        let size = FrameCodec.maxXferChunkBytes
+        let body = (0..<(5 * size)).map { UInt8($0 % 251) }
+        // Busy input: two chunks a tick, so the rewind stops part way and the phase stays sending.
+        let outgoing = TransferSender(
+            link: .network, schedule: { [unowned self] delay, work in self.timers.append((delay, work)) },
+            lastInput: { ProcessInfo.processInfo.systemUptime })
+        outgoing.output = { [unowned self] frame in
+            self.sent.append(frame)
+            return true
+        }
+        outgoing.send(path: try file(body)) { [unowned self] in self.results.append($0) }
+        _ = outgoing.take(status: XferCode.ready.rawValue, id: 1, offset: 0)
+        runTicks()
+        XCTAssertEqual(sent.last, .xferEnd(id: 1, sha256: sha(body)))
+        sent = []
+        _ = outgoing.take(status: XferCode.progress.rawValue, id: 1, offset: UInt64(size))
+        // Another PROGRESS for the same offset, already in flight when the rewind happened.
+        _ = outgoing.take(status: XferCode.progress.rawValue, id: 1, offset: UInt64(size))
+        let again = sent.filter {
+            if case .xferChunk(_, let offset, _) = $0 { return offset == UInt64(size) }
+            return false
+        }
+        XCTAssertEqual(again.count, 1)
     }
 
     func testATimeoutArmedForAnEarlierWaitDoesNotEndALaterOne() throws {

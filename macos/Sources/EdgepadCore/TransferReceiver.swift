@@ -119,6 +119,7 @@ public final class TransferReceiver {
 
     public func take(chunk id: UInt8, offset: UInt64, data: [UInt8]) -> Bool {
         guard let a = active, a.id == id else { return false }
+        a.lastActive = clock()
         guard offset == a.held else {
             status(id, .progress, a.held)
             return true
@@ -137,7 +138,6 @@ public final class TransferReceiver {
         }
         a.hash.update(data: data)
         a.held += UInt64(data.count)
-        a.lastActive = clock()
         if a.held - a.reported >= TransferLimits.progressEveryBytes {
             a.reported = a.held
             status(id, .progress, a.held)
@@ -197,6 +197,7 @@ public final class TransferReceiver {
             if idle >= TransferLimits.idleTimeout {
                 Log.write("A file from the phone went quiet and was dropped; its part is kept.")
                 self.finish(deletePart: false)
+                self.status(a.id, .cancelled, 0)
             } else {
                 self.watchIdle(a, after: TransferLimits.idleTimeout - idle)
             }

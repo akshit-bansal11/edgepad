@@ -37,6 +37,9 @@ public final class TransferSender {
         var at: UInt64 = 0
         /// The last offset a PROGRESS named, to tell a receiver repeating itself (a gap) from one keeping up.
         var lastProgress: UInt64?
+        /// Where the last rewind started. A PROGRESS at or below it while sending was already in flight at the
+        /// rewind, not a new gap; a higher one ends the rule.
+        var rewoundTo: UInt64?
         /// Moves on at a rewind, so ticks scheduled before it do not run a second chain of chunks.
         var epoch = 0
 
@@ -101,6 +104,10 @@ public final class TransferSender {
             // A PROGRESS trailing what was sent is normal, the chunks are still in flight. The same offset twice
             // (the receiver answers every chunk it cannot place), or any short answer to END, means a chunk was
             // lost: resend from where the receiver is.
+            if let rewound = run.rewoundTo, run.phase == .sending {
+                if offset <= rewound { return true }
+                run.rewoundTo = nil
+            }
             let repeated = run.lastProgress == offset
             run.lastProgress = offset
             if run.phase != .awaitingReady, offset < run.at, repeated || run.phase == .awaitingFinal {
@@ -185,6 +192,8 @@ public final class TransferSender {
         }
         run.hash = SHA256()
         run.hashed = 0
+        run.lastProgress = nil
+        run.rewoundTo = offset
         run.start = offset
         run.at = offset
         run.phase = .sending
