@@ -29,6 +29,7 @@
   <string name="address_connect">Connecter</string>
   <string name="address_looking">Recherche d\'un ordinateur à l\'adresse %1$s…</string>
   <string name="address_invalid">Ce n\'est pas une adresse. Saisissez un nom d\'hôte ou une adresse IP, avec un port s\'il ne s\'agit pas du 47321.</string>
+  <string name="address_bad_port">Le port doit être un nombre de 1 à 65535.</string>
   <string name="address_no_laptop">Aucun ordinateur exécutant Edgepad n\'a répondu à cette adresse.</string>
   <string name="usb_tethering">Partage de connexion par USB</string>
   <string name="local_network_needed">Edgepad a besoin de l\'autorisation « Appareils à proximité » pour trouver les ordinateurs sur votre Wi-Fi et par USB.</string>
@@ -523,7 +524,7 @@
   <string name="apps_add_from_laptop">Ajouter depuis l\'ordinateur</string>
   <string name="apps_add_caption">Choisissez une appli de la liste de l\'ordinateur, elle y devient une macro. Seul votre choix est envoyé.</string>
   <string name="apps_title">Ajouter une macro</string>
-  <string name="apps_search_hint">Rechercher des applis</string>
+  <string name="apps_search_hint">Rechercher des applis, p. ex. Chrome</string>
   <string name="apps_loading">Recherche d\'applis sur %1$s…</string>
   <string name="apps_none">%1$s n\'a listé aucune appli.</string>
   <string name="apps_no_match">Aucune appli ne correspond à cette recherche.</string>

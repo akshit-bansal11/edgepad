@@ -29,6 +29,7 @@
   <string name="address_connect">Verbinden</string>
   <string name="address_looking">Zoeken naar een laptop op %1$s…</string>
   <string name="address_invalid">Dat is geen adres. Typ een hostnaam of IP-adres, met een poort als die niet 47321 is.</string>
+  <string name="address_bad_port">De poort moet een getal van 1 tot 65535 zijn.</string>
   <string name="address_no_laptop">Niets op dat adres reageerde als een laptop met Edgepad.</string>
   <string name="usb_tethering">USB-tethering</string>
   <string name="local_network_needed">Edgepad heeft de toestemming Apparaten in de buurt nodig om laptops via je Wi-Fi en via USB te vinden.</string>
@@ -515,7 +516,7 @@
   <string name="apps_add_from_laptop">Toevoegen vanaf laptop</string>
   <string name="apps_add_caption">Kies een app uit de lijst van de laptop en hij wordt daar een macro. Alleen je keuze wordt verstuurd.</string>
   <string name="apps_title">Macro toevoegen</string>
-  <string name="apps_search_hint">Apps zoeken</string>
+  <string name="apps_search_hint">Apps zoeken, bijv. Chrome</string>
   <string name="apps_loading">Zoeken naar apps op %1$s…</string>
   <string name="apps_none">%1$s gaf geen apps door.</string>
   <string name="apps_no_match">Geen app past bij die zoekopdracht.</string>

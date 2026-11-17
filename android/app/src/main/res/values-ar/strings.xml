@@ -29,6 +29,7 @@
   <string name="address_connect">اتصال</string>
   <string name="address_looking">جارٍ البحث عن لابتوب على %1$s…</string>
   <string name="address_invalid">هذا ليس عنوانًا. اكتب اسم مضيف أو عنوان IP، مع المنفذ إن لم يكن 47321.</string>
+  <string name="address_bad_port">يجب أن يكون المنفذ رقمًا من 1 إلى 65535.</string>
   <string name="address_no_laptop">لم يردّ على هذا العنوان أي لابتوب يشغّل Edgepad.</string>
   <string name="usb_tethering">التوصيل عبر USB</string>
   <string name="local_network_needed">يحتاج Edgepad إلى إذن «الأجهزة المجاورة» للعثور على أجهزة اللابتوب على شبكة Wi-Fi وعبر USB.</string>
@@ -545,7 +546,7 @@
   <string name="apps_add_from_laptop">إضافة من اللابتوب</string>
   <string name="apps_add_caption">اختر تطبيقًا يعرضه اللابتوب فيصبح ماكرو هناك. لا يُرسَل سوى اختيارك.</string>
   <string name="apps_title">إضافة ماكرو</string>
-  <string name="apps_search_hint">بحث في التطبيقات</string>
+  <string name="apps_search_hint">بحث في التطبيقات، مثل Chrome</string>
   <string name="apps_loading">جارٍ البحث عن تطبيقات على %1$s…</string>
   <string name="apps_none">لم يعرض %1$s أي تطبيقات.</string>
   <string name="apps_no_match">لا يوجد تطبيق يطابق هذا البحث.</string>

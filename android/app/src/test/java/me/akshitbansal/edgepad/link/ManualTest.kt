@@ -52,4 +52,17 @@ class ManualTest {
         assertEquals("192.168.1.20|5000", parsed(" http://192.168.1.20:5000/ "))
         assertEquals("192.168.1.20|47321", parsed("１９２.１６８.１.２０"))
     }
+
+    @Test
+    fun theProblemNamesWhatIsWrong() {
+        assertNull(addressProblem("192.168.1.20:5000"))
+        assertEquals(AddressProblem.PORT_OUT_OF_RANGE, addressProblem("desk:0"))
+        assertEquals(AddressProblem.PORT_OUT_OF_RANGE, addressProblem("desk:65536"))
+        assertEquals(AddressProblem.PORT_OUT_OF_RANGE, addressProblem("desk:"))
+        assertEquals(AddressProblem.PORT_OUT_OF_RANGE, addressProblem("[::1]:99999"))
+        assertEquals(AddressProblem.NOT_AN_ADDRESS, addressProblem(""))
+        assertEquals(AddressProblem.NOT_AN_ADDRESS, addressProblem(":5000"))
+        assertEquals(AddressProblem.NOT_AN_ADDRESS, addressProblem("two words:80"))
+        assertEquals(AddressProblem.NOT_AN_ADDRESS, addressProblem("[::1"))
+    }
 }

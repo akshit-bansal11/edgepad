@@ -20,7 +20,9 @@ import android.os.Looper
 import android.os.SystemClock
 import android.provider.DocumentsContract
 import android.provider.Settings.Global
+import android.text.Editable
 import android.text.InputType
+import android.text.TextWatcher
 import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
@@ -32,12 +34,14 @@ import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
 import me.akshitbansal.edgepad.gamepad.GamepadLayout
 import me.akshitbansal.edgepad.gamepad.GamepadStore
+import me.akshitbansal.edgepad.link.AddressProblem
 import me.akshitbansal.edgepad.link.AppLinks
 import me.akshitbansal.edgepad.link.BlobRoutes
 import me.akshitbansal.edgepad.link.BluetoothTapHint
@@ -73,6 +77,7 @@ import me.akshitbansal.edgepad.link.TcpTransport
 import me.akshitbansal.edgepad.link.TetherProbe
 import me.akshitbansal.edgepad.link.TileStatus
 import me.akshitbansal.edgepad.link.Transport
+import me.akshitbansal.edgepad.link.addressProblem
 import me.akshitbansal.edgepad.link.bluetoothTapHint
 import me.akshitbansal.edgepad.link.clipboardShare
 import me.akshitbansal.edgepad.link.decodeSaved
@@ -2381,23 +2386,70 @@ class MainActivity :
                 val pad = ui.dp(Space.L)
                 setPadding(pad, pad, pad, pad)
             }
+        // UX-17: what is wrong is said under the field, in words, and goes as soon as the text is changed.
+        val problem =
+            ui.text("", Type.SMALL, ui.palette.danger).apply {
+                visibility = View.GONE
+                val pad = ui.dp(Space.L)
+                setPadding(pad, 0, pad, 0)
+            }
+        val body =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(field)
+                addView(problem)
+            }
+        fun check(): Boolean {
+            val typed = field.text.toString().trim()
+            val found = if (typed.isEmpty()) AddressProblem.NOT_AN_ADDRESS else addressProblem(typed)
+            problem.text =
+                when (found) {
+                    null -> ""
+                    AddressProblem.PORT_OUT_OF_RANGE -> getString(R.string.address_bad_port)
+                    AddressProblem.NOT_AN_ADDRESS -> getString(R.string.address_invalid)
+                }
+            problem.visibility = if (found == null) View.GONE else View.VISIBLE
+            return found == null
+        }
+        field.addTextChangedListener(
+            object : TextWatcher {
+                override fun beforeTextChanged(
+                    text: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int,
+                ) = Unit
+
+                override fun onTextChanged(
+                    text: CharSequence?,
+                    start: Int,
+                    before: Int,
+                    count: Int,
+                ) = Unit
+
+                override fun afterTextChanged(text: Editable?) {
+                    problem.visibility = View.GONE
+                }
+            },
+        )
+        // Leaving the field with something typed in it is the moment to say it is wrong; an empty field is not yet.
+        field.setOnFocusChangeListener { _, focused ->
+            if (!focused && field.text.isNotBlank()) check()
+        }
         val dialog =
             AlertDialog
                 .Builder(this)
                 .setTitle(R.string.add_by_address)
-                .setView(field)
+                .setView(body)
                 .setPositiveButton(R.string.address_connect, null)
                 .setNegativeButton(android.R.string.cancel, null)
                 .openOver(picker.view)
         // Set after the dialog is up, so that an address that is not one leaves it open with the text still in it.
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            val typed = field.text.toString().trim()
-            val address = parseHostPort(typed)
-            if (address == null) {
-                field.error = getString(R.string.address_invalid)
-            } else {
+            if (check()) {
+                val typed = field.text.toString().trim()
                 dialog.dismiss()
-                probeManual(address, typed)
+                probeManual(parseHostPort(typed) ?: return@setOnClickListener, typed)
             }
         }
     }

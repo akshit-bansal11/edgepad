@@ -29,6 +29,7 @@
   <string name="address_connect">Connetti</string>
   <string name="address_looking">Ricerca di un portatile all\'indirizzo %1$s…</string>
   <string name="address_invalid">Non è un indirizzo valido. Inserisci un nome host o un indirizzo IP, con la porta se non è 47321.</string>
+  <string name="address_bad_port">La porta deve essere un numero da 1 a 65535.</string>
   <string name="address_no_laptop">Nessun portatile con Edgepad ha risposto a quell\'indirizzo.</string>
   <string name="usb_tethering">Tethering USB</string>
   <string name="local_network_needed">Edgepad ha bisogno dell\'autorizzazione Dispositivi nelle vicinanze per trovare i portatili sulla tua rete Wi-Fi e via USB.</string>
@@ -524,7 +525,7 @@
   <string name="apps_add_from_laptop">Aggiungi dal portatile</string>
   <string name="apps_add_caption">Scegli un\'app tra quelle elencate dal portatile e lì diventa una macro. Viene inviata solo la tua scelta.</string>
   <string name="apps_title">Aggiungi una macro</string>
-  <string name="apps_search_hint">Cerca app</string>
+  <string name="apps_search_hint">Cerca app, ad es. Chrome</string>
   <string name="apps_loading">Ricerca di app su %1$s…</string>
   <string name="apps_none">%1$s non ha elencato app.</string>
   <string name="apps_no_match">Nessuna app corrisponde alla ricerca.</string>

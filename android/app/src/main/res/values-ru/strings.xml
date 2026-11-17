@@ -29,6 +29,7 @@
   <string name="address_connect">Подключить</string>
   <string name="address_looking">Поиск ноутбука по адресу %1$s…</string>
   <string name="address_invalid">Это не адрес. Введите имя хоста или IP-адрес, а также порт, если он не 47321.</string>
+  <string name="address_bad_port">Порт должен быть числом от 1 до 65535.</string>
   <string name="address_no_laptop">По этому адресу не ответил ни один ноутбук с Edgepad.</string>
   <string name="usb_tethering">USB-модем</string>
   <string name="local_network_needed">Чтобы найти ноутбуки в вашей сети Wi-Fi и по USB, Edgepad нужно разрешение «Устройства поблизости».</string>
@@ -530,7 +531,7 @@
   <string name="apps_add_from_laptop">Добавить с ноутбука</string>
   <string name="apps_add_caption">Выберите приложение из списка ноутбука, и оно станет там макросом. Отправляется только ваш выбор.</string>
   <string name="apps_title">Добавить макрос</string>
-  <string name="apps_search_hint">Поиск приложений</string>
+  <string name="apps_search_hint">Поиск приложений, например Chrome</string>
   <string name="apps_loading">Поиск приложений на ноутбуке «%1$s»…</string>
   <string name="apps_none">Ноутбук «%1$s» не передал список приложений.</string>
   <string name="apps_no_match">Нет приложений по этому запросу.</string>

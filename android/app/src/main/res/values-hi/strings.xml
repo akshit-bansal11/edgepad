@@ -29,6 +29,7 @@
   <string name="address_connect">कनेक्ट करें</string>
   <string name="address_looking">%1$s पर लैपटॉप ढूंढा जा रहा है…</string>
   <string name="address_invalid">यह पता सही नहीं है। होस्ट नाम या IP पता लिखें; पोर्ट 47321 न हो तो पोर्ट भी लिखें।</string>
+  <string name="address_bad_port">पोर्ट 1 से 65535 के बीच की संख्या होना चाहिए।</string>
   <string name="address_no_laptop">उस पते पर Edgepad वाले किसी लैपटॉप ने जवाब नहीं दिया।</string>
   <string name="usb_tethering">USB टेदरिंग</string>
   <string name="local_network_needed">आपके वाई-फ़ाई और USB पर लैपटॉप ढूंढने के लिए Edgepad को \"आस-पास के डिवाइस\" की अनुमति चाहिए।</string>
@@ -515,7 +516,7 @@
   <string name="apps_add_from_laptop">लैपटॉप से जोड़ें</string>
   <string name="apps_add_caption">लैपटॉप की सूची से कोई ऐप चुनें, और वह वहां मैक्रो बन जाता है। आपकी पसंद के अलावा कुछ नहीं भेजा जाता।</string>
   <string name="apps_title">मैक्रो जोड़ें</string>
-  <string name="apps_search_hint">ऐप खोजें</string>
+  <string name="apps_search_hint">ऐप खोजें, जैसे Chrome</string>
   <string name="apps_loading">%1$s पर ऐप ढूंढे जा रहे हैं…</string>
   <string name="apps_none">%1$s ने कोई ऐप नहीं बताया।</string>
   <string name="apps_no_match">इस खोज से कोई ऐप नहीं मिला।</string>

@@ -35,6 +35,7 @@
   <string name="address_looking">Looking for a laptop at %1$s…</string>
   <string name="add_by_address_hint" translatable="false">192.168.1.20 or 192.168.1.20:47321</string>
   <string name="address_invalid">That is not an address. Type a host name or IP address, with a port if it is not 47321.</string>
+  <string name="address_bad_port">The port must be a number from 1 to 65535.</string>
   <string name="address_no_laptop">Nothing on that address answered as a laptop running Edgepad.</string>
   <string name="usb_tethering">USB tethering</string>
   <string name="local_network_needed">Edgepad needs the Nearby devices permission to find laptops on your Wi-Fi and over USB.</string>
@@ -528,7 +529,7 @@
   <string name="apps_add_from_laptop">Add from laptop</string>
   <string name="apps_add_caption">Pick an app the laptop lists, and it becomes a macro there. Nothing but your choice is sent.</string>
   <string name="apps_title">Add a macro</string>
-  <string name="apps_search_hint">Search apps</string>
+  <string name="apps_search_hint">Search apps, e.g. Chrome</string>
   <string name="apps_loading">Looking for apps on %1$s…</string>
   <string name="apps_none">%1$s listed no apps.</string>
   <string name="apps_no_match">No app matches that search.</string>

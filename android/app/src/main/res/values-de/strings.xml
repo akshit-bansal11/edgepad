@@ -29,6 +29,7 @@
   <string name="address_connect">Verbinden</string>
   <string name="address_looking">Suche Laptop unter %1$s…</string>
   <string name="address_invalid">Das ist keine Adresse. Gib einen Hostnamen oder eine IP-Adresse ein, bei einem anderen Port als 47321 mit Port.</string>
+  <string name="address_bad_port">Der Port muss eine Zahl von 1 bis 65535 sein.</string>
   <string name="address_no_laptop">Unter dieser Adresse hat sich kein Laptop mit Edgepad gemeldet.</string>
   <string name="usb_tethering">USB-Tethering</string>
   <string name="local_network_needed">Edgepad braucht die Berechtigung „Geräte in der Nähe“, um Laptops in deinem WLAN und per USB zu finden.</string>
@@ -514,7 +515,7 @@
   <string name="apps_add_from_laptop">Vom Laptop hinzufügen</string>
   <string name="apps_add_caption">Wähle eine App aus der Liste des Laptops, und sie wird dort zu einem Makro. Gesendet wird nur deine Auswahl.</string>
   <string name="apps_title">Makro hinzufügen</string>
-  <string name="apps_search_hint">Apps suchen</string>
+  <string name="apps_search_hint">Apps suchen, z. B. Chrome</string>
   <string name="apps_loading">Suche Apps auf %1$s…</string>
   <string name="apps_none">%1$s hat keine Apps aufgelistet.</string>
   <string name="apps_no_match">Keine App passt zu dieser Suche.</string>

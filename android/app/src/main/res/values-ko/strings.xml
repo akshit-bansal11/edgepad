@@ -28,6 +28,7 @@
   <string name="address_connect">연결</string>
   <string name="address_looking">노트북 찾는 중 (%1$s)…</string>
   <string name="address_invalid">올바른 주소가 아니에요. 호스트 이름이나 IP 주소를 입력하세요. 포트가 47321이 아니면 포트도 함께 입력하세요.</string>
+  <string name="address_bad_port">포트는 1에서 65535 사이의 숫자여야 해요.</string>
   <string name="address_no_laptop">해당 주소에서 Edgepad가 실행 중인 노트북의 응답이 없어요.</string>
   <string name="usb_tethering">USB 테더링</string>
   <string name="local_network_needed">Wi-Fi와 USB로 노트북을 찾으려면 Edgepad에 근처 기기 권한이 필요해요.</string>
@@ -495,7 +496,7 @@
   <string name="apps_add_from_laptop">노트북에서 추가</string>
   <string name="apps_add_caption">노트북에 있는 앱을 선택하면 그 앱이 노트북의 매크로가 돼요. 선택한 내용 외에는 아무것도 전송되지 않아요.</string>
   <string name="apps_title">매크로 추가</string>
-  <string name="apps_search_hint">앱 검색</string>
+  <string name="apps_search_hint">앱 검색, 예: Chrome</string>
   <string name="apps_loading">%1$s에서 앱을 찾는 중…</string>
   <string name="apps_none">%1$s에 표시할 앱이 없어요.</string>
   <string name="apps_no_match">검색과 일치하는 앱이 없어요.</string>

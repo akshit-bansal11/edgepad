@@ -29,6 +29,7 @@
   <string name="address_connect">Conectar</string>
   <string name="address_looking">Procurando um notebook em %1$s…</string>
   <string name="address_invalid">Isso não é um endereço. Digite um nome de host ou endereço IP, com a porta se não for 47321.</string>
+  <string name="address_bad_port">A porta deve ser um número de 1 a 65535.</string>
   <string name="address_no_laptop">Nada nesse endereço respondeu como um notebook com o Edgepad.</string>
   <string name="usb_tethering">Tethering USB</string>
   <string name="local_network_needed">O Edgepad precisa da permissão Dispositivos por perto para encontrar notebooks no seu Wi-Fi e por USB.</string>
@@ -523,7 +524,7 @@
   <string name="apps_add_from_laptop">Adicionar do notebook</string>
   <string name="apps_add_caption">Escolha um app da lista do notebook e ele vira uma macro lá. Só a sua escolha é enviada.</string>
   <string name="apps_title">Adicionar uma macro</string>
-  <string name="apps_search_hint">Pesquisar apps</string>
+  <string name="apps_search_hint">Pesquisar apps, ex.: Chrome</string>
   <string name="apps_loading">Procurando apps em %1$s…</string>
   <string name="apps_none">%1$s não listou nenhum app.</string>
   <string name="apps_no_match">Nenhum app corresponde a essa pesquisa.</string>

@@ -29,6 +29,7 @@
   <string name="address_connect">Bağlan</string>
   <string name="address_looking">%1$s adresinde bilgisayar aranıyor…</string>
   <string name="address_invalid">Bu bir adres değil. Bir ana makine adı veya IP adresi yazın; bağlantı noktası 47321 değilse onu da ekleyin.</string>
+  <string name="address_bad_port">Bağlantı noktası 1 ile 65535 arasında bir sayı olmalıdır.</string>
   <string name="address_no_laptop">Bu adres, Edgepad çalıştıran bir bilgisayar olarak yanıt vermedi.</string>
   <string name="usb_tethering">USB ile internet paylaşımı</string>
   <string name="local_network_needed">Edgepad\'in Wi-Fi ağınızdaki ve USB üzerindeki bilgisayarları bulabilmesi için Yakındaki cihazlar iznine ihtiyacı var.</string>
@@ -510,7 +511,7 @@
   <string name="apps_add_from_laptop">Bilgisayardan ekle</string>
   <string name="apps_add_caption">Bilgisayarın listelediği bir uygulamayı seçin; orada makro olur. Seçiminiz dışında hiçbir şey gönderilmez.</string>
   <string name="apps_title">Makro ekle</string>
-  <string name="apps_search_hint">Uygulama ara</string>
+  <string name="apps_search_hint">Uygulama ara, örn. Chrome</string>
   <string name="apps_loading">%1$s üzerindeki uygulamalar aranıyor…</string>
   <string name="apps_none">%1$s hiç uygulama listelemedi.</string>
   <string name="apps_no_match">Hiçbir uygulama bu aramayla eşleşmiyor.</string>

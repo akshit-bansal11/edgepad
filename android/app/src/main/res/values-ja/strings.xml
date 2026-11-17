@@ -30,6 +30,7 @@
   <string name="address_connect">接続</string>
   <string name="address_looking">%1$sのノートPCを探しています…</string>
   <string name="address_invalid">アドレスが正しくありません。ホスト名またはIPアドレスを入力してください。ポートが47321以外の場合は、ポートも入力します。</string>
+  <string name="address_bad_port">ポートは 1 から 65535 までの数字にしてください。</string>
   <string name="address_no_laptop">そのアドレスには、Edgepadが動作しているノートPCは見つかりませんでした。</string>
   <string name="usb_tethering">USBテザリング</string>
   <string name="local_network_needed">Wi-FiやUSBでノートPCを見つけるには、Edgepadに「付近のデバイス」の許可が必要です。</string>
@@ -512,7 +513,7 @@
   <string name="apps_add_from_laptop">ノートPCから追加</string>
   <string name="apps_add_caption">ノートPCが一覧に出したアプリを選ぶと、ノートPCにマクロとして追加されます。送信されるのは、選んだ内容だけです。</string>
   <string name="apps_title">マクロを追加</string>
-  <string name="apps_search_hint">アプリを検索</string>
+  <string name="apps_search_hint">アプリを検索（例：Chrome）</string>
   <string name="apps_loading">%1$sのアプリを探しています…</string>
   <string name="apps_none">%1$sの一覧にアプリはありません。</string>
   <string name="apps_no_match">検索に一致するアプリはありません。</string>

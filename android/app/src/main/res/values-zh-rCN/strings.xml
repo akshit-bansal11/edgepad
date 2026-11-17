@@ -29,6 +29,7 @@
   <string name="address_connect">连接</string>
   <string name="address_looking">正在 %1$s 查找电脑…</string>
   <string name="address_invalid">地址无效。请输入主机名或 IP 地址；端口不是 47321 时请一并写上。</string>
+  <string name="address_bad_port">端口必须是 1 到 65535 之间的数字。</string>
   <string name="address_no_laptop">这个地址上没有电脑在运行 Edgepad。</string>
   <string name="usb_tethering">USB 网络共享</string>
   <string name="local_network_needed">Edgepad 需要“附近的设备”权限，才能在 Wi-Fi 网络和 USB 上查找电脑。</string>
@@ -509,7 +510,7 @@
   <string name="apps_add_from_laptop">从电脑添加</string>
   <string name="apps_add_caption">选一个电脑列出的应用，它就会在电脑上变成一个宏。只会发送你的选择，不会发送其他内容。</string>
   <string name="apps_title">添加宏</string>
-  <string name="apps_search_hint">搜索应用</string>
+  <string name="apps_search_hint">搜索应用，例如 Chrome</string>
   <string name="apps_loading">正在 %1$s 上查找应用…</string>
   <string name="apps_none">%1$s没有列出任何应用。</string>
   <string name="apps_no_match">没有符合搜索条件的应用。</string>
