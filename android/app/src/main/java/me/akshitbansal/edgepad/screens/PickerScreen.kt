@@ -66,6 +66,7 @@ class PickerScreen(
     private var messageDismiss: (() -> Unit)? = null
     private var rtt = Double.NaN
     private var rttTag: TextView? = null
+    private var scanning = false
 
     /** What the rows on screen were built from, and the status each showed, so a change can be told from a repeat. */
     private var built: List<String> = emptyList()
@@ -74,6 +75,7 @@ class PickerScreen(
     private val refresh = ui.icon(Glyph.Shape.REFRESH, ui.string(R.string.refresh)) { spinAndRefresh() }
     private lateinit var updateCard: LinearLayout
     private lateinit var updateVersion: TextView
+    private lateinit var skeleton: View
     private lateinit var list: LinearLayout
     private lateinit var legend: TextView
     private lateinit var multiHint: TextView
@@ -113,6 +115,10 @@ class PickerScreen(
             columns(
                 {
                     section(ui.string(R.string.paired_laptops))
+                    skeleton =
+                        card {
+                            add(ui.skeletonRows(SKELETON_ROWS, ROW_DP, TILE_DP))
+                        }.apply { visibility = View.GONE }
                     list = card {}
                     legend = footnote("")
                     multiHint = footnote(ui.string(R.string.devices_multi_hint))
@@ -200,6 +206,16 @@ class PickerScreen(
         dismissButton.visibility = if (text.isNotEmpty() && onDismiss != null) View.VISIBLE else View.GONE
     }
 
+    /**
+     * A scan is running with nothing listed yet: rows the size of the real ones hold the place of the list (UX-D15).
+     * Shown only while the list is empty, so a rescan of a list that has laptops in it draws nothing new.
+     */
+    fun setScanning(on: Boolean) {
+        if (scanning == on) return
+        scanning = on
+        render()
+    }
+
     /** The newer release to offer, shown above the list; null hides the notice. */
     fun setUpdate(version: String?) {
         updateVersion.text = version.orEmpty()
@@ -254,6 +270,7 @@ class PickerScreen(
         }
         val any = devices.isNotEmpty()
         list.visibility = if (any) View.VISIBLE else View.GONE
+        skeleton.visibility = if (scanning && !any) View.VISIBLE else View.GONE
         legend.visibility = if (any) View.VISIBLE else View.GONE
         val remembers = autoConnect && devices.any { it.row.saved?.autoConnect == true }
         legend.text = ui.string(if (remembers) R.string.devices_legend else R.string.devices_legend_off)
@@ -469,6 +486,11 @@ class PickerScreen(
 
     private companion object {
         const val MARK_DP = 34f
+        const val SKELETON_ROWS = 2
+
+        /** The height and tile of a laptop row, as [Ui.laptop] draws it. */
+        const val ROW_DP = 64f
+        const val TILE_DP = 36f
         const val CHIP_RADIUS_DP = 8f
 
         /** The dot is drawn 6 dp across; the rest of its box is room for the ring it sends out while connecting. */

@@ -97,6 +97,8 @@ class AppListScreen(
         fullNote.visibility = if (full && catalog.loaded) View.VISIBLE else View.GONE
         rows = catalog.apps.map { row(it, it.name.lowercase() in have || it.token in addedNow, full) }
         rows.forEach { list.addView(it.view) }
+        // UX-D15: until the list lands, rows the size of the real ones hold its place.
+        if (!catalog.loaded) list.addView(ui.skeletonRows(SKELETON_ROWS, Space.ROW, TILE_DP))
         applyFilter()
     }
 
@@ -121,7 +123,7 @@ class AppListScreen(
             row.line.visibility = if (shown && !first) View.VISIBLE else View.GONE
             if (shown) first = false
         }
-        list.visibility = if (matching.isEmpty()) View.GONE else View.VISIBLE
+        list.visibility = if (matching.isEmpty() && catalog.loaded) View.GONE else View.VISIBLE
         val words =
             when {
                 !catalog.loaded -> ui.string(R.string.apps_loading, laptopName)
@@ -240,6 +242,7 @@ class AppListScreen(
 
     private companion object {
         const val TILE_DP = 36f
+        const val SKELETON_ROWS = 5
         const val FULL_ALPHA = 0.45f
     }
 }

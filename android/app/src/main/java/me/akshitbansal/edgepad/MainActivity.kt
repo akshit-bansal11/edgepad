@@ -2028,6 +2028,7 @@ class MainActivity :
                 ),
                 selected,
             )
+        picker.setScanning(rows.isEmpty() && probe != null)
         val hint =
             pickerHint(
                 permissionPending = permissionPending,
