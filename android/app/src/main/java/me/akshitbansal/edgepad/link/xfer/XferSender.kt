@@ -46,6 +46,7 @@ class XferSender(
     private var final: XferCode? = null
     private var rewindTo = -1L
     private var lastProgress = -1L
+    private var rewoundAt = -1L
     private var ending = false
 
     @Volatile private var sentTo = 0L
@@ -75,6 +76,7 @@ class XferSender(
                 final = null
                 rewindTo = -1
                 lastProgress = -1
+                rewoundAt = -1
                 ending = false
                 sentTo = 0
             }
@@ -101,8 +103,16 @@ class XferSender(
 
                 XferCode.PROGRESS -> {
                     val offset = status.offset.toLong()
-                    if (offset < sentTo && (ending || offset == lastProgress)) rewindTo = offset
-                    lastProgress = offset
+                    // Answers to chunks sent before a rewind are still in flight: they must not rewind it again.
+                    if (offset <= rewoundAt) return true
+                    rewoundAt = -1
+                    if (offset < sentTo && (ending || offset == lastProgress)) {
+                        rewindTo = offset
+                        rewoundAt = offset
+                        lastProgress = -1
+                    } else {
+                        lastProgress = offset
+                    }
                 }
 
                 else -> {

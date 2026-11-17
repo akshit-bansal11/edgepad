@@ -243,6 +243,53 @@ class XferTest {
     }
 
     @Test
+    fun staleProgressAfterARewindDoesNotReopenTheFileAgain() {
+        val step = FrameCodec.MAX_XFER_CHUNK_BYTES
+        val data = bytes(step * 4)
+        val seen = HashSet<ULong>()
+        var opens = 0
+        lateinit var sender: XferSender
+        sender =
+            XferSender(
+                { frame ->
+                    when (frame) {
+                        is Frame.XferBegin -> sender.take(Frame.XferStatus(1, XferCode.READY.value, 0uL))
+
+                        is Frame.XferChunk ->
+                            // The first pass loses the chunk at `step`; each later chunk is answered with that gap.
+                            if (seen.add(frame.offset) && frame.offset > step.toULong()) {
+                                sender.take(Frame.XferStatus(1, XferCode.PROGRESS.value, step.toULong()))
+                            }
+
+                        is Frame.XferEnd -> sender.take(Frame.XferStatus(1, XferCode.SAVED.value, data.size.toULong()))
+
+                        else -> Unit
+                    }
+                },
+                Transport.WIFI,
+                { 0L },
+                { false },
+                answerTimeoutMs = 200L,
+                pause = { true },
+            )
+        val result =
+            sender.send(
+                { data.also { opens++ }.inputStream() },
+                "s.bin",
+                data.size.toLong(),
+                1,
+                progress = { at ->
+                    // The resent chunk is on the wire; two answers to the chunks before the rewind land late.
+                    if (opens == 2 && at == 2L * step) {
+                        repeat(2) { sender.take(Frame.XferStatus(1, XferCode.PROGRESS.value, step.toULong())) }
+                    }
+                },
+            )
+        assertEquals(XferCode.SAVED, result)
+        assertEquals(2, opens)
+    }
+
+    @Test
     fun theSenderStopsWhenTheLinkEnds() {
         val sender = XferSender({ wire += it }, Transport.WIFI, { 0L }, { true })
         assertEquals(XferCode.SESSION_ENDED, sender.send({ bytes(10).inputStream() }, "n.bin", 10, 1))
