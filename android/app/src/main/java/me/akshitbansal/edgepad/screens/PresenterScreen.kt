@@ -17,8 +17,9 @@ private const val KEY_PAGE_DOWN = 0x22
 internal fun slideKey(delta: Int): Int = if (delta > 0) KEY_PAGE_DOWN else KEY_PAGE_UP
 
 /**
- * Slides from the phone: two big halves that each press one key, and a laser switch that turns the lower area into
- * the annotate pad on the laser tool. The volume keys call [step] only while this screen is in front (wired by the
+ * Slides from the phone. One stage fills the screen under the bar and the laser switch: with the laser off it is two
+ * big halves, Previous and Next; with the laser on the whole stage is the laser pad, and a slim Previous / Next row
+ * stays under it so slides still move. The volume keys call [step] only while this screen is in front (wired by the
  * activity), so nothing here listens for anything on its own.
  */
 class PresenterScreen(
@@ -30,7 +31,9 @@ class PresenterScreen(
     onBack: () -> Unit,
 ) {
     private val canvas = AnnotateCanvas(ui.context, Strokes(), screenSize, send)
-    private val pad = FrameLayout(ui.context)
+    private val gap = ui.dp(Space.S)
+    private val halves = pair(Ui.Style.OUTLINED)
+    private val slim = pair(Ui.Style.OUTLINED)
 
     val view: View =
         LinearLayout(ui.context).apply {
@@ -40,23 +43,21 @@ class PresenterScreen(
             addView(
                 ui.bar(ui.string(R.string.presenter_title), onBack, backLabel = ui.string(R.string.back_to_surface)),
             )
-            val gap = ui.dp(Space.S)
-            val halves =
-                LinearLayout(ui.context).apply {
-                    addView(half(R.string.presenter_previous, -1), halfParams(gap, 0))
-                    addView(half(R.string.presenter_next, 1), halfParams(0, gap))
-                }
             val side = ui.dp(Space.PAGE)
             val wide = ViewGroup.LayoutParams.MATCH_PARENT
-            addView(halves, LinearLayout.LayoutParams(wide, 0, 1f).apply { setMargins(side, gap, side, gap) })
             val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
             val laser = ui.toggle(ui.string(R.string.presenter_laser), false) { on: Boolean -> setLaser(on) }
             addView(laser, LinearLayout.LayoutParams(wide, wrap).apply { setMargins(side, 0, side, 0) })
+            // The stage: the halves, or the laser pad in their place, never both, so either gets all the room.
+            val stage = FrameLayout(ui.context)
+            stage.addView(halves, FrameLayout.LayoutParams(wide, wide))
+            canvas.visibility = View.GONE
+            stage.addView(canvas, FrameLayout.LayoutParams(wide, wide))
+            addView(stage, LinearLayout.LayoutParams(wide, 0, 1f).apply { setMargins(side, gap, side, gap) })
+            slim.visibility = View.GONE
+            addView(slim, LinearLayout.LayoutParams(wide, wrap).apply { setMargins(side, 0, side, gap) })
             val note = ui.secondary(ui.string(R.string.presenter_keys_note))
             addView(note, LinearLayout.LayoutParams(wide, wrap).apply { setMargins(side, 0, side, gap) })
-            pad.visibility = View.GONE
-            pad.addView(canvas, FrameLayout.LayoutParams(wide, wide))
-            addView(pad, LinearLayout.LayoutParams(wide, 0, 1f))
         }
 
     /** One slide: [delta] above zero is next, below is previous. A key down then a key up. */
@@ -70,15 +71,25 @@ class PresenterScreen(
     fun refresh() = canvas.refresh()
 
     private fun setLaser(on: Boolean) {
-        pad.visibility = if (on) View.VISIBLE else View.GONE
+        canvas.visibility = if (on) View.VISIBLE else View.GONE
+        halves.visibility = if (on) View.GONE else View.VISIBLE
+        slim.visibility = if (on) View.VISIBLE else View.GONE
         if (on) send(ActionId.TOOL_LASER.frame())
         onLaser(on)
     }
 
+    /** Previous and Next side by side, in [style]: tall halves for the stage, a slim row under the laser pad. */
+    private fun pair(style: Ui.Style) =
+        LinearLayout(ui.context).apply {
+            addView(half(R.string.presenter_previous, -1, style), halfParams(0, gap))
+            addView(half(R.string.presenter_next, 1, style), halfParams(gap, 0))
+        }
+
     private fun half(
         label: Int,
         delta: Int,
-    ) = ui.button(ui.string(label), Ui.Style.OUTLINED) { step(delta) }
+        style: Ui.Style,
+    ) = ui.button(ui.string(label), style) { step(delta) }
 
     private fun halfParams(
         start: Int,

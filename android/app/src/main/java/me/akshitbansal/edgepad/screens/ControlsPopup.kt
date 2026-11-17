@@ -342,7 +342,6 @@ class ControlsPopup(
             down,
             shown.map { tiles[it] },
             labels = true,
-            rows = rows,
             onMove = ::moved,
             onTap = { tile ->
                 if (tile.note != null) {
