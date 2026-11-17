@@ -1,6 +1,7 @@
 using System.Globalization;
 using Avalonia;
 using Avalonia.Animation;
+using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Media.Transformation;
 using Avalonia.Threading;
@@ -11,7 +12,8 @@ namespace Edgepad.Ui;
 /// <summary>
 /// The three motion durations, defined once (UX-27, DES-D07): a press answers in <see cref="Press"/>, a window or panel
 /// appearing takes <see cref="Reveal"/>, a whole screen changing takes <see cref="Scene"/>. Linux has no screen-level
-/// transition, so <see cref="Scene"/> has no consumer here; it stays as the third documented tier. Hover and press steps
+/// transition, so <see cref="Scene"/> has no consumer here; it stays as the third documented tier. A window appearing
+/// decelerates (cubic ease out, DES-D30). Hover and press steps
 /// in <see cref="Look"/> stay instant, and the tray menu is the desktop's.
 /// </summary>
 internal static class Motion
@@ -50,8 +52,8 @@ internal static class Motion
         content.RenderTransform = TransformOperations.Parse($"scale({From.ToString(CultureInfo.InvariantCulture)})");
         content.Transitions =
         [
-            new DoubleTransition { Property = Visual.OpacityProperty, Duration = duration },
-            new TransformOperationsTransition { Property = Visual.RenderTransformProperty, Duration = duration },
+            new DoubleTransition { Property = Visual.OpacityProperty, Duration = duration, Easing = new CubicEaseOut() },
+            new TransformOperationsTransition { Property = Visual.RenderTransformProperty, Duration = duration, Easing = new CubicEaseOut() },
         ];
         window.Opened += (_, _) => Dispatcher.UIThread.Post(() =>
         {
