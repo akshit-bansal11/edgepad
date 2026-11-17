@@ -171,4 +171,10 @@ object Space {
 
     /** A panel that stands on its own over the ground: an options sheet, a preview, a drawing. */
     const val PANEL_RADIUS = 16f
+
+    /** A shape nested [gap] dp inside one rounded [outer]: concentric with it, so the two corners run parallel. */
+    fun inner(
+        outer: Float,
+        gap: Float,
+    ): Float = maxOf(outer - gap, 0f)
 }

@@ -51,7 +51,7 @@ private const val SEGMENT_PAD_DP = 14f
 /** What the page margins and the card's padding take off the screen's width, at the narrowest, in dp. */
 private const val SEGMENT_MARGIN_DP = 72f
 private const val SEGMENT_TRACK_RADIUS_DP = 9f
-private const val SEGMENT_THUMB_RADIUS_DP = 7f
+private val SEGMENT_THUMB_RADIUS_DP = Space.inner(SEGMENT_TRACK_RADIUS_DP, SEGMENT_INSET_DP)
 
 private const val CHIP_DP = 32f
 private const val BACK_ICON_DP = 26f

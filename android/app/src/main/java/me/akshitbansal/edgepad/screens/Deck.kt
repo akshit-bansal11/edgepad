@@ -584,13 +584,14 @@ class Deck(
     ) {
         lift = null
         val name = ui.string(R.string.macros_close, tile.label)
+        val barRadius = Space.inner(Space.PANEL_RADIUS, Space.XS)
         val bar =
             ui.text(name, Type.BODY, ui.palette.onAccent, face = Type.bold).apply {
                 gravity = Gravity.CENTER
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
-                background = ui.rounded(ui.palette.accent, Space.PANEL_RADIUS)
-                ui.tappable(this, Space.PANEL_RADIUS) {
+                background = ui.rounded(ui.palette.accent, barRadius)
+                ui.tappable(this, barRadius) {
                     armed?.let { release(it) }
                     close(tile)
                 }
