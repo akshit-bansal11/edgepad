@@ -163,7 +163,7 @@
     <value>Edgepad Hakkında</value>
   </data>
   <data name="Menu_Quit" xml:space="preserve">
-    <value>Edgepad'den çık</value>
+    <value>Edgepad’den çık</value>
   </data>
   <data name="Net_PortInUse" xml:space="preserve">
     <value>Bağlantı noktası kullanımda, {0} kullanılıyor</value>
@@ -241,7 +241,7 @@
     <value>İkisini birlikte yükleyin, aksi halde telefon ve bu Mac bağlanamaz.</value>
   </data>
   <data name="Alert_LoginFailed" xml:space="preserve">
-    <value>"Oturum açıldığında başlat" değiştirilemedi</value>
+    <value>“Oturum açıldığında başlat” değiştirilemedi</value>
   </data>
   <data name="Alert_LoginApproval" xml:space="preserve">
     <value>Edgepad’in oturum açıldığında başlamasına izin verin</value>
@@ -265,7 +265,7 @@
     <value>Güvenilen telefonlar unutulamadı</value>
   </data>
   <data name="Alert_ForgetFailedBody" xml:space="preserve">
-    <value>Dosyaları kaldırılamadı veya boşaltılamadı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak Edgepad başladığında bu telefonlara yeniden güvenilecek. "Güvenilen tüm telefonları unut" seçeneğini yeniden seçin veya dosyayı kendiniz silin:
+    <value>Dosyaları kaldırılamadı veya boşaltılamadı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak Edgepad başladığında bu telefonlara yeniden güvenilecek. “Güvenilen tüm telefonları unut” seçeneğini yeniden seçin veya dosyayı kendiniz silin:
 
 {0}</value>
   </data>
@@ -273,7 +273,7 @@
     <value>PIN girmiş telefonlar unutulamadı</value>
   </data>
   <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
-    <value>Listeleri kaldırılamadı. Edgepad çalıştığı sürece her telefondan her bağlantıda PIN istenir, ancak Edgepad başladığında bu telefonlar "Telefon başına bir kez PIN" düzeyinde yine PIN girmeyecek. "Güvenilen tüm telefonları unut" seçeneğini yeniden seçin veya pin-verified.txt dosyasını şuradan kendiniz silin:
+    <value>Listeleri kaldırılamadı. Edgepad çalıştığı sürece her telefondan her bağlantıda PIN istenir, ancak Edgepad başladığında bu telefonlar “Telefon başına bir kez PIN” düzeyinde yine PIN girmeyecek. “Güvenilen tüm telefonları unut” seçeneğini yeniden seçin veya pin-verified.txt dosyasını şuradan kendiniz silin:
 
 {0}</value>
   </data>
@@ -293,7 +293,7 @@
     <value>Wi-Fi eşleştirmeleri unutulamadı</value>
   </data>
   <data name="Alert_PairingsFailedBody" xml:space="preserve">
-    <value>Dosyaları kaldırılamadı veya boşaltılamadı. Edgepad çalıştığı sürece eşleşmiş telefonlar Wi-Fi ile yeniden bağlanamaz, ancak sonraki başlatmada bağlanabilir. "Güvenilen tüm telefonları unut" seçeneğini yeniden seçin veya paired-links.txt dosyasını şuradan kendiniz silin:
+    <value>Dosyaları kaldırılamadı veya boşaltılamadı. Edgepad çalıştığı sürece eşleşmiş telefonlar Wi-Fi ile yeniden bağlanamaz, ancak sonraki başlatmada bağlanabilir. “Güvenilen tüm telefonları unut” seçeneğini yeniden seçin veya paired-links.txt dosyasını şuradan kendiniz silin:
 
 {0}</value>
   </data>
@@ -364,16 +364,16 @@
     <value>Her bağlantıda PIN</value>
   </data>
   <data name="Sec_ResetButton" xml:space="preserve">
-    <value>PIN'i sıfırla ve telefonları unut…</value>
+    <value>PIN’i sıfırla ve telefonları unut…</value>
   </data>
   <data name="Sec_ForgetAllButton" xml:space="preserve">
     <value>Güvenilen tüm telefonları unut…</value>
   </data>
   <data name="Sec_Warning" xml:space="preserve">
-    <value>Yeni bir PIN veya düzeyi kaydetmek, PIN'i bir kez girmiş telefonlardan onu yeniden girmelerini ister.</value>
+    <value>Yeni bir PIN veya düzeyi kaydetmek, PIN’i bir kez girmiş telefonlardan onu yeniden girmelerini ister.</value>
   </data>
   <data name="Sec_ChangePin" xml:space="preserve">
-    <value>PIN'i değiştir…</value>
+    <value>PIN’i değiştir…</value>
   </data>
   <data name="Sec_SetPin" xml:space="preserve">
     <value>PIN belirle…</value>
@@ -397,13 +397,13 @@
     <value>Yeni PIN</value>
   </data>
   <data name="Sec_NewPinAgain" xml:space="preserve">
-    <value>Yeni PIN'i yeniden girin</value>
+    <value>Yeni PIN’i yeniden girin</value>
   </data>
   <data name="Sec_NewPinBody" xml:space="preserve">
     <value>Altı rakam, iki kez yazılır.</value>
   </data>
   <data name="Sec_UsePin" xml:space="preserve">
-    <value>Bu PIN'i kullan</value>
+    <value>Bu PIN’i kullan</value>
   </data>
   <data name="Sec_Mismatch" xml:space="preserve">
     <value>İki PIN eşleşmiyor.</value>
@@ -421,15 +421,15 @@
     <value>PIN sıfırlansın ve tüm telefonlar unutulsun mu?</value>
   </data>
   <data name="Sec_ResetBody" xml:space="preserve">
-    <value>PIN silinir, düzey "Yalnızca güven"e döner ve güvenilen tüm telefonlar unutulur. Her telefona burada yeniden güvenilmesi gerekir. Unutulan PIN kurtarılamaz, yalnızca sıfırlanabilir.</value>
+    <value>PIN silinir, düzey “Yalnızca güven”e döner ve güvenilen tüm telefonlar unutulur. Her telefona burada yeniden güvenilmesi gerekir. Unutulan PIN kurtarılamaz, yalnızca sıfırlanabilir.</value>
   </data>
   <data name="Sec_ResetFailedTrust" xml:space="preserve">
-    <value>Hiçbir şey sıfırlanmadı: güvenilen telefonlar unutulamadı, bu nedenle PIN ve düzey olduğu gibi kaldı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak sonraki başlatmada bu telefonlara aynı PIN ile yeniden güvenilecek. Dosyayı tutan şeyi kapatıp "Sıfırla"yı yeniden seçin veya dosyayı kendiniz silin:
+    <value>Hiçbir şey sıfırlanmadı: güvenilen telefonlar unutulamadı, bu nedenle PIN ve düzey olduğu gibi kaldı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak sonraki başlatmada bu telefonlara aynı PIN ile yeniden güvenilecek. Dosyayı tutan şeyi kapatıp “Sıfırla”yı yeniden seçin veya dosyayı kendiniz silin:
 
 {0}</value>
   </data>
   <data name="Sec_ResetFailedPin" xml:space="preserve">
-    <value>Güvenilen telefonlar unutuldu ancak PIN sıfırlanamadı: bir ayar dosyası kaldırılamadı, bu nedenle eski PIN ve düzey hâlâ geçerli olabilir. Her telefona burada yeniden güvenilmesi gerekir. Dosyayı tutan şeyi kapatıp "Sıfırla"yı yeniden seçin veya security.txt ile pin-verified.txt dosyalarını şuradan kendiniz silin:
+    <value>Güvenilen telefonlar unutuldu ancak PIN sıfırlanamadı: bir ayar dosyası kaldırılamadı, bu nedenle eski PIN ve düzey hâlâ geçerli olabilir. Her telefona burada yeniden güvenilmesi gerekir. Dosyayı tutan şeyi kapatıp “Sıfırla”yı yeniden seçin veya security.txt ile pin-verified.txt dosyalarını şuradan kendiniz silin:
 
 {0}</value>
   </data>
@@ -461,7 +461,7 @@
     <value>{0} eşleştirilsin mi? {1} sn içinde kapanır.</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>Kod eşleşti. Bitirmek için {0} üzerinde "Evet, eşleşti"ye dokunun.</value>
+    <value>Kod eşleşti. Bitirmek için {0} üzerinde “Evet, eşleşti”ye dokunun.</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>Kod eşleşmedi. Hiçbir şey eşleştirilmedi.</value>

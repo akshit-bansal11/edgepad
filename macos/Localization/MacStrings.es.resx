@@ -273,7 +273,7 @@
     <value>No se pudieron olvidar los teléfonos que introdujeron el PIN</value>
   </data>
   <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
-    <value>No se pudo eliminar su lista. Mientras Edgepad siga abierto se pide el PIN a cada teléfono en cada conexión, pero esos teléfonos volverán a omitirlo con "PIN una vez por teléfono" cuando Edgepad se inicie. Elige de nuevo «Olvidar todos los teléfonos de confianza» o elimina pin-verified.txt tú mismo desde:
+    <value>No se pudo eliminar su lista. Mientras Edgepad siga abierto se pide el PIN a cada teléfono en cada conexión, pero esos teléfonos volverán a omitirlo con «PIN una vez por teléfono» cuando Edgepad se inicie. Elige de nuevo «Olvidar todos los teléfonos de confianza» o elimina pin-verified.txt tú mismo desde:
 
 {0}</value>
   </data>

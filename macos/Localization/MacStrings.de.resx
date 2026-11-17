@@ -273,7 +273,7 @@
     <value>Handys, die die PIN eingegeben haben, konnten nicht vergessen werden</value>
   </data>
   <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
-    <value>Die Liste konnte nicht entfernt werden. Solange Edgepad läuft, wird jedes Handy bei jeder Verbindung nach der PIN gefragt, aber beim nächsten Start von Edgepad überspringen diese Handys sie bei "PIN einmal pro Handy" wieder. Wähle erneut „Alle vertrauten Handys vergessen“ oder lösche pin-verified.txt selbst aus:
+    <value>Die Liste konnte nicht entfernt werden. Solange Edgepad läuft, wird jedes Handy bei jeder Verbindung nach der PIN gefragt, aber beim nächsten Start von Edgepad überspringen diese Handys sie bei „PIN einmal pro Handy“ wieder. Wähle erneut „Alle vertrauten Handys vergessen“ oder lösche pin-verified.txt selbst aus:
 
 {0}</value>
   </data>

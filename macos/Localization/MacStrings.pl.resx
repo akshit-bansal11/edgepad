@@ -273,7 +273,7 @@
     <value>Nie udało się zapomnieć telefonów, które wpisały PIN</value>
   </data>
   <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
-    <value>Nie udało się usunąć ich listy. Dopóki Edgepad działa, każdy telefon jest pytany o PIN przy każdym połączeniu, ale po uruchomieniu Edgepada te telefony znów go pominą w trybie "PIN raz na telefon". Wybierz ponownie „Zapomnij wszystkie zaufane telefony” albo usuń pin-verified.txt samodzielnie z:
+    <value>Nie udało się usunąć ich listy. Dopóki Edgepad działa, każdy telefon jest pytany o PIN przy każdym połączeniu, ale po uruchomieniu Edgepada te telefony znów go pominą w trybie „PIN raz na telefon”. Wybierz ponownie „Zapomnij wszystkie zaufane telefony” albo usuń pin-verified.txt samodzielnie z:
 
 {0}</value>
   </data>

@@ -241,7 +241,7 @@
     <value>ثبّت الاثنين معًا، وإلا فلن يتصل الهاتف بهذا Mac.</value>
   </data>
   <data name="Alert_LoginFailed" xml:space="preserve">
-    <value>تعذّر تغيير "البدء عند تسجيل الدخول"</value>
+    <value>تعذّر تغيير “البدء عند تسجيل الدخول”</value>
   </data>
   <data name="Alert_LoginApproval" xml:space="preserve">
     <value>اسمح لـ Edgepad بالبدء عند تسجيل الدخول</value>
@@ -273,7 +273,7 @@
     <value>تعذّر نسيان الهواتف التي أدخلت رقم PIN</value>
   </data>
   <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
-    <value>تعذّر حذف قائمتها. ما دام Edgepad يعمل يُطلب رقم PIN من كل هاتف عند كل اتصال، لكن هذه الهواتف ستتخطاه من جديد في وضع "رقم PIN مرة لكل هاتف" عند بدء Edgepad. اختر «نسيان كل الهواتف الموثوقة» مرة أخرى، أو احذف pin-verified.txt بنفسك من:
+    <value>تعذّر حذف قائمتها. ما دام Edgepad يعمل يُطلب رقم PIN من كل هاتف عند كل اتصال، لكن هذه الهواتف ستتخطاه من جديد في وضع “رقم PIN مرة لكل هاتف” عند بدء Edgepad. اختر «نسيان كل الهواتف الموثوقة» مرة أخرى، أو احذف pin-verified.txt بنفسك من:
 
 {0}</value>
   </data>

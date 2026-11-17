@@ -76,7 +76,7 @@
     <value>Trust</value>
   </data>
   <data name="Common_DontTrust" xml:space="preserve">
-    <value>Don't Trust</value>
+    <value>Don’t Trust</value>
   </data>
   <data name="Common_Reset" xml:space="preserve">
     <value>Reset</value>
@@ -199,7 +199,7 @@
     <value>Trust {0}?</value>
   </data>
   <data name="Note_TrustBody" xml:space="preserve">
-    <value>{0} wants to connect. Choose Trust or Don't Trust.</value>
+    <value>{0} wants to connect. Choose Trust or Don’t Trust.</value>
   </data>
   <data name="Note_NotUpdated" xml:space="preserve">
     <value>Edgepad was not updated</value>
@@ -279,7 +279,7 @@
     <value>Could not forget the phones that entered the PIN</value>
   </data>
   <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
-    <value>Their list could not be removed. While Edgepad stays running every phone is asked for the PIN on every connection, but those phones will skip it at "PIN once per phone" again when Edgepad starts. Choose Forget all trusted phones again, or delete pin-verified.txt yourself from:
+    <value>Their list could not be removed. While Edgepad stays running every phone is asked for the PIN on every connection, but those phones will skip it at “PIN once per phone” again when Edgepad starts. Choose Forget all trusted phones again, or delete pin-verified.txt yourself from:
 
 {0}</value>
   </data>
@@ -343,7 +343,7 @@
     <value>The address is what will be trusted.</value>
   </data>
   <data name="Alert_TrustBody" xml:space="preserve">
-    <value>{0} is asking to control this Mac's pointer and keyboard. {1} Trust it only if it is yours. With no answer in {2} seconds, it is not trusted.</value>
+    <value>{0} is asking to control this Mac’s pointer and keyboard. {1} Trust it only if it is yours. With no answer in {2} seconds, it is not trusted.</value>
   </data>
   <data name="Alert_Credits" xml:space="preserve">
     <value>Fonts and icons: Lato, Lucide.</value>
@@ -491,7 +491,7 @@
     <value>Macros</value>
   </data>
   <data name="Macro_Body" xml:space="preserve">
-    <value>Buttons on your phone's macro screen, up to {0}. The phone sends a button's number, never a program, so it can only run what you add here.</value>
+    <value>Buttons on your phone’s macro screen, up to {0}. The phone sends a button’s number, never a program, so it can only run what you add here.</value>
   </data>
   <data name="Macro_NothingToOpen" xml:space="preserve">
     <value>{0} has nothing to open. Browse to an app or file, or type a web address.</value>
@@ -536,13 +536,13 @@
     <value>Choose…</value>
   </data>
   <data name="Macro_OwnIcon" xml:space="preserve">
-    <value>Use the program's own</value>
+    <value>Use the program’s own</value>
   </data>
   <data name="Macro_ArgsHint" xml:space="preserve">
     <value>None, split on spaces (apps only)</value>
   </data>
   <data name="Macro_IconHint" xml:space="preserve">
-    <value>The program's own</value>
+    <value>The program’s own</value>
   </data>
   <data name="Macro_OpensHint" xml:space="preserve">
     <value>An app, file, folder or web address</value>

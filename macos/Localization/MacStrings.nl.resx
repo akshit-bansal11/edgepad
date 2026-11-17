@@ -148,7 +148,7 @@
     <value>Bestand verzenden… (geen telefoon verbonden)</value>
   </data>
   <data name="Menu_Macros" xml:space="preserve">
-    <value>Macro's…</value>
+    <value>Macro’s…</value>
   </data>
   <data name="Menu_Security" xml:space="preserve">
     <value>Beveiliging… ({0})</value>
@@ -241,7 +241,7 @@
     <value>Installeer beide samen, anders maken de telefoon en deze Mac geen verbinding.</value>
   </data>
   <data name="Alert_LoginFailed" xml:space="preserve">
-    <value>"Starten bij inloggen" kon niet worden gewijzigd</value>
+    <value>“Starten bij inloggen” kon niet worden gewijzigd</value>
   </data>
   <data name="Alert_LoginApproval" xml:space="preserve">
     <value>Sta Edgepad toe om bij inloggen te starten</value>
@@ -265,7 +265,7 @@
     <value>Vertrouwde telefoons konden niet worden vergeten</value>
   </data>
   <data name="Alert_ForgetFailedBody" xml:space="preserve">
-    <value>Hun bestand kon niet worden verwijderd of geleegd. Zolang Edgepad draait kan geen enkele telefoon verbinden, maar deze telefoons worden weer vertrouwd zodra Edgepad start. Kies opnieuw "Alle vertrouwde telefoons vergeten" of verwijder het bestand zelf:
+    <value>Hun bestand kon niet worden verwijderd of geleegd. Zolang Edgepad draait kan geen enkele telefoon verbinden, maar deze telefoons worden weer vertrouwd zodra Edgepad start. Kies opnieuw “Alle vertrouwde telefoons vergeten” of verwijder het bestand zelf:
 
 {0}</value>
   </data>
@@ -273,7 +273,7 @@
     <value>Telefoons die de pincode hebben ingevoerd konden niet worden vergeten</value>
   </data>
   <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
-    <value>Hun lijst kon niet worden verwijderd. Zolang Edgepad draait wordt elke telefoon bij elke verbinding om de pincode gevraagd, maar deze telefoons slaan hem bij "Pincode eenmalig per telefoon" weer over zodra Edgepad start. Kies opnieuw "Alle vertrouwde telefoons vergeten" of verwijder pin-verified.txt zelf uit:
+    <value>Hun lijst kon niet worden verwijderd. Zolang Edgepad draait wordt elke telefoon bij elke verbinding om de pincode gevraagd, maar deze telefoons slaan hem bij “Pincode eenmalig per telefoon” weer over zodra Edgepad start. Kies opnieuw “Alle vertrouwde telefoons vergeten” of verwijder pin-verified.txt zelf uit:
 
 {0}</value>
   </data>
@@ -293,7 +293,7 @@
     <value>Wifi-koppelingen konden niet worden vergeten</value>
   </data>
   <data name="Alert_PairingsFailedBody" xml:space="preserve">
-    <value>Hun bestand kon niet worden verwijderd of geleegd. Gekoppelde telefoons kunnen niet opnieuw via wifi verbinden zolang Edgepad draait, maar bij de volgende start wel weer. Kies opnieuw "Alle vertrouwde telefoons vergeten" of verwijder paired-links.txt zelf uit:
+    <value>Hun bestand kon niet worden verwijderd of geleegd. Gekoppelde telefoons kunnen niet opnieuw via wifi verbinden zolang Edgepad draait, maar bij de volgende start wel weer. Kies opnieuw “Alle vertrouwde telefoons vergeten” of verwijder paired-links.txt zelf uit:
 
 {0}</value>
   </data>
@@ -421,15 +421,15 @@
     <value>Pincode resetten en alle telefoons vergeten?</value>
   </data>
   <data name="Sec_ResetBody" xml:space="preserve">
-    <value>De pincode wordt verwijderd, het niveau gaat terug naar "Alleen vertrouwen" en alle vertrouwde telefoons worden vergeten. Elke telefoon moet hier opnieuw worden vertrouwd. Een vergeten pincode kan niet worden hersteld, alleen gereset.</value>
+    <value>De pincode wordt verwijderd, het niveau gaat terug naar “Alleen vertrouwen” en alle vertrouwde telefoons worden vergeten. Elke telefoon moet hier opnieuw worden vertrouwd. Een vergeten pincode kan niet worden hersteld, alleen gereset.</value>
   </data>
   <data name="Sec_ResetFailedTrust" xml:space="preserve">
-    <value>Er is niets gereset: de vertrouwde telefoons konden niet worden vergeten, dus de pincode en het niveau zijn ongewijzigd. Zolang Edgepad draait kan geen enkele telefoon verbinden, maar bij de volgende start worden deze telefoons weer vertrouwd, met dezelfde pincode. Sluit wat het bestand vasthoudt en kies opnieuw "Resetten", of verwijder het zelf:
+    <value>Er is niets gereset: de vertrouwde telefoons konden niet worden vergeten, dus de pincode en het niveau zijn ongewijzigd. Zolang Edgepad draait kan geen enkele telefoon verbinden, maar bij de volgende start worden deze telefoons weer vertrouwd, met dezelfde pincode. Sluit wat het bestand vasthoudt en kies opnieuw “Resetten”, of verwijder het zelf:
 
 {0}</value>
   </data>
   <data name="Sec_ResetFailedPin" xml:space="preserve">
-    <value>De vertrouwde telefoons zijn vergeten, maar de pincode kon niet worden gereset: een instellingenbestand kon niet worden verwijderd, dus de oude pincode en het oude niveau gelden mogelijk nog. Elke telefoon moet hier opnieuw worden vertrouwd. Sluit wat het bestand vasthoudt en kies opnieuw "Resetten", of verwijder security.txt en pin-verified.txt zelf uit:
+    <value>De vertrouwde telefoons zijn vergeten, maar de pincode kon niet worden gereset: een instellingenbestand kon niet worden verwijderd, dus de oude pincode en het oude niveau gelden mogelijk nog. Elke telefoon moet hier opnieuw worden vertrouwd. Sluit wat het bestand vasthoudt en kies opnieuw “Resetten”, of verwijder security.txt en pin-verified.txt zelf uit:
 
 {0}</value>
   </data>
@@ -461,7 +461,7 @@
     <value>{0} koppelen? Sluit over {1} s.</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>Code komt overeen. Tik op {0} op "Ja, gekoppeld" om af te ronden.</value>
+    <value>Code komt overeen. Tik op {0} op “Ja, gekoppeld” om af te ronden.</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>De code kwam niet overeen. Er is niets gekoppeld.</value>
@@ -482,7 +482,7 @@
     <value>Code wordt gecontroleerd</value>
   </data>
   <data name="Macro_Title" xml:space="preserve">
-    <value>Macro's</value>
+    <value>Macro’s</value>
   </data>
   <data name="Macro_Body" xml:space="preserve">
     <value>Knoppen op het macroscherm van je telefoon, maximaal {0}. De telefoon stuurt het nummer van een knop, nooit een programma, dus hij kan alleen uitvoeren wat je hier toevoegt.</value>
@@ -494,10 +494,10 @@
     <value>Een macro</value>
   </data>
   <data name="Macro_SaveFailed" xml:space="preserve">
-    <value>De macro's konden niet worden opgeslagen in {0}: {1}.</value>
+    <value>De macro’s konden niet worden opgeslagen in {0}: {1}.</value>
   </data>
   <data name="Macro_SaveFailedTitle" xml:space="preserve">
-    <value>De macro's konden niet worden opgeslagen</value>
+    <value>De macro’s konden niet worden opgeslagen</value>
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Naam</value>
@@ -542,7 +542,7 @@
     <value>Een app, bestand, map of webadres</value>
   </data>
   <data name="Macro_Empty" xml:space="preserve">
-    <value>Nog geen macro's. Voeg een app, document, map of webadres toe. Elk wordt een knop op de telefoon.</value>
+    <value>Nog geen macro’s. Voeg een app, document, map of webadres toe. Elk wordt een knop op de telefoon.</value>
   </data>
   <data name="Macro_Count" xml:space="preserve">
     <value>{0} van {1}</value>

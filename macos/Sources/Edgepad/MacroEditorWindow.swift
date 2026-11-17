@@ -28,7 +28,7 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
     private let browseButton = NSButton(title: tr("Macro_Browse", "Browse…"), target: nil, action: nil)
     private let iconButton = NSButton(title: tr("Macro_Choose", "Choose…"), target: nil, action: nil)
     private let ownIconButton = NSButton(
-        title: tr("Macro_OwnIcon", "Use the program's own"), target: nil, action: nil)
+        title: tr("Macro_OwnIcon", "Use the program’s own"), target: nil, action: nil)
     private var fields: [NSTextField] { [name, target, arguments, icon] }
 
     /// Set while the fields are written from the list, so the write is not read back as an edit.
@@ -45,7 +45,7 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         alert.messageText = tr("Macro_Title", "Macros")
         alert.informativeText = tr(
             "Macro_Body",
-            "Buttons on your phone's macro screen, up to %1$@. The phone sends a button's number, never a program, "
+            "Buttons on your phone’s macro screen, up to %1$@. The phone sends a button’s number, never a program, "
                 + "so it can only run what you add here.",
             "\(MacroStore.maxMacros)")
         alert.accessoryView = makeBody()
@@ -67,7 +67,7 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         let missing = MacroStore.withoutTarget(working)
         if missing >= 0 {
             select(missing)
-            let label = working[missing].name.isEmpty ? tr("Macro_AMacro", "A macro") : "\"\(working[missing].name)\""
+            let label = working[missing].name.isEmpty ? tr("Macro_AMacro", "A macro") : "“\(working[missing].name)”"
             warn(
                 tr(
                     "Macro_NothingToOpen",
@@ -119,7 +119,7 @@ final class MacroEditorWindow: NSObject, NSTextFieldDelegate, NSTableViewDataSou
             field.widthAnchor.constraint(equalToConstant: 220).isActive = true
         }
         arguments.placeholderString = tr("Macro_ArgsHint", "None, split on spaces (apps only)")
-        icon.placeholderString = tr("Macro_IconHint", "The program's own")
+        icon.placeholderString = tr("Macro_IconHint", "The program’s own")
         target.placeholderString = tr("Macro_OpensHint", "An app, file, folder or web address")
 
         wire(addButton, #selector(add))

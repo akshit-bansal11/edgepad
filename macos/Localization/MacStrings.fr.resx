@@ -133,7 +133,7 @@
     <value>Partager le presse-papiers</value>
   </data>
   <data name="Menu_ClipboardTip" xml:space="preserve">
-    <value>Copiez sur l'un, collez sur l'autre : texte et images.</value>
+    <value>Copiez sur l’un, collez sur l’autre : texte et images.</value>
   </data>
   <data name="Menu_Login" xml:space="preserve">
     <value>Lancer à l’ouverture de session</value>
@@ -385,7 +385,7 @@
     <value>Un code PIN est défini.</value>
   </data>
   <data name="Sec_PinNone" xml:space="preserve">
-    <value>Aucun code PIN n'est défini.</value>
+    <value>Aucun code PIN n’est défini.</value>
   </data>
   <data name="Sec_SixDigits" xml:space="preserve">
     <value>Six chiffres</value>
@@ -412,10 +412,10 @@
     <value>Utilisez exactement six chiffres.</value>
   </data>
   <data name="Sec_PinNotSaved" xml:space="preserve">
-    <value>Le code PIN n'a pas pu être enregistré, donc rien n'a été modifié. Le journal en donne la raison.</value>
+    <value>Le code PIN n’a pas pu être enregistré, donc rien n’a été modifié. Le journal en donne la raison.</value>
   </data>
   <data name="Sec_LevelNotSaved" xml:space="preserve">
-    <value>Le niveau n'a pas pu être enregistré, donc le niveau précédent s'applique toujours. Le journal en donne la raison.</value>
+    <value>Le niveau n’a pas pu être enregistré, donc le niveau précédent s’applique toujours. Le journal en donne la raison.</value>
   </data>
   <data name="Sec_ResetTitle" xml:space="preserve">
     <value>Réinitialiser le code PIN et oublier tous les téléphones ?</value>
@@ -452,7 +452,7 @@
     <value>Associer un téléphone</value>
   </data>
   <data name="Pair_Ask" xml:space="preserve">
-    <value>Saisissez le code d'association affiché sur le téléphone :</value>
+    <value>Saisissez le code d’association affiché sur le téléphone :</value>
   </data>
   <data name="Pair_CodeLabel" xml:space="preserve">
     <value>Code affiché sur le téléphone</value>
@@ -470,10 +470,10 @@
     <value>Associé à {0}.</value>
   </data>
   <data name="Pair_NotFinished" xml:space="preserve">
-    <value>L'association n'a pas abouti.</value>
+    <value>L’association n’a pas abouti.</value>
   </data>
   <data name="Pair_Warning" xml:space="preserve">
-    <value>N'associez qu'un téléphone qui vous appartient. Si vous n'avez pas vous-même lancé l'association à l'instant, choisissez Annuler.</value>
+    <value>N’associez qu’un téléphone qui vous appartient. Si vous n’avez pas vous-même lancé l’association à l’instant, choisissez Annuler.</value>
   </data>
   <data name="Pair_ClosesIn" xml:space="preserve">
     <value>Fermeture dans {0} s</value>

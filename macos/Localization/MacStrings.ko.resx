@@ -241,7 +241,7 @@
     <value>둘을 함께 설치하세요. 그렇지 않으면 휴대전화와 이 Mac이 연결되지 않습니다.</value>
   </data>
   <data name="Alert_LoginFailed" xml:space="preserve">
-    <value>'로그인 시 시작'을 변경할 수 없습니다</value>
+    <value>‘로그인 시 시작’을 변경할 수 없습니다</value>
   </data>
   <data name="Alert_LoginApproval" xml:space="preserve">
     <value>Edgepad가 로그인 시 시작되도록 허용하세요</value>
@@ -265,7 +265,7 @@
     <value>신뢰한 휴대전화를 등록 해제할 수 없습니다</value>
   </data>
   <data name="Alert_ForgetFailedBody" xml:space="preserve">
-    <value>해당 파일을 삭제하거나 비울 수 없습니다. Edgepad가 실행되는 동안에는 어떤 휴대전화도 연결할 수 없지만, Edgepad를 다시 시작하면 해당 휴대전화는 다시 신뢰됩니다. '신뢰한 휴대전화 모두 등록 해제'를 다시 선택하거나 파일을 직접 삭제하세요:
+    <value>해당 파일을 삭제하거나 비울 수 없습니다. Edgepad가 실행되는 동안에는 어떤 휴대전화도 연결할 수 없지만, Edgepad를 다시 시작하면 해당 휴대전화는 다시 신뢰됩니다. ‘신뢰한 휴대전화 모두 등록 해제’를 다시 선택하거나 파일을 직접 삭제하세요:
 
 {0}</value>
   </data>
@@ -273,7 +273,7 @@
     <value>PIN을 입력한 휴대전화를 등록 해제할 수 없습니다</value>
   </data>
   <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
-    <value>해당 목록을 삭제할 수 없습니다. Edgepad가 실행되는 동안에는 모든 휴대전화가 연결할 때마다 PIN을 묻지만, Edgepad를 다시 시작하면 해당 휴대전화는 '휴대전화마다 PIN 한 번'에서 다시 PIN을 건너뜁니다. '신뢰한 휴대전화 모두 등록 해제'를 다시 선택하거나 다음 위치에서 pin-verified.txt를 직접 삭제하세요:
+    <value>해당 목록을 삭제할 수 없습니다. Edgepad가 실행되는 동안에는 모든 휴대전화가 연결할 때마다 PIN을 묻지만, Edgepad를 다시 시작하면 해당 휴대전화는 ‘휴대전화마다 PIN 한 번’에서 다시 PIN을 건너뜁니다. ‘신뢰한 휴대전화 모두 등록 해제’를 다시 선택하거나 다음 위치에서 pin-verified.txt를 직접 삭제하세요:
 
 {0}</value>
   </data>
@@ -293,7 +293,7 @@
     <value>Wi-Fi 페어링을 해제할 수 없습니다</value>
   </data>
   <data name="Alert_PairingsFailedBody" xml:space="preserve">
-    <value>해당 파일을 삭제하거나 비울 수 없습니다. Edgepad가 실행되는 동안에는 페어링된 휴대전화가 Wi-Fi로 다시 연결할 수 없지만, 다음에 시작하면 다시 연결할 수 있습니다. '신뢰한 휴대전화 모두 등록 해제'를 다시 선택하거나 다음 위치에서 paired-links.txt를 직접 삭제하세요:
+    <value>해당 파일을 삭제하거나 비울 수 없습니다. Edgepad가 실행되는 동안에는 페어링된 휴대전화가 Wi-Fi로 다시 연결할 수 없지만, 다음에 시작하면 다시 연결할 수 있습니다. ‘신뢰한 휴대전화 모두 등록 해제’를 다시 선택하거나 다음 위치에서 paired-links.txt를 직접 삭제하세요:
 
 {0}</value>
   </data>
@@ -421,15 +421,15 @@
     <value>PIN을 재설정하고 모든 휴대전화를 등록 해제할까요?</value>
   </data>
   <data name="Sec_ResetBody" xml:space="preserve">
-    <value>PIN이 삭제되고, 단계가 '신뢰만'으로 돌아가며, 신뢰한 모든 휴대전화가 등록 해제됩니다. 각 휴대전화는 여기서 다시 신뢰해야 합니다. 잊어버린 PIN은 복구할 수 없고 재설정만 할 수 있습니다.</value>
+    <value>PIN이 삭제되고, 단계가 ‘신뢰만’으로 돌아가며, 신뢰한 모든 휴대전화가 등록 해제됩니다. 각 휴대전화는 여기서 다시 신뢰해야 합니다. 잊어버린 PIN은 복구할 수 없고 재설정만 할 수 있습니다.</value>
   </data>
   <data name="Sec_ResetFailedTrust" xml:space="preserve">
-    <value>아무것도 재설정되지 않았습니다. 신뢰한 휴대전화를 등록 해제할 수 없어 PIN과 단계는 그대로입니다. Edgepad가 실행되는 동안에는 어떤 휴대전화도 연결할 수 없지만, 다음에 시작하면 해당 휴대전화는 같은 PIN으로 다시 신뢰됩니다. 파일을 사용 중인 항목을 닫고 '재설정'을 다시 선택하거나 파일을 직접 삭제하세요:
+    <value>아무것도 재설정되지 않았습니다. 신뢰한 휴대전화를 등록 해제할 수 없어 PIN과 단계는 그대로입니다. Edgepad가 실행되는 동안에는 어떤 휴대전화도 연결할 수 없지만, 다음에 시작하면 해당 휴대전화는 같은 PIN으로 다시 신뢰됩니다. 파일을 사용 중인 항목을 닫고 ‘재설정’을 다시 선택하거나 파일을 직접 삭제하세요:
 
 {0}</value>
   </data>
   <data name="Sec_ResetFailedPin" xml:space="preserve">
-    <value>신뢰한 휴대전화는 등록 해제되었지만 PIN을 재설정할 수 없습니다. 설정 파일을 삭제할 수 없어 이전 PIN과 단계가 계속 적용될 수 있습니다. 각 휴대전화는 여기서 다시 신뢰해야 합니다. 파일을 사용 중인 항목을 닫고 '재설정'을 다시 선택하거나, 다음 위치에서 security.txt와 pin-verified.txt를 직접 삭제하세요:
+    <value>신뢰한 휴대전화는 등록 해제되었지만 PIN을 재설정할 수 없습니다. 설정 파일을 삭제할 수 없어 이전 PIN과 단계가 계속 적용될 수 있습니다. 각 휴대전화는 여기서 다시 신뢰해야 합니다. 파일을 사용 중인 항목을 닫고 ‘재설정’을 다시 선택하거나, 다음 위치에서 security.txt와 pin-verified.txt를 직접 삭제하세요:
 
 {0}</value>
   </data>
@@ -461,7 +461,7 @@
     <value>{0}을(를) 페어링할까요? {1}초 후에 닫힙니다.</value>
   </data>
   <data name="Pair_Matched" xml:space="preserve">
-    <value>코드가 일치합니다. {0}에서 '예, 페어링됨'을 눌러 마무리하세요.</value>
+    <value>코드가 일치합니다. {0}에서 ‘예, 페어링됨’을 눌러 마무리하세요.</value>
   </data>
   <data name="Pair_Mismatched" xml:space="preserve">
     <value>코드가 일치하지 않습니다. 페어링되지 않았습니다.</value>

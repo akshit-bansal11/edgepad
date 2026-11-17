@@ -133,7 +133,7 @@
     <value>Condividi appunti</value>
   </data>
   <data name="Menu_ClipboardTip" xml:space="preserve">
-    <value>Copia su un dispositivo, incolla sull'altro: testo e immagini.</value>
+    <value>Copia su un dispositivo, incolla sull’altro: testo e immagini.</value>
   </data>
   <data name="Menu_Login" xml:space="preserve">
     <value>Avvia al login</value>
@@ -273,7 +273,7 @@
     <value>Impossibile dimenticare i telefoni che hanno inserito il PIN</value>
   </data>
   <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
-    <value>Non è stato possibile rimuovere il loro elenco. Finché Edgepad resta in esecuzione a ogni connessione viene chiesto il PIN a ogni telefono, ma questi telefoni lo salteranno di nuovo con "PIN una volta per telefono" all’avvio di Edgepad. Scegli di nuovo «Dimentica tutti i telefoni autorizzati» o elimina pin-verified.txt da solo da:
+    <value>Non è stato possibile rimuovere il loro elenco. Finché Edgepad resta in esecuzione a ogni connessione viene chiesto il PIN a ogni telefono, ma questi telefoni lo salteranno di nuovo con «PIN una volta per telefono» all’avvio di Edgepad. Scegli di nuovo «Dimentica tutti i telefoni autorizzati» o elimina pin-verified.txt da solo da:
 
 {0}</value>
   </data>
@@ -473,7 +473,7 @@
     <value>Associazione non completata.</value>
   </data>
   <data name="Pair_Warning" xml:space="preserve">
-    <value>Associa solo un telefono tuo. Se non hai appena avviato un'associazione, scegli Annulla.</value>
+    <value>Associa solo un telefono tuo. Se non hai appena avviato un’associazione, scegli Annulla.</value>
   </data>
   <data name="Pair_ClosesIn" xml:space="preserve">
     <value>Si chiude tra {0} s</value>

@@ -665,7 +665,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 tr(
                     "Alert_ForgetPinFailedBody",
                     "Their list could not be removed. While Edgepad stays running every phone is asked for the PIN "
-                        + "on every connection, but those phones will skip it at \"PIN once per phone\" again when "
+                        + "on every connection, but those phones will skip it at “PIN once per phone” again when "
                         + "Edgepad starts. Choose Forget all trusted phones again, or delete pin-verified.txt "
                         + "yourself from:\n\n%1$@", pin.folder),
                 style: .critical)
@@ -948,7 +948,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // The alert may stay behind another app, so it is also said in a notification and by the "!" in the bar.
         notifier?.post(
             id: "trust", title: tr("Note_TrustTitle", "Trust %1$@?", phone),
-            body: tr("Note_TrustBody", "%1$@ wants to connect. Choose Trust or Don't Trust.", phone))
+            body: tr("Note_TrustBody", "%1$@ wants to connect. Choose Trust or Don’t Trust.", phone))
         openQuestions += 1
         refreshButton()
         defer {
@@ -967,11 +967,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             : tr("Alert_TrustAddress", "The address is what will be trusted.")
         alert.informativeText = tr(
             "Alert_TrustBody",
-            "%1$@ is asking to control this Mac's pointer and keyboard. %2$@ Trust it only if it is yours. "
+            "%1$@ is asking to control this Mac’s pointer and keyboard. %2$@ Trust it only if it is yours. "
                 + "With no answer in %3$@ seconds, it is not trusted.",
             phone, whatIsTrusted, "\(Int(Self.trustPromptSeconds))")
         // Don't Trust is first, so it is the default: a stray Return trusts nothing.
-        alert.addButton(withTitle: tr("Common_DontTrust", "Don't Trust"))
+        alert.addButton(withTitle: tr("Common_DontTrust", "Don’t Trust"))
         let trustButton = alert.addButton(withTitle: tr("Common_Trust", "Trust"))
         trustButton.isEnabled = false
         // .common modes so the timers fire inside the modal loop. The time limit is checked by the poll below rather
