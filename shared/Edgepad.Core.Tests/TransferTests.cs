@@ -441,6 +441,38 @@ public sealed class TransferTests : IDisposable
     }
 
     [Fact]
+    public void StaleProgressAfterARewindDoesNotRewindAgain()
+    {
+        var path = Source("stale.bin", RandomNumberGenerator.GetBytes(FrameCodec.MaxXferChunkBytes * 6));
+        var lostAt = (ulong)FrameCodec.MaxXferChunkBytes;
+        var stale = new XferStatus(1, (byte)XferCode.Progress, lostAt);
+        var atLostOffset = 0;
+        wire = frame =>
+        {
+            if (frame is XferChunk { Offset: var at } && at == lostAt)
+            {
+                atLostOffset++;
+                if (atLostOffset == 1)
+                {
+                    return null;
+                }
+
+                if (atLostOffset == 2)
+                {
+                    Assert.True(sender.Take(stale));
+                    Assert.True(sender.Take(stale));
+                }
+            }
+
+            return frame;
+        };
+
+        Assert.Equal(XferCode.Saved, Send(path));
+
+        Assert.Equal(2, atLostOffset);
+    }
+
+    [Fact]
     public void AStatusItDoesNotKnowOrAnotherIdIsNotTaken()
     {
         Assert.False(sender.Take(new XferStatus(1, (byte)XferCode.Ready, 0)));

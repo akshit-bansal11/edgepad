@@ -38,6 +38,7 @@ internal sealed class TransferSender(
     private XferCode? final;
     private ulong sentTo;
     private ulong? lastProgress;
+    private ulong? rewoundTo;
     private ulong? resendAt;
     private bool endSent;
 
@@ -60,6 +61,7 @@ internal sealed class TransferSender(
                 final = null;
                 sentTo = 0;
                 lastProgress = null;
+                rewoundTo = null;
                 resendAt = null;
                 endSent = false;
             }
@@ -94,6 +96,18 @@ internal sealed class TransferSender(
                     readyAt = status.Offset;
                     break;
                 case XferCode.Progress:
+                    // Right after a rewind, reports still in flight from before it name the offset rewound to or less: not
+                    // news, and counted as repeats they would rewind again. A higher one ends that; after END they count.
+                    if (rewoundTo is { } floor)
+                    {
+                        if (status.Offset <= floor && !endSent)
+                        {
+                            break;
+                        }
+
+                        rewoundTo = null;
+                    }
+
                     // A report below what was sent is a lost chunk when it is repeated (every later chunk draws the same
                     // offset) or comes after END; a rising one is only the receiver's pace.
                     if (status.Offset < sentTo && (endSent || status.Offset == lastProgress))
@@ -226,6 +240,7 @@ internal sealed class TransferSender(
             if (from is not null)
             {
                 lastProgress = null;
+                rewoundTo = from;
             }
 
             return from;
