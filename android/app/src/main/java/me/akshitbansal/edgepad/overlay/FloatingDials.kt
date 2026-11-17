@@ -75,7 +75,7 @@ class FloatingDials(
         val insets = metrics.windowInsets
         var corner = 0
         for (position in CORNER_POSITIONS) corner = maxOf(corner, insets.getRoundedCorner(position)?.radius ?: 0)
-        val perimeter = Perimeter(width.toFloat(), height.toFloat(), maxOf(corner.toFloat(), MIN_BEND_DP * density))
+        val perimeter = Perimeter(width.toFloat(), height.toFloat(), RulerGeometry.bend(corner.toFloat(), density))
         val painter = RulerPainter(app.resources.displayMetrics, settings.dialLength, settings.dialHeight)
         for (spec in specs) dials.add(build(spec))
         val half = painter.halfLengthDp * density
@@ -238,7 +238,6 @@ class FloatingDials(
 
     private companion object {
         const val TAG = "FloatingDials"
-        const val MIN_BEND_DP = 24f
         const val DIAL_GAP_DP = 16f
         const val PERCENT = 100
 

@@ -472,8 +472,7 @@ class ControlSurface(
         if (insets != null) {
             for (position in CORNER_POSITIONS) corner = maxOf(corner, insets.getRoundedCorner(position)?.radius ?: 0)
         }
-        val displayDp = maxOf(corner / density, MIN_BEND_DP)
-        perimeter = Perimeter(w.toFloat(), h.toFloat(), dp(displayDp))
+        perimeter = Perimeter(w.toFloat(), h.toFloat(), RulerGeometry.bend(corner.toFloat(), density))
         dials.forEachIndexed { i, dial ->
             // A half of a split corner sits off the corner on its own edge, clear of the bend; [DialSpan] below
             // trims it where it would meet its neighbour.
@@ -1675,7 +1674,6 @@ class ControlSurface(
         private const val PLAY_GLOW_ALPHA = 0.35f
         private const val DIM_ALPHA = 0x8C000000.toInt()
         private const val FAINT_ALPHA = 0x40000000
-        private const val MIN_BEND_DP = 24f
         private const val CORNER_HIT_DP = 96f
         private const val CORNER_HIT_NEAR_DP = 56f
 
