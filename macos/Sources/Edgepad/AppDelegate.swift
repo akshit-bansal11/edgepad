@@ -130,7 +130,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         host.inputBlocked = { [weak self] in !(self?.inputReady ?? true) }
         host.onFileArrived = { [weak self] path in
             self?.setStatus(
-                tr("Status_Received", "Received %1$@ in Downloads/Edgepad", (path as NSString).lastPathComponent))
+                tr(
+                    "Status_Received", "Received %1$@ in Downloads/Edgepad",
+                    StatusText.middleTruncated((path as NSString).lastPathComponent)))
         }
         // Off the main queue: a file read and rewrite has no place on the path that admits a phone.
         // The generation is read here, at admit, so a Forget that lands before the write leaves the phone forgotten.
@@ -785,7 +787,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 setStatus(tr("Status_OnlyFiles", "Only files can be sent, not folders"))
                 continue
             }
-            let name = (path as NSString).lastPathComponent
+            let name = StatusText.middleTruncated((path as NSString).lastPathComponent)
             host?.sendFile(path) { [weak self] code in self?.setStatus(Self.sentLine(name, code)) }
         }
     }

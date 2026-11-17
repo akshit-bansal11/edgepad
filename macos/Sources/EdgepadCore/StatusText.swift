@@ -5,6 +5,17 @@ public enum StatusText {
     public static let starting = tr("Status_Starting", "Starting…")
     public static let waiting = tr("Status_Waiting", "Waiting for your phone")
 
+    /// A file name cut in the middle with an ellipsis so the extension stays visible (DES-D29): at 16 characters,
+    /// "quarterly-report-final.pdf" becomes "quarterly…al.pdf". A name that fits is returned as it is; one with no
+    /// short extension is cut at the end.
+    public static func middleTruncated(_ name: String, limit: Int = 36) -> String {
+        guard name.count > limit else { return name }
+        let ext = (name as NSString).pathExtension
+        let tail = (1...8).contains(ext.count) ? ext.count + 3 : 0
+        let head = limit - 1 - tail
+        return tail == 0 ? "\(name.prefix(head))…" : "\(name.prefix(head))…\(name.suffix(tail))"
+    }
+
     /// `link` is "Bluetooth", "Wi-Fi" or "USB".
     public static func connected(_ name: String, over link: String) -> String {
         tr("Core_ConnectedOver", "Connected to %1$@ · %2$@", name, link)
