@@ -25,7 +25,7 @@
     <value>Dagelijks op updates controleren</value>
   </data>
   <data name="Menu_Macros" xml:space="preserve">
-    <value>Macro's…</value>
+    <value>Macro’s…</value>
   </data>
   <data name="Menu_Security" xml:space="preserve">
     <value>Beveiliging…</value>
@@ -136,7 +136,7 @@
     <value>Edgepad is actief</value>
   </data>
   <data name="Fallback_NoTray" xml:space="preserve">
-    <value>Je bureaublad toont geen systeemvakpictogrammen. Installeer onder GNOME de extensie 'AppIndicator and KStatusNotifierItem Support' om er een te krijgen.</value>
+    <value>Je bureaublad toont geen systeemvakpictogrammen. Installeer onder GNOME de extensie ‘AppIndicator and KStatusNotifierItem Support’ om er een te krijgen.</value>
   </data>
   <data name="FirstRun_NetworkBody" xml:space="preserve">
     <value>Telefoons op hetzelfde Wi-Fi-netwerk, of verbonden via USB-tethering, kunnen deze laptop vinden en vragen om te koppelen. Er verbindt niets zonder de koppelcode die je hier typt.</value>
@@ -184,13 +184,13 @@
     <value>De vertrouwde telefoons vergeten? Elke telefoon, ook deze, moet hier opnieuw worden vertrouwd voordat hij deze laptop kan gebruiken.</value>
   </data>
   <data name="Error_ForgetLinks" xml:space="preserve">
-    <value>De Wi-Fi- en USB-koppelingen konden niet worden vergeten: hun bestand kon niet worden verwijderd of leeggemaakt. Gekoppelde telefoons kunnen niet opnieuw verbinden via Wi-Fi of USB zolang Edgepad draait, maar bij de volgende start wel weer. Kies opnieuw 'Alles vergeten…' in 'Beveiliging…', of verwijder paired-links.txt zelf uit:</value>
+    <value>De Wi-Fi- en USB-koppelingen konden niet worden vergeten: hun bestand kon niet worden verwijderd of leeggemaakt. Gekoppelde telefoons kunnen niet opnieuw verbinden via Wi-Fi of USB zolang Edgepad draait, maar bij de volgende start wel weer. Kies opnieuw ‘Alles vergeten…’ in ‘Beveiliging…’, of verwijder paired-links.txt zelf uit:</value>
   </data>
   <data name="Error_ForgetTrust" xml:space="preserve">
-    <value>De vertrouwde telefoons konden niet worden vergeten: hun bestand kon niet worden verwijderd of leeggemaakt. Zolang Edgepad draait kan geen enkele telefoon verbinden, maar die telefoons worden bij de volgende start van Edgepad weer vertrouwd. Sluit wat het bestand vasthoudt en kies opnieuw 'Alles vergeten…' in 'Beveiliging…', of verwijder het zelf:</value>
+    <value>De vertrouwde telefoons konden niet worden vergeten: hun bestand kon niet worden verwijderd of leeggemaakt. Zolang Edgepad draait kan geen enkele telefoon verbinden, maar die telefoons worden bij de volgende start van Edgepad weer vertrouwd. Sluit wat het bestand vasthoudt en kies opnieuw ‘Alles vergeten…’ in ‘Beveiliging…’, of verwijder het zelf:</value>
   </data>
   <data name="Error_ForgetPin" xml:space="preserve">
-    <value>De telefoons die de pincode hebben ingevoerd konden niet worden vergeten: hun lijst kon niet worden verwijderd. Zolang Edgepad draait wordt elke telefoon bij elke verbinding om de pincode gevraagd, maar die telefoons slaan hem bij de volgende start van Edgepad op niveau 2 weer over. Kies opnieuw 'Alles vergeten…' in 'Beveiliging…', of verwijder pin-verified.txt zelf uit:</value>
+    <value>De telefoons die de pincode hebben ingevoerd konden niet worden vergeten: hun lijst kon niet worden verwijderd. Zolang Edgepad draait wordt elke telefoon bij elke verbinding om de pincode gevraagd, maar die telefoons slaan hem bij de volgende start van Edgepad op niveau 2 weer over. Kies opnieuw ‘Alles vergeten…’ in ‘Beveiliging…’, of verwijder pin-verified.txt zelf uit:</value>
   </data>
   <data name="Send_PickerTitle" xml:space="preserve">
     <value>Een bestand naar de telefoon sturen</value>
@@ -313,10 +313,10 @@
     <value>De twee pincodes zijn niet gelijk.</value>
   </data>
   <data name="Macro_Title" xml:space="preserve">
-    <value>Macro&apos;s</value>
+    <value>Macro’s</value>
   </data>
   <data name="Macro_EmptyHeadline" xml:space="preserve">
-    <value>Nog geen macro&apos;s</value>
+    <value>Nog geen macro’s</value>
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Naam</value>
@@ -343,7 +343,7 @@
     <value>“{0}” heeft niets om te openen. Kies wat het opent, of verwijder het.</value>
   </data>
   <data name="Macro_SaveFailed" xml:space="preserve">
-    <value>De macro&apos;s konden niet worden opgeslagen in {0}: {1}</value>
+    <value>De macro’s konden niet worden opgeslagen in {0}: {1}</value>
   </data>
   <data name="Macro_ChooseTarget" xml:space="preserve">
     <value>Kies wat deze knop opent</value>

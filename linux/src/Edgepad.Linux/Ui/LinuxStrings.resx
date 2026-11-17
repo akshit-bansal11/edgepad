@@ -143,7 +143,7 @@
     <value>Edgepad is running</value>
   </data>
   <data name="Fallback_NoTray" xml:space="preserve">
-    <value>Your desktop shows no tray icons. On GNOME, install the 'AppIndicator and KStatusNotifierItem Support' extension to get one.</value>
+    <value>Your desktop shows no tray icons. On GNOME, install the ‘AppIndicator and KStatusNotifierItem Support’ extension to get one.</value>
   </data>
   <data name="FirstRun_NetworkBody" xml:space="preserve">
     <value>Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. Nothing connects without the pairing code typed here.</value>
@@ -221,7 +221,7 @@
     <value>Security</value>
   </data>
   <data name="Security_Intro" xml:space="preserve">
-    <value>Every phone needs your yes here first. Levels 2 and 3 also ask for a six-digit PIN, typed on the phone&apos;s screen. Phones are disconnected while this window is open.</value>
+    <value>Every phone needs your yes here first. Levels 2 and 3 also ask for a six-digit PIN, typed on the phone’s screen. Phones are disconnected while this window is open.</value>
   </data>
   <data name="Security_Level1" xml:space="preserve">
     <value>Trust only</value>
@@ -269,7 +269,7 @@
     <value>{0} ({1}) will have to be trusted here again before it can use this laptop. Phones stay disconnected while you decide.</value>
   </data>
   <data name="Error_ForgetOne" xml:space="preserve">
-    <value>Try Forget again once nothing else is using Edgepad&apos;s files in {0}. {1} could not be fully forgotten: a file could not be rewritten. It stays trusted on disk, but Edgepad refuses it until Edgepad is restarted, and it will be trusted again from then on unless you forget it again.</value>
+    <value>Try Forget again once nothing else is using Edgepad’s files in {0}. {1} could not be fully forgotten: a file could not be rewritten. It stays trusted on disk, but Edgepad refuses it until Edgepad is restarted, and it will be trusted again from then on unless you forget it again.</value>
   </data>
   <data name="Error_PinNotSaved" xml:space="preserve">
     <value>The PIN could not be saved, so nothing was changed. The log has the reason.</value>
@@ -298,13 +298,13 @@ The trusted phones were forgotten, but the PIN could not be reset: a settings fi
     <value>Trust</value>
   </data>
   <data name="Dialog_DontTrust" xml:space="preserve">
-    <value>Don&apos;t trust</value>
+    <value>Don’t trust</value>
   </data>
   <data name="Dialog_TrustHeading" xml:space="preserve">
     <value>Trust {0}?</value>
   </data>
   <data name="Dialog_TrustText" xml:space="preserve">
-    <value>A paired phone is asking to control this laptop&apos;s pointer and keyboard. Trust it only if it is yours. If you do not answer in {0} s, it is not trusted.</value>
+    <value>A paired phone is asking to control this laptop’s pointer and keyboard. Trust it only if it is yours. If you do not answer in {0} s, it is not trusted.</value>
   </data>
   <data name="Pin_Title" xml:space="preserve">
     <value>New PIN</value>

@@ -136,7 +136,7 @@
     <value>Edgepad работает</value>
   </data>
   <data name="Fallback_NoTray" xml:space="preserve">
-    <value>На вашем рабочем столе нет значков в области уведомлений. В GNOME установите расширение 'AppIndicator and KStatusNotifierItem Support', чтобы он появился.</value>
+    <value>На вашем рабочем столе нет значков в области уведомлений. В GNOME установите расширение ‘AppIndicator and KStatusNotifierItem Support’, чтобы он появился.</value>
   </data>
   <data name="FirstRun_NetworkBody" xml:space="preserve">
     <value>Телефоны в той же сети Wi-Fi или подключённые через USB-модем смогут найти этот ноутбук и запросить сопряжение. Без кода сопряжения, введённого здесь, ничего не подключится.</value>

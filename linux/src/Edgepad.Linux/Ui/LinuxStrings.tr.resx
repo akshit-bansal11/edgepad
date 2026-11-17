@@ -37,7 +37,7 @@
     <value>Günlüğü aç</value>
   </data>
   <data name="Menu_Quit" xml:space="preserve">
-    <value>Edgepad'den çık</value>
+    <value>Edgepad’den çık</value>
   </data>
   <data name="Menu_Update" xml:space="preserve">
     <value>Güncelleme var</value>
@@ -121,7 +121,7 @@
     <value>{0} açılamadı: {1} konumunda henüz bir şey yok.</value>
   </data>
   <data name="Open_InstallXdg" xml:space="preserve">
-    <value>{0} açılamadı: xdg-utils'i yükleyin.</value>
+    <value>{0} açılamadı: xdg-utils’i yükleyin.</value>
   </data>
   <data name="What_ReleasePage" xml:space="preserve">
     <value>Sürüm sayfası</value>
@@ -136,13 +136,13 @@
     <value>Edgepad çalışıyor</value>
   </data>
   <data name="Fallback_NoTray" xml:space="preserve">
-    <value>Masaüstünüzde sistem tepsisi simgesi görünmüyor. GNOME'da bir tane görmek için 'AppIndicator and KStatusNotifierItem Support' uzantısını yükleyin.</value>
+    <value>Masaüstünüzde sistem tepsisi simgesi görünmüyor. GNOME’da bir tane görmek için ‘AppIndicator and KStatusNotifierItem Support’ uzantısını yükleyin.</value>
   </data>
   <data name="FirstRun_NetworkBody" xml:space="preserve">
     <value>Aynı Wi-Fi ağındaki veya USB ile internet paylaşımıyla bağlı telefonlar bu bilgisayarı bulup eşleştirme isteyebilecek. Burada yazılan eşleştirme kodu olmadan hiçbir şey bağlanmaz.</value>
   </data>
   <data name="FirstRun_Firewall" xml:space="preserve">
-    <value>Bir güvenlik duvarı bunları engelleyebilir. Örneğin {0}/tcp ve 5353/udp'ye izin verin:</value>
+    <value>Bir güvenlik duvarı bunları engelleyebilir. Örneğin {0}/tcp ve 5353/udp’ye izin verin:</value>
   </data>
   <data name="FirstRun_ShareHeading" xml:space="preserve">
     <value>Pano paylaşılsın mı?</value>
@@ -190,7 +190,7 @@
     <value>Güvenilen telefonlar unutulamadı: dosyaları silinemedi veya boşaltılamadı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak Edgepad bir sonraki başlatıldığında bu telefonlar yeniden güvenilir olacak. Dosyayı tutan şeyi kapatın ve «Güvenlik…» içinde «Tümünü unut…» seçeneğini yeniden seçin veya dosyayı kendiniz silin:</value>
   </data>
   <data name="Error_ForgetPin" xml:space="preserve">
-    <value>PIN giren telefonlar unutulamadı: listeleri silinemedi. Edgepad çalıştığı sürece her telefondan her bağlantıda PIN istenir, ancak Edgepad bir sonraki başlatıldığında bu telefonlar 2. düzeyde PIN'i yine atlayacak. «Güvenlik…» içinde «Tümünü unut…» seçeneğini yeniden seçin veya pin-verified.txt dosyasını şu konumdan kendiniz silin:</value>
+    <value>PIN giren telefonlar unutulamadı: listeleri silinemedi. Edgepad çalıştığı sürece her telefondan her bağlantıda PIN istenir, ancak Edgepad bir sonraki başlatıldığında bu telefonlar 2. düzeyde PIN’i yine atlayacak. «Güvenlik…» içinde «Tümünü unut…» seçeneğini yeniden seçin veya pin-verified.txt dosyasını şu konumdan kendiniz silin:</value>
   </data>
   <data name="Send_PickerTitle" xml:space="preserve">
     <value>Telefona dosya gönder</value>
@@ -229,7 +229,7 @@
     <value>PIN belirle…</value>
   </data>
   <data name="Security_ChangePin" xml:space="preserve">
-    <value>PIN&apos;i değiştir…</value>
+    <value>PIN’i değiştir…</value>
   </data>
   <data name="Security_PinStaged" xml:space="preserve">
     <value>Yeni bir PIN kaydedilecek.</value>
@@ -241,7 +241,7 @@
     <value>PIN belirlenmedi.</value>
   </data>
   <data name="Security_PinNote" xml:space="preserve">
-    <value>Yeni bir PIN veya düzeyi kaydetmek, PIN&apos;i bir kez girmiş telefonlardan onu yeniden girmelerini ister.</value>
+    <value>Yeni bir PIN veya düzeyi kaydetmek, PIN’i bir kez girmiş telefonlardan onu yeniden girmelerini ister.</value>
   </data>
   <data name="Security_TrustedPhones" xml:space="preserve">
     <value>Güvenilen telefonlar</value>
@@ -250,7 +250,7 @@
     <value>Tümünü unut…</value>
   </data>
   <data name="Security_Reset" xml:space="preserve">
-    <value>PIN&apos;i sıfırla ve telefonları unut…</value>
+    <value>PIN’i sıfırla ve telefonları unut…</value>
   </data>
   <data name="Common_Save" xml:space="preserve">
     <value>Kaydet</value>
@@ -271,12 +271,12 @@
     <value>Düzey kaydedilemedi, bu yüzden önceki düzey geçerli kalıyor. Nedeni günlükte yazıyor.</value>
   </data>
   <data name="Security_ResetText" xml:space="preserve">
-    <value>PIN silinir, düzey 1&apos;e döner ve güvenilen her telefon unutulur. Bağlı olan telefon dahil her telefona burada yeniden güvenmeniz gerekir. Unutulan bir PIN geri alınamaz, yalnızca sıfırlanabilir.</value>
+    <value>PIN silinir, düzey 1’e döner ve güvenilen her telefon unutulur. Bağlı olan telefon dahil her telefona burada yeniden güvenmeniz gerekir. Unutulan bir PIN geri alınamaz, yalnızca sıfırlanabilir.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
     <value>Dosyayı tutan şeyi kapatın, sonra “PIN’i sıfırla ve telefonları unut” seçeneğini yeniden seçin ya da dosyayı kendiniz silin:
 {0}
-Hiçbir şey sıfırlanmadı: güvenilen telefonlar unutulamadı, bu yüzden PIN ve düzey olduğu gibi bırakıldı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak bu telefonlar Edgepad&apos;in bir sonraki başlayışında aynı PIN&apos;le yine güvenilir olur.</value>
+Hiçbir şey sıfırlanmadı: güvenilen telefonlar unutulamadı, bu yüzden PIN ve düzey olduğu gibi bırakıldı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak bu telefonlar Edgepad’in bir sonraki başlayışında aynı PIN’le yine güvenilir olur.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
     <value>Dosyayı tutan şeyi kapatın, sonra “PIN’i sıfırla ve telefonları unut” seçeneğini yeniden seçin ya da security.txt ve pin-verified.txt dosyalarını şu klasörden kendiniz silin:
@@ -299,7 +299,7 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
     <value>Yeni PIN</value>
   </data>
   <data name="Pin_AgainName" xml:space="preserve">
-    <value>Yeni PIN&apos;i yeniden girin</value>
+    <value>Yeni PIN’i yeniden girin</value>
   </data>
   <data name="Pin_Digits" xml:space="preserve">
     <value>Altı basamak</value>
@@ -308,7 +308,7 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
     <value>Yeniden</value>
   </data>
   <data name="Pin_Use" xml:space="preserve">
-    <value>Bu PIN&apos;i kullan</value>
+    <value>Bu PIN’i kullan</value>
   </data>
   <data name="Pin_NotSix" xml:space="preserve">
     <value>PIN tam olarak altı basamaklı olmalıdır.</value>

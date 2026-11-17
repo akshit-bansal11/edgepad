@@ -136,7 +136,7 @@
     <value>Edgepad قيد التشغيل</value>
   </data>
   <data name="Fallback_NoTray" xml:space="preserve">
-    <value>لا يعرض سطح المكتب لديك أي أيقونات في منطقة الإشعارات. في GNOME، ثبّت الإضافة 'AppIndicator and KStatusNotifierItem Support' للحصول على واحدة.</value>
+    <value>لا يعرض سطح المكتب لديك أي أيقونات في منطقة الإشعارات. في GNOME، ثبّت الإضافة ‘AppIndicator and KStatusNotifierItem Support’ للحصول على واحدة.</value>
   </data>
   <data name="FirstRun_NetworkBody" xml:space="preserve">
     <value>ستتمكن الهواتف الموجودة على شبكة Wi-Fi نفسها، أو المتصلة عبر خاصية التوصيل عبر USB، من العثور على هذا اللابتوب وطلب الإقران. لن يتصل أي هاتف دون رمز الإقران المكتوب هنا.</value>

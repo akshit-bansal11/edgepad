@@ -136,7 +136,7 @@
     <value>Edgepad działa</value>
   </data>
   <data name="Fallback_NoTray" xml:space="preserve">
-    <value>Twój pulpit nie pokazuje ikon w zasobniku. W GNOME zainstaluj rozszerzenie 'AppIndicator and KStatusNotifierItem Support', aby ją mieć.</value>
+    <value>Twój pulpit nie pokazuje ikon w zasobniku. W GNOME zainstaluj rozszerzenie ‘AppIndicator and KStatusNotifierItem Support’, aby ją mieć.</value>
   </data>
   <data name="FirstRun_NetworkBody" xml:space="preserve">
     <value>Telefony w tej samej sieci Wi-Fi lub połączone przez tethering USB będą mogły znaleźć ten laptop i poprosić o sparowanie. Nic się nie połączy bez kodu parowania wpisanego tutaj.</value>

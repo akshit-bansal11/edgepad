@@ -136,7 +136,7 @@
     <value>Edgepad läuft</value>
   </data>
   <data name="Fallback_NoTray" xml:space="preserve">
-    <value>Dein Desktop zeigt keine Tray-Symbole. Installiere unter GNOME die Erweiterung 'AppIndicator and KStatusNotifierItem Support', um eines zu erhalten.</value>
+    <value>Dein Desktop zeigt keine Tray-Symbole. Installiere unter GNOME die Erweiterung ‘AppIndicator and KStatusNotifierItem Support’, um eines zu erhalten.</value>
   </data>
   <data name="FirstRun_NetworkBody" xml:space="preserve">
     <value>Handys im selben WLAN oder per USB-Tethering können diesen Laptop finden und die Kopplung anfragen. Ohne den hier eingegebenen Kopplungscode verbindet sich nichts.</value>

@@ -136,7 +136,7 @@
     <value>Edgepad se está ejecutando</value>
   </data>
   <data name="Fallback_NoTray" xml:space="preserve">
-    <value>Tu escritorio no muestra iconos en la bandeja. En GNOME, instala la extensión 'AppIndicator and KStatusNotifierItem Support' para tener uno.</value>
+    <value>Tu escritorio no muestra iconos en la bandeja. En GNOME, instala la extensión ‘AppIndicator and KStatusNotifierItem Support’ para tener uno.</value>
   </data>
   <data name="FirstRun_NetworkBody" xml:space="preserve">
     <value>Los teléfonos de la misma red Wi-Fi, o conectados por USB con «Compartir conexión por USB», podrán encontrar esta laptop y pedir vincularse. Nada se conecta sin el código de vinculación escrito aquí.</value>

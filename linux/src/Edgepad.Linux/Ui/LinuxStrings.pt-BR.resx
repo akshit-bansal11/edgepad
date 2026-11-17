@@ -136,7 +136,7 @@
     <value>O Edgepad está em execução</value>
   </data>
   <data name="Fallback_NoTray" xml:space="preserve">
-    <value>Sua área de trabalho não mostra ícones na bandeja. No GNOME, instale a extensão 'AppIndicator and KStatusNotifierItem Support' para ter um.</value>
+    <value>Sua área de trabalho não mostra ícones na bandeja. No GNOME, instale a extensão ‘AppIndicator and KStatusNotifierItem Support’ para ter um.</value>
   </data>
   <data name="FirstRun_NetworkBody" xml:space="preserve">
     <value>Celulares na mesma rede Wi-Fi, ou conectados por tethering USB, poderão encontrar este notebook e pedir o pareamento. Nada se conecta sem o código de pareamento digitado aqui.</value>

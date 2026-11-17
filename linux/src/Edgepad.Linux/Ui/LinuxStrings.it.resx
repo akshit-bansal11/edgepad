@@ -19,7 +19,7 @@
     <value>Condividi appunti</value>
   </data>
   <data name="Menu_ShareClipboardTip" xml:space="preserve">
-    <value>Copia su un dispositivo, incolla sull'altro: testo e immagini.</value>
+    <value>Copia su un dispositivo, incolla sull’altro: testo e immagini.</value>
   </data>
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Controlla gli aggiornamenti ogni giorno</value>
@@ -79,7 +79,7 @@
     <value>Dimentica</value>
   </data>
   <data name="Error_SettingNotSaved" xml:space="preserve">
-    <value>Impossibile salvare l'impostazione, quindi non è stato modificato nulla. Il motivo è nel log.</value>
+    <value>Impossibile salvare l’impostazione, quindi non è stato modificato nulla. Il motivo è nel log.</value>
   </data>
   <data name="Balloon_WantsToPair" xml:space="preserve">
     <value>{0} vuole associarsi. Digita il codice di associazione che mostra.</value>
@@ -103,7 +103,7 @@
     <value>Installa</value>
   </data>
   <data name="Menu_StartAtLogin" xml:space="preserve">
-    <value>Avvia all'accesso</value>
+    <value>Avvia all’accesso</value>
   </data>
   <data name="Hint_Off" xml:space="preserve">
     <value>Disattivato</value>
@@ -118,7 +118,7 @@
     <value>Impossibile mettersi in ascolto; vedi il log</value>
   </data>
   <data name="Open_Nothing" xml:space="preserve">
-    <value>Impossibile aprire {0}: in {1} non c'è ancora nulla.</value>
+    <value>Impossibile aprire {0}: in {1} non c’è ancora nulla.</value>
   </data>
   <data name="Open_InstallXdg" xml:space="preserve">
     <value>Impossibile aprire {0}: installa xdg-utils.</value>
@@ -136,7 +136,7 @@
     <value>Edgepad è in esecuzione</value>
   </data>
   <data name="Fallback_NoTray" xml:space="preserve">
-    <value>Il tuo desktop non mostra icone nell'area di notifica. Su GNOME, installa l'estensione 'AppIndicator and KStatusNotifierItem Support' per averne una.</value>
+    <value>Il tuo desktop non mostra icone nell’area di notifica. Su GNOME, installa l’estensione ‘AppIndicator and KStatusNotifierItem Support’ per averne una.</value>
   </data>
   <data name="FirstRun_NetworkBody" xml:space="preserve">
     <value>I telefoni sulla stessa rete Wi-Fi, o collegati tramite tethering USB, potranno trovare questo portatile e chiedere di associarsi. Nessuna connessione avviene senza il codice di associazione digitato qui.</value>
@@ -160,22 +160,22 @@
     <value>Edgepad non si è avviato</value>
   </data>
   <data name="Notice_TrayFailed" xml:space="preserve">
-    <value>Non è stato possibile configurare la sua icona nell'area di notifica. Il motivo è nel log.</value>
+    <value>Non è stato possibile configurare la sua icona nell’area di notifica. Il motivo è nel log.</value>
   </data>
   <data name="Update_MajorConfirm" xml:space="preserve">
-    <value>Edgepad {0} cambia il modo in cui portatile e telefono comunicano. Installa anche l'app corrispondente sul telefono, altrimenti non si connetteranno. Installare ora l'aggiornamento del portatile?</value>
+    <value>Edgepad {0} cambia il modo in cui portatile e telefono comunicano. Installa anche l’app corrispondente sul telefono, altrimenti non si connetteranno. Installare ora l’aggiornamento del portatile?</value>
   </data>
   <data name="Update_NeedsRoot" xml:space="preserve">
     <value>Edgepad {0} è stato scaricato e verificato, ma questa copia è installata dove solo un amministratore può modificarla. Apri un terminale ed esegui:</value>
   </data>
   <data name="Update_InstallFailed" xml:space="preserve">
-    <value>Impossibile installare l'aggiornamento, quindi non è stato modificato nulla. Il motivo è nel log.</value>
+    <value>Impossibile installare l’aggiornamento, quindi non è stato modificato nulla. Il motivo è nel log.</value>
   </data>
   <data name="Error_NotSavedAfterRestart" xml:space="preserve">
-    <value>Questo vale ora, ma non è stato possibile salvarlo, quindi tornerà com'era dopo un riavvio. Il motivo è nel log.</value>
+    <value>Questo vale ora, ma non è stato possibile salvarlo, quindi tornerà com’era dopo un riavvio. Il motivo è nel log.</value>
   </data>
   <data name="Error_AutostartFailed" xml:space="preserve">
-    <value>Impossibile modificare l'avvio all'accesso. Il motivo è nel log.</value>
+    <value>Impossibile modificare l’avvio all’accesso. Il motivo è nel log.</value>
   </data>
   <data name="Forget_AllNamed" xml:space="preserve">
     <value>Dimenticare tutti i telefoni attendibili ({0})? Ogni telefono, anche questo, dovrà essere di nuovo reso attendibile qui prima di poter usare questo portatile.</value>
@@ -202,7 +202,7 @@
     <value>{0} è stato inviato al telefono.</value>
   </data>
   <data name="Send_Cancelled" xml:space="preserve">
-    <value>L'invio di {0} è stato annullato.</value>
+    <value>L’invio di {0} è stato annullato.</value>
   </data>
   <data name="Send_NotSent" xml:space="preserve">
     <value>{0} non è stato inviato ({1}).</value>
@@ -256,13 +256,13 @@
     <value>Salva</value>
   </data>
   <data name="Security_NoPhones" xml:space="preserve">
-    <value>Nessun telefono è ancora autorizzato. L&apos;autorizzazione viene chiesta la prima volta che un telefono si connette.</value>
+    <value>Nessun telefono è ancora autorizzato. L’autorizzazione viene chiesta la prima volta che un telefono si connette.</value>
   </data>
   <data name="Security_ForgetOneText" xml:space="preserve">
     <value>{0} ({1}) dovrà essere autorizzato di nuovo qui prima di poter usare questo portatile. I telefoni restano disconnessi mentre decidi.</value>
   </data>
   <data name="Error_ForgetOne" xml:space="preserve">
-    <value>Riprova con Dimentica quando nient&apos;altro usa i file di Edgepad in {0}. Non è stato possibile dimenticare del tutto {1}: un file non ha potuto essere riscritto. Resta autorizzato su disco, ma Edgepad lo rifiuta finché non viene riavviato, e da quel momento sarà di nuovo autorizzato, a meno che tu non lo dimentichi di nuovo.</value>
+    <value>Riprova con Dimentica quando nient’altro usa i file di Edgepad in {0}. Non è stato possibile dimenticare del tutto {1}: un file non ha potuto essere riscritto. Resta autorizzato su disco, ma Edgepad lo rifiuta finché non viene riavviato, e da quel momento sarà di nuovo autorizzato, a meno che tu non lo dimentichi di nuovo.</value>
   </data>
   <data name="Error_PinNotSaved" xml:space="preserve">
     <value>Impossibile salvare il PIN, quindi non è stato modificato nulla. Il motivo è nel log.</value>
@@ -396,7 +396,7 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
     <value>Programma, file, cartella o link</value>
   </data>
   <data name="Macro_AddApp" xml:space="preserve">
-    <value>Aggiungi un&apos;app</value>
+    <value>Aggiungi un’app</value>
   </data>
   <data name="Macro_NoApps" xml:space="preserve">
     <value>Nessuna app trovata su questo portatile.</value>
