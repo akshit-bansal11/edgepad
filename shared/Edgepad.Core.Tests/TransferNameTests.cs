@@ -35,6 +35,13 @@ public sealed class TransferNameTests
     }
 
     [Fact]
+    public void SupplementaryPlaneFormatCharactersAreDropped()
+    {
+        Assert.Equal("invoicefdp.exe", SafeFileName.Clean("invoice\U000E0001fdp.exe"));
+        Assert.Equal("a\uD83D\uDE00b.txt", SafeFileName.Clean("a\uD83D\uDE00\U000E0020b.txt"));
+    }
+
+    [Fact]
     public void ACutNeverSplitsACodePointAndKeepsTheExtension()
     {
         var name = SafeFileName.Clean(new string('é', 100) + ".pdf");

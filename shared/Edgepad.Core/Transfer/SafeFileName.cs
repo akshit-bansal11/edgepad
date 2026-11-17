@@ -34,11 +34,11 @@ internal static class SafeFileName
         var cut = raw.LastIndexOfAny(['/', '\\']);
         var segment = cut >= 0 ? raw[(cut + 1)..] : raw;
         var text = new StringBuilder(segment.Length);
-        foreach (var ch in segment)
+        foreach (var rune in segment.EnumerateRunes())
         {
-            if (!char.IsControl(ch) && char.GetUnicodeCategory(ch) != UnicodeCategory.Format)
+            if (!Rune.IsControl(rune) && Rune.GetUnicodeCategory(rune) != UnicodeCategory.Format)
             {
-                text.Append(Invalid.Contains(ch, StringComparison.Ordinal) ? '_' : ch);
+                text.Append(rune.IsBmp && Invalid.Contains((char)rune.Value, StringComparison.Ordinal) ? '_' : rune.ToString());
             }
         }
 

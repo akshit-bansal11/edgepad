@@ -50,3 +50,4 @@ invoice⁦fdp.exe | invoicefdp.exe
 invoice⁩fdp.exe | invoicefdp.exe
 invoice﻿fdp.exe | invoicefdp.exe
 ‮‪ | (rejected)
+invoice󠀁fdp.exe | invoicefdp.exe
