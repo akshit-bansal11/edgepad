@@ -87,6 +87,7 @@ export function DocsSearch() {
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
+          placeholder={"Bluetooth pairing, gamepad, quality gate…"}
           autoComplete="off"
           spellCheck={false}
           className="border-line bg-background text-foreground focus-visible:outline-primary min-h-11 w-full rounded-xl border px-3 text-base"
