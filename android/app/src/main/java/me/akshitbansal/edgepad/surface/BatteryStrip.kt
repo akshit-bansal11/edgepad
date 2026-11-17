@@ -59,6 +59,9 @@ class BatteryStrip(
 
     private val chips = Array(MAX_CHIPS) { Chip(icon(R.drawable.ic_battery_bolt, accent)) }
     private var count = 0
+
+    /** False when the text would otherwise shrink under [FLOOR_SP]: the device icons are then left out. */
+    private var iconsShown = true
     private var centreX = 0f
 
     /** How far below its own place a display cutout pushed the strip, in px; see [layout]. */
@@ -168,7 +171,7 @@ class BatteryStrip(
                     canvas.drawRoundRect(chip.lit, radius, radius, fill)
                 }
             }
-            chip.icon?.draw(canvas)
+            if (iconsShown) chip.icon?.draw(canvas)
             if (chip.charging) chip.bolt.draw(canvas)
             text.color =
                 when {
@@ -176,7 +179,7 @@ class BatteryStrip(
                     chip.icon == null -> dim
                     else -> ink
                 }
-            text.drawFitted(canvas, chip.label, chip.textX, baseline, room(chip))
+            text.drawFitted(canvas, chip.label, chip.textX, baseline, room(chip), 1f)
         }
     }
 
@@ -219,7 +222,7 @@ class BatteryStrip(
     /** The text room a chip leaves once its padding, icon and bolt are taken. */
     private fun room(chip: Chip): Float {
         var room = widthOf(chip) - dp(2 * PAD_DP)
-        if (chip.icon != null) room -= dp(ICON_DP + GAP_IN_DP)
+        if (chip.icon != null && iconsShown) room -= dp(ICON_DP + GAP_IN_DP)
         if (chip.charging) room -= dp(BOLT_DP + GAP_IN_DP)
         return room
     }
@@ -227,12 +230,22 @@ class BatteryStrip(
     /** A large font scale shrinks the labels to fit their fixed chips rather than spilling out of them. */
     private fun fitText() {
         text.textSize = baseTextSize
+        val floor = minOf(1f, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, FLOOR_SP, metrics) / baseTextSize)
+        // Not under the floor: the device icons go first, and what room that frees is what the text then gets.
+        iconsShown = true
+        if (StripFit.dropsIcons(neededScale(), floor)) iconsShown = false
+        text.textSize = baseTextSize * StripFit.scale(neededScale(), floor)
+    }
+
+    /** The scale at which every label fits its chip, from 1 up to any size that is needed, measured at base size. */
+    private fun neededScale(): Float {
+        text.textSize = baseTextSize
         var scale = 1f
         for (i in 0 until count) {
             val width = text.measureText(chips[i].label)
             if (width > 0f) scale = minOf(scale, room(chips[i]) / width)
         }
-        text.textSize = baseTextSize * scale
+        return scale
     }
 
     private fun place() {
@@ -255,16 +268,12 @@ class BatteryStrip(
             chip.line.set(box.left, box.bottom - dp(LINE_DP), box.right, box.bottom)
             chip.lit.set(box.left, chip.line.top, box.left + box.width() * chip.level / FULL, box.bottom)
             val labelWidth = text.measureText(chip.label)
-            val icon = chip.icon
-            var x =
-                if (icon == null) {
-                    // The +N chip: its label alone, centred.
-                    chip.box.centerX() - labelWidth / 2
-                } else {
-                    var content = dp(ICON_DP + GAP_IN_DP) + labelWidth
-                    if (chip.charging) content += dp(GAP_IN_DP + BOLT_DP)
-                    chip.box.centerX() - content / 2
-                }
+            val icon = chip.icon?.takeIf { iconsShown }
+            // The +N chip, or one whose icon was dropped for room, is its label alone, centred.
+            var content = labelWidth
+            if (icon != null) content += dp(ICON_DP + GAP_IN_DP)
+            if (chip.charging) content += dp(GAP_IN_DP + BOLT_DP)
+            var x = chip.box.centerX() - content / 2
             if (icon != null) {
                 bounds(icon, x, cy, dp(ICON_DP))
                 x += dp(ICON_DP + GAP_IN_DP)
@@ -339,6 +348,9 @@ class BatteryStrip(
         private const val BOLT_DP = 9f
         private const val GAP_IN_DP = 2f
         private const val TEXT_SP = 11f
+
+        /** The smallest the chips' text is drawn at, however large the system font. */
+        private const val FLOOR_SP = 8f
         private const val SCRIM_ALPHA = 0.5f
         private const val SCRIM_MID = 0.5f
         private const val FULL = 100f
