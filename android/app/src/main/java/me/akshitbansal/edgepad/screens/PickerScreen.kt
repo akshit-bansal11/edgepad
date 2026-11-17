@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.screens
 
 import android.app.AlertDialog
+import android.content.Context
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -102,11 +103,11 @@ class PickerScreen(
                 card {
                     add(ui.link(ui.string(R.string.update_available), "", onUpdate) { updateVersion = it })
                     add(
-                        LinearLayout(ui.context).apply {
-                            gravity = Gravity.END
-                            addView(ui.button(ui.string(R.string.updates_skip), Ui.Style.QUIET, onSkip))
-                            addView(ui.button(ui.string(R.string.updates_later), Ui.Style.QUIET, onLater))
-                        },
+                        ButtonPair(
+                            ui.context,
+                            ui.button(ui.string(R.string.updates_skip), Ui.Style.QUIET, onSkip),
+                            ui.button(ui.string(R.string.updates_later), Ui.Style.QUIET, onLater),
+                        ),
                     )
                 }.apply { visibility = View.GONE }
             columns(
@@ -484,3 +485,43 @@ internal val Transport.label: Int
             Transport.WIFI -> R.string.transport_wifi
             Transport.USB -> R.string.transport_usb
         }
+
+/**
+ * Two buttons at the end of a row, or stacked one above the other when together they are wider than the row,
+ * as a long translation of "Skip this version" is on a narrow phone. The orientation is settled in [onMeasure].
+ */
+private class ButtonPair(
+    context: Context,
+    private val first: View,
+    private val second: View,
+) : LinearLayout(context) {
+    /** For layout tools only (lint ViewConstructor); the app always passes its buttons. */
+    constructor(context: Context) : this(context, View(context), View(context))
+
+    private var stacked = false
+
+    init {
+        gravity = Gravity.END
+        addView(first)
+        addView(second)
+    }
+
+    override fun onMeasure(
+        widthMeasureSpec: Int,
+        heightMeasureSpec: Int,
+    ) {
+        val free = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+        first.measure(free, free)
+        second.measure(free, free)
+        val room = MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight
+        val stack = Squeeze.stacks(first.measuredWidth + second.measuredWidth, room)
+        if (stack != stacked) {
+            stacked = stack
+            orientation = if (stack) VERTICAL else HORIZONTAL
+            val across = if (stack) ViewGroup.LayoutParams.MATCH_PARENT else ViewGroup.LayoutParams.WRAP_CONTENT
+            first.layoutParams = LayoutParams(across, ViewGroup.LayoutParams.WRAP_CONTENT)
+            second.layoutParams = LayoutParams(across, ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    }
+}
