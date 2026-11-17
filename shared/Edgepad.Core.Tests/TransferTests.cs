@@ -416,6 +416,31 @@ public sealed class TransferTests : IDisposable
     }
 
     [Fact]
+    public void AChunkLostMidTransferIsResentBeforeEndIsSent()
+    {
+        var path = Source("lost.bin", RandomNumberGenerator.GetBytes(FrameCodec.MaxXferChunkBytes * 6));
+        var lostAt = (ulong)FrameCodec.MaxXferChunkBytes;
+        var seen = new List<Frame>();
+        var dropped = false;
+        wire = frame =>
+        {
+            seen.Add(frame);
+            if (!dropped && frame is XferChunk { Offset: var at } && at == lostAt)
+            {
+                dropped = true;
+                return null;
+            }
+
+            return frame;
+        };
+
+        Assert.Equal(XferCode.Saved, Send(path));
+
+        var firstEnd = seen.FindIndex(f => f is XferEnd);
+        Assert.Equal(2, seen.Take(firstEnd).OfType<XferChunk>().Count(c => c.Offset == lostAt));
+    }
+
+    [Fact]
     public void AStatusItDoesNotKnowOrAnotherIdIsNotTaken()
     {
         Assert.False(sender.Take(new XferStatus(1, (byte)XferCode.Ready, 0)));

@@ -223,7 +223,11 @@ internal sealed class TransferSender(
             var from = resendAt;
             resendAt = null;
             sentTo = from ?? sentTo;
-            lastProgress = null;
+            if (from is not null)
+            {
+                lastProgress = null;
+            }
+
             return from;
         }
     }
