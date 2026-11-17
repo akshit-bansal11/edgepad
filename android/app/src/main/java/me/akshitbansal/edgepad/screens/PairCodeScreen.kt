@@ -3,6 +3,7 @@ package me.akshitbansal.edgepad.screens
 import android.os.SystemClock
 import android.view.Gravity
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
@@ -16,7 +17,7 @@ import me.akshitbansal.edgepad.surface.Clock
  * answer: did the laptop say the code matched? The laptop's answer alone proves nothing, since a device in the
  * middle could send it, so only Yes keeps the pairing; No, like Cancel and back, ends it with nothing kept.
  *
- * [code] is grouped as "482 913"; a screen reader hears it digit by digit.
+ * [code] is shown as one box per digit, grouped in two halves like "482 913"; a screen reader hears it digit by digit.
  */
 class PairCodeScreen(
     private val ui: Ui,
@@ -61,14 +62,7 @@ class PairCodeScreen(
             val explanation =
                 if (asking) ui.string(R.string.pair_confirm_body) else ui.string(R.string.pair_body, laptopName)
             body(explanation, Space.XS).gravity = Gravity.CENTER
-            add(
-                ui.text(code, CODE_SP, ui.palette.ink, CODE_TRACKING, Type.black).apply {
-                    gravity = Gravity.CENTER
-                    val spoken = code.filter(Char::isDigit).toList().joinToString(" ")
-                    contentDescription = ui.string(R.string.pair_code_spoken, spoken)
-                },
-                Space.XL,
-            )
+            add(digitBoxes(code), Space.XL, width = ui.dp(BUTTON_DP))
             countdown = secondary("", topDp = Space.M).apply { gravity = Gravity.CENTER }
             if (asking) {
                 countdown.visibility = View.GONE
@@ -95,14 +89,46 @@ class PairCodeScreen(
             grow()
         }
 
+    /**
+     * UX-D40: [code] as one box per digit, so each is read and typed on the laptop one at a time. The boxes share the
+     * row's width, with a wider gap in the middle where the code is grouped; a screen reader hears one description.
+     */
+    private fun digitBoxes(code: String): LinearLayout {
+        val digits = code.filter(Char::isDigit)
+        return LinearLayout(ui.context).apply {
+            gravity = Gravity.CENTER
+            // Digits read left to right in every language.
+            layoutDirection = View.LAYOUT_DIRECTION_LTR
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+            contentDescription = ui.string(R.string.pair_code_spoken, digits.toList().joinToString(" "))
+            digits.forEachIndexed { i, digit ->
+                val box =
+                    ui.text(digit.toString(), DIGIT_SP, ui.palette.ink, face = Type.black).apply {
+                        gravity = Gravity.CENTER
+                        background = ui.rounded(ui.palette.card, Space.CARD_RADIUS)
+                        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                    }
+                val params = LinearLayout.LayoutParams(0, ui.dp(BOX_DP), 1f)
+                val groupStart = digits.length >= GROUPED && i == digits.length / 2
+                if (i > 0) params.marginStart = ui.dp(if (groupStart) GROUP_GAP_DP else BOX_GAP_DP)
+                addView(box, params)
+            }
+        }
+    }
+
     init {
         view.accessibilityPaneTitle = title
         if (!asking) tick.run()
     }
 
     private companion object {
-        const val CODE_SP = 56f
-        const val CODE_TRACKING = 0.08f
+        const val DIGIT_SP = 32f
+        const val BOX_DP = 60f
+        const val BOX_GAP_DP = 6f
+        const val GROUP_GAP_DP = 16f
+
+        /** A code of this many digits or more is shown in two groups. */
+        const val GROUPED = 6
         const val MS_PER_S = 1_000L
 
         /** Held to the PIN keypad's width rather than stretched across a wide screen. */
