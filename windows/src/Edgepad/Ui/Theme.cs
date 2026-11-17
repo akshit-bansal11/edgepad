@@ -266,6 +266,12 @@ internal static partial class Theme
         (int)Math.Round(from.G + ((to.G - from.G) * amount)),
         (int)Math.Round(from.B + ((to.B - from.B) * amount)));
 
+    /// <summary>
+    /// The radius of a shape set <paramref name="gap"/> inside one of radius <paramref name="outer"/>: the difference, never the
+    /// same number, so the two corners share a centre (DES-D20). Zero when the gap is wider than the outer radius.
+    /// </summary>
+    public static float Inner(float outer, float gap) => Math.Max(outer - gap, 0f);
+
     public static GraphicsPath Rounded(RectangleF bounds, float radius)
     {
         var path = new GraphicsPath();
