@@ -36,6 +36,13 @@ class SafeNameTest {
     }
 
     @Test
+    fun supplementaryPlaneFormatCharactersAreDropped() {
+        val tag = String(Character.toChars(0xE0001))
+        assertEquals("ab.txt", SafeName.clean("a${tag}b.txt"))
+        assertNull(SafeName.clean(tag))
+    }
+
+    @Test
     fun aClashIsRenamedNeverOverwritten() {
         val taken = setOf("a.txt", "a (1).txt")
         assertEquals("a (2).txt", SafeName.unique("a.txt") { it in taken })

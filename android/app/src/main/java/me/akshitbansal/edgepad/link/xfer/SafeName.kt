@@ -18,12 +18,12 @@ object SafeName {
     fun clean(raw: String?): String? {
         if (raw.isNullOrEmpty()) return null
         val segment = raw.substring(raw.lastIndexOfAny(charArrayOf('/', '\\')) + 1)
-        val text =
-            segment
-                .filterNot { it.isISOControl() || isBidiOrFormat(it) }
-                .map { if (it in INVALID) '_' else it }
-                .joinToString("")
-        val name = cutToBytes(text.trimEnd('.', ' ')).trimEnd('.', ' ')
+        val text = StringBuilder()
+        segment.codePoints().forEach {
+            if (Character.isISOControl(it) || isBidiOrFormat(it)) return@forEach
+            text.appendCodePoint(if (it < 0x80 && it.toChar() in INVALID) '_'.code else it)
+        }
+        val name = cutToBytes(text.toString().trimEnd('.', ' ')).trimEnd('.', ' ')
         if (name.isEmpty()) return null
         val stem = name.substringBefore('.').trimEnd(' ')
         return if (stem.uppercase() in reserved) null else name
@@ -44,8 +44,8 @@ object SafeName {
     }
 
     // Invisible format characters (Unicode Cf) that reorder or hide text: invoice<U+202E>fdp.exe would show as
-    // invoiceexe.pdf. The whole category, as the C# and Swift sanitisers drop it.
-    private fun isBidiOrFormat(c: Char): Boolean = Character.getType(c) == Character.FORMAT.toInt()
+    // invoiceexe.pdf. The whole category, U+E0001 too, as C# and Swift drop it.
+    private fun isBidiOrFormat(point: Int): Boolean = Character.getType(point) == Character.FORMAT.toInt()
 
     private fun utf8(text: String): Int = text.toByteArray(Charsets.UTF_8).size
 
