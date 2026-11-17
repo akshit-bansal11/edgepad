@@ -530,4 +530,10 @@
   <data name="Menu_Notifications" xml:space="preserve">
     <value>फ़ोन पर सूचनाएँ दिखाएँ</value>
   </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>इंस्टॉल करें</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>अभी नहीं</value>
+  </data>
 </root>

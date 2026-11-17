@@ -530,4 +530,10 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
   <data name="Menu_Notifications" xml:space="preserve">
     <value>通知をスマートフォンに表示</value>
   </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>インストール</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>今はしない</value>
+  </data>
 </root>

@@ -530,4 +530,10 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
   <data name="Menu_Notifications" xml:space="preserve">
     <value>在手机上显示通知</value>
   </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>安装</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>暂不</value>
+  </data>
 </root>

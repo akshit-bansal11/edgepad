@@ -530,4 +530,10 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n'a pas pu êtr
   <data name="Menu_Notifications" xml:space="preserve">
     <value>Afficher les notifications sur le téléphone</value>
   </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Installer</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Pas maintenant</value>
+  </data>
 </root>

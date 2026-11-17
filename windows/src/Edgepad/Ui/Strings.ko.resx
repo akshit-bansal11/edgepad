@@ -530,4 +530,10 @@ Wi-Fi 및 USB 페어링을 등록 해제하지 못했어요. 파일을 삭제하
   <data name="Menu_Notifications" xml:space="preserve">
     <value>휴대폰에 알림 표시</value>
   </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>설치</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>나중에</value>
+  </data>
 </root>

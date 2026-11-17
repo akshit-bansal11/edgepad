@@ -466,7 +466,7 @@ internal sealed class TrayContext : ApplicationContext
             }
 
             if (decision == UpdateDecision.InstallNeedsMajorConfirm
-                && !Ask.YesNo(null, Strings.Update_MajorWarning, "Edgepad", MessageBoxIcon.Question))
+                && !Ask.Confirm(null, Strings.Update_MajorWarning, "Edgepad", MessageBoxIcon.Question, Strings.Update_Install, Strings.Update_NotNow))
             {
                 return;
             }

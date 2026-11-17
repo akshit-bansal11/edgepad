@@ -530,4 +530,10 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   <data name="Menu_Notifications" xml:space="preserve">
     <value>Mostrar notificações no celular</value>
   </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Instalar</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Agora não</value>
+  </data>
 </root>

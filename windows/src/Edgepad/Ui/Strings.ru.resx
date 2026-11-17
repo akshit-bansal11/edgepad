@@ -530,4 +530,10 @@
   <data name="Menu_Notifications" xml:space="preserve">
     <value>Показывать уведомления на телефоне</value>
   </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Установить</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Не сейчас</value>
+  </data>
 </root>

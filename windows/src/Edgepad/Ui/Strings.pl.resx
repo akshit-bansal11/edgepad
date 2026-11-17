@@ -530,4 +530,10 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Menu_Notifications" xml:space="preserve">
     <value>Pokazuj powiadomienia na telefonie</value>
   </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Zainstaluj</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Nie teraz</value>
+  </data>
 </root>

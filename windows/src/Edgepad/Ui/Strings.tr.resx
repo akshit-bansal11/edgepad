@@ -520,4 +520,10 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Menu_Notifications" xml:space="preserve">
     <value>Bildirimleri telefonda göster</value>
   </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Yükle</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Şimdi değil</value>
+  </data>
 </root>

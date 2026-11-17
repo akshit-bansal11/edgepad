@@ -530,4 +530,10 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Menu_Notifications" xml:space="preserve">
     <value>Mostrar notificaciones en el teléfono</value>
   </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Instalar</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Ahora no</value>
+  </data>
 </root>

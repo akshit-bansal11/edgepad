@@ -511,4 +511,10 @@
   <data name="Menu_Notifications" xml:space="preserve">
     <value>Meldingen op de telefoon tonen</value>
   </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Installeren</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Niet nu</value>
+  </data>
 </root>

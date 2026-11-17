@@ -530,4 +530,10 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Menu_Notifications" xml:space="preserve">
     <value>Benachrichtigungen auf dem Handy anzeigen</value>
   </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Installieren</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Nicht jetzt</value>
+  </data>
 </root>
