@@ -196,7 +196,12 @@ class ControlsPopup(
             body.addView(note)
         }
         // Whatever is below the tiles stays reachable on a short screen.
-        val scroll = ScrollView(ui.context).apply { addView(body) }
+        val scroll =
+            ScrollView(ui.context).apply {
+                isVerticalFadingEdgeEnabled = true
+                setFadingEdgeLength(ui.dp(FADE_EDGE_DP))
+                addView(body)
+            }
         val shownDialog =
             AlertDialog
                 .Builder(ui.context)

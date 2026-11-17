@@ -33,6 +33,11 @@ import me.akshitbansal.edgepad.Type
 
 private const val SECTION_TOP_DP = 24f
 private const val FOCUS_RING_DP = 2f
+
+/** How far a scrolling page fades out at its top and bottom edge. */
+const val FADE_EDGE_DP = 24f
+
+
 private const val KNOB_DP = 26f
 private const val KNOB_GAP_DP = 2f
 private const val TRACK_DP = 4f
@@ -128,6 +133,9 @@ class Ui(
             ScrollView(context).apply {
                 isFillViewport = true
                 isVerticalScrollBarEnabled = false
+                // DES-D26: content fades at an edge it scrolls under; the platform draws nothing when it fits.
+                isVerticalFadingEdgeEnabled = true
+                setFadingEdgeLength(dp(FADE_EDGE_DP))
                 setPadding(side, top, side, end)
                 clipToPadding = false
                 addView(
