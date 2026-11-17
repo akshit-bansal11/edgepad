@@ -80,3 +80,12 @@ internal fun appRoom(
     room: Float,
     overhead: Float,
 ): Float = maxOf(0f, room - overhead)
+
+/**
+ * How much taller the now-playing box stands, in px, when the sub-line is drawn at [textPx] and not at the
+ * [defaultPx] it was spaced for: a large system font would otherwise set its baseline on the progress line.
+ */
+internal fun subLineGrowth(
+    textPx: Float,
+    defaultPx: Float,
+): Float = maxOf(0f, textPx - defaultPx)

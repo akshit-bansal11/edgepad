@@ -22,4 +22,11 @@ class ClockTest {
         assertEquals(40f, appRoom(120f, 80f), 0f)
         assertEquals(0f, appRoom(120f, 135f), 0f)
     }
+
+    @Test
+    fun theBoxGrowsOnlyByWhatALargerFontAdds() {
+        assertEquals(0f, subLineGrowth(13f, 13f), 0f)
+        assertEquals(0f, subLineGrowth(11f, 13f), 0f)
+        assertEquals(13f, subLineGrowth(26f, 13f), 0f)
+    }
 }

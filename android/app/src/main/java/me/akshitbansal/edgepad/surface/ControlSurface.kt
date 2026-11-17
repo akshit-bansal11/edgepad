@@ -586,7 +586,7 @@ class ControlSurface(
         val roomMax = maxOf(w - 2 * dp(painter.halfLengthDp + Space.L) - fixed, media(NOW_PLAYING_MIN_TEXT_DP))
         val text = maxOf(titlePaint.measureText(titleLine), subPaint.measureText(subLine))
         val half = (fixed + text.coerceIn(media(NOW_PLAYING_MIN_TEXT_DP), roomMax)) / 2
-        val tall = media(NOW_PLAYING_HEIGHT_DP) / 2
+// A larger system font drops the sub-line's baseline by the growth; the box's half grows by as much,        // so the gap to the progress line stays what it was.        val growth = subLineGrowth(subPaint.textSize, dp(Type.MICRO) * mediaScale)        val tall = media(NOW_PLAYING_HEIGHT_DP) / 2 + growth
         nowPlayingBox.set(nx * w - half, ny * h - tall, nx * w + half, ny * h + tall)
         val touch = dp(Space.TOUCH) / 2
         progressHit.set(
