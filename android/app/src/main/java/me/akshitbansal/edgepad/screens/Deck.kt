@@ -94,7 +94,6 @@ class Deck(
         val labelSp: Float,
         val line: Int,
         val icon: Int,
-
         /** The width of one cell, which a label has to fit in. */
         val cell: Int,
         /** No label row anywhere: the labels are off and every tile has its picture. */
