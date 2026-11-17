@@ -420,7 +420,7 @@ internal sealed class LevelOverlay : IDisposable
             graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 
             var dpi = laidOutAt;
-            using (var hairline = new Pen(Colours.Line))
+            using (var hairline = new Pen(Colours.Hairline))
             using (var outline = Theme.Rounded(new RectangleF(0, 0, Width - 1, Height - 1), Metrics.Scale(Corner, dpi)))
             {
                 graphics.DrawPath(hairline, outline);

@@ -225,7 +225,7 @@ internal sealed class TrayMenu : ContextMenuStrip
             using var card = new SolidBrush(menu.Palette.Card);
             e.Graphics.FillRectangle(card, new Rectangle(Point.Empty, menu.Size));
 
-            using var line = new Pen(menu.Palette.Line);
+            using var line = new Pen(menu.Palette.Hairline);
             foreach (ToolStripItem item in menu.Items)
             {
                 if (item is ToolStripSeparator && item.Available)
@@ -244,7 +244,7 @@ internal sealed class TrayMenu : ContextMenuStrip
         {
             if (e.ToolStrip is TrayMenu menu)
             {
-                using var line = new Pen(menu.Palette.Line);
+                using var line = new Pen(menu.Palette.Hairline);
                 e.Graphics.DrawRectangle(line, 0, 0, menu.Width - 1, menu.Height - 1);
             }
         }

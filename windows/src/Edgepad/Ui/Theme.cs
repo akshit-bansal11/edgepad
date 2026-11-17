@@ -32,8 +32,17 @@ internal sealed record Palette(
     Color Danger,
     bool IsDark)
 {
+    private const int HairlineAlpha = 31;
+
     /// <summary>True for the set built from Windows' contrast theme: borders are thicker and nothing relies on a tint.</summary>
     public bool HighContrast { get; init; }
+
+    /// <summary>
+    /// Dividers and outlines drawn on a card: the ink at low alpha, so the contrast is the same over any surface (DES-D22).
+    /// Line stays the opaque twin for what cannot take alpha, such as the window border Windows draws. A contrast theme
+    /// keeps its solid colour.
+    /// </summary>
+    public Color Hairline => HighContrast ? Line : Color.FromArgb(HairlineAlpha, Ink);
 
     public static readonly Palette Dark = new(
         Hex(0x1B1C20), Hex(0x2B2D33), Hex(0x24262B), Hex(0xF2F3F5), Hex(0x9A9CA3), Hex(0x4DA3FF),
