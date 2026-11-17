@@ -53,6 +53,6 @@ internal static class LinuxTransfers
     {
         Restrict(file);
 
-        Notifier.Send(LinuxStrings.App_Name, Say.Format(LinuxStrings.Balloon_FileReceived, Path.GetFileName(file)));
+        Notifier.Send(LinuxStrings.App_Name, Say.Format(LinuxStrings.Balloon_FileReceived, Say.MiddleTruncate(Path.GetFileName(file))));
     }
 }

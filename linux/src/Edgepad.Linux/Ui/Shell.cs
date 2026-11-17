@@ -794,7 +794,7 @@ internal sealed class Shell : IDisposable
     /// </summary>
     public async Task SendFileAsync(string path)
     {
-        var name = Path.GetFileName(path);
+        var name = Say.MiddleTruncate(Path.GetFileName(path));
         try
         {
             var code = await Server.SendFile(path);

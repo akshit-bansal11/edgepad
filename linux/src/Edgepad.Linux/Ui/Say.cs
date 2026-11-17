@@ -10,4 +10,27 @@ namespace Edgepad.Ui;
 internal static class Say
 {
     public static string Format(string format, params object?[] args) => string.Format(CultureInfo.CurrentCulture, format, args);
+
+    /// <summary>
+    /// A file name cut in the middle with an ellipsis so the extension stays visible (DES-D29): at 16 characters,
+    /// "quarterly-report-final.pdf" becomes "quarterly...al.pdf" with a real ellipsis. A name that fits is returned as it
+    /// is; one with no short extension is cut at the end.
+    /// </summary>
+    public static string MiddleTruncate(string name, int max = 36)
+    {
+        if (name.Length <= max)
+        {
+            return name;
+        }
+
+        var extension = Path.GetExtension(name);
+        var tail = extension.Length is > 0 and <= 8 ? extension.Length + 2 : 0;
+        var head = max - 1 - tail;
+        if (head > 0 && char.IsHighSurrogate(name[head - 1]))
+        {
+            head--;
+        }
+
+        return tail == 0 ? name[..head] + "…" : name[..head] + "…" + name[^tail..];
+    }
 }
