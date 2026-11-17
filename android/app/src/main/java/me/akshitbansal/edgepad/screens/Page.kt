@@ -47,6 +47,9 @@ private const val SEGMENT_HEIGHT_DP = 28f
 private const val SEGMENT_TEXT_PAD_DP = 6f
 private const val SEGMENT_INSET_DP = 2f
 private const val SEGMENT_PAD_DP = 14f
+
+/** What the page margins and the card's padding take off the screen's width, at the narrowest, in dp. */
+private const val SEGMENT_MARGIN_DP = 72f
 private const val SEGMENT_TRACK_RADIUS_DP = 9f
 private const val SEGMENT_THUMB_RADIUS_DP = 7f
 
@@ -488,12 +491,17 @@ class Ui(
                         context.resources.displayMetrics,
                     )
             }
-        val width = options.maxOf { paint.measureText(it.toString()) }.toInt() + 2 * dp(SEGMENT_PAD_DP)
+        val natural = options.maxOf { paint.measureText(it.toString()) }.toInt() + 2 * dp(SEGMENT_PAD_DP)
+        // Never wider than the screen less the page and card margins: past that the labels share the room and
+        // wrap onto a second line, rather than the control running off the card's edge.
+        val room = context.resources.displayMetrics.widthPixels - dp(SEGMENT_MARGIN_DP) - 2 * inset
+        val width = Squeeze.segmentWidth(natural, options.size, room)
         // The height is worked out the same way, from the text, so a large font size grows the thumb instead
         // of clipping its labels. The whole control is then at least a touch target tall: the room above and
         // below the drawn track is clear, and every option's label reaches through it to take the tap.
         val lines = paint.fontMetricsInt
-        val height = maxOf(dp(SEGMENT_HEIGHT_DP), lines.bottom - lines.top + 2 * dp(SEGMENT_TEXT_PAD_DP))
+        val rows = if (width < natural) 2 else 1
+        val height = maxOf(dp(SEGMENT_HEIGHT_DP), rows * (lines.bottom - lines.top) + 2 * dp(SEGMENT_TEXT_PAD_DP))
         val touch = maxOf(dp(Space.TOUCH), height + 2 * inset)
         val slack = (touch - height) / 2 - inset
         val labels =

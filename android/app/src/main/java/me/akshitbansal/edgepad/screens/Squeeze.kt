@@ -7,4 +7,14 @@ object Squeeze {
         total: Int,
         room: Int,
     ): Boolean = total > room
+
+    /**
+     * One segment's width: the [natural] width of the widest label, or a share of [room] when [count] of those do
+     * not fit in it, in which case the labels wrap onto a second line.
+     */
+    fun segmentWidth(
+        natural: Int,
+        count: Int,
+        room: Int,
+    ): Int = minOf(natural, maxOf(room / count, 1))
 }
