@@ -16,10 +16,10 @@
     <value>I telefoni sulla stessa rete Wi-Fi, o collegati tramite tethering USB, potranno trovare questo portatile e chiedere di associarsi. Nessuna connessione avviene senza il codice di associazione digitato qui. Windows chiederà una volta di eseguire il Prompt dei comandi; serve ad aggiungere la regola del firewall di Edgepad.</value>
   </data>
   <data name="Network_ClipboardNotice" xml:space="preserve">
-    <value>Condividi appunti: copia su un dispositivo e incolla sull'altro, testo e immagini. Resta disattivato finché non lo selezioni.</value>
+    <value>Condividi appunti: copia su un dispositivo e incolla sull’altro, testo e immagini. Resta disattivato finché non lo selezioni.</value>
   </data>
   <data name="Network_WhereItLives" xml:space="preserve">
-    <value>Edgepad resta nell'area di notifica. Se non vedi la sua icona, fai clic su ^ e trascinala fuori. Per usare il Bluetooth, associa prima il telefono nelle impostazioni Bluetooth di Windows, poi apri Edgepad sul telefono.</value>
+    <value>Edgepad resta nell’area di notifica. Se non vedi la sua icona, fai clic su ^ e trascinala fuori. Per usare il Bluetooth, associa prima il telefono nelle impostazioni Bluetooth di Windows, poi apri Edgepad sul telefono.</value>
   </data>
   <data name="Menu_StartWithWindows" xml:space="preserve">
     <value>&amp;Avvia con Windows</value>
@@ -46,7 +46,7 @@
     <value>Condi&amp;vidi appunti</value>
   </data>
   <data name="Menu_ShareClipboardTip" xml:space="preserve">
-    <value>Copia su un dispositivo, incolla sull'altro: testo e immagini.</value>
+    <value>Copia su un dispositivo, incolla sull’altro: testo e immagini.</value>
   </data>
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Controlla gli aggiornamenti ogni &amp;giorno</value>
@@ -121,10 +121,10 @@
     <value>Non ora</value>
   </data>
   <data name="Dialog_StartHeading" xml:space="preserve">
-    <value>Avviare Edgepad all'accesso?</value>
+    <value>Avviare Edgepad all’accesso?</value>
   </data>
   <data name="Dialog_StartText" xml:space="preserve">
-    <value>Edgepad resta quindi in attesa del telefono nell'area di notifica, senza finestra. Puoi cambiarlo in seguito dal suo menu.</value>
+    <value>Edgepad resta quindi in attesa del telefono nell’area di notifica, senza finestra. Puoi cambiarlo in seguito dal suo menu.</value>
   </data>
   <data name="Dialog_Allow" xml:space="preserve">
     <value>Consenti</value>
@@ -145,13 +145,13 @@
     <value>Attivare le connessioni Wi-Fi e USB?</value>
   </data>
   <data name="Error_SettingNotSaved" xml:space="preserve">
-    <value>Impossibile salvare l'impostazione, quindi non è stato modificato nulla. Il motivo è nel log.</value>
+    <value>Impossibile salvare l’impostazione, quindi non è stato modificato nulla. Il motivo è nel log.</value>
   </data>
   <data name="Security_Title" xml:space="preserve">
     <value>Sicurezza</value>
   </data>
   <data name="Error_ForgetOne" xml:space="preserve">
-    <value>Riprova con Dimentica quando nient'altro usa i file di Edgepad in {0}. Non è stato possibile dimenticare del tutto {1}: un file non ha potuto essere riscritto. Resta autorizzato su disco, ma Edgepad lo rifiuta finché non viene riavviato, e da quel momento sarà di nuovo autorizzato, a meno che tu non lo dimentichi di nuovo.</value>
+    <value>Riprova con Dimentica quando nient’altro usa i file di Edgepad in {0}. Non è stato possibile dimenticare del tutto {1}: un file non ha potuto essere riscritto. Resta autorizzato su disco, ma Edgepad lo rifiuta finché non viene riavviato, e da quel momento sarà di nuovo autorizzato, a meno che tu non lo dimentichi di nuovo.</value>
   </data>
   <data name="Error_ForgetAllTrust" xml:space="preserve">
     <value>Chiudi ciò che sta usando il file dei telefoni autorizzati, poi scegli di nuovo Dimentica tutti, oppure eliminalo tu stesso:
@@ -196,7 +196,7 @@ Non è stato possibile dimenticare le associazioni Wi-Fi e USB: il loro file non
     <value>PIN a ogni connessione</value>
   </data>
   <data name="Security_Level1Note" xml:space="preserve">
-    <value>Un nuovo telefono ha bisogno del tuo sì qui. Nient'altro viene chiesto.</value>
+    <value>Un nuovo telefono ha bisogno del tuo sì qui. Nient’altro viene chiesto.</value>
   </data>
   <data name="Security_Level2Note" xml:space="preserve">
     <value>Il telefono digita anche il PIN, una sola volta. Viene ricordato finché il PIN o il livello non cambiano.</value>
@@ -214,7 +214,7 @@ Non è stato possibile dimenticare le associazioni Wi-Fi e USB: il loro file non
     <value>Telefoni autorizzati</value>
   </data>
   <data name="Security_NoPhones" xml:space="preserve">
-    <value>Nessun telefono è ancora autorizzato. L'autorizzazione viene chiesta la prima volta che un telefono si connette.</value>
+    <value>Nessun telefono è ancora autorizzato. L’autorizzazione viene chiesta la prima volta che un telefono si connette.</value>
   </data>
   <data name="Security_LevelName" xml:space="preserve">
     <value>Livello {0}, {1}</value>
@@ -321,7 +321,7 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
     <value>Ancora nessuna macro</value>
   </data>
   <data name="Macro_EmptyDetail" xml:space="preserve">
-    <value>Aggiungi un'app, un documento, una cartella o un indirizzo web. Ognuno diventa un pulsante sul telefono.</value>
+    <value>Aggiungi un’app, un documento, una cartella o un indirizzo web. Ognuno diventa un pulsante sul telefono.</value>
   </data>
   <data name="Macro_Name" xml:space="preserve">
     <value>Nome</value>
@@ -348,7 +348,7 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
     <value>Macro</value>
   </data>
   <data name="Macro_IconPreview" xml:space="preserve">
-    <value>Anteprima dell'icona</value>
+    <value>Anteprima dell’icona</value>
   </data>
   <data name="Macro_Add" xml:space="preserve">
     <value>&amp;Aggiungi macro</value>
@@ -384,7 +384,7 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
     <value>Macro: {0} di {0}</value>
   </data>
   <data name="Macro_NoRoom" xml:space="preserve">
-    <value>Una macro è stata aggiunta dal telefono mentre questa finestra era aperta e non c'è più spazio. Rimuovine una qui, poi salva.</value>
+    <value>Una macro è stata aggiunta dal telefono mentre questa finestra era aperta e non c’è più spazio. Rimuovine una qui, poi salva.</value>
   </data>
   <data name="Macro_SaveFailed" xml:space="preserve">
     <value>Impossibile salvare le macro in {0}: {1}</value>
@@ -417,7 +417,7 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
     <value>Tutti i file (*.*)</value>
   </data>
   <data name="Macro_ChoosePicture" xml:space="preserve">
-    <value>Scegli l'immagine per questo pulsante</value>
+    <value>Scegli l’immagine per questo pulsante</value>
   </data>
   <data name="Pair_Ask" xml:space="preserve">
     <value>Digita il codice di associazione mostrato sul telefono:</value>
@@ -444,13 +444,13 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
     <value>Si chiude tra {0} s</value>
   </data>
   <data name="App_RunningAsAdmin" xml:space="preserve">
-    <value>Edgepad è già in esecuzione come amministratore. Chiudilo dall'icona nell'area di notifica, oppure esegui anche questo come amministratore.</value>
+    <value>Edgepad è già in esecuzione come amministratore. Chiudilo dall’icona nell’area di notifica, oppure esegui anche questo come amministratore.</value>
   </data>
   <data name="App_AlreadyRunning" xml:space="preserve">
-    <value>Edgepad è già in esecuzione. Trovalo nell'area di notifica.</value>
+    <value>Edgepad è già in esecuzione. Trovalo nell’area di notifica.</value>
   </data>
   <data name="App_DidNotHandOver" xml:space="preserve">
-    <value>Un altro Edgepad è già in esecuzione e non ha ceduto il controllo. Chiudilo dall'icona nell'area di notifica, poi esegui di nuovo questo.</value>
+    <value>Un altro Edgepad è già in esecuzione e non ha ceduto il controllo. Chiudilo dall’icona nell’area di notifica, poi esegui di nuovo questo.</value>
   </data>
   <data name="Phone_NoneConnected" xml:space="preserve">
     <value>Nessun telefono connesso</value>

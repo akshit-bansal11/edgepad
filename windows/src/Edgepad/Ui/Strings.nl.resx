@@ -26,7 +26,7 @@
     <value>Sta&amp;rten met Windows</value>
   </data>
   <data name="Menu_Macros" xml:space="preserve">
-    <value>&amp;Macro's…</value>
+    <value>&amp;Macro’s…</value>
   </data>
   <data name="Menu_Security" xml:space="preserve">
     <value>Beveili&amp;ging…</value>
@@ -299,7 +299,7 @@
     <value>Knoppen op het macroscherm van je telefoon, maximaal 15. De telefoon stuurt het nummer van een knop, nooit een programma, dus hij kan alleen uitvoeren wat je hier toevoegt. Met Alt+Pijl-omhoog en Alt+Pijl-omlaag wijzig je de volgorde van de knoppen.</value>
   </data>
   <data name="Macro_EmptyHeadline" xml:space="preserve">
-    <value>Nog geen macro's</value>
+    <value>Nog geen macro’s</value>
   </data>
   <data name="Macro_EmptyDetail" xml:space="preserve">
     <value>Voeg een app, document, map of webadres toe. Elk daarvan wordt een knop op de telefoon.</value>
@@ -326,7 +326,7 @@
     <value>Pictogram</value>
   </data>
   <data name="Macro_Title" xml:space="preserve">
-    <value>Macro's</value>
+    <value>Macro’s</value>
   </data>
   <data name="Macro_IconPreview" xml:space="preserve">
     <value>Voorbeeld van pictogram</value>
@@ -362,13 +362,13 @@
     <value>Macro toevoegen</value>
   </data>
   <data name="Macro_Full" xml:space="preserve">
-    <value>Macro's: {0} van {0}</value>
+    <value>Macro’s: {0} van {0}</value>
   </data>
   <data name="Macro_NoRoom" xml:space="preserve">
     <value>Terwijl dit venster openstond, is er een macro vanaf je telefoon toegevoegd, maar er is geen ruimte voor. Verwijder er hier een en sla dan op.</value>
   </data>
   <data name="Macro_SaveFailed" xml:space="preserve">
-    <value>De macro's konden niet worden opgeslagen in {0}: {1}</value>
+    <value>De macro’s konden niet worden opgeslagen in {0}: {1}</value>
   </data>
   <data name="Macro_NothingToOpen" xml:space="preserve">
     <value>“{0}” heeft niets om te openen. Kies wat het opent, of verwijder het.</value>
@@ -380,7 +380,7 @@
     <value>Niet opslaan</value>
   </data>
   <data name="Macro_SaveHeading" xml:space="preserve">
-    <value>Wijzigingen in macro's opslaan?</value>
+    <value>Wijzigingen in macro’s opslaan?</value>
   </data>
   <data name="Macro_SaveText" xml:space="preserve">
     <value>Je wijzigingen gaan verloren als je ze niet opslaat.</value>
@@ -389,10 +389,10 @@
     <value>Kies wat deze knop opent</value>
   </data>
   <data name="Macro_FilterPrograms" xml:space="preserve">
-    <value>Programma's en documenten (*.*)</value>
+    <value>Programma’s en documenten (*.*)</value>
   </data>
   <data name="Macro_FilterIcons" xml:space="preserve">
-    <value>Pictogrammen, programma's en afbeeldingen (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
+    <value>Pictogrammen, programma’s en afbeeldingen (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
   </data>
   <data name="Macro_FilterAll" xml:space="preserve">
     <value>Alle bestanden (*.*)</value>

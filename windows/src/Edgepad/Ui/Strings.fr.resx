@@ -13,13 +13,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Network_Notice" xml:space="preserve">
-    <value>Les téléphones sur le même réseau Wi-Fi, ou connectés par partage de connexion par USB, pourront trouver cet ordinateur et demander à s'associer. Rien ne se connecte sans le code d'association saisi ici. Windows demandera une fois d'exécuter l'invite de commandes : cela ajoute la règle de pare-feu d'Edgepad.</value>
+    <value>Les téléphones sur le même réseau Wi-Fi, ou connectés par partage de connexion par USB, pourront trouver cet ordinateur et demander à s’associer. Rien ne se connecte sans le code d’association saisi ici. Windows demandera une fois d’exécuter l’invite de commandes : cela ajoute la règle de pare-feu d’Edgepad.</value>
   </data>
   <data name="Network_ClipboardNotice" xml:space="preserve">
-    <value>Partager le presse-papiers : copiez sur l'un, collez sur l'autre, texte et images. Cette option reste désactivée tant que vous ne la cochez pas.</value>
+    <value>Partager le presse-papiers : copiez sur l’un, collez sur l’autre, texte et images. Cette option reste désactivée tant que vous ne la cochez pas.</value>
   </data>
   <data name="Network_WhereItLives" xml:space="preserve">
-    <value>Edgepad s'exécute dans la zone de notification. Si vous ne voyez pas son icône, cliquez sur ^ et faites-la glisser vers la barre des tâches. Pour utiliser le Bluetooth, associez d'abord le téléphone dans les paramètres Bluetooth de Windows, puis ouvrez Edgepad sur le téléphone.</value>
+    <value>Edgepad s’exécute dans la zone de notification. Si vous ne voyez pas son icône, cliquez sur ^ et faites-la glisser vers la barre des tâches. Pour utiliser le Bluetooth, associez d’abord le téléphone dans les paramètres Bluetooth de Windows, puis ouvrez Edgepad sur le téléphone.</value>
   </data>
   <data name="Menu_StartWithWindows" xml:space="preserve">
     <value>Démar&amp;rer avec Windows</value>
@@ -46,7 +46,7 @@
     <value>Partager le &amp;presse-papiers</value>
   </data>
   <data name="Menu_ShareClipboardTip" xml:space="preserve">
-    <value>Copiez sur l'un, collez sur l'autre : texte et images.</value>
+    <value>Copiez sur l’un, collez sur l’autre : texte et images.</value>
   </data>
   <data name="Menu_CheckUpdates" xml:space="preserve">
     <value>Rechercher les mises à jour chaque &amp;jour</value>
@@ -76,25 +76,25 @@
     <value>Edgepad {0} est disponible. Cliquez pour ouvrir la page de la version ; téléchargez-la et exécutez-la pour remplacer cette copie.</value>
   </data>
   <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
-    <value>L'option « Démarrer avec Windows » n'a pas pu être enregistrée, donc Edgepad ne démarrera pas tout seul. Le journal en donne la raison.</value>
+    <value>L’option « Démarrer avec Windows » n’a pas pu être enregistrée, donc Edgepad ne démarrera pas tout seul. Le journal en donne la raison.</value>
   </data>
   <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
-    <value>L'option « Partager le presse-papiers » a changé pour l'instant, mais n'a pas pu être enregistrée, donc le prochain lancement ne s'en souviendra peut-être pas.</value>
+    <value>L’option « Partager le presse-papiers » a changé pour l’instant, mais n’a pas pu être enregistrée, donc le prochain lancement ne s’en souviendra peut-être pas.</value>
   </data>
   <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
-    <value>L'option « Rechercher les mises à jour chaque jour » a changé pour l'instant, mais n'a pas pu être enregistrée, donc le prochain lancement ne s'en souviendra peut-être pas.</value>
+    <value>L’option « Rechercher les mises à jour chaque jour » a changé pour l’instant, mais n’a pas pu être enregistrée, donc le prochain lancement ne s’en souviendra peut-être pas.</value>
   </data>
   <data name="Balloon_NewFile" xml:space="preserve">
-    <value>Cette version d'Edgepad est un nouveau fichier, donc Windows demandera une fois d'autoriser l'accès des téléphones.</value>
+    <value>Cette version d’Edgepad est un nouveau fichier, donc Windows demandera une fois d’autoriser l’accès des téléphones.</value>
   </data>
   <data name="Balloon_FirewallNotChanged" xml:space="preserve">
-    <value>Le pare-feu Windows n'a pas été modifié, donc les téléphones risquent de ne pas joindre cet ordinateur. Pour réessayer, choisissez « Autoriser dans le pare-feu Windows » dans ce menu.</value>
+    <value>Le pare-feu Windows n’a pas été modifié, donc les téléphones risquent de ne pas joindre cet ordinateur. Pour réessayer, choisissez « Autoriser dans le pare-feu Windows » dans ce menu.</value>
   </data>
   <data name="Balloon_MacroAdded" xml:space="preserve">
     <value>Ajouté depuis votre téléphone : {0}</value>
   </data>
   <data name="Balloon_WantsToPair" xml:space="preserve">
-    <value>{0} veut s'associer. Saisissez le code d'association qu'il affiche.</value>
+    <value>{0} veut s’associer. Saisissez le code d’association qu’il affiche.</value>
   </data>
   <data name="Balloon_DriverMissing" xml:space="preserve">
     <value>La manette a besoin du pilote ViGEmBus. Cliquez pour ouvrir la page de téléchargement.</value>
@@ -121,7 +121,7 @@
     <value>Plus tard</value>
   </data>
   <data name="Dialog_StartHeading" xml:space="preserve">
-    <value>Lancer Edgepad à l'ouverture de session ?</value>
+    <value>Lancer Edgepad à l’ouverture de session ?</value>
   </data>
   <data name="Dialog_StartText" xml:space="preserve">
     <value>Edgepad attend alors votre téléphone dans la zone de notification, sans fenêtre. Vous pourrez changer cela plus tard dans son menu.</value>
@@ -145,34 +145,34 @@
     <value>Activer les connexions Wi-Fi et USB ?</value>
   </data>
   <data name="Error_SettingNotSaved" xml:space="preserve">
-    <value>Le paramètre n'a pas pu être enregistré, donc rien n'a été modifié. Le journal en donne la raison.</value>
+    <value>Le paramètre n’a pas pu être enregistré, donc rien n’a été modifié. Le journal en donne la raison.</value>
   </data>
   <data name="Security_Title" xml:space="preserve">
     <value>Sécurité</value>
   </data>
   <data name="Error_ForgetOne" xml:space="preserve">
-    <value>Réessayez avec Oublier quand plus rien n'utilise les fichiers d'Edgepad dans {0}. Impossible d'oublier complètement {1} : un fichier n'a pas pu être réécrit. Ce téléphone reste approuvé sur le disque, mais Edgepad le refuse jusqu'à son redémarrage, après quoi il sera de nouveau approuvé, sauf si vous l'oubliez à nouveau.</value>
+    <value>Réessayez avec Oublier quand plus rien n’utilise les fichiers d’Edgepad dans {0}. Impossible d’oublier complètement {1} : un fichier n’a pas pu être réécrit. Ce téléphone reste approuvé sur le disque, mais Edgepad le refuse jusqu’à son redémarrage, après quoi il sera de nouveau approuvé, sauf si vous l’oubliez à nouveau.</value>
   </data>
   <data name="Error_ForgetAllTrust" xml:space="preserve">
     <value>Fermez ce qui retient le fichier des téléphones approuvés, puis choisissez à nouveau Oublier tout, ou supprimez-le vous-même :
 
 {0}
 
-Les téléphones approuvés n'ont pas pu être oubliés : leur fichier n'a pas pu être supprimé ni vidé. Aucun téléphone ne peut se connecter tant qu'Edgepad reste ouvert, mais ces téléphones seront de nouveau approuvés au prochain démarrage d'Edgepad.</value>
+Les téléphones approuvés n’ont pas pu être oubliés : leur fichier n’a pas pu être supprimé ni vidé. Aucun téléphone ne peut se connecter tant qu’Edgepad reste ouvert, mais ces téléphones seront de nouveau approuvés au prochain démarrage d’Edgepad.</value>
   </data>
   <data name="Error_ForgetAllPin" xml:space="preserve">
     <value>Choisissez à nouveau Oublier tout, ou supprimez vous-même pin-verified.txt dans :
 
 {0}
 
-Les téléphones qui ont saisi le code PIN n'ont pas pu être oubliés : leur liste n'a pas pu être supprimée. Tant qu'Edgepad reste ouvert, chaque téléphone doit saisir le code PIN à chaque connexion, mais ces téléphones en seront de nouveau dispensés au niveau 2 au prochain démarrage d'Edgepad.</value>
+Les téléphones qui ont saisi le code PIN n’ont pas pu être oubliés : leur liste n’a pas pu être supprimée. Tant qu’Edgepad reste ouvert, chaque téléphone doit saisir le code PIN à chaque connexion, mais ces téléphones en seront de nouveau dispensés au niveau 2 au prochain démarrage d’Edgepad.</value>
   </data>
   <data name="Error_ForgetLinks" xml:space="preserve">
     <value>Choisissez à nouveau Oublier tout, ou supprimez vous-même paired-links.txt dans :
 
 {0}
 
-Les associations Wi-Fi et USB n'ont pas pu être oubliées : leur fichier n'a pas pu être supprimé ni vidé. Les téléphones associés ne peuvent pas se reconnecter par Wi-Fi ou USB tant qu'Edgepad reste ouvert, mais ils le pourront de nouveau à son prochain démarrage.</value>
+Les associations Wi-Fi et USB n’ont pas pu être oubliées : leur fichier n’a pas pu être supprimé ni vidé. Les téléphones associés ne peuvent pas se reconnecter par Wi-Fi ou USB tant qu’Edgepad reste ouvert, mais ils le pourront de nouveau à son prochain démarrage.</value>
   </data>
   <data name="Dialog_Trust" xml:space="preserve">
     <value>Approuver</value>
@@ -181,7 +181,7 @@ Les associations Wi-Fi et USB n'ont pas pu être oubliées : leur fichier n'a p
     <value>Refuser</value>
   </data>
   <data name="Dialog_TrustText" xml:space="preserve">
-    <value>Un téléphone associé demande à contrôler le pointeur et le clavier de cet ordinateur. Ne l'approuvez que s'il vous appartient. Sans réponse en {0} s, il n'est pas approuvé.</value>
+    <value>Un téléphone associé demande à contrôler le pointeur et le clavier de cet ordinateur. Ne l’approuvez que s’il vous appartient. Sans réponse en {0} s, il n’est pas approuvé.</value>
   </data>
   <data name="Dialog_TrustHeading" xml:space="preserve">
     <value>Approuver {0} ?</value>
@@ -196,16 +196,16 @@ Les associations Wi-Fi et USB n'ont pas pu être oubliées : leur fichier n'a p
     <value>Code PIN à chaque connexion</value>
   </data>
   <data name="Security_Level1Note" xml:space="preserve">
-    <value>Un nouveau téléphone a besoin de votre accord ici. Rien d'autre n'est demandé.</value>
+    <value>Un nouveau téléphone a besoin de votre accord ici. Rien d’autre n’est demandé.</value>
   </data>
   <data name="Security_Level2Note" xml:space="preserve">
-    <value>Le téléphone saisit aussi le code PIN, une seule fois. Il est mémorisé jusqu'à ce que le code PIN ou le niveau change.</value>
+    <value>Le téléphone saisit aussi le code PIN, une seule fois. Il est mémorisé jusqu’à ce que le code PIN ou le niveau change.</value>
   </data>
   <data name="Security_Level3Note" xml:space="preserve">
     <value>Le téléphone saisit le code PIN à chaque connexion.</value>
   </data>
   <data name="Security_Intro" xml:space="preserve">
-    <value>Chaque téléphone a d'abord besoin de votre accord ici. Les niveaux 2 et 3 demandent aussi un code PIN à six chiffres, saisi sur l'écran du téléphone. Les téléphones sont déconnectés tant que cette fenêtre est ouverte.</value>
+    <value>Chaque téléphone a d’abord besoin de votre accord ici. Les niveaux 2 et 3 demandent aussi un code PIN à six chiffres, saisi sur l’écran du téléphone. Les téléphones sont déconnectés tant que cette fenêtre est ouverte.</value>
   </data>
   <data name="Security_PinNote" xml:space="preserve">
     <value>Enregistrer un nouveau code PIN ou un nouveau niveau oblige les téléphones qui avaient saisi le code PIN à le saisir à nouveau.</value>
@@ -214,7 +214,7 @@ Les associations Wi-Fi et USB n'ont pas pu être oubliées : leur fichier n'a p
     <value>Téléphones approuvés</value>
   </data>
   <data name="Security_NoPhones" xml:space="preserve">
-    <value>Aucun téléphone n'est encore approuvé. La question est posée à la première connexion d'un téléphone.</value>
+    <value>Aucun téléphone n’est encore approuvé. La question est posée à la première connexion d’un téléphone.</value>
   </data>
   <data name="Security_LevelName" xml:space="preserve">
     <value>Niveau {0} : {1}</value>
@@ -250,13 +250,13 @@ Les associations Wi-Fi et USB n'ont pas pu être oubliées : leur fichier n'a p
     <value>Un code PIN est défini.</value>
   </data>
   <data name="Security_PinNone" xml:space="preserve">
-    <value>Aucun code PIN n'est défini.</value>
+    <value>Aucun code PIN n’est défini.</value>
   </data>
   <data name="Error_PinNotSaved" xml:space="preserve">
-    <value>Le code PIN n'a pas pu être enregistré, donc rien n'a été modifié. Le journal en donne la raison.</value>
+    <value>Le code PIN n’a pas pu être enregistré, donc rien n’a été modifié. Le journal en donne la raison.</value>
   </data>
   <data name="Error_LevelNotSaved" xml:space="preserve">
-    <value>Le niveau n'a pas pu être enregistré, donc le niveau précédent s'applique toujours. Le journal en donne la raison.</value>
+    <value>Le niveau n’a pas pu être enregistré, donc le niveau précédent s’applique toujours. Le journal en donne la raison.</value>
   </data>
   <data name="Security_ForgetOneHeading" xml:space="preserve">
     <value>Oublier {0} ?</value>
@@ -284,14 +284,14 @@ Les associations Wi-Fi et USB n'ont pas pu être oubliées : leur fichier n'a p
 
 {0}
 
-Rien n'a été réinitialisé : les téléphones approuvés n'ont pas pu être oubliés, donc le code PIN et le niveau sont restés tels quels. Aucun téléphone ne peut se connecter tant qu'Edgepad reste ouvert, mais ces téléphones seront de nouveau approuvés, avec le même code PIN, à son prochain démarrage.</value>
+Rien n’a été réinitialisé : les téléphones approuvés n’ont pas pu être oubliés, donc le code PIN et le niveau sont restés tels quels. Aucun téléphone ne peut se connecter tant qu’Edgepad reste ouvert, mais ces téléphones seront de nouveau approuvés, avec le même code PIN, à son prochain démarrage.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
     <value>Fermez ce qui retient le fichier, puis choisissez à nouveau « Réinitialiser le PIN et oublier les téléphones », ou supprimez vous-même security.txt et pin-verified.txt dans :
 
 {0}
 
-Les téléphones approuvés ont été oubliés, mais le code PIN n'a pas pu être réinitialisé : un fichier de paramètres n'a pas pu être supprimé, donc l'ancien code PIN et l'ancien niveau peuvent encore s'appliquer. Chaque téléphone doit être approuvé à nouveau ici.</value>
+Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu être réinitialisé : un fichier de paramètres n’a pas pu être supprimé, donc l’ancien code PIN et l’ancien niveau peuvent encore s’appliquer. Chaque téléphone doit être approuvé à nouveau ici.</value>
   </data>
   <data name="Pin_Title" xml:space="preserve">
     <value>Nouveau PIN</value>
@@ -315,7 +315,7 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n'a pas pu êtr
     <value>Les deux codes PIN ne sont pas identiques.</value>
   </data>
   <data name="Macro_Description" xml:space="preserve">
-    <value>Boutons de l'écran des macros de votre téléphone, 15 au maximum. Le téléphone envoie le numéro d'un bouton, jamais un programme, il ne peut donc lancer que ce que vous ajoutez ici. Alt+Haut et Alt+Bas réorganisent les boutons.</value>
+    <value>Boutons de l’écran des macros de votre téléphone, 15 au maximum. Le téléphone envoie le numéro d’un bouton, jamais un programme, il ne peut donc lancer que ce que vous ajoutez ici. Alt+Haut et Alt+Bas réorganisent les boutons.</value>
   </data>
   <data name="Macro_EmptyHeadline" xml:space="preserve">
     <value>Aucune macro</value>
@@ -348,7 +348,7 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n'a pas pu êtr
     <value>Macros</value>
   </data>
   <data name="Macro_IconPreview" xml:space="preserve">
-    <value>Aperçu de l'icône</value>
+    <value>Aperçu de l’icône</value>
   </data>
   <data name="Macro_Add" xml:space="preserve">
     <value>&amp;Ajouter une macro</value>
@@ -384,13 +384,13 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n'a pas pu êtr
     <value>Macros : {0} sur {0}</value>
   </data>
   <data name="Macro_NoRoom" xml:space="preserve">
-    <value>Une macro a été ajoutée depuis votre téléphone pendant que cette fenêtre était ouverte, et il n'y a plus de place pour elle. Supprimez-en une ici, puis enregistrez.</value>
+    <value>Une macro a été ajoutée depuis votre téléphone pendant que cette fenêtre était ouverte, et il n’y a plus de place pour elle. Supprimez-en une ici, puis enregistrez.</value>
   </data>
   <data name="Macro_SaveFailed" xml:space="preserve">
-    <value>Les macros n'ont pas pu être enregistrées dans {0} : {1}</value>
+    <value>Les macros n’ont pas pu être enregistrées dans {0} : {1}</value>
   </data>
   <data name="Macro_NothingToOpen" xml:space="preserve">
-    <value>« {0} » n'ouvre rien. Choisissez ce qu'elle ouvre, ou supprimez-la.</value>
+    <value>« {0} » n’ouvre rien. Choisissez ce qu’elle ouvre, ou supprimez-la.</value>
   </data>
   <data name="Dialog_Save" xml:space="preserve">
     <value>Enregistrer</value>
@@ -417,13 +417,13 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n'a pas pu êtr
     <value>Tous les fichiers (*.*)</value>
   </data>
   <data name="Macro_ChoosePicture" xml:space="preserve">
-    <value>Choisir l'image de ce bouton</value>
+    <value>Choisir l’image de ce bouton</value>
   </data>
   <data name="Pair_Ask" xml:space="preserve">
-    <value>Saisissez le code d'association affiché sur le téléphone :</value>
+    <value>Saisissez le code d’association affiché sur le téléphone :</value>
   </data>
   <data name="Pair_CodeName" xml:space="preserve">
-    <value>Code d'association affiché sur le téléphone</value>
+    <value>Code d’association affiché sur le téléphone</value>
   </data>
   <data name="Pair_Title" xml:space="preserve">
     <value>Associer un téléphone</value>
@@ -438,19 +438,19 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n'a pas pu êtr
     <value>Fermer</value>
   </data>
   <data name="Pair_Checking" xml:space="preserve">
-    <value>Vérification du code d'association</value>
+    <value>Vérification du code d’association</value>
   </data>
   <data name="Pair_ClosesIn" xml:space="preserve">
     <value>Fermeture dans {0} s</value>
   </data>
   <data name="App_RunningAsAdmin" xml:space="preserve">
-    <value>Edgepad s'exécute déjà en tant qu'administrateur. Quittez-le depuis l'icône de la zone de notification, ou exécutez aussi celui-ci en tant qu'administrateur.</value>
+    <value>Edgepad s’exécute déjà en tant qu’administrateur. Quittez-le depuis l’icône de la zone de notification, ou exécutez aussi celui-ci en tant qu’administrateur.</value>
   </data>
   <data name="App_AlreadyRunning" xml:space="preserve">
-    <value>Edgepad est déjà en cours d'exécution. Vous le trouverez dans la zone de notification.</value>
+    <value>Edgepad est déjà en cours d’exécution. Vous le trouverez dans la zone de notification.</value>
   </data>
   <data name="App_DidNotHandOver" xml:space="preserve">
-    <value>Un autre Edgepad est déjà en cours d'exécution et n'a pas passé la main. Quittez-le depuis l'icône de la zone de notification, puis relancez celui-ci.</value>
+    <value>Un autre Edgepad est déjà en cours d’exécution et n’a pas passé la main. Quittez-le depuis l’icône de la zone de notification, puis relancez celui-ci.</value>
   </data>
   <data name="Phone_NoneConnected" xml:space="preserve">
     <value>Aucun téléphone connecté</value>
@@ -486,7 +486,7 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n'a pas pu êtr
     <value>Redémarrer en administrateur</value>
   </data>
   <data name="Menu_RestartAdminTip" xml:space="preserve">
-    <value>Permet à Edgepad de saisir dans les fenêtres élevées, comme le Gestionnaire des tâches. L&apos;écran de verrouillage et les invites UAC restent hors de portée.</value>
+    <value>Permet à Edgepad de saisir dans les fenêtres élevées, comme le Gestionnaire des tâches. L’écran de verrouillage et les invites UAC restent hors de portée.</value>
   </data>
   <data name="Menu_UpdateInstall" xml:space="preserve">
     <value>Installer Edgepad {0}</value>
@@ -498,22 +498,22 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n'a pas pu êtr
     <value>Ignorer cette version</value>
   </data>
   <data name="Balloon_UpdateReady" xml:space="preserve">
-    <value>Edgepad {0} est disponible. Cliquez pour l&apos;installer.</value>
+    <value>Edgepad {0} est disponible. Cliquez pour l’installer.</value>
   </data>
   <data name="Balloon_UpdateUnverified" xml:space="preserve">
-    <value>Edgepad {0} n&apos;a pas pu être vérifié, donc il n&apos;a pas été installé.</value>
+    <value>Edgepad {0} n’a pas pu être vérifié, donc il n’a pas été installé.</value>
   </data>
   <data name="Balloon_UpdateFailed" xml:space="preserve">
-    <value>Edgepad {0} n&apos;a pas pu être installé. Cliquez pour ouvrir la page de la version.</value>
+    <value>Edgepad {0} n’a pas pu être installé. Cliquez pour ouvrir la page de la version.</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>C&apos;est une version majeure. Mettez aussi Edgepad à jour sur le téléphone, sinon les deux se refuseront mutuellement. Installer maintenant ?</value>
+    <value>C’est une version majeure. Mettez aussi Edgepad à jour sur le téléphone, sinon les deux se refuseront mutuellement. Installer maintenant ?</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>Arrêt en cours</value>
   </data>
   <data name="EndAction_ShutdownText" xml:space="preserve">
-    <value>Le média est terminé. Cet ordinateur s&apos;éteint dans {0} secondes.</value>
+    <value>Le média est terminé. Cet ordinateur s’éteint dans {0} secondes.</value>
   </data>
   <data name="EndAction_Cancel" xml:space="preserve">
     <value>Annuler</value>
@@ -525,7 +525,7 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n'a pas pu êtr
     <value>{0} est arrivé depuis le téléphone.</value>
   </data>
   <data name="Balloon_FileFailed" xml:space="preserve">
-    <value>{0} n&apos;a pas pu être reçu.</value>
+    <value>{0} n’a pas pu être reçu.</value>
   </data>
   <data name="Menu_Notifications" xml:space="preserve">
     <value>Afficher les notifications sur le téléphone</value>

@@ -13,13 +13,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Network_Notice" xml:space="preserve">
-    <value>Aynı Wi-Fi ağındaki veya USB ile internet paylaşımıyla bağlı telefonlar bu bilgisayarı bulup eşleştirme isteyebilecek. Burada yazılan eşleştirme kodu olmadan hiçbir şey bağlanmaz. Windows, Edgepad güvenlik duvarı kuralını eklemek için Komut İstemi'ni bir kez çalıştırmak isteyecek.</value>
+    <value>Aynı Wi-Fi ağındaki veya USB ile internet paylaşımıyla bağlı telefonlar bu bilgisayarı bulup eşleştirme isteyebilecek. Burada yazılan eşleştirme kodu olmadan hiçbir şey bağlanmaz. Windows, Edgepad güvenlik duvarı kuralını eklemek için Komut İstemi’ni bir kez çalıştırmak isteyecek.</value>
   </data>
   <data name="Network_ClipboardNotice" xml:space="preserve">
     <value>Panoyu paylaş: birinde kopyalayın, ötekine yapıştırın; metin ve resimler. İşaretleyene kadar kapalı kalır.</value>
   </data>
   <data name="Network_WhereItLives" xml:space="preserve">
-    <value>Edgepad görev çubuğunun bildirim alanında çalışır. Simgesini görmüyorsanız ^ düğmesine tıklayıp dışarı sürükleyin. Bluetooth kullanmak için önce telefonu Windows Bluetooth ayarlarında eşleştirin, sonra telefonda Edgepad'i açın.</value>
+    <value>Edgepad görev çubuğunun bildirim alanında çalışır. Simgesini görmüyorsanız ^ düğmesine tıklayıp dışarı sürükleyin. Bluetooth kullanmak için önce telefonu Windows Bluetooth ayarlarında eşleştirin, sonra telefonda Edgepad’i açın.</value>
   </data>
   <data name="Menu_StartWithWindows" xml:space="preserve">
     <value>Windows ile ba&amp;şlat</value>
@@ -64,7 +64,7 @@
     <value>B&amp;elgeler</value>
   </data>
   <data name="Menu_Quit" xml:space="preserve">
-    <value>Edgepad'den &amp;çık</value>
+    <value>Edgepad’den &amp;çık</value>
   </data>
   <data name="Menu_MacrosCount" xml:space="preserve">
     <value>{0} / {1}</value>
@@ -156,12 +156,12 @@
   <data name="Error_ForgetAllTrust" xml:space="preserve">
     <value>Güvenilen telefonların dosyasını tutan şeyi kapatın, sonra “Tümünü unut” seçeneğini yeniden seçin ya da dosyayı kendiniz silin:
 {0}
-Güvenilen telefonlar unutulamadı: dosyaları kaldırılamadı veya boşaltılamadı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak bu telefonlar Edgepad'in bir sonraki başlayışında yine güvenilir olur.</value>
+Güvenilen telefonlar unutulamadı: dosyaları kaldırılamadı veya boşaltılamadı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak bu telefonlar Edgepad’in bir sonraki başlayışında yine güvenilir olur.</value>
   </data>
   <data name="Error_ForgetAllPin" xml:space="preserve">
     <value>“Tümünü unut” seçeneğini yeniden seçin ya da pin-verified.txt dosyasını şu klasörden kendiniz silin:
 {0}
-PIN'i giren telefonlar unutulamadı: listeleri kaldırılamadı. Edgepad çalıştığı sürece her telefondan her bağlantıda PIN istenir, ancak bu telefonlar Edgepad'in bir sonraki başlayışında 2. düzeyde yine PIN girmeden bağlanır.</value>
+PIN’i giren telefonlar unutulamadı: listeleri kaldırılamadı. Edgepad çalıştığı sürece her telefondan her bağlantıda PIN istenir, ancak bu telefonlar Edgepad’in bir sonraki başlayışında 2. düzeyde yine PIN girmeden bağlanır.</value>
   </data>
   <data name="Error_ForgetLinks" xml:space="preserve">
     <value>“Tümünü unut” seçeneğini yeniden seçin ya da paired-links.txt dosyasını şu klasörden kendiniz silin:
@@ -202,7 +202,7 @@ Wi-Fi ve USB eşleşmeleri unutulamadı: dosyaları kaldırılamadı veya boşal
     <value>Her telefonun önce burada sizin onayınızı alması gerekir. 2. ve 3. düzeyler ayrıca telefonun ekranında yazılan altı basamaklı bir PIN ister. Bu pencere açıkken telefonların bağlantısı kesilir.</value>
   </data>
   <data name="Security_PinNote" xml:space="preserve">
-    <value>Yeni bir PIN veya düzeyi kaydetmek, PIN'i bir kez girmiş telefonlardan onu yeniden girmelerini ister.</value>
+    <value>Yeni bir PIN veya düzeyi kaydetmek, PIN’i bir kez girmiş telefonlardan onu yeniden girmelerini ister.</value>
   </data>
   <data name="Security_TrustedPhones" xml:space="preserve">
     <value>Güvenilen telefonlar</value>
@@ -220,7 +220,7 @@ Wi-Fi ve USB eşleşmeleri unutulamadı: dosyaları kaldırılamadı veya boşal
     <value>Tümünü &amp;unut…</value>
   </data>
   <data name="Security_Reset" xml:space="preserve">
-    <value>PIN'i &amp;sıfırla ve telefonları unut…</value>
+    <value>PIN’i &amp;sıfırla ve telefonları unut…</value>
   </data>
   <data name="Common_Save" xml:space="preserve">
     <value>Kay&amp;det</value>
@@ -232,7 +232,7 @@ Wi-Fi ve USB eşleşmeleri unutulamadı: dosyaları kaldırılamadı veya boşal
     <value>Unut: {0}</value>
   </data>
   <data name="Security_ChangePin" xml:space="preserve">
-    <value>PIN'i değiştir…</value>
+    <value>PIN’i değiştir…</value>
   </data>
   <data name="Security_SetPin" xml:space="preserve">
     <value>PIN belirle…</value>
@@ -271,12 +271,12 @@ Wi-Fi ve USB eşleşmeleri unutulamadı: dosyaları kaldırılamadı veya boşal
     <value>PIN sıfırlansın ve her telefon unutulsun mu?</value>
   </data>
   <data name="Security_ResetText" xml:space="preserve">
-    <value>PIN silinir, düzey 1'e döner ve güvenilen her telefon unutulur. Bağlı olan telefon dahil her telefona burada yeniden güvenmeniz gerekir. Unutulan bir PIN geri alınamaz, yalnızca sıfırlanabilir.</value>
+    <value>PIN silinir, düzey 1’e döner ve güvenilen her telefon unutulur. Bağlı olan telefon dahil her telefona burada yeniden güvenmeniz gerekir. Unutulan bir PIN geri alınamaz, yalnızca sıfırlanabilir.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
     <value>Dosyayı tutan şeyi kapatın, sonra “PIN’i sıfırla ve telefonları unut” seçeneğini yeniden seçin ya da dosyayı kendiniz silin:
 {0}
-Hiçbir şey sıfırlanmadı: güvenilen telefonlar unutulamadı, bu yüzden PIN ve düzey olduğu gibi bırakıldı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak bu telefonlar Edgepad'in bir sonraki başlayışında aynı PIN'le yine güvenilir olur.</value>
+Hiçbir şey sıfırlanmadı: güvenilen telefonlar unutulamadı, bu yüzden PIN ve düzey olduğu gibi bırakıldı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak bu telefonlar Edgepad’in bir sonraki başlayışında aynı PIN’le yine güvenilir olur.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
     <value>Dosyayı tutan şeyi kapatın, sonra “PIN’i sıfırla ve telefonları unut” seçeneğini yeniden seçin ya da security.txt ve pin-verified.txt dosyalarını şu klasörden kendiniz silin:
@@ -287,7 +287,7 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
     <value>Yeni PIN</value>
   </data>
   <data name="Pin_AgainName" xml:space="preserve">
-    <value>Yeni PIN'i yeniden girin</value>
+    <value>Yeni PIN’i yeniden girin</value>
   </data>
   <data name="Pin_Digits" xml:space="preserve">
     <value>Altı basamak</value>
@@ -296,7 +296,7 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
     <value>Yeniden</value>
   </data>
   <data name="Pin_Use" xml:space="preserve">
-    <value>&amp;Bu PIN'i kullan</value>
+    <value>&amp;Bu PIN’i kullan</value>
   </data>
   <data name="Pin_NotSix" xml:space="preserve">
     <value>PIN tam olarak altı basamaklı olmalıdır.</value>
@@ -476,7 +476,7 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
     <value>Yönetici olarak yeniden başlat</value>
   </data>
   <data name="Menu_RestartAdminTip" xml:space="preserve">
-    <value>Edgepad&apos;in Görev Yöneticisi gibi yükseltilmiş pencerelere yazmasını sağlar. Kilit ekranı ve UAC istemleri erişilemez kalır.</value>
+    <value>Edgepad’in Görev Yöneticisi gibi yükseltilmiş pencerelere yazmasını sağlar. Kilit ekranı ve UAC istemleri erişilemez kalır.</value>
   </data>
   <data name="Menu_UpdateInstall" xml:space="preserve">
     <value>Edgepad {0} sürümünü yükle</value>
@@ -497,7 +497,7 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
     <value>Edgepad {0} yüklenemedi. Sürüm sayfasını açmak için tıklayın.</value>
   </data>
   <data name="Update_MajorWarning" xml:space="preserve">
-    <value>Bu büyük bir sürüm. Edgepad&apos;i telefonda da güncelleyin, yoksa birbirlerini reddederler. Şimdi yüklensin mi?</value>
+    <value>Bu büyük bir sürüm. Edgepad’i telefonda da güncelleyin, yoksa birbirlerini reddederler. Şimdi yüklensin mi?</value>
   </data>
   <data name="EndAction_ShutdownTitle" xml:space="preserve">
     <value>Kapatılıyor</value>
