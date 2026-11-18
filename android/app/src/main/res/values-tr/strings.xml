@@ -597,6 +597,10 @@
     <item quantity="other">%1$d dosya gönderilemedi</item>
   </plurals>
   <string name="xfer_card_more">ve %1$d tane daha</string>
+  <plurals name="xfer_share_count">
+    <item quantity="one">%1$d dosya</item>
+    <item quantity="other">%1$d dosya</item>
+  </plurals>
   <string name="xfer_card_cancelling">İptal ediliyor…</string>
   <string name="xfer_retry">Tekrar dene</string>
   <string name="xfer_card_row">%1$s — %2$s</string>

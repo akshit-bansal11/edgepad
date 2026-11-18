@@ -627,6 +627,12 @@
     <item quantity="other">%1$d файла не отправлены</item>
   </plurals>
   <string name="xfer_card_more">и ещё %1$d</string>
+  <plurals name="xfer_share_count">
+    <item quantity="one">%1$d файл</item>
+    <item quantity="few">%1$d файла</item>
+    <item quantity="many">%1$d файлов</item>
+    <item quantity="other">%1$d файла</item>
+  </plurals>
   <string name="xfer_card_cancelling">Отмена…</string>
   <string name="xfer_retry">Повторить</string>
   <string name="xfer_card_row">%1$s — %2$s</string>

@@ -577,6 +577,9 @@
     <item quantity="other">파일 %1$d개를 보내지 못했습니다</item>
   </plurals>
   <string name="xfer_card_more">외 %1$d개</string>
+  <plurals name="xfer_share_count">
+    <item quantity="other">파일 %1$d개</item>
+  </plurals>
   <string name="xfer_card_cancelling">취소하는 중…</string>
   <string name="xfer_retry">다시 시도</string>
   <string name="xfer_card_row">%1$s — %2$s</string>

@@ -616,6 +616,11 @@
     <item quantity="other">%1$d file non sono stati inviati</item>
   </plurals>
   <string name="xfer_card_more">e altri %1$d</string>
+  <plurals name="xfer_share_count">
+    <item quantity="one">%1$d file</item>
+    <item quantity="many">%1$d di file</item>
+    <item quantity="other">%1$d file</item>
+  </plurals>
   <string name="xfer_card_cancelling">Annullamento…</string>
   <string name="xfer_retry">Riprova</string>
   <string name="xfer_card_row">%1$s — %2$s</string>

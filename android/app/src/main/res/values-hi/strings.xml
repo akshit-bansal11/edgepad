@@ -602,6 +602,10 @@
     <item quantity="other">%1$d फ़ाइलें नहीं भेजी जा सकीं</item>
   </plurals>
   <string name="xfer_card_more">और %1$d</string>
+  <plurals name="xfer_share_count">
+    <item quantity="one">%1$d फ़ाइल</item>
+    <item quantity="other">%1$d फ़ाइलें</item>
+  </plurals>
   <string name="xfer_card_cancelling">रद्द किया जा रहा है…</string>
   <string name="xfer_retry">फिर से कोशिश करें</string>
   <string name="xfer_card_row">%1$s — %2$s</string>

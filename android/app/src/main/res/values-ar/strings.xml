@@ -652,6 +652,14 @@
     <item quantity="other">تعذر إرسال %1$d ملف</item>
   </plurals>
   <string name="xfer_card_more">و%1$d أخرى</string>
+  <plurals name="xfer_share_count">
+    <item quantity="zero">%1$d ملف</item>
+    <item quantity="one">ملف واحد</item>
+    <item quantity="two">ملفان</item>
+    <item quantity="few">%1$d ملفات</item>
+    <item quantity="many">%1$d ملفًا</item>
+    <item quantity="other">%1$d ملف</item>
+  </plurals>
   <string name="xfer_card_cancelling">جارٍ الإلغاء…</string>
   <string name="xfer_retry">إعادة المحاولة</string>
   <string name="xfer_card_row">%1$s — %2$s</string>

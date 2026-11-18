@@ -40,7 +40,7 @@
     </activity>
 
     <!-- Share > Edgepad: one text, image or file, sent to the laptop only after a tap on Send. Exported because a share
-         target must be; it handles one ACTION_SEND and finishes on anything it cannot send. -->
+         target must be; it handles one ACTION_SEND or one ACTION_SEND_MULTIPLE and finishes on anything it cannot send. -->
     <activity
       android:name=".ShareActivity"
       android:excludeFromRecents="true"
@@ -52,6 +52,11 @@
         <category android:name="android.intent.category.DEFAULT" />
         <data android:mimeType="text/plain" />
         <data android:mimeType="image/*" />
+        <data android:mimeType="*/*" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.SEND_MULTIPLE" />
+        <category android:name="android.intent.category.DEFAULT" />
         <data android:mimeType="*/*" />
       </intent-filter>
     </activity>

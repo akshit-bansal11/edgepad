@@ -594,6 +594,9 @@
     <item quantity="other">%1$d 件のファイルを送信できませんでした</item>
   </plurals>
   <string name="xfer_card_more">ほか %1$d 件</string>
+  <plurals name="xfer_share_count">
+    <item quantity="other">%1$d 個のファイル</item>
+  </plurals>
   <string name="xfer_card_cancelling">キャンセル中…</string>
   <string name="xfer_retry">再試行</string>
   <string name="xfer_card_row">%1$s — %2$s</string>

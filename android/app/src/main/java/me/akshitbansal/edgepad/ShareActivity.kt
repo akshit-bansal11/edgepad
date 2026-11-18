@@ -15,22 +15,30 @@ import me.akshitbansal.edgepad.link.SharedText
 import me.akshitbansal.edgepad.link.preview
 import me.akshitbansal.edgepad.link.sharedText
 import me.akshitbansal.edgepad.link.xfer.Transfers
+import me.akshitbansal.edgepad.link.xfer.XferPhase
 import me.akshitbansal.edgepad.protocol.BlobKind
+import me.akshitbansal.edgepad.screens.CardTitle
+import me.akshitbansal.edgepad.screens.Ui
+import me.akshitbansal.edgepad.screens.XferCardView
+import me.akshitbansal.edgepad.screens.titleKind
 import java.io.IOException
 import kotlin.concurrent.thread
 
 /**
  * Share > Edgepad: one text or one image another app hands over, sent to the connected laptop through the clipboard's
  * own path, or any other file, sent as a file transfer. Exported, so any app can start it, which is why it does nothing
- * without a tap: it reads only EXTRA_TEXT or EXTRA_STREAM of a single ACTION_SEND, shows what it would send and to
- * whom, and sends only after Send. The image is read on a worker, through the content resolver, under the clipboard's
- * size cap; a file is streamed on a worker. No URI permission is kept past this screen. Anything else finishes at once.
+ * without a tap: it reads only EXTRA_TEXT or EXTRA_STREAM of one ACTION_SEND or ACTION_SEND_MULTIPLE, shows what it
+ * would send and to whom, and sends only after Send. The image is read on a worker, through the content resolver,
+ * under the clipboard's size cap; a file is streamed on a worker. No URI permission is kept past this screen. Anything
+ * else finishes at once.
  */
 class ShareActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // A rebuild (rotation) lost the dialog and nothing was sent: the share is simply over.
-        if (savedInstanceState != null || intent?.action != Intent.ACTION_SEND) {
+        val action = intent?.action
+        val many = action == Intent.ACTION_SEND_MULTIPLE
+        if (savedInstanceState != null || (action != Intent.ACTION_SEND && !many)) {
             finish()
             return
         }
@@ -41,11 +49,13 @@ class ShareActivity : Activity() {
         val text: CharSequence?
         val image: Uri?
         val file: Uri?
+        val files: List<Uri>
         try {
-            text = if (type == TEXT_TYPE) intent.getCharSequenceExtra(Intent.EXTRA_TEXT) else null
-            image = if (type.startsWith(IMAGE_PREFIX)) streamOf(intent) else null
+            files = if (many) limitShared(streamsOf(intent)) else emptyList()
+            text = if (!many && type == TEXT_TYPE) intent.getCharSequenceExtra(Intent.EXTRA_TEXT) else null
+            image = if (!many && type.startsWith(IMAGE_PREFIX)) streamOf(intent) else null
             // Anything else with a stream: a document, a recording, a text file.
-            file = if (text == null && image == null) streamOf(intent) else null
+            file = if (!many && text == null && image == null) streamOf(intent) else null
         } catch (e: RuntimeException) {
             Log.w("Edgepad", "The share's extras could not be read", e)
             finish()
@@ -53,7 +63,7 @@ class ShareActivity : Activity() {
         }
         val target = LinkHooks.shareTarget?.invoke()
         when {
-            text == null && image == null && file == null -> {
+            text == null && image == null && file == null && files.isEmpty() -> {
                 notice(getString(R.string.share_nothing))
             }
 
@@ -61,8 +71,12 @@ class ShareActivity : Activity() {
                 notice(getString(R.string.share_no_laptop))
             }
 
+            files.isNotEmpty() -> {
+                confirmFiles(files, target)
+            }
+
             file != null -> {
-                confirmFile(file, target)
+                confirmFiles(listOf(file), target)
             }
 
             target.send == null -> {
@@ -121,16 +135,19 @@ class ShareActivity : Activity() {
         }
     }
 
-    /** The name is asked of the sharing app's provider on a worker, then the same question as for text: Send to whom. */
-    private fun confirmFile(
-        uri: Uri,
+    /**
+     * The names are asked of the sharing app's provider on a worker, then the same question as for text: Send to whom.
+     * Several files show their count and the first few names.
+     */
+    private fun confirmFiles(
+        uris: List<Uri>,
         target: ShareTarget,
     ) {
-        val sendFile = target.sendFile ?: return notice(getString(R.string.share_no_laptop))
+        val sendFiles = target.sendFiles ?: return notice(getString(R.string.share_no_laptop))
         thread(name = "edgepad-share-name") {
-            val name =
+            val names =
                 try {
-                    Transfers.displayName(applicationContext, uri)
+                    uris.take(NAMES_SHOWN).map { Transfers.displayName(applicationContext, it) }
                 } catch (e: RuntimeException) {
                     // A revoked grant or a dead provider comes back across binder as any runtime exception.
                     Log.w("Edgepad", "Could not read the shared file's name", e)
@@ -138,41 +155,91 @@ class ShareActivity : Activity() {
                 }
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
-                if (name == null) {
+                if (names == null || names.any { it == null }) {
                     notice(getString(R.string.share_nothing))
-                } else {
-                    confirm(name, target) { deliverFile(target, uri, sendFile) }
+                    return@runOnUiThread
                 }
+                val what =
+                    if (uris.size == 1) {
+                        names.first().orEmpty()
+                    } else {
+                        val count = resources.getQuantityString(R.plurals.xfer_share_count, uris.size, uris.size)
+                        val more =
+                            if (uris.size > NAMES_SHOWN) {
+                                listOf(getString(R.string.xfer_card_more, uris.size - NAMES_SHOWN))
+                            } else {
+                                emptyList()
+                            }
+                        (listOf(count) + names.filterNotNull() + more).joinToString("\n")
+                    }
+                confirm(what, target) { deliverFiles(target, uris, sendFiles) }
             }
         }
     }
 
-    /** Sends on a worker, counted as a share so the app leaving does not end the link under it. */
-    private fun deliverFile(
+    /**
+     * Sends on a worker, counted as a share so the app leaving does not end the link under it. This activity stays
+     * until the batch is over, since the sharing app's grants die with it, and shows the transfer card in a dialog.
+     */
+    private fun deliverFiles(
         target: ShareTarget,
-        uri: Uri,
-        sendFile: (Uri) -> Boolean,
+        uris: List<Uri>,
+        sendFiles: (List<Uri>) -> Boolean,
     ) {
-        LinkHooks.sharing.incrementAndGet()
-        thread(name = "edgepad-share") {
-            val message =
-                try {
-                    if (sendFile(uri)) {
-                        getString(R.string.share_sent, target.name)
-                    } else {
-                        getString(R.string.share_send_failed, target.name)
-                    }
-                } catch (e: RuntimeException) {
-                    Log.w("Edgepad", "Could not send what was shared", e)
-                    getString(R.string.share_send_failed, target.name)
-                } finally {
-                    LinkHooks.sharing.decrementAndGet()
+        val progress = Transfers.progress
+        // A finished card left by an earlier batch must not be taken for this one.
+        if (progress.snapshot.phase == XferPhase.FINISHED) progress.dismiss()
+        Type.load(this)
+        val ui = Ui(this)
+        val send = { sendOnWorker(uris, sendFiles) }
+        val card = XferCardView(ui, onCancel = Transfers::cancel, onRetry = send, onDone = progress::dismiss)
+        val autoDone = Runnable { progress.dismiss() }
+        var dialog: AlertDialog? = null
+        progress.listener = { s ->
+            when {
+                isFinishing || isDestroyed -> Unit
+
+                s.phase == XferPhase.IDLE -> {
+                    // Done, or auto-dismissed: the share is over.
+                    dialog?.dismiss()
+                    finish()
                 }
-            runOnUiThread {
-                Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
-                finish()
+
+                else -> {
+                    card.bind(s, target.name)
+                    if (dialog == null) {
+                        dialog = AlertDialog.Builder(this).setView(card).setCancelable(false).show()
+                    }
+                    card.removeCallbacks(autoDone)
+                    if (s.phase == XferPhase.FINISHED && titleKind(s) == CardTitle.DONE_ALL) {
+                        card.postDelayed(autoDone, AUTO_DONE_MS)
+                    }
+                }
             }
         }
+        send()
+    }
+
+    private fun sendOnWorker(
+        uris: List<Uri>,
+        sendFiles: (List<Uri>) -> Boolean,
+    ) {
+        // Counted from before the thread starts, so a linger running out in between still sees it.
+        LinkHooks.sharing.incrementAndGet()
+        thread(name = "edgepad-share") {
+            try {
+                sendFiles(uris)
+            } catch (e: RuntimeException) {
+                Log.w("Edgepad", "Could not send what was shared", e)
+            } finally {
+                LinkHooks.sharing.decrementAndGet()
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Transfers.progress.listener = null
     }
 
     private fun confirm(
@@ -239,6 +306,14 @@ class ShareActivity : Activity() {
             .show()
     }
 
+    private fun streamsOf(intent: Intent): List<Uri>? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM)
+        }
+
     private fun streamOf(intent: Intent): Uri? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
@@ -250,5 +325,13 @@ class ShareActivity : Activity() {
     private companion object {
         const val TEXT_TYPE = "text/plain"
         const val IMAGE_PREFIX = "image/"
+        const val NAMES_SHOWN = 3
+        const val AUTO_DONE_MS = 5_000L
     }
 }
+
+/** The documents a multiple share carries: none for null, no repeats, at most [max], in the order given. */
+internal fun <T> limitShared(
+    items: List<T>?,
+    max: Int = 100,
+): List<T> = items.orEmpty().distinct().take(max)

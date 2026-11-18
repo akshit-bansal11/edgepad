@@ -90,7 +90,4 @@ class ShareTarget(
      * so off the main thread. True when every one arrived.
      */
     val sendFiles: ((List<Uri>) -> Boolean)? = null,
-) {
-    /** One document, over [sendFiles]. Kept until the share sheet takes several. */
-    val sendFile: ((Uri) -> Boolean)? get() = sendFiles?.let { send -> { uri -> send(listOf(uri)) } }
-}
+)
