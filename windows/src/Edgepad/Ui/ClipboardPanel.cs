@@ -541,7 +541,7 @@ internal sealed class ClipboardPanel : Form
             }
         }
 
-        private int Pitch(int dpi) => Math.Max(Theme.Scale(LineHeight, dpi), PreviewFont(dpi).Height);
+        private static int Pitch(int dpi) => Math.Max(Theme.Scale(LineHeight, dpi), PreviewFont(dpi).Height);
 
         private static Font PreviewFont(int dpi) => Theme.Font(Theme.Scale(13f, dpi), Weight.Regular);
 
