@@ -429,7 +429,8 @@
   <string name="capture_stop">Kaydı durdur</string>
   <string name="capture_recording">Bilgisayarda kayıt sürüyor. Bitirmek için “Kaydı durdur” düğmesine dokunun; “Kaydedilecek yer” olarak Telefon seçiliyse dosya o zaman gelir.</string>
   <string name="capture_sent">Bilgisayara gönderildi: %1$s</string>
-  <string name="capture_hint">Bölge için “Bölge” düğmesine dokunun, sonra dokunmatik yüzeyde halka dolana kadar bir parmağınızı sabit tutun, sonra alanı belirlemek için sürükleyin.</string>
+  <string name="capture_hint">Bölge için alanın bir köşesine işaret edin, “Bölge” düğmesine dokunun, sonra dokunmatik yüzeyde karşı köşeye sürükleyin.</string>
+  <string name="capture_drag_caption">Alanı seçmek için sürükleyin</string>
   <string name="capture_save_to">Kaydedilecek yer</string>
   <string name="capture_save_laptop">Bilgisayar</string>
   <string name="capture_save_phone">Telefon</string>

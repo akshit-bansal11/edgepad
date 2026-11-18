@@ -434,7 +434,8 @@
   <string name="capture_stop">Opname stoppen</string>
   <string name="capture_recording">Opname loopt op de laptop. Tik op Opname stoppen om af te ronden; met Opslaan op Telefoon komt het bestand dan binnen.</string>
   <string name="capture_sent">Naar de laptop gestuurd: %1$s</string>
-  <string name="capture_hint">Tik voor een gebied op Gebied, houd dan een vinger stil op het touchpad tot de ring vol is en beweeg hem om het gebied te slepen.</string>
+  <string name="capture_hint">Wijs voor een gebied één hoek aan, tik op Gebied en sleep dan op het touchpad naar de tegenoverliggende hoek.</string>
+  <string name="capture_drag_caption">Sleep om het gebied te kiezen</string>
   <string name="capture_save_to">Opslaan op</string>
   <string name="capture_save_laptop">Laptop</string>
   <string name="capture_save_phone">Telefoon</string>

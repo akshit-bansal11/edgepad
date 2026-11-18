@@ -464,7 +464,8 @@
   <string name="capture_stop">إيقاف التسجيل</string>
   <string name="capture_recording">يجري التسجيل على اللابتوب. انقر «إيقاف التسجيل» للإنهاء؛ ومع «الحفظ في» «الهاتف» يصل الملف حينها.</string>
   <string name="capture_sent">تم الإرسال إلى اللابتوب: %1$s</string>
-  <string name="capture_hint">لالتقاط منطقة، انقر «منطقة»، ثم ثبّت إصبعك على لوحة اللمس حتى تكتمل الدائرة ثم حرّكه لتحديد المساحة.</string>
+  <string name="capture_hint">لالتقاط منطقة، أشر إلى أحد أركانها، وانقر «منطقة»، ثم اسحب على لوحة اللمس إلى الركن المقابل.</string>
+  <string name="capture_drag_caption">اسحب لتحديد المنطقة</string>
   <string name="capture_save_to">الحفظ في</string>
   <string name="capture_save_laptop">اللابتوب</string>
   <string name="capture_save_phone">الهاتف</string>

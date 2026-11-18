@@ -434,7 +434,8 @@
   <string name="capture_stop">रिकॉर्डिंग रोकें</string>
   <string name="capture_recording">लैपटॉप पर रिकॉर्डिंग चल रही है। खत्म करने के लिए “रिकॉर्डिंग रोकें” पर टैप करें; “यहां सेव करें” में फ़ोन चुना हो तो फ़ाइल तभी आएगी।</string>
   <string name="capture_sent">लैपटॉप पर भेजा गया: %1$s</string>
-  <string name="capture_hint">किसी हिस्से के लिए “हिस्सा” पर टैप करें, फिर टचपैड पर उंगली को तब तक स्थिर रखें जब तक घेरा पूरा न भर जाए, फिर हिलाकर हिस्सा चुनें।</string>
+  <string name="capture_hint">किसी हिस्से के लिए उसके एक कोने पर पॉइंटर रखें, “हिस्सा” पर टैप करें, फिर टचपैड पर खींचकर सामने वाले कोने तक ले जाएँ।</string>
+  <string name="capture_drag_caption">हिस्सा चुनने के लिए खींचें</string>
   <string name="capture_save_to">यहां सेव करें</string>
   <string name="capture_save_laptop">लैपटॉप</string>
   <string name="capture_save_phone">फ़ोन</string>

@@ -428,7 +428,8 @@
   <string name="capture_stop">停止录制</string>
   <string name="capture_recording">正在电脑上录制。完成后点“停止录制”；若“保存到”选的是手机，文件会在此时传来。</string>
   <string name="capture_sent">已发送到电脑：%1$s</string>
-  <string name="capture_hint">要截取区域，先点“区域”，再在触控板上按住手指不动，等圆环填满后移动，拖出所需范围。</string>
+  <string name="capture_hint">要截取区域，先把指针移到区域的一角，点“区域”，再在触控板上拖到对角。</string>
+  <string name="capture_drag_caption">拖动以选择区域</string>
   <string name="capture_save_to">保存到</string>
   <string name="capture_save_laptop">电脑</string>
   <string name="capture_save_phone">手机</string>

@@ -78,6 +78,17 @@ class TrackpadRecognizer(
     var drawingAlone = false
         private set
 
+    /**
+     * Region select (#75), set by the Capture screen when Region is tapped. The next one-finger touch that
+     * moves presses the left button where the pointer already is and drags, no hold needed; lifting lets go
+     * and ends the mode through [onSelected]. With [swallowTaps], taps meanwhile send nothing: on Windows'
+     * Snipping Tool a click makes a few-pixel selection and ends it, which is how #75's reporter lost every
+     * attempt. Linux leaves taps on, because GNOME's and KDE's screenshot tools have buttons to press.
+     */
+    var selecting = false
+    var swallowTaps = false
+    var onSelected: (() -> Unit)? = null
+
     private var fingers = 0
     private var maxFingers = 0
     private var startTime = 0L
@@ -202,7 +213,14 @@ class TrackpadRecognizer(
         // shape being drawn on it.
         if (strokeFingers()) record(cx, cy)
         tick(time)
-        if (!moved && hypot(fromStartX, fromStartY) > dp(SLOP_DP)) moved = true
+        if (!moved && hypot(fromStartX, fromStartY) > dp(SLOP_DP)) {
+            moved = true
+            // Nothing has moved the pointer yet, so the press lands where the touch began.
+            if (selecting && maxFingers == 1 && !dragging) {
+                dragging = true
+                sink(Frame.PointerButton(LEFT, true))
+            }
+        }
 
         when (maxFingers) {
             1 -> if (moved) pointer(dx, dy)
@@ -222,6 +240,9 @@ class TrackpadRecognizer(
     fun tick(time: Long) {
         if (fingers == 0 || held || moved || time < holdStart + HOLD_MS) return
         if (maxFingers == 1) {
+            // Selecting presses on the first move instead: a hold gripping here and then lifting unmoved would
+            // be the very click that ends a Snipping Tool selection as a few pixels.
+            if (selecting) return
             // Hold-still wins over a pending tap-drag. The press is then at least HOLD_MS after the touch,
             // so it can still land inside the laptop's double-click time only after a very quick tap; accepted.
             pendingPress = false
@@ -239,7 +260,7 @@ class TrackpadRecognizer(
      * region selection as a few pixels.
      */
     fun holdProgress(time: Long): Float? =
-        if (fingers != 1 || maxFingers != 1 || held || moved) {
+        if (fingers != 1 || maxFingers != 1 || held || moved || selecting) {
             null
         } else {
             ((time - holdStart).toFloat() / HOLD_MS).coerceIn(0f, 1f)
@@ -510,6 +531,15 @@ class TrackpadRecognizer(
 
             dragging -> {
                 sink(Frame.PointerButton(LEFT, false))
+                if (selecting) {
+                    selecting = false
+                    onSelected?.invoke()
+                }
+            }
+
+            selecting && swallowTaps -> {
+                // A tap while the laptop waits for a drag: its click would end the selection as a few pixels.
+                Unit
             }
 
             tapAllowed && untouched && time - startTime <= TAP_MS -> {

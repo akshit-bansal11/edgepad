@@ -30,12 +30,14 @@ Wire protocol 6. A 5.0 phone and a 4.x laptop (or the reverse) refuse each other
 - **Protocol 6.** New frames BULK_HELLO and XFER_BEGIN, XFER_CHUNK, XFER_END, XFER_STATUS; ACTION 37 and 60 to 62, CONTROL 10 and 11, TEXT 21 to 26 and BLOB kinds 4 and 5. See `docs/PROTOCOL.md`.
 - **Phone: motion that carries.** Presses answer within 160 ms, popovers and windows open from where they were opened within 300 ms, and a screen change takes at most 400 ms and carries across instead of cutting. The same tiers apply on Windows, Linux and the website.
 - **Phone: the battery strip is an underline** instead of pills.
+- **Phone: Capture's region is a plain drag (#75).** Point at one corner, tap Region, then drag on the trackpad to the opposite corner; no hold. Until that drag, taps send nothing on Windows and Mac, where a click ended the selection as a few pixels. On Windows, Record starts the same way. On the main trackpad a ring now fills while a finger holds still, and turns the accent colour when the drag starts.
 - **Phone, laptops: media titles are cleaned** of brackets, "feat." and the artist's name, from one shared test list.
 - **Site: download links read the newest published release,** not the changelog, so they no longer 404 before the tag publishes.
 
 ### Fixed
 
 - **Mac: media changes reach the phone** even where the end-of-media action is not offered.
+- **Windows: a screen that refuses brightness changes logs it once,** not on every dial step, and quitting no longer throws from the brightness control.
 - **Release: a hand-run draft without the signing key ships unsigned** instead of failing.
 
 ### Security

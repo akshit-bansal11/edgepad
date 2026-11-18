@@ -433,7 +433,8 @@
   <string name="capture_stop">Aufzeichnung beenden</string>
   <string name="capture_recording">Aufzeichnung läuft auf dem Laptop. Tippe auf „Aufzeichnung beenden“; bei „Speichern auf: Handy“ kommt die Datei dann an.</string>
   <string name="capture_sent">An den Laptop gesendet: %1$s</string>
-  <string name="capture_hint">Für einen Bereich tippe auf „Bereich“, halte dann einen Finger still auf dem Touchpad, bis sich der Ring füllt, und bewege ihn, um den Bereich aufzuziehen.</string>
+  <string name="capture_hint">Für einen Bereich zeige auf eine seiner Ecken, tippe auf „Bereich“ und ziehe dann auf dem Touchpad zur gegenüberliegenden Ecke.</string>
+  <string name="capture_drag_caption">Ziehen, um den Bereich zu wählen</string>
   <string name="capture_save_to">Speichern auf</string>
   <string name="capture_save_laptop">Laptop</string>
   <string name="capture_save_phone">Handy</string>

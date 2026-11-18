@@ -89,6 +89,42 @@ class TrackpadRecognizerTest {
     }
 
     @Test
+    fun selectingPressesOnTheFirstMoveAndEndsOnLift() {
+        var ended = false
+        pad.selecting = true
+        pad.onSelected = { ended = true }
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.MOVE, 20, 150f to 100f)
+        assertEquals("pressed where the touch began, then moved", Frame.PointerButton(0, true), out.first())
+        assertTrue(out[1] is Frame.Move)
+        touch(Action.UP, 100)
+        assertEquals(Frame.PointerButton(0, false), out.last())
+        assertTrue(ended)
+        assertFalse(pad.selecting)
+    }
+
+    @Test
+    fun selectingSwallowsTapsAndHoldsUntilTheDrag() {
+        pad.selecting = true
+        pad.swallowTaps = true
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.UP, 100)
+        touch(Action.DOWN, 200, 100f to 100f)
+        pad.tick(200 + TrackpadRecognizer.HOLD_MS)
+        touch(Action.UP, 200 + TrackpadRecognizer.HOLD_MS + 50)
+        assertTrue("a tap or an unmoved hold would end the selection as a click", out.isEmpty())
+        assertTrue(pad.selecting)
+    }
+
+    @Test
+    fun selectingLeavesTapsOnWhenTheyAreNotSwallowed() {
+        pad.selecting = true
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.UP, 100)
+        assertEquals(listOf(Frame.PointerButton(0, true), Frame.PointerButton(0, false)), out)
+    }
+
+    @Test
     fun theTimerGripsAFingerThatSendsNoSamples() {
         touch(Action.DOWN, 0, 100f to 100f)
         pad.tick(TrackpadRecognizer.HOLD_MS - 1)

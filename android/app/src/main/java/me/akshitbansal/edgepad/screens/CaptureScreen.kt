@@ -14,6 +14,7 @@ import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.CaptureStateToken
 import me.akshitbansal.edgepad.protocol.CaptureStatus
 import me.akshitbansal.edgepad.protocol.CaptureTarget
+import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.FileStatus
 import me.akshitbansal.edgepad.protocol.Frame
@@ -47,6 +48,24 @@ class CaptureScreen(
 
     private val onStep: (FileInbox.Progress) -> Unit = { show(it) }
 
+    // Built before [view], whose buttons reach it.
+    private val pad =
+        ControlSurface(
+            ui.context,
+            settings,
+            state,
+            send,
+            onOpenSettings = {},
+            onOpenControls = {},
+            trackpadOnly = true,
+        )
+
+    // Windows and Mac overlays end a selection on a click; Linux screenshot tools have buttons to press.
+    private val swallowTaps = state.os != DeviceOs.LINUX
+
+    // Windows records a dragged region (Win+Shift+R); a Mac opens a toolbar and Linux just starts.
+    private val recordDrags = state.os == DeviceOs.WINDOWS
+
     val view: View =
         LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL
@@ -59,15 +78,7 @@ class CaptureScreen(
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
             )
             addView(
-                ControlSurface(
-                    ui.context,
-                    settings,
-                    state,
-                    send,
-                    onOpenSettings = {},
-                    onOpenControls = {},
-                    trackpadOnly = true,
-                ),
+                pad,
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f),
             )
             // Leaving the screen, by any route, closes a capture overlay the laptop may still have open. A view hook
@@ -106,6 +117,8 @@ class CaptureScreen(
                     ui.button(ui.string(shown(action, label)), Ui.Style.OUTLINED) {
                         // Before the send, so the file this action may bring back always finds its permit.
                         CaptureInbox.permit(action)
+                        val startsRecording = action == ActionId.CAPTURE_RECORD && recordDrags && !running
+                        pad.selectRegion(action == ActionId.CAPTURE_REGION || startsRecording, swallowTaps)
                         send(action.frame())
                         acknowledge(action, label, self)
                     }

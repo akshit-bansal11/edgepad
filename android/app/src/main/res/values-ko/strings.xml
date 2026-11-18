@@ -415,7 +415,8 @@
   <string name="capture_stop">녹화 중지</string>
   <string name="capture_recording">노트북에서 녹화 중이에요. 끝내려면 녹화 중지를 탭하세요. 저장 위치가 휴대전화이면 그때 파일이 도착해요.</string>
   <string name="capture_sent">노트북으로 보냄: %1$s</string>
-  <string name="capture_hint">영역을 캡처하려면 영역을 탭한 뒤, 트랙패드에 손가락을 원이 다 찰 때까지 멈춰 두었다가 움직여 범위를 지정하세요.</string>
+  <string name="capture_hint">영역을 캡처하려면 한쪽 모서리를 가리킨 뒤 영역을 탭하고, 트랙패드에서 반대쪽 모서리까지 드래그하세요.</string>
+  <string name="capture_drag_caption">드래그해서 영역 선택</string>
   <string name="capture_save_to">저장 위치</string>
   <string name="capture_save_laptop">노트북</string>
   <string name="capture_save_phone">휴대전화</string>

@@ -442,7 +442,8 @@
   <string name="capture_stop">Arrêter l’enregistrement</string>
   <string name="capture_recording">Enregistrement en cours sur l’ordinateur. Appuyez sur Arrêter l’enregistrement pour terminer ; si « Enregistrer sur » est réglé sur Téléphone, le fichier arrive alors.</string>
   <string name="capture_sent">Envoyé à l’ordinateur : %1$s</string>
-  <string name="capture_hint">Pour une zone, appuyez sur Zone, puis maintenez un doigt immobile sur le pavé tactile jusqu’à ce que l’anneau se remplisse, puis déplacez-le pour la tracer.</string>
+  <string name="capture_hint">Pour une zone, pointez l’un de ses coins, appuyez sur Zone, puis faites glisser sur le pavé tactile jusqu’au coin opposé.</string>
+  <string name="capture_drag_caption">Faites glisser pour choisir la zone</string>
   <string name="capture_save_to">Enregistrer sur</string>
   <string name="capture_save_laptop">Ordinateur</string>
   <string name="capture_save_phone">Téléphone</string>

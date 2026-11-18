@@ -414,7 +414,30 @@ class ControlSurface(
     /** The finger went down on the battery strip, until it lifts or the touch is cancelled. */
     private var pressedStrip = false
 
+    /** Ends region select when nothing was dragged: an overlay closed from the laptop's keyboard sends no word. */
+    private val selectExpired = Runnable { selectRegion(false, swallowTaps = false) }
+
+    /**
+     * Region select on the Capture pad (#75): the next drag draws the laptop's selection box, and with
+     * [swallowTaps] taps send nothing until it has. See [TrackpadRecognizer.selecting].
+     */
+    fun selectRegion(
+        on: Boolean,
+        swallowTaps: Boolean,
+    ) {
+        trackpad.selecting = on
+        trackpad.swallowTaps = swallowTaps
+        removeCallbacks(selectExpired)
+        if (on) postDelayed(selectExpired, SELECT_MS)
+        rebuildCaption()
+        invalidate()
+    }
+
     init {
+        trackpad.onSelected = {
+            removeCallbacks(selectExpired)
+            rebuildCaption()
+        }
         keepScreenOn = true
         contentDescription = context.getString(R.string.surface_description)
         // The mode rides on the state description rather than on announceForAccessibility, which API 36
@@ -956,6 +979,7 @@ class ControlSurface(
             when {
                 locked -> R.string.surface_locked_caption
                 dialsHidden -> R.string.surface_focus_caption
+                trackpad.selecting -> R.string.capture_drag_caption
                 else -> null
             }
         if (res == null || width == 0) {
@@ -1723,6 +1747,9 @@ class ControlSurface(
          */
         private const val CAPTION_GAP_DP = 28f
         private const val FINGER_DP = 10f
+
+        /** How long region select waits for its drag before the pad goes back to clicking on taps. */
+        private const val SELECT_MS = 30_000L
 
         /** The hold ring (#75): radius and line, round the finger dot, clear of a fingertip's edge. */
         private const val HOLD_RING_DP = 22f
