@@ -252,6 +252,8 @@ internal sealed class TrayContext : ApplicationContext
             firewallRow.Available = networkRow.Checked && firewallRefused && !allowingNetwork;
             bluetoothRow.Available = trust.TrustedPhones.Count == 0;
             clipboardRow.Checked = clipboardSetting.Enabled;
+            // The panel only lists what sharing recorded, so it is off with sharing (owner, 2026-11-18).
+            clipHistoryRow.Enabled = clipboardSetting.Enabled;
             var keyed = hotkey?.Registered == true;
             clipHistoryRow.Hint = keyed ? ClipboardHotkey.Display : null;
             clipHistoryRow.ToolTipText = keyed ? Strings.Menu_ClipboardHistoryTip : Strings.Clip_HotkeyTaken;
@@ -900,6 +902,7 @@ internal sealed class TrayContext : ApplicationContext
         if (!on)
         {
             history.Clear();
+            clipPanel?.Close();
         }
     }
 
@@ -917,6 +920,11 @@ internal sealed class TrayContext : ApplicationContext
     /// </summary>
     private void ShowClipboardPanel(bool paste)
     {
+        if (!clipboardSetting.Enabled)
+        {
+            return;
+        }
+
         if (clipPanel is { IsDisposed: false } open)
         {
             open.Close();
