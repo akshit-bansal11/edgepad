@@ -8,7 +8,7 @@ using Edgepad.Startup;
 namespace Edgepad.Transfer;
 
 /// <summary>
-/// Explorer's Send to › Edgepad starts <c>Edgepad.exe --send &lt;path&gt;</c>, which hands the path to the running copy through
+/// Explorer's Send to › Edgepad starts <c>Edgepad.exe --send &lt;path&gt;...</c>, which hands the paths to the running copy through
 /// this pipe and exits. The pipe is closed to every other user (<see cref="PipeOptions.CurrentUserOnly"/>) and a line read
 /// from it is trusted no further than <see cref="Validate"/>: an existing regular file under the transfer cap.
 /// </summary>
@@ -17,15 +17,46 @@ internal sealed class SendPipe : IDisposable
     internal const string PipeName = "Edgepad.Send";
     private const string ShortcutName = "Edgepad.lnk";
     private const int MaxLine = 32 * 1024;
+    private const int MaxTotal = 256 * 1024;
+    internal const int MaxFiles = 100;
     private static readonly TimeSpan Patience = TimeSpan.FromSeconds(2);
 
-    private readonly Action<string> onPath;
+    private readonly Action<IReadOnlyList<string>, int> onPaths;
     private readonly CancellationTokenSource stop = new();
 
-    public SendPipe(Action<string> onPath)
+    public SendPipe(Action<IReadOnlyList<string>, int> onPaths)
     {
-        this.onPath = onPath;
+        this.onPaths = onPaths;
         _ = Task.Run(() => ServeAsync(stop.Token), CancellationToken.None);
+    }
+
+    /// <summary>
+    /// <see cref="Validate"/> for every line: blank lines are ignored, a repeat counts once, at most <see cref="MaxFiles"/> are
+    /// kept and the rest are dropped. Skipped is the number of non-blank lines that were not usable files.
+    /// </summary>
+    internal static (IReadOnlyList<string> Valid, int Skipped) ValidateAll(IEnumerable<string?> lines)
+    {
+        var valid = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var skipped = 0;
+        foreach (var line in lines)
+        {
+            if (string.IsNullOrWhiteSpace(line) || valid.Count >= MaxFiles)
+            {
+                continue;
+            }
+
+            if (Validate(line) is not { } path)
+            {
+                skipped++;
+            }
+            else if (seen.Add(path))
+            {
+                valid.Add(path);
+            }
+        }
+
+        return (valid, skipped);
     }
 
     /// <summary>The full path when <paramref name="line"/> names an existing file (not a folder, not empty, not over 2 GiB); else null.</summary>
@@ -53,15 +84,19 @@ internal sealed class SendPipe : IDisposable
         }
     }
 
-    /// <summary>Hands <paramref name="path"/> to the running copy. False when none answered.</summary>
-    public static bool Send(string path)
+    /// <summary>Hands <paramref name="paths"/> to the running copy over one connection, a path per line. False when none answered.</summary>
+    public static bool Send(IEnumerable<string> paths)
     {
         try
         {
             using var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out, PipeOptions.CurrentUserOnly);
             client.Connect((int)Patience.TotalMilliseconds);
             using var writer = new StreamWriter(client, new UTF8Encoding(false));
-            writer.WriteLine(Path.GetFullPath(path));
+            foreach (var path in paths)
+            {
+                writer.WriteLine(Path.GetFullPath(path));
+            }
+
             writer.Flush();
             return true;
         }
@@ -136,9 +171,18 @@ internal sealed class SendPipe : IDisposable
                 using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancel);
                 timeout.CancelAfter(Patience);
                 using var reader = new StreamReader(server, new UTF8Encoding(false), false, 1024, leaveOpen: true);
-                if (Validate(await ReadLineAsync(reader, timeout.Token)) is { } path)
+                var lines = new List<string?>();
+                var total = 0;
+                while (lines.Count < MaxFiles * 2 && total < MaxTotal && await ReadLineAsync(reader, timeout.Token) is { } line)
                 {
-                    onPath(path);
+                    lines.Add(line);
+                    total += line.Length + 1;
+                }
+
+                var (valid, skipped) = ValidateAll(lines);
+                if (valid.Count > 0)
+                {
+                    onPaths(valid, skipped);
                 }
             }
             catch (OperationCanceledException)
@@ -156,12 +200,24 @@ internal sealed class SendPipe : IDisposable
     {
         var text = new StringBuilder();
         var one = new char[1];
-        while (text.Length <= MaxLine && await reader.ReadAsync(one.AsMemory(), cancel) == 1 && one[0] != '\n')
+        var ended = false;
+        while (text.Length <= MaxLine)
         {
+            if (await reader.ReadAsync(one.AsMemory(), cancel) != 1)
+            {
+                ended = true;
+                break;
+            }
+
+            if (one[0] == '\n')
+            {
+                break;
+            }
+
             _ = text.Append(one[0]);
         }
 
-        return text.ToString().TrimEnd('\r');
+        return ended && text.Length == 0 ? null : text.ToString().TrimEnd('\r');
     }
 
     public void Dispose()

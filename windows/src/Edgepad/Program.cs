@@ -35,10 +35,10 @@ internal static class Program
             return;
         }
 
-        if (launch.SendPath is { } sendPath)
+        if (launch.SendPaths is { Count: > 0 } paths)
         {
-            // Explorer's Send to: pass the path to the running copy and leave without a word, whatever the answer.
-            _ = SendPipe.Send(sendPath);
+            // Explorer's Send to: pass the paths to the running copy and leave without a word, whatever the answer.
+            _ = SendPipe.Send(paths);
             return;
         }
 

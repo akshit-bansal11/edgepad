@@ -50,9 +50,48 @@ public sealed class SendPipeTests
     public void AHugeLineIsRefused() => Assert.Null(SendPipe.Validate(new string('a', 40_000)));
 
     [Fact]
-    public void SendOptionTakesTheNextArgument()
+    public void SendOptionTakesEveryFollowingPath()
     {
-        Assert.Equal("C:\\a b.txt", SingleInstance.Parse(["--send", "C:\\a b.txt"]).SendPath);
-        Assert.Null(SingleInstance.Parse(["--send"]).SendPath);
+        Assert.Equal(["C:\\a b.txt"], SingleInstance.Parse(["--send", "C:\\a b.txt"]).SendPaths);
+        Assert.Equal(["C:\\a b.txt", "C:\\c.txt", "D:\\d.txt"], SingleInstance.Parse(["--send", "C:\\a b.txt", "C:\\c.txt", "D:\\d.txt"]).SendPaths);
+        Assert.Equal(["C:\\a.txt"], SingleInstance.Parse(["--send", "C:\\a.txt", "--restart", "S-1-5-21-1"]).SendPaths);
+        Assert.Empty(SingleInstance.Parse(["--send"]).SendPaths);
+        Assert.Empty(SingleInstance.Parse([]).SendPaths);
+    }
+
+    [Fact]
+    public void ValidateAllCountsSkippedDedupesAndCaps()
+    {
+        var file = Path.GetTempFileName();
+        try
+        {
+            File.WriteAllText(file, "x");
+            var (valid, skipped) = SendPipe.ValidateAll([file, "", "C:\\definitely\\not\\here.txt", file, null, "   "]);
+            Assert.Equal([file], valid);
+            Assert.Equal(1, skipped);
+        }
+        finally
+        {
+            File.Delete(file);
+        }
+    }
+
+    [Fact]
+    public void ValidateAllStopsAtTheCap()
+    {
+        var files = Enumerable.Range(0, SendPipe.MaxFiles + 20).Select(_ => Path.GetTempFileName()).ToList();
+        try
+        {
+            foreach (var f in files)
+            {
+                File.WriteAllText(f, "x");
+            }
+
+            Assert.Equal(SendPipe.MaxFiles, SendPipe.ValidateAll(files).Valid.Count);
+        }
+        finally
+        {
+            files.ForEach(File.Delete);
+        }
     }
 }

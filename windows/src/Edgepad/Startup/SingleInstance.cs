@@ -18,8 +18,12 @@ internal enum LaunchChoice
 /// <summary>The command line, read strictly: only the options below count, and anything else is ignored.</summary>
 /// <param name="RestartSid">The user SID after <c>--restart</c>, or null when the option is absent or has no value.</param>
 /// <param name="ProbeNotifications">True with <c>--probe-notifications</c>.</param>
-/// <param name="SendPath">The path after <c>--send</c> (Explorer's Send to), or null.</param>
-internal readonly record struct LaunchArgs(string? RestartSid, bool ProbeNotifications, string? SendPath = null);
+/// <param name="Send">The arguments after <c>--send</c>, or null when there are none (so a launch without it still compares equal).</param>
+internal readonly record struct LaunchArgs(string? RestartSid, bool ProbeNotifications, IReadOnlyList<string>? Send = null)
+{
+    /// <summary>Every argument after <c>--send</c> up to the next option (Explorer's Send to appends all selected files), empty when none.</summary>
+    public IReadOnlyList<string> SendPaths => Send ?? [];
+}
 
 internal static class SingleInstance
 {
@@ -48,7 +52,7 @@ internal static class SingleInstance
     {
         string? sid = null;
         var probe = false;
-        string? send = null;
+        var send = new List<string>();
         for (var i = 0; i < args.Length; i++)
         {
             switch (args[i])
@@ -59,13 +63,17 @@ internal static class SingleInstance
                 case "--probe-notifications":
                     probe = true;
                     break;
-                case SendOption when i + 1 < args.Length && args[i + 1].Length > 0:
-                    send = args[++i];
+                case SendOption:
+                    while (i + 1 < args.Length && args[i + 1].Length > 0 && !args[i + 1].StartsWith("--", StringComparison.Ordinal))
+                    {
+                        send.Add(args[++i]);
+                    }
+
                     break;
             }
         }
 
-        return new LaunchArgs(sid, probe, send);
+        return new LaunchArgs(sid, probe, send.Count > 0 ? send : null);
     }
 
     public static string RestartArguments(string sid) => $"--restart {sid}";
