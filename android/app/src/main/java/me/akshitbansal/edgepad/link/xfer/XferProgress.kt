@@ -1,5 +1,7 @@
 package me.akshitbansal.edgepad.link.xfer
 
+import java.util.concurrent.CopyOnWriteArrayList
+
 /** Why one file of a batch did not arrive. The last four are local: the laptop never sends them. */
 enum class XferFailure {
     REFUSED,
@@ -118,9 +120,9 @@ class SpeedMeter(
 }
 
 /**
- * The progress of the one batch of transfers running, for the card. Any thread may feed it; [listener] is called on
+ * The progress of the one batch of transfers running, for the card. Any thread may feed it; every listener is called on
  * the thread [post] runs work on (the main one), at most every [SAMPLE_MS] while bytes move and at once when the state
- * changes. No timer or thread of its own, and no post at all while no [listener] is set. Pure: no Android type, so a
+ * changes. No timer or thread of its own, and no post at all while no listener is added. Pure: no Android type, so a
  * JVM test runs it.
  */
 class XferProgress(
@@ -135,7 +137,18 @@ class XferProgress(
     private var sent = 0L
     private var lastPublish = Long.MIN_VALUE / 2
 
-    @Volatile var listener: ((XferSnapshot) -> Unit)? = null
+    // Copy on write: a listener removed while the others are told is safe, and each activity owns only its own.
+    private val listeners = CopyOnWriteArrayList<(XferSnapshot) -> Unit>()
+
+    /** Adds [heard]; adding the same one again keeps one. */
+    fun addListener(heard: (XferSnapshot) -> Unit) {
+        if (listeners.none { it === heard }) listeners += heard
+    }
+
+    /** Removes [heard] alone, by identity; the others stay. */
+    fun removeListener(heard: (XferSnapshot) -> Unit) {
+        listeners.removeIf { it === heard }
+    }
 
     /** The state now. Safe on any thread. */
     val snapshot: XferSnapshot get() = synchronized(lock) { view() }
@@ -194,6 +207,10 @@ class XferProgress(
 
     fun endBatch() = change { if (it.phase == XferPhase.RUNNING) it.copy(phase = XferPhase.FINISHED) else it }
 
+    /** Whether the card shows a send batch that ended with failures, which a receive must not replace. */
+    fun holdsFailedSend(): Boolean =
+        synchronized(lock) { state.phase == XferPhase.FINISHED && state.sending && state.failed.isNotEmpty() }
+
     /** The card was closed: back to nothing. */
     fun dismiss() {
         change {
@@ -213,9 +230,9 @@ class XferProgress(
     // Under the lock.
     private fun publish(now: Long) {
         lastPublish = now
-        val heard = listener ?: return
+        if (listeners.isEmpty()) return
         val shown = view()
-        post { heard(shown) }
+        post { for (heard in listeners) heard(shown) }
     }
 
     private fun view() = state.copy(sent = sent, bytesPerSecond = speed.bytesPerSecond)

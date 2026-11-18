@@ -40,9 +40,11 @@
     </activity>
 
     <!-- Share > Edgepad: one text, image or file, sent to the laptop only after a tap on Send. Exported because a share
-         target must be; it handles one ACTION_SEND or one ACTION_SEND_MULTIPLE and finishes on anything it cannot send. -->
+         target must be; it handles one ACTION_SEND or one ACTION_SEND_MULTIPLE and finishes on anything it cannot send.
+         A rotation must not rebuild it: its batch reads through the sharing app's grants, which die when it finishes. -->
     <activity
       android:name=".ShareActivity"
+      android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
       android:excludeFromRecents="true"
       android:exported="true"
       android:taskAffinity=""

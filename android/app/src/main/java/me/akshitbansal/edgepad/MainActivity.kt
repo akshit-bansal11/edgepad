@@ -332,6 +332,9 @@ class MainActivity :
     /** The floating transfer card; rebuilt from [Transfers.progress] on every start, never retained. */
     private var xferCard: XferCard? = null
 
+    // This activity's own listener: added in onStart, removed in onStop, leaving the share screen's alone.
+    private val cardListener: (XferSnapshot) -> Unit = { showCard(it) }
+
     /** Holds the screen on show and, for the length of a carry, the one leaving. */
     private val stage by lazy { FrameLayout(this) }
 
@@ -518,7 +521,6 @@ class MainActivity :
                     laptop.name,
                     shares.activeSync(laptop)?.let { it::sendNow },
                     file?.let { link -> { uris -> link.sendAll(uris).allSent } },
-                    file?.let { link -> { link.sendAll(link.failedUris).allSent } },
                 )
             }
         }
@@ -586,7 +588,7 @@ class MainActivity :
         refreshPicker()
         startScan()
         checkForUpdateIfDue()
-        Transfers.progress.listener = ::showCard
+        Transfers.progress.addListener(cardListener)
         val snapshot = Transfers.progress.snapshot
         if (snapshot.phase != XferPhase.IDLE) showCard(snapshot)
     }
@@ -601,7 +603,7 @@ class MainActivity :
     override fun onStop() {
         super.onStop()
         started = false
-        Transfers.progress.listener = null
+        Transfers.progress.removeListener(cardListener)
         xferCard?.hide()
         UpdateJob.onChange = null
         clipboard.bridge.stop()
@@ -1584,7 +1586,11 @@ class MainActivity :
                     ui,
                     stage,
                     onCancel = Transfers::cancel,
-                    onRetry = { selected?.let(Transfers::link)?.retryFailed() },
+                    onRetry = {
+                        if (!Transfers.retryLast()) {
+                            Toast.makeText(this, R.string.xfer_no_laptop, Toast.LENGTH_SHORT).show()
+                        }
+                    },
                     onDone = { Transfers.progress.dismiss() },
                 ).also { xferCard = it }
         card.show(s, selected?.name.orEmpty())

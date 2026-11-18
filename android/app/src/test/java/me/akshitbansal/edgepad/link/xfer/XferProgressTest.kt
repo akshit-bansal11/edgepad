@@ -2,7 +2,6 @@ package me.akshitbansal.edgepad.link.xfer
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -13,7 +12,7 @@ class XferProgressTest {
 
     private fun progress(listening: Boolean = true): XferProgress {
         val p = XferProgress(clock = { now }, post = { posted += it })
-        if (listening) p.listener = { heard += it }
+        if (listening) p.addListener { heard += it }
         return p
     }
 
@@ -178,7 +177,71 @@ class XferProgressTest {
         p.fileDone("a", null)
         p.endBatch()
         assertTrue(posted.isEmpty())
-        assertNull(p.listener)
+    }
+
+    @Test
+    fun eachListenerIsRemovedAloneAndAllAreTold() {
+        val p = progress(listening = false)
+        val share = mutableListOf<XferSnapshot>()
+        val main = mutableListOf<XferSnapshot>()
+        val shareHeard: (XferSnapshot) -> Unit = { share += it }
+        val mainHeard: (XferSnapshot) -> Unit = { main += it }
+        p.addListener(shareHeard)
+        p.addListener(mainHeard)
+        p.addListener(mainHeard)
+        p.beginBatch(sending = true, total = 1)
+        deliver()
+        assertEquals(1, share.size)
+        assertEquals(1, main.size)
+        // The main screen stops: the share screen still sees the batch end.
+        p.removeListener(mainHeard)
+        p.endBatch()
+        p.dismiss()
+        deliver()
+        assertEquals(XferPhase.IDLE, share.last().phase)
+        assertEquals(1, main.size)
+        p.removeListener(shareHeard)
+        p.beginBatch(sending = true, total = 1)
+        assertTrue(posted.isEmpty())
+    }
+
+    @Test
+    fun aListenerMayRemoveItselfWhileTold() {
+        val p = progress(listening = false)
+        val other = mutableListOf<XferSnapshot>()
+        lateinit var once: (XferSnapshot) -> Unit
+        once = { p.removeListener(once) }
+        p.addListener(once)
+        p.addListener { other += it }
+        p.beginBatch(sending = true, total = 1)
+        deliver()
+        p.endBatch()
+        deliver()
+        assertEquals(2, other.size)
+    }
+
+    @Test
+    fun aReceiveWaitsForSendsAndForASendsFailuresToBeDismissed() {
+        val p = progress(listening = false)
+        assertTrue(receiveMayOpen(0, p))
+        assertFalse(receiveMayOpen(1, p))
+        p.beginBatch(sending = true, total = 1)
+        p.fileDone("a", XferFailure.REFUSED)
+        p.endBatch()
+        assertFalse(receiveMayOpen(0, p))
+        p.dismiss()
+        assertTrue(receiveMayOpen(0, p))
+        // A send that ended clean leaves nothing to keep.
+        p.beginBatch(sending = true, total = 1)
+        p.fileDone("a", null)
+        p.endBatch()
+        assertTrue(receiveMayOpen(0, p))
+        // A new send replaces the failures, and while it runs the count already holds the receive off.
+        p.beginBatch(sending = true, total = 1)
+        p.fileDone("a", XferFailure.REFUSED)
+        p.endBatch()
+        p.beginBatch(sending = true, total = 1)
+        assertTrue(receiveMayOpen(0, p))
     }
 
     @Test

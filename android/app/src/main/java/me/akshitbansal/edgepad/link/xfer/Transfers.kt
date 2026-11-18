@@ -40,7 +40,12 @@ object Transfers {
     private var receiveOpen = false
     private var receiveName: String? = null
     private var receiveArmedAt = 0L
-    private val sendBatches = AtomicInteger()
+
+    // Under receiveLock, so a receive never opens over a send that has just begun.
+    private var sendBatches = 0
+
+    // The link that ran the last send batch, for Try again; null once that link is let go.
+    @Volatile private var lastSender: Link? = null
     private val endReceive = Runnable { closeReceive(XferFailure.TIMED_OUT) }
 
     /** Brings the links in line with the laptops: a link that is gone is let go, a new connected one is taken. */
@@ -55,6 +60,7 @@ object Transfers {
             val held = iterator.next()
             if (live.none { it.link === held.key }) {
                 held.value.end()
+                if (lastSender === held.value) lastSender = null
                 held.key.xfer = null
                 iterator.remove()
             }
@@ -74,6 +80,13 @@ object Transfers {
     /** The Cancel of the notification: stops whatever is moving, in either direction. */
     fun cancel() {
         for (link in links.values.toList()) link.cancel()
+    }
+
+    /** Try again: the failed files of the last send batch, on the link that ran it. False when it is not connected. */
+    fun retryLast(): Boolean {
+        val link = lastSender?.takeIf { it.connected } ?: return false
+        link.retryFailed()
+        return true
     }
 
     /** The file name a picked document goes by, or null when its provider gives none. Does I/O: not the main thread. */
@@ -107,9 +120,10 @@ object Transfers {
     }
 
     // A send batch took the card: a receive running alongside stops feeding it.
-    private fun sendBegan() {
-        sendBatches.incrementAndGet()
+    private fun sendBegan(link: Link) {
+        lastSender = link
         synchronized(receiveLock) {
+            sendBatches++
             receiveOpen = false
             receiveName = null
             main.removeCallbacks(endReceive)
@@ -117,18 +131,19 @@ object Transfers {
     }
 
     private fun sendEnded() {
-        sendBatches.decrementAndGet()
+        synchronized(receiveLock) { sendBatches-- }
     }
 
-    // A chunk of [name] arrived. Re-arms the stall check at most once a second, so a chunk costs no post.
+    // A chunk of [name] arrived. Re-arms the stall check at most once a second, so a chunk costs no post. While a
+    // send runs, or its failures and Try again are on the card, the receive is the notification's alone.
     private fun receiving(
         name: String,
         held: Long,
         size: Long,
     ) {
-        if (sendBatches.get() > 0) return
         synchronized(receiveLock) {
             if (!receiveOpen) {
+                if (!receiveMayOpen(sendBatches, progress)) return
                 receiveOpen = true
                 progress.beginBatch(sending = false, total = 0)
             }
@@ -197,7 +212,7 @@ object Transfers {
                 describe = { uri -> query(app, uri) },
                 label = ::labelOf,
                 sendOne = ::sendOne,
-                began = ::sendBegan,
+                began = { sendBegan(this) },
                 finished = ::finished,
             )
 
@@ -236,6 +251,8 @@ object Transfers {
 
         /** Whether files are going out now. */
         val sending: Boolean get() = batcher.busy
+
+        internal val connected: Boolean get() = link.connected
 
         /** The files of the last batch that did not arrive, failed or not sent, for Try again. */
         val failedUris: List<Uri> get() = batcher.failed
@@ -359,6 +376,15 @@ data class XferBatchResult(
     val total: Int get() = sent + failed.size
     val allSent: Boolean get() = failed.isEmpty()
 }
+
+/**
+ * Whether a chunk arriving may open a receiving batch on the card: not while [sendsRunning] sends go out, and not over
+ * a finished send whose failures and Try again are still shown, until it is dismissed or a new send begins.
+ */
+internal fun receiveMayOpen(
+    sendsRunning: Int,
+    card: XferProgress,
+): Boolean = sendsRunning == 0 && !card.holdsFailedSend()
 
 /** The wire code a single-file caller gets for [failure]: local failures read as a refusal, as they always did. */
 internal fun codeOf(failure: XferFailure): XferCode =

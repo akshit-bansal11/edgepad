@@ -16,6 +16,7 @@ import me.akshitbansal.edgepad.link.preview
 import me.akshitbansal.edgepad.link.sharedText
 import me.akshitbansal.edgepad.link.xfer.Transfers
 import me.akshitbansal.edgepad.link.xfer.XferPhase
+import me.akshitbansal.edgepad.link.xfer.XferSnapshot
 import me.akshitbansal.edgepad.protocol.BlobKind
 import me.akshitbansal.edgepad.screens.CardTitle
 import me.akshitbansal.edgepad.screens.Ui
@@ -33,12 +34,22 @@ import kotlin.concurrent.thread
  * else finishes at once.
  */
 class ShareActivity : Activity() {
+    // This screen's own progress listener and the laptop's name, while its batch runs; only it is removed on destroy.
+    private var watching: ((XferSnapshot) -> Unit)? = null
+    private var watchedName: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // A rebuild (rotation) lost the dialog and nothing was sent: the share is simply over.
+        if (savedInstanceState != null) {
+            // A rebuild the manifest does not absorb (a theme or language change). Mid-batch it keeps watching, since
+            // finishing would revoke the sharing app's grants; otherwise nothing was sent and the share is over.
+            val name = savedInstanceState.getString(KEY_TARGET)
+            if (name != null && Transfers.progress.snapshot.phase != XferPhase.IDLE) watch(name) else finish()
+            return
+        }
         val action = intent?.action
         val many = action == Intent.ACTION_SEND_MULTIPLE
-        if (savedInstanceState != null || (action != Intent.ACTION_SEND && !many)) {
+        if (action != Intent.ACTION_SEND && !many) {
             finish()
             return
         }
@@ -173,7 +184,7 @@ class ShareActivity : Activity() {
                             }
                         (listOf(count) + names.filterNotNull() + more).joinToString("\n")
                     }
-                confirm(what, target) { deliverFiles(target, uris, sendFiles, target.retryFailed) }
+                confirm(what, target) { deliverFiles(target, uris, sendFiles) }
             }
         }
     }
@@ -186,19 +197,23 @@ class ShareActivity : Activity() {
         target: ShareTarget,
         uris: List<Uri>,
         sendFiles: (List<Uri>) -> Boolean,
-        retryFailed: (() -> Boolean)?,
     ) {
         val progress = Transfers.progress
         // A finished card left by an earlier batch must not be taken for this one.
         if (progress.snapshot.phase == XferPhase.FINISHED) progress.dismiss()
+        watch(target.name)
+        sendOnWorker { sendFiles(uris) }
+    }
+
+    /** Shows the transfer card in a dialog, fed by this screen's own listener, until the batch is done with. */
+    private fun watch(name: String) {
+        val progress = Transfers.progress
         Type.load(this)
         val ui = Ui(this)
-        val send = { sendOnWorker { sendFiles(uris) } }
-        val retry = { sendOnWorker { retryFailed?.invoke() ?: false } }
-        val card = XferCardView(ui, onCancel = Transfers::cancel, onRetry = retry, onDone = progress::dismiss)
+        val card = XferCardView(ui, onCancel = Transfers::cancel, onRetry = ::retry, onDone = progress::dismiss)
         val autoDone = Runnable { progress.dismiss() }
         var dialog: AlertDialog? = null
-        progress.listener = { s ->
+        val heard: (XferSnapshot) -> Unit = { s ->
             when {
                 isFinishing || isDestroyed -> {
                     Unit
@@ -211,7 +226,7 @@ class ShareActivity : Activity() {
                 }
 
                 else -> {
-                    card.bind(s, target.name)
+                    card.bind(s, name)
                     if (dialog == null) {
                         dialog =
                             AlertDialog
@@ -227,7 +242,27 @@ class ShareActivity : Activity() {
                 }
             }
         }
-        send()
+        watching = heard
+        watchedName = name
+        progress.addListener(heard)
+    }
+
+    // Try again on the link that ran the batch, which may no longer be the selected one.
+    private fun retry() {
+        if (!Transfers.retryLast()) Toast.makeText(this, R.string.xfer_no_laptop, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Back in front: listen again, and catch up on anything missed, the batch's end among it.
+        val heard = watching ?: return
+        Transfers.progress.addListener(heard)
+        heard(Transfers.progress.snapshot)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        watchedName?.let { outState.putString(KEY_TARGET, it) }
     }
 
     private fun sendOnWorker(work: () -> Boolean) {
@@ -246,7 +281,7 @@ class ShareActivity : Activity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Transfers.progress.listener = null
+        watching?.let(Transfers.progress::removeListener)
     }
 
     private fun confirm(
@@ -334,6 +369,7 @@ class ShareActivity : Activity() {
         const val IMAGE_PREFIX = "image/"
         const val NAMES_SHOWN = 3
         const val AUTO_DONE_MS = 5_000L
+        const val KEY_TARGET = "watching"
     }
 }
 
