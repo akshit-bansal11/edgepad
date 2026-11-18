@@ -536,4 +536,142 @@
   <data name="Update_NotNow" xml:space="preserve">
     <value>Не сейчас</value>
   </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>&amp;История буфера обмена</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Недавние копии с этого ноутбука и телефона. Хранятся только в памяти.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Буфер обмена</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Пока ничего не скопировано</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Копии с этого ноутбука и телефона появляются здесь.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Включите «Общий буфер обмена» в меню в трее, чтобы видеть здесь свои копии.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Очистить всё</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>Этот ноутбук</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Телефон</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Только что</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} мин назад</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} ч назад</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} д назад</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>Отправить на телефон</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>Отправлено на телефон</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>Не удалось отправить. Проверьте подключение.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Скопировано. Нажмите Ctrl+V, чтобы вставить.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V занято другим приложением, поэтому сочетание отключено.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Отправка на телефон</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>Получение с телефона</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} из {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} из {1} · {2}/с</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} из {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>Отправлено: {0}</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Отправлено файлов: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Отправлено файлов: {0} из {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Получено файлов: {0}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>Не отправлено: {0}</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Не отправлено файлов: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>Отмена…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Повторить</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>Телефон не подключён.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>Пропущено {0}: пустой, отсутствует или больше 2 ГБ.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>Телефон отклонил файл. Возможно, не хватает места.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>Файл пришёл повреждённым. Повторите попытку.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>Телефон не смог сохранить файл.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>Телефон был занят другим файлом.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>Телефон перестал отвечать.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>Соединение потеряно.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>Этот ноутбук не смог прочитать файл.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>Отменено.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>Не отправлено.</value>
+  </data>
 </root>

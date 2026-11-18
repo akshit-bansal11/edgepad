@@ -536,4 +536,142 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Update_NotNow" xml:space="preserve">
     <value>Nicht jetzt</value>
   </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>Zwischenablage-&amp;Historie</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Letzte Kopien von diesem Laptop und vom Handy. Nur im Arbeitsspeicher gehalten.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Zwischenablage</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Noch nichts kopiert</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Kopien von diesem Laptop und vom Handy erscheinen hier.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Aktiviere im Tray-Menü „Zwischenablage teilen“, um deine Kopien hier zu sehen.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Alle löschen</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>Dieser Laptop</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Handy</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Gerade eben</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>vor {0} Min.</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>vor {0} Std.</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>vor {0} T.</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>An Handy senden</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Entfernen</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>An Handy gesendet</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>Senden fehlgeschlagen. Prüfe die Verbindung.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Kopiert. Mit Strg+V einfügen.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V wird von einer anderen App verwendet, daher ist das Tastenkürzel aus.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Wird an Handy gesendet</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>Wird vom Handy empfangen</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} von {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} von {1} · {2}/s</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} von {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0} %</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} gesendet</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Gesendete Dateien: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Gesendete Dateien: {0} von {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Empfangene Dateien: {0}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} wurde nicht gesendet</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Nicht gesendete Dateien: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>Wird abgebrochen…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Erneut versuchen</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>Es ist kein Handy verbunden.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} übersprungen: leer, fehlt oder größer als 2 GB.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>Das Handy hat die Datei abgelehnt. Eventuell ist der Speicher voll.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>Sie kam beschädigt an. Versuche es erneut.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>Das Handy konnte sie nicht speichern.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>Das Handy war mit einer anderen Datei beschäftigt.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>Das Handy antwortet nicht mehr.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>Die Verbindung wurde unterbrochen.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>Dieser Laptop konnte die Datei nicht lesen.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>Abgebrochen.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>Nicht gesendet.</value>
+  </data>
 </root>

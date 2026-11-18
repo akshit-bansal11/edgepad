@@ -536,4 +536,142 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
   <data name="Update_NotNow" xml:space="preserve">
     <value>暂不</value>
   </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>剪贴板历史记录(&amp;H)</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>此笔记本电脑和手机最近的复制内容。仅保存在内存中。</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>剪贴板</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>尚未复制任何内容</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>来自此笔记本电脑和手机的复制内容会显示在这里。</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>在托盘菜单中开启“共享剪贴板”，即可在此查看复制内容。</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>全部清除</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>此笔记本电脑</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>手机</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>刚刚</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} 分钟前</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} 小时前</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} 天前</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>发送到手机</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>已发送到手机</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>无法发送。请检查连接。</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>已复制。按 Ctrl+V 粘贴。</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V 已被其他应用占用，因此快捷键已关闭。</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>正在发送到手机</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>正在从手机接收</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0}/{1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0}/{1} · {2}/秒</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0}/{1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>已发送 {0}</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>已发送文件：{0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>已发送文件：{0}/{1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>已接收文件：{0}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} 未发送</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>未发送文件：{0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>正在取消…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>重试</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>没有已连接的手机。</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>已跳过 {0}：为空、缺失或超过 2 GB。</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>手机拒绝了它，可能是空间不足。</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>文件到达时已损坏。请重试。</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>手机无法保存它。</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>手机正忙于处理另一个文件。</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>手机已停止响应。</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>连接已断开。</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>此笔记本电脑无法读取该文件。</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>已取消。</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>未发送。</value>
+  </data>
 </root>

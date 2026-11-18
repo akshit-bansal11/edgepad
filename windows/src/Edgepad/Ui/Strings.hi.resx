@@ -536,4 +536,142 @@
   <data name="Update_NotNow" xml:space="preserve">
     <value>अभी नहीं</value>
   </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>क्लिपबोर्ड इतिहास (&amp;H)</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>इस लैपटॉप और फ़ोन की हाल की कॉपी। केवल मेमोरी में रखी जाती हैं।</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>क्लिपबोर्ड</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>अभी तक कुछ कॉपी नहीं किया गया</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>इस लैपटॉप और फ़ोन की कॉपी यहाँ दिखती हैं।</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>अपनी कॉपी यहाँ देखने के लिए ट्रे मेनू में क्लिपबोर्ड शेयर करें चालू करें।</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>सब साफ़ करें</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>यह लैपटॉप</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>फ़ोन</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>अभी-अभी</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} मिनट पहले</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} घंटे पहले</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} दिन पहले</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>फ़ोन पर भेजें</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>हटाएँ</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>फ़ोन पर भेजा गया</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>भेज नहीं सके। कनेक्शन जाँचें।</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>कॉपी हो गया। चिपकाने के लिए Ctrl+V दबाएँ।</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V किसी दूसरे ऐप में उपयोग हो रहा है, इसलिए शॉर्टकट बंद है।</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>फ़ोन पर भेजा जा रहा है</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>फ़ोन से प्राप्त हो रहा है</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{1} में से {0}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{1} में से {0} · {2}/से</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{1} में से {0}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} भेजा गया</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>भेजी गई फ़ाइलें: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>भेजी गई फ़ाइलें: {1} में से {0}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>प्राप्त फ़ाइलें: {0}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} नहीं भेजा गया</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>न भेजी गई फ़ाइलें: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>रद्द किया जा रहा है…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>फिर कोशिश करें</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>बंद करें</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>कोई फ़ोन कनेक्ट नहीं है।</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} छोड़ा गया: खाली, गायब या 2 GB से बड़ा।</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>फ़ोन ने इसे अस्वीकार कर दिया। जगह कम हो सकती है।</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>यह खराब होकर पहुँचा। फिर कोशिश करें।</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>फ़ोन इसे सहेज नहीं सका।</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>फ़ोन किसी दूसरी फ़ाइल में व्यस्त था।</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>फ़ोन ने जवाब देना बंद कर दिया।</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>कनेक्शन टूट गया।</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>यह लैपटॉप फ़ाइल पढ़ नहीं सका।</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>रद्द किया गया।</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>नहीं भेजा गया।</value>
+  </data>
 </root>

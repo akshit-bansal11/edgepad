@@ -542,4 +542,142 @@ The trusted phones were forgotten, but the PIN could not be reset: a settings fi
   <data name="Update_NotNow" xml:space="preserve">
     <value>Not now</value>
   </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>Clipboard &amp;history</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Recent copies from this laptop and the phone. Kept in memory only.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Clipboard</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Nothing copied yet</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Copies from this laptop and the phone show up here.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Turn on Share clipboard in the tray menu to see your copies here.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Clear all</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>This laptop</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Just now</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} min ago</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} h ago</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} d ago</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>Send to phone</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>Sent to phone</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>Could not send. Check the connection.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Copied. Press Ctrl+V to paste.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V is used by another app, so the shortcut is off.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Sending to phone</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>Receiving from phone</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} of {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} of {1} · {2}/s</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} of {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>Sent {0}</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Files sent: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Files sent: {0} of {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Files received: {0}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} was not sent</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Files not sent: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>Cancelling…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>No phone is connected.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>Skipped {0}: empty, missing or over 2 GB.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>The phone refused it. It may be out of space.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>It arrived damaged. Try again.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>The phone could not save it.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>The phone was busy with another file.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>The phone stopped answering.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>The connection was lost.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>This laptop could not read the file.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>Cancelled.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>Not sent.</value>
+  </data>
 </root>

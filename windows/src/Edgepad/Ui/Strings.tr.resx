@@ -526,4 +526,142 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Update_NotNow" xml:space="preserve">
     <value>Şimdi değil</value>
   </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>Pano &amp;tarihçesi</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Bu dizüstü bilgisayardan ve telefondan son kopyalar. Yalnızca bellekte tutulur.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Pano</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Henüz bir şey kopyalanmadı</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Bu dizüstü bilgisayardan ve telefondan kopyalar burada görünür.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Kopyalarınızı burada görmek için tepsi menüsünde Panoyu paylaş seçeneğini açın.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Tümünü temizle</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>Bu dizüstü bilgisayar</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Telefon</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Az önce</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} dk önce</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} sa önce</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} g önce</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>Telefona gönder</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Kaldır</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>Telefona gönderildi</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>Gönderilemedi. Bağlantıyı denetleyin.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Kopyalandı. Yapıştırmak için Ctrl+V’ye basın.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V başka bir uygulama tarafından kullanılıyor, bu yüzden kısayol kapalı.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Telefona gönderiliyor</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>Telefondan alınıyor</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} / {1} · {2}/sn</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>%{0}</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} gönderildi</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Gönderilen dosyalar: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Gönderilen dosyalar: {0} / {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Alınan dosyalar: {0}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} gönderilemedi</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Gönderilemeyen dosyalar: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>İptal ediliyor…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Yeniden dene</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Kapat</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>Bağlı telefon yok.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} atlandı: boş, eksik veya 2 GB’tan büyük.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>Telefon reddetti. Yeri kalmamış olabilir.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>Hasarlı ulaştı. Yeniden deneyin.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>Telefon kaydedemedi.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>Telefon başka bir dosyayla meşguldü.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>Telefon yanıt vermeyi bıraktı.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>Bağlantı kesildi.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>Bu dizüstü bilgisayar dosyayı okuyamadı.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>İptal edildi.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>Gönderilmedi.</value>
+  </data>
 </root>

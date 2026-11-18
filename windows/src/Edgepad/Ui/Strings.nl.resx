@@ -517,4 +517,142 @@
   <data name="Update_NotNow" xml:space="preserve">
     <value>Niet nu</value>
   </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>Klembord&amp;historie</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Recente kopieën van deze laptop en de telefoon. Alleen in het geheugen bewaard.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Klembord</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Nog niets gekopieerd</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Kopieën van deze laptop en de telefoon verschijnen hier.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Zet Klembord delen aan in het systeemvakmenu om je kopieën hier te zien.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Alles wissen</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>Deze laptop</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Telefoon</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Zojuist</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} min geleden</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} u geleden</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} d geleden</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>Naar telefoon sturen</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Verwijderen</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>Naar telefoon gestuurd</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>Versturen mislukt. Controleer de verbinding.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Gekopieerd. Druk op Ctrl+V om te plakken.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V wordt door een andere app gebruikt, dus de sneltoets staat uit.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Naar telefoon versturen</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>Van telefoon ontvangen</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} van {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} van {1} · {2}/s</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} van {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} verstuurd</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Verstuurde bestanden: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Verstuurde bestanden: {0} van {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Ontvangen bestanden: {0}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} is niet verstuurd</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Niet verstuurde bestanden: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>Annuleren…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Opnieuw proberen</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Sluiten</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>Er is geen telefoon verbonden.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} overgeslagen: leeg, ontbreekt of groter dan 2 GB.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>De telefoon weigerde het. Mogelijk is er geen ruimte meer.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>Het kwam beschadigd aan. Probeer het opnieuw.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>De telefoon kon het niet opslaan.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>De telefoon was bezig met een ander bestand.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>De telefoon reageert niet meer.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>De verbinding is verbroken.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>Deze laptop kon het bestand niet lezen.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>Geannuleerd.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>Niet verstuurd.</value>
+  </data>
 </root>

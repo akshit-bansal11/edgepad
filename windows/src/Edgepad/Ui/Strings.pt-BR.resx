@@ -536,4 +536,142 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   <data name="Update_NotNow" xml:space="preserve">
     <value>Agora não</value>
   </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>&amp;Histórico da área de transferência</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Cópias recentes deste notebook e do celular. Mantidas apenas na memória.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Área de transferência</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Nada copiado ainda</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>As cópias deste notebook e do celular aparecem aqui.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Ative Compartilhar área de transferência no menu da bandeja para ver suas cópias aqui.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Limpar tudo</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>Este notebook</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Celular</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Agora mesmo</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>há {0} min</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>há {0} h</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>há {0} d</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>Enviar ao celular</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Remover</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>Enviado ao celular</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>Não foi possível enviar. Verifique a conexão.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Copiado. Pressione Ctrl+V para colar.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>O Win+Alt+V é usado por outro app, então o atalho está desativado.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Enviando ao celular</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>Recebendo do celular</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} de {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} de {1} · {2}/s</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} de {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} enviado</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Arquivos enviados: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Arquivos enviados: {0} de {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Arquivos recebidos: {0}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} não foi enviado</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Arquivos não enviados: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>Cancelando…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Tentar novamente</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Fechar</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>Nenhum celular está conectado.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} ignorado: vazio, ausente ou acima de 2 GB.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>O celular recusou. Pode estar sem espaço.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>Chegou danificado. Tente novamente.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>O celular não conseguiu salvar.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>O celular estava ocupado com outro arquivo.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>O celular parou de responder.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>A conexão foi perdida.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>Este notebook não conseguiu ler o arquivo.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>Cancelado.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>Não enviado.</value>
+  </data>
 </root>

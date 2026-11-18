@@ -536,4 +536,142 @@
   <data name="Update_NotNow" xml:space="preserve">
     <value>ليس الآن</value>
   </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>سجل الحافظة (&amp;H)</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>النسخ الأخيرة من هذا الحاسوب والهاتف. تُحفظ في الذاكرة فقط.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>الحافظة</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>لم يُنسخ شيء بعد</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>تظهر هنا النسخ من هذا الحاسوب والهاتف.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>فعّل مشاركة الحافظة من قائمة الشريط لترى نسخك هنا.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>مسح الكل</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>هذا الحاسوب</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>الهاتف</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>الآن</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>منذ {0} د</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>منذ {0} س</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>منذ {0} ي</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>إرسال إلى الهاتف</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>إزالة</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>أُرسل إلى الهاتف</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>تعذّر الإرسال. تحقق من الاتصال.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>تم النسخ. اضغط Ctrl+V للصق.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>‏Win+Alt+V مستخدم في تطبيق آخر، لذا الاختصار متوقف.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>جارٍ الإرسال إلى الهاتف</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>جارٍ الاستلام من الهاتف</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} من {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} من {1} · {2}/ث</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} من {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>أُرسل {0}</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>الملفات المرسلة: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>الملفات المرسلة: {0} من {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>الملفات المستلمة: {0}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>لم يُرسل {0}</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>الملفات غير المرسلة: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>جارٍ الإلغاء…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>حاول مرة أخرى</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>إغلاق</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>لا يوجد هاتف متصل.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>تم تخطي {0}: فارغ أو مفقود أو أكبر من 2 غيغابايت.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>رفضه الهاتف. قد تكون المساحة ممتلئة.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>وصل تالفًا. حاول مرة أخرى.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>تعذّر على الهاتف حفظه.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>كان الهاتف مشغولًا بملف آخر.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>توقف الهاتف عن الاستجابة.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>فُقد الاتصال.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>تعذّر على هذا الحاسوب قراءة الملف.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>أُلغي.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>لم يُرسل.</value>
+  </data>
 </root>

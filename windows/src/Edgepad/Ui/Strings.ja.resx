@@ -536,4 +536,142 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
   <data name="Update_NotNow" xml:space="preserve">
     <value>今はしない</value>
   </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>クリップボード履歴(&amp;H)</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>このノートPCとスマートフォンの最近のコピー。メモリ内にのみ保持されます。</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>クリップボード</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>まだ何もコピーされていません</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>このノートPCとスマートフォンのコピーがここに表示されます。</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>コピーをここに表示するには、トレイメニューで「クリップボードを共有」をオンにしてください。</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>すべてクリア</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>このノートPC</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>スマートフォン</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>たった今</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} 分前</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} 時間前</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} 日前</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>スマートフォンに送信</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>スマートフォンに送信しました</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>送信できませんでした。接続を確認してください。</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>コピーしました。Ctrl+V で貼り付けます。</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V は別のアプリが使用しているため、ショートカットはオフです。</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>スマートフォンに送信中</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>スマートフォンから受信中</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} / {1} · {2}/秒</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} を送信しました</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>送信したファイル: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>送信したファイル: {0} / {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>受信したファイル: {0}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} は送信されませんでした</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>送信されなかったファイル: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>キャンセル中…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>再試行</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>接続されているスマートフォンがありません。</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} をスキップしました: 空、見つからない、または 2 GB を超えています。</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>スマートフォンが拒否しました。空き容量が不足している可能性があります。</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>破損した状態で届きました。もう一度お試しください。</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>スマートフォンが保存できませんでした。</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>スマートフォンが別のファイルを処理中でした。</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>スマートフォンが応答しなくなりました。</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>接続が失われました。</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>このノートPCはファイルを読み取れませんでした。</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>キャンセルしました。</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>送信されませんでした。</value>
+  </data>
 </root>

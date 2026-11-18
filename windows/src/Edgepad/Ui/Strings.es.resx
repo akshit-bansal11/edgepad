@@ -536,4 +536,142 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Update_NotNow" xml:space="preserve">
     <value>Ahora no</value>
   </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>&amp;Historial del portapapeles</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Copias recientes de este portátil y del teléfono. Solo se guardan en memoria.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Portapapeles</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Aún no se ha copiado nada</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Las copias de este portátil y del teléfono aparecen aquí.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Activa Compartir portapapeles en el menú de la bandeja para ver aquí tus copias.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Borrar todo</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>Este portátil</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Ahora mismo</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>hace {0} min</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>hace {0} h</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>hace {0} d</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>Enviar al teléfono</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>Enviado al teléfono</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>No se pudo enviar. Revisa la conexión.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Copiado. Pulsa Ctrl+V para pegar.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V lo usa otra aplicación, así que el atajo está desactivado.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Enviando al teléfono</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>Recibiendo del teléfono</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} de {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} de {1} · {2}/s</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} de {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0} %</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} enviado</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Archivos enviados: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Archivos enviados: {0} de {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Archivos recibidos: {0}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} no se envió</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Archivos no enviados: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>Cancelando…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Reintentar</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>No hay ningún teléfono conectado.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} omitido: vacío, inexistente o de más de 2 GB.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>El teléfono lo rechazó. Puede que no tenga espacio.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>Llegó dañado. Inténtalo de nuevo.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>El teléfono no pudo guardarlo.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>El teléfono estaba ocupado con otro archivo.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>El teléfono dejó de responder.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>Se perdió la conexión.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>Este portátil no pudo leer el archivo.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>Cancelado.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>No enviado.</value>
+  </data>
 </root>

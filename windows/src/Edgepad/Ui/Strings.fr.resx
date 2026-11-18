@@ -536,4 +536,142 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
   <data name="Update_NotNow" xml:space="preserve">
     <value>Pas maintenant</value>
   </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>&amp;Historique du presse-papiers</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Copies récentes de cet ordinateur et du téléphone. Gardées en mémoire uniquement.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Presse-papiers</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Rien n’a encore été copié</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Les copies de cet ordinateur et du téléphone apparaissent ici.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Activez Partager le presse-papiers dans le menu de la barre d’état pour voir vos copies ici.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Tout effacer</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>Cet ordinateur</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Téléphone</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>À l’instant</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>il y a {0} min</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>il y a {0} h</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>il y a {0} j</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>Envoyer au téléphone</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>Envoyé au téléphone</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>Envoi impossible. Vérifiez la connexion.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Copié. Appuyez sur Ctrl+V pour coller.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V est utilisé par une autre application, le raccourci est donc désactivé.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Envoi au téléphone</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>Réception depuis le téléphone</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} sur {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} sur {1} · {2}/s</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} sur {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0} %</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} envoyé</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Fichiers envoyés : {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Fichiers envoyés : {0} sur {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Fichiers reçus : {0}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} n’a pas été envoyé</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Fichiers non envoyés : {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>Annulation…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Réessayer</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Fermer</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>Aucun téléphone n’est connecté.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} ignoré : vide, introuvable ou de plus de 2 Go.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>Le téléphone l’a refusé. Il manque peut-être d’espace.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>Il est arrivé endommagé. Réessayez.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>Le téléphone n’a pas pu l’enregistrer.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>Le téléphone était occupé avec un autre fichier.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>Le téléphone ne répond plus.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>La connexion a été perdue.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>Cet ordinateur n’a pas pu lire le fichier.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>Annulé.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>Non envoyé.</value>
+  </data>
 </root>
