@@ -29,6 +29,9 @@ internal sealed class Shell : IDisposable
     /// </summary>
     private static readonly TimeSpan QuietAfterForget = TimeSpan.FromSeconds(30);
 
+    /// <summary>The most files one "Send a file" pick sends, as on Windows and Android.</summary>
+    private const int MaxSendFiles = 100;
+
     /// <summary>How long a desktop with no tray host at start gets for one to appear before the window is shown.</summary>
     private static readonly TimeSpan TrayHostGrace = TimeSpan.FromSeconds(10);
 
@@ -772,22 +775,30 @@ internal sealed class Shell : IDisposable
     /// <summary>The tray's "Send a file…": the desktop's file picker, on a window of no size, then the file goes to the phone.</summary>
     private async Task PickAndSendAsync()
     {
+        List<string> paths = [];
         var owner = new Window { Width = 1, Height = 1, ShowInTaskbar = false, WindowDecorations = WindowDecorations.None, Opacity = 0 };
         try
         {
             owner.Show();
             var picked = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = LinuxStrings.Send_PickerTitle, AllowMultiple = true });
-            foreach (var item in picked)
-            {
-                if (item.TryGetLocalPath() is { } path)
-                {
-                    await SendFileAsync(path);
-                }
-            }
+            paths.AddRange(picked.Select(item => item.TryGetLocalPath()).OfType<string>());
         }
         finally
         {
             owner.Close();
+        }
+
+        if (paths.Count > MaxSendFiles)
+        {
+            Log.Write($"{paths.Count - MaxSendFiles} picked files were left out: at most {MaxSendFiles} go in one send.");
+        }
+
+        foreach (var path in paths.Take(MaxSendFiles))
+        {
+            if (!await SendOneAsync(path))
+            {
+                break;
+            }
         }
     }
 
@@ -795,7 +806,10 @@ internal sealed class Shell : IDisposable
     /// Sends <paramref name="path"/> to the connected phone and tells the owner how it went. From the tray and from the send
     /// socket; any thread. Never throws.
     /// </summary>
-    public async Task SendFileAsync(string path)
+    public async Task SendFileAsync(string path) => await SendOneAsync(path);
+
+    /// <summary>One file; false when the rest of a batch should not follow (no phone, cancelled, timed out, busy, session ended).</summary>
+    private async Task<bool> SendOneAsync(string path)
     {
         var name = Say.MiddleTruncate(Path.GetFileName(path));
         try
@@ -808,11 +822,13 @@ internal sealed class Shell : IDisposable
                 XferCode.Cancelled => Say.Format(LinuxStrings.Send_Cancelled, name),
                 _ => Say.Format(LinuxStrings.Send_NotSent, name, code),
             });
+            return code is not (null or XferCode.Cancelled or XferCode.TimedOut or XferCode.Busy or XferCode.SessionEnded);
         }
         catch (Exception e)
         {
             Log.Write($"A file could not be sent: {e.Message}");
             Notifier.Send(LinuxStrings.App_Name, Say.Format(LinuxStrings.Send_Failed, name));
+            return true;
         }
     }
 
