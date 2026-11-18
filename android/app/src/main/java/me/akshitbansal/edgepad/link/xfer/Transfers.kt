@@ -251,7 +251,9 @@ object Transfers {
 
         internal fun cancel() {
             batcher.cancel()
-            if (receiverOnce.isInitialized() && receiver.busy && receiver.cancel()) closeReceive(XferFailure.CANCELLED)
+            if (receiverOnce.isInitialized() && receiver.busy && receiver.cancel()) {
+                closeReceive(XferFailure.CANCELLED)
+            }
         }
 
         /**
