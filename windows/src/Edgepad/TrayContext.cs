@@ -325,14 +325,14 @@ internal sealed class TrayContext : ApplicationContext
         // Handlers run under the queue's lock: they only post to the toast, and never call back into the queue.
         toast = new TransferToast
         {
-            OnCancel = () => queue.Cancel(),
-            OnRetry = () => queue.Enqueue(queue.FailedPaths),
+            OnCancel = CancelSends,
+            OnRetry = Retry,
             OnClose = () => feed.Dismiss(),
         };
         feed.Changed += toast.Show;
         receiveEnd.Tick += (_, _) => EndReceiveBatch();
         queue = new SendQueue(
-            (path, _, ct) => host.SendFile(path, ct, sent => feed.Bytes(sent)),
+            (path, _, ct) => host.SendFile(path, sent => feed.Bytes(sent), ct),
             feed,
             path => File.Exists(path) ? new FileInfo(path).Length : null);
         SendPipe.EnsureShortcut();
@@ -987,9 +987,15 @@ internal sealed class TrayContext : ApplicationContext
         timer.Start();
     }
 
+    // Methods, not lambdas over the field: the toast is built in the constructor before the queue is assigned.
+    private void Retry() => queue.Enqueue(queue.FailedPaths);
+
+    private void CancelSends() => queue.Cancel();
+
+    // The high bit (a negative short) means the key is down now.
     private static bool ModifierDown() =>
-        (NativeMethods.GetAsyncKeyState((int)Keys.LWin) | NativeMethods.GetAsyncKeyState((int)Keys.RWin)
-            | NativeMethods.GetAsyncKeyState((int)Keys.Menu) | NativeMethods.GetAsyncKeyState((int)Keys.ShiftKey)) < 0;
+        NativeMethods.GetAsyncKeyState((int)Keys.LWin) < 0 || NativeMethods.GetAsyncKeyState((int)Keys.RWin) < 0
+            || NativeMethods.GetAsyncKeyState((int)Keys.Menu) < 0 || NativeMethods.GetAsyncKeyState((int)Keys.ShiftKey) < 0;
 
     /// <summary>
     /// The Check for updates daily switch. Off stops the daily timer; on starts it and checks once now. It holds from

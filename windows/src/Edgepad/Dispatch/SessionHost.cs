@@ -270,7 +270,7 @@ internal sealed class SessionHost(
     /// Sends a file to the connected phone, on a pool thread. Null when no phone is connected; otherwise how it ended
     /// (<see cref="XferCode.Saved"/> is a file the phone has whole and checked). A file that cannot be read faults the task.
     /// </summary>
-    public Task<XferCode?> SendFile(string path, CancellationToken cancel = default, Action<ulong>? progress = null)
+    public Task<XferCode?> SendFile(string path, Action<ulong>? progress = null, CancellationToken cancel = default)
     {
         Session? session;
         lock (gate)

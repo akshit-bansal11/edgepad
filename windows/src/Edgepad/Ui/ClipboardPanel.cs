@@ -543,9 +543,9 @@ internal sealed class ClipboardPanel : Form
 
         private int Pitch(int dpi) => Math.Max(Theme.Scale(LineHeight, dpi), PreviewFont(dpi).Height);
 
-        private Font PreviewFont(int dpi) => Theme.Font(Theme.Scale(13f, dpi), Weight.Regular);
+        private static Font PreviewFont(int dpi) => Theme.Font(Theme.Scale(13f, dpi), Weight.Regular);
 
-        private TextFormatFlags TextFlags => TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.WordBreak | TextFormatFlags.EndEllipsis | Theme.Start;
+        private static TextFormatFlags TextFlags => TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.WordBreak | TextFormatFlags.EndEllipsis | Theme.Start;
 
         private int TextWidth(int width, int dpi) =>
             width - (2 * Theme.Scale(PadX, dpi)) - (canSend ? Theme.Scale(SendSize + SendGap, dpi) : 0);

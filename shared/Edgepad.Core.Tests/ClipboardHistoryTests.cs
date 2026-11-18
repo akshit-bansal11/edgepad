@@ -105,16 +105,16 @@ public sealed class ClipboardHistoryTests
     }
 
     [Theory]
-    [InlineData(59, AgeUnit.JustNow, 0)]
-    [InlineData(60, AgeUnit.Minutes, 1)]
-    [InlineData(59 * 60, AgeUnit.Minutes, 59)]
-    [InlineData(60 * 60, AgeUnit.Hours, 1)]
-    [InlineData(23 * 3600, AgeUnit.Hours, 23)]
-    [InlineData(24 * 3600, AgeUnit.Days, 1)]
-    [InlineData(-30, AgeUnit.JustNow, 0)]
-    public void AgeBoundaries(int seconds, AgeUnit unit, int count)
+    [InlineData(59, (int)AgeUnit.JustNow, 0)]
+    [InlineData(60, (int)AgeUnit.Minutes, 1)]
+    [InlineData(59 * 60, (int)AgeUnit.Minutes, 59)]
+    [InlineData(60 * 60, (int)AgeUnit.Hours, 1)]
+    [InlineData(23 * 3600, (int)AgeUnit.Hours, 23)]
+    [InlineData(24 * 3600, (int)AgeUnit.Days, 1)]
+    [InlineData(-30, (int)AgeUnit.JustNow, 0)]
+    public void AgeBoundaries(int seconds, int unit, int count)
     {
-        Assert.Equal(new Age(unit, count), RelativeAge.Of(TimeSpan.FromSeconds(seconds)));
+        Assert.Equal(new Age((AgeUnit)unit, count), RelativeAge.Of(TimeSpan.FromSeconds(seconds)));
     }
 
     [Fact]
