@@ -17,6 +17,7 @@ import me.akshitbansal.edgepad.link.Transport
 import me.akshitbansal.edgepad.link.net.LinkKeys
 import me.akshitbansal.edgepad.protocol.Frame
 import java.io.IOException
+import java.lang.ref.WeakReference
 import java.util.IdentityHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
@@ -45,7 +46,7 @@ object Transfers {
     private var sendBatches = 0
 
     // The link that ran the last send batch, for Try again; null once that link is let go.
-    @Volatile private var lastSender: Link? = null
+    @Volatile private var lastSender: WeakReference<Link>? = null
     private val endReceive = Runnable { closeReceive(XferFailure.TIMED_OUT) }
 
     /** Brings the links in line with the laptops: a link that is gone is let go, a new connected one is taken. */
@@ -60,7 +61,7 @@ object Transfers {
             val held = iterator.next()
             if (live.none { it.link === held.key }) {
                 held.value.end()
-                if (lastSender === held.value) lastSender = null
+                if (lastSender?.get() === held.value) lastSender = null
                 held.key.xfer = null
                 iterator.remove()
             }
@@ -84,7 +85,7 @@ object Transfers {
 
     /** Try again: the failed files of the last send batch, on the link that ran it. False when it is not connected. */
     fun retryLast(): Boolean {
-        val link = lastSender?.takeIf { it.connected } ?: return false
+        val link = lastSender?.get()?.takeIf { it.connected } ?: return false
         link.retryFailed()
         return true
     }
@@ -121,7 +122,7 @@ object Transfers {
 
     // A send batch took the card: a receive running alongside stops feeding it.
     private fun sendBegan(link: Link) {
-        lastSender = link
+        lastSender = WeakReference(link)
         synchronized(receiveLock) {
             sendBatches++
             receiveOpen = false
