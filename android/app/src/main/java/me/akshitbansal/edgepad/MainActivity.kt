@@ -1573,7 +1573,8 @@ class MainActivity :
             return
         }
         if (picked.size > MAX_FILES) {
-            Toast.makeText(this, getString(R.string.xfer_too_many, MAX_FILES), Toast.LENGTH_SHORT).show()
+            val tooMany = resources.getQuantityString(R.plurals.xfer_too_many, MAX_FILES, MAX_FILES)
+            Toast.makeText(this, tooMany, Toast.LENGTH_SHORT).show()
         }
         link.enqueue(picked.take(MAX_FILES))
     }

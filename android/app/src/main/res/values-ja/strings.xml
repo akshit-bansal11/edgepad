@@ -573,7 +573,9 @@
   <string name="xfer_done">%1$s を保存しました</string>
   <string name="xfer_failed">%1$s を送信できませんでした</string>
   <string name="xfer_cancel">キャンセル</string>
-  <string name="xfer_too_many">最初の%1$d個のファイルだけを送信待ちにしました</string>
+  <plurals name="xfer_too_many">
+    <item quantity="other">最初の%1$d個のファイルだけを送信待ちにしました</item>
+  </plurals>
   <string name="xfer_sending_n">%1$s を送信中（%3$d 件中 %2$d 件目） · %4$d%%</string>
   <string name="xfer_card_sending_to">%1$s に送信中</string>
   <string name="xfer_card_receiving_from">%1$s から受信中</string>

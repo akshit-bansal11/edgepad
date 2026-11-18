@@ -611,7 +611,14 @@
   <string name="xfer_done">تم حفظ %1$s</string>
   <string name="xfer_failed">تعذر إرسال %1$s</string>
   <string name="xfer_cancel">إلغاء</string>
-  <string name="xfer_too_many">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</string>
+  <plurals name="xfer_too_many">
+    <item quantity="zero">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
+    <item quantity="one">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
+    <item quantity="two">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
+    <item quantity="few">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
+    <item quantity="many">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
+    <item quantity="other">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
+  </plurals>
   <string name="xfer_sending_n">جارٍ إرسال %1$s (%2$d من %3$d) · %4$d%%</string>
   <string name="xfer_card_sending_to">جارٍ الإرسال إلى %1$s</string>
   <string name="xfer_card_receiving_from">جارٍ الاستلام من %1$s</string>

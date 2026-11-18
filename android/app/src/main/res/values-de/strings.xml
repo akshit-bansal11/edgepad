@@ -576,7 +576,10 @@
   <string name="xfer_done">%1$s gespeichert</string>
   <string name="xfer_failed">%1$s konnte nicht gesendet werden</string>
   <string name="xfer_cancel">Abbrechen</string>
-  <string name="xfer_too_many">Nur die ersten %1$d Dateien wurden eingereiht</string>
+  <plurals name="xfer_too_many">
+    <item quantity="one">Nur die ersten %1$d Dateien wurden eingereiht</item>
+    <item quantity="other">Nur die ersten %1$d Dateien wurden eingereiht</item>
+  </plurals>
   <string name="xfer_sending_n">%1$s wird gesendet (%2$d von %3$d) · %4$d%%</string>
   <string name="xfer_card_sending_to">Senden an %1$s</string>
   <string name="xfer_card_receiving_from">Empfangen von %1$s</string>

@@ -588,7 +588,11 @@
   <string name="xfer_done">Guardado %1$s</string>
   <string name="xfer_failed">No se pudo enviar %1$s</string>
   <string name="xfer_cancel">Cancelar</string>
-  <string name="xfer_too_many">Solo se pusieron en cola los primeros %1$d archivos</string>
+  <plurals name="xfer_too_many">
+    <item quantity="one">Solo se pusieron en cola los primeros %1$d archivos</item>
+    <item quantity="many">Solo se pusieron en cola los primeros %1$d archivos</item>
+    <item quantity="other">Solo se pusieron en cola los primeros %1$d archivos</item>
+  </plurals>
   <string name="xfer_sending_n">Enviando %1$s (%2$d de %3$d) · %4$d%%</string>
   <string name="xfer_card_sending_to">Enviando a %1$s</string>
   <string name="xfer_card_receiving_from">Recibiendo de %1$s</string>

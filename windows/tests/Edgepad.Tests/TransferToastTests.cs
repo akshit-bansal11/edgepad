@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using Edgepad.Transfer;
 using Edgepad.Ui;
 using Xunit;
@@ -8,6 +9,8 @@ namespace Edgepad.Tests;
 /// <summary>The toast's words and sizes. The window needs a desktop, so painting is not covered.</summary>
 public sealed class TransferToastTests
 {
+    private static readonly CompositeFormat CountFormat = CompositeFormat.Parse(Strings.Xfer_Count);
+
     private static TransferView Running(bool sending = true, int index = 2, int total = 5, bool cancelling = false) =>
         new(TransferPhase.Running, sending, index, total, "a.pdf", 37, 100, 4096, 1, [], 0, cancelling);
 
@@ -25,7 +28,7 @@ public sealed class TransferToastTests
     [Fact]
     public void RunningSubtitleCountsOnlyWhenTheTotalIsKnown()
     {
-        Assert.StartsWith(string.Format(CultureInfo.CurrentCulture, Strings.Xfer_Count, 2, 5), ToastText.Subtitle(Running()));
+        Assert.StartsWith(string.Format(CultureInfo.CurrentCulture, CountFormat, 2, 5), ToastText.Subtitle(Running()));
         Assert.Equal("a.pdf", ToastText.Subtitle(Running(sending: false, total: 0)));
     }
 

@@ -586,7 +586,11 @@
   <string name="xfer_done">%1$s enregistré</string>
   <string name="xfer_failed">%1$s n’a pas pu être envoyé</string>
   <string name="xfer_cancel">Annuler</string>
-  <string name="xfer_too_many">Seuls les %1$d premiers fichiers ont été mis en file</string>
+  <plurals name="xfer_too_many">
+    <item quantity="one">Seuls les %1$d premiers fichiers ont été mis en file</item>
+    <item quantity="many">Seuls les %1$d premiers fichiers ont été mis en file</item>
+    <item quantity="other">Seuls les %1$d premiers fichiers ont été mis en file</item>
+  </plurals>
   <string name="xfer_sending_n">Envoi de %1$s (%2$d sur %3$d) · %4$d%%</string>
   <string name="xfer_card_sending_to">Envoi vers %1$s</string>
   <string name="xfer_card_receiving_from">Réception depuis %1$s</string>
