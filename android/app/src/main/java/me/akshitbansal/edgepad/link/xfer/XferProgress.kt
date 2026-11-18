@@ -181,7 +181,11 @@ class XferProgress(
         failure: XferFailure?,
     ) {
         change {
-            if (failure == null) it.copy(done = it.done + 1) else it.copy(failed = it.failed + XferFailed(name, failure))
+            if (failure == null) {
+                it.copy(done = it.done + 1)
+            } else {
+                it.copy(failed = it.failed + XferFailed(name, failure))
+            }
         }
     }
 
