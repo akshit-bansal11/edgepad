@@ -18,6 +18,7 @@ import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.RoundedCorner
+import android.view.Surface
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
@@ -151,7 +152,7 @@ class ControlSurface(
                 send,
                 sensitivity = { settings.airSensitivity },
                 deadZone = { settings.airDeadZone },
-                landscape = { settings.landscape },
+                rotation = { display?.rotation ?: Surface.ROTATION_0 },
             ).also { airMouse = it }
     }
 
@@ -1149,6 +1150,8 @@ class ControlSurface(
                 // A blacked-out surface wakes on this touch and still acts on it, so a dial or gesture works blind.
                 wake()
                 requestUnbufferedDispatch(event)
+                // With the air mouse on, a resting finger is its clutch and must not also grip the button.
+                trackpad.holdGrips = air()?.works != true
                 down(event)
                 if (onTrackpad()) air()?.clutchDown()
             }

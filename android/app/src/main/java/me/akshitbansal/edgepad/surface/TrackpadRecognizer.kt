@@ -95,6 +95,12 @@ class TrackpadRecognizer(
      */
     var selectGain = 0f
 
+    /**
+     * False while the air mouse is on (owner, 2026-11-18): a finger resting on the pad is the air mouse's clutch,
+     * so holding it must not grip the button, and a tap then rest must not become a drag. Taps still click.
+     */
+    var holdGrips = true
+
     private var fingers = 0
     private var maxFingers = 0
     private var startTime = 0L
@@ -168,7 +174,7 @@ class TrackpadRecognizer(
             reset()
             startTime = time
             // Compared as last + gap, never time - last: NEVER would overflow the subtraction.
-            pendingPress = tapDrag && time <= lastTapUp + TAP_DRAG_MS
+            pendingPress = tapDrag && holdGrips && time <= lastTapUp + TAP_DRAG_MS
             pendX = 0
             pendY = 0
             lastTapUp = NEVER
@@ -248,7 +254,7 @@ class TrackpadRecognizer(
         if (maxFingers == 1) {
             // Selecting presses on the first move instead: a hold gripping here and then lifting unmoved would
             // be the very click that ends a Snipping Tool selection as a few pixels.
-            if (selecting) return
+            if (selecting || !holdGrips) return
             // Hold-still wins over a pending tap-drag. The press is then at least HOLD_MS after the touch,
             // so it can still land inside the laptop's double-click time only after a very quick tap; accepted.
             pendingPress = false
@@ -266,7 +272,7 @@ class TrackpadRecognizer(
      * region selection as a few pixels.
      */
     fun holdProgress(time: Long): Float? =
-        if (fingers != 1 || maxFingers != 1 || held || moved || selecting) {
+        if (fingers != 1 || maxFingers != 1 || held || moved || selecting || !holdGrips) {
             null
         } else {
             ((time - holdStart).toFloat() / HOLD_MS).coerceIn(0f, 1f)

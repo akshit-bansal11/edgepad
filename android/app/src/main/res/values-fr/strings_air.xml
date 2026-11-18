@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="controls_air_mouse">Souris aérienne</string>
+  <string name="air_how">Posez un pouce sur le pavé tactile, puis tournez le téléphone à gauche ou à droite et inclinez-le vers le haut ou le bas. Tant que c’est activé, maintenir un doigt ne fait pas glisser.</string>
   <string name="air_title">Souris aérienne</string>
   <string name="air_caption">Inclinez le téléphone pour déplacer le pointeur tant qu’un doigt repose sur le pavé tactile. Le capteur de mouvement n’est lu qu’à ce moment.</string>
   <string name="air_sensitivity">Sensibilité</string>

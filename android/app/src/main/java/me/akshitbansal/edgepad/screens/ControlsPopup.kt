@@ -180,6 +180,10 @@ class ControlsPopup(
                     setPadding(pad, 0, pad, 0)
                 },
             )
+            // Owner, 2026-11-18: nothing said how to use it.
+            val how = ui.secondary(ui.string(R.string.air_how), Type.SMALL, ui.palette.dim)
+            how.setPadding(pad, 0, pad, pad)
+            body.addView(how)
         } else {
             val none = ui.secondary(ui.string(R.string.air_no_sensor), Type.SMALL, ui.palette.dim)
             none.setPadding(pad, 0, pad, pad)

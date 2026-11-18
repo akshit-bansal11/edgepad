@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="controls_air_mouse">Luftmaus</string>
+  <string name="air_how">Lege einen Daumen auf das Touchpad und drehe das Handy nach links oder rechts oder neige es nach oben oder unten. Solange dies an ist, zieht ein gehaltener Finger nicht.</string>
   <string name="air_title">Luftmaus</string>
   <string name="air_caption">Neige das Handy, um den Zeiger zu bewegen, solange ein Finger auf dem Trackpad liegt. Der Bewegungssensor wird nur dann gelesen.</string>
   <string name="air_sensitivity">Empfindlichkeit</string>
