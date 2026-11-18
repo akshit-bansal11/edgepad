@@ -601,7 +601,10 @@
     <item quantity="one">%1$d bestand is niet verzonden</item>
     <item quantity="other">%1$d bestanden zijn niet verzonden</item>
   </plurals>
-  <string name="xfer_card_more">en nog %1$d</string>
+  <plurals name="xfer_card_more">
+    <item quantity="one">en nog %1$d</item>
+    <item quantity="other">en nog %1$d</item>
+  </plurals>
   <plurals name="xfer_share_count">
     <item quantity="one">%1$d bestand</item>
     <item quantity="other">%1$d bestanden</item>

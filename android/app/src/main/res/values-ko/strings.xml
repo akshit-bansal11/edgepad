@@ -576,7 +576,9 @@
   <plurals name="xfer_card_not_sent">
     <item quantity="other">파일 %1$d개를 보내지 못했습니다</item>
   </plurals>
-  <string name="xfer_card_more">외 %1$d개</string>
+  <plurals name="xfer_card_more">
+    <item quantity="other">외 %1$d개</item>
+  </plurals>
   <plurals name="xfer_share_count">
     <item quantity="other">파일 %1$d개</item>
   </plurals>

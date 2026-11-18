@@ -166,10 +166,17 @@ class XferCardView(
     private fun paintBadge(kind: CardTitle) {
         val (fillColor, icon, ink) =
             when (kind) {
-                CardTitle.RUNNING_SEND, CardTitle.RUNNING_RECEIVE ->
+                CardTitle.RUNNING_SEND, CardTitle.RUNNING_RECEIVE -> {
                     Triple(p.accentSoft, R.drawable.ic_laptop, p.accent)
-                CardTitle.DONE_ALL -> Triple(p.accent, R.drawable.ic_check, p.onAccent)
-                else -> Triple(p.danger, R.drawable.ic_close, p.onAccent)
+                }
+
+                CardTitle.DONE_ALL -> {
+                    Triple(p.accent, R.drawable.ic_check, p.onAccent)
+                }
+
+                else -> {
+                    Triple(p.danger, R.drawable.ic_close, p.onAccent)
+                }
             }
         badge.background =
             GradientDrawable().apply {
@@ -187,20 +194,34 @@ class XferCardView(
     ): String {
         val res = ui.context.resources
         return when (kind) {
-            CardTitle.RUNNING_SEND -> ui.string(R.string.xfer_card_sending_to, laptopName)
-            CardTitle.RUNNING_RECEIVE -> ui.string(R.string.xfer_card_receiving_from, laptopName)
-            CardTitle.DONE_ALL ->
+            CardTitle.RUNNING_SEND -> {
+                ui.string(R.string.xfer_card_sending_to, laptopName)
+            }
+
+            CardTitle.RUNNING_RECEIVE -> {
+                ui.string(R.string.xfer_card_receiving_from, laptopName)
+            }
+
+            CardTitle.DONE_ALL -> {
                 res.getQuantityString(
                     if (s.sending) R.plurals.xfer_card_sent else R.plurals.xfer_card_received,
                     s.done,
                     s.done,
                 )
+            }
+
             CardTitle.DONE_SOME -> {
                 val total = s.done + s.failed.size
                 res.getQuantityString(R.plurals.xfer_card_partial, total, s.done, total)
             }
-            CardTitle.FAILED_ONE -> ui.string(R.string.xfer_failed, middleTruncated(s.failed[0].name))
-            CardTitle.FAILED_MANY -> res.getQuantityString(R.plurals.xfer_card_not_sent, s.failed.size, s.failed.size)
+
+            CardTitle.FAILED_ONE -> {
+                ui.string(R.string.xfer_failed, middleTruncated(s.failed[0].name))
+            }
+
+            CardTitle.FAILED_MANY -> {
+                res.getQuantityString(R.plurals.xfer_card_not_sent, s.failed.size, s.failed.size)
+            }
         }
     }
 
@@ -210,10 +231,17 @@ class XferCardView(
     ): String {
         val name = middleTruncated(s.name)
         return when (kind) {
-            CardTitle.RUNNING_SEND, CardTitle.RUNNING_RECEIVE ->
+            CardTitle.RUNNING_SEND, CardTitle.RUNNING_RECEIVE -> {
                 if (s.total > 0) ui.string(R.string.xfer_card_position, s.index, s.total, name) else name
-            CardTitle.FAILED_ONE -> ui.string(reasonRes(s.failed[0].why))
-            else -> ""
+            }
+
+            CardTitle.FAILED_ONE -> {
+                ui.string(reasonRes(s.failed[0].why))
+            }
+
+            else -> {
+                ""
+            }
         }
     }
 
@@ -244,7 +272,7 @@ class XferCardView(
             show(rows[i], failed != null)
         }
         val more = listed.size - MAX_ROWS
-        if (more > 0) set(rows[MAX_ROWS], ui.string(R.string.xfer_card_more, more))
+        if (more > 0) set(rows[MAX_ROWS], ui.context.resources.getQuantityString(R.plurals.xfer_card_more, more, more))
         show(rows[MAX_ROWS], more > 0)
     }
 

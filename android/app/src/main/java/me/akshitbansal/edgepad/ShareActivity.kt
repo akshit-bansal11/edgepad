@@ -166,7 +166,8 @@ class ShareActivity : Activity() {
                         val count = resources.getQuantityString(R.plurals.xfer_share_count, uris.size, uris.size)
                         val more =
                             if (uris.size > NAMES_SHOWN) {
-                                listOf(getString(R.string.xfer_card_more, uris.size - NAMES_SHOWN))
+                                val extra = uris.size - NAMES_SHOWN
+                                listOf(resources.getQuantityString(R.plurals.xfer_card_more, extra, extra))
                             } else {
                                 emptyList()
                             }

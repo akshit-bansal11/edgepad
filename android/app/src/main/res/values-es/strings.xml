@@ -616,7 +616,10 @@
     <item quantity="many">No se enviaron %1$d archivos</item>
     <item quantity="other">No se enviaron %1$d archivos</item>
   </plurals>
-  <string name="xfer_card_more">y %1$d más</string>
+  <plurals name="xfer_card_more">
+    <item quantity="one">y %1$d más</item>
+    <item quantity="other">y %1$d más</item>
+  </plurals>
   <plurals name="xfer_share_count">
     <item quantity="one">%1$d archivo</item>
     <item quantity="many">%1$d de archivos</item>

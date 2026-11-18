@@ -600,7 +600,10 @@
     <item quantity="one">%1$d Datei wurde nicht gesendet</item>
     <item quantity="other">%1$d Dateien wurden nicht gesendet</item>
   </plurals>
-  <string name="xfer_card_more">und %1$d weitere</string>
+  <plurals name="xfer_card_more">
+    <item quantity="one">und %1$d weitere</item>
+    <item quantity="other">und %1$d weitere</item>
+  </plurals>
   <plurals name="xfer_share_count">
     <item quantity="one">%1$d Datei</item>
     <item quantity="other">%1$d Dateien</item>

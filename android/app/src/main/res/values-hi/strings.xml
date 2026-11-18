@@ -601,7 +601,10 @@
     <item quantity="one">%1$d फ़ाइल नहीं भेजी जा सकी</item>
     <item quantity="other">%1$d फ़ाइलें नहीं भेजी जा सकीं</item>
   </plurals>
-  <string name="xfer_card_more">और %1$d</string>
+  <plurals name="xfer_card_more">
+    <item quantity="one">और %1$d</item>
+    <item quantity="other">और %1$d</item>
+  </plurals>
   <plurals name="xfer_share_count">
     <item quantity="one">%1$d फ़ाइल</item>
     <item quantity="other">%1$d फ़ाइलें</item>

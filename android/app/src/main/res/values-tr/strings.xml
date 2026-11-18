@@ -596,7 +596,10 @@
     <item quantity="one">%1$d dosya gönderilemedi</item>
     <item quantity="other">%1$d dosya gönderilemedi</item>
   </plurals>
-  <string name="xfer_card_more">ve %1$d tane daha</string>
+  <plurals name="xfer_card_more">
+    <item quantity="one">ve %1$d tane daha</item>
+    <item quantity="other">ve %1$d tane daha</item>
+  </plurals>
   <plurals name="xfer_share_count">
     <item quantity="one">%1$d dosya</item>
     <item quantity="other">%1$d dosya</item>
