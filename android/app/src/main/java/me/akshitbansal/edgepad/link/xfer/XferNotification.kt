@@ -64,24 +64,49 @@ class XferNotification(
     private val cancel: PendingIntent? = null,
 ) {
     private val context: Context = context.applicationContext
-    private val gate = PercentGate()
+    private var gate = PercentGate()
+    private var gateIndex = 0
 
-    /** Shows [done] of [total] bytes of [name] if that is a new percent. Safe on any thread. */
+    /**
+     * Shows [done] of [total] bytes of [name] if that is a new percent; [name] is file [index] of [count] in a batch
+     * sent. Safe on any thread, one transfer at a time.
+     */
     fun progress(
         name: String,
         done: Long,
         total: Long,
         sending: Boolean,
+        index: Int = 1,
+        count: Int = 1,
     ) {
+        if (index != gateIndex) {
+            gate = PercentGate()
+            gateIndex = index
+        }
         if (!gate.pass(done, total)) return
         val percent = if (total <= 0) 100 else (done * 100 / total).toInt()
+        val shown = middleTruncated(name)
         val title =
-            context.getString(
-                if (sending) R.string.xfer_sending else R.string.xfer_receiving,
-                middleTruncated(name),
-                percent,
-            )
+            when {
+                sending && count > 1 -> context.getString(R.string.xfer_sending_n, shown, index, count, percent)
+                sending -> context.getString(R.string.xfer_sending, shown, percent)
+                else -> context.getString(R.string.xfer_receiving, shown, percent)
+            }
         post(title, ongoing = true, percent = percent)
+    }
+
+    /** Replaces the bar with the outcome of a batch of several files: all [sent], or how many [failed]. */
+    fun finishBatch(
+        sent: Int,
+        failed: Int,
+    ) {
+        val title =
+            if (failed == 0) {
+                context.resources.getQuantityString(R.plurals.xfer_batch_sent, sent, sent)
+            } else {
+                context.resources.getQuantityString(R.plurals.xfer_batch_failed, failed, failed)
+            }
+        post(title, ongoing = false)
     }
 
     /** Replaces the bar with the outcome: saved, or failed. */

@@ -85,6 +85,12 @@ internal fun lingerAction(sharing: Int): LingerAction = if (sharing > 0) LingerA
 class ShareTarget(
     val name: String,
     val send: ((BlobKind, ByteArray) -> Boolean)?,
-    /** Sends one picked document as a file transfer and blocks until the laptop answers, so off the main thread. */
-    val sendFile: ((Uri) -> Boolean)? = null,
-)
+    /**
+     * Sends picked documents as file transfers, one after another, and blocks until the laptop has answered the last,
+     * so off the main thread. True when every one arrived.
+     */
+    val sendFiles: ((List<Uri>) -> Boolean)? = null,
+) {
+    /** One document, over [sendFiles]. Kept until the share sheet takes several. */
+    val sendFile: ((Uri) -> Boolean)? get() = sendFiles?.let { send -> { uri -> send(listOf(uri)) } }
+}

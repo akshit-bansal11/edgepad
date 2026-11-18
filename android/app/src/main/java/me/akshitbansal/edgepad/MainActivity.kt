@@ -102,7 +102,6 @@ import me.akshitbansal.edgepad.link.promoted
 import me.akshitbansal.edgepad.link.rememberLaptop
 import me.akshitbansal.edgepad.link.snapUp
 import me.akshitbansal.edgepad.link.xfer.Transfers
-import me.akshitbansal.edgepad.link.xfer.XferCode
 import me.akshitbansal.edgepad.overlay.FloatingDials
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.AppAddStatus
@@ -512,7 +511,7 @@ class MainActivity :
                 ShareTarget(
                     laptop.name,
                     shares.activeSync(laptop)?.let { it::sendNow },
-                    file?.let { link -> { uri -> link.send(uri) == XferCode.SAVED } },
+                    file?.let { link -> { uris -> link.sendAll(uris).allSent } },
                 )
             }
         }
