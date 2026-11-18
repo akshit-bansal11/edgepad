@@ -16,6 +16,9 @@
   <string name="presenter_next">الشريحة التالية</string>
   <string name="presenter_previous">الشريحة السابقة</string>
   <string name="presenter_keys_note">مفاتيح الصوت تغيّر الشرائح ما دامت هذه الشاشة مفتوحة.</string>
-  <string name="presenter_laser">مؤشر ليزر</string>
+  <string name="presenter_settings">إعدادات العرض التقديمي</string>
+  <string name="presenter_laser_size">حجم الليزر</string>
+  <string name="presenter_laser_trail">إظهار الأثر</string>
+  <string name="presenter_point_here">وجّه هنا</string>
   <string name="tool_laser">ليزر</string>
 </resources>

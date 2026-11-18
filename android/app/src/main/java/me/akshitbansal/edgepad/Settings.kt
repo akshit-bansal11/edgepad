@@ -191,6 +191,14 @@ class Settings(
         putInt(KEY_PEN_WIDTH, it.coerceIn(PEN_WIDTHS))
     }
 
+    /** The Presenter laser's size on the wire's PEN_WIDTH scale; 20 is the original dot. */
+    var laserSize by pref({ prefs.getInt(KEY_LASER_SIZE, DEFAULT_LASER_SIZE).coerceIn(LASER_SIZES) }) {
+        putInt(KEY_LASER_SIZE, it.coerceIn(LASER_SIZES))
+    }
+
+    /** The Presenter laser leaves a short red trail behind the dot. */
+    var laserTrail by flag("laserTrail", false)
+
     /** The pen's opacity in percent, as [me.akshitbansal.edgepad.protocol.ControlId.PEN_OPACITY] sends it. */
     var penOpacity by pref({ prefs.getInt(KEY_PEN_OPACITY, Strokes.DEFAULT_OPACITY).coerceIn(PEN_OPACITIES) }) {
         putInt(KEY_PEN_OPACITY, it.coerceIn(PEN_OPACITIES))
@@ -539,6 +547,10 @@ class Settings(
         const val MAX_ICON_ZOOM = 1f
         const val DEFAULT_ICON_ZOOM = 1f
         private val PER_PAGE_RANGE = MIN_MACROS_PER_PAGE..MAX_MACROS_PER_PAGE
+        const val MIN_LASER_SIZE = 5
+        const val MAX_LASER_SIZE = 100
+        const val DEFAULT_LASER_SIZE = 20
+        private val LASER_SIZES = MIN_LASER_SIZE..MAX_LASER_SIZE
         private val PEN_WIDTHS = Strokes.MIN_WIDTH..Strokes.MAX_WIDTH
         private val PEN_OPACITIES = Strokes.MIN_OPACITY..Strokes.MAX_OPACITY
         private const val PEN_RGB_MASK = 0xFFFFFF
@@ -590,6 +602,7 @@ class Settings(
         private const val KEY_PATTERN_OPACITY = "patternOpacity"
         private const val KEY_PEN_RGB = "penRgb"
         private const val KEY_PEN_WIDTH = "penWidth"
+        private const val KEY_LASER_SIZE = "laserSize"
         private const val KEY_PEN_OPACITY = "penOpacity"
 
         /** Prefixes a media layout key to make its landscape twin. */

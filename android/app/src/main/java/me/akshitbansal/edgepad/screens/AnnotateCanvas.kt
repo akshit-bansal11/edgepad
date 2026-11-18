@@ -6,6 +6,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
+import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import me.akshitbansal.edgepad.Palette
@@ -62,6 +63,64 @@ class AnnotateCanvas(
     private var dotX = 0f
     private var dotY = 0f
 
+    /** The laser's size on the wire's PEN_WIDTH scale; [laserDotRadius] turns it into pixels. */
+    var laserSize = 20
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    /** A centred dim hint on a laser pad, shown only while no finger is down. */
+    var hint: CharSequence? = null
+
+    /** Draw a fading trail behind the laser dot. */
+    var laserTrail = false
+
+    // The last TRAIL_POINTS dot positions as x,y pairs in a ring, oldest at trailHead. No allocation per event.
+    private val trail = FloatArray(TRAIL_POINTS * 2)
+    private var trailCount = 0
+    private var trailHead = 0
+
+    private fun trailAdd(
+        x: Float,
+        y: Float,
+    ) {
+        val at = (trailHead + trailCount) % TRAIL_POINTS
+        trail[at * 2] = x
+        trail[at * 2 + 1] = y
+        if (trailCount < TRAIL_POINTS) {
+            trailCount++
+        } else {
+            trailHead = (trailHead + 1) % TRAIL_POINTS
+        }
+    }
+
+    private fun drawLaser(
+        canvas: Canvas,
+        radius: Float,
+    ) {
+        if (laserTrail && trailCount > 1) {
+            paint.style = Paint.Style.STROKE
+            paint.strokeCap = Paint.Cap.ROUND
+            paint.strokeWidth = radius * TRAIL_WIDTH
+            paint.color = LASER_CORE
+            for (i in 1 until trailCount) {
+                val from = (trailHead + i - 1) % TRAIL_POINTS
+                val to = (trailHead + i) % TRAIL_POINTS
+                paint.alpha = OPAQUE_ALPHA * i / trailCount
+                canvas.drawLine(trail[from * 2], trail[from * 2 + 1], trail[to * 2], trail[to * 2 + 1], paint)
+            }
+        }
+        paint.style = Paint.Style.FILL
+        paint.color = LASER_CORE
+        paint.alpha = GLOW_OUTER_ALPHA
+        canvas.drawCircle(dotX, dotY, radius * GLOW_OUTER, paint)
+        paint.alpha = GLOW_INNER_ALPHA
+        canvas.drawCircle(dotX, dotY, radius * GLOW_INNER, paint)
+        paint.alpha = OPAQUE_ALPHA
+        canvas.drawCircle(dotX, dotY, radius, paint)
+    }
+
     private fun box(): Letterbox? {
         val (w, h) = screenSize() ?: return null
         return Letterbox.fit(width.toFloat(), height.toFloat(), w, h)
@@ -85,9 +144,16 @@ class AnnotateCanvas(
         canvas.clipRect(box.left, box.top, box.left + box.width, box.top + box.height)
         if (laser) {
             if (fingerDown) {
-                paint.style = Paint.Style.FILL
-                paint.color = LASER_RED
-                canvas.drawCircle(dotX, dotY, box.height * LASER_DOT_SHARE, paint)
+                drawLaser(canvas, laserDotRadius(box.height, laserSize))
+            } else {
+                hint?.let {
+                    paint.style = Paint.Style.FILL
+                    paint.textAlign = Paint.Align.CENTER
+                    val metrics = resources.displayMetrics
+                    paint.textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, HINT_SP, metrics)
+                    paint.color = palette.dim
+                    canvas.drawText(it, 0, it.length, width / 2f, height / 2f, paint)
+                }
             }
         } else {
             for (stroke in strokes.strokes) drawStroke(canvas, box, stroke)
@@ -238,6 +304,9 @@ class AnnotateCanvas(
                 fingerDown = true
                 dotX = event.x
                 dotY = event.y
+                trailCount = 0
+                trailHead = 0
+                trailAdd(dotX, dotY)
                 lastSent = null
                 emit(box.toWire(event.x, event.y), Strokes.STATE_DOWN)
             }
@@ -246,6 +315,7 @@ class AnnotateCanvas(
                 if (fingerDown) {
                     dotX = event.x
                     dotY = event.y
+                    trailAdd(dotX, dotY)
                     // Every sample since the last event, not just the newest: a fast stroke is otherwise
                     // drawn as straight chords between the few points the frame rate allowed.
                     for (i in 0 until event.historySize) {
@@ -288,9 +358,16 @@ class AnnotateCanvas(
     private companion object {
         const val OPAQUE = 0xFF000000.toInt()
 
-        // The laptop's laser red (AnnotationOverlay.LaserColour), a little larger here so a fingertip does not hide it.
-        const val LASER_RED = 0xFFFF3B30.toInt()
-        const val LASER_DOT_SHARE = 0.03f
+        // The laptop's laser red, with a soft glow of two fainter rings round it.
+        const val LASER_CORE = 0xFFFF1A1A.toInt()
+        const val OPAQUE_ALPHA = 255
+        const val GLOW_OUTER = 2.2f
+        const val GLOW_INNER = 1.6f
+        const val GLOW_OUTER_ALPHA = 40
+        const val GLOW_INNER_ALPHA = 90
+        const val HINT_SP = 16f
+        const val TRAIL_POINTS = 24
+        const val TRAIL_WIDTH = 1.2f
         const val MAX_CACHED = 200
     }
 }

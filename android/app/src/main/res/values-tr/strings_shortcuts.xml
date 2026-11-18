@@ -16,6 +16,9 @@
   <string name="presenter_next">Sonraki slayt</string>
   <string name="presenter_previous">Önceki slayt</string>
   <string name="presenter_keys_note">Bu ekran açıkken ses tuşları slaytları değiştirir.</string>
-  <string name="presenter_laser">Lazer işaretçi</string>
+  <string name="presenter_settings">Sunucu ayarları</string>
+  <string name="presenter_laser_size">Lazer boyutu</string>
+  <string name="presenter_laser_trail">İzi göster</string>
+  <string name="presenter_point_here">Buraya işaret edin</string>
   <string name="tool_laser">Lazer</string>
 </resources>

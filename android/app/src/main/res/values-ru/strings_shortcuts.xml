@@ -16,6 +16,9 @@
   <string name="presenter_next">Следующий слайд</string>
   <string name="presenter_previous">Предыдущий слайд</string>
   <string name="presenter_keys_note">Клавиши громкости листают слайды, пока открыт этот экран.</string>
-  <string name="presenter_laser">Лазерная указка</string>
+  <string name="presenter_settings">Настройки презентации</string>
+  <string name="presenter_laser_size">Размер лазера</string>
+  <string name="presenter_laser_trail">Показывать след</string>
+  <string name="presenter_point_here">Указывайте здесь</string>
   <string name="tool_laser">Лазер</string>
 </resources>

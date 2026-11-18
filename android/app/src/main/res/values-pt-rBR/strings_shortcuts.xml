@@ -16,6 +16,9 @@
   <string name="presenter_next">Próximo slide</string>
   <string name="presenter_previous">Slide anterior</string>
   <string name="presenter_keys_note">As teclas de volume trocam os slides enquanto esta tela estiver aberta.</string>
-  <string name="presenter_laser">Ponteiro laser</string>
+  <string name="presenter_settings">Configurações do apresentador</string>
+  <string name="presenter_laser_size">Tamanho do laser</string>
+  <string name="presenter_laser_trail">Mostrar rastro</string>
+  <string name="presenter_point_here">Aponte aqui</string>
   <string name="tool_laser">Laser</string>
 </resources>

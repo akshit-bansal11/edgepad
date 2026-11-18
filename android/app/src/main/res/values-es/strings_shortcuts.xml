@@ -16,6 +16,9 @@
   <string name="presenter_next">Diapositiva siguiente</string>
   <string name="presenter_previous">Diapositiva anterior</string>
   <string name="presenter_keys_note">Las teclas de volumen cambian de diapositiva mientras esta pantalla esté abierta.</string>
-  <string name="presenter_laser">Puntero láser</string>
+  <string name="presenter_settings">Ajustes del presentador</string>
+  <string name="presenter_laser_size">Tamaño del láser</string>
+  <string name="presenter_laser_trail">Mostrar estela</string>
+  <string name="presenter_point_here">Apunta aquí</string>
   <string name="tool_laser">Láser</string>
 </resources>

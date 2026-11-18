@@ -16,6 +16,9 @@
   <string name="presenter_next">Next slide</string>
   <string name="presenter_previous">Previous slide</string>
   <string name="presenter_keys_note">Volume keys change slides while this screen is open.</string>
-  <string name="presenter_laser">Laser pointer</string>
+  <string name="presenter_settings">Presenter settings</string>
+  <string name="presenter_laser_size">Laser size</string>
+  <string name="presenter_laser_trail">Show trail</string>
+  <string name="presenter_point_here">Point here</string>
   <string name="tool_laser">Laser</string>
 </resources>

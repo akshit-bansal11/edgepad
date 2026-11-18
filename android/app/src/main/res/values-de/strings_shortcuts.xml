@@ -16,6 +16,9 @@
   <string name="presenter_next">Nächste Folie</string>
   <string name="presenter_previous">Vorherige Folie</string>
   <string name="presenter_keys_note">Die Lautstärketasten wechseln die Folien, solange dieser Bildschirm offen ist.</string>
-  <string name="presenter_laser">Laserpointer</string>
+  <string name="presenter_settings">Präsentationseinstellungen</string>
+  <string name="presenter_laser_size">Lasergröße</string>
+  <string name="presenter_laser_trail">Spur anzeigen</string>
+  <string name="presenter_point_here">Hier zeigen</string>
   <string name="tool_laser">Laser</string>
 </resources>

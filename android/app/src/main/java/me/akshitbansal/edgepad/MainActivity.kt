@@ -749,15 +749,15 @@ class MainActivity :
         manager.send(ActionId.ANNOTATE_END.frame())
     }
 
-    /** The Presenter's laser switch: the laser needs the laptop's overlay, so it is begun on the way on. */
+    /** The Presenter's laser, on while its screen is open: it needs the laptop's overlay, so that is begun first. */
     private fun presenterLaser(on: Boolean) {
         if (!on) return endAnnotate()
         if (!annotating && connected) {
             annotating = true
             manager.send(ActionId.ANNOTATE_BEGIN.frame())
         }
-        // The screen sent this before the overlay existed; sent again now that it does.
-        manager.send(ActionId.TOOL_LASER.frame())
+        // The overlay exists now: the saved size, then the tool (plain or with a trail), in that order.
+        presenter?.sendLaser()
     }
 
     /** Asks the laptop to say which macro apps are open, if it can tell. One that never said so is never asked. */
@@ -1140,6 +1140,7 @@ class MainActivity :
                 Screen.PRESENTER -> {
                     PresenterScreen(
                         ui,
+                        settings,
                         sendKey,
                         send,
                         onLaser = ::presenterLaser,

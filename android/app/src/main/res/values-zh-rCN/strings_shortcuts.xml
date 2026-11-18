@@ -16,6 +16,9 @@
   <string name="presenter_next">下一张幻灯片</string>
   <string name="presenter_previous">上一张幻灯片</string>
   <string name="presenter_keys_note">打开此屏幕时,音量键可切换幻灯片。</string>
-  <string name="presenter_laser">激光笔</string>
+  <string name="presenter_settings">演示设置</string>
+  <string name="presenter_laser_size">激光大小</string>
+  <string name="presenter_laser_trail">显示拖尾</string>
+  <string name="presenter_point_here">在此指向</string>
   <string name="tool_laser">激光</string>
 </resources>

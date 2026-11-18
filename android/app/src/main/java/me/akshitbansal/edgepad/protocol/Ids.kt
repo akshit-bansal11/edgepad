@@ -57,6 +57,9 @@ enum class ActionId(
     /** The laser: the next [Frame.Pen] stroke is a dot that follows the finger and leaves nothing behind. */
     TOOL_LASER(37),
 
+    /** The laser with a short red trail behind the dot. */
+    TOOL_LASER_TRAIL(38),
+
     SIGN_BEGIN(50),
     SIGN_SAVE(51),
 
