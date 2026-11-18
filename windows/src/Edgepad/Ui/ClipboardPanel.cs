@@ -423,10 +423,6 @@ internal sealed class ClipboardPanel : Form
     /// <summary>The list's empty state: the clipboard icon, what is missing and, when sharing is off, how to turn it on.</summary>
     private sealed class EmptyState : Control
     {
-        // Lucide's clipboard, the same path as the tray row's. // NOTE: TrayContext keeps its own copy until step W5 moves it to Icons.
-        private const string Glyph = "M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1H9a1 1 0 0 1 -1 -1V3a1 1 0 0 1 1 -1z"
-            + "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2H6a2 2 0 0 1 -2 -2V6a2 2 0 0 1 2 -2h2";
-
         private readonly Palette palette;
         private readonly string hint;
 
@@ -449,7 +445,7 @@ internal sealed class ClipboardPanel : Form
 
             var icon = Theme.Scale(32, dpi);
             var top = Theme.Scale(32, dpi);
-            Icons.Draw(graphics, Glyph, new RectangleF((Width - icon) / 2f, top, icon, icon), palette.Dim);
+            Icons.Draw(graphics, Icons.Clipboard,new RectangleF((Width - icon) / 2f, top, icon, icon), palette.Dim);
 
             const TextFormatFlags centred = TextFormatFlags.HorizontalCenter | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.WordBreak;
             var headFont = Theme.Font(Theme.Scale(14f, dpi), Weight.Bold);

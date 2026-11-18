@@ -1,10 +1,12 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Edgepad.Blob;
 using Edgepad.Bluetooth;
 using Edgepad.Controls;
 using Edgepad.Dispatch;
 using Edgepad.Gamepad;
+using Edgepad.Injection;
 using Edgepad.Macros;
 using Edgepad.Net;
 using Edgepad.Network;
@@ -47,10 +49,6 @@ internal sealed class TrayContext : ApplicationContext
     /// </summary>
     private static readonly TimeSpan QuietAfterForget = TimeSpan.FromSeconds(30);
 
-    // Lucide's clipboard, on the same grid as the paths in Ui/Icons.
-    private const string ClipboardGlyph = "M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1H9a1 1 0 0 1 -1 -1V3a1 1 0 0 1 1 -1z"
-        + "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2H6a2 2 0 0 1 -2 -2V6a2 2 0 0 1 2 -2h2";
-
     // An ampersand marks the row's access key (Windows menu convention); each letter is used once.
     private readonly MenuRow startWithWindows = new(Strings.Menu_StartWithWindows, Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new(Strings.Menu_Macros, Icons.Macro);
@@ -65,12 +63,19 @@ internal sealed class TrayContext : ApplicationContext
     };
 
     private readonly MenuRow bluetoothRow = new(Strings.Menu_BluetoothSettings, Icons.Smartphone) { Available = false };
-    private readonly MenuRow clipboardRow = new(Strings.Menu_ShareClipboard, ClipboardGlyph)
+    private readonly MenuRow clipboardRow = new(Strings.Menu_ShareClipboard, Icons.Clipboard)
     {
         CheckOnClick = true,
         Switch = true,
         ToolTipText = Strings.Menu_ShareClipboardTip,
     };
+
+    private readonly MenuRow clipHistoryRow = new(Strings.Menu_ClipboardHistory, Icons.Clipboard) { ToolTipText = Strings.Menu_ClipboardHistoryTip };
+
+    // In memory only, and only while Share clipboard is on. UI thread only.
+    private readonly ClipboardHistory history = new();
+    private ClipboardHotkey? hotkey;
+    private ClipboardPanel? clipPanel;
 
     private readonly MenuRow sendFileRow = new(Strings.Menu_SendFile, Icons.Download);
     private readonly SendPipe? sendPipe;
@@ -171,6 +176,7 @@ internal sealed class TrayContext : ApplicationContext
         firewallRow.Click += (_, _) => AllowFirewall(ReportFirewall);
         restartAdminRow.Click += (_, _) => RestartAsAdministrator();
         clipboardRow.Click += (_, _) => SaveClipboard(clipboardRow.Checked);
+        clipHistoryRow.Click += (_, _) => ShowClipboardPanel(paste: false);
         checkUpdates.Click += (_, _) => SaveCheckUpdates(checkUpdates.Checked);
         update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
         installRow.Click += (_, _) => _ = InstallUpdateAsync();
@@ -213,6 +219,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(networkRow);
         menu.Items.Add(clipboardRow);
+        menu.Items.Add(clipHistoryRow);
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(sendFileRow);
         menu.Items.Add(macrosRow);
@@ -235,6 +242,9 @@ internal sealed class TrayContext : ApplicationContext
             firewallRow.Available = networkRow.Checked && firewallRefused && !allowingNetwork;
             bluetoothRow.Available = trust.TrustedPhones.Count == 0;
             clipboardRow.Checked = clipboardSetting.Enabled;
+            var keyed = hotkey?.Registered == true;
+            clipHistoryRow.Hint = keyed ? ClipboardHotkey.Display : null;
+            clipHistoryRow.ToolTipText = keyed ? Strings.Menu_ClipboardHistoryTip : Strings.Clip_HotkeyTaken;
             checkUpdates.Checked = updateSetting.Enabled;
             openLog.Enabled = File.Exists(Log.FilePath);
             macrosRow.Hint = Strings.Menu_MacrosCount.Fill(macros.Macros.Count, MacroStore.MaxMacros);
@@ -264,6 +274,7 @@ internal sealed class TrayContext : ApplicationContext
         // Creating the menu installed the WinForms context on this thread; status updates arrive from
         // Bluetooth threads and are marshalled back here.
         ui = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
+        hotkey = new ClipboardHotkey(() => ShowClipboardPanel(paste: true));
 
         // The taskbar's tile, light or dark, now and whenever Windows' theme changes (that arrives as General).
         ApplyTrayIcon();
@@ -276,6 +287,8 @@ internal sealed class TrayContext : ApplicationContext
 
         // Here for the same reason: its window, and every clipboard call after it, belong to this thread.
         clipboard = new WindowsClipboard(ui, () => clipboardSetting.Enabled);
+        clipboard.Watch(OnLaptopCopy);
+        clipboard.PhoneTextWritten += text => ui.Post(_ => history.Record(text, ClipSide.Phone), null);
         host = new SessionHost(
             SetStatus,
             trust,
@@ -770,7 +783,101 @@ internal sealed class TrayContext : ApplicationContext
         {
             Balloon(Strings.Balloon_ShareClipboardNotSaved, ToolTipIcon.Warning);
         }
+
+        // Nothing is kept while sharing is off.
+        if (!on)
+        {
+            history.Clear();
+        }
     }
+
+    private void OnLaptopCopy()
+    {
+        if (clipboardSetting.Enabled && clipboard.ReadText() is { } text)
+        {
+            history.Record(text, ClipSide.Laptop);
+        }
+    }
+
+    /// <summary>
+    /// Win+Alt+V (paste) or the tray row (copy only). A second call while the panel is open closes it. The window to paste
+    /// into is taken before the panel activates.
+    /// </summary>
+    private void ShowClipboardPanel(bool paste)
+    {
+        if (clipPanel is { IsDisposed: false } open)
+        {
+            open.Close();
+            return;
+        }
+
+        var target = paste ? NativeMethods.GetForegroundWindow() : 0;
+        var panelHost = new ClipPanelHost(
+            clipboardSetting.Enabled,
+            () => shownNow?.IsConnected == true,
+            entry => Pick(entry, target),
+            async entry =>
+            {
+                var sent = await host.SendClipboardText(entry.Text) == true;
+                overlay.ShowNotice(sent ? Strings.Clip_Sent : Strings.Clip_SendFailed, dropped: !sent);
+                return sent;
+            },
+            entry => history.Remove(entry.Text),
+            history.Clear);
+        var panel = new ClipboardPanel(history.Items, panelHost);
+        panel.Location = ClipPanelPlacement.Place(Cursor.Position, panel.Size, LevelOverlay.Metrics.Where(), 8);
+        panel.FormClosed += (_, _) =>
+        {
+            if (ReferenceEquals(clipPanel, panel))
+            {
+                clipPanel = null;
+            }
+
+            panel.Dispose();
+        };
+        clipPanel = panel;
+        panel.Show();
+    }
+
+    /// <summary>
+    /// A row was picked: close the panel, put the text on the clipboard without telling the phone, and, when a window
+    /// had the focus, give it back and press Ctrl+V once Win/Alt/Shift are up. Otherwise say it is only copied.
+    /// </summary>
+    private void Pick(ClipEntry entry, nint target)
+    {
+        clipPanel?.Close();
+        clipboard.SetTextQuietly(entry.Text);
+        history.Record(entry.Text, entry.Side);
+        if (target == 0)
+        {
+            overlay.ShowNotice(Strings.Clip_CopiedOnly);
+            return;
+        }
+
+        NativeMethods.SetForegroundWindow(target);
+        var timer = new System.Windows.Forms.Timer { Interval = 80 };
+        var waited = 0;
+        timer.Tick += (_, _) =>
+        {
+            waited += timer.Interval;
+            if (waited < 500 && ModifierDown())
+            {
+                return;
+            }
+
+            timer.Dispose();
+            var keys = PasteKeys.CtrlV();
+            if (NativeMethods.SendInput((uint)keys.Length, keys, Marshal.SizeOf<NativeInput>()) == 0)
+            {
+                overlay.ShowNotice(Strings.Clip_CopiedOnly);
+            }
+        };
+        timer.Start();
+    }
+
+    private static bool ModifierDown() =>
+        (NativeMethods.GetAsyncKeyState((int)Keys.LWin) | NativeMethods.GetAsyncKeyState((int)Keys.RWin)
+            | NativeMethods.GetAsyncKeyState((int)Keys.Menu) | NativeMethods.GetAsyncKeyState((int)Keys.ShiftKey)) < 0;
 
     /// <summary>
     /// The Check for updates daily switch. Off stops the daily timer; on starts it and checks once now. It holds from
@@ -1329,6 +1436,10 @@ internal sealed class TrayContext : ApplicationContext
             SystemEvents.UserPreferenceChanged -= OnPreferenceChanged;
             SystemEvents.PowerModeChanged -= OnPowerModeChanged;
             VirtualPad.DriverMissing -= OnDriverMissing;
+            hotkey?.Dispose();
+            clipPanel?.Dispose();
+            history.Clear();
+            clipHistoryRow.Dispose();
             icon.Dispose();
             themed?.Dispose();
             dotted?.Dispose();

@@ -39,7 +39,9 @@ internal static class Icons
     public const string Plus = "M5 12h14M12 5v14";
     public const string FolderOpen = "M6 14l1.5 -2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1 -1.95 1.5H4a2 2 0 0 1 -2 -2V5"
         + "a2 2 0 0 1 2 -2h3.9a2 2 0 0 1 1.69 .9l.81 1.2a2 2 0 0 0 1.67 .9H18a2 2 0 0 1 2 2v2";
-    public const string Trash = "M3 6h18M19 6v14c0 1 -1 2 -2 2H7c-1 0 -2 -1 -2 -2V6M8 6V4c0 -1 1 -2 2 -2h4c1 0 2 1 2 2v2M10 11v6M14 11v6";
+    public const string Clipboard = "M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1H9a1 1 0 0 1 -1 -1V3a1 1 0 0 1 1 -1z"
+        + "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2H6a2 2 0 0 1 -2 -2V6a2 2 0 0 1 2 -2h2";
+    public const string Trash ="M3 6h18M19 6v14c0 1 -1 2 -2 2H7c-1 0 -2 -1 -2 -2V6M8 6V4c0 -1 1 -2 2 -2h4c1 0 2 1 2 2v2M10 11v6M14 11v6";
 
     /// <summary>The grid every path above is drawn on.</summary>
     private const float Grid = 24f;
