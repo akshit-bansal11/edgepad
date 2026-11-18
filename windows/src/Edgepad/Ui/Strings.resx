@@ -599,6 +599,9 @@ The trusted phones were forgotten, but the PIN could not be reset: a settings fi
   <data name="Clip_CopiedOnly" xml:space="preserve">
     <value>Copied. Press Ctrl+V to paste.</value>
   </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>Could not use the clipboard. Try again.</value>
+  </data>
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V is used by another app, so the shortcut is off.</value>
   </data>

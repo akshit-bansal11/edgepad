@@ -189,8 +189,14 @@ internal sealed class SendQueue(
         {
             known = sizeOf(path);
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        catch (Exception e)
         {
+            // Any fault of the probe is this one file's; the type alone is logged, never the path.
+            if (e is not (IOException or UnauthorizedAccessException))
+            {
+                Log.Write($"Send queue: size of a file: {e.GetType().Name}");
+            }
+
             known = null;
         }
 

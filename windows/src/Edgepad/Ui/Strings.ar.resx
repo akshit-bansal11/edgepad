@@ -593,6 +593,9 @@
   <data name="Clip_CopiedOnly" xml:space="preserve">
     <value>تم النسخ. اضغط Ctrl+V للصق.</value>
   </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>تعذّر استخدام الحافظة. حاول مرة أخرى.</value>
+  </data>
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>‏Win+Alt+V مستخدم في تطبيق آخر، لذا الاختصار متوقف.</value>
   </data>

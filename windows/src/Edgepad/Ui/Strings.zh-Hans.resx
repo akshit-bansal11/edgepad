@@ -593,6 +593,9 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
   <data name="Clip_CopiedOnly" xml:space="preserve">
     <value>已复制。按 Ctrl+V 粘贴。</value>
   </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>无法使用剪贴板。请重试。</value>
+  </data>
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V 已被其他应用占用，因此快捷键已关闭。</value>
   </data>

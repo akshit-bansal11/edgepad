@@ -618,7 +618,7 @@ internal sealed class TrayContext : ApplicationContext
             tick = openTick = new ReceiveTick(name) { Held = held, Size = size };
         }
 
-        ui.Post(_ => ShowReceiveTick(tick), null);
+        PostToUi(() => ShowReceiveTick(tick));
     }
 
     // Session thread. Closes the waiting update, so progress that comes after this end is posted after it, never before.
@@ -629,7 +629,20 @@ internal sealed class TrayContext : ApplicationContext
             openTick = null;
         }
 
-        ui.Post(_ => end(), null);
+        PostToUi(end);
+    }
+
+    // A session ending at shutdown reports its open file after the WinForms context may be gone: nothing is left to show it.
+    private void PostToUi(Action work)
+    {
+        try
+        {
+            ui.Post(_ => work(), null);
+        }
+        catch (Exception e) when (e is InvalidOperationException or ObjectDisposedException)
+        {
+            Log.Write($"Transfer update dropped at shutdown: {e.GetType().Name}");
+        }
     }
 
     private void ShowReceiveTick(ReceiveTick tick)
@@ -730,6 +743,13 @@ internal sealed class TrayContext : ApplicationContext
         }
 
         receiving = false;
+
+        // A file still open went quiet past the receiver's idle drop with no word from it: it did not arrive.
+        if (receivingName is { } stalled && !ReceiveHidden())
+        {
+            feed.FileDone(stalled, TransferFailure.TimedOut);
+        }
+
         receivingName = null;
         if (!queue.IsRunning)
         {
@@ -1059,6 +1079,7 @@ internal sealed class TrayContext : ApplicationContext
         if (!copied)
         {
             // Another app held the clipboard: Ctrl+V now would paste what was there before. OnUi has logged it.
+            overlay.ShowNotice(Strings.Clip_NotCopied, dropped: true);
             return;
         }
 

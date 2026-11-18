@@ -181,6 +181,14 @@ internal sealed class SendPipe : IDisposable
                 }
 
                 var (valid, skipped) = ValidateAll(lines);
+
+                // Stopped on a cap: what was left unread is not counted (reading on could block), so at least one is said
+                // to be left out. ponytail: a list that ends exactly on a cap also reports one skipped.
+                if (lines.Count >= MaxFiles * 2 || total >= MaxTotal)
+                {
+                    skipped++;
+                }
+
                 if (valid.Count > 0)
                 {
                     onPaths(valid, skipped);

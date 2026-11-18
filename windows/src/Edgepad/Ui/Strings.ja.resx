@@ -593,6 +593,9 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
   <data name="Clip_CopiedOnly" xml:space="preserve">
     <value>コピーしました。Ctrl+V で貼り付けます。</value>
   </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>クリップボードを使用できませんでした。もう一度お試しください。</value>
+  </data>
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V は別のアプリが使用しているため、ショートカットはオフです。</value>
   </data>

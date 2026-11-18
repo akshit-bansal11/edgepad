@@ -593,6 +593,9 @@
   <data name="Clip_CopiedOnly" xml:space="preserve">
     <value>Скопировано. Нажмите Ctrl+V, чтобы вставить.</value>
   </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>Не удалось использовать буфер обмена. Попробуйте ещё раз.</value>
+  </data>
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V занято другим приложением, поэтому сочетание отключено.</value>
   </data>

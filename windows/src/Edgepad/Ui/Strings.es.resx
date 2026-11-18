@@ -593,6 +593,9 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Clip_CopiedOnly" xml:space="preserve">
     <value>Copiado. Pulsa Ctrl+V para pegar.</value>
   </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>No se pudo usar el portapapeles. Inténtalo de nuevo.</value>
+  </data>
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V lo usa otra aplicación, así que el atajo está desactivado.</value>
   </data>

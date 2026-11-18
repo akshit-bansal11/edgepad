@@ -593,6 +593,9 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Clip_CopiedOnly" xml:space="preserve">
     <value>Kopiert. Mit Strg+V einfügen.</value>
   </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>Die Zwischenablage war nicht verfügbar. Versuche es erneut.</value>
+  </data>
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V wird von einer anderen App verwendet, daher ist das Tastenkürzel aus.</value>
   </data>

@@ -583,6 +583,9 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Clip_CopiedOnly" xml:space="preserve">
     <value>Kopyalandı. Yapıştırmak için Ctrl+V’ye basın.</value>
   </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>Pano kullanılamadı. Yeniden deneyin.</value>
+  </data>
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V başka bir uygulama tarafından kullanılıyor, bu yüzden kısayol kapalı.</value>
   </data>

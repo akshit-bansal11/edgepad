@@ -16,6 +16,7 @@ public sealed class SendQueueTests
     private readonly Dictionary<string, Func<CancellationToken, Task<XferCode?>>> script = [];
     private readonly HashSet<string> unreadable = [];
     private readonly HashSet<string> vanishing = [];
+    private readonly HashSet<string> broken = [];
     private readonly TransferFeed feed = new();
     private readonly SendQueue queue;
 
@@ -138,18 +139,21 @@ public sealed class SendQueueTests
     }
 
     [Fact]
-    public async Task AFileGoneBetweenExistsAndLengthIsUnreadableAndTheBatchGoesOn()
+    public async Task ASizeProbeThatThrowsMarksOnlyThatFileUnreadable()
     {
         vanishing.Add("b.txt");
-        queue.Enqueue(["a.txt", "b.txt", "c.txt"]);
+        broken.Add("c.txt");
+        queue.Enqueue(["a.txt", "b.txt", "c.txt", "d.txt"]);
         await Finished();
 
         var view = feed.View;
         Assert.Equal(2, view.Done);
-        Assert.Equal(3, view.Index);
-        Assert.Equal([new TransferFailed("b.txt", TransferFailure.Unreadable)], view.Failed);
-        Assert.Equal(["b.txt"], queue.FailedPaths);
-        Assert.Equal(["a.txt", "c.txt"], Sent());
+        Assert.Equal(4, view.Index);
+        Assert.Equal(
+            [new TransferFailed("b.txt", TransferFailure.Unreadable), new TransferFailed("c.txt", TransferFailure.Unreadable)],
+            view.Failed);
+        Assert.Equal(["b.txt", "c.txt"], queue.FailedPaths);
+        Assert.Equal(["a.txt", "d.txt"], Sent());
     }
 
     [Fact]
@@ -247,6 +251,11 @@ public sealed class SendQueueTests
         if (vanishing.Contains(path))
         {
             throw new FileNotFoundException("gone", path);
+        }
+
+        if (broken.Contains(path))
+        {
+            throw new InvalidOperationException("probe broke");
         }
 
         return unreadable.Contains(path) ? null : 100;

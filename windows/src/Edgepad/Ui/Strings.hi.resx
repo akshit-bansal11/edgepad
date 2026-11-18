@@ -593,6 +593,9 @@
   <data name="Clip_CopiedOnly" xml:space="preserve">
     <value>कॉपी हो गया। चिपकाने के लिए Ctrl+V दबाएँ।</value>
   </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>क्लिपबोर्ड का उपयोग नहीं हो सका। फिर से कोशिश करें।</value>
+  </data>
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V किसी दूसरे ऐप में उपयोग हो रहा है, इसलिए शॉर्टकट बंद है।</value>
   </data>

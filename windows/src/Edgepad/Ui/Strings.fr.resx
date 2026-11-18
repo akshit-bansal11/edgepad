@@ -593,6 +593,9 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
   <data name="Clip_CopiedOnly" xml:space="preserve">
     <value>Copié. Appuyez sur Ctrl+V pour coller.</value>
   </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>Impossible d’utiliser le presse-papiers. Réessayez.</value>
+  </data>
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V est utilisé par une autre application, le raccourci est donc désactivé.</value>
   </data>

@@ -593,6 +593,9 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   <data name="Clip_CopiedOnly" xml:space="preserve">
     <value>Copiado. Pressione Ctrl+V para colar.</value>
   </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>Não foi possível usar a área de transferência. Tente novamente.</value>
+  </data>
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>O Win+Alt+V é usado por outro app, então o atalho está desativado.</value>
   </data>

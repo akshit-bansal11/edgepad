@@ -593,6 +593,9 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Clip_CopiedOnly" xml:space="preserve">
     <value>Skopiowano. Naciśnij Ctrl+V, aby wkleić.</value>
   </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>Nie udało się użyć schowka. Spróbuj ponownie.</value>
+  </data>
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V jest używany przez inną aplikację, więc skrót jest wyłączony.</value>
   </data>

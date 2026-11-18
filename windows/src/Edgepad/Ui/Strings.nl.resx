@@ -574,6 +574,9 @@
   <data name="Clip_CopiedOnly" xml:space="preserve">
     <value>Gekopieerd. Druk op Ctrl+V om te plakken.</value>
   </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>Het klembord kon niet worden gebruikt. Probeer het opnieuw.</value>
+  </data>
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V wordt door een andere app gebruikt, dus de sneltoets staat uit.</value>
   </data>
