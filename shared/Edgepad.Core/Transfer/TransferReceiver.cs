@@ -26,6 +26,8 @@ internal sealed class TransferReceiver : IDisposable
     private readonly Func<string, long> freeSpace;
     private readonly Func<DateTimeOffset> clock;
     private readonly Action<string>? beforeSave;
+    private readonly Action<string, ulong, ulong>? progress;
+    private readonly Action<string, XferCode>? failed;
     private Active? active;
 
     public TransferReceiver(
@@ -35,7 +37,9 @@ internal sealed class TransferReceiver : IDisposable
         Action<string>? arrived = null,
         Func<string, long>? freeSpace = null,
         Func<DateTimeOffset>? now = null,
-        Action<string>? beforeSave = null)
+        Action<string>? beforeSave = null,
+        Action<string, ulong, ulong>? progress = null,
+        Action<string, XferCode>? failed = null)
     {
         this.destination = destination;
         this.partialFolder = partialFolder;
@@ -43,6 +47,8 @@ internal sealed class TransferReceiver : IDisposable
         this.arrived = arrived;
         this.freeSpace = freeSpace ?? FreeSpaceOf;
         this.beforeSave = beforeSave;
+        this.progress = progress;
+        this.failed = failed;
         clock = now ?? (() => DateTimeOffset.UtcNow);
         Purge(clock());
     }
@@ -72,9 +78,10 @@ internal sealed class TransferReceiver : IDisposable
             }
 
             var name = SafeFileName.Clean(begin.Name);
+            var shown = name ?? begin.Name;
             if (name is null || begin.Size > TransferLimits.MaxBytes)
             {
-                Reply(begin.Id, XferCode.Rejected, 0);
+                Fail(begin.Id, shown, XferCode.Rejected);
                 return true;
             }
 
@@ -84,7 +91,7 @@ internal sealed class TransferReceiver : IDisposable
                 Directory.CreateDirectory(partialFolder);
                 if (freeSpace(destination) < (long)begin.Size + TransferLimits.FreeSpaceMargin)
                 {
-                    Reply(begin.Id, XferCode.Rejected, 0);
+                    Fail(begin.Id, shown, XferCode.Rejected);
                     return true;
                 }
 
@@ -93,11 +100,11 @@ internal sealed class TransferReceiver : IDisposable
             catch (ArgumentException)
             {
                 // A destination the volume probe cannot name (a share): free space is unknown, so the file is refused.
-                Reply(begin.Id, XferCode.Rejected, 0);
+                Fail(begin.Id, shown, XferCode.Rejected);
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
-                Reply(begin.Id, XferCode.WriteFailed, 0);
+                Fail(begin.Id, shown, XferCode.WriteFailed);
             }
 
             return true;
@@ -124,7 +131,7 @@ internal sealed class TransferReceiver : IDisposable
             if (a.Held + (ulong)chunk.Data.Length > a.Size)
             {
                 Finish(deletePart: true);
-                Reply(chunk.Id, XferCode.Rejected, 0);
+                Fail(chunk.Id, a.Name, XferCode.Rejected);
                 return true;
             }
 
@@ -135,12 +142,13 @@ internal sealed class TransferReceiver : IDisposable
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
                 Finish(deletePart: true);
-                Reply(chunk.Id, XferCode.WriteFailed, 0);
+                Fail(chunk.Id, a.Name, XferCode.WriteFailed);
                 return true;
             }
 
             a.Hash.AppendData(chunk.Data);
             a.Held += (ulong)chunk.Data.Length;
+            progress?.Invoke(a.Name, a.Held, a.Size);
             if (a.Held - a.Reported >= TransferLimits.ProgressEveryBytes)
             {
                 a.Reported = a.Held;
@@ -170,7 +178,7 @@ internal sealed class TransferReceiver : IDisposable
             if (!CryptographicOperations.FixedTimeEquals(a.Hash.GetCurrentHash(), end.Sha256))
             {
                 Finish(deletePart: true);
-                Reply(end.Id, XferCode.BadHash, 0);
+                Fail(end.Id, a.Name, XferCode.BadHash);
                 return true;
             }
 
@@ -190,6 +198,7 @@ internal sealed class TransferReceiver : IDisposable
             }
 
             Finish(deletePart: true);
+            failed?.Invoke(a.Name, XferCode.Cancelled);
             return true;
         }
     }
@@ -205,7 +214,7 @@ internal sealed class TransferReceiver : IDisposable
             }
 
             Finish(deletePart: true);
-            Reply(a.Id, XferCode.Cancelled, 0);
+            Fail(a.Id, a.Name, XferCode.Cancelled);
             return true;
         }
     }
@@ -336,7 +345,7 @@ internal sealed class TransferReceiver : IDisposable
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             Finish(deletePart: false);
-            Reply(id, XferCode.WriteFailed, 0);
+            Fail(id, a.Name, XferCode.WriteFailed);
             return;
         }
 
@@ -386,6 +395,13 @@ internal sealed class TransferReceiver : IDisposable
         {
             // No folder yet, or one in use: nothing to purge, or it is purged next time.
         }
+    }
+
+    /// <summary>Tells the sender and the owner's UI that a file ended badly. Called with the gate held, so the callee only enqueues.</summary>
+    private void Fail(byte id, string name, XferCode code)
+    {
+        Reply(id, code, 0);
+        failed?.Invoke(name, code);
     }
 
     private void Reply(byte id, XferCode code, ulong offset) => reply(new XferStatus(id, (byte)code, offset));

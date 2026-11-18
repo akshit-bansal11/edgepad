@@ -19,6 +19,8 @@ public sealed class TransferTests : IDisposable
     private readonly CancellationTokenSource ended = new();
     private readonly List<XferStatus> replies = [];
     private readonly List<string> arrived = [];
+    private readonly List<(string Name, ulong Held, ulong Size)> progressed = [];
+    private readonly List<(string Name, XferCode Code)> failed = [];
     private readonly TransferSender sender;
     private DateTimeOffset clockAt = DateTimeOffset.UtcNow;
     private TransferReceiver receiver;
@@ -497,6 +499,73 @@ public sealed class TransferTests : IDisposable
         Assert.False(receiver.Take(new XferEnd(9, new byte[SHA256.HashSizeInBytes])));
     }
 
+    [Fact]
+    public void TheSenderReportsRisingOffsetsEndingAtTheSize()
+    {
+        var size = 1024 * 1024;
+        var path = Source("prog.bin", RandomNumberGenerator.GetBytes(size));
+        var seen = new List<ulong>();
+
+        Assert.Equal(XferCode.Saved, sender.Send(path, 1, TestContext.Current.CancellationToken, seen.Add));
+
+        Assert.NotEmpty(seen);
+        Assert.Equal(seen.Order(), seen);
+        Assert.Equal((ulong)size, seen[^1]);
+    }
+
+    [Fact]
+    public void TheReceiverReportsProgressAndNoFailureOnACleanSave()
+    {
+        var size = 300 * 1024;
+
+        Assert.Equal(XferCode.Saved, Send(Source("p.bin", RandomNumberGenerator.GetBytes(size))));
+
+        Assert.Equal(progressed.Select(h => h.Held).Order(), progressed.Select(h => h.Held));
+        Assert.Equal(((ulong)size, (ulong)size), (progressed[^1].Held, progressed[^1].Size));
+        Assert.All(progressed, h => Assert.Equal("p.bin", h.Name));
+        Assert.Empty(failed);
+    }
+
+    [Fact]
+    public void AWrongHashIsReportedOnceAsBadHash()
+    {
+        var first = true;
+        wire = frame =>
+        {
+            if (frame is XferChunk chunk && first)
+            {
+                first = false;
+                var damaged = chunk.Data.ToArray();
+                damaged[0] ^= 0xFF;
+                return chunk with { Data = damaged };
+            }
+
+            return frame;
+        };
+
+        Assert.Equal(XferCode.BadHash, Send(Source("bh.bin", RandomNumberGenerator.GetBytes(1000))));
+
+        Assert.Equal([("bh.bin", XferCode.BadHash)], failed);
+    }
+
+    [Fact]
+    public void ARefusedBeginIsReportedAsRejected()
+    {
+        receiver.Take(new XferBegin(1, 3UL << 30, "big.bin"));
+
+        Assert.Equal([("big.bin", XferCode.Rejected)], failed);
+    }
+
+    [Fact]
+    public void CancelIsReportedAsCancelled()
+    {
+        receiver.Take(new XferBegin(1, 100, "c.bin"));
+
+        Assert.True(receiver.Cancel());
+
+        Assert.Equal([("c.bin", XferCode.Cancelled)], failed);
+    }
+
     private TransferReceiver NewReceiver(Func<string, long>? freeSpace = null) =>
         new(
             Destination,
@@ -508,7 +577,9 @@ public sealed class TransferTests : IDisposable
             },
             arrived.Add,
             freeSpace ?? (_ => Plenty),
-            () => clockAt);
+            () => clockAt,
+            progress: (name, held, size) => progressed.Add((name, held, size)),
+            failed: (name, code) => failed.Add((name, code)));
 
     private XferCode Send(string path) => sender.Send(path, 1, TestContext.Current.CancellationToken);
 
