@@ -232,6 +232,19 @@ class TrackpadRecognizer(
         }
     }
 
+    /**
+     * How far one still finger is toward gripping the button, 0 to 1, or null when no hold is building. The
+     * surface draws it as a ring that fills, because issue #75 showed a hold nobody can see is a hold nobody
+     * finishes: the finger moved or lifted before [HOLD_MS], and a lift is a click, which ends the laptop's
+     * region selection as a few pixels.
+     */
+    fun holdProgress(time: Long): Float? =
+        if (fingers != 1 || maxFingers != 1 || held || moved) {
+            null
+        } else {
+            ((time - holdStart).toFloat() / HOLD_MS).coerceIn(0f, 1f)
+        }
+
     /** Exactly two fingers and never more, or the one left drawing alone: the only touches a stroke takes. */
     private fun strokeFingers(): Boolean = maxFingers == 2 && (fingers == 2 || (drawingAlone && fingers == 1))
 

@@ -333,6 +333,7 @@ class ControlSurface(
 
     /** What the surface last saw of [TrackpadRecognizer.held]; the tick fires on the change, not on the state. */
     private var holdTicked = false
+    private val holdBox = RectF()
     private val holdDue =
         Runnable {
             trackpad.tick(SystemClock.uptimeMillis())
@@ -790,6 +791,24 @@ class ControlSurface(
         }
         fill.color = ink
         for (i in 0 until fingerCount) canvas.drawCircle(fingerXs[i], fingerYs[i], dp(FINGER_DP) / 2, fill)
+        if (fingerCount == 1) drawHold(canvas)
+    }
+
+    /**
+     * The hold, made visible (#75): a ring round the finger fills while it stays still, and turns the accent
+     * once the button is gripped, so "keep still" and "you are dragging" can be seen, not only felt. Hidden
+     * for the first part of the hold, or every tap would flash a ring. It asks for frames only while filling.
+     */
+    private fun drawHold(canvas: Canvas) {
+        val progress = if (trackpad.dragging) 1f else trackpad.holdProgress(SystemClock.uptimeMillis()) ?: return
+        if (progress < 1f) postInvalidateOnAnimation()
+        if (progress < HOLD_RING_FROM) return
+        val r = dp(HOLD_RING_DP)
+        holdBox.set(fingerXs[0] - r, fingerYs[0] - r, fingerXs[0] + r, fingerYs[0] + r)
+        stroke.strokeWidth = dp(HOLD_RING_WIDTH_DP)
+        stroke.color = if (trackpad.dragging) accent else dim
+        canvas.drawArc(holdBox, RING_START_DEG, FULL_TURN_DEG * progress, false, stroke)
+        stroke.strokeWidth = dp(Space.HAIR)
     }
 
     private fun trailX(back: Int): Float = trail[((trailHead - back + TRAIL) % TRAIL) * 2]
@@ -1704,6 +1723,15 @@ class ControlSurface(
          */
         private const val CAPTION_GAP_DP = 28f
         private const val FINGER_DP = 10f
+
+        /** The hold ring (#75): radius and line, round the finger dot, clear of a fingertip's edge. */
+        private const val HOLD_RING_DP = 22f
+        private const val HOLD_RING_WIDTH_DP = 3f
+
+        /** The share of the hold (100 ms) that passes before the ring shows, so a quick tap never flashes it. */
+        private const val HOLD_RING_FROM = 0.25f
+        private const val RING_START_DEG = -90f
+        private const val FULL_TURN_DEG = 360f
         private const val MAX_POINTERS = 10
         private const val TRAIL = 18
         private const val TRAIL_ALPHA = 200f

@@ -446,7 +446,7 @@
   <string name="capture_stop">Stop recording</string>
   <string name="capture_recording">Recording on the laptop. Tap Stop recording to finish; with Save to Phone the file arrives then.</string>
   <string name="capture_sent">Sent to the laptop: %1$s</string>
-  <string name="capture_hint">For a region, tap Region, then on the trackpad hold a finger still for a moment and move it to drag out the area.</string>
+  <string name="capture_hint">For a region, tap Region, then on the trackpad hold a finger still until the ring fills, then move it to drag out the area.</string>
   <string name="capture_save_to">Save to</string>
   <string name="capture_save_laptop">Laptop</string>
   <string name="capture_save_phone">Phone</string>

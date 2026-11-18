@@ -449,7 +449,7 @@
   <string name="capture_stop">Остановить запись</string>
   <string name="capture_recording">Идёт запись на ноутбуке. Нажмите «Остановить запись», чтобы закончить; если файл сохраняется на телефон, он придёт после этого.</string>
   <string name="capture_sent">Отправлено на ноутбук: %1$s</string>
-  <string name="capture_hint">Для области нажмите «Область», затем задержите палец на тачпаде на мгновение и ведите его, чтобы выделить участок.</string>
+  <string name="capture_hint">Для области нажмите «Область», затем задержите палец на тачпаде, пока не заполнится кольцо, и ведите его, чтобы выделить участок.</string>
   <string name="capture_save_to">Куда сохранять</string>
   <string name="capture_save_laptop">Ноутбук</string>
   <string name="capture_save_phone">Телефон</string>

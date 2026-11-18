@@ -431,7 +431,7 @@
   <string name="capture_stop">録画を停止</string>
   <string name="capture_recording">ノートPCで録画中です。「録画を停止」をタップして終了します。保存先が「スマホ」の場合は、そのときファイルが届きます。</string>
   <string name="capture_sent">ノートPCに送信しました：%1$s</string>
-  <string name="capture_hint">範囲を選ぶには、「範囲」をタップしてから、トラックパッドに置いた指を少し止め、そのまま動かして領域をドラッグします。</string>
+  <string name="capture_hint">範囲を選ぶには、「範囲」をタップしてから、トラックパッドに置いた指を輪が満ちるまで止め、そのまま動かして領域をドラッグします。</string>
   <string name="capture_save_to">保存先</string>
   <string name="capture_save_laptop">ノートPC</string>
   <string name="capture_save_phone">スマホ</string>

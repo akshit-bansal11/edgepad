@@ -442,7 +442,7 @@
   <string name="capture_stop">Parar gravação</string>
   <string name="capture_recording">Gravando no notebook. Toque em Parar gravação para terminar; com Salvar em Celular, o arquivo chega nesse momento.</string>
   <string name="capture_sent">Enviado ao notebook: %1$s</string>
-  <string name="capture_hint">Para uma região, toque em Região e depois segure um dedo parado no touchpad por um instante e mova-o para marcar a área.</string>
+  <string name="capture_hint">Para uma região, toque em Região e depois segure um dedo parado no touchpad até o anel se completar e mova-o para marcar a área.</string>
   <string name="capture_save_to">Salvar em</string>
   <string name="capture_save_laptop">Notebook</string>
   <string name="capture_save_phone">Celular</string>

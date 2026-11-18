@@ -444,7 +444,7 @@
   <string name="capture_stop">Detener grabación</string>
   <string name="capture_recording">Grabando en la laptop. Toca «Detener grabación» para terminar; con «Guardar en» Teléfono, el archivo llega entonces.</string>
   <string name="capture_sent">Enviada a la laptop: %1$s</string>
-  <string name="capture_hint">Para una región, toca Región y luego mantén un dedo quieto un momento en el panel táctil y muévelo para marcar el área.</string>
+  <string name="capture_hint">Para una región, toca Región y luego mantén un dedo quieto en el panel táctil hasta que se llene el anillo y muévelo para marcar el área.</string>
   <string name="capture_save_to">Guardar en</string>
   <string name="capture_save_laptop">Laptop</string>
   <string name="capture_save_phone">Teléfono</string>

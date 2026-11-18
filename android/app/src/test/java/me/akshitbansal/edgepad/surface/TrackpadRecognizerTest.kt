@@ -76,6 +76,19 @@ class TrackpadRecognizerTest {
     }
 
     @Test
+    fun holdProgressFillsWhileStillAndStopsOnceItMovesOrGrips() {
+        assertNull("no finger, no ring", pad.holdProgress(0))
+        touch(Action.DOWN, 0, 100f to 100f)
+        assertEquals(0.5f, pad.holdProgress(TrackpadRecognizer.HOLD_MS / 2)!!, 0.001f)
+        pad.tick(TrackpadRecognizer.HOLD_MS)
+        assertNull("gripped: the surface draws the drag instead", pad.holdProgress(TrackpadRecognizer.HOLD_MS))
+        touch(Action.UP, TrackpadRecognizer.HOLD_MS + 10)
+        touch(Action.DOWN, 1_000, 100f to 100f)
+        touch(Action.MOVE, 1_050, 150f to 100f)
+        assertNull("a moving finger is aiming, not holding", pad.holdProgress(1_100))
+    }
+
+    @Test
     fun theTimerGripsAFingerThatSendsNoSamples() {
         touch(Action.DOWN, 0, 100f to 100f)
         pad.tick(TrackpadRecognizer.HOLD_MS - 1)

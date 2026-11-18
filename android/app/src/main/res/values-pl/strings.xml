@@ -450,7 +450,7 @@
   <string name="capture_stop">Zatrzymaj nagrywanie</string>
   <string name="capture_recording">Trwa nagrywanie na laptopie. Stuknij „Zatrzymaj nagrywanie”, aby zakończyć; przy zapisie na telefonie plik dotrze wtedy.</string>
   <string name="capture_sent">Wysłano na laptop: %1$s</string>
-  <string name="capture_hint">Aby przechwycić obszar, stuknij „Obszar”, a potem przytrzymaj palec na touchpadzie chwilę bez ruchu i przesuń go, by zaznaczyć fragment.</string>
+  <string name="capture_hint">Aby przechwycić obszar, stuknij „Obszar”, a potem przytrzymaj palec na touchpadzie bez ruchu, aż pierścień się wypełni, i przesuń go, by zaznaczyć fragment.</string>
   <string name="capture_save_to">Miejsce zapisu</string>
   <string name="capture_save_laptop">Laptop</string>
   <string name="capture_save_phone">Telefon</string>
