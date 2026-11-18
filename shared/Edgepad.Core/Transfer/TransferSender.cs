@@ -48,7 +48,7 @@ internal sealed class TransferSender(
     /// <paramref name="cancel"/> fired (the peer is told), <see cref="XferCode.TimedOut"/> or <see cref="XferCode.SessionEnded"/>.
     /// A file that cannot be read, or a send that fails, throws.
     /// </summary>
-    public XferCode Send(string path, byte id, CancellationToken cancel = default, Action<ulong>? progress = null)
+    public XferCode Send(string path, byte id, Action<ulong>? progress = null, CancellationToken cancel = default)
     {
         lock (lane)
         {
@@ -68,7 +68,7 @@ internal sealed class TransferSender(
 
             try
             {
-                return Run(file, Path.GetFileName(path), id, cancel, progress);
+                return Run(file, Path.GetFileName(path), id, progress, cancel);
             }
             finally
             {
@@ -127,7 +127,7 @@ internal sealed class TransferSender(
         }
     }
 
-    private XferCode Run(FileStream file, string name, byte id, CancellationToken cancel, Action<ulong>? progress)
+    private XferCode Run(FileStream file, string name, byte id, Action<ulong>? progress, CancellationToken cancel)
     {
         var size = (ulong)file.Length;
         if (size > TransferLimits.MaxBytes)

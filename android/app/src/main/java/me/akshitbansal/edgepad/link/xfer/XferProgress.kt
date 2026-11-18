@@ -37,6 +37,7 @@ fun continuesAfter(failure: XferFailure): Boolean =
         XferFailure.UNREADABLE,
         XferFailure.TOO_BIG,
         -> true
+
         XferFailure.BUSY,
         XferFailure.TIMED_OUT,
         XferFailure.LINK_LOST,

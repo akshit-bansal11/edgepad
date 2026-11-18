@@ -222,7 +222,7 @@ public sealed class TransferTests : IDisposable
             return frame;
         };
 
-        Assert.Equal(XferCode.Cancelled, sender.Send(path, 1, cancel.Token));
+        Assert.Equal(XferCode.Cancelled, sender.Send(path, 1, cancel: cancel.Token));
 
         Assert.False(receiver.Busy);
         Assert.Empty(Directory.GetFiles(Partial));
@@ -506,7 +506,7 @@ public sealed class TransferTests : IDisposable
         var path = Source("prog.bin", RandomNumberGenerator.GetBytes(size));
         var seen = new List<ulong>();
 
-        Assert.Equal(XferCode.Saved, sender.Send(path, 1, TestContext.Current.CancellationToken, seen.Add));
+        Assert.Equal(XferCode.Saved, sender.Send(path, 1, seen.Add, TestContext.Current.CancellationToken));
 
         Assert.NotEmpty(seen);
         Assert.Equal(seen.Order(), seen);
@@ -581,7 +581,7 @@ public sealed class TransferTests : IDisposable
             progress: (name, held, size) => progressed.Add((name, held, size)),
             failed: (name, code) => failed.Add((name, code)));
 
-    private XferCode Send(string path) => sender.Send(path, 1, TestContext.Current.CancellationToken);
+    private XferCode Send(string path) => sender.Send(path, 1, cancel: TestContext.Current.CancellationToken);
 
     private string Source(string name, byte[] data)
     {

@@ -51,7 +51,8 @@ class ClipboardHistoryTest {
         h.record("x".repeat(ClipboardHistory.MAX_BYTES), ClipSide.LAPTOP)
         h.record("y".repeat(ClipboardHistory.MAX_BYTES + 1), ClipSide.LAPTOP)
         assertEquals(1, h.items.size)
-        assertTrue(h.items.single().text.startsWith("x"))
+        val item = h.items.single()
+        assertTrue(item.text.startsWith("x"))
     }
 
     @Test

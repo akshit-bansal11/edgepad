@@ -74,7 +74,7 @@ internal sealed class TrayContext : ApplicationContext
 
     // In memory only, and only while Share clipboard is on. UI thread only.
     private readonly ClipboardHistory history = new();
-    private ClipboardHotkey? hotkey;
+    private readonly ClipboardHotkey? hotkey;
     private ClipboardPanel? clipPanel;
 
     private readonly MenuRow sendFileRow = new(Strings.Menu_SendFile, Icons.Download);

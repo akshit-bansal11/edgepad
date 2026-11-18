@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Text;
@@ -253,7 +254,7 @@ internal sealed class ClipboardPanel : Form
                     row.Hovered += (_, _) =>
                     {
                         keyboard = false;
-                        Move(rows.IndexOf(row));
+                        SelectRow(rows.IndexOf(row));
                     };
                     var height = row.Fit(rowWidth);
                     row.Bounds = new Rectangle(pad, y, rowWidth, height);
@@ -327,7 +328,7 @@ internal sealed class ClipboardPanel : Form
         base.Dispose(disposing);
     }
 
-    private void Move(int index)
+    private void SelectRow(int index)
     {
         if (rows.Count == 0 || index < 0 || index >= rows.Count)
         {
@@ -377,7 +378,7 @@ internal sealed class ClipboardPanel : Form
         items.RemoveAt(selected);
         Build();
         keyboard = true;
-        Move(selected);
+        SelectRow(selected);
     }
 
     private void ClearAll()
@@ -398,7 +399,7 @@ internal sealed class ClipboardPanel : Form
                 return true;
             case Keys.Down or Keys.Up or Keys.Home or Keys.End when rows.Count > 0:
                 keyboard = true;
-                Move(keyData switch
+                SelectRow(keyData switch
                 {
                     Keys.Down => Math.Min(selected + 1, rows.Count - 1),
                     Keys.Up => Math.Max(selected - 1, 0),
@@ -445,7 +446,7 @@ internal sealed class ClipboardPanel : Form
 
             var icon = Theme.Scale(32, dpi);
             var top = Theme.Scale(32, dpi);
-            Icons.Draw(graphics, Icons.Clipboard,new RectangleF((Width - icon) / 2f, top, icon, icon), palette.Dim);
+            Icons.Draw(graphics, Icons.Clipboard, new RectangleF((Width - icon) / 2f, top, icon, icon), palette.Dim);
 
             const TextFormatFlags centred = TextFormatFlags.HorizontalCenter | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.WordBreak;
             var headFont = Theme.Font(Theme.Scale(14f, dpi), Weight.Bold);
@@ -506,6 +507,7 @@ internal sealed class ClipboardPanel : Form
 
         public event EventHandler? Hovered;
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool IsSelected
         {
             get => selected;
@@ -526,6 +528,7 @@ internal sealed class ClipboardPanel : Form
         }
 
         /// <summary>The focus ring, drawn only once the keyboard is what moved the selection.</summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool KeyboardRing
         {
             set

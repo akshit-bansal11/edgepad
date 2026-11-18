@@ -296,7 +296,7 @@ internal sealed class Session(
         }
 
         var id = (byte)((uint)Interlocked.Increment(ref transferId) % 255 + 1);
-        return current.Send(path, id, cancel, progress);
+        return current.Send(path, id, progress, cancel);
     }
 
     /// <summary>Sends <paramref name="text"/> to the phone's clipboard now and blocks until it ends; never call it on the read thread. False when it did not go.</summary>

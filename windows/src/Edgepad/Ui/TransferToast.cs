@@ -94,7 +94,7 @@ internal static class ToastText
         var moved = Bytes(view.Sent);
         var size = Bytes(view.Size);
         var rest = view.BytesPerSecond > 0
-            ? string.Format(CultureInfo.CurrentCulture, DetailFormat, moved, size, Bytes(view.BytesPerSecond))
+            ? string.Format(CultureInfo.CurrentCulture, DetailFormat, moved, size, Bytes((ulong)view.BytesPerSecond))
             : string.Format(CultureInfo.CurrentCulture, DetailNoSpeed, moved, size);
         return percent + " · " + rest;
     }

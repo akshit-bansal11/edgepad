@@ -422,7 +422,7 @@ internal sealed class LinuxSession : IDisposable
         }
 
         var id = (byte)((uint)Interlocked.Increment(ref transferId) % 255 + 1);
-        return current.Send(path, id, cancel);
+        return current.Send(path, id, cancel: cancel);
     }
 
     // Everything this laptop says about a file goes down the transfer socket while one is attached, else the control one.
