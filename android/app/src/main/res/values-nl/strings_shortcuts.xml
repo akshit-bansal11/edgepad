@@ -7,8 +7,14 @@
   <string name="notice_volume_up">Luider</string>
   <string name="controls_clipboard">Klembord</string>
   <string name="controls_presenter">Presentator</string>
-  <string name="clip_history_title">Laptopkopieën</string>
-  <string name="clip_history_empty">Er is op de laptop nog niets gekopieerd. Kopieën van de laptop verschijnen hier zolang Klembord delen aan staat.</string>
+  <string name="clip_history_title">Klembord</string>
+  <string name="clip_history_empty">Nog niets gekopieerd</string>
+  <string name="clip_history_empty_hint">Kopieën van de laptop en van deze telefoon verschijnen hier zolang Klembord delen aan staat.</string>
+  <string name="clip_history_from_laptop">Van de laptop</string>
+  <string name="clip_history_from_phone">Van deze telefoon</string>
+  <string name="clip_history_just_now">Zojuist</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
   <string name="clip_history_sent">Verstuurd naar %1$s</string>
   <string name="clip_history_failed">Versturen mislukt. Controleer de verbinding.</string>
   <string name="clip_history_send_hint">Opnieuw versturen</string>

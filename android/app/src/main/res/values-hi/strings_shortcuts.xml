@@ -7,8 +7,14 @@
   <string name="notice_volume_up">आवाज़ ज़्यादा</string>
   <string name="controls_clipboard">क्लिपबोर्ड</string>
   <string name="controls_presenter">प्रेज़ेंटर</string>
-  <string name="clip_history_title">लैपटॉप की कॉपी</string>
-  <string name="clip_history_empty">लैपटॉप पर अभी कुछ कॉपी नहीं हुआ। क्लिपबोर्ड साझा करें चालू होने पर लैपटॉप की कॉपी यहाँ दिखती हैं।</string>
+  <string name="clip_history_title">क्लिपबोर्ड</string>
+  <string name="clip_history_empty">अभी कुछ कॉपी नहीं हुआ</string>
+  <string name="clip_history_empty_hint">क्लिपबोर्ड साझा करें चालू होने पर लैपटॉप और इस फ़ोन की कॉपी यहाँ दिखती हैं।</string>
+  <string name="clip_history_from_laptop">लैपटॉप से</string>
+  <string name="clip_history_from_phone">इस फ़ोन से</string>
+  <string name="clip_history_just_now">अभी-अभी</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
   <string name="clip_history_sent">%1$s को भेजा गया</string>
   <string name="clip_history_failed">भेजा नहीं जा सका। कनेक्शन जाँचें।</string>
   <string name="clip_history_send_hint">फिर भेजें</string>

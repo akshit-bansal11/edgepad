@@ -7,8 +7,14 @@
   <string name="notice_volume_up">Głośniej</string>
   <string name="controls_clipboard">Schowek</string>
   <string name="controls_presenter">Prezenter</string>
-  <string name="clip_history_title">Kopie z laptopa</string>
-  <string name="clip_history_empty">Na laptopie nic jeszcze nie skopiowano. Kopie z laptopa pojawią się tu, gdy Udostępnianie schowka jest włączone.</string>
+  <string name="clip_history_title">Schowek</string>
+  <string name="clip_history_empty">Nic jeszcze nie skopiowano</string>
+  <string name="clip_history_empty_hint">Kopie z laptopa i z tego telefonu pojawią się tu, gdy Udostępnianie schowka jest włączone.</string>
+  <string name="clip_history_from_laptop">Z laptopa</string>
+  <string name="clip_history_from_phone">Z tego telefonu</string>
+  <string name="clip_history_just_now">Przed chwilą</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
   <string name="clip_history_sent">Wysłano do %1$s</string>
   <string name="clip_history_failed">Nie udało się wysłać. Sprawdź połączenie.</string>
   <string name="clip_history_send_hint">Wyślij ponownie</string>

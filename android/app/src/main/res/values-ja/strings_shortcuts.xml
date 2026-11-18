@@ -7,8 +7,14 @@
   <string name="notice_volume_up">音量を上げる</string>
   <string name="controls_clipboard">クリップボード</string>
   <string name="controls_presenter">プレゼンター</string>
-  <string name="clip_history_title">ノートPCのコピー</string>
-  <string name="clip_history_empty">ノートPCではまだ何もコピーされていません。クリップボードを共有がオンの間、ノートPCでのコピーがここに表示されます。</string>
+  <string name="clip_history_title">クリップボード</string>
+  <string name="clip_history_empty">まだ何もコピーされていません</string>
+  <string name="clip_history_empty_hint">クリップボードを共有がオンの間、ノートPCとこのスマートフォンでのコピーがここに表示されます。</string>
+  <string name="clip_history_from_laptop">ノートPCから</string>
+  <string name="clip_history_from_phone">このスマートフォンから</string>
+  <string name="clip_history_just_now">たった今</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s。%2$s。</string>
   <string name="clip_history_sent">%1$sに送信しました</string>
   <string name="clip_history_failed">送信できませんでした。接続を確認してください。</string>
   <string name="clip_history_send_hint">もう一度送る</string>

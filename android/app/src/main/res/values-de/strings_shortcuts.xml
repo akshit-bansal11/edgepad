@@ -7,8 +7,14 @@
   <string name="notice_volume_up">Lauter</string>
   <string name="controls_clipboard">Zwischenablage</string>
   <string name="controls_presenter">Präsentation</string>
-  <string name="clip_history_title">Laptop-Kopien</string>
-  <string name="clip_history_empty">Auf dem Laptop wurde noch nichts kopiert. Kopien vom Laptop erscheinen hier, solange „Zwischenablage teilen“ an ist.</string>
+  <string name="clip_history_title">Zwischenablage</string>
+  <string name="clip_history_empty">Noch nichts kopiert</string>
+  <string name="clip_history_empty_hint">Kopien vom Laptop und von diesem Smartphone erscheinen hier, solange „Zwischenablage teilen“ an ist.</string>
+  <string name="clip_history_from_laptop">Vom Laptop</string>
+  <string name="clip_history_from_phone">Von diesem Smartphone</string>
+  <string name="clip_history_just_now">Gerade eben</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
   <string name="clip_history_sent">An %1$s gesendet</string>
   <string name="clip_history_failed">Senden nicht möglich. Prüfe die Verbindung.</string>
   <string name="clip_history_send_hint">Erneut senden</string>

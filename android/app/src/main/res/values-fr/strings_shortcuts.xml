@@ -7,8 +7,14 @@
   <string name="notice_volume_up">Volume plus</string>
   <string name="controls_clipboard">Presse-papiers</string>
   <string name="controls_presenter">Présentateur</string>
-  <string name="clip_history_title">Copies de l’ordinateur</string>
-  <string name="clip_history_empty">Rien n’a encore été copié sur l’ordinateur. Les copies de l’ordinateur apparaissent ici tant que Partager le presse-papiers est activé.</string>
+  <string name="clip_history_title">Presse-papiers</string>
+  <string name="clip_history_empty">Rien n’a encore été copié</string>
+  <string name="clip_history_empty_hint">Les copies de l’ordinateur et de ce téléphone apparaissent ici tant que Partager le presse-papiers est activé.</string>
+  <string name="clip_history_from_laptop">De l’ordinateur</string>
+  <string name="clip_history_from_phone">De ce téléphone</string>
+  <string name="clip_history_just_now">À l’instant</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
   <string name="clip_history_sent">Envoyé à %1$s</string>
   <string name="clip_history_failed">Envoi impossible. Vérifiez la connexion.</string>
   <string name="clip_history_send_hint">Renvoyer</string>

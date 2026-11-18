@@ -7,8 +7,14 @@
   <string name="notice_volume_up">Sesi aç</string>
   <string name="controls_clipboard">Pano</string>
   <string name="controls_presenter">Sunucu</string>
-  <string name="clip_history_title">Dizüstü kopyaları</string>
-  <string name="clip_history_empty">Dizüstünde henüz bir şey kopyalanmadı. Panoyu paylaş açıkken dizüstünden kopyalananlar burada görünür.</string>
+  <string name="clip_history_title">Pano</string>
+  <string name="clip_history_empty">Henüz bir şey kopyalanmadı</string>
+  <string name="clip_history_empty_hint">Panoyu paylaş açıkken dizüstünden ve bu telefondan kopyalananlar burada görünür.</string>
+  <string name="clip_history_from_laptop">Dizüstünden</string>
+  <string name="clip_history_from_phone">Bu telefondan</string>
+  <string name="clip_history_just_now">Az önce</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
   <string name="clip_history_sent">%1$s cihazına gönderildi</string>
   <string name="clip_history_failed">Gönderilemedi. Bağlantıyı kontrol edin.</string>
   <string name="clip_history_send_hint">Yeniden gönder</string>

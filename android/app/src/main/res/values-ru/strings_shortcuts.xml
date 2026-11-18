@@ -7,8 +7,14 @@
   <string name="notice_volume_up">Громче</string>
   <string name="controls_clipboard">Буфер обмена</string>
   <string name="controls_presenter">Презентация</string>
-  <string name="clip_history_title">Копии с ноутбука</string>
-  <string name="clip_history_empty">На ноутбуке пока ничего не скопировано. Копии с ноутбука появятся здесь, пока включён общий буфер обмена.</string>
+  <string name="clip_history_title">Буфер обмена</string>
+  <string name="clip_history_empty">Пока ничего не скопировано</string>
+  <string name="clip_history_empty_hint">Копии с ноутбука и с этого телефона появятся здесь, пока включён общий буфер обмена.</string>
+  <string name="clip_history_from_laptop">С ноутбука</string>
+  <string name="clip_history_from_phone">С этого телефона</string>
+  <string name="clip_history_just_now">Только что</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
   <string name="clip_history_sent">Отправлено на %1$s</string>
   <string name="clip_history_failed">Не удалось отправить. Проверьте соединение.</string>
   <string name="clip_history_send_hint">Отправить снова</string>
