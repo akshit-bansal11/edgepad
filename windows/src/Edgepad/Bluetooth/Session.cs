@@ -83,6 +83,8 @@ internal sealed class Session(
     private volatile TransferSender? sender;
     private int transferId;
 
+    private volatile ClipboardSync? clipboardSync;
+
     // Under watchGate. The transfer socket this session holds, or is about to: set when it asks, cleared when it ends.
     private Session? bulkOwner;
 
@@ -295,6 +297,10 @@ internal sealed class Session(
         return current.Send(path, id, cancel);
     }
 
+    /// <summary>Sends <paramref name="text"/> to the phone's clipboard now and blocks until it ends; never call it on the read thread. False when it did not go.</summary>
+    internal bool SendClipboardText(string text) =>
+        clipboardSync?.SendNow(BlobKind.ClipText, System.Text.Encoding.UTF8.GetBytes(text)) == true;
+
     // Everything this laptop says about a file goes down the transfer socket while one is attached, else the control one.
     private void SendTransfer(Frame frame)
     {
@@ -347,6 +353,7 @@ internal sealed class Session(
         blobSender = blobs;
         var sharing = new ClipboardSync(clipboard, blobs, shareClipboard, ended.Token);
         dispatcher.Clipboard = sharing;
+        clipboardSync = sharing;
         Keep(clipboard.Watch(sharing.LocalChanged));
 
         // The Start menu apps the phone may pick from. A pick is a token into the list built here, and the owner is told

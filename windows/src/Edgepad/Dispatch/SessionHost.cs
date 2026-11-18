@@ -281,6 +281,20 @@ internal sealed class SessionHost(
             : Task.Run(() => (XferCode?)session.SendFile(path, cancel), CancellationToken.None);
     }
 
+    /// <summary>Sends <paramref name="text"/> to the connected phone's clipboard, on a pool thread. Null when no phone is connected; otherwise whether it went.</summary>
+    public Task<bool?> SendClipboardText(string text)
+    {
+        Session? session;
+        lock (gate)
+        {
+            session = connected;
+        }
+
+        return session is null
+            ? Task.FromResult<bool?>(null)
+            : Task.Run(() => (bool?)session.SendClipboardText(text), CancellationToken.None);
+    }
+
     /// <summary>
     /// Called by a session once trust has said yes, just before it answers HELLO_ACK: the moment a new phone
     /// may replace the connected one. False when connections stopped being taken while the owner was asked, or
