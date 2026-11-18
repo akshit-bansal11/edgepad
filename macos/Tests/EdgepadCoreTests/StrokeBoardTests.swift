@@ -414,12 +414,36 @@ final class StrokeBoardTests: XCTestCase {
         XCTAssertTrue(board.pen(x: 300, y: 400, state: move))
         let dot = try XCTUnwrap(board.active)
         XCTAssertEqual(dot.points, [NormPoint(300, 400)])
-        XCTAssertEqual(dot.rgb, 0xFF_3B30)
-        XCTAssertEqual(dot.widthPx(height: 1000), 12, accuracy: 0.001)
+        XCTAssertEqual(dot.rgb, 0xFF_1A1A)
+        XCTAssertEqual(dot.laserRadiusPx(height: 1000), 12, accuracy: 0.001)
         XCTAssertTrue(board.pen(x: 500, y: 600, state: up))
 
         XCTAssertTrue(board.strokes.isEmpty)
         XCTAssertNil(board.active)
         XCTAssertFalse(board.undo())
+    }
+
+    func testTheTrailingLaserKeepsItsLatestPointsAndThePenWidthSetBeforeIt() throws {
+        let board = started()
+        XCTAssertTrue(board.setWidth(50))
+        XCTAssertTrue(board.run(.toolLaserTrail))
+        XCTAssertEqual(board.tool, .laserTrail)
+
+        XCTAssertTrue(board.pen(x: 0, y: 0, state: down))
+        for i in 1...30 {
+            XCTAssertTrue(board.pen(x: UInt16(i), y: UInt16(i), state: move))
+        }
+        let trail = try XCTUnwrap(board.active)
+        XCTAssertTrue(trail.isLaser)
+        XCTAssertEqual(trail.points.count, Stroke.trailPoints)
+        XCTAssertEqual(trail.points.last, NormPoint(30, 30))
+        XCTAssertEqual(trail.laserRadiusPx(height: 1000), 30, accuracy: 0.001)
+
+        XCTAssertTrue(board.pen(x: 31, y: 31, state: up))
+        XCTAssertNil(board.active)
+        XCTAssertTrue(board.strokes.isEmpty)
+
+        XCTAssertTrue(board.run(.toolLaser))
+        XCTAssertEqual(board.tool, .laser)
     }
 }

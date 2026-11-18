@@ -27,6 +27,8 @@ public enum ActionId: UInt8, CaseIterable {
     case padDetach = 36
     /// The laser tool: the next `pen` stroke is a dot that follows the finger and leaves nothing behind.
     case toolLaser = 37
+    /// The trailing laser: `toolLaser` plus a short red trail behind the dot. Both lasers take their size from the pen width.
+    case toolLaserTrail = 38
     /// Annotating the screen and signing, which the laptop draws and the phone only steers: begin and end
     /// show and remove the overlay, undo and clear edit the strokes, and the tools pick what the next `pen`
     /// stroke draws. `signBegin` opens a surface that shows nothing and takes only the pen tool, and `signSave`

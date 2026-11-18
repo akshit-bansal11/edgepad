@@ -273,6 +273,8 @@ const ACTION_DOCS: Record<string, string> = {
     "Exports the strokes as a transparent PNG cropped to the ink, to the clipboard and to an Edgepad folder in Pictures, never over an earlier file, then answers with TEXT 11.",
   TOOL_LASER:
     "The next stroke is a laser dot that follows the finger and leaves nothing behind. Never stored. The phone offers it only for a laptop that names annotate.",
+  TOOL_LASER_TRAIL:
+    "The next stroke is a laser dot with a short red trail behind it. Never stored. Both lasers take their size from PEN_WIDTH: the dot's radius is 0.06% of the screen's height per step, so 20 is 1.2%.",
   END_SLEEP:
     "Arms the laptop to sleep when the current media ends. The laptop reports what is armed as TEXT 25.",
   END_SHUTDOWN:

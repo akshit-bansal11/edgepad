@@ -77,22 +77,49 @@ internal sealed class AnnotationOverlay : Window
     /// <summary>Draws the strokes in screen pixels, scaled back to the window's units.</summary>
     private sealed class Layer : Control
     {
-        private const double LaserRadiusShare = 0.012;
-        private static readonly ImmutableSolidColorBrush LaserBrush = new(Color.FromRgb(0xFF, 0x3B, 0x30));
+        private const double LaserGlowRadii = 2.2;
+        private static readonly Color LaserColour = Color.FromRgb(0xFF, 0x1A, 0x1A);
+        private static readonly ImmutableSolidColorBrush LaserBrush = new(LaserColour);
+        private static readonly ImmutableSolidColorBrush LaserHotBrush = new(Color.FromRgb(0xFF, 0xD0, 0xD0));
 
         private IReadOnlyList<Stroke> strokes = [];
         private PixelSize screen;
 
-        /// <summary>The laser is a dot and nothing else: always red, whatever colour and width the pen has.</summary>
+        /// <summary>
+        /// A laser: a hot core inside a soft red glow, always red whatever the pen's colour, sized by the pen's width.
+        /// The trailing one also draws a red tail that fades and thins away behind the dot.
+        /// </summary>
         private void DrawLaser(DrawingContext context, Stroke stroke)
         {
-            if (stroke.Path(screen.Width, screen.Height) is not [var point, ..])
+            var path = stroke.Path(screen.Width, screen.Height);
+            if (path.Length == 0)
             {
                 return;
             }
 
-            var radius = screen.Height * LaserRadiusShare;
-            context.DrawEllipse(LaserBrush, null, new Point(point.X, point.Y), radius, radius);
+            var dot = new Point(path[^1].X, path[^1].Y);
+            var radius = stroke.LaserRadiusPx(screen.Height);
+
+            // ponytail: count-based trail, a still finger keeps its trail; time-based if it looks wrong.
+            for (var i = 1; i < path.Length; i++)
+            {
+                var t = (double)i / (path.Length - 1);
+                var tail = new ImmutableSolidColorBrush(Color.FromArgb((byte)(153 * t), 0xFF, 0x1A, 0x1A));
+                var pen = new ImmutablePen(tail, 1 + (((radius * 2) - 1) * t), lineCap: PenLineCap.Round);
+                context.DrawLine(pen, new Point(path[i - 1].X, path[i - 1].Y), new Point(path[i].X, path[i].Y));
+            }
+
+            var glow = new RadialGradientBrush
+            {
+                GradientStops =
+                [
+                    new GradientStop(Color.FromArgb(140, 0xFF, 0x1A, 0x1A), 0),
+                    new GradientStop(Color.FromArgb(0, 0xFF, 0x1A, 0x1A), 1),
+                ],
+            };
+            context.DrawEllipse(glow, null, dot, radius * LaserGlowRadii, radius * LaserGlowRadii);
+            context.DrawEllipse(LaserBrush, null, dot, radius, radius);
+            context.DrawEllipse(LaserHotBrush, null, dot, radius * 0.35, radius * 0.35);
         }
 
         public void Paint(IReadOnlyList<Stroke> next, PixelSize size)
@@ -109,7 +136,7 @@ internal sealed class AnnotationOverlay : Window
             {
                 foreach (var stroke in strokes)
                 {
-                    if (stroke.Tool == StrokeTool.Laser)
+                    if (stroke.IsLaser)
                     {
                         DrawLaser(context, stroke);
                     }

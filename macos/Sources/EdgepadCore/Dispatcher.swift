@@ -273,7 +273,7 @@ public final class Dispatcher {
             guard let macroWatch else { return false }
             macroWatch(action == .macrosWatch)
         case .annotateBegin, .annotateEnd, .annotateUndo, .annotateClear, .toolPen, .toolHighlighter, .toolLine,
-            .toolArrow, .toolRectangle, .toolEllipse, .toolLaser, .signBegin, .signSave:
+            .toolArrow, .toolRectangle, .toolEllipse, .toolLaser, .toolLaserTrail, .signBegin, .signSave:
             // With no overlay behind them these are dropped, which is the honest answer.
             return annotation?.run(action) ?? false
         case .desktopLeft:

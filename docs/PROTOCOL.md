@@ -125,6 +125,7 @@ The laptop deletes its copy only after a FILE_RESULT of 0 that arrives after its
 | ANNOTATE_CLEAR | 43 | removes every stroke |
 | TOOL_PEN, TOOL_HIGHLIGHTER, TOOL_LINE, TOOL_ARROW, TOOL_RECTANGLE, TOOL_ELLIPSE | 44 to 49 | picks what the next PEN stroke draws |
 | TOOL_LASER | 37 | picks the laser: the next PEN stroke is a dot that follows the finger and leaves nothing behind |
+| TOOL_LASER_TRAIL | 38 | picks the trailing laser: the laser dot plus a short red trail behind it, gone at pen up. Both lasers take their size from PEN_WIDTH: the dot's radius is 0.06% of the screen's height per step, so 20 is 1.2% |
 | SIGN_BEGIN | 50 | opens a signing surface that shows nothing on the laptop and accepts only the pen tool |
 | SIGN_SAVE | 51 | exports the strokes as a signature image, then answers with TEXT 11 |
 | CAPTURE_REGION | 52 | Win+Shift+S, the Snipping Tool's region capture |

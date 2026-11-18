@@ -375,6 +375,8 @@ internal sealed class Annotator : IDisposable
                 return board.SetTool(StrokeTool.Ellipse);
             case ActionId.ToolLaser:
                 return board.SetTool(StrokeTool.Laser);
+            case ActionId.ToolLaserTrail:
+                return board.SetTool(StrokeTool.LaserTrail);
             default:
                 return false;
         }

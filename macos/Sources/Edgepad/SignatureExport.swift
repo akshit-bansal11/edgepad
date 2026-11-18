@@ -59,6 +59,10 @@ enum StrokePainter {
     static func draw(_ stroke: Stroke, in g: CGContext, width: Int, height: Int) {
         let points = stroke.path(width: width, height: height).map { CGPoint(x: CGFloat($0.x), y: CGFloat($0.y)) }
         guard let first = points.first else { return }
+        if stroke.isLaser {
+            drawLaser(stroke, points: points, in: g, height: height)
+            return
+        }
 
         // The stroke's own colour, width and opacity, so the signature saved is the one the phone's sliders showed.
         let alpha = CGFloat(stroke.alpha)
@@ -105,5 +109,46 @@ enum StrokePainter {
         g.setLineJoin(.round)
         g.addPath(path)
         g.strokePath()
+    }
+
+    /// A laser: a hot core inside a soft red glow, and for the trailing one a red tail fading and thinning away
+    /// behind it. Always red, whatever colour the pen has; the size is the pen width's.
+    private static func drawLaser(_ stroke: Stroke, points: [CGPoint], in g: CGContext, height: Int) {
+        guard let dot = points.last else { return }
+
+        let radius = CGFloat(stroke.laserRadiusPx(height: height))
+        let space = CGColorSpace(name: CGColorSpace.sRGB)
+        func red(_ alpha: CGFloat) -> [CGFloat] { [1, 0.1, 0.1, alpha] }
+
+        // ponytail: count-based trail, a still finger keeps its trail; time-based if it looks wrong.
+        if stroke.tool == .laserTrail, points.count > 1 {
+            let last = CGFloat(points.count - 1)
+            g.setLineCap(.round)
+            for i in 1..<points.count {
+                let t = CGFloat(i) / last
+                g.setStrokeColor(CGColor(srgbRed: 1, green: 0.1, blue: 0.1, alpha: 0.6 * t))
+                g.setLineWidth(1 + (2 * radius - 1) * t)
+                g.move(to: points[i - 1])
+                g.addLine(to: points[i])
+                g.strokePath()
+            }
+        }
+
+        let glow = radius * 2.2
+        if let space,
+            let gradient = CGGradient(
+                colorSpace: space,
+                colorComponents: red(0.55) + red(0.25) + red(0),
+                locations: [0, 1 / 2.2, 1],
+                count: 3)
+        {
+            g.drawRadialGradient(
+                gradient, startCenter: dot, startRadius: 0, endCenter: dot, endRadius: glow, options: [])
+        }
+        g.setFillColor(CGColor(srgbRed: 1, green: 0.1, blue: 0.1, alpha: 1))
+        g.fillEllipse(in: CGRect(x: dot.x - radius, y: dot.y - radius, width: radius * 2, height: radius * 2))
+        let hot = radius * 0.35
+        g.setFillColor(CGColor(srgbRed: 1, green: 0.816, blue: 0.816, alpha: 1))
+        g.fillEllipse(in: CGRect(x: dot.x - hot, y: dot.y - hot, width: hot * 2, height: hot * 2))
     }
 }

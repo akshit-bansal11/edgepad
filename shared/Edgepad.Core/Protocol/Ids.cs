@@ -62,6 +62,12 @@ internal enum ActionId : byte
     ToolLaser = 37,
 
     /// <summary>
+    /// The trailing laser: <see cref="ToolLaser"/> plus a short red trail behind the dot. Both lasers take their size from
+    /// the pen width.
+    /// </summary>
+    ToolLaserTrail = 38,
+
+    /// <summary>
     /// Screen capture, which is this laptop's own tool: a region (a drag), the whole screen, and a recording.
     /// Actions because the phone only asks; what each one presses is decided here. A laptop too old to know
     /// them drops and counts the ids, and the phone shows the buttons only for one that sent

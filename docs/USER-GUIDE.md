@@ -138,7 +138,7 @@ Everything here is built and has not yet run on a phone with a laptop. Phone and
 - **Show laptop notifications.** Off until you turn it on, on both sides: **Settings › Show laptop notifications** on the phone, and the **Forward notifications to phone** row in the Linux tray. Linux only so far. Windows waits for a check of its notification listener, and macOS has no public way to do it.
 - **Clipboard history.** **Controls › Clipboard** lists the last laptop copies; tap one to send it again. It records copies only while **Share clipboard** is on.
 - **Quick Settings tile.** Add **Edgepad** from your phone's Quick Settings edit screen. The stay-connected notification gains play/pause and volume buttons.
-- **Presenter.** **Controls › Presenter**: Next slide and Previous slide, a **Laser pointer** that draws a dot on the laptop and leaves nothing behind, and the volume keys change slides only while this screen is open.
+- **Presenter.** **Controls › Presenter**: Next slide and Previous slide, a **Laser pointer** that draws a red dot with a glow on the laptop (or with a short trail) and leaves nothing behind, and the volume keys change slides only while this screen is open.
 - **App profiles.** **Settings › App profiles › Switch dials and gestures by app.** The laptop tells the phone which app is in front, only while this is on, and the name is not stored on the laptop. Not available on a Linux Wayland session.
 - **Air mouse.** **Controls › Air mouse**: tilt the phone to move the pointer while a finger rests on the trackpad. The gyroscope is read only then.
 - **Floating dials.** **Controls › Floating dials** shows the dials over other apps. It asks for Android's "draw over other apps" permission and needs a connected laptop and **Stay connected**.

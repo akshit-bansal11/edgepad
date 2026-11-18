@@ -92,10 +92,10 @@ internal sealed class AnnotationOverlay : Form
         private const byte AcSrcAlpha = 1;
         private const uint UlwAlpha = 2;
 
-        /// <summary>The laser dot's radius as a share of the screen's height.</summary>
-        private const float LaserRadiusShare = 0.012f;
+        /// <summary>The glow reaches this many radii out from the dot's centre.</summary>
+        private const float LaserGlowRadii = 2.2f;
 
-        private static readonly Color LaserColour = Color.FromArgb(0xFF, 0xFF, 0x3B, 0x30);
+        private static readonly Color LaserColour = Color.FromArgb(0xFF, 0xFF, 0x1A, 0x1A);
 
         private readonly nint dc;
         private readonly nint dib;
@@ -135,7 +135,7 @@ internal sealed class AnnotationOverlay : Form
             g.Clear(Color.Transparent);
             foreach (var stroke in strokes)
             {
-                if (stroke.Tool == StrokeTool.Laser)
+                if (stroke.IsLaser)
                 {
                     DrawLaser(g, stroke);
                     continue;
@@ -145,17 +145,50 @@ internal sealed class AnnotationOverlay : Form
             }
         }
 
-        /// <summary>The laser is a dot and nothing else: always red, whatever colour and width the pen has.</summary>
+        /// <summary>
+        /// A laser: a hot core inside a soft red glow, always red whatever the pen's colour, sized by the pen's width.
+        /// The trailing one also draws a red tail that fades and thins away behind the dot.
+        /// </summary>
         private void DrawLaser(Graphics g, Stroke stroke)
         {
-            if (stroke.Path(Size.Width, Size.Height) is not [var point, ..])
+            var path = stroke.Path(Size.Width, Size.Height);
+            if (path.Length == 0)
             {
                 return;
             }
 
-            var radius = Size.Height * LaserRadiusShare;
-            using var brush = new SolidBrush(LaserColour);
-            g.FillEllipse(brush, point.X - radius, point.Y - radius, radius * 2f, radius * 2f);
+            var point = path[^1];
+            var radius = stroke.LaserRadiusPx(Size.Height);
+
+            // ponytail: count-based trail, a still finger keeps its trail; time-based if it looks wrong.
+            for (var i = 1; i < path.Length; i++)
+            {
+                var t = (float)i / (path.Length - 1);
+                using var pen = new Pen(Color.FromArgb((int)(153 * t), LaserColour), 1f + (((radius * 2f) - 1f) * t))
+                {
+                    StartCap = LineCap.Round,
+                    EndCap = LineCap.Round,
+                };
+                g.DrawLine(pen, path[i - 1].X, path[i - 1].Y, path[i].X, path[i].Y);
+            }
+
+            var glow = radius * LaserGlowRadii;
+            using (var disc = new GraphicsPath())
+            {
+                disc.AddEllipse(point.X - glow, point.Y - glow, glow * 2f, glow * 2f);
+                using var brush = new PathGradientBrush(disc)
+                {
+                    CenterColor = Color.FromArgb(140, LaserColour),
+                    SurroundColors = [Color.FromArgb(0, LaserColour)],
+                };
+                g.FillPath(brush, disc);
+            }
+
+            using var core = new SolidBrush(LaserColour);
+            g.FillEllipse(core, point.X - radius, point.Y - radius, radius * 2f, radius * 2f);
+            var hot = radius * 0.35f;
+            using var centre = new SolidBrush(Color.FromArgb(0xFF, 0xFF, 0xD0, 0xD0));
+            g.FillEllipse(centre, point.X - hot, point.Y - hot, hot * 2f, hot * 2f);
         }
 
         public void Push(nint window, Point at)
