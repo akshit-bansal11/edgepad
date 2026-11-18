@@ -616,6 +616,7 @@
   </plurals>
   <plurals name="xfer_card_more">
     <item quantity="one">et %1$d de plus</item>
+    <item quantity="many">et %1$d de plus</item>
     <item quantity="other">et %1$d de plus</item>
   </plurals>
   <plurals name="xfer_share_count">

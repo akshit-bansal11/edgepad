@@ -616,6 +616,7 @@
   </plurals>
   <plurals name="xfer_card_more">
     <item quantity="one">e mais %1$d</item>
+    <item quantity="many">e mais %1$d</item>
     <item quantity="other">e mais %1$d</item>
   </plurals>
   <plurals name="xfer_share_count">
