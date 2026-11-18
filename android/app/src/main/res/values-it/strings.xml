@@ -587,7 +587,7 @@
   <string name="xfer_done">%1$s salvato</string>
   <string name="xfer_failed">Impossibile inviare %1$s</string>
   <string name="xfer_cancel">Annulla</string>
-  <string name="xfer_busy">Un altro file è già in trasferimento</string>
+  <string name="xfer_too_many">Solo i primi 100 file sono stati messi in coda</string>
   <string name="xfer_sending_n">Invio di %1$s (%2$d di %3$d) · %4$d%%</string>
   <string name="xfer_card_sending_to">Invio a %1$s</string>
   <string name="xfer_card_receiving_from">Ricezione da %1$s</string>

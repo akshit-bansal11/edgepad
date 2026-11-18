@@ -556,7 +556,7 @@
   <string name="xfer_done">%1$s 저장됨</string>
   <string name="xfer_failed">%1$s을(를) 보내지 못했습니다</string>
   <string name="xfer_cancel">취소</string>
-  <string name="xfer_busy">다른 파일을 이미 전송 중입니다</string>
+  <string name="xfer_too_many">처음 100개 파일만 대기열에 추가했습니다</string>
   <string name="xfer_sending_n">%1$s 보내는 중 (%3$d개 중 %2$d번째) · %4$d%%</string>
   <string name="xfer_card_sending_to">%1$s(으)로 보내는 중</string>
   <string name="xfer_card_receiving_from">%1$s에서 받는 중</string>

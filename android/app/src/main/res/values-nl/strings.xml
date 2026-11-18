@@ -577,7 +577,7 @@
   <string name="xfer_done">%1$s opgeslagen</string>
   <string name="xfer_failed">%1$s kon niet worden verzonden</string>
   <string name="xfer_cancel">Annuleren</string>
-  <string name="xfer_busy">Er wordt al een ander bestand overgedragen</string>
+  <string name="xfer_too_many">Alleen de eerste 100 bestanden zijn in de wachtrij gezet</string>
   <string name="xfer_sending_n">%1$s wordt verzonden (%2$d van %3$d) · %4$d%%</string>
   <string name="xfer_card_sending_to">Verzenden naar %1$s</string>
   <string name="xfer_card_receiving_from">Ontvangen van %1$s</string>

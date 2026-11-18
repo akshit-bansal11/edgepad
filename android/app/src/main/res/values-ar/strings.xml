@@ -611,7 +611,7 @@
   <string name="xfer_done">تم حفظ %1$s</string>
   <string name="xfer_failed">تعذر إرسال %1$s</string>
   <string name="xfer_cancel">إلغاء</string>
-  <string name="xfer_busy">ملف آخر قيد النقل بالفعل</string>
+  <string name="xfer_too_many">تمت إضافة أول 100 ملف فقط إلى قائمة الإرسال</string>
   <string name="xfer_sending_n">جارٍ إرسال %1$s (%2$d من %3$d) · %4$d%%</string>
   <string name="xfer_card_sending_to">جارٍ الإرسال إلى %1$s</string>
   <string name="xfer_card_receiving_from">جارٍ الاستلام من %1$s</string>

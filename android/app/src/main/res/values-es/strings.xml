@@ -588,7 +588,7 @@
   <string name="xfer_done">Guardado %1$s</string>
   <string name="xfer_failed">No se pudo enviar %1$s</string>
   <string name="xfer_cancel">Cancelar</string>
-  <string name="xfer_busy">Ya se está moviendo otro archivo</string>
+  <string name="xfer_too_many">Solo se pusieron en cola los primeros 100 archivos</string>
   <string name="xfer_sending_n">Enviando %1$s (%2$d de %3$d) · %4$d%%</string>
   <string name="xfer_card_sending_to">Enviando a %1$s</string>
   <string name="xfer_card_receiving_from">Recibiendo de %1$s</string>

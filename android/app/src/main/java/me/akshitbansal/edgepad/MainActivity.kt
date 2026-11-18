@@ -102,6 +102,8 @@ import me.akshitbansal.edgepad.link.promoted
 import me.akshitbansal.edgepad.link.rememberLaptop
 import me.akshitbansal.edgepad.link.snapUp
 import me.akshitbansal.edgepad.link.xfer.Transfers
+import me.akshitbansal.edgepad.link.xfer.XferPhase
+import me.akshitbansal.edgepad.link.xfer.XferSnapshot
 import me.akshitbansal.edgepad.overlay.FloatingDials
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.AppAddStatus
@@ -146,6 +148,7 @@ import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.SharingScreen
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
 import me.akshitbansal.edgepad.screens.Ui
+import me.akshitbansal.edgepad.screens.XferCard
 import me.akshitbansal.edgepad.screens.openOver
 import me.akshitbansal.edgepad.screens.showOver
 import me.akshitbansal.edgepad.surface.BackgroundImage
@@ -325,6 +328,9 @@ class MainActivity :
     private var phoneWatch: AutoCloseable? = null
     private var screen = Screen.PAIRING
     private var settingsReturn = Screen.PAIRING
+
+    /** The floating transfer card; rebuilt from [Transfers.progress] on every start, never retained. */
+    private var xferCard: XferCard? = null
 
     /** Holds the screen on show and, for the length of a carry, the one leaving. */
     private val stage by lazy { FrameLayout(this) }
@@ -579,6 +585,8 @@ class MainActivity :
         refreshPicker()
         startScan()
         checkForUpdateIfDue()
+        Transfers.progress.listener = ::showCard
+        Transfers.progress.snapshot.takeIf { it.phase != XferPhase.IDLE }?.let(::showCard)
     }
 
     /** Not over the guide: a first-time user has not been told yet that the app ever goes online. */
@@ -591,6 +599,8 @@ class MainActivity :
     override fun onStop() {
         super.onStop()
         started = false
+        Transfers.progress.listener = null
+        xferCard?.hide()
         UpdateJob.onChange = null
         clipboard.bridge.stop()
         releaseHeldInput()
@@ -639,6 +649,8 @@ class MainActivity :
         val want = settings.floatingDials && !started && serviceUp && connected && SystemSettings.canDrawOverlays(this)
         if (!want) {
             floating?.hide()
+        xferCard?.hide()
+        xferCard = null
             return
         }
         val dials = floating ?: FloatingDials(this, settings, state, { frame -> selected?.link?.send(frame) })
@@ -1532,34 +1544,46 @@ class MainActivity :
             Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "*/*"
+                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
             }
         @Suppress("DEPRECATION")
         startActivityForResult(intent, REQUEST_FILE)
     }
 
+    /** The documents the picker returned: every item of a multiple pick, else the single one. */
+    private fun pickedFiles(data: Intent?): List<Uri>? {
+        val clip = data?.clipData
+        if (clip != null && clip.itemCount > 0) return List(clip.itemCount) { clip.getItemAt(it).uri }
+        return data?.data?.let(::listOf)
+    }
+
     /**
-     * Sends the document the user chose to the selected laptop, on a worker. The user's pick in the system picker is
-     * the confirmation. Counted as a share while it runs, so the app leaving does not end the link under it; the
-     * progress and the outcome are the transfer notification's.
+     * Queues the documents the user chose for the selected laptop; a batch already going out takes them on its end.
+     * The user's pick in the system picker is the confirmation. Counted as a share while they go (by the queue), so the
+     * app leaving does not end the link under it; the progress and the outcome are the card's and the notification's.
      */
-    private fun sendPicked(uri: Uri) {
+    private fun sendPicked(picked: List<Uri>) {
         val link = selected?.takeIf { it.connected }?.let(Transfers::link)
         if (link == null) {
             Toast.makeText(this, R.string.xfer_no_laptop, Toast.LENGTH_SHORT).show()
             return
         }
-        if (link.sending) {
-            Toast.makeText(this, R.string.xfer_busy, Toast.LENGTH_SHORT).show()
-            return
-        }
-        LinkHooks.sharing.incrementAndGet()
-        thread(name = "edgepad-send-file") {
-            try {
-                link.send(uri)
-            } finally {
-                LinkHooks.sharing.decrementAndGet()
-            }
-        }
+        if (picked.size > MAX_FILES) Toast.makeText(this, R.string.xfer_too_many, Toast.LENGTH_SHORT).show()
+        link.enqueue(picked.take(MAX_FILES))
+    }
+
+    /** Shows the transfer card for [s] over the whole screen, making it on first use. */
+    private fun showCard(s: XferSnapshot) {
+        val card =
+            xferCard
+                ?: XferCard(
+                    ui,
+                    stage,
+                    onCancel = Transfers::cancel,
+                    onRetry = { selected?.let(Transfers::link)?.retryFailed() },
+                    onDone = { Transfers.progress.dismiss() },
+                ).also { xferCard = it }
+        card.show(s, selected?.name.orEmpty())
     }
 
     @Deprecated("The platform result API; the app has no library that wraps it.")
@@ -1573,7 +1597,7 @@ class MainActivity :
         // A cancelled picker is the user changing their mind, and needs no answer.
         if (resultCode != RESULT_OK) return
         if (requestCode == REQUEST_FILE) {
-            data?.data?.let(::sendPicked)
+            pickedFiles(data)?.let(::sendPicked)
             return
         }
         if (requestCode != REQUEST_IMAGE) return
@@ -3034,6 +3058,9 @@ class MainActivity :
         const val REQUEST_LOCAL_NETWORK = 3
         const val REQUEST_NOTIFICATIONS = 4
         const val REQUEST_FILE = 5
+
+        /** Most files one pick queues. */
+        const val MAX_FILES = 100
 
         /** How often the Devices list looks again for laptops on the network while it is showing. */
         const val SCAN_EVERY_MS = 10_000L

@@ -590,7 +590,7 @@
   <string name="xfer_done">Saved %1$s</string>
   <string name="xfer_failed">%1$s could not be sent</string>
   <string name="xfer_cancel">Cancel</string>
-  <string name="xfer_busy">Another file is already moving</string>
+  <string name="xfer_too_many">Only the first 100 files were queued</string>
   <string name="xfer_sending_n">Sending %1$s (%2$d of %3$d) · %4$d%%</string>
   <string name="xfer_card_sending_to">Sending to %1$s</string>
   <string name="xfer_card_receiving_from">Receiving from %1$s</string>

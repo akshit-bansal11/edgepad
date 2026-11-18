@@ -594,7 +594,7 @@
   <string name="xfer_done">Сохранено: %1$s</string>
   <string name="xfer_failed">Не удалось отправить: %1$s</string>
   <string name="xfer_cancel">Отмена</string>
-  <string name="xfer_busy">Другой файл уже передаётся</string>
+  <string name="xfer_too_many">В очередь добавлены только первые 100 файлов</string>
   <string name="xfer_sending_n">Отправка: %1$s (%2$d из %3$d) · %4$d%%</string>
   <string name="xfer_card_sending_to">Отправка на %1$s</string>
   <string name="xfer_card_receiving_from">Получение с %1$s</string>
