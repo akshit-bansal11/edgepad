@@ -776,10 +776,13 @@ internal sealed class Shell : IDisposable
         try
         {
             owner.Show();
-            var picked = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = LinuxStrings.Send_PickerTitle, AllowMultiple = false });
-            if (picked.Count == 1 && picked[0].TryGetLocalPath() is { } path)
+            var picked = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = LinuxStrings.Send_PickerTitle, AllowMultiple = true });
+            foreach (var item in picked)
             {
-                _ = SendFileAsync(path);
+                if (item.TryGetLocalPath() is { } path)
+                {
+                    await SendFileAsync(path);
+                }
             }
         }
         finally
