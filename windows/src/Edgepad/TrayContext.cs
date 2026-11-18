@@ -79,6 +79,16 @@ internal sealed class TrayContext : ApplicationContext
 
     private readonly MenuRow sendFileRow = new(Strings.Menu_SendFile, Icons.Download);
     private readonly SendPipe? sendPipe;
+
+    // Sending and receiving files both report to one feed; the toast shows it. Built in the constructor, on the UI thread.
+    private readonly TransferFeed feed = new();
+    private readonly SendQueue queue;
+    private readonly TransferToast toast;
+
+    // A receive batch stays open until 2 s after its last file; the timer exists only while one is open. UI thread only.
+    private readonly System.Windows.Forms.Timer receiveEnd = new() { Interval = 2000 };
+    private bool receiving;
+    private string? receivingName;
     private readonly MenuRow checkUpdates = new(Strings.Menu_CheckUpdates, Icons.Download) { CheckOnClick = true, Switch = true };
     private readonly MenuRow openLog = new(Strings.Menu_OpenLog, Icons.FileText);
     private readonly TrayMenu settingsMenu = new(withHeader: false);
@@ -308,9 +318,25 @@ internal sealed class TrayContext : ApplicationContext
             AnnounceMacro,
             ui,
             OnSessionEnded,
-            onFileArrived: path => ui.Post(_ => Balloon(Strings.Balloon_FileReceived.Fill(FileNames.Middle(Path.GetFileName(path), 32)), ToolTipIcon.Info), null));
+            onFileArrived: path => ui.Post(_ => OnReceived(path), null),
+            onFileProgress: (name, held, size) => ui.Post(_ => OnReceiveProgress(name, held, size), null),
+            onFileFailed: (name, code) => ui.Post(_ => OnReceiveFailed(name, code), null));
+
+        // Handlers run under the queue's lock: they only post to the toast, and never call back into the queue.
+        toast = new TransferToast
+        {
+            OnCancel = () => queue.Cancel(),
+            OnRetry = () => queue.Enqueue(queue.FailedPaths),
+            OnClose = () => feed.Dismiss(),
+        };
+        feed.Changed += toast.Show;
+        receiveEnd.Tick += (_, _) => EndReceiveBatch();
+        queue = new SendQueue(
+            (path, _, ct) => host.SendFile(path, ct, sent => feed.Bytes(sent)),
+            feed,
+            path => File.Exists(path) ? new FileInfo(path).Length : null);
         SendPipe.EnsureShortcut();
-        sendPipe = new SendPipe(path => ui.Post(_ => _ = SendFileAsync(path), null));
+        sendPipe = new SendPipe((paths, skipped) => ui.Post(_ => SendFiles(paths, skipped), null));
         server = new RfcommServer(SetStatus, host);
         _ = StartServerAsync();
 
@@ -530,23 +556,109 @@ internal sealed class TrayContext : ApplicationContext
 
     private void PickAndSendFile()
     {
-        using var dialog = new OpenFileDialog { CheckFileExists = true, Multiselect = false };
+        using var dialog = new OpenFileDialog { CheckFileExists = true, Multiselect = true };
         if (dialog.ShowDialog() == DialogResult.OK)
         {
-            _ = SendFileAsync(dialog.FileName);
+            var (valid, skipped) = SendPipe.ValidateAll(dialog.FileNames);
+            SendFiles(valid, skipped);
         }
     }
 
-    private async Task SendFileAsync(string path)
+    /// <summary>Queues files for the phone; a second call while one batch runs adds to it. UI thread.</summary>
+    private void SendFiles(IReadOnlyList<string> paths, int skipped)
     {
-        try
+        if (paths.Count == 0)
         {
-            var code = await host.SendFile(path);
-            Log.Write($"Send to phone: {(code is { } c ? c.ToString() : "no phone connected")}");
+            return;
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+
+        // No phone: the queue would end at once with every file unsent; a notice is kinder than a toast flash.
+        if (host.CurrentAddress is null && !queue.IsRunning)
         {
-            Log.Write($"Send to phone: {e.Message}");
+            overlay.ShowNotice(Strings.Xfer_NoPhone, dropped: true);
+            Log.Write("Send to phone: no phone connected");
+            return;
+        }
+
+        queue.Enqueue(paths, skipped);
+    }
+
+    // Receiving. The protocol has no file count, so the batch is a running count that closes 2 s after its last file.
+    // While a send runs its events are not shown (one view at a time); an arrival is then told by a balloon.
+    private bool ReceiveHidden() => queue.IsRunning;
+
+    private void OpenReceiveBatch(string name, ulong size)
+    {
+        if (!receiving)
+        {
+            receiving = true;
+            feed.BeginBatch(sending: false, 0);
+        }
+
+        if (receivingName is null)
+        {
+            receivingName = name;
+            feed.StartFile(name, size);
+        }
+
+        receiveEnd.Stop();
+        receiveEnd.Start();
+    }
+
+    private void OnReceiveProgress(string name, ulong held, ulong size)
+    {
+        if (ReceiveHidden())
+        {
+            return;
+        }
+
+        OpenReceiveBatch(name, size);
+        feed.Bytes(held);
+    }
+
+    private void OnReceived(string path)
+    {
+        var name = Path.GetFileName(path);
+        if (ReceiveHidden() || toast.Stopped)
+        {
+            Balloon(Strings.Balloon_FileReceived.Fill(FileNames.Middle(name, 32)), ToolTipIcon.Info);
+            if (ReceiveHidden())
+            {
+                return;
+            }
+        }
+
+        OpenReceiveBatch(name, 0);
+        feed.FileDone(receivingName ?? name, null);
+        receivingName = null;
+    }
+
+    private void OnReceiveFailed(string name, XferCode code)
+    {
+        Log.Write($"Receive from phone: {code}");
+        if (ReceiveHidden())
+        {
+            return;
+        }
+
+        OpenReceiveBatch(name, 0);
+        feed.FileDone(receivingName ?? name, TransferOutcome.Of(code) ?? TransferFailure.LinkLost);
+        receivingName = null;
+    }
+
+    private void EndReceiveBatch()
+    {
+        receiveEnd.Stop();
+        if (!receiving)
+        {
+            return;
+        }
+
+        receiving = false;
+        receivingName = null;
+        if (!queue.IsRunning)
+        {
+            feed.EndBatch();
         }
     }
 
@@ -1467,6 +1579,8 @@ internal sealed class TrayContext : ApplicationContext
             laterRow.Dispose();
             skipRow.Dispose();
             updateTimer.Dispose();
+            receiveEnd.Dispose();
+            toast.Dispose();
             server.Dispose();
             network.Dispose();
 

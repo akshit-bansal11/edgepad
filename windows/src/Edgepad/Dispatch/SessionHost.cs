@@ -40,7 +40,9 @@ internal sealed class SessionHost(
     Action<string> onMacroAdded,
     SynchronizationContext ui,
     Action<Func<bool>> onEnded,
-    Action<string>? onFileArrived = null) : IDisposable
+    Action<string>? onFileArrived = null,
+    Action<string, ulong, ulong>? onFileProgress = null,
+    Action<string, XferCode>? onFileFailed = null) : IDisposable
 {
     // Joined at exit so the session's own cleanup, which releases held keys and buttons, gets to run.
     private static readonly TimeSpan ExitGrace = TimeSpan.FromSeconds(2);
@@ -172,7 +174,7 @@ internal sealed class SessionHost(
             var platform = new WindowsPlatform(injector, pad, speakers, microphone, brightness, media, display, overlay, annotator);
             var dispatcher = new Dispatcher(platform, macros);
             session = new Session(
-                link, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, foreground, identity, clipboard, shareClipboard, onMacroAdded, StatusFor(link), OnAdmitted, OnSessionEnded, LiveFor, path => onFileArrived?.Invoke(path));
+                link, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, foreground, identity, clipboard, shareClipboard, onMacroAdded, StatusFor(link), OnAdmitted, OnSessionEnded, LiveFor, path => onFileArrived?.Invoke(path), onFileProgress, onFileFailed);
 
             // A dedicated thread, not the thread pool: the read loop blocks for the life of the connection,
             // and input is injected from this thread directly, so nothing queues behind other work.
@@ -268,7 +270,7 @@ internal sealed class SessionHost(
     /// Sends a file to the connected phone, on a pool thread. Null when no phone is connected; otherwise how it ended
     /// (<see cref="XferCode.Saved"/> is a file the phone has whole and checked). A file that cannot be read faults the task.
     /// </summary>
-    public Task<XferCode?> SendFile(string path, CancellationToken cancel = default)
+    public Task<XferCode?> SendFile(string path, CancellationToken cancel = default, Action<ulong>? progress = null)
     {
         Session? session;
         lock (gate)
@@ -278,7 +280,7 @@ internal sealed class SessionHost(
 
         return session is null
             ? Task.FromResult<XferCode?>(null)
-            : Task.Run(() => (XferCode?)session.SendFile(path, cancel), CancellationToken.None);
+            : Task.Run(() => (XferCode?)session.SendFile(path, cancel, progress), CancellationToken.None);
     }
 
     /// <summary>Sends <paramref name="text"/> to the connected phone's clipboard, on a pool thread. Null when no phone is connected; otherwise whether it went.</summary>

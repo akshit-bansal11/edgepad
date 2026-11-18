@@ -50,7 +50,9 @@ internal sealed class Session(
     Func<Session, bool> onAdmitted,
     Action<Session> onEnded,
     Func<Session, Session?> liveFor,
-    Action<string> onFileArrived) : IDisposable
+    Action<string> onFileArrived,
+    Action<string, ulong, ulong>? onFileProgress = null,
+    Action<string, XferCode>? onFileFailed = null) : IDisposable
 {
     private const byte MutedFlag = 1;
     private const byte PlayingFlag = 1;
@@ -286,7 +288,7 @@ internal sealed class Session(
     };
 
     /// <summary>Sends <paramref name="path"/> to the phone and blocks until it ends; never call it on the read thread.</summary>
-    internal XferCode SendFile(string path, CancellationToken cancel)
+    internal XferCode SendFile(string path, CancellationToken cancel, Action<ulong>? progress = null)
     {
         if (sender is not { } current)
         {
@@ -294,7 +296,7 @@ internal sealed class Session(
         }
 
         var id = (byte)((uint)Interlocked.Increment(ref transferId) % 255 + 1);
-        return current.Send(path, id, cancel);
+        return current.Send(path, id, cancel, progress);
     }
 
     /// <summary>Sends <paramref name="text"/> to the phone's clipboard now and blocks until it ends; never call it on the read thread. False when it did not go.</summary>
@@ -370,7 +372,7 @@ internal sealed class Session(
 
         // Files, both ways, one at a time each. A part is kept when the session ends, for the next BEGIN of the same file.
         var incoming = new TransferReceiver(
-            WindowsTransfers.Destination(), WindowsTransfers.PartialFolder(), status => Guarded(() => SendTransfer(status)), onFileArrived, beforeSave: WindowsTransfers.MarkFromWeb);
+            WindowsTransfers.Destination(), WindowsTransfers.PartialFolder(), status => Guarded(() => SendTransfer(status)), onFileArrived, beforeSave: WindowsTransfers.MarkFromWeb, progress: onFileProgress, failed: onFileFailed);
         Keep(incoming);
         dispatcher.Transfers = incoming;
         receiver = incoming;
