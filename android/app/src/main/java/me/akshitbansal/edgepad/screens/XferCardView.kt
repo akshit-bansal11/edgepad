@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.screens
 
+import android.content.Context
 import android.graphics.drawable.ClipDrawable
 import android.graphics.drawable.GradientDrawable
 import android.text.format.Formatter
@@ -56,6 +57,9 @@ class XferCardView(
     onRetry: () -> Unit,
     onDone: () -> Unit,
 ) : LinearLayout(ui.context) {
+    /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
+    constructor(context: Context) : this(Ui(context), {}, {}, {})
+
     private val p = ui.palette
     private val badge =
         ImageView(ui.context).apply {
