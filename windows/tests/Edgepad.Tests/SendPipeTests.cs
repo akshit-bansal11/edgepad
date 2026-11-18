@@ -87,7 +87,9 @@ public sealed class SendPipeTests
                 File.WriteAllText(f, "x");
             }
 
-            Assert.Equal(SendPipe.MaxFiles, SendPipe.ValidateAll(files).Valid.Count);
+            var (valid, skipped) = SendPipe.ValidateAll(files);
+            Assert.Equal(SendPipe.MaxFiles, valid.Count);
+            Assert.Equal(20, skipped);
         }
         finally
         {

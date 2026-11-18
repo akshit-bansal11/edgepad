@@ -626,6 +626,9 @@ Wi-Fi 및 USB 페어링을 등록 해제하지 못했어요. 파일을 삭제하
   <data name="Xfer_ReceivedMany" xml:space="preserve">
     <value>받은 파일: {0}</value>
   </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>받은 파일: {0}/{1}</value>
+  </data>
   <data name="Xfer_FailedOne" xml:space="preserve">
     <value>{0}을(를) 보내지 못했습니다</value>
   </data>

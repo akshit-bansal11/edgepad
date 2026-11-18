@@ -626,6 +626,9 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
   <data name="Xfer_ReceivedMany" xml:space="preserve">
     <value>Fichiers reçus : {0}</value>
   </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Fichiers reçus : {0} sur {1}</value>
+  </data>
   <data name="Xfer_FailedOne" xml:space="preserve">
     <value>{0} n’a pas été envoyé</value>
   </data>

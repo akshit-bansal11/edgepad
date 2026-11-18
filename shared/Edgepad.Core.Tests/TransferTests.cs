@@ -557,6 +557,47 @@ public sealed class TransferTests : IDisposable
     }
 
     [Fact]
+    public void AnUnusableNameIsReportedByTheStandInNeverTheRawName()
+    {
+        receiver.Take(new XferBegin(1, 10, "CON.txt"));
+
+        Assert.Equal([(TransferReceiver.UnnamedFile, XferCode.Rejected)], failed);
+    }
+
+    [Fact]
+    public void AnIdleDropIsReportedAsTimedOut()
+    {
+        receiver.Take(new XferBegin(1, 100, "idle.bin"));
+        receiver.Take(new XferChunk(1, 0, new byte[10]));
+
+        clockAt += TransferLimits.IdleDrop + TimeSpan.FromSeconds(1);
+
+        Assert.False(receiver.Busy);
+        Assert.Equal([("idle.bin", XferCode.TimedOut)], failed);
+    }
+
+    [Fact]
+    public void ASessionEndingMidFileIsReportedOnceAsSessionEnded()
+    {
+        receiver.Take(new XferBegin(1, 100, "open.bin"));
+        receiver.Take(new XferChunk(1, 0, new byte[10]));
+
+        receiver.Dispose();
+        receiver.Dispose();
+
+        Assert.Equal([("open.bin", XferCode.SessionEnded)], failed);
+        Assert.True(File.Exists(Path.Combine(Partial, "open.bin.100.part")));
+    }
+
+    [Fact]
+    public void ASessionEndingWithNoFileOpenReportsNothing()
+    {
+        receiver.Dispose();
+
+        Assert.Empty(failed);
+    }
+
+    [Fact]
     public void CancelIsReportedAsCancelled()
     {
         receiver.Take(new XferBegin(1, 100, "c.bin"));

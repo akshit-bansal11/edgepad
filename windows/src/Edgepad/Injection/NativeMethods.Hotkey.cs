@@ -29,6 +29,10 @@ internal static partial class NativeMethods
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool SetForegroundWindow(nint window);
 
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool IsWindow(nint window);
+
     /// <summary>High bit set while the key is down.</summary>
     [LibraryImport("user32.dll")]
     public static partial short GetAsyncKeyState(int key);

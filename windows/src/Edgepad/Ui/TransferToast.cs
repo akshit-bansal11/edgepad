@@ -45,7 +45,7 @@ internal static class ToastText
 
         if (view.Done > 0)
         {
-            return Strings.Xfer_SentSome.Fill(view.Done, view.Done + failed);
+            return (view.Sending ? Strings.Xfer_SentSome : Strings.Xfer_ReceivedSome).Fill(view.Done, view.Done + failed);
         }
 
         return failed == 1
@@ -378,7 +378,7 @@ internal sealed class TransferToast : IDisposable
             }
             else if (mode == Mode.Failed)
             {
-                if (owner.OnRetry is not null)
+                if (view.Sending && owner.OnRetry is not null)
                 {
                     retry = Add(Strings.Xfer_Retry, ButtonKind.Primary, () => owner.OnRetry?.Invoke());
                 }

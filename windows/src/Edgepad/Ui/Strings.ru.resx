@@ -626,6 +626,9 @@
   <data name="Xfer_ReceivedMany" xml:space="preserve">
     <value>Получено файлов: {0}</value>
   </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Получено файлов: {0} из {1}</value>
+  </data>
   <data name="Xfer_FailedOne" xml:space="preserve">
     <value>Не отправлено: {0}</value>
   </data>

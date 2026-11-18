@@ -40,6 +40,16 @@ public sealed class TransferToastTests
         Assert.Equal(Strings.Xfer_FailedMany.Fill(2), ToastText.Title(Finished(0, lost, lost)));
     }
 
+    [Fact]
+    public void APartialReceiveUsesTheReceiveWords()
+    {
+        var lost = new TransferFailed("b.pdf", TransferFailure.LinkLost);
+        var received = Finished(3, lost, lost) with { Sending = false };
+
+        Assert.Equal(Strings.Xfer_ReceivedSome.Fill(3, 5), ToastText.Title(received));
+        Assert.NotEqual(Strings.Xfer_SentSome.Fill(3, 5), ToastText.Title(received));
+    }
+
     [Theory]
     [InlineData((int)TransferFailure.Refused)]
     [InlineData((int)TransferFailure.Damaged)]

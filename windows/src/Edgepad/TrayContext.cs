@@ -36,6 +36,9 @@ internal sealed class TrayContext : ApplicationContext
     // A connection that drops within this long of launch is not worth a word: the app has only just started.
     private const long SettleMs = 8000;
 
+    // How long a receive batch stays open after its last file.
+    private const int ReceiveLingerMs = 2000;
+
     /// <summary>
     /// How long the question about a new phone waits for the owner. No answer is a no: a laptop left alone must
     /// not end up trusting whichever paired phone happened to try it. The phone waits longer than this for its
@@ -74,8 +77,10 @@ internal sealed class TrayContext : ApplicationContext
 
     // In memory only, and only while Share clipboard is on. UI thread only.
     private readonly ClipboardHistory history = new();
-    private readonly ClipboardHotkey? hotkey;
     private ClipboardPanel? clipPanel;
+
+    // Registered only while Share clipboard is on, so the key is not swallowed while the panel cannot open. UI thread only.
+    private ClipboardHotkey? hotkey;
 
     private readonly MenuRow sendFileRow = new(Strings.Menu_SendFile, Icons.Download);
     private readonly SendPipe? sendPipe;
@@ -85,10 +90,16 @@ internal sealed class TrayContext : ApplicationContext
     private readonly SendQueue queue;
     private readonly TransferToast toast;
 
-    // A receive batch stays open until 2 s after its last file; the timer exists only while one is open. UI thread only.
-    private readonly System.Windows.Forms.Timer receiveEnd = new() { Interval = 2000 };
+    // A receive batch stays open until 2 s after its last file or, while a file is open, until 2 s past the receiver's idle
+    // drop, which reports a stalled file first. The timer runs only while a batch is open. UI thread only.
+    private readonly System.Windows.Forms.Timer receiveEnd = new() { Interval = ReceiveLingerMs };
     private bool receiving;
     private string? receivingName;
+
+    // Receive progress from the session thread: the update not yet shown, which a newer one for the same file overwrites, so
+    // the UI thread gets one post per update it shows, not one per chunk. An arrival or a failure closes it. Under receiveGate.
+    private readonly Lock receiveGate = new();
+    private ReceiveTick? openTick;
     private readonly MenuRow checkUpdates = new(Strings.Menu_CheckUpdates, Icons.Download) { CheckOnClick = true, Switch = true };
     private readonly MenuRow openLog = new(Strings.Menu_OpenLog, Icons.FileText);
     private readonly TrayMenu settingsMenu = new(withHeader: false);
@@ -256,7 +267,7 @@ internal sealed class TrayContext : ApplicationContext
             clipHistoryRow.Enabled = clipboardSetting.Enabled;
             var keyed = hotkey?.Registered == true;
             clipHistoryRow.Hint = keyed ? ClipboardHotkey.Display : null;
-            clipHistoryRow.ToolTipText = keyed ? Strings.Menu_ClipboardHistoryTip : Strings.Clip_HotkeyTaken;
+            clipHistoryRow.ToolTipText = keyed || !clipboardSetting.Enabled ? Strings.Menu_ClipboardHistoryTip : Strings.Clip_HotkeyTaken;
             checkUpdates.Checked = updateSetting.Enabled;
             openLog.Enabled = File.Exists(Log.FilePath);
             macrosRow.Hint = Strings.Menu_MacrosCount.Fill(macros.Macros.Count, MacroStore.MaxMacros);
@@ -286,7 +297,7 @@ internal sealed class TrayContext : ApplicationContext
         // Creating the menu installed the WinForms context on this thread; status updates arrive from
         // Bluetooth threads and are marshalled back here.
         ui = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
-        hotkey = new ClipboardHotkey(() => ShowClipboardPanel(paste: true));
+        SetHotkey(clipboardSetting.Enabled);
 
         // The taskbar's tile, light or dark, now and whenever Windows' theme changes (that arrives as General).
         ApplyTrayIcon();
@@ -320,9 +331,9 @@ internal sealed class TrayContext : ApplicationContext
             AnnounceMacro,
             ui,
             OnSessionEnded,
-            onFileArrived: path => ui.Post(_ => OnReceived(path), null),
-            onFileProgress: (name, held, size) => ui.Post(_ => OnReceiveProgress(name, held, size), null),
-            onFileFailed: (name, code) => ui.Post(_ => OnReceiveFailed(name, code), null));
+            onFileArrived: path => PostReceiveEnd(() => OnReceived(path)),
+            onFileProgress: PostReceiveProgress,
+            onFileFailed: (name, code) => PostReceiveEnd(() => OnReceiveFailed(name, code)));
 
         // Handlers run under the queue's lock: they only post to the toast, and never call back into the queue.
         toast = new TransferToast
@@ -587,9 +598,61 @@ internal sealed class TrayContext : ApplicationContext
 
     // Receiving. The protocol has no file count, so the batch is a running count that closes 2 s after its last file.
     // While a send runs its events are not shown (one view at a time); an arrival is then told by a balloon.
-    private bool ReceiveHidden() => queue.IsRunning;
+    // A finished send that still has failures keeps the toast, and its Try again, until it is closed or a new send starts.
+    private bool ReceiveHidden() =>
+        queue.IsRunning || feed.View is { Phase: TransferPhase.Finished, Sending: true, Failed.Count: > 0 };
 
-    private void OpenReceiveBatch(string name, ulong size)
+    // Session thread. Latest wins while the last update for this file is still waiting for the UI thread.
+    private void PostReceiveProgress(string name, ulong held, ulong size)
+    {
+        ReceiveTick tick;
+        lock (receiveGate)
+        {
+            if (openTick is { } waiting && waiting.Name == name)
+            {
+                waiting.Held = held;
+                waiting.Size = size;
+                return;
+            }
+
+            tick = openTick = new ReceiveTick(name) { Held = held, Size = size };
+        }
+
+        ui.Post(_ => ShowReceiveTick(tick), null);
+    }
+
+    // Session thread. Closes the waiting update, so progress that comes after this end is posted after it, never before.
+    private void PostReceiveEnd(Action end)
+    {
+        lock (receiveGate)
+        {
+            openTick = null;
+        }
+
+        ui.Post(_ => end(), null);
+    }
+
+    private void ShowReceiveTick(ReceiveTick tick)
+    {
+        ulong held;
+        ulong size;
+        lock (receiveGate)
+        {
+            if (ReferenceEquals(openTick, tick))
+            {
+                openTick = null;
+            }
+
+            held = tick.Held;
+            size = tick.Size;
+        }
+
+        OnReceiveProgress(tick.Name, held, size);
+    }
+
+    // `incoming` is the name the phone sends under, and a new one there is a new file. An arrival's name can differ (a
+    // numbered copy), so it only starts a file when none is open.
+    private void OpenReceiveBatch(string name, ulong size, bool incoming)
     {
         if (!receiving)
         {
@@ -597,13 +660,21 @@ internal sealed class TrayContext : ApplicationContext
             feed.BeginBatch(sending: false, 0);
         }
 
-        if (receivingName is null)
+        if (receivingName is null || (incoming && receivingName != name))
         {
             receivingName = name;
             feed.StartFile(name, size);
         }
 
+        RestartReceiveEnd();
+    }
+
+    private void RestartReceiveEnd()
+    {
         receiveEnd.Stop();
+        receiveEnd.Interval = receivingName is null
+            ? ReceiveLingerMs
+            : (int)TransferLimits.IdleDrop.TotalMilliseconds + ReceiveLingerMs;
         receiveEnd.Start();
     }
 
@@ -614,7 +685,7 @@ internal sealed class TrayContext : ApplicationContext
             return;
         }
 
-        OpenReceiveBatch(name, size);
+        OpenReceiveBatch(name, size, incoming: true);
         feed.Bytes(held);
     }
 
@@ -630,9 +701,10 @@ internal sealed class TrayContext : ApplicationContext
             }
         }
 
-        OpenReceiveBatch(name, 0);
+        OpenReceiveBatch(name, 0, incoming: false);
         feed.FileDone(receivingName ?? name, null);
         receivingName = null;
+        RestartReceiveEnd();
     }
 
     private void OnReceiveFailed(string name, XferCode code)
@@ -643,9 +715,10 @@ internal sealed class TrayContext : ApplicationContext
             return;
         }
 
-        OpenReceiveBatch(name, 0);
+        OpenReceiveBatch(name, 0, incoming: false);
         feed.FileDone(receivingName ?? name, TransferOutcome.Of(code) ?? TransferFailure.LinkLost);
         receivingName = null;
+        RestartReceiveEnd();
     }
 
     private void EndReceiveBatch()
@@ -898,12 +971,27 @@ internal sealed class TrayContext : ApplicationContext
             Balloon(Strings.Balloon_ShareClipboardNotSaved, ToolTipIcon.Warning);
         }
 
+        SetHotkey(on);
+
         // Nothing is kept while sharing is off.
         if (!on)
         {
             history.Clear();
             clipPanel?.Close();
         }
+    }
+
+    /// <summary>Win+Alt+V exists only while sharing is on; off, the key goes back to Windows and any other app.</summary>
+    private void SetHotkey(bool on)
+    {
+        if (on)
+        {
+            hotkey ??= new ClipboardHotkey(() => ShowClipboardPanel(paste: true));
+            return;
+        }
+
+        hotkey?.Dispose();
+        hotkey = null;
     }
 
     private void OnLaptopCopy()
@@ -966,15 +1054,21 @@ internal sealed class TrayContext : ApplicationContext
     private void Pick(ClipEntry entry, nint target)
     {
         clipPanel?.Close();
-        clipboard.SetTextQuietly(entry.Text);
+        var copied = clipboard.SetTextQuietly(entry.Text);
         history.Record(entry.Text, entry.Side);
-        if (target == 0)
+        if (!copied)
+        {
+            // Another app held the clipboard: Ctrl+V now would paste what was there before. OnUi has logged it.
+            return;
+        }
+
+        // A window that closed, or one Windows would not bring forward, would let Ctrl+V land somewhere else.
+        if (target == 0 || !NativeMethods.IsWindow(target) || !NativeMethods.SetForegroundWindow(target))
         {
             overlay.ShowNotice(Strings.Clip_CopiedOnly);
             return;
         }
 
-        NativeMethods.SetForegroundWindow(target);
         var timer = new System.Windows.Forms.Timer { Interval = 80 };
         var waited = 0;
         timer.Tick += (_, _) =>
@@ -986,6 +1080,12 @@ internal sealed class TrayContext : ApplicationContext
             }
 
             timer.Dispose();
+            if (NativeMethods.GetForegroundWindow() != target)
+            {
+                overlay.ShowNotice(Strings.Clip_CopiedOnly);
+                return;
+            }
+
             var keys = PasteKeys.CtrlV();
             if (NativeMethods.SendInput((uint)keys.Length, keys, Marshal.SizeOf<NativeInput>()) == 0)
             {
@@ -996,7 +1096,14 @@ internal sealed class TrayContext : ApplicationContext
     }
 
     // Methods, not lambdas over the field: the toast is built in the constructor before the queue is assigned.
-    private void Retry() => queue.Enqueue(queue.FailedPaths);
+    // Only a send's failures, and through the tray pick's path, so no phone gives its notice and nothing is an empty batch.
+    private void Retry()
+    {
+        if (queue.FailedPaths is { Count: > 0 } failed)
+        {
+            SendFiles(failed, 0);
+        }
+    }
 
     private void CancelSends() => queue.Cancel();
 
@@ -1610,5 +1717,15 @@ internal sealed class TrayContext : ApplicationContext
         }
 
         base.Dispose(disposing);
+    }
+
+    /// <summary>One receive progress update on its way to the UI thread. Held and Size change only under receiveGate.</summary>
+    private sealed class ReceiveTick(string name)
+    {
+        public string Name { get; } = name;
+
+        public ulong Held { get; set; }
+
+        public ulong Size { get; set; }
     }
 }

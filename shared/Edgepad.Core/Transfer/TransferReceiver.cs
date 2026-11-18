@@ -30,6 +30,9 @@ internal sealed class TransferReceiver : IDisposable
     private readonly Action<string, XferCode>? failed;
     private Active? active;
 
+    /// <summary>The name the failed hook gives a file whose own name could not be made safe; language-neutral.</summary>
+    internal const string UnnamedFile = "…";
+
     public TransferReceiver(
         string destination,
         string partialFolder,
@@ -78,7 +81,8 @@ internal sealed class TransferReceiver : IDisposable
             }
 
             var name = SafeFileName.Clean(begin.Name);
-            var shown = name ?? begin.Name;
+            // The phone's raw name (control, format, bidi characters) never reaches the UI: the cleaned one or a stand-in.
+            var shown = name ?? UnnamedFile;
             if (name is null || begin.Size > TransferLimits.MaxBytes)
             {
                 Fail(begin.Id, shown, XferCode.Rejected);
@@ -219,12 +223,19 @@ internal sealed class TransferReceiver : IDisposable
         }
     }
 
-    /// <summary>The session is over: the part stays, for the next BEGIN of the same name and size.</summary>
+    /// <summary>
+    /// The session is over: the part stays, for the next BEGIN of the same name and size. A file still arriving is reported
+    /// to the failed hook as SESSION_ENDED.
+    /// </summary>
     public void Dispose()
     {
         lock (gate)
         {
-            Finish(deletePart: false);
+            if (active is { } a)
+            {
+                Finish(deletePart: false);
+                failed?.Invoke(a.Name, XferCode.SessionEnded);
+            }
         }
     }
 
@@ -270,7 +281,8 @@ internal sealed class TransferReceiver : IDisposable
 
     /// <summary>
     /// A transfer that has had no chunk for <see cref="TransferLimits.IdleDrop"/> is let go (its part stays, for a resume), so a
-    /// sender that gave up never leaves the receiver answering BUSY, and a sender still there is told with CANCELLED.
+    /// sender that gave up never leaves the receiver answering BUSY, and a sender still there is told with CANCELLED. The owner
+    /// hears it as TIMED_OUT.
     /// Called with the gate held.
     /// </summary>
     private void DropIfIdle()
@@ -279,6 +291,7 @@ internal sealed class TransferReceiver : IDisposable
         {
             Finish(deletePart: false);
             Reply(a.Id, XferCode.Cancelled, 0);
+            failed?.Invoke(a.Name, XferCode.TimedOut);
         }
     }
 

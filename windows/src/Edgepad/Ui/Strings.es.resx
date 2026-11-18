@@ -626,6 +626,9 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Xfer_ReceivedMany" xml:space="preserve">
     <value>Archivos recibidos: {0}</value>
   </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Archivos recibidos: {0} de {1}</value>
+  </data>
   <data name="Xfer_FailedOne" xml:space="preserve">
     <value>{0} no se envió</value>
   </data>

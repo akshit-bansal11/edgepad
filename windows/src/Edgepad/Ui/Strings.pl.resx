@@ -626,6 +626,9 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Xfer_ReceivedMany" xml:space="preserve">
     <value>Odebrane pliki: {0}</value>
   </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Odebrane pliki: {0} z {1}</value>
+  </data>
   <data name="Xfer_FailedOne" xml:space="preserve">
     <value>Nie wysłano {0}</value>
   </data>

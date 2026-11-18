@@ -626,6 +626,9 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Xfer_ReceivedMany" xml:space="preserve">
     <value>Empfangene Dateien: {0}</value>
   </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Empfangene Dateien: {0} von {1}</value>
+  </data>
   <data name="Xfer_FailedOne" xml:space="preserve">
     <value>{0} wurde nicht gesendet</value>
   </data>

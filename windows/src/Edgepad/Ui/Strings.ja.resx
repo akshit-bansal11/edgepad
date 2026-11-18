@@ -626,6 +626,9 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
   <data name="Xfer_ReceivedMany" xml:space="preserve">
     <value>受信したファイル: {0}</value>
   </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>受信したファイル: {0} / {1}</value>
+  </data>
   <data name="Xfer_FailedOne" xml:space="preserve">
     <value>{0} は送信されませんでした</value>
   </data>

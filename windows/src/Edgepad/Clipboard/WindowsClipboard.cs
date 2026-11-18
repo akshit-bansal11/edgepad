@@ -88,16 +88,25 @@ internal sealed class WindowsClipboard : IClipboardSurface, IDisposable
         return content is null ? null : Encoding.UTF8.GetString(content.Data);
     }
 
-    /// <summary>Puts <paramref name="text"/> on the clipboard without announcing it to <see cref="Watch"/>: no echo to the phone, no re-record.</summary>
-    public void SetTextQuietly(string text) =>
+    /// <summary>
+    /// Puts <paramref name="text"/> on the clipboard without announcing it to <see cref="Watch"/>: no echo to the phone, no
+    /// re-record. False when it is not there: sharing is off, or another app held the clipboard through every attempt.
+    /// </summary>
+    public bool SetTextQuietly(string text)
+    {
+        var done = false;
         OnUi(() =>
         {
             if (enabled())
             {
                 Clipboard.SetDataObject(DataFor(new ClipboardContent(BlobKind.ClipText, Encoding.UTF8.GetBytes(text)), null, Stream.Null), true, 0, 0);
                 written = NativeMethods.GetClipboardSequenceNumber();
+                done = true;
             }
         });
+
+        return done;
+    }
 
     public void Write(ClipboardContent content)
     {

@@ -6,8 +6,8 @@ namespace Edgepad.Transfer;
 /// <para>
 /// <c>sendOne(path, size, cancel)</c> sends one file and returns its final code, or null when there is no phone; it may throw
 /// <see cref="IOException"/> or <see cref="UnauthorizedAccessException"/> for a file it cannot read. The caller feeds
-/// <see cref="TransferFeed.Bytes"/> from the sender's progress callback. <c>sizeOf(path)</c> returns null for a file that
-/// is gone or cannot be read. A per-file failure lets the batch go on (<see cref="TransferOutcome.ContinuesAfter"/>); any
+/// <see cref="TransferFeed.Bytes"/> from the sender's progress callback. <c>sizeOf(path)</c> returns null, or throws an IO
+/// error, for a file that is gone or cannot be read. A per-file failure lets the batch go on (<see cref="TransferOutcome.ContinuesAfter"/>); any
 /// other stops it, and every file left is listed as <see cref="TransferFailure.NotSent"/> (<see cref="TransferFailure.LinkLost"/>
 /// when there was no phone).
 /// </para>
@@ -183,8 +183,19 @@ internal sealed class SendQueue(
 
     private async Task<TransferFailure?> SendOne(string path, string name, CancellationToken cancel)
     {
+        // A file can go between the Exists and the Length: that is this file unreadable, not the batch broken.
+        long? known;
+        try
+        {
+            known = sizeOf(path);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            known = null;
+        }
+
         // Started even when unreadable, so the index still counts every file of the batch.
-        if (sizeOf(path) is not { } length || length < 0)
+        if (known is not { } length || length < 0)
         {
             feed.StartFile(name, 0);
             return TransferFailure.Unreadable;

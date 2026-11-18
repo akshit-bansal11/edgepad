@@ -626,6 +626,9 @@
   <data name="Xfer_ReceivedMany" xml:space="preserve">
     <value>प्राप्त फ़ाइलें: {0}</value>
   </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>प्राप्त फ़ाइलें: {1} में से {0}</value>
+  </data>
   <data name="Xfer_FailedOne" xml:space="preserve">
     <value>{0} नहीं भेजा गया</value>
   </data>

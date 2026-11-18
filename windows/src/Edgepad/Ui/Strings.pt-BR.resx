@@ -626,6 +626,9 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   <data name="Xfer_ReceivedMany" xml:space="preserve">
     <value>Arquivos recebidos: {0}</value>
   </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Arquivos recebidos: {0} de {1}</value>
+  </data>
   <data name="Xfer_FailedOne" xml:space="preserve">
     <value>{0} não foi enviado</value>
   </data>

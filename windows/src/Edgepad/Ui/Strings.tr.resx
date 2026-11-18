@@ -616,6 +616,9 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Xfer_ReceivedMany" xml:space="preserve">
     <value>Alınan dosyalar: {0}</value>
   </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Alınan dosyalar: {0} / {1}</value>
+  </data>
   <data name="Xfer_FailedOne" xml:space="preserve">
     <value>{0} gönderilemedi</value>
   </data>

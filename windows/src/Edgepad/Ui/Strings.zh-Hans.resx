@@ -626,6 +626,9 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
   <data name="Xfer_ReceivedMany" xml:space="preserve">
     <value>已接收文件：{0}</value>
   </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>已接收文件：{0}/{1}</value>
+  </data>
   <data name="Xfer_FailedOne" xml:space="preserve">
     <value>{0} 未发送</value>
   </data>

@@ -626,6 +626,9 @@
   <data name="Xfer_ReceivedMany" xml:space="preserve">
     <value>الملفات المستلمة: {0}</value>
   </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>الملفات المستلمة: {0} من {1}</value>
+  </data>
   <data name="Xfer_FailedOne" xml:space="preserve">
     <value>لم يُرسل {0}</value>
   </data>

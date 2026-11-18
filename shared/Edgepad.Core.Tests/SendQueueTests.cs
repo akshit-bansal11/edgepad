@@ -15,12 +15,13 @@ public sealed class SendQueueTests
     private readonly List<string> sentOrder = [];
     private readonly Dictionary<string, Func<CancellationToken, Task<XferCode?>>> script = [];
     private readonly HashSet<string> unreadable = [];
+    private readonly HashSet<string> vanishing = [];
     private readonly TransferFeed feed = new();
     private readonly SendQueue queue;
 
     public SendQueueTests()
     {
-        queue = new SendQueue(SendOne, feed, path => unreadable.Contains(path) ? null : 100);
+        queue = new SendQueue(SendOne, feed, SizeOf);
     }
 
     [Fact]
@@ -137,6 +138,21 @@ public sealed class SendQueueTests
     }
 
     [Fact]
+    public async Task AFileGoneBetweenExistsAndLengthIsUnreadableAndTheBatchGoesOn()
+    {
+        vanishing.Add("b.txt");
+        queue.Enqueue(["a.txt", "b.txt", "c.txt"]);
+        await Finished();
+
+        var view = feed.View;
+        Assert.Equal(2, view.Done);
+        Assert.Equal(3, view.Index);
+        Assert.Equal([new TransferFailed("b.txt", TransferFailure.Unreadable)], view.Failed);
+        Assert.Equal(["b.txt"], queue.FailedPaths);
+        Assert.Equal(["a.txt", "c.txt"], Sent());
+    }
+
+    [Fact]
     public async Task FailedPathsHoldFailedAndNotSentInOrder()
     {
         Answer("a.txt", XferCode.BadHash);
@@ -224,6 +240,16 @@ public sealed class SendQueueTests
         }
 
         return script.TryGetValue(path, out var answer) ? answer(cancel) : Task.FromResult<XferCode?>(XferCode.Saved);
+    }
+
+    private long? SizeOf(string path)
+    {
+        if (vanishing.Contains(path))
+        {
+            throw new FileNotFoundException("gone", path);
+        }
+
+        return unreadable.Contains(path) ? null : 100;
     }
 
     private void Answer(string path, XferCode code) => script[path] = _ => Task.FromResult<XferCode?>(code);

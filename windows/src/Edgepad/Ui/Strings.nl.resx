@@ -607,6 +607,9 @@
   <data name="Xfer_ReceivedMany" xml:space="preserve">
     <value>Ontvangen bestanden: {0}</value>
   </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Ontvangen bestanden: {0} van {1}</value>
+  </data>
   <data name="Xfer_FailedOne" xml:space="preserve">
     <value>{0} is niet verstuurd</value>
   </data>

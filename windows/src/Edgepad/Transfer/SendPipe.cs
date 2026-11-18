@@ -32,7 +32,7 @@ internal sealed class SendPipe : IDisposable
 
     /// <summary>
     /// <see cref="Validate"/> for every line: blank lines are ignored, a repeat counts once, at most <see cref="MaxFiles"/> are
-    /// kept and the rest are dropped. Skipped is the number of non-blank lines that were not usable files.
+    /// kept and the rest are dropped. Skipped is the number of non-blank lines that were not usable files or past the cap.
     /// </summary>
     internal static (IReadOnlyList<string> Valid, int Skipped) ValidateAll(IEnumerable<string?> lines)
     {
@@ -41,12 +41,13 @@ internal sealed class SendPipe : IDisposable
         var skipped = 0;
         foreach (var line in lines)
         {
-            if (string.IsNullOrWhiteSpace(line) || valid.Count >= MaxFiles)
+            if (string.IsNullOrWhiteSpace(line))
             {
                 continue;
             }
 
-            if (Validate(line) is not { } path)
+            // Past the cap a line is not even looked at, but it still counts, so the toast says files were left out.
+            if (valid.Count >= MaxFiles || Validate(line) is not { } path)
             {
                 skipped++;
             }
