@@ -41,17 +41,18 @@ public sealed class TransferToastTests
     }
 
     [Theory]
-    [InlineData(TransferFailure.Refused)]
-    [InlineData(TransferFailure.Damaged)]
-    [InlineData(TransferFailure.WriteFailed)]
-    [InlineData(TransferFailure.Busy)]
-    [InlineData(TransferFailure.TimedOut)]
-    [InlineData(TransferFailure.LinkLost)]
-    [InlineData(TransferFailure.Unreadable)]
-    [InlineData(TransferFailure.Cancelled)]
-    [InlineData(TransferFailure.NotSent)]
-    public void EveryFailureHasItsOwnWords(TransferFailure why)
+    [InlineData((int)TransferFailure.Refused)]
+    [InlineData((int)TransferFailure.Damaged)]
+    [InlineData((int)TransferFailure.WriteFailed)]
+    [InlineData((int)TransferFailure.Busy)]
+    [InlineData((int)TransferFailure.TimedOut)]
+    [InlineData((int)TransferFailure.LinkLost)]
+    [InlineData((int)TransferFailure.Unreadable)]
+    [InlineData((int)TransferFailure.Cancelled)]
+    [InlineData((int)TransferFailure.NotSent)]
+    public void EveryFailureHasItsOwnWords(int failure)
     {
+        var why = (TransferFailure)failure;
         Assert.False(string.IsNullOrWhiteSpace(ToastText.Reason(why)));
         Assert.Equal(ToastText.Reason(why), ToastText.Subtitle(Finished(0, new TransferFailed("b.pdf", why))));
     }
