@@ -22,6 +22,9 @@ internal sealed class BrightnessControl : IDisposable
     private int pending = None;
     private volatile bool disposed;
 
+    /// <summary>Read and written on the worker only.</summary>
+    private bool failureLogged;
+
     public BrightnessControl()
     {
         worker = new Thread(Run) { IsBackground = true, Name = "edgepad-brightness" };
@@ -177,7 +180,13 @@ internal sealed class BrightnessControl : IDisposable
                 // two methods up already catches both of, and this is a background worker in a tray app where
                 // an escape takes the tray, the link and the user's session with it. DisplayModes.Run catches
                 // broadly for the same reason; this one did not, and the difference was not deliberate.
-                Log.Write($"Brightness change failed: {e.GetType().Name}: {e.Message}");
+                // Once per run: a panel whose driver refuses the set (issue #75: "Sem suporte") failed on every
+                // dial step, and a slide wrote over two hundred identical lines in a second.
+                if (!failureLogged)
+                {
+                    failureLogged = true;
+                    Log.Write($"Brightness change failed (later failures are not logged): {e.GetType().Name}: {e.Message}");
+                }
             }
         }
     }
@@ -198,6 +207,13 @@ internal sealed class BrightnessControl : IDisposable
 
     public void Dispose()
     {
+        // Twice is possible on shutdown, and the second Set on the closed handle threw out of
+        // TrayContext.Dispose (issue #75's log, 4.2.1).
+        if (disposed)
+        {
+            return;
+        }
+
         disposed = true;
         wake.Set();
         worker.Join(TimeSpan.FromSeconds(2));
