@@ -580,6 +580,49 @@ public sealed class BlobTests
         Assert.Equal(2, wire.OfType<BlobBegin>().Count());
     }
 
+    [Fact]
+    public void SendNowSendsWhenSharedAndAllowed()
+    {
+        sync.SetShared(1);
+
+        Assert.True(sync.SendNow(BlobKind.ClipText, A));
+
+        Assert.Single(wire.OfType<BlobEnd>());
+    }
+
+    [Fact]
+    public void SendNowSendsNothingWhenNotShared()
+    {
+        Assert.False(sync.SendNow(BlobKind.ClipText, A));
+
+        Assert.Empty(wire);
+    }
+
+    [Fact]
+    public void SendNowRefusesEmptyAndOverTheCap()
+    {
+        sync.SetShared(1);
+
+        Assert.False(sync.SendNow(BlobKind.ClipText, []));
+        Assert.False(sync.SendNow(BlobKind.ClipText, new byte[ClipboardSync.MaxTextBytes + 1]));
+
+        Assert.Empty(wire);
+    }
+
+    [Fact]
+    public void ACopyAlreadySentByHandIsNotSentAgain()
+    {
+        sync.SetShared(1);
+        Assert.True(sync.SendNow(BlobKind.ClipText, B));
+        wire.Clear();
+        surface.Current = new ClipboardContent(BlobKind.ClipText, B);
+
+        sync.LocalChanged();
+        Settle();
+
+        Assert.Empty(wire);
+    }
+
     private static byte[] Payload(int length) => [.. Enumerable.Range(0, length).Select(i => (byte)(i * 31))];
 
     private static long? TakesClipboardKinds(byte kind) => kind <= (byte)BlobKind.ClipImage ? ClipboardSync.MaxTextBytes : null;
