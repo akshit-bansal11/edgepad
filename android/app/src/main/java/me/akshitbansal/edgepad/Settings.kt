@@ -136,7 +136,8 @@ class Settings(
     /** Content follows the fingers, as on Windows' own touchpads; off scrolls the other way. */
     var naturalScroll by flag("naturalScroll", true)
 
-    var hints by flag("hints", true)
+    /** Gesture hints on the trackpad. Off by default (owner, 2026-11-18); Settings turns them on. */
+    var hints by flag("hints", false)
 
     /** Issue #56: the surface goes black and dims the window when left idle, so nothing static burns into an OLED. */
     var blackout by flag("blackout", false)

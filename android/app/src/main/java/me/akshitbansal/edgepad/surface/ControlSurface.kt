@@ -427,6 +427,12 @@ class ControlSurface(
     ) {
         trackpad.selecting = on
         trackpad.swallowTaps = swallowTaps
+        // The larger of the two ratios, so a drag edge to edge on the pad reaches edge to edge on the laptop either
+        // way; [SELECT_REACH] leaves room for a drag that starts away from the pad's edge.
+        trackpad.selectGain =
+            state.screenSize?.let { (w, h) ->
+                if (width == 0 || height == 0) 0f else maxOf(w.toFloat() / width, h.toFloat() / height) * SELECT_REACH
+            } ?: 0f
         removeCallbacks(selectExpired)
         if (on) postDelayed(selectExpired, SELECT_MS)
         rebuildCaption()
@@ -1750,6 +1756,9 @@ class ControlSurface(
 
         /** How long region select waits for its drag before the pad goes back to clicking on taps. */
         private const val SELECT_MS = 30_000L
+
+        /** A selecting drag that covers 2/3 of the pad crosses the laptop's whole screen. */
+        private const val SELECT_REACH = 1.5f
 
         /** The hold ring (#75): radius and line, round the finger dot, clear of a fingertip's edge. */
         private const val HOLD_RING_DP = 22f

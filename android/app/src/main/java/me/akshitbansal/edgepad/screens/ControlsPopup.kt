@@ -185,10 +185,14 @@ class ControlsPopup(
             none.setPadding(pad, 0, pad, pad)
             body.addView(none)
         }
-        body.addView(floatingToggle().apply { setPadding(pad, 0, pad, 0) })
-        val floatingNote = ui.secondary(ui.string(R.string.floating_caption), Type.SMALL, ui.palette.dim)
-        floatingNote.setPadding(pad, 0, pad, pad)
-        body.addView(floatingNote)
+        // The note explains the permission, so it goes once the permission is granted (owner, 2026-11-18).
+        val permitted = SystemSettings.canDrawOverlays(ui.context)
+        body.addView(floatingToggle().apply { setPadding(pad, 0, pad, if (permitted) pad else 0) })
+        if (!permitted) {
+            val floatingNote = ui.secondary(ui.string(R.string.floating_caption), Type.SMALL, ui.palette.dim)
+            floatingNote.setPadding(pad, 0, pad, pad)
+            body.addView(floatingNote)
+        }
         if (settings.controlsHintShown < HINT_TIMES) {
             settings.controlsHintShown += 1
             val note = ui.secondary(ui.string(R.string.controls_move_hint), Type.SMALL, ui.palette.dim)

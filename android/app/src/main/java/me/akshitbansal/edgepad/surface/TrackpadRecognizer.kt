@@ -89,6 +89,12 @@ class TrackpadRecognizer(
     var swallowTaps = false
     var onSelected: (() -> Unit)? = null
 
+    /**
+     * Laptop pixels per phone pixel for a selecting drag, set by the surface so the pad's width or height spans
+     * the laptop's (owner, 2026-11-18: the normal gain could not cross a large monitor in one drag). 0 = normal.
+     */
+    var selectGain = 0f
+
     private var fingers = 0
     private var maxFingers = 0
     private var startTime = 0L
@@ -288,8 +294,11 @@ class TrackpadRecognizer(
         dx: Float,
         dy: Float,
     ) {
-        moveRemX += dx * POINTER_GAIN * pointerSpeed
-        moveRemY += dy * POINTER_GAIN * pointerSpeed
+        // A selecting drag gets at least [selectGain], so one swipe across the pad can cover a big monitor.
+        val normal = POINTER_GAIN * pointerSpeed
+        val gain = if (selecting && dragging) maxOf(normal, selectGain) else normal
+        moveRemX += dx * gain
+        moveRemY += dy * gain
         val ix = moveRemX.toInt()
         val iy = moveRemY.toInt()
         moveRemX -= ix

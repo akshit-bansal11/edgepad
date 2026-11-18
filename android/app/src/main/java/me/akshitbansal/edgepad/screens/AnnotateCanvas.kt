@@ -27,6 +27,8 @@ class AnnotateCanvas(
     private val strokes: Strokes,
     private val screenSize: () -> Pair<Int, Int>?,
     private val send: (Frame) -> Unit,
+    /** The Presenter's laser pad: a dot under the finger, as the laptop draws it, and no stroke (owner, 2026-11-18). */
+    private val laser: Boolean = false,
 ) : View(context) {
     /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
     constructor(context: Context) : this(context, Strokes(), { null }, {})
@@ -56,6 +58,10 @@ class AnnotateCanvas(
     private var lastSent: WirePoint? = null
     private var fingerDown = false
 
+    // Where the laser dot is drawn, in view pixels, while a finger is down on a laser pad.
+    private var dotX = 0f
+    private var dotY = 0f
+
     private fun box(): Letterbox? {
         val (w, h) = screenSize() ?: return null
         return Letterbox.fit(width.toFloat(), height.toFloat(), w, h)
@@ -77,8 +83,16 @@ class AnnotateCanvas(
         canvas.drawRect(box.left, box.top, box.left + box.width, box.top + box.height, paint)
         canvas.save()
         canvas.clipRect(box.left, box.top, box.left + box.width, box.top + box.height)
-        for (stroke in strokes.strokes) drawStroke(canvas, box, stroke)
-        strokes.active?.let { drawStroke(canvas, box, it) }
+        if (laser) {
+            if (fingerDown) {
+                paint.style = Paint.Style.FILL
+                paint.color = LASER_RED
+                canvas.drawCircle(dotX, dotY, box.height * LASER_DOT_SHARE, paint)
+            }
+        } else {
+            for (stroke in strokes.strokes) drawStroke(canvas, box, stroke)
+            strokes.active?.let { drawStroke(canvas, box, it) }
+        }
         canvas.restore()
     }
 
@@ -222,12 +236,16 @@ class AnnotateCanvas(
                 requestUnbufferedDispatch(event)
                 parent?.requestDisallowInterceptTouchEvent(true)
                 fingerDown = true
+                dotX = event.x
+                dotY = event.y
                 lastSent = null
                 emit(box.toWire(event.x, event.y), Strokes.STATE_DOWN)
             }
 
             MotionEvent.ACTION_MOVE -> {
                 if (fingerDown) {
+                    dotX = event.x
+                    dotY = event.y
                     // Every sample since the last event, not just the newest: a fast stroke is otherwise
                     // drawn as straight chords between the few points the frame rate allowed.
                     for (i in 0 until event.historySize) {
@@ -262,13 +280,17 @@ class AnnotateCanvas(
         // Down and up are edges and always go; only a move to the point already sent is redundant.
         if (state == Strokes.STATE_MOVE && !force && point == lastSent) return
         lastSent = point
-        strokes.pen(point, state)
+        if (!laser) strokes.pen(point, state)
         send(Frame.Pen(point.x, point.y, state))
         invalidate()
     }
 
     private companion object {
         const val OPAQUE = 0xFF000000.toInt()
+
+        // The laptop's laser red (AnnotationOverlay.LaserColour), a little larger here so a fingertip does not hide it.
+        const val LASER_RED = 0xFFFF3B30.toInt()
+        const val LASER_DOT_SHARE = 0.03f
         const val MAX_CACHED = 200
     }
 }

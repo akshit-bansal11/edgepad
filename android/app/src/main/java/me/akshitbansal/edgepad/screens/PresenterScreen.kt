@@ -30,7 +30,7 @@ class PresenterScreen(
     private val screenSize: () -> Pair<Int, Int>?,
     onBack: () -> Unit,
 ) {
-    private val canvas = AnnotateCanvas(ui.context, Strokes(), screenSize, send)
+    private val canvas = AnnotateCanvas(ui.context, Strokes(), screenSize, send, laser = true)
     private val gap = ui.dp(Space.S)
     private val halves = pair(Ui.Style.OUTLINED)
     private val slim = pair(Ui.Style.OUTLINED)

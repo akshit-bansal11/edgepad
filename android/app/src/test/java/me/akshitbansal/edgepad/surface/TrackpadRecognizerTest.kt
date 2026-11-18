@@ -104,6 +104,16 @@ class TrackpadRecognizerTest {
     }
 
     @Test
+    fun aSelectingDragUsesTheLargerSelectGain() {
+        pad.selecting = true
+        pad.selectGain = 10f
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.MOVE, 20, 120f to 100f)
+        touch(Action.MOVE, 30, 130f to 100f)
+        assertEquals("10 px of finger at gain 10", 100, (out.last() as Frame.Move).dx)
+    }
+
+    @Test
     fun selectingSwallowsTapsAndHoldsUntilTheDrag() {
         pad.selecting = true
         pad.swallowTaps = true
