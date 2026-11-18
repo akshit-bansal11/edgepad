@@ -115,16 +115,7 @@ internal sealed class PairingWindow : Form
     private readonly Label ask = new() { AutoSize = false, Text = Strings.Pair_Ask };
     private readonly Label warn = new() { AutoSize = false, Text = PairingText.Warning };
     private readonly Label countdown = new() { AutoSize = false };
-    private readonly TextBox code = new()
-    {
-        BorderStyle = BorderStyle.None,
-
-        // Wide, so a paste arrives whole before DigitInput cuts it down to its digits.
-        MaxLength = DigitInput.PasteLimit,
-        AccessibleName = Strings.Pair_CodeName,
-    };
-
-    private readonly Framed codeFrame;
+    private readonly CodeBoxes code;
     private readonly FlatButton cancel;
     private readonly FlatButton pair;
     private readonly System.Windows.Forms.Timer tick = new() { Interval = 250 };
@@ -143,7 +134,7 @@ internal sealed class PairingWindow : Form
     private readonly System.Windows.Forms.Timer shake = new() { Interval = 20 };
     private long shakeStart;
     private int shakeMs;
-    private int shakeAskLeft;
+    private int shakeStatusLeft;
     private int shakeGlyphLeft;
     private readonly OutcomeGlyph glyph = new() { Visible = false };
 
@@ -168,13 +159,10 @@ internal sealed class PairingWindow : Form
         AutoScaleMode = AutoScaleMode.None;
         BackColor = palette.Card;
 
-        codeFrame = new Framed(code, palette, radius: 8, inset: 12);
+        code = new CodeBoxes(palette);
         cancel = new FlatButton(Strings.Common_Cancel, ButtonKind.Outline, palette);
         pair = new FlatButton(Strings.Pair_Button, ButtonKind.Primary, palette) { Enabled = false };
-        code.KeyPress += (_, e) => e.Handled = !char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar);
-
-        // A paste skips KeyPress.
-        code.TextChanged += (_, _) => pair.Enabled = PairingPrompt.Complete(DigitInput.Apply(code, LinkCrypto.CodeDigits));
+        code.ValueChanged += (_, _) => pair.Enabled = PairingPrompt.Complete(code.Value);
 
         pair.Click += (_, _) => Answer();
         cancel.Click += (_, _) => Close();
@@ -184,7 +172,7 @@ internal sealed class PairingWindow : Form
         // Enter only does anything once six digits are in, since Pair is disabled until then.
         AcceptButton = pair;
         CancelButton = cancel;
-        Controls.AddRange([heading, origin, ask, glyph, codeFrame, countdown, warn, pair, cancel]);
+        Controls.AddRange([heading, origin, ask, code, glyph, countdown, warn, pair, cancel]);
         Count();
         tick.Start();
         Relayout();
@@ -221,9 +209,8 @@ internal sealed class PairingWindow : Form
         answered = true;
         told = true;
         tick.Stop();
-        ask.Text = message;
-        ask.AccessibleName = message;
-        countdown.Text = "";
+        countdown.Text = message;
+        countdown.AccessibleName = message;
         code.Enabled = false;
         pair.Enabled = false;
         cancel.Text = Strings.Common_Close;
@@ -249,7 +236,7 @@ internal sealed class PairingWindow : Form
             return;
         }
 
-        shakeAskLeft = ask.Left;
+        shakeStatusLeft = countdown.Left;
         shakeGlyphLeft = glyph.Left;
         shakeStart = Environment.TickCount64;
         shake.Start();
@@ -260,7 +247,7 @@ internal sealed class PairingWindow : Form
         var t = (Environment.TickCount64 - shakeStart) / (double)shakeMs;
         var done = t >= 1;
         var dx = done ? 0 : (int)Math.Round(S(3) * Math.Sin(t * 4 * Math.PI) * (1 - t));
-        ask.Left = shakeAskLeft + dx;
+        countdown.Left = shakeStatusLeft + dx;
         glyph.Left = shakeGlyphLeft + dx;
         if (done)
         {
@@ -320,7 +307,7 @@ internal sealed class PairingWindow : Form
 
     private void Answer()
     {
-        if (answered || !PairingPrompt.Complete(code.Text))
+        if (answered || !PairingPrompt.Complete(code.Value))
         {
             return;
         }
@@ -331,7 +318,7 @@ internal sealed class PairingWindow : Form
         code.Enabled = false;
         pair.Enabled = false;
         countdown.Text = Strings.Pair_Checking;
-        onTyped(PairingPrompt.Digits(code.Text));
+        onTyped(code.Value);
     }
 
     private void Count()
@@ -370,22 +357,35 @@ internal sealed class PairingWindow : Form
             y += height + gap;
         }
 
-        Put(heading, 18f, Weight.Bold, palette.Ink, S(6));
+        // Top to bottom: who, from where, what to do, the boxes, how it is going, the warning, the buttons.
+        Put(heading, 20f, Weight.Bold, palette.Ink, S(4));
         if (origin.Text.Length > 0)
         {
-            Put(origin, 14f, Weight.Regular, palette.Dim, S(6));
+            Put(origin, 14f, Weight.Regular, palette.Dim, S(16));
+        }
+        else
+        {
+            y += S(12);
         }
 
-        var askTop = y;
+        // Once told, the question is answered; the boxes stay (disabled) so the window does not jump.
+        ask.Visible = !told;
+        if (!told)
+        {
+            Put(ask, 14f, Weight.Regular, palette.Ink, S(16));
+        }
+
+        var boxes = CodeBoxes.SizeFor(DeviceDpi);
+        code.SetBounds(left + ((width - boxes.Width) / 2), y, boxes.Width, boxes.Height);
+        y += boxes.Height + S(16);
+
+        var statusTop = y;
         var indent = outcome == Outcome.Neutral ? 0 : S(24);
-        var askInk = outcome switch { Outcome.Good => palette.Accent, Outcome.Bad => palette.Danger, _ => palette.Dim };
-        Put(ask, 14f, Weight.Regular, askInk, S(10), indent);
+        var statusInk = outcome switch { Outcome.Good => palette.Accent, Outcome.Bad => palette.Danger, _ => palette.Dim };
+        Put(countdown, 14f, Weight.Regular, statusInk, S(12), indent);
         glyph.Visible = outcome is Outcome.Good or Outcome.Bad;
-        glyph.Set(outcome == Outcome.Good ? Icons.Check : Icons.Close, askInk, palette.Card);
-        glyph.SetBounds(left, askTop, S(18), S(18));
-        codeFrame.Place(new Rectangle(left, y, width, S(Box)), DeviceDpi);
-        y += S(Box + 10);
-        Put(countdown, 14f, Weight.Regular, palette.Dim, S(10));
+        glyph.Set(outcome == Outcome.Good ? Icons.Check : Icons.Close, statusInk, palette.Card);
+        glyph.SetBounds(left, statusTop, S(18), S(18));
         warn.Visible = !told;
         if (!told)
         {
