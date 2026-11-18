@@ -90,4 +90,6 @@ class ShareTarget(
      * so off the main thread. True when every one arrived.
      */
     val sendFiles: ((List<Uri>) -> Boolean)? = null,
+    /** Sends again, blocking, the files of the last batch that did not arrive. True when every one arrived. */
+    val retryFailed: (() -> Boolean)? = null,
 )

@@ -172,7 +172,7 @@ class ShareActivity : Activity() {
                             }
                         (listOf(count) + names.filterNotNull() + more).joinToString("\n")
                     }
-                confirm(what, target) { deliverFiles(target, uris, sendFiles) }
+                confirm(what, target) { deliverFiles(target, uris, sendFiles, target.retryFailed) }
             }
         }
     }
@@ -185,14 +185,16 @@ class ShareActivity : Activity() {
         target: ShareTarget,
         uris: List<Uri>,
         sendFiles: (List<Uri>) -> Boolean,
+        retryFailed: (() -> Boolean)?,
     ) {
         val progress = Transfers.progress
         // A finished card left by an earlier batch must not be taken for this one.
         if (progress.snapshot.phase == XferPhase.FINISHED) progress.dismiss()
         Type.load(this)
         val ui = Ui(this)
-        val send = { sendOnWorker(uris, sendFiles) }
-        val card = XferCardView(ui, onCancel = Transfers::cancel, onRetry = send, onDone = progress::dismiss)
+        val send = { sendOnWorker { sendFiles(uris) } }
+        val retry = { sendOnWorker { retryFailed?.invoke() ?: false } }
+        val card = XferCardView(ui, onCancel = Transfers::cancel, onRetry = retry, onDone = progress::dismiss)
         val autoDone = Runnable { progress.dismiss() }
         var dialog: AlertDialog? = null
         progress.listener = { s ->
@@ -220,15 +222,12 @@ class ShareActivity : Activity() {
         send()
     }
 
-    private fun sendOnWorker(
-        uris: List<Uri>,
-        sendFiles: (List<Uri>) -> Boolean,
-    ) {
+    private fun sendOnWorker(work: () -> Boolean) {
         // Counted from before the thread starts, so a linger running out in between still sees it.
         LinkHooks.sharing.incrementAndGet()
         thread(name = "edgepad-share") {
             try {
-                sendFiles(uris)
+                work()
             } catch (e: RuntimeException) {
                 Log.w("Edgepad", "Could not send what was shared", e)
             } finally {

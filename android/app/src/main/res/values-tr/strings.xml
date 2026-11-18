@@ -572,7 +572,7 @@
   <string name="xfer_done">%1$s kaydedildi</string>
   <string name="xfer_failed">%1$s gönderilemedi</string>
   <string name="xfer_cancel">İptal</string>
-  <string name="xfer_too_many">Yalnızca ilk 100 dosya sıraya alındı</string>
+  <string name="xfer_too_many">Yalnızca ilk %1$d dosya sıraya alındı</string>
   <string name="xfer_sending_n">%1$s gönderiliyor (%2$d / %3$d) · %4$d%%</string>
   <string name="xfer_card_sending_to">%1$s cihazına gönderiliyor</string>
   <string name="xfer_card_receiving_from">%1$s cihazından alınıyor</string>

@@ -577,7 +577,7 @@
   <string name="xfer_done">%1$s सहेजी गई</string>
   <string name="xfer_failed">%1$s भेजी नहीं जा सकी</string>
   <string name="xfer_cancel">रद्द करें</string>
-  <string name="xfer_too_many">केवल पहली 100 फ़ाइलें कतार में जोड़ी गईं</string>
+  <string name="xfer_too_many">केवल पहली %1$d फ़ाइलें कतार में जोड़ी गईं</string>
   <string name="xfer_sending_n">%1$s भेजी जा रही है (%3$d में से %2$d) · %4$d%%</string>
   <string name="xfer_card_sending_to">%1$s को भेजा जा रहा है</string>
   <string name="xfer_card_receiving_from">%1$s से मिल रहा है</string>

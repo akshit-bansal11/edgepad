@@ -518,6 +518,7 @@ class MainActivity :
                     laptop.name,
                     shares.activeSync(laptop)?.let { it::sendNow },
                     file?.let { link -> { uris -> link.sendAll(uris).allSent } },
+                    file?.let { link -> { link.sendAll(link.failedUris).allSent } },
                 )
             }
         }
@@ -1568,7 +1569,9 @@ class MainActivity :
             Toast.makeText(this, R.string.xfer_no_laptop, Toast.LENGTH_SHORT).show()
             return
         }
-        if (picked.size > MAX_FILES) Toast.makeText(this, R.string.xfer_too_many, Toast.LENGTH_SHORT).show()
+        if (picked.size > MAX_FILES) {
+            Toast.makeText(this, getString(R.string.xfer_too_many, MAX_FILES), Toast.LENGTH_SHORT).show()
+        }
         link.enqueue(picked.take(MAX_FILES))
     }
 
