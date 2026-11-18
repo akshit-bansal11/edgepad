@@ -5,8 +5,8 @@ import android.content.res.Configuration
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.LinearLayout
+import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
@@ -78,7 +78,7 @@ class PresenterScreen(
             canvas.laserSize = settings.laserSize
             canvas.laserTrail = settings.laserTrail
             val stage = LinearLayout.LayoutParams(wide, 0, 1f).apply { setMargins(side, gap, side, gap) }
-            val landscape =ui.context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+            val landscape = ui.context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
             val previous = ui.button(ui.string(R.string.presenter_previous), Ui.Style.OUTLINED) { step(-1) }
             val next = ui.button(ui.string(R.string.presenter_next), Ui.Style.FILLED) { step(1) }
             if (landscape) {
