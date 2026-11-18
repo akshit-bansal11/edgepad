@@ -578,7 +578,44 @@
   <string name="xfer_failed">%1$s भेजी नहीं जा सकी</string>
   <string name="xfer_cancel">रद्द करें</string>
   <string name="xfer_busy">दूसरी फ़ाइल पहले से भेजी जा रही है</string>
-  <string name="xfer_too_big">वह फ़ाइल 2 GB से बड़ी है</string>
+  <string name="xfer_sending_n">%1$s भेजी जा रही है (%3$d में से %2$d) · %4$d%%</string>
+  <string name="xfer_card_sending_to">%1$s को भेजा जा रहा है</string>
+  <string name="xfer_card_receiving_from">%1$s से मिल रहा है</string>
+  <string name="xfer_card_position">%2$d में से %1$d · %3$s</string>
+  <string name="xfer_card_bytes">%2$s में से %1$s</string>
+  <string name="xfer_card_speed">%1$s/से.</string>
+  <string name="xfer_card_percent">%1$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">%1$d फ़ाइल भेजी गई</item>
+    <item quantity="other">%1$d फ़ाइलें भेजी गईं</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">%1$d फ़ाइल मिली</item>
+    <item quantity="other">%1$d फ़ाइलें मिलीं</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">%2$d में से %1$d फ़ाइल भेजी गई</item>
+    <item quantity="other">%2$d में से %1$d फ़ाइलें भेजी गईं</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d फ़ाइल नहीं भेजी जा सकी</item>
+    <item quantity="other">%1$d फ़ाइलें नहीं भेजी जा सकीं</item>
+  </plurals>
+  <string name="xfer_card_more">और %1$d</string>
+  <string name="xfer_card_cancelling">रद्द किया जा रहा है…</string>
+  <string name="xfer_retry">फिर से कोशिश करें</string>
+  <string name="xfer_card_row">%1$s — %2$s</string>
+  <string name="xfer_why_refused">लैपटॉप ने इसे अस्वीकार कर दिया। शायद उसमें जगह नहीं है।</string>
+  <string name="xfer_why_damaged">यह खराब होकर पहुँची। फिर से कोशिश करें।</string>
+  <string name="xfer_why_write">लैपटॉप इसे सहेज नहीं सका।</string>
+  <string name="xfer_why_busy">लैपटॉप किसी दूसरी फ़ाइल में व्यस्त था।</string>
+  <string name="xfer_why_timeout">लैपटॉप ने जवाब देना बंद कर दिया।</string>
+  <string name="xfer_why_lost">कनेक्शन टूट गया।</string>
+  <string name="xfer_why_unreadable">यह फ़ोन फ़ाइल नहीं पढ़ सका।</string>
+  <string name="xfer_why_big">फ़ाइल 2 GB से बड़ी है।</string>
+  <string name="xfer_why_cancelled">रद्द किया गया।</string>
+  <string name="xfer_why_skipped">नहीं भेजी गई।</string>
+  <string name="xfer_card_a11y">फ़ाइल ट्रांसफ़र</string>
   <string name="xfer_no_laptop">पहले लैपटॉप से कनेक्ट करें</string>
   <string name="xfer_channel">फ़ाइल ट्रांसफ़र</string>
   <string name="notify_channel">लैपटॉप सूचनाएँ</string>

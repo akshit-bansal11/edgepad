@@ -578,7 +578,44 @@
   <string name="xfer_failed">%1$s kon niet worden verzonden</string>
   <string name="xfer_cancel">Annuleren</string>
   <string name="xfer_busy">Er wordt al een ander bestand overgedragen</string>
-  <string name="xfer_too_big">Dat bestand is groter dan 2 GB</string>
+  <string name="xfer_sending_n">%1$s wordt verzonden (%2$d van %3$d) · %4$d%%</string>
+  <string name="xfer_card_sending_to">Verzenden naar %1$s</string>
+  <string name="xfer_card_receiving_from">Ontvangen van %1$s</string>
+  <string name="xfer_card_position">%1$d van %2$d · %3$s</string>
+  <string name="xfer_card_bytes">%1$s van %2$s</string>
+  <string name="xfer_card_speed">%1$s/s</string>
+  <string name="xfer_card_percent">%1$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">%1$d bestand verzonden</item>
+    <item quantity="other">%1$d bestanden verzonden</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">%1$d bestand ontvangen</item>
+    <item quantity="other">%1$d bestanden ontvangen</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">%1$d van %2$d bestand verzonden</item>
+    <item quantity="other">%1$d van %2$d bestanden verzonden</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d bestand is niet verzonden</item>
+    <item quantity="other">%1$d bestanden zijn niet verzonden</item>
+  </plurals>
+  <string name="xfer_card_more">en nog %1$d</string>
+  <string name="xfer_card_cancelling">Annuleren…</string>
+  <string name="xfer_retry">Opnieuw proberen</string>
+  <string name="xfer_card_row">%1$s — %2$s</string>
+  <string name="xfer_why_refused">De laptop weigerde het. Misschien is er geen ruimte meer.</string>
+  <string name="xfer_why_damaged">Het kwam beschadigd aan. Probeer het opnieuw.</string>
+  <string name="xfer_why_write">De laptop kon het niet opslaan.</string>
+  <string name="xfer_why_busy">De laptop was bezig met een ander bestand.</string>
+  <string name="xfer_why_timeout">De laptop reageerde niet meer.</string>
+  <string name="xfer_why_lost">De verbinding is verbroken.</string>
+  <string name="xfer_why_unreadable">Deze telefoon kon het bestand niet lezen.</string>
+  <string name="xfer_why_big">Het bestand is groter dan 2 GB.</string>
+  <string name="xfer_why_cancelled">Geannuleerd.</string>
+  <string name="xfer_why_skipped">Niet verzonden.</string>
+  <string name="xfer_card_a11y">Bestandsoverdracht</string>
   <string name="xfer_no_laptop">Verbind eerst met een laptop</string>
   <string name="xfer_channel">Bestandsoverdrachten</string>
   <string name="notify_channel">Laptopmeldingen</string>

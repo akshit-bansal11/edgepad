@@ -577,7 +577,44 @@
   <string name="xfer_failed">%1$s konnte nicht gesendet werden</string>
   <string name="xfer_cancel">Abbrechen</string>
   <string name="xfer_busy">Es wird bereits eine andere Datei übertragen</string>
-  <string name="xfer_too_big">Die Datei ist größer als 2 GB</string>
+  <string name="xfer_sending_n">%1$s wird gesendet (%2$d von %3$d) · %4$d%%</string>
+  <string name="xfer_card_sending_to">Senden an %1$s</string>
+  <string name="xfer_card_receiving_from">Empfangen von %1$s</string>
+  <string name="xfer_card_position">%1$d von %2$d · %3$s</string>
+  <string name="xfer_card_bytes">%1$s von %2$s</string>
+  <string name="xfer_card_speed">%1$s/s</string>
+  <string name="xfer_card_percent">%1$d %%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">%1$d Datei gesendet</item>
+    <item quantity="other">%1$d Dateien gesendet</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">%1$d Datei empfangen</item>
+    <item quantity="other">%1$d Dateien empfangen</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">%1$d von %2$d Datei gesendet</item>
+    <item quantity="other">%1$d von %2$d Dateien gesendet</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d Datei wurde nicht gesendet</item>
+    <item quantity="other">%1$d Dateien wurden nicht gesendet</item>
+  </plurals>
+  <string name="xfer_card_more">und %1$d weitere</string>
+  <string name="xfer_card_cancelling">Wird abgebrochen…</string>
+  <string name="xfer_retry">Erneut versuchen</string>
+  <string name="xfer_card_row">%1$s — %2$s</string>
+  <string name="xfer_why_refused">Der Laptop hat sie abgelehnt. Vielleicht ist kein Speicherplatz mehr frei.</string>
+  <string name="xfer_why_damaged">Sie kam beschädigt an. Versuche es erneut.</string>
+  <string name="xfer_why_write">Der Laptop konnte sie nicht speichern.</string>
+  <string name="xfer_why_busy">Der Laptop war mit einer anderen Datei beschäftigt.</string>
+  <string name="xfer_why_timeout">Der Laptop hat nicht mehr geantwortet.</string>
+  <string name="xfer_why_lost">Die Verbindung wurde unterbrochen.</string>
+  <string name="xfer_why_unreadable">Dieses Telefon konnte die Datei nicht lesen.</string>
+  <string name="xfer_why_big">Die Datei ist größer als 2 GB.</string>
+  <string name="xfer_why_cancelled">Abgebrochen.</string>
+  <string name="xfer_why_skipped">Nicht gesendet.</string>
+  <string name="xfer_card_a11y">Dateiübertragung</string>
   <string name="xfer_no_laptop">Verbinde zuerst einen Laptop</string>
   <string name="xfer_channel">Dateiübertragungen</string>
   <string name="notify_channel">Laptop-Benachrichtigungen</string>

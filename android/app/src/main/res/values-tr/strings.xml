@@ -573,7 +573,44 @@
   <string name="xfer_failed">%1$s gönderilemedi</string>
   <string name="xfer_cancel">İptal</string>
   <string name="xfer_busy">Başka bir dosya zaten aktarılıyor</string>
-  <string name="xfer_too_big">Bu dosya 2 GB üzerinde</string>
+  <string name="xfer_sending_n">%1$s gönderiliyor (%2$d / %3$d) · %4$d%%</string>
+  <string name="xfer_card_sending_to">%1$s cihazına gönderiliyor</string>
+  <string name="xfer_card_receiving_from">%1$s cihazından alınıyor</string>
+  <string name="xfer_card_position">%1$d / %2$d · %3$s</string>
+  <string name="xfer_card_bytes">%1$s / %2$s</string>
+  <string name="xfer_card_speed">%1$s/sn</string>
+  <string name="xfer_card_percent">%%%1$d</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">%1$d dosya gönderildi</item>
+    <item quantity="other">%1$d dosya gönderildi</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">%1$d dosya alındı</item>
+    <item quantity="other">%1$d dosya alındı</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">%2$d dosyadan %1$d tanesi gönderildi</item>
+    <item quantity="other">%2$d dosyadan %1$d tanesi gönderildi</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d dosya gönderilemedi</item>
+    <item quantity="other">%1$d dosya gönderilemedi</item>
+  </plurals>
+  <string name="xfer_card_more">ve %1$d tane daha</string>
+  <string name="xfer_card_cancelling">İptal ediliyor…</string>
+  <string name="xfer_retry">Tekrar dene</string>
+  <string name="xfer_card_row">%1$s — %2$s</string>
+  <string name="xfer_why_refused">Dizüstü reddetti. Yeri dolmuş olabilir.</string>
+  <string name="xfer_why_damaged">Bozuk ulaştı. Tekrar deneyin.</string>
+  <string name="xfer_why_write">Dizüstü kaydedemedi.</string>
+  <string name="xfer_why_busy">Dizüstü başka bir dosyayla meşguldü.</string>
+  <string name="xfer_why_timeout">Dizüstü yanıt vermeyi bıraktı.</string>
+  <string name="xfer_why_lost">Bağlantı koptu.</string>
+  <string name="xfer_why_unreadable">Bu telefon dosyayı okuyamadı.</string>
+  <string name="xfer_why_big">Dosya 2 GB üzerinde.</string>
+  <string name="xfer_why_cancelled">İptal edildi.</string>
+  <string name="xfer_why_skipped">Gönderilmedi.</string>
+  <string name="xfer_card_a11y">Dosya aktarımı</string>
   <string name="xfer_no_laptop">Önce bir dizüstüne bağlanın</string>
   <string name="xfer_channel">Dosya aktarımları</string>
   <string name="notify_channel">Dizüstü bildirimleri</string>

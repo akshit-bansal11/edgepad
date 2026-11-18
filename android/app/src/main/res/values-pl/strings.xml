@@ -596,7 +596,52 @@
   <string name="xfer_failed">Nie udało się wysłać: %1$s</string>
   <string name="xfer_cancel">Anuluj</string>
   <string name="xfer_busy">Inny plik jest już przesyłany</string>
-  <string name="xfer_too_big">Ten plik ma ponad 2 GB</string>
+  <string name="xfer_sending_n">Wysyłanie: %1$s (%2$d z %3$d) · %4$d%%</string>
+  <string name="xfer_card_sending_to">Wysyłanie do: %1$s</string>
+  <string name="xfer_card_receiving_from">Odbieranie z: %1$s</string>
+  <string name="xfer_card_position">%1$d z %2$d · %3$s</string>
+  <string name="xfer_card_bytes">%1$s z %2$s</string>
+  <string name="xfer_card_speed">%1$s/s</string>
+  <string name="xfer_card_percent">%1$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">Wysłano %1$d plik</item>
+    <item quantity="few">Wysłano %1$d pliki</item>
+    <item quantity="many">Wysłano %1$d plików</item>
+    <item quantity="other">Wysłano %1$d pliku</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">Odebrano %1$d plik</item>
+    <item quantity="few">Odebrano %1$d pliki</item>
+    <item quantity="many">Odebrano %1$d plików</item>
+    <item quantity="other">Odebrano %1$d pliku</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">Wysłano %1$d z %2$d pliku</item>
+    <item quantity="few">Wysłano %1$d z %2$d plików</item>
+    <item quantity="many">Wysłano %1$d z %2$d plików</item>
+    <item quantity="other">Wysłano %1$d z %2$d pliku</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">Nie wysłano %1$d pliku</item>
+    <item quantity="few">Nie wysłano %1$d plików</item>
+    <item quantity="many">Nie wysłano %1$d plików</item>
+    <item quantity="other">Nie wysłano %1$d pliku</item>
+  </plurals>
+  <string name="xfer_card_more">i jeszcze %1$d</string>
+  <string name="xfer_card_cancelling">Anulowanie…</string>
+  <string name="xfer_retry">Spróbuj ponownie</string>
+  <string name="xfer_card_row">%1$s — %2$s</string>
+  <string name="xfer_why_refused">Laptop go odrzucił. Może brakuje na nim miejsca.</string>
+  <string name="xfer_why_damaged">Dotarł uszkodzony. Spróbuj ponownie.</string>
+  <string name="xfer_why_write">Laptop nie mógł go zapisać.</string>
+  <string name="xfer_why_busy">Laptop był zajęty innym plikiem.</string>
+  <string name="xfer_why_timeout">Laptop przestał odpowiadać.</string>
+  <string name="xfer_why_lost">Połączenie zostało przerwane.</string>
+  <string name="xfer_why_unreadable">Ten telefon nie mógł odczytać pliku.</string>
+  <string name="xfer_why_big">Plik ma ponad 2 GB.</string>
+  <string name="xfer_why_cancelled">Anulowano.</string>
+  <string name="xfer_why_skipped">Nie wysłano.</string>
+  <string name="xfer_card_a11y">Przesyłanie plików</string>
   <string name="xfer_no_laptop">Najpierw połącz z laptopem</string>
   <string name="xfer_channel">Przesyłanie plików</string>
   <string name="notify_channel">Powiadomienia z laptopa</string>

@@ -595,7 +595,52 @@
   <string name="xfer_failed">Не удалось отправить: %1$s</string>
   <string name="xfer_cancel">Отмена</string>
   <string name="xfer_busy">Другой файл уже передаётся</string>
-  <string name="xfer_too_big">Файл больше 2 ГБ</string>
+  <string name="xfer_sending_n">Отправка: %1$s (%2$d из %3$d) · %4$d%%</string>
+  <string name="xfer_card_sending_to">Отправка на %1$s</string>
+  <string name="xfer_card_receiving_from">Получение с %1$s</string>
+  <string name="xfer_card_position">%1$d из %2$d · %3$s</string>
+  <string name="xfer_card_bytes">%1$s из %2$s</string>
+  <string name="xfer_card_speed">%1$s/с</string>
+  <string name="xfer_card_percent">%1$d&#160;%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">Отправлен %1$d файл</item>
+    <item quantity="few">Отправлено %1$d файла</item>
+    <item quantity="many">Отправлено %1$d файлов</item>
+    <item quantity="other">Отправлено %1$d файла</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">Получен %1$d файл</item>
+    <item quantity="few">Получено %1$d файла</item>
+    <item quantity="many">Получено %1$d файлов</item>
+    <item quantity="other">Получено %1$d файла</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">Отправлено %1$d из %2$d файла</item>
+    <item quantity="few">Отправлено %1$d из %2$d файлов</item>
+    <item quantity="many">Отправлено %1$d из %2$d файлов</item>
+    <item quantity="other">Отправлено %1$d из %2$d файла</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d файл не отправлен</item>
+    <item quantity="few">%1$d файла не отправлены</item>
+    <item quantity="many">%1$d файлов не отправлены</item>
+    <item quantity="other">%1$d файла не отправлены</item>
+  </plurals>
+  <string name="xfer_card_more">и ещё %1$d</string>
+  <string name="xfer_card_cancelling">Отмена…</string>
+  <string name="xfer_retry">Повторить</string>
+  <string name="xfer_card_row">%1$s — %2$s</string>
+  <string name="xfer_why_refused">Ноутбук отказался его принять. Возможно, на нём нет места.</string>
+  <string name="xfer_why_damaged">Файл пришёл повреждённым. Повторите попытку.</string>
+  <string name="xfer_why_write">Ноутбук не смог его сохранить.</string>
+  <string name="xfer_why_busy">Ноутбук был занят другим файлом.</string>
+  <string name="xfer_why_timeout">Ноутбук перестал отвечать.</string>
+  <string name="xfer_why_lost">Соединение прервалось.</string>
+  <string name="xfer_why_unreadable">Этот телефон не смог прочитать файл.</string>
+  <string name="xfer_why_big">Файл больше 2 ГБ.</string>
+  <string name="xfer_why_cancelled">Отменено.</string>
+  <string name="xfer_why_skipped">Не отправлено.</string>
+  <string name="xfer_card_a11y">Передача файлов</string>
   <string name="xfer_no_laptop">Сначала подключитесь к ноутбуку</string>
   <string name="xfer_channel">Передача файлов</string>
   <string name="notify_channel">Уведомления ноутбука</string>

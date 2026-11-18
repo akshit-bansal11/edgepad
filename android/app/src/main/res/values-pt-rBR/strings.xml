@@ -587,7 +587,48 @@
   <string name="xfer_failed">Não foi possível enviar %1$s</string>
   <string name="xfer_cancel">Cancelar</string>
   <string name="xfer_busy">Outro arquivo já está sendo transferido</string>
-  <string name="xfer_too_big">Esse arquivo tem mais de 2 GB</string>
+  <string name="xfer_sending_n">Enviando %1$s (%2$d de %3$d) · %4$d%%</string>
+  <string name="xfer_card_sending_to">Enviando para %1$s</string>
+  <string name="xfer_card_receiving_from">Recebendo de %1$s</string>
+  <string name="xfer_card_position">%1$d de %2$d · %3$s</string>
+  <string name="xfer_card_bytes">%1$s de %2$s</string>
+  <string name="xfer_card_speed">%1$s/s</string>
+  <string name="xfer_card_percent">%1$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">%1$d arquivo enviado</item>
+    <item quantity="many">%1$d arquivos enviados</item>
+    <item quantity="other">%1$d arquivos enviados</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">%1$d arquivo recebido</item>
+    <item quantity="many">%1$d arquivos recebidos</item>
+    <item quantity="other">%1$d arquivos recebidos</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">%1$d de %2$d arquivo enviado</item>
+    <item quantity="many">%1$d de %2$d arquivos enviados</item>
+    <item quantity="other">%1$d de %2$d arquivos enviados</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d arquivo não foi enviado</item>
+    <item quantity="many">%1$d arquivos não foram enviados</item>
+    <item quantity="other">%1$d arquivos não foram enviados</item>
+  </plurals>
+  <string name="xfer_card_more">e mais %1$d</string>
+  <string name="xfer_card_cancelling">Cancelando…</string>
+  <string name="xfer_retry">Tentar de novo</string>
+  <string name="xfer_card_row">%1$s — %2$s</string>
+  <string name="xfer_why_refused">O notebook recusou. Talvez esteja sem espaço.</string>
+  <string name="xfer_why_damaged">Chegou danificado. Tente de novo.</string>
+  <string name="xfer_why_write">O notebook não conseguiu salvar.</string>
+  <string name="xfer_why_busy">O notebook estava ocupado com outro arquivo.</string>
+  <string name="xfer_why_timeout">O notebook parou de responder.</string>
+  <string name="xfer_why_lost">A conexão foi perdida.</string>
+  <string name="xfer_why_unreadable">Este celular não conseguiu ler o arquivo.</string>
+  <string name="xfer_why_big">O arquivo tem mais de 2 GB.</string>
+  <string name="xfer_why_cancelled">Cancelado.</string>
+  <string name="xfer_why_skipped">Não enviado.</string>
+  <string name="xfer_card_a11y">Transferência de arquivos</string>
   <string name="xfer_no_laptop">Conecte-se a um notebook primeiro</string>
   <string name="xfer_channel">Transferências de arquivos</string>
   <string name="notify_channel">Notificações do notebook</string>

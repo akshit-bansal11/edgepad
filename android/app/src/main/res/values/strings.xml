@@ -591,7 +591,44 @@
   <string name="xfer_failed">%1$s could not be sent</string>
   <string name="xfer_cancel">Cancel</string>
   <string name="xfer_busy">Another file is already moving</string>
-  <string name="xfer_too_big">That file is over 2 GB</string>
+  <string name="xfer_sending_n">Sending %1$s (%2$d of %3$d) · %4$d%%</string>
+  <string name="xfer_card_sending_to">Sending to %1$s</string>
+  <string name="xfer_card_receiving_from">Receiving from %1$s</string>
+  <string name="xfer_card_position">%1$d of %2$d · %3$s</string>
+  <string name="xfer_card_bytes">%1$s of %2$s</string>
+  <string name="xfer_card_speed">%1$s/s</string>
+  <string name="xfer_card_percent">%1$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">Sent %1$d file</item>
+    <item quantity="other">Sent %1$d files</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">Received %1$d file</item>
+    <item quantity="other">Received %1$d files</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">Sent %1$d of %2$d file</item>
+    <item quantity="other">Sent %1$d of %2$d files</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d file was not sent</item>
+    <item quantity="other">%1$d files were not sent</item>
+  </plurals>
+  <string name="xfer_card_more">and %1$d more</string>
+  <string name="xfer_card_cancelling">Cancelling…</string>
+  <string name="xfer_retry">Try again</string>
+  <string name="xfer_card_row">%1$s — %2$s</string>
+  <string name="xfer_why_refused">The laptop refused it. It may be out of space.</string>
+  <string name="xfer_why_damaged">It arrived damaged. Try again.</string>
+  <string name="xfer_why_write">The laptop could not save it.</string>
+  <string name="xfer_why_busy">The laptop was busy with another file.</string>
+  <string name="xfer_why_timeout">The laptop stopped answering.</string>
+  <string name="xfer_why_lost">The connection was lost.</string>
+  <string name="xfer_why_unreadable">This phone could not read the file.</string>
+  <string name="xfer_why_big">The file is over 2 GB.</string>
+  <string name="xfer_why_cancelled">Cancelled.</string>
+  <string name="xfer_why_skipped">Not sent.</string>
+  <string name="xfer_card_a11y">File transfer</string>
   <string name="xfer_no_laptop">Connect to a laptop first</string>
   <string name="xfer_channel">File transfers</string>
   <string name="notify_channel">Laptop notifications</string>

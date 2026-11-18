@@ -102,9 +102,9 @@ class XferNotification(
     ) {
         val title =
             if (failed == 0) {
-                context.resources.getQuantityString(R.plurals.xfer_batch_sent, sent, sent)
+                context.resources.getQuantityString(R.plurals.xfer_card_sent, sent, sent)
             } else {
-                context.resources.getQuantityString(R.plurals.xfer_batch_failed, failed, failed)
+                context.resources.getQuantityString(R.plurals.xfer_card_not_sent, failed, failed)
             }
         post(title, ongoing = false)
     }

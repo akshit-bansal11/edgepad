@@ -557,7 +557,40 @@
   <string name="xfer_failed">%1$s을(를) 보내지 못했습니다</string>
   <string name="xfer_cancel">취소</string>
   <string name="xfer_busy">다른 파일을 이미 전송 중입니다</string>
-  <string name="xfer_too_big">파일이 2GB를 넘습니다</string>
+  <string name="xfer_sending_n">%1$s 보내는 중 (%3$d개 중 %2$d번째) · %4$d%%</string>
+  <string name="xfer_card_sending_to">%1$s(으)로 보내는 중</string>
+  <string name="xfer_card_receiving_from">%1$s에서 받는 중</string>
+  <string name="xfer_card_position">%2$d개 중 %1$d번째 · %3$s</string>
+  <string name="xfer_card_bytes">%1$s / %2$s</string>
+  <string name="xfer_card_speed">%1$s/초</string>
+  <string name="xfer_card_percent">%1$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="other">파일 %1$d개를 보냈습니다</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="other">파일 %1$d개를 받았습니다</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="other">파일 %2$d개 중 %1$d개를 보냈습니다</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="other">파일 %1$d개를 보내지 못했습니다</item>
+  </plurals>
+  <string name="xfer_card_more">외 %1$d개</string>
+  <string name="xfer_card_cancelling">취소하는 중…</string>
+  <string name="xfer_retry">다시 시도</string>
+  <string name="xfer_card_row">%1$s — %2$s</string>
+  <string name="xfer_why_refused">노트북이 거부했습니다. 저장 공간이 부족할 수 있습니다.</string>
+  <string name="xfer_why_damaged">손상된 상태로 도착했습니다. 다시 시도하세요.</string>
+  <string name="xfer_why_write">노트북이 저장하지 못했습니다.</string>
+  <string name="xfer_why_busy">노트북이 다른 파일을 처리하는 중이었습니다.</string>
+  <string name="xfer_why_timeout">노트북이 응답하지 않습니다.</string>
+  <string name="xfer_why_lost">연결이 끊어졌습니다.</string>
+  <string name="xfer_why_unreadable">이 휴대폰에서 파일을 읽지 못했습니다.</string>
+  <string name="xfer_why_big">파일이 2GB를 넘습니다.</string>
+  <string name="xfer_why_cancelled">취소되었습니다.</string>
+  <string name="xfer_why_skipped">보내지 않았습니다.</string>
+  <string name="xfer_card_a11y">파일 전송</string>
   <string name="xfer_no_laptop">먼저 노트북에 연결하세요</string>
   <string name="xfer_channel">파일 전송</string>
   <string name="notify_channel">노트북 알림</string>

@@ -587,7 +587,48 @@
   <string name="xfer_failed">%1$s n’a pas pu être envoyé</string>
   <string name="xfer_cancel">Annuler</string>
   <string name="xfer_busy">Un autre fichier est déjà en cours de transfert</string>
-  <string name="xfer_too_big">Ce fichier dépasse 2 Go</string>
+  <string name="xfer_sending_n">Envoi de %1$s (%2$d sur %3$d) · %4$d%%</string>
+  <string name="xfer_card_sending_to">Envoi vers %1$s</string>
+  <string name="xfer_card_receiving_from">Réception depuis %1$s</string>
+  <string name="xfer_card_position">%1$d sur %2$d · %3$s</string>
+  <string name="xfer_card_bytes">%1$s sur %2$s</string>
+  <string name="xfer_card_speed">%1$s/s</string>
+  <string name="xfer_card_percent">%1$d %%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">%1$d fichier envoyé</item>
+    <item quantity="many">%1$d fichiers envoyés</item>
+    <item quantity="other">%1$d fichiers envoyés</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">%1$d fichier reçu</item>
+    <item quantity="many">%1$d fichiers reçus</item>
+    <item quantity="other">%1$d fichiers reçus</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">%1$d fichier envoyé sur %2$d</item>
+    <item quantity="many">%1$d fichiers envoyés sur %2$d</item>
+    <item quantity="other">%1$d fichiers envoyés sur %2$d</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d fichier n’a pas été envoyé</item>
+    <item quantity="many">%1$d fichiers n’ont pas été envoyés</item>
+    <item quantity="other">%1$d fichiers n’ont pas été envoyés</item>
+  </plurals>
+  <string name="xfer_card_more">et %1$d de plus</string>
+  <string name="xfer_card_cancelling">Annulation…</string>
+  <string name="xfer_retry">Réessayer</string>
+  <string name="xfer_card_row">%1$s — %2$s</string>
+  <string name="xfer_why_refused">L’ordinateur l’a refusé. Il manque peut-être d’espace.</string>
+  <string name="xfer_why_damaged">Il est arrivé endommagé. Réessayez.</string>
+  <string name="xfer_why_write">L’ordinateur n’a pas pu l’enregistrer.</string>
+  <string name="xfer_why_busy">L’ordinateur était occupé avec un autre fichier.</string>
+  <string name="xfer_why_timeout">L’ordinateur a cessé de répondre.</string>
+  <string name="xfer_why_lost">La connexion a été perdue.</string>
+  <string name="xfer_why_unreadable">Ce téléphone n’a pas pu lire le fichier.</string>
+  <string name="xfer_why_big">Le fichier dépasse 2 Go.</string>
+  <string name="xfer_why_cancelled">Annulé.</string>
+  <string name="xfer_why_skipped">Non envoyé.</string>
+  <string name="xfer_card_a11y">Transfert de fichiers</string>
   <string name="xfer_no_laptop">Connectez-vous d’abord à un ordinateur</string>
   <string name="xfer_channel">Transferts de fichiers</string>
   <string name="notify_channel">Notifications de l’ordinateur</string>

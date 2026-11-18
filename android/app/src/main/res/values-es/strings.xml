@@ -589,7 +589,48 @@
   <string name="xfer_failed">No se pudo enviar %1$s</string>
   <string name="xfer_cancel">Cancelar</string>
   <string name="xfer_busy">Ya se está moviendo otro archivo</string>
-  <string name="xfer_too_big">Ese archivo supera 2 GB</string>
+  <string name="xfer_sending_n">Enviando %1$s (%2$d de %3$d) · %4$d%%</string>
+  <string name="xfer_card_sending_to">Enviando a %1$s</string>
+  <string name="xfer_card_receiving_from">Recibiendo de %1$s</string>
+  <string name="xfer_card_position">%1$d de %2$d · %3$s</string>
+  <string name="xfer_card_bytes">%1$s de %2$s</string>
+  <string name="xfer_card_speed">%1$s/s</string>
+  <string name="xfer_card_percent">%1$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">Se envió %1$d archivo</item>
+    <item quantity="many">Se enviaron %1$d archivos</item>
+    <item quantity="other">Se enviaron %1$d archivos</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">Se recibió %1$d archivo</item>
+    <item quantity="many">Se recibieron %1$d archivos</item>
+    <item quantity="other">Se recibieron %1$d archivos</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">Se enviaron %1$d de %2$d archivo</item>
+    <item quantity="many">Se enviaron %1$d de %2$d archivos</item>
+    <item quantity="other">Se enviaron %1$d de %2$d archivos</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">No se envió %1$d archivo</item>
+    <item quantity="many">No se enviaron %1$d archivos</item>
+    <item quantity="other">No se enviaron %1$d archivos</item>
+  </plurals>
+  <string name="xfer_card_more">y %1$d más</string>
+  <string name="xfer_card_cancelling">Cancelando…</string>
+  <string name="xfer_retry">Reintentar</string>
+  <string name="xfer_card_row">%1$s — %2$s</string>
+  <string name="xfer_why_refused">El portátil lo rechazó. Puede que no tenga espacio.</string>
+  <string name="xfer_why_damaged">Llegó dañado. Inténtalo de nuevo.</string>
+  <string name="xfer_why_write">El portátil no pudo guardarlo.</string>
+  <string name="xfer_why_busy">El portátil estaba ocupado con otro archivo.</string>
+  <string name="xfer_why_timeout">El portátil dejó de responder.</string>
+  <string name="xfer_why_lost">Se perdió la conexión.</string>
+  <string name="xfer_why_unreadable">Este teléfono no pudo leer el archivo.</string>
+  <string name="xfer_why_big">El archivo supera 2 GB.</string>
+  <string name="xfer_why_cancelled">Cancelado.</string>
+  <string name="xfer_why_skipped">No enviado.</string>
+  <string name="xfer_card_a11y">Transferencia de archivos</string>
   <string name="xfer_no_laptop">Conéctate primero a un portátil</string>
   <string name="xfer_channel">Transferencias de archivos</string>
   <string name="notify_channel">Notificaciones del portátil</string>

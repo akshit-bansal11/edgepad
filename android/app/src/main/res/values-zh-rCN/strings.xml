@@ -571,7 +571,40 @@
   <string name="xfer_failed">无法发送 %1$s</string>
   <string name="xfer_cancel">取消</string>
   <string name="xfer_busy">已有另一个文件正在传输</string>
-  <string name="xfer_too_big">该文件超过 2 GB</string>
+  <string name="xfer_sending_n">正在发送 %1$s（第 %2$d 个，共 %3$d 个） · %4$d%%</string>
+  <string name="xfer_card_sending_to">正在发送到 %1$s</string>
+  <string name="xfer_card_receiving_from">正在从 %1$s 接收</string>
+  <string name="xfer_card_position">第 %1$d 个，共 %2$d 个 · %3$s</string>
+  <string name="xfer_card_bytes">%1$s / %2$s</string>
+  <string name="xfer_card_speed">%1$s/秒</string>
+  <string name="xfer_card_percent">%1$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="other">已发送 %1$d 个文件</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="other">已接收 %1$d 个文件</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="other">已发送 %1$d 个文件，共 %2$d 个</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="other">%1$d 个文件未能发送</item>
+  </plurals>
+  <string name="xfer_card_more">还有 %1$d 个</string>
+  <string name="xfer_card_cancelling">正在取消…</string>
+  <string name="xfer_retry">重试</string>
+  <string name="xfer_card_row">%1$s — %2$s</string>
+  <string name="xfer_why_refused">笔记本拒绝了此文件，可能空间不足。</string>
+  <string name="xfer_why_damaged">文件到达时已损坏，请重试。</string>
+  <string name="xfer_why_write">笔记本无法保存此文件。</string>
+  <string name="xfer_why_busy">笔记本正忙于处理另一个文件。</string>
+  <string name="xfer_why_timeout">笔记本已停止响应。</string>
+  <string name="xfer_why_lost">连接已断开。</string>
+  <string name="xfer_why_unreadable">此手机无法读取该文件。</string>
+  <string name="xfer_why_big">文件超过 2 GB。</string>
+  <string name="xfer_why_cancelled">已取消。</string>
+  <string name="xfer_why_skipped">未发送。</string>
+  <string name="xfer_card_a11y">文件传输</string>
   <string name="xfer_no_laptop">请先连接笔记本</string>
   <string name="xfer_channel">文件传输</string>
   <string name="notify_channel">笔记本通知</string>
