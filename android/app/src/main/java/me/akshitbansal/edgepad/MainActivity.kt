@@ -587,7 +587,8 @@ class MainActivity :
         startScan()
         checkForUpdateIfDue()
         Transfers.progress.listener = ::showCard
-        Transfers.progress.snapshot.takeIf { it.phase != XferPhase.IDLE }?.let(::showCard)
+        val snapshot = Transfers.progress.snapshot
+        if (snapshot.phase != XferPhase.IDLE) showCard(snapshot)
     }
 
     /** Not over the guide: a first-time user has not been told yet that the app ever goes online. */
@@ -650,8 +651,6 @@ class MainActivity :
         val want = settings.floatingDials && !started && serviceUp && connected && SystemSettings.canDrawOverlays(this)
         if (!want) {
             floating?.hide()
-        xferCard?.hide()
-        xferCard = null
             return
         }
         val dials = floating ?: FloatingDials(this, settings, state, { frame -> selected?.link?.send(frame) })
@@ -731,6 +730,8 @@ class MainActivity :
         apps.events = null
         apps.onMediaIcon = null
         floating?.hide()
+        xferCard?.hide()
+        xferCard = null
         if (!isChangingConfigurations && !isFinishing && serviceUp) {
             // Android destroyed this activity by itself while Stay connected holds the process: the links stay, for
             // the next activity to adopt, and the hooks stay too, since they hold only the manager.

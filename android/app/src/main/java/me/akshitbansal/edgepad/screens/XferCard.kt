@@ -76,7 +76,8 @@ class XferCard(
         popup.showAtLocation(owner, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0, above)
         if (ValueAnimator.areAnimatorsEnabled()) {
             view.alpha = 0f
-            view.animate()
+            view
+                .animate()
                 .alpha(1f)
                 .setDuration(Motion.REVEAL)
                 .start()

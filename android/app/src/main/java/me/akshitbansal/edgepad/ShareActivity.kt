@@ -200,7 +200,9 @@ class ShareActivity : Activity() {
         var dialog: AlertDialog? = null
         progress.listener = { s ->
             when {
-                isFinishing || isDestroyed -> Unit
+                isFinishing || isDestroyed -> {
+                    Unit
+                }
 
                 s.phase == XferPhase.IDLE -> {
                     // Done, or auto-dismissed: the share is over.
@@ -211,7 +213,12 @@ class ShareActivity : Activity() {
                 else -> {
                     card.bind(s, target.name)
                     if (dialog == null) {
-                        dialog = AlertDialog.Builder(this).setView(card).setCancelable(false).show()
+                        dialog =
+                            AlertDialog
+                                .Builder(this)
+                                .setView(card)
+                                .setCancelable(false)
+                                .show()
                     }
                     card.removeCallbacks(autoDone)
                     if (s.phase == XferPhase.FINISHED && titleKind(s) == CardTitle.DONE_ALL) {
