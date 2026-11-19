@@ -194,8 +194,16 @@ public enum HookProtocol {
         return shown.joined(separator: " ")
     }
 
+    // Anything outside a conservative safe set is quoted, so a shell metacharacter or backslash inside one argument can
+    // never read on the phone as if it split, joined or redirected arguments.
     private static func needsQuotes(_ part: String) -> Bool {
-        part.isEmpty || part.unicodeScalars.contains { $0.properties.isWhitespace || $0 == "'" || $0 == "\"" }
+        part.isEmpty || part.unicodeScalars.contains { !safeScalar($0) }
+    }
+
+    private static let safePunctuation = Set("_@%+=:,./-".unicodeScalars)
+
+    private static func safeScalar(_ s: Unicode.Scalar) -> Bool {
+        ("A"..."Z").contains(s) || ("a"..."z").contains(s) || ("0"..."9").contains(s) || safePunctuation.contains(s)
     }
 
     private static func isLong(_ value: Any?) -> Bool {
