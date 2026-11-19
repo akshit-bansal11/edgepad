@@ -657,4 +657,51 @@ public sealed class DispatcherTests : IDisposable
         Assert.Empty(seen);
         Assert.Empty(platform.Calls);
     }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(31)]
+    public void TheDashWatchMaskReachesTheHost(int value)
+    {
+        List<int> seen = [];
+        dispatcher.DashWatch = seen.Add;
+
+        dispatcher.Handle(new SetValue((byte)ControlId.DashWatch, (byte)value));
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal([value], seen);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void ADashWatchAbove31OrWithNoHostIsDropped()
+    {
+        List<int> seen = [];
+        dispatcher.Handle(new SetValue((byte)ControlId.DashWatch, 1));
+        dispatcher.DashWatch = seen.Add;
+        dispatcher.Handle(new SetValue((byte)ControlId.DashWatch, 32));
+
+        Assert.Equal(2, dispatcher.Dropped);
+        Assert.Empty(seen);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void APermAnswerTheBrokerTakesIsHandledAndOneItRefusesIsDropped()
+    {
+        List<string> seen = [];
+        dispatcher.Handle(new Text((byte)TextKind.PermAnswer, "0123456789ab/a"));
+        dispatcher.PermAnswer = wire =>
+        {
+            seen.Add(wire);
+            return wire == "0123456789ab/a";
+        };
+        dispatcher.Handle(new Text((byte)TextKind.PermAnswer, "0123456789ab/a"));
+        dispatcher.Handle(new Text((byte)TextKind.PermAnswer, "garbage"));
+
+        Assert.Equal(2, dispatcher.Dropped);
+        Assert.Equal(["0123456789ab/a", "garbage"], seen);
+        Assert.Empty(platform.Calls);
+    }
 }

@@ -22,6 +22,7 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
 {
     private const byte MaxButton = 2;
     private const byte MaxPercent = 100;
+    private const byte MaxDashWatch = 31;
 
     /// <summary>Frames that asked for something unknown, out of range, or unavailable (no microphone).</summary>
     public int Dropped { get; private set; }
@@ -54,6 +55,18 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     /// like <see cref="MacroWatch"/>; without one, SET FOREGROUND_WATCH is dropped and counted.
     /// </summary>
     public Action<bool>? ForegroundWatch { get; set; }
+
+    /// <summary>
+    /// Told the phone's DASH_WATCH mask (0..31): which dashboard numbers it draws right now. Set by the session's integration host,
+    /// like <see cref="ForegroundWatch"/>; without one, or above 31, SET DASH_WATCH is dropped and counted.
+    /// </summary>
+    public Action<int>? DashWatch { get; set; }
+
+    /// <summary>
+    /// Takes a TEXT PERM_ANSWER (<c>id/a</c> or <c>id/d</c>) and says whether it answered an approval that waits. Set by the session
+    /// (the permission broker's <c>Answer</c>); without one, or when it returns false, the frame is dropped and counted.
+    /// </summary>
+    public Func<string, bool>? PermAnswer { get; set; }
 
     /// <summary>
     /// Shares the clipboard when the phone asks for that. Set by the session, like <see cref="Capture"/>; without one,
@@ -165,6 +178,8 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         Text t when t.Kind == (byte)TextKind.PenRgb => PenStyle.TryParseRgb(t.Value, out var rgb) && platform.PenRgb(rgb),
         // The one phone string that can end in a macro, and it is only ever a token: see AppPicker.
         Text t when t.Kind == (byte)TextKind.AppAdd => AddApp(t.Value),
+        // Only ever "id/a" or "id/d" for an approval that waits; the broker refuses anything else.
+        Text t when t.Kind == (byte)TextKind.PermAnswer => PermAnswer?.Invoke(t.Value) ?? false,
         Key k => Do(() => platform.Key(k.Code, k.Down)),
         // A pad frame with no pad plugged in is dropped and counted like any other id this laptop
         // cannot act on. The phone is not meant to send one before its PAD_ATTACH was answered
@@ -295,6 +310,7 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         ControlId.CaptureTarget => Capture?.SetTarget(percent) ?? false,
         ControlId.Clipboard => Clipboard?.SetShared(percent) ?? false,
         ControlId.ForegroundWatch => ForegroundWatch is { } watch && percent <= 1 && Do(() => watch(percent == 1)),
+        ControlId.DashWatch => DashWatch is { } dash && percent <= MaxDashWatch && Do(() => dash(percent)),
         var id => Enum.IsDefined(id) && platform.Set(id, percent),
     };
 
