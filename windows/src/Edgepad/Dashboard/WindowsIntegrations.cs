@@ -110,12 +110,19 @@ internal sealed partial class WindowsIntegrations : IDisposable
 
             Apply(rotate: FlagKeys.Contains(key) && Settings.Flag(key));
             watcher = codex;
-            live = key is IntegrationSettings.Claude or IntegrationSettings.Codex ? [.. links] : [];
+            live = [.. links];
         }
 
+        var agent = key is IntegrationSettings.Claude or IntegrationSettings.Codex;
         foreach (var link in live)
         {
-            Rebuild(link);
+            if (agent)
+            {
+                Rebuild(link);
+            }
+
+            // A switch or a GitHub sign-in reaches a linked phone now, not at its next connection.
+            link.FeaturesChanged?.Invoke();
         }
 
         watcher?.Evaluate();
