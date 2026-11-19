@@ -505,6 +505,7 @@ public sealed class UnixSocketListenerTests : IDisposable
     }
 
     [Fact]
+    [System.Runtime.Versioning.SupportedOSPlatform("linux")]
     public void AFolderOthersMayEnterIsRefused()
     {
         Assert.SkipUnless(OperatingSystem.IsLinux(), "Unix modes");
@@ -519,6 +520,7 @@ public sealed class UnixSocketListenerTests : IDisposable
     }
 
     [Fact]
+    [System.Runtime.Versioning.SupportedOSPlatform("linux")]
     public void ALinkedFolderIsRefused()
     {
         Assert.SkipUnless(OperatingSystem.IsLinux(), "Unix links");

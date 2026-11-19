@@ -149,8 +149,8 @@ internal static class HookProtocol
         return new PermRequest(token, agent, session ?? string.Empty, cwd ?? string.Empty, tool, input);
     }
 
-    // A string, or (Codex's array form) a list of strings joined with spaces, each element that is empty or holds whitespace or a
-    // quote shown in POSIX single quotes (see Quote). False on anything else. cut: the command was longer than MaxTextLength.
+    // A string, or (Codex's array form) a list of strings joined with spaces, each element that is empty or holds a character
+    // outside the safe set shown in POSIX single quotes (see Quote). False on anything else. cut: longer than MaxTextLength.
     private static bool ReadCommand(JsonElement input, out string? command, out bool safe, out bool cut)
     {
         command = null;
@@ -194,11 +194,12 @@ internal static class HookProtocol
     }
 
     /// <summary>
-    /// One element of an array command as a POSIX shell would need it written: as is when it is not empty and holds no whitespace
-    /// and no quote (' or "); otherwise in single quotes, each ' inside written as '\''. So ["sh","-c","a b"] shows as sh -c 'a b'.
+    /// One element of an array command as a POSIX shell would need it written: as is when it is not empty and every character is
+    /// in the safe set A-Za-z0-9 _ @ % + = : , . / -; otherwise in single quotes, each ' inside written as '\''. So
+    /// ["sh","-c","a b"] shows as sh -c 'a b' and ["rm","a;b"] as rm 'a;b'.
     /// </summary>
     internal static string Quote(string part) =>
-        part.Length > 0 && !part.Any(c => char.IsWhiteSpace(c) || c is '\'' or '"')
+        part.Length > 0 && part.All(c => char.IsAsciiLetterOrDigit(c) || c is '_' or '@' or '%' or '+' or '=' or ':' or ',' or '.' or '/' or '-')
             ? part
             : "'" + part.Replace("'", "'\\''", StringComparison.Ordinal) + "'";
 

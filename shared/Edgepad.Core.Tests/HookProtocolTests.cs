@@ -82,7 +82,14 @@ public sealed class HookProtocolTests
     [InlineData("a\tb", "'a\tb'")]
     [InlineData("it's", "'it'\\''s'")]
     [InlineData("say \"hi\"", "'say \"hi\"'")]
-    [InlineData("$HOME;rm", "$HOME;rm")]
+    [InlineData("$HOME;rm", "'$HOME;rm'")]
+    [InlineData("a;b", "'a;b'")]
+    [InlineData("a|b&c", "'a|b&c'")]
+    [InlineData("*.txt", "'*.txt'")]
+    [InlineData("~/x", "'~/x'")]
+    [InlineData("C:\\x", "'C:\\x'")]
+    [InlineData("user@host:/a,b=c+d%e_f.g-h", "user@host:/a,b=c+d%e_f.g-h")]
+    [InlineData("é", "'é'")]
     public void AnArrayElementIsQuotedOnlyWhenItWouldNotReadBack(string part, string shown) => Assert.Equal(shown, HookProtocol.Quote(part));
 
     [Fact]
