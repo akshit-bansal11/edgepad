@@ -24,23 +24,27 @@ internal static class CappedHttp
     public static async Task<CappedReply?> SendAsync(
         HttpRequestMessage request, int maxBytes, TimeSpan timeout, HttpMessageHandler? handler, string what, CancellationToken ct)
     {
+        // HttpClient.Timeout stops at the headers when the body is streamed, so one deadline bounds headers and body alike.
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        deadline.CancelAfter(timeout);
+        var token = deadline.Token;
         try
         {
             using var client = handler is null
                 ? new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
                 : new HttpClient(handler, disposeHandler: false);
-            client.Timeout = timeout;
-            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+            client.Timeout = Timeout.InfiniteTimeSpan;
+            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
             if (response.Content.Headers.ContentLength > maxBytes)
             {
                 throw new InvalidDataException("The reply announces more than allowed.");
             }
 
-            await using var body = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+            await using var body = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
             using var memory = new MemoryStream();
             var buffer = new byte[BufferBytes];
             int read;
-            while ((read = await body.ReadAsync(buffer, ct).ConfigureAwait(false)) > 0)
+            while ((read = await body.ReadAsync(buffer, token).ConfigureAwait(false)) > 0)
             {
                 if (memory.Length + read > maxBytes)
                 {
@@ -59,7 +63,7 @@ internal static class CappedHttp
             return new CappedReply(response.StatusCode, headers, memory.ToArray());
         }
         catch (Exception e) when (!ct.IsCancellationRequested
-            && e is HttpRequestException or TaskCanceledException or InvalidDataException or IOException)
+            && e is HttpRequestException or OperationCanceledException or InvalidDataException or IOException)
         {
             Log.Write($"{what} failed: {e.GetType().Name}");
             return null;
