@@ -406,4 +406,103 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Common_Reset" xml:space="preserve">
     <value>Sıfırla</value>
   </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>Entegrasyonlar…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Entegrasyonlar</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Buradaki her şey siz açana kadar kapalıdır.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Sistem verilerini telefonda göster</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Hava durumunu telefonda göster</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Şehir</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>open-meteo.com’a yalnızca şehir adını gönderir.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Bağlan</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Bağlantıyı kes</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Bağlı · son sinyal {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Bağlı değil</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} bu bilgisayarda bulunamadı</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>Node.js 20.1 veya daha yenisi gerekiyor. nodejs.org’dan indirin</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad bunu sizin için çalıştıramadı. Bu komutları bir terminalde çalıştırın:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Kopyala</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Codex’te /hooks’u açın ve Edgepad’e güvenin.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Codex’in eklentiye güvenmesi bekleniyor…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Codex’i 0.159 veya daha yeni bir sürüme güncelleyin.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Açık oturumları yeniden başlatın ya da Claude Code’da /reload-plugins çalıştırın.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>GitHub ile oturum aç</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Oturumu kapat</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Kodunuz: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device adresini aç</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Tarayıcıda onaylamanız bekleniyor…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Özel depoları dahil et</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>{0} olarak oturum açıldı</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Oturum açma bu sürümde ayarlanmamış.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>hiç</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>Oturum açma tamamlanmadı. Yeniden deneyin.</value>
+  </data>
+  <data name="Integrations_NotEncrypted" xml:space="preserve">
+    <value>Kullanılabilir bir anahtar zinciri yoktu, bu yüzden GitHub oturumunuz şifrelenmemiş özel bir dosyada tutuluyor.</value>
+  </data>
 </root>

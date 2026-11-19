@@ -402,4 +402,103 @@
   <data name="Common_Reset" xml:space="preserve">
     <value>Resetten</value>
   </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>Integraties…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integraties</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Alles hier staat uit totdat je het aanzet.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Systeemgegevens op de telefoon tonen</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Weer op de telefoon tonen</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Stad</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Stuurt alleen de naam van de stad naar open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Verbinden</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Verbinding verbreken</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Verbonden · laatst gehoord {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Niet verbonden</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} is niet gevonden op deze computer</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>Node.js 20.1 of nieuwer is nodig. Download het via nodejs.org</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad kon dit niet voor je uitvoeren. Voer deze opdrachten uit in een terminal:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Kopiëren</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Open in Codex /hooks en vertrouw Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Wachten tot Codex de plug-in vertrouwt…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Werk Codex bij naar versie 0.159 of nieuwer.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Herstart open sessies, of voer /reload-plugins uit in Claude Code.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>Inloggen met GitHub</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Uitloggen</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Je code: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device openen</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Wachten tot je goedkeurt in de browser…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Privérepository’s meenemen</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Ingelogd als {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Inloggen is in deze build niet ingesteld.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>nooit</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>Inloggen is niet voltooid. Probeer het opnieuw.</value>
+  </data>
+  <data name="Integrations_NotEncrypted" xml:space="preserve">
+    <value>Er was geen sleutelbos beschikbaar, dus je GitHub-login staat in een privébestand dat niet versleuteld is.</value>
+  </data>
 </root>

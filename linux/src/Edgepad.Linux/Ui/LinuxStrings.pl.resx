@@ -410,4 +410,103 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Common_Reset" xml:space="preserve">
     <value>Zresetuj</value>
   </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>Integracje…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integracje</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Wszystko tutaj jest wyłączone, dopóki tego nie włączysz.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Pokazuj statystyki systemu na telefonie</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Pokazuj pogodę na telefonie</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Miasto</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Wysyła do open-meteo.com tylko nazwę miasta.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Połącz</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Rozłącz</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Połączono · ostatni sygnał {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Nie połączono</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>Nie znaleziono {0} na tym komputerze</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>Potrzebny jest Node.js 20.1 lub nowszy. Pobierz go z nodejs.org</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad nie mógł tego uruchomić za Ciebie. Uruchom te polecenia w terminalu:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Kopiuj</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>W Codex otwórz /hooks i zaufaj Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Czekam, aż Codex zaufa wtyczce…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Zaktualizuj Codex do wersji 0.159 lub nowszej.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Uruchom ponownie otwarte sesje albo wpisz /reload-plugins w Claude Code.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>Zaloguj się przez GitHub</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Wyloguj się</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Twój kod: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>Otwórz github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Czekam na Twoją zgodę w przeglądarce…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Uwzględnij prywatne repozytoria</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Zalogowano jako {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Logowanie nie jest skonfigurowane w tej wersji.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>nigdy</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>Logowanie nie zostało ukończone. Spróbuj ponownie.</value>
+  </data>
+  <data name="Integrations_NotEncrypted" xml:space="preserve">
+    <value>Żaden pęk kluczy nie był dostępny, więc logowanie do GitHub jest zapisane w prywatnym pliku, który nie jest zaszyfrowany.</value>
+  </data>
 </root>

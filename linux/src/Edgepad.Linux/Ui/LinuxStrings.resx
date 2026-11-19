@@ -417,4 +417,103 @@ The trusted phones were forgotten, but the PIN could not be reset: a settings fi
   <data name="Common_Reset" xml:space="preserve">
     <value>Reset</value>
   </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>Integrations…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integrations</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Everything here is off until you turn it on.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Show system stats on the phone</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Show weather on the phone</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>City</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Sends only the city name to open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Disconnect</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Connected · last heard {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Not connected</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} was not found on this computer</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>Node.js 20.1 or newer is needed. Get it from nodejs.org</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad could not run this for you. Run these commands in a terminal:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>In Codex, open /hooks and trust Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Waiting for Codex to trust the plugin…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Update Codex to version 0.159 or newer.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Restart open sessions, or run /reload-plugins in Claude Code.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>Sign in with GitHub</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Sign out</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Your code: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>Open github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Waiting for you to approve in the browser…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Include private repositories</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Signed in as {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Sign-in is not set up in this build.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>never</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>Sign-in did not finish. Try again.</value>
+  </data>
+  <data name="Integrations_NotEncrypted" xml:space="preserve">
+    <value>No keyring was available, so your GitHub sign-in is kept in a private file that is not encrypted.</value>
+  </data>
 </root>

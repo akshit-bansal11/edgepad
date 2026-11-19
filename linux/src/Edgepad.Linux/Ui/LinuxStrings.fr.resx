@@ -410,4 +410,103 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
   <data name="Common_Reset" xml:space="preserve">
     <value>Réinitialiser</value>
   </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>Intégrations…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Intégrations</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Tout est désactivé ici tant que vous ne l’activez pas.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Afficher les statistiques système sur le téléphone</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Afficher la météo sur le téléphone</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Ville</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>N’envoie que le nom de la ville à open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Connecter</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Déconnecter</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Connecté · dernier signal {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Non connecté</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} est introuvable sur cet ordinateur</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>Node.js 20.1 ou une version plus récente est nécessaire. Téléchargez-le sur nodejs.org</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad n’a pas pu l’exécuter pour vous. Exécutez ces commandes dans un terminal :</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Copier</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Dans Codex, ouvrez /hooks et faites confiance à Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>En attente de la confiance de Codex envers le plug-in…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Mettez Codex à jour vers la version 0.159 ou plus récente.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Redémarrez les sessions ouvertes ou exécutez /reload-plugins dans Claude Code.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>Se connecter avec GitHub</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Se déconnecter</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Votre code : {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>Ouvrir github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>En attente de votre accord dans le navigateur…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Inclure les dépôts privés</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Connecté en tant que {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>La connexion n’est pas configurée dans cette version.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>jamais</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>La connexion n’a pas abouti. Réessayez.</value>
+  </data>
+  <data name="Integrations_NotEncrypted" xml:space="preserve">
+    <value>Aucun trousseau n’était disponible : votre connexion GitHub est donc gardée dans un fichier privé qui n’est pas chiffré.</value>
+  </data>
 </root>
