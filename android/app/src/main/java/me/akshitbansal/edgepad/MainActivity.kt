@@ -48,6 +48,7 @@ import me.akshitbansal.edgepad.link.BluetoothTapHint
 import me.akshitbansal.edgepad.link.BluetoothTransport
 import me.akshitbansal.edgepad.link.CaptureInbox
 import me.akshitbansal.edgepad.link.ClipboardShare
+import me.akshitbansal.edgepad.link.DashMask
 import me.akshitbansal.edgepad.link.Discovery
 import me.akshitbansal.edgepad.link.Found
 import me.akshitbansal.edgepad.link.HostPort
@@ -91,6 +92,7 @@ import me.akshitbansal.edgepad.link.mergeFound
 import me.akshitbansal.edgepad.link.mergedRows
 import me.akshitbansal.edgepad.link.net.LinkKeys
 import me.akshitbansal.edgepad.link.net.Sas
+import me.akshitbansal.edgepad.link.notify.PermNotifier
 import me.akshitbansal.edgepad.link.notify.PhoneNotifier
 import me.akshitbansal.edgepad.link.olderHalf
 import me.akshitbansal.edgepad.link.onlyAutoConnecting
@@ -115,6 +117,7 @@ import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.ProtocolConstants
 import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
+import me.akshitbansal.edgepad.screens.AiScreen
 import me.akshitbansal.edgepad.screens.AnnotateScreen
 import me.akshitbansal.edgepad.screens.AppListScreen
 import me.akshitbansal.edgepad.screens.AppearanceScreen
@@ -129,6 +132,7 @@ import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
 import me.akshitbansal.edgepad.screens.GamepadScreen
 import me.akshitbansal.edgepad.screens.GamepadSettingsScreen
 import me.akshitbansal.edgepad.screens.GestureScreen
+import me.akshitbansal.edgepad.screens.GitHubScreen
 import me.akshitbansal.edgepad.screens.GuideScreen
 import me.akshitbansal.edgepad.screens.KeyboardScreen
 import me.akshitbansal.edgepad.screens.KeyboardSettingsScreen
@@ -137,6 +141,7 @@ import me.akshitbansal.edgepad.screens.MacroScreen
 import me.akshitbansal.edgepad.screens.MacroSettingsScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.PairCodeScreen
+import me.akshitbansal.edgepad.screens.PermissionSheet
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.PinScreen
 import me.akshitbansal.edgepad.screens.PresenterScreen
@@ -147,6 +152,7 @@ import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.SharingScreen
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
+import me.akshitbansal.edgepad.screens.SystemScreen
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.screens.XferCard
 import me.akshitbansal.edgepad.screens.openOver
@@ -157,6 +163,7 @@ import me.akshitbansal.edgepad.surface.ControlSurface
 import me.akshitbansal.edgepad.surface.Perimeter
 import me.akshitbansal.edgepad.surface.Profile
 import me.akshitbansal.edgepad.surface.Profiles
+import me.akshitbansal.edgepad.surface.SurfaceWidget
 import me.akshitbansal.edgepad.update.Installer
 import me.akshitbansal.edgepad.update.UpdateChoice
 import me.akshitbansal.edgepad.update.UpdateJob
@@ -233,6 +240,9 @@ class MainActivity :
         CAPTURE,
         ANNOTATE,
         PRESENTER,
+        SYSTEM,
+        AI,
+        GITHUB,
         KEYBOARD,
         GAMEPAD,
         MACROS,
@@ -301,6 +311,18 @@ class MainActivity :
 
     /** The Presenter screen while it is the screen: the volume keys step its slides, and only while it is. */
     private var presenter: PresenterScreen? = null
+
+    /** The System, AI and GitHub screens while they are the screen, so a new sample or list can be handed to them. */
+    private var systemScreen: SystemScreen? = null
+    private var aiScreen: AiScreen? = null
+    private var githubScreen: GitHubScreen? = null
+
+    /** What DASH_WATCH last told the selected laptop (0: nothing). The laptop forgets it at session end. */
+    private var dashMask = 0
+
+    /** The AI approval sheet, over any screen, and the notice that stands in for it while the app is away. */
+    private lateinit var permSheet: PermissionSheet
+    private lateinit var permNotifier: PermNotifier
     private var reconnecting: ReconnectingScreen? = null
 
     /** The macro grid while it is the screen, so a new list or a finished icon can be handed to it. */
@@ -435,6 +457,8 @@ class MainActivity :
         gamepads = GamepadStore(this)
         Type.load(this)
         ui = Ui(this)
+        permSheet = PermissionSheet(ui) { _, text -> manager.send(TextKind.PERM_ANSWER.frame(text)) }
+        permNotifier = PermNotifier(applicationContext)
         picker =
             PickerScreen(
                 ui,
@@ -512,6 +536,8 @@ class MainActivity :
         }
         // A laptop's media icon arrived: the surface redraws its Now playing. Cleared in onDestroy with the events.
         apps.onMediaIcon = { laptop -> if (laptop === selected) surface?.stateChanged() }
+        apps.onGithub = { laptop -> if (laptop === selected) githubScreen?.refresh() }
+        apps.onPermAsk = { laptop -> if (laptop === selected) syncPerm() }
         // As above, over the retained pieces alone: what another app shares goes to the selected, connected laptop.
         val shares = clipboard.links
         LinkHooks.shareTarget = {
@@ -575,6 +601,8 @@ class MainActivity :
         if (screen == Screen.PRESENTER) goTo(Screen.PRESENTER)
         // The same for the macro grid: onStop told the laptop to stop looking.
         if (screen == Screen.MACROS) watchMacros()
+        syncDashWatch()
+        window.decorView.post { syncPerm() }
         // And the app list: onStop told the laptop to stop sending, so it is asked afresh and the old rows go.
         if (screen == Screen.APPS) {
             listApps()
@@ -612,6 +640,9 @@ class MainActivity :
         endAnnotate()
         unwatchMacros()
         cancelApps()
+        syncDashWatch()
+        permSheet.dismiss()
+        permNotifier.sync(permSheet.waiting, started)
         manager.foreground = false
         manager.fastPing = false
         phoneWatch?.close()
@@ -731,6 +762,9 @@ class MainActivity :
         handler.removeCallbacksAndMessages(null)
         apps.events = null
         apps.onMediaIcon = null
+        apps.onGithub = null
+        apps.onPermAsk = null
+        permSheet.dismiss()
         floating?.hide()
         xferCard?.hide()
         xferCard = null
@@ -795,6 +829,43 @@ class MainActivity :
         manager.send(ControlId.FOREGROUND_WATCH.set(if (want) 1 else 0))
     }
 
+    /**
+     * Tells the laptop what the phone draws, as [DashMask] works it out, and only when that changed: the widgets that
+     * are on while the surface shows, and the System, AI or GitHub screen. 0 while the app is away or the link is down.
+     */
+    private fun syncDashWatch() {
+        val dash =
+            when (screen) {
+                Screen.SYSTEM -> DashMask.Screen.SYSTEM
+                Screen.AI -> DashMask.Screen.AI
+                Screen.GITHUB -> DashMask.Screen.GITHUB
+                else -> null
+            }
+        val mask =
+            DashMask.of(
+                active = connected && started && state.features.any { it in DASH_FEATURES },
+                onSurface = screen == Screen.SURFACE,
+                statsWidget = settings.widgetOn(SurfaceWidget.SYSTEM) || settings.widgetOn(SurfaceWidget.NETWORK),
+                weatherWidget = settings.widgetOn(SurfaceWidget.WEATHER),
+                aiWidget = settings.widgetOn(SurfaceWidget.AI),
+                screen = dash,
+            )
+        if (mask == dashMask) return
+        dashMask = mask
+        manager.send(ControlId.DASH_WATCH.set(mask))
+    }
+
+    /**
+     * Keeps the approval sheet and its notice in line with the selected laptop's open asks. Called when an ask comes
+     * or goes, the link or the selection changes and the screen does, so the sheet is over whatever is showing, upright
+     * or sideways. While the app is away the sheet has no owner and the notice speaks for it.
+     */
+    private fun syncPerm() {
+        val asks = if (connected) state.permAsks else emptyList()
+        permSheet.update(if (started) window.decorView else null, asks)
+        permNotifier.sync(permSheet.waiting, started)
+    }
+
     /** The profile of the app in front, or null when profiles are off or that app has none. */
     private fun frontProfile(): Profile? =
         if (settings.profilesOn) state.foreground?.let { Profiles(settings.profiles).forApp(it.token) } else null
@@ -807,7 +878,32 @@ class MainActivity :
         if (screen == Screen.SURFACE) goTo(Screen.SURFACE)
     }
 
+
+    /** A frame of the selected laptop: the dashboard screens redraw from the kinds they show, and a gone ask leaves. */
+    private fun refreshDashboard(frame: Frame) {
+        if (frame !is Frame.Text) return
+        if (frame.kind == TextKind.PERM_GONE.id) syncPerm()
+        val kind = TextKind.of(frame.kind)
+        if (kind == TextKind.FEATURES || kind == TextKind.UNAVAILABLE) {
+            systemScreen?.refresh()
+            aiScreen?.refresh()
+            githubScreen?.refresh()
+            return
+        }
+        when (kind) {
+            TextKind.STATS, TextKind.STATS_INFO, TextKind.DISKS -> systemScreen?.refresh()
+            TextKind.SESSIONS, TextKind.LIMITS, TextKind.SPEND -> aiScreen?.refresh()
+            else -> Unit
+        }
+    }
     /** Tells the laptop to stop looking, once per watch, and not at all when there is no link to tell. */
+    /** Takes the watch back from the laptop being left, whatever it was told, before the selection moves on. */
+    private fun unwatchDash() {
+        if (dashMask == 0) return
+        dashMask = 0
+        manager.send(ControlId.DASH_WATCH.set(0))
+    }
+
     private fun unwatchMacros() {
         if (!watchingMacros) return
         watchingMacros = false
@@ -964,6 +1060,7 @@ class MainActivity :
         if (manager.reconnect != settings.reconnect) manager.reconnect = settings.reconnect
         val previous = screen
         screen = next
+        syncDashWatch()
         // Only the surface follows the app in front: every settings page edits the defaults.
         settings.activeProfile = if (next == Screen.SURFACE) frontProfile() else null
         surface = null
@@ -973,6 +1070,9 @@ class MainActivity :
         reconnecting = null
         macros = null
         appList = null
+        systemScreen = null
+        aiScreen = null
+        githubScreen = null
         controls = null
         handler.removeCallbacks(ticker)
         if (next == Screen.PAIRING) startScan() else stopScan()
@@ -1253,6 +1353,18 @@ class MainActivity :
                     ) { navigateBack() }.also { appList = it }.view
                 }
 
+                Screen.SYSTEM -> {
+                    SystemScreen(ui, { state }) { navigateBack() }.also { systemScreen = it }.view
+                }
+
+                Screen.AI -> {
+                    AiScreen(ui, { state }) { navigateBack() }.also { aiScreen = it }.view
+                }
+
+                Screen.GITHUB -> {
+                    GitHubScreen(ui, { state }) { navigateBack() }.also { githubScreen = it }.view
+                }
+
                 Screen.RECONNECTING -> {
                     val lost =
                         ReconnectingScreen(
@@ -1333,6 +1445,7 @@ class MainActivity :
         if (next in immersive) view.layoutDirection = View.LAYOUT_DIRECTION_LTR
         showScreen(view, previous, next)
         applyOrientation()
+        syncPerm()
         // The bars are see-through over the page, whose own background is the ground, so they take its colour.
         // Left to the default, three-button navigation would lay a translucent scrim over the ground instead.
         window.isNavigationBarContrastEnforced = false
@@ -1496,7 +1609,9 @@ class MainActivity :
             }
 
             // These are opened from the Controls popup over the surface, so back returns to it.
-            Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE, Screen.PRESENTER -> {
+            Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE, Screen.PRESENTER,
+            Screen.SYSTEM, Screen.AI, Screen.GITHUB,
+            -> {
                 goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
                 // AND-A-32: back lands where the user came from, so the popup opens again over the surface.
                 if (connected) surface?.post { openControls() }
@@ -1786,6 +1901,7 @@ class MainActivity :
                 { owner.isDialsHidden },
                 owner::setDialsHidden,
                 reasons = { state.unavailable },
+                features = { state.features },
                 endOffered = { Feature.END_ACTION in state.features },
                 endArmed = { state.endAction },
                 hasTimeline = { state.duration > 0 },
@@ -1802,6 +1918,9 @@ class MainActivity :
                     ControlsPopup.Target.ANNOTATE -> goTo(Screen.ANNOTATE)
                     ControlsPopup.Target.CLIPBOARD -> openClipboardHistory()
                     ControlsPopup.Target.PRESENTER -> goTo(Screen.PRESENTER)
+                    ControlsPopup.Target.SYSTEM -> goTo(Screen.SYSTEM)
+                    ControlsPopup.Target.AI -> goTo(Screen.AI)
+                    ControlsPopup.Target.GITHUB -> goTo(Screen.GITHUB)
                 }
             }.also { it.show(owner, controlsCapture(), controlsAnnotate()) }
     }
@@ -2583,6 +2702,7 @@ class MainActivity :
             CaptureInbox.owner = laptop.link?.id
             watchingMacros = false
             watchingForeground = false
+            dashMask = 0
             listingApps = false
             picker.setRtt(Double.NaN)
             picker.setMessage("")
@@ -2703,6 +2823,8 @@ class MainActivity :
         }
         if (laptop !== selected) return
         if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) syncForegroundWatch()
+        if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) syncDashWatch()
+        refreshDashboard(frame)
         if (frame is Frame.Text && frame.kind == TextKind.FOREGROUND_APP.id) followForeground()
         surface?.stateChanged()
         floating?.takeIf { it.isShown }?.stateChanged()
@@ -2789,7 +2911,9 @@ class MainActivity :
         }
         watchingMacros = false
         watchingForeground = false
+        dashMask = 0
         listingApps = false
+        syncPerm()
         val answering = screen
         // Devices is where the reason is shown, so an attempt that ends at the PIN or a pairing code goes there first.
         if (screen == Screen.PIN || screen == Screen.PAIR_CODE) goTo(Screen.PAIRING)
@@ -2863,6 +2987,7 @@ class MainActivity :
         endAnnotate()
         unwatchMacros()
         cancelApps()
+        unwatchDash()
         if (screen in laptopScreens) findViewById<ViewGroup>(android.R.id.content).removeAllViews()
     }
 
@@ -2870,7 +2995,10 @@ class MainActivity :
     override fun onSelected(laptop: Laptop?) {
         // The watch belonged to the laptop before; the new one is asked afresh once it has named its features.
         watchingForeground = false
+        dashMask = 0
         syncForegroundWatch()
+        syncDashWatch()
+        syncPerm()
         refreshBlobLinks()
         // The dials were built on the old laptop's state; dropped here, syncService builds them on the new one.
         floating?.hide()
@@ -3062,7 +3190,13 @@ class MainActivity :
                 Screen.CAPTURE,
                 Screen.ANNOTATE,
                 Screen.PRESENTER,
+                Screen.SYSTEM,
+                Screen.AI,
+                Screen.GITHUB,
             )
+
+        /** What a laptop names when it can answer DASH_WATCH: one of these, or the phone never sends it. */
+        val DASH_FEATURES = setOf(Feature.STATS, Feature.WEATHER, Feature.CLAUDE, Feature.CODEX, Feature.GITHUB)
 
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2

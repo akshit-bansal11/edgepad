@@ -24,6 +24,7 @@ class BlobRoutes {
         MEDIA(setOf(BlobKind.MEDIA_ICON)),
         NOTIFY(setOf(BlobKind.NOTIFICATION)),
         GITHUB(setOf(BlobKind.GITHUB)),
+        PERM(setOf(BlobKind.PERM_ASK)),
         ;
 
         companion object {

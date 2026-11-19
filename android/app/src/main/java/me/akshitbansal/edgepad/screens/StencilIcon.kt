@@ -22,7 +22,7 @@ class StencilIcon(
     ink: Int,
     accent: Int,
 ) : Drawable() {
-    enum class Kind { KEYBOARD, GAMEPAD, MACROS, CAPTURE, ANNOTATE, CLIPBOARD, PRESENTER }
+    enum class Kind { KEYBOARD, GAMEPAD, MACROS, CAPTURE, ANNOTATE, CLIPBOARD, PRESENTER, SYSTEM, AI, GITHUB }
 
     /** One shape: filled, or stroked at [width] (filled and stroked when [style] says so). */
     private class Part(
@@ -175,6 +175,51 @@ class StencilIcon(
                         Paint.Cap.ROUND,
                     )
                 accentParts += Part(shape { addCircle(34f, 21f, 3.6f, Path.Direction.CW) })
+            }
+
+            Kind.SYSTEM -> {
+                inkParts += Part(shape { card(3f, 6f, 42f, 28f, 5f) })
+                inkParts += Part(shape { card(16f, 38f, 16f, 4f, 2f) })
+                holes +=
+                    Part(
+                        shape {
+                            moveTo(9f, 21f)
+                            lineTo(16f, 21f)
+                            lineTo(20f, 12f)
+                            lineTo(26f, 27f)
+                            lineTo(29f, 21f)
+                        },
+                        Paint.Style.STROKE,
+                        2.6f,
+                        Paint.Cap.ROUND,
+                    )
+                accentParts += Part(shape { addCircle(36f, 21f, 3.6f, Path.Direction.CW) })
+            }
+
+            Kind.AI -> {
+                inkParts += Part(shape { addCircle(24f, 24f, 21f, Path.Direction.CW) })
+                holes += Part(shape { addCircle(24f, 24f, 14f, Path.Direction.CW) })
+                accentParts += Part(shape { addCircle(24f, 24f, 5f, Path.Direction.CW) })
+            }
+
+            Kind.GITHUB -> {
+                inkParts +=
+                    Part(
+                        shape {
+                            moveTo(13f, 10f)
+                            lineTo(13f, 38f)
+                            moveTo(35f, 18f)
+                            cubicTo(35f, 29f, 13f, 26f, 13f, 32f)
+                        },
+                        Paint.Style.STROKE,
+                        3.6f,
+                        Paint.Cap.ROUND,
+                    )
+                inkParts += Part(shape { addCircle(13f, 10f, 6f, Path.Direction.CW) })
+                inkParts += Part(shape { addCircle(13f, 38f, 6f, Path.Direction.CW) })
+                holes += Part(shape { addCircle(13f, 10f, 2.4f, Path.Direction.CW) })
+                holes += Part(shape { addCircle(13f, 38f, 2.4f, Path.Direction.CW) })
+                accentParts += Part(shape { addCircle(35f, 18f, 6f, Path.Direction.CW) })
             }
         }
     }

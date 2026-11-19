@@ -78,6 +78,8 @@ class ControlsPopup(
     private val onHideDials: (Boolean) -> Unit,
     /** TEXT 24: why the laptop cannot offer a feature right now, by [Feature.token]. Empty from an older laptop. */
     private val reasons: () -> Map<String, UnavailableReason> = { emptyMap() },
+    /** The features the laptop named in TEXT 9: the System, AI and GitHub tiles are dimmed without theirs. */
+    private val features: () -> Set<Feature> = { emptySet() },
     /** Whether TEXT 9 names [Feature.END_ACTION]: the "when this ends" row is hidden without it. */
     private val endOffered: () -> Boolean = { false },
     /** TEXT 25: what the laptop has armed. */
@@ -106,6 +108,9 @@ class ControlsPopup(
         ANNOTATE(R.string.controls_annotate, StencilIcon.Kind.ANNOTATE),
         CLIPBOARD(R.string.controls_clipboard, StencilIcon.Kind.CLIPBOARD),
         PRESENTER(R.string.controls_presenter, StencilIcon.Kind.PRESENTER),
+        SYSTEM(R.string.controls_system, StencilIcon.Kind.SYSTEM),
+        AI(R.string.controls_ai, StencilIcon.Kind.AI),
+        GITHUB(R.string.controls_github, StencilIcon.Kind.GITHUB),
     }
 
     private var dialog: AlertDialog? = null
@@ -390,6 +395,9 @@ class ControlsPopup(
         when (target) {
             Target.CAPTURE -> capture
             Target.ANNOTATE -> annotate
+            Target.SYSTEM -> Feature.STATS in features()
+            Target.AI -> Feature.CLAUDE in features() || Feature.CODEX in features()
+            Target.GITHUB -> Feature.GITHUB in features()
             else -> true
         }
 
@@ -403,7 +411,7 @@ class ControlsPopup(
             tag = target.ordinal,
             picture = StencilIcon(target.icon, ui.palette.ink, ui.palette.accent),
             spoken = R.string.controls_open,
-            note = if (available) null else ui.string(reasonText(reasons()[featureOf(target)?.token])),
+            note = if (available) null else ui.string(unavailableNote(target)),
         )
 
     // Not a [Target]: those open MainActivity's screens, and a send opens the system picker.
@@ -417,10 +425,19 @@ class ControlsPopup(
             note = if (laptopConnected()) null else ui.string(R.string.xfer_no_laptop),
         )
 
-    private fun featureOf(target: Target): Feature? =
-        when (target) {
-            Target.CAPTURE -> Feature.CAPTURE
-            Target.ANNOTATE -> Feature.ANNOTATE
-            else -> null
+    // The laptop's own reason when it gave one; the dashboard tiles say how to turn them on when it gave none.
+    private fun unavailableNote(target: Target): Int {
+        val reason = reasons()
+        return when (target) {
+            Target.CAPTURE -> reasonText(reason[Feature.CAPTURE.token])
+            Target.ANNOTATE -> reasonText(reason[Feature.ANNOTATE.token])
+            Target.SYSTEM -> dashNote(reason[Feature.STATS.token])
+            Target.AI -> dashNote(reason[Feature.CLAUDE.token] ?: reason[Feature.CODEX.token])
+            Target.GITHUB -> dashNote(reason[Feature.GITHUB.token])
+            else -> reasonText(null)
         }
+    }
+
+    private fun dashNote(reason: UnavailableReason?): Int =
+        if (reason == null) R.string.controls_dash_off else reasonText(reason)
 }

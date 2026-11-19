@@ -5,6 +5,7 @@ import android.os.Looper
 import me.akshitbansal.edgepad.link.blob.AppBlobSink
 import me.akshitbansal.edgepad.link.blob.GitHubSink
 import me.akshitbansal.edgepad.link.blob.MediaIconSink
+import me.akshitbansal.edgepad.link.blob.PermSink
 import me.akshitbansal.edgepad.link.notify.NotificationSink
 import me.akshitbansal.edgepad.link.notify.NotifyLimiter
 import me.akshitbansal.edgepad.link.notify.PhoneNotifier
@@ -60,7 +61,11 @@ class AppLinks(
     /** Told, on the main thread, that a laptop's [LaptopState.github] got a new list. */
     var onGithub: ((Laptop) -> Unit)? = null
 
+    /** Told, on the main thread, that a laptop's [LaptopState.permAsks] got a new approval. */
+    var onPermAsk: ((Laptop) -> Unit)? = null
+
     private val githubLinks = ArrayList<ManagedLink>()
+    private val permLinks = ArrayList<ManagedLink>()
     private val mediaLinks = ArrayList<ManagedLink>()
     private val notifyLinks = ArrayList<ManagedLink>()
     private val limiter = NotifyLimiter()
@@ -103,6 +108,22 @@ class AppLinks(
                         if (githubLinks.any { it === link }) {
                             laptop.state.setGithub(rows)
                             onGithub?.invoke(laptop)
+                        }
+                    }
+                }
+            sink::take
+        }
+        val agents =
+            laptops.filter {
+                it.connected && (Feature.CLAUDE in it.state.features || Feature.CODEX in it.state.features)
+            }
+        sync(BlobRoutes.Lane.PERM, permLinks, agents) { laptop, link ->
+            val sink =
+                PermSink { ask ->
+                    post {
+                        if (permLinks.any { it === link }) {
+                            laptop.state.addPermAsk(ask)
+                            onPermAsk?.invoke(laptop)
                         }
                     }
                 }
