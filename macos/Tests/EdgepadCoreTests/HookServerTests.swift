@@ -424,7 +424,8 @@ final class HookServerTests: XCTestCase {
 
     func testOtherKindsPrintNothingAndUnknownArgumentsSendNothing() throws {
         let hook = "{\"hook_event_name\":\"Stop\",\"session_id\":\"s\"}"
-        let (output, sent) = try runClient(["--hook", "claude", "session"], stdin: hook, reply: "{\"v\":1,\"ok\":true}")
+        let (output, sent) = try runClient(
+            ["--hook", "claude", "session"], stdin: hook, reply: "{\"v\":1,\"ok\":true}")
         XCTAssertNil(output)
         XCTAssertNotNil(sent.flatMap { HookProtocol.parse(Array($0.utf8)) })
 

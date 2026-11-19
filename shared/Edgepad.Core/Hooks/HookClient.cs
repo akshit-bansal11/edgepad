@@ -404,7 +404,7 @@ internal static class HookClient
 
     // A current-user-only client: on Windows the pipe's owner must be this user; on Unix a rooted name is the socket path and the
     // peer's uid must be this process's.
-    private static Stream ConnectPipe(string endpoint, TimeSpan timeout)
+    private static NamedPipeClientStream ConnectPipe(string endpoint, TimeSpan timeout)
     {
         var name = OperatingSystem.IsWindows() ? endpoint[PipeRoot.Length..] : endpoint;
         var pipe = new NamedPipeClientStream(".", name, PipeDirection.InOut, PipeOptions.CurrentUserOnly);

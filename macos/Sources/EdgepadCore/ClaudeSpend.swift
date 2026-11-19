@@ -293,10 +293,12 @@ public final class ClaudeSpend {
             // A file left for later keeps what it had; only a whole scan drops the files that went.
             kept.merge(cache) { new, _ in new }
         }
-        let changed = kept.count != cache.count || kept.contains { key, entry in
-            guard let old = cache[key] else { return true }
-            return old.size != entry.size || old.stamp != entry.stamp || old.from != entry.from
-        }
+        let changed =
+            kept.count != cache.count
+            || kept.contains { key, entry in
+                guard let old = cache[key] else { return true }
+                return old.size != entry.size || old.stamp != entry.stamp || old.from != entry.from
+            }
         cache = kept
         if changed {
             cacheDirty = true
