@@ -55,7 +55,7 @@ public sealed class HookProtocolTests
     [InlineData("url")]
     public void AFieldCutAt16KIsMarkedTruncated(string field)
     {
-        string Line(int n) => $$"""{"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":{"{{field}}":"{{new string('x', n)}}"}}}""";
+        string Line(int n) => $$$$"""{"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":{"{{{{field}}}}":"{{{{new string('x', n)}}}}"}}}""";
 
         var exact = Assert.IsType<PermRequest>(HookProtocol.TryParse(Encoding.UTF8.GetBytes(Line(HookProtocol.MaxTextLength))));
         Assert.False(exact.Input.Truncated);
@@ -68,7 +68,7 @@ public sealed class HookProtocolTests
     {
         var part = new string('x', 1000);
         var parts = string.Join(',', Enumerable.Repeat($"\"{part}\"", 17));
-        var line = $$"""{"v":1,"token":"T","agent":"codex","kind":"perm","d":{"tool_name":"shell","tool_input":{"command":[{{parts}}]}}}""";
+        var line = $$$$"""{"v":1,"token":"T","agent":"codex","kind":"perm","d":{"tool_name":"shell","tool_input":{"command":[{{{{parts}}}}]}}}""";
         var request = Assert.IsType<PermRequest>(HookProtocol.TryParse(Encoding.UTF8.GetBytes(line)));
         Assert.True(request.Input.Truncated);
         Assert.Equal(HookProtocol.MaxTextLength, request.Input.Command!.Length);

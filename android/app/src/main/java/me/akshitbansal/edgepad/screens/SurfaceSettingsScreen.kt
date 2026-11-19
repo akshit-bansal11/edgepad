@@ -75,6 +75,8 @@ object SurfaceSettingsScreen {
                 }
             }
             footnote(ui.string(R.string.widgets_hint))
+            // Open-Meteo's licence (CC BY 4.0) asks for this credit wherever its data is shown.
+            footnote(ui.string(R.string.wx_credit))
             if (settings.airMouse) {
                 section(ui.string(R.string.air_title))
                 card(Space.L) {

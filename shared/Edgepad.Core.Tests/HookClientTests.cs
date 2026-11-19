@@ -221,7 +221,7 @@ public sealed class HookClientTests : IDisposable
         var server = new FakeServer("""{"v":1,"decision":"defer"}""");
         foreach (var n in new[] { HookClient.InputCap, HookClient.InputCap + 1 })
         {
-            HookClient.Run(["--hook", "claude", "perm"], new StringReader($$"""{"tool_name":"Bash","tool_input":{"command":"{{new string('a', n)}}"}}"""), new StringWriter(), server.Options(HookFile()));
+            HookClient.Run(["--hook", "claude", "perm"], new StringReader($$$"""{"tool_name":"Bash","tool_input":{"command":"{{{new string('a', n)}}}"}}"""), new StringWriter(), server.Options(HookFile()));
         }
 
         var requests = server.Requests.ToList();
