@@ -65,6 +65,26 @@ internal sealed class LinuxSecretStore(ISecretService service, string folder) : 
 
         lock (gate)
         {
+            // A plain file copy is the newer one whenever it exists: it is written only after the keyring refused a save, and
+            // every save the keyring takes deletes it. So it wins over a keyring item, and moves into the keyring (then goes)
+            // as soon as the keyring takes it.
+            var fromFile = ReadFile(name);
+            if (fromFile is not null)
+            {
+                if (Session() is { } open && service.DefaultCollection() is { } collection && collection != "/"
+                    && service.Create(collection, open, $"Edgepad {name}", Attributes(name), Encoding.UTF8.GetBytes(fromFile)))
+                {
+                    encrypted = true;
+                    DeleteFile(name);
+                }
+                else
+                {
+                    encrypted = false;
+                }
+
+                return fromFile;
+            }
+
             if (Session() is { } s && service.Search(Attributes(name)) is { Unlocked: { Length: > 0 } unlocked })
             {
                 if (service.GetSecret(unlocked[0], s) is { } bytes)
@@ -75,13 +95,7 @@ internal sealed class LinuxSecretStore(ISecretService service, string folder) : 
                 session = null;
             }
 
-            var fromFile = ReadFile(name);
-            if (fromFile is not null)
-            {
-                encrypted = false;
-            }
-
-            return fromFile;
+            return null;
         }
     }
 

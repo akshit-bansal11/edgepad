@@ -1,3 +1,4 @@
+using System.Text;
 using Edgepad.Dashboard;
 using Xunit;
 
@@ -120,6 +121,37 @@ public sealed class LinuxSecretStoreTests : IDisposable
         Assert.True(store.Set("github.token", "new"));
         Assert.False(File.Exists(Path.Combine(folder, "github.token")));
         Assert.Equal("new", store.Get("github.token"));
+    }
+
+    [Fact]
+    public void ANewerFileCopyMovesIntoTheKeyringAndIsDeleted()
+    {
+        var service = new FakeService();
+        var store = new LinuxSecretStore(service, folder);
+        Assert.True(store.Set("github.token", "old"));
+
+        // The keyring was away for one save: the file holds the newer value beside the older item.
+        service.Present = false;
+        Assert.True(store.Set("github.token", "new"));
+        Assert.True(File.Exists(Path.Combine(folder, "github.token")));
+        service.Present = true;
+
+        Assert.Equal("new", store.Get("github.token"));
+        Assert.True(store.IsEncrypted);
+        Assert.False(File.Exists(Path.Combine(folder, "github.token")));
+        Assert.Equal("new", Encoding.UTF8.GetString(Assert.Single(service.Items).Value.Secret));
+        Assert.Equal("new", store.Get("github.token"));
+    }
+
+    [Fact]
+    public void AFileTheKeyringCannotTakeYetStaysAndWins()
+    {
+        var service = new FakeService { Locked = true };
+        var store = new LinuxSecretStore(service, folder);
+        Assert.True(store.Set("github.token", "kept"));
+        Assert.Equal("kept", store.Get("github.token"));
+        Assert.False(store.IsEncrypted);
+        Assert.True(File.Exists(Path.Combine(folder, "github.token")));
     }
 
     private sealed class FakeService : ISecretService
