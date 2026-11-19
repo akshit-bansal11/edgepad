@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.link
 
+import me.akshitbansal.edgepad.protocol.AgentToken
 import me.akshitbansal.edgepad.protocol.CaptureStateToken
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
@@ -497,6 +498,33 @@ class LaptopStateTest {
         state.take(Frame.Text(TextKind.FOREGROUND_APP.id, "code.exe/Code"))
         state.forgetFeatures()
         assertNull(state.foreground)
+    }
+
+    @Test
+    fun keepsTheDashboardNumbersAndForgetsThemWithTheLink() {
+        assertTrue(state.take(Frame.Text(TextKind.STATS.id, "12/48/-1/-1/1200/340/9/0/55/-1/-1")))
+        assertEquals(12, state.stats.latest(StatsRing.CPU))
+        assertFalse(state.take(Frame.Text(TextKind.STATS.id, "1/2/3")))
+        state.take(Frame.Text(TextKind.SESSIONS.id, "claude:busy:Fix"))
+        state.take(Frame.Text(TextKind.LIMITS.id, "claude:300:42:1:2|claude:5h:1:1:1"))
+        state.take(Frame.Text(TextKind.WEATHER.id, "185/3/Oslo"))
+        assertEquals(1, state.sessions.size)
+        assertEquals(1, state.limits.size)
+        assertEquals("Oslo", state.weather?.city)
+        state.take(Frame.Text(TextKind.WEATHER.id, ""))
+        assertNull(state.weather)
+        state.forgetFeatures()
+        assertEquals(0, state.stats.size)
+        assertTrue(state.sessions.isEmpty() && state.limits.isEmpty() && state.permAsks.isEmpty())
+    }
+
+    @Test
+    fun holdsAtMostFourApprovalsAndDropsOneTheLaptopSaysIsGone() {
+        for (i in 1..5) state.addPermAsk(PermAsk("00000000000$i", true, AgentToken.CLAUDE, "Bash", "ls"))
+        assertEquals(LaptopState.MAX_ASKS, state.permAsks.size)
+        assertEquals("000000000002", state.permAsks.first().id)
+        state.take(Frame.Text(TextKind.PERM_GONE.id, "000000000003"))
+        assertEquals(listOf("000000000002", "000000000004", "000000000005"), state.permAsks.map { it.id })
     }
 
     private companion object {

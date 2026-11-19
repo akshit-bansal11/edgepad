@@ -126,6 +126,63 @@ class LaptopState {
         nowPlayingFull = ""
         mediaIcons.clear()
         foreground = null
+        forgetDashboard()
+    }
+
+    /** TEXT 27: the last minute of system numbers. */
+    val stats = StatsRing()
+
+    /** TEXT 28. */
+    var statsInfo: StatsInfo? = null
+        private set
+
+    /** TEXT 29. */
+    var disks: List<DiskEntry> = emptyList()
+        private set
+
+    /** TEXT 30: agent sessions, newest first. */
+    var sessions: List<SessionEntry> = emptyList()
+        private set
+
+    /** TEXT 33. */
+    var limits: List<LimitEntry> = emptyList()
+        private set
+
+    /** TEXT 34. */
+    var spend: List<SpendEntry> = emptyList()
+        private set
+
+    /** TEXT 35: null when the laptop has no weather. */
+    var weather: WeatherInfo? = null
+        private set
+
+    /** BLOB 7, set by the blob reader through [setGithub]. */
+    var github: List<GithubRow> = emptyList()
+        private set
+
+    /** BLOB 6: approvals waiting for an answer, oldest first, at most [MAX_ASKS]. */
+    var permAsks: List<PermAsk> = emptyList()
+        private set
+
+    /** Adds [ask], replacing one with the same id; the oldest goes when there are more than [MAX_ASKS]. */
+    fun addPermAsk(ask: PermAsk) {
+        permAsks = (permAsks.filter { it.id != ask.id } + ask).takeLast(MAX_ASKS)
+    }
+
+    fun setGithub(rows: List<GithubRow>) {
+        github = rows
+    }
+
+    private fun forgetDashboard() {
+        stats.clear()
+        statsInfo = null
+        disks = emptyList()
+        sessions = emptyList()
+        limits = emptyList()
+        spend = emptyList()
+        weather = null
+        github = emptyList()
+        permAsks = emptyList()
     }
 
     /**
@@ -270,6 +327,14 @@ class LaptopState {
                     TextKind.END_ACTION -> endAction = EndActionToken.of(frame.text)
                     TextKind.NOW_PLAYING_FULL -> nowPlayingFull = frame.text
                     TextKind.FOREGROUND_APP -> foreground = ForegroundApp.parse(frame.text)
+                    TextKind.STATS -> stats.push(DashWire.stats(frame.text) ?: return false)
+                    TextKind.STATS_INFO -> statsInfo = DashWire.statsInfo(frame.text) ?: return false
+                    TextKind.DISKS -> disks = DashWire.disks(frame.text)
+                    TextKind.SESSIONS -> sessions = DashWire.sessions(frame.text)
+                    TextKind.LIMITS -> limits = DashWire.limits(frame.text)
+                    TextKind.SPEND -> spend = DashWire.spend(frame.text)
+                    TextKind.WEATHER -> weather = DashWire.weather(frame.text)
+                    TextKind.PERM_GONE -> permAsks = permAsks.filter { it.id != frame.text }
                     null -> return dropText()
                     else -> return false
                 }
@@ -442,6 +507,9 @@ class LaptopState {
 
         /** The most TEXT 22 may raise [macroCap] to. */
         const val MACRO_SLOTS_MAX = 32
+
+        /** The most approvals held at once. */
+        const val MAX_ASKS = 4
 
         private const val FLAG_BIT = 1
 

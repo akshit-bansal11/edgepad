@@ -1,0 +1,375 @@
+package me.akshitbansal.edgepad.link
+
+import me.akshitbansal.edgepad.protocol.AgentToken
+import me.akshitbansal.edgepad.protocol.CiToken
+import me.akshitbansal.edgepad.protocol.SessionStateToken
+import me.akshitbansal.edgepad.protocol.LimitWindow as WireWindow
+
+/** TEXT STATS: -1 is unknown. Percents are 0..100, rates KiB/s, ping ms, temperatures C, power W. */
+data class StatsSample(
+    val cpu: Int,
+    val ram: Int,
+    val gpu: Int,
+    val vram: Int,
+    val down: Int,
+    val up: Int,
+    val ping: Int,
+    val loss: Int,
+    val cpuTemp: Int,
+    val gpuTemp: Int,
+    val gpuPower: Int,
+)
+
+/** TEXT STATS_INFO. A MiB of -1 is unknown; an empty name is unknown. */
+data class StatsInfo(
+    val cpuName: String,
+    val ramMiB: Int,
+    val gpuName: String,
+    val vramMiB: Int,
+    val netName: String,
+)
+
+/** One TEXT DISKS entry. -1 is unknown. */
+data class DiskEntry(
+    val label: String,
+    val usedPct: Int,
+    val totalGiB: Int,
+    val freeGiB: Int,
+)
+
+/** One TEXT SESSIONS entry. */
+data class SessionEntry(
+    val agent: AgentToken,
+    val state: SessionStateToken,
+    val title: String,
+)
+
+/** The window of a TEXT LIMITS entry: a length in minutes, the session's context, or a named limit with no length. */
+sealed interface LimitWindow {
+    /** The wire form, which [DashWire.limitWindow] parses back. */
+    val text: String
+
+    data class Minutes(
+        val minutes: Int,
+    ) : LimitWindow {
+        override val text: String get() = minutes.toString()
+    }
+
+    data object Context : LimitWindow {
+        override val text: String get() = WireWindow.CONTEXT
+    }
+
+    data class Named(
+        val name: String,
+    ) : LimitWindow {
+        override val text: String get() = WireWindow.NAMED_PREFIX + name
+    }
+}
+
+/** One TEXT LIMITS entry. Times are UTC minutes since the Unix epoch, -1 unknown. */
+data class LimitEntry(
+    val agent: AgentToken,
+    val window: LimitWindow,
+    val pct: Int,
+    val resetAtMin: Long,
+    val measuredAtMin: Long,
+)
+
+/** One TEXT SPEND entry: tokens (uncached input plus output) and estimated cents, by period. */
+data class SpendEntry(
+    val agent: AgentToken,
+    val measuredAtMin: Long,
+    val tokToday: Long,
+    val centsToday: Long,
+    val tokWeek: Long,
+    val centsWeek: Long,
+    val tokMonth: Long,
+    val centsMonth: Long,
+)
+
+/** TEXT WEATHER. [wmoCode] -1 is unknown. */
+data class WeatherInfo(
+    val tempTenthsC: Int,
+    val wmoCode: Int,
+    val city: String,
+)
+
+/** BLOB PERM_ASK, decoded. [complete] false means the text was over the cap and was not sent: answer on the laptop. */
+data class PermAsk(
+    val id: String,
+    val complete: Boolean,
+    val agent: AgentToken,
+    val tool: String,
+    val text: String,
+)
+
+enum class GithubSection(
+    val char: Char,
+) {
+    REVIEW('R'),
+    MINE('M'),
+    NOTIFICATIONS('N'),
+    ;
+
+    companion object {
+        fun of(token: String): GithubSection? =
+            if (token.length == 1) entries.firstOrNull { it.char == token[0] } else null
+    }
+}
+
+/** One BLOB GITHUB line. For [GithubSection.NOTIFICATIONS], [number] is the count and the rest is empty. */
+data class GithubRow(
+    val section: GithubSection,
+    val repo: String,
+    val number: Int,
+    val title: String,
+    val draft: Boolean,
+    val ci: CiToken,
+)
+
+/**
+ * The decoders of the dashboard wire (TEXT 27..30 and 33..35, BLOB PERM_ASK and GITHUB), held to
+ * protocol/dashboard-vectors.txt. Pure and never throwing: a hostile or short payload yields an empty list or null,
+ * an entry that does not parse is dropped and the rest still count.
+ */
+object DashWire {
+    private const val STATS_FIELDS = 11
+    private const val INFO_FIELDS = 5
+    private const val DISK_FIELDS = 4
+    private const val LIMIT_FIELDS = 5
+    private const val SPEND_FIELDS = 8
+    private const val WEATHER_FIELDS = 3
+    private const val GITHUB_FIELDS = 6
+    private const val PERM_PARTS = 3
+    private const val PERCENT_MAX = 100
+    private const val MAX_DISKS = 6
+    private const val MAX_SESSIONS = 8
+    private const val MAX_PER_SECTION = 10
+    private const val MAX_ASK_BYTES = 4096
+    private const val MAX_TOOL = 24
+    private const val MAX_MINUTES = 525_600
+    private const val TEMP_MAX = 999
+    private const val WMO_MAX = 99
+    private const val ID_LENGTH = 12
+
+    /** Indexes of the percent fields of STATS: cpu, ram, gpu, vram and packet loss. */
+    private val percentFields = setOf(0, 1, 2, 3, 7)
+
+    private val toolPattern = Regex("[A-Za-z0-9_.-]{1,$MAX_TOOL}")
+    private val idPattern = Regex("[0-9a-f]{$ID_LENGTH}")
+
+    fun stats(text: String): StatsSample? {
+        val parts = text.split('/')
+        if (parts.size != STATS_FIELDS) return null
+        val v =
+            parts.mapIndexed { index, part ->
+                val n = part.toIntOrNull() ?: return null
+                if (n < 0) -1 else if (index in percentFields) minOf(n, PERCENT_MAX) else n
+            }
+        return StatsSample(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], v[9], v[10])
+    }
+
+    fun statsInfo(text: String): StatsInfo? {
+        val parts = text.split('|')
+        if (parts.size != INFO_FIELDS) return null
+        val ram = parts[1].toIntOrNull() ?: return null
+        val vram = parts[3].toIntOrNull() ?: return null
+        return StatsInfo(parts[0], maxOf(ram, -1), parts[2], maxOf(vram, -1), parts[4])
+    }
+
+    fun disks(text: String): List<DiskEntry> =
+        entries(text).mapNotNull { entry ->
+            val p = entry.split(':')
+            val used = p.getOrNull(1)?.toIntOrNull()
+            val total = p.getOrNull(2)?.toIntOrNull()
+            val free = p.getOrNull(3)?.toIntOrNull()
+            if (p.size != DISK_FIELDS || used == null || total == null || free == null) {
+                null
+            } else {
+                DiskEntry(p[0], if (used < 0) -1 else minOf(used, PERCENT_MAX), maxOf(total, -1), maxOf(free, -1))
+            }
+        }.take(MAX_DISKS)
+
+    fun sessions(text: String): List<SessionEntry> =
+        entries(text).mapNotNull { entry ->
+            val p = entry.split(':', limit = 3)
+            val agent = AgentToken.of(p[0])
+            val state = p.getOrNull(1)?.let(SessionStateToken::of)
+            if (p.size != 3 || agent == null || state == null) null else SessionEntry(agent, state, p[2])
+        }.take(MAX_SESSIONS)
+
+    /** Null for an unknown form: zero, past a year, a leading zero or sign, a fraction, `5h`, an empty `~` name. */
+    fun limitWindow(text: String): LimitWindow? =
+        when {
+            text == WireWindow.CONTEXT -> {
+                LimitWindow.Context
+            }
+
+            text.startsWith(WireWindow.NAMED_PREFIX) -> {
+                text.substring(WireWindow.NAMED_PREFIX.length).takeIf { it.isNotBlank() }?.let(LimitWindow::Named)
+            }
+
+            else -> {
+                text
+                    .toIntOrNull()
+                    ?.takeIf { it in 1..MAX_MINUTES && it.toString() == text }
+                    ?.let(LimitWindow::Minutes)
+            }
+        }
+
+    fun limits(text: String): List<LimitEntry> =
+        entries(text).mapNotNull { entry ->
+            val p = entry.split(':')
+            val agent = AgentToken.of(p[0])
+            val window = p.getOrNull(1)?.let(::limitWindow)
+            val pct = p.getOrNull(2)?.toIntOrNull()
+            val reset = p.getOrNull(3)?.toLongOrNull()
+            val measured = p.getOrNull(4)?.toLongOrNull()
+            if (p.size != LIMIT_FIELDS) return@mapNotNull null
+            if (agent == null || window == null || pct == null) return@mapNotNull null
+            if (reset == null || measured == null) return@mapNotNull null
+            LimitEntry(agent, window, pct.coerceIn(0, PERCENT_MAX), maxOf(reset, -1L), maxOf(measured, -1L))
+        }
+
+    fun spend(text: String): List<SpendEntry> =
+        entries(text).mapNotNull { entry ->
+            val p = entry.split('/')
+            val agent = AgentToken.of(p[0])
+            val n = p.drop(1).map { it.toLongOrNull() }
+            if (p.size != SPEND_FIELDS || agent == null || n.any { it == null }) {
+                null
+            } else {
+                val v = n.filterNotNull()
+                SpendEntry(
+                    agent,
+                    maxOf(v[0], -1L),
+                    maxOf(v[1], 0L),
+                    maxOf(v[2], 0L),
+                    maxOf(v[3], 0L),
+                    maxOf(v[4], 0L),
+                    maxOf(v[5], 0L),
+                    maxOf(v[6], 0L),
+                )
+            }
+        }
+
+    /** Null for the empty payload (no weather) and for anything that is not `temp/wmo/city`. */
+    fun weather(text: String): WeatherInfo? {
+        val p = text.split('/', limit = WEATHER_FIELDS)
+        val temp = p.getOrNull(0)?.toIntOrNull()
+        val wmo = p.getOrNull(1)?.toIntOrNull()
+        if (p.size != WEATHER_FIELDS || temp == null || wmo == null) return null
+        return WeatherInfo(
+            temp.coerceIn(-TEMP_MAX, TEMP_MAX),
+            if (wmo in 0..WMO_MAX) wmo else -1,
+            p[2].replace('/', ' ').trim(),
+        )
+    }
+
+    /** The PERM_ASK label `id/f`: the id and whether the text is complete. Null for anything else. */
+    fun permLabel(label: String): Pair<String, Boolean>? {
+        val slash = label.indexOf('/')
+        if (slash != ID_LENGTH) return null
+        val id = label.substring(0, slash)
+        val flag = label.substring(slash + 1)
+        if (!idPattern.matches(id) || (flag != "0" && flag != "1")) return null
+        return id to (flag == "1")
+    }
+
+    /**
+     * The PERM_ASK body `agent\ntool\ntext`. Null when the agent is unknown, the tool is not 1..24 name characters
+     * or the body is over 4096 bytes.
+     */
+    fun permAsk(
+        id: String,
+        complete: Boolean,
+        body: ByteArray,
+    ): PermAsk? {
+        if (body.size > MAX_ASK_BYTES) return null
+        val p = String(body, Charsets.UTF_8).split('\n', limit = PERM_PARTS)
+        val agent = AgentToken.of(p[0])
+        if (p.size != PERM_PARTS || agent == null || !toolPattern.matches(p[1])) return null
+        return PermAsk(id, complete, agent, p[1], p[2])
+    }
+
+    fun github(body: ByteArray): List<GithubRow> {
+        val counts = HashMap<GithubSection, Int>()
+        return String(body, Charsets.UTF_8)
+            .split('\n')
+            .mapNotNull { line ->
+                val p = line.split('\t')
+                val section = GithubSection.of(p[0])
+                val number = p.getOrNull(2)?.toIntOrNull()
+                if (p.size != GITHUB_FIELDS || section == null || number == null || number < 0) {
+                    null
+                } else {
+                    val seen = counts.getOrDefault(section, 0)
+                    counts[section] = seen + 1
+                    if (seen >= MAX_PER_SECTION) {
+                        null
+                    } else {
+                        GithubRow(section, p[1], number, p[3], p[4] == "d", CiToken.of(p[5]))
+                    }
+                }
+            }
+    }
+
+    /** Every code point of Unicode category Cf, Zl or Zp: invisible, so never rendered raw (Trojan Source). */
+    fun isInvisible(codePoint: Int): Boolean =
+        when (Character.getType(codePoint).toByte()) {
+            Character.FORMAT, Character.LINE_SEPARATOR, Character.PARAGRAPH_SEPARATOR -> true
+            else -> false
+        }
+
+    private fun isControl(codePoint: Int): Boolean = Character.getType(codePoint).toByte() == Character.CONTROL
+
+    /** The laptop's Clean(text, n), so the vectors can hold both ends to the same text. */
+    fun clean(
+        text: String,
+        max: Int,
+    ): String {
+        val out = StringBuilder()
+        var gap = false
+        text.codePoints().forEach { cp ->
+            if (cp.toChar() in " |/:" && cp < SURROGATE_START || isControl(cp) || isInvisible(cp)) {
+                gap = out.isNotEmpty()
+            } else {
+                if (gap) out.append(' ')
+                gap = false
+                out.appendCodePoint(cp)
+            }
+        }
+        val s = out.toString()
+        val end = if (s.codePointCount(0, s.length) <= max) s.length else s.offsetByCodePoints(0, max)
+        return s.substring(0, end).trim()
+    }
+
+    /** The laptop's CleanText: keeps line feed and tab, drops other controls, shows invisible ones as `<U+XXXX>`. */
+    fun cleanText(text: String): String {
+        val out = StringBuilder()
+        text.codePoints().forEach { cp ->
+            when {
+                cp == '\n'.code || cp == '\t'.code -> out.append(cp.toChar())
+                isInvisible(cp) -> out.append("<U+").append(hex(cp)).append('>')
+                !isControl(cp) -> out.appendCodePoint(cp)
+            }
+        }
+        return out.toString()
+    }
+
+    private fun hex(cp: Int): String = cp.toString(HEX).uppercase().padStart(HEX_DIGITS, '0')
+
+    private const val HEX = 16
+    private const val HEX_DIGITS = 4
+    private const val SURROGATE_START = 0xD800
+
+    private fun entries(text: String): List<String> = if (text.isEmpty()) emptyList() else text.split('|')
+}
+
+/** The phone's one answer to an approval (TEXT PERM_ANSWER): exactly `id/a` or `id/d`. */
+object PermAnswer {
+    fun text(
+        id: String,
+        allow: Boolean,
+    ): String = id + '/' + if (allow) 'a' else 'd'
+}

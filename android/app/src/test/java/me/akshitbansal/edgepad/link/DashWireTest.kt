@@ -1,0 +1,251 @@
+package me.akshitbansal.edgepad.link
+
+import me.akshitbansal.edgepad.protocol.AgentToken
+import me.akshitbansal.edgepad.protocol.CiToken
+import me.akshitbansal.edgepad.protocol.SessionStateToken
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import java.io.File
+
+/** Runs protocol/dashboard-vectors.txt, which the C# and Swift suites read too, and the cases only this side has. */
+class DashWireTest {
+    @Test
+    fun everyVectorHoldsOnThisSide() {
+        var ran = 0
+        for (line in vectorFile().readLines(Charsets.UTF_8)) {
+            if (line.isBlank() || line.startsWith("#")) continue
+            val space = line.indexOf(' ')
+            val codec = line.substring(0, space)
+            val cut = line.indexOf(ARROW)
+            val args = line.substring(space + 1, cut)
+            val expected = unescape(line.substring(cut + ARROW.length))
+            val actual = run(codec, args, expected) ?: continue
+            assertEquals(line, expected, actual)
+            ran++
+        }
+        assertTrue("vectors ran: $ran", ran > 60)
+    }
+
+    /** Null when the codec is an encoder only the laptop has. */
+    private fun run(
+        codec: String,
+        args: String,
+        expected: String,
+    ): String? {
+        val input = if (args == EMPTY) "" else unescape(args)
+        return when (codec) {
+            "CLEAN" -> {
+                val sp = args.indexOf(' ')
+                DashWire.clean(unescape(args.substring(sp + 1)), args.substring(0, sp).toInt()).marked()
+            }
+
+            "CLEANTEXT" -> {
+                DashWire.cleanText(input).marked()
+            }
+
+            "STATSPARSE" -> {
+                DashWire.stats(input)?.wire() ?: NONE
+            }
+
+            "STATSINFOPARSE" -> {
+                DashWire.statsInfo(input)?.wire() ?: NONE
+            }
+
+            "DISKSPARSE" -> {
+                DashWire.disks(input).joinToString("|") { it.wire() }.marked()
+            }
+
+            "SESSIONSPARSE" -> {
+                DashWire.sessions(input).joinToString("|") { it.wire() }.marked()
+            }
+
+            "LIMITSPARSE" -> {
+                DashWire.limits(input).joinToString("|") { it.wire() }.marked()
+            }
+
+            "SPENDPARSE" -> {
+                DashWire.spend(input).joinToString("|") { it.wire() }.marked()
+            }
+
+            "WEATHERPARSE" -> {
+                DashWire.weather(input)?.let { "${it.tempTenthsC}/${it.wmoCode}/${it.city}" } ?: NONE
+            }
+
+            "PERMLABELPARSE" -> {
+                DashWire.permLabel(input)?.let { "${it.first} ${if (it.second) 1 else 0}" } ?: NONE
+            }
+
+            "PERMASKPARSE" -> {
+                val ask = DashWire.permAsk("0123456789ab", true, input.toByteArray(Charsets.UTF_8))
+                ask?.let { "${it.agent.token} @ ${it.tool} @ ${it.text.ifEmpty { EMPTY }}" } ?: NONE
+            }
+
+            "GITHUBPARSE" -> {
+                DashWire.github(input.toByteArray(Charsets.UTF_8)).joinToString("\n") { it.wire() }.marked()
+            }
+
+            "PERMANSWER" -> {
+                val allow = expected.startsWith("allow ")
+                if (allow || expected.startsWith("deny ")) {
+                    val id = expected.substringAfter(' ')
+                    // what the phone sends is exactly what the laptop accepts
+                    assertEquals(input, PermAnswer.text(id, allow))
+                }
+                null
+            }
+
+            else -> {
+                null
+            }
+        }
+    }
+
+    private fun StatsSample.wire() =
+        listOf(cpu, ram, gpu, vram, down, up, ping, loss, cpuTemp, gpuTemp, gpuPower).joinToString("/")
+
+    private fun StatsInfo.wire() = "$cpuName|$ramMiB|$gpuName|$vramMiB|$netName"
+
+    private fun DiskEntry.wire() = "$label:$usedPct:$totalGiB:$freeGiB"
+
+    private fun SessionEntry.wire() = "${agent.token}:${state.token}:$title"
+
+    private fun LimitEntry.wire() = "${agent.token}:${window.text}:$pct:$resetAtMin:$measuredAtMin"
+
+    private fun SpendEntry.wire() =
+        listOf(measuredAtMin, tokToday, centsToday, tokWeek, centsWeek, tokMonth, centsMonth)
+            .joinToString("/", prefix = agent.token + "/")
+
+    private fun GithubRow.wire(): String {
+        if (section == GithubSection.NOTIFICATIONS) return "N\t\t$number\t\t\tnone"
+        val flags = if (draft) "d" else ""
+        return "${section.char}\t$repo\t$number\t$title\t$flags\t${ci.token}"
+    }
+
+    private fun String.marked() = ifEmpty { EMPTY }
+
+    @Test
+    fun theRingWrapsAndKeepsOrder() {
+        val ring = StatsRing()
+        assertEquals(-1, ring.latest(StatsRing.CPU))
+        for (i in 1..(StatsRing.CAPACITY + 5)) ring.push(sample(i))
+        assertEquals(StatsRing.CAPACITY, ring.size)
+        assertEquals(6, ring.value(StatsRing.CPU, 0))
+        assertEquals(StatsRing.CAPACITY + 5, ring.latest(StatsRing.CPU))
+        assertEquals(StatsRing.CAPACITY + 5, ring.value(StatsRing.CPU, StatsRing.CAPACITY - 1))
+        ring.clear()
+        assertEquals(0, ring.size)
+        assertEquals(-1, ring.latest(StatsRing.GPU_POWER))
+    }
+
+    @Test
+    fun hostileAndShortPayloadsAreEmptyNotErrors() {
+        assertNull(DashWire.stats("1/2/3"))
+        assertNull(DashWire.statsInfo("a|b"))
+        assertEquals(emptyList<DiskEntry>(), DashWire.disks("garbage"))
+        assertEquals(emptyList<SessionEntry>(), DashWire.sessions("||::|"))
+        assertEquals(emptyList<LimitEntry>(), DashWire.limits(":::::|x"))
+        assertEquals(emptyList<SpendEntry>(), DashWire.spend("claude/1"))
+        assertNull(DashWire.weather(""))
+        assertNull(DashWire.permLabel("nope"))
+        assertNull(DashWire.permAsk("0123456789ab", true, ByteArray(5000)))
+        assertEquals(emptyList<GithubRow>(), DashWire.github(ByteArray(0)))
+    }
+
+    @Test
+    fun limitWindowsParseToTheThreeForms() {
+        assertEquals(LimitWindow.Minutes(300), DashWire.limitWindow("300"))
+        assertEquals(LimitWindow.Minutes(10080), DashWire.limitWindow("10080"))
+        assertEquals(LimitWindow.Minutes(43200), DashWire.limitWindow("43200"))
+        assertEquals(LimitWindow.Context, DashWire.limitWindow("ctx"))
+        assertEquals(LimitWindow.Named("spend_limit"), DashWire.limitWindow("~spend_limit"))
+        val bad = listOf("~", "5h", "0", "600000", "-5", "0300", "3.5", "CTX", "")
+        for (text in bad) assertNull(text, DashWire.limitWindow(text))
+    }
+
+    @Test
+    fun aBidiMarkerSurvivesAsPlainText() {
+        val body = "claude\nBash\nrm <U+202E>fdp.sh".toByteArray(Charsets.UTF_8)
+        assertEquals("rm <U+202E>fdp.sh", DashWire.permAsk("0123456789ab", true, body)?.text)
+    }
+
+    @Test
+    fun permAnswerIsByteExact() {
+        assertEquals("a1b2c3d4e5f6/a", PermAnswer.text("a1b2c3d4e5f6", true))
+        assertEquals("a1b2c3d4e5f6/d", PermAnswer.text("a1b2c3d4e5f6", false))
+    }
+
+    @Test
+    fun parsesTheTypedFields() {
+        val session = SessionEntry(AgentToken.CODEX, SessionStateToken.WAIT, "x")
+        assertEquals(session, DashWire.sessions("codex:wait:x").single())
+        assertEquals(CiToken.FAIL, DashWire.github("R\ta/b\t1\tt\t\tfail".toByteArray()).single().ci)
+    }
+
+    private fun sample(v: Int) = StatsSample(v, v, v, v, v, v, v, v, v, v, v)
+
+    private fun unescape(text: String): String {
+        val out = StringBuilder()
+        var i = 0
+        while (i < text.length) {
+            val c = text[i]
+            if (c != '\\') {
+                out.append(c)
+                i++
+                continue
+            }
+            when (text[i + 1]) {
+                't' -> {
+                    out.append('\t')
+                    i += 2
+                }
+
+                'n' -> {
+                    out.append('\n')
+                    i += 2
+                }
+
+                '\\' -> {
+                    out.append('\\')
+                    i += 2
+                }
+
+                'u' -> {
+                    val end = text.indexOf('}', i)
+                    out.appendCodePoint(text.substring(i + 3, end).toInt(16))
+                    i = end + 1
+                }
+
+                '{' -> {
+                    val end = text.indexOf('}', i)
+                    val star = text.indexOf('*', i)
+                    val unit = text.substring(star + 1, end)
+                    repeat(text.substring(i + 2, star).toInt()) { out.append(unit) }
+                    i = end + 1
+                }
+
+                else -> {
+                    error("bad escape in $text")
+                }
+            }
+        }
+        return out.toString()
+    }
+
+    private fun vectorFile(): File {
+        var dir: File? = File("").absoluteFile
+        while (dir != null) {
+            val candidate = File(dir, "protocol/dashboard-vectors.txt")
+            if (candidate.isFile) return candidate
+            dir = dir.parentFile
+        }
+        error("protocol/dashboard-vectors.txt was not found above ${File("").absolutePath}")
+    }
+
+    private companion object {
+        const val ARROW = " => "
+        const val NONE = "<none>"
+        const val EMPTY = "<empty>"
+    }
+}
