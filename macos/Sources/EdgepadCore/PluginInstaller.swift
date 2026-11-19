@@ -104,12 +104,10 @@ public enum PluginState: Equatable {
     case connected
     /// Codex installed the plugin; the person still has to trust its hooks in /hooks or Settings > Hooks.
     case awaitingTrust
-    /// The copy was re-stamped (app updated, Node moved): open sessions need a restart or /reload-plugins.
+    /// The copy was re-stamped (app updated or moved): open sessions need a restart or /reload-plugins.
     case restartSessions
     /// The CLI could not be run, or did not report success: `PluginResult.commands` holds what to run by hand.
     case manualSteps
-    /// No Node.js 20.1 or newer on PATH.
-    case nodeMissing
     /// The agent's CLI is not on PATH. `PluginResult.commands` still names the folder, for Codex Desktop.
     case cliNotFound
     /// Codex is older than 0.159.
@@ -156,7 +154,6 @@ public final class PluginInstaller {
     public static let marketplaceName = "edgepad"
     public static let pluginId = "edgepad@edgepad"
     public static let timeout: TimeInterval = 60
-    public static let minNode = ToolVersion(20, 1)
     public static let minCodex = ToolVersion(0, 159)
 
     private static let agents = [AgentToken.claude.rawValue, AgentToken.codex.rawValue]
@@ -165,15 +162,18 @@ public final class PluginInstaller {
     private let settings: IntegrationSettings
     private let pluginsRoot: String
     private let version: String
+    private let appPath: String
     private let runner: ProcessRunner
     private let path: () -> String?
 
     /// - Parameters:
     ///   - pluginsRoot: The folder holding the per-agent copies; `defaultRoot()` in the app.
     ///   - version: This app's version, stamped as the plugin's and stored to notice an update.
+    ///   - appPath: This app's own executable, which the hooks run as `"__APP__" --hook <agent> <kind>`: no Node.
     ///   - path: For tests: the PATH value. The process's PATH by default.
     public init(
         bundle: PluginSource, settings: IntegrationSettings, pluginsRoot: String, version: String,
+        appPath: String = Bundle.main.executablePath ?? CommandLine.arguments[0],
         runner: ProcessRunner = SystemProcessRunner(),
         path: @escaping () -> String? = { ProcessInfo.processInfo.environment["PATH"] }
     ) {
@@ -181,6 +181,7 @@ public final class PluginInstaller {
         self.settings = settings
         self.pluginsRoot = pluginsRoot
         self.version = version
+        self.appPath = appPath
         self.runner = runner
         self.path = path
     }
@@ -219,9 +220,8 @@ public final class PluginInstaller {
     public func connect(_ agent: String) async -> PluginResult {
         let folder = folderOf(agent)
         guard Self.safePath(folder) else { return PluginResult(.manualSteps, commands(agent)) }
-        guard let node = await findNode() else { return PluginResult(.nodeMissing) }
-        guard Self.safePath(node) else { return PluginResult(.manualSteps, commands(agent)) }
-        guard stamp(agent, node) else { return PluginResult(.failed) }
+        guard Self.safePath(appPath) else { return PluginResult(.manualSteps, commands(agent)) }
+        guard stamp(agent) else { return PluginResult(.failed) }
         guard let cli = Self.findCli(agent, path: path()) else { return PluginResult(.cliNotFound, commands(agent)) }
         let codex = agent == AgentToken.codex.rawValue
         if codex {
@@ -238,7 +238,7 @@ public final class PluginInstaller {
             settings.setFlag(IntegrationSettings.codexTrusted, false)
         }
         settings.set(IntegrationSettings.pluginVersionKey(agent), version)
-        settings.set(IntegrationSettings.pluginNodeKey(agent), node)
+        settings.set(IntegrationSettings.pluginAppKey(agent), appPath)
         settings.setFlag(agent, true)
         return PluginResult(codex ? .awaitingTrust : .connected)
     }
@@ -263,62 +263,38 @@ public final class PluginInstaller {
             Log.write("The \(agent) plugin folder could not be removed")
         }
         settings.set(IntegrationSettings.pluginVersionKey(agent), "")
-        settings.set(IntegrationSettings.pluginNodeKey(agent), "")
+        settings.set(IntegrationSettings.pluginAppKey(agent), "")
         if agent == AgentToken.codex.rawValue {
             settings.setFlag(IntegrationSettings.codexTrusted, false)
         }
         return PluginResult(.notConnected)
     }
 
-    /// At app start and when the window opens: a connected agent whose copy was stamped by another app version or for a
-    /// Node that is no longer there is re-stamped in place, with no CLI call, and reported `.restartSessions`;
-    /// `.nodeMissing` when no Node is left. Agents with nothing to do are not listed.
+    /// At app start and when the window opens: a connected agent whose copy was stamped by another app version or for
+    /// an app at another path is re-stamped in place, with no CLI call, and reported `.restartSessions`; `.failed`
+    /// when it cannot be. Agents with nothing to do are not listed.
     public func ensureCurrent() async -> [(agent: String, state: PluginState)] {
         var notices: [(agent: String, state: PluginState)] = []
         for agent in Self.agents where settings.flag(agent) {
-            let stampedNode = settings.text(IntegrationSettings.pluginNodeKey(agent))
-            if settings.text(IntegrationSettings.pluginVersionKey(agent)) == version && !stampedNode.isEmpty
-                && FileManager.default.fileExists(atPath: stampedNode)
+            if settings.text(IntegrationSettings.pluginVersionKey(agent)) == version
+                && settings.text(IntegrationSettings.pluginAppKey(agent)) == appPath
             {
                 continue
             }
-            guard let node = await findNode(), Self.safePath(node) else {
-                notices.append((agent, .nodeMissing))
-                continue
-            }
-            guard Self.safePath(folderOf(agent)), stamp(agent, node) else {
+            guard Self.safePath(appPath), Self.safePath(folderOf(agent)), stamp(agent) else {
                 notices.append((agent, .failed))
                 continue
             }
             settings.set(IntegrationSettings.pluginVersionKey(agent), version)
-            settings.set(IntegrationSettings.pluginNodeKey(agent), node)
+            settings.set(IntegrationSettings.pluginAppKey(agent), appPath)
             notices.append((agent, .restartSessions))
         }
         return notices
     }
 
-    /// The first absolute PATH folder holding `node` whose `--version` is 20.1 or newer.
-    public func findNode() async -> String? {
-        for candidate in Self.candidates(path(), ["node"]) {
-            let cwd = (candidate as NSString).deletingLastPathComponent
-            let reply = await runner.run(candidate, ["--version"], cwd: cwd, timeout: Self.timeout)
-            if reply.exitCode == 0, let found = Self.nodeVersion(reply.lastLine), found >= Self.minNode {
-                return candidate
-            }
-        }
-        return nil
-    }
-
     /// The agent's CLI, `claude` or `codex`, in the first absolute PATH folder that has it.
     public static func findCli(_ agent: String, path: String?) -> String? {
         candidates(path, [agent == AgentToken.claude.rawValue ? "claude" : "codex"]).first
-    }
-
-    /// `v20.1.0` to 20.1.0; nil for anything else.
-    public static func nodeVersion(_ text: String) -> ToolVersion? {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.hasPrefix("v") else { return nil }
-        return parse(String(trimmed.dropFirst()))
     }
 
     /// `codex-cli 0.159.0` (a `-` or `+` suffix of letters, digits, dots and dashes allowed) to 0.159.0; nil for
@@ -421,9 +397,9 @@ public final class PluginInstaller {
         return ToolVersion(numbers[0], numbers[1], numbers[2])
     }
 
-    private func stamp(_ agent: String, _ node: String) -> Bool {
+    private func stamp(_ agent: String) -> Bool {
         do {
-            try PluginStamp.write(bundle, agent: agent, folder: folderOf(agent), nodePath: node, version: version)
+            try PluginStamp.write(bundle, agent: agent, folder: folderOf(agent), appPath: appPath, version: version)
             return true
         } catch {
             Log.write("The \(agent) plugin could not be written")

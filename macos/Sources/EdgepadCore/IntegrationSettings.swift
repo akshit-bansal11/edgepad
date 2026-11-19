@@ -45,6 +45,11 @@ public final class IntegrationSettings {
         "pluginNode." + agent
     }
 
+    /// The app executable last stamped as `__APP__` for the agent.
+    public static func pluginAppKey(_ agent: String) -> String {
+        "pluginApp." + agent
+    }
+
     /// True only when the stored value is exactly `1`.
     public func flag(_ key: String) -> Bool {
         gate.lock()

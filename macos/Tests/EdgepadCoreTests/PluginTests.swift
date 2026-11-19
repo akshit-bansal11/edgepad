@@ -66,13 +66,13 @@ private final class FakeRunner: ProcessRunner {
 }
 
 final class PluginStampTests: XCTestCase {
-    // A node path with a space, a quote, a backslash run and a non-ASCII letter: the stamp must keep it whole.
-    private let nodePath =
-        "/opt/Pro gram/\"q\"/" + String(repeating: String(UnicodeScalar(92)), count: 2) + "nöde/node"
+    // An app path with a space, a quote, a backslash run and a non-ASCII letter: the stamp must keep it whole.
+    private let appPath =
+        "/opt/Pro gram/\"q\"/" + String(repeating: String(UnicodeScalar(92)), count: 2) + "Edgé/Edgepad"
 
     private func stamp(_ agent: String, _ folder: String, _ version: String = "5.0.0") throws {
         let bundle = try RealBundle.source()
-        try PluginStamp.write(bundle, agent: agent, folder: folder, nodePath: nodePath, version: version)
+        try PluginStamp.write(bundle, agent: agent, folder: folder, appPath: appPath, version: version)
     }
     private var dir = ""
 
@@ -110,21 +110,21 @@ final class PluginStampTests: XCTestCase {
         }
     }
 
-    func testClaudeHooksKeepTheNodeAndRootPathsWhole() throws {
+    func testClaudeHooksKeepTheAppAndRootPathsWhole() throws {
         let folder = folder(AgentToken.claude.rawValue)
         try PluginStamp.write(
-            try RealBundle.source(), agent: AgentToken.claude.rawValue, folder: folder, nodePath: nodePath,
+            try RealBundle.source(), agent: AgentToken.claude.rawValue, folder: folder, appPath: appPath,
             version: "5.0.0")
 
         let hook = try firstHook(try hooks(folder), "PermissionRequest")
-        XCTAssertEqual(hook["command"] as? String, nodePath)
+        XCTAssertEqual(hook["command"] as? String, appPath)
         let args = try XCTUnwrap(hook["args"] as? [String])
         XCTAssertEqual(args.first, PluginStamp.rootOf(folder) + "/scripts/edgepad-hook.mjs")
         XCTAssertTrue(PluginStamp.rootOf(folder).hasPrefix("/"))
 
         let relay = try String(
             contentsOfFile: (folder as NSString).appendingPathComponent("edgepad/hooks/relay.ts"), encoding: .utf8)
-        XCTAssertTrue(relay.contains("\"" + PluginStamp.jsonEscaped(nodePath) + "\""))
+        XCTAssertTrue(relay.contains("\"" + PluginStamp.jsonEscaped(appPath) + "\""))
 
         let manifestPath = (folder as NSString).appendingPathComponent("edgepad/.claude-plugin/plugin.json")
         let manifest = try JSONSerialization.jsonObject(with: Data(contentsOf: URL(fileURLWithPath: manifestPath)))
@@ -134,11 +134,11 @@ final class PluginStampTests: XCTestCase {
     func testCodexHooksCarryTheQuotedCommandLine() throws {
         let folder = folder(AgentToken.codex.rawValue)
         try PluginStamp.write(
-            try RealBundle.source(), agent: AgentToken.codex.rawValue, folder: folder, nodePath: nodePath,
+            try RealBundle.source(), agent: AgentToken.codex.rawValue, folder: folder, appPath: appPath,
             version: "5.0.0")
 
         let hook = try firstHook(try hooks(folder), "PermissionRequest")
-        let expected = "\"\(nodePath)\" \"\(PluginStamp.rootOf(folder))/scripts/edgepad-hook.mjs\" codex perm"
+        let expected = "\"\(appPath)\" \"\(PluginStamp.rootOf(folder))/scripts/edgepad-hook.mjs\" codex perm"
         XCTAssertEqual(hook["command"] as? String, expected)
     }
 
@@ -149,7 +149,7 @@ final class PluginStampTests: XCTestCase {
             for file in files(folder) {
                 let path = (folder as NSString).appendingPathComponent(file)
                 let text = try String(contentsOfFile: path, encoding: .utf8)
-                for placeholder in [PluginStamp.node, PluginStamp.root, PluginStamp.version] {
+                for placeholder in [PluginStamp.app, PluginStamp.node, PluginStamp.root, PluginStamp.version] {
                     XCTAssertFalse(text.contains(placeholder), "\(agent) \(file)")
                 }
             }
@@ -188,13 +188,13 @@ final class PluginStampTests: XCTestCase {
     func testAnEntryLeavingTheFolderIsRefusedAndTheOldCopyStays() throws {
         let folder = folder("claude")
         let good = ["hooks/hooks.claude.json": "{}", "marketplace.template.json": "{}"]
-        try PluginStamp.write(MemoryBundle(good), agent: "claude", folder: folder, nodePath: nodePath, version: "1")
+        try PluginStamp.write(MemoryBundle(good), agent: "claude", folder: folder, appPath: appPath, version: "1")
         for evil in ["../evil.json", "hooks/../../evil.json", "/etc/evil.json", "a/../../../evil.json"] {
             var files = good
             files[evil] = "{}"
             XCTAssertThrowsError(
                 try PluginStamp.write(
-                    MemoryBundle(files), agent: "claude", folder: folder, nodePath: nodePath, version: "1"),
+                    MemoryBundle(files), agent: "claude", folder: folder, appPath: appPath, version: "1"),
                 evil)
             let kept = (folder as NSString).appendingPathComponent("edgepad")
             XCTAssertTrue(FileManager.default.fileExists(atPath: kept))
@@ -207,15 +207,15 @@ final class PluginStampTests: XCTestCase {
         XCTAssertThrowsError(
             try PluginStamp.write(
                 MemoryBundle(["hooks/hooks.codex.json": "{}", "scripts/big.mjs": big]), agent: "codex", folder: folder,
-                nodePath: nodePath, version: "1"))
+                appPath: appPath, version: "1"))
         XCTAssertThrowsError(
             try PluginStamp.write(
-                MemoryBundle(["hooks/hooks.claude.json": "{}"]), agent: "codex", folder: folder, nodePath: nodePath,
+                MemoryBundle(["hooks/hooks.claude.json": "{}"]), agent: "codex", folder: folder, appPath: appPath,
                 version: "1"))
     }
 
     func testTheEscapeRoundTripsThroughJson() throws {
-        for value in [nodePath, "plain", "tab\there", "ünï/cødé"] {
+        for value in [appPath, "plain", "tab\there", "ünï/cødé"] {
             let json = "[\"" + PluginStamp.jsonEscaped(value) + "\"]"
             let parsed = try JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String]
             XCTAssertEqual(parsed, [value])
@@ -233,14 +233,14 @@ final class PluginInstallerTests: XCTestCase {
         dir = (NSTemporaryDirectory() as NSString).appendingPathComponent("edgepad-installer-\(UUID().uuidString)")
         bin = (dir as NSString).appendingPathComponent("bin")
         try FileManager.default.createDirectory(atPath: bin, withIntermediateDirectories: true)
-        for tool in ["node", "claude", "codex"] {
+        for tool in ["claude", "codex"] {
             let file = (bin as NSString).appendingPathComponent(tool)
             try "#!/bin/sh".write(toFile: file, atomically: true, encoding: .utf8)
         }
         settings = IntegrationSettings(path: (dir as NSString).appendingPathComponent(IntegrationSettings.fileName))
         runner.answer = { file, arguments in
             if arguments == ["--version"] {
-                return ProcessResult(exitCode: 0, lastLine: file.hasSuffix("node") ? "v22.11.0" : "codex-cli 0.159.0")
+                return ProcessResult(exitCode: 0, lastLine: "codex-cli 0.159.0")
             }
             return ProcessResult(exitCode: 0, lastLine: #"{"outcome":"ok"}"#)
         }
@@ -256,11 +256,11 @@ final class PluginInstallerTests: XCTestCase {
         let plugins = root ?? (dir as NSString).appendingPathComponent("plugins")
         let pathValue = path ?? "relative/bin:" + bin
         return PluginInstaller(
-            bundle: try RealBundle.source(), settings: settings, pluginsRoot: plugins, version: version, runner: runner,
-            path: { pathValue })
+            bundle: try RealBundle.source(), settings: settings, pluginsRoot: plugins, version: version,
+            appPath: app, runner: runner, path: { pathValue })
     }
 
-    private var node: String { (bin as NSString).appendingPathComponent("node") }
+    private var app: String { (dir as NSString).appendingPathComponent("Edgepad.app/Contents/MacOS/Edgepad") }
 
     func testClaudeConnectRunsTheExactCommandsAndSavesTheSwitch() async throws {
         let installer = try installer()
@@ -280,7 +280,7 @@ final class PluginInstallerTests: XCTestCase {
             ])
         XCTAssertTrue(settings.flag("claude"))
         XCTAssertEqual(settings.text(IntegrationSettings.pluginVersionKey("claude")), "5.0.0")
-        XCTAssertEqual(settings.text(IntegrationSettings.pluginNodeKey("claude")), node)
+        XCTAssertEqual(settings.text(IntegrationSettings.pluginAppKey("claude")), app)
         XCTAssertEqual(installer.status("claude"), .connected)
     }
 
@@ -307,7 +307,7 @@ final class PluginInstallerTests: XCTestCase {
         for answer in ["codex-cli 0.158.9", "garbage", ""] {
             runner.answer = { file, arguments in
                 if arguments == ["--version"] {
-                    return ProcessResult(exitCode: 0, lastLine: file.hasSuffix("node") ? "v22.0.0" : answer)
+                    return ProcessResult(exitCode: 0, lastLine: answer)
                 }
                 return ProcessResult(exitCode: 0, lastLine: #"{"outcome":"ok"}"#)
             }
@@ -319,7 +319,6 @@ final class PluginInstallerTests: XCTestCase {
 
     func testAFailedOutcomeWithExitZeroIsManualSteps() async throws {
         runner.answer = { _, arguments in
-            if arguments == ["--version"] { return ProcessResult(exitCode: 0, lastLine: "v20.1.0") }
             return ProcessResult(exitCode: 0, lastLine: #"{"outcome":"failed","failureCode":"x"}"#)
         }
         let installer = try installer()
@@ -338,13 +337,22 @@ final class PluginInstallerTests: XCTestCase {
         XCTAssertTrue(runner.runs.isEmpty)
     }
 
-    func testNoNodeOrAnOldNodeIsNodeMissing() async throws {
-        runner.answer = { _, _ in ProcessResult(exitCode: 0, lastLine: "v18.0.0") }
-        let result = try await installer().connect("claude")
-        XCTAssertEqual(result, PluginResult(.nodeMissing))
+    func testNoNodeIsEverLookedFor() async throws {
+        _ = try await installer().connect("claude")
+        XCTAssertFalse(runner.runs.contains { $0.file.hasSuffix("node") || $0.arguments.contains("node") })
+        let hooks = try String(
+            contentsOfFile: (dir as NSString).appendingPathComponent("plugins/claude/edgepad/hooks/hooks.json"),
+            encoding: .utf8)
+        XCTAssertTrue(hooks.contains(PluginStamp.jsonEscaped(app)))
+    }
 
-        let none = try await installer(path: "relative:" + dir).connect("claude")
-        XCTAssertEqual(none, PluginResult(.nodeMissing))
+    func testAnUnsafeAppPathRunsNothing() async throws {
+        let odd = PluginInstaller(
+            bundle: try RealBundle.source(), settings: settings, pluginsRoot: dir, version: "1",
+            appPath: "/a$b/Edgepad", runner: runner, path: { self.bin })
+        let result = await odd.connect("claude")
+        XCTAssertEqual(result.state, .manualSteps)
+        XCTAssertTrue(runner.runs.isEmpty)
     }
 
     func testRelativePathFoldersNeverCount() {
@@ -388,7 +396,7 @@ final class PluginInstallerTests: XCTestCase {
             ])
     }
 
-    func testEnsureCurrentRestampsOnAVersionChangeOrAMissingNodeAndOtherwiseDoesNothing() async throws {
+    func testEnsureCurrentRestampsOnAVersionChangeOrAMovedAppAndOtherwiseDoesNothing() async throws {
         _ = try await installer(version: "5.0.0").connect("claude")
         let before = runner.runs.count
 
@@ -401,17 +409,13 @@ final class PluginInstallerTests: XCTestCase {
         XCTAssertEqual(settings.text(IntegrationSettings.pluginVersionKey("claude")), "5.0.1")
         XCTAssertFalse(runner.runs.dropFirst(before).contains { $0.file.hasSuffix("claude") })
 
-        settings.set(IntegrationSettings.pluginNodeKey("claude"), "/gone/node")
+        settings.set(IntegrationSettings.pluginAppKey("claude"), "/old/place/Edgepad")
         let moved = try await installer(version: "5.0.1").ensureCurrent()
         XCTAssertEqual(moved.map(\.state), [.restartSessions])
-        XCTAssertEqual(settings.text(IntegrationSettings.pluginNodeKey("claude")), node)
+        XCTAssertEqual(settings.text(IntegrationSettings.pluginAppKey("claude")), app)
     }
 
     func testVersionsParseStrictly() {
-        XCTAssertEqual(PluginInstaller.nodeVersion("v20.1.0"), ToolVersion(20, 1, 0))
-        XCTAssertEqual(PluginInstaller.nodeVersion("v18.0.0"), ToolVersion(18, 0, 0))
-        XCTAssertNil(PluginInstaller.nodeVersion("20.1.0"))
-        XCTAssertNil(PluginInstaller.nodeVersion("garbage"))
         XCTAssertEqual(PluginInstaller.codexVersion("codex-cli 0.159.0"), ToolVersion(0, 159, 0))
         XCTAssertEqual(PluginInstaller.codexVersion("codex-cli 1.0.0"), ToolVersion(1, 0, 0))
         XCTAssertEqual(PluginInstaller.codexVersion("codex-cli 0.160.0-alpha.1"), ToolVersion(0, 160, 0))

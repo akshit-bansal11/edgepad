@@ -21,7 +21,6 @@ struct IntegrationsHooks {
 /// Non-modal; closing it stops a sign-in in progress. Main thread only.
 final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
     private static let width: CGFloat = 480
-    private static let nodeUrl = "https://nodejs.org"
 
     /// The menu item's title, for the wiring step.
     static var menuTitle: String { tr("Menu_Integrations", "Integrations…") }
@@ -257,12 +256,6 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
         NSPasteboard.general.setString(text, forType: .string)
     }
 
-    fileprivate func openNode() {
-        if let url = URL(string: Self.nodeUrl) {
-            NSWorkspace.shared.open(url)
-        }
-    }
-
     // ---- GitHub
 
     @objc private func signPressed() {
@@ -351,7 +344,6 @@ private final class AgentRow: NSObject {
     private let status = NSTextField(wrappingLabelWithString: "")
     private let button = NSButton(title: "", target: nil, action: nil)
     private let step = NSTextField(wrappingLabelWithString: "")
-    private let nodeLink = NSButton(title: "nodejs.org", target: nil, action: nil)
     private let commands = NSTextField(wrappingLabelWithString: "")
     private let copyButton = NSButton(title: tr("Integrations_Copy", "Copy"), target: nil, action: nil)
     private var problem: PluginState?
@@ -370,21 +362,18 @@ private final class AgentRow: NSObject {
         commands.isSelectable = true
         step.textColor = .secondaryLabelColor
         let heading = IntegrationsWindow.heading(title)
-        view = NSStackView(views: [heading, status, button, step, nodeLink, commands, copyButton])
+        view = NSStackView(views: [heading, status, button, step, commands, copyButton])
         view.orientation = .vertical
         view.alignment = .leading
         view.spacing = 6
         super.init()
         button.target = self
         button.action = #selector(pressed)
-        nodeLink.bezelStyle = .inline
-        nodeLink.target = self
-        nodeLink.action = #selector(openNode)
         copyButton.target = self
         copyButton.action = #selector(copyCommands)
     }
 
-    /// A finding from `ensureCurrent`: a re-stamp asks for a restart; no Node left is shown until the next connect.
+    /// A finding from `ensureCurrent`: a re-stamp asks for a restart; a failure is shown until the next connect.
     func notice(_ state: PluginState) {
         if state == .restartSessions {
             restart = true
@@ -410,9 +399,6 @@ private final class AgentRow: NSObject {
         connected = state != .notConnected
         let name = agent == AgentToken.claude.rawValue ? "claude" : "codex"
         switch problem ?? state {
-        case .nodeMissing:
-            status.stringValue = tr(
-                "Integrations_NodeMissing", "Node.js 20.1 or newer is needed. Get it from nodejs.org")
         case .cliNotFound: status.stringValue = tr("Integrations_NotFound", "%1$@ was not found on this computer", name)
         case .updateCodex:
             status.stringValue = tr("Integrations_UpdateCodex", "Update Codex to version 0.159 or newer.")
@@ -435,7 +421,6 @@ private final class AgentRow: NSObject {
             step.stringValue = ""
         }
         step.isHidden = step.stringValue.isEmpty
-        nodeLink.isHidden = (problem ?? state) != .nodeMissing
         commands.stringValue = manual.joined(separator: "\n")
         commands.isHidden = manual.isEmpty
         copyButton.isHidden = manual.isEmpty
@@ -443,10 +428,6 @@ private final class AgentRow: NSObject {
 
     @objc private func pressed() {
         owner?.connect(self, !connected)
-    }
-
-    @objc private func openNode() {
-        owner?.openNode()
     }
 
     @objc private func copyCommands() {

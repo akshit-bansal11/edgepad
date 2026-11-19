@@ -53,14 +53,17 @@ public final class DirectoryPluginSource: PluginSource {
 /// Writes the per-agent copy of the plugin that Connect points the vendor CLI at, `<plugins>/<agent>/`: `edgepad/` with
 /// the agent's hooks template as `hooks/hooks.json` and only the files that agent uses, plus
 /// `.claude-plugin/marketplace.json` beside it. Always deleted and written fresh, so a tampered copy reverts. The
-/// placeholders `__NODE__`, `__ROOT__` (the copy's own folder) and `__VERSION__` are replaced by values escaped by the
-/// JSON encoder, never pasted in raw, which is also a valid escape inside relay.ts's double-quoted string. An entry
-/// whose path would leave the folder, or one over 1 MiB, stops the stamp with `PluginBundleError`. The twin of the
-/// core's PluginStamp.
+/// placeholders `__APP__` (this app executable; `__NODE__` too, for older templates), `__ROOT__` (the copy's own
+/// folder) and `__VERSION__` are replaced by values escaped by the JSON encoder, never pasted in raw, which is also a
+/// valid escape inside relay.ts's double-quoted string. An entry whose path would leave the folder, or one over 1 MiB,
+/// stops the stamp with `PluginBundleError`. The twin of the core's PluginStamp.
 public enum PluginStamp {
     public static let maxEntryBytes = 1024 * 1024
     public static let pluginFolder = "edgepad"
     public static let marketplace = ".claude-plugin/marketplace.json"
+    /// The app executable the hooks run (`"__APP__" --hook <agent> <kind>`).
+    public static let app = "__APP__"
+    /// Older templates ran Node; it is stamped with the app path too, so no copy ever names a Node.
     public static let node = "__NODE__"
     public static let root = "__ROOT__"
     public static let version = "__VERSION__"
@@ -93,14 +96,15 @@ public enum PluginStamp {
 
     /// Deletes `folder` and writes the agent's copy there. Throws what the disk threw, or `PluginBundleError` for a bad
     /// bundle; a bad bundle leaves the old copy in place.
-    public static func write(_ bundle: PluginSource, agent: String, folder: String, nodePath: String, version: String)
+    public static func write(_ bundle: PluginSource, agent: String, folder: String, appPath: String, version: String)
         throws
     {
         guard DashWire.isAgent(agent) else { throw PluginBundleError(reason: "Not an agent") }
         let full = (folder as NSString).standardizingPath
         let edgepad = (full as NSString).appendingPathComponent(pluginFolder)
         let values = [
-            (node, jsonEscaped(nodePath)), (root, jsonEscaped(rootOf(full))), (Self.version, jsonEscaped(version)),
+            (app, jsonEscaped(appPath)), (node, jsonEscaped(appPath)), (root, jsonEscaped(rootOf(full))),
+            (Self.version, jsonEscaped(version)),
         ]
 
         // Read and check everything before the old copy goes.
