@@ -405,7 +405,12 @@ internal static class DashWire
 
     internal static bool IsAgent(string agent) => agent is AgentToken.Claude or AgentToken.Codex;
 
-    internal static bool IsBidi(int v) => v is (>= 0x200B and <= 0x200F) or (>= 0x202A and <= 0x202E) or (>= 0x2066 and <= 0x2069) or 0xFEFF;
+    // Invisible and direction-changing code points (Unicode categories Cf, Zl, Zp: bidi controls and isolates, zero-width
+    // characters, U+061C, U+2028/2029, U+2060-2064, U+180E, tag characters U+E0000-E007F) could make a command on the
+    // approval sheet read differently from what runs, so they are escaped as <U+XXXX>. Kotlin and Swift mirror this.
+    internal static bool IsBidi(int v) =>
+        Rune.IsValid(v)
+        && Rune.GetUnicodeCategory(new Rune(v)) is UnicodeCategory.Format or UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator;
 
     internal static string Fit(IReadOnlyList<string> parts, char separator, int maxBytes)
     {

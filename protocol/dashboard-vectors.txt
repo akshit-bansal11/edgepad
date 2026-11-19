@@ -16,7 +16,8 @@
 #
 # Codecs (encoders take records, the "*PARSE" codecs take wire text and expect the canonical wire text it re-encodes to):
 #   CLEAN n text              Clean(text, n): control characters (Cc), space, "|", "/", ":", bidi and zero-width characters
-#                             (U+200B-200F, U+202A-202E, U+2066-2069, U+FEFF) become a space; runs collapse; trim; cut to n
+#                             (every code point in Unicode categories Cf, Zl, Zp: e.g. U+200B-200F, U+202A-202E, U+2066-2069,
+#                             U+FEFF, U+061C, U+180E, U+2028, U+2029, U+2060-2064, U+E0000-E007F) become a space; runs collapse; trim; cut to n
 #                             code points (never inside a surrogate pair); trim again.
 #   CLEANTEXT text            CleanText(text): keeps \n and \t, drops other control characters, shows the bidi and zero-width
 #                             characters above as <U+XXXX> (upper-case hex, at least 4 digits). No trim, no cut.
@@ -69,6 +70,9 @@ CLEANTEXT a\u{0}b\u{7}c\u{D}\u{A}d => abc\nd
 CLEANTEXT x\u{202E}y => x<U+202E>y
 CLEANTEXT \u{200B}\u{FEFF}\u{2066} => <U+200B><U+FEFF><U+2066>
 CLEANTEXT \u{200F}\u{2069}\u{202A} => <U+200F><U+2069><U+202A>
+CLEANTEXT a\u{061C}b\u{2028}c\u{2029}d => a<U+061C>b<U+2028>c<U+2029>d
+CLEANTEXT x\u{2060}\u{2064}\u{180E}y => x<U+2060><U+2064><U+180E>y
+CLEANTEXT t\u{E0041}\u{E007F}g => t<U+E0041><U+E007F>g
 CLEANTEXT \u{85} => <empty>
 CLEANTEXT café 日本 => café 日本
 CLEANTEXT \u{20}\u{20}keep\u{20}\u{20} => \u{20}\u{20}keep\u{20}\u{20}
