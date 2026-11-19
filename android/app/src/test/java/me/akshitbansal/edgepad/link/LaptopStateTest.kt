@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.AgentToken
 import me.akshitbansal.edgepad.protocol.CaptureStateToken
+import me.akshitbansal.edgepad.protocol.CiToken
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.EndActionToken
@@ -516,6 +517,26 @@ class LaptopStateTest {
         state.forgetFeatures()
         assertEquals(0, state.stats.size)
         assertTrue(state.sessions.isEmpty() && state.limits.isEmpty() && state.permAsks.isEmpty())
+    }
+
+    @Test
+    fun forgetsEveryDashboardKindWithTheLink() {
+        state.take(Frame.Text(TextKind.STATS_INFO.id, "Ryzen 5 5600|16384|RTX 3060|12288|Intel Wi-Fi"))
+        state.take(Frame.Text(TextKind.DISKS.id, "C:70:476:143|D:10:931:838"))
+        state.take(Frame.Text(TextKind.SPEND.id, "claude/29499900/120000/310/800000/2100/3000000/9000"))
+        state.take(Frame.Text(TextKind.WEATHER.id, "185/3/Oslo"))
+        state.addPermAsk(PermAsk("a1b2c3d4e5f6", true, AgentToken.CODEX, "Bash", "ls"))
+        state.setGithub(listOf(GithubRow(GithubSection.NOTIFICATIONS, "", 2, "", false, CiToken.NONE)))
+        assertEquals(2, state.disks.size)
+        assertEquals(1, state.spend.size)
+        assertEquals("Oslo", state.weather?.city)
+        assertEquals(1, state.permAsks.size)
+        assertEquals(1, state.github.size)
+        state.forgetFeatures()
+        assertNull(state.statsInfo)
+        assertTrue(state.disks.isEmpty() && state.spend.isEmpty() && state.github.isEmpty())
+        assertNull(state.weather)
+        assertTrue(state.permAsks.isEmpty())
     }
 
     @Test
