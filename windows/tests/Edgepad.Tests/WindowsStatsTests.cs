@@ -17,6 +17,14 @@ public sealed class WindowsStatsTests
     public void OnlyUpRealInterfacesCount(OperationalStatus status, NetworkInterfaceType type, bool counts) =>
         Assert.Equal(counts, WindowsStats.Counts(status, type));
 
+    [Theory]
+    [InlineData("vEthernet (WSL)", "Hyper-V Virtual Ethernet Adapter", false)]
+    [InlineData("Tailscale", "Tailscale Tunnel", false)]
+    [InlineData("OpenVPN", "TAP-Windows Adapter V9", false)]
+    [InlineData("Wi-Fi", "Intel(R) Wi-Fi 6E AX211 160MHz", true)]
+    public void VirtualAdaptersDoNotCountTwice(string name, string description, bool counts) =>
+        Assert.Equal(counts, WindowsStats.Counts(OperationalStatus.Up, NetworkInterfaceType.Ethernet, name, description));
+
     [Fact]
     public void TheFirstRealIpv4GatewayIsPicked()
     {

@@ -11,7 +11,7 @@ namespace Edgepad.Dashboard;
 /// the fixed drives, network rates from the up, non-loopback, non-tunnel interfaces (the list re-read every 30 s), ping to the
 /// default gateway, GPU from <see cref="GpuPdh"/> and <see cref="Nvml"/>. There is no CPU temperature Windows gives without a
 /// driver, so it is always -1. Nothing here starts a thread or a timer: <see cref="StatsReporter"/> calls in only while the
-/// phone watches, and <see cref="Stop"/> closes the GPU readers when it stops.
+/// phone watches, and <see cref="Idle"/> closes the GPU readers when it stops.
 /// </summary>
 internal sealed class WindowsStats : IStatsSource, IDisposable
 {
@@ -21,6 +21,9 @@ internal sealed class WindowsStats : IStatsSource, IDisposable
     private const long GiB = 1L << 30;
     private const string CpuKey = @"HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\CentralProcessor\0";
     private static readonly TimeSpan PingTimeout = TimeSpan.FromMilliseconds(1000);
+
+    // Words in a virtual adapter's name or description (see Counts).
+    private static readonly string[] VirtualAdapters = ["Hyper-V", "WSL", "TAP-", "Wintun", "WireGuard", "Tailscale", "Docker", "VirtualBox", "VMware"];
 
     private readonly Lock gate = new();
     private long prevIdle;
@@ -33,7 +36,7 @@ internal sealed class WindowsStats : IStatsSource, IDisposable
     private RateMeter up = new();
     private string? cpuName;
 
-    // The GPU half, opened on the first read while the phone watches and closed by Stop.
+    // The GPU half, opened on the first read while the phone watches and closed by Idle.
     private readonly Lock gpuGate = new();
     private readonly GpuPdh gpu = new();
     private Nvml? nvml;
@@ -49,8 +52,8 @@ internal sealed class WindowsStats : IStatsSource, IDisposable
         return new StatsSample(cpu, ram, g.Util, g.Vram, downRate, upRate, -1, -1, -1, g.Temp, g.PowerW);
     }
 
-    /// <summary>Closes the GPU counters and NVML; the next read opens them again. Called when the phone stops watching.</summary>
-    public void Stop()
+    /// <summary>Closes the GPU counters and NVML; the next read opens them again. The reporter calls it when the phone stops watching.</summary>
+    public void Idle()
     {
         lock (gpuGate)
         {
@@ -61,7 +64,7 @@ internal sealed class WindowsStats : IStatsSource, IDisposable
         }
     }
 
-    public void Dispose() => Stop();
+    public void Dispose() => Idle();
 
     public StatsInfo ReadInfo()
     {
@@ -127,9 +130,15 @@ internal sealed class WindowsStats : IStatsSource, IDisposable
         return reply.Status == IPStatus.Success ? (int)Math.Min(int.MaxValue, reply.RoundtripTime) : -1;
     }
 
-    /// <summary>Whether an interface's traffic counts: up, and neither loopback nor a tunnel.</summary>
-    internal static bool Counts(OperationalStatus status, NetworkInterfaceType type) =>
-        status == OperationalStatus.Up && type is not (NetworkInterfaceType.Loopback or NetworkInterfaceType.Tunnel);
+    /// <summary>
+    /// Whether an interface's traffic counts: up, neither loopback nor a tunnel, and not a virtual adapter (Hyper-V and WSL
+    /// switches, VPN TAP/Wintun/WireGuard/Tailscale, Docker, VirtualBox, VMware), whose bytes a real adapter carries again.
+    /// </summary>
+    internal static bool Counts(OperationalStatus status, NetworkInterfaceType type, string name = "", string description = "") =>
+        status == OperationalStatus.Up
+        && type is not (NetworkInterfaceType.Loopback or NetworkInterfaceType.Tunnel)
+        && !name.StartsWith("vEthernet", StringComparison.OrdinalIgnoreCase)
+        && !VirtualAdapters.Any(word => description.Contains(word, StringComparison.OrdinalIgnoreCase) || name.Contains(word, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>The first IPv4 gateway that is a real address; null when there is none.</summary>
     internal static IPAddress? PickGateway(IEnumerable<IPAddress> gateways) =>
@@ -197,7 +206,8 @@ internal sealed class WindowsStats : IStatsSource, IDisposable
         var total = kernel + user;
         lock (gate)
         {
-            var percent = CpuMeter.Percent(prevIdle, prevTotal, idle, total);
+            // The first sample has nothing to compare with: since boot is not "now", so it is unknown.
+            var percent = prevTotal == 0 ? -1 : CpuMeter.Percent(prevIdle, prevTotal, idle, total);
             (prevIdle, prevTotal) = (idle, total);
             return percent;
         }
@@ -255,7 +265,7 @@ internal sealed class WindowsStats : IStatsSource, IDisposable
         NetworkInterface[] found;
         try
         {
-            found = [.. NetworkInterface.GetAllNetworkInterfaces().Where(n => Counts(n.OperationalStatus, n.NetworkInterfaceType))];
+            found = [.. NetworkInterface.GetAllNetworkInterfaces().Where(n => Counts(n.OperationalStatus, n.NetworkInterfaceType, n.Name, n.Description))];
         }
         catch (NetworkInformationException)
         {
