@@ -51,8 +51,8 @@ class PermSinkTest {
     }
 
     @Test
-    fun hostileTextStaysLiteral() {
+    fun hostileTextStaysLiteralAndBidiIsShown() {
         send(BlobKind.PERM_ASK, "a1b2c3d4e5f6/1", body("<b>x</b> \u202e y"))
-        assertEquals("<b>x</b> \u202e y", got.single().text)
+        assertEquals("<b>x</b> <U+202E> y", got.single().text)
     }
 }
