@@ -14,6 +14,7 @@ import me.akshitbansal.edgepad.link.GithubSection
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.protocol.CiToken
 import me.akshitbansal.edgepad.protocol.Feature
+import me.akshitbansal.edgepad.protocol.UnavailableReason
 
 /**
  * The pull requests waiting on the laptop's owner and the ones they opened, with the checks on each, and how many
@@ -49,7 +50,10 @@ class GitHubScreen(
     }
 
     private fun Column.render(s: LaptopState) {
-        if (Feature.GITHUB !in s.features) {
+        // GitHub refused the laptop's token (signed out or revoked) since it said FEATURES; a later UNAVAILABLE without it,
+        // once a new token works, brings the lists back.
+        val refused = s.unavailable[Feature.GITHUB.token] == UnavailableReason.NO_PERMISSION
+        if (Feature.GITHUB !in s.features || refused) {
             card { note(ui.string(R.string.gh_signin)) }
             return
         }

@@ -233,9 +233,12 @@ class WidgetPainter(
         val agentName = if (entry.agent == AgentToken.CLAUDE) R.string.agent_claude else R.string.agent_codex
         val name = context.getString(agentName)
         val label = LimitWindowLabel.of(entry.window).words(context)
-        val moved = slot.pct != entry.pct
-        slot.pct = entry.pct
-        return set(slot, "${entry.pct}%", "$name · $label", "$name $label ${entry.pct}%") or moved
+        // A window that has reset since it was measured shows a dash, not the old use.
+        val pct = entry.pctAt(System.currentTimeMillis() / MS_PER_MIN)
+        val moved = slot.pct != pct
+        slot.pct = pct
+        val shown = fmt.percent(pct)
+        return set(slot, shown, "$name · $label", "$name $label $shown") or moved
     }
 
     /** True when the newest sample of the widget's series is not the one drawn last. */
@@ -485,6 +488,7 @@ class WidgetPainter(
 
     companion object {
         private const val RGB_MASK = 0x00FFFFFF
+        private const val MS_PER_MIN = 60_000L
         private const val ALPHA_SHIFT = 24
         private const val STRONG_ALPHA = 0x8C
         private const val SOFT_ALPHA = 0x66

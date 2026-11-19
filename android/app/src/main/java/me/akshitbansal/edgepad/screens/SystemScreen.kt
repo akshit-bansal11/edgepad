@@ -182,17 +182,21 @@ class SystemScreen(
         add(ui.row(name, free))
         add(track, height = ui.dp(BAR_DP))
         add(View(ui.context), height = ui.dp(Space.M))
+        var shown = -1
         updaters.add { s ->
             val disk: DiskEntry = s.disks.getOrNull(index) ?: return@add
             name.text = disk.label
             free.text = if (disk.freeGiB < 0) none else ui.string(R.string.sys_free, "${disk.freeGiB} GB")
             val pct = disk.usedPct.coerceIn(0, FULL)
+            track.contentDescription = "${disk.label}, $pct%"
+            // The bar is laid out again only when its share moved, not on every DISKS frame.
+            if (pct == shown) return@add
+            shown = pct
             used.background =
                 ui.rounded(if (pct >= DANGER_FROM) ui.palette.danger else ui.palette.accent, Space.CARD_RADIUS)
             (used.layoutParams as LinearLayout.LayoutParams).weight = pct.toFloat()
             (rest.layoutParams as LinearLayout.LayoutParams).weight = (FULL - pct).toFloat()
             track.requestLayout()
-            track.contentDescription = "${disk.label}, $pct%"
         }
     }
 

@@ -602,6 +602,8 @@ class MainActivity :
         // The same for the macro grid: onStop told the laptop to stop looking.
         if (screen == Screen.MACROS) watchMacros()
         syncDashWatch()
+        // Its "updated" times and expired windows moved while the app was away, with no frame to redraw them.
+        aiScreen?.refresh()
         window.decorView.post { syncPerm() }
         // And the app list: onStop told the laptop to stop sending, so it is asked afresh and the old rows go.
         if (screen == Screen.APPS) {
