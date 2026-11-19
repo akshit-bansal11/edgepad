@@ -32,7 +32,7 @@ internal sealed record SpendRequest(string Token, string Agent, SpendTotals Tota
 /// The wire of the local hook channel: one request line of JSON <c>{"v":1,"token","agent","kind","d"}</c> and one reply line.
 /// Strict: a wrong type, a missing field, an unknown agent or kind, a tool name outside its charset, depth over 8 or a line over
 /// 64 KiB is no request at all. Strings are capped here; text is cleaned later, where it is shown. protocol/hook-vectors.txt
-/// holds the cases the Node and Swift ends check too.
+/// holds the cases the C# and Swift hook clients check too.
 /// </summary>
 internal static class HookProtocol
 {

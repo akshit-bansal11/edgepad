@@ -1,12 +1,13 @@
-# Local hook channel vectors (laptop only, not the phone link). Read by plugins/test/hook.test.mjs (CLIENT lines),
-# shared/Edgepad.Core.Tests/HookProtocolTests.cs and the Swift HookProtocolTests (SERVER lines).
+# Local hook channel vectors (laptop only, not the phone link). Read by shared/Edgepad.Core.Tests/HookClientTests.cs and the
+# Swift hook client tests (CLIENT lines), shared/Edgepad.Core.Tests/HookProtocolTests.cs and the Swift HookProtocolTests
+# (SERVER lines).
 #
 # Lines starting with # and blank lines are ignored. A line is cut at the FIRST " => ". No escapes beyond JSON's own: every
 # JSON value below is read by a JSON parser exactly as written, so "\n" inside a JSON string is a line feed.
 #
 #   CLIENT <agent> <kind> <input> => <request JSON without "token"> | NONE
-#       The hook client run as `edgepad-hook.mjs <agent> <kind>`, with <input> on stdin for perm and session, or as the fourth
-#       argument for usage and spend. NONE: nothing is sent.
+#       The hook client, the app run as `<app> --hook <agent> <kind>`, with <input> on stdin for perm and session, or as the
+#       next argument for usage and spend. NONE: nothing is sent. The request is compared as JSON (key order free).
 #
 #   SERVER <request line> => <parse JSON> | NONE
 #       The laptop's HookProtocol.TryParse of the request line. NONE: not a request; the connection closes with no reply.

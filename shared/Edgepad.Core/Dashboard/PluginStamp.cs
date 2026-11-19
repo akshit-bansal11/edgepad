@@ -44,17 +44,16 @@ internal sealed class DirectoryPluginSource(string root) : IPluginSource
 /// Writes the per-agent copy of the plugin that Connect points the vendor CLI at, <c>&lt;plugins&gt;/&lt;agent&gt;/</c>:
 /// <c>edgepad/</c> with the agent's hooks template as <c>hooks/hooks.json</c> and only the files that agent uses, plus
 /// <c>.claude-plugin/marketplace.json</c> beside it. Always deleted and written fresh, so a tampered copy reverts. The placeholders
-/// <c>__NODE__</c>, <c>__ROOT__</c> (the copy's own folder, forward slashes) and <c>__VERSION__</c> are replaced by values escaped by
-/// the JSON encoder, which is also a valid escape inside relay.ts's double-quoted string. An entry whose path would leave the folder,
-/// or one over 1 MiB, stops the stamp with <see cref="InvalidDataException"/>.
+/// <c>__APP__</c> (the running app's executable, which the hooks run as <c>"__APP__" --hook &lt;agent&gt; &lt;kind&gt;</c>: no Node) and
+/// <c>__VERSION__</c> are replaced by values escaped by the JSON encoder, which is also a valid escape inside relay.ts's double-quoted
+/// string. An entry whose path would leave the folder, or one over 1 MiB, stops the stamp with <see cref="InvalidDataException"/>.
 /// </summary>
 internal static class PluginStamp
 {
     public const int MaxEntryBytes = 1024 * 1024;
     public const string PluginFolder = "edgepad";
     public const string Marketplace = ".claude-plugin/marketplace.json";
-    public const string Node = "__NODE__";
-    public const string Root = "__ROOT__";
+    public const string App = "__APP__";
     public const string Version = "__VERSION__";
 
     private const string MarketplaceTemplate = "marketplace.template.json";
@@ -62,15 +61,12 @@ internal static class PluginStamp
     private const string CodexHooks = "hooks/hooks.codex.json";
     private const string Hooks = "hooks/hooks.json";
 
-    // Files only Claude Code loads: its manifest, the usage mod and the spend scanner. Codex has its own manifest folder.
-    private static readonly string[] ClaudeOnly = [".claude-plugin/", "hooks/relay.ts", "scripts/scan-claude.mjs", "scripts/cache.mjs", "scripts/prices.mjs", "types/"];
+    // Files only Claude Code loads: its manifest and the usage mod. Codex has its own manifest folder.
+    private static readonly string[] ClaudeOnly = [".claude-plugin/", "hooks/relay.ts", "types/"];
     private static readonly string[] CodexOnly = [".codex-plugin/"];
 
-    /// <summary>The <c>__ROOT__</c> value for a stamp in <paramref name="folder"/>: its <c>edgepad</c> folder, absolute, with forward slashes.</summary>
-    public static string RootOf(string folder) => Path.GetFullPath(Path.Combine(folder, PluginFolder)).Replace('\\', '/');
-
     /// <summary>Deletes <paramref name="folder"/> and writes the agent's copy there. Throws what the disk threw, or <see cref="InvalidDataException"/> for a bad bundle.</summary>
-    public static void Write(IPluginSource bundle, string agent, string folder, string nodePath, string version)
+    public static void Write(IPluginSource bundle, string agent, string folder, string appPath, string version)
     {
         if (!DashWire.IsAgent(agent))
         {
@@ -81,8 +77,7 @@ internal static class PluginStamp
         var root = Path.Combine(full, PluginFolder);
         var values = new Dictionary<string, string>
         {
-            [Node] = JsonEncodedText.Encode(nodePath).ToString(),
-            [Root] = JsonEncodedText.Encode(RootOf(full)).ToString(),
+            [App] = JsonEncodedText.Encode(appPath).ToString(),
             [Version] = JsonEncodedText.Encode(version).ToString(),
         };
 

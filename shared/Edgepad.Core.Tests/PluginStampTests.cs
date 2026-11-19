@@ -8,8 +8,8 @@ namespace Edgepad.Tests;
 
 public sealed class PluginStampTests : IDisposable
 {
-    // A Windows-looking node path with a space, a quote, a backslash run and a non-ASCII letter: the stamp must keep it whole.
-    private const string NodePath = @"C:\Pro gram\""q""\nöde\node.exe";
+    // A Windows-looking app path with a space, a quote, a backslash run and a non-ASCII letter: the stamp must keep it whole.
+    private const string AppPath = @"C:\Pro gram\""q""\nöde\Edgepad.exe";
 
     private readonly DirectoryInfo dir = Directory.CreateTempSubdirectory("edgepad-stamp");
 
@@ -35,19 +35,17 @@ public sealed class PluginStampTests : IDisposable
         JsonDocument.Parse(File.ReadAllText(Path.Combine(folder, PluginStamp.PluginFolder, "hooks", "hooks.json"))).RootElement;
 
     [Fact]
-    public void ClaudeHooksKeepTheNodeAndRootPathsWhole()
+    public void ClaudeHooksRunTheAppWithItsPathWhole()
     {
         var folder = Folder(AgentToken.Claude);
-        PluginStamp.Write(RealBundle(), AgentToken.Claude, folder, NodePath, "5.0.0");
+        PluginStamp.Write(RealBundle(), AgentToken.Claude, folder, AppPath, "5.0.0");
 
         var hook = Hooks(folder).GetProperty("hooks").GetProperty("PermissionRequest")[0].GetProperty("hooks")[0];
-        Assert.Equal(NodePath, hook.GetProperty("command").GetString());
-        Assert.Equal(PluginStamp.RootOf(folder) + "/scripts/edgepad-hook.mjs", hook.GetProperty("args")[0].GetString());
-        Assert.DoesNotContain('\\', PluginStamp.RootOf(folder));
-        Assert.True(Path.IsPathFullyQualified(PluginStamp.RootOf(folder)));
+        Assert.Equal(AppPath, hook.GetProperty("command").GetString());
+        Assert.Equal(new string?[] { "--hook", "claude", "perm" }, hook.GetProperty("args").EnumerateArray().Select(a => a.GetString()));
 
         var relay = File.ReadAllText(Path.Combine(folder, PluginStamp.PluginFolder, "hooks", "relay.ts"));
-        Assert.Contains("\"" + JsonEncodedText.Encode(NodePath).ToString() + "\"", relay, StringComparison.Ordinal);
+        Assert.Contains("\"" + JsonEncodedText.Encode(AppPath).ToString() + "\"", relay, StringComparison.Ordinal);
 
         using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(folder, PluginStamp.PluginFolder, ".claude-plugin", "plugin.json")));
         Assert.Equal("5.0.0", manifest.RootElement.GetProperty("version").GetString());
@@ -57,10 +55,10 @@ public sealed class PluginStampTests : IDisposable
     public void CodexHooksCarryTheQuotedCommandLine()
     {
         var folder = Folder(AgentToken.Codex);
-        PluginStamp.Write(RealBundle(), AgentToken.Codex, folder, NodePath, "5.0.0");
+        PluginStamp.Write(RealBundle(), AgentToken.Codex, folder, AppPath, "5.0.0");
 
         var command = Hooks(folder).GetProperty("hooks").GetProperty("PermissionRequest")[0].GetProperty("hooks")[0].GetProperty("command").GetString();
-        Assert.Equal($"\"{NodePath}\" \"{PluginStamp.RootOf(folder)}/scripts/edgepad-hook.mjs\" codex perm", command);
+        Assert.Equal($"\"{AppPath}\" --hook codex perm", command);
     }
 
     [Fact]
@@ -69,11 +67,11 @@ public sealed class PluginStampTests : IDisposable
         foreach (var agent in new[] { AgentToken.Claude, AgentToken.Codex })
         {
             var folder = Folder(agent);
-            PluginStamp.Write(RealBundle(), agent, folder, NodePath, "5.0.0");
+            PluginStamp.Write(RealBundle(), agent, folder, AppPath, "5.0.0");
             foreach (var file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
             {
                 var text = File.ReadAllText(file);
-                foreach (var placeholder in new[] { PluginStamp.Node, PluginStamp.Root, PluginStamp.Version })
+                foreach (var placeholder in new[] { PluginStamp.App, PluginStamp.Version, "__NODE__", "__ROOT__" })
                 {
                     Assert.DoesNotContain(placeholder, text, StringComparison.Ordinal);
                 }
@@ -91,8 +89,8 @@ public sealed class PluginStampTests : IDisposable
     {
         var claude = Folder(AgentToken.Claude);
         var codex = Folder(AgentToken.Codex);
-        PluginStamp.Write(RealBundle(), AgentToken.Claude, claude, NodePath, "5.0.0");
-        PluginStamp.Write(RealBundle(), AgentToken.Codex, codex, NodePath, "5.0.0");
+        PluginStamp.Write(RealBundle(), AgentToken.Claude, claude, AppPath, "5.0.0");
+        PluginStamp.Write(RealBundle(), AgentToken.Codex, codex, AppPath, "5.0.0");
 
         string[] Files(string folder) =>
             [.. Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories).Select(f => Path.GetRelativePath(folder, f).Replace('\\', '/')).Order(StringComparer.Ordinal)];
@@ -100,9 +98,8 @@ public sealed class PluginStampTests : IDisposable
         var codexFiles = Files(codex);
         Assert.Contains("edgepad/hooks/hooks.json", codexFiles);
         Assert.Contains("edgepad/.codex-plugin/plugin.json", codexFiles);
-        Assert.Contains("edgepad/scripts/edgepad-hook.mjs", codexFiles);
         Assert.Contains(".claude-plugin/marketplace.json", codexFiles);
-        foreach (var claudeOnly in new[] { "edgepad/hooks/relay.ts", "edgepad/scripts/scan-claude.mjs", "edgepad/scripts/prices.mjs", "edgepad/scripts/cache.mjs", "edgepad/.claude-plugin/plugin.json" })
+        foreach (var claudeOnly in new[] { "edgepad/hooks/relay.ts", "edgepad/.claude-plugin/plugin.json" })
         {
             Assert.DoesNotContain(claudeOnly, codexFiles);
         }
@@ -112,8 +109,10 @@ public sealed class PluginStampTests : IDisposable
 
         var claudeFiles = Files(claude);
         Assert.Contains("edgepad/hooks/relay.ts", claudeFiles);
-        Assert.Contains("edgepad/scripts/scan-claude.mjs", claudeFiles);
         Assert.DoesNotContain("edgepad/.codex-plugin/plugin.json", claudeFiles);
+
+        // Nothing that needs a script runtime ships.
+        Assert.DoesNotContain(claudeFiles.Concat(codexFiles), f => f.EndsWith(".mjs", StringComparison.Ordinal) || f.EndsWith(".js", StringComparison.Ordinal));
         Assert.Equal("./relay.ts", Hooks(claude).GetProperty("modules")[0].GetString());
 
         using var market = JsonDocument.Parse(File.ReadAllText(Path.Combine(codex, ".claude-plugin", "marketplace.json")));
@@ -125,12 +124,12 @@ public sealed class PluginStampTests : IDisposable
     public void AStampIsAlwaysFresh()
     {
         var folder = Folder(AgentToken.Claude);
-        PluginStamp.Write(RealBundle(), AgentToken.Claude, folder, NodePath, "5.0.0");
-        var planted = Path.Combine(folder, PluginStamp.PluginFolder, "scripts", "planted.mjs");
+        PluginStamp.Write(RealBundle(), AgentToken.Claude, folder, AppPath, "5.0.0");
+        var planted = Path.Combine(folder, PluginStamp.PluginFolder, "hooks", "planted.mjs");
         File.WriteAllText(planted, "evil");
         File.WriteAllText(Path.Combine(folder, PluginStamp.PluginFolder, "hooks", "hooks.json"), "{}");
 
-        PluginStamp.Write(RealBundle(), AgentToken.Claude, folder, NodePath, "5.0.1");
+        PluginStamp.Write(RealBundle(), AgentToken.Claude, folder, AppPath, "5.0.1");
 
         Assert.False(File.Exists(planted));
         Assert.True(Hooks(folder).TryGetProperty("hooks", out _));
@@ -143,10 +142,10 @@ public sealed class PluginStampTests : IDisposable
     public void AnEntryLeavingTheFolderStopsTheStampAndKeepsTheOldCopy(string entry)
     {
         var folder = Folder(AgentToken.Claude);
-        PluginStamp.Write(RealBundle(), AgentToken.Claude, folder, NodePath, "5.0.0");
+        PluginStamp.Write(RealBundle(), AgentToken.Claude, folder, AppPath, "5.0.0");
 
         var bad = new MemorySource(new() { ["hooks/hooks.claude.json"] = "{}"u8.ToArray(), [entry] = "x"u8.ToArray() });
-        Assert.Throws<InvalidDataException>(() => PluginStamp.Write(bad, AgentToken.Claude, folder, NodePath, "5.0.0"));
+        Assert.Throws<InvalidDataException>(() => PluginStamp.Write(bad, AgentToken.Claude, folder, AppPath, "5.0.0"));
         Assert.True(File.Exists(Path.Combine(folder, PluginStamp.PluginFolder, "hooks", "relay.ts")));
         Assert.False(File.Exists(Path.Combine(dir.FullName, "evil.txt")));
     }
@@ -159,33 +158,32 @@ public sealed class PluginStampTests : IDisposable
             ["hooks/hooks.claude.json"] = "{}"u8.ToArray(),
             ["scripts/big.mjs"] = new byte[PluginStamp.MaxEntryBytes + 1],
         });
-        Assert.Throws<InvalidDataException>(() => PluginStamp.Write(big, AgentToken.Claude, Folder(AgentToken.Claude), NodePath, "5.0.0"));
+        Assert.Throws<InvalidDataException>(() => PluginStamp.Write(big, AgentToken.Claude, Folder(AgentToken.Claude), AppPath, "5.0.0"));
 
         var exact = new MemorySource(new()
         {
             ["hooks/hooks.claude.json"] = "{}"u8.ToArray(),
             ["scripts/big.mjs"] = new byte[PluginStamp.MaxEntryBytes],
         });
-        PluginStamp.Write(exact, AgentToken.Claude, Folder(AgentToken.Claude), NodePath, "5.0.0");
+        PluginStamp.Write(exact, AgentToken.Claude, Folder(AgentToken.Claude), AppPath, "5.0.0");
     }
 
     [Fact]
     public void ABundleWithoutTheAgentsHooksIsRefused()
     {
         var none = new MemorySource(new() { ["hooks/hooks.claude.json"] = "{}"u8.ToArray() });
-        Assert.Throws<InvalidDataException>(() => PluginStamp.Write(none, AgentToken.Codex, Folder(AgentToken.Codex), NodePath, "5.0.0"));
+        Assert.Throws<InvalidDataException>(() => PluginStamp.Write(none, AgentToken.Codex, Folder(AgentToken.Codex), AppPath, "5.0.0"));
     }
 
     [Fact]
     public void TheValuesAreJsonEscapedNotConcatenated()
     {
-        var bundle = new MemorySource(new() { ["hooks/hooks.claude.json"] = Encoding.UTF8.GetBytes("""{"n":"__NODE__","r":"__ROOT__/x","v":"__VERSION__"}""") });
+        var bundle = new MemorySource(new() { ["hooks/hooks.claude.json"] = Encoding.UTF8.GetBytes("""{"n":"__APP__","v":"__VERSION__"}""") });
         var folder = Folder(AgentToken.Claude);
-        PluginStamp.Write(bundle, AgentToken.Claude, folder, NodePath, "5.0.0 \"beta\"");
+        PluginStamp.Write(bundle, AgentToken.Claude, folder, AppPath, "5.0.0 \"beta\"");
 
         var hooks = Hooks(folder);
-        Assert.Equal(NodePath, hooks.GetProperty("n").GetString());
-        Assert.Equal(PluginStamp.RootOf(folder) + "/x", hooks.GetProperty("r").GetString());
+        Assert.Equal(AppPath, hooks.GetProperty("n").GetString());
         Assert.Equal("5.0.0 \"beta\"", hooks.GetProperty("v").GetString());
     }
 

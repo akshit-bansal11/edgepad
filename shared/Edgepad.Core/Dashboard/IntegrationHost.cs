@@ -23,6 +23,9 @@ internal sealed class DashboardParts
     /// <summary>Codex on.</summary>
     public CodexWatcher? Codex { get; init; }
 
+    /// <summary>Claude on: reads Claude Code's spend from its transcripts.</summary>
+    public ClaudeSpendWatcher? Claude { get; init; }
+
     /// <summary>Weather on.</summary>
     public WeatherClient? Weather { get; init; }
 
@@ -122,6 +125,7 @@ internal sealed class IntegrationHost : IDisposable
     public void Start()
     {
         parts.Codex?.Evaluate();
+        parts.Claude?.Evaluate();
         if (AgentsOn && parts.Sessions is not null)
         {
             SendSessions();
@@ -222,6 +226,7 @@ internal sealed class IntegrationHost : IDisposable
         }
 
         parts.Codex?.SetWatch(mask);
+        parts.Claude?.SetWatch(mask);
         if (aiGained && AgentsOn)
         {
             SendLimits();
@@ -276,6 +281,7 @@ internal sealed class IntegrationHost : IDisposable
         }
 
         parts.Codex?.Evaluate();
+        parts.Claude?.Evaluate();
         ended.Dispose();
     }
 

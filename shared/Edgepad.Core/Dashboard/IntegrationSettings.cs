@@ -37,7 +37,8 @@ internal sealed class IntegrationSettings(string path)
 
     public static string PluginVersionKey(string agent) => "pluginVersion." + agent;
 
-    public static string PluginNodeKey(string agent) => "pluginNode." + agent;
+    /// <summary>The app executable last stamped as <c>__APP__</c> for the agent.</summary>
+    public static string PluginAppKey(string agent) => "pluginApp." + agent;
 
     /// <summary>True only when the stored value is exactly <c>1</c>.</summary>
     public bool Flag(string key)

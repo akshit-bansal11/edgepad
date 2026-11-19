@@ -4,14 +4,14 @@
       {
         "matcher": "*",
         "hooks": [
-          { "type": "command", "command": "\"__NODE__\" \"__ROOT__/scripts/edgepad-hook.mjs\" codex perm", "timeout": 120 }
+          { "type": "command", "command": "\"__APP__\" --hook codex perm", "timeout": 120 }
         ]
       }
     ],
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "\"__NODE__\" \"__ROOT__/scripts/edgepad-hook.mjs\" codex session", "timeout": 5 }
+          { "type": "command", "command": "\"__APP__\" --hook codex session", "timeout": 5 }
         ]
       }
     ]

@@ -19,13 +19,13 @@ internal enum PluginState
     /// <summary>Codex installed the plugin; the person still has to trust its hooks in /hooks or Settings > Hooks.</summary>
     AwaitingTrust,
 
-    /// <summary>The copy was re-stamped (app updated, Node moved): open sessions need a restart or /reload-plugins.</summary>
+    /// <summary>The copy was re-stamped (app updated or moved): open sessions need a restart or /reload-plugins.</summary>
     RestartSessions,
 
     /// <summary>The CLI could not be run, or did not report success: <see cref="PluginResult.Commands"/> holds what to run by hand.</summary>
     ManualSteps,
 
-    /// <summary>No Node.js 20.1 or newer on PATH.</summary>
+    /// <summary>Never returned since 5.0.0 (the hooks run the app, not Node). Kept only so the platforms' state maps still build; drop it with them.</summary>
     NodeMissing,
 
     /// <summary>The agent's CLI is not on PATH. <see cref="PluginResult.Commands"/> still names the folder, for Codex Desktop's Plugins Directory.</summary>
@@ -57,30 +57,31 @@ internal sealed partial class PluginInstaller
     public const string MarketplaceName = "edgepad";
     public const string PluginId = "edgepad@edgepad";
     public static readonly TimeSpan Timeout = TimeSpan.FromSeconds(60);
-    public static readonly Version MinNode = new(20, 1);
     public static readonly Version MinCodex = new(0, 159);
 
     private static readonly string[] Agents = [AgentToken.Claude, AgentToken.Codex];
     private static readonly string[] VersionArgs = ["--version"];
-    private static readonly string[] WindowsNode = ["node.exe"];
-    private static readonly string[] UnixNode = ["node"];
 
     private readonly IPluginSource bundle;
     private readonly IntegrationSettings settings;
     private readonly string pluginsRoot;
     private readonly string version;
+    private readonly string appPath;
     private readonly IProcessRunner runner;
     private readonly Func<string?> path;
 
     /// <param name="pluginsRoot">The folder holding the per-agent copies; <see cref="DefaultRoot"/> in the apps.</param>
     /// <param name="version">This app's version, stamped as the plugin's and stored to notice an update.</param>
     /// <param name="path">For tests: the PATH value. The process's PATH by default.</param>
-    public PluginInstaller(IPluginSource bundle, IntegrationSettings settings, string pluginsRoot, string version, IProcessRunner? runner = null, Func<string?>? path = null)
+    /// <param name="appPath">For tests: this app's own executable, which the hooks run as <c>"__APP__" --hook &lt;agent&gt; &lt;kind&gt;</c>
+    /// and which is stored to notice a moved app. <see cref="Environment.ProcessPath"/> by default.</param>
+    public PluginInstaller(IPluginSource bundle, IntegrationSettings settings, string pluginsRoot, string version, IProcessRunner? runner = null, Func<string?>? path = null, string? appPath = null)
     {
         this.bundle = bundle;
         this.settings = settings;
         this.pluginsRoot = pluginsRoot;
         this.version = version;
+        this.appPath = appPath ?? Environment.ProcessPath ?? string.Empty;
         this.runner = runner ?? new ProcessRunner();
         this.path = path ?? (() => Environment.GetEnvironmentVariable("PATH"));
     }
@@ -123,22 +124,12 @@ internal sealed partial class PluginInstaller
     public async Task<PluginResult> ConnectAsync(string agent, CancellationToken cancellationToken)
     {
         var folder = FolderOf(agent);
-        if (!SafePath(folder))
+        if (!SafePath(folder) || !SafePath(appPath))
         {
             return new PluginResult(PluginState.ManualSteps, Commands(agent));
         }
 
-        if (await FindNodeAsync(cancellationToken).ConfigureAwait(false) is not { } node)
-        {
-            return PluginResult.Of(PluginState.NodeMissing);
-        }
-
-        if (!SafePath(node))
-        {
-            return new PluginResult(PluginState.ManualSteps, Commands(agent));
-        }
-
-        if (!Stamp(agent, node))
+        if (!Stamp(agent))
         {
             return PluginResult.Of(PluginState.Failed);
         }
@@ -171,7 +162,7 @@ internal sealed partial class PluginInstaller
         }
 
         settings.Set(IntegrationSettings.PluginVersionKey(agent), version);
-        settings.Set(IntegrationSettings.PluginNodeKey(agent), node);
+        settings.Set(IntegrationSettings.PluginAppKey(agent), appPath);
         settings.SetFlag(agent, true);
         return PluginResult.Of(agent == AgentToken.Codex ? PluginState.AwaitingTrust : PluginState.Connected);
     }
@@ -208,7 +199,7 @@ internal sealed partial class PluginInstaller
         }
 
         settings.Set(IntegrationSettings.PluginVersionKey(agent), string.Empty);
-        settings.Set(IntegrationSettings.PluginNodeKey(agent), string.Empty);
+        settings.Set(IntegrationSettings.PluginAppKey(agent), string.Empty);
         if (agent == AgentToken.Codex)
         {
             settings.SetFlag(IntegrationSettings.CodexTrusted, false);
@@ -218,59 +209,39 @@ internal sealed partial class PluginInstaller
     }
 
     /// <summary>
-    /// At app start and when the window opens: a connected agent whose copy was stamped by another app version or for a Node that is
-    /// no longer the one on PATH is re-stamped in place, with no CLI call, and reported <see cref="PluginState.RestartSessions"/>;
-    /// <see cref="PluginState.NodeMissing"/> when no Node is left. Agents with nothing to do are not listed.
+    /// At app start and when the window opens: a connected agent whose copy was stamped by another app version or for an app at
+    /// another path (including a copy from before 5.0.0, which ran Node) is re-stamped in place, with no CLI call, and reported
+    /// <see cref="PluginState.RestartSessions"/>; <see cref="PluginState.Failed"/> when it cannot be. Agents with nothing to do are
+    /// not listed.
     /// </summary>
-    public async Task<IReadOnlyList<(string Agent, PluginState State)>> EnsureCurrentAsync(CancellationToken cancellationToken)
+    public Task<IReadOnlyList<(string Agent, PluginState State)>> EnsureCurrentAsync(CancellationToken cancellationToken)
     {
         var notices = new List<(string, PluginState)>();
         foreach (var agent in Agents)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!settings.Flag(agent))
             {
                 continue;
             }
 
-            var stampedNode = settings.Text(IntegrationSettings.PluginNodeKey(agent));
-            if (settings.Text(IntegrationSettings.PluginVersionKey(agent)) == version && stampedNode.Length > 0 && File.Exists(stampedNode))
+            if (settings.Text(IntegrationSettings.PluginVersionKey(agent)) == version && settings.Text(IntegrationSettings.PluginAppKey(agent)) == appPath)
             {
                 continue;
             }
 
-            if (await FindNodeAsync(cancellationToken).ConfigureAwait(false) is not { } node || !SafePath(node))
-            {
-                notices.Add((agent, PluginState.NodeMissing));
-                continue;
-            }
-
-            if (!SafePath(FolderOf(agent)) || !Stamp(agent, node))
+            if (!SafePath(appPath) || !SafePath(FolderOf(agent)) || !Stamp(agent))
             {
                 notices.Add((agent, PluginState.Failed));
                 continue;
             }
 
             settings.Set(IntegrationSettings.PluginVersionKey(agent), version);
-            settings.Set(IntegrationSettings.PluginNodeKey(agent), node);
+            settings.Set(IntegrationSettings.PluginAppKey(agent), appPath);
             notices.Add((agent, PluginState.RestartSessions));
         }
 
-        return notices;
-    }
-
-    /// <summary>The first absolute PATH folder holding <c>node</c> (<c>node.exe</c> on Windows) whose <c>--version</c> is 20.1 or newer.</summary>
-    public async Task<string?> FindNodeAsync(CancellationToken cancellationToken)
-    {
-        foreach (var candidate in Candidates(path(), OperatingSystem.IsWindows() ? WindowsNode : UnixNode))
-        {
-            var reply = await runner.RunAsync(candidate, VersionArgs,Path.GetDirectoryName(candidate)!, Timeout, cancellationToken).ConfigureAwait(false);
-            if (reply.ExitCode == 0 && NodeVersion(reply.LastLine) is { } found && found >= MinNode)
-            {
-                return candidate;
-            }
-        }
-
-        return null;
+        return Task.FromResult<IReadOnlyList<(string Agent, PluginState State)>>(notices);
     }
 
     /// <summary>The agent's CLI in the first absolute PATH folder that has it: <c>claude</c> or <c>codex</c>, on Windows as <c>.exe</c> or <c>.cmd</c>.</summary>
@@ -279,9 +250,6 @@ internal sealed partial class PluginInstaller
         var name = agent == AgentToken.Claude ? "claude" : "codex";
         return Candidates(pathVariable, OperatingSystem.IsWindows() ? [name + ".exe", name + ".cmd"] : [name]).FirstOrDefault();
     }
-
-    /// <summary><c>v20.1.0</c> to 20.1.0; null for anything else.</summary>
-    public static Version? NodeVersion(string text) => Parse(NodePattern().Match(text.Trim()));
 
     /// <summary><c>codex-cli 0.159.0</c> to 0.159.0; null for anything else.</summary>
     public static Version? CodexVersion(string text) => Parse(CodexPattern().Match(text.Trim()));
@@ -359,17 +327,14 @@ internal sealed partial class PluginInstaller
             ? new Version(major, minor, patch)
             : null;
 
-    [GeneratedRegex(@"^v(\d{1,4})\.(\d{1,4})\.(\d{1,6})$", RegexOptions.CultureInvariant)]
-    private static partial Regex NodePattern();
-
     [GeneratedRegex(@"^codex-cli (\d{1,4})\.(\d{1,4})\.(\d{1,6})(?:[-+][0-9A-Za-z.-]*)?$", RegexOptions.CultureInvariant)]
     private static partial Regex CodexPattern();
 
-    private bool Stamp(string agent, string node)
+    private bool Stamp(string agent)
     {
         try
         {
-            PluginStamp.Write(bundle, agent, FolderOf(agent), node, version);
+            PluginStamp.Write(bundle, agent, FolderOf(agent), appPath, version);
             return true;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)

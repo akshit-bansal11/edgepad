@@ -11,7 +11,6 @@ public sealed class PluginInstallerTests : IDisposable
     private readonly DirectoryInfo dir = Directory.CreateTempSubdirectory("edgepad-install");
     private readonly IntegrationSettings settings;
     private readonly FakeRunner runner;
-    private string nodeVersion = "v22.3.0";
     private string codexVersion = "codex-cli 0.159.0";
     private Func<string[], ProcessResult> cliReply = _ => new ProcessResult(0, Ok);
 
@@ -19,18 +18,17 @@ public sealed class PluginInstallerTests : IDisposable
     {
         settings = new IntegrationSettings(Path.Combine(dir.FullName, IntegrationSettings.FileName));
         Bin = Directory.CreateDirectory(Path.Combine(dir.FullName, "bin")).FullName;
-        Node = Touch(OperatingSystem.IsWindows() ? "node.exe" : "node");
+        App = Path.Combine(dir.FullName, "app", OperatingSystem.IsWindows() ? "Edgepad.exe" : "edgepad");
         Claude = Touch(OperatingSystem.IsWindows() ? "claude.exe" : "claude");
         Codex = Touch(OperatingSystem.IsWindows() ? "codex.cmd" : "codex");
         runner = new FakeRunner((file, args) =>
-            file == Node ? new ProcessResult(0, nodeVersion)
-            : file == Codex && args is ["--version"] ? new ProcessResult(0, codexVersion)
+            file == Codex && args is ["--version"] ? new ProcessResult(0, codexVersion)
             : cliReply(args));
     }
 
     private string Bin { get; }
 
-    private string Node { get; }
+    private string App { get; }
 
     private string Claude { get; }
 
@@ -49,10 +47,10 @@ public sealed class PluginInstallerTests : IDisposable
         return file;
     }
 
-    private PluginInstaller New(string? root = null, string version = "5.0.0", string? path = null) =>
-        new(PluginStampTests.RealBundle(), settings, root ?? Root, version, runner, () => path ?? Bin);
+    private PluginInstaller New(string? root = null, string version = "5.0.0", string? path = null, string? app = null) =>
+        new(PluginStampTests.RealBundle(), settings, root ?? Root, version, runner, () => path ?? Bin, app ?? App);
 
-    private List<(string File, string[] Args, string Cwd)> CliCalls() => [.. runner.Calls.Where(c => c.File != Node)];
+    private List<(string File, string[] Args, string Cwd)> CliCalls() => [.. runner.Calls];
 
     [Fact]
     public async Task ClaudeConnectRunsTheTwoDocumentedCommands()
@@ -71,7 +69,7 @@ public sealed class PluginInstallerTests : IDisposable
             new CallComparer());
         Assert.True(settings.Flag(IntegrationSettings.Claude));
         Assert.Equal("5.0.0", settings.Text(IntegrationSettings.PluginVersionKey(AgentToken.Claude)));
-        Assert.Equal(Node, settings.Text(IntegrationSettings.PluginNodeKey(AgentToken.Claude)));
+        Assert.Equal(App, settings.Text(IntegrationSettings.PluginAppKey(AgentToken.Claude)));
         Assert.True(File.Exists(Path.Combine(folder, ".claude-plugin", "marketplace.json")));
         Assert.Equal(PluginState.Connected, installer.Status(AgentToken.Claude));
     }
@@ -113,16 +111,6 @@ public sealed class PluginInstallerTests : IDisposable
         Assert.Equal(expected == PluginState.AwaitingTrust, settings.Flag(IntegrationSettings.Codex));
     }
 
-    [Theory]
-    [InlineData("v20.1.0", true)]
-    [InlineData("v20.0.9", false)]
-    [InlineData("v18.0.0", false)]
-    [InlineData("v22.11.0", true)]
-    [InlineData("20.1.0", false)]
-    [InlineData("garbage", false)]
-    public void NodeVersionsParse(string text, bool enough) =>
-        Assert.Equal(enough, PluginInstaller.NodeVersion(text) is { } v && v >= PluginInstaller.MinNode);
-
     [Fact]
     public void CodexVersionsParse()
     {
@@ -133,12 +121,23 @@ public sealed class PluginInstallerTests : IDisposable
     }
 
     [Fact]
-    public async Task AnOldOrMissingNodeIsNodeMissing()
+    public async Task AnAppPathAShellWouldReadIsManualStepsAndRunsNothing()
     {
-        nodeVersion = "v18.0.0";
-        Assert.Equal(PluginState.NodeMissing, (await New().ConnectAsync(AgentToken.Claude, Ct)).State);
-        Assert.Empty(CliCalls());
-        Assert.Equal(PluginState.NodeMissing, (await New(path: Path.Combine(dir.FullName, "empty")).ConnectAsync(AgentToken.Claude, Ct)).State);
+        var result = await New(app: Path.Combine(dir.FullName, "a$(x)", "Edgepad.exe")).ConnectAsync(AgentToken.Claude, Ct);
+        Assert.Equal(PluginState.ManualSteps, result.State);
+        Assert.Empty(runner.Calls);
+        Assert.False(settings.Flag(IntegrationSettings.Claude));
+    }
+
+    [Fact]
+    public async Task NoNodeIsNeededOrLookedFor()
+    {
+        var result = await New(path: Bin).ConnectAsync(AgentToken.Claude, Ct);
+        Assert.Equal(PluginState.Connected, result.State);
+        Assert.DoesNotContain(runner.Calls, c => Path.GetFileNameWithoutExtension(c.File) == "node");
+        var hooks = File.ReadAllText(Path.Combine(New().FolderOf(AgentToken.Claude), "edgepad", "hooks", "hooks.json"));
+        Assert.Contains(System.Text.Json.JsonEncodedText.Encode(App).ToString(), hooks, StringComparison.Ordinal);
+        Assert.Contains("--hook", hooks, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -285,16 +284,21 @@ public sealed class PluginInstallerTests : IDisposable
     }
 
     [Fact]
-    public async Task EnsureCurrentRestampsWhenTheStampedNodeIsGone()
+    public async Task EnsureCurrentRestampsWhenTheAppMovedOrTheCopyRanNode()
     {
         await New().ConnectAsync(AgentToken.Claude, Ct);
-        settings.Set(IntegrationSettings.PluginNodeKey(AgentToken.Claude), Path.Combine(dir.FullName, "gone", "node"));
+        var moved = Path.Combine(dir.FullName, "moved", "Edgepad.exe");
 
+        Assert.Equal<(string, PluginState)>([(AgentToken.Claude, PluginState.RestartSessions)], await New(app: moved).EnsureCurrentAsync(Ct));
+        Assert.Equal(moved, settings.Text(IntegrationSettings.PluginAppKey(AgentToken.Claude)));
+        Assert.Empty(CliCalls().Skip(2));
+
+        // A copy stamped before 5.0.0 saved a Node path and no app path.
+        settings.Set(IntegrationSettings.PluginAppKey(AgentToken.Claude), string.Empty);
         Assert.Equal<(string, PluginState)>([(AgentToken.Claude, PluginState.RestartSessions)], await New().EnsureCurrentAsync(Ct));
-        Assert.Equal(Node, settings.Text(IntegrationSettings.PluginNodeKey(AgentToken.Claude)));
+        Assert.Equal(App, settings.Text(IntegrationSettings.PluginAppKey(AgentToken.Claude)));
 
-        settings.Set(IntegrationSettings.PluginVersionKey(AgentToken.Claude), "4.9.0");
-        Assert.Equal<(string, PluginState)>([(AgentToken.Claude, PluginState.NodeMissing)], await New(path: Path.Combine(dir.FullName, "empty")).EnsureCurrentAsync(Ct));
+        Assert.Equal<(string, PluginState)>([(AgentToken.Claude, PluginState.Failed)], await New(app: Path.Combine(dir.FullName, "a&b", "Edgepad.exe")).EnsureCurrentAsync(Ct));
     }
 
     [Fact]

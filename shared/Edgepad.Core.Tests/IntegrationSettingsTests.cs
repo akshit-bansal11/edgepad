@@ -92,7 +92,7 @@ public sealed class IntegrationSettingsTests : IDisposable
         Assert.True(settings.Set(IntegrationSettings.Place, "Lisbon, Portugal"));
         Assert.True(settings.Set(IntegrationSettings.GitHubLogin, "octo-cat"));
         Assert.True(settings.Set(IntegrationSettings.PluginVersionKey("claude"), "5.0.0"));
-        Assert.True(settings.Set(IntegrationSettings.PluginNodeKey("codex"), "C:/Program Files/nodejs/node.exe"));
+        Assert.True(settings.Set(IntegrationSettings.PluginAppKey("codex"), "C:/Program Files/Edgepad/Edgepad.exe"));
 
         var again = new IntegrationSettings(FilePath);
 
@@ -108,7 +108,7 @@ public sealed class IntegrationSettingsTests : IDisposable
         Assert.Equal("Lisbon, Portugal", again.Text(IntegrationSettings.Place));
         Assert.Equal("octo-cat", again.Text(IntegrationSettings.GitHubLogin));
         Assert.Equal("5.0.0", again.Text(IntegrationSettings.PluginVersionKey("claude")));
-        Assert.Equal("C:/Program Files/nodejs/node.exe", again.Text(IntegrationSettings.PluginNodeKey("codex")));
+        Assert.Equal("C:/Program Files/Edgepad/Edgepad.exe", again.Text(IntegrationSettings.PluginAppKey("codex")));
     }
 
     [Theory]

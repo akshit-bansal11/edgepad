@@ -1,4 +1,4 @@
-// Claude Code mod: forwards the plan limits and context fill to the Edgepad app through the hook client.
+// Claude Code mod: forwards the plan limits and context fill to the Edgepad app, run as its own hook client.
 // No UI, atoms or commands. The laptop maps the limit kinds; this only forwards what Claude reports.
 import type { EngineInterface, Register } from 'claude-code'
 
@@ -16,7 +16,7 @@ const send = async ($: EngineInterface, force: boolean) => {
       context: { percent: u.context.percent },
     })
     await $.process.run(
-      ["__NODE__", `${$.plugin.root}/scripts/edgepad-hook.mjs`, 'claude', 'usage', payload],
+      ["__APP__", '--hook', 'claude', 'usage', payload],
       { timeoutMs: 5000 },
     )
   } catch {

@@ -166,7 +166,7 @@ Everything here is off until you turn it on. In the laptop app, open the menu an
 
 - **Widgets on the phone.** Clock, weather, system numbers, network and AI usage, drawn behind the trackpad. Move them in the layout editor.
 - **System, AI and GitHub screens.** Reached from the Controls popup on the phone.
-- **Claude Code and Codex.** Approve their requests from the phone, and see their sessions, limits and spend. Needs Claude Code, or Codex 0.159 or newer. The approval hooks and the Claude spend scanner need Node.js 20.1 or newer. If Node.js is missing, the Integrations window says so and links to https://nodejs.org.
+- **Claude Code and Codex.** Approve their requests from the phone, and see their sessions, limits and spend. Needs Claude Code, or Codex 0.159 or newer. Nothing else to install: the hooks run the Edgepad app itself, and the app reads Claude spend from Claude Code's own transcripts.
 - **GitHub.** Sign in with a GitHub account to see review requests, your pull requests with their checks, and notifications. Private repositories are included only if you tick **Include private repositories**.
 
 What leaves the laptop:
